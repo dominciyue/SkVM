@@ -144,3 +144,4 @@ export type SkillIR = z.infer<typeof SkillIRSchema>;
 export type Step = z.infer<typeof StepSchema>;
 export type Rule = z.infer<typeof RuleSchema>;
 export type RuntimeCheck = z.infer<typeof RuntimeCheckSchema>;
+export type ProfileAnnotation = z.infer<typeof ProfileAnnotationSchema>;
