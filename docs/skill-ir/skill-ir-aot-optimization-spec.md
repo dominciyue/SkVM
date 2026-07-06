@@ -494,3 +494,56 @@ S4: Skill IR + static AOT passes + profile-guided optimization
 - 跨 agent、环境、上下文方差下降。
 - rule violation 和 required step skip 明显减少。
 
+## 18. Literature Calibration After Task 7.5
+
+Task 7.5 adds a literature-driven calibration step. The implementation direction remains Skill IR as an AOT pass inside the SkVM skill compilation pipeline, but the research framing and later evaluation should be sharpened.
+
+### 18.1 Positioning
+
+The closest system-level neighbor is SkillRT / SkVM, which treats skills as compilable artifacts for heterogeneous model-harness pairs. This project should be positioned as a semantic IR layer inside that broader compilation story: it makes workflows, constraints, tools, environment assumptions, runtime checks, recovery policies, and profile feedback explicit before optimization and lowering.
+
+This project should not claim to replace SkVM. It adds a focused semantic representation and a small set of AOT passes that make skills more checkable and stable across agents, environments, and contexts.
+
+### 18.2 Benchmark Refinements
+
+The benchmark design should use paired evaluation. Each system should be compared on the same `caseId`, where a case is a stable skill, task, agent, environment, and context tuple. This makes negative deltas visible instead of hiding them inside averages.
+
+The compared systems should include:
+
+```text
+S0: No skill
+S1: Original natural-language skill
+S2: SkVM AOT baseline
+S3: Initial Skill IR only
+S4: Skill IR with static AOT passes
+S5: Skill IR with static AOT passes and profile-guided optimization
+```
+
+The result analysis should report mean success, worst-case success, variance across settings, paired delta versus original, regression count, rule violation rate, step coverage, and required-step skip rate.
+
+### 18.3 Runtime Enforcement Framing
+
+Checker lowering should be described as lightweight runtime enforcement. The current `RuntimeCheck` fields are intentionally simple, but they already represent a path from natural-language constraints to checkable artifacts. Later versions can evolve from string assertions toward trigger, predicate, and enforcement-action structures.
+
+The "No Checker" ablation is important because it isolates whether explicit runtime checking adds value beyond clearer prompts and static IR.
+
+### 18.4 Typed Trace Feedback
+
+Profile-guided repair should be described as typed trace feedback. The trace does not merely become reflective text. Repeated failure patterns become `ProfileAnnotation` records, and those records can generate checks, guards, or recovery policies.
+
+Case studies should show the full chain:
+
+```text
+execution trace
+  -> profile annotation
+  -> generated check or recovery policy
+  -> changed behavior in a later run
+```
+
+### 18.5 Adapter As Agent-Computer Interface
+
+Adapter lowering should be treated as an agent-computer interface layer. Tool availability, alternatives, platform notes, and environment assumptions shape what the agent can reliably do. Benchmark failures should be tagged when the root cause is a poor interface or missing environment adaptation rather than reasoning failure.
+
+### 18.6 Non-Changes
+
+The literature review does not justify a large redesign at this stage. The project should not add full probabilistic model checking, a separate runtime-rule DSL, JIT recompilation, or automatic concurrency extraction before the current end-to-end research loop exists. These ideas can be listed as future work after benchmark results and case studies are available.

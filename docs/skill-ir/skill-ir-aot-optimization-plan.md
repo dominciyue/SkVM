@@ -1356,12 +1356,88 @@ git add src/skill-ir/lowering
 git commit -m "feat: lower skill ir into runtime artifacts"
 ```
 
+## Task 7.5: Literature Calibration And Project Refinement
+
+**Files:**
+- Create: `docs/skill-ir/related-work.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-spec.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
+
+**Goal:** Strengthen the research basis of the project without restarting the implementation.
+
+- [ ] **Step 1: Read related work**
+
+Read the following work and extract only project-relevant points:
+
+```text
+SkillRT / SkVM: skill compilation, capability profiling, portability
+SkillsBench: paired skill evaluation, deterministic verifiers, negative deltas
+AgentSpec / AgentGuard / C-Trace: runtime enforcement and trace predicates
+Reflexion / Voyager / ToolEmu: trace feedback, skill libraries, failure-oriented evaluation
+SWE-agent: agent-computer interface design
+```
+
+- [ ] **Step 2: Write literature calibration**
+
+Create `docs/skill-ir/related-work.md` with:
+
+```text
+Core positioning
+Skill evaluation
+Runtime enforcement and verification
+Trace feedback and skill repair
+Agent interfaces
+What not to change now
+Concrete changes to the project plan
+```
+
+- [ ] **Step 3: Update project spec**
+
+Append a literature-calibration section to `docs/skill-ir/skill-ir-aot-optimization-spec.md` that records:
+
+```text
+Skill IR remains the core direction.
+Benchmarking should use paired comparisons and negative-delta detection.
+Checker lowering should be described as lightweight runtime enforcement.
+Profile-guided repair should be described as typed trace feedback.
+Adapter lowering should be described as an agent-computer interface layer.
+```
+
+- [ ] **Step 4: Update implementation plan**
+
+Revise Task 8, Task 9, and Task 10 to include the literature-driven refinements.
+
+- [ ] **Step 5: Verify docs**
+
+Run:
+
+```powershell
+rg -n "Task 7.5|paired|negative delta|runtime enforcement|typed trace feedback|AgentSpec|SkillsBench|SkillRT" docs/skill-ir
+```
+
+Expected: the new positioning appears in related work, spec, and plan.
+
+- [ ] **Step 6: Commit**
+
+Run:
+
+```powershell
+git add docs/skill-ir/related-work.md docs/skill-ir/skill-ir-aot-optimization-spec.md docs/skill-ir/skill-ir-aot-optimization-plan.md
+git commit -m "docs: calibrate skill ir plan with related work"
+```
+
 ## Task 8: Benchmark Matrix
 
 **Files:**
 - Create: `src/benchmarks/skill-ir/matrix.ts`
 - Create: `src/benchmarks/skill-ir/matrix.test.ts`
 - Create: `src/benchmarks/skill-ir/run.ts`
+
+**Literature-driven refinements from Task 7.5:**
+- Matrix cases should preserve a stable `caseId` so systems can be compared pairwise on the same skill/task/agent/environment/context cell.
+- Systems should include `no-skill`, `original`, `skvm-aot`, `ir-only`, `ir-static`, and `ir-profile` when possible.
+- Benchmark metadata should distinguish focused skills from broad skills because broad skill packaging can confound evaluation.
+- Later analysis should make negative deltas visible rather than only reporting average improvement.
 
 - [ ] **Step 1: Write matrix tests**
 
@@ -1400,7 +1476,7 @@ describe("buildExperimentMatrix", () => {
 Create `src/benchmarks/skill-ir/matrix.ts`:
 
 ```ts
-export type ExperimentSystem = "original" | "skvm-aot" | "ir-only" | "ir-static" | "ir-profile";
+export type ExperimentSystem = "no-skill" | "original" | "skvm-aot" | "ir-only" | "ir-static" | "ir-profile";
 
 export type MatrixInput = {
   skills: string[];
@@ -1412,6 +1488,7 @@ export type MatrixInput = {
 };
 
 export type ExperimentCase = {
+  caseId: string;
   skill: string;
   agent: string;
   environment: string;
@@ -1427,8 +1504,9 @@ export function buildExperimentMatrix(input: MatrixInput): ExperimentCase[] {
       for (const environment of input.environments) {
         for (const context of input.contexts) {
           for (const task of input.tasks) {
+            const caseId = `${skill}:${agent}:${environment}:${context}:${task}`;
             for (const system of input.systems) {
-              cases.push({ skill, agent, environment, context, task, system });
+              cases.push({ caseId, skill, agent, environment, context, task, system });
             }
           }
         }
@@ -1452,7 +1530,7 @@ const matrix = buildExperimentMatrix({
   environments: ["linux", "windows"],
   contexts: ["clean", "noisy", "long", "compressed"],
   tasks: ["review-finding-order-001"],
-  systems: ["original", "skvm-aot", "ir-only", "ir-static", "ir-profile"],
+  systems: ["no-skill", "original", "skvm-aot", "ir-only", "ir-static", "ir-profile"],
 });
 
 console.log(JSON.stringify({ count: matrix.length, matrix }, null, 2));
@@ -1482,6 +1560,12 @@ git commit -m "feat: build skill ir experiment matrix"
 
 **Files:**
 - Create: `scripts/analyze_skill_ir_results.py`
+
+**Literature-driven refinements from Task 7.5:**
+- The analyzer should support paired comparison by `caseId`.
+- The analyzer should report `regression_count`: cases where an optimized system fails while the baseline succeeds.
+- The analyzer should report delta metrics against `original` or another configured baseline.
+- Summary tables should preserve mean success, worst-case success, variance, rule violations, and negative-delta visibility.
 
 - [ ] **Step 1: Create analyzer**
 
@@ -1573,6 +1657,15 @@ Get-Content results/skill-ir/sample.csv
 
 Expected: `ir-profile` has `mean_success` 1.0 and fewer rule violations than `original`.
 
+Before expanding this analyzer for the final experiment, add tests for paired `caseId` deltas:
+
+```json
+{"caseId":"skill-review:a1:linux:clean:task-1","system":"original","agent":"a1","environment":"linux","context":"clean","success":true,"ruleViolations":0}
+{"caseId":"skill-review:a1:linux:clean:task-1","system":"ir-profile","agent":"a1","environment":"linux","context":"clean","success":false,"ruleViolations":1}
+```
+
+Expected: `ir-profile` records one regression against `original`.
+
 - [ ] **Step 3: Commit**
 
 Run:
@@ -1587,6 +1680,14 @@ git commit -m "feat: summarize skill ir benchmark results"
 **Files:**
 - Create: `docs/skill-ir/experiment-design.md`
 
+**Literature-driven refinements from Task 7.5:**
+- Cite the need for paired evaluation and deterministic verifiers.
+- Include `no-skill` and `original` baselines before optimized Skill IR systems.
+- Track negative deltas, not only average improvements.
+- Treat checker lowering as runtime enforcement.
+- Treat profile-guided repair as typed trace feedback.
+- Treat adapter lowering as an agent-computer interface layer.
+
 - [ ] **Step 1: Write experiment design document**
 
 Create `docs/skill-ir/experiment-design.md` with these sections:
@@ -1600,20 +1701,24 @@ Create `docs/skill-ir/experiment-design.md` with these sections:
 2. Does Skill IR improve worst-case success?
 3. Does Skill IR reduce variance across settings?
 4. Which optimization pass contributes most to reduced rule violations and skipped required steps?
+5. How often does an optimized system regress relative to the original skill on paired cases?
 
 ## Systems Compared
 
-- S0 Original natural-language skill
-- S1 SkVM AOT baseline
-- S2 Initial Skill IR only
-- S3 Skill IR with static AOT passes
-- S4 Skill IR with static AOT passes and profile-guided optimization
+- S0 No skill
+- S1 Original natural-language skill
+- S2 SkVM AOT baseline
+- S3 Initial Skill IR only
+- S4 Skill IR with static AOT passes
+- S5 Skill IR with static AOT passes and profile-guided optimization
 
 ## Metrics
 
 - Mean Success Rate
 - Worst-case Success Rate
 - Variance across settings
+- Paired Delta vs Original
+- Regression Count
 - Rule Violation Rate
 - Step Coverage
 - Required Step Skip Rate
@@ -1866,4 +1971,3 @@ Expected:
 - Tests are introduced before implementation for core modules.
 - The implementation can start with independent Skill IR modules before touching SkVM internals.
 - The plan supports a broad version: 40-60 taxonomy skills, 18-24 full IR skills, 12-16 deep benchmark skills.
-
