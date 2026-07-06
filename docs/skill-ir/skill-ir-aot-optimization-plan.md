@@ -1747,7 +1747,70 @@ git add docs/skill-ir/experiment-design.md
 git commit -m "docs: describe skill ir experiment design"
 ```
 
-## Task 11: Full Evaluation Run
+## Task 11A: Small-Scale Real-Agent Dry Run Harness
+
+**Files:**
+- Create: `src/benchmarks/skill-ir/real-agent.ts`
+- Create: `src/benchmarks/skill-ir/real-agent.test.ts`
+- Create: `src/benchmarks/skill-ir/real-agent-run.ts`
+- Create: `docs/skill-ir/real-agent-dry-run.md`
+
+**Goal:** Connect the Skill IR benchmark matrix to real `skvm run` commands before expanding the deep benchmark corpus.
+
+- [ ] **Step 1: Write helper tests**
+
+Cover:
+
+```text
+Skill IR task -> SkVM task.json
+Skill IR system -> SKILL.md
+Materialized case -> task/skill files
+Materialized case -> bun run skvm run command
+```
+
+- [ ] **Step 2: Implement materialization helpers**
+
+Implement helpers for:
+
+```text
+buildSkvmTaskJson
+renderSkillMarkdown
+materializeCaseArtifacts
+buildSkvmRunCommand
+buildRunPlanEntry
+```
+
+- [ ] **Step 3: Implement dry-run CLI**
+
+Create a CLI that writes:
+
+```text
+results/skill-ir/real-agent-dry-run/plan.json
+```
+
+and only executes real agents when `--execute` is passed.
+
+- [ ] **Step 4: Verify dry-run**
+
+Run:
+
+```powershell
+bun test ./src/benchmarks/skill-ir/real-agent.test.ts
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--out-dir=results/skill-ir/real-agent-dry-run'
+```
+
+Expected: tests pass and `plan.json` contains runnable `bun run skvm run` commands.
+
+- [ ] **Step 5: Commit**
+
+Run:
+
+```powershell
+git add src/benchmarks/skill-ir/real-agent.ts src/benchmarks/skill-ir/real-agent.test.ts src/benchmarks/skill-ir/real-agent-run.ts docs/skill-ir/real-agent-dry-run.md docs/skill-ir/skill-ir-aot-optimization-plan.md
+git commit -m "feat: prepare skill ir real-agent dry run"
+```
+
+## Task 11B: Full Evaluation Run
 
 **Files:**
 - Create: `results/skill-ir/main-results.jsonl`
