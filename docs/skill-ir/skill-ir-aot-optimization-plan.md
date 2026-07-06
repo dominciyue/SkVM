@@ -1753,7 +1753,11 @@ git commit -m "docs: describe skill ir experiment design"
 - Create: `src/benchmarks/skill-ir/real-agent.ts`
 - Create: `src/benchmarks/skill-ir/real-agent.test.ts`
 - Create: `src/benchmarks/skill-ir/real-agent-run.ts`
+- Create: `src/benchmarks/skill-ir/scoring.ts`
+- Create: `src/benchmarks/skill-ir/scoring.test.ts`
+- Create: `src/benchmarks/skill-ir/score-real-agent-runs.ts`
 - Create: `docs/skill-ir/real-agent-dry-run.md`
+- Create: `docs/skill-ir/real-agent-scoring.md`
 
 **Goal:** Connect the Skill IR benchmark matrix to real `skvm run` commands before expanding the deep benchmark corpus.
 
@@ -1810,6 +1814,74 @@ git add src/benchmarks/skill-ir/real-agent.ts src/benchmarks/skill-ir/real-agent
 git commit -m "feat: prepare skill ir real-agent dry run"
 ```
 
+- [ ] **Step 6: Write scoring-layer tests**
+
+Cover:
+
+```text
+caseId -> benchmark dimensions
+SkVM stdout -> final output
+task successCriteria -> success/ruleViolations/stepCoverage
+raw-runs.jsonl row -> analyzer-compatible result row
+CLI raw-runs.jsonl -> main-results.jsonl
+```
+
+- [ ] **Step 7: Implement deterministic seed scorer**
+
+Create a scorer that supports the current seed review criteria:
+
+```text
+Findings appear before summary.
+Behavioral bug is mentioned.
+Style-only issue is lower priority than behavioral bug.
+Missing or insufficient tests are mentioned.
+The finding explains the user-visible or regression risk.
+```
+
+Unsupported criteria should fail closed so new task types do not accidentally look successful.
+
+- [ ] **Step 8: Implement scoring CLI**
+
+Create a CLI that reads:
+
+```text
+results/skill-ir/real-agent-dry-run/raw-runs.jsonl
+benchmarks/skill-ir/tasks/review-skill-tasks.json
+```
+
+and writes:
+
+```text
+results/skill-ir/main-results.jsonl
+```
+
+Run:
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--tasks=benchmarks/skill-ir/tasks/review-skill-tasks.json' '--out=results/skill-ir/main-results.jsonl'
+```
+
+- [ ] **Step 9: Verify scoring**
+
+Run:
+
+```powershell
+bun test ./src/benchmarks/skill-ir/scoring.test.ts
+bun test ./src/benchmarks/skill-ir/matrix.test.ts ./src/benchmarks/skill-ir/real-agent.test.ts ./src/benchmarks/skill-ir/scoring.test.ts
+bun run typecheck
+```
+
+Expected: scoring tests pass and scored rows can be fed into `scripts/analyze_skill_ir_results.py`.
+
+- [ ] **Step 10: Commit scoring layer**
+
+Run:
+
+```powershell
+git add src/benchmarks/skill-ir/scoring.ts src/benchmarks/skill-ir/scoring.test.ts src/benchmarks/skill-ir/score-real-agent-runs.ts docs/skill-ir/real-agent-scoring.md docs/skill-ir/real-agent-dry-run.md docs/skill-ir/result-analysis.md docs/skill-ir/skill-ir-aot-optimization-plan.md
+git commit -m "feat: score skill ir real-agent runs"
+```
+
 ## Task 11B: Full Evaluation Run
 
 **Files:**
@@ -1817,6 +1889,8 @@ git commit -m "feat: prepare skill ir real-agent dry run"
 - Create: `results/skill-ir/main-table.csv`
 - Create: `results/skill-ir/ablation.csv`
 - Create: `docs/skill-ir/case-studies.md`
+
+Task 11B should consume scored `main-results.jsonl`, not execution-only `raw-runs.jsonl`. If the real execution path produces only raw logs, run `score-real-agent-runs.ts` first.
 
 - [ ] **Step 1: Populate deep benchmark**
 

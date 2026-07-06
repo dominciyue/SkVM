@@ -13,12 +13,15 @@ Implementation:
 ```text
 src/benchmarks/skill-ir/real-agent.ts
 src/benchmarks/skill-ir/real-agent-run.ts
+src/benchmarks/skill-ir/scoring.ts
+src/benchmarks/skill-ir/score-real-agent-runs.ts
 ```
 
 Tests:
 
 ```text
 src/benchmarks/skill-ir/real-agent.test.ts
+src/benchmarks/skill-ir/scoring.test.ts
 ```
 
 Generated dry-run output, when the CLI is run:
@@ -80,6 +83,20 @@ results/skill-ir/real-agent-dry-run/raw-runs.jsonl
 
 `raw-runs.jsonl` is execution-only. It should not be treated as final scored benchmark results until a scoring step maps outputs to `success`, `ruleViolations`, `stepCoverage`, token cost, and latency.
 
+Score the raw execution logs into analyzer-compatible results:
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--tasks=benchmarks/skill-ir/tasks/review-skill-tasks.json' '--out=results/skill-ir/main-results.jsonl'
+```
+
+Then produce a summary table:
+
+```powershell
+python scripts/analyze_skill_ir_results.py results/skill-ir/main-results.jsonl results/skill-ir/main-table.csv
+```
+
+See `docs/skill-ir/real-agent-scoring.md` for the scorer contract and current heuristic criteria.
+
 ## Public Helpers
 
 ```ts
@@ -118,10 +135,11 @@ Task 11A is a dry-run and execution harness. It is not the final evaluation.
 
 The remaining Task 11 work is:
 
-1. Add a scoring layer that converts raw run outputs into `main-results.jsonl`.
-2. Run the analyzer to produce `main-table.csv`.
-3. Write case studies from real or clearly marked dry-run data.
-4. Expand the deep benchmark corpus after the pipeline is stable.
+1. Run real agent execution with a configured model/API key.
+2. Score `raw-runs.jsonl` into `main-results.jsonl`.
+3. Run the analyzer to produce `main-table.csv`.
+4. Write case studies from real or clearly marked dry-run data.
+5. Expand the deep benchmark corpus after the pipeline is stable.
 
 ## Verification
 
@@ -129,6 +147,7 @@ Run focused tests:
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent.test.ts
+bun test ./src/benchmarks/skill-ir/scoring.test.ts
 ```
 
 Run a dry-run plan:
@@ -147,8 +166,9 @@ bun run typecheck
 
 - Missing model/API key only matters with `--execute`.
 - Unquoted comma-separated PowerShell args can produce an empty plan.
-- `skvm run` executes but does not score; use a later scoring step before feeding data into the final analyzer.
+- `skvm run` executes but does not score; run `score-real-agent-runs.ts` before feeding data into the final analyzer.
 - The current `skvm-aot` materialization is a placeholder until a real `skvm aot-compile` proposal path is wired in.
+- The current scorer is heuristic and only supports the seed review criteria. Unsupported criteria fail closed.
 
 ## Modification Notes
 

@@ -23,6 +23,12 @@ results/skill-ir/sample.jsonl
 results/skill-ir/sample.csv
 ```
 
+Real-agent raw logs should be scored before they reach this analyzer. The bridge from `raw-runs.jsonl` to `main-results.jsonl` is documented in:
+
+```text
+docs/skill-ir/real-agent-scoring.md
+```
+
 ## Input Format
 
 The analyzer reads JSONL. Each line is one experiment result:
@@ -95,6 +101,13 @@ Analyze the sample:
 python scripts/analyze_skill_ir_results.py results/skill-ir/sample.jsonl results/skill-ir/sample.csv
 ```
 
+Analyze scored real-agent results:
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--out=results/skill-ir/main-results.jsonl'
+python scripts/analyze_skill_ir_results.py results/skill-ir/main-results.jsonl results/skill-ir/main-table.csv
+```
+
 Use a custom baseline:
 
 ```powershell
@@ -120,6 +133,7 @@ The CLI reads JSONL, calls `summarize`, and writes CSV. The default baseline is 
 - Paired metrics require both baseline and compared rows to share the same `caseId`.
 - If no paired baseline exists for a system, paired metrics are zero.
 - The analyzer does not validate full result schema yet. Add result-schema validation when Task 11 produces full evaluation rows.
+- `main-results.jsonl` should contain scored rows, not execution-only `raw-runs.jsonl`.
 
 ## Modification Notes
 
