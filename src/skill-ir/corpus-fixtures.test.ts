@@ -1,0 +1,63 @@
+import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { SkillIRSchema } from "./schema";
+import { validateSkillIR } from "./validate";
+
+function readJson(path: string): unknown {
+  return JSON.parse(readFileSync(path, "utf8"));
+}
+
+describe("skill-ir corpus fixtures", () => {
+  test("manifest declares the planned corpus scale and categories", () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
+      schemaVersion: string;
+      categories: string[];
+      targetCounts: Record<string, number>;
+      skills: unknown[];
+    };
+
+    expect(manifest.schemaVersion).toBe("skill-ir-corpus/v1");
+    expect(manifest.categories).toContain("workflow");
+    expect(manifest.categories).toContain("environment-sensitive");
+    expect(manifest.targetCounts).toEqual({
+      taxonomySkills: 60,
+      fullIRSkills: 24,
+      deepBenchmarkSkills: 16,
+    });
+  });
+
+  test("standard context perturbations cover clean, noisy, long, and compressed settings", () => {
+    const contexts = readJson(join(process.cwd(), "benchmarks/skill-ir/contexts/standard-contexts.json")) as {
+      schemaVersion: string;
+      contexts: { id: string; description: string }[];
+    };
+
+    expect(contexts.schemaVersion).toBe("skill-ir-contexts/v1");
+    expect(contexts.contexts.map((context) => context.id)).toEqual(["clean", "noisy", "long", "compressed"]);
+    expect(contexts.contexts.every((context) => context.description.length > 0)).toBe(true);
+  });
+
+  test("review skill IR parses and validates cleanly", () => {
+    const candidate = readJson(join(process.cwd(), "benchmarks/skill-ir/ir/review-skill.json"));
+    const ir = SkillIRSchema.parse(candidate);
+    const report = validateSkillIR(ir);
+
+    expect(ir.id).toBe("skill-review");
+    expect(report).toEqual({ errors: [], warnings: [] });
+  });
+
+  test("review skill tasks target the review skill and include success criteria", () => {
+    const taskSet = readJson(join(process.cwd(), "benchmarks/skill-ir/tasks/review-skill-tasks.json")) as {
+      schemaVersion: string;
+      skillId: string;
+      tasks: { id: string; split: string; prompt: string; successCriteria: string[] }[];
+    };
+
+    expect(taskSet.schemaVersion).toBe("skill-ir-tasks/v1");
+    expect(taskSet.skillId).toBe("skill-review");
+    expect(taskSet.tasks).toHaveLength(2);
+    expect(taskSet.tasks.map((task) => task.split)).toEqual(["development", "held-out"]);
+    expect(taskSet.tasks.every((task) => task.successCriteria.length >= 3)).toBe(true);
+  });
+});
