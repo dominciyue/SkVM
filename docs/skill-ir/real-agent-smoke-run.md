@@ -132,10 +132,43 @@ The first 2026-07-09 multi-skill smoke attempts were intentionally discarded aft
 
 These runs are infrastructure setup failures, not skill or model results. The runner now supports `--require-env=` so a missing key can fail before generating raw execution rows.
 
+## Multi-Skill Smoke Results
+
+The valid 2026-07-09 `r3` run covered six deep-benchmark seed skills, one development task per skill, the `skvm` agent label, the `linux` environment label, clean context, and two systems: `original` and `ir-profile`.
+
+Archived scored outputs:
+
+```text
+results/skill-ir/multi-skill-smoke-results-2026-07-09-r3.jsonl
+results/skill-ir/multi-skill-smoke-table-2026-07-09-r3.csv
+```
+
+Summary table:
+
+| System | Mean success | Rule violations | Infrastructure failures | Agent failures | Paired delta vs original |
+|---|---:|---:|---:|---:|---:|
+| `original` | 1.0 | 0 | 0 | 0 | 0.0 |
+| `ir-profile` | 1.0 | 0 | 0 | 0 | 0.0 |
+
+Per-skill result:
+
+| Skill | `original` | `ir-profile` |
+|---|---:|---:|
+| `skill-review` | pass | pass |
+| `skill-ci-diagnostic` | pass | pass |
+| `skill-env-portability` | pass | pass |
+| `skill-git-hygiene` | pass | pass |
+| `skill-tdd-bugfix` | pass | pass |
+| `skill-report-synthesis` | pass | pass |
+
+This result validates that the expanded six-skill seed corpus can run through the real-agent path and be scored through manifest-based task lookup. It does not yet show an effectiveness improvement because both compared systems pass all six selected development tasks.
+
+The run also exposed a cost signal: `ir-profile` generally used more input tokens than `original`, and `skill-report-synthesis` under `ir-profile` was much slower than the corresponding `original` row. This should be tracked before scaling the matrix, because a stable skill can still be too verbose or expensive.
+
 ## Follow-Up
 
 - Use `--retries=1` or another small retry budget before running a larger matrix through an unstable gateway.
-- The next corpus-expansion smoke should use explicit filters to cover one development task from each deep-benchmark skill while keeping cost bounded:
+- The multi-skill smoke uses explicit filters to cover one development task from each deep-benchmark skill while keeping cost bounded:
 
 ```powershell
 $env:SKVM_CACHE=(Resolve-Path .skvm).Path
@@ -148,4 +181,4 @@ python scripts/analyze_skill_ir_results.py results/skill-ir/multi-skill-smoke-re
 
 - Keep raw run directories local unless a specific run is intentionally archived.
 - Run at least one additional model after the pipeline is stable to avoid overfitting conclusions to `gpt-4.1-mini`.
-- Expand the deep benchmark only after checking that infrastructure failures remain low and are reported separately.
+- Expand the deep benchmark only after checking that infrastructure failures remain low, cost remains acceptable, and failures are reported separately.
