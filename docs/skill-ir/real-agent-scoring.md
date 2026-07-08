@@ -103,7 +103,7 @@ An infrastructure failure row can include `failureType`:
 
 `failureType` is optional and appears only on unsuccessful rows. Current values are:
 
-- `infrastructure`: provider/network/auth/rate-limit style failure.
+- `infrastructure`: provider/network/auth/rate-limit style failure, including missing provider credential environment variables such as `ProviderAuthError`.
 - `agent`: non-zero execution that does not look like provider infrastructure.
 
 ## Command Line

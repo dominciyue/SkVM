@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { SkillIR } from "../../skill-ir/schema";
-import { buildPlan, type RealAgentRunArgs } from "./real-agent-run";
+import { assertRequiredEnv, buildPlan, type RealAgentRunArgs } from "./real-agent-run";
 
 const tempDirs: string[] = [];
 
@@ -158,5 +158,24 @@ describe("real-agent-run manifest loading", () => {
       "skill-diagnostic:codex:windows:clean:diagnostic-task",
     ]);
     expect(plan.map((entry) => entry.system)).toEqual(["original", "ir-profile"]);
+  });
+
+  test("assertRequiredEnv fails before execution when a required env var is blank", () => {
+    expect(() =>
+      assertRequiredEnv(
+        {
+          model: "test/model",
+          adapter: "bare-agent",
+          outDir: "out",
+          limit: 1,
+          execute: true,
+          retries: 0,
+          retryDelayMs: 1000,
+          rootDir: ".",
+          requireEnv: new Set(["SKVM_XTY_API_KEY", "SKVM_CACHE"]),
+        },
+        { SKVM_XTY_API_KEY: "", SKVM_CACHE: "cache" },
+      ),
+    ).toThrow("Missing required environment variable(s): SKVM_XTY_API_KEY");
   });
 });

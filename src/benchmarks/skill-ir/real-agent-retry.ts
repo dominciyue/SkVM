@@ -30,6 +30,15 @@ export function shouldRetryRunRow(row: RetryableRunRow, opts: RetryDecisionOptio
     return false;
   }
 
+  const combined = `${row.stderr}\n${row.stdout}`.toLowerCase();
+  if (
+    combined.includes("providerautherror") ||
+    combined.includes("authentication failed") ||
+    combined.includes("requires env var")
+  ) {
+    return false;
+  }
+
   return classifyFailureType(row) === "infrastructure";
 }
 

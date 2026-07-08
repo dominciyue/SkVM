@@ -84,6 +84,7 @@ The runner supports these selection filters:
 | `--agents=` | target agent label, such as `skvm` or `codex` |
 | `--environments=` | target environment label, such as `linux` or `windows` |
 | `--tasks=` | benchmark task id |
+| `--require-env=` | required shell environment variables for `--execute` mode |
 
 Filters are applied before `--limit`, so a small multi-skill smoke run can sample the intended skills instead of accidentally taking the first rows from the default matrix order.
 
@@ -100,7 +101,15 @@ Use one infrastructure retry for unstable gateways:
 bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--execute' '--retries=1' '--retry-delay-ms=1000'
 ```
 
-Retries are off by default. They only apply to rows that look like provider, network, auth, rate-limit, or timeout failures. Agent failures are not retried.
+When a real run depends on provider credentials, add a pre-execution environment check:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--execute' '--require-env=SKVM_XTY_API_KEY'
+```
+
+`--require-env=` accepts a comma-separated list. It fails before writing execution rows when any listed variable is missing or blank. This prevents auth failures from being mistaken for model or skill behavior.
+
+Retries are off by default. They only apply to rows that look like transient provider, network, rate-limit, or timeout failures. Credential/auth failures are classified as infrastructure during scoring, but they are not retried because retrying cannot repair missing or invalid credentials.
 
 Use `--root-dir=<path>` to point the runner at a temporary or alternate benchmark corpus. By default, `rootDir` is the current repository root. The runner expects:
 
@@ -216,6 +225,7 @@ bun run typecheck
 - A task file whose `skillId` does not match its manifest skill fails before materialization.
 - Unquoted comma-separated PowerShell args can produce an empty plan.
 - Unknown task, agent, environment, context, or system filters can produce an empty plan. Inspect `plan.json` before real execution if the selected matrix is new.
+- Missing provider credentials can produce fast auth failures. Use `--require-env=<key env var>` for real runs.
 - `skvm run` executes but does not score; run `score-real-agent-runs.ts` before feeding data into the final analyzer.
 - The current `skvm-aot` materialization is a placeholder until a real `skvm aot-compile` proposal path is wired in.
 - The current scorer is heuristic and only supports the seed review criteria. Unsupported criteria fail closed.

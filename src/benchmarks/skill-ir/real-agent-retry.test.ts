@@ -34,6 +34,20 @@ describe("real-agent infrastructure retry helpers", () => {
     ).toBe(false);
   });
 
+  test("shouldRetryRunRow does not retry provider auth failures", () => {
+    expect(
+      shouldRetryRunRow(
+        {
+          exitCode: 1,
+          stdout: "Task failed",
+          stderr:
+            'ProviderAuthError: Route "xty/*" (kind=openai-compatible) requires env var SKVM_XTY_API_KEY, which is not set',
+        },
+        { attempt: 1, maxAttempts: 2 },
+      ),
+    ).toBe(false);
+  });
+
   test("runWithInfrastructureRetries returns the first successful retry", async () => {
     let calls = 0;
     const result = await runWithInfrastructureRetries(

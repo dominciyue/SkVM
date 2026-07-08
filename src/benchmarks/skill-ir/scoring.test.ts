@@ -7,6 +7,7 @@ import {
   parseCaseId,
   scoreRawRunRows,
   scoreRunOutput,
+  classifyFailureType,
   type RawAgentRunRow,
 } from "./scoring";
 import type { SkillIRBenchmarkTask } from "./real-agent";
@@ -203,6 +204,17 @@ describe("Skill IR real-agent scoring", () => {
       ruleViolations: 0,
       failedCriteria: ["process exited with code 1"],
     });
+  });
+
+  test("classifyFailureType treats missing provider credentials as infrastructure", () => {
+    expect(
+      classifyFailureType({
+        exitCode: 1,
+        stdout: "Task failed",
+        stderr:
+          'Run failed: ProviderAuthError: Route "xty/*" (kind=openai-compatible) requires env var SKVM_XTY_API_KEY, which is not set',
+      }),
+    ).toBe("infrastructure");
   });
 
   test("score-real-agent-runs CLI writes scored JSONL from raw execution logs", async () => {

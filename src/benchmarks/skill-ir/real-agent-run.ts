@@ -24,6 +24,7 @@ export type RealAgentRunArgs = {
   agents?: Set<string>;
   environments?: Set<string>;
   tasks?: Set<string>;
+  requireEnv?: Set<string>;
 };
 
 type CorpusManifest = {
@@ -84,6 +85,8 @@ function parseArgs(argv: string[]): RealAgentRunArgs {
       args.environments = new Set(arg.slice("--environments=".length).split(","));
     } else if (arg.startsWith("--tasks=")) {
       args.tasks = new Set(arg.slice("--tasks=".length).split(","));
+    } else if (arg.startsWith("--require-env=")) {
+      args.requireEnv = new Set(arg.slice("--require-env=".length).split(","));
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -106,6 +109,17 @@ function parseArgs(argv: string[]): RealAgentRunArgs {
   }
 
   return args;
+}
+
+export function assertRequiredEnv(args: RealAgentRunArgs, env: Record<string, string | undefined> = process.env): void {
+  if (!args.execute || !args.requireEnv || args.requireEnv.size === 0) {
+    return;
+  }
+
+  const missing = [...args.requireEnv].filter((name) => !env[name] || env[name]?.trim().length === 0);
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variable(s): ${missing.join(", ")}`);
+  }
 }
 
 async function readJson<T>(path: string): Promise<T> {
@@ -224,6 +238,7 @@ async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  assertRequiredEnv(args);
   await mkdir(args.outDir, { recursive: true });
   const plan = await buildPlan(args);
   const planPath = join(args.outDir, "plan.json");
@@ -235,6 +250,7 @@ async function main() {
         execute: args.execute,
         rootDir: args.rootDir,
         retry: { retries: args.retries, retryDelayMs: args.retryDelayMs },
+        requireEnv: args.requireEnv ? [...args.requireEnv] : [],
         plan,
       },
       null,

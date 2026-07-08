@@ -301,7 +301,9 @@ export function classifyFailureType(row: Pick<RawAgentRunRow, "exitCode" | "stdo
   if (
     combined.includes("providernetworkerror") ||
     combined.includes("providerhttperror") ||
+    combined.includes("providerautherror") ||
     combined.includes("authentication failed") ||
+    combined.includes("requires env var") ||
     combined.includes("network error") ||
     combined.includes("operation timed out") ||
     combined.includes("api error 429") ||

@@ -14,7 +14,13 @@ materialized Skill IR cases
 
 ## Provider Setup
 
-The smoke run used an OpenAI-compatible route with a temporary local SkVM cache config:
+The smoke run used an OpenAI-compatible route with a temporary local SkVM cache config at:
+
+```text
+.skvm/skvm.config.json
+```
+
+The file name matters. SkVM reads `$SKVM_CACHE/skvm.config.json`; `.skvm/config.json` is ignored by the provider registry.
 
 ```json
 {
@@ -117,6 +123,15 @@ The scored JSONL now records a coarse `failureType` for non-zero exits, and the 
 
 Paired comparison is only meaningful when both baseline and compared rows are valid task attempts. Infrastructure failures are still visible in `mean_success` and failure counts, but they are excluded from `paired_delta_success`, `regression_count`, and `negative_delta_count`.
 
+## Multi-Skill Smoke Setup Notes
+
+The first 2026-07-09 multi-skill smoke attempts were intentionally discarded after raw-log inspection:
+
+- `multi-skill-smoke-run-2026-07-09` used `.skvm/config.json`, so SkVM ignored the intended `xty/*` route and fell back to the built-in OpenRouter route.
+- `multi-skill-smoke-run-2026-07-09-r2` used `.skvm/skvm.config.json`, so the route matched, but every row failed before model execution with `ProviderAuthError` because `SKVM_XTY_API_KEY` was missing inside the execution process.
+
+These runs are infrastructure setup failures, not skill or model results. The runner now supports `--require-env=` so a missing key can fail before generating raw execution rows.
+
 ## Follow-Up
 
 - Use `--retries=1` or another small retry budget before running a larger matrix through an unstable gateway.
@@ -126,9 +141,9 @@ Paired comparison is only meaningful when both baseline and compared rows are va
 $env:SKVM_CACHE=(Resolve-Path .skvm).Path
 $env:SKVM_XTY_API_KEY="<redacted>"
 $env:SKVM_AUTO_PROBE="0"
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile' '--contexts=clean' '--agents=skvm' '--environments=linux' '--tasks=review-finding-order-001,ci-node-version-001,portable-env-var-001,dirty-worktree-001,tdd-empty-input-001,report-experiment-notes-001' '--limit=12' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--out-dir=results/skill-ir/multi-skill-smoke-run-2026-07-08' '--execute' '--retries=1' '--retry-delay-ms=1000'
-bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/multi-skill-smoke-run-2026-07-08/raw-runs.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--out=results/skill-ir/multi-skill-smoke-results-2026-07-08.jsonl'
-python scripts/analyze_skill_ir_results.py results/skill-ir/multi-skill-smoke-results-2026-07-08.jsonl results/skill-ir/multi-skill-smoke-table-2026-07-08.csv
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile' '--contexts=clean' '--agents=skvm' '--environments=linux' '--tasks=review-finding-order-001,ci-node-version-001,portable-env-var-001,dirty-worktree-001,tdd-empty-input-001,report-experiment-notes-001' '--limit=12' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--out-dir=results/skill-ir/multi-skill-smoke-run-2026-07-09-r3' '--execute' '--retries=1' '--retry-delay-ms=1000' '--require-env=SKVM_XTY_API_KEY'
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/multi-skill-smoke-run-2026-07-09-r3/raw-runs.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--out=results/skill-ir/multi-skill-smoke-results-2026-07-09-r3.jsonl'
+python scripts/analyze_skill_ir_results.py results/skill-ir/multi-skill-smoke-results-2026-07-09-r3.jsonl results/skill-ir/multi-skill-smoke-table-2026-07-09-r3.csv
 ```
 
 - Keep raw run directories local unless a specific run is intentionally archived.
