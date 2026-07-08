@@ -5,7 +5,7 @@
     {
       "id": "review-finding-order-001",
       "split": "development",
-      "prompt": "Review a small change with one obvious behavioral bug and one style issue.",
+      "prompt": "Review the following patch. Report findings first, ordered by severity, and include a short summary only after findings if useful.\n\n```diff\ndiff --git a/src/auth.ts b/src/auth.ts\nindex 0f12abc..7a42d91 100644\n--- a/src/auth.ts\n+++ b/src/auth.ts\n@@ -1,8 +1,8 @@\n export function canAccessAccount(user, account) {\n-  if (!user.isActive) return false;\n+  if (!user.isActive) return true;\n   if (user.id === account.ownerId) return true;\n \n-  const hasAdminRole = user.roles.includes(\"admin\");\n-  return hasAdminRole;\n+  const adminFlag = user.roles.includes(\"admin\");\n+  return adminFlag;\n }\n```\n\nExpected review focus: there is one behavioral access-control bug and one lower-priority naming/style issue.",
       "successCriteria": [
         "Findings appear before summary.",
         "Behavioral bug is mentioned.",
@@ -15,7 +15,7 @@
     {
       "id": "review-missing-test-001",
       "split": "held-out",
-      "prompt": "Review a patch that changes validation logic without updating tests.",
+      "prompt": "Review the following patch. Report findings first, ordered by severity, and include a short summary only after findings if useful.\n\n```diff\ndiff --git a/src/profile.ts b/src/profile.ts\nindex 44c1c17..be29391 100644\n--- a/src/profile.ts\n+++ b/src/profile.ts\n@@ -10,7 +10,7 @@ export function validateDisplayName(name) {\n   if (name.trim() !== name) {\n     return { ok: false, reason: \"no leading or trailing spaces\" };\n   }\n-  if (name.length < 3) {\n+  if (name.length < 1) {\n     return { ok: false, reason: \"display name is too short\" };\n   }\n   return { ok: true };\n }\n```\n\nNo test files were changed. Expected review focus: the validation rule was weakened and the patch lacks test updates that would catch the user-visible regression.",
       "successCriteria": [
         "Findings appear before summary.",
         "Missing or insufficient tests are mentioned.",

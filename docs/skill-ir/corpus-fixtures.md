@@ -89,6 +89,8 @@ Each task must include:
 - `prompt`
 - `successCriteria`
 
+For real-agent execution, review tasks must be self-contained. The prompt should include the patch or code snippet being reviewed, preferably as a fenced `diff` block. A task that only says "review a change" is not executable because the agent receives an empty work directory unless explicit fixtures are provided.
+
 ## Verification
 
 Run the fixture test:
@@ -125,6 +127,7 @@ When adding a skill:
 - A fixture can be valid JSON but fail `SkillIRSchema` if fields are missing or enum values are wrong.
 - A fixture can pass schema parsing but fail `validateSkillIR` if step, tool, or check references are inconsistent.
 - A task file can be syntactically valid but still weak if `successCriteria` are vague. Prefer criteria that can later be turned into automatic checks.
+- A review task can be syntactically valid but unexecutable if the prompt does not include a diff or fixture path. The fixture test enforces self-contained review prompts for the current seed tasks.
 - Corpus manifest entries can drift from actual file paths. Keep `irPath` and `tasksPath` current when moving files.
 
 ## Modification Notes

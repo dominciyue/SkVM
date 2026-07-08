@@ -134,6 +134,7 @@ The CLI reads JSONL, calls `summarize`, and writes CSV. The default baseline is 
 - If no paired baseline exists for a system, paired metrics are zero.
 - The analyzer does not validate full result schema yet. Add result-schema validation when Task 11 produces full evaluation rows.
 - `main-results.jsonl` should contain scored rows, not execution-only `raw-runs.jsonl`.
+- The analyzer currently ignores optional `failureType` fields. Inspect JSONL directly when separating infrastructure failures from skill behavior.
 
 ## Modification Notes
 

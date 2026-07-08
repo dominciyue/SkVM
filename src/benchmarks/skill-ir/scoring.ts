@@ -34,6 +34,8 @@ export type RunScore = {
   failedCriteria: string[];
 };
 
+export type FailureType = "infrastructure" | "agent";
+
 export type ScoredAgentRunRow = ParsedCaseId & {
   caseId: string;
   system: ExperimentSystem;
@@ -43,6 +45,7 @@ export type ScoredAgentRunRow = ParsedCaseId & {
   latencyMs: number;
   successSource: "heuristic-success-criteria";
   failedCriteria: string[];
+  failureType?: FailureType;
 };
 
 export function parseCaseId(caseId: string): ParsedCaseId {
@@ -148,6 +151,7 @@ export function scoreRawRunRows(
       finalOutput: extractFinalOutput(row.stdout),
       task,
     });
+    const failureType = row.exitCode === 0 ? undefined : classifyFailureType(row);
 
     return {
       caseId: row.caseId,
@@ -159,6 +163,24 @@ export function scoreRawRunRows(
       latencyMs: row.durationMs,
       successSource: "heuristic-success-criteria",
       failedCriteria: score.failedCriteria,
+      ...(failureType ? { failureType } : {}),
     };
   });
+}
+
+function classifyFailureType(row: RawAgentRunRow): FailureType {
+  const combined = `${row.stderr}\n${row.stdout}`.toLowerCase();
+  if (
+    combined.includes("providernetworkerror") ||
+    combined.includes("providerhttperror") ||
+    combined.includes("authentication failed") ||
+    combined.includes("network error") ||
+    combined.includes("operation timed out") ||
+    combined.includes("api error 429") ||
+    combined.includes("api error 5")
+  ) {
+    return "infrastructure";
+  }
+
+  return "agent";
 }

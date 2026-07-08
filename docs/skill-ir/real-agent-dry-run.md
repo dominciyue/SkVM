@@ -97,6 +97,8 @@ python scripts/analyze_skill_ir_results.py results/skill-ir/main-results.jsonl r
 
 See `docs/skill-ir/real-agent-scoring.md` for the scorer contract and current heuristic criteria.
 
+See `docs/skill-ir/real-agent-smoke-run.md` for the first real-agent smoke run through an OpenAI-compatible gateway.
+
 ## Public Helpers
 
 ```ts

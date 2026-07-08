@@ -60,4 +60,15 @@ describe("skill-ir corpus fixtures", () => {
     expect(taskSet.tasks.map((task) => task.split)).toEqual(["development", "held-out"]);
     expect(taskSet.tasks.every((task) => task.successCriteria.length >= 3)).toBe(true);
   });
+
+  test("review skill tasks are self-contained for real-agent execution", () => {
+    const taskSet = readJson(join(process.cwd(), "benchmarks/skill-ir/tasks/review-skill-tasks.json")) as {
+      tasks: { id: string; prompt: string }[];
+    };
+
+    for (const task of taskSet.tasks) {
+      expect(task.prompt).toContain("```diff");
+      expect(task.prompt).toContain("Review the following patch");
+    }
+  });
 });

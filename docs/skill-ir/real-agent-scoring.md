@@ -78,6 +78,32 @@ Each scored row is compatible with `scripts/analyze_skill_ir_results.py`:
 }
 ```
 
+An infrastructure failure row can include `failureType`:
+
+```json
+{
+  "caseId": "skill-review:skvm:linux:clean:review-finding-order-001",
+  "system": "original",
+  "skill": "skill-review",
+  "agent": "skvm",
+  "environment": "linux",
+  "context": "clean",
+  "task": "review-finding-order-001",
+  "success": false,
+  "ruleViolations": 3,
+  "stepCoverage": 1,
+  "latencyMs": 300000,
+  "successSource": "heuristic-success-criteria",
+  "failedCriteria": ["process exited with code 1"],
+  "failureType": "infrastructure"
+}
+```
+
+`failureType` is optional and appears only on unsuccessful rows. Current values are:
+
+- `infrastructure`: provider/network/auth/rate-limit style failure.
+- `agent`: non-zero execution that does not look like provider infrastructure.
+
 ## Command Line
 
 Score a real execution log:
@@ -112,6 +138,7 @@ Scoring behavior:
 - `ruleViolations` is the count of failed criteria.
 - `stepCoverage` is `1` when the final output is non-empty and `0` otherwise.
 - `latencyMs` is copied from raw execution `durationMs`.
+- Non-zero exits are classified with `failureType` so infrastructure failures can be separated from skill behavior later.
 
 ## Supported Seed Criteria
 
@@ -152,6 +179,7 @@ bun run typecheck
 - A non-zero process exit code always makes the row unsuccessful.
 - `ruleViolations` currently means failed success criteria in the scorer, not full runtime checker violations.
 - `tokenCost` is not available yet because raw SkVM execution rows do not expose it.
+- The current CSV analyzer does not summarize `failureType` yet. Inspect JSONL rows directly when diagnosing provider instability.
 
 ## Modification Notes
 

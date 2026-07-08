@@ -130,6 +130,35 @@ describe("Skill IR real-agent scoring", () => {
     ]);
   });
 
+  test("scoreRawRunRows classifies provider timeouts as infrastructure failures", () => {
+    const scored = scoreRawRunRows(
+      [
+        {
+          caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
+          system: "original",
+          taskPath: "tmp/task.json",
+          exitCode: 1,
+          durationMs: 300000,
+          stdout: "Task failed",
+          stderr:
+            "Run failed: ProviderNetworkError: openai-compatible(svip.xty.app) network error: The operation timed out.",
+          successSource: "execution-only",
+        },
+      ],
+      new Map([[findingOrderTask.id, findingOrderTask]]),
+    );
+
+    expect(scored[0]).toMatchObject({
+      success: false,
+      failureType: "infrastructure",
+      failedCriteria: [
+        "process exited with code 1",
+        "Findings appear before summary.",
+        "Behavioral bug is mentioned.",
+      ],
+    });
+  });
+
   test("score-real-agent-runs CLI writes scored JSONL from raw execution logs", async () => {
     const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-scoring-"));
     tempDirs.push(tempDir);

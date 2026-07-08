@@ -1882,6 +1882,26 @@ git add src/benchmarks/skill-ir/scoring.ts src/benchmarks/skill-ir/scoring.test.
 git commit -m "feat: score skill ir real-agent runs"
 ```
 
+- [ ] **Step 11: Run real-agent smoke evaluation**
+
+Use a configured provider route and a low-cost model to run a small clean-context matrix before expanding the corpus.
+
+Recommended first smoke:
+
+```text
+2 review tasks x 6 systems x 1 agent x 1 environment x 1 context
+```
+
+Record:
+
+```text
+results/skill-ir/smoke-results-<date>.jsonl
+results/skill-ir/smoke-table-<date>.csv
+docs/skill-ir/real-agent-smoke-run.md
+```
+
+If raw execution rows contain provider/network failures, mark them as infrastructure failures in scored JSONL and do not treat them as final skill regressions.
+
 ## Task 11B: Full Evaluation Run
 
 **Files:**
