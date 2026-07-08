@@ -16,6 +16,7 @@ export type MatrixInput = {
   environments: string[];
   contexts: string[];
   tasks: string[];
+  tasksBySkill?: Record<string, string[]>;
   systems: ExperimentSystem[];
   baselineSystem?: ExperimentSystem;
 };
@@ -80,10 +81,11 @@ export function buildExperimentMatrix(input: MatrixInput): ExperimentCase[] {
 
   for (const rawSkill of input.skills) {
     const skill = normalizeSkill(rawSkill);
+    const skillTasks = input.tasksBySkill ? (input.tasksBySkill[skill.id] ?? []) : input.tasks;
     for (const agent of input.agents) {
       for (const environment of input.environments) {
         for (const context of input.contexts) {
-          for (const task of input.tasks) {
+          for (const task of skillTasks) {
             const caseId = `${skill.id}:${agent}:${environment}:${context}:${task}`;
             for (const system of input.systems) {
               cases.push({
@@ -114,13 +116,16 @@ export function buildDefaultMatrixInput(rootDir = process.cwd()): MatrixInput {
     id: skill.id,
     packaging: inferSkillPackaging(skill),
   }));
-  const tasks = manifest.skills.flatMap((skill) => {
-    if (!skill.tasksPath) {
-      return [];
-    }
+  const tasksBySkill = Object.fromEntries(
+    manifest.skills.map((skill) => {
+      if (!skill.tasksPath) {
+        return [skill.id, []];
+      }
 
-    return readJson<TaskSet>(join(rootDir, skill.tasksPath)).tasks.map((task) => task.id);
-  });
+      return [skill.id, readJson<TaskSet>(join(rootDir, skill.tasksPath)).tasks.map((task) => task.id)];
+    }),
+  );
+  const tasks = Object.values(tasksBySkill).flatMap((skillTasks) => skillTasks);
 
   return {
     skills,
@@ -128,6 +133,7 @@ export function buildDefaultMatrixInput(rootDir = process.cwd()): MatrixInput {
     environments: ["linux", "windows"],
     contexts: contextSet.contexts.map((context) => context.id),
     tasks,
+    tasksBySkill,
     systems: [...DEFAULT_EXPERIMENT_SYSTEMS],
   };
 }

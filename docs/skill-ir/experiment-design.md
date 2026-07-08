@@ -60,6 +60,8 @@ The current seed matrix is:
 1 skill x 2 agents x 2 environments x 4 contexts x 2 tasks x 6 systems = 192 cases
 ```
 
+Tasks are bound to their owning skill through `tasksBySkill` in the matrix input. The flattened `tasks` list is only a compatibility/reporting view. When the corpus grows beyond the seed review skill, the matrix must not pair one skill with another skill's task, because that would create artificial failures and inflate the apparent benchmark scale.
+
 The full target matrix should scale after the harness is stable.
 
 ## Skill Selection

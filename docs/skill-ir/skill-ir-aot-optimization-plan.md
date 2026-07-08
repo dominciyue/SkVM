@@ -1938,6 +1938,8 @@ Add 12-16 deep benchmark skills and 8-12 tasks per deep skill to `benchmarks/ski
 
 Expected: each task has `id`, `split`, `prompt`, and `successCriteria`.
 
+Before running an expanded matrix, verify that `buildDefaultMatrixInput()` produces `tasksBySkill` entries for every deep benchmark skill. Task ownership must stay skill-specific; the flattened `tasks` list is only for compatibility and should not cause one skill to be paired with another skill's task.
+
 - [ ] **Step 2: Run all configured systems**
 
 Run:

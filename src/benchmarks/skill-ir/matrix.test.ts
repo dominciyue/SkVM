@@ -46,6 +46,26 @@ describe("buildExperimentMatrix", () => {
     expect(firstCase?.baselineSystem).toBe("no-skill");
     expect(firstCase?.skillPackaging).toBe("unknown");
   });
+
+  test("keeps benchmark tasks bound to their owning skill", () => {
+    const matrix = buildExperimentMatrix({
+      skills: ["skill-review", "skill-diagnostic"],
+      agents: ["skvm"],
+      environments: ["linux"],
+      contexts: ["clean"],
+      tasks: ["review-task", "diagnostic-task"],
+      tasksBySkill: {
+        "skill-review": ["review-task"],
+        "skill-diagnostic": ["diagnostic-task"],
+      },
+      systems: ["original"],
+    });
+
+    expect(matrix.map((item) => `${item.skill}/${item.task}`)).toEqual([
+      "skill-review/review-task",
+      "skill-diagnostic/diagnostic-task",
+    ]);
+  });
 });
 
 describe("buildDefaultMatrixInput", () => {
@@ -55,6 +75,9 @@ describe("buildDefaultMatrixInput", () => {
     expect(input.skills).toContainEqual({ id: "skill-review", packaging: "focused" });
     expect(input.contexts).toEqual(["clean", "noisy", "long", "compressed"]);
     expect(input.tasks).toEqual(["review-finding-order-001", "review-missing-test-001"]);
+    expect(input.tasksBySkill).toEqual({
+      "skill-review": ["review-finding-order-001", "review-missing-test-001"],
+    });
     expect(input.systems).toEqual(DEFAULT_EXPERIMENT_SYSTEMS);
   });
 });
