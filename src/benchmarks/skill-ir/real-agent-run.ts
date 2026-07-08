@@ -10,7 +10,7 @@ import {
 } from "./real-agent";
 import { runWithInfrastructureRetries } from "./real-agent-retry";
 
-type Args = {
+export type RealAgentRunArgs = {
   model: string;
   adapter: string;
   outDir: string;
@@ -18,8 +18,17 @@ type Args = {
   execute: boolean;
   retries: number;
   retryDelayMs: number;
+  rootDir: string;
   systems?: Set<ExperimentSystem>;
   contexts?: Set<string>;
+};
+
+type CorpusManifest = {
+  skills: {
+    id: string;
+    irPath?: string;
+    tasksPath?: string;
+  }[];
 };
 
 type TaskSet = {
@@ -27,8 +36,14 @@ type TaskSet = {
   tasks: SkillIRBenchmarkTask[];
 };
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = {
+type SkillBenchmarkFixture = {
+  ir: SkillIR;
+  taskSet: TaskSet;
+  taskById: Map<string, SkillIRBenchmarkTask>;
+};
+
+function parseArgs(argv: string[]): RealAgentRunArgs {
+  const args: RealAgentRunArgs = {
     model: "<provider>/<model-id>",
     adapter: "bare-agent",
     outDir: "results/skill-ir/real-agent-dry-run",
@@ -36,6 +51,7 @@ function parseArgs(argv: string[]): Args {
     execute: false,
     retries: 0,
     retryDelayMs: 1000,
+    rootDir: process.cwd(),
   };
 
   for (const arg of argv) {
@@ -53,6 +69,8 @@ function parseArgs(argv: string[]): Args {
       args.retries = Number.parseInt(arg.slice("--retries=".length), 10);
     } else if (arg.startsWith("--retry-delay-ms=")) {
       args.retryDelayMs = Number.parseInt(arg.slice("--retry-delay-ms=".length), 10);
+    } else if (arg.startsWith("--root-dir=")) {
+      args.rootDir = arg.slice("--root-dir=".length);
     } else if (arg.startsWith("--systems=")) {
       args.systems = new Set(arg.slice("--systems=".length).split(",") as ExperimentSystem[]);
     } else if (arg.startsWith("--contexts=")) {
@@ -85,30 +103,61 @@ async function readJson<T>(path: string): Promise<T> {
   return JSON.parse(await Bun.file(path).text()) as T;
 }
 
-function selectCases(cases: ExperimentCase[], args: Args): ExperimentCase[] {
+function selectCases(cases: ExperimentCase[], args: RealAgentRunArgs): ExperimentCase[] {
   return cases
     .filter((item) => (args.systems ? args.systems.has(item.system) : true))
     .filter((item) => (args.contexts ? args.contexts.has(item.context) : true))
     .slice(0, args.limit);
 }
 
-async function buildPlan(args: Args): Promise<RealAgentRunPlanEntry[]> {
-  const input = buildDefaultMatrixInput();
+async function loadSkillBenchmarkFixtures(rootDir: string): Promise<Map<string, SkillBenchmarkFixture>> {
+  const manifest = await readJson<CorpusManifest>(join(rootDir, "benchmarks/skill-ir/corpus/manifest.json"));
+  const fixtures = new Map<string, SkillBenchmarkFixture>();
+
+  for (const skill of manifest.skills) {
+    if (!skill.irPath) {
+      throw new Error(`Skill ${skill.id} is missing irPath in corpus manifest`);
+    }
+    if (!skill.tasksPath) {
+      throw new Error(`Skill ${skill.id} is missing tasksPath in corpus manifest`);
+    }
+
+    const ir = SkillIRSchema.parse(await readJson<unknown>(join(rootDir, skill.irPath)));
+    const taskSet = await readJson<TaskSet>(join(rootDir, skill.tasksPath));
+    if (taskSet.skillId !== skill.id) {
+      throw new Error(`Task set ${skill.tasksPath} declares skillId ${taskSet.skillId}, expected ${skill.id}`);
+    }
+
+    fixtures.set(skill.id, {
+      ir,
+      taskSet,
+      taskById: new Map(taskSet.tasks.map((task) => [task.id, task])),
+    });
+  }
+
+  return fixtures;
+}
+
+export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPlanEntry[]> {
+  const input = buildDefaultMatrixInput(args.rootDir);
   const matrix = selectCases(buildExperimentMatrix(input), args);
-  const ir = SkillIRSchema.parse(await readJson<unknown>("benchmarks/skill-ir/ir/review-skill.json"));
-  const taskSet = await readJson<TaskSet>("benchmarks/skill-ir/tasks/review-skill-tasks.json");
-  const taskById = new Map(taskSet.tasks.map((task) => [task.id, task]));
+  const fixtures = await loadSkillBenchmarkFixtures(args.rootDir);
   const plan: RealAgentRunPlanEntry[] = [];
 
   for (const item of matrix) {
-    const task = taskById.get(item.task);
+    const fixture = fixtures.get(item.skill);
+    if (!fixture) {
+      throw new Error(`Skill ${item.skill} was not found in corpus manifest`);
+    }
+
+    const task = fixture.taskById.get(item.task);
     if (!task) {
-      throw new Error(`Task ${item.task} was not found in ${taskSet.skillId} task set`);
+      throw new Error(`Task ${item.task} was not found in ${fixture.taskSet.skillId} task set`);
     }
 
     const materialized = await materializeCaseArtifacts({
       outDir: join(args.outDir, "artifacts"),
-      ir: ir as SkillIR,
+      ir: fixture.ir,
       task,
       context: item.context,
       system: item.system,
@@ -125,7 +174,7 @@ async function buildPlan(args: Args): Promise<RealAgentRunPlanEntry[]> {
   return plan;
 }
 
-async function executePlan(plan: RealAgentRunPlanEntry[], args: Args): Promise<void> {
+async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs): Promise<void> {
   const outDir = args.outDir;
   const rawRunsPath = join(outDir, "raw-runs.jsonl");
   await writeFile(rawRunsPath, "", "utf8");
@@ -172,6 +221,7 @@ async function main() {
       {
         count: plan.length,
         execute: args.execute,
+        rootDir: args.rootDir,
         retry: { retries: args.retries, retryDelayMs: args.retryDelayMs },
         plan,
       },
@@ -188,7 +238,9 @@ async function main() {
   console.log(JSON.stringify({ count: plan.length, planPath, executed: args.execute }, null, 2));
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : String(err));
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  });
+}

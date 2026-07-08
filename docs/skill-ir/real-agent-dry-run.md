@@ -36,8 +36,8 @@ The generated dry-run directory is an execution artifact. It should not be commi
 
 For each selected matrix case, the harness:
 
-1. Reads the current Skill IR fixture.
-2. Reads the current benchmark task fixture.
+1. Reads the corpus manifest.
+2. Loads each selected skill's `irPath` and `tasksPath`.
 3. Converts the task into a SkVM `task.json`.
 4. Materializes a system-specific `SKILL.md` when the system uses a skill.
 5. Builds a `bun run skvm run ...` command.
@@ -83,6 +83,22 @@ bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,
 
 Retries are off by default. They only apply to rows that look like provider, network, auth, rate-limit, or timeout failures. Agent failures are not retried.
 
+Use `--root-dir=<path>` to point the runner at a temporary or alternate benchmark corpus. By default, `rootDir` is the current repository root. The runner expects:
+
+```text
+benchmarks/skill-ir/corpus/manifest.json
+benchmarks/skill-ir/contexts/standard-contexts.json
+```
+
+Each selected manifest skill must provide both:
+
+```text
+irPath
+tasksPath
+```
+
+The task file's `skillId` must match the manifest skill id.
+
 The `--execute` mode writes raw execution logs to:
 
 ```text
@@ -110,6 +126,7 @@ See `docs/skill-ir/real-agent-smoke-run.md` for the first real-agent smoke run t
 ## Public Helpers
 
 ```ts
+buildPlan(args)
 buildSkvmTaskJson(task, opts)
 renderSkillMarkdown(ir, system)
 materializeCaseArtifacts(opts)
@@ -157,6 +174,7 @@ Run focused tests:
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent.test.ts
+bun test ./src/benchmarks/skill-ir/real-agent-run.test.ts
 bun test ./src/benchmarks/skill-ir/scoring.test.ts
 ```
 
@@ -175,6 +193,8 @@ bun run typecheck
 ## Failure Modes
 
 - Missing model/API key only matters with `--execute`.
+- A manifest skill without `irPath` or `tasksPath` fails before any agent call.
+- A task file whose `skillId` does not match its manifest skill fails before materialization.
 - Unquoted comma-separated PowerShell args can produce an empty plan.
 - `skvm run` executes but does not score; run `score-real-agent-runs.ts` before feeding data into the final analyzer.
 - The current `skvm-aot` materialization is a placeholder until a real `skvm aot-compile` proposal path is wired in.
