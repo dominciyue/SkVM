@@ -188,6 +188,12 @@ The current heuristic scorer supports the expanded seed tasks:
 - `Required sections are present.`
 - `Evidence limitation is mentioned.` This accepts singular and plural limitation headings such as `Evidence Limitation` and `Evidence Limitations`.
 - `Actionable next step is mentioned.`
+- `Security or high-severity risk is prioritized.`
+- `Distracting warning is not treated as root cause.`
+- `Node-based portable alternative is provided.`
+- `Secret-like files are excluded from commit.`
+- `Edge-case failing test is mentioned.`
+- `Overclaiming is avoided.`
 
 Unsupported criteria fail closed. This prevents the scorer from silently overstating success when new task types are added.
 

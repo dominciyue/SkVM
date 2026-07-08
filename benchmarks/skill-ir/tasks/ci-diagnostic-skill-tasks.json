@@ -21,6 +21,17 @@
         "Concrete fix is mentioned.",
         "Verification step is mentioned."
       ]
+    },
+    {
+      "id": "ci-cache-warning-hard-001",
+      "split": "held-out",
+      "prompt": "Diagnose the CI failure below. Give the likely root cause, a concrete fix, and the verification step. Do not treat warnings as the primary cause unless they explain the failing command.\n\n```text\nRun bun test:integration\nwarning: npm cache folder is not writable, using a temporary cache\nwarning: deprecated package left-pad@1.3.0\n$ bun test:integration\nerror: Cannot find module './generated/client'\nRequire stack:\n- src/db/client.ts\n- src/api/users.test.ts\n\nPrevious step:\n$ bun install --frozen-lockfile\nDone in 18s\n\nThe generated client is normally produced by `bun run db:generate`, but the workflow restored `node_modules` from cache and then went straight to tests.\n```\n\nFocus on the missing generated artifact or workflow step rather than the cache/deprecation warnings.",
+      "successCriteria": [
+        "Root cause is mentioned.",
+        "Distracting warning is not treated as root cause.",
+        "Concrete fix is mentioned.",
+        "Verification step is mentioned."
+      ]
     }
   ]
 }

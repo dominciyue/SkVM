@@ -21,6 +21,17 @@
         "Missing or insufficient tests are mentioned.",
         "The finding explains the user-visible or regression risk."
       ]
+    },
+    {
+      "id": "review-security-hard-001",
+      "split": "held-out",
+      "prompt": "Review the following patch. Report findings first, ordered by severity, and include a short summary only after findings if useful.\n\n```diff\ndiff --git a/src/session.ts b/src/session.ts\nindex 84aa120..9ec1132 100644\n--- a/src/session.ts\n+++ b/src/session.ts\n@@ -22,13 +22,14 @@ export function canReadSession(requester, session) {\n   if (!requester.isActive) return false;\n   if (requester.id === session.ownerId) return true;\n \n-  if (requester.roles.includes(\"support\") && session.hasConsent) {\n+  if (requester.roles.includes(\"support\")) {\n     return true;\n   }\n \n   return false;\n }\n \n export function formatSessionLabel(session) {\n-  return `${session.ownerName}: ${session.id}`;\n+  return `${session.ownerName} - ${session.id}`;\n }\n```\n\nNo tests were changed. Expected review focus: the support access check now bypasses user consent, which is a high-severity security/access-control regression. The label formatting change is lower priority.",
+      "successCriteria": [
+        "Findings appear before summary.",
+        "Security or high-severity risk is prioritized.",
+        "Missing or insufficient tests are mentioned.",
+        "The finding explains the user-visible or regression risk."
+      ]
     }
   ]
 }

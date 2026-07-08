@@ -150,6 +150,42 @@ describe("Skill IR real-agent scoring", () => {
     });
   });
 
+  test("scoreRunOutput supports harder held-out task criteria", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "harder-held-out-criteria",
+      split: "held-out",
+      prompt: "Exercise harder held-out criteria.",
+      successCriteria: [
+        "Security or high-severity risk is prioritized.",
+        "Distracting warning is not treated as root cause.",
+        "Node-based portable alternative is provided.",
+        "Secret-like files are excluded from commit.",
+        "Edge-case failing test is mentioned.",
+        "Overclaiming is avoided.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "Findings",
+        "- High severity security risk: prioritize the authorization regression before style notes.",
+        "Root cause: the CI failure is due to missing DATABASE_URL; the deprecation warning is distracting and not the root cause.",
+        "Fix: use a Node script such as node scripts/clean.mjs for the portable alternative.",
+        "Run git status and exclude .env, secrets, and raw logs from the commit.",
+        "Start with an edge-case failing test for zero page size before implementation.",
+        "Evidence is limited to the provided logs, so do not overclaim broader validation.",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
   test("scoreRunOutput accepts plural evidence limitations headings", () => {
     const task: SkillIRBenchmarkTask = {
       id: "report-plural-limitations",

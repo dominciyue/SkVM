@@ -264,6 +264,69 @@ function passesCriterion(criterion: string, output: string): boolean {
     return containsAny(normalizedOutput, [/\bnext step\b/, /\bnext steps\b/, /\brerun\b/, /\bexpand\b/, /\badd\b/]);
   }
 
+  if (normalizedCriterion === "security or high-severity risk is prioritized.") {
+    const highRiskIndex = Math.min(
+      ...["security", "high severity", "critical", "authorization", "access control"]
+        .map((term) => normalizedOutput.indexOf(term))
+        .filter((index) => index >= 0),
+    );
+    if (!Number.isFinite(highRiskIndex)) {
+      return false;
+    }
+
+    const lowerPriorityIndexes = ["style", "nit", "naming", "format"]
+      .map((term) => normalizedOutput.indexOf(term))
+      .filter((index) => index >= 0);
+    return lowerPriorityIndexes.length === 0 || highRiskIndex < Math.min(...lowerPriorityIndexes);
+  }
+
+  if (normalizedCriterion === "distracting warning is not treated as root cause.") {
+    return containsAny(normalizedOutput, [
+      /\bwarning\b.*\bnot\b.*\broot cause\b/,
+      /\bnot\b.*\broot cause\b.*\bwarning\b/,
+      /\bdistracting\b.*\bwarning\b/,
+      /\bwarning\b.*\bdistract/,
+    ]);
+  }
+
+  if (normalizedCriterion === "node-based portable alternative is provided.") {
+    return containsAny(normalizedOutput, [
+      /\bnode\b.*\bscripts?\//,
+      /\bnode\b.*\.(?:mjs|cjs|js)\b/,
+      /\bscripts?\/.*\.(?:mjs|cjs|js)\b/,
+      /\bportable\b.*\bnode\b/,
+    ]);
+  }
+
+  if (normalizedCriterion === "secret-like files are excluded from commit.") {
+    return containsAny(normalizedOutput, [
+      /\bexclude\b.*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
+      /\bdo not\b.*\bcommit\b.*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
+      /\bkeep\b.*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs).*\bout\b/,
+      /(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs).*\bnot\b.*\bcommit\b/,
+    ]);
+  }
+
+  if (normalizedCriterion === "edge-case failing test is mentioned.") {
+    return containsAny(normalizedOutput, [
+      /\bedge[- ]case\b.*\bfailing test\b/,
+      /\bfailing test\b.*\bedge[- ]case\b/,
+      /\bboundary\b.*\bfailing test\b/,
+      /\bfailing test\b.*\bboundary\b/,
+    ]);
+  }
+
+  if (normalizedCriterion === "overclaiming is avoided.") {
+    return containsAny(normalizedOutput, [
+      /\bdo not overclaim\b/,
+      /\bavoid overclaim/,
+      /\bnot\b.*\bclaim\b.*\bvalidated\b/,
+      /\bdo not\b.*\bclaim\b.*\bfull\b/,
+      /\blimited\b.*\bdo not\b.*\bclaim\b/,
+      /\bevidence\b.*\blimited\b/,
+    ]);
+  }
+
   return false;
 }
 

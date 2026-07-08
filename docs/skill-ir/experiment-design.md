@@ -57,12 +57,12 @@ src/benchmarks/skill-ir/matrix.ts
 The current seed matrix is:
 
 ```text
-6 skills x 2 agents x 2 environments x 4 contexts x 2 tasks per skill x 6 systems = 1152 cases
+6 skills x 2 agents x 2 environments x 4 contexts x 3 tasks per skill x 6 systems = 1728 cases
 ```
 
 Tasks are bound to their owning skill through `tasksBySkill` in the matrix input. The flattened `tasks` list is only a compatibility/reporting view. The matrix must not pair one skill with another skill's task, because that would create artificial failures and inflate the apparent benchmark scale.
 
-This is the first expanded seed corpus, not the final deep benchmark. The full target remains 12-16 deep benchmark skills with 8-12 tasks per deep skill after the small multi-skill pipeline is checked.
+This is the first expanded seed corpus, not the final deep benchmark. The current seed task set contains one development task and two held-out tasks per skill, including one harder held-out task per skill. The full target remains 12-16 deep benchmark skills with 8-12 tasks per deep skill after the small multi-skill pipeline is checked.
 
 ## Skill Selection
 

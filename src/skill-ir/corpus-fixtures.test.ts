@@ -56,8 +56,8 @@ describe("skill-ir corpus fixtures", () => {
 
     expect(taskSet.schemaVersion).toBe("skill-ir-tasks/v1");
     expect(taskSet.skillId).toBe("skill-review");
-    expect(taskSet.tasks).toHaveLength(2);
-    expect(taskSet.tasks.map((task) => task.split)).toEqual(["development", "held-out"]);
+    expect(taskSet.tasks).toHaveLength(3);
+    expect(taskSet.tasks.map((task) => task.split)).toEqual(["development", "held-out", "held-out"]);
     expect(taskSet.tasks.every((task) => task.successCriteria.length >= 3)).toBe(true);
   });
 
@@ -115,8 +115,10 @@ describe("skill-ir corpus fixtures", () => {
       };
       expect(taskSet.schemaVersion).toBe("skill-ir-tasks/v1");
       expect(taskSet.skillId).toBe(skill.id);
-      expect(taskSet.tasks).toHaveLength(2);
-      expect(taskSet.tasks.map((task) => task.split)).toEqual(["development", "held-out"]);
+      expect(taskSet.tasks.length).toBeGreaterThanOrEqual(3);
+      expect(taskSet.tasks.filter((task) => task.split === "development")).toHaveLength(1);
+      expect(taskSet.tasks.filter((task) => task.split === "held-out").length).toBeGreaterThanOrEqual(2);
+      expect(taskSet.tasks.some((task) => task.id.includes("hard"))).toBe(true);
       expect(taskSet.tasks.every((task) => task.prompt.length > 80)).toBe(true);
       expect(taskSet.tasks.every((task) => task.successCriteria.length >= 2)).toBe(true);
     }
