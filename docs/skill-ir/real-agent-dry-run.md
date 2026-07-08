@@ -21,6 +21,7 @@ Tests:
 
 ```text
 src/benchmarks/skill-ir/real-agent.test.ts
+src/benchmarks/skill-ir/real-agent-run.test.ts
 src/benchmarks/skill-ir/scoring.test.ts
 ```
 
@@ -67,6 +68,24 @@ bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,
 ```
 
 PowerShell users should quote comma-separated arguments such as `--systems=no-skill,original`. Without quotes, PowerShell can split the comma list before it reaches Bun.
+
+For controlled corpus expansion, narrow the matrix before applying `--limit`:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile' '--contexts=clean' '--agents=skvm' '--environments=linux' '--tasks=review-finding-order-001,ci-node-version-001,portable-env-var-001,dirty-worktree-001,tdd-empty-input-001,report-experiment-notes-001' '--limit=12' '--out-dir=results/skill-ir/multi-skill-smoke-dry-run-2026-07-08'
+```
+
+The runner supports these selection filters:
+
+| Flag | Matches matrix field |
+|---|---|
+| `--systems=` | system configuration, such as `original` or `ir-profile` |
+| `--contexts=` | benchmark context id |
+| `--agents=` | target agent label, such as `skvm` or `codex` |
+| `--environments=` | target environment label, such as `linux` or `windows` |
+| `--tasks=` | benchmark task id |
+
+Filters are applied before `--limit`, so a small multi-skill smoke run can sample the intended skills instead of accidentally taking the first rows from the default matrix order.
 
 Execute the generated plan against a real model:
 
@@ -196,6 +215,7 @@ bun run typecheck
 - A manifest skill without `irPath` or `tasksPath` fails before any agent call.
 - A task file whose `skillId` does not match its manifest skill fails before materialization.
 - Unquoted comma-separated PowerShell args can produce an empty plan.
+- Unknown task, agent, environment, context, or system filters can produce an empty plan. Inspect `plan.json` before real execution if the selected matrix is new.
 - `skvm run` executes but does not score; run `score-real-agent-runs.ts` before feeding data into the final analyzer.
 - The current `skvm-aot` materialization is a placeholder until a real `skvm aot-compile` proposal path is wired in.
 - The current scorer is heuristic and only supports the seed review criteria. Unsupported criteria fail closed.

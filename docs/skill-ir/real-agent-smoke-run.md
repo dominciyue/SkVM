@@ -120,6 +120,17 @@ Paired comparison is only meaningful when both baseline and compared rows are va
 ## Follow-Up
 
 - Use `--retries=1` or another small retry budget before running a larger matrix through an unstable gateway.
+- The next corpus-expansion smoke should use explicit filters to cover one development task from each deep-benchmark skill while keeping cost bounded:
+
+```powershell
+$env:SKVM_CACHE=(Resolve-Path .skvm).Path
+$env:SKVM_XTY_API_KEY="<redacted>"
+$env:SKVM_AUTO_PROBE="0"
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile' '--contexts=clean' '--agents=skvm' '--environments=linux' '--tasks=review-finding-order-001,ci-node-version-001,portable-env-var-001,dirty-worktree-001,tdd-empty-input-001,report-experiment-notes-001' '--limit=12' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--out-dir=results/skill-ir/multi-skill-smoke-run-2026-07-08' '--execute' '--retries=1' '--retry-delay-ms=1000'
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/multi-skill-smoke-run-2026-07-08/raw-runs.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--out=results/skill-ir/multi-skill-smoke-results-2026-07-08.jsonl'
+python scripts/analyze_skill_ir_results.py results/skill-ir/multi-skill-smoke-results-2026-07-08.jsonl results/skill-ir/multi-skill-smoke-table-2026-07-08.csv
+```
+
 - Keep raw run directories local unless a specific run is intentionally archived.
 - Run at least one additional model after the pipeline is stable to avoid overfitting conclusions to `gpt-4.1-mini`.
 - Expand the deep benchmark only after checking that infrastructure failures remain low and are reported separately.

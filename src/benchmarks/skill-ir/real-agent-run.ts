@@ -21,6 +21,9 @@ export type RealAgentRunArgs = {
   rootDir: string;
   systems?: Set<ExperimentSystem>;
   contexts?: Set<string>;
+  agents?: Set<string>;
+  environments?: Set<string>;
+  tasks?: Set<string>;
 };
 
 type CorpusManifest = {
@@ -75,6 +78,12 @@ function parseArgs(argv: string[]): RealAgentRunArgs {
       args.systems = new Set(arg.slice("--systems=".length).split(",") as ExperimentSystem[]);
     } else if (arg.startsWith("--contexts=")) {
       args.contexts = new Set(arg.slice("--contexts=".length).split(","));
+    } else if (arg.startsWith("--agents=")) {
+      args.agents = new Set(arg.slice("--agents=".length).split(","));
+    } else if (arg.startsWith("--environments=")) {
+      args.environments = new Set(arg.slice("--environments=".length).split(","));
+    } else if (arg.startsWith("--tasks=")) {
+      args.tasks = new Set(arg.slice("--tasks=".length).split(","));
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -107,6 +116,9 @@ function selectCases(cases: ExperimentCase[], args: RealAgentRunArgs): Experimen
   return cases
     .filter((item) => (args.systems ? args.systems.has(item.system) : true))
     .filter((item) => (args.contexts ? args.contexts.has(item.context) : true))
+    .filter((item) => (args.agents ? args.agents.has(item.agent) : true))
+    .filter((item) => (args.environments ? args.environments.has(item.environment) : true))
+    .filter((item) => (args.tasks ? args.tasks.has(item.task) : true))
     .slice(0, args.limit);
 }
 

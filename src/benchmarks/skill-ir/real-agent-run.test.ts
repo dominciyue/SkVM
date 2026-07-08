@@ -132,4 +132,31 @@ describe("real-agent-run manifest loading", () => {
     expect(skillTexts.some((text) => text.includes("Review source text."))).toBe(true);
     expect(skillTexts.some((text) => text.includes("Diagnostic source text."))).toBe(true);
   });
+
+  test("buildPlan can narrow runs by agent, environment, and task id", async () => {
+    const rootDir = await createMultiSkillRoot();
+    const args: RealAgentRunArgs = {
+      model: "test/model",
+      adapter: "bare-agent",
+      outDir: join(rootDir, "out"),
+      limit: 10,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1000,
+      rootDir,
+      systems: new Set(["original", "ir-profile"]),
+      contexts: new Set(["clean"]),
+      agents: new Set(["codex"]),
+      environments: new Set(["windows"]),
+      tasks: new Set(["diagnostic-task"]),
+    };
+
+    const plan = await buildPlan(args);
+
+    expect(plan.map((entry) => entry.caseId)).toEqual([
+      "skill-diagnostic:codex:windows:clean:diagnostic-task",
+      "skill-diagnostic:codex:windows:clean:diagnostic-task",
+    ]);
+    expect(plan.map((entry) => entry.system)).toEqual(["original", "ir-profile"]);
+  });
 });
