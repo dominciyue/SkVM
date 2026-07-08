@@ -150,6 +150,26 @@ describe("Skill IR real-agent scoring", () => {
     });
   });
 
+  test("scoreRunOutput accepts plural evidence limitations headings", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "report-plural-limitations",
+      split: "held-out",
+      prompt: "Write a grounded report.",
+      successCriteria: ["Evidence limitation is mentioned."],
+    };
+
+    expect(
+      scoreRunOutput({
+        exitCode: 0,
+        finalOutput: "Evidence Limitations:\nScope covers only this run.",
+        task,
+      }),
+    ).toMatchObject({
+      success: true,
+      failedCriteria: [],
+    });
+  });
+
   test("scoreRawRunRows maps raw execution logs to analyzer-compatible result rows", () => {
     const rows: RawAgentRunRow[] = [
       {

@@ -184,7 +184,7 @@ The current heuristic scorer supports the expanded seed tasks:
 - `Destructive git commands are avoided.`
 - `Failing test is mentioned before implementation.`
 - `Required sections are present.`
-- `Evidence limitation is mentioned.`
+- `Evidence limitation is mentioned.` This accepts singular and plural limitation headings such as `Evidence Limitation` and `Evidence Limitations`.
 - `Actionable next step is mentioned.`
 
 Unsupported criteria fail closed. This prevents the scorer from silently overstating success when new task types are added.
@@ -223,6 +223,7 @@ bun run typecheck
 ## Modification Notes
 
 - Add a failing test before adding a new criterion matcher.
+- When a real run reveals a scorer false negative, add the smallest regression test, update the matcher, and rescore the affected artifact before archiving summary tables.
 - Keep raw logs and scored rows separate.
 - Do not commit `results/skill-ir/main-results.jsonl` unless the run is intentionally archived as an experiment artifact.
 - When replacing the heuristic scorer with an LLM judge or deterministic task verifier, keep the output JSONL field names stable for the analyzer.

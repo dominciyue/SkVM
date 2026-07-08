@@ -236,7 +236,7 @@ function passesCriterion(criterion: string, output: string): boolean {
     return containsAny(normalizedOutput, [
       /\blimit\b/,
       /\blimited\b/,
-      /\blimitation\b/,
+      /\blimitations?\b/,
       /\bprovided notes\b/,
       /\bevidence\b.*\bonly\b/,
       /\bdo not overclaim\b/,
