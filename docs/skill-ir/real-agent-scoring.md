@@ -4,7 +4,7 @@
 
 The real-agent scoring layer converts execution-only SkVM logs into benchmark rows that the result analyzer can summarize. It sits between `real-agent-run.ts --execute` and `scripts/analyze_skill_ir_results.py`.
 
-The current implementation is intentionally deterministic and offline. It does not call an LLM judge. For the seed review tasks, it checks the task `successCriteria` with small heuristics so the end-to-end pipeline can be tested before spending model budget.
+The current implementation is intentionally deterministic and offline. It does not call an LLM judge. For the expanded seed corpus, it checks task `successCriteria` with small heuristics so the end-to-end pipeline can be tested before spending model budget.
 
 ## Files
 
@@ -161,13 +161,25 @@ Scoring behavior:
 
 ## Supported Seed Criteria
 
-The current heuristic scorer supports the review seed tasks:
+The current heuristic scorer supports the expanded seed tasks:
 
 - `Findings appear before summary.`
 - `Behavioral bug is mentioned.`
 - `Style-only issue is lower priority than behavioral bug.`
 - `Missing or insufficient tests are mentioned.`
 - `The finding explains the user-visible or regression risk.`
+- `Root cause is mentioned.`
+- `Concrete fix is mentioned.`
+- `Verification step is mentioned.`
+- `Platform difference is mentioned.`
+- `Portable alternative is provided.`
+- `Git status is mentioned.`
+- `Unrelated changes are preserved.`
+- `Destructive git commands are avoided.`
+- `Failing test is mentioned before implementation.`
+- `Required sections are present.`
+- `Evidence limitation is mentioned.`
+- `Actionable next step is mentioned.`
 
 Unsupported criteria fail closed. This prevents the scorer from silently overstating success when new task types are added.
 
@@ -193,7 +205,7 @@ bun run typecheck
 
 ## Assumptions And Failure Modes
 
-- This is not a final LLM-judge evaluator. It is a deterministic bridge for the current seed tasks.
+- This is not a final LLM-judge evaluator. It is a deterministic bridge for the current expanded seed tasks.
 - Unsupported success criteria fail closed and should trigger a scorer extension or task-specific verifier.
 - Use `--manifest` for expanded Task 11B runs. `--tasks` should only be used when all raw rows belong to one skill task file.
 - A manifest skill without `tasksPath`, or a task file with a mismatched `skillId`, fails before writing scored output.

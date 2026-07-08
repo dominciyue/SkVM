@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "skill-git-hygiene",
+  "tasks": [
+    {
+      "id": "dirty-worktree-001",
+      "split": "development",
+      "prompt": "You need to modify `src/server.ts`, but the repository already has unrelated edits. Give a safe working plan.\n\n```text\n## skill-ir-aot...origin/skill-ir-aot\n M src/server.ts\n M docs/notes.md\n?? scratch/local-debug.log\n```\n\nThe user says the docs and scratch file are their own work and should not be changed.",
+      "successCriteria": [
+        "Git status is mentioned.",
+        "Unrelated changes are preserved.",
+        "Destructive git commands are avoided."
+      ]
+    },
+    {
+      "id": "commit-scope-001",
+      "split": "held-out",
+      "prompt": "Prepare a safe commit plan for a feature branch with mixed changes. Do not assume every changed file belongs to the task.\n\n```text\n## skill-ir-aot\n M src/skill-ir/schema.ts\n M src/skill-ir/schema.test.ts\n M private-notes.md\n?? results/skill-ir/tmp-run/raw-runs.jsonl\n```\n\nThe intended task only touched the schema files.",
+      "successCriteria": [
+        "Git status is mentioned.",
+        "Unrelated changes are preserved.",
+        "Destructive git commands are avoided."
+      ]
+    }
+  ]
+}

@@ -71,4 +71,54 @@ describe("skill-ir corpus fixtures", () => {
       expect(task.prompt).toContain("Review the following patch");
     }
   });
+
+  test("expanded seed corpus covers all Skill IR categories with deep benchmark fixtures", () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
+      categories: string[];
+      skills: {
+        id: string;
+        category: string[];
+        depth: string;
+        irPath: string;
+        tasksPath: string;
+      }[];
+    };
+
+    expect(manifest.skills).toHaveLength(6);
+    expect(manifest.skills.every((skill) => skill.depth === "deep-benchmark")).toBe(true);
+
+    const coveredCategories = new Set(manifest.skills.flatMap((skill) => skill.category));
+    for (const category of manifest.categories) {
+      expect(coveredCategories.has(category)).toBe(true);
+    }
+  });
+
+  test("all manifest skill IR and task fixtures parse, validate, and stay skill-scoped", () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
+      skills: {
+        id: string;
+        irPath: string;
+        tasksPath: string;
+      }[];
+    };
+
+    for (const skill of manifest.skills) {
+      const ir = SkillIRSchema.parse(readJson(join(process.cwd(), skill.irPath)));
+      const report = validateSkillIR(ir);
+      expect(ir.id).toBe(skill.id);
+      expect(report.errors).toEqual([]);
+
+      const taskSet = readJson(join(process.cwd(), skill.tasksPath)) as {
+        schemaVersion: string;
+        skillId: string;
+        tasks: { id: string; split: string; prompt: string; successCriteria: string[] }[];
+      };
+      expect(taskSet.schemaVersion).toBe("skill-ir-tasks/v1");
+      expect(taskSet.skillId).toBe(skill.id);
+      expect(taskSet.tasks).toHaveLength(2);
+      expect(taskSet.tasks.map((task) => task.split)).toEqual(["development", "held-out"]);
+      expect(taskSet.tasks.every((task) => task.prompt.length > 80)).toBe(true);
+      expect(taskSet.tasks.every((task) => task.successCriteria.length >= 2)).toBe(true);
+    }
+  });
 });

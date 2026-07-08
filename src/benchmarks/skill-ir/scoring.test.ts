@@ -95,6 +95,50 @@ describe("Skill IR real-agent scoring", () => {
     expect(scored.ruleViolations).toBe(3);
   });
 
+  test("scoreRunOutput supports expanded seed corpus criteria", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "expanded-criteria",
+      split: "development",
+      prompt: "Exercise non-review seed criteria.",
+      successCriteria: [
+        "Root cause is mentioned.",
+        "Concrete fix is mentioned.",
+        "Verification step is mentioned.",
+        "Platform difference is mentioned.",
+        "Portable alternative is provided.",
+        "Git status is mentioned.",
+        "Unrelated changes are preserved.",
+        "Destructive git commands are avoided.",
+        "Failing test is mentioned before implementation.",
+        "Required sections are present.",
+        "Evidence limitation is mentioned.",
+        "Actionable next step is mentioned.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "Findings",
+        "Root cause: the CI job fails because Linux uses bash while Windows uses PowerShell path syntax.",
+        "Concrete fix: update the script to choose a portable cross-platform command alternative.",
+        "Verification step: run bun test and the CI check again.",
+        "First write a failing test before implementation, then apply the fix.",
+        "Run git status and keep unrelated changes untouched.",
+        "Summary: the failure is isolated.",
+        "Evidence: the conclusion is limited to the provided logs.",
+        "Next step: rerun the workflow after the patch.",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
   test("scoreRawRunRows maps raw execution logs to analyzer-compatible result rows", () => {
     const rows: RawAgentRunRow[] = [
       {

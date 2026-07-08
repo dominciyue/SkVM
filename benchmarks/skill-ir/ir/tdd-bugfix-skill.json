@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "skill-tdd-bugfix",
+  "name": "TDD Bug Fix",
+  "category": ["workflow", "diagnostic"],
+  "intent": "Fix bugs by first reproducing them with a failing test, then implementing and verifying the fix.",
+  "source": {
+    "kind": "inline",
+    "text": "For bug fixes, write or identify a failing test before implementation. Confirm it fails for the expected reason, make the minimal fix, then rerun focused and broader verification."
+  },
+  "inputs": [
+    {
+      "id": "bug-report",
+      "description": "A bug report, failing behavior, or regression description.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "bugfix-plan",
+      "description": "A test-first bug fix plan with implementation and verification.",
+      "required": true
+    }
+  ],
+  "preconditions": [],
+  "steps": [
+    {
+      "id": "step-reproduce",
+      "title": "Reproduce with failing test",
+      "description": "Write or select a test that fails for the reported bug before implementation.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": ["tool-test-runner"],
+      "produces": ["failing-test"],
+      "successCheckRefs": ["check-failing-test-first"],
+      "failureModes": ["implementation-before-test"]
+    },
+    {
+      "id": "step-implement-fix",
+      "title": "Implement fix",
+      "description": "Make the smallest code change needed to pass the failing test.",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": ["step-reproduce"],
+      "toolRefs": [],
+      "produces": ["fix"],
+      "successCheckRefs": ["check-concrete-fix"],
+      "failureModes": ["overbroad-refactor"]
+    },
+    {
+      "id": "step-rerun-tests",
+      "title": "Rerun verification",
+      "description": "Rerun the focused test and relevant broader checks.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": ["step-implement-fix"],
+      "toolRefs": ["tool-test-runner"],
+      "produces": ["verification-result"],
+      "successCheckRefs": ["check-verification-step"],
+      "failureModes": ["missing-verification"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-test-first",
+      "sourceText": "Write the failing test before implementing the fix.",
+      "level": "must",
+      "scope": "planning",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "A failing test is mentioned before implementation."
+    },
+    {
+      "id": "rule-verify-after",
+      "sourceText": "Rerun tests before claiming the bug is fixed.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "The response includes verification after the fix."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-test-runner",
+      "name": "test runner",
+      "purpose": "Run focused and broader tests.",
+      "required": true,
+      "alternatives": ["manual reproduction steps"],
+      "platformNotes": {},
+      "availabilityCheck": "detect project test command"
+    }
+  ],
+  "environment": [],
+  "checks": [
+    {
+      "id": "check-failing-test-first",
+      "name": "Failing test before implementation",
+      "kind": "output",
+      "targetRef": "rule-test-first",
+      "assertion": "The response mentions a failing test before implementation.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-concrete-fix",
+      "name": "Concrete fix stated",
+      "kind": "output",
+      "targetRef": "step-implement-fix",
+      "assertion": "The response includes a concrete fix.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-verification-step",
+      "name": "Verification step stated",
+      "kind": "output",
+      "targetRef": "rule-verify-after",
+      "assertion": "The response includes focused and broader verification.",
+      "onFailure": "report"
+    }
+  ],
+  "recovery": [],
+  "profile": []
+}

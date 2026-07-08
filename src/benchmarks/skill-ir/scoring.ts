@@ -118,6 +118,107 @@ function passesCriterion(criterion: string, output: string): boolean {
     ]);
   }
 
+  if (normalizedCriterion === "root cause is mentioned.") {
+    return containsAny(normalizedOutput, [/\broot cause\b/, /\bcause\b/, /\bbecause\b/, /\bdue to\b/]);
+  }
+
+  if (normalizedCriterion === "concrete fix is mentioned.") {
+    return containsAny(normalizedOutput, [
+      /\bfix\b/,
+      /\bchange\b/,
+      /\bupdate\b/,
+      /\bset\b/,
+      /\badd\b/,
+      /\buse\b/,
+    ]);
+  }
+
+  if (normalizedCriterion === "verification step is mentioned.") {
+    return containsAny(normalizedOutput, [
+      /\bverify\b/,
+      /\bverification\b/,
+      /\brerun\b/,
+      /\brun\b.*\btest\b/,
+      /\bci\b.*\bcheck\b/,
+    ]);
+  }
+
+  if (normalizedCriterion === "platform difference is mentioned.") {
+    return containsAny(normalizedOutput, [
+      /\bwindows\b/,
+      /\blinux\b/,
+      /\bmacos\b/,
+      /\bpowershell\b/,
+      /\bbash\b/,
+      /\bshell\b/,
+      /\bpath\b/,
+      /\bcross-platform\b/,
+    ]);
+  }
+
+  if (normalizedCriterion === "portable alternative is provided.") {
+    return containsAny(normalizedOutput, [/\bportable\b/, /\bcross-platform\b/, /\balternative\b/, /\bnpm package\b/]);
+  }
+
+  if (normalizedCriterion === "git status is mentioned.") {
+    return normalizedOutput.includes("git status");
+  }
+
+  if (normalizedCriterion === "unrelated changes are preserved.") {
+    return containsAny(normalizedOutput, [
+      /\bunrelated changes\b/,
+      /\bpreserve\b/,
+      /\bkeep\b.*\bchanges\b/,
+      /\bdo not touch\b/,
+      /\bavoid reverting\b/,
+    ]);
+  }
+
+  if (normalizedCriterion === "destructive git commands are avoided.") {
+    return !containsAny(normalizedOutput, [
+      /\bgit reset --hard\b/,
+      /\bgit clean -[^\s]*f/,
+      /\bgit checkout --\b/,
+      /\bgit restore\b.*\./,
+    ]);
+  }
+
+  if (normalizedCriterion === "failing test is mentioned before implementation.") {
+    const testIndex = Math.min(
+      ...["failing test", "test first", "red test"].map((term) => normalizedOutput.indexOf(term)).filter((index) => index >= 0),
+    );
+    if (!Number.isFinite(testIndex)) {
+      return false;
+    }
+
+    const implementationIndexes = ["implementation", "implement"]
+      .map((term) => normalizedOutput.indexOf(term))
+      .filter((index) => index >= 0);
+    return implementationIndexes.length === 0 || testIndex < Math.min(...implementationIndexes);
+  }
+
+  if (normalizedCriterion === "required sections are present.") {
+    return containsAny(normalizedOutput, [/\bsummary\b/]) &&
+      containsAny(normalizedOutput, [/\bevidence\b/, /\bfindings\b/]) &&
+      containsAny(normalizedOutput, [/\bnext step\b/, /\bnext steps\b/]);
+  }
+
+  if (normalizedCriterion === "evidence limitation is mentioned.") {
+    return containsAny(normalizedOutput, [
+      /\blimit\b/,
+      /\blimited\b/,
+      /\blimitation\b/,
+      /\bprovided notes\b/,
+      /\bevidence\b.*\bonly\b/,
+      /\bdo not overclaim\b/,
+      /\buncertain\b/,
+    ]);
+  }
+
+  if (normalizedCriterion === "actionable next step is mentioned.") {
+    return containsAny(normalizedOutput, [/\bnext step\b/, /\bnext steps\b/, /\brerun\b/, /\bexpand\b/, /\badd\b/]);
+  }
+
   return false;
 }
 

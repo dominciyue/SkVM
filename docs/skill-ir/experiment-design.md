@@ -57,12 +57,12 @@ src/benchmarks/skill-ir/matrix.ts
 The current seed matrix is:
 
 ```text
-1 skill x 2 agents x 2 environments x 4 contexts x 2 tasks x 6 systems = 192 cases
+6 skills x 2 agents x 2 environments x 4 contexts x 2 tasks per skill x 6 systems = 1152 cases
 ```
 
-Tasks are bound to their owning skill through `tasksBySkill` in the matrix input. The flattened `tasks` list is only a compatibility/reporting view. When the corpus grows beyond the seed review skill, the matrix must not pair one skill with another skill's task, because that would create artificial failures and inflate the apparent benchmark scale.
+Tasks are bound to their owning skill through `tasksBySkill` in the matrix input. The flattened `tasks` list is only a compatibility/reporting view. The matrix must not pair one skill with another skill's task, because that would create artificial failures and inflate the apparent benchmark scale.
 
-The full target matrix should scale after the harness is stable.
+This is the first expanded seed corpus, not the final deep benchmark. The full target remains 12-16 deep benchmark skills with 8-12 tasks per deep skill after the small multi-skill pipeline is checked.
 
 ## Skill Selection
 

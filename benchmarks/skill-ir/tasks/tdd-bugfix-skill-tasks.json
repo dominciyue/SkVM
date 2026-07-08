@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "skill-tdd-bugfix",
+  "tasks": [
+    {
+      "id": "tdd-empty-input-001",
+      "split": "development",
+      "prompt": "Plan a fix for this bug using a test-first workflow. Mention the failing test before implementation, the concrete fix, and verification.\n\n```ts\nexport function normalizeTags(tags: string[]) {\n  return tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);\n}\n```\n\nBug: when `tags` is `undefined`, callers get a crash instead of an empty list.",
+      "successCriteria": [
+        "Failing test is mentioned before implementation.",
+        "Concrete fix is mentioned.",
+        "Verification step is mentioned."
+      ]
+    },
+    {
+      "id": "tdd-off-by-one-001",
+      "split": "held-out",
+      "prompt": "Plan a fix for this bug using a test-first workflow. Mention the failing test before implementation, the concrete fix, and verification.\n\n```ts\nexport function pageCount(totalItems: number, pageSize: number) {\n  return Math.floor(totalItems / pageSize);\n}\n```\n\nBug: `pageCount(21, 10)` returns 2, but the UI needs 3 pages.",
+      "successCriteria": [
+        "Failing test is mentioned before implementation.",
+        "Concrete fix is mentioned.",
+        "Verification step is mentioned."
+      ]
+    }
+  ]
+}

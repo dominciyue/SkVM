@@ -82,7 +82,7 @@ Each `ExperimentCase` includes `skillPackaging`:
 focused | broad | unknown
 ```
 
-The current fixture loader infers the seed skill as `focused`. This field exists because related work suggests broad skill bundles can confound skill evaluation. Later corpus work should make packaging explicit in the manifest.
+The current fixture loader infers seed skills as `focused` unless a manifest note explicitly says they are broad. This field exists because related work suggests broad skill bundles can confound skill evaluation. Later corpus work should make packaging explicit in the manifest.
 
 ## Command Line
 

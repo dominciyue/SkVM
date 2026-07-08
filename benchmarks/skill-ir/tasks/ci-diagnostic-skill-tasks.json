@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "skill-ci-diagnostic",
+  "tasks": [
+    {
+      "id": "ci-node-version-001",
+      "split": "development",
+      "prompt": "Diagnose the CI failure below. Give the likely root cause, a concrete fix, and the verification step.\n\n```text\nRun bun test\nerror: package.json requires node >=20.11.0\nCurrent runner version: node v18.19.1\nTest suite did not start.\n```\n\nThe project recently added a dependency that requires a newer Node runtime.",
+      "successCriteria": [
+        "Root cause is mentioned.",
+        "Concrete fix is mentioned.",
+        "Verification step is mentioned."
+      ]
+    },
+    {
+      "id": "ci-missing-env-001",
+      "split": "held-out",
+      "prompt": "Diagnose the CI failure below. Give the likely root cause, a concrete fix, and the verification step.\n\n```text\nRun integration tests\nError: DATABASE_URL is not set\n    at loadConfig (src/config.ts:14)\nThe same tests pass locally with a .env file. The workflow only checks out code and runs bun test:integration.\n```\n\nFocus on the missing CI configuration rather than rewriting application logic.",
+      "successCriteria": [
+        "Root cause is mentioned.",
+        "Concrete fix is mentioned.",
+        "Verification step is mentioned."
+      ]
+    }
+  ]
+}

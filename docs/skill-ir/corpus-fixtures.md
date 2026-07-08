@@ -26,8 +26,18 @@ benchmarks/skill-ir/
     standard-contexts.json
   ir/
     review-skill.json
+    ci-diagnostic-skill.json
+    env-portability-skill.json
+    git-hygiene-skill.json
+    tdd-bugfix-skill.json
+    report-synthesis-skill.json
   tasks/
     review-skill-tasks.json
+    ci-diagnostic-skill-tasks.json
+    env-portability-skill-tasks.json
+    git-hygiene-skill-tasks.json
+    tdd-bugfix-skill-tasks.json
+    report-synthesis-skill-tasks.json
 ```
 
 ## Manifest
@@ -51,6 +61,17 @@ The initial target scale is:
 }
 ```
 
+The current expanded seed corpus contains 6 deep-benchmark fixtures:
+
+| Skill | Categories | Purpose |
+|---|---|---|
+| `skill-review` | workflow, constraint-heavy | Code review ordering and prioritization. |
+| `skill-ci-diagnostic` | diagnostic, tool-use, environment-sensitive | CI log diagnosis with root cause, fix, and verification. |
+| `skill-env-portability` | tool-use, environment-sensitive | Cross-shell and cross-OS command adaptation. |
+| `skill-git-hygiene` | tool-use, constraint-heavy | Safe dirty-worktree handling. |
+| `skill-tdd-bugfix` | workflow, diagnostic | Test-first bug fix planning. |
+| `skill-report-synthesis` | generative, workflow, constraint-heavy | Evidence-grounded report generation. |
+
 ## Context Perturbations
 
 `benchmarks/skill-ir/contexts/standard-contexts.json` defines the standard context settings used in evaluation:
@@ -64,7 +85,7 @@ These are the first axis for measuring cross-context stability.
 
 ## IR Fixtures
 
-`benchmarks/skill-ir/ir/review-skill.json` is the first complete IR fixture. It represents a code review skill with workflow and constraint-heavy behavior.
+`benchmarks/skill-ir/ir/review-skill.json` was the first complete IR fixture. The current seed corpus now includes six complete IR fixtures across the project categories.
 
 The fixture is intentionally small but complete:
 
@@ -75,7 +96,7 @@ The fixture is intentionally small but complete:
 
 ## Task Fixtures
 
-`benchmarks/skill-ir/tasks/review-skill-tasks.json` defines benchmark prompts for `skill-review`.
+Each task file under `benchmarks/skill-ir/tasks/` defines benchmark prompts for exactly one skill. The file's `skillId` must match the manifest entry.
 
 Current splits:
 
@@ -127,7 +148,7 @@ When adding a skill:
 - A fixture can be valid JSON but fail `SkillIRSchema` if fields are missing or enum values are wrong.
 - A fixture can pass schema parsing but fail `validateSkillIR` if step, tool, or check references are inconsistent.
 - A task file can be syntactically valid but still weak if `successCriteria` are vague. Prefer criteria that can later be turned into automatic checks.
-- A review task can be syntactically valid but unexecutable if the prompt does not include a diff or fixture path. The fixture test enforces self-contained review prompts for the current seed tasks.
+- A task can be syntactically valid but unexecutable if the prompt omits the log, diff, code snippet, command, or notes the agent needs. The fixture test enforces self-contained review prompts and minimum prompt length for all seed tasks.
 - Corpus manifest entries can drift from actual file paths. Keep `irPath` and `tasksPath` current when moving files.
 
 ## Modification Notes

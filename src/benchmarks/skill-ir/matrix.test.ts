@@ -73,11 +73,14 @@ describe("buildDefaultMatrixInput", () => {
     const input = buildDefaultMatrixInput();
 
     expect(input.skills).toContainEqual({ id: "skill-review", packaging: "focused" });
+    expect(input.skills).toHaveLength(6);
     expect(input.contexts).toEqual(["clean", "noisy", "long", "compressed"]);
-    expect(input.tasks).toEqual(["review-finding-order-001", "review-missing-test-001"]);
-    expect(input.tasksBySkill).toEqual({
-      "skill-review": ["review-finding-order-001", "review-missing-test-001"],
-    });
+    expect(input.tasks).toHaveLength(12);
+    expect(input.tasks).toContain("review-finding-order-001");
+    expect(input.tasks).toContain("ci-node-version-001");
+    expect(input.tasks).toContain("report-lab-update-001");
+    expect(input.tasksBySkill?.["skill-review"]).toEqual(["review-finding-order-001", "review-missing-test-001"]);
+    expect(input.tasksBySkill?.["skill-ci-diagnostic"]).toEqual(["ci-node-version-001", "ci-missing-env-001"]);
     expect(input.systems).toEqual(DEFAULT_EXPERIMENT_SYSTEMS);
   });
 });
