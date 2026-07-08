@@ -277,6 +277,92 @@ describe("Skill IR real-agent scoring", () => {
     });
   });
 
+  test("scoreRunOutput accepts no-clear-quality-advantage wording as avoiding overclaiming", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "report-overclaim-wording",
+      split: "held-out",
+      prompt: "Write a grounded report.",
+      successCriteria: ["Overclaiming is avoided."],
+    };
+
+    expect(
+      scoreRunOutput({
+        exitCode: 0,
+        finalOutput:
+          "Evidence Limitations: Small sample size. The pipeline is functioning, but IR-profile does not demonstrate a clear quality advantage.",
+        task,
+      }),
+    ).toMatchObject({
+      success: true,
+      failedCriteria: [],
+    });
+  });
+
+  test("scoreRunOutput accepts gpt-4.1-nano hard-task wording observed in compressed runs", () => {
+    const gitTask: SkillIRBenchmarkTask = {
+      id: "commit-secret-hard-001",
+      split: "held-out",
+      prompt: "Prepare a safe commit plan.",
+      successCriteria: ["Unrelated changes are preserved.", "Secret-like files are excluded from commit."],
+    };
+    const tddTask: SkillIRBenchmarkTask = {
+      id: "tdd-zero-page-hard-001",
+      split: "held-out",
+      prompt: "Describe the TDD fix order.",
+      successCriteria: ["Edge-case failing test is mentioned."],
+    };
+    const reportTask: SkillIRBenchmarkTask = {
+      id: "report-overclaim-hard-001",
+      split: "held-out",
+      prompt: "Write a grounded report.",
+      successCriteria: ["Required sections are present.", "Overclaiming is avoided."],
+    };
+
+    expect(
+      scoreRunOutput({
+        exitCode: 0,
+        finalOutput: [
+          "Stage only the two benchmark fixture changes with git add.",
+          "Your docs/private-lab-notes.md stays modified in the workspace, uncommitted.",
+          "Untracked files (.env.local, results/.../raw-runs.jsonl, scratch/...) remain in place and are now ignored.",
+          "Everything else remains untouched in your working tree.",
+        ].join("\n"),
+        task: gitTask,
+      }).success,
+    ).toBe(true);
+
+    expect(
+      scoreRunOutput({
+        exitCode: 0,
+        finalOutput: [
+          "1) Add the failing edge-case test first",
+          "it('should return 0 pages when pageSize is 0 (edge case)', () => {",
+          "  assert.strictEqual(pageCount(10, 0), 0);",
+          "});",
+          "3) Make the minimal fix",
+        ].join("\n"),
+        task: tddTask,
+      }).success,
+    ).toBe(true);
+
+    expect(
+      scoreRunOutput({
+        exitCode: 0,
+        finalOutput: [
+          "Summary:",
+          "No clear advantage for ir-profile has emerged under the current, relatively easy seed tasks.",
+          "Evidence:",
+          "The discriminative run was pre-fix and the noisy label did not fully exercise robustness.",
+          "Limitations:",
+          "The evaluation pipeline is stable, but seed tasks are insufficiently challenging.",
+          "Next Steps:",
+          "Design or incorporate a more challenging benchmark set.",
+        ].join("\n"),
+        task: reportTask,
+      }).success,
+    ).toBe(true);
+  });
+
   test("scoreRunOutput accepts caused-by wording for root cause", () => {
     const task: SkillIRBenchmarkTask = {
       id: "ci-root-cause-wording",

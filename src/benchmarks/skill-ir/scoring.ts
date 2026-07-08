@@ -222,6 +222,8 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\bdo not touch\b/,
       /\bavoid reverting\b/,
       /\bleave\b.*\bas is\b/,
+      /\beverything else\b.*\buntouched\b/,
+      /\bstays?\b.*\buncommitted\b/,
     ]);
   }
 
@@ -309,6 +311,7 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\bdo not\b[\s\S]*\bstage\b[\s\S]*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
       /\bkeep\b[\s\S]*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)[\s\S]*\bout\b/,
       /(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)[\s\S]*\bnot\b[\s\S]*\b(?:commit|stage)\b/,
+      /(?:\.env|raw-runs|scratch)[\s\S]*\b(?:remain|stays?)\b[\s\S]*\b(?:ignored|uncommitted)\b/,
     ]);
   }
 
@@ -316,6 +319,7 @@ function passesCriterion(criterion: string, output: string): boolean {
     return containsAny(normalizedOutput, [
       /\bedge[- ]case\b.*\bfailing test\b/,
       /\bfailing test\b.*\bedge[- ]case\b/,
+      /\bfailing edge[- ]case test\b/,
       /\bboundary\b.*\bfailing test\b/,
       /\bfailing test\b.*\bboundary\b/,
       /\bfailing test\b[\s\S]*\bpageSize\b[\s\S]*\b0\b/i,
@@ -332,8 +336,11 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\blimited\b.*\bdo not\b.*\bclaim\b/,
       /\bevidence\b.*\blimited\b/,
       /\bno clear evidence\b/,
+      /\bno clear\b[\s\S]*\badvantage\b/,
+      /\bdoes not demonstrate\b[\s\S]*\bclear\b[\s\S]*\badvantage\b/,
       /\blimitations?\b[\s\S]*\bnot\b[\s\S]*\b(?:prove|validated|validation)\b/,
       /\blimitations?\b[\s\S]*\bnot\b[\s\S]*\bdemonstrate\b[\s\S]*\bquality improvement\b/,
+      /\blimitations?\b[\s\S]*\binsufficiently challenging\b/,
       /\blimit(?:s|ed|ing)?\b[\s\S]*\bgeneralizability\b/,
     ]);
   }
