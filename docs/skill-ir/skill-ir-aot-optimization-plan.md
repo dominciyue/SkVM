@@ -1942,6 +1942,8 @@ Current status: the first expanded seed corpus contains 6 deep-benchmark skills 
 
 2026-07-09 update: a bounded discriminative Task 11 run has been completed on the current six-skill seed corpus. It covered one development task and one held-out task per skill, clean and noisy contexts, `original` vs `ir-profile`, `skvm`/`linux`, and produced 48 executed rows / 24 paired cases. The archived scored outputs are `results/skill-ir/discriminative-task11-results-2026-07-09.jsonl` and `results/skill-ir/discriminative-task11-table-2026-07-09.csv`; see `docs/skill-ir/discriminative-task11-run.md`.
 
+2026-07-09 context audit update: the first discriminative run used context labels but did not yet inject full noisy/long/compressed perturbation text into task prompts. The runner now materializes real context perturbations through `buildSkvmTaskJson`, and the existing discriminative result has additional slice and paired-delta CSVs for diagnosis. Future context claims should use runs generated after this audit.
+
 Before running an expanded matrix, verify that `buildDefaultMatrixInput()` produces `tasksBySkill` entries for every deep benchmark skill. Task ownership must stay skill-specific; the flattened `tasks` list is only for compatibility and should not cause one skill to be paired with another skill's task.
 
 The real-agent runner now loads each skill's `irPath` and `tasksPath` from the corpus manifest. For expanded Task 11B runs, add new skill IR and task files to the manifest first, then use the dry-run plan to check that materialized cases use the correct skill-specific IR and task prompts.

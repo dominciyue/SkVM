@@ -99,6 +99,43 @@ describe("real-agent Task 11A helpers", () => {
     ]);
   });
 
+  test("buildSkvmTaskJson injects noisy context perturbations into the prompt", () => {
+    const noisyTask = buildSkvmTaskJson(task, {
+      context: "noisy",
+      skillId: "skill-review",
+    });
+    const cleanTask = buildSkvmTaskJson(task, {
+      context: "clean",
+      skillId: "skill-review",
+    });
+
+    expect(noisyTask.prompt).toContain("Context perturbation: noisy");
+    expect(noisyTask.prompt).toContain("Distracting prior note");
+    expect(noisyTask.prompt).toContain("The current task below is authoritative");
+    expect(cleanTask.prompt).not.toContain("Distracting prior note");
+  });
+
+  test("buildSkvmTaskJson injects long and compressed context perturbations", () => {
+    const longTask = buildSkvmTaskJson(task, {
+      context: "long",
+      skillId: "skill-review",
+    });
+    const compressedTask = buildSkvmTaskJson(task, {
+      context: "compressed",
+      skillId: "skill-review",
+    });
+    const cleanTask = buildSkvmTaskJson(task, {
+      context: "clean",
+      skillId: "skill-review",
+    });
+
+    expect(longTask.prompt).toContain("Context perturbation: long");
+    expect(longTask.prompt).toContain("Long surrounding context");
+    expect(longTask.prompt.length).toBeGreaterThan(cleanTask.prompt.length + 400);
+    expect(compressedTask.prompt).toContain("Context perturbation: compressed");
+    expect(compressedTask.prompt).toContain("lossy summary");
+  });
+
   test("renderSkillMarkdown renders no-skill as null and static IR as checkable skill text", () => {
     expect(renderSkillMarkdown(baseIr(), "no-skill")).toBeNull();
 

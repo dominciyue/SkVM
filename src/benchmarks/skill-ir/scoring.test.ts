@@ -201,6 +201,7 @@ describe("Skill IR real-agent scoring", () => {
         environment: "linux",
         context: "clean",
         task: "review-finding-order-001",
+        taskSplit: "development",
         success: true,
         ruleViolations: 0,
         stepCoverage: 1,

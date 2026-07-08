@@ -128,6 +128,19 @@ The result is the first useful positive signal for the Skill IR AOT direction:
 
 This should be described as a bounded seed-corpus result, not a full benchmark conclusion. It supports the claim that IR/profile-guided materialization can make skill behavior more stable, while also showing that cost must be measured and optimized.
 
+## Post-Run Context Audit
+
+A follow-up context perturbation audit found that this run's `clean` and `noisy` cases used distinct context labels, but the task materialization did not yet inject full noisy-context distractor text. The aggregate paired comparison remains useful because systems are still compared on identical case ids and identical task inputs, but the context-specific interpretation should be stated carefully: this run is stronger evidence for six-skill, two-task paired behavior than for robustness under true noisy context.
+
+After the audit, `buildSkvmTaskJson` now injects real `noisy`, `long`, and `compressed` perturbation text. Future context experiments should be generated after that change.
+
+Additional diagnostic artifacts from the scored results:
+
+```text
+results/skill-ir/discriminative-task11-slices-2026-07-09.csv
+results/skill-ir/discriminative-task11-paired-deltas-2026-07-09.csv
+```
+
 ## Paired Gains
 
 Two paired cases improved:

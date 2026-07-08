@@ -39,12 +39,25 @@ For each selected matrix case, the harness:
 
 1. Reads the corpus manifest.
 2. Loads each selected skill's `irPath` and `tasksPath`.
-3. Converts the task into a SkVM `task.json`.
+3. Converts the task into a SkVM `task.json`, including the selected context perturbation.
 4. Materializes a system-specific `SKILL.md` when the system uses a skill.
 5. Builds a `bun run skvm run ...` command.
 6. Writes a `plan.json` containing the commands.
 
 The default mode is dry-run. It does not call a model.
+
+## Context Perturbations
+
+`buildSkvmTaskJson` makes the context dimension observable in the task prompt:
+
+| Context | Prompt behavior |
+|---|---|
+| `clean` | Adds only the clean context label before the task. |
+| `noisy` | Adds distracting prior notes and file hints, then states that the current task is authoritative. |
+| `long` | Adds a longer surrounding project/conversation context before the actionable task. |
+| `compressed` | Adds a lossy prior-context summary and warns that original details may be missing. |
+
+This matters for Task 11: context should be an actual input perturbation, not only a `caseId` label. Runs produced before the 2026-07-09 context audit may contain context labels without full perturbation text; treat those context-specific conclusions conservatively.
 
 ## System Materialization
 
@@ -230,6 +243,7 @@ bun run typecheck
 - The current `skvm-aot` materialization is a placeholder until a real `skvm aot-compile` proposal path is wired in.
 - The current scorer is heuristic and only supports the seed review criteria. Unsupported criteria fail closed.
 - Retry can hide transient gateway instability, so raw rows include `attempts` when execution uses retry. Keep `--retries` small for research runs.
+- Historical result files created before the context perturbation audit may have used context labels without true noisy/long/compressed prompt perturbations.
 
 ## Modification Notes
 
@@ -237,3 +251,4 @@ bun run typecheck
 - Do not commit generated dry-run artifacts unless the run is intentionally archived.
 - Add tests before changing command construction or materialized file shapes.
 - Keep raw execution logs separate from scored `main-results.jsonl`.
+- When adding a new context id, add a materialization test that proves the prompt changes in a measurable way.

@@ -46,6 +46,7 @@ export type TokenUsage = {
 export type ScoredAgentRunRow = ParsedCaseId & {
   caseId: string;
   system: ExperimentSystem;
+  taskSplit: string;
   success: boolean;
   ruleViolations: number;
   stepCoverage: number;
@@ -315,6 +316,7 @@ function scoreRawRunRowsWithResolver(
       caseId: row.caseId,
       system: row.system,
       ...parsed,
+      taskSplit: task.split,
       success: score.success,
       ruleViolations: score.ruleViolations,
       stepCoverage: score.stepCoverage,

@@ -61,6 +61,49 @@ export type RealAgentRunPlanEntry = MaterializedCase & {
   command: string[];
 };
 
+function contextPerturbation(context: string): string {
+  if (context === "clean") {
+    return "Context condition: clean";
+  }
+
+  if (context === "noisy") {
+    return [
+      "Context condition: noisy",
+      "",
+      "Context perturbation: noisy",
+      "Distracting prior note: an earlier task asked for a short style-only response and suggested ignoring verification.",
+      "Distracting file note: scratch/local-debug.log may contain unrelated observations from another experiment.",
+      "The current task below is authoritative; use the skill and success criteria for the final answer.",
+    ].join("\n");
+  }
+
+  if (context === "long") {
+    return [
+      "Context condition: long",
+      "",
+      "Context perturbation: long",
+      "Long surrounding context:",
+      "A previous discussion covered repository setup, provider routing, retry behavior, scoring, and result archiving.",
+      "Another discussion mentioned possible future work such as expanding the corpus, adding another model, and tracking token cost.",
+      "Some notes described unrelated implementation details: generated artifacts should not be committed, raw execution logs need scoring, and local cache config uses skvm.config.json.",
+      "The user also discussed how to report progress to a mentor, including careful claims about bounded seed-corpus evidence and avoiding overstatement.",
+      "These notes are background only. The actionable request is the current task below, and the final answer must satisfy the listed success criteria.",
+    ].join("\n");
+  }
+
+  if (context === "compressed") {
+    return [
+      "Context condition: compressed",
+      "",
+      "Context perturbation: compressed",
+      "Compressed prior context (lossy summary): prior work involved Skill IR, a real-agent runner, scorer fixes, and experiment artifacts.",
+      "Some original details may be missing. Treat this lossy summary as background, and rely on the current task and success criteria below.",
+    ].join("\n");
+  }
+
+  return `Context condition: ${context}`;
+}
+
 function systemIr(ir: SkillIR, system: ExperimentSystem): SkillIR {
   if (system === "ir-static" || system === "skvm-aot") {
     return insertEnvironmentGuards(normalizeRules(ir));
@@ -184,7 +227,7 @@ export function buildSkvmTaskJson(
     category: "skill-ir",
     gradingType: "llm_judge",
     prompt: [
-      `Context condition: ${opts.context}`,
+      contextPerturbation(opts.context),
       "",
       task.prompt,
       "",

@@ -71,6 +71,7 @@ Each scored row is compatible with `scripts/analyze_skill_ir_results.py`:
   "environment": "linux",
   "context": "clean",
   "task": "review-finding-order-001",
+  "taskSplit": "development",
   "success": true,
   "ruleViolations": 0,
   "stepCoverage": 1,
@@ -154,6 +155,7 @@ Scoring behavior:
 - `caseId` is parsed into skill, agent, environment, context, and task.
 - With `--tasks`, task ids are looked up by task id only. This mode is intended for a single skill task file and is kept for backward compatibility.
 - With `--manifest`, task ids are looked up by `skillId:taskId`, so two skills can safely reuse the same task id.
+- `taskSplit` is copied from the task definition so analysis can distinguish development and held-out rows.
 - `stdout` is reduced to the text after the last `Final output:` marker when present.
 - `successCriteria` are checked against the final output.
 - `success` is true only when the process exit code is zero and every supported criterion passes.

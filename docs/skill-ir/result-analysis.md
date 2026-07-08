@@ -8,12 +8,14 @@ The implementation lives in:
 
 ```text
 scripts/analyze_skill_ir_results.py
+scripts/analyze_skill_ir_slices.py
 ```
 
 Focused tests live in:
 
 ```text
 scripts/analyze_skill_ir_results_test.py
+scripts/analyze_skill_ir_slices_test.py
 ```
 
 Sample input and output live in:
@@ -118,6 +120,17 @@ bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/r
 python scripts/analyze_skill_ir_results.py results/skill-ir/main-results.jsonl results/skill-ir/main-table.csv
 ```
 
+Analyze slices and paired deltas:
+
+```powershell
+python scripts/analyze_skill_ir_slices.py --input results/skill-ir/main-results.jsonl --slices-out results/skill-ir/main-slices.csv --paired-out results/skill-ir/main-paired-deltas.csv --manifest benchmarks/skill-ir/corpus/manifest.json --root-dir .
+```
+
+The slice analyzer writes:
+
+- `*-slices.csv`: per-system metrics by `context`, `skill`, and `taskSplit`.
+- `*-paired-deltas.csv`: one row per non-baseline paired case, including gain/regression labels and token/latency deltas.
+
 Use a custom baseline:
 
 ```powershell
@@ -136,6 +149,16 @@ write_summary_csv(summary, path)
 
 The CLI reads JSONL, calls `summarize`, and writes CSV. The default baseline is `original`.
 
+`scripts/analyze_skill_ir_slices.py` exposes:
+
+```python
+summarize_slices(rows, baseline_system="original", task_split_by_key=None)
+build_paired_delta_rows(rows, baseline_system="original", task_split_by_key=None)
+build_task_split_index_from_manifest(manifest_path, root_dir)
+```
+
+When scored rows do not yet contain `taskSplit`, pass `--manifest` so the analyzer can recover task splits from corpus task files.
+
 ## Assumptions And Failure Modes
 
 - `success` is interpreted as boolean success.
@@ -147,6 +170,7 @@ The CLI reads JSONL, calls `summarize`, and writes CSV. The default baseline is 
 - `main-results.jsonl` should contain scored rows, not execution-only `raw-runs.jsonl`.
 - Optional `failureType` fields are summarized as infrastructure and agent failure counts. Inspect JSONL directly for case-level diagnosis.
 - Paired deltas ignore infrastructure-failure rows on either side of the comparison.
+- Slice analysis treats missing `taskSplit` as `unknown` unless a corpus manifest is supplied.
 
 ## Modification Notes
 
@@ -154,3 +178,4 @@ The CLI reads JSONL, calls `summarize`, and writes CSV. The default baseline is 
 - Add tests before changing metric formulas.
 - If Task 8 changes `caseId`, update this document and tests in the same commit.
 - If Task 10 changes reported metrics, update `SUMMARY_FIELDS` and sample CSV together.
+- Keep the main summary and slice analyzer separate: the main table is for paper-level headline metrics, while slices and paired deltas are for diagnosis and case-study selection.
