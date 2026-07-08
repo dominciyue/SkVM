@@ -195,7 +195,7 @@ The current heuristic scorer supports the expanded seed tasks:
 - `Edge-case failing test is mentioned.`
 - `Overclaiming is avoided.`
 
-The hard-task criteria accept several real compressed-run phrasings observed during Task 11, including multi-line commit exclusion lists, ignored/uncommitted secret-like file lists, `Failing test:` or `failing edge-case test first` wording followed by edge-case examples, generated-client CI root-cause wording, and evidence-limitation phrasing that avoids broad validation or quality-advantage claims without using a fixed sentence.
+The hard-task criteria accept several real compressed-run phrasings observed during Task 11, including multi-line commit exclusion lists, ignored/uncommitted secret-like file lists, `.skvm/config.json` and raw run artifacts excluded from commits, `Failing test:` or `failing edge-case test first` wording followed by edge-case examples, whitespace-only edge-case tests, generated-client and Node-version CI root-cause wording, warnings described as red herrings, Markdown/prose findings headings, and evidence-limitation phrasing that avoids broad validation or quality-advantage claims without using a fixed sentence.
 
 Unsupported criteria fail closed. This prevents the scorer from silently overstating success when new task types are added.
 

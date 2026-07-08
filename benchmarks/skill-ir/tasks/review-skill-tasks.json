@@ -32,6 +32,17 @@
         "Missing or insufficient tests are mentioned.",
         "The finding explains the user-visible or regression risk."
       ]
+    },
+    {
+      "id": "review-data-loss-hard-002",
+      "split": "held-out",
+      "prompt": "Review the following patch. Report findings first, ordered by severity, and include a short summary only after findings if useful.\n\n```diff\ndiff --git a/src/export.ts b/src/export.ts\nindex 7a1d8c2..fd91b31 100644\n--- a/src/export.ts\n+++ b/src/export.ts\n@@ -14,14 +14,14 @@ export function buildExportRows(accounts) {\n   return accounts.map((account) => ({\n     id: account.id,\n     email: account.email,\n-    balanceCents: account.balanceCents,\n+    balanceCents: 0,\n     status: account.status,\n   }));\n }\n \n export function exportFileName(date) {\n-  return `accounts-${date}.csv`;\n+  return `account-export-${date}.csv`;\n }\n```\n\nNo tests were changed. Expected review focus: exported account balances are silently replaced with zero, which is a high-severity user-visible data loss/regression risk. The filename change is lower priority.",
+      "successCriteria": [
+        "Findings appear before summary.",
+        "Security or high-severity risk is prioritized.",
+        "Missing or insufficient tests are mentioned.",
+        "The finding explains the user-visible or regression risk."
+      ]
     }
   ]
 }

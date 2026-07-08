@@ -135,7 +135,12 @@ function passesCriterion(criterion: string, output: string): boolean {
   const firstLine = firstNonEmptyLine(normalizedOutput);
 
   if (normalizedCriterion === "findings appear before summary.") {
-    return firstLine.startsWith("findings") || firstLine.startsWith("finding");
+    const plainFirstLine = firstLine.replace(/^[^a-z0-9]+/, "");
+    return (
+      plainFirstLine.startsWith("findings") ||
+      plainFirstLine.startsWith("finding") ||
+      (plainFirstLine.includes("findings") && !plainFirstLine.includes("summary"))
+    );
   }
 
   if (normalizedCriterion === "behavioral bug is mentioned.") {
@@ -270,7 +275,7 @@ function passesCriterion(criterion: string, output: string): boolean {
 
   if (normalizedCriterion === "security or high-severity risk is prioritized.") {
     const highRiskIndex = Math.min(
-      ...["security", "high severity", "critical", "authorization", "access control"]
+      ...["security", "high severity", "high-severity", "critical", "authorization", "access control", "data loss"]
         .map((term) => normalizedOutput.indexOf(term))
         .filter((index) => index >= 0),
     );
@@ -289,8 +294,13 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\bwarning\b.*\bnot\b.*\broot cause\b/,
       /\bnot\b.*\broot cause\b.*\bwarning\b/,
       /\bwarnings?\b.*\bnot\b.*\b(?:failing cause|primary cause|cause)\b/,
+      /\bwarnings?\b[\s\S]*\bred herrings?\b/,
+      /\bred herrings?\b[\s\S]*\bwarnings?\b/,
+      /\bfsevents\b[\s\S]*\bred herrings?\b/,
       /\bdistracting\b.*\bwarning\b/,
       /\bwarning\b.*\bdistract/,
+      /\broot cause\b[\s\S]*\bnode(?:\.js)? version mismatch\b/,
+      /\broot cause\b[\s\S]*\bmismatch\b[\s\S]*\bnode(?:\.js)? version\b/,
       /\broot cause\b[\s\S]*\b(?:generated client|database client|missing generated|db:generate|generated artifact)\b/,
     ]);
   }
@@ -311,6 +321,9 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\bdo not\b[\s\S]*\bstage\b[\s\S]*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
       /\bkeep\b[\s\S]*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)[\s\S]*\bout\b/,
       /(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)[\s\S]*\bnot\b[\s\S]*\b(?:commit|stage)\b/,
+      /\bsecret-like files\b[\s\S]*\bexcluded\b[\s\S]*\bcommit\b/,
+      /(?:\.skvm\/config\.json|\.skvm\\config\.json|raw-runs)[\s\S]*\bnot be committed\b/,
+      /(?:\.skvm\/config\.json|\.skvm\\config\.json|\.env|raw-runs|scratch)[\s\S]*\bout of\b[\s\S]*\bcommit\b/,
       /(?:\.env|raw-runs|scratch)[\s\S]*\b(?:remain|stays?)\b[\s\S]*\b(?:ignored|uncommitted)\b/,
     ]);
   }
@@ -324,6 +337,8 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\bfailing test\b.*\bboundary\b/,
       /\bfailing test\b[\s\S]*\bpageSize\b[\s\S]*\b0\b/i,
       /\bfailing test case\b.*\b0\b/,
+      /\bfailing test\b[\s\S]*\b(?:only whitespace|whitespace-only|all spaces)\b/,
+      /\bfailing test\b[\s\S]*\bspaces only\b/,
     ]);
   }
 
@@ -341,6 +356,10 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\blimitations?\b[\s\S]*\bnot\b[\s\S]*\b(?:prove|validated|validation)\b/,
       /\blimitations?\b[\s\S]*\bnot\b[\s\S]*\bdemonstrate\b[\s\S]*\bquality improvement\b/,
       /\blimitations?\b[\s\S]*\binsufficiently challenging\b/,
+      /\bmay not generalize\b/,
+      /\bcannot yet generalize\b/,
+      /\boverstatement\b/,
+      /\blimited scope\b[\s\S]*\bpreliminary\b/,
       /\blimit(?:s|ed|ing)?\b[\s\S]*\bgeneralizability\b/,
     ]);
   }

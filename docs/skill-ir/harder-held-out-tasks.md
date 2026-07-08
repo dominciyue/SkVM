@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This stage expands the six-skill seed corpus with one harder held-out task per deep benchmark skill. The motivation comes from the true noisy and true long Task 11 runs: both `original` and `ir-profile` passed all paired cases, so the current tasks no longer expose enough behavioral difference.
+This stage expands the six-skill seed corpus with harder held-out tasks for each deep benchmark skill. The motivation comes from the true noisy and true long Task 11 runs: both `original` and `ir-profile` passed all paired cases, so the current tasks no longer expose enough behavioral difference.
 
 The goal is not to make the baseline fail artificially. The goal is to move evaluation closer to realistic failure boundaries where skill structure should matter: prioritization, distractor handling, portability details, repository hygiene, test-first ordering, and grounded reporting.
 
 ## Scope
 
-Added on 2026-07-09:
+First hard-task wave added on 2026-07-09:
 
 | Skill | New task id | Added pressure |
 |---|---|---|
@@ -23,9 +23,20 @@ The seed corpus now has:
 
 ```text
 6 deep benchmark skills
-x 3 tasks per skill: one development task and two held-out tasks
-= 18 seed tasks
+x 4 tasks per skill: one development task and three held-out tasks
+= 24 seed tasks
 ```
+
+Second hard-task wave added on 2026-07-09:
+
+| Skill | New task id | Added pressure |
+|---|---|---|
+| `skill-review` | `review-data-loss-hard-002` | Data-loss regression should be prioritized over lower-priority filename changes. |
+| `skill-ci-diagnostic` | `ci-engine-warning-hard-002` | Cache and optional-dependency warnings should not distract from the Node engine mismatch. |
+| `skill-env-portability` | `portable-env-chain-hard-002` | Mixed Unix env assignment and cleanup command should be replaced with a Node/Bun-based portable alternative. |
+| `skill-git-hygiene` | `commit-partial-index-hard-002` | Already-staged unrelated files and local config/raw outputs must remain out of the commit. |
+| `skill-tdd-bugfix` | `tdd-whitespace-name-hard-002` | Whitespace-only display-name bug should be handled through a failing edge-case test before implementation. |
+| `skill-report-synthesis` | `report-conflicting-notes-hard-002` | A tempting broad-superiority claim must be rejected while preserving the bounded positive result. |
 
 ## Scoring Criteria
 
@@ -54,7 +65,7 @@ The real-agent runner does not need special handling for hard tasks. It loads th
 
 ## Dry-Run Audit
 
-The hard-task dry run used:
+The first hard-task dry run used:
 
 ```powershell
 bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile' '--contexts=long' '--agents=skvm' '--environments=linux' '--tasks=review-security-hard-001,ci-cache-warning-hard-001,portable-clean-hard-001,commit-secret-hard-001,tdd-zero-page-hard-001,report-overclaim-hard-001' '--limit=12' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--out-dir=results/skill-ir/harder-heldout-dry-run-2026-07-09'
@@ -73,6 +84,26 @@ Audit result:
 ```
 
 The materialized prompts contained the expected true long-context perturbation text.
+
+The second hard-task wave used a compressed-context dry-run audit before multi-model execution:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile' '--contexts=compressed' '--agents=skvm' '--environments=linux' '--tasks=review-data-loss-hard-002,ci-engine-warning-hard-002,portable-env-chain-hard-002,commit-partial-index-hard-002,tdd-whitespace-name-hard-002,report-conflicting-notes-hard-002' '--limit=12' '--model=xty/gpt-4.1-nano' '--adapter=bare-agent' '--out-dir=results/skill-ir/multimodel-hard002-dry-run-2026-07-09'
+```
+
+Audit result:
+
+```text
+12 rows
+6 paired case ids
+6 original rows
+6 ir-profile rows
+2 rows per skill
+2 rows per hard-002 task
+12 compressed-context rows
+```
+
+The second wave did not create a new quality gain in the three-model run; see `docs/skill-ir/multimodel-hard002-run.md`.
 
 ## Verification
 
@@ -95,10 +126,11 @@ git diff --check
 ## Assumptions And Failure Modes
 
 - The hard tasks are still seed tasks, not the final 8-12 tasks per skill target.
+- The second hard-task wave expands coverage but is not yet more discriminative than `report-overclaim-hard-001`.
 - New criteria are deterministic heuristics and may produce false negatives on creative but valid phrasing.
 - If a real-agent run reveals a false negative, add a minimal scorer regression test before changing the matcher.
 - These tasks are intended for the next discriminative run. They should be run with paired comparisons and raw output inspection before making optimization claims.
 
 ## Next Step
 
-Run a bounded real-agent matrix over the six hard tasks, preferably `original` vs `ir-profile` under `long` or `compressed` context first. If both systems still pass all cases, add a second model route before further increasing task count.
+Use route-health probing before additional model expansion, then add a third hard-task wave focused on stronger output schema enforcement, explicit instruction conflicts, and compressed-context recovery.

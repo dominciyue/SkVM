@@ -363,6 +363,105 @@ describe("Skill IR real-agent scoring", () => {
     ).toBe(true);
   });
 
+  test("scoreRunOutput accepts hard-002 wording observed in multi-model runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "hard-002-real-wording",
+      split: "held-out",
+      prompt: "Exercise hard-002 real wording.",
+      successCriteria: [
+        "Security or high-severity risk is prioritized.",
+        "Distracting warning is not treated as root cause.",
+        "Secret-like files are excluded from commit.",
+        "Edge-case failing test is mentioned.",
+        "Overclaiming is avoided.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "Findings",
+        "1. High-Severity Regression: exported account balances are set to zero, causing user-visible data loss.",
+        "The filename change is low priority.",
+        "The cache warnings and fsevents notice are red herrings.",
+        "Leave report/private-draft.md and .skvm/config.json out of the commit; raw-runs.jsonl and scratch output stay local.",
+        "Reproduce with a failing test that rejects names that are only whitespace, then implement the trim fix.",
+        "Evidence Limitations: results may not generalize to other agents, environments, or larger benchmarks.",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
+  test("scoreRunOutput accepts gpt-4.1-mini hard-002 wording observed in multi-model runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "hard-002-gpt41mini-wording",
+      split: "held-out",
+      prompt: "Exercise hard-002 gpt-4.1-mini wording.",
+      successCriteria: [
+        "Distracting warning is not treated as root cause.",
+        "Secret-like files are excluded from commit.",
+        "Edge-case failing test is mentioned.",
+        "Overclaiming is avoided.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "The root cause is a Node.js version mismatch: package.json requires Node >= 20.11.0, but CI uses Node 18.",
+        "The files that must remain local and not be committed or deleted are .skvm/config.json and raw-runs.jsonl.",
+        "Secret-like files are excluded from the commit.",
+        "Failing test: write a test case where the display name is a string of spaces only.",
+        "Given the limited scope of agents, environments, and task sets, these results should be considered preliminary.",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
+  test("scoreRunOutput accepts gemini hard-002 wording observed in multi-model runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "hard-002-gemini-wording",
+      split: "held-out",
+      prompt: "Exercise hard-002 gemini wording.",
+      successCriteria: [
+        "Findings appear before summary.",
+        "Distracting warning is not treated as root cause.",
+        "Overclaiming is avoided.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "Here are the findings from the patch review:",
+        "1. High-Severity Data Loss: balanceCents is silently replaced with zero.",
+        "The root cause is a mismatch between the required Node.js version and the CI runner version.",
+        "**Evidence Limitations:**",
+        "The current evidence is based on a narrow scope, so we cannot yet generalize these findings.",
+        "Broad claims about general superiority would be an overstatement at this stage.",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
   test("scoreRunOutput accepts caused-by wording for root cause", () => {
     const task: SkillIRBenchmarkTask = {
       id: "ci-root-cause-wording",

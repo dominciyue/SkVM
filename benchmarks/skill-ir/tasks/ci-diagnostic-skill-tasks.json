@@ -32,6 +32,17 @@
         "Concrete fix is mentioned.",
         "Verification step is mentioned."
       ]
+    },
+    {
+      "id": "ci-engine-warning-hard-002",
+      "split": "held-out",
+      "prompt": "Diagnose the CI failure below. Give the likely root cause, a concrete fix, and the verification step. Do not treat warnings as the primary cause unless they explain the failing command.\n\n```text\nRun bun test\nwarning: cache restore skipped because cache key was not found\nwarning: package optional dependency fsevents is unsupported on linux\n$ bun test\nerror: package.json requires node >=20.11.0\nCurrent runner version: node v18.19.1\nTest suite did not start.\n\nWorkflow excerpt:\n- uses: actions/setup-node@v3\n  with:\n    node-version: 18\n```\n\nFocus on the Node runtime mismatch rather than the cache or optional dependency warnings.",
+      "successCriteria": [
+        "Root cause is mentioned.",
+        "Distracting warning is not treated as root cause.",
+        "Concrete fix is mentioned.",
+        "Verification step is mentioned."
+      ]
     }
   ]
 }
