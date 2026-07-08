@@ -75,6 +75,14 @@ $env:OPENROUTER_API_KEY="sk-or-..."
 bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=openrouter/anthropic/claude-sonnet-4.6' '--adapter=bare-agent' '--execute'
 ```
 
+Use one infrastructure retry for unstable gateways:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--execute' '--retries=1' '--retry-delay-ms=1000'
+```
+
+Retries are off by default. They only apply to rows that look like provider, network, auth, rate-limit, or timeout failures. Agent failures are not retried.
+
 The `--execute` mode writes raw execution logs to:
 
 ```text
@@ -171,6 +179,7 @@ bun run typecheck
 - `skvm run` executes but does not score; run `score-real-agent-runs.ts` before feeding data into the final analyzer.
 - The current `skvm-aot` materialization is a placeholder until a real `skvm aot-compile` proposal path is wired in.
 - The current scorer is heuristic and only supports the seed review criteria. Unsupported criteria fail closed.
+- Retry can hide transient gateway instability, so raw rows include `attempts` when execution uses retry. Keep `--retries` small for research runs.
 
 ## Modification Notes
 

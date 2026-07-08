@@ -151,11 +151,8 @@ describe("Skill IR real-agent scoring", () => {
     expect(scored[0]).toMatchObject({
       success: false,
       failureType: "infrastructure",
-      failedCriteria: [
-        "process exited with code 1",
-        "Findings appear before summary.",
-        "Behavioral bug is mentioned.",
-      ],
+      ruleViolations: 0,
+      failedCriteria: ["process exited with code 1"],
     });
   });
 

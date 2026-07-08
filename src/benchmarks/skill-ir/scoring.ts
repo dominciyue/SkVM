@@ -19,6 +19,7 @@ export type RawAgentRunRow = {
   stdout: string;
   stderr: string;
   successSource: "execution-only";
+  attempts?: number;
 };
 
 export type ScoreRunOutputOptions = {
@@ -146,12 +147,20 @@ export function scoreRawRunRows(
       throw new Error(`Task ${parsed.task} was not found while scoring ${row.caseId}`);
     }
 
-    const score = scoreRunOutput({
-      exitCode: row.exitCode,
-      finalOutput: extractFinalOutput(row.stdout),
-      task,
-    });
     const failureType = row.exitCode === 0 ? undefined : classifyFailureType(row);
+    const score =
+      failureType === "infrastructure"
+        ? {
+            success: false,
+            ruleViolations: 0,
+            stepCoverage: extractFinalOutput(row.stdout).length > 0 ? 1 : 0,
+            failedCriteria: [`process exited with code ${row.exitCode}`],
+          }
+        : scoreRunOutput({
+            exitCode: row.exitCode,
+            finalOutput: extractFinalOutput(row.stdout),
+            task,
+          });
 
     return {
       caseId: row.caseId,
@@ -168,7 +177,7 @@ export function scoreRawRunRows(
   });
 }
 
-function classifyFailureType(row: RawAgentRunRow): FailureType {
+export function classifyFailureType(row: Pick<RawAgentRunRow, "exitCode" | "stdout" | "stderr">): FailureType {
   const combined = `${row.stderr}\n${row.stdout}`.toLowerCase();
   if (
     combined.includes("providernetworkerror") ||

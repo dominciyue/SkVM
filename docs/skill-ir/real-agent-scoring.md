@@ -90,7 +90,7 @@ An infrastructure failure row can include `failureType`:
   "context": "clean",
   "task": "review-finding-order-001",
   "success": false,
-  "ruleViolations": 3,
+  "ruleViolations": 0,
   "stepCoverage": 1,
   "latencyMs": 300000,
   "successSource": "heuristic-success-criteria",
@@ -138,7 +138,8 @@ Scoring behavior:
 - `ruleViolations` is the count of failed criteria.
 - `stepCoverage` is `1` when the final output is non-empty and `0` otherwise.
 - `latencyMs` is copied from raw execution `durationMs`.
-- Non-zero exits are classified with `failureType` so infrastructure failures can be separated from skill behavior later.
+- Non-zero exits are classified with `failureType` so infrastructure failures can be separated from skill behavior.
+- Infrastructure failures do not contribute to `ruleViolations`; they should be counted through `infrastructure_failures` in the summary table.
 
 ## Supported Seed Criteria
 
@@ -179,7 +180,7 @@ bun run typecheck
 - A non-zero process exit code always makes the row unsuccessful.
 - `ruleViolations` currently means failed success criteria in the scorer, not full runtime checker violations.
 - `tokenCost` is not available yet because raw SkVM execution rows do not expose it.
-- The current CSV analyzer does not summarize `failureType` yet. Inspect JSONL rows directly when diagnosing provider instability.
+- The CSV analyzer summarizes `failureType` as `infrastructure_failures` and `agent_failures`, but case-level diagnosis still requires inspecting JSONL rows.
 
 ## Modification Notes
 

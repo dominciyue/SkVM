@@ -102,21 +102,24 @@ Observed matrix summary:
 - The two failed rows were both first-task infrastructure failures: `ProviderNetworkError: openai-compatible(svip.xty.app) network error: The operation timed out.`
 - The scored JSONL marks these rows with `failureType: "infrastructure"`.
 - A separate paired retry for the same first task completed successfully for both `no-skill` and `original`, so these two matrix failures should be treated as gateway/transport instability, not as final method regressions.
+- The summary analyzer skips infrastructure-failure rows when computing paired deltas, so the optimized systems are not credited for beating a timed-out baseline.
 
 ## Interpretation
 
 This smoke run validates the Task 11 pipeline and proves that the OpenAI-compatible route can drive `bare-agent` through SkVM. It also shows why Task 11 evaluation needs separate fields for task failure, provider failure, and scoring failure before producing final research claims.
 
-The scored JSONL now records a coarse `failureType` for non-zero exits. The final evaluator should carry this further into aggregate tables so infrastructure failures do not look like skill regressions:
+The scored JSONL now records a coarse `failureType` for non-zero exits, and the summary analyzer reports `infrastructure_failures` and `agent_failures`. This keeps provider instability from looking like skill regressions:
 
 - model/agent task failure,
 - provider/network infrastructure failure,
 - scorer/verifier failure,
 - true skill rule violation.
 
+Paired comparison is only meaningful when both baseline and compared rows are valid task attempts. Infrastructure failures are still visible in `mean_success` and failure counts, but they are excluded from `paired_delta_success`, `regression_count`, and `negative_delta_count`.
+
 ## Follow-Up
 
-- Add retry or infra-failure classification before running a larger matrix.
+- Use `--retries=1` or another small retry budget before running a larger matrix through an unstable gateway.
 - Keep raw run directories local unless a specific run is intentionally archived.
 - Run at least one additional model after the pipeline is stable to avoid overfitting conclusions to `gpt-4.1-mini`.
-- Expand the deep benchmark only after the evaluator separates infrastructure failures from actual skill behavior.
+- Expand the deep benchmark only after checking that infrastructure failures remain low and are reported separately.

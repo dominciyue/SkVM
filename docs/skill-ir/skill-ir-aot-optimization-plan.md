@@ -1902,6 +1902,26 @@ docs/skill-ir/real-agent-smoke-run.md
 
 If raw execution rows contain provider/network failures, mark them as infrastructure failures in scored JSONL and do not treat them as final skill regressions.
 
+- [ ] **Step 12: Add retry and failure accounting**
+
+Before scaling Task 11B, add:
+
+```text
+real-agent execution retry for infrastructure failures
+scored JSONL failureType field
+CSV infrastructure_failures and agent_failures columns
+```
+
+Run real-agent smoke commands with a small retry budget when using unstable gateways:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=12' '--systems=no-skill,original,skvm-aot,ir-only,ir-static,ir-profile' '--contexts=clean' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--execute' '--retries=1' '--retry-delay-ms=1000'
+```
+
+Expected: provider timeouts are either retried successfully or counted as `infrastructure_failures`, not as rule violations.
+
+Paired deltas should skip infrastructure-failure rows on either side so optimized systems are not rewarded or punished for provider instability.
+
 ## Task 11B: Full Evaluation Run
 
 **Files:**

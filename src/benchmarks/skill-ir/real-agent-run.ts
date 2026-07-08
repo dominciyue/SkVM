@@ -8,6 +8,7 @@ import {
   type RealAgentRunPlanEntry,
   type SkillIRBenchmarkTask,
 } from "./real-agent";
+import { runWithInfrastructureRetries } from "./real-agent-retry";
 
 type Args = {
   model: string;
@@ -15,6 +16,8 @@ type Args = {
   outDir: string;
   limit: number;
   execute: boolean;
+  retries: number;
+  retryDelayMs: number;
   systems?: Set<ExperimentSystem>;
   contexts?: Set<string>;
 };
@@ -31,6 +34,8 @@ function parseArgs(argv: string[]): Args {
     outDir: "results/skill-ir/real-agent-dry-run",
     limit: 12,
     execute: false,
+    retries: 0,
+    retryDelayMs: 1000,
   };
 
   for (const arg of argv) {
@@ -44,6 +49,10 @@ function parseArgs(argv: string[]): Args {
       args.outDir = arg.slice("--out-dir=".length);
     } else if (arg.startsWith("--limit=")) {
       args.limit = Number.parseInt(arg.slice("--limit=".length), 10);
+    } else if (arg.startsWith("--retries=")) {
+      args.retries = Number.parseInt(arg.slice("--retries=".length), 10);
+    } else if (arg.startsWith("--retry-delay-ms=")) {
+      args.retryDelayMs = Number.parseInt(arg.slice("--retry-delay-ms=".length), 10);
     } else if (arg.startsWith("--systems=")) {
       args.systems = new Set(arg.slice("--systems=".length).split(",") as ExperimentSystem[]);
     } else if (arg.startsWith("--contexts=")) {
@@ -55,6 +64,14 @@ function parseArgs(argv: string[]): Args {
 
   if (!Number.isFinite(args.limit) || args.limit < 1) {
     throw new Error("--limit must be a positive integer");
+  }
+
+  if (!Number.isFinite(args.retries) || args.retries < 0) {
+    throw new Error("--retries must be a non-negative integer");
+  }
+
+  if (!Number.isFinite(args.retryDelayMs) || args.retryDelayMs < 0) {
+    throw new Error("--retry-delay-ms must be a non-negative integer");
   }
 
   if (args.execute && args.model === "<provider>/<model-id>") {
@@ -108,33 +125,39 @@ async function buildPlan(args: Args): Promise<RealAgentRunPlanEntry[]> {
   return plan;
 }
 
-async function executePlan(plan: RealAgentRunPlanEntry[], outDir: string): Promise<void> {
+async function executePlan(plan: RealAgentRunPlanEntry[], args: Args): Promise<void> {
+  const outDir = args.outDir;
   const rawRunsPath = join(outDir, "raw-runs.jsonl");
   await writeFile(rawRunsPath, "", "utf8");
 
   for (const item of plan) {
-    const startedAt = Date.now();
-    const proc = Bun.spawn(item.command, {
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    const [stdout, stderr, exitCode] = await Promise.all([
-      new Response(proc.stdout).text(),
-      new Response(proc.stderr).text(),
-      proc.exited,
-    ]);
-    const row = {
-      caseId: item.caseId,
-      system: item.system,
-      taskPath: item.taskPath,
-      skillPath: item.skillPath,
-      exitCode,
-      durationMs: Date.now() - startedAt,
-      stdout,
-      stderr,
-      successSource: "execution-only",
-    };
-    await writeFile(rawRunsPath, `${JSON.stringify(row)}\n`, { flag: "a" });
+    const result = await runWithInfrastructureRetries(
+      async () => {
+        const startedAt = Date.now();
+        const proc = Bun.spawn(item.command, {
+          stdout: "pipe",
+          stderr: "pipe",
+        });
+        const [stdout, stderr, exitCode] = await Promise.all([
+          new Response(proc.stdout).text(),
+          new Response(proc.stderr).text(),
+          proc.exited,
+        ]);
+        return {
+          caseId: item.caseId,
+          system: item.system,
+          taskPath: item.taskPath,
+          skillPath: item.skillPath,
+          exitCode,
+          durationMs: Date.now() - startedAt,
+          stdout,
+          stderr,
+          successSource: "execution-only" as const,
+        };
+      },
+      { maxRetries: args.retries, retryDelayMs: args.retryDelayMs },
+    );
+    await writeFile(rawRunsPath, `${JSON.stringify({ ...result.row, attempts: result.attempts })}\n`, { flag: "a" });
   }
 }
 
@@ -143,10 +166,23 @@ async function main() {
   await mkdir(args.outDir, { recursive: true });
   const plan = await buildPlan(args);
   const planPath = join(args.outDir, "plan.json");
-  await writeFile(planPath, `${JSON.stringify({ count: plan.length, execute: args.execute, plan }, null, 2)}\n`, "utf8");
+  await writeFile(
+    planPath,
+    `${JSON.stringify(
+      {
+        count: plan.length,
+        execute: args.execute,
+        retry: { retries: args.retries, retryDelayMs: args.retryDelayMs },
+        plan,
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
 
   if (args.execute) {
-    await executePlan(plan, args.outDir);
+    await executePlan(plan, args);
   }
 
   console.log(JSON.stringify({ count: plan.length, planPath, executed: args.execute }, null, 2));

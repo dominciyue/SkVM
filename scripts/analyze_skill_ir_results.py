@@ -17,6 +17,8 @@ SUMMARY_FIELDS = [
     "paired_delta_success",
     "regression_count",
     "negative_delta_count",
+    "infrastructure_failures",
+    "agent_failures",
 ]
 
 
@@ -36,7 +38,7 @@ def build_baseline_by_case(rows: list[dict[str, Any]], baseline_system: str) -> 
     baseline_by_case: dict[str, float] = {}
     for row in rows:
         case_id = row.get("caseId")
-        if row["system"] == baseline_system and case_id:
+        if row["system"] == baseline_system and case_id and row.get("failureType") != "infrastructure":
             baseline_by_case[str(case_id)] = success_value(row)
     return baseline_by_case
 
@@ -48,6 +50,8 @@ def summarize(rows: list[dict[str, Any]], baseline_system: str = "original") -> 
     deltas: dict[str, list[float]] = defaultdict(list)
     regressions: dict[str, int] = defaultdict(int)
     negative_deltas: dict[str, int] = defaultdict(int)
+    infrastructure_failures: dict[str, int] = defaultdict(int)
+    agent_failures: dict[str, int] = defaultdict(int)
     baseline_by_case = build_baseline_by_case(rows, baseline_system)
 
     for row in rows:
@@ -57,9 +61,18 @@ def summarize(rows: list[dict[str, Any]], baseline_system: str = "original") -> 
         setting = (system, row["agent"], row["environment"], row["context"])
         by_setting[setting].append(success)
         violations[system] += int(row.get("ruleViolations", 0))
+        if row.get("failureType") == "infrastructure":
+            infrastructure_failures[system] += 1
+        elif row.get("failureType") == "agent":
+            agent_failures[system] += 1
 
         case_id = row.get("caseId")
-        if case_id and str(case_id) in baseline_by_case and system != baseline_system:
+        if (
+            case_id
+            and str(case_id) in baseline_by_case
+            and system != baseline_system
+            and row.get("failureType") != "infrastructure"
+        ):
             delta = success - baseline_by_case[str(case_id)]
             deltas[system].append(delta)
             if delta < 0:
@@ -86,6 +99,8 @@ def summarize(rows: list[dict[str, Any]], baseline_system: str = "original") -> 
                 "paired_delta_success": sum(system_deltas) / len(system_deltas) if system_deltas else 0.0,
                 "regression_count": regressions[system],
                 "negative_delta_count": negative_deltas[system],
+                "infrastructure_failures": infrastructure_failures[system],
+                "agent_failures": agent_failures[system],
             }
         )
     return summary

@@ -74,6 +74,8 @@ paired_cases
 paired_delta_success
 regression_count
 negative_delta_count
+infrastructure_failures
+agent_failures
 ```
 
 Metric meanings:
@@ -86,6 +88,10 @@ Metric meanings:
 - `paired_delta_success`: mean success delta against the baseline on paired cases.
 - `regression_count`: baseline succeeds but this system fails.
 - `negative_delta_count`: single-case success delta is below zero.
+- `infrastructure_failures`: rows marked with `failureType: "infrastructure"`.
+- `agent_failures`: rows marked with `failureType: "agent"`.
+
+Paired metrics skip cases where either side is marked as an infrastructure failure. This prevents provider or gateway instability from becoming a false positive gain or false regression.
 
 ## Command Line
 
@@ -134,7 +140,8 @@ The CLI reads JSONL, calls `summarize`, and writes CSV. The default baseline is 
 - If no paired baseline exists for a system, paired metrics are zero.
 - The analyzer does not validate full result schema yet. Add result-schema validation when Task 11 produces full evaluation rows.
 - `main-results.jsonl` should contain scored rows, not execution-only `raw-runs.jsonl`.
-- The analyzer currently ignores optional `failureType` fields. Inspect JSONL directly when separating infrastructure failures from skill behavior.
+- Optional `failureType` fields are summarized as infrastructure and agent failure counts. Inspect JSONL directly for case-level diagnosis.
+- Paired deltas ignore infrastructure-failure rows on either side of the comparison.
 
 ## Modification Notes
 
