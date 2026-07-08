@@ -37,6 +37,12 @@ export type RunScore = {
 
 export type FailureType = "infrastructure" | "agent";
 
+export type TokenUsage = {
+  inputTokens: number;
+  outputTokens: number;
+  tokenCost: number;
+};
+
 export type ScoredAgentRunRow = ParsedCaseId & {
   caseId: string;
   system: ExperimentSystem;
@@ -44,6 +50,9 @@ export type ScoredAgentRunRow = ParsedCaseId & {
   ruleViolations: number;
   stepCoverage: number;
   latencyMs: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  tokenCost?: number;
   successSource: "heuristic-success-criteria";
   failedCriteria: string[];
   failureType?: FailureType;
@@ -67,6 +76,26 @@ export function extractFinalOutput(stdout: string): string {
     return stdout.trim();
   }
   return stdout.slice(index + marker.length).trim();
+}
+
+export function extractTokenUsage(stdout: string): TokenUsage | undefined {
+  const matches = [...stdout.matchAll(/tokens:\s*in=([\d,]+)\s+out=([\d,]+)/gi)];
+  const lastMatch = matches.at(-1);
+  if (!lastMatch || lastMatch[1] === undefined || lastMatch[2] === undefined) {
+    return undefined;
+  }
+
+  const inputTokens = Number.parseInt(lastMatch[1].replace(/,/g, ""), 10);
+  const outputTokens = Number.parseInt(lastMatch[2].replace(/,/g, ""), 10);
+  if (!Number.isFinite(inputTokens) || !Number.isFinite(outputTokens)) {
+    return undefined;
+  }
+
+  return {
+    inputTokens,
+    outputTokens,
+    tokenCost: inputTokens + outputTokens,
+  };
 }
 
 function firstNonEmptyLine(value: string): string {
@@ -267,6 +296,7 @@ function scoreRawRunRowsWithResolver(
     }
 
     const failureType = row.exitCode === 0 ? undefined : classifyFailureType(row);
+    const tokenUsage = extractTokenUsage(row.stdout);
     const score =
       failureType === "infrastructure"
         ? {
@@ -289,6 +319,7 @@ function scoreRawRunRowsWithResolver(
       ruleViolations: score.ruleViolations,
       stepCoverage: score.stepCoverage,
       latencyMs: row.durationMs,
+      ...(tokenUsage ?? {}),
       successSource: "heuristic-success-criteria",
       failedCriteria: score.failedCriteria,
       ...(failureType ? { failureType } : {}),

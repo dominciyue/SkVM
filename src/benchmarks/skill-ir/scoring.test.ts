@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
+  extractTokenUsage,
   extractFinalOutput,
   parseCaseId,
   scoreRawRunRows,
@@ -61,6 +62,15 @@ describe("Skill IR real-agent scoring", () => {
   test("extractFinalOutput prefers the SkVM final output block", () => {
     expect(extractFinalOutput("tool trace\nFinal output:\nFindings\n- bug")).toBe("Findings\n- bug");
     expect(extractFinalOutput("Findings\n- bug")).toBe("Findings\n- bug");
+  });
+
+  test("extractTokenUsage reads SkVM token accounting from stdout", () => {
+    expect(extractTokenUsage("trace\nTokens: in=526 out=198\nFinal output:\nDone")).toEqual({
+      inputTokens: 526,
+      outputTokens: 198,
+      tokenCost: 724,
+    });
+    expect(extractTokenUsage("Final output:\nDone")).toBeUndefined();
   });
 
   test("scoreRunOutput passes a review output that satisfies all task criteria", () => {
@@ -150,6 +160,7 @@ describe("Skill IR real-agent scoring", () => {
         durationMs: 1250,
         stdout: [
           "trace",
+          "Tokens: in=526 out=198",
           "Final output:",
           "Findings",
           "- Behavioral bug creates a regression risk.",
@@ -174,6 +185,9 @@ describe("Skill IR real-agent scoring", () => {
         ruleViolations: 0,
         stepCoverage: 1,
         latencyMs: 1250,
+        inputTokens: 526,
+        outputTokens: 198,
+        tokenCost: 724,
         successSource: "heuristic-success-criteria",
         failedCriteria: [],
       },

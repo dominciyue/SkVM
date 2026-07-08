@@ -20,6 +20,8 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
                 "context": "clean",
                 "success": True,
                 "ruleViolations": 0,
+                "latencyMs": 100,
+                "tokenCost": 40,
             },
             {
                 "caseId": "skill-review:a1:linux:noisy:task-1",
@@ -29,6 +31,8 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
                 "context": "noisy",
                 "success": True,
                 "ruleViolations": 1,
+                "latencyMs": 300,
+                "tokenCost": 80,
             },
             {
                 "caseId": "skill-review:a1:linux:clean:task-1",
@@ -38,6 +42,8 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
                 "context": "clean",
                 "success": False,
                 "ruleViolations": 2,
+                "latencyMs": 200,
+                "tokenCost": 100,
             },
             {
                 "caseId": "skill-review:a1:linux:noisy:task-1",
@@ -47,6 +53,8 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
                 "context": "noisy",
                 "success": True,
                 "ruleViolations": 0,
+                "latencyMs": 400,
+                "tokenCost": 300,
             },
         ]
 
@@ -55,6 +63,8 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
         self.assertEqual(summary["original"]["mean_success"], 1.0)
         self.assertEqual(summary["original"]["worst_case_success"], 1.0)
         self.assertEqual(summary["original"]["regression_count"], 0)
+        self.assertEqual(summary["original"]["mean_latency_ms"], 200.0)
+        self.assertEqual(summary["original"]["mean_token_cost"], 60.0)
         self.assertEqual(summary["ir-profile"]["mean_success"], 0.5)
         self.assertEqual(summary["ir-profile"]["worst_case_success"], 0.0)
         self.assertEqual(summary["ir-profile"]["paired_cases"], 2)
@@ -64,6 +74,8 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
         self.assertEqual(summary["ir-profile"]["rule_violations"], 2)
         self.assertEqual(summary["ir-profile"]["infrastructure_failures"], 0)
         self.assertEqual(summary["ir-profile"]["agent_failures"], 0)
+        self.assertEqual(summary["ir-profile"]["mean_latency_ms"], 300.0)
+        self.assertEqual(summary["ir-profile"]["mean_token_cost"], 200.0)
 
     def test_summarize_counts_failure_types_separately(self):
         rows = [
@@ -180,6 +192,8 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
         self.assertEqual(csv_rows[0]["system"], "ir-static")
         self.assertIn("paired_delta_success", csv_rows[0])
         self.assertIn("regression_count", csv_rows[0])
+        self.assertIn("mean_latency_ms", csv_rows[0])
+        self.assertIn("mean_token_cost", csv_rows[0])
         self.assertIn("infrastructure_failures", csv_rows[0])
         self.assertIn("agent_failures", csv_rows[0])
 

@@ -13,6 +13,8 @@ SUMMARY_FIELDS = [
     "worst_case_success",
     "variance",
     "rule_violations",
+    "mean_latency_ms",
+    "mean_token_cost",
     "paired_cases",
     "paired_delta_success",
     "regression_count",
@@ -34,6 +36,22 @@ def success_value(row: dict[str, Any]) -> float:
     return 1.0 if row["success"] else 0.0
 
 
+def optional_number(row: dict[str, Any], field: str) -> float | None:
+    value = row.get(field)
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def mean_or_zero(values: list[float]) -> float:
+    return sum(values) / len(values) if values else 0.0
+
+
 def build_baseline_by_case(rows: list[dict[str, Any]], baseline_system: str) -> dict[str, float]:
     baseline_by_case: dict[str, float] = {}
     for row in rows:
@@ -46,6 +64,8 @@ def build_baseline_by_case(rows: list[dict[str, Any]], baseline_system: str) -> 
 def summarize(rows: list[dict[str, Any]], baseline_system: str = "original") -> list[dict[str, Any]]:
     by_system: dict[str, list[float]] = defaultdict(list)
     by_setting: dict[tuple[str, str, str, str], list[float]] = defaultdict(list)
+    latency_by_system: dict[str, list[float]] = defaultdict(list)
+    token_cost_by_system: dict[str, list[float]] = defaultdict(list)
     violations: dict[str, int] = defaultdict(int)
     deltas: dict[str, list[float]] = defaultdict(list)
     regressions: dict[str, int] = defaultdict(int)
@@ -61,6 +81,12 @@ def summarize(rows: list[dict[str, Any]], baseline_system: str = "original") -> 
         setting = (system, row["agent"], row["environment"], row["context"])
         by_setting[setting].append(success)
         violations[system] += int(row.get("ruleViolations", 0))
+        latency = optional_number(row, "latencyMs")
+        if latency is not None:
+            latency_by_system[system].append(latency)
+        token_cost = optional_number(row, "tokenCost")
+        if token_cost is not None:
+            token_cost_by_system[system].append(token_cost)
         if row.get("failureType") == "infrastructure":
             infrastructure_failures[system] += 1
         elif row.get("failureType") == "agent":
@@ -95,6 +121,8 @@ def summarize(rows: list[dict[str, Any]], baseline_system: str = "original") -> 
                 "worst_case_success": min(setting_rates),
                 "variance": statistics.pvariance(setting_rates) if len(setting_rates) > 1 else 0.0,
                 "rule_violations": violations[system],
+                "mean_latency_ms": mean_or_zero(latency_by_system[system]),
+                "mean_token_cost": mean_or_zero(token_cost_by_system[system]),
                 "paired_cases": len(system_deltas),
                 "paired_delta_success": sum(system_deltas) / len(system_deltas) if system_deltas else 0.0,
                 "regression_count": regressions[system],

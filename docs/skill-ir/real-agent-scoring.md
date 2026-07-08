@@ -75,6 +75,9 @@ Each scored row is compatible with `scripts/analyze_skill_ir_results.py`:
   "ruleViolations": 0,
   "stepCoverage": 1,
   "latencyMs": 1250,
+  "inputTokens": 526,
+  "outputTokens": 198,
+  "tokenCost": 724,
   "successSource": "heuristic-success-criteria",
   "failedCriteria": []
 }
@@ -139,6 +142,7 @@ Public helpers:
 ```ts
 parseCaseId(caseId)
 extractFinalOutput(stdout)
+extractTokenUsage(stdout)
 scoreRunOutput(opts)
 scoreRawRunRows(rows, taskById)
 scoreRawRunRowsBySkill(rows, taskBySkillAndId)
@@ -156,6 +160,8 @@ Scoring behavior:
 - `ruleViolations` is the count of failed criteria.
 - `stepCoverage` is `1` when the final output is non-empty and `0` otherwise.
 - `latencyMs` is copied from raw execution `durationMs`.
+- `extractTokenUsage` reads SkVM stdout markers such as `Tokens: in=526 out=198`.
+- `inputTokens`, `outputTokens`, and `tokenCost` are emitted when stdout exposes token accounting. `tokenCost` is the sum of input and output tokens.
 - Non-zero exits are classified with `failureType` so infrastructure failures can be separated from skill behavior.
 - Infrastructure failures do not contribute to `ruleViolations`; they should be counted through `infrastructure_failures` in the summary table.
 
@@ -211,7 +217,7 @@ bun run typecheck
 - A manifest skill without `tasksPath`, or a task file with a mismatched `skillId`, fails before writing scored output.
 - A non-zero process exit code always makes the row unsuccessful.
 - `ruleViolations` currently means failed success criteria in the scorer, not full runtime checker violations.
-- `tokenCost` is not available yet because raw SkVM execution rows do not expose it.
+- `tokenCost` is optional for backward compatibility. Older raw rows, dry-run rows, or adapters that do not print token markers still score successfully without token fields.
 - The CSV analyzer summarizes `failureType` as `infrastructure_failures` and `agent_failures`, but case-level diagnosis still requires inspecting JSONL rows.
 
 ## Modification Notes

@@ -145,10 +145,10 @@ results/skill-ir/multi-skill-smoke-table-2026-07-09-r3.csv
 
 Summary table:
 
-| System | Mean success | Rule violations | Infrastructure failures | Agent failures | Paired delta vs original |
-|---|---:|---:|---:|---:|---:|
-| `original` | 1.0 | 0 | 0 | 0 | 0.0 |
-| `ir-profile` | 1.0 | 0 | 0 | 0 | 0.0 |
+| System | Mean success | Mean latency ms | Mean token cost | Rule violations | Infrastructure failures | Agent failures | Paired delta vs original |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `original` | 1.0 | 5588.83 | 0.0 | 0 | 0 | 0 | 0.0 |
+| `ir-profile` | 1.0 | 16275.5 | 0.0 | 0 | 0 | 0 | 0.0 |
 
 Per-skill result:
 
@@ -163,7 +163,7 @@ Per-skill result:
 
 This result validates that the expanded six-skill seed corpus can run through the real-agent path and be scored through manifest-based task lookup. It does not yet show an effectiveness improvement because both compared systems pass all six selected development tasks.
 
-The run also exposed a cost signal: `ir-profile` generally used more input tokens than `original`, and `skill-report-synthesis` under `ir-profile` was much slower than the corresponding `original` row. This should be tracked before scaling the matrix, because a stable skill can still be too verbose or expensive.
+The run also exposed a cost signal: raw-run inspection showed that `ir-profile` generally used more input tokens than `original`, and `skill-report-synthesis` under `ir-profile` was much slower than the corresponding `original` row. The archived scored JSONL for this run predates token-field extraction, so the recomputed CSV has `mean_token_cost=0.0`; future scored runs will include `tokenCost` directly. This should be tracked before scaling the matrix, because a stable skill can still be too verbose or expensive.
 
 ## Follow-Up
 

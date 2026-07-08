@@ -70,6 +70,8 @@ mean_success
 worst_case_success
 variance
 rule_violations
+mean_latency_ms
+mean_token_cost
 paired_cases
 paired_delta_success
 regression_count
@@ -84,6 +86,8 @@ Metric meanings:
 - `worst_case_success`: minimum success rate across agent, environment, and context settings.
 - `variance`: population variance of setting-level success rates.
 - `rule_violations`: total rule violations for a system.
+- `mean_latency_ms`: mean `latencyMs` for rows that expose wall-clock latency.
+- `mean_token_cost`: mean `tokenCost` for rows that expose token accounting.
 - `paired_cases`: count of rows compared against the baseline with the same `caseId`.
 - `paired_delta_success`: mean success delta against the baseline on paired cases.
 - `regression_count`: baseline succeeds but this system fails.
@@ -136,6 +140,7 @@ The CLI reads JSONL, calls `summarize`, and writes CSV. The default baseline is 
 
 - `success` is interpreted as boolean success.
 - `ruleViolations` defaults to zero if missing.
+- Missing `latencyMs` or `tokenCost` values are ignored for their mean calculations. If no rows expose the field, the corresponding mean is `0.0`.
 - Paired metrics require both baseline and compared rows to share the same `caseId`.
 - If no paired baseline exists for a system, paired metrics are zero.
 - The analyzer does not validate full result schema yet. Add result-schema validation when Task 11 produces full evaluation rows.
