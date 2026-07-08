@@ -186,6 +186,77 @@ describe("Skill IR real-agent scoring", () => {
     });
   });
 
+  test("scoreRunOutput accepts hard-task wording observed in real compressed runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "harder-held-out-real-wording",
+      split: "held-out",
+      prompt: "Exercise real hard-task wording.",
+      successCriteria: [
+        "Distracting warning is not treated as root cause.",
+        "Git status is mentioned.",
+        "Unrelated changes are preserved.",
+        "Secret-like files are excluded from commit.",
+        "Edge-case failing test is mentioned.",
+        "Overclaiming is avoided.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "The root cause is that the generated client is missing because the workflow skipped bun run db:generate.",
+        "The cache and deprecation warnings are not the failing cause.",
+        "Based on the status you provided, stage only the intended fixture files.",
+        "The private notes are unrelated and should not be staged or committed; leave them as is.",
+        "Do NOT stage or commit .env.local or results/skill-ir/tmp-run/raw-runs.jsonl.",
+        "Add a failing test case where pageSize is 0 before implementation.",
+        "Evidence Limitations: the notes do not prove broad validation, so this update avoids overclaiming superiority.",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
+  test("scoreRunOutput accepts multiline hard-task wording from compressed runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "harder-held-out-real-multiline-wording",
+      split: "held-out",
+      prompt: "Exercise multiline hard-task wording.",
+      successCriteria: [
+        "Distracting warning is not treated as root cause.",
+        "Edge-case failing test is mentioned.",
+        "Overclaiming is avoided.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "The likely root cause:",
+        "The CI workflow is missing the step to generate the database client code before tests.",
+        "",
+        "1. Failing test:",
+        "I will add a test case where pageSize is 0, e.g. pageCount(10, 0).",
+        "",
+        "Evidence Limitations:",
+        "The current seed tasks may not be sufficiently challenging to demonstrate a consistent quality improvement.",
+        "The labeled noisy context limits the generalizability of those results.",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
   test("scoreRunOutput accepts plural evidence limitations headings", () => {
     const task: SkillIRBenchmarkTask = {
       id: "report-plural-limitations",

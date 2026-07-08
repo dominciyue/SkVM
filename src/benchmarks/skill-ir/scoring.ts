@@ -210,16 +210,18 @@ function passesCriterion(criterion: string, output: string): boolean {
   }
 
   if (normalizedCriterion === "git status is mentioned.") {
-    return normalizedOutput.includes("git status");
+    return containsAny(normalizedOutput, [/\bgit status\b/, /\bstatus you provided\b/, /^##\s+/m]);
   }
 
   if (normalizedCriterion === "unrelated changes are preserved.") {
     return containsAny(normalizedOutput, [
       /\bunrelated changes\b/,
+      /\bunrelated\b.*\b(?:not staged|not be staged|not committed|not be committed)\b/,
       /\bpreserve\b/,
       /\bkeep\b.*\bchanges\b/,
       /\bdo not touch\b/,
       /\bavoid reverting\b/,
+      /\bleave\b.*\bas is\b/,
     ]);
   }
 
@@ -284,8 +286,10 @@ function passesCriterion(criterion: string, output: string): boolean {
     return containsAny(normalizedOutput, [
       /\bwarning\b.*\bnot\b.*\broot cause\b/,
       /\bnot\b.*\broot cause\b.*\bwarning\b/,
+      /\bwarnings?\b.*\bnot\b.*\b(?:failing cause|primary cause|cause)\b/,
       /\bdistracting\b.*\bwarning\b/,
       /\bwarning\b.*\bdistract/,
+      /\broot cause\b[\s\S]*\b(?:generated client|database client|missing generated|db:generate|generated artifact)\b/,
     ]);
   }
 
@@ -300,10 +304,11 @@ function passesCriterion(criterion: string, output: string): boolean {
 
   if (normalizedCriterion === "secret-like files are excluded from commit.") {
     return containsAny(normalizedOutput, [
-      /\bexclude\b.*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
-      /\bdo not\b.*\bcommit\b.*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
-      /\bkeep\b.*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs).*\bout\b/,
-      /(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs).*\bnot\b.*\bcommit\b/,
+      /\bexclude\b[\s\S]*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
+      /\bdo not\b[\s\S]*\bcommit\b[\s\S]*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
+      /\bdo not\b[\s\S]*\bstage\b[\s\S]*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)/,
+      /\bkeep\b[\s\S]*(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)[\s\S]*\bout\b/,
+      /(?:secrets?|\.env|credentials?|private|raw logs?|raw-runs)[\s\S]*\bnot\b[\s\S]*\b(?:commit|stage)\b/,
     ]);
   }
 
@@ -313,17 +318,23 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\bfailing test\b.*\bedge[- ]case\b/,
       /\bboundary\b.*\bfailing test\b/,
       /\bfailing test\b.*\bboundary\b/,
+      /\bfailing test\b[\s\S]*\bpageSize\b[\s\S]*\b0\b/i,
+      /\bfailing test case\b.*\b0\b/,
     ]);
   }
 
   if (normalizedCriterion === "overclaiming is avoided.") {
     return containsAny(normalizedOutput, [
       /\bdo not overclaim\b/,
-      /\bavoid overclaim/,
+      /\bavoid(?:s|ing)? overclaim/,
       /\bnot\b.*\bclaim\b.*\bvalidated\b/,
       /\bdo not\b.*\bclaim\b.*\bfull\b/,
       /\blimited\b.*\bdo not\b.*\bclaim\b/,
       /\bevidence\b.*\blimited\b/,
+      /\bno clear evidence\b/,
+      /\blimitations?\b[\s\S]*\bnot\b[\s\S]*\b(?:prove|validated|validation)\b/,
+      /\blimitations?\b[\s\S]*\bnot\b[\s\S]*\bdemonstrate\b[\s\S]*\bquality improvement\b/,
+      /\blimit(?:s|ed|ing)?\b[\s\S]*\bgeneralizability\b/,
     ]);
   }
 

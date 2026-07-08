@@ -195,6 +195,8 @@ The current heuristic scorer supports the expanded seed tasks:
 - `Edge-case failing test is mentioned.`
 - `Overclaiming is avoided.`
 
+The hard-task criteria accept several real compressed-run phrasings observed during Task 11, including multi-line commit exclusion lists, `Failing test:` headings followed by edge-case examples, generated-client CI root-cause wording, and evidence-limitation phrasing that avoids broad validation claims without using a fixed sentence.
+
 Unsupported criteria fail closed. This prevents the scorer from silently overstating success when new task types are added.
 
 ## Verification
