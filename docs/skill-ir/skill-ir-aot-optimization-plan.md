@@ -1942,6 +1942,8 @@ Before running an expanded matrix, verify that `buildDefaultMatrixInput()` produ
 
 The real-agent runner now loads each skill's `irPath` and `tasksPath` from the corpus manifest. For expanded Task 11B runs, add new skill IR and task files to the manifest first, then use the dry-run plan to check that materialized cases use the correct skill-specific IR and task prompts.
 
+The scorer now supports manifest-based task indexing. For multi-skill Task 11B runs, prefer `score-real-agent-runs.ts --manifest=benchmarks/skill-ir/corpus/manifest.json` instead of `--tasks=<single task file>`, so task lookup is scoped by `skillId:taskId`.
+
 - [ ] **Step 2: Run all configured systems**
 
 Run:

@@ -44,11 +44,13 @@ Each row should include:
 }
 ```
 
-The task definitions are read from:
+For the seed review path, task definitions can be read from one task file:
 
 ```text
 benchmarks/skill-ir/tasks/review-skill-tasks.json
 ```
+
+For multi-skill evaluation, the scorer should read task definitions from the corpus manifest. Each manifest skill must provide `tasksPath`, and each task file must declare a matching `skillId`.
 
 ## Output
 
@@ -112,6 +114,18 @@ Score a real execution log:
 bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--tasks=benchmarks/skill-ir/tasks/review-skill-tasks.json' '--out=results/skill-ir/main-results.jsonl'
 ```
 
+Score a multi-skill execution log through the corpus manifest:
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--out=results/skill-ir/main-results.jsonl'
+```
+
+Use `--root-dir=<path>` when the manifest's `tasksPath` entries should be resolved against a temporary or alternate benchmark root:
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=tmp/raw-runs.jsonl' '--manifest=tmp/benchmarks/skill-ir/corpus/manifest.json' '--root-dir=tmp' '--out=tmp/main-results.jsonl'
+```
+
 Then summarize:
 
 ```powershell
@@ -127,11 +141,15 @@ parseCaseId(caseId)
 extractFinalOutput(stdout)
 scoreRunOutput(opts)
 scoreRawRunRows(rows, taskById)
+scoreRawRunRowsBySkill(rows, taskBySkillAndId)
+taskIndexKey(skillId, taskId)
 ```
 
 Scoring behavior:
 
 - `caseId` is parsed into skill, agent, environment, context, and task.
+- With `--tasks`, task ids are looked up by task id only. This mode is intended for a single skill task file and is kept for backward compatibility.
+- With `--manifest`, task ids are looked up by `skillId:taskId`, so two skills can safely reuse the same task id.
 - `stdout` is reduced to the text after the last `Final output:` marker when present.
 - `successCriteria` are checked against the final output.
 - `success` is true only when the process exit code is zero and every supported criterion passes.
@@ -177,6 +195,8 @@ bun run typecheck
 
 - This is not a final LLM-judge evaluator. It is a deterministic bridge for the current seed tasks.
 - Unsupported success criteria fail closed and should trigger a scorer extension or task-specific verifier.
+- Use `--manifest` for expanded Task 11B runs. `--tasks` should only be used when all raw rows belong to one skill task file.
+- A manifest skill without `tasksPath`, or a task file with a mismatched `skillId`, fails before writing scored output.
 - A non-zero process exit code always makes the row unsuccessful.
 - `ruleViolations` currently means failed success criteria in the scorer, not full runtime checker violations.
 - `tokenCost` is not available yet because raw SkVM execution rows do not expose it.

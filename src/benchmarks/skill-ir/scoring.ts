@@ -140,9 +140,27 @@ export function scoreRawRunRows(
   rows: RawAgentRunRow[],
   taskById: Map<string, SkillIRBenchmarkTask>,
 ): ScoredAgentRunRow[] {
+  return scoreRawRunRowsWithResolver(rows, (parsed) => taskById.get(parsed.task));
+}
+
+export function scoreRawRunRowsBySkill(
+  rows: RawAgentRunRow[],
+  taskBySkillAndId: Map<string, SkillIRBenchmarkTask>,
+): ScoredAgentRunRow[] {
+  return scoreRawRunRowsWithResolver(rows, (parsed) => taskBySkillAndId.get(taskIndexKey(parsed.skill, parsed.task)));
+}
+
+export function taskIndexKey(skillId: string, taskId: string): string {
+  return `${skillId}:${taskId}`;
+}
+
+function scoreRawRunRowsWithResolver(
+  rows: RawAgentRunRow[],
+  resolveTask: (parsed: ParsedCaseId) => SkillIRBenchmarkTask | undefined,
+): ScoredAgentRunRow[] {
   return rows.map((row) => {
     const parsed = parseCaseId(row.caseId);
-    const task = taskById.get(parsed.task);
+    const task = resolveTask(parsed);
     if (!task) {
       throw new Error(`Task ${parsed.task} was not found while scoring ${row.caseId}`);
     }

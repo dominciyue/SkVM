@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import {
   extractFinalOutput,
   parseCaseId,
@@ -40,6 +40,11 @@ const missingTestTask: SkillIRBenchmarkTask = {
     "The finding explains the user-visible or regression risk.",
   ],
 };
+
+async function writeJson(path: string, value: unknown): Promise<void> {
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
 
 describe("Skill IR real-agent scoring", () => {
   test("parseCaseId extracts benchmark dimensions", () => {
@@ -207,5 +212,93 @@ describe("Skill IR real-agent scoring", () => {
       ruleViolations: 0,
       successSource: "heuristic-success-criteria",
     });
+  });
+
+  test("score-real-agent-runs CLI can load task definitions from a corpus manifest", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-scoring-manifest-"));
+    tempDirs.push(tempDir);
+    const rawPath = join(tempDir, "raw-runs.jsonl");
+    const outPath = join(tempDir, "main-results.jsonl");
+
+    await writeFile(
+      rawPath,
+      [
+        {
+          caseId: "skill-review:skvm:linux:clean:shared-task",
+          system: "original",
+          taskPath: "tmp/review-task.json",
+          exitCode: 0,
+          durationMs: 100,
+          stdout: "Final output:\nFindings\n- Behavioral bug creates a regression risk.",
+          stderr: "",
+          successSource: "execution-only",
+        },
+        {
+          caseId: "skill-diagnostic:skvm:linux:clean:shared-task",
+          system: "original",
+          taskPath: "tmp/diagnostic-task.json",
+          exitCode: 0,
+          durationMs: 100,
+          stdout: "Final output:\nAll done.",
+          stderr: "",
+          successSource: "execution-only",
+        },
+      ].map((row) => JSON.stringify(row)).join("\n") + "\n",
+      "utf8",
+    );
+    await writeJson(join(tempDir, "benchmarks/skill-ir/tasks/review.json"), {
+      schemaVersion: "skill-ir-tasks/v1",
+      skillId: "skill-review",
+      tasks: [
+        {
+          ...findingOrderTask,
+          id: "shared-task",
+        },
+      ],
+    });
+    await writeJson(join(tempDir, "benchmarks/skill-ir/tasks/diagnostic.json"), {
+      schemaVersion: "skill-ir-tasks/v1",
+      skillId: "skill-diagnostic",
+      tasks: [
+        {
+          id: "shared-task",
+          split: "development",
+          prompt: "A diagnostic task with no heuristic criteria yet.",
+          successCriteria: [],
+        },
+      ],
+    });
+    await writeJson(join(tempDir, "benchmarks/skill-ir/corpus/manifest.json"), {
+      schemaVersion: "skill-ir-corpus/v1",
+      skills: [
+        { id: "skill-review", tasksPath: "benchmarks/skill-ir/tasks/review.json" },
+        { id: "skill-diagnostic", tasksPath: "benchmarks/skill-ir/tasks/diagnostic.json" },
+      ],
+    });
+
+    const proc = Bun.spawn([
+      "bun",
+      "./src/benchmarks/skill-ir/score-real-agent-runs.ts",
+      `--raw=${rawPath}`,
+      `--manifest=${join(tempDir, "benchmarks/skill-ir/corpus/manifest.json")}`,
+      `--root-dir=${tempDir}`,
+      `--out=${outPath}`,
+    ]);
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+
+    expect({ stdout, stderr, exitCode }).toMatchObject({ exitCode: 0 });
+    const scoredRows = (await Bun.file(outPath).text())
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => JSON.parse(line));
+    expect(scoredRows).toHaveLength(2);
+    expect(scoredRows.map((row) => [row.skill, row.task, row.success])).toEqual([
+      ["skill-review", "shared-task", true],
+      ["skill-diagnostic", "shared-task", true],
+    ]);
   });
 });
