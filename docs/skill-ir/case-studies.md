@@ -45,6 +45,10 @@ This supports the idea that Skill IR can preserve procedural constraints that ar
 
 ### Case 2: Report Section Stability Under Noisy Context
 
+Context note:
+
+This case predates the context perturbation audit. The case id used `noisy`, but the task prompt did not yet include full noisy distractor text. Treat it as a structural-output case study from the first discriminative run, not as final evidence of robustness under true noisy context.
+
 Case id:
 
 ```text

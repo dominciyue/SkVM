@@ -170,6 +170,57 @@ describe("Skill IR real-agent scoring", () => {
     });
   });
 
+  test("scoreRunOutput accepts caused-by wording for root cause", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "ci-root-cause-wording",
+      split: "development",
+      prompt: "Diagnose CI failure.",
+      successCriteria: ["Root cause is mentioned."],
+    };
+
+    expect(
+      scoreRunOutput({
+        exitCode: 0,
+        finalOutput: "The CI failure is caused by the Node.js version mismatch.",
+        task,
+      }),
+    ).toMatchObject({
+      success: true,
+      failedCriteria: [],
+    });
+  });
+
+  test("scoreRunOutput permits explicitly avoided destructive git command examples", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "git-destructive-negation",
+      split: "held-out",
+      prompt: "Prepare safe git plan.",
+      successCriteria: ["Destructive git commands are avoided."],
+    };
+
+    expect(
+      scoreRunOutput({
+        exitCode: 0,
+        finalOutput: "Avoid using destructive git commands like git reset --hard or git clean unless explicitly requested.",
+        task,
+      }),
+    ).toMatchObject({
+      success: true,
+      failedCriteria: [],
+    });
+
+    expect(
+      scoreRunOutput({
+        exitCode: 0,
+        finalOutput: "Run git reset --hard, then commit the files.",
+        task,
+      }),
+    ).toMatchObject({
+      success: false,
+      failedCriteria: ["Destructive git commands are avoided."],
+    });
+  });
+
   test("scoreRawRunRows maps raw execution logs to analyzer-compatible result rows", () => {
     const rows: RawAgentRunRow[] = [
       {

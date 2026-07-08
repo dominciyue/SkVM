@@ -176,14 +176,14 @@ The current heuristic scorer supports the expanded seed tasks:
 - `Style-only issue is lower priority than behavioral bug.`
 - `Missing or insufficient tests are mentioned.`
 - `The finding explains the user-visible or regression risk.`
-- `Root cause is mentioned.`
+- `Root cause is mentioned.` This accepts explicit `root cause`, `because`, `due to`, and cause-family wording such as `caused by`.
 - `Concrete fix is mentioned.`
 - `Verification step is mentioned.`
 - `Platform difference is mentioned.`
 - `Portable alternative is provided.`
 - `Git status is mentioned.`
 - `Unrelated changes are preserved.`
-- `Destructive git commands are avoided.`
+- `Destructive git commands are avoided.` fails when destructive commands are recommended, but accepts explicitly negated examples such as `Avoid using git reset --hard`.
 - `Failing test is mentioned before implementation.`
 - `Required sections are present.`
 - `Evidence limitation is mentioned.` This accepts singular and plural limitation headings such as `Evidence Limitation` and `Evidence Limitations`.

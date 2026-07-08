@@ -1944,6 +1944,8 @@ Current status: the first expanded seed corpus contains 6 deep-benchmark skills 
 
 2026-07-09 context audit update: the first discriminative run used context labels but did not yet inject full noisy/long/compressed perturbation text into task prompts. The runner now materializes real context perturbations through `buildSkvmTaskJson`, and the existing discriminative result has additional slice and paired-delta CSVs for diagnosis. Future context claims should use runs generated after this audit.
 
+2026-07-09 true-noisy update: a 24-row true noisy-context run was completed after the perturbation fix. Both `original` and `ir-profile` passed all 12 paired cases after correcting two scorer false negatives, while `ir-profile` used substantially more tokens and latency. The archived outputs are `results/skill-ir/true-noisy-task11-results-2026-07-09.jsonl`, `results/skill-ir/true-noisy-task11-table-2026-07-09.csv`, `results/skill-ir/true-noisy-task11-slices-2026-07-09.csv`, and `results/skill-ir/true-noisy-task11-paired-deltas-2026-07-09.csv`; see `docs/skill-ir/true-noisy-task11-run.md`.
+
 Before running an expanded matrix, verify that `buildDefaultMatrixInput()` produces `tasksBySkill` entries for every deep benchmark skill. Task ownership must stay skill-specific; the flattened `tasks` list is only for compatibility and should not cause one skill to be paired with another skill's task.
 
 The real-agent runner now loads each skill's `irPath` and `tasksPath` from the corpus manifest. For expanded Task 11B runs, add new skill IR and task files to the manifest first, then use the dry-run plan to check that materialized cases use the correct skill-specific IR and task prompts.
