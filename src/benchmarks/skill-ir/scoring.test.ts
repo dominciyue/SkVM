@@ -571,6 +571,89 @@ describe("Skill IR real-agent scoring", () => {
     });
   });
 
+  test("scoreRunOutput accepts safe staged-only git cleanup from final-ir runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "git-safe-staged-cleanup",
+      split: "held-out",
+      prompt: "Prepare safe git plan.",
+      successCriteria: [
+        "Unrelated changes are preserved.",
+        "Secret-like files are excluded from commit.",
+        "Destructive git commands are avoided.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "Unstage any files that should not go into version control:",
+        "git restore --staged report/private-draft.md .skvm/config.json",
+        "These commands only remove the files from the staging area. They do not delete the files or modify their contents.",
+        "Do not use git reset --hard or git checkout -- <file>.",
+        "After this, all unrelated and secret files remain untouched in your working tree, and only the route-probe sources and docs go into the commit.",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
+  test("scoreRunOutput accepts test-first whitespace edge-case wording from final-ir runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "tdd-test-first-whitespace",
+      split: "held-out",
+      prompt: "Describe the TDD fix order.",
+      successCriteria: [
+        "Failing test is mentioned before implementation.",
+        "Edge-case failing test is mentioned.",
+      ],
+    };
+
+    const scored = scoreRunOutput({
+      exitCode: 0,
+      finalOutput: [
+        "1. Test-first approach:",
+        "test('should reject display names with only whitespace', () => {",
+        "  expect(isValidDisplayName('   ')).toBe(false);",
+        "});",
+        "2. Concrete fix:",
+        "return name.trim().length >= 3;",
+      ].join("\n"),
+      task,
+    });
+
+    expect(scored).toMatchObject({
+      success: true,
+      ruleViolations: 0,
+      failedCriteria: [],
+    });
+  });
+
+  test("scoreRunOutput accepts unsupported-claim overclaim wording from final-ir runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "report-unsupported-claim",
+      split: "held-out",
+      prompt: "Write a grounded project update.",
+      successCriteria: ["Overclaiming is avoided."],
+    };
+
+    for (const finalOutput of [
+      "The draft claim about broad superiority was omitted as unsupported. Evidence limitations are clearly noted.",
+      "The document avoids overstating the broadly superior claim and focuses only on specific supported findings.",
+      "Caution: explicitly avoids overstating the draft claim about broad superiority.",
+    ]) {
+      expect(scoreRunOutput({ exitCode: 0, finalOutput, task })).toMatchObject({
+        success: true,
+        ruleViolations: 0,
+        failedCriteria: [],
+      });
+    }
+  });
+
   test("scoreRawRunRows maps raw execution logs to analyzer-compatible result rows", () => {
     const rows: RawAgentRunRow[] = [
       {

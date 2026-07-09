@@ -216,6 +216,13 @@ The Task 11D `ir-pgo` validation run added additional accepted report-synthesis 
 - `generalization is untested`.
 - `promising but preliminary`.
 
+The Task 11E final-IR multi-skill run added several more real-output matcher cases:
+
+- `git restore --staged <file>` is treated as staged-index cleanup, not destructive working-tree modification.
+- Output that says unrelated and secret files remain untouched is accepted as preserving unrelated changes.
+- `Test-first approach` plus a whitespace-only rejection test is accepted as TDD edge-case wording.
+- `unsupported claim`, `omitted as unsupported`, `avoids overstating`, and `explicitly avoids overstating` are accepted as overclaim-avoidance wording.
+
 Unsupported criteria fail closed. This prevents the scorer from silently overstating success when new task types are added.
 
 ## Verification

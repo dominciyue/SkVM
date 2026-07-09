@@ -614,3 +614,38 @@ The current multi-model evidence should be reported conservatively:
 - Additional cross-family claims require routes that can complete the same paired matrix without infrastructure failures.
 
 Task 11C should also make skill selection stricter. The current seed corpus is useful for coding-agent workflows, but final generalization claims need more neutral skill shapes: strict schema generation, bilingual or Chinese tasks, non-coding workflow skills, stronger context-conflict tasks, and environment-sensitive tasks whose success depends on tool adaptation rather than GPT-friendly prose conventions.
+
+## 20. Task 11E Calibration: Deeper Final IR Evaluation And Next Optimizations
+
+After the first `ir-pgo` validation run, the final IR mechanism is proven to execute but its quality benefit is still unclear. The next experiment should therefore widen along two axes:
+
+```text
+skills: all current deep-benchmark skills, not only report synthesis
+models: multiple stable routes, preferably including at least one non-GPT family
+```
+
+The comparison should keep the system axis fixed:
+
+```text
+original
+ir-profile
+ir-pgo
+```
+
+Interpretation rules:
+
+- `ir-profile` measures static Skill IR materialization over the base corpus IR.
+- `ir-pgo` measures final IR artifacts compiled from base IR plus profile overlay.
+- Since the current profile overlay only contains one report-synthesis annotation, gains outside report synthesis are static/final-IR pass effects rather than dynamic-profile effects.
+- Infrastructure and route/tool-call failures must be separated from semantic failures.
+- Cost and latency are part of promotion: a final IR artifact should not be called better on quality parity if it introduces large latency variance.
+
+The next optimization roadmap is:
+
+1. **Output schema learning:** convert repeated output-format failures into structured output contracts, section schemas, and field-level checks instead of generic rule checks.
+2. **Model-family behavior profiles:** track profile annotations by model family or route so GPT, Gemini, Claude, DeepSeek, Qwen, and other routes can receive different repair hints when evidence justifies it.
+3. **Confidence and risk scoring:** attach confidence, support count, task split, model diversity, and regression risk to overlays and final IR promotion decisions.
+4. **Validation planner:** automatically choose validation tiers and sample sizes based on risk signals, budget, skill category, profile changes, and model-route health.
+5. **Final IR promotion policy:** keep experiment final IR artifacts separate from base corpus IR until held-out paired deltas, cost, latency, and regression checks justify promotion.
+
+The first Task 11E run supports this roadmap. Across six hard-002 tasks and three route-probed models, static `ir-profile` had the best cross-model semantic success rate, while `ir-pgo` was best on the GPT-family route but weaker than `ir-profile` on Qwen. This shows that final IR should be promoted conditionally, not globally. Model-family behavior and confidence/risk scoring are now necessary rather than optional refinements.

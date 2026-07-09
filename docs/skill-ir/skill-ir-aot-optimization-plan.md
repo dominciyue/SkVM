@@ -2195,6 +2195,92 @@ prior regression -> includes periodic regression sample
 
 Create a dry-run CLI that emits a JSON validation plan without calling a model. Execution can come later after the plan format is stable.
 
+## Task 11E: Multi-Skill Multi-Model Final IR Evaluation
+
+**Goal:** Determine whether the current final IR artifact produces measurable improvements, regressions, or cost changes beyond the single report-synthesis validation run.
+
+**Current framing:** The final IR artifact is static-dynamic, but the current dynamic overlay only has one report-synthesis annotation. A deeper experiment should therefore distinguish static/final-pass effects from true dynamic-profile effects.
+
+2026-07-09 update: Task 11E was run across all six current deep-benchmark skills, the six hard-002 held-out tasks, and three route-probed models: `xty/gpt-4.1-nano`, `xty/gemini-2.5-flash`, and `xty/qwen3-8b`. `xty/deepseek-v3` was excluded after route probing because the gateway returned a max-token provider error. After raw-output audit and scorer regression tests, the results showed: `ir-pgo` best on GPT-family (`6/6`), all systems tied on Gemini non-infrastructure rows (`4/4`), and static `ir-profile` best on Qwen (`5/6` vs `ir-pgo` `3/6` and original `2/6`). This makes final IR promotion a model-family/risk-scored decision rather than a global replacement for static IR. See `docs/skill-ir/final-ir-multiskill-multimodel-run.md`.
+
+**Files:**
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-spec.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
+- Modify: `docs/skill-ir/automated-validation-strategy.md`
+- Create: `docs/skill-ir/final-ir-multiskill-multimodel-run.md`
+- Create: `results/skill-ir/final-ir-multiskill-*-2026-07-09.*`
+
+- [ ] **Step 1: Select skills and tasks**
+
+Use the six current deep-benchmark skills and their hard-002 held-out tasks:
+
+```text
+review-data-loss-hard-002
+ci-engine-warning-hard-002
+portable-env-chain-hard-002
+commit-partial-index-hard-002
+tdd-whitespace-name-hard-002
+report-conflicting-notes-hard-002
+```
+
+Expected: this covers workflow, diagnostic, tool-use, environment-sensitive, constraint-heavy, and generative skills.
+
+- [ ] **Step 2: Probe candidate model routes**
+
+Probe a small candidate set before launching the matrix:
+
+```powershell
+bun ./src/benchmarks/skill-ir/route-probe-run.ts '--models=xty/gpt-4.1-nano,xty/gpt-4.1-mini,xty/gemini-2.5-flash,xty/deepseek-v3' '--require-env=SKVM_XTY_API_KEY' '--timeout-ms=45000' '--out-dir=results/skill-ir/final-ir-route-probe-2026-07-09'
+```
+
+Expected: choose only routes with `status=ok` for the larger run. If non-GPT routes fail because of provider/tool-call infrastructure, record that separately and do not count it as skill behavior.
+
+- [ ] **Step 3: Dry-run the selected matrix**
+
+For each selected model, generate a dry-run plan:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile,ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=linux' '--tasks=review-data-loss-hard-002,ci-engine-warning-hard-002,portable-env-chain-hard-002,commit-partial-index-hard-002,tdd-whitespace-name-hard-002,report-conflicting-notes-hard-002' '--limit=18' '--model=<model>' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/profiled-ir-gpt41nano-2026-07-09/final-ir' '--out-dir=results/skill-ir/final-ir-multiskill-<model-label>-dry-run-2026-07-09'
+```
+
+Expected: 18 rows per selected model, balanced as 6 tasks x 3 systems.
+
+- [ ] **Step 4: Execute, score, and analyze**
+
+For each selected model, execute the same matrix with `--execute --retries=1 --retry-delay-ms=1000 --require-env=SKVM_XTY_API_KEY`, then score and analyze:
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=<run-dir>/raw-runs.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--out=<results>.jsonl'
+python scripts/analyze_skill_ir_results.py <results>.jsonl <table>.csv
+python scripts/analyze_skill_ir_slices.py --input <results>.jsonl --slices-out <slices>.csv --paired-out <paired>.csv --manifest benchmarks/skill-ir/corpus/manifest.json --root-dir .
+```
+
+Expected: archived scored JSONL and CSV summaries for each selected model. Raw execution directories should be removed after scoring unless needed for audit.
+
+- [ ] **Step 5: Interpret final IR**
+
+The run document should separate:
+
+```text
+static/final-pass effect: ir-profile or ir-pgo improves tasks without dynamic annotations
+dynamic-profile effect: ir-pgo improves report synthesis due to profile overlay
+regression: optimized systems fail where original passes
+cost effect: token and latency deltas
+infrastructure effect: provider/tool-call/timeout failures
+```
+
+- [ ] **Step 6: Update optimization roadmap**
+
+Document the next implementation targets:
+
+```text
+output schema learning
+model-family behavior profiles
+confidence and risk scoring
+validation planner
+final IR promotion policy
+```
+
 ## Task 12: Research Report and Slides
 
 **Files:**

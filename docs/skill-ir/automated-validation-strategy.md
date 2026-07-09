@@ -21,6 +21,18 @@ Static information supplies steps, rules, tools, environment assumptions, checks
 
 There is still optimization room. The current feedback loop handles rule failures well enough to generate checks and recovery policies, but it does not yet learn richer task-specific output schemas, model-family-specific behavior, confidence scores, or automatic validation tiers.
 
+The post-Task 11D roadmap expands this into five concrete optimization tracks:
+
+```text
+output schema learning
+model-family behavior profiles
+confidence and risk scoring
+validation planner
+final IR promotion policy
+```
+
+These tracks should be implemented only after the current final IR artifact is evaluated across more than one skill and model route.
+
 ## Validation Layers
 
 ### Layer 0: Import-Time Static Validation
@@ -152,3 +164,12 @@ python scripts/analyze_skill_ir_slices.py --input <results>.jsonl --slices-out <
 ## Future Implementation
 
 The next implementation step is a validation planner CLI that produces a validation plan from skill risk signals and available budget. A later version can execute that plan, route outputs into scoring and profile feedback, and emit a promotion decision for final IR artifacts.
+
+Before building the planner, run a multi-skill multi-model final IR experiment. The recommended scope is the six current deep-benchmark skills, their hard-002 held-out tasks, `original / ir-profile / ir-pgo`, compressed context, and two or more route-probed models. This experiment should classify observed differences as static/final-pass effects, dynamic-profile effects, regressions, cost effects, or infrastructure effects.
+
+The first Task 11E run showed why promotion needs policy rather than a single final-IR artifact switch. `ir-pgo` was best on `gpt-4.1-nano`, tied on Gemini non-infrastructure rows, and weaker than static `ir-profile` on `qwen3-8b`. Therefore, a future validation planner should be able to recommend:
+
+- keep static `ir-profile` for a model family when it beats `ir-pgo`;
+- use `ir-pgo` for a model family when held-out paired deltas improve without regressions;
+- withhold promotion when infrastructure failures dominate or cost/latency grows too much;
+- request more evidence when the profile overlay was generated from a narrow calibration source.
