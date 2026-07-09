@@ -72,6 +72,42 @@ describe("applyProfileGuidedRepair", () => {
     });
   });
 
+  test("adds output checks for profiled rule failures", () => {
+    const ir = baseIr({
+      rules: [
+        {
+          id: "rule-required-sections",
+          sourceText: "Required sections are present.",
+          level: "must",
+          scope: "output",
+          checkability: "runtime",
+          severity: "high",
+          normalizedForm: "The final report includes Summary, Evidence, and Next Steps.",
+        },
+      ],
+      profile: [
+        {
+          id: "profile-rule-required-sections",
+          sourceTrace: "trace-1",
+          targetRef: "rule-required-sections",
+          observation: "frequent-failure",
+          evidenceCount: 2,
+          suggestedPass: "profile-guided-repair",
+        },
+      ],
+    });
+
+    expect(applyProfileGuidedRepair(ir).checks).toContainEqual({
+      id: "check-rule-required-sections-profile",
+      name: "Profile check for rule-required-sections",
+      kind: "output",
+      targetRef: "rule-required-sections",
+      assertion:
+        "Profile feedback observed repeated failures. Verify: The final report includes Summary, Evidence, and Next Steps.",
+      onFailure: "retry",
+    });
+  });
+
   test("does not duplicate generated checks or recovery policies and does not mutate the input", () => {
     const existingCheck = {
       id: "check-step-read-profile",

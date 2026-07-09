@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "skill-git-hygiene",
+  "name": "Git Hygiene",
+  "category": [
+    "tool-use",
+    "constraint-heavy"
+  ],
+  "intent": "Work safely in a dirty repository without overwriting unrelated user changes.",
+  "source": {
+    "kind": "inline",
+    "text": "Before changing files, inspect git status. Preserve unrelated changes. Avoid destructive git commands unless the user explicitly asks for them."
+  },
+  "inputs": [
+    {
+      "id": "repo-state",
+      "description": "A dirty worktree, change request, or git status excerpt.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "safe-git-plan",
+      "description": "A safe plan or response that protects unrelated changes.",
+      "required": true
+    }
+  ],
+  "preconditions": [],
+  "steps": [
+    {
+      "id": "step-check-status",
+      "title": "Check git status",
+      "description": "Inspect current branch and changed files before edits or commits.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": [
+        "tool-git"
+      ],
+      "produces": [
+        "status-understanding"
+      ],
+      "successCheckRefs": [
+        "check-git-status"
+      ],
+      "failureModes": [
+        "edits-without-status"
+      ]
+    },
+    {
+      "id": "step-preserve-unrelated",
+      "title": "Preserve unrelated changes",
+      "description": "Separate task-related changes from unrelated user work.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": [
+        "step-check-status"
+      ],
+      "toolRefs": [
+        "tool-git"
+      ],
+      "produces": [
+        "change-scope"
+      ],
+      "successCheckRefs": [
+        "check-unrelated-preserved"
+      ],
+      "failureModes": [
+        "reverts-user-change"
+      ]
+    },
+    {
+      "id": "step-avoid-destructive",
+      "title": "Avoid destructive commands",
+      "description": "Do not use destructive reset, checkout, or clean commands unless explicitly requested.",
+      "kind": "execute",
+      "required": true,
+      "dependsOn": [
+        "step-preserve-unrelated"
+      ],
+      "toolRefs": [
+        "tool-git"
+      ],
+      "produces": [
+        "safe-command-plan"
+      ],
+      "successCheckRefs": [
+        "check-destructive-avoided"
+      ],
+      "failureModes": [
+        "destructive-git-command"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-status-first",
+      "sourceText": "Run git status before changing or committing.",
+      "level": "must",
+      "scope": "git",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "The response or trace mentions checking git status before acting."
+    },
+    {
+      "id": "rule-preserve-user-work",
+      "sourceText": "Do not overwrite unrelated user changes.",
+      "level": "never",
+      "scope": "git",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Unrelated user changes are preserved."
+    },
+    {
+      "id": "rule-no-destructive-git",
+      "sourceText": "Never use destructive git commands unless explicitly requested.",
+      "level": "never",
+      "scope": "git",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Destructive git commands are avoided."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-git",
+      "name": "git",
+      "purpose": "Inspect repository status and prepare safe commits.",
+      "required": true,
+      "alternatives": [
+        "read-only file listing"
+      ],
+      "platformNotes": {},
+      "availabilityCheck": "git --version"
+    }
+  ],
+  "environment": [],
+  "checks": [
+    {
+      "id": "check-git-status",
+      "name": "Git status mentioned",
+      "kind": "output",
+      "targetRef": "rule-status-first",
+      "assertion": "The response mentions git status.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-unrelated-preserved",
+      "name": "Unrelated changes preserved",
+      "kind": "output",
+      "targetRef": "rule-preserve-user-work",
+      "assertion": "The response states that unrelated changes should be preserved.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-destructive-avoided",
+      "name": "Destructive commands avoided",
+      "kind": "rule-violation",
+      "targetRef": "rule-no-destructive-git",
+      "assertion": "The response does not recommend destructive git commands.",
+      "onFailure": "abort"
+    }
+  ],
+  "recovery": [],
+  "profile": []
+}

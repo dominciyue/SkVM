@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "skill-review",
+  "name": "Code Review",
+  "category": [
+    "workflow",
+    "constraint-heavy"
+  ],
+  "intent": "Review code changes and report actionable findings before summaries.",
+  "source": {
+    "kind": "inline",
+    "text": "Review code changes. Prioritize bugs, regressions, missing tests, and risks. Findings should lead the response."
+  },
+  "inputs": [
+    {
+      "id": "changed-files",
+      "description": "A diff, patch, or list of changed files to inspect.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "review-response",
+      "description": "A review response with findings first and concise supporting context.",
+      "required": true
+    }
+  ],
+  "preconditions": [],
+  "steps": [
+    {
+      "id": "step-read-diff",
+      "title": "Read diff",
+      "description": "Inspect the changed files or patch before making claims.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": [],
+      "produces": [
+        "diff-understanding"
+      ],
+      "successCheckRefs": [
+        "check-diff-read"
+      ],
+      "failureModes": [
+        "missing-diff",
+        "unreadable-patch"
+      ]
+    },
+    {
+      "id": "step-identify-findings",
+      "title": "Identify findings",
+      "description": "Look for bugs, regressions, missing tests, and user-visible risks.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": [
+        "step-read-diff"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "review-findings"
+      ],
+      "successCheckRefs": [
+        "check-findings-considered"
+      ],
+      "failureModes": [
+        "only-style-feedback",
+        "missed-behavioral-risk"
+      ]
+    },
+    {
+      "id": "step-report-findings",
+      "title": "Report findings",
+      "description": "Return findings before any summary or supporting context.",
+      "kind": "report",
+      "required": true,
+      "dependsOn": [
+        "step-identify-findings"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "review-response"
+      ],
+      "successCheckRefs": [
+        "check-findings-first"
+      ],
+      "failureModes": [
+        "summary-before-findings",
+        "no-actionable-findings"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-findings-first",
+      "sourceText": "Findings should lead the response.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "The review response begins with findings before summary or context."
+    },
+    {
+      "id": "rule-prioritize-behavior",
+      "sourceText": "Prioritize bugs, risks, regressions, and missing tests over style-only comments.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "Behavioral or correctness risks are ranked above style-only feedback."
+    }
+  ],
+  "tools": [],
+  "environment": [],
+  "checks": [
+    {
+      "id": "check-diff-read",
+      "name": "Diff was inspected",
+      "kind": "step-success",
+      "targetRef": "step-read-diff",
+      "assertion": "Execution trace includes evidence that changed files or patch content were inspected.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-findings-considered",
+      "name": "Findings were considered",
+      "kind": "step-success",
+      "targetRef": "step-identify-findings",
+      "assertion": "Execution trace or final output includes consideration of bugs, regressions, missing tests, or risks.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-findings-first",
+      "name": "Findings appear first",
+      "kind": "output",
+      "targetRef": "rule-findings-first",
+      "assertion": "The response begins with findings before summary or supporting context.",
+      "onFailure": "report"
+    }
+  ],
+  "recovery": [],
+  "profile": []
+}

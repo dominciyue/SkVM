@@ -1962,6 +1962,8 @@ The real-agent runner now loads each skill's `irPath` and `tasksPath` from the c
 
 The scorer now supports manifest-based task indexing. For multi-skill Task 11B runs, prefer `score-real-agent-runs.ts --manifest=benchmarks/skill-ir/corpus/manifest.json` instead of `--tasks=<single task file>`, so task lookup is scoped by `skillId:taskId`.
 
+2026-07-09 Task 11C calibration update: current evidence shows that `ir-profile` is mostly static Skill IR materialization because the seed IR files still contain empty `profile` arrays. The project should now add a dynamic result-feedback loop before claiming profile-guided optimization: scored real-agent rows become execution traces, traces become profile annotations, annotations are merged into derived IR artifacts, and a distinct `ir-pgo` system evaluates the derived IR on held-out tasks. Infrastructure failures must be excluded from profile feedback, and cross-family model claims should use only routes that can complete paired matrices without provider/tool-call failures.
+
 - [ ] **Step 2: Run all configured systems**
 
 Run:
@@ -2030,6 +2032,97 @@ Run:
 git add results/skill-ir docs/skill-ir/case-studies.md
 git commit -m "test: evaluate skill ir optimization across settings"
 ```
+
+## Task 11C: Dynamic Profile-Guided Feedback Loop
+
+**Goal:** Close the gap between the original spec and the current implementation by turning real scored results into profile annotations and derived Skill IR artifacts.
+
+**Files:**
+- Create: `src/benchmarks/skill-ir/profile-feedback.ts`
+- Create: `src/benchmarks/skill-ir/profile-feedback.test.ts`
+- Create: `src/benchmarks/skill-ir/profile-feedback-run.ts`
+- Modify: `src/profiler/profile-annotation.ts`
+- Modify: `src/profiler/profile-annotation.test.ts`
+- Modify: `src/skill-ir/passes/profile-guided-repair.ts`
+- Modify: `src/skill-ir/passes/profile-guided-repair.test.ts`
+- Modify: `src/benchmarks/skill-ir/matrix.ts`
+- Modify: `src/benchmarks/skill-ir/real-agent.ts`
+- Modify: `src/benchmarks/skill-ir/real-agent.test.ts`
+- Modify: `src/benchmarks/skill-ir/real-agent-run.ts`
+- Modify: `src/benchmarks/skill-ir/real-agent-run.test.ts`
+- Update: `docs/skill-ir/profiler-traces.md`
+- Create: `docs/skill-ir/profile-feedback-loop.md`
+- Update: `docs/skill-ir/real-agent-dry-run.md`
+- Update: `docs/skill-ir/real-agent-scoring.md`
+- Update: `docs/skill-ir/experiment-design.md`
+
+- [ ] **Step 1: Write failing feedback tests**
+
+Add tests proving that:
+
+```text
+scored non-infrastructure failures become ExecutionTrace events
+infrastructure failures are ignored
+failed success criteria map to stable rule/check target refs
+derived IR keeps base IR unchanged and appends profile annotations
+```
+
+Run:
+
+```powershell
+bun test ./src/benchmarks/skill-ir/profile-feedback.test.ts
+```
+
+Expected: FAIL because the module does not exist yet.
+
+- [ ] **Step 2: Implement result-to-trace conversion**
+
+Implement helpers:
+
+```ts
+scoredRowsToExecutionTraces(rows, irBySkill, opts)
+targetRefForFailedCriterion(criterion, ir)
+mergeProfileAnnotationsIntoIR(ir, annotations)
+buildProfiledIRFromScoredRows(ir, rows, opts)
+```
+
+The converter should skip successful rows and rows with `failureType: "infrastructure"`.
+
+- [ ] **Step 3: Make profile annotation threshold configurable**
+
+Keep the default repeated-failure threshold at 2, but allow Task 11C calibration commands to use `--min-evidence=1` when generating case-study profile artifacts from a small seed run.
+
+- [ ] **Step 4: Improve profile-guided repair for rule failures**
+
+When a profile annotation targets a `rule-*` ref, generate a runtime output/rule check as well as a recovery policy. This makes result-driven profile annotations visible in materialized skills instead of only adding generic retry policies.
+
+- [ ] **Step 5: Add `ir-pgo` as a distinct experiment system**
+
+Add `ir-pgo` to the experiment system type and default system list. It uses the same materialization path as `ir-profile`, but its intended input is a derived profiled IR artifact. This keeps archived `ir-profile` results comparable with the previous static system.
+
+Add `--ir-override-dir=<dir>` to the real-agent runner so follow-up `ir-pgo` runs can consume the derived `<skill-id>.json` files from `profile-feedback-run.ts`.
+
+- [ ] **Step 6: Add feedback CLI**
+
+Create a CLI that reads scored JSONL plus the corpus manifest, filters rows by source system and optional task split, writes derived IR JSON files, and writes a summary file listing generated annotations.
+
+Example:
+
+```powershell
+bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--results=results/skill-ir/harder-heldout-compressed-gpt41nano-results-2026-07-09.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--source-system=original' '--min-evidence=1' '--out-dir=results/skill-ir/profiled-ir-gpt41nano-2026-07-09'
+```
+
+- [ ] **Step 7: Update docs and verification**
+
+Update component docs in the same stage. Run:
+
+```powershell
+bun test ./src/benchmarks/skill-ir/profile-feedback.test.ts ./src/profiler/profile-annotation.test.ts ./src/skill-ir/passes/profile-guided-repair.test.ts ./src/benchmarks/skill-ir/matrix.test.ts ./src/benchmarks/skill-ir/real-agent.test.ts
+bun run typecheck
+git diff --check
+```
+
+Expected: all tests pass; only existing CRLF warnings are acceptable.
 
 ## Task 12: Research Report and Slides
 

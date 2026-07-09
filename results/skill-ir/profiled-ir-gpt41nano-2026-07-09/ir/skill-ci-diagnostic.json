@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "skill-ci-diagnostic",
+  "name": "CI Failure Diagnosis",
+  "category": [
+    "diagnostic",
+    "tool-use",
+    "environment-sensitive"
+  ],
+  "intent": "Diagnose CI failure logs, identify the root cause, propose a concrete fix, and name a verification step.",
+  "source": {
+    "kind": "inline",
+    "text": "When debugging CI, inspect the failing log first, identify the likely root cause, propose the smallest concrete fix, and include how to verify it. Separate infrastructure issues from code or test failures."
+  },
+  "inputs": [
+    {
+      "id": "ci-log",
+      "description": "A CI log excerpt, failing command, or workflow snippet.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "diagnosis",
+      "description": "A concise diagnosis with root cause, fix, and verification step.",
+      "required": true
+    }
+  ],
+  "preconditions": [],
+  "steps": [
+    {
+      "id": "step-read-log",
+      "title": "Read failure log",
+      "description": "Inspect the failing command, error lines, platform, and surrounding log context.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": [],
+      "produces": [
+        "failure-signature"
+      ],
+      "successCheckRefs": [
+        "check-root-cause"
+      ],
+      "failureModes": [
+        "missing-log",
+        "only-generic-diagnosis"
+      ]
+    },
+    {
+      "id": "step-propose-fix",
+      "title": "Propose fix",
+      "description": "Name a concrete file, command, dependency, or configuration change that addresses the failure.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": [
+        "step-read-log"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "fix-plan"
+      ],
+      "successCheckRefs": [
+        "check-concrete-fix"
+      ],
+      "failureModes": [
+        "no-actionable-fix",
+        "infrastructure-code-confusion"
+      ]
+    },
+    {
+      "id": "step-name-verification",
+      "title": "Name verification",
+      "description": "Include the command or CI job that should be rerun after the fix.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": [
+        "step-propose-fix"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "verification-plan"
+      ],
+      "successCheckRefs": [
+        "check-verification-step"
+      ],
+      "failureModes": [
+        "missing-verification"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-root-cause",
+      "sourceText": "Identify the likely root cause before proposing broad fixes.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "The response states a root cause grounded in the provided CI log."
+    },
+    {
+      "id": "rule-verify",
+      "sourceText": "Include how to verify the fix.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "The response includes a concrete verification command or CI rerun."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-shell",
+      "name": "shell",
+      "purpose": "Run local tests or inspect CI-related files when available.",
+      "required": false,
+      "alternatives": [
+        "read-only log inspection"
+      ],
+      "platformNotes": {
+        "linux": "CI logs often come from bash-based Linux runners.",
+        "windows": "PowerShell quoting and path syntax can change failure modes."
+      },
+      "availabilityCheck": "detect shell"
+    }
+  ],
+  "environment": [
+    {
+      "id": "env-ci-platform",
+      "description": "CI behavior may depend on Linux, Windows, macOS, container, or runner image differences.",
+      "platforms": [
+        "linux",
+        "windows",
+        "macos",
+        "container"
+      ],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-root-cause",
+      "name": "Root cause stated",
+      "kind": "output",
+      "targetRef": "rule-root-cause",
+      "assertion": "The response includes a root cause tied to the log.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-concrete-fix",
+      "name": "Concrete fix stated",
+      "kind": "output",
+      "targetRef": "step-propose-fix",
+      "assertion": "The response includes a concrete fix.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-verification-step",
+      "name": "Verification step stated",
+      "kind": "output",
+      "targetRef": "rule-verify",
+      "assertion": "The response includes a verification command or CI rerun.",
+      "onFailure": "report"
+    }
+  ],
+  "recovery": [
+    {
+      "id": "recovery-missing-log",
+      "trigger": "CI log is incomplete or truncated",
+      "action": "ask-user",
+      "maxAttempts": 1,
+      "explanation": "Ask for the failing command or full error block rather than guessing."
+    }
+  ],
+  "profile": []
+}

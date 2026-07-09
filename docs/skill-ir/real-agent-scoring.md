@@ -4,6 +4,8 @@
 
 The real-agent scoring layer converts execution-only SkVM logs into benchmark rows that the result analyzer can summarize. It sits between `real-agent-run.ts --execute` and `scripts/analyze_skill_ir_results.py`.
 
+Task 11C also uses scored rows as the input to profile-guided feedback. The feedback path reads the same scored JSONL, ignores infrastructure failures, converts semantic failures into execution traces, and produces derived profiled IR artifacts for `ir-pgo`.
+
 The current implementation is intentionally deterministic and offline. It does not call an LLM judge. For the expanded seed corpus, it checks task `successCriteria` with small heuristics so the end-to-end pipeline can be tested before spending model budget.
 
 ## Files
@@ -136,6 +138,12 @@ Then summarize:
 python scripts/analyze_skill_ir_results.py results/skill-ir/main-results.jsonl results/skill-ir/main-table.csv
 ```
 
+Generate profile-feedback artifacts from scored rows:
+
+```powershell
+bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--results=results/skill-ir/main-results.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--source-system=original' '--task-split=development' '--out-dir=results/skill-ir/profiled-ir-main'
+```
+
 ## Runtime Behavior
 
 Public helpers:
@@ -166,6 +174,7 @@ Scoring behavior:
 - `inputTokens`, `outputTokens`, and `tokenCost` are emitted when stdout exposes token accounting. `tokenCost` is the sum of input and output tokens.
 - Non-zero exits are classified with `failureType` so infrastructure failures can be separated from skill behavior.
 - Infrastructure failures do not contribute to `ruleViolations`; they should be counted through `infrastructure_failures` in the summary table.
+- Infrastructure failures are also excluded from profile-feedback artifacts so provider instability does not become a Skill IR optimization signal.
 
 ## Supported Seed Criteria
 
@@ -237,3 +246,4 @@ bun run typecheck
 - Keep raw logs and scored rows separate.
 - Do not commit `results/skill-ir/main-results.jsonl` unless the run is intentionally archived as an experiment artifact.
 - When replacing the heuristic scorer with an LLM judge or deterministic task verifier, keep the output JSONL field names stable for the analyzer.
+- Keep `failedCriteria`, `failureType`, `taskSplit`, and `tokenCost` stable because Task 11C consumes them for result-to-trace feedback.

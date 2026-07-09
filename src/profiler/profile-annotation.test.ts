@@ -93,4 +93,25 @@ describe("buildProfileAnnotations", () => {
 
     expect(annotations).toEqual([]);
   });
+
+  test("allows the minimum evidence threshold to be configured for small calibration runs", () => {
+    const annotations = buildProfileAnnotations(
+      [
+        trace({
+          traceId: "trace-1",
+          events: [{ kind: "rule-violation", targetRef: "rule-findings-first", message: "Bad order" }],
+        }),
+      ],
+      { minEvidence: 1 },
+    );
+
+    expect(annotations).toContainEqual({
+      id: "profile-rule-findings-first",
+      sourceTrace: "trace-1",
+      targetRef: "rule-findings-first",
+      observation: "frequent-failure",
+      evidenceCount: 1,
+      suggestedPass: "profile-guided-repair",
+    });
+  });
 });

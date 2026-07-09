@@ -547,3 +547,40 @@ Adapter lowering should be treated as an agent-computer interface layer. Tool av
 ### 18.6 Non-Changes
 
 The literature review does not justify a large redesign at this stage. The project should not add full probabilistic model checking, a separate runtime-rule DSL, JIT recompilation, or automatic concurrency extraction before the current end-to-end research loop exists. These ideas can be listed as future work after benchmark results and case studies are available.
+
+## 19. Task 11C Calibration: Dynamic Result Feedback
+
+The Task 11 experiments clarified an important distinction in the current implementation.
+
+The existing `ir-profile` system is a static Skill IR materialization path unless the input IR already contains `profile` annotations. It applies rule normalization, environment guard insertion, and `applyProfileGuidedRepair`, but the current seed corpus IR files still have empty `profile` arrays. Therefore, the positive results observed so far should be described as evidence for structured IR materialization, not yet as evidence for a full dynamic profile-guided optimization loop.
+
+Task 11C closes this gap by adding a deterministic feedback path:
+
+```text
+scored real-agent result rows
+  -> execution traces
+  -> profile annotations
+  -> derived profiled IR
+  -> profile-guided repair pass
+  -> held-out evaluation
+```
+
+This path should keep base corpus IR unchanged. Profile feedback is written as a derived artifact so that later experiments can compare:
+
+```text
+original   : natural-language skill
+ir-profile : static Skill IR materialization over the base IR
+ir-pgo     : Skill IR materialization over derived IR with result-driven profile annotations
+```
+
+The key evaluation rule is train/evaluate separation. Development or calibration rows may be used to generate profile annotations. Held-out rows should be used to measure whether those annotations improve later behavior without overfitting to the same failed outputs.
+
+Infrastructure failures must not become profile feedback. Rows marked with `failureType: "infrastructure"` should be ignored by the feedback generator because provider, gateway, credential, timeout, and tool-call-format failures do not represent skill semantics.
+
+The current multi-model evidence should be reported conservatively:
+
+- GPT-family routes produced the cleanest behavior evidence.
+- Gemini route failures in Task 11 hard-002 were provider/tool-call infrastructure failures and should not be interpreted as skill regressions.
+- Additional cross-family claims require routes that can complete the same paired matrix without infrastructure failures.
+
+Task 11C should also make skill selection stricter. The current seed corpus is useful for coding-agent workflows, but final generalization claims need more neutral skill shapes: strict schema generation, bilingual or Chinese tasks, non-coding workflow skills, stronger context-conflict tasks, and environment-sensitive tasks whose success depends on tool adaptation rather than GPT-friendly prose conventions.

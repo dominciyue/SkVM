@@ -7,6 +7,10 @@ type AnnotationDraft = {
   eventKind: TraceEvent["kind"];
 };
 
+export type BuildProfileAnnotationsOptions = {
+  minEvidence?: number;
+};
+
 const PROFILE_EVENT_KINDS = new Set<TraceEvent["kind"]>(["rule-violation", "step-skip", "tool-error"]);
 
 function observationForEvent(targetRef: string, kind: TraceEvent["kind"]): ProfileAnnotation["observation"] {
@@ -21,8 +25,12 @@ function observationForEvent(targetRef: string, kind: TraceEvent["kind"]): Profi
   return "frequent-failure";
 }
 
-export function buildProfileAnnotations(traces: ExecutionTrace[]): ProfileAnnotation[] {
+export function buildProfileAnnotations(
+  traces: ExecutionTrace[],
+  opts: BuildProfileAnnotationsOptions = {},
+): ProfileAnnotation[] {
   const drafts = new Map<string, AnnotationDraft>();
+  const minEvidence = opts.minEvidence ?? 2;
 
   for (const trace of traces) {
     for (const event of trace.events) {
@@ -40,7 +48,7 @@ export function buildProfileAnnotations(traces: ExecutionTrace[]): ProfileAnnota
   }
 
   return [...drafts.entries()]
-    .filter(([, draft]) => draft.count >= 2)
+    .filter(([, draft]) => draft.count >= minEvidence)
     .map(([targetRef, draft]) => ({
       id: `profile-${targetRef}`,
       sourceTrace: draft.firstTraceId,

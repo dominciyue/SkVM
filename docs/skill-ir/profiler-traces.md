@@ -58,7 +58,7 @@ Each event has:
 The public API is:
 
 ```ts
-buildProfileAnnotations(traces: ExecutionTrace[]): ProfileAnnotation[]
+buildProfileAnnotations(traces: ExecutionTrace[], opts?: { minEvidence?: number }): ProfileAnnotation[]
 ```
 
 It currently profiles repeated events with these kinds:
@@ -67,7 +67,7 @@ It currently profiles repeated events with these kinds:
 - `step-skip`
 - `tool-error`
 
-Events must occur at least twice for the same `targetRef` before an annotation is emitted. This avoids overfitting to one-off noise in a single run.
+Events must occur at least twice for the same `targetRef` before an annotation is emitted by default. This avoids overfitting to one-off noise in a single run. Task 11C can lower the threshold with `minEvidence` for small case-study calibration runs, but held-out evaluation should document that choice.
 
 Current mapping:
 
@@ -84,6 +84,19 @@ profile-guided-repair
 ```
 
 Later passes can use this signal to add runtime checks, environment guards, fallback policies, or required-step enforcement.
+
+## Scored Result Feedback
+
+Task 11C adds a bridge from scored real-agent rows into this trace schema:
+
+```text
+src/benchmarks/skill-ir/profile-feedback.ts
+src/benchmarks/skill-ir/profile-feedback-run.ts
+```
+
+The bridge converts failed success criteria into `rule-violation` events, maps them to existing IR rule/check target refs when possible, and skips rows marked `failureType: "infrastructure"`. This keeps provider or gateway failures out of profile-guided skill optimization.
+
+See `docs/skill-ir/profile-feedback-loop.md` for commands and the `ir-pgo` evaluation workflow.
 
 ## Example
 
@@ -133,6 +146,7 @@ bun run typecheck
 
 - A trace with negative `tokenCost` or `latencyMs` is rejected.
 - A single failure event does not produce a profile annotation.
+- A single failure event can produce an annotation only when callers explicitly pass `minEvidence: 1`.
 - Current annotation building groups only by `targetRef`, not by agent/environment/context. Add setting-aware grouping if later experiments need more precise diagnosis.
 - `tool-error` currently maps to `environment-sensitive`, even if a failure may be caused by missing credentials or configuration. Future versions can refine this with structured error categories.
 

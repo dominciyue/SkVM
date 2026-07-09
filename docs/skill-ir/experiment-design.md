@@ -34,7 +34,8 @@ The systems are ordered from least structured to most optimized:
 | S2 | `skvm-aot` | SkVM AOT baseline without the new Skill IR semantic pass. |
 | S3 | `ir-only` | Initial Skill IR is provided without static AOT passes. |
 | S4 | `ir-static` | Skill IR with validation, rule normalization, environment guards, and lowering. |
-| S5 | `ir-profile` | Skill IR with static passes plus profile-guided repair from traces. |
+| S5 | `ir-profile` | Skill IR with static passes plus profile-guided repair over the input IR. This remains mostly static when the input IR has no profile annotations. |
+| S6 | `ir-pgo` | Skill IR with profile annotations derived from scored result feedback. This is the system to use when evaluating true profile-guided optimization. |
 
 `original` is the default baseline for paired delta calculations. `no-skill` is retained to show whether the skill itself helps and to identify tasks where the skill may be unnecessary or harmful.
 
@@ -57,12 +58,12 @@ src/benchmarks/skill-ir/matrix.ts
 The current seed matrix is:
 
 ```text
-6 skills x 2 agents x 2 environments x 4 contexts x 3 tasks per skill x 6 systems = 1728 cases
+6 skills x 2 agents x 2 environments x 4 contexts x 4 tasks per skill x 7 systems = 2688 cases
 ```
 
 Tasks are bound to their owning skill through `tasksBySkill` in the matrix input. The flattened `tasks` list is only a compatibility/reporting view. The matrix must not pair one skill with another skill's task, because that would create artificial failures and inflate the apparent benchmark scale.
 
-This is the first expanded seed corpus, not the final deep benchmark. The current seed task set contains one development task and two held-out tasks per skill, including one harder held-out task per skill. The full target remains 12-16 deep benchmark skills with 8-12 tasks per deep skill after the small multi-skill pipeline is checked.
+This is the first expanded seed corpus, not the final deep benchmark. The current seed task set contains one development task and three held-out tasks per skill, including two harder held-out tasks per skill. The full target remains 12-16 deep benchmark skills with 8-12 tasks per deep skill after the small multi-skill pipeline is checked.
 
 ## Skill Selection
 
@@ -187,6 +188,18 @@ execution trace
 
 The key question is whether repeated observed failures can be converted into stable IR changes that improve later runs without hand-tuning each task.
 
+Task 11C implements the concrete result-feedback path:
+
+```text
+scored real-agent result rows
+  -> execution traces
+  -> profile annotations
+  -> derived profiled IR
+  -> ir-pgo held-out evaluation
+```
+
+Rows marked as infrastructure failures are excluded from this path. Development or calibration rows may generate annotations, while held-out rows should evaluate whether those annotations generalize.
+
 ## Adapter View
 
 Adapter lowering is evaluated as an agent-computer interface layer. It should make tool availability, alternatives, platform notes, and environment assumptions explicit enough that an agent can avoid avoidable platform failures.
@@ -209,6 +222,7 @@ Environment-sensitive case studies should separate:
 | No Checker | Runtime checker artifacts | Does enforcement reduce rule violations or skipped steps? |
 | No Rule Normalize | Rule-to-check generation | Are explicit normalized rules necessary? |
 | No Adapter | Adapter artifact and platform notes | Are tool/environment interfaces a distinct source of stability? |
+| No PGO Feedback | Derived profile annotations from scored results | Does dynamic result feedback improve behavior beyond static `ir-profile` materialization? |
 
 ## Analysis Workflow
 

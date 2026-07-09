@@ -109,7 +109,7 @@ function systemIr(ir: SkillIR, system: ExperimentSystem): SkillIR {
     return insertEnvironmentGuards(normalizeRules(ir));
   }
 
-  if (system === "ir-profile") {
+  if (system === "ir-profile" || system === "ir-pgo") {
     return applyProfileGuidedRepair(insertEnvironmentGuards(normalizeRules(ir)));
   }
 

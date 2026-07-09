@@ -13,6 +13,17 @@ function profileCheck(targetRef: string): RuntimeCheck {
   };
 }
 
+function profiledRuleCheck(rule: SkillIR["rules"][number]): RuntimeCheck {
+  return {
+    id: `check-${rule.id}-profile`,
+    name: `Profile check for ${rule.id}`,
+    kind: rule.scope === "output" ? "output" : "rule-violation",
+    targetRef: rule.id,
+    assertion: `Profile feedback observed repeated failures. Verify: ${rule.normalizedForm}`,
+    onFailure: "retry",
+  };
+}
+
 function retryRecovery(targetRef: string, evidenceCount: number): RecoveryPolicy {
   return {
     id: `recover-${targetRef}`,
@@ -26,6 +37,7 @@ function retryRecovery(targetRef: string, evidenceCount: number): RecoveryPolicy
 export function applyProfileGuidedRepair(ir: SkillIR): SkillIR {
   const existingCheckIds = new Set(ir.checks.map((check) => check.id));
   const existingRecoveryIds = new Set(ir.recovery.map((policy) => policy.id));
+  const rulesById = new Map(ir.rules.map((rule) => [rule.id, rule]));
   const generatedChecks: RuntimeCheck[] = [];
   const generatedRecovery: RecoveryPolicy[] = [];
 
@@ -35,6 +47,17 @@ export function applyProfileGuidedRepair(ir: SkillIR): SkillIR {
       if (!existingCheckIds.has(check.id)) {
         generatedChecks.push(check);
         existingCheckIds.add(check.id);
+      }
+    }
+
+    if (annotation.observation === "frequent-failure" && annotation.targetRef.startsWith("rule-")) {
+      const rule = rulesById.get(annotation.targetRef);
+      if (rule) {
+        const check = profiledRuleCheck(rule);
+        if (!existingCheckIds.has(check.id)) {
+          generatedChecks.push(check);
+          existingCheckIds.add(check.id);
+        }
       }
     }
 

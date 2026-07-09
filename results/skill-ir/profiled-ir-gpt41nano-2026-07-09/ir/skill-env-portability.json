@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "skill-env-portability",
+  "name": "Environment Portability",
+  "category": [
+    "tool-use",
+    "environment-sensitive"
+  ],
+  "intent": "Rewrite or explain commands so they work across shells, operating systems, and path conventions.",
+  "source": {
+    "kind": "inline",
+    "text": "When a command depends on shell or OS behavior, identify the platform difference, provide a portable alternative, and include a verification step."
+  },
+  "inputs": [
+    {
+      "id": "command-or-script",
+      "description": "A command, package script, or failure caused by shell or OS differences.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "portable-command",
+      "description": "A portable alternative with explanation and verification.",
+      "required": true
+    }
+  ],
+  "preconditions": [],
+  "steps": [
+    {
+      "id": "step-identify-platform",
+      "title": "Identify platform difference",
+      "description": "Find the shell, path, quoting, environment variable, or command availability difference.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": [
+        "tool-shell"
+      ],
+      "produces": [
+        "platform-difference"
+      ],
+      "successCheckRefs": [
+        "check-platform-difference"
+      ],
+      "failureModes": [
+        "treats-platforms-as-identical"
+      ]
+    },
+    {
+      "id": "step-provide-alternative",
+      "title": "Provide portable alternative",
+      "description": "Propose a command or script pattern that avoids the platform-specific failure.",
+      "kind": "execute",
+      "required": true,
+      "dependsOn": [
+        "step-identify-platform"
+      ],
+      "toolRefs": [
+        "tool-shell"
+      ],
+      "produces": [
+        "portable-alternative"
+      ],
+      "successCheckRefs": [
+        "check-portable-alternative"
+      ],
+      "failureModes": [
+        "only-one-platform-supported"
+      ]
+    },
+    {
+      "id": "step-verify-portability",
+      "title": "Verify portability",
+      "description": "Name a test, dry run, or command to verify the alternative.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": [
+        "step-provide-alternative"
+      ],
+      "toolRefs": [
+        "tool-shell"
+      ],
+      "produces": [
+        "verification-plan"
+      ],
+      "successCheckRefs": [
+        "check-verification-step"
+      ],
+      "failureModes": [
+        "missing-verification"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-name-platform",
+      "sourceText": "Explain which platform or shell behavior caused the problem.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "The response names the relevant platform or shell difference."
+    },
+    {
+      "id": "rule-portable-alternative",
+      "sourceText": "Prefer portable alternatives over one-off shell-specific workarounds.",
+      "level": "must",
+      "scope": "tool-use",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "The response provides a portable or cross-platform alternative."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-shell",
+      "name": "shell",
+      "purpose": "Inspect or run commands when available.",
+      "required": false,
+      "alternatives": [
+        "static command inspection"
+      ],
+      "platformNotes": {
+        "linux": "Use POSIX shell conventions unless the task says otherwise.",
+        "macos": "BSD userland behavior may differ from GNU tools.",
+        "windows": "PowerShell uses different environment variable and command chaining syntax."
+      },
+      "availabilityCheck": "detect shell"
+    }
+  ],
+  "environment": [
+    {
+      "id": "env-shell-os",
+      "description": "Shell syntax and command availability vary across Linux, macOS, Windows, WSL, and containers.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows",
+        "wsl",
+        "container"
+      ],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-platform-difference",
+      "name": "Platform difference stated",
+      "kind": "output",
+      "targetRef": "rule-name-platform",
+      "assertion": "The response names a shell or OS difference.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-portable-alternative",
+      "name": "Portable alternative stated",
+      "kind": "output",
+      "targetRef": "rule-portable-alternative",
+      "assertion": "The response includes a portable or cross-platform alternative.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-verification-step",
+      "name": "Verification step stated",
+      "kind": "output",
+      "targetRef": "step-verify-portability",
+      "assertion": "The response includes a way to verify the command.",
+      "onFailure": "report"
+    }
+  ],
+  "recovery": [],
+  "profile": []
+}

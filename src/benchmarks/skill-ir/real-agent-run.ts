@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { SkillIRSchema, type SkillIR } from "../../skill-ir/schema";
 import { buildDefaultMatrixInput, buildExperimentMatrix, type ExperimentCase, type ExperimentSystem } from "./matrix";
 import {
@@ -19,6 +19,7 @@ export type RealAgentRunArgs = {
   retries: number;
   retryDelayMs: number;
   rootDir: string;
+  irOverrideDir?: string;
   systems?: Set<ExperimentSystem>;
   contexts?: Set<string>;
   agents?: Set<string>;
@@ -75,6 +76,8 @@ function parseArgs(argv: string[]): RealAgentRunArgs {
       args.retryDelayMs = Number.parseInt(arg.slice("--retry-delay-ms=".length), 10);
     } else if (arg.startsWith("--root-dir=")) {
       args.rootDir = arg.slice("--root-dir=".length);
+    } else if (arg.startsWith("--ir-override-dir=")) {
+      args.irOverrideDir = arg.slice("--ir-override-dir=".length);
     } else if (arg.startsWith("--systems=")) {
       args.systems = new Set(arg.slice("--systems=".length).split(",") as ExperimentSystem[]);
     } else if (arg.startsWith("--contexts=")) {
@@ -136,20 +139,30 @@ function selectCases(cases: ExperimentCase[], args: RealAgentRunArgs): Experimen
     .slice(0, args.limit);
 }
 
-async function loadSkillBenchmarkFixtures(rootDir: string): Promise<Map<string, SkillBenchmarkFixture>> {
-  const manifest = await readJson<CorpusManifest>(join(rootDir, "benchmarks/skill-ir/corpus/manifest.json"));
+function resolveIrPath(rootDir: string, skill: CorpusManifest["skills"][number], irOverrideDir?: string): string {
+  if (irOverrideDir) {
+    const overrideDir = isAbsolute(irOverrideDir) ? irOverrideDir : join(rootDir, irOverrideDir);
+    return join(overrideDir, `${skill.id}.json`);
+  }
+
+  if (!skill.irPath) {
+    throw new Error(`Skill ${skill.id} is missing irPath in corpus manifest`);
+  }
+
+  return join(rootDir, skill.irPath);
+}
+
+async function loadSkillBenchmarkFixtures(args: RealAgentRunArgs): Promise<Map<string, SkillBenchmarkFixture>> {
+  const manifest = await readJson<CorpusManifest>(join(args.rootDir, "benchmarks/skill-ir/corpus/manifest.json"));
   const fixtures = new Map<string, SkillBenchmarkFixture>();
 
   for (const skill of manifest.skills) {
-    if (!skill.irPath) {
-      throw new Error(`Skill ${skill.id} is missing irPath in corpus manifest`);
-    }
     if (!skill.tasksPath) {
       throw new Error(`Skill ${skill.id} is missing tasksPath in corpus manifest`);
     }
 
-    const ir = SkillIRSchema.parse(await readJson<unknown>(join(rootDir, skill.irPath)));
-    const taskSet = await readJson<TaskSet>(join(rootDir, skill.tasksPath));
+    const ir = SkillIRSchema.parse(await readJson<unknown>(resolveIrPath(args.rootDir, skill, args.irOverrideDir)));
+    const taskSet = await readJson<TaskSet>(join(args.rootDir, skill.tasksPath));
     if (taskSet.skillId !== skill.id) {
       throw new Error(`Task set ${skill.tasksPath} declares skillId ${taskSet.skillId}, expected ${skill.id}`);
     }
@@ -167,7 +180,7 @@ async function loadSkillBenchmarkFixtures(rootDir: string): Promise<Map<string, 
 export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPlanEntry[]> {
   const input = buildDefaultMatrixInput(args.rootDir);
   const matrix = selectCases(buildExperimentMatrix(input), args);
-  const fixtures = await loadSkillBenchmarkFixtures(args.rootDir);
+  const fixtures = await loadSkillBenchmarkFixtures(args);
   const plan: RealAgentRunPlanEntry[] = [];
 
   for (const item of matrix) {
@@ -249,6 +262,7 @@ async function main() {
         count: plan.length,
         execute: args.execute,
         rootDir: args.rootDir,
+        irOverrideDir: args.irOverrideDir,
         retry: { retries: args.retries, retryDelayMs: args.retryDelayMs },
         requireEnv: args.requireEnv ? [...args.requireEnv] : [],
         plan,

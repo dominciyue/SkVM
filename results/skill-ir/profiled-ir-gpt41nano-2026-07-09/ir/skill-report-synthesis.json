@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "skill-report-synthesis",
+  "name": "Report Synthesis",
+  "category": [
+    "generative",
+    "workflow",
+    "constraint-heavy"
+  ],
+  "intent": "Generate a concise evidence-grounded report from provided notes without overstating unsupported claims.",
+  "source": {
+    "kind": "inline",
+    "text": "Synthesize provided notes into a structured report. Include required sections, state evidence limits, and end with actionable next steps. Do not invent evidence."
+  },
+  "inputs": [
+    {
+      "id": "notes",
+      "description": "A set of observations, measurements, or meeting notes.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "structured-report",
+      "description": "A report with summary, evidence, and next steps.",
+      "required": true
+    }
+  ],
+  "preconditions": [],
+  "steps": [
+    {
+      "id": "step-read-notes",
+      "title": "Read notes",
+      "description": "Identify the provided evidence, missing evidence, and requested audience.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": [],
+      "produces": [
+        "evidence-map"
+      ],
+      "successCheckRefs": [
+        "check-evidence-limits"
+      ],
+      "failureModes": [
+        "invented-context"
+      ]
+    },
+    {
+      "id": "step-structure-report",
+      "title": "Structure report",
+      "description": "Create required sections such as summary, evidence, and next steps.",
+      "kind": "plan",
+      "required": true,
+      "dependsOn": [
+        "step-read-notes"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "report-outline"
+      ],
+      "successCheckRefs": [
+        "check-required-sections"
+      ],
+      "failureModes": [
+        "missing-section"
+      ]
+    },
+    {
+      "id": "step-write-report",
+      "title": "Write report",
+      "description": "Write a concise report that distinguishes evidence from inference.",
+      "kind": "report",
+      "required": true,
+      "dependsOn": [
+        "step-structure-report"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "structured-report"
+      ],
+      "successCheckRefs": [
+        "check-next-step"
+      ],
+      "failureModes": [
+        "unsupported-claim"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-required-sections",
+      "sourceText": "Include summary, evidence, and next steps.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Required sections are present."
+    },
+    {
+      "id": "rule-evidence-limits",
+      "sourceText": "Do not invent evidence or hide uncertainty.",
+      "level": "never",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Evidence limitations are mentioned."
+    },
+    {
+      "id": "rule-actionable-next-step",
+      "sourceText": "End with actionable next steps.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "An actionable next step is mentioned."
+    }
+  ],
+  "tools": [],
+  "environment": [],
+  "checks": [
+    {
+      "id": "check-required-sections",
+      "name": "Required sections present",
+      "kind": "output",
+      "targetRef": "rule-required-sections",
+      "assertion": "The response includes summary, evidence, and next step sections.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-evidence-limits",
+      "name": "Evidence limitations stated",
+      "kind": "output",
+      "targetRef": "rule-evidence-limits",
+      "assertion": "The response distinguishes evidence from inference or states limitations.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-next-step",
+      "name": "Actionable next step stated",
+      "kind": "output",
+      "targetRef": "rule-actionable-next-step",
+      "assertion": "The response includes at least one actionable next step.",
+      "onFailure": "report"
+    }
+  ],
+  "recovery": [],
+  "profile": [
+    {
+      "id": "profile-rule-required-sections",
+      "sourceTrace": "score-skill-report-synthesis-skvm-linux-compressed-report-overclaim-hard-001-original",
+      "targetRef": "rule-required-sections",
+      "observation": "frequent-failure",
+      "evidenceCount": 1,
+      "suggestedPass": "profile-guided-repair"
+    }
+  ]
+}

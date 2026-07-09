@@ -160,6 +160,39 @@ describe("real-agent-run manifest loading", () => {
     expect(plan.map((entry) => entry.system)).toEqual(["original", "ir-profile"]);
   });
 
+  test("buildPlan can override manifest IRs with derived profiled IR artifacts", async () => {
+    const rootDir = await createMultiSkillRoot();
+    const overrideDir = join(rootDir, "profiled-ir");
+    await writeJson(
+      join(overrideDir, "skill-review.json"),
+      irFixture("skill-review", "Profiled Review Skill", "Profiled review source text."),
+    );
+    await writeJson(
+      join(overrideDir, "skill-diagnostic.json"),
+      irFixture("skill-diagnostic", "Profiled Diagnostic Skill", "Profiled diagnostic source text."),
+    );
+
+    const args: RealAgentRunArgs = {
+      model: "test/model",
+      adapter: "bare-agent",
+      outDir: join(rootDir, "out"),
+      limit: 1,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1000,
+      rootDir,
+      irOverrideDir: overrideDir,
+      systems: new Set(["ir-pgo"]),
+      contexts: new Set(["clean"]),
+      tasks: new Set(["review-task"]),
+    };
+
+    const plan = await buildPlan(args);
+    const skillText = await Bun.file(plan[0]!.skillPath!).text();
+
+    expect(skillText).toContain("# Profiled Review Skill");
+  });
+
   test("assertRequiredEnv fails before execution when a required env var is blank", () => {
     expect(() =>
       assertRequiredEnv(

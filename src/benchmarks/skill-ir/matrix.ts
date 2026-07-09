@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-export type ExperimentSystem = "no-skill" | "original" | "skvm-aot" | "ir-only" | "ir-static" | "ir-profile";
+export type ExperimentSystem =
+  | "no-skill"
+  | "original"
+  | "skvm-aot"
+  | "ir-only"
+  | "ir-static"
+  | "ir-profile"
+  | "ir-pgo";
 
 export type SkillPackaging = "focused" | "broad" | "unknown";
 
@@ -56,6 +63,7 @@ export const DEFAULT_EXPERIMENT_SYSTEMS: ExperimentSystem[] = [
   "ir-only",
   "ir-static",
   "ir-profile",
+  "ir-pgo",
 ];
 
 function readJson<T>(path: string): T {

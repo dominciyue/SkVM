@@ -32,6 +32,7 @@ describe("buildExperimentMatrix", () => {
   test("uses the original system as baseline by default and allows overriding it", () => {
     expect(DEFAULT_EXPERIMENT_SYSTEMS).toContain("no-skill");
     expect(DEFAULT_EXPERIMENT_SYSTEMS).toContain("ir-profile");
+    expect(DEFAULT_EXPERIMENT_SYSTEMS).toContain("ir-pgo");
 
     const [firstCase] = buildExperimentMatrix({
       skills: ["skill-review"],

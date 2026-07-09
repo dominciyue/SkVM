@@ -68,9 +68,12 @@ This matters for Task 11: context should be an actual input perturbation, not on
 | `skvm-aot` | Renders a SkVM AOT baseline placeholder; replace with real `skvm aot-compile` proposal path when available. |
 | `ir-only` | Renders initial Skill IR steps and rules. |
 | `ir-static` | Applies rule normalization and environment guard insertion before rendering checks. |
-| `ir-profile` | Applies static passes plus profile-guided repair before rendering checks and recovery policies. |
+| `ir-profile` | Applies static passes plus profile-guided repair to the input IR. In the seed corpus this is mostly static materialization unless the IR already contains `profile` annotations. |
+| `ir-pgo` | Applies the same profile-guided materialization path to derived IR generated from scored result feedback. Use this for Task 11C profile-guided optimization experiments. |
 
 The `skvm-aot` path is intentionally conservative. It does not fake a true SkVM compiler result.
+
+See `docs/skill-ir/profile-feedback-loop.md` for the command that creates derived profiled IR before running `ir-pgo`.
 
 ## Command Line
 
@@ -98,6 +101,7 @@ The runner supports these selection filters:
 | `--environments=` | target environment label, such as `linux` or `windows` |
 | `--tasks=` | benchmark task id |
 | `--require-env=` | required shell environment variables for `--execute` mode |
+| `--ir-override-dir=` | directory containing derived `<skill-id>.json` IR files, typically `<profile-feedback-out>/ir` for `ir-pgo` runs |
 
 Filters are applied before `--limit`, so a small multi-skill smoke run can sample the intended skills instead of accidentally taking the first rows from the default matrix order.
 
@@ -139,6 +143,14 @@ tasksPath
 ```
 
 The task file's `skillId` must match the manifest skill id.
+
+For Task 11C `ir-pgo` runs, first generate a complete derived IR directory with `profile-feedback-run.ts`, then pass the generated `ir` directory:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile,ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=linux' '--tasks=report-overclaim-hard-001' '--model=xty/gpt-4.1-nano' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/profiled-ir-gpt41nano-2026-07-09/ir' '--out-dir=results/skill-ir/ir-pgo-dry-run-2026-07-09'
+```
+
+The override directory is expected to contain one `<skill-id>.json` file for every manifest skill. `profile-feedback-run.ts` writes that complete set by default.
 
 The `--execute` mode writes raw execution logs to:
 
