@@ -462,6 +462,64 @@ describe("Skill IR real-agent scoring", () => {
     });
   });
 
+  test("scoreRunOutput accepts ir-pgo validation report wording observed in real runs", () => {
+    const task: SkillIRBenchmarkTask = {
+      id: "ir-pgo-validation-wording",
+      split: "held-out",
+      prompt: "Write a grounded project update.",
+      successCriteria: [
+        "Evidence limitation is mentioned.",
+        "Overclaiming is avoided.",
+      ],
+    };
+
+    const outputs = [
+      [
+        "3. Evidence Limits",
+        "- Current seed tasks are relatively easy; no failure modes were exposed.",
+        "- Sample sizes (12-24 tasks) are small and may not generalize.",
+        "However, with the existing task set we do not yet observe a clear quality improvement.",
+      ].join("\n"),
+      [
+        "Evidence:",
+        "Limitation: context perturbation was minimal, not a true noisy scenario.",
+        "Overall observation: pipeline stability is confirmed, but seed tasks are too easy to expose performance differences.",
+      ].join("\n"),
+      [
+        "Evidence:",
+        "Limitation: current seed tasks are too easy to reveal meaningful performance differentials or generalize beyond these controlled settings.",
+      ].join("\n"),
+      [
+        "Evidence Limitations:",
+        "Because of these constraints, we cannot generalize broader superiority of the IR-profile across agents, contexts, or task types.",
+        "These results are promising but preliminary.",
+      ].join("\n"),
+      [
+        "Evidence:",
+        "Broader generalization remains unverified.",
+        "Expand evaluation to additional agent labels, environment settings, and uncompressed contexts.",
+      ].join("\n"),
+      [
+        "Evidence:",
+        "Limitation: these results cover only one agent label, one environment label, compressed context, and a small hard-task set, so generalization is untested.",
+      ].join("\n"),
+    ];
+
+    for (const finalOutput of outputs) {
+      expect(
+        scoreRunOutput({
+          exitCode: 0,
+          finalOutput,
+          task,
+        }),
+      ).toMatchObject({
+        success: true,
+        ruleViolations: 0,
+        failedCriteria: [],
+      });
+    }
+  });
+
   test("scoreRunOutput accepts caused-by wording for root cause", () => {
     const task: SkillIRBenchmarkTask = {
       id: "ci-root-cause-wording",

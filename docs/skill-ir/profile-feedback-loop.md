@@ -136,6 +136,8 @@ check-rule-required-sections-profile
 recover-rule-required-sections
 ```
 
+A later Task 11D real-agent validation run compared `original`, `ir-profile`, and `ir-pgo` on two compressed report-synthesis tasks with `xty/gpt-4.1-nano`. The run completed with no infrastructure failures and confirmed that the final IR was consumed by the real-agent materialization path. After scorer wording corrections, all three systems passed both tasks. This is mechanism and non-regression evidence, not a new quality-gain claim. See `docs/skill-ir/ir-pgo-validation-gpt41nano-run.md`.
+
 For a stricter repeated-failure profile, use the default threshold:
 
 ```powershell

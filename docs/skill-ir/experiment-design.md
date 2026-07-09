@@ -201,6 +201,17 @@ scored real-agent result rows
 
 Rows marked as infrastructure failures are excluded from this path. Development or calibration rows may generate annotations, while held-out rows should evaluate whether those annotations generalize.
 
+Validation should become automated, sampled, and layered instead of requiring a full manual matrix for every imported skill. The target flow is:
+
+```text
+static import validation
+  -> sampled smoke validation
+  -> final IR promotion validation
+  -> periodic regression validation
+```
+
+Small sampled runs can validate mechanism and non-regression. Quality claims still require held-out paired deltas and should separate calibration replay from generalization evidence.
+
 ## Adapter View
 
 Adapter lowering is evaluated as an agent-computer interface layer. It should make tool availability, alternatives, platform notes, and environment assumptions explicit enough that an agent can avoid avoidable platform failures.

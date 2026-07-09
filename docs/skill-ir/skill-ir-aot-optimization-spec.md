@@ -589,6 +589,24 @@ The key evaluation rule is train/evaluate separation. Development or calibration
 
 Infrastructure failures must not become profile feedback. Rows marked with `failureType: "infrastructure"` should be ignored by the feedback generator because provider, gateway, credential, timeout, and tool-call-format failures do not represent skill semantics.
 
+The long-term validation target is automated, sampled, and layered rather than fully manual for every imported skill:
+
+```text
+Layer 0: import-time static validation
+  schema, references, check coverage, environment assumptions
+
+Layer 1: sampled smoke validation
+  a small representative task/context/model sample after static optimization
+
+Layer 2: promotion validation
+  held-out tasks and paired deltas before a final IR artifact is treated as broadly better
+
+Layer 3: periodic regression validation
+  rotating samples across skill categories, contexts, model families, and environments
+```
+
+This means a user should not need to manually run the full research matrix for every skill import. The system should eventually decide which validation tier is necessary based on risk signals: new skill category, weak static coverage, environment-sensitive tools, high-severity output rules, prior profile failures, or changed optimization passes.
+
 The current multi-model evidence should be reported conservatively:
 
 - GPT-family routes produced the cleanest behavior evidence.

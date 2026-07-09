@@ -262,10 +262,12 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\blimit\b/,
       /\blimited\b/,
       /\blimitations?\b/,
+      /\bevidence limits?\b/,
       /\bprovided notes\b/,
       /\bevidence\b.*\bonly\b/,
       /\bdo not overclaim\b/,
       /\buncertain\b/,
+      /\bgeneralization\b[\s\S]*\b(?:unverified|untested)\b/,
     ]);
   }
 
@@ -358,7 +360,13 @@ function passesCriterion(criterion: string, output: string): boolean {
       /\blimitations?\b[\s\S]*\binsufficiently challenging\b/,
       /\bmay not generalize\b/,
       /\bcannot yet generalize\b/,
+      /\bcannot generalize\b[\s\S]*\bsuperiority\b/,
+      /\bgeneralization\b[\s\S]*\b(?:unverified|untested)\b/,
+      /\bdo not yet observe\b[\s\S]*\bclear\b[\s\S]*\bquality\b/,
+      /\bnot yet observe\b[\s\S]*\bclear\b[\s\S]*\bquality\b/,
+      /\btoo easy\b[\s\S]*\b(?:performance differences|performance differentials)\b/,
       /\boverstatement\b/,
+      /\bpromising but preliminary\b/,
       /\blimited scope\b[\s\S]*\bpreliminary\b/,
       /\blimit(?:s|ed|ing)?\b[\s\S]*\bgeneralizability\b/,
     ]);

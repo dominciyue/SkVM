@@ -2124,6 +2124,77 @@ git diff --check
 
 Expected: all tests pass; only existing CRLF warnings are acceptable.
 
+## Task 11D: Automated Sampled Layered Validation
+
+**Goal:** Move from manual full-matrix validation toward an automated, sampled, and layered validation workflow for imported skills and final IR promotion decisions.
+
+**Current framing:** Final IR is already static-dynamic: base IR supplies static skill semantics, profile overlay supplies execution evidence, and deterministic passes compile the final optimized IR. The remaining question is how much validation is needed before trusting a final IR artifact. The answer should be risk-based validation, not a manual full research run for every imported skill.
+
+**Files:**
+- Create: `docs/skill-ir/automated-validation-strategy.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-spec.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
+- Later create: `src/benchmarks/skill-ir/validation-plan.ts`
+- Later create: `src/benchmarks/skill-ir/validation-plan.test.ts`
+- Later create: `src/benchmarks/skill-ir/validation-plan-run.ts`
+
+- [ ] **Step 1: Document validation layers**
+
+Record the target layered validation strategy:
+
+```text
+Layer 0: import-time static validation
+Layer 1: sampled smoke validation
+Layer 2: promotion validation with held-out paired deltas
+Layer 3: periodic regression validation across rotating samples
+```
+
+Expected: the spec and component docs explain that arbitrary skill import should not require a human to run the full research matrix manually, while also avoiding unsupported claims of global optimality without validation.
+
+- [ ] **Step 2: Run a small real `ir-pgo` calibration experiment**
+
+Use the generated final IR artifact from Task 11C:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile,ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=linux' '--tasks=report-overclaim-hard-001,report-conflicting-notes-hard-002' '--limit=6' '--model=xty/gpt-4.1-nano' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/profiled-ir-gpt41nano-2026-07-09/final-ir' '--out-dir=results/skill-ir/ir-pgo-validation-gpt41nano-run-2026-07-09' '--execute' '--retries=1' '--retry-delay-ms=1000' '--require-env=SKVM_XTY_API_KEY'
+```
+
+Score and analyze:
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/ir-pgo-validation-gpt41nano-run-2026-07-09/raw-runs.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--out=results/skill-ir/ir-pgo-validation-gpt41nano-results-2026-07-09.jsonl'
+python scripts/analyze_skill_ir_results.py results/skill-ir/ir-pgo-validation-gpt41nano-results-2026-07-09.jsonl results/skill-ir/ir-pgo-validation-gpt41nano-table-2026-07-09.csv
+python scripts/analyze_skill_ir_slices.py --input results/skill-ir/ir-pgo-validation-gpt41nano-results-2026-07-09.jsonl --slices-out results/skill-ir/ir-pgo-validation-gpt41nano-slices-2026-07-09.csv --paired-out results/skill-ir/ir-pgo-validation-gpt41nano-paired-deltas-2026-07-09.csv --manifest benchmarks/skill-ir/corpus/manifest.json --root-dir .
+```
+
+Expected: the run compares `original`, static `ir-profile`, and dynamic `ir-pgo`. `report-overclaim-hard-001` is a calibration replay because it generated the profile annotation. `report-conflicting-notes-hard-002` is a nearby held-out report task and is more useful for checking whether the added required-section check generalizes.
+
+- [ ] **Step 3: Archive run interpretation**
+
+Create a run document under `docs/skill-ir/` that separates:
+
+```text
+mechanism evidence: final IR is consumed and materialized
+calibration evidence: the profiled task improves or stays fixed
+generalization evidence: a distinct held-out task improves, stays neutral, or regresses
+cost evidence: token and latency deltas
+```
+
+- [ ] **Step 4: Add validation planner tests**
+
+Before implementing a planner CLI, add tests for a pure planner function:
+
+```text
+low-risk skill -> static validation + small smoke
+environment-sensitive skill -> includes environment sample
+profile overlay present -> includes promotion validation
+prior regression -> includes periodic regression sample
+```
+
+- [ ] **Step 5: Implement validation planner CLI**
+
+Create a dry-run CLI that emits a JSON validation plan without calling a model. Execution can come later after the plan format is stable.
+
 ## Task 12: Research Report and Slides
 
 **Files:**
