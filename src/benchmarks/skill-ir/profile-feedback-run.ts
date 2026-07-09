@@ -2,7 +2,13 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { SkillIRSchema, type ProfileAnnotation, type SkillIR } from "../../skill-ir/schema";
 import { buildProfileAnnotations } from "../../profiler/profile-annotation";
-import { scoredRowsToExecutionTraces, type ProfileFeedbackOptions, mergeProfileAnnotationsIntoIR } from "./profile-feedback";
+import {
+  buildProfileOverlay,
+  compileFinalIR,
+  scoredRowsToExecutionTraces,
+  type ProfileFeedbackOptions,
+  type ProfileOverlay,
+} from "./profile-feedback";
 import type { ExperimentSystem } from "./matrix";
 import type { ScoredAgentRunRow } from "./scoring";
 
@@ -26,6 +32,11 @@ type CorpusManifest = {
 export type ProfileFeedbackSkillSummary = {
   skillId: string;
   annotationCount: number;
+  outputPaths: {
+    overlay: string;
+    finalIR: string;
+    compatibilityIR: string;
+  };
   annotations: ProfileAnnotation[];
 };
 
@@ -39,7 +50,8 @@ export type ProfileFeedbackSummary = {
 };
 
 export type ProfileFeedbackArtifacts = {
-  irsBySkill: Map<string, SkillIR>;
+  overlaysBySkill: Map<string, ProfileOverlay>;
+  finalIRsBySkill: Map<string, SkillIR>;
   summary: ProfileFeedbackSummary;
 };
 
@@ -137,25 +149,34 @@ export function buildProfileFeedbackArtifacts(
   opts: ProfileFeedbackOptions = {},
 ): ProfileFeedbackArtifacts {
   const { annotations, tracedRows } = annotationsBySkill(rows, irBySkill, opts);
-  const irsBySkill = new Map<string, SkillIR>();
+  const overlaysBySkill = new Map<string, ProfileOverlay>();
+  const finalIRsBySkill = new Map<string, SkillIR>();
   const profiledSkills: ProfileFeedbackSkillSummary[] = [];
 
   for (const [skillId, ir] of irBySkill.entries()) {
     const skillAnnotations = annotations.get(skillId) ?? [];
-    const derived = mergeProfileAnnotationsIntoIR(ir, skillAnnotations);
-    irsBySkill.set(skillId, derived);
+    const overlay = buildProfileOverlay(skillId, skillAnnotations);
+    const finalIR = compileFinalIR(ir, overlay);
+    overlaysBySkill.set(skillId, overlay);
+    finalIRsBySkill.set(skillId, finalIR);
 
     if (skillAnnotations.length > 0) {
       profiledSkills.push({
         skillId,
         annotationCount: skillAnnotations.length,
+        outputPaths: {
+          overlay: `overlay/${skillId}.json`,
+          finalIR: `final-ir/${skillId}.json`,
+          compatibilityIR: `ir/${skillId}.json`,
+        },
         annotations: skillAnnotations,
       });
     }
   }
 
   return {
-    irsBySkill,
+    overlaysBySkill,
+    finalIRsBySkill,
     summary: {
       sourceSystem: opts.sourceSystem,
       taskSplit: opts.taskSplit,
@@ -168,11 +189,21 @@ export function buildProfileFeedbackArtifacts(
 }
 
 async function writeArtifacts(artifacts: ProfileFeedbackArtifacts, outDir: string): Promise<void> {
+  const overlayDir = join(outDir, "overlay");
+  const finalIRDir = join(outDir, "final-ir");
   const irDir = join(outDir, "ir");
+  await mkdir(overlayDir, { recursive: true });
+  await mkdir(finalIRDir, { recursive: true });
   await mkdir(irDir, { recursive: true });
 
-  for (const [skillId, ir] of artifacts.irsBySkill.entries()) {
-    await writeFile(join(irDir, `${skillId}.json`), `${JSON.stringify(ir, null, 2)}\n`, "utf8");
+  for (const [skillId, overlay] of artifacts.overlaysBySkill.entries()) {
+    await writeFile(join(overlayDir, `${skillId}.json`), `${JSON.stringify(overlay, null, 2)}\n`, "utf8");
+  }
+
+  for (const [skillId, ir] of artifacts.finalIRsBySkill.entries()) {
+    const serialized = `${JSON.stringify(ir, null, 2)}\n`;
+    await writeFile(join(finalIRDir, `${skillId}.json`), serialized, "utf8");
+    await writeFile(join(irDir, `${skillId}.json`), serialized, "utf8");
   }
 
   await writeFile(join(outDir, "summary.json"), `${JSON.stringify(artifacts.summary, null, 2)}\n`, "utf8");

@@ -160,7 +160,7 @@ describe("real-agent-run manifest loading", () => {
     expect(plan.map((entry) => entry.system)).toEqual(["original", "ir-profile"]);
   });
 
-  test("buildPlan can override manifest IRs with derived profiled IR artifacts", async () => {
+  test("buildPlan can override manifest IRs with final profiled IR artifacts", async () => {
     const rootDir = await createMultiSkillRoot();
     const overrideDir = join(rootDir, "profiled-ir");
     await writeJson(

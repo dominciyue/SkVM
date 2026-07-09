@@ -1962,7 +1962,7 @@ The real-agent runner now loads each skill's `irPath` and `tasksPath` from the c
 
 The scorer now supports manifest-based task indexing. For multi-skill Task 11B runs, prefer `score-real-agent-runs.ts --manifest=benchmarks/skill-ir/corpus/manifest.json` instead of `--tasks=<single task file>`, so task lookup is scoped by `skillId:taskId`.
 
-2026-07-09 Task 11C calibration update: current evidence shows that `ir-profile` is mostly static Skill IR materialization because the seed IR files still contain empty `profile` arrays. The project should now add a dynamic result-feedback loop before claiming profile-guided optimization: scored real-agent rows become execution traces, traces become profile annotations, annotations are merged into derived IR artifacts, and a distinct `ir-pgo` system evaluates the derived IR on held-out tasks. Infrastructure failures must be excluded from profile feedback, and cross-family model claims should use only routes that can complete paired matrices without provider/tool-call failures.
+2026-07-09 Task 11C calibration update: current evidence shows that `ir-profile` is mostly static Skill IR materialization because the seed IR files still contain empty `profile` arrays. The project should now add a dynamic result-feedback loop before claiming profile-guided optimization: scored real-agent rows become execution traces, traces become profile annotations, annotations are written as a profile overlay, deterministic passes compile the overlay plus base IR into final optimized IR, and a distinct `ir-pgo` system evaluates that final IR on held-out tasks. Infrastructure failures must be excluded from profile feedback, and cross-family model claims should use only routes that can complete paired matrices without provider/tool-call failures.
 
 - [ ] **Step 2: Run all configured systems**
 
@@ -2035,7 +2035,7 @@ git commit -m "test: evaluate skill ir optimization across settings"
 
 ## Task 11C: Dynamic Profile-Guided Feedback Loop
 
-**Goal:** Close the gap between the original spec and the current implementation by turning real scored results into profile annotations and derived Skill IR artifacts.
+**Goal:** Close the gap between the original spec and the current implementation by turning real scored results into profile annotations, profile overlays, and final optimized Skill IR artifacts.
 
 **Files:**
 - Create: `src/benchmarks/skill-ir/profile-feedback.ts`
@@ -2064,7 +2064,7 @@ Add tests proving that:
 scored non-infrastructure failures become ExecutionTrace events
 infrastructure failures are ignored
 failed success criteria map to stable rule/check target refs
-derived IR keeps base IR unchanged and appends profile annotations
+profile overlay keeps base IR unchanged; final IR merges annotations and deterministic passes
 ```
 
 Run:
@@ -2098,13 +2098,13 @@ When a profile annotation targets a `rule-*` ref, generate a runtime output/rule
 
 - [ ] **Step 5: Add `ir-pgo` as a distinct experiment system**
 
-Add `ir-pgo` to the experiment system type and default system list. It uses the same materialization path as `ir-profile`, but its intended input is a derived profiled IR artifact. This keeps archived `ir-profile` results comparable with the previous static system.
+Add `ir-pgo` to the experiment system type and default system list. It uses the same materialization path as `ir-profile`, but its intended input is a final IR artifact generated from profile feedback. This keeps archived `ir-profile` results comparable with the previous static system.
 
-Add `--ir-override-dir=<dir>` to the real-agent runner so follow-up `ir-pgo` runs can consume the derived `<skill-id>.json` files from `profile-feedback-run.ts`.
+Add `--ir-override-dir=<dir>` to the real-agent runner so follow-up `ir-pgo` runs can consume the final `<skill-id>.json` files from `profile-feedback-run.ts`.
 
 - [ ] **Step 6: Add feedback CLI**
 
-Create a CLI that reads scored JSONL plus the corpus manifest, filters rows by source system and optional task split, writes derived IR JSON files, and writes a summary file listing generated annotations.
+Create a CLI that reads scored JSONL plus the corpus manifest, filters rows by source system and optional task split, writes profile overlay JSON files, writes final IR JSON files, and writes a summary file listing generated annotations.
 
 Example:
 

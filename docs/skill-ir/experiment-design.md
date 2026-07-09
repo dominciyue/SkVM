@@ -194,7 +194,8 @@ Task 11C implements the concrete result-feedback path:
 scored real-agent result rows
   -> execution traces
   -> profile annotations
-  -> derived profiled IR
+  -> profile overlay
+  -> final optimized IR
   -> ir-pgo held-out evaluation
 ```
 

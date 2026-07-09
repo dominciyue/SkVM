@@ -4,7 +4,7 @@
 
 The real-agent scoring layer converts execution-only SkVM logs into benchmark rows that the result analyzer can summarize. It sits between `real-agent-run.ts --execute` and `scripts/analyze_skill_ir_results.py`.
 
-Task 11C also uses scored rows as the input to profile-guided feedback. The feedback path reads the same scored JSONL, ignores infrastructure failures, converts semantic failures into execution traces, and produces derived profiled IR artifacts for `ir-pgo`.
+Task 11C also uses scored rows as the input to profile-guided feedback. The feedback path reads the same scored JSONL, ignores infrastructure failures, converts semantic failures into execution traces, and produces profile overlay plus final IR artifacts for `ir-pgo`.
 
 The current implementation is intentionally deterministic and offline. It does not call an LLM judge. For the expanded seed corpus, it checks task `successCriteria` with small heuristics so the end-to-end pipeline can be tested before spending model budget.
 

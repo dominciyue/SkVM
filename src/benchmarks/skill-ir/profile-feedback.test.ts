@@ -112,7 +112,7 @@ describe("profile feedback from scored results", () => {
     });
   });
 
-  test("merges profile annotations into a derived IR without mutating the base IR", () => {
+  test("merges profile annotations into an IR copy without mutating the base IR", () => {
     const base = reportIr();
     const derived = mergeProfileAnnotationsIntoIR(base, [
       {
@@ -130,7 +130,7 @@ describe("profile feedback from scored results", () => {
     expect(derived.profile[0]?.targetRef).toBe("rule-required-sections");
   });
 
-  test("builds derived profiled IR from scored rows with a configurable evidence threshold", () => {
+  test("builds profiled IR from scored rows with a configurable evidence threshold", () => {
     const base = reportIr();
     const derived = buildProfiledIRFromScoredRows(base, [scoredRow()], { minEvidence: 1 });
 
@@ -144,7 +144,7 @@ describe("profile feedback from scored results", () => {
     });
   });
 
-  test("builds per-skill derived IR artifacts and summary metadata for the CLI", () => {
+  test("builds per-skill overlay and final IR artifacts with summary metadata for the CLI", () => {
     const artifacts = buildProfileFeedbackArtifacts(
       [scoredRow()],
       new Map([["skill-report-synthesis", reportIr()]]),
@@ -161,6 +161,11 @@ describe("profile feedback from scored results", () => {
         {
           skillId: "skill-report-synthesis",
           annotationCount: 1,
+          outputPaths: {
+            overlay: "overlay/skill-report-synthesis.json",
+            finalIR: "final-ir/skill-report-synthesis.json",
+            compatibilityIR: "ir/skill-report-synthesis.json",
+          },
           annotations: [
             {
               id: "profile-rule-required-sections",
@@ -174,6 +179,23 @@ describe("profile feedback from scored results", () => {
         },
       ],
     });
-    expect(artifacts.irsBySkill.get("skill-report-synthesis")?.profile).toHaveLength(1);
+    expect(artifacts.overlaysBySkill.get("skill-report-synthesis")).toEqual({
+      skillId: "skill-report-synthesis",
+      annotations: [
+        {
+          id: "profile-rule-required-sections",
+          sourceTrace: "score-skill-report-synthesis-skvm-linux-compressed-report-overclaim-hard-001-original",
+          targetRef: "rule-required-sections",
+          observation: "frequent-failure",
+          evidenceCount: 1,
+          suggestedPass: "profile-guided-repair",
+        },
+      ],
+    });
+    const finalIR = artifacts.finalIRsBySkill.get("skill-report-synthesis");
+    expect(finalIR?.profile).toHaveLength(1);
+    expect(finalIR?.checks.map((check) => check.id)).toContain("check-rule-required-sections");
+    expect(finalIR?.checks.map((check) => check.id)).toContain("check-rule-required-sections-profile");
+    expect(finalIR?.recovery.map((policy) => policy.id)).toContain("recover-rule-required-sections");
   });
 });

@@ -560,18 +560,30 @@ Task 11C closes this gap by adding a deterministic feedback path:
 scored real-agent result rows
   -> execution traces
   -> profile annotations
-  -> derived profiled IR
+  -> profile overlay
+  -> final optimized IR
   -> profile-guided repair pass
   -> held-out evaluation
 ```
 
-This path should keep base corpus IR unchanged. Profile feedback is written as a derived artifact so that later experiments can compare:
+The project uses a three-layer IR architecture:
+
+```text
+Static Base IR
+  + Profile Overlay
+  + Optimization Passes
+= Final Optimized IR
+```
+
+Static Base IR is the cold-start result of reading or parsing a skill. Profile Overlay is evidence from observed runs. Final Optimized IR is produced by deterministic passes over both. This path should keep base corpus IR unchanged. Profile feedback is written as a derived artifact so that later experiments can compare:
 
 ```text
 original   : natural-language skill
 ir-profile : static Skill IR materialization over the base IR
-ir-pgo     : Skill IR materialization over derived IR with result-driven profile annotations
+ir-pgo     : Skill IR materialization over final IR with result-driven profile annotations and static passes
 ```
+
+For an arbitrary newly imported skill, this project should distinguish cold-start and warm-start optimization. The cold-start path can generate a strong static optimized IR without prior execution evidence. The warm-start path can improve that IR using real profile feedback. The project should not claim a globally optimal final IR without validation; instead, it should report whether held-out runs show the profile-guided final IR improves over the static baseline.
 
 The key evaluation rule is train/evaluate separation. Development or calibration rows may be used to generate profile annotations. Held-out rows should be used to measure whether those annotations improve later behavior without overfitting to the same failed outputs.
 

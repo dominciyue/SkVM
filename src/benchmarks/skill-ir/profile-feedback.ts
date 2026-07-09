@@ -1,6 +1,10 @@
 import type { ProfileAnnotation, SkillIR } from "../../skill-ir/schema";
 import { buildProfileAnnotations } from "../../profiler/profile-annotation";
 import type { ExecutionTrace, TraceEvent } from "../../profiler/trace-schema";
+import { insertEnvironmentGuards } from "../../skill-ir/passes/environment-guards";
+import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-repair";
+import { normalizeRules } from "../../skill-ir/passes/rule-normalization";
+import { validateSkillIR } from "../../skill-ir/validate";
 import type { ExperimentSystem } from "./matrix";
 import type { ScoredAgentRunRow } from "./scoring";
 
@@ -8,6 +12,11 @@ export type ProfileFeedbackOptions = {
   sourceSystem?: ExperimentSystem;
   taskSplit?: string;
   minEvidence?: number;
+};
+
+export type ProfileOverlay = {
+  skillId: string;
+  annotations: ProfileAnnotation[];
 };
 
 function slugify(value: string): string {
@@ -182,6 +191,28 @@ export function mergeProfileAnnotationsIntoIR(ir: SkillIR, annotations: ProfileA
     ...ir,
     profile: [...profileByKey.values()],
   };
+}
+
+export function buildProfileOverlay(skillId: string, annotations: ProfileAnnotation[]): ProfileOverlay {
+  return {
+    skillId,
+    annotations,
+  };
+}
+
+export function compileFinalIR(baseIR: SkillIR, overlay: ProfileOverlay): SkillIR {
+  if (overlay.skillId !== baseIR.id) {
+    throw new Error(`Profile overlay skillId ${overlay.skillId} does not match base IR ${baseIR.id}`);
+  }
+
+  const withProfile = mergeProfileAnnotationsIntoIR(baseIR, overlay.annotations);
+  const finalIR = applyProfileGuidedRepair(insertEnvironmentGuards(normalizeRules(withProfile)));
+  const validation = validateSkillIR(finalIR);
+  if (validation.errors.length > 0) {
+    throw new Error(`Final IR ${baseIR.id} failed validation: ${validation.errors.join("; ")}`);
+  }
+
+  return finalIR;
 }
 
 export function buildProfiledIRFromScoredRows(
