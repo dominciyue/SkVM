@@ -2281,6 +2281,104 @@ validation planner
 final IR promotion policy
 ```
 
+## Task 11F: Final IR Promotion Policy And Model-Family Profile
+
+**Goal:** Convert multi-model final IR evaluation results into model-family-specific promotion decisions, so final IR is promoted only where evidence supports it.
+
+**Current framing:** Task 11E showed that the current final IR artifact should not globally replace static IR. `ir-pgo` is best on GPT-family, tied on Gemini semantic rows with infrastructure instability, and weaker than static `ir-profile` on Qwen. Task 11F implements the first deterministic policy layer for this result.
+
+**Files:**
+- Create: `src/benchmarks/skill-ir/promotion-policy.ts`
+- Create: `src/benchmarks/skill-ir/promotion-policy.test.ts`
+- Create: `src/benchmarks/skill-ir/promotion-policy-run.ts`
+- Create: `src/benchmarks/skill-ir/promotion-policy-run.test.ts`
+- Create: `docs/skill-ir/final-ir-promotion-policy.md`
+- Create: `results/skill-ir/final-ir-promotion-policy-report-2026-07-09.json`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-spec.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
+- Modify: `docs/skill-ir/automated-validation-strategy.md`
+
+- [x] **Step 1: Write failing promotion policy tests**
+
+Tests cover:
+
+```text
+model route -> model family inference
+GPT-like evidence -> promote ir-pgo
+Qwen-like evidence -> keep static ir-profile
+infrastructure-heavy evidence -> hold for more validation
+multi-route inputs -> grouped promotion report
+```
+
+Run:
+
+```powershell
+bun test ./src/benchmarks/skill-ir/promotion-policy.test.ts
+```
+
+Expected first result: FAIL because `promotion-policy.ts` does not exist.
+
+- [x] **Step 2: Implement pure promotion policy**
+
+Implement:
+
+```ts
+inferModelFamily(model)
+summarizeModelFamily(input)
+buildPromotionReport(inputs, options)
+```
+
+The default comparison is:
+
+```text
+baseline:  ir-profile
+candidate: ir-pgo
+```
+
+Expected: focused tests pass.
+
+- [x] **Step 3: Write failing CLI tests**
+
+Tests cover:
+
+```text
+--run=modelLabel,model,path[,modelFamily]
+threshold parsing
+JSONL input -> promotion report JSON output
+```
+
+Run:
+
+```powershell
+bun test ./src/benchmarks/skill-ir/promotion-policy-run.test.ts
+```
+
+Expected first result: FAIL because `promotion-policy-run.ts` does not exist.
+
+- [x] **Step 4: Implement promotion policy CLI**
+
+Create:
+
+```powershell
+bun ./src/benchmarks/skill-ir/promotion-policy-run.ts '--run=gpt41nano,xty/gpt-4.1-nano,results/skill-ir/final-ir-multiskill-gpt41nano-results-2026-07-09.jsonl' '--run=gemini25flash,xty/gemini-2.5-flash,results/skill-ir/final-ir-multiskill-gemini25flash-results-2026-07-09.jsonl' '--run=qwen38b,xty/qwen3-8b,results/skill-ir/final-ir-multiskill-qwen38b-results-2026-07-09.jsonl' '--out=results/skill-ir/final-ir-promotion-policy-report-2026-07-09.json'
+```
+
+Expected first real decisions:
+
+```text
+gpt    -> promote-ir-pgo
+gemini -> hold-for-more-validation
+qwen   -> keep-ir-profile
+```
+
+- [ ] **Step 5: Connect to validation planner**
+
+Later work should let the validation planner consume the promotion report. The planner should increase sampling when a family is held, run regression checks when a family is promoted, and prefer static IR when the policy says `keep-ir-profile`.
+
+- [ ] **Step 6: Extend model-family behavior profiles**
+
+Later work should attach model-family support directly to profile annotations and output-schema repairs, so final IR compilation can select family-specific repairs rather than only selecting between static and final artifacts after evaluation.
+
 ## Task 12: Research Report and Slides
 
 **Files:**

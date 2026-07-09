@@ -173,3 +173,17 @@ The first Task 11E run showed why promotion needs policy rather than a single fi
 - use `ir-pgo` for a model family when held-out paired deltas improve without regressions;
 - withhold promotion when infrastructure failures dominate or cost/latency grows too much;
 - request more evidence when the profile overlay was generated from a narrow calibration source.
+
+Task 11F implements the first version of that recommendation as `promotion-policy.ts` and `promotion-policy-run.ts`. It consumes scored JSONL files and emits `skill-ir-promotion/v1` reports. The first report over Task 11E data produced:
+
+```text
+gpt    -> promote-ir-pgo
+gemini -> hold-for-more-validation
+qwen   -> keep-ir-profile
+```
+
+The validation planner should consume this report format rather than re-deriving the same decision from CSV tables. Future planner behavior should be:
+
+- `promote-ir-pgo`: schedule periodic regression samples for that model family.
+- `keep-ir-profile`: use static IR as the default and send final-IR regressions back into profile/output-schema repair.
+- `hold-for-more-validation`: add paired held-out samples or route-health probes before choosing either artifact.

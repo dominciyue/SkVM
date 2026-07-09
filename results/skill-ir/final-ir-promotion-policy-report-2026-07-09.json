@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "skill-ir-promotion/v1",
+  "generatedAt": "2026-07-09T12:18:18.858Z",
+  "options": {
+    "baselineSystem": "ir-profile",
+    "candidateSystem": "ir-pgo",
+    "minPairedCases": 4,
+    "maxInfrastructureRate": 0.25,
+    "maxTokenCostIncreaseRatio": 0.5,
+    "maxLatencyIncreaseRatio": 0.5
+  },
+  "modelFamilies": [
+    {
+      "modelFamily": "gemini",
+      "modelLabels": [
+        "gemini25flash"
+      ],
+      "baselineSystem": "ir-profile",
+      "candidateSystem": "ir-pgo",
+      "bestSystem": "ir-profile",
+      "decision": "hold-for-more-validation",
+      "confidence": 0.6121,
+      "riskScore": 0.1082,
+      "totalRows": 18,
+      "infraRows": 6,
+      "infrastructureRate": 0.3333,
+      "semanticRows": 12,
+      "pairedCases": 4,
+      "pairedDelta": 0,
+      "irPgoGains": 0,
+      "irPgoRegressions": 0,
+      "baselineSuccessRate": 1,
+      "candidateSuccessRate": 1,
+      "tokenCostIncreaseRatio": 0.0404,
+      "latencyIncreaseRatio": 0.014,
+      "systemStats": [
+        {
+          "system": "ir-pgo",
+          "rows": 6,
+          "semanticRows": 4,
+          "successes": 4,
+          "successRate": 1,
+          "ruleViolations": 0,
+          "meanLatencyMs": 6027,
+          "meanTokenCost": 1693.75
+        },
+        {
+          "system": "ir-profile",
+          "rows": 6,
+          "semanticRows": 4,
+          "successes": 4,
+          "successRate": 1,
+          "ruleViolations": 0,
+          "meanLatencyMs": 5943.5,
+          "meanTokenCost": 1628
+        },
+        {
+          "system": "original",
+          "rows": 6,
+          "semanticRows": 4,
+          "successes": 4,
+          "successRate": 1,
+          "ruleViolations": 0,
+          "meanLatencyMs": 5543.25,
+          "meanTokenCost": 1172.75
+        }
+      ],
+      "reasons": [
+        "infrastructure rate 0.33 exceeds 0.25"
+      ]
+    },
+    {
+      "modelFamily": "gpt",
+      "modelLabels": [
+        "gpt41nano"
+      ],
+      "baselineSystem": "ir-profile",
+      "candidateSystem": "ir-pgo",
+      "bestSystem": "ir-pgo",
+      "decision": "promote-ir-pgo",
+      "confidence": 0.6839,
+      "riskScore": 0.0461,
+      "totalRows": 18,
+      "infraRows": 0,
+      "infrastructureRate": 0,
+      "semanticRows": 18,
+      "pairedCases": 6,
+      "pairedDelta": 0.1667,
+      "irPgoGains": 1,
+      "irPgoRegressions": 0,
+      "baselineSuccessRate": 0.8333,
+      "candidateSuccessRate": 1,
+      "tokenCostIncreaseRatio": 0.3076,
+      "latencyIncreaseRatio": -0.1038,
+      "systemStats": [
+        {
+          "system": "ir-pgo",
+          "rows": 6,
+          "semanticRows": 6,
+          "successes": 6,
+          "successRate": 1,
+          "ruleViolations": 0,
+          "meanLatencyMs": 20714.17,
+          "meanTokenCost": 4485.5
+        },
+        {
+          "system": "ir-profile",
+          "rows": 6,
+          "semanticRows": 6,
+          "successes": 5,
+          "successRate": 0.8333,
+          "ruleViolations": 1,
+          "meanLatencyMs": 23112.33,
+          "meanTokenCost": 3430.33
+        },
+        {
+          "system": "original",
+          "rows": 6,
+          "semanticRows": 6,
+          "successes": 5,
+          "successRate": 0.8333,
+          "ruleViolations": 1,
+          "meanLatencyMs": 13466.33,
+          "meanTokenCost": 1781.83
+        }
+      ],
+      "reasons": [
+        "ir-pgo improves held-out paired success without regressions"
+      ]
+    },
+    {
+      "modelFamily": "qwen",
+      "modelLabels": [
+        "qwen38b"
+      ],
+      "baselineSystem": "ir-profile",
+      "candidateSystem": "ir-pgo",
+      "bestSystem": "ir-profile",
+      "decision": "keep-ir-profile",
+      "confidence": 0.6683,
+      "riskScore": 0.2333,
+      "totalRows": 18,
+      "infraRows": 0,
+      "infrastructureRate": 0,
+      "semanticRows": 18,
+      "pairedCases": 6,
+      "pairedDelta": -0.3333,
+      "irPgoGains": 0,
+      "irPgoRegressions": 2,
+      "baselineSuccessRate": 0.8333,
+      "candidateSuccessRate": 0.5,
+      "tokenCostIncreaseRatio": -0.0219,
+      "latencyIncreaseRatio": -0.0708,
+      "systemStats": [
+        {
+          "system": "ir-pgo",
+          "rows": 6,
+          "semanticRows": 6,
+          "successes": 3,
+          "successRate": 0.5,
+          "ruleViolations": 3,
+          "meanLatencyMs": 20087,
+          "meanTokenCost": 5282.17
+        },
+        {
+          "system": "ir-profile",
+          "rows": 6,
+          "semanticRows": 6,
+          "successes": 5,
+          "successRate": 0.8333,
+          "ruleViolations": 1,
+          "meanLatencyMs": 21616.67,
+          "meanTokenCost": 5400.33
+        },
+        {
+          "system": "original",
+          "rows": 6,
+          "semanticRows": 6,
+          "successes": 2,
+          "successRate": 0.3333,
+          "ruleViolations": 8,
+          "meanLatencyMs": 27395.5,
+          "meanTokenCost": 5400.17
+        }
+      ],
+      "reasons": [
+        "ir-pgo regressed on 2 paired case(s)",
+        "ir-pgo success rate 0.5000 below ir-profile 0.8333"
+      ]
+    }
+  ]
+}

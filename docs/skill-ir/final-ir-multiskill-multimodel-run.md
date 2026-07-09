@@ -225,6 +225,24 @@ What did not improve:
 
 This result strengthens the project story in a useful way: Skill IR materialization helps, especially on weaker/different model routes, but the current final IR promotion policy needs model-family awareness and confidence scoring before it should replace static IR by default.
 
+## Promotion Policy Follow-Up
+
+Task 11F converted this manual interpretation into a deterministic promotion report:
+
+```powershell
+bun ./src/benchmarks/skill-ir/promotion-policy-run.ts '--run=gpt41nano,xty/gpt-4.1-nano,results/skill-ir/final-ir-multiskill-gpt41nano-results-2026-07-09.jsonl' '--run=gemini25flash,xty/gemini-2.5-flash,results/skill-ir/final-ir-multiskill-gemini25flash-results-2026-07-09.jsonl' '--run=qwen38b,xty/qwen3-8b,results/skill-ir/final-ir-multiskill-qwen38b-results-2026-07-09.jsonl' '--out=results/skill-ir/final-ir-promotion-policy-report-2026-07-09.json'
+```
+
+The generated report matches the manual conclusion:
+
+| Model family | Decision | Reason |
+|---|---|---|
+| `gpt` | `promote-ir-pgo` | `ir-pgo` improved held-out paired success without regressions. |
+| `gemini` | `hold-for-more-validation` | Infrastructure rate exceeded the default threshold. |
+| `qwen` | `keep-ir-profile` | `ir-pgo` regressed against static `ir-profile` on paired cases. |
+
+This is now the preferred artifact for downstream validation planning because it encodes evidence, risk, cost, and family-specific decisions in one JSON file.
+
 ## Optimization Roadmap Update
 
 The next implementation work should target:

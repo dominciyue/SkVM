@@ -649,3 +649,31 @@ The next optimization roadmap is:
 5. **Final IR promotion policy:** keep experiment final IR artifacts separate from base corpus IR until held-out paired deltas, cost, latency, and regression checks justify promotion.
 
 The first Task 11E run supports this roadmap. Across six hard-002 tasks and three route-probed models, static `ir-profile` had the best cross-model semantic success rate, while `ir-pgo` was best on the GPT-family route but weaker than `ir-profile` on Qwen. This shows that final IR should be promoted conditionally, not globally. Model-family behavior and confidence/risk scoring are now necessary rather than optional refinements.
+
+## 21. Task 11F Calibration: Model-Family Promotion Policy
+
+Task 11F turns the Task 11E interpretation into a deterministic decision layer. The project now treats final IR promotion as a model-family-specific policy decision instead of a global artifact replacement.
+
+The promotion policy consumes scored result rows and produces a report with this shape:
+
+```text
+scored rows per model route
+  -> model-family grouping
+  -> ir-profile vs ir-pgo paired comparison
+  -> confidence and risk summary
+  -> promote / keep static / hold decision
+```
+
+The default baseline is static `ir-profile`, and the default candidate is dynamic/final `ir-pgo`. Infrastructure rows are excluded from semantic paired deltas but counted as risk. A final IR artifact should be promoted only when held-out paired evidence improves over static IR without regressions and without unacceptable token or latency growth.
+
+The first promotion report over the Task 11E result files produced:
+
+```text
+gpt    -> promote-ir-pgo
+gemini -> hold-for-more-validation
+qwen   -> keep-ir-profile
+```
+
+This matches the manual interpretation and gives the later validation planner a concrete target: it should not merely run more cases, but run enough cases to make a promotion decision for the relevant model family.
+
+This is still not a full model-family behavior profile. The current implementation groups evidence by family and scores promotion risk. A later version should attach model-family support directly to profile annotations, output-schema repairs, and final IR artifacts so the optimizer can choose different repairs for GPT, Gemini, Claude, DeepSeek, Qwen, or other families when evidence supports that split.
