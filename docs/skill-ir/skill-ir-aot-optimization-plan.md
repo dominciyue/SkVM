@@ -2379,6 +2379,92 @@ Later work should let the validation planner consume the promotion report. The p
 
 Later work should attach model-family support directly to profile annotations and output-schema repairs, so final IR compilation can select family-specific repairs rather than only selecting between static and final artifacts after evaluation.
 
+## Task 11G: Validation Planner Dry-Run And Evidence Maturity
+
+**Goal:** Convert promotion-policy evidence into conservative validation and optimization plans without automatically adopting final IR artifacts.
+
+**Current framing:** The current `ir-profile`, `ir-pgo`, and final IR artifacts are still research artifacts. Task 11F produces useful model-family evidence signals, but those signals are not mature enough to decide permanent IR adoption. Task 11G makes that limitation explicit by building a dry-run validation planner that says what to test or optimize next.
+
+**Files:**
+- Create: `src/benchmarks/skill-ir/validation-plan.ts`
+- Create: `src/benchmarks/skill-ir/validation-plan.test.ts`
+- Create: `src/benchmarks/skill-ir/validation-plan-run.ts`
+- Create: `src/benchmarks/skill-ir/validation-plan-run.test.ts`
+- Create: `docs/skill-ir/validation-planner.md`
+- Create: `results/skill-ir/final-ir-validation-plan-2026-07-09.json`
+- Modify: `docs/skill-ir/final-ir-promotion-policy.md`
+- Modify: `docs/skill-ir/automated-validation-strategy.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-spec.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
+
+- [x] **Step 1: Reframe promotion policy as decision support**
+
+Update docs so `promote-ir-pgo`, `keep-ir-profile`, and `hold-for-more-validation` are described as evidence signals. They should not be described as automatic deployment decisions.
+
+Expected: docs explain that `promote-ir-pgo` means "candidate worth regression validation," not "rewrite the base corpus" or "use final IR forever."
+
+- [x] **Step 2: Write failing validation planner tests**
+
+Tests should prove:
+
+```text
+promote-ir-pgo signal -> candidate regression validation, not automatic adoption
+keep-ir-profile signal -> static baseline preferred plus final-IR regression audit
+hold-for-more-validation with high infra -> route probe plus paired held-out validation
+low confidence or narrow evidence -> expand evidence and corpus/skill-shape coverage
+```
+
+Run:
+
+```powershell
+bun test ./src/benchmarks/skill-ir/validation-plan.test.ts
+```
+
+Expected first result: FAIL because `validation-plan.ts` does not exist.
+
+- [x] **Step 3: Implement pure validation planner**
+
+Implement:
+
+```ts
+buildValidationPlan(report, options)
+planForModelFamily(profile, options)
+```
+
+The planner should emit `skill-ir-validation-plan/v1` JSON with per-family planning states and action lists.
+
+- [x] **Step 4: Add dry-run CLI**
+
+Implement:
+
+```powershell
+bun ./src/benchmarks/skill-ir/validation-plan-run.ts '--promotion-report=results/skill-ir/final-ir-promotion-policy-report-2026-07-09.json' '--out=results/skill-ir/final-ir-validation-plan-2026-07-09.json'
+```
+
+Expected: no model calls. The command only reads the promotion report and writes a validation plan.
+
+- [x] **Step 5: Run the planner on Task 11F results**
+
+Expected first dry-run interpretation:
+
+```text
+gpt    -> candidate regression validation
+gemini -> route health plus held-out validation
+qwen   -> static baseline preferred plus final-IR regression/output-schema/model-family repair
+```
+
+- [x] **Step 6: Update docs and verification**
+
+Update component docs and run:
+
+```powershell
+bun test ./src/benchmarks/skill-ir/validation-plan.test.ts ./src/benchmarks/skill-ir/validation-plan-run.test.ts ./src/benchmarks/skill-ir/promotion-policy.test.ts ./src/benchmarks/skill-ir/promotion-policy-run.test.ts
+bun run typecheck
+git diff --check
+```
+
+Expected: all tests pass; CRLF warnings are acceptable.
+
 ## Task 12: Research Report and Slides
 
 **Files:**

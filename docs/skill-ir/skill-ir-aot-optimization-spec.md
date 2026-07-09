@@ -652,7 +652,7 @@ The first Task 11E run supports this roadmap. Across six hard-002 tasks and thre
 
 ## 21. Task 11F Calibration: Model-Family Promotion Policy
 
-Task 11F turns the Task 11E interpretation into a deterministic decision layer. The project now treats final IR promotion as a model-family-specific policy decision instead of a global artifact replacement.
+Task 11F turns the Task 11E interpretation into a deterministic evidence-support layer. The project now treats final IR promotion as a model-family-specific research signal instead of a global artifact replacement or automatic deployment decision.
 
 The promotion policy consumes scored result rows and produces a report with this shape:
 
@@ -674,6 +674,42 @@ gemini -> hold-for-more-validation
 qwen   -> keep-ir-profile
 ```
 
-This matches the manual interpretation and gives the later validation planner a concrete target: it should not merely run more cases, but run enough cases to make a promotion decision for the relevant model family.
+This matches the manual interpretation and gives the later validation planner a concrete target: it should not merely run more cases, but run enough cases to assess whether a model-family-specific artifact is mature enough for stronger claims.
 
 This is still not a full model-family behavior profile. The current implementation groups evidence by family and scores promotion risk. A later version should attach model-family support directly to profile annotations, output-schema repairs, and final IR artifacts so the optimizer can choose different repairs for GPT, Gemini, Claude, DeepSeek, Qwen, or other families when evidence supports that split.
+
+The current signals are not mature enough to claim that any IR choice is final. `promote-ir-pgo` means "candidate worth regression validation," not "rewrite the base corpus" or "deploy automatically."
+
+## 22. Task 11G Calibration: Validation Planner And Evidence Maturity
+
+Task 11G corrects the main risk discovered after Task 11F: promotion reports are useful, but they can look more decisive than the evidence really is. The project should therefore add a validation planner that consumes `skill-ir-promotion/v1` reports and emits validation/optimization plans rather than adopting an IR artifact automatically.
+
+The planner should encode five principles:
+
+1. **Promotion policy is advisory:** promotion report decisions are evidence signals for planning and reporting, not final adoption decisions.
+2. **Final IR remains improvable:** current dynamic feedback mainly handles rule failures by generating checks and recovery policies; output-schema learning and model-family-specific repair are still missing.
+3. **Model-family conclusions are provisional:** GPT, Gemini, and Qwen results are useful case evidence, but they are not mature cross-family claims until more routes, tasks, and skill shapes are evaluated.
+4. **Planner starts as dry-run:** the first planner should emit a JSON plan of recommended next experiments and repairs without calling models or changing corpus IR.
+5. **Corpus expansion is part of optimization:** stronger evidence needs non-GPT-friendly skills, schema-heavy outputs, bilingual or Chinese tasks, non-coding workflows, and environment-sensitive tasks whose success depends on tool adaptation.
+
+The planner output should classify model families into planning states such as:
+
+```text
+candidate-regression-validation
+static-baseline-preferred
+needs-route-health-and-heldout-validation
+```
+
+It should also propose concrete next actions:
+
+```text
+route probe
+paired held-out validation
+periodic regression validation
+final-IR regression audit
+output schema learning
+model-family profile learning
+corpus expansion
+```
+
+This stage is deliberately conservative. Its goal is to make the next experiments more systematic, not to hide open research questions behind an automatic selector.

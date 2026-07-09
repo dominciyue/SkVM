@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The project goal is not to make users manually run the full research matrix every time a new skill is imported. The intended direction is an automated, sampled, and layered validation pipeline that decides how much evidence is needed before a final IR artifact can be trusted.
+The project goal is not to make users manually run the full research matrix every time a new skill is imported. The intended direction is an automated, sampled, and layered validation pipeline that decides how much evidence is still needed before making stronger claims about a final IR artifact.
 
 This document records the target design for that pipeline. It is not fully implemented yet; current Task 11C work provides the core inputs: static IR validation, real-agent execution, scoring, profile feedback, and final IR artifacts.
 
@@ -163,7 +163,7 @@ python scripts/analyze_skill_ir_slices.py --input <results>.jsonl --slices-out <
 
 ## Future Implementation
 
-The next implementation step is a validation planner CLI that produces a validation plan from skill risk signals and available budget. A later version can execute that plan, route outputs into scoring and profile feedback, and emit a promotion decision for final IR artifacts.
+The next implementation step is a validation planner CLI that produces a validation plan from promotion-policy evidence, skill risk signals, and available budget. This first planner should be dry-run only: it should not call models, modify base corpus IR, or automatically adopt `ir-pgo`. A later version can execute that plan, route outputs into scoring and profile feedback, and update evidence reports.
 
 Before building the planner, run a multi-skill multi-model final IR experiment. The recommended scope is the six current deep-benchmark skills, their hard-002 held-out tasks, `original / ir-profile / ir-pgo`, compressed context, and two or more route-probed models. This experiment should classify observed differences as static/final-pass effects, dynamic-profile effects, regressions, cost effects, or infrastructure effects.
 
@@ -174,7 +174,7 @@ The first Task 11E run showed why promotion needs policy rather than a single fi
 - withhold promotion when infrastructure failures dominate or cost/latency grows too much;
 - request more evidence when the profile overlay was generated from a narrow calibration source.
 
-Task 11F implements the first version of that recommendation as `promotion-policy.ts` and `promotion-policy-run.ts`. It consumes scored JSONL files and emits `skill-ir-promotion/v1` reports. The first report over Task 11E data produced:
+Task 11F implements the first version of that recommendation as `promotion-policy.ts` and `promotion-policy-run.ts`. It consumes scored JSONL files and emits `skill-ir-promotion/v1` reports. These reports are evidence signals, not automatic adoption decisions. The first report over Task 11E data produced:
 
 ```text
 gpt    -> promote-ir-pgo
@@ -182,8 +182,16 @@ gemini -> hold-for-more-validation
 qwen   -> keep-ir-profile
 ```
 
-The validation planner should consume this report format rather than re-deriving the same decision from CSV tables. Future planner behavior should be:
+The validation planner should consume this report format rather than re-deriving the same signal from CSV tables. Planner behavior should be:
 
-- `promote-ir-pgo`: schedule periodic regression samples for that model family.
-- `keep-ir-profile`: use static IR as the default and send final-IR regressions back into profile/output-schema repair.
-- `hold-for-more-validation`: add paired held-out samples or route-health probes before choosing either artifact.
+- `promote-ir-pgo`: treat `ir-pgo` as a candidate and schedule periodic regression samples for that model family.
+- `keep-ir-profile`: prefer static IR in current experiments and send final-IR regressions back into profile/output-schema/model-family repair.
+- `hold-for-more-validation`: add paired held-out samples or route-health probes before making stronger claims.
+
+Task 11G starts this dry-run planner. It should also preserve the five open optimization tracks:
+
+- richer output schema learning;
+- model-family behavior profiles inside profile annotations and repair passes;
+- confidence/risk scoring as a planning signal rather than a final verdict;
+- validation planning before expensive real-agent execution;
+- corpus expansion toward non-GPT-friendly, bilingual, schema-heavy, non-coding, and environment-sensitive skills.

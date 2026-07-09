@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "skill-ir-validation-plan/v1",
+  "generatedAt": "2026-07-09T12:38:42.466Z",
+  "sourceReport": {
+    "schemaVersion": "skill-ir-promotion/v1",
+    "generatedAt": "2026-07-09T12:18:18.858Z"
+  },
+  "options": {
+    "minPairedCasesForMatureClaim": 6,
+    "minConfidenceForMatureClaim": 0.65,
+    "maxInfrastructureRateForRouteHealth": 0.25
+  },
+  "modelFamilies": [
+    {
+      "modelFamily": "gemini",
+      "modelLabels": [
+        "gemini25flash"
+      ],
+      "sourceDecision": "hold-for-more-validation",
+      "planningState": "needs-route-health-and-heldout-validation",
+      "recommendedArtifact": "undecided",
+      "adoptionReadiness": "not-ready",
+      "confidence": 0.6121,
+      "riskScore": 0.1082,
+      "pairedCases": 4,
+      "infrastructureRate": 0.3333,
+      "actions": [
+        {
+          "kind": "route-probe",
+          "priority": "high",
+          "reason": "infrastructure rate 0.33 is above route-health threshold"
+        },
+        {
+          "kind": "paired-heldout-validation",
+          "priority": "high",
+          "reason": "current evidence is not mature enough for stronger model-family claims",
+          "sampleHint": {
+            "minTasks": 2,
+            "contexts": [
+              "compressed",
+              "long"
+            ],
+            "systems": [
+              "original",
+              "ir-profile",
+              "ir-pgo"
+            ]
+          }
+        },
+        {
+          "kind": "expand-evidence",
+          "priority": "medium",
+          "reason": "confidence or semantic row count is too low for mature claims"
+        },
+        {
+          "kind": "corpus-expansion",
+          "priority": "low",
+          "reason": "broader skill shapes and additional stable routes are needed for stronger generalization evidence"
+        }
+      ],
+      "caveats": [
+        "promotion signal is advisory and does not rewrite base corpus IR",
+        "planner output is a dry-run experiment plan, not an automatic IR selector"
+      ]
+    },
+    {
+      "modelFamily": "gpt",
+      "modelLabels": [
+        "gpt41nano"
+      ],
+      "sourceDecision": "promote-ir-pgo",
+      "planningState": "candidate-regression-validation",
+      "recommendedArtifact": "ir-pgo-candidate",
+      "adoptionReadiness": "experimental-candidate",
+      "confidence": 0.6839,
+      "riskScore": 0.0461,
+      "pairedCases": 6,
+      "infrastructureRate": 0,
+      "actions": [
+        {
+          "kind": "paired-heldout-validation",
+          "priority": "medium",
+          "reason": "promising final IR still needs paired held-out validation before stronger claims",
+          "sampleHint": {
+            "minTasks": 2,
+            "contexts": [
+              "compressed",
+              "long"
+            ],
+            "systems": [
+              "original",
+              "ir-profile",
+              "ir-pgo"
+            ]
+          }
+        },
+        {
+          "kind": "periodic-regression-validation",
+          "priority": "high",
+          "reason": "ir-pgo improved paired evidence, so regressions should be monitored before stronger claims",
+          "sampleHint": {
+            "minTasks": 6,
+            "contexts": [
+              "compressed",
+              "noisy"
+            ],
+            "systems": [
+              "ir-profile",
+              "ir-pgo"
+            ]
+          }
+        },
+        {
+          "kind": "corpus-expansion",
+          "priority": "low",
+          "reason": "broader skill shapes and additional stable routes are needed for stronger generalization evidence"
+        }
+      ],
+      "caveats": [
+        "promotion signal is advisory and does not rewrite base corpus IR",
+        "planner output is a dry-run experiment plan, not an automatic IR selector"
+      ]
+    },
+    {
+      "modelFamily": "qwen",
+      "modelLabels": [
+        "qwen38b"
+      ],
+      "sourceDecision": "keep-ir-profile",
+      "planningState": "static-baseline-preferred",
+      "recommendedArtifact": "ir-profile-current-baseline",
+      "adoptionReadiness": "not-ready",
+      "confidence": 0.6683,
+      "riskScore": 0.2333,
+      "pairedCases": 6,
+      "infrastructureRate": 0,
+      "actions": [
+        {
+          "kind": "final-ir-regression-audit",
+          "priority": "high",
+          "reason": "ir-pgo regressed against static ir-profile on paired cases",
+          "sampleHint": {
+            "minTasks": 2,
+            "systems": [
+              "ir-profile",
+              "ir-pgo"
+            ]
+          }
+        },
+        {
+          "kind": "output-schema-learning",
+          "priority": "medium",
+          "reason": "final IR repair should learn structured output contracts instead of only generic rule checks"
+        },
+        {
+          "kind": "model-family-profile-learning",
+          "priority": "medium",
+          "reason": "final IR behavior differs by model family and needs family-specific evidence before repair hints generalize"
+        },
+        {
+          "kind": "corpus-expansion",
+          "priority": "low",
+          "reason": "broader skill shapes and additional stable routes are needed for stronger generalization evidence"
+        }
+      ],
+      "caveats": [
+        "promotion signal is advisory and does not rewrite base corpus IR",
+        "planner output is a dry-run experiment plan, not an automatic IR selector"
+      ]
+    }
+  ]
+}
