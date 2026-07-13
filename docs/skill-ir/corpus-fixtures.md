@@ -164,13 +164,17 @@ When adding a skill:
 
 Preferred next additions:
 
+- real/public skills from `anbeime/skill`;
+- Chinese developer workflow skills from `laolaoshiren/claude-code-skills-zh`;
+- backup/index candidates from `travisvn/awesome-claude-skills` after fetching their real source repositories;
 - upstream SkVM skills from `skills/`;
-- public skills from open agent repositories;
 - user/lab-provided skills;
 - non-coding workflow skills;
 - bilingual or Chinese skills;
 - schema-heavy output skills;
 - environment-sensitive tool skills.
+
+Use `docs/skill-ir/real-skill-intake.md` before adding new fixtures. Do not add an index-only README entry to the benchmark corpus until the actual `SKILL.md` artifact has been fetched, inspected, and linked.
 
 ## Failure Modes
 

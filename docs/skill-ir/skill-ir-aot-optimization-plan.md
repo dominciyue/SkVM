@@ -2601,10 +2601,10 @@ Expected: produce scored JSONL and paired deltas including no-skill.
 - Update: `docs/skill-ir/experiment-design.md`
 - Update: `docs/skill-ir/corpus-fixtures.md`
 - Update: `docs/skill-ir/project-audit-and-realignment.md`
+- Create/update: `docs/skill-ir/real-skill-intake.md`
 - Later modify: `benchmarks/skill-ir/corpus/manifest.json`
 - Later modify: `src/skill-ir/corpus-fixtures.test.ts`
 - Later modify: result analyzer and reporting scripts for provenance/evidence weighting
-- Later create: real/public skill intake table under `docs/skill-ir/` or `benchmarks/skill-ir/corpus/`
 
 - [x] **Step 1: Document synthetic seed downweighting**
 
@@ -2641,16 +2641,54 @@ Expected: fixture tests validate allowed provenance/evidence values, and analyze
 Collect real candidate skills before converting all of them to IR:
 
 ```text
-upstream SkVM skills from skills/
-public agent skill repositories
-user/lab-provided skills
-non-coding workflow skills
-bilingual or Chinese skills
-schema-heavy output skills
-environment-sensitive tool skills
+primary source:    anbeime/skill
+supplement source: laolaoshiren/claude-code-skills-zh
+backup index:      travisvn/awesome-claude-skills
+local source:       upstream SkVM skills from skills/
+future source:      user/lab-provided skills
 ```
 
-Expected: create a provenance/intake table with source URL, license/reuse note, category, expected tasks, and whether the skill is focused or broad.
+Expected: create a provenance/intake table with source URL, license/reuse note, README description, category, expected tasks, whether the skill is focused or broad, whether a real `SKILL.md` artifact exists, risk notes, and artifact-solidification potential.
+
+- [x] **Step 3a: Record approved real-skill sources**
+
+Approved source priority:
+
+```text
+1. anbeime/skill
+2. laolaoshiren/claude-code-skills-zh
+3. travisvn/awesome-claude-skills
+```
+
+Expected: `docs/skill-ir/real-skill-intake.md` records source priority, intake principles, candidate table, and README-backed notes.
+
+- [ ] **Step 3b: Fetch source repositories into ignored cache**
+
+Use `.skvm/external-skills/` for raw source inspection:
+
+```powershell
+New-Item -ItemType Directory -Force -Path .skvm/external-skills | Out-Null
+git clone https://github.com/anbeime/skill.git .skvm/external-skills/anbeime-skill
+git clone https://github.com/laolaoshiren/claude-code-skills-zh.git .skvm/external-skills/claude-code-skills-zh
+git clone https://github.com/travisvn/awesome-claude-skills.git .skvm/external-skills/awesome-claude-skills
+```
+
+Expected: raw source stays uncommitted; only intake metadata and selected benchmark artifacts are committed later.
+
+- [ ] **Step 3c: Inspect actual `SKILL.md` artifacts**
+
+For each candidate, confirm:
+
+```text
+has SKILL.md
+has scripts/resources
+requires API key or local tool
+license/reuse note
+source path and commit
+safe toy task design
+```
+
+Expected: index-only entries are not promoted to benchmark candidates until a real skill artifact is fetched and inspected.
 
 - [ ] **Step 4: Add amortized token-cost metrics**
 

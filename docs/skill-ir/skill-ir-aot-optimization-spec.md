@@ -785,6 +785,18 @@ user-provided
 
 The result analyzer and report should eventually separate or weight evidence by provenance. A mixed aggregate without provenance accounting can overstate generality, especially because the current seed skills are coding-agent-heavy and may fit GPT-style instruction following better than a neutral public skill distribution.
 
+The initial real-skill source priority is:
+
+```text
+primary:    anbeime/skill
+supplement: laolaoshiren/claude-code-skills-zh
+backup:     travisvn/awesome-claude-skills
+```
+
+`anbeime/skill` is the main pool because its README describes a skill store with official skills, local Chinese skills, category metadata, JSON/CSV export, and public-source synchronization. `laolaoshiren/claude-code-skills-zh` supplements Chinese developer workflow skills with directly installable original skills. `travisvn/awesome-claude-skills` should be treated mainly as a backup index and conceptual reference until the linked real skill repositories are fetched.
+
+Candidate metadata and sampling rules are tracked in `docs/skill-ir/real-skill-intake.md`.
+
 Second, token cost should be evaluated as amortized cost over repeated invocations. AOT optimization can pay more at import time because it parses the skill, validates the IR, collects profile evidence, generates checks/schemas/code, and verifies artifacts. That is acceptable only if repeated use becomes more stable or cheaper:
 
 ```text

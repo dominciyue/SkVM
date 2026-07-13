@@ -111,6 +111,8 @@ The current seed corpus is mostly `synthetic-seed`. It is appropriate for pipeli
 
 Evidence should be weighted by provenance. Synthetic seed rows should be treated as low-confidence calibration evidence unless they are reported as a separate controlled case study. Main stability claims should be made on `real-public`, `adapted-public`, `upstream-skvm`, or `user-provided` rows, with provenance counts included in every aggregate table.
 
+The initial real-skill intake should prioritize `anbeime/skill`, then supplement with `laolaoshiren/claude-code-skills-zh`. `travisvn/awesome-claude-skills` is a backup discovery index and should not count as evaluated evidence until the linked repository's real `SKILL.md` artifact is fetched and inspected.
+
 ## Context Conditions
 
 The standard context perturbations are:

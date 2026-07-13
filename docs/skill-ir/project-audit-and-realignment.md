@@ -159,7 +159,15 @@ Recommended reporting policy:
 - when aggregating mixed corpora, include provenance counts and either downweight synthetic rows or show a separate real-skill aggregate;
 - mark model-family conclusions from the current seed corpus as provisional until real-skill matrices are available.
 
-The next corpus phase should therefore start from real skill intake rather than only expanding the existing synthetic fixtures.
+The next corpus phase should therefore start from real skill intake rather than only expanding the existing synthetic fixtures. The approved initial sources are:
+
+| Priority | Source | Role |
+|---:|---|---|
+| 1 | [anbeime/skill](https://github.com/anbeime/skill) | Main real-skill source pool. |
+| 2 | [laolaoshiren/claude-code-skills-zh](https://github.com/laolaoshiren/claude-code-skills-zh) | Chinese/developer workflow supplement. |
+| 3 | [travisvn/awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills) | Backup index and conceptual reference. |
+
+The intake table and sampling rules live in `docs/skill-ir/real-skill-intake.md`.
 
 ## Metric Realignment
 
@@ -241,7 +249,7 @@ compile a narrower skill/router instead of forcing the full skill.
 ## Next Alignment Actions
 
 1. Add corpus provenance fields to manifest entries and documentation.
-2. Add an external/public-skill acquisition track before broad claims.
+2. Add an external/public-skill acquisition track before broad claims, starting from `anbeime/skill`, supplementing with `laolaoshiren/claude-code-skills-zh`, and using `travisvn/awesome-claude-skills` only as a backup index when needed.
 3. Reintroduce `no-skill` into real-agent experimental matrices.
 4. Report stability as mean, worst-case, variance, paired delta, and regression count across model/context/environment axes.
 5. Report token cost and latency alongside success; optimize only when quality is preserved.
