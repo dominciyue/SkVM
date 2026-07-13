@@ -37,7 +37,14 @@ The systems are ordered from least structured to most optimized:
 | S5 | `ir-profile` | Skill IR with static passes plus profile-guided repair over the input IR. This remains mostly static when the input IR has no profile annotations. |
 | S6 | `ir-pgo` | Skill IR with profile annotations derived from scored result feedback. This is the system to use when evaluating true profile-guided optimization. |
 
-`original` is the default baseline for paired delta calculations. `no-skill` is retained to show whether the skill itself helps and to identify tasks where the skill may be unnecessary or harmful.
+`original` is the default baseline for paired delta calculations that ask whether Skill IR improves a provided skill. `no-skill` is a required baseline for the broader question of whether the skill should be applied at all. Real-agent experiments should include `no-skill` whenever budget allows, especially before claiming that skill optimization improves stability.
+
+If `no-skill` outperforms skill systems on a task shape, the result should not be hidden as an anomaly. It can mean:
+
+- the original skill is too broad;
+- the task does not need the skill;
+- the skill adds token/context noise;
+- the right optimization is skill routing or skill narrowing, not stronger IR materialization.
 
 ## Paired Evaluation Unit
 
@@ -93,6 +100,14 @@ focused | broad | unknown
 ```
 
 Focused skills are preferred for early evaluation because broad skill bundles can confound whether gains come from better instructions or simply more documentation.
+
+Each skill should also record provenance:
+
+```text
+synthetic-seed | adapted-public | real-public | upstream-skvm | user-provided
+```
+
+The current seed corpus is mostly `synthetic-seed`. It is appropriate for pipeline construction and controlled case studies, but broad claims need a larger set of externally sourced or user-provided skills. The next corpus expansion should include upstream SkVM skills, public agent skills, non-coding workflows, bilingual or Chinese skills, schema-heavy output skills, and environment-sensitive tool skills.
 
 ## Context Conditions
 
@@ -150,6 +165,17 @@ Additional metrics to collect during full evaluation:
 - Human Correction Count per IR
 - Checkable Rule Ratio
 - Environment Guard Coverage
+
+Token and latency metrics should be interpreted together with success. Lower token cost is only a win when task success and rule compliance are preserved. The project should also distinguish prompt-token reduction from artifact solidification:
+
+- reusable runtime checks;
+- cached environment probes;
+- compiled adapters;
+- output schemas;
+- generated code or templates;
+- fixed command plans.
+
+The strongest token-cost claim is not merely "the optimized prompt is shorter." It is "repeated reasoning, tool setup, schema generation, or code generation was compiled into reusable artifacts."
 
 ## Deterministic Verifiers
 
@@ -291,9 +317,12 @@ Each case study should include:
 - LLM behavior can vary across model versions and provider settings.
 - Some success criteria still require human judgment.
 - The seed benchmark is small before the deep corpus is populated.
+- Current seed skills are mostly locally constructed fixtures, so they may reflect GPT-friendly coding-agent conventions.
 - Windows/macOS/Linux coverage may be uneven depending on available machines.
 - Broad skills can improve performance by adding more documentation rather than better structure.
 - Profile-guided repair can overfit development traces if held-out tasks are too similar.
+- A missing or weak no-skill baseline can make a harmful or unnecessary skill look beneficial.
+- Token reduction claims can be misleading if lower cost comes with hidden success regressions.
 
 ## Reporting Requirements
 

@@ -72,6 +72,20 @@ The current expanded seed corpus contains 6 deep-benchmark fixtures:
 | `skill-tdd-bugfix` | workflow, diagnostic | Test-first bug fix planning. |
 | `skill-report-synthesis` | generative, workflow, constraint-heavy | Evidence-grounded report generation. |
 
+These fixtures are currently local synthetic/research fixtures. They were created to make the pipeline executable and to cover controlled failure modes. They are not yet a representative sample of public or user-provided skills. Broad generalization claims should wait until the corpus includes externally sourced skills with explicit provenance.
+
+Future manifest entries should record provenance:
+
+```text
+synthetic-seed
+adapted-public
+real-public
+upstream-skvm
+user-provided
+```
+
+The current six fixtures should be labeled `synthetic-seed` once provenance fields are added to the manifest.
+
 ## Context Perturbations
 
 `benchmarks/skill-ir/contexts/standard-contexts.json` defines the standard context settings used in evaluation:
@@ -139,9 +153,20 @@ When adding a skill:
 1. Add an entry to `benchmarks/skill-ir/corpus/manifest.json`.
 2. Add a full IR file under `benchmarks/skill-ir/ir/`.
 3. Add task fixtures under `benchmarks/skill-ir/tasks/`.
-4. Ensure the IR passes `SkillIRSchema.parse`.
-5. Ensure the IR passes `validateSkillIR` with no errors.
-6. Add or update fixture tests if the new fixture introduces a new file shape or category assumption.
+4. Record provenance and source information.
+5. Ensure the IR passes `SkillIRSchema.parse`.
+6. Ensure the IR passes `validateSkillIR` with no errors.
+7. Add or update fixture tests if the new fixture introduces a new file shape or category assumption.
+
+Preferred next additions:
+
+- upstream SkVM skills from `skills/`;
+- public skills from open agent repositories;
+- user/lab-provided skills;
+- non-coding workflow skills;
+- bilingual or Chinese skills;
+- schema-heavy output skills;
+- environment-sensitive tool skills.
 
 ## Failure Modes
 
@@ -150,10 +175,13 @@ When adding a skill:
 - A task file can be syntactically valid but still weak if `successCriteria` are vague. Prefer criteria that can later be turned into automatic checks.
 - A task can be syntactically valid but unexecutable if the prompt omits the log, diff, code snippet, command, or notes the agent needs. The fixture test enforces self-contained review prompts and minimum prompt length for all seed tasks.
 - Corpus manifest entries can drift from actual file paths. Keep `irPath` and `tasksPath` current when moving files.
+- Synthetic seed skills can overstate generality if reported as real public skills.
+- GPT-friendly coding-agent tasks can hide model-family behavior differences.
 
 ## Modification Notes
 
 - Keep fixture ids stable once referenced by traces or result files.
 - Use `held-out` tasks only for evaluation, not for manual tuning.
 - Prefer adding small, complete fixtures over large partial ones.
+- Do not mix synthetic and real/public skills in aggregate claims without reporting provenance.
 - Update this document when fixture layout, split names, or validation policy changes.

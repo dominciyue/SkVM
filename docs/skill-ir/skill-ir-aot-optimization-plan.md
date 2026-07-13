@@ -2467,6 +2467,132 @@ Expected: all tests pass; CRLF warnings are acceptable.
 
 ## Task 12: Research Report and Slides
 
+## Task 11H: Corpus Provenance, No-Skill Baseline, Stability, And Token Cost Realignment
+
+**Goal:** Align the evaluation plan with advisor feedback: synthetic seed skills are not enough, no-skill is a required baseline, stability must be measured across settings, and token reduction should be tied to artifact solidification.
+
+**Current framing:** The project route remains Skill IR as an AOT pass inside SkVM. The correction is in evidence quality and evaluation detail. Current deep-benchmark skills are mostly local seed fixtures. They should not be used alone for broad claims about arbitrary skills.
+
+**Files:**
+- Create: `docs/skill-ir/project-audit-and-realignment.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-spec.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
+- Modify: `docs/skill-ir/experiment-design.md`
+- Modify: `docs/skill-ir/corpus-fixtures.md`
+- Later modify: `benchmarks/skill-ir/corpus/manifest.json`
+- Later modify: `src/benchmarks/skill-ir/real-agent-run.ts` or run configs to include `no-skill`
+- Later create: external/public skill corpus docs and fixtures
+
+- [x] **Step 1: Audit current repository layout and result persistence**
+
+Record:
+
+```text
+folder roles
+where current Skill IR code lives
+where benchmark fixtures live
+which results are committed
+which local logs/configs are intentionally not committed
+```
+
+Expected: a repo-local audit document under `docs/skill-ir/`.
+
+- [x] **Step 2: Record current corpus provenance limitation**
+
+Document that current deep-benchmark skills are local synthetic/research fixtures:
+
+```text
+skill-review
+skill-ci-diagnostic
+skill-env-portability
+skill-git-hygiene
+skill-tdd-bugfix
+skill-report-synthesis
+```
+
+Expected: docs state these are useful for pipeline construction but not enough for broad generalization claims.
+
+- [x] **Step 3: Update spec with advisor feedback**
+
+Add requirements for:
+
+```text
+skill provenance labels
+external/public skill acquisition
+no-skill baseline
+stability metrics across model/context/environment/agent
+token-cost reduction through artifact solidification
+```
+
+- [ ] **Step 4: Add provenance labels to corpus manifest**
+
+Add fields such as:
+
+```json
+{
+  "provenance": "synthetic-seed",
+  "source": "local-fixture",
+  "sourceUrl": null
+}
+```
+
+Expected: fixture tests should validate provenance fields after the schema is updated.
+
+- [ ] **Step 5: Build an external/public skill intake track**
+
+Collect candidate skills from:
+
+```text
+upstream SkVM skills
+public agent skill repositories
+user/lab-provided skills
+non-coding workflow skills
+bilingual or Chinese skills
+schema-heavy output skills
+```
+
+Expected: create a provenance table before converting all of them to full IR.
+
+- [ ] **Step 6: Reintroduce no-skill into real-agent experiments**
+
+Future real-agent matrices should include:
+
+```text
+no-skill
+original
+ir-profile
+ir-pgo
+```
+
+Expected: analyzer reports should identify tasks where `no-skill` beats skill systems.
+
+- [ ] **Step 7: Add token-cost and artifact-solidification analysis**
+
+Track whether optimization reduces repeated overhead by solidifying:
+
+```text
+runtime checks
+environment probes
+adapters
+output schemas
+generated code/templates
+fixed command plans
+```
+
+Expected: reports should separate quality improvement from cost reduction. Token reduction should not count as improvement if success regresses.
+
+- [ ] **Step 8: Run a small no-skill real-agent audit**
+
+Use a small task set and stable route first:
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=no-skill,original,ir-profile,ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=linux' '--tasks=<selected-task-list>' '--model=<stable-model>' '--adapter=bare-agent' '--ir-override-dir=<final-ir-dir>' '--execute' '--require-env=SKVM_XTY_API_KEY'
+```
+
+Expected: produce scored JSONL and paired deltas including no-skill.
+
+## Task 12: Research Report and Slides
+
 **Files:**
 - Create: `report/skill-ir-report.md`
 - Create: `slides/skill-ir-outline.md`

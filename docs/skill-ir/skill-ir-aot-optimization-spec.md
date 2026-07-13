@@ -713,3 +713,59 @@ corpus expansion
 ```
 
 This stage is deliberately conservative. Its goal is to make the next experiments more systematic, not to hide open research questions behind an automatic selector.
+
+## 23. Task 11H Calibration: Skill Provenance, No-Skill Baseline, Stability, And Token Cost
+
+Advisor discussion after Task 11G clarified four important evaluation requirements.
+
+First, current deep-benchmark skills are local seed fixtures. They are useful for building a controlled end-to-end pipeline, but synthetic fixtures alone are not persuasive evidence for broad skill optimization. The corpus must distinguish provenance:
+
+```text
+synthetic-seed
+adapted-public
+real-public
+upstream-skvm
+user-provided
+```
+
+Generalization claims should rely on a meaningful number of `adapted-public`, `real-public`, `upstream-skvm`, or `user-provided` skills. Synthetic seed skills should be described as pipeline construction and case-study fixtures.
+
+Second, `no-skill` is a required baseline. Some tasks may perform better without a skill because the skill adds irrelevant constraints, longer context, or GPT-shaped prose. The evaluation should report:
+
+```text
+no-skill -> original -> ir-profile -> ir-pgo
+```
+
+on paired cases whenever budget allows. If `no-skill` beats all skill systems on a task shape, the correct optimization may be skill routing or skill narrowing rather than stronger IR materialization.
+
+Third, stability means more than average success. The target is improvement or non-regression across model families, contexts, environments, and agents. Reports should emphasize:
+
+```text
+mean success
+worst-case success
+variance across settings
+paired delta
+regression count
+rule violation rate
+token cost
+latency
+```
+
+Fourth, token reduction should be treated as artifact solidification. The project should not only shorten prompts; it should identify repeated work that can be compiled or cached:
+
+```text
+runtime checks
+environment probes
+tool adapters
+output schemas
+generated code/templates
+fixed command plans
+```
+
+The final research claim should therefore become:
+
+```text
+Skill IR improves stability when it makes useful skill semantics explicit and reusable; it can reduce token/tool overhead when repeated reasoning, tool setup, schema generation, or code generation is solidified into reusable artifacts.
+```
+
+This does not change the overall route, but it changes the next experimental priority. The next benchmark phase should add real/public skill provenance and no-skill comparisons before making strong cross-model claims.
