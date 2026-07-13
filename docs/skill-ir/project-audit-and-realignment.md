@@ -10,7 +10,7 @@ The project direction remains:
 Skill IR as an AOT pass inside SkVM for improving cross-agent, cross-environment, and cross-context skill stability.
 ```
 
-The important correction is that current seed skills and experiments are not yet enough to prove broad skill generalization. They are useful for building the pipeline, but the next phase needs stronger skill provenance, no-skill baselines, stability metrics, and token-cost analysis.
+The important correction is that current seed skills and experiments are not yet enough to prove broad skill generalization. They are useful for building the pipeline, but the next phase needs stronger skill provenance, no-skill baselines, stability metrics, amortized token-cost analysis, and a clearer artifact-maturity path.
 
 ## Folder Map
 
@@ -147,6 +147,20 @@ user-provided
 
 Broad claims should be based on `adapted-public`, `real-public`, `upstream-skvm`, and `user-provided` skills, not only `synthetic-seed`.
 
+## Evidence Weighting
+
+The current synthetic seed skills should be treated as low-weight development evidence. They are useful for checking whether the pipeline runs, whether scorers catch controlled failures, and whether a proposed pass is mechanically connected end to end. They should not dominate the main experiment table or be used as the main proof that Skill IR generalizes to arbitrary skills.
+
+Recommended reporting policy:
+
+- report `synthetic-seed` results separately from real/public skill results;
+- use synthetic rows for calibration, debugging, and case-study explanation;
+- base broad claims on `adapted-public`, `real-public`, `upstream-skvm`, and `user-provided` rows;
+- when aggregating mixed corpora, include provenance counts and either downweight synthetic rows or show a separate real-skill aggregate;
+- mark model-family conclusions from the current seed corpus as provisional until real-skill matrices are available.
+
+The next corpus phase should therefore start from real skill intake rather than only expanding the existing synthetic fixtures.
+
 ## Metric Realignment
 
 The project's stability goal should be stated as:
@@ -168,6 +182,38 @@ This means token reduction is not just "shorter prompt." It can come from:
 - generated code/templates cached as artifacts;
 - output schemas lowered once instead of regenerated each run;
 - avoiding unnecessary skill text when `no-skill` already performs better.
+
+Token cost should be measured as an amortized quantity because AOT optimization can be more expensive on the first import. The first run may pay for parsing, validation, profile collection, code/schema generation, and artifact verification. The intended win is over repeated use:
+
+```text
+total_original(N)  = original_runtime_cost * N
+total_optimized(N) = compile_cost + profile_cost + optimized_runtime_cost * N
+break_even_N       = smallest N where total_optimized(N) <= total_original(N)
+```
+
+Reports should separate:
+
+- upfront compile/profile cost;
+- steady-state per-run cost;
+- break-even invocation count;
+- quality-preserving token savings after break-even;
+- cases where the optimized skill costs more and does not improve stability.
+
+## IR Artifact Maturity
+
+The current `final IR`, `ir-pgo`, and `ir-profile` artifacts are still research-stage artifacts. In practice they are mostly structured workflow JSON plus some generated checks and recovery policies. This is useful progress, but it is not yet the final goal.
+
+The maturity target should be explicit:
+
+| Level | Name | Meaning |
+|---|---|---|
+| L0 | Natural skill text | The original natural-language skill. |
+| L1 | Structured workflow IR | JSON representation of steps, rules, tools, checks, and recovery. This is close to the current state. |
+| L2 | Lowered support artifacts | Controller, checker, adapter, schema, and environment-guard artifacts generated from IR. |
+| L3 | Stable reusable blocks | Reusable file/code/template/tool-plan blocks that can be called repeatedly without regenerating the same reasoning or setup. |
+| L4 | Validated artifact package | Versioned artifact package with provenance, validation tier, cache policy, model/context notes, and regression evidence. |
+
+The project should not describe the loop as finished. The current loop is a research pipeline that can parse, optimize, run, score, and feed back limited failures. The remaining work is to turn useful IR elements into stable reusable artifacts and prove that repeated invocations become more stable or cheaper.
 
 ## No-Skill Baseline
 
@@ -199,5 +245,7 @@ compile a narrower skill/router instead of forcing the full skill.
 3. Reintroduce `no-skill` into real-agent experimental matrices.
 4. Report stability as mean, worst-case, variance, paired delta, and regression count across model/context/environment axes.
 5. Report token cost and latency alongside success; optimize only when quality is preserved.
-6. Add an artifact-solidification track for reusable checks, schemas, adapters, and generated code.
-7. Treat current GPT/Qwen/Gemini findings as provisional until larger real-skill and no-skill matrices are run.
+6. Add amortized token metrics: upfront cost, steady-state cost, and break-even invocation count.
+7. Add an artifact-solidification track for reusable checks, schemas, adapters, generated code, templates, and fixed tool plans.
+8. Treat current GPT/Qwen/Gemini findings as provisional until larger real-skill and no-skill matrices are run.
+9. Track IR artifact maturity from JSON workflow IR toward stable reusable code/file/tool-plan packages.

@@ -2591,6 +2591,106 @@ bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=no-skill,original,ir-
 
 Expected: produce scored JSONL and paired deltas including no-skill.
 
+## Task 11I: Real-Skill Restart, Evidence Weighting, Amortized Token Metrics, And Artifact Maturity
+
+**Goal:** Correct the evidence and maturity framing before the next implementation stage. Current self-created skills are useful seed fixtures, but their weight and credibility should be lower than real/public skills. Current `final IR` and `ir-pgo` are research artifacts, mostly structured workflow JSON plus early lowered checks/recovery policies, not the final stable reusable artifact target.
+
+**Files:**
+- Update: `docs/skill-ir/skill-ir-aot-optimization-spec.md`
+- Update: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
+- Update: `docs/skill-ir/experiment-design.md`
+- Update: `docs/skill-ir/corpus-fixtures.md`
+- Update: `docs/skill-ir/project-audit-and-realignment.md`
+- Later modify: `benchmarks/skill-ir/corpus/manifest.json`
+- Later modify: `src/skill-ir/corpus-fixtures.test.ts`
+- Later modify: result analyzer and reporting scripts for provenance/evidence weighting
+- Later create: real/public skill intake table under `docs/skill-ir/` or `benchmarks/skill-ir/corpus/`
+
+- [x] **Step 1: Document synthetic seed downweighting**
+
+State that the six current deep-benchmark skills are lower-confidence calibration fixtures:
+
+```text
+skill-review
+skill-ci-diagnostic
+skill-env-portability
+skill-git-hygiene
+skill-tdd-bugfix
+skill-report-synthesis
+```
+
+Expected: synthetic results are reported separately or downweighted in mixed aggregates. They should not be the main basis for broad skill-generalization claims.
+
+- [ ] **Step 2: Add manifest-level provenance and evidence weight**
+
+Extend each manifest skill entry with fields such as:
+
+```json
+{
+  "provenance": "synthetic-seed",
+  "source": "local-fixture",
+  "sourceUrl": null,
+  "evidenceWeight": "calibration-low"
+}
+```
+
+Expected: fixture tests validate allowed provenance/evidence values, and analyzers can slice by provenance.
+
+- [ ] **Step 3: Pull real skills and restart the main corpus track**
+
+Collect real candidate skills before converting all of them to IR:
+
+```text
+upstream SkVM skills from skills/
+public agent skill repositories
+user/lab-provided skills
+non-coding workflow skills
+bilingual or Chinese skills
+schema-heavy output skills
+environment-sensitive tool skills
+```
+
+Expected: create a provenance/intake table with source URL, license/reuse note, category, expected tasks, and whether the skill is focused or broad.
+
+- [ ] **Step 4: Add amortized token-cost metrics**
+
+Track optimization cost over repeated invocations:
+
+```text
+total_original(N)  = original_runtime_cost * N
+total_optimized(N) = compile_cost + profile_cost + optimized_runtime_cost * N
+break_even_N       = smallest N where total_optimized(N) <= total_original(N)
+```
+
+Expected: reports separate upfront compile/profile cost, steady-state per-run cost, break-even invocation count, and quality-preserving savings after break-even.
+
+- [ ] **Step 5: Define and implement artifact maturity reporting**
+
+Use a maturity model:
+
+```text
+L0 natural skill text
+L1 structured workflow IR JSON
+L2 lowered controller/checker/adapter/schema artifacts
+L3 stable reusable code/file/template/tool-plan blocks
+L4 validated artifact package with provenance, cache policy, and regression evidence
+```
+
+Expected: current final IR is described as L1 to early L2, and later artifact-solidification work targets L3/L4.
+
+- [ ] **Step 6: Re-run real-skill experiments with no-skill and provenance slices**
+
+Run the next real-agent matrix on a small real-skill slice first:
+
+```text
+no-skill
+original
+ir-profile
+ir-pgo
+```
+
+Expected: analyzer output shows no-skill deltas, provenance slices, model-family slices, token/latency, and artifact maturity notes. The report should avoid claiming the loop is finished.
+
 ## Task 12: Research Report and Slides
 
 **Files:**

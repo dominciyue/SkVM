@@ -74,6 +74,8 @@ The current expanded seed corpus contains 6 deep-benchmark fixtures:
 
 These fixtures are currently local synthetic/research fixtures. They were created to make the pipeline executable and to cover controlled failure modes. They are not yet a representative sample of public or user-provided skills. Broad generalization claims should wait until the corpus includes externally sourced skills with explicit provenance.
 
+Their evidence weight should be low in the main research claims. They are development and calibration fixtures, not proof that Skill IR handles arbitrary public skills. Report them separately from real/public skill rows or mark them as a controlled case-study slice.
+
 Future manifest entries should record provenance:
 
 ```text
@@ -85,6 +87,8 @@ user-provided
 ```
 
 The current six fixtures should be labeled `synthetic-seed` once provenance fields are added to the manifest.
+
+Future analysis should avoid one aggregate number that mixes these synthetic rows with real/public rows. If a mixed table is necessary, include provenance counts and a real-skill-only slice.
 
 ## Context Perturbations
 
@@ -184,4 +188,5 @@ Preferred next additions:
 - Use `held-out` tasks only for evaluation, not for manual tuning.
 - Prefer adding small, complete fixtures over large partial ones.
 - Do not mix synthetic and real/public skills in aggregate claims without reporting provenance.
+- Treat current synthetic seed results as lower-confidence calibration evidence until real/public skill coverage exists.
 - Update this document when fixture layout, split names, or validation policy changes.

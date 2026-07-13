@@ -6,6 +6,8 @@ The validation planner consumes `skill-ir-promotion/v1` evidence reports and emi
 
 This component was added because the current final IR, `ir-profile`, and `ir-pgo` artifacts are still research-stage artifacts. Task 11F made model-family evidence visible, but the evidence is not yet mature enough to support automatic adoption.
 
+The planner should also reflect artifact maturity. Most current final IR artifacts are structured workflow JSON plus early lowered checks/recovery policies. They are not yet stable reusable code/file/template/tool-plan packages. Plans should therefore recommend artifact-solidification work when token or stability claims depend on repeated reuse.
+
 ## Implementation
 
 Implementation files:
@@ -44,6 +46,7 @@ The planner reads a promotion report and produces one plan per model family. Eac
 - planning state;
 - recommended artifact for current experiments;
 - adoption readiness;
+- artifact maturity and whether the candidate is still only JSON workflow IR;
 - confidence, risk, paired-case count, and infrastructure rate;
 - concrete next actions;
 - caveats that prevent overinterpreting the plan as automatic adoption.
@@ -103,6 +106,7 @@ This is intentionally less decisive than "adopt PGO for GPT." It means GPT is th
 - The current model-family grouping is coarse; it does not yet encode per-annotation model-family support.
 - `experimental-candidate` readiness means "worth validating further," not "production-ready."
 - Corpus expansion is always conservative because the current corpus is still coding-agent-heavy.
+- Token-cost plans should account for upfront compile/profile cost and repeated-use break-even, not only one-run prompt length.
 
 ## Verification
 

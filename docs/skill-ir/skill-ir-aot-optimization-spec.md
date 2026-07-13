@@ -769,3 +769,49 @@ Skill IR improves stability when it makes useful skill semantics explicit and re
 ```
 
 This does not change the overall route, but it changes the next experimental priority. The next benchmark phase should add real/public skill provenance and no-skill comparisons before making strong cross-model claims.
+
+## 24. Task 11I Calibration: Evidence Weighting, Real-Skill Restart, Amortized Cost, And Artifact Maturity
+
+The follow-up discussion after Task 11H further clarifies the current project state.
+
+First, existing self-created seed skills should be explicitly downweighted. They remain useful for TDD, controlled failure design, scorer calibration, and explaining the pipeline, but they should not be the main basis for broad claims. The main evidence track should restart from real skills:
+
+```text
+upstream-skvm
+real-public
+adapted-public
+user-provided
+```
+
+The result analyzer and report should eventually separate or weight evidence by provenance. A mixed aggregate without provenance accounting can overstate generality, especially because the current seed skills are coding-agent-heavy and may fit GPT-style instruction following better than a neutral public skill distribution.
+
+Second, token cost should be evaluated as amortized cost over repeated invocations. AOT optimization can pay more at import time because it parses the skill, validates the IR, collects profile evidence, generates checks/schemas/code, and verifies artifacts. That is acceptable only if repeated use becomes more stable or cheaper:
+
+```text
+total_original(N)  = original_runtime_cost * N
+total_optimized(N) = compile_cost + profile_cost + optimized_runtime_cost * N
+break_even_N       = smallest N where total_optimized(N) <= total_original(N)
+```
+
+Reports should therefore distinguish:
+
+```text
+upfront compile/profile cost
+steady-state per-run cost
+break-even invocation count
+quality-preserving savings after break-even
+```
+
+Third, the current `final IR` and `ir-pgo` artifacts are not yet the final target. They are still close to structured workflow JSON: steps, rules, tool assumptions, runtime checks, and recovery policies. The long-term goal is to solidify repeated work into stable reusable artifacts, such as code blocks, file blocks, templates, schemas, checkers, adapters, and fixed tool plans that do not need to be regenerated each run.
+
+The artifact maturity model is:
+
+```text
+L0 natural skill text
+L1 structured workflow IR JSON
+L2 lowered controller/checker/adapter/schema artifacts
+L3 stable reusable code/file/template/tool-plan blocks
+L4 validated artifact package with provenance, cache policy, and regression evidence
+```
+
+The current implementation is mainly between L1 and early L2. It has a connected research loop, not a finished optimization product. Future work should move step by step from JSON workflow IR toward reusable artifacts and should report maturity honestly rather than describing the loop as complete.

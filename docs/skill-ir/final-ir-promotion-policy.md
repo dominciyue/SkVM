@@ -8,6 +8,8 @@ This component exists because Task 11E showed that final IR is not globally bett
 
 The current policy is not an automatic deployment decision. It is a decision-support artifact for research analysis and the validation planner. Its output should be read as "what should we validate or optimize next?" rather than "which IR should permanently replace the other IR?"
 
+Current `final IR` artifacts are still close to structured workflow JSON with generated checks and recovery policies. A promotion signal does not mean the project has reached the final artifact goal. It only says that a candidate IR deserves more validation while the project continues moving toward reusable code/file/template/schema/checker/adapter artifacts.
+
 ## Implementation
 
 Implementation files:
@@ -119,6 +121,7 @@ qwen   -> keep-ir-profile
 - Infrastructure-heavy routes are held out from promotion even when semantic rows look good.
 - The confidence score is a heuristic summary, not a statistical confidence interval.
 - The current model-family grouping is coarse. It does not yet mean profile annotations, output schemas, or repair hints are learned separately per model family.
+- Current final IR maturity is mostly L1 to early L2. It should not be described as a stable L3/L4 reusable artifact package.
 
 ## Verification
 

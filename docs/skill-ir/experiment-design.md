@@ -109,6 +109,8 @@ synthetic-seed | adapted-public | real-public | upstream-skvm | user-provided
 
 The current seed corpus is mostly `synthetic-seed`. It is appropriate for pipeline construction and controlled case studies, but broad claims need a larger set of externally sourced or user-provided skills. The next corpus expansion should include upstream SkVM skills, public agent skills, non-coding workflows, bilingual or Chinese skills, schema-heavy output skills, and environment-sensitive tool skills.
 
+Evidence should be weighted by provenance. Synthetic seed rows should be treated as low-confidence calibration evidence unless they are reported as a separate controlled case study. Main stability claims should be made on `real-public`, `adapted-public`, `upstream-skvm`, or `user-provided` rows, with provenance counts included in every aggregate table.
+
 ## Context Conditions
 
 The standard context perturbations are:
@@ -176,6 +178,30 @@ Token and latency metrics should be interpreted together with success. Lower tok
 - fixed command plans.
 
 The strongest token-cost claim is not merely "the optimized prompt is shorter." It is "repeated reasoning, tool setup, schema generation, or code generation was compiled into reusable artifacts."
+
+AOT optimization may cost more during import or the first few runs. Reports should therefore use amortized token metrics:
+
+```text
+total_original(N)  = original_runtime_cost * N
+total_optimized(N) = compile_cost + profile_cost + optimized_runtime_cost * N
+break_even_N       = smallest N where total_optimized(N) <= total_original(N)
+```
+
+The result table should eventually include upfront cost, steady-state per-run cost, break-even invocation count, and post-break-even savings. A lower steady-state token count only matters when success, rule compliance, and regression metrics are preserved.
+
+## Artifact Maturity Metric
+
+The current `final IR` and `ir-pgo` artifacts should be evaluated as research artifacts, not as finished reusable packages. The project should track maturity:
+
+| Level | Meaning |
+|---|---|
+| L0 | Natural skill text. |
+| L1 | Structured workflow IR JSON. |
+| L2 | Lowered controller/checker/adapter/schema artifacts. |
+| L3 | Stable reusable code/file/template/tool-plan blocks. |
+| L4 | Validated artifact package with provenance, cache policy, and regression evidence. |
+
+Current results mostly demonstrate L1 and early L2 behavior. Later experiments should measure whether artifact solidification reaches L3 or L4 and whether repeated invocations become more stable or cheaper.
 
 ## Deterministic Verifiers
 
@@ -318,11 +344,13 @@ Each case study should include:
 - Some success criteria still require human judgment.
 - The seed benchmark is small before the deep corpus is populated.
 - Current seed skills are mostly locally constructed fixtures, so they may reflect GPT-friendly coding-agent conventions.
+- Synthetic seed results can overstate generality if they are mixed into real-skill aggregates without provenance weighting.
 - Windows/macOS/Linux coverage may be uneven depending on available machines.
 - Broad skills can improve performance by adding more documentation rather than better structure.
 - Profile-guided repair can overfit development traces if held-out tasks are too similar.
 - A missing or weak no-skill baseline can make a harmful or unnecessary skill look beneficial.
 - Token reduction claims can be misleading if lower cost comes with hidden success regressions.
+- Current `final IR` artifacts are still close to workflow JSON, so artifact-maturity claims should be separated from semantic-IR claims.
 
 ## Reporting Requirements
 
