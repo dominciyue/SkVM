@@ -6,7 +6,7 @@ import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-r
 import { normalizeRules } from "../../skill-ir/passes/rule-normalization";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 import { inferModelFamily } from "./promotion-policy";
-import { materializeVerifiedOriginalSource } from "./source-fixture";
+import { materializeVerifiedOriginalSource, materializeVerifiedSourceClosure } from "./source-fixture";
 
 export type RunIdentity = {
   model: string;
@@ -22,6 +22,7 @@ export type SkillIRBenchmarkTask = {
   split: string;
   prompt: string;
   successCriteria: string[];
+  fixtures?: Record<string, string>;
 };
 
 export type SkvmTaskJson = {
@@ -30,6 +31,7 @@ export type SkvmTaskJson = {
   category: string;
   gradingType: "llm_judge";
   prompt: string;
+  fixtures?: Record<string, string>;
   eval: {
     method: "llm-judge";
     id: string;
@@ -45,6 +47,7 @@ export type MaterializedCase = {
   caseId: string;
   system: ExperimentSystem;
   taskPath: string;
+  workDir: string;
   skillPath?: string;
   skillProvenance?: SkillProvenance;
   evidenceWeight?: EvidenceWeight;
@@ -58,7 +61,7 @@ export type MaterializeCaseOptions = {
   context: string;
   system: ExperimentSystem;
   caseId: string;
-  runIndex?: number;
+  runIndex: number;
 };
 
 export type BuildRunCommandOptions = {
@@ -248,6 +251,7 @@ export function buildSkvmTaskJson(
     category: "skill-ir",
     gradingType: "llm_judge",
     prompt: [contextPerturbation(opts.context), "", task.prompt].join("\n"),
+    ...(task.fixtures ? { fixtures: { ...task.fixtures } } : {}),
     eval: [
       {
         method: "llm-judge",
@@ -268,10 +272,11 @@ export function buildSkvmTaskJson(
 
 export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Promise<MaterializedCase> {
   const safeCaseId = opts.caseId.replace(/[^a-zA-Z0-9._-]+/g, "__");
-  const caseDir = join(opts.outDir, safeCaseId, opts.system, `run-${opts.runIndex ?? 1}`);
+  const caseDir = join(opts.outDir, safeCaseId, opts.system, `run-${opts.runIndex}`);
   const taskDir = join(caseDir, "task");
   const skillDir = join(caseDir, "skill");
-  await mkdir(taskDir, { recursive: true });
+  const workDir = join(caseDir, "workdir");
+  await Promise.all([mkdir(taskDir, { recursive: true }), mkdir(workDir, { recursive: true })]);
 
   const taskJson = buildSkvmTaskJson(opts.task, {
     context: opts.context,
@@ -287,16 +292,21 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
       caseId: opts.caseId,
       system: opts.system,
       taskPath,
+      workDir,
       skillPath,
     };
   }
 
   const renderedSkill = renderSkillMarkdown(opts.ir, opts.system);
   if (renderedSkill === null) {
-    return { caseId: opts.caseId, system: opts.system, taskPath };
+    return { caseId: opts.caseId, system: opts.system, taskPath, workDir };
   }
 
-  await mkdir(skillDir, { recursive: true });
+  if (opts.ir.source.kind === "file") {
+    await materializeVerifiedSourceClosure(opts.ir, opts.rootDir ?? process.cwd(), skillDir);
+  } else {
+    await mkdir(skillDir, { recursive: true });
+  }
   const skillPath = join(skillDir, "SKILL.md");
   await writeFile(skillPath, `${renderedSkill}\n`, "utf8");
 
@@ -304,6 +314,7 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
     caseId: opts.caseId,
     system: opts.system,
     taskPath,
+    workDir,
     skillPath,
   };
 }
@@ -341,7 +352,7 @@ export function buildSkvmRunCommand(opts: BuildRunCommandOptions): string[] {
 
 export function buildRunPlanEntry(
   materialized: MaterializedCase,
-  opts: Omit<BuildRunCommandOptions, "taskPath" | "skillPath"> &
+  opts: Omit<BuildRunCommandOptions, "taskPath" | "skillPath" | "workdir"> &
     Partial<Pick<RunIdentity, "modelFamily" | "adapterVersion" | "runIndex" | "panelConfigId">>,
 ): RealAgentRunPlanEntry {
   return {
@@ -356,6 +367,7 @@ export function buildRunPlanEntry(
       ...opts,
       taskPath: materialized.taskPath,
       skillPath: materialized.skillPath,
+      workdir: materialized.workDir,
     }),
   };
 }

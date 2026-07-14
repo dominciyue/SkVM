@@ -60,13 +60,21 @@ export async function materializeVerifiedOriginalSource(
   rootDir: string,
   destinationDir: string,
 ): Promise<string> {
+  const source = await materializeVerifiedSourceClosure(ir, rootDir, destinationDir);
+  const skillPath = resolve(destinationDir, "SKILL.md");
+  await writeFile(skillPath, source.bytes);
+  return skillPath;
+}
+
+export async function materializeVerifiedSourceClosure(
+  ir: SkillIR,
+  rootDir: string,
+  destinationDir: string,
+): Promise<VerifiedSkillSource> {
   const source = await loadVerifiedSkillSource(ir, rootDir);
   await mkdir(destinationDir, { recursive: true });
   if (source.sourceDir) {
     await cp(source.sourceDir, destinationDir, { recursive: true });
   }
-
-  const skillPath = resolve(destinationDir, "SKILL.md");
-  await writeFile(skillPath, source.bytes);
-  return skillPath;
+  return source;
 }

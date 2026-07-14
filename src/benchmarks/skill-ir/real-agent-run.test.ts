@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { SkillIR } from "../../skill-ir/schema";
@@ -302,6 +302,16 @@ describe("real-agent-run manifest loading", () => {
       expect.stringContaining(join("original", "run-2", "skill", "SKILL.md")),
       expect.stringContaining(join("original", "run-3", "skill", "SKILL.md")),
     ]);
+    expect(new Set(plan.map((entry) => entry.workDir)).size).toBe(3);
+    expect(plan.map((entry) => entry.workDir)).toEqual([
+      expect.stringContaining(join("original", "run-1", "workdir")),
+      expect.stringContaining(join("original", "run-2", "workdir")),
+      expect.stringContaining(join("original", "run-3", "workdir")),
+    ]);
+    expect((await Promise.all(plan.map(async (entry) => (await stat(entry.workDir)).isDirectory()))).every(Boolean)).toBe(
+      true,
+    );
+    expect(plan.every((entry) => entry.command.includes(`--workdir=${entry.workDir}`))).toBe(true);
   });
 
   test("buildPlan can narrow runs by agent, environment, and task id", async () => {

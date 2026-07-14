@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -120,6 +120,25 @@ describe("real-agent Task 11A helpers", () => {
     expect(cleanTask.prompt).not.toContain("Distracting prior note");
   });
 
+  test("buildSkvmTaskJson preserves fixtures without exposing fixtures or evaluator expectations in the prompt", () => {
+    const fixtureTask: SkillIRBenchmarkTask = {
+      ...task,
+      fixtures: {
+        "input.txt": "fixture-only-sentinel\n",
+      },
+      successCriteria: ["evaluator-only-sentinel"],
+    };
+
+    const taskJson = buildSkvmTaskJson(fixtureTask, {
+      context: "clean",
+      skillId: "skill-review",
+    });
+
+    expect(taskJson.fixtures).toEqual({ "input.txt": "fixture-only-sentinel\n" });
+    expect(taskJson.prompt).not.toContain("fixture-only-sentinel");
+    expect(taskJson.prompt).not.toContain("evaluator-only-sentinel");
+  });
+
   test("buildSkvmTaskJson injects long and compressed context perturbations", () => {
     const longTask = buildSkvmTaskJson(task, {
       context: "long",
@@ -218,10 +237,13 @@ describe("real-agent Task 11A helpers", () => {
       context: "clean",
       system: "ir-static",
       caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
+      runIndex: 2,
     });
 
     expect(materialized.taskPath.endsWith("task.json")).toBe(true);
     expect(materialized.skillPath?.endsWith("SKILL.md")).toBe(true);
+    expect(materialized.workDir).toContain(join("ir-static", "run-2", "workdir"));
+    expect((await stat(materialized.workDir)).isDirectory()).toBe(true);
 
     const taskFile = await Bun.file(materialized.taskPath).json();
     const skillText = await Bun.file(materialized.skillPath!).text();
@@ -253,10 +275,100 @@ describe("real-agent Task 11A helpers", () => {
       context: "clean",
       system: "original",
       caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+      runIndex: 1,
     });
 
     expect(await Bun.file(materialized.skillPath!).text()).toBe(sourceText);
     expect(await Bun.file(join(materialized.skillPath!, "..", "scripts", "check.py")).text()).toBe("print('ok')\n");
+  });
+
+  test("materializeCaseArtifacts preserves file-backed resources while replacing generated SKILL.md", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-"));
+    tempDirs.push(tempDir);
+    const sourceDir = join(tempDir, "corpus", "skill-a", "source");
+    const sourceText = "# Exact upstream skill\n\nUse scripts/check.py.\n";
+    await mkdir(join(sourceDir, "scripts"), { recursive: true });
+    await writeFile(join(sourceDir, "SKILL.md"), sourceText, "utf8");
+    await writeFile(join(sourceDir, "scripts", "check.py"), "print('ok')\n", "utf8");
+    const ir = baseIr();
+    ir.source = {
+      kind: "file",
+      path: "corpus/skill-a/source/SKILL.md",
+      sha256: createHash("sha256").update(sourceText).digest("hex"),
+    };
+
+    const materialized = await materializeCaseArtifacts({
+      outDir: join(tempDir, "out"),
+      rootDir: tempDir,
+      ir,
+      task,
+      context: "clean",
+      system: "ir-static",
+      caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+      runIndex: 1,
+    });
+
+    expect(await Bun.file(materialized.skillPath!).text()).toContain("Materialized system: ir-static.");
+    expect(await Bun.file(materialized.skillPath!).text()).not.toBe(sourceText);
+    expect(await Bun.file(join(materialized.skillPath!, "..", "scripts", "check.py")).text()).toBe("print('ok')\n");
+  });
+
+  test("materializeCaseArtifacts rejects generated IR when its file-backed source digest is stale", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-"));
+    tempDirs.push(tempDir);
+    const sourceDir = join(tempDir, "corpus", "skill-a", "source");
+    await mkdir(sourceDir, { recursive: true });
+    await writeFile(join(sourceDir, "SKILL.md"), "changed\n", "utf8");
+    const ir = baseIr();
+    ir.source = {
+      kind: "file",
+      path: "corpus/skill-a/source/SKILL.md",
+      sha256: "0".repeat(64),
+    };
+
+    expect(
+      materializeCaseArtifacts({
+        outDir: join(tempDir, "out"),
+        rootDir: tempDir,
+        ir,
+        task,
+        context: "clean",
+        system: "ir-static",
+        caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+        runIndex: 1,
+      }),
+    ).rejects.toThrow("source digest mismatch");
+  });
+
+  test("materializeCaseArtifacts gives no-skill no skill path or source closure", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-"));
+    tempDirs.push(tempDir);
+    const sourceDir = join(tempDir, "corpus", "skill-a", "source");
+    const sourceText = "# Exact upstream skill\n";
+    await mkdir(join(sourceDir, "scripts"), { recursive: true });
+    await writeFile(join(sourceDir, "SKILL.md"), sourceText, "utf8");
+    await writeFile(join(sourceDir, "scripts", "check.py"), "print('ok')\n", "utf8");
+    const ir = baseIr();
+    ir.source = {
+      kind: "file",
+      path: "corpus/skill-a/source/SKILL.md",
+      sha256: createHash("sha256").update(sourceText).digest("hex"),
+    };
+
+    const materialized = await materializeCaseArtifacts({
+      outDir: join(tempDir, "out"),
+      rootDir: tempDir,
+      ir,
+      task,
+      context: "clean",
+      system: "no-skill",
+      caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+      runIndex: 1,
+    });
+
+    expect(materialized.skillPath).toBeUndefined();
+    expect(await Bun.file(join(materialized.workDir, "..", "skill", "SKILL.md")).exists()).toBe(false);
+    expect(await Bun.file(join(materialized.workDir, "..", "skill", "scripts", "check.py")).exists()).toBe(false);
   });
 
   test("materializeCaseArtifacts rejects a file-backed source with a stale digest", async () => {
@@ -281,6 +393,7 @@ describe("real-agent Task 11A helpers", () => {
         context: "clean",
         system: "original",
         caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+        runIndex: 1,
       }),
     ).rejects.toThrow("source digest mismatch");
   });
@@ -304,22 +417,26 @@ describe("real-agent Task 11A helpers", () => {
         context: "clean",
         system: "original",
         caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+        runIndex: 1,
       }),
     ).rejects.toThrow("escapes repository root");
   });
 
   test("buildRunPlanEntry attaches a runnable skvm command to materialized artifacts", () => {
+    const commandOptions = {
+      model: "openrouter/test/model",
+      adapter: "bare-agent",
+      workdir: "tmp/different-workdir",
+    };
     const entry = buildRunPlanEntry(
       {
         caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
         system: "original",
         taskPath: "tmp/task.json",
         skillPath: "tmp/skill/SKILL.md",
+        workDir: "tmp/workdir",
       },
-      {
-        model: "openrouter/test/model",
-        adapter: "bare-agent",
-      },
+      commandOptions,
     );
 
     expect(entry.command).toEqual([
@@ -332,6 +449,8 @@ describe("real-agent Task 11A helpers", () => {
       "--adapter=bare-agent",
       "--skill=tmp/skill/SKILL.md",
       "--skill-mode=inject",
+      "--workdir=tmp/workdir",
     ]);
+    expect(entry.workDir).toBe("tmp/workdir");
   });
 });
