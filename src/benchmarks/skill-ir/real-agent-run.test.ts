@@ -209,6 +209,24 @@ describe("real-agent-run manifest loading", () => {
     expect(skillText).toContain("# Profiled Review Skill");
   });
 
+  test("buildPlan rejects ir-pgo when no development-derived IR override is provided", async () => {
+    const rootDir = await createMultiSkillRoot();
+    const args: RealAgentRunArgs = {
+      model: "test/model",
+      adapter: "bare-agent",
+      outDir: join(rootDir, "out"),
+      limit: 1,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1000,
+      rootDir,
+      systems: new Set(["ir-pgo"]),
+      contexts: new Set(["clean"]),
+    };
+
+    expect(buildPlan(args)).rejects.toThrow("ir-pgo requires --ir-override-dir");
+  });
+
   test("assertRequiredEnv fails before execution when a required env var is blank", () => {
     expect(() =>
       assertRequiredEnv(

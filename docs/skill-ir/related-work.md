@@ -154,7 +154,7 @@ Task 8 should be sharpened:
 
 - Build paired experiment cases, not only a Cartesian product.
 - Preserve a stable `caseId` for comparing systems.
-- Include systems: `no-skill`, `original`, `skvm-aot`, `ir-only`, `ir-static`, `ir-profile`.
+- Use `no-skill | original | ir-static | ir-pgo` as the current main table. Keep `ir-only` as an explicit ablation, `ir-profile` for archived comparisons, and `skvm-aot` outside the table until real upstream integration exists.
 - Track focused vs broad skill packaging.
 - Make negative deltas visible.
 

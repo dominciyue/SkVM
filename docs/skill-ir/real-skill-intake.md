@@ -46,7 +46,7 @@ The checkout also corrected several README-stage assumptions. `anbeime/skill` li
 
 ## Selected Pilot
 
-The first licensed pilot contains six skills:
+The licensed intake contains six skills, split into two evidence stages:
 
 | Skill | Source | Coverage | Why Selected | Main Risk |
 |---|---|---|---|---|
@@ -56,6 +56,24 @@ The first licensed pilot contains six skills:
 | `env-manager` | `claude-code-skills-zh` | environment, security, tool use | Strong redaction, safety, schema, and cross-environment opportunities. | Fixtures must contain fake secrets only. |
 | `zh-readme` | `claude-code-skills-zh` | Chinese content workflow | Adds evidence-grounded document generation and command/link validation. | Some presentation quality remains subjective. |
 | `experimental-design` | `claude-scientific-skills` | scientific, non-coding, tool use | Adds a non-coding domain with deterministic seeded scripts and explicit dependencies. | Domain-aware quality checks are needed beyond syntax. |
+
+Deep pilot, implemented and evaluated first:
+
+```text
+law-to-markdown
+env-manager
+experimental-design
+```
+
+Replication pilot, blocked until every deep pilot passes the source/no-skill/IR/development/held-out evidence gate:
+
+```text
+zh-code-reviewer
+api-tester
+zh-readme
+```
+
+This 3+3 cap is deliberate. Intake breadth is not evidence until a skill has reproducible tasks, scorers, paired real runs, and an interpretation note.
 
 Deferred candidates remain useful for later breadth:
 
@@ -99,16 +117,14 @@ Recommended values:
 
 ## Sampling Targets
 
-For the next real-skill expansion, start with a small but balanced intake table before converting skills to IR:
+The old category counts were discovery targets. The active implementation target is the six-skill 3+3 pilot above. Category balance guides selection but does not require converting every candidate:
 
 | Category | Initial Target | Why |
 |---|---:|---|
-| Document/file processing | 2-3 | Strong artifact-solidification potential through schemas, scripts, and templates. |
-| Chinese developer workflow | 3-4 | Tests non-English skill instructions and Chinese output requirements. |
-| Code quality/security/testing | 3-4 | Comparable with current seed tasks but externally sourced. |
-| Content/report generation | 2-3 | Tests output schema, evidence grounding, and style constraints. |
-| Environment/tool automation | 2-3 | Tests adapters, dependency checks, and platform assumptions. |
-| Non-coding domain workflow | 2-3 | Reduces coding-agent and GPT-style bias. |
+| Document/file processing | 1 deep | Strong artifact-solidification potential through scripts and checks. |
+| Environment/tool automation | 1 deep | Tests dependency checks, safety rules, and reusable probes. |
+| Non-coding scientific workflow | 1 deep | Reduces coding-agent and GPT-style bias. |
+| Chinese developer/content workflow | Up to 3 replication | Tests language and task-shape transfer after the deep gate. |
 
 The first implementation pass should not try to convert all candidates. It should create a scored intake table and select a small pilot set.
 
@@ -151,8 +167,22 @@ candidate | inspect-skill-md | selected-pilot | deferred | rejected
 5. Classify risks: external API, credentials, local tools, OS dependency, arbitrary code execution, high-stakes domain.
 6. Select a small pilot set across categories.
 7. Convert selected skills to Skill IR without overwriting the original text.
-8. Design no-skill/original/IR tasks with deterministic or semi-deterministic success criteria.
-9. Run small real-agent audits before adding candidates to main benchmark claims.
+8. Design no-skill/original/IR tasks with deterministic or semi-deterministic success criteria before compiling PGO artifacts.
+9. Reserve development tasks for overlay generation and disjoint held-out tasks for evaluation.
+10. Run the four-system main table before adding candidates to main benchmark claims.
+
+## Deep-Pilot Evidence Gate
+
+Each deep pilot must have all of the following before replication intake starts:
+
+- exact licensed source content and integrity metadata;
+- a valid `no-skill` task formulation and an exact `original` baseline;
+- deterministic or semi-deterministic scorers written before optimization;
+- audited static base IR and `ir-static` materialization;
+- explicit development and held-out task split;
+- task-local overlay generated only from development failures;
+- paired `no-skill | original | ir-static | ir-pgo` held-out results;
+- a short interpretation including regressions, scorer limits, and artifact-solidification opportunities.
 
 ## Command Notes
 

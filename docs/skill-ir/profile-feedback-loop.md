@@ -1,5 +1,7 @@
 # Skill IR Profile Feedback Loop
 
+> **Current policy (2026-07-15): task-local repair.** Generate overlays only from a pilot skill's development tasks and evaluate them on disjoint held-out tasks from the same skill/task family. Do not assume cross-model or cross-skill transfer without a separate experiment.
+
 ## Purpose
 
 Task 11C adds the missing dynamic feedback path for profile-guided Skill IR optimization. Earlier Task 11 runs showed useful static IR materialization effects, but the base corpus IR files still had empty `profile` arrays. This component turns scored real-agent failures into typed trace feedback, profile overlays, and final optimized IR artifacts.
@@ -19,11 +21,11 @@ Static Base IR
 
 `Final Optimized IR` is produced by compiling the base IR and overlay through deterministic passes: rule normalization, environment guard insertion, profile annotation merge, profile-guided repair, and validation.
 
-The current project should not claim that an arbitrary imported skill can be transformed into a globally optimal final IR without any validation. The practical target is:
+The current project should not claim that an arbitrary imported skill can be transformed into a globally optimal final IR without validation. The practical target is:
 
 ```text
 cold-start import -> strong static optimized IR
-warm-start with execution evidence -> profile-guided final optimized IR
+warm-start with task-local development evidence -> profile-guided candidate IR
 held-out runs -> evidence that the optimization generalizes
 ```
 
@@ -157,7 +159,7 @@ The systems now have distinct meanings:
 | `ir-profile` | Static Skill IR materialization plus profile-guided repair over whatever `profile` annotations already exist in the input IR. |
 | `ir-pgo` | Profile-guided materialization intended for final IR generated from scored result feedback. |
 
-`ir-pgo` does not magically load profile files by itself. It renders the IR it is given. To evaluate true profile-guided optimization, run the feedback CLI first, point a follow-up corpus or temporary root at the final IR files, then run `real-agent-run.ts` with `--systems=original,ir-profile,ir-pgo`.
+`ir-pgo` does not infer profile files by itself. To evaluate true profile-guided optimization, run the feedback CLI first and pass its final IR directory to `real-agent-run.ts`. The runner now rejects `ir-pgo` without `--ir-override-dir` so unchanged base IR cannot be mislabeled as PGO.
 
 The real-agent runner accepts the final IR directory directly:
 
@@ -171,7 +173,8 @@ bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile,i
 
 - Infrastructure rows are ignored so provider, gateway, credential, timeout, and tool-call-format failures do not become skill profile feedback.
 - Unknown failed criteria fall back to stable `rule-<slug>` target refs. They will produce annotations, but profile-guided repair can only generate rule-specific checks when the target ref exists in the IR rule list.
-- A low `--min-evidence` can overfit small runs. Use it for case studies, then validate on held-out tasks.
+- A low `--min-evidence` can overfit small runs. Use it only for method case studies; real pilots require documented development evidence and disjoint held-out validation.
+- An overlay generated on one model route is not a model-family profile and must not be assumed to transfer to another route.
 - Final IR should not be treated as the new base corpus until the source rows and train/eval split are documented.
 
 ## Verification

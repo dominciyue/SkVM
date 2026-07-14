@@ -46,6 +46,8 @@ For each selected matrix case, the harness:
 
 The default mode is dry-run. It does not call a model.
 
+The default system axis is `no-skill | original | ir-static | ir-pgo`. Passing `--systems=` replaces that axis before matrix construction, so archived systems such as `ir-profile` and explicit ablations such as `ir-only` remain runnable even though they are not defaults. Because base IR must not masquerade as PGO, any plan containing `ir-pgo` requires `--ir-override-dir`; use an explicit non-PGO system list for cold-start-only dry runs.
+
 ## Context Perturbations
 
 `buildSkvmTaskJson` makes the context dimension observable in the task prompt:
@@ -72,6 +74,8 @@ This matters for Task 11: context should be an actual input perturbation, not on
 | `ir-pgo` | Applies the same profile-guided materialization path to final IR generated from scored result feedback. Use this for Task 11C profile-guided optimization experiments. |
 
 The `skvm-aot` path is intentionally conservative. It does not fake a true SkVM compiler result.
+
+Current checker/controller text is agent-facing material, not independently executed runtime enforcement.
 
 See `docs/skill-ir/profile-feedback-loop.md` for the command that creates profile overlay and final IR artifacts before running `ir-pgo`.
 
@@ -103,7 +107,11 @@ The runner supports these selection filters:
 | `--require-env=` | required shell environment variables for `--execute` mode |
 | `--ir-override-dir=` | directory containing final `<skill-id>.json` IR files, typically `<profile-feedback-out>/final-ir` for `ir-pgo` runs |
 
-Filters are applied before `--limit`, so a small multi-skill smoke run can sample the intended skills instead of accidentally taking the first rows from the default matrix order.
+`--systems` overrides the default system axis; the other filters are applied before `--limit`. A small multi-skill smoke run can therefore sample the intended skills and explicit ablations instead of accidentally taking the first rows from the default matrix order.
+
+The runner fails before materialization when `ir-pgo` is selected without `--ir-override-dir`. This protects the system label from silently rendering unchanged base IR.
+
+`--agents` and `--environments` currently filter scheduling labels only. The command still uses the single global `--adapter` value and the current host OS. Do not interpret different label values as cross-agent or cross-OS execution until executor bindings are implemented.
 
 Execute the generated plan against a real model:
 

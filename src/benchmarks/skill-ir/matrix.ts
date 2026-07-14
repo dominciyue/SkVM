@@ -75,10 +75,7 @@ type TaskSet = {
 export const DEFAULT_EXPERIMENT_SYSTEMS: ExperimentSystem[] = [
   "no-skill",
   "original",
-  "skvm-aot",
-  "ir-only",
   "ir-static",
-  "ir-profile",
   "ir-pgo",
 ];
 

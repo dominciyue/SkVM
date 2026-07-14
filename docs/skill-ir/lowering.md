@@ -4,6 +4,8 @@
 
 Lowering converts optimized `SkillIR` into runtime-facing artifacts. The v1 lowering layer does not execute tools, run checks, or control an agent directly. It prepares structured data that later runtime modules can consume.
 
+This places the implementation at L1/early-L2 maturity. Rendered controller/checker/adapter material is a declarative specification, not independent runtime enforcement.
+
 The implementation lives in:
 
 ```text
@@ -103,6 +105,27 @@ SkillIR
 ```
 
 Lowering should receive a validated and optimized IR. It does not repair missing references; that remains the validator's responsibility.
+
+## Engineering North Star
+
+The full package contract is documented in `docs/skill-ir/validated-skill-artifact-package.md`.
+
+Lowering should eventually populate a Validated Skill Artifact Package:
+
+```text
+optimized_skill/
+  skill_ir.json
+  skill.md
+  artifacts/
+    checks/
+    schemas/
+    scripts/
+    templates/
+    tool-plans/
+  provenance + validation notes
+```
+
+`skill_ir.json` remains the authoritative semantics, while `skill.md` is a generated human/agent view. Reusable artifacts should be emitted only when they replace repeated reasoning or generation and have an explicit validation record. Package creation, cache policy, executable checkers, and artifact integrity are not implemented by the current lowering functions.
 
 ## Command Line
 

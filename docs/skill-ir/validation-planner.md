@@ -1,12 +1,14 @@
 # Skill IR Validation Planner
 
+> **Status (2026-07-15): frozen dry-run utility.** It remains useful as a design artifact, but the real-skill pilot stage uses an explicit evidence gate. Do not add automatic adoption or more planner policy before the research core has real development/held-out results.
+
 ## Purpose
 
 The validation planner consumes `skill-ir-promotion/v1` evidence reports and emits a dry-run `skill-ir-validation-plan/v1` plan. Its job is to say what should be validated or optimized next. It does not call models, modify corpus IR, or automatically choose a permanent IR artifact.
 
 This component was added because the current final IR, `ir-profile`, and `ir-pgo` artifacts are still research-stage artifacts. Task 11F made model-family evidence visible, but the evidence is not yet mature enough to support automatic adoption.
 
-The planner should also reflect artifact maturity. Most current final IR artifacts are structured workflow JSON plus early lowered checks/recovery policies. They are not yet stable reusable code/file/template/tool-plan packages. Plans should therefore recommend artifact-solidification work when token or stability claims depend on repeated reuse.
+Most current final IR artifacts are structured workflow JSON plus early lowered checks/recovery policies. They are not yet stable reusable code/file/template/tool-plan packages. The northbound target is a Validated Skill Artifact Package; planner output cannot establish that maturity.
 
 ## Implementation
 

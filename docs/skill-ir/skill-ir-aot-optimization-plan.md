@@ -1,5 +1,68 @@
 # Skill IR AOT Optimization Implementation Plan
 
+> **Current authority (2026-07-15):** The execution ledger below is the authoritative project plan. The detailed Task 0-12 sections are retained as implementation history and design rationale; their old checkbox state is not a progress tracker and must not be used to infer current status.
+
+## Current Research Contract
+
+**Primary claim:** For a small, source-backed set of real skills, compile natural-language skills into static Skill IR and use development execution feedback to generate task-local PGO IR. On held-out tasks across multiple models and context conditions, compare against `no-skill` and `original`, seeking improved success or worst-case performance while controlling regressions.
+
+**Current main table:**
+
+```text
+no-skill | original | ir-static | ir-pgo
+```
+
+`ir-only` is an explicit ablation, `ir-profile` is retained for archived-run compatibility, and `skvm-aot` remains excluded from the main table until it is connected to a real upstream AOT path.
+
+**PGO policy:** use task-local repair. Only development evidence from the same skill/task family may produce an overlay; evaluation uses disjoint held-out tasks. Cross-model transfer is a later research question, not a current assumption.
+
+**Evidence scope:** start with three deep real-skill pilots (`law-to-markdown`, `env-manager`, and `experimental-design`) and reserve three additional pilots for replication. Do not expand beyond six until each deep pilot has an exact source baseline, deterministic scoring, a no-skill task definition, base IR, development/held-out separation, real runs, and an interpretation note.
+
+**Engineering north star:** move from the current L1/early-L2 representation toward a Validated Skill Artifact Package at approximately L3-L4:
+
+```text
+optimized_skill/
+  skill_ir.json
+  skill.md
+  artifacts/
+    checks/ | schemas/ | scripts/ | templates/ | tool-plans/
+  provenance + validation notes
+```
+
+The package is a northbound engineering target, not a current paper claim. Artifact solidification means compiling repeated reasoning, formatting, environment probes, and fixed tool plans into reusable files or code blocks. Stability is the primary research objective; amortized token reduction remains secondary until measured package reuse exists.
+
+## Current Execution Ledger
+
+| Workstream | Status | Evidence boundary / next action |
+|---|---|---|
+| Tasks 0-10: schema, parser, validator, seed corpus, profiler, passes, lowering, matrix, analyzer, experiment docs | Completed and tested | Synthetic seed evidence is calibration-only. |
+| Tasks 11A-11E: real-agent runner, scoring, context audit, harder tasks, multi-model runs, dynamic feedback | Implemented; evidence-limited | Existing results demonstrate mechanisms and seed case studies, not broad generalization. |
+| Tasks 11F-11G: promotion policy and validation planner | Implemented and frozen | Keep as advisory method-support tooling; do not deepen before real-skill evidence. |
+| Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; source-backed corpus import is next. |
+| Task 11I: real-skill restart and artifact maturity | In progress | Build and evaluate three deep pilots before replication. |
+| Task 12: report and slides | Deferred | Begin after the first real-skill main table and case study exist. |
+
+### Active Sequence
+
+- [x] Reconcile the default experiment systems with the four-column main table.
+- [ ] Import exact, licensed source files for the three deep pilots with integrity metadata.
+- [ ] Author task-local no-skill/original tasks, scorers, and development/held-out splits before IR conversion.
+- [ ] Construct and audit static base IR for the three pilots.
+- [ ] Run `no-skill | original | ir-static`, generate task-local overlays from development failures, then run held-out `ir-pgo`.
+- [ ] Analyze paired success, worst-case performance, regressions, rule failures, and model/context slices.
+- [ ] Prototype one Validated Skill Artifact Package from a pilot whose repeated work can be solidified.
+- [ ] Add the three replication pilots only after the deep-pilot evidence gate passes.
+
+### Frozen Or Deferred
+
+- Do not add promotion-policy or validation-planner automation during the real-skill pilot stage.
+- Do not claim cross-agent behavior while one global adapter is used.
+- Do not claim Linux/macOS behavior from an `environment` label on the Windows host.
+- Do not treat current checker/controller Markdown as independently enforced runtime code.
+- Do not use the early 40-60 / 18-24 / 12-16 scale as a current success criterion.
+
+---
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a Skill IR AOT optimization pipeline inside a SkVM fork, with static IR construction, profile-guided optimization, lowering, benchmark integration, and research-grade evaluation.
@@ -1398,7 +1461,7 @@ Append a literature-calibration section to `docs/skill-ir/skill-ir-aot-optimizat
 ```text
 Skill IR remains the core direction.
 Benchmarking should use paired comparisons and negative-delta detection.
-Checker lowering should be described as lightweight runtime enforcement.
+Historical proposal: checker lowering was initially described as lightweight runtime enforcement. Current correction: it is a declarative/checkable specification until an independent checker runtime executes predicates and actions.
 Profile-guided repair should be described as typed trace feedback.
 Adapter lowering should be described as an agent-computer interface layer.
 ```
@@ -1727,7 +1790,7 @@ Create `docs/skill-ir/experiment-design.md` with these sections:
 
 ## Skill Selection
 
-The corpus contains 40-60 categorized skills, 18-24 full IR skills, and 12-16 deep benchmark skills.
+Historical scale proposal: 40-60 categorized skills, 18-24 full IR skills, and 12-16 deep benchmark skills. Current execution is capped at 3 deep real-skill pilots plus up to 3 replication pilots.
 
 ## Ablations
 
@@ -1934,11 +1997,11 @@ Task 11B should consume scored `main-results.jsonl`, not execution-only `raw-run
 
 - [ ] **Step 1: Populate deep benchmark**
 
-Add 12-16 deep benchmark skills and 8-12 tasks per deep skill to `benchmarks/skill-ir/tasks/`.
+Historical proposal: add 12-16 deep benchmark skills and 8-12 tasks per deep skill. Current action: complete the 3+3 real-skill pilot evidence gate before any scale expansion.
 
 Expected: each task has `id`, `split`, `prompt`, and `successCriteria`.
 
-Current status: the first expanded seed corpus contains 6 deep-benchmark skills with 2 tasks each. It is intended to validate multi-skill runner/scorer/analyzer behavior before scaling to the full 12-16 deep skills and 8-12 tasks per skill.
+Historical 2026-07-09 status: the expanded seed corpus validated multi-skill runner/scorer/analyzer behavior. As of 2026-07-15 those six synthetic skills are calibration-only and do not trigger automatic scale-up.
 
 2026-07-09 update: a bounded discriminative Task 11 run has been completed on the current six-skill seed corpus. It covered one development task and one held-out task per skill, clean and noisy contexts, `original` vs `ir-profile`, `skvm`/`linux`, and produced 48 executed rows / 24 paired cases. The archived scored outputs are `results/skill-ir/discriminative-task11-results-2026-07-09.jsonl` and `results/skill-ir/discriminative-task11-table-2026-07-09.csv`; see `docs/skill-ir/discriminative-task11-run.md`.
 
@@ -2464,8 +2527,6 @@ git diff --check
 ```
 
 Expected: all tests pass; CRLF warnings are acceptable.
-
-## Task 12: Research Report and Slides
 
 ## Task 11H: Corpus Provenance, No-Skill Baseline, Stability, And Token Cost Realignment
 

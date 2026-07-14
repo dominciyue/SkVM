@@ -10,7 +10,9 @@ The project direction remains:
 Skill IR as an AOT pass inside SkVM for improving cross-agent, cross-environment, and cross-context skill stability.
 ```
 
-The important correction is that current seed skills and experiments are not yet enough to prove broad skill generalization. They are useful for building the pipeline, but the next phase needs stronger skill provenance, no-skill baselines, stability metrics, amortized token-cost analysis, and a clearer artifact-maturity path.
+This sentence is the long-term motivation. The current measured claim is narrower: source-backed real skills, multiple models and contexts, one global adapter, and a Windows host. Cross-agent and cross-OS stability remain planned claims until execution is actually bound to distinct harnesses and hosts.
+
+The important correction is that current seed skills and experiments are not enough to prove broad skill generalization. The next phase prioritizes three deep real-skill pilots, no-skill/original/static/task-local-PGO comparisons, and held-out stability evidence. Amortized token cost is secondary until reusable artifact packages exist.
 
 ## Folder Map
 
@@ -171,13 +173,13 @@ The intake table and sampling rules live in `docs/skill-ir/real-skill-intake.md`
 
 ## Metric Realignment
 
-The project's stability goal should be stated as:
+The current measured stability goal should be stated as:
 
 ```text
-An optimized skill should improve or preserve task success across model families, contexts, environments, and agents, while reducing regressions and variance compared with original and no-skill baselines.
+An optimized skill should improve or preserve task success across tested model families and contexts, while reducing regressions and variance compared with original and no-skill baselines.
 ```
 
-The token/cost goal should be stated as:
+The secondary engineering token/cost hypothesis should be stated as:
 
 ```text
 An optimized skill should reduce repeated prompt/tool/code generation overhead where possible by solidifying reusable checks, adapters, generated code, schemas, or tool plans into reusable artifacts.
@@ -191,7 +193,7 @@ This means token reduction is not just "shorter prompt." It can come from:
 - output schemas lowered once instead of regenerated each run;
 - avoiding unnecessary skill text when `no-skill` already performs better.
 
-Token cost should be measured as an amortized quantity because AOT optimization can be more expensive on the first import. The first run may pay for parsing, validation, profile collection, code/schema generation, and artifact verification. The intended win is over repeated use:
+Once reusable package execution exists, token cost should be measured as an amortized quantity because AOT optimization can be more expensive on the first import. The formulas below define the future analysis; current prompt-token results cannot yet establish break-even:
 
 ```text
 total_original(N)  = original_runtime_cost * N

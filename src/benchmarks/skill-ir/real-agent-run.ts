@@ -188,6 +188,12 @@ async function loadSkillBenchmarkFixtures(args: RealAgentRunArgs): Promise<Map<s
 
 export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPlanEntry[]> {
   const input = buildDefaultMatrixInput(args.rootDir);
+  if (args.systems) {
+    input.systems = [...args.systems];
+  }
+  if (input.systems.includes("ir-pgo") && !args.irOverrideDir) {
+    throw new Error("ir-pgo requires --ir-override-dir with development-derived final IR artifacts");
+  }
   const matrix = selectCases(buildExperimentMatrix(input), args);
   const fixtures = await loadSkillBenchmarkFixtures(args);
   const plan: RealAgentRunPlanEntry[] = [];

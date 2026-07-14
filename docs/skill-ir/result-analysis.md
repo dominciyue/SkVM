@@ -4,6 +4,8 @@
 
 The result analyzer summarizes benchmark JSONL output into CSV tables for the research report. It is designed around Task 7.5's paired evaluation requirement: optimized systems should be compared against a baseline on the same `caseId`, not only averaged globally.
 
+The current primary analysis is quality and stability: paired success, worst-case performance, regressions, and rule failures on real-skill evidence. `mean_token_cost` and latency remain secondary diagnostics. They do not establish amortized savings or a break-even point because package compile cost and repeated artifact reuse are not yet measured.
+
 The implementation lives in:
 
 ```text
@@ -98,6 +100,8 @@ Metric meanings:
 - `negative_delta_count`: single-case success delta is below zero.
 - `infrastructure_failures`: rows marked with `failureType: "infrastructure"`.
 - `agent_failures`: rows marked with `failureType: "agent"`.
+
+Main tables should slice or filter by `skillProvenance` and `evidenceWeight`. Synthetic seed rows are calibration evidence and should not dominate real-skill aggregates.
 
 Paired metrics skip cases where either side is marked as an infrastructure failure. This prevents provider or gateway instability from becoming a false positive gain or false regression.
 

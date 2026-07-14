@@ -1,5 +1,7 @@
 # Skill IR Automated Validation Strategy
 
+> **Status (2026-07-15): northbound design, implementation frozen.** The current real-skill pilot uses a manual, explicit evidence gate. Automatic sampling depth and artifact adoption resume only after three deep pilots establish reliable task-local development/held-out evidence.
+
 ## Purpose
 
 The project goal is not to make users manually run the full research matrix every time a new skill is imported. The intended direction is an automated, sampled, and layered validation pipeline that decides how much evidence is still needed before making stronger claims about a final IR artifact.
@@ -19,7 +21,7 @@ Static Base IR
 
 Static information supplies steps, rules, tools, environment assumptions, checks, and recovery policies. Dynamic information supplies profile annotations from scored execution failures. The final IR compiler merges both and runs rule normalization, environment guard insertion, profile-guided repair, and validation.
 
-There is still optimization room. The current feedback loop handles rule failures well enough to generate checks and recovery policies, but it does not yet learn richer task-specific output schemas, model-family-specific behavior, confidence scores, or automatic validation tiers.
+There is still substantial optimization room. The current feedback loop handles a narrow class of rule failures by generating checks and recovery policies, but it does not yet learn richer task-specific output schemas, validated model-family behavior, confidence scores, or automatic validation tiers.
 
 The post-Task 11D roadmap expands this into five concrete optimization tracks:
 
@@ -31,7 +33,7 @@ validation planner
 final IR promotion policy
 ```
 
-These tracks should be implemented only after the current final IR artifact is evaluated across more than one skill and model route.
+These tracks remain deferred until source-backed real-skill pilots have exact baselines, deterministic scoring, task-local development overlays, and disjoint held-out evidence. Existing promotion and planner code is retained as method-support tooling rather than expanded now.
 
 ## Validation Layers
 

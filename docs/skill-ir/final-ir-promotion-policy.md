@@ -1,14 +1,16 @@
 # Final IR Promotion Policy
 
+> **Status (2026-07-15): frozen advisory utility.** The implementation is retained for reproducing seed-stage analysis. It must not automatically select, publish, or rewrite an IR artifact, and no further policy automation is planned before the real-skill deep pilots produce task-local development/held-out evidence.
+
 ## Purpose
 
 The promotion policy turns multi-model scored result rows into model-family-specific evidence signals about whether a final `ir-pgo` artifact is promising, whether the static `ir-profile` artifact is currently safer, or whether more validation is required.
 
-This component exists because Task 11E showed that final IR is not globally better across all model families. `ir-pgo` was best on the GPT-family route, tied on Gemini semantic rows, and weaker than static `ir-profile` on Qwen. A single global switch from static IR to final IR would therefore hide regressions.
+Task 11E's small synthetic-seed-heavy run suggested different outcomes on GPT, Gemini, and Qwen routes. Those observations motivate caution, but they are hypotheses and method demonstrations rather than mature model-family profiles.
 
 The current policy is not an automatic deployment decision. It is a decision-support artifact for research analysis and the validation planner. Its output should be read as "what should we validate or optimize next?" rather than "which IR should permanently replace the other IR?"
 
-Current `final IR` artifacts are still close to structured workflow JSON with generated checks and recovery policies. A promotion signal does not mean the project has reached the final artifact goal. It only says that a candidate IR deserves more validation while the project continues moving toward reusable code/file/template/schema/checker/adapter artifacts.
+Current `final IR` artifacts are still close to structured workflow JSON with generated checks and recovery policies. A promotion signal does not mean the project has reached the final artifact goal. The engineering target is a Validated Skill Artifact Package with authoritative IR, a generated skill view, reusable artifacts, provenance, and validation notes.
 
 ## Implementation
 
@@ -44,12 +46,14 @@ buildPromotionReportFromArgs(args)
 
 ## Runtime Behavior
 
-The policy groups scored rows by model family, then compares a baseline system and candidate system. The default comparison is:
+The archived policy groups scored rows by model family, then compares a baseline system and candidate system. Its compatibility defaults are:
 
 ```text
 baseline:  ir-profile
 candidate: ir-pgo
 ```
+
+The current paper main table uses `ir-static` and task-local `ir-pgo`; callers must pass the intended baseline explicitly if reusing this utility for new pilot evidence.
 
 Rows marked `failureType: "infrastructure"` are excluded from semantic paired comparisons but still counted in infrastructure risk. Paired cases are matched by:
 

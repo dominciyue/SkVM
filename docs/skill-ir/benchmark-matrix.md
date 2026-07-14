@@ -51,18 +51,28 @@ tasksBySkill?: Record<string, string[]>
 
 ## Experiment Systems
 
-The default system list is:
+The default system list is the research main table:
 
 ```text
 no-skill
 original
-skvm-aot
-ir-only
 ir-static
-ir-profile
+ir-pgo
 ```
 
-This follows Task 7.5's literature calibration. `no-skill` and `original` make paired deltas and regressions visible; the IR systems show the effect of adding structure, static passes, and profile-guided repair.
+`no-skill` and `original` make skill utility, paired deltas, and regressions visible. `ir-static` measures cold-start compilation; `ir-pgo` measures task-local repair from development evidence on disjoint held-out tasks.
+
+The matrix can schedule `ir-pgo` abstractly. The real-agent runner additionally requires `--ir-override-dir` so the scheduled system resolves to development-derived final IR rather than the unchanged base IR.
+
+The `ExperimentSystem` type still supports `skvm-aot`, `ir-only`, and `ir-profile` for explicit use. `ir-only` is an ablation, `ir-profile` preserves archived comparisons, and `skvm-aot` is a stub until it is connected to the upstream AOT path. They are intentionally excluded from `DEFAULT_EXPERIMENT_SYSTEMS`.
+
+## Scheduling Labels Versus Executed Axes
+
+The matrix accepts `agent` and `environment` values and includes them in `caseId`, but it only schedules cases. The current real-agent runner selects one global adapter and runs on the current host; it does not map each matrix label to a different harness or OS. Consequently:
+
+- label-only matrix expansion is not cross-agent or cross-OS evidence;
+- current real runs should record the actual adapter and Windows host honestly;
+- future adapter/OS claims require execution binding plus run metadata that proves the selected harness and host.
 
 ## Paired Case Ids
 
@@ -128,6 +138,7 @@ bun run typecheck
 - If `tasksBySkill` is supplied and a skill has no task list, the matrix schedules zero cases for that skill instead of falling back to unrelated tasks.
 - The loader does not validate full JSON schema. Existing corpus fixture tests cover the seed files; deeper benchmark schema validation can be added with result schemas.
 - The matrix only schedules cases. It does not execute agents or judge task success.
+- `agent` and `environment` are scheduling metadata until an executor binds them to real harnesses and hosts.
 - Missing provenance metadata becomes `unknown`; it never defaults to `real-public` or `main-real`.
 
 ## Modification Notes
@@ -135,6 +146,6 @@ bun run typecheck
 - Add tests before changing matrix fields because downstream result analysis will depend on them.
 - Keep `caseId` stable once real results exist.
 - When adding a new deep benchmark skill, add its `tasksPath` in the manifest and check that `tasksBySkill[skillId]` contains only that skill's tasks.
-- If adding new systems, update `DEFAULT_EXPERIMENT_SYSTEMS`, this document, and Task 10 experiment design.
+- Add a system to `DEFAULT_EXPERIMENT_SYSTEMS` only when it belongs in the paper's main table. Explicit ablations may remain supported without becoming defaults.
 - If packaging becomes explicit in corpus metadata, update `inferSkillPackaging` and its tests in the same commit.
 - Keep `skillProvenance` and `evidenceWeight` stable because raw/scored result rows and slice analysis consume them.

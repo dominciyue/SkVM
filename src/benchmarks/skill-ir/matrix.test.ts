@@ -38,10 +38,8 @@ describe("buildExperimentMatrix", () => {
     expect(pairedCases.map((item) => item.system)).toEqual(["no-skill", "original", "ir-static"]);
   });
 
-  test("uses the original system as baseline by default and allows overriding it", () => {
-    expect(DEFAULT_EXPERIMENT_SYSTEMS).toContain("no-skill");
-    expect(DEFAULT_EXPERIMENT_SYSTEMS).toContain("ir-profile");
-    expect(DEFAULT_EXPERIMENT_SYSTEMS).toContain("ir-pgo");
+  test("uses the research main-table systems by default and allows overriding the baseline", () => {
+    expect(DEFAULT_EXPERIMENT_SYSTEMS).toEqual(["no-skill", "original", "ir-static", "ir-pgo"]);
 
     const [firstCase] = buildExperimentMatrix({
       skills: ["skill-review"],
@@ -57,6 +55,19 @@ describe("buildExperimentMatrix", () => {
     expect(firstCase?.skillPackaging).toBe("unknown");
     expect(firstCase?.skillProvenance).toBe("unknown");
     expect(firstCase?.evidenceWeight).toBe("unknown");
+  });
+
+  test("keeps non-default systems available for explicit ablation and compatibility runs", () => {
+    const matrix = buildExperimentMatrix({
+      skills: ["skill-review"],
+      agents: ["skvm"],
+      environments: ["windows"],
+      contexts: ["clean"],
+      tasks: ["task-1"],
+      systems: ["skvm-aot", "ir-only", "ir-profile"],
+    });
+
+    expect(matrix.map((item) => item.system)).toEqual(["skvm-aot", "ir-only", "ir-profile"]);
   });
 
   test("keeps benchmark tasks bound to their owning skill", () => {

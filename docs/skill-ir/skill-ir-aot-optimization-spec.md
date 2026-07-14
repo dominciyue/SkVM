@@ -1,6 +1,56 @@
 # Skill IR AOT Optimization Spec
 
-日期：2026-07-06
+日期：2026-07-06；当前研究契约更新：2026-07-15
+
+## 0. 当前研究契约（权威）
+
+本节覆盖后文早期阶段中与之冲突的规模、主张、实验轴和成熟度描述。后文 Task 7.5-11I 保留为研究演进记录，不代表每项设想都已被实践验证。
+
+### 0.1 当前主 Claim
+
+> 对一组有明确来源的真实 skill，将自然语言 skill 编译为静态 Skill IR，并利用 development execution feedback 生成 task-local PGO IR；在多个模型和上下文条件下，相比 `no-skill` 与原始 skill，提高 held-out 任务的成功率或最差表现，同时控制负向回归。
+
+稳定性是当前第一目标。当前主表固定为：
+
+```text
+no-skill | original | ir-static | ir-pgo
+```
+
+`ir-only` 只用于显式消融；`ir-profile` 用于复现已有实验；`skvm-aot` 在真正接入上游 AOT 路径前不进入默认主表。
+
+### 0.2 当前证据边界
+
+当前真实 runner 在 Windows 主机上使用一个全局 adapter。矩阵中的 `agent` 和 `environment` 字段可以用于计划、配对和结果切片，但当前不会自动切换真实 agent harness 或操作系统。因此：
+
+- 已实际测试的轴是 model family × context × skill × system，在单一 adapter 和 Windows 主机下运行；
+- 多 agent adapter、Linux、macOS 和真实跨 OS 行为属于计划轴；
+- 合成 seed 结果只作为管线、scorer 和受控失败的低权重校准证据；
+- 主结论必须来自有来源的真实 skill，并报告 provenance 和 evidence weight。
+
+真实 skill 阶段硬限制为 4-6 个 pilot：先做 `law-to-markdown`、`env-manager`、`experimental-design` 三个 deep pilot，再保留三个 replication pilot。每个 deep pilot 必须先具备精确 source baseline、可判分的 no-skill 任务、静态 base IR、development/held-out 划分、真实运行和结果解释，之后才能扩 corpus。
+
+### 0.3 PGO 范围
+
+当前采用 task-local repair：同一 skill/task family 的 development failures 生成 profile overlay，held-out tasks 评估泛化和回归。当前不假设一个模型族生成的 overlay 能迁移到其他模型族，也不把已有小样本 promotion signal 当作成熟模型族结论。
+
+Task 11F promotion policy 与 Task 11G validation planner 保留为 advisory method-support tooling，当前冻结继续扩展，优先补齐真实 skill 研究内核。
+
+### 0.4 工程终态（北向目标，不是当前主 Claim）
+
+工程终态锁定为约 L3-L4 的 **Validated Skill Artifact Package**：
+
+```text
+optimized_skill/
+  skill_ir.json              # 权威语义
+  skill.md                   # 可由 IR 生成的人/agent 视图
+  artifacts/
+    checks/ | schemas/ | scripts/ | templates/ | tool-plans/
+  provenance + validation notes
+```
+
+“优化成代码块/文件”是 artifact solidification：将重复推理、固定格式、环境探测和固定工具计划编译成可复用块。当前实现主要处于 L1/early-L2；lowering 产出的是 declarative/checkable specification，尚未形成独立 runtime enforcement。token/成本只作为次级诊断与未来目标，等可复用 package 和重复调用成本可测后再讨论 break-even 主张。
+
+详细 package 契约见 `docs/skill-ir/validated-skill-artifact-package.md`。
 
 ## 1. 项目定位
 
@@ -299,7 +349,7 @@ v1 的 lowering 目标不是生成完整自主程序，而是生成 agent runtim
 
 为了证明泛化能力，skill 选择要覆盖多类机制。
 
-计划规模：
+以下规模是 2026-07-06 的长期扩展设想，不再作为当前成功标准或当前阶段交付要求：
 
 - 40-60 个 skill 做分类和浅层 IR 构造。
 - 18-24 个 skill 做完整 IR 和 validation。
@@ -316,33 +366,34 @@ v1 的 lowering 目标不是生成完整自主程序，而是生成 agent runtim
 | 生成型 | 6-8 | 1-2 |
 | 环境敏感型 | 6-8 | 2-3 |
 
-每个 deep skill 准备 8-12 个任务，其中 30%-40% 作为 development tasks，60%-70% 作为 held-out tasks。
+当前阶段执行 3 个 deep real-skill pilot，并在证据门通过后增加最多 3 个 replication pilot。任务数量由可判分性和 development/held-out 分离决定，不以凑足旧规模为目标。
 
 ## 9. 实验设计
 
-实验矩阵：
+概念实验矩阵：
 
 ```text
 Skill x Agent x Environment x Context x Task
 ```
 
-推荐规模：
+早期目标轴（其中 agent 和真实 OS 目前仍是计划轴）：
 
 - Agents：3 个，包括 SkVM 默认 agent 设置、Codex CLI/desktop 兼容设置、一个开源 agent 设置。
 - Environments：Linux、macOS、Windows 或 Windows/WSL。如果机器资源不足，Windows 可降为 PowerShell compatibility tests。
 - Contexts：clean、noisy、long、compressed。
-- Deep skills：12-16 个。
+- Deep skills：长期 12-16 个；当前 3 deep + 最多 3 replication。
 - Tasks per deep skill：8-12 个。
 
-对比设置：
+当前主表：
 
 ```text
-S0: Original natural-language skill
-S1: SkVM AOT baseline
-S2: Initial Skill IR only
-S3: Skill IR + static AOT passes
-S4: Skill IR + static AOT passes + profile-guided optimization
+S0: No skill
+S1: Original natural-language skill
+S2: Skill IR + static AOT passes (`ir-static`)
+S3: Task-local profile-guided final IR (`ir-pgo`)
 ```
+
+`ir-only`、`ir-profile`、`skvm-aot` 只在显式消融、归档复现或真实上游接入后使用。矩阵标签不能替代真实 harness/OS 切换证据。
 
 ## 10. 评价指标
 
@@ -429,7 +480,7 @@ S4: Skill IR + static AOT passes + profile-guided optimization
 - Benchmark matrix runner。
 - Result analyzer。
 
-实验交付：
+早期远期实验交付设想（当前不作为阶段完成条件）：
 
 - 40-60 个 skill 的 taxonomy。
 - 18-24 个完整 Skill IR 样例。
@@ -446,7 +497,9 @@ S4: Skill IR + static AOT passes + profile-guided optimization
 - 答辩 slides。
 - Demo README。
 
-## 15. 六周节奏
+## 15. 原六周节奏（历史计划）
+
+本节保留最初排期，不再用于判断当前进度。当前进度以实现计划顶部的 `Current Execution Ledger` 为准。
 
 ### Week 1：SkVM 复现、IR 设计、skill corpus
 
@@ -480,19 +533,18 @@ S4: Skill IR + static AOT passes + profile-guided optimization
 | 跨 agent 实验成本高 | 实验矩阵膨胀 | 固定 3 个 agent，其中一个可用 SkVM provider 配置模拟 |
 | macOS/Windows 资源不足 | 环境评估不完整 | 使用 Linux + WSL/PowerShell compatibility + 容器差异作为替代 |
 | LLM 抽取 IR 不稳定 | IR 质量波动 | 用 Zod validation 和 deterministic postprocess 约束输出 |
-| skill 数量过多导致标注压力大 | 影响实验质量 | 分层：40-60 taxonomy，18-24 full IR，12-16 deep benchmark |
+| skill 数量过多导致标注压力大 | 影响实验质量 | 当前硬限制 3 个 deep pilot + 最多 3 个 replication pilot，证据门通过后再扩展 |
 
 ## 17. 成功标准
 
-项目成功的标准不是“所有 skill 都被完美编译”，而是：
+当前阶段成功的标准不是“所有 skill 都被完美编译”，也不是达到早期数量目标，而是：
 
-- Skill IR 能覆盖多类 skill。
-- AOT pass 能产生可检查、可优化的中间产物。
-- profile feedback 能解释并修复一部分真实失败模式。
-- 优化后在 deep benchmark 上平均成功率提升。
-- 优化后 worst-case success rate 提升。
-- 跨 agent、环境、上下文方差下降。
-- rule violation 和 required step skip 明显减少。
+- 3 个有精确来源和许可证记录的 deep real-skill pilot 可复现导入。
+- 主表包含 `no-skill | original | ir-static | ir-pgo` 的配对 held-out 结果。
+- development feedback 与 held-out evaluation 严格分离，task-local PGO 能解释至少一类真实失败及其修复或明确失败边界。
+- 报告平均成功率、worst-case、paired delta、regression count 和规则失败；任何负向回归都不被平均值隐藏。
+- 已测轴和计划轴明确分开，不把标签当作跨 agent 或跨 OS 证据。
+- 至少一个 pilot 给出从 Skill IR 到可复用 artifact package 的具体固态化设计或原型。
 
 ## 18. Literature Calibration After Task 7.5
 
@@ -523,7 +575,7 @@ The result analysis should report mean success, worst-case success, variance acr
 
 ### 18.3 Runtime Enforcement Framing
 
-Checker lowering should be described as lightweight runtime enforcement. The current `RuntimeCheck` fields are intentionally simple, but they already represent a path from natural-language constraints to checkable artifacts. Later versions can evolve from string assertions toward trigger, predicate, and enforcement-action structures.
+Checker lowering should currently be described as a declarative, checkable lowering specification. The current runner renders checks into agent-facing material, but it does not independently execute or enforce them. True lightweight runtime enforcement requires a checker runtime that evaluates predicates and applies enforcement actions outside the model response path.
 
 The "No Checker" ablation is important because it isolates whether explicit runtime checking adds value beyond clearer prompts and static IR.
 
@@ -617,6 +669,8 @@ Task 11C should also make skill selection stricter. The current seed corpus is u
 
 ## 20. Task 11E Calibration: Deeper Final IR Evaluation And Next Optimizations
 
+**2026-07-15 status:** This section records the seed-stage diagnosis. Its model-family observations are hypotheses generated from small, synthetic-seed-heavy evidence. They must not drive automatic artifact selection or be generalized to the real-skill corpus without new paired runs.
+
 After the first `ir-pgo` validation run, the final IR mechanism is proven to execute but its quality benefit is still unclear. The next experiment should therefore widen along two axes:
 
 ```text
@@ -652,6 +706,8 @@ The first Task 11E run supports this roadmap. Across six hard-002 tasks and thre
 
 ## 21. Task 11F Calibration: Model-Family Promotion Policy
 
+**2026-07-15 status:** Implemented as an advisory analysis utility and now frozen. It is a method demonstration, not a mature promotion mechanism. The current real-skill phase will not deepen this component until task-local development/held-out evidence exists for the pilot corpus.
+
 Task 11F turns the Task 11E interpretation into a deterministic evidence-support layer. The project now treats final IR promotion as a model-family-specific research signal instead of a global artifact replacement or automatic deployment decision.
 
 The promotion policy consumes scored result rows and produces a report with this shape:
@@ -664,7 +720,7 @@ scored rows per model route
   -> promote / keep static / hold decision
 ```
 
-The default baseline is static `ir-profile`, and the default candidate is dynamic/final `ir-pgo`. Infrastructure rows are excluded from semantic paired deltas but counted as risk. A final IR artifact should be promoted only when held-out paired evidence improves over static IR without regressions and without unacceptable token or latency growth.
+The historical policy report compared static `ir-profile` with dynamic/final `ir-pgo`. Infrastructure rows were excluded from semantic paired deltas but counted as risk. In the current research contract, the main table instead uses `ir-static` and task-local `ir-pgo`; promotion output remains advisory and cannot modify the base corpus.
 
 The first promotion report over the Task 11E result files produced:
 
@@ -681,6 +737,8 @@ This is still not a full model-family behavior profile. The current implementati
 The current signals are not mature enough to claim that any IR choice is final. `promote-ir-pgo` means "candidate worth regression validation," not "rewrite the base corpus" or "deploy automatically."
 
 ## 22. Task 11G Calibration: Validation Planner And Evidence Maturity
+
+**2026-07-15 status:** Implemented as a dry-run advisory utility and now frozen. Automatic validation depth remains a northbound capability; the current pilot stage uses an explicit evidence gate so research-core work is not displaced by governance automation.
 
 Task 11G corrects the main risk discovered after Task 11F: promotion reports are useful, but they can look more decisive than the evidence really is. The project should therefore add a validation planner that consumes `skill-ir-promotion/v1` reports and emits validation/optimization plans rather than adopting an IR artifact automatically.
 
@@ -738,7 +796,7 @@ no-skill -> original -> ir-profile -> ir-pgo
 
 on paired cases whenever budget allows. If `no-skill` beats all skill systems on a task shape, the correct optimization may be skill routing or skill narrowing rather than stronger IR materialization.
 
-Third, stability means more than average success. The target is improvement or non-regression across model families, contexts, environments, and agents. Reports should emphasize:
+Third, stability means more than average success. The current measured target is improvement or non-regression across model families and contexts under one adapter/host. Environments and agents become reportable axes only after the runner actually switches them. Reports should emphasize:
 
 ```text
 mean success
@@ -751,7 +809,7 @@ token cost
 latency
 ```
 
-Fourth, token reduction should be treated as artifact solidification. The project should not only shorten prompts; it should identify repeated work that can be compiled or cached:
+Fourth, token reduction is a secondary artifact-solidification hypothesis. The project should not claim efficiency from shorter prompts alone; it should first identify repeated work that can be compiled or cached:
 
 ```text
 runtime checks
@@ -762,7 +820,7 @@ generated code/templates
 fixed command plans
 ```
 
-The final research claim should therefore become:
+This is an engineering hypothesis, not the current primary research claim:
 
 ```text
 Skill IR improves stability when it makes useful skill semantics explicit and reusable; it can reduce token/tool overhead when repeated reasoning, tool setup, schema generation, or code generation is solidified into reusable artifacts.
@@ -832,4 +890,4 @@ L3 stable reusable code/file/template/tool-plan blocks
 L4 validated artifact package with provenance, cache policy, and regression evidence
 ```
 
-The current implementation is mainly between L1 and early L2. It has a connected research loop, not a finished optimization product. Future work should move step by step from JSON workflow IR toward reusable artifacts and should report maturity honestly rather than describing the loop as complete.
+The current implementation is mainly between L1 and early L2. It has a connected research loop, not a finished optimization product. The engineering target is a `Validated Skill Artifact Package` containing authoritative `skill_ir.json`, a generated `skill.md` view, reusable `checks/`, `schemas/`, `scripts/`, `templates/`, and `tool-plans/`, plus provenance and validation notes. Future work should move step by step toward this package and report maturity honestly rather than describing the loop as complete.
