@@ -101,15 +101,22 @@ function round(value: number, digits = 4): number {
   return Math.round(value * factor) / factor;
 }
 
-function pairingKey(row: ScoredAgentRunRow): string {
-  return JSON.stringify([
-    row.caseId,
-    row.model ?? null,
-    row.adapter ?? null,
-    row.adapterVersion ?? null,
-    row.panelConfigId ?? null,
-    row.runIndex ?? null,
-  ]);
+function pairingKey(row: ScoredAgentRunRow): string | undefined {
+  const stringValues = [row.model, row.modelFamily, row.adapter, row.adapterVersion, row.panelConfigId];
+  const allAbsent = stringValues.every((value) => value === undefined) && row.runIndex === undefined;
+  if (allAbsent) {
+    return JSON.stringify([row.caseId]);
+  }
+
+  if (
+    stringValues.some((value) => typeof value !== "string" || value.trim().length === 0) ||
+    !Number.isInteger(row.runIndex) ||
+    row.runIndex! < 1
+  ) {
+    return undefined;
+  }
+
+  return JSON.stringify([row.caseId, ...stringValues, row.runIndex]);
 }
 
 function semanticRows(rows: ScoredAgentRunRow[]): ScoredAgentRunRow[] {
@@ -181,6 +188,9 @@ export function summarizeModelFamily(input: SummarizeModelFamilyInput): ModelFam
 
   for (const row of semantic) {
     const key = pairingKey(row);
+    if (key === undefined) {
+      continue;
+    }
     const bucket = rowsByCase.get(key) ?? new Map<ExperimentSystem, ScoredAgentRunRow>();
     bucket.set(row.system, row);
     rowsByCase.set(key, bucket);

@@ -80,16 +80,13 @@ describe("promotion policy", () => {
     expect(profile.irPgoRegressions).toBe(1);
   });
 
-  test("summarizeModelFamily does not pair partial identity with complete identity", () => {
+  test("summarizeModelFamily does not pair two identically partial identities", () => {
     const profile = summarizeModelFamily({
       modelFamily: "gpt",
       modelLabels: ["gpt41mini"],
       rows: [
         row("task-partial", "ir-profile", true, {
           model: "xty/gpt-4.1-mini",
-          adapter: "bare-agent",
-          adapterVersion: "workspace",
-          panelConfigId: "pilot-v1",
           runIndex: 1,
         }),
         row("task-partial", "ir-pgo", false, {
@@ -100,6 +97,82 @@ describe("promotion policy", () => {
     });
 
     expect(profile.pairedCases).toBe(0);
+  });
+
+  test("summarizeModelFamily does not pair conflicting model families", () => {
+    const identity = {
+      model: "xty/gpt-4.1-mini",
+      adapter: "bare-agent",
+      adapterVersion: "workspace",
+      panelConfigId: "pilot-v1",
+      runIndex: 1,
+    };
+    const profile = summarizeModelFamily({
+      modelFamily: "gpt",
+      modelLabels: ["gpt41mini"],
+      rows: [
+        row("task-family", "ir-profile", true, { ...identity, modelFamily: "gpt" }),
+        row("task-family", "ir-pgo", false, { ...identity, modelFamily: "llama" }),
+      ],
+    });
+
+    expect(profile.pairedCases).toBe(0);
+  });
+
+  test("summarizeModelFamily does not pair invalid complete identities", () => {
+    const identity = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: " ",
+      adapterVersion: "workspace",
+      panelConfigId: "pilot-v1",
+      runIndex: 1,
+    };
+    const profile = summarizeModelFamily({
+      modelFamily: "gpt",
+      modelLabels: ["gpt41mini"],
+      rows: [
+        row("task-invalid", "ir-profile", true, identity),
+        row("task-invalid", "ir-pgo", false, identity),
+      ],
+    });
+
+    expect(profile.pairedCases).toBe(0);
+  });
+
+  test("summarizeModelFamily treats non-string identity values as unpairable", () => {
+    const identity = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: null as unknown as string,
+      adapter: "bare-agent",
+      adapterVersion: "workspace",
+      panelConfigId: "pilot-v1",
+      runIndex: 1,
+    };
+    const profile = summarizeModelFamily({
+      modelFamily: "gpt",
+      modelLabels: ["gpt41mini"],
+      rows: [
+        row("task-null", "ir-profile", true, identity),
+        row("task-null", "ir-pgo", false, identity),
+      ],
+    });
+
+    expect(profile.pairedCases).toBe(0);
+  });
+
+  test("summarizeModelFamily pairs fully legacy rows by caseId", () => {
+    const profile = summarizeModelFamily({
+      modelFamily: "gpt",
+      modelLabels: ["archived"],
+      rows: [
+        row("task-legacy", "ir-profile", true),
+        row("task-legacy", "ir-pgo", false),
+      ],
+    });
+
+    expect(profile.pairedCases).toBe(1);
+    expect(profile.irPgoRegressions).toBe(1);
   });
 
   test("summarizeModelFamily promotes ir-pgo when held-out paired evidence improves without regressions", () => {

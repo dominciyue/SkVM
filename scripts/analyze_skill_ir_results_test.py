@@ -14,6 +14,7 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
         identity = {
             "caseId": "case-repeat",
             "model": "xty/gpt-4.1-mini",
+            "modelFamily": "gpt",
             "adapter": "bare-agent",
             "adapterVersion": "workspace",
             "panelConfigId": "pilot-v1",
@@ -36,7 +37,7 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
         self.assertEqual(summary["ir-profile"]["regression_count"], 1)
         self.assertEqual(summary["ir-profile"]["negative_delta_count"], 1)
 
-    def test_partial_identity_does_not_pair_with_complete_identity(self):
+    def test_identically_partial_identities_do_not_pair(self):
         common = {
             "caseId": "case-partial",
             "model": "xty/gpt-4.1-mini",
@@ -47,20 +48,76 @@ class AnalyzeSkillIRResultsTest(unittest.TestCase):
             "ruleViolations": 0,
         }
         rows = [
-            {
-                **common,
-                "system": "original",
-                "adapter": "bare-agent",
-                "adapterVersion": "workspace",
-                "panelConfigId": "pilot-v1",
-                "success": True,
-            },
+            {**common, "system": "original", "success": True},
             {**common, "system": "ir-profile", "success": False},
         ]
 
         summary = {row["system"]: row for row in summarize(rows, baseline_system="original")}
 
         self.assertEqual(summary["ir-profile"]["paired_cases"], 0)
+
+    def test_model_family_mismatch_does_not_pair(self):
+        identity = {
+            "caseId": "case-family",
+            "model": "xty/gpt-4.1-mini",
+            "adapter": "bare-agent",
+            "adapterVersion": "workspace",
+            "panelConfigId": "pilot-v1",
+            "runIndex": 1,
+            "agent": "a1",
+            "environment": "linux",
+            "context": "clean",
+            "ruleViolations": 0,
+        }
+        rows = [
+            {**identity, "system": "original", "modelFamily": "gpt", "success": True},
+            {**identity, "system": "ir-profile", "modelFamily": "llama", "success": False},
+        ]
+
+        summary = {row["system"]: row for row in summarize(rows, baseline_system="original")}
+
+        self.assertEqual(summary["ir-profile"]["paired_cases"], 0)
+
+    def test_invalid_run_index_does_not_pair(self):
+        identity = {
+            "caseId": "case-invalid",
+            "model": "xty/gpt-4.1-mini",
+            "modelFamily": "gpt",
+            "adapter": "bare-agent",
+            "adapterVersion": "workspace",
+            "panelConfigId": "pilot-v1",
+            "runIndex": 0,
+            "agent": "a1",
+            "environment": "linux",
+            "context": "clean",
+            "ruleViolations": 0,
+        }
+        rows = [
+            {**identity, "system": "original", "success": True},
+            {**identity, "system": "ir-profile", "success": False},
+        ]
+
+        summary = {row["system"]: row for row in summarize(rows, baseline_system="original")}
+
+        self.assertEqual(summary["ir-profile"]["paired_cases"], 0)
+
+    def test_fully_legacy_rows_pair_by_case_id(self):
+        common = {
+            "caseId": "case-legacy",
+            "agent": "a1",
+            "environment": "linux",
+            "context": "clean",
+            "ruleViolations": 0,
+        }
+        rows = [
+            {**common, "system": "original", "success": True},
+            {**common, "system": "ir-profile", "success": False},
+        ]
+
+        summary = {row["system"]: row for row in summarize(rows, baseline_system="original")}
+
+        self.assertEqual(summary["ir-profile"]["paired_cases"], 1)
+        self.assertEqual(summary["ir-profile"]["paired_delta_success"], -1.0)
 
     def test_summarize_reports_success_stability_and_paired_deltas(self):
         rows = [

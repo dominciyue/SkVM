@@ -19,6 +19,7 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
         identity = {
             "caseId": "case-repeat",
             "model": "xty/gpt-4.1-mini",
+            "modelFamily": "gpt",
             "adapter": "bare-agent",
             "adapterVersion": "workspace",
             "panelConfigId": "pilot-v1",
@@ -47,6 +48,7 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
         self.assertEqual([row["runIndex"] for row in deltas], [1, 2])
         self.assertEqual([row["delta_success"] for row in deltas], [-1.0, 1.0])
         self.assertEqual(deltas[0]["model"], "xty/gpt-4.1-mini")
+        self.assertEqual(deltas[0]["modelFamily"], "gpt")
         self.assertEqual(deltas[0]["adapter"], "bare-agent")
         self.assertEqual(deltas[0]["adapterVersion"], "workspace")
         self.assertEqual(deltas[0]["panelConfigId"], "pilot-v1")
@@ -55,7 +57,7 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
         self.assertEqual(context_summary["paired_delta_success"], 0.0)
         self.assertEqual(context_summary["regression_count"], 1)
 
-    def test_partial_identity_does_not_pair_with_complete_identity(self):
+    def test_identically_partial_identities_do_not_pair(self):
         common = {
             "caseId": "case-partial",
             "model": "xty/gpt-4.1-mini",
@@ -68,14 +70,7 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
             "ruleViolations": 0,
         }
         rows = [
-            {
-                **common,
-                "system": "original",
-                "adapter": "bare-agent",
-                "adapterVersion": "workspace",
-                "panelConfigId": "pilot-v1",
-                "success": True,
-            },
+            {**common, "system": "original", "success": True},
             {**common, "system": "ir-profile", "success": False},
         ]
 
@@ -87,6 +82,78 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
 
         self.assertEqual(deltas, [])
         self.assertEqual(summary[("context", "clean", "ir-profile")]["paired_cases"], 0)
+
+    def test_model_family_mismatch_does_not_pair(self):
+        identity = {
+            "caseId": "case-family",
+            "model": "xty/gpt-4.1-mini",
+            "adapter": "bare-agent",
+            "adapterVersion": "workspace",
+            "panelConfigId": "pilot-v1",
+            "runIndex": 1,
+            "skill": "skill-a",
+            "task": "task-1",
+            "agent": "a1",
+            "environment": "linux",
+            "context": "clean",
+            "ruleViolations": 0,
+        }
+        rows = [
+            {**identity, "system": "original", "modelFamily": "gpt", "success": True},
+            {**identity, "system": "ir-profile", "modelFamily": "llama", "success": False},
+        ]
+
+        deltas = build_paired_delta_rows(rows)
+        summary = {
+            (row["dimension"], row["value"], row["system"]): row
+            for row in summarize_slices(rows)
+        }
+
+        self.assertEqual(deltas, [])
+        self.assertEqual(summary[("context", "clean", "ir-profile")]["paired_cases"], 0)
+
+    def test_empty_identity_value_does_not_pair(self):
+        identity = {
+            "caseId": "case-invalid",
+            "model": "xty/gpt-4.1-mini",
+            "modelFamily": " ",
+            "adapter": "bare-agent",
+            "adapterVersion": "workspace",
+            "panelConfigId": "pilot-v1",
+            "runIndex": 1,
+            "skill": "skill-a",
+            "task": "task-1",
+            "agent": "a1",
+            "environment": "linux",
+            "context": "clean",
+            "ruleViolations": 0,
+        }
+        rows = [
+            {**identity, "system": "original", "success": True},
+            {**identity, "system": "ir-profile", "success": False},
+        ]
+
+        self.assertEqual(build_paired_delta_rows(rows), [])
+
+    def test_fully_legacy_rows_pair_by_case_id(self):
+        common = {
+            "caseId": "case-legacy",
+            "skill": "skill-a",
+            "task": "task-1",
+            "agent": "a1",
+            "environment": "linux",
+            "context": "clean",
+            "ruleViolations": 0,
+        }
+        rows = [
+            {**common, "system": "original", "success": True},
+            {**common, "system": "ir-profile", "success": False},
+        ]
+
+        deltas = build_paired_delta_rows(rows)
+
+        self.assertEqual(len(deltas), 1)
+        self.assertEqual(deltas[0]["delta_success"], -1.0)
 
     def test_summarize_slices_reports_context_skill_and_split_metrics(self):
         rows = [
