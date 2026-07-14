@@ -7,6 +7,7 @@ import {
   assertRequiredEnv,
   buildPlan,
   executePlan,
+  extractRunStatus,
   parseRealAgentRunArgs,
   resetPersistentWorkDir,
   type RealAgentRunArgs,
@@ -218,6 +219,47 @@ describe("real-agent-run manifest loading", () => {
 
     const rawRow = JSON.parse((await Bun.file(join(outDir, "raw-runs.jsonl")).text()).trim());
     expect(rawRow.workDir).toBe(workDir);
+    expect(rawRow.runStatus).toBe("ok");
+  });
+
+  test("extractRunStatus reads a colored non-ok status without trusting final output text", () => {
+    expect(extractRunStatus("\u001b[33mwarning runStatus: timeout\u001b[0m\nFinal output:\nok")).toBe("timeout");
+    expect(extractRunStatus("Run complete\nFinal output:\nreported runStatus: adapter-crashed")).toBe("ok");
+  });
+
+  test("executePlan persists non-ok adapter status when the wrapper exits zero", async () => {
+    const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-status-"));
+    tempDirs.push(rootDir);
+    const outDir = join(rootDir, "out");
+    const workDir = join(rootDir, "case", "original", "run-1", "workdir");
+    await mkdir(outDir, { recursive: true });
+
+    await executePlan([{
+      caseId: "artifact-skill:skvm:windows:clean:artifact-task",
+      system: "original",
+      taskPath: join(rootDir, "task.json"),
+      workDir,
+      model: "test/model",
+      modelFamily: "test",
+      adapter: "bare-agent",
+      adapterVersion: "workspace",
+      runIndex: 1,
+      panelConfigId: "single-run",
+      command: [process.execPath, "-e", "console.log('warning runStatus: adapter-crashed\\nFinal output:\\nresidual')"],
+    }], {
+      corpus: "calibration",
+      model: "test/model",
+      adapter: "bare-agent",
+      outDir,
+      limit: 1,
+      execute: true,
+      retries: 0,
+      retryDelayMs: 0,
+      rootDir,
+    });
+
+    const rawRow = JSON.parse((await Bun.file(join(outDir, "raw-runs.jsonl")).text()).trim());
+    expect(rawRow).toMatchObject({ exitCode: 0, runStatus: "adapter-crashed" });
   });
 
   test("parseRealAgentRunArgs requires an explicit corpus", () => {

@@ -19,6 +19,8 @@ const tempDirs: string[] = [];
 afterEach(async () => {
   customEvaluators.delete("skill-ir-test-infra-error");
   customEvaluators.delete("skill-ir-test-should-not-run");
+  customEvaluators.delete("skill-ir-test-throw");
+  customEvaluators.delete("skill-ir-test-partial-score");
   for (const dir of tempDirs.splice(0)) {
     await rm(dir, { recursive: true, force: true });
   }
@@ -792,7 +794,7 @@ describe("Skill IR real-agent scoring", () => {
           name: "Output is valid",
           pass: true,
           score: 1,
-          details: "Contains expected string",
+          details: "Criterion passed",
         },
       ],
     });
@@ -892,7 +894,12 @@ describe("Skill IR real-agent scoring", () => {
           score: 0,
           details: "Evaluator dependency unavailable",
           infraError: "missing portable dependency",
-          checkpoints: [{ name: "preflight", score: 0, reason: "dependency missing" }],
+          checkpoints: [{
+            name: "preflight",
+            score: 0,
+            description: "evaluator-only-description",
+            reason: "dependency missing",
+          }],
         };
       },
     });
@@ -940,13 +947,129 @@ describe("Skill IR real-agent scoring", () => {
         name: "Portable check",
         pass: false,
         score: 0,
-        details: "Evaluator dependency unavailable",
-        infraError: "missing portable dependency",
-        checkpoints: [{ name: "preflight", score: 0, reason: "dependency missing" }],
+        details: "Evaluator infrastructure failure",
+        infraError: "Evaluator infrastructure failure",
+        checkpoints: [{ name: "preflight", score: 0 }],
       }],
     });
     expect(JSON.stringify(scored)).not.toContain("must-not-be-serialized");
     expect(JSON.stringify(scored)).not.toContain("secretExpectedValue");
+    expect(JSON.stringify(scored)).not.toContain("dependency unavailable");
+    expect(JSON.stringify(scored)).not.toContain("dependency missing");
+    expect(JSON.stringify(scored)).not.toContain("evaluator-only-description");
+    expect(JSON.stringify(scored)).not.toContain("missing portable dependency");
+  });
+
+  test("scoreRawRunRows contains evaluator exceptions to the affected row", async () => {
+    registerCustomEvaluator("skill-ir-test-throw", {
+      async run() {
+        throw new Error("evaluator-only-secret exception");
+      },
+    });
+    const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-evaluator-throw-"));
+    tempDirs.push(rootDir);
+    const failedWorkDir = join(rootDir, "failed");
+    const passingWorkDir = join(rootDir, "passing");
+    await Promise.all([mkdir(failedWorkDir), mkdir(passingWorkDir)]);
+    await writeFile(join(passingWorkDir, "output.txt"), "ok\n", "utf8");
+    const throwingTask: SkillIRBenchmarkTask = {
+      id: "throwing-task",
+      split: "development",
+      prompt: "Create output.",
+      successCriteria: [],
+      eval: [{ method: "custom", id: "throwing-check", evaluatorId: "skill-ir-test-throw" }],
+    };
+    const passingTask: SkillIRBenchmarkTask = {
+      id: "passing-task",
+      split: "development",
+      prompt: "Create output.",
+      successCriteria: [],
+      eval: [{ method: "file-check", id: "output-ok", path: "output.txt", mode: "contains", expected: "ok" }],
+    };
+
+    const scored = await scoreRawRunRows(
+      [
+        {
+          caseId: "artifact-skill:skvm:windows:clean:throwing-task",
+          system: "original",
+          taskPath: "tmp/throwing.json",
+          workDir: failedWorkDir,
+          exitCode: 0,
+          durationMs: 10,
+          stdout: "Final output:\nDone.",
+          stderr: "",
+          successSource: "execution-only",
+        },
+        {
+          caseId: "artifact-skill:skvm:windows:clean:passing-task",
+          system: "original",
+          taskPath: "tmp/passing.json",
+          workDir: passingWorkDir,
+          exitCode: 0,
+          durationMs: 10,
+          stdout: "Final output:\nDone.",
+          stderr: "",
+          successSource: "execution-only",
+        },
+      ],
+      new Map([
+        [throwingTask.id, throwingTask],
+        [passingTask.id, passingTask],
+      ]),
+    );
+
+    expect(scored).toHaveLength(2);
+    expect(scored[0]).toMatchObject({
+      success: false,
+      failureType: "infrastructure",
+      failureStage: "evaluation",
+      ruleViolations: 0,
+      failedCriteria: [],
+      evaluatorScore: 0,
+      evaluationSummary: [],
+    });
+    expect(scored[1]).toMatchObject({ success: true, evaluatorScore: 1 });
+    expect(JSON.stringify(scored)).not.toContain("evaluator-only-secret");
+  });
+
+  test("scoreRawRunRows records aggregate evidence for threshold-only failures", async () => {
+    registerCustomEvaluator("skill-ir-test-partial-score", {
+      async run() {
+        return { pass: true, score: 0.75, details: "evaluator-only-partial-details" };
+      },
+    });
+    const workDir = await mkdtemp(join(tmpdir(), "skill-ir-threshold-only-"));
+    tempDirs.push(workDir);
+    const task: SkillIRBenchmarkTask = {
+      id: "threshold-only-task",
+      split: "held-out",
+      prompt: "Create output.",
+      successCriteria: [],
+      eval: [{ method: "custom", id: "partial", evaluatorId: "skill-ir-test-partial-score" }],
+      passThreshold: 0.8,
+    };
+
+    const [scored] = await scoreRawRunRows(
+      [{
+        caseId: "artifact-skill:skvm:windows:clean:threshold-only-task",
+        system: "original",
+        taskPath: "tmp/task.json",
+        workDir,
+        exitCode: 0,
+        durationMs: 10,
+        stdout: "Final output:\nDone.",
+        stderr: "",
+        successSource: "execution-only",
+      }],
+      new Map([[task.id, task]]),
+    );
+
+    expect(scored).toMatchObject({
+      success: false,
+      evaluatorScore: 0.75,
+      failedCriteria: ["overall score below pass threshold"],
+    });
+    expect(JSON.stringify(scored)).not.toContain("evaluator-only-partial-details");
   });
 
   test("scoreRawRunRows rejects invalid explicit evaluator contracts", async () => {
@@ -1019,6 +1142,60 @@ describe("Skill IR real-agent scoring", () => {
       failureStage: "execution",
       ruleViolations: 0,
       failedCriteria: ["process exited with code 2"],
+    });
+  });
+
+  test("scoreRawRunRows does not evaluate exit-zero rows with non-ok adapter status", async () => {
+    let evaluatorCalls = 0;
+    registerCustomEvaluator("skill-ir-test-should-not-run", {
+      async run() {
+        evaluatorCalls += 1;
+        return { pass: true, score: 1, details: "unexpected" };
+      },
+    });
+    const workDir = await mkdtemp(join(tmpdir(), "skill-ir-adapter-status-"));
+    tempDirs.push(workDir);
+    const task: SkillIRBenchmarkTask = {
+      id: "adapter-status-task",
+      split: "development",
+      prompt: "Create an artifact.",
+      successCriteria: [],
+      eval: [{ method: "custom", id: "must-not-run", evaluatorId: "skill-ir-test-should-not-run" }],
+    };
+    const baseRow: RawAgentRunRow = {
+      caseId: "artifact-skill:skvm:windows:clean:adapter-status-task",
+      system: "original",
+      taskPath: "tmp/task.json",
+      workDir,
+      exitCode: 0,
+      durationMs: 10,
+      stdout: "Final output:\nResidual output.",
+      stderr: "",
+      successSource: "execution-only",
+    };
+
+    const scored = await scoreRawRunRows(
+      [
+        { ...baseRow, runStatus: "timeout" },
+        { ...baseRow, runStatus: "adapter-crashed" },
+      ],
+      new Map([[task.id, task]]),
+    );
+
+    expect(evaluatorCalls).toBe(0);
+    expect(scored[0]).toMatchObject({
+      success: false,
+      failureType: "infrastructure",
+      failureStage: "execution",
+      ruleViolations: 0,
+      failedCriteria: ["adapter runStatus timeout"],
+    });
+    expect(scored[1]).toMatchObject({
+      success: false,
+      failureType: "agent",
+      failureStage: "execution",
+      ruleViolations: 0,
+      failedCriteria: ["adapter runStatus adapter-crashed"],
     });
   });
 

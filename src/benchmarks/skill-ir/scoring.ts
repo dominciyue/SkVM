@@ -1,6 +1,6 @@
 import "../../bench/evaluators/index";
 import { buildEvalDetails, computeWeightedScore } from "../../bench/conditions/scoring";
-import type { EvalCheckpoint, EvalResult, RunResult } from "../../core/types";
+import type { EvalCheckpoint, EvalResult, RunResult, RunStatus } from "../../core/types";
 import { evaluateAll } from "../../framework/evaluator";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 import type { RunIdentity, SkillIRBenchmarkTask } from "./real-agent";
@@ -22,6 +22,7 @@ export type RawAgentRunRow = Partial<RunIdentity> & {
   skillPath?: string;
   workDir?: string;
   exitCode: number;
+  runStatus?: RunStatus;
   durationMs: number;
   stdout: string;
   stderr: string;
@@ -53,7 +54,7 @@ export type EvaluationSummary = {
   pass: boolean;
   score: number;
   details: string;
-  checkpoints?: EvalCheckpoint[];
+  checkpoints?: Pick<EvalCheckpoint, "name" | "score" | "weight">[];
   infraError?: string;
 };
 
@@ -76,6 +77,7 @@ export type ScoredAgentRunRow = ParsedCaseId & Partial<RunIdentity> & {
   inputTokens?: number;
   outputTokens?: number;
   tokenCost?: number;
+  runStatus?: RunStatus;
   successSource: "heuristic-success-criteria" | "deterministic-evaluator";
   failedCriteria: string[];
   failureType?: FailureType;
@@ -483,15 +485,26 @@ function evaluationLabel(result: EvalResult, index: number): string {
 }
 
 function summarizeEvaluation(result: EvalResult): EvaluationSummary {
+  const infrastructureFailure = result.infraError !== undefined;
   return {
     method: result.criterion.method,
     ...(result.criterion.id !== undefined ? { id: result.criterion.id } : {}),
     ...(result.criterion.name !== undefined ? { name: result.criterion.name } : {}),
     pass: result.pass,
     score: result.score,
-    details: result.details,
-    ...(result.checkpoints !== undefined ? { checkpoints: result.checkpoints } : {}),
-    ...(result.infraError !== undefined ? { infraError: result.infraError } : {}),
+    details: infrastructureFailure
+      ? "Evaluator infrastructure failure"
+      : result.pass ? "Criterion passed" : "Criterion failed",
+    ...(result.checkpoints !== undefined
+      ? {
+          checkpoints: result.checkpoints.map((checkpoint) => ({
+            name: checkpoint.name,
+            score: checkpoint.score,
+            ...(checkpoint.weight !== undefined ? { weight: checkpoint.weight } : {}),
+          })),
+        }
+      : {}),
+    ...(infrastructureFailure ? { infraError: "Evaluator infrastructure failure" } : {}),
   };
 }
 
@@ -515,7 +528,7 @@ function buildRunResult(row: RawAgentRunRow, finalOutput: string, tokenUsage: To
     durationMs: row.durationMs,
     llmDurationMs: 0,
     workDir: row.workDir,
-    runStatus: "ok",
+    runStatus: row.runStatus ?? "ok",
     usageAvailable: tokenUsage !== undefined,
   };
 }
@@ -526,29 +539,52 @@ async function scoreExplicitEvaluatorRun(
   finalOutput: string,
   tokenUsage: TokenUsage | undefined,
 ): Promise<Pick<ScoredAgentRunRow, "success" | "ruleViolations" | "stepCoverage" | "successSource" | "failedCriteria" | "failureType" | "failureStage" | "evaluatorScore" | "evaluationSummary">> {
-  if (row.exitCode !== 0) {
+  const runStatus = row.runStatus ?? "ok";
+  if (row.exitCode !== 0 || runStatus !== "ok") {
     return {
       success: false,
       ruleViolations: 0,
       stepCoverage: finalOutput.length > 0 ? 1 : 0,
       successSource: "deterministic-evaluator",
-      failedCriteria: [`process exited with code ${row.exitCode}`],
+      failedCriteria: [row.exitCode !== 0
+        ? `process exited with code ${row.exitCode}`
+        : `adapter runStatus ${runStatus}`],
       failureType: classifyFailureType(row),
       failureStage: "execution",
     };
   }
 
-  const results = await evaluateAll(task.eval, buildRunResult(row, finalOutput, tokenUsage));
+  let results: EvalResult[];
+  try {
+    results = await evaluateAll(task.eval, buildRunResult(row, finalOutput, tokenUsage));
+  } catch {
+    return {
+      success: false,
+      ruleViolations: 0,
+      stepCoverage: finalOutput.length > 0 ? 1 : 0,
+      successSource: "deterministic-evaluator",
+      failedCriteria: [],
+      failureType: "infrastructure",
+      failureStage: "evaluation",
+      evaluatorScore: 0,
+      evaluationSummary: [],
+    };
+  }
   const { overallScore } = computeWeightedScore(buildEvalDetails(results));
   const hasInfraError = results.some((result) => result.infraError !== undefined);
   const hardGateIds = new Set(task.hardGateIds ?? []);
   const hardGatesPass = results.every(
     (result) => !result.criterion.id || !hardGateIds.has(result.criterion.id) || result.pass,
   );
-  const success = !hasInfraError && hardGatesPass && overallScore >= (task.passThreshold ?? 1);
+  const passThreshold = task.passThreshold ?? 1;
+  const thresholdPasses = overallScore >= passThreshold;
+  const success = !hasInfraError && hardGatesPass && thresholdPasses;
   const failedCriteria = hasInfraError
     ? []
     : results.flatMap((result, index) => result.pass ? [] : [evaluationLabel(result, index)]);
+  if (!hasInfraError && !thresholdPasses && failedCriteria.length === 0) {
+    failedCriteria.push("overall score below pass threshold");
+  }
 
   return {
     success,
@@ -575,18 +611,22 @@ async function scoreRawRunRowsWithResolver(
     }
 
     validateExplicitEvaluatorContract(task);
-    const failureType = row.exitCode === 0 ? undefined : classifyFailureType(row);
+    const runStatus = row.runStatus ?? "ok";
+    const executionFailed = row.exitCode !== 0 || runStatus !== "ok";
+    const failureType = executionFailed ? classifyFailureType(row) : undefined;
     const tokenUsage = extractTokenUsage(row.stdout);
     const finalOutput = extractFinalOutput(row.stdout);
     const score = task.eval !== undefined
       ? await scoreExplicitEvaluatorRun(row, task as SkillIRBenchmarkTask & { eval: NonNullable<SkillIRBenchmarkTask["eval"]> }, finalOutput, tokenUsage)
-      : failureType === "infrastructure"
+      : failureType
         ? {
             success: false,
             ruleViolations: 0,
             stepCoverage: finalOutput.length > 0 ? 1 : 0,
             successSource: "heuristic-success-criteria" as const,
-            failedCriteria: [`process exited with code ${row.exitCode}`],
+            failedCriteria: [row.exitCode !== 0
+              ? `process exited with code ${row.exitCode}`
+              : `adapter runStatus ${runStatus}`],
           }
         : scoreRunOutput({
             exitCode: row.exitCode,
@@ -606,6 +646,7 @@ async function scoreRawRunRowsWithResolver(
       ...(row.adapterVersion !== undefined ? { adapterVersion: row.adapterVersion } : {}),
       ...(row.runIndex !== undefined ? { runIndex: row.runIndex } : {}),
       ...(row.panelConfigId !== undefined ? { panelConfigId: row.panelConfigId } : {}),
+      ...(row.runStatus !== undefined ? { runStatus: row.runStatus } : {}),
       ...(row.skillProvenance ? { skillProvenance: row.skillProvenance } : {}),
       ...(row.evidenceWeight ? { evidenceWeight: row.evidenceWeight } : {}),
       ...parsed,
@@ -632,7 +673,10 @@ async function scoreRawRunRowsWithResolver(
   }));
 }
 
-export function classifyFailureType(row: Pick<RawAgentRunRow, "exitCode" | "stdout" | "stderr">): FailureType {
+export function classifyFailureType(row: Pick<RawAgentRunRow, "exitCode" | "stdout" | "stderr" | "runStatus">): FailureType {
+  if (row.runStatus === "timeout" || row.runStatus === "parse-failed" || row.runStatus === "tainted") {
+    return "infrastructure";
+  }
   const combined = `${row.stderr}\n${row.stdout}`.toLowerCase();
   if (
     combined.includes("providernetworkerror") ||

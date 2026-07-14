@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, join } from "node:path";
+import { mkdir, realpath, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { scoreRawRunRows, scoreRawRunRowsBySkill, taskIndexKey, type RawAgentRunRow } from "./scoring";
 import type { SkillIRBenchmarkTask } from "./real-agent";
 import { resolveCorpusManifestPath, type CorpusId } from "./corpus-registry";
@@ -76,6 +76,27 @@ async function readJsonl<T>(path: string): Promise<T[]> {
     .map((line) => JSON.parse(line) as T);
 }
 
+async function canonicalizeRawRunWorkDirs(rows: RawAgentRunRow[], rawPath: string): Promise<void> {
+  const rawRunRoot = await realpath(dirname(resolve(rawPath)));
+
+  for (const row of rows) {
+    if (!row.workDir) {
+      continue;
+    }
+    const canonicalWorkDir = await realpath(resolve(row.workDir));
+    const relativeWorkDir = relative(rawRunRoot, canonicalWorkDir);
+    if (
+      relativeWorkDir.length === 0 ||
+      relativeWorkDir === ".." ||
+      relativeWorkDir.startsWith(`..${sep}`) ||
+      isAbsolute(relativeWorkDir)
+    ) {
+      throw new Error(`Run ${row.caseId} workDir is outside raw-run output root`);
+    }
+    row.workDir = canonicalWorkDir;
+  }
+}
+
 async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillIRBenchmarkTask>> {
   const manifestPath = args.corpus
     ? resolveCorpusManifestPath(args.corpus, args.rootDir)
@@ -109,6 +130,7 @@ async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillI
 async function main() {
   const args = parseScoringArgs(process.argv.slice(2));
   const rawRows = await readJsonl<RawAgentRunRow>(args.raw);
+  await canonicalizeRawRunWorkDirs(rawRows, args.raw);
   const scoredRows = args.corpus || args.manifest
     ? await scoreRawRunRowsBySkill(rawRows, await loadTaskIndexFromManifest(args))
     : await scoreRawRunRows(

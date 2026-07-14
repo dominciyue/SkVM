@@ -1,5 +1,6 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import type { RunStatus } from "../../core/types";
 import { SkillIRSchema, type SkillIR } from "../../skill-ir/schema";
 import {
   buildCorpusMatrixInput,
@@ -185,6 +186,13 @@ export async function resetPersistentWorkDir(workDir: string): Promise<void> {
   }
   await rm(target, { recursive: true, force: true });
   await mkdir(target, { recursive: true });
+}
+
+export function extractRunStatus(stdout: string): RunStatus {
+  const finalOutputIndex = stdout.toLowerCase().lastIndexOf("final output:");
+  const header = finalOutputIndex >= 0 ? stdout.slice(0, finalOutputIndex) : stdout;
+  const matches = [...header.matchAll(/\brunstatus:\s*(ok|timeout|adapter-crashed|parse-failed|tainted)\b/gi)];
+  return (matches.at(-1)?.[1]?.toLowerCase() as RunStatus | undefined) ?? "ok";
 }
 
 export function assertRequiredEnv(args: RealAgentRunArgs, env: Record<string, string | undefined> = process.env): void {
@@ -381,6 +389,7 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
           skillPath: item.skillPath,
           workDir: item.workDir,
           exitCode,
+          runStatus: extractRunStatus(stdout),
           durationMs: Date.now() - startedAt,
           stdout,
           stderr,
