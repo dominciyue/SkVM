@@ -159,7 +159,7 @@ Task 2 review follow-up rejects fixture path traversal and resets the persistent
 - Test: `src/benchmarks/skill-ir/scoring.test.ts`
 - Test: `src/benchmarks/skill-ir/score-real-agent-runs.test.ts`
 
-- [ ] **Step 1: Write failing task/evaluator tests**
+- [x] **Step 1: Write failing task/evaluator tests**
 
 Add a task with inline fixtures, two `file-check` criteria, one declared hard gate, and a `passThreshold`. Assert that `buildSkvmTaskJson` preserves the criteria and uses `gradingType: "automated"` without putting expected values in the prompt.
 
@@ -178,11 +178,11 @@ const automatedTask: SkillIRBenchmarkTask = {
 };
 ```
 
-- [ ] **Step 2: Write failing scoring tests**
+- [x] **Step 2: Write failing scoring tests**
 
 Create a temporary persistent workdir and raw row. Assert that automated evaluation produces `successSource: "deterministic-evaluator"`, stores criterion/checkpoint results, applies hard gates before the weighted threshold, and maps evaluator `infraError` to `failureType: "infrastructure"` with `failureStage: "evaluation"`.
 
-- [ ] **Step 3: Run tests and confirm RED**
+- [x] **Step 3: Run tests and confirm RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent.test.ts ./src/benchmarks/skill-ir/scoring.test.ts ./src/benchmarks/skill-ir/score-real-agent-runs.test.ts
@@ -190,23 +190,31 @@ bun test ./src/benchmarks/skill-ir/real-agent.test.ts ./src/benchmarks/skill-ir/
 
 Expected: task schema and asynchronous evaluator-scoring APIs do not exist.
 
-- [ ] **Step 4: Reuse the existing evaluator framework**
+- [x] **Step 4: Reuse the existing evaluator framework**
 
 Import the evaluator registration barrel and `evaluateAll`; do not add a fifth evaluator method. For explicit `eval` tasks, construct the minimal trustworthy `RunResult` from raw output, token usage, duration, and persisted workdir, then evaluate only when execution was not already an infrastructure failure.
 
 Use `computeWeightedScore(buildEvalDetails(results))`. Success requires all declared hard gates to pass and `overallScore >= passThreshold` (default `1`). Reject duplicate/missing hard-gate ids and reject an explicit real-pilot evaluator set containing `llm-judge` until a separately configured judge provider exists.
 
-- [ ] **Step 5: Keep seed compatibility explicit**
+- [x] **Step 5: Keep seed compatibility explicit**
 
 Tasks without `eval` continue through `scoreRunOutput` and retain `successSource: "heuristic-success-criteria"`. This branch is calibration-only. Do not silently fall back to heuristics when a task declares an invalid explicit evaluator.
 
-- [ ] **Step 6: Run focused tests and commit**
+- [x] **Step 6: Run focused tests and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent.test.ts ./src/benchmarks/skill-ir/scoring.test.ts ./src/benchmarks/skill-ir/score-real-agent-runs.test.ts
 git add src/benchmarks/skill-ir/real-agent.ts src/benchmarks/skill-ir/scoring.ts src/benchmarks/skill-ir/score-real-agent-runs.ts src/benchmarks/skill-ir/real-agent.test.ts src/benchmarks/skill-ir/scoring.test.ts src/benchmarks/skill-ir/score-real-agent-runs.test.ts
 git commit -m "feat: score pilot artifacts with SkVM evaluators"
 ```
+
+Implementation review also hardened this path: new raw rows persist the adapter
+`runStatus`; every non-`ok` status blocks evaluation and is classified as an
+execution-stage infrastructure failure; evaluator exceptions are isolated per
+row; aggregate-threshold misses retain failure evidence; public summaries omit
+hidden evaluator details; and the scoring CLI rejects workdirs outside the
+raw-run output root, including symlink escapes. Focused verification reached
+88 passing tests after these fixes.
 
 ### Task 4: Trace And Final IR Provenance Identity
 
