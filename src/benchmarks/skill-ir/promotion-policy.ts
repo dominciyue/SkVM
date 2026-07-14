@@ -101,8 +101,15 @@ function round(value: number, digits = 4): number {
   return Math.round(value * factor) / factor;
 }
 
-function caseKey(row: ScoredAgentRunRow): string {
-  return [row.skill, row.agent, row.environment, row.context, row.task].join(":");
+function pairingKey(row: ScoredAgentRunRow): string {
+  return JSON.stringify([
+    row.caseId,
+    row.model ?? null,
+    row.adapter ?? null,
+    row.adapterVersion ?? null,
+    row.panelConfigId ?? null,
+    row.runIndex ?? null,
+  ]);
 }
 
 function semanticRows(rows: ScoredAgentRunRow[]): ScoredAgentRunRow[] {
@@ -157,7 +164,8 @@ export function inferModelFamily(model: string): string {
   if (normalized.includes("grok")) {
     return "grok";
   }
-  return normalized.split(/[/:_-]/).find(Boolean) ?? "unknown";
+  const leafModel = normalized.split("/").filter(Boolean).at(-1) ?? normalized;
+  return leafModel.split(/[:_-]/).find(Boolean) ?? "unknown";
 }
 
 export function summarizeModelFamily(input: SummarizeModelFamilyInput): ModelFamilyPromotionProfile {
@@ -172,7 +180,7 @@ export function summarizeModelFamily(input: SummarizeModelFamilyInput): ModelFam
   const rowsByCase = new Map<string, Map<ExperimentSystem, ScoredAgentRunRow>>();
 
   for (const row of semantic) {
-    const key = caseKey(row);
+    const key = pairingKey(row);
     const bucket = rowsByCase.get(key) ?? new Map<ExperimentSystem, ScoredAgentRunRow>();
     bucket.set(row.system, row);
     rowsByCase.set(key, bucket);

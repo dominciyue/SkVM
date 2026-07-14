@@ -5,6 +5,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from skill_ir_pairing import PAIRING_IDENTITY_FIELDS, PairingKey, pairing_key
+
 
 SLICE_FIELDS = [
     "dimension",
@@ -26,6 +28,7 @@ SLICE_FIELDS = [
 
 PAIRED_FIELDS = [
     "caseId",
+    *PAIRING_IDENTITY_FIELDS,
     "skill",
     "task",
     "taskSplit",
@@ -102,12 +105,14 @@ def build_task_split_index_from_manifest(manifest_path: Path, root_dir: Path) ->
     return index
 
 
-def build_baseline_by_case(rows: list[dict[str, Any]], baseline_system: str) -> dict[str, dict[str, Any]]:
-    baseline = {}
+def build_baseline_by_case(
+    rows: list[dict[str, Any]], baseline_system: str
+) -> dict[PairingKey, dict[str, Any]]:
+    baseline: dict[PairingKey, dict[str, Any]] = {}
     for row in rows:
-        case_id = row.get("caseId")
-        if row.get("system") == baseline_system and case_id:
-            baseline[str(case_id)] = row
+        key = pairing_key(row)
+        if row.get("system") == baseline_system and key is not None:
+            baseline[key] = row
     return baseline
 
 
@@ -131,8 +136,8 @@ def summarize_slice_rows(
         regressions = 0
         negative_deltas = 0
         for row in system_rows:
-            case_id = row.get("caseId")
-            baseline = baseline_by_case.get(str(case_id)) if case_id else None
+            key = pairing_key(row)
+            baseline = baseline_by_case.get(key) if key is not None else None
             if not baseline or system == baseline_system:
                 continue
             if row.get("failureType") == "infrastructure" or baseline.get("failureType") == "infrastructure":
@@ -208,13 +213,15 @@ def build_paired_delta_rows(
         if system == baseline_system:
             continue
         case_id = row.get("caseId")
-        baseline = baseline_by_case.get(str(case_id)) if case_id else None
+        key = pairing_key(row)
+        baseline = baseline_by_case.get(key) if key is not None else None
         if not baseline:
             continue
         delta = success_value(row) - success_value(baseline)
         paired.append(
             {
                 "caseId": case_id,
+                **{field: row.get(field, "") for field in PAIRING_IDENTITY_FIELDS},
                 "skill": row.get("skill", ""),
                 "task": row.get("task", ""),
                 "taskSplit": task_split(row, task_split_by_key),
@@ -238,7 +245,14 @@ def build_paired_delta_rows(
                 "failed_criteria": "; ".join(str(item) for item in row.get("failedCriteria", [])),
             }
         )
-    return sorted(paired, key=lambda row: (str(row["caseId"]), str(row["system"])))
+    return sorted(
+        paired,
+        key=lambda row: (
+            str(row["caseId"]),
+            *(str(row[field]) for field in PAIRING_IDENTITY_FIELDS),
+            str(row["system"]),
+        ),
+    )
 
 
 def write_csv(rows: list[dict[str, Any]], fieldnames: list[str], path: Path) -> None:

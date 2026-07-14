@@ -45,8 +45,61 @@ describe("promotion policy", () => {
   test("inferModelFamily maps common route names to stable families", () => {
     expect(inferModelFamily("xty/gpt-4.1-nano")).toBe("gpt");
     expect(inferModelFamily("xty/gemini-2.5-flash")).toBe("gemini");
+    expect(inferModelFamily("xty/claude-3.7-sonnet")).toBe("claude");
+    expect(inferModelFamily("xty/deepseek-v3")).toBe("deepseek");
     expect(inferModelFamily("xty/qwen3-8b")).toBe("qwen");
-    expect(inferModelFamily("custom/my-model")).toBe("custom");
+    expect(inferModelFamily("xty/grok-3-mini")).toBe("grok");
+    expect(inferModelFamily("xty/llama-3.1")).toBe("llama");
+    expect(inferModelFamily("xty/glm-4")).toBe("glm");
+    expect(inferModelFamily("custom/my-model")).toBe("my");
+  });
+
+  test("summarizeModelFamily pairs repeated cases by complete run identity", () => {
+    const identity = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace",
+      panelConfigId: "pilot-v1",
+    };
+    const profile = summarizeModelFamily({
+      modelFamily: "gpt",
+      modelLabels: ["gpt41mini"],
+      rows: [
+        row("task-repeat", "ir-profile", true, { ...identity, runIndex: 1 }),
+        row("task-repeat", "ir-profile", false, { ...identity, runIndex: 2 }),
+        row("task-repeat", "ir-pgo", false, { ...identity, runIndex: 1 }),
+        row("task-repeat", "ir-pgo", true, { ...identity, runIndex: 2 }),
+      ],
+      options: { minPairedCases: 2 },
+    });
+
+    expect(profile.pairedCases).toBe(2);
+    expect(profile.pairedDelta).toBe(0);
+    expect(profile.irPgoGains).toBe(1);
+    expect(profile.irPgoRegressions).toBe(1);
+  });
+
+  test("summarizeModelFamily does not pair partial identity with complete identity", () => {
+    const profile = summarizeModelFamily({
+      modelFamily: "gpt",
+      modelLabels: ["gpt41mini"],
+      rows: [
+        row("task-partial", "ir-profile", true, {
+          model: "xty/gpt-4.1-mini",
+          adapter: "bare-agent",
+          adapterVersion: "workspace",
+          panelConfigId: "pilot-v1",
+          runIndex: 1,
+        }),
+        row("task-partial", "ir-pgo", false, {
+          model: "xty/gpt-4.1-mini",
+          runIndex: 1,
+        }),
+      ],
+    });
+
+    expect(profile.pairedCases).toBe(0);
   });
 
   test("summarizeModelFamily promotes ir-pgo when held-out paired evidence improves without regressions", () => {

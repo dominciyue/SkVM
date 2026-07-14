@@ -6,6 +6,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from skill_ir_pairing import PairingKey, pairing_key
+
 
 SUMMARY_FIELDS = [
     "system",
@@ -52,12 +54,12 @@ def mean_or_zero(values: list[float]) -> float:
     return sum(values) / len(values) if values else 0.0
 
 
-def build_baseline_by_case(rows: list[dict[str, Any]], baseline_system: str) -> dict[str, float]:
-    baseline_by_case: dict[str, float] = {}
+def build_baseline_by_case(rows: list[dict[str, Any]], baseline_system: str) -> dict[PairingKey, float]:
+    baseline_by_case: dict[PairingKey, float] = {}
     for row in rows:
-        case_id = row.get("caseId")
-        if row["system"] == baseline_system and case_id and row.get("failureType") != "infrastructure":
-            baseline_by_case[str(case_id)] = success_value(row)
+        key = pairing_key(row)
+        if row["system"] == baseline_system and key is not None and row.get("failureType") != "infrastructure":
+            baseline_by_case[key] = success_value(row)
     return baseline_by_case
 
 
@@ -92,18 +94,19 @@ def summarize(rows: list[dict[str, Any]], baseline_system: str = "original") -> 
         elif row.get("failureType") == "agent":
             agent_failures[system] += 1
 
-        case_id = row.get("caseId")
+        key = pairing_key(row)
         if (
-            case_id
-            and str(case_id) in baseline_by_case
+            key is not None
+            and key in baseline_by_case
             and system != baseline_system
             and row.get("failureType") != "infrastructure"
         ):
-            delta = success - baseline_by_case[str(case_id)]
+            baseline_success = baseline_by_case[key]
+            delta = success - baseline_success
             deltas[system].append(delta)
             if delta < 0:
                 negative_deltas[system] += 1
-            if baseline_by_case[str(case_id)] == 1.0 and success == 0.0:
+            if baseline_success == 1.0 and success == 0.0:
                 regressions[system] += 1
 
     summary = []

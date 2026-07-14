@@ -10,6 +10,58 @@ from analyze_skill_ir_results import read_jsonl, summarize, write_summary_csv
 
 
 class AnalyzeSkillIRResultsTest(unittest.TestCase):
+    def test_repeated_cases_pair_by_complete_run_identity(self):
+        identity = {
+            "caseId": "case-repeat",
+            "model": "xty/gpt-4.1-mini",
+            "adapter": "bare-agent",
+            "adapterVersion": "workspace",
+            "panelConfigId": "pilot-v1",
+            "agent": "a1",
+            "environment": "linux",
+            "context": "clean",
+            "ruleViolations": 0,
+        }
+        rows = [
+            {**identity, "system": "original", "runIndex": 1, "success": True},
+            {**identity, "system": "original", "runIndex": 2, "success": False},
+            {**identity, "system": "ir-profile", "runIndex": 1, "success": False},
+            {**identity, "system": "ir-profile", "runIndex": 2, "success": True},
+        ]
+
+        summary = {row["system"]: row for row in summarize(rows, baseline_system="original")}
+
+        self.assertEqual(summary["ir-profile"]["paired_cases"], 2)
+        self.assertEqual(summary["ir-profile"]["paired_delta_success"], 0.0)
+        self.assertEqual(summary["ir-profile"]["regression_count"], 1)
+        self.assertEqual(summary["ir-profile"]["negative_delta_count"], 1)
+
+    def test_partial_identity_does_not_pair_with_complete_identity(self):
+        common = {
+            "caseId": "case-partial",
+            "model": "xty/gpt-4.1-mini",
+            "runIndex": 1,
+            "agent": "a1",
+            "environment": "linux",
+            "context": "clean",
+            "ruleViolations": 0,
+        }
+        rows = [
+            {
+                **common,
+                "system": "original",
+                "adapter": "bare-agent",
+                "adapterVersion": "workspace",
+                "panelConfigId": "pilot-v1",
+                "success": True,
+            },
+            {**common, "system": "ir-profile", "success": False},
+        ]
+
+        summary = {row["system"]: row for row in summarize(rows, baseline_system="original")}
+
+        self.assertEqual(summary["ir-profile"]["paired_cases"], 0)
+
     def test_summarize_reports_success_stability_and_paired_deltas(self):
         rows = [
             {
