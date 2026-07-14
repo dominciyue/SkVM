@@ -1,5 +1,5 @@
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
-import type { SkillIRBenchmarkTask } from "./real-agent";
+import type { RunIdentity, SkillIRBenchmarkTask } from "./real-agent";
 
 export type ParsedCaseId = {
   skill: string;
@@ -9,7 +9,7 @@ export type ParsedCaseId = {
   task: string;
 };
 
-export type RawAgentRunRow = {
+export type RawAgentRunRow = Partial<RunIdentity> & {
   caseId: string;
   system: ExperimentSystem;
   skillProvenance?: SkillProvenance;
@@ -45,7 +45,7 @@ export type TokenUsage = {
   tokenCost: number;
 };
 
-export type ScoredAgentRunRow = ParsedCaseId & {
+export type ScoredAgentRunRow = ParsedCaseId & Partial<RunIdentity> & {
   caseId: string;
   system: ExperimentSystem;
   skillProvenance?: SkillProvenance;
@@ -450,6 +450,12 @@ function scoreRawRunRowsWithResolver(
     return {
       caseId: row.caseId,
       system: row.system,
+      ...(row.model !== undefined ? { model: row.model } : {}),
+      ...(row.modelFamily !== undefined ? { modelFamily: row.modelFamily } : {}),
+      ...(row.adapter !== undefined ? { adapter: row.adapter } : {}),
+      ...(row.adapterVersion !== undefined ? { adapterVersion: row.adapterVersion } : {}),
+      ...(row.runIndex !== undefined ? { runIndex: row.runIndex } : {}),
+      ...(row.panelConfigId !== undefined ? { panelConfigId: row.panelConfigId } : {}),
       ...(row.skillProvenance ? { skillProvenance: row.skillProvenance } : {}),
       ...(row.evidenceWeight ? { evidenceWeight: row.evidenceWeight } : {}),
       ...parsed,

@@ -18,12 +18,17 @@ import {
 } from "./real-agent";
 import { runWithInfrastructureRetries } from "./real-agent-retry";
 import { readAndValidateFinalIRProvenance } from "./final-ir-provenance";
+import { inferModelFamily } from "./promotion-policy";
 import { sha256Bytes } from "./source-fixture";
 
 export type RealAgentRunArgs = {
   corpus: CorpusId;
   model: string;
+  modelFamily?: string;
   adapter: string;
+  adapterVersion?: string;
+  repetitions?: number;
+  panelConfigId?: string;
   outDir: string;
   limit: number;
   execute: boolean;
@@ -68,6 +73,9 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
     corpus: "calibration",
     model: "<provider>/<model-id>",
     adapter: "bare-agent",
+    adapterVersion: "workspace",
+    repetitions: 1,
+    panelConfigId: "single-run",
     outDir: "results/skill-ir/real-agent-dry-run",
     limit: 12,
     execute: false,
@@ -89,8 +97,16 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
       corpusProvided = true;
     } else if (arg.startsWith("--model=")) {
       args.model = arg.slice("--model=".length);
+    } else if (arg.startsWith("--model-family=")) {
+      args.modelFamily = arg.slice("--model-family=".length);
     } else if (arg.startsWith("--adapter=")) {
       args.adapter = arg.slice("--adapter=".length);
+    } else if (arg.startsWith("--adapter-version=")) {
+      args.adapterVersion = arg.slice("--adapter-version=".length);
+    } else if (arg.startsWith("--panel-config-id=")) {
+      args.panelConfigId = arg.slice("--panel-config-id=".length);
+    } else if (arg.startsWith("--repetitions=")) {
+      args.repetitions = Number(arg.slice("--repetitions=".length));
     } else if (arg.startsWith("--out-dir=")) {
       args.outDir = arg.slice("--out-dir=".length);
     } else if (arg.startsWith("--limit=")) {
@@ -128,6 +144,10 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
     throw new Error("--limit must be a positive integer");
   }
 
+  if (!Number.isInteger(args.repetitions) || args.repetitions! < 1) {
+    throw new Error("--repetitions must be a positive integer");
+  }
+
   if (!Number.isFinite(args.retries) || args.retries < 0) {
     throw new Error("--retries must be a non-negative integer");
   }
@@ -139,6 +159,8 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
   if (args.execute && args.model === "<provider>/<model-id>") {
     throw new Error("--model=<provider>/<model-id> is required when --execute is set");
   }
+
+  args.modelFamily = args.modelFamily || inferModelFamily(args.model);
 
   return args;
 }
@@ -253,6 +275,10 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
     });
   }
   const plan: RealAgentRunPlanEntry[] = [];
+  const repetitions = args.repetitions ?? 1;
+  const modelFamily = args.modelFamily ?? inferModelFamily(args.model);
+  const adapterVersion = args.adapterVersion ?? "workspace";
+  const panelConfigId = args.panelConfigId ?? "single-run";
 
   for (const item of matrix) {
     const fixture = fixtures.get(item.skill);
@@ -265,28 +291,35 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
       throw new Error(`Task ${item.task} was not found in ${fixture.taskSet.skillId} task set`);
     }
 
-    const materialized = await materializeCaseArtifacts({
-      outDir: join(args.outDir, "artifacts"),
-      rootDir: args.rootDir,
-      ir: item.system === "ir-pgo" ? fixture.ir : fixture.baseIR,
-      task,
-      context: item.context,
-      system: item.system,
-      caseId: item.caseId,
-    });
-    plan.push(
-      buildRunPlanEntry(
-        {
-          ...materialized,
-          skillProvenance: item.skillProvenance,
-          evidenceWeight: item.evidenceWeight,
-        },
-        {
-          model: args.model,
-          adapter: args.adapter,
-        },
-      ),
-    );
+    for (let runIndex = 1; runIndex <= repetitions; runIndex += 1) {
+      const materialized = await materializeCaseArtifacts({
+        outDir: join(args.outDir, "artifacts"),
+        rootDir: args.rootDir,
+        ir: item.system === "ir-pgo" ? fixture.ir : fixture.baseIR,
+        task,
+        context: item.context,
+        system: item.system,
+        caseId: item.caseId,
+        runIndex,
+      });
+      plan.push(
+        buildRunPlanEntry(
+          {
+            ...materialized,
+            skillProvenance: item.skillProvenance,
+            evidenceWeight: item.evidenceWeight,
+          },
+          {
+            model: args.model,
+            modelFamily,
+            adapter: args.adapter,
+            adapterVersion,
+            runIndex,
+            panelConfigId,
+          },
+        ),
+      );
+    }
   }
 
   return plan;
@@ -313,6 +346,12 @@ async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs
         return {
           caseId: item.caseId,
           system: item.system,
+          model: item.model,
+          modelFamily: item.modelFamily,
+          adapter: item.adapter,
+          adapterVersion: item.adapterVersion,
+          runIndex: item.runIndex,
+          panelConfigId: item.panelConfigId,
           skillProvenance: item.skillProvenance,
           evidenceWeight: item.evidenceWeight,
           taskPath: item.taskPath,

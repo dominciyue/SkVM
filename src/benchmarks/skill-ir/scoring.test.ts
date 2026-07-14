@@ -654,11 +654,17 @@ describe("Skill IR real-agent scoring", () => {
     }
   });
 
-  test("scoreRawRunRows maps raw execution logs to analyzer-compatible result rows", () => {
+  test("scoreRawRunRows maps execution logs and copies run identity unchanged", () => {
     const rows: RawAgentRunRow[] = [
       {
         caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
         system: "original",
+        model: "xty/gpt-4.1-mini",
+        modelFamily: "gpt",
+        adapter: "bare-agent",
+        adapterVersion: "workspace-2026-07-15",
+        runIndex: 2,
+        panelConfigId: "env-manager-calibration-v1",
         skillProvenance: "real-public",
         evidenceWeight: "main-real",
         taskPath: "tmp/task.json",
@@ -682,6 +688,12 @@ describe("Skill IR real-agent scoring", () => {
       {
         caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
         system: "original",
+        model: "xty/gpt-4.1-mini",
+        modelFamily: "gpt",
+        adapter: "bare-agent",
+        adapterVersion: "workspace-2026-07-15",
+        runIndex: 2,
+        panelConfigId: "env-manager-calibration-v1",
         skillProvenance: "real-public",
         evidenceWeight: "main-real",
         skill: "skill-review",

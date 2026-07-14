@@ -5,7 +5,17 @@ import { insertEnvironmentGuards } from "../../skill-ir/passes/environment-guard
 import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-repair";
 import { normalizeRules } from "../../skill-ir/passes/rule-normalization";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
+import { inferModelFamily } from "./promotion-policy";
 import { materializeVerifiedOriginalSource } from "./source-fixture";
+
+export type RunIdentity = {
+  model: string;
+  modelFamily: string;
+  adapter: string;
+  adapterVersion: string;
+  runIndex: number;
+  panelConfigId: string;
+};
 
 export type SkillIRBenchmarkTask = {
   id: string;
@@ -48,6 +58,7 @@ export type MaterializeCaseOptions = {
   context: string;
   system: ExperimentSystem;
   caseId: string;
+  runIndex?: number;
 };
 
 export type BuildRunCommandOptions = {
@@ -61,7 +72,7 @@ export type BuildRunCommandOptions = {
   maxSteps?: number;
 };
 
-export type RealAgentRunPlanEntry = MaterializedCase & {
+export type RealAgentRunPlanEntry = MaterializedCase & RunIdentity & {
   command: string[];
 };
 
@@ -257,7 +268,7 @@ export function buildSkvmTaskJson(
 
 export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Promise<MaterializedCase> {
   const safeCaseId = opts.caseId.replace(/[^a-zA-Z0-9._-]+/g, "__");
-  const caseDir = join(opts.outDir, safeCaseId, opts.system);
+  const caseDir = join(opts.outDir, safeCaseId, opts.system, `run-${opts.runIndex ?? 1}`);
   const taskDir = join(caseDir, "task");
   const skillDir = join(caseDir, "skill");
   await mkdir(taskDir, { recursive: true });
@@ -330,10 +341,17 @@ export function buildSkvmRunCommand(opts: BuildRunCommandOptions): string[] {
 
 export function buildRunPlanEntry(
   materialized: MaterializedCase,
-  opts: Omit<BuildRunCommandOptions, "taskPath" | "skillPath">,
+  opts: Omit<BuildRunCommandOptions, "taskPath" | "skillPath"> &
+    Partial<Pick<RunIdentity, "modelFamily" | "adapterVersion" | "runIndex" | "panelConfigId">>,
 ): RealAgentRunPlanEntry {
   return {
     ...materialized,
+    model: opts.model,
+    modelFamily: opts.modelFamily ?? inferModelFamily(opts.model),
+    adapter: opts.adapter,
+    adapterVersion: opts.adapterVersion ?? "workspace",
+    runIndex: opts.runIndex ?? 1,
+    panelConfigId: opts.panelConfigId ?? "single-run",
     command: buildSkvmRunCommand({
       ...opts,
       taskPath: materialized.taskPath,

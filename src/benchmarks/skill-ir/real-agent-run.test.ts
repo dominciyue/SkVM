@@ -14,6 +14,13 @@ import { sha256Bytes } from "./source-fixture";
 
 const tempDirs: string[] = [];
 
+const defaultRunIdentityArgs = {
+  modelFamily: "test",
+  adapterVersion: "workspace",
+  repetitions: 1,
+  panelConfigId: "single-run",
+};
+
 afterEach(async () => {
   for (const dir of tempDirs.splice(0)) {
     await rm(dir, { recursive: true, force: true });
@@ -140,11 +147,52 @@ describe("real-agent-run manifest loading", () => {
     expect(() => parseRealAgentRunArgs([])).toThrow("--corpus is required");
   });
 
+  test("parseRealAgentRunArgs parses explicit run identity and repetitions", () => {
+    const parsed = parseRealAgentRunArgs([
+      "--corpus=calibration",
+      "--model=xty/gpt-4.1-mini",
+      "--model-family=gpt",
+      "--adapter=bare-agent",
+      "--adapter-version=workspace-2026-07-15",
+      "--panel-config-id=env-manager-calibration-v1",
+      "--repetitions=3",
+    ]);
+
+    expect(parsed).toMatchObject({
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      panelConfigId: "env-manager-calibration-v1",
+      repetitions: 3,
+    });
+  });
+
+  test("parseRealAgentRunArgs infers model family and applies identity defaults", () => {
+    const parsed = parseRealAgentRunArgs(["--corpus=calibration", "--model=xty/gemini-2.5-flash"]);
+
+    expect(parsed).toMatchObject({
+      modelFamily: "gemini",
+      adapterVersion: "workspace",
+      panelConfigId: "single-run",
+      repetitions: 1,
+    });
+  });
+
+  test("parseRealAgentRunArgs rejects invalid repetition counts", () => {
+    for (const repetitions of ["0", "-1", "1.5", "abc"]) {
+      expect(() => parseRealAgentRunArgs(["--corpus=calibration", `--repetitions=${repetitions}`])).toThrow(
+        "--repetitions must be a positive integer",
+      );
+    }
+  });
+
   test("buildPlan materializes each skill with its own IR and task file", async () => {
     const rootDir = await createMultiSkillRoot();
     const args: RealAgentRunArgs = {
       model: "test/model",
       adapter: "bare-agent",
+      ...defaultRunIdentityArgs,
       outDir: join(rootDir, "out"),
       limit: 10,
       execute: false,
@@ -176,11 +224,66 @@ describe("real-agent-run manifest loading", () => {
     expect(skillTexts.some((text) => text.includes("Diagnostic source text."))).toBe(true);
   });
 
+  test("buildPlan repeats limited matrix rows with complete identity and distinct artifact paths", async () => {
+    const rootDir = await createMultiSkillRoot();
+    const args: RealAgentRunArgs = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      repetitions: 3,
+      panelConfigId: "env-manager-calibration-v1",
+      outDir: join(rootDir, "out"),
+      limit: 1,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1000,
+      rootDir,
+      corpus: "calibration",
+      systems: new Set(["original"]),
+      contexts: new Set(["clean"]),
+    };
+
+    const plan = await buildPlan(args);
+
+    expect(plan).toHaveLength(3);
+    expect(plan.map((entry) => entry.caseId)).toEqual([
+      "skill-review:skvm:linux:clean:review-task",
+      "skill-review:skvm:linux:clean:review-task",
+      "skill-review:skvm:linux:clean:review-task",
+    ]);
+    expect(plan.map((entry) => entry.runIndex)).toEqual([1, 2, 3]);
+    expect(
+      plan.map(({ model, modelFamily, adapter, adapterVersion, panelConfigId }) => ({
+        model,
+        modelFamily,
+        adapter,
+        adapterVersion,
+        panelConfigId,
+      })),
+    ).toEqual(
+      Array.from({ length: 3 }, () => ({
+        model: "xty/gpt-4.1-mini",
+        modelFamily: "gpt",
+        adapter: "bare-agent",
+        adapterVersion: "workspace-2026-07-15",
+        panelConfigId: "env-manager-calibration-v1",
+      })),
+    );
+    expect(new Set(plan.map((entry) => entry.taskPath)).size).toBe(3);
+    expect(plan.map((entry) => entry.taskPath)).toEqual([
+      expect.stringContaining(join("original", "run-1", "task", "task.json")),
+      expect.stringContaining(join("original", "run-2", "task", "task.json")),
+      expect.stringContaining(join("original", "run-3", "task", "task.json")),
+    ]);
+  });
+
   test("buildPlan can narrow runs by agent, environment, and task id", async () => {
     const rootDir = await createMultiSkillRoot();
     const args: RealAgentRunArgs = {
       model: "test/model",
       adapter: "bare-agent",
+      ...defaultRunIdentityArgs,
       outDir: join(rootDir, "out"),
       limit: 10,
       execute: false,
@@ -224,6 +327,7 @@ describe("real-agent-run manifest loading", () => {
     const args: RealAgentRunArgs = {
       model: "test/model",
       adapter: "bare-agent",
+      ...defaultRunIdentityArgs,
       outDir: join(rootDir, "out"),
       limit: 1,
       execute: false,
@@ -281,6 +385,7 @@ describe("real-agent-run manifest loading", () => {
     const args: RealAgentRunArgs = {
       model: "test/model",
       adapter: "bare-agent",
+      ...defaultRunIdentityArgs,
       outDir: join(rootDir, "out"),
       limit: 3,
       execute: false,
@@ -316,6 +421,7 @@ describe("real-agent-run manifest loading", () => {
     const args: RealAgentRunArgs = {
       model: "test/model",
       adapter: "bare-agent",
+      ...defaultRunIdentityArgs,
       outDir: join(rootDir, "out"),
       limit: 1,
       execute: false,
@@ -336,6 +442,7 @@ describe("real-agent-run manifest loading", () => {
         {
           model: "test/model",
           adapter: "bare-agent",
+          ...defaultRunIdentityArgs,
           outDir: "out",
           limit: 1,
           execute: true,
