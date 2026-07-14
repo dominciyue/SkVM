@@ -35,9 +35,9 @@ This plan does not author `env-manager` benchmark tasks, choose the model panel,
 - Test: `src/benchmarks/skill-ir/real-agent-run.test.ts`
 - Test: `src/benchmarks/skill-ir/scoring.test.ts`
 
-- [ ] **Step 1: Write failing parser and plan tests**
+- [x] **Step 1: Write failing parser and plan tests**
 
-Add tests proving that `--repetitions=3`, `--model-family=gpt`, `--adapter-version=workspace-2026-07-15`, and `--panel-config-id=env-manager-calibration-v1` are parsed; invalid repetition counts fail; and `buildPlan` emits three rows with one-based `runIndex` values and distinct artifact/workdir paths.
+Add tests proving that `--repetitions=3`, `--model-family=gpt`, `--adapter-version=workspace-2026-07-15`, and `--panel-config-id=env-manager-calibration-v1` are parsed; invalid repetition counts fail; and `buildPlan` emits three rows with one-based `runIndex` values and distinct task/skill artifact paths. Persistent workdirs are introduced in Task 2.
 
 ```ts
 const parsed = parseRealAgentRunArgs([
@@ -57,7 +57,7 @@ expect(parsed).toMatchObject({
 });
 ```
 
-- [ ] **Step 2: Run tests and confirm RED**
+- [x] **Step 2: Run tests and confirm RED**
 
 Run:
 
@@ -67,7 +67,7 @@ bun test ./src/benchmarks/skill-ir/real-agent-run.test.ts ./src/benchmarks/skill
 
 Expected: parser expectations fail because the options and row fields do not exist.
 
-- [ ] **Step 3: Add the run identity contract**
+- [x] **Step 3: Add the run identity contract**
 
 Define and propagate this shape through plan, raw, and scored rows:
 
@@ -84,11 +84,11 @@ export type RunIdentity = {
 
 Use `inferModelFamily(model)` when `--model-family` is omitted. Defaults are `repetitions=1`, `adapterVersion="workspace"`, and `panelConfigId="single-run"`. Repeat after matrix filtering so `--limit` continues to limit matrix cells rather than silently limiting repetitions.
 
-- [ ] **Step 4: Preserve archived-row compatibility**
+- [x] **Step 4: Preserve archived-row compatibility**
 
 Make the identity fields optional on input/scored JSONL types, while ensuring `executePlan` always writes all six fields for new rows. Copy any present fields unchanged during scoring.
 
-- [ ] **Step 5: Run focused tests and commit**
+- [x] **Step 5: Run focused tests and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent-run.test.ts ./src/benchmarks/skill-ir/scoring.test.ts
@@ -97,6 +97,8 @@ git commit -m "feat: record real-pilot run identity"
 ```
 
 Expected: focused tests pass and every new plan row has complete identity metadata.
+
+Task 1 review follow-up also upgraded every paired-analysis consumer to use the complete run identity. Fully legacy rows pair by `caseId`; partially identified rows are unpairable. Unknown model-family fallback is derived from the model leaf rather than the gateway/provider segment.
 
 ### Task 2: Persistent Workdirs, Fixtures, And Resource Parity
 
