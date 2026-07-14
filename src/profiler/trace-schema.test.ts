@@ -44,4 +44,55 @@ describe("ExecutionTraceSchema", () => {
       }),
     ).toThrow();
   });
+
+  test("accepts complete pilot identity while preserving the v1 schema version", () => {
+    const trace = ExecutionTraceSchema.parse({
+      schemaVersion: "skill-ir-trace/v1",
+      traceId: "trace-identified",
+      skillId: "skill-review",
+      agent: "codex",
+      environment: "windows",
+      context: "clean",
+      taskId: "review-finding-order-001",
+      success: false,
+      tokenCost: 1200,
+      latencyMs: 8000,
+      events: [],
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      runIndex: 2,
+      panelConfigId: "env-manager-calibration-v1",
+    });
+
+    expect(trace).toMatchObject({
+      schemaVersion: "skill-ir-trace/v1",
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      runIndex: 2,
+      panelConfigId: "env-manager-calibration-v1",
+    });
+  });
+
+  test("rejects partial pilot identity instead of accepting ambiguous traces", () => {
+    expect(() =>
+      ExecutionTraceSchema.parse({
+        schemaVersion: "skill-ir-trace/v1",
+        traceId: "trace-partial",
+        skillId: "skill-review",
+        agent: "codex",
+        environment: "windows",
+        context: "clean",
+        taskId: "review-finding-order-001",
+        success: false,
+        tokenCost: 1200,
+        latencyMs: 8000,
+        events: [],
+        model: "xty/gpt-4.1-mini",
+      }),
+    ).toThrow("complete run identity");
+  });
 });

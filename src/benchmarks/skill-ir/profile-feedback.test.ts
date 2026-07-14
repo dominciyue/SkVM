@@ -112,6 +112,37 @@ describe("profile feedback from scored results", () => {
     });
   });
 
+  test("propagates complete run identity and makes repeated trace ids unique", () => {
+    const identity = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      panelConfigId: "env-manager-calibration-v1",
+    };
+    const traces = scoredRowsToExecutionTraces(
+      [scoredRow({ ...identity, runIndex: 1 }), scoredRow({ ...identity, runIndex: 2 })],
+      new Map([["skill-report-synthesis", reportIr()]]),
+    );
+
+    expect(traces.map((trace) => trace.traceId)).toEqual([
+      expect.stringContaining("runIndex=1"),
+      expect.stringContaining("runIndex=2"),
+    ]);
+    expect(new Set(traces.map((trace) => trace.traceId)).size).toBe(2);
+    expect(traces[0]).toMatchObject({ ...identity, runIndex: 1 });
+    expect(traces[1]).toMatchObject({ ...identity, runIndex: 2 });
+  });
+
+  test("rejects a scored row with partial run identity", () => {
+    expect(() =>
+      scoredRowsToExecutionTraces(
+        [scoredRow({ model: "xty/gpt-4.1-mini" })],
+        new Map([["skill-report-synthesis", reportIr()]]),
+      ),
+    ).toThrow("complete run identity");
+  });
+
   test("merges profile annotations into an IR copy without mutating the base IR", () => {
     const base = reportIr();
     const derived = mergeProfileAnnotationsIntoIR(base, [

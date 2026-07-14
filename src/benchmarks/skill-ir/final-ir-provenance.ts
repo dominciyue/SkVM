@@ -2,12 +2,96 @@ import { readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import { z } from "zod";
 import type { CorpusId } from "./corpus-registry";
+import type { ScoredAgentRunRow } from "./scoring";
 import { sha256Bytes } from "./source-fixture";
 
 const DigestPathSchema = z.object({
   path: z.string().min(1),
   sha256: z.string().regex(/^[0-9a-f]{64}$/i),
 });
+
+type ConstructionConfigDimensions = {
+  model: string;
+  modelFamily: string;
+  adapter: string;
+  adapterVersion: string;
+  panelConfigId: string;
+};
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function compareConstructionConfigDimensions(
+  left: ConstructionConfigDimensions,
+  right: ConstructionConfigDimensions,
+): number {
+  return (
+    compareStrings(left.model, right.model) ||
+    compareStrings(left.modelFamily, right.modelFamily) ||
+    compareStrings(left.adapter, right.adapter) ||
+    compareStrings(left.adapterVersion, right.adapterVersion) ||
+    compareStrings(left.panelConfigId, right.panelConfigId)
+  );
+}
+
+const LegacyConstructionConfigSchema = z.object({
+  status: z.literal("legacy-unidentified"),
+}).strict();
+
+const IdentifiedConstructionConfigBaseSchema = z.object({
+  model: z.string().min(1),
+  modelFamily: z.string().min(1),
+  adapter: z.string().min(1),
+  adapterVersion: z.string().min(1),
+  panelConfigId: z.string().min(1),
+}).strict();
+
+const IdentifiedConstructionConfigSchema = IdentifiedConstructionConfigBaseSchema.extend({
+  runIndices: z.array(z.number().int().positive()).min(1),
+}).strict().superRefine((config, ctx) => {
+  for (let index = 1; index < config.runIndices.length; index += 1) {
+    if (config.runIndices[index - 1]! >= config.runIndices[index]!) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "construction config runIndices must be sorted and deduplicated",
+        path: ["runIndices"],
+      });
+      return;
+    }
+  }
+});
+
+const ConstructionConfigSchema = z.union([
+  LegacyConstructionConfigSchema,
+  IdentifiedConstructionConfigSchema,
+]);
+
+const ConstructionConfigsSchema = z.array(ConstructionConfigSchema).min(1).superRefine((configs, ctx) => {
+  const legacyCount = configs.filter((config) => "status" in config).length;
+  if (legacyCount > 0 && (legacyCount !== 1 || configs.length !== 1)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "legacy-unidentified must be the only construction config",
+    });
+  }
+  if (legacyCount === 0) {
+    for (let index = 1; index < configs.length; index += 1) {
+      const previous = configs[index - 1]!;
+      const current = configs[index]!;
+      if ("status" in previous || "status" in current) {
+        continue;
+      }
+      if (compareConstructionConfigDimensions(previous, current) >= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "construction configs must be sorted and deduplicated",
+        });
+        return;
+      }
+    }
+  }
+}).default([{ status: "legacy-unidentified" }]);
 
 export const FinalIRProvenanceSchema = z.object({
   schemaVersion: z.literal("skill-ir-final-provenance/v1"),
@@ -16,6 +100,7 @@ export const FinalIRProvenanceSchema = z.object({
   taskSplit: z.string().min(1),
   manifest: DigestPathSchema,
   results: DigestPathSchema,
+  constructionConfigs: ConstructionConfigsSchema,
   skills: z.array(
     z.object({
       skillId: z.string().min(1),
@@ -29,6 +114,7 @@ export const FinalIRProvenanceSchema = z.object({
 });
 
 export type FinalIRProvenance = z.infer<typeof FinalIRProvenanceSchema>;
+export type ConstructionConfig = z.infer<typeof ConstructionConfigSchema>;
 
 export function validateFinalIRProvenanceRecord(
   candidate: unknown,
@@ -63,12 +149,82 @@ function portableRelative(baseDir: string, path: string): string {
   return relative(baseDir, path).replaceAll("\\", "/");
 }
 
+const IDENTITY_FIELDS = [
+  "model",
+  "modelFamily",
+  "adapter",
+  "adapterVersion",
+  "runIndex",
+  "panelConfigId",
+] as const;
+
+type IdentifiedConstructionConfig = z.infer<typeof IdentifiedConstructionConfigSchema>;
+
+function deriveConstructionConfigs(rows: ScoredAgentRunRow[]): ConstructionConfig[] {
+  const relevantRows = rows.filter((row) => row.system === "original" && row.taskSplit === "development");
+  const identifiedRows: { config: Omit<IdentifiedConstructionConfig, "runIndices">; runIndex: number }[] = [];
+  let legacyRowCount = 0;
+
+  for (const row of relevantRows) {
+    const presentCount = IDENTITY_FIELDS.filter((field) => row[field] !== undefined).length;
+    if (presentCount === 0) {
+      legacyRowCount += 1;
+      continue;
+    }
+    if (presentCount !== IDENTITY_FIELDS.length) {
+      throw new Error(`Construction evidence row ${row.caseId} has partial run identity`);
+    }
+
+    const parsed = IdentifiedConstructionConfigBaseSchema.extend({
+      runIndex: z.number().int().positive(),
+    }).parse({
+      model: row.model,
+      modelFamily: row.modelFamily,
+      adapter: row.adapter,
+      adapterVersion: row.adapterVersion,
+      panelConfigId: row.panelConfigId,
+      runIndex: row.runIndex,
+    });
+    const { runIndex, ...config } = parsed;
+    identifiedRows.push({ config, runIndex });
+  }
+
+  if (legacyRowCount > 0 && identifiedRows.length > 0) {
+    throw new Error("Construction evidence mixes legacy and identified rows");
+  }
+  if (identifiedRows.length === 0) {
+    return [{ status: "legacy-unidentified" }];
+  }
+
+  const grouped = new Map<string, { config: Omit<IdentifiedConstructionConfig, "runIndices">; runIndices: Set<number> }>();
+  for (const row of identifiedRows) {
+    const key = JSON.stringify([
+      row.config.model,
+      row.config.modelFamily,
+      row.config.adapter,
+      row.config.adapterVersion,
+      row.config.panelConfigId,
+    ]);
+    const existing = grouped.get(key) ?? { config: row.config, runIndices: new Set<number>() };
+    existing.runIndices.add(row.runIndex);
+    grouped.set(key, existing);
+  }
+
+  return [...grouped.values()]
+    .sort((left, right) => compareConstructionConfigDimensions(left.config, right.config))
+    .map(({ config, runIndices }) => ({
+      ...config,
+      runIndices: [...runIndices].sort((left, right) => left - right),
+    }));
+}
+
 export async function buildFinalIRProvenance(opts: {
   rootDir: string;
   artifactRoot: string;
   corpus: CorpusId;
   manifestPath: string;
   resultsPath: string;
+  scoredRows?: ScoredAgentRunRow[];
   skills: { skillId: string; sourceSha256: string; baseIRPath: string; annotationCount: number }[];
 }): Promise<FinalIRProvenance> {
   const skills = await Promise.all(
@@ -108,6 +264,7 @@ export async function buildFinalIRProvenance(opts: {
       path: portableRelative(opts.rootDir, opts.resultsPath),
       sha256: await digestFile(opts.resultsPath),
     },
+    constructionConfigs: deriveConstructionConfigs(opts.scoredRows ?? []),
     skills,
   });
 }

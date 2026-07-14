@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildFinalIRProvenance, validateFinalIRProvenanceRecord } from "./final-ir-provenance";
+import type { ScoredAgentRunRow } from "./scoring";
 import { sha256Bytes } from "./source-fixture";
 
 const tempDirs: string[] = [];
@@ -20,6 +21,7 @@ const validRecord = {
   taskSplit: "development" as const,
   manifest: { path: "benchmarks/skill-ir/corpus/corpora/pilot.json", sha256: "a".repeat(64) },
   results: { path: "results/development.jsonl", sha256: "b".repeat(64) },
+  constructionConfigs: [{ status: "legacy-unidentified" as const }],
   skills: [
     {
       skillId: "env-manager",
@@ -31,6 +33,60 @@ const validRecord = {
     },
   ],
 };
+
+function scoredRow(overrides: Partial<ScoredAgentRunRow> = {}): ScoredAgentRunRow {
+  return {
+    caseId: "env-manager:skvm:windows:clean:env-manager-dev-001",
+    system: "original",
+    skill: "env-manager",
+    agent: "skvm",
+    environment: "windows",
+    context: "clean",
+    task: "env-manager-dev-001",
+    taskSplit: "development",
+    success: false,
+    ruleViolations: 1,
+    stepCoverage: 1,
+    latencyMs: 1200,
+    successSource: "deterministic-evaluator",
+    failedCriteria: ["Environment is configured."],
+    ...overrides,
+  };
+}
+
+async function provenanceFixture() {
+  const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-provenance-"));
+  tempDirs.push(rootDir);
+  const artifactRoot = join(rootDir, "artifacts");
+  const manifestPath = join(rootDir, "pilot.json");
+  const resultsPath = join(rootDir, "development.jsonl");
+  const baseIRPath = join(rootDir, "env-manager.json");
+  await mkdir(join(artifactRoot, "overlay"), { recursive: true });
+  await mkdir(join(artifactRoot, "final-ir"), { recursive: true });
+  await writeFile(manifestPath, "{}\n", "utf8");
+  await writeFile(resultsPath, "{}\n", "utf8");
+  await writeFile(baseIRPath, "{}\n", "utf8");
+  await writeFile(join(artifactRoot, "overlay", "env-manager.json"), "{}\n", "utf8");
+  await writeFile(join(artifactRoot, "final-ir", "env-manager.json"), "{}\n", "utf8");
+  return { rootDir, artifactRoot, manifestPath, resultsPath, baseIRPath };
+}
+
+async function buildFixtureProvenance(scoredRows: ScoredAgentRunRow[]) {
+  const paths = await provenanceFixture();
+  return buildFinalIRProvenance({
+    ...paths,
+    corpus: "pilot",
+    scoredRows,
+    skills: [
+      {
+        skillId: "env-manager",
+        sourceSha256: "c".repeat(64),
+        baseIRPath: paths.baseIRPath,
+        annotationCount: 1,
+      },
+    ],
+  });
+}
 
 describe("final IR provenance", () => {
   test("accepts development provenance for the selected corpus and skill", () => {
@@ -67,19 +123,7 @@ describe("final IR provenance", () => {
   });
 
   test("builds digests for development results, base IR, overlay, and final IR", async () => {
-    const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-provenance-"));
-    tempDirs.push(rootDir);
-    const artifactRoot = join(rootDir, "artifacts");
-    const manifestPath = join(rootDir, "pilot.json");
-    const resultsPath = join(rootDir, "development.jsonl");
-    const baseIRPath = join(rootDir, "env-manager.json");
-    await mkdir(join(artifactRoot, "overlay"), { recursive: true });
-    await mkdir(join(artifactRoot, "final-ir"), { recursive: true });
-    await writeFile(manifestPath, "{}\n", "utf8");
-    await writeFile(resultsPath, "{}\n", "utf8");
-    await writeFile(baseIRPath, "{}\n", "utf8");
-    await writeFile(join(artifactRoot, "overlay", "env-manager.json"), "{}\n", "utf8");
-    await writeFile(join(artifactRoot, "final-ir", "env-manager.json"), "{}\n", "utf8");
+    const { rootDir, artifactRoot, manifestPath, resultsPath, baseIRPath } = await provenanceFixture();
 
     const record = await buildFinalIRProvenance({
       rootDir,
@@ -87,6 +131,7 @@ describe("final IR provenance", () => {
       corpus: "pilot",
       manifestPath,
       resultsPath,
+      scoredRows: [],
       skills: [
         {
           skillId: "env-manager",
@@ -102,5 +147,140 @@ describe("final IR provenance", () => {
     expect(record.results.sha256).toBe(sha256Bytes(Buffer.from("{}\n")));
     expect(record.skills[0]?.finalIR.path).toBe("final-ir/env-manager.json");
     expect(record.skills[0]?.overlay.path).toBe("overlay/env-manager.json");
+    expect(record.constructionConfigs).toEqual([{ status: "legacy-unidentified" }]);
+  });
+
+  test("parses archived v1 provenance without construction configs as legacy unidentified", () => {
+    const { constructionConfigs: _constructionConfigs, ...archivedRecord } = validRecord;
+
+    expect(
+      validateFinalIRProvenanceRecord(archivedRecord, { corpus: "pilot", skillIds: ["env-manager"] })
+        .constructionConfigs,
+    ).toEqual([{ status: "legacy-unidentified" }]);
+  });
+
+  test("requires identified construction configs to have exactly the planned shape", () => {
+    const identifiedConfig = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      panelConfigId: "pilot-v1",
+      runIndices: [1],
+    };
+
+    expect(() =>
+      validateFinalIRProvenanceRecord(
+        { ...validRecord, constructionConfigs: [{ ...identifiedConfig, unexpected: true }] },
+        { corpus: "pilot", skillIds: ["env-manager"] },
+      ),
+    ).toThrow();
+    expect(() =>
+      validateFinalIRProvenanceRecord(
+        { ...validRecord, constructionConfigs: [{ ...identifiedConfig, runIndices: [0] }] },
+        { corpus: "pilot", skillIds: ["env-manager"] },
+      ),
+    ).toThrow();
+  });
+
+  test("rejects unsorted or duplicate identified construction configs", () => {
+    const gptConfig = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      panelConfigId: "pilot-v1",
+      runIndices: [1],
+    };
+    const geminiConfig = {
+      ...gptConfig,
+      model: "a/gemini-2.5-flash",
+      modelFamily: "gemini",
+    };
+
+    expect(() =>
+      validateFinalIRProvenanceRecord(
+        { ...validRecord, constructionConfigs: [gptConfig, geminiConfig] },
+        { corpus: "pilot", skillIds: ["env-manager"] },
+      ),
+    ).toThrow("sorted and deduplicated");
+    expect(() =>
+      validateFinalIRProvenanceRecord(
+        { ...validRecord, constructionConfigs: [gptConfig, { ...gptConfig, runIndices: [2] }] },
+        { corpus: "pilot", skillIds: ["env-manager"] },
+      ),
+    ).toThrow("sorted and deduplicated");
+  });
+
+  test("builds sorted deduplicated configs only from original development rows", async () => {
+    const gptIdentity = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      panelConfigId: "pilot-b",
+    };
+    const geminiIdentity = {
+      model: "a/gemini-2.5-flash",
+      modelFamily: "gemini",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      panelConfigId: "pilot-a",
+    };
+    const infraIdentity = {
+      model: "z/qwen3",
+      modelFamily: "qwen",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      panelConfigId: "pilot-c",
+    };
+
+    const record = await buildFixtureProvenance([
+      scoredRow({ ...gptIdentity, runIndex: 3 }),
+      scoredRow({ ...gptIdentity, runIndex: 1, success: true, failedCriteria: [] }),
+      scoredRow({ ...gptIdentity, runIndex: 3 }),
+      scoredRow({ ...geminiIdentity, runIndex: 2 }),
+      scoredRow({ ...infraIdentity, runIndex: 1, failureType: "infrastructure" }),
+      scoredRow({ ...gptIdentity, runIndex: 9, system: "ir-static" }),
+      scoredRow({ ...gptIdentity, runIndex: 8, taskSplit: "held-out" }),
+    ]);
+
+    expect(record.constructionConfigs).toEqual([
+      { ...geminiIdentity, runIndices: [2] },
+      { ...gptIdentity, runIndices: [1, 3] },
+      { ...infraIdentity, runIndices: [1] },
+    ]);
+  });
+
+  test("uses one typed marker when every relevant row is fully legacy", async () => {
+    const record = await buildFixtureProvenance([
+      scoredRow(),
+      scoredRow({ success: true, failedCriteria: [] }),
+      scoredRow({ system: "ir-static", model: "ignored-partial" }),
+    ]);
+
+    expect(record.constructionConfigs).toEqual([{ status: "legacy-unidentified" }]);
+  });
+
+  test("rejects mixed legacy and identified construction rows", async () => {
+    await expect(
+      buildFixtureProvenance([
+        scoredRow(),
+        scoredRow({
+          model: "xty/gpt-4.1-mini",
+          modelFamily: "gpt",
+          adapter: "bare-agent",
+          adapterVersion: "workspace-2026-07-15",
+          runIndex: 1,
+          panelConfigId: "pilot-v1",
+        }),
+      ]),
+    ).rejects.toThrow("mixes legacy and identified");
+  });
+
+  test("rejects partial construction row identity", async () => {
+    await expect(
+      buildFixtureProvenance([scoredRow({ model: "xty/gpt-4.1-mini" })]),
+    ).rejects.toThrow("partial run identity");
   });
 });

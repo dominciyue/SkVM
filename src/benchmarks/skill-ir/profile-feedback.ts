@@ -1,11 +1,12 @@
 import type { ProfileAnnotation, SkillIR } from "../../skill-ir/schema";
 import { buildProfileAnnotations } from "../../profiler/profile-annotation";
-import type { ExecutionTrace, TraceEvent } from "../../profiler/trace-schema";
+import { ExecutionTraceSchema, type ExecutionTrace, type TraceEvent } from "../../profiler/trace-schema";
 import { insertEnvironmentGuards } from "../../skill-ir/passes/environment-guards";
 import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-repair";
 import { normalizeRules } from "../../skill-ir/passes/rule-normalization";
 import { validateSkillIR } from "../../skill-ir/validate";
 import type { ExperimentSystem } from "./matrix";
+import type { RunIdentity } from "./real-agent";
 import type { ScoredAgentRunRow } from "./scoring";
 
 export type ProfileFeedbackOptions = {
@@ -27,8 +28,41 @@ function slugify(value: string): string {
     .slice(0, 64);
 }
 
-function safeTraceId(row: ScoredAgentRunRow): string {
-  return `score-${row.caseId}-${row.system}`.replace(/[^a-zA-Z0-9._-]+/g, "-");
+function runIdentityFromRow(row: ScoredAgentRunRow): RunIdentity | undefined {
+  const values = [row.model, row.modelFamily, row.adapter, row.adapterVersion, row.runIndex, row.panelConfigId];
+  const presentCount = values.filter((value) => value !== undefined).length;
+  if (presentCount === 0) {
+    return undefined;
+  }
+  if (presentCount !== values.length) {
+    throw new Error(`Scored row ${row.caseId} must omit run identity or provide the complete run identity`);
+  }
+
+  return {
+    model: row.model!,
+    modelFamily: row.modelFamily!,
+    adapter: row.adapter!,
+    adapterVersion: row.adapterVersion!,
+    runIndex: row.runIndex!,
+    panelConfigId: row.panelConfigId!,
+  };
+}
+
+function safeTraceId(row: ScoredAgentRunRow, identity?: RunIdentity): string {
+  const baseId = `score-${row.caseId}-${row.system}`.replace(/[^a-zA-Z0-9._-]+/g, "-");
+  if (!identity) {
+    return baseId;
+  }
+
+  return [
+    baseId,
+    `model=${encodeURIComponent(identity.model)}`,
+    `modelFamily=${encodeURIComponent(identity.modelFamily)}`,
+    `adapter=${encodeURIComponent(identity.adapter)}`,
+    `adapterVersion=${encodeURIComponent(identity.adapterVersion)}`,
+    `panelConfigId=${encodeURIComponent(identity.panelConfigId)}`,
+    `runIndex=${identity.runIndex}`,
+  ].join("-");
 }
 
 function normalizeCriterion(value: string): string {
@@ -148,9 +182,10 @@ export function scoredRowsToExecutionTraces(
       continue;
     }
 
-    traces.push({
+    const identity = runIdentityFromRow(row);
+    traces.push(ExecutionTraceSchema.parse({
       schemaVersion: "skill-ir-trace/v1",
-      traceId: safeTraceId(row),
+      traceId: safeTraceId(row, identity),
       skillId: row.skill,
       agent: row.agent,
       environment: row.environment,
@@ -160,7 +195,8 @@ export function scoredRowsToExecutionTraces(
       tokenCost: row.tokenCost ?? 0,
       latencyMs: row.latencyMs,
       events,
-    });
+      ...identity,
+    }));
   }
 
   return traces;
