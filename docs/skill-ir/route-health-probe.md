@@ -52,13 +52,13 @@ This case is intentionally structure-sensitive and was useful in the first posit
 Probe candidate models:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/route-probe-run.ts '--models=xty/gpt-4.1-nano,xty/gemini-2.5-flash' '--require-env=SKVM_XTY_API_KEY' '--timeout-ms=30000' '--out-dir=results/skill-ir/route-probe-2026-07-09'
+bun ./src/benchmarks/skill-ir/route-probe-run.ts '--corpus=calibration' '--models=xty/gpt-4.1-nano,xty/gemini-2.5-flash' '--require-env=SKVM_XTY_API_KEY' '--timeout-ms=30000' '--out-dir=results/skill-ir/route-probe'
 ```
 
 Override the representative task:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/route-probe-run.ts '--models=xty/gpt-4.1-nano' '--system=original' '--context=compressed' '--task=report-overclaim-hard-001' '--timeout-ms=30000' '--require-env=SKVM_XTY_API_KEY'
+bun ./src/benchmarks/skill-ir/route-probe-run.ts '--corpus=calibration' '--models=xty/gpt-4.1-nano' '--system=original' '--context=compressed' '--task=report-overclaim-hard-001' '--timeout-ms=30000' '--require-env=SKVM_XTY_API_KEY'
 ```
 
 PowerShell users should quote comma-separated `--models`.

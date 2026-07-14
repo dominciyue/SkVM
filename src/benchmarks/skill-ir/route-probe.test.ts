@@ -47,6 +47,7 @@ describe("route-probe helpers", () => {
       adapter: "bare-agent",
       outDir: "results/probe",
       rootDir: ".",
+      corpus: "calibration",
       system: "original",
       context: "compressed",
       agent: "skvm",
@@ -63,6 +64,7 @@ describe("route-probe helpers", () => {
       retries: 0,
       retryDelayMs: 0,
       rootDir: ".",
+      corpus: "calibration",
     });
     expect(args.systems).toEqual(new Set(["original"]));
     expect(args.contexts).toEqual(new Set(["compressed"]));

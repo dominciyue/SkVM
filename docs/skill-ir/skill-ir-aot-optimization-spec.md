@@ -10,13 +10,21 @@
 
 > 对一组有明确来源的真实 skill，将自然语言 skill 编译为静态 Skill IR，并利用 development execution feedback 生成 task-local PGO IR；在多个模型和上下文条件下，相比 `no-skill` 与原始 skill，提高 held-out 任务的成功率或最差表现，同时控制负向回归。
 
-稳定性是当前第一目标。当前主表固定为：
+稳定性是当前第一目标。完整主 claim 的报告列为：
 
 ```text
 no-skill | original | ir-static | ir-pgo
 ```
 
 `ir-only` 只用于显式消融；`ir-profile` 用于复现已有实验；`skvm-aot` 在真正接入上游 AOT 路径前不进入默认主表。
+
+报告列不等于默认调度。冷启动只允许：
+
+```text
+no-skill | original | ir-static
+```
+
+此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 
 ### 0.2 当前证据边界
 
@@ -27,11 +35,11 @@ no-skill | original | ir-static | ir-pgo
 - 合成 seed 结果只作为管线、scorer 和受控失败的低权重校准证据；
 - 主结论必须来自有来源的真实 skill，并报告 provenance 和 evidence weight。
 
-真实 skill 阶段硬限制为 4-6 个 pilot：先做 `law-to-markdown`、`env-manager`、`experimental-design` 三个 deep pilot，再保留三个 replication pilot。每个 deep pilot 必须先具备精确 source baseline、可判分的 no-skill 任务、静态 base IR、development/held-out 划分、真实运行和结果解释，之后才能扩 corpus。
+真实 skill 阶段硬限制为 6 个 pilot。Wave A 包含 `law-to-markdown`、`env-manager`、`experimental-design` 三个 deep pilot；Wave B 包含 `zh-code-reviewer`、`api-tester`、`zh-readme` 三个 replication pilot。Wave A 用于开发和修正方法，Wave B 是完整主 claim 的必要条件，且不得用于调优同一份待报告配置。每个 deep pilot 必须先具备精确 source baseline、可判分的 no-skill 任务、静态 base IR、development/held-out 划分、真实运行和结果解释，之后才能扩 corpus。
 
 ### 0.3 PGO 范围
 
-当前采用 task-local repair：同一 skill/task family 的 development failures 生成 profile overlay，held-out tasks 评估泛化和回归。当前不假设一个模型族生成的 overlay 能迁移到其他模型族，也不把已有小样本 promotion signal 当作成熟模型族结论。
+当前采用 task-local repair：同一 skill/task family 的 `original × development` failures 生成 profile overlay，静态 base IR 与 overlay 编译成 Final IR，held-out tasks 只消费校验通过的 Final IR 来评估泛化和回归。Final IR 是带 provenance 的编译产物；`ir-pgo` 是该产物在 held-out 上的实验系统标签。当前不假设一个模型族生成的 overlay 能迁移到其他模型族，也不把已有小样本 promotion signal 当作成熟模型族结论。
 
 Task 11F promotion policy 与 Task 11G validation planner 保留为 advisory method-support tooling，当前冻结继续扩展，优先补齐真实 skill 研究内核。
 
@@ -103,13 +111,13 @@ Natural Language Skill
   -> Static Skill Analyzer
   -> Initial Skill IR
   -> IR Validation
-  -> Baseline Execution + Trace Collection
+  -> original x development Execution + Trace Collection
   -> Profile Annotation
   -> AOT Optimization Passes
-  -> Optimized Skill IR
+  -> Final IR + provenance
   -> Lowering
   -> Runtime Controller / Checker / Adapter
-  -> Benchmark Evaluation
+  -> ir-pgo held-out Evaluation
 ```
 
 模块划分：

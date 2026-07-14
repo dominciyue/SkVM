@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import type { ExperimentSystem } from "./matrix";
 import { type RealAgentRunArgs } from "./real-agent-run";
+import type { CorpusId } from "./corpus-registry";
 import { classifyFailureType } from "./scoring";
 
 export type ProbeStatus = "ok" | "timeout" | "infrastructure" | "agent";
@@ -18,6 +19,7 @@ export type BuildProbeRunArgsOptions = {
   adapter: string;
   outDir: string;
   rootDir: string;
+  corpus: CorpusId;
   system: ExperimentSystem;
   context: string;
   agent: string;
@@ -94,6 +96,7 @@ export function buildProbeRunArgs(opts: BuildProbeRunArgsOptions): RealAgentRunA
     retries: 0,
     retryDelayMs: 0,
     rootDir: opts.rootDir,
+    corpus: opts.corpus,
     systems: new Set([opts.system]),
     contexts: new Set([opts.context]),
     agents: new Set([opts.agent]),

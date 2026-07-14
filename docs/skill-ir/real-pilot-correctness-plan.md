@@ -20,11 +20,11 @@
 - Modify: `src/benchmarks/skill-ir/real-agent.ts`
 - Modify: `src/benchmarks/skill-ir/real-agent.test.ts`
 
-- [ ] Add failing tests requiring SHA-256 on file sources, rejecting path escape/digest mismatch, rendering exact original text, copying relative resources, and excluding `successCriteria` from agent prompt.
-- [ ] Run the focused tests and confirm failures are caused by the missing contracts.
-- [ ] Implement verified source loading and exact original materialization without generated wrappers.
-- [ ] Move success criteria into the judge rubric only.
-- [ ] Run focused source/schema/materialization tests to green.
+- [x] Add tests requiring SHA-256 on file sources, rejecting path escape/digest mismatch, rendering exact original text, copying relative resources, and excluding `successCriteria` from agent prompt.
+- [x] Run the focused tests and confirm failures are caused by the missing contracts.
+- [x] Implement verified source loading and exact original materialization without generated wrappers.
+- [x] Move success criteria into the judge rubric only, including perturbation wording.
+- [x] Run focused source/schema/materialization tests to green.
 
 ## Task 2: Explicit Corpus Registry
 
@@ -40,12 +40,12 @@
 - Modify: `src/benchmarks/skill-ir/real-agent-run.ts`
 - Modify: relevant tests
 
-- [ ] Add failing tests for explicit corpus resolution, missing-corpus failure, calibration depth, pilot Wave registration, source-only readiness, and cold-start systems `no-skill|original|ir-static`.
-- [ ] Run tests and confirm the old implicit manifest/default PGO behavior fails them.
-- [ ] Implement registry resolution and require `--corpus` in matrix and real-agent CLIs.
-- [ ] Move six seeds to the calibration manifest and register six real pilots in the pilot manifest.
-- [ ] Keep source-only pilot entries unscheduled until IR/tasks become runnable.
-- [ ] Run matrix, corpus, runner, route-probe, and scoring tests to green.
+- [x] Add failing tests for explicit corpus resolution, missing-corpus failure, calibration depth, pilot Wave registration, source-only readiness, and cold-start systems `no-skill|original|ir-static`.
+- [x] Run tests and confirm the old implicit manifest/default PGO behavior fails them.
+- [x] Implement registry resolution and require `--corpus` in matrix, real-agent, and route-probe CLIs.
+- [x] Move six seeds to the calibration manifest and register six real pilots in the pilot manifest.
+- [x] Keep source-only pilot entries unscheduled until IR/tasks become runnable.
+- [x] Run matrix, corpus, runner, and route-probe tests to green.
 
 ## Task 3: Final IR Provenance
 
@@ -57,12 +57,12 @@
 - Modify: `src/benchmarks/skill-ir/real-agent-run.ts`
 - Modify: `src/benchmarks/skill-ir/real-agent-run.test.ts`
 
-- [ ] Add failing tests that require `sourceSystem=original`, `taskSplit=development`, an explicit corpus, and matching source/base/final digests.
-- [ ] Run focused tests and confirm missing provenance is accepted by the old implementation.
-- [ ] Emit `provenance.json` after Final IR compilation.
-- [ ] Validate provenance before any held-out `ir-pgo` plan is materialized.
-- [ ] Reject held-out-derived, stale, hand-edited, or corpus-mismatched Final IR.
-- [ ] Run focused feedback/runner tests to green.
+- [x] Add failing tests that require `sourceSystem=original`, `taskSplit=development`, an explicit corpus, and matching source/base/final digests.
+- [x] Run focused tests and confirm missing provenance is accepted by the old implementation.
+- [x] Emit `provenance.json` after Final IR compilation.
+- [x] Validate provenance before any held-out `ir-pgo` plan is materialized.
+- [x] Reject held-out-derived, stale, hand-edited, or corpus-mismatched Final IR.
+- [x] Run focused feedback/runner tests to green, including valid and tampered artifact paths.
 
 ## Task 4: Real Pilot Source Import
 
@@ -73,10 +73,10 @@
 - Modify: `benchmarks/skill-ir/corpus/corpora/pilot.json`
 - Modify: `src/skill-ir/corpus-fixtures.test.ts`
 
-- [ ] Import exact licensed source closures from the pinned commits recorded in `real-skill-intake.json`.
-- [ ] Record SHA-256 for every committed source file and license scope.
-- [ ] Add failing corpus tests for source existence, hashes, Wave A/Wave B registration, and status.
-- [ ] Run corpus tests red, update manifests, then run them green.
+- [x] Import exact licensed source closures from the pinned commits recorded in `real-skill-intake.json`.
+- [x] Record SHA-256 for every committed source file and license scope.
+- [x] Add failing corpus tests for source existence, hashes, Wave A/Wave B registration, and status.
+- [x] Run corpus tests red, update manifests, then run them green.
 
 ## Task 5: Documentation And Verification
 
@@ -89,9 +89,9 @@
 - Modify: `docs/skill-ir/corpus-fixtures.md`
 - Modify: `docs/skill-ir/experiment-design.md`
 
-- [ ] Replace current four-system default language with three-system cold-start scheduling plus explicit held-out PGO.
-- [ ] Mark Wave B mandatory for the complete main claim.
-- [ ] Replace old `targetCounts` with current 3+3 scope and historical aspirations.
-- [ ] Replace intake references to `ir-profile` with the current systems.
-- [ ] Run all Skill IR/profiler/benchmark tests, Python analyzers, typecheck, diff check, and secret scan.
+- [x] Replace current four-system default language with three-system cold-start scheduling plus explicit held-out PGO.
+- [x] Mark Wave B mandatory for the complete main claim.
+- [x] Replace old `targetCounts` with current 3+3 scope and historical aspirations.
+- [x] Replace intake references to `ir-profile` with the current systems.
+- [x] Run all Skill IR/profiler/benchmark tests, Python analyzers, typecheck, diff check, source comparison, and secret scan.
 - [ ] Append `D:\skill优化\conversation_log.md`, commit, and push `skill-ir-aot`.

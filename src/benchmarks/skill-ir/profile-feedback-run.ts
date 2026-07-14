@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { basename, isAbsolute, join } from "node:path";
 import { SkillIRSchema, type ProfileAnnotation, type SkillIR } from "../../skill-ir/schema";
 import { buildProfileAnnotations } from "../../profiler/profile-annotation";
 import {
@@ -11,10 +11,13 @@ import {
 } from "./profile-feedback";
 import type { ExperimentSystem } from "./matrix";
 import type { ScoredAgentRunRow } from "./scoring";
+import { resolveCorpusManifestPath, type CorpusId } from "./corpus-registry";
+import { buildFinalIRProvenance } from "./final-ir-provenance";
+import { sha256Bytes } from "./source-fixture";
 
 type Args = {
+  corpus: CorpusId;
   results: string;
-  manifest: string;
   rootDir: string;
   outDir: string;
   sourceSystem: ExperimentSystem;
@@ -26,7 +29,14 @@ type CorpusManifest = {
   skills: {
     id: string;
     irPath?: string;
+    status?: string;
   }[];
+};
+
+type LoadedCorpusIRs = {
+  manifestPath: string;
+  irBySkill: Map<string, SkillIR>;
+  skills: { skillId: string; sourceSha256: string; baseIRPath: string }[];
 };
 
 export type ProfileFeedbackSkillSummary = {
@@ -57,19 +67,25 @@ export type ProfileFeedbackArtifacts = {
 
 function parseArgs(argv: string[]): Args {
   const args: Args = {
+    corpus: "calibration",
     results: "results/skill-ir/main-results.jsonl",
-    manifest: "benchmarks/skill-ir/corpus/manifest.json",
     rootDir: process.cwd(),
     outDir: "results/skill-ir/profiled-ir",
     sourceSystem: "original",
     minEvidence: 2,
   };
+  let corpusProvided = false;
 
   for (const arg of argv) {
-    if (arg.startsWith("--results=")) {
+    if (arg.startsWith("--corpus=")) {
+      const corpus = arg.slice("--corpus=".length);
+      if (corpus !== "calibration" && corpus !== "pilot") {
+        throw new Error(`Unknown Skill IR corpus: ${corpus}`);
+      }
+      args.corpus = corpus;
+      corpusProvided = true;
+    } else if (arg.startsWith("--results=")) {
       args.results = arg.slice("--results=".length);
-    } else if (arg.startsWith("--manifest=")) {
-      args.manifest = arg.slice("--manifest=".length);
     } else if (arg.startsWith("--root-dir=")) {
       args.rootDir = arg.slice("--root-dir=".length);
     } else if (arg.startsWith("--out-dir=")) {
@@ -83,6 +99,16 @@ function parseArgs(argv: string[]): Args {
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
+  }
+
+  if (!corpusProvided) {
+    throw new Error("--corpus is required; choose calibration or pilot");
+  }
+  if (args.sourceSystem !== "original") {
+    throw new Error("Final IR compilation requires --source-system=original");
+  }
+  if (args.taskSplit !== "development") {
+    throw new Error("Final IR compilation requires --task-split=development");
   }
 
   if (!Number.isFinite(args.minEvidence) || args.minEvidence < 1) {
@@ -105,19 +131,32 @@ async function readJsonl<T>(path: string): Promise<T[]> {
     .map((line) => JSON.parse(line) as T);
 }
 
-async function loadIRsFromManifest(args: Args): Promise<Map<string, SkillIR>> {
-  const manifest = await readJson<CorpusManifest>(join(args.rootDir, args.manifest));
+async function loadIRsFromManifest(args: Args): Promise<LoadedCorpusIRs> {
+  const manifestPath = resolveCorpusManifestPath(args.corpus, args.rootDir);
+  const manifest = await readJson<CorpusManifest>(manifestPath);
   const irBySkill = new Map<string, SkillIR>();
+  const skills: LoadedCorpusIRs["skills"] = [];
 
   for (const skill of manifest.skills) {
+    if (skill.status !== "runnable") {
+      continue;
+    }
     if (!skill.irPath) {
       throw new Error(`Skill ${skill.id} is missing irPath in corpus manifest`);
     }
 
-    irBySkill.set(skill.id, SkillIRSchema.parse(await readJson<unknown>(join(args.rootDir, skill.irPath))));
+    const baseIRPath = join(args.rootDir, skill.irPath);
+    const ir = SkillIRSchema.parse(await readJson<unknown>(baseIRPath));
+    irBySkill.set(skill.id, ir);
+    skills.push({
+      skillId: skill.id,
+      sourceSha256:
+        ir.source.kind === "file" ? ir.source.sha256 : sha256Bytes(Buffer.from(ir.source.text, "utf8")),
+      baseIRPath,
+    });
   }
 
-  return irBySkill;
+  return { manifestPath, irBySkill, skills };
 }
 
 function annotationsBySkill(
@@ -148,6 +187,12 @@ export function buildProfileFeedbackArtifacts(
   irBySkill: Map<string, SkillIR>,
   opts: ProfileFeedbackOptions = {},
 ): ProfileFeedbackArtifacts {
+  if (opts.sourceSystem !== "original") {
+    throw new Error("Final IR compilation requires sourceSystem=original");
+  }
+  if (opts.taskSplit !== "development") {
+    throw new Error("Final IR compilation requires taskSplit=development");
+  }
   const { annotations, tracedRows } = annotationsBySkill(rows, irBySkill, opts);
   const overlaysBySkill = new Map<string, ProfileOverlay>();
   const finalIRsBySkill = new Map<string, SkillIR>();
@@ -211,21 +256,35 @@ async function writeArtifacts(artifacts: ProfileFeedbackArtifacts, outDir: strin
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const rows = await readJsonl<ScoredAgentRunRow>(args.results);
-  const irBySkill = await loadIRsFromManifest(args);
-  const artifacts = buildProfileFeedbackArtifacts(rows, irBySkill, {
+  const resultsPath = isAbsolute(args.results) ? args.results : join(args.rootDir, args.results);
+  const outDir = isAbsolute(args.outDir) ? args.outDir : join(args.rootDir, args.outDir);
+  const rows = await readJsonl<ScoredAgentRunRow>(resultsPath);
+  const loaded = await loadIRsFromManifest(args);
+  const artifacts = buildProfileFeedbackArtifacts(rows, loaded.irBySkill, {
     sourceSystem: args.sourceSystem,
     taskSplit: args.taskSplit,
     minEvidence: args.minEvidence,
   });
 
-  await writeArtifacts(artifacts, args.outDir);
+  await writeArtifacts(artifacts, outDir);
+  const provenance = await buildFinalIRProvenance({
+    rootDir: args.rootDir,
+    artifactRoot: outDir,
+    corpus: args.corpus,
+    manifestPath: loaded.manifestPath,
+    resultsPath,
+    skills: loaded.skills.map((skill) => ({
+      ...skill,
+      annotationCount: artifacts.overlaysBySkill.get(skill.skillId)?.annotations.length ?? 0,
+    })),
+  });
+  await writeFile(join(outDir, "provenance.json"), `${JSON.stringify(provenance, null, 2)}\n`, "utf8");
 
   console.log(
     JSON.stringify(
       {
         results: basename(args.results),
-        outDir: args.outDir,
+        outDir,
         inputRows: artifacts.summary.inputRows,
         tracedRows: artifacts.summary.tracedRows,
         profiledSkills: artifacts.summary.profiledSkills.length,

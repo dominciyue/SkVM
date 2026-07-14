@@ -1,11 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 import { scoreRawRunRows, scoreRawRunRowsBySkill, taskIndexKey, type RawAgentRunRow } from "./scoring";
 import type { SkillIRBenchmarkTask } from "./real-agent";
+import { resolveCorpusManifestPath, type CorpusId } from "./corpus-registry";
 
 type Args = {
   raw: string;
   tasks: string;
+  corpus?: CorpusId;
   manifest?: string;
   rootDir: string;
   out: string;
@@ -15,6 +17,7 @@ type CorpusManifest = {
   skills: {
     id: string;
     tasksPath?: string;
+    status?: string;
   }[];
 };
 
@@ -23,7 +26,7 @@ type TaskSet = {
   tasks: SkillIRBenchmarkTask[];
 };
 
-function parseArgs(argv: string[]): Args {
+export function parseScoringArgs(argv: string[]): Args {
   const args: Args = {
     raw: "results/skill-ir/real-agent-dry-run/raw-runs.jsonl",
     tasks: "benchmarks/skill-ir/tasks/review-skill-tasks.json",
@@ -34,6 +37,12 @@ function parseArgs(argv: string[]): Args {
   for (const arg of argv) {
     if (arg.startsWith("--raw=")) {
       args.raw = arg.slice("--raw=".length);
+    } else if (arg.startsWith("--corpus=")) {
+      const corpus = arg.slice("--corpus=".length);
+      if (corpus !== "calibration" && corpus !== "pilot") {
+        throw new Error(`Unknown Skill IR corpus: ${corpus}`);
+      }
+      args.corpus = corpus;
     } else if (arg.startsWith("--tasks=")) {
       args.tasks = arg.slice("--tasks=".length);
     } else if (arg.startsWith("--manifest=")) {
@@ -45,6 +54,10 @@ function parseArgs(argv: string[]): Args {
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
+  }
+
+  if (args.corpus && args.manifest) {
+    throw new Error("--corpus and --manifest are mutually exclusive");
   }
 
   return args;
@@ -64,11 +77,18 @@ async function readJsonl<T>(path: string): Promise<T[]> {
 }
 
 async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillIRBenchmarkTask>> {
-  const manifestPath = args.manifest ?? join(args.rootDir, "benchmarks/skill-ir/corpus/manifest.json");
+  const manifestPath = args.corpus
+    ? resolveCorpusManifestPath(args.corpus, args.rootDir)
+    : isAbsolute(args.manifest!)
+      ? args.manifest!
+      : join(args.rootDir, args.manifest!);
   const manifest = await readJson<CorpusManifest>(manifestPath);
   const taskBySkillAndId = new Map<string, SkillIRBenchmarkTask>();
 
   for (const skill of manifest.skills) {
+    if (args.corpus && skill.status !== "runnable") {
+      continue;
+    }
     if (!skill.tasksPath) {
       throw new Error(`Skill ${skill.id} is missing tasksPath in corpus manifest`);
     }
@@ -87,9 +107,9 @@ async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillI
 }
 
 async function main() {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseScoringArgs(process.argv.slice(2));
   const rawRows = await readJsonl<RawAgentRunRow>(args.raw);
-  const scoredRows = args.manifest
+  const scoredRows = args.corpus || args.manifest
     ? scoreRawRunRowsBySkill(rawRows, await loadTaskIndexFromManifest(args))
     : scoreRawRunRows(
         rawRows,
@@ -102,7 +122,9 @@ async function main() {
   console.log(JSON.stringify({ raw: rawRows.length, scored: scoredRows.length, out: args.out }, null, 2));
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : String(err));
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  });
+}

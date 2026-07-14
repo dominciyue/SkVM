@@ -65,7 +65,7 @@ env-manager
 experimental-design
 ```
 
-Replication pilot, blocked until every deep pilot passes the source/no-skill/IR/development/held-out evidence gate:
+Wave B replication pilot, blocked until the Wave A method and configuration are frozen:
 
 ```text
 zh-code-reviewer
@@ -73,7 +73,19 @@ api-tester
 zh-readme
 ```
 
-This 3+3 cap is deliberate. Intake breadth is not evidence until a skill has reproducible tasks, scorers, paired real runs, and an interpretation note.
+This 3+3 cap is deliberate. Wave B is mandatory for the complete main claim and must evaluate the frozen Wave A method without tuning that same reported configuration on Wave B. Intake breadth is not evidence until a skill has reproducible tasks, scorers, paired real runs, and an interpretation note.
+
+## Imported Wave A Sources
+
+The exact licensed Wave A source closures are committed under:
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/source/
+benchmarks/skill-ir/pilots/env-manager/source/
+benchmarks/skill-ir/pilots/experimental-design/source/
+```
+
+`benchmarks/skill-ir/corpus/corpora/pilot.json` pins each source repository, commit, upstream path, license, and per-file SHA-256. These entries remain `source-imported`, not `runnable`, until their base IR, tasks, scorers, and split audits are complete.
 
 Deferred candidates remain useful for later breadth:
 
@@ -88,7 +100,7 @@ Deferred candidates remain useful for later breadth:
 2. Do not rewrite a public skill into an anonymous local fixture. If adaptation is necessary, record it as `adapted-public` and keep the original text available for comparison.
 3. Prefer real `SKILL.md` directories over list-only entries. Index-only entries can help discovery, but should not become benchmark skills until their actual skill artifact is fetched.
 4. Balance the corpus across categories instead of only selecting coding-agent skills.
-5. Include no-skill suitability. A candidate is stronger when tasks can compare `no-skill`, `original`, `ir-profile`, and `ir-pgo`.
+5. Include no-skill suitability. Cold-start tasks compare `no-skill`, `original`, and `ir-static`; held-out evaluation adds `ir-pgo` only after a provenance-validated Final IR exists.
 6. Treat executable scripts, external APIs, browser automation, credentials, and platform-specific dependencies as risk signals.
 7. Record whether the skill can support artifact solidification: reusable schemas, scripts, templates, checks, adapters, or fixed tool plans.
 
@@ -169,7 +181,7 @@ candidate | inspect-skill-md | selected-pilot | deferred | rejected
 7. Convert selected skills to Skill IR without overwriting the original text.
 8. Design no-skill/original/IR tasks with deterministic or semi-deterministic success criteria before compiling PGO artifacts.
 9. Reserve development tasks for overlay generation and disjoint held-out tasks for evaluation.
-10. Run the four-system main table before adding candidates to main benchmark claims.
+10. Run the three-system cold-start stage, compile Final IR from `original × development`, then add explicit held-out `ir-pgo` before using a pilot in main benchmark claims.
 
 ## Deep-Pilot Evidence Gate
 

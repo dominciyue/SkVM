@@ -124,11 +124,13 @@ Score a real execution log:
 bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--tasks=benchmarks/skill-ir/tasks/review-skill-tasks.json' '--out=results/skill-ir/main-results.jsonl'
 ```
 
-Score a multi-skill execution log through the corpus manifest:
+Score a multi-skill execution log through the same explicit corpus used by the runner:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--out=results/skill-ir/main-results.jsonl'
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--corpus=calibration' '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--out=results/skill-ir/main-results.jsonl'
 ```
+
+`--corpus=calibration|pilot` resolves the registry and scores only runnable entries. `--manifest=<path>` is retained for isolated fixtures and is mutually exclusive with `--corpus`.
 
 Use `--root-dir=<path>` when the manifest's `tasksPath` entries should be resolved against a temporary or alternate benchmark root:
 
@@ -145,7 +147,7 @@ python scripts/analyze_skill_ir_results.py results/skill-ir/main-results.jsonl r
 Generate profile-feedback artifacts from scored rows:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--results=results/skill-ir/main-results.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--source-system=original' '--task-split=development' '--out-dir=results/skill-ir/profiled-ir-main'
+bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--corpus=calibration' '--results=results/skill-ir/main-results.jsonl' '--source-system=original' '--task-split=development' '--out-dir=results/skill-ir/profiled-ir-main'
 ```
 
 ## Runtime Behavior
@@ -166,7 +168,7 @@ Scoring behavior:
 
 - `caseId` is parsed into skill, agent, environment, context, and task.
 - With `--tasks`, task ids are looked up by task id only. This mode is intended for a single skill task file and is kept for backward compatibility.
-- With `--manifest`, task ids are looked up by `skillId:taskId`, so two skills can safely reuse the same task id.
+- With `--corpus` or `--manifest`, task ids are looked up by `skillId:taskId`, so two skills can safely reuse the same task id.
 - `taskSplit` is copied from the task definition so analysis can distinguish development and held-out rows.
 - `skillProvenance` and `evidenceWeight` are copied from the run plan when present. Older raw rows remain valid but appear in `unknown` analysis slices.
 - `stdout` is reduced to the text after the last `Final output:` marker when present.

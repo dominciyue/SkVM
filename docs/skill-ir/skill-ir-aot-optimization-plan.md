@@ -6,7 +6,7 @@
 
 **Primary claim:** For a small, source-backed set of real skills, compile natural-language skills into static Skill IR and use development execution feedback to generate task-local PGO IR. On held-out tasks across multiple models and context conditions, compare against `no-skill` and `original`, seeking improved success or worst-case performance while controlling regressions.
 
-**Current main table:**
+**Complete-claim report columns:**
 
 ```text
 no-skill | original | ir-static | ir-pgo
@@ -14,9 +14,11 @@ no-skill | original | ir-static | ir-pgo
 
 `ir-only` is an explicit ablation, `ir-profile` is retained for archived-run compatibility, and `skvm-aot` remains excluded from the main table until it is connected to a real upstream AOT path.
 
+**Cold-start default:** `no-skill | original | ir-static`. `ir-pgo` is never scheduled by default. It is added only by an explicit held-out command after `original × development` feedback has produced a Final IR with validated provenance and matching source/base/overlay/final digests.
+
 **PGO policy:** use task-local repair. Only development evidence from the same skill/task family may produce an overlay; evaluation uses disjoint held-out tasks. Cross-model transfer is a later research question, not a current assumption.
 
-**Evidence scope:** start with three deep real-skill pilots (`law-to-markdown`, `env-manager`, and `experimental-design`) and reserve three additional pilots for replication. Do not expand beyond six until each deep pilot has an exact source baseline, deterministic scoring, a no-skill task definition, base IR, development/held-out separation, real runs, and an interpretation note.
+**Evidence scope:** Wave A contains three deep real-skill pilots (`law-to-markdown`, `env-manager`, and `experimental-design`). Wave B contains three mandatory replication pilots (`zh-code-reviewer`, `api-tester`, and `zh-readme`). A complete main claim requires Wave B on a frozen method/configuration; Wave B must not tune the same reported configuration. Do not expand beyond six until each deep pilot has an exact source baseline, deterministic scoring, a no-skill task definition, base IR, development/held-out separation, real runs, and an interpretation note.
 
 **Engineering north star:** move from the current L1/early-L2 representation toward a Validated Skill Artifact Package at approximately L3-L4:
 
@@ -39,19 +41,22 @@ The package is a northbound engineering target, not a current paper claim. Artif
 | Tasks 11A-11E: real-agent runner, scoring, context audit, harder tasks, multi-model runs, dynamic feedback | Implemented; evidence-limited | Existing results demonstrate mechanisms and seed case studies, not broad generalization. |
 | Tasks 11F-11G: promotion policy and validation planner | Implemented and frozen | Keep as advisory method-support tooling; do not deepen before real-skill evidence. |
 | Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; source-backed corpus import is next. |
-| Task 11I: real-skill restart and artifact maturity | In progress | Build and evaluate three deep pilots before replication. |
+| Task 11I: real-skill restart and artifact maturity | In progress | Source snapshots, explicit corpus registry, exact original baseline, cold-start scheduling, and Final IR provenance are implemented; author Wave A tasks/IR next. |
 | Task 12: report and slides | Deferred | Begin after the first real-skill main table and case study exist. |
 
 ### Active Sequence
 
-- [x] Reconcile the default experiment systems with the four-column main table.
-- [ ] Import exact, licensed source files for the three deep pilots with integrity metadata.
+- [x] Split the four report columns from the three-system cold-start default.
+- [x] Require explicit `--corpus=calibration|pilot` and fail closed when no runnable skill exists.
+- [x] Import exact, licensed source closures for the three Wave A pilots with per-file integrity metadata.
+- [x] Materialize exact file-backed original text and resources; keep judge criteria out of the agent prompt.
+- [x] Compile Final IR only from `original × development` feedback and validate provenance before held-out `ir-pgo`.
 - [ ] Author task-local no-skill/original tasks, scorers, and development/held-out splits before IR conversion.
 - [ ] Construct and audit static base IR for the three pilots.
-- [ ] Run `no-skill | original | ir-static`, generate task-local overlays from development failures, then run held-out `ir-pgo`.
+- [ ] Run cold-start `no-skill | original | ir-static`, generate task-local overlays from `original × development` failures, then explicitly run held-out `ir-pgo`.
 - [ ] Analyze paired success, worst-case performance, regressions, rule failures, and model/context slices.
 - [ ] Prototype one Validated Skill Artifact Package from a pilot whose repeated work can be solidified.
-- [ ] Add the three replication pilots only after the deep-pilot evidence gate passes.
+- [ ] Freeze the Wave A method/configuration, then execute mandatory Wave B replication without tuning on Wave B.
 
 ### Frozen Or Deferred
 
@@ -2760,7 +2765,7 @@ manifest provenance -> matrix -> run plan -> raw JSONL -> scored JSONL
 
 The source snapshot is committed at `benchmarks/skill-ir/corpus/real-skill-intake.json`. Raw checkouts stay under ignored `.skvm/external-skills/`. The audit found 70, 20, and 0 real `SKILL.md` artifacts in the three approved repositories. The awesome index was followed to `K-Dense-AI/claude-scientific-skills`, where 149 licensed real artifacts were found. Six licensed pilot skills were selected across document, Chinese developer, testing, environment, content, and scientific workflows.
 
-- [ ] **Step 3d: Add source-backed real-skill fixture import**
+- [x] **Step 3d: Add source-backed real-skill fixture import**
 
 Copy only licensed selected `SKILL.md` artifacts into an attributed benchmark source area, with exact source URL, commit, path, and license metadata. Extend original-skill materialization so `source.kind = "file"` loads the real text from the repository root instead of rendering only a path label.
 
@@ -2963,4 +2968,4 @@ Expected:
 - No task depends on hidden code.
 - Tests are introduced before implementation for core modules.
 - The implementation can start with independent Skill IR modules before touching SkVM internals.
-- The plan supports a broad version: 40-60 taxonomy skills, 18-24 full IR skills, 12-16 deep benchmark skills.
+- The old 40-60 / 18-24 / 12-16 scale remains historical aspiration only; the active evidence plan is Wave A 3 + mandatory Wave B 3.

@@ -19,7 +19,7 @@ Static Base IR
 
 `Profile Overlay` comes from observed execution behavior. It records profile annotations such as repeated rule failures, skipped required steps, context-sensitive omissions, or environment-sensitive failures. It is evidence, not the source skill itself.
 
-`Final Optimized IR` is produced by compiling the base IR and overlay through deterministic passes: rule normalization, environment guard insertion, profile annotation merge, profile-guided repair, and validation.
+`Final Optimized IR` is produced by compiling the base IR and overlay through deterministic passes: rule normalization, environment guard insertion, profile annotation merge, profile-guided repair, and validation. Final IR is a compiled artifact, not a runtime-system synonym. Its provenance binds the explicit corpus, `original × development` evidence, source, base IR, overlay, and final IR digests.
 
 The current project should not claim that an arbitrary imported skill can be transformed into a globally optimal final IR without validation. The practical target is:
 
@@ -99,17 +99,20 @@ and a CLI that writes:
 <out-dir>/final-ir/<skill-id>.json
 <out-dir>/ir/<skill-id>.json
 <out-dir>/summary.json
+<out-dir>/provenance.json
 ```
 
-The `ir/` directory is kept as a compatibility alias for `final-ir/` because `real-agent-run.ts --ir-override-dir` consumes a directory of `<skill-id>.json` files. The base corpus IR files are not overwritten. Final IR artifacts should be treated as experiment artifacts or copied into a dedicated corpus only when a later held-out run needs them.
+The `ir/` directory is kept as a compatibility alias for `final-ir/` because `real-agent-run.ts --ir-override-dir` consumes a directory of `<skill-id>.json` files. The base corpus IR files are not overwritten. The runner reads `provenance.json` from the parent directory and rejects missing, stale, held-out-derived, hand-edited, or corpus-mismatched artifacts.
 
 ## Command Line
 
 Generate profile overlay and final IR artifacts from a scored run:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--results=results/skill-ir/harder-heldout-compressed-gpt41nano-results-2026-07-09.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--source-system=original' '--min-evidence=1' '--out-dir=results/skill-ir/profiled-ir-gpt41nano-2026-07-09'
+bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--corpus=calibration' '--results=results/skill-ir/development-results.jsonl' '--source-system=original' '--task-split=development' '--min-evidence=2' '--out-dir=results/skill-ir/profiled-ir'
 ```
+
+`--corpus` and `--task-split=development` are required. The compiler refuses non-`original` source systems and non-development evidence.
 
 The first Task 11C local verification used this command on 2026-07-09. It read 12 scored rows, converted one non-infrastructure original failure into a trace, and generated one annotation for `skill-report-synthesis`:
 
@@ -128,7 +131,7 @@ results/skill-ir/profiled-ir-gpt41nano-2026-07-09/
 A follow-up dry-run verified that `ir-pgo` can consume this final IR:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=linux' '--tasks=report-overclaim-hard-001' '--limit=1' '--model=xty/gpt-4.1-nano' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/profiled-ir-gpt41nano-2026-07-09/final-ir' '--out-dir=results/skill-ir/ir-pgo-dry-run-2026-07-09'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=calibration' '--systems=ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=windows' '--tasks=<held-out-task-id>' '--limit=1' '--model=<model>' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/profiled-ir/final-ir' '--out-dir=results/skill-ir/ir-pgo-held-out-dry-run'
 ```
 
 The generated `SKILL.md` included:
@@ -145,7 +148,7 @@ Task 11E then expanded the check to all six current deep-benchmark skills and th
 For a stricter repeated-failure profile, use the default threshold:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--results=results/skill-ir/main-results.jsonl' '--manifest=benchmarks/skill-ir/corpus/manifest.json' '--source-system=original' '--task-split=development' '--out-dir=results/skill-ir/profiled-ir-main'
+bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--corpus=pilot' '--results=results/skill-ir/pilot-development-results.jsonl' '--source-system=original' '--task-split=development' '--out-dir=results/skill-ir/pilot-profiled-ir'
 ```
 
 `--min-evidence=1` is useful for small case-study calibration runs. The default is `2`, which requires repeated evidence before creating a profile annotation.
@@ -157,17 +160,19 @@ The systems now have distinct meanings:
 | System | Meaning |
 |---|---|
 | `ir-profile` | Static Skill IR materialization plus profile-guided repair over whatever `profile` annotations already exist in the input IR. |
-| `ir-pgo` | Profile-guided materialization intended for final IR generated from scored result feedback. |
+| `ir-pgo` | Held-out execution that consumes provenance-validated Final IR generated from scored `original × development` feedback. |
 
-`ir-pgo` does not infer profile files by itself. To evaluate true profile-guided optimization, run the feedback CLI first and pass its final IR directory to `real-agent-run.ts`. The runner now rejects `ir-pgo` without `--ir-override-dir` so unchanged base IR cannot be mislabeled as PGO.
+`ir-pgo` does not infer profile files by itself. To evaluate true profile-guided optimization, run the feedback CLI first and pass its Final IR directory to `real-agent-run.ts`. The runner rejects `ir-pgo` without matching provenance and rejects any selected task that is not held-out.
+
+A selected skill must also have at least one profile annotation. The compiler may archive a zero-annotation Final IR, but the runner will not present unchanged behavior under the `ir-pgo` label.
 
 The real-agent runner accepts the final IR directory directly:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile,ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=linux' '--tasks=report-overclaim-hard-001' '--model=xty/gpt-4.1-nano' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/profiled-ir-gpt41nano-2026-07-09/final-ir' '--out-dir=results/skill-ir/ir-pgo-dry-run-2026-07-09'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=pilot' '--systems=ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=windows' '--tasks=<held-out-task-id>' '--model=<model>' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/pilot-profiled-ir/final-ir' '--out-dir=results/skill-ir/pilot-ir-pgo-held-out'
 ```
 
-`--ir-override-dir` expects a complete set of `<skill-id>.json` files. The feedback CLI writes all manifest skills, even when only one skill receives a new annotation, so the follow-up run cannot accidentally mix base and final IR.
+`--ir-override-dir` expects a complete set of `<skill-id>.json` files. The feedback CLI writes all runnable corpus skills, even when only one skill receives a new annotation, so the follow-up run cannot accidentally mix base and final IR. `provenance.json` binds that set to its exact inputs.
 
 ## Failure Modes
 
@@ -175,7 +180,7 @@ bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile,i
 - Unknown failed criteria fall back to stable `rule-<slug>` target refs. They will produce annotations, but profile-guided repair can only generate rule-specific checks when the target ref exists in the IR rule list.
 - A low `--min-evidence` can overfit small runs. Use it only for method case studies; real pilots require documented development evidence and disjoint held-out validation.
 - An overlay generated on one model route is not a model-family profile and must not be assumed to transfer to another route.
-- Final IR should not be treated as the new base corpus until the source rows and train/eval split are documented.
+- Final IR should not be treated as the new base corpus. It remains a versioned compiled artifact tied to recorded development evidence.
 
 ## Verification
 

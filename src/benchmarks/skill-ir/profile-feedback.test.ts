@@ -58,7 +58,7 @@ function scoredRow(overrides: Partial<ScoredAgentRunRow> = {}): ScoredAgentRunRo
     environment: "linux",
     context: "compressed",
     task: "report-overclaim-hard-001",
-    taskSplit: "held-out",
+    taskSplit: "development",
     success: false,
     ruleViolations: 1,
     stepCoverage: 1,
@@ -148,12 +148,12 @@ describe("profile feedback from scored results", () => {
     const artifacts = buildProfileFeedbackArtifacts(
       [scoredRow()],
       new Map([["skill-report-synthesis", reportIr()]]),
-      { sourceSystem: "original", minEvidence: 1 },
+      { sourceSystem: "original", taskSplit: "development", minEvidence: 1 },
     );
 
     expect(artifacts.summary).toEqual({
       sourceSystem: "original",
-      taskSplit: undefined,
+      taskSplit: "development",
       minEvidence: 1,
       inputRows: 1,
       tracedRows: 1,
@@ -197,5 +197,19 @@ describe("profile feedback from scored results", () => {
     expect(finalIR?.checks.map((check) => check.id)).toContain("check-rule-required-sections");
     expect(finalIR?.checks.map((check) => check.id)).toContain("check-rule-required-sections-profile");
     expect(finalIR?.recovery.map((policy) => policy.id)).toContain("recover-rule-required-sections");
+  });
+
+  test("requires original development evidence for final IR compilation", () => {
+    const irBySkill = new Map([["skill-report-synthesis", reportIr()]]);
+
+    expect(() => buildProfileFeedbackArtifacts([scoredRow()], irBySkill, { sourceSystem: "original" })).toThrow(
+      "taskSplit=development",
+    );
+    expect(() =>
+      buildProfileFeedbackArtifacts([scoredRow()], irBySkill, {
+        sourceSystem: "ir-static",
+        taskSplit: "development",
+      }),
+    ).toThrow("sourceSystem=original");
   });
 });

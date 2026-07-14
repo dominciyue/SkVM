@@ -87,7 +87,7 @@ The compiler emits `provenance.json` beside `final-ir/`. At minimum it records:
 - per-skill source, base IR, overlay, and final IR SHA-256;
 - annotation evidence count and output paths.
 
-The real-agent runner validates this file before scheduling `ir-pgo`. It rejects missing provenance, non-development evidence, corpus mismatch, digest mismatch, missing skill records, or a Final IR that does not match the recorded artifact.
+The real-agent runner validates this file before scheduling `ir-pgo`. It rejects missing provenance, non-development evidence, corpus mismatch, digest mismatch, missing skill records, a selected skill with zero profile annotations, or a Final IR that does not match the recorded artifact. A zero-annotation Final IR may be archived as a compilation result, but it cannot be labeled PGO in held-out execution.
 
 Validation establishes artifact lineage, not quality. Held-out results decide whether the candidate helped or regressed.
 

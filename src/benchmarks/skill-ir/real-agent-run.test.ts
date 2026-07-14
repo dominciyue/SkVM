@@ -3,7 +3,14 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { SkillIR } from "../../skill-ir/schema";
-import { assertRequiredEnv, buildPlan, type RealAgentRunArgs } from "./real-agent-run";
+import {
+  assertRequiredEnv,
+  buildPlan,
+  parseRealAgentRunArgs,
+  type RealAgentRunArgs,
+} from "./real-agent-run";
+import { buildFinalIRProvenance } from "./final-ir-provenance";
+import { sha256Bytes } from "./source-fixture";
 
 const tempDirs: string[] = [];
 
@@ -79,15 +86,29 @@ async function createMultiSkillRoot(): Promise<string> {
     tasks: [{ id: "diagnostic-task", split: "development", prompt: "Diagnostic task prompt.", successCriteria: [] }],
   });
   await writeJson(join(root, "benchmarks/skill-ir/corpus/manifest.json"), {
-    schemaVersion: "skill-ir-corpus/v1",
+    schemaVersion: "skill-ir-corpus-registry/v1",
+    corpora: {
+      calibration: {
+        manifestPath: "benchmarks/skill-ir/corpus/corpora/calibration.json",
+        role: "test",
+      },
+      pilot: {
+        manifestPath: "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        role: "test",
+      },
+    },
+  });
+  await writeJson(join(root, "benchmarks/skill-ir/corpus/corpora/calibration.json"), {
+    schemaVersion: "skill-ir-corpus/v2",
+    corpusId: "calibration",
     categories: ["workflow"],
-    targetCounts: { taxonomySkills: 2, fullIRSkills: 2, deepBenchmarkSkills: 2 },
     skills: [
       {
         id: "skill-review",
         name: "Review Skill",
         category: ["workflow"],
-        depth: "deep-benchmark",
+        depth: "calibration",
+        status: "runnable",
         provenance: "real-public",
         source: "public/review",
         sourceUrl: "https://example.com/review",
@@ -99,7 +120,8 @@ async function createMultiSkillRoot(): Promise<string> {
         id: "skill-diagnostic",
         name: "Diagnostic Skill",
         category: ["workflow"],
-        depth: "deep-benchmark",
+        depth: "calibration",
+        status: "runnable",
         provenance: "adapted-public",
         source: "public/diagnostic",
         sourceUrl: "https://example.com/diagnostic",
@@ -114,6 +136,10 @@ async function createMultiSkillRoot(): Promise<string> {
 }
 
 describe("real-agent-run manifest loading", () => {
+  test("parseRealAgentRunArgs requires an explicit corpus", () => {
+    expect(() => parseRealAgentRunArgs([])).toThrow("--corpus is required");
+  });
+
   test("buildPlan materializes each skill with its own IR and task file", async () => {
     const rootDir = await createMultiSkillRoot();
     const args: RealAgentRunArgs = {
@@ -125,6 +151,7 @@ describe("real-agent-run manifest loading", () => {
       retries: 0,
       retryDelayMs: 1000,
       rootDir,
+      corpus: "calibration",
       systems: new Set(["original"]),
       contexts: new Set(["clean"]),
     };
@@ -160,6 +187,7 @@ describe("real-agent-run manifest loading", () => {
       retries: 0,
       retryDelayMs: 1000,
       rootDir,
+      corpus: "calibration",
       systems: new Set(["original", "ir-profile"]),
       contexts: new Set(["clean"]),
       agents: new Set(["codex"]),
@@ -176,8 +204,13 @@ describe("real-agent-run manifest loading", () => {
     expect(plan.map((entry) => entry.system)).toEqual(["original", "ir-profile"]);
   });
 
-  test("buildPlan can override manifest IRs with final profiled IR artifacts", async () => {
+  test("buildPlan rejects a final IR directory without provenance", async () => {
     const rootDir = await createMultiSkillRoot();
+    await writeJson(join(rootDir, "benchmarks/skill-ir/tasks/review.json"), {
+      schemaVersion: "skill-ir-tasks/v1",
+      skillId: "skill-review",
+      tasks: [{ id: "review-task", split: "held-out", prompt: "Review task prompt.", successCriteria: [] }],
+    });
     const overrideDir = join(rootDir, "profiled-ir");
     await writeJson(
       join(overrideDir, "skill-review.json"),
@@ -197,16 +230,85 @@ describe("real-agent-run manifest loading", () => {
       retries: 0,
       retryDelayMs: 1000,
       rootDir,
+      corpus: "calibration",
       irOverrideDir: overrideDir,
       systems: new Set(["ir-pgo"]),
       contexts: new Set(["clean"]),
       tasks: new Set(["review-task"]),
     };
 
-    const plan = await buildPlan(args);
-    const skillText = await Bun.file(plan[0]!.skillPath!).text();
+    expect(buildPlan(args)).rejects.toThrow("provenance.json");
+  });
 
-    expect(skillText).toContain("# Profiled Review Skill");
+  test("buildPlan accepts untampered development-derived Final IR only on held-out tasks", async () => {
+    const rootDir = await createMultiSkillRoot();
+    await writeJson(join(rootDir, "benchmarks/skill-ir/tasks/review.json"), {
+      schemaVersion: "skill-ir-tasks/v1",
+      skillId: "skill-review",
+      tasks: [{ id: "review-task", split: "held-out", prompt: "Review task prompt.", successCriteria: [] }],
+    });
+
+    const artifactRoot = join(rootDir, "profiled-ir");
+    const finalIRDir = join(artifactRoot, "final-ir");
+    const finalReview = irFixture("skill-review", "Profiled Review Skill", "Profiled review source text.");
+    await writeJson(join(artifactRoot, "overlay/skill-review.json"), { annotations: [] });
+    await writeJson(join(finalIRDir, "skill-review.json"), finalReview);
+    await writeJson(
+      join(finalIRDir, "skill-diagnostic.json"),
+      irFixture("skill-diagnostic", "Profiled Diagnostic Skill", "Profiled diagnostic source text."),
+    );
+    const resultsPath = join(rootDir, "results/development.jsonl");
+    await writeJson(resultsPath, { taskSplit: "development", system: "original" });
+    const baseIRPath = join(rootDir, "benchmarks/skill-ir/ir/review.json");
+    const manifestPath = join(rootDir, "benchmarks/skill-ir/corpus/corpora/calibration.json");
+    const provenance = await buildFinalIRProvenance({
+      rootDir,
+      artifactRoot,
+      corpus: "calibration",
+      manifestPath,
+      resultsPath,
+      skills: [
+        {
+          skillId: "skill-review",
+          sourceSha256: sha256Bytes(Buffer.from("Review source text.", "utf8")),
+          baseIRPath,
+          annotationCount: 1,
+        },
+      ],
+    });
+    await writeJson(join(artifactRoot, "provenance.json"), provenance);
+
+    const args: RealAgentRunArgs = {
+      model: "test/model",
+      adapter: "bare-agent",
+      outDir: join(rootDir, "out"),
+      limit: 3,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1000,
+      rootDir,
+      corpus: "calibration",
+      irOverrideDir: finalIRDir,
+      systems: new Set(["original", "ir-static", "ir-pgo"]),
+      contexts: new Set(["clean"]),
+      tasks: new Set(["review-task"]),
+    };
+
+    const plan = await buildPlan(args);
+    expect(plan).toHaveLength(3);
+    const textBySystem = new Map(
+      await Promise.all(plan.map(async (entry) => [entry.system, await Bun.file(entry.skillPath!).text()] as const)),
+    );
+    expect(textBySystem.get("original")).toBe("Review source text.");
+    expect(textBySystem.get("ir-static")).toContain("# Review Skill");
+    expect(textBySystem.get("ir-static")).not.toContain("Profiled Review Skill");
+    expect(textBySystem.get("ir-pgo")).toContain("Profiled Review Skill");
+
+    await writeJson(join(finalIRDir, "skill-review.json"), {
+      ...finalReview,
+      intent: "Tampered after validation.",
+    });
+    expect(buildPlan(args)).rejects.toThrow("final IR digest mismatch");
   });
 
   test("buildPlan rejects ir-pgo when no development-derived IR override is provided", async () => {
@@ -220,6 +322,7 @@ describe("real-agent-run manifest loading", () => {
       retries: 0,
       retryDelayMs: 1000,
       rootDir,
+      corpus: "calibration",
       systems: new Set(["ir-pgo"]),
       contexts: new Set(["clean"]),
     };
@@ -239,6 +342,7 @@ describe("real-agent-run manifest loading", () => {
           retries: 0,
           retryDelayMs: 1000,
           rootDir: ".",
+          corpus: "calibration",
           requireEnv: new Set(["SKVM_XTY_API_KEY", "SKVM_CACHE"]),
         },
         { SKVM_XTY_API_KEY: "", SKVM_CACHE: "cache" },

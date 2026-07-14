@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { buildDefaultMatrixInput, buildExperimentMatrix, DEFAULT_EXPERIMENT_SYSTEMS } from "./matrix";
+import {
+  buildCorpusMatrixInput,
+  buildExperimentMatrix,
+  COLD_START_EXPERIMENT_SYSTEMS,
+} from "./matrix";
 
 describe("buildExperimentMatrix", () => {
   test("creates paired Cartesian product cases with stable case ids", () => {
@@ -38,8 +42,8 @@ describe("buildExperimentMatrix", () => {
     expect(pairedCases.map((item) => item.system)).toEqual(["no-skill", "original", "ir-static"]);
   });
 
-  test("uses the research main-table systems by default and allows overriding the baseline", () => {
-    expect(DEFAULT_EXPERIMENT_SYSTEMS).toEqual(["no-skill", "original", "ir-static", "ir-pgo"]);
+  test("uses cold-start systems by default and allows overriding the baseline", () => {
+    expect(COLD_START_EXPERIMENT_SYSTEMS).toEqual(["no-skill", "original", "ir-static"]);
 
     const [firstCase] = buildExperimentMatrix({
       skills: ["skill-review"],
@@ -91,9 +95,9 @@ describe("buildExperimentMatrix", () => {
   });
 });
 
-describe("buildDefaultMatrixInput", () => {
-  test("loads skills, contexts, and tasks from benchmark fixtures", () => {
-    const input = buildDefaultMatrixInput();
+describe("buildCorpusMatrixInput", () => {
+  test("loads the explicit calibration corpus with cold-start systems", () => {
+    const input = buildCorpusMatrixInput("calibration");
 
     expect(input.skills).toContainEqual({
       id: "skill-review",
@@ -126,6 +130,13 @@ describe("buildDefaultMatrixInput", () => {
       "ci-engine-warning-hard-002",
     ]);
     expect(Object.values(input.tasksBySkill ?? {}).every((tasks) => tasks.length === 4)).toBe(true);
-    expect(input.systems).toEqual(DEFAULT_EXPERIMENT_SYSTEMS);
+    expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);
+    expect(input.skills.every((skill) => typeof skill !== "string" && skill.packaging === "focused")).toBe(true);
+  });
+
+  test("keeps source-only pilot entries registered but unscheduled", () => {
+    expect(() => buildCorpusMatrixInput("pilot")).toThrow(
+      "Corpus pilot has 0 runnable skills out of 6 registered skills",
+    );
   });
 });

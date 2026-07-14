@@ -22,6 +22,10 @@ src/skill-ir/corpus-fixtures.test.ts
 benchmarks/skill-ir/
   corpus/
     manifest.json
+    corpora/
+      calibration.json
+      pilot.json
+    real-skill-intake.json
   contexts/
     standard-contexts.json
   ir/
@@ -38,20 +42,24 @@ benchmarks/skill-ir/
     git-hygiene-skill-tasks.json
     tdd-bugfix-skill-tasks.json
     report-synthesis-skill-tasks.json
+  pilots/
+    law-to-markdown/source/**
+    env-manager/source/**
+    experimental-design/source/**
 ```
 
-## Manifest
+## Corpus Registry And Manifests
 
-`benchmarks/skill-ir/corpus/manifest.json` records the intended corpus scale and the known skills currently included.
+`benchmarks/skill-ir/corpus/manifest.json` is a registry with two explicit corpus ids:
 
-Important fields:
+| Corpus | Role | Current state |
+|---|---|---|
+| `calibration` | Six synthetic seeds for pipeline and scorer calibration | Runnable, low-weight evidence. |
+| `pilot` | Six source-backed real skills split into Wave A and Wave B | Wave A source-imported; no pilot is runnable until audited IR/tasks exist. |
 
-- `schemaVersion`: currently `skill-ir-corpus/v1`.
-- `categories`: the taxonomy categories used by the project.
-- `targetCounts`: broad project targets for taxonomy, full IR, and deep benchmark coverage.
-- `skills`: one entry per skill fixture.
+Matrix and real-agent CLIs require `--corpus=calibration|pilot`. They schedule only `status: "runnable"` entries and fail when the selected corpus has none. This prevents a pilot command from silently running seed fixtures.
 
-The initial target scale is:
+The earlier 60/24/16 numbers are retained only under `calibration.json.historicalAspirations` as planning history:
 
 ```json
 {
@@ -61,7 +69,9 @@ The initial target scale is:
 }
 ```
 
-The current expanded seed corpus contains 6 deep-benchmark fixtures:
+They are not current success criteria. The active real-skill scope is 3+3: three Wave A deep pilots and three mandatory Wave B replication pilots.
+
+The calibration corpus contains 6 fixtures:
 
 | Skill | Categories | Purpose |
 |---|---|---|
@@ -72,7 +82,7 @@ The current expanded seed corpus contains 6 deep-benchmark fixtures:
 | `skill-tdd-bugfix` | workflow, diagnostic | Test-first bug fix planning. |
 | `skill-report-synthesis` | generative, workflow, constraint-heavy | Evidence-grounded report generation. |
 
-These fixtures are currently local synthetic/research fixtures. They were created to make the pipeline executable and to cover controlled failure modes. They are not yet a representative sample of public or user-provided skills. Broad generalization claims should wait until the corpus includes externally sourced skills with explicit provenance.
+These fixtures are local synthetic/research fixtures. They were created to make the pipeline executable and to cover controlled failure modes. They are not a representative sample of public or user-provided skills.
 
 Their evidence weight should be low in the main research claims. They are development and calibration fixtures, not proof that Skill IR handles arbitrary public skills. Report them separately from real/public skill rows or mark them as a controlled case-study slice.
 
@@ -97,13 +107,14 @@ evidenceWeight
 
 The six seed fixtures are labeled `synthetic-seed` with `calibration-low` evidence. Matrix, runner, scorer, and slice analysis preserve these fields.
 
-Real-source inspection metadata is stored separately in:
+Real-source inspection metadata and committed source snapshots live at:
 
 ```text
 benchmarks/skill-ir/corpus/real-skill-intake.json
+benchmarks/skill-ir/pilots/<skill-id>/source/
 ```
 
-This snapshot records source commits, licenses, artifact counts, selected pilots, dependencies, and risks without committing ignored third-party checkouts.
+The intake snapshot records source commits, licenses, artifact counts, selected pilots, dependencies, and risks. The Wave A source closures are copied exactly from pinned commits and each committed file has a SHA-256 entry in `corpora/pilot.json`. Raw third-party checkouts remain ignored under `.skvm/external-skills/`.
 
 Future analysis should avoid one aggregate number that mixes these synthetic rows with real/public rows. If a mixed table is necessary, include provenance counts and a real-skill-only slice.
 
@@ -171,14 +182,14 @@ bun run typecheck
 
 ## Adding A New Skill Fixture
 
-When adding a skill:
+When adding a runnable skill:
 
-1. Add an entry to `benchmarks/skill-ir/corpus/manifest.json`.
-2. Add a full IR file under `benchmarks/skill-ir/ir/`.
-3. Add task fixtures under `benchmarks/skill-ir/tasks/`.
-4. Record provenance, evidence weight, source path, source URL, and license scope.
-5. Ensure the IR passes `SkillIRSchema.parse`.
-6. Ensure the IR passes `validateSkillIR` with no errors.
+1. Register source-only metadata in `benchmarks/skill-ir/corpus/corpora/pilot.json` with a non-runnable status.
+2. Import the licensed source closure under `benchmarks/skill-ir/pilots/<skill-id>/source/` and record per-file SHA-256.
+3. Add a full IR file and task fixtures with one development split and disjoint held-out tasks.
+4. Record provenance, evidence weight, source URL/commit/path, license scope, `irPath`, and `tasksPath`.
+5. Ensure the exact original source digest, `SkillIRSchema.parse`, and `validateSkillIR` pass.
+6. Mark the entry `runnable` only after source, IR, task, scorer, and no-skill suitability audits pass.
 7. Add or update fixture tests if the new fixture introduces a new file shape or category assumption.
 
 Preferred next additions:

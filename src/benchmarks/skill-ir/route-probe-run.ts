@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { ExperimentSystem } from "./matrix";
+import type { CorpusId } from "./corpus-registry";
 import { assertRequiredEnv, buildPlan, type RealAgentRunArgs } from "./real-agent-run";
 import {
   buildProbeRunArgs,
@@ -11,6 +12,7 @@ import {
 } from "./route-probe";
 
 type RouteProbeArgs = {
+  corpus: CorpusId;
   models: string[];
   adapter: string;
   outDir: string;
@@ -28,6 +30,7 @@ type RouteProbeArgs = {
 
 function parseArgs(argv: string[]): RouteProbeArgs {
   const args: RouteProbeArgs = {
+    corpus: "calibration",
     models: [],
     adapter: "bare-agent",
     outDir: "results/skill-ir/route-probe",
@@ -41,9 +44,17 @@ function parseArgs(argv: string[]): RouteProbeArgs {
     stdoutTailChars: 1200,
     stderrTailChars: 1200,
   };
+  let corpusProvided = false;
 
   for (const arg of argv) {
-    if (arg.startsWith("--models=")) {
+    if (arg.startsWith("--corpus=")) {
+      const corpus = arg.slice("--corpus=".length);
+      if (corpus !== "calibration" && corpus !== "pilot") {
+        throw new Error(`Unknown Skill IR corpus: ${corpus}`);
+      }
+      args.corpus = corpus;
+      corpusProvided = true;
+    } else if (arg.startsWith("--models=")) {
       args.models = parseModelList(arg.slice("--models=".length));
     } else if (arg.startsWith("--adapter=")) {
       args.adapter = arg.slice("--adapter=".length);
@@ -72,6 +83,10 @@ function parseArgs(argv: string[]): RouteProbeArgs {
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
+  }
+
+  if (!corpusProvided) {
+    throw new Error("--corpus is required; choose calibration or pilot");
   }
 
   if (args.models.length === 0) {
@@ -104,6 +119,7 @@ function assertProbeEnv(args: RouteProbeArgs): void {
     retries: 0,
     retryDelayMs: 0,
     rootDir: args.rootDir,
+    corpus: args.corpus,
     requireEnv: args.requireEnv,
   };
   assertRequiredEnv(checkArgs);
@@ -124,6 +140,7 @@ async function main() {
       adapter: args.adapter,
       outDir: join(args.outDir, "artifacts"),
       rootDir: args.rootDir,
+      corpus: args.corpus,
       system: args.system,
       context: args.context,
       agent: args.agent,

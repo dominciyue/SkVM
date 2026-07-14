@@ -24,7 +24,7 @@ The top-level `SkillIR` object records:
 - `id` and `name`: stable identity for the skill.
 - `category`: one or more skill categories used for corpus analysis and pass selection.
 - `intent`: the skill's high-level purpose.
-- `source`: where the skill came from, either a file path or inline text.
+- `source`: where the skill came from, either inline text or a repository-relative file path pinned by SHA-256.
 - `inputs` and `outputs`: expected inputs and produced artifacts.
 - `preconditions`: requirements that should hold before execution.
 - `steps`: ordered or dependency-linked execution units.
@@ -66,6 +66,16 @@ export type ProfileAnnotation = z.infer<typeof ProfileAnnotationSchema>;
 ```
 
 This keeps future passes type-safe without duplicating schema definitions.
+
+### Source Contract
+
+```ts
+type SkillSource =
+  | { kind: "inline"; text: string }
+  | { kind: "file"; path: string; sha256: string };
+```
+
+File paths must stay inside the repository root and `sha256` must be a 64-character hexadecimal digest of the exact source bytes. Real-agent `original` materialization verifies the digest, injects those exact bytes as `SKILL.md`, and copies the source directory closure so relative scripts and references remain available. Missing, escaped, or stale sources fail before execution.
 
 ## Runtime Behavior
 

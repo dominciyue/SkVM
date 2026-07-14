@@ -10,7 +10,11 @@ export const SkillCategorySchema = z.enum([
 ]);
 
 export const SkillSourceSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("file"), path: z.string().min(1) }),
+  z.object({
+    kind: z.literal("file"),
+    path: z.string().min(1),
+    sha256: z.string().regex(/^[0-9a-f]{64}$/i),
+  }),
   z.object({ kind: z.literal("inline"), text: z.string().min(1) }),
 ]);
 

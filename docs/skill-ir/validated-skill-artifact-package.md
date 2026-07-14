@@ -2,7 +2,7 @@
 
 ## Status
 
-Northbound engineering specification, updated 2026-07-15. The current implementation is L1/early-L2 and does not yet emit this complete package.
+Northbound engineering specification, updated 2026-07-15. The current implementation is L1/early-L2 and does not yet emit this complete package. It now emits an intermediate Final IR artifact set with digest provenance; that is a prerequisite, not an L3/L4 package.
 
 ## Purpose
 
@@ -65,6 +65,20 @@ licensed source skill
 ```
 
 Development evidence may change the candidate IR or generate artifacts. Held-out evidence may validate or reject the package but must not be fed back into the same reported evaluation run.
+
+## Current Final IR Artifact
+
+Before package solidification, profile feedback emits:
+
+```text
+profiled-ir/
+  overlay/<skill-id>.json
+  final-ir/<skill-id>.json
+  summary.json
+  provenance.json
+```
+
+Final IR is the compiled product of static base IR plus a development-derived overlay. `ir-pgo` is the held-out execution label that consumes this product. Provenance records the selected corpus, `original × development` evidence, and source/base/overlay/final digests; the runner validates all of them before scheduling. This provides artifact identity and train/evaluation separation, but it does not yet provide independently executable L3 checks, scripts, schemas, templates, or tool plans.
 
 ## Current Pilot Strategy
 

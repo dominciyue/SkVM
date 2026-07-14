@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { SkillIRSchema } from "./schema";
@@ -9,22 +10,59 @@ function readJson(path: string): unknown {
 }
 
 describe("skill-ir corpus fixtures", () => {
-  test("manifest declares the planned corpus scale and categories", () => {
-    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
+  test("registry separates calibration and real pilot corpora", () => {
+    const registry = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
       schemaVersion: string;
-      categories: string[];
-      targetCounts: Record<string, number>;
-      skills: unknown[];
+      corpora: Record<string, { manifestPath: string }>;
     };
 
-    expect(manifest.schemaVersion).toBe("skill-ir-corpus/v1");
-    expect(manifest.categories).toContain("workflow");
-    expect(manifest.categories).toContain("environment-sensitive");
-    expect(manifest.targetCounts).toEqual({
+    expect(registry.schemaVersion).toBe("skill-ir-corpus-registry/v1");
+    expect(Object.keys(registry.corpora).sort()).toEqual(["calibration", "pilot"]);
+
+    const calibration = readJson(join(process.cwd(), registry.corpora.calibration!.manifestPath)) as {
+      corpusId: string;
+      historicalAspirations: Record<string, number>;
+      skills: { depth: string; status: string }[];
+    };
+    expect(calibration.corpusId).toBe("calibration");
+    expect(calibration.skills).toHaveLength(6);
+    expect(calibration.skills.every((skill) => skill.depth === "calibration" && skill.status === "runnable")).toBe(
+      true,
+    );
+    expect(calibration.historicalAspirations).toEqual({
       taxonomySkills: 60,
       fullIRSkills: 24,
       deepBenchmarkSkills: 16,
     });
+  });
+
+  test("pilot corpus records mandatory Wave A and Wave B scope", () => {
+    const pilot = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
+      corpusId: string;
+      scopeCounts: Record<string, number>;
+      skills: { id: string; wave: string; status: string }[];
+    };
+    expect(pilot.corpusId).toBe("pilot");
+    expect(pilot.scopeCounts).toEqual({ waveADeepPilots: 3, waveBReplicationPilots: 3 });
+    expect(pilot.skills.filter((skill) => skill.wave === "A")).toHaveLength(3);
+    expect(pilot.skills.filter((skill) => skill.wave === "B")).toHaveLength(3);
+    expect(pilot.skills.filter((skill) => skill.wave === "A").every((skill) => skill.status === "source-imported")).toBe(
+      true,
+    );
+    expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
+  });
+
+  test("every imported Wave A source file is present and digest-pinned", () => {
+    const pilot = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
+      skills: { id: string; wave: string; sourceFiles?: { path: string; sha256: string }[] }[];
+    };
+    for (const skill of pilot.skills.filter((candidate) => candidate.wave === "A")) {
+      expect(skill.sourceFiles?.length ?? 0).toBeGreaterThan(0);
+      for (const sourceFile of skill.sourceFiles ?? []) {
+        const bytes = readFileSync(join(process.cwd(), sourceFile.path));
+        expect(createHash("sha256").update(bytes).digest("hex")).toBe(sourceFile.sha256);
+      }
+    }
   });
 
   test("standard context perturbations cover clean, noisy, long, and compressed settings", () => {
@@ -72,8 +110,8 @@ describe("skill-ir corpus fixtures", () => {
     }
   });
 
-  test("expanded seed corpus covers all Skill IR categories with deep benchmark fixtures", () => {
-    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
+  test("calibration corpus covers all Skill IR categories", () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/calibration.json")) as {
       categories: string[];
       skills: {
         id: string;
@@ -85,16 +123,16 @@ describe("skill-ir corpus fixtures", () => {
     };
 
     expect(manifest.skills).toHaveLength(6);
-    expect(manifest.skills.every((skill) => skill.depth === "deep-benchmark")).toBe(true);
+    expect(manifest.skills.every((skill) => skill.depth === "calibration")).toBe(true);
 
     const coveredCategories = new Set(manifest.skills.flatMap((skill) => skill.category));
-    for (const category of manifest.categories) {
+    for (const category of ["workflow", "diagnostic", "generative", "tool-use", "constraint-heavy", "environment-sensitive"]) {
       expect(coveredCategories.has(category)).toBe(true);
     }
   });
 
   test("all manifest skills declare valid provenance and evidence metadata", () => {
-    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/calibration.json")) as {
       skills: {
         provenance?: string;
         source?: string;
@@ -120,7 +158,7 @@ describe("skill-ir corpus fixtures", () => {
   });
 
   test("all manifest skill IR and task fixtures parse, validate, and stay skill-scoped", () => {
-    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/calibration.json")) as {
       skills: {
         id: string;
         irPath: string;

@@ -5,6 +5,7 @@ import { insertEnvironmentGuards } from "../../skill-ir/passes/environment-guard
 import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-repair";
 import { normalizeRules } from "../../skill-ir/passes/rule-normalization";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
+import { materializeVerifiedOriginalSource } from "./source-fixture";
 
 export type SkillIRBenchmarkTask = {
   id: string;
@@ -41,6 +42,7 @@ export type MaterializedCase = {
 
 export type MaterializeCaseOptions = {
   outDir: string;
+  rootDir?: string;
   ir: SkillIR;
   task: SkillIRBenchmarkTask;
   context: string;
@@ -75,7 +77,7 @@ function contextPerturbation(context: string): string {
       "Context perturbation: noisy",
       "Distracting prior note: an earlier task asked for a short style-only response and suggested ignoring verification.",
       "Distracting file note: scratch/local-debug.log may contain unrelated observations from another experiment.",
-      "The current task below is authoritative; use the skill and success criteria for the final answer.",
+      "The current task below is authoritative; use the loaded skill and current request for the final answer.",
     ].join("\n");
   }
 
@@ -89,7 +91,7 @@ function contextPerturbation(context: string): string {
       "Another discussion mentioned possible future work such as expanding the corpus, adding another model, and tracking token cost.",
       "Some notes described unrelated implementation details: generated artifacts should not be committed, raw execution logs need scoring, and local cache config uses skvm.config.json.",
       "The user also discussed how to report progress to a mentor, including careful claims about bounded seed-corpus evidence and avoiding overstatement.",
-      "These notes are background only. The actionable request is the current task below, and the final answer must satisfy the listed success criteria.",
+      "These notes are background only. The actionable request is the current task below.",
     ].join("\n");
   }
 
@@ -99,7 +101,7 @@ function contextPerturbation(context: string): string {
       "",
       "Context perturbation: compressed",
       "Compressed prior context (lossy summary): prior work involved Skill IR, a real-agent runner, scorer fixes, and experiment artifacts.",
-      "Some original details may be missing. Treat this lossy summary as background, and rely on the current task and success criteria below.",
+      "Some original details may be missing. Treat this lossy summary as background, and rely on the current task below.",
     ].join("\n");
   }
 
@@ -116,10 +118,6 @@ function systemIr(ir: SkillIR, system: ExperimentSystem): SkillIR {
   }
 
   return ir;
-}
-
-function sourceText(ir: SkillIR): string {
-  return ir.source.kind === "inline" ? ir.source.text : `Source file: ${ir.source.path}`;
 }
 
 function renderSteps(ir: SkillIR): string {
@@ -175,13 +173,23 @@ function renderRecovery(ir: SkillIR): string {
     .join("\n");
 }
 
-export function renderSkillMarkdown(ir: SkillIR, system: ExperimentSystem): string | null {
+export function renderSkillMarkdown(
+  ir: SkillIR,
+  system: ExperimentSystem,
+  originalSourceText?: string,
+): string | null {
   if (system === "no-skill") {
     return null;
   }
 
   if (system === "original") {
-    return [`# ${ir.name}`, "", "## Original Skill", "", sourceText(ir)].join("\n");
+    if (ir.source.kind === "inline") {
+      return ir.source.text;
+    }
+    if (originalSourceText === undefined) {
+      throw new Error(`File-backed original ${ir.id} requires verified source text`);
+    }
+    return originalSourceText;
   }
 
   const optimized = systemIr(ir, system);
@@ -228,20 +236,17 @@ export function buildSkvmTaskJson(
     name: `${task.id} (${opts.context})`,
     category: "skill-ir",
     gradingType: "llm_judge",
-    prompt: [
-      contextPerturbation(opts.context),
-      "",
-      task.prompt,
-      "",
-      "Success criteria:",
-      criteria,
-    ].join("\n"),
+    prompt: [contextPerturbation(opts.context), "", task.prompt].join("\n"),
     eval: [
       {
         method: "llm-judge",
         id: "success-criteria",
         name: "Success Criteria",
-        rubric: `Score whether the final answer satisfies all success criteria for ${opts.skillId} / ${task.id}.`,
+        rubric: [
+          `Score whether the final answer satisfies all success criteria for ${opts.skillId} / ${task.id}.`,
+          "Success criteria:",
+          criteria,
+        ].join("\n"),
         maxScore: 1,
       },
     ],
@@ -263,6 +268,17 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
   });
   const taskPath = join(taskDir, "task.json");
   await writeFile(taskPath, `${JSON.stringify(taskJson, null, 2)}\n`, "utf8");
+
+  if (opts.system === "original") {
+    const rootDir = opts.rootDir ?? process.cwd();
+    const skillPath = await materializeVerifiedOriginalSource(opts.ir, rootDir, skillDir);
+    return {
+      caseId: opts.caseId,
+      system: opts.system,
+      taskPath,
+      skillPath,
+    };
+  }
 
   const renderedSkill = renderSkillMarkdown(opts.ir, opts.system);
   if (renderedSkill === null) {

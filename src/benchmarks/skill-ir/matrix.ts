@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { resolveCorpusManifestPath, type CorpusId } from "./corpus-registry";
 
 export type ExperimentSystem =
   | "no-skill"
@@ -55,12 +56,14 @@ export type ExperimentCase = {
 };
 
 type CorpusManifest = {
+  corpusId?: string;
   skills: {
     id: string;
     tasksPath?: string;
     notes?: string;
     provenance?: SkillProvenance;
     evidenceWeight?: EvidenceWeight;
+    status?: string;
   }[];
 };
 
@@ -72,11 +75,10 @@ type TaskSet = {
   tasks: { id: string }[];
 };
 
-export const DEFAULT_EXPERIMENT_SYSTEMS: ExperimentSystem[] = [
+export const COLD_START_EXPERIMENT_SYSTEMS: ExperimentSystem[] = [
   "no-skill",
   "original",
   "ir-static",
-  "ir-pgo",
 ];
 
 function readJson<T>(path: string): T {
@@ -136,17 +138,24 @@ export function buildExperimentMatrix(input: MatrixInput): ExperimentCase[] {
   return cases;
 }
 
-export function buildDefaultMatrixInput(rootDir = process.cwd()): MatrixInput {
-  const manifest = readJson<CorpusManifest>(join(rootDir, "benchmarks/skill-ir/corpus/manifest.json"));
+export function buildCorpusMatrixInput(corpus: CorpusId, rootDir = process.cwd()): MatrixInput {
+  const manifest = readJson<CorpusManifest>(resolveCorpusManifestPath(corpus, rootDir));
   const contextSet = readJson<ContextSet>(join(rootDir, "benchmarks/skill-ir/contexts/standard-contexts.json"));
-  const skills = manifest.skills.map((skill) => ({
+  const runnableSkills = manifest.skills.filter((skill) => skill.status === "runnable");
+  if (runnableSkills.length === 0) {
+    throw new Error(
+      `Corpus ${corpus} has 0 runnable skills out of ${manifest.skills.length} registered skills`,
+    );
+  }
+
+  const skills = runnableSkills.map((skill) => ({
     id: skill.id,
     packaging: inferSkillPackaging(skill),
     provenance: skill.provenance ?? "unknown",
     evidenceWeight: skill.evidenceWeight ?? "unknown",
   }));
   const tasksBySkill = Object.fromEntries(
-    manifest.skills.map((skill) => {
+    runnableSkills.map((skill) => {
       if (!skill.tasksPath) {
         return [skill.id, []];
       }
@@ -163,6 +172,6 @@ export function buildDefaultMatrixInput(rootDir = process.cwd()): MatrixInput {
     contexts: contextSet.contexts.map((context) => context.id),
     tasks,
     tasksBySkill,
-    systems: [...DEFAULT_EXPERIMENT_SYSTEMS],
+    systems: [...COLD_START_EXPERIMENT_SYSTEMS],
   };
 }

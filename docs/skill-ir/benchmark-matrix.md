@@ -25,16 +25,20 @@ src/benchmarks/skill-ir/matrix.test.ts
 
 ```ts
 buildExperimentMatrix(input: MatrixInput): ExperimentCase[]
-buildDefaultMatrixInput(rootDir?: string): MatrixInput
+buildCorpusMatrixInput(corpus: "calibration" | "pilot", rootDir?: string): MatrixInput
 ```
 
-`buildExperimentMatrix` builds the paired Cartesian product. `buildDefaultMatrixInput` reads the current benchmark fixture files:
+`buildExperimentMatrix` builds the paired Cartesian product. `buildCorpusMatrixInput` resolves an explicitly selected corpus through:
 
 ```text
 benchmarks/skill-ir/corpus/manifest.json
+benchmarks/skill-ir/corpus/corpora/calibration.json
+benchmarks/skill-ir/corpus/corpora/pilot.json
 benchmarks/skill-ir/contexts/standard-contexts.json
 benchmarks/skill-ir/tasks/*.json
 ```
+
+The top-level manifest is a registry, not a skill list. Only entries with `status: "runnable"` are scheduled. A corpus with zero runnable skills fails closed instead of silently falling back to calibration seeds.
 
 ## Skill-Specific Tasks
 
@@ -47,24 +51,23 @@ tasksBySkill?: Record<string, string[]>
 
 `tasks` is kept as a compatibility and reporting field. When `tasksBySkill` is present, `buildExperimentMatrix` schedules only the tasks owned by the current skill. This matters before Task 11B expansion: a multi-skill corpus must not produce synthetic cases such as `skill-review` paired with a diagnostic skill's task.
 
-`buildDefaultMatrixInput` now builds `tasksBySkill` from each manifest entry's `tasksPath`, while also preserving the flattened `tasks` list for existing callers and documentation.
+`buildCorpusMatrixInput` builds `tasksBySkill` from each runnable manifest entry's `tasksPath`, while also preserving the flattened `tasks` list for existing callers and documentation.
 
 ## Experiment Systems
 
-The default system list is the research main table:
+The cold-start default system list is:
 
 ```text
 no-skill
 original
 ir-static
-ir-pgo
 ```
 
-`no-skill` and `original` make skill utility, paired deltas, and regressions visible. `ir-static` measures cold-start compilation; `ir-pgo` measures task-local repair from development evidence on disjoint held-out tasks.
+`no-skill` and `original` make skill utility, paired deltas, and regressions visible. `ir-static` measures cold-start compilation. Cold start never assumes PGO exists.
 
-The matrix can schedule `ir-pgo` abstractly. The real-agent runner additionally requires `--ir-override-dir` so the scheduled system resolves to development-derived final IR rather than the unchanged base IR.
+The complete-claim report may later add `ir-pgo` as a fourth column. It must be explicitly requested for held-out tasks, with `--ir-override-dir` pointing to a Final IR directory whose sibling `provenance.json` validates development evidence and all recorded digests.
 
-The `ExperimentSystem` type still supports `skvm-aot`, `ir-only`, and `ir-profile` for explicit use. `ir-only` is an ablation, `ir-profile` preserves archived comparisons, and `skvm-aot` is a stub until it is connected to the upstream AOT path. They are intentionally excluded from `DEFAULT_EXPERIMENT_SYSTEMS`.
+The `ExperimentSystem` type still supports `skvm-aot`, `ir-only`, `ir-profile`, and `ir-pgo` for explicit use. `ir-only` is an ablation, `ir-profile` preserves archived comparisons, and `skvm-aot` is a stub until it is connected to the upstream AOT path. They are intentionally excluded from `COLD_START_EXPERIMENT_SYSTEMS`.
 
 ## Scheduling Labels Versus Executed Axes
 
@@ -103,7 +106,7 @@ skillProvenance: synthetic-seed | adapted-public | real-public | upstream-skvm |
 evidenceWeight: calibration-low | support-real | main-real | unknown
 ```
 
-`buildDefaultMatrixInput` reads these fields from `benchmarks/skill-ir/corpus/manifest.json`. String-only or older programmatic matrix inputs receive `unknown`, which preserves compatibility without silently treating an unlabeled skill as real evidence. The fields remain attached to all systems sharing a paired `caseId` and are propagated by the real-agent runner.
+`buildCorpusMatrixInput` reads these fields from the selected corpus manifest. String-only or older programmatic matrix inputs receive `unknown`, which preserves compatibility without silently treating an unlabeled skill as real evidence. The fields remain attached to all systems sharing a paired `caseId` and are propagated by the real-agent runner.
 
 ## Command Line
 
@@ -116,8 +119,10 @@ bun test ./src/benchmarks/skill-ir/matrix.test.ts
 Print the current default matrix:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/run.ts
+bun ./src/benchmarks/skill-ir/run.ts --corpus=calibration
 ```
+
+`--corpus` is mandatory. `--corpus=pilot` currently fails closed until pilot IR and task fixtures are audited and marked runnable.
 
 Run matrix plus current Skill IR subsystem tests:
 
@@ -133,7 +138,7 @@ bun run typecheck
 
 ## Assumptions And Failure Modes
 
-- The default loader assumes task paths in `manifest.json` are relative to the repository root.
+- The corpus loader assumes registry and task paths are relative to the repository root.
 - A single task id is not required to be globally unique. `caseId` remains unique because it also includes the skill id.
 - If `tasksBySkill` is supplied and a skill has no task list, the matrix schedules zero cases for that skill instead of falling back to unrelated tasks.
 - The loader does not validate full JSON schema. Existing corpus fixture tests cover the seed files; deeper benchmark schema validation can be added with result schemas.
@@ -146,6 +151,6 @@ bun run typecheck
 - Add tests before changing matrix fields because downstream result analysis will depend on them.
 - Keep `caseId` stable once real results exist.
 - When adding a new deep benchmark skill, add its `tasksPath` in the manifest and check that `tasksBySkill[skillId]` contains only that skill's tasks.
-- Add a system to `DEFAULT_EXPERIMENT_SYSTEMS` only when it belongs in the paper's main table. Explicit ablations may remain supported without becoming defaults.
+- Add a system to `COLD_START_EXPERIMENT_SYSTEMS` only when it is valid before any dynamic evidence exists. `ir-pgo` must remain explicit even when it appears in a paper table.
 - If packaging becomes explicit in corpus metadata, update `inferSkillPackaging` and its tests in the same commit.
 - Keep `skillProvenance` and `evidenceWeight` stable because raw/scored result rows and slice analysis consume them.

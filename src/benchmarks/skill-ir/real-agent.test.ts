@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { SkillIR } from "../../skill-ir/schema";
@@ -86,14 +87,18 @@ describe("real-agent Task 11A helpers", () => {
     expect(taskJson.gradingType).toBe("llm_judge");
     expect(taskJson.prompt).toContain("Context condition: noisy");
     expect(taskJson.prompt).toContain("Review a small change with one behavioral bug.");
-    expect(taskJson.prompt).toContain("Findings appear before summary.");
+    expect(taskJson.prompt).not.toContain("Findings appear before summary.");
     expect(taskJson.eval).toEqual([
       {
         method: "llm-judge",
         id: "success-criteria",
         name: "Success Criteria",
-        rubric:
+        rubric: [
           "Score whether the final answer satisfies all success criteria for skill-review / review-finding-order-001.",
+          "Success criteria:",
+          "- Findings appear before summary.",
+          "- Behavioral bug is mentioned.",
+        ].join("\n"),
         maxScore: 1,
       },
     ]);
@@ -132,8 +137,10 @@ describe("real-agent Task 11A helpers", () => {
     expect(longTask.prompt).toContain("Context perturbation: long");
     expect(longTask.prompt).toContain("Long surrounding context");
     expect(longTask.prompt.length).toBeGreaterThan(cleanTask.prompt.length + 400);
+    expect(longTask.prompt.toLowerCase()).not.toContain("success criteria");
     expect(compressedTask.prompt).toContain("Context perturbation: compressed");
     expect(compressedTask.prompt).toContain("lossy summary");
+    expect(compressedTask.prompt.toLowerCase()).not.toContain("success criteria");
   });
 
   test("renderSkillMarkdown renders no-skill as null and static IR as checkable skill text", () => {
@@ -145,6 +152,12 @@ describe("real-agent Task 11A helpers", () => {
     expect(rendered).toContain("## Runtime Checks");
     expect(rendered).toContain("check-rule-findings-first");
     expect(rendered).toContain("The review response begins with findings before summary.");
+  });
+
+  test("renderSkillMarkdown preserves inline original text without generated wrappers", () => {
+    const ir = baseIr();
+
+    expect(renderSkillMarkdown(ir, "original")).toBe(ir.source.kind === "inline" ? ir.source.text : "");
   });
 
   test("renderSkillMarkdown renders ir-pgo as profile-guided materialization", () => {
@@ -215,6 +228,84 @@ describe("real-agent Task 11A helpers", () => {
 
     expect(taskFile.id).toBe("review-finding-order-001-clean");
     expect(skillText).toContain("check-rule-findings-first");
+  });
+
+  test("materializeCaseArtifacts verifies and copies an exact file-backed original source closure", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-"));
+    tempDirs.push(tempDir);
+    const sourceDir = join(tempDir, "corpus", "skill-a", "source");
+    const sourceText = "# Exact upstream skill\n\nUse scripts/check.py.\n";
+    await mkdir(join(sourceDir, "scripts"), { recursive: true });
+    await writeFile(join(sourceDir, "SKILL.md"), sourceText, "utf8");
+    await writeFile(join(sourceDir, "scripts", "check.py"), "print('ok')\n", "utf8");
+    const ir = baseIr();
+    ir.source = {
+      kind: "file",
+      path: "corpus/skill-a/source/SKILL.md",
+      sha256: createHash("sha256").update(sourceText).digest("hex"),
+    };
+
+    const materialized = await materializeCaseArtifacts({
+      outDir: join(tempDir, "out"),
+      rootDir: tempDir,
+      ir,
+      task,
+      context: "clean",
+      system: "original",
+      caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+    });
+
+    expect(await Bun.file(materialized.skillPath!).text()).toBe(sourceText);
+    expect(await Bun.file(join(materialized.skillPath!, "..", "scripts", "check.py")).text()).toBe("print('ok')\n");
+  });
+
+  test("materializeCaseArtifacts rejects a file-backed source with a stale digest", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-"));
+    tempDirs.push(tempDir);
+    const sourceDir = join(tempDir, "corpus", "skill-a", "source");
+    await mkdir(sourceDir, { recursive: true });
+    await writeFile(join(sourceDir, "SKILL.md"), "changed\n", "utf8");
+    const ir = baseIr();
+    ir.source = {
+      kind: "file",
+      path: "corpus/skill-a/source/SKILL.md",
+      sha256: "0".repeat(64),
+    };
+
+    expect(
+      materializeCaseArtifacts({
+        outDir: join(tempDir, "out"),
+        rootDir: tempDir,
+        ir,
+        task,
+        context: "clean",
+        system: "original",
+        caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+      }),
+    ).rejects.toThrow("source digest mismatch");
+  });
+
+  test("materializeCaseArtifacts rejects a file-backed source outside the repository root", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-"));
+    tempDirs.push(tempDir);
+    const ir = baseIr();
+    ir.source = {
+      kind: "file",
+      path: "../outside/SKILL.md",
+      sha256: "0".repeat(64),
+    };
+
+    expect(
+      materializeCaseArtifacts({
+        outDir: join(tempDir, "out"),
+        rootDir: tempDir,
+        ir,
+        task,
+        context: "clean",
+        system: "original",
+        caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+      }),
+    ).rejects.toThrow("escapes repository root");
   });
 
   test("buildRunPlanEntry attaches a runnable skvm command to materialized artifacts", () => {

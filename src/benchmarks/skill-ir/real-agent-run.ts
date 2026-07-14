@@ -2,13 +2,14 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import { SkillIRSchema, type SkillIR } from "../../skill-ir/schema";
 import {
-  buildDefaultMatrixInput,
+  buildCorpusMatrixInput,
   buildExperimentMatrix,
   type EvidenceWeight,
   type ExperimentCase,
   type ExperimentSystem,
   type SkillProvenance,
 } from "./matrix";
+import { resolveCorpusManifestPath, type CorpusId } from "./corpus-registry";
 import {
   buildRunPlanEntry,
   materializeCaseArtifacts,
@@ -16,8 +17,11 @@ import {
   type SkillIRBenchmarkTask,
 } from "./real-agent";
 import { runWithInfrastructureRetries } from "./real-agent-retry";
+import { readAndValidateFinalIRProvenance } from "./final-ir-provenance";
+import { sha256Bytes } from "./source-fixture";
 
 export type RealAgentRunArgs = {
+  corpus: CorpusId;
   model: string;
   adapter: string;
   outDir: string;
@@ -42,6 +46,7 @@ type CorpusManifest = {
     tasksPath?: string;
     provenance?: SkillProvenance;
     evidenceWeight?: EvidenceWeight;
+    status?: string;
   }[];
 };
 
@@ -52,12 +57,15 @@ type TaskSet = {
 
 type SkillBenchmarkFixture = {
   ir: SkillIR;
+  baseIR: SkillIR;
+  baseIRPath: string;
   taskSet: TaskSet;
   taskById: Map<string, SkillIRBenchmarkTask>;
 };
 
-function parseArgs(argv: string[]): RealAgentRunArgs {
+export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
   const args: RealAgentRunArgs = {
+    corpus: "calibration",
     model: "<provider>/<model-id>",
     adapter: "bare-agent",
     outDir: "results/skill-ir/real-agent-dry-run",
@@ -67,10 +75,18 @@ function parseArgs(argv: string[]): RealAgentRunArgs {
     retryDelayMs: 1000,
     rootDir: process.cwd(),
   };
+  let corpusProvided = false;
 
   for (const arg of argv) {
     if (arg === "--execute") {
       args.execute = true;
+    } else if (arg.startsWith("--corpus=")) {
+      const corpus = arg.slice("--corpus=".length);
+      if (corpus !== "calibration" && corpus !== "pilot") {
+        throw new Error(`Unknown Skill IR corpus: ${corpus}`);
+      }
+      args.corpus = corpus;
+      corpusProvided = true;
     } else if (arg.startsWith("--model=")) {
       args.model = arg.slice("--model=".length);
     } else if (arg.startsWith("--adapter=")) {
@@ -102,6 +118,10 @@ function parseArgs(argv: string[]): RealAgentRunArgs {
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
+  }
+
+  if (!corpusProvided) {
+    throw new Error("--corpus is required; choose calibration or pilot");
   }
 
   if (!Number.isFinite(args.limit) || args.limit < 1) {
@@ -162,15 +182,25 @@ function resolveIrPath(rootDir: string, skill: CorpusManifest["skills"][number],
 }
 
 async function loadSkillBenchmarkFixtures(args: RealAgentRunArgs): Promise<Map<string, SkillBenchmarkFixture>> {
-  const manifest = await readJson<CorpusManifest>(join(args.rootDir, "benchmarks/skill-ir/corpus/manifest.json"));
+  const manifest = await readJson<CorpusManifest>(resolveCorpusManifestPath(args.corpus, args.rootDir));
   const fixtures = new Map<string, SkillBenchmarkFixture>();
 
   for (const skill of manifest.skills) {
+    if (skill.status !== "runnable") {
+      continue;
+    }
     if (!skill.tasksPath) {
       throw new Error(`Skill ${skill.id} is missing tasksPath in corpus manifest`);
     }
 
-    const ir = SkillIRSchema.parse(await readJson<unknown>(resolveIrPath(args.rootDir, skill, args.irOverrideDir)));
+    if (!skill.irPath) {
+      throw new Error(`Skill ${skill.id} is missing irPath in corpus manifest`);
+    }
+    const baseIRPath = join(args.rootDir, skill.irPath);
+    const baseIR = SkillIRSchema.parse(await readJson<unknown>(baseIRPath));
+    const ir = args.irOverrideDir
+      ? SkillIRSchema.parse(await readJson<unknown>(resolveIrPath(args.rootDir, skill, args.irOverrideDir)))
+      : baseIR;
     const taskSet = await readJson<TaskSet>(join(args.rootDir, skill.tasksPath));
     if (taskSet.skillId !== skill.id) {
       throw new Error(`Task set ${skill.tasksPath} declares skillId ${taskSet.skillId}, expected ${skill.id}`);
@@ -178,6 +208,8 @@ async function loadSkillBenchmarkFixtures(args: RealAgentRunArgs): Promise<Map<s
 
     fixtures.set(skill.id, {
       ir,
+      baseIR,
+      baseIRPath,
       taskSet,
       taskById: new Map(taskSet.tasks.map((task) => [task.id, task])),
     });
@@ -187,7 +219,7 @@ async function loadSkillBenchmarkFixtures(args: RealAgentRunArgs): Promise<Map<s
 }
 
 export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPlanEntry[]> {
-  const input = buildDefaultMatrixInput(args.rootDir);
+  const input = buildCorpusMatrixInput(args.corpus, args.rootDir);
   if (args.systems) {
     input.systems = [...args.systems];
   }
@@ -196,6 +228,30 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
   }
   const matrix = selectCases(buildExperimentMatrix(input), args);
   const fixtures = await loadSkillBenchmarkFixtures(args);
+  if (input.systems.includes("ir-pgo")) {
+    const selectedSkillIds = [...new Set(matrix.map((item) => item.skill))];
+    const selectedTasks = matrix.filter((item) => item.system === "ir-pgo");
+    for (const item of selectedTasks) {
+      const task = fixtures.get(item.skill)?.taskById.get(item.task);
+      if (task?.split !== "held-out") {
+        throw new Error(`ir-pgo may only consume validated Final IR on held-out tasks: ${item.task}`);
+      }
+    }
+    await readAndValidateFinalIRProvenance({
+      rootDir: args.rootDir,
+      corpus: args.corpus,
+      manifestPath: resolveCorpusManifestPath(args.corpus, args.rootDir),
+      irOverrideDir: args.irOverrideDir!,
+      skills: selectedSkillIds.map((skillId) => {
+        const fixture = fixtures.get(skillId)!;
+        const sourceSha256 =
+          fixture.baseIR.source.kind === "file"
+            ? fixture.baseIR.source.sha256
+            : sha256Bytes(Buffer.from(fixture.baseIR.source.text, "utf8"));
+        return { skillId, sourceSha256, baseIRPath: fixture.baseIRPath };
+      }),
+    });
+  }
   const plan: RealAgentRunPlanEntry[] = [];
 
   for (const item of matrix) {
@@ -211,7 +267,8 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
 
     const materialized = await materializeCaseArtifacts({
       outDir: join(args.outDir, "artifacts"),
-      ir: fixture.ir,
+      rootDir: args.rootDir,
+      ir: item.system === "ir-pgo" ? fixture.ir : fixture.baseIR,
       task,
       context: item.context,
       system: item.system,
@@ -274,7 +331,7 @@ async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs
 }
 
 async function main() {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseRealAgentRunArgs(process.argv.slice(2));
   assertRequiredEnv(args);
   await mkdir(args.outDir, { recursive: true });
   const plan = await buildPlan(args);

@@ -37,7 +37,7 @@ The generated dry-run directory is an execution artifact. It should not be commi
 
 For each selected matrix case, the harness:
 
-1. Reads the corpus manifest.
+1. Resolves the explicitly selected corpus through the corpus registry.
 2. Loads each selected skill's `irPath` and `tasksPath`.
 3. Converts the task into a SkVM `task.json`, including the selected context perturbation.
 4. Materializes a system-specific `SKILL.md` when the system uses a skill.
@@ -46,7 +46,7 @@ For each selected matrix case, the harness:
 
 The default mode is dry-run. It does not call a model.
 
-The default system axis is `no-skill | original | ir-static | ir-pgo`. Passing `--systems=` replaces that axis before matrix construction, so archived systems such as `ir-profile` and explicit ablations such as `ir-only` remain runnable even though they are not defaults. Because base IR must not masquerade as PGO, any plan containing `ir-pgo` requires `--ir-override-dir`; use an explicit non-PGO system list for cold-start-only dry runs.
+The cold-start default system axis is `no-skill | original | ir-static`. Passing `--systems=` replaces that axis before matrix construction, so archived systems such as `ir-profile` and explicit ablations such as `ir-only` remain runnable. `ir-pgo` is explicit only: it requires held-out tasks and a Final IR directory with a valid sibling `provenance.json`. Base IR can never masquerade as PGO.
 
 ## Context Perturbations
 
@@ -66,7 +66,7 @@ This matters for Task 11: context should be an actual input perturbation, not on
 | System | Materialization |
 |---|---|
 | `no-skill` | No `--skill` flag. |
-| `original` | Renders the original source skill text. |
+| `original` | Injects the exact source bytes. File-backed skills are SHA-256 verified and their relative resource closure is copied. |
 | `skvm-aot` | Renders a SkVM AOT baseline placeholder; replace with real `skvm aot-compile` proposal path when available. |
 | `ir-only` | Renders initial Skill IR steps and rules. |
 | `ir-static` | Applies rule normalization and environment guard insertion before rendering checks. |
@@ -84,7 +84,7 @@ See `docs/skill-ir/profile-feedback-loop.md` for the command that creates profil
 Generate a small dry-run plan:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--out-dir=results/skill-ir/real-agent-dry-run'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=calibration' '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--out-dir=results/skill-ir/real-agent-dry-run'
 ```
 
 PowerShell users should quote comma-separated arguments such as `--systems=no-skill,original`. Without quotes, PowerShell can split the comma list before it reaches Bun.
@@ -92,13 +92,14 @@ PowerShell users should quote comma-separated arguments such as `--systems=no-sk
 For controlled corpus expansion, narrow the matrix before applying `--limit`:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile' '--contexts=clean' '--agents=skvm' '--environments=linux' '--tasks=review-finding-order-001,ci-node-version-001,portable-env-var-001,dirty-worktree-001,tdd-empty-input-001,report-experiment-notes-001' '--limit=12' '--out-dir=results/skill-ir/multi-skill-smoke-dry-run-2026-07-08'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=calibration' '--systems=no-skill,original,ir-static' '--contexts=clean' '--agents=skvm' '--environments=windows' '--tasks=review-finding-order-001,ci-node-version-001,portable-env-var-001,dirty-worktree-001,tdd-empty-input-001,report-experiment-notes-001' '--limit=18' '--out-dir=results/skill-ir/multi-skill-smoke-dry-run'
 ```
 
 The runner supports these selection filters:
 
 | Flag | Matches matrix field |
 |---|---|
+| `--corpus=` | required corpus id: `calibration` or `pilot` |
 | `--systems=` | system configuration, such as `original` or `ir-profile` |
 | `--contexts=` | benchmark context id |
 | `--agents=` | target agent label, such as `skvm` or `codex` |
@@ -109,7 +110,7 @@ The runner supports these selection filters:
 
 `--systems` overrides the default system axis; the other filters are applied before `--limit`. A small multi-skill smoke run can therefore sample the intended skills and explicit ablations instead of accidentally taking the first rows from the default matrix order.
 
-The runner fails before materialization when `ir-pgo` is selected without `--ir-override-dir`. This protects the system label from silently rendering unchanged base IR.
+The runner fails before materialization when `--corpus` is omitted, the selected corpus has no runnable skills, or `ir-pgo` lacks a validated Final IR directory. For PGO it also rejects development tasks, corpus mismatch, stale source/base/overlay/final digests, missing skill provenance, and selected skills with zero profile annotations.
 
 `--agents` and `--environments` currently filter scheduling labels only. The command still uses the single global `--adapter` value and the current host OS. Do not interpret different label values as cross-agent or cross-OS execution until executor bindings are implemented.
 
@@ -117,19 +118,19 @@ Execute the generated plan against a real model:
 
 ```powershell
 $env:OPENROUTER_API_KEY="sk-or-..."
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=openrouter/anthropic/claude-sonnet-4.6' '--adapter=bare-agent' '--execute'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=calibration' '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=openrouter/anthropic/claude-sonnet-4.6' '--adapter=bare-agent' '--execute'
 ```
 
 Use one infrastructure retry for unstable gateways:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--execute' '--retries=1' '--retry-delay-ms=1000'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=calibration' '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--execute' '--retries=1' '--retry-delay-ms=1000'
 ```
 
 When a real run depends on provider credentials, add a pre-execution environment check:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--execute' '--require-env=SKVM_XTY_API_KEY'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=calibration' '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--execute' '--require-env=SKVM_XTY_API_KEY'
 ```
 
 `--require-env=` accepts a comma-separated list. It fails before writing execution rows when any listed variable is missing or blank. This prevents auth failures from being mistaken for model or skill behavior.
@@ -140,6 +141,7 @@ Use `--root-dir=<path>` to point the runner at a temporary or alternate benchmar
 
 ```text
 benchmarks/skill-ir/corpus/manifest.json
+benchmarks/skill-ir/corpus/corpora/<corpus>.json
 benchmarks/skill-ir/contexts/standard-contexts.json
 ```
 
@@ -155,10 +157,10 @@ The task file's `skillId` must match the manifest skill id.
 For Task 11C `ir-pgo` runs, first generate profile overlay and final IR artifacts with `profile-feedback-run.ts`, then pass the generated `final-ir` directory:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--systems=original,ir-profile,ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=linux' '--tasks=report-overclaim-hard-001' '--model=xty/gpt-4.1-nano' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/profiled-ir-gpt41nano-2026-07-09/final-ir' '--out-dir=results/skill-ir/ir-pgo-dry-run-2026-07-09'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=calibration' '--systems=ir-pgo' '--contexts=compressed' '--agents=skvm' '--environments=windows' '--tasks=<held-out-task-id>' '--model=<model>' '--adapter=bare-agent' '--ir-override-dir=results/skill-ir/profiled-ir/final-ir' '--out-dir=results/skill-ir/ir-pgo-held-out-dry-run'
 ```
 
-The override directory is expected to contain one `<skill-id>.json` file for every manifest skill. `profile-feedback-run.ts` writes that complete set by default.
+The override directory is expected to contain one `<skill-id>.json` file for every runnable manifest skill and its parent must contain `provenance.json`. `profile-feedback-run.ts` writes both the complete Final IR set and provenance sidecar. Even in an explicitly mixed command, the override is applied only to `ir-pgo`; `original` and `ir-static` always materialize from base IR so their baselines cannot be contaminated.
 
 The `--execute` mode writes raw execution logs to:
 
@@ -171,8 +173,10 @@ results/skill-ir/real-agent-dry-run/raw-runs.jsonl
 Score the raw execution logs into analyzer-compatible results:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--tasks=benchmarks/skill-ir/tasks/review-skill-tasks.json' '--out=results/skill-ir/main-results.jsonl'
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--corpus=calibration' '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--out=results/skill-ir/main-results.jsonl'
 ```
+
+Use the same explicit corpus id for planning, execution, scoring, and profile compilation. `--manifest=<path>` remains available for isolated test fixtures and is mutually exclusive with `--corpus`.
 
 Then produce a summary table:
 
