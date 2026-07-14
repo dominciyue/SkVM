@@ -4,7 +4,14 @@ import { buildDefaultMatrixInput, buildExperimentMatrix, DEFAULT_EXPERIMENT_SYST
 describe("buildExperimentMatrix", () => {
   test("creates paired Cartesian product cases with stable case ids", () => {
     const matrix = buildExperimentMatrix({
-      skills: [{ id: "skill-review", packaging: "focused" }],
+      skills: [
+        {
+          id: "skill-review",
+          packaging: "focused",
+          provenance: "real-public",
+          evidenceWeight: "main-real",
+        },
+      ],
       agents: ["skvm", "codex"],
       environments: ["linux"],
       contexts: ["clean", "noisy"],
@@ -17,6 +24,8 @@ describe("buildExperimentMatrix", () => {
       caseId: "skill-review:skvm:linux:clean:task-1",
       skill: "skill-review",
       skillPackaging: "focused",
+      skillProvenance: "real-public",
+      evidenceWeight: "main-real",
       agent: "skvm",
       environment: "linux",
       context: "clean",
@@ -46,6 +55,8 @@ describe("buildExperimentMatrix", () => {
 
     expect(firstCase?.baselineSystem).toBe("no-skill");
     expect(firstCase?.skillPackaging).toBe("unknown");
+    expect(firstCase?.skillProvenance).toBe("unknown");
+    expect(firstCase?.evidenceWeight).toBe("unknown");
   });
 
   test("keeps benchmark tasks bound to their owning skill", () => {
@@ -73,7 +84,12 @@ describe("buildDefaultMatrixInput", () => {
   test("loads skills, contexts, and tasks from benchmark fixtures", () => {
     const input = buildDefaultMatrixInput();
 
-    expect(input.skills).toContainEqual({ id: "skill-review", packaging: "focused" });
+    expect(input.skills).toContainEqual({
+      id: "skill-review",
+      packaging: "focused",
+      provenance: "synthetic-seed",
+      evidenceWeight: "calibration-low",
+    });
     expect(input.skills).toHaveLength(6);
     expect(input.contexts).toEqual(["clean", "noisy", "long", "compressed"]);
     expect(input.tasks).toHaveLength(24);

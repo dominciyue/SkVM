@@ -12,9 +12,21 @@ export type ExperimentSystem =
 
 export type SkillPackaging = "focused" | "broad" | "unknown";
 
+export type SkillProvenance =
+  | "synthetic-seed"
+  | "adapted-public"
+  | "real-public"
+  | "upstream-skvm"
+  | "user-provided"
+  | "unknown";
+
+export type EvidenceWeight = "calibration-low" | "support-real" | "main-real" | "unknown";
+
 export type MatrixSkill = {
   id: string;
   packaging: SkillPackaging;
+  provenance?: SkillProvenance;
+  evidenceWeight?: EvidenceWeight;
 };
 
 export type MatrixInput = {
@@ -32,6 +44,8 @@ export type ExperimentCase = {
   caseId: string;
   skill: string;
   skillPackaging: SkillPackaging;
+  skillProvenance: SkillProvenance;
+  evidenceWeight: EvidenceWeight;
   agent: string;
   environment: string;
   context: string;
@@ -45,6 +59,8 @@ type CorpusManifest = {
     id: string;
     tasksPath?: string;
     notes?: string;
+    provenance?: SkillProvenance;
+    evidenceWeight?: EvidenceWeight;
   }[];
 };
 
@@ -72,10 +88,14 @@ function readJson<T>(path: string): T {
 
 function normalizeSkill(skill: string | MatrixSkill): MatrixSkill {
   if (typeof skill === "string") {
-    return { id: skill, packaging: "unknown" };
+    return { id: skill, packaging: "unknown", provenance: "unknown", evidenceWeight: "unknown" };
   }
 
-  return skill;
+  return {
+    ...skill,
+    provenance: skill.provenance ?? "unknown",
+    evidenceWeight: skill.evidenceWeight ?? "unknown",
+  };
 }
 
 function inferSkillPackaging(skill: CorpusManifest["skills"][number]): SkillPackaging {
@@ -100,6 +120,8 @@ export function buildExperimentMatrix(input: MatrixInput): ExperimentCase[] {
                 caseId,
                 skill: skill.id,
                 skillPackaging: skill.packaging,
+                skillProvenance: skill.provenance ?? "unknown",
+                evidenceWeight: skill.evidenceWeight ?? "unknown",
                 agent,
                 environment,
                 context,
@@ -123,6 +145,8 @@ export function buildDefaultMatrixInput(rootDir = process.cwd()): MatrixInput {
   const skills = manifest.skills.map((skill) => ({
     id: skill.id,
     packaging: inferSkillPackaging(skill),
+    provenance: skill.provenance ?? "unknown",
+    evidenceWeight: skill.evidenceWeight ?? "unknown",
   }));
   const tasksBySkill = Object.fromEntries(
     manifest.skills.map((skill) => {

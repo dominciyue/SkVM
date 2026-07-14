@@ -59,6 +59,8 @@ Recommended fields:
 
 - `caseId`
 - `ruleViolations`
+- `skillProvenance`
+- `evidenceWeight`
 
 `caseId` enables paired deltas. Without `caseId`, a row still contributes to mean success, worst-case success, variance, and rule violations, but not to paired metrics.
 
@@ -128,7 +130,7 @@ python scripts/analyze_skill_ir_slices.py --input results/skill-ir/main-results.
 
 The slice analyzer writes:
 
-- `*-slices.csv`: per-system metrics by `context`, `skill`, and `taskSplit`.
+- `*-slices.csv`: per-system metrics by `context`, `skill`, `taskSplit`, `skillProvenance`, and `evidenceWeight`.
 - `*-paired-deltas.csv`: one row per non-baseline paired case, including gain/regression labels and token/latency deltas.
 
 Use a custom baseline:
@@ -171,6 +173,7 @@ When scored rows do not yet contain `taskSplit`, pass `--manifest` so the analyz
 - Optional `failureType` fields are summarized as infrastructure and agent failure counts. Inspect JSONL directly for case-level diagnosis.
 - Paired deltas ignore infrastructure-failure rows on either side of the comparison.
 - Slice analysis treats missing `taskSplit` as `unknown` unless a corpus manifest is supplied.
+- Slice analysis treats missing `skillProvenance` or `evidenceWeight` as `unknown`. Main evidence tables should filter or separately report `calibration-low` rows.
 
 ## Modification Notes
 

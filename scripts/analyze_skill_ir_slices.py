@@ -175,6 +175,8 @@ def summarize_slices(
         "context": lambda row: str(row.get("context", "unknown")),
         "skill": lambda row: str(row.get("skill", "unknown")),
         "taskSplit": lambda row: task_split(row, task_split_by_key),
+        "skillProvenance": lambda row: str(row.get("skillProvenance", "unknown")),
+        "evidenceWeight": lambda row: str(row.get("evidenceWeight", "unknown")),
     }
     summary = []
     for dimension, value_fn in dimensions.items():

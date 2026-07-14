@@ -26,6 +26,8 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
                 "context": "clean",
                 "task": "task-dev",
                 "taskSplit": "development",
+                "skillProvenance": "real-public",
+                "evidenceWeight": "main-real",
                 "success": True,
                 "ruleViolations": 0,
                 "latencyMs": 100,
@@ -40,6 +42,8 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
                 "context": "clean",
                 "task": "task-dev",
                 "taskSplit": "development",
+                "skillProvenance": "real-public",
+                "evidenceWeight": "main-real",
                 "success": False,
                 "ruleViolations": 1,
                 "latencyMs": 200,
@@ -53,6 +57,8 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
                 "environment": "linux",
                 "context": "noisy",
                 "task": "task-held",
+                "skillProvenance": "synthetic-seed",
+                "evidenceWeight": "calibration-low",
                 "success": False,
                 "ruleViolations": 2,
                 "latencyMs": 300,
@@ -66,6 +72,8 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
                 "environment": "linux",
                 "context": "noisy",
                 "task": "task-held",
+                "skillProvenance": "synthetic-seed",
+                "evidenceWeight": "calibration-low",
                 "success": True,
                 "ruleViolations": 0,
                 "latencyMs": 400,
@@ -85,6 +93,11 @@ class AnalyzeSkillIRSlicesTest(unittest.TestCase):
         self.assertEqual(by_key[("skill", "skill-report", "original")]["rule_violations"], 2)
         self.assertEqual(by_key[("taskSplit", "held-out", "ir-profile")]["row_count"], 1)
         self.assertEqual(by_key[("taskSplit", "held-out", "ir-profile")]["mean_token_cost"], 70.0)
+        self.assertEqual(by_key[("skillProvenance", "real-public", "original")]["mean_success"], 1.0)
+        self.assertEqual(
+            by_key[("evidenceWeight", "calibration-low", "ir-profile")]["paired_delta_success"],
+            1.0,
+        )
 
     def test_build_paired_delta_rows_reports_gains_and_regressions(self):
         rows = [

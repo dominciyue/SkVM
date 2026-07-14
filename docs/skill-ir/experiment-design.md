@@ -111,7 +111,20 @@ The current seed corpus is mostly `synthetic-seed`. It is appropriate for pipeli
 
 Evidence should be weighted by provenance. Synthetic seed rows should be treated as low-confidence calibration evidence unless they are reported as a separate controlled case study. Main stability claims should be made on `real-public`, `adapted-public`, `upstream-skvm`, or `user-provided` rows, with provenance counts included in every aggregate table.
 
-The initial real-skill intake should prioritize `anbeime/skill`, then supplement with `laolaoshiren/claude-code-skills-zh`. `travisvn/awesome-claude-skills` is a backup discovery index and should not count as evaluated evidence until the linked repository's real `SKILL.md` artifact is fetched and inspected.
+The initial real-skill intake prioritizes `anbeime/skill`, then supplements with `laolaoshiren/claude-code-skills-zh`. `travisvn/awesome-claude-skills` is a backup discovery index and does not count as evaluated evidence by itself. The 2026-07-15 audit followed its scientific-skills entry to the real MIT-licensed `K-Dense-AI/claude-scientific-skills` repository.
+
+The first licensed pilot is:
+
+```text
+law-to-markdown
+zh-code-reviewer
+api-tester
+env-manager
+zh-readme
+experimental-design
+```
+
+The machine-readable intake snapshot is `benchmarks/skill-ir/corpus/real-skill-intake.json`. It fixes source commits and records artifact completeness, license scope, dependencies, risks, and artifact-solidification potential. This pilot is the input to the next IR-conversion stage; it is not yet evaluated evidence.
 
 ## Context Conditions
 

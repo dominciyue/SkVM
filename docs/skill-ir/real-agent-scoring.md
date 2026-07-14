@@ -37,6 +37,8 @@ Each row should include:
 {
   "caseId": "skill-review:skvm:linux:clean:review-finding-order-001",
   "system": "original",
+  "skillProvenance": "real-public",
+  "evidenceWeight": "main-real",
   "taskPath": "...",
   "exitCode": 0,
   "durationMs": 1250,
@@ -68,6 +70,8 @@ Each scored row is compatible with `scripts/analyze_skill_ir_results.py`:
 {
   "caseId": "skill-review:skvm:linux:clean:review-finding-order-001",
   "system": "original",
+  "skillProvenance": "real-public",
+  "evidenceWeight": "main-real",
   "skill": "skill-review",
   "agent": "skvm",
   "environment": "linux",
@@ -164,6 +168,7 @@ Scoring behavior:
 - With `--tasks`, task ids are looked up by task id only. This mode is intended for a single skill task file and is kept for backward compatibility.
 - With `--manifest`, task ids are looked up by `skillId:taskId`, so two skills can safely reuse the same task id.
 - `taskSplit` is copied from the task definition so analysis can distinguish development and held-out rows.
+- `skillProvenance` and `evidenceWeight` are copied from the run plan when present. Older raw rows remain valid but appear in `unknown` analysis slices.
 - `stdout` is reduced to the text after the last `Final output:` marker when present.
 - `successCriteria` are checked against the final output.
 - `success` is true only when the process exit code is zero and every supported criterion passes.
@@ -254,6 +259,7 @@ bun run typecheck
 - A non-zero process exit code always makes the row unsuccessful.
 - `ruleViolations` currently means failed success criteria in the scorer, not full runtime checker violations.
 - `tokenCost` is optional for backward compatibility. Older raw rows, dry-run rows, or adapters that do not print token markers still score successfully without token fields.
+- `skillProvenance` and `evidenceWeight` are optional for backward compatibility, but new main-claim experiments should always provide them through the corpus manifest.
 - The CSV analyzer summarizes `failureType` as `infrastructure_failures` and `agent_failures`, but case-level diagnosis still requires inspecting JSONL rows.
 
 ## Modification Notes
@@ -263,4 +269,4 @@ bun run typecheck
 - Keep raw logs and scored rows separate.
 - Do not commit `results/skill-ir/main-results.jsonl` unless the run is intentionally archived as an experiment artifact.
 - When replacing the heuristic scorer with an LLM judge or deterministic task verifier, keep the output JSONL field names stable for the analyzer.
-- Keep `failedCriteria`, `failureType`, `taskSplit`, and `tokenCost` stable because Task 11C consumes them for result-to-trace feedback.
+- Keep `failedCriteria`, `failureType`, `taskSplit`, `tokenCost`, `skillProvenance`, and `evidenceWeight` stable because feedback and analysis consume them.

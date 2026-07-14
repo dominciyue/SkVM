@@ -16,13 +16,53 @@ The goal is to replace synthetic-seed-heavy evidence with externally sourced ski
 
 ## Source License Notes
 
-Initial README/license inspection on 2026-07-13:
+Initial README inspection was followed by a repository checkout audit on 2026-07-15:
 
 | Repository | Initial License Note | Action Before Copying Skill Text |
 |---|---|---|
-| `anbeime/skill` | README includes license signals, but direct raw `LICENSE` fetch did not resolve during intake. | Clone and inspect repository files before copying any skill text into benchmark fixtures. |
-| `laolaoshiren/claude-code-skills-zh` | Raw `LICENSE` fetch returned MIT License. | Record exact commit and skill path when selecting candidates. |
-| `travisvn/awesome-claude-skills` | Direct raw `LICENSE` fetch did not resolve during intake. | Treat as an index; verify the linked real source repository license instead of relying on this index. |
+| `anbeime/skill` | Commit `ddad6073e07addfe3690dc3de978b2e73ca8cf02` has no repository-wide license. Some nested artifacts, including `law-to-markdown`, have their own licenses. | Decide reuse per artifact. Do not copy an unlicensed nested skill into the committed benchmark corpus. |
+| `laolaoshiren/claude-code-skills-zh` | Commit `1e221579b0504082d25d5548b194399a7785f10f` has a repository-level MIT License. | Record the commit and exact `SKILL.md` path for each selected candidate. |
+| `travisvn/awesome-claude-skills` | Commit `1da55aa810f206d3fe2005e7e3989b15a275d942` contains no `SKILL.md`; it is an index. | Fetch and license-check the linked source repository before promotion. |
+| `K-Dense-AI/claude-scientific-skills` | Discovered through the awesome index. Commit `fc0b9f692459ea7d9e5a5c64948a5878e1bce274` has a repository-level MIT License. | Use as the first linked real source for non-coding scientific workflow coverage. |
+
+## Repository Inspection Snapshot
+
+The committed machine-readable snapshot is:
+
+```text
+benchmarks/skill-ir/corpus/real-skill-intake.json
+```
+
+It records source commits, artifact counts, license status, candidate paths, dependencies, risks, and artifact-solidification potential. Raw checkouts remain under ignored `.skvm/external-skills/` and are not committed.
+
+| Source | Real `SKILL.md` Count | Inspection Result |
+|---|---:|---|
+| `anbeime/skill` | 70 | Real aggregate artifacts exist, but license and completeness must be checked per nested skill. |
+| `laolaoshiren/claude-code-skills-zh` | 20 | Direct skill artifacts under a repository-level MIT license. |
+| `travisvn/awesome-claude-skills` | 0 | Discovery index only. |
+| `K-Dense-AI/claude-scientific-skills` | 149 | Linked real source with MIT license and strong non-coding/scientific coverage. |
+
+The checkout also corrected several README-stage assumptions. `anbeime/skill` lists `docx`, `pdf`, and `pptx` as system-built-in skills, but the inspected commit does not contain matching artifact directories for those names. They must not be counted as fetched real skills. `pdf-processing-pro` does exist, but its `SKILL.md` advertises several bundled scripts while only `scripts/analyze_form.py` is present, so it is deferred.
+
+## Selected Pilot
+
+The first licensed pilot contains six skills:
+
+| Skill | Source | Coverage | Why Selected | Main Risk |
+|---|---|---|---|---|
+| `law-to-markdown` | `anbeime/skill` | document processing, environment, tool use | Apache-2.0 artifact with converter, stage checker, dependencies, and explicit fallback policy. | Use toy legal text; PDF/DOCX fallback requires consent. |
+| `zh-code-reviewer` | `claude-code-skills-zh` | Chinese developer, code quality | External replacement for the synthetic review shape with a stable output contract. | Similar to the seed review skill, so it cannot carry generalization claims alone. |
+| `api-tester` | `claude-code-skills-zh` | testing, schema, tool use | Supports deterministic OpenAPI fixtures and reusable test templates. | Framework-specific generated code needs controlled fixtures. |
+| `env-manager` | `claude-code-skills-zh` | environment, security, tool use | Strong redaction, safety, schema, and cross-environment opportunities. | Fixtures must contain fake secrets only. |
+| `zh-readme` | `claude-code-skills-zh` | Chinese content workflow | Adds evidence-grounded document generation and command/link validation. | Some presentation quality remains subjective. |
+| `experimental-design` | `claude-scientific-skills` | scientific, non-coding, tool use | Adds a non-coding domain with deterministic seeded scripts and explicit dependencies. | Domain-aware quality checks are needed beyond syntax. |
+
+Deferred candidates remain useful for later breadth:
+
+- `pdf-processing-pro`: artifact/document mismatch and unresolved covering license.
+- `paper-analysis-assistant`: broad dependency and network surface plus unresolved covering license.
+- `data-storytelling`: useful non-coding generation, but license and semantic scoring remain unresolved.
+- `scientific-writing`: licensed and rich in reusable assets, but mandatory research/image tooling makes it too expensive for the first pilot.
 
 ## Intake Principles
 
@@ -72,7 +112,9 @@ For the next real-skill expansion, start with a small but balanced intake table 
 
 The first implementation pass should not try to convert all candidates. It should create a scored intake table and select a small pilot set.
 
-## Candidate Intake Table
+## Initial README Candidate Table
+
+This table records the pre-checkout hypotheses from README inspection. The repository snapshot and selected-pilot sections above are authoritative when a row conflicts with this table.
 
 Status values:
 
@@ -129,12 +171,22 @@ New-Item -ItemType Directory -Force -Path .skvm/external-skills | Out-Null
 git clone https://github.com/anbeime/skill.git .skvm/external-skills/anbeime-skill
 git clone https://github.com/laolaoshiren/claude-code-skills-zh.git .skvm/external-skills/claude-code-skills-zh
 git clone https://github.com/travisvn/awesome-claude-skills.git .skvm/external-skills/awesome-claude-skills
+git clone --depth 1 https://github.com/K-Dense-AI/claude-scientific-skills.git .skvm/external-skills/linked/claude-scientific-skills
+```
+
+Count real artifacts without relying on path-separator-sensitive regular expressions:
+
+```powershell
+Get-ChildItem -Path .skvm/external-skills -Recurse -File |
+  Where-Object { $_.Name -ieq 'SKILL.md' }
 ```
 
 ## Assumptions And Failure Modes
 
 - README counts and categories can change. Record fetch date when turning candidates into benchmark inputs.
-- Some README entries are indexes rather than actual installable skill folders. Do not treat index entries as evaluated skills until their real artifact is fetched.
+- Some README entries are indexes or system-built-in names rather than artifact directories. Do not treat them as evaluated skills until a real artifact is fetched.
+- An aggregate repository may have no root license even when a nested skill has one. Record the narrowest verified license scope.
+- A `SKILL.md` can claim bundled scripts that are absent from the checkout. Inspect files, not only prose.
 - License signals may conflict between badges and license sections. Verify the repository `LICENSE` file before committing copied skill text.
 - Some skills execute arbitrary code or require credentials. These should be sandboxed, stubbed, or deferred.
 - Broad workflow skills may need task narrowing; if narrowed, label them `adapted-public`.

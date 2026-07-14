@@ -659,6 +659,8 @@ describe("Skill IR real-agent scoring", () => {
       {
         caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
         system: "original",
+        skillProvenance: "real-public",
+        evidenceWeight: "main-real",
         taskPath: "tmp/task.json",
         exitCode: 0,
         durationMs: 1250,
@@ -680,6 +682,8 @@ describe("Skill IR real-agent scoring", () => {
       {
         caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
         system: "original",
+        skillProvenance: "real-public",
+        evidenceWeight: "main-real",
         skill: "skill-review",
         agent: "skvm",
         environment: "linux",

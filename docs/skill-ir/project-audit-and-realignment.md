@@ -248,12 +248,13 @@ compile a narrower skill/router instead of forcing the full skill.
 
 ## Next Alignment Actions
 
-1. Add corpus provenance fields to manifest entries and documentation.
-2. Add an external/public-skill acquisition track before broad claims, starting from `anbeime/skill`, supplementing with `laolaoshiren/claude-code-skills-zh`, and using `travisvn/awesome-claude-skills` only as a backup index when needed.
-3. Reintroduce `no-skill` into real-agent experimental matrices.
-4. Report stability as mean, worst-case, variance, paired delta, and regression count across model/context/environment axes.
-5. Report token cost and latency alongside success; optimize only when quality is preserved.
-6. Add amortized token metrics: upfront cost, steady-state cost, and break-even invocation count.
-7. Add an artifact-solidification track for reusable checks, schemas, adapters, generated code, templates, and fixed tool plans.
-8. Treat current GPT/Qwen/Gemini findings as provisional until larger real-skill and no-skill matrices are run.
-9. Track IR artifact maturity from JSON workflow IR toward stable reusable code/file/tool-plan packages.
+1. Completed 2026-07-15: add corpus provenance/evidence fields and propagate them through matrix, runner, scorer, and slice analysis.
+2. Completed first intake 2026-07-15: inspect `anbeime/skill`, `laolaoshiren/claude-code-skills-zh`, and `travisvn/awesome-claude-skills`; follow the backup index to the real `K-Dense-AI/claude-scientific-skills` source; select six licensed pilots.
+3. Add source-backed real-skill fixtures with attribution, then convert the staged pilot to base IR and task fixtures.
+4. Reintroduce `no-skill` into real-agent experimental matrices.
+5. Report stability as mean, worst-case, variance, paired delta, and regression count across model/context/environment axes.
+6. Report token cost and latency alongside success; optimize only when quality is preserved.
+7. Add amortized token metrics: upfront cost, steady-state cost, and break-even invocation count.
+8. Add an artifact-solidification track for reusable checks, schemas, adapters, generated code, templates, and fixed tool plans.
+9. Treat current GPT/Qwen/Gemini findings as provisional until larger real-skill and no-skill matrices are run.
+10. Track IR artifact maturity from JSON workflow IR toward stable reusable code/file/tool-plan packages.

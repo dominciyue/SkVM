@@ -84,6 +84,17 @@ focused | broad | unknown
 
 The current fixture loader infers seed skills as `focused` unless a manifest note explicitly says they are broad. This field exists because related work suggests broad skill bundles can confound skill evaluation. Later corpus work should make packaging explicit in the manifest.
 
+## Provenance And Evidence Weight
+
+Each matrix case now carries:
+
+```text
+skillProvenance: synthetic-seed | adapted-public | real-public | upstream-skvm | user-provided | unknown
+evidenceWeight: calibration-low | support-real | main-real | unknown
+```
+
+`buildDefaultMatrixInput` reads these fields from `benchmarks/skill-ir/corpus/manifest.json`. String-only or older programmatic matrix inputs receive `unknown`, which preserves compatibility without silently treating an unlabeled skill as real evidence. The fields remain attached to all systems sharing a paired `caseId` and are propagated by the real-agent runner.
+
 ## Command Line
 
 Run only the matrix tests:
@@ -117,6 +128,7 @@ bun run typecheck
 - If `tasksBySkill` is supplied and a skill has no task list, the matrix schedules zero cases for that skill instead of falling back to unrelated tasks.
 - The loader does not validate full JSON schema. Existing corpus fixture tests cover the seed files; deeper benchmark schema validation can be added with result schemas.
 - The matrix only schedules cases. It does not execute agents or judge task success.
+- Missing provenance metadata becomes `unknown`; it never defaults to `real-public` or `main-real`.
 
 ## Modification Notes
 
@@ -125,3 +137,4 @@ bun run typecheck
 - When adding a new deep benchmark skill, add its `tasksPath` in the manifest and check that `tasksBySkill[skillId]` contains only that skill's tasks.
 - If adding new systems, update `DEFAULT_EXPERIMENT_SYSTEMS`, this document, and Task 10 experiment design.
 - If packaging becomes explicit in corpus metadata, update `inferSkillPackaging` and its tests in the same commit.
+- Keep `skillProvenance` and `evidenceWeight` stable because raw/scored result rows and slice analysis consume them.

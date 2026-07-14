@@ -797,6 +797,12 @@ backup:     travisvn/awesome-claude-skills
 
 Candidate metadata and sampling rules are tracked in `docs/skill-ir/real-skill-intake.md`.
 
+The 2026-07-15 checkout audit makes this source policy concrete. Corpus entries now carry `provenance`, `source`, `sourceUrl`, and `evidenceWeight`; provenance and evidence weight flow through the benchmark matrix, real-agent plan, raw/scored rows, and slice analyzer. The reproducible source snapshot is `benchmarks/skill-ir/corpus/real-skill-intake.json`.
+
+The audit found 70 real `SKILL.md` artifacts in `anbeime/skill`, 20 in `laolaoshiren/claude-code-skills-zh`, and none in the awesome index itself. Because `anbeime/skill` has no repository-wide license, reuse is decided per nested artifact. The awesome index was followed to the MIT-licensed `K-Dense-AI/claude-scientific-skills` repository, which supplies non-coding scientific candidates. The first pilot is `law-to-markdown`, `zh-code-reviewer`, `api-tester`, `env-manager`, `zh-readme`, and `experimental-design`.
+
+Before pilot IR conversion, the benchmark needs a source-backed import boundary. Licensed original `SKILL.md` files should be stored with attribution and referenced by the IR source. The `original` system must materialize the exact file contents; a path-only placeholder is not a valid baseline. Real-skill conversion therefore proceeds through source import and integrity checks before base IR construction, task authoring, or paid evaluation.
+
 Second, token cost should be evaluated as amortized cost over repeated invocations. AOT optimization can pay more at import time because it parses the skill, validates the IR, collects profile evidence, generates checks/schemas/code, and verifies artifacts. That is acceptable only if repeated use becomes more stable or cheaper:
 
 ```text

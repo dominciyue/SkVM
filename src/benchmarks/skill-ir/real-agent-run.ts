@@ -1,7 +1,14 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import { SkillIRSchema, type SkillIR } from "../../skill-ir/schema";
-import { buildDefaultMatrixInput, buildExperimentMatrix, type ExperimentCase, type ExperimentSystem } from "./matrix";
+import {
+  buildDefaultMatrixInput,
+  buildExperimentMatrix,
+  type EvidenceWeight,
+  type ExperimentCase,
+  type ExperimentSystem,
+  type SkillProvenance,
+} from "./matrix";
 import {
   buildRunPlanEntry,
   materializeCaseArtifacts,
@@ -33,6 +40,8 @@ type CorpusManifest = {
     id: string;
     irPath?: string;
     tasksPath?: string;
+    provenance?: SkillProvenance;
+    evidenceWeight?: EvidenceWeight;
   }[];
 };
 
@@ -203,10 +212,17 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
       caseId: item.caseId,
     });
     plan.push(
-      buildRunPlanEntry(materialized, {
-        model: args.model,
-        adapter: args.adapter,
-      }),
+      buildRunPlanEntry(
+        {
+          ...materialized,
+          skillProvenance: item.skillProvenance,
+          evidenceWeight: item.evidenceWeight,
+        },
+        {
+          model: args.model,
+          adapter: args.adapter,
+        },
+      ),
     );
   }
 
@@ -234,6 +250,8 @@ async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs
         return {
           caseId: item.caseId,
           system: item.system,
+          skillProvenance: item.skillProvenance,
+          evidenceWeight: item.evidenceWeight,
           taskPath: item.taskPath,
           skillPath: item.skillPath,
           exitCode,

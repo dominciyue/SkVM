@@ -93,6 +93,32 @@ describe("skill-ir corpus fixtures", () => {
     }
   });
 
+  test("all manifest skills declare valid provenance and evidence metadata", () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
+      skills: {
+        provenance?: string;
+        source?: string;
+        sourceUrl?: string | null;
+        evidenceWeight?: string;
+      }[];
+    };
+    const allowedProvenance = new Set([
+      "synthetic-seed",
+      "adapted-public",
+      "real-public",
+      "upstream-skvm",
+      "user-provided",
+    ]);
+    const allowedEvidenceWeight = new Set(["calibration-low", "support-real", "main-real"]);
+
+    for (const skill of manifest.skills) {
+      expect(allowedProvenance.has(skill.provenance ?? "")).toBe(true);
+      expect(allowedEvidenceWeight.has(skill.evidenceWeight ?? "")).toBe(true);
+      expect(skill.source?.trim().length).toBeGreaterThan(0);
+      expect(skill.sourceUrl === null || typeof skill.sourceUrl === "string").toBe(true);
+    }
+  });
+
   test("all manifest skill IR and task fixtures parse, validate, and stay skill-scoped", () => {
     const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/manifest.json")) as {
       skills: {
@@ -121,6 +147,51 @@ describe("skill-ir corpus fixtures", () => {
       expect(taskSet.tasks.filter((task) => task.id.includes("hard")).length).toBeGreaterThanOrEqual(2);
       expect(taskSet.tasks.every((task) => task.prompt.length > 80)).toBe(true);
       expect(taskSet.tasks.every((task) => task.successCriteria.length >= 2)).toBe(true);
+    }
+  });
+
+  test("real-skill intake snapshot records reproducible sources and licensed pilot artifacts", () => {
+    const intake = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/real-skill-intake.json")) as {
+      schemaVersion: string;
+      fetchedAt: string;
+      sources: {
+        id: string;
+        commit: string;
+        artifactCount: number;
+        licenseStatus: string;
+      }[];
+      candidates: {
+        id: string;
+        sourceId: string;
+        sourcePath: string;
+        status: string;
+        licenseStatus: string;
+        categories: string[];
+      }[];
+    };
+
+    expect(intake.schemaVersion).toBe("skill-ir-intake/v1");
+    expect(intake.fetchedAt).toBe("2026-07-15");
+    expect(intake.sources).toHaveLength(4);
+    expect(intake.sources.every((source) => /^[0-9a-f]{40}$/.test(source.commit))).toBe(true);
+    expect(intake.sources.find((source) => source.id === "awesome-claude-skills")?.artifactCount).toBe(0);
+    expect(intake.sources.find((source) => source.id === "claude-scientific-skills")?.artifactCount).toBe(149);
+
+    const selected = intake.candidates.filter((candidate) => candidate.status === "selected-pilot");
+    expect(selected.map((candidate) => candidate.id).sort()).toEqual([
+      "api-tester",
+      "env-manager",
+      "experimental-design",
+      "law-to-markdown",
+      "zh-code-reviewer",
+      "zh-readme",
+    ]);
+    expect(selected.every((candidate) => candidate.sourcePath.endsWith("SKILL.md"))).toBe(true);
+    expect(selected.every((candidate) => candidate.licenseStatus === "verified")).toBe(true);
+
+    const selectedCategories = new Set(selected.flatMap((candidate) => candidate.categories));
+    for (const category of ["document-processing", "chinese-developer", "testing", "environment", "scientific-workflow"]) {
+      expect(selectedCategories.has(category)).toBe(true);
     }
   });
 });

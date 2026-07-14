@@ -88,6 +88,10 @@ async function createMultiSkillRoot(): Promise<string> {
         name: "Review Skill",
         category: ["workflow"],
         depth: "deep-benchmark",
+        provenance: "real-public",
+        source: "public/review",
+        sourceUrl: "https://example.com/review",
+        evidenceWeight: "main-real",
         irPath: "benchmarks/skill-ir/ir/review.json",
         tasksPath: "benchmarks/skill-ir/tasks/review.json",
       },
@@ -96,6 +100,10 @@ async function createMultiSkillRoot(): Promise<string> {
         name: "Diagnostic Skill",
         category: ["workflow"],
         depth: "deep-benchmark",
+        provenance: "adapted-public",
+        source: "public/diagnostic",
+        sourceUrl: "https://example.com/diagnostic",
+        evidenceWeight: "support-real",
         irPath: "benchmarks/skill-ir/ir/diagnostic.json",
         tasksPath: "benchmarks/skill-ir/tasks/diagnostic.json",
       },
@@ -127,6 +135,14 @@ describe("real-agent-run manifest loading", () => {
     expect(plan.map((entry) => entry.caseId)).toContain("skill-diagnostic:skvm:linux:clean:diagnostic-task");
     expect(plan.every((entry) => !entry.caseId.includes("skill-review:skvm:linux:clean:diagnostic-task"))).toBe(true);
     expect(plan.every((entry) => !entry.caseId.includes("skill-diagnostic:skvm:linux:clean:review-task"))).toBe(true);
+    expect(plan.find((entry) => entry.caseId.startsWith("skill-review:"))).toMatchObject({
+      skillProvenance: "real-public",
+      evidenceWeight: "main-real",
+    });
+    expect(plan.find((entry) => entry.caseId.startsWith("skill-diagnostic:"))).toMatchObject({
+      skillProvenance: "adapted-public",
+      evidenceWeight: "support-real",
+    });
 
     const skillTexts = await Promise.all(plan.map((entry) => Bun.file(entry.skillPath!).text()));
     expect(skillTexts.some((text) => text.includes("Review source text."))).toBe(true);

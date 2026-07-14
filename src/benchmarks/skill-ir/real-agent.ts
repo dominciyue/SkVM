@@ -4,7 +4,7 @@ import type { SkillIR } from "../../skill-ir/schema";
 import { insertEnvironmentGuards } from "../../skill-ir/passes/environment-guards";
 import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-repair";
 import { normalizeRules } from "../../skill-ir/passes/rule-normalization";
-import type { ExperimentSystem } from "./matrix";
+import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 
 export type SkillIRBenchmarkTask = {
   id: string;
@@ -35,6 +35,8 @@ export type MaterializedCase = {
   system: ExperimentSystem;
   taskPath: string;
   skillPath?: string;
+  skillProvenance?: SkillProvenance;
+  evidenceWeight?: EvidenceWeight;
 };
 
 export type MaterializeCaseOptions = {

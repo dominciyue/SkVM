@@ -86,7 +86,24 @@ upstream-skvm
 user-provided
 ```
 
-The current six fixtures should be labeled `synthetic-seed` once provenance fields are added to the manifest.
+As of 2026-07-15, every manifest entry declares:
+
+```text
+provenance
+source
+sourceUrl
+evidenceWeight
+```
+
+The six seed fixtures are labeled `synthetic-seed` with `calibration-low` evidence. Matrix, runner, scorer, and slice analysis preserve these fields.
+
+Real-source inspection metadata is stored separately in:
+
+```text
+benchmarks/skill-ir/corpus/real-skill-intake.json
+```
+
+This snapshot records source commits, licenses, artifact counts, selected pilots, dependencies, and risks without committing ignored third-party checkouts.
 
 Future analysis should avoid one aggregate number that mixes these synthetic rows with real/public rows. If a mixed table is necessary, include provenance counts and a real-skill-only slice.
 
@@ -138,6 +155,8 @@ Run the fixture test:
 bun test ./src/skill-ir/corpus-fixtures.test.ts
 ```
 
+The fixture test also validates provenance values and the real-skill intake snapshot's source commits and selected-pilot license status.
+
 Run all current Skill IR tests:
 
 ```powershell
@@ -157,7 +176,7 @@ When adding a skill:
 1. Add an entry to `benchmarks/skill-ir/corpus/manifest.json`.
 2. Add a full IR file under `benchmarks/skill-ir/ir/`.
 3. Add task fixtures under `benchmarks/skill-ir/tasks/`.
-4. Record provenance and source information.
+4. Record provenance, evidence weight, source path, source URL, and license scope.
 5. Ensure the IR passes `SkillIRSchema.parse`.
 6. Ensure the IR passes `validateSkillIR` with no errors.
 7. Add or update fixture tests if the new fixture introduces a new file shape or category assumption.

@@ -1,4 +1,4 @@
-import type { ExperimentSystem } from "./matrix";
+import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 import type { SkillIRBenchmarkTask } from "./real-agent";
 
 export type ParsedCaseId = {
@@ -12,6 +12,8 @@ export type ParsedCaseId = {
 export type RawAgentRunRow = {
   caseId: string;
   system: ExperimentSystem;
+  skillProvenance?: SkillProvenance;
+  evidenceWeight?: EvidenceWeight;
   taskPath: string;
   skillPath?: string;
   exitCode: number;
@@ -46,6 +48,8 @@ export type TokenUsage = {
 export type ScoredAgentRunRow = ParsedCaseId & {
   caseId: string;
   system: ExperimentSystem;
+  skillProvenance?: SkillProvenance;
+  evidenceWeight?: EvidenceWeight;
   taskSplit: string;
   success: boolean;
   ruleViolations: number;
@@ -446,6 +450,8 @@ function scoreRawRunRowsWithResolver(
     return {
       caseId: row.caseId,
       system: row.system,
+      ...(row.skillProvenance ? { skillProvenance: row.skillProvenance } : {}),
+      ...(row.evidenceWeight ? { evidenceWeight: row.evidenceWeight } : {}),
       ...parsed,
       taskSplit: task.split,
       success: score.success,

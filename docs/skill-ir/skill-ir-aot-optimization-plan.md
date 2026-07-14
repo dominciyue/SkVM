@@ -2621,7 +2621,7 @@ skill-report-synthesis
 
 Expected: synthetic results are reported separately or downweighted in mixed aggregates. They should not be the main basis for broad skill-generalization claims.
 
-- [ ] **Step 2: Add manifest-level provenance and evidence weight**
+- [x] **Step 2: Add manifest-level provenance and evidence weight**
 
 Extend each manifest skill entry with fields such as:
 
@@ -2636,7 +2636,7 @@ Extend each manifest skill entry with fields such as:
 
 Expected: fixture tests validate allowed provenance/evidence values, and analyzers can slice by provenance.
 
-- [ ] **Step 3: Pull real skills and restart the main corpus track**
+- [x] **Step 3: Pull real skills and restart the main corpus track**
 
 Collect real candidate skills before converting all of them to IR:
 
@@ -2662,7 +2662,7 @@ Approved source priority:
 
 Expected: `docs/skill-ir/real-skill-intake.md` records source priority, intake principles, candidate table, and README-backed notes.
 
-- [ ] **Step 3b: Fetch source repositories into ignored cache**
+- [x] **Step 3b: Fetch source repositories into ignored cache**
 
 Use `.skvm/external-skills/` for raw source inspection:
 
@@ -2675,7 +2675,7 @@ git clone https://github.com/travisvn/awesome-claude-skills.git .skvm/external-s
 
 Expected: raw source stays uncommitted; only intake metadata and selected benchmark artifacts are committed later.
 
-- [ ] **Step 3c: Inspect actual `SKILL.md` artifacts**
+- [x] **Step 3c: Inspect actual `SKILL.md` artifacts**
 
 For each candidate, confirm:
 
@@ -2689,6 +2689,39 @@ safe toy task design
 ```
 
 Expected: index-only entries are not promoted to benchmark candidates until a real skill artifact is fetched and inspected.
+
+Implemented on 2026-07-15:
+
+```text
+manifest provenance -> matrix -> run plan -> raw JSONL -> scored JSONL
+                                                   -> provenance/evidence slices
+```
+
+The source snapshot is committed at `benchmarks/skill-ir/corpus/real-skill-intake.json`. Raw checkouts stay under ignored `.skvm/external-skills/`. The audit found 70, 20, and 0 real `SKILL.md` artifacts in the three approved repositories. The awesome index was followed to `K-Dense-AI/claude-scientific-skills`, where 149 licensed real artifacts were found. Six licensed pilot skills were selected across document, Chinese developer, testing, environment, content, and scientific workflows.
+
+- [ ] **Step 3d: Add source-backed real-skill fixture import**
+
+Copy only licensed selected `SKILL.md` artifacts into an attributed benchmark source area, with exact source URL, commit, path, and license metadata. Extend original-skill materialization so `source.kind = "file"` loads the real text from the repository root instead of rendering only a path label.
+
+Expected: `no-skill` receives no skill, `original` receives the exact attributed public skill text, and IR systems receive derived artifacts. A test must prove that file-backed original materialization contains source content and fails clearly when the source file is missing.
+
+- [ ] **Step 3e: Convert the licensed pilot to base IR and task fixtures**
+
+Start with a staged subset rather than converting all six at once:
+
+```text
+law-to-markdown
+env-manager
+experimental-design
+```
+
+Then add `zh-code-reviewer`, `api-tester`, and `zh-readme` after the source-backed path and scorer contracts are stable.
+
+Expected: every pilot entry has attributed original text, validated base IR, development/held-out tasks, deterministic or semi-deterministic criteria, and no-skill suitability notes.
+
+- [ ] **Step 3f: Run static and dry-run gates before paid evaluation**
+
+Expected: schema/IR validation, source-integrity checks, matrix generation, original-text materialization, and dry-run plan generation pass before any real-agent budget is used.
 
 - [ ] **Step 4: Add amortized token-cost metrics**
 
