@@ -1192,11 +1192,22 @@ describe("Skill IR real-agent scoring", () => {
     });
     expect(scored[1]).toMatchObject({
       success: false,
-      failureType: "agent",
+      failureType: "infrastructure",
       failureStage: "execution",
       ruleViolations: 0,
       failedCriteria: ["adapter runStatus adapter-crashed"],
     });
+  });
+
+  test("classifyFailureType treats every non-ok adapter RunStatus as infrastructure", () => {
+    for (const runStatus of ["timeout", "adapter-crashed", "parse-failed", "tainted"] as const) {
+      expect(classifyFailureType({
+        exitCode: 0,
+        runStatus,
+        stdout: "Final output:\nResidual output.",
+        stderr: "",
+      })).toBe("infrastructure");
+    }
   });
 
   test("classifyFailureType treats missing provider credentials as infrastructure", () => {

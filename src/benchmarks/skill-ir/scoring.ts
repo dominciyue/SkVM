@@ -674,7 +674,7 @@ async function scoreRawRunRowsWithResolver(
 }
 
 export function classifyFailureType(row: Pick<RawAgentRunRow, "exitCode" | "stdout" | "stderr" | "runStatus">): FailureType {
-  if (row.runStatus === "timeout" || row.runStatus === "parse-failed" || row.runStatus === "tainted") {
+  if (row.runStatus !== undefined && row.runStatus !== "ok") {
     return "infrastructure";
   }
   const combined = `${row.stderr}\n${row.stdout}`.toLowerCase();
