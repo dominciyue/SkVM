@@ -187,6 +187,25 @@ describe("real-agent-run manifest loading", () => {
     }
   });
 
+  for (const flag of ["--model", "--model-family", "--adapter", "--adapter-version", "--panel-config-id"]) {
+    for (const [label, value] of [
+      ["empty", ""],
+      ["whitespace", "   "],
+    ] as const) {
+      test(`parseRealAgentRunArgs rejects ${label} ${flag} values`, () => {
+        expect(() => parseRealAgentRunArgs(["--corpus=calibration", `${flag}=${value}`])).toThrow(
+          `${flag} must be a non-empty value`,
+        );
+      });
+    }
+  }
+
+  test("parseRealAgentRunArgs rejects an empty model in execute mode", () => {
+    expect(() => parseRealAgentRunArgs(["--corpus=calibration", "--execute", "--model="])).toThrow(
+      "--model must be a non-empty value",
+    );
+  });
+
   test("buildPlan materializes each skill with its own IR and task file", async () => {
     const rootDir = await createMultiSkillRoot();
     const args: RealAgentRunArgs = {
@@ -275,6 +294,13 @@ describe("real-agent-run manifest loading", () => {
       expect.stringContaining(join("original", "run-1", "task", "task.json")),
       expect.stringContaining(join("original", "run-2", "task", "task.json")),
       expect.stringContaining(join("original", "run-3", "task", "task.json")),
+    ]);
+    expect(plan.every((entry) => entry.skillPath !== undefined)).toBe(true);
+    expect(new Set(plan.map((entry) => entry.skillPath)).size).toBe(3);
+    expect(plan.map((entry) => entry.skillPath)).toEqual([
+      expect.stringContaining(join("original", "run-1", "skill", "SKILL.md")),
+      expect.stringContaining(join("original", "run-2", "skill", "SKILL.md")),
+      expect.stringContaining(join("original", "run-3", "skill", "SKILL.md")),
     ]);
   });
 

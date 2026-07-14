@@ -140,6 +140,19 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
     throw new Error("--corpus is required; choose calibration or pilot");
   }
 
+  const identityValues = [
+    ["--model", args.model],
+    ["--model-family", args.modelFamily],
+    ["--adapter", args.adapter],
+    ["--adapter-version", args.adapterVersion],
+    ["--panel-config-id", args.panelConfigId],
+  ] as const;
+  for (const [flag, value] of identityValues) {
+    if (value !== undefined && value.trim().length === 0) {
+      throw new Error(`${flag} must be a non-empty value`);
+    }
+  }
+
   if (!Number.isFinite(args.limit) || args.limit < 1) {
     throw new Error("--limit must be a positive integer");
   }
@@ -160,7 +173,7 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
     throw new Error("--model=<provider>/<model-id> is required when --execute is set");
   }
 
-  args.modelFamily = args.modelFamily || inferModelFamily(args.model);
+  args.modelFamily = args.modelFamily ?? inferModelFamily(args.model);
 
   return args;
 }
