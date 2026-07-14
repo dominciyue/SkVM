@@ -143,6 +143,44 @@ describe("profile feedback from scored results", () => {
     ).toThrow("complete run identity");
   });
 
+  test("validates identity before success and infrastructure rows are filtered", () => {
+    const irBySkill = new Map([["skill-report-synthesis", reportIr()]]);
+
+    expect(() =>
+      scoredRowsToExecutionTraces(
+        [scoredRow({ success: true, failedCriteria: [], model: "xty/gpt-4.1-mini" })],
+        irBySkill,
+        { sourceSystem: "original", taskSplit: "development" },
+      ),
+    ).toThrow("complete run identity");
+    expect(() =>
+      scoredRowsToExecutionTraces(
+        [scoredRow({ failureType: "infrastructure", model: "xty/gpt-4.1-mini" })],
+        irBySkill,
+        { sourceSystem: "original", taskSplit: "development" },
+      ),
+    ).toThrow("complete run identity");
+  });
+
+  test("rejects duplicate trace evidence instead of inflating annotation counts", () => {
+    const row = scoredRow({
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      runIndex: 1,
+      panelConfigId: "env-manager-calibration-v1",
+    });
+
+    expect(() =>
+      scoredRowsToExecutionTraces(
+        [row, { ...row }],
+        new Map([["skill-report-synthesis", reportIr()]]),
+        { sourceSystem: "original", taskSplit: "development" },
+      ),
+    ).toThrow("duplicate trace evidence");
+  });
+
   test("merges profile annotations into an IR copy without mutating the base IR", () => {
     const base = reportIr();
     const derived = mergeProfileAnnotationsIntoIR(base, [

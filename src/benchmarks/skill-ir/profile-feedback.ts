@@ -150,6 +150,16 @@ function shouldUseRow(row: ScoredAgentRunRow, opts: ProfileFeedbackOptions): boo
   return true;
 }
 
+function matchesRequestedEvidenceScope(row: ScoredAgentRunRow, opts: ProfileFeedbackOptions): boolean {
+  if (opts.sourceSystem && row.system !== opts.sourceSystem) {
+    return false;
+  }
+  if (opts.taskSplit && row.taskSplit !== opts.taskSplit) {
+    return false;
+  }
+  return true;
+}
+
 function eventsForFailedCriteria(row: ScoredAgentRunRow, ir: SkillIR): TraceEvent[] {
   return row.failedCriteria
     .filter((criterion) => !criterion.toLowerCase().startsWith("process exited with code"))
@@ -166,6 +176,14 @@ export function scoredRowsToExecutionTraces(
   opts: ProfileFeedbackOptions = {},
 ): ExecutionTrace[] {
   const traces: ExecutionTrace[] = [];
+  const identityByRow = new Map<ScoredAgentRunRow, RunIdentity | undefined>();
+  const traceIds = new Set<string>();
+
+  for (const row of rows) {
+    if (matchesRequestedEvidenceScope(row, opts)) {
+      identityByRow.set(row, runIdentityFromRow(row));
+    }
+  }
 
   for (const row of rows) {
     if (!shouldUseRow(row, opts)) {
@@ -182,10 +200,15 @@ export function scoredRowsToExecutionTraces(
       continue;
     }
 
-    const identity = runIdentityFromRow(row);
+    const identity = identityByRow.get(row);
+    const traceId = safeTraceId(row, identity);
+    if (traceIds.has(traceId)) {
+      throw new Error(`Scored rows contain duplicate trace evidence ${traceId}`);
+    }
+    traceIds.add(traceId);
     traces.push(ExecutionTraceSchema.parse({
       schemaVersion: "skill-ir-trace/v1",
-      traceId: safeTraceId(row, identity),
+      traceId,
       skillId: row.skill,
       agent: row.agent,
       environment: row.environment,

@@ -273,7 +273,6 @@ async function main() {
     corpus: args.corpus,
     manifestPath: loaded.manifestPath,
     resultsPath,
-    scoredRows: rows,
     skills: loaded.skills.map((skill) => ({
       ...skill,
       annotationCount: artifacts.overlaysBySkill.get(skill.skillId)?.annotations.length ?? 0,

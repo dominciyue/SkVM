@@ -163,11 +163,17 @@ type IdentifiedConstructionConfig = z.infer<typeof IdentifiedConstructionConfigS
 function deriveConstructionConfigs(rows: ScoredAgentRunRow[]): ConstructionConfig[] {
   const relevantRows = rows.filter((row) => row.system === "original" && row.taskSplit === "development");
   const identifiedRows: { config: Omit<IdentifiedConstructionConfig, "runIndices">; runIndex: number }[] = [];
+  const evidenceKeys = new Set<string>();
   let legacyRowCount = 0;
 
   for (const row of relevantRows) {
     const presentCount = IDENTITY_FIELDS.filter((field) => row[field] !== undefined).length;
     if (presentCount === 0) {
+      const evidenceKey = JSON.stringify([row.caseId, row.system, "legacy"]);
+      if (evidenceKeys.has(evidenceKey)) {
+        throw new Error(`Construction results contain duplicate construction evidence for ${row.caseId}`);
+      }
+      evidenceKeys.add(evidenceKey);
       legacyRowCount += 1;
       continue;
     }
@@ -186,6 +192,20 @@ function deriveConstructionConfigs(rows: ScoredAgentRunRow[]): ConstructionConfi
       runIndex: row.runIndex,
     });
     const { runIndex, ...config } = parsed;
+    const evidenceKey = JSON.stringify([
+      row.caseId,
+      row.system,
+      config.model,
+      config.modelFamily,
+      config.adapter,
+      config.adapterVersion,
+      config.panelConfigId,
+      runIndex,
+    ]);
+    if (evidenceKeys.has(evidenceKey)) {
+      throw new Error(`Construction results contain duplicate construction evidence for ${row.caseId}`);
+    }
+    evidenceKeys.add(evidenceKey);
     identifiedRows.push({ config, runIndex });
   }
 
@@ -218,15 +238,34 @@ function deriveConstructionConfigs(rows: ScoredAgentRunRow[]): ConstructionConfi
     }));
 }
 
+async function readScoredRows(path: string): Promise<ScoredAgentRunRow[]> {
+  const text = await readFile(path, "utf8");
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => JSON.parse(line) as ScoredAgentRunRow);
+}
+
+export function validateConstructionConfigsMatchRows(
+  record: FinalIRProvenance,
+  rows: ScoredAgentRunRow[],
+): void {
+  const expected = deriveConstructionConfigs(rows);
+  if (JSON.stringify(record.constructionConfigs) !== JSON.stringify(expected)) {
+    throw new Error("Final IR provenance construction configs do not match hashed results");
+  }
+}
+
 export async function buildFinalIRProvenance(opts: {
   rootDir: string;
   artifactRoot: string;
   corpus: CorpusId;
   manifestPath: string;
   resultsPath: string;
-  scoredRows?: ScoredAgentRunRow[];
   skills: { skillId: string; sourceSha256: string; baseIRPath: string; annotationCount: number }[];
 }): Promise<FinalIRProvenance> {
+  const scoredRows = await readScoredRows(opts.resultsPath);
   const skills = await Promise.all(
     opts.skills.map(async (skill) => {
       const overlayPath = join(opts.artifactRoot, "overlay", `${skill.skillId}.json`);
@@ -264,7 +303,7 @@ export async function buildFinalIRProvenance(opts: {
       path: portableRelative(opts.rootDir, opts.resultsPath),
       sha256: await digestFile(opts.resultsPath),
     },
-    constructionConfigs: deriveConstructionConfigs(opts.scoredRows ?? []),
+    constructionConfigs: deriveConstructionConfigs(scoredRows),
     skills,
   });
 }
@@ -297,9 +336,11 @@ export async function readAndValidateFinalIRProvenance(opts: {
   if ((await digestFile(opts.manifestPath)) !== record.manifest.sha256) {
     throw new Error("Final IR provenance manifest digest mismatch");
   }
-  if ((await digestFile(resolveRecordedPath(opts.rootDir, record.results.path))) !== record.results.sha256) {
+  const resultsPath = resolveRecordedPath(opts.rootDir, record.results.path);
+  if ((await digestFile(resultsPath)) !== record.results.sha256) {
     throw new Error("Final IR provenance results digest mismatch");
   }
+  validateConstructionConfigsMatchRows(record, await readScoredRows(resultsPath));
 
   const recordBySkill = new Map(record.skills.map((skill) => [skill.skillId, skill]));
   for (const expected of opts.skills) {

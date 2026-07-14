@@ -2,7 +2,11 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildFinalIRProvenance, validateFinalIRProvenanceRecord } from "./final-ir-provenance";
+import {
+  buildFinalIRProvenance,
+  validateConstructionConfigsMatchRows,
+  validateFinalIRProvenanceRecord,
+} from "./final-ir-provenance";
 import type { ScoredAgentRunRow } from "./scoring";
 import { sha256Bytes } from "./source-fixture";
 
@@ -54,7 +58,7 @@ function scoredRow(overrides: Partial<ScoredAgentRunRow> = {}): ScoredAgentRunRo
   };
 }
 
-async function provenanceFixture() {
+async function provenanceFixture(scoredRows: ScoredAgentRunRow[] = []) {
   const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-provenance-"));
   tempDirs.push(rootDir);
   const artifactRoot = join(rootDir, "artifacts");
@@ -64,7 +68,11 @@ async function provenanceFixture() {
   await mkdir(join(artifactRoot, "overlay"), { recursive: true });
   await mkdir(join(artifactRoot, "final-ir"), { recursive: true });
   await writeFile(manifestPath, "{}\n", "utf8");
-  await writeFile(resultsPath, "{}\n", "utf8");
+  await writeFile(
+    resultsPath,
+    scoredRows.map((row) => JSON.stringify(row)).join("\n") + (scoredRows.length > 0 ? "\n" : ""),
+    "utf8",
+  );
   await writeFile(baseIRPath, "{}\n", "utf8");
   await writeFile(join(artifactRoot, "overlay", "env-manager.json"), "{}\n", "utf8");
   await writeFile(join(artifactRoot, "final-ir", "env-manager.json"), "{}\n", "utf8");
@@ -72,11 +80,10 @@ async function provenanceFixture() {
 }
 
 async function buildFixtureProvenance(scoredRows: ScoredAgentRunRow[]) {
-  const paths = await provenanceFixture();
+  const paths = await provenanceFixture(scoredRows);
   return buildFinalIRProvenance({
     ...paths,
     corpus: "pilot",
-    scoredRows,
     skills: [
       {
         skillId: "env-manager",
@@ -123,7 +130,8 @@ describe("final IR provenance", () => {
   });
 
   test("builds digests for development results, base IR, overlay, and final IR", async () => {
-    const { rootDir, artifactRoot, manifestPath, resultsPath, baseIRPath } = await provenanceFixture();
+    const legacyRows = [scoredRow()];
+    const { rootDir, artifactRoot, manifestPath, resultsPath, baseIRPath } = await provenanceFixture(legacyRows);
 
     const record = await buildFinalIRProvenance({
       rootDir,
@@ -131,7 +139,6 @@ describe("final IR provenance", () => {
       corpus: "pilot",
       manifestPath,
       resultsPath,
-      scoredRows: [],
       skills: [
         {
           skillId: "env-manager",
@@ -144,7 +151,9 @@ describe("final IR provenance", () => {
 
     expect(record.taskSplit).toBe("development");
     expect(record.sourceSystem).toBe("original");
-    expect(record.results.sha256).toBe(sha256Bytes(Buffer.from("{}\n")));
+    expect(record.results.sha256).toBe(
+      sha256Bytes(Buffer.from(`${JSON.stringify(legacyRows[0])}\n`)),
+    );
     expect(record.skills[0]?.finalIR.path).toBe("final-ir/env-manager.json");
     expect(record.skills[0]?.overlay.path).toBe("overlay/env-manager.json");
     expect(record.constructionConfigs).toEqual([{ status: "legacy-unidentified" }]);
@@ -238,7 +247,6 @@ describe("final IR provenance", () => {
     const record = await buildFixtureProvenance([
       scoredRow({ ...gptIdentity, runIndex: 3 }),
       scoredRow({ ...gptIdentity, runIndex: 1, success: true, failedCriteria: [] }),
-      scoredRow({ ...gptIdentity, runIndex: 3 }),
       scoredRow({ ...geminiIdentity, runIndex: 2 }),
       scoredRow({ ...infraIdentity, runIndex: 1, failureType: "infrastructure" }),
       scoredRow({ ...gptIdentity, runIndex: 9, system: "ir-static" }),
@@ -255,7 +263,12 @@ describe("final IR provenance", () => {
   test("uses one typed marker when every relevant row is fully legacy", async () => {
     const record = await buildFixtureProvenance([
       scoredRow(),
-      scoredRow({ success: true, failedCriteria: [] }),
+      scoredRow({
+        caseId: "env-manager:skvm:windows:clean:env-manager-dev-002",
+        task: "env-manager-dev-002",
+        success: true,
+        failedCriteria: [],
+      }),
       scoredRow({ system: "ir-static", model: "ignored-partial" }),
     ]);
 
@@ -282,5 +295,40 @@ describe("final IR provenance", () => {
     await expect(
       buildFixtureProvenance([scoredRow({ model: "xty/gpt-4.1-mini" })]),
     ).rejects.toThrow("partial run identity");
+  });
+
+  test("rejects duplicate construction evidence identities", async () => {
+    const row = scoredRow({
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      runIndex: 1,
+      panelConfigId: "pilot-v1",
+    });
+
+    await expect(buildFixtureProvenance([row, { ...row }])).rejects.toThrow(
+      "duplicate construction evidence",
+    );
+  });
+
+  test("detects a removed constructionConfigs field against identified result rows", () => {
+    const identifiedRow = scoredRow({
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-2026-07-15",
+      runIndex: 1,
+      panelConfigId: "pilot-v1",
+    });
+    const { constructionConfigs: _constructionConfigs, ...withoutConfigs } = validRecord;
+    const migrated = validateFinalIRProvenanceRecord(withoutConfigs, {
+      corpus: "pilot",
+      skillIds: ["env-manager"],
+    });
+
+    expect(() => validateConstructionConfigsMatchRows(migrated, [identifiedRow])).toThrow(
+      "do not match hashed results",
+    );
   });
 });

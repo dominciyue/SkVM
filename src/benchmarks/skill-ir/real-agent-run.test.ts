@@ -517,7 +517,12 @@ describe("real-agent-run manifest loading", () => {
       irFixture("skill-diagnostic", "Profiled Diagnostic Skill", "Profiled diagnostic source text."),
     );
     const resultsPath = join(rootDir, "results/development.jsonl");
-    await writeJson(resultsPath, { taskSplit: "development", system: "original" });
+    await mkdir(dirname(resultsPath), { recursive: true });
+    await writeFile(
+      resultsPath,
+      `${JSON.stringify({ taskSplit: "development", system: "original" })}\n`,
+      "utf8",
+    );
     const baseIRPath = join(rootDir, "benchmarks/skill-ir/ir/review.json");
     const manifestPath = join(rootDir, "benchmarks/skill-ir/corpus/corpora/calibration.json");
     const provenance = await buildFinalIRProvenance({
