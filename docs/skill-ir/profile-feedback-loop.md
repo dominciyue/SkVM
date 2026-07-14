@@ -86,6 +86,13 @@ The converter:
 - maps failed success criteria to stable IR target refs;
 - emits `rule-violation` trace events for semantic task failures.
 
+New traces carry the complete run identity: `model`, `modelFamily`, `adapter`,
+`adapterVersion`, `runIndex`, and `panelConfigId`. Archived traces may omit all
+six fields; partial identity is rejected. Identity is included in `traceId` so
+repetitions cannot collide. Duplicate trace evidence is rejected before it can
+increase annotation counts, and all relevant rows are identity-validated before
+success or infrastructure filtering.
+
 `profile-feedback-run.ts` exposes:
 
 ```ts
@@ -103,6 +110,28 @@ and a CLI that writes:
 ```
 
 The `ir/` directory is kept as a compatibility alias for `final-ir/` because `real-agent-run.ts --ir-override-dir` consumes a directory of `<skill-id>.json` files. The base corpus IR files are not overwritten. The runner reads `provenance.json` from the parent directory and rejects missing, stale, held-out-derived, hand-edited, or corpus-mismatched artifacts.
+
+`provenance.json` also records sorted, deduplicated construction configurations:
+
+```json
+{
+  "model": "xty/gpt-4.1-mini",
+  "modelFamily": "gpt",
+  "adapter": "bare-agent",
+  "adapterVersion": "workspace-2026-07-15",
+  "panelConfigId": "env-manager-calibration-v1",
+  "runIndices": [1, 2, 3]
+}
+```
+
+These entries are derived from the same scored results file whose SHA-256 is
+stored in provenance, both during construction and consumption. Only
+`original x development` rows contribute construction metadata. Successful and
+infrastructure rows remain represented so the attempted configuration is
+disclosed, while infrastructure rows still cannot create repair annotations.
+Fully legacy results receive one `{ "status": "legacy-unidentified" }` marker.
+Partial identity, mixed legacy/identified rows, duplicate evidence, and configs
+that disagree with the hashed results fail closed.
 
 ## Command Line
 
@@ -181,6 +210,9 @@ bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=pilot' '--systems=ir-p
 - A low `--min-evidence` can overfit small runs. Use it only for method case studies; real pilots require documented development evidence and disjoint held-out validation.
 - An overlay generated on one model route is not a model-family profile and must not be assumed to transfer to another route.
 - Final IR should not be treated as the new base corpus. It remains a versioned compiled artifact tied to recorded development evidence.
+- Construction identity is audit metadata for the current single-model vertical.
+  Balanced pooling, conflict arbitration, panel choice, and promotion remain
+  disabled until the env-manager vertical is stable.
 
 ## Verification
 

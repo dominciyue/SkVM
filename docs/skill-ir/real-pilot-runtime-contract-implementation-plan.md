@@ -227,11 +227,11 @@ raw-run output root, including symlink escapes. Focused verification reached
 - Test: `src/benchmarks/skill-ir/profile-feedback.test.ts`
 - Test: `src/benchmarks/skill-ir/final-ir-provenance.test.ts`
 
-- [ ] **Step 1: Write failing trace propagation tests**
+- [x] **Step 1: Write failing trace propagation tests**
 
 Assert that a scored row with complete run identity produces a trace carrying the same model, family, adapter/version, run index, and panel id. Archived traces without those fields must still parse.
 
-- [ ] **Step 2: Write failing provenance tests**
+- [x] **Step 2: Write failing provenance tests**
 
 Assert that provenance records a sorted, deduplicated `constructionConfigs` array derived from the development scored rows:
 
@@ -248,23 +248,31 @@ constructionConfigs: [{
 
 Reject provenance construction when new-format scored rows mix missing and present identity fields. Fully legacy archived files may still compile only under a clearly marked `legacy-unidentified` construction config and cannot later pass a pooled-overlay gate.
 
-- [ ] **Step 3: Run tests and confirm RED**
+- [x] **Step 3: Run tests and confirm RED**
 
 ```powershell
 bun test ./src/profiler/trace-schema.test.ts ./src/benchmarks/skill-ir/profile-feedback.test.ts ./src/benchmarks/skill-ir/final-ir-provenance.test.ts
 ```
 
-- [ ] **Step 4: Implement backward-compatible trace and provenance schemas**
+- [x] **Step 4: Implement backward-compatible trace and provenance schemas**
 
 Keep trace schema version `skill-ir-trace/v1` and Final IR provenance version `skill-ir-final-provenance/v1` for additive optional fields. New profile compilation writes complete construction configs; validation preserves existing digest and development-only gates.
 
-- [ ] **Step 5: Run focused tests and commit**
+- [x] **Step 5: Run focused tests and commit**
 
 ```powershell
 bun test ./src/profiler/trace-schema.test.ts ./src/benchmarks/skill-ir/profile-feedback.test.ts ./src/benchmarks/skill-ir/final-ir-provenance.test.ts
 git add src/profiler/trace-schema.ts src/benchmarks/skill-ir/profile-feedback.ts src/benchmarks/skill-ir/final-ir-provenance.ts src/benchmarks/skill-ir/profile-feedback-run.ts src/profiler/trace-schema.test.ts src/benchmarks/skill-ir/profile-feedback.test.ts src/benchmarks/skill-ir/final-ir-provenance.test.ts
 git commit -m "feat: preserve pilot identity in feedback provenance"
 ```
+
+Implementation review strengthened the provenance boundary beyond the initial
+schema change. Construction configs are derived directly from the hashed scored
+results file during both construction and consumption; duplicate evidence rows
+are rejected before annotation counts can increase; relevant rows are checked
+for complete identity before semantic filtering; and a missing config field can
+only migrate to `legacy-unidentified` when the hashed rows are themselves fully
+legacy. Focused trace/provenance/runner verification reached 54 passing tests.
 
 ### Task 5: Documentation And Full Verification
 
@@ -276,15 +284,15 @@ git commit -m "feat: preserve pilot identity in feedback provenance"
 - Modify: `docs/skill-ir/real-pilot-runtime-contract-implementation-plan.md`
 - Append: `D:/skill优化/conversation_log.md`
 
-- [ ] **Step 1: Document runtime and CLI behavior**
+- [x] **Step 1: Document runtime and CLI behavior**
 
 Document `--repetitions`, `--model-family`, `--adapter-version`, and `--panel-config-id`; persistent workdir layout; deterministic evaluator result fields; hard-gate and infrastructure behavior; resource parity; legacy heuristic compatibility; and the fact that pooled construction is still disabled.
 
-- [ ] **Step 2: Mark the infrastructure ledger item complete**
+- [x] **Step 2: Mark the infrastructure ledger item complete**
 
 Update the canonical plan only after fresh verification. Keep `env-manager` fixture/validator authoring as the next unchecked item.
 
-- [ ] **Step 3: Run full verification**
+- [x] **Step 3: Run full verification**
 
 ```powershell
 bun test ./src/skill-ir ./src/profiler ./src/benchmarks/skill-ir
@@ -294,7 +302,7 @@ git diff --check
 
 Expected: all tests and typecheck pass; diff check reports no whitespace errors.
 
-- [ ] **Step 4: Append the stage log and commit**
+- [x] **Step 4: Append the stage log and commit**
 
 Record files changed, red/green commands, final test counts, design decisions, and remaining risks in `D:/skill优化/conversation_log.md`.
 

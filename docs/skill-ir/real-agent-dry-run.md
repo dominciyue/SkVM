@@ -107,8 +107,17 @@ The runner supports these selection filters:
 | `--tasks=` | benchmark task id |
 | `--require-env=` | required shell environment variables for `--execute` mode |
 | `--ir-override-dir=` | directory containing final `<skill-id>.json` IR files, typically `<profile-feedback-out>/final-ir` for `ir-pgo` runs |
+| `--repetitions=` | positive executions per selected matrix cell; applied after `--limit` |
+| `--model-family=` | explicit model-family label; inferred from the model id when omitted |
+| `--adapter-version=` | adapter/runtime implementation label; defaults to `workspace` |
+| `--panel-config-id=` | preregistered panel/configuration label; defaults to `single-run` |
 
 `--systems` overrides the default system axis; the other filters are applied before `--limit`. A small multi-skill smoke run can therefore sample the intended skills and explicit ablations instead of accidentally taking the first rows from the default matrix order.
+
+Every new row carries `model`, `modelFamily`, `adapter`, `adapterVersion`,
+`runIndex`, and `panelConfigId`. `--limit` limits matrix cells before
+`--repetitions` expands them. Each repetition receives distinct task, skill,
+run, and workdir paths while retaining the paired `caseId`.
 
 The runner fails before materialization when `--corpus` is omitted, the selected corpus has no runnable skills, or `ir-pgo` lacks a validated Final IR directory. For PGO it also rejects development tasks, corpus mismatch, stale source/base/overlay/final digests, missing skill provenance, and selected skills with zero profile annotations.
 
@@ -170,6 +179,22 @@ results/skill-ir/real-agent-dry-run/raw-runs.jsonl
 
 `raw-runs.jsonl` is execution-only. It should not be treated as final scored benchmark results until a scoring step maps outputs to `success`, `ruleViolations`, `stepCoverage`, token cost, and latency.
 
+Each execution owns a persistent directory:
+
+```text
+<out-dir>/<case>/<system>/run-<runIndex>/workdir/
+```
+
+The exact path is passed to `skvm run --workdir`. Before every infrastructure
+retry, only that run's workdir is cleared and recreated. Task fixtures are
+materialized from `task.json`; file-backed skill systems receive the verified
+source resource closure. Generated variants replace only `SKILL.md`, preserving
+scripts and referenced resources. `no-skill` receives neither the skill nor its
+private resource closure.
+
+New raw rows persist `workDir`, complete run identity, and adapter `runStatus`.
+A non-`ok` status is an execution failure even when the outer process exits zero.
+
 Score the raw execution logs into analyzer-compatible results:
 
 ```powershell
@@ -184,7 +209,7 @@ Then produce a summary table:
 python scripts/analyze_skill_ir_results.py results/skill-ir/main-results.jsonl results/skill-ir/main-table.csv
 ```
 
-See `docs/skill-ir/real-agent-scoring.md` for the scorer contract and current heuristic criteria.
+See `docs/skill-ir/real-agent-scoring.md` for the deterministic artifact-evaluator contract and calibration-only heuristic compatibility path.
 
 See `docs/skill-ir/real-agent-smoke-run.md` for the first real-agent smoke run through an OpenAI-compatible gateway.
 
@@ -246,7 +271,7 @@ bun test ./src/benchmarks/skill-ir/scoring.test.ts
 Run a dry-run plan:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--out-dir=results/skill-ir/real-agent-dry-run'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=calibration' '--limit=4' '--systems=no-skill,original' '--contexts=clean' '--out-dir=results/skill-ir/real-agent-dry-run'
 ```
 
 Run current TypeScript checks:
@@ -265,7 +290,8 @@ bun run typecheck
 - Missing provider credentials can produce fast auth failures. Use `--require-env=<key env var>` for real runs.
 - `skvm run` executes but does not score; run `score-real-agent-runs.ts` before feeding data into the final analyzer.
 - The current `skvm-aot` materialization is a placeholder until a real `skvm aot-compile` proposal path is wired in.
-- The current scorer is heuristic and only supports the seed review criteria. Unsupported criteria fail closed.
+- Real pilot tasks require explicit deterministic evaluators. Only calibration
+  seed tasks use heuristic criteria, and unsupported heuristic criteria fail closed.
 - Retry can hide transient gateway instability, so raw rows include `attempts` when execution uses retry. Keep `--retries` small for research runs.
 - Historical result files created before the context perturbation audit may have used context labels without true noisy/long/compressed prompt perturbations.
 

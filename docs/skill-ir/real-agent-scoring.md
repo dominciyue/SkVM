@@ -6,7 +6,12 @@ The real-agent scoring layer converts execution-only SkVM logs into benchmark ro
 
 Task 11C also uses scored rows as the input to profile-guided feedback. The feedback path reads the same scored JSONL, ignores infrastructure failures, converts semantic failures into execution traces, and produces profile overlay plus final IR artifacts for `ir-pgo`.
 
-The current implementation is intentionally deterministic and offline. It does not call an LLM judge. For the expanded seed corpus, it checks task `successCriteria` with small heuristics so the end-to-end pipeline can be tested before spending model budget.
+The current implementation is intentionally deterministic and offline. Real
+pilot tasks declare explicit SkVM `eval` criteria and are scored against their
+persistent workdirs through the existing evaluator framework. The expanded seed
+corpus retains its small `successCriteria` heuristics only as a calibration and
+archived-row compatibility path. Explicit pilot evaluators may not contain
+`llm-judge` until a separate judge provider is configured.
 
 ## Files
 
@@ -40,7 +45,15 @@ Each row should include:
   "skillProvenance": "real-public",
   "evidenceWeight": "main-real",
   "taskPath": "...",
+  "workDir": "results/skill-ir/run/.../workdir",
+  "model": "xty/gpt-4.1-mini",
+  "modelFamily": "gpt",
+  "adapter": "bare-agent",
+  "adapterVersion": "workspace-2026-07-15",
+  "runIndex": 1,
+  "panelConfigId": "env-manager-calibration-v1",
   "exitCode": 0,
+  "runStatus": "ok",
   "durationMs": 1250,
   "stdout": "Final output:\nFindings\n- Behavioral bug creates a regression risk.",
   "stderr": "",
@@ -116,6 +129,11 @@ An infrastructure failure row can include `failureType`:
 - `infrastructure`: provider/network/auth/rate-limit style failure, including missing provider credential environment variables such as `ProviderAuthError`.
 - `agent`: non-zero execution that does not look like provider infrastructure.
 
+Explicit-evaluator rows also record `failureStage`, `evaluatorScore`, and a
+payload-safe `evaluationSummary`. The summary retains method, criterion id/name,
+pass/score, and checkpoint name/score/weight. It omits evaluator payloads,
+expected values, raw details, checkpoint reasons, and raw infrastructure text.
+
 ## Command Line
 
 Score a real execution log:
@@ -172,18 +190,31 @@ Scoring behavior:
 - `taskSplit` is copied from the task definition so analysis can distinguish development and held-out rows.
 - `skillProvenance` and `evidenceWeight` are copied from the run plan when present. Older raw rows remain valid but appear in `unknown` analysis slices.
 - `stdout` is reduced to the text after the last `Final output:` marker when present.
-- `successCriteria` are checked against the final output.
-- `success` is true only when the process exit code is zero and every supported criterion passes.
+- Tasks with explicit `eval` criteria reuse SkVM `evaluateAll`, registered
+  custom evaluators, `buildEvalDetails`, and `computeWeightedScore`.
+- Explicit evaluator success requires every hard gate to pass and the weighted
+  score to meet `passThreshold` (default `1`). Invalid/duplicate hard gates and
+  `llm-judge` criteria fail before scoring.
+- Tasks without `eval` use the legacy `successCriteria` matcher and emit
+  `successSource: heuristic-success-criteria`.
+- A non-zero process exit or non-`ok` adapter `runStatus` always fails and skips
+  artifact evaluation.
 - `ruleViolations` is the count of failed criteria.
 - `stepCoverage` is `1` when the final output is non-empty and `0` otherwise.
 - `latencyMs` is copied from raw execution `durationMs`.
 - `extractTokenUsage` reads SkVM stdout markers such as `Tokens: in=526 out=198`.
 - `inputTokens`, `outputTokens`, and `tokenCost` are emitted when stdout exposes token accounting. `tokenCost` is the sum of input and output tokens.
-- Non-zero exits are classified with `failureType` so infrastructure failures can be separated from skill behavior.
+- Non-zero exits and non-`ok` adapter statuses are classified with
+  `failureType`. Timeout/crash/parse/taint states are infrastructure execution
+  failures and cannot become profile feedback.
+- Evaluator exceptions and explicit `infraError` results are isolated per row as
+  infrastructure/evaluation failures; they do not abort the remaining rows.
 - Infrastructure failures do not contribute to `ruleViolations`; they should be counted through `infrastructure_failures` in the summary table.
 - Infrastructure failures are also excluded from profile-feedback artifacts so provider instability does not become a Skill IR optimization signal.
+- The CLI canonicalizes each evaluator workdir and requires it to remain inside
+  the raw-run output root. Outside paths and symlink escapes are rejected.
 
-## Supported Seed Criteria
+## Calibration-Only Seed Criteria
 
 The current heuristic scorer supports the expanded seed tasks:
 
@@ -254,11 +285,13 @@ bun run typecheck
 
 ## Assumptions And Failure Modes
 
-- This is not a final LLM-judge evaluator. It is a deterministic bridge for the current expanded seed tasks.
+- Explicit SkVM evaluators are the real-pilot path. The heuristic matcher is
+  retained only for calibration seeds and archived rows.
 - Unsupported success criteria fail closed and should trigger a scorer extension or task-specific verifier.
 - Use `--manifest` for expanded Task 11B runs. `--tasks` should only be used when all raw rows belong to one skill task file.
 - A manifest skill without `tasksPath`, or a task file with a mismatched `skillId`, fails before writing scored output.
-- A non-zero process exit code always makes the row unsuccessful.
+- A non-zero process exit code or non-`ok` adapter `runStatus` always makes the
+  row unsuccessful and prevents artifact evaluation.
 - `ruleViolations` currently means failed success criteria in the scorer, not full runtime checker violations.
 - `tokenCost` is optional for backward compatibility. Older raw rows, dry-run rows, or adapters that do not print token markers still score successfully without token fields.
 - `skillProvenance` and `evidenceWeight` are optional for backward compatibility, but new main-claim experiments should always provide them through the corpus manifest.
@@ -270,5 +303,6 @@ bun run typecheck
 - When a real run reveals a scorer false negative, add the smallest regression test, update the matcher, and rescore the affected artifact before archiving summary tables.
 - Keep raw logs and scored rows separate.
 - Do not commit `results/skill-ir/main-results.jsonl` unless the run is intentionally archived as an experiment artifact.
-- When replacing the heuristic scorer with an LLM judge or deterministic task verifier, keep the output JSONL field names stable for the analyzer.
+- New real pilot tasks should add deterministic file/script/custom evaluators,
+  not extend heuristic wording matchers.
 - Keep `failedCriteria`, `failureType`, `taskSplit`, `tokenCost`, `skillProvenance`, and `evidenceWeight` stable because feedback and analysis consume them.
