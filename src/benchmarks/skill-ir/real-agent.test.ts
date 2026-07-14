@@ -139,6 +139,72 @@ describe("real-agent Task 11A helpers", () => {
     expect(taskJson.prompt).not.toContain("evaluator-only-sentinel");
   });
 
+  test("buildSkvmTaskJson preserves explicit automated evaluators without leaking expected values", () => {
+    const automatedTask: SkillIRBenchmarkTask = {
+      id: "artifact-task",
+      split: "development",
+      prompt: "Create output.json.",
+      successCriteria: [],
+      fixtures: { "input.txt": "fixture\n" },
+      eval: [
+        {
+          method: "file-check",
+          id: "output-exists",
+          name: "Output exists",
+          path: "output.json",
+          mode: "contains",
+          expected: "evaluator-only-ok",
+        },
+        {
+          method: "file-check",
+          id: "metadata-exists",
+          path: "metadata.json",
+          mode: "exact",
+          expected: '{"status":"evaluator-only-ready"}',
+        },
+      ],
+      hardGateIds: ["output-exists"],
+      passThreshold: 0.75,
+    };
+
+    const taskJson = buildSkvmTaskJson(automatedTask, {
+      context: "clean",
+      skillId: "artifact-skill",
+    });
+
+    expect(taskJson.gradingType).toBe("automated");
+    expect(taskJson.eval).toEqual(automatedTask.eval!);
+    expect(taskJson.fixtures).toEqual({ "input.txt": "fixture\n" });
+    expect(taskJson.prompt).toContain("Create output.json.");
+    expect(taskJson.prompt).not.toContain("evaluator-only-ok");
+    expect(taskJson.prompt).not.toContain("evaluator-only-ready");
+    expect(taskJson.prompt).not.toContain("output-exists");
+  });
+
+  test("buildSkvmTaskJson marks mixed explicit evaluators as hybrid", () => {
+    const taskJson = buildSkvmTaskJson(
+      {
+        ...task,
+        eval: [
+          {
+            method: "file-check",
+            path: "output.txt",
+            mode: "contains",
+            expected: "ok",
+          },
+          {
+            method: "llm-judge",
+            rubric: "Judge the response.",
+            maxScore: 1,
+          },
+        ],
+      },
+      { context: "clean", skillId: "skill-review" },
+    );
+
+    expect(taskJson.gradingType).toBe("hybrid");
+  });
+
   test("buildSkvmTaskJson rejects fixture paths that can escape the workdir", () => {
     for (const fixturePath of ["", "../task/task.json", "/tmp/fixture.txt", "C:\\temp\\fixture.txt"]) {
       expect(() =>

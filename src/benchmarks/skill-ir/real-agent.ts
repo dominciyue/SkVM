@@ -1,5 +1,7 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join, posix, resolve, win32 } from "node:path";
+import type { BenchTask } from "../../bench/types";
+import type { EvalCriterion } from "../../core/types";
 import type { SkillIR } from "../../skill-ir/schema";
 import { insertEnvironmentGuards } from "../../skill-ir/passes/environment-guards";
 import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-repair";
@@ -23,22 +25,19 @@ export type SkillIRBenchmarkTask = {
   prompt: string;
   successCriteria: string[];
   fixtures?: Record<string, string>;
+  eval?: EvalCriterion[];
+  hardGateIds?: string[];
+  passThreshold?: number;
 };
 
 export type SkvmTaskJson = {
   id: string;
   name: string;
   category: string;
-  gradingType: "llm_judge";
+  gradingType: BenchTask["gradingType"];
   prompt: string;
   fixtures?: Record<string, string>;
-  eval: {
-    method: "llm-judge";
-    id: string;
-    name: string;
-    rubric: string;
-    maxScore: number;
-  }[];
+  eval: EvalCriterion[];
   timeoutMs: number;
   maxSteps: number;
 };
@@ -259,6 +258,26 @@ export function buildSkvmTaskJson(
   opts: { context: string; skillId: string; timeoutMs?: number; maxSteps?: number },
 ): SkvmTaskJson {
   assertSafeFixturePaths(task.fixtures);
+  const prompt = [contextPerturbation(opts.context), "", task.prompt].join("\n");
+
+  if (task.eval !== undefined) {
+    const hasLlmJudge = task.eval.some((criterion) => criterion.method === "llm-judge");
+    const hasAutomated = task.eval.some((criterion) => criterion.method !== "llm-judge");
+    const gradingType = hasLlmJudge ? (hasAutomated ? "hybrid" : "llm_judge") : "automated";
+
+    return {
+      id: `${task.id}-${opts.context}`,
+      name: `${task.id} (${opts.context})`,
+      category: "skill-ir",
+      gradingType,
+      prompt,
+      ...(task.fixtures ? { fixtures: { ...task.fixtures } } : {}),
+      eval: task.eval,
+      timeoutMs: opts.timeoutMs ?? 300_000,
+      maxSteps: opts.maxSteps ?? 30,
+    };
+  }
+
   const criteria = task.successCriteria.map((criterion) => `- ${criterion}`).join("\n");
 
   return {
@@ -266,7 +285,7 @@ export function buildSkvmTaskJson(
     name: `${task.id} (${opts.context})`,
     category: "skill-ir",
     gradingType: "llm_judge",
-    prompt: [contextPerturbation(opts.context), "", task.prompt].join("\n"),
+    prompt,
     ...(task.fixtures ? { fixtures: { ...task.fixtures } } : {}),
     eval: [
       {

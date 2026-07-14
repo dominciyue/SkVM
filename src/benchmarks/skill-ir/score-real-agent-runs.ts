@@ -110,8 +110,8 @@ async function main() {
   const args = parseScoringArgs(process.argv.slice(2));
   const rawRows = await readJsonl<RawAgentRunRow>(args.raw);
   const scoredRows = args.corpus || args.manifest
-    ? scoreRawRunRowsBySkill(rawRows, await loadTaskIndexFromManifest(args))
-    : scoreRawRunRows(
+    ? await scoreRawRunRowsBySkill(rawRows, await loadTaskIndexFromManifest(args))
+    : await scoreRawRunRows(
         rawRows,
         new Map((await readJson<TaskSet>(args.tasks)).tasks.map((task) => [task.id, task])),
       );

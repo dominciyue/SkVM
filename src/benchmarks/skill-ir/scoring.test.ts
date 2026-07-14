@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { customEvaluators, registerCustomEvaluator } from "../../framework/types";
 import {
   extractTokenUsage,
   extractFinalOutput,
@@ -16,6 +17,8 @@ import type { SkillIRBenchmarkTask } from "./real-agent";
 const tempDirs: string[] = [];
 
 afterEach(async () => {
+  customEvaluators.delete("skill-ir-test-infra-error");
+  customEvaluators.delete("skill-ir-test-should-not-run");
   for (const dir of tempDirs.splice(0)) {
     await rm(dir, { recursive: true, force: true });
   }
@@ -654,7 +657,7 @@ describe("Skill IR real-agent scoring", () => {
     }
   });
 
-  test("scoreRawRunRows maps execution logs and copies run identity unchanged", () => {
+  test("scoreRawRunRows maps execution logs and copies run identity unchanged", async () => {
     const rows: RawAgentRunRow[] = [
       {
         caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
@@ -682,7 +685,7 @@ describe("Skill IR real-agent scoring", () => {
       },
     ];
 
-    const scored = scoreRawRunRows(rows, new Map([[findingOrderTask.id, findingOrderTask]]));
+    const scored = await scoreRawRunRows(rows, new Map([[findingOrderTask.id, findingOrderTask]]));
 
     expect(scored).toEqual([
       {
@@ -715,8 +718,8 @@ describe("Skill IR real-agent scoring", () => {
     ]);
   });
 
-  test("scoreRawRunRows classifies provider timeouts as infrastructure failures", () => {
-    const scored = scoreRawRunRows(
+  test("scoreRawRunRows classifies provider timeouts as infrastructure failures", async () => {
+    const scored = await scoreRawRunRows(
       [
         {
           caseId: "skill-review:skvm:linux:clean:review-finding-order-001",
@@ -738,6 +741,284 @@ describe("Skill IR real-agent scoring", () => {
       failureType: "infrastructure",
       ruleViolations: 0,
       failedCriteria: ["process exited with code 1"],
+    });
+  });
+
+  test("scoreRawRunRows evaluates explicit file checks in the persistent workdir", async () => {
+    const workDir = await mkdtemp(join(tmpdir(), "skill-ir-evaluator-workdir-"));
+    tempDirs.push(workDir);
+    await writeFile(join(workDir, "output.json"), '{"status":"ok"}\n', "utf8");
+    const task: SkillIRBenchmarkTask = {
+      id: "artifact-task",
+      split: "development",
+      prompt: "Create output.json.",
+      successCriteria: [],
+      eval: [
+        {
+          method: "file-check",
+          id: "output-ok",
+          name: "Output is valid",
+          path: "output.json",
+          mode: "contains",
+          expected: '"status":"ok"',
+        },
+      ],
+      hardGateIds: ["output-ok"],
+    };
+    const raw: RawAgentRunRow = {
+      caseId: "artifact-skill:skvm:windows:clean:artifact-task",
+      system: "original",
+      taskPath: "tmp/task.json",
+      workDir,
+      exitCode: 0,
+      durationMs: 250,
+      stdout: "Tokens: in=12 out=8\nFinal output:\nCreated output.json.",
+      stderr: "",
+      successSource: "execution-only",
+    };
+
+    const [passing] = await scoreRawRunRows([raw], new Map([[task.id, task]]));
+    expect(passing).toMatchObject({
+      success: true,
+      evaluatorScore: 1,
+      successSource: "deterministic-evaluator",
+      failedCriteria: [],
+      inputTokens: 12,
+      outputTokens: 8,
+      evaluationSummary: [
+        {
+          method: "file-check",
+          id: "output-ok",
+          name: "Output is valid",
+          pass: true,
+          score: 1,
+          details: "Contains expected string",
+        },
+      ],
+    });
+
+    await writeFile(join(workDir, "output.json"), '{"status":"bad"}\n', "utf8");
+    const [failing] = await scoreRawRunRows([raw], new Map([[task.id, task]]));
+    expect(failing).toMatchObject({
+      success: false,
+      evaluatorScore: 0,
+      ruleViolations: 1,
+      failedCriteria: ["output-ok"],
+      successSource: "deterministic-evaluator",
+    });
+  });
+
+  test("scoreRawRunRows requires hard gates even when the weighted threshold passes", async () => {
+    const workDir = await mkdtemp(join(tmpdir(), "skill-ir-hard-gate-"));
+    tempDirs.push(workDir);
+    await writeFile(join(workDir, "optional.txt"), "ready\n", "utf8");
+    const task: SkillIRBenchmarkTask = {
+      id: "hard-gate-task",
+      split: "held-out",
+      prompt: "Create required and optional artifacts.",
+      successCriteria: [],
+      eval: [
+        { method: "file-check", id: "required", weight: 0.1, path: "required.txt", mode: "contains", expected: "ok" },
+        { method: "file-check", id: "optional", weight: 0.9, path: "optional.txt", mode: "contains", expected: "ready" },
+      ],
+      hardGateIds: ["required"],
+      passThreshold: 0.8,
+    };
+
+    const [scored] = await scoreRawRunRows(
+      [{
+        caseId: "artifact-skill:skvm:windows:clean:hard-gate-task",
+        system: "original",
+        taskPath: "tmp/task.json",
+        workDir,
+        exitCode: 0,
+        durationMs: 10,
+        stdout: "Final output:\nDone.",
+        stderr: "",
+        successSource: "execution-only",
+      }],
+      new Map([[task.id, task]]),
+    );
+
+    expect(scored).toMatchObject({
+      success: false,
+      evaluatorScore: 0.9,
+      failedCriteria: ["required"],
+    });
+  });
+
+  test("scoreRawRunRows applies per-criterion weights at the configured threshold", async () => {
+    const workDir = await mkdtemp(join(tmpdir(), "skill-ir-weighted-threshold-"));
+    tempDirs.push(workDir);
+    await writeFile(join(workDir, "primary.txt"), "ok\n", "utf8");
+    const baseTask: SkillIRBenchmarkTask = {
+      id: "weighted-task",
+      split: "held-out",
+      prompt: "Create artifacts.",
+      successCriteria: [],
+      eval: [
+        { method: "file-check", id: "primary", weight: 0.75, path: "primary.txt", mode: "contains", expected: "ok" },
+        { method: "file-check", id: "secondary", weight: 0.25, path: "secondary.txt", mode: "contains", expected: "ok" },
+      ],
+      passThreshold: 0.75,
+    };
+    const raw: RawAgentRunRow = {
+      caseId: "artifact-skill:skvm:windows:clean:weighted-task",
+      system: "original",
+      taskPath: "tmp/task.json",
+      workDir,
+      exitCode: 0,
+      durationMs: 10,
+      stdout: "Final output:\nDone.",
+      stderr: "",
+      successSource: "execution-only",
+    };
+
+    const [atThreshold] = await scoreRawRunRows([raw], new Map([[baseTask.id, baseTask]]));
+    const [aboveThreshold] = await scoreRawRunRows(
+      [raw],
+      new Map([[baseTask.id, { ...baseTask, passThreshold: 0.76 }]]),
+    );
+
+    expect(atThreshold).toMatchObject({ success: true, evaluatorScore: 0.75 });
+    expect(aboveThreshold).toMatchObject({ success: false, evaluatorScore: 0.75 });
+  });
+
+  test("scoreRawRunRows classifies evaluator infraError without serializing custom payloads", async () => {
+    registerCustomEvaluator("skill-ir-test-infra-error", {
+      async run() {
+        return {
+          pass: false,
+          score: 0,
+          details: "Evaluator dependency unavailable",
+          infraError: "missing portable dependency",
+          checkpoints: [{ name: "preflight", score: 0, reason: "dependency missing" }],
+        };
+      },
+    });
+    const workDir = await mkdtemp(join(tmpdir(), "skill-ir-infra-error-"));
+    tempDirs.push(workDir);
+    const task: SkillIRBenchmarkTask = {
+      id: "infra-task",
+      split: "development",
+      prompt: "Create an artifact.",
+      successCriteria: [],
+      eval: [{
+        method: "custom",
+        id: "portable-check",
+        name: "Portable check",
+        evaluatorId: "skill-ir-test-infra-error",
+        payload: { secretExpectedValue: "must-not-be-serialized" },
+      }],
+    };
+
+    const [scored] = await scoreRawRunRows(
+      [{
+        caseId: "artifact-skill:skvm:windows:clean:infra-task",
+        system: "original",
+        taskPath: "tmp/task.json",
+        workDir,
+        exitCode: 0,
+        durationMs: 10,
+        stdout: "Final output:\nDone.",
+        stderr: "",
+        successSource: "execution-only",
+      }],
+      new Map([[task.id, task]]),
+    );
+
+    expect(scored).toMatchObject({
+      success: false,
+      failureType: "infrastructure",
+      failureStage: "evaluation",
+      ruleViolations: 0,
+      failedCriteria: [],
+      evaluatorScore: 0,
+      evaluationSummary: [{
+        method: "custom",
+        id: "portable-check",
+        name: "Portable check",
+        pass: false,
+        score: 0,
+        details: "Evaluator dependency unavailable",
+        infraError: "missing portable dependency",
+        checkpoints: [{ name: "preflight", score: 0, reason: "dependency missing" }],
+      }],
+    });
+    expect(JSON.stringify(scored)).not.toContain("must-not-be-serialized");
+    expect(JSON.stringify(scored)).not.toContain("secretExpectedValue");
+  });
+
+  test("scoreRawRunRows rejects invalid explicit evaluator contracts", async () => {
+    const workDir = await mkdtemp(join(tmpdir(), "skill-ir-invalid-eval-"));
+    tempDirs.push(workDir);
+    const raw: RawAgentRunRow = {
+      caseId: "artifact-skill:skvm:windows:clean:invalid-task",
+      system: "original",
+      taskPath: "tmp/task.json",
+      workDir,
+      exitCode: 0,
+      durationMs: 10,
+      stdout: "Final output:\nDone.",
+      stderr: "",
+      successSource: "execution-only",
+    };
+    const criterion = { method: "file-check", id: "known", path: "output.txt", mode: "contains", expected: "ok" } as const;
+    const invalidTasks: Array<[SkillIRBenchmarkTask, string]> = [
+      [{ id: "invalid-task", split: "development", prompt: "x", successCriteria: [], eval: [] }, "non-empty"],
+      [{ id: "invalid-task", split: "development", prompt: "x", successCriteria: [], eval: [criterion], hardGateIds: ["known", "known"] }, "unique"],
+      [{ id: "invalid-task", split: "development", prompt: "x", successCriteria: [], eval: [criterion], hardGateIds: ["missing"] }, "does not exist"],
+      [{ id: "invalid-task", split: "development", prompt: "x", successCriteria: [], eval: [criterion, criterion], hardGateIds: ["known"] }, "criterion id"],
+      [{ id: "invalid-task", split: "development", prompt: "x", successCriteria: [], eval: [criterion], passThreshold: Number.NaN }, "passThreshold"],
+      [{ id: "invalid-task", split: "development", prompt: "x", successCriteria: [], eval: [criterion], passThreshold: 1.1 }, "passThreshold"],
+      [{ id: "invalid-task", split: "development", prompt: "x", successCriteria: [], eval: [{ method: "llm-judge", rubric: "Judge", maxScore: 1 }] }, "llm-judge"],
+    ];
+
+    for (const [task, message] of invalidTasks) {
+      await expect(scoreRawRunRows([raw], new Map([[task.id, task]]))).rejects.toThrow(message);
+    }
+  });
+
+  test("scoreRawRunRows does not evaluate residual artifacts after a nonzero execution", async () => {
+    let evaluatorCalls = 0;
+    registerCustomEvaluator("skill-ir-test-should-not-run", {
+      async run() {
+        evaluatorCalls += 1;
+        return { pass: true, score: 1, details: "unexpected" };
+      },
+    });
+    const workDir = await mkdtemp(join(tmpdir(), "skill-ir-nonzero-exit-"));
+    tempDirs.push(workDir);
+    const task: SkillIRBenchmarkTask = {
+      id: "failed-execution-task",
+      split: "development",
+      prompt: "Create an artifact.",
+      successCriteria: [],
+      eval: [{ method: "custom", id: "must-not-run", evaluatorId: "skill-ir-test-should-not-run" }],
+    };
+
+    const [scored] = await scoreRawRunRows(
+      [{
+        caseId: "artifact-skill:skvm:windows:clean:failed-execution-task",
+        system: "original",
+        taskPath: "tmp/task.json",
+        workDir,
+        exitCode: 2,
+        durationMs: 10,
+        stdout: "Final output:\nA stale artifact exists.",
+        stderr: "agent command failed",
+        successSource: "execution-only",
+      }],
+      new Map([[task.id, task]]),
+    );
+
+    expect(evaluatorCalls).toBe(0);
+    expect(scored).toMatchObject({
+      success: false,
+      failureType: "agent",
+      failureStage: "execution",
+      ruleViolations: 0,
+      failedCriteria: ["process exited with code 2"],
     });
   });
 

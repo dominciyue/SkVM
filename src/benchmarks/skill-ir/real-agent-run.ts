@@ -347,7 +347,7 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
   return plan;
 }
 
-async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs): Promise<void> {
+export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs): Promise<void> {
   const outDir = args.outDir;
   const rawRunsPath = join(outDir, "raw-runs.jsonl");
   await writeFile(rawRunsPath, "", "utf8");
@@ -379,6 +379,7 @@ async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs
           evidenceWeight: item.evidenceWeight,
           taskPath: item.taskPath,
           skillPath: item.skillPath,
+          workDir: item.workDir,
           exitCode,
           durationMs: Date.now() - startedAt,
           stdout,

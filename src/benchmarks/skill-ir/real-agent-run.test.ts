@@ -6,11 +6,13 @@ import type { SkillIR } from "../../skill-ir/schema";
 import {
   assertRequiredEnv,
   buildPlan,
+  executePlan,
   parseRealAgentRunArgs,
   resetPersistentWorkDir,
   type RealAgentRunArgs,
 } from "./real-agent-run";
 import { buildFinalIRProvenance } from "./final-ir-provenance";
+import type { RealAgentRunPlanEntry } from "./real-agent";
 import { sha256Bytes } from "./source-fixture";
 
 const tempDirs: string[] = [];
@@ -180,6 +182,42 @@ describe("real-agent-run manifest loading", () => {
 
     expect(resetPersistentWorkDir(runDir)).rejects.toThrow("Refusing to reset non-materialized workdir");
     expect(await Bun.file(sentinel).text()).toBe("task\n");
+  });
+
+  test("executePlan writes the persistent workDir into each raw row", async () => {
+    const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-execute-"));
+    tempDirs.push(rootDir);
+    const outDir = join(rootDir, "out");
+    const workDir = join(rootDir, "case", "original", "run-1", "workdir");
+    await mkdir(outDir, { recursive: true });
+    const plan: RealAgentRunPlanEntry[] = [{
+      caseId: "artifact-skill:skvm:windows:clean:artifact-task",
+      system: "original",
+      taskPath: join(rootDir, "task.json"),
+      workDir,
+      model: "test/model",
+      modelFamily: "test",
+      adapter: "bare-agent",
+      adapterVersion: "workspace",
+      runIndex: 1,
+      panelConfigId: "single-run",
+      command: [process.execPath, "-e", "console.log('Final output:\\nok')"],
+    }];
+
+    await executePlan(plan, {
+      corpus: "calibration",
+      model: "test/model",
+      adapter: "bare-agent",
+      outDir,
+      limit: 1,
+      execute: true,
+      retries: 0,
+      retryDelayMs: 0,
+      rootDir,
+    });
+
+    const rawRow = JSON.parse((await Bun.file(join(outDir, "raw-runs.jsonl")).text()).trim());
+    expect(rawRow.workDir).toBe(workDir);
   });
 
   test("parseRealAgentRunArgs requires an explicit corpus", () => {

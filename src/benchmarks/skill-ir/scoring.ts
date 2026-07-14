@@ -1,3 +1,7 @@
+import "../../bench/evaluators/index";
+import { buildEvalDetails, computeWeightedScore } from "../../bench/conditions/scoring";
+import type { EvalCheckpoint, EvalResult, RunResult } from "../../core/types";
+import { evaluateAll } from "../../framework/evaluator";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 import type { RunIdentity, SkillIRBenchmarkTask } from "./real-agent";
 
@@ -16,6 +20,7 @@ export type RawAgentRunRow = Partial<RunIdentity> & {
   evidenceWeight?: EvidenceWeight;
   taskPath: string;
   skillPath?: string;
+  workDir?: string;
   exitCode: number;
   durationMs: number;
   stdout: string;
@@ -39,6 +44,19 @@ export type RunScore = {
 
 export type FailureType = "infrastructure" | "agent";
 
+export type FailureStage = "execution" | "evaluation";
+
+export type EvaluationSummary = {
+  method: string;
+  id?: string;
+  name?: string;
+  pass: boolean;
+  score: number;
+  details: string;
+  checkpoints?: EvalCheckpoint[];
+  infraError?: string;
+};
+
 export type TokenUsage = {
   inputTokens: number;
   outputTokens: number;
@@ -58,9 +76,12 @@ export type ScoredAgentRunRow = ParsedCaseId & Partial<RunIdentity> & {
   inputTokens?: number;
   outputTokens?: number;
   tokenCost?: number;
-  successSource: "heuristic-success-criteria";
+  successSource: "heuristic-success-criteria" | "deterministic-evaluator";
   failedCriteria: string[];
   failureType?: FailureType;
+  failureStage?: FailureStage;
+  evaluatorScore?: number;
+  evaluationSummary?: EvaluationSummary[];
 };
 
 export function parseCaseId(caseId: string): ParsedCaseId {
@@ -402,17 +423,17 @@ export function scoreRunOutput(opts: ScoreRunOutputOptions): RunScore {
   };
 }
 
-export function scoreRawRunRows(
+export async function scoreRawRunRows(
   rows: RawAgentRunRow[],
   taskById: Map<string, SkillIRBenchmarkTask>,
-): ScoredAgentRunRow[] {
+): Promise<ScoredAgentRunRow[]> {
   return scoreRawRunRowsWithResolver(rows, (parsed) => taskById.get(parsed.task));
 }
 
-export function scoreRawRunRowsBySkill(
+export async function scoreRawRunRowsBySkill(
   rows: RawAgentRunRow[],
   taskBySkillAndId: Map<string, SkillIRBenchmarkTask>,
-): ScoredAgentRunRow[] {
+): Promise<ScoredAgentRunRow[]> {
   return scoreRawRunRowsWithResolver(rows, (parsed) => taskBySkillAndId.get(taskIndexKey(parsed.skill, parsed.task)));
 }
 
@@ -420,32 +441,161 @@ export function taskIndexKey(skillId: string, taskId: string): string {
   return `${skillId}:${taskId}`;
 }
 
-function scoreRawRunRowsWithResolver(
+function validateExplicitEvaluatorContract(task: SkillIRBenchmarkTask): void {
+  if (task.eval === undefined) {
+    return;
+  }
+  if (task.eval.length === 0) {
+    throw new Error(`Task ${task.id} explicit eval must be non-empty`);
+  }
+  if (task.eval.some((criterion) => criterion.method === "llm-judge")) {
+    throw new Error(`Task ${task.id} explicit eval contains llm-judge, but this scorer has no judge provider`);
+  }
+
+  const threshold = task.passThreshold ?? 1;
+  if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) {
+    throw new Error(`Task ${task.id} passThreshold must be finite and within [0, 1]`);
+  }
+
+  const hardGateIds = task.hardGateIds ?? [];
+  if (new Set(hardGateIds).size !== hardGateIds.length) {
+    throw new Error(`Task ${task.id} hardGateIds must be unique`);
+  }
+  const criterionIdCounts = new Map<string, number>();
+  for (const criterion of task.eval) {
+    if (criterion.id !== undefined) {
+      criterionIdCounts.set(criterion.id, (criterionIdCounts.get(criterion.id) ?? 0) + 1);
+    }
+  }
+  for (const hardGateId of hardGateIds) {
+    const count = criterionIdCounts.get(hardGateId) ?? 0;
+    if (count === 0) {
+      throw new Error(`Task ${task.id} hard gate ${hardGateId} does not exist`);
+    }
+    if (count > 1) {
+      throw new Error(`Task ${task.id} criterion id ${hardGateId} must be unique when referenced by a hard gate`);
+    }
+  }
+}
+
+function evaluationLabel(result: EvalResult, index: number): string {
+  return result.criterion.id?.trim() || result.criterion.name?.trim() || `${result.criterion.method}#${index + 1}`;
+}
+
+function summarizeEvaluation(result: EvalResult): EvaluationSummary {
+  return {
+    method: result.criterion.method,
+    ...(result.criterion.id !== undefined ? { id: result.criterion.id } : {}),
+    ...(result.criterion.name !== undefined ? { name: result.criterion.name } : {}),
+    pass: result.pass,
+    score: result.score,
+    details: result.details,
+    ...(result.checkpoints !== undefined ? { checkpoints: result.checkpoints } : {}),
+    ...(result.infraError !== undefined ? { infraError: result.infraError } : {}),
+  };
+}
+
+function buildRunResult(row: RawAgentRunRow, finalOutput: string, tokenUsage: TokenUsage | undefined): RunResult {
+  if (!row.workDir) {
+    throw new Error(`Explicit evaluator run ${row.caseId} is missing workDir`);
+  }
+
+  return {
+    text: finalOutput,
+    steps: finalOutput.length > 0
+      ? [{ role: "assistant", text: finalOutput, toolCalls: [], timestamp: 0 }]
+      : [],
+    tokens: {
+      input: tokenUsage?.inputTokens ?? 0,
+      output: tokenUsage?.outputTokens ?? 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+    },
+    cost: 0,
+    durationMs: row.durationMs,
+    llmDurationMs: 0,
+    workDir: row.workDir,
+    runStatus: "ok",
+    usageAvailable: tokenUsage !== undefined,
+  };
+}
+
+async function scoreExplicitEvaluatorRun(
+  row: RawAgentRunRow,
+  task: SkillIRBenchmarkTask & { eval: NonNullable<SkillIRBenchmarkTask["eval"]> },
+  finalOutput: string,
+  tokenUsage: TokenUsage | undefined,
+): Promise<Pick<ScoredAgentRunRow, "success" | "ruleViolations" | "stepCoverage" | "successSource" | "failedCriteria" | "failureType" | "failureStage" | "evaluatorScore" | "evaluationSummary">> {
+  if (row.exitCode !== 0) {
+    return {
+      success: false,
+      ruleViolations: 0,
+      stepCoverage: finalOutput.length > 0 ? 1 : 0,
+      successSource: "deterministic-evaluator",
+      failedCriteria: [`process exited with code ${row.exitCode}`],
+      failureType: classifyFailureType(row),
+      failureStage: "execution",
+    };
+  }
+
+  const results = await evaluateAll(task.eval, buildRunResult(row, finalOutput, tokenUsage));
+  const { overallScore } = computeWeightedScore(buildEvalDetails(results));
+  const hasInfraError = results.some((result) => result.infraError !== undefined);
+  const hardGateIds = new Set(task.hardGateIds ?? []);
+  const hardGatesPass = results.every(
+    (result) => !result.criterion.id || !hardGateIds.has(result.criterion.id) || result.pass,
+  );
+  const success = !hasInfraError && hardGatesPass && overallScore >= (task.passThreshold ?? 1);
+  const failedCriteria = hasInfraError
+    ? []
+    : results.flatMap((result, index) => result.pass ? [] : [evaluationLabel(result, index)]);
+
+  return {
+    success,
+    ruleViolations: hasInfraError ? 0 : failedCriteria.length,
+    stepCoverage: finalOutput.length > 0 ? 1 : 0,
+    successSource: "deterministic-evaluator",
+    failedCriteria,
+    ...(hasInfraError ? { failureType: "infrastructure" as const } : {}),
+    ...(!success ? { failureStage: "evaluation" as const } : {}),
+    evaluatorScore: overallScore,
+    evaluationSummary: results.map(summarizeEvaluation),
+  };
+}
+
+async function scoreRawRunRowsWithResolver(
   rows: RawAgentRunRow[],
   resolveTask: (parsed: ParsedCaseId) => SkillIRBenchmarkTask | undefined,
-): ScoredAgentRunRow[] {
-  return rows.map((row) => {
+): Promise<ScoredAgentRunRow[]> {
+  return Promise.all(rows.map(async (row) => {
     const parsed = parseCaseId(row.caseId);
     const task = resolveTask(parsed);
     if (!task) {
       throw new Error(`Task ${parsed.task} was not found while scoring ${row.caseId}`);
     }
 
+    validateExplicitEvaluatorContract(task);
     const failureType = row.exitCode === 0 ? undefined : classifyFailureType(row);
     const tokenUsage = extractTokenUsage(row.stdout);
-    const score =
-      failureType === "infrastructure"
+    const finalOutput = extractFinalOutput(row.stdout);
+    const score = task.eval !== undefined
+      ? await scoreExplicitEvaluatorRun(row, task as SkillIRBenchmarkTask & { eval: NonNullable<SkillIRBenchmarkTask["eval"]> }, finalOutput, tokenUsage)
+      : failureType === "infrastructure"
         ? {
             success: false,
             ruleViolations: 0,
-            stepCoverage: extractFinalOutput(row.stdout).length > 0 ? 1 : 0,
+            stepCoverage: finalOutput.length > 0 ? 1 : 0,
+            successSource: "heuristic-success-criteria" as const,
             failedCriteria: [`process exited with code ${row.exitCode}`],
           }
         : scoreRunOutput({
             exitCode: row.exitCode,
-            finalOutput: extractFinalOutput(row.stdout),
+            finalOutput,
             task,
           });
+    const explicitScore = task.eval !== undefined
+      ? score as Awaited<ReturnType<typeof scoreExplicitEvaluatorRun>>
+      : undefined;
 
     return {
       caseId: row.caseId,
@@ -465,11 +615,21 @@ function scoreRawRunRowsWithResolver(
       stepCoverage: score.stepCoverage,
       latencyMs: row.durationMs,
       ...(tokenUsage ?? {}),
-      successSource: "heuristic-success-criteria",
+      successSource: explicitScore?.successSource ?? "heuristic-success-criteria",
       failedCriteria: score.failedCriteria,
-      ...(failureType ? { failureType } : {}),
+      ...(explicitScore
+        ? {
+            ...(explicitScore.failureType ? { failureType: explicitScore.failureType } : {}),
+            ...(explicitScore.failureStage ? { failureStage: explicitScore.failureStage } : {}),
+            ...(explicitScore.evaluatorScore !== undefined ? { evaluatorScore: explicitScore.evaluatorScore } : {}),
+            ...(explicitScore.evaluationSummary ? { evaluationSummary: explicitScore.evaluationSummary } : {}),
+          }
+        : {
+            ...(failureType ? { failureType } : {}),
+            ...(failureType ? { failureStage: "execution" as const } : {}),
+          }),
     };
-  });
+  }));
 }
 
 export function classifyFailureType(row: Pick<RawAgentRunRow, "exitCode" | "stdout" | "stderr">): FailureType {
