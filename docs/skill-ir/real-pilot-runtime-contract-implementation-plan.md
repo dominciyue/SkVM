@@ -108,7 +108,7 @@ Task 1 review follow-up also upgraded every paired-analysis consumer to use the 
 - Test: `src/benchmarks/skill-ir/real-agent.test.ts`
 - Test: `src/benchmarks/skill-ir/real-agent-run.test.ts`
 
-- [ ] **Step 1: Write failing workdir and parity tests**
+- [x] **Step 1: Write failing workdir and parity tests**
 
 Add tests proving that each materialized run has a required `workDir`, its command contains the same `--workdir=...` path, task fixtures remain in `task.json` for `skvm run` to copy, and a file-backed `ir-static` materialization contains the same non-`SKILL.md` scripts as `original` while replacing only `SKILL.md`.
 
@@ -119,7 +119,7 @@ expect(await Bun.file(join(entry.skillPath!, "..", "scripts", "check.py")).text(
 expect(await Bun.file(entry.skillPath!).text()).toContain("Materialized system: ir-static.");
 ```
 
-- [ ] **Step 2: Run tests and confirm RED**
+- [x] **Step 2: Run tests and confirm RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent.test.ts ./src/benchmarks/skill-ir/real-agent-run.test.ts
@@ -127,25 +127,27 @@ bun test ./src/benchmarks/skill-ir/real-agent.test.ts ./src/benchmarks/skill-ir/
 
 Expected: workdir is absent and generated IR lacks the source resource closure.
 
-- [ ] **Step 3: Materialize one unique persistent workdir per row**
+- [x] **Step 3: Materialize one unique persistent workdir per row**
 
 Make `MaterializedCase.workDir` required. Include `run-${runIndex}` in the case directory and create `<case>/<system>/run-N/workdir`. `buildRunPlanEntry` must always pass this exact path to `buildSkvmRunCommand`.
 
-- [ ] **Step 4: Carry task fixtures without exposing evaluator-only data**
+- [x] **Step 4: Carry task fixtures without exposing evaluator-only data**
 
 Extend `SkillIRBenchmarkTask` and `SkvmTaskJson` with optional `fixtures: Record<string, string>`. Copy only fixtures into the generated task JSON. Keep evaluator criteria in `eval`; neither criteria nor expected values are appended to the prompt.
 
-- [ ] **Step 5: Preserve file-backed resources for generated IR systems**
+- [x] **Step 5: Preserve file-backed resources for generated IR systems**
 
 Add a source helper that verifies the upstream source digest, copies the source directory, then lets generated systems overwrite only destination `SKILL.md`. Do not copy any source closure for `no-skill` or inline-source skills.
 
-- [ ] **Step 6: Run focused tests and commit**
+- [x] **Step 6: Run focused tests and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent.test.ts ./src/benchmarks/skill-ir/real-agent-run.test.ts
 git add src/benchmarks/skill-ir/source-fixture.ts src/benchmarks/skill-ir/real-agent.ts src/benchmarks/skill-ir/real-agent.test.ts src/benchmarks/skill-ir/real-agent-run.test.ts
 git commit -m "feat: persist pilot workdirs and resources"
 ```
+
+Task 2 review follow-up rejects fixture path traversal and resets the persistent workdir before every execution attempt. Rematerializing a row also replaces the whole run directory, preventing stale outputs or obsolete source resources from contaminating later evidence.
 
 ### Task 3: Deterministic Evaluator Dispatch
 
