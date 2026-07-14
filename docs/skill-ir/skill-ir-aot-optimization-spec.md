@@ -41,6 +41,12 @@ no-skill | original | ir-static
 
 当前采用 task-local repair：同一 skill/task family 的 `original × development` failures 生成 profile overlay，静态 base IR 与 overlay 编译成 Final IR，held-out tasks 只消费校验通过的 Final IR 来评估泛化和回归。Final IR 是带 provenance 的编译产物；`ir-pgo` 是该产物在 held-out 上的实验系统标签。当前不假设一个模型族生成的 overlay 能迁移到其他模型族，也不把已有小样本 promotion signal 当作成熟模型族结论。
 
+真实 pilot 分两步推进。第一步用一个预注册模型竖切 `env-manager`，跑通 fixture、持久 workdir、确定性 scorer、精确 original、base IR、`ir-static`、development feedback、Final IR 和 held-out `ir-pgo`；这一步属于 engineering calibration，不进入主表。第二步才在同一 skill 上使用固定、预注册、等重复次数的模型面板，将各模型的 development 证据按显式规则合成一份 **panel-conditioned shared Final IR**，再让同一产物在面板内各模型的 held-out tasks 上评测。
+
+这个实验只支持“一份由固定面板构造的编译产物能否改善该面板内的 held-out 稳定性”，不支持“模型 A 的失败能迁移到未参与构造的模型 B”。后者需要 leave-one-model-out 或 unseen-model transfer 消融。pooled overlay 只能使用 development 数据；必须保留 per-model evidence vector，平衡各模型贡献，显式排除冲突 repair，并同时报告 aggregate、per-model、worst-model 和 negative delta。若任一模型超过预注册回归边界，即使均值提高，也只能报告 mixed trade-off，不能报告完整跨模型稳定性提升。
+
+pooled 构造前，raw/scored rows、trace、overlay 和 Final IR provenance 必须端到端记录 model route、model family、adapter/version、run index 和 panel/config id。`ir-static` 与 `ir-pgo` 默认继承 original 的不可变非 `SKILL.md` 资源闭包，除非编译替换件具有独立 provenance 和 validation。详细设计见 `docs/skill-ir/env-manager-vertical-and-pooled-overlay-design.md`。
+
 Task 11F promotion policy 与 Task 11G validation planner 保留为 advisory method-support tooling，当前冻结继续扩展，优先补齐真实 skill 研究内核。
 
 ### 0.4 工程终态（北向目标，不是当前主 Claim）

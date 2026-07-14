@@ -16,7 +16,7 @@ no-skill | original | ir-static | ir-pgo
 
 **Cold-start default:** `no-skill | original | ir-static`. `ir-pgo` is never scheduled by default. It is added only by an explicit held-out command after `original × development` feedback has produced a Final IR with validated provenance and matching source/base/overlay/final digests.
 
-**PGO policy:** use task-local repair. Only development evidence from the same skill/task family may produce an overlay; evaluation uses disjoint held-out tasks. Cross-model transfer is a later research question, not a current assumption.
+**PGO policy:** use task-local repair. Only development evidence from the same skill/task family may produce an overlay; evaluation uses disjoint held-out tasks. First complete one single-model `env-manager` engineering-calibration vertical. Then construct one panel-conditioned shared Final IR from a fixed, preregistered, balanced model panel and evaluate that same artifact per model on held-out tasks. This is panel-internal stability evidence, not unseen-model transfer.
 
 **Evidence scope:** Wave A contains three deep real-skill pilots (`law-to-markdown`, `env-manager`, and `experimental-design`). Wave B contains three mandatory replication pilots (`zh-code-reviewer`, `api-tester`, and `zh-readme`). A complete main claim requires Wave B on a frozen method/configuration; Wave B must not tune the same reported configuration. Do not expand beyond six until each deep pilot has an exact source baseline, deterministic scoring, a no-skill task definition, base IR, development/held-out separation, real runs, and an interpretation note.
 
@@ -41,7 +41,7 @@ The package is a northbound engineering target, not a current paper claim. Artif
 | Tasks 11A-11E: real-agent runner, scoring, context audit, harder tasks, multi-model runs, dynamic feedback | Implemented; evidence-limited | Existing results demonstrate mechanisms and seed case studies, not broad generalization. |
 | Tasks 11F-11G: promotion policy and validation planner | Implemented and frozen | Keep as advisory method-support tooling; do not deepen before real-skill evidence. |
 | Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; source-backed corpus import is next. |
-| Task 11I: real-skill restart and artifact maturity | In progress | Source snapshots, explicit corpus registry, exact original baseline, cold-start scheduling, and Final IR provenance are implemented; author Wave A tasks/IR next. |
+| Task 11I: real-skill restart and artifact maturity | In progress | Source/provenance gates are implemented. Next: env-manager vertical evaluator/workdir metadata, single-model calibration, then balanced pooled construction. |
 | Task 12: report and slides | Deferred | Begin after the first real-skill main table and case study exist. |
 
 ### Active Sequence
@@ -51,12 +51,15 @@ The package is a northbound engineering target, not a current paper claim. Artif
 - [x] Import exact, licensed source closures for the three Wave A pilots with per-file integrity metadata.
 - [x] Materialize exact file-backed original text and resources; keep judge criteria out of the agent prompt.
 - [x] Compile Final IR only from `original × development` feedback and validate provenance before held-out `ir-pgo`.
-- [ ] Author task-local no-skill/original tasks, scorers, and development/held-out splits before IR conversion.
-- [ ] Construct and audit static base IR for the three pilots.
-- [ ] Run cold-start `no-skill | original | ir-static`, generate task-local overlays from `original × development` failures, then explicitly run held-out `ir-pgo`.
-- [ ] Analyze paired success, worst-case performance, regressions, rule failures, and model/context slices.
+- [ ] Add persistent per-row workdirs, existing-evaluator dispatch, infra/semantic classification, and model/family/run/panel metadata before pooled execution.
+- [ ] Author `env-manager` development/held-out fixtures and deterministic validator before constructing its base IR.
+- [ ] Run the single-model `env-manager` vertical through `no-skill | original | ir-static`, original-guided feedback, Final IR, and held-out `ir-pgo`; label it engineering calibration.
+- [ ] Lock the reproducible vertical configuration in `env-manager-vertical-lock.json`.
+- [ ] Implement balanced pooled aggregation with per-model support vectors and conflict exclusion; preregister the fixed panel and regression gates.
+- [ ] Run one shared panel-conditioned Final IR on `env-manager`, reporting aggregate, per-model, worst-model, regressions, and infrastructure exclusions.
+- [ ] Extend the stabilized method to `law-to-markdown`, including resource-parity enforcement, then to `experimental-design`.
 - [ ] Prototype one Validated Skill Artifact Package from a pilot whose repeated work can be solidified.
-- [ ] Freeze the Wave A method/configuration, then execute mandatory Wave B replication without tuning on Wave B.
+- [ ] Freeze the Wave A method/configuration in `wave-a-method-freeze.json`, preregister Wave B, then execute mandatory replication without tuning on Wave B.
 
 ### Frozen Or Deferred
 
@@ -65,6 +68,8 @@ The package is a northbound engineering target, not a current paper claim. Artif
 - Do not claim Linux/macOS behavior from an `environment` label on the Windows host.
 - Do not treat current checker/controller Markdown as independently enforced runtime code.
 - Do not use the early 40-60 / 18-24 / 12-16 scale as a current success criterion.
+- Do not call a panel-conditioned artifact model-independent or use its results as unseen-model transfer evidence.
+- Do not pool raw failure counts across models; balance model support and reject unresolved repair conflicts.
 
 ---
 
