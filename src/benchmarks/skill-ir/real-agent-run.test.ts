@@ -7,6 +7,7 @@ import {
   assertRequiredEnv,
   buildPlan,
   parseRealAgentRunArgs,
+  resetPersistentWorkDir,
   type RealAgentRunArgs,
 } from "./real-agent-run";
 import { buildFinalIRProvenance } from "./final-ir-provenance";
@@ -143,6 +144,44 @@ async function createMultiSkillRoot(): Promise<string> {
 }
 
 describe("real-agent-run manifest loading", () => {
+  test("resetPersistentWorkDir recreates only the supplied materialized workdir", async () => {
+    const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-reset-"));
+    tempDirs.push(rootDir);
+    const runDir = join(rootDir, "case", "original", "run-1");
+    const workDir = join(runDir, "workdir");
+    const staleOutput = join(workDir, "nested", "stale-output.txt");
+    const taskSentinel = join(runDir, "task", "task.json");
+    const skillSentinel = join(runDir, "skill", "SKILL.md");
+    await Promise.all([
+      mkdir(join(workDir, "nested"), { recursive: true }),
+      mkdir(dirname(taskSentinel), { recursive: true }),
+      mkdir(dirname(skillSentinel), { recursive: true }),
+    ]);
+    await Promise.all([
+      writeFile(staleOutput, "stale\n", "utf8"),
+      writeFile(taskSentinel, "task\n", "utf8"),
+      writeFile(skillSentinel, "skill\n", "utf8"),
+    ]);
+    await resetPersistentWorkDir(workDir);
+
+    expect((await stat(workDir)).isDirectory()).toBe(true);
+    expect(await Bun.file(staleOutput).exists()).toBe(false);
+    expect(await Bun.file(taskSentinel).text()).toBe("task\n");
+    expect(await Bun.file(skillSentinel).text()).toBe("skill\n");
+  });
+
+  test("resetPersistentWorkDir rejects a target outside the materialized workdir shape", async () => {
+    const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-reset-"));
+    tempDirs.push(rootDir);
+    const runDir = join(rootDir, "case", "original", "run-1");
+    const sentinel = join(runDir, "task", "task.json");
+    await mkdir(dirname(sentinel), { recursive: true });
+    await writeFile(sentinel, "task\n", "utf8");
+
+    expect(resetPersistentWorkDir(runDir)).rejects.toThrow("Refusing to reset non-materialized workdir");
+    expect(await Bun.file(sentinel).text()).toBe("task\n");
+  });
+
   test("parseRealAgentRunArgs requires an explicit corpus", () => {
     expect(() => parseRealAgentRunArgs([])).toThrow("--corpus is required");
   });

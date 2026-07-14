@@ -139,6 +139,38 @@ describe("real-agent Task 11A helpers", () => {
     expect(taskJson.prompt).not.toContain("evaluator-only-sentinel");
   });
 
+  test("buildSkvmTaskJson rejects fixture paths that can escape the workdir", () => {
+    for (const fixturePath of ["", "../task/task.json", "/tmp/fixture.txt", "C:\\temp\\fixture.txt"]) {
+      expect(() =>
+        buildSkvmTaskJson(
+          {
+            ...task,
+            fixtures: { [fixturePath]: "unsafe\n" },
+          },
+          {
+            context: "clean",
+            skillId: "skill-review",
+          },
+        ),
+      ).toThrow(`Unsafe fixture path: ${fixturePath}`);
+    }
+  });
+
+  test("buildSkvmTaskJson allows safe nested fixture paths", () => {
+    const taskJson = buildSkvmTaskJson(
+      {
+        ...task,
+        fixtures: { "fixtures/nested/input.txt": "safe\n" },
+      },
+      {
+        context: "clean",
+        skillId: "skill-review",
+      },
+    );
+
+    expect(taskJson.fixtures).toEqual({ "fixtures/nested/input.txt": "safe\n" });
+  });
+
   test("buildSkvmTaskJson injects long and compressed context perturbations", () => {
     const longTask = buildSkvmTaskJson(task, {
       context: "long",
@@ -311,6 +343,49 @@ describe("real-agent Task 11A helpers", () => {
     expect(await Bun.file(materialized.skillPath!).text()).toContain("Materialized system: ir-static.");
     expect(await Bun.file(materialized.skillPath!).text()).not.toBe(sourceText);
     expect(await Bun.file(join(materialized.skillPath!, "..", "scripts", "check.py")).text()).toBe("print('ok')\n");
+  });
+
+  test("materializeCaseArtifacts removes stale run artifacts before rematerializing the same row", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-"));
+    tempDirs.push(tempDir);
+    const sourceDir = join(tempDir, "corpus", "skill-a", "source");
+    const sourceText = "# Exact upstream skill\n\nUse scripts/check.py.\n";
+    await mkdir(join(sourceDir, "scripts"), { recursive: true });
+    await writeFile(join(sourceDir, "SKILL.md"), sourceText, "utf8");
+    await writeFile(join(sourceDir, "scripts", "check.py"), "print('current')\n", "utf8");
+    const ir = baseIr();
+    ir.source = {
+      kind: "file",
+      path: "corpus/skill-a/source/SKILL.md",
+      sha256: createHash("sha256").update(sourceText).digest("hex"),
+    };
+    const options = {
+      outDir: join(tempDir, "out"),
+      rootDir: tempDir,
+      ir,
+      task,
+      context: "clean",
+      system: "ir-static" as const,
+      caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+      runIndex: 1,
+    };
+
+    const first = await materializeCaseArtifacts(options);
+    const staleWorkOutput = join(first.workDir, "nested", "stale-output.txt");
+    const staleSkillResource = join(first.skillPath!, "..", "obsolete-resource.txt");
+    await mkdir(join(first.workDir, "nested"), { recursive: true });
+    await writeFile(staleWorkOutput, "stale\n", "utf8");
+    await writeFile(staleSkillResource, "stale\n", "utf8");
+
+    const rematerialized = await materializeCaseArtifacts(options);
+
+    expect(await Bun.file(staleWorkOutput).exists()).toBe(false);
+    expect(await Bun.file(staleSkillResource).exists()).toBe(false);
+    expect(await Bun.file(join(rematerialized.skillPath!, "..", "scripts", "check.py")).text()).toBe(
+      "print('current')\n",
+    );
+    expect(await Bun.file(rematerialized.skillPath!).text()).toContain("Materialized system: ir-static.");
+    expect((await stat(rematerialized.workDir)).isDirectory()).toBe(true);
   });
 
   test("materializeCaseArtifacts rejects generated IR when its file-backed source digest is stale", async () => {

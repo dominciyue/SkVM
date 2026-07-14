@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { isAbsolute, join } from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { SkillIRSchema, type SkillIR } from "../../skill-ir/schema";
 import {
   buildCorpusMatrixInput,
@@ -178,6 +178,15 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
   return args;
 }
 
+export async function resetPersistentWorkDir(workDir: string): Promise<void> {
+  const target = resolve(workDir);
+  if (basename(target) !== "workdir" || !/^run-[1-9]\d*$/.test(basename(dirname(target)))) {
+    throw new Error(`Refusing to reset non-materialized workdir: ${workDir}`);
+  }
+  await rm(target, { recursive: true, force: true });
+  await mkdir(target, { recursive: true });
+}
+
 export function assertRequiredEnv(args: RealAgentRunArgs, env: Record<string, string | undefined> = process.env): void {
   if (!args.execute || !args.requireEnv || args.requireEnv.size === 0) {
     return;
@@ -346,6 +355,7 @@ async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs
   for (const item of plan) {
     const result = await runWithInfrastructureRetries(
       async () => {
+        await resetPersistentWorkDir(item.workDir);
         const startedAt = Date.now();
         const proc = Bun.spawn(item.command, {
           stdout: "pipe",

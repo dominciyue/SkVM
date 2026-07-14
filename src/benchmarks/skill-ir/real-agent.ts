@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { join, posix, resolve, win32 } from "node:path";
 import type { SkillIR } from "../../skill-ir/schema";
 import { insertEnvironmentGuards } from "../../skill-ir/passes/environment-guards";
 import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-repair";
@@ -120,6 +120,21 @@ function contextPerturbation(context: string): string {
   }
 
   return `Context condition: ${context}`;
+}
+
+function assertSafeFixturePaths(fixtures?: Record<string, string>): void {
+  for (const fixturePath of Object.keys(fixtures ?? {})) {
+    const normalized = posix.normalize(fixturePath.replaceAll("\\", "/"));
+    if (
+      fixturePath.trim().length === 0 ||
+      posix.isAbsolute(fixturePath) ||
+      win32.isAbsolute(fixturePath) ||
+      normalized === ".." ||
+      normalized.startsWith("../")
+    ) {
+      throw new Error(`Unsafe fixture path: ${fixturePath}`);
+    }
+  }
 }
 
 function systemIr(ir: SkillIR, system: ExperimentSystem): SkillIR {
@@ -243,6 +258,7 @@ export function buildSkvmTaskJson(
   task: SkillIRBenchmarkTask,
   opts: { context: string; skillId: string; timeoutMs?: number; maxSteps?: number },
 ): SkvmTaskJson {
+  assertSafeFixturePaths(task.fixtures);
   const criteria = task.successCriteria.map((criterion) => `- ${criterion}`).join("\n");
 
   return {
@@ -276,6 +292,7 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
   const taskDir = join(caseDir, "task");
   const skillDir = join(caseDir, "skill");
   const workDir = join(caseDir, "workdir");
+  await rm(resolve(caseDir), { recursive: true, force: true });
   await Promise.all([mkdir(taskDir, { recursive: true }), mkdir(workDir, { recursive: true })]);
 
   const taskJson = buildSkvmTaskJson(opts.task, {
