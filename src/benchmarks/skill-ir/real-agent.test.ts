@@ -271,6 +271,53 @@ describe("real-agent Task 11A helpers", () => {
     expect(rendered).toContain("The review response begins with findings before summary.");
   });
 
+  test("renderSkillMarkdown exposes every agent-facing static semantic view", () => {
+    const ir = baseIr();
+    ir.inputs = [
+      { id: "project-workspace", description: "The project workspace to inspect.", required: true },
+    ];
+    ir.outputs = [
+      { id: "review-report", description: "A findings-first review report.", required: true },
+    ];
+    ir.preconditions = [
+      { id: "workspace-readable", description: "Project files can be read.", checkability: "runtime" },
+    ];
+    ir.tools = [
+      {
+        id: "tool-files",
+        name: "filesystem",
+        purpose: "Read project files.",
+        required: true,
+        alternatives: ["provided file contents"],
+        platformNotes: { windows: "Use native paths." },
+        availabilityCheck: "confirm files are readable",
+      },
+    ];
+    ir.environment = [
+      {
+        id: "env-host",
+        description: "Path syntax depends on the host OS.",
+        platforms: ["linux", "macos", "windows"],
+        checkability: "runtime",
+      },
+    ];
+
+    const rendered = renderSkillMarkdown(ir, "ir-static");
+
+    expect(rendered).toContain("## Inputs");
+    expect(rendered).toContain("project-workspace: [required] The project workspace to inspect.");
+    expect(rendered).toContain("## Required Outputs");
+    expect(rendered).toContain("review-report: [required] A findings-first review report.");
+    expect(rendered).toContain("## Preconditions");
+    expect(rendered).toContain("workspace-readable: [runtime] Project files can be read.");
+    expect(rendered).toContain("## Tool Requirements");
+    expect(rendered).toContain("tool-files (filesystem): [required] Read project files.");
+    expect(rendered).toContain("Availability check: confirm files are readable.");
+    expect(rendered).toContain("Windows: Use native paths.");
+    expect(rendered).toContain("## Environment Assumptions");
+    expect(rendered).toContain("env-host: [runtime; linux, macos, windows] Path syntax depends on the host OS.");
+  });
+
   test("renderSkillMarkdown preserves inline original text without generated wrappers", () => {
     const ir = baseIr();
 

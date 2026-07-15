@@ -76,6 +76,10 @@ This matters for Task 11: context should be an actual input perturbation, not on
 The `skvm-aot` path is intentionally conservative. It does not fake a true SkVM compiler result.
 
 Current checker/controller text is agent-facing material, not independently executed runtime enforcement.
+Static materialization renders every current semantic view: inputs, required
+outputs, preconditions, tool requirements, environment assumptions, execution
+steps, rules, checks, and recovery policies. File-backed `original` continues
+to use only the digest-verified exact upstream text.
 
 See `docs/skill-ir/profile-feedback-loop.md` for the command that creates profile overlay and final IR artifacts before running `ir-pgo`.
 

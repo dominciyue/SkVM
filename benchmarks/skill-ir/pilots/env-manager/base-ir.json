@@ -1,0 +1,319 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "env-manager",
+  "name": "Environment Variable Manager",
+  "category": ["tool-use", "constraint-heavy", "environment-sensitive"],
+  "intent": "Audit environment-variable definitions and references, identify configuration and secret-handling risks, and produce safe synchronized configuration artifacts without exposing or modifying real secrets.",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+    "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+  },
+  "inputs": [
+    {
+      "id": "project-workspace",
+      "description": "The current project workspace containing environment files, source code, deployment configuration, or framework configuration to audit.",
+      "required": true
+    },
+    {
+      "id": "requested-scope",
+      "description": "Any user-specified audit scope, output locations, framework, or synchronization target.",
+      "required": false
+    }
+  ],
+  "outputs": [
+    {
+      "id": "env-example",
+      "description": "A safe .env.example template containing variable names and documentation but no real secret values.",
+      "required": true
+    },
+    {
+      "id": "env-schema",
+      "description": "A .env.schema.json artifact containing structured validation rules inferred from available project evidence.",
+      "required": true
+    },
+    {
+      "id": "audit-report",
+      "description": "An environment analysis report in the user-requested format that distinguishes confirmed findings from items requiring human confirmation.",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "workspace-readable",
+      "description": "The project workspace and files in the requested scope are readable.",
+      "checkability": "runtime"
+    },
+    {
+      "id": "output-contract-known",
+      "description": "Use the user's exact requested output names and structure when they are specified; otherwise use the skill's documented artifacts.",
+      "checkability": "runtime"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-discover-project",
+      "title": "Discover the audit scope",
+      "description": "Inspect the current workspace and user request to locate project files, .env variants, source code, framework configuration, CI, container, and deployment files without assuming an unprovided subdirectory.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["project-scope"],
+      "successCheckRefs": ["check-project-scope"],
+      "failureModes": ["assumed-missing-subdirectory", "incomplete-project-scope"]
+    },
+    {
+      "id": "step-inventory-definitions",
+      "title": "Inventory environment definitions",
+      "description": "Find .env variants and record variable names, source files, and empty status while keeping all real values out of reports and terminal output.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-discover-project"],
+      "toolRefs": ["tool-filesystem", "tool-search"],
+      "produces": ["definition-inventory"],
+      "successCheckRefs": ["check-secret-redaction"],
+      "failureModes": ["secret-value-disclosure", "missed-env-variant"]
+    },
+    {
+      "id": "step-scan-references",
+      "title": "Scan code and deployment references",
+      "description": "Scan JavaScript and TypeScript process.env references, Python os.environ and os.getenv references, and relevant CI, container, deployment, monorepo, and dynamic-access locations.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-discover-project"],
+      "toolRefs": ["tool-filesystem", "tool-search"],
+      "produces": ["reference-inventory"],
+      "successCheckRefs": ["check-reference-scan"],
+      "failureModes": ["source-language-omitted", "deployment-reference-omitted"]
+    },
+    {
+      "id": "step-classify-findings",
+      "title": "Classify environment findings",
+      "description": "Compare definitions and references to identify defined-and-used variables, statically unconfirmed unused candidates, used-but-undefined variables, hardcoded sensitive information, example-file drift, and client-exposure risks.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-inventory-definitions", "step-scan-references"],
+      "toolRefs": ["tool-filesystem", "tool-search"],
+      "produces": ["classified-findings"],
+      "successCheckRefs": ["check-classification-boundary"],
+      "failureModes": ["unconfirmed-unused-presented-as-certain", "hardcoded-secret-missed", "framework-exposure-missed"]
+    },
+    {
+      "id": "step-infer-validation",
+      "title": "Infer validation rules",
+      "description": "Infer requiredness, safe defaults, URL formats, port ranges, boolean formats, and sensitivity constraints only where project evidence supports them.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-classify-findings"],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["validation-rules"],
+      "successCheckRefs": ["check-validation-evidence"],
+      "failureModes": ["unsupported-schema-rule", "unsafe-secret-default"]
+    },
+    {
+      "id": "step-write-artifacts",
+      "title": "Write safe audit artifacts",
+      "description": "Write the requested report, .env.example, and .env.schema.json using names and structure required by the current task, without changing real .env files or copying production secrets.",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": ["step-classify-findings", "step-infer-validation"],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["env-example", "env-schema", "audit-report"],
+      "successCheckRefs": ["check-required-outputs"],
+      "failureModes": ["missing-required-artifact", "wrong-output-contract", "protected-file-modified"]
+    },
+    {
+      "id": "step-verify-artifacts",
+      "title": "Verify safety and consistency",
+      "description": "Re-read generated artifacts, confirm valid structure and requested filenames, ensure real environment files are unchanged, and search outputs for copied secret values before reporting completion.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": ["step-write-artifacts"],
+      "toolRefs": ["tool-filesystem", "tool-search"],
+      "produces": ["verification-result"],
+      "successCheckRefs": ["check-output-verification"],
+      "failureModes": ["malformed-output", "secret-in-output", "protected-file-modified"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-redact-secrets",
+      "sourceText": "默认只提取变量名、来源文件和是否为空；真实值必须脱敏，不写入报告或终端输出",
+      "level": "never",
+      "scope": "safety",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never reveal real environment or secret values in generated artifacts, logs, terminal output, issues, or chat output."
+    },
+    {
+      "id": "rule-preserve-real-env",
+      "sourceText": "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never delete or modify a real .env file without first presenting the difference and obtaining user confirmation."
+    },
+    {
+      "id": "rule-unused-is-unconfirmed",
+      "sourceText": "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Label variables with no static reference as unconfirmed unused candidates until CI, containers, deployment platforms, and dynamic access are checked."
+    },
+    {
+      "id": "rule-safe-example",
+      "sourceText": "生成 `.env.example` 模板（仅包含变量名和说明，不含真实值）",
+      "level": "must",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "The generated .env.example contains variable names, safe examples or documentation, and placeholders only; it never copies real production secrets."
+    },
+    {
+      "id": "rule-framework-exposure",
+      "sourceText": "Next.js、Create React App、Vite、Nuxt 和 Vue CLI 使用特定前缀控制客户端环境变量。",
+      "level": "must",
+      "scope": "safety",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Treat framework public prefixes as client-exposure boundaries and report sensitive variables that use a public prefix."
+    },
+    {
+      "id": "rule-respect-output-contract",
+      "sourceText": "生成 `.env.example` 模板和 `.env.schema.json`，并提供校验报告。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "Produce every artifact requested by the user using the exact requested filename and structure."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-filesystem",
+      "name": "filesystem",
+      "purpose": "List, read, compare, and write project files within the current workspace.",
+      "required": true,
+      "alternatives": ["agent-native workspace file tools"],
+      "platformNotes": {
+        "linux": "Use repository-relative paths and preserve file permissions.",
+        "macos": "Use repository-relative paths and account for case-insensitive filesystems when applicable.",
+        "windows": "Use repository-relative paths and native Windows-safe file operations."
+      },
+      "availabilityCheck": "Confirm the current project workspace can be listed and required files can be read"
+    },
+    {
+      "id": "tool-search",
+      "name": "text search",
+      "purpose": "Search recursively for environment definitions, code references, deployment references, and possible hardcoded credentials.",
+      "required": true,
+      "alternatives": ["agent-native recursive search", "manual recursive file inspection"],
+      "platformNotes": {
+        "linux": "Prefer an available recursive search tool without assuming GNU-only flags.",
+        "macos": "Prefer an available recursive search tool without assuming GNU-only flags.",
+        "windows": "Prefer an available native recursive search tool such as ripgrep or PowerShell search."
+      },
+      "availabilityCheck": "Confirm recursive text search is available or fall back to recursive file inspection"
+    }
+  ],
+  "environment": [
+    {
+      "id": "env-host-filesystem",
+      "description": "Path syntax, hidden-file handling, encodings, permissions, and link behavior vary across host operating systems; keep all operations inside the current workspace.",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    },
+    {
+      "id": "env-framework-conventions",
+      "description": "Frameworks and deployment systems differ in environment-file loading, public variable prefixes, build-time versus runtime variables, and monorepo inheritance.",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-project-scope",
+      "name": "Project scope discovered",
+      "kind": "step-success",
+      "targetRef": "step-discover-project",
+      "assertion": "The audit scope is rooted in the current workspace or an explicit user-provided path, and relevant project areas have been identified.",
+      "onFailure": "fallback"
+    },
+    {
+      "id": "check-secret-redaction",
+      "name": "Definition inventory is redacted",
+      "kind": "rule-violation",
+      "targetRef": "rule-redact-secrets",
+      "assertion": "The inventory and visible output contain variable names, origins, and empty status but no copied real secret values.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-reference-scan",
+      "name": "Reference scan covers relevant locations",
+      "kind": "step-success",
+      "targetRef": "step-scan-references",
+      "assertion": "Code and relevant deployment or dynamic-access locations were searched using the languages and framework evidence present in the workspace.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-classification-boundary",
+      "name": "Classification preserves uncertainty",
+      "kind": "output",
+      "targetRef": "rule-unused-is-unconfirmed",
+      "assertion": "The report separates defined-and-used, unconfirmed-unused, used-but-undefined, hardcoded-secret, and exposure-risk findings without overstating static evidence.",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-validation-evidence",
+      "name": "Validation rules are evidence-based",
+      "kind": "step-success",
+      "targetRef": "step-infer-validation",
+      "assertion": "Requiredness, defaults, types, formats, ranges, and sensitivity constraints are supported by project evidence or explicitly marked as uncertain.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-required-outputs",
+      "name": "Required artifacts exist",
+      "kind": "output",
+      "targetRef": "step-write-artifacts",
+      "assertion": "The requested report, .env.example, and .env.schema.json exist at the exact requested paths and are parseable where structured output is required.",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-output-verification",
+      "name": "Artifacts are safe and consistent",
+      "kind": "output",
+      "targetRef": "step-verify-artifacts",
+      "assertion": "Generated artifacts are structurally valid, real environment files are unchanged, and no real secret value was copied into output.",
+      "onFailure": "abort"
+    }
+  ],
+  "recovery": [
+    {
+      "id": "recovery-scope-current-workspace",
+      "trigger": "An expected project subdirectory is absent or was not supplied by the user.",
+      "action": "use-alternative-tool",
+      "maxAttempts": 1,
+      "explanation": "Treat the current work directory as the project root, inspect it directly, and report any remaining scope ambiguity."
+    },
+    {
+      "id": "recovery-search-fallback",
+      "trigger": "The preferred recursive text-search tool is unavailable.",
+      "action": "use-alternative-tool",
+      "maxAttempts": 1,
+      "explanation": "Use agent-native recursive search or enumerate and inspect relevant text files with platform-native file operations."
+    },
+    {
+      "id": "recovery-repair-generated-output",
+      "trigger": "A generated artifact is missing, malformed, inconsistent, or contains unsafe copied data.",
+      "action": "retry",
+      "maxAttempts": 1,
+      "explanation": "Repair only generated artifacts, then repeat structure, protected-file, and secret-redaction verification."
+    }
+  ],
+  "profile": []
+}

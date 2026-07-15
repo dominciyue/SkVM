@@ -162,6 +162,51 @@ function renderSteps(ir: SkillIR): string {
     .join("\n");
 }
 
+function renderSpecifications(
+  items: Array<{ id: string; description: string; required: boolean }>,
+): string {
+  if (items.length === 0) return "- None specified.";
+  return items
+    .map((item) => `- ${item.id}: [${item.required ? "required" : "optional"}] ${item.description}`)
+    .join("\n");
+}
+
+function renderPreconditions(ir: SkillIR): string {
+  if (ir.preconditions.length === 0) return "- No explicit preconditions.";
+  return ir.preconditions
+    .map((condition) => `- ${condition.id}: [${condition.checkability}] ${condition.description}`)
+    .join("\n");
+}
+
+function renderTools(ir: SkillIR): string {
+  if (ir.tools.length === 0) return "- No explicit tool requirements.";
+  return ir.tools
+    .map((tool) => {
+      const details = [
+        `- ${tool.id} (${tool.name}): [${tool.required ? "required" : "optional"}] ${tool.purpose}`,
+        `  - Availability check: ${tool.availabilityCheck}.`,
+      ];
+      if (tool.alternatives.length > 0) {
+        details.push(`  - Alternatives: ${tool.alternatives.join(", ")}.`);
+      }
+      for (const [platform, note] of Object.entries(tool.platformNotes)) {
+        if (note) details.push(`  - ${platform[0]!.toUpperCase()}${platform.slice(1)}: ${note}`);
+      }
+      return details.join("\n");
+    })
+    .join("\n");
+}
+
+function renderEnvironment(ir: SkillIR): string {
+  if (ir.environment.length === 0) return "- No explicit environment assumptions.";
+  return ir.environment
+    .map(
+      (assumption) =>
+        `- ${assumption.id}: [${assumption.checkability}; ${assumption.platforms.join(", ")}] ${assumption.description}`,
+    )
+    .join("\n");
+}
+
 function renderRules(ir: SkillIR): string {
   if (ir.rules.length === 0) {
     return "- No explicit rules.";
@@ -234,6 +279,26 @@ export function renderSkillMarkdown(
     "## Intent",
     "",
     optimized.intent,
+    "",
+    "## Inputs",
+    "",
+    renderSpecifications(optimized.inputs),
+    "",
+    "## Required Outputs",
+    "",
+    renderSpecifications(optimized.outputs),
+    "",
+    "## Preconditions",
+    "",
+    renderPreconditions(optimized),
+    "",
+    "## Tool Requirements",
+    "",
+    renderTools(optimized),
+    "",
+    "## Environment Assumptions",
+    "",
+    renderEnvironment(optimized),
     "",
     "## Execution Steps",
     "",

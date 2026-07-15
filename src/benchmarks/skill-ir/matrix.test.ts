@@ -134,16 +134,8 @@ describe("buildCorpusMatrixInput", () => {
     expect(input.skills.every((skill) => typeof skill !== "string" && skill.packaging === "focused")).toBe(true);
   });
 
-  test("keeps source-only pilot entries registered but unscheduled", () => {
-    expect(() => buildCorpusMatrixInput("pilot")).toThrow(
-      "Corpus pilot has 0 runnable skills out of 6 registered skills",
-    );
-  });
-
-  test("builds a development-only pre-IR matrix for tasks-authored pilots when explicitly enabled", () => {
-    const input = buildCorpusMatrixInput("pilot", process.cwd(), {
-      mode: "tasks-authored-calibration",
-    });
+  test("schedules only the runnable real pilot with cold-start systems", () => {
+    const input = buildCorpusMatrixInput("pilot");
 
     expect(input.skills).toEqual([
       {
@@ -157,12 +149,18 @@ describe("buildCorpusMatrixInput", () => {
       "env-manager": [
         "env-manager-node-audit-dev-001",
         "env-manager-vite-audit-dev-002",
+        "env-manager-python-audit-heldout-001",
+        "env-manager-nextjs-audit-heldout-002",
       ],
     });
-    expect(input.tasks).toEqual([
-      "env-manager-node-audit-dev-001",
-      "env-manager-vite-audit-dev-002",
-    ]);
-    expect(input.systems).toEqual(["no-skill", "original"]);
+    expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);
+  });
+
+  test("fails closed when the pre-IR mode has no tasks-authored pilot", () => {
+    expect(() =>
+      buildCorpusMatrixInput("pilot", process.cwd(), {
+        mode: "tasks-authored-calibration",
+      }),
+    ).toThrow("Corpus pilot has 0 tasks-authored skills out of 6 registered skills");
   });
 });

@@ -25,17 +25,17 @@ no-skill | original | ir-static
 ```
 
 **Current implementation status (2026-07-15):** `env-manager` has an exact
-source snapshot, two development tasks, two held-out tasks, and a deterministic
-six-criterion evaluator. Its corpus state is `tasks-authored`; it has no
-`irPath`, base IR, or Final IR. It remains outside normal pilot scheduling and
-contributes no optimization-effect evidence; only the restricted pre-IR
-baseline calibration path may select it. The first locked real-model baseline
-calibration completed on 2026-07-15: all eight rows were executable and
-deterministically scored, but both systems had 0/4 success and `original`
-slightly underperformed `no-skill`. This is baseline/task-discrimination
-evidence, not IR improvement.
+source snapshot, two development tasks, two held-out tasks, a deterministic
+six-criterion evaluator, and a source-audited profile-empty base IR. It is the
+only `runnable` pilot. Static lowering now renders inputs, outputs,
+preconditions, tool requirements, and environment assumptions in addition to
+steps, rules, checks, and recovery. The locked static development run completed
+12/12 rows with no infrastructure failures. `ir-static` remained 0/4 on binary
+success but improved mean deterministic score from original's 0.425 to 0.700
+and eliminated hard-gate failures. Classification-location and JSON Schema
+constraints remain missing; no Final IR or held-out optimization evidence exists.
 
-Pre-IR calibration may opt into `tasks-authored` only through the explicit,
+Future pre-IR calibration may opt into `tasks-authored` only through the explicit,
 fail-closed `--allow-tasks-authored` contract: one selected pilot skill,
 explicit development tasks, `clean` context, and exactly `no-skill | original`.
 The runner may synthesize an in-memory source envelope from pinned manifest

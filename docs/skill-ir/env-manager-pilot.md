@@ -4,30 +4,35 @@
 
 `env-manager` is the first vertical real-skill pilot. Its upstream `SKILL.md`
 comes from the pinned, MIT-licensed `env-manager` source in
-`laolaoshiren/claude-code-skills-zh`. The pilot currently provides source-backed
-development/held-out tasks and deterministic scoring, but no base IR.
+`laolaoshiren/claude-code-skills-zh`. The pilot provides source-backed
+development/held-out tasks, deterministic scoring, and a source-audited,
+profile-empty base IR.
 
-The corpus status remains deliberately:
+The corpus status is:
 
 ```text
-tasks-authored
+runnable
 ```
 
-There is no `irPath`, so ordinary `--corpus=pilot` scheduling still has zero
-runnable skills. A restricted `--allow-tasks-authored` mode now supports only
-the preregistered pre-IR `no-skill | original` development calibration. It
-synthesizes an in-memory exact-source envelope and does not change corpus
-status, write an IR, or permit static/PGO systems. The first paid baseline
-calibration is recorded in `docs/skill-ir/env-manager-calibration-v1-run.md`.
-It found no successful rows for either baseline and a lower mean deterministic
-score for `original`; this is calibration evidence, not IR optimization effect.
+Its `irPath` points to `base-ir.json`, so ordinary pilot scheduling selects this
+skill with the cold-start systems. The historical restricted
+`--allow-tasks-authored` path remains available for future pre-IR pilots but no
+longer selects `env-manager`. The baseline and static runs are recorded in
+`env-manager-calibration-v1-run.md` and `env-manager-static-v1-run.md`.
+
+The static run improved deterministic partial correctness and eliminated hard
+gate failures, but all static rows still failed exact classification-location
+and schema-rule checks. The pilot has no Final IR and no held-out optimization
+evidence.
 
 ## Files
 
 ```text
 benchmarks/skill-ir/pilots/env-manager/source/SKILL.md
 benchmarks/skill-ir/pilots/env-manager/tasks.json
+benchmarks/skill-ir/pilots/env-manager/base-ir.json
 benchmarks/skill-ir/pilots/env-manager/env-manager-vertical-lock.json
+benchmarks/skill-ir/pilots/env-manager/env-manager-static-lock.json
 benchmarks/skill-ir/corpus/corpora/pilot.json
 src/bench/evaluators/env-manager-grade.ts
 src/bench/evaluators/env-manager-grade.test.ts
@@ -136,30 +141,28 @@ remains a planned experiment axis rather than a current claim.
 
 ## Runtime Path
 
-The task fixture is schedulable before base-IR construction only through this
-fail-closed command shape:
+The current static development vertical uses normal runnable scheduling:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=pilot' '--allow-tasks-authored' '--skills=env-manager' '--systems=no-skill,original' '--contexts=clean' '--agents=skvm' '--environments=windows' '--tasks=env-manager-node-audit-dev-001,env-manager-vite-audit-dev-002' '--repetitions=2' '--model=xty/gpt-4.1-mini' '--adapter=bare-agent' '--adapter-version=workspace-calibration-v1' '--panel-config-id=env-manager-calibration-v1' '--limit=4' '--out-dir=results/skill-ir/env-manager-calibration-v1'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=pilot' '--skills=env-manager' '--systems=no-skill,original,ir-static' '--contexts=clean' '--agents=skvm' '--environments=windows' '--tasks=env-manager-node-audit-dev-001,env-manager-vite-audit-dev-002' '--repetitions=2' '--model=xty/gpt-4.1-mini' '--model-family=gpt' '--adapter=bare-agent' '--adapter-version=workspace-static-v1' '--panel-config-id=env-manager-static-v1' '--limit=6' '--out-dir=results/skill-ir/env-manager-static-v1-2026-07-15'
 ```
 
-The dry run produces eight rows. Add `--execute` and
+The dry run produces 12 rows. Add `--execute` and
 `--require-env=SKVM_XTY_API_KEY` only after the route probe passes. Score the
-result with the same opt-in:
+result through normal pilot scoring:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--corpus=pilot' '--allow-tasks-authored' '--raw=results/skill-ir/env-manager-calibration-v1/raw-runs.jsonl' '--out=results/skill-ir/env-manager-calibration-v1/scored-results.jsonl'
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--corpus=pilot' '--raw=results/skill-ir/env-manager-static-v1-2026-07-15/raw-runs.jsonl' '--out=results/skill-ir/env-manager-static-v1-2026-07-15/scored-results.jsonl'
 ```
 
-The runner rejects held-out tasks, non-clean context, any system other than the
-complete baseline pair, multiple/missing skills, IR overrides, and limits that
-cut a pair in half. The scorer loads only development tasks from
-`tasks-authored` entries.
+The static lock freezes the exact development task selection. Do not add held-out
+tasks, profile systems, or an IR override to this command.
 
-`env-manager-vertical-lock.json` preregisters the model route, adapter/version,
-task ids, repetitions, host label, and panel/config id. It stores only the API
-key environment-variable name, never a credential. After an audited base IR is
-committed, the intended vertical continues as:
+`env-manager-vertical-lock.json` preserves the completed pre-IR baseline
+calibration. `env-manager-static-lock.json` separately binds the source and
+base-IR digests, model route, adapter/version, task ids, repetitions, host label,
+and panel/config id. Locks store only the API-key environment-variable name,
+never a credential. The intended vertical continues as:
 
 ```text
 no-skill | original development calibration
@@ -175,10 +178,9 @@ the pooled main claim. A later panel-conditioned Final IR may use only balanced,
 preregistered development evidence and must be evaluated unchanged on held-out
 tasks.
 
-The V1 baseline calibration passed runner/scorer integrity checks but showed
-that the original public skill is not an upper baseline on the locked GPT
-route. Base IR construction must target correctness and regression against
-`no-skill` without rewriting scorer expectations from observed outputs.
+The static result shows that workflow/safety extraction alone is insufficient.
+The next overlay must encode typed output-location and schema constraints from
+development evidence while leaving the base IR and scorer frozen.
 
 ## Verification
 
@@ -188,7 +190,7 @@ Run the evaluator and integration tests:
 bun test ./src/bench/evaluators/env-manager-grade.test.ts ./src/benchmarks/skill-ir/env-manager-pilot.test.ts
 ```
 
-Verify corpus registration remains non-runnable:
+Verify base-IR integrity and runnable corpus registration:
 
 ```powershell
 bun test ./src/skill-ir/corpus-fixtures.test.ts ./src/benchmarks/skill-ir/matrix.test.ts
@@ -207,7 +209,7 @@ bun run typecheck
   expected reports, examples, and schema subsets together.
 - Preserve the development/held-out boundary when changing task difficulty.
 - Add a regression test before changing any hard-gate behavior.
-- Do not mark the pilot `runnable` until source, task, base IR, scorer, and
-  no-skill suitability audits all pass.
+- Do not edit the frozen base IR after a lock-bound execution; make dynamic
+  repairs through a provenance-bound overlay and Final IR.
 - Do not broaden `--allow-tasks-authored`; it is a pre-IR baseline calibration
   gate, not a generic corpus-status override.

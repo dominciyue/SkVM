@@ -41,7 +41,7 @@ The package is a northbound engineering target, not a current paper claim. Artif
 | Tasks 11A-11E: real-agent runner, scoring, context audit, harder tasks, multi-model runs, dynamic feedback | Implemented; evidence-limited | Existing results demonstrate mechanisms and seed case studies, not broad generalization. |
 | Tasks 11F-11G: promotion policy and validation planner | Implemented and frozen | Keep as advisory method-support tooling; do not deepen before real-skill evidence. |
 | Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; all three Wave A source closures are imported and digest-pinned. |
-| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` completed its locked pre-IR `no-skill | original` development calibration. Both systems scored 0/4 success and original was slightly worse and more expensive; next construct and audit the static base IR without changing scorer expectations. |
+| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` now has a source-audited base IR and a locked three-system development run. Static IR improved partial correctness and hard gates but remained 0/4; next add typed output-schema feedback before Final-IR compilation. |
 | Task 12: report and slides | Deferred | Begin after the first real-skill main table and case study exist. |
 
 ### Active Sequence
@@ -56,8 +56,9 @@ The package is a northbound engineering target, not a current paper claim. Artif
 - [x] Add the fail-closed `--allow-tasks-authored` pre-IR calibration mode and matching scorer gate; keep `env-manager` at `tasks-authored` with no `irPath`.
 - [x] Commit `env-manager-vertical-lock.json` for the single-model engineering calibration before paid execution.
 - [x] Preregister and run the single-model `env-manager` `no-skill | original` development calibration; verify task/scorer discrimination before IR tuning. Result: 8/8 executable/scored, no infra failures, `no-skill=0/4`, `original=0/4`, with criterion-level semantic differences.
-- [ ] Construct and audit the `env-manager` base IR, then add `ir-static` to the engineering-calibration vertical.
-- [ ] Compile original-guided development feedback into a provenance-bound Final IR and evaluate held-out `ir-pgo`; keep the whole first vertical outside the pooled main claim.
+- [x] Construct and audit the `env-manager` base IR, complete agent-facing static lowering, and run the locked `no-skill | original | ir-static` development vertical. Result: static improved mean score and removed hard-gate failures but remained 0/4 due typed output constraints.
+- [ ] Extend typed feedback/overlay semantics for source-qualified findings and evidence-grounded JSON Schema constraints, using only frozen `original × development` failures.
+- [ ] Compile original-guided development feedback into a provenance-bound Final IR, validate it on development without scorer tuning, then evaluate held-out `ir-pgo`; keep the whole first vertical outside the pooled main claim.
 - [ ] Implement balanced pooled aggregation with per-model support vectors and conflict exclusion; preregister the fixed panel and regression gates.
 - [ ] Run one shared panel-conditioned Final IR on `env-manager`, reporting aggregate, per-model, worst-model, regressions, and infrastructure exclusions.
 - [ ] Extend the stabilized method to `law-to-markdown`, including resource-parity enforcement, then to `experimental-design`.

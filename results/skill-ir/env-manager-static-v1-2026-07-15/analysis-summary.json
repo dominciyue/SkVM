@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "skill-ir-static-analysis/v1",
+  "experimentId": "env-manager-static-v1",
+  "date": "2026-07-15",
+  "scope": {
+    "skill": "env-manager",
+    "model": "xty/gpt-4.1-mini",
+    "modelFamily": "gpt",
+    "adapter": "bare-agent",
+    "adapterVersion": "workspace-static-v1",
+    "context": "clean",
+    "environmentLabel": "windows",
+    "taskSplit": "development",
+    "tasks": 2,
+    "repetitions": 2,
+    "rows": 12
+  },
+  "execution": {
+    "scoredRows": 12,
+    "infrastructureFailures": 0,
+    "agentFailures": 0
+  },
+  "systems": {
+    "no-skill": {
+      "successfulRows": 0,
+      "totalRows": 4,
+      "meanEvaluatorScore": 0.5875,
+      "hardGateFailureRows": 1,
+      "meanTokenCost": 6994.5,
+      "meanLatencyMs": 55509.25
+    },
+    "original": {
+      "successfulRows": 0,
+      "totalRows": 4,
+      "meanEvaluatorScore": 0.425,
+      "hardGateFailureRows": 3,
+      "meanTokenCost": 3316,
+      "meanLatencyMs": 13122
+    },
+    "ir-static": {
+      "successfulRows": 0,
+      "totalRows": 4,
+      "meanEvaluatorScore": 0.7,
+      "hardGateFailureRows": 0,
+      "meanTokenCost": 7821.75,
+      "meanLatencyMs": 31145
+    }
+  },
+  "pairedStaticDeltas": {
+    "versusNoSkill": {
+      "meanEvaluatorScore": 0.1125,
+      "meanTokenCost": 827.25,
+      "meanLatencyMs": -24364.25
+    },
+    "versusOriginal": {
+      "meanEvaluatorScore": 0.275,
+      "meanTokenCost": 4505.75,
+      "meanLatencyMs": 18023
+    }
+  },
+  "staticCriterionPasses": {
+    "env-protected-files": "4/4",
+    "env-no-secret-leak": "4/4",
+    "env-required-artifacts": "4/4",
+    "env-classification": "0/4",
+    "env-example-safety": "4/4",
+    "env-schema-rules": "0/4"
+  },
+  "interpretation": {
+    "supported": "Static IR improved deterministic partial correctness and eliminated hard-gate failures on the frozen development run.",
+    "notSupported": "Static IR did not improve binary task success, and this run provides no held-out, PGO, cross-model, cross-context, or cross-OS evidence.",
+    "nextRepairTarget": "Learn typed output constraints for source-qualified finding locations and evidence-grounded JSON Schema vocabulary and fields from original development feedback."
+  }
+}

@@ -54,7 +54,7 @@ describe("skill-ir corpus fixtures", () => {
     expect(pilot.scopeCounts).toEqual({ waveADeepPilots: 3, waveBReplicationPilots: 3 });
     expect(pilot.skills.filter((skill) => skill.wave === "A")).toHaveLength(3);
     expect(pilot.skills.filter((skill) => skill.wave === "B")).toHaveLength(3);
-    expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("tasks-authored");
+    expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("runnable");
     expect(
       pilot.skills
         .filter((skill) => skill.wave === "A" && skill.id !== "env-manager")
@@ -63,7 +63,7 @@ describe("skill-ir corpus fixtures", () => {
     expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
   });
 
-  test("env-manager pilot has four deterministic task-authored fixtures but remains non-runnable", () => {
+  test("env-manager pilot has four deterministic fixtures and a source-audited runnable base IR", () => {
     type CustomCriterion = {
       method: string;
       id: string;
@@ -88,11 +88,31 @@ describe("skill-ir corpus fixtures", () => {
     const envManager = pilot.skills.find((skill) => skill.id === "env-manager");
 
     expect(envManager).toMatchObject({
-      status: "tasks-authored",
+      status: "runnable",
       tasksPath: "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+      irPath: "benchmarks/skill-ir/pilots/env-manager/base-ir.json",
     });
-    expect(envManager?.irPath).toBeUndefined();
-    expect(pilot.skills.filter((skill) => skill.status === "runnable")).toHaveLength(0);
+    expect(pilot.skills.filter((skill) => skill.status === "runnable")).toHaveLength(1);
+
+    const irText = readFileSync(join(process.cwd(), envManager!.irPath!), "utf8");
+    const ir = SkillIRSchema.parse(JSON.parse(irText));
+    const sourceText = readFileSync(join(process.cwd(), ir.source.kind === "file" ? ir.source.path : ""));
+    expect(ir.id).toBe("env-manager");
+    expect(ir.source).toEqual({
+      kind: "file",
+      path: "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      sha256: createHash("sha256").update(sourceText).digest("hex"),
+    });
+    expect(ir.profile).toEqual([]);
+    expect(validateSkillIR(ir)).toEqual({ errors: [], warnings: [] });
+    expect(ir.outputs.filter((output) => output.required).map((output) => output.id)).toEqual([
+      "env-example",
+      "env-schema",
+      "audit-report",
+    ]);
+    expect(irText).not.toContain("TEST_ONLY_");
+    expect(irText).not.toMatch(/env-manager-(node|vite|python|nextjs)-audit-/);
+    expect(irText).not.toMatch(/env-(protected-files|no-secret-leak|required-artifacts|classification|example-safety|schema-rules)/);
 
     const taskSet = readJson(join(process.cwd(), envManager!.tasksPath!)) as {
       schemaVersion: string;

@@ -22,6 +22,10 @@ const verticalLockPath = join(
   import.meta.dir,
   "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-vertical-lock.json",
 );
+const staticLockPath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-static-lock.json",
+);
 const tempDirs: string[] = [];
 
 type TaskSet = {
@@ -263,6 +267,7 @@ describe("env-manager pilot scoring", () => {
         repetitions: number;
       };
       runtime: { apiKeyEnv: string };
+      promotionBoundary: { corpusStatusRemains: string; createsBaseIr: boolean };
       prohibited: string[];
     };
     const manifestSkill = manifest.skills.find((skill) => skill.id === lock.skillId);
@@ -287,10 +292,88 @@ describe("env-manager pilot scoring", () => {
       },
       runtime: { apiKeyEnv: "SKVM_XTY_API_KEY" },
     });
-    expect(manifestSkill).toMatchObject({ status: "tasks-authored" });
-    expect(manifestSkill?.irPath).toBeUndefined();
+    expect(lock.promotionBoundary).toEqual(expect.objectContaining({
+      corpusStatusRemains: "tasks-authored",
+      createsBaseIr: false,
+    }));
+    expect(manifestSkill).toMatchObject({
+      status: "runnable",
+      irPath: "benchmarks/skill-ir/pilots/env-manager/base-ir.json",
+    });
     expect(lock.matrix.taskIds.every((taskId) => splitByTask.get(taskId) === "development")).toBe(true);
     expect(lock.prohibited).toEqual(expect.arrayContaining(["held-out execution", "IR materialization", "PGO compilation"]));
+    expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
+  });
+
+  test("preregisters a digest-bound three-system static calibration lock", async () => {
+    const [taskSet, lockText, baseIrBytes] = await Promise.all([
+      readFile(taskPath, "utf8").then((text) => JSON.parse(text) as TaskSet),
+      readFile(staticLockPath, "utf8"),
+      readFile(join(import.meta.dir, "../../../benchmarks/skill-ir/pilots/env-manager/base-ir.json")),
+    ]);
+    const lock = JSON.parse(lockText) as {
+      schemaVersion: string;
+      stage: string;
+      status: string;
+      corpus: string;
+      skillId: string;
+      panelConfigId: string;
+      source: { path: string; sha256: string };
+      baseIr: { path: string; sha256: string; profileAnnotations: number };
+      model: { route: string; family: string };
+      adapter: { id: string; version: string };
+      matrix: {
+        systems: string[];
+        contexts: string[];
+        agents: string[];
+        environments: string[];
+        taskSplit: string;
+        taskIds: string[];
+        repetitions: number;
+        matrixCellLimit: number;
+      };
+      runtime: { apiKeyEnv: string };
+      prohibited: string[];
+    };
+    const splitByTask = new Map(taskSet.tasks.map((task) => [task.id, task.split]));
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-env-manager-static-lock/v1",
+      stage: "static-ir-calibration",
+      status: "preregistered",
+      corpus: "pilot",
+      skillId: "env-manager",
+      panelConfigId: "env-manager-static-v1",
+      source: {
+        path: "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+        sha256: "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c",
+      },
+      baseIr: {
+        path: "benchmarks/skill-ir/pilots/env-manager/base-ir.json",
+        profileAnnotations: 0,
+      },
+      model: { route: "xty/gpt-4.1-mini", family: "gpt" },
+      adapter: { id: "bare-agent", version: "workspace-static-v1" },
+      matrix: {
+        systems: ["no-skill", "original", "ir-static"],
+        contexts: ["clean"],
+        agents: ["skvm"],
+        environments: ["windows"],
+        taskSplit: "development",
+        taskIds: ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+        repetitions: 2,
+        matrixCellLimit: 6,
+      },
+      runtime: { apiKeyEnv: "SKVM_XTY_API_KEY" },
+    });
+    expect(lock.baseIr.sha256).toBe(sha256(baseIrBytes));
+    expect(lock.matrix.taskIds.every((taskId) => splitByTask.get(taskId) === "development")).toBe(true);
+    expect(lock.prohibited).toEqual(expect.arrayContaining([
+      "held-out execution",
+      "profile or PGO compilation",
+      "scorer tuning from static calibration outputs",
+      "base IR edits after execution begins",
+    ]));
     expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
   });
 
