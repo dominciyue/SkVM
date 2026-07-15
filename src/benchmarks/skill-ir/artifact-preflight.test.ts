@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
+import { compileEnvManagerSemanticArtifactPackage } from "./semantic-artifact-compiler";
+import { SemanticRuntimeContractSchema } from "./semantic-contract";
+import { sha256Bytes } from "./source-fixture";
 import {
   materializeArtifactTemplates,
   preflightArtifactRun,
@@ -31,6 +34,46 @@ async function tempDir(label: string): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), label));
   tempDirs.push(dir);
   return dir;
+}
+
+async function compileSemanticPackage(): Promise<string> {
+  const outDir = join(await tempDir("skill-ir-semantic-preflight-package-"), "package");
+  await compileEnvManagerSemanticArtifactPackage({
+    rootDir: projectRoot,
+    baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
+    taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
+    sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    outDir,
+  });
+  return outDir;
+}
+
+async function taskContractDigest(dir: string): Promise<string> {
+  const provenance = JSON.parse(await readFile(join(dir, "package-provenance.json"), "utf8")) as {
+    taskContract: { sha256: string };
+  };
+  return provenance.taskContract.sha256;
+}
+
+async function replaceEvidenceProgram(
+  dir: string,
+  source: string,
+  timeoutMs: number,
+): Promise<void> {
+  const manifestPath = join(dir, "package-manifest.json");
+  const provenancePath = join(dir, "package-provenance.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as any;
+  const provenance = JSON.parse(await readFile(provenancePath, "utf8")) as any;
+  const programPath = join(dir, manifest.evidenceProgram.path);
+  await writeFile(programPath, source, "utf8");
+  const digest = sha256Bytes(Buffer.from(source, "utf8"));
+  manifest.evidenceProgram.timeoutMs = timeoutMs;
+  manifest.artifacts.find((item: any) => item.path === manifest.evidenceProgram.path).sha256 = digest;
+  provenance.artifacts.find((item: any) => item.path === manifest.evidenceProgram.path).sha256 = digest;
+  const provenanceText = `${JSON.stringify(provenance, null, 2)}\n`;
+  await writeFile(provenancePath, provenanceText, "utf8");
+  manifest.provenance.sha256 = sha256Bytes(Buffer.from(provenanceText, "utf8"));
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 }
 
 beforeEach(async () => {
@@ -172,5 +215,87 @@ describe("artifact preflight", () => {
       scope,
       expectedContractDigest: provenance.taskContract.sha256,
     })).rejects.toThrow();
+  });
+
+  test("derives the v2 runtime contract before generation and protects its digest", async () => {
+    const semanticPackage = await compileSemanticPackage();
+    await writeFile(join(workDir, ".env"), "APP_PORT=3000\nDB_PASSWORD=TEST_ONLY_LOCAL\n", "utf8");
+    await mkdir(join(workDir, "src"), { recursive: true });
+    await writeFile(
+      join(workDir, "src/config.js"),
+      "const port = Number(process.env.APP_PORT);\nconst password = process.env.DB_PASSWORD;\n",
+      "utf8",
+    );
+
+    const prepared = await preflightArtifactRun({
+      packageDir: semanticPackage,
+      workDir,
+      scope,
+      expectedContractDigest: await taskContractDigest(semanticPackage),
+    });
+    const contractPath = join(workDir, ".skvm-artifact", "semantic-contract.json");
+    const contract = SemanticRuntimeContractSchema.parse(JSON.parse(await readFile(contractPath, "utf8")));
+
+    expect(prepared.package.manifest.catalog).toBe("executable-semantic-artifact/v2");
+    expect(contract.observedVariables.map((item) => item.name)).toEqual(["APP_PORT", "DB_PASSWORD"]);
+    expect(prepared.protectedFiles.map((file) => file.relativePath)).toContain(
+      ".skvm-artifact/semantic-contract.json",
+    );
+    expect(JSON.stringify(prepared)).not.toContain("TEST_ONLY_LOCAL");
+  });
+
+  test("keeps v1 behavior free of semantic runtime contract materialization", async () => {
+    const prepared = await preflightArtifactRun({
+      packageDir,
+      workDir,
+      scope,
+      expectedContractDigest: await taskContractDigest(packageDir),
+    });
+    expect(await Bun.file(join(workDir, ".skvm-artifact", "semantic-contract.json")).exists()).toBe(false);
+    expect(prepared.package.manifest.catalog).toBe("executable-artifact/v1");
+  });
+
+  test("rejects a pre-existing runtime contract link and an escaping declared path", async () => {
+    const semanticPackage = await compileSemanticPackage();
+    const outside = await tempDir("skill-ir-contract-outside-");
+    await symlink(outside, join(workDir, ".skvm-artifact"), "junction");
+    const input = {
+      packageDir: semanticPackage,
+      workDir,
+      scope,
+      expectedContractDigest: await taskContractDigest(semanticPackage),
+    };
+    await expect(preflightArtifactRun(input)).rejects.toThrow(/symbolic link|reparse|pre-existing/i);
+
+    await rm(join(workDir, ".skvm-artifact"), { recursive: true, force: true });
+    const manifestPath = join(semanticPackage, "package-manifest.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as any;
+    manifest.runtimeContract.path = "../escaped-contract.json";
+    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+    await expect(preflightArtifactRun(input)).rejects.toThrow();
+  });
+
+  test("treats evidence timeout and invalid JSON as preflight infrastructure failures", async () => {
+    const timeoutPackage = await compileSemanticPackage();
+    await replaceEvidenceProgram(timeoutPackage, "await Bun.sleep(1000);\n", 20);
+    await expect(preflightArtifactRun({
+      packageDir: timeoutPackage,
+      workDir,
+      scope,
+      expectedContractDigest: await taskContractDigest(timeoutPackage),
+    })).rejects.toThrow(/timed out/i);
+
+    const invalidPackage = await compileSemanticPackage();
+    await replaceEvidenceProgram(invalidPackage, `
+const arg = process.argv.find((value) => value.startsWith("--out="));
+if (!arg) throw new Error("missing out");
+await Bun.write(arg.slice("--out=".length), "not-json");
+`, 5000);
+    await expect(preflightArtifactRun({
+      packageDir: invalidPackage,
+      workDir,
+      scope,
+      expectedContractDigest: await taskContractDigest(invalidPackage),
+    })).rejects.toThrow(/JSON|contract/i);
   });
 });

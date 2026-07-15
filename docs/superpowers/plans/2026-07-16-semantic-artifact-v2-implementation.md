@@ -249,27 +249,27 @@ git commit -m "feat: validate semantic artifact evidence"
 - Modify: `src/benchmarks/skill-ir/artifact-preflight.ts`
 - Modify: `src/benchmarks/skill-ir/artifact-preflight.test.ts`
 
-- [ ] **Step 1: Write RED preflight tests**
+- [x] **Step 1: Write RED preflight tests**
 
 Require v2 to derive the fixed runtime-contract path before generation, include
 it in protected digests, and reject pre-existing symlink/escape, timeout, and
 invalid JSON. Require v1 to create no semantic contract and retain existing
 behavior.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/artifact-preflight.test.ts
 ```
 
-- [ ] **Step 3: Implement catalog-dispatched derivation**
+- [x] **Step 3: Implement catalog-dispatched derivation**
 
 Extend `PreparedArtifactRun` as a discriminated package. For v2, execute the
 declared evidence program, schema-validate output, write the protected file,
 then snapshot fixtures plus contract before templates. Never return contract
 contents in metadata.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [x] **Step 4: Verify GREEN and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/artifact-preflight.test.ts ./src/benchmarks/skill-ir/artifact-package.test.ts

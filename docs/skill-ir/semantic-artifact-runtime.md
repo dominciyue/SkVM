@@ -5,8 +5,8 @@
 Implementation in progress under the reviewed
 `executable-semantic-artifact/v2` design. Tasks 1-3 freeze the A contract/report
 schemas, dormant B boundary, conservative derivation, and deterministic package
-compiler and standalone A-layer checker. No lock, preflight-created runtime
-evidence file, Runner path, API run, or optimization evidence exists.
+compiler, standalone A-layer checker, and catalog-dispatched preflight. No lock,
+Runner execution path, API run, or optimization evidence exists.
 
 ## Current Components
 
@@ -20,6 +20,7 @@ evidence file, Runner path, API run, or optimization evidence exists.
 | `semantic-artifact-run.ts` | Compile and verify-only command-line entrypoint. |
 | `semantic-checker-cli.ts` | Bundled structural/safety plus A-layer checker entrypoint. |
 | `artifact-package.ts` | Literal v1 schemas plus separate v2 schemas and catalog dispatch. |
+| `artifact-preflight.ts` | V1 fixture snapshot or v2 evidence derivation plus protected snapshot. |
 
 `classification-evidence.ts` exports no producer, writer, derivation function,
 or serializer. Its `ClassificationCandidate.value` is an identifier, never a
@@ -187,7 +188,36 @@ GREEN: all seven A codes produced their exact field projection. The focused
 checker/compiler/contract/package regression run passed 21 tests and 81
 assertions; typecheck passed.
 
+## Preflight Materialization
+
+`preflightArtifactRun` is a catalog-discriminated operation. Both catalogs
+verify package digests, skill identity, development task id, public task
+contract digest, workdir, runtime executable, generated outputs, templates, and
+network/package-install policy. Frozen v1 additionally checks its historical
+model/adapter/environment/context scope and never creates a semantic contract.
+
+V2 performs this sequence before templates or model generation:
+
+1. validate the fixed `.skvm-artifact/semantic-contract.json` destination;
+2. reject pre-existing files, symbolic-link/reparse parents, and path escape;
+3. execute the digest-checked evidence bundle under its manifest timeout;
+4. require a regular output file and parse it with
+   `SemanticRuntimeContractSchema`;
+5. snapshot all original fixture files plus the runtime contract by digest.
+
+Evidence-process stderr/stdout and invalid contract contents are not returned
+in prepared metadata. Timeout, non-zero exit, missing output, invalid JSON, or
+schema mismatch are infrastructure failures. The protected-file list contains
+only relative paths and SHA-256 digests.
+
+Task 5 RED retained all five existing v1 passes while all v2 cases failed at
+the old v1-only catalog guard. GREEN passed nine preflight tests, including
+contract derivation/protection, v1 absence, junction/escape rejection, timeout,
+and invalid JSON. The focused preflight/runtime/package/compiler regression
+passed 26 tests and 101 assertions; typecheck passed.
+
 ## Next Step
 
-Implement preflight materialization and protection of the runtime semantic
-contract, including symlink/escape/timeout failures and v1 behavior regression.
+Add v2 report dispatch to the unchanged one-repair state machine. Repair input
+must remain the five-field projection and may only add a static instruction to
+inspect the protected contract path.

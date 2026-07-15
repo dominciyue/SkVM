@@ -4,7 +4,9 @@ import {
   parseSafeRelativePath,
   validateArtifactPackage,
   type ValidatedArtifactPackage,
+  type ValidatedSemanticArtifactPackage,
 } from "./artifact-package";
+import { SemanticRuntimeContractSchema } from "./semantic-contract";
 import { sha256Bytes } from "./source-fixture";
 
 export type ArtifactRunScope = {
@@ -32,8 +34,7 @@ export type ArtifactPreflightInput = {
   runtimeExecutable?: string;
 };
 
-export type PreparedArtifactRun = {
-  package: ValidatedArtifactPackage;
+type PreparedArtifactRunBase = {
   workDir: string;
   scope: ArtifactRunScope;
   runtimeExecutable: string;
@@ -41,6 +42,14 @@ export type PreparedArtifactRun = {
   templates: Array<{ sourcePath: string; targetPath: string }>;
   protectedFiles: ProtectedFile[];
 };
+
+export type PreparedArtifactRun = PreparedArtifactRunBase & (
+  | { catalog: "executable-artifact/v1"; package: ValidatedArtifactPackage }
+  | {
+    catalog: "executable-semantic-artifact/v2";
+    package: ValidatedSemanticArtifactPackage;
+  }
+);
 
 export type ProtectedWorkdirResult = {
   ok: boolean;
@@ -89,7 +98,10 @@ async function snapshotProtectedFiles(workDir: string, excluded: Set<string>): P
   return protectedFiles;
 }
 
-function assertScope(input: ArtifactPreflightInput, packageRecord: ValidatedArtifactPackage): void {
+function assertCommonScope(
+  input: ArtifactPreflightInput,
+  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage,
+): void {
   const { scope } = input;
   const provenance = packageRecord.provenance;
   if (scope.skillId !== packageRecord.manifest.skillId) {
@@ -104,6 +116,11 @@ function assertScope(input: ArtifactPreflightInput, packageRecord: ValidatedArti
   if (input.expectedContractDigest !== provenance.taskContract.sha256) {
     throw new Error("Artifact task contract digest mismatch");
   }
+}
+
+function assertV1Scope(input: ArtifactPreflightInput, packageRecord: ValidatedArtifactPackage): void {
+  const { scope } = input;
+  const provenance = packageRecord.provenance;
   for (const key of ["model", "modelFamily", "adapter", "adapterVersion", "environment", "context"] as const) {
     if (scope[key] !== provenance.scope[key]) {
       throw new Error(`Artifact ${key} scope mismatch: expected ${provenance.scope[key]}, got ${scope[key]}`);
@@ -111,12 +128,96 @@ function assertScope(input: ArtifactPreflightInput, packageRecord: ValidatedArti
   }
 }
 
+function isSemanticPackage(
+  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage,
+): packageRecord is ValidatedSemanticArtifactPackage {
+  return packageRecord.manifest.catalog === "executable-semantic-artifact/v2";
+}
+
+async function prepareRuntimeContractDestination(workDir: string, relativePath: string): Promise<string> {
+  const destination = containedPath(workDir, relativePath);
+  const segments = parseSafeRelativePath(relativePath).split("/");
+  let current = resolve(workDir);
+  for (const segment of segments.slice(0, -1)) {
+    current = resolve(current, segment);
+    const entry = await lstat(current).catch(() => undefined);
+    if (entry?.isSymbolicLink()) {
+      throw new Error(`Runtime contract parent may not be a symbolic link: ${relativePath}`);
+    }
+    if (entry && !entry.isDirectory()) {
+      throw new Error(`Runtime contract parent must be a directory: ${relativePath}`);
+    }
+    if (!entry) await mkdir(current);
+  }
+  if (await lstat(destination).catch(() => undefined)) {
+    throw new Error(`Runtime contract path must not be pre-existing: ${relativePath}`);
+  }
+  return destination;
+}
+
+async function deriveRuntimeContract(
+  packageRecord: ValidatedSemanticArtifactPackage,
+  workDir: string,
+  runtimeExecutable: string,
+): Promise<void> {
+  const destination = await prepareRuntimeContractDestination(
+    workDir,
+    packageRecord.manifest.runtimeContract.path,
+  );
+  const programPath = containedPath(
+    packageRecord.packageDir,
+    packageRecord.manifest.evidenceProgram.path,
+  );
+  const policyPath = containedPath(packageRecord.packageDir, "validation-policy.json");
+  const proc = Bun.spawn([
+    runtimeExecutable,
+    programPath,
+    `--workdir=${workDir}`,
+    `--out=${destination}`,
+    `--policy=${policyPath}`,
+  ], { stdout: "pipe", stderr: "pipe" });
+  let timedOut = false;
+  const timeoutMs = packageRecord.manifest.evidenceProgram.timeoutMs;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    proc.kill();
+  }, timeoutMs);
+  const [exitCode] = await Promise.all([
+    proc.exited,
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+  ]).finally(() => clearTimeout(timer));
+  if (timedOut) throw new Error(`Semantic evidence program timed out after ${timeoutMs}ms`);
+  if (exitCode !== 0) throw new Error(`Semantic evidence program failed with exit ${exitCode}`);
+
+  const destinationStat = await lstat(destination).catch(() => undefined);
+  if (!destinationStat?.isFile() || destinationStat.isSymbolicLink()) {
+    throw new Error("Semantic evidence program did not produce a regular runtime contract");
+  }
+  try {
+    SemanticRuntimeContractSchema.parse(JSON.parse(await readFile(destination, "utf8")));
+  } catch {
+    throw new Error("Semantic evidence program produced an invalid runtime contract JSON/schema");
+  }
+}
+
 export async function preflightArtifactRun(input: ArtifactPreflightInput): Promise<PreparedArtifactRun> {
-  const packageRecord = await validateArtifactPackage({
-    packageDir: input.packageDir,
-    expectedCatalog: "executable-artifact/v1",
-  });
-  assertScope(input, packageRecord);
+  const rawManifest = JSON.parse(await readFile(resolve(input.packageDir, "package-manifest.json"), "utf8")) as {
+    catalog?: unknown;
+  };
+  const packageRecord = rawManifest.catalog === "executable-semantic-artifact/v2"
+    ? await validateArtifactPackage({
+      packageDir: input.packageDir,
+      expectedCatalog: "executable-semantic-artifact/v2",
+    })
+    : await validateArtifactPackage({
+      packageDir: input.packageDir,
+      expectedCatalog: "executable-artifact/v1",
+    });
+  assertCommonScope(input, packageRecord);
+  if (!isSemanticPackage(packageRecord)) {
+    assertV1Scope(input, packageRecord);
+  }
 
   const workDir = resolve(input.workDir);
   const workDirStat = await stat(workDir).catch(() => undefined);
@@ -132,18 +233,18 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
   const generatedOutputs = packageRecord.manifest.generatedOutputs.map(parseSafeRelativePath);
   for (const output of generatedOutputs) containedPath(workDir, output);
   const generatedSet = new Set(generatedOutputs);
-  const templates = packageRecord.manifest.artifacts
-    .filter((artifact): artifact is typeof artifact & { targetPath: string } =>
-      artifact.kind === "template" && artifact.targetPath !== undefined)
-    .map((artifact) => {
-      if (!generatedSet.has(artifact.targetPath)) {
-        throw new Error(`Template target is not a declared generated output: ${artifact.targetPath}`);
-      }
-      return {
-        sourcePath: containedPath(packageRecord.packageDir, artifact.path),
-        targetPath: containedPath(workDir, artifact.targetPath),
-      };
+  const templates: Array<{ sourcePath: string; targetPath: string }> = [];
+  for (const artifact of packageRecord.manifest.artifacts) {
+    if (artifact.kind !== "template" || artifact.targetPath === undefined) continue;
+    const targetPath = artifact.targetPath;
+    if (!generatedSet.has(targetPath)) {
+      throw new Error(`Template target is not a declared generated output: ${targetPath}`);
+    }
+    templates.push({
+      sourcePath: containedPath(packageRecord.packageDir, artifact.path),
+      targetPath: containedPath(workDir, targetPath),
     });
+  }
 
   const policyArtifact = packageRecord.manifest.artifacts.find(
     (artifact) => artifact.kind === "validation-policy",
@@ -157,8 +258,14 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
     throw new Error("Artifact validation policy must disable network and package installation");
   }
 
-  return {
-    package: packageRecord,
+  if (isSemanticPackage(packageRecord)) {
+    if (generatedSet.has(packageRecord.manifest.runtimeContract.path)) {
+      throw new Error("Runtime semantic contract cannot be a generated output");
+    }
+    await deriveRuntimeContract(packageRecord, workDir, runtimeExecutable);
+  }
+
+  const preparedBase: PreparedArtifactRunBase = {
     workDir,
     scope: input.scope,
     runtimeExecutable,
@@ -166,6 +273,9 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
     templates,
     protectedFiles: await snapshotProtectedFiles(workDir, generatedSet),
   };
+  return isSemanticPackage(packageRecord)
+    ? { ...preparedBase, catalog: "executable-semantic-artifact/v2", package: packageRecord }
+    : { ...preparedBase, catalog: "executable-artifact/v1", package: packageRecord };
 }
 
 export async function materializeArtifactTemplates(input: PreparedArtifactRun): Promise<void> {
