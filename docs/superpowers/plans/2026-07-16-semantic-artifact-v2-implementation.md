@@ -343,36 +343,40 @@ cycles. Recording a fabricated RED here would misstate the test history.
 ## Task 8: Explicit Runner Planning
 
 **Files:**
-- Modify: `src/benchmarks/skill-ir/real-agent.ts`
 - Modify: `src/benchmarks/skill-ir/real-agent-run.ts`
 - Modify: `src/benchmarks/skill-ir/real-agent-run.test.ts`
-- Modify: `src/benchmarks/skill-ir/matrix.ts`
+- Modify: `src/benchmarks/skill-ir/artifact-package.ts`
 
-- [ ] **Step 1: Write RED planning guards**
+- [x] **Step 1: Write RED planning guards**
 
 Require v2 absence from defaults and explicit single pilot, development tasks,
 clean/Windows, `ir-artifact-dev`, v2 package, and future v2 lock. Reject
 held-out, mixed catalogs, v1 lock reuse, missing lock, and IR override.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent-run.test.ts
 ```
 
-- [ ] **Step 3: Implement planning support without creating a lock**
+- [x] **Step 3: Implement planning support without creating a lock**
 
 Add catalog-specific CLI/package/lock parsing and keep the same explicit system
 label. Tests may use a temporary v2 lock; this task does not freeze numerical
 gate values or commit the real env-manager v2 lock.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [x] **Step 4: Verify GREEN and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent-run.test.ts ./src/benchmarks/skill-ir/matrix.test.ts
-git add src/benchmarks/skill-ir/real-agent.ts src/benchmarks/skill-ir/real-agent-run.ts src/benchmarks/skill-ir/real-agent-run.test.ts src/benchmarks/skill-ir/matrix.ts
+git add src/benchmarks/skill-ir/artifact-package.ts src/benchmarks/skill-ir/real-agent-run.ts src/benchmarks/skill-ir/real-agent-run.test.ts
 git commit -m "feat: plan semantic artifact development runs"
 ```
+
+Implementation note: `real-agent.ts` already carried catalog-neutral artifact
+plan fields, and `matrix.ts` already kept `ir-artifact-dev` out of defaults.
+Task 8 therefore changed only the package lock contract and Runner dispatch;
+editing the other files would have added churn without behavior.
 
 ## Task 9: Package And Local Baseline
 

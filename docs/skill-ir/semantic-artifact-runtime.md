@@ -272,8 +272,39 @@ first run passed all three tests and seven assertions because Tasks 1-6 had
 already implemented the behavior under their own RED/GREEN cycles. It uses no
 scorer payload, expected classification set, model, API, or held-out data.
 
+## Runner Planning Boundary
+
+V2 remains an explicit `ir-artifact-dev` diagnostic path. It is absent from the
+cold-start/default systems and requires all existing development replay guards:
+
+```text
+corpus=pilot
+one explicit skill
+system=ir-artifact-dev only
+context=clean
+explicit development tasks
+explicit package + lock + repair mode
+no IR override and no other development bypass
+```
+
+The Runner validates package catalog first. V1 then requires the literal v1
+lock and historical package scope. V2 requires a distinct temporary/test lock
+identity with `executable-semantic-artifact/v2` and
+`semantic-error-codes/v1`; model, adapter, context, environment, tasks,
+repetitions, package digests, and repair mode are bound by that lock. A v1 lock
+cannot authorize a v2 package. Held-out tasks remain rejected.
+
+No real v2 lock is committed in Task 8. Tests create a temporary lock whose
+`prohibited` text marks it test-only; its gate values have no research or paid
+execution authority. `real-agent.ts` and `matrix.ts` required no edits because
+their artifact fields and default exclusion were already catalog-neutral.
+
+Task 8 RED failed only at the old v1-only package catalog guard while 37 prior
+Runner tests passed. GREEN passed 53 Runner/matrix/package tests and 171
+assertions; typecheck passed.
+
 ## Next Step
 
-Add explicit Runner planning guards for v2 without introducing a real lock or
-default schedule. Tests may use a temporary lock only; paid and held-out paths
-remain blocked.
+Compile the committed local v2 package, run full project verification, record
+digests and the local activation baseline, then stop before any real lock,
+numerical gate, API call, or held-out run.

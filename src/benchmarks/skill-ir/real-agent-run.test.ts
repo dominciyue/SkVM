@@ -16,6 +16,7 @@ import { buildFinalIRProvenance } from "./final-ir-provenance";
 import type { RealAgentRunPlanEntry } from "./real-agent";
 import { sha256Bytes } from "./source-fixture";
 import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
+import { compileEnvManagerSemanticArtifactPackage } from "./semantic-artifact-compiler";
 
 const tempDirs: string[] = [];
 const projectRoot = join(import.meta.dir, "../../..");
@@ -139,6 +140,65 @@ async function createExecutableArtifactPackage(): Promise<{ packageDir: string; 
       maximumInfrastructureFailures: 0,
     },
     prohibited: ["held-out execution before development gate"],
+  });
+  return { packageDir, lockPath };
+}
+
+async function createSemanticArtifactPackage(): Promise<{ packageDir: string; lockPath: string }> {
+  const root = await mkdtemp(join(tmpdir(), "skill-ir-semantic-runner-package-"));
+  tempDirs.push(root);
+  const packageDir = join(root, "package");
+  await compileEnvManagerSemanticArtifactPackage({
+    rootDir: projectRoot,
+    baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
+    taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
+    sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    outDir: packageDir,
+  });
+  const lockPath = join(root, "semantic-artifact-lock.json");
+  await writeJson(lockPath, {
+    schemaVersion: "skill-ir-env-manager-executable-semantic-artifact-lock/v1",
+    stage: "executable-semantic-artifact-development",
+    status: "preregistered",
+    catalog: "executable-semantic-artifact/v2",
+    codeCatalog: "semantic-error-codes/v1",
+    corpus: "pilot",
+    skillId: "env-manager",
+    package: {
+      path: "package",
+      manifestSha256: sha256Bytes(await readFile(join(packageDir, "package-manifest.json"))),
+      provenanceSha256: sha256Bytes(await readFile(join(packageDir, "package-provenance.json"))),
+    },
+    model: { route: "xty/gpt-4.1-mini", family: "gpt" },
+    adapter: { id: "bare-agent", version: "workspace-semantic-artifact-v2-test" },
+    matrix: {
+      system: "ir-artifact-dev",
+      repairModes: ["check-only", "one-repair"],
+      contexts: ["clean"],
+      agents: ["skvm"],
+      environments: ["windows"],
+      taskSplit: "development",
+      taskIds: ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      repetitions: 1,
+      initialGenerationRows: 4,
+    },
+    runtime: {
+      stateMachine: ["preflight", "generation", "validate", "optional-one-repair", "revalidate", "stop"],
+      maxSemanticRepairCalls: 1,
+      apiKeyEnv: "TEST_ONLY_API_KEY_ENV",
+    },
+    scoring: {
+      authority: "existing-deterministic-env-manager-scorer",
+      runtimeValidatorIsScorer: false,
+      repairCostReportedSeparately: true,
+    },
+    developmentGate: {
+      minimumSuccesses: 1,
+      minimumMeanScore: 0,
+      maximumHardGateRegressions: 0,
+      maximumInfrastructureFailures: 0,
+    },
+    prohibited: ["test-only lock; not a real gate or paid-run authority"],
   });
   return { packageDir, lockPath };
 }
@@ -929,6 +989,50 @@ describe("real-agent-run manifest loading", () => {
     lock.package.manifestSha256 = "0".repeat(64);
     await writeJson(lockPath, lock);
     await expect(buildPlan(valid)).rejects.toThrow("lock package manifest digest mismatch");
+  });
+
+  test("plans explicit v2 development rows only with a matching temporary semantic lock", async () => {
+    const { packageDir, lockPath } = await createSemanticArtifactPackage();
+    const outDir = await mkdtemp(join(tmpdir(), "skill-ir-semantic-artifact-plan-"));
+    tempDirs.push(outDir);
+    const valid: RealAgentRunArgs = {
+      corpus: "pilot",
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-semantic-artifact-v2-test",
+      repetitions: 1,
+      panelConfigId: "env-manager-semantic-artifact-v2-test-only",
+      outDir,
+      limit: 2,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 0,
+      rootDir: projectRoot,
+      allowArtifactDevelopmentReplay: true,
+      artifactPackageDir: packageDir,
+      artifactLockPath: lockPath,
+      artifactRepairMode: "one-repair",
+      skills: new Set(["env-manager"]),
+      systems: new Set(["ir-artifact-dev"]),
+      contexts: new Set(["clean"]),
+      agents: new Set(["skvm"]),
+      environments: new Set(["windows"]),
+      tasks: new Set(["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"]),
+    };
+
+    const plan = await buildPlan(valid);
+    expect(plan).toHaveLength(2);
+    expect(plan.every((entry) => entry.artifactPackageDir === packageDir)).toBe(true);
+    expect(plan.every((entry) => entry.artifactRepairMode === "one-repair")).toBe(true);
+    expect(await readFile(plan[0]!.skillPath!, "utf8")).toContain("## Executable Semantic Artifact");
+
+    const v1 = await createExecutableArtifactPackage();
+    await expect(buildPlan({ ...valid, artifactLockPath: v1.lockPath })).rejects.toThrow(/lock|catalog|schema/i);
+    await expect(buildPlan({
+      ...valid,
+      tasks: new Set(["env-manager-python-audit-heldout-001"]),
+    })).rejects.toThrow(/development|lock|task/i);
   });
 
   test("buildPlan rejects a final IR directory without provenance", async () => {

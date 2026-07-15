@@ -249,10 +249,22 @@ export const ArtifactDevelopmentLockSchema = z.object({
   prohibited: z.array(z.string().min(1)).min(1),
 }).strict();
 
+export const SemanticArtifactDevelopmentLockSchema = ArtifactDevelopmentLockSchema.omit({
+  schemaVersion: true,
+  stage: true,
+  catalog: true,
+}).extend({
+  schemaVersion: z.literal("skill-ir-env-manager-executable-semantic-artifact-lock/v1"),
+  stage: z.literal("executable-semantic-artifact-development"),
+  catalog: z.literal("executable-semantic-artifact/v2"),
+  codeCatalog: z.literal("semantic-error-codes/v1"),
+}).strict();
+
 export type RuntimeValidationReport = z.infer<typeof RuntimeValidationReportSchema>;
 export type ArtifactPackageManifest = z.infer<typeof ArtifactPackageManifestSchema>;
 export type ArtifactPackageProvenance = z.infer<typeof ArtifactPackageProvenanceSchema>;
 export type ArtifactDevelopmentLock = z.infer<typeof ArtifactDevelopmentLockSchema>;
+export type SemanticArtifactDevelopmentLock = z.infer<typeof SemanticArtifactDevelopmentLockSchema>;
 export type ArtifactRecord = z.infer<typeof ArtifactRecordSchema>;
 export type SemanticArtifactRecord = z.infer<typeof SemanticArtifactRecordSchema>;
 export type SemanticArtifactPackageManifest = z.infer<typeof SemanticArtifactPackageManifestSchema>;
@@ -504,6 +516,72 @@ export async function readAndValidateArtifactDevelopmentLock(opts: {
     if (!sameValues(actual, frozen)) {
       throw new Error(`Artifact lock ${name} mismatch`);
     }
+  }
+  return lock;
+}
+
+export async function readAndValidateSemanticArtifactDevelopmentLock(opts: {
+  rootDir: string;
+  lockPath: string;
+  packageDir: string;
+  expected: {
+    corpus: string;
+    skillId: string;
+    model: string;
+    modelFamily: string;
+    adapter: string;
+    adapterVersion: string;
+    repairMode: "check-only" | "one-repair";
+    repetitions: number;
+    contexts?: Iterable<string>;
+    agents?: Iterable<string>;
+    environments?: Iterable<string>;
+    tasks?: Iterable<string>;
+  };
+}): Promise<SemanticArtifactDevelopmentLock> {
+  const lockPath = resolve(opts.lockPath);
+  const lock = SemanticArtifactDevelopmentLockSchema.parse(await readJson(lockPath));
+  const rootCandidate = isAbsolute(lock.package.path)
+    ? resolve(lock.package.path)
+    : resolve(opts.rootDir, parseSafeRelativePath(lock.package.path));
+  const siblingCandidate = isAbsolute(lock.package.path)
+    ? rootCandidate
+    : resolve(lockPath, "..", parseSafeRelativePath(lock.package.path));
+  const actualPackageDir = resolve(opts.packageDir);
+  if (actualPackageDir !== rootCandidate && actualPackageDir !== siblingCandidate) {
+    throw new Error(`Semantic artifact lock package path mismatch: ${lock.package.path}`);
+  }
+  const manifestSha256 = sha256Bytes(await readFile(resolve(actualPackageDir, "package-manifest.json")));
+  if (manifestSha256 !== lock.package.manifestSha256) {
+    throw new Error("Semantic artifact lock package manifest digest mismatch");
+  }
+  const provenanceSha256 = sha256Bytes(await readFile(resolve(actualPackageDir, "package-provenance.json")));
+  if (provenanceSha256 !== lock.package.provenanceSha256) {
+    throw new Error("Semantic artifact lock package provenance digest mismatch");
+  }
+  const expected = opts.expected;
+  if (expected.corpus !== lock.corpus || expected.skillId !== lock.skillId) {
+    throw new Error("Semantic artifact lock corpus or skill identity mismatch");
+  }
+  if (expected.model !== lock.model.route || expected.modelFamily !== lock.model.family) {
+    throw new Error("Semantic artifact lock model identity mismatch");
+  }
+  if (expected.adapter !== lock.adapter.id || expected.adapterVersion !== lock.adapter.version) {
+    throw new Error("Semantic artifact lock adapter identity mismatch");
+  }
+  if (!lock.matrix.repairModes.includes(expected.repairMode)) {
+    throw new Error(`Semantic artifact lock does not allow repair mode ${expected.repairMode}`);
+  }
+  if (expected.repetitions !== lock.matrix.repetitions) {
+    throw new Error(`Semantic artifact lock repetitions mismatch: expected ${lock.matrix.repetitions}`);
+  }
+  for (const [name, actual, frozen] of [
+    ["contexts", expected.contexts, lock.matrix.contexts],
+    ["agents", expected.agents, lock.matrix.agents],
+    ["environments", expected.environments, lock.matrix.environments],
+    ["tasks", expected.tasks, lock.matrix.taskIds],
+  ] as const) {
+    if (!sameValues(actual, frozen)) throw new Error(`Semantic artifact lock ${name} mismatch`);
   }
   return lock;
 }

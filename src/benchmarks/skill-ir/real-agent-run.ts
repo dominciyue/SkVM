@@ -30,8 +30,10 @@ import {
 } from "./artifact-runtime";
 import {
   readAndValidateArtifactDevelopmentLock,
+  readAndValidateSemanticArtifactDevelopmentLock,
   validateArtifactPackage,
   type ValidatedArtifactPackage,
+  type ValidatedSemanticArtifactPackage,
 } from "./artifact-package";
 import { extractEnvManagerTaskContract } from "./artifact-package-compiler";
 import { preflightArtifactRun } from "./artifact-preflight";
@@ -272,6 +274,12 @@ function hasExactValues<T>(values: Set<T> | undefined, expected: T[]): boolean {
   return values !== undefined && values.size === expected.length && expected.every((value) => values.has(value));
 }
 
+function isSemanticArtifactPackage(
+  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage,
+): packageRecord is ValidatedSemanticArtifactPackage {
+  return packageRecord.manifest.catalog === "executable-semantic-artifact/v2";
+}
+
 function assertTasksAuthoredCalibrationArgs(args: RealAgentRunArgs): void {
   if (!args.allowTasksAuthored) {
     return;
@@ -368,15 +376,15 @@ function assertArtifactDevelopmentReplayArgs(args: RealAgentRunArgs): void {
 async function validateSelectedArtifactPackage(
   args: RealAgentRunArgs,
   fixtures: Map<string, SkillBenchmarkFixture>,
-): Promise<ValidatedArtifactPackage | undefined> {
+): Promise<ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | undefined> {
   if (!args.allowArtifactDevelopmentReplay) return undefined;
   const packageDir = isAbsolute(args.artifactPackageDir!)
     ? args.artifactPackageDir!
     : join(args.rootDir, args.artifactPackageDir!);
-  const packageRecord = await validateArtifactPackage({
-    packageDir,
-    expectedCatalog: "executable-artifact/v1",
-  });
+  const packageManifest = await readJson<{ catalog?: unknown }>(join(packageDir, "package-manifest.json"));
+  const packageRecord = packageManifest.catalog === "executable-semantic-artifact/v2"
+    ? await validateArtifactPackage({ packageDir, expectedCatalog: "executable-semantic-artifact/v2" })
+    : await validateArtifactPackage({ packageDir, expectedCatalog: "executable-artifact/v1" });
   const skillId = [...args.skills!][0]!;
   if (packageRecord.manifest.skillId !== skillId) {
     throw new Error(`Artifact package skill mismatch: expected ${skillId}`);
@@ -393,23 +401,25 @@ async function validateSelectedArtifactPackage(
   ) {
     throw new Error("Artifact package task contract drifted from user-visible prompts");
   }
-  const expectedScope = packageRecord.provenance.scope;
   const modelFamily = args.modelFamily ?? inferModelFamily(args.model);
   const adapterVersion = args.adapterVersion ?? "workspace";
-  for (const [key, actual] of [
-    ["model", args.model],
-    ["modelFamily", modelFamily],
-    ["adapter", args.adapter],
-    ["adapterVersion", adapterVersion],
-  ] as const) {
-    if (actual !== expectedScope[key]) {
-      throw new Error(`Artifact package ${key} scope mismatch: expected ${expectedScope[key]}, got ${actual}`);
+  if (!isSemanticArtifactPackage(packageRecord)) {
+    const expectedScope = packageRecord.provenance.scope;
+    for (const [key, actual] of [
+      ["model", args.model],
+      ["modelFamily", modelFamily],
+      ["adapter", args.adapter],
+      ["adapterVersion", adapterVersion],
+    ] as const) {
+      if (actual !== expectedScope[key]) {
+        throw new Error(`Artifact package ${key} scope mismatch: expected ${expectedScope[key]}, got ${actual}`);
+      }
     }
   }
   const lockPath = isAbsolute(args.artifactLockPath!)
     ? args.artifactLockPath!
     : join(args.rootDir, args.artifactLockPath!);
-  await readAndValidateArtifactDevelopmentLock({
+  const lockInput = {
     rootDir: args.rootDir,
     lockPath,
     packageDir: packageRecord.packageDir,
@@ -427,7 +437,12 @@ async function validateSelectedArtifactPackage(
       environments: args.environments,
       tasks: args.tasks,
     },
-  });
+  };
+  if (isSemanticArtifactPackage(packageRecord)) {
+    await readAndValidateSemanticArtifactDevelopmentLock(lockInput);
+  } else {
+    await readAndValidateArtifactDevelopmentLock(lockInput);
+  }
   return packageRecord;
 }
 
@@ -629,11 +644,13 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
       if (!artifactPackage?.provenance.taskContract.taskIds.includes(task.id)) {
         throw new Error(`Artifact package does not preregister development task: ${task.id}`);
       }
-      if (item.environment !== artifactPackage.provenance.scope.environment) {
-        throw new Error(`Artifact package environment scope mismatch: ${item.environment}`);
-      }
-      if (item.context !== artifactPackage.provenance.scope.context) {
-        throw new Error(`Artifact package context scope mismatch: ${item.context}`);
+      if (!isSemanticArtifactPackage(artifactPackage)) {
+        if (item.environment !== artifactPackage.provenance.scope.environment) {
+          throw new Error(`Artifact package environment scope mismatch: ${item.environment}`);
+        }
+        if (item.context !== artifactPackage.provenance.scope.context) {
+          throw new Error(`Artifact package context scope mismatch: ${item.context}`);
+        }
       }
     }
 
