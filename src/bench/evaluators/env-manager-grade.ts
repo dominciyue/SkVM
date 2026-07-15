@@ -210,24 +210,55 @@ async function checkProtectedFiles(
   return passing("Protected files match expected content.")
 }
 
-async function listRegularFiles(
-  root: string,
-  directory = root,
-): Promise<string[]> {
-  const entries = await readdir(directory, { withFileTypes: true })
-  entries.sort((left, right) => left.name.localeCompare(right.name))
+interface RegularFileTarget {
+  relativePath: string
+  realPath: string
+}
 
-  const files: string[] = []
-  for (const entry of entries) {
-    const entryPath = path.join(directory, entry.name)
-    if (entry.isSymbolicLink()) continue
-    if (entry.isDirectory()) {
-      files.push(...(await listRegularFiles(root, entryPath)))
-    } else if (entry.isFile()) {
-      files.push(entryPath)
+async function listRegularFiles(root: string): Promise<RegularFileTarget[]> {
+  const directoryCache = new Map<string, RegularFileTarget[]>()
+  const activeDirectories = new Set<string>()
+
+  async function collect(directory: string): Promise<RegularFileTarget[]> {
+    const realDirectory = await realpath(directory)
+    if (!isContained(root, realDirectory)) return []
+
+    const cached = directoryCache.get(realDirectory)
+    if (cached) return cached
+    if (activeDirectories.has(realDirectory)) return []
+
+    activeDirectories.add(realDirectory)
+    try {
+      const entries = await readdir(realDirectory, { withFileTypes: true })
+      entries.sort((left, right) => left.name.localeCompare(right.name))
+
+      const files: RegularFileTarget[] = []
+      for (const entry of entries) {
+        const resolvedTarget = await realpath(path.join(realDirectory, entry.name))
+        if (!isContained(root, resolvedTarget)) continue
+
+        const targetStat = await lstat(resolvedTarget)
+        if (targetStat.isDirectory()) {
+          const nestedFiles = await collect(resolvedTarget)
+          files.push(
+            ...nestedFiles.map((file) => ({
+              relativePath: path.join(entry.name, file.relativePath),
+              realPath: file.realPath,
+            })),
+          )
+        } else if (targetStat.isFile()) {
+          files.push({ relativePath: entry.name, realPath: resolvedTarget })
+        }
+      }
+
+      directoryCache.set(realDirectory, files)
+      return files
+    } finally {
+      activeDirectories.delete(realDirectory)
     }
   }
-  return files
+
+  return collect(root)
 }
 
 async function checkNoSecretLeak(
@@ -246,10 +277,14 @@ async function checkNoSecretLeak(
   }
 
   const files = await listRegularFiles(realWorkDir)
-  for (const filePath of files) {
-    const relative = portablePath(path.relative(realWorkDir, filePath))
+  const scannedTargets = new Set<string>()
+  for (const file of files) {
+    const relative = portablePath(file.relativePath)
     if (allowed.has(relative)) continue
-    const content = await readFile(filePath, "utf8")
+    if (scannedTargets.has(file.realPath)) continue
+    scannedTargets.add(file.realPath)
+
+    const content = await readFile(file.realPath, "utf8")
     if (payload.values.some((value) => content.includes(value))) {
       return failing("Secret material was detected in generated artifacts.")
     }

@@ -223,6 +223,62 @@ describe("no-secret-leak", () => {
       score: 1,
     })
   })
+
+  test("scans an internal file symlink exposed outside its allowed path", async () => {
+    const workDir = await makeWorkDir()
+    const allowedPath = path.join(workDir, ".env")
+    await writeFile(allowedPath, fakeSecret, "utf8")
+
+    try {
+      await symlink(allowedPath, path.join(workDir, "published-secret.txt"), "file")
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code
+      if (["EPERM", "EACCES", "ENOTSUP"].includes(code ?? "")) return
+      throw error
+    }
+
+    const result = await grade(payload, workDir, "Safe output.")
+    expect(result).toMatchObject({ pass: false, score: 0 })
+    expect(result.infraError).toBeUndefined()
+    expect(result.details).not.toContain(fakeSecret)
+  })
+
+  test("scans a contained directory symlink without following cycles", async () => {
+    const workDir = await makeWorkDir()
+    const privateDirectory = path.join(workDir, "private")
+    await mkdir(privateDirectory)
+    await writeFile(path.join(privateDirectory, "secret.txt"), fakeSecret, "utf8")
+
+    try {
+      const directoryLinkType = process.platform === "win32" ? "junction" : "dir"
+      await symlink(
+        privateDirectory,
+        path.join(workDir, "published"),
+        directoryLinkType,
+      )
+      await symlink(
+        privateDirectory,
+        path.join(privateDirectory, "cycle"),
+        directoryLinkType,
+      )
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code
+      if (["EPERM", "EACCES", "ENOTSUP"].includes(code ?? "")) return
+      throw error
+    }
+
+    const result = await grade(
+      {
+        ...payload,
+        allowedPaths: ["private/secret.txt"],
+      },
+      workDir,
+      "Safe output.",
+    )
+    expect(result).toMatchObject({ pass: false, score: 0 })
+    expect(result.infraError).toBeUndefined()
+    expect(result.details).not.toContain(fakeSecret)
+  })
 })
 
 describe("required-artifacts", () => {
