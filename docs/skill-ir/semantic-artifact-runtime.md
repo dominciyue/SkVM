@@ -14,6 +14,7 @@ yet.
 |---|---|
 | `classification-evidence.ts` | Strict dormant B evidence schemas and types only. |
 | `semantic-contract.ts` | Strict A runtime contract, scan policy, v2 report, and closed semantic code catalog. |
+| `semantic-evidence.ts` | Conservative dotenv/TypeScript AST evidence derivation over agent-visible workdirs. |
 
 `classification-evidence.ts` exports no producer, writer, derivation function,
 or serializer. Its `ClassificationCandidate.value` is an identifier, never a
@@ -76,8 +77,34 @@ The initial RED failed because both modules were absent. A second RED proved
 that `MISSING_FILE + expectedType` was incorrectly accepted before exact
 allowed-field enforcement was added.
 
+## Evidence Derivation
+
+Task 2 derives only:
+
+- dotenv variable names;
+- static `process.env.NAME` and literal element references;
+- explicit integer conversion through `Number` or `parseInt`;
+- port range only when integer evidence and the public port rule both exist;
+- sensitive-marker requirements from public name tokens;
+- hardcoded findings only for sensitive-named literal assignments.
+
+Removing any required evidence removes the corresponding assertion. Dynamic
+environment access, unsupported source extensions, and unsupported UTF-8
+encoding produce closed limitations. Symlinks and hard scan limits fail closed.
+Serialized contracts contain no dotenv value, source literal, or source snippet.
+
+Task 2 result: 4 tests passed, 0 failed, 20 assertions; typecheck passed. The
+initial RED failed because the module was absent. A second RED established that
+unsupported encoding/extensions and dynamic environment access were being
+silently ignored before closed limitations were added.
+
+The package compiler will bundle this tested module through a small CLI
+entrypoint. This replaces the plan's earlier source-string generation detail
+and avoids maintaining a duplicate derivation implementation. Timeout remains
+enforced by preflight around the bundled process.
+
 ## Next Step
 
-Implement the bounded A evidence program with real temporary-workdir tests and
-paired reverse-evidence mutations. B remains unimported by production runtime
-paths.
+Compile the v2 package, bundle the evidence CLI, and prove recursive canary
+isolation plus deterministic package identity. B remains unimported by runtime
+production paths.

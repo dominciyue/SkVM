@@ -23,7 +23,8 @@ run, scorer change, v1 mutation, or B production path belongs to Tasks 1-9.
 |---|---|
 | `classification-evidence.ts` | Dormant B schemas/types only. |
 | `semantic-contract.ts` | A contract, scan policy, v2 report, error catalog. |
-| `semantic-evidence.ts` | Emitted AST/dotenv evidence program and bounded executor. |
+| `semantic-evidence.ts` | Tested AST/dotenv derivation module used by the package bundle entrypoint. |
+| `semantic-evidence-cli.ts` | Task 3 bundle entrypoint for the package evidence program. |
 | `semantic-artifact-compiler.ts` | V2 package compiler and emitted semantic checker. |
 | `semantic-artifact-run.ts` | Compile/verify CLI. |
 | `artifact-preflight.ts` | Derive and protect runtime contract for v2. |
@@ -107,7 +108,7 @@ git commit -m "feat: add semantic artifact v2 contracts"
 - Create: `src/benchmarks/skill-ir/semantic-evidence.ts`
 - Create: `src/benchmarks/skill-ir/semantic-evidence.test.ts`
 
-- [ ] **Step 1: Write RED positive evidence tests**
+- [x] **Step 1: Write RED positive evidence tests**
 
 Use real temporary workdirs. Require dotenv names and AST environment
 references in inventory, `Number(process.env.APP_PORT)` as `integer`, a public
@@ -115,14 +116,14 @@ port rule as range constraints, sensitive-name markers, and a literal assigned
 to `INTERNAL_TOKEN` as a source-qualified finding. Serialized output must not
 contain dotenv values or source snippets.
 
-- [ ] **Step 2: Write RED reverse-evidence tests**
+- [x] **Step 2: Write RED reverse-evidence tests**
 
 Remove `Number`, the public port rule, sensitive naming, both definition and
 reference, the source symbol, and the literal assignment one at a time. The
 corresponding type, constraint, marker, inventory entry, or finding must
 disappear rather than be guessed.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/semantic-evidence.test.ts
@@ -130,28 +131,27 @@ bun test ./src/benchmarks/skill-ir/semantic-evidence.test.ts
 
 Expected: fail because evidence APIs are missing.
 
-- [ ] **Step 4: Implement bounded derivation**
+- [x] **Step 4: Implement bounded derivation**
 
 ```ts
 export type DeriveSemanticContractOptions = {
   workDir: string;
-  outputPath: string;
   publicRules: SemanticPublicRules;
   policy: SemanticScanPolicy;
-  timeoutMs: number;
 };
-export function buildSemanticEvidenceProgramSource(): string;
 export async function deriveSemanticContractFromWorkdir(
   options: DeriveSemanticContractOptions,
 ): Promise<SemanticRuntimeContract>;
 ```
 
-The emitted program uses TypeScript AST for allowed JS/TS extensions, parses
-dotenv without serializing values, stable-sorts output, enforces file/byte/time
-limits, rejects escaping symlinks, and records limitations for unsupported or
-ambiguous evidence.
+The tested module uses TypeScript AST for allowed JS/TS extensions, parses
+dotenv without serializing values, stable-sorts output, enforces file/byte
+limits, rejects symlinks, and records limitations for unsupported or ambiguous
+evidence. Task 3 bundles this exact module behind a CLI entrypoint so package
+execution cannot drift from the tested derivation. Process timeout remains a
+preflight responsibility.
 
-- [ ] **Step 5: Verify GREEN and commit**
+- [x] **Step 5: Verify GREEN and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/semantic-evidence.test.ts
@@ -165,6 +165,7 @@ git commit -m "feat: derive conservative semantic evidence"
 - Create: `src/benchmarks/skill-ir/semantic-artifact-compiler.ts`
 - Create: `src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts`
 - Create: `src/benchmarks/skill-ir/semantic-artifact-run.ts`
+- Create: `src/benchmarks/skill-ir/semantic-evidence-cli.ts`
 - Modify: `src/benchmarks/skill-ir/artifact-package.ts`
 
 - [ ] **Step 1: Write RED package and canary tests**
@@ -190,7 +191,8 @@ bun test ./src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts ./src/benc
 - [ ] **Step 4: Implement compiler and CLI**
 
 Compile only source/base IR, development prompt projection, public skill rules,
-scan policy, evidence program, checker, templates, and digests. Add:
+scan policy, the bundled `semantic-evidence-cli.ts` entrypoint, checker,
+templates, and digests. Add:
 
 ```text
 semantic-artifact-run.ts --base-ir=... --tasks=... --source=... --out-dir=...
@@ -202,7 +204,7 @@ semantic-artifact-run.ts --verify-only=<package-dir>
 ```powershell
 bun test ./src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts ./src/benchmarks/skill-ir/artifact-package.test.ts
 bun run typecheck
-git add src/benchmarks/skill-ir/semantic-artifact-compiler.ts src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts src/benchmarks/skill-ir/semantic-artifact-run.ts src/benchmarks/skill-ir/artifact-package.ts
+git add src/benchmarks/skill-ir/semantic-artifact-compiler.ts src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts src/benchmarks/skill-ir/semantic-artifact-run.ts src/benchmarks/skill-ir/semantic-evidence-cli.ts src/benchmarks/skill-ir/artifact-package.ts
 git commit -m "feat: compile semantic artifact v2 packages"
 ```
 
