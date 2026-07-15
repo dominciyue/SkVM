@@ -304,7 +304,7 @@ describe("no-secret-leak", () => {
   })
 
   testOnWindows(
-    "fails semantically when a contained artifact has a non-default NTFS stream",
+    "fails semantically when a contained file stream contains secret material",
     async () => {
       const workDir = await makeWorkDir()
       const artifactPath = path.join(workDir, "safe.txt")
@@ -316,6 +316,47 @@ describe("no-secret-leak", () => {
       expect(result.infraError).toBeUndefined()
       expect(result.details).not.toContain(fakeSecret)
       expect(result.details).not.toContain("hidden")
+    },
+  )
+
+  testOnWindows(
+    "scans workdir and directory streams for secret material",
+    async () => {
+      const workDir = await makeWorkDir()
+      const generatedDirectory = path.join(workDir, "generated")
+      await mkdir(generatedDirectory)
+      await writeFile(path.join(generatedDirectory, "safe.txt"), "redacted", "utf8")
+
+      const rootStream = `${workDir}:root-hidden`
+      await writeFile(rootStream, fakeSecret, "utf8")
+      const rootLeak = await grade(payload, workDir, "Safe output.")
+      expect(rootLeak).toMatchObject({ pass: false, score: 0 })
+      expect(rootLeak.infraError).toBeUndefined()
+      expect(rootLeak.details).not.toContain(fakeSecret)
+      await rm(rootStream)
+
+      const directoryStream = `${generatedDirectory}:directory-hidden`
+      await writeFile(directoryStream, fakeSecret, "utf8")
+      const directoryLeak = await grade(payload, workDir, "Safe output.")
+      expect(directoryLeak).toMatchObject({ pass: false, score: 0 })
+      expect(directoryLeak.infraError).toBeUndefined()
+      expect(directoryLeak.details).not.toContain(fakeSecret)
+    },
+  )
+
+  testOnWindows(
+    "allows benign streams and handles Unicode artifact paths",
+    async () => {
+      const workDir = await makeWorkDir()
+      const unicodeDirectory = path.join(workDir, "生成结果")
+      const artifactPath = path.join(unicodeDirectory, "报告.txt")
+      await mkdir(unicodeDirectory)
+      await writeFile(artifactPath, "redacted", "utf8")
+      await writeFile(`${artifactPath}:Zone.Identifier`, "[ZoneTransfer]\nZoneId=3\n", "utf8")
+
+      const result = await grade(payload, workDir, "Safe output.")
+      expect(result).toMatchObject({ pass: true, score: 1 })
+      expect(result.infraError).toBeUndefined()
     },
   )
 })

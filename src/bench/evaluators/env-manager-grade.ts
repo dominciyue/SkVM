@@ -219,9 +219,14 @@ interface RegularFileTarget {
 interface WorkdirTraversal {
   files: RegularFileTarget[]
   relativePaths: string[]
+  realArtifactPaths: string[]
 }
 
-const EMPTY_TRAVERSAL: WorkdirTraversal = { files: [], relativePaths: [] }
+const EMPTY_TRAVERSAL: WorkdirTraversal = {
+  files: [],
+  relativePaths: [],
+  realArtifactPaths: [],
+}
 
 async function listWorkdirArtifacts(root: string): Promise<WorkdirTraversal> {
   const directoryCache = new Map<string, WorkdirTraversal>()
@@ -242,10 +247,12 @@ async function listWorkdirArtifacts(root: string): Promise<WorkdirTraversal> {
 
       const files: RegularFileTarget[] = []
       const relativePaths: string[] = []
+      const realArtifactPaths = [realDirectory]
       for (const entry of entries) {
         relativePaths.push(entry.name)
         const resolvedTarget = await realpath(path.join(realDirectory, entry.name))
         if (!isContained(root, resolvedTarget)) continue
+        realArtifactPaths.push(resolvedTarget)
 
         const targetStat = await lstat(resolvedTarget)
         if (targetStat.isDirectory()) {
@@ -261,12 +268,13 @@ async function listWorkdirArtifacts(root: string): Promise<WorkdirTraversal> {
               path.join(entry.name, relativePath),
             ),
           )
+          realArtifactPaths.push(...nested.realArtifactPaths)
         } else if (targetStat.isFile()) {
           files.push({ relativePath: entry.name, realPath: resolvedTarget })
         }
       }
 
-      const result = { files, relativePaths }
+      const result = { files, relativePaths, realArtifactPaths }
       directoryCache.set(realDirectory, result)
       return result
     } finally {
@@ -277,19 +285,95 @@ async function listWorkdirArtifacts(root: string): Promise<WorkdirTraversal> {
   return collect(root)
 }
 
-const WINDOWS_STREAM_CHECK = [
-  "$ErrorActionPreference = 'Stop'",
-  "$paths = [Console]::In.ReadToEnd() | ConvertFrom-Json",
-  "foreach ($artifactPath in @($paths)) {",
-  "  foreach ($stream in @(Get-Item -LiteralPath $artifactPath -Stream * -ErrorAction Stop)) {",
-  "    if ($stream.Stream -ne ':$DATA' -and $stream.Stream -ne '$DATA') { exit 10 }",
-  "  }",
-  "}",
-  "exit 0",
-].join("\n")
+const WINDOWS_STREAM_CHECK = String.raw`
+$ErrorActionPreference = 'Stop'
+[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
 
-async function hasNonDefaultWindowsStream(filePaths: string[]): Promise<boolean> {
-  if (process.platform !== "win32" || filePaths.length === 0) return false
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+
+public static class SkvmStreamNative {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct FindStreamData {
+        public long StreamSize;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 296)]
+        public string StreamName;
+    }
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern IntPtr FindFirstStreamW(
+        string fileName,
+        int infoLevel,
+        out FindStreamData data,
+        int flags);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern bool FindNextStreamW(
+        IntPtr handle,
+        out FindStreamData data);
+
+    [DllImport("kernel32.dll")]
+    public static extern bool FindClose(IntPtr handle);
+}
+'@
+
+function Convert-ToLongPath([string] $artifactPath) {
+  if ($artifactPath.StartsWith('\\')) {
+    return '\\?\UNC\' + $artifactPath.Substring(2)
+  }
+  return '\\?\' + $artifactPath
+}
+
+$request = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$paths = @($request.paths)
+$values = @($request.values)
+$invalidHandle = [IntPtr]::new(-1)
+
+foreach ($artifactPath in $paths) {
+  $data = New-Object SkvmStreamNative+FindStreamData
+  $handle = [SkvmStreamNative]::FindFirstStreamW($artifactPath, 0, [ref] $data, 0)
+  if ($handle -eq $invalidHandle) {
+    $errorCode = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
+    if ($errorCode -eq 38) { continue }
+    throw 'Stream enumeration failed'
+  }
+
+  try {
+    do {
+      $streamName = $data.StreamName
+      if ($streamName -ne '::$DATA') {
+        foreach ($value in $values) {
+          if ($streamName.Contains($value)) { exit 10 }
+        }
+
+        $plainName = $streamName.Substring(1, $streamName.Length - 7)
+        $streamPath = (Convert-ToLongPath $artifactPath) + ':' + $plainName
+        $content = [Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($streamPath))
+        foreach ($value in $values) {
+          if ($content.Contains($value)) { exit 10 }
+        }
+      }
+
+      $next = New-Object SkvmStreamNative+FindStreamData
+      $hasNext = [SkvmStreamNative]::FindNextStreamW($handle, [ref] $next)
+      if ($hasNext) { $data = $next }
+    } while ($hasNext)
+  } finally {
+    [void] [SkvmStreamNative]::FindClose($handle)
+  }
+}
+
+exit 0
+`.trim()
+
+const WINDOWS_STREAM_TIMEOUT_MS = 10_000
+
+async function hasSecretWindowsStream(
+  artifactPaths: string[],
+  secretValues: string[],
+): Promise<boolean> {
+  if (process.platform !== "win32" || artifactPaths.length === 0) return false
 
   return new Promise<boolean>((resolve, reject) => {
     const child = spawn(
@@ -298,14 +382,30 @@ async function hasNonDefaultWindowsStream(filePaths: string[]): Promise<boolean>
       { stdio: ["pipe", "ignore", "ignore"], windowsHide: true },
     )
 
-    child.once("error", reject)
-    child.stdin.once("error", reject)
+    let settled = false
+    const finish = (callback: () => void) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timeout)
+      callback()
+    }
+    const timeout = setTimeout(() => {
+      child.kill()
+      finish(() => reject(new Error("Windows stream enumeration timed out")))
+    }, WINDOWS_STREAM_TIMEOUT_MS)
+
+    child.once("error", () =>
+      finish(() => reject(new Error("Windows stream enumeration failed"))),
+    )
+    child.stdin.once("error", () =>
+      finish(() => reject(new Error("Windows stream enumeration failed"))),
+    )
     child.once("close", (code) => {
-      if (code === 0) resolve(false)
-      else if (code === 10) resolve(true)
-      else reject(new Error("Windows stream enumeration failed"))
+      if (code === 0) finish(() => resolve(false))
+      else if (code === 10) finish(() => resolve(true))
+      else finish(() => reject(new Error("Windows stream enumeration failed")))
     })
-    child.stdin.end(JSON.stringify(filePaths))
+    child.stdin.end(JSON.stringify({ paths: artifactPaths, values: secretValues }))
   })
 }
 
@@ -333,9 +433,9 @@ async function checkNoSecretLeak(
     return failing("Secret material was detected in artifact paths.")
   }
 
-  const realFilePaths = [...new Set(traversal.files.map((file) => file.realPath))]
-  if (await hasNonDefaultWindowsStream(realFilePaths)) {
-    return failing("Non-default artifact streams are not allowed.")
+  const realArtifactPaths = [...new Set(traversal.realArtifactPaths)]
+  if (await hasSecretWindowsStream(realArtifactPaths, payload.values)) {
+    return failing("Secret material was detected in alternate streams.")
   }
 
   const scannedTargets = new Set<string>()
