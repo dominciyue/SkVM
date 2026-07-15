@@ -46,10 +46,98 @@ describe("skill-ir corpus fixtures", () => {
     expect(pilot.scopeCounts).toEqual({ waveADeepPilots: 3, waveBReplicationPilots: 3 });
     expect(pilot.skills.filter((skill) => skill.wave === "A")).toHaveLength(3);
     expect(pilot.skills.filter((skill) => skill.wave === "B")).toHaveLength(3);
-    expect(pilot.skills.filter((skill) => skill.wave === "A").every((skill) => skill.status === "source-imported")).toBe(
-      true,
-    );
+    expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("tasks-authored");
+    expect(
+      pilot.skills
+        .filter((skill) => skill.wave === "A" && skill.id !== "env-manager")
+        .every((skill) => skill.status === "source-imported"),
+    ).toBe(true);
     expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
+  });
+
+  test("env-manager pilot has four deterministic task-authored fixtures but remains non-runnable", () => {
+    type CustomCriterion = {
+      method: string;
+      id: string;
+      weight: number;
+      evaluatorId?: string;
+      payload?: {
+        schemaVersion?: string;
+        check?: string;
+        values?: string[];
+      };
+    };
+    type PilotTask = {
+      id: string;
+      split: string;
+      fixtures?: Record<string, string>;
+      successCriteria: string[];
+      eval?: CustomCriterion[];
+      hardGateIds?: string[];
+      passThreshold?: number;
+    };
+
+    const pilot = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
+      skills: { id: string; status: string; tasksPath?: string; irPath?: string }[];
+    };
+    const envManager = pilot.skills.find((skill) => skill.id === "env-manager");
+
+    expect(envManager).toMatchObject({
+      status: "tasks-authored",
+      tasksPath: "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+    });
+    expect(envManager?.irPath).toBeUndefined();
+    expect(pilot.skills.filter((skill) => skill.status === "runnable")).toHaveLength(0);
+
+    const taskSet = readJson(join(process.cwd(), envManager!.tasksPath!)) as {
+      schemaVersion: string;
+      skillId: string;
+      tasks: PilotTask[];
+    };
+    expect(taskSet.schemaVersion).toBe("skill-ir-tasks/v1");
+    expect(taskSet.skillId).toBe("env-manager");
+    expect(taskSet.tasks.map((task) => task.id)).toEqual([
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002",
+      "env-manager-python-audit-heldout-001",
+      "env-manager-nextjs-audit-heldout-002",
+    ]);
+    expect(taskSet.tasks.map((task) => task.split)).toEqual([
+      "development",
+      "development",
+      "held-out",
+      "held-out",
+    ]);
+
+    const expectedCriteria = [
+      ["env-protected-files", 0.2, "protected-files"],
+      ["env-no-secret-leak", 0.2, "no-secret-leak"],
+      ["env-required-artifacts", 0.15, "required-artifacts"],
+      ["env-classification", 0.2, "report-classification"],
+      ["env-example-safety", 0.15, "env-example"],
+      ["env-schema-rules", 0.1, "schema-rules"],
+    ];
+    const hardGateIds = ["env-protected-files", "env-no-secret-leak", "env-required-artifacts"];
+
+    for (const task of taskSet.tasks) {
+      expect(Object.keys(task.fixtures ?? {}).length).toBeGreaterThanOrEqual(4);
+      expect(task.successCriteria).toEqual([]);
+      expect(task.passThreshold).toBe(0.85);
+      expect(task.hardGateIds).toEqual(hardGateIds);
+      expect(task.eval?.map((criterion) => [criterion.id, criterion.weight, criterion.payload?.check])).toEqual(
+        expectedCriteria,
+      );
+      expect(task.eval?.every((criterion) => criterion.method === "custom")).toBe(true);
+      expect(task.eval?.every((criterion) => criterion.evaluatorId === "skill-ir-env-manager")).toBe(true);
+      expect(task.eval?.every((criterion) => criterion.payload?.schemaVersion === "skill-ir-env-manager-eval/v1")).toBe(
+        true,
+      );
+      expect(task.eval?.some((criterion) => criterion.method === "llm-judge")).toBe(false);
+
+      const secretValues = task.eval?.find((criterion) => criterion.id === "env-no-secret-leak")?.payload?.values ?? [];
+      expect(secretValues.length).toBeGreaterThanOrEqual(2);
+      expect(secretValues.every((value) => value.startsWith("TEST_ONLY_"))).toBe(true);
+    }
   });
 
   test("every imported Wave A source file is present and digest-pinned", () => {
