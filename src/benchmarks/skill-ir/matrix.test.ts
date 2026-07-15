@@ -88,6 +88,20 @@ describe("buildExperimentMatrix", () => {
     expect(COLD_START_EXPERIMENT_SYSTEMS).not.toContain("ir-pgo-dev");
   });
 
+  test("keeps ir-artifact-dev available only as an explicit package diagnostic system", () => {
+    const matrix = buildExperimentMatrix({
+      skills: ["env-manager"],
+      agents: ["skvm"],
+      environments: ["windows"],
+      contexts: ["clean"],
+      tasks: ["env-dev-1"],
+      systems: ["ir-artifact-dev"],
+    });
+
+    expect(matrix.map((item) => item.system)).toEqual(["ir-artifact-dev"]);
+    expect(COLD_START_EXPERIMENT_SYSTEMS).not.toContain("ir-artifact-dev");
+  });
+
   test("keeps benchmark tasks bound to their owning skill", () => {
     const matrix = buildExperimentMatrix({
       skills: ["skill-review", "skill-diagnostic"],

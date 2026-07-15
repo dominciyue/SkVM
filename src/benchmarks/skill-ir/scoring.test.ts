@@ -773,10 +773,32 @@ describe("Skill IR real-agent scoring", () => {
       taskPath: "tmp/task.json",
       workDir,
       exitCode: 0,
-      durationMs: 250,
-      stdout: "Tokens: in=12 out=8\nFinal output:\nCreated output.json.",
+      durationMs: 320,
+      stdout: "Tokens: in=5 out=2\nFinal output:\nCreated output.json.",
       stderr: "",
       successSource: "execution-only",
+      artifactRuntime: {
+        mode: "one-repair",
+        status: "complete",
+        initialValidation: {
+          schemaVersion: "runtime-validation-report/v1",
+          status: "fail",
+          repairEligible: true,
+          errors: [{ code: "MISSING_FIELD", relativePath: "output.json" }],
+        },
+        finalValidation: {
+          schemaVersion: "runtime-validation-report/v1",
+          status: "pass",
+          repairEligible: false,
+          errors: [],
+        },
+        repairAttempted: true,
+        repairedToPass: true,
+        generationUsage: { inputTokens: 12, outputTokens: 8, tokenCost: 20 },
+        repairUsage: { inputTokens: 5, outputTokens: 2, tokenCost: 7 },
+        aggregateUsage: { inputTokens: 17, outputTokens: 10, tokenCost: 27, modelDurationMs: 300 },
+        validationDurationMs: 20,
+      },
     };
 
     const [passing] = await scoreRawRunRows([raw], new Map([[task.id, task]]));
@@ -785,8 +807,14 @@ describe("Skill IR real-agent scoring", () => {
       evaluatorScore: 1,
       successSource: "deterministic-evaluator",
       failedCriteria: [],
-      inputTokens: 12,
-      outputTokens: 8,
+      inputTokens: 17,
+      outputTokens: 10,
+      tokenCost: 27,
+      artifactRuntime: {
+        repairAttempted: true,
+        repairedToPass: true,
+        finalValidation: { status: "pass" },
+      },
       evaluationSummary: [
         {
           method: "file-check",

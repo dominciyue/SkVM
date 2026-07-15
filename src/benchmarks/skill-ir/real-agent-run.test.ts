@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { SkillIR } from "../../skill-ir/schema";
@@ -15,8 +15,10 @@ import {
 import { buildFinalIRProvenance } from "./final-ir-provenance";
 import type { RealAgentRunPlanEntry } from "./real-agent";
 import { sha256Bytes } from "./source-fixture";
+import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
 
 const tempDirs: string[] = [];
+const projectRoot = join(import.meta.dir, "../../..");
 
 const defaultRunIdentityArgs = {
   modelFamily: "test",
@@ -68,6 +70,33 @@ function irFixture(id: string, name: string, sourceText: string): SkillIR {
 async function writeJson(path: string, value: unknown): Promise<void> {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+async function createExecutableArtifactPackage(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "skill-ir-runner-package-"));
+  tempDirs.push(root);
+  const packageDir = join(root, "package");
+  await compileEnvManagerArtifactPackage({
+    rootDir: projectRoot,
+    baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
+    repairEvidencePath: join(projectRoot, "results/skill-ir/env-manager-dual-overlay-v2-2026-07-16/repair-evidence.json"),
+    taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
+    sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    predecessorPaths: [
+      join(projectRoot, "results/skill-ir/env-manager-dual-overlay-v1-2026-07-16/provenance.json"),
+      join(projectRoot, "results/skill-ir/env-manager-dual-overlay-v2-2026-07-16/provenance.json"),
+    ],
+    outDir: packageDir,
+    scope: {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-executable-artifact-v1",
+      environment: "windows",
+      context: "clean",
+    },
+  });
+  return packageDir;
 }
 
 async function createMultiSkillRoot(): Promise<string> {
@@ -297,6 +326,111 @@ describe("real-agent-run manifest loading", () => {
     expect(rawRow).toMatchObject({ exitCode: 0, runStatus: "adapter-crashed" });
   });
 
+  test("executePlan orchestrates one artifact repair and persists split runtime cost", async () => {
+    const packageDir = await createExecutableArtifactPackage();
+    const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-artifact-execute-"));
+    tempDirs.push(rootDir);
+    const outDir = join(rootDir, "out");
+    const runDir = join(rootDir, "case", "ir-artifact-dev", "run-1");
+    const workDir = join(runDir, "workdir");
+    const taskPath = join(runDir, "task", "task.json");
+    const skillPath = join(runDir, "skill", "SKILL.md");
+    await Promise.all([
+      mkdir(outDir, { recursive: true }),
+      mkdir(dirname(taskPath), { recursive: true }),
+      mkdir(dirname(skillPath), { recursive: true }),
+    ]);
+    await writeJson(taskPath, {
+      id: "env-manager-node-audit-dev-001-clean",
+      name: "Artifact generation",
+      category: "skill-ir",
+      gradingType: "automated",
+      prompt: "Generate declared artifacts.",
+      fixtures: { "fixture.txt": "protected fixture\n" },
+      eval: [],
+      timeoutMs: 300000,
+      maxSteps: 30,
+    });
+    await writeFile(skillPath, await readFile(join(packageDir, "skill.md")), "utf8");
+    const scriptPath = join(rootDir, "fake-agent.ts");
+    await writeFile(scriptPath, [
+      'import { writeFile } from "node:fs/promises";',
+      'import { join } from "node:path";',
+      'const workdir = process.argv.find((arg) => arg.startsWith("--workdir="))!.slice(10);',
+      'const task = process.argv.find((arg) => arg.startsWith("--task="))!.slice(7);',
+      'await writeFile(join(workdir, ".env.example"), "PORT=3000\\n");',
+      'await writeFile(join(workdir, ".env.schema.json"), JSON.stringify({ variables: { PORT: { type: "integer", required: true } } }));',
+      'if (task.includes("artifact-repair-task")) {',
+      '  await writeFile(join(workdir, "env-report.json"), JSON.stringify({ definedAndUsed: ["PORT"], definedUnconfirmedUnused: [], usedUndefined: [], hardcodedSecrets: [], exposureRisks: [] }));',
+      '  console.log("Tokens: in=7 out=3\\nFinal output:\\nrepaired");',
+      '} else {',
+      '  await writeFile(join(workdir, "env-report.json"), JSON.stringify({ definedAndUsed: ["PORT"] }));',
+      '  console.log("Tokens: in=10 out=5\\nFinal output:\\ngenerated");',
+      '}',
+    ].join("\n"), "utf8");
+    const provenance = JSON.parse(await readFile(join(packageDir, "package-provenance.json"), "utf8")) as {
+      taskContract: { sha256: string };
+    };
+    const plan: RealAgentRunPlanEntry[] = [{
+      caseId: "env-manager:skvm:windows:clean:env-manager-node-audit-dev-001",
+      system: "ir-artifact-dev",
+      taskPath,
+      skillPath,
+      workDir,
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-executable-artifact-v1",
+      runIndex: 1,
+      panelConfigId: "env-manager-executable-artifact-v1-one-repair",
+      command: [process.execPath, scriptPath, `--task=${taskPath}`, `--workdir=${workDir}`],
+      artifactPackageDir: packageDir,
+      artifactRepairMode: "one-repair",
+      artifactContractDigest: provenance.taskContract.sha256,
+      artifactScope: {
+        skillId: "env-manager",
+        taskId: "env-manager-node-audit-dev-001",
+        taskSplit: "development",
+        model: "xty/gpt-4.1-mini",
+        modelFamily: "gpt",
+        adapter: "bare-agent",
+        adapterVersion: "workspace-executable-artifact-v1",
+        environment: "windows",
+        context: "clean",
+      },
+    }];
+
+    await executePlan(plan, {
+      corpus: "pilot",
+      model: "xty/gpt-4.1-mini",
+      adapter: "bare-agent",
+      outDir,
+      limit: 1,
+      execute: true,
+      retries: 0,
+      retryDelayMs: 0,
+      rootDir,
+      allowArtifactDevelopmentReplay: true,
+      artifactPackageDir: packageDir,
+      artifactRepairMode: "one-repair",
+    });
+
+    const rawRow = JSON.parse((await readFile(join(outDir, "raw-runs.jsonl"), "utf8")).trim());
+    expect(rawRow.stdout).toContain("Final output:\nrepaired");
+    expect(rawRow.artifactRuntime).toMatchObject({
+      mode: "one-repair",
+      status: "complete",
+      initialValidation: { status: "fail" },
+      finalValidation: { status: "pass" },
+      repairAttempted: true,
+      repairedToPass: true,
+      generationUsage: { inputTokens: 10, outputTokens: 5, tokenCost: 15 },
+      repairUsage: { inputTokens: 7, outputTokens: 3, tokenCost: 10 },
+      aggregateUsage: { inputTokens: 17, outputTokens: 8, tokenCost: 25 },
+    });
+    expect(await readFile(join(workDir, "fixture.txt"), "utf8")).toBe("protected fixture\n");
+  });
+
   test("parseRealAgentRunArgs requires an explicit corpus", () => {
     expect(() => parseRealAgentRunArgs([])).toThrow("--corpus is required");
   });
@@ -349,6 +483,31 @@ describe("real-agent-run manifest loading", () => {
 
     expect(parsed.allowDevelopmentReplay).toBe(true);
     expect(parsed.systems).toEqual(new Set(["ir-pgo-dev"]));
+  });
+
+  test("parseRealAgentRunArgs recognizes explicit executable artifact development options", () => {
+    const parsed = parseRealAgentRunArgs([
+      "--corpus=pilot",
+      "--allow-artifact-development-replay",
+      "--artifact-package-dir=benchmarks/skill-ir/pilots/env-manager/packages/executable-artifact-v1",
+      "--artifact-repair-mode=one-repair",
+      "--skills=env-manager",
+      "--systems=ir-artifact-dev",
+      "--contexts=clean",
+      "--tasks=env-dev-1",
+    ]);
+
+    expect(parsed.allowArtifactDevelopmentReplay).toBe(true);
+    expect(parsed.artifactPackageDir).toContain("executable-artifact-v1");
+    expect(parsed.artifactRepairMode).toBe("one-repair");
+    expect(parsed.systems).toEqual(new Set(["ir-artifact-dev"]));
+  });
+
+  test("parseRealAgentRunArgs rejects unknown artifact repair modes", () => {
+    expect(() => parseRealAgentRunArgs([
+      "--corpus=pilot",
+      "--artifact-repair-mode=unbounded",
+    ])).toThrow("--artifact-repair-mode");
   });
 
   test("parseRealAgentRunArgs infers model family and applies identity defaults", () => {
@@ -624,6 +783,93 @@ describe("real-agent-run manifest loading", () => {
       "skill-diagnostic:codex:windows:clean:diagnostic-task",
     ]);
     expect(plan.map((entry) => entry.system)).toEqual(["original", "ir-profile"]);
+  });
+
+  test("buildPlan materializes only explicit development artifact runs with package identity", async () => {
+    const packageDir = await createExecutableArtifactPackage();
+    const outDir = await mkdtemp(join(tmpdir(), "skill-ir-artifact-plan-"));
+    tempDirs.push(outDir);
+    const args: RealAgentRunArgs = {
+      corpus: "pilot",
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-executable-artifact-v1",
+      repetitions: 1,
+      panelConfigId: "env-manager-executable-artifact-v1-check-only",
+      outDir,
+      limit: 2,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 0,
+      rootDir: projectRoot,
+      allowArtifactDevelopmentReplay: true,
+      artifactPackageDir: packageDir,
+      artifactRepairMode: "check-only",
+      skills: new Set(["env-manager"]),
+      systems: new Set(["ir-artifact-dev"]),
+      contexts: new Set(["clean"]),
+      agents: new Set(["skvm"]),
+      environments: new Set(["windows"]),
+      tasks: new Set([
+        "env-manager-node-audit-dev-001",
+        "env-manager-vite-audit-dev-002",
+      ]),
+    };
+
+    const plan = await buildPlan(args);
+
+    expect(plan).toHaveLength(2);
+    expect(plan.every((entry) => entry.system === "ir-artifact-dev")).toBe(true);
+    expect(plan.every((entry) => entry.artifactPackageDir === packageDir)).toBe(true);
+    expect(plan.every((entry) => entry.artifactRepairMode === "check-only")).toBe(true);
+    expect(plan.map((entry) => entry.artifactScope?.taskSplit)).toEqual(["development", "development"]);
+    expect(await readFile(plan[0]!.skillPath!, "utf8")).toContain("## Executable Artifacts");
+  });
+
+  test("buildPlan rejects every path that broadens artifact development replay", async () => {
+    const packageDir = await createExecutableArtifactPackage();
+    const outDir = await mkdtemp(join(tmpdir(), "skill-ir-artifact-guards-"));
+    tempDirs.push(outDir);
+    const valid: RealAgentRunArgs = {
+      corpus: "pilot",
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-executable-artifact-v1",
+      repetitions: 1,
+      panelConfigId: "env-manager-executable-artifact-v1-check-only",
+      outDir,
+      limit: 1,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 0,
+      rootDir: projectRoot,
+      allowArtifactDevelopmentReplay: true,
+      artifactPackageDir: packageDir,
+      artifactRepairMode: "check-only",
+      skills: new Set(["env-manager"]),
+      systems: new Set(["ir-artifact-dev"]),
+      contexts: new Set(["clean"]),
+      agents: new Set(["skvm"]),
+      environments: new Set(["windows"]),
+      tasks: new Set(["env-manager-node-audit-dev-001"]),
+    };
+    const invalid: Array<[string, RealAgentRunArgs]> = [
+      ["requires --allow-artifact-development-replay", { ...valid, allowArtifactDevelopmentReplay: false }],
+      ["--corpus=pilot", { ...valid, corpus: "calibration" }],
+      ["exactly one", { ...valid, skills: new Set(["env-manager", "other"]) }],
+      ["exactly ir-artifact-dev", { ...valid, systems: new Set(["ir-static"]) }],
+      ["--contexts=clean", { ...valid, contexts: new Set(["noisy"]) }],
+      ["development --tasks", { ...valid, tasks: undefined }],
+      ["--artifact-package-dir", { ...valid, artifactPackageDir: undefined }],
+      ["--artifact-repair-mode", { ...valid, artifactRepairMode: undefined }],
+      ["--ir-override-dir", { ...valid, irOverrideDir: "other" }],
+      ["cannot be combined", { ...valid, allowDevelopmentReplay: true }],
+    ];
+    for (const [message, args] of invalid) {
+      await expect(buildPlan(args)).rejects.toThrow(message);
+    }
   });
 
   test("buildPlan rejects a final IR directory without provenance", async () => {

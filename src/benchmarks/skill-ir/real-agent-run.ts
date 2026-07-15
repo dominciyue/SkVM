@@ -1,5 +1,5 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import type { RunStatus } from "../../core/types";
 import { SkillIRSchema, type SkillIR } from "../../skill-ir/schema";
 import {
@@ -15,12 +15,23 @@ import {
   buildRunPlanEntry,
   materializeCaseArtifacts,
   type RealAgentRunPlanEntry,
+  type SkvmTaskJson,
   type SkillIRBenchmarkTask,
 } from "./real-agent";
 import { runWithInfrastructureRetries } from "./real-agent-retry";
 import { readAndValidateFinalIRProvenance } from "./final-ir-provenance";
 import { inferModelFamily } from "./promotion-policy";
 import { sha256Bytes } from "./source-fixture";
+import {
+  artifactRuntimeMetadata,
+  runArtifactStateMachine,
+  type ArtifactCommandResult,
+  type ArtifactRepairMode,
+} from "./artifact-runtime";
+import { validateArtifactPackage, type ValidatedArtifactPackage } from "./artifact-package";
+import { extractEnvManagerTaskContract } from "./artifact-package-compiler";
+import { preflightArtifactRun } from "./artifact-preflight";
+import { extractTokenUsage } from "./scoring";
 
 export type RealAgentRunArgs = {
   corpus: CorpusId;
@@ -38,6 +49,9 @@ export type RealAgentRunArgs = {
   rootDir: string;
   allowTasksAuthored?: boolean;
   allowDevelopmentReplay?: boolean;
+  allowArtifactDevelopmentReplay?: boolean;
+  artifactPackageDir?: string;
+  artifactRepairMode?: ArtifactRepairMode;
   irOverrideDir?: string;
   skills?: Set<string>;
   systems?: Set<ExperimentSystem>;
@@ -92,6 +106,7 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
     rootDir: process.cwd(),
     allowTasksAuthored: false,
     allowDevelopmentReplay: false,
+    allowArtifactDevelopmentReplay: false,
   };
   let corpusProvided = false;
 
@@ -102,6 +117,8 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
       args.allowTasksAuthored = true;
     } else if (arg === "--allow-development-replay") {
       args.allowDevelopmentReplay = true;
+    } else if (arg === "--allow-artifact-development-replay") {
+      args.allowArtifactDevelopmentReplay = true;
     } else if (arg.startsWith("--corpus=")) {
       const corpus = arg.slice("--corpus=".length);
       if (corpus !== "calibration" && corpus !== "pilot") {
@@ -133,6 +150,14 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
       args.rootDir = arg.slice("--root-dir=".length);
     } else if (arg.startsWith("--ir-override-dir=")) {
       args.irOverrideDir = arg.slice("--ir-override-dir=".length);
+    } else if (arg.startsWith("--artifact-package-dir=")) {
+      args.artifactPackageDir = arg.slice("--artifact-package-dir=".length);
+    } else if (arg.startsWith("--artifact-repair-mode=")) {
+      const mode = arg.slice("--artifact-repair-mode=".length);
+      if (mode !== "check-only" && mode !== "one-repair") {
+        throw new Error("--artifact-repair-mode must be check-only or one-repair");
+      }
+      args.artifactRepairMode = mode;
     } else if (arg.startsWith("--skills=")) {
       args.skills = new Set(arg.slice("--skills=".length).split(","));
     } else if (arg.startsWith("--systems=")) {
@@ -294,6 +319,84 @@ function assertDevelopmentReplayArgs(args: RealAgentRunArgs): void {
   }
 }
 
+function assertArtifactDevelopmentReplayArgs(args: RealAgentRunArgs): void {
+  if (!args.allowArtifactDevelopmentReplay) {
+    if (args.systems?.has("ir-artifact-dev")) {
+      throw new Error("ir-artifact-dev requires --allow-artifact-development-replay");
+    }
+    return;
+  }
+  if (args.allowTasksAuthored || args.allowDevelopmentReplay) {
+    throw new Error("--allow-artifact-development-replay cannot be combined with other development bypasses");
+  }
+  if (args.corpus !== "pilot") {
+    throw new Error("--allow-artifact-development-replay requires --corpus=pilot");
+  }
+  if (!args.skills || args.skills.size !== 1) {
+    throw new Error("--allow-artifact-development-replay requires exactly one explicit --skills value");
+  }
+  if (!hasExactValues(args.systems, ["ir-artifact-dev"])) {
+    throw new Error("--allow-artifact-development-replay requires systems to be exactly ir-artifact-dev");
+  }
+  if (!hasExactValues(args.contexts, ["clean"])) {
+    throw new Error("--allow-artifact-development-replay requires --contexts=clean");
+  }
+  if (!args.tasks || args.tasks.size === 0) {
+    throw new Error("--allow-artifact-development-replay requires explicit development --tasks");
+  }
+  if (!args.artifactPackageDir) {
+    throw new Error("--allow-artifact-development-replay requires --artifact-package-dir");
+  }
+  if (!args.artifactRepairMode) {
+    throw new Error("--allow-artifact-development-replay requires --artifact-repair-mode");
+  }
+  if (args.irOverrideDir) {
+    throw new Error("--allow-artifact-development-replay does not accept --ir-override-dir");
+  }
+}
+
+async function validateSelectedArtifactPackage(
+  args: RealAgentRunArgs,
+  fixtures: Map<string, SkillBenchmarkFixture>,
+): Promise<ValidatedArtifactPackage | undefined> {
+  if (!args.allowArtifactDevelopmentReplay) return undefined;
+  const packageDir = isAbsolute(args.artifactPackageDir!)
+    ? args.artifactPackageDir!
+    : join(args.rootDir, args.artifactPackageDir!);
+  const packageRecord = await validateArtifactPackage({
+    packageDir,
+    expectedCatalog: "executable-artifact/v1",
+  });
+  const skillId = [...args.skills!][0]!;
+  if (packageRecord.manifest.skillId !== skillId) {
+    throw new Error(`Artifact package skill mismatch: expected ${skillId}`);
+  }
+  const fixture = fixtures.get(skillId);
+  if (!fixture) throw new Error(`Artifact skill ${skillId} is not runnable in the pilot corpus`);
+  const promptProjection = fixture.taskSet.tasks.map(({ id, split, prompt }) => ({ id, split, prompt }));
+  const extracted = extractEnvManagerTaskContract(promptProjection);
+  const contractText = `${JSON.stringify(extracted.contract, null, 2)}\n`;
+  const contractDigest = sha256Bytes(Buffer.from(contractText, "utf8"));
+  if (
+    contractDigest !== packageRecord.provenance.taskContract.sha256 ||
+    extracted.promptDigest !== packageRecord.provenance.taskContract.promptDigest
+  ) {
+    throw new Error("Artifact package task contract drifted from user-visible prompts");
+  }
+  const expectedScope = packageRecord.provenance.scope;
+  for (const [key, actual] of [
+    ["model", args.model],
+    ["modelFamily", args.modelFamily],
+    ["adapter", args.adapter],
+    ["adapterVersion", args.adapterVersion],
+  ] as const) {
+    if (actual !== expectedScope[key]) {
+      throw new Error(`Artifact package ${key} scope mismatch: expected ${expectedScope[key]}, got ${actual}`);
+    }
+  }
+  return packageRecord;
+}
+
 function resolveIrPath(rootDir: string, skill: CorpusManifest["skills"][number], irOverrideDir?: string): string {
   if (irOverrideDir) {
     const overrideDir = isAbsolute(irOverrideDir) ? irOverrideDir : join(rootDir, irOverrideDir);
@@ -419,6 +522,7 @@ function assertCompleteCalibrationPairs(matrix: ExperimentCase[], args: RealAgen
 }
 
 export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPlanEntry[]> {
+  assertArtifactDevelopmentReplayArgs(args);
   assertTasksAuthoredCalibrationArgs(args);
   assertDevelopmentReplayArgs(args);
   const input = buildCorpusMatrixInput(args.corpus, args.rootDir, {
@@ -432,6 +536,7 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
   }
   const fixtures = await loadSkillBenchmarkFixtures(args);
   assertTasksAuthoredTaskSelection(args, fixtures);
+  const artifactPackage = await validateSelectedArtifactPackage(args, fixtures);
   const matrix = selectCases(buildExperimentMatrix(input), args);
   assertCompleteCalibrationPairs(matrix, args);
   if (input.systems.includes("ir-pgo") || input.systems.includes("ir-pgo-dev")) {
@@ -483,6 +588,20 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
     if (!task) {
       throw new Error(`Task ${item.task} was not found in ${fixture.taskSet.skillId} task set`);
     }
+    if (item.system === "ir-artifact-dev") {
+      if (task.split !== "development") {
+        throw new Error(`--allow-artifact-development-replay accepts development tasks only: ${task.id}`);
+      }
+      if (!artifactPackage?.provenance.taskContract.taskIds.includes(task.id)) {
+        throw new Error(`Artifact package does not preregister development task: ${task.id}`);
+      }
+      if (item.environment !== artifactPackage.provenance.scope.environment) {
+        throw new Error(`Artifact package environment scope mismatch: ${item.environment}`);
+      }
+      if (item.context !== artifactPackage.provenance.scope.context) {
+        throw new Error(`Artifact package context scope mismatch: ${item.context}`);
+      }
+    }
 
     for (let runIndex = 1; runIndex <= repetitions; runIndex += 1) {
       const materialized = await materializeCaseArtifacts({
@@ -494,9 +613,11 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
         system: item.system,
         caseId: item.caseId,
         runIndex,
+        ...(item.system === "ir-artifact-dev"
+          ? { artifactSkillPath: join(artifactPackage!.packageDir, "skill.md") }
+          : {}),
       });
-      plan.push(
-        buildRunPlanEntry(
+      const entry = buildRunPlanEntry(
           {
             ...materialized,
             skillProvenance: item.skillProvenance,
@@ -510,8 +631,24 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
             runIndex,
             panelConfigId,
           },
-        ),
-      );
+        );
+      if (item.system === "ir-artifact-dev") {
+        entry.artifactPackageDir = artifactPackage!.packageDir;
+        entry.artifactRepairMode = args.artifactRepairMode;
+        entry.artifactContractDigest = artifactPackage!.provenance.taskContract.sha256;
+        entry.artifactScope = {
+          skillId: item.skill,
+          taskId: task.id,
+          taskSplit: task.split,
+          model: args.model,
+          modelFamily,
+          adapter: args.adapter,
+          adapterVersion,
+          environment: item.environment,
+          context: item.context,
+        };
+      }
+      plan.push(entry);
     }
   }
 
@@ -524,6 +661,73 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
   await writeFile(rawRunsPath, "", "utf8");
 
   for (const item of plan) {
+    if (item.system === "ir-artifact-dev") {
+      if (
+        !item.artifactPackageDir ||
+        !item.artifactRepairMode ||
+        !item.artifactContractDigest ||
+        !item.artifactScope
+      ) {
+        throw new Error(`Artifact plan entry ${item.caseId} is missing package runtime identity`);
+      }
+      await resetPersistentWorkDir(item.workDir);
+      await materializeTaskFixtures(item.taskPath, item.workDir);
+      const prepared = await preflightArtifactRun({
+        packageDir: item.artifactPackageDir,
+        workDir: item.workDir,
+        scope: item.artifactScope,
+        expectedContractDigest: item.artifactContractDigest,
+      });
+      let attempts = 0;
+      const executeWithRetries = async (command: string[]): Promise<ArtifactCommandResult> => {
+        const retried = await runWithInfrastructureRetries(
+          () => executeArtifactCommand(command),
+          { maxRetries: args.retries, retryDelayMs: args.retryDelayMs },
+        );
+        attempts += retried.attempts;
+        return retried.row;
+      };
+      const runtime = await runArtifactStateMachine({
+        mode: item.artifactRepairMode,
+        prepared,
+        runGeneration: () => executeWithRetries(item.command),
+        runRepair: async (task) => {
+          const repairTaskPath = join(dirname(item.taskPath), "artifact-repair-task.json");
+          await writeFile(repairTaskPath, `${JSON.stringify(task, null, 2)}\n`, "utf8");
+          const command = item.command.map((arg) =>
+            arg.startsWith("--task=") ? `--task=${repairTaskPath}` : arg);
+          return executeWithRetries(command);
+        },
+      });
+      const infrastructureFailure = runtime.status === "infrastructure-failure";
+      const stderr = infrastructureFailure
+        ? `${runtime.finalStderr}\nArtifact runtime infrastructure failure at ${runtime.failureStage}`.trim()
+        : runtime.finalStderr;
+      await writeFile(rawRunsPath, `${JSON.stringify({
+        caseId: item.caseId,
+        system: item.system,
+        model: item.model,
+        modelFamily: item.modelFamily,
+        adapter: item.adapter,
+        adapterVersion: item.adapterVersion,
+        runIndex: item.runIndex,
+        panelConfigId: item.panelConfigId,
+        skillProvenance: item.skillProvenance,
+        evidenceWeight: item.evidenceWeight,
+        taskPath: item.taskPath,
+        skillPath: item.skillPath,
+        workDir: item.workDir,
+        exitCode: infrastructureFailure ? 1 : runtime.finalExitCode,
+        runStatus: infrastructureFailure ? "adapter-crashed" : extractRunStatus(runtime.finalStdout),
+        durationMs: runtime.aggregateUsage.modelDurationMs + runtime.validationDurationMs,
+        stdout: runtime.finalStdout,
+        stderr,
+        successSource: "execution-only" as const,
+        attempts,
+        artifactRuntime: artifactRuntimeMetadata(runtime),
+      })}\n`, { flag: "a" });
+      continue;
+    }
     const result = await runWithInfrastructureRetries(
       async () => {
         await resetPersistentWorkDir(item.workDir);
@@ -563,6 +767,41 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
     );
     await writeFile(rawRunsPath, `${JSON.stringify({ ...result.row, attempts: result.attempts })}\n`, { flag: "a" });
   }
+}
+
+async function materializeTaskFixtures(taskPath: string, workDir: string): Promise<void> {
+  const task = await readJson<SkvmTaskJson>(taskPath);
+  const root = resolve(workDir);
+  for (const [fixturePath, content] of Object.entries(task.fixtures ?? {})) {
+    if (isAbsolute(fixturePath)) throw new Error(`Unsafe artifact fixture path: ${fixturePath}`);
+    const destination = resolve(root, fixturePath);
+    const fromRoot = relative(root, destination);
+    if (fromRoot === ".." || fromRoot.startsWith(`..${process.platform === "win32" ? "\\" : "/"}`)) {
+      throw new Error(`Unsafe artifact fixture path: ${fixturePath}`);
+    }
+    await mkdir(dirname(destination), { recursive: true });
+    await writeFile(destination, content, "utf8");
+  }
+}
+
+async function executeArtifactCommand(command: string[]): Promise<ArtifactCommandResult> {
+  const startedAt = Date.now();
+  const proc = Bun.spawn(command, { stdout: "pipe", stderr: "pipe" });
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
+  const runStatus = extractRunStatus(stdout);
+  return {
+    ok: exitCode === 0 && runStatus === "ok",
+    ...(exitCode !== 0 || runStatus !== "ok" ? { failureType: "infrastructure" as const } : {}),
+    exitCode,
+    durationMs: Date.now() - startedAt,
+    stdout,
+    stderr,
+    ...(extractTokenUsage(stdout) ? { usage: extractTokenUsage(stdout) } : {}),
+  };
 }
 
 async function main() {

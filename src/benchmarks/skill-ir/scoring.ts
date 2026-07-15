@@ -4,6 +4,7 @@ import type { EvalCheckpoint, EvalResult, RunResult, RunStatus } from "../../cor
 import { evaluateAll } from "../../framework/evaluator";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 import type { RunIdentity, SkillIRBenchmarkTask } from "./real-agent";
+import type { ArtifactRuntimeMetadata } from "./artifact-runtime";
 
 export type ParsedCaseId = {
   skill: string;
@@ -28,6 +29,7 @@ export type RawAgentRunRow = Partial<RunIdentity> & {
   stderr: string;
   successSource: "execution-only";
   attempts?: number;
+  artifactRuntime?: ArtifactRuntimeMetadata;
 };
 
 export type ScoreRunOutputOptions = {
@@ -84,6 +86,7 @@ export type ScoredAgentRunRow = ParsedCaseId & Partial<RunIdentity> & {
   failureStage?: FailureStage;
   evaluatorScore?: number;
   evaluationSummary?: EvaluationSummary[];
+  artifactRuntime?: ArtifactRuntimeMetadata;
 };
 
 export function parseCaseId(caseId: string): ParsedCaseId {
@@ -614,7 +617,13 @@ async function scoreRawRunRowsWithResolver(
     const runStatus = row.runStatus ?? "ok";
     const executionFailed = row.exitCode !== 0 || runStatus !== "ok";
     const failureType = executionFailed ? classifyFailureType(row) : undefined;
-    const tokenUsage = extractTokenUsage(row.stdout);
+    const tokenUsage = row.artifactRuntime
+      ? {
+          inputTokens: row.artifactRuntime.aggregateUsage.inputTokens,
+          outputTokens: row.artifactRuntime.aggregateUsage.outputTokens,
+          tokenCost: row.artifactRuntime.aggregateUsage.tokenCost,
+        }
+      : extractTokenUsage(row.stdout);
     const finalOutput = extractFinalOutput(row.stdout);
     const score = task.eval !== undefined
       ? await scoreExplicitEvaluatorRun(row, task as SkillIRBenchmarkTask & { eval: NonNullable<SkillIRBenchmarkTask["eval"]> }, finalOutput, tokenUsage)
@@ -649,6 +658,7 @@ async function scoreRawRunRowsWithResolver(
       ...(row.runStatus !== undefined ? { runStatus: row.runStatus } : {}),
       ...(row.skillProvenance ? { skillProvenance: row.skillProvenance } : {}),
       ...(row.evidenceWeight ? { evidenceWeight: row.evidenceWeight } : {}),
+      ...(row.artifactRuntime ? { artifactRuntime: row.artifactRuntime } : {}),
       ...parsed,
       taskSplit: task.split,
       success: score.success,

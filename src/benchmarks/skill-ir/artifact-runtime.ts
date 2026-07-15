@@ -54,6 +54,23 @@ export type ArtifactRuntimeResult = {
   finalExitCode: number;
 };
 
+export type ArtifactRuntimeMetadata = Omit<
+  ArtifactRuntimeResult,
+  "generation" | "repair" | "finalStdout" | "finalStderr" | "finalExitCode"
+>;
+
+export function artifactRuntimeMetadata(result: ArtifactRuntimeResult): ArtifactRuntimeMetadata {
+  const {
+    generation: _generation,
+    repair: _repair,
+    finalStdout: _finalStdout,
+    finalStderr: _finalStderr,
+    finalExitCode: _finalExitCode,
+    ...metadata
+  } = result;
+  return metadata;
+}
+
 export type ArtifactStateMachineInput = {
   mode: ArtifactRepairMode;
   prepared: PreparedArtifactRun;

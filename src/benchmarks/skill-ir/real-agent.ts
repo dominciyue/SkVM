@@ -1,4 +1,4 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join, posix, resolve, win32 } from "node:path";
 import type { BenchTask } from "../../bench/types";
 import type { EvalCriterion } from "../../core/types";
@@ -61,6 +61,7 @@ export type MaterializeCaseOptions = {
   system: ExperimentSystem;
   caseId: string;
   runIndex: number;
+  artifactSkillPath?: string;
 };
 
 export type BuildRunCommandOptions = {
@@ -76,6 +77,20 @@ export type BuildRunCommandOptions = {
 
 export type RealAgentRunPlanEntry = MaterializedCase & RunIdentity & {
   command: string[];
+  artifactPackageDir?: string;
+  artifactRepairMode?: "check-only" | "one-repair";
+  artifactContractDigest?: string;
+  artifactScope?: {
+    skillId: string;
+    taskId: string;
+    taskSplit: string;
+    model: string;
+    modelFamily: string;
+    adapter: string;
+    adapterVersion: string;
+    environment: string;
+    context: string;
+  };
 };
 
 function contextPerturbation(context: string): string {
@@ -396,6 +411,16 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
       workDir,
       skillPath,
     };
+  }
+
+  if (opts.system === "ir-artifact-dev") {
+    if (!opts.artifactSkillPath) {
+      throw new Error("ir-artifact-dev requires a validated package skill view");
+    }
+    await mkdir(skillDir, { recursive: true });
+    const skillPath = join(skillDir, "SKILL.md");
+    await copyFile(opts.artifactSkillPath, skillPath);
+    return { caseId: opts.caseId, system: opts.system, taskPath, workDir, skillPath };
   }
 
   const renderedSkill = renderSkillMarkdown(opts.ir, opts.system);
