@@ -139,4 +139,30 @@ describe("buildCorpusMatrixInput", () => {
       "Corpus pilot has 0 runnable skills out of 6 registered skills",
     );
   });
+
+  test("builds a development-only pre-IR matrix for tasks-authored pilots when explicitly enabled", () => {
+    const input = buildCorpusMatrixInput("pilot", process.cwd(), {
+      mode: "tasks-authored-calibration",
+    });
+
+    expect(input.skills).toEqual([
+      {
+        id: "env-manager",
+        packaging: "focused",
+        provenance: "real-public",
+        evidenceWeight: "main-real",
+      },
+    ]);
+    expect(input.tasksBySkill).toEqual({
+      "env-manager": [
+        "env-manager-node-audit-dev-001",
+        "env-manager-vite-audit-dev-002",
+      ],
+    });
+    expect(input.tasks).toEqual([
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002",
+    ]);
+    expect(input.systems).toEqual(["no-skill", "original"]);
+  });
 });

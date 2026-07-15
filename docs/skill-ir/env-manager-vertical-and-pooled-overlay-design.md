@@ -58,6 +58,30 @@ This stage validates contracts and reveals scorer or harness defects. Its result
 
 A temporary stub IR may be used only for plumbing tests. It must use a non-runnable/non-evidence status and must never be scored as `ir-static` research evidence.
 
+### 4.1 Pre-IR Calibration Scheduling Contract
+
+The approved calibration path is a purpose-specific `tasks-authored` opt-in,
+not a change to the pilot's authoritative corpus status. The runner may accept
+`--allow-tasks-authored` only when all of these conditions hold:
+
+- corpus is `pilot`;
+- exactly one skill is selected explicitly;
+- task ids are selected explicitly and every selected task is `development`;
+- context is exactly `clean`;
+- systems are exactly the paired `no-skill | original` baseline;
+- no IR override or PGO system is present.
+
+The runner synthesizes an in-memory source envelope from the manifest's
+`sourcePath` and matching `sourceFiles.sha256` record. The envelope exists only
+to feed exact-source verification and original materialization. It is not
+written as `irPath`, is not a base IR, cannot enter static passes or profile
+compilation, and carries no optimization-effect claim. The scorer requires the
+same explicit opt-in and loads only development tasks from `tasks-authored`
+entries.
+
+This contract closes the pre-IR calibration gap while preserving the normal
+rule that a pilot becomes `runnable` only after an audited base IR exists.
+
 ## 5. Task And Workspace Contract
 
 Each pilot task must define:

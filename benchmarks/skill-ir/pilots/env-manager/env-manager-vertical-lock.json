@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "skill-ir-env-manager-vertical-lock/v1",
+  "stage": "engineering-calibration",
+  "status": "preregistered",
+  "createdAt": "2026-07-15",
+  "corpus": "pilot",
+  "skillId": "env-manager",
+  "panelConfigId": "env-manager-calibration-v1",
+  "source": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+    "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+  },
+  "model": {
+    "route": "xty/gpt-4.1-mini",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-calibration-v1"
+  },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "repetitions": 2,
+    "matrixCellLimit": 4
+  },
+  "runtime": {
+    "hostOs": "windows",
+    "network": "provider-route-only",
+    "runtimePackageInstallation": "forbidden",
+    "apiKeyEnv": "SKVM_XTY_API_KEY"
+  },
+  "promotionBoundary": {
+    "corpusStatusRemains": "tasks-authored",
+    "createsBaseIr": false,
+    "entersMainClaim": false,
+    "permitsScorerRetuning": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "IR materialization",
+    "PGO compilation",
+    "scorer expectation changes based on calibration outputs"
+  ]
+}

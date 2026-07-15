@@ -72,7 +72,13 @@ type ContextSet = {
 };
 
 type TaskSet = {
-  tasks: { id: string }[];
+  tasks: { id: string; split?: string }[];
+};
+
+export type CorpusMatrixMode = "runnable" | "tasks-authored-calibration";
+
+export type BuildCorpusMatrixOptions = {
+  mode?: CorpusMatrixMode;
 };
 
 export const COLD_START_EXPERIMENT_SYSTEMS: ExperimentSystem[] = [
@@ -138,29 +144,39 @@ export function buildExperimentMatrix(input: MatrixInput): ExperimentCase[] {
   return cases;
 }
 
-export function buildCorpusMatrixInput(corpus: CorpusId, rootDir = process.cwd()): MatrixInput {
+export function buildCorpusMatrixInput(
+  corpus: CorpusId,
+  rootDir = process.cwd(),
+  options: BuildCorpusMatrixOptions = {},
+): MatrixInput {
   const manifest = readJson<CorpusManifest>(resolveCorpusManifestPath(corpus, rootDir));
   const contextSet = readJson<ContextSet>(join(rootDir, "benchmarks/skill-ir/contexts/standard-contexts.json"));
-  const runnableSkills = manifest.skills.filter((skill) => skill.status === "runnable");
-  if (runnableSkills.length === 0) {
+  const mode = options.mode ?? "runnable";
+  const eligibleStatus = mode === "tasks-authored-calibration" ? "tasks-authored" : "runnable";
+  const eligibleSkills = manifest.skills.filter((skill) => skill.status === eligibleStatus);
+  if (eligibleSkills.length === 0) {
     throw new Error(
-      `Corpus ${corpus} has 0 runnable skills out of ${manifest.skills.length} registered skills`,
+      `Corpus ${corpus} has 0 ${eligibleStatus} skills out of ${manifest.skills.length} registered skills`,
     );
   }
 
-  const skills = runnableSkills.map((skill) => ({
+  const skills = eligibleSkills.map((skill) => ({
     id: skill.id,
     packaging: inferSkillPackaging(skill),
     provenance: skill.provenance ?? "unknown",
     evidenceWeight: skill.evidenceWeight ?? "unknown",
   }));
   const tasksBySkill = Object.fromEntries(
-    runnableSkills.map((skill) => {
+    eligibleSkills.map((skill) => {
       if (!skill.tasksPath) {
         return [skill.id, []];
       }
 
-      return [skill.id, readJson<TaskSet>(join(rootDir, skill.tasksPath)).tasks.map((task) => task.id)];
+      const taskSet = readJson<TaskSet>(join(rootDir, skill.tasksPath));
+      const tasks = mode === "tasks-authored-calibration"
+        ? taskSet.tasks.filter((task) => task.split === "development")
+        : taskSet.tasks;
+      return [skill.id, tasks.map((task) => task.id)];
     }),
   );
   const tasks = Object.values(tasksBySkill).flatMap((skillTasks) => skillTasks);
@@ -172,6 +188,8 @@ export function buildCorpusMatrixInput(corpus: CorpusId, rootDir = process.cwd()
     contexts: contextSet.contexts.map((context) => context.id),
     tasks,
     tasksBySkill,
-    systems: [...COLD_START_EXPERIMENT_SYSTEMS],
+    systems: mode === "tasks-authored-calibration"
+      ? ["no-skill", "original"]
+      : [...COLD_START_EXPERIMENT_SYSTEMS],
   };
 }

@@ -146,6 +146,41 @@ async function createMultiSkillRoot(): Promise<string> {
   return root;
 }
 
+async function createTasksAuthoredPilotRoot(): Promise<string> {
+  const root = await createMultiSkillRoot();
+  const sourcePath = "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md";
+  const sourceText = "# Environment Variable Manager\n\nAudit environment variables without leaking secrets.\n";
+  await mkdir(dirname(join(root, sourcePath)), { recursive: true });
+  await writeFile(join(root, sourcePath), sourceText, "utf8");
+  await writeJson(join(root, "benchmarks/skill-ir/tasks/env-manager.json"), {
+    schemaVersion: "skill-ir-tasks/v1",
+    skillId: "env-manager",
+    tasks: [
+      { id: "env-dev-1", split: "development", prompt: "Audit fixture one.", successCriteria: [] },
+      { id: "env-dev-2", split: "development", prompt: "Audit fixture two.", successCriteria: [] },
+      { id: "env-heldout-1", split: "held-out", prompt: "Audit held-out fixture.", successCriteria: [] },
+    ],
+  });
+  await writeJson(join(root, "benchmarks/skill-ir/corpus/corpora/pilot.json"), {
+    schemaVersion: "skill-ir-corpus/v2",
+    corpusId: "pilot",
+    skills: [
+      {
+        id: "env-manager",
+        name: "Environment Variable Manager",
+        category: ["tool-use", "constraint-heavy", "environment-sensitive"],
+        status: "tasks-authored",
+        provenance: "real-public",
+        evidenceWeight: "main-real",
+        sourcePath,
+        tasksPath: "benchmarks/skill-ir/tasks/env-manager.json",
+        sourceFiles: [{ path: sourcePath, sha256: sha256Bytes(Buffer.from(sourceText, "utf8")) }],
+      },
+    ],
+  });
+  return root;
+}
+
 describe("real-agent-run manifest loading", () => {
   test("resetPersistentWorkDir recreates only the supplied materialized workdir", async () => {
     const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-reset-"));
@@ -287,6 +322,20 @@ describe("real-agent-run manifest loading", () => {
     });
   });
 
+  test("parseRealAgentRunArgs recognizes the explicit tasks-authored calibration selector", () => {
+    const parsed = parseRealAgentRunArgs([
+      "--corpus=pilot",
+      "--allow-tasks-authored",
+      "--skills=env-manager",
+      "--systems=no-skill,original",
+      "--contexts=clean",
+      "--tasks=env-dev-1,env-dev-2",
+    ]);
+
+    expect(parsed.allowTasksAuthored).toBe(true);
+    expect(parsed.skills).toEqual(new Set(["env-manager"]));
+  });
+
   test("parseRealAgentRunArgs infers model family and applies identity defaults", () => {
     const parsed = parseRealAgentRunArgs(["--corpus=calibration", "--model=xty/gemini-2.5-flash"]);
 
@@ -360,6 +409,106 @@ describe("real-agent-run manifest loading", () => {
     const skillTexts = await Promise.all(plan.map((entry) => Bun.file(entry.skillPath!).text()));
     expect(skillTexts.some((text) => text.includes("Review source text."))).toBe(true);
     expect(skillTexts.some((text) => text.includes("Diagnostic source text."))).toBe(true);
+  });
+
+  test("buildPlan materializes a paired development calibration from a runtime source envelope", async () => {
+    const rootDir = await createTasksAuthoredPilotRoot();
+    const args: RealAgentRunArgs = {
+      model: "test/model",
+      adapter: "bare-agent",
+      ...defaultRunIdentityArgs,
+      outDir: join(rootDir, "out"),
+      limit: 4,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1000,
+      rootDir,
+      corpus: "pilot",
+      allowTasksAuthored: true,
+      skills: new Set(["env-manager"]),
+      systems: new Set(["no-skill", "original"]),
+      contexts: new Set(["clean"]),
+      agents: new Set(["skvm"]),
+      environments: new Set(["windows"]),
+      tasks: new Set(["env-dev-1", "env-dev-2"]),
+    };
+
+    const plan = await buildPlan(args);
+
+    expect(plan).toHaveLength(4);
+    expect(plan.map((entry) => entry.system)).toEqual(["no-skill", "original", "no-skill", "original"]);
+    expect(plan.filter((entry) => entry.system === "no-skill").every((entry) => entry.skillPath === undefined)).toBe(true);
+    const originalRows = plan.filter((entry) => entry.system === "original");
+    expect(originalRows).toHaveLength(2);
+    expect(await Bun.file(originalRows[0]!.skillPath!).text()).toBe(
+      "# Environment Variable Manager\n\nAudit environment variables without leaking secrets.\n",
+    );
+  });
+
+  test("buildPlan rejects every path that would turn pre-IR calibration into a general status bypass", async () => {
+    const rootDir = await createTasksAuthoredPilotRoot();
+    const valid: RealAgentRunArgs = {
+      model: "test/model",
+      adapter: "bare-agent",
+      ...defaultRunIdentityArgs,
+      outDir: join(rootDir, "out"),
+      limit: 4,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1000,
+      rootDir,
+      corpus: "pilot",
+      allowTasksAuthored: true,
+      skills: new Set(["env-manager"]),
+      systems: new Set(["no-skill", "original"]),
+      contexts: new Set(["clean"]),
+      agents: new Set(["skvm"]),
+      environments: new Set(["windows"]),
+      tasks: new Set(["env-dev-1", "env-dev-2"]),
+    };
+    const invalidCases: [string, RealAgentRunArgs][] = [
+      ["--corpus=pilot", { ...valid, corpus: "calibration" }],
+      ["exactly one explicit --skills", { ...valid, skills: undefined }],
+      ["exactly one explicit --skills", { ...valid, skills: new Set(["env-manager", "other"]) }],
+      ["exactly no-skill,original", { ...valid, systems: new Set(["original"]) }],
+      ["exactly no-skill,original", { ...valid, systems: new Set(["no-skill", "original", "ir-static"]) }],
+      ["--contexts=clean", { ...valid, contexts: new Set(["noisy"]) }],
+      ["explicit development --tasks", { ...valid, tasks: undefined }],
+      ["development tasks", { ...valid, tasks: new Set(["env-dev-1", "env-heldout-1"]) }],
+      ["does not accept --ir-override-dir", { ...valid, irOverrideDir: "profiled" }],
+      ["complete no-skill/original pairs", { ...valid, limit: 1 }],
+    ];
+
+    for (const [message, args] of invalidCases) {
+      expect(buildPlan(args)).rejects.toThrow(message);
+    }
+  });
+
+  test("buildPlan rejects tasks-authored source metadata that does not match the source file", async () => {
+    const rootDir = await createTasksAuthoredPilotRoot();
+    await writeFile(
+      join(rootDir, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+      "# Tampered after intake\n",
+      "utf8",
+    );
+
+    expect(buildPlan({
+      model: "test/model",
+      adapter: "bare-agent",
+      ...defaultRunIdentityArgs,
+      outDir: join(rootDir, "out"),
+      limit: 2,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1000,
+      rootDir,
+      corpus: "pilot",
+      allowTasksAuthored: true,
+      skills: new Set(["env-manager"]),
+      systems: new Set(["no-skill", "original"]),
+      contexts: new Set(["clean"]),
+      tasks: new Set(["env-dev-1"]),
+    })).rejects.toThrow("Skill source digest mismatch");
   });
 
   test("buildPlan repeats limited matrix rows with complete identity and distinct artifact paths", async () => {

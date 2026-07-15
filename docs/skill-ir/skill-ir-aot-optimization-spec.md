@@ -27,8 +27,20 @@ no-skill | original | ir-static
 **Current implementation status (2026-07-15):** `env-manager` has an exact
 source snapshot, two development tasks, two held-out tasks, and a deterministic
 six-criterion evaluator. Its corpus state is `tasks-authored`; it has no
-`irPath`, base IR, Final IR, or real-model result yet, so it remains outside
-pilot scheduling and contributes no optimization-effect evidence.
+`irPath`, base IR, or Final IR. It remains outside normal pilot scheduling and
+contributes no optimization-effect evidence; only the restricted pre-IR
+baseline calibration path may select it. The first locked real-model baseline
+calibration completed on 2026-07-15: all eight rows were executable and
+deterministically scored, but both systems had 0/4 success and `original`
+slightly underperformed `no-skill`. This is baseline/task-discrimination
+evidence, not IR improvement.
+
+Pre-IR calibration may opt into `tasks-authored` only through the explicit,
+fail-closed `--allow-tasks-authored` contract: one selected pilot skill,
+explicit development tasks, `clean` context, and exactly `no-skill | original`.
+The runner may synthesize an in-memory source envelope from pinned manifest
+metadata solely to materialize the exact original source. This does not create
+an `irPath`, make the skill generally runnable, or permit static/PGO systems.
 
 此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 

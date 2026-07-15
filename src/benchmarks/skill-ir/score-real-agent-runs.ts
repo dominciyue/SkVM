@@ -11,6 +11,7 @@ type Args = {
   manifest?: string;
   rootDir: string;
   out: string;
+  allowTasksAuthored?: boolean;
 };
 
 type CorpusManifest = {
@@ -32,11 +33,14 @@ export function parseScoringArgs(argv: string[]): Args {
     tasks: "benchmarks/skill-ir/tasks/review-skill-tasks.json",
     rootDir: process.cwd(),
     out: "results/skill-ir/main-results.jsonl",
+    allowTasksAuthored: false,
   };
 
   for (const arg of argv) {
     if (arg.startsWith("--raw=")) {
       args.raw = arg.slice("--raw=".length);
+    } else if (arg === "--allow-tasks-authored") {
+      args.allowTasksAuthored = true;
     } else if (arg.startsWith("--corpus=")) {
       const corpus = arg.slice("--corpus=".length);
       if (corpus !== "calibration" && corpus !== "pilot") {
@@ -58,6 +62,9 @@ export function parseScoringArgs(argv: string[]): Args {
 
   if (args.corpus && args.manifest) {
     throw new Error("--corpus and --manifest are mutually exclusive");
+  }
+  if (args.allowTasksAuthored && args.corpus !== "pilot") {
+    throw new Error("--allow-tasks-authored requires --corpus=pilot");
   }
 
   return args;
@@ -107,7 +114,8 @@ async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillI
   const taskBySkillAndId = new Map<string, SkillIRBenchmarkTask>();
 
   for (const skill of manifest.skills) {
-    if (args.corpus && skill.status !== "runnable") {
+    const eligibleStatus = args.allowTasksAuthored ? "tasks-authored" : "runnable";
+    if (args.corpus && skill.status !== eligibleStatus) {
       continue;
     }
     if (!skill.tasksPath) {
@@ -120,6 +128,9 @@ async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillI
     }
 
     for (const task of taskSet.tasks) {
+      if (args.allowTasksAuthored && task.split !== "development") {
+        continue;
+      }
       taskBySkillAndId.set(taskIndexKey(skill.id, task.id), task);
     }
   }

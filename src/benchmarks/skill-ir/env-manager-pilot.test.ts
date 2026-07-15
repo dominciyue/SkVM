@@ -14,6 +14,14 @@ const taskPath = join(
   import.meta.dir,
   "../../../benchmarks/skill-ir/pilots/env-manager/tasks.json",
 );
+const pilotManifestPath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/corpus/corpora/pilot.json",
+);
+const verticalLockPath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-vertical-lock.json",
+);
 const tempDirs: string[] = [];
 
 type TaskSet = {
@@ -223,6 +231,69 @@ afterEach(async () => {
 });
 
 describe("env-manager pilot scoring", () => {
+  test("preregisters a secret-free development-only engineering calibration lock", async () => {
+    const [taskSet, manifest, lockText] = await Promise.all([
+      readFile(taskPath, "utf8").then((text) => JSON.parse(text) as TaskSet),
+      readFile(pilotManifestPath, "utf8").then((text) => JSON.parse(text) as {
+        skills: Array<{
+          id: string;
+          status: string;
+          irPath?: string;
+          sourcePath?: string;
+          sourceFiles?: Array<{ path: string; sha256: string }>;
+        }>;
+      }),
+      readFile(verticalLockPath, "utf8"),
+    ]);
+    const lock = JSON.parse(lockText) as {
+      schemaVersion: string;
+      stage: string;
+      corpus: string;
+      skillId: string;
+      panelConfigId: string;
+      model: { route: string; family: string };
+      adapter: { id: string; version: string };
+      matrix: {
+        systems: string[];
+        contexts: string[];
+        agents: string[];
+        environments: string[];
+        taskSplit: string;
+        taskIds: string[];
+        repetitions: number;
+      };
+      runtime: { apiKeyEnv: string };
+      prohibited: string[];
+    };
+    const manifestSkill = manifest.skills.find((skill) => skill.id === lock.skillId);
+    const splitByTask = new Map(taskSet.tasks.map((task) => [task.id, task.split]));
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-env-manager-vertical-lock/v1",
+      stage: "engineering-calibration",
+      corpus: "pilot",
+      skillId: "env-manager",
+      panelConfigId: "env-manager-calibration-v1",
+      model: { route: "xty/gpt-4.1-mini", family: "gpt" },
+      adapter: { id: "bare-agent", version: "workspace-calibration-v1" },
+      matrix: {
+        systems: ["no-skill", "original"],
+        contexts: ["clean"],
+        agents: ["skvm"],
+        environments: ["windows"],
+        taskSplit: "development",
+        taskIds: ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+        repetitions: 2,
+      },
+      runtime: { apiKeyEnv: "SKVM_XTY_API_KEY" },
+    });
+    expect(manifestSkill).toMatchObject({ status: "tasks-authored" });
+    expect(manifestSkill?.irPath).toBeUndefined();
+    expect(lock.matrix.taskIds.every((taskId) => splitByTask.get(taskId) === "development")).toBe(true);
+    expect(lock.prohibited).toEqual(expect.arrayContaining(["held-out execution", "IR materialization", "PGO compilation"]));
+    expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
+  });
+
   test("scores a perfect Node development audit with six safe deterministic summaries", async () => {
     const { skillId, task } = await loadNodeDevelopmentTask();
     const sourceDigest = sha256(await readFile(taskPath, "utf8"));

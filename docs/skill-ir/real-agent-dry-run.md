@@ -100,6 +100,8 @@ The runner supports these selection filters:
 | Flag | Matches matrix field |
 |---|---|
 | `--corpus=` | required corpus id: `calibration` or `pilot` |
+| `--allow-tasks-authored` | restricted pre-IR pilot calibration; requires one skill, explicit development tasks, clean context, and exactly `no-skill,original` |
+| `--skills=` | explicit skill id filter; exactly one is mandatory with `--allow-tasks-authored` |
 | `--systems=` | system configuration, such as `original` or `ir-profile` |
 | `--contexts=` | benchmark context id |
 | `--agents=` | target agent label, such as `skvm` or `codex` |
@@ -119,7 +121,7 @@ Every new row carries `model`, `modelFamily`, `adapter`, `adapterVersion`,
 `--repetitions` expands them. Each repetition receives distinct task, skill,
 run, and workdir paths while retaining the paired `caseId`.
 
-The runner fails before materialization when `--corpus` is omitted, the selected corpus has no runnable skills, or `ir-pgo` lacks a validated Final IR directory. For PGO it also rejects development tasks, corpus mismatch, stale source/base/overlay/final digests, missing skill provenance, and selected skills with zero profile annotations.
+The runner fails before materialization when `--corpus` is omitted, the selected corpus has no eligible skills, or `ir-pgo` lacks a validated Final IR directory. Normal scheduling still accepts only `runnable` entries. `--allow-tasks-authored` accepts only the pilot corpus, one explicit skill, explicit development tasks, clean context, the complete `no-skill | original` pair, and no IR override. It also rejects a limit that truncates a pair. For PGO the normal path rejects development tasks, corpus mismatch, stale source/base/overlay/final digests, missing skill provenance, and selected skills with zero profile annotations.
 
 `--agents` and `--environments` currently filter scheduling labels only. The command still uses the single global `--adapter` value and the current host OS. Do not interpret different label values as cross-agent or cross-OS execution until executor bindings are implemented.
 
@@ -154,7 +156,7 @@ benchmarks/skill-ir/corpus/corpora/<corpus>.json
 benchmarks/skill-ir/contexts/standard-contexts.json
 ```
 
-Each selected manifest skill must provide both:
+Each normally scheduled manifest skill must provide both:
 
 ```text
 irPath
@@ -162,6 +164,12 @@ tasksPath
 ```
 
 The task file's `skillId` must match the manifest skill id.
+
+For the restricted pre-IR calibration, a `tasks-authored` entry provides
+`tasksPath`, `sourcePath`, and a matching `sourceFiles` SHA-256 entry instead of
+`irPath`. The runner synthesizes an in-memory schema carrier only for verified
+original-source materialization. It is never persisted or passed to static/PGO
+systems.
 
 For Task 11C `ir-pgo` runs, first generate profile overlay and final IR artifacts with `profile-feedback-run.ts`, then pass the generated `final-ir` directory:
 
@@ -199,6 +207,12 @@ Score the raw execution logs into analyzer-compatible results:
 
 ```powershell
 bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--corpus=calibration' '--raw=results/skill-ir/real-agent-dry-run/raw-runs.jsonl' '--out=results/skill-ir/main-results.jsonl'
+```
+
+Pre-IR pilot calibration must repeat the explicit scorer gate:
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts '--corpus=pilot' '--allow-tasks-authored' '--raw=results/skill-ir/env-manager-calibration-v1/raw-runs.jsonl' '--out=results/skill-ir/env-manager-calibration-v1/scored-results.jsonl'
 ```
 
 Use the same explicit corpus id for planning, execution, scoring, and profile compilation. `--manifest=<path>` remains available for isolated test fixtures and is mutually exclusive with `--corpus`.
@@ -284,6 +298,8 @@ bun run typecheck
 
 - Missing model/API key only matters with `--execute`.
 - A manifest skill without `irPath` or `tasksPath` fails before any agent call.
+- A `tasks-authored` calibration entry without `sourcePath`, a matching source
+  digest, or `tasksPath` fails before any agent call.
 - A task file whose `skillId` does not match its manifest skill fails before materialization.
 - Unquoted comma-separated PowerShell args can produce an empty plan.
 - Unknown task, agent, environment, context, or system filters can produce an empty plan. Inspect `plan.json` before real execution if the selected matrix is new.
