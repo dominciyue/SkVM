@@ -54,4 +54,4 @@ scoring, Markdown research contracts.
 
 - [x] Update component docs, canonical spec/plan, and experiment note to the observed state.
 - [x] Append `D:\skill优化\conversation_log.md` with decisions and verification evidence.
-- [ ] Commit and push repository-relevant code, docs, lock, and compact results; keep secrets and bulky workdirs local.
+- [x] Commit and push repository-relevant code, docs, lock, and compact results; keep secrets and bulky workdirs local.
