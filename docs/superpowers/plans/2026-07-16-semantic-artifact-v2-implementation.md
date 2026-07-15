@@ -41,7 +41,7 @@ run, scorer change, v1 mutation, or B production path belongs to Tasks 1-9.
 - Create: `src/benchmarks/skill-ir/semantic-contract.test.ts`
 - Test: `src/benchmarks/skill-ir/artifact-package.test.ts`
 
-- [ ] **Step 1: Write failing B sink-isolation tests**
+- [x] **Step 1: Write failing B sink-isolation tests**
 
 Instantiate `ClassificationCandidateSchema` with a unique canary, then assert
 strict v2 contract/report schemas reject `classificationCandidates`,
@@ -60,13 +60,13 @@ expect(() => SemanticRuntimeContractSchema.parse({
 })).toThrow();
 ```
 
-- [ ] **Step 2: Write failing closed-code tests**
+- [x] **Step 2: Write failing closed-code tests**
 
 Require `runtime-validation-report/v2`, `semantic-error-codes/v1`, the seven
 new A codes, and exact code/field combinations. Assert v1 rejects every v2 code
 and retains its literal catalog.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/classification-evidence.test.ts ./src/benchmarks/skill-ir/semantic-contract.test.ts
@@ -74,7 +74,7 @@ bun test ./src/benchmarks/skill-ir/classification-evidence.test.ts ./src/benchma
 
 Expected: fail because both modules are missing.
 
-- [ ] **Step 4: Implement minimal schemas**
+- [x] **Step 4: Implement minimal schemas**
 
 `classification-evidence.ts` exports only schemas and inferred types; it has no
 producer or writer. `semantic-contract.ts` exports strict
@@ -93,7 +93,7 @@ export const SemanticValidationCodeSchema = z.enum([
 ]);
 ```
 
-- [ ] **Step 5: Verify GREEN and commit**
+- [x] **Step 5: Verify GREEN and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/classification-evidence.test.ts ./src/benchmarks/skill-ir/semantic-contract.test.ts ./src/benchmarks/skill-ir/artifact-package.test.ts
