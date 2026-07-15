@@ -168,7 +168,7 @@ git commit -m "feat: derive conservative semantic evidence"
 - Create: `src/benchmarks/skill-ir/semantic-evidence-cli.ts`
 - Modify: `src/benchmarks/skill-ir/artifact-package.ts`
 
-- [ ] **Step 1: Write RED package and canary tests**
+- [x] **Step 1: Write RED package and canary tests**
 
 Compile temporary packages after injecting canaries into evaluator expected,
 criterion/hard-gate ids, threshold, held-out prompt, secret values, and B
@@ -176,19 +176,19 @@ candidate fields. Recursively scan every emitted file and require zero hits.
 Require the exact v2 layout and a generated skill view naming the protected
 runtime contract.
 
-- [ ] **Step 2: Write RED determinism/v1 isolation tests**
+- [x] **Step 2: Write RED determinism/v1 isolation tests**
 
 Compile twice and compare paths/digests. Require catalog-dispatched validation
 for v2 while the frozen v1 package continues to validate under literal v1
 schemas.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts ./src/benchmarks/skill-ir/artifact-package.test.ts
 ```
 
-- [ ] **Step 4: Implement compiler and CLI**
+- [x] **Step 4: Implement compiler and CLI**
 
 Compile only source/base IR, development prompt projection, public skill rules,
 scan policy, the bundled `semantic-evidence-cli.ts` entrypoint, checker,
@@ -199,7 +199,7 @@ semantic-artifact-run.ts --base-ir=... --tasks=... --source=... --out-dir=...
 semantic-artifact-run.ts --verify-only=<package-dir>
 ```
 
-- [ ] **Step 5: Verify GREEN and commit**
+- [x] **Step 5: Verify GREEN and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts ./src/benchmarks/skill-ir/artifact-package.test.ts

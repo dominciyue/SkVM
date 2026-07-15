@@ -3,7 +3,7 @@ import { isAbsolute, posix, relative, resolve, win32 } from "node:path";
 import { z } from "zod";
 import { sha256Bytes } from "./source-fixture";
 
-const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/);
+export const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/);
 
 export function parseSafeRelativePath(value: string): string {
   if (value.length === 0 || isAbsolute(value) || win32.isAbsolute(value)) {
@@ -22,7 +22,7 @@ export function parseSafeRelativePath(value: string): string {
   return normalized;
 }
 
-const SafeRelativePathSchema = z.string().transform((value, ctx) => {
+export const SafeRelativePathSchema = z.string().transform((value, ctx) => {
   try {
     return parseSafeRelativePath(value);
   } catch (error) {
@@ -93,6 +93,65 @@ const ArtifactRecordSchema = z.object({
 const DigestRefSchema = z.object({
   path: SafeRelativePathSchema,
   sha256: Sha256Schema,
+}).strict();
+
+const SemanticArtifactRecordSchema = z.object({
+  path: SafeRelativePathSchema,
+  kind: z.enum([
+    "skill-ir",
+    "skill-view",
+    "contract",
+    "semantic-contract-schema",
+    "evidence-program",
+    "checker",
+    "template",
+    "validation-policy",
+  ]),
+  sha256: Sha256Schema,
+  targetPath: SafeRelativePathSchema.optional(),
+}).strict();
+
+export const SemanticArtifactPackageManifestSchema = z.object({
+  schemaVersion: z.literal("skill-ir-semantic-artifact-package-manifest/v1"),
+  catalog: z.literal("executable-semantic-artifact/v2"),
+  skillId: z.literal("env-manager"),
+  provenance: DigestRefSchema,
+  contract: DigestRefSchema,
+  semanticContractSchema: DigestRefSchema,
+  evidenceProgram: z.object({
+    path: SafeRelativePathSchema,
+    timeoutMs: z.number().int().min(1).max(30_000),
+  }).strict(),
+  checker: z.object({
+    path: SafeRelativePathSchema,
+    timeoutMs: z.number().int().min(1).max(30_000),
+  }).strict(),
+  runtimeContract: z.object({
+    path: SafeRelativePathSchema,
+    protected: z.literal(true),
+  }).strict(),
+  generatedOutputs: z.array(SafeRelativePathSchema).min(1),
+  artifacts: z.array(SemanticArtifactRecordSchema).min(1),
+}).strict();
+
+export const SemanticArtifactPackageProvenanceSchema = z.object({
+  schemaVersion: z.literal("skill-ir-semantic-artifact-package-provenance/v1"),
+  catalog: z.literal("executable-semantic-artifact/v2"),
+  skillId: z.literal("env-manager"),
+  constructionSplit: z.literal("development"),
+  source: DigestRefSchema,
+  baseIr: DigestRefSchema,
+  taskContract: z.object({
+    taskIds: z.array(z.string().min(1)).min(1),
+    promptDigest: Sha256Schema,
+    sha256: Sha256Schema,
+  }).strict(),
+  compiler: z.object({
+    id: z.literal("env-manager-semantic-artifact-compiler"),
+    version: z.literal("v2"),
+    configSha256: Sha256Schema,
+  }).strict(),
+  artifacts: z.array(SemanticArtifactRecordSchema).min(1),
 }).strict();
 
 export const ArtifactPackageManifestSchema = z.object({
@@ -195,11 +254,20 @@ export type ArtifactPackageManifest = z.infer<typeof ArtifactPackageManifestSche
 export type ArtifactPackageProvenance = z.infer<typeof ArtifactPackageProvenanceSchema>;
 export type ArtifactDevelopmentLock = z.infer<typeof ArtifactDevelopmentLockSchema>;
 export type ArtifactRecord = z.infer<typeof ArtifactRecordSchema>;
+export type SemanticArtifactRecord = z.infer<typeof SemanticArtifactRecordSchema>;
+export type SemanticArtifactPackageManifest = z.infer<typeof SemanticArtifactPackageManifestSchema>;
+export type SemanticArtifactPackageProvenance = z.infer<typeof SemanticArtifactPackageProvenanceSchema>;
 
 export type ValidatedArtifactPackage = {
   packageDir: string;
   manifest: ArtifactPackageManifest;
   provenance: ArtifactPackageProvenance;
+};
+
+export type ValidatedSemanticArtifactPackage = {
+  packageDir: string;
+  manifest: SemanticArtifactPackageManifest;
+  provenance: SemanticArtifactPackageProvenance;
 };
 
 async function listFiles(root: string, directory = root): Promise<string[]> {
@@ -229,7 +297,12 @@ async function verifyDigest(root: string, ref: { path: string; sha256: string })
   }
 }
 
-function stableArtifactIdentity(artifacts: ArtifactRecord[]): string {
+function stableArtifactIdentity<T extends {
+  path: string;
+  kind: string;
+  sha256: string;
+  targetPath?: string;
+}>(artifacts: T[]): string {
   return JSON.stringify(
     artifacts
       .map((artifact) => ({ ...artifact }))
@@ -237,18 +310,13 @@ function stableArtifactIdentity(artifacts: ArtifactRecord[]): string {
   );
 }
 
-export async function validateArtifactPackage(opts: {
+async function validateV1ArtifactPackage(opts: {
   packageDir: string;
-  expectedCatalog?: "executable-artifact/v1";
 }): Promise<ValidatedArtifactPackage> {
   const packageDir = resolve(opts.packageDir);
   const manifest = ArtifactPackageManifestSchema.parse(
     await readJson(resolve(packageDir, "package-manifest.json")),
   );
-  if (opts.expectedCatalog && manifest.catalog !== opts.expectedCatalog) {
-    throw new Error(`Artifact catalog mismatch: expected ${opts.expectedCatalog}, got ${manifest.catalog}`);
-  }
-
   await verifyDigest(packageDir, manifest.provenance);
   const provenance = ArtifactPackageProvenanceSchema.parse(
     await readJson(resolve(packageDir, manifest.provenance.path)),
@@ -291,6 +359,79 @@ export async function validateArtifactPackage(opts: {
   }
 
   return { packageDir, manifest, provenance };
+}
+
+async function validateV2ArtifactPackage(opts: {
+  packageDir: string;
+}): Promise<ValidatedSemanticArtifactPackage> {
+  const packageDir = resolve(opts.packageDir);
+  const manifest = SemanticArtifactPackageManifestSchema.parse(
+    await readJson(resolve(packageDir, "package-manifest.json")),
+  );
+  await verifyDigest(packageDir, manifest.provenance);
+  const provenance = SemanticArtifactPackageProvenanceSchema.parse(
+    await readJson(resolve(packageDir, manifest.provenance.path)),
+  );
+  if (manifest.skillId !== provenance.skillId || manifest.catalog !== provenance.catalog) {
+    throw new Error("Semantic artifact manifest/provenance identity mismatch");
+  }
+  if (stableArtifactIdentity(manifest.artifacts) !== stableArtifactIdentity(provenance.artifacts)) {
+    throw new Error("Semantic artifact manifest/provenance artifact identity mismatch");
+  }
+
+  const paths = new Set<string>();
+  for (const artifact of manifest.artifacts) {
+    if (paths.has(artifact.path)) throw new Error(`Duplicate artifact path: ${artifact.path}`);
+    paths.add(artifact.path);
+    await verifyDigest(packageDir, artifact);
+  }
+  for (const [label, ref, kind] of [
+    ["contract", manifest.contract, "contract"],
+    ["semantic contract schema", manifest.semanticContractSchema, "semantic-contract-schema"],
+  ] as const) {
+    const artifact = manifest.artifacts.find((candidate) => candidate.path === ref.path);
+    if (!artifact || artifact.kind !== kind || artifact.sha256 !== ref.sha256) {
+      throw new Error(`Manifest ${label} reference is invalid`);
+    }
+  }
+  const evidence = manifest.artifacts.find((artifact) => artifact.path === manifest.evidenceProgram.path);
+  if (!evidence || evidence.kind !== "evidence-program") {
+    throw new Error("Manifest evidence program reference is invalid");
+  }
+  const checker = manifest.artifacts.find((artifact) => artifact.path === manifest.checker.path);
+  if (!checker || checker.kind !== "checker") {
+    throw new Error("Manifest checker reference is invalid");
+  }
+  for (const output of manifest.generatedOutputs) parseSafeRelativePath(output);
+  parseSafeRelativePath(manifest.runtimeContract.path);
+
+  const allowed = new Set(["package-manifest.json", manifest.provenance.path, ...paths]);
+  for (const file of await listFiles(packageDir)) {
+    if (!allowed.has(file)) throw new Error(`Undeclared package file: ${file}`);
+  }
+  return { packageDir, manifest, provenance };
+}
+
+export function validateArtifactPackage(opts: {
+  packageDir: string;
+  expectedCatalog?: "executable-artifact/v1";
+}): Promise<ValidatedArtifactPackage>;
+export function validateArtifactPackage(opts: {
+  packageDir: string;
+  expectedCatalog: "executable-semantic-artifact/v2";
+}): Promise<ValidatedSemanticArtifactPackage>;
+export async function validateArtifactPackage(opts: {
+  packageDir: string;
+  expectedCatalog?: "executable-artifact/v1" | "executable-semantic-artifact/v2";
+}): Promise<ValidatedArtifactPackage | ValidatedSemanticArtifactPackage> {
+  const raw = await readJson(resolve(opts.packageDir, "package-manifest.json"));
+  const catalog = z.object({ catalog: z.string() }).passthrough().parse(raw).catalog;
+  if (opts.expectedCatalog && catalog !== opts.expectedCatalog) {
+    throw new Error(`Artifact catalog mismatch: expected ${opts.expectedCatalog}, got ${catalog}`);
+  }
+  if (catalog === "executable-artifact/v1") return validateV1ArtifactPackage(opts);
+  if (catalog === "executable-semantic-artifact/v2") return validateV2ArtifactPackage(opts);
+  throw new Error(`Unsupported artifact catalog: ${catalog}`);
 }
 
 function sameValues(actual: Iterable<string> | undefined, expected: string[]): boolean {
