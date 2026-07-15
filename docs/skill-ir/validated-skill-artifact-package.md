@@ -2,7 +2,7 @@
 
 ## Status
 
-Northbound engineering specification, updated 2026-07-16. The current implementation is L1/early-L2 and does not yet emit a validated L3/L4 package. Two provenance-bound dual-source Final IR candidates were evaluated and failed the development gate. The first executable package design is now frozen under `executable-artifact/v1`; implementation and validation remain pending.
+Northbound engineering specification, updated 2026-07-16. The first L3-oriented development prototype is now emitted under `executable-artifact/v1`: it contains digest-bound IR/view, prompt-derived contract, templates, a standalone checker, validation policy, provenance, and a Runner-enforced one-repair lifecycle. It has not passed the frozen development experiment and is not a validated L3/L4 package or held-out evidence.
 
 ## Purpose
 
@@ -125,6 +125,8 @@ and offline score.
 
 The detailed v1 contract is frozen in
 `docs/superpowers/specs/2026-07-16-runner-orchestrated-artifact-package-design.md`.
+The implementation and commands are documented in
+`docs/skill-ir/executable-artifact-runtime.md`.
 
 ## Validation Levels
 

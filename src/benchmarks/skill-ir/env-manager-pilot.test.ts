@@ -9,6 +9,7 @@ import {
   taskIndexKey,
   type RawAgentRunRow,
 } from "./scoring";
+import { validateArtifactPackage } from "./artifact-package";
 
 const taskPath = join(
   import.meta.dir,
@@ -33,6 +34,14 @@ const dualOverlayLockPath = join(
 const dualOverlayV2LockPath = join(
   import.meta.dir,
   "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-dual-overlay-v2-lock.json",
+);
+const executableArtifactPackagePath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/packages/executable-artifact-v1",
+);
+const executableArtifactLockPath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-executable-artifact-v1-lock.json",
 );
 const tempDirs: string[] = [];
 
@@ -243,6 +252,100 @@ afterEach(async () => {
 });
 
 describe("env-manager pilot scoring", () => {
+  test("freezes a digest-bound executable artifact development experiment", async () => {
+    const [validated, lockText] = await Promise.all([
+      validateArtifactPackage({ packageDir: executableArtifactPackagePath }),
+      readFile(executableArtifactLockPath, "utf8"),
+    ]);
+    const lock = JSON.parse(lockText) as {
+      schemaVersion: string;
+      stage: string;
+      status: string;
+      catalog: "executable-artifact/v1";
+      corpus: string;
+      skillId: string;
+      package: {
+        path: string;
+        manifestSha256: string;
+        provenanceSha256: string;
+      };
+      model: { route: string; family: string };
+      adapter: { id: string; version: string };
+      matrix: {
+        system: string;
+        repairModes: string[];
+        contexts: string[];
+        agents: string[];
+        environments: string[];
+        taskSplit: string;
+        taskIds: string[];
+        repetitions: number;
+        initialGenerationRows: number;
+      };
+      runtime: { stateMachine: string[]; maxSemanticRepairCalls: number; apiKeyEnv: string };
+      scoring: { authority: string; runtimeValidatorIsScorer: boolean; repairCostReportedSeparately: boolean };
+      developmentGate: {
+        minimumSuccesses: number;
+        minimumMeanScore: number;
+        maximumHardGateRegressions: number;
+        maximumInfrastructureFailures: number;
+      };
+      prohibited: string[];
+    };
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-env-manager-executable-artifact-lock/v1",
+      stage: "executable-artifact-development",
+      status: "preregistered",
+      catalog: "executable-artifact/v1",
+      corpus: "pilot",
+      skillId: "env-manager",
+      model: { route: "xty/gpt-4.1-mini", family: "gpt" },
+      adapter: { id: "bare-agent", version: "workspace-executable-artifact-v1" },
+      matrix: {
+        system: "ir-artifact-dev",
+        repairModes: ["check-only", "one-repair"],
+        contexts: ["clean"],
+        agents: ["skvm"],
+        environments: ["windows"],
+        taskSplit: "development",
+        taskIds: ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+        repetitions: 2,
+        initialGenerationRows: 8,
+      },
+      runtime: {
+        stateMachine: ["preflight", "generation", "validate", "optional-one-repair", "revalidate", "stop"],
+        maxSemanticRepairCalls: 1,
+        apiKeyEnv: "SKVM_XTY_API_KEY",
+      },
+      scoring: {
+        authority: "existing-deterministic-env-manager-scorer",
+        runtimeValidatorIsScorer: false,
+        repairCostReportedSeparately: true,
+      },
+      developmentGate: {
+        minimumSuccesses: 3,
+        minimumMeanScore: 0.85,
+        maximumHardGateRegressions: 0,
+        maximumInfrastructureFailures: 0,
+      },
+    });
+    expect(lock.package.manifestSha256).toBe(
+      sha256(await readFile(join(executableArtifactPackagePath, "package-manifest.json"))),
+    );
+    expect(lock.package.provenanceSha256).toBe(
+      sha256(await readFile(join(executableArtifactPackagePath, "package-provenance.json"))),
+    );
+    expect(validated.manifest.catalog).toBe(lock.catalog);
+    expect(validated.provenance.taskContract.taskIds).toEqual(lock.matrix.taskIds);
+    expect(lock.prohibited).toEqual(expect.arrayContaining([
+      "held-out execution before development gate",
+      "scorer tuning from artifact replay outputs",
+      "overwriting dual-overlay v1/v2 locks",
+      "more than one semantic repair call",
+    ]));
+    expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
+  });
+
   test("preregisters a secret-free development-only engineering calibration lock", async () => {
     const [taskSet, manifest, lockText] = await Promise.all([
       readFile(taskPath, "utf8").then((text) => JSON.parse(text) as TaskSet),

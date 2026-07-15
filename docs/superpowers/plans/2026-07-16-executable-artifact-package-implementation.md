@@ -37,7 +37,7 @@
 - Create: `src/benchmarks/skill-ir/artifact-package.test.ts`
 - Create: `src/benchmarks/skill-ir/artifact-package.ts`
 
-- [ ] **Step 1: Write failing schema tests**
+- [x] **Step 1: Write failing schema tests**
 
 Define wished-for imports and assertions for:
 
@@ -67,13 +67,13 @@ Also assert closed code/type enums, no absolute report path, no extra report
 fields, manifest catalog `executable-artifact/v1`, artifact digest mismatch,
 undeclared package files, and provenance mismatch.
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run: `bun test ./src/benchmarks/skill-ir/artifact-package.test.ts`
 
 Expected: FAIL because `./artifact-package` does not exist.
 
-- [ ] **Step 3: Implement minimal schemas and verifier**
+- [x] **Step 3: Implement minimal schemas and verifier**
 
 Export these APIs:
 
@@ -94,7 +94,7 @@ and `expectedType`; all except `code` are optional and use closed/path-safe
 types. Verify manifest/provenance identity, every declared digest, no path
 escape, and no undeclared regular file under the package directory.
 
-- [ ] **Step 4: Run focused tests and typecheck**
+- [x] **Step 4: Run focused tests and typecheck**
 
 Run:
 
@@ -105,7 +105,7 @@ bun run typecheck
 
 Expected: all focused tests pass; typecheck exits 0.
 
-- [ ] **Step 5: Commit the schema boundary**
+- [x] **Step 5: Commit the schema boundary**
 
 ```powershell
 git add src/benchmarks/skill-ir/artifact-package.ts src/benchmarks/skill-ir/artifact-package.test.ts
@@ -119,7 +119,7 @@ git commit -m "feat: add executable artifact package contracts"
 - Create: `src/benchmarks/skill-ir/artifact-package-compiler.ts`
 - Create: `src/benchmarks/skill-ir/artifact-package-run.ts`
 
-- [ ] **Step 1: Write failing compiler tests**
+- [x] **Step 1: Write failing compiler tests**
 
 Exercise the public API:
 
@@ -149,13 +149,13 @@ Assert that it:
 - writes sentinel-bearing templates and a standalone checker;
 - binds source/base/evidence/task-contract/predecessor/artifact digests.
 
-- [ ] **Step 2: Run the compiler test and verify RED**
+- [x] **Step 2: Run the compiler test and verify RED**
 
 Run: `bun test ./src/benchmarks/skill-ir/artifact-package-compiler.test.ts`
 
 Expected: FAIL because the compiler module is missing.
 
-- [ ] **Step 3: Implement prompt contract extraction**
+- [x] **Step 3: Implement prompt contract extraction**
 
 Export:
 
@@ -185,14 +185,14 @@ Parse only `prompt`. Normalize each development task to a structural contract
 and require exact agreement. Do not accept a task object wider than the mapped
 `id/split/prompt` projection inside the compiler.
 
-- [ ] **Step 4: Implement deterministic package emission and CLI**
+- [x] **Step 4: Implement deterministic package emission and CLI**
 
 Emit the layout from the design. Use `__SKVM_REQUIRED__` in both JSON templates.
 Generate a standalone Bun checker that reads the contract and validates only
 declared structure, parseability, sentinels, generic `TEST_ONLY_` output, and
 relative paths. The CLI accepts explicit paths and supports `--verify-only`.
 
-- [ ] **Step 5: Run focused tests and typecheck**
+- [x] **Step 5: Run focused tests and typecheck**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/artifact-package.test.ts ./src/benchmarks/skill-ir/artifact-package-compiler.test.ts
@@ -201,7 +201,7 @@ bun run typecheck
 
 Expected: pass.
 
-- [ ] **Step 6: Commit the compiler**
+- [x] **Step 6: Commit the compiler**
 
 ```powershell
 git add src/benchmarks/skill-ir/artifact-package-compiler.ts src/benchmarks/skill-ir/artifact-package-compiler.test.ts src/benchmarks/skill-ir/artifact-package-run.ts
@@ -214,7 +214,7 @@ git commit -m "feat: compile env-manager executable package"
 - Create: `src/benchmarks/skill-ir/artifact-preflight.test.ts`
 - Create: `src/benchmarks/skill-ir/artifact-preflight.ts`
 
-- [ ] **Step 1: Write failing preflight tests**
+- [x] **Step 1: Write failing preflight tests**
 
 Test these APIs with real temporary files:
 
@@ -235,13 +235,13 @@ missing Bun checker runtime, and workdir escape. Assert that template targets
 are excluded from the protected snapshot while every pre-existing fixture is
 hashed and later mutation is reported without exposing bytes.
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run: `bun test ./src/benchmarks/skill-ir/artifact-preflight.test.ts`
 
 Expected: FAIL because the module is missing.
 
-- [ ] **Step 3: Implement preflight and materialization**
+- [x] **Step 3: Implement preflight and materialization**
 
 Export:
 
@@ -255,7 +255,7 @@ Snapshot sorted relative path/digest pairs. Never include content in returned
 errors. Copy only declared templates to declared generated outputs and refuse
 to overwrite a path that pre-existed outside the declared generated set.
 
-- [ ] **Step 4: Run focused tests and typecheck**
+- [x] **Step 4: Run focused tests and typecheck**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/artifact-package.test.ts ./src/benchmarks/skill-ir/artifact-preflight.test.ts
@@ -264,7 +264,7 @@ bun run typecheck
 
 Expected: pass.
 
-- [ ] **Step 5: Commit preflight**
+- [x] **Step 5: Commit preflight**
 
 ```powershell
 git add src/benchmarks/skill-ir/artifact-preflight.ts src/benchmarks/skill-ir/artifact-preflight.test.ts
@@ -277,7 +277,7 @@ git commit -m "feat: add artifact package preflight"
 - Create: `src/benchmarks/skill-ir/artifact-runtime.test.ts`
 - Create: `src/benchmarks/skill-ir/artifact-runtime.ts`
 
-- [ ] **Step 1: Write failing state-machine tests**
+- [x] **Step 1: Write failing state-machine tests**
 
 Use dependency-injected real functions rather than mock-framework call counts:
 
@@ -303,13 +303,13 @@ Cover:
   text, secret, absolute path, free-form validator message, or actual value;
 - generation and repair tokens/latency are separate and aggregate correctly.
 
-- [ ] **Step 2: Run runtime tests and verify RED**
+- [x] **Step 2: Run runtime tests and verify RED**
 
 Run: `bun test ./src/benchmarks/skill-ir/artifact-runtime.test.ts`
 
 Expected: FAIL because the runtime module is missing.
 
-- [ ] **Step 3: Implement checker adapter and repair task**
+- [x] **Step 3: Implement checker adapter and repair task**
 
 Export:
 
@@ -324,7 +324,7 @@ whitelist report. Set `fixtures` absent and `eval: []`. Run validator with a
 bounded timeout. Parse stdout through `RuntimeValidationReportSchema` before
 repair construction.
 
-- [ ] **Step 4: Run focused tests and typecheck**
+- [x] **Step 4: Run focused tests and typecheck**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/artifact-package.test.ts ./src/benchmarks/skill-ir/artifact-preflight.test.ts ./src/benchmarks/skill-ir/artifact-runtime.test.ts
@@ -333,7 +333,7 @@ bun run typecheck
 
 Expected: pass.
 
-- [ ] **Step 5: Commit runtime state machine**
+- [x] **Step 5: Commit runtime state machine**
 
 ```powershell
 git add src/benchmarks/skill-ir/artifact-runtime.ts src/benchmarks/skill-ir/artifact-runtime.test.ts
@@ -351,7 +351,7 @@ git commit -m "feat: add bounded artifact repair runtime"
 - Modify: `src/benchmarks/skill-ir/scoring.ts`
 - Modify: `src/benchmarks/skill-ir/scoring.test.ts`
 
-- [ ] **Step 1: Write failing matrix and CLI guard tests**
+- [x] **Step 1: Write failing matrix and CLI guard tests**
 
 Add `ir-artifact-dev` to `ExperimentSystem`, prove it is absent from
 `COLD_START_EXPERIMENT_SYSTEMS`, and require:
@@ -370,7 +370,7 @@ explicit development --tasks
 Reject combination with tasks-authored/development replay, IR override,
 held-out tasks, multiple skills, or unsupported scopes.
 
-- [ ] **Step 2: Run guard tests and verify RED**
+- [x] **Step 2: Run guard tests and verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/matrix.test.ts ./src/benchmarks/skill-ir/real-agent-run.test.ts
@@ -378,13 +378,13 @@ bun test ./src/benchmarks/skill-ir/matrix.test.ts ./src/benchmarks/skill-ir/real
 
 Expected: failures for the missing system and arguments.
 
-- [ ] **Step 3: Implement package-aware planning**
+- [x] **Step 3: Implement package-aware planning**
 
 Validate package provenance during `buildPlan`, materialize the package
 `skill.md` for `ir-artifact-dev`, carry packageDir/repairMode/contractDigest in
 the plan entry, and keep the system absent from every default matrix.
 
-- [ ] **Step 4: Write failing execution and scoring tests**
+- [x] **Step 4: Write failing execution and scoring tests**
 
 Prove `executePlan` resets/materializes the workdir once, delegates the initial
 and optional repair command through the state machine, writes runtime metadata
@@ -407,7 +407,7 @@ artifactRuntime: {
 The scored row's token/latency totals use aggregate usage when present; the
 evaluator criteria and thresholds remain unchanged.
 
-- [ ] **Step 5: Run execution/scoring tests and verify RED**
+- [x] **Step 5: Run execution/scoring tests and verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/real-agent-run.test.ts ./src/benchmarks/skill-ir/scoring.test.ts
@@ -415,14 +415,14 @@ bun test ./src/benchmarks/skill-ir/real-agent-run.test.ts ./src/benchmarks/skill
 
 Expected: fail before integration.
 
-- [ ] **Step 6: Implement process adapter and persistence**
+- [x] **Step 6: Implement process adapter and persistence**
 
 Create a small internal `executeCommand` helper returning exit code, status,
 stdout, stderr, duration, and parsed token usage. Build the repair command by
 replacing only `--task=...`; preserve model, adapter, skill, and workdir. Append
 one final raw row per matrix row after the bounded state machine stops.
 
-- [ ] **Step 7: Run focused integration tests and typecheck**
+- [x] **Step 7: Run focused integration tests and typecheck**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/matrix.test.ts ./src/benchmarks/skill-ir/real-agent-run.test.ts ./src/benchmarks/skill-ir/scoring.test.ts
@@ -431,7 +431,7 @@ bun run typecheck
 
 Expected: pass.
 
-- [ ] **Step 8: Commit Runner integration**
+- [x] **Step 8: Commit Runner integration**
 
 ```powershell
 git add src/benchmarks/skill-ir/matrix.ts src/benchmarks/skill-ir/matrix.test.ts src/benchmarks/skill-ir/real-agent.ts src/benchmarks/skill-ir/real-agent-run.ts src/benchmarks/skill-ir/real-agent-run.test.ts src/benchmarks/skill-ir/scoring.ts src/benchmarks/skill-ir/scoring.test.ts
@@ -448,7 +448,7 @@ git commit -m "feat: orchestrate executable artifact runs"
 - Modify: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
 - Modify: `docs/skill-ir/validated-skill-artifact-package.md`
 
-- [ ] **Step 1: Write failing package/lock tests**
+- [x] **Step 1: Write failing package/lock tests**
 
 Assert exact catalog/provenance/package digests, one skill, development split,
 two task ids, two repair modes, two repetitions, GPT-4.1-mini, bare-agent,
@@ -456,13 +456,13 @@ Windows, clean context, no secrets, and explicit held-out/scorer-tuning
 prohibitions. Execute the emitted checker against malformed and structurally
 valid temporary workdirs.
 
-- [ ] **Step 2: Run the pilot test and verify RED**
+- [x] **Step 2: Run the pilot test and verify RED**
 
 Run: `bun test ./src/benchmarks/skill-ir/env-manager-pilot.test.ts`
 
 Expected: FAIL because package and lock do not exist.
 
-- [ ] **Step 3: Emit and verify the package**
+- [x] **Step 3: Emit and verify the package**
 
 Run the compiler with frozen inputs:
 
@@ -472,7 +472,7 @@ bun ./src/benchmarks/skill-ir/artifact-package-run.ts '--base-ir=benchmarks/skil
 
 Then run `--verify-only` against the emitted directory.
 
-- [ ] **Step 4: Add the frozen lock and component documentation**
+- [x] **Step 4: Add the frozen lock and component documentation**
 
 The lock records package manifest/provenance digests and the 8-row initial
 generation matrix. Documentation includes architecture, files, CLI, checker
@@ -480,7 +480,7 @@ contract, repair whitelist, scorer distinction, failure taxonomy, cost fields,
 tests, and modification notes. Update the canonical ledger without claiming a
 real improvement before paid execution.
 
-- [ ] **Step 5: Run pilot and focused package tests**
+- [x] **Step 5: Run pilot and focused package tests**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/artifact-package.test.ts ./src/benchmarks/skill-ir/artifact-package-compiler.test.ts ./src/benchmarks/skill-ir/artifact-preflight.test.ts ./src/benchmarks/skill-ir/artifact-runtime.test.ts ./src/benchmarks/skill-ir/env-manager-pilot.test.ts
@@ -489,7 +489,7 @@ bun run typecheck
 
 Expected: pass.
 
-- [ ] **Step 6: Commit package and documentation**
+- [x] **Step 6: Commit package and documentation**
 
 ```powershell
 git add benchmarks/skill-ir/pilots/env-manager src/benchmarks/skill-ir/env-manager-pilot.test.ts docs/skill-ir/executable-artifact-runtime.md docs/skill-ir/skill-ir-aot-optimization-plan.md docs/skill-ir/validated-skill-artifact-package.md

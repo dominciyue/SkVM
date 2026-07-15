@@ -41,7 +41,7 @@ The package is a northbound engineering target, not a current paper claim. Artif
 | Tasks 11A-11E: real-agent runner, scoring, context audit, harder tasks, multi-model runs, dynamic feedback | Implemented; evidence-limited | Existing results demonstrate mechanisms and seed case studies, not broad generalization. |
 | Tasks 11F-11G: promotion policy and validation planner | Implemented and frozen | Keep as advisory method-support tooling; do not deepen before real-skill evidence. |
 | Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; all three Wave A source closures are imported and digest-pinned. |
-| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` has a source-audited base IR, dual-source compiler, provenance v2, and two frozen failed Final IR development replays. The `executable-artifact/v1` Runner design is frozen; next implement its package compiler, preflight, validator, one-repair state machine, and attribution ablation with TDD. Held-out remains blocked. |
+| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` now emits a provenance/lock-bound `executable-artifact/v1` package with prompt-isolated contract/templates/checker, preflight, protected-workdir checks, and bounded one-repair Runner orchestration. Development effectiveness has not been measured; next verify both dry-run arms, route probe, then execute the frozen development-only attribution experiment. Held-out remains blocked. |
 | Task 12: report and slides | Deferred | Begin after the first real-skill main table and case study exist. |
 
 ### Active Sequence
@@ -61,8 +61,9 @@ The package is a northbound engineering target, not a current paper claim. Artif
 - [x] Compile dual-source development feedback into provenance-bound v1/v2 Final IR candidates and validate them with explicit `ir-pgo-dev` replay without scorer tuning. Result: v1 0/4 at 0.70; v2 1/4 at 0.6375 with mixed regressions. The gate failed, so held-out was not run.
 - [x] Freeze the provenance-bound `executable-artifact/v1` design: compile from frozen base IR plus gold-isolated development evidence and user-visible task contract; preserve dual-overlay locks; separate runtime validator from the offline scorer; support `check-only` versus `check+one-repair` attribution.
 - [x] Split the frozen design into the file-level TDD plan at `docs/superpowers/plans/2026-07-16-executable-artifact-package-implementation.md`.
-- [ ] Implement package schemas/compiler, deterministic templates, executable validator, strict repair-report whitelist, preflight, and `preflight -> generation -> validate -> at most one repair -> revalidate -> stop` Runner orchestration using TDD.
-- [ ] Freeze `env-manager-executable-artifact-v1-lock.json`, dry-run both repair modes, and execute the development-only attribution experiment. Report generation and repair costs separately; do not run held-out unless the frozen one-repair gate passes.
+- [x] Implement package schemas/compiler, deterministic templates, executable validator, strict repair-report whitelist, preflight, protected-workdir checks, and `preflight -> generation -> validate -> at most one repair -> revalidate -> stop` Runner orchestration using TDD.
+- [x] Emit the provenance-bound package and freeze `env-manager-executable-artifact-v1-lock.json`; Runner validates lock/package digests and the exact development matrix before planning.
+- [ ] Dry-run both repair modes, route probe, and execute the development-only attribution experiment. Report generation and repair costs separately; do not run held-out unless the frozen one-repair gate passes.
 - [ ] Implement balanced pooled aggregation with per-model support vectors and conflict exclusion; preregister the fixed panel and regression gates.
 - [ ] Run one shared panel-conditioned Final IR on `env-manager`, reporting aggregate, per-model, worst-model, regressions, and infrastructure exclusions.
 - [ ] Extend the stabilized method to `law-to-markdown`, including resource-parity enforcement, then to `experimental-design`.

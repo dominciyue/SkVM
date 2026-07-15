@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "skill-ir-env-manager-executable-artifact-lock/v1",
+  "stage": "executable-artifact-development",
+  "status": "preregistered",
+  "catalog": "executable-artifact/v1",
+  "corpus": "pilot",
+  "skillId": "env-manager",
+  "package": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/packages/executable-artifact-v1",
+    "manifestSha256": "d5770418b16d0f0c3d049eff3f6235af55d56046e8d61336c7c126bf47e454d8",
+    "provenanceSha256": "31e1442ad1b0c911866c4f39b9807fddca8550383c050324c652031ddc287f0b"
+  },
+  "model": {
+    "route": "xty/gpt-4.1-mini",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-executable-artifact-v1"
+  },
+  "matrix": {
+    "system": "ir-artifact-dev",
+    "repairModes": ["check-only", "one-repair"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "repetitions": 2,
+    "initialGenerationRows": 8
+  },
+  "runtime": {
+    "stateMachine": [
+      "preflight",
+      "generation",
+      "validate",
+      "optional-one-repair",
+      "revalidate",
+      "stop"
+    ],
+    "maxSemanticRepairCalls": 1,
+    "apiKeyEnv": "SKVM_XTY_API_KEY"
+  },
+  "scoring": {
+    "authority": "existing-deterministic-env-manager-scorer",
+    "runtimeValidatorIsScorer": false,
+    "repairCostReportedSeparately": true
+  },
+  "developmentGate": {
+    "minimumSuccesses": 3,
+    "minimumMeanScore": 0.85,
+    "maximumHardGateRegressions": 0,
+    "maximumInfrastructureFailures": 0
+  },
+  "prohibited": [
+    "held-out execution before development gate",
+    "scorer tuning from artifact replay outputs",
+    "overwriting dual-overlay v1/v2 locks",
+    "more than one semantic repair call",
+    "pooling models in the first vertical",
+    "claiming cross-agent or cross-OS evidence"
+  ]
+}

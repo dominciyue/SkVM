@@ -28,7 +28,11 @@ import {
   type ArtifactCommandResult,
   type ArtifactRepairMode,
 } from "./artifact-runtime";
-import { validateArtifactPackage, type ValidatedArtifactPackage } from "./artifact-package";
+import {
+  readAndValidateArtifactDevelopmentLock,
+  validateArtifactPackage,
+  type ValidatedArtifactPackage,
+} from "./artifact-package";
 import { extractEnvManagerTaskContract } from "./artifact-package-compiler";
 import { preflightArtifactRun } from "./artifact-preflight";
 import { extractTokenUsage } from "./scoring";
@@ -51,6 +55,7 @@ export type RealAgentRunArgs = {
   allowDevelopmentReplay?: boolean;
   allowArtifactDevelopmentReplay?: boolean;
   artifactPackageDir?: string;
+  artifactLockPath?: string;
   artifactRepairMode?: ArtifactRepairMode;
   irOverrideDir?: string;
   skills?: Set<string>;
@@ -152,6 +157,8 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
       args.irOverrideDir = arg.slice("--ir-override-dir=".length);
     } else if (arg.startsWith("--artifact-package-dir=")) {
       args.artifactPackageDir = arg.slice("--artifact-package-dir=".length);
+    } else if (arg.startsWith("--artifact-lock=")) {
+      args.artifactLockPath = arg.slice("--artifact-lock=".length);
     } else if (arg.startsWith("--artifact-repair-mode=")) {
       const mode = arg.slice("--artifact-repair-mode=".length);
       if (mode !== "check-only" && mode !== "one-repair") {
@@ -347,6 +354,9 @@ function assertArtifactDevelopmentReplayArgs(args: RealAgentRunArgs): void {
   if (!args.artifactPackageDir) {
     throw new Error("--allow-artifact-development-replay requires --artifact-package-dir");
   }
+  if (!args.artifactLockPath) {
+    throw new Error("--allow-artifact-development-replay requires --artifact-lock");
+  }
   if (!args.artifactRepairMode) {
     throw new Error("--allow-artifact-development-replay requires --artifact-repair-mode");
   }
@@ -384,16 +394,40 @@ async function validateSelectedArtifactPackage(
     throw new Error("Artifact package task contract drifted from user-visible prompts");
   }
   const expectedScope = packageRecord.provenance.scope;
+  const modelFamily = args.modelFamily ?? inferModelFamily(args.model);
+  const adapterVersion = args.adapterVersion ?? "workspace";
   for (const [key, actual] of [
     ["model", args.model],
-    ["modelFamily", args.modelFamily],
+    ["modelFamily", modelFamily],
     ["adapter", args.adapter],
-    ["adapterVersion", args.adapterVersion],
+    ["adapterVersion", adapterVersion],
   ] as const) {
     if (actual !== expectedScope[key]) {
       throw new Error(`Artifact package ${key} scope mismatch: expected ${expectedScope[key]}, got ${actual}`);
     }
   }
+  const lockPath = isAbsolute(args.artifactLockPath!)
+    ? args.artifactLockPath!
+    : join(args.rootDir, args.artifactLockPath!);
+  await readAndValidateArtifactDevelopmentLock({
+    rootDir: args.rootDir,
+    lockPath,
+    packageDir: packageRecord.packageDir,
+    expected: {
+      corpus: args.corpus,
+      skillId,
+      model: args.model,
+      modelFamily,
+      adapter: args.adapter,
+      adapterVersion,
+      repairMode: args.artifactRepairMode!,
+      repetitions: args.repetitions ?? 1,
+      contexts: args.contexts,
+      agents: args.agents,
+      environments: args.environments,
+      tasks: args.tasks,
+    },
+  });
   return packageRecord;
 }
 

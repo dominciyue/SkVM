@@ -139,9 +139,61 @@ export const ArtifactPackageProvenanceSchema = z.object({
   artifacts: z.array(ArtifactRecordSchema).min(1),
 }).strict();
 
+export const ArtifactDevelopmentLockSchema = z.object({
+  schemaVersion: z.literal("skill-ir-env-manager-executable-artifact-lock/v1"),
+  stage: z.literal("executable-artifact-development"),
+  status: z.literal("preregistered"),
+  catalog: z.literal("executable-artifact/v1"),
+  corpus: z.literal("pilot"),
+  skillId: z.literal("env-manager"),
+  package: z.object({
+    path: z.string().min(1),
+    manifestSha256: Sha256Schema,
+    provenanceSha256: Sha256Schema,
+  }).strict(),
+  model: z.object({ route: z.string().min(1), family: z.string().min(1) }).strict(),
+  adapter: z.object({ id: z.string().min(1), version: z.string().min(1) }).strict(),
+  matrix: z.object({
+    system: z.literal("ir-artifact-dev"),
+    repairModes: z.array(z.enum(["check-only", "one-repair"])).length(2),
+    contexts: z.array(z.string().min(1)).min(1),
+    agents: z.array(z.string().min(1)).min(1),
+    environments: z.array(z.string().min(1)).min(1),
+    taskSplit: z.literal("development"),
+    taskIds: z.array(z.string().min(1)).min(1),
+    repetitions: z.number().int().min(1),
+    initialGenerationRows: z.number().int().min(1),
+  }).strict(),
+  runtime: z.object({
+    stateMachine: z.tuple([
+      z.literal("preflight"),
+      z.literal("generation"),
+      z.literal("validate"),
+      z.literal("optional-one-repair"),
+      z.literal("revalidate"),
+      z.literal("stop"),
+    ]),
+    maxSemanticRepairCalls: z.literal(1),
+    apiKeyEnv: z.string().min(1),
+  }).strict(),
+  scoring: z.object({
+    authority: z.literal("existing-deterministic-env-manager-scorer"),
+    runtimeValidatorIsScorer: z.literal(false),
+    repairCostReportedSeparately: z.literal(true),
+  }).strict(),
+  developmentGate: z.object({
+    minimumSuccesses: z.number().int().min(1),
+    minimumMeanScore: z.number().min(0).max(1),
+    maximumHardGateRegressions: z.number().int().min(0),
+    maximumInfrastructureFailures: z.number().int().min(0),
+  }).strict(),
+  prohibited: z.array(z.string().min(1)).min(1),
+}).strict();
+
 export type RuntimeValidationReport = z.infer<typeof RuntimeValidationReportSchema>;
 export type ArtifactPackageManifest = z.infer<typeof ArtifactPackageManifestSchema>;
 export type ArtifactPackageProvenance = z.infer<typeof ArtifactPackageProvenanceSchema>;
+export type ArtifactDevelopmentLock = z.infer<typeof ArtifactDevelopmentLockSchema>;
 export type ArtifactRecord = z.infer<typeof ArtifactRecordSchema>;
 
 export type ValidatedArtifactPackage = {
@@ -239,4 +291,78 @@ export async function validateArtifactPackage(opts: {
   }
 
   return { packageDir, manifest, provenance };
+}
+
+function sameValues(actual: Iterable<string> | undefined, expected: string[]): boolean {
+  if (!actual) return false;
+  const values = [...actual].sort();
+  return JSON.stringify(values) === JSON.stringify([...expected].sort());
+}
+
+export async function readAndValidateArtifactDevelopmentLock(opts: {
+  rootDir: string;
+  lockPath: string;
+  packageDir: string;
+  expected: {
+    corpus: string;
+    skillId: string;
+    model: string;
+    modelFamily: string;
+    adapter: string;
+    adapterVersion: string;
+    repairMode: "check-only" | "one-repair";
+    repetitions: number;
+    contexts?: Iterable<string>;
+    agents?: Iterable<string>;
+    environments?: Iterable<string>;
+    tasks?: Iterable<string>;
+  };
+}): Promise<ArtifactDevelopmentLock> {
+  const lockPath = resolve(opts.lockPath);
+  const lock = ArtifactDevelopmentLockSchema.parse(await readJson(lockPath));
+  const rootCandidate = isAbsolute(lock.package.path)
+    ? resolve(lock.package.path)
+    : resolve(opts.rootDir, parseSafeRelativePath(lock.package.path));
+  const siblingCandidate = isAbsolute(lock.package.path)
+    ? rootCandidate
+    : resolve(lockPath, "..", parseSafeRelativePath(lock.package.path));
+  const actualPackageDir = resolve(opts.packageDir);
+  if (actualPackageDir !== rootCandidate && actualPackageDir !== siblingCandidate) {
+    throw new Error(`Artifact lock package path mismatch: ${lock.package.path}`);
+  }
+  const manifestSha256 = sha256Bytes(await readFile(resolve(actualPackageDir, "package-manifest.json")));
+  if (manifestSha256 !== lock.package.manifestSha256) {
+    throw new Error("Artifact lock package manifest digest mismatch");
+  }
+  const provenanceSha256 = sha256Bytes(await readFile(resolve(actualPackageDir, "package-provenance.json")));
+  if (provenanceSha256 !== lock.package.provenanceSha256) {
+    throw new Error("Artifact lock package provenance digest mismatch");
+  }
+  const expected = opts.expected;
+  if (expected.corpus !== lock.corpus || expected.skillId !== lock.skillId) {
+    throw new Error("Artifact lock corpus or skill identity mismatch");
+  }
+  if (expected.model !== lock.model.route || expected.modelFamily !== lock.model.family) {
+    throw new Error("Artifact lock model identity mismatch");
+  }
+  if (expected.adapter !== lock.adapter.id || expected.adapterVersion !== lock.adapter.version) {
+    throw new Error("Artifact lock adapter identity mismatch");
+  }
+  if (!lock.matrix.repairModes.includes(expected.repairMode)) {
+    throw new Error(`Artifact lock does not allow repair mode ${expected.repairMode}`);
+  }
+  if (expected.repetitions !== lock.matrix.repetitions) {
+    throw new Error(`Artifact lock repetitions mismatch: expected ${lock.matrix.repetitions}`);
+  }
+  for (const [name, actual, frozen] of [
+    ["contexts", expected.contexts, lock.matrix.contexts],
+    ["agents", expected.agents, lock.matrix.agents],
+    ["environments", expected.environments, lock.matrix.environments],
+    ["tasks", expected.tasks, lock.matrix.taskIds],
+  ] as const) {
+    if (!sameValues(actual, frozen)) {
+      throw new Error(`Artifact lock ${name} mismatch`);
+    }
+  }
+  return lock;
 }
