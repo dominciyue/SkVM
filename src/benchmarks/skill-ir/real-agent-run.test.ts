@@ -198,6 +198,11 @@ async function createSemanticArtifactPackage(): Promise<{ packageDir: string; lo
       maximumHardGateRegressions: 0,
       maximumInfrastructureFailures: 0,
     },
+    attributionGate: {
+      minimumRepairAttempts: 1,
+      compareModes: ["check-only", "one-repair"],
+      scorerAuthorityUnchanged: true,
+    },
     prohibited: ["test-only lock; not a real gate or paid-run authority"],
   });
   return { packageDir, lockPath };

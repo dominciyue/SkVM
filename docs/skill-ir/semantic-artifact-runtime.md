@@ -2,12 +2,11 @@
 
 ## Status
 
-Implementation in progress under the reviewed
-`executable-semantic-artifact/v2` design. Tasks 1-3 freeze the A contract/report
-schemas, dormant B boundary, conservative derivation, and deterministic package
-compiler, standalone A-layer checker, catalog-dispatched preflight, and bounded
-v2 runtime report/repair handling. No lock, Runner execution path, API run, or
-optimization evidence exists.
+The reviewed `executable-semantic-artifact/v2` local mechanism baseline is
+implemented. The development lock and numerical/attribution gates are now
+preregistered, but no v2 API run, held-out result, or optimization evidence
+exists. The exact run contract is documented in
+`docs/skill-ir/env-manager-semantic-artifact-v2-run.md`.
 
 ## Current Components
 
@@ -362,7 +361,24 @@ model-generated repair quality, offline scorer improvement, cross-model
 stability, held-out benefit, or token savings. No real v2 lock, numerical gate,
 API result, or held-out result exists.
 
+## Frozen Development Lock
+
+The reviewed lock is:
+
+```text
+benchmarks/skill-ir/pilots/env-manager/env-manager-executable-semantic-artifact-v2-lock.json
+```
+
+It binds the committed package digests, model, adapter, two development tasks,
+two repetitions, both repair modes, and `semantic-error-codes/v1`. The scorer
+gate requires at least 3/4 one-repair successes, mean score at least 0.85, no
+hard-gate regression, and no infrastructure failure. A separate attribution
+gate requires at least one real repair attempt before arm differences can be
+described as repair effects. Runtime validation remains distinct from the
+unchanged deterministic scorer.
+
 ## Next Step
 
-Stop for review. The next task is explicitly non-automatic: propose and review
-a development gate/lock before any route probe or paid development run.
+Commit and push the lock before generating both dry-run arms, probing the exact
+route, or beginning paid development. Held-out remains blocked unless the
+frozen scorer gate passes and is never run automatically as part of this step.

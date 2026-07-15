@@ -419,9 +419,9 @@ git commit -m "feat: freeze semantic artifact v2 local baseline"
 
 This task is intentionally not automatic.
 
-- [ ] Propose a numerical gate from the deterministic fixture baseline.
-- [ ] Review gate, model, adapter, tasks, repetitions, package digests, and code catalog.
-- [ ] Author and commit a new v2 lock only after approval.
+- [x] Propose a numerical gate from the deterministic fixture baseline.
+- [x] Review gate, model, adapter, tasks, repetitions, package digests, and code catalog.
+- [x] Author the approved v2 lock and verify it before the pre-paid lock commit.
 - [ ] Generate both dry-run arms and route probe.
 - [ ] Execute paid development once, then score without changing the scorer.
 - [ ] Keep held-out blocked unless the frozen v2 gate passes.

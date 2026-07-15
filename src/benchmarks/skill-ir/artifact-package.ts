@@ -258,6 +258,11 @@ export const SemanticArtifactDevelopmentLockSchema = ArtifactDevelopmentLockSche
   stage: z.literal("executable-semantic-artifact-development"),
   catalog: z.literal("executable-semantic-artifact/v2"),
   codeCatalog: z.literal("semantic-error-codes/v1"),
+  attributionGate: z.object({
+    minimumRepairAttempts: z.number().int().min(1),
+    compareModes: z.tuple([z.literal("check-only"), z.literal("one-repair")]),
+    scorerAuthorityUnchanged: z.literal(true),
+  }).strict(),
 }).strict();
 
 export type RuntimeValidationReport = z.infer<typeof RuntimeValidationReportSchema>;

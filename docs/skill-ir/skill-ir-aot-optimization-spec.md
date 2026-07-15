@@ -100,9 +100,11 @@ separate v2 lock identity. A deterministic fixture passes frozen v1 structure,
 fails v2 with `MISSING_OBSERVED_VARIABLE`, repairs once to pass, and also proves
 that a no-op repair stops after revalidation. Full local verification passed
 312 Bun tests (1338 assertions), 17 Python analyzer tests, and typecheck. This
-is mechanism/activation evidence only: no real v2 lock or numerical gate is
-frozen, no API/model run exists, held-out remains blocked, and no optimization
-or cross-model stability claim is supported.
+is mechanism/activation evidence only. A reviewed development lock now freezes
+the package digests, code catalog, one-model/two-task matrix, two repair arms,
+repetitions, scorer gate, and separate repair-attribution gate before any paid
+execution. No API/model run exists, held-out remains blocked, and no
+optimization or cross-model stability claim is supported.
 
 此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 

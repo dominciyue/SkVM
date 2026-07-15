@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "skill-ir-env-manager-executable-semantic-artifact-lock/v1",
+  "stage": "executable-semantic-artifact-development",
+  "status": "preregistered",
+  "catalog": "executable-semantic-artifact/v2",
+  "codeCatalog": "semantic-error-codes/v1",
+  "corpus": "pilot",
+  "skillId": "env-manager",
+  "package": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2",
+    "manifestSha256": "b89470654bbab645563caeceafcdff1c33350b3fa35e72730231b35b94169a96",
+    "provenanceSha256": "d0c3535f5c25c4b9c2f431dd0753701f371c40cd62d8932b1fd81d6cc5f33e7c"
+  },
+  "model": {
+    "route": "xty/gpt-4.1-mini",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-semantic-artifact-v2"
+  },
+  "matrix": {
+    "system": "ir-artifact-dev",
+    "repairModes": ["check-only", "one-repair"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "repetitions": 2,
+    "initialGenerationRows": 8
+  },
+  "runtime": {
+    "stateMachine": [
+      "preflight",
+      "generation",
+      "validate",
+      "optional-one-repair",
+      "revalidate",
+      "stop"
+    ],
+    "maxSemanticRepairCalls": 1,
+    "apiKeyEnv": "SKVM_XTY_API_KEY"
+  },
+  "scoring": {
+    "authority": "existing-deterministic-env-manager-scorer",
+    "runtimeValidatorIsScorer": false,
+    "repairCostReportedSeparately": true
+  },
+  "developmentGate": {
+    "minimumSuccesses": 3,
+    "minimumMeanScore": 0.85,
+    "maximumHardGateRegressions": 0,
+    "maximumInfrastructureFailures": 0
+  },
+  "attributionGate": {
+    "minimumRepairAttempts": 1,
+    "compareModes": ["check-only", "one-repair"],
+    "scorerAuthorityUnchanged": true
+  },
+  "prohibited": [
+    "held-out execution before development gate",
+    "changing scorer, package, code catalog, or gate after paid execution begins",
+    "attributing arm differences when no repair was attempted",
+    "more than one semantic repair call",
+    "pooling models in the first vertical",
+    "claiming cross-agent or cross-OS evidence"
+  ]
+}

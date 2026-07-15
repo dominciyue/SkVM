@@ -9,7 +9,10 @@ import {
   taskIndexKey,
   type RawAgentRunRow,
 } from "./scoring";
-import { validateArtifactPackage } from "./artifact-package";
+import {
+  SemanticArtifactDevelopmentLockSchema,
+  validateArtifactPackage,
+} from "./artifact-package";
 
 const taskPath = join(
   import.meta.dir,
@@ -42,6 +45,14 @@ const executableArtifactPackagePath = join(
 const executableArtifactLockPath = join(
   import.meta.dir,
   "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-executable-artifact-v1-lock.json",
+);
+const semanticArtifactPackagePath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2",
+);
+const semanticArtifactLockPath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-executable-semantic-artifact-v2-lock.json",
 );
 const tempDirs: string[] = [];
 
@@ -252,6 +263,62 @@ afterEach(async () => {
 });
 
 describe("env-manager pilot scoring", () => {
+  test("preregisters the semantic artifact v2 paid-development boundary", async () => {
+    const [validated, lockText] = await Promise.all([
+      validateArtifactPackage({
+        packageDir: semanticArtifactPackagePath,
+        expectedCatalog: "executable-semantic-artifact/v2",
+      }),
+      readFile(semanticArtifactLockPath, "utf8"),
+    ]);
+    const lock = SemanticArtifactDevelopmentLockSchema.parse(JSON.parse(lockText));
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-env-manager-executable-semantic-artifact-lock/v1",
+      stage: "executable-semantic-artifact-development",
+      status: "preregistered",
+      catalog: "executable-semantic-artifact/v2",
+      codeCatalog: "semantic-error-codes/v1",
+      model: { route: "xty/gpt-4.1-mini", family: "gpt" },
+      adapter: { id: "bare-agent", version: "workspace-semantic-artifact-v2" },
+      matrix: {
+        system: "ir-artifact-dev",
+        repairModes: ["check-only", "one-repair"],
+        contexts: ["clean"],
+        agents: ["skvm"],
+        environments: ["windows"],
+        taskSplit: "development",
+        taskIds: ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+        repetitions: 2,
+        initialGenerationRows: 8,
+      },
+      developmentGate: {
+        minimumSuccesses: 3,
+        minimumMeanScore: 0.85,
+        maximumHardGateRegressions: 0,
+        maximumInfrastructureFailures: 0,
+      },
+      attributionGate: {
+        minimumRepairAttempts: 1,
+        compareModes: ["check-only", "one-repair"],
+        scorerAuthorityUnchanged: true,
+      },
+    });
+    expect(lock.package.manifestSha256).toBe(
+      sha256(await readFile(join(semanticArtifactPackagePath, "package-manifest.json"))),
+    );
+    expect(lock.package.provenanceSha256).toBe(
+      sha256(await readFile(join(semanticArtifactPackagePath, "package-provenance.json"))),
+    );
+    expect(validated.provenance.taskContract.taskIds).toEqual(lock.matrix.taskIds);
+    expect(lock.prohibited).toEqual(expect.arrayContaining([
+      "held-out execution before development gate",
+      "changing scorer, package, code catalog, or gate after paid execution begins",
+      "attributing arm differences when no repair was attempted",
+    ]));
+    expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
+  });
+
   test("freezes a digest-bound executable artifact development experiment", async () => {
     const [validated, lockText] = await Promise.all([
       validateArtifactPackage({ packageDir: executableArtifactPackagePath }),
