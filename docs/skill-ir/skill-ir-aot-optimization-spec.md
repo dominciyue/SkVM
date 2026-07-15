@@ -78,6 +78,19 @@ schema semantics in every row. The experiment therefore validates the runtime
 mechanism but provides neither repair attribution nor optimization evidence;
 held-out stays blocked.
 
+**Next design boundary (2026-07-16):** the approved
+`executable-semantic-artifact/v2` design adds an A-layer semantic contract
+derived only from agent-visible workdir evidence, public skill semantics, and
+the user-visible task contract. A may enforce observable schema inventory,
+deterministic type/constraint evidence, sensitive-marker shape, and
+source-qualified findings through a versioned closed error catalog. The
+B-layer classification model is dormant: types and leakage tests exist, but no
+disposition may enter a committed package, runtime contract, validation
+report, repair prompt, raw/scored row, lock, or gate. V2 requires a local
+v1-pass/v2-fail activation fixture before a new lock or paid run. The formal
+design is `docs/superpowers/specs/2026-07-16-semantic-artifact-v2-design.md`;
+implementation planning waits for final written-spec review.
+
 此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 
 ### 0.2 当前证据边界
