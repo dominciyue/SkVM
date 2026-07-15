@@ -196,6 +196,6 @@ Do not run held-out, create Final IR, or change scorer expectations from these r
 
 Report per-task/per-system success, hard-gate failures, deterministic score, infrastructure exclusions, token/latency diagnostics, and paired differences. If both systems saturate or both fail, first audit fixture/tooling/secret handling; base-IR construction remains blocked until the calibration is executable and meaningfully discriminative.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Update the active ledger, env-manager component doc, experiment note, and `D:\skill优化\conversation_log.md`. Commit focused changes on `skill-ir-aot` and push only repository-relevant code/docs/results permitted by project policy.
