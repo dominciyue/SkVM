@@ -1,6 +1,6 @@
 # Skill IR Profile Feedback Loop
 
-> **Current policy (2026-07-15): task-local repair.** Generate overlays only from a pilot skill's development tasks and evaluate them on disjoint held-out tasks from the same skill/task family. Do not assume cross-model or cross-skill transfer without a separate experiment.
+> **Current policy (2026-07-16): task-local dual-source residual repair.** Use `original x development` to establish failure lineage and paired `ir-static x development` to type the remaining residual. Generate a versioned candidate, replay it on frozen development tasks under `ir-pgo-dev`, and permit disjoint held-out `ir-pgo` only after that gate passes. Do not assume cross-model or cross-skill transfer without a separate experiment.
 
 ## Purpose
 
@@ -19,7 +19,7 @@ Static Base IR
 
 `Profile Overlay` comes from observed execution behavior. It records profile annotations such as repeated rule failures, skipped required steps, context-sensitive omissions, or environment-sensitive failures. It is evidence, not the source skill itself.
 
-`Final Optimized IR` is produced by compiling the base IR and overlay through deterministic passes: rule normalization, environment guard insertion, profile annotation merge, profile-guided repair, and validation. Final IR is a compiled artifact, not a runtime-system synonym. Its provenance binds the explicit corpus, `original × development` evidence, source, base IR, overlay, and final IR digests.
+`Final Optimized IR` is produced by compiling the base IR and overlay through deterministic passes: typed output repair, rule normalization, environment guard insertion, profile annotation merge, profile-guided repair, and validation. Final IR is a compiled artifact, not a runtime-system synonym. Provenance v2 binds the explicit corpus, paired `original`/`ir-static` development evidence, repair-evidence projection, repair catalog, source, base IR, overlay, and final IR digests.
 
 The current project should not claim that an arbitrary imported skill can be transformed into a globally optimal final IR without validation. The practical target is:
 
@@ -125,8 +125,9 @@ The `ir/` directory is kept as a compatibility alias for `final-ir/` because `re
 ```
 
 These entries are derived from the same scored results file whose SHA-256 is
-stored in provenance, both during construction and consumption. Only
-`original x development` rows contribute construction metadata. Successful and
+stored in provenance, both during construction and consumption. Only paired
+`original x development` and `ir-static x development` rows contribute
+dual-source construction metadata. Successful and
 infrastructure rows remain represented so the attempted configuration is
 disclosed, while infrastructure rows still cannot create repair annotations.
 Fully legacy results receive one `{ "status": "legacy-unidentified" }` marker.
@@ -142,6 +143,11 @@ bun ./src/benchmarks/skill-ir/profile-feedback-run.ts '--corpus=calibration' '--
 ```
 
 `--corpus` and `--task-split=development` are required. The compiler refuses non-`original` source systems and non-development evidence.
+
+That command is the archived original-only compiler. The current real-pilot
+path uses `dual-source-feedback-run.ts`, strict `RepairEvidence`, a selected
+`typed-output-repair/v1|v2` catalog, and provenance v2. See
+`env-manager-dual-source-overlay.md` for exact commands and frozen results.
 
 The first Task 11C local verification used this command on 2026-07-09. It read 12 scored rows, converted one non-infrastructure original failure into a trace, and generated one annotation for `skill-report-synthesis`:
 
@@ -189,7 +195,8 @@ The systems now have distinct meanings:
 | System | Meaning |
 |---|---|
 | `ir-profile` | Static Skill IR materialization plus profile-guided repair over whatever `profile` annotations already exist in the input IR. |
-| `ir-pgo` | Held-out execution that consumes provenance-validated Final IR generated from scored `original × development` feedback. |
+| `ir-pgo-dev` | Explicit development-only diagnostic replay of a provenance-v2 Final IR; absent from default and main-table scheduling. |
+| `ir-pgo` | Held-out execution that consumes a provenance-validated Final IR only after its frozen development gate passes. |
 
 `ir-pgo` does not infer profile files by itself. To evaluate true profile-guided optimization, run the feedback CLI first and pass its Final IR directory to `real-agent-run.ts`. The runner rejects `ir-pgo` without matching provenance and rejects any selected task that is not held-out.
 

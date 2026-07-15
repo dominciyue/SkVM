@@ -74,6 +74,20 @@ describe("buildExperimentMatrix", () => {
     expect(matrix.map((item) => item.system)).toEqual(["skvm-aot", "ir-only", "ir-profile"]);
   });
 
+  test("keeps ir-pgo-dev available only as an explicit diagnostic system", () => {
+    const matrix = buildExperimentMatrix({
+      skills: ["skill-review"],
+      agents: ["skvm"],
+      environments: ["windows"],
+      contexts: ["clean"],
+      tasks: ["task-1"],
+      systems: ["ir-pgo-dev"],
+    });
+
+    expect(matrix.every((item) => item.system === "ir-pgo-dev")).toBe(true);
+    expect(COLD_START_EXPERIMENT_SYSTEMS).not.toContain("ir-pgo-dev");
+  });
+
   test("keeps benchmark tasks bound to their owning skill", () => {
     const matrix = buildExperimentMatrix({
       skills: ["skill-review", "skill-diagnostic"],

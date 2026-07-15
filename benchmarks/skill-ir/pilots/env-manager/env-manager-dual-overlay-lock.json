@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "skill-ir-env-manager-dual-overlay-lock/v1",
+  "stage": "dual-source-overlay-development",
+  "status": "preregistered",
+  "createdAt": "2026-07-16",
+  "corpus": "pilot",
+  "skillId": "env-manager",
+  "evidencePolicy": "dual-source-residual/v1",
+  "lineageCatalog": "env-manager/v1",
+  "repairCatalog": "typed-output-repair/v1",
+  "minDistinctTasks": 2,
+  "source": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+    "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+  },
+  "baseIr": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/base-ir.json",
+    "sha256": "dee7d95ccd898d95b025c9145d966bf7fb93a0d3f0065c701facaa3d8abbc68e",
+    "profileAnnotations": 0
+  },
+  "construction": {
+    "sourceSystems": ["original", "ir-static"],
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "results": {
+      "path": "results/skill-ir/env-manager-static-v1-2026-07-15/scored-results.jsonl",
+      "sha256": "059ae94f397699085f7cb9968d0524d2e3a7253362a5f0ade9a56f34c3daa805"
+    },
+    "model": {
+      "route": "xty/gpt-4.1-mini",
+      "family": "gpt"
+    },
+    "adapter": {
+      "id": "bare-agent",
+      "version": "workspace-static-v1"
+    },
+    "panelConfigId": "env-manager-static-v1",
+    "repetitions": 2
+  },
+  "replay": {
+    "system": "ir-pgo-dev",
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "model": {
+      "route": "xty/gpt-4.1-mini",
+      "family": "gpt"
+    },
+    "adapter": {
+      "id": "bare-agent",
+      "version": "workspace-dual-overlay-v1"
+    },
+    "panelConfigId": "env-manager-dual-overlay-dev-v1",
+    "repetitions": 2,
+    "matrixCellLimit": 2
+  },
+  "interpretationBoundary": {
+    "measures": "development-set diagnostic replay of a gold-isolated dual-source Final IR",
+    "entersMainClaim": false,
+    "permitsScorerRetuning": false,
+    "permitsHeldOutInterpretation": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "scorer expected or fixture-gold compiler input",
+    "scorer changes after construction begins",
+    "base IR edits after construction begins",
+    "overlay edits after construction begins",
+    "promotion or cross-model transfer claims"
+  ]
+}

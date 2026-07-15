@@ -344,6 +344,23 @@ describe("real-agent Task 11A helpers", () => {
     expect(rendered).toContain("Profile feedback observed repeated failures.");
   });
 
+  test("renderSkillMarkdown marks ir-pgo-dev as diagnostic profile-guided materialization", () => {
+    const ir = baseIr();
+    ir.profile = [{
+      id: "profile-rule-findings-first",
+      sourceTrace: "repair-development-1",
+      targetRef: "rule-findings-first",
+      observation: "frequent-failure",
+      evidenceCount: 2,
+      suggestedPass: "typed-output-repair/source-qualified-finding",
+    }];
+
+    const rendered = renderSkillMarkdown(ir, "ir-pgo-dev");
+
+    expect(rendered).toContain("Materialized system: ir-pgo-dev.");
+    expect(rendered).toContain("check-rule-findings-first-profile");
+  });
+
   test("buildSkvmRunCommand includes skill flags only when a skill path exists", () => {
     expect(
       buildSkvmRunCommand({

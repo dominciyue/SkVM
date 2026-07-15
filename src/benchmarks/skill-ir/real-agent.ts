@@ -141,7 +141,7 @@ function systemIr(ir: SkillIR, system: ExperimentSystem): SkillIR {
     return insertEnvironmentGuards(normalizeRules(ir));
   }
 
-  if (system === "ir-profile" || system === "ir-pgo") {
+  if (system === "ir-profile" || system === "ir-pgo" || system === "ir-pgo-dev") {
     return applyProfileGuidedRepair(insertEnvironmentGuards(normalizeRules(ir)));
   }
 

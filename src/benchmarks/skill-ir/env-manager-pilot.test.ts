@@ -26,6 +26,14 @@ const staticLockPath = join(
   import.meta.dir,
   "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-static-lock.json",
 );
+const dualOverlayLockPath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-dual-overlay-lock.json",
+);
+const dualOverlayV2LockPath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-dual-overlay-v2-lock.json",
+);
 const tempDirs: string[] = [];
 
 type TaskSet = {
@@ -373,6 +381,108 @@ describe("env-manager pilot scoring", () => {
       "profile or PGO compilation",
       "scorer tuning from static calibration outputs",
       "base IR edits after execution begins",
+    ]));
+    expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
+  });
+
+  test("freezes a gold-isolated dual-source development replay", async () => {
+    const resultsPath = join(
+      import.meta.dir,
+      "../../../results/skill-ir/env-manager-static-v1-2026-07-15/scored-results.jsonl",
+    );
+    const [taskSet, lockText, sourceBytes, baseIrBytes, resultsBytes] = await Promise.all([
+      readFile(taskPath, "utf8").then((text) => JSON.parse(text) as TaskSet),
+      readFile(dualOverlayLockPath, "utf8"),
+      readFile(join(import.meta.dir, "../../../benchmarks/skill-ir/pilots/env-manager/source/SKILL.md")),
+      readFile(join(import.meta.dir, "../../../benchmarks/skill-ir/pilots/env-manager/base-ir.json")),
+      readFile(resultsPath),
+    ]);
+    const lock = JSON.parse(lockText) as {
+      schemaVersion: string;
+      stage: string;
+      status: string;
+      corpus: string;
+      skillId: string;
+      evidencePolicy: string;
+      lineageCatalog: string;
+      repairCatalog: string;
+      minDistinctTasks: number;
+      source: { sha256: string };
+      baseIr: { sha256: string };
+      construction: { sourceSystems: string[]; taskIds: string[]; results: { sha256: string } };
+      replay: { system: string; taskSplit: string; taskIds: string[]; contexts: string[]; repetitions: number };
+      prohibited: string[];
+    };
+    const splitByTask = new Map(taskSet.tasks.map((task) => [task.id, task.split]));
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-env-manager-dual-overlay-lock/v1",
+      stage: "dual-source-overlay-development",
+      status: "preregistered",
+      corpus: "pilot",
+      skillId: "env-manager",
+      evidencePolicy: "dual-source-residual/v1",
+      lineageCatalog: "env-manager/v1",
+      repairCatalog: "typed-output-repair/v1",
+      minDistinctTasks: 2,
+      construction: {
+        sourceSystems: ["original", "ir-static"],
+        taskIds: ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      },
+      replay: {
+        system: "ir-pgo-dev",
+        taskSplit: "development",
+        taskIds: ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+        contexts: ["clean"],
+        repetitions: 2,
+      },
+    });
+    expect(lock.source.sha256).toBe(sha256(sourceBytes));
+    expect(lock.baseIr.sha256).toBe(sha256(baseIrBytes));
+    expect(lock.construction.results.sha256).toBe(sha256(resultsBytes));
+    expect(lock.replay.taskIds.every((taskId) => splitByTask.get(taskId) === "development")).toBe(true);
+    expect(lock.prohibited).toEqual(expect.arrayContaining([
+      "held-out execution",
+      "scorer expected or fixture-gold compiler input",
+      "scorer changes after construction begins",
+      "base IR edits after construction begins",
+    ]));
+    expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
+  });
+
+  test("freezes the contract-aware v2 amendment without overwriting v1", async () => {
+    const [lockText, passBytes, v1ReplayBytes] = await Promise.all([
+      readFile(dualOverlayV2LockPath, "utf8"),
+      readFile(join(import.meta.dir, "../../skill-ir/passes/typed-output-repair.ts")),
+      readFile(join(
+        import.meta.dir,
+        "../../../results/skill-ir/env-manager-dual-overlay-v1-2026-07-16-dev-replay/scored-results.jsonl",
+      )),
+    ]);
+    const lock = JSON.parse(lockText) as {
+      schemaVersion: string;
+      repairCatalog: string;
+      pass: { sha256: string };
+      predecessor: { repairCatalog: string; replayResults: { sha256: string }; outcome: string };
+      replay: { system: string; taskSplit: string; repetitions: number };
+      prohibited: string[];
+    };
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-env-manager-dual-overlay-lock/v2",
+      repairCatalog: "typed-output-repair/v2",
+      predecessor: {
+        repairCatalog: "typed-output-repair/v1",
+        outcome: "no-development-improvement",
+      },
+      replay: { system: "ir-pgo-dev", taskSplit: "development", repetitions: 2 },
+    });
+    expect(lock.pass.sha256).toBe(sha256(passBytes));
+    expect(lock.predecessor.replayResults.sha256).toBe(sha256(v1ReplayBytes));
+    expect(lock.prohibited).toEqual(expect.arrayContaining([
+      "overwrite v1 artifacts",
+      "held-out execution before the v2 development gate passes",
+      "scorer changes",
     ]));
     expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
   });

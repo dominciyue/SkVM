@@ -9,7 +9,8 @@ export type ExperimentSystem =
   | "ir-only"
   | "ir-static"
   | "ir-profile"
-  | "ir-pgo";
+  | "ir-pgo"
+  | "ir-pgo-dev";
 
 export type SkillPackaging = "focused" | "broad" | "unknown";
 

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "skill-ir-env-manager-dual-overlay-lock/v2",
+  "stage": "contract-aware-repair-amendment",
+  "status": "preregistered",
+  "createdAt": "2026-07-16",
+  "corpus": "pilot",
+  "skillId": "env-manager",
+  "evidencePolicy": "dual-source-residual/v1",
+  "lineageCatalog": "env-manager/v1",
+  "repairCatalog": "typed-output-repair/v2",
+  "minDistinctTasks": 2,
+  "pass": {
+    "path": "src/skill-ir/passes/typed-output-repair.ts",
+    "sha256": "44761ee774f6d2c5402be2825eb86904c7b7e0ca51f06ea6f77738a3f73e74b3"
+  },
+  "construction": {
+    "sourceSystems": ["original", "ir-static"],
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "results": {
+      "path": "results/skill-ir/env-manager-static-v1-2026-07-15/scored-results.jsonl",
+      "sha256": "059ae94f397699085f7cb9968d0524d2e3a7253362a5f0ade9a56f34c3daa805"
+    }
+  },
+  "predecessor": {
+    "repairCatalog": "typed-output-repair/v1",
+    "artifactRoot": "results/skill-ir/env-manager-dual-overlay-v1-2026-07-16",
+    "replayResults": {
+      "path": "results/skill-ir/env-manager-dual-overlay-v1-2026-07-16-dev-replay/scored-results.jsonl",
+      "sha256": "9e20250b41b7608e0d66c78b70ba1717d2b2cc8615ee73f9af213a01c2bc516c"
+    },
+    "outcome": "no-development-improvement"
+  },
+  "replay": {
+    "system": "ir-pgo-dev",
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "model": {
+      "route": "xty/gpt-4.1-mini",
+      "family": "gpt"
+    },
+    "adapter": {
+      "id": "bare-agent",
+      "version": "workspace-dual-overlay-v2"
+    },
+    "panelConfigId": "env-manager-dual-overlay-dev-v2",
+    "repetitions": 2,
+    "matrixCellLimit": 2
+  },
+  "developmentGate": {
+    "minimumSuccesses": 1,
+    "minimumMeanScoreExclusive": 0.7,
+    "maximumInfrastructureFailures": 0,
+    "heldOutPermittedOnlyAfterPass": true
+  },
+  "prohibited": [
+    "overwrite v1 artifacts",
+    "held-out execution before the v2 development gate passes",
+    "scorer changes",
+    "task or fixture changes",
+    "scorer expected or fixture-gold compiler input",
+    "promotion or cross-model transfer claims"
+  ]
+}

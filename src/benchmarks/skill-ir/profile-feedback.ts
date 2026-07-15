@@ -4,6 +4,11 @@ import { ExecutionTraceSchema, type ExecutionTrace, type TraceEvent } from "../.
 import { insertEnvironmentGuards } from "../../skill-ir/passes/environment-guards";
 import { applyProfileGuidedRepair } from "../../skill-ir/passes/profile-guided-repair";
 import { normalizeRules } from "../../skill-ir/passes/rule-normalization";
+import {
+  applyTypedOutputRepairs,
+  type TypedRepairCatalog,
+  type TypedRepairDirective,
+} from "../../skill-ir/passes/typed-output-repair";
 import { validateSkillIR } from "../../skill-ir/validate";
 import type { ExperimentSystem } from "./matrix";
 import type { RunIdentity } from "./real-agent";
@@ -18,6 +23,8 @@ export type ProfileFeedbackOptions = {
 export type ProfileOverlay = {
   skillId: string;
   annotations: ProfileAnnotation[];
+  repairs?: TypedRepairDirective[];
+  repairCatalog?: TypedRepairCatalog;
 };
 
 function slugify(value: string): string {
@@ -264,7 +271,12 @@ export function compileFinalIR(baseIR: SkillIR, overlay: ProfileOverlay): SkillI
     throw new Error(`Profile overlay skillId ${overlay.skillId} does not match base IR ${baseIR.id}`);
   }
 
-  const withProfile = mergeProfileAnnotationsIntoIR(baseIR, overlay.annotations);
+  const withTypedRepairs = applyTypedOutputRepairs(
+    baseIR,
+    overlay.repairs ?? [],
+    overlay.repairCatalog ?? "typed-output-repair/v1",
+  );
+  const withProfile = mergeProfileAnnotationsIntoIR(withTypedRepairs, overlay.annotations);
   const finalIR = applyProfileGuidedRepair(insertEnvironmentGuards(normalizeRules(withProfile)));
   const validation = validateSkillIR(finalIR);
   if (validation.errors.length > 0) {

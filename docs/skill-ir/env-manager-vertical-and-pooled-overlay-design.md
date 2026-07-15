@@ -167,15 +167,21 @@ Paired task fixtures are identical across systems. Skill-provided resources foll
 
 This prevents `original` from having executable scripts while IR systems accidentally lose them. The `env-manager` vertical slice validates the general workspace contract; resource parity becomes a hard gate before `law-to-markdown` is runnable.
 
-## 9. Original-Guided PGO
+## 9. Dual-Source Residual PGO
 
 The main feedback path is intentionally:
 
 ```text
-original x development -> profile overlay -> base IR + passes -> Final IR
+original x development -> failure lineage
+ir-static x development -> typed residual
+paired safe projection -> profile overlay -> base IR + passes -> Final IR
 ```
 
-It measures whether failures exposed by the original public skill can be repaired through Skill IR. It does not implement iterative repair from `ir-static` failures.
+Original rows establish that a failure existed before static compilation.
+Static rows determine what remains after the base IR passes. Original failures
+resolved by static IR do not enter the overlay; failures introduced only by
+static IR block compilation. Scorer expected values and fixture gold sets are
+not compiler input.
 
 Held-out data never enters an overlay. If development produces no valid annotation, the skill has no `ir-pgo` row for that configuration. Existing zero-annotation rejection remains mandatory.
 
@@ -186,7 +192,10 @@ ir-static - original = static compilation contribution
 ir-pgo - ir-static   = dynamic feedback contribution
 ```
 
-`static-guided PGO` may be added later as an explicit ablation with separate labels and provenance.
+The candidate must pass an explicit frozen `ir-pgo-dev` replay before held-out
+`ir-pgo`. The 2026-07-16 v1 and v2 env-manager candidates did not clear this
+gate, so no held-out optimization evidence exists yet. See
+`env-manager-dual-source-overlay.md`.
 
 ## 10. Model And Repetition Metadata
 
@@ -202,7 +211,9 @@ task/context/system
 infrastructure/semantic status
 ```
 
-The current pipeline lacks `model`, `modelFamily`, and `runIndex` in these artifacts, so pooled construction is blocked until this metadata is propagated end to end.
+The current runner and provenance path propagate this identity end to end for
+single-model construction. Balanced per-model evidence vectors and conflict
+resolution are still required before pooled construction.
 
 ## 11. Panel-Conditioned Aggregation
 

@@ -3,6 +3,7 @@ import type { SkillIR } from "../../skill-ir/schema";
 import type { ScoredAgentRunRow } from "./scoring";
 import {
   buildProfiledIRFromScoredRows,
+  compileFinalIR,
   mergeProfileAnnotationsIntoIR,
   scoredRowsToExecutionTraces,
   targetRefForFailedCriterion,
@@ -71,6 +72,35 @@ function scoredRow(overrides: Partial<ScoredAgentRunRow> = {}): ScoredAgentRunRo
 }
 
 describe("profile feedback from scored results", () => {
+  test("compileFinalIR lowers typed repairs before profile-guided checks without mutating base IR", () => {
+    const base = reportIr();
+    const finalIR = compileFinalIR(base, {
+      skillId: base.id,
+      repairs: [{
+        id: "repair-json-schema-contract",
+        kind: "json-schema-contract",
+        targetRef: "rule-json-schema-contract",
+        observationCount: 4,
+        distinctTaskCount: 2,
+        evidenceIds: ["repair-schema-a", "repair-schema-b"],
+      }],
+      annotations: [{
+        id: "profile-rule-json-schema-contract",
+        sourceTrace: "repair-schema-a",
+        targetRef: "rule-json-schema-contract",
+        observation: "frequent-failure",
+        evidenceCount: 4,
+        suggestedPass: "typed-output-repair/json-schema-contract",
+      }],
+    });
+
+    expect(finalIR.rules.some((rule) => rule.id === "rule-json-schema-contract")).toBe(true);
+    expect(finalIR.checks.some((check) => check.id === "check-json-schema-contract")).toBe(true);
+    expect(finalIR.checks.some((check) => check.id === "check-rule-json-schema-contract-profile")).toBe(true);
+    expect(finalIR.recovery.some((policy) => policy.id === "recover-rule-json-schema-contract")).toBe(true);
+    expect(base.rules.some((rule) => rule.id === "rule-json-schema-contract")).toBe(false);
+  });
+
   test("maps failed success criteria to stable IR target refs", () => {
     expect(targetRefForFailedCriterion("Required sections are present.", reportIr())).toBe(
       "rule-required-sections",

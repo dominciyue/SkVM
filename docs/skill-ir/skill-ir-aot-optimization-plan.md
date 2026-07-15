@@ -14,9 +14,9 @@ no-skill | original | ir-static | ir-pgo
 
 `ir-only` is an explicit ablation, `ir-profile` is retained for archived-run compatibility, and `skvm-aot` remains excluded from the main table until it is connected to a real upstream AOT path.
 
-**Cold-start default:** `no-skill | original | ir-static`. `ir-pgo` is never scheduled by default. It is added only by an explicit held-out command after `original × development` feedback has produced a Final IR with validated provenance and matching source/base/overlay/final digests.
+**Cold-start default:** `no-skill | original | ir-static`. `ir-pgo` is never scheduled by default. It is added only by an explicit held-out command after paired original/static development residuals have produced a Final IR with validated provenance and the frozen `ir-pgo-dev` gate has passed.
 
-**PGO policy:** use task-local repair. Only development evidence from the same skill/task family may produce an overlay; evaluation uses disjoint held-out tasks. First complete one single-model `env-manager` engineering-calibration vertical. Then construct one panel-conditioned shared Final IR from a fixed, preregistered, balanced model panel and evaluate that same artifact per model on held-out tasks. This is panel-internal stability evidence, not unseen-model transfer.
+**PGO policy:** use task-local, dual-source residual repair. `original × development` establishes failure lineage and `ir-static × development` supplies remaining typed residuals. Gold evaluator payloads are forbidden compiler input. Evaluation uses disjoint held-out tasks after a frozen diagnostic development replay. First complete one single-model `env-manager` engineering-calibration vertical. Then construct one panel-conditioned shared Final IR from a fixed, preregistered, balanced model panel and evaluate that same artifact per model on held-out tasks. This is panel-internal stability evidence, not unseen-model transfer.
 
 **Evidence scope:** Wave A contains three deep real-skill pilots (`law-to-markdown`, `env-manager`, and `experimental-design`). Wave B contains three mandatory replication pilots (`zh-code-reviewer`, `api-tester`, and `zh-readme`). A complete main claim requires Wave B on a frozen method/configuration; Wave B must not tune the same reported configuration. Do not expand beyond six until each deep pilot has an exact source baseline, deterministic scoring, a no-skill task definition, base IR, development/held-out separation, real runs, and an interpretation note.
 
@@ -41,7 +41,7 @@ The package is a northbound engineering target, not a current paper claim. Artif
 | Tasks 11A-11E: real-agent runner, scoring, context audit, harder tasks, multi-model runs, dynamic feedback | Implemented; evidence-limited | Existing results demonstrate mechanisms and seed case studies, not broad generalization. |
 | Tasks 11F-11G: promotion policy and validation planner | Implemented and frozen | Keep as advisory method-support tooling; do not deepen before real-skill evidence. |
 | Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; all three Wave A source closures are imported and digest-pinned. |
-| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` now has a source-audited base IR and a locked three-system development run. Static IR improved partial correctness and hard gates but remained 0/4; next add typed output-schema feedback before Final-IR compilation. |
+| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` now has a source-audited base IR, dual-source compiler, provenance v2, and two frozen Final IR development replays. v1 matched static; v2 was 1/4 but regressed in mean score. Held-out remains blocked; next solidify executable validation/templates. |
 | Task 12: report and slides | Deferred | Begin after the first real-skill main table and case study exist. |
 
 ### Active Sequence
@@ -50,15 +50,16 @@ The package is a northbound engineering target, not a current paper claim. Artif
 - [x] Require explicit `--corpus=calibration|pilot` and fail closed when no runnable skill exists.
 - [x] Import exact, licensed source closures for the three Wave A pilots with per-file integrity metadata.
 - [x] Materialize exact file-backed original text and resources; keep judge criteria out of the agent prompt.
-- [x] Compile Final IR only from `original × development` feedback and validate provenance before held-out `ir-pgo`.
+- [x] Compile Final IR from paired `original × development` lineage and `ir-static × development` residuals; validate provenance v2 and development replay before held-out `ir-pgo`.
 - [x] Add persistent per-row workdirs, existing-evaluator dispatch, infra/semantic classification, and model/family/run/panel metadata before pooled execution.
 - [x] Author `env-manager` development/held-out fixtures and deterministic validator before constructing its base IR.
 - [x] Add the fail-closed `--allow-tasks-authored` pre-IR calibration mode and matching scorer gate; keep `env-manager` at `tasks-authored` with no `irPath`.
 - [x] Commit `env-manager-vertical-lock.json` for the single-model engineering calibration before paid execution.
 - [x] Preregister and run the single-model `env-manager` `no-skill | original` development calibration; verify task/scorer discrimination before IR tuning. Result: 8/8 executable/scored, no infra failures, `no-skill=0/4`, `original=0/4`, with criterion-level semantic differences.
 - [x] Construct and audit the `env-manager` base IR, complete agent-facing static lowering, and run the locked `no-skill | original | ir-static` development vertical. Result: static improved mean score and removed hard-gate failures but remained 0/4 due typed output constraints.
-- [ ] Extend typed feedback/overlay semantics for source-qualified findings and evidence-grounded JSON Schema constraints, using only frozen `original × development` failures.
-- [ ] Compile original-guided development feedback into a provenance-bound Final IR, validate it on development without scorer tuning, then evaluate held-out `ir-pgo`; keep the whole first vertical outside the pooled main claim.
+- [x] Extend typed feedback/overlay semantics for source-qualified findings and runtime-contract-aware structured output using paired frozen `original × development` lineage and `ir-static × development` residuals; scorer expected payloads remain inaccessible.
+- [x] Compile dual-source development feedback into provenance-bound v1/v2 Final IR candidates and validate them with explicit `ir-pgo-dev` replay without scorer tuning. Result: v1 0/4 at 0.70; v2 1/4 at 0.6375 with mixed regressions. The gate failed, so held-out was not run.
+- [ ] Replace prompt-only typed repair with a provenance-bound executable output validator/template plus preflight and post-generation enforcement; version and freeze it before another development replay.
 - [ ] Implement balanced pooled aggregation with per-model support vectors and conflict exclusion; preregister the fixed panel and regression gates.
 - [ ] Run one shared panel-conditioned Final IR on `env-manager`, reporting aggregate, per-model, worst-model, regressions, and infrastructure exclusions.
 - [ ] Extend the stabilized method to `law-to-markdown`, including resource-parity enforcement, then to `experimental-design`.

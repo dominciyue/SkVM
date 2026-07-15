@@ -57,9 +57,11 @@ an `irPath`, make the skill generally runnable, or permit static/PGO systems.
 
 ### 0.3 PGO 范围
 
-当前采用 task-local repair：同一 skill/task family 的 `original × development` failures 生成 profile overlay，静态 base IR 与 overlay 编译成 Final IR，held-out tasks 只消费校验通过的 Final IR 来评估泛化和回归。Final IR 是带 provenance 的编译产物；`ir-pgo` 是该产物在 held-out 上的实验系统标签。当前不假设一个模型族生成的 overlay 能迁移到其他模型族，也不把已有小样本 promotion signal 当作成熟模型族结论。
+当前采用 task-local dual-source residual repair：同一 skill/task family 的 `original × development` 只用于确认 failure lineage 是否在静态编译前存在，`ir-static × development` 用于提取静态编译后仍存在的 typed residual。original 失败而 static 通过的条目不生成 overlay；original 通过而 static 失败视为静态回归并阻断 Final IR。scorer expected、fixture 金标集合和 held-out 数据禁止进入 overlay 编译。静态 base IR 与通过门禁的 overlay 编译成 Final IR，先进行冻结的 development diagnostic replay，再由 held-out tasks 消费校验通过的 Final IR。Final IR 是带 provenance 的编译产物；`ir-pgo-dev` 是开发集诊断标签，`ir-pgo` 是 held-out 实验标签。当前不假设一个模型族生成的 overlay 能迁移到其他模型族，也不把已有小样本 promotion signal 当作成熟模型族结论。
 
-真实 pilot 分两步推进。第一步用一个预注册模型竖切 `env-manager`，跑通 fixture、持久 workdir、确定性 scorer、精确 original、base IR、`ir-static`、development feedback、Final IR 和 held-out `ir-pgo`；这一步属于 engineering calibration，不进入主表。第二步才在同一 skill 上使用固定、预注册、等重复次数的模型面板，将各模型的 development 证据按显式规则合成一份 **panel-conditioned shared Final IR**，再让同一产物在面板内各模型的 held-out tasks 上评测。
+2026-07-16 的首轮真实双源实验已经验证编译和 provenance 路径，但没有通过 development gate。`typed-output-repair/v1` 与 `ir-static` 同为 0/4、均分 0.70；契约优先的 v2 达到 1/4，但均分降为 0.6375，并出现产物缺失和 example safety 回归。因此当前 Final IR 仍是 development candidate，禁止进入 held-out。这个结果把下一步优先级从继续增加 Markdown 规则调整为固化可执行 validator/template，并在 runtime 中执行 preflight 与 post-generation check；新实现必须使用新 catalog/version 和 lock，不能覆盖 v1/v2 结果。
+
+真实 pilot 分两步推进。第一步用一个预注册模型竖切 `env-manager`，跑通 fixture、持久 workdir、确定性 scorer、精确 original、base IR、`ir-static`、development feedback、Final IR 和 development gate；只有 gate 通过才运行 held-out `ir-pgo`。这一步属于 engineering calibration，不进入主表。第二步才在同一 skill 上使用固定、预注册、等重复次数的模型面板，将各模型的 development 证据按显式规则合成一份 **panel-conditioned shared Final IR**，再让同一产物在面板内各模型的 held-out tasks 上评测。
 
 这个实验只支持“一份由固定面板构造的编译产物能否改善该面板内的 held-out 稳定性”，不支持“模型 A 的失败能迁移到未参与构造的模型 B”。后者需要 leave-one-model-out 或 unseen-model transfer 消融。pooled overlay 只能使用 development 数据；必须保留 per-model evidence vector，平衡各模型贡献，显式排除冲突 repair，并同时报告 aggregate、per-model、worst-model 和 negative delta。若任一模型超过预注册回归边界，即使均值提高，也只能报告 mixed trade-off，不能报告完整跨模型稳定性提升。
 

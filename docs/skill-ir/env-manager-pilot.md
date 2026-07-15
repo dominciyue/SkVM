@@ -22,8 +22,10 @@ longer selects `env-manager`. The baseline and static runs are recorded in
 
 The static run improved deterministic partial correctness and eliminated hard
 gate failures, but all static rows still failed exact classification-location
-and schema-rule checks. The pilot has no Final IR and no held-out optimization
-evidence.
+and schema-rule checks. Two provenance-bound dual-source Final IR candidates
+now exist as development artifacts. Repair v1 matched static at 0/4 and 0.70;
+repair v2 reached 1/4 but regressed to 0.6375. Neither passed the frozen
+development gate, so the pilot still has no held-out optimization evidence.
 
 ## Files
 
@@ -33,11 +35,16 @@ benchmarks/skill-ir/pilots/env-manager/tasks.json
 benchmarks/skill-ir/pilots/env-manager/base-ir.json
 benchmarks/skill-ir/pilots/env-manager/env-manager-vertical-lock.json
 benchmarks/skill-ir/pilots/env-manager/env-manager-static-lock.json
+benchmarks/skill-ir/pilots/env-manager/env-manager-dual-overlay-lock.json
+benchmarks/skill-ir/pilots/env-manager/env-manager-dual-overlay-v2-lock.json
 benchmarks/skill-ir/corpus/corpora/pilot.json
 src/bench/evaluators/env-manager-grade.ts
 src/bench/evaluators/env-manager-grade.test.ts
 src/benchmarks/skill-ir/env-manager-pilot.test.ts
 src/skill-ir/corpus-fixtures.test.ts
+src/benchmarks/skill-ir/repair-evidence.ts
+src/benchmarks/skill-ir/dual-source-feedback-run.ts
+src/skill-ir/passes/typed-output-repair.ts
 ```
 
 The evaluator is registered through `src/bench/evaluators/index.ts` as:
@@ -168,9 +175,10 @@ never a credential. The intended vertical continues as:
 no-skill | original development calibration
   -> audited base IR
   -> ir-static
-  -> original x development feedback
+  -> paired original/ir-static development residual feedback
   -> provenance-bound Final IR
-  -> held-out ir-pgo
+  -> frozen ir-pgo-dev gate
+  -> held-out ir-pgo only after the gate passes
 ```
 
 The first single-model vertical is engineering calibration. It does not enter
@@ -178,9 +186,12 @@ the pooled main claim. A later panel-conditioned Final IR may use only balanced,
 preregistered development evidence and must be evaluated unchanged on held-out
 tasks.
 
-The static result shows that workflow/safety extraction alone is insufficient.
-The next overlay must encode typed output-location and schema constraints from
-development evidence while leaving the base IR and scorer frozen.
+The static and dual-source results show that workflow/safety extraction plus
+additional prompt-visible rules are still insufficient for stable execution.
+The next version should solidify an executable output validator or template,
+enforce preflight/post-generation checks, and preserve the task-visible output
+contract without consuming scorer gold. Detailed results and commands are in
+`env-manager-dual-source-overlay.md`.
 
 ## Verification
 

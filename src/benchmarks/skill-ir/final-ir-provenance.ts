@@ -93,7 +93,16 @@ const ConstructionConfigsSchema = z.array(ConstructionConfigSchema).min(1).super
   }
 }).default([{ status: "legacy-unidentified" }]);
 
-export const FinalIRProvenanceSchema = z.object({
+const FinalIRSkillProvenanceSchema = z.object({
+  skillId: z.string().min(1),
+  sourceSha256: z.string().regex(/^[0-9a-f]{64}$/i),
+  baseIR: DigestPathSchema,
+  overlay: DigestPathSchema,
+  finalIR: DigestPathSchema,
+  annotationCount: z.number().int().nonnegative(),
+});
+
+const FinalIRProvenanceV1Schema = z.object({
   schemaVersion: z.literal("skill-ir-final-provenance/v1"),
   corpus: z.enum(["calibration", "pilot"]),
   sourceSystem: z.literal("original"),
@@ -101,19 +110,32 @@ export const FinalIRProvenanceSchema = z.object({
   manifest: DigestPathSchema,
   results: DigestPathSchema,
   constructionConfigs: ConstructionConfigsSchema,
-  skills: z.array(
-    z.object({
-      skillId: z.string().min(1),
-      sourceSha256: z.string().regex(/^[0-9a-f]{64}$/i),
-      baseIR: DigestPathSchema,
-      overlay: DigestPathSchema,
-      finalIR: DigestPathSchema,
-      annotationCount: z.number().int().nonnegative(),
-    }),
-  ),
+  skills: z.array(FinalIRSkillProvenanceSchema),
 });
 
+const FinalIRProvenanceV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-final-provenance/v2"),
+  corpus: z.literal("pilot"),
+  sourceSystems: z.tuple([z.literal("original"), z.literal("ir-static")]),
+  evidencePolicy: z.literal("dual-source-residual/v1"),
+  lineageCatalog: z.literal("env-manager/v1"),
+  repairCatalog: z.enum(["typed-output-repair/v1", "typed-output-repair/v2"]),
+  taskSplit: z.literal("development"),
+  manifest: DigestPathSchema,
+  results: DigestPathSchema,
+  repairEvidence: DigestPathSchema,
+  constructionConfigs: ConstructionConfigsSchema,
+  skills: z.array(FinalIRSkillProvenanceSchema),
+});
+
+export const FinalIRProvenanceSchema = z.discriminatedUnion("schemaVersion", [
+  FinalIRProvenanceV1Schema,
+  FinalIRProvenanceV2Schema,
+]);
+
 export type FinalIRProvenance = z.infer<typeof FinalIRProvenanceSchema>;
+export type FinalIRProvenanceV1 = z.infer<typeof FinalIRProvenanceV1Schema>;
+export type FinalIRProvenanceV2 = z.infer<typeof FinalIRProvenanceV2Schema>;
 export type ConstructionConfig = z.infer<typeof ConstructionConfigSchema>;
 
 export function validateFinalIRProvenanceRecord(
@@ -160,8 +182,13 @@ const IDENTITY_FIELDS = [
 
 type IdentifiedConstructionConfig = z.infer<typeof IdentifiedConstructionConfigSchema>;
 
-function deriveConstructionConfigs(rows: ScoredAgentRunRow[]): ConstructionConfig[] {
-  const relevantRows = rows.filter((row) => row.system === "original" && row.taskSplit === "development");
+function deriveConstructionConfigs(
+  rows: ScoredAgentRunRow[],
+  sourceSystems: Array<"original" | "ir-static"> = ["original"],
+): ConstructionConfig[] {
+  const relevantRows = rows.filter(
+    (row) => sourceSystems.includes(row.system as "original" | "ir-static") && row.taskSplit === "development",
+  );
   const identifiedRows: { config: Omit<IdentifiedConstructionConfig, "runIndices">; runIndex: number }[] = [];
   const evidenceKeys = new Set<string>();
   let legacyRowCount = 0;
@@ -251,7 +278,10 @@ export function validateConstructionConfigsMatchRows(
   record: FinalIRProvenance,
   rows: ScoredAgentRunRow[],
 ): void {
-  const expected = deriveConstructionConfigs(rows);
+  const expected = deriveConstructionConfigs(
+    rows,
+    record.schemaVersion === "skill-ir-final-provenance/v2" ? ["original", "ir-static"] : ["original"],
+  );
   if (JSON.stringify(record.constructionConfigs) !== JSON.stringify(expected)) {
     throw new Error("Final IR provenance construction configs do not match hashed results");
   }
@@ -264,7 +294,7 @@ export async function buildFinalIRProvenance(opts: {
   manifestPath: string;
   resultsPath: string;
   skills: { skillId: string; sourceSha256: string; baseIRPath: string; annotationCount: number }[];
-}): Promise<FinalIRProvenance> {
+}): Promise<FinalIRProvenanceV1> {
   const scoredRows = await readScoredRows(opts.resultsPath);
   const skills = await Promise.all(
     opts.skills.map(async (skill) => {
@@ -290,7 +320,7 @@ export async function buildFinalIRProvenance(opts: {
     }),
   );
 
-  return FinalIRProvenanceSchema.parse({
+  return FinalIRProvenanceV1Schema.parse({
     schemaVersion: "skill-ir-final-provenance/v1",
     corpus: opts.corpus,
     sourceSystem: "original",
@@ -304,6 +334,95 @@ export async function buildFinalIRProvenance(opts: {
       sha256: await digestFile(opts.resultsPath),
     },
     constructionConfigs: deriveConstructionConfigs(scoredRows),
+    skills,
+  });
+}
+
+function assertDualSourcePairs(rows: ScoredAgentRunRow[]): void {
+  const relevantRows = rows.filter(
+    (row) => (row.system === "original" || row.system === "ir-static") && row.taskSplit === "development",
+  );
+  const pairs = new Map<string, Set<string>>();
+  for (const row of relevantRows) {
+    const identity = IDENTITY_FIELDS.map((field) => row[field]);
+    const presentCount = identity.filter((value) => value !== undefined).length;
+    if (presentCount !== 0 && presentCount !== IDENTITY_FIELDS.length) {
+      throw new Error(`Construction evidence row ${row.caseId} has partial run identity`);
+    }
+    const key = JSON.stringify([row.caseId, ...identity]);
+    const systems = pairs.get(key) ?? new Set<string>();
+    if (systems.has(row.system)) {
+      throw new Error(`Construction results contain duplicate construction evidence for ${row.caseId}`);
+    }
+    systems.add(row.system);
+    pairs.set(key, systems);
+  }
+  if (
+    pairs.size === 0 ||
+    [...pairs.values()].some((systems) => !systems.has("original") || !systems.has("ir-static"))
+  ) {
+    throw new Error("Dual-source provenance requires paired original and ir-static construction rows");
+  }
+}
+
+export async function buildDualSourceFinalIRProvenance(opts: {
+  rootDir: string;
+  artifactRoot: string;
+  corpus: "pilot";
+  manifestPath: string;
+  resultsPath: string;
+  repairEvidencePath: string;
+  lineageCatalog: "env-manager/v1";
+  repairCatalog?: "typed-output-repair/v1" | "typed-output-repair/v2";
+  skills: { skillId: string; sourceSha256: string; baseIRPath: string; annotationCount: number }[];
+}): Promise<FinalIRProvenanceV2> {
+  const scoredRows = await readScoredRows(opts.resultsPath);
+  assertDualSourcePairs(scoredRows);
+  const skills = await Promise.all(
+    opts.skills.map(async (skill) => {
+      const overlayPath = join(opts.artifactRoot, "overlay", `${skill.skillId}.json`);
+      const finalIRPath = join(opts.artifactRoot, "final-ir", `${skill.skillId}.json`);
+      return {
+        skillId: skill.skillId,
+        sourceSha256: skill.sourceSha256,
+        baseIR: {
+          path: portableRelative(opts.rootDir, skill.baseIRPath),
+          sha256: await digestFile(skill.baseIRPath),
+        },
+        overlay: {
+          path: portableRelative(opts.artifactRoot, overlayPath),
+          sha256: await digestFile(overlayPath),
+        },
+        finalIR: {
+          path: portableRelative(opts.artifactRoot, finalIRPath),
+          sha256: await digestFile(finalIRPath),
+        },
+        annotationCount: skill.annotationCount,
+      };
+    }),
+  );
+
+  return FinalIRProvenanceV2Schema.parse({
+    schemaVersion: "skill-ir-final-provenance/v2",
+    corpus: opts.corpus,
+    sourceSystems: ["original", "ir-static"],
+    evidencePolicy: "dual-source-residual/v1",
+    lineageCatalog: opts.lineageCatalog,
+    repairCatalog: opts.repairCatalog ?? "typed-output-repair/v1",
+    taskSplit: "development",
+    manifest: {
+      path: portableRelative(opts.rootDir, opts.manifestPath),
+      sha256: await digestFile(opts.manifestPath),
+    },
+    results: {
+      path: portableRelative(opts.rootDir, opts.resultsPath),
+      sha256: await digestFile(opts.resultsPath),
+    },
+    repairEvidence: {
+      path: portableRelative(opts.artifactRoot, opts.repairEvidencePath),
+      sha256: await digestFile(opts.repairEvidencePath),
+    },
+    constructionConfigs: deriveConstructionConfigs(scoredRows, ["original", "ir-static"]),
     skills,
   });
 }
@@ -341,6 +460,12 @@ export async function readAndValidateFinalIRProvenance(opts: {
     throw new Error("Final IR provenance results digest mismatch");
   }
   validateConstructionConfigsMatchRows(record, await readScoredRows(resultsPath));
+  if (record.schemaVersion === "skill-ir-final-provenance/v2") {
+    const repairEvidencePath = resolveRecordedPath(artifactRoot, record.repairEvidence.path);
+    if ((await digestFile(repairEvidencePath)) !== record.repairEvidence.sha256) {
+      throw new Error("Final IR provenance repair evidence digest mismatch");
+    }
+  }
 
   const recordBySkill = new Map(record.skills.map((skill) => [skill.skillId, skill]));
   for (const expected of opts.skills) {

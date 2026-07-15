@@ -3,9 +3,11 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+  buildDualSourceFinalIRProvenance,
   buildFinalIRProvenance,
   validateConstructionConfigsMatchRows,
   validateFinalIRProvenanceRecord,
+  type FinalIRProvenanceV2,
 } from "./final-ir-provenance";
 import type { ScoredAgentRunRow } from "./scoring";
 import { sha256Bytes } from "./source-fixture";
@@ -36,6 +38,21 @@ const validRecord = {
       annotationCount: 2,
     },
   ],
+};
+
+const validDualSourceRecord: FinalIRProvenanceV2 = {
+  schemaVersion: "skill-ir-final-provenance/v2" as const,
+  corpus: "pilot" as const,
+  sourceSystems: ["original", "ir-static"],
+  evidencePolicy: "dual-source-residual/v1" as const,
+  lineageCatalog: "env-manager/v1" as const,
+  repairCatalog: "typed-output-repair/v1" as const,
+  taskSplit: "development" as const,
+  manifest: { path: "benchmarks/skill-ir/corpus/corpora/pilot.json", sha256: "a".repeat(64) },
+  results: { path: "results/development.jsonl", sha256: "b".repeat(64) },
+  repairEvidence: { path: "repair-evidence.json", sha256: "1".repeat(64) },
+  constructionConfigs: [{ status: "legacy-unidentified" as const }],
+  skills: validRecord.skills,
 };
 
 function scoredRow(overrides: Partial<ScoredAgentRunRow> = {}): ScoredAgentRunRow {
@@ -76,7 +93,9 @@ async function provenanceFixture(scoredRows: ScoredAgentRunRow[] = []) {
   await writeFile(baseIRPath, "{}\n", "utf8");
   await writeFile(join(artifactRoot, "overlay", "env-manager.json"), "{}\n", "utf8");
   await writeFile(join(artifactRoot, "final-ir", "env-manager.json"), "{}\n", "utf8");
-  return { rootDir, artifactRoot, manifestPath, resultsPath, baseIRPath };
+  const repairEvidencePath = join(artifactRoot, "repair-evidence.json");
+  await writeFile(repairEvidencePath, '{"schemaVersion":"skill-ir-repair-evidence/v1"}\n', "utf8");
+  return { rootDir, artifactRoot, manifestPath, resultsPath, baseIRPath, repairEvidencePath };
 }
 
 async function buildFixtureProvenance(scoredRows: ScoredAgentRunRow[]) {
@@ -96,6 +115,13 @@ async function buildFixtureProvenance(scoredRows: ScoredAgentRunRow[]) {
 }
 
 describe("final IR provenance", () => {
+  test("accepts dual-source development provenance with explicit policy catalogs", () => {
+    expect(validateFinalIRProvenanceRecord(validDualSourceRecord, {
+      corpus: "pilot",
+      skillIds: ["env-manager"],
+    })).toEqual(validDualSourceRecord);
+  });
+
   test("accepts development provenance for the selected corpus and skill", () => {
     expect(
       validateFinalIRProvenanceRecord(validRecord, { corpus: "pilot", skillIds: ["env-manager"] }),
@@ -157,6 +183,80 @@ describe("final IR provenance", () => {
     expect(record.skills[0]?.finalIR.path).toBe("final-ir/env-manager.json");
     expect(record.skills[0]?.overlay.path).toBe("overlay/env-manager.json");
     expect(record.constructionConfigs).toEqual([{ status: "legacy-unidentified" }]);
+  });
+
+  test("builds provenance v2 for paired original and ir-static evidence", async () => {
+    const identity = {
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-static-v1",
+      panelConfigId: "env-manager-static-v1",
+      runIndex: 1,
+    };
+    const rows = [
+      scoredRow({ ...identity, system: "original" }),
+      scoredRow({ ...identity, system: "ir-static" }),
+    ];
+    const paths = await provenanceFixture(rows);
+
+    const record = await buildDualSourceFinalIRProvenance({
+      ...paths,
+      corpus: "pilot",
+      lineageCatalog: "env-manager/v1",
+      skills: [{
+        skillId: "env-manager",
+        sourceSha256: "c".repeat(64),
+        baseIRPath: paths.baseIRPath,
+        annotationCount: 2,
+      }],
+    });
+
+    expect(record).toMatchObject({
+      schemaVersion: "skill-ir-final-provenance/v2",
+      sourceSystems: ["original", "ir-static"],
+      evidencePolicy: "dual-source-residual/v1",
+      lineageCatalog: "env-manager/v1",
+      repairCatalog: "typed-output-repair/v1",
+      taskSplit: "development",
+    });
+    expect(record.repairEvidence.path).toBe("repair-evidence.json");
+    expect(record.repairEvidence.sha256).toBe(
+      sha256Bytes(Buffer.from('{"schemaVersion":"skill-ir-repair-evidence/v1"}\n')),
+    );
+    expect(record.constructionConfigs).toEqual([{
+      model: identity.model,
+      modelFamily: identity.modelFamily,
+      adapter: identity.adapter,
+      adapterVersion: identity.adapterVersion,
+      panelConfigId: identity.panelConfigId,
+      runIndices: [1],
+    }]);
+  });
+
+  test("rejects dual-source provenance construction when one paired system is missing", async () => {
+    const row = scoredRow({
+      model: "xty/gpt-4.1-mini",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-static-v1",
+      panelConfigId: "env-manager-static-v1",
+      runIndex: 1,
+      system: "original",
+    });
+    const paths = await provenanceFixture([row]);
+
+    await expect(buildDualSourceFinalIRProvenance({
+      ...paths,
+      corpus: "pilot",
+      lineageCatalog: "env-manager/v1",
+      skills: [{
+        skillId: "env-manager",
+        sourceSha256: "c".repeat(64),
+        baseIRPath: paths.baseIRPath,
+        annotationCount: 1,
+      }],
+    })).rejects.toThrow("paired original and ir-static");
   });
 
   test("parses archived v1 provenance without construction configs as legacy unidentified", () => {

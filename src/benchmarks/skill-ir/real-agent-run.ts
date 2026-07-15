@@ -37,6 +37,7 @@ export type RealAgentRunArgs = {
   retryDelayMs: number;
   rootDir: string;
   allowTasksAuthored?: boolean;
+  allowDevelopmentReplay?: boolean;
   irOverrideDir?: string;
   skills?: Set<string>;
   systems?: Set<ExperimentSystem>;
@@ -90,6 +91,7 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
     retryDelayMs: 1000,
     rootDir: process.cwd(),
     allowTasksAuthored: false,
+    allowDevelopmentReplay: false,
   };
   let corpusProvided = false;
 
@@ -98,6 +100,8 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
       args.execute = true;
     } else if (arg === "--allow-tasks-authored") {
       args.allowTasksAuthored = true;
+    } else if (arg === "--allow-development-replay") {
+      args.allowDevelopmentReplay = true;
     } else if (arg.startsWith("--corpus=")) {
       const corpus = arg.slice("--corpus=".length);
       if (corpus !== "calibration" && corpus !== "pilot") {
@@ -260,6 +264,36 @@ function assertTasksAuthoredCalibrationArgs(args: RealAgentRunArgs): void {
   }
 }
 
+function assertDevelopmentReplayArgs(args: RealAgentRunArgs): void {
+  if (!args.allowDevelopmentReplay) {
+    if (args.systems?.has("ir-pgo-dev")) {
+      throw new Error("ir-pgo-dev requires --allow-development-replay");
+    }
+    return;
+  }
+  if (args.allowTasksAuthored) {
+    throw new Error("--allow-development-replay cannot be combined with --allow-tasks-authored");
+  }
+  if (args.corpus !== "pilot") {
+    throw new Error("--allow-development-replay requires --corpus=pilot");
+  }
+  if (!args.skills || args.skills.size !== 1) {
+    throw new Error("--allow-development-replay requires exactly one explicit --skills value");
+  }
+  if (!hasExactValues(args.systems, ["ir-pgo-dev"])) {
+    throw new Error("--allow-development-replay requires systems to be exactly ir-pgo-dev");
+  }
+  if (!hasExactValues(args.contexts, ["clean"])) {
+    throw new Error("--allow-development-replay requires --contexts=clean");
+  }
+  if (!args.tasks || args.tasks.size === 0) {
+    throw new Error("--allow-development-replay requires explicit development --tasks");
+  }
+  if (!args.irOverrideDir) {
+    throw new Error("--allow-development-replay requires --ir-override-dir");
+  }
+}
+
 function resolveIrPath(rootDir: string, skill: CorpusManifest["skills"][number], irOverrideDir?: string): string {
   if (irOverrideDir) {
     const overrideDir = isAbsolute(irOverrideDir) ? irOverrideDir : join(rootDir, irOverrideDir);
@@ -386,29 +420,33 @@ function assertCompleteCalibrationPairs(matrix: ExperimentCase[], args: RealAgen
 
 export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPlanEntry[]> {
   assertTasksAuthoredCalibrationArgs(args);
+  assertDevelopmentReplayArgs(args);
   const input = buildCorpusMatrixInput(args.corpus, args.rootDir, {
     mode: args.allowTasksAuthored ? "tasks-authored-calibration" : "runnable",
   });
   if (args.systems) {
     input.systems = [...args.systems];
   }
-  if (input.systems.includes("ir-pgo") && !args.irOverrideDir) {
+  if ((input.systems.includes("ir-pgo") || input.systems.includes("ir-pgo-dev")) && !args.irOverrideDir) {
     throw new Error("ir-pgo requires --ir-override-dir with development-derived final IR artifacts");
   }
   const fixtures = await loadSkillBenchmarkFixtures(args);
   assertTasksAuthoredTaskSelection(args, fixtures);
   const matrix = selectCases(buildExperimentMatrix(input), args);
   assertCompleteCalibrationPairs(matrix, args);
-  if (input.systems.includes("ir-pgo")) {
+  if (input.systems.includes("ir-pgo") || input.systems.includes("ir-pgo-dev")) {
     const selectedSkillIds = [...new Set(matrix.map((item) => item.skill))];
-    const selectedTasks = matrix.filter((item) => item.system === "ir-pgo");
+    const selectedTasks = matrix.filter((item) => item.system === "ir-pgo" || item.system === "ir-pgo-dev");
     for (const item of selectedTasks) {
       const task = fixtures.get(item.skill)?.taskById.get(item.task);
-      if (task?.split !== "held-out") {
+      if (item.system === "ir-pgo" && task?.split !== "held-out") {
         throw new Error(`ir-pgo may only consume validated Final IR on held-out tasks: ${item.task}`);
       }
+      if (item.system === "ir-pgo-dev" && task?.split !== "development") {
+        throw new Error(`--allow-development-replay accepts development tasks only: ${item.task}`);
+      }
     }
-    await readAndValidateFinalIRProvenance({
+    const provenance = await readAndValidateFinalIRProvenance({
       rootDir: args.rootDir,
       corpus: args.corpus,
       manifestPath: resolveCorpusManifestPath(args.corpus, args.rootDir),
@@ -425,6 +463,9 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
         return { skillId, sourceSha256, baseIRPath: fixture.baseIRPath };
       }),
     });
+    if (input.systems.includes("ir-pgo-dev") && provenance.schemaVersion !== "skill-ir-final-provenance/v2") {
+      throw new Error("ir-pgo-dev requires dual-source Final IR provenance v2");
+    }
   }
   const plan: RealAgentRunPlanEntry[] = [];
   const repetitions = args.repetitions ?? 1;
@@ -447,7 +488,7 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
       const materialized = await materializeCaseArtifacts({
         outDir: join(args.outDir, "artifacts"),
         rootDir: args.rootDir,
-        ir: item.system === "ir-pgo" ? fixture.ir : fixture.baseIR,
+        ir: item.system === "ir-pgo" || item.system === "ir-pgo-dev" ? fixture.ir : fixture.baseIR,
         task,
         context: item.context,
         system: item.system,

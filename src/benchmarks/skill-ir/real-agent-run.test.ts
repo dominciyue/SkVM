@@ -336,6 +336,21 @@ describe("real-agent-run manifest loading", () => {
     expect(parsed.skills).toEqual(new Set(["env-manager"]));
   });
 
+  test("parseRealAgentRunArgs recognizes the explicit development replay selector", () => {
+    const parsed = parseRealAgentRunArgs([
+      "--corpus=pilot",
+      "--allow-development-replay",
+      "--skills=env-manager",
+      "--systems=ir-pgo-dev",
+      "--contexts=clean",
+      "--tasks=env-dev-1,env-dev-2",
+      "--ir-override-dir=results/final-ir",
+    ]);
+
+    expect(parsed.allowDevelopmentReplay).toBe(true);
+    expect(parsed.systems).toEqual(new Set(["ir-pgo-dev"]));
+  });
+
   test("parseRealAgentRunArgs infers model family and applies identity defaults", () => {
     const parsed = parseRealAgentRunArgs(["--corpus=calibration", "--model=xty/gemini-2.5-flash"]);
 
