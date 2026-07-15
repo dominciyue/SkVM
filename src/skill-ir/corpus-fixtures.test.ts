@@ -1,12 +1,20 @@
 import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, posix, win32 } from "node:path";
+import { EnvManagerGradePayloadSchema } from "../bench/evaluators/env-manager-grade";
 import { SkillIRSchema } from "./schema";
 import { validateSkillIR } from "./validate";
 
 function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, "utf8"));
+}
+
+function isSafeFixturePath(path: string): boolean {
+  if (path.length === 0 || path.includes("\0") || posix.isAbsolute(path) || win32.isAbsolute(path)) {
+    return false;
+  }
+  return path.split(/[\\/]/).every((segment) => segment.length > 0 && segment !== "." && segment !== "..");
 }
 
 describe("skill-ir corpus fixtures", () => {
@@ -61,15 +69,12 @@ describe("skill-ir corpus fixtures", () => {
       id: string;
       weight: number;
       evaluatorId?: string;
-      payload?: {
-        schemaVersion?: string;
-        check?: string;
-        values?: string[];
-      };
+      payload?: unknown;
     };
     type PilotTask = {
       id: string;
       split: string;
+      prompt: string;
       fixtures?: Record<string, string>;
       successCriteria: string[];
       eval?: CustomCriterion[];
@@ -120,24 +125,71 @@ describe("skill-ir corpus fixtures", () => {
     const hardGateIds = ["env-protected-files", "env-no-secret-leak", "env-required-artifacts"];
 
     for (const task of taskSet.tasks) {
-      expect(Object.keys(task.fixtures ?? {}).length).toBeGreaterThanOrEqual(4);
+      const fixtures = task.fixtures ?? {};
+      const fixturePaths = Object.keys(fixtures);
+      expect(fixturePaths.length).toBeGreaterThanOrEqual(4);
+      expect(fixturePaths.every(isSafeFixturePath)).toBe(true);
       expect(task.successCriteria).toEqual([]);
       expect(task.passThreshold).toBe(0.85);
       expect(task.hardGateIds).toEqual(hardGateIds);
-      expect(task.eval?.map((criterion) => [criterion.id, criterion.weight, criterion.payload?.check])).toEqual(
+      const parsedPayloads = (task.eval ?? []).map((criterion) => EnvManagerGradePayloadSchema.parse(criterion.payload));
+      expect(task.eval?.map((criterion, index) => [criterion.id, criterion.weight, parsedPayloads[index]?.check])).toEqual(
         expectedCriteria,
       );
       expect(task.eval?.every((criterion) => criterion.method === "custom")).toBe(true);
       expect(task.eval?.every((criterion) => criterion.evaluatorId === "skill-ir-env-manager")).toBe(true);
-      expect(task.eval?.every((criterion) => criterion.payload?.schemaVersion === "skill-ir-env-manager-eval/v1")).toBe(
-        true,
-      );
       expect(task.eval?.some((criterion) => criterion.method === "llm-judge")).toBe(false);
 
-      const secretValues = task.eval?.find((criterion) => criterion.id === "env-no-secret-leak")?.payload?.values ?? [];
-      expect(secretValues.length).toBeGreaterThanOrEqual(2);
-      expect(secretValues.every((value) => value.startsWith("TEST_ONLY_"))).toBe(true);
+      const protectedPayload = parsedPayloads.find((payload) => payload.check === "protected-files");
+      expect(protectedPayload?.files).toEqual(fixtures);
+
+      const noSecretPayload = parsedPayloads.find((payload) => payload.check === "no-secret-leak");
+      expect(noSecretPayload).toBeDefined();
+      if (!noSecretPayload || noSecretPayload.check !== "no-secret-leak") throw new Error("missing no-secret payload");
+      const fixtureSecretValues = [...new Set(Object.values(fixtures).flatMap((content) => content.match(/TEST_ONLY_[A-Z0-9_]+/g) ?? []))].sort();
+      expect(fixtureSecretValues.length).toBeGreaterThanOrEqual(2);
+      expect([...noSecretPayload.values].sort()).toEqual(fixtureSecretValues);
+      expect(noSecretPayload.allowedPaths.every((path) => Object.hasOwn(fixtures, path))).toBe(true);
+      for (const [path, content] of Object.entries(fixtures)) {
+        if (fixtureSecretValues.some((value) => content.includes(value))) {
+          expect(noSecretPayload.allowedPaths).toContain(path);
+        }
+      }
+
+      const reportPayload = parsedPayloads.find((payload) => payload.check === "report-classification");
+      const schemaPayload = parsedPayloads.find((payload) => payload.check === "schema-rules");
+      if (!reportPayload || reportPayload.check !== "report-classification") throw new Error("missing report payload");
+      if (!schemaPayload || schemaPayload.check !== "schema-rules") throw new Error("missing schema payload");
+      const hiddenExpectedIdentifiers = [
+        ...Object.values(reportPayload.expected).flat(),
+        ...Object.keys(schemaPayload.expected),
+        ...noSecretPayload.values,
+      ];
+      for (const identifier of new Set(hiddenExpectedIdentifiers)) {
+        expect(task.prompt).not.toContain(identifier);
+      }
     }
+
+    const viteTask = taskSet.tasks.find((task) => task.id === "env-manager-vite-audit-dev-002")!;
+    const nextTask = taskSet.tasks.find((task) => task.id === "env-manager-nextjs-audit-heldout-002")!;
+    expect(viteTask.prompt).not.toContain("VITE_");
+    expect(nextTask.prompt).not.toContain("NEXT_PUBLIC_");
+
+    const pythonTask = taskSet.tasks.find((task) => task.id === "env-manager-python-audit-heldout-001")!;
+    const pythonReport = EnvManagerGradePayloadSchema.parse(
+      pythonTask.eval!.find((criterion) => criterion.id === "env-classification")!.payload,
+    );
+    if (pythonReport.check !== "report-classification") throw new Error("invalid Python report payload");
+    expect(pythonReport.expected.definedUnconfirmedUnused.length).toBeGreaterThanOrEqual(2);
+    expect(pythonReport.expected.usedUndefined.length).toBeGreaterThanOrEqual(2);
+    expect(pythonReport.expected.hardcodedSecrets).toEqual([]);
+
+    const nextReport = EnvManagerGradePayloadSchema.parse(
+      nextTask.eval!.find((criterion) => criterion.id === "env-classification")!.payload,
+    );
+    if (nextReport.check !== "report-classification") throw new Error("invalid Next.js report payload");
+    expect(nextReport.expected.exposureRisks.length).toBeGreaterThanOrEqual(1);
+    expect(nextReport.expected.hardcodedSecrets.length).toBeGreaterThanOrEqual(1);
   });
 
   test("every imported Wave A source file is present and digest-pinned", () => {

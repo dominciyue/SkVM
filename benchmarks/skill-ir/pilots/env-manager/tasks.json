@@ -127,7 +127,7 @@
     {
       "id": "env-manager-vite-audit-dev-002",
       "split": "development",
-      "prompt": "Audit the provided Vite project fixtures for environment-variable consistency and client exposure. Treat every TEST_ONLY_ value as synthetic secret material. Do not modify existing files or reproduce secret values in output. Create .env.example, .env.schema.json, and env-report.json. The report must contain exactly five arrays named definedAndUsed, definedUnconfirmedUnused, usedUndefined, hardcodedSecrets, and exposureRisks. A secret referenced through a VITE_ client prefix must be classified as an exposure risk. The schema must use a top-level variables object with only type, required, minimum, maximum, format, minLength, and sensitive rule fields.",
+      "prompt": "Audit the provided Vite project fixtures for environment-variable consistency and client exposure. Treat every TEST_ONLY_ value as synthetic secret material. Do not modify existing files or reproduce secret values in output. Create .env.example, .env.schema.json, and env-report.json. The report must contain exactly five arrays named definedAndUsed, definedUnconfirmedUnused, usedUndefined, hardcodedSecrets, and exposureRisks. The schema must use a top-level variables object with only type, required, minimum, maximum, format, minLength, and sensitive rule fields.",
       "fixtures": {
         ".env": "VITE_API_URL=https://api.example.test\nVITE_PUBLIC_TOKEN=TEST_ONLY_VITE_PUBLIC_TOKEN_A1B2\nSERVER_SIGNING_KEY=TEST_ONLY_VITE_SERVER_KEY_C3D4\nUNUSED_FLAG=true\n",
         ".gitignore": "dist/\n.env\n.env.*\n!.env.example\n",
@@ -243,10 +243,10 @@
       "split": "held-out",
       "prompt": "Audit the provided Python environment-variable fixtures using both os.getenv and os.environ references. TEST_ONLY_ values are synthetic secrets. Preserve all existing files and never include a secret value in generated files or the final response. Create .env.example, .env.schema.json, and env-report.json. The report must contain exactly the arrays definedAndUsed, definedUnconfirmedUnused, usedUndefined, hardcodedSecrets, and exposureRisks. Keep unreferenced definitions in the unconfirmed category. Use a top-level variables object in the schema and only type, required, minimum, maximum, format, minLength, and sensitive rule fields.",
       "fixtures": {
-        ".env": "DATABASE_URL=postgresql://localhost/testdb\nWORKER_COUNT=4\nLEGACY_TOKEN=TEST_ONLY_PY_LEGACY_TOKEN_E5F6\n",
+        ".env": "DATABASE_URL=postgresql://localhost/testdb\nWORKER_COUNT=4\nLEGACY_TOKEN=TEST_ONLY_PY_LEGACY_TOKEN_E5F6\nARCHIVE_API_KEY=TEST_ONLY_PY_ARCHIVE_KEY_G7H8\n",
         ".gitignore": "__pycache__/\n.env\n.env.*\n!.env.example\n",
         "app/settings.py": "import os\n\ndatabase_url = os.getenv(\"DATABASE_URL\")\nworker_count = os.environ[\"WORKER_COUNT\"]\nemail_api_key = os.getenv(\"EMAIL_API_KEY\")\n",
-        "app/security.py": "SIGNING_SECRET = \"TEST_ONLY_PY_SIGNING_SECRET_G7H8\"\n"
+        "app/worker.py": "import os\n\njob_queue_name = os.environ[\"JOB_QUEUE_NAME\"]\n"
       },
       "successCriteria": [],
       "eval": [
@@ -260,10 +260,10 @@
             "schemaVersion": "skill-ir-env-manager-eval/v1",
             "check": "protected-files",
             "files": {
-              ".env": "DATABASE_URL=postgresql://localhost/testdb\nWORKER_COUNT=4\nLEGACY_TOKEN=TEST_ONLY_PY_LEGACY_TOKEN_E5F6\n",
+              ".env": "DATABASE_URL=postgresql://localhost/testdb\nWORKER_COUNT=4\nLEGACY_TOKEN=TEST_ONLY_PY_LEGACY_TOKEN_E5F6\nARCHIVE_API_KEY=TEST_ONLY_PY_ARCHIVE_KEY_G7H8\n",
               ".gitignore": "__pycache__/\n.env\n.env.*\n!.env.example\n",
               "app/settings.py": "import os\n\ndatabase_url = os.getenv(\"DATABASE_URL\")\nworker_count = os.environ[\"WORKER_COUNT\"]\nemail_api_key = os.getenv(\"EMAIL_API_KEY\")\n",
-              "app/security.py": "SIGNING_SECRET = \"TEST_ONLY_PY_SIGNING_SECRET_G7H8\"\n"
+              "app/worker.py": "import os\n\njob_queue_name = os.environ[\"JOB_QUEUE_NAME\"]\n"
             }
           }
         },
@@ -276,8 +276,8 @@
           "payload": {
             "schemaVersion": "skill-ir-env-manager-eval/v1",
             "check": "no-secret-leak",
-            "values": ["TEST_ONLY_PY_LEGACY_TOKEN_E5F6", "TEST_ONLY_PY_SIGNING_SECRET_G7H8"],
-            "allowedPaths": [".env", "app/security.py"]
+            "values": ["TEST_ONLY_PY_LEGACY_TOKEN_E5F6", "TEST_ONLY_PY_ARCHIVE_KEY_G7H8"],
+            "allowedPaths": [".env"]
           }
         },
         {
@@ -308,9 +308,9 @@
             "path": "env-report.json",
             "expected": {
               "definedAndUsed": ["DATABASE_URL", "WORKER_COUNT"],
-              "definedUnconfirmedUnused": ["LEGACY_TOKEN"],
-              "usedUndefined": ["EMAIL_API_KEY"],
-              "hardcodedSecrets": ["app/security.py:SIGNING_SECRET"],
+              "definedUnconfirmedUnused": ["ARCHIVE_API_KEY", "LEGACY_TOKEN"],
+              "usedUndefined": ["EMAIL_API_KEY", "JOB_QUEUE_NAME"],
+              "hardcodedSecrets": [],
               "exposureRisks": []
             }
           }
@@ -325,8 +325,15 @@
             "schemaVersion": "skill-ir-env-manager-eval/v1",
             "check": "env-example",
             "path": ".env.example",
-            "requiredNames": ["DATABASE_URL", "WORKER_COUNT", "LEGACY_TOKEN", "EMAIL_API_KEY"],
-            "forbiddenValues": ["TEST_ONLY_PY_LEGACY_TOKEN_E5F6", "TEST_ONLY_PY_SIGNING_SECRET_G7H8"]
+            "requiredNames": [
+              "DATABASE_URL",
+              "WORKER_COUNT",
+              "LEGACY_TOKEN",
+              "ARCHIVE_API_KEY",
+              "EMAIL_API_KEY",
+              "JOB_QUEUE_NAME"
+            ],
+            "forbiddenValues": ["TEST_ONLY_PY_LEGACY_TOKEN_E5F6", "TEST_ONLY_PY_ARCHIVE_KEY_G7H8"]
           }
         },
         {
@@ -343,7 +350,9 @@
               "DATABASE_URL": { "type": "string", "required": true, "format": "uri" },
               "WORKER_COUNT": { "type": "integer", "required": true, "minimum": 1, "maximum": 64 },
               "LEGACY_TOKEN": { "type": "string", "required": false, "sensitive": true },
-              "EMAIL_API_KEY": { "type": "string", "required": true, "sensitive": true }
+              "ARCHIVE_API_KEY": { "type": "string", "required": false, "sensitive": true },
+              "EMAIL_API_KEY": { "type": "string", "required": true, "sensitive": true },
+              "JOB_QUEUE_NAME": { "type": "string", "required": true, "minLength": 1 }
             }
           }
         }
@@ -354,12 +363,12 @@
     {
       "id": "env-manager-nextjs-audit-heldout-002",
       "split": "held-out",
-      "prompt": "Audit the provided Next.js environment-variable fixtures, including client-prefix exposure. Every TEST_ONLY_ value is a synthetic secret. Keep all input files byte-for-byte unchanged, redact secret values from artifacts and final output, and create .env.example, .env.schema.json, and env-report.json. The report must contain exactly five arrays: definedAndUsed, definedUnconfirmedUnused, usedUndefined, hardcodedSecrets, and exposureRisks. Record a secret used under NEXT_PUBLIC_ as an exposure risk. The schema must have a top-level variables object and use only type, required, minimum, maximum, format, minLength, and sensitive rule fields.",
+      "prompt": "Audit the provided Next.js environment-variable fixtures, including client exposure. Every TEST_ONLY_ value is a synthetic secret. Keep all input files byte-for-byte unchanged, redact secret values from artifacts and final output, and create .env.example, .env.schema.json, and env-report.json. The report must contain exactly five arrays: definedAndUsed, definedUnconfirmedUnused, usedUndefined, hardcodedSecrets, and exposureRisks. The schema must have a top-level variables object and use only type, required, minimum, maximum, format, minLength, and sensitive rule fields.",
       "fixtures": {
         ".env.local": "NEXT_PUBLIC_API_ORIGIN=https://web.example.test\nNEXT_PUBLIC_ANALYTICS_TOKEN=TEST_ONLY_NEXT_PUBLIC_ANALYTICS_J9K0\nAUTH_SECRET=TEST_ONLY_NEXT_AUTH_SECRET_L1M2\nUNUSED_REGION=ap-test-1\n",
         ".gitignore": ".next/\n.env\n.env.*\n!.env.example\n",
         "src/app/page.tsx": "export const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN;\nexport const analyticsToken = process.env.NEXT_PUBLIC_ANALYTICS_TOKEN;\n",
-        "src/server/auth.ts": "export const authSecret = process.env.AUTH_SECRET;\nexport const databaseUrl = process.env.SESSION_DATABASE_URL;\n"
+        "src/server/auth.ts": "const LEGACY_WEBHOOK_TOKEN = \"TEST_ONLY_NEXT_HARDCODED_WEBHOOK_N3P4\";\nexport const authSecret = process.env.AUTH_SECRET;\nexport const databaseUrl = process.env.SESSION_DATABASE_URL;\nexport const webhookToken = process.env.WEBHOOK_TOKEN ?? LEGACY_WEBHOOK_TOKEN;\n"
       },
       "successCriteria": [],
       "eval": [
@@ -376,7 +385,7 @@
               ".env.local": "NEXT_PUBLIC_API_ORIGIN=https://web.example.test\nNEXT_PUBLIC_ANALYTICS_TOKEN=TEST_ONLY_NEXT_PUBLIC_ANALYTICS_J9K0\nAUTH_SECRET=TEST_ONLY_NEXT_AUTH_SECRET_L1M2\nUNUSED_REGION=ap-test-1\n",
               ".gitignore": ".next/\n.env\n.env.*\n!.env.example\n",
               "src/app/page.tsx": "export const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN;\nexport const analyticsToken = process.env.NEXT_PUBLIC_ANALYTICS_TOKEN;\n",
-              "src/server/auth.ts": "export const authSecret = process.env.AUTH_SECRET;\nexport const databaseUrl = process.env.SESSION_DATABASE_URL;\n"
+              "src/server/auth.ts": "const LEGACY_WEBHOOK_TOKEN = \"TEST_ONLY_NEXT_HARDCODED_WEBHOOK_N3P4\";\nexport const authSecret = process.env.AUTH_SECRET;\nexport const databaseUrl = process.env.SESSION_DATABASE_URL;\nexport const webhookToken = process.env.WEBHOOK_TOKEN ?? LEGACY_WEBHOOK_TOKEN;\n"
             }
           }
         },
@@ -389,8 +398,12 @@
           "payload": {
             "schemaVersion": "skill-ir-env-manager-eval/v1",
             "check": "no-secret-leak",
-            "values": ["TEST_ONLY_NEXT_PUBLIC_ANALYTICS_J9K0", "TEST_ONLY_NEXT_AUTH_SECRET_L1M2"],
-            "allowedPaths": [".env.local"]
+            "values": [
+              "TEST_ONLY_NEXT_PUBLIC_ANALYTICS_J9K0",
+              "TEST_ONLY_NEXT_AUTH_SECRET_L1M2",
+              "TEST_ONLY_NEXT_HARDCODED_WEBHOOK_N3P4"
+            ],
+            "allowedPaths": [".env.local", "src/server/auth.ts"]
           }
         },
         {
@@ -422,8 +435,8 @@
             "expected": {
               "definedAndUsed": ["AUTH_SECRET", "NEXT_PUBLIC_ANALYTICS_TOKEN", "NEXT_PUBLIC_API_ORIGIN"],
               "definedUnconfirmedUnused": ["UNUSED_REGION"],
-              "usedUndefined": ["SESSION_DATABASE_URL"],
-              "hardcodedSecrets": [],
+              "usedUndefined": ["SESSION_DATABASE_URL", "WEBHOOK_TOKEN"],
+              "hardcodedSecrets": ["src/server/auth.ts:LEGACY_WEBHOOK_TOKEN"],
               "exposureRisks": ["src/app/page.tsx:NEXT_PUBLIC_ANALYTICS_TOKEN"]
             }
           }
@@ -443,9 +456,14 @@
               "NEXT_PUBLIC_ANALYTICS_TOKEN",
               "AUTH_SECRET",
               "UNUSED_REGION",
-              "SESSION_DATABASE_URL"
+              "SESSION_DATABASE_URL",
+              "WEBHOOK_TOKEN"
             ],
-            "forbiddenValues": ["TEST_ONLY_NEXT_PUBLIC_ANALYTICS_J9K0", "TEST_ONLY_NEXT_AUTH_SECRET_L1M2"]
+            "forbiddenValues": [
+              "TEST_ONLY_NEXT_PUBLIC_ANALYTICS_J9K0",
+              "TEST_ONLY_NEXT_AUTH_SECRET_L1M2",
+              "TEST_ONLY_NEXT_HARDCODED_WEBHOOK_N3P4"
+            ]
           }
         },
         {
@@ -463,7 +481,8 @@
               "NEXT_PUBLIC_ANALYTICS_TOKEN": { "type": "string", "required": true, "sensitive": true },
               "AUTH_SECRET": { "type": "string", "required": true, "minLength": 32, "sensitive": true },
               "UNUSED_REGION": { "type": "string", "required": false },
-              "SESSION_DATABASE_URL": { "type": "string", "required": true, "format": "uri", "sensitive": true }
+              "SESSION_DATABASE_URL": { "type": "string", "required": true, "format": "uri", "sensitive": true },
+              "WEBHOOK_TOKEN": { "type": "string", "required": true, "minLength": 1, "sensitive": true }
             }
           }
         }
