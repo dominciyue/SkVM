@@ -11,8 +11,8 @@ import {
 } from "./scoring";
 
 const taskPath = join(
-  process.cwd(),
-  "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/tasks.json",
 );
 const tempDirs: string[] = [];
 
@@ -94,8 +94,21 @@ async function writePerfectArtifacts(workDir: string): Promise<void> {
   });
 }
 
-function sha256(value: string): string {
+function sha256(value: string | Buffer): string {
   return createHash("sha256").update(value).digest("hex");
+}
+
+async function snapshotMaterializedFixtures(
+  workDir: string,
+  task: SkillIRBenchmarkTask,
+): Promise<Record<string, string>> {
+  const entries = await Promise.all(
+    Object.keys(task.fixtures ?? {}).sort().map(async (relativePath) => [
+      relativePath,
+      sha256(await readFile(join(workDir, relativePath))),
+    ] as const),
+  );
+  return Object.fromEntries(entries);
 }
 
 function secretValues(task: SkillIRBenchmarkTask): string[] {
@@ -124,6 +137,22 @@ function containsSensitiveEvaluatorData(
     serialized.includes('"payload"') ||
     secretValues(task).some((value) => serialized.includes(value))
   );
+}
+
+function expectSafeEvaluationSummaries(scored: ScoredRow): void {
+  expect(scored.evaluationSummary).toHaveLength(6);
+  for (const summary of scored.evaluationSummary ?? []) {
+    expect(Object.keys(summary).sort()).toEqual([
+      "details",
+      "id",
+      "method",
+      "name",
+      "pass",
+      "score",
+    ]);
+    expect(["Criterion passed", "Criterion failed"]).toContain(summary.details);
+    expect(summary.infraError).toBeUndefined();
+  }
 }
 
 function rawRow(
@@ -155,6 +184,7 @@ async function scoreFreshNodeTask(
   const workDir = await materializeSourceFixtures(task);
   await writePerfectArtifacts(workDir);
   await mutate(workDir, task);
+  const fixturesBeforeScoring = await snapshotMaterializedFixtures(workDir, task);
 
   const [scored] = await scoreRawRunRowsBySkill(
     [rawRow(skillId, task, workDir)],
@@ -164,6 +194,7 @@ async function scoreFreshNodeTask(
 
   expect(sha256(await readFile(taskPath, "utf8"))).toBe(sourceDigest);
   expect(sha256(JSON.stringify(task.fixtures))).toBe(fixtureDigest);
+  expect(await snapshotMaterializedFixtures(workDir, task)).toEqual(fixturesBeforeScoring);
   return { scored, task };
 }
 
@@ -181,14 +212,7 @@ function expectSemanticFailure(
   });
   expect(scored.evaluatorScore).toBeCloseTo(evaluatorScore);
   expect(scored.failureType).toBeUndefined();
-  expect(scored.evaluationSummary).toHaveLength(6);
-  expect(
-    scored.evaluationSummary?.some(
-      (summary) =>
-        summary.infraError !== undefined ||
-        !["Criterion passed", "Criterion failed"].includes(summary.details),
-    ),
-  ).toBe(false);
+  expectSafeEvaluationSummaries(scored);
   expect(containsSensitiveEvaluatorData(scored, task)).toBe(false);
 }
 
@@ -204,6 +228,7 @@ describe("env-manager pilot scoring", () => {
     const sourceDigest = sha256(await readFile(taskPath, "utf8"));
     const workDir = await materializeSourceFixtures(task);
     await writePerfectArtifacts(workDir);
+    const fixturesBeforeScoring = await snapshotMaterializedFixtures(workDir, task);
     const [scored] = await scoreRawRunRowsBySkill(
       [rawRow(skillId, task, workDir)],
       new Map([[taskIndexKey(skillId, task.id), task]]),
@@ -214,17 +239,11 @@ describe("env-manager pilot scoring", () => {
       successSource: "deterministic-evaluator",
       evaluatorScore: 1,
     });
-    expect(scored?.evaluationSummary).toHaveLength(6);
-    expect(
-      scored?.evaluationSummary?.every(
-        (summary) =>
-          summary.details === "Criterion passed" &&
-          summary.infraError === undefined &&
-          Object.keys(summary).sort().join(",") ===
-            "details,id,method,name,pass,score",
-      ),
-    ).toBe(true);
+    if (!scored) throw new Error("Env-manager scorer returned no row");
+    expectSafeEvaluationSummaries(scored);
+    expect(scored.evaluationSummary?.every((summary) => summary.details === "Criterion passed")).toBe(true);
     expect(containsSensitiveEvaluatorData(scored, task)).toBe(false);
+    expect(await snapshotMaterializedFixtures(workDir, task)).toEqual(fixturesBeforeScoring);
     expect(sha256(await readFile(taskPath, "utf8"))).toBe(sourceDigest);
   });
 

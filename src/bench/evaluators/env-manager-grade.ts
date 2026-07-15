@@ -131,6 +131,26 @@ function portablePath(relativePath: string): string {
   return relativePath.split(/[\\/]/).join("/")
 }
 
+function utf16BigEndian(value: string): Buffer {
+  const bytes = Buffer.from(value, "utf16le")
+  for (let index = 0; index < bytes.length; index += 2) {
+    const first = bytes[index]!
+    bytes[index] = bytes[index + 1]!
+    bytes[index + 1] = first
+  }
+  return bytes
+}
+
+function containsSecretBytes(content: Buffer, values: string[]): boolean {
+  return values.some((value) =>
+    [
+      Buffer.from(value, "utf8"),
+      Buffer.from(value, "utf16le"),
+      utf16BigEndian(value),
+    ].some((encoded) => content.includes(encoded)),
+  )
+}
+
 function isContained(root: string, candidate: string): boolean {
   const relative = path.relative(root, candidate)
   return (
@@ -325,6 +345,24 @@ function Convert-ToLongPath([string] $artifactPath) {
   return '\\?\' + $artifactPath
 }
 
+function Test-ContainsBytes([byte[]] $content, [byte[]] $candidate) {
+  if ($candidate.Length -eq 0 -or $candidate.Length -gt $content.Length) {
+    return $false
+  }
+
+  for ($offset = 0; $offset -le $content.Length - $candidate.Length; $offset++) {
+    $matches = $true
+    for ($index = 0; $index -lt $candidate.Length; $index++) {
+      if ($content[$offset + $index] -ne $candidate[$index]) {
+        $matches = $false
+        break
+      }
+    }
+    if ($matches) { return $true }
+  }
+  return $false
+}
+
 $request = [Console]::In.ReadToEnd() | ConvertFrom-Json
 $paths = @($request.paths)
 $values = @($request.values)
@@ -335,7 +373,7 @@ foreach ($artifactPath in $paths) {
   $handle = [SkvmStreamNative]::FindFirstStreamW($artifactPath, 0, [ref] $data, 0)
   if ($handle -eq $invalidHandle) {
     $errorCode = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
-    if ($errorCode -eq 38) { continue }
+    if ($errorCode -eq 38 -or $errorCode -eq 87) { continue }
     throw 'Stream enumeration failed'
   }
 
@@ -349,15 +387,27 @@ foreach ($artifactPath in $paths) {
 
         $plainName = $streamName.Substring(1, $streamName.Length - 7)
         $streamPath = (Convert-ToLongPath $artifactPath) + ':' + $plainName
-        $content = [Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($streamPath))
+        $content = [IO.File]::ReadAllBytes($streamPath)
         foreach ($value in $values) {
-          if ($content.Contains($value)) { exit 10 }
+          $encodings = @(
+            [Text.Encoding]::UTF8.GetBytes($value),
+            [Text.Encoding]::Unicode.GetBytes($value),
+            [Text.Encoding]::BigEndianUnicode.GetBytes($value)
+          )
+          foreach ($encoded in $encodings) {
+            if (Test-ContainsBytes $content $encoded) { exit 10 }
+          }
         }
       }
 
       $next = New-Object SkvmStreamNative+FindStreamData
       $hasNext = [SkvmStreamNative]::FindNextStreamW($handle, [ref] $next)
-      if ($hasNext) { $data = $next }
+      if ($hasNext) {
+        $data = $next
+      } else {
+        $errorCode = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
+        if ($errorCode -ne 38) { throw 'Stream enumeration failed' }
+      }
     } while ($hasNext)
   } finally {
     [void] [SkvmStreamNative]::FindClose($handle)
@@ -445,8 +495,8 @@ async function checkNoSecretLeak(
     if (scannedTargets.has(file.realPath)) continue
     scannedTargets.add(file.realPath)
 
-    const content = await readFile(file.realPath, "utf8")
-    if (payload.values.some((value) => content.includes(value))) {
+    const content = await readFile(file.realPath)
+    if (containsSecretBytes(content, payload.values)) {
       return failing("Secret material was detected in generated artifacts.")
     }
   }

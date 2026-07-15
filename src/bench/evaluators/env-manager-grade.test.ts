@@ -205,6 +205,19 @@ describe("no-secret-leak", () => {
     expect(fileLeak.details).not.toContain(fakeSecret)
   })
 
+  test("detects secret material in UTF-16LE regular files", async () => {
+    const workDir = await makeWorkDir()
+    await writeFile(
+      path.join(workDir, "generated-utf16.txt"),
+      Buffer.from(`TOKEN=${fakeSecret}\n`, "utf16le"),
+    )
+
+    const result = await grade(payload, workDir, "Safe output.")
+    expect(result).toMatchObject({ pass: false, score: 0 })
+    expect(result.infraError).toBeUndefined()
+    expect(result.details).not.toContain(fakeSecret)
+  })
+
   test("does not follow recursive symlinks outside the workdir", async () => {
     const workDir = await makeWorkDir()
     const outsideDir = await makeWorkDir("env-manager-grade-secret-")
@@ -316,6 +329,24 @@ describe("no-secret-leak", () => {
       expect(result.infraError).toBeUndefined()
       expect(result.details).not.toContain(fakeSecret)
       expect(result.details).not.toContain("hidden")
+    },
+  )
+
+  testOnWindows(
+    "detects secret material in UTF-16LE NTFS streams",
+    async () => {
+      const workDir = await makeWorkDir()
+      const artifactPath = path.join(workDir, "safe-utf16.txt")
+      await writeFile(artifactPath, "redacted", "utf8")
+      await writeFile(
+        `${artifactPath}:hidden-utf16`,
+        Buffer.from(fakeSecret, "utf16le"),
+      )
+
+      const result = await grade(payload, workDir, "Safe output.")
+      expect(result).toMatchObject({ pass: false, score: 0 })
+      expect(result.infraError).toBeUndefined()
+      expect(result.details).not.toContain(fakeSecret)
     },
   )
 
