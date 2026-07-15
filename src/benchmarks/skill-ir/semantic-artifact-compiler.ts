@@ -95,10 +95,6 @@ function generatedSkillView(baseIr: SkillIR): string {
     + "- The Runner validates structure and observable semantic evidence, and may request at most one repair.\n";
 }
 
-function failClosedCheckerSource(): string {
-  return `throw new Error("executable-semantic-artifact/v2 checker is unavailable before Task 4");\n`;
-}
-
 async function bundledEvidenceProgram(): Promise<string> {
   const result = await Bun.build({
     entrypoints: [resolve(import.meta.dir, "semantic-evidence-cli.ts")],
@@ -110,6 +106,21 @@ async function bundledEvidenceProgram(): Promise<string> {
   if (!result.success || result.outputs.length !== 1) {
     const details = result.logs.map((log) => log.message).join("; ");
     throw new Error(`Failed to bundle semantic evidence program: ${details}`);
+  }
+  return result.outputs[0]!.text();
+}
+
+async function bundledSemanticChecker(): Promise<string> {
+  const result = await Bun.build({
+    entrypoints: [resolve(import.meta.dir, "semantic-checker-cli.ts")],
+    target: "bun",
+    format: "esm",
+    minify: false,
+    sourcemap: "none",
+  });
+  if (!result.success || result.outputs.length !== 1) {
+    const details = result.logs.map((log) => log.message).join("; ");
+    throw new Error(`Failed to bundle semantic checker: ${details}`);
   }
   return result.outputs[0]!.text();
 }
@@ -133,11 +144,12 @@ export async function compileEnvManagerSemanticArtifactPackage(
   manifest: SemanticArtifactPackageManifest;
   provenance: SemanticArtifactPackageProvenance;
 }> {
-  const [baseBytes, taskBytes, sourceBytes, evidenceProgram] = await Promise.all([
+  const [baseBytes, taskBytes, sourceBytes, evidenceProgram, semanticChecker] = await Promise.all([
     readFile(opts.baseIrPath),
     readFile(opts.taskSetPath),
     readFile(opts.sourcePath),
     bundledEvidenceProgram(),
+    bundledSemanticChecker(),
   ]);
   const baseIr = SkillIRSchema.parse(JSON.parse(baseBytes.toString("utf8")));
   if (baseIr.id !== "env-manager") throw new Error(`Unsupported semantic artifact skill: ${baseIr.id}`);
@@ -195,7 +207,7 @@ export async function compileEnvManagerSemanticArtifactPackage(
     opts.outDir,
     "artifacts/checks/validate-semantic-output.ts",
     "checker",
-    failClosedCheckerSource(),
+    semanticChecker,
   ));
   artifacts.push(await writeArtifact(
     opts.outDir,

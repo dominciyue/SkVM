@@ -215,27 +215,27 @@ git commit -m "feat: compile semantic artifact v2 packages"
 - Modify: `src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts`
 - Create: `src/benchmarks/skill-ir/semantic-checker.test.ts`
 
-- [ ] **Step 1: Write one RED fixture per A code**
+- [x] **Step 1: Write one RED fixture per A code**
 
 Execute the emitted checker against real workdirs for missing inventory, wrong
 type, missing constraint, missing sensitive marker, unsupported field, invalid
 finding, and missing confirmed finding. Assert exact five-field combinations
 and absence of free text/expected values.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/semantic-checker.test.ts
 ```
 
-- [ ] **Step 3: Emit structural plus A checks**
+- [x] **Step 3: Emit structural plus A checks**
 
 The checker reads the protected runtime contract, performs structural checks
 first, then stable A checks, and emits only
 `runtime-validation-report/v2`/`semantic-error-codes/v1`. Invalid runtime
 contract input is an infrastructure failure, never a repair error.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [x] **Step 4: Verify GREEN and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/semantic-checker.test.ts ./src/benchmarks/skill-ir/semantic-artifact-compiler.test.ts

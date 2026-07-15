@@ -5,8 +5,8 @@
 Implementation in progress under the reviewed
 `executable-semantic-artifact/v2` design. Tasks 1-3 freeze the A contract/report
 schemas, dormant B boundary, conservative derivation, and deterministic package
-compiler. The emitted checker deliberately fails closed until Task 4. No lock,
-runtime evidence file, Runner path, API run, or optimization evidence exists.
+compiler and standalone A-layer checker. No lock, preflight-created runtime
+evidence file, Runner path, API run, or optimization evidence exists.
 
 ## Current Components
 
@@ -18,6 +18,7 @@ runtime evidence file, Runner path, API run, or optimization evidence exists.
 | `semantic-evidence-cli.ts` | Bundle entrypoint that derives a contract from workdir plus package policy. |
 | `semantic-artifact-compiler.ts` | Deterministic v2 package compiler with provenance and sink isolation. |
 | `semantic-artifact-run.ts` | Compile and verify-only command-line entrypoint. |
+| `semantic-checker-cli.ts` | Bundled structural/safety plus A-layer checker entrypoint. |
 | `artifact-package.ts` | Literal v1 schemas plus separate v2 schemas and catalog dispatch. |
 
 `classification-evidence.ts` exports no producer, writer, derivation function,
@@ -132,10 +133,10 @@ file, and catalog-specific reference. The old v1 schemas and artifact kinds
 remain literal and are validated by the same dispatch entrypoint without being
 widened.
 
-The Task 3 checker is intentionally fail-closed. A compiled package is a
-verified package layout, not yet an executable semantic validator or successful
-optimization result. Task 4 replaces that placeholder only after one RED fixture
-per A error code.
+Task 3 initially emitted a fail-closed checker. Task 4 replaced it only after
+one RED fixture per A error code. A compiled package now contains an executable
+checker, but preflight has not yet materialized or protected the runtime
+contract, so the package is still not Runner-ready or optimization evidence.
 
 ### Commands
 
@@ -158,8 +159,35 @@ package regressions, plus typecheck. Recursive canary scans covered evaluator
 expected data, criterion/hard-gate ids, threshold, held-out prompt, secret
 values, and B fields.
 
+## Standalone Checker
+
+The bundled checker accepts only `--workdir=<path>`. It reads the public output
+contract and validation policy from its package, then reads the fixed protected
+runtime contract from the workdir. Runtime-contract parse/read failure exits as
+infrastructure failure; it never becomes a repair report.
+
+Validation order is:
+
+1. required files and JSON structure;
+2. exact report fields, array/string shapes, template sentinel, and synthetic
+   secret prefix;
+3. observed-variable schema coverage;
+4. deterministic type, constraint, and sensitive-marker requirements;
+5. allowed rule vocabulary;
+6. source-qualified finding validity and confirmed-finding presence.
+
+The checker emits only `runtime-validation-report/v2` with the closed
+`semantic-error-codes/v1` catalog. Output is parsed through the same strict Zod
+schema before serialization. It does not import dormant B types and cannot emit
+classification dispositions, expected arrays, actual values, source text, or
+free-form repair messages.
+
+Task 4 RED: all seven fixtures exited on the explicit fail-closed placeholder.
+GREEN: all seven A codes produced their exact field projection. The focused
+checker/compiler/contract/package regression run passed 21 tests and 81
+assertions; typecheck passed.
+
 ## Next Step
 
-Implement the standalone structural plus A-layer checker using one failing
-fixture per semantic code. B remains unimported by runtime production paths,
-and the checker must emit only the closed v2 report projection.
+Implement preflight materialization and protection of the runtime semantic
+contract, including symlink/escape/timeout failures and v1 behavior regression.
