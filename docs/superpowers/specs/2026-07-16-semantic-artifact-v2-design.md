@@ -1,6 +1,6 @@
 # Semantic Artifact V2 Design
 
-**Status:** Approved design scope; written specification awaiting final review
+**Status:** Approved implementation authority
 
 **Date:** 2026-07-16
 
