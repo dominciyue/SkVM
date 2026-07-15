@@ -186,12 +186,31 @@ plan contained only `one-repair`. Both used `ir-artifact-dev`, Windows,
 `clean`, one package path, and one contract digest. Neither plan created
 `raw-runs.jsonl`, and a secret-pattern scan found no API key.
 
-These checks establish implementation and scheduling integrity only. They do
-not establish semantic benefit, repair benefit, token efficiency, or held-out
-stability. The next paid action is a route probe followed by the locked
-development-only check-only versus one-repair attribution experiment. Held-out
-execution remains blocked until the development gate passes without task,
-scorer, package, or lock tuning.
+These checks established implementation and scheduling integrity only. The
+subsequent frozen development result is recorded below.
+
+### 2026-07-16 Frozen Development Result
+
+The exact `xty/gpt-4.1-mini` route probe passed. Both four-row arms then
+executed and scored without infrastructure failures:
+
+| Mode | Success | Mean score | Runtime final pass | Repair calls | Mean tokens | Mean latency |
+|---|---:|---:|---:|---:|---:|---:|
+| `check-only` | 0/4 | 0.55 | 3/4 | 0 | 7,164.75 | 37,843.75 ms |
+| `one-repair` | 0/4 | 0.70 | 4/4 | 0 | 7,605.25 | 26,539.75 ms |
+
+The frozen gate failed its minimum 3/4 successes and 0.85 mean score. All four
+one-repair generations passed initial runtime validation, so repair never ran.
+The arm-level score difference is independent generation variation and cannot
+be attributed to repair. The deterministic scorer rejected classification and
+schema semantics in every row even when the runtime validator passed. See
+`docs/skill-ir/env-manager-executable-artifact-v1-run.md` for criterion counts,
+cost attribution, and persisted evidence.
+
+The package is therefore operational but not optimized successfully. Held-out
+remains blocked. A future semantic validator must use a new package catalog and
+lock, derive checks from workspace evidence and the public contract, and remain
+isolated from scorer expected values.
 
 ## Modification Notes
 

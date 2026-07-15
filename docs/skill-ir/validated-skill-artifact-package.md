@@ -2,7 +2,7 @@
 
 ## Status
 
-Northbound engineering specification, updated 2026-07-16. The first L3-oriented development prototype is now emitted under `executable-artifact/v1`: it contains digest-bound IR/view, prompt-derived contract, templates, a standalone checker, validation policy, provenance, and a Runner-enforced one-repair lifecycle. It has not passed the frozen development experiment and is not a validated L3/L4 package or held-out evidence.
+Northbound engineering specification, updated 2026-07-16. The first L3-oriented development prototype is emitted under `executable-artifact/v1`: it contains digest-bound IR/view, prompt-derived contract, templates, a standalone checker, validation policy, provenance, and a Runner-enforced one-repair lifecycle. Its frozen development gate failed at 0/4 success and mean 0.70 in the one-repair arm. Repair was not invoked because all four outputs passed the structural runtime validator while the offline scorer rejected classification and schema semantics. The package is immutable failed development evidence, not a validated L3/L4 package or held-out evidence.
 
 ## Purpose
 
@@ -160,7 +160,8 @@ A package must be revalidated when its source digest, compiler/pass version, art
 3. Verify strict repair-input projection, protected-workdir behavior, tamper detection, and separate cost accounting.
 4. Freeze a development-only package lock and compare `check-only` with `check+one-repair` on the existing development tasks.
 5. Keep held-out blocked unless the frozen development gate passes without scorer or task tuning.
-6. Extend the stabilized package method to later pilots and artifact types only after the first prototype demonstrates a benefit or a clear failure boundary.
+6. Treat v1's validator/scorer mismatch as a clear failure boundary. Build a new catalog whose semantic checks derive from workspace evidence and the public contract without serializing scorer gold.
+7. Extend the stabilized package method to later pilots and artifact types only after a newly frozen prototype demonstrates benefit.
 
 ## Verification For Future Changes
 

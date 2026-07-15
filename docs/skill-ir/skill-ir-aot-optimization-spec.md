@@ -65,12 +65,18 @@ repair but does not replace the frozen offline deterministic scorer. The same
 package supports an explicit `check-only` versus `check+one-repair` attribution
 ablation, with repair cost reported separately.
 
-**Implementation status (2026-07-16):** the package compiler, strict schemas,
+**Development result (2026-07-16):** the package compiler, strict schemas,
 standalone checker, templates, provenance, preflight, protected-workdir audit,
 one-repair state machine, explicit Runner system, aggregate/split cost fields,
 and digest-bound experiment lock are implemented and tested. The package is an
-L3-oriented prototype, not a validated L3/L4 result. Both development arms and
-their deterministic scorer outcomes remain unexecuted; held-out stays blocked.
+L3-oriented prototype, not a validated L3/L4 result. The frozen development
+experiment completed without infrastructure failures but failed its gate.
+`check-only` reached 0/4 and mean 0.55; `one-repair` reached 0/4 and mean 0.70.
+All four one-repair rows passed initial runtime validation, so no repair call
+was made. The deterministic scorer still rejected exact classification and
+schema semantics in every row. The experiment therefore validates the runtime
+mechanism but provides neither repair attribution nor optimization evidence;
+held-out stays blocked.
 
 此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 
