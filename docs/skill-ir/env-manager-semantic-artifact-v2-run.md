@@ -78,3 +78,52 @@ to preserve offline temporary-directory reproducibility. Replacing it with a
 version-bound lightweight ABI is future work and requires a new package digest,
 catalog/lock identity, and regression run; the frozen v2 package is not edited
 in place.
+
+## Frozen Development Result
+
+The second route probe returned `ok` for the exact frozen route in 18,729 ms.
+The first probe produced an empty result because of the now-fixed Windows
+process-tree timeout defect and is not counted as a model outcome.
+
+| Arm | Success | Mean score | Hard-gate failed rows | Initial runtime pass | Repairs | Repaired to pass | Infrastructure |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| check-only | 0/4 | 0.4375 | 3 | 0/4 | 0 | 0 | 0 |
+| one-repair | 0/4 | 0.6250 | 0 | 2/4 | 2 | 0 | 0 |
+
+The scorer gate failed because one-repair did not meet either 3/4 successes or
+mean 0.85. Held-out was not executed. Both real repairs occurred on the Node
+task and both failed revalidation: one introduced a structural type mismatch,
+and one still missed a required source-qualified finding. The two Vite rows
+passed runtime validation without repair but still failed classification,
+schema, and example-safety scoring.
+
+Repair activation passed its minimum-one-attempt condition, proving that the
+real-model state transition is no longer dormant. It does not establish causal
+score gain: neither repair reached runtime pass, the arms used independent
+initial generations, and no pre-repair scorer snapshot exists. The arm-level
+mean difference must therefore remain descriptive.
+
+Persisted evidence:
+
+```text
+results/skill-ir/env-manager-semantic-artifact-v2-route-probe-2026-07-16-r2/probe-results.jsonl
+results/skill-ir/env-manager-semantic-artifact-v2-check-only-run-2026-07-16/{scored-results.jsonl,main-table.csv,analysis-summary.json}
+results/skill-ir/env-manager-semantic-artifact-v2-one-repair-run-2026-07-16/{scored-results.jsonl,main-table.csv,analysis-summary.json,comparison-summary.json}
+```
+
+Raw rows, plans, and materialized workdirs remain local reproducibility
+artifacts. They are not committed because they contain verbose model output and
+duplicated fixtures; the scored rows and summaries are the repository evidence.
+
+Committed evidence SHA-256:
+
+```text
+route probe             e029e5cea21c28e285ea152a45285451824e76990901f372b50843ac0138cc6b
+check scored            be2b45e60dc02791952f2f3617b5b907838274bdf0dcbf1f0c1e7cbad0f43512
+check table             232340c51d0b8760062f9ce67a0a5b32a3238d1978d9a97f745255dd3b68998a
+check summary           c5378eb5599edcf4f7a253d2552da1a7f4d3b03ee0ffe2f9eae975bb3d3a0721
+one-repair scored       30829fe2e750866a9ff151fd39495f703794ba5062816cb99fd2ae5a693af9e8
+one-repair table        b8b625acc0a91d0949883adbdb7fc27ed3ad9817857a6d4038691d812cacc441
+one-repair summary      08088e97df1d4f0f62fc90b029204e6c3a117bcdfd5c6177715c6cdce4c3163f
+comparison summary      a36c0fe4677910312aff0046642dc4d45f945ba95ac861f158046099bc192daf
+```

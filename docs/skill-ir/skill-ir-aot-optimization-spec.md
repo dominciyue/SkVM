@@ -103,8 +103,18 @@ that a no-op repair stops after revalidation. Full local verification passed
 is mechanism/activation evidence only. A reviewed development lock now freezes
 the package digests, code catalog, one-model/two-task matrix, two repair arms,
 repetitions, scorer gate, and separate repair-attribution gate before any paid
-execution. No API/model run exists, held-out remains blocked, and no
-optimization or cross-model stability claim is supported.
+execution.
+
+**V2 development result (2026-07-16):** the exact frozen route passed its
+probe, and the two four-row development arms completed without infrastructure
+failure. `check-only` reached 0/4 and mean 0.4375. `one-repair` reached 0/4 and
+mean 0.625. Two Node rows triggered real repairs, but both failed revalidation;
+the two Vite rows passed initial runtime validation and skipped repair. The
+frozen scorer gate therefore failed its success and mean-score requirements,
+although one-repair had no hard-gate failures. Classification and schema rules
+failed in every one-repair row. Held-out remains blocked. This establishes
+real-model semantic activation and a concrete failure boundary, not an
+optimization or cross-model stability result.
 
 此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 

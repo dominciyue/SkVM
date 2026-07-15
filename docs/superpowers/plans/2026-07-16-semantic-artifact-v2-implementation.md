@@ -422,9 +422,12 @@ This task is intentionally not automatic.
 - [x] Propose a numerical gate from the deterministic fixture baseline.
 - [x] Review gate, model, adapter, tasks, repetitions, package digests, and code catalog.
 - [x] Author the approved v2 lock and verify it before the pre-paid lock commit.
-- [ ] Generate both dry-run arms and route probe.
-- [ ] Execute paid development once, then score without changing the scorer.
-- [ ] Keep held-out blocked unless the frozen v2 gate passes.
+- [x] Generate and audit both four-row dry-run arms; the repaired route probe
+  returned `ok` for the exact frozen model in 18.7 seconds.
+- [x] Execute paid development once and score all eight rows without changing
+  the scorer, package, catalog, tasks, or gate.
+- [x] Keep held-out blocked: one-repair reached 0/4 and mean 0.625, below the
+  frozen 3/4 and 0.85 thresholds.
 
 ## Plan Self-Review
 

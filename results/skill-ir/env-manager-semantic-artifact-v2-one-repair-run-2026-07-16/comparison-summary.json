@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "skill-ir-executable-semantic-artifact-attribution-comparison/v1",
+  "catalog": "executable-semantic-artifact/v2",
+  "developmentOnly": true,
+  "heldOutExecuted": false,
+  "samePackage": true,
+  "repairActivationGatePassed": true,
+  "repairAttempts": 2,
+  "repairedToPass": 0,
+  "causalScoreAttributionAvailable": false,
+  "causalScoreAttributionReason": "Two real repair calls were observed, but neither reached runtime validation pass. The arms used independent initial generations and no pre-repair scorer snapshot exists, so the arm-level score delta is not a causal repair estimate.",
+  "groups": [
+    {
+      "label": "check-only",
+      "n": 4,
+      "successes": 0,
+      "meanScore": 0.4375,
+      "hardGateFailedRows": 3,
+      "runtimeValidatorFinalPasses": 0,
+      "repairAttempts": 0,
+      "tokenCost": 29185,
+      "meanTokenCost": 7296.25,
+      "meanLatencyMs": 40525.5
+    },
+    {
+      "label": "one-repair",
+      "n": 4,
+      "successes": 0,
+      "meanScore": 0.625,
+      "hardGateFailedRows": 0,
+      "runtimeValidatorFinalPasses": 2,
+      "repairAttempts": 2,
+      "tokenCost": 29170,
+      "meanTokenCost": 7292.5,
+      "meanLatencyMs": 27964.75,
+      "repairTokenCost": 3819
+    }
+  ],
+  "frozenGate": {
+    "minimumSuccesses": 3,
+    "minimumMeanScore": 0.85,
+    "maximumHardGateRegressions": 0,
+    "maximumInfrastructureFailures": 0,
+    "observedSuccesses": 0,
+    "observedMeanScore": 0.625,
+    "observedHardGateRegressions": 0,
+    "observedInfrastructureFailures": 0,
+    "passed": false
+  },
+  "interpretation": "V2 activated semantic repair in a real model run and removed hard-gate failures in the one-repair arm, but the frozen success and mean-score thresholds failed. Classification and schema criteria failed in every one-repair row, both repaired rows failed revalidation, and held-out remains blocked."
+}

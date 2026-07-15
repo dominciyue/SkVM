@@ -2,10 +2,10 @@
 
 ## Status
 
-The reviewed `executable-semantic-artifact/v2` local mechanism baseline is
-implemented. The development lock and numerical/attribution gates are now
-preregistered, but no v2 API run, held-out result, or optimization evidence
-exists. The exact run contract is documented in
+The reviewed `executable-semantic-artifact/v2` local mechanism baseline and
+the frozen development run are complete. The scorer gate failed, so no
+held-out result or optimization evidence exists. The exact run contract and
+result are documented in
 `docs/skill-ir/env-manager-semantic-artifact-v2-run.md`.
 
 ## Current Components
@@ -377,8 +377,26 @@ gate requires at least one real repair attempt before arm differences can be
 described as repair effects. Runtime validation remains distinct from the
 unchanged deterministic scorer.
 
+## Development Result
+
+The exact frozen route returned `ok` in 18.7 seconds after a Windows
+process-tree timeout defect was fixed and regression-tested. Both paid arms
+completed four rows with no infrastructure failure:
+
+```text
+check-only: 0/4 success, mean 0.4375, 3 hard-gate failures
+one-repair: 0/4 success, mean 0.6250, 0 hard-gate failures
+```
+
+All check-only rows failed initial semantic validation. In one-repair, two Node
+rows failed initial validation and invoked repair; neither passed revalidation.
+Two Vite rows passed initial runtime validation and did not repair. All four
+one-repair rows still failed deterministic classification and schema criteria.
+The 3/4 and 0.85 frozen scorer thresholds therefore failed. Held-out remains
+blocked, and the package remains a development candidate.
+
 ## Next Step
 
-Commit and push the lock before generating both dry-run arms, probing the exact
-route, or beginning paid development. Held-out remains blocked unless the
-frozen scorer gate passes and is never run automatically as part of this step.
+Preserve v2 package, lock, scorer, and results as frozen failure evidence.
+Analyze the observed false negatives/repair regressions before proposing a new
+catalog or package; do not tune v2 in place or execute held-out.
