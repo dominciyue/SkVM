@@ -502,7 +502,7 @@ git commit -m "feat: freeze env-manager executable artifact package"
 - Modify: `docs/skill-ir/executable-artifact-runtime.md`
 - Modify: `D:/skill优化/conversation_log.md`
 
-- [ ] **Step 1: Run fresh full verification**
+- [x] **Step 1: Run fresh full verification**
 
 ```powershell
 bun test ./src/skill-ir ./src/benchmarks/skill-ir ./src/bench/evaluators
@@ -514,22 +514,22 @@ git diff --check
 
 Expected: all tests pass, typecheck exits 0, and no whitespace errors exist.
 
-- [ ] **Step 2: Generate the explicit dry-run plan**
+- [x] **Step 2: Generate the explicit dry-run plan**
 
 ```powershell
-bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=pilot' '--allow-artifact-development-replay' '--artifact-package-dir=benchmarks/skill-ir/pilots/env-manager/packages/executable-artifact-v1' '--artifact-repair-mode=check-only' '--skills=env-manager' '--systems=ir-artifact-dev' '--contexts=clean' '--agents=skvm' '--environments=windows' '--tasks=env-manager-node-audit-dev-001,env-manager-vite-audit-dev-002' '--repetitions=2' '--model=xty/gpt-4.1-mini' '--model-family=gpt' '--adapter=bare-agent' '--adapter-version=workspace-executable-artifact-v1' '--panel-config-id=env-manager-executable-artifact-v1-check-only' '--limit=2' '--out-dir=results/skill-ir/env-manager-executable-artifact-v1-check-only-dry-run'
+bun ./src/benchmarks/skill-ir/real-agent-run.ts '--corpus=pilot' '--allow-artifact-development-replay' '--artifact-package-dir=benchmarks/skill-ir/pilots/env-manager/packages/executable-artifact-v1' '--artifact-lock=benchmarks/skill-ir/pilots/env-manager/env-manager-executable-artifact-v1-lock.json' '--artifact-repair-mode=check-only' '--skills=env-manager' '--systems=ir-artifact-dev' '--contexts=clean' '--agents=skvm' '--environments=windows' '--tasks=env-manager-node-audit-dev-001,env-manager-vite-audit-dev-002' '--repetitions=2' '--model=xty/gpt-4.1-mini' '--model-family=gpt' '--adapter=bare-agent' '--adapter-version=workspace-executable-artifact-v1' '--panel-config-id=env-manager-executable-artifact-v1-check-only' '--limit=2' '--out-dir=results/skill-ir/env-manager-executable-artifact-v1-check-only-dry-run'
 ```
 
 Repeat with `one-repair` and its panel/out ids. Verify each plan has four rows,
 only development tasks, package identity, distinct workdirs, and no API key.
 
-- [ ] **Step 3: Record results and remaining paid-run gate**
+- [x] **Step 3: Record results and remaining paid-run gate**
 
 Update the component doc and conversation log with exact commands and outputs.
 Do not mark semantic effectiveness complete and do not run held-out. Paid
 development execution follows only after route probe and local dry-run gates.
 
-- [ ] **Step 4: Commit completion records and push**
+- [x] **Step 4: Commit completion records and push**
 
 ```powershell
 git add docs/skill-ir/executable-artifact-runtime.md

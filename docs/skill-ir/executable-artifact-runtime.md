@@ -161,6 +161,38 @@ Tests cover prompt/evaluator isolation, deterministic emission, package/lock
 tamper, path containment, protected mutation, strict report fields,
 exactly-once repair, real checker execution, raw rows, and unchanged scoring.
 
+### 2026-07-16 Implementation Verification
+
+Fresh repository-level verification after package emission and Runner
+integration produced:
+
+```text
+bun test ./src/skill-ir ./src/benchmarks/skill-ir ./src/bench/evaluators
+  280 pass, 0 fail, 1210 assertions, 32 files
+python scripts/analyze_skill_ir_results_test.py
+  9 tests passed
+python scripts/analyze_skill_ir_slices_test.py
+  8 tests passed
+bun run typecheck
+  passed
+git diff --check
+  no whitespace errors; Windows line-ending warning only
+```
+
+Both frozen development arms were then materialized without `--execute`.
+Each plan contained exactly four rows: two registered development tasks times
+two repetitions. The check-only plan contained only `check-only`; the repair
+plan contained only `one-repair`. Both used `ir-artifact-dev`, Windows,
+`clean`, one package path, and one contract digest. Neither plan created
+`raw-runs.jsonl`, and a secret-pattern scan found no API key.
+
+These checks establish implementation and scheduling integrity only. They do
+not establish semantic benefit, repair benefit, token efficiency, or held-out
+stability. The next paid action is a route probe followed by the locked
+development-only check-only versus one-repair attribution experiment. Held-out
+execution remains blocked until the development gate passes without task,
+scorer, package, or lock tuning.
+
 ## Modification Notes
 
 - Contract changes require new package digests and a re-frozen lock.
