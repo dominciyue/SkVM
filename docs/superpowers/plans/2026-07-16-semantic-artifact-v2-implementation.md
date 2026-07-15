@@ -385,14 +385,14 @@ editing the other files would have added churn without behavior.
 - Create: `docs/skill-ir/semantic-artifact-runtime.md`
 - Modify: canonical spec, plan, package docs, and `D:/skill优化/conversation_log.md`
 
-- [ ] **Step 1: Compile and verify**
+- [x] **Step 1: Compile and verify**
 
 ```powershell
-bun ./src/benchmarks/skill-ir/semantic-artifact-run.ts '--base-ir=benchmarks/skill-ir/pilots/env-manager/base-ir.json' '--tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json' '--source=benchmarks/skill-ir/pilots/env-manager/source/SKILL.md' '--out-dir=benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2'
+bun ./src/benchmarks/skill-ir/semantic-artifact-run.ts '--root-dir=.' '--base-ir=benchmarks/skill-ir/pilots/env-manager/base-ir.json' '--tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json' '--source=benchmarks/skill-ir/pilots/env-manager/source/SKILL.md' '--out-dir=benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2'
 bun ./src/benchmarks/skill-ir/semantic-artifact-run.ts '--verify-only=benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2'
 ```
 
-- [ ] **Step 2: Run full verification**
+- [x] **Step 2: Run full verification**
 
 ```powershell
 bun test ./src/skill-ir ./src/benchmarks/skill-ir ./src/bench/evaluators
@@ -402,13 +402,13 @@ bun run typecheck
 git diff --check
 ```
 
-- [ ] **Step 3: Document baseline and stop point**
+- [x] **Step 3: Document baseline and stop point**
 
 Record evidence counts, v1-pass/v2-fail codes, exactly-one-repair behavior,
 digests, commands, failure modes, and that no lock, numerical gate, API run,
 held-out evidence, or optimization claim exists.
 
-- [ ] **Step 4: Commit baseline**
+- [x] **Step 4: Commit baseline**
 
 ```powershell
 git add benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2 docs/skill-ir/semantic-artifact-runtime.md docs/skill-ir/skill-ir-aot-optimization-spec.md docs/skill-ir/skill-ir-aot-optimization-plan.md docs/skill-ir/validated-skill-artifact-package.md

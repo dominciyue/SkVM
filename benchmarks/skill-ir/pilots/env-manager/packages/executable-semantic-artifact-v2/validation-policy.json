@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "skill-ir-semantic-artifact-validation-policy/v2",
+  "checkerTimeoutMs": 5000,
+  "evidenceProgramTimeoutMs": 5000,
+  "maxSemanticRepairCalls": 1,
+  "repairInputFields": [
+    "code",
+    "relativePath",
+    "jsonPointer",
+    "missingField",
+    "expectedType"
+  ],
+  "runtimeContract": {
+    "path": ".skvm-artifact/semantic-contract.json",
+    "protected": true
+  },
+  "semanticEvidence": {
+    "publicRules": {
+      "portVariableSuffixes": [
+        "_PORT"
+      ],
+      "portRange": {
+        "minimum": 1,
+        "maximum": 65535
+      },
+      "sensitiveNameTokens": [
+        "KEY",
+        "TOKEN",
+        "PASSWORD",
+        "SECRET"
+      ]
+    },
+    "scanPolicy": {
+      "allowedExtensions": [
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".mjs",
+        ".cjs"
+      ],
+      "excludedDirectories": [
+        ".git",
+        "node_modules",
+        ".skvm-artifact"
+      ],
+      "maxFiles": 500,
+      "maxBytes": 5000000
+    }
+  },
+  "networkAllowed": false,
+  "packageInstallationAllowed": false,
+  "templateSentinel": "__SKVM_REQUIRED__"
+}

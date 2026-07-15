@@ -89,7 +89,20 @@ disposition may enter a committed package, runtime contract, validation
 report, repair prompt, raw/scored row, lock, or gate. V2 requires a local
 v1-pass/v2-fail activation fixture before a new lock or paid run. The formal
 design is `docs/superpowers/specs/2026-07-16-semantic-artifact-v2-design.md`;
-implementation planning waits for final written-spec review.
+the written review was accepted before the implementation baseline below.
+
+**V2 local implementation baseline (2026-07-16):** the reviewed design has now
+been implemented through the pre-paid stop point. The committed package contains
+digest-bound public contracts, bundled workdir evidence derivation, a protected
+runtime contract, a structural plus seven-code A checker, strict v2 reports,
+bounded one-repair runtime handling, and explicit Runner planning guarded by a
+separate v2 lock identity. A deterministic fixture passes frozen v1 structure,
+fails v2 with `MISSING_OBSERVED_VARIABLE`, repairs once to pass, and also proves
+that a no-op repair stops after revalidation. Full local verification passed
+312 Bun tests (1338 assertions), 17 Python analyzer tests, and typecheck. This
+is mechanism/activation evidence only: no real v2 lock or numerical gate is
+frozen, no API/model run exists, held-out remains blocked, and no optimization
+or cross-model stability claim is supported.
 
 此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 

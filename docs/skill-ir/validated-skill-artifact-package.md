@@ -4,6 +4,14 @@
 
 Northbound engineering specification, updated 2026-07-16. The first L3-oriented development prototype is emitted under `executable-artifact/v1`: it contains digest-bound IR/view, prompt-derived contract, templates, a standalone checker, validation policy, provenance, and a Runner-enforced one-repair lifecycle. Its frozen development gate failed at 0/4 success and mean 0.70 in the one-repair arm. Repair was not invoked because all four outputs passed the structural runtime validator while the offline scorer rejected classification and schema semantics. The package is immutable failed development evidence, not a validated L3/L4 package or held-out evidence.
 
+The successor `executable-semantic-artifact/v2` is now a committed local
+engineering baseline. It derives a protected A-layer contract from public skill
+rules and agent-visible workdir evidence, validates seven closed semantic error
+classes, and has a deterministic v1-pass/v2-fail fixture that activates exactly
+one repair. This proves the local mechanism and attribution path only. No real
+v2 experiment lock, numerical gate, model/API result, held-out result, or
+optimization claim exists.
+
 ## Purpose
 
 A Validated Skill Artifact Package is the L3-L4 target of Skill IR compilation. It keeps Skill IR as the authoritative semantics while solidifying repeated reasoning, output structure, environment probes, scripts, templates, and fixed tool plans into reusable artifacts.
@@ -127,6 +135,11 @@ The detailed v1 contract is frozen in
 `docs/superpowers/specs/2026-07-16-runner-orchestrated-artifact-package-design.md`.
 The implementation and commands are documented in
 `docs/skill-ir/executable-artifact-runtime.md`.
+
+The reviewed v2 contract is frozen in
+`docs/superpowers/specs/2026-07-16-semantic-artifact-v2-design.md`; implementation,
+commands, package digests, and the local activation boundary are documented in
+`docs/skill-ir/semantic-artifact-runtime.md`.
 
 ## Validation Levels
 

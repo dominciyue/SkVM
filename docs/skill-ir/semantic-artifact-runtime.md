@@ -303,8 +303,57 @@ Task 8 RED failed only at the old v1-only package catalog guard while 37 prior
 Runner tests passed. GREEN passed 53 Runner/matrix/package tests and 171
 assertions; typecheck passed.
 
+## Committed Local Baseline
+
+The deterministic package is committed at:
+
+```text
+benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2
+```
+
+It contains 11 files: manifest, provenance, and nine declared artifacts. Frozen
+top-level digests are:
+
+```text
+package-manifest.json   b89470654bbab645563caeceafcdff1c33350b3fa35e72730231b35b94169a96
+package-provenance.json d0c3535f5c25c4b9c2f431dd0753701f371c40cd62d8932b1fd81d6cc5f33e7c
+```
+
+Compile and verify:
+
+```powershell
+bun ./src/benchmarks/skill-ir/semantic-artifact-run.ts `
+  --root-dir=. `
+  --base-ir=benchmarks/skill-ir/pilots/env-manager/base-ir.json `
+  --tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json `
+  --source=benchmarks/skill-ir/pilots/env-manager/source/SKILL.md `
+  --out-dir=benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2
+
+bun ./src/benchmarks/skill-ir/semantic-artifact-run.ts `
+  --verify-only=benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2
+```
+
+The activation workdir derives one observed variable (`APP_PORT`), one explicit
+type, two public constraints, and no source-qualified finding. The known output
+passes v1 and fails v2 with one `MISSING_OBSERVED_VARIABLE`; deterministic
+repair converts it to pass exactly once.
+
+Full local verification on 2026-07-16:
+
+```text
+Bun:    312 passed, 0 failed, 1338 assertions (38 files)
+Python: 9/9 result-analyzer tests; 8/8 slice-analyzer tests
+TypeScript typecheck: passed
+git diff --check: passed
+```
+
+This baseline proves package determinism/integrity, gold isolation, preflight,
+semantic activation, bounded repair, and planning guards. It does not prove
+model-generated repair quality, offline scorer improvement, cross-model
+stability, held-out benefit, or token savings. No real v2 lock, numerical gate,
+API result, or held-out result exists.
+
 ## Next Step
 
-Compile the committed local v2 package, run full project verification, record
-digests and the local activation baseline, then stop before any real lock,
-numerical gate, API call, or held-out run.
+Stop for review. The next task is explicitly non-automatic: propose and review
+a development gate/lock before any route probe or paid development run.
