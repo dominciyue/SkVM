@@ -250,8 +250,30 @@ builder rejected v2, and the state machine stopped before repair. GREEN passed
 10 runtime tests. The focused runtime/preflight/contract/checker regression
 passed 30 tests and 122 assertions; typecheck passed.
 
+## Deterministic Activation Baseline
+
+The local activation fixture uses the same public workdir in frozen v1 and v2:
+
+```text
+.env                 APP_PORT name/value visible to the agent
+src/config.js         Number(process.env.APP_PORT)
+.env.schema.json      { "variables": {} }
+env-report.json       valid five-array structure
+```
+
+This output passes the v1 structural checker. V2 derives `APP_PORT`, explicit
+`integer`, and the public port constraints, then fails first on the closed
+`MISSING_OBSERVED_VARIABLE` projection. A deterministic repair adds the schema
+entry and reaches pass after exactly one repair and one revalidation. A no-op
+repair stops after the second failed validation with no third call.
+
+Task 7 is an acceptance freeze rather than a new production-code TDD cycle. Its
+first run passed all three tests and seven assertions because Tasks 1-6 had
+already implemented the behavior under their own RED/GREEN cycles. It uses no
+scorer payload, expected classification set, model, API, or held-out data.
+
 ## Next Step
 
-Add the deterministic known-failure activation fixture: the same generated
-output must pass frozen v1 structure, fail v2 A validation, trigger exactly one
-repair in one-repair mode, and pass v2 revalidation without scorer input.
+Add explicit Runner planning guards for v2 without introducing a real lock or
+default schedule. Tests may use a temporary lock only; paid and held-out paths
+remain blocked.

@@ -315,25 +315,30 @@ git commit -m "feat: run semantic artifact validation reports"
 **Files:**
 - Create: `src/benchmarks/skill-ir/env-manager-semantic-activation.test.ts`
 
-- [ ] **Step 1: Write activation RED**
+- [x] **Step 1: Write activation acceptance fixture**
 
 Use one deterministic generated-output fixture that passes the frozen v1
 checker but omits an observed variable or confirmed type required by v2. Assert
 v2 fails with a repair-eligible closed code.
 
-- [ ] **Step 2: Test successful and failed one-repair transitions**
+- [x] **Step 2: Test successful and failed one-repair transitions**
 
 With a repair test double, assert exactly one repair and final pass. With a
 no-op repair, assert exactly one repair, two validations, final failure, and no
 third call.
 
-- [ ] **Step 3: Verify GREEN and commit**
+- [x] **Step 3: Verify acceptance baseline and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/env-manager-semantic-activation.test.ts
 git add src/benchmarks/skill-ir/env-manager-semantic-activation.test.ts
 git commit -m "test: freeze semantic repair activation"
 ```
+
+Implementation note: this task is an acceptance freeze after Tasks 1-6, not a
+new production behavior. Its first execution passed because the compiler,
+preflight, checker, and state machine were already implemented through RED/GREEN
+cycles. Recording a fabricated RED here would misstate the test history.
 
 ## Task 8: Explicit Runner Planning
 
