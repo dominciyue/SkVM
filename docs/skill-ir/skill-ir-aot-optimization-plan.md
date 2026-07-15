@@ -1,6 +1,6 @@
 # Skill IR AOT Optimization Implementation Plan
 
-> **Current authority (2026-07-15):** The execution ledger below is the authoritative project plan. The detailed Task 0-12 sections are retained as implementation history and design rationale; their old checkbox state is not a progress tracker and must not be used to infer current status.
+> **Current authority (2026-07-16):** The execution ledger below is the authoritative project plan. The detailed Task 0-12 sections are retained as implementation history and design rationale; their old checkbox state is not a progress tracker and must not be used to infer current status.
 
 ## Current Research Contract
 
@@ -41,7 +41,7 @@ The package is a northbound engineering target, not a current paper claim. Artif
 | Tasks 11A-11E: real-agent runner, scoring, context audit, harder tasks, multi-model runs, dynamic feedback | Implemented; evidence-limited | Existing results demonstrate mechanisms and seed case studies, not broad generalization. |
 | Tasks 11F-11G: promotion policy and validation planner | Implemented and frozen | Keep as advisory method-support tooling; do not deepen before real-skill evidence. |
 | Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; all three Wave A source closures are imported and digest-pinned. |
-| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` now has a source-audited base IR, dual-source compiler, provenance v2, and two frozen Final IR development replays. v1 matched static; v2 was 1/4 but regressed in mean score. Held-out remains blocked; next solidify executable validation/templates. |
+| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` has a source-audited base IR, dual-source compiler, provenance v2, and two frozen failed Final IR development replays. The `executable-artifact/v1` Runner design is frozen; next implement its package compiler, preflight, validator, one-repair state machine, and attribution ablation with TDD. Held-out remains blocked. |
 | Task 12: report and slides | Deferred | Begin after the first real-skill main table and case study exist. |
 
 ### Active Sequence
@@ -59,7 +59,9 @@ The package is a northbound engineering target, not a current paper claim. Artif
 - [x] Construct and audit the `env-manager` base IR, complete agent-facing static lowering, and run the locked `no-skill | original | ir-static` development vertical. Result: static improved mean score and removed hard-gate failures but remained 0/4 due typed output constraints.
 - [x] Extend typed feedback/overlay semantics for source-qualified findings and runtime-contract-aware structured output using paired frozen `original × development` lineage and `ir-static × development` residuals; scorer expected payloads remain inaccessible.
 - [x] Compile dual-source development feedback into provenance-bound v1/v2 Final IR candidates and validate them with explicit `ir-pgo-dev` replay without scorer tuning. Result: v1 0/4 at 0.70; v2 1/4 at 0.6375 with mixed regressions. The gate failed, so held-out was not run.
-- [ ] Replace prompt-only typed repair with a provenance-bound executable output validator/template plus preflight and post-generation enforcement; version and freeze it before another development replay.
+- [x] Freeze the provenance-bound `executable-artifact/v1` design: compile from frozen base IR plus gold-isolated development evidence and user-visible task contract; preserve dual-overlay locks; separate runtime validator from the offline scorer; support `check-only` versus `check+one-repair` attribution.
+- [ ] Implement package schemas/compiler, deterministic templates, executable validator, strict repair-report whitelist, preflight, and `preflight -> generation -> validate -> at most one repair -> revalidate -> stop` Runner orchestration using TDD.
+- [ ] Freeze `env-manager-executable-artifact-v1-lock.json`, dry-run both repair modes, and execute the development-only attribution experiment. Report generation and repair costs separately; do not run held-out unless the frozen one-repair gate passes.
 - [ ] Implement balanced pooled aggregation with per-model support vectors and conflict exclusion; preregister the fixed panel and regression gates.
 - [ ] Run one shared panel-conditioned Final IR on `env-manager`, reporting aggregate, per-model, worst-model, regressions, and infrastructure exclusions.
 - [ ] Extend the stabilized method to `law-to-markdown`, including resource-parity enforcement, then to `experimental-design`.

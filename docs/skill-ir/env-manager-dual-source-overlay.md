@@ -100,6 +100,15 @@ post-generation checks at runtime. It must remain generic, derive contracts
 from agent-visible task/skill semantics, avoid evaluator gold, and create a new
 versioned repair catalog and lock before another paid replay.
 
+That next stage is frozen as `executable-artifact/v1` with a separate
+`ir-artifact-dev` Runner path. It compiles from the frozen base IR,
+gold-isolated dual-source evidence, and user-visible task-family contract; the
+failed v1/v2 Final IR candidates remain predecessor controls. Runtime execution
+uses `preflight -> generation -> validate -> at most one sanitized repair ->
+revalidate -> stop`, with a `check-only` attribution mode. Runtime validation
+does not replace the existing deterministic scorer. See
+`docs/superpowers/specs/2026-07-16-runner-orchestrated-artifact-package-design.md`.
+
 ## Verification
 
 ```powershell

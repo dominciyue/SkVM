@@ -2,7 +2,7 @@
 
 ## Status
 
-Northbound engineering specification, updated 2026-07-15. The current implementation is L1/early-L2 and does not yet emit this complete package. It now emits an intermediate Final IR artifact set with digest provenance; that is a prerequisite, not an L3/L4 package.
+Northbound engineering specification, updated 2026-07-16. The current implementation is L1/early-L2 and does not yet emit a validated L3/L4 package. Two provenance-bound dual-source Final IR candidates were evaluated and failed the development gate. The first executable package design is now frozen under `executable-artifact/v1`; implementation and validation remain pending.
 
 ## Purpose
 
@@ -82,13 +82,49 @@ Final IR is the compiled product of static base IR plus a development-derived ov
 
 ## Current Pilot Strategy
 
-The first package prototype should come from one of the three deep pilots:
+The first package prototype is `env-manager`. It was selected after exact
+source calibration, deterministic scoring, static execution, and two failed
+prompt-level repair replays exposed a repeatable typed-output boundary.
+
+The other deep pilots remain later candidates:
 
 - `law-to-markdown`: converter/check scripts and staged tool plan;
-- `env-manager`: redaction schema, environment probe, and safety checks;
 - `experimental-design`: analysis template, seeded script, and output schema.
 
-Choose the first prototype after static/no-skill/original results reveal which repeated work is both useful and verifiable. Do not preselect an artifact solely because files already exist upstream.
+The v1 package is compiled from the frozen profile-empty base IR,
+gold-isolated dual-source development `RepairEvidence`, and a task-family
+contract derived only from user-visible prompts. Failed dual-overlay v1/v2
+candidates may appear in predecessor provenance but are not the semantic base.
+Their packages and locks remain immutable.
+
+## First Runtime Prototype
+
+The Runner owns this bounded state machine:
+
+```text
+preflight -> materialize templates -> generate -> validate
+          -> at most one sanitized repair -> revalidate -> stop
+```
+
+The repair-facing `ValidationReport` is a closed projection containing only
+fields such as `code`, `relativePath`, `jsonPointer`, `missingField`, and
+`expectedType`. It forbids free-form messages, file contents, original skill
+text, secret values, and absolute paths. Package, provider, checker, and
+preflight failures never trigger semantic repair.
+
+The same package supports an explicit `check-only` versus
+`check+one-repair` diagnostic ablation. This keeps package, task, model,
+adapter, template, validator, and scorer fixed, allowing the extra repair call
+and its cost to be attributed separately.
+
+Runtime validation is not benchmark scoring. It controls structural and safety
+repair; final benchmark success remains the result of the existing frozen
+deterministic scorer over the final workdir and output. Reports separate initial
+and final runtime validation, repair conversion, generation cost, repair cost,
+and offline score.
+
+The detailed v1 contract is frozen in
+`docs/superpowers/specs/2026-07-16-runner-orchestrated-artifact-package-design.md`.
 
 ## Validation Levels
 
@@ -117,12 +153,12 @@ A package must be revalidated when its source digest, compiler/pass version, art
 
 ## Implementation Sequence
 
-1. Complete the three deep real-skill static and task-local PGO experiments.
-2. Select one repeated, verifiable operation from the evidence.
-3. Define the package manifest/provenance/validation schemas with failing tests.
-4. Add one artifact emitter and an independent verifier.
-5. Compare package execution against `no-skill`, `original`, `ir-static`, and the task-local `ir-pgo` candidate on held-out tasks.
-6. Extend artifact types only after the first package demonstrates a stability benefit or a clear failure boundary.
+1. Implement the frozen `env-manager` package manifest, provenance, validation policy, contract, templates, and checker with failing tests first.
+2. Add fail-closed Runner preflight and the bounded `check-only` / one-repair state machine.
+3. Verify strict repair-input projection, protected-workdir behavior, tamper detection, and separate cost accounting.
+4. Freeze a development-only package lock and compare `check-only` with `check+one-repair` on the existing development tasks.
+5. Keep held-out blocked unless the frozen development gate passes without scorer or task tuning.
+6. Extend the stabilized package method to later pilots and artifact types only after the first prototype demonstrates a benefit or a clear failure boundary.
 
 ## Verification For Future Changes
 

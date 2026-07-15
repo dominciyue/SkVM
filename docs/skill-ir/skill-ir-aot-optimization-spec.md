@@ -24,7 +24,7 @@ no-skill | original | ir-static | ir-pgo
 no-skill | original | ir-static
 ```
 
-**Current implementation status (2026-07-15):** `env-manager` has an exact
+**Current implementation status (2026-07-16):** `env-manager` has an exact
 source snapshot, two development tasks, two held-out tasks, a deterministic
 six-criterion evaluator, and a source-audited profile-empty base IR. It is the
 only `runnable` pilot. Static lowering now renders inputs, outputs,
@@ -33,7 +33,10 @@ steps, rules, checks, and recovery. The locked static development run completed
 12/12 rows with no infrastructure failures. `ir-static` remained 0/4 on binary
 success but improved mean deterministic score from original's 0.425 to 0.700
 and eliminated hard-gate failures. Classification-location and JSON Schema
-constraints remain missing; no Final IR or held-out optimization evidence exists.
+constraints remained missing after the static run. Two dual-source Final IR
+development candidates were then compiled with provenance v2. Neither passed
+the frozen gate: repair v1 matched static at 0/4 and mean 0.70; repair v2 reached
+1/4 but regressed to mean 0.6375. No held-out optimization evidence exists.
 
 Future pre-IR calibration may opt into `tasks-authored` only through the explicit,
 fail-closed `--allow-tasks-authored` contract: one selected pilot skill,
@@ -41,6 +44,25 @@ explicit development tasks, `clean` context, and exactly `no-skill | original`.
 The runner may synthesize an in-memory source envelope from pinned manifest
 metadata solely to materialize the exact original source. This does not create
 an `irPath`, make the skill generally runnable, or permit static/PGO systems.
+
+The next development stage is a Runner-orchestrated executable artifact package
+under the new `executable-artifact/v1` catalog. Its fixed state machine is:
+
+```text
+preflight -> template materialization -> generation -> validate
+          -> at most one sanitized repair -> revalidate -> stop
+```
+
+The first package is compiled from the frozen profile-empty base IR,
+gold-isolated dual-source development `RepairEvidence`, and a task-family
+contract derived only from user-visible prompts. Failed dual-overlay v1/v2
+candidates are predecessor evidence, not the package's semantic base, and their
+locks remain immutable. The package uses a new provenance schema and a separate
+`ir-artifact-dev` development system; it does not overwrite `ir-pgo-dev` or
+imply a validated Final IR. The runtime validator controls structural and safety
+repair but does not replace the frozen offline deterministic scorer. The same
+package supports an explicit `check-only` versus `check+one-repair` attribution
+ablation, with repair cost reported separately.
 
 此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 
