@@ -319,6 +319,15 @@ package-manifest.json   b89470654bbab645563caeceafcdff1c33350b3fa35e72730231b35b
 package-provenance.json d0c3535f5c25c4b9c2f431dd0753701f371c40cd62d8932b1fd81d6cc5f33e7c
 ```
 
+The evidence bundle is approximately 8.5 MiB because it vendors the TypeScript
+parser; the checker bundle is approximately 140 KiB. Vendoring makes the local
+package deterministic and runnable from temporary directories without package
+installation. It is also a repository/deployment cost. Before a real lock,
+future packaging work may compare a host-provided, version-pinned parser ABI or
+a smaller parser, but externalizing dependencies changes the portability and
+integrity contract and therefore requires new package digests and regression
+validation.
+
 Compile and verify:
 
 ```powershell
