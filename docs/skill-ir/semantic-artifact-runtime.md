@@ -5,8 +5,9 @@
 Implementation in progress under the reviewed
 `executable-semantic-artifact/v2` design. Tasks 1-3 freeze the A contract/report
 schemas, dormant B boundary, conservative derivation, and deterministic package
-compiler, standalone A-layer checker, and catalog-dispatched preflight. No lock,
-Runner execution path, API run, or optimization evidence exists.
+compiler, standalone A-layer checker, catalog-dispatched preflight, and bounded
+v2 runtime report/repair handling. No lock, Runner execution path, API run, or
+optimization evidence exists.
 
 ## Current Components
 
@@ -21,6 +22,7 @@ Runner execution path, API run, or optimization evidence exists.
 | `semantic-checker-cli.ts` | Bundled structural/safety plus A-layer checker entrypoint. |
 | `artifact-package.ts` | Literal v1 schemas plus separate v2 schemas and catalog dispatch. |
 | `artifact-preflight.ts` | V1 fixture snapshot or v2 evidence derivation plus protected snapshot. |
+| `artifact-runtime.ts` | Catalog-dispatched validation and check-only/one-repair state machine. |
 
 `classification-evidence.ts` exports no producer, writer, derivation function,
 or serializer. Its `ClassificationCandidate.value` is an identifier, never a
@@ -216,8 +218,40 @@ contract derivation/protection, v1 absence, junction/escape rejection, timeout,
 and invalid JSON. The focused preflight/runtime/package/compiler regression
 passed 26 tests and 101 assertions; typecheck passed.
 
+## Runtime Reports And Repair
+
+Runtime report parsing dispatches on `PreparedArtifactRun.catalog`:
+
+```text
+executable-artifact/v1          -> runtime-validation-report/v1
+executable-semantic-artifact/v2 -> runtime-validation-report/v2 + semantic-error-codes/v1
+```
+
+The state machine is unchanged: generation, protected check, validation,
+optional one repair, protected check, one revalidation, stop. Provider,
+validator/report-schema, evidence, and protected-file failures never invoke
+repair. Protected mutation reports use the matching catalog but always set
+`repairEligible=false`.
+
+Both report versions are projected to the same five fields. V2 adds only this
+static guidance to the repair prompt:
+
+```text
+Inspect the protected runtime contract at .skvm-artifact/semantic-contract.json;
+do not modify it.
+```
+
+The contract body is not serialized into the task. Invalid B fields,
+dispositions, actual values, messages, absolute paths, and any extra report
+field fail strict parsing before a repair call.
+
+Task 6 RED showed three v1-only assumptions: checker parse rejected v2, repair
+builder rejected v2, and the state machine stopped before repair. GREEN passed
+10 runtime tests. The focused runtime/preflight/contract/checker regression
+passed 30 tests and 122 assertions; typecheck passed.
+
 ## Next Step
 
-Add v2 report dispatch to the unchanged one-repair state machine. Repair input
-must remain the five-field projection and may only add a static instruction to
-inspect the protected contract path.
+Add the deterministic known-failure activation fixture: the same generated
+output must pass frozen v1 structure, fail v2 A validation, trigger exactly one
+repair in one-repair mode, and pass v2 revalidation without scorer input.

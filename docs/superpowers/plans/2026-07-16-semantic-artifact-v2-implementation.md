@@ -283,26 +283,26 @@ git commit -m "feat: protect runtime semantic contracts"
 - Modify: `src/benchmarks/skill-ir/artifact-runtime.ts`
 - Modify: `src/benchmarks/skill-ir/artifact-runtime.test.ts`
 
-- [ ] **Step 1: Write RED runtime tests**
+- [x] **Step 1: Write RED runtime tests**
 
 Require v2 schema dispatch, illegal code/field rejection, exact five-field
 projection, a static instruction to inspect the protected contract without
 inlining it, and no B canary. Evidence/checker infrastructure failures and
 protected mutation must not repair.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/artifact-runtime.test.ts
 ```
 
-- [ ] **Step 3: Implement schema dispatch without changing call bounds**
+- [x] **Step 3: Implement schema dispatch without changing call bounds**
 
 Select report schema from package catalog. Keep the state machine and cost
 accounting unchanged. Generalize `buildSanitizedRepairTask` over the common
 five fields and add only the static v2 contract-path instruction.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [x] **Step 4: Verify GREEN and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/artifact-runtime.test.ts ./src/benchmarks/skill-ir/semantic-contract.test.ts

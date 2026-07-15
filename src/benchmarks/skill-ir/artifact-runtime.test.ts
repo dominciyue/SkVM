@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
+import { compileEnvManagerSemanticArtifactPackage } from "./semantic-artifact-compiler";
 import { preflightArtifactRun, type PreparedArtifactRun } from "./artifact-preflight";
 import {
   buildSanitizedRepairTask,
@@ -11,6 +12,7 @@ import {
   type ArtifactCommandResult,
 } from "./artifact-runtime";
 import type { RuntimeValidationReport } from "./artifact-package";
+import type { RuntimeSemanticValidationReport } from "./semantic-contract";
 
 const projectRoot = join(import.meta.dir, "../../..");
 const tempDirs: string[] = [];
@@ -36,6 +38,26 @@ const failReport: RuntimeValidationReport = {
     },
   ],
 };
+const semanticPassReport: RuntimeSemanticValidationReport = {
+  schemaVersion: "runtime-validation-report/v2",
+  codeCatalog: "semantic-error-codes/v1",
+  status: "pass",
+  repairEligible: false,
+  errors: [],
+};
+const semanticFailReport: RuntimeSemanticValidationReport = {
+  schemaVersion: "runtime-validation-report/v2",
+  codeCatalog: "semantic-error-codes/v1",
+  status: "fail",
+  repairEligible: true,
+  errors: [{
+    code: "MISSING_RULE_CONSTRAINT",
+    relativePath: ".env.schema.json",
+    jsonPointer: "/variables/APP_PORT/minimum",
+    missingField: "minimum",
+    expectedType: "number",
+  }],
+};
 
 function commandResult(label: string, inputTokens: number, outputTokens: number): ArtifactCommandResult {
   return {
@@ -52,6 +74,41 @@ async function tempDir(label: string): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), label));
   tempDirs.push(dir);
   return dir;
+}
+
+async function prepareSemantic(): Promise<PreparedArtifactRun> {
+  const root = await tempDir("skill-ir-semantic-runtime-");
+  const packageDir = join(root, "package");
+  const workDir = join(root, "workdir");
+  await mkdir(join(workDir, "src"), { recursive: true });
+  await writeFile(join(workDir, ".env"), "APP_PORT=3000\n", "utf8");
+  await writeFile(join(workDir, "src/config.js"), "const port = Number(process.env.APP_PORT);\n", "utf8");
+  await compileEnvManagerSemanticArtifactPackage({
+    rootDir: projectRoot,
+    baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
+    taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
+    sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    outDir: packageDir,
+  });
+  const provenance = JSON.parse(await readFile(join(packageDir, "package-provenance.json"), "utf8")) as {
+    taskContract: { sha256: string };
+  };
+  return preflightArtifactRun({
+    packageDir,
+    workDir,
+    scope: {
+      skillId: "env-manager",
+      taskId: "env-manager-node-audit-dev-001",
+      taskSplit: "development",
+      model: "test/model",
+      modelFamily: "test",
+      adapter: "bare-agent",
+      adapterVersion: "semantic-v2-test",
+      environment: "windows",
+      context: "clean",
+    },
+    expectedContractDigest: provenance.taskContract.sha256,
+  });
 }
 
 beforeEach(async () => {
@@ -295,5 +352,74 @@ describe("artifact runtime", () => {
     }), "utf8");
     const valid = await executeArtifactValidator(prepared);
     expect(valid).toEqual(passReport);
+  });
+
+  test("dispatches v2 checker output through the strict semantic report schema", async () => {
+    const semanticPrepared = await prepareSemantic();
+    const report = await executeArtifactValidator(semanticPrepared);
+    expect(report.schemaVersion).toBe("runtime-validation-report/v2");
+    expect(report).toMatchObject({ codeCatalog: "semantic-error-codes/v1", status: "fail" });
+
+    let repairs = 0;
+    const invalid = await runArtifactStateMachine({
+      mode: "one-repair",
+      prepared: semanticPrepared,
+      runGeneration: async () => commandResult("generated", 1, 1),
+      runRepair: async () => { repairs += 1; return commandResult("repair", 1, 1); },
+      runValidator: async () => ({
+        ...semanticFailReport,
+        classificationCandidates: [{ disposition: "B_DISPOSITION_CANARY" }],
+      } as RuntimeSemanticValidationReport),
+    });
+    expect(invalid.status).toBe("infrastructure-failure");
+    expect(invalid.failureStage).toBe("validation");
+    expect(repairs).toBe(0);
+  });
+
+  test("builds v2 repair input from five fields plus only the static protected path", async () => {
+    const semanticPrepared = await prepareSemantic();
+    const task = buildSanitizedRepairTask(semanticFailReport, semanticPrepared);
+    expect(task.prompt).toContain(".skvm-artifact/semantic-contract.json");
+    expect(task.prompt).toContain('"code":"MISSING_RULE_CONSTRAINT"');
+    for (const forbidden of [
+      "B_DISPOSITION_CANARY",
+      "classificationCandidates",
+      "sourceQualifiedFindings",
+      "observedVariables",
+      "TEST_ONLY_",
+      '"actual"',
+      '"message"',
+    ]) {
+      expect(task.prompt).not.toContain(forbidden);
+    }
+  });
+
+  test("keeps v2 bounded to one repair and one revalidation", async () => {
+    const semanticPrepared = await prepareSemantic();
+    let repairs = 0;
+    let validations = 0;
+    let repairPrompt = "";
+    const result = await runArtifactStateMachine({
+      mode: "one-repair",
+      prepared: semanticPrepared,
+      runGeneration: async () => commandResult("generated", 5, 2),
+      runRepair: async (task) => {
+        repairs += 1;
+        repairPrompt = task.prompt;
+        return commandResult("repaired", 3, 1);
+      },
+      runValidator: async () => (++validations === 1 ? semanticFailReport : semanticPassReport),
+    });
+    expect(repairs).toBe(1);
+    expect(validations).toBe(2);
+    expect(repairPrompt).toContain(".skvm-artifact/semantic-contract.json");
+    expect(result).toMatchObject({
+      status: "complete",
+      repairAttempted: true,
+      repairedToPass: true,
+      initialValidation: { schemaVersion: "runtime-validation-report/v2" },
+      finalValidation: { schemaVersion: "runtime-validation-report/v2", status: "pass" },
+      aggregateUsage: { inputTokens: 8, outputTokens: 3, tokenCost: 11, modelDurationMs: 11 },
+    });
   });
 });

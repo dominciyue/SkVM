@@ -6,6 +6,10 @@ import {
   type RuntimeValidationReport,
 } from "./artifact-package";
 import {
+  RuntimeSemanticValidationReportSchema,
+  type RuntimeSemanticValidationReport,
+} from "./semantic-contract";
+import {
   materializeArtifactTemplates,
   verifyProtectedWorkdir,
   type PreparedArtifactRun,
@@ -35,14 +39,16 @@ export type ArtifactRuntimeStatus =
   | "protected-file-failure"
   | "infrastructure-failure";
 
+export type AnyRuntimeValidationReport = RuntimeValidationReport | RuntimeSemanticValidationReport;
+
 export type ArtifactRuntimeResult = {
   mode: ArtifactRepairMode;
   status: ArtifactRuntimeStatus;
   failureStage?: "generation" | "validation" | "repair" | "revalidation" | "protected-workdir";
   generation: ArtifactCommandResult;
   repair?: ArtifactCommandResult;
-  initialValidation?: RuntimeValidationReport;
-  finalValidation?: RuntimeValidationReport;
+  initialValidation?: AnyRuntimeValidationReport;
+  finalValidation?: AnyRuntimeValidationReport;
   repairAttempted: boolean;
   repairedToPass: boolean;
   generationUsage?: ArtifactUsage;
@@ -76,7 +82,7 @@ export type ArtifactStateMachineInput = {
   prepared: PreparedArtifactRun;
   runGeneration: () => Promise<ArtifactCommandResult>;
   runRepair: (task: SkvmTaskJson) => Promise<ArtifactCommandResult>;
-  runValidator?: (prepared: PreparedArtifactRun) => Promise<RuntimeValidationReport>;
+  runValidator?: (prepared: PreparedArtifactRun) => Promise<AnyRuntimeValidationReport>;
 };
 
 function zeroUsage(): ArtifactUsage {
@@ -93,20 +99,41 @@ function addUsage(left: ArtifactUsage | undefined, right: ArtifactUsage | undefi
   };
 }
 
-function protectedFailureReport(paths: string[]): RuntimeValidationReport {
-  return RuntimeValidationReportSchema.parse({
+function parseRuntimeReport(
+  prepared: PreparedArtifactRun | undefined,
+  report: unknown,
+): AnyRuntimeValidationReport {
+  const semantic = prepared?.catalog === "executable-semantic-artifact/v2"
+    || (typeof report === "object" && report !== null
+      && (report as { schemaVersion?: unknown }).schemaVersion === "runtime-validation-report/v2");
+  return semantic
+    ? RuntimeSemanticValidationReportSchema.parse(report)
+    : RuntimeValidationReportSchema.parse(report);
+}
+
+function protectedFailureReport(
+  prepared: PreparedArtifactRun,
+  paths: string[],
+): AnyRuntimeValidationReport {
+  return parseRuntimeReport(prepared, prepared.catalog === "executable-semantic-artifact/v2" ? {
+    schemaVersion: "runtime-validation-report/v2",
+    codeCatalog: "semantic-error-codes/v1",
+    status: "fail",
+    repairEligible: false,
+    errors: paths.map((relativePath) => ({ code: "PROTECTED_FILE_MUTATED", relativePath })),
+  } : {
     schemaVersion: "runtime-validation-report/v1",
     status: "fail",
     repairEligible: false,
-    errors: paths.map((relativePath) => ({
-      code: "PROTECTED_FILE_MUTATED",
-      relativePath,
-    })),
+    errors: paths.map((relativePath) => ({ code: "PROTECTED_FILE_MUTATED", relativePath })),
   });
 }
 
-export function buildSanitizedRepairTask(report: RuntimeValidationReport): SkvmTaskJson {
-  const safe = RuntimeValidationReportSchema.parse(report);
+export function buildSanitizedRepairTask(
+  report: AnyRuntimeValidationReport,
+  prepared?: PreparedArtifactRun,
+): SkvmTaskJson {
+  const safe = parseRuntimeReport(prepared, report);
   if (safe.status !== "fail" || !safe.repairEligible) {
     throw new Error("A sanitized repair task requires an eligible failed ValidationReport");
   }
@@ -125,6 +152,9 @@ export function buildSanitizedRepairTask(report: RuntimeValidationReport): SkvmT
     prompt: [
       "Repair only the declared generated artifacts in the current workdir.",
       "Do not modify any pre-existing file. Do not print or copy secret values.",
+      ...(prepared?.catalog === "executable-semantic-artifact/v2"
+        ? [`Inspect the protected runtime contract at ${prepared.package.manifest.runtimeContract.path}; do not modify it.`]
+        : []),
       "Use only this schema-safe validation error list:",
       JSON.stringify(projection),
       "Stop after repairing the generated artifacts.",
@@ -137,16 +167,16 @@ export function buildSanitizedRepairTask(report: RuntimeValidationReport): SkvmT
 
 export async function writeSanitizedRepairTask(
   prepared: PreparedArtifactRun,
-  report: RuntimeValidationReport,
+  report: AnyRuntimeValidationReport,
 ): Promise<string> {
   const path = join(dirname(prepared.workDir), "task", "artifact-repair-task.json");
-  await writeFile(path, `${JSON.stringify(buildSanitizedRepairTask(report), null, 2)}\n`, "utf8");
+  await writeFile(path, `${JSON.stringify(buildSanitizedRepairTask(report, prepared), null, 2)}\n`, "utf8");
   return path;
 }
 
 export async function executeArtifactValidator(
   prepared: PreparedArtifactRun,
-): Promise<RuntimeValidationReport> {
+): Promise<AnyRuntimeValidationReport> {
   const checkerPath = join(prepared.package.packageDir, prepared.package.manifest.checker.path);
   const proc = Bun.spawn(
     [prepared.runtimeExecutable, checkerPath, `--workdir=${prepared.workDir}`],
@@ -174,7 +204,7 @@ export async function executeArtifactValidator(
   } catch {
     throw new Error("Artifact validator returned invalid JSON");
   }
-  return RuntimeValidationReportSchema.parse(parsed);
+  return parseRuntimeReport(prepared, parsed);
 }
 
 function resultBase(
@@ -205,9 +235,10 @@ function resultBase(
 
 async function timedValidation(
   input: ArtifactStateMachineInput,
-): Promise<{ report: RuntimeValidationReport; durationMs: number }> {
+): Promise<{ report: AnyRuntimeValidationReport; durationMs: number }> {
   const startedAt = Date.now();
-  const report = RuntimeValidationReportSchema.parse(
+  const report = parseRuntimeReport(
+    input.prepared,
     await (input.runValidator ?? executeArtifactValidator)(input.prepared),
   );
   return { report, durationMs: Date.now() - startedAt };
@@ -230,7 +261,7 @@ export async function runArtifactStateMachine(
 
   const protectedAfterGeneration = await verifyProtectedWorkdir(input.prepared);
   if (!protectedAfterGeneration.ok) {
-    const report = protectedFailureReport(protectedAfterGeneration.mutatedPaths);
+    const report = protectedFailureReport(input.prepared, protectedAfterGeneration.mutatedPaths);
     return {
       ...resultBase(input, generation, undefined, 0),
       status: "protected-file-failure",
@@ -242,7 +273,7 @@ export async function runArtifactStateMachine(
     };
   }
 
-  let first: { report: RuntimeValidationReport; durationMs: number };
+  let first: { report: AnyRuntimeValidationReport; durationMs: number };
   try {
     first = await timedValidation(input);
   } catch {
@@ -276,7 +307,7 @@ export async function runArtifactStateMachine(
     };
   }
 
-  const repairTask = buildSanitizedRepairTask(first.report);
+  const repairTask = buildSanitizedRepairTask(first.report, input.prepared);
   const repair = await input.runRepair(repairTask);
   if (!repair.ok) {
     return {
@@ -291,7 +322,7 @@ export async function runArtifactStateMachine(
   }
   const protectedAfterRepair = await verifyProtectedWorkdir(input.prepared);
   if (!protectedAfterRepair.ok) {
-    const report = protectedFailureReport(protectedAfterRepair.mutatedPaths);
+    const report = protectedFailureReport(input.prepared, protectedAfterRepair.mutatedPaths);
     return {
       ...resultBase(input, generation, repair, first.durationMs),
       status: "protected-file-failure",
@@ -303,7 +334,7 @@ export async function runArtifactStateMachine(
     };
   }
 
-  let second: { report: RuntimeValidationReport; durationMs: number };
+  let second: { report: AnyRuntimeValidationReport; durationMs: number };
   try {
     second = await timedValidation(input);
   } catch {
