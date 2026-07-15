@@ -1,9 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   buildProbeRunArgs,
   classifyProbeExecution,
   parseModelList,
+  runCommandWithTimeout,
   summarizeProbeResult,
   tailText,
 } from "./route-probe";
@@ -103,4 +106,27 @@ describe("route-probe helpers", () => {
       stderrTail: "",
     });
   });
+
+  test("runCommandWithTimeout closes inherited pipes from a nested process tree", async () => {
+    const marker = `skill-ir-route-timeout-${process.pid}-${Date.now()}`;
+    const root = await mkdtemp(join(tmpdir(), "skill-ir-route-timeout-"));
+    const script = [
+      `Bun.spawn([process.execPath, "-e", "setInterval(() => {}, 1000)", ${JSON.stringify(marker)}], {`,
+      '  stdout: "inherit",',
+      '  stderr: "inherit",',
+      "});",
+      "await new Promise(() => {});",
+    ].join("\n");
+    await writeFile(join(root, "child.ts"), script, "utf8");
+    await writeFile(join(root, "package.json"), JSON.stringify({ scripts: { hang: "bun child.ts" } }), "utf8");
+
+    try {
+      const result = await runCommandWithTimeout([process.execPath, "run", "--cwd", root, "hang"], 100);
+
+      expect(result.timedOut).toBe(true);
+      expect(result.durationMs).toBeLessThan(3_000);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 5_000);
 });

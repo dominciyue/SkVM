@@ -105,6 +105,21 @@ export function buildProbeRunArgs(opts: BuildProbeRunArgsOptions): RealAgentRunA
   };
 }
 
+async function terminateTimedOutProcess(proc: { pid: number; kill(): void }): Promise<void> {
+  if (process.platform === "win32") {
+    const taskkill = Bun.spawn(["taskkill.exe", "/pid", String(proc.pid), "/t", "/f"], {
+      stdout: "ignore",
+      stderr: "ignore",
+    });
+    const exitCode = await taskkill.exited;
+    if (exitCode !== 0) {
+      proc.kill();
+    }
+    return;
+  }
+  proc.kill();
+}
+
 export async function runCommandWithTimeout(command: string[], timeoutMs: number): Promise<ProbeExecution> {
   const startedAt = Date.now();
   const proc = Bun.spawn(command, {
@@ -117,7 +132,6 @@ export async function runCommandWithTimeout(command: string[], timeoutMs: number
   const timeout = new Promise<"timeout">((resolve) => {
     timer = setTimeout(() => {
       timedOut = true;
-      proc.kill();
       resolve("timeout");
     }, timeoutMs);
   });
@@ -126,6 +140,9 @@ export async function runCommandWithTimeout(command: string[], timeoutMs: number
   const exitOrTimeout = await Promise.race([exited, timeout]);
   if (timer) {
     clearTimeout(timer);
+  }
+  if (exitOrTimeout === "timeout") {
+    await terminateTimedOutProcess(proc);
   }
 
   const [stdout, stderr] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);

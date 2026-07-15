@@ -32,7 +32,9 @@ For each requested model, the CLI:
 1. Builds a one-case real-agent plan through the existing `buildPlan` path.
 2. Materializes task and skill artifacts under the probe output directory.
 3. Runs the generated `bun run skvm run ...` command.
-4. Kills the process if it exceeds `--timeout-ms`.
+4. Kills the process if it exceeds `--timeout-ms`. On Windows this uses
+   `taskkill /t` so `bun run -> cmd -> bun` descendants cannot keep inherited
+   stdout/stderr pipes open after the parent is gone.
 5. Writes one compact JSONL row with route status and stdout/stderr tails.
 
 The default probe case is:
@@ -126,12 +128,18 @@ bun run typecheck
 
 - A route that passes one probe case can still fail later; the probe is a cheap filter, not a guarantee.
 - A timed-out route may be temporarily overloaded rather than permanently unusable.
-- Timeout kills the spawned `bun run skvm run` process. If a provider or platform leaves descendant processes behind, inspect `Get-CimInstance Win32_Process` and stop only the matching probe command line.
+- Timeout kills the spawned command tree on Windows and the direct subprocess
+  on other platforms. The regression test includes a nested process that
+  inherits both output pipes. A new non-Windows descendant leak requires a
+  platform-specific process-group contract rather than silently extending the
+  timeout.
 - The probe intentionally stores only stdout/stderr tails to avoid committing large raw execution logs or secrets.
 - The probe uses existing provider configuration. It does not write API keys to disk.
 
 ## Modification Notes
 
 - Add tests before changing status classification.
+- Keep timeout termination tests process-tree aware; a killed parent is not
+  sufficient if descendants retain the captured pipes.
 - Keep probe results separate from scored benchmark JSONL.
 - If a new model family needs a different representative task, document the reason in the run archive.

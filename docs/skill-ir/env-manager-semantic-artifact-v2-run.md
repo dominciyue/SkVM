@@ -38,6 +38,11 @@ gate.
    outcomes separately.
 6. Keep held-out blocked if the scorer gate fails.
 
+The first route-probe attempt exposed a Windows process-tree timeout defect:
+the parent was terminated while descendant `bun` processes retained the output
+pipes. This is experiment infrastructure, not a model outcome. The route probe
+must be rerun only after the process-tree regression test and fix are committed.
+
 The paid run must not change the task set, package, code catalog, scorer, gate,
 model, adapter, or repetitions. A scorer defect discovered later requires a
 new lock and experiment identity rather than editing this run in place.
