@@ -44,7 +44,9 @@ benchmarks/skill-ir/
     report-synthesis-skill-tasks.json
   pilots/
     law-to-markdown/source/**
-    env-manager/source/**
+    env-manager/
+      source/**
+      tasks.json
     experimental-design/source/**
 ```
 
@@ -55,7 +57,7 @@ benchmarks/skill-ir/
 | Corpus | Role | Current state |
 |---|---|---|
 | `calibration` | Six synthetic seeds for pipeline and scorer calibration | Runnable, low-weight evidence. |
-| `pilot` | Six source-backed real skills split into Wave A and Wave B | Wave A source-imported; no pilot is runnable until audited IR/tasks exist. |
+| `pilot` | Six source-backed real skills split into Wave A and Wave B | `env-manager` is tasks-authored; the other Wave A entries are source-imported. No pilot is runnable until an audited base IR exists. |
 
 Matrix and real-agent CLIs require `--corpus=calibration|pilot`. They schedule only `status: "runnable"` entries and fail when the selected corpus has none. This prevents a pilot command from silently running seed fixtures.
 
@@ -156,6 +158,19 @@ Each task must include:
 - `prompt`
 - `successCriteria`
 
+Real pilot tasks may replace wording-oriented `successCriteria` with explicit
+deterministic `eval` criteria, hard gates, and a weighted pass threshold. The
+first such family is:
+
+```text
+benchmarks/skill-ir/pilots/env-manager/tasks.json
+```
+
+It contains two development and two held-out tasks. The task contract is
+documented in `docs/skill-ir/env-manager-pilot.md`. Its corpus status is
+`tasks-authored`, which intentionally remains outside matrix scheduling until a
+separately audited base IR is available.
+
 For real-agent execution, review tasks must be self-contained. The prompt should include the patch or code snippet being reviewed, preferably as a fenced `diff` block. A task that only says "review a change" is not executable because the agent receives an empty work directory unless explicit fixtures are provided.
 
 ## Verification
@@ -167,6 +182,10 @@ bun test ./src/skill-ir/corpus-fixtures.test.ts
 ```
 
 The fixture test also validates provenance values and the real-skill intake snapshot's source commits and selected-pilot license status.
+For `env-manager`, it additionally validates custom evaluator payload schemas,
+safe fixture paths, protected-file parity, fake-secret completeness and
+allowlists, hidden expected identifiers, split shapes, and the non-runnable
+corpus state.
 
 Run all current Skill IR tests:
 
@@ -212,6 +231,9 @@ Use `docs/skill-ir/real-skill-intake.md` before adding new fixtures. Do not add 
 - A fixture can pass schema parsing but fail `validateSkillIR` if step, tool, or check references are inconsistent.
 - A task file can be syntactically valid but still weak if `successCriteria` are vague. Prefer criteria that can later be turned into automatic checks.
 - A task can be syntactically valid but unexecutable if the prompt omits the log, diff, code snippet, command, or notes the agent needs. The fixture test enforces self-contained review prompts and minimum prompt length for all seed tasks.
+- A deterministic task can accidentally leak its expected answer in the prompt
+  or duplicate a development classification shape in held-out data. Keep hidden
+  expectations evaluator-only and test held-out structure explicitly.
 - Corpus manifest entries can drift from actual file paths. Keep `irPath` and `tasksPath` current when moving files.
 - Synthetic seed skills can overstate generality if reported as real public skills.
 - GPT-friendly coding-agent tasks can hide model-family behavior differences.

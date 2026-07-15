@@ -72,7 +72,7 @@ No `llm-judge` criterion is present.
 - Create: `src/bench/evaluators/env-manager-grade.ts`
 - Modify: `src/bench/evaluators/index.ts`
 
-- [ ] **Step 1: Write failing payload and protected-file tests**
+- [x] **Step 1: Write failing payload and protected-file tests**
 
 Test an exported `envManagerGrade` with a temporary workdir. Assert that:
 
@@ -96,7 +96,7 @@ passes when `.env` is byte-identical, fails semantically when it changes or is
 deleted, and rejects absolute/traversal payload paths as evaluator
 infrastructure errors.
 
-- [ ] **Step 2: Run the focused test and confirm RED**
+- [x] **Step 2: Run the focused test and confirm RED**
 
 ```powershell
 bun test ./src/bench/evaluators/env-manager-grade.test.ts
@@ -104,7 +104,7 @@ bun test ./src/bench/evaluators/env-manager-grade.test.ts
 
 Expected: import/module failure because `env-manager-grade.ts` does not exist.
 
-- [ ] **Step 3: Implement payload schemas and safe filesystem helpers**
+- [x] **Step 3: Implement payload schemas and safe filesystem helpers**
 
 Define a Zod discriminated union with schema version
 `skill-ir-env-manager-eval/v1` and checks:
@@ -119,7 +119,7 @@ segment. Resolve and verify real paths remain under `runResult.workDir` before
 reading. Invalid payloads or evaluator I/O faults return `infraError`; missing or
 incorrect agent artifacts return ordinary `pass:false` results.
 
-- [ ] **Step 4: Implement the six deterministic checks test-first**
+- [x] **Step 4: Implement the six deterministic checks test-first**
 
 Add one failing test before each check implementation:
 
@@ -134,14 +134,14 @@ Add one failing test before each check implementation:
 - `schema-rules`: parse JSON and deep-match the declared subset under
   `variables` without rejecting extra safe metadata.
 
-- [ ] **Step 5: Register and verify the evaluator**
+- [x] **Step 5: Register and verify the evaluator**
 
 Add `import "./env-manager-grade.ts"` to the evaluator barrel. Test that
 `customEvaluators.get("skill-ir-env-manager")` returns the implementation and
 that invalid inline payloads fail as evaluator infrastructure rather than agent
 semantics.
 
-- [ ] **Step 6: Run verification and commit**
+- [x] **Step 6: Run verification and commit**
 
 ```powershell
 bun test ./src/bench/evaluators/env-manager-grade.test.ts ./src/framework/evaluator.test.ts
@@ -158,7 +158,7 @@ git commit -m "feat: add deterministic env-manager evaluator"
 - Modify: `src/skill-ir/corpus-fixtures.test.ts`
 - Modify: `benchmarks/skill-ir/corpus/corpora/pilot.json`
 
-- [ ] **Step 1: Write failing corpus/task contract tests**
+- [x] **Step 1: Write failing corpus/task contract tests**
 
 Extend `corpus-fixtures.test.ts` to require:
 
@@ -174,7 +174,7 @@ and no successCriteria wording matcher or llm-judge
 Also assert that `buildCorpusMatrixInput("pilot")` still fails because zero
 skills are `runnable`.
 
-- [ ] **Step 2: Run the corpus test and confirm RED**
+- [x] **Step 2: Run the corpus test and confirm RED**
 
 ```powershell
 bun test ./src/skill-ir/corpus-fixtures.test.ts ./src/benchmarks/skill-ir/matrix.test.ts
@@ -182,7 +182,7 @@ bun test ./src/skill-ir/corpus-fixtures.test.ts ./src/benchmarks/skill-ir/matrix
 
 Expected: env-manager remains `source-imported` and has no `tasksPath`.
 
-- [ ] **Step 3: Author two development tasks**
+- [x] **Step 3: Author two development tasks**
 
 Create:
 
@@ -208,7 +208,7 @@ The Vite task includes a `VITE_`-prefixed secret and checks that the report
 records it under `exposureRisks` without copying its value to any generated
 artifact or final output.
 
-- [ ] **Step 4: Author two held-out tasks**
+- [x] **Step 4: Author two held-out tasks**
 
 Create:
 
@@ -223,13 +223,13 @@ secret. Variable names, paths, and fake values differ from development tasks.
 Held-out evaluator payloads remain committed and deterministic but are never
 used to generate profile overlays.
 
-- [ ] **Step 5: Register the non-runnable task-authored state**
+- [x] **Step 5: Register the non-runnable task-authored state**
 
 Add `tasksPath` to the env-manager pilot entry and change only its status from
 `source-imported` to `tasks-authored`. Do not add `irPath` and do not change the
 matrix runnable filter.
 
-- [ ] **Step 6: Run verification and commit**
+- [x] **Step 6: Run verification and commit**
 
 ```powershell
 bun test ./src/skill-ir/corpus-fixtures.test.ts ./src/benchmarks/skill-ir/matrix.test.ts
@@ -243,7 +243,7 @@ git commit -m "feat: add env-manager pilot tasks"
 **Files:**
 - Create: `src/benchmarks/skill-ir/env-manager-pilot.test.ts`
 
-- [ ] **Step 1: Write a failing passing-artifact integration test**
+- [x] **Step 1: Write a failing passing-artifact integration test**
 
 Load the committed Node development task, copy its fixtures into a temporary
 workdir, write contract-compliant `.env.example`, `.env.schema.json`, and
@@ -257,7 +257,7 @@ six payload-safe evaluation summaries
 no secret value in the serialized scored row
 ```
 
-- [ ] **Step 2: Run the test and confirm RED**
+- [x] **Step 2: Run the test and confirm RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/env-manager-pilot.test.ts
@@ -267,7 +267,7 @@ Expected: committed task/evaluator integration is not yet exercised and the new
 test fails until the fixture materialization helper and exact artifacts are
 provided.
 
-- [ ] **Step 3: Add negative integration cases**
+- [x] **Step 3: Add negative integration cases**
 
 Using fresh workdirs, prove that:
 
@@ -278,7 +278,7 @@ Using fresh workdirs, prove that:
 - a wrong used/undefined set fails `env-classification`;
 - the source fixtures remain unchanged across all evaluator runs.
 
-- [ ] **Step 4: Run verification and commit**
+- [x] **Step 4: Run verification and commit**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/env-manager-pilot.test.ts ./src/benchmarks/skill-ir/scoring.test.ts
@@ -296,13 +296,13 @@ git commit -m "test: verify env-manager pilot scoring"
 - Modify: `docs/skill-ir/env-manager-fixture-validator-implementation-plan.md`
 - Append: `D:/skill优化/conversation_log.md`
 
-- [ ] **Step 1: Document the component**
+- [x] **Step 1: Document the component**
 
 Document task ids/splits, every fixture, output JSON shapes, evaluator payload
 checks, hard gates, score threshold, commands, fake-secret policy, failure
 classification, and the reason `tasks-authored` is deliberately non-runnable.
 
-- [ ] **Step 2: Run full relevant verification**
+- [x] **Step 2: Run full relevant verification**
 
 ```powershell
 bun test ./src/bench/evaluators/env-manager-grade.test.ts ./src/skill-ir/corpus-fixtures.test.ts ./src/benchmarks/skill-ir/env-manager-pilot.test.ts ./src/benchmarks/skill-ir
@@ -310,13 +310,13 @@ bun run typecheck
 git diff --check
 ```
 
-- [ ] **Step 3: Update the ledger and conversation log**
+- [x] **Step 3: Update the ledger and conversation log**
 
 Mark fixture/validator authoring complete. Keep base IR construction and paid
 single-model execution unchecked. Record RED/GREEN evidence, files, decisions,
 verification counts, and open risks in the stage log.
 
-- [ ] **Step 4: Commit and push**
+- [x] **Step 4: Commit and push**
 
 ```powershell
 git add docs/skill-ir

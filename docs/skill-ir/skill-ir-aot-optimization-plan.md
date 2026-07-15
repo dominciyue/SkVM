@@ -40,8 +40,8 @@ The package is a northbound engineering target, not a current paper claim. Artif
 | Tasks 0-10: schema, parser, validator, seed corpus, profiler, passes, lowering, matrix, analyzer, experiment docs | Completed and tested | Synthetic seed evidence is calibration-only. |
 | Tasks 11A-11E: real-agent runner, scoring, context audit, harder tasks, multi-model runs, dynamic feedback | Implemented; evidence-limited | Existing results demonstrate mechanisms and seed case studies, not broad generalization. |
 | Tasks 11F-11G: promotion policy and validation planner | Implemented and frozen | Keep as advisory method-support tooling; do not deepen before real-skill evidence. |
-| Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; source-backed corpus import is next. |
-| Task 11I: real-skill restart and artifact maturity | In progress | Pilot runtime identity, persistent workdirs, deterministic evaluator dispatch, resource parity, and evidence-bound provenance are implemented. Next: author the env-manager fixture/validator and run the single-model vertical. |
+| Task 11H: provenance/evidence metadata and real-skill source audit | Completed | Six licensed pilots selected; all three Wave A source closures are imported and digest-pinned. |
+| Task 11I: real-skill restart and artifact maturity | In progress | `env-manager` now has source-backed development/held-out tasks and deterministic hard-gate scoring. It remains non-runnable without a base IR. Next: calibrate `no-skill | original`, then construct and audit the base IR. |
 | Task 12: report and slides | Deferred | Begin after the first real-skill main table and case study exist. |
 
 ### Active Sequence
@@ -52,8 +52,10 @@ The package is a northbound engineering target, not a current paper claim. Artif
 - [x] Materialize exact file-backed original text and resources; keep judge criteria out of the agent prompt.
 - [x] Compile Final IR only from `original × development` feedback and validate provenance before held-out `ir-pgo`.
 - [x] Add persistent per-row workdirs, existing-evaluator dispatch, infra/semantic classification, and model/family/run/panel metadata before pooled execution.
-- [ ] Author `env-manager` development/held-out fixtures and deterministic validator before constructing its base IR.
-- [ ] Run the single-model `env-manager` vertical through `no-skill | original | ir-static`, original-guided feedback, Final IR, and held-out `ir-pgo`; label it engineering calibration.
+- [x] Author `env-manager` development/held-out fixtures and deterministic validator before constructing its base IR.
+- [ ] Preregister and run the single-model `env-manager` `no-skill | original` development calibration; verify task/scorer discrimination before IR tuning.
+- [ ] Construct and audit the `env-manager` base IR, then add `ir-static` to the engineering-calibration vertical.
+- [ ] Compile original-guided development feedback into a provenance-bound Final IR and evaluate held-out `ir-pgo`; keep the whole first vertical outside the pooled main claim.
 - [ ] Lock the reproducible vertical configuration in `env-manager-vertical-lock.json`.
 - [ ] Implement balanced pooled aggregation with per-model support vectors and conflict exclusion; preregister the fixed panel and regression gates.
 - [ ] Run one shared panel-conditioned Final IR on `env-manager`, reporting aggregate, per-model, worst-model, regressions, and infrastructure exclusions.

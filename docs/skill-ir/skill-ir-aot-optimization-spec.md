@@ -24,6 +24,12 @@ no-skill | original | ir-static | ir-pgo
 no-skill | original | ir-static
 ```
 
+**Current implementation status (2026-07-15):** `env-manager` has an exact
+source snapshot, two development tasks, two held-out tasks, and a deterministic
+six-criterion evaluator. Its corpus state is `tasks-authored`; it has no
+`irPath`, base IR, Final IR, or real-model result yet, so it remains outside
+pilot scheduling and contributes no optimization-effect evidence.
+
 此阶段不得把 base IR 标成 PGO。`original × development` 的结果通过 profile feedback 编译成带 provenance 的 Final IR；只有 provenance、corpus、source/base/final digest 与 development split 都通过校验后，`ir-pgo` 才能在显式选择的 held-out tasks 上运行。
 
 ### 0.2 当前证据边界
