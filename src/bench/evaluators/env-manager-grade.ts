@@ -1,3 +1,4 @@
+import { spawn } from "node:child_process"
 import { lstat, readFile, readdir, realpath } from "node:fs/promises"
 import path from "node:path"
 import { z } from "zod"
@@ -215,17 +216,24 @@ interface RegularFileTarget {
   realPath: string
 }
 
-async function listRegularFiles(root: string): Promise<RegularFileTarget[]> {
-  const directoryCache = new Map<string, RegularFileTarget[]>()
+interface WorkdirTraversal {
+  files: RegularFileTarget[]
+  relativePaths: string[]
+}
+
+const EMPTY_TRAVERSAL: WorkdirTraversal = { files: [], relativePaths: [] }
+
+async function listWorkdirArtifacts(root: string): Promise<WorkdirTraversal> {
+  const directoryCache = new Map<string, WorkdirTraversal>()
   const activeDirectories = new Set<string>()
 
-  async function collect(directory: string): Promise<RegularFileTarget[]> {
+  async function collect(directory: string): Promise<WorkdirTraversal> {
     const realDirectory = await realpath(directory)
-    if (!isContained(root, realDirectory)) return []
+    if (!isContained(root, realDirectory)) return EMPTY_TRAVERSAL
 
     const cached = directoryCache.get(realDirectory)
     if (cached) return cached
-    if (activeDirectories.has(realDirectory)) return []
+    if (activeDirectories.has(realDirectory)) return EMPTY_TRAVERSAL
 
     activeDirectories.add(realDirectory)
     try {
@@ -233,32 +241,72 @@ async function listRegularFiles(root: string): Promise<RegularFileTarget[]> {
       entries.sort((left, right) => left.name.localeCompare(right.name))
 
       const files: RegularFileTarget[] = []
+      const relativePaths: string[] = []
       for (const entry of entries) {
+        relativePaths.push(entry.name)
         const resolvedTarget = await realpath(path.join(realDirectory, entry.name))
         if (!isContained(root, resolvedTarget)) continue
 
         const targetStat = await lstat(resolvedTarget)
         if (targetStat.isDirectory()) {
-          const nestedFiles = await collect(resolvedTarget)
+          const nested = await collect(resolvedTarget)
           files.push(
-            ...nestedFiles.map((file) => ({
+            ...nested.files.map((file) => ({
               relativePath: path.join(entry.name, file.relativePath),
               realPath: file.realPath,
             })),
+          )
+          relativePaths.push(
+            ...nested.relativePaths.map((relativePath) =>
+              path.join(entry.name, relativePath),
+            ),
           )
         } else if (targetStat.isFile()) {
           files.push({ relativePath: entry.name, realPath: resolvedTarget })
         }
       }
 
-      directoryCache.set(realDirectory, files)
-      return files
+      const result = { files, relativePaths }
+      directoryCache.set(realDirectory, result)
+      return result
     } finally {
       activeDirectories.delete(realDirectory)
     }
   }
 
   return collect(root)
+}
+
+const WINDOWS_STREAM_CHECK = [
+  "$ErrorActionPreference = 'Stop'",
+  "$paths = [Console]::In.ReadToEnd() | ConvertFrom-Json",
+  "foreach ($artifactPath in @($paths)) {",
+  "  foreach ($stream in @(Get-Item -LiteralPath $artifactPath -Stream * -ErrorAction Stop)) {",
+  "    if ($stream.Stream -ne ':$DATA' -and $stream.Stream -ne '$DATA') { exit 10 }",
+  "  }",
+  "}",
+  "exit 0",
+].join("\n")
+
+async function hasNonDefaultWindowsStream(filePaths: string[]): Promise<boolean> {
+  if (process.platform !== "win32" || filePaths.length === 0) return false
+
+  return new Promise<boolean>((resolve, reject) => {
+    const child = spawn(
+      "powershell.exe",
+      ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", WINDOWS_STREAM_CHECK],
+      { stdio: ["pipe", "ignore", "ignore"], windowsHide: true },
+    )
+
+    child.once("error", reject)
+    child.stdin.once("error", reject)
+    child.once("close", (code) => {
+      if (code === 0) resolve(false)
+      else if (code === 10) resolve(true)
+      else reject(new Error("Windows stream enumeration failed"))
+    })
+    child.stdin.end(JSON.stringify(filePaths))
+  })
 }
 
 async function checkNoSecretLeak(
@@ -276,9 +324,22 @@ async function checkNoSecretLeak(
     allowed.add(portablePath(allowedPath))
   }
 
-  const files = await listRegularFiles(realWorkDir)
+  const traversal = await listWorkdirArtifacts(realWorkDir)
+  if (
+    traversal.relativePaths.some((relativePath) =>
+      payload.values.some((value) => portablePath(relativePath).includes(value)),
+    )
+  ) {
+    return failing("Secret material was detected in artifact paths.")
+  }
+
+  const realFilePaths = [...new Set(traversal.files.map((file) => file.realPath))]
+  if (await hasNonDefaultWindowsStream(realFilePaths)) {
+    return failing("Non-default artifact streams are not allowed.")
+  }
+
   const scannedTargets = new Set<string>()
-  for (const file of files) {
+  for (const file of traversal.files) {
     const relative = portablePath(file.relativePath)
     if (allowed.has(relative)) continue
     if (scannedTargets.has(file.realPath)) continue
