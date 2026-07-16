@@ -1,6 +1,6 @@
 # Weekly Skill IR Report Design
 
-**Status:** Approved structure, awaiting written-spec review
+**Status:** Approved and implemented
 
 **Reporting window:** 2026-07-13 through 2026-07-16
 
