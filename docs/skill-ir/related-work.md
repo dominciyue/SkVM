@@ -180,8 +180,9 @@ Before writing benchmark, analyzer, experiment-design, report, or slides, read t
 ```text
 docs/skill-ir/skill-ir-aot-optimization-spec.md
 docs/skill-ir/skill-ir-aot-optimization-plan.md
-docs/skill-ir/aot-passes.md
-docs/skill-ir/lowering.md
+docs/skill-ir/ir-core.md
+docs/skill-ir/evaluation-system.md
+docs/skill-ir/optimization-and-artifacts.md
 ```
 
 If a future implementation changes the schema or pass behavior because of this literature review, update the relevant component document in the same commit.

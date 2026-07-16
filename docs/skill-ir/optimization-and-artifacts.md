@@ -1,0 +1,318 @@
+# Skill 优化、Final IR 与 Artifact Runtime
+
+本文档说明静态/动态结合、dual-source repair、Final IR provenance、artifact package、
+preflight、semantic validator 和 bounded repair。基础 IR 见 `ir-core.md`，实验数值见
+`experiment-results.md`。
+
+## 1. 优化分层
+
+```text
+L0 original SKILL.md
+  -> static source audit
+L1 base/ir-static
+  -> development execution feedback
+Final IR candidate
+  -> package compiler
+L2/L3 executable artifact candidate
+  -> development validation
+validated package candidate
+```
+
+静态 pass 可以改善明确规则和环境检查；动态 evidence 只处理运行中可复现的残差。
+两者都不能使用 held-out 或 scorer expected。
+
+## 2. Profile Feedback
+
+较早的 profile loop 从 execution trace 生成 annotation，再由
+`applyProfileGuidedRepair` 增加 check/recovery。它适合受控 rule failure，但不能
+可靠表达完整 output schema、source-qualified finding 或 model-family 偏差。
+
+当前真实 pilot 使用更严格的 typed dual-source evidence，旧 profile 路径保留用于
+synthetic calibration 和兼容已有结果。
+
+## 3. Dual-source RepairEvidence
+
+```ts
+buildDualSourceRepairEvidence(originalRows, staticRows, options)
+```
+
+Evidence 类型：
+
+```text
+json-schema-contract
+source-qualified-finding
+```
+
+Lineage：
+
+```text
+reproduced
+newly-observable
+```
+
+合并规则：
+
+| Original | Static | 行为 |
+|---|---|---|
+| fail | pass | 视为静态已解决，不生成 repair。 |
+| fail | fail | 生成 reproduced residual。 |
+| pass | fail | 静态回归，阻断编译。 |
+| prerequisite fail | finer residual visible | 可标 newly-observable，但必须保留 lineage。 |
+
+`RepairEvidence` 只携带 typed failure、targetRef、task/model/run identity 和 evidence
+digest，不携带 evaluator expected 集合。
+
+## 4. Final IR Provenance
+
+`FinalIRProvenanceSchema` 支持 legacy v1 和 identified v2。V2 记录：
+
+- corpus、skill、source/base/overlay/final digest；
+- original/static development result digest；
+- repair catalog 与 policy；
+- model/family/adapter/version/run/panel construction config；
+- task split 和 task ids。
+
+```ts
+buildDualSourceFinalIRProvenance(...)
+readAndValidateFinalIRProvenance(...)
+validateConstructionConfigsMatchRows(...)
+```
+
+Held-out runner 会重新验证 provenance。缺 repair、digest drift、mixed identity、重复
+evidence 或 development/held-out 混合都会拒绝。
+
+## 5. Artifact Package
+
+工程目标：
+
+```text
+package/
+  skill-ir.json
+  skill.md
+  validation-policy.json
+  package-manifest.json
+  package-provenance.json
+  artifacts/
+    contracts/
+    templates/
+    checks/
+    scripts/
+```
+
+Manifest 声明 catalog、artifact path、digest 和 executable entrypoint。Provenance
+绑定 source/base IR、task contract、repair evidence 和 compiler identity。未声明文件、
+路径逃逸、绝对路径、digest drift 或 catalog mismatch 均失败。
+
+公开 API：
+
+```ts
+validateArtifactPackage(...)
+readAndValidateArtifactDevelopmentLock(...)
+readAndValidateSemanticArtifactDevelopmentLock(...)
+```
+
+V1 与 V2 schema 使用 literal/discriminated contract，支持新 catalog 时不能拓宽旧
+lock 的语义。
+
+## 6. Package Compiler
+
+V1 compiler 从冻结 base IR、gold-isolated RepairEvidence 和用户可见 task contract
+生成 template、structural checker、skill view、manifest 和 provenance。
+
+V2 compiler 额外生成：
+
+- semantic contract schema；
+- evidence derivation program；
+- semantic checker；
+- semantic validation policy。
+
+V2 compiler 不接受 evaluator payload、criterion id、threshold、held-out 或 B-layer
+candidate。Canary tests 递归扫描 package sink。
+
+编译与验证：
+
+```powershell
+bun ./src/benchmarks/skill-ir/semantic-artifact-run.ts `
+  '--root-dir=.' `
+  '--base-ir=benchmarks/skill-ir/pilots/env-manager/base-ir.json' `
+  '--tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json' `
+  '--source=benchmarks/skill-ir/pilots/env-manager/source/SKILL.md' `
+  '--out-dir=<new-package-dir>'
+
+bun ./src/benchmarks/skill-ir/semantic-artifact-run.ts `
+  '--verify-only=<package-dir>'
+```
+
+冻结 package 只运行 verify-only，不原地重新编译覆盖。
+
+## 7. Preflight
+
+```ts
+preflightArtifactRun(input): Promise<PreparedArtifactRun>
+materializeArtifactTemplates(prepared)
+verifyProtectedWorkdir(prepared)
+```
+
+共同检查：
+
+- package/provenance/lock/digest；
+- skill/task/split/model/adapter/environment/context scope；
+- workdir 和 output path containment；
+- symlink/reparse/escape；
+- executable、template 和 network/package-install policy；
+- fixture protected snapshot。
+
+V2 在 generation 前执行 evidence program，生成：
+
+```text
+.skvm-artifact/semantic-contract.json
+```
+
+Runtime contract 来自公开规则和 agent 可见 workdir。模型可读但不可修改；文件加入
+protected digest。Evidence timeout、crash、invalid JSON 或 path 问题属于
+infrastructure，不触发 semantic repair。
+
+## 8. Runtime State Machine
+
+```ts
+runArtifactStateMachine(input): Promise<ArtifactRuntimeResult>
+```
+
+固定流程：
+
+```text
+generation
+  -> protected check
+  -> validate
+  -> check-only: stop
+  -> one-repair and eligible fail: one sanitized repair call
+  -> protected check
+  -> revalidate
+  -> stop
+```
+
+无第三次 repair。Provider、validator schema、evidence 或 protected mutation failure
+不能 repair。
+
+Repair report 只投影：
+
+```text
+code
+relativePath
+jsonPointer
+missingField
+expectedType
+```
+
+未知字段、free-form message、absolute path、actual value、secret 或 B disposition 会
+被 strict schema 拒绝。
+
+## 9. Executable Artifact V1
+
+Catalog：
+
+```text
+executable-artifact/v1
+runtime-validation-report/v1
+```
+
+V1 checker 负责：
+
+- required files 和 JSON parse；
+- report 五数组结构；
+- template sentinel；
+- synthetic secret safety；
+- protected input。
+
+Development 结果中 runtime 通过但 scorer 仍拒绝 classification/schema，说明
+structural validation 不是任务成功权威。V1 package、lock 和结果冻结，不原地修改。
+
+## 10. Semantic Artifact V2
+
+Catalog：
+
+```text
+executable-semantic-artifact/v2
+runtime-validation-report/v2
+semantic-error-codes/v1
+```
+
+### A 层，当前生效
+
+合法证据：
+
+- public skill rules；
+- user-visible task contract；
+- dotenv 变量名，不是值；
+- TypeScript AST 中静态 environment reference；
+- `Number(...)`、`parseInt(...)` 等明确类型证据；
+- relative path 和 symbol table。
+
+封闭错误码：
+
+```text
+MISSING_OBSERVED_VARIABLE
+INVALID_RULE_TYPE
+MISSING_RULE_CONSTRAINT
+MISSING_SENSITIVE_MARKER
+UNSUPPORTED_RULE_FIELD
+INVALID_SOURCE_QUALIFIED_FINDING
+MISSING_SOURCE_QUALIFIED_FINDING
+```
+
+证据不足时移除强约束并记录 limitation，不猜测 scorer gold。每个正向推断都有
+reverse-evidence test。
+
+### B 层，dormant
+
+`classification-evidence.ts` 只导出类型。V2 没有 B producer、serializer、package
+option 或 runtime import。Disposition 不得进入 package、runtime contract、repair、
+raw/scored row、lock 或 gate。
+
+## 11. Lock 与实验门禁
+
+Development lock 在付费前冻结：
+
+- package/provenance digest；
+- catalog/code catalog；
+- model/family、adapter/version；
+- task ids、split、context、environment；
+- repetitions 和 repair modes；
+- numerical scorer gate；
+- attribution activation gate。
+
+Runtime validation 与 scorer gate 分开。出现 repair 只证明状态机被激活，不证明
+任务质量改善。
+
+## 12. 当前已知限制
+
+- V2 仍不能完整推导 exact classification。
+- Public schema 语义覆盖不足。
+- Repair 可能引入结构回归。
+- Check/repair arms 使用独立 generation，因果 attribution 有噪声。
+- Evidence bundle 约 8.5 MiB，因为内嵌 TypeScript parser；外置需要新 ABI/catalog。
+- 当前只有单模型、bare-agent、Windows、clean development evidence。
+
+## 13. 测试
+
+```powershell
+bun test `
+  ./src/benchmarks/skill-ir/repair-evidence.test.ts `
+  ./src/benchmarks/skill-ir/final-ir-provenance.test.ts `
+  ./src/benchmarks/skill-ir/artifact-package.test.ts `
+  ./src/benchmarks/skill-ir/artifact-preflight.test.ts `
+  ./src/benchmarks/skill-ir/artifact-runtime.test.ts `
+  ./src/benchmarks/skill-ir/semantic-evidence.test.ts `
+  ./src/benchmarks/skill-ir/semantic-checker.test.ts `
+  ./src/benchmarks/skill-ir/env-manager-semantic-activation.test.ts
+bun run typecheck
+```
+
+## 14. 修改注意
+
+1. 冻结 catalog/lock/result 永不原地调优。
+2. 新 semantic code 需要新 code catalog 和 package digest。
+3. 新 evidence rule 必须有 canary、reverse-evidence 和 limitation test。
+4. Runtime validator 不得读取 scorer expected。
+5. Held-out 只能消费通过 development gate 的同一 provenance-bound artifact。
+6. 组件变化更新本文档，不再新增 package/run Markdown。
