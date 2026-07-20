@@ -222,13 +222,13 @@ src/benchmarks/skill-ir/failure-audit.test.ts
 src/benchmarks/skill-ir/failure-audit-run.ts
 ```
 
-- [ ] RED：覆盖 success、infra、runtime false pass、runtime/scorer aligned failure、
+- [x] RED：覆盖 success、infra、runtime false pass、runtime/scorer aligned failure、
   repair revalidation failure 和 baseline-without-runtime-metadata。
-- [ ] GREEN：按 case/system/mode/task/runIndex 对齐 raw/scored runtime 与六项 scorer
+- [x] GREEN：按 case/system/mode/task/runIndex 对齐 raw/scored runtime 与六项 scorer
   criteria，只输出错误码、相对路径、JSON pointer 和判定，不复制文件内容或 secret。
-- [ ] GREEN：比较 mini 与 GPT-4.1 的 criterion transition，输出
+- [x] GREEN：比较 mini 与 GPT-4.1 的 criterion transition，输出
   `mini-fail/strong-pass` 候选；不自动宣称模型因果或 Skill IR 增益。
-- [ ] 验证：
+- [x] 验证：
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/failure-audit.test.ts

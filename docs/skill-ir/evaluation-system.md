@@ -235,6 +235,19 @@ python scripts/analyze_skill_ir_slices.py <scored.jsonl> <slices.csv>
 报告字段包括 mean/worst success、variance、rule violations、token、latency、paired
 delta、regression、negative delta、infrastructure 和 provenance/model/context slice。
 
+能力诊断 failure audit：
+
+```powershell
+bun ./src/benchmarks/skill-ir/failure-audit-run.ts `
+  --lock=benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-lock.json `
+  --out-dir=results/skill-ir/env-manager-gpt41-capability-failure-audit
+```
+
+无 `--strong-scored` 时，CLI 从 lock 加载历史 mini 的 static/check-only/one-repair
+20 行并生成 audit。强模型完成后必须提供三次 `--strong-scored=<path>`，再生成逐
+criterion transition。Audit 只保留错误码、相对路径、JSON pointer、criterion pass
+和失败分类，不复制 stdout、workdir 内容、secret 或 evaluator expected。
+
 跨批次独立生成只能作诊断，不能替代同一冻结矩阵内 paired comparison。
 
 ## 11. Route Health

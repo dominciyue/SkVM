@@ -301,6 +301,11 @@ Runtime validation 与 scorer gate 分开。出现 repair 只证明状态机被�
 - Repair 可能引入结构回归。
 - Check/repair arms 使用独立 generation，因果 attribution 有噪声。
 - Evidence bundle 约 8.5 MiB，因为内嵌 TypeScript parser；外置需要新 ABI/catalog。
+
+`failure-audit.ts` 将 scored runtime metadata 分类为 success、infrastructure、runtime
+false pass、runtime/scorer aligned failure、repair revalidation failure 等，并把
+mini/strong criterion transition 仅标为 capability-signal candidate。工具固定输出
+`causalClaimAvailable=false`，最终归因仍需结合公开证据充分性和跨时间 provider 限制。
 - 当前只有单模型、bare-agent、Windows、clean development evidence。
 
 ## 13. 测试
