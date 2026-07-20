@@ -280,9 +280,9 @@ runtime-validation-report/v3
 public-contract-error-codes/v2
 ```
 
-V3 当前已完成 contract/package schema 与 evidence producer，尚未完成 compiler、
-preflight、checker、snapshot 或真实实验。V1/V2 schema、parser、digest 和结果保持
-不变。
+V3 当前已完成 contract/package schema、evidence producer、package compiler、
+preflight 和 checker，尚未完成 Runner snapshot、一次修复接线、冻结 package/lock
+或真实实验。V1/V2 schema、parser、digest 和结果保持不变。
 
 `public-contract.ts` 定义：
 
@@ -356,8 +356,59 @@ bun test `
 bun run typecheck
 ```
 
-下一阶段由 compiler、preflight 和 checker 消费该 contract。Compiler 不得扩展
-evidence 输入面；checker 才能计算最终分类，且计算结果只用于校验 workdir。
+Compiler、preflight 和 checker 只能消费该 contract，不得扩展 evidence 输入面；
+checker 才能计算最终分类，且计算结果只用于校验 workdir。
+
+### 11.3 Compiler、Preflight 与 Checker
+
+```ts
+compileEnvManagerPublicContractArtifactPackage(...)
+preflightArtifactRun(...)
+validatePublicContractOutputs(...)
+```
+
+Compiler 生成并逐文件 digest 绑定：
+
+```text
+artifacts/contracts/output-contract.json
+artifacts/contracts/public-policy.json
+artifacts/schemas/public-runtime-contract.schema.json
+artifacts/scripts/evidence-program.mjs
+artifacts/checks/public-contract-checker.mjs
+artifacts/templates/.env.example
+artifacts/templates/.env.schema.json
+artifacts/templates/env-report.json
+validation-policy.json
+```
+
+Gold-isolation 测试向 task evaluator、held-out prompt、secret 和 final classification
+sink 注入 canary，并递归确认 package 中不存在这些值。两次独立编译要求所有文件
+byte-for-byte 相同，随后通过 V3 catalog dispatch 验证 manifest/provenance/digest。
+
+Preflight 在 generation 前执行 package 内 `evidence-program.mjs`，校验
+`skill-ir-public-runtime-contract/v3` 后把
+`.skvm-artifact/public-runtime-contract.json` 加入 protected snapshot。Evidence
+timeout、非零退出、无效 JSON/schema、pre-existing path 或 link 都是 infrastructure
+failure，不进入 repair。
+
+Checker 只消费 output contract、protected runtime contract 和最终 workdir。它在
+内存中推导 exact classification，检查 confirmed schema rule、source-qualified
+finding、`.env.example` inventory、template sentinel 和 synthetic secret prefix。
+所有 repair-eligible error 都带封闭 `contractRef`/`operation`；runtime validator
+仍不是离线 scorer。
+
+验证：
+
+```powershell
+bun test `
+  ./src/benchmarks/skill-ir/public-contract-artifact-compiler.test.ts `
+  ./src/benchmarks/skill-ir/public-contract-checker.test.ts `
+  ./src/benchmarks/skill-ir/artifact-preflight.test.ts
+```
+
+当前边界：package plumbing 已完成；Runner 尚未保存共享 generation 的 pre/post
+snapshot，也尚未调用 V3 repair。因此本阶段不能形成 repair attribution 或方法效果
+结论。
 
 ## 12. Lock 与实验门禁
 

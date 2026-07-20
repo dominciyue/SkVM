@@ -375,17 +375,19 @@ bun test ./src/benchmarks/skill-ir/public-contract.test.ts `
 ```text
 新增 src/benchmarks/skill-ir/public-contract-artifact-compiler.ts
 新增 src/benchmarks/skill-ir/public-contract-artifact-compiler.test.ts
+新增 src/benchmarks/skill-ir/public-contract-evidence-cli.ts
+新增 src/benchmarks/skill-ir/public-contract-checker.ts
 新增 src/benchmarks/skill-ir/public-contract-checker-cli.ts
 新增 src/benchmarks/skill-ir/public-contract-checker.test.ts
 修改 src/benchmarks/skill-ir/artifact-preflight.ts
 修改 src/benchmarks/skill-ir/artifact-preflight.test.ts
 ```
 
-- [ ] RED：package 不得包含 evaluator/held-out/B gold canary，输出必须 byte
+- [x] RED：package 不得包含 evaluator/held-out/B gold canary，输出必须 byte
   deterministic，V1/V2 digest 不变。
-- [ ] GREEN：编译 output contract、public policy、evidence program、checker、
+- [x] GREEN：编译 output contract、public policy、evidence program、checker、
   deterministic skeleton、manifest 和 provenance。
-- [ ] GREEN：preflight 生成并保护 runtime contract；checker 独立验证 schema、
+- [x] GREEN：preflight 生成并保护 runtime contract；checker 独立验证 schema、
   classification、exposure、source-qualified findings 和 protected inputs。
 
 ### Task 3.5：共享 generation snapshot 与 paired scorer

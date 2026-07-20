@@ -4,8 +4,10 @@ import {
   parseSafeRelativePath,
   validateArtifactPackage,
   type ValidatedArtifactPackage,
+  type ValidatedPublicContractArtifactPackage,
   type ValidatedSemanticArtifactPackage,
 } from "./artifact-package";
+import { PublicRuntimeContractSchema } from "./public-contract";
 import { SemanticRuntimeContractSchema } from "./semantic-contract";
 import { sha256Bytes } from "./source-fixture";
 
@@ -48,6 +50,10 @@ export type PreparedArtifactRun = PreparedArtifactRunBase & (
   | {
     catalog: "executable-semantic-artifact/v2";
     package: ValidatedSemanticArtifactPackage;
+  }
+  | {
+    catalog: "executable-public-contract-artifact/v3";
+    package: ValidatedPublicContractArtifactPackage;
   }
 );
 
@@ -100,7 +106,10 @@ async function snapshotProtectedFiles(workDir: string, excluded: Set<string>): P
 
 function assertCommonScope(
   input: ArtifactPreflightInput,
-  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage,
+  packageRecord:
+    | ValidatedArtifactPackage
+    | ValidatedSemanticArtifactPackage
+    | ValidatedPublicContractArtifactPackage,
 ): void {
   const { scope } = input;
   const provenance = packageRecord.provenance;
@@ -129,10 +138,26 @@ function assertV1Scope(input: ArtifactPreflightInput, packageRecord: ValidatedAr
 }
 
 function isSemanticPackage(
-  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage,
+  packageRecord:
+    | ValidatedArtifactPackage
+    | ValidatedSemanticArtifactPackage
+    | ValidatedPublicContractArtifactPackage,
 ): packageRecord is ValidatedSemanticArtifactPackage {
   return packageRecord.manifest.catalog === "executable-semantic-artifact/v2";
 }
+
+function isPublicContractPackage(
+  packageRecord:
+    | ValidatedArtifactPackage
+    | ValidatedSemanticArtifactPackage
+    | ValidatedPublicContractArtifactPackage,
+): packageRecord is ValidatedPublicContractArtifactPackage {
+  return packageRecord.manifest.catalog === "executable-public-contract-artifact/v3";
+}
+
+type RuntimeContractPackage =
+  | ValidatedSemanticArtifactPackage
+  | ValidatedPublicContractArtifactPackage;
 
 async function prepareRuntimeContractDestination(workDir: string, relativePath: string): Promise<string> {
   const destination = containedPath(workDir, relativePath);
@@ -156,7 +181,7 @@ async function prepareRuntimeContractDestination(workDir: string, relativePath: 
 }
 
 async function deriveRuntimeContract(
-  packageRecord: ValidatedSemanticArtifactPackage,
+  packageRecord: RuntimeContractPackage,
   workDir: string,
   runtimeExecutable: string,
 ): Promise<void> {
@@ -187,17 +212,19 @@ async function deriveRuntimeContract(
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
   ]).finally(() => clearTimeout(timer));
-  if (timedOut) throw new Error(`Semantic evidence program timed out after ${timeoutMs}ms`);
-  if (exitCode !== 0) throw new Error(`Semantic evidence program failed with exit ${exitCode}`);
+  if (timedOut) throw new Error(`Artifact evidence program timed out after ${timeoutMs}ms`);
+  if (exitCode !== 0) throw new Error(`Artifact evidence program failed with exit ${exitCode}`);
 
   const destinationStat = await lstat(destination).catch(() => undefined);
   if (!destinationStat?.isFile() || destinationStat.isSymbolicLink()) {
-    throw new Error("Semantic evidence program did not produce a regular runtime contract");
+    throw new Error("Artifact evidence program did not produce a regular runtime contract");
   }
   try {
-    SemanticRuntimeContractSchema.parse(JSON.parse(await readFile(destination, "utf8")));
+    const raw = JSON.parse(await readFile(destination, "utf8"));
+    if (isSemanticPackage(packageRecord)) SemanticRuntimeContractSchema.parse(raw);
+    else PublicRuntimeContractSchema.parse(raw);
   } catch {
-    throw new Error("Semantic evidence program produced an invalid runtime contract JSON/schema");
+    throw new Error("Artifact evidence program produced an invalid runtime contract JSON/schema");
   }
 }
 
@@ -210,12 +237,17 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
       packageDir: input.packageDir,
       expectedCatalog: "executable-semantic-artifact/v2",
     })
-    : await validateArtifactPackage({
-      packageDir: input.packageDir,
-      expectedCatalog: "executable-artifact/v1",
-    });
+    : rawManifest.catalog === "executable-public-contract-artifact/v3"
+      ? await validateArtifactPackage({
+        packageDir: input.packageDir,
+        expectedCatalog: "executable-public-contract-artifact/v3",
+      })
+      : await validateArtifactPackage({
+        packageDir: input.packageDir,
+        expectedCatalog: "executable-artifact/v1",
+      });
   assertCommonScope(input, packageRecord);
-  if (!isSemanticPackage(packageRecord)) {
+  if (!isSemanticPackage(packageRecord) && !isPublicContractPackage(packageRecord)) {
     assertV1Scope(input, packageRecord);
   }
 
@@ -258,9 +290,9 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
     throw new Error("Artifact validation policy must disable network and package installation");
   }
 
-  if (isSemanticPackage(packageRecord)) {
+  if (isSemanticPackage(packageRecord) || isPublicContractPackage(packageRecord)) {
     if (generatedSet.has(packageRecord.manifest.runtimeContract.path)) {
-      throw new Error("Runtime semantic contract cannot be a generated output");
+      throw new Error("Runtime contract cannot be a generated output");
     }
     await deriveRuntimeContract(packageRecord, workDir, runtimeExecutable);
   }
@@ -273,9 +305,17 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
     templates,
     protectedFiles: await snapshotProtectedFiles(workDir, generatedSet),
   };
-  return isSemanticPackage(packageRecord)
-    ? { ...preparedBase, catalog: "executable-semantic-artifact/v2", package: packageRecord }
-    : { ...preparedBase, catalog: "executable-artifact/v1", package: packageRecord };
+  if (isSemanticPackage(packageRecord)) {
+    return { ...preparedBase, catalog: "executable-semantic-artifact/v2", package: packageRecord };
+  }
+  if (isPublicContractPackage(packageRecord)) {
+    return {
+      ...preparedBase,
+      catalog: "executable-public-contract-artifact/v3",
+      package: packageRecord,
+    };
+  }
+  return { ...preparedBase, catalog: "executable-artifact/v1", package: packageRecord };
 }
 
 export async function materializeArtifactTemplates(input: PreparedArtifactRun): Promise<void> {

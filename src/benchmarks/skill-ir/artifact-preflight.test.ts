@@ -3,6 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promis
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
+import { compileEnvManagerPublicContractArtifactPackage } from "./public-contract-artifact-compiler";
+import { PublicRuntimeContractSchema } from "./public-contract";
 import { compileEnvManagerSemanticArtifactPackage } from "./semantic-artifact-compiler";
 import { SemanticRuntimeContractSchema } from "./semantic-contract";
 import { sha256Bytes } from "./source-fixture";
@@ -39,6 +41,18 @@ async function tempDir(label: string): Promise<string> {
 async function compileSemanticPackage(): Promise<string> {
   const outDir = join(await tempDir("skill-ir-semantic-preflight-package-"), "package");
   await compileEnvManagerSemanticArtifactPackage({
+    rootDir: projectRoot,
+    baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
+    taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
+    sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    outDir,
+  });
+  return outDir;
+}
+
+async function compilePublicContractPackage(): Promise<string> {
+  const outDir = join(await tempDir("skill-ir-public-preflight-package-"), "package");
+  await compileEnvManagerPublicContractArtifactPackage({
     rootDir: projectRoot,
     baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
     taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
@@ -242,6 +256,38 @@ describe("artifact preflight", () => {
       ".skvm-artifact/semantic-contract.json",
     );
     expect(JSON.stringify(prepared)).not.toContain("TEST_ONLY_LOCAL");
+  });
+
+  test("derives and protects the V3 public runtime contract before generation", async () => {
+    const publicPackage = await compilePublicContractPackage();
+    await writeFile(
+      join(workDir, ".env"),
+      "APP_PORT=3000\nDB_PASSWORD=TEST_ONLY_PUBLIC_PREFLIGHT_CANARY\n",
+      "utf8",
+    );
+    await mkdir(join(workDir, "src"), { recursive: true });
+    await writeFile(
+      join(workDir, "src/config.js"),
+      "const port = Number(process.env.APP_PORT);\nconst password = process.env.DB_PASSWORD;\n",
+      "utf8",
+    );
+
+    const prepared = await preflightArtifactRun({
+      packageDir: publicPackage,
+      workDir,
+      scope,
+      expectedContractDigest: await taskContractDigest(publicPackage),
+    });
+    const contractPath = join(workDir, ".skvm-artifact", "public-runtime-contract.json");
+    const contract = PublicRuntimeContractSchema.parse(
+      JSON.parse(await readFile(contractPath, "utf8")),
+    );
+    expect(prepared.catalog).toBe("executable-public-contract-artifact/v3");
+    expect(contract.variables.map((variable) => variable.name)).toEqual(["APP_PORT", "DB_PASSWORD"]);
+    expect(prepared.protectedFiles.map((file) => file.relativePath)).toContain(
+      ".skvm-artifact/public-runtime-contract.json",
+    );
+    expect(JSON.stringify(contract)).not.toContain("TEST_ONLY_PUBLIC_PREFLIGHT_CANARY");
   });
 
   test("keeps v1 behavior free of semantic runtime contract materialization", async () => {
