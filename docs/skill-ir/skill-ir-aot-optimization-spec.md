@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-07-16
+**最后更新：** 2026-07-21
 
 ## 1. 项目定位
 
@@ -46,6 +46,30 @@ host: Windows
 context: clean
 tasks: 2 development tasks, each repeated twice
 ```
+
+### 已冻结、待执行的模型能力诊断
+
+下一轮使用 `xty/gpt-4.1` 对冻结 semantic artifact v2 做单变量诊断，目的仅是判断
+当前失败中是否存在 `gpt-4.1-mini` 的能力上限，不以换模型追求更高结果。
+
+```text
+diagnosticId: env-manager-v2-gpt41-capability-diagnostic-v1
+skill: env-manager
+model: xty/gpt-4.1
+adapter/host/context: bare-agent / Windows / clean
+tasks: Node + Vite development
+repetitions: 2
+systems: no-skill | original | ir-static | check-only | one-repair
+total rows: 20
+```
+
+除 model、run identity、lock 和结果目录外，task、fixture、scorer、base IR、v2
+package/catalog、一次 repair 上限和 development gate 全部保持冻结。实验不读取 held-out，
+也不修改 v2 package、lock、catalog、scorer 或历史结果。
+
+该实验是 capability attribution diagnosis，不是新的主表。只有当公开证据充分、mini
+稳定失败且强模型在同一 criterion 上成功时，才记录为“支持模型能力瓶颈”；单个强模型
+成功不能证明跨模型稳定或方法增益。跨时间独立运行仍保留 provider/time confound。
 
 ### 已实现但证据有限
 
