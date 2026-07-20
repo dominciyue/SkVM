@@ -796,3 +796,67 @@ export async function readAndValidateSemanticArtifactDevelopmentLock(opts: {
   }
   return lock;
 }
+
+export async function readAndValidatePublicContractArtifactDevelopmentLock(opts: {
+  rootDir: string;
+  lockPath: string;
+  packageDir: string;
+  expected: {
+    corpus: string;
+    skillId: string;
+    model: string;
+    modelFamily: string;
+    adapter: string;
+    adapterVersion: string;
+    repairMode: "check-only" | "one-repair";
+    repetitions: number;
+    contexts?: Iterable<string>;
+    agents?: Iterable<string>;
+    environments?: Iterable<string>;
+    tasks?: Iterable<string>;
+  };
+}): Promise<PublicContractArtifactDevelopmentLock> {
+  const lockPath = resolve(opts.lockPath);
+  const lock = PublicContractArtifactDevelopmentLockSchema.parse(await readJson(lockPath));
+  const rootCandidate = isAbsolute(lock.package.path)
+    ? resolve(lock.package.path)
+    : resolve(opts.rootDir, parseSafeRelativePath(lock.package.path));
+  const siblingCandidate = isAbsolute(lock.package.path)
+    ? rootCandidate
+    : resolve(lockPath, "..", parseSafeRelativePath(lock.package.path));
+  const actualPackageDir = resolve(opts.packageDir);
+  if (actualPackageDir !== rootCandidate && actualPackageDir !== siblingCandidate) {
+    throw new Error(`Public-contract artifact lock package path mismatch: ${lock.package.path}`);
+  }
+  if (sha256Bytes(await readFile(resolve(actualPackageDir, "package-manifest.json"))) !== lock.package.manifestSha256) {
+    throw new Error("Public-contract artifact lock package manifest digest mismatch");
+  }
+  if (sha256Bytes(await readFile(resolve(actualPackageDir, "package-provenance.json"))) !== lock.package.provenanceSha256) {
+    throw new Error("Public-contract artifact lock package provenance digest mismatch");
+  }
+  const expected = opts.expected;
+  if (expected.corpus !== lock.corpus || expected.skillId !== lock.skillId) {
+    throw new Error("Public-contract artifact lock corpus or skill identity mismatch");
+  }
+  if (expected.model !== lock.model.route || expected.modelFamily !== lock.model.family) {
+    throw new Error("Public-contract artifact lock model identity mismatch");
+  }
+  if (expected.adapter !== lock.adapter.id || expected.adapterVersion !== lock.adapter.version) {
+    throw new Error("Public-contract artifact lock adapter identity mismatch");
+  }
+  if (expected.repairMode !== "one-repair") {
+    throw new Error("Public-contract shared-generation runtime requires one-repair execution");
+  }
+  if (expected.repetitions !== lock.matrix.repetitions) {
+    throw new Error(`Public-contract artifact lock repetitions mismatch: expected ${lock.matrix.repetitions}`);
+  }
+  for (const [name, actual, frozen] of [
+    ["contexts", expected.contexts, lock.matrix.contexts],
+    ["agents", expected.agents, lock.matrix.agents],
+    ["environments", expected.environments, lock.matrix.environments],
+    ["tasks", expected.tasks, lock.matrix.taskIds],
+  ] as const) {
+    if (!sameValues(actual, frozen)) throw new Error(`Public-contract artifact lock ${name} mismatch`);
+  }
+  return lock;
+}

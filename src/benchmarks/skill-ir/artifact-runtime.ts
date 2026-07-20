@@ -10,6 +10,10 @@ import {
   type RuntimeSemanticValidationReport,
 } from "./semantic-contract";
 import {
+  RuntimePublicValidationReportSchema,
+  type RuntimePublicValidationReport,
+} from "./public-contract";
+import {
   materializeArtifactTemplates,
   verifyProtectedWorkdir,
   type PreparedArtifactRun,
@@ -43,7 +47,10 @@ export type ArtifactRuntimeStatus =
   | "protected-file-failure"
   | "infrastructure-failure";
 
-export type AnyRuntimeValidationReport = RuntimeValidationReport | RuntimeSemanticValidationReport;
+export type AnyRuntimeValidationReport =
+  | RuntimeValidationReport
+  | RuntimeSemanticValidationReport
+  | RuntimePublicValidationReport;
 
 export type ArtifactRuntimeResult = {
   mode: ArtifactRepairMode;
@@ -140,9 +147,14 @@ function parseRuntimeReport(
   prepared: PreparedArtifactRun | undefined,
   report: unknown,
 ): AnyRuntimeValidationReport {
+  const schemaVersion = typeof report === "object" && report !== null
+    ? (report as { schemaVersion?: unknown }).schemaVersion
+    : undefined;
+  const publicContract = prepared?.catalog === "executable-public-contract-artifact/v3"
+    || schemaVersion === "runtime-validation-report/v3";
+  if (publicContract) return RuntimePublicValidationReportSchema.parse(report);
   const semantic = prepared?.catalog === "executable-semantic-artifact/v2"
-    || (typeof report === "object" && report !== null
-      && (report as { schemaVersion?: unknown }).schemaVersion === "runtime-validation-report/v2");
+    || schemaVersion === "runtime-validation-report/v2";
   return semantic
     ? RuntimeSemanticValidationReportSchema.parse(report)
     : RuntimeValidationReportSchema.parse(report);
@@ -152,7 +164,13 @@ function protectedFailureReport(
   prepared: PreparedArtifactRun,
   paths: string[],
 ): AnyRuntimeValidationReport {
-  return parseRuntimeReport(prepared, prepared.catalog === "executable-semantic-artifact/v2" ? {
+  return parseRuntimeReport(prepared, prepared.catalog === "executable-public-contract-artifact/v3" ? {
+    schemaVersion: "runtime-validation-report/v3",
+    codeCatalog: "public-contract-error-codes/v2",
+    status: "fail",
+    repairEligible: false,
+    errors: paths.map((relativePath) => ({ code: "PROTECTED_FILE_MUTATED", relativePath })),
+  } : prepared.catalog === "executable-semantic-artifact/v2" ? {
     schemaVersion: "runtime-validation-report/v2",
     codeCatalog: "semantic-error-codes/v1",
     status: "fail",
@@ -174,12 +192,18 @@ export function buildSanitizedRepairTask(
   if (safe.status !== "fail" || !safe.repairEligible) {
     throw new Error("A sanitized repair task requires an eligible failed ValidationReport");
   }
-  const projection = safe.errors.map(({ code, relativePath, jsonPointer, missingField, expectedType }) => ({
-    code,
-    ...(relativePath === undefined ? {} : { relativePath }),
-    ...(jsonPointer === undefined ? {} : { jsonPointer }),
-    ...(missingField === undefined ? {} : { missingField }),
-    ...(expectedType === undefined ? {} : { expectedType }),
+  const projection = safe.errors.map((error) => ({
+    code: error.code,
+    ...(error.relativePath === undefined ? {} : { relativePath: error.relativePath }),
+    ...(error.jsonPointer === undefined ? {} : { jsonPointer: error.jsonPointer }),
+    ...(error.missingField === undefined ? {} : { missingField: error.missingField }),
+    ...(error.expectedType === undefined ? {} : { expectedType: error.expectedType }),
+    ...("contractRef" in error && error.contractRef !== undefined
+      ? { contractRef: error.contractRef }
+      : {}),
+    ...("operation" in error && error.operation !== undefined
+      ? { operation: error.operation }
+      : {}),
   }));
   return {
     id: "artifact-sanitized-repair",
@@ -191,6 +215,8 @@ export function buildSanitizedRepairTask(
       "Do not modify any pre-existing file. Do not print or copy secret values.",
       ...(prepared?.catalog === "executable-semantic-artifact/v2"
         ? [`Inspect the protected runtime contract at ${prepared.package.manifest.runtimeContract.path}; do not modify it.`]
+        : prepared?.catalog === "executable-public-contract-artifact/v3"
+          ? [`Inspect the protected runtime contract at ${prepared.package.manifest.runtimeContract.path}; do not modify it.`]
         : []),
       "Use only this schema-safe validation error list:",
       JSON.stringify(projection),

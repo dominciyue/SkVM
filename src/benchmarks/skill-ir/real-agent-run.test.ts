@@ -1051,6 +1051,53 @@ describe("real-agent-run manifest loading", () => {
     })).rejects.toThrow(/development|lock|task/i);
   });
 
+  test("plans V3 shared-generation rows only through the frozen public-contract lock", async () => {
+    const outDir = await mkdtemp(join(tmpdir(), "skill-ir-public-contract-plan-"));
+    tempDirs.push(outDir);
+    const valid: RealAgentRunArgs = {
+      corpus: "pilot",
+      model: "xty/gpt-5.6-sol",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-public-contract-v3",
+      repetitions: 2,
+      panelConfigId: "env-manager-public-contract-artifact-v3-development",
+      outDir,
+      limit: 4,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 0,
+      rootDir: projectRoot,
+      allowArtifactDevelopmentReplay: true,
+      artifactPackageDir: join(
+        projectRoot,
+        "benchmarks/skill-ir/pilots/env-manager/packages/executable-public-contract-artifact-v3",
+      ),
+      artifactLockPath: join(
+        projectRoot,
+        "benchmarks/skill-ir/pilots/env-manager/env-manager-public-contract-artifact-v3-lock.json",
+      ),
+      artifactRepairMode: "one-repair",
+      skills: new Set(["env-manager"]),
+      systems: new Set(["ir-public-artifact-dev"]),
+      contexts: new Set(["clean"]),
+      agents: new Set(["skvm"]),
+      environments: new Set(["windows"]),
+      tasks: new Set(["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"]),
+    };
+
+    const plan = await buildPlan(valid);
+    expect(plan).toHaveLength(4);
+    expect(plan.every((entry) => entry.system === "ir-public-artifact-dev")).toBe(true);
+    expect(plan.every((entry) => entry.artifactRepairMode === "one-repair")).toBe(true);
+    expect(await readFile(plan[0]!.skillPath!, "utf8")).toContain("Executable Public Contract Artifact");
+
+    await expect(buildPlan({ ...valid, artifactRepairMode: "check-only" }))
+      .rejects.toThrow("requires one-repair execution");
+    await expect(buildPlan({ ...valid, systems: new Set(["ir-artifact-dev"]) }))
+      .rejects.toThrow("requires system ir-public-artifact-dev");
+  });
+
   test("buildPlan rejects a final IR directory without provenance", async () => {
     const rootDir = await createMultiSkillRoot();
     await writeJson(join(rootDir, "benchmarks/skill-ir/tasks/review.json"), {

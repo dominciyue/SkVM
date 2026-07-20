@@ -443,9 +443,52 @@ bun test `
 bun run typecheck
 ```
 
-当前边界：共享快照与 paired scorer 已完成；V3 report 尚未进入 runtime dispatch，
-V3 一次修复也尚未执行。因此本阶段只能证明归因基础设施成立，不能形成 repair
-attribution 数值或方法效果结论。
+### 11.5 V3 Runtime Activation 与冻结 Lock
+
+Runtime 已按 `prepared.catalog` dispatch `runtime-validation-report/v3`。Sanitized repair
+投影仍保留原五个基础字段，并仅对 V3 增加封闭的 `contractRef` 和 `operation`；schema
+继续拒绝 expected、actual、secret、message 和任意自由文本。repair task 指向 protected
+`.skvm-artifact/public-runtime-contract.json`，最多调用一次。
+
+本地 activation fixture 使用公开 `.env` 名称和 `Number(process.env.APP_PORT)` 证据，
+构造 classification/schema known failure。初检能够定位
+`variables/APP_PORT/classification` 与 contract-bound schema rule；一次 fixture repair
+后二验通过，pre/post snapshot 保持同一 generation identity。这只证明机制可激活，
+不代表真实模型或离线 scorer 已改善。
+
+冻结产物：
+
+```text
+benchmarks/skill-ir/pilots/env-manager/packages/executable-public-contract-artifact-v3/
+benchmarks/skill-ir/pilots/env-manager/env-manager-public-contract-artifact-v3-lock.json
+```
+
+Lock 固定 `xty/gpt-5.6-sol`、`bare-agent@workspace-public-contract-v3`、Windows/clean、
+两个 development task × 2 repetitions、共享 generation、一次 repair 和数值 gate。
+Runner 使用独立 system `ir-public-artifact-dev`；V3 禁止以 `check-only` 执行，逻辑
+check-only 只能由 pre snapshot 派生。Package 共 13 个文件，约 9.15 MB，体积主要来自
+自包含 parser；轻量 ABI 仍需另开 catalog，不能修改当前 digest。
+
+Dry-run：
+
+```powershell
+bun ./src/benchmarks/skill-ir/real-agent-run.ts `
+  '--corpus=pilot' '--model=xty/gpt-5.6-sol' '--model-family=gpt' `
+  '--adapter=bare-agent' '--adapter-version=workspace-public-contract-v3' `
+  '--repetitions=2' `
+  '--panel-config-id=env-manager-public-contract-artifact-v3-development' `
+  '--systems=ir-public-artifact-dev' '--contexts=clean' '--agents=skvm' `
+  '--environments=windows' '--skills=env-manager' `
+  '--tasks=env-manager-node-audit-dev-001,env-manager-vite-audit-dev-002' `
+  '--limit=4' '--allow-artifact-development-replay' `
+  '--artifact-package-dir=benchmarks/skill-ir/pilots/env-manager/packages/executable-public-contract-artifact-v3' `
+  '--artifact-lock=benchmarks/skill-ir/pilots/env-manager/env-manager-public-contract-artifact-v3-lock.json' `
+  '--artifact-repair-mode=one-repair' `
+  '--out-dir=results/skill-ir/env-manager-public-contract-v3-development-dry-run-2026-07-21'
+```
+
+当前边界：V3 本地机制与付费前冻结已成立，4-row dry-run 通过；尚未完成 API route
+probe 或真实 development，因此仍不能形成 repair attribution 数值或方法效果结论。
 
 ## 12. Lock 与实验门禁
 

@@ -30,9 +30,11 @@ import {
 } from "./artifact-runtime";
 import {
   readAndValidateArtifactDevelopmentLock,
+  readAndValidatePublicContractArtifactDevelopmentLock,
   readAndValidateSemanticArtifactDevelopmentLock,
   validateArtifactPackage,
   type ValidatedArtifactPackage,
+  type ValidatedPublicContractArtifactPackage,
   type ValidatedSemanticArtifactPackage,
 } from "./artifact-package";
 import { extractEnvManagerTaskContract } from "./artifact-package-compiler";
@@ -276,9 +278,19 @@ function hasExactValues<T>(values: Set<T> | undefined, expected: T[]): boolean {
 }
 
 function isSemanticArtifactPackage(
-  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage,
+  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage,
 ): packageRecord is ValidatedSemanticArtifactPackage {
   return packageRecord.manifest.catalog === "executable-semantic-artifact/v2";
+}
+
+function isPublicContractArtifactPackage(
+  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage,
+): packageRecord is ValidatedPublicContractArtifactPackage {
+  return packageRecord.manifest.catalog === "executable-public-contract-artifact/v3";
+}
+
+function isArtifactDevelopmentSystem(system: ExperimentSystem): boolean {
+  return system === "ir-artifact-dev" || system === "ir-public-artifact-dev";
 }
 
 function assertTasksAuthoredCalibrationArgs(args: RealAgentRunArgs): void {
@@ -337,8 +349,8 @@ function assertDevelopmentReplayArgs(args: RealAgentRunArgs): void {
 
 function assertArtifactDevelopmentReplayArgs(args: RealAgentRunArgs): void {
   if (!args.allowArtifactDevelopmentReplay) {
-    if (args.systems?.has("ir-artifact-dev")) {
-      throw new Error("ir-artifact-dev requires --allow-artifact-development-replay");
+    if (args.systems && [...args.systems].some(isArtifactDevelopmentSystem)) {
+      throw new Error("artifact development system requires --allow-artifact-development-replay");
     }
     return;
   }
@@ -351,8 +363,13 @@ function assertArtifactDevelopmentReplayArgs(args: RealAgentRunArgs): void {
   if (!args.skills || args.skills.size !== 1) {
     throw new Error("--allow-artifact-development-replay requires exactly one explicit --skills value");
   }
-  if (!hasExactValues(args.systems, ["ir-artifact-dev"])) {
-    throw new Error("--allow-artifact-development-replay requires systems to be exactly ir-artifact-dev");
+  if (
+    !hasExactValues(args.systems, ["ir-artifact-dev"])
+    && !hasExactValues(args.systems, ["ir-public-artifact-dev"])
+  ) {
+    throw new Error(
+      "--allow-artifact-development-replay requires systems to be exactly ir-artifact-dev or ir-public-artifact-dev",
+    );
   }
   if (!hasExactValues(args.contexts, ["clean"])) {
     throw new Error("--allow-artifact-development-replay requires --contexts=clean");
@@ -377,7 +394,9 @@ function assertArtifactDevelopmentReplayArgs(args: RealAgentRunArgs): void {
 async function validateSelectedArtifactPackage(
   args: RealAgentRunArgs,
   fixtures: Map<string, SkillBenchmarkFixture>,
-): Promise<ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | undefined> {
+): Promise<
+  ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage | undefined
+> {
   if (!args.allowArtifactDevelopmentReplay) return undefined;
   const packageDir = isAbsolute(args.artifactPackageDir!)
     ? args.artifactPackageDir!
@@ -385,6 +404,8 @@ async function validateSelectedArtifactPackage(
   const packageManifest = await readJson<{ catalog?: unknown }>(join(packageDir, "package-manifest.json"));
   const packageRecord = packageManifest.catalog === "executable-semantic-artifact/v2"
     ? await validateArtifactPackage({ packageDir, expectedCatalog: "executable-semantic-artifact/v2" })
+    : packageManifest.catalog === "executable-public-contract-artifact/v3"
+      ? await validateArtifactPackage({ packageDir, expectedCatalog: "executable-public-contract-artifact/v3" })
     : await validateArtifactPackage({ packageDir, expectedCatalog: "executable-artifact/v1" });
   const skillId = [...args.skills!][0]!;
   if (packageRecord.manifest.skillId !== skillId) {
@@ -404,7 +425,7 @@ async function validateSelectedArtifactPackage(
   }
   const modelFamily = args.modelFamily ?? inferModelFamily(args.model);
   const adapterVersion = args.adapterVersion ?? "workspace";
-  if (!isSemanticArtifactPackage(packageRecord)) {
+  if (!isSemanticArtifactPackage(packageRecord) && !isPublicContractArtifactPackage(packageRecord)) {
     const expectedScope = packageRecord.provenance.scope;
     for (const [key, actual] of [
       ["model", args.model],
@@ -440,8 +461,19 @@ async function validateSelectedArtifactPackage(
     },
   };
   if (isSemanticArtifactPackage(packageRecord)) {
+    if (!hasExactValues(args.systems, ["ir-artifact-dev"])) {
+      throw new Error("V1/V2 artifact package requires system ir-artifact-dev");
+    }
     await readAndValidateSemanticArtifactDevelopmentLock(lockInput);
+  } else if (isPublicContractArtifactPackage(packageRecord)) {
+    if (!hasExactValues(args.systems, ["ir-public-artifact-dev"])) {
+      throw new Error("V3 public-contract package requires system ir-public-artifact-dev");
+    }
+    await readAndValidatePublicContractArtifactDevelopmentLock(lockInput);
   } else {
+    if (!hasExactValues(args.systems, ["ir-artifact-dev"])) {
+      throw new Error("V1/V2 artifact package requires system ir-artifact-dev");
+    }
     await readAndValidateArtifactDevelopmentLock(lockInput);
   }
   return packageRecord;
@@ -638,14 +670,14 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
     if (!task) {
       throw new Error(`Task ${item.task} was not found in ${fixture.taskSet.skillId} task set`);
     }
-    if (item.system === "ir-artifact-dev") {
+    if (isArtifactDevelopmentSystem(item.system)) {
       if (task.split !== "development") {
         throw new Error(`--allow-artifact-development-replay accepts development tasks only: ${task.id}`);
       }
       if (!artifactPackage?.provenance.taskContract.taskIds.includes(task.id)) {
         throw new Error(`Artifact package does not preregister development task: ${task.id}`);
       }
-      if (!isSemanticArtifactPackage(artifactPackage)) {
+      if (!isSemanticArtifactPackage(artifactPackage) && !isPublicContractArtifactPackage(artifactPackage)) {
         if (item.environment !== artifactPackage.provenance.scope.environment) {
           throw new Error(`Artifact package environment scope mismatch: ${item.environment}`);
         }
@@ -665,7 +697,7 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
         system: item.system,
         caseId: item.caseId,
         runIndex,
-        ...(item.system === "ir-artifact-dev"
+        ...(isArtifactDevelopmentSystem(item.system)
           ? { artifactSkillPath: join(artifactPackage!.packageDir, "skill.md") }
           : {}),
       });
@@ -684,7 +716,7 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
             panelConfigId,
           },
         );
-      if (item.system === "ir-artifact-dev") {
+      if (isArtifactDevelopmentSystem(item.system)) {
         entry.artifactPackageDir = artifactPackage!.packageDir;
         entry.artifactRepairMode = args.artifactRepairMode;
         entry.artifactContractDigest = artifactPackage!.provenance.taskContract.sha256;
@@ -713,7 +745,7 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
   await writeFile(rawRunsPath, "", "utf8");
 
   for (const item of plan) {
-    if (item.system === "ir-artifact-dev") {
+    if (isArtifactDevelopmentSystem(item.system)) {
       if (
         !item.artifactPackageDir ||
         !item.artifactRepairMode ||

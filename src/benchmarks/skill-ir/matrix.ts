@@ -11,7 +11,8 @@ export type ExperimentSystem =
   | "ir-profile"
   | "ir-pgo"
   | "ir-pgo-dev"
-  | "ir-artifact-dev";
+  | "ir-artifact-dev"
+  | "ir-public-artifact-dev";
 
 export type SkillPackaging = "focused" | "broad" | "unknown";
 

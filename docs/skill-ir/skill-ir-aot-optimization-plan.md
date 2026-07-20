@@ -429,18 +429,23 @@ generation token，`one-repair` 计 aggregate token 并保留 `repairUsage`。�
 新增 benchmarks/skill-ir/pilots/env-manager/env-manager-public-contract-artifact-v3-lock.json
 ```
 
-- [ ] RED：report 只允许 closed code、relative path、JSON pointer、contractRef 和
+- [x] RED：report 只允许 closed code、relative path、JSON pointer、contractRef 和
   operation；禁止 expected/actual/secret/free-form message。
-- [ ] GREEN：`preflight -> generate -> snapshot -> validate -> <=1 repair ->
+- [x] GREEN：`preflight -> generate -> snapshot -> validate -> <=1 repair ->
   revalidate -> snapshot -> stop`。
-- [ ] GREEN：本地 fixture 必须证明 v2 known failure 在 V3 initial validation 中被
+- [x] GREEN：本地 fixture 必须证明 v2 known failure 在 V3 initial validation 中被
   精确定位，并至少有一条 one-repair repaired-to-pass。
-- [ ] 冻结新 package/lock/gate 前运行全 focused tests、typecheck、doc links 和
+- [x] 冻结新 package/lock/gate 前运行全 focused tests、typecheck、doc links 和
   package digest verify。
+
+冻结身份：`executable-public-contract-artifact/v3`、`xty/gpt-5.6-sol`、两个
+development task × 2 repetitions，共 4 个初始 generation。scorer gate 为至少 3/4
+成功、mean ≥ 0.85、0 hard-gate regression、0 infrastructure failure；attribution gate
+要求至少一次真实 repair。`check-only` 不是独立执行模式，而是 pre snapshot 逻辑臂。
 
 ### Task 3.7：GPT-5.6 development 实验
 
-- [ ] 先 dry-run 和 route probe，再运行冻结 development。
+- [ ] dry-run 已完成（4 rows）；下一步 route probe，再运行冻结 development。
 - [ ] 主归因只比较同一 generation 的 pre/post snapshot；同时报告 no-skill、
   original、ir-static 与 V3 post。
 - [ ] Gate 未过不运行 held-out，不修改 scorer/package/lock；结果写 compact evidence

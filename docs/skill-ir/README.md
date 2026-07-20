@@ -12,6 +12,8 @@ execution feedback 改善稳定性。
 - `ir-static` 在冻结 development run 中改善了 partial correctness，但仍为 0/4 success。
 - Dual-source Final IR、artifact v1 和 semantic artifact v2 均未通过 development gate。
 - V2 真实触发了两次 repair，但均未通过 revalidation；held-out 未执行。
+- V3 public-contract package、共享 pre/post snapshot、paired scorer 和本地一次修复已
+  接通；冻结 GPT-5.6 development lock 与 4-row dry-run 已完成，真实 API 尚未运行。
 - 当前不能声称跨模型、跨 agent、跨 OS 或 token 节省。
 
 ## 按读者选择入口

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "skill-ir-env-manager-executable-public-contract-artifact-lock/v1",
+  "stage": "executable-public-contract-artifact-development",
+  "status": "preregistered",
+  "catalog": "executable-public-contract-artifact/v3",
+  "codeCatalog": "public-contract-error-codes/v2",
+  "corpus": "pilot",
+  "skillId": "env-manager",
+  "package": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/packages/executable-public-contract-artifact-v3",
+    "manifestSha256": "21d69014e586f625d04b46b59535b13784c4a85e9da899e647fd081b8286f689",
+    "provenanceSha256": "cc225c96a78261d17841482fa1ca1c2fce6dc596901c64c1702dc4a5f23bd842"
+  },
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-public-contract-v3"
+  },
+  "matrix": {
+    "system": "ir-public-artifact-dev",
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "repetitions": 2,
+    "initialGenerationRows": 4
+  },
+  "runtime": {
+    "stateMachine": [
+      "preflight",
+      "generation",
+      "capture-pre-repair-snapshot",
+      "validate",
+      "optional-one-repair",
+      "revalidate",
+      "capture-post-repair-snapshot",
+      "stop"
+    ],
+    "maxSemanticRepairCalls": 1,
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "sharedGeneration": true
+  },
+  "scoring": {
+    "authority": "existing-deterministic-env-manager-scorer",
+    "runtimeValidatorIsScorer": false,
+    "repairCostReportedSeparately": true,
+    "logicalArms": ["check-only", "one-repair"]
+  },
+  "attributionGate": {
+    "minimumRepairAttempts": 1,
+    "requireSharedGenerationIdentity": true,
+    "scorerAuthorityUnchanged": true
+  },
+  "developmentGate": {
+    "minimumSuccesses": 3,
+    "minimumMeanScore": 0.85,
+    "maximumHardGateRegressions": 0,
+    "maximumInfrastructureFailures": 0
+  },
+  "prohibited": [
+    "held-out execution before the frozen development gate passes",
+    "scorer expected payload in package, runtime contract, validation report, or repair prompt",
+    "independent-generation check-only versus one-repair attribution",
+    "more than one semantic repair call",
+    "post-run changes to package, scorer, matrix, model, repetitions, or numerical gate"
+  ]
+}
