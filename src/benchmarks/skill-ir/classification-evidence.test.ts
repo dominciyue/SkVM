@@ -7,7 +7,7 @@ import {
   ObservedReferenceSchema,
 } from "./classification-evidence";
 
-describe("dormant classification evidence", () => {
+describe("classification evidence boundary", () => {
   test("parses type-level B evidence without accepting file values", () => {
     expect(ObservedDefinitionSchema.parse({
       name: "APP_PORT",
@@ -36,14 +36,15 @@ describe("dormant classification evidence", () => {
     })).toThrow();
   });
 
-  test("exports no B producer, writer, or serializer", () => {
+  test("keeps legacy dormant schemas and exposes only an in-memory V3 derivation", () => {
     const runtimeExports = Object.keys(dormantModule).sort();
     expect(runtimeExports).toEqual([
       "ClassificationCandidateSchema",
       "ObservedDefinitionSchema",
       "ObservedHardcodedSecretSchema",
       "ObservedReferenceSchema",
+      "derivePublicContractClassification",
     ]);
-    expect(runtimeExports.some((name) => /derive|produce|serialize|write/i.test(name))).toBe(false);
+    expect(runtimeExports.some((name) => /produce|serialize|write/i.test(name))).toBe(false);
   });
 });

@@ -26,13 +26,17 @@ const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/);
 export const PublicEvidenceKindSchema = z.enum([
   "dotenv-definition",
   "environment-reference",
+  "client-environment-reference",
   "integer-conversion",
+  "integer-literal-shape",
   "boolean-literal-shape",
   "uri-literal-shape",
   "sensitive-name-pattern",
   "sensitive-literal-shape",
   "public-skill-rule",
   "framework-public-prefix",
+  "ambiguous-access",
+  "unsupported-source",
 ]);
 
 export const PublicEvidenceRefSchema = z.object({

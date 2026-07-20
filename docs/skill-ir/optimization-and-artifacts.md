@@ -280,7 +280,7 @@ runtime-validation-report/v3
 public-contract-error-codes/v2
 ```
 
-V3 当前已完成 contract/package schema，尚未完成 evidence producer、compiler、
+V3 当前已完成 contract/package schema 与 evidence producer，尚未完成 compiler、
 preflight、checker、snapshot 或真实实验。V1/V2 schema、parser、digest 和结果保持
 不变。
 
@@ -317,17 +317,47 @@ validateArtifactPackage({ expectedCatalog: "executable-public-contract-artifact/
 - package digest drift、undeclared file、manifest/provenance identity drift 被拒绝；
 - V3 schema 通过不代表任务成功，离线确定性 scorer 仍是唯一成功权威。
 
-### 11.1 V3 Schema 验证
+### 11.1 Evidence Graph 与保守分类
+
+`derivePublicRuntimeContractFromWorkdir(...)` 扫描 agent 可见 workdir，当前支持：
+
+- `.env`/`.env.*` 变量名与安全 literal shape，绝不保留变量值；
+- JavaScript/TypeScript 的静态 `process.env.NAME`、静态 bracket access 和
+  `import.meta.env.NAME`；
+- `Number(...)`/`parseInt(...)`、URI/boolean/integer literal shape；
+- 敏感名称 public rule 和 source-qualified hardcoded literal shape；
+- Vite/Next public prefix 对应的 client-visible reference；
+- unsupported extension/encoding、dynamic access 和 conflicting evidence limitation。
+
+`derivePublicContractClassification(...)` 只在 checker 内存中执行集合推导：
+
+```text
+definition ∩ reference -> definedAndUsed
+definition - reference -> definedUnconfirmedUnused
+reference - definition -> usedUndefined
+sensitive literal finding -> hardcodedSecrets
+public prefix + confirmed sensitive + client reference -> exposureRisks
+```
+
+最终五个分类数组不进入 runtime contract、package、provenance 或 repair input。
+移除 definition/reference/type/public-prefix evidence 时，测试要求对应结论随之降级；
+integer/URI/boolean 类型证据冲突时不输出 confirmed type，只记录
+`conflicting-evidence`。Literal value、test canary、scorer expected 和 held-out
+payload 均不在该 API 的输入类型中。
+
+### 11.2 V3 Schema 与 Evidence 验证
 
 ```powershell
 bun test `
   ./src/benchmarks/skill-ir/public-contract.test.ts `
+  ./src/benchmarks/skill-ir/public-contract-evidence.test.ts `
+  ./src/benchmarks/skill-ir/classification-evidence.test.ts `
   ./src/benchmarks/skill-ir/artifact-package.test.ts
 bun run typecheck
 ```
 
-下一阶段必须先实现 evidence graph 的 canary、reverse-evidence、冲突降级测试，
-再允许 compiler 或 checker 消费该 contract。
+下一阶段由 compiler、preflight 和 checker 消费该 contract。Compiler 不得扩展
+evidence 输入面；checker 才能计算最终分类，且计算结果只用于校验 workdir。
 
 ## 12. Lock 与实验门禁
 

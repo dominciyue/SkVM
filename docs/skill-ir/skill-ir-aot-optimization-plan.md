@@ -362,10 +362,10 @@ bun test ./src/benchmarks/skill-ir/public-contract.test.ts `
 修改 src/benchmarks/skill-ir/classification-evidence.ts
 ```
 
-- [ ] RED：覆盖 definition/reference 集合运算、unconfirmed、used-undefined、
+- [x] RED：覆盖 definition/reference 集合运算、unconfirmed、used-undefined、
   source-qualified hardcoded finding、Vite/Next public exposure 和冲突降级。
-- [ ] RED：canary 与 reverse-evidence；移除公开证据后对应约束必须消失。
-- [ ] GREEN：只输出 evidence graph 与 limitation；最终 classification arrays 只在
+- [x] RED：canary 与 reverse-evidence；移除公开证据后对应约束必须消失。
+- [x] GREEN：只输出 evidence graph 与 limitation；最终 classification arrays 只在
   checker 内计算，不序列化到 runtime contract。
 
 ### Task 3.4：V3 compiler、preflight 与 checker
