@@ -199,11 +199,11 @@ src/benchmarks/skill-ir/capability-diagnostic-run.ts
 src/benchmarks/skill-ir/capability-diagnostic-run.test.ts
 ```
 
-- [ ] RED：要求输出恰好 `12 + 4 + 4` 行，全部为 development/clean/windows/GPT-4.1。
-- [ ] GREEN：复用 `buildPlan` 生成 baseline、check-only、one-repair 三组 plan。
-- [ ] GREEN：artifact 两臂必须携带 runner-compatible GPT-4.1 lock；禁止 `--execute`
+- [x] RED：要求输出恰好 `12 + 4 + 4` 行，全部为 development/clean/windows/GPT-4.1。
+- [x] GREEN：复用 `buildPlan` 生成 baseline、check-only、one-repair 三组 plan。
+- [x] GREEN：artifact 两臂必须携带 runner-compatible GPT-4.1 lock；禁止 `--execute`
   绕过 route probe。
-- [ ] 验证：
+- [x] 验证：
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/capability-diagnostic-run.test.ts

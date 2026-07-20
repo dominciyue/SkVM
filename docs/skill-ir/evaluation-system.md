@@ -166,6 +166,17 @@ env-manager-executable-semantic-artifact-v2-gpt41-lock.json
 协调 lock 不传给 agent，也不包含 evaluator expected。它只用于预注册、dry-run
 完整性验证和离线归因；runner lock 继续使用现有严格 semantic artifact schema。
 
+能力诊断 dry-run compiler：
+
+```powershell
+bun ./src/benchmarks/skill-ir/capability-diagnostic-run.ts `
+  --lock=benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-lock.json `
+  --out-dir=results/skill-ir/env-manager-gpt41-capability-diagnostic-dry-run
+```
+
+该 CLI 故意不支持 `--execute`。输出 `diagnostic-plan.json` 和三组已有 runner plan；
+只有 route probe 通过后，才允许按保存参数分别执行。
+
 ## 8. Raw Rows 与 Workdir
 
 `executePlan` 按行重建限定 workdir、执行 SkVM、提取 adapter `RunStatus`、token 和
