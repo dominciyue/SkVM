@@ -187,6 +187,38 @@ results/skill-ir/env-manager-semantic-artifact-v2-check-only-run-2026-07-16/
 results/skill-ir/env-manager-semantic-artifact-v2-one-repair-run-2026-07-16/
 ```
 
+### 3.6 GPT-4.1 能力诊断
+
+诊断固定使用冻结 v2 task、fixture、scorer、base IR、package、catalog、repair 上限和
+development gate，只把模型从历史 `xty/gpt-4.1-mini` 替换为 `xty/gpt-4.1`。
+20 行均正常执行，无 infrastructure failure。
+
+| System | Success | Mean score | Hard-gate failed | Initial pass | Repair | Repaired to pass | Token count |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| no-skill | 0/4 | 0.7000 | 0 | - | 0 | 0 | 20703 |
+| original | 0/4 | 0.7000 | 0 | - | 0 | 0 | 24305 |
+| ir-static | 0/4 | 0.7000 | 0 | - | 0 | 0 | 39645 |
+| check-only | 0/4 | 0.7000 | 0 | 0/4 | 0 | 0 | 65609 |
+| one-repair | 0/4 | 0.6625 | 0 | 0/4 | 4 | 0 | 49877 |
+
+与历史 mini 按 system/task/run index 对齐的 120 个准则比较项中，61 个均通过、
+41 个均失败、18 个仅在 GPT-4.1 批次通过，没有反向差异。18 个能力信号候选由 example safety 10 个、
+required artifacts 7 个、secret leak 1 个组成；classification 与 schema rules
+在全部系统中仍失败。强模型改善了基础产物完整性和安全性，但没有形成系统间区分，
+也没有解决核心语义合同。one-repair 真实触发 4 次，4 次二验均失败。
+
+冻结 gate 要求 success >= 3/4 且 mean >= 0.85；本轮失败，未运行 held-out。
+两批模型运行存在时间/provider confound，两臂 generation 也相互独立，因此
+`causalClaimAvailable=false`，token 只作观测量，不作效率结论。
+Compact evidence 由 `provenance.json` 中的 12 文件 SHA-256 清单和 bundle digest
+绑定；raw/workdir 不在提交范围。
+
+证据：
+
+```text
+results/skill-ir/env-manager-gpt41-capability-diagnostic-2026-07-21/
+```
+
 ## 4. Env-manager 研究推进总表
 
 | 阶段 | 最强/候选系统 | Success | Mean | 核心发现 |
@@ -196,6 +228,7 @@ results/skill-ir/env-manager-semantic-artifact-v2-one-repair-run-2026-07-16/
 | Dual-source | repair v2 | 1/4 | 0.6375 | 单行成功但整体回归。 |
 | Artifact v1 | one-repair | 0/4 | 0.7000 | Semantic false pass，repair 休眠。 |
 | Semantic v2 | one-repair | 0/4 | 0.6250 | Repair 激活但二验失败。 |
+| GPT-4.1 诊断 | check-only | 0/4 | 0.7000 | 基础质量提升，核心语义残差与系统平台期仍存在。 |
 
 ## 5. 当前结论
 
@@ -205,6 +238,7 @@ results/skill-ir/env-manager-semantic-artifact-v2-one-repair-run-2026-07-16/
 - 静态 IR 有 partial correctness 信号；
 - dual-source provenance 和 executable runtime 可运行；
 - semantic validator 能把部分 v1 false pass 变成 repair-eligible failure；
+- 模型能力会影响产物完整性与安全性，但不是当前全部失败的解释；
 - development gate 正确阻断不成熟 artifact。
 
 不能支持：

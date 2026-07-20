@@ -306,7 +306,15 @@ Runtime validation 与 scorer gate 分开。出现 repair 只证明状态机被�
 false pass、runtime/scorer aligned failure、repair revalidation failure 等，并把
 mini/strong criterion transition 仅标为 capability-signal candidate。工具固定输出
 `causalClaimAvailable=false`，最终归因仍需结合公开证据充分性和跨时间 provider 限制。
-- 当前只有单模型、bare-agent、Windows、clean development evidence。
+Audit runner 会严格校验冻结矩阵的每个 identity 格，runtime validation fields 必须
+再次通过闭合 schema 与脱敏规则；重复 comparison key 直接失败。提交的 compact
+evidence 用逐文件 digest 和 bundle digest 绑定，原始模型输出与 workdir 不进入仓库。
+
+冻结 GPT-4.1 诊断已执行 20 行。强模型产生 18 个低层 criterion 改善，但
+classification/schema 在五个系统中持续失败；one-repair 4/4 激活、0/4 二验通过。
+因此下一 catalog 应优先改进 public schema contract lowering、repair 定位和
+pre/post repair 可评分快照，不能仅靠更换模型或扩大 repair 次数。
+- 当前只有单一 GPT 模型族、bare-agent、Windows、clean development evidence。
 
 ## 13. 测试
 

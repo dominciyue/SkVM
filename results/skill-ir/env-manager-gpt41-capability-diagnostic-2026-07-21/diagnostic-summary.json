@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "skill-ir-capability-diagnostic-summary/v1",
+  "diagnosticId": "env-manager-v2-gpt41-capability-diagnostic-v1",
+  "status": "development-gate-failed",
+  "model": "xty/gpt-4.1",
+  "rows": 20,
+  "results": [
+    {
+      "system": "no-skill",
+      "rows": 4,
+      "successes": 0,
+      "meanScore": 0.7,
+      "infrastructureFailures": 0,
+      "hardGateFailedRows": 0,
+      "tokenCost": 20703
+    },
+    {
+      "system": "original",
+      "rows": 4,
+      "successes": 0,
+      "meanScore": 0.7,
+      "infrastructureFailures": 0,
+      "hardGateFailedRows": 0,
+      "tokenCost": 24305
+    },
+    {
+      "system": "ir-static",
+      "rows": 4,
+      "successes": 0,
+      "meanScore": 0.7,
+      "infrastructureFailures": 0,
+      "hardGateFailedRows": 0,
+      "tokenCost": 39645
+    },
+    {
+      "system": "check-only",
+      "rows": 4,
+      "successes": 0,
+      "meanScore": 0.7,
+      "infrastructureFailures": 0,
+      "hardGateFailedRows": 0,
+      "initialValidationPasses": 0,
+      "finalValidationPasses": 0,
+      "repairAttempts": 0,
+      "repairedToPass": 0,
+      "tokenCost": 65609
+    },
+    {
+      "system": "one-repair",
+      "rows": 4,
+      "successes": 0,
+      "meanScore": 0.6625,
+      "infrastructureFailures": 0,
+      "hardGateFailedRows": 0,
+      "initialValidationPasses": 0,
+      "finalValidationPasses": 0,
+      "repairAttempts": 4,
+      "repairedToPass": 0,
+      "tokenCost": 49877
+    }
+  ],
+  "developmentGate": {
+    "minimumSuccesses": 3,
+    "minimumMeanScore": 0.85,
+    "maximumHardGateRegressions": 0,
+    "maximumInfrastructureFailures": 0,
+    "observedOneRepairSuccesses": 0,
+    "observedOneRepairMeanScore": 0.6625,
+    "observedHardGateRegressions": 0,
+    "observedInfrastructureFailures": 0,
+    "passed": false
+  },
+  "capabilityAudit": {
+    "criterionTransitions": {
+      "bothPass": 61,
+      "bothFail": 41,
+      "miniFailStrongPass": 18,
+      "miniPassStrongFail": 0
+    },
+    "capabilitySignalCandidates": {
+      "env-example-safety": 10,
+      "env-required-artifacts": 7,
+      "env-no-secret-leak": 1
+    },
+    "persistentFailures": [
+      "env-classification",
+      "env-schema-rules"
+    ],
+    "unmatchedMiniRows": 0,
+    "unmatchedStrongRows": 0,
+    "causalClaimAvailable": false
+  },
+  "interpretation": {
+    "modelCapabilitySignal": "GPT-4.1 improved lower-level output completeness and safety relative to the historical GPT-4.1-mini runs.",
+    "persistentBottleneck": "Exact classification and schema rules failed across every system and remained invariant under the stronger model.",
+    "methodFinding": "No Skill IR arm achieved binary success or separated positively from no-skill and original under the stronger model.",
+    "repairFinding": "All four one-repair rows triggered repair, but none passed runtime revalidation or the deterministic scorer.",
+    "heldOutExecuted": false,
+    "entersMainClaim": false
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "skill-ir-capability-diagnostic-provenance/v1",
+  "diagnosticId": "env-manager-v2-gpt41-capability-diagnostic-v1",
+  "executionDate": "2026-07-21",
+  "sourceCommit": "4f16d892b087ea3f9c771c7a909ebfacd80ead2c",
+  "routeProbe": {
+    "model": "xty/gpt-4.1",
+    "status": "ok",
+    "exitCode": 0,
+    "timedOut": false,
+    "durationMs": 18975
+  },
+  "locks": {
+    "diagnostic": "benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-lock.json",
+    "runnerArtifact": "benchmarks/skill-ir/pilots/env-manager/env-manager-executable-semantic-artifact-v2-gpt41-lock.json"
+  },
+  "evidenceBundle": {
+    "algorithm": "normalize each UTF-8 text file to LF, sha256 each file, then sha256 sorted UTF-8 path:digest lines with trailing LF",
+    "scope": "every compact evidence file except provenance.json",
+    "sha256": "fc09f15349f978c81a75c0ee529690a57fd43254c7a6bca00889c572bdbc761f",
+    "files": {
+      "baseline-scored-results.jsonl": "d87cfd24854e65c922399167aea2ea5a717f7e75c55da0a2881710220f78f56a",
+      "baseline-table.csv": "c180171e339098ba13143016fb4bcc08b2badc9096506c1cfcf28c91303fd7ff",
+      "capability-comparison.json": "8938d7d2d5efe5a710965cc5e3dc0ce7939007d3fc20dda0770abc562a559b68",
+      "check-only-scored-results.jsonl": "de4a08ebfceb0d126e8e579812a78ffce53d75932fa008c0a3137f617c9d031c",
+      "check-only-table.csv": "e452bf8c34948a574dddfc5a5e4fa0600ed89ba237d091d394e68e8e2f54a885",
+      "diagnostic-summary.json": "9df608bcd120deba8d57cb1f555918c957ab8068064166a8fc36d53f96a3214e",
+      "execution-plan.json": "66935b3e5ac3b53209c30e327c3712493545927d727216d9009532e973843912",
+      "failure-audit-summary.json": "73a7f350b3da55d8a9d4c3556b0635a57c95deac9f3702c07c8bbe1f8ad4827a",
+      "gpt41-failure-audit.jsonl": "56294c79954bc80c9195c36ecd054a6168c78f7633877385c3986380d0d50c64",
+      "mini-failure-audit.jsonl": "168da29df89d47333a0691d476a53ea7ddc64e15151a48f811af94927d791a4c",
+      "one-repair-scored-results.jsonl": "ba2f46109f280e52ebfff9b4f37247afe0b8479ce2c3663616348973d299ef19",
+      "one-repair-table.csv": "e4574ac39cf6146da4849507dd81f414e2ec3b67dfacf38cc28d2a2813e61ec2"
+    }
+  },
+  "dataPolicy": {
+    "committed": [
+      "scored JSONL",
+      "analyzer CSV",
+      "allowlisted failure audit",
+      "summary",
+      "provenance"
+    ],
+    "localOnly": [
+      "raw model output",
+      "materialized workdirs",
+      "route probe output tail"
+    ]
+  },
+  "limitations": [
+    "The GPT-4.1-mini and GPT-4.1 runs were executed at different times.",
+    "Provider and route implementation changes cannot be excluded.",
+    "Independent generations prevent causal repair attribution.",
+    "The diagnostic covers one skill, one adapter, one host, one context, and development tasks only."
+  ]
+}

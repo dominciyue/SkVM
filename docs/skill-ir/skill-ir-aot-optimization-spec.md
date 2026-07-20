@@ -40,16 +40,16 @@ no-skill | original | ir-static
 
 ```text
 skill: env-manager
-model: xty/gpt-4.1-mini
+models: xty/gpt-4.1-mini, xty/gpt-4.1
 adapter: bare-agent
 host: Windows
 context: clean
 tasks: 2 development tasks, each repeated twice
 ```
 
-### 已冻结、待执行的模型能力诊断
+### 已执行的模型能力诊断
 
-下一轮使用 `xty/gpt-4.1` 对冻结 semantic artifact v2 做单变量诊断，目的仅是判断
+已使用 `xty/gpt-4.1` 对冻结 semantic artifact v2 做单变量诊断，目的仅是判断
 当前失败中是否存在 `gpt-4.1-mini` 的能力上限，不以换模型追求更高结果。
 
 ```text
@@ -70,6 +70,12 @@ package/catalog、一次 repair 上限和 development gate 全部保持冻结。
 该实验是 capability attribution diagnosis，不是新的主表。只有当公开证据充分、mini
 稳定失败且强模型在同一 criterion 上成功时，才记录为“支持模型能力瓶颈”；单个强模型
 成功不能证明跨模型稳定或方法增益。跨时间独立运行仍保留 provider/time confound。
+
+实际 20 行无 infrastructure failure。`no-skill`、`original`、`ir-static` 和
+`check-only` 均为 0/4、mean 0.7000；`one-repair` 为 0/4、mean 0.6625。强模型
+相对 mini 出现 18 个 `mini-fail-strong-pass` 准则转移，但 `env-classification` 与
+`env-schema-rules` 在所有系统中持续失败。该结果只支持模型能力影响低层产物质量，
+不支持方法增益、跨模型稳定或任务已饱和。
 
 ### 已实现但证据有限
 
@@ -247,6 +253,14 @@ Semantic artifact v2：
 - 两次真实 repair，0 次 repaired-to-pass；
 - 冻结 3/4、0.85 gate 失败；
 - held-out 未执行。
+
+GPT-4.1 capability diagnostic：
+
+- 20/20 行正常执行，五个系统均 0/4 success；
+- no-skill/original/ir-static/check-only mean 均为 0.7000；
+- one-repair mean 0.6625，4 次 repair，0 次 repaired-to-pass；
+- 相对 mini 改善 18 个低层准则结果，classification/schema 残差不变；
+- 冻结 gate 失败，held-out 未执行，结果不进入主 claim。
 
 详细证据见 `docs/skill-ir/experiment-results.md` 和 `results/skill-ir/`。
 

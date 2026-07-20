@@ -18,7 +18,7 @@
 | Dual-source Final IR | 完成候选 | V1/v2 均未过 development gate。 |
 | Executable artifact v1 | 冻结失败证据 | Validator semantic coverage 不足，repair 未触发。 |
 | Semantic artifact v2 | 冻结失败证据 | Repair 触发 2 次，均未通过 revalidation。 |
-| GPT-4.1 capability diagnostic | 已冻结设计 | 20 个 development rows；只替换模型和 run identity。 |
+| GPT-4.1 capability diagnostic | 完成，gate 失败 | 20 行均无 infra；强模型改善基础执行，但五系统仍 0/4 成功。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
@@ -58,6 +58,17 @@ observed: success = 0/4, mean = 0.625, hard-gate regressions = 0, infra = 0
 - 两个 Node repair 均未通过 revalidation；
 - 当前没有 pre-repair scorer snapshot，不能做严格 repair attribution。
 
+GPT-4.1 单变量诊断也未解除阻塞：
+
+```text
+no-skill/original/ir-static/check-only: success = 0/4, mean = 0.7000
+one-repair: success = 0/4, mean = 0.6625, repair = 4/4, repaired-to-pass = 0/4
+```
+
+强模型相对历史 mini 修复 18 个准则级失败，集中在产物完整性、示例安全和一次泄漏；
+`classification` 与 `schema` 在所有系统中继续失败。这支持“模型能力影响基础执行质量”，
+同时表明当前主要瓶颈仍在 public contract lowering、validator 与 repair 约束。
+
 ## 4. 下一阶段顺序
 
 ### 已完成前置：文档治理
@@ -67,7 +78,7 @@ observed: success = 0/4, mean = 0.625, hard-gate regressions = 0, infra = 0
 - 旧路径已全局替换，58 份被吸收文档已删除。
 - Git 与 `history.md` 保留历史，链接检查器阻止旧路径回流。
 
-### Step 2：并行完成 v2 failure audit 与强模型诊断
+### Step 2：并行完成 v2 failure audit 与强模型诊断（已完成）
 
 #### 2A. 冻结 v2 failure audit
 
@@ -117,7 +128,7 @@ artifact:   one-repair                        = 4 rows
 若所有系统均通过，则记录任务饱和，不写成 Skill IR 增益。跨时间 provider 差异作为限制
 单独披露。
 
-### Step 3：合并两路证据后设计下一 catalog
+### Step 3：合并两路证据后设计下一 catalog（当前）
 
 - 先合并 2A failure taxonomy 与 2B capability diagnosis，禁止只看强模型总分改设计。
 - 共享或绑定 initial generation，降低两臂生成噪声。
@@ -252,16 +263,16 @@ bun ./src/benchmarks/skill-ir/route-probe-run.ts `
 
 ### Task 2.5：冻结 development 执行与评分
 
-- [ ] 按 dry-run 中保存的参数执行 baseline 12 行、check-only 4 行、one-repair 4 行。
-- [ ] 每组立即运行现有 deterministic scorer 和 analyzer；infra 行不重解释为 semantic。
-- [ ] 用 failure-audit CLI 合并历史 mini 与新 GPT-4.1 scored rows。
-- [ ] Gate 未过或任务饱和时仍停止 held-out，不修改 scorer/package/lock。
+- [x] 按 dry-run 中保存的参数执行 baseline 12 行、check-only 4 行、one-repair 4 行。
+- [x] 每组立即运行现有 deterministic scorer 和 analyzer；20 行 infra 均为 0。
+- [x] 用 failure-audit CLI 合并历史 mini 与新 GPT-4.1 scored rows。
+- [x] Gate 未过，停止 held-out；scorer/package/lock 保持冻结。
 
 ### Task 2.6：结果与文档收口
 
-- [ ] 提交 compact plan、scored JSONL、CSV、summary、audit 和 provenance；raw/workdir 留本地。
-- [ ] 更新 `experiment-results.md`、`optimization-and-artifacts.md` 和本计划 ledger。
-- [ ] 追加 conversation log，运行完整质量门禁，代码审查后提交推送。
+- [x] 提交 compact scored JSONL、CSV、summary、audit 和 provenance；raw/workdir 留本地。
+- [x] 更新 `experiment-results.md`、`optimization-and-artifacts.md`、spec 和本计划 ledger。
+- [x] 追加 conversation log，运行完整质量门禁并完成独立代码审查。
 
 ## 6. 冻结项
 

@@ -248,6 +248,12 @@ bun ./src/benchmarks/skill-ir/failure-audit-run.ts `
 criterion transition。Audit 只保留错误码、相对路径、JSON pointer、criterion pass
 和失败分类，不复制 stdout、workdir 内容、secret 或 evaluator expected。
 
+CLI 在输出前逐格验证冻结的 12+4+4 identity：model/family、skill、task、system/mode、
+context、agent、environment、adapter/version、panel、run index、criteria 和 case id
+必须完全匹配，重复或缺失格直接失败。Runtime report 重新通过 v1/v2 正式 schema，
+白名单字符串还会拒绝绝对路径、控制字符、secret canary 与常见凭据形态。Comparison
+索引也拒绝重复 key，不允许静默覆盖。
+
 跨批次独立生成只能作诊断，不能替代同一冻结矩阵内 paired comparison。
 
 ## 11. Route Health

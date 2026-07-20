@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "skill-ir-capability-diagnostic-execution-plan/v1",
+  "diagnosticId": "env-manager-v2-gpt41-capability-diagnostic-v1",
+  "lock": "benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-lock.json",
+  "model": "xty/gpt-4.1",
+  "modelFamily": "gpt",
+  "adapter": "bare-agent",
+  "skill": "env-manager",
+  "contexts": ["clean"],
+  "agents": ["skvm"],
+  "environments": ["windows"],
+  "taskSplit": "development",
+  "tasks": [
+    "env-manager-node-audit-dev-001",
+    "env-manager-vite-audit-dev-002"
+  ],
+  "repetitions": 2,
+  "groups": [
+    {
+      "label": "baseline",
+      "systems": ["no-skill", "original", "ir-static"],
+      "adapterVersion": "workspace-static-v1",
+      "panelConfigId": "env-manager-v2-gpt41-capability-diagnostic-v1-baseline",
+      "expectedRows": 12
+    },
+    {
+      "label": "check-only",
+      "systems": ["ir-artifact-dev"],
+      "logicalSystem": "check-only",
+      "adapterVersion": "workspace-semantic-artifact-v2",
+      "panelConfigId": "env-manager-v2-gpt41-capability-diagnostic-v1-check-only",
+      "repairMode": "check-only",
+      "expectedRows": 4
+    },
+    {
+      "label": "one-repair",
+      "systems": ["ir-artifact-dev"],
+      "logicalSystem": "one-repair",
+      "adapterVersion": "workspace-semantic-artifact-v2",
+      "panelConfigId": "env-manager-v2-gpt41-capability-diagnostic-v1-one-repair",
+      "repairMode": "one-repair",
+      "expectedRows": 4
+    }
+  ],
+  "totalRows": 20,
+  "heldOut": false
+}

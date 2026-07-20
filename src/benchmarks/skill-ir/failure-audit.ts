@@ -1,5 +1,7 @@
 import type { AnyRuntimeValidationReport, ArtifactRuntimeMetadata } from "./artifact-runtime";
+import { RuntimeValidationReportSchema } from "./artifact-package";
 import type { ScoredAgentRunRow } from "./scoring";
+import { RuntimeSemanticValidationReportSchema } from "./semantic-contract";
 
 export type FailureAuditClassification =
   | "success"
@@ -48,12 +50,23 @@ export type FailureAuditRecord = {
   };
 };
 
+function assertSafeAuditValue(field: string, value: string): void {
+  const secretLike = /TEST_ONLY_|sk-[A-Za-z0-9_-]{10,}|Bearer\s+[A-Za-z0-9._~+/-]+=*/i;
+  if (value.length > 256 || /[\u0000-\u001f\u007f]/.test(value) || secretLike.test(value)) {
+    throw new Error(`Unsafe validation audit field: ${field}`);
+  }
+}
+
 function projectError(error: unknown): AuditValidationError {
   const value = error as Record<string, unknown>;
   return Object.fromEntries(
     ["code", "relativePath", "jsonPointer", "missingField", "expectedType"]
       .filter((field) => typeof value[field] === "string")
-      .map((field) => [field, value[field]]),
+      .map((field) => {
+        const fieldValue = value[field] as string;
+        assertSafeAuditValue(field, fieldValue);
+        return [field, fieldValue];
+      }),
   ) as AuditValidationError;
 }
 
@@ -61,10 +74,12 @@ function projectValidation(
   report: AnyRuntimeValidationReport | undefined,
 ): { status: string; errors: AuditValidationError[] } | undefined {
   if (!report) return undefined;
-  const value = report as unknown as { status: string; errors?: unknown[] };
+  const value = report.schemaVersion === "runtime-validation-report/v2"
+    ? RuntimeSemanticValidationReportSchema.parse(report)
+    : RuntimeValidationReportSchema.parse(report);
   return {
     status: value.status,
-    errors: (value.errors ?? []).map(projectError),
+    errors: value.errors.map(projectError),
   };
 }
 
@@ -146,6 +161,18 @@ function auditKey(row: FailureAuditRecord): string {
   return `${row.systemLabel}|${row.task}|${row.runIndex ?? 0}`;
 }
 
+function indexAuditRows(rows: FailureAuditRecord[]): Map<string, FailureAuditRecord> {
+  const indexed = new Map<string, FailureAuditRecord>();
+  for (const row of rows) {
+    const key = auditKey(row);
+    if (indexed.has(key)) {
+      throw new Error(`Duplicate failure-audit identity: ${key}`);
+    }
+    indexed.set(key, row);
+  }
+  return indexed;
+}
+
 export function compareCapabilityAudits(
   mini: FailureAuditRecord[],
   strong: FailureAuditRecord[],
@@ -157,8 +184,8 @@ export function compareCapabilityAudits(
   unmatchedMiniRows: string[];
   unmatchedStrongRows: string[];
 } {
-  const miniByKey = new Map(mini.map((row) => [auditKey(row), row]));
-  const strongByKey = new Map(strong.map((row) => [auditKey(row), row]));
+  const miniByKey = indexAuditRows(mini);
+  const strongByKey = indexAuditRows(strong);
   const transitions: CriterionTransition[] = [];
   for (const [key, miniRow] of miniByKey) {
     const strongRow = strongByKey.get(key);
