@@ -20,7 +20,7 @@
 | Semantic artifact v2 | 冻结失败证据 | Repair 触发 2 次，均未通过 revalidation。 |
 | GPT-4.1 capability diagnostic | 已冻结设计 | 20 个 development rows；只替换模型和 run identity。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
-| 文档压缩与入口治理 | 完成 | 11 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
+| 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
 ## 2. 已完成能力
 

@@ -51,7 +51,6 @@ execution feedback 改善稳定性。
 
 1. `docs/skill-ir/experiment-results.md`
 2. `results/skill-ir/`
-3. `docs/skill-ir/weekly-report-2026-07-13-to-2026-07-16.md`
 
 ## 权威文档
 
@@ -66,7 +65,6 @@ execution feedback 改善稳定性。
 | `experiment-results.md` | 冻结实验结果与 `results/` 索引。 |
 | `history.md` | 研究演进和旧文档迁移映射。 |
 | `related-work.md` | 相关论文和项目定位。 |
-| `weekly-report-2026-07-13-to-2026-07-16.md` | 中文周报讲稿。 |
 
 ## 代码与数据地图
 
