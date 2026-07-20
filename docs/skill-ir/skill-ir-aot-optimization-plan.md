@@ -166,7 +166,104 @@ zh-readme
 
 Wave B 不得用于调优同一份主结果配置。
 
-## 5. 冻结项
+## 5. Step 2 文件级实施计划
+
+> 执行方式：当前会话内按 TDD 顺序实施，每项完成后单独验证并更新本节状态。
+
+### Task 2.1：诊断 lock 与完整性验证
+
+**新增文件：**
+
+```text
+src/benchmarks/skill-ir/capability-diagnostic.ts
+src/benchmarks/skill-ir/capability-diagnostic.test.ts
+benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-lock.json
+benchmarks/skill-ir/pilots/env-manager/env-manager-executable-semantic-artifact-v2-gpt41-lock.json
+```
+
+- [ ] RED：测试拒绝 held-out、非 GPT-4.1、非 20 行矩阵、digest 漂移和 gate 漂移。
+- [ ] GREEN：实现严格 Zod schema 与 source/base IR/task/scorer/package/runner-lock digest 校验。
+- [ ] GREEN：协调 lock 绑定三组 run、公开 criterion id、历史 mini result 路径和解释边界。
+- [ ] 验证：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/capability-diagnostic.test.ts
+```
+
+### Task 2.2：三组 dry-run plan compiler
+
+**新增文件：**
+
+```text
+src/benchmarks/skill-ir/capability-diagnostic-run.ts
+src/benchmarks/skill-ir/capability-diagnostic-run.test.ts
+```
+
+- [ ] RED：要求输出恰好 `12 + 4 + 4` 行，全部为 development/clean/windows/GPT-4.1。
+- [ ] GREEN：复用 `buildPlan` 生成 baseline、check-only、one-repair 三组 plan。
+- [ ] GREEN：artifact 两臂必须携带 runner-compatible GPT-4.1 lock；禁止 `--execute`
+  绕过 route probe。
+- [ ] 验证：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/capability-diagnostic-run.test.ts
+bun ./src/benchmarks/skill-ir/capability-diagnostic-run.ts `
+  --lock=benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-lock.json `
+  --out-dir=results/skill-ir/env-manager-gpt41-capability-diagnostic-dry-run
+```
+
+### Task 2.3：离线 failure audit 与能力对照
+
+**新增文件：**
+
+```text
+src/benchmarks/skill-ir/failure-audit.ts
+src/benchmarks/skill-ir/failure-audit.test.ts
+src/benchmarks/skill-ir/failure-audit-run.ts
+```
+
+- [ ] RED：覆盖 success、infra、runtime false pass、runtime/scorer aligned failure、
+  repair revalidation failure 和 baseline-without-runtime-metadata。
+- [ ] GREEN：按 case/system/mode/task/runIndex 对齐 raw/scored runtime 与六项 scorer
+  criteria，只输出错误码、相对路径、JSON pointer 和判定，不复制文件内容或 secret。
+- [ ] GREEN：比较 mini 与 GPT-4.1 的 criterion transition，输出
+  `mini-fail/strong-pass` 候选；不自动宣称模型因果或 Skill IR 增益。
+- [ ] 验证：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/failure-audit.test.ts
+```
+
+### Task 2.4：无成本门禁与 route probe
+
+- [ ] 运行 package verify、20 行 dry-run、全 focused tests、typecheck。
+- [ ] 使用 `original` development task 对 `xty/gpt-4.1` 做一次 route probe；仅验证
+  路由、凭据和 bare-agent 可执行性。
+- [ ] Probe 失败时停止，不创建付费 development 结果。
+
+```powershell
+bun ./src/benchmarks/skill-ir/route-probe-run.ts `
+  --corpus=pilot --models=xty/gpt-4.1 --adapter=bare-agent `
+  --system=original --context=clean --agent=skvm --environment=windows `
+  --task=env-manager-node-audit-dev-001 --timeout-ms=120000 `
+  --require-env=SKVM_XTY_API_KEY `
+  --out-dir=results/skill-ir/env-manager-gpt41-capability-route-probe
+```
+
+### Task 2.5：冻结 development 执行与评分
+
+- [ ] 按 dry-run 中保存的参数执行 baseline 12 行、check-only 4 行、one-repair 4 行。
+- [ ] 每组立即运行现有 deterministic scorer 和 analyzer；infra 行不重解释为 semantic。
+- [ ] 用 failure-audit CLI 合并历史 mini 与新 GPT-4.1 scored rows。
+- [ ] Gate 未过或任务饱和时仍停止 held-out，不修改 scorer/package/lock。
+
+### Task 2.6：结果与文档收口
+
+- [ ] 提交 compact plan、scored JSONL、CSV、summary、audit 和 provenance；raw/workdir 留本地。
+- [ ] 更新 `experiment-results.md`、`optimization-and-artifacts.md` 和本计划 ledger。
+- [ ] 追加 conversation log，运行完整质量门禁，代码审查后提交推送。
+
+## 6. 冻结项
 
 - 不修改 executable-artifact/v1 package、lock 和结果。
 - 不修改 executable-semantic-artifact/v2 package、lock、catalog 和结果。
@@ -177,7 +274,7 @@ Wave B 不得用于调优同一份主结果配置。
 - 不在单 adapter 下声称 cross-agent。
 - 不在没有 break-even 分析时声称 token reduction。
 
-## 6. 开发规则
+## 7. 开发规则
 
 1. 先读 `docs/skill-ir/README.md` 和对应组件文档。
 2. 行为变更使用 TDD：RED -> minimal GREEN -> focused regression。
@@ -186,7 +283,7 @@ Wave B 不得用于调优同一份主结果配置。
 5. 结果提交 compact scored JSONL、CSV、summary 和 provenance；raw/workdir 留本地。
 6. 每个阶段追加 `D:\skill优化\conversation_log.md`。
 
-## 7. 质量门禁
+## 8. 质量门禁
 
 ```powershell
 python scripts/check_skill_ir_doc_links_test.py
