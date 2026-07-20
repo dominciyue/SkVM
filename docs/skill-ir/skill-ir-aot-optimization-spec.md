@@ -283,3 +283,134 @@ GPT-4.1 capability diagnostic：
 3. 固定模型 panel 中报告 aggregate、per-model、worst-model 和 negative delta。
 4. Wave B 使用冻结方法完成 replication。
 5. Scorer、runtime validator、infrastructure failure 和 token cost 分列报告。
+
+## 12. V3 Public-Contract Artifact
+
+### 12.1 身份与目标
+
+下一 catalog 固定为：
+
+```text
+package catalog: executable-public-contract-artifact/v3
+runtime contract: skill-ir-public-runtime-contract/v3
+validation report: runtime-validation-report/v3
+error catalog: public-contract-error-codes/v2
+primary development model: xty/gpt-5.6-sol
+```
+
+V1/V2 package、lock、catalog 和结果保持不可变。V3 目标是把公开 skill/task 规则和
+agent 可见 workdir evidence 编译成机器可执行 contract，直接处理当前稳定失败的
+classification 与 schema rules，同时建立同一 initial generation 的 repair 归因。
+
+### 12.2 编译产物
+
+```text
+package/
+  skill-ir.json
+  skill.md
+  package-manifest.json
+  package-provenance.json
+  artifacts/
+    contracts/output-contract.json
+    contracts/public-policy.json
+    schemas/public-runtime-contract.schema.json
+    scripts/evidence-program.mjs
+    checks/public-contract-checker.mjs
+    templates/.env.example
+    templates/.env.schema.json
+    templates/env-report.json
+```
+
+Preflight 从公开 contract 与 workdir 生成并保护：
+
+```text
+.skvm-artifact/public-runtime-contract.json
+```
+
+Runtime contract 保存变量名、definition/reference/source refs、公开框架前缀、
+literal shape、confirmed type/constraint/sensitivity evidence、source-qualified
+finding 和 limitation。不得保存 secret value、scorer expected、held-out 数据或
+最终 gold classification arrays。
+
+### 12.3 B 层启用边界
+
+V3 启用可审计的 classification derivation，但只消费以下规则：
+
+```text
+defined + referenced       -> definedAndUsed
+defined + not referenced   -> definedUnconfirmedUnused
+referenced + not defined   -> usedUndefined
+confirmed sensitive literal -> hardcodedSecrets
+public prefix + sensitive + client-visible reference -> exposureRisks
+```
+
+推导在 checker 内从 evidence graph 重新计算，不把最终数组写进 runtime contract。
+动态访问、未支持语法、扫描上限、编码问题或冲突 evidence 一律保守降级为
+`unconfirmed`/limitation。每条推导必须有 canary、reverse-evidence 和冲突测试。
+
+Schema 只强制 confirmed rules：
+
+- 显式数值转换或安全 literal shape 才推导 integer/boolean；
+- URI scheme、公开 suffix/policy 才推导 format；
+- 静态 reference 支持 required=true，只有 definition 支持 required=false；
+- 敏感名称/公开 skill policy 支持 sensitive 和受限 minLength；
+- 不支持的字段必须被拒绝，advisory inference 不进入 repair gate。
+
+### 12.4 生成与一次修复
+
+```text
+preflight
+  -> derive/protect public runtime contract
+  -> materialize deterministic skeleton
+  -> model generation
+  -> capture pre-repair snapshot
+  -> validate
+  -> at most one contract-bound repair
+  -> revalidate
+  -> capture post-repair snapshot
+  -> offline score pre/post snapshots
+```
+
+V3 repair report 仍禁止 actual/expected value 和 free-form message。除既有安全字段外，
+只允许 `contractRef` 与封闭 `operation` enum；repair agent 必须读取 protected
+contract ref，自行重建目标字段。第三次调用、修改 protected input、修改 contract、
+路径逃逸或 validator infrastructure failure 都必须停止。
+
+### 12.5 共享生成归因
+
+V3 不再为 check-only 和 one-repair 分别调用模型。同一 one-repair raw run 保存：
+
+- generation identity；
+- pre-repair workdir snapshot path/digest；
+- post-repair workdir snapshot path/digest；
+- generation、repair、validation 分项 token/latency。
+
+Scorer 从同一 raw run 生成两个逻辑 scored row：
+
+```text
+check-only  = pre-repair snapshot
+one-repair = post-repair snapshot
+```
+
+二者共享 model/task/runIndex/generation identity。只有 pre fail、post pass 且 runtime
+repair 实际发生时，才记录 repaired-to-pass；独立 generation 不进入 repair 增益表。
+
+### 12.6 模型资格与实验边界
+
+网关 2026-07-21 返回 448 个模型。低成本兼容性 probe：
+
+| Model | 结果 |
+|---|---|
+| gpt-5.6-sol | 可用，严格格式通过 |
+| claude-opus-4-8 | 可用 |
+| deepseek-v4-pro | 可用 |
+| gemini-3.1-pro-preview-thinking | 可调用，但返回 route/格式有偏差 |
+| gpt-5.5-pro | HTTP 503 |
+
+V3 主开发模型固定为 `xty/gpt-5.6-sol`。在 V3 lock 前，用 no-skill Node development
+case 对 GPT-5.6、Opus、DeepSeek 各做一次资格评分；该结果只用于排除 route/harness
+异常，不进入方法主张。Opus/DeepSeek 后续只作跨模型诊断，不参与 V3 调参。
+
+正式实验仍限定 env-manager development、Windows、clean、bare-agent。新 package、
+model、task、repetitions、snapshot scorer、repair 上限和数值 gate 必须在付费运行前
+冻结；gate 未过不执行 held-out。

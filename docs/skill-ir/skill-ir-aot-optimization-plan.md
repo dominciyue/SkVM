@@ -19,6 +19,7 @@
 | Executable artifact v1 | 冻结失败证据 | Validator semantic coverage 不足，repair 未触发。 |
 | Semantic artifact v2 | 冻结失败证据 | Repair 触发 2 次，均未通过 revalidation。 |
 | GPT-4.1 capability diagnostic | 完成，gate 失败 | 20 行均无 infra；强模型改善基础执行，但五系统仍 0/4 成功。 |
+| V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
@@ -130,12 +131,12 @@ artifact:   one-repair                        = 4 rows
 
 ### Step 3：合并两路证据后设计下一 catalog（当前）
 
-- 先合并 2A failure taxonomy 与 2B capability diagnosis，禁止只看强模型总分改设计。
-- 共享或绑定 initial generation，降低两臂生成噪声。
-- 保存 pre/post repair 可评分 snapshot。
-- 重新设计 schema public-contract lowering。
-- 评审 B-layer classification 是否进入 production。
-- 如外置 parser，使用新 ABI、digest、catalog 和 lock。
+- Catalog 固定为 `executable-public-contract-artifact/v3`，V1/V2 不原地修改。
+- 编译 public output/schema policy 与 agent-visible evidence graph。
+- B-layer 只启用可从 definition/reference/framework/literal evidence 推导的分类。
+- 同一 generation 保存 pre/post snapshot，scorer 生成逻辑 check-only/one-repair 对。
+- Repair 使用 contract ref 与封闭 operation，不接收 actual/gold/free-form message。
+- 主开发模型固定为 `xty/gpt-5.6-sol`，Opus/DeepSeek 只做资格与诊断。
 
 ### Step 4：新的 env-manager development gate
 
@@ -308,3 +309,126 @@ git diff --check
 
 全仓上游 `bun test` 在当前 Windows 环境仍有既有失败。报告时必须区分 Skill IR
 focused scope 与 upstream full-suite baseline。
+
+## 9. Step 3 文件级 TDD 实施计划
+
+### Task 3.1：旗舰模型资格审计
+
+**不修改生产代码。**
+
+- [ ] 用同一 `no-skill` Node development case、Windows/clean/bare-agent、repetition=1
+  运行 `xty/gpt-5.6-sol`、`xty/claude-opus-4-8`、`xty/deepseek-v4-pro`。
+- [ ] 使用现有 deterministic scorer，记录 route status、score、hard gate、token 和
+  latency；不把资格结果写成 Skill IR 增益。
+- [ ] GPT-5.6 route/harness 正常后，冻结为 V3 primary model；异常才按预注册顺序回退
+  Opus、DeepSeek。
+
+### Task 3.2：V3 contract 与 package schema
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/public-contract.ts
+新增 src/benchmarks/skill-ir/public-contract.test.ts
+修改 src/benchmarks/skill-ir/artifact-package.ts
+修改 src/benchmarks/skill-ir/artifact-package.test.ts
+```
+
+- [ ] RED：拒绝 scorer expected、secret value、held-out payload、final classification
+  arrays、未知 operation 和无 provenance evidence。
+- [ ] GREEN：定义 `skill-ir-public-runtime-contract/v3`、closed error catalog、
+  contractRef、confirmed/advisory/limitation 和 V3 manifest/provenance/lock。
+- [ ] GREEN：保持 V1/V2 parser 与 digest validation 完全不变。
+- [ ] 验证：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/public-contract.test.ts `
+  ./src/benchmarks/skill-ir/artifact-package.test.ts
+```
+
+### Task 3.3：Evidence graph 与保守 B derivation
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/public-contract-evidence.ts
+新增 src/benchmarks/skill-ir/public-contract-evidence.test.ts
+修改 src/benchmarks/skill-ir/classification-evidence.ts
+```
+
+- [ ] RED：覆盖 definition/reference 集合运算、unconfirmed、used-undefined、
+  source-qualified hardcoded finding、Vite/Next public exposure 和冲突降级。
+- [ ] RED：canary 与 reverse-evidence；移除公开证据后对应约束必须消失。
+- [ ] GREEN：只输出 evidence graph 与 limitation；最终 classification arrays 只在
+  checker 内计算，不序列化到 runtime contract。
+
+### Task 3.4：V3 compiler、preflight 与 checker
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/public-contract-artifact-compiler.ts
+新增 src/benchmarks/skill-ir/public-contract-artifact-compiler.test.ts
+新增 src/benchmarks/skill-ir/public-contract-checker-cli.ts
+新增 src/benchmarks/skill-ir/public-contract-checker.test.ts
+修改 src/benchmarks/skill-ir/artifact-preflight.ts
+修改 src/benchmarks/skill-ir/artifact-preflight.test.ts
+```
+
+- [ ] RED：package 不得包含 evaluator/held-out/B gold canary，输出必须 byte
+  deterministic，V1/V2 digest 不变。
+- [ ] GREEN：编译 output contract、public policy、evidence program、checker、
+  deterministic skeleton、manifest 和 provenance。
+- [ ] GREEN：preflight 生成并保护 runtime contract；checker 独立验证 schema、
+  classification、exposure、source-qualified findings 和 protected inputs。
+
+### Task 3.5：共享 generation snapshot 与 paired scorer
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/artifact-snapshot.ts
+新增 src/benchmarks/skill-ir/artifact-snapshot.test.ts
+修改 src/benchmarks/skill-ir/artifact-runtime.ts
+修改 src/benchmarks/skill-ir/artifact-runtime.test.ts
+修改 src/benchmarks/skill-ir/real-agent-run.ts
+修改 src/benchmarks/skill-ir/real-agent-run.test.ts
+修改 src/benchmarks/skill-ir/scoring.ts
+修改 src/benchmarks/skill-ir/scoring.test.ts
+```
+
+- [ ] RED：pre/post 必须共享 generation identity；snapshot 路径逃逸、link、digest
+  drift、缺 protected input 和重复 logical row 都失败。
+- [ ] GREEN：generation 后复制完整可评分 workdir 到 pre snapshot；repair 后复制 post
+  snapshot；raw metadata 只保存路径、digest 和 identity。
+- [ ] GREEN：scorer 从同一 raw run 生成逻辑 check-only/one-repair rows，分别读取
+  pre/post snapshot；repair cost 单独保留。
+
+### Task 3.6：V3 repair、lock 与本地 activation
+
+**文件：**
+
+```text
+修改 src/benchmarks/skill-ir/artifact-runtime.ts
+修改 src/benchmarks/skill-ir/artifact-runtime.test.ts
+新增 src/benchmarks/skill-ir/env-manager-public-contract-activation.test.ts
+新增 benchmarks/skill-ir/pilots/env-manager/packages/executable-public-contract-artifact-v3/
+新增 benchmarks/skill-ir/pilots/env-manager/env-manager-public-contract-artifact-v3-lock.json
+```
+
+- [ ] RED：report 只允许 closed code、relative path、JSON pointer、contractRef 和
+  operation；禁止 expected/actual/secret/free-form message。
+- [ ] GREEN：`preflight -> generate -> snapshot -> validate -> <=1 repair ->
+  revalidate -> snapshot -> stop`。
+- [ ] GREEN：本地 fixture 必须证明 v2 known failure 在 V3 initial validation 中被
+  精确定位，并至少有一条 one-repair repaired-to-pass。
+- [ ] 冻结新 package/lock/gate 前运行全 focused tests、typecheck、doc links 和
+  package digest verify。
+
+### Task 3.7：GPT-5.6 development 实验
+
+- [ ] 先 dry-run 和 route probe，再运行冻结 development。
+- [ ] 主归因只比较同一 generation 的 pre/post snapshot；同时报告 no-skill、
+  original、ir-static 与 V3 post。
+- [ ] Gate 未过不运行 held-out，不修改 scorer/package/lock；结果写 compact evidence
+  bundle，raw/workdir 留本地。
