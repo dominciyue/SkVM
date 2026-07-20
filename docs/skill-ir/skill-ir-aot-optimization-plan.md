@@ -236,10 +236,10 @@ bun test ./src/benchmarks/skill-ir/failure-audit.test.ts
 
 ### Task 2.4：无成本门禁与 route probe
 
-- [ ] 运行 package verify、20 行 dry-run、全 focused tests、typecheck。
-- [ ] 使用 `original` development task 对 `xty/gpt-4.1` 做一次 route probe；仅验证
+- [x] 运行 package verify、20 行 dry-run、全 focused tests、typecheck。
+- [x] 使用 `original` development task 对 `xty/gpt-4.1` 做一次 route probe；仅验证
   路由、凭据和 bare-agent 可执行性。
-- [ ] Probe 失败时停止，不创建付费 development 结果。
+- [x] Probe status=`ok`，允许进入冻结 development；失败停止规则未触发。
 
 ```powershell
 bun ./src/benchmarks/skill-ir/route-probe-run.ts `
