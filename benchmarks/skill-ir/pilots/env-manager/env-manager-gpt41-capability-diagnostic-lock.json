@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "skill-ir-capability-diagnostic-lock/v1",
+  "status": "preregistered",
+  "diagnosticId": "env-manager-v2-gpt41-capability-diagnostic-v1",
+  "purpose": "model-capability-attribution",
+  "corpus": "pilot",
+  "skillId": "env-manager",
+  "model": {
+    "historicalRoute": "xty/gpt-4.1-mini",
+    "diagnosticRoute": "xty/gpt-4.1",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "baselineVersion": "workspace-static-v1",
+    "artifactVersion": "workspace-semantic-artifact-v2"
+  },
+  "frozenInputs": {
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+    },
+    "baseIr": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/base-ir.json",
+      "sha256": "dee7d95ccd898d95b025c9145d966bf7fb93a0d3f0065c701facaa3d8abbc68e"
+    },
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+      "sha256": "6f4e2ee3cc71bb2ddee596e94cb9eef3d16e0b3a355796dc449fd8bc892d4bed"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/env-manager-grade.ts",
+      "sha256": "c80d0b5637b2d9c480cbba8a816d042b5afd0e931fa06690d2fa3f1a950811a7"
+    },
+    "package": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/packages/executable-semantic-artifact-v2",
+      "manifestSha256": "b89470654bbab645563caeceafcdff1c33350b3fa35e72730231b35b94169a96",
+      "provenanceSha256": "d0c3535f5c25c4b9c2f431dd0753701f371c40cd62d8932b1fd81d6cc5f33e7c"
+    }
+  },
+  "runnerArtifactLock": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/env-manager-executable-semantic-artifact-v2-gpt41-lock.json",
+    "sha256": "f4bcc2fcd2f5bb1a37cee50f2c0146c47eff035e7d6badf081122c5fc5a66417"
+  },
+  "matrix": {
+    "systems": ["no-skill", "original", "ir-static", "check-only", "one-repair"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "repetitions": 2,
+    "baselineRows": 12,
+    "checkOnlyRows": 4,
+    "oneRepairRows": 4,
+    "totalRows": 20
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "maxSemanticRepairCalls": 1,
+    "routeProbeRequired": true
+  },
+  "developmentGate": {
+    "minimumSuccesses": 3,
+    "minimumMeanScore": 0.85,
+    "maximumHardGateRegressions": 0,
+    "maximumInfrastructureFailures": 0
+  },
+  "criteria": [
+    { "id": "env-protected-files", "evidence": "agent-visible-workdir-and-public-task" },
+    { "id": "env-no-secret-leak", "evidence": "agent-visible-workdir-and-public-task" },
+    { "id": "env-required-artifacts", "evidence": "agent-visible-workdir-and-public-task" },
+    { "id": "env-classification", "evidence": "agent-visible-workdir-and-public-task" },
+    { "id": "env-example-safety", "evidence": "agent-visible-workdir-and-public-task" },
+    { "id": "env-schema-rules", "evidence": "agent-visible-workdir-and-public-task" }
+  ],
+  "historicalMiniResults": {
+    "staticScored": "results/skill-ir/env-manager-static-v1-2026-07-15/scored-results.jsonl",
+    "checkOnlyScored": "results/skill-ir/env-manager-semantic-artifact-v2-check-only-run-2026-07-16/scored-results.jsonl",
+    "oneRepairScored": "results/skill-ir/env-manager-semantic-artifact-v2-one-repair-run-2026-07-16/scored-results.jsonl"
+  },
+  "interpretationBoundary": {
+    "entersMainClaim": false,
+    "permitsHeldOut": false,
+    "strongModelSuccessIsMethodGain": false,
+    "allSystemsPassMeans": "task-saturation",
+    "crossTimeProviderConfoundRecorded": true
+  },
+  "prohibited": [
+    "held-out execution",
+    "changing frozen inputs after paid execution begins",
+    "treating strong-model success as Skill IR method gain",
+    "claiming cross-model stability from one diagnostic model",
+    "changing the development gate after results are observed"
+  ]
+}

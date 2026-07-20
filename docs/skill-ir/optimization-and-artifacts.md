@@ -284,6 +284,16 @@ Development lock 在付费前冻结：
 Runtime validation 与 scorer gate 分开。出现 repair 只证明状态机被激活，不证明
 任务质量改善。
 
+能力诊断不修改 mini lock，新增：
+
+- `env-manager-gpt41-capability-diagnostic-lock.json`：协调 20 行诊断矩阵并绑定所有
+  冻结输入 digest；
+- `env-manager-executable-semantic-artifact-v2-gpt41-lock.json`：只把 runner model
+  identity 改为 `xty/gpt-4.1`，package/catalog/gate/repair 上限保持不变。
+
+协调 lock 的 criterion 只保存公开 criterion id 和 evidence class，不保存 expected
+集合，也不进入 package、agent prompt 或 repair input。
+
 ## 12. 当前已知限制
 
 - V2 仍不能完整推导 exact classification。

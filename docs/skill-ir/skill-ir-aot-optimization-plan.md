@@ -181,10 +181,10 @@ benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-l
 benchmarks/skill-ir/pilots/env-manager/env-manager-executable-semantic-artifact-v2-gpt41-lock.json
 ```
 
-- [ ] RED：测试拒绝 held-out、非 GPT-4.1、非 20 行矩阵、digest 漂移和 gate 漂移。
-- [ ] GREEN：实现严格 Zod schema 与 source/base IR/task/scorer/package/runner-lock digest 校验。
-- [ ] GREEN：协调 lock 绑定三组 run、公开 criterion id、历史 mini result 路径和解释边界。
-- [ ] 验证：
+- [x] RED：测试拒绝 held-out、非 GPT-4.1、非 20 行矩阵、digest 漂移和 gate 漂移。
+- [x] GREEN：实现严格 Zod schema 与 source/base IR/task/scorer/package/runner-lock digest 校验。
+- [x] GREEN：协调 lock 绑定三组 run、公开 criterion id、历史 mini result 路径和解释边界。
+- [x] 验证：
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/capability-diagnostic.test.ts

@@ -154,6 +154,18 @@ API key 只存在环境变量，不写入 config、plan、raw/scored row 或文�
 - model、adapter、environment、context、tasks、repetitions、repair mode 和 digest
   由 lock 约束。
 
+GPT-4.1 能力诊断使用两层 lock：
+
+```text
+env-manager-gpt41-capability-diagnostic-lock.json
+  -> 冻结 12+4+4 矩阵、source/base/task/scorer/package digest、gate 和解释边界
+env-manager-executable-semantic-artifact-v2-gpt41-lock.json
+  -> 给现有 artifact runner 使用的 GPT-4.1 兼容投影
+```
+
+协调 lock 不传给 agent，也不包含 evaluator expected。它只用于预注册、dry-run
+完整性验证和离线归因；runner lock 继续使用现有严格 semantic artifact schema。
+
 ## 8. Raw Rows 与 Workdir
 
 `executePlan` 按行重建限定 workdir、执行 SkVM、提取 adapter `RunStatus`、token 和
