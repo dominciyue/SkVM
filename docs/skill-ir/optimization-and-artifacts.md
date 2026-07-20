@@ -487,8 +487,19 @@ bun ./src/benchmarks/skill-ir/real-agent-run.ts `
   '--out-dir=results/skill-ir/env-manager-public-contract-v3-development-dry-run-2026-07-21'
 ```
 
-当前边界：V3 本地机制与付费前冻结已成立，4-row dry-run 通过；尚未完成 API route
-probe 或真实 development，因此仍不能形成 repair attribution 数值或方法效果结论。
+付费执行前边界为：V3 本地机制与冻结成立，4-row dry-run 通过；当时尚无真实效果
+证据。后续冻结运行结果如下。
+
+冻结真实 development 随后已执行：route probe `ok`；4 个 generation 中 3 个形成
+完整 pair，pre/post 均为 mean 0.70、0 success，paired delta=0；1 个 generation 在
+adapter 阶段 infrastructure failure。三次 repair 均触发但没有修改文件，pre/post
+digest 相同，0 次二验通过。Development gate 失败，held-out 保持关闭。
+
+Failure audit 显示报告字段外层数组存在，但非空元素为 object；V3 repair report 的
+`expectedType=array` 没有充分表达 item type，强模型因此误判“已经满足”。同时离线
+scorer 继续报告 schema criterion 失败，而 runtime residual 主要集中在 classification，
+说明 runtime/scorer success contract 仍有覆盖差。该结果冻结为 V3 失败证据，下一轮
+必须新开 catalog；不在 V3 package、lock、prompt、scorer 或 gate 上事后调优。
 
 ## 12. Lock 与实验门禁
 
@@ -519,6 +530,9 @@ Runtime validation 与 scorer gate 分开。出现 repair 只证明状态机被�
 
 - V2 仍不能完整推导 exact classification。
 - Public schema 语义覆盖不足。
+- V3 repair contract 尚未表达 array item schema；`expectedType=array` 对强模型仍有
+  歧义。
+- V3 runtime validator 与离线 scorer 的 schema success surface 尚未完全对齐。
 - Repair 可能引入结构回归。
 - V1/V2 历史 check/repair arms 使用独立 generation，因果 attribution 有噪声；V3
   后续实验必须使用当前共享 snapshot 路径。

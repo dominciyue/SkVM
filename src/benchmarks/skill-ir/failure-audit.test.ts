@@ -245,6 +245,45 @@ describe("failure audit", () => {
     expect(serialized).not.toContain("details");
   });
 
+  test("audits V3 contract-bound failures without widening the safe projection", () => {
+    const [audit] = auditScoredRows([row({
+      system: "ir-public-artifact-dev",
+      success: false,
+      artifactLogicalArm: "one-repair",
+      artifactRuntime: {
+        mode: "one-repair",
+        status: "semantic-failure",
+        failureStage: "revalidation",
+        initialValidation: {
+          schemaVersion: "runtime-validation-report/v3",
+          codeCatalog: "public-contract-error-codes/v2",
+          status: "fail",
+          repairEligible: true,
+          errors: [{
+            code: "MISSING_CLASSIFICATION_ENTRY",
+            relativePath: "env-report.json",
+            jsonPointer: "/definedAndUsed",
+            contractRef: "variables/APP_PORT/classification",
+            operation: "set-report-entry",
+          }],
+        },
+        repairAttempted: true,
+        repairedToPass: false,
+        aggregateUsage: { inputTokens: 2, outputTokens: 1, tokenCost: 3, modelDurationMs: 4 },
+        validationDurationMs: 1,
+      },
+    })]);
+
+    expect(audit?.runtime?.initial?.errors[0]).toEqual({
+      code: "MISSING_CLASSIFICATION_ENTRY",
+      relativePath: "env-report.json",
+      jsonPointer: "/definedAndUsed",
+      contractRef: "variables/APP_PORT/classification",
+      operation: "set-report-entry",
+    });
+    expect(JSON.stringify(audit)).not.toContain("expected");
+  });
+
   test("rejects validation fields that can carry absolute paths or secret canaries", () => {
     const unsafeReport = (error: Record<string, string>) => row({
       system: "ir-artifact-dev",

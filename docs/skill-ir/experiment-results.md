@@ -244,6 +244,38 @@ results/skill-ir/v3-model-qualification-opus48-2026-07-21/scored-results.jsonl
 results/skill-ir/v3-model-qualification-deepseekv4-2026-07-21/scored-results.jsonl
 ```
 
+### 3.8 V3 共享生成 Development 实验
+
+冻结 `xty/gpt-5.6-sol`、Windows/clean/bare-agent、两个 development task × 2
+repetitions。Route probe 为 `ok`；4 个 generation 中 3 个形成完整 pre/post pair，
+1 个在 generation 阶段 adapter crash。
+
+| Arm | Complete pairs | Success | Mean | Input tokens | Output tokens |
+|---|---:|---:|---:|---:|---:|
+| check-only / pre | 3 | 0/3 | 0.70 | 40721 | 8330 |
+| one-repair / post | 3 | 0/3 | 0.70 | 92258 | 12023 |
+
+三次 repair 全部触发，0 次 repaired-to-pass，paired mean delta 为 0。三组 pre/post
+目录摘要完全相同：模型在 repair 阶段判断“无需修改”。生成报告虽然包含五个公开数组，
+非空元素是 object 而非 string；runtime report 持续产生 4 个
+`INVALID_REPORT_FIELD_TYPE` 和 6 个 `MISSING_CLASSIFICATION_ENTRY`。离线 scorer 的
+classification 与 schema criteria 也均失败。
+
+冻结 gate 要求 ≥3 success、mean ≥0.85、0 infrastructure；实际为 0 success、完整
+pair mean 0.70、1 infrastructure，因此 gate 失败，不运行 held-out。结果排除了“只因
+mini 模型能力不足”的单一解释，并暴露两处方法缺口：repair contract 只表达 array，
+没有充分表达 string item shape；runtime validator 与 scorer 的 schema 成功面仍未完全
+对齐。Repair 增加了 token，但没有改变 workdir 或得分。
+
+Compact evidence：
+
+```text
+results/skill-ir/env-manager-public-contract-v3-development-evidence-2026-07-21/summary.json
+results/skill-ir/env-manager-public-contract-v3-development-evidence-2026-07-21/failure-audit.jsonl
+```
+
+Raw、snapshot 和完整 scored rows 留在本地，summary 以 SHA-256 绑定。
+
 ## 4. Env-manager 研究推进总表
 
 | 阶段 | 最强/候选系统 | Success | Mean | 核心发现 |
@@ -254,6 +286,7 @@ results/skill-ir/v3-model-qualification-deepseekv4-2026-07-21/scored-results.jso
 | Artifact v1 | one-repair | 0/4 | 0.7000 | Semantic false pass，repair 休眠。 |
 | Semantic v2 | one-repair | 0/4 | 0.6250 | Repair 激活但二验失败。 |
 | GPT-4.1 诊断 | check-only | 0/4 | 0.7000 | 基础质量提升，核心语义残差与系统平台期仍存在。 |
+| Public-contract V3 | pre/post | 0/3 paired | 0.7000 | 共享生成 delta=0；repair 未修改产物，另有 1 infra。 |
 
 ## 5. 当前结论
 

@@ -445,8 +445,15 @@ development task × 2 repetitions，共 4 个初始 generation。scorer gate 为
 
 ### Task 3.7：GPT-5.6 development 实验
 
-- [ ] dry-run 已完成（4 rows）；下一步 route probe，再运行冻结 development。
-- [ ] 主归因只比较同一 generation 的 pre/post snapshot；同时报告 no-skill、
-  original、ir-static 与 V3 post。
-- [ ] Gate 未过不运行 held-out，不修改 scorer/package/lock；结果写 compact evidence
+- [x] dry-run、route probe 和冻结 4-generation development 已完成。
+- [x] 主归因只比较同一 generation 的 pre/post snapshot；3 个完整 pair 为
+  0.70→0.70，另有 1 个 generation infrastructure failure。由于 gate 已明确失败，
+  本轮停止新增付费 no-skill/original/ir-static batch；背景比较只引用既有冻结结果，
+  不混入 paired repair delta。
+- [x] Gate 未过不运行 held-out，不修改 scorer/package/lock；结果写 compact evidence
   bundle，raw/workdir 留本地。
+
+Gate 判定：0 success、完整 pair mean 0.70、1 infrastructure failure；最低成功数、
+最低均分和最大 infrastructure 三项失败。Repair 3/3 激活、0/3 repaired-to-pass，三组
+pre/post digest 完全相同。下一阶段先设计新 catalog，补足 array item schema 和
+runtime/scorer contract coverage；不得在 V3 上事后调 prompt 或补跑。

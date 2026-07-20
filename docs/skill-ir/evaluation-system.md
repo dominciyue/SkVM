@@ -263,6 +263,10 @@ snapshot 并只计 generation token，后者读取 post snapshot、计 aggregate
 继续单列 `repairUsage`。缺一侧快照、identity/phase 不一致、摘要漂移或重复逻辑 key
 都会拒绝整批评分。没有 snapshot metadata 的历史 raw 行不自动展开。
 
+`failure-audit.ts` 支持 v1/v2/v3 runtime report。V3 audit 只额外保留封闭
+`contractRef` 与 `operation`，仍拒绝 secret canary、绝对路径、自由文本和超长字段；
+stdout、workdir 内容、evaluator expected 不进入 compact audit。
+
 ## 11. Route Health
 
 `route-probe-run.ts` 对每个模型运行一个代表 case，输出：

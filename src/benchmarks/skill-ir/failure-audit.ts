@@ -2,6 +2,7 @@ import type { AnyRuntimeValidationReport, ArtifactRuntimeMetadata } from "./arti
 import { RuntimeValidationReportSchema } from "./artifact-package";
 import type { ScoredAgentRunRow } from "./scoring";
 import { RuntimeSemanticValidationReportSchema } from "./semantic-contract";
+import { RuntimePublicValidationReportSchema } from "./public-contract";
 
 export type FailureAuditClassification =
   | "success"
@@ -19,6 +20,8 @@ export type AuditValidationError = {
   jsonPointer?: string;
   missingField?: string;
   expectedType?: string;
+  contractRef?: string;
+  operation?: string;
 };
 
 export type FailureAuditRecord = {
@@ -60,7 +63,7 @@ function assertSafeAuditValue(field: string, value: string): void {
 function projectError(error: unknown): AuditValidationError {
   const value = error as Record<string, unknown>;
   return Object.fromEntries(
-    ["code", "relativePath", "jsonPointer", "missingField", "expectedType"]
+    ["code", "relativePath", "jsonPointer", "missingField", "expectedType", "contractRef", "operation"]
       .filter((field) => typeof value[field] === "string")
       .map((field) => {
         const fieldValue = value[field] as string;
@@ -74,9 +77,11 @@ function projectValidation(
   report: AnyRuntimeValidationReport | undefined,
 ): { status: string; errors: AuditValidationError[] } | undefined {
   if (!report) return undefined;
-  const value = report.schemaVersion === "runtime-validation-report/v2"
-    ? RuntimeSemanticValidationReportSchema.parse(report)
-    : RuntimeValidationReportSchema.parse(report);
+  const value = report.schemaVersion === "runtime-validation-report/v3"
+    ? RuntimePublicValidationReportSchema.parse(report)
+    : report.schemaVersion === "runtime-validation-report/v2"
+      ? RuntimeSemanticValidationReportSchema.parse(report)
+      : RuntimeValidationReportSchema.parse(report);
   return {
     status: value.status,
     errors: value.errors.map(projectError),

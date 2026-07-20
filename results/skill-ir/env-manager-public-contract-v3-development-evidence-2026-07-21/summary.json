@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "skill-ir-public-contract-v3-development-summary/v1",
+  "catalog": "executable-public-contract-artifact/v3",
+  "status": "development-gate-failed",
+  "claimBoundary": "Frozen development evidence only; no held-out or optimization-success claim.",
+  "identity": {
+    "model": "xty/gpt-5.6-sol",
+    "modelFamily": "gpt",
+    "adapter": "bare-agent",
+    "adapterVersion": "workspace-public-contract-v3",
+    "panelConfigId": "env-manager-public-contract-artifact-v3-development",
+    "tasks": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "repetitions": 2,
+    "initialGenerationRows": 4
+  },
+  "routeProbe": {
+    "status": "ok",
+    "durationMs": 8080
+  },
+  "execution": {
+    "rawRuns": 4,
+    "completePairedGenerations": 3,
+    "missingPairs": 1,
+    "infrastructureFailures": 1,
+    "infrastructureSignature": "generation-stage adapter crash; bun/skvm exited with code 3",
+    "repairAttempts": 3,
+    "repairedToPass": 0,
+    "unchangedPrePostDigests": 3
+  },
+  "pairedScoring": {
+    "checkOnly": {
+      "rows": 3,
+      "successes": 0,
+      "meanScore": 0.7,
+      "inputTokens": 40721,
+      "outputTokens": 8330
+    },
+    "oneRepair": {
+      "rows": 3,
+      "successes": 0,
+      "meanScore": 0.7,
+      "inputTokens": 92258,
+      "outputTokens": 12023
+    },
+    "meanDelta": 0,
+    "failedCriterionCounts": {
+      "env-classification": 6,
+      "env-schema-rules": 6
+    }
+  },
+  "runtimeFailureSignature": {
+    "affectedPairedGenerations": 3,
+    "initialAndFinalCodesUnchanged": true,
+    "invalidReportFieldTypePerRun": 4,
+    "missingClassificationEntryPerRun": 6,
+    "observedReportShape": "five required arrays existed, but non-empty entries were objects rather than strings",
+    "repairBehavior": "The model concluded that no repair was necessary and changed no files."
+  },
+  "gate": {
+    "frozen": {
+      "minimumSuccesses": 3,
+      "minimumMeanScore": 0.85,
+      "maximumHardGateRegressions": 0,
+      "maximumInfrastructureFailures": 0,
+      "minimumRepairAttempts": 1
+    },
+    "observed": {
+      "successes": 0,
+      "meanScoreExcludingInfrastructure": 0.7,
+      "hardGateRegressionsAcrossCompletePairs": 0,
+      "infrastructureFailures": 1,
+      "repairAttempts": 3
+    },
+    "passed": false,
+    "failedChecks": [
+      "minimumSuccesses",
+      "minimumMeanScore",
+      "maximumInfrastructureFailures"
+    ]
+  },
+  "audit": {
+    "runtimeScorerAlignedFailure": 3,
+    "repairRevalidationFailure": 3,
+    "infrastructure": 1
+  },
+  "interpretation": [
+    "The strong model did not remove the frozen V3 failure, so model capacity alone is not a sufficient explanation.",
+    "The public repair contract expresses array shape but not string item shape precisely enough for reliable repair.",
+    "The runtime validator and deterministic scorer still disagree on part of the schema success surface.",
+    "Repair consumed additional tokens without changing the score or workdir in every complete pair."
+  ],
+  "nextAction": "Do not run held-out. Freeze this failure evidence and design a new catalog that strengthens public output item schemas and runtime/scorer contract coverage before another paid run.",
+  "provenance": {
+    "lockSha256": "d85dd7dac67353a684c51b5e3ebdefe762a7eb271dabe1c08903cdb826ddd231",
+    "manifestSha256": "21d69014e586f625d04b46b59535b13784c4a85e9da899e647fd081b8286f689",
+    "packageProvenanceSha256": "cc225c96a78261d17841482fa1ca1c2fce6dc596901c64c1702dc4a5f23bd842",
+    "localRawSha256": "21bc25c71e1089577665728b53321da3aa753b5561097ac56db92864b2a34b49",
+    "localScoredSha256": "080def4989676f0fd1b96e6f31045e12d80ebb8ba545f90b5c1e79d5efc10702",
+    "failureAuditSha256": "93e32a611d1b20208cee2bbced18acfc86eff7e31b6e5ba5e9e3fe101c6d76f6"
+  }
+}
