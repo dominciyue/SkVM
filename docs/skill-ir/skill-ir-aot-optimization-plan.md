@@ -405,12 +405,17 @@ bun test ./src/benchmarks/skill-ir/public-contract.test.ts `
 修改 src/benchmarks/skill-ir/scoring.test.ts
 ```
 
-- [ ] RED：pre/post 必须共享 generation identity；snapshot 路径逃逸、link、digest
+- [x] RED：pre/post 必须共享 generation identity；snapshot 路径逃逸、link、digest
   drift、缺 protected input 和重复 logical row 都失败。
-- [ ] GREEN：generation 后复制完整可评分 workdir 到 pre snapshot；repair 后复制 post
+- [x] GREEN：generation 后复制完整可评分 workdir 到 pre snapshot；repair 后复制 post
   snapshot；raw metadata 只保存路径、digest 和 identity。
-- [ ] GREEN：scorer 从同一 raw run 生成逻辑 check-only/one-repair rows，分别读取
+- [x] GREEN：scorer 从同一 raw run 生成逻辑 check-only/one-repair rows，分别读取
   pre/post snapshot；repair cost 单独保留。
+
+实现说明：旧 V1/V2 raw 行没有 snapshot metadata 时继续按单行评分；带完整 paired
+metadata 的行会在评分前验证目录摘要，再展开为两条逻辑行。`check-only` 只计
+generation token，`one-repair` 计 aggregate token 并保留 `repairUsage`。当前实现面向
+确定性 workdir scorer；下一任务再接通 V3 report/repair 和新 system identity。
 
 ### Task 3.6：V3 repair、lock 与本地 activation
 

@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
 import { compileEnvManagerSemanticArtifactPackage } from "./semantic-artifact-compiler";
 import { preflightArtifactRun, type PreparedArtifactRun } from "./artifact-preflight";
+import { verifyArtifactSnapshot } from "./artifact-snapshot";
 import {
   buildSanitizedRepairTask,
   executeArtifactValidator,
@@ -236,6 +237,41 @@ describe("artifact runtime", () => {
       aggregateUsage: { inputTokens: 17, outputTokens: 8, tokenCost: 25, modelDurationMs: 25 },
     });
     expect(repairPrompt).toContain('"code":"MISSING_FIELD"');
+  });
+
+  test("captures pre and post snapshots under one generation identity", async () => {
+    let validations = 0;
+    const snapshotRoot = join(dirname(prepared.workDir), "snapshots");
+    const generationIdentity = "b".repeat(64);
+    const result = await runArtifactStateMachine({
+      mode: "one-repair",
+      prepared,
+      snapshot: { snapshotRoot, generationIdentity },
+      runGeneration: async () => {
+        await writeFile(join(prepared.workDir, "phase.txt"), "generated\n", "utf8");
+        return commandResult("generated", 10, 5);
+      },
+      runRepair: async () => {
+        await writeFile(join(prepared.workDir, "phase.txt"), "repaired\n", "utf8");
+        return commandResult("repaired", 7, 3);
+      },
+      runValidator: async () => (++validations === 1 ? failReport : passReport),
+    });
+
+    expect(result.preRepairSnapshot).toMatchObject({
+      generationIdentity,
+      phase: "pre-repair",
+    });
+    expect(result.postRepairSnapshot).toMatchObject({
+      generationIdentity,
+      phase: "post-repair",
+    });
+    expect(await readFile(join(result.preRepairSnapshot!.path, "phase.txt"), "utf8"))
+      .toBe("generated\n");
+    expect(await readFile(join(result.postRepairSnapshot!.path, "phase.txt"), "utf8"))
+      .toBe("repaired\n");
+    await expect(verifyArtifactSnapshot(result.preRepairSnapshot!)).resolves.toBeDefined();
+    await expect(verifyArtifactSnapshot(result.postRepairSnapshot!)).resolves.toBeDefined();
   });
 
   test("stops after the second validation failure without a third call", async () => {

@@ -37,6 +37,7 @@ import {
 } from "./artifact-package";
 import { extractEnvManagerTaskContract } from "./artifact-package-compiler";
 import { preflightArtifactRun } from "./artifact-preflight";
+import { createArtifactGenerationIdentity } from "./artifact-snapshot";
 import { extractTokenUsage } from "./scoring";
 
 export type RealAgentRunArgs = {
@@ -741,6 +742,18 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
       const runtime = await runArtifactStateMachine({
         mode: item.artifactRepairMode,
         prepared,
+        snapshot: {
+          snapshotRoot: join(outDir, "snapshots"),
+          generationIdentity: createArtifactGenerationIdentity({
+            caseId: item.caseId,
+            model: item.model,
+            modelFamily: item.modelFamily,
+            adapter: item.adapter,
+            adapterVersion: item.adapterVersion,
+            runIndex: item.runIndex,
+            panelConfigId: item.panelConfigId,
+          }),
+        },
         runGeneration: () => executeWithRetries(item.command),
         runRepair: async (task) => {
           const repairTaskPath = join(dirname(item.taskPath), "artifact-repair-task.json");

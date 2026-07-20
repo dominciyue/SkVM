@@ -536,7 +536,18 @@ describe("real-agent-run manifest loading", () => {
       generationUsage: { inputTokens: 10, outputTokens: 5, tokenCost: 15 },
       repairUsage: { inputTokens: 7, outputTokens: 3, tokenCost: 10 },
       aggregateUsage: { inputTokens: 17, outputTokens: 8, tokenCost: 25 },
+      preRepairSnapshot: { phase: "pre-repair" },
+      postRepairSnapshot: { phase: "post-repair" },
     });
+    expect(rawRow.artifactRuntime.generationIdentity).toMatch(/^[0-9a-f]{64}$/);
+    expect(rawRow.artifactRuntime.preRepairSnapshot.generationIdentity)
+      .toBe(rawRow.artifactRuntime.generationIdentity);
+    expect(rawRow.artifactRuntime.postRepairSnapshot.generationIdentity)
+      .toBe(rawRow.artifactRuntime.generationIdentity);
+    expect(await readFile(join(rawRow.artifactRuntime.preRepairSnapshot.path, "env-report.json"), "utf8"))
+      .toBe('{"definedAndUsed":["PORT"]}');
+    expect(await readFile(join(rawRow.artifactRuntime.postRepairSnapshot.path, "env-report.json"), "utf8"))
+      .toContain('"exposureRisks":[]');
     expect(await readFile(join(workDir, "fixture.txt"), "utf8")).toBe("protected fixture\n");
   });
 

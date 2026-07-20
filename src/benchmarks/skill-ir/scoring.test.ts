@@ -13,6 +13,7 @@ import {
   type RawAgentRunRow,
 } from "./scoring";
 import type { SkillIRBenchmarkTask } from "./real-agent";
+import { captureArtifactSnapshot } from "./artifact-snapshot";
 
 const tempDirs: string[] = [];
 
@@ -836,6 +837,154 @@ describe("Skill IR real-agent scoring", () => {
       failedCriteria: ["output-ok"],
       successSource: "deterministic-evaluator",
     });
+  });
+
+  test("scores check-only and one-repair from snapshots of one shared generation", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skill-ir-paired-score-"));
+    tempDirs.push(root);
+    const workDir = join(root, "workdir");
+    const snapshotRoot = join(root, "snapshots");
+    await mkdir(workDir);
+    await writeFile(join(workDir, "output.json"), '{"status":"bad"}\n', "utf8");
+    const generationIdentity = "c".repeat(64);
+    const preRepairSnapshot = await captureArtifactSnapshot({
+      workDir,
+      snapshotRoot,
+      generationIdentity,
+      phase: "pre-repair",
+      protectedFiles: [],
+    });
+    await writeFile(join(workDir, "output.json"), '{"status":"ok"}\n', "utf8");
+    const postRepairSnapshot = await captureArtifactSnapshot({
+      workDir,
+      snapshotRoot,
+      generationIdentity,
+      phase: "post-repair",
+      protectedFiles: [],
+    });
+    const task: SkillIRBenchmarkTask = {
+      id: "paired-artifact-task",
+      split: "development",
+      prompt: "Create output.json.",
+      successCriteria: [],
+      eval: [{
+        method: "file-check",
+        id: "output-ok",
+        path: "output.json",
+        mode: "contains",
+        expected: '"status":"ok"',
+      }],
+      hardGateIds: ["output-ok"],
+    };
+    const raw: RawAgentRunRow = {
+      caseId: "artifact-skill:skvm:windows:clean:paired-artifact-task",
+      system: "ir-artifact-dev",
+      taskPath: "tmp/task.json",
+      workDir,
+      exitCode: 0,
+      durationMs: 320,
+      stdout: "Final output:\nCreated output.json.",
+      stderr: "",
+      successSource: "execution-only",
+      artifactRuntime: {
+        mode: "one-repair",
+        status: "complete",
+        initialValidation: {
+          schemaVersion: "runtime-validation-report/v1",
+          status: "fail",
+          repairEligible: true,
+          errors: [{ code: "MISSING_FIELD", relativePath: "output.json" }],
+        },
+        finalValidation: {
+          schemaVersion: "runtime-validation-report/v1",
+          status: "pass",
+          repairEligible: false,
+          errors: [],
+        },
+        repairAttempted: true,
+        repairedToPass: true,
+        generationUsage: { inputTokens: 12, outputTokens: 8, tokenCost: 20 },
+        repairUsage: { inputTokens: 5, outputTokens: 2, tokenCost: 7 },
+        aggregateUsage: { inputTokens: 17, outputTokens: 10, tokenCost: 27, modelDurationMs: 300 },
+        validationDurationMs: 20,
+        generationIdentity,
+        preRepairSnapshot,
+        postRepairSnapshot,
+      },
+    };
+
+    const scored = await scoreRawRunRows([raw], new Map([[task.id, task]]));
+
+    expect(scored).toHaveLength(2);
+    expect(scored[0]).toMatchObject({
+      artifactLogicalArm: "check-only",
+      generationIdentity,
+      success: false,
+      inputTokens: 12,
+      outputTokens: 8,
+      tokenCost: 20,
+      artifactRuntime: { repairAttempted: false },
+    });
+    expect(scored[1]).toMatchObject({
+      artifactLogicalArm: "one-repair",
+      generationIdentity,
+      success: true,
+      inputTokens: 17,
+      outputTokens: 10,
+      tokenCost: 27,
+      artifactRuntime: {
+        repairAttempted: true,
+        repairUsage: { inputTokens: 5, outputTokens: 2, tokenCost: 7 },
+      },
+    });
+  });
+
+  test("rejects duplicate logical rows for one generation identity", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skill-ir-duplicate-pair-"));
+    tempDirs.push(root);
+    const workDir = join(root, "workdir");
+    const snapshotRoot = join(root, "snapshots");
+    await mkdir(workDir);
+    await writeFile(join(workDir, "output.txt"), "ok\n", "utf8");
+    const generationIdentity = "d".repeat(64);
+    const preRepairSnapshot = await captureArtifactSnapshot({
+      workDir, snapshotRoot, generationIdentity, phase: "pre-repair", protectedFiles: [],
+    });
+    const postRepairSnapshot = await captureArtifactSnapshot({
+      workDir, snapshotRoot, generationIdentity, phase: "post-repair", protectedFiles: [],
+    });
+    const task: SkillIRBenchmarkTask = {
+      id: "duplicate-pair-task",
+      split: "development",
+      prompt: "Create output.txt.",
+      successCriteria: [],
+      eval: [{ method: "file-check", id: "ok", path: "output.txt", mode: "contains", expected: "ok" }],
+    };
+    const raw: RawAgentRunRow = {
+      caseId: "artifact-skill:skvm:windows:clean:duplicate-pair-task",
+      system: "ir-artifact-dev",
+      taskPath: "tmp/task.json",
+      workDir,
+      exitCode: 0,
+      durationMs: 10,
+      stdout: "Final output:\nDone.",
+      stderr: "",
+      successSource: "execution-only",
+      artifactRuntime: {
+        mode: "one-repair",
+        status: "complete",
+        repairAttempted: false,
+        repairedToPass: false,
+        aggregateUsage: { inputTokens: 1, outputTokens: 1, tokenCost: 2, modelDurationMs: 8 },
+        validationDurationMs: 2,
+        generationIdentity,
+        preRepairSnapshot,
+        postRepairSnapshot,
+      },
+    };
+
+    await expect(scoreRawRunRows([raw, raw], new Map([[task.id, task]])))
+      .rejects.toThrow("Duplicate artifact logical row");
   });
 
   test("scoreRawRunRows requires hard gates even when the weighted threshold passes", async () => {

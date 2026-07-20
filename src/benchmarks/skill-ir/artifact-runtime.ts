@@ -14,6 +14,10 @@ import {
   verifyProtectedWorkdir,
   type PreparedArtifactRun,
 } from "./artifact-preflight";
+import {
+  captureArtifactSnapshot,
+  type ArtifactSnapshotReference,
+} from "./artifact-snapshot";
 
 export type ArtifactRepairMode = "check-only" | "one-repair";
 
@@ -44,7 +48,7 @@ export type AnyRuntimeValidationReport = RuntimeValidationReport | RuntimeSemant
 export type ArtifactRuntimeResult = {
   mode: ArtifactRepairMode;
   status: ArtifactRuntimeStatus;
-  failureStage?: "generation" | "validation" | "repair" | "revalidation" | "protected-workdir";
+  failureStage?: "generation" | "validation" | "repair" | "revalidation" | "protected-workdir" | "snapshot";
   generation: ArtifactCommandResult;
   repair?: ArtifactCommandResult;
   initialValidation?: AnyRuntimeValidationReport;
@@ -55,6 +59,9 @@ export type ArtifactRuntimeResult = {
   repairUsage?: ArtifactUsage;
   aggregateUsage: ArtifactUsage & { modelDurationMs: number };
   validationDurationMs: number;
+  generationIdentity?: string;
+  preRepairSnapshot?: ArtifactSnapshotReference;
+  postRepairSnapshot?: ArtifactSnapshotReference;
   finalStdout: string;
   finalStderr: string;
   finalExitCode: number;
@@ -83,7 +90,37 @@ export type ArtifactStateMachineInput = {
   runGeneration: () => Promise<ArtifactCommandResult>;
   runRepair: (task: SkvmTaskJson) => Promise<ArtifactCommandResult>;
   runValidator?: (prepared: PreparedArtifactRun) => Promise<AnyRuntimeValidationReport>;
+  snapshot?: {
+    snapshotRoot: string;
+    generationIdentity: string;
+  };
 };
+
+async function captureRuntimeSnapshot(
+  input: ArtifactStateMachineInput,
+  phase: "pre-repair" | "post-repair",
+): Promise<ArtifactSnapshotReference | undefined> {
+  if (!input.snapshot) return undefined;
+  return captureArtifactSnapshot({
+    workDir: input.prepared.workDir,
+    protectedFiles: input.prepared.protectedFiles,
+    snapshotRoot: input.snapshot.snapshotRoot,
+    generationIdentity: input.snapshot.generationIdentity,
+    phase,
+  });
+}
+
+function snapshotFields(
+  input: ArtifactStateMachineInput,
+  preRepairSnapshot?: ArtifactSnapshotReference,
+  postRepairSnapshot?: ArtifactSnapshotReference,
+): Pick<ArtifactRuntimeResult, "generationIdentity" | "preRepairSnapshot" | "postRepairSnapshot"> {
+  return {
+    ...(input.snapshot ? { generationIdentity: input.snapshot.generationIdentity } : {}),
+    ...(preRepairSnapshot ? { preRepairSnapshot } : {}),
+    ...(postRepairSnapshot ? { postRepairSnapshot } : {}),
+  };
+}
 
 function zeroUsage(): ArtifactUsage {
   return { inputTokens: 0, outputTokens: 0, tokenCost: 0 };
@@ -273,12 +310,27 @@ export async function runArtifactStateMachine(
     };
   }
 
+  let preRepairSnapshot: ArtifactSnapshotReference | undefined;
+  try {
+    preRepairSnapshot = await captureRuntimeSnapshot(input, "pre-repair");
+  } catch {
+    return {
+      ...resultBase(input, generation, undefined, 0),
+      ...snapshotFields(input),
+      status: "infrastructure-failure",
+      failureStage: "snapshot",
+      repairAttempted: false,
+      repairedToPass: false,
+    };
+  }
+
   let first: { report: AnyRuntimeValidationReport; durationMs: number };
   try {
     first = await timedValidation(input);
   } catch {
     return {
       ...resultBase(input, generation, undefined, 0),
+      ...snapshotFields(input, preRepairSnapshot),
       status: "infrastructure-failure",
       failureStage: "validation",
       repairAttempted: false,
@@ -286,8 +338,24 @@ export async function runArtifactStateMachine(
     };
   }
   if (first.report.status === "pass") {
+    let postRepairSnapshot: ArtifactSnapshotReference | undefined;
+    try {
+      postRepairSnapshot = await captureRuntimeSnapshot(input, "post-repair");
+    } catch {
+      return {
+        ...resultBase(input, generation, undefined, first.durationMs),
+        ...snapshotFields(input, preRepairSnapshot),
+        status: "infrastructure-failure",
+        failureStage: "snapshot",
+        initialValidation: first.report,
+        finalValidation: first.report,
+        repairAttempted: false,
+        repairedToPass: false,
+      };
+    }
     return {
       ...resultBase(input, generation, undefined, first.durationMs),
+      ...snapshotFields(input, preRepairSnapshot, postRepairSnapshot),
       status: "complete",
       initialValidation: first.report,
       finalValidation: first.report,
@@ -296,8 +364,24 @@ export async function runArtifactStateMachine(
     };
   }
   if (input.mode === "check-only" || !first.report.repairEligible) {
+    let postRepairSnapshot: ArtifactSnapshotReference | undefined;
+    try {
+      postRepairSnapshot = await captureRuntimeSnapshot(input, "post-repair");
+    } catch {
+      return {
+        ...resultBase(input, generation, undefined, first.durationMs),
+        ...snapshotFields(input, preRepairSnapshot),
+        status: "infrastructure-failure",
+        failureStage: "snapshot",
+        initialValidation: first.report,
+        finalValidation: first.report,
+        repairAttempted: false,
+        repairedToPass: false,
+      };
+    }
     return {
       ...resultBase(input, generation, undefined, first.durationMs),
+      ...snapshotFields(input, preRepairSnapshot, postRepairSnapshot),
       status: "semantic-failure",
       failureStage: "validation",
       initialValidation: first.report,
@@ -312,6 +396,7 @@ export async function runArtifactStateMachine(
   if (!repair.ok) {
     return {
       ...resultBase(input, generation, repair, first.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
       status: "infrastructure-failure",
       failureStage: "repair",
       initialValidation: first.report,
@@ -325,6 +410,7 @@ export async function runArtifactStateMachine(
     const report = protectedFailureReport(input.prepared, protectedAfterRepair.mutatedPaths);
     return {
       ...resultBase(input, generation, repair, first.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
       status: "protected-file-failure",
       failureStage: "protected-workdir",
       initialValidation: first.report,
@@ -340,6 +426,7 @@ export async function runArtifactStateMachine(
   } catch {
     return {
       ...resultBase(input, generation, repair, first.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
       status: "infrastructure-failure",
       failureStage: "revalidation",
       initialValidation: first.report,
@@ -348,9 +435,25 @@ export async function runArtifactStateMachine(
       repairedToPass: false,
     };
   }
+  let postRepairSnapshot: ArtifactSnapshotReference | undefined;
+  try {
+    postRepairSnapshot = await captureRuntimeSnapshot(input, "post-repair");
+  } catch {
+    return {
+      ...resultBase(input, generation, repair, first.durationMs + second.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
+      status: "infrastructure-failure",
+      failureStage: "snapshot",
+      initialValidation: first.report,
+      finalValidation: second.report,
+      repairAttempted: true,
+      repairedToPass: false,
+    };
+  }
   const passed = second.report.status === "pass";
   return {
     ...resultBase(input, generation, repair, first.durationMs + second.durationMs),
+    ...snapshotFields(input, preRepairSnapshot, postRepairSnapshot),
     status: passed ? "complete" : "semantic-failure",
     ...(!passed ? { failureStage: "revalidation" as const } : {}),
     initialValidation: first.report,

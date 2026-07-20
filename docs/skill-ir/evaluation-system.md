@@ -256,6 +256,13 @@ context、agent、environment、adapter/version、panel、run index、criteria �
 
 跨批次独立生成只能作诊断，不能替代同一冻结矩阵内 paired comparison。
 
+V3 artifact 归因使用 `artifact-snapshot.ts` 保存同一 generation 的 pre/post workdir。
+raw 行中的 snapshot reference 只携带 generation identity、phase、绝对路径和目录摘要；
+scorer 先验证摘要，再展开 `check-only` 与 `one-repair` 两条逻辑行。前者读取 pre
+snapshot 并只计 generation token，后者读取 post snapshot、计 aggregate token，且
+继续单列 `repairUsage`。缺一侧快照、identity/phase 不一致、摘要漂移或重复逻辑 key
+都会拒绝整批评分。没有 snapshot metadata 的历史 raw 行不自动展开。
+
 ## 11. Route Health
 
 `route-probe-run.ts` 对每个模型运行一个代表 case，输出：

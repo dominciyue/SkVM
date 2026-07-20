@@ -281,8 +281,9 @@ public-contract-error-codes/v2
 ```
 
 V3 当前已完成 contract/package schema、evidence producer、package compiler、
-preflight 和 checker，尚未完成 Runner snapshot、一次修复接线、冻结 package/lock
-或真实实验。V1/V2 schema、parser、digest 和结果保持不变。
+preflight、checker，以及 catalog-neutral 的 Runner snapshot/paired scorer 基础设施；
+尚未完成 V3 report/repair 接线、冻结 package/lock 或真实实验。V1/V2 schema、parser、
+digest 和结果保持不变。
 
 `public-contract.ts` 定义：
 
@@ -406,9 +407,45 @@ bun test `
   ./src/benchmarks/skill-ir/artifact-preflight.test.ts
 ```
 
-当前边界：package plumbing 已完成；Runner 尚未保存共享 generation 的 pre/post
-snapshot，也尚未调用 V3 repair。因此本阶段不能形成 repair attribution 或方法效果
-结论。
+### 11.4 共享 Generation Snapshot 与 Paired Scorer
+
+`artifact-snapshot.ts` 将 generation 后与 repair 后的完整可评分 workdir 分别复制到：
+
+```text
+<out-dir>/snapshots/<generationIdentity>/pre-repair/
+<out-dir>/snapshots/<generationIdentity>/post-repair/
+```
+
+`generationIdentity` 绑定 case、model/family、adapter/version、run index 和 panel。
+快照拒绝路径逃逸、symbolic link、特殊文件、重复目标、缺失或变更的 protected input；
+目录摘要按排序后的相对路径和逐文件 SHA-256 计算。scorer 在读取任何文件前重新验证
+摘要，摘要漂移直接失败，不进入语义评分。
+
+带完整 snapshot metadata 的一条 raw run 会展开为同一 generation 的两条逻辑行：
+
+```text
+check-only  -> pre-repair snapshot  -> generationUsage
+one-repair -> post-repair snapshot -> aggregateUsage + 独立 repairUsage
+```
+
+重复的 `caseId + generationIdentity + logicalArm` 被拒绝。没有 snapshot metadata 的
+旧 V1/V2 raw 行保持原单行语义。当前 paired scorer 只用于确定性 workdir evaluator；
+runtime validator 仍不是 scorer，模型 stdout 也不参与 repair 因果差值。
+
+验证：
+
+```powershell
+bun test `
+  ./src/benchmarks/skill-ir/artifact-snapshot.test.ts `
+  ./src/benchmarks/skill-ir/artifact-runtime.test.ts `
+  ./src/benchmarks/skill-ir/scoring.test.ts `
+  ./src/benchmarks/skill-ir/real-agent-run.test.ts
+bun run typecheck
+```
+
+当前边界：共享快照与 paired scorer 已完成；V3 report 尚未进入 runtime dispatch，
+V3 一次修复也尚未执行。因此本阶段只能证明归因基础设施成立，不能形成 repair
+attribution 数值或方法效果结论。
 
 ## 12. Lock 与实验门禁
 
@@ -440,7 +477,8 @@ Runtime validation 与 scorer gate 分开。出现 repair 只证明状态机被�
 - V2 仍不能完整推导 exact classification。
 - Public schema 语义覆盖不足。
 - Repair 可能引入结构回归。
-- Check/repair arms 使用独立 generation，因果 attribution 有噪声。
+- V1/V2 历史 check/repair arms 使用独立 generation，因果 attribution 有噪声；V3
+  后续实验必须使用当前共享 snapshot 路径。
 - Evidence bundle 约 8.5 MiB，因为内嵌 TypeScript parser；外置需要新 ABI/catalog。
 
 `failure-audit.ts` 将 scored runtime metadata 分类为 success、infrastructure、runtime
@@ -466,6 +504,7 @@ bun test `
   ./src/benchmarks/skill-ir/artifact-package.test.ts `
   ./src/benchmarks/skill-ir/public-contract.test.ts `
   ./src/benchmarks/skill-ir/artifact-preflight.test.ts `
+  ./src/benchmarks/skill-ir/artifact-snapshot.test.ts `
   ./src/benchmarks/skill-ir/artifact-runtime.test.ts `
   ./src/benchmarks/skill-ir/semantic-evidence.test.ts `
   ./src/benchmarks/skill-ir/semantic-checker.test.ts `

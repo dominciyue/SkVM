@@ -5,6 +5,12 @@ import { evaluateAll } from "../../framework/evaluator";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 import type { RunIdentity, SkillIRBenchmarkTask } from "./real-agent";
 import type { ArtifactRuntimeMetadata } from "./artifact-runtime";
+import {
+  verifyArtifactSnapshot,
+  type ArtifactSnapshotReference,
+} from "./artifact-snapshot";
+
+export type ArtifactLogicalArm = "check-only" | "one-repair";
 
 export type ParsedCaseId = {
   skill: string;
@@ -30,6 +36,9 @@ export type RawAgentRunRow = Partial<RunIdentity> & {
   successSource: "execution-only";
   attempts?: number;
   artifactRuntime?: ArtifactRuntimeMetadata;
+  artifactLogicalArm?: ArtifactLogicalArm;
+  generationIdentity?: string;
+  artifactSnapshot?: ArtifactSnapshotReference;
 };
 
 export type ScoreRunOutputOptions = {
@@ -87,6 +96,9 @@ export type ScoredAgentRunRow = ParsedCaseId & Partial<RunIdentity> & {
   evaluatorScore?: number;
   evaluationSummary?: EvaluationSummary[];
   artifactRuntime?: ArtifactRuntimeMetadata;
+  artifactLogicalArm?: ArtifactLogicalArm;
+  generationIdentity?: string;
+  artifactSnapshot?: ArtifactSnapshotReference;
 };
 
 export function parseCaseId(caseId: string): ParsedCaseId {
@@ -606,7 +618,8 @@ async function scoreRawRunRowsWithResolver(
   rows: RawAgentRunRow[],
   resolveTask: (parsed: ParsedCaseId) => SkillIRBenchmarkTask | undefined,
 ): Promise<ScoredAgentRunRow[]> {
-  return Promise.all(rows.map(async (row) => {
+  const logicalRows = await expandArtifactSnapshotRows(rows);
+  return Promise.all(logicalRows.map(async (row) => {
     const parsed = parseCaseId(row.caseId);
     const task = resolveTask(parsed);
     if (!task) {
@@ -619,9 +632,15 @@ async function scoreRawRunRowsWithResolver(
     const failureType = executionFailed ? classifyFailureType(row) : undefined;
     const tokenUsage = row.artifactRuntime
       ? {
-          inputTokens: row.artifactRuntime.aggregateUsage.inputTokens,
-          outputTokens: row.artifactRuntime.aggregateUsage.outputTokens,
-          tokenCost: row.artifactRuntime.aggregateUsage.tokenCost,
+          inputTokens: row.artifactLogicalArm === "check-only"
+            ? (row.artifactRuntime.generationUsage?.inputTokens ?? row.artifactRuntime.aggregateUsage.inputTokens)
+            : row.artifactRuntime.aggregateUsage.inputTokens,
+          outputTokens: row.artifactLogicalArm === "check-only"
+            ? (row.artifactRuntime.generationUsage?.outputTokens ?? row.artifactRuntime.aggregateUsage.outputTokens)
+            : row.artifactRuntime.aggregateUsage.outputTokens,
+          tokenCost: row.artifactLogicalArm === "check-only"
+            ? (row.artifactRuntime.generationUsage?.tokenCost ?? row.artifactRuntime.aggregateUsage.tokenCost)
+            : row.artifactRuntime.aggregateUsage.tokenCost,
         }
       : extractTokenUsage(row.stdout);
     const finalOutput = extractFinalOutput(row.stdout);
@@ -659,6 +678,9 @@ async function scoreRawRunRowsWithResolver(
       ...(row.skillProvenance ? { skillProvenance: row.skillProvenance } : {}),
       ...(row.evidenceWeight ? { evidenceWeight: row.evidenceWeight } : {}),
       ...(row.artifactRuntime ? { artifactRuntime: row.artifactRuntime } : {}),
+      ...(row.artifactLogicalArm ? { artifactLogicalArm: row.artifactLogicalArm } : {}),
+      ...(row.generationIdentity ? { generationIdentity: row.generationIdentity } : {}),
+      ...(row.artifactSnapshot ? { artifactSnapshot: row.artifactSnapshot } : {}),
       ...parsed,
       taskSplit: task.split,
       success: score.success,
@@ -681,6 +703,91 @@ async function scoreRawRunRowsWithResolver(
           }),
     };
   }));
+}
+
+function checkOnlyRuntimeMetadata(runtime: ArtifactRuntimeMetadata): ArtifactRuntimeMetadata {
+  const {
+    repairUsage: _repairUsage,
+    postRepairSnapshot: _postRepairSnapshot,
+    ...base
+  } = runtime;
+  const generationUsage = runtime.generationUsage ?? {
+    inputTokens: runtime.aggregateUsage.inputTokens,
+    outputTokens: runtime.aggregateUsage.outputTokens,
+    tokenCost: runtime.aggregateUsage.tokenCost,
+  };
+  const initialPassed = runtime.initialValidation?.status === "pass";
+  return {
+    ...base,
+    mode: "check-only",
+    status: initialPassed ? "complete" : "semantic-failure",
+    ...(!initialPassed ? { failureStage: "validation" as const } : { failureStage: undefined }),
+    finalValidation: runtime.initialValidation,
+    repairAttempted: false,
+    repairedToPass: false,
+    generationUsage,
+    aggregateUsage: {
+      ...generationUsage,
+      modelDurationMs: runtime.aggregateUsage.modelDurationMs,
+    },
+  };
+}
+
+async function expandArtifactSnapshotRows(rows: RawAgentRunRow[]): Promise<RawAgentRunRow[]> {
+  const logicalRows: RawAgentRunRow[] = [];
+  const identities = new Set<string>();
+  for (const row of rows) {
+    const runtime = row.artifactRuntime;
+    const hasSnapshotMetadata = runtime?.generationIdentity !== undefined
+      || runtime?.preRepairSnapshot !== undefined
+      || runtime?.postRepairSnapshot !== undefined;
+    if (!hasSnapshotMetadata) {
+      logicalRows.push(row);
+      continue;
+    }
+    if (!runtime?.generationIdentity || !runtime.preRepairSnapshot || !runtime.postRepairSnapshot) {
+      throw new Error(`Incomplete paired artifact snapshot metadata for ${row.caseId}`);
+    }
+    const { generationIdentity, preRepairSnapshot, postRepairSnapshot } = runtime;
+    if (
+      preRepairSnapshot.generationIdentity !== generationIdentity
+      || postRepairSnapshot.generationIdentity !== generationIdentity
+      || preRepairSnapshot.phase !== "pre-repair"
+      || postRepairSnapshot.phase !== "post-repair"
+    ) {
+      throw new Error(`Artifact snapshot identity mismatch for ${row.caseId}`);
+    }
+    await Promise.all([
+      verifyArtifactSnapshot(preRepairSnapshot),
+      verifyArtifactSnapshot(postRepairSnapshot),
+    ]);
+    const paired: RawAgentRunRow[] = [
+      {
+        ...row,
+        workDir: preRepairSnapshot.path,
+        exitCode: 0,
+        runStatus: "ok",
+        artifactRuntime: checkOnlyRuntimeMetadata(runtime),
+        artifactLogicalArm: "check-only",
+        generationIdentity,
+        artifactSnapshot: preRepairSnapshot,
+      },
+      {
+        ...row,
+        workDir: postRepairSnapshot.path,
+        artifactLogicalArm: "one-repair",
+        generationIdentity,
+        artifactSnapshot: postRepairSnapshot,
+      },
+    ];
+    for (const logicalRow of paired) {
+      const key = `${row.caseId}\0${generationIdentity}\0${logicalRow.artifactLogicalArm}`;
+      if (identities.has(key)) throw new Error(`Duplicate artifact logical row: ${key}`);
+      identities.add(key);
+      logicalRows.push(logicalRow);
+    }
+  }
+  return logicalRows;
 }
 
 export function classifyFailureType(row: Pick<RawAgentRunRow, "exitCode" | "stdout" | "stderr" | "runStatus">): FailureType {
