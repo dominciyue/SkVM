@@ -316,12 +316,18 @@ focused scope 与 upstream full-suite baseline。
 
 **不修改生产代码。**
 
-- [ ] 用同一 `no-skill` Node development case、Windows/clean/bare-agent、repetition=1
+- [x] 用同一 `no-skill` Node development case、Windows/clean/bare-agent、repetition=1
   运行 `xty/gpt-5.6-sol`、`xty/claude-opus-4-8`、`xty/deepseek-v4-pro`。
-- [ ] 使用现有 deterministic scorer，记录 route status、score、hard gate、token 和
+- [x] 使用现有 deterministic scorer，记录 route status、score、hard gate、token 和
   latency；不把资格结果写成 Skill IR 增益。
-- [ ] GPT-5.6 route/harness 正常后，冻结为 V3 primary model；异常才按预注册顺序回退
+- [x] GPT-5.6 route/harness 正常后，冻结为 V3 primary model；异常才按预注册顺序回退
   Opus、DeepSeek。
+
+资格审计于 2026-07-21 完成：三条 route 均正常且 hard gate 均通过；GPT-5.6 得分
+0.80，Opus/DeepSeek 均为 0.70。GPT-5.6 延迟和 token 也低于本轮另外两条 route，
+因此保持为 V3 primary model。三者都未通过最终成功阈值，且共同残留 classification
+失败；该结果只验证 model route、harness 和 primary-model 选择，不计入 Skill IR
+方法证据。
 
 ### Task 3.2：V3 contract 与 package schema
 
@@ -334,12 +340,12 @@ focused scope 与 upstream full-suite baseline。
 修改 src/benchmarks/skill-ir/artifact-package.test.ts
 ```
 
-- [ ] RED：拒绝 scorer expected、secret value、held-out payload、final classification
+- [x] RED：拒绝 scorer expected、secret value、held-out payload、final classification
   arrays、未知 operation 和无 provenance evidence。
-- [ ] GREEN：定义 `skill-ir-public-runtime-contract/v3`、closed error catalog、
+- [x] GREEN：定义 `skill-ir-public-runtime-contract/v3`、closed error catalog、
   contractRef、confirmed/advisory/limitation 和 V3 manifest/provenance/lock。
-- [ ] GREEN：保持 V1/V2 parser 与 digest validation 完全不变。
-- [ ] 验证：
+- [x] GREEN：保持 V1/V2 parser 与 digest validation 完全不变。
+- [x] 验证：
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/public-contract.test.ts `

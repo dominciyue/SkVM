@@ -5,11 +5,16 @@ import { dirname, join } from "node:path";
 import {
   ArtifactPackageManifestSchema,
   ArtifactPackageProvenanceSchema,
+  PublicContractArtifactDevelopmentLockSchema,
+  PublicContractArtifactPackageManifestSchema,
+  PublicContractArtifactPackageProvenanceSchema,
   RuntimeValidationReportSchema,
   parseSafeRelativePath,
   validateArtifactPackage,
   type ArtifactPackageManifest,
   type ArtifactPackageProvenance,
+  type PublicContractArtifactPackageManifest,
+  type PublicContractArtifactPackageProvenance,
 } from "./artifact-package";
 import { sha256Bytes } from "./source-fixture";
 
@@ -114,6 +119,145 @@ async function createValidPackage(): Promise<{
   return { packageDir, manifest, provenance };
 }
 
+async function createValidV3Package(): Promise<{
+  packageDir: string;
+  manifest: PublicContractArtifactPackageManifest;
+  provenance: PublicContractArtifactPackageProvenance;
+}> {
+  const packageDir = await tempDir();
+  const files = {
+    "skill-ir.json": await writeBytes(packageDir, "skill-ir.json", "{}\n"),
+    "skill.md": await writeBytes(packageDir, "skill.md", "# Skill\n"),
+    "artifacts/contracts/output-contract.json": await writeBytes(
+      packageDir,
+      "artifacts/contracts/output-contract.json",
+      "{}\n",
+    ),
+    "artifacts/contracts/public-policy.json": await writeBytes(
+      packageDir,
+      "artifacts/contracts/public-policy.json",
+      "{}\n",
+    ),
+    "artifacts/schemas/public-runtime-contract.schema.json": await writeBytes(
+      packageDir,
+      "artifacts/schemas/public-runtime-contract.schema.json",
+      "{}\n",
+    ),
+    "artifacts/scripts/evidence-program.mjs": await writeBytes(
+      packageDir,
+      "artifacts/scripts/evidence-program.mjs",
+      "console.log('{}');\n",
+    ),
+    "artifacts/checks/public-contract-checker.mjs": await writeBytes(
+      packageDir,
+      "artifacts/checks/public-contract-checker.mjs",
+      "console.log('{}');\n",
+    ),
+    "artifacts/templates/env-report.json": await writeBytes(
+      packageDir,
+      "artifacts/templates/env-report.json",
+      "{}\n",
+    ),
+  };
+  const artifacts = [
+    { path: "skill-ir.json", kind: "skill-ir" as const, sha256: files["skill-ir.json"] },
+    { path: "skill.md", kind: "skill-view" as const, sha256: files["skill.md"] },
+    {
+      path: "artifacts/contracts/output-contract.json",
+      kind: "output-contract" as const,
+      sha256: files["artifacts/contracts/output-contract.json"],
+    },
+    {
+      path: "artifacts/contracts/public-policy.json",
+      kind: "public-policy" as const,
+      sha256: files["artifacts/contracts/public-policy.json"],
+    },
+    {
+      path: "artifacts/schemas/public-runtime-contract.schema.json",
+      kind: "public-contract-schema" as const,
+      sha256: files["artifacts/schemas/public-runtime-contract.schema.json"],
+    },
+    {
+      path: "artifacts/scripts/evidence-program.mjs",
+      kind: "evidence-program" as const,
+      sha256: files["artifacts/scripts/evidence-program.mjs"],
+    },
+    {
+      path: "artifacts/checks/public-contract-checker.mjs",
+      kind: "checker" as const,
+      sha256: files["artifacts/checks/public-contract-checker.mjs"],
+    },
+    {
+      path: "artifacts/templates/env-report.json",
+      kind: "template" as const,
+      sha256: files["artifacts/templates/env-report.json"],
+      targetPath: "env-report.json",
+    },
+  ];
+  const provenance: PublicContractArtifactPackageProvenance = {
+    schemaVersion: "skill-ir-public-contract-artifact-package-provenance/v1",
+    catalog: "executable-public-contract-artifact/v3",
+    skillId: "env-manager",
+    constructionSplit: "development",
+    source: { path: "benchmarks/source/SKILL.md", sha256: "a".repeat(64) },
+    baseIr: { path: "benchmarks/base-ir.json", sha256: "b".repeat(64) },
+    taskContract: {
+      taskIds: ["env-manager-node-audit-dev-001"],
+      promptDigest: "c".repeat(64),
+      sha256: "d".repeat(64),
+    },
+    compiler: {
+      id: "env-manager-public-contract-artifact-compiler",
+      version: "v3",
+      configSha256: "e".repeat(64),
+    },
+    artifacts,
+  };
+  const provenanceDigest = await writeBytes(
+    packageDir,
+    "package-provenance.json",
+    `${JSON.stringify(provenance, null, 2)}\n`,
+  );
+  const manifest: PublicContractArtifactPackageManifest = {
+    schemaVersion: "skill-ir-public-contract-artifact-package-manifest/v1",
+    catalog: "executable-public-contract-artifact/v3",
+    skillId: "env-manager",
+    provenance: { path: "package-provenance.json", sha256: provenanceDigest },
+    outputContract: {
+      path: "artifacts/contracts/output-contract.json",
+      sha256: files["artifacts/contracts/output-contract.json"],
+    },
+    publicPolicy: {
+      path: "artifacts/contracts/public-policy.json",
+      sha256: files["artifacts/contracts/public-policy.json"],
+    },
+    publicRuntimeContractSchema: {
+      path: "artifacts/schemas/public-runtime-contract.schema.json",
+      sha256: files["artifacts/schemas/public-runtime-contract.schema.json"],
+    },
+    evidenceProgram: {
+      path: "artifacts/scripts/evidence-program.mjs",
+      timeoutMs: 5000,
+    },
+    checker: {
+      path: "artifacts/checks/public-contract-checker.mjs",
+      timeoutMs: 5000,
+    },
+    runtimeContract: {
+      path: ".skvm-artifact/public-runtime-contract.json",
+      protected: true,
+    },
+    generatedOutputs: ["env-report.json"],
+    artifacts,
+  };
+  await writeBytes(
+    packageDir,
+    "package-manifest.json",
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  return { packageDir, manifest, provenance };
+}
+
 afterEach(async () => {
   for (const dir of tempDirs.splice(0)) {
     await rm(dir, { recursive: true, force: true });
@@ -207,5 +351,99 @@ describe("artifact package contracts", () => {
     const drifted = { ...manifest, skillId: "different-skill" };
     await writeFile(join(packageDir, "package-manifest.json"), `${JSON.stringify(drifted, null, 2)}\n`, "utf8");
     await expect(validateArtifactPackage({ packageDir })).rejects.toThrow("skill identity mismatch");
+  });
+
+  test("validates a V3 public-contract package without widening V1", async () => {
+    const { packageDir, manifest, provenance } = await createValidV3Package();
+    expect(PublicContractArtifactPackageManifestSchema.parse(manifest).catalog).toBe(
+      "executable-public-contract-artifact/v3",
+    );
+    expect(PublicContractArtifactPackageProvenanceSchema.parse(provenance).compiler.version).toBe(
+      "v3",
+    );
+    const validated = await validateArtifactPackage({
+      packageDir,
+      expectedCatalog: "executable-public-contract-artifact/v3",
+    });
+    expect(validated.manifest.catalog).toBe("executable-public-contract-artifact/v3");
+
+    const v1 = await createValidPackage();
+    expect((await validateArtifactPackage({
+      packageDir: v1.packageDir,
+      expectedCatalog: "executable-artifact/v1",
+    })).manifest.catalog).toBe("executable-artifact/v1");
+  });
+
+  test("keeps the V3 development lock preregistered and shared-generation only", () => {
+    const lock = {
+      schemaVersion: "skill-ir-env-manager-executable-public-contract-artifact-lock/v1",
+      stage: "executable-public-contract-artifact-development",
+      status: "preregistered",
+      catalog: "executable-public-contract-artifact/v3",
+      codeCatalog: "public-contract-error-codes/v2",
+      corpus: "pilot",
+      skillId: "env-manager",
+      package: {
+        path: "benchmarks/skill-ir/pilots/env-manager/packages/v3",
+        manifestSha256: "a".repeat(64),
+        provenanceSha256: "b".repeat(64),
+      },
+      model: { route: "xty/gpt-5.6-sol", family: "gpt" },
+      adapter: { id: "bare-agent", version: "workspace-v1" },
+      matrix: {
+        system: "ir-public-artifact-dev",
+        contexts: ["clean"],
+        agents: ["skvm"],
+        environments: ["windows"],
+        taskSplit: "development",
+        taskIds: ["env-manager-node-audit-dev-001"],
+        repetitions: 1,
+        initialGenerationRows: 1,
+      },
+      runtime: {
+        stateMachine: [
+          "preflight",
+          "generation",
+          "capture-pre-repair-snapshot",
+          "validate",
+          "optional-one-repair",
+          "revalidate",
+          "capture-post-repair-snapshot",
+          "stop",
+        ],
+        maxSemanticRepairCalls: 1,
+        apiKeyEnv: "SKVM_XTY_API_KEY",
+        sharedGeneration: true,
+      },
+      scoring: {
+        authority: "existing-deterministic-env-manager-scorer",
+        runtimeValidatorIsScorer: false,
+        repairCostReportedSeparately: true,
+        logicalArms: ["check-only", "one-repair"],
+      },
+      attributionGate: {
+        minimumRepairAttempts: 1,
+        requireSharedGenerationIdentity: true,
+        scorerAuthorityUnchanged: true,
+      },
+      developmentGate: {
+        minimumSuccesses: 1,
+        minimumMeanScore: 0.85,
+        maximumHardGateRegressions: 0,
+        maximumInfrastructureFailures: 0,
+      },
+      prohibited: ["held-out evidence", "scorer expected payload"],
+    };
+    expect(PublicContractArtifactDevelopmentLockSchema.parse(lock).runtime.sharedGeneration).toBe(
+      true,
+    );
+    expect(() => PublicContractArtifactDevelopmentLockSchema.parse({
+      ...lock,
+      runtime: { ...lock.runtime, sharedGeneration: false },
+    })).toThrow();
+    expect(() => PublicContractArtifactDevelopmentLockSchema.parse({
+      ...lock,
+      status: "optimized",
+    })).toThrow();
   });
 });

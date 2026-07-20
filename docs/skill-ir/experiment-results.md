@@ -219,6 +219,31 @@ Compact evidence 由 `provenance.json` 中的 12 文件 SHA-256 清单和 bundle
 results/skill-ir/env-manager-gpt41-capability-diagnostic-2026-07-21/
 ```
 
+### 3.7 V3 旗舰模型资格审计
+
+使用同一 `env-manager-node-audit-dev-001`、`no-skill`、Windows/clean/bare-agent、
+repetition=1 和现有确定性 scorer，验证 V3 候选模型 route 与 harness：
+
+| Model | Route | Score | Success | Hard gate | Latency | Tokens | Failed criteria |
+|---|---|---:|---:|---:|---:|---:|---|
+| `xty/gpt-5.6-sol` | ok | 0.80 | 0/1 | pass | 36.5s | 8166 | classification |
+| `xty/claude-opus-4-8` | ok | 0.70 | 0/1 | pass | 68.2s | 15917 | classification、schema |
+| `xty/deepseek-v4-pro` | ok | 0.70 | 0/1 | pass | 141.5s | 10879 | classification、schema |
+
+三条 route 均可执行，没有 infrastructure failure。GPT-5.6 在本轮得分、延迟和 token
+上均优于另外两条资格 route，因此冻结为 V3 primary development model。三条运行都
+未达到 0.85 成功阈值，并共同残留 classification 失败，说明仅提升模型能力仍不足以
+稳定满足语义合同。本节 `methodEvidence=false`，不计入 Skill IR 增益，也不支持模型
+总体能力排序。
+
+证据：
+
+```text
+results/skill-ir/v3-model-qualification-gpt56-2026-07-21/scored-results.jsonl
+results/skill-ir/v3-model-qualification-opus48-2026-07-21/scored-results.jsonl
+results/skill-ir/v3-model-qualification-deepseekv4-2026-07-21/scored-results.jsonl
+```
+
 ## 4. Env-manager 研究推进总表
 
 | 阶段 | 最强/候选系统 | Success | Mean | 核心发现 |

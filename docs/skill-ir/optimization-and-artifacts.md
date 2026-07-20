@@ -269,7 +269,67 @@ reverse-evidence test。
 option 或 runtime import。Disposition 不得进入 package、runtime contract、repair、
 raw/scored row、lock 或 gate。
 
-## 11. Lock 与实验门禁
+## 11. Public-Contract Artifact V3
+
+Catalog 身份：
+
+```text
+executable-public-contract-artifact/v3
+skill-ir-public-runtime-contract/v3
+runtime-validation-report/v3
+public-contract-error-codes/v2
+```
+
+V3 当前已完成 contract/package schema，尚未完成 evidence producer、compiler、
+preflight、checker、snapshot 或真实实验。V1/V2 schema、parser、digest 和结果保持
+不变。
+
+`public-contract.ts` 定义：
+
+- 只含变量名、definition/reference/source ref、public prefix、confirmed/advisory
+  schema rule、source-qualified finding 和 limitation 的 runtime contract；
+- 每个 variable、rule、finding 和 limitation 都必须有 agent 可见的 provenance
+  evidence；
+- strict schema 拒绝 scorer expected、secret value、held-out payload 和最终
+  classification arrays；
+- repair report 只允许封闭 code、安全路径/pointer/type、`contractRef` 和封闭
+  `operation`；repair-eligible error 必须同时提供 contract ref 与 operation。
+
+`artifact-package.ts` 增加独立 V3 manifest、provenance 和 preregistered development
+lock。V3 lock 固定 shared generation 和 pre/post snapshot 状态机；`check-only` 与
+`one-repair` 是同一 generation 的逻辑评分臂，不是两次模型生成。
+
+公开 schema/API：
+
+```ts
+PublicRuntimeContractSchema
+RuntimePublicValidationReportSchema
+PublicContractArtifactPackageManifestSchema
+PublicContractArtifactPackageProvenanceSchema
+PublicContractArtifactDevelopmentLockSchema
+validateArtifactPackage({ expectedCatalog: "executable-public-contract-artifact/v3" })
+```
+
+当前失败模式：
+
+- 无公开证据的强约束被 schema 拒绝；
+- 未知 repair operation、路径逃逸和自由文本字段被拒绝；
+- package digest drift、undeclared file、manifest/provenance identity drift 被拒绝；
+- V3 schema 通过不代表任务成功，离线确定性 scorer 仍是唯一成功权威。
+
+### 11.1 V3 Schema 验证
+
+```powershell
+bun test `
+  ./src/benchmarks/skill-ir/public-contract.test.ts `
+  ./src/benchmarks/skill-ir/artifact-package.test.ts
+bun run typecheck
+```
+
+下一阶段必须先实现 evidence graph 的 canary、reverse-evidence、冲突降级测试，
+再允许 compiler 或 checker 消费该 contract。
+
+## 12. Lock 与实验门禁
 
 Development lock 在付费前冻结：
 
@@ -294,7 +354,7 @@ Runtime validation 与 scorer gate 分开。出现 repair 只证明状态机被�
 协调 lock 的 criterion 只保存公开 criterion id 和 evidence class，不保存 expected
 集合，也不进入 package、agent prompt 或 repair input。
 
-## 12. 当前已知限制
+## 13. 当前已知限制
 
 - V2 仍不能完整推导 exact classification。
 - Public schema 语义覆盖不足。
@@ -316,13 +376,14 @@ classification/schema 在五个系统中持续失败；one-repair 4/4 激活、0
 pre/post repair 可评分快照，不能仅靠更换模型或扩大 repair 次数。
 - 当前只有单一 GPT 模型族、bare-agent、Windows、clean development evidence。
 
-## 13. 测试
+## 14. 测试
 
 ```powershell
 bun test `
   ./src/benchmarks/skill-ir/repair-evidence.test.ts `
   ./src/benchmarks/skill-ir/final-ir-provenance.test.ts `
   ./src/benchmarks/skill-ir/artifact-package.test.ts `
+  ./src/benchmarks/skill-ir/public-contract.test.ts `
   ./src/benchmarks/skill-ir/artifact-preflight.test.ts `
   ./src/benchmarks/skill-ir/artifact-runtime.test.ts `
   ./src/benchmarks/skill-ir/semantic-evidence.test.ts `
@@ -331,7 +392,7 @@ bun test `
 bun run typecheck
 ```
 
-## 14. 修改注意
+## 15. 修改注意
 
 1. 冻结 catalog/lock/result 永不原地调优。
 2. 新 semantic code 需要新 code catalog 和 package digest。

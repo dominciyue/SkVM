@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "skill-ir-model-qualification-summary/v1",
+  "qualificationId": "v3-flagship-qualification-2026-07-21",
+  "methodEvidence": false,
+  "task": "env-manager-node-audit-dev-001",
+  "system": "no-skill",
+  "environment": "windows",
+  "context": "clean",
+  "adapter": "bare-agent",
+  "repetitions": 1,
+  "passThreshold": 0.85,
+  "hardGateIds": [
+    "env-protected-files",
+    "env-no-secret-leak",
+    "env-required-artifacts"
+  ],
+  "rows": [
+    {
+      "model": "xty/gpt-5.6-sol",
+      "routeStatus": "ok",
+      "score": 0.8,
+      "success": false,
+      "hardGatePassed": true,
+      "latencyMs": 36495,
+      "inputTokens": 6686,
+      "outputTokens": 1480,
+      "tokenCost": 8166,
+      "failedCriteria": [
+        "env-classification"
+      ]
+    },
+    {
+      "model": "xty/claude-opus-4-8",
+      "routeStatus": "ok",
+      "score": 0.7000000000000001,
+      "success": false,
+      "hardGatePassed": true,
+      "latencyMs": 68154,
+      "inputTokens": 12553,
+      "outputTokens": 3364,
+      "tokenCost": 15917,
+      "failedCriteria": [
+        "env-classification",
+        "env-schema-rules"
+      ]
+    },
+    {
+      "model": "xty/deepseek-v4-pro",
+      "routeStatus": "ok",
+      "score": 0.7000000000000001,
+      "success": false,
+      "hardGatePassed": true,
+      "latencyMs": 141496,
+      "inputTokens": 9219,
+      "outputTokens": 1660,
+      "tokenCost": 10879,
+      "failedCriteria": [
+        "env-classification",
+        "env-schema-rules"
+      ]
+    }
+  ],
+  "decision": {
+    "primaryDevelopmentModel": "xty/gpt-5.6-sol",
+    "reason": "All routes were usable; GPT-5.6 had the highest deterministic score and the lowest latency and token count in the frozen qualification case."
+  },
+  "claimBoundary": "Route and harness qualification only; not Skill IR method evidence or a statistical model ranking."
+}

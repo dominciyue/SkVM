@@ -154,6 +154,67 @@ export const SemanticArtifactPackageProvenanceSchema = z.object({
   artifacts: z.array(SemanticArtifactRecordSchema).min(1),
 }).strict();
 
+const PublicContractArtifactRecordSchema = z.object({
+  path: SafeRelativePathSchema,
+  kind: z.enum([
+    "skill-ir",
+    "skill-view",
+    "output-contract",
+    "public-policy",
+    "public-contract-schema",
+    "evidence-program",
+    "checker",
+    "template",
+    "validation-policy",
+  ]),
+  sha256: Sha256Schema,
+  targetPath: SafeRelativePathSchema.optional(),
+}).strict();
+
+export const PublicContractArtifactPackageManifestSchema = z.object({
+  schemaVersion: z.literal("skill-ir-public-contract-artifact-package-manifest/v1"),
+  catalog: z.literal("executable-public-contract-artifact/v3"),
+  skillId: z.literal("env-manager"),
+  provenance: DigestRefSchema,
+  outputContract: DigestRefSchema,
+  publicPolicy: DigestRefSchema,
+  publicRuntimeContractSchema: DigestRefSchema,
+  evidenceProgram: z.object({
+    path: SafeRelativePathSchema,
+    timeoutMs: z.number().int().min(1).max(30_000),
+  }).strict(),
+  checker: z.object({
+    path: SafeRelativePathSchema,
+    timeoutMs: z.number().int().min(1).max(30_000),
+  }).strict(),
+  runtimeContract: z.object({
+    path: SafeRelativePathSchema,
+    protected: z.literal(true),
+  }).strict(),
+  generatedOutputs: z.array(SafeRelativePathSchema).min(1),
+  artifacts: z.array(PublicContractArtifactRecordSchema).min(1),
+}).strict();
+
+export const PublicContractArtifactPackageProvenanceSchema = z.object({
+  schemaVersion: z.literal("skill-ir-public-contract-artifact-package-provenance/v1"),
+  catalog: z.literal("executable-public-contract-artifact/v3"),
+  skillId: z.literal("env-manager"),
+  constructionSplit: z.literal("development"),
+  source: DigestRefSchema,
+  baseIr: DigestRefSchema,
+  taskContract: z.object({
+    taskIds: z.array(z.string().min(1)).min(1),
+    promptDigest: Sha256Schema,
+    sha256: Sha256Schema,
+  }).strict(),
+  compiler: z.object({
+    id: z.literal("env-manager-public-contract-artifact-compiler"),
+    version: z.literal("v3"),
+    configSha256: Sha256Schema,
+  }).strict(),
+  artifacts: z.array(PublicContractArtifactRecordSchema).min(1),
+}).strict();
+
 export const ArtifactPackageManifestSchema = z.object({
   schemaVersion: z.literal("skill-ir-artifact-package-manifest/v1"),
   catalog: z.literal("executable-artifact/v1"),
@@ -265,6 +326,72 @@ export const SemanticArtifactDevelopmentLockSchema = ArtifactDevelopmentLockSche
   }).strict(),
 }).strict();
 
+export const PublicContractArtifactDevelopmentLockSchema = z.object({
+  schemaVersion: z.literal("skill-ir-env-manager-executable-public-contract-artifact-lock/v1"),
+  stage: z.literal("executable-public-contract-artifact-development"),
+  status: z.literal("preregistered"),
+  catalog: z.literal("executable-public-contract-artifact/v3"),
+  codeCatalog: z.literal("public-contract-error-codes/v2"),
+  corpus: z.literal("pilot"),
+  skillId: z.literal("env-manager"),
+  package: z.object({
+    path: z.string().min(1),
+    manifestSha256: Sha256Schema,
+    provenanceSha256: Sha256Schema,
+  }).strict(),
+  model: z.object({
+    route: z.string().min(1),
+    family: z.string().min(1),
+  }).strict(),
+  adapter: z.object({
+    id: z.string().min(1),
+    version: z.string().min(1),
+  }).strict(),
+  matrix: z.object({
+    system: z.literal("ir-public-artifact-dev"),
+    contexts: z.array(z.string().min(1)).min(1),
+    agents: z.array(z.string().min(1)).min(1),
+    environments: z.array(z.string().min(1)).min(1),
+    taskSplit: z.literal("development"),
+    taskIds: z.array(z.string().min(1)).min(1),
+    repetitions: z.number().int().min(1),
+    initialGenerationRows: z.number().int().min(1),
+  }).strict(),
+  runtime: z.object({
+    stateMachine: z.tuple([
+      z.literal("preflight"),
+      z.literal("generation"),
+      z.literal("capture-pre-repair-snapshot"),
+      z.literal("validate"),
+      z.literal("optional-one-repair"),
+      z.literal("revalidate"),
+      z.literal("capture-post-repair-snapshot"),
+      z.literal("stop"),
+    ]),
+    maxSemanticRepairCalls: z.literal(1),
+    apiKeyEnv: z.string().min(1),
+    sharedGeneration: z.literal(true),
+  }).strict(),
+  scoring: z.object({
+    authority: z.literal("existing-deterministic-env-manager-scorer"),
+    runtimeValidatorIsScorer: z.literal(false),
+    repairCostReportedSeparately: z.literal(true),
+    logicalArms: z.tuple([z.literal("check-only"), z.literal("one-repair")]),
+  }).strict(),
+  attributionGate: z.object({
+    minimumRepairAttempts: z.number().int().min(1),
+    requireSharedGenerationIdentity: z.literal(true),
+    scorerAuthorityUnchanged: z.literal(true),
+  }).strict(),
+  developmentGate: z.object({
+    minimumSuccesses: z.number().int().min(1),
+    minimumMeanScore: z.number().min(0).max(1),
+    maximumHardGateRegressions: z.number().int().min(0),
+    maximumInfrastructureFailures: z.number().int().min(0),
+  }).strict(),
+  prohibited: z.array(z.string().min(1)).min(1),
+}).strict();
+
 export type RuntimeValidationReport = z.infer<typeof RuntimeValidationReportSchema>;
 export type ArtifactPackageManifest = z.infer<typeof ArtifactPackageManifestSchema>;
 export type ArtifactPackageProvenance = z.infer<typeof ArtifactPackageProvenanceSchema>;
@@ -274,6 +401,15 @@ export type ArtifactRecord = z.infer<typeof ArtifactRecordSchema>;
 export type SemanticArtifactRecord = z.infer<typeof SemanticArtifactRecordSchema>;
 export type SemanticArtifactPackageManifest = z.infer<typeof SemanticArtifactPackageManifestSchema>;
 export type SemanticArtifactPackageProvenance = z.infer<typeof SemanticArtifactPackageProvenanceSchema>;
+export type PublicContractArtifactPackageManifest = z.infer<
+  typeof PublicContractArtifactPackageManifestSchema
+>;
+export type PublicContractArtifactPackageProvenance = z.infer<
+  typeof PublicContractArtifactPackageProvenanceSchema
+>;
+export type PublicContractArtifactDevelopmentLock = z.infer<
+  typeof PublicContractArtifactDevelopmentLockSchema
+>;
 
 export type ValidatedArtifactPackage = {
   packageDir: string;
@@ -285,6 +421,12 @@ export type ValidatedSemanticArtifactPackage = {
   packageDir: string;
   manifest: SemanticArtifactPackageManifest;
   provenance: SemanticArtifactPackageProvenance;
+};
+
+export type ValidatedPublicContractArtifactPackage = {
+  packageDir: string;
+  manifest: PublicContractArtifactPackageManifest;
+  provenance: PublicContractArtifactPackageProvenance;
 };
 
 async function listFiles(root: string, directory = root): Promise<string[]> {
@@ -429,6 +571,58 @@ async function validateV2ArtifactPackage(opts: {
   return { packageDir, manifest, provenance };
 }
 
+async function validateV3ArtifactPackage(opts: {
+  packageDir: string;
+}): Promise<ValidatedPublicContractArtifactPackage> {
+  const packageDir = resolve(opts.packageDir);
+  const manifest = PublicContractArtifactPackageManifestSchema.parse(
+    await readJson(resolve(packageDir, "package-manifest.json")),
+  );
+  await verifyDigest(packageDir, manifest.provenance);
+  const provenance = PublicContractArtifactPackageProvenanceSchema.parse(
+    await readJson(resolve(packageDir, manifest.provenance.path)),
+  );
+  if (manifest.skillId !== provenance.skillId || manifest.catalog !== provenance.catalog) {
+    throw new Error("Public-contract artifact manifest/provenance identity mismatch");
+  }
+  if (stableArtifactIdentity(manifest.artifacts) !== stableArtifactIdentity(provenance.artifacts)) {
+    throw new Error("Public-contract artifact manifest/provenance artifact identity mismatch");
+  }
+
+  const paths = new Set<string>();
+  for (const artifact of manifest.artifacts) {
+    if (paths.has(artifact.path)) throw new Error(`Duplicate artifact path: ${artifact.path}`);
+    paths.add(artifact.path);
+    await verifyDigest(packageDir, artifact);
+  }
+  for (const [label, ref, kind] of [
+    ["output contract", manifest.outputContract, "output-contract"],
+    ["public policy", manifest.publicPolicy, "public-policy"],
+    ["public runtime contract schema", manifest.publicRuntimeContractSchema, "public-contract-schema"],
+  ] as const) {
+    const artifact = manifest.artifacts.find((candidate) => candidate.path === ref.path);
+    if (!artifact || artifact.kind !== kind || artifact.sha256 !== ref.sha256) {
+      throw new Error(`Manifest ${label} reference is invalid`);
+    }
+  }
+  const evidence = manifest.artifacts.find((artifact) => artifact.path === manifest.evidenceProgram.path);
+  if (!evidence || evidence.kind !== "evidence-program") {
+    throw new Error("Manifest evidence program reference is invalid");
+  }
+  const checker = manifest.artifacts.find((artifact) => artifact.path === manifest.checker.path);
+  if (!checker || checker.kind !== "checker") {
+    throw new Error("Manifest checker reference is invalid");
+  }
+  for (const output of manifest.generatedOutputs) parseSafeRelativePath(output);
+  parseSafeRelativePath(manifest.runtimeContract.path);
+
+  const allowed = new Set(["package-manifest.json", manifest.provenance.path, ...paths]);
+  for (const file of await listFiles(packageDir)) {
+    if (!allowed.has(file)) throw new Error(`Undeclared package file: ${file}`);
+  }
+  return { packageDir, manifest, provenance };
+}
+
 export function validateArtifactPackage(opts: {
   packageDir: string;
   expectedCatalog?: "executable-artifact/v1";
@@ -437,10 +631,21 @@ export function validateArtifactPackage(opts: {
   packageDir: string;
   expectedCatalog: "executable-semantic-artifact/v2";
 }): Promise<ValidatedSemanticArtifactPackage>;
+export function validateArtifactPackage(opts: {
+  packageDir: string;
+  expectedCatalog: "executable-public-contract-artifact/v3";
+}): Promise<ValidatedPublicContractArtifactPackage>;
 export async function validateArtifactPackage(opts: {
   packageDir: string;
-  expectedCatalog?: "executable-artifact/v1" | "executable-semantic-artifact/v2";
-}): Promise<ValidatedArtifactPackage | ValidatedSemanticArtifactPackage> {
+  expectedCatalog?:
+    | "executable-artifact/v1"
+    | "executable-semantic-artifact/v2"
+    | "executable-public-contract-artifact/v3";
+}): Promise<
+  | ValidatedArtifactPackage
+  | ValidatedSemanticArtifactPackage
+  | ValidatedPublicContractArtifactPackage
+> {
   const raw = await readJson(resolve(opts.packageDir, "package-manifest.json"));
   const catalog = z.object({ catalog: z.string() }).passthrough().parse(raw).catalog;
   if (opts.expectedCatalog && catalog !== opts.expectedCatalog) {
@@ -448,6 +653,7 @@ export async function validateArtifactPackage(opts: {
   }
   if (catalog === "executable-artifact/v1") return validateV1ArtifactPackage(opts);
   if (catalog === "executable-semantic-artifact/v2") return validateV2ArtifactPackage(opts);
+  if (catalog === "executable-public-contract-artifact/v3") return validateV3ArtifactPackage(opts);
   throw new Error(`Unsupported artifact catalog: ${catalog}`);
 }
 

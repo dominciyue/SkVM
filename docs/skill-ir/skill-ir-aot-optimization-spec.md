@@ -411,6 +411,18 @@ V3 主开发模型固定为 `xty/gpt-5.6-sol`。在 V3 lock 前，用 no-skill N
 case 对 GPT-5.6、Opus、DeepSeek 各做一次资格评分；该结果只用于排除 route/harness
 异常，不进入方法主张。Opus/DeepSeek 后续只作跨模型诊断，不参与 V3 调参。
 
+资格审计已于 2026-07-21 完成：
+
+| Model | Route | Score | Hard gate | Latency | Tokens | 残留失败 |
+|---|---|---:|---|---:|---:|---|
+| `xty/gpt-5.6-sol` | ok | 0.80 | pass | 36.5s | 8166 | classification |
+| `xty/claude-opus-4-8` | ok | 0.70 | pass | 68.2s | 15917 | classification、schema |
+| `xty/deepseek-v4-pro` | ok | 0.70 | pass | 141.5s | 10879 | classification、schema |
+
+三条记录均为同一个 `no-skill` development case 的单次资格运行，
+`methodEvidence=false`。它们支持 route/harness 可用和 primary-model 选择，不支持
+Skill IR 增益、模型优劣的统计结论或跨模型稳定性结论。
+
 正式实验仍限定 env-manager development、Windows、clean、bare-agent。新 package、
 model、task、repetitions、snapshot scorer、repair 上限和数值 gate 必须在付费运行前
 冻结；gate 未过不执行 held-out。
