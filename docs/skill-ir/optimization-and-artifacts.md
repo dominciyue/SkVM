@@ -644,3 +644,44 @@ bun ./src/benchmarks/skill-ir/deterministic-repair-replay-run.ts `
 Method freeze 还绑定 `tasks.json` 与 `env-manager-grade.ts` 摘要，防止修改 evaluator
 expected 后仍沿用同一 evidence identity。两个 learned rules 各自保存 rule id、
 `env-schema-rules` lineage、V3 evidence digest 和 candidate status。
+
+### V4 Package、Preflight 与 Runtime
+
+V4 已编译为独立目录：
+
+```text
+benchmarks/skill-ir/pilots/env-manager/packages/executable-contract-repair-artifact-v4/
+```
+
+Package provenance 绑定 base IR、真实 source、公开 task contract、coverage audit、V4 replay
+freeze/summary 与 learned-rule lineage。静态 package 只保存 repair recipe；运行时 contract
+digest 由 preflight 在 workdir 中生成 public runtime contract 后绑定，写入并保护：
+
+```text
+.skvm-artifact/public-runtime-contract.json
+.skvm-artifact/executable-repair-contract.json
+```
+
+Runner 使用独立 system `ir-contract-artifact-dev`。状态机固定为 generation、pre snapshot、
+validate、一次 deterministic repair、revalidate、可选一次脱敏模型 repair、final validate、
+post snapshot、stop。确定性修复通过后不会调用模型 repair；旧 catalog 的 runtime 分支保持
+不变。V4 checker 只消费 protected contract 与最终 workdir，runtime validator 仍不是 scorer。
+
+编译与校验：
+
+```powershell
+bun ./src/benchmarks/skill-ir/executable-contract-artifact-run.ts `
+  '--base-ir=benchmarks/skill-ir/pilots/env-manager/base-ir.json' `
+  '--tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json' `
+  '--source=benchmarks/skill-ir/pilots/env-manager/source/SKILL.md' `
+  '--coverage-audit=results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/contract-coverage-audit.json' `
+  '--replay-freeze=benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freeze.json' `
+  '--replay-summary=results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/summary.json' `
+  '--out-dir=benchmarks/skill-ir/pilots/env-manager/packages/executable-contract-repair-artifact-v4'
+
+bun ./src/benchmarks/skill-ir/executable-contract-artifact-run.ts `
+  '--verify-only=benchmarks/skill-ir/pilots/env-manager/packages/executable-contract-repair-artifact-v4'
+```
+
+冻结 package 不应原地重编译；日常复核只执行 `--verify-only`。任何 recipe、checker、policy 或
+provenance 变化都需要新 catalog/lock，不能修改本轮 digest 后继续使用原实验身份。

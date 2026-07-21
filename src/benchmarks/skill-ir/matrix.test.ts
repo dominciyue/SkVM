@@ -102,6 +102,20 @@ describe("buildExperimentMatrix", () => {
     expect(COLD_START_EXPERIMENT_SYSTEMS).not.toContain("ir-artifact-dev");
   });
 
+  test("keeps the V4 contract-repair system out of default matrices", () => {
+    const matrix = buildExperimentMatrix({
+      skills: ["env-manager"],
+      agents: ["skvm"],
+      environments: ["windows"],
+      contexts: ["clean"],
+      tasks: ["env-dev-1"],
+      systems: ["ir-contract-artifact-dev"],
+    });
+
+    expect(matrix.map((item) => item.system)).toEqual(["ir-contract-artifact-dev"]);
+    expect(COLD_START_EXPERIMENT_SYSTEMS).not.toContain("ir-contract-artifact-dev");
+  });
+
   test("keeps benchmark tasks bound to their owning skill", () => {
     const matrix = buildExperimentMatrix({
       skills: ["skill-review", "skill-diagnostic"],

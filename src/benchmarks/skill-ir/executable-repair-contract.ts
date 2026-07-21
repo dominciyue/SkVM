@@ -182,6 +182,49 @@ export const ExecutableRepairContractSchema = z.object({
 
 export type ExecutableRepairContract = z.infer<typeof ExecutableRepairContractSchema>;
 
+export const ExecutableRepairRecipeSchema = z.object({
+  schemaVersion: z.literal("skill-ir-executable-repair-recipe/v4"),
+  catalog: z.literal("executable-contract-repair-artifact/v4"),
+  skillId: z.literal("env-manager"),
+  taskContractDigest: Sha256Schema,
+  developmentEvidenceSha256: Sha256Schema,
+  binding: z.object({
+    phase: z.literal("preflight"),
+    runtimeEvidenceSource: z.literal("skill-ir-public-runtime-contract/v3"),
+  }).strict(),
+}).strict();
+
+export type ExecutableRepairRecipe = z.infer<typeof ExecutableRepairRecipeSchema>;
+
+export function buildEnvManagerExecutableRepairRecipe(options: {
+  taskContractDigest: string;
+  developmentEvidenceSha256: string;
+}): ExecutableRepairRecipe {
+  return ExecutableRepairRecipeSchema.parse({
+    schemaVersion: "skill-ir-executable-repair-recipe/v4",
+    catalog: "executable-contract-repair-artifact/v4",
+    skillId: "env-manager",
+    taskContractDigest: options.taskContractDigest,
+    developmentEvidenceSha256: options.developmentEvidenceSha256,
+    binding: {
+      phase: "preflight",
+      runtimeEvidenceSource: "skill-ir-public-runtime-contract/v3",
+    },
+  });
+}
+
+export function bindEnvManagerExecutableRepairContract(
+  recipe: ExecutableRepairRecipe,
+  runtimeContractSha256: string,
+): ExecutableRepairContract {
+  const safe = ExecutableRepairRecipeSchema.parse(recipe);
+  return buildEnvManagerExecutableRepairContract({
+    taskContractDigest: safe.taskContractDigest,
+    runtimeContractSha256,
+    developmentEvidenceSha256: safe.developmentEvidenceSha256,
+  });
+}
+
 export function buildEnvManagerExecutableRepairContract(options: {
   taskContractDigest: string;
   runtimeContractSha256: string;

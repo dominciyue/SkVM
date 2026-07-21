@@ -5,6 +5,9 @@ import { dirname, join } from "node:path";
 import {
   ArtifactPackageManifestSchema,
   ArtifactPackageProvenanceSchema,
+  ContractRepairArtifactDevelopmentLockSchema,
+  ContractRepairArtifactPackageManifestSchema,
+  ContractRepairArtifactPackageProvenanceSchema,
   PublicContractArtifactDevelopmentLockSchema,
   PublicContractArtifactPackageManifestSchema,
   PublicContractArtifactPackageProvenanceSchema,
@@ -444,6 +447,169 @@ describe("artifact package contracts", () => {
     expect(() => PublicContractArtifactDevelopmentLockSchema.parse({
       ...lock,
       status: "optimized",
+    })).toThrow();
+  });
+
+  test("keeps V4 package and lock identities separate from frozen V3", () => {
+    const artifacts = [
+      { path: "skill-ir.json", kind: "skill-ir", sha256: "1".repeat(64) },
+      { path: "skill.md", kind: "skill-view", sha256: "2".repeat(64) },
+      { path: "artifacts/contracts/output-contract.json", kind: "output-contract", sha256: "3".repeat(64) },
+      { path: "artifacts/contracts/repair-recipe.json", kind: "repair-recipe", sha256: "4".repeat(64) },
+      { path: "artifacts/contracts/public-policy.json", kind: "public-policy", sha256: "5".repeat(64) },
+      { path: "artifacts/schemas/public-runtime-contract.schema.json", kind: "public-contract-schema", sha256: "6".repeat(64) },
+      { path: "artifacts/scripts/evidence-program.mjs", kind: "evidence-program", sha256: "7".repeat(64) },
+      { path: "artifacts/checks/executable-contract-checker.mjs", kind: "checker", sha256: "8".repeat(64) },
+      { path: "artifacts/scripts/deterministic-repairer.mjs", kind: "deterministic-repairer", sha256: "9".repeat(64) },
+      { path: "validation-policy.json", kind: "validation-policy", sha256: "a".repeat(64) },
+    ];
+    const provenance = {
+      schemaVersion: "skill-ir-contract-repair-artifact-package-provenance/v1",
+      catalog: "executable-contract-repair-artifact/v4",
+      skillId: "env-manager",
+      constructionSplit: "development",
+      source: { path: "benchmarks/source/SKILL.md", sha256: "b".repeat(64) },
+      baseIr: { path: "benchmarks/base-ir.json", sha256: "c".repeat(64) },
+      taskContract: {
+        taskIds: ["env-manager-node-audit-dev-001"],
+        promptDigest: "d".repeat(64),
+        sha256: "3".repeat(64),
+      },
+      developmentEvidence: {
+        coverageAudit: { path: "results/coverage.json", sha256: "e".repeat(64) },
+        replayFreeze: { path: "benchmarks/replay-freeze.json", sha256: "f".repeat(64) },
+        replaySummary: { path: "results/replay-summary.json", sha256: "0".repeat(64) },
+      },
+      learnedRules: [
+        {
+          ruleId: "server-dsn-sensitive/v1",
+          sourceCriterion: "env-schema-rules",
+          evidenceSha256: "e".repeat(64),
+          status: "candidate",
+        },
+        {
+          ruleId: "signing-key-minimum-length/v1",
+          sourceCriterion: "env-schema-rules",
+          evidenceSha256: "e".repeat(64),
+          status: "candidate",
+        },
+      ],
+      compiler: {
+        id: "env-manager-contract-repair-artifact-compiler",
+        version: "v4",
+        configSha256: "1".repeat(64),
+      },
+      artifacts,
+    };
+    const manifest = {
+      schemaVersion: "skill-ir-contract-repair-artifact-package-manifest/v1",
+      catalog: "executable-contract-repair-artifact/v4",
+      skillId: "env-manager",
+      provenance: { path: "package-provenance.json", sha256: "2".repeat(64) },
+      outputContract: { path: "artifacts/contracts/output-contract.json", sha256: "3".repeat(64) },
+      repairRecipe: { path: "artifacts/contracts/repair-recipe.json", sha256: "4".repeat(64) },
+      publicPolicy: { path: "artifacts/contracts/public-policy.json", sha256: "5".repeat(64) },
+      publicRuntimeContractSchema: {
+        path: "artifacts/schemas/public-runtime-contract.schema.json",
+        sha256: "6".repeat(64),
+      },
+      evidenceProgram: { path: "artifacts/scripts/evidence-program.mjs", timeoutMs: 5000 },
+      checker: { path: "artifacts/checks/executable-contract-checker.mjs", timeoutMs: 5000 },
+      deterministicRepairer: {
+        path: "artifacts/scripts/deterministic-repairer.mjs",
+        timeoutMs: 5000,
+      },
+      runtimeContracts: {
+        public: { path: ".skvm-artifact/public-runtime-contract.json", protected: true },
+        executableRepair: {
+          path: ".skvm-artifact/executable-repair-contract.json",
+          protected: true,
+        },
+      },
+      generatedOutputs: ["env-report.json", ".env.schema.json", ".env.example"],
+      artifacts,
+    };
+    expect(ContractRepairArtifactPackageManifestSchema.parse(manifest).catalog).toBe(
+      "executable-contract-repair-artifact/v4",
+    );
+    expect(ContractRepairArtifactPackageProvenanceSchema.parse(provenance).learnedRules).toHaveLength(2);
+    expect(() => ContractRepairArtifactPackageManifestSchema.parse({
+      ...manifest,
+      catalog: "executable-public-contract-artifact/v3",
+    })).toThrow();
+
+    const lock = {
+      schemaVersion: "skill-ir-env-manager-contract-repair-artifact-lock/v1",
+      stage: "contract-repair-artifact-development",
+      status: "preregistered",
+      catalog: "executable-contract-repair-artifact/v4",
+      codeCatalog: "public-contract-error-codes/v2",
+      corpus: "pilot",
+      skillId: "env-manager",
+      package: {
+        path: "benchmarks/skill-ir/pilots/env-manager/packages/v4",
+        manifestSha256: "1".repeat(64),
+        provenanceSha256: "2".repeat(64),
+      },
+      scorer: { path: "src/bench/evaluators/env-manager-grade.ts", sha256: "3".repeat(64) },
+      tasks: { path: "benchmarks/skill-ir/pilots/env-manager/tasks.json", sha256: "4".repeat(64) },
+      model: { route: "xty/gpt-5.6-sol", family: "openai" },
+      adapter: { id: "bare-agent", version: "workspace" },
+      matrix: {
+        system: "ir-contract-artifact-dev",
+        panelConfigId: "env-manager-v4-development-v1",
+        contexts: ["clean"],
+        agents: ["skvm"],
+        environments: ["windows"],
+        taskSplit: "development",
+        taskIds: ["env-manager-node-audit-dev-001"],
+        repetitions: 1,
+        initialGenerationRows: 1,
+      },
+      runtime: {
+        stateMachine: [
+          "preflight",
+          "generation",
+          "capture-pre-repair-snapshot",
+          "validate",
+          "deterministic-repair",
+          "revalidate",
+          "optional-one-model-repair-for-residual",
+          "final-validate",
+          "capture-post-repair-snapshot",
+          "stop",
+        ],
+        maxDeterministicRepairCalls: 1,
+        maxModelRepairCalls: 1,
+        apiKeyEnv: "SKVM_XTY_API_KEY",
+        sharedGeneration: true,
+      },
+      scoring: {
+        authority: "existing-deterministic-env-manager-scorer",
+        runtimeValidatorIsScorer: false,
+        generationDenominator: "preregistered-generation",
+        missingPairIsInfrastructure: true,
+        deterministicRepairCostReportedSeparately: true,
+        modelRepairCostReportedSeparately: true,
+        logicalArms: ["check-only", "one-repair"],
+      },
+      attributionGate: {
+        minimumDeterministicRepairAttempts: 1,
+        requireSharedGenerationIdentity: true,
+        scorerAuthorityUnchanged: true,
+      },
+      developmentGate: {
+        minimumSuccesses: 1,
+        minimumMeanScore: 0.85,
+        maximumHardGateRegressions: 0,
+        maximumInfrastructureFailures: 0,
+      },
+      prohibited: ["held-out execution before the development gate passes"],
+    };
+    expect(ContractRepairArtifactDevelopmentLockSchema.parse(lock).scoring.missingPairIsInfrastructure).toBe(true);
+    expect(() => ContractRepairArtifactDevelopmentLockSchema.parse({
+      ...lock,
+      scoring: { ...lock.scoring, missingPairIsInfrastructure: false },
     })).toThrow();
   });
 });

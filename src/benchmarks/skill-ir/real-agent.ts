@@ -413,7 +413,8 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
     };
   }
 
-  if (opts.system === "ir-artifact-dev" || opts.system === "ir-public-artifact-dev") {
+  if (opts.system === "ir-artifact-dev" || opts.system === "ir-public-artifact-dev"
+    || opts.system === "ir-contract-artifact-dev") {
     if (!opts.artifactSkillPath) {
       throw new Error(`${opts.system} requires a validated package skill view`);
     }

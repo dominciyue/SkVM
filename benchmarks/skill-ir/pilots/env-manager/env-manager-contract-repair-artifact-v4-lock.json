@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "skill-ir-env-manager-contract-repair-artifact-lock/v1",
+  "stage": "contract-repair-artifact-development",
+  "status": "preregistered",
+  "catalog": "executable-contract-repair-artifact/v4",
+  "codeCatalog": "public-contract-error-codes/v2",
+  "corpus": "pilot",
+  "skillId": "env-manager",
+  "package": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/packages/executable-contract-repair-artifact-v4",
+    "manifestSha256": "6d0741f881e8a5a3808ea3a2ed18ccf4b9e3cd031a2562cdf0544bb78c7c1774",
+    "provenanceSha256": "94824b1f9a9598b9569f1e30d3f48cbd531e2c3926f5475dd3a2deeb46a95e6b"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/env-manager-grade.ts",
+    "sha256": "c80d0b5637b2d9c480cbba8a816d042b5afd0e931fa06690d2fa3f1a950811a7"
+  },
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+    "sha256": "6f4e2ee3cc71bb2ddee596e94cb9eef3d16e0b3a355796dc449fd8bc892d4bed"
+  },
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-contract-repair-v4"
+  },
+  "matrix": {
+    "system": "ir-contract-artifact-dev",
+    "panelConfigId": "env-manager-contract-repair-v4-development",
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ],
+    "repetitions": 2,
+    "initialGenerationRows": 4
+  },
+  "runtime": {
+    "stateMachine": [
+      "preflight",
+      "generation",
+      "capture-pre-repair-snapshot",
+      "validate",
+      "deterministic-repair",
+      "revalidate",
+      "optional-one-model-repair-for-residual",
+      "final-validate",
+      "capture-post-repair-snapshot",
+      "stop"
+    ],
+    "maxDeterministicRepairCalls": 1,
+    "maxModelRepairCalls": 1,
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "sharedGeneration": true
+  },
+  "scoring": {
+    "authority": "existing-deterministic-env-manager-scorer",
+    "runtimeValidatorIsScorer": false,
+    "generationDenominator": "preregistered-generation",
+    "missingPairIsInfrastructure": true,
+    "deterministicRepairCostReportedSeparately": true,
+    "modelRepairCostReportedSeparately": true,
+    "logicalArms": ["check-only", "one-repair"]
+  },
+  "attributionGate": {
+    "minimumDeterministicRepairAttempts": 1,
+    "requireSharedGenerationIdentity": true,
+    "scorerAuthorityUnchanged": true
+  },
+  "developmentGate": {
+    "minimumSuccesses": 3,
+    "minimumMeanScore": 0.85,
+    "maximumHardGateRegressions": 0,
+    "maximumInfrastructureFailures": 0
+  },
+  "prohibited": [
+    "held-out execution before the frozen V4 development gate passes",
+    "scorer expected payload, exact secret values, or held-out fixtures in package/runtime/repair data",
+    "independent-generation check-only versus one-repair attribution",
+    "more than one deterministic repair or one residual model repair",
+    "silent removal of missing generation or missing pair from the gate denominator",
+    "post-run changes to package, scorer, tasks, model, repetitions, state machine, or numerical gate"
+  ]
+}

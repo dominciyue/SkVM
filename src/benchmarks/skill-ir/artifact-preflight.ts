@@ -1,12 +1,17 @@
-import { copyFile, lstat, mkdir, readFile, readdir, stat } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import {
   parseSafeRelativePath,
   validateArtifactPackage,
   type ValidatedArtifactPackage,
+  type ValidatedContractRepairArtifactPackage,
   type ValidatedPublicContractArtifactPackage,
   type ValidatedSemanticArtifactPackage,
 } from "./artifact-package";
+import {
+  ExecutableRepairRecipeSchema,
+  bindEnvManagerExecutableRepairContract,
+} from "./executable-repair-contract";
 import { PublicRuntimeContractSchema } from "./public-contract";
 import { SemanticRuntimeContractSchema } from "./semantic-contract";
 import { sha256Bytes } from "./source-fixture";
@@ -54,6 +59,10 @@ export type PreparedArtifactRun = PreparedArtifactRunBase & (
   | {
     catalog: "executable-public-contract-artifact/v3";
     package: ValidatedPublicContractArtifactPackage;
+  }
+  | {
+    catalog: "executable-contract-repair-artifact/v4";
+    package: ValidatedContractRepairArtifactPackage;
   }
 );
 
@@ -109,7 +118,8 @@ function assertCommonScope(
   packageRecord:
     | ValidatedArtifactPackage
     | ValidatedSemanticArtifactPackage
-    | ValidatedPublicContractArtifactPackage,
+    | ValidatedPublicContractArtifactPackage
+    | ValidatedContractRepairArtifactPackage,
 ): void {
   const { scope } = input;
   const provenance = packageRecord.provenance;
@@ -141,23 +151,42 @@ function isSemanticPackage(
   packageRecord:
     | ValidatedArtifactPackage
     | ValidatedSemanticArtifactPackage
-    | ValidatedPublicContractArtifactPackage,
+    | ValidatedPublicContractArtifactPackage
+    | ValidatedContractRepairArtifactPackage,
 ): packageRecord is ValidatedSemanticArtifactPackage {
   return packageRecord.manifest.catalog === "executable-semantic-artifact/v2";
+}
+
+function isContractRepairPackage(
+  packageRecord:
+    | ValidatedArtifactPackage
+    | ValidatedSemanticArtifactPackage
+    | ValidatedPublicContractArtifactPackage
+    | ValidatedContractRepairArtifactPackage,
+): packageRecord is ValidatedContractRepairArtifactPackage {
+  return packageRecord.manifest.catalog === "executable-contract-repair-artifact/v4";
 }
 
 function isPublicContractPackage(
   packageRecord:
     | ValidatedArtifactPackage
     | ValidatedSemanticArtifactPackage
-    | ValidatedPublicContractArtifactPackage,
+    | ValidatedPublicContractArtifactPackage
+    | ValidatedContractRepairArtifactPackage,
 ): packageRecord is ValidatedPublicContractArtifactPackage {
   return packageRecord.manifest.catalog === "executable-public-contract-artifact/v3";
 }
 
 type RuntimeContractPackage =
   | ValidatedSemanticArtifactPackage
-  | ValidatedPublicContractArtifactPackage;
+  | ValidatedPublicContractArtifactPackage
+  | ValidatedContractRepairArtifactPackage;
+
+function publicRuntimeContractPath(packageRecord: RuntimeContractPackage): string {
+  return isContractRepairPackage(packageRecord)
+    ? packageRecord.manifest.runtimeContracts.public.path
+    : packageRecord.manifest.runtimeContract.path;
+}
 
 async function prepareRuntimeContractDestination(workDir: string, relativePath: string): Promise<string> {
   const destination = containedPath(workDir, relativePath);
@@ -187,7 +216,7 @@ async function deriveRuntimeContract(
 ): Promise<void> {
   const destination = await prepareRuntimeContractDestination(
     workDir,
-    packageRecord.manifest.runtimeContract.path,
+    publicRuntimeContractPath(packageRecord),
   );
   const programPath = containedPath(
     packageRecord.packageDir,
@@ -228,6 +257,28 @@ async function deriveRuntimeContract(
   }
 }
 
+async function bindExecutableRepairContract(
+  packageRecord: ValidatedContractRepairArtifactPackage,
+  workDir: string,
+): Promise<void> {
+  const publicPath = containedPath(workDir, packageRecord.manifest.runtimeContracts.public.path);
+  const publicBytes = await readFile(publicPath);
+  const repairPath = await prepareRuntimeContractDestination(
+    workDir,
+    packageRecord.manifest.runtimeContracts.executableRepair.path,
+  );
+  const recipe = ExecutableRepairRecipeSchema.parse(JSON.parse(await readFile(
+    containedPath(packageRecord.packageDir, packageRecord.manifest.repairRecipe.path),
+    "utf8",
+  )));
+  const contract = bindEnvManagerExecutableRepairContract(recipe, sha256Bytes(publicBytes));
+  const publicContract = PublicRuntimeContractSchema.parse(JSON.parse(publicBytes.toString("utf8")));
+  if (contract.taskContractDigest !== publicContract.taskContractDigest) {
+    throw new Error("V4 preflight task contract binding mismatch");
+  }
+  await writeFile(repairPath, `${JSON.stringify(contract, null, 2)}\n`, "utf8");
+}
+
 export async function preflightArtifactRun(input: ArtifactPreflightInput): Promise<PreparedArtifactRun> {
   const rawManifest = JSON.parse(await readFile(resolve(input.packageDir, "package-manifest.json"), "utf8")) as {
     catalog?: unknown;
@@ -242,12 +293,18 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
         packageDir: input.packageDir,
         expectedCatalog: "executable-public-contract-artifact/v3",
       })
+      : rawManifest.catalog === "executable-contract-repair-artifact/v4"
+        ? await validateArtifactPackage({
+          packageDir: input.packageDir,
+          expectedCatalog: "executable-contract-repair-artifact/v4",
+        })
       : await validateArtifactPackage({
         packageDir: input.packageDir,
         expectedCatalog: "executable-artifact/v1",
       });
   assertCommonScope(input, packageRecord);
-  if (!isSemanticPackage(packageRecord) && !isPublicContractPackage(packageRecord)) {
+  if (!isSemanticPackage(packageRecord) && !isPublicContractPackage(packageRecord)
+    && !isContractRepairPackage(packageRecord)) {
     assertV1Scope(input, packageRecord);
   }
 
@@ -290,11 +347,21 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
     throw new Error("Artifact validation policy must disable network and package installation");
   }
 
-  if (isSemanticPackage(packageRecord) || isPublicContractPackage(packageRecord)) {
-    if (generatedSet.has(packageRecord.manifest.runtimeContract.path)) {
+  if (isSemanticPackage(packageRecord) || isPublicContractPackage(packageRecord)
+    || isContractRepairPackage(packageRecord)) {
+    const runtimePaths = isContractRepairPackage(packageRecord)
+      ? [
+          packageRecord.manifest.runtimeContracts.public.path,
+          packageRecord.manifest.runtimeContracts.executableRepair.path,
+        ]
+      : [packageRecord.manifest.runtimeContract.path];
+    if (runtimePaths.some((path) => generatedSet.has(path))) {
       throw new Error("Runtime contract cannot be a generated output");
     }
     await deriveRuntimeContract(packageRecord, workDir, runtimeExecutable);
+    if (isContractRepairPackage(packageRecord)) {
+      await bindExecutableRepairContract(packageRecord, workDir);
+    }
   }
 
   const preparedBase: PreparedArtifactRunBase = {
@@ -312,6 +379,13 @@ export async function preflightArtifactRun(input: ArtifactPreflightInput): Promi
     return {
       ...preparedBase,
       catalog: "executable-public-contract-artifact/v3",
+      package: packageRecord,
+    };
+  }
+  if (isContractRepairPackage(packageRecord)) {
+    return {
+      ...preparedBase,
+      catalog: "executable-contract-repair-artifact/v4",
       package: packageRecord,
     };
   }

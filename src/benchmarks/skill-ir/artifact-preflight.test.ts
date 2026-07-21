@@ -3,6 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promis
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
+import { compileEnvManagerContractRepairArtifactPackage } from "./executable-contract-artifact-compiler";
+import { ExecutableRepairContractSchema } from "./executable-repair-contract";
 import { compileEnvManagerPublicContractArtifactPackage } from "./public-contract-artifact-compiler";
 import { PublicRuntimeContractSchema } from "./public-contract";
 import { compileEnvManagerSemanticArtifactPackage } from "./semantic-artifact-compiler";
@@ -57,6 +59,30 @@ async function compilePublicContractPackage(): Promise<string> {
     baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
     taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
     sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    outDir,
+  });
+  return outDir;
+}
+
+async function compileContractRepairPackage(): Promise<string> {
+  const outDir = join(await tempDir("skill-ir-contract-repair-preflight-package-"), "package");
+  await compileEnvManagerContractRepairArtifactPackage({
+    rootDir: projectRoot,
+    baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
+    taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
+    sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    coverageAuditPath: join(
+      projectRoot,
+      "results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/contract-coverage-audit.json",
+    ),
+    replayFreezePath: join(
+      projectRoot,
+      "benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freeze.json",
+    ),
+    replaySummaryPath: join(
+      projectRoot,
+      "results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/summary.json",
+    ),
     outDir,
   });
   return outDir;
@@ -288,6 +314,42 @@ describe("artifact preflight", () => {
       ".skvm-artifact/public-runtime-contract.json",
     );
     expect(JSON.stringify(contract)).not.toContain("TEST_ONLY_PUBLIC_PREFLIGHT_CANARY");
+  });
+
+  test("binds and protects both V4 runtime contracts before generation", async () => {
+    const contractRepairPackage = await compileContractRepairPackage();
+    await writeFile(
+      join(workDir, ".env"),
+      "APP_PORT=3000\nDB_PASSWORD=TEST_ONLY_V4_PREFLIGHT_CANARY\n",
+      "utf8",
+    );
+    await mkdir(join(workDir, "src"), { recursive: true });
+    await writeFile(
+      join(workDir, "src/config.js"),
+      "const port = Number(process.env.APP_PORT);\nconst password = process.env.DB_PASSWORD;\n",
+      "utf8",
+    );
+
+    const prepared = await preflightArtifactRun({
+      packageDir: contractRepairPackage,
+      workDir,
+      scope,
+      expectedContractDigest: await taskContractDigest(contractRepairPackage),
+    });
+    const publicPath = join(workDir, ".skvm-artifact", "public-runtime-contract.json");
+    const repairPath = join(workDir, ".skvm-artifact", "executable-repair-contract.json");
+    const publicBytes = await readFile(publicPath);
+    const publicContract = PublicRuntimeContractSchema.parse(JSON.parse(publicBytes.toString("utf8")));
+    const repairContract = ExecutableRepairContractSchema.parse(JSON.parse(await readFile(repairPath, "utf8")));
+
+    expect(prepared.catalog).toBe("executable-contract-repair-artifact/v4");
+    expect(repairContract.runtimeContractSha256).toBe(sha256Bytes(publicBytes));
+    expect(repairContract.taskContractDigest).toBe(publicContract.taskContractDigest);
+    expect(prepared.protectedFiles.map((file) => file.relativePath)).toEqual(expect.arrayContaining([
+      ".skvm-artifact/public-runtime-contract.json",
+      ".skvm-artifact/executable-repair-contract.json",
+    ]));
+    expect(JSON.stringify(prepared)).not.toContain("TEST_ONLY_V4_PREFLIGHT_CANARY");
   });
 
   test("keeps v1 behavior free of semantic runtime contract materialization", async () => {

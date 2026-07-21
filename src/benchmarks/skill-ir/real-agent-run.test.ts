@@ -16,6 +16,7 @@ import { buildFinalIRProvenance } from "./final-ir-provenance";
 import type { RealAgentRunPlanEntry } from "./real-agent";
 import { sha256Bytes } from "./source-fixture";
 import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
+import { compileEnvManagerContractRepairArtifactPackage } from "./executable-contract-artifact-compiler";
 import { compileEnvManagerSemanticArtifactPackage } from "./semantic-artifact-compiler";
 
 const tempDirs: string[] = [];
@@ -204,6 +205,112 @@ async function createSemanticArtifactPackage(): Promise<{ packageDir: string; lo
       scorerAuthorityUnchanged: true,
     },
     prohibited: ["test-only lock; not a real gate or paid-run authority"],
+  });
+  return { packageDir, lockPath };
+}
+
+async function createContractRepairArtifactPackage(): Promise<{ packageDir: string; lockPath: string }> {
+  const root = await mkdtemp(join(tmpdir(), "skill-ir-contract-repair-runner-package-"));
+  tempDirs.push(root);
+  const packageDir = join(root, "package");
+  const tasksPath = join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json");
+  const scorerPath = join(projectRoot, "src/bench/evaluators/env-manager-grade.ts");
+  await compileEnvManagerContractRepairArtifactPackage({
+    rootDir: projectRoot,
+    baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
+    taskSetPath: tasksPath,
+    sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    coverageAuditPath: join(
+      projectRoot,
+      "results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/contract-coverage-audit.json",
+    ),
+    replayFreezePath: join(
+      projectRoot,
+      "benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freeze.json",
+    ),
+    replaySummaryPath: join(
+      projectRoot,
+      "results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/summary.json",
+    ),
+    outDir: packageDir,
+  });
+  const lockPath = join(root, "contract-repair-artifact-lock.json");
+  await writeJson(lockPath, {
+    schemaVersion: "skill-ir-env-manager-contract-repair-artifact-lock/v1",
+    stage: "contract-repair-artifact-development",
+    status: "preregistered",
+    catalog: "executable-contract-repair-artifact/v4",
+    codeCatalog: "public-contract-error-codes/v2",
+    corpus: "pilot",
+    skillId: "env-manager",
+    package: {
+      path: "package",
+      manifestSha256: sha256Bytes(await readFile(join(packageDir, "package-manifest.json"))),
+      provenanceSha256: sha256Bytes(await readFile(join(packageDir, "package-provenance.json"))),
+    },
+    scorer: {
+      path: "src/bench/evaluators/env-manager-grade.ts",
+      sha256: sha256Bytes(await readFile(scorerPath)),
+    },
+    tasks: {
+      path: "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+      sha256: sha256Bytes(await readFile(tasksPath)),
+    },
+    model: { route: "xty/gpt-5.6-sol", family: "gpt" },
+    adapter: { id: "bare-agent", version: "workspace-contract-repair-v4" },
+    matrix: {
+      system: "ir-contract-artifact-dev",
+      panelConfigId: "env-manager-contract-repair-v4-development",
+      contexts: ["clean"],
+      agents: ["skvm"],
+      environments: ["windows"],
+      taskSplit: "development",
+      taskIds: ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      repetitions: 2,
+      initialGenerationRows: 4,
+    },
+    runtime: {
+      stateMachine: [
+        "preflight",
+        "generation",
+        "capture-pre-repair-snapshot",
+        "validate",
+        "deterministic-repair",
+        "revalidate",
+        "optional-one-model-repair-for-residual",
+        "final-validate",
+        "capture-post-repair-snapshot",
+        "stop",
+      ],
+      maxDeterministicRepairCalls: 1,
+      maxModelRepairCalls: 1,
+      apiKeyEnv: "SKVM_XTY_API_KEY",
+      sharedGeneration: true,
+    },
+    scoring: {
+      authority: "existing-deterministic-env-manager-scorer",
+      runtimeValidatorIsScorer: false,
+      generationDenominator: "preregistered-generation",
+      missingPairIsInfrastructure: true,
+      deterministicRepairCostReportedSeparately: true,
+      modelRepairCostReportedSeparately: true,
+      logicalArms: ["check-only", "one-repair"],
+    },
+    attributionGate: {
+      minimumDeterministicRepairAttempts: 1,
+      requireSharedGenerationIdentity: true,
+      scorerAuthorityUnchanged: true,
+    },
+    developmentGate: {
+      minimumSuccesses: 3,
+      minimumMeanScore: 0.85,
+      maximumHardGateRegressions: 0,
+      maximumInfrastructureFailures: 0,
+    },
+    prohibited: [
+      "held-out execution before the development gate passes",
+      "post-run package, scorer, tasks, model, repetitions, or gate changes",
+    ],
   });
   return { packageDir, lockPath };
 }
@@ -1096,6 +1203,49 @@ describe("real-agent-run manifest loading", () => {
       .rejects.toThrow("requires one-repair execution");
     await expect(buildPlan({ ...valid, systems: new Set(["ir-artifact-dev"]) }))
       .rejects.toThrow("requires system ir-public-artifact-dev");
+  });
+
+  test("plans V4 deterministic-first rows only through the contract-repair system and lock", async () => {
+    const { packageDir, lockPath } = await createContractRepairArtifactPackage();
+    const outDir = await mkdtemp(join(tmpdir(), "skill-ir-contract-repair-plan-"));
+    tempDirs.push(outDir);
+    const valid: RealAgentRunArgs = {
+      corpus: "pilot",
+      model: "xty/gpt-5.6-sol",
+      modelFamily: "gpt",
+      adapter: "bare-agent",
+      adapterVersion: "workspace-contract-repair-v4",
+      repetitions: 2,
+      panelConfigId: "env-manager-contract-repair-v4-development",
+      outDir,
+      limit: 4,
+      execute: false,
+      retries: 0,
+      retryDelayMs: 1,
+      rootDir: projectRoot,
+      allowArtifactDevelopmentReplay: true,
+      artifactPackageDir: packageDir,
+      artifactLockPath: lockPath,
+      artifactRepairMode: "one-repair",
+      skills: new Set(["env-manager"]),
+      systems: new Set(["ir-contract-artifact-dev"]),
+      contexts: new Set(["clean"]),
+      agents: new Set(["skvm"]),
+      environments: new Set(["windows"]),
+      tasks: new Set(["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"]),
+    };
+
+    const plan = await buildPlan(valid);
+    expect(plan).toHaveLength(4);
+    expect(plan.every((entry) => entry.system === "ir-contract-artifact-dev")).toBe(true);
+    expect(plan.every((entry) => entry.artifactRepairMode === "one-repair")).toBe(true);
+    expect(await readFile(plan[0]!.skillPath!, "utf8")).toContain("Deterministic Contract Repair");
+    await expect(buildPlan({ ...valid, systems: new Set(["ir-public-artifact-dev"]) }))
+      .rejects.toThrow("requires system ir-contract-artifact-dev");
+    await expect(buildPlan({ ...valid, artifactRepairMode: "check-only" }))
+      .rejects.toThrow("requires one-repair execution");
+    await expect(buildPlan({ ...valid, panelConfigId: "different-panel" }))
+      .rejects.toThrow("panel identity mismatch");
   });
 
   test("buildPlan rejects a final IR directory without provenance", async () => {

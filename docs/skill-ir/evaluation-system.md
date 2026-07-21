@@ -291,8 +291,27 @@ workdir。原 raw 中没有完整 snapshot 的 generation 计入 source denomina
 同时报告 replay-only 3/3 与 gate-compatible source 3/4、mean 0.75，不伪造逻辑 arm，
 也不从结果中静默消失。
 
-当前 replay 是无模型的 development mechanism evidence。Runner 尚未 dispatch V4，
-因此不能把 3/3 离线结果写成 V4 真实实验 gate 通过。
+离线 replay 是无模型的 development mechanism evidence，不能写成 V4 真实实验 gate 通过。
+V4 Runner 现已通过独立 system `ir-contract-artifact-dev` 接线，并由
+`env-manager-contract-repair-artifact-v4-lock.json` 冻结 2 个 development task × 2 次
+repetition 的 4-generation 分母。2026-07-22 的 dry-run 生成 4 行计划但没有执行模型。
+
+Generation gate 由 `artifact-development-gate.ts` 记账：完整 pre/post pair 以 post arm 判定
+success/score，以 pre/post 判断 hard-gate regression；缺 raw generation 或缺 pair 都按 0 分
+计入冻结分母并记为 infrastructure。CLI 从 lock 读取 task、次数和数值阈值，并验证 tasks
+digest：
+
+```powershell
+bun ./src/benchmarks/skill-ir/artifact-development-gate-run.ts `
+  '--raw=<run-dir>/raw-runs.jsonl' `
+  '--scored=<scored-results.jsonl>' `
+  '--lock=benchmarks/skill-ir/pilots/env-manager/env-manager-contract-repair-artifact-v4-lock.json' `
+  '--out=<run-dir>/development-gate-report.json'
+```
+
+Dry-run 中含逗号的筛选参数在 PowerShell 必须整体使用单引号，例如
+`'--tasks=env-manager-node-audit-dev-001,env-manager-vite-audit-dev-002'`。未整体引用会改变
+传入 Runner 的任务集合，并被 lock 的 exact-match guard 拒绝。
 
 ## 11. Route Health
 

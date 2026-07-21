@@ -30,10 +30,12 @@ import {
 } from "./artifact-runtime";
 import {
   readAndValidateArtifactDevelopmentLock,
+  readAndValidateContractRepairArtifactDevelopmentLock,
   readAndValidatePublicContractArtifactDevelopmentLock,
   readAndValidateSemanticArtifactDevelopmentLock,
   validateArtifactPackage,
   type ValidatedArtifactPackage,
+  type ValidatedContractRepairArtifactPackage,
   type ValidatedPublicContractArtifactPackage,
   type ValidatedSemanticArtifactPackage,
 } from "./artifact-package";
@@ -278,19 +280,29 @@ function hasExactValues<T>(values: Set<T> | undefined, expected: T[]): boolean {
 }
 
 function isSemanticArtifactPackage(
-  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage,
+  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage
+    | ValidatedContractRepairArtifactPackage,
 ): packageRecord is ValidatedSemanticArtifactPackage {
   return packageRecord.manifest.catalog === "executable-semantic-artifact/v2";
 }
 
 function isPublicContractArtifactPackage(
-  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage,
+  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage
+    | ValidatedContractRepairArtifactPackage,
 ): packageRecord is ValidatedPublicContractArtifactPackage {
   return packageRecord.manifest.catalog === "executable-public-contract-artifact/v3";
 }
 
+function isContractRepairArtifactPackage(
+  packageRecord: ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage
+    | ValidatedContractRepairArtifactPackage,
+): packageRecord is ValidatedContractRepairArtifactPackage {
+  return packageRecord.manifest.catalog === "executable-contract-repair-artifact/v4";
+}
+
 function isArtifactDevelopmentSystem(system: ExperimentSystem): boolean {
-  return system === "ir-artifact-dev" || system === "ir-public-artifact-dev";
+  return system === "ir-artifact-dev" || system === "ir-public-artifact-dev"
+    || system === "ir-contract-artifact-dev";
 }
 
 function assertTasksAuthoredCalibrationArgs(args: RealAgentRunArgs): void {
@@ -366,9 +378,11 @@ function assertArtifactDevelopmentReplayArgs(args: RealAgentRunArgs): void {
   if (
     !hasExactValues(args.systems, ["ir-artifact-dev"])
     && !hasExactValues(args.systems, ["ir-public-artifact-dev"])
+    && !hasExactValues(args.systems, ["ir-contract-artifact-dev"])
   ) {
     throw new Error(
-      "--allow-artifact-development-replay requires systems to be exactly ir-artifact-dev or ir-public-artifact-dev",
+      "--allow-artifact-development-replay requires systems to be exactly ir-artifact-dev, "
+        + "ir-public-artifact-dev, or ir-contract-artifact-dev",
     );
   }
   if (!hasExactValues(args.contexts, ["clean"])) {
@@ -395,7 +409,8 @@ async function validateSelectedArtifactPackage(
   args: RealAgentRunArgs,
   fixtures: Map<string, SkillBenchmarkFixture>,
 ): Promise<
-  ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage | undefined
+  ValidatedArtifactPackage | ValidatedSemanticArtifactPackage | ValidatedPublicContractArtifactPackage
+  | ValidatedContractRepairArtifactPackage | undefined
 > {
   if (!args.allowArtifactDevelopmentReplay) return undefined;
   const packageDir = isAbsolute(args.artifactPackageDir!)
@@ -406,6 +421,8 @@ async function validateSelectedArtifactPackage(
     ? await validateArtifactPackage({ packageDir, expectedCatalog: "executable-semantic-artifact/v2" })
     : packageManifest.catalog === "executable-public-contract-artifact/v3"
       ? await validateArtifactPackage({ packageDir, expectedCatalog: "executable-public-contract-artifact/v3" })
+    : packageManifest.catalog === "executable-contract-repair-artifact/v4"
+      ? await validateArtifactPackage({ packageDir, expectedCatalog: "executable-contract-repair-artifact/v4" })
     : await validateArtifactPackage({ packageDir, expectedCatalog: "executable-artifact/v1" });
   const skillId = [...args.skills!][0]!;
   if (packageRecord.manifest.skillId !== skillId) {
@@ -425,7 +442,8 @@ async function validateSelectedArtifactPackage(
   }
   const modelFamily = args.modelFamily ?? inferModelFamily(args.model);
   const adapterVersion = args.adapterVersion ?? "workspace";
-  if (!isSemanticArtifactPackage(packageRecord) && !isPublicContractArtifactPackage(packageRecord)) {
+  if (!isSemanticArtifactPackage(packageRecord) && !isPublicContractArtifactPackage(packageRecord)
+    && !isContractRepairArtifactPackage(packageRecord)) {
     const expectedScope = packageRecord.provenance.scope;
     for (const [key, actual] of [
       ["model", args.model],
@@ -452,6 +470,7 @@ async function validateSelectedArtifactPackage(
       modelFamily,
       adapter: args.adapter,
       adapterVersion,
+      panelConfigId: args.panelConfigId!,
       repairMode: args.artifactRepairMode!,
       repetitions: args.repetitions ?? 1,
       contexts: args.contexts,
@@ -470,6 +489,11 @@ async function validateSelectedArtifactPackage(
       throw new Error("V3 public-contract package requires system ir-public-artifact-dev");
     }
     await readAndValidatePublicContractArtifactDevelopmentLock(lockInput);
+  } else if (isContractRepairArtifactPackage(packageRecord)) {
+    if (!hasExactValues(args.systems, ["ir-contract-artifact-dev"])) {
+      throw new Error("V4 contract-repair package requires system ir-contract-artifact-dev");
+    }
+    await readAndValidateContractRepairArtifactDevelopmentLock(lockInput);
   } else {
     if (!hasExactValues(args.systems, ["ir-artifact-dev"])) {
       throw new Error("V1/V2 artifact package requires system ir-artifact-dev");
@@ -677,7 +701,8 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
       if (!artifactPackage?.provenance.taskContract.taskIds.includes(task.id)) {
         throw new Error(`Artifact package does not preregister development task: ${task.id}`);
       }
-      if (!isSemanticArtifactPackage(artifactPackage) && !isPublicContractArtifactPackage(artifactPackage)) {
+      if (!isSemanticArtifactPackage(artifactPackage) && !isPublicContractArtifactPackage(artifactPackage)
+        && !isContractRepairArtifactPackage(artifactPackage)) {
         if (item.environment !== artifactPackage.provenance.scope.environment) {
           throw new Error(`Artifact package environment scope mismatch: ${item.environment}`);
         }
@@ -815,7 +840,8 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
         workDir: item.workDir,
         exitCode: infrastructureFailure ? 1 : runtime.finalExitCode,
         runStatus: infrastructureFailure ? "adapter-crashed" : extractRunStatus(runtime.finalStdout),
-        durationMs: runtime.aggregateUsage.modelDurationMs + runtime.validationDurationMs,
+        durationMs: runtime.aggregateUsage.modelDurationMs + runtime.validationDurationMs
+          + (runtime.deterministicRepairDurationMs ?? 0),
         stdout: runtime.finalStdout,
         stderr,
         successSource: "execution-only" as const,

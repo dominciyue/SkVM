@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
   ExecutableRepairContractSchema,
+  ExecutableRepairRecipeSchema,
+  bindEnvManagerExecutableRepairContract,
+  buildEnvManagerExecutableRepairRecipe,
   buildEnvManagerExecutableRepairContract,
 } from "./executable-repair-contract";
 
@@ -17,6 +20,24 @@ function buildContract() {
 }
 
 describe("V4 executable repair contract", () => {
+  test("keeps the package recipe static and binds the runtime digest only in preflight", () => {
+    const recipe = buildEnvManagerExecutableRepairRecipe({
+      taskContractDigest: DIGEST,
+      developmentEvidenceSha256: DEVELOPMENT_DIGEST,
+    });
+    const serialized = JSON.stringify(recipe);
+    expect(ExecutableRepairRecipeSchema.parse(recipe).binding).toEqual({
+      phase: "preflight",
+      runtimeEvidenceSource: "skill-ir-public-runtime-contract/v3",
+    });
+    expect(serialized).not.toContain(RUNTIME_DIGEST);
+
+    const contract = bindEnvManagerExecutableRepairContract(recipe, RUNTIME_DIGEST);
+    expect(contract.runtimeContractSha256).toBe(RUNTIME_DIGEST);
+    expect(contract.taskContractDigest).toBe(DIGEST);
+    expect(contract.schemaRulePolicy.developmentEvidenceSha256).toBe(DEVELOPMENT_DIGEST);
+  });
+
   test("expresses canonical report item shape and versioned public rule policy", () => {
     const contract = buildContract();
     const report = contract.outputs.find((output) => output.relativePath === "env-report.json");

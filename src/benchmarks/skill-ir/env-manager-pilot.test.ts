@@ -10,6 +10,7 @@ import {
   type RawAgentRunRow,
 } from "./scoring";
 import {
+  ContractRepairArtifactDevelopmentLockSchema,
   SemanticArtifactDevelopmentLockSchema,
   validateArtifactPackage,
 } from "./artifact-package";
@@ -53,6 +54,14 @@ const semanticArtifactPackagePath = join(
 const semanticArtifactLockPath = join(
   import.meta.dir,
   "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-executable-semantic-artifact-v2-lock.json",
+);
+const contractRepairArtifactPackagePath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/packages/executable-contract-repair-artifact-v4",
+);
+const contractRepairArtifactLockPath = join(
+  import.meta.dir,
+  "../../../benchmarks/skill-ir/pilots/env-manager/env-manager-contract-repair-artifact-v4-lock.json",
 );
 const tempDirs: string[] = [];
 
@@ -263,6 +272,43 @@ afterEach(async () => {
 });
 
 describe("env-manager pilot scoring", () => {
+  test("freezes the V4 deterministic-first package and generation-denominator gate", async () => {
+    const [validated, lockText, scorerBytes, taskBytes] = await Promise.all([
+      validateArtifactPackage({
+        packageDir: contractRepairArtifactPackagePath,
+        expectedCatalog: "executable-contract-repair-artifact/v4",
+      }),
+      readFile(contractRepairArtifactLockPath, "utf8"),
+      readFile(join(import.meta.dir, "../../bench/evaluators/env-manager-grade.ts")),
+      readFile(taskPath),
+    ]);
+    const lock = ContractRepairArtifactDevelopmentLockSchema.parse(JSON.parse(lockText));
+    expect(lock).toMatchObject({
+      catalog: "executable-contract-repair-artifact/v4",
+      matrix: { system: "ir-contract-artifact-dev", initialGenerationRows: 4 },
+      scoring: {
+        generationDenominator: "preregistered-generation",
+        missingPairIsInfrastructure: true,
+      },
+      developmentGate: {
+        minimumSuccesses: 3,
+        minimumMeanScore: 0.85,
+        maximumHardGateRegressions: 0,
+        maximumInfrastructureFailures: 0,
+      },
+    });
+    expect(lock.package.manifestSha256).toBe(
+      sha256(await readFile(join(contractRepairArtifactPackagePath, "package-manifest.json"))),
+    );
+    expect(lock.package.provenanceSha256).toBe(
+      sha256(await readFile(join(contractRepairArtifactPackagePath, "package-provenance.json"))),
+    );
+    expect(lock.scorer.sha256).toBe(sha256(scorerBytes));
+    expect(lock.tasks.sha256).toBe(sha256(taskBytes));
+    expect(validated.provenance.learnedRules.every((rule) => rule.status === "candidate")).toBe(true);
+    expect(lockText).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
+  });
+
   test("preregisters the semantic artifact v2 paid-development boundary", async () => {
     const [validated, lockText] = await Promise.all([
       validateArtifactPackage({

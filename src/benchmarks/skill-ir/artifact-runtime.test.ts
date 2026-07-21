@@ -3,6 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { compileEnvManagerArtifactPackage } from "./artifact-package-compiler";
+import { compileEnvManagerContractRepairArtifactPackage } from "./executable-contract-artifact-compiler";
+import type { DeterministicRepairReport } from "./deterministic-artifact-repairer";
 import { compileEnvManagerSemanticArtifactPackage } from "./semantic-artifact-compiler";
 import { preflightArtifactRun, type PreparedArtifactRun } from "./artifact-preflight";
 import { verifyArtifactSnapshot } from "./artifact-snapshot";
@@ -14,6 +16,7 @@ import {
 } from "./artifact-runtime";
 import type { RuntimeValidationReport } from "./artifact-package";
 import type { RuntimeSemanticValidationReport } from "./semantic-contract";
+import type { RuntimePublicValidationReport } from "./public-contract";
 
 const projectRoot = join(import.meta.dir, "../../..");
 const tempDirs: string[] = [];
@@ -58,6 +61,39 @@ const semanticFailReport: RuntimeSemanticValidationReport = {
     missingField: "minimum",
     expectedType: "number",
   }],
+};
+const publicPassReport: RuntimePublicValidationReport = {
+  schemaVersion: "runtime-validation-report/v3",
+  codeCatalog: "public-contract-error-codes/v2",
+  status: "pass",
+  repairEligible: false,
+  errors: [],
+};
+const publicFailReport: RuntimePublicValidationReport = {
+  schemaVersion: "runtime-validation-report/v3",
+  codeCatalog: "public-contract-error-codes/v2",
+  status: "fail",
+  repairEligible: true,
+  errors: [{
+    code: "MISSING_CLASSIFICATION_ENTRY",
+    relativePath: "env-report.json",
+    jsonPointer: "/usedUndefined",
+    contractRef: "outputs/env-report.json",
+    operation: "set-report-entry",
+  }],
+};
+const deterministicChanged: DeterministicRepairReport = {
+  schemaVersion: "deterministic-repair-report/v1",
+  catalog: "executable-contract-repair-artifact/v4",
+  status: "changed",
+  operations: [{
+    operation: "rewrite-canonical-report",
+    relativePath: "env-report.json",
+    jsonPointer: "/",
+    contractRef: "derivations/public-classification/v3",
+  }],
+  protectedDigestBefore: "a".repeat(64),
+  protectedDigestAfter: "a".repeat(64),
 };
 
 function commandResult(label: string, inputTokens: number, outputTokens: number): ArtifactCommandResult {
@@ -105,6 +141,53 @@ async function prepareSemantic(): Promise<PreparedArtifactRun> {
       modelFamily: "test",
       adapter: "bare-agent",
       adapterVersion: "semantic-v2-test",
+      environment: "windows",
+      context: "clean",
+    },
+    expectedContractDigest: provenance.taskContract.sha256,
+  });
+}
+
+async function prepareContractRepair(): Promise<PreparedArtifactRun> {
+  const root = await tempDir("skill-ir-contract-repair-runtime-");
+  const packageDir = join(root, "package");
+  const workDir = join(root, "workdir");
+  await mkdir(join(workDir, "src"), { recursive: true });
+  await writeFile(join(workDir, ".env"), "APP_PORT=3000\n", "utf8");
+  await writeFile(join(workDir, "src/config.js"), "const port = Number(process.env.APP_PORT);\n", "utf8");
+  await compileEnvManagerContractRepairArtifactPackage({
+    rootDir: projectRoot,
+    baseIrPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/base-ir.json"),
+    taskSetPath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/tasks.json"),
+    sourcePath: join(projectRoot, "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"),
+    coverageAuditPath: join(
+      projectRoot,
+      "results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/contract-coverage-audit.json",
+    ),
+    replayFreezePath: join(
+      projectRoot,
+      "benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freeze.json",
+    ),
+    replaySummaryPath: join(
+      projectRoot,
+      "results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/summary.json",
+    ),
+    outDir: packageDir,
+  });
+  const provenance = JSON.parse(await readFile(join(packageDir, "package-provenance.json"), "utf8")) as {
+    taskContract: { sha256: string };
+  };
+  return preflightArtifactRun({
+    packageDir,
+    workDir,
+    scope: {
+      skillId: "env-manager",
+      taskId: "env-manager-node-audit-dev-001",
+      taskSplit: "development",
+      model: "xty/gpt-5.6-sol",
+      modelFamily: "openai",
+      adapter: "bare-agent",
+      adapterVersion: "workspace",
       environment: "windows",
       context: "clean",
     },
@@ -456,6 +539,97 @@ describe("artifact runtime", () => {
       initialValidation: { schemaVersion: "runtime-validation-report/v2" },
       finalValidation: { schemaVersion: "runtime-validation-report/v2", status: "pass" },
       aggregateUsage: { inputTokens: 8, outputTokens: 3, tokenCost: 11, modelDurationMs: 11 },
+    });
+  });
+
+  test("runs V4 deterministic repair before model repair and stops when revalidation passes", async () => {
+    const contractPrepared = await prepareContractRepair();
+    let deterministicRepairs = 0;
+    let modelRepairs = 0;
+    let validations = 0;
+    const result = await runArtifactStateMachine({
+      mode: "one-repair",
+      prepared: contractPrepared,
+      runGeneration: async () => commandResult("generated", 5, 2),
+      runDeterministicRepair: async () => {
+        deterministicRepairs += 1;
+        return deterministicChanged;
+      },
+      runRepair: async () => {
+        modelRepairs += 1;
+        return commandResult("model-repaired", 3, 1);
+      },
+      runValidator: async () => (++validations === 1 ? publicFailReport : publicPassReport),
+    });
+
+    expect(deterministicRepairs).toBe(1);
+    expect(modelRepairs).toBe(0);
+    expect(validations).toBe(2);
+    expect(result).toMatchObject({
+      status: "complete",
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: true,
+      deterministicRepair: { status: "changed" },
+      repairAttempted: false,
+      repairedToPass: false,
+    });
+  });
+
+  test("executes the bundled V4 checker and deterministic repairer end to end", async () => {
+    const contractPrepared = await prepareContractRepair();
+    let modelRepairs = 0;
+    const result = await runArtifactStateMachine({
+      mode: "one-repair",
+      prepared: contractPrepared,
+      runGeneration: async () => commandResult("generated", 5, 2),
+      runRepair: async () => {
+        modelRepairs += 1;
+        return commandResult("model-repaired", 3, 1);
+      },
+    });
+
+    expect(modelRepairs).toBe(0);
+    expect(result).toMatchObject({
+      status: "complete",
+      initialValidation: { status: "fail" },
+      finalValidation: { status: "pass" },
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: true,
+      deterministicRepair: { status: "changed" },
+      repairAttempted: false,
+    });
+  });
+
+  test("allows one model repair only for a V4 residual after deterministic revalidation", async () => {
+    const contractPrepared = await prepareContractRepair();
+    let deterministicRepairs = 0;
+    let modelRepairs = 0;
+    let validations = 0;
+    const result = await runArtifactStateMachine({
+      mode: "one-repair",
+      prepared: contractPrepared,
+      runGeneration: async () => commandResult("generated", 5, 2),
+      runDeterministicRepair: async () => {
+        deterministicRepairs += 1;
+        return deterministicChanged;
+      },
+      runRepair: async () => {
+        modelRepairs += 1;
+        return commandResult("model-repaired", 3, 1);
+      },
+      runValidator: async () => (++validations < 3 ? publicFailReport : publicPassReport),
+    });
+
+    expect(deterministicRepairs).toBe(1);
+    expect(modelRepairs).toBe(1);
+    expect(validations).toBe(3);
+    expect(result).toMatchObject({
+      status: "complete",
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: false,
+      repairAttempted: true,
+      repairedToPass: true,
+      aggregateUsage: { inputTokens: 8, outputTokens: 3, tokenCost: 11 },
     });
   });
 });

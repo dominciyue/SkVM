@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "skill-ir-contract-repair-artifact-validation-policy/v4",
+  "checkerTimeoutMs": 5000,
+  "evidenceProgramTimeoutMs": 5000,
+  "deterministicRepairerTimeoutMs": 5000,
+  "maxDeterministicRepairCalls": 1,
+  "maxModelRepairCalls": 1,
+  "repairRecipePath": "artifacts/contracts/repair-recipe.json",
+  "runtimeContracts": {
+    "public": {
+      "path": ".skvm-artifact/public-runtime-contract.json",
+      "protected": true
+    },
+    "executableRepair": {
+      "path": ".skvm-artifact/executable-repair-contract.json",
+      "protected": true
+    }
+  },
+  "publicEvidence": {
+    "taskContractDigest": "a97d4e8c13f614b9f82eb3d4e1da1d0574a355a8d22a745b9d8c44de0a524ec1",
+    "generatedOutputs": [
+      ".env.example",
+      ".env.schema.json",
+      "env-report.json"
+    ],
+    "publicPrefixes": [
+      "NEXT_PUBLIC_",
+      "VITE_",
+      "REACT_APP_",
+      "NUXT_PUBLIC_",
+      "VUE_APP_"
+    ],
+    "publicRules": {
+      "portVariableSuffixes": [
+        "_PORT"
+      ],
+      "portRange": {
+        "minimum": 1,
+        "maximum": 65535
+      },
+      "sensitiveNameTokens": [
+        "KEY",
+        "TOKEN",
+        "PASSWORD",
+        "SECRET"
+      ]
+    },
+    "policy": {
+      "allowedExtensions": [
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".mjs",
+        ".cjs"
+      ],
+      "excludedDirectories": [
+        ".git",
+        "node_modules",
+        ".skvm-artifact"
+      ],
+      "maxFiles": 500,
+      "maxBytes": 5000000
+    }
+  },
+  "networkAllowed": false,
+  "packageInstallationAllowed": false,
+  "templateSentinel": "__SKVM_REQUIRED__"
+}

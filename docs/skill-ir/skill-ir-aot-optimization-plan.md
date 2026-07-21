@@ -533,8 +533,91 @@ surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
 
 ### Task 4.4：结果记账、Runner 与实验冻结
 
-- [ ] 缺 generation/pair 必须作为独立 infrastructure row 进入 gate denominator，
-  不伪造 check-only/one-repair arm，也不得从均值中静默消失。
-- [ ] 只有 Task 4.1-4.3 本地通过后，才实现 V4 package compiler、preflight、validator
-  与 Runner dispatch，并冻结新 package/lock/gate。
-- [ ] 新付费 development 仍使用共享 generation snapshot；未过 gate 不运行 held-out。
+#### Task 4.4A：Generation-level gate accounting
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/artifact-development-gate.ts
+新增 src/benchmarks/skill-ir/artifact-development-gate.test.ts
+新增 src/benchmarks/skill-ir/artifact-development-gate-run.ts
+新增 src/benchmarks/skill-ir/artifact-development-gate-run.test.ts
+```
+
+- [x] RED：从冻结 lock 枚举 `taskId × repetition` 的预期 generation；缺 raw generation、
+  generation 存在但没有完整 pre/post pair、重复 identity 和非 development task 均显式失败或
+  形成 infrastructure generation record。
+- [x] GREEN：gate denominator 固定为预注册 generation 数；完整 pair 只使用 post arm 计算
+  success/score，并用 pre/post 判定 hard-gate regression；缺失项按 0 分进入均值并单列
+  infrastructure，不伪造 check-only/one-repair scored row。
+- [x] GREEN：输出同时报告 paired generation、missing generation、missing pair、success、
+  mean、regression、infrastructure 与每项 gate condition，避免只看完整 pair 得出偏高结论。
+
+#### Task 4.4B：V4 package schema、compiler 与 validator
+
+**文件：**
+
+```text
+修改 src/benchmarks/skill-ir/artifact-package.ts
+修改 src/benchmarks/skill-ir/artifact-package.test.ts
+新增 src/benchmarks/skill-ir/executable-contract-artifact-compiler.ts
+新增 src/benchmarks/skill-ir/executable-contract-artifact-compiler.test.ts
+新增 src/benchmarks/skill-ir/executable-contract-artifact-run.ts
+新增 src/benchmarks/skill-ir/executable-contract-checker.ts
+新增 src/benchmarks/skill-ir/executable-contract-checker.test.ts
+新增 src/benchmarks/skill-ir/executable-contract-checker-cli.ts
+新增 src/benchmarks/skill-ir/deterministic-artifact-repairer-cli.ts
+```
+
+- [x] RED：新 manifest/provenance 必须使用 `executable-contract-repair-artifact/v4`，绑定
+  base IR、真实 source、公开 task contract、coverage audit、V4 replay freeze/summary 和
+  development-learned rule lineage；manifest/provenance/digest/undeclared-file 漂移全部拒绝。
+- [x] GREEN：package 保存静态 repair recipe，不伪造尚不存在的 runtime contract digest；
+  evidence program、V4 checker 和 deterministic repairer 均为自包含可执行 artifact。
+- [x] GREEN：V4 checker 验证 protected runtime contract 与 preflight-bound executable repair
+  contract 的 digest/task/output identity，再复用公开 workdir success surface；不得读取 scorer、
+  expected、held-out、secret value 或 raw model output。
+
+#### Task 4.4C：Preflight binding 与 deterministic-first runtime
+
+**文件：**
+
+```text
+修改 src/benchmarks/skill-ir/artifact-preflight.ts
+修改 src/benchmarks/skill-ir/artifact-preflight.test.ts
+修改 src/benchmarks/skill-ir/artifact-runtime.ts
+修改 src/benchmarks/skill-ir/artifact-runtime.test.ts
+```
+
+- [x] RED：V4 preflight 必须先生成并保护 public runtime contract，再从 package recipe 生成
+  `.skvm-artifact/executable-repair-contract.json`；任一 digest、task、output、link 或 scope 漂移
+  均在模型调用前失败。
+- [x] GREEN：V4 状态机固定为 `generation -> pre snapshot -> validate -> deterministic repair
+  -> validate -> optional one sanitized model repair for residual -> validate -> post snapshot -> stop`。
+- [x] GREEN：确定性修复、模型修复和 validation 成本/状态分列；确定性修复通过时不得调用
+  模型 repair，仍有安全可表达 residual 时最多调用一次；protected mutation 与任何阶段
+  infrastructure failure 均 fail closed。
+
+#### Task 4.4D：Runner dispatch、package/lock freeze 与 dry-run
+
+**文件：**
+
+```text
+修改 src/benchmarks/skill-ir/matrix.ts
+修改 src/benchmarks/skill-ir/matrix.test.ts
+修改 src/benchmarks/skill-ir/real-agent.ts
+修改 src/benchmarks/skill-ir/real-agent-run.ts
+修改 src/benchmarks/skill-ir/real-agent-run.test.ts
+新增 benchmarks/skill-ir/pilots/env-manager/packages/executable-contract-repair-artifact-v4/
+新增 benchmarks/skill-ir/pilots/env-manager/env-manager-contract-repair-artifact-v4-lock.json
+```
+
+- [x] RED：新 system `ir-contract-artifact-dev` 只能通过显式 artifact-development bypass、
+  V4 package 和完全匹配的新 lock 调度；旧 V1/V2/V3 system/package/lock 组合保持拒绝。
+- [x] GREEN：锁定 `xty/gpt-5.6-sol`、Windows/clean/bare-agent、两个 development task ×
+  两次 repetition、共享 generation、确定性优先状态机、scorer identity 与数值 gate；lock 在
+  付费前绑定 package manifest/provenance digest。
+- [x] GREEN：完成 package verify、4-generation dry-run 和 gate analyzer 空/缺 pair fixture；
+  本任务只冻结方法，不用 dry-run 声称优化成功。
+- [ ] 新付费 development 继续使用同一 shared-generation package/lock。Gate 未过不得运行
+  held-out；付费结果不得反向修改 package、scorer、tasks、model、repetitions 或数值 gate。

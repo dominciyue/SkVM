@@ -14,6 +14,10 @@ import {
   type RuntimePublicValidationReport,
 } from "./public-contract";
 import {
+  DeterministicRepairReportSchema,
+  type DeterministicRepairReport,
+} from "./deterministic-artifact-repairer";
+import {
   materializeArtifactTemplates,
   verifyProtectedWorkdir,
   type PreparedArtifactRun,
@@ -55,13 +59,17 @@ export type AnyRuntimeValidationReport =
 export type ArtifactRuntimeResult = {
   mode: ArtifactRepairMode;
   status: ArtifactRuntimeStatus;
-  failureStage?: "generation" | "validation" | "repair" | "revalidation" | "protected-workdir" | "snapshot";
+  failureStage?: "generation" | "validation" | "deterministic-repair" | "repair" | "revalidation" | "protected-workdir" | "snapshot";
   generation: ArtifactCommandResult;
   repair?: ArtifactCommandResult;
   initialValidation?: AnyRuntimeValidationReport;
   finalValidation?: AnyRuntimeValidationReport;
   repairAttempted: boolean;
   repairedToPass: boolean;
+  deterministicRepairAttempted?: boolean;
+  deterministicRepairedToPass?: boolean;
+  deterministicRepair?: DeterministicRepairReport;
+  deterministicRepairDurationMs?: number;
   generationUsage?: ArtifactUsage;
   repairUsage?: ArtifactUsage;
   aggregateUsage: ArtifactUsage & { modelDurationMs: number };
@@ -96,6 +104,7 @@ export type ArtifactStateMachineInput = {
   prepared: PreparedArtifactRun;
   runGeneration: () => Promise<ArtifactCommandResult>;
   runRepair: (task: SkvmTaskJson) => Promise<ArtifactCommandResult>;
+  runDeterministicRepair?: (prepared: PreparedArtifactRun) => Promise<DeterministicRepairReport>;
   runValidator?: (prepared: PreparedArtifactRun) => Promise<AnyRuntimeValidationReport>;
   snapshot?: {
     snapshotRoot: string;
@@ -151,6 +160,7 @@ function parseRuntimeReport(
     ? (report as { schemaVersion?: unknown }).schemaVersion
     : undefined;
   const publicContract = prepared?.catalog === "executable-public-contract-artifact/v3"
+    || prepared?.catalog === "executable-contract-repair-artifact/v4"
     || schemaVersion === "runtime-validation-report/v3";
   if (publicContract) return RuntimePublicValidationReportSchema.parse(report);
   const semantic = prepared?.catalog === "executable-semantic-artifact/v2"
@@ -164,7 +174,8 @@ function protectedFailureReport(
   prepared: PreparedArtifactRun,
   paths: string[],
 ): AnyRuntimeValidationReport {
-  return parseRuntimeReport(prepared, prepared.catalog === "executable-public-contract-artifact/v3" ? {
+  return parseRuntimeReport(prepared, prepared.catalog === "executable-public-contract-artifact/v3"
+    || prepared.catalog === "executable-contract-repair-artifact/v4" ? {
     schemaVersion: "runtime-validation-report/v3",
     codeCatalog: "public-contract-error-codes/v2",
     status: "fail",
@@ -217,6 +228,11 @@ export function buildSanitizedRepairTask(
         ? [`Inspect the protected runtime contract at ${prepared.package.manifest.runtimeContract.path}; do not modify it.`]
         : prepared?.catalog === "executable-public-contract-artifact/v3"
           ? [`Inspect the protected runtime contract at ${prepared.package.manifest.runtimeContract.path}; do not modify it.`]
+          : prepared?.catalog === "executable-contract-repair-artifact/v4"
+            ? [
+                `Inspect the protected runtime contract at ${prepared.package.manifest.runtimeContracts.public.path}; do not modify it.`,
+                `Inspect the protected repair contract at ${prepared.package.manifest.runtimeContracts.executableRepair.path}; do not modify it.`,
+              ]
         : []),
       "Use only this schema-safe validation error list:",
       JSON.stringify(projection),
@@ -270,6 +286,42 @@ export async function executeArtifactValidator(
   return parseRuntimeReport(prepared, parsed);
 }
 
+export async function executeArtifactDeterministicRepair(
+  prepared: PreparedArtifactRun,
+): Promise<DeterministicRepairReport> {
+  if (prepared.catalog !== "executable-contract-repair-artifact/v4") {
+    throw new Error("Deterministic artifact repair requires a V4 package");
+  }
+  const repairerPath = join(
+    prepared.package.packageDir,
+    prepared.package.manifest.deterministicRepairer.path,
+  );
+  const proc = Bun.spawn(
+    [prepared.runtimeExecutable, repairerPath, `--workdir=${prepared.workDir}`],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+  let timedOut = false;
+  const timeoutMs = prepared.package.manifest.deterministicRepairer.timeoutMs;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    proc.kill();
+  }, timeoutMs);
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]).finally(() => clearTimeout(timer));
+  if (timedOut) throw new Error(`Artifact deterministic repair timed out after ${timeoutMs}ms`);
+  if (exitCode !== 0) {
+    throw new Error(`Artifact deterministic repair failed with exit ${exitCode}: ${stderr.trim()}`);
+  }
+  try {
+    return DeterministicRepairReportSchema.parse(JSON.parse(stdout.trim()));
+  } catch {
+    throw new Error("Artifact deterministic repair returned invalid JSON/report");
+  }
+}
+
 function resultBase(
   input: ArtifactStateMachineInput,
   generation: ArtifactCommandResult,
@@ -305,6 +357,206 @@ async function timedValidation(
     await (input.runValidator ?? executeArtifactValidator)(input.prepared),
   );
   return { report, durationMs: Date.now() - startedAt };
+}
+
+async function runV4RepairPath(options: {
+  input: ArtifactStateMachineInput;
+  generation: ArtifactCommandResult;
+  preRepairSnapshot?: ArtifactSnapshotReference;
+  first: { report: AnyRuntimeValidationReport; durationMs: number };
+}): Promise<ArtifactRuntimeResult> {
+  const { input, generation, preRepairSnapshot, first } = options;
+  const deterministicStartedAt = Date.now();
+  let deterministicRepair: DeterministicRepairReport;
+  try {
+    deterministicRepair = await (input.runDeterministicRepair ?? executeArtifactDeterministicRepair)(
+      input.prepared,
+    );
+  } catch {
+    return {
+      ...resultBase(input, generation, undefined, first.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
+      status: "infrastructure-failure",
+      failureStage: "deterministic-repair",
+      initialValidation: first.report,
+      finalValidation: first.report,
+      repairAttempted: false,
+      repairedToPass: false,
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: false,
+      deterministicRepairDurationMs: Date.now() - deterministicStartedAt,
+    };
+  }
+  const deterministicRepairDurationMs = Date.now() - deterministicStartedAt;
+  const protectedAfterDeterministicRepair = await verifyProtectedWorkdir(input.prepared);
+  if (!protectedAfterDeterministicRepair.ok) {
+    const report = protectedFailureReport(
+      input.prepared,
+      protectedAfterDeterministicRepair.mutatedPaths,
+    );
+    return {
+      ...resultBase(input, generation, undefined, first.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
+      status: "protected-file-failure",
+      failureStage: "protected-workdir",
+      initialValidation: first.report,
+      finalValidation: report,
+      repairAttempted: false,
+      repairedToPass: false,
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: false,
+      deterministicRepair,
+      deterministicRepairDurationMs,
+    };
+  }
+
+  let second: { report: AnyRuntimeValidationReport; durationMs: number };
+  try {
+    second = await timedValidation(input);
+  } catch {
+    return {
+      ...resultBase(input, generation, undefined, first.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
+      status: "infrastructure-failure",
+      failureStage: "revalidation",
+      initialValidation: first.report,
+      finalValidation: first.report,
+      repairAttempted: false,
+      repairedToPass: false,
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: false,
+      deterministicRepair,
+      deterministicRepairDurationMs,
+    };
+  }
+
+  if (second.report.status === "pass" || input.mode === "check-only" || !second.report.repairEligible) {
+    let postRepairSnapshot: ArtifactSnapshotReference | undefined;
+    try {
+      postRepairSnapshot = await captureRuntimeSnapshot(input, "post-repair");
+    } catch {
+      return {
+        ...resultBase(input, generation, undefined, first.durationMs + second.durationMs),
+        ...snapshotFields(input, preRepairSnapshot),
+        status: "infrastructure-failure",
+        failureStage: "snapshot",
+        initialValidation: first.report,
+        finalValidation: second.report,
+        repairAttempted: false,
+        repairedToPass: false,
+        deterministicRepairAttempted: true,
+        deterministicRepairedToPass: second.report.status === "pass",
+        deterministicRepair,
+        deterministicRepairDurationMs,
+      };
+    }
+    const passed = second.report.status === "pass";
+    return {
+      ...resultBase(input, generation, undefined, first.durationMs + second.durationMs),
+      ...snapshotFields(input, preRepairSnapshot, postRepairSnapshot),
+      status: passed ? "complete" : "semantic-failure",
+      ...(!passed ? { failureStage: "revalidation" as const } : {}),
+      initialValidation: first.report,
+      finalValidation: second.report,
+      repairAttempted: false,
+      repairedToPass: false,
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: passed,
+      deterministicRepair,
+      deterministicRepairDurationMs,
+    };
+  }
+
+  const repairTask = buildSanitizedRepairTask(second.report, input.prepared);
+  const repair = await input.runRepair(repairTask);
+  if (!repair.ok) {
+    return {
+      ...resultBase(input, generation, repair, first.durationMs + second.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
+      status: "infrastructure-failure",
+      failureStage: "repair",
+      initialValidation: first.report,
+      finalValidation: second.report,
+      repairAttempted: true,
+      repairedToPass: false,
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: false,
+      deterministicRepair,
+      deterministicRepairDurationMs,
+    };
+  }
+  const protectedAfterModelRepair = await verifyProtectedWorkdir(input.prepared);
+  if (!protectedAfterModelRepair.ok) {
+    const report = protectedFailureReport(input.prepared, protectedAfterModelRepair.mutatedPaths);
+    return {
+      ...resultBase(input, generation, repair, first.durationMs + second.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
+      status: "protected-file-failure",
+      failureStage: "protected-workdir",
+      initialValidation: first.report,
+      finalValidation: report,
+      repairAttempted: true,
+      repairedToPass: false,
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: false,
+      deterministicRepair,
+      deterministicRepairDurationMs,
+    };
+  }
+
+  let third: { report: AnyRuntimeValidationReport; durationMs: number };
+  try {
+    third = await timedValidation(input);
+  } catch {
+    return {
+      ...resultBase(input, generation, repair, first.durationMs + second.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
+      status: "infrastructure-failure",
+      failureStage: "revalidation",
+      initialValidation: first.report,
+      finalValidation: second.report,
+      repairAttempted: true,
+      repairedToPass: false,
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: false,
+      deterministicRepair,
+      deterministicRepairDurationMs,
+    };
+  }
+  let postRepairSnapshot: ArtifactSnapshotReference | undefined;
+  try {
+    postRepairSnapshot = await captureRuntimeSnapshot(input, "post-repair");
+  } catch {
+    return {
+      ...resultBase(input, generation, repair, first.durationMs + second.durationMs + third.durationMs),
+      ...snapshotFields(input, preRepairSnapshot),
+      status: "infrastructure-failure",
+      failureStage: "snapshot",
+      initialValidation: first.report,
+      finalValidation: third.report,
+      repairAttempted: true,
+      repairedToPass: false,
+      deterministicRepairAttempted: true,
+      deterministicRepairedToPass: false,
+      deterministicRepair,
+      deterministicRepairDurationMs,
+    };
+  }
+  const passed = third.report.status === "pass";
+  return {
+    ...resultBase(input, generation, repair, first.durationMs + second.durationMs + third.durationMs),
+    ...snapshotFields(input, preRepairSnapshot, postRepairSnapshot),
+    status: passed ? "complete" : "semantic-failure",
+    ...(!passed ? { failureStage: "revalidation" as const } : {}),
+    initialValidation: first.report,
+    finalValidation: third.report,
+    repairAttempted: true,
+    repairedToPass: passed,
+    deterministicRepairAttempted: true,
+    deterministicRepairedToPass: false,
+    deterministicRepair,
+    deterministicRepairDurationMs,
+  };
 }
 
 export async function runArtifactStateMachine(
@@ -388,6 +640,10 @@ export async function runArtifactStateMachine(
       repairAttempted: false,
       repairedToPass: false,
     };
+  }
+  if (input.prepared.catalog === "executable-contract-repair-artifact/v4"
+    && first.report.repairEligible) {
+    return runV4RepairPath({ input, generation, preRepairSnapshot, first });
   }
   if (input.mode === "check-only" || !first.report.repairEligible) {
     let postRepairSnapshot: ArtifactSnapshotReference | undefined;

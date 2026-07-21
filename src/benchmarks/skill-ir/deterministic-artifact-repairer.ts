@@ -201,6 +201,25 @@ function lowerSchemaRules(
   return { variables };
 }
 
+export function deriveEnvManagerDeterministicArtifacts(
+  runtimeContractInput: PublicRuntimeContract,
+  repairContractInput: ExecutableRepairContract,
+): {
+  report: ReturnType<typeof derivePublicContractClassification>;
+  exampleText: string;
+  schema: { variables: Record<string, Record<string, unknown>> };
+} {
+  const runtimeContract = PublicRuntimeContractSchema.parse(runtimeContractInput);
+  const repairContract = ExecutableRepairContractSchema.parse(repairContractInput);
+  const expectedNames = runtimeContract.variables.map((variable) => variable.name)
+    .sort((left, right) => left.localeCompare(right));
+  return {
+    report: derivePublicContractClassification(runtimeContract),
+    exampleText: `${expectedNames.map((name) => `${name}=`).join("\n")}\n`,
+    schema: lowerSchemaRules(runtimeContract, repairContract),
+  };
+}
+
 async function atomicWrite(path: string, text: string): Promise<void> {
   const current = await lstat(path).catch(() => undefined);
   if (current?.isSymbolicLink()) {
@@ -260,7 +279,8 @@ export async function repairEnvManagerArtifactsDeterministically(
   const protectedDigestBefore = await protectedTreeDigest(root, generated);
   const operations: DeterministicRepairReport["operations"] = [];
 
-  const desiredReport = derivePublicContractClassification(runtimeContract);
+  const desired = deriveEnvManagerDeterministicArtifacts(runtimeContract, repairContract);
+  const desiredReport = desired.report;
   const reportPath = resolve(root, "env-report.json");
   const currentReport = await readJson(reportPath);
   if (!sameJson(currentReport, desiredReport)) {
@@ -273,11 +293,9 @@ export async function repairEnvManagerArtifactsDeterministically(
     });
   }
 
-  const expectedNames = runtimeContract.variables.map((variable) => variable.name)
-    .sort((left, right) => left.localeCompare(right));
   const examplePath = resolve(root, ".env.example");
   const exampleText = await readFile(examplePath, "utf8").catch(() => "");
-  const desiredExample = `${expectedNames.map((name) => `${name}=`).join("\n")}\n`;
+  const desiredExample = desired.exampleText;
   if (exampleText !== desiredExample) {
     await atomicWrite(examplePath, desiredExample);
     operations.push({
@@ -290,7 +308,7 @@ export async function repairEnvManagerArtifactsDeterministically(
 
   const schemaPath = resolve(root, ".env.schema.json");
   const currentSchema = await readJson(schemaPath);
-  const desiredSchema = lowerSchemaRules(runtimeContract, repairContract);
+  const desiredSchema = desired.schema;
   if (!sameJson(currentSchema, desiredSchema)) {
     await atomicWrite(schemaPath, canonicalJson(desiredSchema));
     operations.push({

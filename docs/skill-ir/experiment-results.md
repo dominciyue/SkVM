@@ -298,8 +298,9 @@ gate-compatible mean 0.75、1 infrastructure，development gate 仍失败。
 
 这个 in-sample 结果证明 V4 output contract、development-learned candidate policy 与
 deterministic repair semantics 能修复已观察到的 V3 development failures，并与当前
-scorer success surface 对齐。它没有新模型 generation、没有 V4 package/lock/Runner，
-也没有 held-out；候选 policy 的泛化仍未验证，不能写成真实运行优化成功。
+scorer success surface 对齐。此后已实现 V4 package/lock/Runner，并完成 4-generation
+dry-run，但仍没有新模型 generation，也没有 held-out；候选 policy 的泛化仍未验证，不能
+写成真实运行优化成功。
 
 证据：
 
@@ -307,7 +308,14 @@ scorer success surface 对齐。它没有新模型 generation、没有 V4 packag
 results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/summary.json
 results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/contract-coverage-audit.json
 benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freeze.json
+benchmarks/skill-ir/pilots/env-manager/packages/executable-contract-repair-artifact-v4/
+benchmarks/skill-ir/pilots/env-manager/env-manager-contract-repair-artifact-v4-lock.json
 ```
+
+V4 工程冻结记录：package verify 通过；development lock 固定 `xty/gpt-5.6-sol`、Windows、
+clean、bare-agent、两个 development task × 2 repetitions、共享 generation、确定性优先和
+最多一次 residual 模型修复。dry-run 计划为 4 行且 `executed=false`。本记录没有 success、
+mean 或 token 数值；下一次付费 development 才能生成这些证据，gate 未过不得运行 held-out。
 
 ## 4. Env-manager 研究推进总表
 
@@ -321,6 +329,7 @@ benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freez
 | GPT-4.1 诊断 | check-only | 0/4 | 0.7000 | 基础质量提升，核心语义残差与系统平台期仍存在。 |
 | Public-contract V3 | pre/post | 0/3 paired | 0.7000 | 共享生成 delta=0；repair 未修改产物，另有 1 infra。 |
 | V4 offline repair replay | deterministic post | 3/3 replay；3/4 source | 1.0000 replay；0.7500 source | 三个可重放 snapshot 修复；1 infra 使 gate 继续失败。 |
+| V4 package freeze | dry-run only | 未执行 | 未执行 | Package/lock/Runner 已接线；4-generation 计划通过 exact-match guard。 |
 
 ## 5. 当前结论
 

@@ -215,6 +215,102 @@ export const PublicContractArtifactPackageProvenanceSchema = z.object({
   artifacts: z.array(PublicContractArtifactRecordSchema).min(1),
 }).strict();
 
+const ContractRepairArtifactRecordSchema = z.object({
+  path: SafeRelativePathSchema,
+  kind: z.enum([
+    "skill-ir",
+    "skill-view",
+    "output-contract",
+    "repair-recipe",
+    "public-policy",
+    "public-contract-schema",
+    "evidence-program",
+    "checker",
+    "deterministic-repairer",
+    "template",
+    "validation-policy",
+  ]),
+  sha256: Sha256Schema,
+  targetPath: SafeRelativePathSchema.optional(),
+}).strict();
+
+const ProtectedRuntimeContractSchema = z.object({
+  path: SafeRelativePathSchema,
+  protected: z.literal(true),
+}).strict();
+
+export const ContractRepairArtifactPackageManifestSchema = z.object({
+  schemaVersion: z.literal("skill-ir-contract-repair-artifact-package-manifest/v1"),
+  catalog: z.literal("executable-contract-repair-artifact/v4"),
+  skillId: z.literal("env-manager"),
+  provenance: DigestRefSchema,
+  outputContract: DigestRefSchema,
+  repairRecipe: DigestRefSchema,
+  publicPolicy: DigestRefSchema,
+  publicRuntimeContractSchema: DigestRefSchema,
+  evidenceProgram: z.object({
+    path: SafeRelativePathSchema,
+    timeoutMs: z.number().int().min(1).max(30_000),
+  }).strict(),
+  checker: z.object({
+    path: SafeRelativePathSchema,
+    timeoutMs: z.number().int().min(1).max(30_000),
+  }).strict(),
+  deterministicRepairer: z.object({
+    path: SafeRelativePathSchema,
+    timeoutMs: z.number().int().min(1).max(30_000),
+  }).strict(),
+  runtimeContracts: z.object({
+    public: ProtectedRuntimeContractSchema,
+    executableRepair: ProtectedRuntimeContractSchema,
+  }).strict().refine(
+    (contracts) => contracts.public.path !== contracts.executableRepair.path,
+    "V4 runtime contract paths must be distinct",
+  ),
+  generatedOutputs: z.array(SafeRelativePathSchema).min(1),
+  artifacts: z.array(ContractRepairArtifactRecordSchema).min(1),
+}).strict();
+
+const DevelopmentLearnedRuleLineageSchema = z.object({
+  ruleId: z.enum(["server-dsn-sensitive/v1", "signing-key-minimum-length/v1"]),
+  sourceCriterion: z.literal("env-schema-rules"),
+  evidenceSha256: Sha256Schema,
+  status: z.literal("candidate"),
+}).strict();
+
+export const ContractRepairArtifactPackageProvenanceSchema = z.object({
+  schemaVersion: z.literal("skill-ir-contract-repair-artifact-package-provenance/v1"),
+  catalog: z.literal("executable-contract-repair-artifact/v4"),
+  skillId: z.literal("env-manager"),
+  constructionSplit: z.literal("development"),
+  source: DigestRefSchema,
+  baseIr: DigestRefSchema,
+  taskContract: z.object({
+    taskIds: z.array(z.string().min(1)).min(1),
+    promptDigest: Sha256Schema,
+    sha256: Sha256Schema,
+  }).strict(),
+  developmentEvidence: z.object({
+    coverageAudit: DigestRefSchema,
+    replayFreeze: DigestRefSchema,
+    replaySummary: DigestRefSchema,
+  }).strict(),
+  learnedRules: z.tuple([
+    DevelopmentLearnedRuleLineageSchema.extend({
+      ruleId: z.literal("server-dsn-sensitive/v1"),
+    }),
+    DevelopmentLearnedRuleLineageSchema.extend({
+      ruleId: z.literal("signing-key-minimum-length/v1"),
+    }),
+  ]),
+  compiler: z.object({
+    id: z.literal("env-manager-contract-repair-artifact-compiler"),
+    version: z.literal("v4"),
+    configSha256: Sha256Schema,
+  }).strict(),
+  artifacts: z.array(ContractRepairArtifactRecordSchema).min(1),
+}).strict();
+
 export const ArtifactPackageManifestSchema = z.object({
   schemaVersion: z.literal("skill-ir-artifact-package-manifest/v1"),
   catalog: z.literal("executable-artifact/v1"),
@@ -392,6 +488,83 @@ export const PublicContractArtifactDevelopmentLockSchema = z.object({
   prohibited: z.array(z.string().min(1)).min(1),
 }).strict();
 
+export const ContractRepairArtifactDevelopmentLockSchema = z.object({
+  schemaVersion: z.literal("skill-ir-env-manager-contract-repair-artifact-lock/v1"),
+  stage: z.literal("contract-repair-artifact-development"),
+  status: z.literal("preregistered"),
+  catalog: z.literal("executable-contract-repair-artifact/v4"),
+  codeCatalog: z.literal("public-contract-error-codes/v2"),
+  corpus: z.literal("pilot"),
+  skillId: z.literal("env-manager"),
+  package: z.object({
+    path: z.string().min(1),
+    manifestSha256: Sha256Schema,
+    provenanceSha256: Sha256Schema,
+  }).strict(),
+  scorer: DigestRefSchema,
+  tasks: DigestRefSchema,
+  model: z.object({ route: z.string().min(1), family: z.string().min(1) }).strict(),
+  adapter: z.object({ id: z.string().min(1), version: z.string().min(1) }).strict(),
+  matrix: z.object({
+    system: z.literal("ir-contract-artifact-dev"),
+    panelConfigId: z.string().min(1),
+    contexts: z.array(z.string().min(1)).min(1),
+    agents: z.array(z.string().min(1)).min(1),
+    environments: z.array(z.string().min(1)).min(1),
+    taskSplit: z.literal("development"),
+    taskIds: z.array(z.string().min(1)).min(1),
+    repetitions: z.number().int().min(1),
+    initialGenerationRows: z.number().int().min(1),
+  }).strict(),
+  runtime: z.object({
+    stateMachine: z.tuple([
+      z.literal("preflight"),
+      z.literal("generation"),
+      z.literal("capture-pre-repair-snapshot"),
+      z.literal("validate"),
+      z.literal("deterministic-repair"),
+      z.literal("revalidate"),
+      z.literal("optional-one-model-repair-for-residual"),
+      z.literal("final-validate"),
+      z.literal("capture-post-repair-snapshot"),
+      z.literal("stop"),
+    ]),
+    maxDeterministicRepairCalls: z.literal(1),
+    maxModelRepairCalls: z.literal(1),
+    apiKeyEnv: z.string().min(1),
+    sharedGeneration: z.literal(true),
+  }).strict(),
+  scoring: z.object({
+    authority: z.literal("existing-deterministic-env-manager-scorer"),
+    runtimeValidatorIsScorer: z.literal(false),
+    generationDenominator: z.literal("preregistered-generation"),
+    missingPairIsInfrastructure: z.literal(true),
+    deterministicRepairCostReportedSeparately: z.literal(true),
+    modelRepairCostReportedSeparately: z.literal(true),
+    logicalArms: z.tuple([z.literal("check-only"), z.literal("one-repair")]),
+  }).strict(),
+  attributionGate: z.object({
+    minimumDeterministicRepairAttempts: z.number().int().min(1),
+    requireSharedGenerationIdentity: z.literal(true),
+    scorerAuthorityUnchanged: z.literal(true),
+  }).strict(),
+  developmentGate: z.object({
+    minimumSuccesses: z.number().int().min(1),
+    minimumMeanScore: z.number().min(0).max(1),
+    maximumHardGateRegressions: z.number().int().min(0),
+    maximumInfrastructureFailures: z.number().int().min(0),
+  }).strict(),
+  prohibited: z.array(z.string().min(1)).min(1),
+}).strict().superRefine((lock, ctx) => {
+  if (lock.matrix.initialGenerationRows !== lock.matrix.taskIds.length * lock.matrix.repetitions) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["matrix", "initialGenerationRows"],
+      message: "V4 initialGenerationRows must equal taskIds x repetitions",
+    });
+  }
+});
+
 export type RuntimeValidationReport = z.infer<typeof RuntimeValidationReportSchema>;
 export type ArtifactPackageManifest = z.infer<typeof ArtifactPackageManifestSchema>;
 export type ArtifactPackageProvenance = z.infer<typeof ArtifactPackageProvenanceSchema>;
@@ -410,6 +583,15 @@ export type PublicContractArtifactPackageProvenance = z.infer<
 export type PublicContractArtifactDevelopmentLock = z.infer<
   typeof PublicContractArtifactDevelopmentLockSchema
 >;
+export type ContractRepairArtifactPackageManifest = z.infer<
+  typeof ContractRepairArtifactPackageManifestSchema
+>;
+export type ContractRepairArtifactPackageProvenance = z.infer<
+  typeof ContractRepairArtifactPackageProvenanceSchema
+>;
+export type ContractRepairArtifactDevelopmentLock = z.infer<
+  typeof ContractRepairArtifactDevelopmentLockSchema
+>;
 
 export type ValidatedArtifactPackage = {
   packageDir: string;
@@ -427,6 +609,12 @@ export type ValidatedPublicContractArtifactPackage = {
   packageDir: string;
   manifest: PublicContractArtifactPackageManifest;
   provenance: PublicContractArtifactPackageProvenance;
+};
+
+export type ValidatedContractRepairArtifactPackage = {
+  packageDir: string;
+  manifest: ContractRepairArtifactPackageManifest;
+  provenance: ContractRepairArtifactPackageProvenance;
 };
 
 async function listFiles(root: string, directory = root): Promise<string[]> {
@@ -623,6 +811,60 @@ async function validateV3ArtifactPackage(opts: {
   return { packageDir, manifest, provenance };
 }
 
+async function validateV4ArtifactPackage(opts: {
+  packageDir: string;
+}): Promise<ValidatedContractRepairArtifactPackage> {
+  const packageDir = resolve(opts.packageDir);
+  const manifest = ContractRepairArtifactPackageManifestSchema.parse(
+    await readJson(resolve(packageDir, "package-manifest.json")),
+  );
+  await verifyDigest(packageDir, manifest.provenance);
+  const provenance = ContractRepairArtifactPackageProvenanceSchema.parse(
+    await readJson(resolve(packageDir, manifest.provenance.path)),
+  );
+  if (manifest.skillId !== provenance.skillId || manifest.catalog !== provenance.catalog) {
+    throw new Error("Contract-repair artifact manifest/provenance identity mismatch");
+  }
+  if (stableArtifactIdentity(manifest.artifacts) !== stableArtifactIdentity(provenance.artifacts)) {
+    throw new Error("Contract-repair artifact manifest/provenance artifact identity mismatch");
+  }
+
+  const paths = new Set<string>();
+  for (const artifact of manifest.artifacts) {
+    if (paths.has(artifact.path)) throw new Error(`Duplicate artifact path: ${artifact.path}`);
+    paths.add(artifact.path);
+    await verifyDigest(packageDir, artifact);
+  }
+  for (const [label, ref, kind] of [
+    ["output contract", manifest.outputContract, "output-contract"],
+    ["repair recipe", manifest.repairRecipe, "repair-recipe"],
+    ["public policy", manifest.publicPolicy, "public-policy"],
+    ["public runtime contract schema", manifest.publicRuntimeContractSchema, "public-contract-schema"],
+  ] as const) {
+    const artifact = manifest.artifacts.find((candidate) => candidate.path === ref.path);
+    if (!artifact || artifact.kind !== kind || artifact.sha256 !== ref.sha256) {
+      throw new Error(`Manifest ${label} reference is invalid`);
+    }
+  }
+  for (const [label, path, kind] of [
+    ["evidence program", manifest.evidenceProgram.path, "evidence-program"],
+    ["checker", manifest.checker.path, "checker"],
+    ["deterministic repairer", manifest.deterministicRepairer.path, "deterministic-repairer"],
+  ] as const) {
+    const artifact = manifest.artifacts.find((candidate) => candidate.path === path);
+    if (!artifact || artifact.kind !== kind) throw new Error(`Manifest ${label} reference is invalid`);
+  }
+  for (const output of manifest.generatedOutputs) parseSafeRelativePath(output);
+  parseSafeRelativePath(manifest.runtimeContracts.public.path);
+  parseSafeRelativePath(manifest.runtimeContracts.executableRepair.path);
+
+  const allowed = new Set(["package-manifest.json", manifest.provenance.path, ...paths]);
+  for (const file of await listFiles(packageDir)) {
+    if (!allowed.has(file)) throw new Error(`Undeclared package file: ${file}`);
+  }
+  return { packageDir, manifest, provenance };
+}
+
 export function validateArtifactPackage(opts: {
   packageDir: string;
   expectedCatalog?: "executable-artifact/v1";
@@ -635,16 +877,22 @@ export function validateArtifactPackage(opts: {
   packageDir: string;
   expectedCatalog: "executable-public-contract-artifact/v3";
 }): Promise<ValidatedPublicContractArtifactPackage>;
+export function validateArtifactPackage(opts: {
+  packageDir: string;
+  expectedCatalog: "executable-contract-repair-artifact/v4";
+}): Promise<ValidatedContractRepairArtifactPackage>;
 export async function validateArtifactPackage(opts: {
   packageDir: string;
   expectedCatalog?:
     | "executable-artifact/v1"
     | "executable-semantic-artifact/v2"
-    | "executable-public-contract-artifact/v3";
+    | "executable-public-contract-artifact/v3"
+    | "executable-contract-repair-artifact/v4";
 }): Promise<
   | ValidatedArtifactPackage
   | ValidatedSemanticArtifactPackage
   | ValidatedPublicContractArtifactPackage
+  | ValidatedContractRepairArtifactPackage
 > {
   const raw = await readJson(resolve(opts.packageDir, "package-manifest.json"));
   const catalog = z.object({ catalog: z.string() }).passthrough().parse(raw).catalog;
@@ -654,6 +902,7 @@ export async function validateArtifactPackage(opts: {
   if (catalog === "executable-artifact/v1") return validateV1ArtifactPackage(opts);
   if (catalog === "executable-semantic-artifact/v2") return validateV2ArtifactPackage(opts);
   if (catalog === "executable-public-contract-artifact/v3") return validateV3ArtifactPackage(opts);
+  if (catalog === "executable-contract-repair-artifact/v4") return validateV4ArtifactPackage(opts);
   throw new Error(`Unsupported artifact catalog: ${catalog}`);
 }
 
@@ -857,6 +1106,82 @@ export async function readAndValidatePublicContractArtifactDevelopmentLock(opts:
     ["tasks", expected.tasks, lock.matrix.taskIds],
   ] as const) {
     if (!sameValues(actual, frozen)) throw new Error(`Public-contract artifact lock ${name} mismatch`);
+  }
+  return lock;
+}
+
+export async function readAndValidateContractRepairArtifactDevelopmentLock(opts: {
+  rootDir: string;
+  lockPath: string;
+  packageDir: string;
+  expected: {
+    corpus: string;
+    skillId: string;
+    model: string;
+    modelFamily: string;
+    adapter: string;
+    adapterVersion: string;
+    panelConfigId: string;
+    repairMode: "check-only" | "one-repair";
+    repetitions: number;
+    contexts?: Iterable<string>;
+    agents?: Iterable<string>;
+    environments?: Iterable<string>;
+    tasks?: Iterable<string>;
+  };
+}): Promise<ContractRepairArtifactDevelopmentLock> {
+  const lockPath = resolve(opts.lockPath);
+  const lock = ContractRepairArtifactDevelopmentLockSchema.parse(await readJson(lockPath));
+  const rootCandidate = isAbsolute(lock.package.path)
+    ? resolve(lock.package.path)
+    : resolve(opts.rootDir, parseSafeRelativePath(lock.package.path));
+  const siblingCandidate = isAbsolute(lock.package.path)
+    ? rootCandidate
+    : resolve(lockPath, "..", parseSafeRelativePath(lock.package.path));
+  const actualPackageDir = resolve(opts.packageDir);
+  if (actualPackageDir !== rootCandidate && actualPackageDir !== siblingCandidate) {
+    throw new Error(`Contract-repair artifact lock package path mismatch: ${lock.package.path}`);
+  }
+  if (sha256Bytes(await readFile(resolve(actualPackageDir, "package-manifest.json")))
+    !== lock.package.manifestSha256) {
+    throw new Error("Contract-repair artifact lock package manifest digest mismatch");
+  }
+  if (sha256Bytes(await readFile(resolve(actualPackageDir, "package-provenance.json")))
+    !== lock.package.provenanceSha256) {
+    throw new Error("Contract-repair artifact lock package provenance digest mismatch");
+  }
+  for (const [label, ref] of [["scorer", lock.scorer], ["tasks", lock.tasks]] as const) {
+    const path = resolve(opts.rootDir, parseSafeRelativePath(ref.path));
+    if (sha256Bytes(await readFile(path)) !== ref.sha256) {
+      throw new Error(`Contract-repair artifact lock ${label} digest mismatch`);
+    }
+  }
+  const expected = opts.expected;
+  if (expected.corpus !== lock.corpus || expected.skillId !== lock.skillId) {
+    throw new Error("Contract-repair artifact lock corpus or skill identity mismatch");
+  }
+  if (expected.model !== lock.model.route || expected.modelFamily !== lock.model.family) {
+    throw new Error("Contract-repair artifact lock model identity mismatch");
+  }
+  if (expected.adapter !== lock.adapter.id || expected.adapterVersion !== lock.adapter.version) {
+    throw new Error("Contract-repair artifact lock adapter identity mismatch");
+  }
+  if (expected.panelConfigId !== lock.matrix.panelConfigId) {
+    throw new Error("Contract-repair artifact lock panel identity mismatch");
+  }
+  if (expected.repairMode !== "one-repair") {
+    throw new Error("Contract-repair shared-generation runtime requires one-repair execution");
+  }
+  if (expected.repetitions !== lock.matrix.repetitions) {
+    throw new Error(`Contract-repair artifact lock repetitions mismatch: expected ${lock.matrix.repetitions}`);
+  }
+  for (const [name, actual, frozen] of [
+    ["contexts", expected.contexts, lock.matrix.contexts],
+    ["agents", expected.agents, lock.matrix.agents],
+    ["environments", expected.environments, lock.matrix.environments],
+    ["tasks", expected.tasks, lock.matrix.taskIds],
+  ] as const) {
+    if (!sameValues(actual, frozen)) throw new Error(`Contract-repair artifact lock ${name} mismatch`);
   }
   return lock;
 }

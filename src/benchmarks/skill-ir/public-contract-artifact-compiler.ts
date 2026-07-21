@@ -40,7 +40,7 @@ function recordedInputPath(rootDir: string, path: string): string {
   return `external-inputs/${basename(path)}`;
 }
 
-function publicRulesFromSource(source: string) {
+export function publicRulesFromSource(source: string) {
   const range = source.match(/\b(\d+)\s*[-–]\s*(\d+)\b/);
   const portRange = range?.[1] && range[2]
     ? { minimum: Number(range[1]), maximum: Number(range[2]) }
@@ -71,7 +71,7 @@ function publicRulesFromSource(source: string) {
   };
 }
 
-function publicRuntimeContractSchemaArtifact(): unknown {
+export function publicRuntimeContractSchemaArtifact(): unknown {
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: "skill-ir-public-runtime-contract-schema/v3",
@@ -103,7 +103,7 @@ function publicRuntimeContractSchemaArtifact(): unknown {
   };
 }
 
-function generatedSkillView(baseIr: SkillIR): string {
+export function generatedSkillView(baseIr: SkillIR): string {
   const rendered = renderSkillMarkdown(baseIr, "ir-static") ?? "";
   return `${rendered}\n\n## Executable Public Contract Artifact\n\n`
     + `- Read the protected runtime contract at \`${RUNTIME_CONTRACT_PATH}\` before producing or repairing outputs.\n`

@@ -446,9 +446,12 @@ output/repair contract: skill-ir-executable-repair-contract/v4
 repair report: deterministic-repair-report/v1
 ```
 
-该身份目前是实现边界，不是已冻结实验产物，也不代表优化成功。V1/V2/V3 package、
-lock、checker、scorer 和结果保持不可变。V4 必须先完成 coverage audit 与冻结 V3
-pre-repair snapshot 的离线重放，之后才能编译 package 和冻结 development lock。
+该身份已经落实为独立 package schema、compiler、checker、preflight、deterministic-first
+runtime、Runner system 和预注册 development lock，但不代表优化成功。V1/V2/V3 package、
+lock、checker、scorer 和结果保持不可变。V4 的 coverage audit 与冻结 V3 pre-repair
+snapshot 离线重放已完成；新 lock 已在付费前绑定 package、tasks、scorer、model、矩阵和
+数值 gate。当前只完成 4-generation dry-run，尚无 V4 真实模型 development 数值，也未运行
+held-out。
 
 ### 13.2 Failure-to-contract coverage
 
