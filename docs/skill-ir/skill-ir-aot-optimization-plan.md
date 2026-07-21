@@ -457,3 +457,84 @@ Gate 判定：0 success、完整 pair mean 0.70、1 infrastructure failure；最
 最低均分和最大 infrastructure 三项失败。Repair 3/3 激活、0/3 repaired-to-pass，三组
 pre/post digest 完全相同。下一阶段先设计新 catalog，补足 array item schema 和
 runtime/scorer contract coverage；不得在 V3 上事后调 prompt 或补跑。
+
+## 10. Step 4 文件级 TDD 实施计划
+
+Step 4 只消费冻结 V3 development 证据，不修改 V3 package、lock、checker、scorer
+或结果。候选新 catalog 暂定为 `executable-contract-repair-artifact/v4`；只有本地
+snapshot replay 通过后才允许编译 package、冻结 lock 或发起付费实验。
+
+### Task 4.1：Failure-to-contract coverage audit
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/contract-coverage.ts
+新增 src/benchmarks/skill-ir/contract-coverage.test.ts
+新增 src/benchmarks/skill-ir/contract-coverage-run.ts
+更新 docs/skill-ir/optimization-and-artifacts.md
+```
+
+- [x] RED：六个 scorer criterion 必须逐项映射到 runtime check、公开 evidence、
+  deterministic repair 与剩余 gap；criterion 漂移、未知 checker code 和重复映射失败。
+- [x] GREEN：输出 `equivalent | partial | none` 覆盖等级，明确 validator 与 scorer
+  的成功面是否等价；不得读取或序列化 evaluator `expected`、secret value 或 held-out。
+- [x] GREEN：将冻结 V3 的 `INVALID_REPORT_FIELD_TYPE`、
+  `MISSING_CLASSIFICATION_ENTRY` 和 schema residual 纳入 observed-failure audit。
+
+### Task 4.2：V4 output/repair contract
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/executable-repair-contract.ts
+新增 src/benchmarks/skill-ir/executable-repair-contract.test.ts
+```
+
+- [x] RED：覆盖 `array.items`、object properties/required、set semantics、稳定排序、
+  closed repair operation 和 provenance ref；拒绝 literal gold arrays、自由文本、
+  secret、绝对路径、evaluator payload 和 held-out source。
+- [x] GREEN：报告五字段表达为 `array<string>`、去重、按字典序 canonicalize；
+  schema rule 只允许从公开 evidence 或带 development provenance 的版本化候选 policy
+  推导；两类来源必须可区分。
+- [x] GREEN：新 contract 有独立 schema/catalog identity，不复用或修改 V3 digest。
+
+### Task 4.3：Deterministic repairer 与真实 snapshot replay
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/deterministic-artifact-repairer.ts
+新增 src/benchmarks/skill-ir/deterministic-artifact-repairer.test.ts
+新增 src/benchmarks/skill-ir/deterministic-repair-replay-run.ts
+新增 benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freeze.json
+```
+
+- [x] RED：复制冻结 V3 pre-repair snapshot 后，先复现 V3 validation/scorer failure；
+  repairer 不得修改 protected input 或 protected runtime contract。
+- [x] GREEN：只执行 closed operations；从 public runtime evidence 重建 canonical report，
+  并补写公开证据充分的 schema rules。输出只记录 operation/path/pointer/ref，不记录值。
+- [x] GREEN：至少在 Node 与 Vite development 的三个完整 snapshots 上离线重放；
+  分列 runtime pass、scorer criterion transition、digest change 与无法修复的 gap。
+- [x] GREEN：deterministic repair 先执行；模型一次修复只保留给 deterministic repair
+  后仍存在、且 report 可安全表达的 residual。
+
+Method freeze 绑定 V3 raw/lock/source summary/output contract、`tasks.json`、实际 scorer
+源码、两项 task id、六项 criterion id 和两个 development-learned rule lineage；任一
+摘要或 registry 漂移均拒绝 replay。
+
+离线重放于 2026-07-22 完成：三个冻结 V3 pre-repair snapshot 均复现
+runtime fail、scorer 0.70 与 classification/schema residual；确定性 repair 后三条均为
+runtime pass、scorer 1.00、无 residual，protected digest 全部稳定。Schema 与 example
+均由 contract/policy 全量重建，不复用模型的无证据字段。原 V3 批次的 1 条 generation
+infrastructure failure 继续单列，因此 source-generation 口径为 3/4 success、mean 0.75，
+不具备 development gate 资格。该结果只证明本地 repair semantics 与 scorer success
+surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
+
+### Task 4.4：结果记账、Runner 与实验冻结
+
+- [ ] 缺 generation/pair 必须作为独立 infrastructure row 进入 gate denominator，
+  不伪造 check-only/one-repair arm，也不得从均值中静默消失。
+- [ ] 只有 Task 4.1-4.3 本地通过后，才实现 V4 package compiler、preflight、validator
+  与 Runner dispatch，并冻结新 package/lock/gate。
+- [ ] 新付费 development 仍使用共享 generation snapshot；未过 gate 不运行 held-out。

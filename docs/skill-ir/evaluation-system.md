@@ -267,6 +267,33 @@ snapshot 并只计 generation token，后者读取 post snapshot、计 aggregate
 `contractRef` 与 `operation`，仍拒绝 secret canary、绝对路径、自由文本和超长字段；
 stdout、workdir 内容、evaluator expected 不进入 compact audit。
 
+### V4 Coverage Audit 与 Offline Replay
+
+`contract-coverage-run.ts` 将六个 env-manager scorer criterion 映射到 runtime check、
+公开 evidence、deterministic repair 和 residual gap。输入只包含 criterion registry、
+封闭 runtime code 和失败 criterion id；输出不是 scorer，也不包含 evaluator payload。
+
+```powershell
+bun ./src/benchmarks/skill-ir/contract-coverage-run.ts `
+  '--runtime-codes=INVALID_REPORT_FIELD_TYPE,MISSING_CLASSIFICATION_ENTRY' `
+  '--failed-criteria=env-classification,env-schema-rules' `
+  '--tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json' `
+  '--out=results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/contract-coverage-audit.json'
+```
+
+`deterministic-repair-replay-run.ts` 只复制冻结 lock 中的 development V3 pre snapshot。
+CLI 校验 V3 package/lock/source summary digest、完整矩阵 identity、task split 与 generation
+唯一性，并通过 `env-manager-v4-deterministic-replay-freeze.json` 绑定 tasks/scorer bytes、
+criterion registry 和 learned-rule lineage。Repairer 自行读取并校验 protected runtime contract 文件；tasks/scorer payload
+只在独立的 before/after evaluator 阶段加载。
+Replay summary 投影 score、criterion id、runtime code、operation 和 digest，不提交复制的
+workdir。原 raw 中没有完整 snapshot 的 generation 计入 source denominator；summary
+同时报告 replay-only 3/3 与 gate-compatible source 3/4、mean 0.75，不伪造逻辑 arm，
+也不从结果中静默消失。
+
+当前 replay 是无模型的 development mechanism evidence。Runner 尚未 dispatch V4，
+因此不能把 3/3 离线结果写成 V4 真实实验 gate 通过。
+
 ## 11. Route Health
 
 `route-probe-run.ts` 对每个模型运行一个代表 case，输出：

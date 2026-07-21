@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "skill-ir-contract-coverage-audit/v1",
+  "catalog": "executable-contract-repair-artifact/v4",
+  "criteria": [
+    {
+      "criterionId": "env-classification",
+      "scorerSuccessSurface": "five-classification-fields-match-canonical-sets",
+      "runtimeCoverage": "partial",
+      "publicEvidenceSources": [
+        "public-runtime-evidence-graph",
+        "public-output-shape-contract"
+      ],
+      "validatorChecks": [
+        "report-object-shape",
+        "report-array-string-items",
+        "classification-set-equality",
+        "source-qualified-finding-format"
+      ],
+      "deterministicRepairOperations": [
+        "rewrite-canonical-report"
+      ],
+      "gaps": [
+        "unsupported-or-ambiguous-source-evidence-remains-unconfirmed"
+      ],
+      "observedStatus": "runtime-and-scorer-failed"
+    },
+    {
+      "criterionId": "env-example-safety",
+      "scorerSuccessSurface": "variable-inventory-is-complete-and-values-are-redacted",
+      "runtimeCoverage": "partial",
+      "publicEvidenceSources": [
+        "public-variable-inventory",
+        "public-synthetic-prefix"
+      ],
+      "validatorChecks": [
+        "example-name-coverage",
+        "example-prefix-redaction"
+      ],
+      "deterministicRepairOperations": [
+        "rewrite-redacted-example"
+      ],
+      "gaps": [
+        "exact-forbidden-material-scan-remains-scorer-only"
+      ],
+      "observedStatus": "not-observed-failing"
+    },
+    {
+      "criterionId": "env-no-secret-leak",
+      "scorerSuccessSurface": "generated-output-and-path-secret-absence",
+      "runtimeCoverage": "partial",
+      "publicEvidenceSources": [
+        "public-synthetic-prefix",
+        "generated-output-inventory"
+      ],
+      "validatorChecks": [
+        "generated-text-prefix-scan"
+      ],
+      "deterministicRepairOperations": [
+        "rewrite-redacted-example"
+      ],
+      "gaps": [
+        "exact-secret-and-filesystem-channel-scan-remains-scorer-only"
+      ],
+      "observedStatus": "not-observed-failing"
+    },
+    {
+      "criterionId": "env-protected-files",
+      "scorerSuccessSurface": "declared-input-byte-preservation",
+      "runtimeCoverage": "equivalent",
+      "publicEvidenceSources": [
+        "preflight-protected-file-digests"
+      ],
+      "validatorChecks": [
+        "protected-file-digest-equality"
+      ],
+      "deterministicRepairOperations": [],
+      "gaps": [],
+      "observedStatus": "not-observed-failing"
+    },
+    {
+      "criterionId": "env-required-artifacts",
+      "scorerSuccessSurface": "required-files-exist-and-json-files-parse",
+      "runtimeCoverage": "equivalent",
+      "publicEvidenceSources": [
+        "public-generated-output-contract"
+      ],
+      "validatorChecks": [
+        "required-file-presence",
+        "required-json-parse"
+      ],
+      "deterministicRepairOperations": [
+        "create-required-output"
+      ],
+      "gaps": [],
+      "observedStatus": "not-observed-failing"
+    },
+    {
+      "criterionId": "env-schema-rules",
+      "scorerSuccessSurface": "schema-contains-all-required-variable-rule-subsets",
+      "runtimeCoverage": "partial",
+      "publicEvidenceSources": [
+        "public-runtime-evidence-graph",
+        "versioned-public-rule-policy"
+      ],
+      "validatorChecks": [
+        "schema-root-shape",
+        "confirmed-rule-subset"
+      ],
+      "deterministicRepairOperations": [
+        "upsert-confirmed-schema-rules"
+      ],
+      "gaps": [
+        "public-rule-lowering-incomplete"
+      ],
+      "observedStatus": "scorer-failed-without-runtime-code"
+    }
+  ],
+  "observedRuntimeCodes": [
+    "INVALID_REPORT_FIELD_TYPE",
+    "MISSING_CLASSIFICATION_ENTRY"
+  ],
+  "unknownRuntimeCodes": [],
+  "claimBoundary": "Coverage accounting is not a scorer and does not establish task success.",
+  "provenance": {
+    "tasksPath": "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+    "tasksSha256": "6f4e2ee3cc71bb2ddee596e94cb9eef3d16e0b3a355796dc449fd8bc892d4bed"
+  }
+}

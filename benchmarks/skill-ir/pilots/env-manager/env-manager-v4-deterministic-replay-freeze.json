@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "skill-ir-v4-deterministic-replay-freeze/v1",
+  "catalog": "executable-contract-repair-artifact/v4",
+  "evidenceClass": "offline-development-replay",
+  "sourceCatalog": "executable-public-contract-artifact/v3",
+  "taskIds": [
+    "env-manager-node-audit-dev-001",
+    "env-manager-vite-audit-dev-002"
+  ],
+  "criterionIds": [
+    "env-classification",
+    "env-example-safety",
+    "env-no-secret-leak",
+    "env-protected-files",
+    "env-required-artifacts",
+    "env-schema-rules"
+  ],
+  "inputs": {
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+      "sha256": "6f4e2ee3cc71bb2ddee596e94cb9eef3d16e0b3a355796dc449fd8bc892d4bed"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/env-manager-grade.ts",
+      "sha256": "c80d0b5637b2d9c480cbba8a816d042b5afd0e931fa06690d2fa3f1a950811a7"
+    },
+    "raw": {
+      "path": "results/skill-ir/env-manager-public-contract-v3-development-run-2026-07-21/raw-runs.jsonl",
+      "sha256": "21bc25c71e1089577665728b53321da3aa753b5561097ac56db92864b2a34b49"
+    },
+    "lock": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/env-manager-public-contract-artifact-v3-lock.json",
+      "sha256": "d85dd7dac67353a684c51b5e3ebdefe762a7eb271dabe1c08903cdb826ddd231"
+    },
+    "sourceEvidence": {
+      "path": "results/skill-ir/env-manager-public-contract-v3-development-evidence-2026-07-21/summary.json",
+      "sha256": "55117f90f2ee80d1ecf1f103f2bd70794ebe823d988093e277717085cef10e50"
+    },
+    "outputContract": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/packages/executable-public-contract-artifact-v3/artifacts/contracts/output-contract.json",
+      "sha256": "a97d4e8c13f614b9f82eb3d4e1da1d0574a355a8d22a745b9d8c44de0a524ec1"
+    }
+  },
+  "developmentLearnedRules": [
+    {
+      "ruleId": "server-dsn-sensitive/v1",
+      "sourceCriterion": "env-schema-rules",
+      "status": "candidate"
+    },
+    {
+      "ruleId": "signing-key-minimum-length/v1",
+      "sourceCriterion": "env-schema-rules",
+      "status": "candidate"
+    }
+  ],
+  "claimBoundary": "In-sample development mechanism evidence only; the learned rules require disjoint validation before promotion."
+}

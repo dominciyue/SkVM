@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-07-21
+**最后更新：** 2026-07-22
 
 ## 1. 项目定位
 
@@ -40,12 +40,19 @@ no-skill | original | ir-static
 
 ```text
 skill: env-manager
-models: xty/gpt-4.1-mini, xty/gpt-4.1
+models: xty/gpt-4.1-mini, xty/gpt-4.1, xty/gpt-5.6-sol
 adapter: bare-agent
 host: Windows
 context: clean
 tasks: 2 development tasks, each repeated twice
 ```
+
+另有一次不调用模型的 V4 deterministic repair 离线重放：复用冻结 V3 的三个完整
+pre-repair snapshots，三个 workdir 均由 scorer 0.70 提升到 1.00，runtime validation
+由 fail 变为 pass，protected digest 保持不变。它是 development mechanism evidence，
+不等于新 package/Runner 已冻结，也不进入 held-out 或跨模型主 claim。计入原批次的
+1 条 generation infrastructure 后，source-generation 口径为 3/4、mean 0.75，冻结
+development gate 仍失败。
 
 ### 已执行的模型能力诊断
 
@@ -426,3 +433,94 @@ Skill IR 增益、模型优劣的统计结论或跨模型稳定性结论。
 正式实验仍限定 env-manager development、Windows、clean、bare-agent。新 package、
 model、task、repetitions、snapshot scorer、repair 上限和数值 gate 必须在付费运行前
 冻结；gate 未过不执行 held-out。
+
+## 13. V4 Contract-Repair Artifact 候选设计
+
+### 13.1 身份与阶段边界
+
+候选身份固定为：
+
+```text
+package catalog: executable-contract-repair-artifact/v4
+output/repair contract: skill-ir-executable-repair-contract/v4
+repair report: deterministic-repair-report/v1
+```
+
+该身份目前是实现边界，不是已冻结实验产物，也不代表优化成功。V1/V2/V3 package、
+lock、checker、scorer 和结果保持不可变。V4 必须先完成 coverage audit 与冻结 V3
+pre-repair snapshot 的离线重放，之后才能编译 package 和冻结 development lock。
+
+### 13.2 Failure-to-contract coverage
+
+每个 deterministic scorer criterion 必须有显式记录：
+
+```text
+criterion
+  -> scorer success surface
+  -> runtime validator coverage (equivalent | partial | none)
+  -> public evidence source
+  -> deterministic repair capability
+  -> residual gap / claim boundary
+```
+
+Coverage audit 只允许读取 criterion identity、公开 task contract、runtime code catalog
+和已脱敏的 observed failure code。它不得读取或输出 evaluator `expected`、secret value、
+held-out fixture 或 scorer payload。Runtime validator 仍不等于 scorer；只有最终 workdir
+的 deterministic scorer 能判定任务成功。
+
+### 13.3 可执行输出契约
+
+V4 不再用 `expectedType=array` 表示整个 report field。输出契约至少表达：
+
+- container type 与 `array.items.type=string`；
+- object properties、required fields 和 additional-properties policy；
+- set semantics、唯一性和稳定字典序；
+- source-qualified finding 的 canonical `relativePath:symbol` 形式；
+- schema rule 的值类型、允许字段和 evidence/provenance ref；
+- closed deterministic repair operation。
+
+最终 classification 数组仍不得写入 package、repair report 或 prompt。它们只能由
+repairer/checker 在运行时从 protected public runtime evidence 重建。
+
+### 13.4 确定性优先修复
+
+V4 状态机目标为：
+
+```text
+preflight
+  -> generation
+  -> validate
+  -> deterministic contract repair
+  -> validate
+  -> optional one sanitized model repair for residual only
+  -> validate
+  -> stop
+```
+
+确定性 repairer 只写 generated outputs，必须在写入前后验证 protected inputs 与
+runtime contract digest。Repair report 只含 operation、relativePath、jsonPointer、
+contractRef 和状态，不含 expected/actual value、文件正文、secret 或自由文本。
+
+Schema lowering 区分两类规则。环境访问默认字符串语义、URI suffix 等有公开语义
+来源的规则属于 base policy；仅服务端引用的 DSN 敏感性与 `_SIGNING_KEY` 最小长度
+属于 `development-learned-candidate`，必须绑定冻结 V3 development evidence digest，
+不能表述为真实 skill 已明确给出的通用规则。每条规则都需要正向、reverse-evidence、
+冲突和 canary 测试；候选规则只有在未参与构造的任务上验证后才可 promotion。禁止把
+development scorer 的 literal 集合或 evaluator payload 写入 contract。
+
+### 13.5 Promotion 条件
+
+V4 只有同时满足以下条件才可进入付费 development：
+
+1. 六个 env-manager criterion 的 coverage audit 完整且无未知 runtime code；
+2. 冻结 V3 的三个完整 pre-repair snapshots 均完成可复现离线重放；
+3. deterministic repair 后 runtime validator 通过，scorer residual 被逐项解释；
+4. protected input、secret isolation、reverse-evidence 和 package leak canary 通过；
+5. missing generation/pair 被计为 infrastructure failure，不从 gate 静默排除。
+
+Offline replay 还必须由 method freeze 绑定 tasks、deterministic scorer source、V3
+raw/lock/source evidence/output contract、task/criterion registry 和每条 learned rule 的
+`ruleId + sourceCriterion + evidenceDigest + candidate status`。摘要漂移时不得重算结果。
+
+若本地 replay 仍有 scorer residual，应先修复公开 contract/evidence 缺口或收缩 claim，
+不得通过读取 evaluator expected、修改冻结 scorer 或运行 held-out 来补齐。

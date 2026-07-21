@@ -577,3 +577,70 @@ bun run typecheck
 4. Runtime validator 不得读取 scorer expected。
 5. Held-out 只能消费通过 development gate 的同一 provenance-bound artifact。
 6. 组件变化更新本文档，不再新增 package/run Markdown。
+
+## 16. V4 Coverage Audit 与确定性 Repair
+
+V3 development 失败后，下一 catalog 不直接继续加 prompt。实现先增加一层
+failure-to-contract coverage audit，把每个 scorer criterion 对齐到 runtime check、
+公开 evidence、deterministic repair 和 residual gap。覆盖等级只有：
+
+- `equivalent`：runtime success surface 与 scorer 的公开可观察要求等价；
+- `partial`：runtime 能发现一部分失败，但仍存在 scorer-only 条件；
+- `none`：runtime 当前没有对应检查。
+
+Audit 表是研究记账和 claim 边界，不是第二份 scorer。它不得消费 evaluator expected
+或 hidden fixture。Observed failure 只允许使用冻结 raw/scored 行中的 error code、
+criterion id、路径和 JSON pointer。
+
+候选 `executable-contract-repair-artifact/v4` 增加机器可执行 output/repair contract。
+报告字段将被描述为 canonical `array<string>` 集合，而不是含糊的 `array`。Repairer
+根据 protected public runtime contract 在内存中重建 classification，并以确定性方式
+写回 `env-report.json`；结果日志只保存 operation 和 provenance ref，不保存重建值。
+
+Schema repair 只消费 protected runtime evidence 与版本化 policy，并从零重建 schema，
+不保留模型生成但没有 evidence 的 allowed-looking 字段。环境访问默认字符串语义与
+`*_DSN` URI 语义属于 base rule；server-only DSN sensitivity 与 `_SIGNING_KEY` 长度
+明确标记为 `development-learned-candidate`，绑定冻结 V3 evidence digest。它们必须有
+reverse-evidence 与冲突测试，并在未参与构造的任务上验证后才能 promotion。
+
+离线 replay 直接复制冻结 V3 pre-repair snapshot，先确认原失败，再运行 deterministic
+repair、V3/V4 validation 和既有 deterministic scorer。该阶段不调用模型、不修改原
+snapshot，也不产生主 claim。只有 replay 通过并解释全部 residual，才开始 V4 package
+compiler、Runner dispatch、lock 和付费 development。
+
+2026-07-22 的首次真实 snapshot replay 已满足上述本地门槛：冻结 V3 的三个完整
+pre-repair snapshots 均从 runtime fail / scorer 0.70 变为 runtime pass / scorer 1.00，
+classification 与 schema residual 全部清空，protected digest 全部稳定。Repair 每条
+执行 canonical report、empty-redacted example 和 schema full rebuild，未调用模型。
+Runtime contract 文件 SHA-256 绑定到 repair contract；hardlink 在写入前拒绝，生成文件
+通过同目录临时文件替换。
+
+Vite 的第一次 replay 曾停在 0.90，残留 server-side DSN sensitivity。V4 随后增加
+development-learned candidate：只有名称以 `_DSN` 结尾、存在 server environment
+reference 且不存在 client environment reference 时才推导 `sensitive=true`；
+client-side reverse-evidence 防止无条件扩张。该规则是 in-sample development repair，
+不是已验证通用知识。原 V3 批次的 1 条 generation infrastructure failure 仍单独记账，
+source-generation 口径为 3/4、mean 0.75，gate 仍失败。
+
+验证与重放命令：
+
+```powershell
+bun test `
+  ./src/benchmarks/skill-ir/contract-coverage.test.ts `
+  ./src/benchmarks/skill-ir/executable-repair-contract.test.ts `
+  ./src/benchmarks/skill-ir/deterministic-artifact-repairer.test.ts
+
+bun ./src/benchmarks/skill-ir/deterministic-repair-replay-run.ts `
+  '--raw=results/skill-ir/env-manager-public-contract-v3-development-run-2026-07-21/raw-runs.jsonl' `
+  '--tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json' `
+  '--output-contract=benchmarks/skill-ir/pilots/env-manager/packages/executable-public-contract-artifact-v3/artifacts/contracts/output-contract.json' `
+  '--lock=benchmarks/skill-ir/pilots/env-manager/env-manager-public-contract-artifact-v3-lock.json' `
+  '--source-evidence=results/skill-ir/env-manager-public-contract-v3-development-evidence-2026-07-21/summary.json' `
+  '--method-freeze=benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freeze.json' `
+  '--replay-dir=results/skill-ir/env-manager-v4-deterministic-replay-run-2026-07-22' `
+  '--out=results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/summary.json'
+```
+
+Method freeze 还绑定 `tasks.json` 与 `env-manager-grade.ts` 摘要，防止修改 evaluator
+expected 后仍沿用同一 evidence identity。两个 learned rules 各自保存 rule id、
+`env-schema-rules` lineage、V3 evidence digest 和 candidate status。

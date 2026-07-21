@@ -276,6 +276,39 @@ results/skill-ir/env-manager-public-contract-v3-development-evidence-2026-07-21/
 
 Raw、snapshot 和完整 scored rows 留在本地，summary 以 SHA-256 绑定。
 
+### 3.9 V4 Deterministic Repair 离线重放
+
+本轮不调用模型，直接复制冻结 V3 的三个完整 pre-repair snapshots。每条先重新验证
+原 snapshot digest，并用原 V3 validator 与既有 deterministic scorer 复现失败；随后
+只消费 protected public runtime contract 和 V4 公开 output/repair contract，执行
+canonical report 与 schema rule 的确定性修复，再用同一 validator/scorer 复判。
+
+| Snapshot | Before | After | Runtime | Protected | Repair |
+|---|---:|---:|---|---|---|
+| Node run 1 | 0.70 | 1.00 | fail→pass | stable | report + example + schema |
+| Node run 2 | 0.70 | 1.00 | fail→pass | stable | report + example + schema |
+| Vite run 1 | 0.70 | 1.00 | fail→pass | stable | report + example + schema |
+
+三条 scorer success 从 0/3 变为 3/3，mean 从 0.70 变为 1.00，classification/schema
+residual 清空。Repair report 不保存重建值，只保存 operation、relative path、pointer、
+policy/derivation ref 和 protected digest。Schema 从 runtime evidence + policy 全量重建，
+`.env.example` 强制 canonical empty values；不借用模型原有的无证据字段。原 V3 的第 4
+条 generation adapter crash 不可重放，因此 source-generation 结果是 3/4 success、
+gate-compatible mean 0.75、1 infrastructure，development gate 仍失败。
+
+这个 in-sample 结果证明 V4 output contract、development-learned candidate policy 与
+deterministic repair semantics 能修复已观察到的 V3 development failures，并与当前
+scorer success surface 对齐。它没有新模型 generation、没有 V4 package/lock/Runner，
+也没有 held-out；候选 policy 的泛化仍未验证，不能写成真实运行优化成功。
+
+证据：
+
+```text
+results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/summary.json
+results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/contract-coverage-audit.json
+benchmarks/skill-ir/pilots/env-manager/env-manager-v4-deterministic-replay-freeze.json
+```
+
 ## 4. Env-manager 研究推进总表
 
 | 阶段 | 最强/候选系统 | Success | Mean | 核心发现 |
@@ -287,6 +320,7 @@ Raw、snapshot 和完整 scored rows 留在本地，summary 以 SHA-256 绑定�
 | Semantic v2 | one-repair | 0/4 | 0.6250 | Repair 激活但二验失败。 |
 | GPT-4.1 诊断 | check-only | 0/4 | 0.7000 | 基础质量提升，核心语义残差与系统平台期仍存在。 |
 | Public-contract V3 | pre/post | 0/3 paired | 0.7000 | 共享生成 delta=0；repair 未修改产物，另有 1 infra。 |
+| V4 offline repair replay | deterministic post | 3/3 replay；3/4 source | 1.0000 replay；0.7500 source | 三个可重放 snapshot 修复；1 infra 使 gate 继续失败。 |
 
 ## 5. 当前结论
 
