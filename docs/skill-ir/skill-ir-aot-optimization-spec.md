@@ -542,3 +542,35 @@ raw/lock/source evidence/output contract、task/criterion registry 和每条 lea
 
 若本地 replay 仍有 scorer residual，应先修复公开 contract/evidence 缺口或收缩 claim，
 不得通过读取 evaluator expected、修改冻结 scorer 或运行 held-out 来补齐。
+
+## 14. V4 后续：基础设施隔离与第二真实 Skill 纵切
+
+V4 的冻结 development 结果保持不变。Bun generation crash 不补跑、不从分母排除，
+也不通过修改 V4 package、lock、task、scorer 或 gate 消除。后续基础设施诊断必须使用
+新的 diagnostic identity，只回答 crash 的来源、可复现性和运行时处置，不进入 Skill IR
+方法增益或 held-out 证据。
+
+研究主线并行进入第二个 Wave A skill：`law-to-markdown`。第一阶段只完成
+`source-imported -> tasks-authored`，固定四个 `.txt` 任务、资源契约和确定性 scorer；
+不创建临时 base IR，不把该 skill 标记为 runnable，也不执行付费模型。
+
+任务切分固定为两个 development 和两个 held-out case，并覆盖两类公开行为：
+
+```text
+law document     -> 保真转换、法律层级 Markdown、审核报告与最终成果
+non-law document -> 明确拒绝、只生成审核报告、不生成最终成果
+```
+
+资源契约固定为：原始 skill、静态 IR 和后续 package 获得相同 source closure；运行时禁止
+联网和安装依赖；Python 解释器、`python-docx` 与 `pdfplumber` 必须在付费前 probe。
+当前 `.txt` 路径仍受上游脚本 eager import 影响，因此缺依赖属于预检基础设施阻断，不能
+在结果中伪装成 skill 语义失败。Agent 被允许调用 bundled script，但 scorer 只读取最终
+workdir，不以“是否调用脚本”判定成功。
+
+确定性 scorer 至少覆盖：输入保护、产物集合、字符流保真、法律标题层级、非法律拒绝
+策略和审核报告结论。Evaluator payload、期望标题和 held-out 结果不得进入 prompt、IR、
+package、runtime repair 或 compact failure audit。
+
+本纵切完成 `tasks-authored` 后，先运行资源 probe，再做显式
+`no-skill | original` development calibration。只有链路可执行、scorer 有区分度且无资源
+歧义时，才审计 base IR 并进入 `ir-static`；held-out 在 development method 冻结前不运行。

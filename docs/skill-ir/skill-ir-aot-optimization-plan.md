@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-07-21
+**最后更新：** 2026-07-22
 
 本文件只记录当前状态和下一步。已完成阶段的详细演进见
 `docs/skill-ir/history.md`，组件契约见对应权威文档。
@@ -20,6 +20,9 @@
 | Semantic artifact v2 | 冻结失败证据 | Repair 触发 2 次，均未通过 revalidation。 |
 | GPT-4.1 capability diagnostic | 完成，gate 失败 | 20 行均无 infra；强模型改善基础执行，但五系统仍 0/4 成功。 |
 | V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
+| V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
+| V4 infrastructure diagnosis | 当前 | 新 identity 做脱敏归因，不修改冻结方法证据。 |
+| `law-to-markdown` vertical slice | 当前 | 先完成 2+2 task、资源契约和确定性 scorer，保持 `tasks-authored`。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
@@ -155,6 +158,10 @@ artifact:   one-repair                        = 4 rows
 - base IR；
 - development/held-out split；
 - frozen method，不按第二个 skill 结果回调第一份配置。
+
+当前第一刀固定为 `law-to-markdown` 的 task/scorer 纵切。先只支持 `.txt`，同时显式记录
+上游脚本对 `python-docx`/`pdfplumber` 的 eager import；依赖 probe 未通过时禁止付费运行。
+本阶段结束状态必须是 `tasks-authored`，不能提前写 `base-ir.json` 或改为 `runnable`。
 
 ### Step 6：固定多模型 panel
 
@@ -624,3 +631,66 @@ surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
   实际 4 个 generation 中 3 个形成完整 pair，pre mean 0.90、post mean 1.00，确定性修复
   3/3 通过且模型 repair 为 0；另 1 个 generation 因 Bun internal assertion crash 计为
   infrastructure。冻结 gate 为 3/4、mean 0.75、1 infrastructure，失败并阻断 held-out。
+
+## 11. Step 5 文件级 TDD 实施计划
+
+### Task 5.1：V4 基础设施诊断身份与脱敏审计
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/infrastructure-diagnostic.ts
+新增 src/benchmarks/skill-ir/infrastructure-diagnostic.test.ts
+新增 src/benchmarks/skill-ir/infrastructure-diagnostic-run.ts
+新增 benchmarks/skill-ir/pilots/env-manager/env-manager-v4-infrastructure-diagnostic-lock.json
+更新 docs/skill-ir/evaluation-system.md
+```
+
+- [ ] RED：拒绝把 diagnostic 当作 method evidence，拒绝缺失 V4 gate/summary digest、未知
+  runtime identity、held-out、retry 或修改冻结 V4 identity 的输入。
+- [ ] GREEN：从 raw infrastructure row 只投影 stage、run status、exit code、Bun version、
+  封闭 crash class 和脱敏 fingerprint；不输出 stdout、绝对路径、secret 或模型正文。
+- [ ] GREEN：新 CLI 生成 compact audit；复现 probe 使用新的 run identity，结果只能支持
+  `reproducible | not-observed | inconclusive`，不能回填 V4 gate。
+
+### Task 5.2：`law-to-markdown` 2+2 task 与资源契约
+
+**文件：**
+
+```text
+新增 benchmarks/skill-ir/pilots/law-to-markdown/tasks.json
+新增 benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json
+修改 benchmarks/skill-ir/corpus/corpora/pilot.json
+修改 src/skill-ir/corpus-fixtures.test.ts
+更新 docs/skill-ir/real-skill-pilots.md
+```
+
+- [ ] RED：要求 2 个 development、2 个 held-out，覆盖法律转换和非法律拒绝；prompt 不含
+  evaluator expected、隐藏标题答案或 held-out 泄漏。
+- [ ] GREEN：固定 `.txt` fixture、用户可见输出契约、禁止网络/安装和 bundled-script 使用
+  边界；资源契约声明 Python 及两个 eager-import module 的付费前 probe。
+- [ ] GREEN：manifest 只晋升到 `tasks-authored` 并声明 `tasksPath`，不写 `irPath`。
+
+### Task 5.3：`law-to-markdown` 确定性 scorer
+
+**文件：**
+
+```text
+新增 src/bench/evaluators/law-to-markdown-grade.ts
+新增 src/bench/evaluators/law-to-markdown-grade.test.ts
+修改 src/bench/evaluators/index.ts
+修改 src/benchmarks/skill-ir/scoring.test.ts
+更新 docs/skill-ir/evaluation-system.md
+```
+
+- [ ] RED：输入修改、错误产物集合、字符流变化、法律层级错误、非法律仍生成最终成果和
+  审核结论错误分别失败；路径逃逸和 evaluator I/O 异常记为 infrastructure。
+- [ ] GREEN：scorer 只读取最终 workdir，以 hard gate + weighted threshold 判定；测试同时
+  覆盖 perfect、partial、unsafe 和 non-law case。
+- [ ] GREEN：scored row 只保留 criterion pass/score，不泄漏完整 expected 文本。
+
+### Task 5.4：本地门禁与下一实验冻结
+
+- [ ] 运行 focused Bun tests、全部 Skill IR tests、Python resource probe、typecheck 和文档链接检查。
+- [ ] 只在 probe 通过后生成 `no-skill | original x development` dry-run；本任务不付费。
+- [ ] 更新 spec、plan、组件文档、conversation log；提交并推送功能与文档，不提交 raw workdir。
