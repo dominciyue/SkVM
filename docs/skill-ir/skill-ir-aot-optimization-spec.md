@@ -50,9 +50,16 @@ tasks: 2 development tasks, each repeated twice
 另有一次不调用模型的 V4 deterministic repair 离线重放：复用冻结 V3 的三个完整
 pre-repair snapshots，三个 workdir 均由 scorer 0.70 提升到 1.00，runtime validation
 由 fail 变为 pass，protected digest 保持不变。它是 development mechanism evidence，
-不等于新 package/Runner 已冻结，也不进入 held-out 或跨模型主 claim。计入原批次的
+不进入 held-out 或跨模型主 claim。计入原批次的
 1 条 generation infrastructure 后，source-generation 口径为 3/4、mean 0.75，冻结
 development gate 仍失败。
+
+2026-07-22 又使用冻结 V4 package/lock 完成一次真实 4-generation development。Route
+probe 为 ok；3 个完整 shared-generation pair 的 deterministic scorer 均由 pre 0.90
+提升到 post 1.00，`env-schema-rules` 3/3 从 fail 变为 pass，binary success 保持 3/3，
+确定性修复 3/3 执行并通过，模型 repair 为 0。另 1 个 generation 在模型生成阶段因
+Bun 1.3.14 internal assertion crash 形成 infrastructure。冻结分母口径为 success 3/4、
+mean 0.75、1 infrastructure，因此 gate 失败，held-out 未执行。
 
 ### 已执行的模型能力诊断
 
@@ -269,6 +276,13 @@ GPT-4.1 capability diagnostic：
 - 相对 mini 改善 18 个低层准则结果，classification/schema 残差不变；
 - 冻结 gate 失败，held-out 未执行，结果不进入主 claim。
 
+V4 contract-repair artifact development：
+
+- 4 个预注册 generation 中 3 个形成完整 pre/post pair，1 个 generation infrastructure；
+- 完整 pair 的 success 保持 3/3，mean 由 0.90 提升到 1.00，0 hard-gate regression；
+- 三次均由 deterministic repair 完成，模型 repair attempts/tokens 均为 0；
+- 冻结 gate 为 3/4、mean 0.75、1 infrastructure，未通过，held-out 未执行。
+
 详细证据见 `docs/skill-ir/experiment-results.md` 和 `results/skill-ir/`。
 
 ## 10. 当前不支持的主张
@@ -450,8 +464,9 @@ repair report: deterministic-repair-report/v1
 runtime、Runner system 和预注册 development lock，但不代表优化成功。V1/V2/V3 package、
 lock、checker、scorer 和结果保持不可变。V4 的 coverage audit 与冻结 V3 pre-repair
 snapshot 离线重放已完成；新 lock 已在付费前绑定 package、tasks、scorer、model、矩阵和
-数值 gate。当前只完成 4-generation dry-run，尚无 V4 真实模型 development 数值，也未运行
-held-out。
+数值 gate。4-generation 真实 development 已按同一冻结身份执行，gate 因 1 条 Bun runtime
+infrastructure 和包含 infrastructure 的 mean 0.75 失败；package/lock/scorer/tasks/gate 不作
+事后修改，held-out 未运行。
 
 ### 13.2 Failure-to-contract coverage
 

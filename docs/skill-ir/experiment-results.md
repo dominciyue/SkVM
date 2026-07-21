@@ -299,8 +299,7 @@ gate-compatible mean 0.75、1 infrastructure，development gate 仍失败。
 这个 in-sample 结果证明 V4 output contract、development-learned candidate policy 与
 deterministic repair semantics 能修复已观察到的 V3 development failures，并与当前
 scorer success surface 对齐。此后已实现 V4 package/lock/Runner，并完成 4-generation
-dry-run，但仍没有新模型 generation，也没有 held-out；候选 policy 的泛化仍未验证，不能
-写成真实运行优化成功。
+dry-run；后续真实 development 见下一节。离线 replay 本身仍不是 held-out 证据。
 
 证据：
 
@@ -312,10 +311,39 @@ benchmarks/skill-ir/pilots/env-manager/packages/executable-contract-repair-artif
 benchmarks/skill-ir/pilots/env-manager/env-manager-contract-repair-artifact-v4-lock.json
 ```
 
-V4 工程冻结记录：package verify 通过；development lock 固定 `xty/gpt-5.6-sol`、Windows、
-clean、bare-agent、两个 development task × 2 repetitions、共享 generation、确定性优先和
-最多一次 residual 模型修复。dry-run 计划为 4 行且 `executed=false`。本记录没有 success、
-mean 或 token 数值；下一次付费 development 才能生成这些证据，gate 未过不得运行 held-out。
+### 3.10 V4 Frozen Development
+
+Development lock 固定 `xty/gpt-5.6-sol`、Windows/clean/bare-agent、两个 task × 2
+repetitions。正式运行前 route probe 为 ok；4 个预注册 generation 均写入 raw，其中 3 个
+形成完整 shared-generation pre/post pair，Node run 1 在 generation 阶段发生 Bun 1.3.14
+internal assertion crash，作为 infrastructure 和 missing pair 保留，不补跑。
+
+| 口径 | Pre/check-only | Post/deterministic | 说明 |
+|---|---:|---:|---|
+| 完整 pair success | 3/3 | 3/3 | Binary success 没有翻转。 |
+| 完整 pair mean | 0.90 | 1.00 | 同一 generation 平均 +0.10。 |
+| `env-schema-rules` | 0/3 pass | 3/3 pass | 其余 15 个 criterion 保持 pass。 |
+| Model repair | 0 | 0 | 三次均由 deterministic repair 完成。 |
+
+完整行 tokens 合计 46409，均值 15469.67；model repair tokens 为 0；deterministic repair
+耗时合计 230 ms，validation 合计 457 ms。冻结 gate 按全部 4 generation 计算：success
+3/4、mean 0.75、hard-gate regression 0、infrastructure 1。Minimum successes 与 regression
+条件通过，minimum mean 与 zero-infrastructure 条件失败，因此 gate failed，未运行 held-out。
+
+这支持 V4 可在三个完整 development generation 上稳定完成 contract-bound deterministic
+后处理，并改善 schema criterion/score；不支持 held-out 泛化、success-rate 增益或跨模型
+稳定。唯一失败归因为 Bun runtime crash，不归为 skill semantic regression，但仍按预注册
+规则让正式 gate 失败。
+
+Compact evidence：
+
+```text
+results/skill-ir/env-manager-contract-repair-v4-route-probe-2026-07-22/probe-results.jsonl
+results/skill-ir/env-manager-contract-repair-v4-development-results-2026-07-22.jsonl
+results/skill-ir/env-manager-contract-repair-v4-development-evidence-2026-07-22/summary.json
+results/skill-ir/env-manager-contract-repair-v4-development-evidence-2026-07-22/failure-audit.jsonl
+results/skill-ir/env-manager-contract-repair-v4-development-run-2026-07-22/development-gate-report.json
+```
 
 ## 4. Env-manager 研究推进总表
 
@@ -329,7 +357,7 @@ mean 或 token 数值；下一次付费 development 才能生成这些证据，g
 | GPT-4.1 诊断 | check-only | 0/4 | 0.7000 | 基础质量提升，核心语义残差与系统平台期仍存在。 |
 | Public-contract V3 | pre/post | 0/3 paired | 0.7000 | 共享生成 delta=0；repair 未修改产物，另有 1 infra。 |
 | V4 offline repair replay | deterministic post | 3/3 replay；3/4 source | 1.0000 replay；0.7500 source | 三个可重放 snapshot 修复；1 infra 使 gate 继续失败。 |
-| V4 package freeze | dry-run only | 未执行 | 未执行 | Package/lock/Runner 已接线；4-generation 计划通过 exact-match guard。 |
+| V4 frozen development | deterministic post | 3/4 gate；3/3 complete | 0.7500 gate；1.0000 complete | 完整 pair 0.90→1.00；1 Bun infra，gate failed。 |
 
 ## 5. 当前结论
 
@@ -340,6 +368,7 @@ mean 或 token 数值；下一次付费 development 才能生成这些证据，g
 - dual-source provenance 和 executable runtime 可运行；
 - semantic validator 能把部分 v1 false pass 变成 repair-eligible failure；
 - 模型能力会影响产物完整性与安全性，但不是当前全部失败的解释；
+- V4 在三个完整 shared-generation 上以零模型 repair 将 schema criterion 0/3 提升到 3/3；
 - development gate 正确阻断不成熟 artifact。
 
 不能支持：

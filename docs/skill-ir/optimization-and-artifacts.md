@@ -685,3 +685,27 @@ bun ./src/benchmarks/skill-ir/executable-contract-artifact-run.ts `
 
 冻结 package 不应原地重编译；日常复核只执行 `--verify-only`。任何 recipe、checker、policy 或
 provenance 变化都需要新 catalog/lock，不能修改本轮 digest 后继续使用原实验身份。
+
+### V4 Frozen Development 结果
+
+2026-07-22 使用冻结 `xty/gpt-5.6-sol`、Windows/clean/bare-agent、两个 development task ×
+2 repetitions 执行真实 V4 批次。4 个预注册 generation 中 3 个完整，1 个在 generation
+阶段因 Bun 1.3.14 internal assertion crash 计为 infrastructure。三个完整 pair 的 pre
+scorer 均为 0.90，deterministic repair 后均为 1.00；`env-schema-rules` 3/3 从 fail 变为
+pass，其他 15 个 criterion 状态保持 pass。Binary success 在 pre/post 都是 3/3，因此本轮
+证明的是同一 generation 上确定性后处理带来的 criterion/score 改善，不是 success 翻转。
+
+三条完整行都执行一次 deterministic repair 并通过二验，模型 residual repair 调用为 0，
+model repair tokens 为 0。完整行 generation/aggregate tokens 合计 46409，均值 15469.67；
+确定性修复耗时合计 230 ms，validation 合计 457 ms。正式 gate 仍按 4 行分母计算为 3/4、
+mean 0.75、1 infrastructure，未通过并阻断 held-out；不补跑 crash 行，也不修改 package、
+lock、scorer、tasks 或阈值。
+
+Compact evidence：
+
+```text
+results/skill-ir/env-manager-contract-repair-v4-development-results-2026-07-22.jsonl
+results/skill-ir/env-manager-contract-repair-v4-development-evidence-2026-07-22/summary.json
+results/skill-ir/env-manager-contract-repair-v4-development-evidence-2026-07-22/failure-audit.jsonl
+results/skill-ir/env-manager-contract-repair-v4-development-run-2026-07-22/development-gate-report.json
+```

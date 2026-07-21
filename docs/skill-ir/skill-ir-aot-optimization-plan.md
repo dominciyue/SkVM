@@ -619,5 +619,8 @@ surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
   付费前绑定 package manifest/provenance digest。
 - [x] GREEN：完成 package verify、4-generation dry-run 和 gate analyzer 空/缺 pair fixture；
   本任务只冻结方法，不用 dry-run 声称优化成功。
-- [ ] 新付费 development 继续使用同一 shared-generation package/lock。Gate 未过不得运行
+- [x] 新付费 development 继续使用同一 shared-generation package/lock。Gate 未过不得运行
   held-out；付费结果不得反向修改 package、scorer、tasks、model、repetitions 或数值 gate。
+  实际 4 个 generation 中 3 个形成完整 pair，pre mean 0.90、post mean 1.00，确定性修复
+  3/3 通过且模型 repair 为 0；另 1 个 generation 因 Bun internal assertion crash 计为
+  infrastructure。冻结 gate 为 3/4、mean 0.75、1 infrastructure，失败并阻断 held-out。

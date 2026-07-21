@@ -296,6 +296,12 @@ V4 Runner 现已通过独立 system `ir-contract-artifact-dev` 接线，并由
 `env-manager-contract-repair-artifact-v4-lock.json` 冻结 2 个 development task × 2 次
 repetition 的 4-generation 分母。2026-07-22 的 dry-run 生成 4 行计划但没有执行模型。
 
+同日冻结付费 development 已完成。4 个 raw generation 全部保留；其中 3 个有完整 pre/post
+snapshot，1 个 generation-stage Bun crash 形成 missing pair。Scorer 生成 7 个逻辑行：
+3 个 check-only、3 个 one-repair 和 1 个 infrastructure。Generation gate 不以完整 pair
+重新缩小分母，最终记录 3 success、paired 3、missing pair 1、mean 0.75、hard-gate
+regression 0、infrastructure 1，gate failed。该结果不允许补跑或进入 held-out。
+
 Generation gate 由 `artifact-development-gate.ts` 记账：完整 pre/post pair 以 post arm 判定
 success/score，以 pre/post 判断 hard-gate regression；缺 raw generation 或缺 pair 都按 0 分
 计入冻结分母并记为 infrastructure。CLI 从 lock 读取 task、次数和数值阈值，并验证 tasks
@@ -312,6 +318,11 @@ bun ./src/benchmarks/skill-ir/artifact-development-gate-run.ts `
 Dry-run 中含逗号的筛选参数在 PowerShell 必须整体使用单引号，例如
 `'--tasks=env-manager-node-audit-dev-001,env-manager-vite-audit-dev-002'`。未整体引用会改变
 传入 Runner 的任务集合，并被 lock 的 exact-match guard 拒绝。
+
+Compact summary 将 raw、scored、gate、route probe、failure audit 和冻结 lock 全部以
+SHA-256 绑定。Raw、snapshot、workdir 和 route artifacts 留本地；提交 scored JSONL、gate、
+route probe compact row、failure audit 与 summary。Pre/post 中 binary success 均为 3/3，
+归因报告只写 score 0.90→1.00 与 3 个 schema criterion 转绿，不写 repaired-to-success。
 
 ## 11. Route Health
 
