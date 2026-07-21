@@ -198,11 +198,23 @@ describe("buildCorpusMatrixInput", () => {
     expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);
   });
 
-  test("fails closed when the pre-IR mode has no tasks-authored pilot", () => {
-    expect(() =>
-      buildCorpusMatrixInput("pilot", process.cwd(), {
-        mode: "tasks-authored-calibration",
-      }),
-    ).toThrow("Corpus pilot has 0 tasks-authored skills out of 6 registered skills");
+  test("pre-IR mode schedules only the tasks-authored law pilot development split", () => {
+    const input = buildCorpusMatrixInput("pilot", process.cwd(), {
+      mode: "tasks-authored-calibration",
+    });
+
+    expect(input.skills).toEqual([{
+      id: "law-to-markdown",
+      packaging: "focused",
+      provenance: "real-public",
+      evidenceWeight: "main-real",
+    }]);
+    expect(input.tasksBySkill).toEqual({
+      "law-to-markdown": [
+        "law-to-markdown-statute-dev-001",
+        "law-to-markdown-standard-dev-002",
+      ],
+    });
+    expect(input.systems).toEqual(["no-skill", "original"]);
   });
 });

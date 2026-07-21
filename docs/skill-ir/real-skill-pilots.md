@@ -1,6 +1,7 @@
 # 真实 Skill Corpus 与 Pilot
 
-本文档记录真实 skill 来源、provenance、Wave A/B 设计和 `env-manager` 纵向契约。
+本文档记录真实 skill 来源、provenance、Wave A/B 设计，以及 `env-manager`、
+`law-to-markdown` 的纵向契约。
 实验结果见 `docs/skill-ir/experiment-results.md`。
 
 ## 1. 为什么重启真实 Corpus
@@ -208,6 +209,68 @@ Heavy-script skill 必须在 task 设计前声明：
 
 Env-manager 当前使用 JS/TS/dotenv fixture，无 package install 和 network。
 
+`law-to-markdown` 当前只启用 `.txt` 任务，但上游 `law_to_markdown.py` 在模块加载时会
+同时 import `python-docx` 和 `pdfplumber`，因此 `.txt` 也不能假定无 Python 依赖。
+机器可读契约位于：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json
+```
+
+解释器由 `SKVM_PYTHON` 显式选择，裸 `python` 只作 fallback。付费前运行：
+
+```powershell
+$env:SKVM_PYTHON = '<python-with-docx-and-pdfplumber>'
+bun ./src/benchmarks/skill-ir/resource-contract-run.ts `
+  '--contract=benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json' `
+  '--out=results/skill-ir/law-to-markdown-resource-probe/result.json'
+```
+
+`status != ok` 时停止，不运行模型。Probe 不调用 shell，compact result 不保存解释器
+绝对路径或 stderr；缺依赖记为 preflight infrastructure。
+
+## 10.1 Law-to-markdown Task/Scorer 纵切
+
+任务定义：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/tasks.json
+```
+
+Development：
+
+```text
+law-to-markdown-statute-dev-001
+law-to-markdown-standard-dev-002
+```
+
+Held-out：
+
+```text
+law-to-markdown-regulation-heldout-001
+law-to-markdown-manual-heldout-002
+```
+
+四个任务均使用 `document.txt`，覆盖法律文档转换与非法律拒绝。Prompt 只声明输入保护、
+minimal 输出位置、禁止网络/安装和用户可见审核字段；具体 heading gold、字符流期望和
+review outcome 只存在 evaluator payload。
+
+确定性 scorer 为 `src/bench/evaluators/law-to-markdown-grade.ts`，检查：
+
+- protected source；
+- required/forbidden artifact policy；
+- 去 Markdown 标题和空白后的字符流保真；
+- 法律标题层级与项/目独立行；
+- 非法律不得生成最终成果；
+- 审核报告的 source identity、结论和可交付状态。
+
+输入保护、required artifact 和 source accounting 是 hard gate，阈值为 0.85。Scorer
+只读取 workdir；compact row 不保留 payload 或全文 gold。
+
+当前 manifest 状态为 `tasks-authored`，没有 `irPath`。本地 resource probe 在默认 Conda
+Python 上因缺 `docx` 失败，在显式工作区 Python 上通过；随后 2 development task x
+`no-skill | original` dry-run 生成 4 行，0 held-out、0 execute。尚未付费校准。
+
 ## 11. Pilot 晋升门禁
 
 每个 deep pilot 需要：
@@ -229,7 +292,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 未完成 | 未完成 | 未执行。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 未完成 | Resource probe + dry-run，未付费。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 

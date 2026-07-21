@@ -20,6 +20,7 @@
 import "./python-grade.ts"
 import "./junit-grade.ts"
 import "./env-manager-grade.ts"
+import "./law-to-markdown-grade.ts"
 // import "./docker-grader.ts"   // example of future addition
 // import "./js-grader.ts"       // example of future addition
 

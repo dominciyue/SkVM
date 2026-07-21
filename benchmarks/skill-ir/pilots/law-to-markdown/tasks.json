@@ -1,0 +1,363 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "law-to-markdown",
+  "tasks": [
+    {
+      "id": "law-to-markdown-statute-dev-001",
+      "split": "development",
+      "prompt": "请按所加载的 law-to-markdown skill 处理工作目录中的 document.txt。你需要自行判断文档类型，不得修改输入文件。运行期间禁止联网或安装软件包；如果所加载 skill 提供 bundled script，可以直接使用。按 minimal 产物级别将结果写入 markdown/document/：审核报告固定命名为 document+审核报告.md；只有审核通过并可交付时才生成 document+最终成果.md。最终成果必须保持原文字字符流，只允许增加 Markdown 标题标记、调整空白和按规则拆分项/目。审核报告必须写明输入文件、最终审核结论和是否可交付。完成后简要说明生成了哪些文件，不要在回复中重复整篇文档。",
+      "fixtures": {
+        "document.txt": "中华人民共和国示例数据法\n第一章 总则\n第一条 为了规范数据活动，制定本法。\n第二条 数据处理应当遵循合法、正当、必要原则。\n（一）公开透明；（二）安全可控。\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "law-protected-input",
+          "name": "Source document remains unchanged",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "protected-file",
+            "path": "document.txt",
+            "content": "中华人民共和国示例数据法\n第一章 总则\n第一条 为了规范数据活动，制定本法。\n第二条 数据处理应当遵循合法、正当、必要原则。\n（一）公开透明；（二）安全可控。\n"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-required-artifacts",
+          "name": "Minimal legal deliverables are present",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "artifact-policy",
+            "required": [
+              "markdown/document/document+审核报告.md",
+              "markdown/document/document+最终成果.md"
+            ],
+            "forbidden": [
+              "markdown/document/document.stage1.md",
+              "markdown/document/document.stage2.md",
+              "markdown/document/document.stage3-check.md"
+            ]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-source-accounting",
+          "name": "Final Markdown preserves the source character stream",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "content-fidelity",
+            "inputPath": "document.txt",
+            "outputPath": "markdown/document/document+最终成果.md"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-document-policy",
+          "name": "Legal headings use the required hierarchy",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "heading-structure",
+            "path": "markdown/document/document+最终成果.md",
+            "headings": [
+              { "level": 1, "text": "中华人民共和国示例数据法" },
+              { "level": 3, "text": "第一章 总则" },
+              { "level": 5, "text": "第一条 为了规范数据活动，制定本法。" },
+              { "level": 5, "text": "第二条 数据处理应当遵循合法、正当、必要原则。" }
+            ]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-format-layout",
+          "name": "Enumerated items are split onto standalone lines",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "line-layout",
+            "path": "markdown/document/document+最终成果.md",
+            "requiredStandaloneLines": ["（一）公开透明；", "（二）安全可控。"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-review-outcome",
+          "name": "Review report approves the legal deliverable",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "review-outcome",
+            "path": "markdown/document/document+审核报告.md",
+            "outcome": "approved"
+          }
+        }
+      ],
+      "hardGateIds": ["law-protected-input", "law-required-artifacts", "law-source-accounting"],
+      "passThreshold": 0.85
+    },
+    {
+      "id": "law-to-markdown-standard-dev-002",
+      "split": "development",
+      "prompt": "请按所加载的 law-to-markdown skill 处理工作目录中的 document.txt。你需要自行判断文档类型，不得修改输入文件。运行期间禁止联网或安装软件包；如果所加载 skill 提供 bundled script，可以直接使用。按 minimal 产物级别将结果写入 markdown/document/：审核报告固定命名为 document+审核报告.md；只有审核通过并可交付时才生成 document+最终成果.md。审核报告必须写明输入文件、最终审核结论和是否可交付。完成后简要说明生成了哪些文件，不要在回复中重复整篇文档。",
+      "fixtures": {
+        "document.txt": "GB/T 0000—2026 测试数据交换规范\n1 范围\n本文件规定了测试数据交换的一般要求。\n2 规范性引用文件\n无。\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "law-protected-input",
+          "name": "Source document remains unchanged",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "protected-file",
+            "path": "document.txt",
+            "content": "GB/T 0000—2026 测试数据交换规范\n1 范围\n本文件规定了测试数据交换的一般要求。\n2 规范性引用文件\n无。\n"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-required-artifacts",
+          "name": "A review report is produced",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "artifact-policy",
+            "required": ["markdown/document/document+审核报告.md"],
+            "forbidden": []
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-source-accounting",
+          "name": "Review report identifies the source document",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "report-source",
+            "path": "markdown/document/document+审核报告.md",
+            "sourceName": "document.txt"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-document-policy",
+          "name": "Non-law input does not produce a final deliverable",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "artifact-policy",
+            "required": [],
+            "forbidden": ["markdown/document/document+最终成果.md"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-review-outcome",
+          "name": "Review report rejects the non-law document",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "review-outcome",
+            "path": "markdown/document/document+审核报告.md",
+            "outcome": "rejected-non-law"
+          }
+        }
+      ],
+      "hardGateIds": ["law-protected-input", "law-required-artifacts", "law-source-accounting"],
+      "passThreshold": 0.85
+    },
+    {
+      "id": "law-to-markdown-regulation-heldout-001",
+      "split": "held-out",
+      "prompt": "请按所加载的 law-to-markdown skill 处理工作目录中的 document.txt。你需要自行判断文档类型，不得修改输入文件。运行期间禁止联网或安装软件包；如果所加载 skill 提供 bundled script，可以直接使用。按 minimal 产物级别将结果写入 markdown/document/：审核报告固定命名为 document+审核报告.md；只有审核通过并可交付时才生成 document+最终成果.md。最终成果必须保持原文字字符流，只允许增加 Markdown 标题标记、调整空白和按规则拆分项/目。审核报告必须写明输入文件、最终审核结论和是否可交付。完成后简要说明生成了哪些文件，不要在回复中重复整篇文档。",
+      "fixtures": {
+        "document.txt": "示例行政程序条例\n第一编 总则\n第一章 基本规定\n第一节 适用范围\n第一条 为了规范行政程序，制定本条例。\n第二条 行政机关实施行政行为，应当遵循下列原则：\n（一）合法；（二）公正；（三）公开。\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "law-protected-input",
+          "name": "Source document remains unchanged",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "protected-file",
+            "path": "document.txt",
+            "content": "示例行政程序条例\n第一编 总则\n第一章 基本规定\n第一节 适用范围\n第一条 为了规范行政程序，制定本条例。\n第二条 行政机关实施行政行为，应当遵循下列原则：\n（一）合法；（二）公正；（三）公开。\n"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-required-artifacts",
+          "name": "Minimal legal deliverables are present",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "artifact-policy",
+            "required": ["markdown/document/document+审核报告.md", "markdown/document/document+最终成果.md"],
+            "forbidden": ["markdown/document/document.stage1.md", "markdown/document/document.stage2.md", "markdown/document/document.stage3-check.md"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-source-accounting",
+          "name": "Final Markdown preserves the source character stream",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "content-fidelity",
+            "inputPath": "document.txt",
+            "outputPath": "markdown/document/document+最终成果.md"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-document-policy",
+          "name": "Legal headings use the required hierarchy",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "heading-structure",
+            "path": "markdown/document/document+最终成果.md",
+            "headings": [
+              { "level": 1, "text": "示例行政程序条例" },
+              { "level": 2, "text": "第一编 总则" },
+              { "level": 3, "text": "第一章 基本规定" },
+              { "level": 4, "text": "第一节 适用范围" },
+              { "level": 5, "text": "第一条 为了规范行政程序，制定本条例。" },
+              { "level": 5, "text": "第二条 行政机关实施行政行为，应当遵循下列原则：" }
+            ]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-format-layout",
+          "name": "Enumerated items are split onto standalone lines",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "line-layout",
+            "path": "markdown/document/document+最终成果.md",
+            "requiredStandaloneLines": ["（一）合法；", "（二）公正；", "（三）公开。"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-review-outcome",
+          "name": "Review report approves the legal deliverable",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "review-outcome",
+            "path": "markdown/document/document+审核报告.md",
+            "outcome": "approved"
+          }
+        }
+      ],
+      "hardGateIds": ["law-protected-input", "law-required-artifacts", "law-source-accounting"],
+      "passThreshold": 0.85
+    },
+    {
+      "id": "law-to-markdown-manual-heldout-002",
+      "split": "held-out",
+      "prompt": "请按所加载的 law-to-markdown skill 处理工作目录中的 document.txt。你需要自行判断文档类型，不得修改输入文件。运行期间禁止联网或安装软件包；如果所加载 skill 提供 bundled script，可以直接使用。按 minimal 产物级别将结果写入 markdown/document/：审核报告固定命名为 document+审核报告.md；只有审核通过并可交付时才生成 document+最终成果.md。审核报告必须写明输入文件、最终审核结论和是否可交付。完成后简要说明生成了哪些文件，不要在回复中重复整篇文档。",
+      "fixtures": {
+        "document.txt": "设备维护手册\n第一章 安装\n第一条 打开包装并核对配件。\n第二条 连接电源并完成自检。\n附录 A 故障排查\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "law-protected-input",
+          "name": "Source document remains unchanged",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "protected-file",
+            "path": "document.txt",
+            "content": "设备维护手册\n第一章 安装\n第一条 打开包装并核对配件。\n第二条 连接电源并完成自检。\n附录 A 故障排查\n"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-required-artifacts",
+          "name": "A review report is produced",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "artifact-policy",
+            "required": ["markdown/document/document+审核报告.md"],
+            "forbidden": []
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-source-accounting",
+          "name": "Review report identifies the source document",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "report-source",
+            "path": "markdown/document/document+审核报告.md",
+            "sourceName": "document.txt"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-document-policy",
+          "name": "Non-law input does not produce a final deliverable",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "artifact-policy",
+            "required": [],
+            "forbidden": ["markdown/document/document+最终成果.md"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "law-review-outcome",
+          "name": "Review report rejects the non-law document",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-law-to-markdown",
+          "payload": {
+            "schemaVersion": "skill-ir-law-to-markdown-eval/v1",
+            "check": "review-outcome",
+            "path": "markdown/document/document+审核报告.md",
+            "outcome": "rejected-non-law"
+          }
+        }
+      ],
+      "hardGateIds": ["law-protected-input", "law-required-artifacts", "law-source-accounting"],
+      "passThreshold": 0.85
+    }
+  ]
+}

@@ -660,16 +660,19 @@ surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
 ```text
 新增 benchmarks/skill-ir/pilots/law-to-markdown/tasks.json
 新增 benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json
+新增 src/benchmarks/skill-ir/resource-contract.ts
+新增 src/benchmarks/skill-ir/resource-contract-run.ts
+新增 src/benchmarks/skill-ir/resource-contract.test.ts
 修改 benchmarks/skill-ir/corpus/corpora/pilot.json
 修改 src/skill-ir/corpus-fixtures.test.ts
 更新 docs/skill-ir/real-skill-pilots.md
 ```
 
-- [ ] RED：要求 2 个 development、2 个 held-out，覆盖法律转换和非法律拒绝；prompt 不含
+- [x] RED：要求 2 个 development、2 个 held-out，覆盖法律转换和非法律拒绝；prompt 不含
   evaluator expected、隐藏标题答案或 held-out 泄漏。
-- [ ] GREEN：固定 `.txt` fixture、用户可见输出契约、禁止网络/安装和 bundled-script 使用
+- [x] GREEN：固定 `.txt` fixture、用户可见输出契约、禁止网络/安装和 bundled-script 使用
   边界；资源契约声明 Python 及两个 eager-import module 的付费前 probe。
-- [ ] GREEN：manifest 只晋升到 `tasks-authored` 并声明 `tasksPath`，不写 `irPath`。
+- [x] GREEN：manifest 只晋升到 `tasks-authored` 并声明 `tasksPath`，不写 `irPath`。
 
 ### Task 5.3：`law-to-markdown` 确定性 scorer
 
@@ -679,18 +682,18 @@ surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
 新增 src/bench/evaluators/law-to-markdown-grade.ts
 新增 src/bench/evaluators/law-to-markdown-grade.test.ts
 修改 src/bench/evaluators/index.ts
-修改 src/benchmarks/skill-ir/scoring.test.ts
+新增 src/benchmarks/skill-ir/law-to-markdown-pilot.test.ts
 更新 docs/skill-ir/evaluation-system.md
 ```
 
-- [ ] RED：输入修改、错误产物集合、字符流变化、法律层级错误、非法律仍生成最终成果和
+- [x] RED：输入修改、错误产物集合、字符流变化、法律层级错误、非法律仍生成最终成果和
   审核结论错误分别失败；路径逃逸和 evaluator I/O 异常记为 infrastructure。
-- [ ] GREEN：scorer 只读取最终 workdir，以 hard gate + weighted threshold 判定；测试同时
+- [x] GREEN：scorer 只读取最终 workdir，以 hard gate + weighted threshold 判定；测试同时
   覆盖 perfect、partial、unsafe 和 non-law case。
-- [ ] GREEN：scored row 只保留 criterion pass/score，不泄漏完整 expected 文本。
+- [x] GREEN：scored row 只保留 criterion pass/score，不泄漏完整 expected 文本。
 
 ### Task 5.4：本地门禁与下一实验冻结
 
-- [ ] 运行 focused Bun tests、全部 Skill IR tests、Python resource probe、typecheck 和文档链接检查。
-- [ ] 只在 probe 通过后生成 `no-skill | original x development` dry-run；本任务不付费。
+- [x] 运行 focused Bun tests、全部 Skill IR tests、Python resource probe、typecheck 和文档链接检查。
+- [x] 只在 probe 通过后生成 `no-skill | original x development` dry-run；本任务不付费。
 - [ ] 更新 spec、plan、组件文档、conversation log；提交并推送功能与文档，不提交 raw workdir。

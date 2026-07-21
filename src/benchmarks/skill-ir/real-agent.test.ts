@@ -444,6 +444,42 @@ describe("real-agent Task 11A helpers", () => {
     expect(await Bun.file(join(materialized.skillPath!, "..", "scripts", "check.py")).text()).toBe("print('ok')\n");
   });
 
+  test("materializeCaseArtifacts excludes undeclared files from a digest-pinned source closure", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-manifest-"));
+    tempDirs.push(tempDir);
+    const sourceDir = join(tempDir, "corpus", "skill-a", "source");
+    const sourceText = "# Exact upstream skill\n\nUse scripts/check.py.\n";
+    const scriptText = "print('ok')\n";
+    await mkdir(join(sourceDir, "scripts", "__pycache__"), { recursive: true });
+    await writeFile(join(sourceDir, "SKILL.md"), sourceText, "utf8");
+    await writeFile(join(sourceDir, "scripts", "check.py"), scriptText, "utf8");
+    await writeFile(join(sourceDir, "scripts", "__pycache__", "check.pyc"), "undeclared", "utf8");
+    const ir = baseIr();
+    ir.source = {
+      kind: "file",
+      path: "corpus/skill-a/source/SKILL.md",
+      sha256: createHash("sha256").update(sourceText).digest("hex"),
+    };
+
+    const materialized = await materializeCaseArtifacts({
+      outDir: join(tempDir, "out"),
+      rootDir: tempDir,
+      ir,
+      sourceFiles: [
+        { path: "corpus/skill-a/source/SKILL.md", sha256: createHash("sha256").update(sourceText).digest("hex") },
+        { path: "corpus/skill-a/source/scripts/check.py", sha256: createHash("sha256").update(scriptText).digest("hex") },
+      ],
+      task,
+      context: "clean",
+      system: "original",
+      caseId: "skill-review:skvm:windows:clean:review-finding-order-001",
+      runIndex: 1,
+    });
+
+    expect(await Bun.file(join(materialized.skillPath!, "..", "scripts", "check.py")).text()).toBe(scriptText);
+    expect(await Bun.file(join(materialized.skillPath!, "..", "scripts", "__pycache__", "check.pyc")).exists()).toBe(false);
+  });
+
   test("materializeCaseArtifacts preserves file-backed resources while replacing generated SKILL.md", async () => {
     const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-source-"));
     tempDirs.push(tempDir);

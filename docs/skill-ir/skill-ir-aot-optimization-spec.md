@@ -562,7 +562,8 @@ non-law document -> 明确拒绝、只生成审核报告、不生成最终成果
 ```
 
 资源契约固定为：原始 skill、静态 IR 和后续 package 获得相同 source closure；运行时禁止
-联网和安装依赖；Python 解释器、`python-docx` 与 `pdfplumber` 必须在付费前 probe。
+联网和安装依赖；Python 解释器由 `SKVM_PYTHON` 显式选择，`python-docx` 与
+`pdfplumber` 必须在付费前 probe。
 当前 `.txt` 路径仍受上游脚本 eager import 影响，因此缺依赖属于预检基础设施阻断，不能
 在结果中伪装成 skill 语义失败。Agent 被允许调用 bundled script，但 scorer 只读取最终
 workdir，不以“是否调用脚本”判定成功。

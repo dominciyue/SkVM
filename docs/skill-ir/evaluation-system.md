@@ -188,6 +188,11 @@ final output 文本伪装成功。
 Raw rows 和 workdir 默认保留本地，便于重评分和审计；compact scored rows 和 summary
 提交到 Git。
 
+Real-skill source closure 在 manifest 存在 `sourceFiles` 时只复制声明文件，并逐文件
+验证 SHA-256。未登记的 `__pycache__`、本地日志或编辑器文件不能进入 materialized
+original/static skill。没有 source manifest 的 legacy calibration fixture 继续使用旧的
+目录复制兼容路径。
+
 ## 9. Scoring
 
 ```ts
@@ -208,6 +213,23 @@ Scorer 先处理执行/infrastructure，再调用 task evaluator。`env-manager`
 
 Hard gate 与 weighted threshold 同时满足才 success。Evaluator exception 只影响当前
 row，并记录为 infrastructure/evaluation，不中断整批评分。
+
+`law-to-markdown` 使用 `skill-ir-law-to-markdown` custom evaluator，覆盖 protected input、
+artifact policy、字符流保真、heading hierarchy、项/目换行、报告 source 和审核结论。
+法律与非法律 task 共用 criterion identity，但 payload check 按公开文档策略切换。路径
+逃逸、symlink 逃逸、payload 错误和 workdir I/O 失败属于 infrastructure；普通内容或格式
+错误属于 evaluation failure。Scored row 只保留 criterion pass/score。
+
+资源预检：
+
+```powershell
+$env:SKVM_PYTHON = '<python-with-required-modules>'
+bun ./src/benchmarks/skill-ir/resource-contract-run.ts `
+  '--contract=benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json' `
+  '--out=results/skill-ir/law-to-markdown-resource-probe/result.json'
+```
+
+Runner 尚不自动安装依赖；probe 非 `ok` 时不得执行付费 calibration。
 
 评分命令：
 

@@ -55,11 +55,8 @@ describe("skill-ir corpus fixtures", () => {
     expect(pilot.skills.filter((skill) => skill.wave === "A")).toHaveLength(3);
     expect(pilot.skills.filter((skill) => skill.wave === "B")).toHaveLength(3);
     expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("runnable");
-    expect(
-      pilot.skills
-        .filter((skill) => skill.wave === "A" && skill.id !== "env-manager")
-        .every((skill) => skill.status === "source-imported"),
-    ).toBe(true);
+    expect(pilot.skills.find((skill) => skill.id === "law-to-markdown")?.status).toBe("tasks-authored");
+    expect(pilot.skills.find((skill) => skill.id === "experimental-design")?.status).toBe("source-imported");
     expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
   });
 
@@ -391,5 +388,81 @@ describe("skill-ir corpus fixtures", () => {
     for (const category of ["document-processing", "chinese-developer", "testing", "environment", "scientific-workflow"]) {
       expect(selectedCategories.has(category)).toBe(true);
     }
+  });
+
+  test("law-to-markdown is tasks-authored with a frozen 2+2 txt task and resource contract", () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
+      skills: {
+        id: string;
+        status: string;
+        tasksPath?: string;
+        irPath?: string;
+        resourceContractPath?: string;
+      }[];
+    };
+    const skill = manifest.skills.find((candidate) => candidate.id === "law-to-markdown");
+
+    expect(skill).toMatchObject({
+      status: "tasks-authored",
+      tasksPath: "benchmarks/skill-ir/pilots/law-to-markdown/tasks.json",
+      resourceContractPath: "benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json",
+    });
+    expect(skill?.irPath).toBeUndefined();
+
+    const taskSet = readJson(join(process.cwd(), skill!.tasksPath!)) as {
+      schemaVersion: string;
+      skillId: string;
+      tasks: {
+        id: string;
+        split: string;
+        prompt: string;
+        fixtures?: Record<string, string>;
+        eval?: { method: string; evaluatorId?: string }[];
+        hardGateIds?: string[];
+        passThreshold?: number;
+      }[];
+    };
+    expect(taskSet.schemaVersion).toBe("skill-ir-tasks/v1");
+    expect(taskSet.skillId).toBe("law-to-markdown");
+    expect(taskSet.tasks).toHaveLength(4);
+    expect(taskSet.tasks.filter((task) => task.split === "development")).toHaveLength(2);
+    expect(taskSet.tasks.filter((task) => task.split === "held-out")).toHaveLength(2);
+    expect(taskSet.tasks.every((task) => Object.keys(task.fixtures ?? {}).every((path) => path.endsWith(".txt")))).toBe(true);
+    expect(taskSet.tasks.every((task) => task.eval?.every((criterion) =>
+      criterion.method === "custom" && criterion.evaluatorId === "skill-ir-law-to-markdown"
+    ))).toBe(true);
+    expect(taskSet.tasks.every((task) => (task.hardGateIds?.length ?? 0) >= 2)).toBe(true);
+    expect(taskSet.tasks.every((task) => task.passThreshold === 0.85)).toBe(true);
+
+    const serializedPrompts = taskSet.tasks.map((task) => task.prompt).join("\n");
+    expect(serializedPrompts).not.toContain("evaluator");
+    expect(serializedPrompts).not.toContain("expectedHeadings");
+
+    const resource = readJson(join(process.cwd(), skill!.resourceContractPath!)) as {
+      schemaVersion: string;
+      inputFormats: string[];
+      network: string;
+      packageInstall: string;
+      interpreter: { env: string; fallbackCommand: string; minimumVersion: string };
+      probe: { args: string[]; requiredModules: string[]; successMarker: string };
+      missingDependencyDisposition: string;
+    };
+    expect(resource).toEqual({
+      schemaVersion: "skill-ir-resource-contract/v1",
+      inputFormats: ["txt"],
+      network: "forbidden",
+      packageInstall: "forbidden",
+      interpreter: {
+        env: "SKVM_PYTHON",
+        fallbackCommand: "python",
+        minimumVersion: "3.10",
+      },
+      probe: {
+        args: ["-c", "import docx, pdfplumber; print('law-to-markdown-resource-ok')"],
+        requiredModules: ["docx", "pdfplumber"],
+        successMarker: "law-to-markdown-resource-ok",
+      },
+      missingDependencyDisposition: "preflight-infrastructure",
+    });
   });
 });

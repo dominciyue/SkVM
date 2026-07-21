@@ -98,6 +98,7 @@ type SkillBenchmarkFixture = {
   ir: SkillIR;
   baseIR: SkillIR;
   baseIRPath?: string;
+  sourceFiles?: { path: string; sha256: string }[];
   taskSet: TaskSet;
   taskById: Map<string, SkillIRBenchmarkTask>;
 };
@@ -578,6 +579,7 @@ async function loadSkillBenchmarkFixtures(args: RealAgentRunArgs): Promise<Map<s
       ir,
       baseIR,
       baseIRPath,
+      sourceFiles: skill.sourceFiles,
       taskSet,
       taskById: new Map(taskSet.tasks.map((task) => [task.id, task])),
     });
@@ -717,6 +719,7 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
         outDir: join(args.outDir, "artifacts"),
         rootDir: args.rootDir,
         ir: item.system === "ir-pgo" || item.system === "ir-pgo-dev" ? fixture.ir : fixture.baseIR,
+        sourceFiles: fixture.sourceFiles,
         task,
         context: item.context,
         system: item.system,

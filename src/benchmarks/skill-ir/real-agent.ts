@@ -9,6 +9,7 @@ import { normalizeRules } from "../../skill-ir/passes/rule-normalization";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 import { inferModelFamily } from "./promotion-policy";
 import { materializeVerifiedOriginalSource, materializeVerifiedSourceClosure } from "./source-fixture";
+import type { VerifiedSourceFileRecord } from "./source-fixture";
 
 export type RunIdentity = {
   model: string;
@@ -62,6 +63,7 @@ export type MaterializeCaseOptions = {
   caseId: string;
   runIndex: number;
   artifactSkillPath?: string;
+  sourceFiles?: VerifiedSourceFileRecord[];
 };
 
 export type BuildRunCommandOptions = {
@@ -403,7 +405,7 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
 
   if (opts.system === "original") {
     const rootDir = opts.rootDir ?? process.cwd();
-    const skillPath = await materializeVerifiedOriginalSource(opts.ir, rootDir, skillDir);
+    const skillPath = await materializeVerifiedOriginalSource(opts.ir, rootDir, skillDir, opts.sourceFiles);
     return {
       caseId: opts.caseId,
       system: opts.system,
@@ -430,7 +432,7 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
   }
 
   if (opts.ir.source.kind === "file") {
-    await materializeVerifiedSourceClosure(opts.ir, opts.rootDir ?? process.cwd(), skillDir);
+    await materializeVerifiedSourceClosure(opts.ir, opts.rootDir ?? process.cwd(), skillDir, opts.sourceFiles);
   } else {
     await mkdir(skillDir, { recursive: true });
   }
