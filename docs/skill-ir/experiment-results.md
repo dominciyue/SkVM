@@ -335,6 +335,12 @@ internal assertion crash，作为 infrastructure 和 missing pair 保留，不�
 稳定。唯一失败归因为 Bun runtime crash，不归为 skill semantic regression，但仍按预注册
 规则让正式 gate 失败。
 
+冻结结果随后通过独立 `env-manager-v4-bun-stability-diagnostic-v1` 做脱敏审计。诊断 lock
+绑定原 raw、summary 和 gate digest，禁止 source rerun、retry、held-out 和 method-evidence
+标记。4 个 source row 中只有 Node run 1 是 infrastructure；封闭分类为
+`bun-internal-assertion`，Bun 版本 1.3.14，失败阶段 generation。当前没有新执行样本，因此
+reproducibility 保持 `inconclusive`，不能据此断言崩溃稳定复现或已经修复。
+
 Compact evidence：
 
 ```text
@@ -343,6 +349,8 @@ results/skill-ir/env-manager-contract-repair-v4-development-results-2026-07-22.j
 results/skill-ir/env-manager-contract-repair-v4-development-evidence-2026-07-22/summary.json
 results/skill-ir/env-manager-contract-repair-v4-development-evidence-2026-07-22/failure-audit.jsonl
 results/skill-ir/env-manager-contract-repair-v4-development-run-2026-07-22/development-gate-report.json
+results/skill-ir/env-manager-v4-infrastructure-diagnostic-2026-07-22/report.json
+benchmarks/skill-ir/pilots/env-manager/env-manager-v4-infrastructure-diagnostic-lock.json
 ```
 
 ## 4. Env-manager 研究推进总表

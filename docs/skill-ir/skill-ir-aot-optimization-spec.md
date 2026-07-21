@@ -550,6 +550,9 @@ V4 的冻结 development 结果保持不变。Bun generation crash 不补跑、�
 新的 diagnostic identity，只回答 crash 的来源、可复现性和运行时处置，不进入 Skill IR
 方法增益或 held-out 证据。
 
+当前只读诊断已将唯一失败封闭分类为 Bun 1.3.14 `bun-internal-assertion` / generation，
+但没有新执行样本，reproducibility 仍为 `inconclusive`。该记录不改变 V4 gate。
+
 研究主线并行进入第二个 Wave A skill：`law-to-markdown`。第一阶段只完成
 `source-imported -> tasks-authored`，固定四个 `.txt` 任务、资源契约和确定性 scorer；
 不创建临时 base IR，不把该 skill 标记为 runnable，也不执行付费模型。

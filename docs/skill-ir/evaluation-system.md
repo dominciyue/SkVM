@@ -346,6 +346,24 @@ SHA-256 绑定。Raw、snapshot、workdir 和 route artifacts 留本地；提交
 route probe compact row、failure audit 与 summary。Pre/post 中 binary success 均为 3/3，
 归因报告只写 score 0.90→1.00 与 3 个 schema criterion 转绿，不写 repaired-to-success。
 
+### V4 Infrastructure Diagnostic
+
+`infrastructure-diagnostic-run.ts` 对冻结 raw 做只读、脱敏的 post-hoc 审计。Lock 绑定
+raw/summary/gate SHA-256、完整 model/adapter/panel/task identity、一次执行和
+`heldOutAllowed=false`；它不运行模型、不补跑 source generation，也不能把 report 标为
+method evidence。
+
+```powershell
+bun ./src/benchmarks/skill-ir/infrastructure-diagnostic-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/env-manager/env-manager-v4-infrastructure-diagnostic-lock.json' `
+  '--out=results/skill-ir/env-manager-v4-infrastructure-diagnostic-2026-07-22/report.json'
+```
+
+输出只含 task/run、stage、run status、exit code、封闭 crash class、Bun version 和安全字段
+fingerprint；不保存 stdout、stderr、绝对路径或模型正文。当前审计得到 1 条
+`bun-internal-assertion` / Bun 1.3.14 / generation record，reproducibility 为
+`inconclusive`。若以后做复现 probe，必须新建 execution identity，不能回填冻结 V4 gate。
+
 ## 11. Route Health
 
 `route-probe-run.ts` 对每个模型运行一个代表 case，输出：

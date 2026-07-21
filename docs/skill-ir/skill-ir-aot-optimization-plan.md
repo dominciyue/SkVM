@@ -646,11 +646,11 @@ surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
 更新 docs/skill-ir/evaluation-system.md
 ```
 
-- [ ] RED：拒绝把 diagnostic 当作 method evidence，拒绝缺失 V4 gate/summary digest、未知
+- [x] RED：拒绝把 diagnostic 当作 method evidence，拒绝缺失 V4 gate/summary digest、未知
   runtime identity、held-out、retry 或修改冻结 V4 identity 的输入。
-- [ ] GREEN：从 raw infrastructure row 只投影 stage、run status、exit code、Bun version、
+- [x] GREEN：从 raw infrastructure row 只投影 stage、run status、exit code、Bun version、
   封闭 crash class 和脱敏 fingerprint；不输出 stdout、绝对路径、secret 或模型正文。
-- [ ] GREEN：新 CLI 生成 compact audit；复现 probe 使用新的 run identity，结果只能支持
+- [x] GREEN：新 CLI 生成 compact audit；复现 probe 使用新的 run identity，结果只能支持
   `reproducible | not-observed | inconclusive`，不能回填 V4 gate。
 
 ### Task 5.2：`law-to-markdown` 2+2 task 与资源契约
@@ -696,4 +696,4 @@ surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
 
 - [x] 运行 focused Bun tests、全部 Skill IR tests、Python resource probe、typecheck 和文档链接检查。
 - [x] 只在 probe 通过后生成 `no-skill | original x development` dry-run；本任务不付费。
-- [ ] 更新 spec、plan、组件文档、conversation log；提交并推送功能与文档，不提交 raw workdir。
+- [x] 更新 spec、plan、组件文档、conversation log；提交并推送功能与文档，不提交 raw workdir。
