@@ -364,6 +364,18 @@ fingerprint；不保存 stdout、stderr、绝对路径或模型正文。当前�
 `bun-internal-assertion` / Bun 1.3.14 / generation record，reproducibility 为
 `inconclusive`。若以后做复现 probe，必须新建 execution identity，不能回填冻结 V4 gate。
 
+### Pre-IR Calibration Gate
+
+`pre-ir-calibration-run.ts` 从 digest-bound lock 编译 `tasks-authored` skill 的精确
+`no-skill | original` development 计划。`plan` 不执行；`route-probe` 只保存脱敏 route
+状态；`execute` 要求 fresh resource probe、成功 route probe 和 API key 后运行完整矩阵。
+
+`pre-ir-calibration-gate-run.ts` 验证 scored row 的 model/family/adapter/panel/task/split
+身份，固定缺行与缺 pair 的分母，并报告 system success/mean/token、paired score delta 和
+criterion pass transition。Gate 要求完整、零 infrastructure、no-skill 非饱和和至少一个
+pair 有不同 outcome vector；不要求 original 优于 no-skill。Compact report 只绑定
+lock/raw/scored/resource/route SHA-256，不保存路径、模型输出或 evaluator details。
+
 ## 11. Route Health
 
 `route-probe-run.ts` 对每个模型运行一个代表 case，输出：

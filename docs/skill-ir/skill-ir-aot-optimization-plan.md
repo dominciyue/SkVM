@@ -716,11 +716,11 @@ held-out 或把结果写成 Skill IR 增益。
 更新 docs/skill-ir/real-skill-pilots.md
 ```
 
-- [ ] RED：拒绝 digest drift、非 tasks-authored skill、held-out task、static/PGO/artifact
+- [x] RED：拒绝 digest drift、非 tasks-authored skill、held-out task、static/PGO/artifact
   system、非 clean context、错误模型/adapter/panel、重试、非 8-row 完整矩阵和 secret。
-- [ ] GREEN：验证 `skill-ir-pre-ir-calibration-lock/v1`，只从 lock 生成 2 systems ×
+- [x] GREEN：验证 `skill-ir-pre-ir-calibration-lock/v1`，只从 lock 生成 2 systems ×
   2 development tasks × 2 repetitions 的 exact plan。
-- [ ] GREEN：`plan` phase 不调用模型；`route-probe` 只执行一个 original generation 并输出
+- [x] GREEN：`plan` phase 不调用模型；`route-probe` 只执行一个 original generation 并输出
   脱敏 `methodEvidence=false` 结果；`execute` 必须在资源与 route probe 通过后运行完整矩阵。
 
 ### Task 6.2：Calibration gate 与 compact evidence
@@ -735,17 +735,17 @@ held-out 或把结果写成 Skill IR 增益。
 更新 docs/skill-ir/experiment-results.md
 ```
 
-- [ ] RED：缺 row/pair、duplicate identity、非 development、identity drift、infrastructure、
+- [x] RED：缺 row/pair、duplicate identity、非 development、identity drift、infrastructure、
   两臂饱和、无 paired outcome difference 和 evaluator payload sink 必须被显式记录或拒绝。
-- [ ] GREEN：固定分母为 8 generations；报告 system success/mean/token、4 个 pair、
+- [x] GREEN：固定分母为 8 generations；报告 system success/mean/token、4 个 pair、
   criterion transition、negative delta、saturation 与 distinguishability，不保存模型正文。
-- [ ] GREEN：Gate 只决定是否允许 base IR audit；不要求 original 优于 no-skill，不允许
+- [x] GREEN：Gate 只决定是否允许 base IR audit；不要求 original 优于 no-skill，不允许
   held-out、scorer retuning、PGO 或主 claim。
 
 ### Task 6.3：资源、route 与冻结 development 实验
 
-- [ ] 使用 `SKVM_PYTHON` 重新运行 resource probe；失败立即停止。
-- [ ] 运行 lock-bound dry-run，确认 8 rows、4 complete pairs、0 held-out、0 IR system。
+- [x] 使用 `SKVM_PYTHON` 重新运行 resource probe；失败立即停止。
+- [x] 运行 lock-bound dry-run，确认 8 rows、4 complete pairs、0 held-out、0 IR system。
 - [ ] API key 存在时运行一个独立 route probe；通过后执行一次冻结 8-generation calibration。
 - [ ] 使用既有 deterministic scorer 生成 scored rows，再运行 calibration gate；不根据输出
   修改 task、scorer、lock、模型、repetitions 或 gate。

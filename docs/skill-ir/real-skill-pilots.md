@@ -268,8 +268,36 @@ review outcome 只存在 evaluator payload。
 只读取 workdir；compact row 不保留 payload 或全文 gold。
 
 当前 manifest 状态为 `tasks-authored`，没有 `irPath`。本地 resource probe 在默认 Conda
-Python 上因缺 `docx` 失败，在显式工作区 Python 上通过；随后 2 development task x
-`no-skill | original` dry-run 生成 4 行，0 held-out、0 execute。尚未付费校准。
+Python 上因缺 `docx` 失败，在显式工作区 Python 上通过；早期单 repetition dry-run 为
+4 行。当前冻结 calibration 改为 2 repetitions，lock-bound dry-run 为 8 行，仍为
+0 held-out、0 execute。尚未付费校准。
+
+### 10.2 Pre-IR Calibration
+
+冻结 lock：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-pre-ir-calibration-lock.json
+```
+
+Lock 绑定 source、tasks、resource contract、scorer digest，以及 GPT-5.6、
+Windows/clean/bare-agent、`no-skill | original`、2 tasks x 2 repetitions。Runner 只能使用：
+
+```powershell
+bun ./src/benchmarks/skill-ir/pre-ir-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-pre-ir-calibration-lock.json' `
+  '--out-dir=results/skill-ir/law-to-markdown-pre-ir-calibration-2026-07-23' `
+  '--phase=plan'
+```
+
+`route-probe` phase 会先重新运行 resource probe，再执行一个独立 original generation；只
+保存 status/exit/time，不保存命令、stdout/stderr 或模型正文。`execute` phase 再次运行
+resource probe，并要求同目录已有同 lock/model/task 的成功 route probe，随后执行冻结 8 行。
+两阶段都要求 `SKVM_XTY_API_KEY`；Python 由 `SKVM_PYTHON` 选择。
+
+评分后使用 `pre-ir-calibration-gate-run.ts`。Gate 固定 8 rows、4 pairs、0 infrastructure、
+no-skill 非饱和和至少一个 paired outcome difference。结果只决定是否进入 base IR source
+audit；不允许 held-out、PGO、scorer retuning 或主 claim。
 
 ## 11. Pilot 晋升门禁
 

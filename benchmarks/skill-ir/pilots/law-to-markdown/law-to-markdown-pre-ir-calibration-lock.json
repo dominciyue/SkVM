@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "skill-ir-pre-ir-calibration-lock/v1",
+  "status": "preregistered",
+  "calibrationId": "law-to-markdown-pre-ir-calibration-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "law-to-markdown",
+  "frozenInputs": {
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+    },
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/tasks.json",
+      "sha256": "f10978a61a98e2a46577ecace9dd9ce9f6f6b5810c1e536cdd2f3e10088a2b1f"
+    },
+    "resourceContract": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json",
+      "sha256": "108fc52e7f0155c0066a0517371944c1ef948f0ee5fa24b8cc4b8944d3b848d6"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/law-to-markdown-grade.ts",
+      "sha256": "051d467ae8292dbc917316ce7c495915fe36377b529c22553cff3dd637d2d180"
+    }
+  },
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-law-pre-ir-v1"
+  },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "law-to-markdown-statute-dev-001",
+      "law-to-markdown-standard-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "pythonEnv": "SKVM_PYTHON",
+    "retries": 0,
+    "resourceProbeRequired": true,
+    "routeProbeRequired": true,
+    "routeProbeTimeoutMs": 180000
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": false
+  },
+  "promotionBoundary": {
+    "corpusStatusAtRun": "tasks-authored",
+    "createsBaseIr": false,
+    "entersMainClaim": false,
+    "permitsHeldOut": false,
+    "permitsScorerRetuning": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "base IR materialization",
+    "static, PGO, or artifact systems",
+    "scorer retuning from calibration output",
+    "method gain or main-claim interpretation"
+  ]
+}
