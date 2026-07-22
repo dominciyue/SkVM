@@ -22,7 +22,7 @@
 | V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
-| `law-to-markdown` vertical slice | 当前 | 冻结并执行 `no-skill | original` pre-IR development calibration。 |
+| `law-to-markdown` vertical slice | 当前 | Pre-IR gate 已通过；下一步做 source-audited base IR。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
@@ -746,13 +746,13 @@ held-out 或把结果写成 Skill IR 增益。
 
 - [x] 使用 `SKVM_PYTHON` 重新运行 resource probe；失败立即停止。
 - [x] 运行 lock-bound dry-run，确认 8 rows、4 complete pairs、0 held-out、0 IR system。
-- [ ] API key 存在时运行一个独立 route probe；通过后执行一次冻结 8-generation calibration。
-- [ ] 使用既有 deterministic scorer 生成 scored rows，再运行 calibration gate；不根据输出
+- [x] API key 存在时运行一个独立 route probe；通过后执行一次冻结 8-generation calibration。
+- [x] 使用既有 deterministic scorer 生成 scored rows，再运行 calibration gate；不根据输出
   修改 task、scorer、lock、模型、repetitions 或 gate。
-- [ ] 更新 spec、plan、组件文档、experiment results 和 conversation log；只提交 compact
+- [x] 更新 spec、plan、组件文档、experiment results 和 conversation log；只提交 compact
   evidence，raw/workdir/route tail 保留本地。
 
 ### Task 6.4：验证与提交
 
-- [ ] 运行 focused RED/GREEN、全部 Skill IR/evaluator tests、typecheck、文档链接与 secret scan。
-- [ ] 提交并推送设计、实现和 compact evidence；记录 gate 是否允许进入 base IR audit。
+- [x] 运行 focused RED/GREEN、全部 Skill IR/evaluator tests、typecheck、文档链接与 secret scan。
+- [x] 提交并推送设计、实现和 compact evidence；记录 gate 是否允许进入 base IR audit。

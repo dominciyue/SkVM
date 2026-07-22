@@ -269,8 +269,7 @@ review outcome 只存在 evaluator payload。
 
 当前 manifest 状态为 `tasks-authored`，没有 `irPath`。本地 resource probe 在默认 Conda
 Python 上因缺 `docx` 失败，在显式工作区 Python 上通过；早期单 repetition dry-run 为
-4 行。当前冻结 calibration 改为 2 repetitions，lock-bound dry-run 为 8 行，仍为
-0 held-out、0 execute。尚未付费校准。
+4 行，随后冻结 calibration 改为 2 repetitions，lock-bound dry-run 为 8 行。
 
 ### 10.2 Pre-IR Calibration
 
@@ -299,6 +298,10 @@ resource probe，并要求同目录已有同 lock/model/task 的成功 route pro
 no-skill 非饱和和至少一个 paired outcome difference。结果只决定是否进入 base IR source
 audit；不允许 held-out、PGO、scorer retuning 或主 claim。
 
+2026-07-23 实际运行 8/8 rows、4/4 pairs、0 infrastructure。No-skill 和 original 均为
+0/4 success，mean 为 0.70 与 0.75；只有 1 个 pair 改善 document-policy，review-outcome
+在 8 行持续失败。Gate passed，因此下一步是 base IR source audit；held-out 仍禁止。
+
 ## 11. Pilot 晋升门禁
 
 每个 deep pilot 需要：
@@ -320,7 +323,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 未完成 | Resource probe + dry-run，未付费。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 未完成 | Pre-IR calibration gate passed；允许 base IR audit。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 

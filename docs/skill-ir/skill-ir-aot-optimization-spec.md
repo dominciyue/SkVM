@@ -61,6 +61,13 @@ probe 为 ok；3 个完整 shared-generation pair 的 deterministic scorer 均�
 Bun 1.3.14 internal assertion crash 形成 infrastructure。冻结分母口径为 success 3/4、
 mean 0.75、1 infrastructure，因此 gate 失败，held-out 未执行。
 
+2026-07-23 使用冻结 pre-IR lock 完成 `law-to-markdown` 的 GPT-5.6 calibration：
+`no-skill | original`、2 个 development tasks × 2 repetitions，共 8 行，全部正常评分，
+0 infrastructure。No-skill 与 original 均为 0/4 success，mean 分别为 0.70 和 0.75；
+4 个 pair 中 1 个由 original 改善 `law-document-policy`，其余 3 个 outcome 相同，
+`law-review-outcome` 在 8 行中持续失败。校准 gate 通过，只允许进入 source-audited
+base IR 构造；不构成方法增益或 held-out 证据。
+
 ### 已执行的模型能力诊断
 
 已使用 `xty/gpt-4.1` 对冻结 semantic artifact v2 做单变量诊断，目的仅是判断

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "skill-ir-pre-ir-calibration-summary/v1",
+  "calibrationId": "law-to-markdown-pre-ir-calibration-v1",
+  "methodEvidence": false,
+  "status": "calibration-gate-passed",
+  "identity": {
+    "skillId": "law-to-markdown",
+    "model": "xty/gpt-5.6-sol",
+    "modelFamily": "gpt",
+    "adapter": "bare-agent",
+    "adapterVersion": "workspace-law-pre-ir-v1",
+    "environment": "windows",
+    "context": "clean",
+    "systems": ["no-skill", "original"],
+    "developmentTasks": 2,
+    "repetitions": 2
+  },
+  "execution": {
+    "expectedRows": 8,
+    "observedRows": 8,
+    "completePairs": 4,
+    "infrastructureFailures": 0,
+    "heldOutExecuted": false
+  },
+  "systems": {
+    "no-skill": {
+      "successes": 0,
+      "rows": 4,
+      "meanScore": 0.7,
+      "aggregateTokens": 38285,
+      "failedCriterionCounts": {
+        "law-document-policy": 3,
+        "law-review-outcome": 4
+      }
+    },
+    "original": {
+      "successes": 0,
+      "rows": 4,
+      "meanScore": 0.75,
+      "aggregateTokens": 121574,
+      "failedCriterionCounts": {
+        "law-document-policy": 2,
+        "law-review-outcome": 4
+      }
+    }
+  },
+  "paired": {
+    "differingPairs": 1,
+    "positiveScorePairs": 1,
+    "negativeScorePairs": 0,
+    "equalScorePairs": 3,
+    "meanScoreDelta": 0.05,
+    "binarySuccessDelta": 0,
+    "improvedCriteria": {
+      "law-document-policy": 1
+    },
+    "regressedCriteria": {}
+  },
+  "gate": {
+    "passed": true,
+    "baseIrAuditAllowed": true,
+    "heldOutAllowed": false,
+    "entersMainClaim": false
+  },
+  "interpretation": {
+    "chainExecutable": true,
+    "scorerNonSaturated": true,
+    "observableArmDifference": true,
+    "originalSkillSuccessful": false,
+    "methodGainAvailable": false,
+    "dominantResidual": "law-review-outcome",
+    "note": "The original skill improved one document-policy pair but both systems remained 0/4 successful. This calibration permits source-audited base IR construction only."
+  },
+  "evidence": {
+    "gateReportSha256": "00a0d1015e5ac7dac308596529ae49c05669968743a34d6868dd0788e5ce7934",
+    "resourceProbeSha256": "f3bdbbb75b964e6a407527b7a484b5913ae389836d82f75928d879cd69bbc6cb",
+    "routeProbeSha256": "e5da11c780417507d36dddabd5251fe50d8c892d8c58c17e3ff68f30ca7f24dc"
+  }
+}

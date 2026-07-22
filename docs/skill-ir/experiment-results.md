@@ -353,7 +353,37 @@ results/skill-ir/env-manager-v4-infrastructure-diagnostic-2026-07-22/report.json
 benchmarks/skill-ir/pilots/env-manager/env-manager-v4-infrastructure-diagnostic-lock.json
 ```
 
-## 4. Env-manager 研究推进总表
+## 4. 真实 Skill：Law-to-markdown
+
+2026-07-23 冻结 `law-to-markdown-pre-ir-calibration-v1`：GPT-5.6、
+Windows/clean/bare-agent、`no-skill | original`、2 个 development task × 2 repetitions。
+资源与 route probe 均为 ok，8/8 rows 和 4/4 pairs 完整，0 infrastructure，未运行 held-out。
+
+| System | Success | Mean | Aggregate tokens | 主要失败 |
+|---|---:|---:|---:|---|
+| no-skill | 0/4 | 0.70 | 38285 | document-policy 3/4；review-outcome 4/4。 |
+| original | 0/4 | 0.75 | 121574 | document-policy 2/4；review-outcome 4/4。 |
+
+4 个 pair 中 3 个 score/criterion vector 相同；standard task run 2 中 original 将
+`law-document-policy` 从 fail 改为 pass，score 0.60→0.80。没有 negative delta，但两臂
+binary success 均为 0/4。Original token 总量约为 no-skill 的 3.18 倍；当前只能记录成本，
+不能声称 token 优化。
+
+预注册 gate 的完整性、零 infrastructure、no-skill 非饱和和 distinguishability 条件均
+通过，因此允许进入 source-audited base IR 构造。它不表示 original skill 成功，也不构成
+Skill IR 方法增益、held-out、跨模型或跨环境证据。冻结 task/scorer/lock 不根据本结果修改。
+
+Compact evidence：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-pre-ir-calibration-lock.json
+results/skill-ir/law-to-markdown-pre-ir-calibration-2026-07-23/resource-probe.json
+results/skill-ir/law-to-markdown-pre-ir-calibration-2026-07-23/route-probe.json
+results/skill-ir/law-to-markdown-pre-ir-calibration-2026-07-23/gate-report.json
+results/skill-ir/law-to-markdown-pre-ir-calibration-2026-07-23/summary.json
+```
+
+## 5. Env-manager 研究推进总表
 
 | 阶段 | 最强/候选系统 | Success | Mean | 核心发现 |
 |---|---|---:|---:|---|
@@ -367,7 +397,7 @@ benchmarks/skill-ir/pilots/env-manager/env-manager-v4-infrastructure-diagnostic-
 | V4 offline repair replay | deterministic post | 3/3 replay；3/4 source | 1.0000 replay；0.7500 source | 三个可重放 snapshot 修复；1 infra 使 gate 继续失败。 |
 | V4 frozen development | deterministic post | 3/4 gate；3/3 complete | 0.7500 gate；1.0000 complete | 完整 pair 0.90→1.00；1 Bun infra，gate failed。 |
 
-## 5. 当前结论
+## 6. 当前结论
 
 可以支持：
 
@@ -378,6 +408,8 @@ benchmarks/skill-ir/pilots/env-manager/env-manager-v4-infrastructure-diagnostic-
 - 模型能力会影响产物完整性与安全性，但不是当前全部失败的解释；
 - V4 在三个完整 shared-generation 上以零模型 repair 将 schema criterion 0/3 提升到 3/3；
 - development gate 正确阻断不成熟 artifact。
+- `law-to-markdown` 的真实 source/no-skill/original/scorer 链路可执行且未饱和；pre-IR
+  gate 允许进入 base IR audit，但原始 skill 仍为 0/4 success。
 
 不能支持：
 
@@ -387,7 +419,7 @@ benchmarks/skill-ir/pilots/env-manager/env-manager-v4-infrastructure-diagnostic-
 - 当前 Final IR/package 已成熟；
 - arm mean difference 是 repair 因果增益。
 
-## 6. 结果维护规则
+## 7. 结果维护规则
 
 1. 新实验继续写 compact `scored-results.jsonl`、CSV、summary 和 provenance。
 2. 本文档追加一行/一节，不再新增单次 run Markdown。
