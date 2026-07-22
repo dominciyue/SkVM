@@ -306,6 +306,17 @@ audit；不允许 held-out、PGO、scorer retuning 或主 claim。
 在 8 行持续失败。Gate passed，base IR source audit 已完成；下一步是冻结并执行
 `no-skill | original | ir-static x development`，held-out 仍禁止。
 
+### 10.3 Static Development
+
+Static lock 绑定 exact source、tasks、resource contract、scorer、base IR 与 source-audit
+digest，冻结 GPT-5.6、Windows/clean/bare-agent、`no-skill | original | ir-static`、2 tasks x
+2 repetitions、零重试和 180 秒 route timeout。Runner 已实现 `plan | route-probe | execute`，
+static gate 已实现 12-row/4-triplet 固定分母、0 infrastructure、0 hard-gate regression、
+`ir-static >= 3/4` success、mean `>= 0.85` 与至少一个 original→static 改善 pair。
+
+当前仅完成 plan dry-run 与本地 gate fixture，尚无付费 static 结果。Gate 未过不得运行
+held-out；通过也只允许冻结新的 held-out execution identity，不能直接写成优化成功。
+
 ## 11. Pilot 晋升门禁
 
 每个 deep pilot 需要：
@@ -327,7 +338,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Pre-IR gate passed；static 12-row dry-run 完成，付费 development 未执行。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Pre-IR gate passed；static runner/gate 已冻结，12-row 付费 development 待执行。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 

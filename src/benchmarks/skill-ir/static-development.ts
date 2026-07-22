@@ -51,6 +51,7 @@ export const StaticDevelopmentLockSchema = z.object({
     apiKeyEnv: z.literal("SKVM_XTY_API_KEY"),
     pythonEnv: z.literal("SKVM_PYTHON"),
     retries: z.literal(0),
+    routeProbeTimeoutMs: z.literal(180000),
     resourceProbeRequired: z.literal(true),
     routeProbeRequired: z.literal(true),
   }).strict(),
@@ -176,6 +177,7 @@ export async function buildStaticDevelopmentPlan(opts: {
   rootDir: string;
   lockPath: string;
   outDir: string;
+  execute?: boolean;
 }): Promise<StaticDevelopmentPlan> {
   const rootDir = path.resolve(opts.rootDir);
   const lock = await readAndValidateStaticDevelopmentLock({
@@ -192,7 +194,7 @@ export async function buildStaticDevelopmentPlan(opts: {
     panelConfigId: lock.experimentId,
     outDir: path.isAbsolute(opts.outDir) ? path.resolve(opts.outDir) : path.resolve(rootDir, opts.outDir),
     limit: lock.matrix.expectedRows,
-    execute: false,
+    execute: opts.execute ?? false,
     retries: lock.runtime.retries,
     retryDelayMs: 0,
     rootDir,
@@ -213,6 +215,15 @@ export async function buildStaticDevelopmentPlan(opts: {
   }
   const triplets = new Map<string, Set<string>>();
   for (const row of plan) {
+    if (row.model !== lock.model.route || row.modelFamily !== lock.model.family) {
+      throw new Error("Static development model identity drift");
+    }
+    if (row.adapter !== lock.adapter.id || row.adapterVersion !== lock.adapter.version) {
+      throw new Error("Static development adapter identity drift");
+    }
+    if (row.panelConfigId !== lock.experimentId) {
+      throw new Error("Static development panel identity drift");
+    }
     const key = `${row.caseId}:${row.runIndex}`;
     const systems = triplets.get(key) ?? new Set<string>();
     systems.add(row.system);

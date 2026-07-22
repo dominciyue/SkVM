@@ -22,7 +22,7 @@
 | V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
-| `law-to-markdown` vertical slice | 当前 | Base IR、source audit、static lock 与 12-row dry-run 已完成；下一步补 route/resource 执行门禁。 |
+| `law-to-markdown` vertical slice | 当前 | Base IR、source audit、static lock、三阶段执行门禁与 static gate 已完成；下一步运行冻结 development。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
@@ -792,14 +792,19 @@ held-out 或把结果写成 Skill IR 增益。
 - [x] 冻结独立 static-development lock，只包含 `no-skill | original | ir-static`、两个
   development tasks、clean context 和预注册 repetitions。
 - [x] Plan-only CLI 生成 12-row/4-triplet dry-run，确认 0 held-out、0 PGO/artifact。
-- [ ] 补 route/resource execution guard；通过后执行一次付费 development。未过 gate 不运行
-  held-out、PGO 或 artifact promotion。
+- [x] 补齐 `plan | route-probe | execute` 三阶段门禁；非 plan 阶段重跑资源 probe，route
+  probe 使用 lock 冻结的 180 秒超时，execute 只接受同目录且身份一致的成功 probe。
+- [x] 实现 static gate：12-row/4-triplet 固定分母，缺失或 raw infrastructure 计 0，逐对报告
+  original→ir-static score/criterion transition、hard-gate regression 与 strict improvement。
+- [ ] 运行一次冻结付费 development 并评分。未过 gate 不创建 held-out lock，不运行 PGO 或
+  artifact promotion；通过也只允许规划新的 held-out lock，不直接执行或进入主 claim。
 
 ### Task 7.3：验证与记录
 
 - [x] Focused/core 回归、law scorer、typecheck、文档链接与 secret scan 通过；新增 runnable
   pilot 引出的 matrix/override/lifecycle 回归已修复。
 - [x] 生成 `ir-static` dry-run，确认 12 rows、4 triplets、无 held-out/PGO/artifact system。
+- [x] Static runner/gate focused tests 12/12 与 typecheck 通过；plan CLI 再次生成 12 rows。
 - [ ] Bun 1.3.14 的 benchmark 聚合在 Windows 上无结尾退出状态；全仓库测试另有缺
   `sh/python3` 的既有环境失败。付费前继续使用分组测试并保留该基础设施限制。
 - [x] 更新 spec/plan/组件文档和 conversation log；dry-run/raw workdir 只留本地。

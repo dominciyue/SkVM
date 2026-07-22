@@ -8,8 +8,10 @@ import {
   validateStaticDevelopmentLock,
 } from "./static-development";
 import {
+  assertStaticExecutionPrerequisites,
+  compactStaticRouteProbe,
   parseStaticDevelopmentRunArgs,
-  runStaticDevelopmentPlan,
+  runStaticDevelopmentPhase,
 } from "./static-development-run";
 
 const rootDir = path.resolve(import.meta.dir, "../../..");
@@ -51,6 +53,7 @@ describe("static development lock", () => {
         maximumHardGateRegressions: 0,
         minimumImprovedPairs: 1,
       },
+      runtime: { routeProbeTimeoutMs: 180000 },
     });
     expect(lock.prohibited).toEqual(expect.arrayContaining([
       "held-out execution",
@@ -115,15 +118,20 @@ describe("static development lock", () => {
     await expect(validateStaticDevelopmentLock(lock, rootDir, { manifest })).rejects.toThrow("runnable audited IR");
   });
 
-  test("persists a plan-only dry-run and rejects premature execution phases", async () => {
+  test("persists a plan-only dry-run and accepts only the three frozen phases", async () => {
     const outDir = await mkdtemp(path.join(tmpdir(), "law-static-plan-"));
     try {
-      expect(() => parseStaticDevelopmentRunArgs([
+      expect(parseStaticDevelopmentRunArgs([
         `--lock=${lockPath}`,
         `--out-dir=${outDir}`,
         "--phase=execute",
-      ])).toThrow("phase");
-      const result = await runStaticDevelopmentPlan({ rootDir, lockPath, outDir, phase: "plan" });
+      ])).toMatchObject({ phase: "execute" });
+      expect(() => parseStaticDevelopmentRunArgs([
+        `--lock=${lockPath}`,
+        `--out-dir=${outDir}`,
+        "--phase=other",
+      ])).toThrow("plan, route-probe, or execute");
+      const result = await runStaticDevelopmentPhase({ rootDir, lockPath, outDir, phase: "plan" });
       expect(result).toMatchObject({ phase: "plan", rows: 12 });
       const persisted = JSON.parse(await readFile(path.join(outDir, "plan.json"), "utf8")) as {
         plan: unknown[];
@@ -134,5 +142,58 @@ describe("static development lock", () => {
     } finally {
       await rm(outDir, { recursive: true, force: true });
     }
+  });
+
+  test("compacts route evidence and rejects missing or foreign prerequisites", async () => {
+    const lock = await readAndValidateStaticDevelopmentLock({ rootDir, lockPath });
+    const route = compactStaticRouteProbe({
+      experimentId: lock.experimentId,
+      lockSha256: "a".repeat(64),
+      model: lock.model.route,
+      caseId: "law-to-markdown:skvm:windows:clean:law-to-markdown-statute-dev-001",
+      execution: {
+        exitCode: 0,
+        timedOut: false,
+        durationMs: 42,
+        stdout: "PRIVATE MODEL OUTPUT",
+        stderr: "",
+      },
+    });
+    expect(route).toEqual({
+      schemaVersion: "skill-ir-static-route-probe-result/v1",
+      experimentId: lock.experimentId,
+      methodEvidence: false,
+      lockSha256: "a".repeat(64),
+      model: lock.model.route,
+      caseId: "law-to-markdown:skvm:windows:clean:law-to-markdown-statute-dev-001",
+      system: "original",
+      status: "ok",
+      exitCode: 0,
+      timedOut: false,
+      durationMs: 42,
+    });
+    expect(JSON.stringify(route)).not.toContain("PRIVATE");
+
+    const resource = {
+      schemaVersion: "skill-ir-resource-probe-result/v1" as const,
+      methodEvidence: false as const,
+      status: "ok" as const,
+      executableSource: "env" as const,
+      requiredModules: ["docx", "pdfplumber"],
+      exitCode: 0,
+      stderrClass: "none" as const,
+      durationMs: 1,
+    };
+    expect(() => assertStaticExecutionPrerequisites(lock, resource, route, {
+      SKVM_XTY_API_KEY: "test-only",
+    }, "a".repeat(64))).not.toThrow();
+    expect(() => assertStaticExecutionPrerequisites(lock, resource, route, {}, "a".repeat(64))).toThrow("API key");
+    expect(() => assertStaticExecutionPrerequisites(lock, resource, {
+      ...route,
+      experimentId: "foreign-experiment",
+    }, { SKVM_XTY_API_KEY: "test-only" }, "a".repeat(64))).toThrow("identity");
+    expect(() => assertStaticExecutionPrerequisites(lock, resource, route, {
+      SKVM_XTY_API_KEY: "test-only",
+    }, "b".repeat(64))).toThrow("identity");
   });
 });

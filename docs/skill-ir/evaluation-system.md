@@ -390,7 +390,9 @@ no-skill | original | ir-static
 development x clean x windows x 2 repetitions
 ```
 
-当前 CLI 只开放 plan phase，尚未加入 fresh resource/route evidence 前拒绝 execute：
+CLI 只接受 `plan | route-probe | execute`。后两个 phase 都重新运行 resource probe；route
+probe 只保存 compact status，execute 要求同目录已有成功且身份一致的 probe：
+probe 还携带 lock SHA-256，防止同名 lock 漂移后误用旧结果。
 
 ```powershell
 bun ./src/benchmarks/skill-ir/static-development-run.ts `
@@ -399,9 +401,29 @@ bun ./src/benchmarks/skill-ir/static-development-run.ts `
   '--phase=plan'
 ```
 
+将最后一项依次改为 `--phase=route-probe` 和 `--phase=execute`。执行结果写入
+`<out-dir>/run/raw-runs.jsonl`，评分后运行：
+
+```powershell
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts `
+  '--raw=<out-dir>/run/raw-runs.jsonl' `
+  '--tasks=benchmarks/skill-ir/pilots/law-to-markdown/tasks.json' `
+  '--out=<out-dir>/scored.jsonl'
+
+bun ./src/benchmarks/skill-ir/static-development-gate-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-static-development-lock.json' `
+  '--raw=<out-dir>/run/raw-runs.jsonl' `
+  '--scored=<out-dir>/scored.jsonl' `
+  '--resource=<out-dir>/resource-probe.json' `
+  '--route=<out-dir>/route-probe.json' `
+  '--out=<out-dir>/gate-report.json'
+```
+
 冻结 law 矩阵为 12 rows / 4 complete triplets，模型 `xty/gpt-5.6-sol`，gate 为
 `ir-static success >= 3/4`、mean `>= 0.85`、0 infrastructure、0 hard-gate regression、
 至少一个相对 original 改善 pair。该 gate 在付费前写入 lock，不允许由结果反推。
+缺 raw/scored 或 raw infrastructure 均在固定分母中按 0 分处理。Gate 通过只允许规划新的
+held-out lock，不能直接执行 held-out 或写成主 claim。
 
 ## 11. Route Health
 

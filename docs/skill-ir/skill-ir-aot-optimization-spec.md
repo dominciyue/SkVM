@@ -652,3 +652,24 @@ JSON pointer、完整覆盖和禁用 evidence class。Corpus 已从 `tasks-autho
 `runnable`。该晋级只说明静态输入可审计、可调度，不说明 `ir-static` 已优化成功。
 下一实验必须新建 static-development lock，只跑 development 的
 `no-skill | original | ir-static`；held-out、PGO 和 artifact catalog 继续阻断。
+
+## 17. Law-to-markdown Static Development Contract
+
+Static development 使用 `skill-ir-static-development-lock/v1`，固定 GPT-5.6、
+Windows/clean/bare-agent、两个 development task、两次 repetition、零重试和 180 秒 route
+probe timeout。矩阵只能包含 `no-skill | original | ir-static`，共 12 rows / 4 triplets。
+
+Runner 采用 `plan -> route-probe -> execute`：`plan` 不调用模型；后两阶段都重新验证 lock、
+source audit 和 fresh resource probe；route probe 只执行第一条 original generation 并保存
+脱敏状态；execute 只接受同输出目录中 experiment/model/case/system 完全一致的成功 probe。
+Route probe 同时绑定 lock 文件 SHA-256，同名 lock 内容变化后旧 probe 自动失效。
+
+Static gate 在付费前固定为：`ir-static` 至少 3/4 success、包含缺失和 infrastructure 的均分
+至少 0.85、零 infrastructure、零 original→ir-static hard-gate regression、至少一个严格改善
+pair。Raw/scored 缺行均保留在冻结分母并按 infrastructure/0 分处理；raw 已失败时不得使用
+scored 行携带的分数。Compact report 只保留计数、分数、criterion id transition 和五类输入
+SHA-256，不保留模型正文或 evaluator details。
+
+Gate 通过只允许书面评审并规划新的 held-out lock；当前 lock 的
+`heldOutExecutionAllowed=false`、`entersMainClaim=false` 不变。Gate 失败则停止，不补跑、
+不调 scorer/base IR、不进入 PGO 或 artifact promotion。
