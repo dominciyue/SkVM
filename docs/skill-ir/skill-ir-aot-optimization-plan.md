@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-07-22
+**最后更新：** 2026-07-23
 
 本文件只记录当前状态和下一步。已完成阶段的详细演进见
 `docs/skill-ir/history.md`，组件契约见对应权威文档。
@@ -21,8 +21,8 @@
 | GPT-4.1 capability diagnostic | 完成，gate 失败 | 20 行均无 infra；强模型改善基础执行，但五系统仍 0/4 成功。 |
 | V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
-| V4 infrastructure diagnosis | 当前 | 新 identity 做脱敏归因，不修改冻结方法证据。 |
-| `law-to-markdown` vertical slice | 当前 | 先完成 2+2 task、资源契约和确定性 scorer，保持 `tasks-authored`。 |
+| V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
+| `law-to-markdown` vertical slice | 当前 | 冻结并执行 `no-skill | original` pre-IR development calibration。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
@@ -697,3 +697,62 @@ surface 对齐，不代表 V4 package、Runner 或真实模型实验已完成。
 - [x] 运行 focused Bun tests、全部 Skill IR tests、Python resource probe、typecheck 和文档链接检查。
 - [x] 只在 probe 通过后生成 `no-skill | original x development` dry-run；本任务不付费。
 - [x] 更新 spec、plan、组件文档、conversation log；提交并推送功能与文档，不提交 raw workdir。
+
+## 12. Step 6 文件级 TDD 实施计划
+
+本阶段只校准第二个真实 skill 的原始链路。不得创建 base IR、修改 task/scorer、运行
+held-out 或把结果写成 Skill IR 增益。
+
+### Task 6.1：Pre-IR calibration lock 与计划编译
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/pre-ir-calibration.ts
+新增 src/benchmarks/skill-ir/pre-ir-calibration.test.ts
+新增 src/benchmarks/skill-ir/pre-ir-calibration-run.ts
+新增 src/benchmarks/skill-ir/pre-ir-calibration-run.test.ts
+新增 benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-pre-ir-calibration-lock.json
+更新 docs/skill-ir/real-skill-pilots.md
+```
+
+- [ ] RED：拒绝 digest drift、非 tasks-authored skill、held-out task、static/PGO/artifact
+  system、非 clean context、错误模型/adapter/panel、重试、非 8-row 完整矩阵和 secret。
+- [ ] GREEN：验证 `skill-ir-pre-ir-calibration-lock/v1`，只从 lock 生成 2 systems ×
+  2 development tasks × 2 repetitions 的 exact plan。
+- [ ] GREEN：`plan` phase 不调用模型；`route-probe` 只执行一个 original generation 并输出
+  脱敏 `methodEvidence=false` 结果；`execute` 必须在资源与 route probe 通过后运行完整矩阵。
+
+### Task 6.2：Calibration gate 与 compact evidence
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/pre-ir-calibration-gate.ts
+新增 src/benchmarks/skill-ir/pre-ir-calibration-gate.test.ts
+新增 src/benchmarks/skill-ir/pre-ir-calibration-gate-run.ts
+更新 docs/skill-ir/evaluation-system.md
+更新 docs/skill-ir/experiment-results.md
+```
+
+- [ ] RED：缺 row/pair、duplicate identity、非 development、identity drift、infrastructure、
+  两臂饱和、无 paired outcome difference 和 evaluator payload sink 必须被显式记录或拒绝。
+- [ ] GREEN：固定分母为 8 generations；报告 system success/mean/token、4 个 pair、
+  criterion transition、negative delta、saturation 与 distinguishability，不保存模型正文。
+- [ ] GREEN：Gate 只决定是否允许 base IR audit；不要求 original 优于 no-skill，不允许
+  held-out、scorer retuning、PGO 或主 claim。
+
+### Task 6.3：资源、route 与冻结 development 实验
+
+- [ ] 使用 `SKVM_PYTHON` 重新运行 resource probe；失败立即停止。
+- [ ] 运行 lock-bound dry-run，确认 8 rows、4 complete pairs、0 held-out、0 IR system。
+- [ ] API key 存在时运行一个独立 route probe；通过后执行一次冻结 8-generation calibration。
+- [ ] 使用既有 deterministic scorer 生成 scored rows，再运行 calibration gate；不根据输出
+  修改 task、scorer、lock、模型、repetitions 或 gate。
+- [ ] 更新 spec、plan、组件文档、experiment results 和 conversation log；只提交 compact
+  evidence，raw/workdir/route tail 保留本地。
+
+### Task 6.4：验证与提交
+
+- [ ] 运行 focused RED/GREEN、全部 Skill IR/evaluator tests、typecheck、文档链接与 secret scan。
+- [ ] 提交并推送设计、实现和 compact evidence；记录 gate 是否允许进入 base IR audit。

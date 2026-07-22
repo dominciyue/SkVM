@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-07-22
+**最后更新：** 2026-07-23
 
 ## 1. 项目定位
 
@@ -578,3 +578,36 @@ package、runtime repair 或 compact failure audit。
 本纵切完成 `tasks-authored` 后，先运行资源 probe，再做显式
 `no-skill | original` development calibration。只有链路可执行、scorer 有区分度且无资源
 歧义时，才审计 base IR 并进入 `ir-static`；held-out 在 development method 冻结前不运行。
+
+## 15. Law-to-markdown Pre-IR Calibration
+
+本阶段使用独立 `skill-ir-pre-ir-calibration-lock/v1`，不复用 env-manager lock，也不把
+校准写成 Skill IR 方法证据。冻结身份为：
+
+```text
+calibrationId: law-to-markdown-pre-ir-calibration-v1
+model: xty/gpt-5.6-sol
+model family: gpt
+adapter: bare-agent / workspace-law-pre-ir-v1
+host/context: windows / clean
+systems: no-skill | original
+tasks: 2 development
+repetitions: 2
+expected generations: 8
+retries: 0
+```
+
+Lock 必须绑定原始 `SKILL.md`、`tasks.json`、`resource-contract.json` 和确定性 scorer
+源码摘要。Runner 只能从 lock 编译计划；执行前必须重新通过资源 probe，并已有同一
+lock/model/task 的 route probe。Route probe、resource probe 和校准 gate 都标记
+`methodEvidence=false`。
+
+校准 gate 固定检查：8 个预注册 row 完整、4 个 `no-skill/original` pair 完整、零
+infrastructure、至少一个 no-skill row 未达到任务成功条件，以及至少一个 pair 的
+success/score/criterion vector 不同。Gate 不要求 original 一定优于 no-skill；若 original
+更差，按原 skill 不稳定或有害信号报告。若两臂都满分，记为任务饱和；若两臂完全相同，
+记为缺少区分度。两种情况都停止 base IR，不通过事后修改 scorer 或 held-out 补证据。
+
+Gate 通过后也只允许进入 source-audited base IR 构造与 `ir-static` development；它不
+允许 held-out、PGO、artifact promotion 或主 claim。Raw/workdir/route tail 保留本地，
+仓库只提交不含模型正文、绝对路径、secret 或 evaluator payload 的 compact evidence。
