@@ -97,7 +97,7 @@ async function verifyDigest(rootDir: string, file: { path: string; sha256: strin
 export async function validatePreIrCalibrationLock(
   input: unknown,
   rootDir: string,
-  overrides: { manifest?: CorpusManifest } = {},
+  overrides: { manifest?: CorpusManifest; requireExecutionState?: boolean } = {},
 ): Promise<PreIrCalibrationLock> {
   const lock = PreIrCalibrationLockSchema.parse(input)
   await Promise.all(Object.values(lock.frozenInputs).map((file) => verifyDigest(rootDir, file)))
@@ -107,11 +107,10 @@ export async function validatePreIrCalibrationLock(
     "utf8",
   )) as CorpusManifest
   const skill = manifest.skills.find((entry) => entry.id === lock.skillId)
-  if (!skill || skill.status !== lock.promotionBoundary.corpusStatusAtRun) {
-    throw new Error(`Pre-IR calibration requires ${lock.skillId} to remain tasks-authored`)
-  }
-  if (skill.irPath) {
-    throw new Error("Pre-IR calibration forbids a materialized base IR")
+  const isExecutionState = skill?.status === lock.promotionBoundary.corpusStatusAtRun && !skill.irPath
+  const isPromotedHistoricalState = skill?.status === "runnable" && Boolean(skill.irPath)
+  if (!skill || (overrides.requireExecutionState ? !isExecutionState : !isExecutionState && !isPromotedHistoricalState)) {
+    throw new Error(`Pre-IR calibration requires ${lock.skillId} to have a valid tasks-authored or promoted lifecycle state`)
   }
   if (
     skill.sourcePath !== lock.frozenInputs.source.path
@@ -130,6 +129,13 @@ export async function validatePreIrCalibrationLock(
     throw new Error("Pre-IR calibration contains a non-development task")
   }
   return lock
+}
+
+export async function assertPreIrCalibrationExecutionState(
+  lock: PreIrCalibrationLock,
+  rootDir: string,
+): Promise<void> {
+  await validatePreIrCalibrationLock(lock, rootDir, { requireExecutionState: true })
 }
 
 export async function readAndValidatePreIrCalibrationLock(opts: {

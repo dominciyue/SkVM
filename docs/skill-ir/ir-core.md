@@ -10,6 +10,7 @@ artifact runtime 见 `docs/skill-ir/optimization-and-artifacts.md`。
 src/skill-ir/schema.ts
 src/skill-ir/parser.ts
 src/skill-ir/validate.ts
+src/skill-ir/source-audit.ts
 src/skill-ir/passes/
 src/skill-ir/lowering/
 src/profiler/trace-schema.ts
@@ -45,6 +46,21 @@ const ir: SkillIR = SkillIRSchema.parse(candidate);
 `SkillSourceSchema` 区分 inline 与 file source。File-backed real skill 的 exact
 正文和 resource closure 在 benchmark materialization 阶段加载，IR 中不复制
 整份外部仓库。
+
+### Source Audit Sidecar
+
+真实 skill 的 profile-empty base IR 使用独立 `SkillIRSourceAuditSchema`：
+
+```ts
+const audit = SkillIRSourceAuditSchema.parse(candidate);
+const report = await verifySkillIRSourceAudit(ir, audit, rootDir);
+```
+
+Verifier 检查 source digest、IR source binding、证据 locator、逐节点覆盖和禁用 evidence。
+Markdown 证据使用行号范围；JSON 证据使用显式 allowlist pointer。包含 `tasks` 的 JSON 只
+允许 development `prompt`，不得引用 eval、fixture、threshold 或 held-out prompt。Base IR
+必须保持空 `profile`。该 sidecar 是静态 provenance 门禁，不是 scorer，也不进入 agent
+prompt。
 
 ## 3. Parser
 
@@ -184,6 +200,7 @@ SKILL.md
   -> extraction candidate
   -> SkillIRSchema.parse
   -> validateSkillIR
+  -> verifySkillIRSourceAudit (real file-backed base IR)
   -> normalizeRules
   -> insertEnvironmentGuards
   -> optional typed/profile repair
@@ -207,6 +224,7 @@ bun run typecheck
 - annotation target binding；
 - lowering 不丢 inputs/outputs/environment；
 - typed repair catalog 隔离。
+- source audit digest、coverage、pointer allowlist 和 held-out/evaluator leakage。
 
 ## 10. 修改注意
 

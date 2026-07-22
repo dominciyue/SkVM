@@ -1,0 +1,310 @@
+{
+  "schemaVersion": "skill-ir-source-audit/v1",
+  "skillId": "law-to-markdown",
+  "sources": [
+    {
+      "id": "skill-source",
+      "kind": "markdown",
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+    },
+    {
+      "id": "task-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/tasks.json",
+      "sha256": "f10978a61a98e2a46577ecace9dd9ce9f6f6b5810c1e536cdd2f3e10088a2b1f",
+      "allowedPointers": ["/tasks/0/prompt", "/tasks/1/prompt"]
+    },
+    {
+      "id": "resource-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json",
+      "sha256": "108fc52e7f0155c0066a0517371944c1ef948f0ee5fa24b8cc4b8944d3b848d6",
+      "allowedPointers": [
+        "/inputFormats",
+        "/network",
+        "/packageInstall",
+        "/interpreter",
+        "/probe",
+        "/missingDependencyDisposition"
+      ]
+    }
+  ],
+  "mappings": [
+    {
+      "targetRef": "category",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 2, "end": 34 } }]
+    },
+    {
+      "targetRef": "intent",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 3, "end": 34 } }]
+    },
+    {
+      "targetRef": "input:source-document",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 3, "end": 17 } }]
+    },
+    {
+      "targetRef": "input:output-options",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 36, "end": 72 } }]
+    },
+    {
+      "targetRef": "input:fallback-consent",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 16, "end": 17 } }]
+    },
+    {
+      "targetRef": "output:review-report",
+      "construction": "task-contract",
+      "evidence": [
+        { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 54, "end": 71 } },
+        { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }
+      ]
+    },
+    {
+      "targetRef": "output:final-markdown",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 58, "end": 64 } }]
+    },
+    {
+      "targetRef": "output:diagnostic-artifacts",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 65, "end": 71 } }]
+    },
+    {
+      "targetRef": "precondition:input-readable",
+      "construction": "schema-plumbing",
+      "evidence": [
+        { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 3, "end": 11 } },
+        { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/inputFormats" } }
+      ]
+    },
+    {
+      "targetRef": "precondition:runtime-available",
+      "construction": "resource-contract",
+      "evidence": [
+        { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter" } },
+        { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/probe" } }
+      ]
+    },
+    {
+      "targetRef": "precondition:conversion-policy-known",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 11, "end": 17 } }]
+    },
+    {
+      "targetRef": "precondition:task-resource-boundary",
+      "construction": "task-contract",
+      "evidence": [
+        { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } },
+        { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/network" } },
+        { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/packageInstall" } }
+      ]
+    },
+    {
+      "targetRef": "step:step-inspect-request",
+      "construction": "task-contract",
+      "evidence": [
+        { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 36, "end": 52 } },
+        { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }
+      ]
+    },
+    {
+      "targetRef": "step:step-classify-document",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 18, "end": 20 } }]
+    },
+    {
+      "targetRef": "step:step-select-converter",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 10, "end": 17 } }]
+    },
+    {
+      "targetRef": "step:step-run-formatting",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 18, "end": 30 } }]
+    },
+    {
+      "targetRef": "step:step-verify-stage3",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 31, "end": 34 } }]
+    },
+    {
+      "targetRef": "step:step-enforce-output-policy",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 54, "end": 72 } }]
+    },
+    {
+      "targetRef": "step:step-report-result",
+      "construction": "task-contract",
+      "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }]
+    },
+    {
+      "targetRef": "rule:rule-preserve-input",
+      "construction": "task-contract",
+      "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }]
+    },
+    {
+      "targetRef": "rule:rule-preserve-character-stream",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 18, "end": 34 } }]
+    },
+    {
+      "targetRef": "rule:rule-heading-hierarchy",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 21, "end": 28 } }]
+    },
+    {
+      "targetRef": "rule:rule-reject-non-law",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 29, "end": 29 } }]
+    },
+    {
+      "targetRef": "rule:rule-consent-before-fallback",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 11, "end": 17 } }]
+    },
+    {
+      "targetRef": "rule:rule-noop-on-unsafe-stage2",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 30, "end": 30 } }]
+    },
+    {
+      "targetRef": "rule:rule-stage3-strict",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 31, "end": 48 } }]
+    },
+    {
+      "targetRef": "rule:rule-minimal-artifacts",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 49, "end": 71 } }]
+    },
+    {
+      "targetRef": "rule:rule-offline-pilot",
+      "construction": "task-contract",
+      "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }]
+    },
+    {
+      "targetRef": "rule:rule-concise-completion",
+      "construction": "task-contract",
+      "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }]
+    },
+    {
+      "targetRef": "tool:tool-filesystem",
+      "construction": "schema-plumbing",
+      "evidence": [
+        { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 54, "end": 72 } },
+        { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }
+      ]
+    },
+    {
+      "targetRef": "tool:tool-bundled-script",
+      "construction": "source-explicit",
+      "evidence": [
+        { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 74, "end": 87 } },
+        { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }
+      ]
+    },
+    {
+      "targetRef": "tool:tool-python",
+      "construction": "resource-contract",
+      "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter" } }]
+    },
+    {
+      "targetRef": "tool:tool-mineru-ocr",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 11, "end": 16 } }]
+    },
+    {
+      "targetRef": "tool:tool-local-fallback",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 16, "end": 17 } }]
+    },
+    {
+      "targetRef": "environment:env-python-runtime",
+      "construction": "resource-contract",
+      "evidence": [
+        { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter" } },
+        { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/probe" } }
+      ]
+    },
+    {
+      "targetRef": "environment:env-offline-execution",
+      "construction": "task-contract",
+      "evidence": [
+        { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } },
+        { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/missingDependencyDisposition" } }
+      ]
+    },
+    {
+      "targetRef": "environment:env-path-and-encoding",
+      "construction": "static-clarification",
+      "evidence": [
+        { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 21, "end": 28 } },
+        { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }
+      ]
+    },
+    {
+      "targetRef": "check:check-input-preserved",
+      "construction": "task-contract",
+      "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }]
+    },
+    {
+      "targetRef": "check:check-document-policy",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 18, "end": 20 } }]
+    },
+    {
+      "targetRef": "check:check-converter-policy",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 11, "end": 17 } }]
+    },
+    {
+      "targetRef": "check:check-content-fidelity",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 31, "end": 33 } }]
+    },
+    {
+      "targetRef": "check:check-structure-policy",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 21, "end": 34 } }]
+    },
+    {
+      "targetRef": "check:check-output-policy",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 54, "end": 71 } }]
+    },
+    {
+      "targetRef": "check:check-review-report",
+      "construction": "task-contract",
+      "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }]
+    },
+    {
+      "targetRef": "recovery:recovery-mineru-unavailable",
+      "construction": "source-explicit",
+      "evidence": [
+        { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 11, "end": 14 } },
+        { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }
+      ]
+    },
+    {
+      "targetRef": "recovery:recovery-converter-failed",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 15, "end": 17 } }]
+    },
+    {
+      "targetRef": "recovery:recovery-stage2-noop",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 29, "end": 30 } }]
+    },
+    {
+      "targetRef": "recovery:recovery-stage3-retry",
+      "construction": "source-explicit",
+      "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 31, "end": 48 } }]
+    }
+  ],
+  "excludedEvidenceClasses": ["evaluator-payload", "held-out", "runtime-output", "profile-feedback"]
+}

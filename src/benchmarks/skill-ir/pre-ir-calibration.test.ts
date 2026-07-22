@@ -88,10 +88,16 @@ describe("pre-IR calibration lock", () => {
     const skill = manifest.skills.find((entry) => entry.id === "law-to-markdown")!
 
     skill.status = "runnable"
-    await expect(validatePreIrCalibrationLock(lock, rootDir, { manifest })).rejects.toThrow("tasks-authored")
+    await expect(validatePreIrCalibrationLock(lock, rootDir, {
+      manifest,
+      requireExecutionState: true,
+    })).rejects.toThrow("lifecycle state")
 
     skill.status = "tasks-authored"
     skill.irPath = "benchmarks/skill-ir/pilots/law-to-markdown/base-ir.json"
-    await expect(validatePreIrCalibrationLock(lock, rootDir, { manifest })).rejects.toThrow("base IR")
+    await expect(validatePreIrCalibrationLock(lock, rootDir, {
+      manifest,
+      requireExecutionState: true,
+    })).rejects.toThrow("lifecycle state")
   })
 })

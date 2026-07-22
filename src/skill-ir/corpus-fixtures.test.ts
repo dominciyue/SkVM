@@ -55,7 +55,7 @@ describe("skill-ir corpus fixtures", () => {
     expect(pilot.skills.filter((skill) => skill.wave === "A")).toHaveLength(3);
     expect(pilot.skills.filter((skill) => skill.wave === "B")).toHaveLength(3);
     expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("runnable");
-    expect(pilot.skills.find((skill) => skill.id === "law-to-markdown")?.status).toBe("tasks-authored");
+    expect(pilot.skills.find((skill) => skill.id === "law-to-markdown")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "experimental-design")?.status).toBe("source-imported");
     expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
   });
@@ -89,7 +89,7 @@ describe("skill-ir corpus fixtures", () => {
       tasksPath: "benchmarks/skill-ir/pilots/env-manager/tasks.json",
       irPath: "benchmarks/skill-ir/pilots/env-manager/base-ir.json",
     });
-    expect(pilot.skills.filter((skill) => skill.status === "runnable")).toHaveLength(1);
+    expect(pilot.skills.filter((skill) => skill.status === "runnable")).toHaveLength(2);
 
     const irText = readFileSync(join(process.cwd(), envManager!.irPath!), "utf8");
     const ir = SkillIRSchema.parse(JSON.parse(irText));
@@ -390,24 +390,42 @@ describe("skill-ir corpus fixtures", () => {
     }
   });
 
-  test("law-to-markdown is tasks-authored with a frozen 2+2 txt task and resource contract", () => {
+  test("law-to-markdown is runnable with a source-audited base IR and frozen 2+2 contract", async () => {
     const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
       skills: {
         id: string;
         status: string;
         tasksPath?: string;
         irPath?: string;
+        sourceAuditPath?: string;
         resourceContractPath?: string;
       }[];
     };
     const skill = manifest.skills.find((candidate) => candidate.id === "law-to-markdown");
 
     expect(skill).toMatchObject({
-      status: "tasks-authored",
+      status: "runnable",
       tasksPath: "benchmarks/skill-ir/pilots/law-to-markdown/tasks.json",
+      irPath: "benchmarks/skill-ir/pilots/law-to-markdown/base-ir.json",
+      sourceAuditPath: "benchmarks/skill-ir/pilots/law-to-markdown/base-ir-source-audit.json",
       resourceContractPath: "benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json",
     });
-    expect(skill?.irPath).toBeUndefined();
+
+    const { SkillIRSourceAuditSchema, verifySkillIRSourceAudit } = await import("./source-audit");
+    const ir = SkillIRSchema.parse(readJson(join(process.cwd(), skill!.irPath!)));
+    const audit = SkillIRSourceAuditSchema.parse(readJson(join(process.cwd(), skill!.sourceAuditPath!)));
+    expect(ir.id).toBe("law-to-markdown");
+    expect(ir.profile).toEqual([]);
+    expect(validateSkillIR(ir)).toEqual({ errors: [], warnings: [] });
+    expect(await verifySkillIRSourceAudit(ir, audit, process.cwd())).toEqual({ errors: [], warnings: [] });
+
+    const serializedStaticInputs = JSON.stringify({ ir, audit });
+    expect(serializedStaticInputs).not.toContain("law-to-markdown-regulation-heldout-001");
+    expect(serializedStaticInputs).not.toContain("law-to-markdown-manual-heldout-002");
+    expect(serializedStaticInputs).not.toContain("law-document-policy");
+    expect(serializedStaticInputs).not.toContain("law-review-outcome");
+    expect(serializedStaticInputs).not.toContain("passThreshold");
+    expect(serializedStaticInputs).not.toContain("expectedHeadings");
 
     const taskSet = readJson(join(process.cwd(), skill!.tasksPath!)) as {
       schemaVersion: string;

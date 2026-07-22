@@ -176,10 +176,16 @@ describe("buildCorpusMatrixInput", () => {
     expect(input.skills.every((skill) => typeof skill !== "string" && skill.packaging === "focused")).toBe(true);
   });
 
-  test("schedules only the runnable real pilot with cold-start systems", () => {
+  test("schedules every runnable real pilot with cold-start systems", () => {
     const input = buildCorpusMatrixInput("pilot");
 
     expect(input.skills).toEqual([
+      {
+        id: "law-to-markdown",
+        packaging: "focused",
+        provenance: "real-public",
+        evidenceWeight: "main-real",
+      },
       {
         id: "env-manager",
         packaging: "focused",
@@ -188,6 +194,12 @@ describe("buildCorpusMatrixInput", () => {
       },
     ]);
     expect(input.tasksBySkill).toEqual({
+      "law-to-markdown": [
+        "law-to-markdown-statute-dev-001",
+        "law-to-markdown-standard-dev-002",
+        "law-to-markdown-regulation-heldout-001",
+        "law-to-markdown-manual-heldout-002",
+      ],
       "env-manager": [
         "env-manager-node-audit-dev-001",
         "env-manager-vite-audit-dev-002",
@@ -198,23 +210,9 @@ describe("buildCorpusMatrixInput", () => {
     expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);
   });
 
-  test("pre-IR mode schedules only the tasks-authored law pilot development split", () => {
-    const input = buildCorpusMatrixInput("pilot", process.cwd(), {
+  test("pre-IR mode closes once no tasks-authored pilot remains", () => {
+    expect(() => buildCorpusMatrixInput("pilot", process.cwd(), {
       mode: "tasks-authored-calibration",
-    });
-
-    expect(input.skills).toEqual([{
-      id: "law-to-markdown",
-      packaging: "focused",
-      provenance: "real-public",
-      evidenceWeight: "main-real",
-    }]);
-    expect(input.tasksBySkill).toEqual({
-      "law-to-markdown": [
-        "law-to-markdown-statute-dev-001",
-        "law-to-markdown-standard-dev-002",
-      ],
-    });
-    expect(input.systems).toEqual(["no-skill", "original"]);
+    })).toThrow("0 tasks-authored skills");
   });
 });

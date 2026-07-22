@@ -140,6 +140,28 @@ Wave A 用于方法开发。完整主 claim 必须包含 Wave B，并且 Wave B 
 可以规范规则、插入环境 guard、补全 agent-facing contract 和生成 lowering 视图，
 但不能读取 evaluator expected 或 held-out 数据。
 
+Source audit 使用独立 `skill-ir-source-audit/v1` sidecar，不把 provenance 字段塞入核心
+IR schema。Sidecar 固定 source/task/resource digest，并要求 category、intent 以及每个
+input/output/precondition/step/rule/tool/environment/check/recovery 节点都有公开证据映射。
+Task JSON 只允许引用 development task 的 `prompt`；`eval`、fixture、threshold、held-out
+prompt、runtime output 和 profile feedback 均不得作为 base IR 静态证据。
+
+### 新 Skill 的分层验证
+
+工程终态不要求每个新 skill 都人工、付费地重复完整研究流程。所有新 skill 必须经过
+低成本层：provenance/license/resource closure、source digest、schema/static validation、
+source audit 和确定性 lowering。后续预算按风险和证据自适应：
+
+1. 新任务/scorer 或饱和度未知时，做小规模 `no-skill | original` calibration。
+2. 静态 IR 有可观察改进空间时，进入 `ir-static x development`。
+3. 只有稳定残差且公开证据可修复时，才生成 dynamic overlay/Final IR candidate。
+4. 只有候选通过冻结 development gate，才运行 held-out、多模型 panel 或 artifact promotion。
+
+Source、task contract、compiler 和 artifact digest 未变化时可复用已验证产物，不重复付费。
+当前 Wave A deep pilots 为论文方法验证，需走完整链路；Wave B 使用冻结方法做 replication；
+其余 intake candidate 不因“被收录”自动获得完整实验预算。Validation planner 将来负责自动
+分配层级，当前仍只是 advisory tooling，不能替代预注册实验门禁。
+
 ### 动态阶段
 
 当前采用 task-local dual-source residual repair：
@@ -618,3 +640,15 @@ success/score/criterion vector 不同。Gate 不要求 original 一定优于 no-
 Gate 通过后也只允许进入 source-audited base IR 构造与 `ir-static` development；它不
 允许 held-out、PGO、artifact promotion 或主 claim。Raw/workdir/route tail 保留本地，
 仓库只提交不含模型正文、绝对路径、secret 或 evaluator payload 的 compact evidence。
+
+## 16. Law-to-markdown Source-audited Base IR
+
+Pre-IR gate 通过后，已从固定 `SKILL.md`、两个 development prompt 和 resource contract
+构造 profile-empty 中文 base IR。IR 覆盖 txt/docx/pdf 分支、mineru-ocr 优先级、用户授权
+后的本地回退、法律层级格式、字符流保真、Stage3 双检查、最多两次重试和条件产物策略。
+
+`base-ir-source-audit.json` 逐节点绑定公开证据并由通用 verifier 检查 digest、line range、
+JSON pointer、完整覆盖和禁用 evidence class。Corpus 已从 `tasks-authored` 晋级
+`runnable`。该晋级只说明静态输入可审计、可调度，不说明 `ir-static` 已优化成功。
+下一实验必须新建 static-development lock，只跑 development 的
+`no-skill | original | ir-static`；held-out、PGO 和 artifact catalog 继续阻断。

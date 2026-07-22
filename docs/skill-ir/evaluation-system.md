@@ -376,6 +376,33 @@ criterion pass transition。Gate 要求完整、零 infrastructure、no-skill �
 pair 有不同 outcome vector；不要求 original 优于 no-skill。Compact report 只绑定
 lock/raw/scored/resource/route SHA-256，不保存路径、模型输出或 evaluator details。
 
+Pre-IR lock 在 pilot 晋级后仍可按 digest 重建历史 plan，但 `route-probe/execute` 会重新
+检查 live corpus 必须仍为 `tasks-authored` 且没有 base IR，因此旧阶段不能被误重放。
+
+### Static Development Lock
+
+`static-development.ts` 定义通用 `skill-ir-static-development-lock/v1`。Lock 要求 live pilot
+已经 `runnable`，并同时绑定 source、tasks、resource contract、deterministic scorer、
+profile-empty base IR 与 source-audit sidecar。计划只允许：
+
+```text
+no-skill | original | ir-static
+development x clean x windows x 2 repetitions
+```
+
+当前 CLI 只开放 plan phase，尚未加入 fresh resource/route evidence 前拒绝 execute：
+
+```powershell
+bun ./src/benchmarks/skill-ir/static-development-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-static-development-lock.json' `
+  '--out-dir=results/skill-ir/law-to-markdown-static-development-dry-run-2026-07-23' `
+  '--phase=plan'
+```
+
+冻结 law 矩阵为 12 rows / 4 complete triplets，模型 `xty/gpt-5.6-sol`，gate 为
+`ir-static success >= 3/4`、mean `>= 0.85`、0 infrastructure、0 hard-gate regression、
+至少一个相对 original 改善 pair。该 gate 在付费前写入 lock，不允许由结果反推。
+
 ## 11. Route Health
 
 `route-probe-run.ts` 对每个模型运行一个代表 case，输出：

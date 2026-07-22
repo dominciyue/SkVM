@@ -267,9 +267,12 @@ review outcome 只存在 evaluator payload。
 输入保护、required artifact 和 source accounting 是 hard gate，阈值为 0.85。Scorer
 只读取 workdir；compact row 不保留 payload 或全文 gold。
 
-当前 manifest 状态为 `tasks-authored`，没有 `irPath`。本地 resource probe 在默认 Conda
-Python 上因缺 `docx` 失败，在显式工作区 Python 上通过；早期单 repetition dry-run 为
-4 行，随后冻结 calibration 改为 2 repetitions，lock-bound dry-run 为 8 行。
+当前 manifest 状态为 `runnable`，已绑定 `base-ir.json` 与
+`base-ir-source-audit.json`。Base IR 保持中文并显式表达转换分支、工具/授权边界、格式与
+保真检查、产物策略和有界恢复；通用 source-audit verifier 要求每个语义节点绑定固定
+digest 的公开 source、development prompt 或资源契约，并拒绝 evaluator/held-out evidence。
+本地 resource probe 在默认 Conda Python 上因缺 `docx` 失败，在显式工作区 Python 上通过；
+冻结 calibration 为 2 repetitions，lock-bound dry-run 为 8 行。
 
 ### 10.2 Pre-IR Calibration
 
@@ -300,7 +303,8 @@ audit；不允许 held-out、PGO、scorer retuning 或主 claim。
 
 2026-07-23 实际运行 8/8 rows、4/4 pairs、0 infrastructure。No-skill 和 original 均为
 0/4 success，mean 为 0.70 与 0.75；只有 1 个 pair 改善 document-policy，review-outcome
-在 8 行持续失败。Gate passed，因此下一步是 base IR source audit；held-out 仍禁止。
+在 8 行持续失败。Gate passed，base IR source audit 已完成；下一步是冻结并执行
+`no-skill | original | ir-static x development`，held-out 仍禁止。
 
 ## 11. Pilot 晋升门禁
 
@@ -323,7 +327,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 未完成 | Pre-IR calibration gate passed；允许 base IR audit。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Pre-IR gate passed；static 12-row dry-run 完成，付费 development 未执行。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 

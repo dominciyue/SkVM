@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { z } from "zod"
 import {
+  assertPreIrCalibrationExecutionState,
   readAndValidatePreIrCalibrationLock,
   type PreIrCalibrationLock,
 } from "./pre-ir-calibration.ts"
@@ -64,6 +65,7 @@ function calibrationRunArgs(
   rootDir: string,
   outDir: string,
   execute: boolean,
+  allowTasksAuthored: boolean,
 ): RealAgentRunArgs {
   return {
     corpus: lock.corpus,
@@ -79,7 +81,7 @@ function calibrationRunArgs(
     retries: lock.runtime.retries,
     retryDelayMs: 0,
     rootDir,
-    allowTasksAuthored: true,
+    allowTasksAuthored,
     allowDevelopmentReplay: false,
     allowArtifactDevelopmentReplay: false,
     skills: new Set([lock.skillId]),
@@ -100,7 +102,12 @@ export async function buildPreIrCalibrationPlan(
   const lockPath = resolveFromRoot(rootDir, opts.lockPath)
   const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath })
   const execute = opts.phase === "execute"
-  const runArgs = calibrationRunArgs(lock, rootDir, outDir, execute)
+  const manifest = JSON.parse(await readFile(
+    path.resolve(rootDir, "benchmarks/skill-ir/corpus/corpora/pilot.json"),
+    "utf8",
+  )) as { skills: Array<{ id?: string; status?: string }> }
+  const allowTasksAuthored = manifest.skills.find((skill) => skill.id === lock.skillId)?.status === "tasks-authored"
+  const runArgs = calibrationRunArgs(lock, rootDir, outDir, execute, allowTasksAuthored)
   const plan = await buildPlan(runArgs)
   if (plan.length !== lock.matrix.expectedRows) {
     throw new Error(`Pre-IR calibration row mismatch: expected ${lock.matrix.expectedRows}, got ${plan.length}`)
@@ -245,6 +252,8 @@ export async function runPreIrCalibrationPhase(opts: PreIrCalibrationRunArgs): P
   if (opts.phase === "plan") {
     return { calibrationId: result.calibrationId, phase: opts.phase, rows: result.plan.length, planPath }
   }
+
+  await assertPreIrCalibrationExecutionState(result.lock, result.runArgs.rootDir)
 
   const resource = await runResourcePreflight(result, outDir)
   if (opts.phase === "route-probe") {

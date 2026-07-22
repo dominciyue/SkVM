@@ -13,7 +13,7 @@
 | Synthetic corpus/matrix/analyzer | 完成，低权重 | 只用于 calibration 和受控失败。 |
 | Real-agent runner/scorer/pairing | 完成 | 已支持 persistent workdir 和完整 run identity。 |
 | Real skill provenance intake | 完成首轮 | 6 个 pilot，Wave A 3 + Wave B 3。 |
-| `env-manager` task/scorer/base IR | 完成 | 当前唯一 runnable 真实 pilot。 |
+| `env-manager` task/scorer/base IR | 完成 | 首个 runnable 真实 pilot，保留冻结实验链路。 |
 | Static IR development run | 完成 | Partial correctness 改善，binary success 仍 0/4。 |
 | Dual-source Final IR | 完成候选 | V1/v2 均未过 development gate。 |
 | Executable artifact v1 | 冻结失败证据 | Validator semantic coverage 不足，repair 未触发。 |
@@ -22,7 +22,7 @@
 | V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
-| `law-to-markdown` vertical slice | 当前 | Pre-IR gate 已通过；下一步做 source-audited base IR。 |
+| `law-to-markdown` vertical slice | 当前 | Base IR、source audit、static lock 与 12-row dry-run 已完成；下一步补 route/resource 执行门禁。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
@@ -36,6 +36,7 @@
 - `no-skill`、`original`、`ir-static`、`ir-pgo-dev`、`ir-pgo`、
   `ir-artifact-dev` 调度边界。
 - File-backed exact original source 和 source closure materialization。
+- Digest-bound source audit sidecar，逐节点覆盖 IR 语义并拒绝 evaluator/held-out evidence。
 - Model/family/adapter/version/run/panel/provenance identity。
 - Persistent workdir 与 deterministic evaluator dispatch。
 - Paired result、slice、route health、promotion 和 validation plan 工具。
@@ -132,7 +133,7 @@ artifact:   one-repair                        = 4 rows
 若所有系统均通过，则记录任务饱和，不写成 Skill IR 增益。跨时间 provider 差异作为限制
 单独披露。
 
-### Step 3：合并两路证据后设计下一 catalog（当前）
+### Step 3：合并两路证据后设计下一 catalog（已完成）
 
 - Catalog 固定为 `executable-public-contract-artifact/v3`，V1/V2 不原地修改。
 - 编译 public output/schema policy 与 agent-visible evidence graph。
@@ -159,9 +160,10 @@ artifact:   one-repair                        = 4 rows
 - development/held-out split；
 - frozen method，不按第二个 skill 结果回调第一份配置。
 
-当前第一刀固定为 `law-to-markdown` 的 task/scorer 纵切。先只支持 `.txt`，同时显式记录
-上游脚本对 `python-docx`/`pdfplumber` 的 eager import；依赖 probe 未通过时禁止付费运行。
-本阶段结束状态必须是 `tasks-authored`，不能提前写 `base-ir.json` 或改为 `runnable`。
+第一刀已完成 `law-to-markdown` 的 task/scorer 纵切和 pre-IR calibration。当前只支持
+`.txt`，同时显式记录上游脚本对 `python-docx`/`pdfplumber` 的 eager import；依赖 probe
+未通过时禁止付费运行。Source-audited base IR 与机器可检验的 evidence sidecar 已使该
+pilot 晋级 `runnable`，下一轮只运行 `no-skill | original | ir-static x development`。
 
 ### Step 6：固定多模型 panel
 
@@ -756,3 +758,48 @@ held-out 或把结果写成 Skill IR 增益。
 
 - [x] 运行 focused RED/GREEN、全部 Skill IR/evaluator tests、typecheck、文档链接与 secret scan。
 - [x] 提交并推送设计、实现和 compact evidence；记录 gate 是否允许进入 base IR audit。
+
+## 13. Step 7：Law Base IR 与 Static Development
+
+### Task 7.1：机器可检验的 Source Audit
+
+**文件：**
+
+```text
+新增 src/skill-ir/source-audit.ts
+新增 src/skill-ir/source-audit.test.ts
+更新 src/skill-ir/corpus-fixtures.test.ts
+```
+
+- [x] RED：缺失/重复 target、digest 漂移、越界行号、未批准 JSON pointer、evaluator、
+  fixture、threshold 和 held-out prompt 均失败。
+- [x] GREEN：每个有稳定 id 的 IR semantic node 都必须映射到固定 digest 的 source 行、
+  development prompt 或 resource-contract pointer；base IR `profile` 必须为空。
+
+### Task 7.2：`law-to-markdown` Base IR 与 Corpus 晋级
+
+**文件：**
+
+```text
+新增 benchmarks/skill-ir/pilots/law-to-markdown/base-ir.json
+新增 benchmarks/skill-ir/pilots/law-to-markdown/base-ir-source-audit.json
+更新 benchmarks/skill-ir/corpus/corpora/pilot.json
+```
+
+- [x] 用中文 IR 显式表达输入分支、工具优先级、用户回退授权、格式层级、Stage3 双检查、
+  最多两次恢复和条件产物，不引入 evaluator expected。
+- [x] Manifest 晋级 `runnable`，同时绑定 `irPath` 与 `sourceAuditPath`。
+- [x] 冻结独立 static-development lock，只包含 `no-skill | original | ir-static`、两个
+  development tasks、clean context 和预注册 repetitions。
+- [x] Plan-only CLI 生成 12-row/4-triplet dry-run，确认 0 held-out、0 PGO/artifact。
+- [ ] 补 route/resource execution guard；通过后执行一次付费 development。未过 gate 不运行
+  held-out、PGO 或 artifact promotion。
+
+### Task 7.3：验证与记录
+
+- [x] Focused/core 回归、law scorer、typecheck、文档链接与 secret scan 通过；新增 runnable
+  pilot 引出的 matrix/override/lifecycle 回归已修复。
+- [x] 生成 `ir-static` dry-run，确认 12 rows、4 triplets、无 held-out/PGO/artifact system。
+- [ ] Bun 1.3.14 的 benchmark 聚合在 Windows 上无结尾退出状态；全仓库测试另有缺
+  `sh/python3` 的既有环境失败。付费前继续使用分组测试并保留该基础设施限制。
+- [x] 更新 spec/plan/组件文档和 conversation log；dry-run/raw workdir 只留本地。

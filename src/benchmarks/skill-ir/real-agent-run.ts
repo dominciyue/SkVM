@@ -526,6 +526,9 @@ async function loadSkillBenchmarkFixtures(args: RealAgentRunArgs): Promise<Map<s
     if (skill.status !== eligibleStatus) {
       continue;
     }
+    if (args.skills && !args.skills.has(skill.id)) {
+      continue;
+    }
     if (!skill.tasksPath) {
       throw new Error(`Skill ${skill.id} is missing tasksPath in corpus manifest`);
     }

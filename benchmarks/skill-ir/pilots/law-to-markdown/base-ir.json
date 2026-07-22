@@ -1,0 +1,414 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "law-to-markdown",
+  "name": "Law To Markdown",
+  "category": ["workflow", "tool-use", "environment-sensitive"],
+  "intent": "在不改变原文字符内容的前提下，将 txt、docx 或 pdf 法律及规范文档转换为结构化 Markdown，执行法律类型判定、格式调整、保真与结构检查，并按审核结论交付最小产物。",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+    "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+  },
+  "inputs": [
+    {
+      "id": "source-document",
+      "description": "用户指定的 .txt、.docx 或 .pdf 文档；当前 pilot 的公开任务契约使用工作目录中的 document.txt。",
+      "required": true
+    },
+    {
+      "id": "output-options",
+      "description": "可选的输出路径、产物级别、法律判定和第三阶段检查参数；未指定时使用 skill 的默认值。",
+      "required": false
+    },
+    {
+      "id": "fallback-consent",
+      "description": "当 docx/pdf 的 mineru-ocr 路径失败时，用户是否明确同意使用本地 python-docx 或 pdfplumber 回退。",
+      "required": false
+    }
+  ],
+  "outputs": [
+    {
+      "id": "review-report",
+      "description": "审核报告，记录输入文件、处理与检查结果、最终审核结论以及是否可交付。",
+      "required": true
+    },
+    {
+      "id": "final-markdown",
+      "description": "仅在法律文本审核通过且可交付时生成的最终 Markdown；非法律或审核失败时不得生成。",
+      "required": false
+    },
+    {
+      "id": "diagnostic-artifacts",
+      "description": "standard/debug 模式或审核失败时保留的 stage1、stage2、stage3-check 等过程文件。",
+      "required": false
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "input-readable",
+      "description": "输入文件存在、可读且格式属于当前资源契约允许的范围。",
+      "checkability": "runtime"
+    },
+    {
+      "id": "runtime-available",
+      "description": "可使用满足资源契约版本要求的 Python 解释器与 bundled script；所需模块由 preflight 探测。",
+      "checkability": "runtime"
+    },
+    {
+      "id": "conversion-policy-known",
+      "description": "对于 docx/pdf，已确认 mineru-ocr 可用性以及本地回退是否获得用户明确同意。",
+      "checkability": "runtime"
+    },
+    {
+      "id": "task-resource-boundary",
+      "description": "当前 pilot 运行禁止联网和安装软件包，只能使用已固定的 source closure 与本地运行时。",
+      "checkability": "runtime"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-inspect-request",
+      "title": "检查输入与公开任务契约",
+      "description": "确认输入文件格式、输出目录、产物级别、法律判定参数、检查参数和当前网络/安装限制，不修改输入文件。",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["execution-plan"],
+      "successCheckRefs": ["check-input-preserved"],
+      "failureModes": ["missing-input", "unsupported-input-format", "output-contract-missed"]
+    },
+    {
+      "id": "step-classify-document",
+      "title": "判定法律文档类型",
+      "description": "由调用方先判断法律或非法律并传给脚本；无法可靠判定时使用脚本的 --law-decision auto 硬规则，不凭 evaluator 期望猜测。",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-inspect-request"],
+      "toolRefs": ["tool-bundled-script", "tool-python"],
+      "produces": ["law-decision"],
+      "successCheckRefs": ["check-document-policy"],
+      "failureModes": ["unsupported-document", "uncertain-law-decision"]
+    },
+    {
+      "id": "step-select-converter",
+      "title": "选择首阶段转换路径",
+      "description": "txt 直接转存；docx/pdf 先检查 mineru-ocr，失败时先提示配置或 Token，仅在用户明确同意后选择本地回退。",
+      "kind": "plan",
+      "required": true,
+      "dependsOn": ["step-inspect-request"],
+      "toolRefs": ["tool-bundled-script", "tool-mineru-ocr", "tool-local-fallback"],
+      "produces": ["converter-selection"],
+      "successCheckRefs": ["check-converter-policy"],
+      "failureModes": ["mineru-missing", "mineru-failed", "fallback-without-consent"]
+    },
+    {
+      "id": "step-run-formatting",
+      "title": "执行转换与格式调整",
+      "description": "调用 bundled law_to_markdown.py 完成第一阶段转换，并按法律判定执行或拒绝第二阶段；只增加 Markdown 标题、调整空白和拆分项/目。",
+      "kind": "execute",
+      "required": true,
+      "dependsOn": ["step-classify-document", "step-select-converter"],
+      "toolRefs": ["tool-bundled-script", "tool-python"],
+      "produces": ["stage1-document", "stage2-document"],
+      "successCheckRefs": ["check-content-fidelity", "check-structure-policy"],
+      "failureModes": ["conversion-failed", "content-changed", "structure-not-recognized"]
+    },
+    {
+      "id": "step-verify-stage3",
+      "title": "执行第三阶段双检查",
+      "description": "执行 Stage3-A 字符流保真检查和 Stage3-B 结构效果检查；任一失败均视为本轮未通过。",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": ["step-run-formatting"],
+      "toolRefs": ["tool-bundled-script", "tool-python"],
+      "produces": ["stage3-result"],
+      "successCheckRefs": ["check-content-fidelity", "check-structure-policy"],
+      "failureModes": ["stage3-a-failed", "stage3-b-failed"]
+    },
+    {
+      "id": "step-enforce-output-policy",
+      "title": "按结论物化产物",
+      "description": "按 artifact-level 和审核结论生成审核报告；仅在法律文本审核通过时生成最终成果，非法律文本只保留拒绝报告。",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": ["step-verify-stage3"],
+      "toolRefs": ["tool-filesystem", "tool-bundled-script"],
+      "produces": ["review-report", "final-markdown", "diagnostic-artifacts"],
+      "successCheckRefs": ["check-output-policy", "check-review-report"],
+      "failureModes": ["missing-review-report", "invalid-final-deliverable", "unexpected-process-artifact"]
+    },
+    {
+      "id": "step-report-result",
+      "title": "报告生成结果",
+      "description": "简要列出已生成文件和处理结论，不在回复中重复整篇文档。",
+      "kind": "report",
+      "required": true,
+      "dependsOn": ["step-enforce-output-policy"],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["completion-summary"],
+      "successCheckRefs": ["check-review-report"],
+      "failureModes": ["missing-file-summary", "full-document-repeated"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-preserve-input",
+      "sourceText": "不得修改输入文件。",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never modify the source document; write all generated artifacts under the requested output location."
+    },
+    {
+      "id": "rule-preserve-character-stream",
+      "sourceText": "第二阶段仅格式调整，不改原文字符；Stage3-A 去标题符号与空白后字符流必须一致。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "The final legal Markdown must preserve the source character stream after removing permitted Markdown heading markers and whitespace changes."
+    },
+    {
+      "id": "rule-heading-hierarchy",
+      "sourceText": "法律名称 #，编/分编 ##，章 ###，节 ####，条 #####；款/项/目无标题，项、目按标记换行。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Use the documented five-level legal heading hierarchy and split enumerated items onto lines without inventing headings for paragraphs, items, or subitems."
+    },
+    {
+      "id": "rule-reject-non-law",
+      "sourceText": "明显非法律文本第二阶段明确拒绝，仅输出审核报告，不输出最终成果。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Reject clearly non-law documents at stage two and do not create a final deliverable for them."
+    },
+    {
+      "id": "rule-consent-before-fallback",
+      "sourceText": "仅当用户明确同意时，才使用本地回退（python-docx / pdfplumber）。",
+      "level": "never",
+      "scope": "tool-use",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never use the local docx/pdf fallback unless the user has explicitly consented."
+    },
+    {
+      "id": "rule-noop-on-unsafe-stage2",
+      "sourceText": "第二阶段未识别法律结构或保真校验失败时自动 no-op，不改文本。",
+      "level": "must",
+      "scope": "safety",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "If legal structure is not recognized or fidelity cannot be preserved, leave stage-one text unchanged instead of forcing formatting."
+    },
+    {
+      "id": "rule-stage3-strict",
+      "sourceText": "默认执行第三阶段检查，任一失败自动重走，最多 2 次；仍失败默认报错退出。",
+      "level": "must",
+      "scope": "safety",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Run both stage-three checks by default, retry at most twice after failure, and abort in strict mode if validation still fails."
+    },
+    {
+      "id": "rule-minimal-artifacts",
+      "sourceText": "minimal 为默认产物级别；审核通过的法律文本输出审核报告和最终成果，非法律只输出审核报告。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "Under the default minimal artifact level, emit only the review report and any conditionally valid final deliverable."
+    },
+    {
+      "id": "rule-offline-pilot",
+      "sourceText": "当前公开任务契约禁止联网或安装软件包。",
+      "level": "never",
+      "scope": "tool-use",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "During the pilot task, never use network access or install packages."
+    },
+    {
+      "id": "rule-concise-completion",
+      "sourceText": "完成后简要说明生成了哪些文件，不要在回复中重复整篇文档。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "low",
+      "normalizedForm": "Summarize generated files and the outcome without repeating the full converted document in chat."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-filesystem",
+      "name": "workspace filesystem",
+      "purpose": "读取受保护输入、创建输出目录、检查并报告生成文件。",
+      "required": true,
+      "alternatives": ["agent-native file tools"],
+      "platformNotes": {
+        "linux": "使用工作目录相对路径并保留 UTF-8 文本。",
+        "macos": "使用工作目录相对路径并注意大小写不敏感文件系统。",
+        "windows": "使用 Windows 安全的相对路径与 UTF-8 文件操作。"
+      },
+      "availabilityCheck": "确认输入文件可读且输出目录可创建"
+    },
+    {
+      "id": "tool-bundled-script",
+      "name": "law_to_markdown.py",
+      "purpose": "执行固定的文档转换、法律格式调整、第三阶段检查和产物生成流程。",
+      "required": true,
+      "alternatives": ["按同一公开规则人工执行 txt 格式调整并逐项验证"],
+      "platformNotes": {
+        "linux": "通过已选择的 Python 解释器运行 source/scripts/law_to_markdown.py。",
+        "macos": "通过已选择的 Python 解释器运行 source/scripts/law_to_markdown.py。",
+        "windows": "通过 SKVM_PYTHON 或资源契约回退命令运行 bundled script。"
+      },
+      "availabilityCheck": "确认 bundled script 位于固定 source closure 且 digest 未漂移"
+    },
+    {
+      "id": "tool-python",
+      "name": "Python runtime",
+      "purpose": "运行 bundled conversion 与 checker scripts。",
+      "required": true,
+      "alternatives": ["SKVM_PYTHON", "resource-contract fallbackCommand"],
+      "platformNotes": {
+        "linux": "使用满足最低版本的 python3 或显式 SKVM_PYTHON。",
+        "macos": "使用满足最低版本的 python3 或显式 SKVM_PYTHON。",
+        "windows": "优先使用显式 SKVM_PYTHON，避免依赖 PATH 中不确定的解释器。"
+      },
+      "availabilityCheck": "执行 resource-contract probe 并匹配 success marker"
+    },
+    {
+      "id": "tool-mineru-ocr",
+      "name": "mineru-ocr skill",
+      "purpose": "作为 docx/pdf 的优先转换路径。",
+      "required": false,
+      "alternatives": ["经用户明确同意后的本地回退"],
+      "platformNotes": {},
+      "availabilityCheck": "处理 docx/pdf 前检查 mineru-ocr skill 是否已安装并可调用"
+    },
+    {
+      "id": "tool-local-fallback",
+      "name": "python-docx / pdfplumber fallback",
+      "purpose": "mineru-ocr 失败且用户明确同意时处理 docx/pdf。",
+      "required": false,
+      "alternatives": ["停止并请求用户配置 mineru-ocr"],
+      "platformNotes": {},
+      "availabilityCheck": "确认用户同意且对应本地模块已由 preflight 验证"
+    }
+  ],
+  "environment": [
+    {
+      "id": "env-python-runtime",
+      "description": "Python 版本与 docx/pdfplumber 模块可用性取决于主机解释器；必须通过资源契约选择和探测，不能运行时安装。",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    },
+    {
+      "id": "env-offline-execution",
+      "description": "当前 pilot 在无网络、禁止安装软件包的环境中运行，缺失依赖按 preflight infrastructure 处理。",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    },
+    {
+      "id": "env-path-and-encoding",
+      "description": "输入和输出可能包含中文文件名与内容；路径、换行和编码处理必须保持可移植且不改变原文字字符流。",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-input-preserved",
+      "name": "输入文件保持不变",
+      "kind": "rule-violation",
+      "targetRef": "rule-preserve-input",
+      "assertion": "处理前后输入文件内容与身份保持一致，所有写入均位于输出目录。",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-document-policy",
+      "name": "法律类型判定可审计",
+      "kind": "step-success",
+      "targetRef": "step-classify-document",
+      "assertion": "法律/非法律判定来自调用方公开判断或脚本 auto 规则，并驱动对应的第二阶段策略。",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-converter-policy",
+      "name": "转换器选择符合授权边界",
+      "kind": "preflight",
+      "targetRef": "step-select-converter",
+      "assertion": "txt 使用直接转换；docx/pdf 优先 mineru-ocr，本地回退只在用户明确同意后使用。",
+      "onFailure": "ask-user"
+    },
+    {
+      "id": "check-content-fidelity",
+      "name": "字符流保真",
+      "kind": "output",
+      "targetRef": "rule-preserve-character-stream",
+      "assertion": "对可交付法律文本，去除允许的 Markdown 标题符号和空白差异后，最终成果与第一阶段字符流一致。",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-structure-policy",
+      "name": "结构与非法律策略正确",
+      "kind": "output",
+      "targetRef": "rule-heading-hierarchy",
+      "assertion": "法律文本遵循文档化层级、空格和项目换行规则；明显非法律文本被拒绝且不产生最终成果。",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-output-policy",
+      "name": "产物集合符合结论",
+      "kind": "output",
+      "targetRef": "step-enforce-output-policy",
+      "assertion": "审核报告始终存在；最终成果仅在法律文本审核通过时存在；minimal 模式不遗留非必要过程产物。",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-review-report",
+      "name": "审核报告完整",
+      "kind": "output",
+      "targetRef": "review-report",
+      "assertion": "审核报告写明输入文件、最终审核结论和是否可交付，并与实际生成文件一致。",
+      "onFailure": "retry"
+    }
+  ],
+  "recovery": [
+    {
+      "id": "recovery-mineru-unavailable",
+      "trigger": "docx/pdf 处理所需的 mineru-ocr 未安装或不可用。",
+      "action": "ask-user",
+      "maxAttempts": 0,
+      "explanation": "提示安装或配置 mineru-ocr；当前任务禁止联网或安装时停止并报告资源限制，不自行绕过。"
+    },
+    {
+      "id": "recovery-converter-failed",
+      "trigger": "mineru-ocr 调用失败或配置/Token 不可用。",
+      "action": "use-alternative-tool",
+      "maxAttempts": 1,
+      "explanation": "先提示检查 mineru-ocr 配置；仅在用户明确同意且本地依赖已通过 preflight 后使用 python-docx/pdfplumber。"
+    },
+    {
+      "id": "recovery-stage2-noop",
+      "trigger": "第二阶段未识别法律结构或字符保真检查失败。",
+      "action": "stop",
+      "maxAttempts": 0,
+      "explanation": "保持第一阶段文本不变，不强制写入不可靠格式，并在审核报告中说明。"
+    },
+    {
+      "id": "recovery-stage3-retry",
+      "trigger": "Stage3-A 或 Stage3-B 任一检查失败。",
+      "action": "retry",
+      "maxAttempts": 2,
+      "explanation": "重新执行格式调整与双检查，最多两次；严格模式下仍失败则报错退出并保留诊断产物。"
+    }
+  ],
+  "profile": []
+}
