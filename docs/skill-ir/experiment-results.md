@@ -383,6 +383,44 @@ results/skill-ir/law-to-markdown-pre-ir-calibration-2026-07-23/gate-report.json
 results/skill-ir/law-to-markdown-pre-ir-calibration-2026-07-23/summary.json
 ```
 
+### 4.1 Source-audited Static Development
+
+同日按付费前提交的 `law-to-markdown-static-development-v1` 运行 GPT-5.6、
+Windows/clean/bare-agent、`no-skill | original | ir-static`，2 个 development task × 2
+repetitions。12/12 raw/scored rows、4/4 triplets 完整，0 infrastructure、0 retry，未运行
+held-out。
+
+| System | Success | Mean | Aggregate tokens | 主要失败 |
+|---|---:|---:|---:|---|
+| no-skill | 0/4 | 0.7000 | 40716 | document-policy 3/4；review-outcome 4/4。 |
+| original | 1/4 | 0.7875 | 110893 | document-policy 2/4；review-outcome 3/4。 |
+| ir-static | 1/4 | 0.7875 | 154249 | document-policy 1/4；review-outcome 4/4。 |
+
+Original→static 的 4 个 pair 为 1 positive、1 negative、2 equal，mean score delta=0、binary
+success delta=0。Static 改善一次 document-policy，同时回归一次 review-outcome；无 hard-gate
+regression。Static 比 original 多 43356 aggregate tokens（+39.1%），本批不支持 token 效率收益。
+
+冻结 gate 要求 static 至少 3/4 success、mean≥0.85、0 infrastructure、0 hard-gate
+regression 和至少一个 improved pair。实际只有后 3 项通过，gate failed；不得补跑、进入
+held-out、PGO、artifact promotion 或主 claim。
+
+Failure audit 显示，bundled script 的公开源码定义了规范审核标签与固定字段，但 base IR
+lowering 只保留“写明结论”的自然语言语义。四份 static 报告使用语义相近的措辞或 Markdown
+强调，4/4 未命中 canonical review-outcome surface；另有 2 份报告记录 Windows bare-agent
+通过 shell 调 bundled script 时遇到 `sh`/`ENOENT` 后改用人工执行。下一候选应从公开 script
+编译 canonical report template/schema 与 direct interpreter tool plan，不能读取 evaluator
+payload 或 held-out。
+
+Compact evidence：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-static-development-lock.json
+results/skill-ir/law-to-markdown-static-development-2026-07-23/resource-probe.json
+results/skill-ir/law-to-markdown-static-development-2026-07-23/route-probe.json
+results/skill-ir/law-to-markdown-static-development-2026-07-23/gate-report.json
+results/skill-ir/law-to-markdown-static-development-2026-07-23/summary.json
+```
+
 ## 5. Env-manager 研究推进总表
 
 | 阶段 | 最强/候选系统 | Success | Mean | 核心发现 |
@@ -409,7 +447,8 @@ results/skill-ir/law-to-markdown-pre-ir-calibration-2026-07-23/summary.json
 - V4 在三个完整 shared-generation 上以零模型 repair 将 schema criterion 0/3 提升到 3/3；
 - development gate 正确阻断不成熟 artifact。
 - `law-to-markdown` 的真实 source/no-skill/original/scorer 链路可执行且未饱和；pre-IR
-  gate 允许进入 base IR audit，但原始 skill 仍为 0/4 success。
+  gate 允许进入 base IR audit；static development 链路完整，但 static 与 original 同为
+  1/4、mean 0.7875，当前文本 IR 没有形成净收益。
 
 不能支持：
 

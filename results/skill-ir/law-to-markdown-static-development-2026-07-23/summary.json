@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "skill-ir-static-development-summary/v1",
+  "experimentId": "law-to-markdown-static-development-v1",
+  "methodEvidence": true,
+  "status": "static-development-gate-failed",
+  "identity": {
+    "skillId": "law-to-markdown",
+    "model": "xty/gpt-5.6-sol",
+    "modelFamily": "gpt",
+    "adapter": "bare-agent",
+    "adapterVersion": "workspace-law-static-v1",
+    "environment": "windows",
+    "context": "clean",
+    "systems": ["no-skill", "original", "ir-static"],
+    "developmentTasks": 2,
+    "repetitions": 2
+  },
+  "execution": {
+    "expectedRows": 12,
+    "observedRawRows": 12,
+    "observedScoredRows": 12,
+    "completeTriplets": 4,
+    "infrastructureFailures": 0,
+    "heldOutExecuted": false
+  },
+  "systems": {
+    "no-skill": {
+      "successes": 0,
+      "rows": 4,
+      "meanScore": 0.7,
+      "aggregateTokens": 40716,
+      "failedCriterionCounts": {
+        "law-document-policy": 3,
+        "law-review-outcome": 4
+      }
+    },
+    "original": {
+      "successes": 1,
+      "rows": 4,
+      "meanScore": 0.7875,
+      "aggregateTokens": 110893,
+      "failedCriterionCounts": {
+        "law-document-policy": 2,
+        "law-review-outcome": 3
+      }
+    },
+    "ir-static": {
+      "successes": 1,
+      "rows": 4,
+      "meanScore": 0.7875,
+      "aggregateTokens": 154249,
+      "failedCriterionCounts": {
+        "law-document-policy": 1,
+        "law-review-outcome": 4
+      }
+    }
+  },
+  "pairedOriginalToStatic": {
+    "positiveScorePairs": 1,
+    "negativeScorePairs": 1,
+    "equalScorePairs": 2,
+    "meanScoreDelta": 0,
+    "binarySuccessDelta": 0,
+    "improvedCriteria": {
+      "law-document-policy": 1
+    },
+    "regressedCriteria": {
+      "law-review-outcome": 1
+    }
+  },
+  "cost": {
+    "irStaticMinusOriginalAggregateTokens": 43356,
+    "irStaticRelativeTokenIncreasePercent": 39.1,
+    "interpretation": "This one-shot development batch does not support a token-efficiency benefit."
+  },
+  "gate": {
+    "passed": false,
+    "requiredIrStaticSuccesses": 3,
+    "observedIrStaticSuccesses": 1,
+    "requiredIrStaticMeanScore": 0.85,
+    "observedIrStaticMeanScore": 0.7875,
+    "infrastructureFailures": 0,
+    "hardGateRegressions": 0,
+    "improvedPairs": 1,
+    "heldOutPlanningAllowed": false,
+    "heldOutExecutionAllowed": false,
+    "entersMainClaim": false
+  },
+  "interpretation": {
+    "chainExecutable": true,
+    "matrixComplete": true,
+    "staticImprovedOverNoSkill": true,
+    "staticImprovedOverOriginal": false,
+    "dominantResidual": "law-review-outcome",
+    "nextAction": "Freeze this failed batch and design a new development-only artifact catalog that compiles the public script's canonical review labels/template and a Windows-safe direct tool plan.",
+    "note": "Static IR and original had identical aggregate success and mean score. One document-policy improvement was offset by one review-outcome regression, so the current base IR is not eligible for held-out execution or promotion."
+  },
+  "failureAudit": {
+    "reviewOutcome": {
+      "classification": "public-contract-lowering-gap",
+      "publicSource": "benchmarks/skill-ir/pilots/law-to-markdown/source/scripts/law_to_markdown.py",
+      "publicSourceFacts": [
+        "The bundled script defines canonical approved and rejected_non_law labels.",
+        "The bundled script emits fixed final-review and deliverability fields."
+      ],
+      "observed": "Generated reports used semantically similar wording or Markdown emphasis, but all four ir-static rows missed the scorer's canonical review-outcome surface.",
+      "boundary": "The next artifact may compile these public script facts, but must not read evaluator payload or held-out output."
+    },
+    "toolExecution": {
+      "classification": "windows-bare-agent-tool-plan-gap",
+      "observedRows": 2,
+      "observed": "Two ir-static non-law reports recorded that shell-based bundled-script invocation failed with a missing sh/ENOENT path and then fell back to manual reasoning.",
+      "boundary": "The next artifact should expose a direct interpreter-plus-script plan validated by the resource contract; this batch remains semantic rather than infrastructure because final workdirs were produced and raw status was ok."
+    }
+  },
+  "evidence": {
+    "lockSha256": "1573a86947c0d22e3bbbac252764122f197750bdb50090a929f7a9f494ceda09",
+    "gateReportSha256": "ebb949f651474f47b7b9a44f1dababdc44d78ff858606de574e79c3bebc27b12",
+    "resourceProbeSha256": "244f0b6b0452176171299451c6e6e127501f30525c219a6bd802cc74fca291dd",
+    "routeProbeSha256": "ef1613b0e3b00e0e5542998e86e6e1b047219d85dbf24841d5dd83716b3c5488"
+  }
+}

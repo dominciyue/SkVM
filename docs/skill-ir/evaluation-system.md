@@ -425,6 +425,11 @@ bun ./src/benchmarks/skill-ir/static-development-gate-run.ts `
 缺 raw/scored 或 raw infrastructure 均在固定分母中按 0 分处理。Gate 通过只允许规划新的
 held-out lock，不能直接执行 held-out 或写成主 claim。
 
+2026-07-23 冻结批次得到 `ir-static=1/4, mean=0.7875`，与 original 聚合结果相同；
+1 个 pair 改善 document-policy，1 个 pair 回归 review-outcome，2 个相同，gate failed。
+Failure audit 显示 scorer 的 canonical review strings 来自公开 bundled script，但当前 lowering
+未将其物化为 template/schema；该差距进入下一 catalog 设计，本 gate/scorer 不做事后修改。
+
 ## 11. Route Health
 
 `route-probe-run.ts` 对每个模型运行一个代表 case，输出：

@@ -22,7 +22,7 @@
 | V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
-| `law-to-markdown` vertical slice | 当前 | Base IR、source audit、static lock、三阶段执行门禁与 static gate 已完成；下一步运行冻结 development。 |
+| `law-to-markdown` vertical slice | Static gate 失败 | 12/12 完整、0 infra；static 与 original 同为 1/4、0.7875。下一步设计公开 template/tool-plan artifact。 |
 | Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
@@ -73,6 +73,18 @@ one-repair: success = 0/4, mean = 0.6625, repair = 4/4, repaired-to-pass = 0/4
 强模型相对历史 mini 修复 18 个准则级失败，集中在产物完整性、示例安全和一次泄漏；
 `classification` 与 `schema` 在所有系统中继续失败。这支持“模型能力影响基础执行质量”，
 同时表明当前主要瓶颈仍在 public contract lowering、validator 与 repair 约束。
+
+Law static development 也未解除阻塞：
+
+```text
+required: ir-static success >= 3/4, mean >= 0.85, hard-gate regressions = 0, infra = 0
+observed: ir-static success = 1/4, mean = 0.7875, hard-gate regressions = 0, infra = 0
+paired original->static: 1 positive, 1 negative, 2 equal, mean delta = 0
+```
+
+公开 script 已定义 canonical review label 与 report fields，但当前 IR/lowering 只输出自然语言
+要求；Windows bare-agent 的 shell 路径也未可靠执行 bundled script。下一阶段转向
+template/schema 与 direct tool-plan 固态化，不继续堆文本规则。
 
 ## 4. 下一阶段顺序
 
@@ -160,10 +172,13 @@ artifact:   one-repair                        = 4 rows
 - development/held-out split；
 - frozen method，不按第二个 skill 结果回调第一份配置。
 
-第一刀已完成 `law-to-markdown` 的 task/scorer 纵切和 pre-IR calibration。当前只支持
+第一刀已完成 `law-to-markdown` 的 task/scorer 纵切、pre-IR calibration、source-audited base
+IR 和冻结 static development。当前只支持
 `.txt`，同时显式记录上游脚本对 `python-docx`/`pdfplumber` 的 eager import；依赖 probe
 未通过时禁止付费运行。Source-audited base IR 与机器可检验的 evidence sidecar 已使该
-pilot 晋级 `runnable`，下一轮只运行 `no-skill | original | ir-static x development`。
+pilot 晋级 `runnable`。Static 12-row gate 已失败并冻结，不进入 held-out。下一轮先设计新
+catalog，只从公开 bundled script/source contract 编译 canonical report template/schema 和
+Windows-safe direct interpreter tool plan，再以新的 development lock 做本地 activation 与付费验证。
 
 ### Step 6：固定多模型 panel
 
@@ -796,8 +811,8 @@ held-out 或把结果写成 Skill IR 增益。
   probe 使用 lock 冻结的 180 秒超时，execute 只接受同目录且身份一致的成功 probe。
 - [x] 实现 static gate：12-row/4-triplet 固定分母，缺失或 raw infrastructure 计 0，逐对报告
   original→ir-static score/criterion transition、hard-gate regression 与 strict improvement。
-- [ ] 运行一次冻结付费 development 并评分。未过 gate 不创建 held-out lock，不运行 PGO 或
-  artifact promotion；通过也只允许规划新的 held-out lock，不直接执行或进入主 claim。
+- [x] 运行一次冻结付费 development 并评分：12/12 rows、4/4 triplets、0 infra；static 1/4、
+  mean 0.7875，gate failed。未创建 held-out lock，未运行 PGO 或 artifact promotion。
 
 ### Task 7.3：验证与记录
 
@@ -808,3 +823,13 @@ held-out 或把结果写成 Skill IR 增益。
 - [ ] Bun 1.3.14 的 benchmark 聚合在 Windows 上无结尾退出状态；全仓库测试另有缺
   `sh/python3` 的既有环境失败。付费前继续使用分组测试并保留该基础设施限制。
 - [x] 更新 spec/plan/组件文档和 conversation log；dry-run/raw workdir 只留本地。
+
+### Task 7.4：Static Failure Audit 与下一 Artifact 边界
+
+- [x] 冻结 static 失败证据；不补跑、不修改本次 scorer/base IR/lock/gate。
+- [x] 对照公开 bundled script 与最终 workdir，确认主要残差是 canonical review label/template
+  未被 lowering 固化；2 个 non-law row 另暴露 Windows shell tool-plan gap。
+- [ ] 起草新的 law executable artifact design：只允许使用 source closure、resource contract 和
+  用户可见 task contract，编译 canonical report schema/template 与 direct Python tool plan；
+  evaluator payload、held-out、当前模型输出不得成为 compiler input。
+- [ ] 先做本地 fixture activation 与泄漏反向测试，再冻结新的 development lock；仍不运行 held-out。

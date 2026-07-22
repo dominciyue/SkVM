@@ -673,3 +673,13 @@ SHA-256，不保留模型正文或 evaluator details。
 Gate 通过只允许书面评审并规划新的 held-out lock；当前 lock 的
 `heldOutExecutionAllowed=false`、`entersMainClaim=false` 不变。Gate 失败则停止，不补跑、
 不调 scorer/base IR、不进入 PGO 或 artifact promotion。
+
+2026-07-23 实际 static development 为 12/12 rows、4/4 triplets、0 infrastructure；
+`no-skill=0/4, 0.70`，`original=1/4, 0.7875`，`ir-static=1/4, 0.7875`。Original→static
+一正一负两平，mean delta=0；static token 比 original 高 39.1%。Gate 因 success 与 mean
+未达标而失败，held-out 保持阻断。
+
+失败审计把下一编译边界收紧为：允许从固定 source closure 中的 bundled script 提取公开、
+可审计的 canonical review label、report field 和直接解释器调用计划，固化为新 catalog 的
+template/schema/tool-plan；禁止从 evaluator payload、held-out 或本批模型输出提取规则。新
+catalog 必须使用新的 package/lock 身份并只在 development 验证，不原地修改 base IR 或本 lock。

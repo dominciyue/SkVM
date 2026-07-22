@@ -314,8 +314,14 @@ digest，冻结 GPT-5.6、Windows/clean/bare-agent、`no-skill | original | ir-s
 static gate 已实现 12-row/4-triplet 固定分母、0 infrastructure、0 hard-gate regression、
 `ir-static >= 3/4` success、mean `>= 0.85` 与至少一个 original→static 改善 pair。
 
-当前仅完成 plan dry-run 与本地 gate fixture，尚无付费 static 结果。Gate 未过不得运行
-held-out；通过也只允许冻结新的 held-out execution identity，不能直接写成优化成功。
+2026-07-23 付费 static 已完成：12/12 rows、4/4 triplets、0 infrastructure。No-skill 为
+0/4、0.70；original 与 ir-static 均为 1/4、0.7875。Static 相对 original 一正一负两平，
+token 高 39.1%；gate 因 success 与 mean 不达标而失败，held-out 未执行。
+
+审计发现 public bundled script 已定义 canonical review label，但 IR lowering 只保留了自然语言
+结论要求；2 个 static non-law row 还记录了 Windows 下 shell 调脚本失败。下一阶段只从公开
+source closure 编译 report template/schema 与 direct interpreter tool plan，使用新 catalog 与
+development lock；不把 evaluator payload 或本次输出写回 compiler。
 
 ## 11. Pilot 晋升门禁
 
@@ -338,7 +344,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Pre-IR gate passed；static runner/gate 已冻结，12-row 付费 development 待执行。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Static 12/12 完整但 gate failed；held-out 阻断，转向 template/tool-plan artifact。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
