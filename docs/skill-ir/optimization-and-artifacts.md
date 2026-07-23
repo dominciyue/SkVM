@@ -825,3 +825,16 @@ checker，并优于同批次文本 skill/IR baseline。它还不是 catalog 通�
 compile cost 本批未重测，break-even 未计算，held-out 与第二 phenotype skill 都未验证。
 Gate 通过后的下一合法动作是建立新的 held-out lock，不能让 development runner 直接执行
 held-out。
+
+## 18. Law Held-out Consumption
+
+`skill-ir-validated-artifact-heldout-lock/v1` 只消费已冻结且 development gate 已通过的同一
+package。Lock 递归绑定 development lock/execution freeze/gate/summary，并直接冻结 tasks、
+resource contract、scorer 和 held-out orchestration。校验器要求这些输入与 development
+完全同一，同时确认 held-out task 不在 package construction task contract 中。
+
+Held-out runtime 不增加 compiler、repair 或 PGO 节点：前三臂由冻结模型生成，artifact 臂
+继续执行 package 的 deterministic process/validate plan。Gate 以 no-skill、original 和
+ir-static 三者中的逐样本最佳表现为基线，因此 artifact 不能只胜过文本 skill，却低于无
+skill。任何 held-out failure 都作为结果冻结，不允许重编 package、调 scorer、重试失败行或
+把 held-out 输出写回 IR。

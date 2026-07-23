@@ -918,3 +918,65 @@ gate；execution freeze 只补充“这些模型行怎样被执行、评分和�
 该从属 freeze 是对实施 provenance 缺口的保守修复，不改变第 19 节已预注册的实验假设、数值
 阈值或主张边界。以后若通用 runner、adapter 或 orchestration 实现改变，必须建立新 execution
 freeze，不能覆盖 v1。
+
+## 21. Law Validated Artifact Held-out Contract
+
+Law development gate 通过后，held-out 使用全新的、只消费冻结产物的实验身份：
+
+```text
+lock: skill-ir-validated-artifact-heldout-lock/v1
+plan: skill-ir-validated-artifact-heldout-plan/v1
+route: skill-ir-validated-artifact-heldout-route-probe-result/v1
+gate: skill-ir-validated-artifact-heldout-gate-report/v1
+experiment: law-to-markdown-validated-artifact-heldout-v1
+```
+
+Held-out lock 必须绑定并递归验证：
+
+- 已通过的 development lock 与 execution freeze；
+- development `gate-report.json` 和 `summary.json` 的 digest，且 gate 必须为 passed、16/16 rows、
+  4/4 quartets、0 infrastructure；
+- 同一 source/tasks/resource/scorer/base IR/source audit 与冻结 package；
+- held-out planner、runner 和 gate implementation digest；
+- execution freeze 已绑定的 model runner、scoring、route/resource 与 bare-agent 实现。
+
+Package provenance 的 `constructionSplit=development` 和 development `taskContract.taskIds` 是
+构造来源记录，不是 held-out 运行授权列表。Held-out validator 必须反向确认两个 held-out task
+不在该构造列表中，且 provenance 保留 `held-out` forbidden evidence class；不得重编 package、
+追加 held-out task ID 或修改 provenance 来“授权”评测。
+
+矩阵固定为：
+
+```text
+tasks:
+  law-to-markdown-regulation-heldout-001
+  law-to-markdown-manual-heldout-002
+systems:
+  no-skill | original | ir-static | validated-artifact
+model/adapter/host/context:
+  xty/gpt-5.6-sol / bare-agent / Windows / clean
+repetitions:
+  2
+rows:
+  16 rows / 4 quartets
+```
+
+前三个系统共 12 行使用冻结模型和 adapter；artifact 4 行继续直接执行同一 package，不调用模型。
+`plan` 无 API；`route-probe` 运行 resource probe 和首个 held-out original 样本；`execute`
+重新验证全部 digest，只接受同输出目录中绑定 held-out lock digest 的成功 route，模型臂
+`retries=0`，direct 臂在本批次重新执行。Development raw/scored/workdir 不得作为 held-out
+runtime、scorer 或 compiler 输入。
+
+付费前数值 gate 固定为：
+
+- 16/16 raw 与 scored、4/4 完整四元组；
+- artifact 4/4 success，总均分与两个 task 均分均不低于 0.85；
+- 0 infrastructure、0 artifact hard-gate failure；
+- 每个 `task × repetition` 的 artifact score 不低于
+  `max(no-skill, original, ir-static)`，且任一 baseline success 时 artifact 也必须 success；
+- 至少 1 个四元组中 artifact score 严格高于三条 baseline 的最高分；
+- 缺行按固定分母中的 0 分/infrastructure 处理，重复或身份漂移直接拒绝。
+
+Gate 成败都必须原样持久化。通过可形成 Law 单 skill held-out 证据，但仍不能证明 catalog
+跨 skill 通用、跨模型/agent/OS 稳定或摊销 break-even；失败不得补跑、调 scorer、重编 package
+或把 held-out 反馈写回 IR/artifact。

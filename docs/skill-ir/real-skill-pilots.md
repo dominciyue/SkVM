@@ -354,6 +354,17 @@ break-even。Development gate passed，只允许起草 held-out lock，held-out 
 Catalog 通用性仍必须由至少一个不同类型 skill 复用同一
 manifest/execution-plan/runtime API 验证，不能由 Law 单例直接得出。
 
+### 10.5 Held-out 预注册
+
+新的 held-out lock 固定使用两个既有 held-out task、两次 repetition 和
+`no-skill | original | ir-static | validated-artifact` 四系统，共 16 行/4 四元组。
+它递归验证已通过的 development evidence，并额外冻结相同 tasks、resource contract 与
+scorer。Artifact package 不重编、不修改 provenance，也不读取 held-out feedback。
+
+独立 gate 将 artifact 与三条 baseline 中的逐样本最佳者比较，要求 4/4 success、总均分与
+逐 task 均分均不低于 0.85、零回归且至少一次严格提升。预注册实现与本地 TDD 已完成；
+首次 route probe 和唯一一次付费 held-out 尚未执行。
+
 ## 11. Pilot 晋升门禁
 
 每个 deep pilot 需要：
@@ -375,7 +386,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Static gate failed；validated artifact development 16/16、gate passed，held-out lock 待设计。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Static gate failed；validated artifact development gate passed；held-out 已预注册，待独立执行。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 

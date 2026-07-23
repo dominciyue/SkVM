@@ -582,3 +582,38 @@ compact resource/route/scored/cost/summary/gate 可以持久化。Gate 失败仍
 4/4 success、mean 0.925、0 hard-gate failure、0 pairwise regression 和 0 model tokens；
 original 为 0/4、mean 0.75，ir-static 为 1/4、mean 0.80。Gate passed 只允许起草新的
 held-out lock，本 runner 与 development lock 仍禁止直接执行 held-out。
+
+## 17. Law Validated Artifact Held-out
+
+独立 held-out 实验使用：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/
+  law-to-markdown-validated-artifact-heldout-lock.json
+```
+
+该 lock 递归绑定已通过的 development lock、execution freeze、gate 与 summary，并直接冻结
+tasks、resource contract、deterministic scorer 及 held-out planner/runner/gate 摘要。三项
+直接输入必须与 development lock 完全相同；runner 不使用硬编码 task 或资源路径。Package
+仍保持 `constructionSplit=development`，两个 held-out task 不得出现在构造 task contract
+中，`held-out` 仍是 forbidden evidence class。
+
+无成本生成 16 行 held-out 计划：
+
+```powershell
+bun ./src/benchmarks/skill-ir/validated-artifact-heldout-run.ts `
+  '--phase=plan' `
+  '--out-dir=results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24'
+```
+
+同一输出目录依次运行 `--phase=route-probe` 和 `--phase=execute`。Route probe 只持久化
+脱敏身份与状态，并同时绑定 held-out lock 和上游 execution freeze 摘要。Execute 固定执行
+12 条 GPT-5.6 模型行与 4 条 direct artifact 行，`retries=0`；development raw output、
+workdir 或模型正文均不能作为输入。
+
+Held-out gate 使用 16 行固定分母，并把 `no-skill`、`original`、`ir-static` 三者中的最高分
+作为逐样本基线。Artifact 必须 4/4 success、总均分和逐任务均分不低于 0.85、零
+infrastructure/hard-gate failure/paired regression，且至少一个四元组严格提升。缺行按
+0 分与 infrastructure 计入；重复或 task/model/adapter/repetition identity 漂移直接拒绝。
+Gate 通过只构成 Law 单 skill 的 held-out evidence，不扩展为跨 skill、跨模型、跨 agent、
+跨 OS 或 break-even 结论。

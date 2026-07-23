@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "skill-ir-validated-artifact-heldout-lock/v1",
+  "status": "preregistered",
+  "experimentId": "law-to-markdown-validated-artifact-heldout-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "law-to-markdown",
+  "upstream": {
+    "developmentLock": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-development-lock.json",
+      "sha256": "bb96b51cc67209bc9c8d6d683a2e2e2c36ff70b2916fc4c3acc92278f24e9846"
+    },
+    "executionFreeze": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-execution-freeze.json",
+      "sha256": "e0db93087cc48d2bbfe369fd647bb4e5964d4366211a2684c7da80c49889e07b"
+    },
+    "developmentGate": {
+      "path": "results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/gate-report.json",
+      "sha256": "8880ed31ed74f841c3f010803009ed028e14bc42473a2b49798a843870492075"
+    },
+    "developmentSummary": {
+      "path": "results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/summary.json",
+      "sha256": "1c297b94f972ce649bc6b60b19edcc944dd203de6fd9edb7fc21457914f1c32d"
+    }
+  },
+  "frozenInputs": {
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/tasks.json",
+      "sha256": "f10978a61a98e2a46577ecace9dd9ce9f6f6b5810c1e536cdd2f3e10088a2b1f"
+    },
+    "resourceContract": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json",
+      "sha256": "108fc52e7f0155c0066a0517371944c1ef948f0ee5fa24b8cc4b8944d3b848d6"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/law-to-markdown-grade.ts",
+      "sha256": "051d467ae8292dbc917316ce7c495915fe36377b529c22553cff3dd637d2d180"
+    }
+  },
+  "frozenImplementations": {
+    "planner": {
+      "path": "src/benchmarks/skill-ir/validated-artifact-heldout.ts",
+      "sha256": "dc89d87658f76961e84eb0ff82e595f453e44aef9cd081cf2a0388d8e8ca4eb9"
+    },
+    "runner": {
+      "path": "src/benchmarks/skill-ir/validated-artifact-heldout-run.ts",
+      "sha256": "d868b5f93ad73c5364bf48f2c78db9cea40eb1b1c626706594bf7ca2c0981aea"
+    },
+    "gate": {
+      "path": "src/benchmarks/skill-ir/validated-artifact-heldout-gate.ts",
+      "sha256": "d890a840d0f754eb6d8c9348343de1e54b2a5d7edf5853a44e3c774c193459e1"
+    }
+  },
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-law-validated-artifact-heldout-v1"
+  },
+  "directExecution": {
+    "system": "validated-artifact",
+    "model": "direct-deterministic",
+    "modelFamily": "none",
+    "adapter": "validated-artifact-runtime",
+    "adapterVersion": "validated-artifact-runtime-v1"
+  },
+  "matrix": {
+    "modelSystems": ["no-skill", "original", "ir-static"],
+    "systems": ["no-skill", "original", "ir-static", "validated-artifact"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "held-out",
+    "taskIds": [
+      "law-to-markdown-regulation-heldout-001",
+      "law-to-markdown-manual-heldout-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 16,
+    "expectedModelRows": 12,
+    "expectedArtifactRows": 4,
+    "expectedQuartets": 4
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "pythonEnv": "SKVM_PYTHON",
+    "phases": ["plan", "route-probe", "execute"],
+    "retries": 0,
+    "routeProbeTimeoutMs": 180000,
+    "routeProbeRequired": true,
+    "resourceProbeRequired": true
+  },
+  "gate": {
+    "minimumArtifactSuccesses": 4,
+    "minimumArtifactMeanScore": 0.85,
+    "minimumArtifactTaskMeanScore": 0.85,
+    "maximumInfrastructureFailures": 0,
+    "maximumArtifactHardGateFailures": 0,
+    "maximumPairwiseRegressions": 0,
+    "minimumPairwiseImprovements": 1
+  },
+  "promotionBoundary": {
+    "developmentGateRequired": true,
+    "entersLawHeldoutClaimOnPass": true,
+    "permitsPackageRecompile": false,
+    "permitsScorerRetuning": false,
+    "permitsHeldoutFeedback": false,
+    "permitsPgo": false,
+    "permitsRetry": false,
+    "permitsCrossSkillClaim": false,
+    "permitsBreakEvenClaim": false
+  },
+  "prohibited": [
+    "held-out feedback entering the package, IR, scorer, or runtime contract",
+    "package recompilation after held-out lock freeze",
+    "scorer retuning from held-out output",
+    "retrying failed model rows",
+    "reusing development model output or workdirs as held-out evidence",
+    "claiming cross-skill, cross-model, cross-agent, cross-OS, or break-even evidence"
+  ]
+}

@@ -1007,22 +1007,37 @@ Task 8.5 的父 lock 保持不可变。其 direct runner 已绑定 digest 且只
 
 ### Task 8.7：Law Held-out Lock 与独立验证
 
-**计划文件：**
+**文件：**
 
 ```text
-新增 held-out lock/schema/runner/gate 及对应 tests
+新增 src/benchmarks/skill-ir/validated-artifact-heldout.ts
+新增 src/benchmarks/skill-ir/validated-artifact-heldout.test.ts
+新增 src/benchmarks/skill-ir/validated-artifact-heldout-run.ts
+新增 src/benchmarks/skill-ir/validated-artifact-heldout-run.test.ts
+新增 src/benchmarks/skill-ir/validated-artifact-heldout-gate.ts
+新增 src/benchmarks/skill-ir/validated-artifact-heldout-gate.test.ts
+新增 benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-heldout-lock.json
 更新 docs/skill-ir/evaluation-system.md
 更新 docs/skill-ir/real-skill-pilots.md
 更新 docs/skill-ir/experiment-results.md
 ```
 
-- [ ] RED：held-out lock 必须绑定已通过 development gate/summary digest、同一 package/parent
-  lock/execution freeze、冻结两个 held-out task 和既有 deterministic scorer；任何漂移拒绝。
-- [ ] GREEN：新身份只允许 `no-skill | original | ir-static | validated-artifact`、Windows、
-  clean、GPT-5.6、bare-agent、2 held-out tasks、预注册 repetitions 与零重试。
-- [ ] RED/GREEN：route/resource/execute 与 development 结果目录隔离；禁止 development output
-  回流编译 package，禁止 PGO、scorer retuning 和补跑。
-- [ ] 付费前冻结 held-out 数值 gate、pairwise regression 与成本口径；dry-run 和 route probe
-  通过后执行唯一一次 held-out。
+- [x] RED：held-out lock 必须绑定已通过 development gate/summary digest、同一 package/parent
+  lock/execution freeze、冻结两个 held-out task 和既有 deterministic scorer；development
+  gate 必须为 16/16、4/4、0 infra、passed，任何漂移拒绝。
+- [x] RED：验证 package 仍为 `constructionSplit=development`，两个 held-out task 不在构造
+  `taskContract` 中，`held-out` 仍是 forbidden evidence class；禁止重编 package 或改 provenance。
+- [x] GREEN：编译 `skill-ir-validated-artifact-heldout-plan/v1`，只允许
+  `no-skill | original | ir-static | validated-artifact`、Windows、clean、GPT-5.6、
+  bare-agent、2 held-out tasks × 2 repetitions、16 rows / 4 quartets 和零重试。
+- [x] RED/GREEN：实现 `plan | route-probe | execute`；route/resource/execute 与 development
+  结果目录隔离，route 同时绑定 held-out lock 与上游 freeze，禁止 development output
+  进入 runtime/scorer/compiler。
+- [x] RED/GREEN：实现独立 held-out gate，要求 artifact 4/4、mean/task mean≥0.85、
+  0 infra、0 hard-gate failure；逐样本不低于三条 baseline 中最好者，且至少 1 个严格提升。
+- [x] RED/GREEN：缺行按冻结分母 0 分/infrastructure，重复、task split、model/adapter、
+  repetition 或 panel identity 漂移直接拒绝；成本继续分列 model/process/validation/package。
+- [ ] 付费前提交并推送 held-out lock、实现和数值 gate；完成 dry-run、resource 与 route
+  probe 后执行唯一一次 held-out，不补跑。
 - [ ] 无论 gate 成败都原样持久化 compact evidence，再决定第二 phenotype skill 复用与
   amortized cost 实验。
