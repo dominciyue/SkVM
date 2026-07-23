@@ -632,9 +632,54 @@ escape，避免 Windows pipe codepage 损坏中文路径。
 | statute development | pass | 0.85 / success | 0 fail | `law-document-policy` 仍 fail。 |
 | non-law standard development | pass | 1.00 / success | 0 fail | 无 scorer residual。 |
 
-该结果只证明 catalog、adapter、direct process、validator 和既有 scorer 可以贯通。它没有
-冻结 development lock，没有运行 held-out，也不能证明跨 skill 通用或 token break-even。
-下一步先书面冻结 Law development 对照，再用第二种 phenotype skill 复用同一 core API。
+该结果只证明 catalog、adapter、direct process、validator 和既有 scorer 可以贯通。Law 后续
+development/held-out 结果见本文后续章节；单个 adapter 仍不能证明跨 skill 复用。
+
+### 14.3 Experimental-design Compiler Adapter
+
+第二个 adapter 使用同一 `validated-skill-artifact/v1` manifest、provenance、execution-plan、
+package validator 与 runtime，通用 core 未新增 skill-id 分支：
+
+```text
+src/benchmarks/skill-ir/experimental-design-artifact-compiler.ts
+src/benchmarks/skill-ir/experimental-design-artifact-run.ts
+benchmarks/skill-ir/pilots/experimental-design/packages/validated-skill-artifact-v1/
+```
+
+第一阶段固化 seeded randomization phenotype。输入是 protected `study.json`，输出固定为
+`design-plan.json`、`allocation.csv` 和 `design-report.md`。Adapter 从公开 source、
+profile-empty base IR/source audit、stdlib-only resource contract 和两个 development prompt
+投影编译 Python generator、runtime checker、schema、template 与 direct tool plan；held-out、
+evaluator payload、runtime output、Law failure 和 secret 没有 compiler sink。
+
+方法选择是公开且可复算的：
+
+```text
+cluster -> cluster-randomized
+individual + strata -> stratified-block
+individual + sequential enrollment -> permuted-block
+otherwise -> simple-randomized
+```
+
+Generator 与 checker 使用版本化 `xorshift32-fisher-yates-v1`，离线 scorer 独立实现同一公开
+seed 合同。测试会交换两行的 arm，同时保持 CSV 结构、合法 arm 和单位集合不变；runtime
+checker 必须以 `ALLOCATION_SEED_MISMATCH` 拒绝，避免“结构通过、语义错误”的 v1 问题重现。
+
+编译和验证：
+
+```powershell
+bun ./src/benchmarks/skill-ir/experimental-design-artifact-run.ts `
+  '--out-dir=benchmarks/skill-ir/pilots/experimental-design/packages/validated-skill-artifact-v1'
+
+bun ./src/benchmarks/skill-ir/experimental-design-artifact-run.ts `
+  '--verify-only=benchmarks/skill-ir/pilots/experimental-design/packages/validated-skill-artifact-v1'
+```
+
+冻结 package 有 9 个 artifact、2 个 execution node、33878 bytes。两个 development fixture
+本地 activation 均为 runtime pass、scorer 1.00/success、protected digest unchanged、
+model generation/repair token 0。该结果把 catalog/runtime 从 Law 单例推进到两个不同
+phenotype 的 mechanism evidence，但仍没有模型 baseline、冻结 development gate 或 held-out
+结果。
 
 冻结 GPT-4.1 诊断已执行 20 行。强模型产生 18 个低层 criterion 改善，但
 classification/schema 在五个系统中持续失败；one-repair 4/4 激活、0/4 二验通过。

@@ -1036,3 +1036,15 @@ Gate 成败都必须原样持久化。通过可形成 Law 单 skill held-out 证
 法规 task mean 0.85，manual task mean 0.60，2 pairwise regressions，gate failed。
 Current Law package 不晋升，break-even 不计算。下一阶段通过第二 phenotype 的独立
 development evidence 检验 catalog core 复用，不把本次 held-out failure 当作 compiler 输入。
+
+2026-07-24 已完成 `experimental-design` 的本地第二 phenotype 机制验证：同一 catalog、
+manifest、execution-plan、package validator 和 runtime 未修改，新增 adapter 编译 seeded
+randomization process/check/schema/template/tool-plan。Stratified 与 cluster 两个 development
+fixture 均为 runtime/scorer pass、score 1.00、model token 0。该证据只解除“catalog core
+是否只能服务 Law”的工程单例问题；真实模型对照、冻结 development gate、held-out 和
+break-even 仍未发生。
+
+现有 `pre-ir-calibration-lock/v1` 绑定 `tasks-authored`，现有 validated artifact development
+orchestration 又冻结 Law literal。下一步必须在不改旧 lock/digest 的前提下建立 skill-neutral
+baseline/development lock，再执行 experimental-design calibration。任何无 lock 的直接付费
+runner 输出都不进入研究证据。

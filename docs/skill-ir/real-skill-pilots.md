@@ -367,6 +367,24 @@ scorer。Artifact package 不重编、不修改 provenance，也不读取 held-o
 0.60/failure，总计 2/4、mean 0.725。两次 manual 回归使 gate 失败，package 不晋升，
 也不从该任务回流修复。
 
+### 10.6 Experimental-design 第二 Phenotype
+
+该 pilot 已完成 source/license closure、2+2 task、stdlib-only resource contract、
+deterministic scorer、profile-empty base IR 与逐节点 source audit，并晋升为 `runnable`。
+第一阶段只覆盖 seeded randomization，不启用上游依赖 `numpy/pandas/pyDOE3` 的 DOE 矩阵。
+
+Package：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/packages/validated-skill-artifact-v1/
+```
+
+它复用 Law 已使用的 catalog/runtime API，但 adapter 内容不同：从 `study.json` 推导
+cluster、stratified-block、permuted-block 或 simple-randomized，生成可复现 allocation
+及设计文档。两个 development fixture 本地执行后 scorer 均为 1.00/success；held-out 未执行。
+当前证据只支持“通用 package/runtime 可承载第二种 phenotype”，不支持真实模型增益、
+跨 task 泛化、跨模型稳定或 amortized token claim。
+
 ## 11. Pilot 晋升门禁
 
 每个 deep pilot 需要：
@@ -389,7 +407,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
 | law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Artifact development gate passed；held-out 2/4、0.725、gate failed，结果冻结。 |
-| experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
+| experimental-design | 完成 | 2+2 / deterministic | 完成并 source-audited | 本地 artifact activation 2/2、1.00；真实 calibration 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
 ## 13. 修改注意

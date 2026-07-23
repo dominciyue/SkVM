@@ -624,3 +624,22 @@ Gate 通过只构成 Law 单 skill 的 held-out evidence，不扩展为跨 skill
 failed。失败集中在 manual 的 `law-document-policy` 与 `law-review-outcome`；冻结脚本把
 带“章/条”结构的设备手册判作可交付法律文档。该观察只进入失败审计，不得进入当前
 package、IR、scorer 或重跑决策。
+
+## 18. Experimental-design 本地机制验证
+
+新 scorer 为 `src/bench/evaluators/experimental-design-grade.ts`，只读取最终 workdir。六项
+criterion 分别检查输入保护、三项产物、plan contract、assignment/replication safety、
+seeded allocation consistency 和 report completeness；前三类安全面中的输入保护、产物和
+assignment safety 是 hard gate，阈值 0.85。
+
+四个任务固定为 2 development + 2 held-out。本阶段只运行两个 development fixture：
+stratified individual assignment 与 cluster assignment。Package 通过同一个
+`runValidatedArtifactPlan` 执行，两个任务的 runtime validation 与离线 scorer 均通过，
+score 为 1.00，模型 token 为 0。Held-out 的 sequential/permuted-block 与 simple-randomized
+任务只注册和验证 split，没有执行。
+
+现有 `pre-ir-calibration-lock/v1` 只允许 `tasks-authored` 生命周期；现有 validated artifact
+development lock 又把 Law identity 写成 literal。两者都不能无修改地作为本 pilot 的冻结
+付费合同。下一阶段先抽象 skill-neutral baseline/development orchestration，保留旧 Law
+lock/digest 不变，再执行 `no-skill | original` calibration。绕过 lock 直接调用 runner 的
+结果不得进入研究证据。

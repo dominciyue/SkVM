@@ -192,6 +192,12 @@ describe("buildCorpusMatrixInput", () => {
         provenance: "real-public",
         evidenceWeight: "main-real",
       },
+      {
+        id: "experimental-design",
+        packaging: "focused",
+        provenance: "real-public",
+        evidenceWeight: "main-real",
+      },
     ]);
     expect(input.tasksBySkill).toEqual({
       "law-to-markdown": [
@@ -205,6 +211,12 @@ describe("buildCorpusMatrixInput", () => {
         "env-manager-vite-audit-dev-002",
         "env-manager-python-audit-heldout-001",
         "env-manager-nextjs-audit-heldout-002",
+      ],
+      "experimental-design": [
+        "experimental-design-stratified-dev-001",
+        "experimental-design-cluster-dev-002",
+        "experimental-design-sequential-heldout-001",
+        "experimental-design-simple-heldout-002",
       ],
     });
     expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);

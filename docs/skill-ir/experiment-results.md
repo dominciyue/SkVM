@@ -509,6 +509,23 @@ results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/g
 results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/summary.json
 ```
 
+### 4.5 Experimental-design 第二 Phenotype 本地基线
+
+2026-07-24 使用同一 `validated-skill-artifact/v1` core 编译第二个真实 skill。Package 为
+9 artifacts、2 execution nodes、33878 bytes；通用 catalog/runtime 源码没有新增
+`experimental-design` 分支。两个 development fixture 的结果如下：
+
+| Task phenotype | Runtime | Scorer | Hard gate | Model tokens |
+|---|---|---:|---:|---:|
+| individual + strata | pass | 1.00 / success | 0 fail | 0 |
+| cluster assignment | pass | 1.00 / success | 0 fail | 0 |
+
+输入 digest 在 process/validate 前后保持不变。Gold-isolation canary、held-out/law failure
+隔离、reverse-evidence、byte reproducibility 和 seed-semantic mutation 均有自动测试。
+该批没有调用 API，也没有 `no-skill/original/ir-static` 对照，因此仅为 mechanism evidence。
+现有付费 orchestration 仍是 Law-specific；抽象并冻结新的通用 development lock 前，不生成
+真实优化结论，不运行两个 held-out task，不计算 break-even。
+
 ### 4.4 Validated Artifact Held-out
 
 Held-out lock 和数值 gate 先以提交 `a1b864f` 推送，再执行 route probe 与唯一正式批次。

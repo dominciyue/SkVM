@@ -23,7 +23,8 @@
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
 | `law-to-markdown` vertical slice | Held-out gate 失败并冻结 | Development 4/4、0.925；held-out 2/4、0.725，manual task 两次回归。 |
-| Held-out / pooled panel / Wave B | Law 已执行，其余阻断 | 当前 package 不晋升；不得用 held-out 反馈原地修复，先做失败审计与第二 phenotype 复用。 |
+| `experimental-design` second phenotype | 本地机制通过 | 2+2 task/scorer/IR/audit 与第二 adapter 完成；development fixture 2/2、1.00、0 model token。 |
+| Held-out / pooled panel / Wave B | Law 已执行，其余阻断 | 先抽象 skill-neutral development orchestration，再做第二 skill 付费 calibration；held-out 仍禁止。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
 ## 2. 已完成能力
@@ -98,20 +99,23 @@ pairwise artifact vs best(original, static): 3 positive, 1 equal, 0 negative
 
 Law held-out 已执行但 gate 失败：artifact 在法规 task 两次均为 0.85/success，在非法律
 manual task 两次均为 0.60/failure；总计 2/4、mean 0.725，并发生 2 次逐样本回归。
-当前阻塞是 package 的 task-boundary 泛化，以及 catalog core 尚未被第二个不同 phenotype
-skill 复用。质量 gate 未过，break-even 继续禁止计算。
+当前阻塞是 Law package 的 task-boundary 泛化与付费 orchestration 仍写死 Law。Catalog、
+manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phenotype 原样复用；
+该 pilot 只有本地 mechanism evidence，没有真实 baseline 或 development gate。Break-even
+继续禁止计算。
 
 ## 4. 下一阶段顺序
 
-### 当前下一刀：冻结 Law 失败并验证第二 Phenotype
+### 当前下一刀：通用 Development Orchestration
 
-1. 保留 Law held-out lock、package、scorer、compact result 和失败 gate，不补跑、不重算。
-2. 将 manual failure 只作为外部效度限制和后续研究问题，不写回当前 Law compiler/package。
-3. 从 Wave A 中选择不同 phenotype skill，用相同 catalog manifest/execution-plan/runtime API
-   做本地 development vertical slice，检查 core 是否真的无需 skill-specific 分支。
-4. 新 skill 仍从公开 source、任务与 deterministic scorer 开始；在其 development gate 前
-   不执行新 held-out。
-5. 只有新的质量 gate 通过后，才恢复 repeated-call cost 与 break-even 研究。
+1. 保留 Law 与 experimental-design 的 package、scorer 和所有冻结结果，不原地修改。
+2. 从 Law-specific development lock/planner/runner/gate 提取 skill-neutral identity 和任务字段；
+   旧 Law schema/digest 保持不变，新建版本化 orchestration contract。
+3. 新合同先只冻结 `experimental-design` 的 `no-skill | original` development calibration，
+   GPT-5.6、Windows/clean/bare-agent、2 tasks × 2 repetitions、零重试。
+4. 通过 baseline 区分度审计后，再冻结
+   `no-skill | original | ir-static | validated-artifact` development 对照。
+5. Development gate 未过不运行 sequential/simple held-out，不计算 repeated-call break-even。
 
 ### 已完成前置：文档治理
 
@@ -1068,13 +1072,13 @@ held-out gate failed。失败已冻结，不重编 package、不调 scorer、不
 更新 src/benchmarks/skill-ir/corpus-registry.test.ts
 ```
 
-- [ ] RED：四个 task 必须恰为 2 development + 2 held-out；prompt 只能声明公开合同，eval
+- [x] RED：四个 task 必须恰为 2 development + 2 held-out；prompt 只能声明公开合同，eval
   payload 不得被复制到 prompt；pilot 在没有 IR/source audit 前仍不可进入主矩阵。
-- [ ] RED：scorer 对输入保护、三项产物、plan schema、方法/单位安全、allocation 一致性、
+- [x] RED：scorer 对输入保护、三项产物、plan schema、方法/单位安全、allocation 一致性、
   seeded reproducibility 与报告完整性分别判分；路径逃逸和非法 payload 计 infrastructure。
-- [ ] GREEN：实现 workdir-only deterministic evaluator，hard gate 固定为输入保护、三项产物
+- [x] GREEN：实现 workdir-only deterministic evaluator，hard gate 固定为输入保护、三项产物
   和 assignment-unit safety，阈值固定为 0.85。
-- [ ] GREEN：资源合同只要求 Python >=3.10 与标准库，网络/安装禁止；上游 numpy/pandas/
+- [x] GREEN：资源合同只要求 Python >=3.10 与标准库，网络/安装禁止；上游 numpy/pandas/
   pyDOE3 能力保留为后续 DOE 扩展，不作为本轮 infrastructure。
 
 #### Task 8.8.2：Base IR 与 Source Audit
@@ -1088,11 +1092,11 @@ held-out gate failed。失败已冻结，不重编 package、不调 scorer、不
 更新 src/skill-ir/corpus-fixtures.test.ts
 ```
 
-- [ ] RED：source audit 必须覆盖每个 IR semantic node，拒绝 evaluator、fixture、threshold、
+- [x] RED：source audit 必须覆盖每个 IR semantic node，拒绝 evaluator、fixture、threshold、
   held-out prompt 与 Law result 作为证据。
-- [ ] GREEN：profile-empty base IR 显式表达 assignment/analysis unit、nuisance handling、
+- [x] GREEN：profile-empty base IR 显式表达 assignment/analysis unit、nuisance handling、
   method decision、seeded schedule、replication/pseudoreplication 检查与 fail-closed recovery。
-- [ ] GREEN：pilot 只有在 tasks、resource、IR 和 source audit 均可验证时才晋升 `runnable`。
+- [x] GREEN：pilot 只有在 tasks、resource、IR 和 source audit 均可验证时才晋升 `runnable`。
 
 #### Task 8.8.3：Experimental-design Compiler Adapter
 
@@ -1105,13 +1109,13 @@ held-out gate failed。失败已冻结，不重编 package、不调 scorer、不
 新增 benchmarks/skill-ir/pilots/experimental-design/packages/validated-skill-artifact-v1/
 ```
 
-- [ ] RED：compiler input digest 漂移、缺公开 source/resource evidence、held-out/evaluator/runtime/
+- [x] RED：compiler input digest 漂移、缺公开 source/resource evidence、held-out/evaluator/runtime/
   Law failure canary、非 development task contract 均 fail closed。
-- [ ] RED：两次独立编译必须 byte-for-byte 相同；package 必须通过现有通用 validator，且
+- [x] RED：两次独立编译必须 byte-for-byte 相同；package 必须通过现有通用 validator，且
   catalog/runtime core 不得出现 `experimental-design` 分支。
-- [ ] GREEN：adapter 编译 stdlib Python generator、plan/report template、schema、direct
+- [x] GREEN：adapter 编译 stdlib Python generator、plan/report template、schema、direct
   tool plan 与 checker；按公开字段选择 cluster/stratified-block/permuted-block/simple。
-- [ ] GREEN：provenance 绑定所有 compiler input、artifact digest、compiler identity 和
+- [x] GREEN：provenance 绑定所有 compiler input、artifact digest、compiler identity 和
   forbidden evidence classes；`--verify-only` 不覆盖冻结 package。
 
 #### Task 8.8.4：本地 Activation 与隔离验证
@@ -1125,11 +1129,11 @@ held-out gate failed。失败已冻结，不重编 package、不调 scorer、不
 更新 docs/skill-ir/real-skill-pilots.md
 ```
 
-- [ ] RED：未执行 package 时 development fixture 不满足 artifact success；篡改 protected
+- [x] RED：未执行 package 时 development fixture 不满足 artifact success；篡改 protected
   input、method、seed、allocation unit 或 schedule completeness 时 checker/scorer 必须失败。
-- [ ] GREEN：两个 development fixture 通过同一通用 runtime 执行，protected digest 不变，
+- [x] GREEN：两个 development fixture 通过同一通用 runtime 执行，protected digest 不变，
   runtime validation 与 deterministic scorer 独立通过，model token 为 0。
-- [ ] GREEN：canary scan 和 reverse-evidence 测试证明 evaluator expected、held-out 与
+- [x] GREEN：canary scan 和 reverse-evidence 测试证明 evaluator expected、held-out 与
   Law failure 未进入 package；移除公开字段时 checker 降级或显式失败，不猜测金标。
 
 #### Task 8.8.5：Development Calibration 与阶段门禁
@@ -1141,5 +1145,11 @@ held-out gate failed。失败已冻结，不重编 package、不调 scorer、不
 - [ ] Calibration 只判断任务可执行性、baseline 饱和度和 scorer 区分度。随后再决定是否冻结
   `no-skill | original | ir-static | validated-artifact` development lock；没有新 lock 时
   不得把本地 activation 写成真实优化成功。
-- [ ] 更新 spec/plan/组件文档/experiment results/conversation log，运行 focused/full Skill IR
+- [x] 更新 spec/plan/组件文档/experiment results/conversation log，运行 focused/full Skill IR
   tests、typecheck、文档链接、secret scan、digest verification 与 `git diff --check` 后提交推送。
+
+本地机制阶段实际结果：2/2 development fixture runtime/scorer pass，score 均为 1.00，
+protected digest unchanged，model token 0；committed package 为 9 artifacts、2 nodes、
+33878 bytes。现有 pre-IR lock 生命周期与 Law-specific development orchestration 都不能作为
+新 pilot 的冻结付费合同，因此本轮不绕过 lock 直接付费；8.8.5 转入下一阶段的通用
+orchestration TDD。

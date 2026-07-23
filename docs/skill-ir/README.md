@@ -19,6 +19,10 @@ execution feedback 改善稳定性。
 - Law validated artifact 已完成冻结的 16 行 development 和独立 16 行 held-out。
   Development artifact 为 4/4、mean 0.925、gate 通过；held-out artifact 为 2/4、
   mean 0.725，并在非法律 manual task 上两次回归，gate 失败。该 package 不能晋升。
+- `experimental-design` 已完成 2+2 task、确定性 scorer、profile-empty base IR/source audit
+  和第二个 `validated-skill-artifact/v1` adapter。两个 development fixture 的本地 direct
+  activation 均为 runtime/scorer pass、score 1.00、model token 0；尚未建立付费
+  development lock，不能写成真实模型优化结果。
 - 当前不能声称跨模型、跨 agent、跨 OS 或 token 节省。
 
 ## 按读者选择入口
