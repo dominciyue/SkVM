@@ -161,10 +161,11 @@ describe("validated artifact runtime", () => {
     expect(result.modelRepairTokens).toBe(0);
     expect(JSON.stringify(result)).not.toContain("PRIVATE_STDOUT");
     expect(JSON.stringify(result)).not.toContain(workDir);
-    expect(JSON.parse(await readFile(join(workDir, "result.json"), "utf8"))).toEqual({
-      artifact: join(packageRecord.packageDir, "skill.md"),
-      marker: "approved-marker",
-    });
+    const output = JSON.parse(await readFile(join(workDir, "result.json"), "utf8"));
+    expect(output.marker).toBe("approved-marker");
+    expect(output.artifact.endsWith(`${process.platform === "win32" ? "\\" : "/"}skill.md`))
+      .toBe(true);
+    expect(output.artifact.startsWith(packageRecord.packageDir)).toBe(false);
   });
 
   test("fails closed when a process mutates a protected input", async () => {
@@ -183,6 +184,28 @@ describe("validated artifact runtime", () => {
 
     expect(result.status).toBe("protected-input-failure");
     expect(result.nodes.at(-1)?.failureClass).toBe("protected-input-mutated");
+  });
+
+  test("executes from an isolated snapshot without mutating the frozen package", async () => {
+    const packageRecord = await createRuntimePackage(
+      `await Bun.write(new URL("./runtime-cache.tmp", import.meta.url), "cache");\n`
+        + `await Bun.write("result.json", "{}");\n`,
+      passingChecker,
+    );
+    const workDir = await tempDir("validated-artifact-runtime-package-isolation-");
+    await writeFile(join(workDir, "document.txt"), "protected\n", "utf8");
+
+    const result = await runValidatedArtifactPlan({
+      package: packageRecord,
+      workDir,
+      env: { SKVM_TEST_EXECUTABLE: process.execPath, SKVM_MARKER: "approved-marker" },
+    });
+
+    expect(result.status).toBe("complete");
+    expect(await Bun.file(join(
+      packageRecord.packageDir,
+      "artifacts/scripts/runtime-cache.tmp",
+    )).exists()).toBe(false);
   });
 
   test("keeps validator failure separate from infrastructure failure", async () => {

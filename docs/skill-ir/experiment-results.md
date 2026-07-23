@@ -437,10 +437,31 @@ Python script，不经过 shell，也不调用模型。
 artifact、2 个 execution node 和 89463 bytes；gold-isolation canary、reverse-evidence、
 byte-for-byte reproducibility、protected input 和 Windows 中文 validation path 均有自动测试。
 
-该结果没有模型生成噪声，适合验证“把公开确定性能力固化为 artifact”这一机制，但它仍只是
-in-sample development fixture activation：尚无冻结 Law development lock、paired
-`no-skill|original|ir-static|artifact` 对照、held-out、跨模型或第二 skill 复用，因此不进入
-主 claim，也暂不计算多次调用 break-even。
+随后冻结 `law-to-markdown-validated-artifact-development-v1`。2026-07-24 dry-run 为
+16 行、4 个完整四元组、12 条模型计划、4 条 direct 计划和 0 held-out。免费 direct 臂按两个
+development task × 2 repetition 实际执行：
+
+| Task | Repetitions | Success | Mean | Model tokens |
+|---|---:|---:|---:|---:|
+| law statute development | 2 | 2/2 | 0.85 | 0 |
+| non-law standard development | 2 | 2/2 | 1.00 | 0 |
+
+四条 runtime 均为 complete；累计 deterministic process 840 ms、validation 159 ms，package
+为 89463 bytes。执行中发现 Python 会在直接脚本目录生成 `__pycache__`，runtime 已改为临时
+package execution snapshot；修复后重复执行未在冻结 package 留下 pyc/undeclared file。
+
+该结果没有模型生成噪声，适合验证“把公开确定性能力固化为 artifact”以及重复执行隔离机制，
+但完整 12 条模型对照尚未运行，16 行 gate 尚未评估。当前仍无 paired 方法结果、held-out、
+跨模型或第二 skill 复用证据，因此不进入主 claim，break-even 保持
+`not-computed-quality-gate-pending`。
+
+本地证据：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-development-lock.json
+results/skill-ir/law-to-markdown-validated-artifact-development-dry-run-2026-07-24/plan.json
+results/skill-ir/law-to-markdown-validated-artifact-development-artifact-arm-2026-07-24/
+```
 
 ## 5. Env-manager 研究推进总表
 
@@ -470,7 +491,7 @@ in-sample development fixture activation：尚无冻结 Law development lock、p
 - `law-to-markdown` 的真实 source/no-skill/original/scorer 链路可执行且未饱和；pre-IR
   gate 允许进入 base IR audit；static development 链路完整，但 static 与 original 同为
   1/4、mean 0.7875，当前文本 IR 没有形成净收益；新 direct artifact 在两个本地 development
-  fixture 上达到 0.85/1.00，但尚未进入冻结对照。
+  fixture 重复运行达到 4/4 success、0.85/1.00，已冻结 16 行对照但模型臂与完整 gate 尚未执行。
 
 不能支持：
 

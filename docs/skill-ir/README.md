@@ -8,13 +8,16 @@ execution feedback 改善稳定性。
 
 - 已完成 Skill IR schema、parser、validator、profiler、静态 passes 和 lowering。
 - 已建立真实 skill provenance、runner、持久化 workdir、确定性 scorer 和结果分析链路。
-- `env-manager` 是当前唯一完成纵向实验的真实 pilot。
+- `env-manager` 已完成多轮纵向 development 实验；`law-to-markdown` 已完成 source-audited
+  static 实验和 validated artifact 的冻结 development 预检。
 - `ir-static` 在冻结 development run 中改善了 partial correctness，但仍为 0/4 success。
 - Dual-source Final IR、artifact v1 和 semantic artifact v2 均未通过 development gate。
 - V2 真实触发了两次 repair，但均未通过 revalidation；held-out 未执行。
 - V3 public-contract package、共享 pre/post snapshot、paired scorer 和本地一次修复已
   接通；冻结 GPT-5.6 development 已运行，3 个完整 pair 为 0.70→0.70，另有 1 个
   infrastructure failure，gate 失败且 held-out 未运行。
+- Law validated artifact 已冻结 16 行 development lock；dry-run 与 4 条 direct 行完成，
+  direct 为 4/4 success、模型 token 0，12 条模型对照与完整 gate 尚未运行。
 - 当前不能声称跨模型、跨 agent、跨 OS 或 token 节省。
 
 ## 按读者选择入口

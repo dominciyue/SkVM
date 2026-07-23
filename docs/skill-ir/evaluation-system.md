@@ -519,3 +519,39 @@ Activation 会编译临时 package、运行 resource probe、分别执行两个 
 再调用既有 `lawToMarkdownGrade`。未设置 `SKVM_PYTHON` 时集成测试显式 skip，不会错误使用
 缺依赖的默认解释器。Runtime pass 与 scorer success 分列；测试失败时不能通过放宽 scorer、
 读取 evaluator expected 或运行 held-out 修补。
+
+## 16. Law Validated Artifact Development
+
+冻结 lock：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/
+  law-to-markdown-validated-artifact-development-lock.json
+```
+
+无成本生成 16 行计划：
+
+```powershell
+bun ./src/benchmarks/skill-ir/validated-artifact-development-run.ts `
+  '--phase=plan' `
+  '--out-dir=results/skill-ir/law-to-markdown-validated-artifact-development-dry-run-2026-07-24'
+```
+
+只执行 4 条 direct artifact 行：
+
+```powershell
+$env:SKVM_PYTHON = '<python-with-docx-and-pdfplumber>'
+bun ./src/benchmarks/skill-ir/validated-artifact-development-run.ts `
+  '--phase=artifact-execute' `
+  '--out-dir=results/skill-ir/law-to-markdown-validated-artifact-development-artifact-arm-2026-07-24'
+```
+
+计划固定为 `no-skill | original | ir-static | validated-artifact`、2 task × 2 repetition：
+16 个逻辑样本中 12 行属于模型臂，4 行属于 direct deterministic 臂。`artifact-execute`
+不会读取 API key 或调用模型；runner 只把 fixture 投影到 workdir，package runtime 看不到
+evaluator payload，最终 workdir 才交给既有 scorer。
+
+`buildValidatedArtifactDevelopmentGateReport` 使用 16 行固定分母。缺行按 infrastructure
+失败，重复/身份漂移直接拒绝；artifact 必须 4/4 success、总均分和逐 task 均分均不低于
+0.85、无 hard-gate/基础设施失败，并逐样本不低于 original 与 ir-static 中较高者。当前只有
+4 条 direct 证据，完整 gate 尚未评估，不能运行 held-out。

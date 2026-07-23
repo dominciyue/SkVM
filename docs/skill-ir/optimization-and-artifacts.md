@@ -668,6 +668,14 @@ bun run typecheck
 5. Held-out 只能消费通过 development gate 的同一 provenance-bound artifact。
 6. 组件变化更新本文档，不再新增 package/run Markdown。
 
+### Validated package 执行隔离
+
+`validated-skill-artifact/v1` 在校验 package digest 后，不直接从冻结目录执行脚本。Runtime
+先将完整 package 复制到操作系统临时目录，在该快照上展开 artifact placeholder 和运行节点，
+结束后无条件删除快照。这样 Python import 产生的 `__pycache__`、工具侧缓存或误写只影响
+临时副本；原 package 在多次调用后仍能通过 undeclared-file 与 digest 校验。Workdir 的
+protected input snapshot、输出检查和 compact cost 记录保持不变。
+
 ## 16. V4 Coverage Audit 与确定性 Repair
 
 V3 development 失败后，下一 catalog 不直接继续加 prompt。实现先增加一层

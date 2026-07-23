@@ -13,7 +13,8 @@ export type ExperimentSystem =
   | "ir-pgo-dev"
   | "ir-artifact-dev"
   | "ir-public-artifact-dev"
-  | "ir-contract-artifact-dev";
+  | "ir-contract-artifact-dev"
+  | "validated-artifact";
 
 export type SkillPackaging = "focused" | "broad" | "unknown";
 

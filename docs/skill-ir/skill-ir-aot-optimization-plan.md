@@ -907,11 +907,38 @@ held-out 或把结果写成 Skill IR 增益。
 
 ### Task 8.5：冻结前审计与跨 Skill 复用门槛
 
-- [ ] 只有 Task 8.1-8.4 全部通过后，才起草新的 Law development lock、数值 gate 和对照系统；
-  不复用或修改 static lock，不先运行 held-out。
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/validated-artifact-development.ts
+新增 src/benchmarks/skill-ir/validated-artifact-development.test.ts
+新增 src/benchmarks/skill-ir/validated-artifact-development-run.ts
+新增 src/benchmarks/skill-ir/validated-artifact-development-run.test.ts
+新增 src/benchmarks/skill-ir/validated-artifact-development-gate.ts
+新增 src/benchmarks/skill-ir/validated-artifact-development-gate.test.ts
+新增 benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-development-lock.json
+更新 src/benchmarks/skill-ir/matrix.ts
+更新 src/benchmarks/skill-ir/scoring.ts
+更新 docs/skill-ir/evaluation-system.md
+更新 docs/skill-ir/real-skill-pilots.md
+```
+
+- [x] RED/GREEN：实现独立的 `skill-ir-validated-artifact-development-lock/v1`，绑定 source、
+  tasks、resource/scorer/base IR/source audit、冻结 package 三个入口 digest 与 compiler/catalog/
+  runtime/planner/runner/gate implementation digest；任何漂移 fail closed，不复用或修改 static lock。
+- [x] RED/GREEN：从 lock 编译 16 行/4 四元组 dry-run；前三臂为 12 条模型行，artifact 为
+  4 条 `direct-deterministic` 行。拒绝 held-out、PGO、额外 context/system/repetition 和假模型身份。
+- [x] RED/GREEN：实现 `artifact-execute` 免费阶段，安全物化同一 fixture，验证 resource/package、
+  无 shell 执行 4 行并写 compact raw/scored/cost evidence；不得调用模型或读取 evaluator expected
+  作为 runtime 输入。
+- [x] RED/GREEN：实现固定 16 行分母 gate；缺失/重复/身份漂移按失败或拒绝，要求 artifact
+  4/4 success、总均分与逐 task 均分不低于 0.85、0 infra、0 hard-gate failure，且逐匹配样本
+  不低于 `original` 与 `ir-static` 的较优结果。
+- [x] GREEN：dry-run 与本地 artifact 4 行通过后才进入 route probe/付费完整 development；
+  gate 未通过不执行 held-out，不调 scorer/package/lock。
 - [ ] 下一 adapter 必须复用相同 manifest/execution-plan/runtime API；若需要修改 catalog core，
   记录抽象失败并新版本化，不能以 Law 单例声称通用。
-- [ ] 成本表固定报告 compile/profile/model generation/model repair/process/validation/package bytes；
-  质量不回归前不计算或宣传 token break-even。
+- [x] 成本表固定报告 compile/profile/model generation/model repair/process/validation/package bytes；
+  另列 research diagnostic cost；质量不回归前 break-even 保持未计算，不宣传 token 节省。
 - [x] 更新 spec、plan、组件文档、experiment results 和 conversation log；执行 focused tests、
   typecheck、文档链接、secret scan 和 `git diff --check`。

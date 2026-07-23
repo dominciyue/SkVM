@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "skill-ir-validated-artifact-development-lock/v1",
+  "status": "preregistered",
+  "experimentId": "law-to-markdown-validated-artifact-development-v1",
+  "methodEvidence": true,
+  "corpus": "pilot",
+  "skillId": "law-to-markdown",
+  "frozenInputs": {
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+    },
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/tasks.json",
+      "sha256": "f10978a61a98e2a46577ecace9dd9ce9f6f6b5810c1e536cdd2f3e10088a2b1f"
+    },
+    "resourceContract": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json",
+      "sha256": "108fc52e7f0155c0066a0517371944c1ef948f0ee5fa24b8cc4b8944d3b848d6"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/law-to-markdown-grade.ts",
+      "sha256": "051d467ae8292dbc917316ce7c495915fe36377b529c22553cff3dd637d2d180"
+    },
+    "baseIr": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/base-ir.json",
+      "sha256": "fd00e8f858f72b2394849c8f0d6864b593150aca9dfc8b23b205211d5512ffb3"
+    },
+    "sourceAudit": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/base-ir-source-audit.json",
+      "sha256": "44c5a3a7fc629b02fe5e0b1ccb71e716f06f4534f9cca99ed51a152cc8771904"
+    }
+  },
+  "frozenPackage": {
+    "directory": "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1",
+    "manifest": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/package-manifest.json",
+      "sha256": "bb614f8bcc1a72fc92584c4c214454bbb53bf766084918dd3adf30aa3116e1a8"
+    },
+    "provenance": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/package-provenance.json",
+      "sha256": "db6165d3b8df45726aa18fc01577c05a9f546190e67dadd725293168ced21902"
+    },
+    "executionPlan": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/execution-plan.json",
+      "sha256": "2f6c9305972dd9a9ef74a35507103972e449ea230aa175b549a4046eccfdba27"
+    }
+  },
+  "frozenImplementations": {
+    "compiler": {
+      "path": "src/benchmarks/skill-ir/law-artifact-compiler.ts",
+      "sha256": "78436e43b5b1096352b2bc8d5381571e90b00052c087717fd053d21d2f0189e2"
+    },
+    "catalog": {
+      "path": "src/benchmarks/skill-ir/validated-artifact-catalog.ts",
+      "sha256": "d13a9e49b09092f41940509e5467d813e6194bb14e30a725ab2e39c06909c93d"
+    },
+    "runtime": {
+      "path": "src/benchmarks/skill-ir/validated-artifact-runtime.ts",
+      "sha256": "20fc00b4dab3510b602ab73a2e6b46f9d6d6a7ced1fe686b620b1c94744f823a"
+    },
+    "planner": {
+      "path": "src/benchmarks/skill-ir/validated-artifact-development.ts",
+      "sha256": "61f5da2069d527d935c0c3dff2a848b3087ddea931324b006e06efb3c0299212"
+    },
+    "directRunner": {
+      "path": "src/benchmarks/skill-ir/validated-artifact-development-run.ts",
+      "sha256": "3b8bf418e9bb6a1b09e7b866ff5cd3aa24276361c316f49fe1ef05e234f00e79"
+    },
+    "gate": {
+      "path": "src/benchmarks/skill-ir/validated-artifact-development-gate.ts",
+      "sha256": "42ba4f3592dda2111bfaaac52da2e1f8cfc57f9c7d0cbf3e4e196a68f2b9595d"
+    }
+  },
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-law-validated-artifact-v1"
+  },
+  "directExecution": {
+    "system": "validated-artifact",
+    "model": "direct-deterministic",
+    "modelFamily": "none",
+    "adapter": "validated-artifact-runtime",
+    "adapterVersion": "validated-artifact-runtime-v1"
+  },
+  "matrix": {
+    "modelSystems": ["no-skill", "original", "ir-static"],
+    "systems": ["no-skill", "original", "ir-static", "validated-artifact"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "law-to-markdown-statute-dev-001",
+      "law-to-markdown-standard-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 16,
+    "expectedModelRows": 12,
+    "expectedArtifactRows": 4,
+    "expectedQuartets": 4
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "pythonEnv": "SKVM_PYTHON",
+    "retries": 0,
+    "routeProbeRequired": true,
+    "resourceProbeRequired": true
+  },
+  "gate": {
+    "minimumArtifactSuccesses": 4,
+    "minimumArtifactMeanScore": 0.85,
+    "minimumArtifactTaskMeanScore": 0.85,
+    "maximumInfrastructureFailures": 0,
+    "maximumArtifactHardGateFailures": 0,
+    "maximumPairwiseRegressions": 0
+  },
+  "costAccounting": {
+    "schemaVersion": "skill-ir-artifact-cost-accounting/v1",
+    "compileCost": "measure-once",
+    "profileCost": 0,
+    "researchDiagnosticCost": "report-separately",
+    "modelGenerationTokens": "sum-model-arms",
+    "modelRepairTokens": 0,
+    "deterministicProcessDuration": "sum-artifact-process-nodes",
+    "validationDuration": "sum-artifact-validation-nodes",
+    "packageBytes": "verified-package-bytes",
+    "breakEven": "not-computed-quality-gate-pending"
+  },
+  "promotionBoundary": {
+    "corpusStatusAtRun": "runnable",
+    "entersMainClaim": false,
+    "permitsHeldOutPlanningAfterGate": true,
+    "permitsHeldOutExecution": false,
+    "permitsPgo": false,
+    "permitsScorerRetuning": false,
+    "permitsPackageRecompile": false
+  },
+  "prohibited": [
+    "held-out execution before a new held-out lock",
+    "PGO or profile feedback consumption",
+    "scorer retuning from development output",
+    "package recompilation after lock freeze",
+    "break-even computation before the quality gate passes"
+  ]
+}

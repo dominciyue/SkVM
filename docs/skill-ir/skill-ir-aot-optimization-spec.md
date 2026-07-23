@@ -766,6 +766,11 @@ Runner 不通过 `sh`、PowerShell 或拼接命令字符串执行。模型分类
 经过资源 probe、输入保护、package digest 验证、runtime validation 和既有离线 deterministic
 scorer；validator 不是 scorer。
 
+冻结 package 不直接作为解释器的可写脚本目录。Runtime 在每次调用前复制一份临时执行快照，
+所有 script/import cache 只允许写入快照，结束后删除；原 package 在重复调用后仍必须通过
+digest 与 undeclared-file 校验。该护栏用于阻止 Python `__pycache__` 等解释器副作用破坏
+冻结产物，不改变 workdir 输出或 package 语义。
+
 本阶段验收顺序：
 
 1. catalog schema、digest、undeclared-file、path containment 和 skill-neutral canary 通过；
@@ -793,3 +798,67 @@ packageBytes
 
 Law direct-only 本地运行的模型 token 为 0，但不能据此直接声称总体节省；只有质量不回归、
 package 可复用且计入前置编译/验证成本后，才计算相对 original 的多次调用 break-even。
+
+## 19. Law Validated Artifact Development Contract
+
+Task 8.5 使用新的、不可与 static development 混用的实验身份：
+
+```text
+lock: skill-ir-validated-artifact-development-lock/v1
+plan: skill-ir-validated-artifact-development-plan/v1
+gate: skill-ir-validated-artifact-development-gate-report/v1
+experiment: law-to-markdown-validated-artifact-development-v1
+```
+
+该实验继续只使用两个冻结的 development task、Windows、clean context、bare-agent 和两次
+repetition。每个 `task × repetition` 形成一个四元组：
+
+```text
+no-skill | original | ir-static | validated-artifact
+```
+
+总分母固定为 16 个逻辑样本和 4 个四元组。其中前三个系统共 12 行，经冻结的
+`xty/gpt-5.6-sol` 与 `bare-agent` 生成；`validated-artifact` 共 4 行，由已验证 package
+直接执行，不调用模型。四元组表示相同 task/repetition 下的质量与成本比较，不表示四个系统
+共享同一次随机生成，也不作为 repair 因果消融。
+
+新 lock 必须绑定原始 source、tasks、resource contract、deterministic scorer、base IR、
+source audit、package manifest/provenance/execution plan，以及 compiler adapter、catalog core、
+runtime、planner、direct runner 和 gate implementation 的 digest。Package validator 继续递归
+验证其余 artifact digest；任何输入、实现或 package 漂移都要求新建 lock，不能修改本 lock。
+
+执行边界固定为：
+
+1. `plan` 不要求 API key，不执行模型或 package；
+2. `artifact-execute` 只运行 4 个直接执行样本，要求 resource probe，不要求 model route；
+3. 完整 `execute` 必须另有同一 lock 的成功 resource/route probe，模型臂重试次数为 0；
+4. 所有系统复用同一任务 fixture、最终 workdir 和既有 deterministic scorer；
+5. held-out、PGO、scorer retuning 和 package 重编译均被本 lock 禁止。
+
+付费前数值 gate 冻结为：
+
+- 16/16 raw 与 scored 行、4/4 完整四元组；
+- `validated-artifact` 成功至少 4/4；
+- `validated-artifact` 总均分至少 0.85，每个 task 的均分至少 0.85；
+- `validated-artifact` 基础设施失败为 0，hard gate failure 为 0；
+- 对每个匹配样本，artifact 不得低于 `original` 或 `ir-static` 中较好的结果，也不得在任一
+  baseline 成功时失败；
+- gate 通过只允许起草 held-out lock，不自动执行 held-out，也不进入完整主 claim。
+
+成本报告使用固定字段：
+
+```text
+compileCost
+profileCost
+researchDiagnosticCost
+modelGenerationTokens
+modelRepairTokens
+deterministicProcessDuration
+validationDuration
+packageBytes
+```
+
+Law v1 compiler 不消费 profile feedback，因此 production `profileCost=0`；此前 static failure
+audit 对研究路线有影响，单列为 `researchDiagnosticCost`，不伪装成 compiler 输入，也不并入
+生产摊销。Artifact 的 generation/repair token 均为 0；前三臂按真实 usage 统计。Development
+gate 未通过前，break-even 字段必须保持 `not-computed-quality-gate-pending`。

@@ -1,4 +1,5 @@
-import { lstat, readFile } from "node:fs/promises";
+import { cp, lstat, mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { z } from "zod";
 import {
@@ -298,7 +299,7 @@ function buildResult(options: {
   };
 }
 
-export async function runValidatedArtifactPlan(
+async function runValidatedArtifactPlanFromSnapshot(
   input: ValidatedArtifactRuntimeInput,
 ): Promise<SkillArtifactExecutionResult> {
   const protectedSnapshot = await snapshotProtectedInputs(
@@ -344,4 +345,27 @@ export async function runValidatedArtifactPlan(
   }
 
   return buildResult({ input, status: "complete", nodes, validation });
+}
+
+export async function runValidatedArtifactPlan(
+  input: ValidatedArtifactRuntimeInput,
+): Promise<SkillArtifactExecutionResult> {
+  const executionRoot = await mkdtemp(join(tmpdir(), "skvm-validated-artifact-runtime-"));
+  const executionPackageDir = join(executionRoot, "package");
+  try {
+    await cp(input.package.packageDir, executionPackageDir, {
+      recursive: true,
+      force: false,
+      errorOnExist: true,
+    });
+    return await runValidatedArtifactPlanFromSnapshot({
+      ...input,
+      package: {
+        ...input.package,
+        packageDir: executionPackageDir,
+      },
+    });
+  } finally {
+    await rm(executionRoot, { recursive: true, force: true });
+  }
 }

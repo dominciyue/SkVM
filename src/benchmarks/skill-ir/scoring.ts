@@ -5,6 +5,7 @@ import { evaluateAll } from "../../framework/evaluator";
 import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix";
 import type { RunIdentity, SkillIRBenchmarkTask } from "./real-agent";
 import type { ArtifactRuntimeMetadata } from "./artifact-runtime";
+import type { SkillArtifactExecutionResult } from "./validated-artifact-runtime";
 import {
   verifyArtifactSnapshot,
   type ArtifactSnapshotReference,
@@ -36,6 +37,7 @@ export type RawAgentRunRow = Partial<RunIdentity> & {
   successSource: "execution-only";
   attempts?: number;
   artifactRuntime?: ArtifactRuntimeMetadata;
+  validatedArtifactRuntime?: SkillArtifactExecutionResult;
   artifactLogicalArm?: ArtifactLogicalArm;
   generationIdentity?: string;
   artifactSnapshot?: ArtifactSnapshotReference;
@@ -96,6 +98,7 @@ export type ScoredAgentRunRow = ParsedCaseId & Partial<RunIdentity> & {
   evaluatorScore?: number;
   evaluationSummary?: EvaluationSummary[];
   artifactRuntime?: ArtifactRuntimeMetadata;
+  validatedArtifactRuntime?: SkillArtifactExecutionResult;
   artifactLogicalArm?: ArtifactLogicalArm;
   generationIdentity?: string;
   artifactSnapshot?: ArtifactSnapshotReference;
@@ -630,7 +633,14 @@ async function scoreRawRunRowsWithResolver(
     const runStatus = row.runStatus ?? "ok";
     const executionFailed = row.exitCode !== 0 || runStatus !== "ok";
     const failureType = executionFailed ? classifyFailureType(row) : undefined;
-    const tokenUsage = row.artifactRuntime
+    const tokenUsage = row.validatedArtifactRuntime
+      ? {
+          inputTokens: row.validatedArtifactRuntime.modelGenerationTokens,
+          outputTokens: row.validatedArtifactRuntime.modelRepairTokens,
+          tokenCost: row.validatedArtifactRuntime.modelGenerationTokens
+            + row.validatedArtifactRuntime.modelRepairTokens,
+        }
+      : row.artifactRuntime
       ? {
           inputTokens: row.artifactLogicalArm === "check-only"
             ? (row.artifactRuntime.generationUsage?.inputTokens ?? row.artifactRuntime.aggregateUsage.inputTokens)
@@ -678,6 +688,9 @@ async function scoreRawRunRowsWithResolver(
       ...(row.skillProvenance ? { skillProvenance: row.skillProvenance } : {}),
       ...(row.evidenceWeight ? { evidenceWeight: row.evidenceWeight } : {}),
       ...(row.artifactRuntime ? { artifactRuntime: row.artifactRuntime } : {}),
+      ...(row.validatedArtifactRuntime
+        ? { validatedArtifactRuntime: row.validatedArtifactRuntime }
+        : {}),
       ...(row.artifactLogicalArm ? { artifactLogicalArm: row.artifactLogicalArm } : {}),
       ...(row.generationIdentity ? { generationIdentity: row.generationIdentity } : {}),
       ...(row.artifactSnapshot ? { artifactSnapshot: row.artifactSnapshot } : {}),
