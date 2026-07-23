@@ -343,10 +343,15 @@ benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/
 
 新的 Law development lock 已冻结，固定 16 行/4 四元组。2026-07-24 dry-run 确认 12 条模型
 行、4 条 direct 行和 0 held-out；免费 direct 臂重复执行为 4/4 success，法律任务两次均为
-0.85，非法律任务两次均为 1.00，模型 token 为 0。完整模型对照尚未运行，因此 16 行 gate
-仍未评估。父 lock 已保持不可变，并新增从属 execution freeze，绑定实际 model runner、
-scoring、route/resource、bare-agent 和 orchestration digest；route probe 与付费 execute
-尚未运行。Catalog 通用性仍必须由至少一个不同类型 skill 复用同一
+0.85，非法律任务两次均为 1.00，模型 token 为 0。父 lock 保持不可变，并由从属 execution
+freeze 绑定实际 model runner、scoring、route/resource、bare-agent 和 orchestration digest。
+
+同日完整付费 development 得到 16/16 rows、4/4 quartets、0 infrastructure。Artifact 为
+4/4、mean 0.925，original 为 0/4、0.75，ir-static 为 1/4、0.80；逐样本相对
+original/static 较优者 3 positive、1 equal、0 regression。Artifact 4 次调用模型 token
+均为 0，三条模型臂合计 301198 tokens；因 compile cost 未在同一口径测量，仍不计算
+break-even。Development gate passed，只允许起草 held-out lock，held-out 尚未执行。
+Catalog 通用性仍必须由至少一个不同类型 skill 复用同一
 manifest/execution-plan/runtime API 验证，不能由 Law 单例直接得出。
 
 ## 11. Pilot 晋升门禁
@@ -370,7 +375,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Static gate failed；validated artifact 父 lock/direct 4 行及 execution freeze 已完成，route probe 与完整 16 行 gate 待执行。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Static gate failed；validated artifact development 16/16、gate passed，held-out lock 待设计。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 

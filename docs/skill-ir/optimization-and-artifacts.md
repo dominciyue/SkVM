@@ -807,3 +807,21 @@ results/skill-ir/env-manager-contract-repair-v4-development-evidence-2026-07-22/
 results/skill-ir/env-manager-contract-repair-v4-development-evidence-2026-07-22/failure-audit.jsonl
 results/skill-ir/env-manager-contract-repair-v4-development-run-2026-07-22/development-gate-report.json
 ```
+
+## 17. Law Validated Artifact Development
+
+Law adapter 是 `validated-skill-artifact/v1` 的首个真实实例。父 development lock 固定
+`no-skill | original | ir-static | validated-artifact`、2 development tasks × 2 repetitions；
+从属 execution freeze 在不修改父 lock 的条件下绑定 model runner、scoring、route/resource、
+bare-agent 与 orchestration digest。
+
+2026-07-24 冻结批次 16/16 rows、4/4 quartets、0 infrastructure。Artifact 为 4/4、
+mean 0.925、0 hard-gate failure、0 pairwise regression；original 为 0/4、0.75，
+ir-static 为 1/4、0.80。Artifact 四次运行没有模型 generation/repair，模型 token 为 0，
+deterministic process 734 ms、validation 160 ms；三个模型系统合计 301198 tokens。
+
+这证明同一 Law package 在 development 上能稳定复用已经固化的脚本、模板、tool plan 和
+checker，并优于同批次文本 skill/IR baseline。它还不是 catalog 通用性或生命周期成本结论：
+compile cost 本批未重测，break-even 未计算，held-out 与第二 phenotype skill 都未验证。
+Gate 通过后的下一合法动作是建立新的 held-out lock，不能让 development runner 直接执行
+held-out。

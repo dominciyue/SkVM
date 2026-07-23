@@ -68,6 +68,14 @@ mean 0.75、1 infrastructure，因此 gate 失败，held-out 未执行。
 `law-review-outcome` 在 8 行中持续失败。校准 gate 通过，只允许进入 source-audited
 base IR 构造；不构成方法增益或 held-out 证据。
 
+2026-07-24 使用冻结 development lock 与从属 execution freeze 完成 Law validated artifact
+对照：`no-skill | original | ir-static | validated-artifact`、2 tasks × 2 repetitions，
+16/16 raw/scored、4/4 quartets、0 infrastructure。Artifact 为 4/4 success、mean 0.925、
+0 model tokens；original 为 0/4、0.75、110249 tokens，ir-static 为 1/4、0.80、
+155445 tokens。Artifact 逐样本相对 original/static 较优者为 3 positive、1 equal、
+0 negative，冻结 development gate 通过。该结果只允许起草新的 held-out lock，不构成
+held-out、跨模型、跨 skill、跨环境或摊销 token 主张。
+
 ### 已执行的模型能力诊断
 
 已使用 `xty/gpt-4.1` 对冻结 semantic artifact v2 做单变量诊断，目的仅是判断
@@ -312,13 +320,23 @@ V4 contract-repair artifact development：
 - 三次均由 deterministic repair 完成，模型 repair attempts/tokens 均为 0；
 - 冻结 gate 为 3/4、mean 0.75、1 infrastructure，未通过，held-out 未执行。
 
+Law validated artifact development：
+
+- 16/16 rows、4/4 quartets、0 infrastructure、0 hard-gate failure；
+- no-skill 1/4、mean 0.6875；original 0/4、mean 0.7500；ir-static 1/4、mean 0.8000；
+- validated-artifact 4/4、mean 0.9250，法律 task mean 0.85，非法律 task mean 1.00；
+- artifact 相对 original/static 较优者为 3 positive、1 equal、0 regression；
+- artifact model tokens 为 0，模型三臂合计 301198 tokens；compile cost 未重测，
+  break-even 仍为 `not-computed-quality-gate-pending`；
+- development gate 通过，只允许建立新的 held-out lock，held-out 尚未执行。
+
 详细证据见 `docs/skill-ir/experiment-results.md` 和 `results/skill-ir/`。
 
 ## 10. 当前不支持的主张
 
 - 不声称已提高 held-out success。
 - 不声称跨模型、跨 agent 或跨 OS 稳定。
-- 不声称当前 package 节省 token。
+- 不声称当前 package 已证明摊销 token 节省或 break-even。
 - 不把 runtime validation pass 等同于任务成功。
 - 不把单个成功样本或跨批次均值差写成因果增益。
 - 不把 environment label 当作真实 host evidence。

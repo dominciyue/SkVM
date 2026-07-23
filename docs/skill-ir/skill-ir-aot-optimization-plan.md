@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-07-23
+**最后更新：** 2026-07-24
 
 本文件只记录当前状态和下一步。已完成阶段的详细演进见
 `docs/skill-ir/history.md`，组件契约见对应权威文档。
@@ -22,8 +22,8 @@
 | V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
-| `law-to-markdown` vertical slice | Static gate 失败 | 12/12 完整、0 infra；static 与 original 同为 1/4、0.7875。下一步设计公开 template/tool-plan artifact。 |
-| Held-out / pooled panel / Wave B | 阻断 | Development method 尚未通过门禁。 |
+| `law-to-markdown` vertical slice | Validated artifact development gate 通过 | 16/16、0 infra；artifact 4/4、0.925、0 pairwise regression。下一步冻结 held-out lock。 |
+| Held-out / pooled panel / Wave B | Law held-out 可规划，其余阻断 | Development runner 仍禁止 held-out；先书面冻结新 lock，再执行独立 held-out。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
 ## 2. 已完成能力
@@ -74,7 +74,7 @@ one-repair: success = 0/4, mean = 0.6625, repair = 4/4, repaired-to-pass = 0/4
 `classification` 与 `schema` 在所有系统中继续失败。这支持“模型能力影响基础执行质量”，
 同时表明当前主要瓶颈仍在 public contract lowering、validator 与 repair 约束。
 
-Law static development 也未解除阻塞：
+Law static development 暴露的文本 IR 阻塞为：
 
 ```text
 required: ir-static success >= 3/4, mean >= 0.85, hard-gate regressions = 0, infra = 0
@@ -86,7 +86,31 @@ paired original->static: 1 positive, 1 negative, 2 equal, mean delta = 0
 要求；Windows bare-agent 的 shell 路径也未可靠执行 bundled script。下一阶段转向
 template/schema 与 direct tool-plan 固态化，不继续堆文本规则。
 
+该方向的 validated artifact development 已在 2026-07-24 通过：
+
+```text
+16/16 rows, 4/4 quartets, infrastructure = 0
+validated-artifact: success = 4/4, mean = 0.925, model tokens = 0
+original: success = 0/4, mean = 0.750
+ir-static: success = 1/4, mean = 0.800
+pairwise artifact vs best(original, static): 3 positive, 1 equal, 0 negative
+```
+
+当前阻塞已转为外部效度：同一冻结 package 尚未在 held-out 上验证，catalog core 尚未被第二个
+不同 phenotype skill 复用，compile cost 与复用次数也不足以计算 break-even。
+
 ## 4. 下一阶段顺序
+
+### 当前下一刀：Law Held-out Method Freeze
+
+1. 不修改已通过的 development lock、execution freeze、package、scorer 或 task。
+2. 新建独立 held-out lock，绑定通过的 development gate/summary digest、同一 package digest、
+   两个既有 held-out task、同一 GPT-5.6/bare-agent/Windows/clean identity 和零重试。
+3. 付费前冻结 `no-skill | original | ir-static | validated-artifact` 的 held-out 分母、成功条件、
+   pairwise regression、token/cost 口径和 route/resource prerequisite。
+4. 先完成 dry-run 与 route probe，再执行唯一一次 held-out；任何 development 结果不得回流
+   修改 package。
+5. Held-out 之后再进入第二 phenotype skill 的 catalog reuse 与调用次数/break-even 实验。
 
 ### 已完成前置：文档治理
 
@@ -972,7 +996,33 @@ Task 8.5 的父 lock 保持不可变。其 direct runner 已绑定 digest 且只
   12 条冻结模型行、零重试，并在同一批次重跑 4 条 direct artifact 行。
 - [x] RED/GREEN：合并恰好 16 条 raw/scored row，运行既有冻结 gate，并输出 compact
   scored/cost/summary/gate；缺行、重复、身份漂移或 prerequisite failure 必须 fail closed。
-- [ ] route probe 通过后执行一次冻结付费 development。Gate 未通过时原样记录，禁止补跑、
+- [x] route probe 通过后执行一次冻结付费 development。Gate 未通过时原样记录，禁止补跑、
   调 scorer/package/lock、计算 break-even 或进入 held-out。
-- [ ] 更新权威组件文档、实验结果和 conversation log；运行 focused/full tests、typecheck、
+- [x] 更新权威组件文档、实验结果和 conversation log；运行 focused/full tests、typecheck、
   文档链接、secret scan、digest verification 和 `git diff --check` 后提交推送。
+
+实际结果：16/16 rows、4/4 quartets、0 infrastructure；artifact 4/4、mean 0.925、
+0 hard-gate failure、0 pairwise regression、0 model token，冻结 development gate passed。
+该结果只解锁 held-out lock 设计，不解锁直接执行或 break-even 主张。
+
+### Task 8.7：Law Held-out Lock 与独立验证
+
+**计划文件：**
+
+```text
+新增 held-out lock/schema/runner/gate 及对应 tests
+更新 docs/skill-ir/evaluation-system.md
+更新 docs/skill-ir/real-skill-pilots.md
+更新 docs/skill-ir/experiment-results.md
+```
+
+- [ ] RED：held-out lock 必须绑定已通过 development gate/summary digest、同一 package/parent
+  lock/execution freeze、冻结两个 held-out task 和既有 deterministic scorer；任何漂移拒绝。
+- [ ] GREEN：新身份只允许 `no-skill | original | ir-static | validated-artifact`、Windows、
+  clean、GPT-5.6、bare-agent、2 held-out tasks、预注册 repetitions 与零重试。
+- [ ] RED/GREEN：route/resource/execute 与 development 结果目录隔离；禁止 development output
+  回流编译 package，禁止 PGO、scorer retuning 和补跑。
+- [ ] 付费前冻结 held-out 数值 gate、pairwise regression 与成本口径；dry-run 和 route probe
+  通过后执行唯一一次 held-out。
+- [ ] 无论 gate 成败都原样持久化 compact evidence，再决定第二 phenotype skill 复用与
+  amortized cost 实验。

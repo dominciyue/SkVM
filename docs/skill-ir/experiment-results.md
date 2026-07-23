@@ -451,9 +451,7 @@ development task × 2 repetition 实际执行：
 package execution snapshot；修复后重复执行未在冻结 package 留下 pyc/undeclared file。
 
 该结果没有模型生成噪声，适合验证“把公开确定性能力固化为 artifact”以及重复执行隔离机制，
-但完整 12 条模型对照尚未运行，16 行 gate 尚未评估。当前仍无 paired 方法结果、held-out、
-跨模型或第二 skill 复用证据，因此不进入主 claim，break-even 保持
-`not-computed-quality-gate-pending`。
+但在完整模型对照前只作为 mechanism baseline，不单独进入主 claim。
 
 本地证据：
 
@@ -461,6 +459,54 @@ package execution snapshot；修复后重复执行未在冻结 package 留下 py
 benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-development-lock.json
 results/skill-ir/law-to-markdown-validated-artifact-development-dry-run-2026-07-24/plan.json
 results/skill-ir/law-to-markdown-validated-artifact-development-artifact-arm-2026-07-24/
+```
+
+### 4.3 Validated Artifact 冻结 Development
+
+同日先提交从属 `execution-freeze/v1`，绑定父 development lock、model runner、scoring、
+route/resource probe、bare-agent 和 orchestration digest，再执行唯一一次 GPT-5.6
+development。Route probe 为 ok；正式批次为 16/16 raw/scored rows、4/4 complete quartets、
+0 infrastructure、0 retry 和 0 held-out。
+
+| System | Success | Mean | Input tokens | Output tokens | Total tokens |
+|---|---:|---:|---:|---:|---:|
+| no-skill | 1/4 | 0.6875 | 31426 | 4078 | 35504 |
+| original | 0/4 | 0.7500 | 105884 | 4365 | 110249 |
+| ir-static | 1/4 | 0.8000 | 150136 | 5309 | 155445 |
+| validated-artifact | 4/4 | 0.9250 | 0 | 0 | 0 |
+
+逐匹配样本比较 artifact 与 `max(original, ir-static)`：
+
+| Task / repetition | Best baseline | Artifact | Delta |
+|---|---:|---:|---:|
+| statute / 1 | 0.70 | 0.85 | +0.15 |
+| statute / 2 | 0.70 | 0.85 | +0.15 |
+| non-law / 1 | 0.80 | 1.00 | +0.20 |
+| non-law / 2 | 1.00 | 1.00 | 0.00 |
+
+Artifact 为 3 positive、1 equal、0 negative；4/4 success、0 hard-gate failure、0 pairwise
+regression。法律 task mean 为 0.85，仍保留 heading-structure residual；非法律 task mean
+为 1.00。冻结 gate 的完整性、质量、逐 task、基础设施、hard gate 和 pairwise 条件全部通过。
+
+成本方面，模型三臂合计 301198 tokens；artifact 四次调用为 0 model token，deterministic
+process 合计 734 ms、validation 160 ms、package 89463 bytes。该批次证明的是“冻结 package
+在 development 上相对同批强模型 baseline 更稳定，并消除运行时模型生成 token”，还不能
+证明总生命周期节省：compile cost 本批标为 preexisting，复用次数与质量 held-out 尚未测量，
+所以 break-even 继续保持 `not-computed-quality-gate-pending`。
+
+该 development gate 通过只允许起草新的 held-out lock。当前结果仍是单 skill、单模型、
+单 context、单 Windows host；不支持跨模型、跨 skill、跨 agent/OS 稳定或 held-out 泛化。
+
+Compact evidence：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-development-lock.json
+benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-execution-freeze.json
+results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/resource-probe.json
+results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/route-probe.json
+results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/scored-results.jsonl
+results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/gate-report.json
+results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/summary.json
 ```
 
 ## 5. Env-manager 研究推进总表
@@ -490,14 +536,14 @@ results/skill-ir/law-to-markdown-validated-artifact-development-artifact-arm-202
 - development gate 正确阻断不成熟 artifact。
 - `law-to-markdown` 的真实 source/no-skill/original/scorer 链路可执行且未饱和；pre-IR
   gate 允许进入 base IR audit；static development 链路完整，但 static 与 original 同为
-  1/4、mean 0.7875，当前文本 IR 没有形成净收益；新 direct artifact 在两个本地 development
-  fixture 重复运行达到 4/4 success、0.85/1.00，已冻结 16 行对照但模型臂与完整 gate 尚未执行。
+  1/4、mean 0.7875，当前文本 IR 没有形成净收益；新 direct artifact 在冻结完整
+  development 中达到 4/4、mean 0.925、0 pairwise regression 和 0 model token，gate passed。
 
 不能支持：
 
 - held-out optimization；
 - cross-model/cross-agent/cross-OS stability；
-- token reduction 或 break-even；
+- 摊销 token reduction 或 break-even；
 - 当前 Final IR/package 已成熟；
 - arm mean difference 是 repair 因果增益。
 

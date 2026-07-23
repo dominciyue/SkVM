@@ -553,8 +553,7 @@ evaluator payload，最终 workdir 才交给既有 scorer。
 
 `buildValidatedArtifactDevelopmentGateReport` 使用 16 行固定分母。缺行按 infrastructure
 失败，重复/身份漂移直接拒绝；artifact 必须 4/4 success、总均分和逐 task 均分均不低于
-0.85、无 hard-gate/基础设施失败，并逐样本不低于 original 与 ir-static 中较高者。当前只有
-4 条 direct 证据，完整 gate 尚未评估，不能运行 held-out。
+0.85、无 hard-gate/基础设施失败，并逐样本不低于 original 与 ir-static 中较高者。
 
 完整模型对照不修改上述已绑定 direct runner，而使用从属 execution freeze：
 
@@ -578,3 +577,8 @@ bun ./src/benchmarks/skill-ir/validated-artifact-development-execution-run.ts `
 direct 行，最终生成 16 行 gate。Raw transcript、provider log、plan 与 workdir 不提交；
 compact resource/route/scored/cost/summary/gate 可以持久化。Gate 失败仍是有效结果，禁止补跑、
 调 scorer/package/lock 或进入 held-out。
+
+2026-07-24 冻结批次已完成：16/16 rows、4/4 quartets、0 infrastructure。Artifact 为
+4/4 success、mean 0.925、0 hard-gate failure、0 pairwise regression 和 0 model tokens；
+original 为 0/4、mean 0.75，ir-static 为 1/4、mean 0.80。Gate passed 只允许起草新的
+held-out lock，本 runner 与 development lock 仍禁止直接执行 held-out。

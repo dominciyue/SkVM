@@ -16,8 +16,9 @@ execution feedback 改善稳定性。
 - V3 public-contract package、共享 pre/post snapshot、paired scorer 和本地一次修复已
   接通；冻结 GPT-5.6 development 已运行，3 个完整 pair 为 0.70→0.70，另有 1 个
   infrastructure failure，gate 失败且 held-out 未运行。
-- Law validated artifact 已冻结 16 行 development lock；dry-run 与 4 条 direct 行完成，
-  direct 为 4/4 success、模型 token 0，12 条模型对照与完整 gate 尚未运行。
+- Law validated artifact 已完成冻结的 16 行 development：artifact 为 4/4 success、
+  mean 0.925、模型 token 0，相对 original/ir-static 无逐样本回归，gate 通过；held-out
+  仍需新 lock，尚未执行。
 - 当前不能声称跨模型、跨 agent、跨 OS 或 token 节省。
 
 ## 按读者选择入口
