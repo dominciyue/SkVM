@@ -421,6 +421,27 @@ results/skill-ir/law-to-markdown-static-development-2026-07-23/gate-report.json
 results/skill-ir/law-to-markdown-static-development-2026-07-23/summary.json
 ```
 
+### 4.2 Validated Artifact 本地机制基线
+
+2026-07-24 使用新 `validated-skill-artifact/v1` 和 Law compiler adapter，在 workspace Python
+resource probe 通过后执行两个 development fixture。该路径直接调用 package 中 digest-bound
+Python script，不经过 shell，也不调用模型。
+
+| Task | Runtime validation | Deterministic scorer | Hard gate | Model tokens |
+|---|---|---:|---:|---:|
+| law statute development | pass | 0.85 / success | 0 fail | 0 |
+| non-law standard development | pass | 1.00 / success | 0 fail | 0 |
+
+法律任务保留 `law-document-policy` 一项失败，其余五项通过；非法律任务五项全部通过。初始
+空 workdir 两个任务都不成功，执行后 score 严格提高。Package validator 同时确认 11 个
+artifact、2 个 execution node 和 89463 bytes；gold-isolation canary、reverse-evidence、
+byte-for-byte reproducibility、protected input 和 Windows 中文 validation path 均有自动测试。
+
+该结果没有模型生成噪声，适合验证“把公开确定性能力固化为 artifact”这一机制，但它仍只是
+in-sample development fixture activation：尚无冻结 Law development lock、paired
+`no-skill|original|ir-static|artifact` 对照、held-out、跨模型或第二 skill 复用，因此不进入
+主 claim，也暂不计算多次调用 break-even。
+
 ## 5. Env-manager 研究推进总表
 
 | 阶段 | 最强/候选系统 | Success | Mean | 核心发现 |
@@ -448,7 +469,8 @@ results/skill-ir/law-to-markdown-static-development-2026-07-23/summary.json
 - development gate 正确阻断不成熟 artifact。
 - `law-to-markdown` 的真实 source/no-skill/original/scorer 链路可执行且未饱和；pre-IR
   gate 允许进入 base IR audit；static development 链路完整，但 static 与 original 同为
-  1/4、mean 0.7875，当前文本 IR 没有形成净收益。
+  1/4、mean 0.7875，当前文本 IR 没有形成净收益；新 direct artifact 在两个本地 development
+  fixture 上达到 0.85/1.00，但尚未进入冻结对照。
 
 不能支持：
 

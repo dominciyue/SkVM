@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-07-23
+**最后更新：** 2026-07-24
 
 ## 1. 项目定位
 
@@ -683,3 +683,113 @@ Gate 通过只允许书面评审并规划新的 held-out lock；当前 lock 的
 可审计的 canonical review label、report field 和直接解释器调用计划，固化为新 catalog 的
 template/schema/tool-plan；禁止从 evaluator payload、held-out 或本批模型输出提取规则。新
 catalog 必须使用新的 package/lock 身份并只在 development 验证，不原地修改 base IR 或本 lock。
+
+## 18. 通用 Validated Skill Artifact Catalog 与 Law 首次实例化
+
+下一阶段新建独立 catalog：
+
+```text
+catalog: validated-skill-artifact/v1
+manifest: validated-skill-artifact-manifest/v1
+provenance: validated-skill-artifact-provenance/v1
+execution plan: skill-artifact-execution-plan/v1
+execution result: skill-artifact-execution-result/v1
+```
+
+这里的“通用”只指 package 容器、artifact 类型、provenance、执行节点、路径保护、结果记账
+和 validation 接口对 skill 无关。每个 skill 仍由独立 compiler adapter 从批准的公开证据
+生成具体 assets 和 execution plan。Catalog core 不得包含 `env-manager`、`law-to-markdown`
+等 skill id 分支，也不得按 catalog 版本硬编码特定 skill 的修复逻辑。
+
+V1 支持以下 artifact kind：
+
+```text
+skill-ir | skill-view | script | template | schema | check | tool-plan | validation-policy |
+validation-notes
+```
+
+V1 execution plan 先实现封闭节点：
+
+```text
+process  -> 使用声明的 interpreter env/fallback 和 argv 直接执行 package script
+validate -> 调用声明的 checker，输出闭合 validation report
+```
+
+节点只能引用 manifest 已声明且 digest 已验证的 artifact；工作目录参数使用命名 placeholder，
+运行时在参数级替换，不经过 shell。禁止绝对路径、`..`、任意环境变量继承、网络安装命令和
+未声明 executable。Process stdout/stderr 只用于本地诊断，compact result 只保存 exit class、
+duration 和使用的节点 id，不保存模型正文、secret 或绝对路径。
+
+Package provenance 必须绑定：
+
+- source closure 中每个编译输入的 path 与 SHA-256；
+- base IR、source audit、resource contract 和 development task prompt digest；
+- compiler adapter id/version/config digest；
+- construction split=`development`；
+- 明确的 forbidden evidence classes。
+
+Compiler API 只能接受已经投影的公开 task contract，不接受完整 `tasks.json` evaluator、
+held-out prompt、runtime output 或 profile feedback。Gold-isolation canary 与
+reverse-evidence test 必须递归扫描 package；删除公开 source evidence 后，对应 artifact
+或约束必须消失或编译失败，不能由 evaluator 补齐。
+
+`law-to-markdown` 是 catalog 的第一个 adapter，不是 catalog 通用性结论。Law v1 从已冻结
+source closure 编译：
+
+```text
+scripts/cn_law_normalizer.py
+scripts/law_to_markdown.py
+scripts/stage3_checker.py
+templates/review-report-contract.md
+schemas/review-report-contract.json
+tool-plans/law-to-markdown.json
+checks/law-artifact-check.py
+```
+
+第一种执行模式固定为 direct deterministic process：
+
+```text
+SKVM_PYTHON/fallback python
+  law_to_markdown.py
+  document.txt
+  --out-dir markdown
+  --law-decision auto
+  --artifact-level minimal
+```
+
+上游脚本会在 `--out-dir` 下自行创建 `<input_stem>/`；因此 `document.txt` 的最终目录是
+`markdown/document/`。Compiler 不得把最终目录再次作为 `--out-dir`，否则会形成重复的
+`markdown/document/document/`。
+
+Runner 不通过 `sh`、PowerShell 或拼接命令字符串执行。模型分类节点暂不进入 Law v1 主路径；
+以后若加入，必须作为新 execution plan mode 和单独消融，不改变本轮 digest。直接工具执行仍需
+经过资源 probe、输入保护、package digest 验证、runtime validation 和既有离线 deterministic
+scorer；validator 不是 scorer。
+
+本阶段验收顺序：
+
+1. catalog schema、digest、undeclared-file、path containment 和 skill-neutral canary 通过；
+2. Law compiler byte-for-byte 可重复，且 evaluator/held-out/runtime canary 不进入 package；
+3. 本地 development fixture 上 direct process 能在 Windows 无 shell 执行；
+4. 既有 Law scorer 对本地产物评分，记录成功面与 runtime/scorer 差异；
+5. 上述机制通过后才书面冻结新的 development lock，再决定是否付费运行模型对照。
+
+Law 单个 adapter 通过只证明首次实例化可行。Catalog 的复用性至少需要第二个不同 phenotype
+skill 使用同一 manifest、execution plan 和 runtime API，且无需修改 catalog core。若第二个
+skill 迫使 core 引入 skill-specific 分支，应修改 catalog 抽象并重新版本化，而不是把例外继续
+堆入 runner。
+
+Token/成本按节点分列：
+
+```text
+compileCost
+profileCost
+modelGenerationTokens
+modelRepairTokens
+deterministicProcessDuration
+validationDuration
+packageBytes
+```
+
+Law direct-only 本地运行的模型 token 为 0，但不能据此直接声称总体节省；只有质量不回归、
+package 可复用且计入前置编译/验证成本后，才计算相对 original 的多次调用 break-even。

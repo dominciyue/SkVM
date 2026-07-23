@@ -323,6 +323,27 @@ token 高 39.1%；gate 因 success 与 mean 不达标而失败，held-out 未执
 source closure 编译 report template/schema 与 direct interpreter tool plan，使用新 catalog 与
 development lock；不把 evaluator payload 或本次输出写回 compiler。
 
+### 10.4 Validated Artifact 本地纵切
+
+已实现 skill-agnostic `validated-skill-artifact/v1`，Law adapter 将公开 source closure 编译为
+三个 Python scripts、review template/schema、direct tool plan 和 runtime checker。通用 core
+不含 Law id 分支；adapter 只接收 development prompt 投影，不接收 evaluator、held-out 或
+runtime output。
+
+本地 resource probe 与两个 development activation 已通过。法律任务 deterministic scorer
+为 0.85，非法律任务为 1.00，二者 hard gate 均无失败；法律任务仍有 heading-structure
+criterion 残差。两个 runtime validation 均 pass，直接执行的模型 token 为 0。该结果是
+mechanism evidence，不是冻结 development 对照、held-out 或跨 skill 证据。
+
+Package：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/
+```
+
+下一步先评审并冻结新的 Law development lock。Catalog 通用性必须再由至少一个不同类型 skill
+复用同一 manifest/execution-plan/runtime API 验证，不能由 Law 单例直接得出。
+
 ## 11. Pilot 晋升门禁
 
 每个 deep pilot 需要：
@@ -344,7 +365,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Static 12/12 完整但 gate failed；held-out 阻断，转向 template/tool-plan artifact。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Static gate failed；通用 artifact 本地 activation 为 0.85/1.00，尚未冻结新 development lock。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 

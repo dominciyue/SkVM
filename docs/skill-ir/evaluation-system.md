@@ -496,3 +496,26 @@ bun run typecheck
 3. 新 evaluator 先写 deterministic fixture tests。
 4. 不把 infrastructure failure 解释为 skill regression。
 5. 不为单次 run 新建文档；更新 `experiment-results.md` 和 compact results。
+
+## 15. Validated Artifact 本地验证
+
+通用 package/runtime 的工程测试：
+
+```powershell
+bun test `
+  ./src/benchmarks/skill-ir/validated-artifact-catalog.test.ts `
+  ./src/benchmarks/skill-ir/validated-artifact-runtime.test.ts `
+  ./src/benchmarks/skill-ir/law-artifact-compiler.test.ts
+```
+
+Law 真实 Python activation 需要先设置已通过 resource contract 的解释器：
+
+```powershell
+$env:SKVM_PYTHON = '<python-with-docx-and-pdfplumber>'
+bun test ./src/benchmarks/skill-ir/law-artifact-activation.test.ts
+```
+
+Activation 会编译临时 package、运行 resource probe、分别执行两个 development fixture，
+再调用既有 `lawToMarkdownGrade`。未设置 `SKVM_PYTHON` 时集成测试显式 skip，不会错误使用
+缺依赖的默认解释器。Runtime pass 与 scorer success 分列；测试失败时不能通过放宽 scorer、
+读取 evaluator expected 或运行 held-out 修补。

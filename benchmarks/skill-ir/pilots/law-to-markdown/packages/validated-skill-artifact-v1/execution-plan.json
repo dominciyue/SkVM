@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "skill-artifact-execution-plan/v1",
+  "entrypoint": "validate-output",
+  "nodes": [
+    {
+      "id": "convert-document",
+      "kind": "process",
+      "dependsOn": [],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_PYTHON",
+          "fallback": "python"
+        },
+        "artifactId": "law-converter",
+        "args": [
+          "document.txt",
+          "--out-dir",
+          "markdown",
+          "--law-decision",
+          "auto",
+          "--artifact-level",
+          "minimal"
+        ],
+        "envAllowlist": [
+          "SKVM_PYTHON"
+        ]
+      },
+      "timeoutMs": 120000
+    },
+    {
+      "id": "validate-output",
+      "kind": "validate",
+      "dependsOn": [
+        "convert-document"
+      ],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_PYTHON",
+          "fallback": "python"
+        },
+        "artifactId": "law-runtime-checker",
+        "args": [
+          "--workdir",
+          "{workdir}"
+        ],
+        "envAllowlist": [
+          "SKVM_PYTHON"
+        ]
+      },
+      "timeoutMs": 30000
+    }
+  ]
+}

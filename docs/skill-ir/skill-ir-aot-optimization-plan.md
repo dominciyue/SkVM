@@ -829,7 +829,89 @@ held-out 或把结果写成 Skill IR 增益。
 - [x] 冻结 static 失败证据；不补跑、不修改本次 scorer/base IR/lock/gate。
 - [x] 对照公开 bundled script 与最终 workdir，确认主要残差是 canonical review label/template
   未被 lowering 固化；2 个 non-law row 另暴露 Windows shell tool-plan gap。
-- [ ] 起草新的 law executable artifact design：只允许使用 source closure、resource contract 和
+- [x] 起草新的 law executable artifact design：只允许使用 source closure、resource contract 和
   用户可见 task contract，编译 canonical report schema/template 与 direct Python tool plan；
   evaluator payload、held-out、当前模型输出不得成为 compiler input。
-- [ ] 先做本地 fixture activation 与泄漏反向测试，再冻结新的 development lock；仍不运行 held-out。
+- [x] 先做本地 fixture activation 与泄漏反向测试，再冻结新的 development lock；仍不运行 held-out。
+
+## 14. Step 8：通用 Artifact Catalog 与 Law Pilot
+
+### Task 8.1：冻结 skill-agnostic catalog contract
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/validated-artifact-catalog.ts
+新增 src/benchmarks/skill-ir/validated-artifact-catalog.test.ts
+更新 docs/skill-ir/optimization-and-artifacts.md
+```
+
+- [x] RED：拒绝绝对/逃逸/反斜杠路径、重复 artifact/node id、未知 artifact kind/node kind、
+  未声明 artifact 引用、digest 漂移、undeclared file、shell command string、任意 env 继承和
+  skill-specific catalog 字段。
+- [x] GREEN：实现 `validated-skill-artifact/v1` 的 manifest、provenance、execution-plan
+  strict schema 和 package validator；skill id 只作为数据，不参与 dispatch。
+- [x] GREEN：验证 compiler inputs、artifact records、process/validate nodes 和 protected
+  outputs 的引用闭包；保持 V1-V4 历史 package/parser/digest 不变。
+
+### Task 8.2：通用 execution-plan runtime
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/validated-artifact-runtime.ts
+新增 src/benchmarks/skill-ir/validated-artifact-runtime.test.ts
+```
+
+- [x] RED：process 节点不得经过 shell；未声明 executable、placeholder、artifact、工作目录
+  逃逸、非零退出、timeout 和 protected input mutation 必须 fail closed。
+- [x] GREEN：按拓扑顺序解释封闭 process/validate 节点，参数级展开 `{workdir}`、
+  `{artifact:<id>}` 和 `{env:<approved-name>}`；只把批准环境传给子进程。
+- [x] GREEN：输出 `skill-artifact-execution-result/v1`，分列 process/validation duration、
+  exit class、节点状态、model token=0 和 package bytes；不保存 stdout/stderr/绝对路径。
+
+### Task 8.3：Law compiler adapter
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/law-artifact-compiler.ts
+新增 src/benchmarks/skill-ir/law-artifact-compiler.test.ts
+新增 src/benchmarks/skill-ir/law-artifact-run.ts
+新增 benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/
+```
+
+- [x] RED：向 evaluator、held-out prompt、runtime output 和 secret 注入 canary，递归扫描 package
+  必须不存在；删除 bundled script/report label/resource evidence 时编译失败。
+- [x] GREEN：只从 source closure、base IR/source audit、resource contract 和 development prompt
+  投影编译 Python scripts、canonical report contract、review schema、direct tool plan 与 checker。
+- [x] GREEN：两次独立编译 byte-for-byte 相同；manifest/provenance 绑定逐文件 digest、
+  compiler identity 和 forbidden evidence classes；`--verify-only` 不覆盖冻结 package。
+
+### Task 8.4：Law 本地 activation 与 scorer 对齐
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/law-artifact-activation.test.ts
+更新 docs/skill-ir/evaluation-system.md
+更新 docs/skill-ir/real-skill-pilots.md
+```
+
+- [x] RED：构造法律与非法律 development fixture，先确认 direct tool plan 未执行时 scorer
+  不通过对应成功面。
+- [x] GREEN：使用 workspace Python 资源 probe 后，在临时 workdir 无 shell 执行 package；
+  输入 digest 不变，法律任务生成 canonical report+deliverable，非法律任务只生成拒绝报告。
+- [x] GREEN：运行既有 deterministic scorer，分开记录 runtime validation 与 scorer 结果；
+  本地通过只记 mechanism evidence，不进入 held-out 或主 claim。
+
+### Task 8.5：冻结前审计与跨 Skill 复用门槛
+
+- [ ] 只有 Task 8.1-8.4 全部通过后，才起草新的 Law development lock、数值 gate 和对照系统；
+  不复用或修改 static lock，不先运行 held-out。
+- [ ] 下一 adapter 必须复用相同 manifest/execution-plan/runtime API；若需要修改 catalog core，
+  记录抽象失败并新版本化，不能以 Law 单例声称通用。
+- [ ] 成本表固定报告 compile/profile/model generation/model repair/process/validation/package bytes；
+  质量不回归前不计算或宣传 token break-even。
+- [x] 更新 spec、plan、组件文档、experiment results 和 conversation log；执行 focused tests、
+  typecheck、文档链接、secret scan 和 `git diff --check`。

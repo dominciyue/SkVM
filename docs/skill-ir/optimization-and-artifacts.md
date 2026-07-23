@@ -546,6 +546,96 @@ Audit runner 会严格校验冻结矩阵的每个 identity 格，runtime validat
 再次通过闭合 schema 与脱敏规则；重复 comparison key 直接失败。提交的 compact
 evidence 用逐文件 digest 和 bundle digest 绑定，原始模型输出与 workdir 不进入仓库。
 
+## 14. Skill-agnostic Validated Artifact Catalog
+
+新 catalog 不再把 `skillId` 写进 schema literal，也不在通用 runtime 中按 skill 分支：
+
+```text
+validated-skill-artifact/v1
+validated-skill-artifact-manifest/v1
+validated-skill-artifact-provenance/v1
+skill-artifact-execution-plan/v1
+skill-artifact-execution-result/v1
+```
+
+实现：
+
+```text
+src/benchmarks/skill-ir/validated-artifact-catalog.ts
+src/benchmarks/skill-ir/validated-artifact-runtime.ts
+```
+
+Manifest 声明带稳定 id/path/kind/digest 的 artifact、protected inputs、generated outputs、
+provenance 和 execution plan。Validator 拒绝路径逃逸、反斜杠、symlink、特殊文件、重复
+id/path、undeclared file、digest drift、manifest/provenance 漂移，以及 process/validate
+节点对未声明或错误 kind artifact 的引用。
+
+Execution plan 是有向无环依赖图。V1 只开放 `process` 和 `validate` 节点；每个节点使用
+`interpreter.env + fallback`、script/check artifact id、参数数组和环境白名单。Runtime 使用
+`Bun.spawn(argv)`，不经过 shell，不接收 command string；只展开完整参数 `{workdir}`。
+保护输入在执行前和每个节点后复核。非零退出、timeout、validator invalid JSON/schema、
+protected mutation 和语义 validation failure 分开记账。
+
+Compact result 只包含节点 id/kind/status、exit class、process/validation duration、package
+bytes，以及固定为 0 的 direct-only model generation/repair tokens；stdout、stderr、绝对路径
+和 secret 不进入结果。该 runtime 是执行机制，离线 deterministic scorer 仍是任务成功权威。
+
+### 14.1 Law Compiler Adapter
+
+```text
+src/benchmarks/skill-ir/law-artifact-compiler.ts
+src/benchmarks/skill-ir/law-artifact-run.ts
+benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/
+```
+
+Adapter 只接收 source closure、base IR/source audit、resource contract 和 development prompt
+投影。完整 task evaluator、held-out prompt、runtime output、profile feedback 和 secret 没有
+compiler sink。Package 包含三个上游 Python scripts、canonical review template/schema、
+direct tool plan、runtime checker、validation policy 和 candidate validation notes。
+
+编译：
+
+```powershell
+bun ./src/benchmarks/skill-ir/law-artifact-run.ts `
+  '--root-dir=.' `
+  '--out-dir=benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1'
+
+bun ./src/benchmarks/skill-ir/law-artifact-run.ts `
+  '--verify-only=benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1'
+```
+
+冻结 package 只运行 `--verify-only`。新版本必须编译到新目录并使用新 lock，不能覆盖已经进入
+实验的 digest。
+
+Law direct plan：
+
+```text
+python law_to_markdown.py document.txt
+  --out-dir markdown
+  --law-decision auto
+  --artifact-level minimal
+-> python law_artifact_check.py --workdir {workdir}
+```
+
+上游脚本会在 `--out-dir` 下创建 `document/`，因此参数必须是 `markdown`。本地调试曾使用
+`markdown/document` 并产生重复目录；activation test 已固定该回归。Checker 对
+`最终审核结论：` 做精确枚举解析，不用“包含通过”之类的模糊子串；JSON report 使用 ASCII
+escape，避免 Windows pipe codepage 损坏中文路径。
+
+### 14.2 Law 本地 Activation
+
+使用 workspace Python 且 resource probe 通过后，两个 development fixture 都在无 shell、
+无模型调用下完成：
+
+| Task | Runtime | Scorer | Hard gate | 残差 |
+|---|---|---:|---|---|
+| statute development | pass | 0.85 / success | 0 fail | `law-document-policy` 仍 fail。 |
+| non-law standard development | pass | 1.00 / success | 0 fail | 无 scorer residual。 |
+
+该结果只证明 catalog、adapter、direct process、validator 和既有 scorer 可以贯通。它没有
+冻结 development lock，没有运行 held-out，也不能证明跨 skill 通用或 token break-even。
+下一步先书面冻结 Law development 对照，再用第二种 phenotype skill 复用同一 core API。
+
 冻结 GPT-4.1 诊断已执行 20 行。强模型产生 18 个低层 criterion 改善，但
 classification/schema 在五个系统中持续失败；one-repair 4/4 激活、0/4 二验通过。
 因此下一 catalog 应优先改进 public schema contract lowering、repair 定位和
