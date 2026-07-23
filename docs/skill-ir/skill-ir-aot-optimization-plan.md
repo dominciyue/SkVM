@@ -1050,11 +1050,96 @@ held-out gate failed。失败已冻结，不重编 package、不调 scorer、不
 
 ### Task 8.8：第二 Phenotype Catalog Reuse
 
-- [ ] 选择与 Law direct document pipeline 不同的真实 skill，复核 license/source closure、
-  resource contract 和可确定性判分任务。
-- [ ] 先写 task/scorer fixture 与 no-skill/original calibration，不从 Law held-out failure
-  提取新的 compiler rule。
-- [ ] 使用现有 `validated-skill-artifact/v1` manifest、execution plan 与 runtime API；
-  若 core 必须出现 skill-id 分支，先修正抽象并建立新 catalog 版本。
-- [ ] 完成本地 direct activation 与 gold-isolation/reverse-evidence TDD，再决定是否冻结新的
-  development lock。
+- [x] 选择 `experimental-design` 作为与 Law direct document pipeline 不同的真实 skill；
+  固定第一阶段为 stdlib-only 随机分配 phenotype，不同时引入 `pyDOE3` DOE 矩阵。
+- [x] 冻结用户可见输入/输出合同、方法选择规则、checker/scorer 边界、2+2 split、禁止
+  Law held-out feedback 和禁止本阶段执行 held-out。
+
+#### Task 8.8.1：任务、Scorer 与资源合同
+
+**文件：**
+
+```text
+新增 benchmarks/skill-ir/pilots/experimental-design/tasks.json
+新增 benchmarks/skill-ir/pilots/experimental-design/resource-contract.json
+新增 src/bench/evaluators/experimental-design-grade.ts
+新增 src/bench/evaluators/experimental-design-grade.test.ts
+更新 src/bench/evaluators/index.ts
+更新 src/benchmarks/skill-ir/corpus-registry.test.ts
+```
+
+- [ ] RED：四个 task 必须恰为 2 development + 2 held-out；prompt 只能声明公开合同，eval
+  payload 不得被复制到 prompt；pilot 在没有 IR/source audit 前仍不可进入主矩阵。
+- [ ] RED：scorer 对输入保护、三项产物、plan schema、方法/单位安全、allocation 一致性、
+  seeded reproducibility 与报告完整性分别判分；路径逃逸和非法 payload 计 infrastructure。
+- [ ] GREEN：实现 workdir-only deterministic evaluator，hard gate 固定为输入保护、三项产物
+  和 assignment-unit safety，阈值固定为 0.85。
+- [ ] GREEN：资源合同只要求 Python >=3.10 与标准库，网络/安装禁止；上游 numpy/pandas/
+  pyDOE3 能力保留为后续 DOE 扩展，不作为本轮 infrastructure。
+
+#### Task 8.8.2：Base IR 与 Source Audit
+
+**文件：**
+
+```text
+新增 benchmarks/skill-ir/pilots/experimental-design/base-ir.json
+新增 benchmarks/skill-ir/pilots/experimental-design/base-ir-source-audit.json
+更新 benchmarks/skill-ir/corpus/corpora/pilot.json
+更新 src/skill-ir/corpus-fixtures.test.ts
+```
+
+- [ ] RED：source audit 必须覆盖每个 IR semantic node，拒绝 evaluator、fixture、threshold、
+  held-out prompt 与 Law result 作为证据。
+- [ ] GREEN：profile-empty base IR 显式表达 assignment/analysis unit、nuisance handling、
+  method decision、seeded schedule、replication/pseudoreplication 检查与 fail-closed recovery。
+- [ ] GREEN：pilot 只有在 tasks、resource、IR 和 source audit 均可验证时才晋升 `runnable`。
+
+#### Task 8.8.3：Experimental-design Compiler Adapter
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/experimental-design-artifact-compiler.ts
+新增 src/benchmarks/skill-ir/experimental-design-artifact-compiler.test.ts
+新增 src/benchmarks/skill-ir/experimental-design-artifact-run.ts
+新增 benchmarks/skill-ir/pilots/experimental-design/packages/validated-skill-artifact-v1/
+```
+
+- [ ] RED：compiler input digest 漂移、缺公开 source/resource evidence、held-out/evaluator/runtime/
+  Law failure canary、非 development task contract 均 fail closed。
+- [ ] RED：两次独立编译必须 byte-for-byte 相同；package 必须通过现有通用 validator，且
+  catalog/runtime core 不得出现 `experimental-design` 分支。
+- [ ] GREEN：adapter 编译 stdlib Python generator、plan/report template、schema、direct
+  tool plan 与 checker；按公开字段选择 cluster/stratified-block/permuted-block/simple。
+- [ ] GREEN：provenance 绑定所有 compiler input、artifact digest、compiler identity 和
+  forbidden evidence classes；`--verify-only` 不覆盖冻结 package。
+
+#### Task 8.8.4：本地 Activation 与隔离验证
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/experimental-design-artifact-activation.test.ts
+更新 docs/skill-ir/optimization-and-artifacts.md
+更新 docs/skill-ir/evaluation-system.md
+更新 docs/skill-ir/real-skill-pilots.md
+```
+
+- [ ] RED：未执行 package 时 development fixture 不满足 artifact success；篡改 protected
+  input、method、seed、allocation unit 或 schedule completeness 时 checker/scorer 必须失败。
+- [ ] GREEN：两个 development fixture 通过同一通用 runtime 执行，protected digest 不变，
+  runtime validation 与 deterministic scorer 独立通过，model token 为 0。
+- [ ] GREEN：canary scan 和 reverse-evidence 测试证明 evaluator expected、held-out 与
+  Law failure 未进入 package；移除公开字段时 checker 降级或显式失败，不猜测金标。
+
+#### Task 8.8.5：Development Calibration 与阶段门禁
+
+- [ ] 在所有本地机制测试与文档通过后，冻结仅含 `no-skill | original`、两个 development
+  task、clean/Windows/bare-agent、单一预注册强模型和零重试的 calibration lock。
+- [ ] 先 dry-run 与 route probe，再执行唯一一次 development calibration；不得运行 held-out，
+  不得根据输出改 scorer/task/package。
+- [ ] Calibration 只判断任务可执行性、baseline 饱和度和 scorer 区分度。随后再决定是否冻结
+  `no-skill | original | ir-static | validated-artifact` development lock；没有新 lock 时
+  不得把本地 activation 写成真实优化成功。
+- [ ] 更新 spec/plan/组件文档/experiment results/conversation log，运行 focused/full Skill IR
+  tests、typecheck、文档链接、secret scan、digest verification 与 `git diff --check` 后提交推送。

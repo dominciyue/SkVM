@@ -177,6 +177,50 @@ Source、task contract、compiler 和 artifact digest 未变化时可复用已�
 其余 intake candidate 不因“被收录”自动获得完整实验预算。Validation planner 将来负责自动
 分配层级，当前仍只是 advisory tooling，不能替代预注册实验门禁。
 
+### 第二 Phenotype：Experimental Design
+
+第二个 catalog reuse pilot 固定为真实公开 skill `experimental-design`。它与 Law 的直接文档
+转换不同：输入是结构化研究方案，输出是实验设计决策、随机分配表和可审计报告。第一阶段只
+覆盖随机分配 phenotype，不把依赖 `numpy/pandas/pyDOE3` 的 DOE 矩阵并入同一轮，以免把
+catalog 泛化与第三方依赖可用性混为一个变量。
+
+用户可见任务契约固定为：
+
+```text
+protected input: study.json
+outputs:
+  design/design-plan.json
+  design/allocation.csv
+  design/design-report.md
+```
+
+`study.json` 显式给出研究问题、arms、assignment level、analysis unit、response、seed、
+nuisance factors、strata/cluster/sequential enrollment 等公开字段。编译产物只从公开
+source closure、source-audited base IR、resource contract 和 development prompt 投影推导：
+
+```text
+cluster assignment                -> cluster-randomized
+individual + strata               -> stratified-block
+individual + sequentialEnrollment -> permuted-block
+otherwise                         -> simple-randomized
+```
+
+同一 `validated-skill-artifact/v1` manifest、execution-plan 和 runtime API 必须原样复用；
+通用 core 不得按 skill id 分支。Experimental-design 专用逻辑只能位于 compiler adapter、
+编译出的 script/template/schema/check/tool-plan 和独立 deterministic scorer 中。若该边界
+无法维持，必须记录为 catalog 抽象失败并版本化 core，不能静默把专用规则塞入 v1。
+
+Runtime checker 与离线 scorer 保持独立。Checker 只验证公开输入可推导的 schema、方法选择、
+随机化单位、seed、行数、arm/stratum/cluster 一致性和报告字段；scorer 仍以最终 workdir 为
+唯一成功权威。Evaluator expected、held-out prompt、运行输出、Law held-out failure 和 secret
+不得进入 compiler/package。删除公开证据后，相应约束必须消失；canary 不得出现在 package。
+
+任务先冻结为 2 development + 2 held-out。四个任务用于验证 split 与 scorer，但本阶段只允许
+development fixture 的本地 activation 和显式 `no-skill | original` calibration。Held-out
+不得进入 package construction、calibration、repair 或付费执行。只有 scorer、base IR、
+source audit、resource contract、package digest 和新的 development lock 全部冻结，并且
+development gate 通过后，才可另立 held-out lock。
+
 ### 动态阶段
 
 当前采用 task-local dual-source residual repair：
