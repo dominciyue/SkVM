@@ -942,3 +942,37 @@ held-out 或把结果写成 Skill IR 增益。
   另列 research diagnostic cost；质量不回归前 break-even 保持未计算，不宣传 token 节省。
 - [x] 更新 spec、plan、组件文档、experiment results 和 conversation log；执行 focused tests、
   typecheck、文档链接、secret scan 和 `git diff --check`。
+
+### Task 8.6：从属 Execution Freeze 与完整 Development Gate
+
+Task 8.5 的父 lock 保持不可变。其 direct runner 已绑定 digest 且只实现
+`plan | artifact-execute`，因此本任务新增从属 execution freeze 和独立 orchestration，不原地
+扩展父 lock 已绑定文件。
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/validated-artifact-development-execution-freeze.ts
+新增 src/benchmarks/skill-ir/validated-artifact-development-execution-freeze.test.ts
+新增 src/benchmarks/skill-ir/validated-artifact-development-execution-run.ts
+新增 src/benchmarks/skill-ir/validated-artifact-development-execution-run.test.ts
+新增 benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-execution-freeze.json
+更新 docs/skill-ir/evaluation-system.md
+更新 docs/skill-ir/real-skill-pilots.md
+更新 docs/skill-ir/experiment-results.md
+```
+
+- [x] RED：execution freeze schema 拒绝父 lock digest、model runner、scoring、route/resource、
+  adapter 或 orchestration digest 漂移；父 lock 内容仍由既有 validator 独立验证。
+- [x] GREEN：冻结 `skill-ir-validated-artifact-development-execution-freeze/v1`，仅补充执行
+  provenance，不覆盖父 lock 的矩阵、模型、gate、package 或 scorer 身份。
+- [x] RED/GREEN：实现 compact route result；probe 必须来自 `original × 首个 development
+  task × repetition 1`，且绑定父 lock 与 execution freeze digest，禁止持久化命令和模型正文。
+- [x] RED/GREEN：完整 execute 先重跑 resource probe，再验证同目录 route evidence；只执行
+  12 条冻结模型行、零重试，并在同一批次重跑 4 条 direct artifact 行。
+- [x] RED/GREEN：合并恰好 16 条 raw/scored row，运行既有冻结 gate，并输出 compact
+  scored/cost/summary/gate；缺行、重复、身份漂移或 prerequisite failure 必须 fail closed。
+- [ ] route probe 通过后执行一次冻结付费 development。Gate 未通过时原样记录，禁止补跑、
+  调 scorer/package/lock、计算 break-even 或进入 held-out。
+- [ ] 更新权威组件文档、实验结果和 conversation log；运行 focused/full tests、typecheck、
+  文档链接、secret scan、digest verification 和 `git diff --check` 后提交推送。

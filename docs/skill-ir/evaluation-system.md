@@ -555,3 +555,26 @@ evaluator payload，最终 workdir 才交给既有 scorer。
 失败，重复/身份漂移直接拒绝；artifact 必须 4/4 success、总均分和逐 task 均分均不低于
 0.85、无 hard-gate/基础设施失败，并逐样本不低于 original 与 ir-static 中较高者。当前只有
 4 条 direct 证据，完整 gate 尚未评估，不能运行 held-out。
+
+完整模型对照不修改上述已绑定 direct runner，而使用从属 execution freeze：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/
+  law-to-markdown-validated-artifact-execution-freeze.json
+```
+
+该 freeze 绑定父 lock digest、model runner、scoring、route/resource、bare-agent 与独立
+orchestration 源码。先在同一输出目录执行 route probe：
+
+```powershell
+$env:SKVM_PYTHON = '<python-with-docx-and-pdfplumber>'
+bun ./src/benchmarks/skill-ir/validated-artifact-development-execution-run.ts `
+  '--phase=route-probe' `
+  '--out-dir=results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24'
+```
+
+成功后只把 `--phase` 改为 `execute`。Execute 会重新验证父 lock、execution freeze 和资源，
+只接受同目录中绑定两个 digest 的成功 route evidence，执行冻结 12 条模型行并重跑 4 条
+direct 行，最终生成 16 行 gate。Raw transcript、provider log、plan 与 workdir 不提交；
+compact resource/route/scored/cost/summary/gate 可以持久化。Gate 失败仍是有效结果，禁止补跑、
+调 scorer/package/lock 或进入 held-out。

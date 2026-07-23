@@ -862,3 +862,41 @@ Law v1 compiler 不消费 profile feedback，因此 production `profileCost=0`�
 audit 对研究路线有影响，单列为 `researchDiagnosticCost`，不伪装成 compiler 输入，也不并入
 生产摊销。Artifact 的 generation/repair token 均为 0；前三臂按真实 usage 统计。Development
 gate 未通过前，break-even 字段必须保持 `not-computed-quality-gate-pending`。
+
+## 20. Law Validated Artifact Execution Freeze
+
+第 19 节的 development lock 已冻结实验输入、16 行矩阵、direct artifact runner 和数值 gate，
+但其已绑定 runner 只实现 `plan | artifact-execute`，没有实现模型 route probe 与 12 条模型臂
+编排。不能通过原地修改该 runner 补齐功能，否则 development lock 会因自身绑定的实现 digest
+漂移而失效。完整 development 执行因此使用一个从属、不可替代父 lock 的冻结身份：
+
+```text
+execution freeze: skill-ir-validated-artifact-development-execution-freeze/v1
+route result: skill-ir-validated-artifact-development-route-probe-result/v1
+parent lock: skill-ir-validated-artifact-development-lock/v1
+experiment: law-to-markdown-validated-artifact-development-v1
+```
+
+Execution freeze 必须绑定父 lock 的路径与 digest，并额外绑定实际执行所需的通用 model runner、
+deterministic scoring、route probe、resource probe、bare-agent adapter 和本阶段 orchestration
+实现 digest。父 lock 继续权威定义 source、task、package、系统、模型、adapter identity、分母和
+gate；execution freeze 只补充“这些模型行怎样被执行、评分和与 direct 行合并”的 provenance，
+不得覆盖父 lock 的任何字段。
+
+执行阶段固定为：
+
+1. `route-probe` 重新验证父 lock、execution freeze 和全部绑定实现，运行 resource probe，
+   再执行冻结矩阵中 `original × 第一个 development task × repetition 1` 的单条模型探针；
+2. route 结果只持久化身份、状态、退出码、超时和耗时，不保存命令、stdout、stderr 或模型正文；
+3. `execute` 再次验证全部 digest 和 resource contract，只接受同一输出目录内、同时匹配父 lock
+   digest、execution freeze digest、experiment、model、case 和 system 的成功 route probe；
+4. 模型臂只执行冻结的 12 行，`retries=0`；direct 臂在同一批次重新执行冻结的 4 行，不复用
+   历史 direct 结果；
+5. 合并后必须恰好得到 16 条 raw 与 16 条 scored row，再运行父 lock 已冻结的 gate；
+6. raw transcript、workdir 和 provider log 留在本地；提交 compact route/resource、scored、
+   cost、summary 和 gate evidence；
+7. gate 失败是有效实验结果，必须原样冻结；不得补跑、调 scorer、重编 package 或执行 held-out。
+
+该从属 freeze 是对实施 provenance 缺口的保守修复，不改变第 19 节已预注册的实验假设、数值
+阈值或主张边界。以后若通用 runner、adapter 或 orchestration 实现改变，必须建立新 execution
+freeze，不能覆盖 v1。
