@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "skill-ir-resource-contract/v1",
+  "inputFormats": ["json"],
+  "network": "forbidden",
+  "packageInstall": "forbidden",
+  "interpreter": {
+    "env": "SKVM_PYTHON",
+    "fallbackCommand": "python",
+    "minimumVersion": "3.10"
+  },
+  "probe": {
+    "args": [
+      "-c",
+      "import sys; assert sys.version_info >= (3, 10); print('SKVM_EXPERIMENTAL_DESIGN_STDLIB_OK')"
+    ],
+    "requiredModules": [],
+    "successMarker": "SKVM_EXPERIMENTAL_DESIGN_STDLIB_OK"
+  },
+  "missingDependencyDisposition": "preflight-infrastructure"
+}

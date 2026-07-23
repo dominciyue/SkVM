@@ -56,7 +56,7 @@ describe("skill-ir corpus fixtures", () => {
     expect(pilot.skills.filter((skill) => skill.wave === "B")).toHaveLength(3);
     expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "law-to-markdown")?.status).toBe("runnable");
-    expect(pilot.skills.find((skill) => skill.id === "experimental-design")?.status).toBe("source-imported");
+    expect(pilot.skills.find((skill) => skill.id === "experimental-design")?.status).toBe("runnable");
     expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
   });
 
@@ -89,7 +89,7 @@ describe("skill-ir corpus fixtures", () => {
       tasksPath: "benchmarks/skill-ir/pilots/env-manager/tasks.json",
       irPath: "benchmarks/skill-ir/pilots/env-manager/base-ir.json",
     });
-    expect(pilot.skills.filter((skill) => skill.status === "runnable")).toHaveLength(2);
+    expect(pilot.skills.filter((skill) => skill.status === "runnable")).toHaveLength(3);
 
     const irText = readFileSync(join(process.cwd(), envManager!.irPath!), "utf8");
     const ir = SkillIRSchema.parse(JSON.parse(irText));

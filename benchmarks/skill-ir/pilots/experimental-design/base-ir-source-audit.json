@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "skill-ir-source-audit/v1",
+  "skillId": "experimental-design",
+  "sources": [
+    {
+      "id": "skill-source",
+      "kind": "markdown",
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    },
+    {
+      "id": "task-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/experimental-design/tasks.json",
+      "sha256": "d025d39d6bc6f1d261cc9de4c29980ea46e3f49a91588924de0311fa2c9e7e18",
+      "allowedPointers": ["/tasks/0/prompt", "/tasks/1/prompt"]
+    },
+    {
+      "id": "resource-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/experimental-design/resource-contract.json",
+      "sha256": "c478a8894e1805638e1ecce329038c697fe5cc53166b3b50b9ce833bf2aa8877",
+      "allowedPointers": ["/network", "/packageInstall", "/interpreter/minimumVersion", "/probe/requiredModules"]
+    }
+  ],
+  "mappings": [
+    { "targetRef": "category", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 2, "end": 5 } }] },
+    { "targetRef": "intent", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 14, "end": 21 } }] },
+    { "targetRef": "input:study-contract", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "output:design-plan", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "output:allocation-schedule", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 85, "end": 119 } }] },
+    { "targetRef": "output:design-report", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "precondition:study-shape-valid", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "precondition:unit-level-known", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 183, "end": 191 } }] },
+    { "targetRef": "precondition:python-stdlib-available", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter/minimumVersion" } }] },
+    { "targetRef": "step:read-study-contract", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 183, "end": 186 } }] },
+    { "targetRef": "step:identify-design-units", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 155, "end": 160 } }] },
+    { "targetRef": "step:select-randomization-method", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 49, "end": 81 } }] },
+    { "targetRef": "step:generate-seeded-allocation", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 85, "end": 113 } }] },
+    { "targetRef": "step:write-design-artifacts", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 192, "end": 197 } }] },
+    { "targetRef": "step:verify-design-artifacts", "construction": "static-clarification", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 87, "end": 90 } }, { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }] },
+    { "targetRef": "rule:preserve-study-input", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "rule:randomize-at-treatment-level", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 155, "end": 160 } }] },
+    { "targetRef": "rule:cluster-assignment-is-cluster-randomized", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 109, "end": 119 } }] },
+    { "targetRef": "rule:block-observed-strata", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 105, "end": 119 } }] },
+    { "targetRef": "rule:block-sequential-enrollment", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 101, "end": 103 } }] },
+    { "targetRef": "rule:archive-seed-and-schedule", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 87, "end": 90 } }] },
+    { "targetRef": "rule:document-analysis-implications", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 192, "end": 197 } }] },
+    { "targetRef": "rule:no-network-or-install", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/network" } }] },
+    { "targetRef": "tool:python-stdlib", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/probe/requiredModules" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter/minimumVersion" } }] },
+    { "targetRef": "environment:python-310-stdlib", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter/minimumVersion" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/packageInstall" } }] },
+    { "targetRef": "check:check-study-input", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "check:check-plan-contract", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "check:check-assignment-safety", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 155, "end": 160 } }] },
+    { "targetRef": "check:check-allocation-complete", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 85, "end": 119 } }] },
+    { "targetRef": "check:check-seed-reproducibility", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 87, "end": 90 } }] },
+    { "targetRef": "check:check-report-contract", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }] },
+    { "targetRef": "recovery:recovery-invalid-study", "construction": "static-clarification", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 183, "end": 191 } }] },
+    { "targetRef": "recovery:recovery-python-unavailable", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter/minimumVersion" } }] },
+    { "targetRef": "recovery:recovery-artifact-validation", "construction": "static-clarification", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 192, "end": 197 } }, { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] }
+  ],
+  "excludedEvidenceClasses": ["evaluator-payload", "held-out", "runtime-output", "profile-feedback"]
+}

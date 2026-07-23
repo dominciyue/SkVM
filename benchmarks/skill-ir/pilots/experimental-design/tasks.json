@@ -1,0 +1,366 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "experimental-design",
+  "tasks": [
+    {
+      "id": "experimental-design-stratified-dev-001",
+      "split": "development",
+      "prompt": "请按所加载的 experimental-design skill 处理工作目录中的 study.json，且不得修改该输入。运行期间禁止联网或安装软件包。请根据 assignmentLevel、单位层级、stratum、sequentialEnrollment 和 seed 选择设计并生成三个文件：design/design-plan.json、design/allocation.csv、design/design-report.md。plan 必须记录 studyId、method、assignmentLevel、assignmentUnit、analysisUnit、response、arms、seed、nuisanceHandling、replicationUnit、pseudoreplicationWarning、allocationPath 和 analysisNotes；allocation.csv 使用列 order,unit_id,stratum,arm；报告必须记录研究、方法、随机化单位、分析单位、response、seed、干扰因素处理、独立重复说明和 allocation 路径。完成后简要说明生成了哪些文件。",
+      "fixtures": {
+        "study.json": "{\n  \"studyId\": \"site-stratified-recovery\",\n  \"question\": \"Does the intervention reduce recovery time?\",\n  \"assignmentLevel\": \"individual\",\n  \"assignmentUnit\": \"participant\",\n  \"analysisUnit\": \"participant\",\n  \"response\": \"recovery_days\",\n  \"arms\": [\"control\", \"intervention\"],\n  \"seed\": 37,\n  \"nuisanceFactors\": [\"site\"],\n  \"sequentialEnrollment\": false,\n  \"units\": [\n    { \"id\": \"A-01\", \"stratum\": \"site-a\" },\n    { \"id\": \"A-02\", \"stratum\": \"site-a\" },\n    { \"id\": \"A-03\", \"stratum\": \"site-a\" },\n    { \"id\": \"A-04\", \"stratum\": \"site-a\" },\n    { \"id\": \"B-01\", \"stratum\": \"site-b\" },\n    { \"id\": \"B-02\", \"stratum\": \"site-b\" },\n    { \"id\": \"B-03\", \"stratum\": \"site-b\" },\n    { \"id\": \"B-04\", \"stratum\": \"site-b\" }\n  ]\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "design-protected-input",
+          "name": "Study input remains unchanged",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "protected-file",
+            "path": "study.json",
+            "content": "{\n  \"studyId\": \"site-stratified-recovery\",\n  \"question\": \"Does the intervention reduce recovery time?\",\n  \"assignmentLevel\": \"individual\",\n  \"assignmentUnit\": \"participant\",\n  \"analysisUnit\": \"participant\",\n  \"response\": \"recovery_days\",\n  \"arms\": [\"control\", \"intervention\"],\n  \"seed\": 37,\n  \"nuisanceFactors\": [\"site\"],\n  \"sequentialEnrollment\": false,\n  \"units\": [\n    { \"id\": \"A-01\", \"stratum\": \"site-a\" },\n    { \"id\": \"A-02\", \"stratum\": \"site-a\" },\n    { \"id\": \"A-03\", \"stratum\": \"site-a\" },\n    { \"id\": \"A-04\", \"stratum\": \"site-a\" },\n    { \"id\": \"B-01\", \"stratum\": \"site-b\" },\n    { \"id\": \"B-02\", \"stratum\": \"site-b\" },\n    { \"id\": \"B-03\", \"stratum\": \"site-b\" },\n    { \"id\": \"B-04\", \"stratum\": \"site-b\" }\n  ]\n}\n"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-required-artifacts",
+          "name": "All public deliverables are present",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "required-artifacts",
+            "paths": ["design/design-plan.json", "design/allocation.csv", "design/design-report.md"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-plan-contract",
+          "name": "Plan matches the public study contract",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "plan-contract",
+            "studyPath": "study.json",
+            "planPath": "design/design-plan.json"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-assignment-safety",
+          "name": "Assignment and replication units are safe",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "assignment-safety",
+            "studyPath": "study.json",
+            "planPath": "design/design-plan.json"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-allocation-consistency",
+          "name": "Allocation is complete and reproducible",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "allocation-consistency",
+            "studyPath": "study.json",
+            "allocationPath": "design/allocation.csv"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-report-completeness",
+          "name": "Report records the public design decisions",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "report-completeness",
+            "studyPath": "study.json",
+            "reportPath": "design/design-report.md"
+          }
+        }
+      ],
+      "hardGateIds": ["design-protected-input", "design-required-artifacts", "design-assignment-safety"],
+      "passThreshold": 0.85
+    },
+    {
+      "id": "experimental-design-cluster-dev-002",
+      "split": "development",
+      "prompt": "请按所加载的 experimental-design skill 处理工作目录中的 study.json，且不得修改该输入。运行期间禁止联网或安装软件包。请根据 assignmentLevel、单位层级、stratum、sequentialEnrollment 和 seed 选择设计并生成三个文件：design/design-plan.json、design/allocation.csv、design/design-report.md。plan 必须记录 studyId、method、assignmentLevel、assignmentUnit、analysisUnit、response、arms、seed、nuisanceHandling、replicationUnit、pseudoreplicationWarning、allocationPath 和 analysisNotes；allocation.csv 使用列 order,unit_id,stratum,arm；报告必须记录研究、方法、随机化单位、分析单位、response、seed、干扰因素处理、独立重复说明和 allocation 路径。完成后简要说明生成了哪些文件。",
+      "fixtures": {
+        "study.json": "{\n  \"studyId\": \"clinic-cluster-screening\",\n  \"question\": \"Does the reminder program improve screening uptake?\",\n  \"assignmentLevel\": \"cluster\",\n  \"assignmentUnit\": \"clinic\",\n  \"analysisUnit\": \"clinic\",\n  \"response\": \"screening_rate\",\n  \"arms\": [\"usual-care\", \"reminder\"],\n  \"seed\": 91,\n  \"nuisanceFactors\": [\"region\"],\n  \"sequentialEnrollment\": false,\n  \"units\": [\n    { \"id\": \"clinic-01\" },\n    { \"id\": \"clinic-02\" },\n    { \"id\": \"clinic-03\" },\n    { \"id\": \"clinic-04\" },\n    { \"id\": \"clinic-05\" },\n    { \"id\": \"clinic-06\" }\n  ]\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "design-protected-input",
+          "name": "Study input remains unchanged",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "protected-file",
+            "path": "study.json",
+            "content": "{\n  \"studyId\": \"clinic-cluster-screening\",\n  \"question\": \"Does the reminder program improve screening uptake?\",\n  \"assignmentLevel\": \"cluster\",\n  \"assignmentUnit\": \"clinic\",\n  \"analysisUnit\": \"clinic\",\n  \"response\": \"screening_rate\",\n  \"arms\": [\"usual-care\", \"reminder\"],\n  \"seed\": 91,\n  \"nuisanceFactors\": [\"region\"],\n  \"sequentialEnrollment\": false,\n  \"units\": [\n    { \"id\": \"clinic-01\" },\n    { \"id\": \"clinic-02\" },\n    { \"id\": \"clinic-03\" },\n    { \"id\": \"clinic-04\" },\n    { \"id\": \"clinic-05\" },\n    { \"id\": \"clinic-06\" }\n  ]\n}\n"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-required-artifacts",
+          "name": "All public deliverables are present",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "required-artifacts",
+            "paths": ["design/design-plan.json", "design/allocation.csv", "design/design-report.md"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-plan-contract",
+          "name": "Plan matches the public study contract",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "plan-contract",
+            "studyPath": "study.json",
+            "planPath": "design/design-plan.json"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-assignment-safety",
+          "name": "Assignment and replication units are safe",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "assignment-safety",
+            "studyPath": "study.json",
+            "planPath": "design/design-plan.json"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-allocation-consistency",
+          "name": "Allocation is complete and reproducible",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "allocation-consistency",
+            "studyPath": "study.json",
+            "allocationPath": "design/allocation.csv"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-report-completeness",
+          "name": "Report records the public design decisions",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "report-completeness",
+            "studyPath": "study.json",
+            "reportPath": "design/design-report.md"
+          }
+        }
+      ],
+      "hardGateIds": ["design-protected-input", "design-required-artifacts", "design-assignment-safety"],
+      "passThreshold": 0.85
+    },
+    {
+      "id": "experimental-design-sequential-heldout-001",
+      "split": "held-out",
+      "prompt": "请按所加载的 experimental-design skill 处理工作目录中的 study.json，且不得修改该输入。运行期间禁止联网或安装软件包。请根据 assignmentLevel、单位层级、stratum、sequentialEnrollment 和 seed 选择设计并生成三个文件：design/design-plan.json、design/allocation.csv、design/design-report.md。plan 必须记录 studyId、method、assignmentLevel、assignmentUnit、analysisUnit、response、arms、seed、nuisanceHandling、replicationUnit、pseudoreplicationWarning、allocationPath 和 analysisNotes；allocation.csv 使用列 order,unit_id,stratum,arm；报告必须记录研究、方法、随机化单位、分析单位、response、seed、干扰因素处理、独立重复说明和 allocation 路径。完成后简要说明生成了哪些文件。",
+      "fixtures": {
+        "study.json": "{\n  \"studyId\": \"sequential-three-arm-trial\",\n  \"question\": \"Which support program improves weekly adherence?\",\n  \"assignmentLevel\": \"individual\",\n  \"assignmentUnit\": \"participant\",\n  \"analysisUnit\": \"participant\",\n  \"response\": \"weekly_adherence\",\n  \"arms\": [\"control\", \"sms\", \"coach\"],\n  \"seed\": 123,\n  \"nuisanceFactors\": [\"enrollment-time\"],\n  \"sequentialEnrollment\": true,\n  \"units\": [\n    { \"id\": \"P-01\" }, { \"id\": \"P-02\" }, { \"id\": \"P-03\" },\n    { \"id\": \"P-04\" }, { \"id\": \"P-05\" }, { \"id\": \"P-06\" },\n    { \"id\": \"P-07\" }, { \"id\": \"P-08\" }, { \"id\": \"P-09\" }\n  ]\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "design-protected-input",
+          "name": "Study input remains unchanged",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "protected-file",
+            "path": "study.json",
+            "content": "{\n  \"studyId\": \"sequential-three-arm-trial\",\n  \"question\": \"Which support program improves weekly adherence?\",\n  \"assignmentLevel\": \"individual\",\n  \"assignmentUnit\": \"participant\",\n  \"analysisUnit\": \"participant\",\n  \"response\": \"weekly_adherence\",\n  \"arms\": [\"control\", \"sms\", \"coach\"],\n  \"seed\": 123,\n  \"nuisanceFactors\": [\"enrollment-time\"],\n  \"sequentialEnrollment\": true,\n  \"units\": [\n    { \"id\": \"P-01\" }, { \"id\": \"P-02\" }, { \"id\": \"P-03\" },\n    { \"id\": \"P-04\" }, { \"id\": \"P-05\" }, { \"id\": \"P-06\" },\n    { \"id\": \"P-07\" }, { \"id\": \"P-08\" }, { \"id\": \"P-09\" }\n  ]\n}\n"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-required-artifacts",
+          "name": "All public deliverables are present",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "required-artifacts",
+            "paths": ["design/design-plan.json", "design/allocation.csv", "design/design-report.md"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-plan-contract",
+          "name": "Plan matches the public study contract",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "plan-contract",
+            "studyPath": "study.json",
+            "planPath": "design/design-plan.json"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-assignment-safety",
+          "name": "Assignment and replication units are safe",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "assignment-safety",
+            "studyPath": "study.json",
+            "planPath": "design/design-plan.json"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-allocation-consistency",
+          "name": "Allocation is complete and reproducible",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "allocation-consistency",
+            "studyPath": "study.json",
+            "allocationPath": "design/allocation.csv"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-report-completeness",
+          "name": "Report records the public design decisions",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "report-completeness",
+            "studyPath": "study.json",
+            "reportPath": "design/design-report.md"
+          }
+        }
+      ],
+      "hardGateIds": ["design-protected-input", "design-required-artifacts", "design-assignment-safety"],
+      "passThreshold": 0.85
+    },
+    {
+      "id": "experimental-design-simple-heldout-002",
+      "split": "held-out",
+      "prompt": "请按所加载的 experimental-design skill 处理工作目录中的 study.json，且不得修改该输入。运行期间禁止联网或安装软件包。请根据 assignmentLevel、单位层级、stratum、sequentialEnrollment 和 seed 选择设计并生成三个文件：design/design-plan.json、design/allocation.csv、design/design-report.md。plan 必须记录 studyId、method、assignmentLevel、assignmentUnit、analysisUnit、response、arms、seed、nuisanceHandling、replicationUnit、pseudoreplicationWarning、allocationPath 和 analysisNotes；allocation.csv 使用列 order,unit_id,stratum,arm；报告必须记录研究、方法、随机化单位、分析单位、response、seed、干扰因素处理、独立重复说明和 allocation 路径。完成后简要说明生成了哪些文件。",
+      "fixtures": {
+        "study.json": "{\n  \"studyId\": \"simple-sample-assay\",\n  \"question\": \"Does the treatment change assay intensity?\",\n  \"assignmentLevel\": \"individual\",\n  \"assignmentUnit\": \"sample\",\n  \"analysisUnit\": \"sample\",\n  \"response\": \"assay_intensity\",\n  \"arms\": [\"vehicle\", \"treatment\"],\n  \"seed\": 211,\n  \"nuisanceFactors\": [],\n  \"sequentialEnrollment\": false,\n  \"units\": [\n    { \"id\": \"S-01\" }, { \"id\": \"S-02\" }, { \"id\": \"S-03\" },\n    { \"id\": \"S-04\" }, { \"id\": \"S-05\" }, { \"id\": \"S-06\" },\n    { \"id\": \"S-07\" }, { \"id\": \"S-08\" }\n  ]\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "design-protected-input",
+          "name": "Study input remains unchanged",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "protected-file",
+            "path": "study.json",
+            "content": "{\n  \"studyId\": \"simple-sample-assay\",\n  \"question\": \"Does the treatment change assay intensity?\",\n  \"assignmentLevel\": \"individual\",\n  \"assignmentUnit\": \"sample\",\n  \"analysisUnit\": \"sample\",\n  \"response\": \"assay_intensity\",\n  \"arms\": [\"vehicle\", \"treatment\"],\n  \"seed\": 211,\n  \"nuisanceFactors\": [],\n  \"sequentialEnrollment\": false,\n  \"units\": [\n    { \"id\": \"S-01\" }, { \"id\": \"S-02\" }, { \"id\": \"S-03\" },\n    { \"id\": \"S-04\" }, { \"id\": \"S-05\" }, { \"id\": \"S-06\" },\n    { \"id\": \"S-07\" }, { \"id\": \"S-08\" }\n  ]\n}\n"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-required-artifacts",
+          "name": "All public deliverables are present",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "required-artifacts",
+            "paths": ["design/design-plan.json", "design/allocation.csv", "design/design-report.md"]
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-plan-contract",
+          "name": "Plan matches the public study contract",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "plan-contract",
+            "studyPath": "study.json",
+            "planPath": "design/design-plan.json"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-assignment-safety",
+          "name": "Assignment and replication units are safe",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "assignment-safety",
+            "studyPath": "study.json",
+            "planPath": "design/design-plan.json"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-allocation-consistency",
+          "name": "Allocation is complete and reproducible",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "allocation-consistency",
+            "studyPath": "study.json",
+            "allocationPath": "design/allocation.csv"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-report-completeness",
+          "name": "Report records the public design decisions",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v1",
+            "check": "report-completeness",
+            "studyPath": "study.json",
+            "reportPath": "design/design-report.md"
+          }
+        }
+      ],
+      "hardGateIds": ["design-protected-input", "design-required-artifacts", "design-assignment-safety"],
+      "passThreshold": 0.85
+    }
+  ]
+}
