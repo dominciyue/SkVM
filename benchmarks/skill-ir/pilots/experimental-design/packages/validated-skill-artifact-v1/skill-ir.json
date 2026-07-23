@@ -1,0 +1,298 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "experimental-design",
+  "name": "Experimental Design",
+  "category": ["workflow", "tool-use", "generative"],
+  "intent": "Choose an experiment design from the question and unit structure, create a seeded allocation schedule, and document randomization, replication, blocking, and analysis implications before data collection.",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+    "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+  },
+  "inputs": [
+    {
+      "id": "study-contract",
+      "description": "A protected study.json containing the research question, assignment and analysis units, response, arms, seed, nuisance factors, enrollment mode, and assignable units.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "design-plan",
+      "description": "design/design-plan.json records the selected method and design decisions.",
+      "required": true
+    },
+    {
+      "id": "allocation-schedule",
+      "description": "design/allocation.csv records a seeded assignment for every randomization unit.",
+      "required": true
+    },
+    {
+      "id": "design-report",
+      "description": "design/design-report.md records the method, units, response, nuisance handling, replication warning, seed, and schedule path.",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "study-shape-valid",
+      "description": "The study contract names at least two arms and at least two unique assignable units.",
+      "checkability": "runtime"
+    },
+    {
+      "id": "unit-level-known",
+      "description": "The assignment level, assignment unit, and analysis unit are explicit before choosing a design.",
+      "checkability": "runtime"
+    },
+    {
+      "id": "python-stdlib-available",
+      "description": "Python 3.10 or newer with the standard library is available for deterministic lowering.",
+      "checkability": "runtime"
+    }
+  ],
+  "steps": [
+    {
+      "id": "read-study-contract",
+      "title": "Read the public study contract",
+      "description": "Read study.json without modifying it and identify the question, response, arms, seed, units, strata, cluster level, and enrollment mode.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": [],
+      "produces": ["parsed-study-contract"],
+      "successCheckRefs": ["check-study-input"],
+      "failureModes": ["missing-or-invalid-study-contract"]
+    },
+    {
+      "id": "identify-design-units",
+      "title": "Identify randomization and replication units",
+      "description": "Keep the treatment assignment level, independent replicate, and analysis unit aligned, especially for cluster assignments.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["read-study-contract"],
+      "toolRefs": [],
+      "produces": ["unit-decision"],
+      "successCheckRefs": ["check-assignment-safety"],
+      "failureModes": ["pseudoreplication", "cluster-unit-mismatch"]
+    },
+    {
+      "id": "select-randomization-method",
+      "title": "Select a randomization method",
+      "description": "Choose cluster randomization for cluster assignment, stratified block randomization when strata exist, permuted blocks for sequential enrollment, and simple randomization otherwise.",
+      "kind": "plan",
+      "required": true,
+      "dependsOn": ["identify-design-units"],
+      "toolRefs": [],
+      "produces": ["method-decision"],
+      "successCheckRefs": ["check-plan-contract"],
+      "failureModes": ["method-does-not-match-unit-structure"]
+    },
+    {
+      "id": "generate-seeded-allocation",
+      "title": "Generate the allocation schedule",
+      "description": "Use the declared seed to assign every randomization unit exactly once while respecting the selected blocking or cluster structure.",
+      "kind": "execute",
+      "required": true,
+      "dependsOn": ["select-randomization-method"],
+      "toolRefs": ["python-stdlib"],
+      "produces": ["allocation-schedule"],
+      "successCheckRefs": ["check-allocation-complete", "check-seed-reproducibility"],
+      "failureModes": ["missing-unit", "duplicate-unit", "non-reproducible-schedule"]
+    },
+    {
+      "id": "write-design-artifacts",
+      "title": "Write the design plan and report",
+      "description": "Write the public JSON plan, CSV schedule, and Markdown report with the method, units, response, nuisance handling, replication warning, seed, and schedule path.",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": ["generate-seeded-allocation"],
+      "toolRefs": [],
+      "produces": ["design-plan", "design-report"],
+      "successCheckRefs": ["check-plan-contract", "check-report-contract"],
+      "failureModes": ["missing-design-field", "missing-report-decision"]
+    },
+    {
+      "id": "verify-design-artifacts",
+      "title": "Verify the compiled design",
+      "description": "Validate all three artifacts against the public study contract and stop if the assignment unit, seed, schedule, or report is inconsistent.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": ["write-design-artifacts"],
+      "toolRefs": ["python-stdlib"],
+      "produces": ["validation-report"],
+      "successCheckRefs": ["check-study-input", "check-plan-contract", "check-assignment-safety", "check-allocation-complete", "check-seed-reproducibility", "check-report-contract"],
+      "failureModes": ["artifact-validation-failed"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "preserve-study-input",
+      "sourceText": "The task contract states that study.json is protected and must not be modified.",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Do not modify study.json."
+    },
+    {
+      "id": "randomize-at-treatment-level",
+      "sourceText": "The replicate must be at the level the treatment is randomized.",
+      "level": "must",
+      "scope": "safety",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "The assignment and independent replication unit must match the treatment-delivery level."
+    },
+    {
+      "id": "cluster-assignment-is-cluster-randomized",
+      "sourceText": "Cluster randomization is mandatory when the intervention is delivered at a group level.",
+      "level": "must",
+      "scope": "planning",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Use cluster-randomized when assignmentLevel is cluster."
+    },
+    {
+      "id": "block-observed-strata",
+      "sourceText": "Balance a prognostic variable across arms by randomizing within each stratum.",
+      "level": "must",
+      "scope": "planning",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Use stratified-block when individual units declare strata."
+    },
+    {
+      "id": "block-sequential-enrollment",
+      "sourceText": "Permuted blocks keep arms balanced throughout sequential enrollment.",
+      "level": "must",
+      "scope": "planning",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "Use permuted-block for unstratified sequential enrollment."
+    },
+    {
+      "id": "archive-seed-and-schedule",
+      "sourceText": "Everything is seeded so the exact schedule can be archived and regenerated.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Record the seed and generate a reproducible allocation schedule."
+    },
+    {
+      "id": "document-analysis-implications",
+      "sourceText": "Blocks, strata, clusters, and nesting must appear in the analysis.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "Document how the design structure must be represented in analysis."
+    },
+    {
+      "id": "no-network-or-install",
+      "sourceText": "The public task contract forbids network access and package installation.",
+      "level": "never",
+      "scope": "tool-use",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Do not access the network or install packages during task execution."
+    }
+  ],
+  "tools": [
+    {
+      "id": "python-stdlib",
+      "name": "Python standard library",
+      "purpose": "Generate and validate deterministic JSON, CSV, and Markdown artifacts without shell composition or third-party packages.",
+      "required": true,
+      "alternatives": [],
+      "platformNotes": {
+        "linux": "Use the interpreter selected by SKVM_PYTHON or python.",
+        "macos": "Use the interpreter selected by SKVM_PYTHON or python.",
+        "windows": "Invoke the interpreter directly; do not depend on POSIX shell syntax."
+      },
+      "availabilityCheck": "Run the frozen Python >=3.10 standard-library resource probe."
+    }
+  ],
+  "environment": [
+    {
+      "id": "python-310-stdlib",
+      "description": "Python 3.10 or newer is available; network and package installation are forbidden and no third-party module is required by this artifact slice.",
+      "platforms": ["linux", "macos", "windows"],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-study-input",
+      "name": "Protected study input",
+      "kind": "rule-violation",
+      "targetRef": "input:study-contract",
+      "assertion": "study.json exists, parses, and has the original digest.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-plan-contract",
+      "name": "Design plan contract",
+      "kind": "output",
+      "targetRef": "output:design-plan",
+      "assertion": "The plan schema and public study fields agree, including the derived method and seed.",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-assignment-safety",
+      "name": "Assignment and replication safety",
+      "kind": "rule-violation",
+      "targetRef": "rule:randomize-at-treatment-level",
+      "assertion": "The randomization and replication unit match the treatment-delivery level and cluster assignment uses cluster randomization.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-allocation-complete",
+      "name": "Allocation completeness",
+      "kind": "output",
+      "targetRef": "output:allocation-schedule",
+      "assertion": "Every public unit appears exactly once with a declared arm and the expected stratum.",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-seed-reproducibility",
+      "name": "Seed reproducibility",
+      "kind": "output",
+      "targetRef": "output:allocation-schedule",
+      "assertion": "Regenerating from the public seed and method produces the same ordered schedule.",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-report-contract",
+      "name": "Design report contract",
+      "kind": "output",
+      "targetRef": "output:design-report",
+      "assertion": "The report records study id, method, randomization unit, analysis unit, response, seed, nuisance handling, replication note, and allocation path.",
+      "onFailure": "retry"
+    }
+  ],
+  "recovery": [
+    {
+      "id": "recovery-invalid-study",
+      "trigger": "study.json is missing required public fields or has fewer than two arms or units.",
+      "action": "ask-user",
+      "maxAttempts": 0,
+      "explanation": "Do not invent missing study structure or assignable units."
+    },
+    {
+      "id": "recovery-python-unavailable",
+      "trigger": "The frozen Python standard-library preflight fails.",
+      "action": "stop",
+      "maxAttempts": 0,
+      "explanation": "Treat the missing interpreter as infrastructure and do not install packages."
+    },
+    {
+      "id": "recovery-artifact-validation",
+      "trigger": "The generated plan, schedule, or report fails a public-contract check.",
+      "action": "retry",
+      "maxAttempts": 1,
+      "explanation": "Regenerate once from the same public study and seed, then stop on a second failure."
+    }
+  ],
+  "profile": []
+}

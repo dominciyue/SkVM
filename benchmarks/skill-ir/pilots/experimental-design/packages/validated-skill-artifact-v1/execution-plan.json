@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "skill-artifact-execution-plan/v1",
+  "entrypoint": "validate-design",
+  "nodes": [
+    {
+      "id": "generate-design",
+      "kind": "process",
+      "dependsOn": [],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_PYTHON",
+          "fallback": "python"
+        },
+        "artifactId": "design-generator",
+        "args": [
+          "--workdir",
+          "{workdir}"
+        ],
+        "envAllowlist": [
+          "SKVM_PYTHON"
+        ]
+      },
+      "timeoutMs": 30000
+    },
+    {
+      "id": "validate-design",
+      "kind": "validate",
+      "dependsOn": [
+        "generate-design"
+      ],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_PYTHON",
+          "fallback": "python"
+        },
+        "artifactId": "design-checker",
+        "args": [
+          "--workdir",
+          "{workdir}"
+        ],
+        "envAllowlist": [
+          "SKVM_PYTHON"
+        ]
+      },
+      "timeoutMs": 30000
+    }
+  ]
+}
