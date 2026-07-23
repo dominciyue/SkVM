@@ -76,6 +76,13 @@ base IR 构造；不构成方法增益或 held-out 证据。
 0 negative，冻结 development gate 通过。该结果只允许起草新的 held-out lock，不构成
 held-out、跨模型、跨 skill、跨环境或摊销 token 主张。
 
+2026-07-24 随后按新 lock 执行唯一一次 Law held-out：16/16 raw/scored、4/4 quartets、
+0 infrastructure。Artifact 为 2/4、mean 0.725、0 model tokens；法规 task 两次均为
+0.85/success，非法律 manual task 两次均为 0.60/failure。相对三条 baseline 的逐样本
+最佳值为 1 strict improvement、1 equal、2 regressions，冻结 gate 失败。结果说明当前
+package 的法规转换路径可复用，但非法律边界判断未跨 task 泛化；不得用该 held-out 反馈
+原地修改 package、scorer 或 IR。
+
 ### 已执行的模型能力诊断
 
 已使用 `xty/gpt-4.1` 对冻结 semantic artifact v2 做单变量诊断，目的仅是判断
@@ -980,3 +987,8 @@ runtime、scorer 或 compiler 输入。
 Gate 成败都必须原样持久化。通过可形成 Law 单 skill held-out 证据，但仍不能证明 catalog
 跨 skill 通用、跨模型/agent/OS 稳定或摊销 break-even；失败不得补跑、调 scorer、重编 package
 或把 held-out 反馈写回 IR/artifact。
+
+实际冻结结果为 16/16 rows、4/4 quartets、0 infrastructure；artifact 2/4、mean 0.725，
+法规 task mean 0.85，manual task mean 0.60，2 pairwise regressions，gate failed。
+Current Law package 不晋升，break-even 不计算。下一阶段通过第二 phenotype 的独立
+development evidence 检验 catalog core 复用，不把本次 held-out failure 当作 compiler 输入。

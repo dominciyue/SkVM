@@ -617,3 +617,10 @@ infrastructure/hard-gate failure/paired regression，且至少一个四元组严
 0 分与 infrastructure 计入；重复或 task/model/adapter/repetition identity 漂移直接拒绝。
 Gate 通过只构成 Law 单 skill 的 held-out evidence，不扩展为跨 skill、跨模型、跨 agent、
 跨 OS 或 break-even 结论。
+
+2026-07-24 唯一正式批次得到 16/16 rows、4/4 quartets、0 infrastructure。Artifact 为
+2/4、mean 0.725；法规 task 两次为 0.85/success，manual task 两次为 0.60/failure。
+逐四元组比较三条 baseline 的最佳值后为 1 improvement、1 equal、2 regressions，gate
+failed。失败集中在 manual 的 `law-document-policy` 与 `law-review-outcome`；冻结脚本把
+带“章/条”结构的设备手册判作可交付法律文档。该观察只进入失败审计，不得进入当前
+package、IR、scorer 或重跑决策。

@@ -22,8 +22,8 @@
 | V3 public-contract artifact | 设计已确认 | 先做公开 contract、B derivation、共享 snapshot 与一次修复。 |
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
-| `law-to-markdown` vertical slice | Validated artifact development gate 通过 | 16/16、0 infra；artifact 4/4、0.925、0 pairwise regression。下一步冻结 held-out lock。 |
-| Held-out / pooled panel / Wave B | Law held-out 可规划，其余阻断 | Development runner 仍禁止 held-out；先书面冻结新 lock，再执行独立 held-out。 |
+| `law-to-markdown` vertical slice | Held-out gate 失败并冻结 | Development 4/4、0.925；held-out 2/4、0.725，manual task 两次回归。 |
+| Held-out / pooled panel / Wave B | Law 已执行，其余阻断 | 当前 package 不晋升；不得用 held-out 反馈原地修复，先做失败审计与第二 phenotype 复用。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
 ## 2. 已完成能力
@@ -96,21 +96,22 @@ ir-static: success = 1/4, mean = 0.800
 pairwise artifact vs best(original, static): 3 positive, 1 equal, 0 negative
 ```
 
-当前阻塞已转为外部效度：同一冻结 package 尚未在 held-out 上验证，catalog core 尚未被第二个
-不同 phenotype skill 复用，compile cost 与复用次数也不足以计算 break-even。
+Law held-out 已执行但 gate 失败：artifact 在法规 task 两次均为 0.85/success，在非法律
+manual task 两次均为 0.60/failure；总计 2/4、mean 0.725，并发生 2 次逐样本回归。
+当前阻塞是 package 的 task-boundary 泛化，以及 catalog core 尚未被第二个不同 phenotype
+skill 复用。质量 gate 未过，break-even 继续禁止计算。
 
 ## 4. 下一阶段顺序
 
-### 当前下一刀：Law Held-out Method Freeze
+### 当前下一刀：冻结 Law 失败并验证第二 Phenotype
 
-1. 不修改已通过的 development lock、execution freeze、package、scorer 或 task。
-2. 新建独立 held-out lock，绑定通过的 development gate/summary digest、同一 package digest、
-   两个既有 held-out task、同一 GPT-5.6/bare-agent/Windows/clean identity 和零重试。
-3. 付费前冻结 `no-skill | original | ir-static | validated-artifact` 的 held-out 分母、成功条件、
-   pairwise regression、token/cost 口径和 route/resource prerequisite。
-4. 先完成 dry-run 与 route probe，再执行唯一一次 held-out；任何 development 结果不得回流
-   修改 package。
-5. Held-out 之后再进入第二 phenotype skill 的 catalog reuse 与调用次数/break-even 实验。
+1. 保留 Law held-out lock、package、scorer、compact result 和失败 gate，不补跑、不重算。
+2. 将 manual failure 只作为外部效度限制和后续研究问题，不写回当前 Law compiler/package。
+3. 从 Wave A 中选择不同 phenotype skill，用相同 catalog manifest/execution-plan/runtime API
+   做本地 development vertical slice，检查 core 是否真的无需 skill-specific 分支。
+4. 新 skill 仍从公开 source、任务与 deterministic scorer 开始；在其 development gate 前
+   不执行新 held-out。
+5. 只有新的质量 gate 通过后，才恢复 repeated-call cost 与 break-even 研究。
 
 ### 已完成前置：文档治理
 
@@ -1037,7 +1038,23 @@ Task 8.5 的父 lock 保持不可变。其 direct runner 已绑定 digest 且只
   0 infra、0 hard-gate failure；逐样本不低于三条 baseline 中最好者，且至少 1 个严格提升。
 - [x] RED/GREEN：缺行按冻结分母 0 分/infrastructure，重复、task split、model/adapter、
   repetition 或 panel identity 漂移直接拒绝；成本继续分列 model/process/validation/package。
-- [ ] 付费前提交并推送 held-out lock、实现和数值 gate；完成 dry-run、resource 与 route
+- [x] 付费前提交并推送 held-out lock、实现和数值 gate；完成 dry-run、resource 与 route
   probe 后执行唯一一次 held-out，不补跑。
-- [ ] 无论 gate 成败都原样持久化 compact evidence，再决定第二 phenotype skill 复用与
+- [x] 无论 gate 成败都原样持久化 compact evidence，再决定第二 phenotype skill 复用与
   amortized cost 实验。
+
+实际结果：16/16 rows、4/4 quartets、0 infrastructure。Artifact 为 2/4、mean 0.725；
+法规 task 两次均为 0.85/success，manual task 两次均为 0.60/failure。相对
+`max(no-skill, original, ir-static)` 为 1 strict improvement、1 equal、2 regressions，
+held-out gate failed。失败已冻结，不重编 package、不调 scorer、不补跑；break-even 保持阻断。
+
+### Task 8.8：第二 Phenotype Catalog Reuse
+
+- [ ] 选择与 Law direct document pipeline 不同的真实 skill，复核 license/source closure、
+  resource contract 和可确定性判分任务。
+- [ ] 先写 task/scorer fixture 与 no-skill/original calibration，不从 Law held-out failure
+  提取新的 compiler rule。
+- [ ] 使用现有 `validated-skill-artifact/v1` manifest、execution plan 与 runtime API；
+  若 core 必须出现 skill-id 分支，先修正抽象并建立新 catalog 版本。
+- [ ] 完成本地 direct activation 与 gold-isolation/reverse-evidence TDD，再决定是否冻结新的
+  development lock。

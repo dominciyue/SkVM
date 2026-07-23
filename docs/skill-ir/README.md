@@ -16,9 +16,9 @@ execution feedback 改善稳定性。
 - V3 public-contract package、共享 pre/post snapshot、paired scorer 和本地一次修复已
   接通；冻结 GPT-5.6 development 已运行，3 个完整 pair 为 0.70→0.70，另有 1 个
   infrastructure failure，gate 失败且 held-out 未运行。
-- Law validated artifact 已完成冻结的 16 行 development：artifact 为 4/4 success、
-  mean 0.925、模型 token 0，相对 original/ir-static 无逐样本回归，gate 通过；held-out
-  仍需新 lock，尚未执行。
+- Law validated artifact 已完成冻结的 16 行 development 和独立 16 行 held-out。
+  Development artifact 为 4/4、mean 0.925、gate 通过；held-out artifact 为 2/4、
+  mean 0.725，并在非法律 manual task 上两次回归，gate 失败。该 package 不能晋升。
 - 当前不能声称跨模型、跨 agent、跨 OS 或 token 节省。
 
 ## 按读者选择入口
@@ -103,6 +103,7 @@ Public SKILL.md + source provenance
   -> deterministic offline scorer
   -> development gate
   -> held-out only if gate passes
+  -> freeze pass/failure without held-out feedback
 ```
 
 ## 常用无成本验证

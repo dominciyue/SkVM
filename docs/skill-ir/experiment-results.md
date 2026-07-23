@@ -509,6 +509,43 @@ results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/g
 results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/summary.json
 ```
 
+### 4.4 Validated Artifact Held-out
+
+Held-out lock 和数值 gate 先以提交 `a1b864f` 推送，再执行 route probe 与唯一正式批次。
+矩阵为两个 held-out task × 两次 repetition × 四系统，共 16 行/4 四元组；模型臂零重试。
+Resource 与 GPT-5.6 route 均为 ok，正式批次无 infrastructure。
+
+| System | Success | Mean | Total tokens |
+|---|---:|---:|---:|
+| no-skill | 1/4 | 0.7875 | 46558 |
+| original | 0/4 | 0.7500 | 105692 |
+| ir-static | 2/4 | 0.8375 | 127938 |
+| validated-artifact | 2/4 | 0.7250 | 0 |
+
+Artifact 法规 task 两次均为 0.85/success；manual task 两次均为 0.60/failure。逐样本相对
+`max(no-skill, original, ir-static)` 为 1 strict improvement、1 equal、2 regressions。
+Artifact 没有 hard-gate failure，但只达到 2/4，整体/逐 task 均分和零回归条件均未通过，
+所以 held-out gate failed。
+
+失败审计显示 manual 输入虽然不是法律文本，却含“第一章/第一条”结构；冻结脚本将其判作
+法律文档并输出“审核通过”，对应 `law-document-policy` 与 `law-review-outcome` 两项失败。
+这是当前 package 的 task-boundary 泛化失败，不是基础设施或模型能力问题。该结果不允许
+补跑、重编 package、调整 scorer，或把 held-out 内容回流为新规则。
+
+模型三臂合计 280188 tokens；artifact deterministic process 740 ms、validation 166 ms、
+package 89463 bytes。质量 gate 未过，break-even 继续不计算。
+
+Compact evidence：
+
+```text
+benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-validated-artifact-heldout-lock.json
+results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24/resource-probe.json
+results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24/route-probe.json
+results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24/scored-results.jsonl
+results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24/gate-report.json
+results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24/summary.json
+```
+
 ## 5. Env-manager 研究推进总表
 
 | 阶段 | 最强/候选系统 | Success | Mean | 核心发现 |
@@ -537,7 +574,8 @@ results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/s
 - `law-to-markdown` 的真实 source/no-skill/original/scorer 链路可执行且未饱和；pre-IR
   gate 允许进入 base IR audit；static development 链路完整，但 static 与 original 同为
   1/4、mean 0.7875，当前文本 IR 没有形成净收益；新 direct artifact 在冻结完整
-  development 中达到 4/4、mean 0.925、0 pairwise regression 和 0 model token，gate passed。
+  development 中达到 4/4、mean 0.925、0 pairwise regression 和 0 model token，gate passed；
+  同一 package 在 held-out 降为 2/4、mean 0.725，并在 manual task 上两次回归，gate failed。
 
 不能支持：
 

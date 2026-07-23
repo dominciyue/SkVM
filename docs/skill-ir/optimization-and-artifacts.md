@@ -838,3 +838,9 @@ Held-out runtime 不增加 compiler、repair 或 PGO 节点：前三臂由冻结
 ir-static 三者中的逐样本最佳表现为基线，因此 artifact 不能只胜过文本 skill，却低于无
 skill。任何 held-out failure 都作为结果冻结，不允许重编 package、调 scorer、重试失败行或
 把 held-out 输出写回 IR。
+
+实际 held-out 中，法规任务的 direct process 两次均为 0.85/success，manual 任务两次均为
+0.60/failure。Manual 产物被结构启发式判作法律文档并标为“审核通过”，导致
+`law-document-policy` 与 `law-review-outcome` 同时失败。总计 2 pairwise regressions，
+held-out gate failed。该 package 保持冻结失败状态；后续 catalog reuse 只能使用第二
+phenotype 自身的公开 source 与 development evidence。

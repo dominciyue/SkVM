@@ -362,8 +362,10 @@ manifest/execution-plan/runtime API 验证，不能由 Law 单例直接得出。
 scorer。Artifact package 不重编、不修改 provenance，也不读取 held-out feedback。
 
 独立 gate 将 artifact 与三条 baseline 中的逐样本最佳者比较，要求 4/4 success、总均分与
-逐 task 均分均不低于 0.85、零回归且至少一次严格提升。预注册实现与本地 TDD 已完成；
-首次 route probe 和唯一一次付费 held-out 尚未执行。
+逐 task 均分均不低于 0.85、零回归且至少一次严格提升。唯一一次 held-out 为
+16/16 rows、0 infrastructure；artifact 法规 task 两次 0.85/success，manual task 两次
+0.60/failure，总计 2/4、mean 0.725。两次 manual 回归使 gate 失败，package 不晋升，
+也不从该任务回流修复。
 
 ## 11. Pilot 晋升门禁
 
@@ -386,7 +388,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Static gate failed；validated artifact development gate passed；held-out 已预注册，待独立执行。 |
+| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Artifact development gate passed；held-out 2/4、0.725、gate failed，结果冻结。 |
 | experimental-design | 完成 | 未完成 | 未完成 | 未执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
