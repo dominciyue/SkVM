@@ -1121,3 +1121,77 @@ xorshift32 唯一 allocation schedule 和逐字英文 report label。上游随�
 IR 不从输出回改，也不得补跑。下一阶段必须先建立付费前 benchmark contract coverage audit：
 每个硬约束和确定性期望都要映射到用户可见 task 或合法 public source；多种语义有效实现必须
 能通过。任何修正版必须使用新 task/scorer/lock 身份，且不得消费本批模型正文作为 expected。
+
+## 23. Pre-paid Benchmark Contract Audit
+
+### 23.1 目的与边界
+
+任何新的付费 calibration、development 或 held-out lock，必须先通过
+`skill-ir-benchmark-contract-audit/v1`。该审计回答两个问题：
+
+1. scorer 实际强制的每项要求是否在 agent 可见的 task、公开 skill source 或 task fixture
+   中有可追溯依据；
+2. scorer 是否接受公开合同允许的等价实现，而非只接受 evaluator 私有的 enum、算法、顺序或
+   逐字模板。
+
+审计不是 scorer，也不是自动证明 scorer 完整正确的程序。Scorer requirement inventory 仍需
+书面评审；工具只负责验证清单与源码锚点、公开证据、development criterion 和可执行 canary
+之间不存在漂移。Audit manifest、report 和 canary 不能被 lowering、package compiler、
+runtime validator、repair prompt 或模型上下文读取。
+
+### 23.2 双证据链
+
+每条 requirement 必须同时具有：
+
+- `scorerAnchors`：绑定 scorer path/digest 和实际强制该要求的源码片段，只用于证明“确实在判”；
+- `publicEvidence`：只能来自 `task-prompt`、`skill-source` 或 agent 可见的
+  `workdir-fixture`，用于证明“事先可知”。
+
+Evaluator payload、base/final IR、artifact package、历史 result、held-out task、模型输出和
+人工事后解释都不是合法 public evidence。`closed-enum`、`deterministic-algorithm` 和
+`literal` 若要求精确相等，必须能在公开证据中找到相同合同；否则 fail closed。
+
+### 23.3 Requirement 与等价策略
+
+v1 的 requirement class 固定为：
+
+```text
+presence | schema | closed-enum | deterministic-algorithm | literal | semantic-invariant
+```
+
+每项同时声明：
+
+```text
+exact-public-contract | semantic-equivalence | safety-invariant
+```
+
+- `exact-public-contract` 只适用于确实公开的文件名、字段名、枚举、算法或固定文本；
+- `semantic-equivalence` 必须至少有一个 `alternative-valid` canary；
+- `safety-invariant` 可拒绝危险实现，但仍要给出 canonical-valid 与 invalid-control。
+
+Canary 通过真实 custom evaluator 读取隔离 workdir。`alternative-valid` 表示其满足 task/source
+公开合同，因此 scorer 必须通过；若被拒绝，audit 失败。Canary fixture 只用于本地审计，不得
+复制进 task prompt、package 或 repair。
+
+### 23.4 完整性与输出
+
+Manifest 只审计 development task，并必须：
+
+- 精确绑定 tasks、scorer 和 source digest；
+- 覆盖 scope 内全部 criterion，且 hard-gate 身份与 tasks 一致；
+- 每个 criterion 至少映射一个 requirement；
+- 每个 requirement 的源码锚点和公开证据都可定位且 digest 未漂移；
+- 高风险等价策略具有所需 canary，且 canary task/criterion 均在 development scope；
+- report 不序列化 evaluator gold、secret、模型正文或 held-out 内容。
+
+输出状态只有 `passed` 或 `failed`。未通过 audit 的 skill 仍可保留为真实来源和工程诊断样本，
+但其 benchmark 结果从主 claim 降为 `support-real`；历史 raw/scored row 不改写。重新设计
+benchmark 必须使用新 task/scorer/audit/lock 版本和新 development fixtures，通过本地
+differential tests 与书面评审后才允许申请新的 API 运行。
+
+### 23.5 Wave A 应用顺序
+
+先对 `env-manager`、`law-to-markdown`、`experimental-design` 三个 Wave A pilot 运行同一
+审计。当前 experimental-design v1 已知失败，现有 task/scorer/package/lock/result 永冻；
+本阶段不得重跑 API、不得进入四臂 development 或 held-out。三个审计结果完成后，再决定是否
+单独设计 experimental-design benchmark v2。

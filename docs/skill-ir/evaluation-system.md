@@ -694,3 +694,27 @@ plan/assignment/allocation/report 四项语义检查失败。Exact-source 和 pr
 排除了注入与编码问题；scorer contract 审计确认其强制了 prompt 未声明的 schema enum、
 唯一 PRNG schedule 和逐字 report labels。该结果冻结为 benchmark contract failure，
 不能归因为模型或 skill；四臂 development 与 held-out 均不得执行。
+
+## 20. 付费前 Benchmark Contract Audit
+
+入口：
+
+```powershell
+bun ./src/benchmarks/skill-ir/benchmark-contract-audit-run.ts `
+  '--manifest=benchmarks/skill-ir/pilots/<skill>/benchmark-contract-audit.json' `
+  '--out=results/skill-ir/benchmark-contract-audit/<skill>.json'
+```
+
+Audit manifest 使用 `skill-ir-benchmark-contract-audit/v1`，绑定 development tasks、scorer、
+公开 source 与 canary fixture。每条 scorer requirement 分别记录源码锚点和合法公开证据；
+evaluator payload、IR、package、历史结果、held-out 和模型正文不得充当公开证据。
+
+Runner 先执行静态合同验证，再从 custom evaluator registry 调用真实 scorer 运行
+`canonical-valid`、`alternative-valid` 和 `invalid-control` canary。任何 digest、criterion、
+hard gate、证据 locator 或 canary 漂移都会产生 `failed`；命令仍写出脱敏 report，并以非零
+退出码结束，便于 CI 和付费前 gate 阻断。
+
+审计报告只保存 requirement/canary ID、状态与稳定错误码，不保存 evaluator payload、fixture
+内容、secret、模型输出或 held-out 数据。未通过的 pilot 在 corpus 中降为 `support-real`，
+表示仍可用于来源、基础设施和失败机制分析，但不能支撑稳定性主 claim。历史实验文件保持
+不可变。
