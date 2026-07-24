@@ -714,7 +714,54 @@ Runner 先执行静态合同验证，再从 custom evaluator registry 调用真�
 hard gate、证据 locator 或 canary 漂移都会产生 `failed`；命令仍写出脱敏 report，并以非零
 退出码结束，便于 CI 和付费前 gate 阻断。
 
+Evaluator 身份同时绑定 registry path、冻结 source digest 和模块加载后注册对象。Runner
+从 digest 验证过的 task bytes 构造 criterion，并把 canary 复制到临时目录后再次计算树摘要，
+只有快照摘要仍匹配时才交给 evaluator，避免检查与执行读取两份不同输入。Bound file 与
+canary 根目录都经过 `realpath` containment，父目录 junction 逃逸同样 fail closed。
+
 审计报告只保存 requirement/canary ID、状态与稳定错误码，不保存 evaluator payload、fixture
-内容、secret、模型输出或 held-out 数据。未通过的 pilot 在 corpus 中降为 `support-real`，
+内容、secret、模型输出或 held-out 数据；`provenance.manifestSha256` 绑定 schema parse
+后的运行时 manifest 值序列化摘要。报告可见 ID 仅允许有界 ASCII 标识符。未通过的 pilot
+在 corpus 中降为 `support-real`，
 表示仍可用于来源、基础设施和失败机制分析，但不能支撑稳定性主 claim。历史实验文件保持
 不可变。
+
+Manifest 的核心字段：
+
+```text
+tasks/scorer/sources          path + sha256
+scope                         development task IDs
+criteria                      criterion ID + task IDs + hardGate + requirement IDs
+requirements                  class + equivalence + optional taskIds + scorerAnchors + publicEvidence
+canaries                      task/criterion + role + fixturePath/digest + expectedPass
+```
+
+`publicEvidence` 只接受 `task-prompt`、`skill-source` 和 `workdir-fixture`。对于
+`exact-public-contract`，每个适用 task 分支的 `contractTokens` 都必须能从该分支声明的公开
+内容中找到；对于 `semantic-equivalence`，每个适用 task 分支至少要有一项
+`alternative-valid` canary；`safety-invariant` 则逐分支要求 canonical-valid 与
+invalid-control。仅部分 task 适用的要求必须显式声明 `requirement.taskIds`。Runner 返回非零
+表示审计阻断，这是预期研究结果，不是命令基础设施失败。
+
+Canary 目录使用排序后的 `relativePath + fileDigest` 生成树摘要。根目录或任意子项出现
+symlink/junction/special file、目录内容漂移或 digest 不一致时，静态审计和 runner 都拒绝执行。
+
+2026-07-25 对三个 Wave A pilot 的冻结结果：
+
+| Pilot | Static | Canary | 结论 |
+|---|---|---|---|
+| env-manager | failed | 0 | 两个 task 均缺精确 schema rule 与分类成员金标的公开合同。 |
+| law-to-markdown | passed | 0/2 matched | 法律/非法律两个分支的公开合法结论措辞都被逐字 scorer 拒绝。 |
+| experimental-design | failed | 2/8 matched | plan 字段合同 2/2 通过；assignment、allocation、report 6/6 被拒，另有四类私有 plan 约束。 |
+
+Compact reports：
+
+```text
+results/skill-ir/benchmark-contract-audit/env-manager.json
+results/skill-ir/benchmark-contract-audit/law-to-markdown.json
+results/skill-ir/benchmark-contract-audit/experimental-design.json
+```
+
+三者未来默认 `evidenceWeight=support-real`。这不会改写历史结果，也不表示三个真实 source
+无效；它只撤回旧 benchmark 对稳定性主 claim 的资格。任何新付费运行都要先设计新版本合同并
+通过本审计。

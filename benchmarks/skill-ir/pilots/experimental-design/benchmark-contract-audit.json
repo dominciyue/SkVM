@@ -1,0 +1,484 @@
+{
+  "schemaVersion": "skill-ir-benchmark-contract-audit/v1",
+  "auditId": "experimental-design-benchmark-contract-v1",
+  "skillId": "experimental-design",
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/experimental-design/tasks.json",
+    "sha256": "d025d39d6bc6f1d261cc9de4c29980ea46e3f49a91588924de0311fa2c9e7e18"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/experimental-design-grade.ts",
+    "sha256": "6030a23048d1f12d59d72790635ed0c5ccf5b40d4cace8171eb0a7763ed2cd19",
+    "evaluatorId": "skill-ir-experimental-design"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/randomization_and_blocking.md",
+      "sha256": "e20f1db8f050709912b156d8d25f40e041fdd718faf57d76dc5677e0d3aa3f8e"
+    }
+  ],
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "experimental-design-stratified-dev-001",
+      "experimental-design-cluster-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "design-protected-input",
+      "hardGate": true,
+      "taskIds": ["experimental-design-stratified-dev-001", "experimental-design-cluster-dev-002"],
+      "requirementIds": ["design-input-preservation"]
+    },
+    {
+      "id": "design-required-artifacts",
+      "hardGate": true,
+      "taskIds": ["experimental-design-stratified-dev-001", "experimental-design-cluster-dev-002"],
+      "requirementIds": ["design-artifact-presence"]
+    },
+    {
+      "id": "design-plan-contract",
+      "hardGate": false,
+      "taskIds": ["experimental-design-stratified-dev-001", "experimental-design-cluster-dev-002"],
+      "requirementIds": [
+        "design-plan-public-fields",
+        "design-private-schema-version",
+        "design-private-method-enum",
+        "design-private-method-mapping",
+        "design-private-plan-strictness"
+      ]
+    },
+    {
+      "id": "design-assignment-safety",
+      "hardGate": true,
+      "taskIds": ["experimental-design-stratified-dev-001", "experimental-design-cluster-dev-002"],
+      "requirementIds": [
+        "design-assignment-semantics",
+        "design-private-independent-literal"
+      ]
+    },
+    {
+      "id": "design-allocation-consistency",
+      "hardGate": false,
+      "taskIds": ["experimental-design-stratified-dev-001", "experimental-design-cluster-dev-002"],
+      "requirementIds": [
+        "design-allocation-shape",
+        "design-private-allocation-algorithm"
+      ]
+    },
+    {
+      "id": "design-report-completeness",
+      "hardGate": false,
+      "taskIds": ["experimental-design-stratified-dev-001", "experimental-design-cluster-dev-002"],
+      "requirementIds": [
+        "design-report-public-concepts",
+        "design-private-report-labels"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "design-input-preservation",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["design-protected-input"],
+      "contractTokens": ["不得修改该输入"],
+      "scorerAnchors": [
+        { "quote": "readSafeFile(root, payload.path) === payload.content" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "不得修改该输入"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "design-artifact-presence",
+      "class": "presence",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["design-required-artifacts"],
+      "contractTokens": [
+        "design/design-plan.json",
+        "design/allocation.csv",
+        "design/design-report.md"
+      ],
+      "scorerAnchors": [
+        { "quote": "payload.paths" },
+        { "quote": "A required experimental-design artifact is missing." }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "design/design-plan.json、design/allocation.csv、design/design-report.md"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "design-plan-public-fields",
+      "class": "schema",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": ["design-plan-contract"],
+      "contractTokens": ["studyId", "assignmentLevel", "analysisNotes"],
+      "scorerAnchors": [
+        { "quote": "plan.studyId === study.studyId" },
+        { "quote": "plan.allocationPath === \"design/allocation.csv\"" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "studyId、method、assignmentLevel、assignmentUnit、analysisUnit、response、arms、seed、nuisanceHandling、replicationUnit、pseudoreplicationWarning、allocationPath 和 analysisNotes"
+        }
+      ],
+      "canaryIds": [
+        "design-plan-cluster-equivalent",
+        "design-plan-stratified-equivalent"
+      ]
+    },
+    {
+      "id": "design-private-schema-version",
+      "class": "schema",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["design-plan-contract"],
+      "contractTokens": ["experimental-design-plan/v1"],
+      "scorerAnchors": [
+        { "quote": "schemaVersion: z.literal(\"experimental-design-plan/v1\")" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "plan 必须记录"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "design-private-method-enum",
+      "class": "closed-enum",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["design-plan-contract"],
+      "contractTokens": [
+        "cluster-randomized",
+        "stratified-block",
+        "permuted-block",
+        "simple-randomized"
+      ],
+      "scorerAnchors": [
+        { "quote": "\"cluster-randomized\"" },
+        { "quote": "\"stratified-block\"" },
+        { "quote": "\"permuted-block\"" },
+        { "quote": "\"simple-randomized\"" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "根据 assignmentLevel、单位层级、stratum、sequentialEnrollment 和 seed 选择设计"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "Randomizing subjects/samples to arms (simple, blocked, stratified, or cluster)"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "design-private-method-mapping",
+      "class": "deterministic-algorithm",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["design-plan-contract"],
+      "contractTokens": [
+        "cluster=>cluster-randomized",
+        "stratum=>stratified-block",
+        "sequentialEnrollment=>permuted-block"
+      ],
+      "scorerAnchors": [
+        { "quote": "if (study.assignmentLevel === \"cluster\") return \"cluster-randomized\"" },
+        { "quote": "if (study.units.some((unit) => unit.stratum !== undefined)) return \"stratified-block\"" },
+        { "quote": "if (study.sequentialEnrollment) return \"permuted-block\"" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "根据 assignmentLevel、单位层级、stratum、sequentialEnrollment 和 seed 选择设计"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "design-private-plan-strictness",
+      "class": "schema",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["design-plan-contract"],
+      "contractTokens": ["no-additional-properties"],
+      "scorerAnchors": [
+        { "quote": "const PlanSchema = z.object({" },
+        { "quote": "analysisNotes: z.array(z.string().min(1))" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "plan 必须记录"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "design-assignment-semantics",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["design-assignment-safety"],
+      "contractTokens": ["assignmentUnit", "analysisUnit", "replicationUnit"],
+      "scorerAnchors": [
+        { "quote": "plan.replicationUnit === study.assignmentUnit" },
+        { "quote": "plan.analysisUnit === study.analysisUnit" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "assignmentUnit、analysisUnit、response、arms、seed、nuisanceHandling、replicationUnit"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "**Replication** — independent repetition at the right level"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "design-private-independent-literal",
+      "class": "literal",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": ["design-assignment-safety"],
+      "contractTokens": ["independent"],
+      "scorerAnchors": [
+        { "quote": "plan.pseudoreplicationWarning.toLowerCase().includes(\"independent\")" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "pseudoreplicationWarning"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "**Replication** — independent repetition at the right level"
+        }
+      ],
+      "canaryIds": [
+        "design-assignment-cluster-wording",
+        "design-assignment-stratified-wording"
+      ]
+    },
+    {
+      "id": "design-allocation-shape",
+      "class": "schema",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["design-allocation-consistency"],
+      "contractTokens": ["order,unit_id,stratum,arm"],
+      "scorerAnchors": [
+        { "quote": "lines[0] !== \"order,unit_id,stratum,arm\"" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "allocation.csv 使用列 order,unit_id,stratum,arm"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "design-private-allocation-algorithm",
+      "class": "deterministic-algorithm",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": ["design-allocation-consistency"],
+      "contractTokens": ["seeded", "reproducible"],
+      "scorerAnchors": [
+        { "quote": "state ^= state << 13" },
+        { "quote": "JSON.stringify(actual) === JSON.stringify(expectedAllocation(study))" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/randomization_and_blocking.md",
+          "quote": "Use a **seeded, reproducible** schedule"
+        }
+      ],
+      "canaryIds": [
+        "design-allocation-cluster-alternative",
+        "design-allocation-stratified-alternative"
+      ]
+    },
+    {
+      "id": "design-report-public-concepts",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": ["design-report-completeness"],
+      "contractTokens": ["研究", "方法", "随机化单位", "分析单位", "response", "seed"],
+      "scorerAnchors": [
+        { "quote": "required.every((text) => content.includes(text))" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "报告必须记录研究、方法、随机化单位、分析单位、response、seed"
+        }
+      ],
+      "canaryIds": [
+        "design-report-cluster-chinese",
+        "design-report-stratified-chinese"
+      ]
+    },
+    {
+      "id": "design-private-report-labels",
+      "class": "literal",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": ["design-report-completeness"],
+      "contractTokens": ["Study ID:", "Method:", "Randomization unit:", "Allocation schedule:"],
+      "scorerAnchors": [
+        { "quote": "`Study ID: ${study.studyId}`" },
+        { "quote": "\"Allocation schedule: design/allocation.csv\"" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "experimental-design-stratified-dev-001",
+            "experimental-design-cluster-dev-002"
+          ],
+          "quote": "报告必须记录研究、方法、随机化单位"
+        }
+      ],
+      "canaryIds": [
+        "design-report-cluster-chinese",
+        "design-report-stratified-chinese"
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "design-plan-stratified-equivalent",
+      "taskId": "experimental-design-stratified-dev-001",
+      "criterionId": "design-plan-contract",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/audit-fixtures/plan-stratified-equivalent",
+      "fixtureSha256": "a1d237089dd0e4436e8da290b8e4b6096b6cfbf561fc3cdcd93f4bee1328247f",
+      "expectedPass": true
+    },
+    {
+      "id": "design-plan-cluster-equivalent",
+      "taskId": "experimental-design-cluster-dev-002",
+      "criterionId": "design-plan-contract",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/audit-fixtures/plan-cluster-equivalent",
+      "fixtureSha256": "522801a3c448dcc409377618313bae0d62f0747551a945925da489923a76377e",
+      "expectedPass": true
+    },
+    {
+      "id": "design-assignment-stratified-wording",
+      "taskId": "experimental-design-stratified-dev-001",
+      "criterionId": "design-assignment-safety",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/audit-fixtures/assignment-stratified-wording",
+      "fixtureSha256": "0214637e259bca7452c312d0cafb6d986fe7912b1c827bc661eb2ec9696b00b9",
+      "expectedPass": true
+    },
+    {
+      "id": "design-assignment-cluster-wording",
+      "taskId": "experimental-design-cluster-dev-002",
+      "criterionId": "design-assignment-safety",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/audit-fixtures/assignment-cluster-wording",
+      "fixtureSha256": "5ecea5a5de6142ba2dda7dbad6e14b9030f21965f81878ae0b882bc9a8be0398",
+      "expectedPass": true
+    },
+    {
+      "id": "design-allocation-stratified-alternative",
+      "taskId": "experimental-design-stratified-dev-001",
+      "criterionId": "design-allocation-consistency",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/audit-fixtures/allocation-stratified-alternative",
+      "fixtureSha256": "fe953c9400c985b852edd8b0a1c9db138ebea5c8f7e270e566b38c3af4ddfadb",
+      "expectedPass": true
+    },
+    {
+      "id": "design-allocation-cluster-alternative",
+      "taskId": "experimental-design-cluster-dev-002",
+      "criterionId": "design-allocation-consistency",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/audit-fixtures/allocation-cluster-alternative",
+      "fixtureSha256": "8c4033aab8073ec865222bfe34d1ced1ac65cf890d9961db7104b7d0520563ec",
+      "expectedPass": true
+    },
+    {
+      "id": "design-report-stratified-chinese",
+      "taskId": "experimental-design-stratified-dev-001",
+      "criterionId": "design-report-completeness",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/audit-fixtures/report-stratified-chinese",
+      "fixtureSha256": "9a7542c5e7856e70732786a73a9db5cb90599afe5b95c7a316b91cec2e8bd311",
+      "expectedPass": true
+    },
+    {
+      "id": "design-report-cluster-chinese",
+      "taskId": "experimental-design-cluster-dev-002",
+      "criterionId": "design-report-completeness",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/audit-fixtures/report-cluster-chinese",
+      "fixtureSha256": "4ba08435c09980cdb054cafd80264876a71334c3c3541caf7df031e1bb2bd6a1",
+      "expectedPass": true
+    }
+  ]
+}

@@ -1166,8 +1166,12 @@ exact-public-contract | semantic-equivalence | safety-invariant
 ```
 
 - `exact-public-contract` 只适用于确实公开的文件名、字段名、枚举、算法或固定文本；
-- `semantic-equivalence` 必须至少有一个 `alternative-valid` canary；
-- `safety-invariant` 可拒绝危险实现，但仍要给出 canonical-valid 与 invalid-control。
+- `exact-public-contract` 必须在每个适用 development task 分支独立成立；
+- `semantic-equivalence` 必须为每个适用 task 分支提供 `alternative-valid` canary；
+- `safety-invariant` 可拒绝危险实现，但每个适用分支都要给出 canonical-valid 与
+  invalid-control；
+- requirement 默认覆盖其 criterion 的全部 task；只适用于部分分支时必须显式声明
+  `requirement.taskIds`。
 
 Canary 通过真实 custom evaluator 读取隔离 workdir。`alternative-valid` 表示其满足 task/source
 公开合同，因此 scorer 必须通过；若被拒绝，audit 失败。Canary fixture 只用于本地审计，不得
@@ -1182,7 +1186,10 @@ Manifest 只审计 development task，并必须：
 - 每个 criterion 至少映射一个 requirement；
 - 每个 requirement 的源码锚点和公开证据都可定位且 digest 未漂移；
 - 高风险等价策略具有所需 canary，且 canary task/criterion 均在 development scope；
-- report 不序列化 evaluator gold、secret、模型正文或 held-out 内容。
+- canary fixture 目录树 digest 已绑定，且不含 symlink、junction 或 special file；
+- bound file 与 canary 根的真实路径留在仓库根内，执行快照复制后重新验 digest；
+- custom evaluator 的 registry path、冻结 source digest 与加载后对象身份一致；
+- report 绑定 manifest digest，且不序列化 evaluator gold、secret、模型正文或 held-out 内容。
 
 输出状态只有 `passed` 或 `failed`。未通过 audit 的 skill 仍可保留为真实来源和工程诊断样本，
 但其 benchmark 结果从主 claim 降为 `support-real`；历史 raw/scored row 不改写。重新设计
@@ -1195,3 +1202,17 @@ differential tests 与书面评审后才允许申请新的 API 运行。
 审计。当前 experimental-design v1 已知失败，现有 task/scorer/package/lock/result 永冻；
 本阶段不得重跑 API、不得进入四臂 development 或 held-out。三个审计结果完成后，再决定是否
 单独设计 experimental-design benchmark v2。
+
+2026-07-25 首次 Wave A 审计已完成，三个 v1 benchmark 均为 `failed`：
+
+- `env-manager`：两个 development task 的精确 schema rule 与分类成员金标均没有完整公开合同；
+- `law-to-markdown`：静态映射通过，但法律与非法律两个分支的 alternative-valid 审核措辞
+  都被 scorer 拒绝；
+- `experimental-design`：plan 字段合同的两个 canary 均通过；assignment、allocation 与中文
+  report 的六个 task-isolated canary 均被拒，同时 schema version、method enum、method
+  mapping 与 strict-object policy 未公开。
+
+因此 corpus 中三个 pilot 的未来 `evidenceWeight` 统一降为 `support-real`。该结论只降低
+benchmark 结果对主 claim 的权重，不否定真实 source、runner、artifact 和 failure mechanism
+的工程证据。下一阶段若继续 experimental-design，必须从 benchmark v2 的公开合同与
+differential fixtures 开始，不能直接修改 v1 scorer。

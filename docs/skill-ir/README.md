@@ -25,6 +25,10 @@ execution feedback 改善稳定性。
   已运行 8/8 rows、0 infrastructure，但 no-skill/original 均为 0/4、mean 0.30，且
   `differingPairs=0`。Failure audit 发现 scorer 强制了 prompt 未公开的 enum、PRNG schedule
   和逐字标签，故 gate 失败、四臂 development 阻断，本批不能写成模型或 skill 能力证据。
+- 已加入 skill-neutral 的付费前 benchmark contract audit。三个 Wave A v1 benchmark 均未通过：
+  env-manager 缺公开精确 schema rule 与分类金标合同，Law 的两个任务都拒绝等价审核措辞，
+  experimental-design 的 plan 合同 2/2 通过，但 assignment、allocation、report 共 6/6
+  等价实现被拒且四类 plan 约束未公开；三者未来权重降为 `support-real`，历史结果保持不可变。
 - 当前不能声称跨模型、跨 agent、跨 OS 或 token 节省。
 
 ## 按读者选择入口

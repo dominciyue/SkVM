@@ -1,0 +1,257 @@
+{
+  "schemaVersion": "skill-ir-benchmark-contract-audit/v1",
+  "auditId": "law-to-markdown-benchmark-contract-v1",
+  "skillId": "law-to-markdown",
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/law-to-markdown/tasks.json",
+    "sha256": "f10978a61a98e2a46577ecace9dd9ce9f6f6b5810c1e536cdd2f3e10088a2b1f"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/law-to-markdown-grade.ts",
+    "sha256": "051d467ae8292dbc917316ce7c495915fe36377b529c22553cff3dd637d2d180",
+    "evaluatorId": "skill-ir-law-to-markdown"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+    }
+  ],
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "law-to-markdown-statute-dev-001",
+      "law-to-markdown-standard-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "law-protected-input",
+      "hardGate": true,
+      "taskIds": ["law-to-markdown-statute-dev-001", "law-to-markdown-standard-dev-002"],
+      "requirementIds": ["law-input-preservation"]
+    },
+    {
+      "id": "law-required-artifacts",
+      "hardGate": true,
+      "taskIds": ["law-to-markdown-statute-dev-001", "law-to-markdown-standard-dev-002"],
+      "requirementIds": ["law-artifact-policy"]
+    },
+    {
+      "id": "law-source-accounting",
+      "hardGate": true,
+      "taskIds": ["law-to-markdown-statute-dev-001", "law-to-markdown-standard-dev-002"],
+      "requirementIds": [
+        "law-source-accounting-contract",
+        "law-character-stream-contract"
+      ]
+    },
+    {
+      "id": "law-document-policy",
+      "hardGate": false,
+      "taskIds": ["law-to-markdown-statute-dev-001", "law-to-markdown-standard-dev-002"],
+      "requirementIds": ["law-document-policy-contract"]
+    },
+    {
+      "id": "law-format-layout",
+      "hardGate": false,
+      "taskIds": ["law-to-markdown-statute-dev-001"],
+      "requirementIds": ["law-layout-contract"]
+    },
+    {
+      "id": "law-review-outcome",
+      "hardGate": false,
+      "taskIds": ["law-to-markdown-statute-dev-001", "law-to-markdown-standard-dev-002"],
+      "requirementIds": ["law-review-outcome-semantics"]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "law-input-preservation",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["law-protected-input"],
+      "contractTokens": ["不得修改输入文件"],
+      "scorerAnchors": [
+        { "quote": "content === payload.content" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "law-to-markdown-statute-dev-001",
+            "law-to-markdown-standard-dev-002"
+          ],
+          "quote": "不得修改输入文件"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "law-artifact-policy",
+      "class": "presence",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["law-required-artifacts"],
+      "contractTokens": ["document+审核报告.md", "document+最终成果.md"],
+      "scorerAnchors": [
+        { "quote": "payload.required" },
+        { "quote": "payload.forbidden" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": ["law-to-markdown-statute-dev-001"],
+          "quote": "document+审核报告.md；只有审核通过并可交付时才生成 document+最终成果.md"
+        },
+        {
+          "kind": "task-prompt",
+          "taskIds": ["law-to-markdown-standard-dev-002"],
+          "quote": "document+审核报告.md；只有审核通过并可交付时才生成 document+最终成果.md"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "law-source-accounting-contract",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["law-source-accounting"],
+      "contractTokens": ["输入文件"],
+      "scorerAnchors": [
+        { "quote": "content.includes(payload.sourceName)" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "law-to-markdown-statute-dev-001",
+            "law-to-markdown-standard-dev-002"
+          ],
+          "quote": "审核报告必须写明输入文件"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "law-character-stream-contract",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["law-source-accounting"],
+      "taskIds": ["law-to-markdown-statute-dev-001"],
+      "contractTokens": ["原文字字符流"],
+      "scorerAnchors": [
+        { "quote": "normalizedCharacterStream(input) === normalizedCharacterStream(output)" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": ["law-to-markdown-statute-dev-001"],
+          "quote": "最终成果必须保持原文字字符流"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "law-document-policy-contract",
+      "class": "schema",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["law-document-policy"],
+      "contractTokens": ["法律名称 `#`", "章 `###`", "条 `#####`", "非法律文档"],
+      "scorerAnchors": [
+        { "quote": "JSON.stringify(actual) === JSON.stringify(payload.headings)" },
+        { "quote": "checkArtifactPolicy" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+          "quote": "法律名称 `#`"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+          "quote": "章 `###`"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+          "quote": "条 `#####`"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+          "quote": "非法律文档（如 GB/标准类）"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "law-layout-contract",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["law-format-layout"],
+      "contractTokens": ["项/目换行"],
+      "scorerAnchors": [
+        { "quote": "payload.requiredStandaloneLines.every" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+          "quote": "项/目换行"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "law-review-outcome-semantics",
+      "class": "literal",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": ["law-review-outcome"],
+      "contractTokens": ["最终审核结论", "是否可交付"],
+      "scorerAnchors": [
+        { "quote": "最终审核结论：拒绝（非法律文档）" },
+        { "quote": "是否可交付：否" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "law-to-markdown-statute-dev-001",
+            "law-to-markdown-standard-dev-002"
+          ],
+          "quote": "最终审核结论和是否可交付"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+          "quote": "结论为“拒绝处理”"
+        }
+      ],
+      "canaryIds": [
+        "law-alternative-approved-wording",
+        "law-alternative-review-wording"
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "law-alternative-approved-wording",
+      "taskId": "law-to-markdown-statute-dev-001",
+      "criterionId": "law-review-outcome",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/audit-fixtures/alternative-approved-wording",
+      "fixtureSha256": "00f0d0432e9d4ac85d76381842516249a4349186916d2b1a3f0b9403e253292e",
+      "expectedPass": true
+    },
+    {
+      "id": "law-alternative-review-wording",
+      "taskId": "law-to-markdown-standard-dev-002",
+      "criterionId": "law-review-outcome",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/audit-fixtures/alternative-review-wording",
+      "fixtureSha256": "fb3a4aac99eea35f6bd0e5eab2e1f5a62d60ccd60fba6bd5a438fa7a9769f93f",
+      "expectedPass": true
+    }
+  ]
+}

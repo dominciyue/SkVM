@@ -1,0 +1,274 @@
+{
+  "schemaVersion": "skill-ir-benchmark-contract-audit/v1",
+  "auditId": "env-manager-benchmark-contract-v1",
+  "skillId": "env-manager",
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/tasks.json",
+    "sha256": "6f4e2ee3cc71bb2ddee596e94cb9eef3d16e0b3a355796dc449fd8bc892d4bed"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/env-manager-grade.ts",
+    "sha256": "c80d0b5637b2d9c480cbba8a816d042b5afd0e931fa06690d2fa3f1a950811a7",
+    "evaluatorId": "skill-ir-env-manager"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+    }
+  ],
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "env-manager-node-audit-dev-001",
+      "env-manager-vite-audit-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "env-protected-files",
+      "hardGate": true,
+      "taskIds": ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      "requirementIds": ["env-input-preservation"]
+    },
+    {
+      "id": "env-no-secret-leak",
+      "hardGate": true,
+      "taskIds": ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      "requirementIds": ["env-secret-redaction"]
+    },
+    {
+      "id": "env-required-artifacts",
+      "hardGate": true,
+      "taskIds": ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      "requirementIds": ["env-artifact-presence"]
+    },
+    {
+      "id": "env-classification",
+      "hardGate": false,
+      "taskIds": ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      "requirementIds": [
+        "env-classification-sets",
+        "env-exact-classification-membership"
+      ]
+    },
+    {
+      "id": "env-example-safety",
+      "hardGate": false,
+      "taskIds": ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      "requirementIds": ["env-example-inventory"]
+    },
+    {
+      "id": "env-schema-rules",
+      "hardGate": false,
+      "taskIds": ["env-manager-node-audit-dev-001", "env-manager-vite-audit-dev-002"],
+      "requirementIds": ["env-exact-schema-rules"]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "env-input-preservation",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["env-protected-files"],
+      "contractTokens": ["Do not modify"],
+      "scorerAnchors": [
+        { "quote": "actual.equals(Buffer.from(expected, \"utf8\"))" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": ["env-manager-node-audit-dev-001"],
+          "quote": "Do not modify the existing files"
+        },
+        {
+          "kind": "task-prompt",
+          "taskIds": ["env-manager-vite-audit-dev-002"],
+          "quote": "Do not modify existing files"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "env-secret-redaction",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["env-no-secret-leak"],
+      "contractTokens": ["TEST_ONLY_", "脱敏"],
+      "scorerAnchors": [
+        { "quote": "containsSecretBytes(content, payload.values)" },
+        { "quote": "payload.values" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "env-manager-node-audit-dev-001",
+            "env-manager-vite-audit-dev-002"
+          ],
+          "quote": "TEST_ONLY_"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+          "quote": "真实值必须脱敏"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "env-artifact-presence",
+      "class": "presence",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["env-required-artifacts"],
+      "contractTokens": [".env.example", ".env.schema.json", "env-report.json"],
+      "scorerAnchors": [
+        { "quote": "payload.files" },
+        { "quote": "A required artifact is missing or invalid." }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": [
+            "env-manager-node-audit-dev-001",
+            "env-manager-vite-audit-dev-002"
+          ],
+          "quote": "Create .env.example, .env.schema.json, and env-report.json"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "env-classification-sets",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["env-classification"],
+      "contractTokens": [
+        "definedAndUsed",
+        "definedUnconfirmedUnused",
+        "usedUndefined",
+        "hardcodedSecrets",
+        "exposureRisks"
+      ],
+      "scorerAnchors": [
+        { "quote": "JSON.stringify(sortedUnique(payload.expected[field]))" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": ["env-manager-node-audit-dev-001"],
+          "quote": "definedAndUsed, definedUnconfirmedUnused, usedUndefined, hardcodedSecrets, and exposureRisks"
+        },
+        {
+          "kind": "task-prompt",
+          "taskIds": ["env-manager-vite-audit-dev-002"],
+          "quote": "definedAndUsed, definedUnconfirmedUnused, usedUndefined, hardcodedSecrets, and exposureRisks"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+          "quote": "扫描代码中引用的环境变量"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "env-example-inventory",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["env-example-safety"],
+      "contractTokens": [".env.example", "变量名", "真实值"],
+      "scorerAnchors": [
+        { "quote": "payload.requiredNames" },
+        { "quote": "payload.forbiddenValues" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+          "quote": "生成 `.env.example` 模板（仅包含变量名和说明，不含真实值）"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "env-exact-classification-membership",
+      "class": "semantic-invariant",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["env-classification"],
+      "contractTokens": [
+        "node:definedAndUsed=APP_PORT,REDIS_URL;definedUnconfirmedUnused=DB_PASSWORD,OLD_API_KEY;usedUndefined=SENDGRID_API_KEY;hardcodedSecrets=src/auth.js:INTERNAL_TOKEN",
+        "vite:definedAndUsed=SERVER_SIGNING_KEY,VITE_API_URL,VITE_PUBLIC_TOKEN;definedUnconfirmedUnused=UNUSED_FLAG;usedUndefined=SENTRY_DSN;exposureRisks=src/client.ts:VITE_PUBLIC_TOKEN"
+      ],
+      "scorerAnchors": [
+        { "quote": "JSON.stringify(sortedUnique(payload.expected[field]))" },
+        { "quote": "The classification report does not match expected sets." }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "workdir-fixture",
+          "taskIds": ["env-manager-node-audit-dev-001"],
+          "relativePath": ".env"
+        },
+        {
+          "kind": "workdir-fixture",
+          "taskIds": ["env-manager-node-audit-dev-001"],
+          "relativePath": "src/config.js"
+        },
+        {
+          "kind": "workdir-fixture",
+          "taskIds": ["env-manager-node-audit-dev-001"],
+          "relativePath": "src/auth.js"
+        },
+        {
+          "kind": "workdir-fixture",
+          "taskIds": ["env-manager-vite-audit-dev-002"],
+          "relativePath": ".env"
+        },
+        {
+          "kind": "workdir-fixture",
+          "taskIds": ["env-manager-vite-audit-dev-002"],
+          "relativePath": "src/client.ts"
+        },
+        {
+          "kind": "workdir-fixture",
+          "taskIds": ["env-manager-vite-audit-dev-002"],
+          "relativePath": "src/server.ts"
+        }
+      ],
+      "canaryIds": []
+    },
+    {
+      "id": "env-exact-schema-rules",
+      "class": "schema",
+      "equivalence": "exact-public-contract",
+      "criterionIds": ["env-schema-rules"],
+      "contractTokens": [
+        "APP_PORT:type=integer,required=true,minimum=1,maximum=65535",
+        "SERVER_SIGNING_KEY:type=string,required=true,minLength=32,sensitive=true"
+      ],
+      "scorerAnchors": [
+        { "quote": "deepMatchesSubset(raw.variables[variable], expectedRule)" }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "task-prompt",
+          "taskIds": ["env-manager-node-audit-dev-001"],
+          "quote": "type, required, minimum, maximum, format, minLength, and sensitive"
+        },
+        {
+          "kind": "task-prompt",
+          "taskIds": ["env-manager-vite-audit-dev-002"],
+          "quote": "type, required, minimum, maximum, format, minLength, and sensitive"
+        },
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+          "quote": "验证 URL 格式、端口号范围、布尔值格式"
+        }
+      ],
+      "canaryIds": []
+    }
+  ],
+  "canaries": []
+}

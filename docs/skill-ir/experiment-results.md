@@ -654,3 +654,40 @@ results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24/summa
 3. Frozen result 不原地重算门禁；scorer bug 需要新结果 identity 或明确 amendment。
 4. Raw/workdir 留本地，paper-grade case 可提交匿名 audit note。
 5. 所有表格必须能从 `results/` 反向验证。
+
+## 8. Wave A Benchmark Contract Audit
+
+2026-07-25 在不修改 task、scorer、package、lock 或历史结果的前提下，对三个 Wave A pilot
+执行 `skill-ir-benchmark-contract-audit/v1`。审计绑定 tasks/scorer/source digest，逐项检查
+development criterion、hard gate、scorer source anchor、公开证据和等价实现 canary。
+
+| Pilot | Static | Canary | 失败点 | Claim weight |
+|---|---|---:|---|---|
+| env-manager | failed | 0 | 两个 development task 均缺精确 schema rule 与分类成员金标的公开合同。 | support-real |
+| law-to-markdown | passed | 0/2 matched | 法律与非法律分支的等价结论措辞都被逐字 scorer 拒绝。 | support-real |
+| experimental-design | failed | 2/8 matched | plan 合同 2/2 通过；assignment、allocation、中文 report 6/6 被拒，另有四类私有 plan 约束。 | support-real |
+
+这次审计改变的是证据解释，不是历史分数。Law 的 development gate pass 仍说明 package 与旧
+scorer 的组合可运行；audit failure 说明该分数不能直接支撑“对公开 task 合同更稳定”。同理，
+env-manager 的 repair 机制和 experimental-design 的 runner/resource 链路仍是有效工程证据，
+但旧 benchmark 不能进入稳定性主 claim。
+
+该审计按 requirement × development task 分支判定，不再把一个 task 的公开文本替另一个 task
+证明合同。Experimental-design 的隔离 canary 同时说明问题并非“整个 scorer 都不可用”：
+公开 plan 字段与 study 映射可接受两种任务的合法实现；失败集中在英文 `independent` 词面、
+私有 xorshift32 序列、英文报告标签和未公开 plan schema/enum/mapping/strictness。
+
+Compact evidence：
+
+```text
+benchmarks/skill-ir/pilots/env-manager/benchmark-contract-audit.json
+benchmarks/skill-ir/pilots/law-to-markdown/benchmark-contract-audit.json
+benchmarks/skill-ir/pilots/experimental-design/benchmark-contract-audit.json
+results/skill-ir/benchmark-contract-audit/env-manager.json
+results/skill-ir/benchmark-contract-audit/law-to-markdown.json
+results/skill-ir/benchmark-contract-audit/experimental-design.json
+```
+
+本阶段没有 API 调用、没有 held-out、没有 scorer 调参。Experimental-design v1 继续冻结；
+下一步若推进，先建立 benchmark v2 的单一公开合同、从合同派生 scorer，并让 canonical、
+alternative-valid 和 invalid-control differential fixtures 全部通过书面评审。

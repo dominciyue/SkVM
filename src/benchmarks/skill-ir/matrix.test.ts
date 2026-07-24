@@ -184,19 +184,19 @@ describe("buildCorpusMatrixInput", () => {
         id: "law-to-markdown",
         packaging: "focused",
         provenance: "real-public",
-        evidenceWeight: "main-real",
+        evidenceWeight: "support-real",
       },
       {
         id: "env-manager",
         packaging: "focused",
         provenance: "real-public",
-        evidenceWeight: "main-real",
+        evidenceWeight: "support-real",
       },
       {
         id: "experimental-design",
         packaging: "focused",
         provenance: "real-public",
-        evidenceWeight: "main-real",
+        evidenceWeight: "support-real",
       },
     ]);
     expect(input.tasksBySkill).toEqual({

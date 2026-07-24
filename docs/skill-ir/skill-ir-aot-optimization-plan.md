@@ -1250,18 +1250,21 @@ task/scorer/package，不执行 held-out。
 - [x] 冻结 `skill-ir-benchmark-contract-audit/v1` 设计：scorer requirement 必须同时绑定
   scorer source anchor 与 task/source/workdir public evidence；audit 不进入 runtime、package、
   lowering、repair 或模型上下文。
-- [ ] 在 `benchmark-contract-audit.ts` 先写 schema/validator 失败测试，再实现 digest、development
+- [x] 在 `benchmark-contract-audit.ts` 先写 schema/validator 失败测试，再实现 digest、development
   scope、criterion/hard-gate 全覆盖、合法 evidence locator、risk class/equivalence policy 和
   canary 完整性检查。
-- [ ] 在 `benchmark-contract-audit-run.ts` 及测试中接入 custom evaluator registry；隔离执行
+- [x] 在 `benchmark-contract-audit-run.ts` 及测试中接入 custom evaluator registry；隔离执行
   canonical-valid / alternative-valid / invalid-control fixture，只输出 ID、状态和稳定错误码。
-- [ ] 为 `env-manager`、`law-to-markdown`、`experimental-design` 分别编写
+- [x] 独立复核后收紧 fail-closed 边界：requirement 按 task 分支覆盖，允许显式窄化
+  `requirement.taskIds`；bound file/canary realpath containment；执行快照二次 digest；
+  evaluator path/source digest/object 三重身份；报告 ID 使用有界 ASCII。
+- [x] 为 `env-manager`、`law-to-markdown`、`experimental-design` 分别编写
   `benchmark-contract-audit.json` 和最小 canary fixtures；scorer/task/source 只读且 digest 绑定。
-- [ ] 先运行本地 focused tests，再生成三个 committed compact audit report；任何缺公开证据、
+- [x] 先运行本地 focused tests，再生成三个 committed compact audit report；任何缺公开证据、
   evaluator/base artifact 自证、未公开唯一 schedule 或合法等价实现被拒绝均 fail closed。
-- [ ] 历史 raw/scored/lock/package 不改写；未通过审计的 pilot 只把未来 corpus
+- [x] 历史 raw/scored/lock/package 不改写；未通过审计的 pilot 只把未来 corpus
   `evidenceWeight` 降为 `support-real`，并在 experiment results 中重述历史结论边界。
-- [ ] 更新 spec、evaluation system、real-skill pilot、experiment results 和 conversation log；
+- [x] 更新 spec、evaluation system、real-skill pilot、experiment results 和 conversation log；
   运行全量 tests、typecheck、链接/digest/secret 检查后提交推送。
 - [ ] 若后续重建 experimental-design benchmark，使用新 task/scorer/audit/lock/version 和新的
   development fixtures；不得读取当前模型正文生成 expected，不得覆盖 v1。
@@ -1273,7 +1276,7 @@ task/scorer/package，不执行 held-out。
 ```text
 1. benchmark-contract-audit.test.ts -> benchmark-contract-audit.ts
 2. benchmark-contract-audit-run.test.ts -> benchmark-contract-audit-run.ts
-3. pilots/*/benchmark-contract-audit.json + audit-fixtures/
+3. benchmark-contract-audit-pilots.test.ts -> pilots/*/benchmark-contract-audit.json + audit-fixtures/
 4. results/skill-ir/benchmark-contract-audit/*.json
 5. corpus evidenceWeight + 权威组件/结果文档
 ```

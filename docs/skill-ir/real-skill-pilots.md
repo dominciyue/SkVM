@@ -417,9 +417,9 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
 |---|---|---|---|---|
-| env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
-| law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Artifact development gate passed；held-out 2/4、0.725、gate failed，结果冻结。 |
-| experimental-design | 完成 | 2+2 / deterministic，但 contract audit failed | 完成并 source-audited | Baseline 8/8、0 infra；两臂均 0.30 且无差异，scorer contract misalignment，四臂实验阻断。 |
+| env-manager | 完成 | 2+2 / deterministic；contract audit failed | 完成 | 精确 schema rules 未公开；历史 development 仅作 support evidence。 |
+| law-to-markdown | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | 两个 task 的 alternative-valid 审核措辞均被拒；旧 development/held-out 结果降为 support evidence。 |
+| experimental-design | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | Plan canary 2/2 通过；其余 6/6 等价 canary 与四类私有 plan 合同失败，当前四臂实验阻断。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
 ## 13. 修改注意
@@ -429,3 +429,5 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 3. Prompt 只包含用户可见 contract，不泄漏 evaluator payload。
 4. Held-out 从不进入 feedback/compiler。
 5. 新 pilot 更新本文档和 corpus JSON，不再新增独立 intake/pilot Markdown。
+6. 任何付费 lock 前必须提交 `benchmark-contract-audit.json` 并通过本地 canary；未通过者
+   `evidenceWeight=support-real`。
