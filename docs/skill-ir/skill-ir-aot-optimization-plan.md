@@ -1153,3 +1153,87 @@ protected digest unchanged，model token 0；committed package 为 9 artifacts�
 33878 bytes。现有 pre-IR lock 生命周期与 Law-specific development orchestration 都不能作为
 新 pilot 的冻结付费合同，因此本轮不绕过 lock 直接付费；8.8.5 转入下一阶段的通用
 orchestration TDD。
+
+### Task 8.9：Skill-neutral Baseline Calibration Orchestration
+
+本任务只解决 `runnable` pilot 的冻结 baseline 诊断，不修改既有 pre-IR/Law lock、runner、
+gate、package 或历史结果。设计与实施权威均保留在本 spec/plan，不再新增重复阶段文档。
+
+#### Task 8.9.1：通用 Lock 与生命周期验证
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/baseline-calibration.ts
+新增 src/benchmarks/skill-ir/baseline-calibration.test.ts
+```
+
+- [ ] RED：拒绝非 `runnable` pilot、manifest path 漂移、source/task/resource/scorer/base IR/
+  source audit/implementation digest 漂移和 held-out task。
+- [ ] RED：拒绝重复 task、非 `no-skill | original`、非 clean/Windows、非 2 repetitions、
+  retry、held-out/PGO/main-claim promotion。
+- [ ] GREEN：实现 `skill-ir-baseline-calibration-lock/v1`，skill/task/model/adapter 为冻结数据，
+  验证 base IR schema 和逐节点 source audit，旧 lock 文件与摘要保持不变。
+
+#### Task 8.9.2：Planner、Route 与 Execute Guard
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/baseline-calibration-run.ts
+新增 src/benchmarks/skill-ir/baseline-calibration-run.test.ts
+```
+
+- [ ] RED：plan 必须恰为 8 rows/4 pairs，禁止 held-out/IR/artifact system；所有行必须匹配
+  lock 的 model、adapter、panel、task 和 run index。
+- [ ] RED：route output 不得包含命令、stdout/stderr、绝对路径或模型正文；execute 缺 API、
+  resource、同 lock/case/model 的成功 route 时 fail closed。
+- [ ] GREEN：实现 `plan | route-probe | execute`，runnable 路径不使用
+  `--allow-tasks-authored`，模型重试固定为 0，execute 前重新验证 lock 和 corpus 生命周期。
+
+#### Task 8.9.3：Baseline Gate
+
+**文件：**
+
+```text
+新增 src/benchmarks/skill-ir/baseline-calibration-gate.ts
+新增 src/benchmarks/skill-ir/baseline-calibration-gate.test.ts
+新增 src/benchmarks/skill-ir/baseline-calibration-gate-run.ts
+新增 src/benchmarks/skill-ir/baseline-calibration-gate-run.test.ts
+```
+
+- [ ] RED：缺行/缺 pair/infrastructure/no-skill 饱和/两臂完全相同必须失败；重复或冻结身份漂移
+  直接拒绝。
+- [ ] GREEN：按 8 rows/4 pairs 固定分母报告两臂 success/mean/tokens、逐 pair score delta 和
+  criterion transitions；不保留 evaluator details。
+- [ ] GREEN：通过只产生 `fullDevelopmentPlanningAllowed=true`，held-out/main claim/scorer
+  retuning/package recompile 始终为 false。
+
+#### Task 8.9.4：Experimental-design 预注册与无成本验收
+
+**文件：**
+
+```text
+新增 benchmarks/skill-ir/pilots/experimental-design/
+  experimental-design-baseline-calibration-lock.json
+更新 docs/skill-ir/evaluation-system.md
+更新 docs/skill-ir/real-skill-pilots.md
+```
+
+- [ ] 计算并冻结 source/tasks/resource/scorer/base IR/source audit 与所有执行实现 digest；
+  模型固定 `xty/gpt-5.6-sol`，adapter 固定
+  `bare-agent/workspace-experimental-design-baseline-v1`。
+- [ ] 运行 lock validator、8-row dry-run、resource probe；验证计划只有两个 development task，
+  不含 package/held-out，且旧 Law lock/digest 未变化。
+- [ ] 提交并推送通用实现、lock 和付费前数值 gate 后才允许 route probe。
+
+#### Task 8.9.5：唯一 Development Calibration
+
+- [ ] 在同一输出目录执行一次 route probe；失败时停止，不执行付费矩阵。
+- [ ] Route 通过后执行唯一 8-row、零重试 development calibration，随后用冻结 scorer 生成
+  scored rows 和 gate report。
+- [ ] Gate 通过才起草四臂 skill-neutral development lock；失败则冻结诊断，不补跑、不修改
+  task/scorer/package，不执行 held-out。
+- [ ] 持久化脱敏 compact evidence，更新 spec/plan/组件文档/experiment results/conversation
+  log；运行 focused/full Skill IR tests、typecheck、文档链接、secret scan、digest verification
+  和 `git diff --check` 后提交推送。

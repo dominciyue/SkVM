@@ -1048,3 +1048,60 @@ break-even 仍未发生。
 orchestration 又冻结 Law literal。下一步必须在不改旧 lock/digest 的前提下建立 skill-neutral
 baseline/development lock，再执行 experimental-design calibration。任何无 lock 的直接付费
 runner 输出都不进入研究证据。
+
+## 22. Skill-neutral Runnable Baseline Calibration
+
+第二 phenotype 不复用或修改 `skill-ir-pre-ir-calibration-lock/v1`。该旧合同只描述
+`tasks-authored`、无 base IR 的 pre-IR 生命周期；把 `runnable` 加入其 execution guard 会改变
+Law 历史实验语义。新的通用身份固定为：
+
+```text
+lock: skill-ir-baseline-calibration-lock/v1
+plan: skill-ir-baseline-calibration-plan/v1
+route: skill-ir-baseline-calibration-route-probe-result/v1
+gate: skill-ir-baseline-calibration-gate-report/v1
+```
+
+Lock 中的 `skillId`、两个 development task、model route/family 和 adapter version 是数据字段，
+不得在 schema 或 runner 中写成 Law/Experimental-design literal。生命周期固定为
+`corpus=pilot`、`status=runnable`，并要求 manifest 中 source/tasks/resource/base IR/source
+audit 路径与 lock 完全相同。验证器必须递归检查：
+
+- source、tasks、resource contract、deterministic scorer、base IR 与 source audit 的 digest；
+- base IR schema 与逐节点 source audit；
+- planner、runner、gate、real-agent model runner、scoring、route/resource probe 和 bare-agent
+  adapter 的 implementation digest；
+- 两个 task 均为 development，且系统恰为 `no-skill | original`。
+
+Calibration 矩阵固定为 clean/Windows/skvm、2 tasks × 2 repetitions × 2 systems，共 8 rows /
+4 pairs，模型重试为 0。`plan` 不需要 API key；`route-probe` 先做 resource probe，再执行第一个
+development task 的 original repetition 1，只保存脱敏身份和状态；`execute` 必须重新验证所有
+digest，只接受同一输出目录内匹配 lock、model、case 和 system 的成功 route evidence。
+
+Gate 使用预注册逻辑分母，拒绝重复或 model/adapter/task/split/panel 身份漂移，并要求：
+
+- 8/8 scored rows、4/4 complete pairs；
+- infrastructure failure 为 0；
+- no-skill 至少有一个 semantic failure，避免基线饱和；
+- 至少一个 pair 的 success/score/criterion outcome 不同，证明 skill arm 可观察；
+- `requireOriginalNonRegression=false` 仅表示 calibration 不以方向作硬门，不隐藏 per-pair
+  regression；总表和逐 pair 仍必须完整报告。
+
+Gate 通过只设置 `fullDevelopmentPlanningAllowed=true`，允许另行起草
+`no-skill | original | ir-static | validated-artifact` development lock；不允许 held-out、
+scorer/task/package 调优、PGO、主 claim 或直接复用本次输出作为 Final artifact。Gate 失败同样
+是冻结的任务/基线诊断证据，不得通过补跑或事后改阈值修复。
+
+首个实例固定为 `experimental-design-baseline-calibration-v1`：
+
+```text
+model: xty/gpt-5.6-sol / gpt
+adapter: bare-agent / workspace-experimental-design-baseline-v1
+tasks:
+  experimental-design-stratified-dev-001
+  experimental-design-cluster-dev-002
+```
+
+付费前必须依次完成并提交：通用实现、数值 gate、experimental-design lock、lock-bound dry-run、
+resource probe 与 route probe。Held-out task 不得进入 plan、route、execute、scorer 输入或
+结果目录。
