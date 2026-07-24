@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "skill-ir-baseline-calibration-lock/v1",
+  "status": "preregistered",
+  "calibrationId": "experimental-design-baseline-calibration-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "experimental-design",
+  "frozenInputs": {
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    },
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/tasks.json",
+      "sha256": "d025d39d6bc6f1d261cc9de4c29980ea46e3f49a91588924de0311fa2c9e7e18"
+    },
+    "resourceContract": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/resource-contract.json",
+      "sha256": "c478a8894e1805638e1ecce329038c697fe5cc53166b3b50b9ce833bf2aa8877"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/experimental-design-grade.ts",
+      "sha256": "6030a23048d1f12d59d72790635ed0c5ccf5b40d4cace8171eb0a7763ed2cd19"
+    },
+    "baseIr": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/base-ir.json",
+      "sha256": "3f5602a4ad32b0cc11757b16716b6a12712789ab87c1ea33e9bde7dd114ee264"
+    },
+    "sourceAudit": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/base-ir-source-audit.json",
+      "sha256": "44ab9c1fedb48c59531d296cbbd0dce3817a1a3cee7e9b91188f3d9372b8ff4c"
+    }
+  },
+  "frozenImplementations": {
+    "lockValidator": {
+      "path": "src/benchmarks/skill-ir/baseline-calibration.ts",
+      "sha256": "e6369791c646f14f4946a8df4d60d42e76745998ffe9f5ee195cf6fea04b5776"
+    },
+    "runner": {
+      "path": "src/benchmarks/skill-ir/baseline-calibration-run.ts",
+      "sha256": "c16baabe8a6d24cb579aa7efec3423d94599faa594bc93b4efecbcb83840070c"
+    },
+    "gate": {
+      "path": "src/benchmarks/skill-ir/baseline-calibration-gate.ts",
+      "sha256": "8d87f6ffc4e4af5a0eb190f40c1bd7865baaf809373e81d4cf1f4845ab1bdd24"
+    },
+    "gateRunner": {
+      "path": "src/benchmarks/skill-ir/baseline-calibration-gate-run.ts",
+      "sha256": "ea6e193e1c842aade8e36b518f054bb44051bb059c42e70fe507ec3de2d41ed5"
+    },
+    "modelRunner": {
+      "path": "src/benchmarks/skill-ir/real-agent-run.ts",
+      "sha256": "b7152f7f573acf775d8efc5f704aa5bdbd17fac716ec1aeb9a01a40d2fa47b93"
+    },
+    "scoring": {
+      "path": "src/benchmarks/skill-ir/scoring.ts",
+      "sha256": "f23cf7d16ac1d9a15b508e8c1e50cf3f6be99acfe2baf8d552fc7246ad822a7a"
+    },
+    "routeProbe": {
+      "path": "src/benchmarks/skill-ir/route-probe.ts",
+      "sha256": "06aab169afbf064687d003497a0aa745765b217addb2db35f7f0feb8db3db3d2"
+    },
+    "resourceProbe": {
+      "path": "src/benchmarks/skill-ir/resource-contract-run.ts",
+      "sha256": "375c9ef44cb558309f01fd78fc25303190ecc3ca6febbd2e4ed56602bbe3127a"
+    },
+    "bareAgent": {
+      "path": "src/adapters/bare-agent.ts",
+      "sha256": "56eb265f15eba1c1d0e8598081552e62fb2110696424f8cd344add436541f725"
+    }
+  },
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-experimental-design-baseline-v1"
+  },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "experimental-design-stratified-dev-001",
+      "experimental-design-cluster-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "pythonEnv": "SKVM_PYTHON",
+    "retries": 0,
+    "resourceProbeRequired": true,
+    "routeProbeRequired": true,
+    "routeProbeTimeoutMs": 180000
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": false
+  },
+  "promotionBoundary": {
+    "corpusStatusAtRun": "runnable",
+    "fullDevelopmentPlanningAfterGate": true,
+    "entersMainClaim": false,
+    "permitsHeldOut": false,
+    "permitsScorerRetuning": false,
+    "permitsPackageRecompile": false,
+    "permitsPgo": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "IR, PGO, or artifact systems",
+    "scorer or task retuning from calibration output",
+    "package recompile from calibration output",
+    "method gain or main-claim interpretation"
+  ]
+}

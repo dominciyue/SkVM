@@ -643,3 +643,48 @@ development lock 又把 Law identity 写成 literal。两者都不能无修改�
 付费合同。下一阶段先抽象 skill-neutral baseline/development orchestration，保留旧 Law
 lock/digest 不变，再执行 `no-skill | original` calibration。绕过 lock 直接调用 runner 的
 结果不得进入研究证据。
+
+## 19. Runnable Baseline Calibration
+
+通用 runner 使用 `skill-ir-baseline-calibration-lock/v1`，服务已经具有 source-audited base IR
+的 `runnable` pilot。它不替代 `tasks-authored` pre-IR runner，也不修改任何 Law lock。
+
+Experimental-design 的冻结实例位于：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/
+  experimental-design-baseline-calibration-lock.json
+```
+
+无成本生成计划：
+
+```powershell
+bun ./src/benchmarks/skill-ir/baseline-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/experimental-design-baseline-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-baseline-calibration-2026-07-25' `
+  '--phase=plan'
+```
+
+计划固定为 `no-skill | original`、两个 development task、2 repetitions，共 8 rows/4 pairs，
+且 `allowTasksAuthored=false`、`retries=0`。Lock 绑定 source/tasks/resource/scorer/base IR/
+source audit 和 lock/runner/gate/model/scoring/route/resource/adapter 实现摘要；route evidence
+再绑定 lock digest。
+
+同一输出目录按 `plan -> route-probe -> execute` 推进。Route/execute 要求
+`SKVM_XTY_API_KEY`，Python 由 `SKVM_PYTHON` 选择。Execute 后先用既有
+`score-real-agent-runs.ts` 生成 scored JSONL，再运行：
+
+```powershell
+bun ./src/benchmarks/skill-ir/baseline-calibration-gate-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/experimental-design-baseline-calibration-lock.json' `
+  '--raw=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/run/raw-runs.jsonl' `
+  '--scored=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/scored.jsonl' `
+  '--resource=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/resource-probe.json' `
+  '--route=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/route-probe.json' `
+  '--out=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/gate-report.json'
+```
+
+Gate 固定要求 8/8 rows、4/4 pairs、0 infrastructure、no-skill 非饱和和至少一个两臂 outcome
+差异。通过只允许起草新的四臂 development lock；held-out、scorer/task/package 调整、PGO 和
+主 claim 始终被禁止。2026-07-25 的 lock-bound dry-run 为 8 rows，独立 resource probe 为
+`ok`；route/API 和正式 calibration 尚未在本文本更新时执行。

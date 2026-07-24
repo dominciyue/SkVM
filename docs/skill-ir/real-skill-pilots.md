@@ -385,6 +385,13 @@ cluster、stratified-block、permuted-block 或 simple-randomized，生成可复
 当前证据只支持“通用 package/runtime 可承载第二种 phenotype”，不支持真实模型增益、
 跨 task 泛化、跨模型稳定或 amortized token claim。
 
+2026-07-25 已新增 skill-neutral `skill-ir-baseline-calibration-lock/v1`，不修改
+`tasks-authored` pre-IR 或 Law-specific 历史合同。Experimental-design lock 冻结 source、
+tasks、resource、scorer、base IR/source audit、执行实现、GPT-5.6、bare-agent、clean/Windows、
+两个 development task × 2 repetitions 和 `no-skill | original`。Lock-bound dry-run 得到
+8 rows/4 pairs、0 held-out、0 retry，独立 resource probe 为 `ok`。该状态仍是付费前
+preregistration；route 与正式 baseline calibration 尚未执行。
+
 ## 11. Pilot 晋升门禁
 
 每个 deep pilot 需要：
@@ -407,7 +414,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
 | law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Artifact development gate passed；held-out 2/4、0.725、gate failed，结果冻结。 |
-| experimental-design | 完成 | 2+2 / deterministic | 完成并 source-audited | 本地 artifact activation 2/2、1.00；真实 calibration 未执行。 |
+| experimental-design | 完成 | 2+2 / deterministic | 完成并 source-audited | 本地 artifact activation 2/2、1.00；baseline lock/dry-run/resource 已冻结，API calibration 待执行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
 ## 13. 修改注意

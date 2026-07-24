@@ -526,6 +526,24 @@ results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/s
 现有付费 orchestration 仍是 Law-specific；抽象并冻结新的通用 development lock 前，不生成
 真实优化结论，不运行两个 held-out task，不计算 break-even。
 
+2026-07-25 已把该阻断拆成独立 runnable baseline calibration：新增 skill-neutral lock、
+planner/runner、route evidence 和 gate，旧 pre-IR/Law 文件与摘要不变。Experimental-design
+实例的付费前矩阵为：
+
+| Axis | Frozen value |
+|---|---|
+| Systems | no-skill / original |
+| Tasks | 2 development |
+| Repetitions | 2 |
+| Rows / pairs | 8 / 4 |
+| Model | xty/gpt-5.6-sol |
+| Host/context/adapter | Windows / clean / bare-agent |
+| Retries / held-out | 0 / 0 |
+
+Lock-bound dry-run 验证为 8 rows、4 complete pairs、0 held-out，独立 stdlib Python resource
+probe 为 `ok`。该记录只说明实验身份和本地前置条件已冻结；API route、真实 baseline 结果和
+gate 尚未产生，因此不能改变本节的 mechanism-only 结论。
+
 ### 4.4 Validated Artifact Held-out
 
 Held-out lock 和数值 gate 先以提交 `a1b864f` 推送，再执行 route probe 与唯一正式批次。
