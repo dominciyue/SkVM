@@ -686,5 +686,11 @@ bun ./src/benchmarks/skill-ir/baseline-calibration-gate-run.ts `
 
 Gate 固定要求 8/8 rows、4/4 pairs、0 infrastructure、no-skill 非饱和和至少一个两臂 outcome
 差异。通过只允许起草新的四臂 development lock；held-out、scorer/task/package 调整、PGO 和
-主 claim 始终被禁止。2026-07-25 的 lock-bound dry-run 为 8 rows，独立 resource probe 为
-`ok`；route/API 和正式 calibration 尚未在本文本更新时执行。
+主 claim 始终被禁止。
+
+2026-07-25 的正式结果为 8/8 rows、4/4 pairs、0 infrastructure；no-skill/original 都是
+0/4、mean 0.30，四个 pair 完全相同，gate failed。两臂均通过输入保护和产物存在，只在
+plan/assignment/allocation/report 四项语义检查失败。Exact-source 和 prompt-encoding 审计
+排除了注入与编码问题；scorer contract 审计确认其强制了 prompt 未声明的 schema enum、
+唯一 PRNG schedule 和逐字 report labels。该结果冻结为 benchmark contract failure，
+不能归因为模型或 skill；四臂 development 与 held-out 均不得执行。

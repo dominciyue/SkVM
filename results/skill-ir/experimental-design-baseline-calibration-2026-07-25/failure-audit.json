@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "skill-ir-baseline-calibration-failure-audit/v1",
+  "calibrationId": "experimental-design-baseline-calibration-v1",
+  "auditScope": "frozen-development-output-diagnosis",
+  "mutatesFrozenInputs": false,
+  "exactOriginalSource": {
+    "expectedSha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093",
+    "observedUniqueSha256": [
+      "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    ],
+    "allOriginalRowsMatched": true
+  },
+  "taskPromptEncoding": {
+    "utf8Parsed": true,
+    "replacementCharacterCount": 0
+  },
+  "observedCriterionPattern": {
+    "rows": 8,
+    "passedInEveryRow": [
+      "design-protected-input",
+      "design-required-artifacts"
+    ],
+    "failedInEveryRow": [
+      "design-plan-contract",
+      "design-assignment-safety",
+      "design-allocation-consistency",
+      "design-report-completeness"
+    ]
+  },
+  "contractAlignmentFindings": [
+    {
+      "constraint": "design-plan.json schemaVersion must equal experimental-design-plan/v1",
+      "enforcedByScorer": true,
+      "declaredInUserVisibleTaskPrompt": false
+    },
+    {
+      "constraint": "method must use one of four exact machine enum values",
+      "enforcedByScorer": true,
+      "declaredInUserVisibleTaskPrompt": false
+    },
+    {
+      "constraint": "allocation must equal one exact xorshift32 schedule",
+      "enforcedByScorer": true,
+      "declaredInUserVisibleTaskPrompt": false,
+      "upstreamReferenceUsesSameAlgorithm": false
+    },
+    {
+      "constraint": "report must contain exact English label strings",
+      "enforcedByScorer": true,
+      "declaredInUserVisibleTaskPrompt": false
+    }
+  ],
+  "rootCause": "benchmark-contract-scorer-misalignment",
+  "claimBoundary": {
+    "modelCapabilityFailure": "not-supported",
+    "originalSkillFailure": "not-supported",
+    "artifactImprovement": "not-supported",
+    "baselineDistinguishabilityGate": "failed",
+    "fourArmDevelopmentAllowed": false,
+    "heldOutAllowed": false
+  },
+  "requiredFollowUp": [
+    "Freeze this batch and do not rerun it.",
+    "Add a pre-paid benchmark contract coverage audit for future pilots.",
+    "Design any corrected benchmark as a new version with new development tasks and a new lock.",
+    "Do not use these outputs to modify the frozen scorer, tasks, package, or current IR."
+  ]
+}

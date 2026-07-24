@@ -1105,3 +1105,19 @@ tasks:
 付费前必须依次完成并提交：通用实现、数值 gate、experimental-design lock、lock-bound dry-run、
 resource probe 与 route probe。Held-out task 不得进入 plan、route、execute、scorer 输入或
 结果目录。
+
+2026-07-25 唯一 calibration 已执行：resource/route 均为 `ok`，8/8 rows、4/4 pairs、
+0 infrastructure。No-skill 与 original 都是 0/4 success、mean 0.30，token 分别为 45265 与
+81822，四个 pair 的 criterion outcome 完全相同，`differingPairs=0`，因此 gate failed。
+
+后验 failure audit 只用于解释冻结结果，不修改输入：四个 original 行注入的 `SKILL.md` digest
+与上游 source 完全一致，task prompt 也为合法 UTF-8；两臂均保护输入并生成三项文件。Scorer
+却额外要求 task prompt 未声明的 `experimental-design-plan/v1`、四个精确 method enum、
+xorshift32 唯一 allocation schedule 和逐字英文 report label。上游随机化脚本使用
+`numpy.default_rng`，不存在同一唯一序列。故本批只证明当前 benchmark contract/scorer
+不对齐，不能证明模型能力、original skill 质量或 artifact 增益。
+
+该 gate failure 永久阻断当前 lock 的四臂 development 与 held-out。当前 task/scorer/package/
+IR 不从输出回改，也不得补跑。下一阶段必须先建立付费前 benchmark contract coverage audit：
+每个硬约束和确定性期望都要映射到用户可见 task 或合法 public source；多种语义有效实现必须
+能通过。任何修正版必须使用新 task/scorer/lock 身份，且不得消费本批模型正文作为 expected。

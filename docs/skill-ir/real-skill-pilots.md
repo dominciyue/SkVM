@@ -389,8 +389,13 @@ cluster、stratified-block、permuted-block 或 simple-randomized，生成可复
 `tasks-authored` pre-IR 或 Law-specific 历史合同。Experimental-design lock 冻结 source、
 tasks、resource、scorer、base IR/source audit、执行实现、GPT-5.6、bare-agent、clean/Windows、
 两个 development task × 2 repetitions 和 `no-skill | original`。Lock-bound dry-run 得到
-8 rows/4 pairs、0 held-out、0 retry，独立 resource probe 为 `ok`。该状态仍是付费前
-preregistration；route 与正式 baseline calibration 尚未执行。
+8 rows/4 pairs、0 held-out、0 retry。唯一正式 calibration 为 8/8 rows、4/4 pairs、
+0 infrastructure；两臂均 0/4、mean 0.30，`differingPairs=0`，gate failed。
+
+Failure audit 证明 original 注入的 skill digest 精确匹配上游，任务编码正常，两臂均保护输入并
+生成三项文件。失败来自 scorer 强制了 prompt 未公开的 schema/method enum、唯一 xorshift32
+schedule 和逐字报告标签。该批因此按 benchmark contract misalignment 冻结，不作为模型能力、
+original skill 或 artifact 增益证据；当前四臂 development、held-out 和 break-even 均阻断。
 
 ## 11. Pilot 晋升门禁
 
@@ -414,7 +419,7 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 |---|---|---|---|---|
 | env-manager | 完成 | 2+2 / deterministic | 完成 | Development completed，gate failed。 |
 | law-to-markdown | 完成 | 2+2 / deterministic | 完成并 source-audited | Artifact development gate passed；held-out 2/4、0.725、gate failed，结果冻结。 |
-| experimental-design | 完成 | 2+2 / deterministic | 完成并 source-audited | 本地 artifact activation 2/2、1.00；baseline lock/dry-run/resource 已冻结，API calibration 待执行。 |
+| experimental-design | 完成 | 2+2 / deterministic，但 contract audit failed | 完成并 source-audited | Baseline 8/8、0 infra；两臂均 0.30 且无差异，scorer contract misalignment，四臂实验阻断。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
 ## 13. 修改注意

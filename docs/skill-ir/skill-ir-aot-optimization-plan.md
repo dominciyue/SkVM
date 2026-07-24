@@ -1140,9 +1140,9 @@ held-out gate failed。失败已冻结，不重编 package、不调 scorer、不
 
 - [x] 在所有本地机制测试与文档通过后，冻结仅含 `no-skill | original`、两个 development
   task、clean/Windows/bare-agent、单一预注册强模型和零重试的 calibration lock。
-- [ ] 先 dry-run 与 route probe，再执行唯一一次 development calibration；不得运行 held-out，
+- [x] 先 dry-run 与 route probe，再执行唯一一次 development calibration；不得运行 held-out，
   不得根据输出改 scorer/task/package。
-- [ ] Calibration 只判断任务可执行性、baseline 饱和度和 scorer 区分度。随后再决定是否冻结
+- [x] Calibration 只判断任务可执行性、baseline 饱和度和 scorer 区分度。随后再决定是否冻结
   `no-skill | original | ir-static | validated-artifact` development lock；没有新 lock 时
   不得把本地 activation 写成真实优化成功。
 - [x] 更新 spec/plan/组件文档/experiment results/conversation log，运行 focused/full Skill IR
@@ -1225,15 +1225,34 @@ gate、package 或历史结果。设计与实施权威均保留在本 spec/plan�
   `bare-agent/workspace-experimental-design-baseline-v1`。
 - [x] 运行 lock validator、8-row dry-run、resource probe；验证计划只有两个 development task，
   不含 package/held-out，且旧 Law lock/digest 未变化。
-- [ ] 提交并推送通用实现、lock 和付费前数值 gate 后才允许 route probe。
+- [x] 提交并推送通用实现、lock 和付费前数值 gate 后才允许 route probe。
 
 #### Task 8.9.5：唯一 Development Calibration
 
-- [ ] 在同一输出目录执行一次 route probe；失败时停止，不执行付费矩阵。
-- [ ] Route 通过后执行唯一 8-row、零重试 development calibration，随后用冻结 scorer 生成
+- [x] 在同一输出目录执行一次 route probe；失败时停止，不执行付费矩阵。
+- [x] Route 通过后执行唯一 8-row、零重试 development calibration，随后用冻结 scorer 生成
   scored rows 和 gate report。
-- [ ] Gate 通过才起草四臂 skill-neutral development lock；失败则冻结诊断，不补跑、不修改
+- [x] Gate 通过才起草四臂 skill-neutral development lock；失败则冻结诊断，不补跑、不修改
   task/scorer/package，不执行 held-out。
-- [ ] 持久化脱敏 compact evidence，更新 spec/plan/组件文档/experiment results/conversation
+- [x] 持久化脱敏 compact evidence，更新 spec/plan/组件文档/experiment results/conversation
   log；运行 focused/full Skill IR tests、typecheck、文档链接、secret scan、digest verification
   和 `git diff --check` 后提交推送。
+
+实际结果：route/resource 均 `ok`，8/8 rows、4/4 pairs、0 infrastructure。No-skill 与
+original 都是 0/4、mean 0.30，token 为 45265/81822；四个 pair outcome 完全相同，
+`differingPairs=0`，gate failed。Audit 排除了 original 注入和 prompt 编码问题，并发现 scorer
+强制 task prompt 未声明的 schema/method enum、唯一 xorshift32 schedule 与逐字 report labels。
+本批冻结为 benchmark contract failure；不建立四臂 development lock，不补跑、不改当前
+task/scorer/package，不执行 held-out。
+
+### Task 8.10：Pre-paid Benchmark Contract Coverage
+
+- [ ] 设计 skill-neutral contract coverage schema：每个 scorer 硬约束、enum、确定性算法和逐字
+  输出要求必须映射到用户可见 task 或允许的 public source locator。
+- [ ] TDD 实现 audit validator 与 canary：缺公开证据、仅 evaluator/base artifact 自证、唯一
+  schedule 未公开、合法等价实现被拒绝时 fail closed。
+- [ ] 对三个 Wave A pilot 运行 audit；历史结果保留，但降低未通过 contract audit 的证据权重。
+- [ ] 若重建 experimental-design benchmark，使用新 task/scorer/lock/version 和新的 development
+  fixtures；不得读取本批模型正文生成 expected，不得覆盖当前 v1。
+- [ ] 新 benchmark 先通过多实现 local differential tests 和书面评审，再决定是否投入新的 API
+  calibration；当前 held-out 永久不进入修正过程。

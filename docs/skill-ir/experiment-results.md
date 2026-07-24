@@ -541,8 +541,35 @@ planner/runner、route evidence 和 gate，旧 pre-IR/Law 文件与摘要不变�
 | Retries / held-out | 0 / 0 |
 
 Lock-bound dry-run 验证为 8 rows、4 complete pairs、0 held-out，独立 stdlib Python resource
-probe 为 `ok`。该记录只说明实验身份和本地前置条件已冻结；API route、真实 baseline 结果和
-gate 尚未产生，因此不能改变本节的 mechanism-only 结论。
+probe 和 GPT-5.6 route 均为 `ok`。唯一 calibration 的结果为：
+
+| System | Success | Mean | Aggregate tokens |
+|---|---:|---:|---:|
+| no-skill | 0/4 | 0.30 | 45265 |
+| original | 0/4 | 0.30 | 81822 |
+
+8/8 rows、4/4 pairs、0 infrastructure，但 `differingPairs=0`，所以 gate failed。八行都通过
+输入保护和三项产物存在，且都在 plan contract、assignment safety、allocation consistency、
+report completeness 失败。
+
+冻结后的 contract audit 确认：original 使用的 `SKILL.md` digest 与上游完全一致，prompt 是
+无 replacement character 的 UTF-8。Scorer 要求的 plan schema version、四值 method enum、
+xorshift32 唯一分配序列和逐字英文 report labels 没有在用户可见 prompt 中声明；上游脚本也
+使用不同 RNG。因此本批被解释为 benchmark contract/scorer misalignment，不是模型或 skill
+能力失败，本地 artifact 的 1.00 也不能升级成真实增益证据。不得补跑或修改当前
+task/scorer/package；四臂 development 和 held-out 保持阻断。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-baseline-calibration-2026-07-25/
+  resource-probe.json
+  route-probe.json
+  scored-results.jsonl
+  gate-report.json
+  summary.json
+  failure-audit.json
+```
 
 ### 4.4 Validated Artifact Held-out
 

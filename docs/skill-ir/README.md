@@ -21,8 +21,10 @@ execution feedback 改善稳定性。
   mean 0.725，并在非法律 manual task 上两次回归，gate 失败。该 package 不能晋升。
 - `experimental-design` 已完成 2+2 task、确定性 scorer、profile-empty base IR/source audit
   和第二个 `validated-skill-artifact/v1` adapter。两个 development fixture 的本地 direct
-  activation 均为 runtime/scorer pass、score 1.00、model token 0；尚未建立付费
-  development lock，不能写成真实模型优化结果。
+  activation 均为 runtime/scorer pass、score 1.00、model token 0。冻结 baseline calibration
+  已运行 8/8 rows、0 infrastructure，但 no-skill/original 均为 0/4、mean 0.30，且
+  `differingPairs=0`。Failure audit 发现 scorer 强制了 prompt 未公开的 enum、PRNG schedule
+  和逐字标签，故 gate 失败、四臂 development 阻断，本批不能写成模型或 skill 能力证据。
 - 当前不能声称跨模型、跨 agent、跨 OS 或 token 节省。
 
 ## 按读者选择入口
