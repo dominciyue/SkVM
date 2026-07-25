@@ -19,6 +19,19 @@
 > disjoint held-out tasks 上比较 `no-skill`、`original`、`ir-static` 和
 > `ir-pgo`，评估成功率、最差表现、回归和成本。
 
+这段文字是研究方向的完整目标，不代表当前证据已经足以支撑全部主张。当前
+benchmark v2 设计阶段必须把三类问题分开报告：
+
+1. **测量合同是否有效**：任务和 scorer 是否只检查 agent 可见、公开且可追溯的
+   语义要求；
+2. **优化是否有效**：在合同通过后，IR 或 artifact 是否改善最终 workdir 的
+   任务结果；
+3. **是否可以泛化**：同一套通用 catalog/runtime 和冻结方法能否在未参与设计的
+   另一种真实 skill 上复现，而不是只在一个 skill 的专用 benchmark 上成立。
+
+因此，单个 pilot 的 v2 audit 通过，只能解除“该 benchmark 可用于测量”的阻塞，
+不能直接推出跨 skill 泛化、跨模型稳定或 token 摊销。
+
 完整主表固定为：
 
 ```text
@@ -1216,3 +1229,161 @@ differential tests 与书面评审后才允许申请新的 API 运行。
 benchmark 结果对主 claim 的权重，不否定真实 source、runner、artifact 和 failure mechanism
 的工程证据。下一阶段若继续 experimental-design，必须从 benchmark v2 的公开合同与
 differential fixtures 开始，不能直接修改 v1 scorer。
+
+## 24. Benchmark v2 修正设计：语义主指标与确定性 Profile 分离
+
+### 24.1 设计动机与身份
+
+Task 8.10 暴露了一个比“模型不够强”更基础的问题：当前
+`experimental-design` v1 的 scorer 把若干未在公开 task/source 中声明的 schema、
+method enum、唯一 schedule 和逐字报告内容当成了成功条件。此类 benchmark 即使
+能稳定地产生分数，也不能可靠地区分 `no-skill`、`original` 和优化产物。
+
+因此 v2 是全新的 benchmark 身份：
+
+```text
+skill: experimental-design
+benchmark: experimental-design-v2
+catalog/package: 与 v1 分离
+construction split: 2 development tasks
+evaluation split: 2 held-out tasks
+```
+
+v1 的 task、scorer、audit、lock、package 和结果永久冻结，不覆盖、不迁移、不回写。
+v2 的第一目标是修复测量合同；它不是对 v1 结果的补跑，也不是直接修改 IR
+算法的理由。
+
+### 24.2 主成功标准：公开语义合同
+
+v2 的主 scorer 只判定最终 workdir 中可以由 agent 观察到、由公开合同推出的
+语义属性。初版主指标固定覆盖以下五个方面：
+
+1. **输入保持**：受保护的 `study.json` 内容和相对路径未被篡改；
+2. **产物完整**：公开要求的设计计划、allocation 和报告均存在，能被解析，
+   且没有路径逃逸或额外写入受保护区域；
+3. **方法适用性**：方法选择满足公开输入中的 cluster、strata、sequential
+   enrollment 等条件，接受语义等价的实现；
+4. **分配安全性**：assignment unit、analysis unit、allocation unit 的关系
+   一致；分配覆盖完整、无重复或越界，cluster/stratum 约束不被破坏；
+5. **报告一致性**：报告能说明实际生成的设计、seed、单位和关键限制，内容
+   允许语言和排版变化，不要求 evaluator 私有的逐字模板。
+
+主 scorer 不得要求没有公开来源的版本号、封闭 method enum、特定 PRNG、
+唯一行顺序、唯一中文措辞或隐藏字段。除输入保持、路径安全等硬约束外，
+每项语义规则都必须有 canonical-valid、alternative-valid 和 invalid-control
+三类本地 differential fixture。
+
+### 24.3 次级指标：确定性 Profile
+
+确定性 profile 仍然有工程价值：它可以把固定的 schema、模板、工具计划、seed
+处理和可复现的 allocation 过程固化进 artifact，从而研究重复调用时的稳定性与
+成本。但它不是 v2 的主成功条件，必须独立记账：
+
+```text
+primarySemanticScore
+deterministicProfileScore
+profileReproducibility
+artifactBytes
+processCost
+validationCost
+modelGenerationTokens
+modelRepairTokens
+```
+
+只有当某个确定性行为本身被公开 task/source 明确要求时，profile 才能作为
+对应的硬门禁。否则 profile 不得覆盖语义 scorer，也不得因为模型选择了另一种
+合法的 allocation 顺序而判定任务失败。报告中必须同时给出“语义通过但 profile
+不同”的情况，避免把 benchmark-specific overfitting 写成优化成功。
+
+### 24.4 v2 的公开证据与 audit
+
+v2 必须在付费运行前通过新的 audit。audit 只验证 benchmark 合同，不参与
+runtime/package/repair，也不进入模型上下文。合法证据仅限：
+
+```text
+task-prompt
+skill-source
+agent-visible workdir fixture
+public resource contract
+```
+
+以下内容一律禁止作为 scorer 或 artifact 的证据：
+
+```text
+evaluator expected / private rubric
+held-out prompt or result
+model output copied into expected
+历史 raw/scored result
+package-generated answer
+secret、绝对路径和未公开解释
+```
+
+v2 audit 的最小通过条件是：每个 development criterion 都有公开证据锚点；
+alternative-valid fixture 不因表面格式差异被拒；invalid-control 能触发对应的
+安全或语义失败；删除公开证据后，约束会降级为 `unconfirmed` 或明确失败，而
+不会猜测隐藏金标。
+
+### 24.5 数据流与实验顺序
+
+```text
+public task/source
+    -> source audit + public contract
+    -> v2 scorer audit
+    -> 2 development + 2 held-out freeze
+    -> no-skill | original calibration
+    -> source-audited base IR
+    -> ir-static / artifact development
+    -> development gate
+    -> held-out consumption
+```
+
+development 只允许发现合同、IR、artifact 或 runtime 的问题；held-out 在 lock
+冻结后只用于评估，永不进入 scorer、package、repair 或 profile 调参。audit 未通过
+时不付费、不建立四臂 development lock、不运行 held-out。
+
+### 24.6 泛化判定：Wave B 才是证据
+
+v2 通过只能说明 `experimental-design-v2` 的测量方法可用，不能说明它自动适配
+任意 skill。跨 skill 泛化必须在冻结 Wave A 方法后，使用未参与 v2 设计的 Wave B
+skill（优先 `api-tester`）进行 replication：
+
+- 使用同一通用 catalog、runtime、lock 生命周期和主 scorer 约束；
+- 允许新增 skill adapter，但通用 core 不得按 skill id 增加分支；
+- 记录 adapter 新增代码量、artifact kind 复用率、需要新增的 runtime/catalog
+  分支数和 failure taxonomy；
+- Wave B 不得反向修改 Wave A 的 task、scorer、package 或 gate；
+- 若需要大量 skill-specific 特例，应将结论降级为“方法可迁移但 catalog 尚未
+  泛化”，不能宣称任意 skill 自动优化。
+
+### 24.7 成本与重复调用
+
+token 节省只在包含编译成本的摊销实验中讨论。对重复调用次数 `N`，统一报告：
+
+```text
+totalOptimized(N) =
+  compileCost
+  + profileCost
+  + packageGenerationCost
+  + N * optimizedRuntimeCost
+
+totalBaseline(N) =
+  N * baselineRuntimeCost
+```
+
+至少需要 `N=1, 2, 5, 10` 的重复调用或等价的预注册 workload，分别列出模型、
+确定性 process、validation 和 package 成本。没有同口径的 `compileCost` 和
+`baselineRuntimeCost`，只能说 artifact 减少了运行期模型调用，不能说已经节省
+总 token 或达到 break-even。
+
+### 24.8 当前阶段的不可声称项
+
+在 v2 audit、development gate、Wave B replication 和摊销实验完成前，不得声称：
+
+- v2 benchmark 一定比 v1 更准确，只能说它通过了预先定义的合同审计；
+- 一个 skill 的 public profile 能自动适配其他 skill；
+- artifact 在所有模型、context、agent 或 OS 上都更稳定；
+- artifact 已经降低总 token 或已经达到 break-even；
+- 当前 Final IR 已经是任意 skill 的最终最优表示。
+
+本节优先级高于早期将 deterministic profile 与主成功率合并叙述的文字。后续
+实现和结果文档必须沿用本节的指标分层。

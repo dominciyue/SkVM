@@ -765,3 +765,29 @@ results/skill-ir/benchmark-contract-audit/experimental-design.json
 三者未来默认 `evidenceWeight=support-real`。这不会改写历史结果，也不表示三个真实 source
 无效；它只撤回旧 benchmark 对稳定性主 claim 的资格。任何新付费运行都要先设计新版本合同并
 通过本审计。
+
+## 21. Benchmark v2 的指标分层
+
+`experimental-design` v1 的 task/scorer/lock/result 永久冻结。后续若继续该 skill，
+必须使用独立的 `experimental-design-v2` 身份，先修复测量合同。
+
+v2 的主 scorer 判定公开语义：输入保持、产物完整、方法适用性、分配安全和报告一致性。
+它必须接受公开合同允许的合法等价实现，不能把私有 schema、封闭 enum、唯一 PRNG、
+唯一 schedule 或逐字报告模板当成默认成功条件。确定性 allocation/profile 属于独立
+次指标；只有公开合同明确要求的确定性行为才可进入 hard gate。
+
+结果表必须分列：
+
+```text
+primarySemanticScore
+deterministicProfileScore
+profileReproducibility
+runtime/process/validation/package cost
+modelGenerationTokens
+modelRepairTokens
+```
+
+v2 audit、development gate 和 Wave B replication 是三个不同门槛。audit 只证明
+benchmark 合同可测，development gate 才允许消费 held-out，Wave B 才能支持跨 skill
+泛化。没有包含 compile/profile/package 成本的重复调用实验，不报告总 token 节省或
+break-even。

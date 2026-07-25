@@ -889,3 +889,27 @@ skill。任何 held-out failure 都作为结果冻结，不允许重编 package�
 `law-document-policy` 与 `law-review-outcome` 同时失败。总计 2 pairwise regressions，
 held-out gate failed。该 package 保持冻结失败状态；后续 catalog reuse 只能使用第二
 phenotype 自身的公开 source 与 development evidence。
+
+## 19. Benchmark v2 与 Artifact 指标边界
+
+`experimental-design-v2` 的 artifact 仍然沿用通用 package/runtime 生命周期，但
+artifact 的 deterministic profile 不再默认等于任务语义成功。主 scorer 负责公开
+语义，profile 负责记录可复现的 schema、模板、tool-plan、seed 处理和 allocation
+过程；两者必须在结果中分列。
+
+因此，artifact 可以出现以下合法状态：
+
+```text
+primary semantic pass + deterministic profile pass
+primary semantic pass + profile differs
+primary semantic fail + runtime validation pass
+```
+
+第二种状态不是失败，第三种状态也不能被 runtime validator 掩盖。只有公开合同明确
+要求的确定性行为才可以进入 hard gate。任何 catalog adapter 都必须绑定公开
+source/task evidence，不能从 evaluator expected、held-out 或历史模型输出生成
+profile。
+
+跨 skill 复用要到 Wave B 验证；单个 skill 的 artifact activation 只说明该 skill
+的固态化路径可执行。重复调用成本必须包含 compile、profile、package generation、
+process 和 validation，并与 no-skill/original 的同口径 baseline 比较。

@@ -413,6 +413,11 @@ original skill 或 artifact 增益证据；当前四臂 development、held-out �
 
 Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭环后再加入下一个。
 
+注意：一个 pilot 的 benchmark audit 通过，只能说明该 pilot 的测量合同可用，不能
+说明 catalog 自动适配其他 skill。跨 skill 结论必须由冻结 Wave A 后的 Wave B
+replication 支撑，并同时记录通用 core 是否新增 skill-id 分支、adapter 新增代码量、
+artifact kind 复用率和新的 failure taxonomy。
+
 ## 12. 当前状态
 
 | Pilot | Source | Tasks/scorer | Base IR | Real run |
@@ -421,6 +426,11 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 | law-to-markdown | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | 两个 task 的 alternative-valid 审核措辞均被拒；旧 development/held-out 结果降为 support evidence。 |
 | experimental-design | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | Plan canary 2/2 通过；其余 6/6 等价 canary 与四类私有 plan 合同失败，当前四臂实验阻断。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
+
+`experimental-design-v2` 是独立的后续 benchmark 身份：主成功按公开语义计分，
+deterministic profile 只作为次指标；v1 的文件和结果不覆盖。v2 在 audit 和
+development gate 通过后，才可以进入 held-out，之后再由 `api-tester` 作为首个
+Wave B skill 检验跨 skill 复用。
 
 ## 13. 修改注意
 

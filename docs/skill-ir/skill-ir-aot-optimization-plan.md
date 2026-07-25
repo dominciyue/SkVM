@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-07-24
+**最后更新：** 2026-07-25
 
 本文件只记录当前状态和下一步。已完成阶段的详细演进见
 `docs/skill-ir/history.md`，组件契约见对应权威文档。
@@ -23,8 +23,9 @@
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
 | `law-to-markdown` vertical slice | Held-out gate 失败并冻结 | Development 4/4、0.925；held-out 2/4、0.725，manual task 两次回归。 |
-| `experimental-design` second phenotype | 本地机制通过 | 2+2 task/scorer/IR/audit 与第二 adapter 完成；development fixture 2/2、1.00、0 model token。 |
-| Held-out / pooled panel / Wave B | Law 已执行，其余阻断 | 先抽象 skill-neutral development orchestration，再做第二 skill 付费 calibration；held-out 仍禁止。 |
+| `experimental-design` second phenotype | v1 benchmark contract 失败并冻结 | 本地机制仍有效，但 scorer 拒绝合法等价实现；下一步建立独立 v2 语义 benchmark。 |
+| Benchmark contract audit | Wave A v1 已完成 | 3/3 pilot audit failed，历史结果降为 `support-real`；先修复测量再继续付费。 |
+| Held-out / pooled panel / Wave B | Law 已执行，其余阻断 | v2 audit 与 development gate 通过后，优先用 `api-tester` 做冻结 Wave B replication。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
 ## 2. 已完成能力
@@ -106,16 +107,17 @@ manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phen
 
 ## 4. 下一阶段顺序
 
-### 当前下一刀：通用 Development Orchestration
+### 当前下一刀：Experimental-design Benchmark v2
 
-1. 保留 Law 与 experimental-design 的 package、scorer 和所有冻结结果，不原地修改。
-2. 从 Law-specific development lock/planner/runner/gate 提取 skill-neutral identity 和任务字段；
-   旧 Law schema/digest 保持不变，新建版本化 orchestration contract。
-3. 新合同先只冻结 `experimental-design` 的 `no-skill | original` development calibration，
-   GPT-5.6、Windows/clean/bare-agent、2 tasks × 2 repetitions、零重试。
-4. 通过 baseline 区分度审计后，再冻结
-   `no-skill | original | ir-static | validated-artifact` development 对照。
-5. Development gate 未过不运行 sequential/simple held-out，不计算 repeated-call break-even。
+1. 保留 v1 task、scorer、audit、lock、package 与结果，不原地修改。
+2. 以公开语义合同重建 v2 task/scorer；语义成功为主指标，确定性 profile 为独立次指标。
+3. 为每个 development criterion 编写 canonical-valid、alternative-valid 与
+   invalid-control differential fixture。
+4. 先通过 v2 benchmark contract audit 和书面评审，再决定是否执行
+   `no-skill | original` API calibration。
+5. v2 development gate 通过后才进入 held-out；完整泛化结论必须由未参与设计的
+   Wave B `api-tester` replication 支撑。
+6. Token 只按包含 compile/profile/package 成本的重复调用口径报告，不提前声称 break-even。
 
 ### 已完成前置：文档治理
 
@@ -1279,4 +1281,73 @@ task/scorer/package，不执行 held-out。
 3. benchmark-contract-audit-pilots.test.ts -> pilots/*/benchmark-contract-audit.json + audit-fixtures/
 4. results/skill-ir/benchmark-contract-audit/*.json
 5. corpus evidenceWeight + 权威组件/结果文档
+```
+
+### Task 8.11：Experimental-design Benchmark v2 与跨 Skill 泛化入口
+
+本任务先修复测量合同，再恢复优化实验。它不修改 v1，不把 deterministic profile
+当成主成功金标，也不在 audit 通过前调用 API。
+
+#### Task 8.11.1：v2 身份与公开语义合同
+
+- [ ] 在 `benchmarks/skill-ir/pilots/experimental-design/v2/` 建立独立的 public
+  contract、2 development + 2 held-out task 身份和 audit fixture 根。
+- [ ] 冻结公开可见的输入、输出、方法适用性、assignment/analysis/allocation unit、
+  allocation 安全和报告一致性要求。
+- [ ] 明确禁止私有 schema version、封闭 method enum、唯一 PRNG/schedule 和逐字
+  report label 进入主成功条件。
+- [ ] v1 path/digest 测试必须证明旧 task/scorer/audit/lock/package/result 未变化。
+
+#### Task 8.11.2：语义主 Scorer 与确定性次指标
+
+- [ ] 先写 scorer RED tests，覆盖合法等价方法、allocation 顺序和中英文报告措辞。
+- [ ] 主 scorer 只输出 `primarySemanticScore`、criterion 和 hard-gate；runtime checker
+  仍与离线 scorer 分离。
+- [ ] 单独计算 `deterministicProfileScore` 与 reproducibility；除公开合同明确要求外，
+  profile 不得改变 primary success。
+- [ ] 输出显式支持“semantic pass / profile differ”，防止 benchmark-specific profile
+  被误当成语义失败。
+
+#### Task 8.11.3：Differential Fixture 与 v2 Audit
+
+- [ ] 每个 development criterion 至少提供 canonical-valid、alternative-valid 与
+  invalid-control；task 分支必须独立覆盖。
+- [ ] 增加 reverse-evidence 和 gold-isolation 测试：移除公开证据后约束消失或变为
+  `unconfirmed`，evaluator expected、held-out、历史模型正文和 package answer 不可达。
+- [ ] 生成新的 v2 audit manifest/report；任何 alternative-valid 被拒、invalid-control
+  被接受或 source anchor 漂移都 fail closed。
+- [ ] audit 通过前 corpus 保持非主实验状态，不创建付费 lock。
+
+#### Task 8.11.4：Calibration、IR 与 Artifact Development
+
+- [ ] 书面评审通过后冻结 v2 `no-skill | original` development calibration lock，
+  先 dry-run、resource probe 和 route probe，再执行唯一付费批次。
+- [ ] baseline 有区分度后构造 source-audited v2 base IR；静态 IR 与 artifact
+  只消费公开 source/task contract，不消费 scorer gold 或 held-out。
+- [ ] 冻结 `no-skill | original | ir-static | validated-artifact` development lock
+  与数值 gate；primary semantic、profile、runtime、token 和 infrastructure 分列。
+- [ ] development gate 未过时冻结失败，不补跑、不调 scorer、不进入 held-out。
+
+#### Task 8.11.5：Held-out、Wave B 与摊销
+
+- [ ] v2 development gate 通过后另建 held-out lock，只消费冻结产物。
+- [ ] 冻结 Wave A 方法后，以 `api-tester` 为首个 Wave B skill，复用 catalog/runtime/
+  lock 生命周期；通用 core 不得新增 skill-id 分支。
+- [ ] 记录 adapter LOC、artifact kind 复用率、core branch delta 和新 failure taxonomy；
+  据此区分“框架复用”与“catalog 已泛化”。
+- [ ] 在质量不回归前提下，按 `N=1,2,5,10` 报告 compile/profile/package/runtime
+  总成本和 break-even；没有同口径数据时不声称 token reduction。
+
+文件级 TDD 的具体文件名、接口和命令将在本设计书面评审通过后，按
+`superpowers:writing-plans` 另行拆解。当前冻结顺序为：
+
+```text
+v2 public contract
+-> scorer differential tests
+-> v2 audit
+-> baseline calibration
+-> base IR / artifact development
+-> held-out
+-> Wave B replication
+-> repeated-call amortization
 ```
