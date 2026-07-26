@@ -2124,7 +2124,7 @@ git commit -m "feat: freeze experimental design v2 heldout identity"
 - Modify: `docs/skill-ir/experiment-results.md`
 - Modify: `D:\skill优化\conversation_log.md`
 
-- [ ] **Step 1: 更新阶段状态**
+- [x] **Step 1: 更新阶段状态**
 
 只允许写：
 
@@ -2139,7 +2139,7 @@ no API run, no baseline result, no IR/artifact result, no cross-skill claim
 Task 8.11.1–8.11.3 按实际证据勾选；8.11.4–8.11.5 的 API/IR/artifact/held-out/Wave B
 条目保持未完成。
 
-- [ ] **Step 2: 运行 focused verification**
+- [x] **Step 2: 运行 focused verification**
 
 ```powershell
 bun test ./src/bench/evaluators/experimental-design-grade-v2.test.ts `
@@ -2156,7 +2156,7 @@ bunx tsc --noEmit
 Expected: 0 fail；三个 v1 audit 继续 failed-as-expected，v2 audit 与 freeze tests 按新
 身份通过。
 
-- [ ] **Step 3: 运行文档、secret、digest 与 diff 检查**
+- [x] **Step 3: 运行文档、secret、digest 与 diff 检查**
 
 ```powershell
 python scripts/check_skill_ir_doc_links_test.py
@@ -2169,7 +2169,7 @@ git diff --check
 Expected: 文档 0 broken/legacy、secret scan 无命中、所有 freeze/audit digest verify-only
 通过、diff check 退出 0。
 
-- [ ] **Step 4: 提交并推送阶段结果**
+- [x] **Step 4: 提交并推送阶段结果**
 
 ```powershell
 git add docs/skill-ir
