@@ -854,3 +854,35 @@ held-out task digest、v2 scorer/registry identity、audit manifest provenance�
 全部 matched canary。`assertNoExperimentalDesignV2HeldoutEvidence` 为 development lock、compiler、
 package 和 feedback 四类 construction sink 提供递归 fail-closed 扫描。Freeze 不执行 API，
 不读取 held-out 输出，也不允许 compiler/repair 消费 held-out。
+
+Registry 是可追加扩展点，不作为整文件 immutable blob。Freeze 要求旧 `inputsCommit` 中包含
+冻结 evaluatorId/path/digest 三元组，当前运行时 registry map 仍映射到相同 path/digest；新增
+其他 evaluator 不使历史 freeze 失效。Scorer 文件自身、task、audit 和 held-out bytes 仍按
+freeze digest 与工作区逐字复核，不能借 registry 的可追加性放宽。
+
+## 22. Experimental-design v3 校准与物化有效性审计
+
+v3 修复了 v2 只枚举 `design/`、漏检 root extra output 的问题：root 与 `design/` 均使用精确
+白名单，并增加不调用生产 assessor 构造 expected 的 hard-coded oracle。46/46 development
+canary matched，task-split、scorer/audit 和 held-out identity 都已冻结。预 IR lock v2 还会在
+plan、execute 和 gate 读取时重验 held-out freeze，防止静默回落到 v1 task。
+
+冻结 calibration 命令：
+
+```powershell
+bun ./src/benchmarks/skill-ir/pre-ir-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v3/experimental-design-v3-pre-ir-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v3-pre-ir-calibration-2026-07-27' `
+  '--phase=plan'
+# resource/route 通过后，分别改为 --phase=route-probe 和 --phase=execute
+```
+
+结果为 8/8 rows、4/4 pairs、0 infrastructure、3 differing pairs，机械 gate 通过。不过 post-run
+tree audit 发现 `executeRun.copySkillBundle` 在 original agent 启动前复制 skill resource closure
+到 workdir，v3 scorer 又把这些预置资源视为额外模型输出。三个完成 evaluator 的 original 行均
+触发 `design-artifact-contract`；第四行在 evaluator 前任务退出。no-skill 没有预置资源。
+
+因此 v3 calibration 是“运行链路完整但测量边界污染”的冻结证据，不是 original 负增益或 Skill
+IR 优化证据。后续 v4 必须以 workdir 外、摘要绑定的 initial manifest 为权威，评价 final delta；
+在真实 API 前还要跑 materialization canary。Local benchmark fixture audit 与真实 runner
+materialization audit 以后是两个独立门槛。

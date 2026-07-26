@@ -192,19 +192,6 @@ function findToken(value: unknown, tokens: readonly string[]): string | undefine
   return tokens.find((token) => serialized.includes(token));
 }
 
-async function readCommittedWorkingFile(
-  rootDir: string,
-  inputsCommit: string,
-  relativePath: string,
-): Promise<Buffer> {
-  const committed = readGitBlob(rootDir, inputsCommit, relativePath);
-  const disk = await readBoundFile(rootDir, relativePath);
-  if (!matchesRepositoryBlob(disk, committed)) {
-    throw new Error(`Inputs commit bytes differ from working bytes: ${relativePath}`);
-  }
-  return committed;
-}
-
 export function validateExperimentalDesignV2HeldoutAuditBoundary(
   taskSplitValue: unknown,
   manifestValue: unknown,
@@ -296,7 +283,7 @@ export async function createExperimentalDesignV2HeldoutFreeze(
       frozenFileFromCommit(rootDir, inputsCommit, SCORER_PATH),
       frozenFileFromCommit(rootDir, inputsCommit, AUDIT_MANIFEST_PATH),
       frozenFileFromCommit(rootDir, inputsCommit, AUDIT_REPORT_PATH),
-      readCommittedWorkingFile(rootDir, inputsCommit, REGISTRY_PATH),
+      readGitBlob(rootDir, inputsCommit, REGISTRY_PATH),
     ]);
   const taskSplitValue = parseJsonBytes(
     readGitBlob(rootDir, inputsCommit, TASK_SPLIT_FREEZE_PATH),
@@ -349,7 +336,7 @@ export async function verifyExperimentalDesignV2HeldoutFreeze(
       verifyFileAgainstCommit(rootDir, freeze.inputsCommit, freeze.scorer),
       verifyFileAgainstCommit(rootDir, freeze.inputsCommit, freeze.auditManifest),
       verifyFileAgainstCommit(rootDir, freeze.inputsCommit, freeze.auditReport),
-      readCommittedWorkingFile(rootDir, freeze.inputsCommit, REGISTRY_PATH),
+      readGitBlob(rootDir, freeze.inputsCommit, REGISTRY_PATH),
     ]);
   const taskSplit = ExperimentalDesignV2TaskSplitFreezeSchema.parse(
     parseJsonBytes(taskSplitBytes, "task-split freeze"),

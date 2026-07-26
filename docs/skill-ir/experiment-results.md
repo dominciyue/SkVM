@@ -726,3 +726,41 @@ benchmarks/skill-ir/pilots/experimental-design/v2/benchmark-contract-audit.json
 benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
 results/skill-ir/benchmark-contract-audit/experimental-design-v2.json
 ```
+
+## 10. Experimental-design v3 冻结校准与无效性审计
+
+2026-07-27 以 `experimental-design-v3` 独立身份修复 root extra output 漏检，完成 46/46
+development-only canary、held-out freeze 和付费前 lock v2。强模型固定为
+`xty/gpt-5.6-sol`，矩阵为 `no-skill | original` × 2 development task × 2 repetitions，
+Windows/clean、bare-agent、0 retries。
+
+| Gate evidence | Result |
+|---|---:|
+| Rows / pairs | 8/8；4/4 |
+| Infrastructure failures | 0 |
+| No-skill semantic failures | 2 |
+| Differing pairs | 3 |
+| Mechanical gate | passed |
+| Held-out / IR / artifact run | 0 |
+
+系统表面分数为 no-skill 2/4 success、mean 0.50、22,035 tokens；original 0/4 success、
+mean 0.40、61,484 tokens。该差异不能解释成 skill 负增益：post-run workdir audit 发现
+`src/run/index.ts` 在 original agent 启动前把 source closure 复制到 workdir，产生
+`LICENSE.upstream.md`、`references/`、`scripts/`；v3 root whitelist 将它们误判为模型额外
+输出。三个实际进入 evaluator 的 original 行全部失败 `design-artifact-contract`，no-skill
+没有同类预置项。
+
+结论冻结为：真实链路、模型路由、scoring 与 gate 可运行；v3 测量存在 arm-dependent
+materialization contamination，人工有效性审计否决 `baseIrAuditAllowed`。不运行 held-out，
+不据此构造 IR/PGO/artifact，也不把 0.40/0.50 写进优化主 claim。后续新建 v4，以外置、
+摘要绑定的 initial-workdir manifest 和 final delta 评价模型输出，并在任何 API 前加入
+materialization canary。
+
+Compact evidence：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v3/experimental-design-v3-pre-ir-calibration-lock.json
+results/skill-ir/experimental-design-v3-pre-ir-calibration-2026-07-27/resource-probe.json
+results/skill-ir/experimental-design-v3-pre-ir-calibration-2026-07-27/route-probe.json
+results/skill-ir/experimental-design-v3-pre-ir-calibration-2026-07-27/gate-report.json
+```

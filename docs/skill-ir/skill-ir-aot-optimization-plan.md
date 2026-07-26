@@ -2225,16 +2225,33 @@ v3 继承已审计语义，只新增公开顶层白名单和独立 oracle，再�
   2 repetitions、`xty/gpt-5.6-sol`、bare-agent、0 retries。
 - [x] lock v2 同时绑定 source/task/resource/scorer digest 与 v3 held-out freeze；plan、execute、gate
   都必须重验 guard，避免任务回落或冻结后漂移。
-- [ ] 依次运行 plan、resource probe、route probe；任一失败时停止并记录 infrastructure。
-- [ ] 执行唯一 8-row 付费批次，生成 raw/scored compact evidence；gate 固定要求 0 infra、
+- [x] 依次运行 plan、resource probe、route probe；三者均通过，route 固定为
+  `xty/gpt-5.6-sol` 的 original development case。
+- [x] 执行唯一 8-row 付费批次，生成 raw/scored compact evidence；gate 固定要求 0 infra、
   no-skill 非饱和、至少一个 paired outcome 差异。
-- [ ] gate 失败则冻结失败且不构造 IR/artifact；gate 通过只解除四臂 development lock 起草。
+- [x] 机械 gate 通过（8/8、4/4、0 infra、2 个 no-skill semantic failure、3 个 differing
+  pairs），但 post-run audit 发现 original arm 的预置 source closure 被 artifact scorer 误算为
+  模型额外输出；研究晋升被否决，不构造 IR/artifact、不运行 held-out。
 
 ### Task 15.6：验证、文档与留痕
 
-- [ ] 更新 `evaluation-system.md`、`real-skill-pilots.md`、`experiment-results.md` 和
+- [x] 更新 `evaluation-system.md`、`real-skill-pilots.md`、`experiment-results.md` 和
   `D:\skill优化\conversation_log.md`，分开报告 contract audit、model calibration 与优化证据。
-- [ ] 运行 v3 focused suite、v1/v2 regression、typecheck、freeze verify-only、secret scan、
+- [x] 运行 v3 focused suite、v1/v2 regression、typecheck、freeze verify-only、secret scan、
   文档链接检查和 `git diff --check`。
-- [ ] 只提交 compact audit/calibration evidence；raw transcript、workdir、provider log 和既有
+- [x] 只提交 compact audit/calibration evidence；raw transcript、workdir、provider log 和既有
   untracked results 保持本地且不暂存。
+
+### Task 15.7：Materialization 有效性修复（v4）
+
+- [x] 对 v3 scored rows 和 final workdir 做 failure slice，定位 `src/run/index.ts` 的
+  `copySkillBundle` 在 agent 前向 original workdir 注入 `LICENSE/references/scripts`；no-skill
+  没有同类预置项，v3 artifact failure 存在 arm-dependent contamination。
+- [x] 冻结 v3 为 benchmark/harness failure evidence；机械 gate 的 `baseIrAuditAllowed` 不作为
+  研究晋升依据，禁止用 v3 输出构造 base IR、Final IR 或 held-out 结果。
+- [ ] 建立 `experimental-design-v4`：runner 在 workdir 外冻结 initial manifest，scorer 按
+  provenance-bound initial/final delta 判定新增、修改、删除和 reparse entry。
+- [ ] 在 API 前增加 materialization canary，覆盖 no-skill/original 不同合法预置集合、资源摘要
+  漂移、模型新增额外文件和受保护输入修改；先完成 independent oracle 和 differential audit。
+- [ ] v4 重新冻结 task/scorer/held-out/calibration lock 后再运行一次强模型校准；不得复用 v3
+  raw/scored 输出或根据其语义分数调 expected。

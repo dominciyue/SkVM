@@ -1674,3 +1674,34 @@ source/source closure，状态固定为 `tasks-authored`，只指向 v3 developm
 `no-skill | original`，并使用 lock v2 在 plan、probe、execute 与 gate 读取时同时重验 source、
 development tasks、resource contract、v3 scorer 和 `heldout-freeze.json`。因此 calibration 不会
 静默落回 v1 task，也不能在 held-out freeze 漂移后继续执行。
+
+### 24.10 v3 Calibration 后的 materialization 污染与 v4 边界
+
+2026-07-27 的冻结 v3 calibration 机械通过预注册 gate，但运行后审计发现两臂起点不等价。
+`src/run/index.ts` 会在 agent 启动前把 skill bundle 中除 `SKILL.md` 外的文件复制到 workdir；
+因此 `original` 四行预先包含 `LICENSE.upstream.md`、`references/` 和 `scripts/`，`no-skill`
+四行不包含。v3 artifact scorer 的根目录精确白名单无法区分“harness 预置资源”和“模型额外
+输出”，所以所有进入 evaluator 的 original 行都会因 source closure 触发 artifact failure。
+
+该问题不是模型失败，也不能通过放宽 v3 expected 或重跑解决。v3 task/scorer/freeze/lock、
+raw/scored digest 和 gate report 全部冻结；机械 `passed=true` 只证明 8 行完整、0 infra、
+no-skill 非饱和且两臂可区分，`baseIrAuditAllowed` 被本节的人工有效性审计否决。v3 不构造
+base IR，不运行四臂 development 或 held-out，不进入主 claim。
+
+后续修复使用新身份 `experimental-design-v4`，必须在任何 API 调用前满足：
+
+1. 运行器为每个 arm 生成 provenance-bound initial-workdir manifest，记录 task fixtures、skill
+   resource closure、类型与摘要；manifest 写在 workdir 外，agent 不可修改。
+2. artifact contract 评价 final workdir 相对 initial manifest 的增量：冻结输入和合法 skill
+   resources 可保留但不可修改；三个要求输出必须新增；其他新增、修改、删除或 reparse entry
+   按公开合同失败。
+3. no-skill 和 original 可以拥有不同的合法预置资源，但 scorer 必须分别绑定各自初始摘要，
+   不能把 source path 名单无条件加入 no-skill allowlist。
+4. 付费前 materialization canary 在空 agent 行为下验证两臂初始 manifest、受保护输入与资源
+   摘要；发现 scorer 会把预置资源判成模型输出时 fail closed。
+5. v4 重新 task creation -> freeze -> scorer/audit -> held-out freeze -> calibration；不得修改
+   v3 scorer 或把 v3 development 输出用于 v4 expected。v3 failure taxonomy 只用于修 harness。
+
+这次审计还说明“benchmark local fixture 全绿”不足以覆盖真实 runner 物化行为。之后所有文件
+型 skill benchmark 在 contract audit 与 API probe 之间增加 materialization audit；该门槛服务
+于测量有效性，不是新的 Skill IR 优化 pass。
