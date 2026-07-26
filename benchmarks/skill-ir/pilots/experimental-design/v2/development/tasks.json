@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "experimental-design-v2",
+  "tasks": [
+    {
+      "id": "experimental-design-v2-stratified-dev-001",
+      "split": "development",
+      "prompt": "Read study.json and the public design-contract.json without modifying either protected input. Produce exactly three output files: design/design-plan.json, design/allocation.csv, and design/design-report.md. Follow the public schemas and semantic rules in design-contract.json. Do not create any other output.",
+      "fixtures": {
+        "study.json": "{\"studyId\":\"site-stratified-recovery-v2-dev\",\"question\":\"Does the intervention reduce recovery time across sites?\",\"assignmentLevel\":\"individual\",\"assignmentUnit\":\"participant\",\"analysisUnit\":\"participant\",\"response\":\"recovery_days\",\"arms\":[\"control\",\"intervention\"],\"seed\":37,\"nuisanceFactors\":[\"site\"],\"sequentialEnrollment\":false,\"units\":[{\"id\":\"A-01\",\"stratum\":\"site-a\"},{\"id\":\"B-01\",\"stratum\":\"site-b\"},{\"id\":\"A-02\",\"stratum\":\"site-a\"},{\"id\":\"B-02\",\"stratum\":\"site-b\"},{\"id\":\"A-03\",\"stratum\":\"site-a\"},{\"id\":\"B-03\",\"stratum\":\"site-b\"}]}\n",
+        "design-contract.json": "{\"schemaVersion\":\"skill-ir-experimental-design-public-contract/v2\",\"contractId\":\"experimental-design-public-contract-v2\",\"protectedInputs\":[\"study.json\",\"design-contract.json\"],\"outputs\":[\"design/design-plan.json\",\"design/allocation.csv\",\"design/design-report.md\"],\"passThreshold\":0.95,\"criterionWeights\":{\"design-input-integrity\":0.1,\"design-artifact-contract\":0.1,\"design-semantics\":0.25,\"design-allocation-safety\":0.35,\"design-report-consistency\":0.2},\"designPropertyKeys\":[\"preservesAssignmentUnits\",\"balancesGlobally\",\"balancesWithinStrata\",\"supportsSequentialEnrollment\"],\"reportEvidenceOpening\":\"```json design-evidence\",\"reportEvidenceClosing\":\"```\",\"studyContract\":{\"assignmentLevels\":[\"individual\",\"cluster\"],\"requiredFields\":[\"studyId\",\"question\",\"assignmentLevel\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"arms\",\"seed\",\"nuisanceFactors\",\"sequentialEnrollment\",\"units\"],\"unitFields\":[\"id\",\"stratum\"],\"rules\":[\"Use at least two unique nonempty arms and unique nonempty assignment unit IDs.\",\"Stratum is either absent from every unit or a nonempty string on every unit.\",\"For cluster assignment, each unit is one indivisible cluster and cannot contain member-level assignments.\"]},\"allocationContract\":{\"columns\":[\"order\",\"unit_id\",\"stratum\",\"arm\"],\"rules\":[\"Include every assignment unit exactly once and use only public study arms.\",\"When strata are present, balance arms within each stratum; global imbalance remains diagnostic only.\",\"When sequential enrollment is true, evaluate arm-sized blocks in the stable study input order projected into each stratum; each complete block contains every arm once and a final partial block is balanced.\",\"Different legal arm assignments and CSV row orders are accepted.\"]},\"planContract\":{\"requiredFields\":[\"studyId\",\"method\",\"assignmentLevel\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"arms\",\"seed\",\"allocationPath\",\"designProperties\"],\"method\":\"nonempty free text\",\"allocationPath\":\"design/allocation.csv\"},\"reportEvidenceRequiredFields\":[\"studyId\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"seed\",\"allocationPath\",\"allocationRows\",\"armCounts\",\"designProperties\",\"limitationFlags\"],\"limitationFlagRules\":{\"cluster-assignment\":\"assignmentLevel is cluster\",\"stratified-assignment\":\"all units have a nonempty stratum\",\"sequential-enrollment\":\"sequentialEnrollment is true\",\"analysis-unit-differs\":\"analysisUnit differs from assignmentUnit\",\"randomness-not-statistically-audited\":\"always present\"},\"sourceClaimIds\":[\"assignment-unit-contract\",\"cluster-unit-contract\",\"stratified-balance-contract\",\"sequential-balance-contract\",\"design-documentation-contract\",\"randomness-expectation-contract\"]}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "design-input-integrity",
+          "name": "Protected public inputs remain unchanged",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "input-integrity",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "f84f31421288e7b7d38853a5b204c472b3e613dc07b23c6eebde0c47366bc0bc",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-artifact-contract",
+          "name": "All three public outputs satisfy the artifact contract",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "artifact-contract",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "f84f31421288e7b7d38853a5b204c472b3e613dc07b23c6eebde0c47366bc0bc",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-semantics",
+          "name": "Plan properties match the public study and allocation",
+          "weight": 0.25,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "design-semantics",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "f84f31421288e7b7d38853a5b204c472b3e613dc07b23c6eebde0c47366bc0bc",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-allocation-safety",
+          "name": "Allocation preserves units and public balance invariants",
+          "weight": 0.35,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "allocation-safety",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "f84f31421288e7b7d38853a5b204c472b3e613dc07b23c6eebde0c47366bc0bc",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-report-consistency",
+          "name": "Report evidence is consistent with observable facts",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "report-consistency",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "f84f31421288e7b7d38853a5b204c472b3e613dc07b23c6eebde0c47366bc0bc",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "design-input-integrity",
+        "design-artifact-contract",
+        "design-semantics",
+        "design-allocation-safety",
+        "design-report-consistency"
+      ],
+      "passThreshold": 0.95
+    },
+    {
+      "id": "experimental-design-v2-cluster-sequential-dev-002",
+      "split": "development",
+      "prompt": "Read study.json and the public design-contract.json without modifying either protected input. Produce exactly three output files: design/design-plan.json, design/allocation.csv, and design/design-report.md. Follow the public schemas and semantic rules in design-contract.json. Do not create any other output.",
+      "fixtures": {
+        "study.json": "{\"studyId\":\"clinic-sequential-screening-v2-dev\",\"question\":\"Does the reminder program improve screening uptake during enrollment?\",\"assignmentLevel\":\"cluster\",\"assignmentUnit\":\"clinic\",\"analysisUnit\":\"clinic\",\"response\":\"screening_rate\",\"arms\":[\"usual-care\",\"reminder\"],\"seed\":91,\"nuisanceFactors\":[\"enrollment-order\"],\"sequentialEnrollment\":true,\"units\":[{\"id\":\"clinic-01\"},{\"id\":\"clinic-02\"},{\"id\":\"clinic-03\"},{\"id\":\"clinic-04\"},{\"id\":\"clinic-05\"},{\"id\":\"clinic-06\"}]}\n",
+        "design-contract.json": "{\"schemaVersion\":\"skill-ir-experimental-design-public-contract/v2\",\"contractId\":\"experimental-design-public-contract-v2\",\"protectedInputs\":[\"study.json\",\"design-contract.json\"],\"outputs\":[\"design/design-plan.json\",\"design/allocation.csv\",\"design/design-report.md\"],\"passThreshold\":0.95,\"criterionWeights\":{\"design-input-integrity\":0.1,\"design-artifact-contract\":0.1,\"design-semantics\":0.25,\"design-allocation-safety\":0.35,\"design-report-consistency\":0.2},\"designPropertyKeys\":[\"preservesAssignmentUnits\",\"balancesGlobally\",\"balancesWithinStrata\",\"supportsSequentialEnrollment\"],\"reportEvidenceOpening\":\"```json design-evidence\",\"reportEvidenceClosing\":\"```\",\"studyContract\":{\"assignmentLevels\":[\"individual\",\"cluster\"],\"requiredFields\":[\"studyId\",\"question\",\"assignmentLevel\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"arms\",\"seed\",\"nuisanceFactors\",\"sequentialEnrollment\",\"units\"],\"unitFields\":[\"id\",\"stratum\"],\"rules\":[\"Use at least two unique nonempty arms and unique nonempty assignment unit IDs.\",\"Stratum is either absent from every unit or a nonempty string on every unit.\",\"For cluster assignment, each unit is one indivisible cluster and cannot contain member-level assignments.\"]},\"allocationContract\":{\"columns\":[\"order\",\"unit_id\",\"stratum\",\"arm\"],\"rules\":[\"Include every assignment unit exactly once and use only public study arms.\",\"When strata are present, balance arms within each stratum; global imbalance remains diagnostic only.\",\"When sequential enrollment is true, evaluate arm-sized blocks in the stable study input order projected into each stratum; each complete block contains every arm once and a final partial block is balanced.\",\"Different legal arm assignments and CSV row orders are accepted.\"]},\"planContract\":{\"requiredFields\":[\"studyId\",\"method\",\"assignmentLevel\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"arms\",\"seed\",\"allocationPath\",\"designProperties\"],\"method\":\"nonempty free text\",\"allocationPath\":\"design/allocation.csv\"},\"reportEvidenceRequiredFields\":[\"studyId\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"seed\",\"allocationPath\",\"allocationRows\",\"armCounts\",\"designProperties\",\"limitationFlags\"],\"limitationFlagRules\":{\"cluster-assignment\":\"assignmentLevel is cluster\",\"stratified-assignment\":\"all units have a nonempty stratum\",\"sequential-enrollment\":\"sequentialEnrollment is true\",\"analysis-unit-differs\":\"analysisUnit differs from assignmentUnit\",\"randomness-not-statistically-audited\":\"always present\"},\"sourceClaimIds\":[\"assignment-unit-contract\",\"cluster-unit-contract\",\"stratified-balance-contract\",\"sequential-balance-contract\",\"design-documentation-contract\",\"randomness-expectation-contract\"]}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "design-input-integrity",
+          "name": "Protected public inputs remain unchanged",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "input-integrity",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-artifact-contract",
+          "name": "All three public outputs satisfy the artifact contract",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "artifact-contract",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-semantics",
+          "name": "Plan properties match the public study and allocation",
+          "weight": 0.25,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "design-semantics",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-allocation-safety",
+          "name": "Allocation preserves units and public balance invariants",
+          "weight": 0.35,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "allocation-safety",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "design-report-consistency",
+          "name": "Report evidence is consistent with observable facts",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-eval/v2",
+            "check": "report-consistency",
+            "paths": {
+              "study": "study.json",
+              "contract": "design-contract.json",
+              "plan": "design/design-plan.json",
+              "allocation": "design/allocation.csv",
+              "report": "design/design-report.md"
+            },
+            "protectedSha256": {
+              "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+              "contract": "60a14be8010b1dde076876201c5f380f05ade8f017ec01b200c7af5c5ac2badf"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "design-input-integrity",
+        "design-artifact-contract",
+        "design-semantics",
+        "design-allocation-safety",
+        "design-report-consistency"
+      ],
+      "passThreshold": 0.95
+    }
+  ]
+}
