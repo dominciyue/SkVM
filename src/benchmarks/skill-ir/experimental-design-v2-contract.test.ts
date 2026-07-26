@@ -443,6 +443,10 @@ function sha256(text: string): string {
   return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
+function repositoryTextBytes(bytes: Uint8Array): Buffer {
+  return Buffer.from(Buffer.from(bytes).toString("utf8").replaceAll("\r\n", "\n"), "utf8");
+}
+
 async function loadJson<T>(filePath: string): Promise<T> {
   return JSON.parse(await readFile(filePath, "utf8")) as T;
 }
@@ -525,7 +529,9 @@ describe("experimental-design v2 public contract provenance", () => {
       const bytes = await readFile(
         path.join(rootDir, ...entry.source.path.split("/")),
       );
-      expect(createHash("sha256").update(bytes).digest("hex")).toBe(
+      expect(
+        createHash("sha256").update(repositoryTextBytes(bytes)).digest("hex"),
+      ).toBe(
         entry.source.sha256,
       );
       expect(bytes.toString("utf8")).toContain(entry.quote);
