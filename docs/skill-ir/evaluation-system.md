@@ -829,3 +829,12 @@ Task-split freeze 由 `experimental-design-v2-task-freeze-run.ts` 生成或只�
 读取公开合同、source audit、2+2 tasks、source closure 与六项 v1 immutable refs，复核
 fixture projection、claim coverage、quote 和 digest。冻结摘要使用 Git blob bytes；工作区
 只允许 Git text 文件的 CRLF/LF 检出差异，其他内容漂移均拒绝。
+
+Development-only differential audit 由 `experimental-design-v2-audit-fixtures.ts` 确定性
+生成 30 个隔离 fixture 和 manifest，再由通用 `benchmark-contract-audit-run.ts` 执行。
+当前 compact report 记录 42/42 canary matched、`status=passed`，覆盖两个 development task
+分支、八种公开组合、替代合法产物、非法控制与 report 的 `0/0.25/0.5/0.75` 部分分数。
+通用审计因此支持 `partial-control.expectedScore`：`pass=true` 只表示没有事实冲突或 hard-gate
+失败，不再被错误等同于 criterion 满分。Manifest、fixture 和 compact report 均不含 held-out
+ID、digest、sentinel、模型正文或 evaluator payload；该结果是 benchmark contract evidence，
+不是模型运行或 Skill IR 优化结果。

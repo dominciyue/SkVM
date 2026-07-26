@@ -1290,7 +1290,7 @@ task/scorer/package，不执行 held-out。
 
 #### Task 8.11.1：v2 身份与公开语义合同
 
-- [ ] 在 `benchmarks/skill-ir/pilots/experimental-design/v2/` 建立独立的 public
+- [x] 在 `benchmarks/skill-ir/pilots/experimental-design/v2/` 建立独立的 public
   contract、2 development + 2 held-out task 身份和 audit fixture 根。
 - [x] 冻结公开可见的输入、输出、方法适用性、assignment/analysis/allocation unit、
   allocation 安全和报告一致性要求。
@@ -1324,17 +1324,17 @@ task/scorer/package，不执行 held-out。
 
 #### Task 8.11.3：Differential Fixture 与 v2 Audit
 
-- [ ] 每个 development criterion 至少提供 canonical-valid、alternative-valid 与
+- [x] 每个 development criterion 至少提供 canonical-valid、alternative-valid 与
   invalid-control；task 分支必须独立覆盖。
-- [ ] Alternative-valid 覆盖自由 method 名称、不同合法 schedule、中英文报告和 key/row
+- [x] Alternative-valid 覆盖自由 method 名称、不同合法 schedule、中英文报告和 key/row
   顺序、八种组合；invalid-control 覆盖 cluster 拆分、unit 缺失/重复、非法 arm、
   stratum/sequential 失衡、重复/非法 evidence block、错误 limitationFlags 和 report
   evidence 冲突。
-- [ ] 增加 reverse-evidence 和 gold-isolation 测试：移除公开证据后约束消失或变为
+- [x] 增加 reverse-evidence 和 gold-isolation 测试：移除公开证据后约束消失或变为
   `unconfirmed`，evaluator expected、held-out、历史模型正文和 package answer 不可达。
-- [ ] 生成新的 v2 audit manifest/report；任何 alternative-valid 被拒、invalid-control
+- [x] 生成新的 v2 audit manifest/report；任何 alternative-valid 被拒、invalid-control
   被接受或 source anchor 漂移都 fail closed。
-- [ ] audit 通过前 corpus 保持非主实验状态，不创建付费 lock。
+- [x] audit 通过前 corpus 保持非主实验状态，不创建付费 lock。
 
 #### Task 8.11.4：Calibration、IR 与 Artifact Development
 
@@ -1888,10 +1888,11 @@ git commit -m "feat: add experimental design v2 semantic scorer"
 - Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-limitation-flags/`
 - Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-report-contradiction/`
 - Create: `benchmarks/skill-ir/pilots/experimental-design/v2/benchmark-contract-audit.json`
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-audit-fixtures.ts`
 - Create: `src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts`
 - Create: `results/skill-ir/benchmark-contract-audit/experimental-design-v2.json`
 
-- [ ] **Step 1: 写 audit RED test**
+- [x] **Step 1: 写 audit RED test**
 
 Test 必须断言：
 
@@ -1910,7 +1911,7 @@ expect(serialized).not.toContain(taskSplitFreeze.heldoutSentinel)
 同时读取 v2 scorer source，断言其 dependency boundary 不包含 corpus/task registry、
 heldout freeze、compiler、package 或 result import。
 
-- [ ] **Step 2: 运行 audit test 并确认 RED**
+- [x] **Step 2: 运行 audit test 并确认 RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts
@@ -1918,7 +1919,7 @@ bun test ./src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts
 
 Expected: FAIL，原因是 v2 audit manifest/fixtures/report 尚不存在。
 
-- [ ] **Step 3: 创建 canary fixture 矩阵**
+- [x] **Step 3: 创建 canary fixture 矩阵**
 
 至少包含：
 
@@ -1960,15 +1961,22 @@ design/design-report.md
 ```
 
 `invalid-missing-artifact` 只故意省略 `design/design-report.md`。Fixture 不使用 symlink、
-junction、绝对路径或运行时生成文件。
+junction、绝对路径或运行时生成文件。矩阵由
+`experimental-design-v2-audit-fixtures.ts` 确定性生成；绑定 input-integrity 的 canonical
+fixture 逐字复用冻结 task 中的 protected input bytes，其他 alternative fixture 只改变
+公开合同允许变化的产物或 study 组合。
 
-- [ ] **Step 4: 编写 v2 audit manifest**
+- [x] **Step 4: 编写 v2 audit manifest**
 
 Manifest 使用现有 `skill-ir-benchmark-contract-audit/v1`，只绑定 development task file、
 v2 scorer 和公开 source/contract evidence。Requirements 不得出现 evaluator expected、
 held-out path/digest、v1 model output 或 package answer。
 
-- [ ] **Step 5: 运行 audit 并持久化 compact report**
+通用 audit schema 增加 `partial-control + expectedScore`，用于区分“evaluator 接受该输出”
+与“criterion 满分”。该扩展只比较公开 scorer 返回的部分分数，不增加 skill-specific 分支；
+`partial-control` 必须满足 `expectedPass=true` 且 `expectedScore<1`。
+
+- [x] **Step 5: 运行 audit 并持久化 compact report**
 
 ```powershell
 bun ./src/benchmarks/skill-ir/benchmark-contract-audit-run.ts `
@@ -1979,7 +1987,7 @@ bun ./src/benchmarks/skill-ir/benchmark-contract-audit-run.ts `
 Expected: exit 0、`status=passed`，所有 canonical/alternative/invalid canary outcome
 matched；report 不含 fixture payload、held-out 或模型正文。
 
-- [ ] **Step 6: 运行 audit tests**
+- [x] **Step 6: 运行 audit tests**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts `
@@ -1990,7 +1998,7 @@ bun test ./src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts `
 
 Expected: v2 passed；三个 v1 pilot 仍保持原冻结 failed 结果。
 
-- [ ] **Step 7: 提交 audit**
+- [x] **Step 7: 提交 audit**
 
 ```powershell
 git add benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures `

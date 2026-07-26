@@ -31,9 +31,15 @@ type RunBenchmarkContractAuditOptions = {
 
 export type BenchmarkContractCanaryResult = {
   id: string;
-  role: "canonical-valid" | "alternative-valid" | "invalid-control";
+  role:
+    | "canonical-valid"
+    | "alternative-valid"
+    | "invalid-control"
+    | "partial-control";
   expectedPass: boolean;
+  expectedScore?: number;
   actualPass?: boolean;
+  actualScore?: number;
   status: "matched" | "mismatched" | "infrastructure";
 };
 
@@ -162,6 +168,9 @@ export async function runBenchmarkContractAudit(
         id: canary.id,
         role: canary.role,
         expectedPass: canary.expectedPass,
+        ...(canary.expectedScore === undefined
+          ? {}
+          : { expectedScore: canary.expectedScore }),
         status: "infrastructure",
       });
       runtimeIssues.push({ code: "CANARY_INFRASTRUCTURE", subjectId: canary.id });
@@ -187,17 +196,29 @@ export async function runBenchmarkContractAudit(
           id: canary.id,
           role: canary.role,
           expectedPass: canary.expectedPass,
+          ...(canary.expectedScore === undefined
+            ? {}
+            : { expectedScore: canary.expectedScore }),
           status: "infrastructure",
         });
         runtimeIssues.push({ code: "CANARY_INFRASTRUCTURE", subjectId: canary.id });
       } else {
         const actualPass = result.pass;
-        const status = actualPass === canary.expectedPass ? "matched" : "mismatched";
+        const actualScore = result.score;
+        const status =
+          actualPass === canary.expectedPass &&
+          (canary.expectedScore === undefined || actualScore === canary.expectedScore)
+            ? "matched"
+            : "mismatched";
         canaryResults.push({
           id: canary.id,
           role: canary.role,
           expectedPass: canary.expectedPass,
+          ...(canary.expectedScore === undefined
+            ? {}
+            : { expectedScore: canary.expectedScore }),
           actualPass,
+          ...(canary.expectedScore === undefined ? {} : { actualScore }),
           status,
         });
         if (status === "mismatched") {
@@ -209,6 +230,9 @@ export async function runBenchmarkContractAudit(
         id: canary.id,
         role: canary.role,
         expectedPass: canary.expectedPass,
+        ...(canary.expectedScore === undefined
+          ? {}
+          : { expectedScore: canary.expectedScore }),
         status: "infrastructure",
       });
       runtimeIssues.push({ code: "CANARY_INFRASTRUCTURE", subjectId: canary.id });

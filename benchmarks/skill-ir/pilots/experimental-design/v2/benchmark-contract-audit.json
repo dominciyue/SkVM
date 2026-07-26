@@ -1,0 +1,767 @@
+{
+  "schemaVersion": "skill-ir-benchmark-contract-audit/v1",
+  "auditId": "experimental-design-v2-benchmark-contract-v1",
+  "skillId": "experimental-design-v2",
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json",
+    "sha256": "6187a3f562b07ab9974b35ebf6dc11ecf20e805bdae92c967444f9a1e83df57a"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+    "sha256": "c718aee48f6eb0ca39e23640d6e0da3a6c365a71d96b3b123bdb1bac1e67dc28",
+    "evaluatorId": "skill-ir-experimental-design-v2"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+      "sha256": "630132d1dbc978159180353e7f592c46b435e4bc94ed61c51e4ede5f0a0ed3b3"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract-source-audit.json",
+      "sha256": "32ed02fd41202fd3b7f27a3c6e33beaf24c7b19cf6c58eaf0b10a8665155a61e"
+    }
+  ],
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "experimental-design-v2-stratified-dev-001",
+      "experimental-design-v2-cluster-sequential-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "design-input-integrity",
+      "hardGate": true,
+      "taskIds": [
+        "experimental-design-v2-stratified-dev-001",
+        "experimental-design-v2-cluster-sequential-dev-002"
+      ],
+      "requirementIds": [
+        "input-safety",
+        "input-equivalence"
+      ]
+    },
+    {
+      "id": "design-artifact-contract",
+      "hardGate": true,
+      "taskIds": [
+        "experimental-design-v2-stratified-dev-001",
+        "experimental-design-v2-cluster-sequential-dev-002"
+      ],
+      "requirementIds": [
+        "artifact-safety",
+        "artifact-equivalence"
+      ]
+    },
+    {
+      "id": "design-semantics",
+      "hardGate": true,
+      "taskIds": [
+        "experimental-design-v2-stratified-dev-001",
+        "experimental-design-v2-cluster-sequential-dev-002"
+      ],
+      "requirementIds": [
+        "semantics-safety",
+        "semantics-equivalence"
+      ]
+    },
+    {
+      "id": "design-allocation-safety",
+      "hardGate": true,
+      "taskIds": [
+        "experimental-design-v2-stratified-dev-001",
+        "experimental-design-v2-cluster-sequential-dev-002"
+      ],
+      "requirementIds": [
+        "allocation-safety",
+        "allocation-equivalence"
+      ]
+    },
+    {
+      "id": "design-report-consistency",
+      "hardGate": true,
+      "taskIds": [
+        "experimental-design-v2-stratified-dev-001",
+        "experimental-design-v2-cluster-sequential-dev-002"
+      ],
+      "requirementIds": [
+        "report-safety",
+        "report-equivalence"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "input-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "design-input-integrity"
+      ],
+      "contractTokens": [
+        "protectedInputs"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkInputIntegrity"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "protectedInputs"
+        }
+      ],
+      "canaryIds": [
+        "input-canonical-dev1",
+        "input-canonical-dev2",
+        "input-invalid-dev1",
+        "input-invalid-dev2"
+      ]
+    },
+    {
+      "id": "input-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "design-input-integrity"
+      ],
+      "contractTokens": [
+        "protectedInputs"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkInputIntegrity"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "protectedInputs"
+        }
+      ],
+      "canaryIds": [
+        "input-alternative-dev1",
+        "input-alternative-dev2"
+      ]
+    },
+    {
+      "id": "artifact-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "design-artifact-contract"
+      ],
+      "contractTokens": [
+        "outputs"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkArtifactContract"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "outputs"
+        }
+      ],
+      "canaryIds": [
+        "artifact-canonical-dev1",
+        "artifact-canonical-dev2",
+        "artifact-invalid-dev1",
+        "artifact-invalid-dev2"
+      ]
+    },
+    {
+      "id": "artifact-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "design-artifact-contract"
+      ],
+      "contractTokens": [
+        "outputs"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkArtifactContract"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "outputs"
+        }
+      ],
+      "canaryIds": [
+        "artifact-alternative-dev1",
+        "artifact-alternative-dev2"
+      ]
+    },
+    {
+      "id": "semantics-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "design-semantics"
+      ],
+      "contractTokens": [
+        "designProperties"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "planMatchesPublicStudy"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "designProperties"
+        }
+      ],
+      "canaryIds": [
+        "semantics-canonical-dev1",
+        "semantics-canonical-dev2",
+        "semantics-invalid-dev1",
+        "semantics-invalid-dev2"
+      ]
+    },
+    {
+      "id": "semantics-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "design-semantics"
+      ],
+      "contractTokens": [
+        "designProperties"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "planMatchesPublicStudy"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "designProperties"
+        }
+      ],
+      "canaryIds": [
+        "semantics-alternative-dev1",
+        "semantics-alternative-dev2"
+      ]
+    },
+    {
+      "id": "allocation-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "design-allocation-safety"
+      ],
+      "contractTokens": [
+        "Different legal arm assignments"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkAllocationSafety"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "Different legal arm assignments"
+        }
+      ],
+      "canaryIds": [
+        "allocation-canonical-dev1",
+        "allocation-canonical-dev2",
+        "allocation-invalid-dev1",
+        "allocation-invalid-dev2",
+        "allocation-invalid-arm",
+        "allocation-cluster-split",
+        "allocation-duplicate-unit",
+        "allocation-mixed-strata",
+        "allocation-stratum-balance"
+      ]
+    },
+    {
+      "id": "allocation-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "design-allocation-safety"
+      ],
+      "contractTokens": [
+        "Different legal arm assignments"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkAllocationSafety"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "Different legal arm assignments"
+        }
+      ],
+      "canaryIds": [
+        "allocation-alternative-dev1",
+        "allocation-alternative-dev2"
+      ]
+    },
+    {
+      "id": "report-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "design-report-consistency"
+      ],
+      "contractTokens": [
+        "reportEvidenceRequiredFields"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkReportConsistency"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "reportEvidenceRequiredFields"
+        }
+      ],
+      "canaryIds": [
+        "report-canonical-dev1",
+        "report-canonical-dev2",
+        "report-invalid-dev1",
+        "report-invalid-dev2"
+      ]
+    },
+    {
+      "id": "report-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "design-report-consistency"
+      ],
+      "contractTokens": [
+        "reportEvidenceRequiredFields"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkReportConsistency"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "reportEvidenceRequiredFields"
+        }
+      ],
+      "canaryIds": [
+        "report-alternative-dev1",
+        "report-alternative-dev2"
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "input-canonical-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-input-integrity",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/canonical-complete",
+      "fixtureSha256": "53e5532c525b6726cad2f1fc08b38d81156681cacdc85be1a8d38cfe40b74b2d",
+      "expectedPass": true
+    },
+    {
+      "id": "input-canonical-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-input-integrity",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-sequential",
+      "fixtureSha256": "463755443a927ee83646596e48099fa16af49d9e5f8fd2a0ec9e342eb89c8aa8",
+      "expectedPass": true
+    },
+    {
+      "id": "input-alternative-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-input-integrity",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-report-chinese",
+      "fixtureSha256": "adb959f5a7d54a9d06b7f2e43d841f8f9c7ad540f0923fe55f8aaefb51274f3e",
+      "expectedPass": true
+    },
+    {
+      "id": "input-alternative-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-input-integrity",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-report-chinese-cluster",
+      "fixtureSha256": "9eb3e3f14fa74a94216333b602c5344186e2909ca4d75bfda3531291d63cf8e1",
+      "expectedPass": true
+    },
+    {
+      "id": "input-invalid-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-input-integrity",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-protected-input",
+      "fixtureSha256": "c9284d9a25db9f70639273498dff3641df9beb144fc1b384ee57fe3b366a7c5d",
+      "expectedPass": false
+    },
+    {
+      "id": "input-invalid-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-input-integrity",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-protected-input",
+      "fixtureSha256": "c9284d9a25db9f70639273498dff3641df9beb144fc1b384ee57fe3b366a7c5d",
+      "expectedPass": false
+    },
+    {
+      "id": "artifact-canonical-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-artifact-contract",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/canonical-complete",
+      "fixtureSha256": "53e5532c525b6726cad2f1fc08b38d81156681cacdc85be1a8d38cfe40b74b2d",
+      "expectedPass": true
+    },
+    {
+      "id": "artifact-canonical-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-artifact-contract",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-sequential",
+      "fixtureSha256": "463755443a927ee83646596e48099fa16af49d9e5f8fd2a0ec9e342eb89c8aa8",
+      "expectedPass": true
+    },
+    {
+      "id": "artifact-alternative-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-artifact-contract",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-individual-strata-sequential",
+      "fixtureSha256": "2897fb08eab6303cea1f1f05b2da316ee8ed638276459ca5a36a767887fb333c",
+      "expectedPass": true
+    },
+    {
+      "id": "artifact-alternative-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-artifact-contract",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-strata-sequential",
+      "fixtureSha256": "297d1d446d1345cb0130776e4fe298cb66d6bb6c30629f40e3e35d33f91753a3",
+      "expectedPass": true
+    },
+    {
+      "id": "artifact-invalid-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-artifact-contract",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-missing-artifact",
+      "fixtureSha256": "e86173d3a634b5d359ce98b8a4759012343b4e7dc6db9e1369fa92a83018c474",
+      "expectedPass": false
+    },
+    {
+      "id": "artifact-invalid-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-artifact-contract",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-missing-artifact",
+      "fixtureSha256": "e86173d3a634b5d359ce98b8a4759012343b4e7dc6db9e1369fa92a83018c474",
+      "expectedPass": false
+    },
+    {
+      "id": "semantics-canonical-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-semantics",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/canonical-complete",
+      "fixtureSha256": "53e5532c525b6726cad2f1fc08b38d81156681cacdc85be1a8d38cfe40b74b2d",
+      "expectedPass": true
+    },
+    {
+      "id": "semantics-canonical-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-semantics",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-sequential",
+      "fixtureSha256": "463755443a927ee83646596e48099fa16af49d9e5f8fd2a0ec9e342eb89c8aa8",
+      "expectedPass": true
+    },
+    {
+      "id": "semantics-alternative-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-semantics",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-individual-plain",
+      "fixtureSha256": "b2f13f345b600cfd073744800c7c134e392851a8fa57de7ef9a13d6730703ae0",
+      "expectedPass": true
+    },
+    {
+      "id": "semantics-alternative-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-semantics",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-plain",
+      "fixtureSha256": "4bbb461f2fee929dd816cb9263c295f675be58acf481a7db5db5e3ddd025fa5a",
+      "expectedPass": true
+    },
+    {
+      "id": "semantics-invalid-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-semantics",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-plan-properties",
+      "fixtureSha256": "cfe0182791d0e076b3e1a3cb086ea502c681bbedf24102b19a969643c1ffabc6",
+      "expectedPass": false
+    },
+    {
+      "id": "semantics-invalid-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-semantics",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-plan-properties",
+      "fixtureSha256": "cfe0182791d0e076b3e1a3cb086ea502c681bbedf24102b19a969643c1ffabc6",
+      "expectedPass": false
+    },
+    {
+      "id": "allocation-canonical-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-allocation-safety",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/canonical-complete",
+      "fixtureSha256": "53e5532c525b6726cad2f1fc08b38d81156681cacdc85be1a8d38cfe40b74b2d",
+      "expectedPass": true
+    },
+    {
+      "id": "allocation-canonical-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-allocation-safety",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-sequential",
+      "fixtureSha256": "463755443a927ee83646596e48099fa16af49d9e5f8fd2a0ec9e342eb89c8aa8",
+      "expectedPass": true
+    },
+    {
+      "id": "allocation-alternative-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-allocation-safety",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-individual-strata",
+      "fixtureSha256": "08ea21053f019c5e46eebd9705cc59cc8836c6ec474f07ddf6446fbfafe6f31f",
+      "expectedPass": true
+    },
+    {
+      "id": "allocation-alternative-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-allocation-safety",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-strata",
+      "fixtureSha256": "3fa149dcf20b7f20a86987b888e1c251199c8d85d5ddf20fdf6680f8155d5739",
+      "expectedPass": true
+    },
+    {
+      "id": "allocation-invalid-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-allocation-safety",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-unit-coverage",
+      "fixtureSha256": "8ddc3fc23fe8cec7cfd2bbb8de22e2a865eceb9a7de6c6d4b4d4dbdefca92e20",
+      "expectedPass": false
+    },
+    {
+      "id": "allocation-invalid-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-allocation-safety",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-sequential-block",
+      "fixtureSha256": "ec3aa19bcff86a15fa1271189ad19f2b1eb03d66057b4f967dead5d7de0a9475",
+      "expectedPass": false
+    },
+    {
+      "id": "report-canonical-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/canonical-complete",
+      "fixtureSha256": "53e5532c525b6726cad2f1fc08b38d81156681cacdc85be1a8d38cfe40b74b2d",
+      "expectedPass": true
+    },
+    {
+      "id": "report-canonical-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-report-consistency",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-sequential",
+      "fixtureSha256": "463755443a927ee83646596e48099fa16af49d9e5f8fd2a0ec9e342eb89c8aa8",
+      "expectedPass": true
+    },
+    {
+      "id": "report-alternative-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-individual-sequential",
+      "fixtureSha256": "2d971abfa52eb92ac12004310179fc7199db1bcec3b68aa2020cbe9e73807acb",
+      "expectedPass": true
+    },
+    {
+      "id": "report-alternative-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-report-consistency",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-strata-sequential",
+      "fixtureSha256": "297d1d446d1345cb0130776e4fe298cb66d6bb6c30629f40e3e35d33f91753a3",
+      "expectedPass": true
+    },
+    {
+      "id": "report-invalid-dev1",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-report-contradiction",
+      "fixtureSha256": "55b73f91420511c79a7b613012364d16dd49ca9eb70cd0c7055f079fc8b731d5",
+      "expectedPass": false
+    },
+    {
+      "id": "report-invalid-dev2",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-report-consistency",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-limitation-flags",
+      "fixtureSha256": "cf3fe682a15739bbca6227b80d0e7431f5594bf8a518a8396f5b11b1baf0b7e5",
+      "expectedPass": false
+    },
+    {
+      "id": "allocation-invalid-arm",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-allocation-safety",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-arm",
+      "fixtureSha256": "b93e66389f0e9a1f8fe841775e9a47c4f0c79ee2a244d23b653504e60c29acd4",
+      "expectedPass": false
+    },
+    {
+      "id": "allocation-cluster-split",
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "criterionId": "design-allocation-safety",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-cluster-split",
+      "fixtureSha256": "7ae26fb96fcabb34c7c789f3862c7172b4fa3ef34fdfda02fdd7ca75e95cf3cf",
+      "expectedPass": false
+    },
+    {
+      "id": "allocation-duplicate-unit",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-allocation-safety",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-duplicate-unit",
+      "fixtureSha256": "c93b87af62011a091ee15cdee8463dcdf184dd09a1feace40e17a373c911ad76",
+      "expectedPass": false
+    },
+    {
+      "id": "allocation-mixed-strata",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-allocation-safety",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-mixed-strata",
+      "fixtureSha256": "335835b7bbf7e5cf6a2f1fd9a2541780d74a441a2d94b4494985c0ccd3fc43fa",
+      "expectedPass": false
+    },
+    {
+      "id": "allocation-stratum-balance",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-allocation-safety",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-stratum-balance",
+      "fixtureSha256": "f3643306c1fca4a58f93370c0e4017c20f4ed2c9289774f312e46bb67083f8c5",
+      "expectedPass": false
+    },
+    {
+      "id": "report-partial-missing",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "partial-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-report-block",
+      "fixtureSha256": "62c71303d8b9aff0b93f61ff77b892771391ff82e3563d4e4c3a5c0c8dcf2852",
+      "expectedPass": true,
+      "expectedScore": 0
+    },
+    {
+      "id": "report-partial-multiple",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "partial-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-report-multiple-blocks",
+      "fixtureSha256": "dc78503d9a9dd3987d14c4b17777141c9ab21c951d5af52dbf792b02379ef983",
+      "expectedPass": true,
+      "expectedScore": 0
+    },
+    {
+      "id": "report-partial-invalid-json",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "partial-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-report-json",
+      "fixtureSha256": "ef10c8ad6f8eb374cdd192e66c537e8a6ff02f0dec0d2c951925e46b15e77b4b",
+      "expectedPass": true,
+      "expectedScore": 0
+    },
+    {
+      "id": "report-partial-duplicate-key",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "partial-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-report-duplicate-key",
+      "fixtureSha256": "78380928c3d8257db3ee71c242a3e65f5ce48d76844f8eebf35f06f3d65a1231",
+      "expectedPass": true,
+      "expectedScore": 0
+    },
+    {
+      "id": "report-partial-structure-only",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "partial-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/partial-report-structure",
+      "fixtureSha256": "58bf6e7bd4e6b04339f082d8ad525cceb42d3a074ca64604cb4ec666e7e5a729",
+      "expectedPass": true,
+      "expectedScore": 0.25
+    },
+    {
+      "id": "report-partial-study-only",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "partial-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/partial-report-study",
+      "fixtureSha256": "1fc76795b6cce842234db6efad1af6e58ac08ed3bc2e9c65507e82ff4d29d4b4",
+      "expectedPass": true,
+      "expectedScore": 0.5
+    },
+    {
+      "id": "report-partial-without-limitations",
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "criterionId": "design-report-consistency",
+      "role": "partial-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/partial-report-allocation",
+      "fixtureSha256": "1ae5cfd9d90cfb3dfafc2930d8a2414121a1bb8c277d5392d85558f612231ce1",
+      "expectedPass": true,
+      "expectedScore": 0.75
+    }
+  ]
+}

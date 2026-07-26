@@ -90,10 +90,16 @@ export const BenchmarkContractAuditManifestSchema = z.object({
     id: SafeIdSchema,
     taskId: SafeIdSchema,
     criterionId: SafeIdSchema,
-    role: z.enum(["canonical-valid", "alternative-valid", "invalid-control"]),
+    role: z.enum([
+      "canonical-valid",
+      "alternative-valid",
+      "invalid-control",
+      "partial-control",
+    ]),
     fixturePath: SafeRelativePathSchema,
     fixtureSha256: DigestSchema,
     expectedPass: z.boolean(),
+    expectedScore: z.number().min(0).max(1).optional(),
   }).strict()),
 }).strict().superRefine((manifest, context) => {
   const requireUnique = (
@@ -136,14 +142,25 @@ export const BenchmarkContractAuditManifestSchema = z.object({
   requireUnique(manifest.sources.map((source) => source.path), ["sources"], "source paths");
 
   manifest.canaries.forEach((canary, index) => {
-    const validExpectedPass = canary.role === "invalid-control"
-      ? canary.expectedPass === false
-      : canary.expectedPass === true;
+    const validExpectedPass =
+      canary.role === "invalid-control"
+        ? canary.expectedPass === false
+        : canary.expectedPass === true;
     if (!validExpectedPass) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["canaries", index, "expectedPass"],
         message: `${canary.role} has a contradictory expectedPass`,
+      });
+    }
+    if (
+      canary.role === "partial-control" &&
+      (canary.expectedScore === undefined || canary.expectedScore >= 1)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["canaries", index, "expectedScore"],
+        message: "partial-control requires expectedScore in [0, 1)",
       });
     }
   });

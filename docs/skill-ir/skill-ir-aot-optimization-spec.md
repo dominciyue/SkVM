@@ -1494,6 +1494,11 @@ alternative-valid fixture 不因表面格式差异被拒；invalid-control 能�
 安全或语义失败；删除公开证据后，约束会降级为 `unconfirmed` 或明确失败，而
 不会猜测隐藏金标。
 
+Audit 的 differential role 还包含通用 `partial-control`：当 evaluator 按合同返回
+`pass=true` 但 criterion 仅得部分分时，manifest 必须显式冻结 `expectedScore`。审计同时
+比较 `pass` 与 score，不能把“未触发 hard gate”误写成“满分通过”。该角色只接受
+`expectedPass=true`、`0 <= expectedScore < 1`，不允许按 skill ID 增加解释分支。
+
 ### 24.5 数据流与实验顺序
 
 ```text
@@ -1604,11 +1609,13 @@ totalBaseline(N) =
 
 ### 24.8 当前阶段的不可声称项
 
-截至 2026-07-27，v2 task split 与本地语义 scorer 已实现：五个 custom checks 只读取
+截至 2026-07-27，v2 task split、本地语义 scorer 和 development-only differential audit
+已实现：五个 custom checks 只读取
 payload 指向的隔离 workdir，严格 JSON 同时经 `JSON.parse` 与 duplicate-key 检查，
 allocation 复用公开不变量 API，report 缺失/非法 block 返回 `pass=true, score=0`，只有
-与可观察事实冲突时返回 `pass=false`。这只是 scorer 机制基线；development-only
-differential audit 和 held-out freeze 尚未完成，因此仍不构成 benchmark 通过或优化证据。
+与可观察事实冲突时返回 `pass=false`。Development audit 的 42 个 canonical、alternative、
+invalid 与 partial-score canary 全部匹配，compact report 为 `passed`；它只证明 v2 测量
+合同通过本地审计。Held-out freeze 尚未完成，因此仍不构成 baseline、IR/artifact 或优化证据。
 
 在 v2 audit、development gate、Wave B replication 和摊销实验完成前，不得声称：
 

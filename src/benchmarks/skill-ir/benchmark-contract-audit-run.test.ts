@@ -187,6 +187,53 @@ describe("benchmark contract audit runner", () => {
     });
   });
 
+  test("audits partial-score controls without treating pass=true as full success", async () => {
+    const { root, manifest } = await fixture();
+    manifest.requirements[0]!.equivalence = "exact-public-contract";
+    manifest.canaries[0] = {
+      ...manifest.canaries[0]!,
+      role: "partial-control",
+      expectedPass: true,
+      expectedScore: 0.5,
+    } as any;
+    manifest.requirements[0]!.canaryIds = [manifest.canaries[0]!.id];
+    registerCustomEvaluator(evaluatorId, {
+      async run() {
+        return { pass: true, score: 0.5, details: "partial public contract" };
+      },
+    });
+
+    const evaluator = customEvaluators.get(evaluatorId)!;
+    const matched = await runBenchmarkContractAudit(manifest, root, {
+      evaluatorSourcePaths: new Map([[evaluatorId, manifest.scorer.path]]),
+      evaluatorSourceDigests: new Map([[evaluatorId, manifest.scorer.sha256]]),
+      evaluatorImplementations: new Map([[evaluatorId, evaluator]]),
+    });
+    expect(matched.status).toBe("passed");
+    expect(matched.canaries[0]).toMatchObject({
+      role: "partial-control",
+      expectedPass: true,
+      expectedScore: 0.5,
+      actualPass: true,
+      actualScore: 0.5,
+      status: "matched",
+    });
+
+    registerCustomEvaluator(evaluatorId, {
+      async run() {
+        return { pass: true, score: 0.75, details: "wrong partial score" };
+      },
+    });
+    const changedEvaluator = customEvaluators.get(evaluatorId)!;
+    const mismatched = await runBenchmarkContractAudit(manifest, root, {
+      evaluatorSourcePaths: new Map([[evaluatorId, manifest.scorer.path]]),
+      evaluatorSourceDigests: new Map([[evaluatorId, manifest.scorer.sha256]]),
+      evaluatorImplementations: new Map([[evaluatorId, changedEvaluator]]),
+    });
+    expect(mismatched.status).toBe("failed");
+    expect(mismatched.canaries[0]).toMatchObject({ status: "mismatched" });
+  });
+
   test("fails closed when the evaluator is unavailable", async () => {
     const { root, manifest } = await fixture();
 
