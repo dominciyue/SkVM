@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "skill-ir-experimental-design-public-contract/v3",
+  "contractId": "experimental-design-public-contract-v3",
+  "protectedInputs": ["study.json", "design-contract.json"],
+  "workdirContract": {
+    "allowedRootEntries": ["study.json", "design-contract.json", "design"],
+    "allowedDesignEntries": [
+      "design-plan.json",
+      "allocation.csv",
+      "design-report.md"
+    ],
+    "rules": [
+      "Do not create any root entry other than the two protected inputs and the design directory.",
+      "The design directory must contain exactly the three declared output files.",
+      "Additional files, directories, links, junctions, or special entries are forbidden."
+    ]
+  },
+  "outputs": [
+    "design/design-plan.json",
+    "design/allocation.csv",
+    "design/design-report.md"
+  ],
+  "passThreshold": 0.95,
+  "criterionWeights": {
+    "design-input-integrity": 0.1,
+    "design-artifact-contract": 0.1,
+    "design-semantics": 0.25,
+    "design-allocation-safety": 0.35,
+    "design-report-consistency": 0.2
+  },
+  "designPropertyKeys": [
+    "preservesAssignmentUnits",
+    "balancesGlobally",
+    "balancesWithinStrata",
+    "supportsSequentialEnrollment"
+  ],
+  "reportEvidenceOpening": "```json design-evidence",
+  "reportEvidenceClosing": "```",
+  "reportEvidenceGrammar": {
+    "blockCount": 1,
+    "openingMarker": "```json design-evidence",
+    "closingMarker": "```",
+    "topLevelType": "object",
+    "jsonMode": "strict",
+    "encoding": "UTF-8",
+    "allowComments": false,
+    "allowTrailingCommas": false,
+    "allowDuplicateKeys": false
+  },
+  "studyContract": {
+    "assignmentLevels": ["individual", "cluster"],
+    "requiredFields": [
+      "studyId",
+      "question",
+      "assignmentLevel",
+      "assignmentUnit",
+      "analysisUnit",
+      "response",
+      "arms",
+      "seed",
+      "nuisanceFactors",
+      "sequentialEnrollment",
+      "units"
+    ],
+    "unitFields": ["id", "stratum"],
+    "rules": [
+      "Use at least two unique nonempty arms and unique nonempty assignment unit IDs.",
+      "Stratum is either absent from every unit or a nonempty string on every unit.",
+      "When assignmentLevel is cluster, each units[] element is one indivisible assignment unit; assignmentUnit remains arbitrary nonempty free text and is not lexically classified; explicit nested member structures or assignments are not allowed in a unit."
+    ]
+  },
+  "allocationContract": {
+    "columns": ["order", "unit_id", "stratum", "arm"],
+    "rules": [
+      "Set order to the one-based position of unit_id in study.units; physical CSV row order may vary.",
+      "Include every assignment unit exactly once and use only public study arms.",
+      "When strata are present, balance arms within each stratum; global imbalance remains diagnostic only.",
+      "When sequential enrollment is true, evaluate arm-sized blocks in the stable study input order projected into each stratum; each complete block contains every arm once and a final partial block is balanced.",
+      "Different legal arm assignments and CSV row orders are accepted."
+    ]
+  },
+  "planContract": {
+    "requiredFields": [
+      "studyId",
+      "method",
+      "assignmentLevel",
+      "assignmentUnit",
+      "analysisUnit",
+      "response",
+      "arms",
+      "seed",
+      "allocationPath",
+      "designProperties"
+    ],
+    "method": "nonempty free text",
+    "allocationPath": "design/allocation.csv"
+  },
+  "reportEvidenceRequiredFields": [
+    "studyId",
+    "assignmentUnit",
+    "analysisUnit",
+    "response",
+    "seed",
+    "allocationPath",
+    "allocationRows",
+    "armCounts",
+    "designProperties",
+    "limitationFlags"
+  ],
+  "limitationFlagRules": {
+    "cluster-assignment": "assignmentLevel is cluster",
+    "stratified-assignment": "all units have a nonempty stratum",
+    "sequential-enrollment": "sequentialEnrollment is true",
+    "analysis-unit-differs": "analysisUnit differs from assignmentUnit",
+    "randomness-not-statistically-audited": "always present"
+  },
+  "sourceClaimIds": [
+    "assignment-unit-contract",
+    "cluster-unit-contract",
+    "stratified-balance-contract",
+    "sequential-balance-contract",
+    "design-documentation-contract",
+    "randomness-expectation-contract"
+  ]
+}
