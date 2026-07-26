@@ -1294,6 +1294,9 @@ task/scorer/package，不执行 held-out。
   contract、2 development + 2 held-out task 身份和 audit fixture 根。
 - [ ] 冻结公开可见的输入、输出、方法适用性、assignment/analysis/allocation unit、
   allocation 安全和报告一致性要求。
+- [ ] Development/held-out 物理分文件；scorer 实现前提交 `task-split-freeze.json`
+  绑定 2+2 task/fixture digest，任何 API run 前再提交 `heldout-freeze.json`
+  绑定 scorer digest 和创建提交。
 - [ ] 明确禁止私有 schema version、封闭 method enum、唯一 PRNG/schedule 和逐字
   report label 进入主成功条件。
 - [ ] v1 path/digest 测试必须证明旧 task/scorer/audit/lock/package/result 未变化。
@@ -1301,8 +1304,14 @@ task/scorer/package，不执行 held-out。
 #### Task 8.11.2：语义主 Scorer 与确定性次指标
 
 - [ ] 先写 scorer RED tests，覆盖合法等价方法、allocation 顺序和中英文报告措辞。
-- [ ] 主 scorer 只输出 `primarySemanticScore`、criterion 和 hard-gate；runtime checker
-  仍与离线 scorer 分离。
+- [ ] 主 scorer 按 `0.10/0.10/0.25/0.35/0.20` 聚合五项语义分数；四个前置
+  criterion 与 report contradiction 为 hard gate，row threshold 固定 `0.95`。
+- [ ] Development gate 预注册为：0 infrastructure、success≥3/4、mean≥0.95、
+  每个 task 至少一次成功、相对 baseline 无 hard-gate regression。
+- [ ] 方法只按公开 `designProperties` 和 allocation invariants 判定，不比较自由文本
+  method 名称；seed 的唯一 schedule 只进入 profile 次指标。
+- [ ] 报告正文不做关键词判分；只交叉验证公开 fenced JSON `design-evidence` block
+  与 study/plan/allocation，允许中英文、key 顺序和额外字段变化。
 - [ ] 单独计算 `deterministicProfileScore` 与 reproducibility；除公开合同明确要求外，
   profile 不得改变 primary success。
 - [ ] 输出显式支持“semantic pass / profile differ”，防止 benchmark-specific profile
@@ -1312,6 +1321,9 @@ task/scorer/package，不执行 held-out。
 
 - [ ] 每个 development criterion 至少提供 canonical-valid、alternative-valid 与
   invalid-control；task 分支必须独立覆盖。
+- [ ] Alternative-valid 覆盖自由 method 名称、不同合法 schedule、中英文报告和 key/row
+  顺序；invalid-control 覆盖 cluster 拆分、unit 缺失/重复、非法 arm、stratum/sequential
+  失衡和 report evidence 冲突。
 - [ ] 增加 reverse-evidence 和 gold-isolation 测试：移除公开证据后约束消失或变为
   `unconfirmed`，evaluator expected、held-out、历史模型正文和 package answer 不可达。
 - [ ] 生成新的 v2 audit manifest/report；任何 alternative-valid 被拒、invalid-control
@@ -1330,7 +1342,12 @@ task/scorer/package，不执行 held-out。
 
 #### Task 8.11.5：Held-out、Wave B 与摊销
 
-- [ ] v2 development gate 通过后另建 held-out lock，只消费冻结产物。
+- [ ] 实现 held-out 隔离负向测试：development audit/lock/compiler/package/scorer
+  不得消费 held-out ID、path、digest、fixture 或 sentinel。
+- [ ] v2 development gate 通过后另建 held-out lock；验证 heldout freeze、parent gate、
+  package 和 scorer digest，只消费冻结产物且 plan 不含 compiler/repair。
+- [ ] held-out task/fixture/scorer 漂移、gate 未过、package 漂移，或 held-out output
+  回流 compiler/repair/profile 时全部 fail closed。
 - [ ] 冻结 Wave A 方法后，以 `api-tester` 为首个 Wave B skill，复用 catalog/runtime/
   lock 生命周期；通用 core 不得新增 skill-id 分支。
 - [ ] 记录 adapter LOC、artifact kind 复用率、core branch delta 和新 failure taxonomy；

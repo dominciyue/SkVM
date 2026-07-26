@@ -776,6 +776,11 @@ v2 的主 scorer 判定公开语义：输入保持、产物完整、方法适用
 唯一 schedule 或逐字报告模板当成默认成功条件。确定性 allocation/profile 属于独立
 次指标；只有公开合同明确要求的确定性行为才可进入 hard gate。
 
+五项权重固定为 `0.10/0.10/0.25/0.35/0.20`，row threshold 为 `0.95`。输入、
+产物、方法语义、allocation 安全和“报告无事实冲突”是 hard gate。方法名称是自由文本；
+scorer 检查公开 `designProperties` 与 allocation invariants。报告自然语言不判分，
+只校验公开 fenced JSON `design-evidence` block 与 study/plan/allocation 是否一致。
+
 结果表必须分列：
 
 ```text
@@ -791,3 +796,9 @@ v2 audit、development gate 和 Wave B replication 是三个不同门槛。audit
 benchmark 合同可测，development gate 才允许消费 held-out，Wave B 才能支持跨 skill
 泛化。没有包含 compile/profile/package 成本的重复调用实验，不报告总 token 节省或
 break-even。
+
+Held-out 在任何 development API run 前单独冻结 task/fixture/scorer digest，但采用
+非消费式隔离而非实验者盲法。Development audit、lock、compiler、package、scorer 和
+feedback API 都不得读取 held-out ID/path/digest/content；只有 development gate 通过后，
+held-out runner 才能消费冻结 package。对应的 path/digest/sentinel 泄漏和结果回流均须有
+fail-closed 负向测试。

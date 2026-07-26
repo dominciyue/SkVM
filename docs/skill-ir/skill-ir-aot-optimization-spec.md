@@ -1268,10 +1268,103 @@ v2 的主 scorer 只判定最终 workdir 中可以由 agent 观察到、由公�
 5. **报告一致性**：报告能说明实际生成的设计、seed、单位和关键限制，内容
    允许语言和排版变化，不要求 evaluator 私有的逐字模板。
 
+每个 criterion 返回 `[0, 1]` 的确定性分数。`primarySemanticScore` 固定为：
+
+```text
+0.10 * inputIntegrity
++ 0.10 * artifactContract
++ 0.25 * designSemantics
++ 0.35 * allocationSafety
++ 0.20 * reportConsistency
+```
+
+一次运行的 `primarySuccess=true` 必须同时满足：
+
+```text
+infrastructureFailure = false
+inputIntegrity = 1
+artifactContract = 1
+designSemantics = 1
+allocationSafety = 1
+reportContradiction = false
+primarySemanticScore >= 0.95
+```
+
+前四项和 `reportContradiction=false` 是 hard gate。报告允许缺少至多一个非关键
+说明项，但不能出现与 `study.json`、plan 或 allocation 相冲突的值。为使阈值可执行，
+`reportConsistency` 由四个等权原子检查组成：
+
+1. 结构化 evidence block 可解析；
+2. study、assignment/analysis unit、response 和 seed 与公开输入一致；
+3. allocation path、行数和 arm counts 与实际 allocation 一致；
+4. design properties 与 warnings/limitations 和 plan 一致。
+
+每个原子通过得 `0.25`，否则得 `0`；任何已出现但与可观察事实冲突的值同时设置
+`reportContradiction=true`。因此其余四项全通过时，报告四项中至少三项通过才能达到
+`0.95`。Task-level development gate 在付费前另行冻结，但不得低于：全部预注册运行
+无 infrastructure、`primarySuccess >= 3/4`、mean `primarySemanticScore >= 0.95`、
+每个 development task 至少一次成功、相对 baseline 无 hard-gate regression。
+
 主 scorer 不得要求没有公开来源的版本号、封闭 method enum、特定 PRNG、
 唯一行顺序、唯一中文措辞或隐藏字段。除输入保持、路径安全等硬约束外，
 每项语义规则都必须有 canonical-valid、alternative-valid 和 invalid-control
 三类本地 differential fixture。
+
+### 24.2.1 方法等价的公开判定
+
+`method` 可作为自由文本写入 plan，但不参与相等比较。主 scorer 只检查公开
+`designProperties`，初版字段固定为：
+
+```json
+{
+  "randomized": true,
+  "preservesAssignmentUnits": true,
+  "balancesWithinStrata": false,
+  "supportsSequentialEnrollment": false
+}
+```
+
+这些字段是公开 schema，允许额外字段，不要求 schema version，也不形成 method enum。
+Scorer 从 `study.json` 和最终 allocation 推导属性：
+
+- `assignmentLevel=cluster` 时，`preservesAssignmentUnits` 必须为 true，且同一 cluster
+  不能被拆到多个 arm；
+- units 含非空 `stratum` 时，`balancesWithinStrata` 必须为 true，每个 stratum 内
+  各 arm 计数的最大差不超过 1；
+- `sequentialEnrollment=true` 时，`supportsSequentialEnrollment` 必须为 true；
+  每个长度为 arm 数量的完整 enrollment block 内，每个 arm 恰出现一次，block 内
+  顺序任意，最后不足一个 block 的尾部只要求 arm 计数最大差不超过 1；
+- 其余任务不规定方法名称或唯一算法，只要求全部 assignment units 恰好出现一次、
+  arm 合法且全局 arm 计数最大差不超过 1。
+
+Seed 在主 scorer 中只检查 plan/report 与公开输入一致，不据 seed 推导唯一 schedule。
+同 seed 重放是否 byte-for-byte 一致只进入 deterministic profile 次指标。
+
+### 24.2.2 报告一致性的结构化证据
+
+`design-report.md` 的自然语言正文不做关键词或逐字匹配。公开 task contract 要求报告
+包含一个 fenced JSON `design-evidence` block；key 顺序、缩进、正文语言和额外字段
+均不受限。该 block 至少包含：
+
+```json
+{
+  "studyId": "public-study-id",
+  "assignmentUnit": "public-assignment-unit",
+  "analysisUnit": "public-analysis-unit",
+  "response": "public-response",
+  "seed": 0,
+  "allocationPath": "design/allocation.csv",
+  "allocationRows": 0,
+  "armCounts": {},
+  "designProperties": {},
+  "warnings": []
+}
+```
+
+Scorer 只将该 block 与 `study.json`、plan 和实际 allocation 交叉校验；自然语言正文只供
+人阅读。Alternative-valid fixtures 必须覆盖中英文正文、不同 key/row 顺序、自由 method
+名称和不同但满足同一不变量的 allocation。Invalid-control 必须分别覆盖 cluster 拆分、
+重复/缺失 unit、非法 arm、stratum 失衡、sequential block 失衡以及报告证据与实际文件冲突。
 
 ### 24.3 次级指标：确定性 Profile
 
@@ -1340,6 +1433,56 @@ public task/source
 development 只允许发现合同、IR、artifact 或 runtime 的问题；held-out 在 lock
 冻结后只用于评估，永不进入 scorer、package、repair 或 profile 调参。audit 未通过
 时不付费、不建立四臂 development lock、不运行 held-out。
+
+### 24.5.1 Held-out 冻结与非消费式隔离
+
+v2 的四个 task 在 Task 8.11.1 中一次性创作并冻结，但物理上分为：
+
+```text
+v2/development/tasks.json
+v2/heldout/tasks.json
+v2/task-split-freeze.json
+v2/heldout-freeze.json
+```
+
+`task-split-freeze.json` 在 scorer 实现前提交，绑定 2+2 task IDs、两份 task file
+digest 和 fixture tree digest。Scorer 和 differential audit 只允许读取 development
+侧。`heldout-freeze.json` 在 scorer/audit 完成后、任何 development API run 前提交，
+绑定 task-split freeze、held-out task IDs、fixture tree digest、scorer source digest
+和创建提交。此后 held-out 内容与 scorer 均不得修改；若确有 scorer infrastructure bug，
+只能废弃整个 v2 身份并建立 v3，不能原地更新 lock。
+
+该隔离是**非消费式隔离**，不是实验者盲法：文件在仓库中可被人读取，但 development
+代码路径不得消费其内容。边界固定为：
+
+- benchmark audit manifest 和 differential fixture 只允许 development task IDs；
+- scorer 接口只接收当前 criterion payload 和隔离 workdir，不得读取 corpus registry、
+  package、lock 或其他 task 文件；
+- base IR/source audit/compiler/package 只接收 source、resource contract、development
+  public contract 和 development task projection；
+- package manifest 必须保持 `constructionSplit=development`，并声明
+  `held-out` 为 forbidden evidence class；
+- PGO/repair 只接收 development raw/scored evidence；
+- held-out runner 只有在 development gate report 通过后才能创建执行 plan，并只消费
+  冻结 package，不得调用 compiler 或写回 IR。
+
+文件不可见面通过输入类型、digest-bound allowlist 和测试约束，而不是依赖目录命名。
+v2 实施必须包含以下负向测试：
+
+1. audit manifest 引用 held-out task/path/digest 时拒绝；
+2. development lock 含 held-out task 或 held-out fixture 时拒绝；
+3. compiler/package input 出现 held-out ID、path、digest 或 canary token 时拒绝；
+4. package 递归扫描不得出现 held-out task ID、fixture digest 或 sentinel；
+5. scorer import/运行输入不得访问 task registry 或 held-out 根，序列化结果也不得包含
+   held-out payload；
+6. held-out task/fixture/scorer digest 在 freeze 后漂移时拒绝；
+7. development gate 未通过、parent package digest 漂移或 execution plan 包含
+   compiler/repair 节点时，held-out plan 创建失败；
+8. held-out raw/scored output 传给 compiler、repair 或 profile feedback API 时拒绝。
+
+只有以上隔离测试、本地 differential tests 和 v2 audit 全部通过，才能冻结 baseline
+calibration lock。Held-out task 不参与 development audit 的 canary 设计，也不用于调整
+`0.95` 阈值、criterion 权重或 hard gate。
 
 ### 24.6 泛化判定：Wave B 才是证据
 
