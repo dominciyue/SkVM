@@ -1615,7 +1615,11 @@ payload 指向的隔离 workdir，严格 JSON 同时经 `JSON.parse` 与 duplica
 allocation 复用公开不变量 API，report 缺失/非法 block 返回 `pass=true, score=0`，只有
 与可观察事实冲突时返回 `pass=false`。Development audit 的 42 个 canonical、alternative、
 invalid 与 partial-score canary 全部匹配，compact report 为 `passed`；它只证明 v2 测量
-合同通过本地审计。Held-out freeze 尚未完成，因此仍不构成 baseline、IR/artifact 或优化证据。
+合同通过本地审计。Held-out identity 随后以 audit 提交 `826de3b` 为 `inputsCommit` 冻结，
+绑定 task-split、held-out tasks、scorer、audit manifest/report 与原 sentinel；production
+verifier 会重算 commit/工作区字节、registry identity、passed report provenance 和 held-out
+泄漏边界。该 freeze 只解除起草 baseline calibration lock 的前置阻塞，仍不构成 baseline、
+IR/artifact 或优化证据。
 
 在 v2 audit、development gate、Wave B replication 和摊销实验完成前，不得声称：
 

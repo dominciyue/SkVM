@@ -1294,7 +1294,7 @@ task/scorer/package，不执行 held-out。
   contract、2 development + 2 held-out task 身份和 audit fixture 根。
 - [x] 冻结公开可见的输入、输出、方法适用性、assignment/analysis/allocation unit、
   allocation 安全和报告一致性要求。
-- [ ] Development/held-out 物理分文件；scorer 实现前提交 `task-split-freeze.json`
+- [x] Development/held-out 物理分文件；scorer 实现前提交 `task-split-freeze.json`
   绑定 2+2 task/fixture digest，任何 API run 前再提交 `heldout-freeze.json`
   绑定 scorer digest 和创建提交。
 - [x] 固定并测试 individual/cluster × strata/no-strata × sequential/non-sequential 的
@@ -1348,7 +1348,7 @@ task/scorer/package，不执行 held-out。
 
 #### Task 8.11.5：Held-out、Wave B 与摊销
 
-- [ ] 实现 held-out 隔离负向测试：development audit/lock/compiler/package/scorer
+- [x] 实现 held-out 隔离负向测试：development audit/lock/compiler/package/scorer
   不得消费 held-out ID、path、digest、fixture 或 sentinel。
 - [ ] v2 development gate 通过后另建 held-out lock；验证 heldout freeze、parent gate、
   package 和 scorer digest，只消费冻结产物且 plan 不含 compiler/repair。
@@ -2019,7 +2019,7 @@ git commit -m "test: audit experimental design v2 benchmark"
 - Create: `src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts`
 - Create: `benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json`
 
-- [ ] **Step 1: 写 held-out isolation RED tests**
+- [x] **Step 1: 写 held-out isolation RED tests**
 
 覆盖：
 
@@ -2033,7 +2033,7 @@ reject development lock/compiler/package/feedback-shaped sink containing held-ou
 reject inputsCommit not containing the bound scorer/audit bytes
 ```
 
-- [ ] **Step 2: 运行 held-out freeze test 并确认 RED**
+- [x] **Step 2: 运行 held-out freeze test 并确认 RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.test.ts
@@ -2041,7 +2041,7 @@ bun test ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.test.ts
 
 Expected: FAIL，原因是 held-out freeze module 尚不存在。
 
-- [ ] **Step 3: 实现 held-out freeze API**
+- [x] **Step 3: 实现 held-out freeze API**
 
 ```ts
 import {
@@ -2088,7 +2088,7 @@ serialization，禁止出现 held-out task IDs、held-out file/fixture digest �
 freeze 创建器只复制，不生成新值。
 该 API 不接受 raw/scored/profile/compiler/package 输入类型。
 
-- [ ] **Step 4: 生成并 verify held-out freeze**
+- [x] **Step 4: 生成并 verify held-out freeze**
 
 ```powershell
 $auditInputsCommit = git rev-parse HEAD
@@ -2101,7 +2101,7 @@ bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
 
 Expected: PASS；held-out 内容已冻结但没有被 development 路径消费。
 
-- [ ] **Step 5: 提交 held-out freeze**
+- [x] **Step 5: 提交 held-out freeze**
 
 ```powershell
 git add src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.ts `

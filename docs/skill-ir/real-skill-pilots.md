@@ -425,12 +425,14 @@ artifact kind 复用率和新的 failure taxonomy。
 | env-manager | 完成 | 2+2 / deterministic；contract audit failed | 完成 | 精确 schema rules 未公开；历史 development 仅作 support evidence。 |
 | law-to-markdown | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | 两个 task 的 alternative-valid 审核措辞均被拒；旧 development/held-out 结果降为 support evidence。 |
 | experimental-design | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | Plan canary 2/2 通过；其余 6/6 等价 canary 与四类私有 plan 合同失败，当前四臂实验阻断。 |
+| experimental-design-v2 | 复用同一冻结 source closure | 2+2 / public semantic；development audit passed，held-out identity frozen | 未开始 | 仅完成本地测量合同与非消费隔离；未运行 API、baseline、IR 或 artifact。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
 `experimental-design-v2` 是独立的后续 benchmark 身份：主成功按公开语义计分，
-deterministic profile 只作为次指标；v1 的文件和结果不覆盖。v2 在 audit 和
-development gate 通过后，才可以进入 held-out，之后再由 `api-tester` 作为首个
-Wave B skill 检验跨 skill 复用。
+deterministic profile 只作为次指标；v1 的文件和结果不覆盖。当前 42/42 development-only
+canary matched，audit passed，并已冻结 held-out identity。下一步只能先书面冻结并运行
+`no-skill | original` development calibration；仍需 development gate 通过后才可以进入
+held-out，之后再由 `api-tester` 作为首个 Wave B skill 检验跨 skill 复用。
 
 ## 13. 修改注意
 

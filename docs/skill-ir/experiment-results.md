@@ -691,3 +691,38 @@ results/skill-ir/benchmark-contract-audit/experimental-design.json
 本阶段没有 API 调用、没有 held-out、没有 scorer 调参。Experimental-design v1 继续冻结；
 下一步若推进，先建立 benchmark v2 的单一公开合同、从合同派生 scorer，并让 canonical、
 alternative-valid 和 invalid-control differential fixtures 全部通过书面评审。
+
+## 9. Experimental-design v2 本地合同审计
+
+2026-07-27 建立独立 v2 身份，不修改 v1 task、scorer、lock、package 或历史结果。Task split
+先冻结 2 development + 2 held-out 及公开 source closure；随后实现五项 public-semantic
+scorer，并只对 development 运行确定性 differential audit。
+
+| Evidence | Result |
+|---|---:|
+| Fixture directories | 30 |
+| Canonical / alternative / invalid / partial canaries | 42/42 matched |
+| Report partial scores | 0 / 0.25 / 0.5 / 0.75 matched |
+| Static audit | passed |
+| Runtime differential audit | passed |
+| API / baseline / IR / artifact / held-out run | 0 |
+
+Audit 覆盖两个 development task 分支、八种 assignment×strata×sequential 组合、自由 method、
+中英文正文、不同合法 allocation，以及 protected input、artifact、unit/arm、cluster、strata、
+sequential、plan properties 和 report evidence 的负向控制。通用 audit runner 新增
+`partial-control.expectedScore`，避免把 `pass=true, score<1` 错写成 criterion 满分。
+
+随后以 audit 提交 `826de3b0178d964028eb9428c8e6d924eb1a4c52` 创建 held-out identity
+freeze。它绑定 task-split、held-out task、scorer/registry 和 passed audit 的 Git bytes，
+并为 development lock、compiler、package、feedback 提供 held-out ID/path/digest/sentinel
+泄漏拒绝。该阶段证明的是 v2 benchmark 合同和隔离机制已通过本地审计，不证明模型能力、
+Skill IR 增益、artifact 稳定性、跨 skill 泛化或 token 节省。
+
+Compact evidence：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/task-split-freeze.json
+benchmarks/skill-ir/pilots/experimental-design/v2/benchmark-contract-audit.json
+benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
+results/skill-ir/benchmark-contract-audit/experimental-design-v2.json
+```

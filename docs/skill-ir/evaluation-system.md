@@ -838,3 +838,19 @@ Development-only differential audit 由 `experimental-design-v2-audit-fixtures.t
 失败，不再被错误等同于 criterion 满分。Manifest、fixture 和 compact report 均不含 held-out
 ID、digest、sentinel、模型正文或 evaluator payload；该结果是 benchmark contract evidence，
 不是模型运行或 Skill IR 优化结果。
+
+Held-out identity 由 `experimental-design-v2-heldout-freeze-run.ts` 在 audit passed 后生成：
+
+```powershell
+bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
+  --inputs-commit=826de3b0178d964028eb9428c8e6d924eb1a4c52 `
+  --out=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
+bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
+  --verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
+```
+
+Verifier 从 `inputsCommit` 读取 Git blob，并与工作区字节核对；它同时复核 task-split freeze、
+held-out task digest、v2 scorer/registry identity、audit manifest provenance、passed report 和
+全部 matched canary。`assertNoExperimentalDesignV2HeldoutEvidence` 为 development lock、compiler、
+package 和 feedback 四类 construction sink 提供递归 fail-closed 扫描。Freeze 不执行 API，
+不读取 held-out 输出，也不允许 compiler/repair 消费 held-out。
