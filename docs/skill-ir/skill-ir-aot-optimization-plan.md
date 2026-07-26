@@ -1306,15 +1306,15 @@ task/scorer/package，不执行 held-out。
 
 #### Task 8.11.2：语义主 Scorer 与确定性次指标
 
-- [ ] 先写 scorer RED tests，覆盖合法等价方法、allocation 顺序和中英文报告措辞。
-- [ ] 主 scorer 按 `0.10/0.10/0.25/0.35/0.20` 聚合五项语义分数；四个前置
+- [x] 先写 scorer RED tests，覆盖合法等价方法、allocation 顺序和中英文报告措辞。
+- [x] 主 scorer 按 `0.10/0.10/0.25/0.35/0.20` 聚合五项语义分数；四个前置
   criterion 与 report contradiction 为 hard gate，row threshold 固定 `0.95`。
 - [ ] Development gate 预注册为：0 infrastructure、success≥3/4、mean≥0.95、
   每个 task 至少一次成功、相对 baseline 无 hard-gate regression。
-- [ ] 方法只按公开 `designProperties` 和 allocation invariants 判定，不比较自由文本
+- [x] 方法只按公开 `designProperties` 和 allocation invariants 判定，不比较自由文本
   method 名称；plan/report 两处的四个布尔属性必须与 scorer 派生值逐项相等。
   seed 的唯一 schedule 只进入 profile 次指标。
-- [ ] 报告正文不做关键词判分；只交叉验证公开 fenced JSON `design-evidence` block
+- [x] 报告正文不做关键词判分；只交叉验证公开 fenced JSON `design-evidence` block
   与 study/plan/allocation，明确唯一 block、严格 JSON、重复 key/block 的失败语义；
   `limitationFlags` 按公开 source-derived 集合比较，warnings 措辞保持自由。
 - [ ] 单独计算 `deterministicProfileScore` 与 reproducibility；除公开合同明确要求外，
@@ -1756,7 +1756,7 @@ Scorer 实现只能从该提交之后开始。
 - Create: `src/bench/evaluators/experimental-design-grade-v2.test.ts`
 - Modify: `src/bench/evaluators/index.ts`
 
-- [ ] **Step 1: 写 evaluator RED tests**
+- [x] **Step 1: 写 evaluator RED tests**
 
 五个 checks 固定为：
 
@@ -1779,7 +1779,7 @@ Tests 必须验证：
 - 报告四个原子检查为 `0/0.25/0.5/0.75/1`；
 - 路径逃逸、symlink/junction 和 unreadable workdir 只记 infrastructure。
 
-- [ ] **Step 2: 运行 evaluator test 并确认 RED**
+- [x] **Step 2: 运行 evaluator test 并确认 RED**
 
 ```powershell
 bun test ./src/bench/evaluators/experimental-design-grade-v2.test.ts
@@ -1787,7 +1787,7 @@ bun test ./src/bench/evaluators/experimental-design-grade-v2.test.ts
 
 Expected: FAIL，原因是 v2 evaluator 尚不存在/未注册。
 
-- [ ] **Step 3: 实现 evaluator bridge**
+- [x] **Step 3: 实现 evaluator bridge**
 
 Payload 固定为：
 
@@ -1820,7 +1820,7 @@ const PayloadSchema = z.object({
 只读取 payload 指向的 workdir 文件并调用共享 contract API；不得 import corpus registry、
 task registry、package、freeze 或 result 模块。
 
-- [ ] **Step 4: 注册独立 evaluator ID**
+- [x] **Step 4: 注册独立 evaluator ID**
 
 在 `src/bench/evaluators/index.ts` 增加：
 
@@ -1840,7 +1840,7 @@ import "./experimental-design-grade-v2.ts"
 使用 `Get-FileHash -Algorithm SHA256` 写入最终 source digest；不得改 v1 evaluator 的
 path/digest。
 
-- [ ] **Step 5: 运行 evaluator、scoring 与 registry tests**
+- [x] **Step 5: 运行 evaluator、scoring 与 registry tests**
 
 ```powershell
 bun test ./src/bench/evaluators/experimental-design-grade-v2.test.ts `
@@ -1853,7 +1853,7 @@ Expected: PASS；五项权重经现有 scorer 聚合为 `primarySemanticScore`�
 `primarySemanticScore`，本阶段不改通用 row schema。`deterministicProfileScore` 只有
 artifact 存在后才可计算，8.11A 不生成伪值。
 
-- [ ] **Step 6: 提交 scorer**
+- [x] **Step 6: 提交 scorer**
 
 ```powershell
 git add src/bench/evaluators/experimental-design-grade-v2.ts `

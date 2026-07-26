@@ -789,8 +789,17 @@ sequential block 的固定顺序判定。混合 strata、重复 unit、非法 ar
 allocation 在 task schema 层拒绝。
 
 报告必须且只能有一个 opening marker 为 `json design-evidence` 的严格 JSON fenced block；
-多个、缺失、非法 JSON 或重复 key 令 report criterion 失败。结构化 `limitationFlags`
-比较公开 source-derived 集合，额外自然语言 warnings 不比较措辞。
+多个、缺失、非法 JSON 或重复 key 令 report criterion 得 `pass=true, score=0`，不单独触发
+hard gate；已出现字段与 study/plan/allocation 冲突时才返回 `pass=false`。结构化
+`limitationFlags` 比较公开 source-derived 集合，额外自然语言 warnings 不比较措辞。
+
+实现位于 `experimental-design-grade-v2.ts`，注册 ID 为
+`skill-ir-experimental-design-v2`。五个 payload check 共用严格 path schema；文件路径逐段
+拒绝 symlink/junction 和根目录逃逸。Payload、workdir、路径与 I/O 问题记 infrastructure；
+缺失/损坏的 agent 产物记 evaluation failure。Plan 不要求 schema version，`method` 为
+非空自由文本并允许额外字段；主语义只比较公开 study 字段、四个 `designProperties` 和
+allocation invariants。当前通用 scored row 的 `evaluatorScore` 即 v2 的
+`primarySemanticScore`，artifact 尚未存在时不生成 `deterministicProfileScore` 伪值。
 
 结果表必须分列：
 

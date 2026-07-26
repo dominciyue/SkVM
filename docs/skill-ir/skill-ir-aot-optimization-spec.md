@@ -1604,6 +1604,12 @@ totalBaseline(N) =
 
 ### 24.8 当前阶段的不可声称项
 
+截至 2026-07-27，v2 task split 与本地语义 scorer 已实现：五个 custom checks 只读取
+payload 指向的隔离 workdir，严格 JSON 同时经 `JSON.parse` 与 duplicate-key 检查，
+allocation 复用公开不变量 API，report 缺失/非法 block 返回 `pass=true, score=0`，只有
+与可观察事实冲突时返回 `pass=false`。这只是 scorer 机制基线；development-only
+differential audit 和 held-out freeze 尚未完成，因此仍不构成 benchmark 通过或优化证据。
+
 在 v2 audit、development gate、Wave B replication 和摊销实验完成前，不得声称：
 
 - v2 benchmark 一定比 v1 更准确，只能说它通过了预先定义的合同审计；
