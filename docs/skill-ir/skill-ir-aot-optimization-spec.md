@@ -1631,3 +1631,38 @@ IR/artifact 或优化证据。
 
 本节优先级高于早期将 deterministic profile 与主成功率合并叙述的文字。后续
 实现和结果文档必须沿用本节的指标分层。
+
+### 24.9 v3：冻结后输出边界修复
+
+v2 本地合同审计通过后发现一个冻结范围内的 scorer 缺口：公开 task 要求“只生成三个
+输出文件”，但 `artifact-contract` 只枚举 `design/` 子目录，没有拒绝 workdir 根目录新增的
+文件或目录。该问题不改变 v2 已审计的设计语义，但会使公开 artifact contract 少执行一条
+可观察约束。按照 §24.5.1，v2 task、scorer、audit、freeze 和 compact result 保持不可变；
+v2 不进入新的 API calibration，修复使用独立身份 `experimental-design-v3`。
+
+v3 继承 v2 的五项权重、`0.95` row threshold、四个公开 `designProperties`、allocation
+不变量、report evidence 语法和 2 development + 2 held-out 内容。唯一主合同变化是显式加入：
+
+```text
+allowed root entries = study.json | design-contract.json | design/
+allowed design entries = design-plan.json | allocation.csv | design-report.md
+```
+
+根目录和 `design/` 的额外普通文件、目录、symlink/junction 或 special entry 均不得通过
+artifact criterion。`study.json` 与 `design-contract.json` 仍由 input-integrity 绑定摘要；
+三个输出继续验证文件类型、UTF-8/JSON/CSV 可解析性和语义。额外输出是 evaluation failure，
+路径逃逸或 reparse point 是 infrastructure failure。
+
+为降低 audit fixture 与生产 assessor 同源造成的共适应风险，v3 增加独立 oracle 层：
+
+- hard-coded reference vectors 不调用生产 `assessExperimentalDesignV2Allocation` 生成 expected；
+- metamorphic cases 固定验证 CSV 物理行重排、合法 arm 标签双射和自由 method 文本保持主语义；
+- invalid controls 固定验证根目录额外文件/目录、unit 重复/缺失、非法 arm、stratum 与
+  sequential 失衡；
+- oracle 只判断公开合同，不进入模型 prompt、evaluator payload 或 held-out construction。
+
+v3 重走完整身份顺序：task creation -> task-split freeze -> scorer/differential audit ->
+held-out freeze -> `no-skill | original` calibration。Calibration 仍固定强模型
+`xty/gpt-5.6-sol`、Windows/clean、两个 development task、每臂每 task 两次、0 retries；
+门禁固定为 0 infrastructure、no-skill 不饱和和至少一个 paired outcome 差异。未通过时冻结
+失败，不构造 IR/artifact，不运行 held-out。通过只允许进入四臂 development lock 起草。

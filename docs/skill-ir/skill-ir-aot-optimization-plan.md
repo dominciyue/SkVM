@@ -2179,3 +2179,58 @@ git push origin skill-ir-aot
 
 不得暂存 `docs/skill-ir/1.md` 或既有未跟踪 `results/skill-ir/*`；只添加本计划明确列出的
 compact v2 report。
+
+## 15. Task 8.12 Experimental-design v3 冻结修复与 Calibration
+
+本任务修复 v2 冻结后发现的全 workdir 输出边界缺口。v2 文件、摘要和结果保持不可变；
+v3 继承已审计语义，只新增公开顶层白名单和独立 oracle，再重走 task/audit/freeze/calibration。
+
+### Task 15.1：设计与 v2 不可变边界
+
+- [x] 在 spec 记录根目录额外输出漏检的 root cause、v3 身份和不可原地修改 v2 的规则。
+- [x] 固定 v3 只改变 artifact 输出边界，不改变权重、阈值、design semantics 或 held-out 内容。
+- [ ] 增加 v1/v2 immutable digest 回归测试，证明历史 task/scorer/audit/freeze/result 未变化。
+
+### Task 15.2：v3 Public Contract、Task 与 Task-split Freeze
+
+- [ ] 建立 `benchmarks/skill-ir/pilots/experimental-design/v3/`，提交 public contract、source
+  audit 和物理隔离的 2 development + 2 held-out task；新 ID 和 evaluator 均使用 v3。
+- [ ] public contract 显式冻结三个 allowed root entries 和三个 allowed design entries。
+- [ ] 先写 v3 task-freeze RED tests，再实现 create/verify-only CLI；freeze 绑定 v3 task/source
+  bytes，并把 v2 已冻结文件作为 immutable refs。
+- [ ] task split 单独提交后再开始 scorer，保持 scorer 不参与 task 创作。
+
+### Task 15.3：v3 Scorer 与独立 Oracle
+
+- [ ] 先写 root-level extra file、extra directory、symlink/reparse 和合法 workdir 的 RED tests。
+- [ ] 实现 `skill-ir-experimental-design-v3`；artifact check 同时验证 root 与 `design/` 精确集合，
+  其余语义复用冻结 v2 public invariant API。
+- [ ] 增加不调用生产 assessor 构造 expected 的 hard-coded oracle 和 metamorphic tests，覆盖合法
+  row reorder、arm 双射、自由 method，以及 unit/arm/stratum/sequential 非法控制。
+- [ ] focused evaluator/oracle tests 与 `bunx tsc --noEmit` 通过后提交 scorer 身份。
+
+### Task 15.4：Differential Audit 与 Held-out Freeze
+
+- [ ] 生成 v3 development-only fixture/manifest；继承 v2 canonical/alternative/invalid/partial
+  覆盖，并新增 root extra file/directory invalid canary。
+- [ ] audit 必须全部 matched；v2 compact audit 继续 verify，不覆盖历史报告。
+- [ ] 提交 passed compact v3 audit 后创建 held-out freeze，绑定 task split、scorer/registry、
+  audit provenance、held-out fixture 和 sentinel，并验证 construction sinks 无 held-out 证据。
+
+### Task 15.5：Baseline Calibration
+
+- [ ] 在任何 API 调用前冻结 lock：`no-skill | original`、Windows/clean、2 development tasks、
+  2 repetitions、`xty/gpt-5.6-sol`、bare-agent、0 retries。
+- [ ] 依次运行 plan、resource probe、route probe；任一失败时停止并记录 infrastructure。
+- [ ] 执行唯一 8-row 付费批次，生成 raw/scored compact evidence；gate 固定要求 0 infra、
+  no-skill 非饱和、至少一个 paired outcome 差异。
+- [ ] gate 失败则冻结失败且不构造 IR/artifact；gate 通过只解除四臂 development lock 起草。
+
+### Task 15.6：验证、文档与留痕
+
+- [ ] 更新 `evaluation-system.md`、`real-skill-pilots.md`、`experiment-results.md` 和
+  `D:\skill优化\conversation_log.md`，分开报告 contract audit、model calibration 与优化证据。
+- [ ] 运行 v3 focused suite、v1/v2 regression、typecheck、freeze verify-only、secret scan、
+  文档链接检查和 `git diff --check`。
+- [ ] 只提交 compact audit/calibration evidence；raw transcript、workdir、provider log 和既有
+  untracked results 保持本地且不暂存。
