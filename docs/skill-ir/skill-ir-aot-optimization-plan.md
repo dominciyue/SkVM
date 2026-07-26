@@ -1451,7 +1451,7 @@ results/skill-ir/benchmark-contract-audit/
 - Create: `benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json`
 - Create: `benchmarks/skill-ir/pilots/experimental-design/v2/heldout/tasks.json`
 
-- [ ] **Step 1: 写八组合和 schema 拒绝的 RED tests**
+- [x] **Step 1: 写八组合和 schema 拒绝的 RED tests**
 
 测试矩阵固定为：
 
@@ -1471,9 +1471,11 @@ const supportedCases = [
 每个 case 构造合法 `study` 与至少两个不同但合法的 allocation，断言二者均通过且不要求
 相同行顺序。另写失败用例：重复/空 unit ID、少于两个或重复 arms、部分 unit 缺 stratum、
 非布尔 sequential、cluster unit 下显式嵌套 `members`/`memberAssignments` 等成员级
-assignment 结构。`assignmentUnit` 保持非空自由文本，不按标签词汇或翻译做隐藏分类。
+assignment 结构、重复/断档/与 unit 不一致的 `order`、无 strata 的全局失衡。
+`assignmentUnit` 保持非空自由文本，不按标签词汇或翻译做隐藏分类；CSV 物理行可以
+重排，但每行 `order` 必须绑定该 unit 在 `study.units` 中的 1-based 位置。
 
-- [ ] **Step 2: 运行 contract test 并确认 RED**
+- [x] **Step 2: 运行 contract test 并确认 RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts
@@ -1481,7 +1483,7 @@ bun test ./src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts
 
 Expected: FAIL，原因是 `experimental-design-v2-contract.ts` 或导出尚不存在。
 
-- [ ] **Step 3: 实现共享 public contract 类型和派生 API**
+- [x] **Step 3: 实现共享 public contract 类型和派生 API**
 
 导出接口固定为：
 
@@ -1543,7 +1545,7 @@ export const ExperimentalDesignV2PublicContractSourceAuditSchema:
 或 final balance → global diagnostics。Strata 存在时不把全局失衡作为主失败，只如实写入
 `balancesGlobally`。
 
-- [ ] **Step 4: 编写公开合同和 source audit**
+- [x] **Step 4: 编写公开合同和 source audit**
 
 `public-contract.json` 必须公开：
 
@@ -1580,7 +1582,7 @@ public contract 的来源，随 task split 一起验证，不新增 promotion ga
 确认 source digest、quote substring、claim ID 唯一，并覆盖 public contract 声明的全部
 `sourceClaimIds`。
 
-- [ ] **Step 5: 编写分离的 2+2 task**
+- [x] **Step 5: 编写分离的 2+2 task**
 
 固定身份：
 
@@ -1598,7 +1600,7 @@ held-out:
 权重固定为 `0.10/0.10/0.25/0.35/0.20`，`hardGateIds` 包含五项 criterion，其中
 report evaluator 仅在事实冲突时返回 `pass=false`；`passThreshold=0.95`。
 
-- [ ] **Step 6: 运行 contract test 并确认 GREEN**
+- [x] **Step 6: 运行 contract test 并确认 GREEN**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts
@@ -1606,7 +1608,7 @@ bun test ./src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts
 
 Expected: 八组合、非法 schema、两份 task 身份与公开合同一致性全部 PASS。
 
-- [ ] **Step 7: 提交 task creation**
+- [x] **Step 7: 提交 task creation**
 
 ```powershell
 git add src/benchmarks/skill-ir/experimental-design-v2-contract.ts `
@@ -1694,6 +1696,8 @@ export async function verifyExperimentalDesignV2TaskSplitFreeze(
 `fixtureProjectionSha256` 使用按 task ID、fixture path 排序后的 UTF-8 bytes 计算；validator
 对每个冻结文件执行等价于 `git show "$taskCommit:$relativePath"` 的读取，验证 task
 creation commit 中的原始 bytes，且所有 resolved path 必须留在 repo root。
+该 validator 不得只调用 source-audit shape schema；必须在生产路径复核每个
+source digest、quote substring、claim ID 唯一性和 `publicContract.sourceClaimIds` 全覆盖。
 
 `heldoutSentinel` 在 task split 冻结时生成，只用于证明 development scorer/audit 没有
 消费 held-out；它不是任务答案，也不得进入 task prompt、public contract、scorer、

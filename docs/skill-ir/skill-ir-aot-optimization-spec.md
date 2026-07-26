@@ -1338,8 +1338,11 @@ allocation 推导属性：
 - `sequentialEnrollment=true` 时，`supportsSequentialEnrollment` 必须为 true；
   每个长度为 arm 数量的完整 enrollment block 内，每个 arm 恰出现一次，block 内
   顺序任意，最后不足一个 block 的尾部只要求 arm 计数最大差不超过 1；
+- allocation 的 `order` 必须等于对应 unit 在公开 `study.units` 中的 1-based 位置；
+  CSV 物理行顺序可以变化，但 `order` 重复、断档或与 unit 身份不一致时 coverage 失败；
 - 所有任务都要求全部 assignment units 恰好出现一次且 arm 合法；无 strata 时强制
-  全局 arm 计数最大差不超过 1，有 strata 时只强制每个 stratum 内的该不变量。
+  全局 arm 计数最大差不超过 1，有 strata 时只强制每个 stratum 内的该不变量；无
+  strata 的全局失衡必须使 allocation safety 失败，不能只作为 diagnostic property。
 
 Seed 在主 scorer 中只检查 plan/report 与公开输入一致，不据 seed 推导唯一 schedule。
 同 seed 重放是否 byte-for-byte 一致只进入 deterministic profile 次指标。

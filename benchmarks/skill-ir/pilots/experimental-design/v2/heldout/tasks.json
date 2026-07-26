@@ -8,7 +8,7 @@
       "prompt": "Read study.json and the public design-contract.json without modifying either protected input. Produce exactly three output files: design/design-plan.json, design/allocation.csv, and design/design-report.md. Follow the public schemas and semantic rules in design-contract.json. Do not create any other output.",
       "fixtures": {
         "study.json": "{\"studyId\":\"remote-stratified-adherence-v2-heldout\",\"question\":\"Which support arm improves adherence across regions during enrollment?\",\"assignmentLevel\":\"individual\",\"assignmentUnit\":\"participant\",\"analysisUnit\":\"participant\",\"response\":\"weekly_adherence\",\"arms\":[\"standard\",\"support\"],\"seed\":123,\"nuisanceFactors\":[\"region\",\"enrollment-order\"],\"sequentialEnrollment\":true,\"units\":[{\"id\":\"N-01\",\"stratum\":\"north\"},{\"id\":\"S-01\",\"stratum\":\"south\"},{\"id\":\"N-02\",\"stratum\":\"north\"},{\"id\":\"S-02\",\"stratum\":\"south\"},{\"id\":\"N-03\",\"stratum\":\"north\"},{\"id\":\"S-03\",\"stratum\":\"south\"}]}\n",
-        "design-contract.json": "{\"schemaVersion\":\"skill-ir-experimental-design-public-contract/v2\",\"contractId\":\"experimental-design-public-contract-v2\",\"protectedInputs\":[\"study.json\",\"design-contract.json\"],\"outputs\":[\"design/design-plan.json\",\"design/allocation.csv\",\"design/design-report.md\"],\"passThreshold\":0.95,\"criterionWeights\":{\"design-input-integrity\":0.1,\"design-artifact-contract\":0.1,\"design-semantics\":0.25,\"design-allocation-safety\":0.35,\"design-report-consistency\":0.2},\"designPropertyKeys\":[\"preservesAssignmentUnits\",\"balancesGlobally\",\"balancesWithinStrata\",\"supportsSequentialEnrollment\"],\"reportEvidenceOpening\":\"```json design-evidence\",\"reportEvidenceClosing\":\"```\",\"reportEvidenceGrammar\":{\"blockCount\":1,\"openingMarker\":\"```json design-evidence\",\"closingMarker\":\"```\",\"topLevelType\":\"object\",\"jsonMode\":\"strict\",\"encoding\":\"UTF-8\",\"allowComments\":false,\"allowTrailingCommas\":false,\"allowDuplicateKeys\":false},\"studyContract\":{\"assignmentLevels\":[\"individual\",\"cluster\"],\"requiredFields\":[\"studyId\",\"question\",\"assignmentLevel\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"arms\",\"seed\",\"nuisanceFactors\",\"sequentialEnrollment\",\"units\"],\"unitFields\":[\"id\",\"stratum\"],\"rules\":[\"Use at least two unique nonempty arms and unique nonempty assignment unit IDs.\",\"Stratum is either absent from every unit or a nonempty string on every unit.\",\"When assignmentLevel is cluster, each units[] element is one indivisible assignment unit; assignmentUnit remains arbitrary nonempty free text and is not lexically classified; explicit nested member structures or assignments are not allowed in a unit.\"]},\"allocationContract\":{\"columns\":[\"order\",\"unit_id\",\"stratum\",\"arm\"],\"rules\":[\"Include every assignment unit exactly once and use only public study arms.\",\"When strata are present, balance arms within each stratum; global imbalance remains diagnostic only.\",\"When sequential enrollment is true, evaluate arm-sized blocks in the stable study input order projected into each stratum; each complete block contains every arm once and a final partial block is balanced.\",\"Different legal arm assignments and CSV row orders are accepted.\"]},\"planContract\":{\"requiredFields\":[\"studyId\",\"method\",\"assignmentLevel\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"arms\",\"seed\",\"allocationPath\",\"designProperties\"],\"method\":\"nonempty free text\",\"allocationPath\":\"design/allocation.csv\"},\"reportEvidenceRequiredFields\":[\"studyId\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"seed\",\"allocationPath\",\"allocationRows\",\"armCounts\",\"designProperties\",\"limitationFlags\"],\"limitationFlagRules\":{\"cluster-assignment\":\"assignmentLevel is cluster\",\"stratified-assignment\":\"all units have a nonempty stratum\",\"sequential-enrollment\":\"sequentialEnrollment is true\",\"analysis-unit-differs\":\"analysisUnit differs from assignmentUnit\",\"randomness-not-statistically-audited\":\"always present\"},\"sourceClaimIds\":[\"assignment-unit-contract\",\"cluster-unit-contract\",\"stratified-balance-contract\",\"sequential-balance-contract\",\"design-documentation-contract\",\"randomness-expectation-contract\"]}\n"
+        "design-contract.json": "{\n  \"schemaVersion\": \"skill-ir-experimental-design-public-contract/v2\",\n  \"contractId\": \"experimental-design-public-contract-v2\",\n  \"protectedInputs\": [\n    \"study.json\",\n    \"design-contract.json\"\n  ],\n  \"outputs\": [\n    \"design/design-plan.json\",\n    \"design/allocation.csv\",\n    \"design/design-report.md\"\n  ],\n  \"passThreshold\": 0.95,\n  \"criterionWeights\": {\n    \"design-input-integrity\": 0.1,\n    \"design-artifact-contract\": 0.1,\n    \"design-semantics\": 0.25,\n    \"design-allocation-safety\": 0.35,\n    \"design-report-consistency\": 0.2\n  },\n  \"designPropertyKeys\": [\n    \"preservesAssignmentUnits\",\n    \"balancesGlobally\",\n    \"balancesWithinStrata\",\n    \"supportsSequentialEnrollment\"\n  ],\n  \"reportEvidenceOpening\": \"```json design-evidence\",\n  \"reportEvidenceClosing\": \"```\",\n  \"reportEvidenceGrammar\": {\n    \"blockCount\": 1,\n    \"openingMarker\": \"```json design-evidence\",\n    \"closingMarker\": \"```\",\n    \"topLevelType\": \"object\",\n    \"jsonMode\": \"strict\",\n    \"encoding\": \"UTF-8\",\n    \"allowComments\": false,\n    \"allowTrailingCommas\": false,\n    \"allowDuplicateKeys\": false\n  },\n  \"studyContract\": {\n    \"assignmentLevels\": [\n      \"individual\",\n      \"cluster\"\n    ],\n    \"requiredFields\": [\n      \"studyId\",\n      \"question\",\n      \"assignmentLevel\",\n      \"assignmentUnit\",\n      \"analysisUnit\",\n      \"response\",\n      \"arms\",\n      \"seed\",\n      \"nuisanceFactors\",\n      \"sequentialEnrollment\",\n      \"units\"\n    ],\n    \"unitFields\": [\n      \"id\",\n      \"stratum\"\n    ],\n    \"rules\": [\n      \"Use at least two unique nonempty arms and unique nonempty assignment unit IDs.\",\n      \"Stratum is either absent from every unit or a nonempty string on every unit.\",\n      \"When assignmentLevel is cluster, each units[] element is one indivisible assignment unit; assignmentUnit remains arbitrary nonempty free text and is not lexically classified; explicit nested member structures or assignments are not allowed in a unit.\"\n    ]\n  },\n  \"allocationContract\": {\n    \"columns\": [\n      \"order\",\n      \"unit_id\",\n      \"stratum\",\n      \"arm\"\n    ],\n    \"rules\": [\n      \"Set order to the one-based position of unit_id in study.units; physical CSV row order may vary.\",\n      \"Include every assignment unit exactly once and use only public study arms.\",\n      \"When strata are present, balance arms within each stratum; global imbalance remains diagnostic only.\",\n      \"When sequential enrollment is true, evaluate arm-sized blocks in the stable study input order projected into each stratum; each complete block contains every arm once and a final partial block is balanced.\",\n      \"Different legal arm assignments and CSV row orders are accepted.\"\n    ]\n  },\n  \"planContract\": {\n    \"requiredFields\": [\n      \"studyId\",\n      \"method\",\n      \"assignmentLevel\",\n      \"assignmentUnit\",\n      \"analysisUnit\",\n      \"response\",\n      \"arms\",\n      \"seed\",\n      \"allocationPath\",\n      \"designProperties\"\n    ],\n    \"method\": \"nonempty free text\",\n    \"allocationPath\": \"design/allocation.csv\"\n  },\n  \"reportEvidenceRequiredFields\": [\n    \"studyId\",\n    \"assignmentUnit\",\n    \"analysisUnit\",\n    \"response\",\n    \"seed\",\n    \"allocationPath\",\n    \"allocationRows\",\n    \"armCounts\",\n    \"designProperties\",\n    \"limitationFlags\"\n  ],\n  \"limitationFlagRules\": {\n    \"cluster-assignment\": \"assignmentLevel is cluster\",\n    \"stratified-assignment\": \"all units have a nonempty stratum\",\n    \"sequential-enrollment\": \"sequentialEnrollment is true\",\n    \"analysis-unit-differs\": \"analysisUnit differs from assignmentUnit\",\n    \"randomness-not-statistically-audited\": \"always present\"\n  },\n  \"sourceClaimIds\": [\n    \"assignment-unit-contract\",\n    \"cluster-unit-contract\",\n    \"stratified-balance-contract\",\n    \"sequential-balance-contract\",\n    \"design-documentation-contract\",\n    \"randomness-expectation-contract\"\n  ]\n}\n"
       },
       "successCriteria": [],
       "eval": [
@@ -30,7 +30,7 @@
             },
             "protectedSha256": {
               "study": "bc50942acf2148205a9506a39558999389094a4729737322449b5fa3e1f0d144",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         },
@@ -52,7 +52,7 @@
             },
             "protectedSha256": {
               "study": "bc50942acf2148205a9506a39558999389094a4729737322449b5fa3e1f0d144",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         },
@@ -74,7 +74,7 @@
             },
             "protectedSha256": {
               "study": "bc50942acf2148205a9506a39558999389094a4729737322449b5fa3e1f0d144",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         },
@@ -96,7 +96,7 @@
             },
             "protectedSha256": {
               "study": "bc50942acf2148205a9506a39558999389094a4729737322449b5fa3e1f0d144",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         },
@@ -118,7 +118,7 @@
             },
             "protectedSha256": {
               "study": "bc50942acf2148205a9506a39558999389094a4729737322449b5fa3e1f0d144",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         }
@@ -138,7 +138,7 @@
       "prompt": "Read study.json and the public design-contract.json without modifying either protected input. Produce exactly three output files: design/design-plan.json, design/allocation.csv, and design/design-report.md. Follow the public schemas and semantic rules in design-contract.json. Do not create any other output.",
       "fixtures": {
         "study.json": "{\"studyId\":\"district-cluster-attendance-v2-heldout\",\"question\":\"Does the program improve attendance across district strata?\",\"assignmentLevel\":\"cluster\",\"assignmentUnit\":\"school\",\"analysisUnit\":\"student\",\"response\":\"attendance_rate\",\"arms\":[\"standard\",\"program\"],\"seed\":211,\"nuisanceFactors\":[\"district\"],\"sequentialEnrollment\":false,\"units\":[{\"id\":\"urban-01\",\"stratum\":\"urban\"},{\"id\":\"rural-01\",\"stratum\":\"rural\"},{\"id\":\"urban-02\",\"stratum\":\"urban\"},{\"id\":\"rural-02\",\"stratum\":\"rural\"},{\"id\":\"urban-03\",\"stratum\":\"urban\"},{\"id\":\"rural-03\",\"stratum\":\"rural\"}]}\n",
-        "design-contract.json": "{\"schemaVersion\":\"skill-ir-experimental-design-public-contract/v2\",\"contractId\":\"experimental-design-public-contract-v2\",\"protectedInputs\":[\"study.json\",\"design-contract.json\"],\"outputs\":[\"design/design-plan.json\",\"design/allocation.csv\",\"design/design-report.md\"],\"passThreshold\":0.95,\"criterionWeights\":{\"design-input-integrity\":0.1,\"design-artifact-contract\":0.1,\"design-semantics\":0.25,\"design-allocation-safety\":0.35,\"design-report-consistency\":0.2},\"designPropertyKeys\":[\"preservesAssignmentUnits\",\"balancesGlobally\",\"balancesWithinStrata\",\"supportsSequentialEnrollment\"],\"reportEvidenceOpening\":\"```json design-evidence\",\"reportEvidenceClosing\":\"```\",\"reportEvidenceGrammar\":{\"blockCount\":1,\"openingMarker\":\"```json design-evidence\",\"closingMarker\":\"```\",\"topLevelType\":\"object\",\"jsonMode\":\"strict\",\"encoding\":\"UTF-8\",\"allowComments\":false,\"allowTrailingCommas\":false,\"allowDuplicateKeys\":false},\"studyContract\":{\"assignmentLevels\":[\"individual\",\"cluster\"],\"requiredFields\":[\"studyId\",\"question\",\"assignmentLevel\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"arms\",\"seed\",\"nuisanceFactors\",\"sequentialEnrollment\",\"units\"],\"unitFields\":[\"id\",\"stratum\"],\"rules\":[\"Use at least two unique nonempty arms and unique nonempty assignment unit IDs.\",\"Stratum is either absent from every unit or a nonempty string on every unit.\",\"When assignmentLevel is cluster, each units[] element is one indivisible assignment unit; assignmentUnit remains arbitrary nonempty free text and is not lexically classified; explicit nested member structures or assignments are not allowed in a unit.\"]},\"allocationContract\":{\"columns\":[\"order\",\"unit_id\",\"stratum\",\"arm\"],\"rules\":[\"Include every assignment unit exactly once and use only public study arms.\",\"When strata are present, balance arms within each stratum; global imbalance remains diagnostic only.\",\"When sequential enrollment is true, evaluate arm-sized blocks in the stable study input order projected into each stratum; each complete block contains every arm once and a final partial block is balanced.\",\"Different legal arm assignments and CSV row orders are accepted.\"]},\"planContract\":{\"requiredFields\":[\"studyId\",\"method\",\"assignmentLevel\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"arms\",\"seed\",\"allocationPath\",\"designProperties\"],\"method\":\"nonempty free text\",\"allocationPath\":\"design/allocation.csv\"},\"reportEvidenceRequiredFields\":[\"studyId\",\"assignmentUnit\",\"analysisUnit\",\"response\",\"seed\",\"allocationPath\",\"allocationRows\",\"armCounts\",\"designProperties\",\"limitationFlags\"],\"limitationFlagRules\":{\"cluster-assignment\":\"assignmentLevel is cluster\",\"stratified-assignment\":\"all units have a nonempty stratum\",\"sequential-enrollment\":\"sequentialEnrollment is true\",\"analysis-unit-differs\":\"analysisUnit differs from assignmentUnit\",\"randomness-not-statistically-audited\":\"always present\"},\"sourceClaimIds\":[\"assignment-unit-contract\",\"cluster-unit-contract\",\"stratified-balance-contract\",\"sequential-balance-contract\",\"design-documentation-contract\",\"randomness-expectation-contract\"]}\n"
+        "design-contract.json": "{\n  \"schemaVersion\": \"skill-ir-experimental-design-public-contract/v2\",\n  \"contractId\": \"experimental-design-public-contract-v2\",\n  \"protectedInputs\": [\n    \"study.json\",\n    \"design-contract.json\"\n  ],\n  \"outputs\": [\n    \"design/design-plan.json\",\n    \"design/allocation.csv\",\n    \"design/design-report.md\"\n  ],\n  \"passThreshold\": 0.95,\n  \"criterionWeights\": {\n    \"design-input-integrity\": 0.1,\n    \"design-artifact-contract\": 0.1,\n    \"design-semantics\": 0.25,\n    \"design-allocation-safety\": 0.35,\n    \"design-report-consistency\": 0.2\n  },\n  \"designPropertyKeys\": [\n    \"preservesAssignmentUnits\",\n    \"balancesGlobally\",\n    \"balancesWithinStrata\",\n    \"supportsSequentialEnrollment\"\n  ],\n  \"reportEvidenceOpening\": \"```json design-evidence\",\n  \"reportEvidenceClosing\": \"```\",\n  \"reportEvidenceGrammar\": {\n    \"blockCount\": 1,\n    \"openingMarker\": \"```json design-evidence\",\n    \"closingMarker\": \"```\",\n    \"topLevelType\": \"object\",\n    \"jsonMode\": \"strict\",\n    \"encoding\": \"UTF-8\",\n    \"allowComments\": false,\n    \"allowTrailingCommas\": false,\n    \"allowDuplicateKeys\": false\n  },\n  \"studyContract\": {\n    \"assignmentLevels\": [\n      \"individual\",\n      \"cluster\"\n    ],\n    \"requiredFields\": [\n      \"studyId\",\n      \"question\",\n      \"assignmentLevel\",\n      \"assignmentUnit\",\n      \"analysisUnit\",\n      \"response\",\n      \"arms\",\n      \"seed\",\n      \"nuisanceFactors\",\n      \"sequentialEnrollment\",\n      \"units\"\n    ],\n    \"unitFields\": [\n      \"id\",\n      \"stratum\"\n    ],\n    \"rules\": [\n      \"Use at least two unique nonempty arms and unique nonempty assignment unit IDs.\",\n      \"Stratum is either absent from every unit or a nonempty string on every unit.\",\n      \"When assignmentLevel is cluster, each units[] element is one indivisible assignment unit; assignmentUnit remains arbitrary nonempty free text and is not lexically classified; explicit nested member structures or assignments are not allowed in a unit.\"\n    ]\n  },\n  \"allocationContract\": {\n    \"columns\": [\n      \"order\",\n      \"unit_id\",\n      \"stratum\",\n      \"arm\"\n    ],\n    \"rules\": [\n      \"Set order to the one-based position of unit_id in study.units; physical CSV row order may vary.\",\n      \"Include every assignment unit exactly once and use only public study arms.\",\n      \"When strata are present, balance arms within each stratum; global imbalance remains diagnostic only.\",\n      \"When sequential enrollment is true, evaluate arm-sized blocks in the stable study input order projected into each stratum; each complete block contains every arm once and a final partial block is balanced.\",\n      \"Different legal arm assignments and CSV row orders are accepted.\"\n    ]\n  },\n  \"planContract\": {\n    \"requiredFields\": [\n      \"studyId\",\n      \"method\",\n      \"assignmentLevel\",\n      \"assignmentUnit\",\n      \"analysisUnit\",\n      \"response\",\n      \"arms\",\n      \"seed\",\n      \"allocationPath\",\n      \"designProperties\"\n    ],\n    \"method\": \"nonempty free text\",\n    \"allocationPath\": \"design/allocation.csv\"\n  },\n  \"reportEvidenceRequiredFields\": [\n    \"studyId\",\n    \"assignmentUnit\",\n    \"analysisUnit\",\n    \"response\",\n    \"seed\",\n    \"allocationPath\",\n    \"allocationRows\",\n    \"armCounts\",\n    \"designProperties\",\n    \"limitationFlags\"\n  ],\n  \"limitationFlagRules\": {\n    \"cluster-assignment\": \"assignmentLevel is cluster\",\n    \"stratified-assignment\": \"all units have a nonempty stratum\",\n    \"sequential-enrollment\": \"sequentialEnrollment is true\",\n    \"analysis-unit-differs\": \"analysisUnit differs from assignmentUnit\",\n    \"randomness-not-statistically-audited\": \"always present\"\n  },\n  \"sourceClaimIds\": [\n    \"assignment-unit-contract\",\n    \"cluster-unit-contract\",\n    \"stratified-balance-contract\",\n    \"sequential-balance-contract\",\n    \"design-documentation-contract\",\n    \"randomness-expectation-contract\"\n  ]\n}\n"
       },
       "successCriteria": [],
       "eval": [
@@ -160,7 +160,7 @@
             },
             "protectedSha256": {
               "study": "4df646841e0ba35879d9c1ce4c78bc3885d706e1e7d7b32ff7dcb107080bcc17",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         },
@@ -182,7 +182,7 @@
             },
             "protectedSha256": {
               "study": "4df646841e0ba35879d9c1ce4c78bc3885d706e1e7d7b32ff7dcb107080bcc17",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         },
@@ -204,7 +204,7 @@
             },
             "protectedSha256": {
               "study": "4df646841e0ba35879d9c1ce4c78bc3885d706e1e7d7b32ff7dcb107080bcc17",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         },
@@ -226,7 +226,7 @@
             },
             "protectedSha256": {
               "study": "4df646841e0ba35879d9c1ce4c78bc3885d706e1e7d7b32ff7dcb107080bcc17",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         },
@@ -248,7 +248,7 @@
             },
             "protectedSha256": {
               "study": "4df646841e0ba35879d9c1ce4c78bc3885d706e1e7d7b32ff7dcb107080bcc17",
-              "contract": "761a5d1382f07317f1105ef5eab917aee49781e71ed83af521fe0e68f54ab7be"
+              "contract": "72a7c00cc3ee8e36f2765f9ab710f3bce09edf504e468b12409701d0a4cb0796"
             }
           }
         }
