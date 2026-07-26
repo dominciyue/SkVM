@@ -1370,15 +1370,17 @@ v2 初版支持 assignment level、strata 和 sequential enrollment 的全部八
 | cluster | no | yes | cluster 不拆分；按 cluster enrollment 顺序做全局 blocks |
 | cluster | yes | yes | cluster 不拆分；每个 stratum 对 cluster 顺序维护独立 block stream |
 
-`assignmentLevel=cluster` 时，每个 `units[]` 元素就是一个 cluster assignment unit，
-stratum 也必须位于 cluster 这一层。以下输入在 public task schema 层直接拒绝，不交给
-scorer 临场解释：
+`assignmentLevel=cluster` 时，每个 `units[]` 元素就是一个不可拆分的 cluster
+assignment unit，stratum 也必须位于这一层。`assignmentUnit` 保持非空自由文本，
+schema 不按 `participant`、`clinic` 或其翻译做词法分类；“声称使用成员级 assignment”
+仅指 unit 内出现 `members`、`memberAssignments` 等显式结构化嵌套。以下输入在
+public task schema 层直接拒绝，不交给 scorer 临场解释：
 
 - assignment level 不是 `individual | cluster`；
 - arms 少于 2 个、arm 重复、unit ID 重复或 unit ID 为空；
 - 只有部分 units 声明 stratum，或 stratum 为空字符串；
 - sequential enrollment 不是布尔值；
-- cluster task 在 unit 下再嵌套成员级 allocation，或声称使用成员级 assignment unit。
+- cluster task 在 unit 下再嵌套显式成员级 allocation/assignment 结构。
 
 ### 24.2.2 报告一致性的结构化证据
 

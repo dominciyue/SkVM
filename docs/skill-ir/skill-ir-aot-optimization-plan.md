@@ -1470,7 +1470,8 @@ const supportedCases = [
 
 每个 case 构造合法 `study` 与至少两个不同但合法的 allocation，断言二者均通过且不要求
 相同行顺序。另写失败用例：重复/空 unit ID、少于两个或重复 arms、部分 unit 缺 stratum、
-非布尔 sequential、cluster 下嵌套成员级 assignment。
+非布尔 sequential、cluster unit 下显式嵌套 `members`/`memberAssignments` 等成员级
+assignment 结构。`assignmentUnit` 保持非空自由文本，不按标签词汇或翻译做隐藏分类。
 
 - [ ] **Step 2: 运行 contract test 并确认 RED**
 

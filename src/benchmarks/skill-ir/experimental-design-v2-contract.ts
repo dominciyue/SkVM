@@ -19,7 +19,7 @@ export const ExperimentalDesignV2StudySchema = z.object({
   seed: z.number().int().nonnegative(),
   nuisanceFactors: z.array(NonEmptyStringSchema),
   sequentialEnrollment: z.boolean(),
-  units: z.array(ExperimentalDesignV2StudyUnitSchema).min(2),
+  units: z.array(ExperimentalDesignV2StudyUnitSchema).min(1),
 }).strict().superRefine((study, context) => {
   if (new Set(study.arms).size !== study.arms.length) {
     context.addIssue({

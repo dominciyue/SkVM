@@ -149,19 +149,59 @@ describe("experimental-design v2 public study and allocation semantics", () => {
     })).toThrow()
   })
 
-  test("rejects member-level assignment claims and nesting in cluster studies", () => {
-    const nested = studyValue("cluster", false, false)
-    nested.units = [
-      { id: "clinic-1", members: ["patient-1"] },
-      { id: "clinic-2", members: ["patient-2"] },
-    ]
-    const memberClaim = {
-      ...studyValue("cluster", false, false),
-      memberAssignmentUnit: "patient",
-    }
+  test("accepts a one-unit public study and its balanced sequential tail", () => {
+    const study = parseExperimentalDesignV2Study({
+      ...studyValue("individual", false, true),
+      units: [{ id: "only-unit" }],
+    })
 
-    expect(() => parseExperimentalDesignV2Study(nested)).toThrow()
-    expect(() => parseExperimentalDesignV2Study(memberClaim)).toThrow()
+    expect(assessExperimentalDesignV2Allocation(study, [
+      { order: 1, unitId: "only-unit", stratum: "", arm: "control" },
+    ])).toEqual({
+      coverageValid: true,
+      armsValid: true,
+      strataValid: true,
+      sequentialValid: true,
+      properties: {
+        preservesAssignmentUnits: true,
+        balancesGlobally: true,
+        balancesWithinStrata: false,
+        supportsSequentialEnrollment: true,
+      },
+    })
+  })
+
+  test("rejects explicit nested member structures in cluster units", () => {
+    for (const nestedField of ["members", "memberAssignments"] as const) {
+      const nested = studyValue("cluster", false, false)
+      nested.units = [
+        { id: "cluster-1", [nestedField]: ["member-1"] },
+        { id: "cluster-2" },
+      ]
+      expect(() => parseExperimentalDesignV2Study(nested)).toThrow()
+    }
+  })
+
+  test("keeps cluster assignmentUnit free text and assesses units as indivisible assignments", () => {
+    const study = parseExperimentalDesignV2Study({
+      ...studyValue("cluster", false, false),
+      assignmentUnit: "arbitrary public cohort label",
+      units: [{ id: "cohort-a" }, { id: "cohort-b" }],
+    })
+    const rows = [
+      { order: 2, unitId: "cohort-b", stratum: "", arm: "intervention" },
+      { order: 1, unitId: "cohort-a", stratum: "", arm: "control" },
+    ]
+
+    expect(assessExperimentalDesignV2Allocation(study, rows)).toMatchObject({
+      coverageValid: true,
+      armsValid: true,
+      properties: { preservesAssignmentUnits: true },
+    })
+    expect(assessExperimentalDesignV2Allocation(study, [rows[0]!, rows[0]!])).toMatchObject({
+      coverageValid: false,
+      properties: { preservesAssignmentUnits: false },
+    })
   })
 
   test("treats global imbalance as diagnostic when strata are valid", () => {
@@ -252,6 +292,17 @@ type PublicContract = {
   designPropertyKeys: string[]
   reportEvidenceOpening: string
   reportEvidenceClosing: string
+  reportEvidenceGrammar: {
+    blockCount: number
+    openingMarker: string
+    closingMarker: string
+    topLevelType: string
+    jsonMode: string
+    encoding: string
+    allowComments: boolean
+    allowTrailingCommas: boolean
+    allowDuplicateKeys: boolean
+  }
   sourceClaimIds: string[]
 }
 
@@ -332,6 +383,17 @@ describe("experimental-design v2 public contract provenance", () => {
     ])
     expect(contract.reportEvidenceOpening).toBe("```json design-evidence")
     expect(contract.reportEvidenceClosing).toBe("```")
+    expect(contract.reportEvidenceGrammar).toEqual({
+      blockCount: 1,
+      openingMarker: contract.reportEvidenceOpening,
+      closingMarker: contract.reportEvidenceClosing,
+      topLevelType: "object",
+      jsonMode: "strict",
+      encoding: "UTF-8",
+      allowComments: false,
+      allowTrailingCommas: false,
+      allowDuplicateKeys: false,
+    })
     expect(contract.sourceClaimIds.length).toBeGreaterThan(0)
     expect(new Set(contract.sourceClaimIds).size).toBe(contract.sourceClaimIds.length)
     expect(JSON.stringify(contract)).not.toMatch(
@@ -430,6 +492,19 @@ describe("experimental-design v2 physically separated task manifests", () => {
     for (const task of [...development.tasks, ...heldout.tasks]) {
       expect(Object.keys(task.fixtures).sort()).toEqual(["design-contract.json", "study.json"])
       expect(JSON.parse(task.fixtures["design-contract.json"]!)).toEqual(contract)
+      expect(JSON.parse(task.fixtures["design-contract.json"]!)).toMatchObject({
+        reportEvidenceGrammar: {
+          blockCount: 1,
+          openingMarker: "```json design-evidence",
+          closingMarker: "```",
+          topLevelType: "object",
+          jsonMode: "strict",
+          encoding: "UTF-8",
+          allowComments: false,
+          allowTrailingCommas: false,
+          allowDuplicateKeys: false,
+        },
+      })
       expect(() => parseExperimentalDesignV2Study(JSON.parse(task.fixtures["study.json"]!))).not
         .toThrow()
       expect(task.prompt).toContain("design-contract.json")
