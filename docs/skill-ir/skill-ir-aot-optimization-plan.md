@@ -1292,17 +1292,17 @@ task/scorer/package，不执行 held-out。
 
 - [ ] 在 `benchmarks/skill-ir/pilots/experimental-design/v2/` 建立独立的 public
   contract、2 development + 2 held-out task 身份和 audit fixture 根。
-- [ ] 冻结公开可见的输入、输出、方法适用性、assignment/analysis/allocation unit、
+- [x] 冻结公开可见的输入、输出、方法适用性、assignment/analysis/allocation unit、
   allocation 安全和报告一致性要求。
 - [ ] Development/held-out 物理分文件；scorer 实现前提交 `task-split-freeze.json`
   绑定 2+2 task/fixture digest，任何 API run 前再提交 `heldout-freeze.json`
   绑定 scorer digest 和创建提交。
-- [ ] 固定并测试 individual/cluster × strata/no-strata × sequential/non-sequential 的
+- [x] 固定并测试 individual/cluster × strata/no-strata × sequential/non-sequential 的
   八种组合；混合 strata、重复 unit、非法 arms 和成员级 cluster allocation 必须在
   public task schema 层拒绝。
-- [ ] 明确禁止私有 schema version、封闭 method enum、唯一 PRNG/schedule 和逐字
+- [x] 明确禁止私有 schema version、封闭 method enum、唯一 PRNG/schedule 和逐字
   report label 进入主成功条件。
-- [ ] v1 path/digest 测试必须证明旧 task/scorer/audit/lock/package/result 未变化。
+- [x] v1 path/digest 测试必须证明旧 task/scorer/audit/lock/package/result 未变化。
 
 #### Task 8.11.2：语义主 Scorer 与确定性次指标
 
@@ -1628,7 +1628,7 @@ git commit -m "test: author experimental design v2 contract"
 - Create: `src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts`
 - Create: `benchmarks/skill-ir/pilots/experimental-design/v2/task-split-freeze.json`
 
-- [ ] **Step 1: 写 freeze RED tests**
+- [x] **Step 1: 写 freeze RED tests**
 
 必须覆盖：
 
@@ -1642,7 +1642,7 @@ reject any change to frozen v1 task/scorer/audit/lock/package/report
 reject task prompt/eval containing evaluator expected or held-out feedback
 ```
 
-- [ ] **Step 2: 运行 freeze test 并确认 RED**
+- [x] **Step 2: 运行 freeze test 并确认 RED**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze.test.ts
@@ -1650,7 +1650,7 @@ bun test ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze.test.ts
 
 Expected: FAIL，原因是 freeze schema/validator 尚不存在。
 
-- [ ] **Step 3: 实现 freeze API**
+- [x] **Step 3: 实现 freeze API**
 
 ```ts
 export const ExperimentalDesignV2FrozenFileSchema = z.object({
@@ -1715,7 +1715,7 @@ benchmarks/skill-ir/pilots/experimental-design/packages/validated-skill-artifact
 results/skill-ir/benchmark-contract-audit/experimental-design.json
 ```
 
-- [ ] **Step 4: 实现 CLI 并生成 freeze**
+- [x] **Step 4: 实现 CLI 并生成 freeze**
 
 ```powershell
 $taskSplitCommit = git rev-parse HEAD
@@ -1726,7 +1726,7 @@ bun ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts `
 
 CLI 只允许 `--task-commit`、`--out`、`--verify-only`。`--verify-only` 不改文件。
 
-- [ ] **Step 5: 运行 freeze test 与 verify-only**
+- [x] **Step 5: 运行 freeze test 与 verify-only**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze.test.ts
@@ -1736,7 +1736,7 @@ bun ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts `
 
 Expected: PASS；v1 frozen refs 和 2+2 digest 全部一致。
 
-- [ ] **Step 6: 提交 task-split freeze**
+- [x] **Step 6: 提交 task-split freeze**
 
 ```powershell
 git add src/benchmarks/skill-ir/experimental-design-v2-task-freeze.ts `

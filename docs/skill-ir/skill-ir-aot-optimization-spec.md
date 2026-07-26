@@ -1531,6 +1531,11 @@ digest 和 fixture tree digest。Scorer 和 differential audit 只允许读取 d
 和创建提交。此后 held-out 内容与 scorer 均不得修改；若确有 scorer infrastructure bug，
 只能废弃整个 v2 身份并建立 v3，不能原地更新 lock。
 
+冻结文件的 SHA-256 以 `taskCommit` 中的 Git blob 原始 bytes 为权威。对受 Git text
+normalization 管理的公开 Markdown/source 文件，工作区复核只容忍 CRLF 与 LF 的检出差异；
+删除、替换、编码变化或任何非换行内容漂移仍必须拒绝。`public-contract-source-audit.json`
+同样锁定 Git 规范化的 LF bytes，避免同一 provenance 在 Windows 与 Linux 得出不同摘要。
+
 该隔离是**非消费式隔离**，不是实验者盲法：文件在仓库中可被人读取，但 development
 代码路径不得消费其内容。边界固定为：
 

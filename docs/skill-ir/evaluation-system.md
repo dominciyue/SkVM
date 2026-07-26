@@ -814,3 +814,9 @@ held-out freeze -> calibration。`task-split-freeze` 先绑定 task/fixture；�
 audit、lock、compiler、package、scorer 和 feedback API 都不得读取 held-out
 ID/path/digest/content；只有 development gate 通过后，held-out runner 才能消费冻结
 package。对应的 path/digest/sentinel 泄漏和结果回流均须有 fail-closed 负向测试。
+
+Task-split freeze 由 `experimental-design-v2-task-freeze-run.ts` 生成或只读验证。生成模式
+只接受 `--task-commit` 与 `--out`，`--verify-only` 不写文件；validator 会从该 commit
+读取公开合同、source audit、2+2 tasks、source closure 与六项 v1 immutable refs，复核
+fixture projection、claim coverage、quote 和 digest。冻结摘要使用 Git blob bytes；工作区
+只允许 Git text 文件的 CRLF/LF 检出差异，其他内容漂移均拒绝。
