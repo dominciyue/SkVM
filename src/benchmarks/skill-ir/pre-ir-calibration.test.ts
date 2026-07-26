@@ -11,12 +11,43 @@ const lockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-pre-ir-calibration-lock.json",
 )
+const v3LockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v3/experimental-design-v3-pre-ir-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
 }
 
 describe("pre-IR calibration lock", () => {
+  test("validates the experimental-design v3 lock and its held-out freeze guard", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath: v3LockPath })
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-pre-ir-calibration-lock/v2",
+      calibrationId: "experimental-design-v3-pre-ir-calibration-v1",
+      skillId: "experimental-design-v3",
+      frozenInputs: {
+        tasks: { path: "benchmarks/skill-ir/pilots/experimental-design/v3/development/tasks.json" },
+        scorer: { path: "src/bench/evaluators/experimental-design-grade-v3.ts" },
+      },
+      benchmarkGuards: [{
+        kind: "experimental-design-v3-heldout-freeze",
+        path: "benchmarks/skill-ir/pilots/experimental-design/v3/heldout-freeze.json",
+      }],
+    })
+  })
+
+  test("rejects experimental-design v3 calibration when its benchmark guard drifts", async () => {
+    const lock = JSON.parse(await readFile(v3LockPath, "utf8")) as {
+      benchmarkGuards: Array<{ sha256: string }>
+    }
+    lock.benchmarkGuards[0]!.sha256 = "0".repeat(64)
+
+    await expect(validatePreIrCalibrationLock(lock, rootDir)).rejects.toThrow("digest mismatch")
+  })
+
   test("validates the committed law-to-markdown 8-generation identity", async () => {
     const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath })
 

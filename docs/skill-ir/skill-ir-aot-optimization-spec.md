@@ -1666,3 +1666,11 @@ held-out freeze -> `no-skill | original` calibration。Calibration 仍固定强�
 `xty/gpt-5.6-sol`、Windows/clean、两个 development task、每臂每 task 两次、0 retries；
 门禁固定为 0 infrastructure、no-skill 不饱和和至少一个 paired outcome 差异。未通过时冻结
 失败，不构造 IR/artifact，不运行 held-out。通过只允许进入四臂 development lock 起草。
+
+校准调度不复用 corpus 中已经 `runnable` 的 v1 `experimental-design` 条目，也不复制 v1 base
+IR。`pilot.json` 增加 `experimental-design-v3` 版本化 benchmark 条目：它复用完全相同的真实
+source/source closure，状态固定为 `tasks-authored`，只指向 v3 development tasks 和 v3 audit；
+该条目不代表新增真实 skill，不改变 Wave A/Wave B skill 数。预 IR runner 只能显式调度该条目的
+`no-skill | original`，并使用 lock v2 在 plan、probe、execute 与 gate 读取时同时重验 source、
+development tasks、resource contract、v3 scorer 和 `heldout-freeze.json`。因此 calibration 不会
+静默落回 v1 task，也不能在 held-out freeze 漂移后继续执行。

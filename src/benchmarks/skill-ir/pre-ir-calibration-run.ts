@@ -116,6 +116,9 @@ export async function buildPreIrCalibrationPlan(
   if (plan.some((row) => !allowedSystems.has(row.system as "no-skill" | "original"))) {
     throw new Error("Pre-IR calibration plan contains a forbidden system")
   }
+  if (plan.some((row) => !lock.matrix.taskIds.some((taskId) => row.caseId.endsWith(`:${taskId}`)))) {
+    throw new Error("Pre-IR calibration plan contains a task outside the frozen development set")
+  }
   const pairKeys = new Map<string, Set<string>>()
   for (const row of plan) {
     if (row.model !== lock.model.route || row.modelFamily !== lock.model.family) {

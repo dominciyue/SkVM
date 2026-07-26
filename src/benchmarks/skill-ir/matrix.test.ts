@@ -222,9 +222,23 @@ describe("buildCorpusMatrixInput", () => {
     expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);
   });
 
-  test("pre-IR mode closes once no tasks-authored pilot remains", () => {
-    expect(() => buildCorpusMatrixInput("pilot", process.cwd(), {
+  test("pre-IR mode exposes only the versioned experimental-design v3 calibration entry", () => {
+    const input = buildCorpusMatrixInput("pilot", process.cwd(), {
       mode: "tasks-authored-calibration",
-    })).toThrow("0 tasks-authored skills");
+    });
+
+    expect(input.skills).toEqual([{
+      id: "experimental-design-v3",
+      packaging: "focused",
+      provenance: "real-public",
+      evidenceWeight: "support-real",
+    }]);
+    expect(input.tasksBySkill).toEqual({
+      "experimental-design-v3": [
+        "experimental-design-v3-stratified-dev-001",
+        "experimental-design-v3-cluster-sequential-dev-002",
+      ],
+    });
+    expect(input.systems).toEqual(["no-skill", "original"]);
   });
 });

@@ -3,14 +3,14 @@ import path from "node:path"
 import { z } from "zod"
 import { SafeRelativePathSchema, Sha256Schema } from "./artifact-package.ts"
 import { sha256Bytes } from "./source-fixture.ts"
+import { verifyExperimentalDesignV3HeldoutFreeze } from "./experimental-design-v3-heldout-freeze.ts"
 
 const FrozenFileSchema = z.object({
   path: SafeRelativePathSchema,
   sha256: Sha256Schema,
 }).strict()
 
-export const PreIrCalibrationLockSchema = z.object({
-  schemaVersion: z.literal("skill-ir-pre-ir-calibration-lock/v1"),
+const PreIrCalibrationLockFields = {
   status: z.literal("preregistered"),
   calibrationId: z.string().regex(/^[a-z0-9][a-z0-9.-]+$/),
   methodEvidence: z.literal(false),
@@ -63,11 +63,38 @@ export const PreIrCalibrationLockSchema = z.object({
     permitsScorerRetuning: z.literal(false),
   }).strict(),
   prohibited: z.array(z.string().min(1)).min(1),
-}).strict().superRefine((lock, ctx) => {
+} as const
+
+function requireUniqueTaskIds(
+  lock: { matrix: { taskIds: readonly string[] } },
+  ctx: z.RefinementCtx,
+): void {
   if (new Set(lock.matrix.taskIds).size !== lock.matrix.taskIds.length) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Pre-IR calibration task ids must be unique" })
   }
-})
+}
+
+const PreIrCalibrationLockV1Schema = z.object({
+  schemaVersion: z.literal("skill-ir-pre-ir-calibration-lock/v1"),
+  ...PreIrCalibrationLockFields,
+}).strict().superRefine(requireUniqueTaskIds)
+
+const PreIrBenchmarkGuardSchema = z.object({
+  kind: z.literal("experimental-design-v3-heldout-freeze"),
+  path: SafeRelativePathSchema,
+  sha256: Sha256Schema,
+}).strict()
+
+const PreIrCalibrationLockV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-pre-ir-calibration-lock/v2"),
+  ...PreIrCalibrationLockFields,
+  benchmarkGuards: z.tuple([PreIrBenchmarkGuardSchema]),
+}).strict().superRefine(requireUniqueTaskIds)
+
+export const PreIrCalibrationLockSchema = z.union([
+  PreIrCalibrationLockV1Schema,
+  PreIrCalibrationLockV2Schema,
+])
 
 export type PreIrCalibrationLock = z.infer<typeof PreIrCalibrationLockSchema>
 
@@ -94,6 +121,17 @@ async function verifyDigest(rootDir: string, file: { path: string; sha256: strin
   }
 }
 
+async function verifyBenchmarkGuards(lock: PreIrCalibrationLock, rootDir: string): Promise<void> {
+  if (lock.schemaVersion !== "skill-ir-pre-ir-calibration-lock/v2") return
+  for (const guard of lock.benchmarkGuards) {
+    await verifyDigest(rootDir, guard)
+    const value = JSON.parse(await readFile(path.resolve(rootDir, guard.path), "utf8")) as unknown
+    if (guard.kind === "experimental-design-v3-heldout-freeze") {
+      await verifyExperimentalDesignV3HeldoutFreeze(rootDir, value)
+    }
+  }
+}
+
 export async function validatePreIrCalibrationLock(
   input: unknown,
   rootDir: string,
@@ -101,6 +139,7 @@ export async function validatePreIrCalibrationLock(
 ): Promise<PreIrCalibrationLock> {
   const lock = PreIrCalibrationLockSchema.parse(input)
   await Promise.all(Object.values(lock.frozenInputs).map((file) => verifyDigest(rootDir, file)))
+  await verifyBenchmarkGuards(lock, rootDir)
 
   const manifest = overrides.manifest ?? JSON.parse(await readFile(
     path.resolve(rootDir, "benchmarks/skill-ir/corpus/corpora/pilot.json"),

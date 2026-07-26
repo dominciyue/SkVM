@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "skill-ir-pre-ir-calibration-lock/v2",
+  "status": "preregistered",
+  "calibrationId": "experimental-design-v3-pre-ir-calibration-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "experimental-design-v3",
+  "frozenInputs": {
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    },
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v3/development/tasks.json",
+      "sha256": "1b2e008cdbf4584a14386d02bead4a841cd20524d0b04604a91bae1c3ff231f8"
+    },
+    "resourceContract": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/resource-contract.json",
+      "sha256": "c478a8894e1805638e1ecce329038c697fe5cc53166b3b50b9ce833bf2aa8877"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/experimental-design-grade-v3.ts",
+      "sha256": "da5653496a78441335b6d3815f7f770c44736da88733207618e309777b1244fd"
+    }
+  },
+  "benchmarkGuards": [
+    {
+      "kind": "experimental-design-v3-heldout-freeze",
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v3/heldout-freeze.json",
+      "sha256": "482676855509f8d2b767216925d068baa1e7b00f6b67d92978ddc6afebd48e40"
+    }
+  ],
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "bare-agent",
+    "version": "workspace-experimental-design-v3-pre-ir-v1"
+  },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "experimental-design-v3-stratified-dev-001",
+      "experimental-design-v3-cluster-sequential-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "pythonEnv": "SKVM_PYTHON",
+    "retries": 0,
+    "resourceProbeRequired": true,
+    "routeProbeRequired": true,
+    "routeProbeTimeoutMs": 180000
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": false
+  },
+  "promotionBoundary": {
+    "corpusStatusAtRun": "tasks-authored",
+    "createsBaseIr": false,
+    "entersMainClaim": false,
+    "permitsHeldOut": false,
+    "permitsScorerRetuning": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "base IR materialization",
+    "ir-static, ir-pgo, or artifact systems",
+    "scorer retuning from calibration output",
+    "v1 or v2 benchmark identity reuse"
+  ]
+}
