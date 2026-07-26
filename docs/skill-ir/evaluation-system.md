@@ -781,6 +781,17 @@ v2 的主 scorer 判定公开语义：输入保持、产物完整、方法适用
 scorer 检查公开 `designProperties` 与 allocation invariants。报告自然语言不判分，
 只校验公开 fenced JSON `design-evidence` block 与 study/plan/allocation 是否一致。
 
+`designProperties` 在 plan 和 report evidence 中均为必填，四个公开布尔值必须逐项等于
+scorer 从 study/allocation 复算的值；plan 不一致记为 `designSemantics=0`，report 不一致
+记为 `reportContradiction=true`。初版支持 individual/cluster、strata/no-strata、
+sequential/non-sequential 的八种组合，按 assignment unit -> stratum partition ->
+sequential block 的固定顺序判定。混合 strata、重复 unit、非法 arms 和成员级 cluster
+allocation 在 task schema 层拒绝。
+
+报告必须且只能有一个 opening marker 为 `json design-evidence` 的严格 JSON fenced block；
+多个、缺失、非法 JSON 或重复 key 令 report criterion 失败。结构化 `limitationFlags`
+比较公开 source-derived 集合，额外自然语言 warnings 不比较措辞。
+
 结果表必须分列：
 
 ```text
@@ -797,8 +808,9 @@ benchmark 合同可测，development gate 才允许消费 held-out，Wave B 才�
 泛化。没有包含 compile/profile/package 成本的重复调用实验，不报告总 token 节省或
 break-even。
 
-Held-out 在任何 development API run 前单独冻结 task/fixture/scorer digest，但采用
-非消费式隔离而非实验者盲法。Development audit、lock、compiler、package、scorer 和
-feedback API 都不得读取 held-out ID/path/digest/content；只有 development gate 通过后，
-held-out runner 才能消费冻结 package。对应的 path/digest/sentinel 泄漏和结果回流均须有
-fail-closed 负向测试。
+时序固定为：2+2 task creation -> task-split freeze -> scorer/development-only audit ->
+held-out freeze -> calibration。`task-split-freeze` 先绑定 task/fixture；任意 API run 前的
+`heldout-freeze` 再绑定 scorer digest。该隔离是非消费式隔离而非实验者盲法。Development
+audit、lock、compiler、package、scorer 和 feedback API 都不得读取 held-out
+ID/path/digest/content；只有 development gate 通过后，held-out runner 才能消费冻结
+package。对应的 path/digest/sentinel 泄漏和结果回流均须有 fail-closed 负向测试。

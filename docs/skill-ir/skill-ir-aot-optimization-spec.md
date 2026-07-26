@@ -1312,39 +1312,93 @@ primarySemanticScore >= 0.95
 
 ### 24.2.1 方法等价的公开判定
 
-`method` 可作为自由文本写入 plan，但不参与相等比较。主 scorer 只检查公开
-`designProperties`，初版字段固定为：
+`method` 可作为自由文本写入 plan，但不参与相等比较。主 scorer 只检查可由
+`study.json + allocation` 复算的公开 `designProperties`，初版字段固定为：
 
 ```json
 {
-  "randomized": true,
   "preservesAssignmentUnits": true,
+  "balancesGlobally": true,
   "balancesWithinStrata": false,
   "supportsSequentialEnrollment": false
 }
 ```
 
 这些字段是公开 schema，允许额外字段，不要求 schema version，也不形成 method enum。
-Scorer 从 `study.json` 和最终 allocation 推导属性：
+Plan 中的 `designProperties` 必填。四个公开布尔字段必须与 scorer 的派生值逐项相等；
+缺字段、类型错误或值不一致时 `designSemantics=0`。Scorer 从 `study.json` 和最终
+allocation 推导属性：
 
 - `assignmentLevel=cluster` 时，`preservesAssignmentUnits` 必须为 true，且同一 cluster
   不能被拆到多个 arm；
+- 无 strata 时，全局各 arm 计数最大差不超过 1，`balancesGlobally=true`；有 strata
+  时仍报告实际全局平衡值，但主成功只强制每个 stratum 内的平衡；
 - units 含非空 `stratum` 时，`balancesWithinStrata` 必须为 true，每个 stratum 内
   各 arm 计数的最大差不超过 1；
 - `sequentialEnrollment=true` 时，`supportsSequentialEnrollment` 必须为 true；
   每个长度为 arm 数量的完整 enrollment block 内，每个 arm 恰出现一次，block 内
   顺序任意，最后不足一个 block 的尾部只要求 arm 计数最大差不超过 1；
-- 其余任务不规定方法名称或唯一算法，只要求全部 assignment units 恰好出现一次、
-  arm 合法且全局 arm 计数最大差不超过 1。
+- 所有任务都要求全部 assignment units 恰好出现一次且 arm 合法；无 strata 时强制
+  全局 arm 计数最大差不超过 1，有 strata 时只强制每个 stratum 内的该不变量。
 
 Seed 在主 scorer 中只检查 plan/report 与公开输入一致，不据 seed 推导唯一 schedule。
 同 seed 重放是否 byte-for-byte 一致只进入 deterministic profile 次指标。
 
+#### 组合矩阵与判定顺序
+
+v2 初版支持 assignment level、strata 和 sequential enrollment 的全部八种组合。
+所有组合都先把 `units[]` 解释为不可拆的 assignment units，再按以下固定顺序组合：
+
+```text
+1. validate assignment units
+2. if strata: partition units by stratum
+3. within each partition:
+     if sequential: preserve that partition's input order and check arm-sized blocks
+     else: check final arm-count balance
+4. if no strata: apply step 3 once to the full unit list
+5. compute global diagnostics and the four designProperties
+```
+
+| Assignment | Strata | Sequential | 主语义规则 |
+|---|---:|---:|---|
+| individual | no | no | 全局计数最大差不超过 1 |
+| individual | yes | no | 每个 stratum 内计数最大差不超过 1 |
+| individual | no | yes | 全局按 arm-sized enrollment blocks 平衡 |
+| individual | yes | yes | 每个 stratum 维护独立 block stream；顺序是全局输入投影到该 stratum 后的稳定顺序 |
+| cluster | no | no | cluster 不拆分；cluster 计数全局平衡 |
+| cluster | yes | no | cluster 不拆分；每个 stratum 内 cluster 计数平衡 |
+| cluster | no | yes | cluster 不拆分；按 cluster enrollment 顺序做全局 blocks |
+| cluster | yes | yes | cluster 不拆分；每个 stratum 对 cluster 顺序维护独立 block stream |
+
+`assignmentLevel=cluster` 时，每个 `units[]` 元素就是一个 cluster assignment unit，
+stratum 也必须位于 cluster 这一层。以下输入在 public task schema 层直接拒绝，不交给
+scorer 临场解释：
+
+- assignment level 不是 `individual | cluster`；
+- arms 少于 2 个、arm 重复、unit ID 重复或 unit ID 为空；
+- 只有部分 units 声明 stratum，或 stratum 为空字符串；
+- sequential enrollment 不是布尔值；
+- cluster task 在 unit 下再嵌套成员级 allocation，或声称使用成员级 assignment unit。
+
 ### 24.2.2 报告一致性的结构化证据
 
 `design-report.md` 的自然语言正文不做关键词或逐字匹配。公开 task contract 要求报告
-包含一个 fenced JSON `design-evidence` block；key 顺序、缩进、正文语言和额外字段
-均不受限。该 block 至少包含：
+包含且只包含一个结构化 evidence block。语法固定为：
+
+````text
+```json design-evidence
+{ ...one strict JSON object... }
+```
+````
+
+- opening line 去掉行尾 ASCII 空格后必须恰为 `````json design-evidence``；
+- closing line 去掉行尾 ASCII 空格后必须恰为 `````；
+- JSON 使用 UTF-8、不得有注释、尾随逗号或重复 key；
+- 缺失、多个 block、非法 JSON、非 object 顶层或重复 key 时，
+  `reportConsistency=0`，但不计 infrastructure；
+- key 顺序、缩进、自然语言正文、method 自由文本和未冲突的额外字段不受限。
+
+该 block 至少包含：
 
 ```json
 {
@@ -1357,14 +1411,33 @@ Seed 在主 scorer 中只检查 plan/report 与公开输入一致，不据 seed 
   "allocationRows": 0,
   "armCounts": {},
   "designProperties": {},
-  "warnings": []
+  "limitationFlags": []
 }
 ```
 
-Scorer 只将该 block 与 `study.json`、plan 和实际 allocation 交叉校验；自然语言正文只供
-人阅读。Alternative-valid fixtures 必须覆盖中英文正文、不同 key/row 顺序、自由 method
-名称和不同但满足同一不变量的 allocation。Invalid-control 必须分别覆盖 cluster 拆分、
-重复/缺失 unit、非法 arm、stratum 失衡、sequential block 失衡以及报告证据与实际文件冲突。
+Report 中的 `designProperties` 也必填，四个公开布尔字段必须与 plan 中的值以及 scorer
+派生值逐项相等。Plan 缺失或不一致使 `designSemantics=0`；report block 中缺失只损失对应
+report atom，出现与 plan/派生值不同的布尔值则固定设置 `reportContradiction=true`。
+
+`limitationFlags` 是顺序无关、无重复的公开字符串集合，必须与 source-derived 集合相等：
+
+```text
+cluster-assignment                    assignmentLevel = cluster
+stratified-assignment                 所有 units 都有非空 stratum
+sequential-enrollment                 sequentialEnrollment = true
+analysis-unit-differs                 analysisUnit != assignmentUnit
+randomness-not-statistically-audited  始终存在；主 scorer 不检验随机数质量
+```
+
+额外自然语言 `warnings` 可以存在且不参与计分；scorer 不比较 warning 措辞。结构化
+`limitationFlags` 缺失会损失第 4 个 report atom，值与派生集合不一致则设置
+`reportContradiction=true`。
+
+Scorer 只将 evidence block 与 `study.json`、plan 和实际 allocation 交叉校验；自然语言
+正文只供人阅读。Alternative-valid fixtures 必须覆盖中英文正文、不同 key/row 顺序、
+自由 method 名称、自由 warnings 和不同但满足同一不变量的 allocation。Invalid-control
+必须分别覆盖 cluster 拆分、重复/缺失 unit、非法 arm、stratum 失衡、sequential block
+失衡、重复/多个 evidence block、错误 limitation flags 以及报告证据与实际文件冲突。
 
 ### 24.3 次级指标：确定性 Profile
 
@@ -1419,10 +1492,11 @@ alternative-valid fixture 不因表面格式差异被拒；invalid-control 能�
 ### 24.5 数据流与实验顺序
 
 ```text
-public task/source
-    -> source audit + public contract
-    -> v2 scorer audit
-    -> 2 development + 2 held-out freeze
+2 development + 2 held-out task creation
+    -> task-split freeze
+    -> public task/source + source audit + public contract
+    -> v2 scorer + development-only audit
+    -> held-out freeze (before every API run)
     -> no-skill | original calibration
     -> source-audited base IR
     -> ir-static / artifact development

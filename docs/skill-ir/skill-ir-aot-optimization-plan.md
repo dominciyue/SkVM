@@ -1297,6 +1297,9 @@ task/scorer/package，不执行 held-out。
 - [ ] Development/held-out 物理分文件；scorer 实现前提交 `task-split-freeze.json`
   绑定 2+2 task/fixture digest，任何 API run 前再提交 `heldout-freeze.json`
   绑定 scorer digest 和创建提交。
+- [ ] 固定并测试 individual/cluster × strata/no-strata × sequential/non-sequential 的
+  八种组合；混合 strata、重复 unit、非法 arms 和成员级 cluster allocation 必须在
+  public task schema 层拒绝。
 - [ ] 明确禁止私有 schema version、封闭 method enum、唯一 PRNG/schedule 和逐字
   report label 进入主成功条件。
 - [ ] v1 path/digest 测试必须证明旧 task/scorer/audit/lock/package/result 未变化。
@@ -1309,9 +1312,11 @@ task/scorer/package，不执行 held-out。
 - [ ] Development gate 预注册为：0 infrastructure、success≥3/4、mean≥0.95、
   每个 task 至少一次成功、相对 baseline 无 hard-gate regression。
 - [ ] 方法只按公开 `designProperties` 和 allocation invariants 判定，不比较自由文本
-  method 名称；seed 的唯一 schedule 只进入 profile 次指标。
+  method 名称；plan/report 两处的四个布尔属性必须与 scorer 派生值逐项相等。
+  seed 的唯一 schedule 只进入 profile 次指标。
 - [ ] 报告正文不做关键词判分；只交叉验证公开 fenced JSON `design-evidence` block
-  与 study/plan/allocation，允许中英文、key 顺序和额外字段变化。
+  与 study/plan/allocation，明确唯一 block、严格 JSON、重复 key/block 的失败语义；
+  `limitationFlags` 按公开 source-derived 集合比较，warnings 措辞保持自由。
 - [ ] 单独计算 `deterministicProfileScore` 与 reproducibility；除公开合同明确要求外，
   profile 不得改变 primary success。
 - [ ] 输出显式支持“semantic pass / profile differ”，防止 benchmark-specific profile
@@ -1322,8 +1327,9 @@ task/scorer/package，不执行 held-out。
 - [ ] 每个 development criterion 至少提供 canonical-valid、alternative-valid 与
   invalid-control；task 分支必须独立覆盖。
 - [ ] Alternative-valid 覆盖自由 method 名称、不同合法 schedule、中英文报告和 key/row
-  顺序；invalid-control 覆盖 cluster 拆分、unit 缺失/重复、非法 arm、stratum/sequential
-  失衡和 report evidence 冲突。
+  顺序、八种组合；invalid-control 覆盖 cluster 拆分、unit 缺失/重复、非法 arm、
+  stratum/sequential 失衡、重复/非法 evidence block、错误 limitationFlags 和 report
+  evidence 冲突。
 - [ ] 增加 reverse-evidence 和 gold-isolation 测试：移除公开证据后约束消失或变为
   `unconfirmed`，evaluator expected、held-out、历史模型正文和 package answer 不可达。
 - [ ] 生成新的 v2 audit manifest/report；任何 alternative-valid 被拒、invalid-control
@@ -1359,9 +1365,11 @@ task/scorer/package，不执行 held-out。
 `superpowers:writing-plans` 另行拆解。当前冻结顺序为：
 
 ```text
-v2 public contract
--> scorer differential tests
--> v2 audit
+2+2 task creation
+-> task-split freeze
+-> v2 public contract + scorer differential tests
+-> development-only v2 audit
+-> held-out freeze
 -> baseline calibration
 -> base IR / artifact development
 -> held-out
