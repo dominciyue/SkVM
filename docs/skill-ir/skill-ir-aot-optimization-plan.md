@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-07-25
+**最后更新：** 2026-07-27
 
 本文件只记录当前状态和下一步。已完成阶段的详细演进见
 `docs/skill-ir/history.md`，组件契约见对应权威文档。
@@ -1361,8 +1361,7 @@ task/scorer/package，不执行 held-out。
 - [ ] 在质量不回归前提下，按 `N=1,2,5,10` 报告 compile/profile/package/runtime
   总成本和 break-even；没有同口径数据时不声称 token reduction。
 
-文件级 TDD 的具体文件名、接口和命令将在本设计书面评审通过后，按
-`superpowers:writing-plans` 另行拆解。当前冻结顺序为：
+Task 8.11A 的文件级 TDD 计划见下一节。当前冻结顺序为：
 
 ```text
 2+2 task creation
@@ -1376,3 +1375,794 @@ task/scorer/package，不执行 held-out。
 -> Wave B replication
 -> repeated-call amortization
 ```
+
+## 14. Task 8.11A Experimental-design v2 Contract Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> `superpowers:subagent-driven-development` (recommended) or
+> `superpowers:executing-plans` to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 建立一个不消费 held-out、通过公开合同 differential audit 的
+`experimental-design-v2` 本地 benchmark；本阶段不调用 API、不注册主 corpus、不构造
+base IR 或 artifact。
+
+**Architecture:** v2 使用独立目录和 evaluator ID。共享 domain 模块只负责解析公开
+study/contract/plan/allocation/report 并计算五项语义结果；evaluator bridge 只处理安全
+workdir I/O 和框架返回值。Task split 在 scorer 前冻结，scorer 与 development-only audit
+完成后再冻结 held-out identity。`public task/source + source audit + public contract`
+属于 scorer/audit 的输入前置，不是额外 promotion gate。Spec §24.5 中该箭头表示
+task-split freeze 后的 readiness 验证：文件在 Task 14.2 一次性创建，在 Task 14.3
+随 split 冻结，不会在 freeze 后另造一套合同或增加一次通过门槛。
+
+**Tech Stack:** Bun、TypeScript、Zod、`yaml` 的 strict JSON duplicate-key 检查、现有
+custom evaluator registry、`skill-ir-benchmark-contract-audit/v1`、SHA-256 provenance。
+
+### 14.1 文件结构
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/
+  public-contract.json
+  public-contract-source-audit.json
+  development/tasks.json
+  heldout/tasks.json
+  task-split-freeze.json
+  benchmark-contract-audit.json
+  audit-fixtures/
+  heldout-freeze.json
+
+src/benchmarks/skill-ir/
+  experimental-design-v2-contract.ts
+  experimental-design-v2-contract.test.ts
+  experimental-design-v2-task-freeze.ts
+  experimental-design-v2-task-freeze.test.ts
+  experimental-design-v2-task-freeze-run.ts
+  experimental-design-v2-audit.test.ts
+  experimental-design-v2-heldout-freeze.ts
+  experimental-design-v2-heldout-freeze.test.ts
+  experimental-design-v2-heldout-freeze-run.ts
+
+src/bench/evaluators/
+  experimental-design-grade-v2.ts
+  experimental-design-grade-v2.test.ts
+  index.ts
+
+results/skill-ir/benchmark-contract-audit/
+  experimental-design-v2.json
+```
+
+职责边界：
+
+- `experimental-design-v2-contract.ts`：纯语义、无 registry/corpus/package/held-out I/O。
+- `experimental-design-grade-v2.ts`：安全读 workdir，调用纯语义函数，注册
+  `skill-ir-experimental-design-v2`。
+- `*-task-freeze.ts`：绑定 2+2 task、公开合同、source audit 和 v1 immutable refs。
+- `*-heldout-freeze.ts`：绑定 task split、scorer、passed audit 和 held-out sentinel。
+- v2 audit 继续复用通用 audit engine，不给通用 engine 增加 skill-specific 分支。
+
+### Task 14.2：公开合同、2+2 Task 与八组合语义
+
+**Files:**
+
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-contract.ts`
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/public-contract-source-audit.json`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/heldout/tasks.json`
+
+- [ ] **Step 1: 写八组合和 schema 拒绝的 RED tests**
+
+测试矩阵固定为：
+
+```ts
+const supportedCases = [
+  ["individual", false, false],
+  ["individual", true, false],
+  ["individual", false, true],
+  ["individual", true, true],
+  ["cluster", false, false],
+  ["cluster", true, false],
+  ["cluster", false, true],
+  ["cluster", true, true],
+] as const
+```
+
+每个 case 构造合法 `study` 与至少两个不同但合法的 allocation，断言二者均通过且不要求
+相同行顺序。另写失败用例：重复/空 unit ID、少于两个或重复 arms、部分 unit 缺 stratum、
+非布尔 sequential、cluster 下嵌套成员级 assignment。
+
+- [ ] **Step 2: 运行 contract test 并确认 RED**
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts
+```
+
+Expected: FAIL，原因是 `experimental-design-v2-contract.ts` 或导出尚不存在。
+
+- [ ] **Step 3: 实现共享 public contract 类型和派生 API**
+
+导出接口固定为：
+
+```ts
+export type ExperimentalDesignV2Study =
+  z.infer<typeof ExperimentalDesignV2StudySchema>
+
+export type ExperimentalDesignV2AllocationRow = {
+  order: number
+  unitId: string
+  stratum: string
+  arm: string
+}
+
+export type ExperimentalDesignV2Properties = {
+  preservesAssignmentUnits: boolean
+  balancesGlobally: boolean
+  balancesWithinStrata: boolean
+  supportsSequentialEnrollment: boolean
+}
+
+export type ExperimentalDesignV2AllocationAssessment = {
+  coverageValid: boolean
+  armsValid: boolean
+  strataValid: boolean
+  sequentialValid: boolean
+  properties: ExperimentalDesignV2Properties
+}
+
+export function parseExperimentalDesignV2Study(value: unknown):
+  ExperimentalDesignV2Study
+
+export function parseExperimentalDesignV2AllocationCsv(text: string):
+  ExperimentalDesignV2AllocationRow[]
+
+export function assessExperimentalDesignV2Allocation(
+  study: ExperimentalDesignV2Study,
+  rows: ExperimentalDesignV2AllocationRow[],
+): ExperimentalDesignV2AllocationAssessment
+
+export function deriveExperimentalDesignV2LimitationFlags(
+  study: ExperimentalDesignV2Study,
+): string[]
+
+export const ExperimentalDesignV2PublicContractSourceAuditSchema:
+  z.ZodType<{
+    schemaVersion:
+      "skill-ir-experimental-design-v2-public-contract-source-audit/v1"
+    contractId: "experimental-design-public-contract-v2"
+    entries: Array<{
+      claimId: string
+      source: { path: string; sha256: string }
+      quote: string
+    }>
+  }>
+```
+
+顺序固定为 assignment-unit validation → stratum partition → per-partition sequential block
+或 final balance → global diagnostics。Strata 存在时不把全局失衡作为主失败，只如实写入
+`balancesGlobally`。
+
+- [ ] **Step 4: 编写公开合同和 source audit**
+
+`public-contract.json` 必须公开：
+
+```json
+{
+  "contractId": "experimental-design-public-contract-v2",
+  "protectedInputs": ["study.json", "design-contract.json"],
+  "outputs": [
+    "design/design-plan.json",
+    "design/allocation.csv",
+    "design/design-report.md"
+  ],
+  "passThreshold": 0.95,
+  "criterionWeights": {
+    "design-input-integrity": 0.1,
+    "design-artifact-contract": 0.1,
+    "design-semantics": 0.25,
+    "design-allocation-safety": 0.35,
+    "design-report-consistency": 0.2
+  },
+  "designPropertyKeys": [
+    "preservesAssignmentUnits",
+    "balancesGlobally",
+    "balancesWithinStrata",
+    "supportsSequentialEnrollment"
+  ],
+  "reportEvidenceOpening": "```json design-evidence",
+  "reportEvidenceClosing": "```"
+}
+```
+
+`public-contract-source-audit.json` 逐项绑定已有 source closure path/digest/quote。它只证明
+public contract 的来源，随 task split 一起验证，不新增 promotion gate。Validator 必须
+确认 source digest、quote substring、claim ID 唯一，并覆盖 public contract 声明的全部
+`sourceClaimIds`。
+
+- [ ] **Step 5: 编写分离的 2+2 task**
+
+固定身份：
+
+```text
+development:
+  experimental-design-v2-stratified-dev-001
+  experimental-design-v2-cluster-sequential-dev-002
+held-out:
+  experimental-design-v2-stratified-sequential-heldout-001
+  experimental-design-v2-cluster-stratified-heldout-002
+```
+
+每个 task 的 fixtures 包含 `study.json` 和与 `public-contract.json` 语义相同的
+`design-contract.json`；prompt 只要求读取公开合同并生成三项输出。五项 criterion
+权重固定为 `0.10/0.10/0.25/0.35/0.20`，`hardGateIds` 包含五项 criterion，其中
+report evaluator 仅在事实冲突时返回 `pass=false`；`passThreshold=0.95`。
+
+- [ ] **Step 6: 运行 contract test 并确认 GREEN**
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts
+```
+
+Expected: 八组合、非法 schema、两份 task 身份与公开合同一致性全部 PASS。
+
+- [ ] **Step 7: 提交 task creation**
+
+```powershell
+git add src/benchmarks/skill-ir/experimental-design-v2-contract.ts `
+  src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts `
+  benchmarks/skill-ir/pilots/experimental-design/v2
+git commit -m "test: author experimental design v2 contract"
+```
+
+该提交 hash 作为下一任务 `taskCommit`，此后 2+2 task 内容不得原地修改。
+
+### Task 14.3：Task-split Freeze 与 v1 Immutability
+
+**Files:**
+
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-task-freeze.ts`
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-task-freeze.test.ts`
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/task-split-freeze.json`
+
+- [ ] **Step 1: 写 freeze RED tests**
+
+必须覆盖：
+
+```text
+accept exact 2+2 split + public contract/source audit
+reject task/public-contract/source-audit digest drift
+reject development/held-out ID overlap or split mismatch
+reject fixture projection drift
+reject taskCommit not containing the frozen task bytes
+reject any change to frozen v1 task/scorer/audit/lock/package/report
+reject task prompt/eval containing evaluator expected or held-out feedback
+```
+
+- [ ] **Step 2: 运行 freeze test 并确认 RED**
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze.test.ts
+```
+
+Expected: FAIL，原因是 freeze schema/validator 尚不存在。
+
+- [ ] **Step 3: 实现 freeze API**
+
+```ts
+export const ExperimentalDesignV2FrozenFileSchema = z.object({
+  path: SafeRelativePathSchema,
+  sha256: Sha256Schema,
+}).strict()
+
+export const ExperimentalDesignV2FrozenTaskSetSchema =
+  ExperimentalDesignV2FrozenFileSchema.extend({
+    split: z.enum(["development", "heldout"]),
+    taskIds: z.array(z.string().min(1)).length(2),
+  }).strict()
+
+export const ExperimentalDesignV2TaskSplitFreezeSchema = z.object({
+  schemaVersion: z.literal(
+    "skill-ir-experimental-design-v2-task-split-freeze/v1",
+  ),
+  benchmarkId: z.literal("experimental-design-v2"),
+  taskCommit: z.string().regex(/^[a-f0-9]{40}$/),
+  publicContract: ExperimentalDesignV2FrozenFileSchema,
+  publicContractSourceAudit: ExperimentalDesignV2FrozenFileSchema,
+  developmentTasks: ExperimentalDesignV2FrozenTaskSetSchema,
+  heldoutTasks: ExperimentalDesignV2FrozenTaskSetSchema,
+  fixtureProjectionSha256: Sha256Schema,
+  sourceClosure: z.array(ExperimentalDesignV2FrozenFileSchema).min(1),
+  frozenV1: z.array(ExperimentalDesignV2FrozenFileSchema).length(6),
+  heldoutSentinel: z.string().regex(
+    /^TEST_ONLY_HELDOUT_V2_[A-Z0-9_]+$/,
+  ),
+}).strict()
+
+export async function createExperimentalDesignV2TaskSplitFreeze(
+  rootDir: string,
+  taskCommit: string,
+): Promise<ExperimentalDesignV2TaskSplitFreeze>
+
+export async function verifyExperimentalDesignV2TaskSplitFreeze(
+  rootDir: string,
+  value: unknown,
+): Promise<ExperimentalDesignV2TaskSplitFreeze>
+```
+
+`fixtureProjectionSha256` 使用按 task ID、fixture path 排序后的 UTF-8 bytes 计算；validator
+对每个冻结文件执行等价于 `git show "$taskCommit:$relativePath"` 的读取，验证 task
+creation commit 中的原始 bytes，且所有 resolved path 必须留在 repo root。
+
+`heldoutSentinel` 在 task split 冻结时生成，只用于证明 development scorer/audit 没有
+消费 held-out；它不是任务答案，也不得进入 task prompt、public contract、scorer、
+audit manifest 或 compact report。后续 held-out freeze 必须逐字复用同一 sentinel，
+不得重新生成。
+
+`frozenV1` 必须精确包含以下六项，不能用目录摘要替代：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/tasks.json
+src/bench/evaluators/experimental-design-grade.ts
+benchmarks/skill-ir/pilots/experimental-design/benchmark-contract-audit.json
+benchmarks/skill-ir/pilots/experimental-design/experimental-design-baseline-calibration-lock.json
+benchmarks/skill-ir/pilots/experimental-design/packages/validated-skill-artifact-v1/package-manifest.json
+results/skill-ir/benchmark-contract-audit/experimental-design.json
+```
+
+- [ ] **Step 4: 实现 CLI 并生成 freeze**
+
+```powershell
+$taskSplitCommit = git rev-parse HEAD
+bun ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts `
+  --task-commit=$taskSplitCommit `
+  --out=benchmarks/skill-ir/pilots/experimental-design/v2/task-split-freeze.json
+```
+
+CLI 只允许 `--task-commit`、`--out`、`--verify-only`。`--verify-only` 不改文件。
+
+- [ ] **Step 5: 运行 freeze test 与 verify-only**
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze.test.ts
+bun ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts `
+  --verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/task-split-freeze.json
+```
+
+Expected: PASS；v1 frozen refs 和 2+2 digest 全部一致。
+
+- [ ] **Step 6: 提交 task-split freeze**
+
+```powershell
+git add src/benchmarks/skill-ir/experimental-design-v2-task-freeze.ts `
+  src/benchmarks/skill-ir/experimental-design-v2-task-freeze.test.ts `
+  src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts `
+  benchmarks/skill-ir/pilots/experimental-design/v2/task-split-freeze.json
+git commit -m "feat: freeze experimental design v2 task split"
+```
+
+Scorer 实现只能从该提交之后开始。
+
+### Task 14.4：v2 语义 Scorer 与 Registry
+
+**Files:**
+
+- Create: `src/bench/evaluators/experimental-design-grade-v2.ts`
+- Create: `src/bench/evaluators/experimental-design-grade-v2.test.ts`
+- Modify: `src/bench/evaluators/index.ts`
+
+- [ ] **Step 1: 写 evaluator RED tests**
+
+五个 checks 固定为：
+
+```ts
+type ExperimentalDesignV2Check =
+  | "input-integrity"
+  | "artifact-contract"
+  | "design-semantics"
+  | "allocation-safety"
+  | "report-consistency"
+```
+
+Tests 必须验证：
+
+- alternative method 名称、合法不同行顺序、中英文正文和额外 JSON fields 通过；
+- plan `designProperties` 缺失/漂移使 `design-semantics` fail；
+- allocation 覆盖、arm、strata、sequential 或 cluster 失败使 allocation fail；
+- report block 缺失/多个/非法/重复 key 时 `pass=true, score=0`；
+- report 与派生属性或 `limitationFlags` 冲突时 `pass=false`；
+- 报告四个原子检查为 `0/0.25/0.5/0.75/1`；
+- 路径逃逸、symlink/junction 和 unreadable workdir 只记 infrastructure。
+
+- [ ] **Step 2: 运行 evaluator test 并确认 RED**
+
+```powershell
+bun test ./src/bench/evaluators/experimental-design-grade-v2.test.ts
+```
+
+Expected: FAIL，原因是 v2 evaluator 尚不存在/未注册。
+
+- [ ] **Step 3: 实现 evaluator bridge**
+
+Payload 固定为：
+
+```ts
+const PayloadSchema = z.object({
+  schemaVersion: z.literal("skill-ir-experimental-design-eval/v2"),
+  check: z.enum([
+    "input-integrity",
+    "artifact-contract",
+    "design-semantics",
+    "allocation-safety",
+    "report-consistency",
+  ]),
+  paths: z.object({
+    study: SafeRelativePathSchema,
+    contract: SafeRelativePathSchema,
+    plan: SafeRelativePathSchema,
+    allocation: SafeRelativePathSchema,
+    report: SafeRelativePathSchema,
+  }).strict(),
+  protectedSha256: z.object({
+    study: Sha256Schema,
+    contract: Sha256Schema,
+  }).strict(),
+}).strict()
+```
+
+严格 JSON 先用 `JSON.parse` 拒绝 JSON 以外语法，再用
+`parseDocument(text, { schema: "json", uniqueKeys: true })` 拒绝重复 key。Evaluator
+只读取 payload 指向的 workdir 文件并调用共享 contract API；不得 import corpus registry、
+task registry、package、freeze 或 result 模块。
+
+- [ ] **Step 4: 注册独立 evaluator ID**
+
+在 `src/bench/evaluators/index.ts` 增加：
+
+```ts
+import "./experimental-design-grade-v2.ts"
+```
+
+并增加 registry path/digest：
+
+```ts
+[
+  "skill-ir-experimental-design-v2",
+  "src/bench/evaluators/experimental-design-grade-v2.ts",
+]
+```
+
+使用 `Get-FileHash -Algorithm SHA256` 写入最终 source digest；不得改 v1 evaluator 的
+path/digest。
+
+- [ ] **Step 5: 运行 evaluator、scoring 与 registry tests**
+
+```powershell
+bun test ./src/bench/evaluators/experimental-design-grade-v2.test.ts `
+  ./src/benchmarks/skill-ir/scoring.test.ts `
+  ./src/benchmarks/skill-ir/benchmark-contract-audit-run.test.ts
+```
+
+Expected: PASS；五项权重经现有 scorer 聚合为 `primarySemanticScore`，hard gate 和
+`0.95` threshold 生效。当前通用 row 字段仍为 `evaluatorScore`；对 v2 它就是
+`primarySemanticScore`，本阶段不改通用 row schema。`deterministicProfileScore` 只有
+artifact 存在后才可计算，8.11A 不生成伪值。
+
+- [ ] **Step 6: 提交 scorer**
+
+```powershell
+git add src/bench/evaluators/experimental-design-grade-v2.ts `
+  src/bench/evaluators/experimental-design-grade-v2.test.ts `
+  src/bench/evaluators/index.ts
+git commit -m "feat: add experimental design v2 semantic scorer"
+```
+
+### Task 14.5：Differential Fixtures 与 Development-only Audit
+
+**Files:**
+
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/canonical-complete/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-individual-plain/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-individual-strata/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-individual-sequential/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-individual-strata-sequential/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-plain/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-strata/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-sequential/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-cluster-strata-sequential/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/alt-report-chinese/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-protected-input/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-missing-artifact/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-unit-coverage/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-arm/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-cluster-split/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-stratum-balance/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-sequential-block/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-plan-properties/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-report-block/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-limitation-flags/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures/invalid-report-contradiction/`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/benchmark-contract-audit.json`
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts`
+- Create: `results/skill-ir/benchmark-contract-audit/experimental-design-v2.json`
+
+- [ ] **Step 1: 写 audit RED test**
+
+Test 必须断言：
+
+```ts
+expect(manifest.scope.split).toBe("development")
+expect(manifest.scope.taskIds).toEqual([
+  "experimental-design-v2-stratified-dev-001",
+  "experimental-design-v2-cluster-sequential-dev-002",
+])
+expect(report.status).toBe("passed")
+expect(serialized).not.toContain("experimental-design-v2-stratified-sequential-heldout-001")
+expect(serialized).not.toContain("experimental-design-v2-cluster-stratified-heldout-002")
+expect(serialized).not.toContain(taskSplitFreeze.heldoutSentinel)
+```
+
+同时读取 v2 scorer source，断言其 dependency boundary 不包含 corpus/task registry、
+heldout freeze、compiler、package 或 result import。
+
+- [ ] **Step 2: 运行 audit test 并确认 RED**
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts
+```
+
+Expected: FAIL，原因是 v2 audit manifest/fixtures/report 尚不存在。
+
+- [ ] **Step 3: 创建 canary fixture 矩阵**
+
+至少包含：
+
+```text
+canonical-valid:
+  input/artifacts/plan/allocation/report
+alternative-valid:
+  all 8 assignment×strata×sequential combinations
+  free method names
+  alternative legal row/key order
+  Chinese and English report prose
+  arbitrary unscored warnings
+invalid-control:
+  protected input drift
+  missing artifact
+  duplicate/missing unit
+  invalid arm
+  cluster split/member-level assignment
+  mixed/missing stratum
+  stratum imbalance
+  sequential block imbalance
+  plan property mismatch
+  missing/multiple/invalid/duplicate-key evidence block
+  wrong limitationFlags
+  report factual contradiction
+```
+
+每个 semantic/safety requirement 对两个 development task 分支均有 audit canary；八组合
+可以绑定任一 development criterion，但不引用 held-out task ID。
+
+除 `invalid-missing-artifact` 外，每个 fixture 目录固定包含：
+
+```text
+study.json
+design-contract.json
+design/design-plan.json
+design/allocation.csv
+design/design-report.md
+```
+
+`invalid-missing-artifact` 只故意省略 `design/design-report.md`。Fixture 不使用 symlink、
+junction、绝对路径或运行时生成文件。
+
+- [ ] **Step 4: 编写 v2 audit manifest**
+
+Manifest 使用现有 `skill-ir-benchmark-contract-audit/v1`，只绑定 development task file、
+v2 scorer 和公开 source/contract evidence。Requirements 不得出现 evaluator expected、
+held-out path/digest、v1 model output 或 package answer。
+
+- [ ] **Step 5: 运行 audit 并持久化 compact report**
+
+```powershell
+bun ./src/benchmarks/skill-ir/benchmark-contract-audit-run.ts `
+  --manifest=benchmarks/skill-ir/pilots/experimental-design/v2/benchmark-contract-audit.json `
+  --out=results/skill-ir/benchmark-contract-audit/experimental-design-v2.json
+```
+
+Expected: exit 0、`status=passed`，所有 canonical/alternative/invalid canary outcome
+matched；report 不含 fixture payload、held-out 或模型正文。
+
+- [ ] **Step 6: 运行 audit tests**
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts `
+  ./src/benchmarks/skill-ir/benchmark-contract-audit.test.ts `
+  ./src/benchmarks/skill-ir/benchmark-contract-audit-run.test.ts `
+  ./src/benchmarks/skill-ir/benchmark-contract-audit-pilots.test.ts
+```
+
+Expected: v2 passed；三个 v1 pilot 仍保持原冻结 failed 结果。
+
+- [ ] **Step 7: 提交 audit**
+
+```powershell
+git add benchmarks/skill-ir/pilots/experimental-design/v2/audit-fixtures `
+  benchmarks/skill-ir/pilots/experimental-design/v2/benchmark-contract-audit.json `
+  src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts `
+  results/skill-ir/benchmark-contract-audit/experimental-design-v2.json
+git commit -m "test: audit experimental design v2 benchmark"
+```
+
+该提交 hash 作为 held-out freeze 的 `inputsCommit`。
+
+### Task 14.6：Held-out Freeze 与非消费隔离
+
+**Files:**
+
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.ts`
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.test.ts`
+- Create: `src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts`
+- Create: `benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json`
+
+- [ ] **Step 1: 写 held-out isolation RED tests**
+
+覆盖：
+
+```text
+accept exact task-split + scorer + passed audit + inputsCommit
+reject held-out task/fixture/scorer/audit digest drift
+reject audit report status != passed
+reject audit manifest/canaries containing held-out IDs/path/digest/sentinel
+reject scorer source/registry identity drift
+reject development lock/compiler/package/feedback-shaped sink containing held-out refs
+reject inputsCommit not containing the bound scorer/audit bytes
+```
+
+- [ ] **Step 2: 运行 held-out freeze test 并确认 RED**
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.test.ts
+```
+
+Expected: FAIL，原因是 held-out freeze module 尚不存在。
+
+- [ ] **Step 3: 实现 held-out freeze API**
+
+```ts
+import {
+  ExperimentalDesignV2FrozenFileSchema,
+  ExperimentalDesignV2TaskSplitFreezeSchema,
+} from "./experimental-design-v2-task-freeze"
+
+export const ExperimentalDesignV2HeldoutFreezeSchema = z.object({
+  schemaVersion: z.literal(
+    "skill-ir-experimental-design-v2-heldout-freeze/v1",
+  ),
+  benchmarkId: z.literal("experimental-design-v2"),
+  inputsCommit: z.string().regex(/^[a-f0-9]{40}$/),
+  taskSplitFreeze: ExperimentalDesignV2FrozenFileSchema,
+  heldoutTasks: ExperimentalDesignV2FrozenFileSchema,
+  scorer: ExperimentalDesignV2FrozenFileSchema.extend({
+    evaluatorId: z.literal("skill-ir-experimental-design-v2"),
+  }).strict(),
+  auditManifest: ExperimentalDesignV2FrozenFileSchema,
+  auditReport: ExperimentalDesignV2FrozenFileSchema,
+  heldoutSentinel: z.string().regex(/^TEST_ONLY_HELDOUT_V2_[A-Z0-9_]+$/),
+}).strict()
+
+export async function createExperimentalDesignV2HeldoutFreeze(
+  rootDir: string,
+  inputsCommit: string,
+): Promise<ExperimentalDesignV2HeldoutFreeze>
+
+export async function verifyExperimentalDesignV2HeldoutFreeze(
+  rootDir: string,
+  value: unknown,
+): Promise<ExperimentalDesignV2HeldoutFreeze>
+
+export function assertNoExperimentalDesignV2HeldoutEvidence(
+  sinkName: "development-lock" | "compiler" | "package" | "feedback",
+  value: unknown,
+  freeze: ExperimentalDesignV2HeldoutFreeze,
+): void
+```
+
+Verifier 递归扫描 development task、audit manifest/report、scorer source 和 registry
+serialization，禁止出现 held-out task IDs、held-out file/fixture digest 或 sentinel。
+`heldoutSentinel` 必须等于 `ExperimentalDesignV2TaskSplitFreezeSchema` 中已冻结的值；
+freeze 创建器只复制，不生成新值。
+该 API 不接受 raw/scored/profile/compiler/package 输入类型。
+
+- [ ] **Step 4: 生成并 verify held-out freeze**
+
+```powershell
+$auditInputsCommit = git rev-parse HEAD
+bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
+  --inputs-commit=$auditInputsCommit `
+  --out=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
+bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
+  --verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
+```
+
+Expected: PASS；held-out 内容已冻结但没有被 development 路径消费。
+
+- [ ] **Step 5: 提交 held-out freeze**
+
+```powershell
+git add src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.ts `
+  src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.test.ts `
+  src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
+  benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
+git commit -m "feat: freeze experimental design v2 heldout identity"
+```
+
+本提交只解除“可起草 baseline calibration lock”的阻塞，不允许直接执行 API。
+
+### Task 14.7：阶段文档、验证与证据边界
+
+**Files:**
+
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-spec.md`
+- Modify: `docs/skill-ir/skill-ir-aot-optimization-plan.md`
+- Modify: `docs/skill-ir/evaluation-system.md`
+- Modify: `docs/skill-ir/real-skill-pilots.md`
+- Modify: `docs/skill-ir/experiment-results.md`
+- Modify: `D:\skill优化\conversation_log.md`
+
+- [ ] **Step 1: 更新阶段状态**
+
+只允许写：
+
+```text
+v2 task split frozen
+v2 local semantic scorer implemented
+v2 development-only benchmark contract audit passed/failed
+v2 held-out identity frozen if and only if audit passed
+no API run, no baseline result, no IR/artifact result, no cross-skill claim
+```
+
+Task 8.11.1–8.11.3 按实际证据勾选；8.11.4–8.11.5 的 API/IR/artifact/held-out/Wave B
+条目保持未完成。
+
+- [ ] **Step 2: 运行 focused verification**
+
+```powershell
+bun test ./src/bench/evaluators/experimental-design-grade-v2.test.ts `
+  ./src/benchmarks/skill-ir/experimental-design-v2-contract.test.ts `
+  ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze.test.ts `
+  ./src/benchmarks/skill-ir/experimental-design-v2-audit.test.ts `
+  ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze.test.ts `
+  ./src/benchmarks/skill-ir/benchmark-contract-audit.test.ts `
+  ./src/benchmarks/skill-ir/benchmark-contract-audit-run.test.ts `
+  ./src/benchmarks/skill-ir/benchmark-contract-audit-pilots.test.ts
+bunx tsc --noEmit
+```
+
+Expected: 0 fail；三个 v1 audit 继续 failed-as-expected，v2 audit 与 freeze tests 按新
+身份通过。
+
+- [ ] **Step 3: 运行文档、secret、digest 与 diff 检查**
+
+```powershell
+python scripts/check_skill_ir_doc_links_test.py
+python scripts/check_skill_ir_doc_links.py --root .
+rg -n "sk-[A-Za-z0-9_-]{16,}|SKVM_XTY_API_KEY\\s*[:=]\\s*[^A-Z_]" `
+  src benchmarks docs results
+git diff --check
+```
+
+Expected: 文档 0 broken/legacy、secret scan 无命中、所有 freeze/audit digest verify-only
+通过、diff check 退出 0。
+
+- [ ] **Step 4: 提交并推送阶段结果**
+
+```powershell
+git add docs/skill-ir
+git commit -m "docs: record experimental design v2 contract audit"
+git push origin skill-ir-aot
+```
+
+不得暂存 `docs/skill-ir/1.md` 或既有未跟踪 `results/skill-ir/*`；只添加本计划明确列出的
+compact v2 report。
