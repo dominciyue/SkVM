@@ -1054,3 +1054,7 @@ qualification report、source commit、cache 和 orchestration。Planner 只接�
 `bun run skvm run ...` 前缀，并改写为 `<bun> run <entrypoint> run ...`；compiled v1 仍走原 direct
 投影。Windows 实验通过临时 ASCII 根盘符运行同一相对路径内容，盘符和绝对路径不进入 lock 或
 compact report。
+
+实际 source candidate 使用官方 Bun 1.3.13：20/20 source startup 全部成功，随后唯一预注册
+`xty/gpt-5.6-sol` original development route 通过，failure code 为 `none` 且公开输出完整。这是
+execution candidate 资格证据，不是 benchmark row；它只解除“能否建立新 8-row identity”的门禁。

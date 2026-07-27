@@ -927,3 +927,16 @@ results/skill-ir/experimental-design-v2-node-http-calibration-2026-07-27/route-p
 results/skill-ir/experimental-design-v2-node-http-calibration-2026-07-27/gate.json
 results/skill-ir/experimental-design-v2-node-http-calibration-2026-07-27/summary.json
 ```
+
+### Source-runtime qualification（不进入实验分母）
+
+保留同一 Node helper、模型、task 和 original skill，只把 compiled standalone 改为官方 Bun
+1.3.13 直接运行 committed `src/index.ts`。从临时 ASCII 根执行后，20/20 startup 通过；唯一
+fetch-active route 也通过，`failureCode=none`、公开输出完整。该结果支持“compiled standalone
+是当前主要 runtime 风险”的诊断，但不是 Skill 效果或强模型能力结果。下一步必须建立独立
+source fetch-qualified 8-row lock，重新走 preflight 和零 infrastructure gate。
+
+```text
+results/skill-ir/experimental-design-v2-source-runtime-qualification-2026-07-27.json
+results/skill-ir/experimental-design-v2-node-http-source-fetch-active-qualification-2026-07-27.json
+```

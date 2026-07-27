@@ -2316,7 +2316,7 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
   executable、committed source entry、source commit、cache、Node helper 和 parent orchestration。
 - [x] Command projection 只接受精确 workspace prefix，并改写为 `<bun> run <entry> run ...`；旧
   compiled lock/command 与历史 report 字节不改变。
-- [ ] 用固定 20 次 `--help` 做 startup qualification；通过后只运行一个新的预注册 fetch-active
+- [x] 用固定 20 次 `--help` 做 startup qualification；通过后只运行一个新的预注册 fetch-active
   route。模型、task、scorer、transport helper 与超时保持不变。
 - [ ] 只有 source route 为 exit 0、无 Bun crash、公开输出齐全时才建立另一 8-row identity；失败
   则冻结 source candidate，不补跑，不进入 base IR/held-out。

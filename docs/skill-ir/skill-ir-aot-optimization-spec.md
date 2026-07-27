@@ -1849,3 +1849,9 @@ compiled standalone 改为摘要绑定的 ASCII 路径 Bun + committed `src/inde
 新 runtime schema/report/lock 必须与 compiled v1 分离，绑定 Bun executable、entrypoint、lock
 orchestration 和 startup/fetch-active evidence。该候选仍须先通过 20 次 startup 与唯一单 route；
 任一失败即冻结，不直接重跑 8-row。
+
+2026-07-27 source candidate 从 ASCII 根运行官方 Bun 1.3.13 与 committed `src/index.ts`：startup
+20/20、0 timeout、0 crash；唯一 Node HTTP fetch-active route 也为 exit 0、failureCode=`none`、
+公开输出完整。该结果只允许建立新的 source fetch-qualified 8-row identity，不进入 calibration
+分母，也不允许 base IR/held-out。最终 identity 仍需重新绑定当前 orchestration 并独立通过
+resource/route preflight。
