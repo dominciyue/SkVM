@@ -208,6 +208,40 @@ describe("pre-IR calibration runner", () => {
     })
   })
 
+  test("projects a source-qualified runtime through its frozen Bun and entrypoint", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-source-plan-"))
+    try {
+      const result = await buildPreIrCalibrationPlan({
+        rootDir,
+        lockPath: v2LockPath,
+        outDir,
+        phase: "plan",
+      })
+      const sourceQualified = {
+        ...result.lock,
+        schemaVersion: "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1",
+        executionRuntime: {
+          kind: "bun-source-skvm",
+          commandMode: "bun-source",
+          sourceCommit: "a".repeat(40),
+          executable: { path: ".skvm/runtime/bun.exe", sha256: "b".repeat(64) },
+          entrypoint: { path: "src/index.ts", sha256: "c".repeat(64) },
+          qualification: { path: "results/source-qualification.json", sha256: "d".repeat(64) },
+        },
+      } as unknown as PreIrCalibrationLock
+
+      const projected = projectPreIrPlanRuntime(result.plan, sourceQualified, rootDir)
+      expect(projected.every((row) => row.command.slice(0, 4).join("|") === [
+        path.resolve(rootDir, ".skvm/runtime/bun.exe"),
+        "run",
+        path.resolve(rootDir, "src/index.ts"),
+        "run",
+      ].join("|"))).toBe(true)
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
+  })
+
   test("rejects the historical Node HTTP candidate after final-lock verification evolves", async () => {
     const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-node-http-plan-"))
     try {
@@ -222,22 +256,15 @@ describe("pre-IR calibration runner", () => {
     }
   })
 
-  test("compiles the fetch-qualified Node HTTP matrix as eight direct rows", async () => {
+  test("rejects the historical fetch-qualified Node HTTP matrix after source-runtime orchestration evolves", async () => {
     const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-node-http-matrix-"))
     try {
-      const result = await buildPreIrCalibrationPlan({
+      await expect(buildPreIrCalibrationPlan({
         rootDir,
         lockPath: v2NodeHttpCalibrationLockPath,
         outDir,
         phase: "plan",
-      })
-
-      expect(result.lock.schemaVersion).toBe("skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1")
-      expect(result.plan).toHaveLength(8)
-      expect(result.plan.every((row) => row.command[0] === path.resolve(
-        rootDir,
-        ".skvm/runtime/bun-1.3.13-node-http-2026-07-27/skvm.exe",
-      ))).toBe(true)
+      })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration.ts digest mismatch")
     } finally {
       await rm(outDir, { recursive: true, force: true })
     }

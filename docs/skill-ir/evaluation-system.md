@@ -1046,3 +1046,11 @@ distinguishability 失败。该轮只证明外移 HTTP 没有让 compiled standa
 直接运行 committed `src/index.ts`。Source runtime 使用独立 guard/report/lock 身份，必须绑定 Bun
 executable、entrypoint/source commit、Node helper 和 parent orchestration，并重新通过 startup 与
 fetch-active 两级资格。旧 Node matrix 和 raw/scored/workdir 不被重写。
+
+Source runtime 使用 `skill-ir-source-execution-runtime-qualification/v1`；compact report 的 probe
+argv 固定投影为 `run <entrypoint> --help`，其中 `<entrypoint>` 是占位符，不保存绝对路径。Guard
+的 `kind=bun-source-skvm`、`commandMode=bun-source` 同时绑定 Bun executable、entrypoint、
+qualification report、source commit、cache 和 orchestration。Planner 只接受原始
+`bun run skvm run ...` 前缀，并改写为 `<bun> run <entrypoint> run ...`；compiled v1 仍走原 direct
+投影。Windows 实验通过临时 ASCII 根盘符运行同一相对路径内容，盘符和绝对路径不进入 lock 或
+compact report。

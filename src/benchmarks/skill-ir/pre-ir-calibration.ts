@@ -7,6 +7,7 @@ import { verifyExperimentalDesignV2HeldoutFreeze } from "./experimental-design-v
 import { ExperimentalDesignV2MaterializationAuditReportSchema } from "./experimental-design-v2-materialization-audit.ts"
 import {
   PreIrExecutionRuntimeGuardSchema,
+  SourcePreIrExecutionRuntimeGuardSchema,
   verifyPreIrExecutionRuntimeGuard,
 } from "./pre-ir-runtime-qualification.ts"
 import { PreIrFetchActiveQualificationReportSchema } from "./pre-ir-fetch-active-qualification.ts"
@@ -142,6 +143,14 @@ const NodeHttpRuntimeQualifiedPreIrCalibrationLockV1Schema = z.object({
   nodeHttpTransport: PreIrNodeHttpTransportGuardSchema,
 }).strict().superRefine(requireUniqueTaskIds)
 
+const NodeHttpSourceRuntimeQualifiedPreIrCalibrationLockV1Schema = z.object({
+  schemaVersion: z.literal("skill-ir-node-http-source-runtime-qualified-pre-ir-calibration-lock/v1"),
+  ...PreIrCalibrationLockFields,
+  benchmarkGuards: PreIrBenchmarkGuardsSchema,
+  executionRuntime: SourcePreIrExecutionRuntimeGuardSchema,
+  nodeHttpTransport: PreIrNodeHttpTransportGuardSchema,
+}).strict().superRefine(requireUniqueTaskIds)
+
 const NodeHttpFetchQualifiedPreIrCalibrationLockV1Schema = z.object({
   schemaVersion: z.literal("skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"),
   ...PreIrCalibrationLockFields,
@@ -157,6 +166,7 @@ export const PreIrCalibrationLockSchema = z.union([
   RuntimeQualifiedPreIrCalibrationLockV1Schema,
   FetchQualifiedPreIrCalibrationLockV1Schema,
   NodeHttpRuntimeQualifiedPreIrCalibrationLockV1Schema,
+  NodeHttpSourceRuntimeQualifiedPreIrCalibrationLockV1Schema,
   NodeHttpFetchQualifiedPreIrCalibrationLockV1Schema,
 ])
 
@@ -267,6 +277,7 @@ async function verifyNodeHttpTransport(
   lock: Extract<PreIrCalibrationLock, {
     schemaVersion:
       | "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+      | "skill-ir-node-http-source-runtime-qualified-pre-ir-calibration-lock/v1"
       | "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"
   }>,
   rootDir: string,
@@ -302,6 +313,7 @@ export async function validatePreIrCalibrationLock(
   }
   if (
     lock.schemaVersion === "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+    || lock.schemaVersion === "skill-ir-node-http-source-runtime-qualified-pre-ir-calibration-lock/v1"
     || lock.schemaVersion === "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"
   ) {
     await verifyNodeHttpTransport(lock, rootDir)

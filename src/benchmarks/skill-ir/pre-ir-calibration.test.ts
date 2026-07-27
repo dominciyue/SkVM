@@ -135,24 +135,37 @@ describe("pre-IR calibration lock", () => {
     })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration.ts digest mismatch")
   })
 
-  test("validates the fetch-qualified Node HTTP matrix identity", async () => {
-    const lock = await readAndValidatePreIrCalibrationLock({
+  test("rejects the historical fetch-qualified Node HTTP matrix after source-runtime orchestration evolves", async () => {
+    await expect(readAndValidatePreIrCalibrationLock({
       rootDir,
       lockPath: v2NodeHttpCalibrationLockPath,
+    })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration.ts digest mismatch")
+  })
+
+  test("accepts a distinct Node HTTP source-runtime candidate identity", async () => {
+    const base = JSON.parse(await readFile(v2LockPath, "utf8")) as Record<string, unknown>
+    const lock = PreIrCalibrationLockSchema.parse({
+      ...base,
+      schemaVersion: "skill-ir-node-http-source-runtime-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-node-http-source-candidate-v1",
+      executionRuntime: {
+        kind: "bun-source-skvm",
+        commandMode: "bun-source",
+        sourceCommit: "a".repeat(40),
+        cacheRoot: ".skvm",
+        executable: { path: ".skvm/runtime/bun.exe", sha256: "b".repeat(64) },
+        entrypoint: { path: "src/index.ts", sha256: "c".repeat(64) },
+        qualification: { path: "results/source-qualification.json", sha256: "d".repeat(64) },
+      },
+      nodeHttpTransport: {
+        kind: "node-http-helper",
+        nodeExecutable: { path: ".skvm/runtime/node.exe", sha256: "e".repeat(64) },
+        helper: { path: "src/providers/openai-compatible-node-helper.mjs", sha256: "f".repeat(64) },
+      },
     })
 
-    expect(lock).toMatchObject({
-      schemaVersion: "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1",
-      calibrationId: "experimental-design-v2-materialized-delta-node-http-calibration-v1",
-      fetchActiveQualification: {
-        kind: "fetch-active-runtime-qualification",
-        path: "results/skill-ir/experimental-design-v2-node-http-fetch-active-qualification-2026-07-27.json",
-        candidateLock: {
-          path: "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-fetch-active-calibration-lock.json",
-        },
-      },
-      nodeHttpTransport: { kind: "node-http-helper" },
-    })
+    expect(lock.schemaVersion).toBe("skill-ir-node-http-source-runtime-qualified-pre-ir-calibration-lock/v1")
+    expect("executionRuntime" in lock && lock.executionRuntime.kind).toBe("bun-source-skvm")
   })
 
   test("validates the committed runtime-qualified experimental-design v2 lock", async () => {

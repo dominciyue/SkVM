@@ -102,9 +102,12 @@ export function projectPreIrPlanRuntime(
 ): RealAgentRunPlanEntry[] {
   if (!("executionRuntime" in lock)) return plan
   const executablePath = path.resolve(rootDir, lock.executionRuntime.executable.path)
+  const entrypointPath = lock.executionRuntime.kind === "bun-source-skvm"
+    ? path.resolve(rootDir, lock.executionRuntime.entrypoint.path)
+    : undefined
   return plan.map((entry) => ({
     ...entry,
-    command: projectQualifiedPreIrCommand(entry.command, executablePath),
+    command: projectQualifiedPreIrCommand(entry.command, executablePath, entrypointPath),
   }))
 }
 

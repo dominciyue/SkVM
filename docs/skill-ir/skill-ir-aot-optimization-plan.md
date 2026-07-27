@@ -2312,9 +2312,9 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
 
 ### Task 16.10：ASCII Bun Source Runtime Qualification
 
-- [ ] RED/GREEN：新增与 compiled v1 分离的 source-runtime guard/report schema，绑定 ASCII Bun
+- [x] RED/GREEN：新增与 compiled v1 分离的 source-runtime guard/report schema，绑定 ASCII Bun
   executable、committed source entry、source commit、cache、Node helper 和 parent orchestration。
-- [ ] Command projection 只接受精确 workspace prefix，并改写为 `<bun> run <entry> run ...`；旧
+- [x] Command projection 只接受精确 workspace prefix，并改写为 `<bun> run <entry> run ...`；旧
   compiled lock/command 与历史 report 字节不改变。
 - [ ] 用固定 20 次 `--help` 做 startup qualification；通过后只运行一个新的预注册 fetch-active
   route。模型、task、scorer、transport helper 与超时保持不变。

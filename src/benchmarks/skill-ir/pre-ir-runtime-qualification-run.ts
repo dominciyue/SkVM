@@ -3,6 +3,7 @@ import path from "node:path"
 import { SafeRelativePathSchema } from "./artifact-package.ts"
 import {
   PRE_IR_RUNTIME_QUALIFICATION_ATTEMPTS,
+  summarizePreIrSourceRuntimeQualification,
   summarizePreIrRuntimeQualification,
   type PreIrRuntimeQualificationReport,
 } from "./pre-ir-runtime-qualification.ts"
@@ -14,6 +15,7 @@ const QUALIFICATION_TIMEOUT_MS = 30_000
 export type PreIrRuntimeQualificationArgs = {
   rootDir: string
   executablePath: string
+  entrypointPath?: string
   qualificationId: string
   sourceCommit: string
   outPath: string
@@ -38,12 +40,27 @@ export async function runPreIrRuntimeQualification(
   const executableStat = await stat(executablePath)
   if (!executableStat.isFile()) throw new Error("Runtime qualification executable must be a regular file")
   const executableSha256 = sha256Bytes(await readFile(executablePath))
+  const entrypointRelative = opts.entrypointPath === undefined
+    ? undefined
+    : SafeRelativePathSchema.parse(opts.entrypointPath.replaceAll("\\", "/"))
+  const entrypointPath = entrypointRelative === undefined ? undefined : path.resolve(rootDir, entrypointRelative)
+  let entrypointSha256: string | undefined
+  if (entrypointPath !== undefined) {
+    const entrypointStat = await stat(entrypointPath)
+    if (!entrypointStat.isFile()) throw new Error("Runtime qualification entrypoint must be a regular file")
+    entrypointSha256 = sha256Bytes(await readFile(entrypointPath))
+  }
   const runProbe = overrides.runProbe ?? runCommandWithTimeout
   const executions: ProbeExecution[] = []
   for (let attempt = 0; attempt < PRE_IR_RUNTIME_QUALIFICATION_ATTEMPTS; attempt += 1) {
-    executions.push(await runProbe([executablePath, "--help"], QUALIFICATION_TIMEOUT_MS))
+    executions.push(await runProbe(
+      entrypointPath === undefined
+        ? [executablePath, "--help"]
+        : [executablePath, "run", entrypointPath, "--help"],
+      QUALIFICATION_TIMEOUT_MS,
+    ))
   }
-  const report = summarizePreIrRuntimeQualification({
+  const common = {
     qualificationId: opts.qualificationId,
     executable: { path: executableRelative, sha256: executableSha256 },
     sourceCommit: opts.sourceCommit,
@@ -51,7 +68,13 @@ export async function runPreIrRuntimeQualification(
     platform: process.platform,
     arch: process.arch,
     executions,
-  })
+  }
+  const report = entrypointRelative === undefined || entrypointSha256 === undefined
+    ? summarizePreIrRuntimeQualification(common)
+    : summarizePreIrSourceRuntimeQualification({
+        ...common,
+        entrypoint: { path: entrypointRelative, sha256: entrypointSha256 },
+      })
   const outPath = path.resolve(rootDir, outRelative)
   await mkdir(path.dirname(outPath), { recursive: true })
   await writeFile(outPath, `${JSON.stringify(report, null, 2)}\n`, "utf8")
@@ -61,12 +84,14 @@ export async function runPreIrRuntimeQualification(
 export function parsePreIrRuntimeQualificationArgs(argv: string[]): PreIrRuntimeQualificationArgs {
   let rootDir = process.cwd()
   let executablePath: string | undefined
+  let entrypointPath: string | undefined
   let qualificationId: string | undefined
   let sourceCommit: string | undefined
   let outPath: string | undefined
   for (const arg of argv) {
     if (arg.startsWith("--root-dir=")) rootDir = arg.slice("--root-dir=".length)
     else if (arg.startsWith("--executable=")) executablePath = arg.slice("--executable=".length)
+    else if (arg.startsWith("--entrypoint=")) entrypointPath = arg.slice("--entrypoint=".length)
     else if (arg.startsWith("--qualification-id=")) qualificationId = arg.slice("--qualification-id=".length)
     else if (arg.startsWith("--source-commit=")) sourceCommit = arg.slice("--source-commit=".length)
     else if (arg.startsWith("--out=")) outPath = arg.slice("--out=".length)
@@ -76,7 +101,7 @@ export function parsePreIrRuntimeQualificationArgs(argv: string[]): PreIrRuntime
   if (!qualificationId) throw new Error("--qualification-id is required")
   if (!sourceCommit) throw new Error("--source-commit is required")
   if (!outPath) throw new Error("--out is required")
-  return { rootDir: path.resolve(rootDir), executablePath, qualificationId, sourceCommit, outPath }
+  return { rootDir: path.resolve(rootDir), executablePath, entrypointPath, qualificationId, sourceCommit, outPath }
 }
 
 if (import.meta.main) {

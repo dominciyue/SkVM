@@ -6,6 +6,7 @@ import {
   PRE_IR_RUNTIME_QUALIFICATION_ATTEMPTS,
   PreIrExecutionRuntimeGuardSchema,
   projectQualifiedPreIrCommand,
+  summarizePreIrSourceRuntimeQualification,
   summarizePreIrRuntimeQualification,
   verifyPreIrExecutionRuntimeGuard,
 } from "./pre-ir-runtime-qualification.ts"
@@ -166,5 +167,65 @@ describe("pre-IR execution runtime qualification", () => {
       ["bun", "src/index.ts", "run"],
       "D:/runtime/skvm.exe",
     )).toThrow("command prefix")
+  })
+
+  test("freezes and verifies a source runtime without changing the compiled report identity", async () => {
+    const rootDir = await mkdtemp(path.join(tmpdir(), "pre-ir-source-runtime-qualification-"))
+    try {
+      const runtimeDir = path.join(rootDir, "runtime")
+      const executablePath = path.join(runtimeDir, "bun.exe")
+      const entrypointPath = path.join(rootDir, "src", "index.ts")
+      const reportPath = path.join(runtimeDir, "source-qualification.json")
+      await mkdir(runtimeDir, { recursive: true })
+      await mkdir(path.dirname(entrypointPath), { recursive: true })
+      await writeFile(path.join(runtimeDir, "skvm.config.json"), "{}\n", "utf8")
+      await writeFile(executablePath, "pinned bun", "utf8")
+      await writeFile(entrypointPath, "export const sourceRuntime = true\n", "utf8")
+      const executableSha256 = sha256Bytes(Buffer.from("pinned bun", "utf8"))
+      const entrypointSha256 = sha256Bytes(Buffer.from("export const sourceRuntime = true\n", "utf8"))
+      const report = summarizePreIrSourceRuntimeQualification({
+        qualificationId: "experimental-design-v2-source-runtime-win32-v1",
+        executable: { path: "runtime/bun.exe", sha256: executableSha256 },
+        entrypoint: { path: "src/index.ts", sha256: entrypointSha256 },
+        sourceCommit,
+        bunVersion: "1.3.13",
+        platform: process.platform,
+        arch: process.arch,
+        executions: successfulExecutions(),
+      })
+      const reportBytes = Buffer.from(`${JSON.stringify(report, null, 2)}\n`, "utf8")
+      await writeFile(reportPath, reportBytes)
+      const guard = {
+        kind: "bun-source-skvm" as const,
+        commandMode: "bun-source" as const,
+        sourceCommit,
+        cacheRoot: "runtime",
+        executable: { path: "runtime/bun.exe", sha256: executableSha256 },
+        entrypoint: { path: "src/index.ts", sha256: entrypointSha256 },
+        qualification: { path: "runtime/source-qualification.json", sha256: sha256Bytes(reportBytes) },
+      }
+
+      expect(PreIrExecutionRuntimeGuardSchema.parse(guard).kind).toBe("bun-source-skvm")
+      await expect(verifyPreIrExecutionRuntimeGuard(guard, rootDir)).resolves.toEqual(report)
+      expect(report.schemaVersion).toBe("skill-ir-source-execution-runtime-qualification/v1")
+      expect(JSON.stringify(report)).not.toContain("private help text")
+    } finally {
+      await rm(rootDir, { recursive: true, force: true })
+    }
+  })
+
+  test("projects the exact workspace command through a pinned Bun source entrypoint", () => {
+    expect(projectQualifiedPreIrCommand(
+      ["bun", "run", "skvm", "run", "--task=task.json", "--model=xty/gpt-5.6-sol"],
+      "D:/runtime/bun.exe",
+      "D:/workspace/src/index.ts",
+    )).toEqual([
+      path.resolve("D:/runtime/bun.exe"),
+      "run",
+      path.resolve("D:/workspace/src/index.ts"),
+      "run",
+      "--task=task.json",
+      "--model=xty/gpt-5.6-sol",
+    ])
   })
 })
