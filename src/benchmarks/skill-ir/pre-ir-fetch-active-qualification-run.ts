@@ -45,11 +45,13 @@ function requireRuntimeQualifiedLock(lock: PreIrCalibrationLock): asserts lock i
     schemaVersion:
       | "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1"
       | "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+      | "skill-ir-node-http-source-runtime-qualified-pre-ir-calibration-lock/v1"
   }
 > {
   if (
     lock.schemaVersion !== "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1"
     && lock.schemaVersion !== "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+    && lock.schemaVersion !== "skill-ir-node-http-source-runtime-qualified-pre-ir-calibration-lock/v1"
   ) {
     throw new Error("Fetch-active qualification requires a runtime-qualified pre-IR lock")
   }

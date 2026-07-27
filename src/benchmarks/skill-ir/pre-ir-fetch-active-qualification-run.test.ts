@@ -12,6 +12,10 @@ const lockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-runtime-qualified-calibration-lock.json",
 )
+const sourceLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-source-fetch-active-calibration-lock.json",
+)
 
 async function writePublicContract(workDir: string): Promise<void> {
   await mkdir(workDir, { recursive: true })
@@ -102,6 +106,42 @@ describe("pre-IR fetch-active runtime qualification", () => {
         status: "failed",
         outputMaterialization: { declared: 3, present: 0 },
         diagnostic: { failureCode: "bun-internal-assertion" },
+      })
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
+  }, 15_000)
+
+  test("accepts the separately qualified Node HTTP source-runtime candidate", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "fetch-active-source-pass-"))
+    try {
+      const report = await runPreIrFetchActiveQualification({
+        rootDir,
+        lockPath: sourceLockPath,
+        qualificationId: "experimental-design-v2-node-http-source-fetch-active-test-v1",
+        outDir,
+        reportPath: path.join(outDir, "report.json"),
+      }, async (entry) => {
+        await writePublicContract(entry.workDir)
+        const designDir = path.join(entry.workDir, "design")
+        await mkdir(designDir, { recursive: true })
+        await Promise.all([
+          writeFile(path.join(designDir, "design-plan.json"), "{}\n", "utf8"),
+          writeFile(path.join(designDir, "allocation.csv"), "order,unit_id,stratum,arm\n", "utf8"),
+          writeFile(path.join(designDir, "design-report.md"), "report\n", "utf8"),
+        ])
+        expect(entry.command.slice(0, 4)).toEqual([
+          path.resolve(rootDir, ".skvm/runtime/bun-1.3.13-source-2026-07-27/bun.exe"),
+          "run",
+          path.resolve(rootDir, "src/index.ts"),
+          "run",
+        ])
+        return { exitCode: 0, timedOut: false, durationMs: 10, stdout: "private", stderr: "" }
+      })
+
+      expect(report).toMatchObject({
+        status: "passed",
+        runtimeCandidate: { sourceCommit: "7742927ce1a63455b6f4d369cc2ef7550730eea4" },
       })
     } finally {
       await rm(outDir, { recursive: true, force: true })
