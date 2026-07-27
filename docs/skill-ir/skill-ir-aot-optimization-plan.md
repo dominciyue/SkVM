@@ -2193,7 +2193,7 @@ v3 曾用 root 精确白名单修复 v2 漏检，并完成 46/46 本地 canary �
 ### Task 16.1：设计收敛与历史边界
 
 - [x] Spec/plan 固定 v2 为唯一活跃下一代 benchmark，采用 `contractRevision=materialized-delta/v1`。
-- [ ] 固定 v3 只保留单份失效诊断；当前树删除其 evaluator/corpus/task/freeze/audit/lock 入口。
+- [x] 固定 v3 只保留单份失效诊断；当前树删除其 evaluator/corpus/task/freeze/audit/lock 入口。
 - [x] 固定 v1 历史不变；旧 v2/v3 演进由 Git 和历史摘要保留，不继续复制版本目录。
 
 ### Task 16.2：通用 Initial-workdir Manifest
@@ -2220,14 +2220,14 @@ v3 曾用 root 精确白名单修复 v2 漏检，并完成 46/46 本地 canary �
   验证 original source closure 摘要和 no-skill 隔离。
 - [x] 固定 compact report schema；空 agent 只允许 missing-output，合法三输出 delta 通过，资源被
   误判为 extra 时 fail closed。
-- [ ] 将 materialization audit 加入 pre-IR lock/runner 的 route 前置条件和 digest guard。
+- [x] 将 materialization audit 加入 pre-IR lock/runner 的 route 前置条件和 digest guard。
 
 ### Task 16.5：重建 v2 身份并退役 v3
 
-- [ ] 更新 v2 public contract/tasks/evaluator payload、task-split freeze、development audit、
+- [x] 更新 v2 public contract/tasks/evaluator payload、task-split freeze、development audit、
   held-out freeze 和 pre-IR calibration lock；保留 2+2 split 与既有语义权重/阈值。
-- [ ] `pilot.json` 只保留一个 `experimental-design-v2` tasks-authored 条目；registry 只注册 v2。
-- [ ] 删除当前树中的 v3 重复实现与 compact active evidence，将付费批次压缩为单份历史
+- [x] `pilot.json` 只保留一个 `experimental-design-v2` tasks-authored 条目；registry 只注册 v2。
+- [x] 删除当前树中的 v3 重复实现与 compact active evidence，将付费批次压缩为单份历史
   invalid-calibration report；不删除本地未跟踪 raw/workdir。
 
 ### Task 16.6：实验与收口

@@ -856,7 +856,7 @@ Held-out identity 由 `experimental-design-v2-heldout-freeze-run.ts` 在 audit p
 
 ```powershell
 bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
-  --inputs-commit=826de3b0178d964028eb9428c8e6d924eb1a4c52 `
+  --inputs-commit=91f48a07bf84364f2984b5147d59080478ff5748 `
   --out=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
 bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
   --verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
@@ -873,29 +873,31 @@ Registry 是可追加扩展点，不作为整文件 immutable blob。Freeze 要�
 其他 evaluator 不使历史 freeze 失效。Scorer 文件自身、task、audit 和 held-out bytes 仍按
 freeze digest 与工作区逐字复核，不能借 registry 的可追加性放宽。
 
-## 22. Experimental-design v3 校准与物化有效性审计
+## 22. Experimental-design v2 Materialized-delta 校准
 
-v3 修复了 v2 只枚举 `design/`、漏检 root extra output 的问题：root 与 `design/` 均使用精确
-白名单，并增加不调用生产 assessor 构造 expected 的 hard-coded oracle。46/46 development
-canary matched，task-split、scorer/audit 和 held-out identity 都已冻结。预 IR lock v2 还会在
-plan、execute 和 gate 读取时重验 held-out freeze，防止静默回落到 v1 task。
+v2 是唯一活跃的下一代 experimental-design benchmark，当前合同修订为
+`materialized-delta/v1`。Scorer 按 runner 在 agent 前生成的 external initial-workdir manifest
+评价最终增量；original 预置的 license、references 和 scripts 属于初始树，不再算模型输出，
+agent 后新增的 root extra 仍会失败。v3 的 hard-coded oracle 已并入 v2，旧 v3 只在历史摘要中
+保留一次污染诊断。
 
-冻结 calibration 命令：
+付费前依次执行本地 contract audit、materialization audit、freeze verify 和 dry-run：
 
 ```powershell
+bun ./src/benchmarks/skill-ir/experimental-design-v2-materialization-audit.ts `
+  '--out=results/skill-ir/benchmark-contract-audit/experimental-design-v2-materialization.json'
+bun ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts `
+  '--verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/task-split-freeze.json'
+bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
+  '--verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json'
 bun ./src/benchmarks/skill-ir/pre-ir-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v3/experimental-design-v3-pre-ir-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v3-pre-ir-calibration-2026-07-27' `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27' `
   '--phase=plan'
 # resource/route 通过后，分别改为 --phase=route-probe 和 --phase=execute
 ```
 
-结果为 8/8 rows、4/4 pairs、0 infrastructure、3 differing pairs，机械 gate 通过。不过 post-run
-tree audit 发现 `executeRun.copySkillBundle` 在 original agent 启动前复制 skill resource closure
-到 workdir，v3 scorer 又把这些预置资源视为额外模型输出。三个完成 evaluator 的 original 行均
-触发 `design-artifact-contract`；第四行在 evaluator 前任务退出。no-skill 没有预置资源。
-
-因此 v3 calibration 是“运行链路完整但测量边界污染”的冻结证据，不是 original 负增益或 Skill
-IR 优化证据。后续 v4 必须以 workdir 外、摘要绑定的 initial manifest 为权威，评价 final delta；
-在真实 API 前还要跑 materialization canary。Local benchmark fixture audit 与真实 runner
-materialization audit 以后是两个独立门槛。
+当前本地证据为 42/42 development canary matched、独立 oracle 12/12、materialization audit
+36/36、2+2 freeze verify 通过，dry-run 精确生成 8 rows / 4 pairs。Pre-IR lock 在 plan、route 和
+execute 前同时重验 held-out freeze 与 materialization report digest。尚未执行本轮真实 API，
+因此这些结果只证明 benchmark/runner 测量机制就绪，不是模型效果或 Skill IR 优化证据。

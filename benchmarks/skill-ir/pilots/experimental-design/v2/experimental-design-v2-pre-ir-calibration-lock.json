@@ -1,33 +1,38 @@
 {
   "schemaVersion": "skill-ir-pre-ir-calibration-lock/v2",
   "status": "preregistered",
-  "calibrationId": "experimental-design-v3-pre-ir-calibration-v1",
+  "calibrationId": "experimental-design-v2-materialized-delta-calibration-v1",
   "methodEvidence": false,
   "corpus": "pilot",
-  "skillId": "experimental-design-v3",
+  "skillId": "experimental-design-v2",
   "frozenInputs": {
     "source": {
       "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
       "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
     },
     "tasks": {
-      "path": "benchmarks/skill-ir/pilots/experimental-design/v3/development/tasks.json",
-      "sha256": "1b2e008cdbf4584a14386d02bead4a841cd20524d0b04604a91bae1c3ff231f8"
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json",
+      "sha256": "e382fe9e9a1ed8cdb5735d88136086b2aefbf4ced5c67d507f67c7fc2487da96"
     },
     "resourceContract": {
       "path": "benchmarks/skill-ir/pilots/experimental-design/resource-contract.json",
       "sha256": "c478a8894e1805638e1ecce329038c697fe5cc53166b3b50b9ce833bf2aa8877"
     },
     "scorer": {
-      "path": "src/bench/evaluators/experimental-design-grade-v3.ts",
-      "sha256": "da5653496a78441335b6d3815f7f770c44736da88733207618e309777b1244fd"
+      "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+      "sha256": "6dda3cbc9e369fa6b1ab1dbe974c86baa3cad967bd707e1d5668eb1ea2d51960"
     }
   },
   "benchmarkGuards": [
     {
-      "kind": "experimental-design-v3-heldout-freeze",
-      "path": "benchmarks/skill-ir/pilots/experimental-design/v3/heldout-freeze.json",
-      "sha256": "482676855509f8d2b767216925d068baa1e7b00f6b67d92978ddc6afebd48e40"
+      "kind": "experimental-design-v2-heldout-freeze",
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json",
+      "sha256": "01656495d2a0cd412696eb3b0bd16f04ad8ed6752a4049e7e3f399a3b71056f1"
+    },
+    {
+      "kind": "experimental-design-v2-materialization-audit",
+      "path": "results/skill-ir/benchmark-contract-audit/experimental-design-v2-materialization.json",
+      "sha256": "66e8f9371f002c9a9aab1f01f0c296708bed3e5ffd30769044ea6f3abd400b5d"
     }
   ],
   "model": {
@@ -36,7 +41,7 @@
   },
   "adapter": {
     "id": "bare-agent",
-    "version": "workspace-experimental-design-v3-pre-ir-v1"
+    "version": "workspace-experimental-design-v2-materialized-delta-v1"
   },
   "matrix": {
     "systems": ["no-skill", "original"],
@@ -45,8 +50,8 @@
     "environments": ["windows"],
     "taskSplit": "development",
     "taskIds": [
-      "experimental-design-v3-stratified-dev-001",
-      "experimental-design-v3-cluster-sequential-dev-002"
+      "experimental-design-v2-stratified-dev-001",
+      "experimental-design-v2-cluster-sequential-dev-002"
     ],
     "repetitions": 2,
     "expectedRows": 8,
@@ -78,6 +83,6 @@
     "base IR materialization",
     "ir-static, ir-pgo, or artifact systems",
     "scorer retuning from calibration output",
-    "v1 or v2 benchmark identity reuse"
+    "post-result benchmark contract revision"
   ]
 }

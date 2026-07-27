@@ -14,30 +14,30 @@ const lockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-pre-ir-calibration-lock.json",
 )
-const v3LockPath = path.join(
+const v2LockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/pilots/experimental-design/v3/experimental-design-v3-pre-ir-calibration-lock.json",
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json",
 )
 
 describe("pre-IR calibration runner", () => {
-  test("compiles the frozen experimental-design v3 calibration without held-out rows", async () => {
-    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v3-pre-ir-plan-"))
+  test("compiles the frozen experimental-design v2 materialized-delta calibration", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-pre-ir-plan-"))
     try {
       const result = await buildPreIrCalibrationPlan({
         rootDir,
-        lockPath: v3LockPath,
+        lockPath: v2LockPath,
         outDir,
         phase: "plan",
       })
 
       expect(result.plan).toHaveLength(8)
       expect(new Set(result.plan.map((row) => row.caseId.split(":")[0]))).toEqual(
-        new Set(["experimental-design-v3"]),
+        new Set(["experimental-design-v2"]),
       )
       expect(new Set(result.plan.map((row) => row.system))).toEqual(new Set(["no-skill", "original"]))
       expect(new Set(result.plan.map((row) => row.caseId.split(":").at(-1)))).toEqual(new Set([
-        "experimental-design-v3-stratified-dev-001",
-        "experimental-design-v3-cluster-sequential-dev-002",
+        "experimental-design-v2-stratified-dev-001",
+        "experimental-design-v2-cluster-sequential-dev-002",
       ]))
       expect(result.plan.every((row) => !row.caseId.includes("heldout"))).toBe(true)
     } finally {

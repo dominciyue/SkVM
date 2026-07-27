@@ -3,7 +3,8 @@ import path from "node:path"
 import { z } from "zod"
 import { SafeRelativePathSchema, Sha256Schema } from "./artifact-package.ts"
 import { sha256Bytes } from "./source-fixture.ts"
-import { verifyExperimentalDesignV3HeldoutFreeze } from "./experimental-design-v3-heldout-freeze.ts"
+import { verifyExperimentalDesignV2HeldoutFreeze } from "./experimental-design-v2-heldout-freeze.ts"
+import { ExperimentalDesignV2MaterializationAuditReportSchema } from "./experimental-design-v2-materialization-audit.ts"
 
 const FrozenFileSchema = z.object({
   path: SafeRelativePathSchema,
@@ -79,8 +80,14 @@ const PreIrCalibrationLockV1Schema = z.object({
   ...PreIrCalibrationLockFields,
 }).strict().superRefine(requireUniqueTaskIds)
 
-const PreIrBenchmarkGuardSchema = z.object({
-  kind: z.literal("experimental-design-v3-heldout-freeze"),
+const PreIrHeldoutFreezeGuardSchema = z.object({
+  kind: z.literal("experimental-design-v2-heldout-freeze"),
+  path: SafeRelativePathSchema,
+  sha256: Sha256Schema,
+}).strict()
+
+const PreIrMaterializationAuditGuardSchema = z.object({
+  kind: z.literal("experimental-design-v2-materialization-audit"),
   path: SafeRelativePathSchema,
   sha256: Sha256Schema,
 }).strict()
@@ -88,7 +95,10 @@ const PreIrBenchmarkGuardSchema = z.object({
 const PreIrCalibrationLockV2Schema = z.object({
   schemaVersion: z.literal("skill-ir-pre-ir-calibration-lock/v2"),
   ...PreIrCalibrationLockFields,
-  benchmarkGuards: z.tuple([PreIrBenchmarkGuardSchema]),
+  benchmarkGuards: z.tuple([
+    PreIrHeldoutFreezeGuardSchema,
+    PreIrMaterializationAuditGuardSchema,
+  ]),
 }).strict().superRefine(requireUniqueTaskIds)
 
 export const PreIrCalibrationLockSchema = z.union([
@@ -126,8 +136,18 @@ async function verifyBenchmarkGuards(lock: PreIrCalibrationLock, rootDir: string
   for (const guard of lock.benchmarkGuards) {
     await verifyDigest(rootDir, guard)
     const value = JSON.parse(await readFile(path.resolve(rootDir, guard.path), "utf8")) as unknown
-    if (guard.kind === "experimental-design-v3-heldout-freeze") {
-      await verifyExperimentalDesignV3HeldoutFreeze(rootDir, value)
+    if (guard.kind === "experimental-design-v2-heldout-freeze") {
+      await verifyExperimentalDesignV2HeldoutFreeze(rootDir, value)
+    } else {
+      const report = ExperimentalDesignV2MaterializationAuditReportSchema.parse(value)
+      if (
+        report.status !== "passed"
+        || report.issues.length !== 0
+        || report.counts.checks !== 36
+        || report.counts.passed !== 36
+      ) {
+        throw new Error("Pre-IR calibration materialization audit did not pass")
+      }
     }
   }
 }

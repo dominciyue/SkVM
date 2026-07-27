@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "skill-ir-invalid-calibration-history/v1",
+  "historyId": "experimental-design-v3-materialization-contamination-2026-07-27",
+  "date": "2026-07-27",
+  "supersededBenchmarkId": "experimental-design-v3",
+  "replacementBenchmarkId": "experimental-design-v2",
+  "replacementContractRevision": "materialized-delta/v1",
+  "model": "xty/gpt-5.6-sol",
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "tasks": 2,
+    "repetitions": 2,
+    "rows": 8,
+    "pairs": 4
+  },
+  "mechanicalGate": {
+    "passed": true,
+    "infrastructureFailures": 0,
+    "differingPairs": 3
+  },
+  "invalidObservedSummary": {
+    "noSkill": {
+      "successes": 2,
+      "rows": 4,
+      "meanScore": 0.5,
+      "aggregateTokens": 22035
+    },
+    "original": {
+      "successes": 0,
+      "rows": 4,
+      "meanScore": 0.4,
+      "aggregateTokens": 61484
+    }
+  },
+  "validity": "invalid-harness-materialization-boundary",
+  "diagnosis": "The runner copied the original skill resource closure before agent execution, while the v3 root whitelist treated those initial resources as model-created extra outputs. The observed system delta is therefore contaminated and must not be interpreted as original-skill regression or optimization evidence.",
+  "resolution": "The active v2 materialized-delta/v1 contract snapshots the fully prepared initial workdir outside the agent workdir and evaluates only the initial-to-final delta.",
+  "methodEvidence": false,
+  "promotionAllowed": false,
+  "heldoutAllowed": false,
+  "provenance": {
+    "lockSha256": "d54082f057df1e7ffc77a8dcfcdb6c9d7d28e2187e1d539a6ea0b75c9823d454",
+    "rawSha256": "0fb2f8130b8d713db94f6c4d1c986faf86a2d3e11bff43635f3133e1c8b2cf5c",
+    "scoredSha256": "02c67ab8f18cc94aed23fc6f6a2ce6bcd0f1c8c562b2aa95dfd8720a9bb18cce",
+    "resourceProbeSha256": "2d7cab24e3627550da2d50e859c3b5eeac539b414cad9a898916fe3bf18f3c2d",
+    "routeProbeSha256": "865420250754f440c9e2bbcc19c8665d766f9bd9618e8833b7add0caa058b0ef"
+  }
+}

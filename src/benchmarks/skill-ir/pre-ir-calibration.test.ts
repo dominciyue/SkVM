@@ -11,9 +11,9 @@ const lockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-pre-ir-calibration-lock.json",
 )
-const v3LockPath = path.join(
+const v2LockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/pilots/experimental-design/v3/experimental-design-v3-pre-ir-calibration-lock.json",
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json",
 )
 
 async function rawLock(): Promise<Record<string, unknown>> {
@@ -21,31 +21,39 @@ async function rawLock(): Promise<Record<string, unknown>> {
 }
 
 describe("pre-IR calibration lock", () => {
-  test("validates the experimental-design v3 lock and its held-out freeze guard", async () => {
-    const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath: v3LockPath })
+  test("validates the experimental-design v2 lock and both pre-route benchmark guards", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath: v2LockPath })
 
     expect(lock).toMatchObject({
       schemaVersion: "skill-ir-pre-ir-calibration-lock/v2",
-      calibrationId: "experimental-design-v3-pre-ir-calibration-v1",
-      skillId: "experimental-design-v3",
+      calibrationId: "experimental-design-v2-materialized-delta-calibration-v1",
+      skillId: "experimental-design-v2",
       frozenInputs: {
-        tasks: { path: "benchmarks/skill-ir/pilots/experimental-design/v3/development/tasks.json" },
-        scorer: { path: "src/bench/evaluators/experimental-design-grade-v3.ts" },
+        tasks: { path: "benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json" },
+        scorer: { path: "src/bench/evaluators/experimental-design-grade-v2.ts" },
       },
-      benchmarkGuards: [{
-        kind: "experimental-design-v3-heldout-freeze",
-        path: "benchmarks/skill-ir/pilots/experimental-design/v3/heldout-freeze.json",
-      }],
+      benchmarkGuards: [
+        {
+          kind: "experimental-design-v2-heldout-freeze",
+          path: "benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json",
+        },
+        {
+          kind: "experimental-design-v2-materialization-audit",
+          path: "results/skill-ir/benchmark-contract-audit/experimental-design-v2-materialization.json",
+        },
+      ],
     })
   })
 
-  test("rejects experimental-design v3 calibration when its benchmark guard drifts", async () => {
-    const lock = JSON.parse(await readFile(v3LockPath, "utf8")) as {
+  test("rejects experimental-design v2 calibration when either benchmark guard drifts", async () => {
+    const base = JSON.parse(await readFile(v2LockPath, "utf8")) as {
       benchmarkGuards: Array<{ sha256: string }>
     }
-    lock.benchmarkGuards[0]!.sha256 = "0".repeat(64)
-
-    await expect(validatePreIrCalibrationLock(lock, rootDir)).rejects.toThrow("digest mismatch")
+    for (const index of [0, 1]) {
+      const lock = structuredClone(base)
+      lock.benchmarkGuards[index]!.sha256 = "0".repeat(64)
+      await expect(validatePreIrCalibrationLock(lock, rootDir)).rejects.toThrow("digest mismatch")
+    }
   })
 
   test("validates the committed law-to-markdown 8-generation identity", async () => {

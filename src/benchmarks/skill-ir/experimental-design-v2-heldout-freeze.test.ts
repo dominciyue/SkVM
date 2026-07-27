@@ -10,7 +10,7 @@ import {
 import { parseExperimentalDesignV2HeldoutFreezeArgs } from "./experimental-design-v2-heldout-freeze-run.ts";
 
 const rootDir = path.resolve(import.meta.dir, "../../..");
-const inputsCommit = "826de3b0178d964028eb9428c8e6d924eb1a4c52";
+const inputsCommit = "91f48a07bf84364f2984b5147d59080478ff5748";
 const oldTaskCommit = "00af684372f668fbf17cc50eba22920b57170d5e";
 const v2Root = "benchmarks/skill-ir/pilots/experimental-design/v2";
 

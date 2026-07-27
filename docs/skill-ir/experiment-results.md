@@ -727,9 +727,9 @@ benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
 results/skill-ir/benchmark-contract-audit/experimental-design-v2.json
 ```
 
-## 10. Experimental-design v3 冻结校准与无效性审计
+## 10. Experimental-design 物化污染历史与 v2 修订
 
-2026-07-27 以 `experimental-design-v3` 独立身份修复 root extra output 漏检，完成 46/46
+2026-07-27 曾以 `experimental-design-v3` 独立身份修复 root extra output 漏检，完成 46/46
 development-only canary、held-out freeze 和付费前 lock v2。强模型固定为
 `xty/gpt-5.6-sol`，矩阵为 `no-skill | original` × 2 development task × 2 repetitions，
 Windows/clean、bare-agent、0 retries。
@@ -750,17 +750,19 @@ mean 0.40、61,484 tokens。该差异不能解释成 skill 负增益：post-run 
 输出。三个实际进入 evaluator 的 original 行全部失败 `design-artifact-contract`，no-skill
 没有同类预置项。
 
-结论冻结为：真实链路、模型路由、scoring 与 gate 可运行；v3 测量存在 arm-dependent
+结论冻结为：真实链路、模型路由、scoring 与 gate 可运行；该批次存在 arm-dependent
 materialization contamination，人工有效性审计否决 `baseIrAuditAllowed`。不运行 held-out，
-不据此构造 IR/PGO/artifact，也不把 0.40/0.50 写进优化主 claim。后续新建 v4，以外置、
-摘要绑定的 initial-workdir manifest 和 final delta 评价模型输出，并在任何 API 前加入
-materialization canary。
+不据此构造 IR/PGO/artifact，也不把 0.40/0.50 写进优化主 claim。
+
+后续没有继续复制 v4，而是把有效机制合并回唯一活跃的 `experimental-design-v2`，以
+`contractRevision=materialized-delta/v1` 标记兼容修订。当前 v2 已完成 external initial-workdir
+manifest、final delta scorer、独立 oracle、42/42 contract canary、36/36 无模型 materialization
+audit、task/held-out freeze 和 8-row dry-run；尚未运行修订后的真实 API。
 
 Compact evidence：
 
 ```text
-benchmarks/skill-ir/pilots/experimental-design/v3/experimental-design-v3-pre-ir-calibration-lock.json
-results/skill-ir/experimental-design-v3-pre-ir-calibration-2026-07-27/resource-probe.json
-results/skill-ir/experimental-design-v3-pre-ir-calibration-2026-07-27/route-probe.json
-results/skill-ir/experimental-design-v3-pre-ir-calibration-2026-07-27/gate-report.json
+results/skill-ir/history/experimental-design-v3-materialization-contamination-2026-07-27.json
+results/skill-ir/benchmark-contract-audit/experimental-design-v2-materialization.json
+benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json
 ```

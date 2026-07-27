@@ -425,15 +425,13 @@ artifact kind 复用率和新的 failure taxonomy。
 | env-manager | 完成 | 2+2 / deterministic；contract audit failed | 完成 | 精确 schema rules 未公开；历史 development 仅作 support evidence。 |
 | law-to-markdown | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | 两个 task 的 alternative-valid 审核措辞均被拒；旧 development/held-out 结果降为 support evidence。 |
 | experimental-design | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | Plan canary 2/2 通过；其余 6/6 等价 canary 与四类私有 plan 合同失败，当前四臂实验阻断。 |
-| experimental-design-v2 | 复用同一冻结 source closure | 2+2 / public semantic；development audit passed，held-out identity frozen | 未开始 | 被 v3 root-output 修复身份取代；未运行 API。 |
-| experimental-design-v3 | 同一真实 source 的版本化 benchmark 条目 | 2+2；46/46 audit passed；held-out frozen | 禁止开始 | 8-row calibration 机械通过，但 original 预置 source closure 被 scorer 当成额外输出，物化有效性审计否决晋升。 |
-| experimental-design-v4 | 计划复用同一 source，新增 initial/final delta contract | 未开始 | 未开始 | 必须先解决 arm-dependent workdir materialization 并通过无 API canary。 |
+| experimental-design-v2 | 复用同一冻结 source closure | 2+2 / public semantic；42/42 audit、独立 oracle、held-out freeze、36/36 materialization audit 通过 | 未开始 | 唯一活跃下一代 benchmark；`materialized-delta/v1` dry-run 为 8 rows / 4 pairs，真实 API 尚未运行。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
-v2/v3 都保持不可变。v3 的 46/46 local audit 证明公开合同和 scorer fixture 一致，真实
-calibration 又暴露了 fixture 未覆盖的 runner materialization：original arm 在 agent 前多出
-skill resources。当前优先建立 v4 initial-workdir manifest 和 delta scorer；v4 calibration
-有效通过后才允许 base IR audit，之后才讨论四臂 development、held-out 和 Wave B。
+v3 的付费 calibration 只保留一份 `methodEvidence=false`、`promotionAllowed=false` 历史摘要。
+其 root-output oracle 已并回 v2；v2 通过外置 initial-workdir manifest 识别两臂各自的合法初始
+树，再按 final delta 判定模型输出。当前下一步是完成冻结 v2 的 route 与唯一 8-row calibration；
+gate 有效通过后才允许 base IR audit，之后才讨论四臂 development、held-out 和 Wave B。
 
 ## 13. 修改注意
 
