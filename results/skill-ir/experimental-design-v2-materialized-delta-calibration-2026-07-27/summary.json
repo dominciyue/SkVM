@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "skill-ir-pre-ir-calibration-summary/v1",
+  "calibrationId": "experimental-design-v2-materialized-delta-calibration-v1",
+  "date": "2026-07-27",
+  "benchmarkId": "experimental-design-v2",
+  "contractRevision": "materialized-delta/v1",
+  "status": "gate-failed-infrastructure",
+  "methodEvidence": false,
+  "model": "xty/gpt-5.6-sol",
+  "adapter": "bare-agent",
+  "matrix": {
+    "expectedRows": 8,
+    "observedRows": 8,
+    "expectedPairs": 4,
+    "completePairs": 4,
+    "comparablePairs": 1,
+    "infrastructureFailures": 3,
+    "semanticFailures": 0,
+    "differingPairs": 0
+  },
+  "observedSystemsIncludingInfrastructure": {
+    "no-skill": {
+      "successfulRows": 2,
+      "rows": 4,
+      "meanScore": 0.5,
+      "aggregateTokensFromReportedRows": 23625
+    },
+    "original": {
+      "successfulRows": 3,
+      "rows": 4,
+      "meanScore": 0.75,
+      "aggregateTokensFromReportedRows": 54659
+    }
+  },
+  "validity": {
+    "contractAuditPassed": true,
+    "materializationAuditPassed": true,
+    "routeProbePassed": true,
+    "developmentGatePassed": false,
+    "baseIrAuditAllowed": false,
+    "heldOutAllowed": false,
+    "entersMainClaim": false
+  },
+  "interpretation": [
+    "Five completed rows received a primary semantic score of 1.0, but three other rows crashed in Bun 1.3.14 before producing scoreable artifacts.",
+    "Only one of four no-skill/original pairs is comparable; both rows in that pair passed with score 1.0.",
+    "The observed arm success and token totals include an infrastructure-contaminated denominator and are not evidence that original is better, worse, or more efficient than no-skill.",
+    "The generic scorer initially classified the Bun panics as agent failures because the persisted raw status was stale. A tasks-authored pilot-only normalization layer and gate direction fix corrected the interpretation without rewriting raw or changing the frozen v2 task, evaluator, public contract, threshold, or lock.",
+    "This batch is frozen as infrastructure failure evidence. It does not permit base IR construction, held-out execution, scorer retuning, or a Skill IR optimization claim."
+  ],
+  "compactEvidence": [
+    "resource-probe.json",
+    "route-probe.json",
+    "gate.json",
+    "failure-audit.json"
+  ],
+  "provenance": {
+    "lockSha256": "0583cb5b64ba577a7ad03851f31e2ba08957b5bbddd3381caada31113fd703c8",
+    "rawSha256": "817700c97274d627c2854aab02d2ea1ccaced23fbc76ad8de4af5cb77be26092",
+    "scoredSha256": "f225eaad689fa7d35485a230e5b4e44c738894d8f5c4fe7b0b909eaf05bbffe0",
+    "resourceProbeSha256": "ee38eafb2742a3408d4f867f477f4fc0242d0c91b6df0adee00c4d9070d4756a",
+    "routeProbeSha256": "bc5cc9fcf651d73ba68f55a6f7c63759ef7dc2e18f11bab4e8660864bfd40eac"
+  }
+}

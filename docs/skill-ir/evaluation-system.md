@@ -895,9 +895,33 @@ bun ./src/benchmarks/skill-ir/pre-ir-calibration-run.ts `
   '--out-dir=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27' `
   '--phase=plan'
 # resource/route 通过后，分别改为 --phase=route-probe 和 --phase=execute
+
+bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts `
+  '--raw=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/run/raw-runs.jsonl' `
+  '--corpus=pilot' '--allow-tasks-authored' '--normalize-pre-ir-runtime' `
+  '--out=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/scored.jsonl'
+
+bun ./src/benchmarks/skill-ir/pre-ir-calibration-gate-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json' `
+  '--raw=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/run/raw-runs.jsonl' `
+  '--scored=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/scored.jsonl' `
+  '--resource=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/resource-probe.json' `
+  '--route=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/route-probe.json' `
+  '--out=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/gate.json'
 ```
 
 当前本地证据为 42/42 development canary matched、独立 oracle 12/12、materialization audit
 36/36、2+2 freeze verify 通过，dry-run 精确生成 8 rows / 4 pairs。Pre-IR lock 在 plan、route 和
-execute 前同时重验 held-out freeze 与 materialization report digest。尚未执行本轮真实 API，
-因此这些结果只证明 benchmark/runner 测量机制就绪，不是模型效果或 Skill IR 优化证据。
+execute 前同时重验 held-out freeze 与 materialization report digest。
+
+2026-07-27 已执行冻结的 8-row 真实 API 批次。Route/resource probe 均通过，但 3 行在子 Bun
+`1.3.14` 中触发 internal assertion crash；修正通用 failure classifier 后，gate 为 failed：
+3 infrastructure、1/4 comparable pairs、0 differing pairs。唯一可比较 pair 的 no-skill 和
+original 均为 1.0。Raw/workdir 留在本地，仓库只保存 compact summary、脱敏 failure audit、
+gate 和 probe。该结果不允许 base IR 或 held-out。
+
+付费 raw 保持原样。评分时显式使用 `--normalize-pre-ir-runtime`，由 tasks-authored pilot 专用层
+从非零退出和 stderr Bun crash signature 投影 `runStatus=adapter-crashed`，通用 scoring 随后得到
+`failureType=infrastructure`；该开关不能用于普通 corpus。Pre-IR gate 只从非 infrastructure pair
+推断方向，并显式报告 `comparablePairs`；全污染时方向为 `inconclusive`。这没有修改历史冻结的
+runner/scoring bytes，也没有修改 v2 evaluator、task、public contract、threshold 或 lock。

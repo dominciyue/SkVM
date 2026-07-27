@@ -757,7 +757,7 @@ materialization contamination，人工有效性审计否决 `baseIrAuditAllowed`
 后续没有继续复制 v4，而是把有效机制合并回唯一活跃的 `experimental-design-v2`，以
 `contractRevision=materialized-delta/v1` 标记兼容修订。当前 v2 已完成 external initial-workdir
 manifest、final delta scorer、独立 oracle、42/42 contract canary、36/36 无模型 materialization
-audit、task/held-out freeze 和 8-row dry-run；尚未运行修订后的真实 API。
+audit、task/held-out freeze 和 8-row dry-run。
 
 Compact evidence：
 
@@ -765,4 +765,45 @@ Compact evidence：
 results/skill-ir/history/experimental-design-v3-materialization-contamination-2026-07-27.json
 results/skill-ir/benchmark-contract-audit/experimental-design-v2-materialization.json
 benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json
+```
+
+## 11. Experimental-design v2 Materialized-delta 真实校准
+
+2026-07-27 按冻结 lock 执行 `xty/gpt-5.6-sol`、Windows/clean/bare-agent、
+`no-skill | original`、2 development tasks × 2 repetitions、0 retries。Resource probe 与
+120.5 秒 route probe 均通过，8 行 raw 完整写出。
+
+初次 gate 错把非零退出码 3 当作 agent failure。Raw 审计确认三行 stderr 均为 Bun
+`1.3.14` 的 `panic(main thread): Internal assertion failure`。新增 tasks-authored pilot 专用的
+`--normalize-pre-ir-runtime`，不重写 raw，并在通用 scoring 前投影 infrastructure 状态；gate
+同时只从可比较 pair 推断方向。历史冻结 runner/scoring、v2 task/evaluator/public contract、
+阈值和 lock 均未修改。权威重评分如下：
+
+| 项 | 结果 |
+|---|---:|
+| Rows / complete pairs | 8 / 4 |
+| Infrastructure failures | 3 |
+| Comparable pairs | 1 / 4 |
+| Differing comparable pairs | 0 |
+| No-skill observed success / mean | 2/4 / 0.50 |
+| Original observed success / mean | 3/4 / 0.75 |
+| Development gate | failed |
+
+五个正常完成的行均得到 1.0；唯一可比较 pair 中两臂也均为 1.0。其余三对至少一臂 crash，
+所以 0.50/0.75 和 23,625/54,659 reported tokens 只描述被 infrastructure 污染的总分母，
+不能解释为 original 增益、回归或 token 效率差异。当前 `baseIrAuditAllowed=false`，未运行
+held-out，也未构造 v2 base IR/artifact。
+
+本批次不补跑失败行。后续先用新 calibration identity/lock 资格化稳定 SkVM execution runtime，
+保持模型、任务、scorer 和 benchmark contract 不变，再完整重跑 8 行。该运行时重试仍属于 v2，
+不会建立 v3/v4 benchmark。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/summary.json
+results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/failure-audit.json
+results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/gate.json
+results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/resource-probe.json
+results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/route-probe.json
 ```

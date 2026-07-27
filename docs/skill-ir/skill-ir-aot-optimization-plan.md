@@ -2232,9 +2232,26 @@ v3 曾用 root 精确白名单修复 v2 漏检，并完成 46/46 本地 canary �
 
 ### Task 16.6：实验与收口
 
-- [ ] 运行 v2 contract/oracle/differential/materialization audit、freeze verify-only、完整 Skill IR
-  tests、typecheck、文档链接、secret scan 和 `git diff --check`。
-- [ ] 在新 v2 lock、materialization audit 与 route probe 均通过后执行唯一 8-row 强模型
-  calibration；按冻结 gate 解释，不补跑、不调 scorer、不运行 held-out。
-- [ ] 更新组件文档、compact results 与 conversation log，分阶段提交且不暂存既有 untracked
+- [x] 运行 v2 contract/oracle/differential/materialization audit、freeze verify-only、完整 Skill IR
+  tests、typecheck、文档链接、secret scan 和 `git diff --check`。v2 focused 为 102/102；完整
+  Skill IR 为 555 pass / 4 skip / 8 fail，修正 Wave A 预期后剩余失败是 initial-workdir 演进使
+  历史 Law execution freeze 摘要 fail closed，旧 lock 不改写。
+- [x] 在新 v2 lock、materialization audit 与 route probe 均通过后执行唯一 8-row 强模型
+  calibration；权威 gate 因 3 个 Bun infrastructure crash 失败，仅 1/4 pair 可比较。冻结该批次，
+  不补跑、不调 v2 scorer、不运行 held-out。
+- [x] 更新组件文档、compact results 与 conversation log，分阶段提交且不暂存既有 untracked
   raw/result 或 `docs/skill-ir/1.md`。
+
+后续运行时恢复顺序：
+
+```text
+freeze failed v2 batch
+-> qualify a stable SkVM execution runtime locally
+-> preregister a new v2 calibration identity/lock with the runtime identity
+-> route probe
+-> complete 8-row rerun with zero infrastructure required
+-> only then resume base IR audit
+```
+
+该步骤只替换并冻结 execution runtime，不修改 v2 task/public contract/evaluator/threshold，不创建
+v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并停止付费实验。

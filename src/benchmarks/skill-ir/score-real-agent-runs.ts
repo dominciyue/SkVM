@@ -3,6 +3,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { scoreRawRunRows, scoreRawRunRowsBySkill, taskIndexKey, type RawAgentRunRow } from "./scoring";
 import type { SkillIRBenchmarkTask } from "./real-agent";
 import { resolveCorpusManifestPath, type CorpusId } from "./corpus-registry";
+import { normalizePreIrRuntimeFailure } from "./pre-ir-runtime-evidence";
 
 type Args = {
   raw: string;
@@ -12,6 +13,7 @@ type Args = {
   rootDir: string;
   out: string;
   allowTasksAuthored?: boolean;
+  normalizePreIrRuntime?: boolean;
 };
 
 type CorpusManifest = {
@@ -34,6 +36,7 @@ export function parseScoringArgs(argv: string[]): Args {
     rootDir: process.cwd(),
     out: "results/skill-ir/main-results.jsonl",
     allowTasksAuthored: false,
+    normalizePreIrRuntime: false,
   };
 
   for (const arg of argv) {
@@ -41,6 +44,8 @@ export function parseScoringArgs(argv: string[]): Args {
       args.raw = arg.slice("--raw=".length);
     } else if (arg === "--allow-tasks-authored") {
       args.allowTasksAuthored = true;
+    } else if (arg === "--normalize-pre-ir-runtime") {
+      args.normalizePreIrRuntime = true;
     } else if (arg.startsWith("--corpus=")) {
       const corpus = arg.slice("--corpus=".length);
       if (corpus !== "calibration" && corpus !== "pilot") {
@@ -65,6 +70,9 @@ export function parseScoringArgs(argv: string[]): Args {
   }
   if (args.allowTasksAuthored && args.corpus !== "pilot") {
     throw new Error("--allow-tasks-authored requires --corpus=pilot");
+  }
+  if (args.normalizePreIrRuntime && (!args.allowTasksAuthored || args.corpus !== "pilot")) {
+    throw new Error("--normalize-pre-ir-runtime requires --corpus=pilot and --allow-tasks-authored");
   }
 
   return args;
@@ -140,7 +148,10 @@ async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillI
 
 async function main() {
   const args = parseScoringArgs(process.argv.slice(2));
-  const rawRows = await readJsonl<RawAgentRunRow>(args.raw);
+  const persistedRawRows = await readJsonl<RawAgentRunRow>(args.raw);
+  const rawRows = args.normalizePreIrRuntime
+    ? persistedRawRows.map(normalizePreIrRuntimeFailure)
+    : persistedRawRows;
   await canonicalizeRawRunWorkDirs(rawRows, args.raw);
   const scoredRows = args.corpus || args.manifest
     ? await scoreRawRunRowsBySkill(rawRows, await loadTaskIndexFromManifest(args))

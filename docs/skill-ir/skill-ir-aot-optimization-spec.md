@@ -1710,3 +1710,23 @@ task/freeze/audit/lock 及重复实现，防止后续误调度。2026-07-27 的�
 只有本节修订后的 v2 完成 task/freeze/audit/materialization audit、书面冻结 baseline lock，
 才允许执行一次新的 `no-skill | original` calibration。不存在自动创建 v4；以后只有在 v2
 形成有效 development/held-out 证据后出现不兼容的研究合同，才讨论新主版本。
+
+#### 24.9.5 Runtime crash 与校准有效性
+
+修订后的 v2 首个 8-row 真实 calibration 在 `xty/gpt-5.6-sol`、Windows、bare-agent、
+0 retries 下出现 3 个 Bun `1.3.14` internal assertion crash。原始 raw 作为付费证据不重写；
+tasks-authored pilot 专用的 pre-IR normalization 必须从非零退出与冻结 stderr crash signature
+推导 `runStatus=adapter-crashed`，再交给通用 scoring 生成 `failureType=infrastructure`。该开关
+只能与 `--corpus=pilot --allow-tasks-authored` 同时使用，不能改变普通 corpus 或历史 artifact 评分。
+
+Pre-IR pair 只有两臂均非 infrastructure 时才可比较。Report 必须显式输出
+`comparable` 和 `comparablePairs`；没有可比较 pair 时 `originalDirection=inconclusive`，不得用
+crash 行的零分推断 skill 方向。Infrastructure 行仍保留在冻结总分母和 token 缺失口径中，
+但不能构成 semantic failure、paired delta 或 model/skill 效果。
+
+本轮 gate 因 3 infrastructure failure 失败，只有 1/4 pair 可比较且两臂均为 1.0；因此不允许
+base IR audit、held-out、scorer 调参或优化 claim。Failure classification 收敛为新增 pre-IR
+normalization 与 gate reporting，不改动历史冻结的通用 runner/scoring bytes，也不改变 v2 task、
+public contract、evaluator、threshold、freeze 或 lock。原批次保持冻结，不补跑失败行。若继续，
+必须先用独立 calibration identity
+和新 lock 预注册稳定 SkVM execution runtime，再完整运行新矩阵；这不是 v3/v4 benchmark。

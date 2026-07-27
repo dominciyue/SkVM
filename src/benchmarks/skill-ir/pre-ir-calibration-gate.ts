@@ -10,6 +10,7 @@ export type PreIrCalibrationPair = {
   original: { success: boolean; score: number }
   scoreDelta: number
   criterionTransitions: { improved: string[]; regressed: string[] }
+  comparable: boolean
   differs: boolean
 }
 
@@ -25,6 +26,7 @@ export type PreIrCalibrationGateReport = {
     completePairs: number
     infrastructureFailures: number
     noSkillSemanticFailures: number
+    comparablePairs: number
     differingPairs: number
   }
   systems: Record<CalibrationSystem, {
@@ -47,7 +49,7 @@ export type PreIrCalibrationGateReport = {
     baseIrAuditAllowed: boolean
     heldOutAllowed: false
     entersMainClaim: false
-    originalDirection: "better" | "mixed" | "equal" | "worse"
+    originalDirection: "better" | "mixed" | "equal" | "worse" | "inconclusive"
   }
 }
 
@@ -124,9 +126,11 @@ function summarizeSystem(rows: ScoredAgentRunRow[]) {
   }
 }
 
-function direction(pairs: PreIrCalibrationPair[]): "better" | "mixed" | "equal" | "worse" {
-  const positive = pairs.some((pair) => pair.scoreDelta > 0)
-  const negative = pairs.some((pair) => pair.scoreDelta < 0)
+function direction(pairs: PreIrCalibrationPair[]): "better" | "mixed" | "equal" | "worse" | "inconclusive" {
+  const comparable = pairs.filter((pair) => pair.comparable)
+  if (comparable.length === 0) return "inconclusive"
+  const positive = comparable.some((pair) => pair.scoreDelta > 0)
+  const negative = comparable.some((pair) => pair.scoreDelta < 0)
   if (positive && negative) return "mixed"
   if (positive) return "better"
   if (negative) return "worse"
@@ -164,6 +168,7 @@ export function evaluatePreIrCalibrationGate(
         original: { success: original.success, score: rowScore(original) },
         scoreDelta: rowScore(original) - rowScore(noSkill),
         criterionTransitions: { improved, regressed },
+        comparable,
         differs: comparable && outcomeVector(noSkill) !== outcomeVector(original),
       })
     }
@@ -173,6 +178,7 @@ export function evaluatePreIrCalibrationGate(
   const originalRows = rows.filter((row) => row.system === "original")
   const infrastructureFailures = rows.filter(isInfrastructure).length
   const noSkillSemanticFailures = noSkillRows.filter((row) => !row.success && !isInfrastructure(row)).length
+  const comparablePairs = pairs.filter((pair) => pair.comparable).length
   const differingPairs = pairs.filter((pair) => pair.differs).length
   const gates = {
     completeRows: rows.length === lock.matrix.expectedRows,
@@ -194,6 +200,7 @@ export function evaluatePreIrCalibrationGate(
       completePairs: pairs.length,
       infrastructureFailures,
       noSkillSemanticFailures,
+      comparablePairs,
       differingPairs,
     },
     systems: {

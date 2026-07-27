@@ -30,6 +30,18 @@ describe("score-real-agent-runs arguments", () => {
     );
   });
 
+  test("requires the pre-IR runtime normalizer to stay on the tasks-authored pilot path", () => {
+    expect(parseScoringArgs([
+      "--corpus=pilot",
+      "--allow-tasks-authored",
+      "--normalize-pre-ir-runtime",
+    ]).normalizePreIrRuntime).toBe(true);
+    expect(() => parseScoringArgs(["--corpus=pilot", "--normalize-pre-ir-runtime"]))
+      .toThrow("requires --corpus=pilot and --allow-tasks-authored");
+    expect(() => parseScoringArgs(["--corpus=calibration", "--normalize-pre-ir-runtime"]))
+      .toThrow("requires --corpus=pilot and --allow-tasks-authored");
+  });
+
   test("rejects unknown corpora and corpus/manifest ambiguity", () => {
     expect(() => parseScoringArgs(["--corpus=unknown"])).toThrow("Unknown Skill IR corpus");
     expect(() => parseScoringArgs(["--corpus=pilot", "--manifest=tmp/pilot.json"])).toThrow(

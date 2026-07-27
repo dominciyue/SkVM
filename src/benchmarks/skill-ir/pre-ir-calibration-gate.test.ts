@@ -168,6 +168,22 @@ describe("pre-IR calibration gate", () => {
     expect(infrastructure.gates.zeroInfrastructure).toBe(false)
   })
 
+  test("does not infer an original direction from infrastructure-contaminated pairs", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath })
+    const infrastructureRows = passingRows().map((item) => ({
+      ...item,
+      success: false,
+      evaluatorScore: 0,
+      runStatus: "adapter-crashed" as const,
+      failureType: "infrastructure" as const,
+    }))
+
+    const report = evaluatePreIrCalibrationGate(infrastructureRows, lock)
+    expect(report.counts.comparablePairs).toBe(0)
+    expect(report.pairs.every((pair) => pair.comparable === false)).toBe(true)
+    expect(report.interpretation.originalDirection).toBe("inconclusive")
+  })
+
   test("rejects duplicate identities and frozen identity drift", async () => {
     const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath })
     const rows = passingRows()

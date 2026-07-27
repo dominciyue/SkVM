@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "skill-ir-pre-ir-infrastructure-failure-audit/v1",
+  "calibrationId": "experimental-design-v2-materialized-delta-calibration-v1",
+  "auditScope": "frozen-development-runtime-diagnosis",
+  "mutatesFrozenInputs": false,
+  "methodEvidence": false,
+  "rootCauseClass": "bun-runtime-crash",
+  "runtime": {
+    "name": "bun",
+    "version": "1.3.14",
+    "crashClass": "bun-internal-assertion",
+    "signature": "panic(main thread): Internal assertion failure"
+  },
+  "records": [
+    {
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "system": "no-skill",
+      "runIndex": 2,
+      "exitCode": 3
+    },
+    {
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "system": "no-skill",
+      "runIndex": 1,
+      "exitCode": 3
+    },
+    {
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "system": "original",
+      "runIndex": 2,
+      "exitCode": 3
+    }
+  ],
+  "classificationCorrection": {
+    "rawStatusBeforeFix": "ok",
+    "scoredFailureTypeBeforeFix": "agent",
+    "authoritativeFailureTypeAfterPreIrNormalization": "infrastructure",
+    "benchmarkContractChanged": false,
+    "frozenEvaluatorChanged": false,
+    "frozenTasksChanged": false,
+    "lockChanged": false
+  },
+  "claimBoundary": {
+    "modelCapabilityConclusion": "not-supported",
+    "originalSkillEffect": "inconclusive",
+    "tokenEfficiencyConclusion": "not-supported",
+    "baseIrAllowed": false,
+    "heldOutAllowed": false
+  },
+  "requiredFollowUp": [
+    "Keep this paid batch frozen and do not fill the missing rows by retrying them.",
+    "Qualify a preregistered stable SkVM execution runtime without changing model, tasks, evaluator, or benchmark contract.",
+    "Run any replacement calibration under a new lock and calibration identity, with zero infrastructure failures required before semantic interpretation."
+  ]
+}

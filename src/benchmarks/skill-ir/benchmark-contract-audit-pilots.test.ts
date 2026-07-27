@@ -55,7 +55,9 @@ describe("Wave A benchmark contract audits", () => {
         benchmarkContractAuditPath?: string;
       }>;
     };
-    const waveA = corpus.skills.filter((skill) => skill.wave === "A");
+    const frozenDiagnosticIds = new Set<string>(PILOTS.map((pilot) => pilot.id));
+    const waveA = corpus.skills.filter((skill) =>
+      skill.wave === "A" && frozenDiagnosticIds.has(skill.id));
 
     expect(waveA.map((skill) => ({
       id: skill.id,
