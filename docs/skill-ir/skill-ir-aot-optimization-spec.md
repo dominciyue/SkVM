@@ -1757,6 +1757,11 @@ route/execute 子进程作用域内将其解析为 `SKVM_CACHE`，完成后恢�
 digest/commit/platform/cache-root 漂移或资格报告非 `passed` 均 fail closed。不得依赖调用者
 预先设置的隐式 cache 环境。
 
+最终执行锁还必须逐文件绑定创建 plan、运行 route probe 和 spawn agent 的 orchestration
+源码摘要。当前最小集合是 `pre-ir-calibration-run.ts`、`route-probe.ts` 与
+`real-agent-run.ts`；任一摘要漂移都阻止 route/execute。该绑定避免只冻结 child binary、却让
+parent spawn 语义在实验之间悄然变化。
+
 为避免改变普通 corpus 和历史 execution freeze，direct executable 投影只允许在
 `pre-ir-calibration-run` 读取上述 runtime-qualified lock 后发生：原计划命令必须以
 `bun run skvm run` 开头，投影结果固定为 `<qualified executable> run ...`，其余参数逐项保持。

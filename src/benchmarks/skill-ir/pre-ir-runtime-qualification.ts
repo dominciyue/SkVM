@@ -20,6 +20,7 @@ export const PreIrExecutionRuntimeGuardSchema = z.object({
   cacheRoot: SafeRelativePathSchema.optional(),
   executable: FrozenRuntimeFileSchema,
   qualification: FrozenRuntimeFileSchema,
+  orchestration: z.array(FrozenRuntimeFileSchema).min(1).optional(),
 }).strict()
 
 export type PreIrExecutionRuntimeGuard = z.infer<typeof PreIrExecutionRuntimeGuardSchema>
@@ -132,6 +133,14 @@ export async function verifyPreIrExecutionRuntimeGuard(
   }
   await verifyRuntimeFile(rootDir, guard.executable, "executable")
   const reportBytes = await verifyRuntimeFile(rootDir, guard.qualification, "qualification report")
+  if (guard.orchestration) {
+    const paths = new Set<string>()
+    for (const file of guard.orchestration) {
+      if (paths.has(file.path)) throw new Error("Pre-IR execution runtime duplicate orchestration path")
+      paths.add(file.path)
+      await verifyRuntimeFile(rootDir, file, `orchestration ${file.path}`)
+    }
+  }
   const report = PreIrRuntimeQualificationReportSchema.parse(JSON.parse(reportBytes.toString("utf8")))
   if (report.status !== "passed" || report.probe.failures !== 0 || report.issues.length !== 0) {
     throw new Error("Pre-IR execution runtime qualification did not pass")

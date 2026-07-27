@@ -986,3 +986,8 @@ benchmarks/skill-ir/pilots/experimental-design/v2/
 它复用同一 qualified binary、qualification report、模型、2+2 task split、scorer 和数值 gate；
 只新增 `cacheRoot=.skvm` 并采用新的 calibration/adapter identity。对应 dry-run 仍为 8 rows，
 不包含 held-out。
+
+诊断进一步确认 Bun.spawn 不会可靠继承运行中对父 `process.env` 的修改；child 必须通过 spawn
+options 显式接收派生环境。`runCommandWithTimeout` 与 `executePlan` 因此接受显式 env，pre-IR
+helper 返回包含 lock-bound `SKVM_CACHE` 的副本，不修改父环境。最终 replacement lock 还逐文件
+绑定 pre-IR planner、route probe 和 agent executor 的摘要，防止 parent orchestration 漂移。

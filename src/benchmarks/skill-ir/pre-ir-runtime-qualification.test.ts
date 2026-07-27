@@ -98,9 +98,12 @@ describe("pre-IR execution runtime qualification", () => {
       const executablePath = path.join(rootDir, "runtime", "skvm.exe")
       const reportPath = path.join(rootDir, "runtime", "qualification.json")
       const configPath = path.join(rootDir, "runtime", "skvm.config.json")
+      const orchestrationPath = path.join(rootDir, "runtime", "orchestration.ts")
       await mkdir(path.dirname(executablePath), { recursive: true })
       await writeFile(executablePath, "qualified runtime", "utf8")
       await writeFile(configPath, "{}\n", "utf8")
+      await writeFile(orchestrationPath, "export const runtime = true\n", "utf8")
+      const orchestrationSha256 = sha256Bytes(Buffer.from("export const runtime = true\n", "utf8"))
       const executableSha256 = sha256Bytes(Buffer.from("qualified runtime", "utf8"))
       const report = summarizePreIrRuntimeQualification({
         qualificationId: "experimental-design-v2-compiled-runtime-win32-v1",
@@ -120,9 +123,13 @@ describe("pre-IR execution runtime qualification", () => {
         cacheRoot: "runtime",
         executable: { path: "runtime/skvm.exe", sha256: executableSha256 },
         qualification: { path: "runtime/qualification.json", sha256: sha256Bytes(reportBytes) },
+        orchestration: [{ path: "runtime/orchestration.ts", sha256: orchestrationSha256 }],
       }
 
       await expect(verifyPreIrExecutionRuntimeGuard(guard, rootDir)).resolves.toEqual(report)
+      await writeFile(orchestrationPath, "export const runtime = false\n", "utf8")
+      await expect(verifyPreIrExecutionRuntimeGuard(guard, rootDir)).rejects.toThrow("orchestration")
+      await writeFile(orchestrationPath, "export const runtime = true\n", "utf8")
       await unlink(configPath)
       await expect(verifyPreIrExecutionRuntimeGuard(guard, rootDir)).rejects.toThrow("config")
       await writeFile(configPath, "{}\n", "utf8")
