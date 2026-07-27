@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-07-24
+**最后更新：** 2026-07-27
 
 ## 1. 项目定位
 
@@ -1632,76 +1632,81 @@ IR/artifact 或优化证据。
 本节优先级高于早期将 deterministic profile 与主成功率合并叙述的文字。后续
 实现和结果文档必须沿用本节的指标分层。
 
-### 24.9 v3：冻结后输出边界修复
+### 24.9 v2 合并修订：真实物化增量合同
 
-v2 本地合同审计通过后发现一个冻结范围内的 scorer 缺口：公开 task 要求“只生成三个
-输出文件”，但 `artifact-contract` 只枚举 `design/` 子目录，没有拒绝 workdir 根目录新增的
-文件或目录。该问题不改变 v2 已审计的设计语义，但会使公开 artifact contract 少执行一条
-可观察约束。按照 §24.5.1，v2 task、scorer、audit、freeze 和 compact result 保持不可变；
-v2 不进入新的 API calibration，修复使用独立身份 `experimental-design-v3`。
+早期 v2 只枚举 `design/`，遗漏 workdir 根目录新增输出。随后建立的 v3 增加了根目录精确
+白名单和独立 oracle，但真实 calibration 又发现该白名单把 runner 在 agent 启动前复制的 skill
+resources 当成模型输出。该失败属于 benchmark/harness 物化污染，不是模型或 original skill
+的语义失败。
 
-v3 继承 v2 的五项权重、`0.95` row threshold、四个公开 `designProperties`、allocation
-不变量、report evidence 语法和 2 development + 2 held-out 内容。唯一主合同变化是显式加入：
+由于 v2 尚无 API 结果，v3 也没有形成可用的研究结果，当前项目不再维护两个并行的下一代
+benchmark。自本节起：
 
 ```text
-allowed root entries = study.json | design-contract.json | design/
-allowed design entries = design-plan.json | allocation.csv | design-report.md
+唯一活跃 benchmark: experimental-design-v2
+当前合同修订: materialized-delta/v1
+历史 v1: 保持冻结
+历史 v3 calibration: 仅保留失效诊断摘要，不参与 corpus、registry、freeze 或主 claim
 ```
 
-根目录和 `design/` 的额外普通文件、目录、symlink/junction 或 special entry 均不得通过
-artifact criterion。`study.json` 与 `design-contract.json` 仍由 input-integrity 绑定摘要；
-三个输出继续验证文件类型、UTF-8/JSON/CSV 可解析性和语义。额外输出是 evaluation failure，
-路径逃逸或 reparse point 是 infrastructure failure。
+旧 v2 task/freeze/audit 的 Git 历史继续提供演进 provenance；当前树中的 v2 文件允许按新的
+`contractRevision` 和 `freezeId` 重建。该选择是研究实现收敛，不改写旧 compact report，也不
+把 v3 模型输出用于 expected、task、scorer 或 artifact。
 
-为降低 audit fixture 与生产 assessor 同源造成的共适应风险，v3 增加独立 oracle 层：
+#### 24.9.1 Initial-workdir manifest
 
-- hard-coded reference vectors 不调用生产 `assessExperimentalDesignV2Allocation` 生成 expected；
-- metamorphic cases 固定验证 CSV 物理行重排、合法 arm 标签双射和自由 method 文本保持主语义；
-- invalid controls 固定验证根目录额外文件/目录、unit 重复/缺失、非法 arm、stratum 与
-  sequential 失衡；
-- oracle 只判断公开合同，不进入模型 prompt、evaluator payload 或 held-out construction。
+通用 runner 必须在 task fixtures 和可选 skill resource closure 全部复制完成后、agent setup/run
+之前，为每条 run 生成：
 
-v3 重走完整身份顺序：task creation -> task-split freeze -> scorer/differential audit ->
-held-out freeze -> `no-skill | original` calibration。Calibration 仍固定强模型
-`xty/gpt-5.6-sol`、Windows/clean、两个 development task、每臂每 task 两次、0 retries；
-门禁固定为 0 infrastructure、no-skill 不饱和和至少一个 paired outcome 差异。未通过时冻结
-失败，不构造 IR/artifact，不运行 held-out。通过只允许进入四臂 development lock 起草。
+```text
+schema: skvm-initial-workdir-manifest/v1
+location: run directory / initial-workdir-manifest.json
+workdir relation: manifest 必须位于 workdir 外
+entries: 按 POSIX 相对路径排序的 directory/file 记录
+file evidence: type + SHA-256
+forbidden: absolute path、文件正文、secret、symlink/junction/reparse/special entry
+```
 
-校准调度不复用 corpus 中已经 `runnable` 的 v1 `experimental-design` 条目，也不复制 v1 base
-IR。`pilot.json` 增加 `experimental-design-v3` 版本化 benchmark 条目：它复用完全相同的真实
-source/source closure，状态固定为 `tasks-authored`，只指向 v3 development tasks 和 v3 audit；
-该条目不代表新增真实 skill，不改变 Wave A/Wave B skill 数。预 IR runner 只能显式调度该条目的
-`no-skill | original`，并使用 lock v2 在 plan、probe、execute 与 gate 读取时同时重验 source、
-development tasks、resource contract、v3 scorer 和 `heldout-freeze.json`。因此 calibration 不会
-静默落回 v1 task，也不能在 held-out freeze 漂移后继续执行。
+Manifest path 与 SHA-256 进入 plan/raw/scoring `RunResult` provenance。Agent 只能访问 workdir，
+不能修改该 manifest。Manifest 缺失、digest 漂移、位于 workdir 内或包含不安全 entry 时，
+scorer 记为 infrastructure failure。
 
-### 24.10 v3 Calibration 后的 materialization 污染与 v4 边界
+#### 24.9.2 Final delta
 
-2026-07-27 的冻结 v3 calibration 机械通过预注册 gate，但运行后审计发现两臂起点不等价。
-`src/run/index.ts` 会在 agent 启动前把 skill bundle 中除 `SKILL.md` 外的文件复制到 workdir；
-因此 `original` 四行预先包含 `LICENSE.upstream.md`、`references/` 和 `scripts/`，`no-skill`
-四行不包含。v3 artifact scorer 的根目录精确白名单无法区分“harness 预置资源”和“模型额外
-输出”，所以所有进入 evaluator 的 original 行都会因 source closure 触发 artifact failure。
+Artifact contract 不再使用对所有系统相同的根目录名单。它比较 final workdir 与该 run 自己的
+initial manifest：
 
-该问题不是模型失败，也不能通过放宽 v3 expected 或重跑解决。v3 task/scorer/freeze/lock、
-raw/scored digest 和 gate report 全部冻结；机械 `passed=true` 只证明 8 行完整、0 infra、
-no-skill 非饱和且两臂可区分，`baseIrAuditAllowed` 被本节的人工有效性审计否决。v3 不构造
-base IR，不运行四臂 development 或 held-out，不进入主 claim。
+1. 所有 initial entry 必须保留原类型；初始文件摘要不得变化。
+2. 三个公开输出必须作为新增普通文件出现并保持可解析。
+3. 除输出目录和三个公开输出外，不得新增其他文件、目录或特殊 entry。
+4. 删除或修改 fixture/skill resource、路径逃逸、reparse/special entry 均 fail closed。
+5. `no-skill` 和 `original` 可以有不同的 initial entries；scorer 只能接受各自 manifest 中实际
+   记录的资源，不能按 source 名称为所有 arm 放宽 allowlist。
 
-后续修复使用新身份 `experimental-design-v4`，必须在任何 API 调用前满足：
+这保留了“只生成三个输出”的公开合同，也不会把 original 合法的 source closure 误判为模型
+额外输出。
 
-1. 运行器为每个 arm 生成 provenance-bound initial-workdir manifest，记录 task fixtures、skill
-   resource closure、类型与摘要；manifest 写在 workdir 外，agent 不可修改。
-2. artifact contract 评价 final workdir 相对 initial manifest 的增量：冻结输入和合法 skill
-   resources 可保留但不可修改；三个要求输出必须新增；其他新增、修改、删除或 reparse entry
-   按公开合同失败。
-3. no-skill 和 original 可以拥有不同的合法预置资源，但 scorer 必须分别绑定各自初始摘要，
-   不能把 source path 名单无条件加入 no-skill allowlist。
-4. 付费前 materialization canary 在空 agent 行为下验证两臂初始 manifest、受保护输入与资源
-   摘要；发现 scorer 会把预置资源判成模型输出时 fail closed。
-5. v4 重新 task creation -> freeze -> scorer/audit -> held-out freeze -> calibration；不得修改
-   v3 scorer 或把 v3 development 输出用于 v4 expected。v3 failure taxonomy 只用于修 harness。
+#### 24.9.3 付费前 materialization audit
 
-这次审计还说明“benchmark local fixture 全绿”不足以覆盖真实 runner 物化行为。之后所有文件
-型 skill benchmark 在 contract audit 与 API probe 之间增加 materialization audit；该门槛服务
-于测量有效性，不是新的 Skill IR 优化 pass。
+Benchmark contract audit 之后、route probe 之前增加无模型 materialization audit。Audit 必须
+调用与真实 `executeRun` 相同的 workspace preparation 函数，至少验证：
+
+- no-skill 初始树只有 task fixtures，original 额外包含摘要正确的 source resources；
+- 两臂 protected input 摘要均正确，manifest 均在 workdir 外且 agent 不可写；
+- `final=initial` 时只报告三个 required output 缺失，不报告 initial resource 为额外输出；
+- 合法添加三个输出后 delta 通过；额外文件、初始文件修改/删除和 reparse entry 分别失败；
+- materialization audit 的 compact report 不保存绝对路径、文件正文、secret 或 held-out 内容。
+
+Audit 未通过时不允许 route/API。它是通用文件型 skill benchmark 的测量门槛，不是 Skill IR
+优化 pass。
+
+#### 24.9.4 v3 退役与 oracle 合并
+
+v3 的 hard-coded reference vectors、metamorphic row reorder、arm label 双射、自由 method 和
+invalid controls 合入 v2 oracle tests。当前树删除 v3 evaluator 注册、v3 corpus 条目、v3
+task/freeze/audit/lock 及重复实现，防止后续误调度。2026-07-27 的已付费 v3 calibration 压缩为
+单份历史失效诊断，明确 `methodEvidence=false`、`promotionAllowed=false`。
+
+只有本节修订后的 v2 完成 task/freeze/audit/materialization audit、书面冻结 baseline lock，
+才允许执行一次新的 `no-skill | original` calibration。不存在自动创建 v4；以后只有在 v2
+形成有效 development/held-out 证据后出现不兼容的研究合同，才讨论新主版本。

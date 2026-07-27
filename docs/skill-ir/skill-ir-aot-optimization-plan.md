@@ -23,7 +23,7 @@
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
 | `law-to-markdown` vertical slice | Held-out gate 失败并冻结 | Development 4/4、0.925；held-out 2/4、0.725，manual task 两次回归。 |
-| `experimental-design` second phenotype | v1 benchmark contract 失败并冻结 | 本地机制仍有效，但 scorer 拒绝合法等价实现；下一步建立独立 v2 语义 benchmark。 |
+| `experimental-design` second phenotype | v2 物化增量修订中 | v1 冻结；v3 校准因物化污染失效，能力合入唯一活跃 v2。 |
 | Benchmark contract audit | Wave A v1 已完成 | 3/3 pilot audit failed，历史结果降为 `support-real`；先修复测量再继续付费。 |
 | Held-out / pooled panel / Wave B | Law 已执行，其余阻断 | v2 audit 与 development gate 通过后，优先用 `api-tester` 做冻结 Wave B replication。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
@@ -107,17 +107,18 @@ manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phen
 
 ## 4. 下一阶段顺序
 
-### 当前下一刀：Experimental-design Benchmark v2
+### 当前下一刀：Experimental-design Benchmark v2 物化增量修订
 
 1. 保留 v1 task、scorer、audit、lock、package 与结果，不原地修改。
-2. 以公开语义合同重建 v2 task/scorer；语义成功为主指标，确定性 profile 为独立次指标。
-3. 为每个 development criterion 编写 canonical-valid、alternative-valid 与
-   invalid-control differential fixture。
-4. 先通过 v2 benchmark contract audit 和书面评审，再决定是否执行
+2. v2 是唯一活跃的下一代 benchmark；合入 v3 的 root-output 检查和独立 oracle，不建立 v4。
+3. Runner 在真实 fixture/resource 物化后、agent 启动前写外置 initial-workdir manifest；scorer
+   按 initial/final delta 判断模型新增、修改和删除。
+4. 先通过 v2 contract audit、materialization audit 和书面 lock 评审，再执行唯一
    `no-skill | original` API calibration。
-5. v2 development gate 通过后才进入 held-out；完整泛化结论必须由未参与设计的
-   Wave B `api-tester` replication 支撑。
-6. Token 只按包含 compile/profile/package 成本的重复调用口径报告，不提前声称 break-even。
+5. v3 活跃代码、corpus 和 freeze 入口删除；已付费结果只保留一份 `methodEvidence=false` 的
+   历史失效诊断。
+6. v2 development gate 通过后才进入 held-out；完整泛化结论必须由 Wave B replication 支撑。
+7. Token 只按包含 compile/profile/package 成本的重复调用口径报告，不提前声称 break-even。
 
 ### 已完成前置：文档治理
 
@@ -2180,78 +2181,60 @@ git push origin skill-ir-aot
 不得暂存 `docs/skill-ir/1.md` 或既有未跟踪 `results/skill-ir/*`；只添加本计划明确列出的
 compact v2 report。
 
-## 15. Task 8.12 Experimental-design v3 冻结修复与 Calibration
+## 15. Experimental-design v3 历史诊断
 
-本任务修复 v2 冻结后发现的全 workdir 输出边界缺口。v2 文件、摘要和结果保持不可变；
-v3 继承已审计语义，只新增公开顶层白名单和独立 oracle，再重走 task/audit/freeze/calibration。
+v3 曾用 root 精确白名单修复 v2 漏检，并完成 46/46 本地 canary 与一次 8-row calibration。
+真实 runner 审计发现 original 在 agent 前获得 source closure，而 scorer 将其误判为模型新增输出；
+因此机械 gate 虽通过，研究晋升被否决。该批次只保留为 materialization contamination 历史
+诊断，不作为活跃 benchmark、模型比较、skill 增益或后续 expected 来源。
 
-### Task 15.1：设计与 v2 不可变边界
+## 16. Task 8.13 Experimental-design v2 合并修订
 
-- [x] 在 spec 记录根目录额外输出漏检的 root cause、v3 身份和不可原地修改 v2 的规则。
-- [x] 固定 v3 只改变 artifact 输出边界，不改变权重、阈值、design semantics 或 held-out 内容。
-- [x] 增加 v1/v2 immutable digest 回归测试，证明历史 task/scorer/audit/freeze/result 未变化。
+### Task 16.1：设计收敛与历史边界
 
-### Task 15.2：v3 Public Contract、Task 与 Task-split Freeze
+- [x] Spec/plan 固定 v2 为唯一活跃下一代 benchmark，采用 `contractRevision=materialized-delta/v1`。
+- [ ] 固定 v3 只保留单份失效诊断；当前树删除其 evaluator/corpus/task/freeze/audit/lock 入口。
+- [x] 固定 v1 历史不变；旧 v2/v3 演进由 Git 和历史摘要保留，不继续复制版本目录。
 
-- [x] 建立 `benchmarks/skill-ir/pilots/experimental-design/v3/`，提交 public contract、source
-  audit 和物理隔离的 2 development + 2 held-out task；新 ID 和 evaluator 均使用 v3。
-- [x] public contract 显式冻结三个 allowed root entries 和三个 allowed design entries。
-- [x] 先写 v3 task-freeze RED tests，再实现 create/verify-only CLI；freeze 绑定 v3 task/source
-  bytes，并把 v2 已冻结文件作为 immutable refs。
-- [x] task split 单独提交后再开始 scorer，保持 scorer 不参与 task 创作。
+### Task 16.2：通用 Initial-workdir Manifest
 
-### Task 15.3：v3 Scorer 与独立 Oracle
+- [x] RED：拒绝 manifest 位于 workdir 内、摘要漂移、绝对/逃逸路径、duplicate path、
+  symlink/junction/reparse/special entry 和未排序记录。
+- [x] GREEN：抽取 production `prepareRunWorkspace`；复制 task fixture 与可选 skill resources 后、
+  agent setup 前生成 `skvm-initial-workdir-manifest/v1`，写到 run 目录并返回 digest reference。
+- [x] GREEN：CLI、plan、raw row、scoring `RunResult` 端到端携带 manifest path/digest；agent prompt
+  与 workdir 均不可见 manifest 内容。
 
-- [x] 先写 root-level extra file、extra directory、symlink/reparse 和合法 workdir 的 RED tests。
-- [x] 实现 `skill-ir-experimental-design-v3`；artifact check 同时验证 root 与 `design/` 精确集合，
-  其余语义复用冻结 v2 public invariant API。
-- [x] 增加不调用生产 assessor 构造 expected 的 hard-coded oracle 和 metamorphic tests，覆盖合法
-  row reorder、arm 双射、自由 method，以及 unit/arm/stratum/sequential 非法控制。
-- [x] focused evaluator/oracle tests 与 `bunx tsc --noEmit` 通过后提交 scorer 身份。
+### Task 16.3：v2 Final-delta Scorer 与 Oracle
 
-### Task 15.4：Differential Audit 与 Held-out Freeze
+- [x] RED：两臂各自合法 initial resources 不算额外输出；initial 修改/删除、额外文件/目录、
+  output 缺失/损坏、reparse entry 分别失败。
+- [x] GREEN：v2 artifact criterion 按 initial/final delta 判断；三个 output 必须新增，initial
+  entry 必须保持，其他新增拒绝。
+- [x] 将 v3 hard-coded reference vectors、row reorder、arm 双射、自由 method 和 invalid controls
+  合入 v2 oracle test，不调用生产 assessor 生成 expected。
 
-- [x] 生成 v3 development-only fixture/manifest；继承 v2 canonical/alternative/invalid/partial
-  覆盖，并新增 root extra file/directory invalid canary。
-- [x] audit 必须全部 matched；v2 compact audit 继续 verify，不覆盖历史报告。
-- [x] 提交 passed compact v3 audit 后创建 held-out freeze，绑定 task split、scorer/registry、
-  audit provenance、held-out fixture 和 sentinel，并验证 construction sinks 无 held-out 证据。
+### Task 16.4：无模型 Materialization Audit
 
-### Task 15.5：Baseline Calibration
+- [x] 使用与 `executeRun` 相同的 workspace preparation 生成 no-skill/original initial manifest；
+  验证 original source closure 摘要和 no-skill 隔离。
+- [x] 固定 compact report schema；空 agent 只允许 missing-output，合法三输出 delta 通过，资源被
+  误判为 extra 时 fail closed。
+- [ ] 将 materialization audit 加入 pre-IR lock/runner 的 route 前置条件和 digest guard。
 
-- [x] 用同一真实 source 的 `experimental-design-v3` 版本化 `tasks-authored` corpus 条目进入预 IR
-  runner，不复用 v1 runnable 条目、不复制伪 base IR，也不增加 pilot skill 计数。
-- [x] 在任何 API 调用前冻结 lock v2：`no-skill | original`、Windows/clean、2 development tasks、
-  2 repetitions、`xty/gpt-5.6-sol`、bare-agent、0 retries。
-- [x] lock v2 同时绑定 source/task/resource/scorer digest 与 v3 held-out freeze；plan、execute、gate
-  都必须重验 guard，避免任务回落或冻结后漂移。
-- [x] 依次运行 plan、resource probe、route probe；三者均通过，route 固定为
-  `xty/gpt-5.6-sol` 的 original development case。
-- [x] 执行唯一 8-row 付费批次，生成 raw/scored compact evidence；gate 固定要求 0 infra、
-  no-skill 非饱和、至少一个 paired outcome 差异。
-- [x] 机械 gate 通过（8/8、4/4、0 infra、2 个 no-skill semantic failure、3 个 differing
-  pairs），但 post-run audit 发现 original arm 的预置 source closure 被 artifact scorer 误算为
-  模型额外输出；研究晋升被否决，不构造 IR/artifact、不运行 held-out。
+### Task 16.5：重建 v2 身份并退役 v3
 
-### Task 15.6：验证、文档与留痕
+- [ ] 更新 v2 public contract/tasks/evaluator payload、task-split freeze、development audit、
+  held-out freeze 和 pre-IR calibration lock；保留 2+2 split 与既有语义权重/阈值。
+- [ ] `pilot.json` 只保留一个 `experimental-design-v2` tasks-authored 条目；registry 只注册 v2。
+- [ ] 删除当前树中的 v3 重复实现与 compact active evidence，将付费批次压缩为单份历史
+  invalid-calibration report；不删除本地未跟踪 raw/workdir。
 
-- [x] 更新 `evaluation-system.md`、`real-skill-pilots.md`、`experiment-results.md` 和
-  `D:\skill优化\conversation_log.md`，分开报告 contract audit、model calibration 与优化证据。
-- [x] 运行 v3 focused suite、v1/v2 regression、typecheck、freeze verify-only、secret scan、
-  文档链接检查和 `git diff --check`。
-- [x] 只提交 compact audit/calibration evidence；raw transcript、workdir、provider log 和既有
-  untracked results 保持本地且不暂存。
+### Task 16.6：实验与收口
 
-### Task 15.7：Materialization 有效性修复（v4）
-
-- [x] 对 v3 scored rows 和 final workdir 做 failure slice，定位 `src/run/index.ts` 的
-  `copySkillBundle` 在 agent 前向 original workdir 注入 `LICENSE/references/scripts`；no-skill
-  没有同类预置项，v3 artifact failure 存在 arm-dependent contamination。
-- [x] 冻结 v3 为 benchmark/harness failure evidence；机械 gate 的 `baseIrAuditAllowed` 不作为
-  研究晋升依据，禁止用 v3 输出构造 base IR、Final IR 或 held-out 结果。
-- [ ] 建立 `experimental-design-v4`：runner 在 workdir 外冻结 initial manifest，scorer 按
-  provenance-bound initial/final delta 判定新增、修改、删除和 reparse entry。
-- [ ] 在 API 前增加 materialization canary，覆盖 no-skill/original 不同合法预置集合、资源摘要
-  漂移、模型新增额外文件和受保护输入修改；先完成 independent oracle 和 differential audit。
-- [ ] v4 重新冻结 task/scorer/held-out/calibration lock 后再运行一次强模型校准；不得复用 v3
-  raw/scored 输出或根据其语义分数调 expected。
+- [ ] 运行 v2 contract/oracle/differential/materialization audit、freeze verify-only、完整 Skill IR
+  tests、typecheck、文档链接、secret scan 和 `git diff --check`。
+- [ ] 在新 v2 lock、materialization audit 与 route probe 均通过后执行唯一 8-row 强模型
+  calibration；按冻结 gate 解释，不补跑、不调 scorer、不运行 held-out。
+- [ ] 更新组件文档、compact results 与 conversation log，分阶段提交且不暂存既有 untracked
+  raw/result 或 `docs/skill-ir/1.md`。
