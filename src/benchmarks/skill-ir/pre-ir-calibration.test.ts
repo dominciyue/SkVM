@@ -36,6 +36,10 @@ const v2Bun1313CalibrationLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-bun-1.3.13-calibration-lock.json",
 )
+const v2NodeHttpFetchActiveLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-fetch-active-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
@@ -118,6 +122,27 @@ describe("pre-IR calibration lock", () => {
 
     expect(lock.schemaVersion).toBe("skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1")
     expect("nodeHttpTransport" in lock && lock.nodeHttpTransport.kind).toBe("node-http-helper")
+  })
+
+  test("validates the committed Node HTTP fetch-active candidate", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({
+      rootDir,
+      lockPath: v2NodeHttpFetchActiveLockPath,
+    })
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-materialized-delta-node-http-fetch-active-v1",
+      executionRuntime: {
+        sourceCommit: "cf178ab00c5d3fc6041fa1e03eac1093ee12a862",
+        executable: { path: ".skvm/runtime/bun-1.3.13-node-http-2026-07-27/skvm.exe" },
+      },
+      nodeHttpTransport: {
+        kind: "node-http-helper",
+        nodeExecutable: { path: ".skvm/runtime/bun-1.3.13-node-http-2026-07-27/node.exe" },
+        helper: { path: "src/providers/openai-compatible-node-helper.mjs" },
+      },
+    })
   })
 
   test("validates the committed runtime-qualified experimental-design v2 lock", async () => {

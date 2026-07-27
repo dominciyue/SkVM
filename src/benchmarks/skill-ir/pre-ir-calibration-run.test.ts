@@ -37,6 +37,10 @@ const v2Bun1313CalibrationLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-bun-1.3.13-calibration-lock.json",
 )
+const v2NodeHttpFetchActiveLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-fetch-active-calibration-lock.json",
+)
 
 describe("pre-IR calibration runner", () => {
   test("compiles the frozen experimental-design v2 materialized-delta calibration", async () => {
@@ -198,6 +202,26 @@ describe("pre-IR calibration runner", () => {
         path.resolve(rootDir, "src/providers/openai-compatible-node-helper.mjs"),
       )
     })
+  })
+
+  test("compiles the committed Node HTTP candidate to direct runtime rows", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-node-http-plan-"))
+    try {
+      const result = await buildPreIrCalibrationPlan({
+        rootDir,
+        lockPath: v2NodeHttpFetchActiveLockPath,
+        outDir,
+        phase: "plan",
+      })
+
+      expect(result.plan).toHaveLength(8)
+      expect(result.plan.every((row) => row.command[0] === path.resolve(
+        rootDir,
+        ".skvm/runtime/bun-1.3.13-node-http-2026-07-27/skvm.exe",
+      ))).toBe(true)
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
   })
 
   test("compiles exactly four complete no-skill/original development pairs", async () => {
