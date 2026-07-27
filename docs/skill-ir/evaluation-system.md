@@ -991,3 +991,8 @@ benchmarks/skill-ir/pilots/experimental-design/v2/
 options 显式接收派生环境。`runCommandWithTimeout` 与 `executePlan` 因此接受显式 env，pre-IR
 helper 返回包含 lock-bound `SKVM_CACHE` 的副本，不修改父环境。最终 replacement lock 还逐文件
 绑定 pre-IR planner、route probe 和 agent executor 的摘要，防止 parent orchestration 漂移。
+
+最终 `explicit-child-env` identity 的 resource probe 为 `ok`，但 route probe 在 56.79 秒后以
+exit 3、`status=agent` 结束，未超时且未创建任务产物。Runner 因此没有执行 8-row matrix。
+Compact preflight 只保存状态、计时、digest 和封闭归因，不保存 stderr/模型正文；现有证据不足以
+进一步区分 gateway、adapter 或无签名 runtime exit，统一保留为 unresolved，不计入方法结果。

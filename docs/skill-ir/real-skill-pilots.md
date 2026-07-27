@@ -16,6 +16,13 @@ real/adapted/upstream/user skill -> main/support evidence
 
 主结论必须报告 provenance 和 evidence weight，并保留 no-skill baseline。
 
+这里需要区分“上游 benchmark 框架”和“本项目的 Skill IR benchmark”。学校 SkVM 上游原本
+提供通用 bench orchestrator、condition、evaluator 和 importer；`benchmarks/skill-ir/`、
+`src/benchmarks/skill-ir/` 以及第一批六个 seed task 都由本项目新增。后续 Wave A 的
+`env-manager`、`law-to-markdown`、`experimental-design` 使用公开仓库的真实 skill source，
+但 task、fixture、public contract、scorer 和 split 仍是本项目为研究问题设计的测量工具，
+不应表述成“上游自带标准 benchmark”。
+
 ## 2. 来源审计
 
 原始 checkout 位于 ignored `.skvm/external-skills/`，仓库只提交选中 source closure

@@ -807,3 +807,32 @@ results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-2
 results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/resource-probe.json
 results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/route-probe.json
 ```
+
+## 12. Experimental-design v2 Compiled-runtime Preflight
+
+本阶段没有修改 v2 task、public contract、scorer、threshold 或 model。先对提交
+`b34c130a44acd3971921946960816aec72d61958` 构建的 `skvm.exe` 做 20 次顺序 `--help`
+资格探测，结果 20/20 通过、0 timeout、0 Bun crash。随后按不同 failure 原因冻结三个新
+calibration identity，不覆盖前一份证据：
+
+| Identity | 结果 | 解释 |
+|---|---|---|
+| compiled runtime | 239 ms、exit 1 | 默认 cache 看不到项目 `xty/*` route；API 前阻断。 |
+| config-bound | parent env 未传给 child | 证明 cache locator 仅在父进程设置不足。 |
+| explicit-child-env | resource ok；route 56.79 s、exit 3、`agent` | 真实 route 启动但未成功完成。 |
+
+最终 lock 绑定 qualified binary/report、`.skvm` cache root，以及 pre-IR planner、route probe、
+agent executor 三份 orchestration digest。它生成了 8-row/4-pair dry-run，但 route 未过，故完整
+矩阵、raw、scoring 与 gate 均未执行。任务产物创建数为 0；compact route 不保留 stderr/模型
+正文，当前只能归因为 `unresolved-agent-or-runtime-exit`。该结果不支持 skill 效果、模型能力、
+token 效率或 benchmark 优劣结论，`baseIrAuditAllowed=false`，held-out 继续禁止。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-runtime-qualification-2026-07-27.json
+results/skill-ir/experimental-design-v2-explicit-child-env-calibration-2026-07-27/resource-probe.json
+results/skill-ir/experimental-design-v2-explicit-child-env-calibration-2026-07-27/route-probe.json
+results/skill-ir/experimental-design-v2-explicit-child-env-calibration-2026-07-27/summary.json
+results/skill-ir/experimental-design-v2-explicit-child-env-calibration-2026-07-27/failure-audit.json
+```

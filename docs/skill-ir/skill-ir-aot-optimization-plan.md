@@ -2267,10 +2267,10 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
   `<qualified executable> run`；普通 runner、v1/v2 lock 和历史 execution freeze 保持原行为。
 - [x] 构建本机 `skvm.exe`，运行本地资格门禁并提交 compact report 与新 calibration lock；binary
   只作本地载体，不进 Git。
-- [ ] 新 identity 下依次执行 dry-run、resource/route probe 和完整 8-row development matrix；
-  `retries=0`、infrastructure 必须为 0，失败则冻结且不补跑。
-- [ ] 首个 compiled lock 的 route probe 因 binary 默认读取 `~/.skvm`、缺少 `xty/*` route 而在
+- [x] 新 identity 下执行 8-row dry-run 与 resource/route probe；resource 为 `ok`，正式 route
+  在 56.79 秒后以 exit 3、`status=agent` 阻断。按预注册规则冻结且不补跑，完整 matrix 未执行。
+- [x] 首个 compiled lock 的 route probe 因 binary 默认读取 `~/.skvm`、缺少 `xty/*` route 而在
   API 前失败；冻结该 preflight 结果。RED/GREEN 增加 lock-bound relative `cacheRoot`，pre-IR
-  route/execute 作用域设置并恢复 `SKVM_CACHE`，以新 config-bound identity 重跑 route。
-- [ ] 评分、gate、compact results、权威文档和 conversation log 同步；只有 gate 通过才恢复
-  base IR audit，held-out 仍保持禁止。
+  route/execute 显式传递 child env；最终 replacement lock 另绑定三份 parent orchestration 摘要。
+- [x] 提交 compact preflight summary/failure audit 并同步权威文档和 conversation log。Route 未过，
+  因而没有 raw/scored/gate；base IR audit 与 held-out 继续禁止。

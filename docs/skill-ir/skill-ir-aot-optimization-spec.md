@@ -1777,3 +1777,10 @@ paired semantic result。新批次若仍出现任一 infrastructure failure，�
 `config show` 对照确认，同一 binary 绑定仓库 `.skvm` 后可观察到 route 和 gateway。该结果冻结
 为 config-locator preflight failure；修复使用新 calibration identity/lock，不回写首个 lock，
 不重建 benchmark，也不将其计作模型或 skill failure。
+
+第二个 config-bound identity 暴露 Bun.spawn 没有可靠继承父进程运行中修改的环境；修复后
+第三个 identity 显式向 child 传入 lock-bound env，并冻结 parent orchestration 摘要。其 resource
+probe 通过，route probe 运行 56.79 秒后以 exit 3、`status=agent` 结束，未超时且未创建任务
+产物。由于 compact route contract 不保存 stderr/模型正文，归因只能冻结为
+`unresolved-agent-or-runtime-exit`，不得推断为 benchmark 语义、skill、模型能力或 token 结果。
+该 identity 不补跑，完整 8 行、评分和 gate 均不执行，base IR audit 与 held-out 继续禁止。
