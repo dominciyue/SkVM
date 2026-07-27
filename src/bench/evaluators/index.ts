@@ -45,7 +45,7 @@ export const customEvaluatorSourceDigests = new Map<string, string>([
   ["skill-ir-env-manager", "c80d0b5637b2d9c480cbba8a816d042b5afd0e931fa06690d2fa3f1a950811a7"],
   ["skill-ir-law-to-markdown", "051d467ae8292dbc917316ce7c495915fe36377b529c22553cff3dd637d2d180"],
   ["skill-ir-experimental-design", "6030a23048d1f12d59d72790635ed0c5ccf5b40d4cace8171eb0a7763ed2cd19"],
-  ["skill-ir-experimental-design-v2", "c718aee48f6eb0ca39e23640d6e0da3a6c365a71d96b3b123bdb1bac1e67dc28"],
+  ["skill-ir-experimental-design-v2", "6dda3cbc9e369fa6b1ab1dbe974c86baa3cad967bd707e1d5668eb1ea2d51960"],
   ["skill-ir-experimental-design-v3", "da5653496a78441335b6d3815f7f770c44736da88733207618e309777b1244fd"],
 ])
 

@@ -15,6 +15,10 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { RunResult } from "../../core/types.ts";
+import {
+  writeInitialWorkdirManifest,
+  type InitialWorkdirManifestReference,
+} from "../../core/workdir-manifest.ts";
 import { customEvaluators } from "../../framework/types.ts";
 import "./index.ts";
 import {
@@ -23,7 +27,9 @@ import {
 } from "./experimental-design-grade-v2.ts";
 
 const schemaVersion = "skill-ir-experimental-design-eval/v2";
+const contractRevision = "materialized-delta/v1";
 const temporaryDirectories = new Set<string>();
+const initialManifestByWorkDir = new Map<string, InitialWorkdirManifestReference>();
 
 const study = {
   studyId: "site-stratified-recovery-v2-dev",
@@ -47,6 +53,7 @@ const study = {
 const contract = {
   schemaVersion: "skill-ir-experimental-design-public-contract/v2",
   contractId: "experimental-design-public-contract-v2",
+  contractRevision,
 };
 
 const allocationRows = [
@@ -120,6 +127,9 @@ function runResult(workDir: string): RunResult {
     durationMs: 0,
     llmDurationMs: 0,
     workDir,
+    ...(initialManifestByWorkDir.get(workDir)
+      ? { initialWorkdirManifest: initialManifestByWorkDir.get(workDir)! }
+      : {}),
     runStatus: "ok",
   };
 }
@@ -127,6 +137,7 @@ function runResult(workDir: string): RunResult {
 function payload(check: string, studyBytes: string, contractBytes: string): unknown {
   return {
     schemaVersion,
+    contractRevision,
     check,
     paths: {
       study: "study.json",
@@ -158,6 +169,7 @@ async function writeValidFixture(overrides: {
   plan?: Record<string, unknown>;
   allocation?: string;
   report?: string;
+  initialResources?: Record<string, string>;
 } = {}): Promise<{ workDir: string; studyBytes: string; contractBytes: string }> {
   const workDir = await makeWorkDir();
   const studyBytes = json(overrides.study ?? study);
@@ -176,9 +188,19 @@ async function writeValidFixture(overrides: {
     implementationNote: "Extra public field is allowed.",
     ...overrides.plan,
   };
-  await mkdir(path.join(workDir, "design"), { recursive: true });
   await writeFile(path.join(workDir, "study.json"), studyBytes, "utf8");
   await writeFile(path.join(workDir, "design-contract.json"), contractBytes, "utf8");
+  for (const [relativePath, content] of Object.entries(overrides.initialResources ?? {})) {
+    const target = path.join(workDir, relativePath);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, content, "utf8");
+  }
+  const initialWorkdirManifest = await writeInitialWorkdirManifest({
+    workDir,
+    manifestPath: `${workDir}-initial-workdir-manifest.json`,
+  });
+  initialManifestByWorkDir.set(workDir, initialWorkdirManifest);
+  await mkdir(path.join(workDir, "design"), { recursive: true });
   await writeFile(path.join(workDir, "design/design-plan.json"), json(plan), "utf8");
   await writeFile(
     path.join(workDir, "design/allocation.csv"),
@@ -200,6 +222,7 @@ afterEach(async () => {
     ),
   );
   temporaryDirectories.clear();
+  initialManifestByWorkDir.clear();
 });
 
 describe("experimental-design v2 evaluator registration and boundary", () => {
@@ -326,6 +349,55 @@ describe("experimental-design v2 semantic checks", () => {
       duplicateFixture.contractBytes,
     );
     expect(duplicate).toMatchObject({ pass: false, score: 0 });
+  });
+
+  test("accepts arm-specific initial resources but rejects root entries added after the manifest", async () => {
+    const originalFixture = await writeValidFixture({
+      initialResources: {
+        "LICENSE.upstream.md": "license\n",
+        "references/guide.md": "guide\n",
+        "scripts/generate.py": "print('ok')\n",
+      },
+    });
+    const accepted = await grade(
+      "artifact-contract",
+      originalFixture.workDir,
+      originalFixture.studyBytes,
+      originalFixture.contractBytes,
+    );
+    expect(accepted).toMatchObject({ pass: true, score: 1 });
+
+    await writeFile(path.join(originalFixture.workDir, "debug.log"), "model output\n", "utf8");
+    const rejected = await grade(
+      "artifact-contract",
+      originalFixture.workDir,
+      originalFixture.studyBytes,
+      originalFixture.contractBytes,
+    );
+    expect(rejected).toMatchObject({ pass: false, score: 0 });
+    expect(rejected.infraError).toBeUndefined();
+  });
+
+  test("treats missing or drifted initial manifest provenance as infrastructure", async () => {
+    const fixture = await writeValidFixture();
+    const reference = initialManifestByWorkDir.get(fixture.workDir)!;
+    initialManifestByWorkDir.delete(fixture.workDir);
+    const missing = await grade(
+      "artifact-contract",
+      fixture.workDir,
+      fixture.studyBytes,
+      fixture.contractBytes,
+    );
+    expect(missing.infraError).toBeDefined();
+
+    initialManifestByWorkDir.set(fixture.workDir, { ...reference, sha256: "0".repeat(64) });
+    const drifted = await grade(
+      "artifact-contract",
+      fixture.workDir,
+      fixture.studyBytes,
+      fixture.contractBytes,
+    );
+    expect(drifted.infraError).toBeDefined();
   });
 
   test("fails missing or drifted public designProperties", async () => {

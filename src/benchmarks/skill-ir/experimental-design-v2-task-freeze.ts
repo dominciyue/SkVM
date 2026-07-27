@@ -176,6 +176,7 @@ export type ExperimentalDesignV2TaskSplitFreeze = z.infer<
 const TaskPayloadSchema = z
   .object({
     schemaVersion: z.literal("skill-ir-experimental-design-eval/v2"),
+    contractRevision: z.literal("materialized-delta/v1"),
     check: z.enum([
       "input-integrity",
       "artifact-contract",

@@ -1,10 +1,8 @@
 {
   "schemaVersion": "skill-ir-experimental-design-public-contract/v2",
   "contractId": "experimental-design-public-contract-v2",
-  "protectedInputs": [
-    "study.json",
-    "design-contract.json"
-  ],
+  "contractRevision": "materialized-delta/v1",
+  "protectedInputs": ["study.json", "design-contract.json"],
   "outputs": [
     "design/design-plan.json",
     "design/allocation.csv",
@@ -38,10 +36,7 @@
     "allowDuplicateKeys": false
   },
   "studyContract": {
-    "assignmentLevels": [
-      "individual",
-      "cluster"
-    ],
+    "assignmentLevels": ["individual", "cluster"],
     "requiredFields": [
       "studyId",
       "question",
@@ -55,10 +50,7 @@
       "sequentialEnrollment",
       "units"
     ],
-    "unitFields": [
-      "id",
-      "stratum"
-    ],
+    "unitFields": ["id", "stratum"],
     "rules": [
       "Use at least two unique nonempty arms and unique nonempty assignment unit IDs.",
       "Stratum is either absent from every unit or a nonempty string on every unit.",
@@ -66,12 +58,7 @@
     ]
   },
   "allocationContract": {
-    "columns": [
-      "order",
-      "unit_id",
-      "stratum",
-      "arm"
-    ],
+    "columns": ["order", "unit_id", "stratum", "arm"],
     "rules": [
       "Set order to the one-based position of unit_id in study.units; physical CSV row order may vary.",
       "Include every assignment unit exactly once and use only public study arms.",

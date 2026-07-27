@@ -19,6 +19,7 @@ const CONTRACT_PATH = `${V2_ROOT}/public-contract.json`;
 const SOURCE_AUDIT_PATH = `${V2_ROOT}/public-contract-source-audit.json`;
 const SCORER_PATH = "src/bench/evaluators/experimental-design-grade-v2.ts";
 const AUDIT_ROOT = `${V2_ROOT}/audit-fixtures`;
+const INITIAL_AUDIT_ROOT = `${V2_ROOT}/audit-initial-fixtures`;
 const MANIFEST_PATH = `${V2_ROOT}/benchmark-contract-audit.json`;
 
 const DEVELOPMENT_TASK_IDS = [
@@ -225,6 +226,24 @@ async function writeFixture(rootDir: string, name: string, files: FixtureFiles):
     await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, files[relativePath]!, "utf8");
   }
+}
+
+async function writeInitialFixture(
+  rootDir: string,
+  name: string,
+  files: FixtureFiles,
+): Promise<void> {
+  const fixtureRoot = path.join(rootDir, ...INITIAL_AUDIT_ROOT.split("/"), name);
+  await rm(fixtureRoot, { recursive: true, force: true });
+  await mkdir(fixtureRoot, { recursive: true });
+  await Promise.all([
+    writeFile(path.join(fixtureRoot, "study.json"), files["study.json"]!, "utf8"),
+    writeFile(
+      path.join(fixtureRoot, "design-contract.json"),
+      files["design-contract.json"]!,
+      "utf8",
+    ),
+  ]);
 }
 
 function mutateJsonFile(
@@ -442,6 +461,7 @@ function canary(
   role: Canary["role"],
   fixtureName: string,
   fixtureDigests: ReadonlyMap<string, string>,
+  initialFixtureDigests: ReadonlyMap<string, string>,
   expectedPass: boolean,
   expectedScore?: number,
 ): Canary {
@@ -452,12 +472,17 @@ function canary(
     role,
     fixturePath: `${AUDIT_ROOT}/${fixtureName}`,
     fixtureSha256: fixtureDigests.get(fixtureName)!,
+    initialFixturePath: `${INITIAL_AUDIT_ROOT}/${fixtureName}`,
+    initialFixtureSha256: initialFixtureDigests.get(fixtureName)!,
     expectedPass,
     ...(expectedScore === undefined ? {} : { expectedScore }),
   };
 }
 
-function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
+function createCanaries(
+  fixtureDigests: ReadonlyMap<string, string>,
+  initialFixtureDigests: ReadonlyMap<string, string>,
+): Canary[] {
   const [firstTask, secondTask] = DEVELOPMENT_TASK_IDS;
   const definitions = [
     {
@@ -511,6 +536,7 @@ function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
         "canonical-valid",
         "canonical-complete",
         fixtureDigests,
+        initialFixtureDigests,
         true,
       ),
       canary(
@@ -520,6 +546,7 @@ function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
         "canonical-valid",
         "alt-cluster-sequential",
         fixtureDigests,
+        initialFixtureDigests,
         true,
       ),
       canary(
@@ -529,6 +556,7 @@ function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
         "alternative-valid",
         definition.firstAlternative,
         fixtureDigests,
+        initialFixtureDigests,
         true,
       ),
       canary(
@@ -538,6 +566,7 @@ function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
         "alternative-valid",
         definition.secondAlternative,
         fixtureDigests,
+        initialFixtureDigests,
         true,
       ),
       canary(
@@ -547,6 +576,7 @@ function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
         "invalid-control",
         definition.firstInvalid,
         fixtureDigests,
+        initialFixtureDigests,
         false,
       ),
       canary(
@@ -556,6 +586,7 @@ function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
         "invalid-control",
         definition.secondInvalid,
         fixtureDigests,
+        initialFixtureDigests,
         false,
       ),
     );
@@ -576,6 +607,7 @@ function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
         "invalid-control",
         fixtureName,
         fixtureDigests,
+        initialFixtureDigests,
         false,
       ),
     );
@@ -598,6 +630,7 @@ function createCanaries(fixtureDigests: ReadonlyMap<string, string>): Canary[] {
         "partial-control",
         fixtureName,
         fixtureDigests,
+        initialFixtureDigests,
         true,
         score,
       ),
@@ -700,14 +733,25 @@ export async function generateExperimentalDesignV2AuditFixtures(
   ]);
   const taskSet = JSON.parse(taskBytes.toString("utf8")) as TaskSet;
   const fixtures = createFixtureMatrix(taskSet);
-  for (const [name, files] of fixtures) await writeFixture(rootDir, name, files);
+  for (const [name, files] of fixtures) {
+    await writeFixture(rootDir, name, files);
+    await writeInitialFixture(rootDir, name, files);
+  }
 
   const fixtureDigests = new Map<string, string>();
+  const initialFixtureDigests = new Map<string, string>();
   for (const name of fixtures.keys()) {
     fixtureDigests.set(
       name,
       await hashAuditFixtureDirectory(
         path.join(rootDir, ...AUDIT_ROOT.split("/"), name),
+        rootDir,
+      ),
+    );
+    initialFixtureDigests.set(
+      name,
+      await hashAuditFixtureDirectory(
+        path.join(rootDir, ...INITIAL_AUDIT_ROOT.split("/"), name),
         rootDir,
       ),
     );
@@ -717,7 +761,7 @@ export async function generateExperimentalDesignV2AuditFixtures(
     sha256Bytes(scorerBytes),
     sha256Bytes(contractBytes),
     sha256Bytes(sourceAuditBytes),
-    createCanaries(fixtureDigests),
+    createCanaries(fixtureDigests, initialFixtureDigests),
   );
   const manifestPath = path.join(rootDir, ...MANIFEST_PATH.split("/"));
   await writeFile(manifestPath, json(manifest), "utf8");

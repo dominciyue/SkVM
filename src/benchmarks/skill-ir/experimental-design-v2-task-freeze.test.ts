@@ -14,7 +14,7 @@ const v2Dir = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2",
 );
-const taskCommit = "00af684372f668fbf17cc50eba22920b57170d5e";
+const taskCommit = "af7a84ee6ce9679f5d329b105221c04bec3ab0be";
 
 async function loadJson(relativePath: string): Promise<unknown> {
   return JSON.parse(await readFile(path.join(rootDir, relativePath), "utf8"));
@@ -91,7 +91,7 @@ describe("experimental-design v2 task-split freeze", () => {
         rootDir,
         "a8d6c60ab43148f3fd1868c13c35f1cfc846596e",
       ),
-    ).rejects.toThrow(/task commit|committed bytes|git blob|source digest/i);
+    ).rejects.toThrow(/task commit|committed bytes|git blob|source digest|contractRevision/i);
   });
 
   test("rejects any v1 frozen reference replacement or digest drift", async () => {

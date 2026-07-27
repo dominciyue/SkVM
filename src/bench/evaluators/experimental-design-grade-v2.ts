@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { lstat, readFile, readdir, realpath } from "node:fs/promises";
+import { lstat, readFile, realpath } from "node:fs/promises";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { parseDocument } from "yaml";
@@ -14,6 +14,11 @@ import {
 } from "../../benchmarks/skill-ir/experimental-design-v2-contract.ts";
 import type { CustomEvaluator } from "../../framework/types.ts";
 import { registerCustomEvaluator } from "../../framework/types.ts";
+import {
+  assessWorkdirDelta,
+  readInitialWorkdirManifest,
+  type InitialWorkdirManifestReference,
+} from "../../core/workdir-manifest.ts";
 
 const SCHEMA_VERSION = "skill-ir-experimental-design-eval/v2";
 const REPORT_OPENING = "```json design-evidence";
@@ -51,6 +56,7 @@ const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
 export const ExperimentalDesignGradeV2PayloadSchema = z
   .object({
     schemaVersion: z.literal(SCHEMA_VERSION),
+    contractRevision: z.literal("materialized-delta/v1"),
     check: z.enum([
       "input-integrity",
       "artifact-contract",
@@ -162,20 +168,6 @@ async function readSafeFile(
   return readFile(resolved);
 }
 
-async function listSafeDirectory(
-  root: string,
-  relativePath: string,
-): Promise<string[] | undefined> {
-  const resolved = await resolveSafePath(root, relativePath);
-  if (resolved === undefined) return undefined;
-  if (!(await lstat(resolved)).isDirectory()) return undefined;
-  const entries = await readdir(resolved, { withFileTypes: true });
-  if (entries.some((entry) => entry.isSymbolicLink())) {
-    throw new UnsafeFilesystemPathError();
-  }
-  return entries.map((entry) => entry.name).sort();
-}
-
 function decodeUtf8(bytes: Uint8Array): string | undefined {
   try {
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
@@ -254,19 +246,28 @@ async function checkInputIntegrity(payload: Payload, root: string): Promise<Grad
     : failing("A protected public input is missing or changed.");
 }
 
-async function checkArtifactContract(payload: Payload, root: string): Promise<GradeResult> {
-  const [plan, allocation, reportBytes, designEntries] = await Promise.all([
+async function checkArtifactContract(
+  payload: Payload,
+  root: string,
+  initialWorkdirManifest: InitialWorkdirManifestReference | undefined,
+): Promise<GradeResult> {
+  if (!initialWorkdirManifest) {
+    return infrastructure("Experimental-design v2 initial workdir provenance is unavailable.");
+  }
+  const [plan, allocation, reportBytes, initialManifest] = await Promise.all([
     loadPlan(root, payload.paths.plan),
     loadAllocation(root, payload.paths.allocation),
     readSafeFile(root, payload.paths.report),
-    listSafeDirectory(root, "design"),
+    readInitialWorkdirManifest({ workDir: root, reference: initialWorkdirManifest }),
   ]);
   const report = reportBytes && decodeUtf8(reportBytes);
-  const exactOutputs = isDeepStrictEqual(
-    designEntries,
-    OUTPUT_PATHS.map((outputPath) => path.posix.basename(outputPath)).sort(),
-  );
-  return plan && allocation && report !== undefined && report.length > 0 && exactOutputs
+  const delta = await assessWorkdirDelta({
+    workDir: root,
+    initialManifest,
+    allowedNewDirectories: ["design"],
+    requiredNewFiles: [...OUTPUT_PATHS],
+  });
+  return plan && allocation && report !== undefined && report.length > 0 && delta.status === "pass"
     ? passing("The three public design artifacts are present and parseable.")
     : failing("The public design artifact contract is incomplete or invalid.");
 }
@@ -482,7 +483,11 @@ export const experimentalDesignGradeV2: CustomEvaluator = {
         case "input-integrity":
           return await checkInputIntegrity(parsed.data, root);
         case "artifact-contract":
-          return await checkArtifactContract(parsed.data, root);
+          return await checkArtifactContract(
+            parsed.data,
+            root,
+            runResult.initialWorkdirManifest,
+          );
         case "design-semantics":
           return await checkDesignSemantics(parsed.data, root);
         case "allocation-safety":

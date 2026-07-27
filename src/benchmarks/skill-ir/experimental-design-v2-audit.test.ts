@@ -77,6 +77,10 @@ describe("experimental-design v2 development-only benchmark audit", () => {
 
   test("covers all eight public combinations, both task branches, and report partial scores", async () => {
     const manifest = await loadManifest();
+    expect(manifest.canaries.every((canary) =>
+      canary.initialFixturePath?.includes("/audit-initial-fixtures/") &&
+      /^[a-f0-9]{64}$/u.test(canary.initialFixtureSha256 ?? "")
+    )).toBe(true);
     const fixturePaths = manifest.canaries.map((canary) => canary.fixturePath);
     for (const name of [
       "alt-individual-plain",
@@ -178,6 +182,7 @@ describe("experimental-design v2 development-only benchmark audit", () => {
       "../../benchmarks/skill-ir/experimental-design-v2-contract.ts",
       "../../framework/types.ts",
       "../../framework/types.ts",
+      "../../core/workdir-manifest.ts",
     ]);
     expect(source).not.toMatch(
       /(?:corpus|task-registry|heldout|compiler|artifact-package|results\/skill-ir)/iu,
