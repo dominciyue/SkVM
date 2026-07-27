@@ -996,3 +996,21 @@ helper 返回包含 lock-bound `SKVM_CACHE` 的副本，不修改父环境。最
 exit 3、`status=agent` 结束，未超时且未创建任务产物。Runner 因此没有执行 8-row matrix。
 Compact preflight 只保存状态、计时、digest 和封闭归因，不保存 stderr/模型正文；现有证据不足以
 进一步区分 gateway、adapter 或无签名 runtime exit，统一保留为 unresolved，不计入方法结果。
+
+后续独立 root-cause probe 捕获到相同 exit 3 的完整进程边界：Bun 1.3.14 Windows x64
+standalone 在 `fetch(11)` 后触发 internal assertion。`pre-ir-route-diagnostic.ts` 将 stream 只投影为
+封闭 failure code、Bun runtime identity、UTF-8 byte count 和 SHA-256；不序列化 stream 正文。
+`pre-ir-fetch-active-qualification-run.ts` 是新的非方法门禁：复用 runtime-qualified lock 的唯一
+original development route，且只有 route exit 0、failureCode=`none` 和 public contract 声明的
+全部输出均为普通文件时才返回 `passed`。
+
+```powershell
+bun ./src/benchmarks/skill-ir/pre-ir-fetch-active-qualification-run.ts `
+  '--lock=<runtime-qualified-lock.json>' `
+  '--qualification-id=<preregistered-id>' `
+  '--out-dir=<local-materialization-dir>' `
+  '--report=<compact-report.json>'
+```
+
+命令不接受 retries、model、task、system 或 threshold 覆盖。失败报告仍写盘后返回非零；不得用
+同一 qualification identity 重复运行筛选成功样本。

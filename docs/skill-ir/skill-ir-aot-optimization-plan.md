@@ -2274,3 +2274,21 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
   route/execute 显式传递 child env；最终 replacement lock 另绑定三份 parent orchestration 摘要。
 - [x] 提交 compact preflight summary/failure audit 并同步权威文档和 conversation log。Route 未过，
   因而没有 raw/scored/gate；base IR audit 与 held-out 继续禁止。
+
+### Task 16.8：Fetch-active runtime diagnosis and replacement
+
+- [x] 用独立非方法 root-cause probe 复现同一 binary/task/model 路径：158.69 秒后 Bun 1.3.14
+  Windows x64 standalone 在 `fetch(11)` 状态触发 internal assertion，exit 3，确认旧 route 的
+  `unresolved-agent-or-runtime-exit` 属于 Bun runtime crash family。
+- [ ] RED/GREEN：新增 compact route diagnostic，使用封闭 failure code、runtime identity、byte
+  count 和 raw digest；禁止 stdout/stderr 正文、命令、绝对路径、secret 和模型输出进入结果。
+- [ ] RED/GREEN：pre-IR route failure 在抛错前写独立 diagnostic 文件；既有
+  `skill-ir-pre-ir-route-probe-result/v1` 字节和语义保持不变。
+- [ ] 从 Bun 官方 release 下载候选 runtime 到 ignored 本地目录，记录版本/revision/二进制 SHA，
+  不修改全局 Bun；用候选构建独立 `skvm.exe`。
+- [ ] 候选先通过 startup qualification，再执行一次预注册 fetch-active route；任一 crash/timeout/
+  nonzero 均冻结并停止，不通过重复运行筛选成功样本。
+- [ ] 只有 fetch-active route exit 0、无 runtime failure 且产物完整，才建立新的 8-row v2
+  calibration identity；否则不执行 matrix、scoring、gate、base IR 或 held-out。
+- [ ] 同步 compact evidence、spec/plan/组件文档/experiment results/conversation log，运行 focused
+  tests、typecheck、文档链接、secret scan 和 `git diff --check`。

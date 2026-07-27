@@ -836,3 +836,21 @@ results/skill-ir/experimental-design-v2-explicit-child-env-calibration-2026-07-2
 results/skill-ir/experimental-design-v2-explicit-child-env-calibration-2026-07-27/summary.json
 results/skill-ir/experimental-design-v2-explicit-child-env-calibration-2026-07-27/failure-audit.json
 ```
+
+## 13. Bun 1.3.14 Fetch-active Root-cause Probe
+
+为区分 gateway、adapter 与 runtime，另复制同一公开 task、真实 skill closure 和初始 workdir，
+使用同一 `skvm.exe`、`.skvm` route 和 `xty/gpt-5.6-sol` 做一次不进入 benchmark 分母的诊断。
+进程运行 158.734 秒后 exit 3、未超时、0/3 目标产物；stderr 明确给出 Bun 1.3.14 Windows x64、
+`fetch(11)`、`panic(main thread): Internal assertion failure` 和 `Bun has crashed`。
+
+这将上一节的 `unresolved-agent-or-runtime-exit` 收敛为 Bun runtime crash family。它不能说明模型
+能力不足、Skill 无效或 v2 scorer 失败。旧 20×`--help` 资格只能证明 startup 稳定，不能覆盖
+真实 fetch/agent loop。后续候选必须再通过 fetch-active route qualification，才允许建立新的
+8-row calibration identity。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-root-cause-probe-2026-07-27.json
+```

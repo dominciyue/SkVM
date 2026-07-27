@@ -1784,3 +1784,29 @@ probe 通过，route probe 运行 56.79 秒后以 exit 3、`status=agent` 结束
 产物。由于 compact route contract 不保存 stderr/模型正文，归因只能冻结为
 `unresolved-agent-or-runtime-exit`，不得推断为 benchmark 语义、skill、模型能力或 token 结果。
 该 identity 不补跑，完整 8 行、评分和 gate 均不执行，base IR audit 与 held-out 继续禁止。
+
+#### 24.9.7 Fetch-active runtime qualification
+
+独立 root-cause probe 使用同一 qualified binary、模型、task、skill、cache route 和新复制的初始
+workdir，在 158.69 秒后再次 exit 3。该次 stderr 明确包含 Bun `1.3.14`、Windows x64、
+`fetch(11)`、`panic(main thread): Internal assertion failure` 和 `Bun has crashed`；三个目标产物
+仍未创建。该 probe 是 infrastructure diagnosis，`methodEvidence=false`，不进入 benchmark 分母、
+模型能力比较、skill 效果或 token 指标。
+
+因此既有 20 次 `--help` 只保留为 startup qualification，不能再单独支持“stable execution
+runtime”。下一 runtime identity 必须同时满足：
+
+```text
+startup qualification
+-> compact route diagnostic with closed failure codes and no stdout/stderr body
+-> one preregistered fetch-active real-agent route
+-> route exit 0, no timeout, no Bun crash, required outputs materialized
+-> only then freeze and run the 8-row development matrix
+```
+
+Diagnostic code 初版封闭为 `none | timeout | bun-internal-assertion | bun-crash |
+provider-auth | provider-rate-limit | provider-5xx | provider-network | adapter-error |
+nonzero-unclassified`。结果只允许保存 exit/status、runtime version、byte counts、SHA-256 和封闭
+code；禁止保存命令、绝对路径、环境值、API key、stdout/stderr 正文、模型文本或 task output。
+旧 route/preflight/result 保持不可变。候选 Bun runtime 必须作为本地 pin 下载、记录版本/revision
+和二进制 SHA-256，不得原地升级用户全局 Bun；失败候选冻结后停止，不靠重复运行筛成功样本。
