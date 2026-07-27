@@ -1014,3 +1014,17 @@ bun ./src/benchmarks/skill-ir/pre-ir-fetch-active-qualification-run.ts `
 
 命令不接受 retries、model、task、system 或 threshold 覆盖。失败报告仍写盘后返回非零；不得用
 同一 qualification identity 重复运行筛选成功样本。
+
+## 24. Fetch-qualified Calibration 与网络传输隔离
+
+Bun 1.3.13 候选从纯 ASCII 本地路径构建，startup 20/20 和单条 fetch-active route 均通过。
+`skill-ir-fetch-qualified-pre-ir-calibration-lock/v1` 进一步绑定候选 lock/report 后生成 8 rows / 4
+pairs。最终 resource/route preflight 均为 `ok`，完整矩阵也写出 8 条 raw；但两条 row 仍以
+exit 3 触发 Bun 1.3.13 `fetch` internal assertion。重评分得到 2 infrastructure、2/4 comparable
+pairs，gate failed。
+
+因此 startup/单 route 资格只降低风险，不能替代完整矩阵的零 infrastructure gate。该 identity
+冻结且不补跑。后续 transport candidate 必须显式绑定，不允许通过全局环境悄悄切换：Node
+helper 从 stdin 接收单个 OpenAI-compatible request envelope，API key 不放入 argv；helper
+executable/source digest 与父编排进入新 lock。默认 provider 仍走原 fetch，只有新 lock 才注入
+helper env。先做本地协议测试和单 route qualification，通过后才能建立另一 8-row identity。

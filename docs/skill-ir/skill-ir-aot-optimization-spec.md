@@ -1810,3 +1810,23 @@ nonzero-unclassified`。结果只允许保存 exit/status、runtime version、by
 code；禁止保存命令、绝对路径、环境值、API key、stdout/stderr 正文、模型文本或 task output。
 旧 route/preflight/result 保持不可变。候选 Bun runtime 必须作为本地 pin 下载、记录版本/revision
 和二进制 SHA-256，不得原地升级用户全局 Bun；失败候选冻结后停止，不靠重复运行筛成功样本。
+
+#### 24.9.8 Fetch-qualified matrix 与 transport 隔离
+
+Bun 1.3.13 候选通过 20/20 startup 和单条 fetch-active route 后，必须由新的
+`skill-ir-fetch-qualified-pre-ir-calibration-lock/v1` 同时绑定候选 lock、fetch-active report、
+compiled executable、startup report 和当前 parent orchestration。资格样本不进入 8-row 分母；
+最终 calibration identity 仍要独立通过 resource/route preflight，再按 0 retries 完整执行。
+
+2026-07-27 的 8-row 矩阵完整落盘，但其中两行再次触发 Bun 1.3.13 Windows x64
+`fetch` internal assertion。Gate 因 `infrastructureFailures=2` 失败，只有 2/4 pair 可比较，两个
+score delta 分别为 `+0.3` 和 `-0.3`，所以 `originalDirection=mixed`。该结果只说明 Bun 小版本
+替换没有消除 Windows fetch crash，不允许 base IR audit、held-out、模型能力判断或 Skill 效果
+claim；同一 identity 不补跑。
+
+下一 execution candidate 不再继续筛 Bun 小版本，而使用显式、摘要绑定的外部 HTTP transport。
+首选 Node helper：agent loop、prompt、tool、task、scorer 和模型保持不变，只把
+OpenAI-compatible request/response 的网络 I/O 移出 Bun `fetch`。默认 provider 行为不隐式改变；
+helper 只能由新 runtime lock 显式启用，node executable、helper source、父编排和 compact
+qualification report 都必须绑定摘要。它先通过本地协议测试和单条 fetch-active qualification，
+未过时不得建立新的 8-row identity。

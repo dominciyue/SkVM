@@ -854,3 +854,41 @@ Compact evidence：
 ```text
 results/skill-ir/experimental-design-v2-root-cause-probe-2026-07-27.json
 ```
+
+## 14. Bun 1.3.13 Fetch-qualified 真实校准
+
+官方 canary 1.4.0 在含中文路径与 ASCII 映射盘下均无法完成 Windows standalone compile；这属于
+构建候选失败，没有调用 API。随后将官方 Bun 1.3.13 pin 到纯 ASCII 本地目录，成功构建独立
+`skvm.exe`，并通过 20/20 startup 与唯一一条 `xty/gpt-5.6-sol` fetch-active route（exit 0、
+88.174 秒、3/3 outputs）。新 fetch-qualified lock 绑定了候选 lock/report 与当前 parent
+orchestration，之后执行独立 8-row identity。
+
+| 项 | 结果 |
+|---|---:|
+| Rows / complete pairs | 8 / 4 |
+| Infrastructure failures | 2 |
+| Comparable pairs | 2 / 4 |
+| Differing comparable pairs | 2 |
+| Comparable score deltas | +0.3 / -0.3 |
+| No-skill observed success / mean | 2/4 / 0.675 |
+| Original observed success / mean | 1/4 / 0.65 |
+| Development gate | failed |
+
+两条失败分别来自 stratified task 的 no-skill run 1 和 original run 2，均为 Bun 1.3.13 Windows
+x64 `fetch` internal assertion、exit 3；不是 Skill/scorer/model semantic failure。两个可比较 pair
+一正一负，因此 `originalDirection=mixed`，不能从聚合均值或 40,063/75,333 reported tokens 推断
+Skill 效果或效率。`baseIrAuditAllowed=false`，held-out 未执行，同一 identity 不补跑。
+
+下一阶段不继续筛选 Bun patch version，而开发摘要绑定的外部 Node HTTP helper，只替换
+OpenAI-compatible 网络传输。它通过协议测试与单 route qualification 前，不建立新 8-row lock。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-bun-1.3.13-startup-qualification-2026-07-27.json
+results/skill-ir/experimental-design-v2-bun-1.3.13-fetch-active-qualification-2026-07-27.json
+results/skill-ir/experimental-design-v2-bun-1.3.13-calibration-2026-07-27/resource-probe.json
+results/skill-ir/experimental-design-v2-bun-1.3.13-calibration-2026-07-27/route-probe.json
+results/skill-ir/experimental-design-v2-bun-1.3.13-calibration-2026-07-27/gate.json
+results/skill-ir/experimental-design-v2-bun-1.3.13-calibration-2026-07-27/summary.json
+```

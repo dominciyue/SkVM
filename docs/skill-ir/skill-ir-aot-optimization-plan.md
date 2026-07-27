@@ -2280,15 +2280,30 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
 - [x] 用独立非方法 root-cause probe 复现同一 binary/task/model 路径：158.69 秒后 Bun 1.3.14
   Windows x64 standalone 在 `fetch(11)` 状态触发 internal assertion，exit 3，确认旧 route 的
   `unresolved-agent-or-runtime-exit` 属于 Bun runtime crash family。
-- [ ] RED/GREEN：新增 compact route diagnostic，使用封闭 failure code、runtime identity、byte
+- [x] RED/GREEN：新增 compact route diagnostic，使用封闭 failure code、runtime identity、byte
   count 和 raw digest；禁止 stdout/stderr 正文、命令、绝对路径、secret 和模型输出进入结果。
-- [ ] RED/GREEN：pre-IR route failure 在抛错前写独立 diagnostic 文件；既有
+- [x] RED/GREEN：fetch-active runner 在返回失败前写独立 diagnostic/report；既有
   `skill-ir-pre-ir-route-probe-result/v1` 字节和语义保持不变。
-- [ ] 从 Bun 官方 release 下载候选 runtime 到 ignored 本地目录，记录版本/revision/二进制 SHA，
+- [x] 从 Bun 官方 release 下载候选 runtime 到 ignored 本地目录，记录版本/revision/二进制 SHA，
   不修改全局 Bun；用候选构建独立 `skvm.exe`。
-- [ ] 候选先通过 startup qualification，再执行一次预注册 fetch-active route；任一 crash/timeout/
+- [x] 候选先通过 startup qualification，再执行一次预注册 fetch-active route；任一 crash/timeout/
   nonzero 均冻结并停止，不通过重复运行筛选成功样本。
-- [ ] 只有 fetch-active route exit 0、无 runtime failure 且产物完整，才建立新的 8-row v2
+- [x] 只有 fetch-active route exit 0、无 runtime failure 且产物完整，才建立新的 8-row v2
   calibration identity；否则不执行 matrix、scoring、gate、base IR 或 held-out。
+- [x] 新矩阵完整 8 rows / 4 pairs，但两行 Bun 1.3.13 internal assertion；gate failed，冻结且不
+  补跑，base IR/held-out 继续禁止。
 - [ ] 同步 compact evidence、spec/plan/组件文档/experiment results/conversation log，运行 focused
   tests、typecheck、文档链接、secret scan 和 `git diff --check`。
+
+### Task 16.9：显式 Node HTTP Transport Qualification
+
+- [ ] 先写协议 RED tests：Node helper 只从 stdin 接收 URL/header/body，输出封闭
+  status/header/body envelope；非零退出、非法 JSON、超时和过大响应 fail closed，stderr 不进入
+  compact evidence。
+- [ ] OpenAI-compatible provider 新增显式 transport seam；默认仍使用现有 fetch，只有新 lock
+  注入的 helper env 才使用 Node subprocess。API key 不进入 argv、文件或 compact report。
+- [ ] 新 execution lock 绑定 repository-local node executable locator/digest、helper source digest、
+  compiled SkVM、startup/fetch qualification 和 parent orchestration；旧 lock 全部保持不可变。
+- [ ] 无模型协议测试通过后只运行一条预注册 fetch-active route；失败则冻结，不运行 8-row。
+- [ ] 只有 transport route 通过才建立新的 8-row identity；仍要求 0 infrastructure、0 retries，
+  未过 gate 不进入 base IR 或 held-out。
