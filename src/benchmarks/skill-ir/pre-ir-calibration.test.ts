@@ -20,6 +20,10 @@ const v2RuntimeLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-runtime-qualified-calibration-lock.json",
 )
+const v2ConfigBoundLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-config-bound-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
@@ -95,6 +99,16 @@ describe("pre-IR calibration lock", () => {
           path: "results/skill-ir/experimental-design-v2-runtime-qualification-2026-07-27.json",
         },
       },
+    })
+  })
+
+  test("validates the committed config-bound replacement identity", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath: v2ConfigBoundLockPath })
+
+    expect(lock).toMatchObject({
+      calibrationId: "experimental-design-v2-materialized-delta-config-bound-runtime-v1",
+      adapter: { version: "compiled-experimental-design-v2-config-bound-v1" },
+      executionRuntime: { cacheRoot: ".skvm" },
     })
   })
 

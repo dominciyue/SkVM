@@ -975,3 +975,14 @@ benchmarks/skill-ir/pilots/experimental-design/v2/
 和 `skvm.config.json` 是非 symlink 普通项，不读取或保存配置正文；pre-IR runner 在 route/execute
 operation 内设置 `SKVM_CACHE`，并在成功或异常后恢复父进程环境。首个 lock 与失败 route 文件
 不覆盖，新 identity 才能继续 probe。
+
+Config-bound replacement lock：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/
+  experimental-design-v2-config-bound-calibration-lock.json
+```
+
+它复用同一 qualified binary、qualification report、模型、2+2 task split、scorer 和数值 gate；
+只新增 `cacheRoot=.skvm` 并采用新的 calibration/adapter identity。对应 dry-run 仍为 8 rows，
+不包含 held-out。
