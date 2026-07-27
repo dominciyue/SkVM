@@ -20,6 +20,10 @@ const v2LockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json",
 )
+const v2RuntimeLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-runtime-qualified-calibration-lock.json",
+)
 
 describe("pre-IR calibration runner", () => {
   test("compiles the frozen experimental-design v2 materialized-delta calibration", async () => {
@@ -73,6 +77,25 @@ describe("pre-IR calibration runner", () => {
       expect(projected.every((row) => row.command[0] === path.resolve(rootDir, ".skvm/runtime/skvm.exe"))).toBe(true)
       expect(projected.every((row) => row.command[1] === "run")).toBe(true)
       expect(result.plan.every((row) => row.command.slice(0, 4).join(" ") === "bun run skvm run")).toBe(true)
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
+  })
+
+  test("compiles the committed runtime-qualified lock to the frozen direct executable", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-qualified-plan-"))
+    try {
+      const result = await buildPreIrCalibrationPlan({
+        rootDir,
+        lockPath: v2RuntimeLockPath,
+        outDir,
+        phase: "plan",
+      })
+
+      expect(result.plan).toHaveLength(8)
+      expect(result.plan.every((row) => row.command[0] === path.resolve(rootDir, "dist/skvm.exe"))).toBe(true)
+      expect(result.plan.every((row) => row.command[1] === "run")).toBe(true)
+      expect(result.plan.every((row) => !row.command.includes("skvm"))).toBe(true)
     } finally {
       await rm(outDir, { recursive: true, force: true })
     }

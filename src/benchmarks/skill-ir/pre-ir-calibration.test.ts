@@ -16,6 +16,10 @@ const v2LockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json",
 )
+const v2RuntimeLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-runtime-qualified-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
@@ -74,6 +78,24 @@ describe("pre-IR calibration lock", () => {
 
     expect(lock.schemaVersion).toBe("skill-ir-runtime-qualified-pre-ir-calibration-lock/v1")
     expect("executionRuntime" in lock && lock.executionRuntime.commandMode).toBe("direct")
+  })
+
+  test("validates the committed runtime-qualified experimental-design v2 lock", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath: v2RuntimeLockPath })
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-materialized-delta-compiled-runtime-v2",
+      adapter: { version: "compiled-experimental-design-v2-materialized-delta-v1" },
+      executionRuntime: {
+        kind: "compiled-skvm",
+        commandMode: "direct",
+        executable: { path: "dist/skvm.exe" },
+        qualification: {
+          path: "results/skill-ir/experimental-design-v2-runtime-qualification-2026-07-27.json",
+        },
+      },
+    })
   })
 
   test("validates the committed law-to-markdown 8-generation identity", async () => {

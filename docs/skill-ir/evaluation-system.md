@@ -954,3 +954,14 @@ pre-IR lock 不接受环境变量或隐式 runtime 覆盖。
 本地 qualification 只证明进程启动载体通过固定 smoke probes。真实 agent loop 仍须经过新
 calibration identity 的 route probe 与完整 8-row matrix；任何 infrastructure failure 都使新批次
 冻结，不能用补跑填洞。
+
+2026-07-27 首个本机资格结果为 20/20 success、0 timeout、0 Bun crash，绑定源码提交
+`b34c130a44acd3971921946960816aec72d61958`。新锁为：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/
+  experimental-design-v2-runtime-qualified-calibration-lock.json
+```
+
+对应 dry-run 生成 8 rows / 4 pairs，所有命令均由 lock 投影到冻结的 `dist/skvm.exe run`，没有
+`bun run skvm` 前缀。该 binary 保持本地 ignored，compact qualification report 与 lock 进入仓库。

@@ -2265,7 +2265,7 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
   runtime-qualified pre-IR lock，绑定 report 与 executable，但不改变 v2 task/scorer/threshold。
 - [x] RED/GREEN：pre-IR plan 只对 runtime-qualified lock 将 `bun run skvm run` 投影为
   `<qualified executable> run`；普通 runner、v1/v2 lock 和历史 execution freeze 保持原行为。
-- [ ] 构建本机 `skvm.exe`，运行本地资格门禁并提交 compact report 与新 calibration lock；binary
+- [x] 构建本机 `skvm.exe`，运行本地资格门禁并提交 compact report 与新 calibration lock；binary
   只作本地载体，不进 Git。
 - [ ] 新 identity 下依次执行 dry-run、resource/route probe 和完整 8-row development matrix；
   `retries=0`、infrastructure 必须为 0，失败则冻结且不补跑。
