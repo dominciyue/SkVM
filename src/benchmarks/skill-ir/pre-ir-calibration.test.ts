@@ -40,6 +40,10 @@ const v2NodeHttpFetchActiveLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-fetch-active-calibration-lock.json",
 )
+const v2NodeHttpCalibrationLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
@@ -124,24 +128,30 @@ describe("pre-IR calibration lock", () => {
     expect("nodeHttpTransport" in lock && lock.nodeHttpTransport.kind).toBe("node-http-helper")
   })
 
-  test("validates the committed Node HTTP fetch-active candidate", async () => {
-    const lock = await readAndValidatePreIrCalibrationLock({
+  test("rejects the historical Node HTTP candidate after final-lock verification evolves", async () => {
+    await expect(readAndValidatePreIrCalibrationLock({
       rootDir,
       lockPath: v2NodeHttpFetchActiveLockPath,
+    })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration.ts digest mismatch")
+  })
+
+  test("validates the fetch-qualified Node HTTP matrix identity", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({
+      rootDir,
+      lockPath: v2NodeHttpCalibrationLockPath,
     })
 
     expect(lock).toMatchObject({
-      schemaVersion: "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1",
-      calibrationId: "experimental-design-v2-materialized-delta-node-http-fetch-active-v1",
-      executionRuntime: {
-        sourceCommit: "cf178ab00c5d3fc6041fa1e03eac1093ee12a862",
-        executable: { path: ".skvm/runtime/bun-1.3.13-node-http-2026-07-27/skvm.exe" },
+      schemaVersion: "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-materialized-delta-node-http-calibration-v1",
+      fetchActiveQualification: {
+        kind: "fetch-active-runtime-qualification",
+        path: "results/skill-ir/experimental-design-v2-node-http-fetch-active-qualification-2026-07-27.json",
+        candidateLock: {
+          path: "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-fetch-active-calibration-lock.json",
+        },
       },
-      nodeHttpTransport: {
-        kind: "node-http-helper",
-        nodeExecutable: { path: ".skvm/runtime/bun-1.3.13-node-http-2026-07-27/node.exe" },
-        helper: { path: "src/providers/openai-compatible-node-helper.mjs" },
-      },
+      nodeHttpTransport: { kind: "node-http-helper" },
     })
   })
 

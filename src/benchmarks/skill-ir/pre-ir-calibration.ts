@@ -142,12 +142,22 @@ const NodeHttpRuntimeQualifiedPreIrCalibrationLockV1Schema = z.object({
   nodeHttpTransport: PreIrNodeHttpTransportGuardSchema,
 }).strict().superRefine(requireUniqueTaskIds)
 
+const NodeHttpFetchQualifiedPreIrCalibrationLockV1Schema = z.object({
+  schemaVersion: z.literal("skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"),
+  ...PreIrCalibrationLockFields,
+  benchmarkGuards: PreIrBenchmarkGuardsSchema,
+  executionRuntime: PreIrExecutionRuntimeGuardSchema,
+  nodeHttpTransport: PreIrNodeHttpTransportGuardSchema,
+  fetchActiveQualification: PreIrFetchActiveQualificationGuardSchema,
+}).strict().superRefine(requireUniqueTaskIds)
+
 export const PreIrCalibrationLockSchema = z.union([
   PreIrCalibrationLockV1Schema,
   PreIrCalibrationLockV2Schema,
   RuntimeQualifiedPreIrCalibrationLockV1Schema,
   FetchQualifiedPreIrCalibrationLockV1Schema,
   NodeHttpRuntimeQualifiedPreIrCalibrationLockV1Schema,
+  NodeHttpFetchQualifiedPreIrCalibrationLockV1Schema,
 ])
 
 export type PreIrCalibrationLock = z.infer<typeof PreIrCalibrationLockSchema>
@@ -197,7 +207,11 @@ async function verifyBenchmarkGuards(lock: PreIrCalibrationLock, rootDir: string
 }
 
 async function verifyFetchActiveQualification(
-  lock: Extract<PreIrCalibrationLock, { schemaVersion: "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1" }>,
+  lock: Extract<PreIrCalibrationLock, {
+    schemaVersion:
+      | "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1"
+      | "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"
+  }>,
   rootDir: string,
 ): Promise<void> {
   await verifyDigest(rootDir, lock.fetchActiveQualification)
@@ -206,10 +220,16 @@ async function verifyFetchActiveQualification(
     path.resolve(rootDir, lock.fetchActiveQualification.path),
     "utf8",
   )))
-  const candidate = RuntimeQualifiedPreIrCalibrationLockV1Schema.parse(JSON.parse(await readFile(
+  const candidate = PreIrCalibrationLockSchema.parse(JSON.parse(await readFile(
     path.resolve(rootDir, lock.fetchActiveQualification.candidateLock.path),
     "utf8",
   )))
+  const candidateMatchesKind = lock.schemaVersion === "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1"
+    ? candidate.schemaVersion === "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1"
+    : candidate.schemaVersion === "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+  if (!candidateMatchesKind || !("executionRuntime" in candidate)) {
+    throw new Error("Pre-IR fetch-active qualification candidate lock identity mismatch")
+  }
   if (
     report.status !== "passed"
     || report.diagnostic.failureCode !== "none"
@@ -232,11 +252,22 @@ async function verifyFetchActiveQualification(
   ) {
     throw new Error("Pre-IR fetch-active runtime qualification identity mismatch")
   }
+  if (
+    lock.schemaVersion === "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"
+    && (
+      !("nodeHttpTransport" in candidate)
+      || JSON.stringify(candidate.nodeHttpTransport) !== JSON.stringify(lock.nodeHttpTransport)
+    )
+  ) {
+    throw new Error("Pre-IR fetch-active Node HTTP transport identity mismatch")
+  }
 }
 
 async function verifyNodeHttpTransport(
   lock: Extract<PreIrCalibrationLock, {
-    schemaVersion: "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+    schemaVersion:
+      | "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+      | "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"
   }>,
   rootDir: string,
 ): Promise<void> {
@@ -263,10 +294,16 @@ export async function validatePreIrCalibrationLock(
   if ("executionRuntime" in lock) {
     await verifyPreIrExecutionRuntimeGuard(lock.executionRuntime, rootDir)
   }
-  if (lock.schemaVersion === "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1") {
+  if (
+    lock.schemaVersion === "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1"
+    || lock.schemaVersion === "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"
+  ) {
     await verifyFetchActiveQualification(lock, rootDir)
   }
-  if (lock.schemaVersion === "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1") {
+  if (
+    lock.schemaVersion === "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+    || lock.schemaVersion === "skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1"
+  ) {
     await verifyNodeHttpTransport(lock, rootDir)
   }
 

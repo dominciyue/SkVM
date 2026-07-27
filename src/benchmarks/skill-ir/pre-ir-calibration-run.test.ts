@@ -41,6 +41,10 @@ const v2NodeHttpFetchActiveLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-fetch-active-calibration-lock.json",
 )
+const v2NodeHttpCalibrationLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-calibration-lock.json",
+)
 
 describe("pre-IR calibration runner", () => {
   test("compiles the frozen experimental-design v2 materialized-delta calibration", async () => {
@@ -204,16 +208,31 @@ describe("pre-IR calibration runner", () => {
     })
   })
 
-  test("compiles the committed Node HTTP candidate to direct runtime rows", async () => {
+  test("rejects the historical Node HTTP candidate after final-lock verification evolves", async () => {
     const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-node-http-plan-"))
     try {
-      const result = await buildPreIrCalibrationPlan({
+      await expect(buildPreIrCalibrationPlan({
         rootDir,
         lockPath: v2NodeHttpFetchActiveLockPath,
         outDir,
         phase: "plan",
+      })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration.ts digest mismatch")
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
+  })
+
+  test("compiles the fetch-qualified Node HTTP matrix as eight direct rows", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-node-http-matrix-"))
+    try {
+      const result = await buildPreIrCalibrationPlan({
+        rootDir,
+        lockPath: v2NodeHttpCalibrationLockPath,
+        outDir,
+        phase: "plan",
       })
 
+      expect(result.lock.schemaVersion).toBe("skill-ir-node-http-fetch-qualified-pre-ir-calibration-lock/v1")
       expect(result.plan).toHaveLength(8)
       expect(result.plan.every((row) => row.command[0] === path.resolve(
         rootDir,
