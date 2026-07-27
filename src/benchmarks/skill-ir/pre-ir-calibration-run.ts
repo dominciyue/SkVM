@@ -108,6 +108,27 @@ export function projectPreIrPlanRuntime(
   }))
 }
 
+export async function withQualifiedPreIrRuntimeEnvironment<T>(
+  lock: PreIrCalibrationLock,
+  rootDir: string,
+  operation: () => Promise<T>,
+): Promise<T> {
+  if (
+    lock.schemaVersion !== "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1"
+    || lock.executionRuntime.cacheRoot === undefined
+  ) {
+    return operation()
+  }
+  const previous = process.env.SKVM_CACHE
+  process.env.SKVM_CACHE = path.resolve(rootDir, lock.executionRuntime.cacheRoot)
+  try {
+    return await operation()
+  } finally {
+    if (previous === undefined) delete process.env.SKVM_CACHE
+    else process.env.SKVM_CACHE = previous
+  }
+}
+
 export async function buildPreIrCalibrationPlan(
   opts: PreIrCalibrationRunArgs,
 ): Promise<PreIrCalibrationPlan> {
@@ -281,7 +302,11 @@ export async function runPreIrCalibrationPhase(opts: PreIrCalibrationRunArgs): P
     const entry = result.plan.find((row) =>
       row.system === "original" && row.caseId === expectedProbeCaseId(result.lock) && row.runIndex === 1)
     if (!entry) throw new Error("Pre-IR calibration route probe plan entry is missing")
-    const execution = await runCommandWithTimeout(entry.command, result.lock.runtime.routeProbeTimeoutMs)
+    const execution = await withQualifiedPreIrRuntimeEnvironment(
+      result.lock,
+      result.runArgs.rootDir,
+      () => runCommandWithTimeout(entry.command, result.lock.runtime.routeProbeTimeoutMs),
+    )
     const probe = compactPreIrRouteProbe({
       calibrationId: result.calibrationId,
       model: result.lock.model.route,
@@ -298,7 +323,11 @@ export async function runPreIrCalibrationPhase(opts: PreIrCalibrationRunArgs): P
     await readFile(path.join(outDir, "route-probe.json"), "utf8"),
   ))
   assertPreIrExecutionPrerequisites(result.lock, resource, route)
-  await executePlan(result.plan, result.runArgs)
+  await withQualifiedPreIrRuntimeEnvironment(
+    result.lock,
+    result.runArgs.rootDir,
+    () => executePlan(result.plan, result.runArgs),
+  )
   return {
     calibrationId: result.calibrationId,
     phase: opts.phase,

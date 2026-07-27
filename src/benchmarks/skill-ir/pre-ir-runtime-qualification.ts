@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises"
+import { lstat, readFile } from "node:fs/promises"
 import path from "node:path"
 import { z } from "zod"
 import { SafeRelativePathSchema, Sha256Schema } from "./artifact-package.ts"
@@ -17,6 +17,7 @@ export const PreIrExecutionRuntimeGuardSchema = z.object({
   kind: z.literal("compiled-skvm"),
   commandMode: z.literal("direct"),
   sourceCommit: z.string().regex(/^[0-9a-f]{40}$/),
+  cacheRoot: SafeRelativePathSchema.optional(),
   executable: FrozenRuntimeFileSchema,
   qualification: FrozenRuntimeFileSchema,
 }).strict()
@@ -115,6 +116,20 @@ export async function verifyPreIrExecutionRuntimeGuard(
   rootDir: string,
 ): Promise<PreIrRuntimeQualificationReport> {
   const guard = PreIrExecutionRuntimeGuardSchema.parse(input)
+  if (guard.cacheRoot !== undefined) {
+    const cacheRoot = path.resolve(rootDir, guard.cacheRoot)
+    try {
+      const [cacheStat, configStat] = await Promise.all([
+        lstat(cacheRoot),
+        lstat(path.join(cacheRoot, "skvm.config.json")),
+      ])
+      if (!cacheStat.isDirectory() || cacheStat.isSymbolicLink() || !configStat.isFile() || configStat.isSymbolicLink()) {
+        throw new Error("unsafe cache config")
+      }
+    } catch {
+      throw new Error("Pre-IR execution runtime cache config is missing or unsafe")
+    }
+  }
   await verifyRuntimeFile(rootDir, guard.executable, "executable")
   const reportBytes = await verifyRuntimeFile(rootDir, guard.qualification, "qualification report")
   const report = PreIrRuntimeQualificationReportSchema.parse(JSON.parse(reportBytes.toString("utf8")))

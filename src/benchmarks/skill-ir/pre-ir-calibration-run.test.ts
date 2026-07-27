@@ -8,6 +8,7 @@ import {
   compactPreIrRouteProbe,
   parsePreIrCalibrationRunArgs,
   projectPreIrPlanRuntime,
+  withQualifiedPreIrRuntimeEnvironment,
 } from "./pre-ir-calibration-run.ts"
 import type { PreIrCalibrationLock } from "./pre-ir-calibration.ts"
 
@@ -98,6 +99,25 @@ describe("pre-IR calibration runner", () => {
       expect(result.plan.every((row) => !row.command.includes("skvm"))).toBe(true)
     } finally {
       await rm(outDir, { recursive: true, force: true })
+    }
+  })
+
+  test("binds and restores the qualified cache root around child execution", async () => {
+    const previous = process.env.SKVM_CACHE
+    const lock = {
+      schemaVersion: "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1",
+      executionRuntime: { cacheRoot: ".skvm" },
+    } as unknown as PreIrCalibrationLock
+    delete process.env.SKVM_CACHE
+    try {
+      await expect(withQualifiedPreIrRuntimeEnvironment(lock, rootDir, async () => {
+        expect(process.env.SKVM_CACHE).toBe(path.resolve(rootDir, ".skvm"))
+        throw new Error("test callback failure")
+      })).rejects.toThrow("test callback failure")
+      expect(process.env.SKVM_CACHE).toBeUndefined()
+    } finally {
+      if (previous === undefined) delete process.env.SKVM_CACHE
+      else process.env.SKVM_CACHE = previous
     }
   })
 

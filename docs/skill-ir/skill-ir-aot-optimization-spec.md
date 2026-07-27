@@ -1752,7 +1752,10 @@ build compiled executable from a committed source tree
 探测次数和零失败阈值不得从探测结果反推。报告不保存绝对路径、环境变量值、secret 或命令
 stderr 正文，只保存失败分类和计数。可执行文件本身是本机实验载体，不提交仓库；新 lock 必须
 绑定其仓库相对 locator、SHA-256、qualification report digest、构建源码提交和 direct command
-mode。缺文件、digest/commit/platform 漂移或资格报告非 `passed` 均 fail closed。
+mode。Compiled runtime 还必须在 lock 中显式绑定仓库相对 `cacheRoot`；pre-IR runner 只在
+route/execute 子进程作用域内将其解析为 `SKVM_CACHE`，完成后恢复父进程原值。缺文件、
+digest/commit/platform/cache-root 漂移或资格报告非 `passed` 均 fail closed。不得依赖调用者
+预先设置的隐式 cache 环境。
 
 为避免改变普通 corpus 和历史 execution freeze，direct executable 投影只允许在
 `pre-ir-calibration-run` 读取上述 runtime-qualified lock 后发生：原计划命令必须以
@@ -1763,3 +1766,9 @@ mode。缺文件、digest/commit/platform 漂移或资格报告非 `passed` 均 
 使用新的 calibration identity 完整运行 8 行、`retries=0`；只有零 infrastructure 才允许解释
 paired semantic result。新批次若仍出现任一 infrastructure failure，整批冻结并停止，不补跑
 失败行、不修改 benchmark，也不把失败归因于 skill 或模型能力。
+
+首个 compiled lock 的 route probe 在 API 调用前以 exit 1 失败：binary 默认解析到
+`~/.skvm`，看不到仓库 `.skvm/skvm.config.json` 中的 `xty/*` provider route。无 API 的
+`config show` 对照确认，同一 binary 绑定仓库 `.skvm` 后可观察到 route 和 gateway。该结果冻结
+为 config-locator preflight failure；修复使用新 calibration identity/lock，不回写首个 lock，
+不重建 benchmark，也不将其计作模型或 skill failure。

@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, rm, unlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import {
   PRE_IR_RUNTIME_QUALIFICATION_ATTEMPTS,
+  PreIrExecutionRuntimeGuardSchema,
   projectQualifiedPreIrCommand,
   summarizePreIrRuntimeQualification,
   verifyPreIrExecutionRuntimeGuard,
@@ -23,6 +24,23 @@ function successfulExecutions() {
 }
 
 describe("pre-IR execution runtime qualification", () => {
+  test("accepts only a safe relative cache root binding", () => {
+    const guard = {
+      kind: "compiled-skvm" as const,
+      commandMode: "direct" as const,
+      sourceCommit,
+      cacheRoot: ".skvm",
+      executable: { path: "runtime/skvm.exe", sha256: "b".repeat(64) },
+      qualification: { path: "results/qualification.json", sha256: "c".repeat(64) },
+    }
+
+    expect(PreIrExecutionRuntimeGuardSchema.parse(guard).cacheRoot).toBe(".skvm")
+    expect(() => PreIrExecutionRuntimeGuardSchema.parse({
+      ...guard,
+      cacheRoot: "D:/private/cache",
+    })).toThrow()
+  })
+
   test("freezes a fixed 20-probe zero-failure compact report", () => {
     const report = summarizePreIrRuntimeQualification({
       qualificationId: "experimental-design-v2-compiled-runtime-win32-v1",
@@ -79,8 +97,10 @@ describe("pre-IR execution runtime qualification", () => {
     try {
       const executablePath = path.join(rootDir, "runtime", "skvm.exe")
       const reportPath = path.join(rootDir, "runtime", "qualification.json")
+      const configPath = path.join(rootDir, "runtime", "skvm.config.json")
       await mkdir(path.dirname(executablePath), { recursive: true })
       await writeFile(executablePath, "qualified runtime", "utf8")
+      await writeFile(configPath, "{}\n", "utf8")
       const executableSha256 = sha256Bytes(Buffer.from("qualified runtime", "utf8"))
       const report = summarizePreIrRuntimeQualification({
         qualificationId: "experimental-design-v2-compiled-runtime-win32-v1",
@@ -97,11 +117,15 @@ describe("pre-IR execution runtime qualification", () => {
         kind: "compiled-skvm" as const,
         commandMode: "direct" as const,
         sourceCommit,
+        cacheRoot: "runtime",
         executable: { path: "runtime/skvm.exe", sha256: executableSha256 },
         qualification: { path: "runtime/qualification.json", sha256: sha256Bytes(reportBytes) },
       }
 
       await expect(verifyPreIrExecutionRuntimeGuard(guard, rootDir)).resolves.toEqual(report)
+      await unlink(configPath)
+      await expect(verifyPreIrExecutionRuntimeGuard(guard, rootDir)).rejects.toThrow("config")
+      await writeFile(configPath, "{}\n", "utf8")
       await expect(verifyPreIrExecutionRuntimeGuard({
         ...guard,
         executable: { ...guard.executable, sha256: "0".repeat(64) },

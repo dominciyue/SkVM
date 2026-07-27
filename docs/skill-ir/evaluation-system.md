@@ -965,3 +965,13 @@ benchmarks/skill-ir/pilots/experimental-design/v2/
 
 对应 dry-run 生成 8 rows / 4 pairs，所有命令均由 lock 投影到冻结的 `dist/skvm.exe run`，没有
 `bun run skvm` 前缀。该 binary 保持本地 ignored，compact qualification report 与 lock 进入仓库。
+
+首个 compiled lock 的 route probe 在 239 ms 内 exit 1，compact status 为 `agent`，但 stderr
+审计显示进程尚未调用模型：binary 的 cache root 为 `~/.skvm`，没有加载仓库
+`.skvm/skvm.config.json`，所以 `xty/gpt-5.6-sol` 找不到 provider route。无 API 的
+`config show` A/B 对照为：默认 cache 看不到 `xty/*`/gateway，绑定仓库 `.skvm` 后两者均可见。
+
+后续 config-bound lock 在 `executionRuntime.cacheRoot` 保存安全仓库相对路径。验证器只检查目录
+和 `skvm.config.json` 是非 symlink 普通项，不读取或保存配置正文；pre-IR runner 在 route/execute
+operation 内设置 `SKVM_CACHE`，并在成功或异常后恢复父进程环境。首个 lock 与失败 route 文件
+不覆盖，新 identity 才能继续 probe。
