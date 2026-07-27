@@ -168,6 +168,38 @@ describe("pre-IR calibration lock", () => {
     expect("executionRuntime" in lock && lock.executionRuntime.kind).toBe("bun-source-skvm")
   })
 
+  test("accepts a distinct fetch-qualified Node HTTP source-runtime matrix identity", async () => {
+    const base = JSON.parse(await readFile(v2LockPath, "utf8")) as Record<string, unknown>
+    const lock = PreIrCalibrationLockSchema.parse({
+      ...base,
+      schemaVersion: "skill-ir-node-http-source-fetch-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-node-http-source-matrix-v1",
+      executionRuntime: {
+        kind: "bun-source-skvm",
+        commandMode: "bun-source",
+        sourceCommit: "a".repeat(40),
+        cacheRoot: ".skvm",
+        executable: { path: ".skvm/runtime/bun.exe", sha256: "b".repeat(64) },
+        entrypoint: { path: "src/index.ts", sha256: "c".repeat(64) },
+        qualification: { path: "results/source-qualification.json", sha256: "d".repeat(64) },
+      },
+      nodeHttpTransport: {
+        kind: "node-http-helper",
+        nodeExecutable: { path: ".skvm/runtime/node.exe", sha256: "e".repeat(64) },
+        helper: { path: "src/providers/openai-compatible-node-helper.mjs", sha256: "f".repeat(64) },
+      },
+      fetchActiveQualification: {
+        kind: "fetch-active-runtime-qualification",
+        path: "results/source-fetch-active.json",
+        sha256: "1".repeat(64),
+        candidateLock: { path: "benchmarks/source-candidate.json", sha256: "2".repeat(64) },
+      },
+    })
+
+    expect(lock.schemaVersion).toBe("skill-ir-node-http-source-fetch-qualified-pre-ir-calibration-lock/v1")
+    expect("executionRuntime" in lock && lock.executionRuntime.kind).toBe("bun-source-skvm")
+  })
+
   test("validates the committed runtime-qualified experimental-design v2 lock", async () => {
     const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath: v2RuntimeLockPath })
 
