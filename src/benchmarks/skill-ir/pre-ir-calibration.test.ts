@@ -28,6 +28,10 @@ const v2ExplicitChildEnvLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-explicit-child-env-calibration-lock.json",
 )
+const v2Bun1313FetchActiveLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-bun-1.3.13-fetch-active-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
@@ -131,6 +135,34 @@ describe("pre-IR calibration lock", () => {
           { path: "src/benchmarks/skill-ir/pre-ir-calibration-run.ts" },
           { path: "src/benchmarks/skill-ir/route-probe.ts" },
           { path: "src/benchmarks/skill-ir/real-agent-run.ts" },
+        ],
+      },
+    })
+  })
+
+  test("validates the Bun 1.3.13 fetch-active candidate and its diagnostic orchestration", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({
+      rootDir,
+      lockPath: v2Bun1313FetchActiveLockPath,
+    })
+
+    expect(lock).toMatchObject({
+      schemaVersion: "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-materialized-delta-bun-1.3.13-fetch-active-v1",
+      adapter: { version: "compiled-experimental-design-v2-bun-1.3.13-fetch-active-v1" },
+      executionRuntime: {
+        sourceCommit: "d384d35c69663c6450e475476240185dae4178ac",
+        cacheRoot: ".skvm",
+        executable: { path: ".skvm/runtime/bun-1.3.13-2026-07-27/skvm.exe" },
+        qualification: {
+          path: "results/skill-ir/experimental-design-v2-bun-1.3.13-startup-qualification-2026-07-27.json",
+        },
+        orchestration: [
+          { path: "src/benchmarks/skill-ir/pre-ir-calibration-run.ts" },
+          { path: "src/benchmarks/skill-ir/route-probe.ts" },
+          { path: "src/benchmarks/skill-ir/real-agent-run.ts" },
+          { path: "src/benchmarks/skill-ir/pre-ir-fetch-active-qualification-run.ts" },
+          { path: "src/benchmarks/skill-ir/pre-ir-route-diagnostic.ts" },
         ],
       },
     })
