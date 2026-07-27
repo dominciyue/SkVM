@@ -17,6 +17,7 @@ import {
   type BenchmarkContractAuditManifest,
 } from "./benchmark-contract-audit";
 import { sha256Bytes } from "./source-fixture";
+import { writeInitialWorkdirManifest } from "../../core/workdir-manifest";
 
 type Args = {
   manifest: string;
@@ -94,7 +95,10 @@ export function parseBenchmarkContractAuditArgs(argv: string[]): Args {
   return args;
 }
 
-function emptyRunResult(workDir: string): RunResult {
+function emptyRunResult(
+  workDir: string,
+  initialWorkdirManifest?: RunResult["initialWorkdirManifest"],
+): RunResult {
   return {
     text: "",
     steps: [],
@@ -105,6 +109,7 @@ function emptyRunResult(workDir: string): RunResult {
     workDir,
     runStatus: "ok",
     usageAvailable: true,
+    ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
   };
 }
 
@@ -146,6 +151,7 @@ export async function runBenchmarkContractAudit(
       entry.evaluatorId === manifest.scorer.evaluatorId
     );
     let sourceFixtureDigestMatches = false;
+    let initialFixtureDigestMatches = canary.initialFixturePath === undefined;
     try {
       sourceFixtureDigestMatches =
         await hashAuditFixtureDirectory(
@@ -156,13 +162,25 @@ export async function runBenchmarkContractAudit(
     } catch {
       sourceFixtureDigestMatches = false;
     }
+    if (canary.initialFixturePath !== undefined && canary.initialFixtureSha256 !== undefined) {
+      try {
+        initialFixtureDigestMatches =
+          await hashAuditFixtureDirectory(
+            resolve(rootDir, canary.initialFixturePath),
+            rootDir,
+          ) === canary.initialFixtureSha256;
+      } catch {
+        initialFixtureDigestMatches = false;
+      }
+    }
     if (
       !evaluator ||
       !sourceIdentityMatches ||
       !implementationIdentityMatches ||
       !criterion ||
       criterion.method !== "custom" ||
-      !sourceFixtureDigestMatches
+      !sourceFixtureDigestMatches ||
+      !initialFixtureDigestMatches
     ) {
       canaryResults.push({
         id: canary.id,
@@ -187,9 +205,24 @@ export async function runBenchmarkContractAudit(
       if (await hashAuditFixtureDirectory(workDir) !== canary.fixtureSha256) {
         throw new Error("canary fixture changed while creating its execution snapshot");
       }
+      let initialWorkdirManifest: RunResult["initialWorkdirManifest"];
+      if (canary.initialFixturePath !== undefined && canary.initialFixtureSha256 !== undefined) {
+        const initialWorkDir = join(temporaryRoot, "initial-workdir");
+        await cp(resolve(rootDir, canary.initialFixturePath), initialWorkDir, {
+          recursive: true,
+          force: true,
+        });
+        if (await hashAuditFixtureDirectory(initialWorkDir) !== canary.initialFixtureSha256) {
+          throw new Error("initial canary fixture changed while creating its execution snapshot");
+        }
+        initialWorkdirManifest = await writeInitialWorkdirManifest({
+          workDir: initialWorkDir,
+          manifestPath: join(temporaryRoot, "initial-workdir-manifest.json"),
+        });
+      }
       const result = await evaluator.run({
         criterion,
-        runResult: emptyRunResult(workDir),
+        runResult: emptyRunResult(workDir, initialWorkdirManifest),
       });
       if (result.infraError) {
         canaryResults.push({

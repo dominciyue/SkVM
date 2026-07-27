@@ -98,9 +98,18 @@ export const BenchmarkContractAuditManifestSchema = z.object({
     ]),
     fixturePath: SafeRelativePathSchema,
     fixtureSha256: DigestSchema,
+    initialFixturePath: SafeRelativePathSchema.optional(),
+    initialFixtureSha256: DigestSchema.optional(),
     expectedPass: z.boolean(),
     expectedScore: z.number().min(0).max(1).optional(),
-  }).strict()),
+  }).strict().superRefine((canary, context) => {
+    if ((canary.initialFixturePath === undefined) !== (canary.initialFixtureSha256 === undefined)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "initial fixture path and digest must be declared together",
+      });
+    }
+  })),
 }).strict().superRefine((manifest, context) => {
   const requireUnique = (
     values: readonly string[],
@@ -611,6 +620,7 @@ export async function auditBenchmarkContract(
     const task = tasksById.get(canary.taskId);
     let fixtureIsDirectory = false;
     let fixtureDigestMatches = false;
+    let initialFixtureDigestMatches = canary.initialFixturePath === undefined;
     try {
       const fixturePath = resolve(rootDir, canary.fixturePath);
       fixtureIsDirectory = (await lstat(fixturePath)).isDirectory();
@@ -620,6 +630,17 @@ export async function auditBenchmarkContract(
     } catch {
       fixtureIsDirectory = false;
       fixtureDigestMatches = false;
+    }
+    if (canary.initialFixturePath !== undefined && canary.initialFixtureSha256 !== undefined) {
+      try {
+        const initialFixturePath = resolve(rootDir, canary.initialFixturePath);
+        initialFixtureDigestMatches =
+          (await lstat(initialFixturePath)).isDirectory() &&
+          await hashAuditFixtureDirectory(initialFixturePath, rootDir) ===
+            canary.initialFixtureSha256;
+      } catch {
+        initialFixtureDigestMatches = false;
+      }
     }
     if (
       !task ||
@@ -631,7 +652,8 @@ export async function auditBenchmarkContract(
         criterion.evaluatorId === manifest.scorer.evaluatorId
       ) ||
       !fixtureIsDirectory ||
-      !fixtureDigestMatches
+      !fixtureDigestMatches ||
+      !initialFixtureDigestMatches
     ) {
       addIssue(issues, "CANARY_REFERENCE_INVALID", canary.id);
     }

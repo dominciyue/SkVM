@@ -6,6 +6,7 @@ import type { EvidenceWeight, ExperimentSystem, SkillProvenance } from "./matrix
 import type { RunIdentity, SkillIRBenchmarkTask } from "./real-agent";
 import type { ArtifactRuntimeMetadata } from "./artifact-runtime";
 import type { SkillArtifactExecutionResult } from "./validated-artifact-runtime";
+import type { InitialWorkdirManifestReference } from "../../core/workdir-manifest";
 import {
   verifyArtifactSnapshot,
   type ArtifactSnapshotReference,
@@ -29,6 +30,7 @@ export type RawAgentRunRow = Partial<RunIdentity> & {
   taskPath: string;
   skillPath?: string;
   workDir?: string;
+  initialWorkdirManifest?: InitialWorkdirManifestReference;
   exitCode: number;
   runStatus?: RunStatus;
   durationMs: number;
@@ -102,6 +104,7 @@ export type ScoredAgentRunRow = ParsedCaseId & Partial<RunIdentity> & {
   artifactLogicalArm?: ArtifactLogicalArm;
   generationIdentity?: string;
   artifactSnapshot?: ArtifactSnapshotReference;
+  initialWorkdirManifest?: InitialWorkdirManifestReference;
 };
 
 export function parseCaseId(caseId: string): ParsedCaseId {
@@ -546,6 +549,9 @@ function buildRunResult(row: RawAgentRunRow, finalOutput: string, tokenUsage: To
     durationMs: row.durationMs,
     llmDurationMs: 0,
     workDir: row.workDir,
+    ...(row.initialWorkdirManifest
+      ? { initialWorkdirManifest: row.initialWorkdirManifest }
+      : {}),
     runStatus: row.runStatus ?? "ok",
     usageAvailable: tokenUsage !== undefined,
   };
@@ -694,6 +700,9 @@ async function scoreRawRunRowsWithResolver(
       ...(row.artifactLogicalArm ? { artifactLogicalArm: row.artifactLogicalArm } : {}),
       ...(row.generationIdentity ? { generationIdentity: row.generationIdentity } : {}),
       ...(row.artifactSnapshot ? { artifactSnapshot: row.artifactSnapshot } : {}),
+      ...(row.initialWorkdirManifest
+        ? { initialWorkdirManifest: row.initialWorkdirManifest }
+        : {}),
       ...parsed,
       taskSplit: task.split,
       success: score.success,

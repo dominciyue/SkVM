@@ -16,6 +16,7 @@ import {
   runBenchmarkContractAudit,
 } from "./benchmark-contract-audit-run";
 import { sha256Bytes } from "./source-fixture";
+import { readInitialWorkdirManifest } from "../../core/workdir-manifest";
 
 const roots: string[] = [];
 const evaluatorId = "skill-ir-contract-audit-test";
@@ -159,6 +160,70 @@ describe("benchmark contract audit runner", () => {
     }]);
     expect(JSON.stringify(report)).not.toContain("test detail");
     expect(JSON.stringify(report)).not.toContain("different-but-valid");
+  });
+
+  test("binds an optional initial fixture as evaluator-visible workdir provenance", async () => {
+    const { root, manifest } = await fixture();
+    const initialFixturePath = "pilot/audit-initial-fixtures/alternative";
+    await mkdir(join(root, initialFixturePath), { recursive: true });
+    await writeFile(join(root, initialFixturePath, "input.json"), "{\"public\":true}\n");
+    Object.assign(manifest.canaries[0]!, {
+      initialFixturePath,
+      initialFixtureSha256: await hashAuditFixtureDirectory(join(root, initialFixturePath)),
+    });
+    registerCustomEvaluator(evaluatorId, {
+      async run({ runResult }) {
+        const initial = await readInitialWorkdirManifest({
+          workDir: runResult.workDir,
+          reference: runResult.initialWorkdirManifest!,
+        });
+        return {
+          pass: initial.entries.some((entry) => entry.path === "input.json"),
+          score: 1,
+          details: "initial provenance bound",
+        };
+      },
+    });
+    const evaluator = customEvaluators.get(evaluatorId)!;
+
+    const report = await runBenchmarkContractAudit(manifest, root, {
+      evaluatorSourcePaths: new Map([[evaluatorId, manifest.scorer.path]]),
+      evaluatorSourceDigests: new Map([[evaluatorId, manifest.scorer.sha256]]),
+      evaluatorImplementations: new Map([[evaluatorId, evaluator]]),
+    });
+
+    expect(report.status).toBe("passed");
+    expect(report.canaries[0]).toMatchObject({ status: "matched", actualPass: true });
+  });
+
+  test("fails closed when an initial fixture digest drifts", async () => {
+    const { root, manifest } = await fixture();
+    const initialFixturePath = "pilot/audit-initial-fixtures/alternative";
+    await mkdir(join(root, initialFixturePath), { recursive: true });
+    await writeFile(join(root, initialFixturePath, "input.json"), "{\"public\":true}\n");
+    Object.assign(manifest.canaries[0]!, {
+      initialFixturePath,
+      initialFixtureSha256: "0".repeat(64),
+    });
+    registerCustomEvaluator(evaluatorId, {
+      async run() {
+        return { pass: true, score: 1, details: "must not run" };
+      },
+    });
+    const evaluator = customEvaluators.get(evaluatorId)!;
+
+    const report = await runBenchmarkContractAudit(manifest, root, {
+      evaluatorSourcePaths: new Map([[evaluatorId, manifest.scorer.path]]),
+      evaluatorSourceDigests: new Map([[evaluatorId, manifest.scorer.sha256]]),
+      evaluatorImplementations: new Map([[evaluatorId, evaluator]]),
+    });
+
+    expect(report.status).toBe("failed");
+    expect(report.canaries[0]).toMatchObject({ status: "infrastructure" });
+    expect(report.issues).toContainEqual({
+      code: "CANARY_INFRASTRUCTURE",
+      subjectId: "alternative-name",
+    });
   });
 
   test("fails when a scorer rejects a publicly valid alternative", async () => {

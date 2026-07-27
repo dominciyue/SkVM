@@ -61,6 +61,11 @@ export const RUN_FLAGS = defineFlags(
       placeholder: "<path>",
       help: "Use this directory instead of a temp work directory",
     },
+    "initial-workdir-manifest": {
+      kind: "string",
+      placeholder: "<path>",
+      help: "Write a pre-agent workdir manifest outside the work directory",
+    },
     "timeout-ms": {
       kind: "int",
       min: 1,
@@ -165,6 +170,7 @@ export async function runRun(config: RunConfig): Promise<void> {
       skillMode,
       workDir: config.workdir,
       keepWorkDir: true,
+      initialWorkdirManifestPath: config["initial-workdir-manifest"],
     })
     runSp.succeed(`Task ${task.id} complete`)
 

@@ -193,6 +193,19 @@ Real-skill source closure 在 manifest 存在 `sourceFiles` 时只复制声明�
 original/static skill。没有 source manifest 的 legacy calibration fixture 继续使用旧的
 目录复制兼容路径。
 
+文件型 benchmark 可通过 `--initial-workdir-manifest=<run-dir path>` 请求初始工作区证据。
+`prepareRunWorkspace` 先复制 task fixtures 和可选 skill resource closure，再在 agent setup
+之前写出 `skvm-initial-workdir-manifest/v1`。Manifest 必须位于 agent workdir 外，只保存排序后
+的 POSIX 相对路径、entry type 与文件 SHA-256；raw/scored `RunResult` 只携带 manifest path 与
+digest reference。绝对/逃逸路径、重复或未排序记录、symlink/junction/reparse/special entry、
+manifest 摘要漂移均 fail closed。
+
+`assessWorkdirDelta` 比较该初始 manifest 与最终 workdir：初始文件不得修改、删除或变型，
+声明输出必须是新增文件，其他新增 entry 拒绝。因此 original 在启动前合法复制的脚本、引用和
+license 不会再被误判为模型输出，同时 agent 运行后新增的 root debug 文件仍会失败。通用
+benchmark contract audit 的 canary 可选绑定 `initialFixturePath`/digest，以便本地 scorer audit
+与真实 runner 使用同一增量语义。
+
 ## 9. Scoring
 
 ```ts

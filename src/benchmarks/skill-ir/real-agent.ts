@@ -48,6 +48,7 @@ export type MaterializedCase = {
   system: ExperimentSystem;
   taskPath: string;
   workDir: string;
+  initialWorkdirManifestPath?: string;
   skillPath?: string;
   skillProvenance?: SkillProvenance;
   evidenceWeight?: EvidenceWeight;
@@ -73,6 +74,7 @@ export type BuildRunCommandOptions = {
   adapter: string;
   skillMode?: "inject" | "discover";
   workdir?: string;
+  initialWorkdirManifestPath?: string;
   timeoutMs?: number;
   maxSteps?: number;
 };
@@ -393,6 +395,7 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
   const taskDir = join(caseDir, "task");
   const skillDir = join(caseDir, "skill");
   const workDir = join(caseDir, "workdir");
+  const initialWorkdirManifestPath = join(caseDir, "initial-workdir-manifest.json");
   await rm(resolve(caseDir), { recursive: true, force: true });
   await Promise.all([mkdir(taskDir, { recursive: true }), mkdir(workDir, { recursive: true })]);
 
@@ -411,6 +414,7 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
       system: opts.system,
       taskPath,
       workDir,
+      initialWorkdirManifestPath,
       skillPath,
     };
   }
@@ -423,12 +427,12 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
     await mkdir(skillDir, { recursive: true });
     const skillPath = join(skillDir, "SKILL.md");
     await copyFile(opts.artifactSkillPath, skillPath);
-    return { caseId: opts.caseId, system: opts.system, taskPath, workDir, skillPath };
+    return { caseId: opts.caseId, system: opts.system, taskPath, workDir, initialWorkdirManifestPath, skillPath };
   }
 
   const renderedSkill = renderSkillMarkdown(opts.ir, opts.system);
   if (renderedSkill === null) {
-    return { caseId: opts.caseId, system: opts.system, taskPath, workDir };
+    return { caseId: opts.caseId, system: opts.system, taskPath, workDir, initialWorkdirManifestPath };
   }
 
   if (opts.ir.source.kind === "file") {
@@ -444,6 +448,7 @@ export async function materializeCaseArtifacts(opts: MaterializeCaseOptions): Pr
     system: opts.system,
     taskPath,
     workDir,
+    initialWorkdirManifestPath,
     skillPath,
   };
 }
@@ -466,6 +471,10 @@ export function buildSkvmRunCommand(opts: BuildRunCommandOptions): string[] {
 
   if (opts.workdir) {
     command.push(`--workdir=${opts.workdir}`);
+  }
+
+  if (opts.initialWorkdirManifestPath) {
+    command.push(`--initial-workdir-manifest=${opts.initialWorkdirManifestPath}`);
   }
 
   if (opts.timeoutMs) {
@@ -497,6 +506,7 @@ export function buildRunPlanEntry(
       taskPath: materialized.taskPath,
       skillPath: materialized.skillPath,
       workdir: materialized.workDir,
+      initialWorkdirManifestPath: materialized.initialWorkdirManifestPath,
     }),
   };
 }

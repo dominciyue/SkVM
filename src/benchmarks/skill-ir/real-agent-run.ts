@@ -43,6 +43,11 @@ import { extractEnvManagerTaskContract } from "./artifact-package-compiler";
 import { preflightArtifactRun } from "./artifact-preflight";
 import { createArtifactGenerationIdentity } from "./artifact-snapshot";
 import { extractTokenUsage } from "./scoring";
+import {
+  loadRunSkill,
+  loadRunTask,
+  prepareRunWorkspace,
+} from "../../run/index";
 
 export type RealAgentRunArgs = {
   corpus: CorpusId;
@@ -859,6 +864,14 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
     const result = await runWithInfrastructureRetries(
       async () => {
         await resetPersistentWorkDir(item.workDir);
+        const initialWorkdirManifest = item.initialWorkdirManifestPath
+          ? await prepareRunWorkspace({
+              task: await loadRunTask(item.taskPath),
+              skill: item.skillPath ? await loadRunSkill(item.skillPath) : undefined,
+              workDir: item.workDir,
+              initialWorkdirManifestPath: item.initialWorkdirManifestPath,
+            })
+          : undefined;
         const startedAt = Date.now();
         const proc = Bun.spawn(item.command, {
           stdout: "pipe",
@@ -883,6 +896,7 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
           taskPath: item.taskPath,
           skillPath: item.skillPath,
           workDir: item.workDir,
+          ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
           exitCode,
           runStatus: extractRunStatus(stdout),
           durationMs: Date.now() - startedAt,

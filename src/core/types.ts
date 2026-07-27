@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { InitialWorkdirManifestReferenceSchema } from "./workdir-manifest.ts"
 import type { ConversationLog } from "./conversation-logger.ts"
 import { TASK_FILE_DEFAULTS, EVAL_DEFAULTS, HEADLESS_AGENT_DEFAULTS } from "./ui-defaults.ts"
 
@@ -203,6 +204,7 @@ export const RunResultSchema = z.object({
   durationMs: z.number(),
   llmDurationMs: z.number().default(0),
   workDir: z.string(),
+  initialWorkdirManifest: InitialWorkdirManifestReferenceSchema.optional(),
   skillLoaded: z.boolean().optional(),
   runStatus: RunStatusSchema,
   statusDetail: z.string().optional(),

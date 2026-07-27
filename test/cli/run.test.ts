@@ -25,6 +25,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "skill-mode": undefined,
       adapter: CLI_DEFAULTS.adapter,
       workdir: undefined,
+      "initial-workdir-manifest": undefined,
       "timeout-ms": undefined,
       "max-steps": undefined,
       "adapter-config": undefined,
@@ -50,6 +51,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "skill-mode": "discover",
       adapter: "opencode",
       workdir: "/tmp/wd",
+      "initial-workdir-manifest": undefined,
       "timeout-ms": 90000,
       "max-steps": 12,
       "adapter-config": "managed",
@@ -118,22 +120,23 @@ Usage:
   skvm run --task=<path/to/task.json> --skill=<path/to/SKILL.md> --model=<id> [options]
 
 Options:
-  --task=<path>           Path to a task JSON file (bench task schema) (required)
-  --model=<id>            Model identifier, <provider>/<model-id> (required)
-  --skill=<path>          Optional path to a SKILL.md file
-  --skill-mode=<mode>     inject | discover (default: inject).
-                          Requires --skill. inject: skill text is concatenated
-                          into the system prompt. discover: skill is written
-                          to .claude/skills/<name>/ and discovered via its
-                          SKILL.md description.
-  --adapter=<name>        Agent adapter: ${ALL_ADAPTERS.join(" | ")} (default: ${CLI_DEFAULTS.adapter})
-  --workdir=<path>        Use this directory instead of a temp work directory
-  --timeout-ms=<n>        Override the per-task agent execution timeout (ms).
-                          This caps how long the target adapter spends solving
-                          one task. Falls back to task.json's \`timeoutMs\`,
-                          then to the built-in default (${TIMEOUT_DEFAULTS.taskExec}).
-  --max-steps=<n>         Override max steps for the adapter
-  --adapter-config=<m>    native | managed (default: from skvm.config.json, else managed)
+  --task=<path>                        Path to a task JSON file (bench task schema) (required)
+  --model=<id>                         Model identifier, <provider>/<model-id> (required)
+  --skill=<path>                       Optional path to a SKILL.md file
+  --skill-mode=<mode>                  inject | discover (default: inject).
+                                       Requires --skill. inject: skill text is concatenated
+                                       into the system prompt. discover: skill is written
+                                       to .claude/skills/<name>/ and discovered via its
+                                       SKILL.md description.
+  --adapter=<name>                     Agent adapter: ${ALL_ADAPTERS.join(" | ")} (default: ${CLI_DEFAULTS.adapter})
+  --workdir=<path>                     Use this directory instead of a temp work directory
+  --initial-workdir-manifest=<path>    Write a pre-agent workdir manifest outside the work directory
+  --timeout-ms=<n>                     Override the per-task agent execution timeout (ms).
+                                       This caps how long the target adapter spends solving
+                                       one task. Falls back to task.json's \`timeoutMs\`,
+                                       then to the built-in default (${TIMEOUT_DEFAULTS.taskExec}).
+  --max-steps=<n>                      Override max steps for the adapter
+  --adapter-config=<m>                 native | managed (default: from skvm.config.json, else managed)
 
 Notes:
   - This command executes only. It does not run evaluation or scoring.

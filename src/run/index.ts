@@ -9,6 +9,10 @@ import type { AdapterConfig, AgentAdapter, EvalCriterion, RunResult, SkillMode }
 import { loadSkill as loadSkillFromPath, buildSkillBundle } from "../core/skill-loader.ts"
 import type { ResolvedSkill } from "../core/skill-loader.ts"
 import { createLogger } from "../core/logger.ts"
+import {
+  writeInitialWorkdirManifest,
+  type InitialWorkdirManifestReference,
+} from "../core/workdir-manifest.ts"
 
 const log = createLogger("run")
 
@@ -27,6 +31,7 @@ export interface ExecuteRunOptions {
   workDir?: string
   keepWorkDir?: boolean
   skillMode?: SkillMode
+  initialWorkdirManifestPath?: string
 }
 
 export interface ExecuteRunResult {
@@ -34,6 +39,14 @@ export interface ExecuteRunResult {
   skill?: LoadedSkill
   runResult: RunResult
   workDir: string
+  initialWorkdirManifest?: InitialWorkdirManifestReference
+}
+
+export interface PrepareRunWorkspaceOptions {
+  task: LoadedRunTask
+  skill?: LoadedSkill
+  workDir: string
+  initialWorkdirManifestPath?: string
 }
 
 const RunTaskFileSchema = BenchTaskFileSchema.omit({ eval: true }).extend({
@@ -81,6 +94,20 @@ export async function loadRunSkill(skillPath: string): Promise<LoadedSkill> {
   return await loadSkillFromPath(skillPath)
 }
 
+export async function prepareRunWorkspace(
+  opts: PrepareRunWorkspaceOptions,
+): Promise<InitialWorkdirManifestReference | undefined> {
+  const workDir = path.resolve(opts.workDir)
+  await mkdir(workDir, { recursive: true })
+  await copyTaskFixtures(opts.task, workDir)
+  if (opts.skill) {
+    await copySkillBundle(opts.skill, workDir)
+  }
+  return opts.initialWorkdirManifestPath
+    ? writeInitialWorkdirManifest({ workDir, manifestPath: opts.initialWorkdirManifestPath })
+    : undefined
+}
+
 export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunResult> {
   const { task, skill, adapter, adapterConfig } = opts
   const keepWorkDir = opts.keepWorkDir ?? true
@@ -88,11 +115,12 @@ export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunRes
     ? path.resolve(opts.workDir)
     : await mkdtemp(path.join(getTmpDir(), `skvm-run-${task.id}-`))
 
-  await mkdir(workDir, { recursive: true })
-  await copyTaskFixtures(task, workDir)
-  if (skill) {
-    await copySkillBundle(skill, workDir)
-  }
+  const initialWorkdirManifest = await prepareRunWorkspace({
+    task,
+    skill,
+    workDir,
+    initialWorkdirManifestPath: opts.initialWorkdirManifestPath,
+  })
 
   log.info(`Run task ${task.id}: adapter=${adapter.name} model=${adapterConfig.model} workDir=${workDir}`)
 
@@ -115,6 +143,7 @@ export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunRes
       skill,
       runResult,
       workDir,
+      ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
     }
   } finally {
     await adapter.teardown()

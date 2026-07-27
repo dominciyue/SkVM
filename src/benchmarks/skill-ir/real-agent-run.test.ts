@@ -470,12 +470,16 @@ describe("real-agent-run manifest loading", () => {
     tempDirs.push(rootDir);
     const outDir = join(rootDir, "out");
     const workDir = join(rootDir, "case", "original", "run-1", "workdir");
+    const taskPath = join(rootDir, "task.json");
+    const initialWorkdirManifestPath = join(rootDir, "case", "original", "run-1", "initial-workdir-manifest.json");
     await mkdir(outDir, { recursive: true });
+    await writeFile(taskPath, `${JSON.stringify({ id: "artifact-task", prompt: "test", eval: [] })}\n`, "utf8");
     const plan: RealAgentRunPlanEntry[] = [{
       caseId: "artifact-skill:skvm:windows:clean:artifact-task",
       system: "original",
-      taskPath: join(rootDir, "task.json"),
+      taskPath,
       workDir,
+      initialWorkdirManifestPath,
       model: "test/model",
       modelFamily: "test",
       adapter: "bare-agent",
@@ -500,6 +504,10 @@ describe("real-agent-run manifest loading", () => {
     const rawRow = JSON.parse((await Bun.file(join(outDir, "raw-runs.jsonl")).text()).trim());
     expect(rawRow.workDir).toBe(workDir);
     expect(rawRow.runStatus).toBe("ok");
+    expect(rawRow.initialWorkdirManifest).toEqual({
+      path: initialWorkdirManifestPath,
+      sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+    });
   });
 
   test("extractRunStatus reads a colored non-ok status without trusting final output text", () => {
