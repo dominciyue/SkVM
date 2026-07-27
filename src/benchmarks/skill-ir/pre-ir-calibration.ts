@@ -5,6 +5,10 @@ import { SafeRelativePathSchema, Sha256Schema } from "./artifact-package.ts"
 import { sha256Bytes } from "./source-fixture.ts"
 import { verifyExperimentalDesignV2HeldoutFreeze } from "./experimental-design-v2-heldout-freeze.ts"
 import { ExperimentalDesignV2MaterializationAuditReportSchema } from "./experimental-design-v2-materialization-audit.ts"
+import {
+  PreIrExecutionRuntimeGuardSchema,
+  verifyPreIrExecutionRuntimeGuard,
+} from "./pre-ir-runtime-qualification.ts"
 
 const FrozenFileSchema = z.object({
   path: SafeRelativePathSchema,
@@ -92,18 +96,28 @@ const PreIrMaterializationAuditGuardSchema = z.object({
   sha256: Sha256Schema,
 }).strict()
 
+const PreIrBenchmarkGuardsSchema = z.tuple([
+  PreIrHeldoutFreezeGuardSchema,
+  PreIrMaterializationAuditGuardSchema,
+])
+
 const PreIrCalibrationLockV2Schema = z.object({
   schemaVersion: z.literal("skill-ir-pre-ir-calibration-lock/v2"),
   ...PreIrCalibrationLockFields,
-  benchmarkGuards: z.tuple([
-    PreIrHeldoutFreezeGuardSchema,
-    PreIrMaterializationAuditGuardSchema,
-  ]),
+  benchmarkGuards: PreIrBenchmarkGuardsSchema,
+}).strict().superRefine(requireUniqueTaskIds)
+
+const RuntimeQualifiedPreIrCalibrationLockV1Schema = z.object({
+  schemaVersion: z.literal("skill-ir-runtime-qualified-pre-ir-calibration-lock/v1"),
+  ...PreIrCalibrationLockFields,
+  benchmarkGuards: PreIrBenchmarkGuardsSchema,
+  executionRuntime: PreIrExecutionRuntimeGuardSchema,
 }).strict().superRefine(requireUniqueTaskIds)
 
 export const PreIrCalibrationLockSchema = z.union([
   PreIrCalibrationLockV1Schema,
   PreIrCalibrationLockV2Schema,
+  RuntimeQualifiedPreIrCalibrationLockV1Schema,
 ])
 
 export type PreIrCalibrationLock = z.infer<typeof PreIrCalibrationLockSchema>
@@ -132,7 +146,7 @@ async function verifyDigest(rootDir: string, file: { path: string; sha256: strin
 }
 
 async function verifyBenchmarkGuards(lock: PreIrCalibrationLock, rootDir: string): Promise<void> {
-  if (lock.schemaVersion !== "skill-ir-pre-ir-calibration-lock/v2") return
+  if (lock.schemaVersion === "skill-ir-pre-ir-calibration-lock/v1") return
   for (const guard of lock.benchmarkGuards) {
     await verifyDigest(rootDir, guard)
     const value = JSON.parse(await readFile(path.resolve(rootDir, guard.path), "utf8")) as unknown
@@ -160,6 +174,9 @@ export async function validatePreIrCalibrationLock(
   const lock = PreIrCalibrationLockSchema.parse(input)
   await Promise.all(Object.values(lock.frozenInputs).map((file) => verifyDigest(rootDir, file)))
   await verifyBenchmarkGuards(lock, rootDir)
+  if (lock.schemaVersion === "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1") {
+    await verifyPreIrExecutionRuntimeGuard(lock.executionRuntime, rootDir)
+  }
 
   const manifest = overrides.manifest ?? JSON.parse(await readFile(
     path.resolve(rootDir, "benchmarks/skill-ir/corpus/corpora/pilot.json"),

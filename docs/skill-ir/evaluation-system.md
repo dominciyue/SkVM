@@ -925,3 +925,32 @@ gate 和 probe。该结果不允许 base IR 或 held-out。
 `failureType=infrastructure`；该开关不能用于普通 corpus。Pre-IR gate 只从非 infrastructure pair
 推断方向，并显式报告 `comparablePairs`；全污染时方向为 `inconclusive`。这没有修改历史冻结的
 runner/scoring bytes，也没有修改 v2 evaluator、task、public contract、threshold 或 lock。
+
+## 23. Stable execution runtime qualification
+
+`pre-ir-runtime-qualification-run.ts` 为 pre-IR calibration 生成
+`skill-ir-execution-runtime-qualification/v1` compact report。探测合同不可通过 CLI 调参：固定对
+编译后的 SkVM executable 顺序运行 20 次 `--help`，要求全部 exit 0、无 timeout、无 Bun crash
+signature。报告只保存计数、运行时身份与摘要，不保存 stdout/stderr、绝对路径或环境变量值。
+
+先从已提交源码构建本机 binary，再用该源码提交生成资格报告：
+
+```powershell
+bun run build:binary
+$commit = git rev-parse HEAD
+bun ./src/benchmarks/skill-ir/pre-ir-runtime-qualification-run.ts `
+  '--executable=dist/skvm.exe' `
+  '--qualification-id=experimental-design-v2-compiled-runtime-win32-v1' `
+  "--source-commit=$commit" `
+  '--out=results/skill-ir/experimental-design-v2-runtime-qualification-2026-07-27.json'
+```
+
+Binary 是本机实验载体，不提交 Git。后续 runtime-qualified calibration lock 必须绑定 executable
+locator/digest、qualification report digest 和 source commit。Lock 校验会重算两个 digest，要求
+report `passed` 且 platform/arch 与当前主机一致。只有这种新锁会把 plan 中精确的
+`bun run skvm run ...` 投影为 `<qualified executable> run ...`；普通 real-agent runner 和旧
+pre-IR lock 不接受环境变量或隐式 runtime 覆盖。
+
+本地 qualification 只证明进程启动载体通过固定 smoke probes。真实 agent loop 仍须经过新
+calibration identity 的 route probe 与完整 8-row matrix；任何 infrastructure failure 都使新批次
+冻结，不能用补跑填洞。

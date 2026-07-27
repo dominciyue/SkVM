@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import {
+  PreIrCalibrationLockSchema,
   validatePreIrCalibrationLock,
   readAndValidatePreIrCalibrationLock,
 } from "./pre-ir-calibration.ts"
@@ -54,6 +55,25 @@ describe("pre-IR calibration lock", () => {
       lock.benchmarkGuards[index]!.sha256 = "0".repeat(64)
       await expect(validatePreIrCalibrationLock(lock, rootDir)).rejects.toThrow("digest mismatch")
     }
+  })
+
+  test("accepts a distinct runtime-qualified lock identity with an explicit compiled runtime guard", async () => {
+    const base = JSON.parse(await readFile(v2LockPath, "utf8")) as Record<string, unknown>
+    const lock = PreIrCalibrationLockSchema.parse({
+      ...base,
+      schemaVersion: "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-materialized-delta-compiled-runtime-v2",
+      executionRuntime: {
+        kind: "compiled-skvm",
+        commandMode: "direct",
+        sourceCommit: "a".repeat(40),
+        executable: { path: ".skvm/runtime/skvm.exe", sha256: "b".repeat(64) },
+        qualification: { path: "results/runtime-qualification.json", sha256: "c".repeat(64) },
+      },
+    })
+
+    expect(lock.schemaVersion).toBe("skill-ir-runtime-qualified-pre-ir-calibration-lock/v1")
+    expect("executionRuntime" in lock && lock.executionRuntime.commandMode).toBe("direct")
   })
 
   test("validates the committed law-to-markdown 8-generation identity", async () => {

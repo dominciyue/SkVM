@@ -1730,3 +1730,36 @@ normalization 与 gate reporting，不改动历史冻结的通用 runner/scoring
 public contract、evaluator、threshold、freeze 或 lock。原批次保持冻结，不补跑失败行。若继续，
 必须先用独立 calibration identity
 和新 lock 预注册稳定 SkVM execution runtime，再完整运行新矩阵；这不是 v3/v4 benchmark。
+
+#### 24.9.6 Stable execution runtime qualification
+
+后续 calibration 保持 `experimental-design-v2` 与 `materialized-delta/v1` 不变，只替换并冻结
+执行载体。运行时资格使用独立身份 `skill-ir-execution-runtime-qualification/v1`，首个目标载体为
+由当前源码编译的 Windows `skvm.exe`。资格报告只属于 infrastructure evidence，固定
+`methodEvidence=false`，不得进入 scorer、IR、artifact、PGO、模型比较或主 claim。
+
+资格流程固定为：
+
+```text
+build compiled executable from a committed source tree
+-> bind executable SHA-256, source commit, Bun version, platform and architecture
+-> run 20 sequential local --help probes
+-> require 20/20 exit code 0, zero timeout and zero Bun crash signature
+-> freeze compact qualification report
+-> bind report + executable in a new calibration lock
+```
+
+探测次数和零失败阈值不得从探测结果反推。报告不保存绝对路径、环境变量值、secret 或命令
+stderr 正文，只保存失败分类和计数。可执行文件本身是本机实验载体，不提交仓库；新 lock 必须
+绑定其仓库相对 locator、SHA-256、qualification report digest、构建源码提交和 direct command
+mode。缺文件、digest/commit/platform 漂移或资格报告非 `passed` 均 fail closed。
+
+为避免改变普通 corpus 和历史 execution freeze，direct executable 投影只允许在
+`pre-ir-calibration-run` 读取上述 runtime-qualified lock 后发生：原计划命令必须以
+`bun run skvm run` 开头，投影结果固定为 `<qualified executable> run ...`，其余参数逐项保持。
+旧 `skill-ir-pre-ir-calibration-lock/v1|v2` 继续使用原命令，不允许隐式读取环境变量覆盖运行时。
+
+本地资格通过只解除 route probe 前的 infrastructure 阻塞，不证明真实 agent loop 稳定。必须
+使用新的 calibration identity 完整运行 8 行、`retries=0`；只有零 infrastructure 才允许解释
+paired semantic result。新批次若仍出现任一 infrastructure failure，整批冻结并停止，不补跑
+失败行、不修改 benchmark，也不把失败归因于 skill 或模型能力。

@@ -7,7 +7,9 @@ import {
   buildPreIrCalibrationPlan,
   compactPreIrRouteProbe,
   parsePreIrCalibrationRunArgs,
+  projectPreIrPlanRuntime,
 } from "./pre-ir-calibration-run.ts"
+import type { PreIrCalibrationLock } from "./pre-ir-calibration.ts"
 
 const rootDir = path.resolve(import.meta.dir, "../../..")
 const lockPath = path.join(
@@ -40,6 +42,37 @@ describe("pre-IR calibration runner", () => {
         "experimental-design-v2-cluster-sequential-dev-002",
       ]))
       expect(result.plan.every((row) => !row.caseId.includes("heldout"))).toBe(true)
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
+  })
+
+  test("keeps legacy commands unchanged and projects only a runtime-qualified plan", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-runtime-plan-"))
+    try {
+      const result = await buildPreIrCalibrationPlan({
+        rootDir,
+        lockPath: v2LockPath,
+        outDir,
+        phase: "plan",
+      })
+      expect(projectPreIrPlanRuntime(result.plan, result.lock, rootDir)).toEqual(result.plan)
+
+      const qualified = {
+        ...result.lock,
+        schemaVersion: "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1",
+        executionRuntime: {
+          kind: "compiled-skvm",
+          commandMode: "direct",
+          sourceCommit: "a".repeat(40),
+          executable: { path: ".skvm/runtime/skvm.exe", sha256: "b".repeat(64) },
+          qualification: { path: "results/runtime-qualification.json", sha256: "c".repeat(64) },
+        },
+      } as unknown as PreIrCalibrationLock
+      const projected = projectPreIrPlanRuntime(result.plan, qualified, rootDir)
+      expect(projected.every((row) => row.command[0] === path.resolve(rootDir, ".skvm/runtime/skvm.exe"))).toBe(true)
+      expect(projected.every((row) => row.command[1] === "run")).toBe(true)
+      expect(result.plan.every((row) => row.command.slice(0, 4).join(" ") === "bun run skvm run")).toBe(true)
     } finally {
       await rm(outDir, { recursive: true, force: true })
     }

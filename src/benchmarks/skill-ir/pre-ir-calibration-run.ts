@@ -21,6 +21,7 @@ import {
   runResourceProbeFile,
 } from "./resource-contract-run.ts"
 import type { ResourceProbeResult } from "./resource-contract.ts"
+import { projectQualifiedPreIrCommand } from "./pre-ir-runtime-qualification.ts"
 
 export type PreIrCalibrationPhase = "plan" | "route-probe" | "execute"
 
@@ -94,6 +95,19 @@ function calibrationRunArgs(
   }
 }
 
+export function projectPreIrPlanRuntime(
+  plan: RealAgentRunPlanEntry[],
+  lock: PreIrCalibrationLock,
+  rootDir: string,
+): RealAgentRunPlanEntry[] {
+  if (lock.schemaVersion !== "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1") return plan
+  const executablePath = path.resolve(rootDir, lock.executionRuntime.executable.path)
+  return plan.map((entry) => ({
+    ...entry,
+    command: projectQualifiedPreIrCommand(entry.command, executablePath),
+  }))
+}
+
 export async function buildPreIrCalibrationPlan(
   opts: PreIrCalibrationRunArgs,
 ): Promise<PreIrCalibrationPlan> {
@@ -108,7 +122,7 @@ export async function buildPreIrCalibrationPlan(
   )) as { skills: Array<{ id?: string; status?: string }> }
   const allowTasksAuthored = manifest.skills.find((skill) => skill.id === lock.skillId)?.status === "tasks-authored"
   const runArgs = calibrationRunArgs(lock, rootDir, outDir, execute, allowTasksAuthored)
-  const plan = await buildPlan(runArgs)
+  const plan = projectPreIrPlanRuntime(await buildPlan(runArgs), lock, rootDir)
   if (plan.length !== lock.matrix.expectedRows) {
     throw new Error(`Pre-IR calibration row mismatch: expected ${lock.matrix.expectedRows}, got ${plan.length}`)
   }

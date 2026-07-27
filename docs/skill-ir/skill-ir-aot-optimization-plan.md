@@ -2255,3 +2255,19 @@ freeze failed v2 batch
 
 该步骤只替换并冻结 execution runtime，不修改 v2 task/public contract/evaluator/threshold，不创建
 v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并停止付费实验。
+
+### Task 16.7：Stable execution runtime qualification
+
+- [x] 冻结 `skill-ir-execution-runtime-qualification/v1`：编译产物绑定 source commit、Bun
+  version、platform/arch 和 executable SHA-256；固定 20 次顺序 `--help` probe、零失败、零
+  timeout、零 Bun crash signature。
+- [x] RED/GREEN：资格报告拒绝失败计数、绝对路径、digest/commit/platform 漂移；新增
+  runtime-qualified pre-IR lock，绑定 report 与 executable，但不改变 v2 task/scorer/threshold。
+- [x] RED/GREEN：pre-IR plan 只对 runtime-qualified lock 将 `bun run skvm run` 投影为
+  `<qualified executable> run`；普通 runner、v1/v2 lock 和历史 execution freeze 保持原行为。
+- [ ] 构建本机 `skvm.exe`，运行本地资格门禁并提交 compact report 与新 calibration lock；binary
+  只作本地载体，不进 Git。
+- [ ] 新 identity 下依次执行 dry-run、resource/route probe 和完整 8-row development matrix；
+  `retries=0`、infrastructure 必须为 0，失败则冻结且不补跑。
+- [ ] 评分、gate、compact results、权威文档和 conversation log 同步；只有 gate 通过才恢复
+  base IR audit，held-out 仍保持禁止。
