@@ -129,4 +129,15 @@ describe("route-probe helpers", () => {
       await rm(root, { recursive: true, force: true });
     }
   }, 5_000);
+
+  test("runCommandWithTimeout passes an explicit child environment", async () => {
+    const result = await runCommandWithTimeout([
+      process.execPath,
+      "-e",
+      "console.log(process.env.SKVM_TEST_CHILD_ENV ?? 'missing')",
+    ], 5_000, { ...process.env, SKVM_TEST_CHILD_ENV: "bound" });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout.trim()).toBe("bound");
+  });
 });

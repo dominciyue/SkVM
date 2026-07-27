@@ -120,11 +120,16 @@ async function terminateTimedOutProcess(proc: { pid: number; kill(): void }): Pr
   proc.kill();
 }
 
-export async function runCommandWithTimeout(command: string[], timeoutMs: number): Promise<ProbeExecution> {
+export async function runCommandWithTimeout(
+  command: string[],
+  timeoutMs: number,
+  env: Record<string, string | undefined> = process.env,
+): Promise<ProbeExecution> {
   const startedAt = Date.now();
   const proc = Bun.spawn(command, {
     stdout: "pipe",
     stderr: "pipe",
+    env,
   });
   let timedOut = false;
   let timer: Timer | undefined;

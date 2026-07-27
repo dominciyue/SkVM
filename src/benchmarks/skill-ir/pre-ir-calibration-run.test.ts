@@ -132,8 +132,9 @@ describe("pre-IR calibration runner", () => {
     } as unknown as PreIrCalibrationLock
     delete process.env.SKVM_CACHE
     try {
-      await expect(withQualifiedPreIrRuntimeEnvironment(lock, rootDir, async () => {
-        expect(process.env.SKVM_CACHE).toBe(path.resolve(rootDir, ".skvm"))
+      await expect(withQualifiedPreIrRuntimeEnvironment(lock, rootDir, async (env) => {
+        expect(env.SKVM_CACHE).toBe(path.resolve(rootDir, ".skvm"))
+        expect(process.env.SKVM_CACHE).toBeUndefined()
         throw new Error("test callback failure")
       })).rejects.toThrow("test callback failure")
       expect(process.env.SKVM_CACHE).toBeUndefined()

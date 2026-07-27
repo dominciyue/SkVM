@@ -111,22 +111,18 @@ export function projectPreIrPlanRuntime(
 export async function withQualifiedPreIrRuntimeEnvironment<T>(
   lock: PreIrCalibrationLock,
   rootDir: string,
-  operation: () => Promise<T>,
+  operation: (env: Record<string, string | undefined>) => Promise<T>,
 ): Promise<T> {
   if (
     lock.schemaVersion !== "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1"
     || lock.executionRuntime.cacheRoot === undefined
   ) {
-    return operation()
+    return operation(process.env)
   }
-  const previous = process.env.SKVM_CACHE
-  process.env.SKVM_CACHE = path.resolve(rootDir, lock.executionRuntime.cacheRoot)
-  try {
-    return await operation()
-  } finally {
-    if (previous === undefined) delete process.env.SKVM_CACHE
-    else process.env.SKVM_CACHE = previous
-  }
+  return operation({
+    ...process.env,
+    SKVM_CACHE: path.resolve(rootDir, lock.executionRuntime.cacheRoot),
+  })
 }
 
 export async function buildPreIrCalibrationPlan(
@@ -305,7 +301,7 @@ export async function runPreIrCalibrationPhase(opts: PreIrCalibrationRunArgs): P
     const execution = await withQualifiedPreIrRuntimeEnvironment(
       result.lock,
       result.runArgs.rootDir,
-      () => runCommandWithTimeout(entry.command, result.lock.runtime.routeProbeTimeoutMs),
+      (env) => runCommandWithTimeout(entry.command, result.lock.runtime.routeProbeTimeoutMs, env),
     )
     const probe = compactPreIrRouteProbe({
       calibrationId: result.calibrationId,
@@ -326,7 +322,7 @@ export async function runPreIrCalibrationPhase(opts: PreIrCalibrationRunArgs): P
   await withQualifiedPreIrRuntimeEnvironment(
     result.lock,
     result.runArgs.rootDir,
-    () => executePlan(result.plan, result.runArgs),
+    (env) => executePlan(result.plan, result.runArgs, env),
   )
   return {
     calibrationId: result.calibrationId,

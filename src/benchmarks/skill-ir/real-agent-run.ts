@@ -775,7 +775,11 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
   return plan;
 }
 
-export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgentRunArgs): Promise<void> {
+export async function executePlan(
+  plan: RealAgentRunPlanEntry[],
+  args: RealAgentRunArgs,
+  agentEnv: Record<string, string | undefined> = process.env,
+): Promise<void> {
   const outDir = args.outDir;
   const rawRunsPath = join(outDir, "raw-runs.jsonl");
   await writeFile(rawRunsPath, "", "utf8");
@@ -876,6 +880,7 @@ export async function executePlan(plan: RealAgentRunPlanEntry[], args: RealAgent
         const proc = Bun.spawn(item.command, {
           stdout: "pipe",
           stderr: "pipe",
+          env: agentEnv,
         });
         const [stdout, stderr, exitCode] = await Promise.all([
           new Response(proc.stdout).text(),
