@@ -113,16 +113,16 @@ export async function withQualifiedPreIrRuntimeEnvironment<T>(
   rootDir: string,
   operation: (env: Record<string, string | undefined>) => Promise<T>,
 ): Promise<T> {
-  if (
-    !("executionRuntime" in lock)
-    || lock.executionRuntime.cacheRoot === undefined
-  ) {
-    return operation(process.env)
+  if (!("executionRuntime" in lock)) return operation(process.env)
+  const env: Record<string, string | undefined> = { ...process.env }
+  if (lock.executionRuntime.cacheRoot !== undefined) {
+    env.SKVM_CACHE = path.resolve(rootDir, lock.executionRuntime.cacheRoot)
   }
-  return operation({
-    ...process.env,
-    SKVM_CACHE: path.resolve(rootDir, lock.executionRuntime.cacheRoot),
-  })
+  if ("nodeHttpTransport" in lock) {
+    env.SKVM_OPENAI_HTTP_NODE = path.resolve(rootDir, lock.nodeHttpTransport.nodeExecutable.path)
+    env.SKVM_OPENAI_HTTP_HELPER = path.resolve(rootDir, lock.nodeHttpTransport.helper.path)
+  }
+  return operation(env)
 }
 
 export async function buildPreIrCalibrationPlan(

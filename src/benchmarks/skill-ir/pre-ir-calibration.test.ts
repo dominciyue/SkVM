@@ -96,6 +96,30 @@ describe("pre-IR calibration lock", () => {
     expect("executionRuntime" in lock && lock.executionRuntime.commandMode).toBe("direct")
   })
 
+  test("accepts a distinct Node HTTP transport candidate identity", async () => {
+    const base = JSON.parse(await readFile(v2LockPath, "utf8")) as Record<string, unknown>
+    const lock = PreIrCalibrationLockSchema.parse({
+      ...base,
+      schemaVersion: "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-node-http-candidate-v1",
+      executionRuntime: {
+        kind: "compiled-skvm",
+        commandMode: "direct",
+        sourceCommit: "a".repeat(40),
+        executable: { path: ".skvm/runtime/skvm.exe", sha256: "b".repeat(64) },
+        qualification: { path: "results/runtime-qualification.json", sha256: "c".repeat(64) },
+      },
+      nodeHttpTransport: {
+        kind: "node-http-helper",
+        nodeExecutable: { path: ".skvm/runtime/node.exe", sha256: "d".repeat(64) },
+        helper: { path: "src/providers/openai-compatible-node-helper.mjs", sha256: "e".repeat(64) },
+      },
+    })
+
+    expect(lock.schemaVersion).toBe("skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1")
+    expect("nodeHttpTransport" in lock && lock.nodeHttpTransport.kind).toBe("node-http-helper")
+  })
+
   test("validates the committed runtime-qualified experimental-design v2 lock", async () => {
     const lock = await readAndValidatePreIrCalibrationLock({ rootDir, lockPath: v2RuntimeLockPath })
 
@@ -138,27 +162,11 @@ describe("pre-IR calibration lock", () => {
     })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration-run.ts digest mismatch")
   })
 
-  test("validates the fetch-qualified Bun 1.3.13 calibration identity", async () => {
-    const lock = await readAndValidatePreIrCalibrationLock({
+  test("rejects the historical fetch-qualified matrix after transport orchestration evolves", async () => {
+    await expect(readAndValidatePreIrCalibrationLock({
       rootDir,
       lockPath: v2Bun1313CalibrationLockPath,
-    })
-
-    expect(lock).toMatchObject({
-      schemaVersion: "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1",
-      calibrationId: "experimental-design-v2-materialized-delta-bun-1.3.13-calibration-v1",
-      adapter: { version: "compiled-experimental-design-v2-bun-1.3.13-calibration-v1" },
-      fetchActiveQualification: {
-        kind: "fetch-active-runtime-qualification",
-        path: "results/skill-ir/experimental-design-v2-bun-1.3.13-fetch-active-qualification-2026-07-27.json",
-        candidateLock: {
-          path: "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-bun-1.3.13-fetch-active-calibration-lock.json",
-        },
-      },
-      executionRuntime: {
-        executable: { path: ".skvm/runtime/bun-1.3.13-2026-07-27/skvm.exe" },
-      },
-    })
+    })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration.ts digest mismatch")
   })
 
   test("rejects fetch-qualified calibration when the report or candidate lock identity drifts", async () => {

@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises"
+import { lstat, readFile } from "node:fs/promises"
 import path from "node:path"
 import { z } from "zod"
 import { SafeRelativePathSchema, Sha256Schema } from "./artifact-package.ts"
@@ -128,11 +128,26 @@ const FetchQualifiedPreIrCalibrationLockV1Schema = z.object({
   fetchActiveQualification: PreIrFetchActiveQualificationGuardSchema,
 }).strict().superRefine(requireUniqueTaskIds)
 
+const PreIrNodeHttpTransportGuardSchema = z.object({
+  kind: z.literal("node-http-helper"),
+  nodeExecutable: FrozenFileSchema,
+  helper: FrozenFileSchema,
+}).strict()
+
+const NodeHttpRuntimeQualifiedPreIrCalibrationLockV1Schema = z.object({
+  schemaVersion: z.literal("skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"),
+  ...PreIrCalibrationLockFields,
+  benchmarkGuards: PreIrBenchmarkGuardsSchema,
+  executionRuntime: PreIrExecutionRuntimeGuardSchema,
+  nodeHttpTransport: PreIrNodeHttpTransportGuardSchema,
+}).strict().superRefine(requireUniqueTaskIds)
+
 export const PreIrCalibrationLockSchema = z.union([
   PreIrCalibrationLockV1Schema,
   PreIrCalibrationLockV2Schema,
   RuntimeQualifiedPreIrCalibrationLockV1Schema,
   FetchQualifiedPreIrCalibrationLockV1Schema,
+  NodeHttpRuntimeQualifiedPreIrCalibrationLockV1Schema,
 ])
 
 export type PreIrCalibrationLock = z.infer<typeof PreIrCalibrationLockSchema>
@@ -219,6 +234,24 @@ async function verifyFetchActiveQualification(
   }
 }
 
+async function verifyNodeHttpTransport(
+  lock: Extract<PreIrCalibrationLock, {
+    schemaVersion: "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1"
+  }>,
+  rootDir: string,
+): Promise<void> {
+  for (const [label, file] of Object.entries({
+    "node executable": lock.nodeHttpTransport.nodeExecutable,
+    "helper source": lock.nodeHttpTransport.helper,
+  })) {
+    await verifyDigest(rootDir, file)
+    const stat = await lstat(path.resolve(rootDir, file.path))
+    if (!stat.isFile() || stat.isSymbolicLink()) {
+      throw new Error(`Pre-IR Node HTTP transport ${label} must be a regular file`)
+    }
+  }
+}
+
 export async function validatePreIrCalibrationLock(
   input: unknown,
   rootDir: string,
@@ -232,6 +265,9 @@ export async function validatePreIrCalibrationLock(
   }
   if (lock.schemaVersion === "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1") {
     await verifyFetchActiveQualification(lock, rootDir)
+  }
+  if (lock.schemaVersion === "skill-ir-node-http-runtime-qualified-pre-ir-calibration-lock/v1") {
+    await verifyNodeHttpTransport(lock, rootDir)
   }
 
   const manifest = overrides.manifest ?? JSON.parse(await readFile(

@@ -8,6 +8,11 @@ import {
   RETRYABLE_HTTP_STATUS,
   looksLikeNetworkError,
 } from "./errors.ts"
+import {
+  createOpenAICompatibleHttpTransport,
+  fetchOpenAICompatibleHttp,
+  type OpenAICompatibleHttpTransport,
+} from "./openai-compatible-transport.ts"
 
 interface OAIMessage {
   role: string
@@ -47,17 +52,20 @@ export class OpenAICompatibleProvider implements LLMProvider {
   private apiKey: string
   private model: string
   private baseUrl: string
+  private transport: OpenAICompatibleHttpTransport
 
   constructor(opts: {
     apiKey: string
     model: string
     baseUrl: string
     displayName?: string
+    transport?: OpenAICompatibleHttpTransport
   }) {
     this.apiKey = opts.apiKey
     this.model = opts.model
     this.baseUrl = opts.baseUrl.replace(/\/+$/, "")
     this.name = opts.displayName ?? deriveName(opts.baseUrl)
+    this.transport = opts.transport ?? createOpenAICompatibleHttpTransport() ?? fetchOpenAICompatibleHttp
   }
 
   async complete(params: CompletionParams): Promise<LLMResponse> {
@@ -161,16 +169,9 @@ export class OpenAICompatibleProvider implements LLMProvider {
     const url = `${this.baseUrl}/chat/completions`
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const startMs = performance.now()
-      let res: Response
+      let res: Awaited<ReturnType<OpenAICompatibleHttpTransport>>
       try {
-        res = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
-          },
-          body: JSON.stringify(body),
-        })
+        res = await this.transport({ url, apiKey: this.apiKey, body })
       } catch (error) {
         const canRetry = attempt < maxRetries && looksLikeNetworkError(error)
         if (canRetry) {
@@ -184,19 +185,19 @@ export class OpenAICompatibleProvider implements LLMProvider {
         )
       }
 
-      if (res.ok) {
-        const data = await res.json() as Record<string, unknown>
+      if (res.status >= 200 && res.status < 300) {
+        const data = JSON.parse(res.body) as Record<string, unknown>
         const durationMs = performance.now() - startMs
         return this.parseResponse(data, durationMs)
       }
 
       if (RETRYABLE_HTTP_STATUS.has(res.status) && attempt < maxRetries) {
-        const delayMs = this.getRetryDelayMs(attempt, res.headers.get("retry-after"))
+        const delayMs = this.getRetryDelayMs(attempt, res.headers["retry-after"])
         await Bun.sleep(delayMs)
         continue
       }
 
-      const errText = await res.text()
+      const errText = res.body
       if (res.status === 401 || res.status === 403) {
         throw new ProviderAuthError(
           `${this.name} authentication failed (${res.status}): ${errText.slice(0, 500)}`,
