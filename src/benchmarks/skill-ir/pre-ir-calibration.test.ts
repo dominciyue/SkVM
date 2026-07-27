@@ -24,6 +24,10 @@ const v2ConfigBoundLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-config-bound-calibration-lock.json",
 )
+const v2ExplicitChildEnvLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-explicit-child-env-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
@@ -109,6 +113,26 @@ describe("pre-IR calibration lock", () => {
       calibrationId: "experimental-design-v2-materialized-delta-config-bound-runtime-v1",
       adapter: { version: "compiled-experimental-design-v2-config-bound-v1" },
       executionRuntime: { cacheRoot: ".skvm" },
+    })
+  })
+
+  test("validates the explicit-child-env replacement and its frozen orchestration", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({
+      rootDir,
+      lockPath: v2ExplicitChildEnvLockPath,
+    })
+
+    expect(lock).toMatchObject({
+      calibrationId: "experimental-design-v2-materialized-delta-explicit-child-env-v1",
+      adapter: { version: "compiled-experimental-design-v2-explicit-child-env-v1" },
+      executionRuntime: {
+        cacheRoot: ".skvm",
+        orchestration: [
+          { path: "src/benchmarks/skill-ir/pre-ir-calibration-run.ts" },
+          { path: "src/benchmarks/skill-ir/route-probe.ts" },
+          { path: "src/benchmarks/skill-ir/real-agent-run.ts" },
+        ],
+      },
     })
   })
 

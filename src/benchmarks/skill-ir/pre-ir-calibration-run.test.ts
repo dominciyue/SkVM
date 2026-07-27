@@ -29,6 +29,10 @@ const v2ConfigBoundLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-config-bound-calibration-lock.json",
 )
+const v2ExplicitChildEnvLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-explicit-child-env-calibration-lock.json",
+)
 
 describe("pre-IR calibration runner", () => {
   test("compiles the frozen experimental-design v2 materialized-delta calibration", async () => {
@@ -119,6 +123,32 @@ describe("pre-IR calibration runner", () => {
       expect(result.plan).toHaveLength(8)
       expect(result.lock).toMatchObject({ executionRuntime: { cacheRoot: ".skvm" } })
       expect(result.plan.every((row) => row.command[0] === path.resolve(rootDir, "dist/skvm.exe"))).toBe(true)
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
+  })
+
+  test("compiles the explicit-child-env replacement with frozen orchestration", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-explicit-child-env-plan-"))
+    try {
+      const result = await buildPreIrCalibrationPlan({
+        rootDir,
+        lockPath: v2ExplicitChildEnvLockPath,
+        outDir,
+        phase: "plan",
+      })
+
+      expect(result.plan).toHaveLength(8)
+      expect(result.lock.schemaVersion).toBe("skill-ir-runtime-qualified-pre-ir-calibration-lock/v1")
+      if (result.lock.schemaVersion !== "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1") {
+        throw new Error("Expected runtime-qualified lock")
+      }
+      expect(result.lock.executionRuntime).toMatchObject({
+        cacheRoot: ".skvm",
+        orchestration: expect.any(Array),
+      })
+      expect(result.plan.every((row) => path.resolve(row.command[0]!) === path.join(rootDir, "dist/skvm.exe")))
+        .toBe(true)
     } finally {
       await rm(outDir, { recursive: true, force: true })
     }
