@@ -32,6 +32,10 @@ const v2Bun1313FetchActiveLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-bun-1.3.13-fetch-active-calibration-lock.json",
 )
+const v2Bun1313CalibrationLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-bun-1.3.13-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
@@ -120,52 +124,57 @@ describe("pre-IR calibration lock", () => {
     })
   })
 
-  test("validates the explicit-child-env replacement and its frozen orchestration", async () => {
-    const lock = await readAndValidatePreIrCalibrationLock({
+  test("rejects the historical explicit-child-env identity after bound orchestration drifts", async () => {
+    await expect(readAndValidatePreIrCalibrationLock({
       rootDir,
       lockPath: v2ExplicitChildEnvLockPath,
+    })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration-run.ts digest mismatch")
+  })
+
+  test("rejects the historical fetch-active candidate after bound orchestration drifts", async () => {
+    await expect(readAndValidatePreIrCalibrationLock({
+      rootDir,
+      lockPath: v2Bun1313FetchActiveLockPath,
+    })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration-run.ts digest mismatch")
+  })
+
+  test("validates the fetch-qualified Bun 1.3.13 calibration identity", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({
+      rootDir,
+      lockPath: v2Bun1313CalibrationLockPath,
     })
 
     expect(lock).toMatchObject({
-      calibrationId: "experimental-design-v2-materialized-delta-explicit-child-env-v1",
-      adapter: { version: "compiled-experimental-design-v2-explicit-child-env-v1" },
+      schemaVersion: "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-materialized-delta-bun-1.3.13-calibration-v1",
+      adapter: { version: "compiled-experimental-design-v2-bun-1.3.13-calibration-v1" },
+      fetchActiveQualification: {
+        kind: "fetch-active-runtime-qualification",
+        path: "results/skill-ir/experimental-design-v2-bun-1.3.13-fetch-active-qualification-2026-07-27.json",
+        candidateLock: {
+          path: "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-bun-1.3.13-fetch-active-calibration-lock.json",
+        },
+      },
       executionRuntime: {
-        cacheRoot: ".skvm",
-        orchestration: [
-          { path: "src/benchmarks/skill-ir/pre-ir-calibration-run.ts" },
-          { path: "src/benchmarks/skill-ir/route-probe.ts" },
-          { path: "src/benchmarks/skill-ir/real-agent-run.ts" },
-        ],
+        executable: { path: ".skvm/runtime/bun-1.3.13-2026-07-27/skvm.exe" },
       },
     })
   })
 
-  test("validates the Bun 1.3.13 fetch-active candidate and its diagnostic orchestration", async () => {
-    const lock = await readAndValidatePreIrCalibrationLock({
-      rootDir,
-      lockPath: v2Bun1313FetchActiveLockPath,
-    })
+  test("rejects fetch-qualified calibration when the report or candidate lock identity drifts", async () => {
+    const base = JSON.parse(await readFile(v2Bun1313CalibrationLockPath, "utf8")) as {
+      fetchActiveQualification: {
+        sha256: string
+        candidateLock: { sha256: string }
+      }
+    }
+    const reportDrift = structuredClone(base)
+    reportDrift.fetchActiveQualification.sha256 = "0".repeat(64)
+    await expect(validatePreIrCalibrationLock(reportDrift, rootDir)).rejects.toThrow("digest mismatch")
 
-    expect(lock).toMatchObject({
-      schemaVersion: "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1",
-      calibrationId: "experimental-design-v2-materialized-delta-bun-1.3.13-fetch-active-v1",
-      adapter: { version: "compiled-experimental-design-v2-bun-1.3.13-fetch-active-v1" },
-      executionRuntime: {
-        sourceCommit: "d384d35c69663c6450e475476240185dae4178ac",
-        cacheRoot: ".skvm",
-        executable: { path: ".skvm/runtime/bun-1.3.13-2026-07-27/skvm.exe" },
-        qualification: {
-          path: "results/skill-ir/experimental-design-v2-bun-1.3.13-startup-qualification-2026-07-27.json",
-        },
-        orchestration: [
-          { path: "src/benchmarks/skill-ir/pre-ir-calibration-run.ts" },
-          { path: "src/benchmarks/skill-ir/route-probe.ts" },
-          { path: "src/benchmarks/skill-ir/real-agent-run.ts" },
-          { path: "src/benchmarks/skill-ir/pre-ir-fetch-active-qualification-run.ts" },
-          { path: "src/benchmarks/skill-ir/pre-ir-route-diagnostic.ts" },
-        ],
-      },
-    })
+    const candidateDrift = structuredClone(base)
+    candidateDrift.fetchActiveQualification.candidateLock.sha256 = "0".repeat(64)
+    await expect(validatePreIrCalibrationLock(candidateDrift, rootDir)).rejects.toThrow("digest mismatch")
   })
 
   test("validates the committed law-to-markdown 8-generation identity", async () => {

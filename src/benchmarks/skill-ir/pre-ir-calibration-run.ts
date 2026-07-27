@@ -100,7 +100,7 @@ export function projectPreIrPlanRuntime(
   lock: PreIrCalibrationLock,
   rootDir: string,
 ): RealAgentRunPlanEntry[] {
-  if (lock.schemaVersion !== "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1") return plan
+  if (!("executionRuntime" in lock)) return plan
   const executablePath = path.resolve(rootDir, lock.executionRuntime.executable.path)
   return plan.map((entry) => ({
     ...entry,
@@ -114,7 +114,7 @@ export async function withQualifiedPreIrRuntimeEnvironment<T>(
   operation: (env: Record<string, string | undefined>) => Promise<T>,
 ): Promise<T> {
   if (
-    lock.schemaVersion !== "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1"
+    !("executionRuntime" in lock)
     || lock.executionRuntime.cacheRoot === undefined
   ) {
     return operation(process.env)

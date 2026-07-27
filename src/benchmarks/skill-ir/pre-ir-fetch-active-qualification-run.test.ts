@@ -10,7 +10,7 @@ import {
 const rootDir = path.resolve(import.meta.dir, "../../..")
 const lockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-explicit-child-env-calibration-lock.json",
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-runtime-qualified-calibration-lock.json",
 )
 
 async function writePublicContract(workDir: string): Promise<void> {

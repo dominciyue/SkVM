@@ -9,6 +9,7 @@ import {
   PreIrExecutionRuntimeGuardSchema,
   verifyPreIrExecutionRuntimeGuard,
 } from "./pre-ir-runtime-qualification.ts"
+import { PreIrFetchActiveQualificationReportSchema } from "./pre-ir-fetch-active-qualification.ts"
 
 const FrozenFileSchema = z.object({
   path: SafeRelativePathSchema,
@@ -114,10 +115,24 @@ const RuntimeQualifiedPreIrCalibrationLockV1Schema = z.object({
   executionRuntime: PreIrExecutionRuntimeGuardSchema,
 }).strict().superRefine(requireUniqueTaskIds)
 
+const PreIrFetchActiveQualificationGuardSchema = FrozenFileSchema.extend({
+  kind: z.literal("fetch-active-runtime-qualification"),
+  candidateLock: FrozenFileSchema,
+}).strict()
+
+const FetchQualifiedPreIrCalibrationLockV1Schema = z.object({
+  schemaVersion: z.literal("skill-ir-fetch-qualified-pre-ir-calibration-lock/v1"),
+  ...PreIrCalibrationLockFields,
+  benchmarkGuards: PreIrBenchmarkGuardsSchema,
+  executionRuntime: PreIrExecutionRuntimeGuardSchema,
+  fetchActiveQualification: PreIrFetchActiveQualificationGuardSchema,
+}).strict().superRefine(requireUniqueTaskIds)
+
 export const PreIrCalibrationLockSchema = z.union([
   PreIrCalibrationLockV1Schema,
   PreIrCalibrationLockV2Schema,
   RuntimeQualifiedPreIrCalibrationLockV1Schema,
+  FetchQualifiedPreIrCalibrationLockV1Schema,
 ])
 
 export type PreIrCalibrationLock = z.infer<typeof PreIrCalibrationLockSchema>
@@ -166,6 +181,44 @@ async function verifyBenchmarkGuards(lock: PreIrCalibrationLock, rootDir: string
   }
 }
 
+async function verifyFetchActiveQualification(
+  lock: Extract<PreIrCalibrationLock, { schemaVersion: "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1" }>,
+  rootDir: string,
+): Promise<void> {
+  await verifyDigest(rootDir, lock.fetchActiveQualification)
+  await verifyDigest(rootDir, lock.fetchActiveQualification.candidateLock)
+  const report = PreIrFetchActiveQualificationReportSchema.parse(JSON.parse(await readFile(
+    path.resolve(rootDir, lock.fetchActiveQualification.path),
+    "utf8",
+  )))
+  const candidate = RuntimeQualifiedPreIrCalibrationLockV1Schema.parse(JSON.parse(await readFile(
+    path.resolve(rootDir, lock.fetchActiveQualification.candidateLock.path),
+    "utf8",
+  )))
+  if (
+    report.status !== "passed"
+    || report.diagnostic.failureCode !== "none"
+    || report.diagnostic.exitCode !== 0
+    || report.diagnostic.timedOut
+    || report.outputMaterialization.missing.length !== 0
+    || report.outputMaterialization.present !== report.outputMaterialization.declared
+  ) {
+    throw new Error("Pre-IR fetch-active runtime qualification did not pass")
+  }
+  if (
+    report.lockSha256 !== lock.fetchActiveQualification.candidateLock.sha256
+    || report.calibrationId !== candidate.calibrationId
+    || candidate.executionRuntime.sourceCommit !== lock.executionRuntime.sourceCommit
+    || candidate.executionRuntime.executable.sha256 !== lock.executionRuntime.executable.sha256
+    || candidate.executionRuntime.qualification.sha256 !== lock.executionRuntime.qualification.sha256
+    || report.runtimeCandidate.sourceCommit !== lock.executionRuntime.sourceCommit
+    || report.runtimeCandidate.executableSha256 !== lock.executionRuntime.executable.sha256
+    || report.runtimeCandidate.startupQualificationSha256 !== lock.executionRuntime.qualification.sha256
+  ) {
+    throw new Error("Pre-IR fetch-active runtime qualification identity mismatch")
+  }
+}
+
 export async function validatePreIrCalibrationLock(
   input: unknown,
   rootDir: string,
@@ -174,8 +227,11 @@ export async function validatePreIrCalibrationLock(
   const lock = PreIrCalibrationLockSchema.parse(input)
   await Promise.all(Object.values(lock.frozenInputs).map((file) => verifyDigest(rootDir, file)))
   await verifyBenchmarkGuards(lock, rootDir)
-  if (lock.schemaVersion === "skill-ir-runtime-qualified-pre-ir-calibration-lock/v1") {
+  if ("executionRuntime" in lock) {
     await verifyPreIrExecutionRuntimeGuard(lock.executionRuntime, rootDir)
+  }
+  if (lock.schemaVersion === "skill-ir-fetch-qualified-pre-ir-calibration-lock/v1") {
+    await verifyFetchActiveQualification(lock, rootDir)
   }
 
   const manifest = overrides.manifest ?? JSON.parse(await readFile(
