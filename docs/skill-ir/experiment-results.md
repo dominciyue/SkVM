@@ -940,3 +940,55 @@ source fetch-qualified 8-row lock，重新走 preflight 和零 infrastructure ga
 results/skill-ir/experimental-design-v2-source-runtime-qualification-2026-07-27.json
 results/skill-ir/experimental-design-v2-node-http-source-fetch-active-qualification-2026-07-27.json
 ```
+
+## 16. Source Runtime 最终 Preflight 与 v1/v2 定量判断
+
+Source candidate 通过后建立了独立最终 lock，模型仍为 `xty/gpt-5.6-sol`。8-row plan 与 resource
+probe 均通过；最终 route 在 88.083 秒后 exit 3、未超时。三个公开输出都已生成，但 route compact
+evidence 没有 stream failure fingerprint，因此只冻结为“产物生成后的未解析 agent/runtime 非零
+退出”。本轮没有执行 8-row matrix、raw/scoring/gate、base IR 或 held-out。
+
+v1/v2 测量合同的量化差异为：
+
+| 指标 | v1 | v2 | 变化 |
+|---|---:|---:|---:|
+| Contract canary matched | 2/8 (25%) | 42/42 (100%) | +75 pp |
+| Canary 数量 | 8 | 42 | 5.25x |
+| 私有 exact-contract issue | 8 | 0 | -8 |
+| Hard gates / task | 3/6 | 5/5 | +2 个；全部语义面受保护 |
+| Pass threshold | 0.85 | 0.95 | +0.10 |
+| Materialization checks | 0 | 36/36 | +36 |
+
+所以 v2 已能被称为“本地测量合同更可信”，还不能被称为“真实区分度更高”或“Skill 优化更好”。
+v1 的 8 行可以无基础设施故障跑完，但 0.30/0.30 来自未公开 schema/enum/唯一 schedule/报告
+字面量约束；运行顺利不等于测量有效。v2 移除这些私有金标后，已完成的正常行又多次饱和到
+1.0，同时 Windows Bun agent loop 产生基础设施故障，两件事共同阻止了有效 baseline。
+
+三次完整 v2 calibration 的 infrastructure failure 依次为 3/8、2/8、2/8；可比较 pair 为
+1/4、2/4、2/4。第二批 pair delta 为 `+0.3/-0.3`，第三批为 `0/0`，都不能给出稳定 original
+方向。最终 source identity 连矩阵前 route gate 都未通过。因此当前 v2 的 task/scorer/audit 可用，
+真实优化评估尚不可用。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-node-http-source-calibration-2026-07-27/summary.json
+results/skill-ir/experimental-design-v2-node-http-source-calibration-2026-07-27/failure-audit.json
+results/skill-ir/experimental-design-v2-benchmark-comparison-2026-07-27.json
+```
+
+## 17. Wave A 当前量化总览
+
+| Skill / 阶段 | 优化前 | 当前最好结果 | Gate / 解释 |
+|---|---|---|---|
+| env-manager V4 development | complete pair pre 3/3、mean 0.90 | post 3/3、mean 1.00；schema 0/3→3/3 | 固定分母 3/4、mean 0.75、1 infra，gate failed |
+| law-to-markdown development | original 0/4、0.75；static 1/4、0.80 | artifact 4/4、0.925；3 positive / 1 equal / 0 negative | gate passed；artifact runtime 0 model token |
+| law-to-markdown held-out | best model arm static 2/4、0.8375 | artifact 2/4、0.725 | 1 positive / 1 equal / 2 regressions，gate failed |
+| experimental-design v1 | no-skill=original=0/4、0.30 | local artifact 曾为 1.00 | benchmark contract failed，分数不进主 claim |
+| experimental-design v2 | contract 42/42、materialization 36/36 | 尚无有效 no-skill/original baseline | runtime/preflight 阻断，未开始 IR/artifact |
+
+Wave A 因而只在 Law development 形成完整正向结果；Law held-out 暴露 task-boundary 回归，Env
+只有 shared-generation complete-pair 改善但固定 gate 未过，Experimental-design 只有 benchmark
+机制证据。Token 方面，Law artifact 的四次 development runtime 为 0 model token，模型三臂同批
+合计 301198 token；但 compile/package/profile 成本未按 `N=1,2,5,10` 统一摊销，仍不能声称总
+token 已降低或计算 break-even。

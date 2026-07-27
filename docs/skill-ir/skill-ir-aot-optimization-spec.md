@@ -1855,3 +1855,18 @@ orchestration 和 startup/fetch-active evidence。该候选仍须先通过 20 �
 公开输出完整。该结果只允许建立新的 source fetch-qualified 8-row identity，不进入 calibration
 分母，也不允许 base IR/held-out。最终 identity 仍需重新绑定当前 orchestration 并独立通过
 resource/route preflight。
+
+#### 24.9.10 Source final preflight 与下一运行边界
+
+最终 source fetch-qualified identity 已绑定 Bun/source entry、Node helper、candidate qualification、
+benchmark guards 和当前 parent orchestration，并生成 8-row/4-pair plan。Resource probe 为 `ok`；
+独立 route probe 在 88.083 秒后 exit 3、`status=agent`、未超时。与旧 compiled route 不同，本次
+三个公开输出均已物化，但冻结的 pre-IR route result 没有 compact stream fingerprint，无法区分
+生成完成后的 Bun assertion、adapter teardown 或其他 nonzero exit。
+
+因此该 identity 冻结为 `unresolved-agent-or-runtime-exit-after-output-materialization`：完整矩阵、
+scoring 和 gate 均不执行，不能借 candidate route 的成功替代最终 preflight。下一次付费前必须先在
+新的 identity 中让 pre-IR route 同样输出封闭 failure code、stream byte count/digest 和 output
+materialization count；不得保存 stderr/stdout 正文、模型输出、绝对路径或 secret。只有新 route
+exit 0、无 runtime failure 且三个输出完整，才允许执行 8-row。该改动属于 execution diagnostics，
+不修改 v2 task、public contract、scorer、threshold 或 held-out freeze。

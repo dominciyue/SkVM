@@ -1058,3 +1058,15 @@ compact report。
 实际 source candidate 使用官方 Bun 1.3.13：20/20 source startup 全部成功，随后唯一预注册
 `xty/gpt-5.6-sol` original development route 通过，failure code 为 `none` 且公开输出完整。这是
 execution candidate 资格证据，不是 benchmark row；它只解除“能否建立新 8-row identity”的门禁。
+
+## 26. Source Final Preflight 与当前阻断
+
+Source fetch-qualified lock 已建立并生成 8 rows / 4 pairs 的冻结 plan。最终 identity 重新执行的
+resource probe 为 `ok`，route probe 为 exit 3 / `agent` / 88.083 秒 / non-timeout，三个公开输出
+均已生成。由于 `skill-ir-pre-ir-route-probe-result/v1` 不含脱敏 stream fingerprint，该证据不能
+判定为 Bun crash、adapter teardown 或正常生成后的进程收尾错误。
+
+本轮不执行 matrix、scoring 或 gate，也不复用 candidate qualification 代替最终 route。下一
+identity 必须把现有 fetch-active closed-code diagnostic 接入 pre-IR route failure path；诊断通过
+后仍需完整 8-row 达到 0 infrastructure。该接线只属于运行基础设施，不能修改 benchmark task、
+scorer、public contract、threshold 或 held-out freeze。

@@ -2318,5 +2318,19 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
   compiled lock/command 与历史 report 字节不改变。
 - [x] 用固定 20 次 `--help` 做 startup qualification；通过后只运行一个新的预注册 fetch-active
   route。模型、task、scorer、transport helper 与超时保持不变。
-- [ ] 只有 source route 为 exit 0、无 Bun crash、公开输出齐全时才建立另一 8-row identity；失败
-  则冻结 source candidate，不补跑，不进入 base IR/held-out。
+- [x] Source candidate route 通过后建立独立 8-row identity；最终 identity 的 resource 为 `ok`，
+  但 route 在 88.083 秒后 exit 3。虽然 3/3 公开输出已物化，pre-IR compact route 缺少 stream
+  failure fingerprint，无法关闭归因。按预注册规则冻结，不执行矩阵、不补跑、不进入
+  base IR/held-out。
+
+### Task 16.11：Source Route Diagnostic Closure
+
+- [ ] RED/GREEN：让最终 pre-IR route 在 nonzero/timeout 前写 compact diagnostic，字段只允许封闭
+  failure code、exit/status、runtime identity、stream byte count/digest 和公开输出计数；禁止正文、
+  命令、绝对路径、环境值、secret 与模型文本。
+- [ ] 复用 fetch-active diagnostic 的分类逻辑与 v1 简洁 source-runner 编排，不再增加 transport 或
+  Bun 小版本候选；旧 route result、lock 和 compact evidence 保持不可变。
+- [ ] 新 identity 先做一个 route probe；只有 exit 0、failureCode=`none`、3/3 output 才执行一次
+  8-row/4-pair 矩阵。仍要求 0 infrastructure 和至少一个 differing pair，失败即冻结。
+- [ ] v2 baseline gate 真正通过前，不构造 base IR、ir-static、artifact，不运行 held-out，也不把
+  candidate qualification、聚合均分或 token 记作 skill 优化证据。
