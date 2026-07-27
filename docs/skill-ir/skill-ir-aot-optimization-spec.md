@@ -1830,3 +1830,22 @@ OpenAI-compatible request/response 的网络 I/O 移出 Bun `fetch`。默认 pro
 helper 只能由新 runtime lock 显式启用，node executable、helper source、父编排和 compact
 qualification report 都必须绑定摘要。它先通过本地协议测试和单条 fetch-active qualification，
 未过时不得建立新的 8-row identity。
+
+#### 24.9.9 Node HTTP matrix 结果与 source-runtime 假设
+
+`executable-semantic-artifact/v2` benchmark、任务、scorer、模型和阈值保持冻结后，Node HTTP
+候选通过本地协议测试、20/20 startup、单条 fetch-active qualification 和最终 route preflight。
+独立 8-row matrix 也完整写出，但其中两行仍以 Bun 1.3.13 Windows x64 internal assertion、
+exit 3 结束。两份 stderr 与旧 transport 失败具有相同 Bun crash report signature；新失败不再
+出现 `fetch(n)` counter，而分别记录 `spawn(9)`、`spawn(12)`。因此只能得出：外移远端 HTTP
+请求不足以使 compiled standalone agent runtime 稳定，不能把剩余失败归为模型或 skill 语义。
+
+Gate 因 `infrastructureFailures=2`、`noSkillNonSaturated=false`、`differingPairs=0` 失败。仅有的
+两个可比较 pair 均为 no-skill=original=1.0；其余 pair 含 infrastructure，不参与方向推断。
+同一 identity 不补跑，不允许 base IR audit 或 held-out。
+
+下一项受控诊断保留 Node helper、模型、task、scorer 和矩阵不变，只将 execution runtime 从
+compiled standalone 改为摘要绑定的 ASCII 路径 Bun + committed `src/index.ts` source entry。
+新 runtime schema/report/lock 必须与 compiled v1 分离，绑定 Bun executable、entrypoint、lock
+orchestration 和 startup/fetch-active evidence。该候选仍须先通过 20 次 startup 与唯一单 route；
+任一失败即冻结，不直接重跑 8-row。

@@ -1028,3 +1028,21 @@ pairs，gate failed。
 helper 从 stdin 接收单个 OpenAI-compatible request envelope，API key 不放入 argv；helper
 executable/source digest 与父编排进入新 lock。默认 provider 仍走原 fetch，只有新 lock 才注入
 helper env。先做本地协议测试和单 route qualification，通过后才能建立另一 8-row identity。
+
+## 25. Node HTTP Matrix 与 Source Runtime 下一候选
+
+Node helper 的本地协议、20/20 startup、单 route qualification 和最终 route preflight 均通过；
+最终冻结矩阵一次写出 8 rows / 4 pairs。不过 cluster-sequential task 的 no-skill run 2 与 original
+run 1 仍分别在 75.705 秒、107.186 秒触发 Bun 1.3.13 internal assertion，exit 3。两行 stderr
+不再含 `fetch(n)` counter，但分别含 `spawn(9)`、`spawn(12)`，且 crash report signature 与原
+compiled runtime 相同。
+
+Gate 报告 2 infrastructure、2/4 comparable pairs、0 differing pair；两个可比较 pair 都是
+no-skill=original=1.0，因而同时触发 zero-infrastructure、no-skill non-saturation 和
+distinguishability 失败。该轮只证明外移 HTTP 没有让 compiled standalone runtime 达到实验要求，
+不能解释模型能力、Skill 效果或 token 效率。
+
+下一候选不改 HTTP helper 和研究变量，只去掉 `standalone_executable`：用本地 pin 的 ASCII Bun
+直接运行 committed `src/index.ts`。Source runtime 使用独立 guard/report/lock 身份，必须绑定 Bun
+executable、entrypoint/source commit、Node helper 和 parent orchestration，并重新通过 startup 与
+fetch-active 两级资格。旧 Node matrix 和 raw/scored/workdir 不被重写。

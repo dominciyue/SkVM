@@ -2292,18 +2292,31 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
   calibration identity；否则不执行 matrix、scoring、gate、base IR 或 held-out。
 - [x] 新矩阵完整 8 rows / 4 pairs，但两行 Bun 1.3.13 internal assertion；gate failed，冻结且不
   补跑，base IR/held-out 继续禁止。
-- [ ] 同步 compact evidence、spec/plan/组件文档/experiment results/conversation log，运行 focused
+- [x] 同步 compact evidence、spec/plan/组件文档/experiment results/conversation log，运行 focused
   tests、typecheck、文档链接、secret scan 和 `git diff --check`。
 
 ### Task 16.9：显式 Node HTTP Transport Qualification
 
-- [ ] 先写协议 RED tests：Node helper 只从 stdin 接收 URL/header/body，输出封闭
+- [x] 先写协议 RED tests：Node helper 只从 stdin 接收 URL/header/body，输出封闭
   status/header/body envelope；非零退出、非法 JSON、超时和过大响应 fail closed，stderr 不进入
   compact evidence。
-- [ ] OpenAI-compatible provider 新增显式 transport seam；默认仍使用现有 fetch，只有新 lock
+- [x] OpenAI-compatible provider 新增显式 transport seam；默认仍使用现有 fetch，只有新 lock
   注入的 helper env 才使用 Node subprocess。API key 不进入 argv、文件或 compact report。
-- [ ] 新 execution lock 绑定 repository-local node executable locator/digest、helper source digest、
+- [x] 新 execution lock 绑定 repository-local node executable locator/digest、helper source digest、
   compiled SkVM、startup/fetch qualification 和 parent orchestration；旧 lock 全部保持不可变。
-- [ ] 无模型协议测试通过后只运行一条预注册 fetch-active route；失败则冻结，不运行 8-row。
-- [ ] 只有 transport route 通过才建立新的 8-row identity；仍要求 0 infrastructure、0 retries，
+- [x] 无模型协议测试通过后只运行一条预注册 fetch-active route；失败则冻结，不运行 8-row。
+- [x] 只有 transport route 通过才建立新的 8-row identity；仍要求 0 infrastructure、0 retries，
   未过 gate 不进入 base IR 或 held-out。
+- [x] Node HTTP 8-row matrix 完整执行，但两行仍触发相同 Bun internal assertion；gate 因 2 infra、
+  no-skill comparable pair 饱和和 0 differing pair 失败。冻结结果，不补跑、不进入 base IR。
+
+### Task 16.10：ASCII Bun Source Runtime Qualification
+
+- [ ] RED/GREEN：新增与 compiled v1 分离的 source-runtime guard/report schema，绑定 ASCII Bun
+  executable、committed source entry、source commit、cache、Node helper 和 parent orchestration。
+- [ ] Command projection 只接受精确 workspace prefix，并改写为 `<bun> run <entry> run ...`；旧
+  compiled lock/command 与历史 report 字节不改变。
+- [ ] 用固定 20 次 `--help` 做 startup qualification；通过后只运行一个新的预注册 fetch-active
+  route。模型、task、scorer、transport helper 与超时保持不变。
+- [ ] 只有 source route 为 exit 0、无 Bun crash、公开输出齐全时才建立另一 8-row identity；失败
+  则冻结 source candidate，不补跑，不进入 base IR/held-out。

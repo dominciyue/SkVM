@@ -892,3 +892,38 @@ results/skill-ir/experimental-design-v2-bun-1.3.13-calibration-2026-07-27/route-
 results/skill-ir/experimental-design-v2-bun-1.3.13-calibration-2026-07-27/gate.json
 results/skill-ir/experimental-design-v2-bun-1.3.13-calibration-2026-07-27/summary.json
 ```
+
+## 15. Node HTTP Transport 真实校准
+
+在不修改 v2 task、scorer、model、threshold 和 matrix 的前提下，新 provider seam 只把
+OpenAI-compatible HTTP 请求移到 Node helper。API key 通过 stdin envelope 传递，不进入 argv；
+helper、Node executable、compiled SkVM、startup/fetch qualification 与 parent orchestration 均由
+新 lock 绑定。协议测试、20/20 startup、单条 fetch-active route 和最终 route preflight 全部通过。
+
+| 项 | 结果 |
+|---|---:|
+| Rows / complete pairs | 8 / 4 |
+| Infrastructure failures | 2 |
+| Comparable pairs | 2 / 4 |
+| Differing comparable pairs | 0 |
+| Comparable score deltas | 0 / 0 |
+| No-skill observed success / mean | 3/4 / 0.75 |
+| Original observed success / mean | 2/4 / 0.675 |
+| Development gate | failed |
+
+两条 cluster-sequential 行仍触发 Bun 1.3.13 Windows x64 internal assertion，exit 3。与旧矩阵相比，
+stderr 不再含 `fetch(n)` counter，转而记录 `spawn(9)` / `spawn(12)`，但 crash report signature
+相同。这说明远端 HTTP 已成功隔离，却不足以让 compiled standalone agent loop 稳定；不能将其
+解释为模型或 Skill 失败。两个可比较 pair 都在 stratified task 上饱和为 1.0，因此也没有提供
+original/no-skill 区分度。Gate failed，base IR 与 held-out 继续禁止，同一 identity 不补跑。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-node-http-bun-1.3.13-startup-qualification-2026-07-27.json
+results/skill-ir/experimental-design-v2-node-http-fetch-active-qualification-2026-07-27.json
+results/skill-ir/experimental-design-v2-node-http-calibration-2026-07-27/resource-probe.json
+results/skill-ir/experimental-design-v2-node-http-calibration-2026-07-27/route-probe.json
+results/skill-ir/experimental-design-v2-node-http-calibration-2026-07-27/gate.json
+results/skill-ir/experimental-design-v2-node-http-calibration-2026-07-27/summary.json
+```
