@@ -1,6 +1,9 @@
 import { z } from "zod"
-import { SafeRelativePathSchema, Sha256Schema } from "./artifact-package.ts"
-import { PreIrRouteDiagnosticSchema } from "./pre-ir-route-diagnostic.ts"
+import { Sha256Schema } from "./artifact-package.ts"
+import {
+  PreIrOutputMaterializationSchema,
+  PreIrRouteDiagnosticSchema,
+} from "./pre-ir-route-diagnostic.ts"
 
 export const PreIrFetchActiveQualificationReportSchema = z.object({
   schemaVersion: z.literal("skill-ir-fetch-active-runtime-qualification/v1"),
@@ -15,11 +18,7 @@ export const PreIrFetchActiveQualificationReportSchema = z.object({
     startupQualificationSha256: Sha256Schema,
   }).strict(),
   diagnostic: PreIrRouteDiagnosticSchema,
-  outputMaterialization: z.object({
-    declared: z.number().int().nonnegative(),
-    present: z.number().int().nonnegative(),
-    missing: z.array(SafeRelativePathSchema),
-  }).strict(),
+  outputMaterialization: PreIrOutputMaterializationSchema,
 }).strict()
 
 export type PreIrFetchActiveQualificationReport = z.infer<

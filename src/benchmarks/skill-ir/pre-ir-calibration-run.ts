@@ -22,6 +22,12 @@ import {
 } from "./resource-contract-run.ts"
 import type { ResourceProbeResult } from "./resource-contract.ts"
 import { projectQualifiedPreIrCommand } from "./pre-ir-runtime-qualification.ts"
+import {
+  buildPreIrCalibrationRouteDiagnostic,
+  inspectPreIrPublicOutputs,
+  PreIrCalibrationRouteDiagnosticSchema,
+  type PreIrCalibrationRouteDiagnostic,
+} from "./pre-ir-route-diagnostic.ts"
 
 export type PreIrCalibrationPhase = "plan" | "route-probe" | "execute"
 
@@ -216,6 +222,54 @@ function expectedProbeCaseId(lock: PreIrCalibrationLock): string {
   ].join(":")
 }
 
+function requiresClosedRouteDiagnostic(lock: PreIrCalibrationLock): boolean {
+  return lock.schemaVersion === "skill-ir-node-http-source-fetch-qualified-pre-ir-calibration-lock/v1"
+}
+
+export function assertPreIrRouteDiagnosticEvidence(
+  lock: PreIrCalibrationLock,
+  input: PreIrCalibrationRouteDiagnostic,
+): void {
+  const report = PreIrCalibrationRouteDiagnosticSchema.parse(input)
+  if (
+    report.methodEvidence !== false
+    || report.status !== "passed"
+    || report.qualificationId !== `${lock.calibrationId}.route`
+    || report.diagnostic.qualificationId !== report.qualificationId
+    || report.calibrationId !== lock.calibrationId
+    || report.diagnostic.calibrationId !== lock.calibrationId
+    || report.diagnostic.model !== lock.model.route
+    || report.diagnostic.caseId !== expectedProbeCaseId(lock)
+    || report.diagnostic.failureCode !== "none"
+    || report.diagnostic.exitCode !== 0
+    || report.diagnostic.timedOut
+    || report.outputMaterialization.declared !== report.outputMaterialization.present
+    || report.outputMaterialization.missing.length !== 0
+  ) {
+    throw new Error("Pre-IR calibration closed route diagnostic identity or status mismatch")
+  }
+}
+
+export async function readAndAssertPreIrRouteDiagnosticEvidence(
+  lock: PreIrCalibrationLock,
+  outDir: string,
+): Promise<PreIrCalibrationRouteDiagnostic> {
+  const report = PreIrCalibrationRouteDiagnosticSchema.parse(JSON.parse(
+    await readFile(path.join(outDir, "route-diagnostic.json"), "utf8"),
+  ))
+  assertPreIrRouteDiagnosticEvidence(lock, report)
+  return report
+}
+
+export async function writePreIrCalibrationRouteDiagnosticEvidence(
+  reportPath: string,
+  input: PreIrCalibrationRouteDiagnostic,
+): Promise<void> {
+  const report = PreIrCalibrationRouteDiagnosticSchema.parse(input)
+  await mkdir(path.dirname(reportPath), { recursive: true })
+  await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8")
+}
+
 export function assertPreIrExecutionPrerequisites(
   lock: PreIrCalibrationLock,
   resource: ResourceProbeResult,
@@ -312,16 +366,45 @@ export async function runPreIrCalibrationPhase(opts: PreIrCalibrationRunArgs): P
       caseId: entry.caseId,
       execution,
     })
+    let routeDiagnostic: PreIrCalibrationRouteDiagnostic | undefined
+    let routeDiagnosticPath: string | undefined
+    if (requiresClosedRouteDiagnostic(result.lock)) {
+      routeDiagnostic = buildPreIrCalibrationRouteDiagnostic({
+        qualificationId: `${result.calibrationId}.route`,
+        calibrationId: result.calibrationId,
+        model: result.lock.model.route,
+        caseId: entry.caseId,
+        execution,
+        outputMaterialization: await inspectPreIrPublicOutputs(entry.workDir),
+      })
+      routeDiagnosticPath = path.join(outDir, "route-diagnostic.json")
+      await writePreIrCalibrationRouteDiagnosticEvidence(routeDiagnosticPath, routeDiagnostic)
+    }
     const probePath = path.join(outDir, "route-probe.json")
     await writeFile(probePath, `${JSON.stringify(probe, null, 2)}\n`, "utf8")
+    if (routeDiagnostic?.status !== undefined && routeDiagnostic.status !== "passed") {
+      throw new Error(
+        `Pre-IR calibration closed route diagnostic failed: ${routeDiagnostic.diagnostic.failureCode}`,
+      )
+    }
     if (probe.status !== "ok") throw new Error(`Pre-IR calibration route probe failed: ${probe.status}`)
-    return { calibrationId: result.calibrationId, phase: opts.phase, resource, route: probe, probePath }
+    return {
+      calibrationId: result.calibrationId,
+      phase: opts.phase,
+      resource,
+      route: probe,
+      probePath,
+      ...(routeDiagnostic ? { routeDiagnostic, routeDiagnosticPath } : {}),
+    }
   }
 
   const route = PreIrRouteProbeResultSchema.parse(JSON.parse(
     await readFile(path.join(outDir, "route-probe.json"), "utf8"),
   ))
   assertPreIrExecutionPrerequisites(result.lock, resource, route)
+  if (requiresClosedRouteDiagnostic(result.lock)) {
+    await readAndAssertPreIrRouteDiagnosticEvidence(result.lock, outDir)
+  }
   await withQualifiedPreIrRuntimeEnvironment(
     result.lock,
     result.runArgs.rootDir,

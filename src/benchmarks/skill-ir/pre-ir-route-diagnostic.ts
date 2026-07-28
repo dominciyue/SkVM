@@ -1,5 +1,8 @@
 import { createHash } from "node:crypto"
+import { lstat, readFile } from "node:fs/promises"
+import path from "node:path"
 import { z } from "zod"
+import { SafeRelativePathSchema } from "./artifact-package.ts"
 import { classifyProbeExecution, type ProbeExecution } from "./route-probe.ts"
 
 const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/)
@@ -44,6 +47,28 @@ export const PreIrRouteDiagnosticSchema = z.object({
 }).strict()
 
 export type PreIrRouteDiagnostic = z.infer<typeof PreIrRouteDiagnosticSchema>
+
+export const PreIrOutputMaterializationSchema = z.object({
+  declared: z.number().int().positive(),
+  present: z.number().int().nonnegative(),
+  missing: z.array(SafeRelativePathSchema),
+}).strict()
+
+export type PreIrOutputMaterialization = z.infer<typeof PreIrOutputMaterializationSchema>
+
+export const PreIrCalibrationRouteDiagnosticSchema = z.object({
+  schemaVersion: z.literal("skill-ir-pre-ir-calibration-route-diagnostic/v1"),
+  qualificationId: z.string().regex(/^[a-z0-9][a-z0-9.-]+$/),
+  calibrationId: z.string().regex(/^[a-z0-9][a-z0-9.-]+$/),
+  methodEvidence: z.literal(false),
+  status: z.enum(["passed", "failed"]),
+  diagnostic: PreIrRouteDiagnosticSchema,
+  outputMaterialization: PreIrOutputMaterializationSchema,
+}).strict()
+
+export type PreIrCalibrationRouteDiagnostic = z.infer<
+  typeof PreIrCalibrationRouteDiagnosticSchema
+>
 
 function sha256(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex")
@@ -108,5 +133,55 @@ export function compactPreIrRouteDiagnostic(input: {
       stdoutSha256: sha256(input.execution.stdout),
       stderrSha256: sha256(input.execution.stderr),
     },
+  })
+}
+
+export async function inspectPreIrPublicOutputs(
+  workDir: string,
+): Promise<PreIrOutputMaterialization> {
+  const contract = z.object({
+    outputs: z.array(SafeRelativePathSchema).min(1),
+  }).passthrough().parse(JSON.parse(await readFile(path.join(workDir, "design-contract.json"), "utf8")))
+  const missing: string[] = []
+  let present = 0
+  for (const relativePath of contract.outputs) {
+    try {
+      const stat = await lstat(path.join(workDir, ...relativePath.split("/")))
+      if (!stat.isFile() || stat.isSymbolicLink()) missing.push(relativePath)
+      else present++
+    } catch {
+      missing.push(relativePath)
+    }
+  }
+  return PreIrOutputMaterializationSchema.parse({
+    declared: contract.outputs.length,
+    present,
+    missing,
+  })
+}
+
+export function buildPreIrCalibrationRouteDiagnostic(input: {
+  qualificationId: string
+  calibrationId: string
+  model: string
+  caseId: string
+  execution: ProbeExecution
+  outputMaterialization: PreIrOutputMaterialization
+}): PreIrCalibrationRouteDiagnostic {
+  const diagnostic = compactPreIrRouteDiagnostic(input)
+  const outputMaterialization = PreIrOutputMaterializationSchema.parse(input.outputMaterialization)
+  const passed = diagnostic.failureCode === "none"
+    && diagnostic.exitCode === 0
+    && !diagnostic.timedOut
+    && outputMaterialization.present === outputMaterialization.declared
+    && outputMaterialization.missing.length === 0
+  return PreIrCalibrationRouteDiagnosticSchema.parse({
+    schemaVersion: "skill-ir-pre-ir-calibration-route-diagnostic/v1",
+    qualificationId: input.qualificationId,
+    calibrationId: input.calibrationId,
+    methodEvidence: false,
+    status: passed ? "passed" : "failed",
+    diagnostic,
+    outputMaterialization,
   })
 }

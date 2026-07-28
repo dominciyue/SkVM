@@ -2325,10 +2325,17 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
 
 ### Task 16.11：Source Route Diagnostic Closure
 
-- [ ] RED/GREEN：让最终 pre-IR route 在 nonzero/timeout 前写 compact diagnostic，字段只允许封闭
+- [x] RED/GREEN：让最终 pre-IR route 在 nonzero/timeout 前写 compact diagnostic，字段只允许封闭
   failure code、exit/status、runtime identity、stream byte count/digest 和公开输出计数；禁止正文、
   命令、绝对路径、环境值、secret 与模型文本。
-- [ ] 复用 fetch-active diagnostic 的分类逻辑与 v1 简洁 source-runner 编排，不再增加 transport 或
+- [x] 文件级 TDD 边界：先在 `pre-ir-calibration-run.test.ts` 写失败测试，覆盖 nonzero 分类、stream
+  摘要脱敏、3/3 output、missing output fail-closed，以及最终 source lock 在 execute 前必须消费通过的
+  `route-diagnostic.json`；保留既有 compact v1 精确相等测试。
+- [x] `pre-ir-route-diagnostic.ts` 只增加共享的公开输出检查与 final-route wrapper；
+  `pre-ir-fetch-active-qualification-run.ts` 改为复用该检查，不产生新 runner/runtime/transport 版本。
+- [x] `pre-ir-calibration-run.ts` 在写完闭合 diagnostic 后才判定 route 成败；旧
+  `route-probe.json` 继续按 v1 写入，只有 fetch-qualified source final lock 强制校验新证据。
+- [x] 复用 fetch-active diagnostic 的分类逻辑与 v1 简洁 source-runner 编排，不再增加 transport 或
   Bun 小版本候选；旧 route result、lock 和 compact evidence 保持不可变。
 - [ ] 新 identity 先做一个 route probe；只有 exit 0、failureCode=`none`、3/3 output 才执行一次
   8-row/4-pair 矩阵。仍要求 0 infrastructure 和至少一个 differing pair，失败即冻结。

@@ -1,16 +1,23 @@
 import { describe, expect, test } from "bun:test"
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import {
   assertPreIrExecutionPrerequisites,
+  assertPreIrRouteDiagnosticEvidence,
   buildPreIrCalibrationPlan,
   compactPreIrRouteProbe,
   parsePreIrCalibrationRunArgs,
   projectPreIrPlanRuntime,
+  readAndAssertPreIrRouteDiagnosticEvidence,
   withQualifiedPreIrRuntimeEnvironment,
+  writePreIrCalibrationRouteDiagnosticEvidence,
 } from "./pre-ir-calibration-run.ts"
 import type { PreIrCalibrationLock } from "./pre-ir-calibration.ts"
+import {
+  buildPreIrCalibrationRouteDiagnostic,
+  inspectPreIrPublicOutputs,
+} from "./pre-ir-route-diagnostic.ts"
 
 const rootDir = path.resolve(import.meta.dir, "../../..")
 const lockPath = path.join(
@@ -274,22 +281,15 @@ describe("pre-IR calibration runner", () => {
     }
   })
 
-  test("compiles the fetch-qualified Node HTTP source matrix as eight source rows", async () => {
+  test("rejects the historical source matrix after closed route orchestration evolves", async () => {
     const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-node-http-source-matrix-"))
     try {
-      const result = await buildPreIrCalibrationPlan({
+      await expect(buildPreIrCalibrationPlan({
         rootDir,
         lockPath: v2NodeHttpSourceCalibrationLockPath,
         outDir,
         phase: "plan",
-      })
-      expect(result.plan).toHaveLength(8)
-      expect(result.plan.every((row) => row.command.slice(0, 4).join("|") === [
-        path.resolve(rootDir, ".skvm/runtime/bun-1.3.13-source-2026-07-27/bun.exe"),
-        "run",
-        path.resolve(rootDir, "src/index.ts"),
-        "run",
-      ].join("|"))).toBe(true)
+      })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration-run.ts digest mismatch")
     } finally {
       await rm(outDir, { recursive: true, force: true })
     }
@@ -371,6 +371,122 @@ describe("pre-IR calibration runner", () => {
       durationMs: 123,
     })
     expect(JSON.stringify(result)).not.toContain("private")
+  })
+
+  test("closes a failed source route with redacted stream fingerprints and public output counts", () => {
+    const report = buildPreIrCalibrationRouteDiagnostic({
+      qualificationId: "experimental-design-v2-source-diagnostic-calibration-v1.route",
+      calibrationId: "experimental-design-v2-source-diagnostic-calibration-v1",
+      model: "xty/gpt-5.6-sol",
+      caseId: "experimental-design-v2:skvm:windows:clean:experimental-design-v2-stratified-dev-001",
+      execution: {
+        exitCode: 3,
+        timedOut: false,
+        durationMs: 88_083,
+        stdout: "private model response with sk-secret-value",
+        stderr: "panic(main thread): Internal assertion failure at D:\\private\\runner.ts",
+      },
+      outputMaterialization: { declared: 3, present: 3, missing: [] },
+    })
+
+    expect(report.status).toBe("failed")
+    expect(report.diagnostic).toMatchObject({
+      failureCode: "bun-internal-assertion",
+      exitCode: 3,
+      timedOut: false,
+      streams: { stdoutBytes: Buffer.byteLength("private model response with sk-secret-value", "utf8") },
+    })
+    expect(report.outputMaterialization).toEqual({ declared: 3, present: 3, missing: [] })
+    const serialized = JSON.stringify(report)
+    expect(serialized).not.toContain("private model response")
+    expect(serialized).not.toContain("sk-secret-value")
+    expect(serialized).not.toContain("private\\runner")
+    expect(serialized).not.toContain("stdout\"")
+    expect(serialized).not.toContain("stderr\"")
+  })
+
+  test("derives output materialization only from the public design contract", async () => {
+    const workDir = await mkdtemp(path.join(tmpdir(), "pre-ir-public-outputs-"))
+    try {
+      await writeFile(path.join(workDir, "design-contract.json"), JSON.stringify({
+        outputs: ["study.json", "allocation.csv", "report.md"],
+        privateExpected: ["must-not-be-consumed"],
+      }), "utf8")
+      await writeFile(path.join(workDir, "study.json"), "{}", "utf8")
+      await writeFile(path.join(workDir, "allocation.csv"), "id,arm\n", "utf8")
+
+      await expect(inspectPreIrPublicOutputs(workDir)).resolves.toEqual({
+        declared: 3,
+        present: 2,
+        missing: ["report.md"],
+      })
+    } finally {
+      await rm(workDir, { recursive: true, force: true })
+    }
+  })
+
+  test("requires a passed closed diagnostic before the final source matrix executes", async () => {
+    const lock = {
+      schemaVersion: "skill-ir-node-http-source-fetch-qualified-pre-ir-calibration-lock/v1",
+      calibrationId: "experimental-design-v2-source-diagnostic-calibration-v1",
+      skillId: "experimental-design-v2",
+      model: { route: "xty/gpt-5.6-sol" },
+      matrix: {
+        agents: ["skvm"],
+        environments: ["windows"],
+        contexts: ["clean"],
+        taskIds: ["experimental-design-v2-stratified-dev-001"],
+      },
+    } as unknown as PreIrCalibrationLock
+    const passed = buildPreIrCalibrationRouteDiagnostic({
+      qualificationId: `${lock.calibrationId}.route`,
+      calibrationId: lock.calibrationId,
+      model: lock.model.route,
+      caseId: "experimental-design-v2:skvm:windows:clean:experimental-design-v2-stratified-dev-001",
+      execution: { exitCode: 0, timedOut: false, stdout: "", stderr: "" },
+      outputMaterialization: { declared: 3, present: 3, missing: [] },
+    })
+
+    expect(() => assertPreIrRouteDiagnosticEvidence(lock, passed)).not.toThrow()
+    expect(() => assertPreIrRouteDiagnosticEvidence(lock, {
+      ...passed,
+      status: "failed",
+      diagnostic: { ...passed.diagnostic, failureCode: "adapter-error", exitCode: 3 },
+    })).toThrow("closed route diagnostic")
+    expect(() => assertPreIrRouteDiagnosticEvidence(lock, {
+      ...passed,
+      outputMaterialization: { declared: 3, present: 2, missing: ["report.md"] },
+    })).toThrow("closed route diagnostic")
+    expect(() => assertPreIrRouteDiagnosticEvidence(lock, {
+      ...passed,
+      diagnostic: { ...passed.diagnostic, model: "xty/other-model" },
+    })).toThrow("closed route diagnostic")
+
+    const missingDir = path.join(tmpdir(), `pre-ir-missing-route-${Date.now()}`)
+    await expect(readAndAssertPreIrRouteDiagnosticEvidence(lock, missingDir)).rejects.toThrow()
+  })
+
+  test("persists the closed diagnostic as a strict public JSON document", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "pre-ir-route-diagnostic-"))
+    try {
+      const report = buildPreIrCalibrationRouteDiagnostic({
+        qualificationId: "experimental-design-v2-source-diagnostic-calibration-v1.route",
+        calibrationId: "experimental-design-v2-source-diagnostic-calibration-v1",
+        model: "xty/gpt-5.6-sol",
+        caseId: "experimental-design-v2:skvm:windows:clean:experimental-design-v2-stratified-dev-001",
+        execution: { exitCode: 3, timedOut: false, stdout: "model body", stderr: "adapter error" },
+        outputMaterialization: { declared: 3, present: 3, missing: [] },
+      })
+      const reportPath = path.join(outDir, "route-diagnostic.json")
+      await writePreIrCalibrationRouteDiagnosticEvidence(reportPath, report)
+
+      const persisted = await readFile(reportPath, "utf8")
+      expect(JSON.parse(persisted)).toEqual(report)
+      expect(persisted).not.toContain("model body")
+      expect(persisted).not.toContain("adapter error")
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
   })
 
   test("blocks execution without fresh resource, route, and API prerequisites", async () => {

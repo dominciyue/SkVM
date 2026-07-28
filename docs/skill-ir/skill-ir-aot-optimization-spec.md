@@ -1870,3 +1870,20 @@ scoring 和 gate 均不执行，不能借 candidate route 的成功替代最终 
 materialization count；不得保存 stderr/stdout 正文、模型输出、绝对路径或 secret。只有新 route
 exit 0、无 runtime failure 且三个输出完整，才允许执行 8-row。该改动属于 execution diagnostics，
 不修改 v2 task、public contract、scorer、threshold 或 held-out freeze。
+
+#### 24.9.11 Source route diagnostic closure
+
+Task 16.11 不再派生新的 Bun、transport 或 source runner 版本，而是在既有 v1 简洁 source-runner
+编排内增加一份独立的 `route-diagnostic.json`。旧 `route-probe.json` 继续使用
+`skill-ir-pre-ir-route-probe-result/v1`，历史 lock、result 与 compact evidence 均不就地修改。
+
+新 diagnostic 复用 fetch-active 的封闭 failure taxonomy，只保存 status、failure code、exit/timeout、
+可识别的 runtime identity、stdout/stderr 字节数与 SHA-256，以及从公开
+`design-contract.json.outputs` 检查得到的 declared/present/missing。它不得保存 stream 正文、命令、
+绝对路径、环境值、secret 或模型文本。公开输出只接受 workdir 内的普通非符号链接文件。
+
+对于 `skill-ir-node-http-source-fetch-qualified-pre-ir-calibration-lock/v1`，route phase 必须先写
+diagnostic，再根据闭合状态抛错；execute phase 必须重新读取并严格验证其 calibration/model/case、
+`failureCode=none`、exit 0、非 timeout 和 declared=present、missing 为空。文件缺失、schema 漂移、
+identity 漂移或 output 不完整都 fail closed。该证据层只决定是否允许校准矩阵执行，不进入 scorer，
+也不构成 benchmark 或 skill 优化结果。

@@ -1,7 +1,5 @@
-import { lstat, mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
-import { z } from "zod"
-import { SafeRelativePathSchema } from "./artifact-package.ts"
 import {
   assertPreIrCalibrationExecutionState,
   type PreIrCalibrationLock,
@@ -12,6 +10,7 @@ import {
 } from "./pre-ir-calibration-run.ts"
 import {
   compactPreIrRouteDiagnostic,
+  inspectPreIrPublicOutputs,
 } from "./pre-ir-route-diagnostic.ts"
 import {
   PreIrFetchActiveQualificationReportSchema,
@@ -57,28 +56,6 @@ function requireRuntimeQualifiedLock(lock: PreIrCalibrationLock): asserts lock i
   }
 }
 
-async function inspectPublicOutputs(workDir: string): Promise<{
-  declared: number
-  present: number
-  missing: string[]
-}> {
-  const contract = z.object({
-    outputs: z.array(SafeRelativePathSchema).min(1),
-  }).passthrough().parse(JSON.parse(await readFile(path.join(workDir, "design-contract.json"), "utf8")))
-  const missing: string[] = []
-  let present = 0
-  for (const relativePath of contract.outputs) {
-    try {
-      const stat = await lstat(path.join(workDir, ...relativePath.split("/")))
-      if (!stat.isFile() || stat.isSymbolicLink()) missing.push(relativePath)
-      else present++
-    } catch {
-      missing.push(relativePath)
-    }
-  }
-  return { declared: contract.outputs.length, present, missing }
-}
-
 function selectProbeEntry(plan: RealAgentRunPlanEntry[], lock: PreIrCalibrationLock): RealAgentRunPlanEntry {
   const expectedCaseId = [
     lock.skillId,
@@ -120,7 +97,7 @@ export async function runPreIrFetchActiveQualification(
     caseId: entry.caseId,
     execution,
   })
-  const outputMaterialization = await inspectPublicOutputs(entry.workDir)
+  const outputMaterialization = await inspectPreIrPublicOutputs(entry.workDir)
   const status = diagnostic.failureCode === "none"
     && diagnostic.exitCode === 0
     && outputMaterialization.missing.length === 0
