@@ -62,6 +62,7 @@ export type RealAgentRunArgs = {
   execute: boolean;
   retries: number;
   retryDelayMs: number;
+  outerWatchdogMs?: number;
   rootDir: string;
   allowTasksAuthored?: boolean;
   allowDevelopmentReplay?: boolean;
@@ -164,6 +165,8 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
       args.retries = Number.parseInt(arg.slice("--retries=".length), 10);
     } else if (arg.startsWith("--retry-delay-ms=")) {
       args.retryDelayMs = Number.parseInt(arg.slice("--retry-delay-ms=".length), 10);
+    } else if (arg.startsWith("--outer-watchdog-ms=")) {
+      args.outerWatchdogMs = Number.parseInt(arg.slice("--outer-watchdog-ms=".length), 10);
     } else if (arg.startsWith("--root-dir=")) {
       args.rootDir = arg.slice("--root-dir=".length);
     } else if (arg.startsWith("--ir-override-dir=")) {
@@ -228,6 +231,11 @@ export function parseRealAgentRunArgs(argv: string[]): RealAgentRunArgs {
 
   if (!Number.isFinite(args.retryDelayMs) || args.retryDelayMs < 0) {
     throw new Error("--retry-delay-ms must be a non-negative integer");
+  }
+
+  if (args.outerWatchdogMs !== undefined
+    && (!Number.isInteger(args.outerWatchdogMs) || args.outerWatchdogMs < 1)) {
+    throw new Error("--outer-watchdog-ms must be a positive integer");
   }
 
   if (args.execute && args.model === "<provider>/<model-id>") {
@@ -882,11 +890,37 @@ export async function executePlan(
           stderr: "pipe",
           env: agentEnv,
         });
-        const [stdout, stderr, exitCode] = await Promise.all([
-          new Response(proc.stdout).text(),
-          new Response(proc.stderr).text(),
-          proc.exited,
-        ]);
+        let outerTimedOut = false;
+        let treeTermination: Promise<number> | undefined;
+        const watchdog = args.outerWatchdogMs === undefined
+          ? undefined
+          : setTimeout(() => {
+              outerTimedOut = true;
+              if (process.platform === "win32") {
+                treeTermination = Bun.spawn(
+                  ["taskkill", "/PID", String(proc.pid), "/T", "/F"],
+                  { stdout: "ignore", stderr: "ignore" },
+                ).exited;
+              } else {
+                proc.kill("SIGKILL");
+              }
+            }, args.outerWatchdogMs);
+        let stdout: string;
+        let stderr: string;
+        let exitCode: number;
+        try {
+          [stdout, stderr, exitCode] = await Promise.all([
+            new Response(proc.stdout).text(),
+            new Response(proc.stderr).text(),
+            proc.exited,
+          ]);
+          if (treeTermination) await treeTermination;
+        } finally {
+          if (watchdog !== undefined) clearTimeout(watchdog);
+        }
+        if (outerTimedOut) {
+          stderr = `${stderr}\nOuter watchdog timeout after ${args.outerWatchdogMs}ms`.trim();
+        }
         return {
           caseId: item.caseId,
           system: item.system,
@@ -903,7 +937,7 @@ export async function executePlan(
           workDir: item.workDir,
           ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
           exitCode,
-          runStatus: extractRunStatus(stdout),
+          runStatus: outerTimedOut ? "timeout" : extractRunStatus(stdout),
           durationMs: Date.now() - startedAt,
           stdout,
           stderr,
@@ -966,6 +1000,7 @@ async function main() {
         rootDir: args.rootDir,
         irOverrideDir: args.irOverrideDir,
         retry: { retries: args.retries, retryDelayMs: args.retryDelayMs },
+        outerWatchdogMs: args.outerWatchdogMs,
         requireEnv: args.requireEnv ? [...args.requireEnv] : [],
         plan,
       },

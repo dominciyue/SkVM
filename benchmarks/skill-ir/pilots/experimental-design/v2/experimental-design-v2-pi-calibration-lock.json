@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "skill-ir-stable-harness-calibration-lock/v1",
+  "status": "preregistered",
+  "calibrationId": "experimental-design-v2-pi-post-injection-cleanup-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "experimental-design-v2",
+  "frozenInputs": {
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    },
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json",
+      "sha256": "e382fe9e9a1ed8cdb5735d88136086b2aefbf4ced5c67d507f67c7fc2487da96"
+    },
+    "resourceContract": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/resource-contract.json",
+      "sha256": "c478a8894e1805638e1ecce329038c697fe5cc53166b3b50b9ce833bf2aa8877"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+      "sha256": "6dda3cbc9e369fa6b1ab1dbe974c86baa3cad967bd707e1d5668eb1ea2d51960"
+    }
+  },
+  "benchmarkGuards": [
+    {
+      "kind": "experimental-design-v2-heldout-freeze",
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json",
+      "sha256": "01656495d2a0cd412696eb3b0bd16f04ad8ed6752a4049e7e3f399a3b71056f1"
+    },
+    {
+      "kind": "experimental-design-v2-materialization-audit",
+      "path": "results/skill-ir/benchmark-contract-audit/experimental-design-v2-materialization.json",
+      "sha256": "66e8f9371f002c9a9aab1f01f0c296708bed3e5ffd30769044ea6f3abd400b5d"
+    }
+  ],
+  "harness": {
+    "adapter": "pi",
+    "adapterVersion": "0.67.68",
+    "mode": "managed",
+    "packageJson": {
+      "path": "package.json",
+      "sha256": "bd50f7d5a9ad459960bc9615070e669d483f1c53318a3ac8a759d9743c97ee30"
+    },
+    "bunLock": {
+      "path": "bun.lock",
+      "sha256": "b6814f09782eecf544fca3c7426a706afe8793c750064d67bdb7b937a91cadfb"
+    },
+    "adapterSource": {
+      "path": "src/adapters/pi.ts",
+      "sha256": "bdea260186c7f21ff72f37e43ac92baf2d42b76eb5934f712313ea9271e73011"
+    },
+    "orchestration": [
+      {
+        "path": "src/benchmarks/skill-ir/real-agent-run.ts",
+        "sha256": "832efc756ad8d4d23de6b40b5f8383891fc34cdaad6f18daa7872d337dc5a82d"
+      },
+      {
+        "path": "src/benchmarks/skill-ir/stable-harness-calibration-run.ts",
+        "sha256": "fa703a314ca223e0fe39764388c8bdb759cc167ece295b283ca94df987964f8e"
+      }
+    ],
+    "installedPackageJson": "node_modules/@mariozechner/pi-coding-agent/package.json",
+    "executable": "node_modules/.bin/pi.exe"
+  },
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "experimental-design-v2-stratified-dev-001",
+      "experimental-design-v2-cluster-sequential-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "qualification": {
+    "system": "original",
+    "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+    "runIndex": 1
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "retries": 0,
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "teardownGraceMs": 60000,
+    "outerWatchdogMs": 360000
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": false
+  },
+  "claimBoundary": {
+    "developmentOnly": true,
+    "harnessSpecific": true,
+    "comparableWithBareAgent": false,
+    "createsBaseIr": false,
+    "permitsHeldOut": false,
+    "skillOptimizationEvidence": false,
+    "tokenEvidence": false
+  }
+}

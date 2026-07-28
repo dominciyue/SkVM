@@ -1168,3 +1168,37 @@ results/skill-ir/experimental-design-v2-durable-runtime-trace-route-2026-07-29/r
 
 该 lock 已冻结，不提高 timeout 后重跑；8-row matrix 仍未放行。后续稳定 harness 或新 route 合同
 必须在付费前验证外层 watchdog 覆盖 task timeout 与 teardown grace，并停止继续增加 Bun/runtime 版本。
+
+## 24. Stable Pi Harness 与强模型 Baseline
+
+2026-07-29 使用项目本地 Pi 0.67.68、managed XTY route 和 `gpt-5.6-sol`。首次 qualification 前的
+本地检查修复了 Windows version stream 与 Unix `which` 依赖。Qualification 通过后，首次 8-row
+matrix 暴露 Pi inject 留下 `AGENTS.md`；四条 original 均因同一 `UNEXPECTED_ENTRY` 丢失
+artifact-contract 0.1。该矩阵已标记 invalid，只作为 harness failure evidence。
+
+Adapter 改为 subprocess 周期内注入并在结束后删除/恢复 `AGENTS.md`，新 lock 额外绑定 adapter 与
+orchestration digest。修复后 qualification：Pi/version/resource 均通过，route exit 0、84.058 秒、
+3/3 outputs、零 harness residue。随后固定 8 行结果为：
+
+| System | Rows | Success | Mean score | Mean latency | Input tokens | Output tokens | Total tokens |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| no-skill | 4 | 4 | 1.00 | 60.933 s | 44,943 | 8,669 | 53,612 |
+| original | 4 | 4 | 1.00 | 83.734 s | 164,615 | 11,961 | 176,576 |
+
+8/8 rows、4/4 pairs、0 infrastructure、4 comparable pairs，但 differing pairs 为 0；no-skill semantic
+failure 也是 0。Gate 因 `noSkillNonSaturated=false` 与 `distinguishable=false` 失败。Original 相比
+no-skill 使用 3.29x aggregate token、3.66x input token 和 1.37x latency，没有质量增益。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-pi-calibration-2026-07-29/invalidation-audit.json
+results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29/qualification.json
+results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29/gate-report.json
+results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29/calibration-analysis.json
+```
+
+结论：stable Pi harness 已经足以支撑本阶段的受控实验；当前阻塞不再是 Bun/runtime，而是这两个公开
+development task 对强模型过易。该结果不放行 base IR、held-out 或 Skill optimization claim。下一步应
+在不消费 held-out 的前提下，新增能区分 no-skill/original 且仍由公开合同确定性判分的 harder
+development tasks，再重新预注册 calibration。

@@ -2522,3 +2522,67 @@ raw trace 不提交。下一条真实 route 固定 original × cluster-sequentia
 assertion。任务内部 timeout 为 300 秒而外层 lock 为 180 秒，冻结结论为 timeout contract 倒挂；
 不修改旧 lock、不重跑。Task 16.17 是最后一个专用 Bun infrastructure feature。下一执行合同必须先
 静态验证 outer watchdog 至少覆盖 task timeout 与 teardown grace；在此之前不运行 8-row matrix。
+
+### Task 16.18：Stable Pi Harness Qualification 与 Development Baseline
+
+**Files:**
+
+```text
+Create  src/benchmarks/skill-ir/stable-harness-calibration.ts
+Create  src/benchmarks/skill-ir/stable-harness-calibration.test.ts
+Create  src/benchmarks/skill-ir/stable-harness-calibration-run.ts
+Create  src/benchmarks/skill-ir/stable-harness-calibration-run.test.ts
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pi-calibration-lock.json
+Create  results/skill-ir/experimental-design-v2-pi-calibration-2026-07-29/invalidation-audit.json
+Create  results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29/qualification.json
+Create  results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29/gate-report.json
+Create  results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29/calibration-analysis.json
+Modify  src/adapters/pi.ts
+Create  src/adapters/pi.test.ts
+Modify  src/benchmarks/skill-ir/real-agent-run.ts
+Modify  src/benchmarks/skill-ir/real-agent-run.test.ts
+Modify  docs/skill-ir/evaluation-system.md
+Modify  docs/skill-ir/experiment-results.md
+```
+
+- [x] 冻结 `PiAdapter`、项目本地 `pi 0.67.68`、managed OpenAI-compatible route、Windows/clean/
+  `gpt-5.6-sol`、retries 0；不得使用全局未知版本、native user config 或 unpinned npx fallback。
+- [x] RED/GREEN：timeout budget 必须为 task 300000 + teardown grace 60000 <= outer watchdog 360000；
+  materialized command/task、lock 任一漂移都 fail closed。
+- [x] RED/GREEN：给 generic non-artifact execution 增加 opt-in per-row outer watchdog；默认缺失时保持旧
+  runner 行为，启用时 timeout 必须写成 infrastructure row，不能挂住整个 matrix。
+- [x] 先 dry-run 8-row plan，但只付费运行 original × cluster-sequential-dev-002 × run1 qualification；
+  需要 version/resource/exit/runStatus/3-output 全通过。失败即停止，不换 harness、不重试。
+- [x] Qualification 通过后运行固定 8 行 no-skill|original paired development matrix，使用既有 v2
+  scorer/gate；raw 本地，compact result 持久化。
+- [x] 解释边界：Pi 与 bare-agent 不直接配对；本轮不证明 Bun、Skill optimization、held-out 或 token。
+  Matrix 可用后下一步必须回到 base IR/ir-static，不再继续基础设施开发。
+
+执行结果：首次 matrix 因 Pi inject 残留 `AGENTS.md` 被 scorer 正确拒绝，4 条 original 都出现同一
+`UNEXPECTED_ENTRY`，已冻结为 invalid harness evidence。TDD 修复 resolver 与注入文件恢复/清理后，
+新 qualification 通过且 residue 为空。新 8-row matrix 为 8/8 rows、4/4 pairs、0 infrastructure；
+no-skill/original 均 4/4、mean 1.0，differing pairs 0。Gate 因 no-skill saturation 与无区分度失败，
+不放行 base IR/held-out。Original aggregate token 为 no-skill 的 3.29x、平均 latency 为 1.37x，当前
+原 skill 对强模型只增加成本。Task 16.18 工程与实验执行均完成；下一任务转向 development-only harder
+task contract，不再继续 Bun/transport 修复。
+
+### Task 16.19：Strong-model Harder Development Contract
+
+本任务沿用 `experimental-design-v2` 的公开语义合同与确定性 scorer，不新建 benchmark 版本，
+也不修改已经冻结的 Task 16.18 lock、结果或 held-out。目标是在 development-only 范围增加
+能让最强预注册模型暴露真实设计错误的任务，从而恢复 `no-skill | original` 的区分度，再决定
+是否值得编译 base IR。新的任务集合必须使用新的 task-set identity 与 calibration lock，不能将
+Task 16.18 的结果覆盖或混入新 gate。
+
+- [ ] 从 Task 16.18 有效 8-row matrix 做 failure/saturation audit，只使用 development 输出和公开
+  contract，禁止读取 held-out、scorer 私有中间值或 evaluator expected。
+- [ ] 定义 harder task dimensions：至少覆盖两个可公开推导、可由确定性 scorer 判断且当前任务未充分
+  施压的组合；优先增加组合约束冲突、顺序入组/cluster/strata 交互和报告证据一致性，不增加措辞金标。
+- [ ] TDD 编写 development-only task-set validator、负向 canary 与 materialization audit；证明 task
+  难度来自公开输入语义，而不是隐藏答案、私有 enum 或 harness 差异。
+- [ ] 在任何付费运行前冻结新 task-set identity、source/task/scorer digest、模型、adapter、repetitions、
+  timeout、gate 与结果路径；held-out freeze 和 v2 scorer 保持字节不变。
+- [ ] 先跑本地 fixture、dry-run 与 single-route qualification，再运行一次冻结的
+  `no-skill | original` development paired matrix。
+- [ ] 只有新 gate 同时满足无 infrastructure failure、no-skill 不饱和、存在可比较且有差异的 pairs，
+  才进入 base IR / `ir-static`；否则冻结失败证据并回到 task-contract audit，不继续堆 runtime 版本。

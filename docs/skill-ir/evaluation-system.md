@@ -1231,3 +1231,36 @@ stream digest 和 output materialization。
 本轮 trace 显示 9 个完整 turn 后，在 elapsed 179.649 秒写入第 10 个 request-start，外层 180 秒
 watchdog 随即终止。Materialized task 自身为 300 秒，因此新执行合同必须满足
 `outer watchdog >= task timeout + teardown grace`；不得把这一 timeout 写成 provider 或 Bun 结论。
+
+## 33. Stable Pi Harness Qualification
+
+Task 16.18 复用项目本地 `@mariozechner/pi-coding-agent@0.67.68` 和现有 `PiAdapter`。Lock 同时冻结
+Pi package、`pi.ts`、generic real-agent runner 与 stable runner digest；managed mode、Windows、clean、
+`xty/gpt-5.6-sol`、retries 0、task timeout 300 秒、teardown grace 60 秒和 outer watchdog 360 秒均不可
+由 CLI 改写。运行顺序固定为：
+
+```powershell
+bun ./src/benchmarks/skill-ir/stable-harness-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pi-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29' `
+  '--phase=plan'
+
+bun ./src/benchmarks/skill-ir/stable-harness-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pi-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29' `
+  '--phase=qualification'
+
+bun ./src/benchmarks/skill-ir/stable-harness-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pi-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29' `
+  '--phase=execute'
+```
+
+后两条命令要求 `SKVM_XTY_API_KEY` 已在当前进程环境设置。Qualification 只运行冻结的 original 单行；
+Pi version、resource probe、exit/runStatus、3/3 output 和零 `AGENTS.md`/`.pi-skills` residue 全通过后，
+execute 才运行 8 行并自动生成 `scored-runs.jsonl` 与 `gate-report.json`。Generic runner 的
+`--outer-watchdog-ms` 是 opt-in，未设置时不改变旧路径；Windows timeout 会终止完整进程树。
+
+首次 matrix 因 Pi 临时 `AGENTS.md` 未清理而无效。Pi adapter 现在只在 subprocess 周期内注入，结束后
+删除或逐字节恢复原文件。修复后 8 行无 infrastructure，但两臂全满分、零 differing pair，gate 失败。
+这证明 harness 已可用于受控实验，同时证明当前 development task 对强模型没有区分度；不放行 base IR。

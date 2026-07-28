@@ -1,7 +1,30 @@
-import type { PreIrCalibrationLock } from "./pre-ir-calibration.ts"
 import { parseCaseId, type ScoredAgentRunRow } from "./scoring.ts"
 
 type CalibrationSystem = "no-skill" | "original"
+
+export type PreIrCalibrationGateLock = {
+  calibrationId: string
+  skillId: string
+  model: { route: string; family: string }
+  adapter: { id: string; version: string }
+  matrix: {
+    systems: readonly ["no-skill", "original"]
+    contexts: readonly [string]
+    agents: readonly [string]
+    environments: readonly [string]
+    taskSplit: string
+    taskIds: readonly [string, string]
+    repetitions: 2
+    expectedRows: 8
+    expectedPairs: 4
+  }
+  gate: {
+    maximumInfrastructureFailures: 0
+    requireNoSkillNonSaturation: boolean
+    minimumDifferingPairs: number
+    requireOriginalNonRegression: boolean
+  }
+}
 
 export type PreIrCalibrationPair = {
   taskId: string
@@ -82,7 +105,7 @@ function assertEqual(label: string, actual: unknown, expected: unknown): void {
   if (actual !== expected) throw new Error(`Pre-IR calibration ${label} mismatch`)
 }
 
-function validateRow(row: ScoredAgentRunRow, lock: PreIrCalibrationLock): {
+function validateRow(row: ScoredAgentRunRow, lock: PreIrCalibrationGateLock): {
   taskId: string
   system: CalibrationSystem
   runIndex: number
@@ -139,7 +162,7 @@ function direction(pairs: PreIrCalibrationPair[]): "better" | "mixed" | "equal" 
 
 export function evaluatePreIrCalibrationGate(
   rows: ScoredAgentRunRow[],
-  lock: PreIrCalibrationLock,
+  lock: PreIrCalibrationGateLock,
 ): PreIrCalibrationGateReport {
   const indexed = new Map<string, ScoredAgentRunRow>()
   for (const row of rows) {

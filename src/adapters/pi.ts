@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises"
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import path from "node:path"
 import type {
   AgentAdapter,
@@ -84,11 +84,34 @@ const tierAdapterRepo: Tier = async () => {
   )
 }
 
+export function resolvePiOnPath(
+  which: (name: string) => string | null = Bun.which,
+): string[] | null {
+  const resolved = which("pi")
+  return resolved ? [resolved] : null
+}
+
+export async function withPiInjectedAgentsFile<T>(
+  workDir: string,
+  content: string,
+  operation: () => Promise<T>,
+): Promise<T> {
+  const agentsPath = path.join(workDir, "AGENTS.md")
+  const existed = await Bun.file(agentsPath).exists()
+  const previous = existed ? await readFile(agentsPath) : undefined
+  await writeFile(agentsPath, content, "utf8")
+  try {
+    return await operation()
+  } finally {
+    if (previous) await writeFile(agentsPath, previous)
+    else await rm(agentsPath, { force: true })
+  }
+}
+
 const tierGlobal: Tier = async () => {
-  const { exitCode, stdout } = await runSubprocess(["which", "pi"])
-  if (exitCode !== 0 || !stdout.trim()) return null
-  const p = stdout.trim()
-  return { cmd: [p], logLine: `Using global pi: ${p}` }
+  const cmd = resolvePiOnPath()
+  if (!cmd) return null
+  return { cmd, logLine: `Using global pi: ${cmd[0]}` }
 }
 
 const tierNpx: Tier = async () => ({
@@ -204,11 +227,12 @@ export class PiAdapter implements AgentAdapter {
   }): Promise<RunResult> {
     let skillLoaded: boolean | undefined
     let skillPath: string | undefined
+    let injectedAgentsContent: string | undefined
 
     if (task.skill) {
       if (task.skill.mode === "inject") {
         // Pi auto-loads AGENTS.md from CWD into the system prompt.
-        await Bun.write(path.join(task.workDir, "AGENTS.md"), task.skill.content)
+        injectedAgentsContent = task.skill.content
         skillLoaded = false
       } else {
         const skillName = task.skill.meta.name
@@ -247,11 +271,14 @@ export class PiAdapter implements AgentAdapter {
     const envOverlay: Record<string, string> = { ...this.routeEnv }
     if (this.piAgentDir) envOverlay.PI_CODING_AGENT_DIR = this.piAgentDir
 
-    const { stdout, stderr, exitCode, timedOut } = await runSubprocess(cmd, {
+    const runPi = () => runSubprocess(cmd, {
       cwd: task.workDir,
       timeoutMs: task.timeoutMs ?? this.timeoutMs,
       env: envOverlay,
     })
+    const { stdout, stderr, exitCode, timedOut } = injectedAgentsContent === undefined
+      ? await runPi()
+      : await withPiInjectedAgentsFile(task.workDir, injectedAgentsContent, runPi)
 
     const durationMs = performance.now() - startMs
 

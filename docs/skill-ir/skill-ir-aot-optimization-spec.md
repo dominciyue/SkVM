@@ -2079,3 +2079,50 @@ completed finalize。该结果只证明 trace 接线与同步持久化机制可�
 该 lock 不得事后增加 timeout 或重跑。后续任一新 harness/route contract 必须在付费前验证
 `outer watchdog >= task timeout + teardown grace`。Task 16.17 至此结束，不再增加 Bun/runtime 版本；
 历史 Bun assertion 的根因仍未由本轮定位，当前结果也不放行 8-row matrix。
+
+#### 24.9.18 Stable Pi harness qualification and baseline
+
+Task 16.17 后不再增加 Bun/runtime/transport 版本。下一执行路径复用仓库已有 `PiAdapter` 和已固定依赖
+`@mariozechner/pi-coding-agent@0.67.68`，不创建新 adapter。SkVM 继续负责同一 v2 task、source closure、
+workdir materialization、raw row 和 deterministic scorer；Pi 子进程负责 agent loop、provider interaction
+和 read/bash/edit/write 工具。该结果是新的 harness 轴，不能与 `bare-agent` 行直接配对或混算。
+
+本轮独立 lock 固定 Windows、clean、`xty/gpt-5.6-sol`、managed Pi、retries 0、development-only，
+并绑定 v2 source/tasks/resource/scorer/benchmark guards、项目 `package.json`/lockfile、Pi package version、
+`pi.ts` adapter source 和 stable/real-agent runner source digest。
+执行前必须从项目本地 `node_modules/.bin` 解析 Pi，`pi --version` 必须精确返回 `0.67.68`；禁止回退到
+unversioned `npx`、全局未知版本或用户 native config。API key 仍只通过 `SKVM_XTY_API_KEY` 进入子进程。
+
+Timeout budget 是付费前 hard gate。Materialized task 必须为 300000 ms、30 steps；teardown grace 固定
+60000 ms；每条命令的外层 watchdog 固定 360000 ms，并满足
+`outerWatchdogMs >= taskTimeoutMs + teardownGraceMs`。Runner 必须逐行执行外层 watchdog；不能只校验
+route 后让 matrix 回到无界 `Bun.spawn`。Timeout、nonzero、`adapter-crashed`、缺输出均为 infrastructure，
+不进入 semantic denominator。
+
+执行分两阶段：先只运行
+`original × experimental-design-v2-cluster-sequential-dev-002 × run 1`。Qualification 需要 Pi 版本、
+resource contract、exit 0、`runStatus=ok`、未超时、3/3 output，且 Pi 注入使用的 `AGENTS.md`/
+`.pi-skills` 不得残留；失败立即冻结并停止，不切换 harness、
+不重试、不运行 matrix。通过后才运行固定 8 行：
+`no-skill|original × 2 development tasks × 2 repetitions`。Matrix 仍使用现有 v2 scorer 和 gate：
+0 infrastructure、no-skill non-saturation、至少 1 个 differing pair；不要求 original 必然非回归。
+
+Route 和 matrix raw 保持本地，提交 compact qualification/gate/scored summary 与输入 digest。该阶段最多
+证明 Pi harness 内 v2 baseline 可运行且 no-skill/original 可比较；不证明 Bun 已修复、跨 harness 等价、
+Skill 已优化、held-out 泛化或 token break-even。若 matrix 可用，下一步必须回到 base IR/ir-static，
+不得继续基础设施开发。
+
+Windows 首次 qualification 在调用模型前暴露两个本地问题：Pi version 写入 stderr，以及 resolver
+硬依赖 Unix `which`。前者改为只接受 stdout/stderr 中唯一的精确版本值，后者改用 `Bun.which`；
+二者均以本地 TDD 修复。首次完整 8-row matrix 随后被判定无效：Pi inject 在 workdir 留下
+`AGENTS.md`，四条 original 都触发 `UNEXPECTED_ENTRY`，固定损失 artifact-contract 0.1。该结果保留为
+harness failure，不作 Skill/benchmark 证据。Adapter 现于 subprocess 周期内注入，结束后删除；若原文件
+存在则逐字节恢复。修复后的 lock 使用独立 calibration identity，并冻结 adapter/orchestration digest。
+
+修复后 qualification 通过（exit 0、3/3 output、零 residue），8-row matrix 也达到 8/8 observed、
+4/4 complete pairs、0 infrastructure。但 no-skill 与 original 均为 4/4 success、mean score 1.0，
+四个 pair 均无差异；no-skill non-saturation 与 distinguishable 两门失败。Original aggregate token
+176576，对比 no-skill 53612（3.29x），平均 latency 83733.75 ms 对比 60932.75 ms（1.37x）。因此
+stable Pi harness 已具备受控实验资格，但当前两个 development task 对该强模型没有区分度；不得进入
+base IR/held-out。下一步应设计新的 development-only 难任务来暴露原 skill 可修复的失败，不再做
+Bun/transport 基础设施扩展。

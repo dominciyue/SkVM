@@ -585,6 +585,43 @@ describe("real-agent-run manifest loading", () => {
     expect(rawRow).toMatchObject({ exitCode: 0, runStatus: "adapter-crashed" });
   });
 
+  test("executePlan enforces an opt-in outer watchdog for ordinary agent rows", async () => {
+    const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-watchdog-"));
+    tempDirs.push(rootDir);
+    const outDir = join(rootDir, "out");
+    const workDir = join(rootDir, "case", "original", "run-1", "workdir");
+    await mkdir(outDir, { recursive: true });
+
+    await executePlan([{
+      caseId: "artifact-skill:skvm:windows:clean:artifact-task",
+      system: "original",
+      taskPath: join(rootDir, "task.json"),
+      workDir,
+      model: "test/model",
+      modelFamily: "test",
+      adapter: "pi",
+      adapterVersion: "0.67.68",
+      runIndex: 1,
+      panelConfigId: "watchdog-test",
+      command: [process.execPath, "-e", "await Bun.sleep(5000)"],
+    }], {
+      corpus: "calibration",
+      model: "test/model",
+      adapter: "pi",
+      outDir,
+      limit: 1,
+      execute: true,
+      retries: 0,
+      retryDelayMs: 0,
+      rootDir,
+      outerWatchdogMs: 20,
+    });
+
+    const rawRow = JSON.parse((await Bun.file(join(outDir, "raw-runs.jsonl")).text()).trim());
+    expect(rawRow).toMatchObject({ runStatus: "timeout", attempts: 1 });
+    expect(rawRow.stderr).toContain("Outer watchdog timeout after 20ms");
+  });
+
   test("executePlan orchestrates one artifact repair and persists split runtime cost", async () => {
     const { packageDir, lockPath } = await createExecutableArtifactPackage();
     const rootDir = await mkdtemp(join(tmpdir(), "skill-ir-artifact-execute-"));
@@ -724,6 +761,17 @@ describe("real-agent-run manifest loading", () => {
       panelConfigId: "env-manager-calibration-v1",
       repetitions: 3,
     });
+  });
+
+  test("parseRealAgentRunArgs accepts a positive opt-in outer watchdog", () => {
+    expect(parseRealAgentRunArgs([
+      "--corpus=pilot",
+      "--outer-watchdog-ms=360000",
+    ]).outerWatchdogMs).toBe(360000);
+    expect(() => parseRealAgentRunArgs([
+      "--corpus=pilot",
+      "--outer-watchdog-ms=0",
+    ])).toThrow("--outer-watchdog-ms must be a positive integer");
   });
 
   test("parseRealAgentRunArgs recognizes the explicit tasks-authored calibration selector", () => {

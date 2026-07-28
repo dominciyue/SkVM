@@ -5,7 +5,7 @@ import type { SkillIRBenchmarkTask } from "./real-agent";
 import { resolveCorpusManifestPath, type CorpusId } from "./corpus-registry";
 import { normalizePreIrRuntimeFailure } from "./pre-ir-runtime-evidence";
 
-type Args = {
+export type ScoringArgs = {
   raw: string;
   tasks: string;
   corpus?: CorpusId;
@@ -29,8 +29,8 @@ type TaskSet = {
   tasks: SkillIRBenchmarkTask[];
 };
 
-export function parseScoringArgs(argv: string[]): Args {
-  const args: Args = {
+export function parseScoringArgs(argv: string[]): ScoringArgs {
+  const args: ScoringArgs = {
     raw: "results/skill-ir/real-agent-dry-run/raw-runs.jsonl",
     tasks: "benchmarks/skill-ir/tasks/review-skill-tasks.json",
     rootDir: process.cwd(),
@@ -112,7 +112,7 @@ async function canonicalizeRawRunWorkDirs(rows: RawAgentRunRow[], rawPath: strin
   }
 }
 
-async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillIRBenchmarkTask>> {
+async function loadTaskIndexFromManifest(args: ScoringArgs): Promise<Map<string, SkillIRBenchmarkTask>> {
   const manifestPath = args.corpus
     ? resolveCorpusManifestPath(args.corpus, args.rootDir)
     : isAbsolute(args.manifest!)
@@ -146,8 +146,7 @@ async function loadTaskIndexFromManifest(args: Args): Promise<Map<string, SkillI
   return taskBySkillAndId;
 }
 
-async function main() {
-  const args = parseScoringArgs(process.argv.slice(2));
+export async function scoreRealAgentRuns(args: ScoringArgs): Promise<{ raw: number; scored: number; out: string }> {
   const persistedRawRows = await readJsonl<RawAgentRunRow>(args.raw);
   const rawRows = args.normalizePreIrRuntime
     ? persistedRawRows.map(normalizePreIrRuntimeFailure)
@@ -163,7 +162,12 @@ async function main() {
   await mkdir(dirname(args.out), { recursive: true });
   await writeFile(args.out, scoredRows.map((row) => JSON.stringify(row)).join("\n") + "\n", "utf8");
 
-  console.log(JSON.stringify({ raw: rawRows.length, scored: scoredRows.length, out: args.out }, null, 2));
+  return { raw: rawRows.length, scored: scoredRows.length, out: args.out };
+}
+
+async function main() {
+  const result = await scoreRealAgentRuns(parseScoringArgs(process.argv.slice(2)));
+  console.log(JSON.stringify(result, null, 2));
 }
 
 if (import.meta.main) {
