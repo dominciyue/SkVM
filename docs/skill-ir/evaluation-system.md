@@ -1192,3 +1192,42 @@ scale 1。父进程 360 秒 watchdog，输出仍只保存 compact stream digest�
 正式结果为两行 exit 0、protocol/output complete、零 timeout/crash/nonzero。No-skill 222.625 秒，
 original 222.535 秒，六个 envelope coverage predicate 全 true。它证明确定性成功负载包络可稳定执行，
 不能证明历史 crash 的自由模型内容或工具参数稳定；下一步是 opt-in durable compact trace。
+
+## 32. Durable Compact Runtime Trace
+
+`durable-runtime-trace.ts` 由 `SKVM_DURABLE_RUNTIME_TRACE` 显式启用。默认缺失时不创建文件；启用后
+每个封闭事件同步 append 并 `fsync`。事件只含 sequence、turn、elapsed、provider/tool 边界、封闭
+tool type/count/fan-out 和 duration，禁止模型正文、tool 参数/结果、stream、token、secret 和路径。
+进程 crash 或 provider error 只留下 durable prefix，不伪造 finalize。
+
+本地接线验证：
+
+```powershell
+bun ./src/benchmarks/skill-ir/durable-runtime-trace-validation-run.ts `
+  '--out=results/skill-ir/experimental-design-v2-durable-runtime-trace-validation-2026-07-29.json'
+
+bun ./src/benchmarks/skill-ir/durable-runtime-trace-validation-run.ts `
+  '--verify-only=results/skill-ir/experimental-design-v2-durable-runtime-trace-validation-2026-07-29.json'
+```
+
+真实单路由诊断先 dry-run，再 execute：
+
+```powershell
+bun ./src/benchmarks/skill-ir/durable-runtime-trace-route-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-durable-runtime-trace-route-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-durable-runtime-trace-route-2026-07-29' `
+  '--phase=plan'
+
+bun ./src/benchmarks/skill-ir/durable-runtime-trace-route-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-durable-runtime-trace-route-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-durable-runtime-trace-route-2026-07-29' `
+  '--phase=execute'
+```
+
+Execute 需要 `SKVM_XTY_API_KEY`，且 lock 只允许 original、指定 development task、clean/Windows、
+`gpt-5.6-sol`、run 1、retries 0。Raw trace 只留本地，提交 `route-report.json` 的计数、last event、
+stream digest 和 output materialization。
+
+本轮 trace 显示 9 个完整 turn 后，在 elapsed 179.649 秒写入第 10 个 request-start，外层 180 秒
+watchdog 随即终止。Materialized task 自身为 300 秒，因此新执行合同必须满足
+`outer watchdog >= task timeout + teardown grace`；不得把这一 timeout 写成 provider 或 Bun 结论。

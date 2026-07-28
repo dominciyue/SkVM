@@ -2036,3 +2036,46 @@ request。Compact report 沿用正文/secret/绝对路径禁令，并绑定 Task
 replay 时长或 runtime catalog，而应在真实 source route 中增加 opt-in、逐事件同步落盘的 compact
 runtime trace。Trace 只记录 provider request/response、tool-batch start/end、turn/finalize 状态、
 封闭 tool type/count/fan-out 与 duration；禁止正文、argument/result、token、secret 和绝对路径。
+
+#### 24.9.17 Durable compact runtime trace
+
+Trace 是 opt-in diagnostic seam，不替换 conversation log，也不改变默认 agent 行为。环境变量
+`SKVM_DURABLE_RUNTIME_TRACE` 缺失时不创建文件、不执行同步 I/O；存在时指向本地 JSONL。Writer 在
+构造时创建文件并写 `trace-start`，随后每个事件使用同步 append + `fsync`。写入或 flush 失败必须
+fail closed，不能继续生成一份看似完整的诊断。
+
+事件 schema 固定为 `skill-ir-durable-runtime-trace-event/v1`，共同字段只有 sequence、event、turn 和
+elapsedMs。事件集合为 `trace-start`、`provider-request-start`、`provider-response-received`、
+`tool-batch-start`、`tool-batch-end`、`turn-end`、`finalize`。Response/tool 事件可增加 durationMs、
+stopReason、toolCount、maximumToolFanOut 和封闭 tool type count；不得保存 timestamp、model、prompt、
+message、text、tool id、argument/result、command、token/cost、stdout/stderr、env value 或路径。
+
+Agent loop 在调用 provider 前写 request-start，返回后写 response-received；执行工具批次前后分别写
+batch-start/end；完成当前轮写 turn-end；正常/handled-error/timeout/max-iterations 退出写 finalize。
+Provider 抛错或进程 crash 时不得补写 finalize，raw trace 只说明“最后一个 durable event”，不能推断
+尚未落盘的操作。Unknown tool 统一投影为 `other`。
+
+本地 validation 复用 Task 16.16 的 delayed responder/真实 source child，但使用内部 `delayScale=0`，
+只验证 16-turn 事件接线，不重复 7.5 分钟 latency 结论。两臂共享一个 raw trace 文件，必须解析为两个
+独立 segment；每段 16 provider request/response、15 tool-batch start/end、16 turn-end、1 finalize，
+共 80 个连续 sequence event。Raw trace 本地保留，提交报告只保存每段计数、顺序 gate 与输入 digest。
+
+Task 16.16 report 继续绑定 pre-trace 提交 `6ce33e7`；修改 `agent-loop.ts` 后建立新的 trace diagnostic
+source identity，不回写旧 report。下一条真实 route 必须在本地 validation 通过后单独预注册，固定
+`original × experimental-design-v2-cluster-sequential-dev-002 × clean × Windows × gpt-5.6-sol`、
+retries 0、单行。它不进 benchmark 分母；无论成功或 crash 都只冻结 compact trace prefix。
+
+2026-07-29 的本地 validation 使用两条 `delayScale=0` source child，共生成 160 个事件；每段均为
+80 个连续事件，16 次 request/response、15 次 tool-batch start/end、16 次 turn-end 和 1 次
+completed finalize。该结果只证明 trace 接线与同步持久化机制可用，不重复 Task 16.16 的时延结论。
+
+随后按独立 lock 执行的唯一真实 route 在 180.254 秒被外层 watchdog 终止。Compact prefix 有 47 个
+连续事件：前 9 轮 request/response、tool-batch start/end 和 turn-end 全部闭合，第 10 轮最后事件为
+`provider-request-start`，无 finalize、无 stderr、0/3 output。第 9 轮在 elapsed 179.649 秒闭合，
+第 10 轮请求同一时刻发出；外层只在约 0.6 秒后终止进程。Materialized task 的内部 timeout 为
+300 秒、max steps 30，而 diagnostic lock 的外层 timeout 为 180 秒，因此本轮失败冻结为
+`outer-watchdog-shorter-than-task-budget`，不是 provider 长尾或 Bun crash 的证据。
+
+该 lock 不得事后增加 timeout 或重跑。后续任一新 harness/route contract 必须在付费前验证
+`outer watchdog >= task timeout + teardown grace`。Task 16.17 至此结束，不再增加 Bun/runtime 版本；
+历史 Bun assertion 的根因仍未由本轮定位，当前结果也不放行 8-row matrix。

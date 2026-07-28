@@ -3,6 +3,7 @@ import { emptyTokenUsage, addTokenUsage } from "./types.ts"
 import type { LLMProvider, LLMTool, LLMToolCall, LLMToolResult, LLMResponse, LLMMessage, CompletionParams } from "../providers/types.ts"
 import { isProviderError } from "../providers/errors.ts"
 import { createLogger } from "./logger.ts"
+import { createDurableRuntimeTraceFromEnv } from "./durable-runtime-trace.ts"
 
 const log = createLogger("agent-loop")
 
@@ -92,6 +93,7 @@ export async function runAgentLoop(
 
   const startMs = performance.now()
   const deadline = startMs + timeoutMs
+  const runtimeTrace = createDurableRuntimeTraceFromEnv()
 
   const params: CompletionParams = {
     messages: [...initialMessages],
@@ -131,7 +133,9 @@ export async function runAgentLoop(
 
       // --- LLM call ---
       if (!response) {
+        runtimeTrace?.providerRequestStart(iteration)
         response = await provider.complete(params)
+        runtimeTrace?.providerResponseReceived(iteration, response)
         llmDurationMs += response.durationMs
       }
       // (else: response was already set by completeWithToolResults at end of previous iteration)
@@ -165,6 +169,7 @@ export async function runAgentLoop(
       // If no tool calls or end_turn, we're done
       if (response.toolCalls.length === 0 || response.stopReason === "end_turn") {
         finalText = response.text
+        runtimeTrace?.turnEnd(iteration)
         break
       }
 
@@ -176,6 +181,8 @@ export async function runAgentLoop(
       // and for any adapter that assumes stable ordering.
       const toolResults: LLMToolResult[] = []
       const toolStepCalls: ToolCall[] = []
+      const toolBatchStartedAt = performance.now()
+      runtimeTrace?.toolBatchStart(iteration, response.toolCalls)
 
       const dispatchOne = async (tc: LLMToolCall): Promise<{ tr: LLMToolResult; completed: ToolCall }> => {
         log.debug(`Tool: ${tc.name}(${JSON.stringify(tc.arguments).slice(0, 100)})`)
@@ -207,6 +214,11 @@ export async function runAgentLoop(
       if (ilpEnabled) {
         log.debug(`ILP dispatch: ${response.toolCalls.length} tool calls executed in parallel`)
       }
+      runtimeTrace?.toolBatchEnd(
+        iteration,
+        response.toolCalls,
+        performance.now() - toolBatchStartedAt,
+      )
 
       for (const { tr, completed } of dispatched) {
         toolResults.push(tr)
@@ -238,6 +250,7 @@ export async function runAgentLoop(
         { role: "assistant", content: response.text || `[Called: ${response.toolCalls.map(tc => tc.name).join(", ")}]` },
         { role: "user", content: toolResults.map(tr => tr.content.slice(0, 2000)).join("\n---\n") },
       ]
+      runtimeTrace?.turnEnd(iteration)
 
       // Loop detection: break if the same action signature repeats 3+ times consecutively
       if (actionSig === lastActionSig) {
@@ -253,7 +266,9 @@ export async function runAgentLoop(
       }
 
       // Next LLM call with tool results
+      runtimeTrace?.providerRequestStart(iteration + 1)
       response = await provider.completeWithToolResults(params, toolResults, response)
+      runtimeTrace?.providerResponseReceived(iteration + 1, response)
       llmDurationMs += response.durationMs
     }
   } catch (err) {
@@ -262,7 +277,10 @@ export async function runAgentLoop(
     // content failures (bad tool call, parse error, tool execution error).
     // If we capture them into loopError they get flattened into a stringy
     // adapterError.stderr field and downstream can't tell the difference.
-    if (isProviderError(err)) throw err
+    if (isProviderError(err)) {
+      runtimeTrace?.abandon()
+      throw err
+    }
     loopError = err instanceof Error ? err : new Error(String(err))
     log.warn(`Agent loop error after ${iteration} iterations: ${loopError.message.slice(0, 200)}`)
   }
@@ -280,6 +298,15 @@ export async function runAgentLoop(
     timedOut = true
     log.warn(`Agent loop overran deadline by ${Math.round(performance.now() - deadline)}ms (post-loop detection)`)
   }
+
+  const traceOutcome = timedOut
+    ? "timeout"
+    : loopError
+      ? "handled-error"
+      : iteration >= maxIterations && response?.toolCalls.length
+        ? "max-iterations"
+        : "completed"
+  runtimeTrace?.finalize(iteration, traceOutcome)
 
   return {
     text: finalText,

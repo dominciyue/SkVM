@@ -1134,3 +1134,37 @@ results/skill-ir/experimental-design-v2-delayed-source-process-replay-2026-07-29
 crash。它没有重建历史 crash 前的自由模型 response、工具参数或非确定时序，因而仍不是模型、Skill、
 benchmark 或 token 证据，也不放行付费 matrix。下一阶段先实现逐事件同步落盘、无正文的 runtime
 trace，再考虑一条新的真实 route diagnostic。
+
+## 23. Durable Trace 单路由诊断
+
+2026-07-29 先以 `delayScale=0` 完成本地 trace 接线验证：no-skill/original 两段各 80 个连续事件，
+共 160 个；每段均有 16 request/response、15 tool batch、16 turn-end 和 completed finalize。该结果不
+重复 delayed replay 的时长证据，只证明同步 writer 与 agent-loop 边界接线成立。
+
+随后执行预注册的唯一真实 route：
+
+```text
+original × experimental-design-v2-cluster-sequential-dev-002
+clean × Windows × xty/gpt-5.6-sol × bare-agent × run 1
+retries 0, outer watchdog 180 s
+```
+
+| Duration | Requests | Responses | Closed tool batches | Turn ends | Last event | Outputs |
+|---:|---:|---:|---:|---:|---|---:|
+| 180.254 s | 10 | 9 | 9 | 9 | turn 10 provider-request-start | 0/3 |
+
+Trace 有 47 个连续事件、无 finalize；stderr 为 0 bytes，没有观察到 Bun assertion。第 9 轮在
+179.649 秒闭合，第 10 轮请求刚写入约 0.6 秒后被终止。Materialized task 的内部 timeout 为 300 秒、
+max steps 30，外层 watchdog 只有 180 秒，因此本轮 infrastructure failure 明确归为
+`outer-watchdog-shorter-than-task-budget`。它既不是 Skill/benchmark/model 结果，也不能证明 provider
+卡死或历史 Bun crash 已解决。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-durable-runtime-trace-validation-2026-07-29.json
+results/skill-ir/experimental-design-v2-durable-runtime-trace-route-2026-07-29/route-report.json
+```
+
+该 lock 已冻结，不提高 timeout 后重跑；8-row matrix 仍未放行。后续稳定 harness 或新 route 合同
+必须在付费前验证外层 watchdog 覆盖 task timeout 与 teardown grace，并停止继续增加 Bun/runtime 版本。

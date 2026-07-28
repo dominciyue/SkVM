@@ -2483,13 +2483,42 @@ wall-clock/successful envelope 六项 coverage 全 true。该结果不放行付�
 
 ### Task 16.17：Durable Compact Runtime Trace
 
-- [ ] 先冻结独立 trace schema 与隐私 contract；使用 opt-in 环境开关，默认运行与现有 conversation
+**Files:**
+
+```text
+Create  src/core/durable-runtime-trace.ts
+Create  src/core/durable-runtime-trace.test.ts
+Modify  src/core/agent-loop.ts
+Create  src/benchmarks/skill-ir/durable-runtime-trace-validation.ts
+Create  src/benchmarks/skill-ir/durable-runtime-trace-validation.test.ts
+Create  src/benchmarks/skill-ir/durable-runtime-trace-validation-run.ts
+Create  results/skill-ir/experimental-design-v2-durable-runtime-trace-validation-2026-07-29.json
+Create  src/benchmarks/skill-ir/durable-runtime-trace-route.ts
+Create  src/benchmarks/skill-ir/durable-runtime-trace-route.test.ts
+Create  src/benchmarks/skill-ir/durable-runtime-trace-route-run.ts
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-durable-runtime-trace-route-lock.json
+Modify  docs/skill-ir/evaluation-system.md
+Modify  docs/skill-ir/experiment-results.md
+```
+
+- [x] 先冻结独立 trace schema 与隐私 contract；使用 opt-in 环境开关，默认运行与现有 conversation
   logger 行为不变，不创建 runtime/transport/benchmark 版本。
-- [ ] Trace 逐事件同步 append + flush：provider-request-start、provider-response-received、tool-batch-start、
+- [x] Trace 逐事件同步 append + flush：provider-request-start、provider-response-received、tool-batch-start、
   tool-batch-end、turn-end、finalize；每行有 sequence、turn、duration、封闭 tool type/count/fan-out。
-- [ ] 禁止 prompt/message/model text、tool argument/result、stdout/stderr、token、secret、env value、
+- [x] 禁止 prompt/message/model text、tool argument/result、stdout/stderr、token、secret、env value、
   command 和绝对路径；crash 后只允许解释“最后一个持久化事件”，不得补全缺失事件。
-- [ ] 先用 deterministic delayed replay 注入 trace，验证成功行事件完整；再为一条真实 route 建立新的
+- [x] 先用 deterministic delayed replay 注入 trace，验证成功行事件完整；再为一条真实 route 建立新的
   development-only diagnostic lock。未完成书面 freeze 与本地测试前不调用 API。
-- [ ] 真实 route 无论成功或 crash 都冻结 compact trace；它不进 benchmark 分母，不直接放行 8-row
+- [x] 真实 route 无论成功或 crash 都冻结 compact trace；它不进 benchmark 分母，不直接放行 8-row
   matrix，也不产生 Skill/model/token claim。
+
+冻结细节：使用 `SKVM_DURABLE_RUNTIME_TRACE` 指向本地 JSONL；每事件同步 append + fsync，writer 失败
+时 fail closed。Local validation 以 `delayScale=0` 运行两臂真实 source child，每段预期 80 个事件；
+raw trace 不提交。下一条真实 route 固定 original × cluster-sequential development × clean × Windows ×
+`gpt-5.6-sol`，retries 0；付费前仍需独立 diagnostic lock 与本地 gate 通过。
+
+正式结果：本地 trace validation 160/160 事件通过。唯一真实 route 在 180.254 秒被外层 watchdog
+终止，trace 停在第 10 轮 `provider-request-start`；前 9 轮均闭合，0 stderr、0/3 output、无 Bun
+assertion。任务内部 timeout 为 300 秒而外层 lock 为 180 秒，冻结结论为 timeout contract 倒挂；
+不修改旧 lock、不重跑。Task 16.17 是最后一个专用 Bun infrastructure feature。下一执行合同必须先
+静态验证 outer watchdog 至少覆盖 task timeout 与 teardown grace；在此之前不运行 8-row matrix。
