@@ -1170,3 +1170,25 @@ evidence digest。Prompt、message、模型文本、tool argument/result、strea
 正式结果为 4 条成功轨迹可用、4 条 crash 轨迹不可用。成功 envelope 的 response/tool/fan-out/
 raw duration 最大值为 16/23/6/220.124 秒，旧 deterministic replay 为 5/11/3/0.674 秒；四项覆盖
 均失败。因此下一实验是无 API 的 delayed/high-fan-out replay，不是付费 matrix。
+
+## 31. Delayed / High-fan-out Source-process Replay
+
+`delayed-source-process-replay.ts` 是 Task 16.15 的后继 infrastructure diagnostic。它不修改已由旧
+report 绑定的 `source-process-replay.ts`，而以独立 schema 复用相同 source entry、Node helper、
+adapter 和 tool executor。正式 CLI 不接受 delay、system、repetition 或 timeout 参数：
+
+```powershell
+bun ./src/benchmarks/skill-ir/delayed-source-process-replay-run.ts `
+  '--out=results/skill-ir/experimental-design-v2-delayed-source-process-replay-2026-07-29.json'
+
+bun ./src/benchmarks/skill-ir/delayed-source-process-replay-run.ts `
+  '--verify-only=results/skill-ir/experimental-design-v2-delayed-source-process-replay-2026-07-29.json'
+```
+
+每行固定 16 次 response、23 次 tool、fan-out 6 和 221 秒 provider wait。内部 `delayScale=0` 只供
+测试同一 source child 接线，report 会保持 `passed=false` 和 duration coverage=false；正式 CLI 固定
+scale 1。父进程 360 秒 watchdog，输出仍只保存 compact stream digest、计数、时长和 evidence digest。
+
+正式结果为两行 exit 0、protocol/output complete、零 timeout/crash/nonzero。No-skill 222.625 秒，
+original 222.535 秒，六个 envelope coverage predicate 全 true。它证明确定性成功负载包络可稳定执行，
+不能证明历史 crash 的自由模型内容或工具参数稳定；下一步是 opt-in durable compact trace。

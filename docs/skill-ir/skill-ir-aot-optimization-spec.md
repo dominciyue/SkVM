@@ -2004,3 +2004,35 @@ provider response 最长 26.783 秒、整行最长 220.124 秒；deterministic r
 11 个 tool call、fan-out 3、整行最长 0.674 秒。四个 coverage predicate 全为 false，结论冻结为
 `deterministic-replay-does-not-cover-observed-success-envelope`。这支持先做 delayed/high-fan-out
 本地 replay，不支持直接付费，也不能解释四个 crash 的未落盘轨迹。
+
+#### 24.9.16 Delayed / high-fan-out source replay
+
+Task 16.14 的实现与正式 report 已由 digest 绑定，不允许为新诊断就地参数化或改写。新 replay 使用
+独立 schema/CLI，但继续运行同一 Bun 1.3.13 source entry、Node HTTP helper、`bare-agent` 和 tool
+executor；它不是新的 runtime、transport、benchmark 或 model identity。
+
+正式 shape 固定为两臂各一行、顺序执行。每行有 16 次 provider response，前 15 次合计 23 个 tool
+call，fan-out 分布为 `6,3,2,1×12`，最后一次为无 tool call 的 `end_turn`。公开 delay schedule 为
+`27s,13s×14,12s`，总 provider wait 221 秒，覆盖 audit 的 response 16、tool 23、fan-out 6、单次
+26.783 秒和整行 220.124 秒上界。工具只读取公开 fixture、运行无副作用 Node command、写入/回读
+三个公开输出；不消费历史模型正文或 tool argument。
+
+Task/CLI 的 max steps 固定为 20，总 timeout 为 300 秒，父进程 watchdog 为 360 秒。Formal CLI 不
+接受 delay、shape、repetition、timeout 或 system 参数。测试可以通过内部 `delayScale=0` 验证同一
+协议和 source child 路径，但该行必须显示 duration coverage=false，不能进入正式 report。
+
+通过条件是两行均 16 response、23 tool、fan-out 6、configured delay 221 秒、真实 wall-clock 不少于
+220.124 秒、exit 0、protocol complete、3/3 output，且零 timeout、Bun assertion、nonzero 或额外
+request。Compact report 沿用正文/secret/绝对路径禁令，并绑定 Task 16.15 audit、runtime/helper/source
+与本轮实现摘要。无论通过或失败，`methodEvidence=false`、`paidRerunAllowed=false`；通过只说明已
+观察成功行 envelope 可以在确定性本地响应下稳定 replay，仍看不到历史 crash 的中间轨迹。
+
+2026-07-29 的正式 replay 在 Windows x64、Bun 1.3.13 上通过。No-skill 与 original 分别运行
+222.625 秒和 222.535 秒，两行均为 16/16 response、23 tool call、fan-out 6、3/3 output、exit 0，
+零 timeout、Bun assertion、nonzero 或 protocol failure；六个 coverage predicate 全为 true。
+
+该结果只把“确定性成功 trajectory 的计数、并发宽度和 wall-clock envelope”从未覆盖变为已覆盖，
+不把历史 crash 变成可观察，也不证明自由模型响应或内容相关工具参数稳定。下一诊断不得继续扩大
+replay 时长或 runtime catalog，而应在真实 source route 中增加 opt-in、逐事件同步落盘的 compact
+runtime trace。Trace 只记录 provider request/response、tool-batch start/end、turn/finalize 状态、
+封闭 tool type/count/fan-out 与 duration；禁止正文、argument/result、token、secret 和绝对路径。

@@ -1111,3 +1111,26 @@ results/skill-ir/experimental-design-v2-trajectory-shape-audit-2026-07-29.json
 结论为 `deterministic-replay-does-not-cover-observed-success-envelope`。上一 replay 仍是有效的短轨迹
 基础设施证据，但不足以代表真实成功负载。下一步冻结一条 16-response、23-tool、fan-out 6、总时长
 不少于 220.124 秒的无 API replay；本结果不放行付费 calibration，不改变 Skill evidence ledger。
+
+## 22. Delayed / High-fan-out Source-process Replay
+
+2026-07-29 使用相同 Bun 1.3.13 source entry、Node HTTP helper、`bare-agent` 和 tool executor，执行
+两臂各一条、顺序运行的无 API replay。公开 schedule 为 16 response、23 tool、fan-out 6、provider
+wait 221 秒；单行门槛为 wall-clock 不少于历史成功上界 220.124 秒。
+
+| System | Duration | Responses | Tools | Fan-out | Outputs | Result |
+|---|---:|---:|---:|---:|---:|---|
+| no-skill | 222.625 s | 16 | 23 | 6 | 3/3 | exit 0 |
+| original | 222.535 s | 16 | 23 | 6 | 3/3 | exit 0 |
+
+两行均 protocol complete，0 timeout、0 Bun assertion、0 nonzero；response/tool/fan-out/configured
+delay/wall-clock/successful envelope 六项 coverage 全 true。Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-delayed-source-process-replay-2026-07-29.json
+```
+
+这说明已观察成功行的轮次数、工具总量、最大并发宽度和运行时长本身不会在确定性 replay 中触发
+crash。它没有重建历史 crash 前的自由模型 response、工具参数或非确定时序，因而仍不是模型、Skill、
+benchmark 或 token 证据，也不放行付费 matrix。下一阶段先实现逐事件同步落盘、无正文的 runtime
+trace，再考虑一条新的真实 route diagnostic。

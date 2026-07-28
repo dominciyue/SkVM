@@ -2454,13 +2454,42 @@ provider response 最大 26.783 秒、raw duration 最大 220.124 秒；旧 repl
 
 ### Task 16.16：Delayed / High-fan-out Source-process Replay
 
-- [ ] 冻结本地两臂各 1 行，固定 16 次 provider response、23 个 tool call、最大 fan-out 6，并以
-  不少于 220.124 秒的 wall-clock schedule 覆盖历史成功行 envelope；不读取历史正文。
-- [ ] 继续复用 Bun 1.3.13 source entry、Node HTTP helper、`bare-agent` 和同一 tool executor；不创建
+**Files:**
+
+```text
+Create  src/benchmarks/skill-ir/delayed-source-process-replay.ts
+Create  src/benchmarks/skill-ir/delayed-source-process-replay.test.ts
+Create  src/benchmarks/skill-ir/delayed-source-process-replay-run.ts
+Create  results/skill-ir/experimental-design-v2-delayed-source-process-replay-2026-07-29.json
+Modify  docs/skill-ir/evaluation-system.md
+Modify  docs/skill-ir/experiment-results.md
+```
+
+- [x] 冻结本地两臂各 1 行，固定 16 次 provider response、23 个 tool call、最大 fan-out 6，并以
+  `27s,13s×14,12s` 的 221 秒 wall-clock schedule 覆盖历史成功行 envelope；不读取历史正文。
+- [x] 继续复用 Bun 1.3.13 source entry、Node HTTP helper、`bare-agent` 和同一 tool executor；不创建
   runtime、transport 或 benchmark 新版本。
-- [ ] RED：phase、tool count/fan-out、delay schedule、final end-turn 和 compact privacy contract 任一
+- [x] RED：phase、tool count/fan-out、delay schedule、final end-turn 和 compact privacy contract 任一
   漂移必须 fail closed。
-- [ ] GREEN：两行必须 exit 0、protocol complete、3/3 output、0 timeout/crash；失败只定位本地
+- [x] GREEN：两行必须 exit 0、protocol complete、3/3 output、0 timeout/crash；失败只定位本地
   infrastructure，成功只说明已观察**成功行** envelope 可稳定 replay。
-- [ ] 即使通过，crash 行轨迹仍不可观察，`paidRerunAllowed=false`；下一步应先设计 flush-on-each-turn
+- [x] 即使通过，crash 行轨迹仍不可观察，`paidRerunAllowed=false`；下一步应先设计 flush-on-each-turn
   的真实 route trace，不直接重跑 8-row matrix。
+
+正式结果：no-skill/original 分别为 222.625/222.535 秒；两行 16/16 response、23 tool、fan-out 6、
+3/3 output、exit 0，0 timeout/crash/nonzero/protocol failure。Response/tool/fan-out/configured delay/
+wall-clock/successful envelope 六项 coverage 全 true。该结果不放行付费 matrix，只把下一变量收敛到
+自由 response/tool 内容、非确定时序和 crash 前未持久化阶段。
+
+### Task 16.17：Durable Compact Runtime Trace
+
+- [ ] 先冻结独立 trace schema 与隐私 contract；使用 opt-in 环境开关，默认运行与现有 conversation
+  logger 行为不变，不创建 runtime/transport/benchmark 版本。
+- [ ] Trace 逐事件同步 append + flush：provider-request-start、provider-response-received、tool-batch-start、
+  tool-batch-end、turn-end、finalize；每行有 sequence、turn、duration、封闭 tool type/count/fan-out。
+- [ ] 禁止 prompt/message/model text、tool argument/result、stdout/stderr、token、secret、env value、
+  command 和绝对路径；crash 后只允许解释“最后一个持久化事件”，不得补全缺失事件。
+- [ ] 先用 deterministic delayed replay 注入 trace，验证成功行事件完整；再为一条真实 route 建立新的
+  development-only diagnostic lock。未完成书面 freeze 与本地测试前不调用 API。
+- [ ] 真实 route 无论成功或 crash 都冻结 compact trace；它不进 benchmark 分母，不直接放行 8-row
+  matrix，也不产生 Skill/model/token claim。
