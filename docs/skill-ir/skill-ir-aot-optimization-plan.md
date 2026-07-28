@@ -2392,3 +2392,33 @@ Modify  docs/skill-ir/experiment-results.md
   base IR、ir-static 或 artifact 优化阶段。
 - [x] 总项目状态只能由最弱必要层决定：当前为 `partial-mechanism-evidence`，跨 Skill 稳定提升、
   跨模型/上下文和 token break-even 继续为 false。
+
+### Task 16.14：Deterministic Source-process Replay
+
+**Files:**
+
+```text
+Create  src/benchmarks/skill-ir/source-process-replay.ts
+Create  src/benchmarks/skill-ir/source-process-replay.test.ts
+Create  src/benchmarks/skill-ir/source-process-replay-run.ts
+Create  results/skill-ir/experimental-design-v2-source-process-replay-2026-07-29.json
+Modify  docs/skill-ir/evaluation-system.md
+Modify  docs/skill-ir/experiment-results.md
+```
+
+- [x] RED：loopback responder 必须按 session 严格执行 read-inputs → shell-stress → write-outputs →
+  read-outputs → final 五阶段；乱序、额外请求、错误 model/tool schema 必须记为 protocol failure。
+- [x] RED：source child 必须真实运行 `src/index.ts run`、`bare-agent`、Node HTTP helper、initial
+  workdir manifest 和 no-skill/original 两臂；report 不得保留 stream/task/skill/tool 正文、API key、
+  绝对路径或环境值。
+- [x] GREEN：正式 replay 固定两臂各 10 次、20 行顺序执行；每行 5 次 provider request、3/3 output，
+  通过门槛为 20/20 exit 0、零 timeout、零 Bun crash、零 protocol failure。
+- [x] GREEN：report 绑定 Bun/source/provider/transport/helper 摘要，提供 `--verify-only`，任一输入或
+  compact report identity 漂移 fail closed；`methodEvidence=false`、`paidRerunAllowed=false`。
+- [x] 实验解释：失败只定位 infrastructure phase；通过只说明固定、低延迟、无真实模型的 trajectory
+  稳定，不证明 benchmark 区分度、Skill 优化、模型能力或 token 节省，也不自动放行付费重跑。
+
+正式结果：Bun 1.3.13 下两臂各 10/10，合计 20/20 exit zero、protocol/output complete，0 timeout、
+0 crash、0 nonzero；no-skill/original median 分别为 577.8/597.4 ms。由此只否定“固定 source
+process 边界必崩”的假设。下一步从既有本地 conversation/session/raw 中生成不含正文的 trajectory
+shape/latency audit；四个 crash 行缺少 finalized conversation，不能伪造其工具序列。

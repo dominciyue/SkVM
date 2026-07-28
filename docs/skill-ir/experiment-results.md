@@ -1058,3 +1058,26 @@ failed；v2 最新轮 4 infrastructure / 1 comparable pair。Runner 审计确认
 Law development gate passed，held-out 相对 static 从 0.8375 降到 0.725 且 gate failed；Experimental
 Design v2 的测量合同通过，真实 baseline 仍 blocked、尚未开始 base IR。项目总体状态为
 `partial-mechanism-evidence`，完整跨 Skill 稳定性、held-out 泛化和 token break-even 仍未证明。
+
+## 20. Source-process Replay 基础设施诊断
+
+2026-07-29 使用 Bun 1.3.13 source entry、既有 Node HTTP helper、`bare-agent` 与本地固定
+OpenAI-compatible responder 完成无 API replay。每行经过 5 次 provider request、并行读取、三个
+并行 shell/Node command、三个并行输出写入、回读与正常结束；两臂各 10 次顺序执行。
+
+| System | Rows | Exit 0 | Protocol complete | 3/3 outputs | Failure | Median |
+|---|---:|---:|---:|---:|---:|---:|
+| no-skill | 10 | 10 | 10 | 10 | 0 | 577.8 ms |
+| original | 10 | 10 | 10 | 10 | 0 | 597.4 ms |
+| total | 20 | 20 | 20 | 20 | 0 | 分臂报告 |
+
+总计 0 timeout、0 nonzero exit、0 Bun internal assertion。Compact report 位于：
+
+```text
+results/skill-ir/experimental-design-v2-source-process-replay-2026-07-29.json
+```
+
+该结果否定“source runner、Node helper、bare-agent 或多轮 spawn 组合本身必然失败”的假设，但不
+解释真实矩阵的四个 crash。固定 replay 每行约 0.6 秒，真实成功行约 60–220 秒且工具轨迹自由；
+四个 crash session 没有 finalize conversation log。下一诊断应只从既有日志提取 tool/provider call
+数量、类型、时延和完成边界，不保存正文，也不把 replay pass 当成付费重跑许可或 Skill 结果。

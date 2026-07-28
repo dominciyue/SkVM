@@ -1928,3 +1928,42 @@ repair 机制证据，development gate 因 1 infrastructure 未过；law-to-mark
 0.925 高于 static 0.80 且 gate passed，但 held-out artifact 0.725 低于 static 0.8375、2 regressions，
 held-out gate failed；experimental-design v2 只完成 measurement contract，baseline gate 未过且未进入
 base IR。总项目状态因此是 `partial-mechanism-evidence`，不是完整 Skill 优化成功。
+
+#### 24.9.14 无 API Source-process Replay
+
+下一步不再增加 runtime/transport 版本，也不直接付费重跑。使用本地 loopback
+OpenAI-compatible responder 驱动既有 Bun 1.3.13 source entry、`bare-agent`、Node HTTP helper 和
+真实 tool executor，隔离“固定多轮 agent trajectory 能否稳定完成并正常退出”。该 replay 是
+infrastructure diagnostic，`methodEvidence=false`；不得进入 benchmark 分母、scorer、IR、artifact、
+PGO、模型能力、Skill 效果或 token 指标。
+
+每条 replay 固定五次 provider 响应：并行读取两个公开输入；并行执行三个无副作用 shell/Node
+命令；并行写入三个公开输出；并行回读输出；最终 `end_turn`。这覆盖真实 child source process、
+五次 Node helper spawn、bare-agent tool fan-out、shell 子进程、文件物化和 teardown/exit，同时不读取
+任何模型结果。Responder 只接受 `replay/*` route、测试 API key、OpenAI Chat Completions schema 和
+预期 phase；不保存 prompt、skill、tool result 或响应正文。
+
+本地诊断在运行前固定为：
+
+```text
+systems: no-skill | original
+repetitions: 10 per system, sequential
+rows: 20
+responses per row: 5
+required outputs: 3/3
+pass: 20/20 exit 0, 20/20 protocol complete, 20/20 outputs complete,
+      zero timeout, zero Bun crash signature, zero nonzero exit
+```
+
+Compact report 只允许 runtime/source/helper digest、按 system 的计数、逐行 exit/timeout/failure code、
+duration、stream byte count/SHA-256、request count/phase count和输出计数；禁止绝对路径、环境值、
+API key、stdout/stderr 正文、task/skill 内容与工具输出。若 replay 失败，先根据首个稳定复现的 phase
+定位本地进程根因；若通过，只能说明确定性低延迟 trajectory 未复现崩溃，不能排除远端延迟、响应
+形状、模型工具行为或 Windows/Bun 的非确定性影响。两种结果都不自动放行付费 calibration。
+
+2026-07-29 的正式 replay 使用冻结 Bun 1.3.13 与同一 Node helper：`no-skill` 10/10、`original`
+10/10，合计 20/20 exit 0、20/20 protocol complete、20/20 为 3/3 outputs，0 timeout、0 nonzero、
+0 Bun crash。两臂 median duration 分别为 577.8 ms 与 597.4 ms。该结果排除了“source entry +
+bare-agent + Node helper + 多轮工具/spawn 本身必然触发 crash”，但与真实成功行约 60–220 秒的
+provider latency 和自由 trajectory 不同；四个历史 crash 行也没有 finalize conversation log。因此
+下一诊断变量应是脱敏 trajectory shape/latency，而不是新的 runtime 或 transport 版本。

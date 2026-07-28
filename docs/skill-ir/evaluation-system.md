@@ -1117,3 +1117,29 @@ bun ./src/benchmarks/skill-ir/benchmark-evidence-run.ts `
 当前报告允许的最大结论是：v2 的本地 measurement contract 更可信，项目已有局部机制正向证据；
 不允许据此声称 v2 real discrimination 更好、三个 Skill 都已稳定优化、held-out 泛化或 token
 break-even 已证明。
+
+## 29. Source-process Replay
+
+`source-process-replay.ts` 是无 API infrastructure diagnostic。它启动本地 OpenAI-compatible
+responder，并让真实 source child 继续经过 `src/index.ts run`、`bare-agent`、Node HTTP helper、
+tool executor、initial manifest 和 teardown。Responder 为每个 session 固定五阶段：并行读取输入、
+三个并行 shell/Node 命令、并行写三个输出、回读输出、最终结束。
+
+正式 CLI 不接受 repetition 参数，固定 `no-skill|original` 各 10 次：
+
+```powershell
+bun ./src/benchmarks/skill-ir/source-process-replay-run.ts `
+  '--out=results/skill-ir/experimental-design-v2-source-process-replay-2026-07-29.json'
+
+bun ./src/benchmarks/skill-ir/source-process-replay-run.ts `
+  '--verify-only=results/skill-ir/experimental-design-v2-source-process-replay-2026-07-29.json'
+```
+
+运行需要本机已有 `.skvm/runtime/bun-1.3.13-source-2026-07-27/bun.exe` 与同目录 `node.exe`。
+临时 config/task/skill/workdir 在 OS temp 下创建并在结束后删除；report 只保留摘要、封闭 failure
+code、计数和相对 evidence digest。它不读取 `SKVM_XTY_API_KEY`，也不调用真实网关。
+
+2026-07-29 结果为 20/20 exit 0、3/3 outputs、protocol complete，0 timeout/crash/nonzero；
+no-skill/original median 为 577.8/597.4 ms。它证明固定低延迟 trajectory 下基础 source process
+可稳定退出，不证明真实模型、benchmark 或 Skill 效果。真实成功行的时长和自由工具序列明显更大，
+下一阶段应审计既有日志中的 trajectory shape/latency，不能据此直接付费重跑。
