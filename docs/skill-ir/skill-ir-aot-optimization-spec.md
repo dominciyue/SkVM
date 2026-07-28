@@ -1967,3 +1967,40 @@ API key、stdout/stderr 正文、task/skill 内容与工具输出。若 replay �
 bare-agent + Node helper + 多轮工具/spawn 本身必然触发 crash”，但与真实成功行约 60–220 秒的
 provider latency 和自由 trajectory 不同；四个历史 crash 行也没有 finalize conversation log。因此
 下一诊断变量应是脱敏 trajectory shape/latency，而不是新的 runtime 或 transport 版本。
+
+#### 24.9.15 Trajectory shape 与 latency 审计
+
+下一阶段只消费 2026-07-28 已冻结的 source route-diagnostic matrix，不调用 API、不补跑、不修改
+task、scorer、model、runtime 或 transport。输入固定为 8 行 raw、对应 plan、`.skvm/log/sessions.jsonl`
+以及已完成 session 的 conversation JSONL。Route probe 的 session 明确排除；matrix 的 8 行按 raw
+顺序与从首条 matrix session 开始的 8 个唯一 session 配对，并用 task identity、system 顺序、
+run index、completed/running 状态和 duration tolerance 做 fail-closed 复核。
+
+Compact report 只允许保存：row/case/system/run index、session 的相对标识、raw exit/timeout/failure
+分类、conversation 是否可用、request/response 数、封闭 tool type 计数、单响应最大 tool fan-out、
+stop-reason 计数、provider duration 的 count/sum/median/max、final end-turn 状态，以及各输入相对路径与
+SHA-256。禁止保存 prompt、skill、model text、message、system prompt、tool argument、tool result、
+stdout/stderr 正文、token/secret/env value 或绝对路径。工具名投影到封闭枚举；未知名称只记为
+`other`。
+
+Conversation 只存在于正常 finalize 的 session。若 raw 为 infrastructure failure 且 session 只有
+`running` 记录、没有 conversation，必须输出 `trajectoryAvailable=false` 和封闭 unavailable reason；
+不得把缺失解释为 0 request、0 tool call 或 crash 前真实轨迹。完成行若缺 conversation、最后不是
+`end_turn`、request/response 不配对，或 session/raw 映射不唯一，则 audit fail closed。
+
+审计只回答 replay 是否覆盖了**已观察成功行**的 response count、tool count/fan-out 与 provider
+latency envelope。它不能观察 crash 前轨迹，不能建立 crash 因果，不能证明模型、benchmark、Skill
+优化或 token 效率，也不能自动放行付费实验。若成功行的任一 envelope 超出 replay，则下一步应先
+做同 runtime/transport 的 delayed/high-fan-out 本地 replay；只有覆盖成功 envelope 后仍无法复现，
+才讨论一条新的预注册、带 runtime trace flush 的真实 route diagnostic。
+
+2026-07-29 的正式审计把 route session 排除后，8/8 raw row 与 session 在 task/order/state/duration
+边界上一致；7 个可观察 duration delta 为 16--154 ms，最后一个 running-only session 因没有后继或
+terminal record 保持 null。4 条 exit-zero 行有 finalized conversation，4 条 Bun assertion 行只有
+`running` 记录并统一为 `session-not-finalized`，没有被伪装成零调用。
+
+成功行的 observed envelope 为 6--16 次 response、最多 23 个 tool call、最大 fan-out 6、单次
+provider response 最长 26.783 秒、整行最长 220.124 秒；deterministic replay 只有 5 次 response、
+11 个 tool call、fan-out 3、整行最长 0.674 秒。四个 coverage predicate 全为 false，结论冻结为
+`deterministic-replay-does-not-cover-observed-success-envelope`。这支持先做 delayed/high-fan-out
+本地 replay，不支持直接付费，也不能解释四个 crash 的未落盘轨迹。

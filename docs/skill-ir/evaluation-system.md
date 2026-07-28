@@ -1143,3 +1143,30 @@ code、计数和相对 evidence digest。它不读取 `SKVM_XTY_API_KEY`，也�
 no-skill/original median 为 577.8/597.4 ms。它证明固定低延迟 trajectory 下基础 source process
 可稳定退出，不证明真实模型、benchmark 或 Skill 效果。真实成功行的时长和自由工具序列明显更大，
 下一阶段应审计既有日志中的 trajectory shape/latency，不能据此直接付费重跑。
+
+## 30. Trajectory Shape / Latency Audit
+
+`trajectory-shape-audit.ts` 只投影冻结 source matrix 的结构信息。正式 CLI 把 raw、plan、replay、
+session index、matrix 起点和实现文件固定在代码中；不接受临时替换输入：
+
+```powershell
+bun ./src/benchmarks/skill-ir/trajectory-shape-audit-run.ts `
+  '--out=results/skill-ir/experimental-design-v2-trajectory-shape-audit-2026-07-29.json'
+
+bun ./src/benchmarks/skill-ir/trajectory-shape-audit-run.ts `
+  '--verify-only=results/skill-ir/experimental-design-v2-trajectory-shape-audit-2026-07-29.json'
+```
+
+映射先排除 route session，从冻结 matrix start 开始读取 8 个唯一 session；raw/plan 的 case、system、
+run index 必须一致，session task 和可观察 duration delta 必须在 1 秒内。Completed session 只允许一个
+conversation JSONL，request/response 必须成对并以无 tool call 的 `end_turn` 结束。目录创建跨秒时，
+只在 session key 前后 2 秒内接受唯一候选。
+
+报告只保存封闭 tool type 和数量、fan-out、stop reason、provider duration、runtime outcome 与相对
+evidence digest。Prompt、message、模型文本、tool argument/result、stream、token、secret 和绝对路径
+都不序列化。Crash session 没有 completed record 时只记 `session-not-finalized`，不能推断 crash 前
+轨迹。
+
+正式结果为 4 条成功轨迹可用、4 条 crash 轨迹不可用。成功 envelope 的 response/tool/fan-out/
+raw duration 最大值为 16/23/6/220.124 秒，旧 deterministic replay 为 5/11/3/0.674 秒；四项覆盖
+均失败。因此下一实验是无 API 的 delayed/high-fan-out replay，不是付费 matrix。

@@ -2422,3 +2422,45 @@ Modify  docs/skill-ir/experiment-results.md
 0 crash、0 nonzero；no-skill/original median 分别为 577.8/597.4 ms。由此只否定“固定 source
 process 边界必崩”的假设。下一步从既有本地 conversation/session/raw 中生成不含正文的 trajectory
 shape/latency audit；四个 crash 行缺少 finalized conversation，不能伪造其工具序列。
+
+### Task 16.15：Privacy-preserving Trajectory Shape / Latency Audit
+
+**Files:**
+
+```text
+Create  src/benchmarks/skill-ir/trajectory-shape-audit.ts
+Create  src/benchmarks/skill-ir/trajectory-shape-audit.test.ts
+Create  src/benchmarks/skill-ir/trajectory-shape-audit-run.ts
+Create  results/skill-ir/experimental-design-v2-trajectory-shape-audit-2026-07-29.json
+Modify  docs/skill-ir/evaluation-system.md
+Modify  docs/skill-ir/experiment-results.md
+```
+
+- [x] RED：8 个 raw row 必须与排除 route 后的 8 个 matrix session 按顺序、task、system/run 和时长
+  唯一映射；少行、多行、错序、状态或 duration 漂移都 fail closed。
+- [x] RED：完成行必须有 request/response 成对且以 `end_turn` 结束；crash 行没有 finalized
+  conversation 时必须记为 unavailable，不能投影为零调用。
+- [x] RED：序列化报告不得出现 prompt、skill/model 正文、messages、tool arguments/results、stream
+  正文、secret/env、token 或绝对路径；unknown tool 只允许归入 `other`。
+- [x] GREEN：输出逐行 response/tool/fan-out/stop-reason/provider-duration 摘要，以及 successful-only
+  envelope；绑定 raw/plan/sessions/conversation digest 并支持 `--verify-only`。
+- [x] 实验解释：只比较 deterministic replay 与历史成功行 envelope；crash 前轨迹不可观察，不建立
+  因果、不证明 Skill/model/benchmark/token，也不自动放行付费重跑。
+
+正式结果：8/8 row/session mapping 通过，4 条成功行 trajectory available，4 条 Bun crash 行为
+`session-not-finalized`。成功 envelope 为 response 6--16、tool call 最大 23、fan-out 最大 6、
+provider response 最大 26.783 秒、raw duration 最大 220.124 秒；旧 replay 为 5/11/3/0.674 秒，
+四项 coverage 全 false。下一步先覆盖该 envelope，仍不调用 API。
+
+### Task 16.16：Delayed / High-fan-out Source-process Replay
+
+- [ ] 冻结本地两臂各 1 行，固定 16 次 provider response、23 个 tool call、最大 fan-out 6，并以
+  不少于 220.124 秒的 wall-clock schedule 覆盖历史成功行 envelope；不读取历史正文。
+- [ ] 继续复用 Bun 1.3.13 source entry、Node HTTP helper、`bare-agent` 和同一 tool executor；不创建
+  runtime、transport 或 benchmark 新版本。
+- [ ] RED：phase、tool count/fan-out、delay schedule、final end-turn 和 compact privacy contract 任一
+  漂移必须 fail closed。
+- [ ] GREEN：两行必须 exit 0、protocol complete、3/3 output、0 timeout/crash；失败只定位本地
+  infrastructure，成功只说明已观察**成功行** envelope 可稳定 replay。
+- [ ] 即使通过，crash 行轨迹仍不可观察，`paidRerunAllowed=false`；下一步应先设计 flush-on-each-turn
+  的真实 route trace，不直接重跑 8-row matrix。

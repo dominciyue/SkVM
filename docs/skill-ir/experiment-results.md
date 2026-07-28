@@ -1081,3 +1081,33 @@ results/skill-ir/experimental-design-v2-source-process-replay-2026-07-29.json
 解释真实矩阵的四个 crash。固定 replay 每行约 0.6 秒，真实成功行约 60–220 秒且工具轨迹自由；
 四个 crash session 没有 finalize conversation log。下一诊断应只从既有日志提取 tool/provider call
 数量、类型、时延和完成边界，不保存正文，也不把 replay pass 当成付费重跑许可或 Skill 结果。
+
+## 21. Trajectory Shape / Latency 审计
+
+2026-07-29 对上一轮冻结 8-row source matrix 的 raw、plan、session index 和 finalized conversation
+做隐私化投影。Route session 明确排除；8 行 session 映射全部通过，已完成行的映射时长差为
+16--154 ms。结果如下：
+
+| 指标 | 历史成功行 | Deterministic replay | 覆盖 |
+|---|---:|---:|---:|
+| 可观察行 | 4 | 20 | 仅比较 envelope |
+| Response / row | 6--16 | 5 | 否 |
+| Max tool calls / row | 23 | 11 | 否 |
+| Max tool fan-out | 6 | 3 | 否 |
+| Max end-to-end duration | 220.124 s | 0.674 s | 否 |
+| Max single provider response | 26.783 s | loopback，不可同口径比较 | 否 |
+
+四条 Bun assertion 行均只有 running session、没有 finalized conversation，报告明确保存为
+`trajectoryAvailable=false` / `session-not-finalized`，没有把缺失轨迹写成零调用。成功行中最长一条
+有 16 次 response、23 个 tool call；provider duration total 与 raw duration 接近，说明正常完成行
+的大部分 wall time 位于 provider turns，但不能由此推断 crash 行卡在哪一轮。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-trajectory-shape-audit-2026-07-29.json
+```
+
+结论为 `deterministic-replay-does-not-cover-observed-success-envelope`。上一 replay 仍是有效的短轨迹
+基础设施证据，但不足以代表真实成功负载。下一步冻结一条 16-response、23-tool、fan-out 6、总时长
+不少于 220.124 秒的无 API replay；本结果不放行付费 calibration，不改变 Skill evidence ledger。
