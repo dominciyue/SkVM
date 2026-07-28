@@ -1088,3 +1088,32 @@ token 的有效行分母不同，也不得进行效率比较。
 下一步不再做 runtime 版本枚举，而是以 v1 简洁 source runner 为参照，审计 source command、
 bare-agent 子进程与 teardown 的边界。任何下一次付费仍须是新的预注册 calibration identity，但
 runtime/transport 保持现有冻结值。
+
+## 28. Benchmark Evidence 与 Skill Optimization Ledger
+
+`benchmark-evidence.ts` 把 benchmark 测量质量、真实运行质量和 Skill 优化结果拆成三个互不替代的
+证据层：
+
+1. `compareMeasurementContracts` 只比较 audit/materialization 指标，以 fail-closed Pareto 规则输出
+   `v2-measurement-contract-dominates`。
+2. `summarizeRunnerBoundary` 从冻结 plan/raw 只投影 runner path、adapter、command entry、manifest、
+   helper、退出码、时长与 Bun assertion 数；不保留 stdout/stderr 或模型正文。
+3. `summarizeSkillOptimization` 分别记录 env-manager、law-to-markdown 和 experimental-design 的
+   development、held-out 与 benchmark-blocked 状态。
+
+生成与复验命令：
+
+```powershell
+bun ./src/benchmarks/skill-ir/benchmark-evidence-run.ts `
+  '--out=results/skill-ir/benchmark-and-optimization-evidence-2026-07-29.json'
+
+bun ./src/benchmarks/skill-ir/benchmark-evidence-run.ts `
+  '--verify-only=results/skill-ir/benchmark-and-optimization-evidence-2026-07-29.json'
+```
+
+生成报告绑定 12 个冻结输入的相对路径与 SHA-256。`--verify-only` 不重新评分；任一源文件缺失、
+路径逃逸或 digest 漂移都会失败。Raw run 保持本地，长期报告只提交无正文的统计投影与 raw digest。
+
+当前报告允许的最大结论是：v2 的本地 measurement contract 更可信，项目已有局部机制正向证据；
+不允许据此声称 v2 real discrimination 更好、三个 Skill 都已稳定优化、held-out 泛化或 token
+break-even 已证明。

@@ -1013,7 +1013,7 @@ results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026
 results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026-07-28/failure-audit.json
 ```
 
-## 17. Wave A 当前量化总览
+## 18. Wave A 当前量化总览
 
 | Skill / 阶段 | 优化前 | 当前最好结果 | Gate / 解释 |
 |---|---|---|---|
@@ -1028,3 +1028,33 @@ Wave A 因而只在 Law development 形成完整正向结果；Law held-out 暴�
 机制证据。Token 方面，Law artifact 的四次 development runtime 为 0 model token，模型三臂同批
 合计 301198 token；但 compile/package/profile 成本未按 `N=1,2,5,10` 统一摊销，仍不能声称总
 token 已降低或计算 break-even。
+
+## 19. Benchmark v2 Dominance 与当前 Skill 优化状态
+
+新增可复算分析器消费 v1/v2 contract audit、v2 materialization audit、两轮 calibration gate/plan/raw
+以及 Env/Law compact summary，生成：
+
+```text
+results/skill-ir/benchmark-and-optimization-evidence-2026-07-29.json
+```
+
+| 测量合同指标 | v1 | v2 | 判定 |
+|---|---:|---:|---|
+| Canary matched | 2/8 (25%) | 42/42 (100%) | v2 严格改善 |
+| Alternative-valid false rejection | 6 | 0 | v2 严格改善 |
+| Private exact-contract issue | 8 | 0 | v2 严格改善 |
+| Workdir materialization checks | 0 | 36/36 | v2 严格改善 |
+
+所有测量维度无回归且至少一项严格改善，报告因此给出
+`v2-measurement-contract-dominates`。这比原先手写 comparison 更强：结论由冻结源文件和 SHA-256
+机械生成，证据漂移会 fail closed。
+
+Operational 维度仍不可比。v1 真实轮 0 infrastructure / 4 comparable pairs，但 scorer contract
+failed；v2 最新轮 4 infrastructure / 1 comparable pair。Runner 审计确认两者共享
+`real-agent-run.ts` 和 `bare-agent`，差异集中在 command entry、initial manifest 与 Node helper；
+当前只能冻结为 `runner-only-cause-not-established`，不进行付费补跑。
+
+当前 Skill ledger 为：Env 有 3 个 complete pair 的 deterministic repair 正向机制信号但 gate failed；
+Law development gate passed，held-out 相对 static 从 0.8375 降到 0.725 且 gate failed；Experimental
+Design v2 的测量合同通过，真实 baseline 仍 blocked、尚未开始 base IR。项目总体状态为
+`partial-mechanism-evidence`，完整跨 Skill 稳定性、held-out 泛化和 token break-even 仍未证明。

@@ -2347,10 +2347,48 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
 
 ### Task 16.12：v1-style Source Runner Boundary Audit
 
-- [ ] 不创建新 runtime/transport/catalog 版本；对比 v1 可执行 benchmark 路径与当前 v2 source matrix
+- [x] 不创建新 runtime/transport/catalog 版本；对比 v1 可执行 benchmark 路径与当前 v2 source matrix
   的进程边界、adapter 生命周期和退出阶段，定位 internal assertion 是否来自可移除的嵌套 Bun/
   teardown 边界。
-- [ ] 先做本地、无 API 的调用图与最小进程测试；只有能在同一现有 source runtime identity 内简化
-  编排且保持 task/scorer/lock 研究变量不变，才提出下一次付费实验。
-- [ ] 不得把 1 个 comparable pair 或污染后的 aggregate token 当成 original/skill 效果；下一次付费前
+- [x] 调用图确认两轮都复用 `real-agent-run.executePlan -> skvm run -> executeRun -> bare-agent`；
+  `bare-agent.teardown()` 为空，v2 额外边界是 pinned Bun/source entry、initial workdir manifest 与
+  Node HTTP helper。现有证据不足以把 crash 单独归因于 runner、teardown、task 或 helper。
+- [x] 先做本地、无 API 的调用图与最小进程测试；现有 `real-agent-run.test.ts` 已覆盖逐行子进程、
+  explicit env、initial manifest、non-ok status 与 artifact repair 收尾。没有得到能把真实 crash 收敛到
+  单一 runner 边界的复现，因此本阶段不提出付费实验。
+- [x] 不得把 1 个 comparable pair 或污染后的 aggregate token 当成 original/skill 效果；下一次付费前
   仍需新的预注册 calibration identity，但不得以 runtime 小版本或 transport 分叉制造版本堆积。
+
+文件级 TDD：
+
+```text
+Create  src/benchmarks/skill-ir/benchmark-evidence.ts
+Create  src/benchmarks/skill-ir/benchmark-evidence.test.ts
+Create  src/benchmarks/skill-ir/benchmark-evidence-run.ts
+Create  results/skill-ir/benchmark-and-optimization-evidence-2026-07-29.json
+Modify  docs/skill-ir/evaluation-system.md
+Modify  docs/skill-ir/experiment-results.md
+```
+
+- [x] RED：v1/v2 contract audit、v2 materialization audit、v1/v2 calibration gate 输入必须经过
+  schema 和 digest 校验；缺证据、digest 漂移、v2 任一 measurement metric 回归时 fail closed。
+- [x] GREEN：生成 Pareto dominance 判定。只有 v2 在 canary match、alternative-valid false
+  rejection、private contract issue、materialization protection 上无回归且至少一项严格改善，才输出
+  `v2-measurement-contract-dominates`。
+- [x] 把 operational evidence 与 measurement dominance 分列；v1 的 0 infrastructure 不抵消其合同
+  audit failed，v2 的 4 infrastructure 也不得伪装成真实区分度或 Skill 优化证据。
+- [x] 机械生成 runner boundary：共享 orchestrator/adapter、command/manifest/helper 差异、两轮
+  infra/comparable pair 数；结论只能是 `runner-only-cause-not-established`，除非最小进程测试能复现。
+
+### Task 16.13：Current Skill Optimization Evidence Ledger
+
+- [x] 同一分析器消费 env-manager v4、law-to-markdown development/held-out 与 experimental-design v2
+  冻结 compact evidence，生成逐 Skill 状态和总项目 evidence level。
+- [x] Env-manager 只记为 3 个 complete pair 的 deterministic repair 正向机制证据；development gate
+  因 1 infrastructure 失败，不能记作通过。
+- [x] Law-to-markdown 分开记录 development gate passed 与 held-out gate failed；held-out artifact
+  0.725 低于 ir-static 0.8375，因此不得输出稳定泛化或 break-even claim。
+- [x] Experimental-design v2 只记为 measurement contract passed、真实 baseline blocked；尚未进入
+  base IR、ir-static 或 artifact 优化阶段。
+- [x] 总项目状态只能由最弱必要层决定：当前为 `partial-mechanism-evidence`，跨 Skill 稳定提升、
+  跨模型/上下文和 token break-even 继续为 false。

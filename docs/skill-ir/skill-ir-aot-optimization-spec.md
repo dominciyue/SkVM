@@ -1902,3 +1902,29 @@ Gate 的 `completeRows`、`completePairs`、`noSkillNonSaturated` 与 `distingui
 本 identity 冻结，不补跑、不进入 base IR/held-out。No-skill 与 original 的 aggregate token 只覆盖
 成功返回 token usage 的行，分母不一致，不能比较 token 效率。下一阶段只审计 v1-style source
 runner 的进程/adapter/teardown 边界，不增加 Bun 小版本、transport 或 runtime catalog。
+
+#### 24.9.13 Benchmark dominance 与当前优化证据台账
+
+“v2 比 v1 更好”只允许解释为 **measurement-contract dominance**，不能由版本号、threshold 更高或
+单轮模型分数直接推出。`benchmark-evidence.ts` 对冻结 audit 做 fail-closed Pareto 判定：v2 的 canary
+匹配率、canary 覆盖、alternative-valid false rejection、private exact-contract issue 与 workdir
+materialization protection 必须全部无回归且至少一项严格改善；v2 audit/materialization 还必须完整
+通过。Operational evidence 单列，不参与该 dominance 规则。
+
+2026-07-29 的机械报告得到：v1 canary `2/8`、alternative-valid 误拒绝 6、private issue 8；v2
+canary `42/42`、误拒绝 0、private issue 0，并有 `36/36` materialization checks。五个维度均无回归
+且严格改善，因此 `v2-measurement-contract-dominates` 成立。与此同时，v1 real calibration 为
+0 infrastructure / 4 comparable pairs，但 scorer contract failed；v2 最新 real calibration 为 4
+infrastructure / 1 comparable pair。两轮 operational result 不可直接比较，v2 real discrimination、
+完整 Skill 优化 claim 与 token reduction 仍为 false。
+
+Runner boundary 审计确认两轮都复用 `real-agent-run.ts` 与 `bare-agent`；差异是 command entry、v2
+initial-workdir manifest 和 Node HTTP helper。既有无 API process tests 覆盖显式 child env、manifest、
+non-ok status 和收尾，但未复现真实 internal assertion，所以结论冻结为
+`runner-only-cause-not-established`，不允许付费补跑。
+
+同一报告维护逐 Skill ledger：env-manager 只有 3 个 complete pair 从 0.90 到 1.00 的 deterministic
+repair 机制证据，development gate 因 1 infrastructure 未过；law-to-markdown development artifact
+0.925 高于 static 0.80 且 gate passed，但 held-out artifact 0.725 低于 static 0.8375、2 regressions，
+held-out gate failed；experimental-design v2 只完成 measurement contract，baseline gate 未过且未进入
+base IR。总项目状态因此是 `partial-mechanism-evidence`，不是完整 Skill 优化成功。
