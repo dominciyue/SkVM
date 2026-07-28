@@ -1070,3 +1070,21 @@ resource probe 为 `ok`，route probe 为 exit 3 / `agent` / 88.083 秒 / non-ti
 identity 必须把现有 fetch-active closed-code diagnostic 接入 pre-IR route failure path；诊断通过
 后仍需完整 8-row 达到 0 infrastructure。该接线只属于运行基础设施，不能修改 benchmark task、
 scorer、public contract、threshold 或 held-out freeze。
+
+## 27. Closed Source Route 与 Matrix Gate
+
+`pre-ir-calibration-run.ts` 现对 source fetch-qualified final lock 额外写入
+`route-diagnostic.json`。它复用 fetch-active 的封闭 failure taxonomy，streams 只保留 byte count 与
+SHA-256，并从公开 `design-contract.json.outputs` 检查普通文件是否完整。旧
+`route-probe.json` v1 不变；execute 会在缺文件、identity/status 漂移、nonzero/timeout 或输出不全时
+fail closed。该改动没有增加 runtime 或 transport 版本。
+
+2026-07-28 新 route 在 `xty/gpt-5.6-sol` 上通过：67.358 秒、exit 0、failureCode=`none`、3/3
+output。随后唯一 8-row matrix 完整结束，但 4 行触发 Bun internal assertion，分布在 no-skill 与
+original。Gate 为 4 infrastructure、1/4 comparable、1 differing；唯一 comparable delta=-0.75，
+original direction=`worse`。由于 zero-infrastructure 失败，base IR/held-out 继续禁止；aggregate
+token 的有效行分母不同，也不得进行效率比较。
+
+下一步不再做 runtime 版本枚举，而是以 v1 简洁 source runner 为参照，审计 source command、
+bare-agent 子进程与 teardown 的边界。任何下一次付费仍须是新的预注册 calibration identity，但
+runtime/transport 保持现有冻结值。

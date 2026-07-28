@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "skill-ir-source-route-diagnostic-matrix-failure-audit/v1",
+  "calibrationId": "experimental-design-v2-source-route-diagnostic-calibration-v1",
+  "methodEvidence": false,
+  "failureStage": "matrix-execution",
+  "closedAttribution": "intermittent-bun-internal-assertion-across-systems",
+  "failedRows": [
+    {
+      "taskId": "experimental-design-v2-stratified-dev-001",
+      "system": "original",
+      "runIndex": 1,
+      "exitCode": 3,
+      "durationMs": 51581,
+      "failureCode": "bun-internal-assertion",
+      "streams": { "stdoutBytes": 1384, "stderrBytes": 1015, "stdoutSha256": "a695753f206cc8216dfff777aaa5b533be0912e0b34f944d812850d223b4d81a", "stderrSha256": "c1a29fdc9ddf2fb955c0ba93dfb52a496ca0f103f63ebc3229e46f9360fd4127" },
+      "outputMaterialization": { "declared": 3, "present": 1, "missing": ["design/allocation.csv", "design/design-report.md"] }
+    },
+    {
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "system": "no-skill",
+      "runIndex": 1,
+      "exitCode": 3,
+      "durationMs": 297850,
+      "failureCode": "bun-internal-assertion",
+      "streams": { "stdoutBytes": 1166, "stderrBytes": 1018, "stdoutSha256": "289f939e03d3ccd89bbb9acbcde1562fef2cdafda700018400e198a42f8f7703", "stderrSha256": "e6085dffd431210f7f7a9a2086af9a3cec5871821e8146b44507fa4a89da08e9" },
+      "outputMaterialization": { "declared": 3, "present": 0, "missing": ["design/design-plan.json", "design/allocation.csv", "design/design-report.md"] }
+    },
+    {
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "system": "original",
+      "runIndex": 1,
+      "exitCode": 3,
+      "durationMs": 47019,
+      "failureCode": "bun-internal-assertion",
+      "streams": { "stdoutBytes": 1424, "stderrBytes": 1015, "stdoutSha256": "c115c0d2d81b06a059c41288fc6c43382d83648eb10d6be797c10a6d3b31237f", "stderrSha256": "ac50999dea98892ecb08b0f7839fab4817c65be87915e7b8c59fb5eb40906934" },
+      "outputMaterialization": { "declared": 3, "present": 0, "missing": ["design/design-plan.json", "design/allocation.csv", "design/design-report.md"] }
+    },
+    {
+      "taskId": "experimental-design-v2-cluster-sequential-dev-002",
+      "system": "original",
+      "runIndex": 2,
+      "exitCode": 3,
+      "durationMs": 45669,
+      "failureCode": "bun-internal-assertion",
+      "streams": { "stdoutBytes": 1424, "stderrBytes": 1016, "stdoutSha256": "416fa9193320c7747f131a5ee7342d303dd3e4aa3aec49208b03670f06c98bf1", "stderrSha256": "3312dc66abe09049876502c0093eb4ffbad30908d988a6de4239d5543b4672aa" },
+      "outputMaterialization": { "declared": 3, "present": 0, "missing": ["design/design-plan.json", "design/allocation.csv", "design/design-report.md"] }
+    }
+  ],
+  "excludedAttributions": [
+    "model capability as the sole cause",
+    "original skill semantic regression for infrastructure rows",
+    "benchmark contract failure for infrastructure rows",
+    "token efficiency",
+    "source runtime matrix stability"
+  ],
+  "nextAction": "Freeze this identity without retries, base IR, or held-out execution. Audit whether the v1-style source runner can remove the remaining nested Bun teardown path without introducing another runtime or transport version; keep the v2 benchmark, scorer, tasks, and gate unchanged."
+}

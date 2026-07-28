@@ -48,6 +48,10 @@ const v2NodeHttpSourceCalibrationLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-source-calibration-lock.json",
 )
+const v2SourceRouteDiagnosticCalibrationLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-source-route-diagnostic-calibration-lock.json",
+)
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>
@@ -204,14 +208,21 @@ describe("pre-IR calibration lock", () => {
     expect("executionRuntime" in lock && lock.executionRuntime.kind).toBe("bun-source-skvm")
   })
 
-  test("validates the committed fetch-qualified Node HTTP source-runtime matrix", async () => {
-    const lock = await readAndValidatePreIrCalibrationLock({
+  test("rejects the historical source-runtime matrix after closed route orchestration evolves", async () => {
+    await expect(readAndValidatePreIrCalibrationLock({
       rootDir,
       lockPath: v2NodeHttpSourceCalibrationLockPath,
+    })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration-run.ts digest mismatch")
+  })
+
+  test("validates the committed closed-diagnostic source-runtime matrix", async () => {
+    const lock = await readAndValidatePreIrCalibrationLock({
+      rootDir,
+      lockPath: v2SourceRouteDiagnosticCalibrationLockPath,
     })
     expect(lock).toMatchObject({
       schemaVersion: "skill-ir-node-http-source-fetch-qualified-pre-ir-calibration-lock/v1",
-      calibrationId: "experimental-design-v2-materialized-delta-node-http-source-calibration-v1",
+      calibrationId: "experimental-design-v2-source-route-diagnostic-calibration-v1",
       executionRuntime: { kind: "bun-source-skvm" },
       nodeHttpTransport: { kind: "node-http-helper" },
     })

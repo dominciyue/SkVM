@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "skill-ir-source-route-diagnostic-calibration-summary/v1",
+  "calibrationId": "experimental-design-v2-source-route-diagnostic-calibration-v1",
+  "methodEvidence": false,
+  "status": "failed",
+  "runtime": {
+    "kind": "bun-source-skvm",
+    "bunVersion": "1.3.13",
+    "platform": "windows",
+    "arch": "x64",
+    "nodeHttpTransport": "enabled",
+    "newRuntimeVersionIntroduced": false
+  },
+  "preflight": {
+    "resourceStatus": "ok",
+    "routeStatus": "passed",
+    "routeFailureCode": "none",
+    "routeExitCode": 0,
+    "routeTimedOut": false,
+    "routeDurationMs": 67358,
+    "outputMaterialization": { "declared": 3, "present": 3, "missing": [] }
+  },
+  "counts": {
+    "expectedRows": 8,
+    "observedRows": 8,
+    "expectedPairs": 4,
+    "completePairs": 4,
+    "infrastructureFailures": 4,
+    "comparablePairs": 1,
+    "differingPairs": 1
+  },
+  "systems": {
+    "no-skill": { "rows": 4, "successes": 2, "meanScore": 0.525, "reportedAggregateTokens": 58342 },
+    "original": { "rows": 4, "successes": 0, "meanScore": 0.0625, "reportedAggregateTokens": 20208 }
+  },
+  "failureCodes": { "bun-internal-assertion": 4 },
+  "comparableScoreDeltas": [-0.75],
+  "gates": {
+    "completeRows": true,
+    "completePairs": true,
+    "zeroInfrastructure": false,
+    "noSkillNonSaturated": true,
+    "distinguishable": true
+  },
+  "interpretation": {
+    "originalDirection": "worse",
+    "directionEvidencePairs": 1,
+    "baseIrAuditAllowed": false,
+    "heldOutAllowed": false,
+    "entersMainClaim": false,
+    "tokenEfficiencyComparable": false,
+    "reason": "The source route passed its closed preflight, but four matrix rows hit the same Bun internal assertion across no-skill and original. Only one pair was comparable and it favored no-skill, so the gate failed and no optimization or token-efficiency claim is permitted."
+  },
+  "evidence": {
+    "lockSha256": "ed197902d97e0e920fedb47cb9f1e6a420aafb3554e2096b4c1874095ffb39fc",
+    "planSha256": "06242be351835c3aff9ef2c4cdb5a403c902b6e023766438454b70c70aedfd99",
+    "resourceProbeSha256": "0e2fac68828bb87f41a424c290f0cf3050512091978583221dfc90d3a8aca5d1",
+    "routeProbeSha256": "4a664220ec36b62bf0ba3dc51d7965672d06a858bbf8e6626814dc97f3a94fc6",
+    "routeDiagnosticSha256": "21fae5d17557b0735e29d15bb38e63279a13e98c8ff031c7b135338432482f36",
+    "rawSha256": "a6d71fa217a09a371d055d3853633c9059c091aab87e5031a9c2d3f2c5cced29",
+    "scoredSha256": "a88e163b8e16d639f1e8222f03976402a8b8e38dc28fe7f77eefd1f20e2ca7e4",
+    "gateSha256": "26c7aa1d72bc6a8d5fa99abe655fb3259b101fd446b7132571e757dea8165c59"
+  }
+}

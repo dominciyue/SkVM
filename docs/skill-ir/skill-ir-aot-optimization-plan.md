@@ -2337,7 +2337,20 @@ v3/v4 benchmark。若新批次仍出现 infrastructure failure，同样冻结并
   `route-probe.json` 继续按 v1 写入，只有 fetch-qualified source final lock 强制校验新证据。
 - [x] 复用 fetch-active diagnostic 的分类逻辑与 v1 简洁 source-runner 编排，不再增加 transport 或
   Bun 小版本候选；旧 route result、lock 和 compact evidence 保持不可变。
-- [ ] 新 identity 先做一个 route probe；只有 exit 0、failureCode=`none`、3/3 output 才执行一次
+- [x] 新 identity 先做一个 route probe；只有 exit 0、failureCode=`none`、3/3 output 才执行一次
   8-row/4-pair 矩阵。仍要求 0 infrastructure 和至少一个 differing pair，失败即冻结。
-- [ ] v2 baseline gate 真正通过前，不构造 base IR、ir-static、artifact，不运行 held-out，也不把
+- [x] 新 route 在 67.358 秒后 exit 0、`failureCode=none`、3/3 output；唯一 8-row 矩阵完整写出，
+  但 4 行跨 no-skill/original 触发 Bun internal assertion。Gate 为 4 infrastructure、1 comparable
+  pair、1 differing pair，唯一可比较 delta=-0.75，按预注册规则冻结且不补跑。
+- [x] v2 baseline gate 真正通过前，不构造 base IR、ir-static、artifact，不运行 held-out，也不把
   candidate qualification、聚合均分或 token 记作 skill 优化证据。
+
+### Task 16.12：v1-style Source Runner Boundary Audit
+
+- [ ] 不创建新 runtime/transport/catalog 版本；对比 v1 可执行 benchmark 路径与当前 v2 source matrix
+  的进程边界、adapter 生命周期和退出阶段，定位 internal assertion 是否来自可移除的嵌套 Bun/
+  teardown 边界。
+- [ ] 先做本地、无 API 的调用图与最小进程测试；只有能在同一现有 source runtime identity 内简化
+  编排且保持 task/scorer/lock 研究变量不变，才提出下一次付费实验。
+- [ ] 不得把 1 个 comparable pair 或污染后的 aggregate token 当成 original/skill 效果；下一次付费前
+  仍需新的预注册 calibration identity，但不得以 runtime 小版本或 transport 分叉制造版本堆积。

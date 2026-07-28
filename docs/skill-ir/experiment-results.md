@@ -977,6 +977,42 @@ results/skill-ir/experimental-design-v2-node-http-source-calibration-2026-07-27/
 results/skill-ir/experimental-design-v2-benchmark-comparison-2026-07-27.json
 ```
 
+## 17. Source Route Diagnostic Closure 与完整矩阵
+
+2026-07-28 在不增加 Bun/transport/runtime 版本的前提下，把 fetch-active 的封闭诊断接入最终
+source route。新 route 通过：67.358 秒、exit 0、`failureCode=none`、3/3 output；相较上一 identity
+的 exit 3 unresolved，本轮可以按预注册规则执行一次完整矩阵。
+
+| 项 | 结果 |
+|---|---:|
+| Rows / complete pairs | 8 / 4 |
+| Infrastructure failures | 4 |
+| Comparable pairs | 1 / 4 |
+| Differing comparable pairs | 1 |
+| Comparable score delta | -0.75 |
+| No-skill observed success / mean | 2/4 / 0.525 |
+| Original observed success / mean | 0/4 / 0.0625 |
+| Development gate | failed |
+
+四个 infrastructure 行全部由 compact audit 归为 Bun internal assertion，且跨 no-skill/original
+出现；三行未生成公开输出，一行只生成 1/3。唯一可比较 pair 是 stratified task 的第二次重复，
+no-skill=1.0、original=0.25，因此 direction=`worse`。样本只有一对，不能据此下 Skill 效果结论。
+
+No-skill 记录的 58,342 token 来自能返回 usage 的行，original 的 20,208 token 只来自一个正常
+退出行；基础设施失败行没有同口径 usage，不能比较 token 效率。本 identity 冻结，不补跑、不进入
+base IR 或 held-out。下一步转向 v1-style source runner 边界审计，不再枚举 runtime 版本。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026-07-28/resource-probe.json
+results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026-07-28/route-probe.json
+results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026-07-28/route-diagnostic.json
+results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026-07-28/gate.json
+results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026-07-28/summary.json
+results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026-07-28/failure-audit.json
+```
+
 ## 17. Wave A 当前量化总览
 
 | Skill / 阶段 | 优化前 | 当前最好结果 | Gate / 解释 |

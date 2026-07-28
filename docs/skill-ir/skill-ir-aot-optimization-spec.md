@@ -1887,3 +1887,18 @@ diagnostic，再根据闭合状态抛错；execute phase 必须重新读取并�
 `failureCode=none`、exit 0、非 timeout 和 declared=present、missing 为空。文件缺失、schema 漂移、
 identity 漂移或 output 不完整都 fail closed。该证据层只决定是否允许校准矩阵执行，不进入 scorer，
 也不构成 benchmark 或 skill 优化结果。
+
+#### 24.9.12 Closed route matrix result
+
+新的 source route-diagnostic identity 沿用同一 Bun 1.3.13、`src/index.ts`、Node HTTP helper、模型、
+task、scorer 和 gate。独立 route 在 67.358 秒后 exit 0、`failureCode=none`，公开输出 3/3；因此按
+冻结规则放行唯一一次 8-row/4-pair development matrix。
+
+矩阵完整写出 8 行，但 4 行在 no-skill/original 两个 system 上触发相同 Bun internal assertion。
+Gate 的 `completeRows`、`completePairs`、`noSkillNonSaturated` 与 `distinguishable` 为 true，
+`zeroInfrastructure` 为 false；只有 1 个 comparable pair，delta=-0.75，original direction 为
+`worse`。该方向只描述这一个未被 infrastructure 污染的 pair，不能推广为 Skill 效果。
+
+本 identity 冻结，不补跑、不进入 base IR/held-out。No-skill 与 original 的 aggregate token 只覆盖
+成功返回 token usage 的行，分母不一致，不能比较 token 效率。下一阶段只审计 v1-style source
+runner 的进程/adapter/teardown 边界，不增加 Bun 小版本、transport 或 runtime catalog。
