@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "skill-ir-node-http-source-fetch-qualified-pre-ir-calibration-lock/v1",
+  "status": "preregistered",
+  "calibrationId": "experimental-design-v2-source-route-diagnostic-calibration-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "experimental-design-v2",
+  "frozenInputs": {
+    "source": { "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md", "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093" },
+    "tasks": { "path": "benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json", "sha256": "e382fe9e9a1ed8cdb5735d88136086b2aefbf4ced5c67d507f67c7fc2487da96" },
+    "resourceContract": { "path": "benchmarks/skill-ir/pilots/experimental-design/resource-contract.json", "sha256": "c478a8894e1805638e1ecce329038c697fe5cc53166b3b50b9ce833bf2aa8877" },
+    "scorer": { "path": "src/bench/evaluators/experimental-design-grade-v2.ts", "sha256": "6dda3cbc9e369fa6b1ab1dbe974c86baa3cad967bd707e1d5668eb1ea2d51960" }
+  },
+  "benchmarkGuards": [
+    { "kind": "experimental-design-v2-heldout-freeze", "path": "benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json", "sha256": "01656495d2a0cd412696eb3b0bd16f04ad8ed6752a4049e7e3f399a3b71056f1" },
+    { "kind": "experimental-design-v2-materialization-audit", "path": "results/skill-ir/benchmark-contract-audit/experimental-design-v2-materialization.json", "sha256": "66e8f9371f002c9a9aab1f01f0c296708bed3e5ffd30769044ea6f3abd400b5d" }
+  ],
+  "executionRuntime": {
+    "kind": "bun-source-skvm",
+    "commandMode": "bun-source",
+    "sourceCommit": "7742927ce1a63455b6f4d369cc2ef7550730eea4",
+    "cacheRoot": ".skvm",
+    "executable": { "path": ".skvm/runtime/bun-1.3.13-source-2026-07-27/bun.exe", "sha256": "8dc0cd4351f596df6bb71c03575168078bb0f9872ef4d5ff1b8579dd9507cf70" },
+    "entrypoint": { "path": "src/index.ts", "sha256": "09a706c72625151ca419197714957269bec072c691e561ca77cdb965b51342c0" },
+    "qualification": { "path": "results/skill-ir/experimental-design-v2-source-runtime-qualification-2026-07-27.json", "sha256": "a7914ac90f50eb5c324174e79ed5c8f8971fa1da6e6bd7af02238b504531aa46" },
+    "orchestration": [
+      { "path": "src/benchmarks/skill-ir/artifact-package.ts", "sha256": "eb84c3229973d0e87b20c20ca3db377ee6c34592b504771231033dff45ea5c99" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-calibration.ts", "sha256": "c29f39c1313350f952d48e02e4876c1e32ceee90e8969d3bd5a58c5967cf324c" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-calibration-run.ts", "sha256": "b13bffb96da45a8421955fee6817e235cd9eb4d3cca126fd49395f515454a72a" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-runtime-qualification.ts", "sha256": "55a84432a1483c131252231e9dbea89971ac962bf9df8bf67238f976eb94764b" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-runtime-qualification-run.ts", "sha256": "72aedf015e9c2858c721db18a1fddea69cf9d9aa3fe58a9ed9bff5f248f58e97" },
+      { "path": "src/benchmarks/skill-ir/route-probe.ts", "sha256": "86cf3520cd825e73501a1b6c9e3b4c3182d3c55fe93fbf395d98fc2ce4fb3301" },
+      { "path": "src/benchmarks/skill-ir/real-agent-run.ts", "sha256": "2b73eb04ca7fc48f49109e86a9ab5a706dbeb1dd9c2dfc994139e4e354fa1904" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-fetch-active-qualification.ts", "sha256": "cc612797a2f999f8bdde08580f67de79af5db770793548d0867836abacf370e4" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-fetch-active-qualification-run.ts", "sha256": "1047f3b4b9073470a196ca5a0c376f3a73437465543f458dfd09be39647a94d2" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-route-diagnostic.ts", "sha256": "108575ae2588a2e6971021905769cc47a595f9e3bc80879b6d46b99d6c61cb6a" },
+      { "path": "src/providers/openai-compatible.ts", "sha256": "a16dcac9be43ecb4fe3693b9589f573b43724a2e2237155288525cf95b5fef38" },
+      { "path": "src/providers/openai-compatible-transport.ts", "sha256": "6aa621d9194eaa79e4074da2786502116855d9ee4578f02d06e54aae5bacdf2a" },
+      { "path": "src/providers/openai-compatible-node-helper.mjs", "sha256": "e798d4aeeae4ceb8e9647d2a2f8a8d506a24651345cd330dc00d8ce9f177bf59" }
+    ]
+  },
+  "nodeHttpTransport": {
+    "kind": "node-http-helper",
+    "nodeExecutable": { "path": ".skvm/runtime/bun-1.3.13-source-2026-07-27/node.exe", "sha256": "8a0e6be40de816f334e65eb2de19d4a9b833c413eb866015eac19dceca9c3edf" },
+    "helper": { "path": "src/providers/openai-compatible-node-helper.mjs", "sha256": "e798d4aeeae4ceb8e9647d2a2f8a8d506a24651345cd330dc00d8ce9f177bf59" }
+  },
+  "fetchActiveQualification": {
+    "kind": "fetch-active-runtime-qualification",
+    "path": "results/skill-ir/experimental-design-v2-node-http-source-fetch-active-qualification-2026-07-27.json",
+    "sha256": "579377f94a8ad0d5dce6e13c46c213062d956ec7f9e2f4ab3041c054f7f040c3",
+    "candidateLock": { "path": "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-source-fetch-active-calibration-lock.json", "sha256": "244afc7416d7070ddf51c7ae26375c214263f2e6e451baa55bed6a599f018018" }
+  },
+  "model": { "route": "xty/gpt-5.6-sol", "family": "gpt" },
+  "adapter": { "id": "bare-agent", "version": "source-experimental-design-v2-route-diagnostic-calibration-v1" },
+  "matrix": {
+    "systems": ["no-skill", "original"], "contexts": ["clean"], "agents": ["skvm"], "environments": ["windows"],
+    "taskSplit": "development", "taskIds": ["experimental-design-v2-stratified-dev-001", "experimental-design-v2-cluster-sequential-dev-002"],
+    "repetitions": 2, "expectedRows": 8, "expectedPairs": 4
+  },
+  "runtime": { "apiKeyEnv": "SKVM_XTY_API_KEY", "pythonEnv": "SKVM_PYTHON", "retries": 0, "resourceProbeRequired": true, "routeProbeRequired": true, "routeProbeTimeoutMs": 180000 },
+  "gate": { "maximumInfrastructureFailures": 0, "requireNoSkillNonSaturation": true, "minimumDifferingPairs": 1, "requireOriginalNonRegression": false },
+  "promotionBoundary": { "corpusStatusAtRun": "tasks-authored", "createsBaseIr": false, "entersMainClaim": false, "permitsHeldOut": false, "permitsScorerRetuning": false },
+  "prohibited": ["held-out execution", "base IR materialization", "ir-static, ir-pgo, or artifact systems", "scorer retuning from calibration output", "post-result benchmark contract revision", "retrying failed rows into the frozen matrix"]
+}

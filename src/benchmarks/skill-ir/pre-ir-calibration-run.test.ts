@@ -56,6 +56,10 @@ const v2NodeHttpSourceCalibrationLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-node-http-source-calibration-lock.json",
 )
+const v2SourceRouteDiagnosticCalibrationLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-source-route-diagnostic-calibration-lock.json",
+)
 
 describe("pre-IR calibration runner", () => {
   test("compiles the frozen experimental-design v2 materialized-delta calibration", async () => {
@@ -290,6 +294,28 @@ describe("pre-IR calibration runner", () => {
         outDir,
         phase: "plan",
       })).rejects.toThrow("orchestration src/benchmarks/skill-ir/pre-ir-calibration-run.ts digest mismatch")
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
+  })
+
+  test("compiles the closed-diagnostic source identity as eight source rows", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "experimental-design-v2-source-diagnostic-matrix-"))
+    try {
+      const result = await buildPreIrCalibrationPlan({
+        rootDir,
+        lockPath: v2SourceRouteDiagnosticCalibrationLockPath,
+        outDir,
+        phase: "plan",
+      })
+      expect(result.plan).toHaveLength(8)
+      expect(result.calibrationId).toBe("experimental-design-v2-source-route-diagnostic-calibration-v1")
+      expect(result.plan.every((row) => row.command.slice(0, 4).join("|") === [
+        path.resolve(rootDir, ".skvm/runtime/bun-1.3.13-source-2026-07-27/bun.exe"),
+        "run",
+        path.resolve(rootDir, "src/index.ts"),
+        "run",
+      ].join("|"))).toBe(true)
     } finally {
       await rm(outDir, { recursive: true, force: true })
     }
