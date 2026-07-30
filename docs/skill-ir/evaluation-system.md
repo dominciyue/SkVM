@@ -1293,3 +1293,28 @@ sequential-invalid、stratum-invalid、report-contradiction 和 extra-output，�
 rotation 和 CSV row order 均被接受。Materialization audit 复用生产 `prepareRunWorkspace`，在两任务的
 no-skill/original 四个 arm 上达到 36/36 checks。三份报告都只是契约和执行边界证据，不是模型效果、
 IR 优化或 held-out 证据。
+
+付费 calibration 使用独立 lock 与 runner，必须按顺序执行：
+
+```powershell
+bun ./src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-harder-pi-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31' `
+  '--phase=plan'
+
+bun ./src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-harder-pi-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31' `
+  '--phase=qualification'
+
+bun ./src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-run.ts `
+  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-harder-pi-calibration-lock.json' `
+  '--out-dir=results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31' `
+  '--phase=execute'
+```
+
+Lock 固定 `xty/gpt-5.6-sol`、Pi 0.67.68 managed、Windows/clean、2 tasks x 2 repetitions x
+2 systems、retries 0 和 300s+60s<=360s timeout 预算；同时绑定旧 task-split/held-out freeze、三份
+新 audit、完整 source closure、task/public contract/scorer 及执行代码 digest。Dry-run 当前为 8 rows、
+4 complete pairs、4 original with exact source、4 no-skill without source、8 managed commands、0 held-out
+sentinel。`qualification` 与 `execute` 均要求当前进程已有 `SKVM_XTY_API_KEY`。

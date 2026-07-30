@@ -2603,7 +2603,7 @@ Modify  docs/skill-ir/experiment-results.md
   难度来自公开输入语义，而不是隐藏答案、私有 enum 或 harness 差异。
 - [x] Differential audit 对每项任务验证 canonical、alternative-valid、sequential/stratum invalid、
   report contradiction 与 extra-output；任意合法 allocation 和 CSV row order 必须通过。
-- [ ] 在任何付费运行前冻结新 task-set identity、source/task/scorer digest、模型、adapter、repetitions、
+- [x] 在任何付费运行前冻结新 task-set identity、source/task/scorer digest、模型、adapter、repetitions、
   timeout、gate、audit 与结果路径；held-out freeze、旧 2+2 tasks 和 v2 scorer 保持字节不变。
 - [ ] 先跑本地 fixture、dry-run 与 single-route qualification，再运行一次冻结的
   `no-skill | original` development paired matrix。
