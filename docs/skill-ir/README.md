@@ -8,28 +8,25 @@ execution feedback 改善稳定性。
 
 - 已完成 Skill IR schema、parser、validator、profiler、静态 passes 和 lowering。
 - 已建立真实 skill provenance、runner、持久化 workdir、确定性 scorer 和结果分析链路。
-- `env-manager` 已完成多轮纵向 development 实验；`law-to-markdown` 已完成 source-audited
-  static 实验和 validated artifact 的冻结 development 预检。
-- `ir-static` 在冻结 development run 中改善了 partial correctness，但仍为 0/4 success。
-- Dual-source Final IR、artifact v1 和 semantic artifact v2 均未通过 development gate。
-- V2 真实触发了两次 repair，但均未通过 revalidation；held-out 未执行。
-- V3 public-contract package、共享 pre/post snapshot、paired scorer 和本地一次修复已
-  接通；冻结 GPT-5.6 development 已运行，3 个完整 pair 为 0.70→0.70，另有 1 个
-  infrastructure failure，gate 失败且 held-out 未运行。
-- Law validated artifact 已完成冻结的 16 行 development 和独立 16 行 held-out。
-  Development artifact 为 4/4、mean 0.925、gate 通过；held-out artifact 为 2/4、
-  mean 0.725，并在非法律 manual task 上两次回归，gate 失败。该 package 不能晋升。
-- `experimental-design` 已完成 2+2 task、确定性 scorer、profile-empty base IR/source audit
-  和第二个 `validated-skill-artifact/v1` adapter。两个 development fixture 的本地 direct
-  activation 均为 runtime/scorer pass、score 1.00、model token 0。冻结 baseline calibration
-  已运行 8/8 rows、0 infrastructure，但 no-skill/original 均为 0/4、mean 0.30，且
-  `differingPairs=0`。Failure audit 发现 scorer 强制了 prompt 未公开的 enum、PRNG schedule
-  和逐字标签，故 gate 失败、四臂 development 阻断，本批不能写成模型或 skill 能力证据。
+- `env-manager` 已形成确定性 repair 的 development 机制信号：3 个完整 pair 为
+  `0.90 -> 1.00`，但固定分母含 1 个 infrastructure failure，gate 未通过。
+- Law validated artifact 的冻结 development 为 4/4、mean 0.925、gate 通过；独立 held-out
+  为 2/4、mean 0.725，并在 manual task 上两次回归，package 未晋升。
+- `experimental-design` v1 因私有 enum、唯一 schedule 和报告字面量约束冻结为低权重历史证据。
+- `experimental-design` v2 的 contract audit 42/42、materialization audit 36/36，stable Pi
+  harness 已达到 8/8 rows、0 infrastructure；但普通与 harder 两批 no-skill/original 都为
+  4/4、mean 1.00、0 differing pair，base IR 与 held-out 均未放行。
+- Task 16.20 task-sufficiency audit 发现 13/13 scorer-required 操作要求已向 no-skill 披露，
+  原 skill 的 6 类增量知识 0/6 被当前 scorer 测量。当前唯一活跃任务是 Task 16.21：用有界的
+  skill-unique deterministic semantic surface 重新校准，再决定 IR 是否入场。
 - 已加入 skill-neutral 的付费前 benchmark contract audit。三个 Wave A v1 benchmark 均未通过：
   env-manager 缺公开精确 schema rule 与分类金标合同，Law 的两个任务都拒绝等价审核措辞，
   experimental-design 的 plan 合同 2/2 通过，但 assignment、allocation、report 共 6/6
   等价实现被拒且四类 plan 约束未公开；三者未来权重降为 `support-real`，历史结果保持不可变。
 - 当前不能声称跨模型、跨 agent、跨 OS 或 token 节省。
+
+当前活跃开发只读取本文件、spec 最新章节、plan 的“当前执行窗口”和对应组件文档。历史 lock、
+runner、package 与 result 保持原路径以维持 digest/provenance，不属于默认修改面。
 
 ## 按读者选择入口
 

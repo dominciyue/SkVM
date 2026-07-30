@@ -1,9 +1,28 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-07-27
+**最后更新：** 2026-07-31
 
 本文件只记录当前状态和下一步。已完成阶段的详细演进见
 `docs/skill-ir/history.md`，组件契约见对应权威文档。
+
+## 0. 当前执行窗口
+
+唯一活跃任务为 Task 16.21。2026-07-31 的 Task 16.20 已证明当前 experimental-design v2
+operation surface 对 no-skill 完全公开，而原 skill 的 6 类增量知识没有进入 scorer。当前顺序固定为：
+
+```text
+入口/计划治理
+-> skill-unique semantic surface 书面合同
+-> development-only deterministic oracle + differential/leak audit
+-> no-model materialization/dry-run
+-> frozen no-skill | original strong-model calibration
+-> distinguishability gate
+-> gate 通过才允许 base IR / ir-static
+```
+
+本窗口禁止新增 runtime、transport 或 artifact catalog 版本。旧 package、lock、runner 和 compact
+result 保持原路径与 digest；后文旧任务中的未完成动作若已被后续 gate 或 Task 16.21 覆盖，均不再是
+活跃 checkbox。新的实现优先复用通用 runner/scoring/gate，仅在测量合同本身需要时增加代码。
 
 ## 1. 当前 Ledger
 
@@ -23,7 +42,7 @@
 | V4 contract-repair development | 冻结 gate 失败 | 3 个完整 pair 从 0.90 到 1.00；1 个 Bun infrastructure，禁止补跑。 |
 | V4 infrastructure diagnosis | 完成 | Bun 1.3.14 assertion 已脱敏分类，reproducibility 仍 inconclusive。 |
 | `law-to-markdown` vertical slice | Held-out gate 失败并冻结 | Development 4/4、0.925；held-out 2/4、0.725，manual task 两次回归。 |
-| `experimental-design` second phenotype | v2 物化增量修订中 | v1 冻结；v3 校准因物化污染失效，能力合入唯一活跃 v2。 |
+| `experimental-design` second phenotype | v2 基线饱和 | stable Pi 两批均 4/4 vs 4/4、0 differing；Task 16.21 转向 skill-unique semantic surface。 |
 | Benchmark contract audit | Wave A v1 已完成 | 3/3 pilot audit failed，历史结果降为 `support-real`；先修复测量再继续付费。 |
 | Held-out / pooled panel / Wave B | Law 已执行，其余阻断 | v2 audit 与 development gate 通过后，优先用 `api-tester` 做冻结 Wave B replication。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
@@ -107,18 +126,18 @@ manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phen
 
 ## 4. 下一阶段顺序
 
-### 当前下一刀：Experimental-design Benchmark v2 物化增量修订
+### 当前下一刀：Skill-unique Semantic Surface
 
-1. 保留 v1 task、scorer、audit、lock、package 与结果，不原地修改。
-2. v2 是唯一活跃的下一代 benchmark；合入 v3 的 root-output 检查和独立 oracle，不建立 v4。
-3. Runner 在真实 fixture/resource 物化后、agent 启动前写外置 initial-workdir manifest；scorer
-   按 initial/final delta 判断模型新增、修改和删除。
-4. 先通过 v2 contract audit、materialization audit 和书面 lock 评审，再执行唯一
-   `no-skill | original` API calibration。
-5. v3 活跃代码、corpus 和 freeze 入口删除；已付费结果只保留一份 `methodEvidence=false` 的
-   历史失效诊断。
-6. v2 development gate 通过后才进入 held-out；完整泛化结论必须由 Wave B replication 支撑。
-7. Token 只按包含 compile/profile/package 成本的重复调用口径报告，不提前声称 break-even。
+1. 保留所有 v1/v2 冻结 task、scorer、audit、lock、package 与结果，不原地修改。
+2. 只选择 pseudoreplication/independent replicate 与 analysis-design alignment 两个语义面；
+   seeded randomization 作为可选 deterministic profile，不进入本轮主成功条件。
+3. 用户可见接口只公开输入、输出、字段形状和安全边界，不公开从研究结构推导答案的步骤。
+4. Scorer 从 agent 可见的结构化 study graph 独立推导 oracle，允许自由方法名、解释措辞和字段顺序；
+   evaluator expected、held-out、历史模型正文和原 skill 文本不得作为运行时输入。
+5. 先通过 alternative-valid、invalid-control、reverse-evidence、leak 和 materialization audit，再冻结
+   `no-skill | original` strong-model calibration；本轮不新增 runtime/catalog。
+6. Gate 若仍饱和或无差异，冻结“强模型当前无可测 skill 增益”，转向 Wave B；不得继续增加 harder
+   task。Gate 通过才构造同一 source/task identity 的 base IR 和 ir-static。
 
 ### 已完成前置：文档治理
 
@@ -852,8 +871,9 @@ held-out 或把结果写成 Skill IR 增益。
   pilot 引出的 matrix/override/lifecycle 回归已修复。
 - [x] 生成 `ir-static` dry-run，确认 12 rows、4 triplets、无 held-out/PGO/artifact system。
 - [x] Static runner/gate focused tests 12/12 与 typecheck 通过；plan CLI 再次生成 12 rows。
-- [ ] Bun 1.3.14 的 benchmark 聚合在 Windows 上无结尾退出状态；全仓库测试另有缺
-  `sh/python3` 的既有环境失败。付费前继续使用分组测试并保留该基础设施限制。
+- **历史基础设施限制（已绕开）：** Bun 1.3.14 的 benchmark 聚合曾在 Windows 上无结尾退出
+  状态；全仓库测试另有缺 `sh/python3` 的环境失败。后续通过分组测试和冻结 Pi harness 完成了
+  有效实验，该条不再是当前待办。
 - [x] 更新 spec/plan/组件文档和 conversation log；dry-run/raw workdir 只留本地。
 
 ### Task 7.4：Static Failure Audit 与下一 Artifact 边界
@@ -968,8 +988,8 @@ held-out 或把结果写成 Skill IR 增益。
   不低于 `original` 与 `ir-static` 的较优结果。
 - [x] GREEN：dry-run 与本地 artifact 4 行通过后才进入 route probe/付费完整 development；
   gate 未通过不执行 held-out，不调 scorer/package/lock。
-- [ ] 下一 adapter 必须复用相同 manifest/execution-plan/runtime API；若需要修改 catalog core，
-  记录抽象失败并新版本化，不能以 Law 单例声称通用。
+- [x] Experimental-design adapter 已复用相同 manifest/execution-plan/runtime API，通用 core 未新增
+  skill-id 分支；Law 单例不再作为 catalog 泛化的唯一依据。
 - [x] 成本表固定报告 compile/profile/model generation/model repair/process/validation/package bytes；
   另列 research diagnostic cost；质量不回归前 break-even 保持未计算，不宣传 token 节省。
 - [x] 更新 spec、plan、组件文档、experiment results 和 conversation log；执行 focused tests、
@@ -1269,10 +1289,10 @@ task/scorer/package，不执行 held-out。
   `evidenceWeight` 降为 `support-real`，并在 experiment results 中重述历史结论边界。
 - [x] 更新 spec、evaluation system、real-skill pilot、experiment results 和 conversation log；
   运行全量 tests、typecheck、链接/digest/secret 检查后提交推送。
-- [ ] 若后续重建 experimental-design benchmark，使用新 task/scorer/audit/lock/version 和新的
-  development fixtures；不得读取当前模型正文生成 expected，不得覆盖 v1。
-- [ ] 新 benchmark 必须先通过多实现 local differential tests 和书面评审，再决定是否投入 API
-  calibration；当前 held-out 永久不进入修正过程。
+- [x] Experimental-design v2 已使用独立 task/scorer/audit/lock/version 和 development fixtures
+  重建；未读取模型正文生成 expected，也未覆盖 v1。
+- [x] v2 已先通过多实现 local differential tests 和书面评审，再投入 API calibration；冻结
+  held-out 未进入修正过程。
 
 文件级 TDD 顺序：
 
@@ -1310,18 +1330,18 @@ task/scorer/package，不执行 held-out。
 - [x] 先写 scorer RED tests，覆盖合法等价方法、allocation 顺序和中英文报告措辞。
 - [x] 主 scorer 按 `0.10/0.10/0.25/0.35/0.20` 聚合五项语义分数；四个前置
   criterion 与 report contradiction 为 hard gate，row threshold 固定 `0.95`。
-- [ ] Development gate 预注册为：0 infrastructure、success≥3/4、mean≥0.95、
-  每个 task 至少一次成功、相对 baseline 无 hard-gate regression。
+- **历史预注册门禁：** v2 development gate 固定为 0 infrastructure、success≥3/4、mean≥0.95、
+  每个 task 至少一次成功、相对 baseline 无 hard-gate regression；后续两轮 baseline 均因
+  no-skill 饱和和无区分度失败，未进入 IR/artifact 阶段。
 - [x] 方法只按公开 `designProperties` 和 allocation invariants 判定，不比较自由文本
   method 名称；plan/report 两处的四个布尔属性必须与 scorer 派生值逐项相等。
   seed 的唯一 schedule 只进入 profile 次指标。
 - [x] 报告正文不做关键词判分；只交叉验证公开 fenced JSON `design-evidence` block
   与 study/plan/allocation，明确唯一 block、严格 JSON、重复 key/block 的失败语义；
   `limitationFlags` 按公开 source-derived 集合比较，warnings 措辞保持自由。
-- [ ] 单独计算 `deterministicProfileScore` 与 reproducibility；除公开合同明确要求外，
-  profile 不得改变 primary success。
-- [ ] 输出显式支持“semantic pass / profile differ”，防止 benchmark-specific profile
-  被误当成语义失败。
+- **延后次指标：** `deterministicProfileScore`、reproducibility 和显式
+  “semantic pass / profile differ”不进入当前 Task 16.21；只有新的语义主指标先证明有区分度后
+  才恢复，且不得改变 primary success。
 
 #### Task 8.11.3：Differential Fixture 与 v2 Audit
 
@@ -1339,28 +1359,24 @@ task/scorer/package，不执行 held-out。
 
 #### Task 8.11.4：Calibration、IR 与 Artifact Development
 
-- [ ] 书面评审通过后冻结 v2 `no-skill | original` development calibration lock，
-  先 dry-run、resource probe 和 route probe，再执行唯一付费批次。
-- [ ] baseline 有区分度后构造 source-audited v2 base IR；静态 IR 与 artifact
-  只消费公开 source/task contract，不消费 scorer gold 或 held-out。
-- [ ] 冻结 `no-skill | original | ir-static | validated-artifact` development lock
-  与数值 gate；primary semantic、profile、runtime、token 和 infrastructure 分列。
-- [ ] development gate 未过时冻结失败，不补跑、不调 scorer、不进入 held-out。
+- [x] v2 已在书面评审后冻结 `no-skill | original` development calibration lock，并完成
+  dry-run、resource/route qualification 与两轮唯一付费批次；两轮均 8/8 rows、0 infrastructure。
+- **门禁阻断：** normal 与 harder development baseline 均为 no-skill/original 4/4、mean 1.0、
+  0 differing pair，因此未构造 source-audited base IR，也未冻结四臂 development lock。
+- **失败处置已执行：** 不补跑、不调旧 scorer、不进入 held-out；下一步由 Task 16.21 重新定义
+  skill-unique 语义测量面。
 
 #### Task 8.11.5：Held-out、Wave B 与摊销
 
 - [x] 实现 held-out 隔离负向测试：development audit/lock/compiler/package/scorer
   不得消费 held-out ID、path、digest、fixture 或 sentinel。
-- [ ] v2 development gate 通过后另建 held-out lock；验证 heldout freeze、parent gate、
-  package 和 scorer digest，只消费冻结产物且 plan 不含 compiler/repair。
-- [ ] held-out task/fixture/scorer 漂移、gate 未过、package 漂移，或 held-out output
-  回流 compiler/repair/profile 时全部 fail closed。
-- [ ] 冻结 Wave A 方法后，以 `api-tester` 为首个 Wave B skill，复用 catalog/runtime/
-  lock 生命周期；通用 core 不得新增 skill-id 分支。
-- [ ] 记录 adapter LOC、artifact kind 复用率、core branch delta 和新 failure taxonomy；
-  据此区分“框架复用”与“catalog 已泛化”。
-- [ ] 在质量不回归前提下，按 `N=1,2,5,10` 报告 compile/profile/package/runtime
-  总成本和 break-even；没有同口径数据时不声称 token reduction。
+- **阻断中的 held-out 工作：** 只有 Task 16.21 的新 development gate 通过后，才另建 held-out
+  lock 并验证 freeze、parent gate、package/scorer digest 与 fail-closed 回流隔离。
+- **未来 Wave B：** Wave A 方法冻结后，以 `api-tester` 为首个跨 skill 复用对象；通用 core
+  不得新增 skill-id 分支，并报告 adapter LOC、artifact kind 复用率、core branch delta 和 failure
+  taxonomy。
+- **未来摊销实验：** 质量不回归后再按 `N=1,2,5,10` 报告 compile/profile/package/runtime
+  总成本和 break-even；当前没有同口径数据，不声称 token reduction。
 
 Task 8.11A 的文件级 TDD 计划见下一节。当前冻结顺序为：
 
