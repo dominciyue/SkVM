@@ -2238,3 +2238,94 @@ Public task interface 必须继续公开完成任务所需的输入、输出、�
 变为确定性 oracle，同时避免把求解步骤逐条投影给 no-skill。旧 artifact 若要进入新 benchmark，必须
 先通过 source/task/scorer provenance compatibility audit；不兼容时重新编译为新 identity，不原地修改
 冻结 package，也不直接复用旧分数。
+
+#### 24.9.22 Skill-unique semantic surface contract
+
+本轮建立 `experimental-design-v2-skill-unique/v1` capability slice。它继续绑定同一份真实
+experimental-design source closure，不计为新的 skill，也不覆盖 v1/v2 的 task、scorer、lock 或结果。
+它只测量 Task 16.20 发现但旧 scorer 未覆盖的两个 source-derived 能力面：
+
+1. `independent-replication`：处理嵌套实验时，独立重复是 treatment 被独立施加和随机分配的实体，
+   不是其下方的观测实体；
+2. `pseudoreplication-and-analysis-alignment`：下层观测不是额外独立重复，分析必须聚合到独立重复层，
+   或在保留下层观测时声明从分析层到独立重复层的完整 grouping/nesting 路径。
+
+真实随机化质量只保留为未来 deterministic profile，不进入本轮 primary success。干扰控制、盲法与更复杂
+design choice 暂不测，避免在同一轮同时调试过多语义。
+
+##### Task-visible interface
+
+每个 task 只向两臂公开 `study-graph.json`、`analysis-interface.json` 和一句命令式 prompt。前者描述
+agent 可见的 study graph：`studyId/question`、唯一实体类型、每类实体的 `parentType/totalCount`、
+`treatment.assignedToEntityType` 和 `response.observedOnEntityType`。Graph 必须是单根无环结构，treatment
+与 response 实体必须存在，response 实体必须等于或后代于 treatment 实体；不满足时 task schema
+fail closed，不留给 scorer 猜测。
+
+公开 interface 只定义两个保护输入、两个允许输出和字段形状：
+
+```text
+design/replication-plan.json
+  studyId, independentReplicateUnit, independentReplicateCount,
+  measurementUnit, pseudoreplicationRisk, rationale
+
+design/analysis-plan.json
+  studyId, analysisUnit, groupingFactors, method, rationale
+```
+
+`rationale` 与 `method` 是任意非空文本；字段顺序、语言和方法名不判分。Interface 会解释字段含义和
+合法值必须引用 graph 中的 entity type，但不会公布“沿 parentType 回溯到 treatment assignment”这一
+求解步骤、task-specific 答案、source quote、scorer threshold 或 evaluator payload。Prompt 只要求读取
+两个输入、生成恰好两个输出、保护输入不变，不重复语义配方。
+
+##### Source-derived deterministic oracle
+
+Oracle 是 scorer 内的纯函数，只消费最终 workdir 中 agent 可见的 `study-graph.json`；source claim
+provenance 另由 manifest 绑定 `source/SKILL.md` 与 `source/references/design_types.md` 的 digest/line
+anchor。它不读取 source 正文、evaluator expected、历史模型输出、package、development answer 或
+held-out 内容。推导规则固定为：
+
+- independent replicate unit = `treatment.assignedToEntityType`，count = 对应实体的
+  `totalCount`；measurement unit = `response.observedOnEntityType`；
+- measurement unit 是 replicate unit 的严格后代时，`pseudoreplicationRisk=true`，相同时为 false；
+- 合法 analysis 有两族：`analysisUnit` 等于 independent replicate 且 `groupingFactors=[]`；或
+  `analysisUnit` 位于 replicate 到 measurement 的后代链上，并且 grouping factors 至少包含从该
+  analysis unit 的父实体到 independent replicate 的完整祖先集合；
+- grouping factor 的顺序不重要，重复项、graph 外实体或非祖先实体拒绝；低层合法分析可附加自由
+  method/rationale，但不能省略任何必需 nesting 层。
+
+若 graph 缺少 parent edge、实体、count 或 lineage 证据，task validator 在运行前拒绝。Reverse-evidence
+测试会直接调用 oracle 的保守入口：移除关键公开证据时返回 `unconfirmed`，不得回退到 task ID、常识、
+source quote 或 fixture 金标猜答案。
+
+##### Scoring and differential audit
+
+Primary score 由五个二值 criterion 构成：input integrity `0.10`、artifact contract `0.10`、
+independent replication `0.30`、pseudoreplication guard `0.20`、analysis alignment `0.30`。五项均为
+hard gate，row threshold 为 `1.00`；离线 deterministic scorer 仍是成功权威，模型自述不计分。
+
+Development 在付费前必须覆盖两个不同结构：三层 cluster/subject/measurement 嵌套与两层
+subject/repeated-observation 嵌套。每个 task 至少通过以下本地 differential cases：
+
+- canonical aggregate-to-replicate；
+- alternative lower-level hierarchical analysis（自由 method/rationale、字段顺序与中英文可变）；
+- invalid measurement-as-replicate；
+- invalid missing ancestor grouping；
+- invalid invented/non-ancestor grouping；
+- protected-input mutation、missing output 和 extra output。
+
+Audit report 只保存 task/case/check ID、布尔状态、digest 与计数，不保存答案正文。Leak canary 递归禁止
+`expected/gold/answer` 字段、held-out sentinel、历史 raw/model text 和 source quote 出现在 task-visible
+interface、evaluation payload 或 compact report。
+
+##### Split, lifecycle, and stop rule
+
+新 capability 使用独立的 2 development + 2 held-out identity。先创建两侧 task input，再在 scorer
+实现前提交 `task-split-freeze.json`；development scorer/audit/lock 只允许读取 development path 与
+held-out digest envelope，不得读取 held-out fixture 内容。旧 v2 held-out freeze 保持不变。
+
+本地 contract/differential/leak/materialization audit 全部通过后，才冻结 Windows/clean、Pi 0.67.68、
+`xty/gpt-5.6-sol`、`no-skill | original`、2 development tasks x 2 repetitions、retries 0 的 8-row
+calibration。Gate 要求 8/8 rows、4/4 pairs、0 infrastructure、no-skill 非饱和、至少一个 differing
+pair，且每个 task 至少一个 original success。失败即冻结“当前强模型面板无可测 skill 增益”，不再
+创建第四批 harder tasks；通过只允许同 source/task identity 的 base IR source audit，不直接允许
+held-out、Final IR 或优化主 claim。

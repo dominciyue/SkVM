@@ -2657,13 +2657,13 @@ evaluation-split/gold/raw/model canary、digest 和 quote drift 测试全部通�
 
 ### Task 16.21：Skill-unique Semantic Surface 与 IR Re-entry 设计
 
-- [ ] 在书面设计中拆分 `task-visible interface` 与 `source-derived deterministic semantic oracle`：前者
+- [x] 在书面设计中拆分 `task-visible interface` 与 `source-derived deterministic semantic oracle`：前者
   继续公开必要输入/输出/schema/安全合同，后者只能从公开 source、task input 和 workdir 推导，不能把
   解题配方或 scorer expected 投影进 no-skill prompt。
-- [ ] 从六类未测增量知识中选择 2--3 个可确定性验证、可构造 alternative-valid 与 invalid-control 的
-  能力面；优先考虑设计选择、replication/pseudoreplication、analysis-design alignment 与真实随机化，
-  并为每条规则写 source provenance、保守降级、reverse-evidence 和 leak canary。
-- [ ] 冻结新 development task/scorer 之前，定义 no-skill 可见面、oracle 输入面、hard gate、替代合法解、
+- [x] 从六类未测增量知识中选择 independent replication/pseudoreplication 与 analysis-design alignment
+  两个能力面；真实随机化仅保留为未来 profile，并为本轮规则写死 source provenance、保守降级、
+  reverse-evidence 和 leak canary。
+- [x] 冻结新 development task/scorer 之前，定义 no-skill 可见面、oracle 输入面、hard gate、替代合法解、
   held-out 隔离和旧 v2 task 的历史身份；书面评审通过前不创建第三批任务或调用 API。
 - [ ] 新 baseline 通过区分度门禁后，才从同一原 source 和新 task contract 编译 source-audited base IR，
   运行 `no-skill | original | ir-static`；旧 IR 分数只进历史 ledger，不与新 benchmark 分数混算。
@@ -2672,3 +2672,65 @@ evaluation-split/gold/raw/model canary、digest 和 quote drift 测试全部通�
   才消费冻结 held-out。
 - [ ] 对已有 Env/Law/Experimental-design artifact 做 provenance compatibility 表：可直接验证的冻结产物
   保持原 identity；task/scorer/source contract 不兼容时新编译 package/lock，禁止覆盖旧 digest。
+
+#### Task 16.21.1：Task split 与公开接口（先于 scorer）
+
+**Files:**
+
+```text
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/public-interface.json
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/development/tasks.json
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/heldout/tasks.json
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/task-split-freeze.json
+Create  src/benchmarks/skill-ir/experimental-design-skill-unique-contract.test.ts
+Create  src/benchmarks/skill-ir/experimental-design-skill-unique-contract.ts
+Modify  benchmarks/skill-ir/corpus/corpora/pilot.json
+```
+
+- [ ] RED：拒绝循环/多根/未知 parent、重复 entity、无 treatment-response lineage、非法 count、混合 split、
+  task-visible expected/gold/source quote/held-out sentinel 和旧 v2 identity 覆盖。
+- [ ] GREEN：构造 2 development + 2 held-out、两文件公开接口和 split freeze；corpus 只增加同一真实
+  source 的 capability-calibration entry，不增加 pilot 计数，也不晋级 runnable/base IR。
+
+#### Task 16.21.2：Oracle 与 deterministic scorer
+
+**Files:**
+
+```text
+Create  src/benchmarks/skill-ir/experimental-design-skill-unique-oracle.test.ts
+Create  src/benchmarks/skill-ir/experimental-design-skill-unique-oracle.ts
+Create  src/bench/evaluators/experimental-design-skill-unique-grade.test.ts
+Create  src/bench/evaluators/experimental-design-skill-unique-grade.ts
+Modify  src/bench/evaluators/index.ts
+```
+
+- [ ] RED：覆盖 replicate/count/measurement 推导、pseudoreplication、aggregate 与 hierarchical 两族
+  合法解、缺 ancestor/invented grouping、输入 mutation、缺/多输出和 symlink/path escape。
+- [ ] GREEN：实现五项二值 hard gate、1.00 threshold；payload 只含路径与 protected digest，oracle
+  只读 agent-visible graph，缺公开证据返回 `unconfirmed`。
+
+#### Task 16.21.3：差分、泄漏与物化审计
+
+**Files:**
+
+```text
+Create  src/benchmarks/skill-ir/experimental-design-skill-unique-audit.test.ts
+Create  src/benchmarks/skill-ir/experimental-design-skill-unique-audit.ts
+Create  src/benchmarks/skill-ir/experimental-design-skill-unique-audit-run.ts
+Create  results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json
+Create  results/skill-ir/experimental-design-skill-unique-materialization-audit-2026-07-31.json
+```
+
+- [ ] RED/GREEN：每个 development task 跑 canonical、alternative、三类 semantic invalid 和文件边界
+  invalid；alternative wording/order 不得影响结果。
+- [ ] RED/GREEN：reverse-evidence、gold/source quote/raw/model/held-out canary 与 production
+  `prepareRunWorkspace` 的 no-skill/original 两臂物化全部 fail closed 或通过预期检查。
+
+#### Task 16.21.4：本地门禁与一次强模型 calibration
+
+- [ ] 本地 audit 全绿且 spec/plan/组件文档同步后，先提交 task/scorer/audit；再冻结新的 Pi calibration
+  method lock 和数值 gate，不修改任何旧 runner/lock digest。
+- [ ] 复用现有 `real-agent-run`、custom scoring 与 gate primitives 完成 dry-run、resource/route
+  qualification 和唯一 8-row run；不新增 runtime/transport/catalog 版本。
+- [ ] Gate 失败则冻结 compact evidence 并转 Wave B；通过才勾选上层 base IR re-entry，随后另写
+  source-audited base IR TDD，不在本 task 顺手生成 Final IR 或消费 held-out。
