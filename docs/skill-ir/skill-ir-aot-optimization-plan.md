@@ -2687,9 +2687,9 @@ Create  src/benchmarks/skill-ir/experimental-design-skill-unique-contract.ts
 Modify  benchmarks/skill-ir/corpus/corpora/pilot.json
 ```
 
-- [ ] RED：拒绝循环/多根/未知 parent、重复 entity、无 treatment-response lineage、非法 count、混合 split、
+- [x] RED：拒绝循环/多根/未知 parent、重复 entity、无 treatment-response lineage、非法 count、混合 split、
   task-visible expected/gold/source quote/held-out sentinel 和旧 v2 identity 覆盖。
-- [ ] GREEN：构造 2 development + 2 held-out、两文件公开接口和 split freeze；corpus 只增加同一真实
+- [x] GREEN：构造 2 development + 2 held-out、两文件公开接口和 split freeze；corpus 只增加同一真实
   source 的 capability-calibration entry，不增加 pilot 计数，也不晋级 runnable/base IR。
 
 #### Task 16.21.2：Oracle 与 deterministic scorer

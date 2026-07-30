@@ -48,11 +48,13 @@ describe("skill-ir corpus fixtures", () => {
     const pilot = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
       corpusId: string;
       scopeCounts: Record<string, number>;
-      skills: { id: string; wave: string; status: string }[];
+      skills: { id: string; wave: string; status: string; benchmarkVersionOf?: string }[];
     };
     expect(pilot.corpusId).toBe("pilot");
     expect(pilot.scopeCounts).toEqual({ waveADeepPilots: 3, waveBReplicationPilots: 3 });
-    expect(pilot.skills.filter((skill) => skill.wave === "A")).toHaveLength(3);
+    expect(pilot.skills.filter(
+      (skill) => skill.wave === "A" && skill.benchmarkVersionOf === undefined,
+    )).toHaveLength(3);
     expect(pilot.skills.filter((skill) => skill.wave === "B")).toHaveLength(3);
     expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "law-to-markdown")?.status).toBe("runnable");

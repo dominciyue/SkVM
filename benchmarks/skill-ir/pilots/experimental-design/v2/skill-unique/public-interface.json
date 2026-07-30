@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "skill-ir-experimental-design-skill-unique-interface/v1",
+  "interfaceId": "experimental-design-skill-unique-interface-v1",
+  "protectedInputs": [
+    "study-graph.json",
+    "analysis-interface.json"
+  ],
+  "outputs": [
+    "design/replication-plan.json",
+    "design/analysis-plan.json"
+  ],
+  "entityTypeRule": "Fields whose type is entity-type-string must use an entity type present in study-graph.json.",
+  "replicationPlan": {
+    "requiredFields": [
+      "studyId",
+      "independentReplicateUnit",
+      "independentReplicateCount",
+      "measurementUnit",
+      "pseudoreplicationRisk",
+      "rationale"
+    ],
+    "fieldTypes": {
+      "studyId": "string",
+      "independentReplicateUnit": "entity-type-string",
+      "independentReplicateCount": "positive-integer",
+      "measurementUnit": "entity-type-string",
+      "pseudoreplicationRisk": "boolean",
+      "rationale": "nonempty-free-text"
+    }
+  },
+  "analysisPlan": {
+    "requiredFields": [
+      "studyId",
+      "analysisUnit",
+      "groupingFactors",
+      "method",
+      "rationale"
+    ],
+    "fieldTypes": {
+      "studyId": "string",
+      "analysisUnit": "entity-type-string",
+      "groupingFactors": "unique-entity-type-string-array",
+      "method": "nonempty-free-text",
+      "rationale": "nonempty-free-text"
+    }
+  },
+  "outputPolicy": {
+    "exactOutputSet": true,
+    "allowAdditionalJsonFields": true,
+    "freeTextLanguage": "any"
+  }
+}

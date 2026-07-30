@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "experimental-design-v2-skill-unique",
+  "tasks": [
+    {
+      "id": "experimental-design-skill-unique-tank-fish-heldout-001",
+      "split": "heldout",
+      "prompt": "Read study-graph.json and analysis-interface.json without modifying either protected input. Produce exactly design/replication-plan.json and design/analysis-plan.json. Use only entity types present in the study graph and follow the public field contract. Do not create any other output.",
+      "fixtures": {
+        "study-graph.json": "{\"schemaVersion\":\"skill-ir-experimental-design-study-graph/v1\",\"studyId\":\"tank-diet-fish-growth-heldout\",\"question\":\"Does the diet change fish growth across shared tanks?\",\"entities\":[{\"type\":\"tank\",\"parentType\":null,\"totalCount\":10},{\"type\":\"fish\",\"parentType\":\"tank\",\"totalCount\":100}],\"treatment\":{\"name\":\"diet\",\"assignedToEntityType\":\"tank\"},\"response\":{\"name\":\"growth\",\"observedOnEntityType\":\"fish\"}}\n",
+        "analysis-interface.json": "{\n  \"schemaVersion\": \"skill-ir-experimental-design-skill-unique-interface/v1\",\n  \"interfaceId\": \"experimental-design-skill-unique-interface-v1\",\n  \"protectedInputs\": [\n    \"study-graph.json\",\n    \"analysis-interface.json\"\n  ],\n  \"outputs\": [\n    \"design/replication-plan.json\",\n    \"design/analysis-plan.json\"\n  ],\n  \"entityTypeRule\": \"Fields whose type is entity-type-string must use an entity type present in study-graph.json.\",\n  \"replicationPlan\": {\n    \"requiredFields\": [\n      \"studyId\",\n      \"independentReplicateUnit\",\n      \"independentReplicateCount\",\n      \"measurementUnit\",\n      \"pseudoreplicationRisk\",\n      \"rationale\"\n    ],\n    \"fieldTypes\": {\n      \"studyId\": \"string\",\n      \"independentReplicateUnit\": \"entity-type-string\",\n      \"independentReplicateCount\": \"positive-integer\",\n      \"measurementUnit\": \"entity-type-string\",\n      \"pseudoreplicationRisk\": \"boolean\",\n      \"rationale\": \"nonempty-free-text\"\n    }\n  },\n  \"analysisPlan\": {\n    \"requiredFields\": [\n      \"studyId\",\n      \"analysisUnit\",\n      \"groupingFactors\",\n      \"method\",\n      \"rationale\"\n    ],\n    \"fieldTypes\": {\n      \"studyId\": \"string\",\n      \"analysisUnit\": \"entity-type-string\",\n      \"groupingFactors\": \"unique-entity-type-string-array\",\n      \"method\": \"nonempty-free-text\",\n      \"rationale\": \"nonempty-free-text\"\n    }\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"allowAdditionalJsonFields\": true,\n    \"freeTextLanguage\": \"any\"\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "skill-unique-input-integrity",
+          "name": "Protected public inputs remain unchanged",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "input-integrity",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "322d1bb95fea38804ea62e6c0e577fe6c33759bb82b3da99817f38261f235b82",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "skill-unique-artifact-contract",
+          "name": "Both public outputs satisfy the artifact contract",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "artifact-contract",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "322d1bb95fea38804ea62e6c0e577fe6c33759bb82b3da99817f38261f235b82",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "skill-unique-independent-replication",
+          "name": "Independent replicate identity and count match the study structure",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "independent-replication",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "322d1bb95fea38804ea62e6c0e577fe6c33759bb82b3da99817f38261f235b82",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "skill-unique-pseudoreplication-guard",
+          "name": "Measurement level is not misreported as independent replication",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "pseudoreplication-guard",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "322d1bb95fea38804ea62e6c0e577fe6c33759bb82b3da99817f38261f235b82",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "skill-unique-analysis-alignment",
+          "name": "Analysis unit and grouping factors respect the study hierarchy",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "analysis-alignment",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "322d1bb95fea38804ea62e6c0e577fe6c33759bb82b3da99817f38261f235b82",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "skill-unique-input-integrity",
+        "skill-unique-artifact-contract",
+        "skill-unique-independent-replication",
+        "skill-unique-pseudoreplication-guard",
+        "skill-unique-analysis-alignment"
+      ],
+      "passThreshold": 1
+    },
+    {
+      "id": "experimental-design-skill-unique-classroom-assessment-heldout-002",
+      "split": "heldout",
+      "prompt": "Read study-graph.json and analysis-interface.json without modifying either protected input. Produce exactly design/replication-plan.json and design/analysis-plan.json. Use only entity types present in the study graph and follow the public field contract. Do not create any other output.",
+      "fixtures": {
+        "study-graph.json": "{\"schemaVersion\":\"skill-ir-experimental-design-study-graph/v1\",\"studyId\":\"classroom-curriculum-assessment-heldout\",\"question\":\"Does the curriculum change repeated assessment scores?\",\"entities\":[{\"type\":\"classroom\",\"parentType\":null,\"totalCount\":12},{\"type\":\"student\",\"parentType\":\"classroom\",\"totalCount\":300},{\"type\":\"assessment\",\"parentType\":\"student\",\"totalCount\":600}],\"treatment\":{\"name\":\"curriculum\",\"assignedToEntityType\":\"classroom\"},\"response\":{\"name\":\"score\",\"observedOnEntityType\":\"assessment\"}}\n",
+        "analysis-interface.json": "{\n  \"schemaVersion\": \"skill-ir-experimental-design-skill-unique-interface/v1\",\n  \"interfaceId\": \"experimental-design-skill-unique-interface-v1\",\n  \"protectedInputs\": [\n    \"study-graph.json\",\n    \"analysis-interface.json\"\n  ],\n  \"outputs\": [\n    \"design/replication-plan.json\",\n    \"design/analysis-plan.json\"\n  ],\n  \"entityTypeRule\": \"Fields whose type is entity-type-string must use an entity type present in study-graph.json.\",\n  \"replicationPlan\": {\n    \"requiredFields\": [\n      \"studyId\",\n      \"independentReplicateUnit\",\n      \"independentReplicateCount\",\n      \"measurementUnit\",\n      \"pseudoreplicationRisk\",\n      \"rationale\"\n    ],\n    \"fieldTypes\": {\n      \"studyId\": \"string\",\n      \"independentReplicateUnit\": \"entity-type-string\",\n      \"independentReplicateCount\": \"positive-integer\",\n      \"measurementUnit\": \"entity-type-string\",\n      \"pseudoreplicationRisk\": \"boolean\",\n      \"rationale\": \"nonempty-free-text\"\n    }\n  },\n  \"analysisPlan\": {\n    \"requiredFields\": [\n      \"studyId\",\n      \"analysisUnit\",\n      \"groupingFactors\",\n      \"method\",\n      \"rationale\"\n    ],\n    \"fieldTypes\": {\n      \"studyId\": \"string\",\n      \"analysisUnit\": \"entity-type-string\",\n      \"groupingFactors\": \"unique-entity-type-string-array\",\n      \"method\": \"nonempty-free-text\",\n      \"rationale\": \"nonempty-free-text\"\n    }\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"allowAdditionalJsonFields\": true,\n    \"freeTextLanguage\": \"any\"\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "skill-unique-input-integrity",
+          "name": "Protected public inputs remain unchanged",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "input-integrity",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "6637b300239f1392890b38f150d144c37d817ff544dcdfd45fb9bf440724c54e",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "skill-unique-artifact-contract",
+          "name": "Both public outputs satisfy the artifact contract",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "artifact-contract",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "6637b300239f1392890b38f150d144c37d817ff544dcdfd45fb9bf440724c54e",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "skill-unique-independent-replication",
+          "name": "Independent replicate identity and count match the study structure",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "independent-replication",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "6637b300239f1392890b38f150d144c37d817ff544dcdfd45fb9bf440724c54e",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "skill-unique-pseudoreplication-guard",
+          "name": "Measurement level is not misreported as independent replication",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "pseudoreplication-guard",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "6637b300239f1392890b38f150d144c37d817ff544dcdfd45fb9bf440724c54e",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "skill-unique-analysis-alignment",
+          "name": "Analysis unit and grouping factors respect the study hierarchy",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-experimental-design-skill-unique",
+          "payload": {
+            "schemaVersion": "skill-ir-experimental-design-skill-unique-eval/v1",
+            "check": "analysis-alignment",
+            "paths": {
+              "studyGraph": "study-graph.json",
+              "interface": "analysis-interface.json",
+              "replicationPlan": "design/replication-plan.json",
+              "analysisPlan": "design/analysis-plan.json"
+            },
+            "protectedSha256": {
+              "studyGraph": "6637b300239f1392890b38f150d144c37d817ff544dcdfd45fb9bf440724c54e",
+              "interface": "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "skill-unique-input-integrity",
+        "skill-unique-artifact-contract",
+        "skill-unique-independent-replication",
+        "skill-unique-pseudoreplication-guard",
+        "skill-unique-analysis-alignment"
+      ],
+      "passThreshold": 1
+    }
+  ]
+}

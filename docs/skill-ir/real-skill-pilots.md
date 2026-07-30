@@ -432,14 +432,14 @@ artifact kind 复用率和新的 failure taxonomy。
 | env-manager | 完成 | 2+2 / deterministic；contract audit failed | 完成 | 精确 schema rules 未公开；历史 development 仅作 support evidence。 |
 | law-to-markdown | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | 两个 task 的 alternative-valid 审核措辞均被拒；旧 development/held-out 结果降为 support evidence。 |
 | experimental-design | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | Plan canary 2/2 通过；其余 6/6 等价 canary 与四类私有 plan 合同失败，当前四臂实验阻断。 |
-| experimental-design-v2 | 复用同一冻结 source closure | 2+2 / public semantic；42/42 audit、独立 oracle、held-out freeze、36/36 materialization audit 通过 | 未开始 | 三次完整 baseline identity 均被 2–3 个 Bun infrastructure failure 污染；source final identity 又在 route exit 3，未形成有效 baseline。 |
+| experimental-design-v2 | 复用同一冻结 source closure | 2+2 / public semantic；42/42 audit、独立 oracle、held-out freeze、36/36 materialization audit 通过 | 未开始 | Stable Pi normal/harder 两批均 8/8 rows、0 infra、两臂 4/4 mean 1.0、0 differing；Task 16.20 证明公开合同覆盖 13/13 scorer 操作要求，base IR 未放行。 |
+| experimental-design skill-unique slice | 同一 source，不计新 pilot | 2+2 split/interface 已在 scorer 前冻结；oracle/scorer 待实现 | 不允许 | 只测 independent replication/pseudoreplication 与 analysis alignment；尚无真实模型结果。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
-v3 的付费 calibration 只保留一份 `methodEvidence=false`、`promotionAllowed=false` 历史摘要。
-其 root-output oracle 已并回 v2；v2 通过外置 initial-workdir manifest 识别两臂各自的合法初始
-树，再按 final delta 判定模型输出。当前下一步是在新 identity 为最终 pre-IR route 接入 compact
-failure diagnostic；route exit 0 后才能执行唯一 8-row calibration。Gate 有效通过后才允许 base
-IR audit，之后才讨论四臂 development、held-out 和 Wave B。
+v3 的付费 calibration 只保留一份 `methodEvidence=false`、`promotionAllowed=false` 历史摘要；其
+root-output oracle 已并回 v2。当前不再开发 runtime 版本，而是在 skill-unique slice 上先实现
+source-derived oracle、差分/泄漏/物化审计。只有新的 8-row baseline 同时非饱和且出现 differing pair，
+才允许 base IR audit；失败则冻结负结果并转向 Wave B，不继续增加 harder task。
 
 ## 13. 修改注意
 

@@ -1356,3 +1356,31 @@ source-derived 的 deterministic semantic oracle 衡量 skill 独有能力。只
 baseline 通过区分度门禁，才允许为同一 task/scorer identity 构造 base IR 并扩成
 `no-skill | original | ir-static`。旧 IR/artifact 结果保留在 evidence ledger，但跨 benchmark 的分数
 不直接比较；冻结 artifact 需要先做 provenance compatibility audit，必要时新编译而不覆盖旧产物。
+
+## 36. Skill-unique Task Split 与公开接口
+
+Task 16.21 使用 `experimental-design-v2-skill-unique` capability slice，不增加真实 pilot 计数，也不覆盖
+旧 v2。当前先冻结以下边界，scorer 在后续 commit 才实现：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/public-interface.json
+benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/development/tasks.json
+benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/heldout/tasks.json
+benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/task-split-freeze.json
+```
+
+两臂都只收到 `study-graph.json` 与 `analysis-interface.json`，并只能生成
+`design/replication-plan.json` 与 `design/analysis-plan.json`。公开接口声明字段形状、实体引用边界和
+精确输出集合，不公开 task-specific replicate/grouping 答案、source quote 或 evaluator payload。
+Development 覆盖 cage→mouse→cell 和 participant→visit；held-out 只由 split freeze 绑定，本阶段不运行。
+
+本地验证：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-skill-unique-contract.test.ts `
+  ./src/skill-ir/corpus-fixtures.test.ts
+```
+
+Contract test 会重建 2+2 task、验证 source/task/interface digest，并拒绝循环、多根、断裂 lineage、
+gold/source quote/held-out sentinel 和 split drift。Corpus entry 保持 `tasks-authored`、无 `irPath`，
+因此默认主矩阵不会误调度它。
