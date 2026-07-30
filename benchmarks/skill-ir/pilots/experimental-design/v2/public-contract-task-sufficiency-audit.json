@@ -1,0 +1,504 @@
+{
+  "schemaVersion": "skill-ir-public-contract-task-sufficiency-audit/v1",
+  "auditId": "experimental-design-v2-public-contract-task-sufficiency-v1",
+  "benchmarkId": "experimental-design-v2",
+  "scope": {
+    "split": "development",
+    "taskSetIds": [
+      "experimental-design-v2-frozen-development-v1",
+      "experimental-design-v2-harder-development-v1"
+    ]
+  },
+  "inputs": {
+    "developmentTasks": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json",
+      "sha256": "e382fe9e9a1ed8cdb5735d88136086b2aefbf4ced5c67d507f67c7fc2487da96"
+    },
+    "harderDevelopmentTasks": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/harder-development/tasks.json",
+      "sha256": "57cd38abc52ddc53414f32b7384348fadb80ddbeb72bc300d656e7ecd0f2533a"
+    },
+    "publicContract": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+      "sha256": "141c05cb11032f19f075bbf7544e08f0076cfa379b16fa9182f4457e1f8a48dc"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+      "sha256": "6dda3cbc9e369fa6b1ab1dbe974c86baa3cad967bd707e1d5668eb1ea2d51960"
+    },
+    "contractImplementation": {
+      "path": "src/benchmarks/skill-ir/experimental-design-v2-contract.ts",
+      "sha256": "a43875de68c8388ba55a91305ac8f70dfad472ddda4bd823c870fa23ddb55c4a"
+    },
+    "calibrationAnalyses": [
+      {
+        "path": "results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29/calibration-analysis.json",
+        "sha256": "3311c159d465283155264fdc0086321ed61a6454d13a67e7ee18f060f7c1e7d3"
+      },
+      {
+        "path": "results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31/calibration-analysis.json",
+        "sha256": "7c7393d0df9e5c18f0a6da196b8585ec5fbd84a8fd3a4838a150096d338e43f4"
+      }
+    ],
+    "sourceClosure": [
+      {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/LICENSE.upstream.md",
+        "sha256": "5c793d8fe1c553d49c305f3c178ac360b6d32607bdf1bca06b10d3ba9881d78f"
+      },
+      {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+        "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+      },
+      {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/design_types.md",
+        "sha256": "881993eca7f23cc4d8a2b1db28c4a9f05a86a6bd4b6a2a30e528466f0a5a22b9"
+      },
+      {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/factorial_and_doe.md",
+        "sha256": "032b1a21c713c0f3a0736528e0c881b940874d5820541a97c84eebd3771ee8fe"
+      },
+      {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/randomization_and_blocking.md",
+        "sha256": "e20f1db8f050709912b156d8d25f40e041fdd718faf57d76dc5677e0d3aa3f8e"
+      },
+      {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/sequential_and_adaptive.md",
+        "sha256": "5025e193705c3688bea48f45a5cd473d8b94867c1e68163d38f26184d8b3c905"
+      },
+      {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/scripts/doe_designs.py",
+        "sha256": "730cde28f00619c535f9976a4b79d2b406ba9ab48410a3c5f3b289782c5b057e"
+      },
+      {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/scripts/randomization.py",
+        "sha256": "ccfa0cb514cac9549c1dbfb3addaaae08108569ca74f6e2ac259686e3c447073"
+      }
+    ]
+  },
+  "instructions": [
+    {
+      "id": "protected-input-integrity",
+      "category": "observable-output-contract",
+      "summary": "Keep the two task inputs byte-identical.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-input-integrity"],
+      "evidence": [
+        {
+          "kind": "task-prompt",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/development/tasks.json",
+          "quote": "without modifying either protected input"
+        },
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "\"protectedInputs\": [\"study.json\", \"design-contract.json\"]"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+          "quote": "sha256(studyBytes) === payload.protectedSha256.study"
+        }
+      ]
+    },
+    {
+      "id": "exact-output-set",
+      "category": "observable-output-contract",
+      "summary": "Create the three declared outputs and no additional entries.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-artifact-contract"],
+      "evidence": [
+        {
+          "kind": "task-prompt",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/harder-development/tasks.json",
+          "quote": "Produce exactly three output files"
+        },
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "\"design/design-report.md\""
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+          "quote": "requiredNewFiles: [...OUTPUT_PATHS]"
+        }
+      ]
+    },
+    {
+      "id": "plan-schema",
+      "category": "observable-output-contract",
+      "summary": "Populate the declared plan fields and design properties.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-artifact-contract", "design-semantics"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "\"planContract\": {"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+          "quote": "const PlanSchema = z"
+        }
+      ]
+    },
+    {
+      "id": "allocation-schema",
+      "category": "observable-output-contract",
+      "summary": "Write allocation CSV with the four declared columns.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-artifact-contract", "design-allocation-safety"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "\"columns\": [\"order\", \"unit_id\", \"stratum\", \"arm\"]"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/benchmarks/skill-ir/experimental-design-v2-contract.ts",
+          "quote": "Allocation CSV header must be order,unit_id,stratum,arm"
+        }
+      ]
+    },
+    {
+      "id": "report-evidence-schema",
+      "category": "observable-output-contract",
+      "summary": "Include one strict JSON design-evidence block with the declared fields.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-report-consistency"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "\"reportEvidenceRequiredFields\": ["
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+          "quote": "const REPORT_OPENING = \"```json design-evidence\""
+        }
+      ]
+    },
+    {
+      "id": "assignment-unit-coverage",
+      "category": "procedural-guidance",
+      "summary": "Allocate every declared assignment unit exactly once using its stable order.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-semantics", "design-allocation-safety"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "Include every assignment unit exactly once"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/benchmarks/skill-ir/experimental-design-v2-contract.ts",
+          "quote": "rows.length === study.units.length"
+        },
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "State the question, the unit, and the response."
+        }
+      ]
+    },
+    {
+      "id": "legal-arm-membership",
+      "category": "procedural-guidance",
+      "summary": "Use only the arms declared by the study.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-allocation-safety"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "use only public study arms"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/benchmarks/skill-ir/experimental-design-v2-contract.ts",
+          "quote": "study.arms.includes(row.arm)"
+        }
+      ]
+    },
+    {
+      "id": "cluster-indivisibility",
+      "category": "procedural-guidance",
+      "summary": "Treat each declared cluster as one indivisible assignment unit.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-semantics", "design-allocation-safety"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "each units[] element is one indivisible assignment unit"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/benchmarks/skill-ir/experimental-design-v2-contract.ts",
+          "quote": "study.units.every((unit) => rowsById.has(unit.id))"
+        },
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "Randomize whole clusters, not individuals"
+        }
+      ]
+    },
+    {
+      "id": "stratified-balance",
+      "category": "procedural-guidance",
+      "summary": "Balance assignments independently inside each declared stratum.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-semantics", "design-allocation-safety"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "balance arms within each stratum"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/benchmarks/skill-ir/experimental-design-v2-contract.ts",
+          "quote": "partitionArms.every((arms) => countsAreBalanced(study.arms, arms))"
+        },
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/randomization_and_blocking.md",
+          "quote": "A known covariate (site, sex, stage) must be balanced across arms"
+        }
+      ]
+    },
+    {
+      "id": "sequential-block-balance",
+      "category": "procedural-guidance",
+      "summary": "Use arm-sized balanced blocks for sequential enrollment within each stratum.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-semantics", "design-allocation-safety"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "each complete block contains every arm once"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/benchmarks/skill-ir/experimental-design-v2-contract.ts",
+          "quote": "sequentialBlocksAreValid(study.arms, arms)"
+        },
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/randomization_and_blocking.md",
+          "quote": "You need balance throughout enrollment, or n is small/moderate, or intake is sequential"
+        }
+      ]
+    },
+    {
+      "id": "design-property-derivation",
+      "category": "procedural-guidance",
+      "summary": "Report the four declared design properties from the observed allocation.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-semantics", "design-report-consistency"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "\"designPropertyKeys\": ["
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+          "quote": "publicProperties(plan.designProperties)"
+        }
+      ]
+    },
+    {
+      "id": "report-factual-consistency",
+      "category": "procedural-guidance",
+      "summary": "Keep report evidence consistent with the study, plan, and actual allocation.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-report-consistency"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "\"allocationRows\""
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/bench/evaluators/experimental-design-grade-v2.ts",
+          "quote": "Report evidence contradicts observable design facts."
+        }
+      ]
+    },
+    {
+      "id": "limitation-flag-derivation",
+      "category": "procedural-guidance",
+      "summary": "Derive the complete declared limitation flag set from the study.",
+      "scorerRequired": true,
+      "taskCompletionRequired": true,
+      "criterionIds": ["design-report-consistency"],
+      "evidence": [
+        {
+          "kind": "public-contract",
+          "audience": "no-skill-visible",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/public-contract.json",
+          "quote": "\"limitationFlagRules\": {"
+        },
+        {
+          "kind": "scorer-public-projection",
+          "audience": "evaluator-public",
+          "path": "src/benchmarks/skill-ir/experimental-design-v2-contract.ts",
+          "quote": "deriveExperimentalDesignV2LimitationFlags"
+        }
+      ]
+    },
+    {
+      "id": "authentic-randomization-quality",
+      "category": "skill-incremental-knowledge",
+      "summary": "Generate and archive a genuinely randomized reproducible schedule.",
+      "scorerRequired": false,
+      "taskCompletionRequired": false,
+      "criterionIds": [],
+      "evidence": [
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/randomization_and_blocking.md",
+          "quote": "Use a **seeded, reproducible** schedule"
+        }
+      ]
+    },
+    {
+      "id": "design-selection-from-question",
+      "category": "skill-incremental-knowledge",
+      "summary": "Choose a design from the research question and unit structure.",
+      "scorerRequired": false,
+      "taskCompletionRequired": false,
+      "criterionIds": [],
+      "evidence": [
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "Start from the question and the structure of your units, not from a favorite design."
+        }
+      ]
+    },
+    {
+      "id": "replication-pseudoreplication-safety",
+      "category": "skill-incremental-knowledge",
+      "summary": "Identify the independent replicate and prevent pseudoreplication.",
+      "scorerRequired": false,
+      "taskCompletionRequired": false,
+      "criterionIds": [],
+      "evidence": [
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "The most common fatal error is **pseudoreplication**"
+        }
+      ]
+    },
+    {
+      "id": "nuisance-control-choice",
+      "category": "skill-incremental-knowledge",
+      "summary": "Identify nuisance factors and choose blocking, stratification, or randomization.",
+      "scorerRequired": false,
+      "taskCompletionRequired": false,
+      "criterionIds": [],
+      "evidence": [
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "List nuisance factors"
+        }
+      ]
+    },
+    {
+      "id": "controls-and-blinding",
+      "category": "skill-incremental-knowledge",
+      "summary": "Select concurrent controls, blinding, and allocation concealment appropriate to the threat.",
+      "scorerRequired": false,
+      "taskCompletionRequired": false,
+      "criterionIds": [],
+      "evidence": [
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/randomization_and_blocking.md",
+          "quote": "A comparison needs a concurrent baseline."
+        }
+      ]
+    },
+    {
+      "id": "analysis-design-alignment",
+      "category": "skill-incremental-knowledge",
+      "summary": "Carry blocks, strata, clusters, and nesting into the planned analysis.",
+      "scorerRequired": false,
+      "taskCompletionRequired": false,
+      "criterionIds": [],
+      "evidence": [
+        {
+          "kind": "skill-source",
+          "audience": "original-skill-only",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "quote": "Match the analysis to the design"
+        }
+      ]
+    }
+  ],
+  "forbiddenEvidenceClasses": [
+    "evaluation-split-task",
+    "evaluator-expected",
+    "historical-raw-model-text",
+    "package-generated-answer"
+  ]
+}

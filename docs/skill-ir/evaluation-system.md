@@ -1325,3 +1325,34 @@ outputs、零 residue。唯一 matrix 达到 8/8 rows、4/4 pairs、0 infrastruc
 no-skill 为 76,666 tokens、平均 94.106 秒，即 2.1856x token 与 1.0854x latency，无质量增益。
 因此 runner/scorer 链路有效，supplemental task contract 对强模型仍无区分度；后续转向 public-contract
 task-sufficiency audit，不再追加 runtime 或直接编译 base IR。
+
+## 35. Public Contract Task Sufficiency Audit
+
+Task 16.20 在不读取 held-out 和 raw model text 的条件下，审计当前 task contract 是否已经向 no-skill
+提供了足以通过 scorer 的完整操作配方。配置、实现与 compact result 分别为：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/public-contract-task-sufficiency-audit.json
+src/benchmarks/skill-ir/experimental-design-v2-task-sufficiency.ts
+results/skill-ir/experimental-design-v2-public-contract-task-sufficiency-audit-2026-07-31.json
+```
+
+生成和复核：
+
+```powershell
+bun ./src/benchmarks/skill-ir/experimental-design-v2-task-sufficiency-run.ts
+bun ./src/benchmarks/skill-ir/experimental-design-v2-task-sufficiency-run.ts `
+  '--verify-only=results/skill-ir/experimental-design-v2-public-contract-task-sufficiency-audit-2026-07-31.json'
+```
+
+Audit 逐字节绑定 15 个输入，包括两批 development tasks、公开合同、scorer/contract implementation、
+两份饱和 compact analysis 和完整 8-file source closure。结果为 19 条 instruction、13 条
+scorer-required、13/13 向 no-skill 披露，操作覆盖率 1.0；原 skill 另有 6 类增量知识，但当前测量
+覆盖率为 0。报告不保存 task 正文或模型输出，并以 reverse-evidence、held-out/gold/raw/model canary、
+digest 和 quote drift 测试 fail closed。
+
+因此下一 benchmark 不能只增加 arm、unit 或 prompt 长度。它需要公开必要的任务接口，同时用独立、
+source-derived 的 deterministic semantic oracle 衡量 skill 独有能力。只有新的 no-skill/original
+baseline 通过区分度门禁，才允许为同一 task/scorer identity 构造 base IR 并扩成
+`no-skill | original | ir-static`。旧 IR/artifact 结果保留在 evidence ledger，但跨 benchmark 的分数
+不直接比较；冻结 artifact 需要先做 provenance compatibility audit，必要时新编译而不覆盖旧产物。

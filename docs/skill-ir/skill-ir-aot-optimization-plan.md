@@ -2624,11 +2624,35 @@ held-out 或新 runtime；下一任务先审计 public contract 是否已经足�
 
 ### Task 16.20：Public Contract Task Sufficiency Audit
 
-- [ ] 对 development prompt、`design-contract.json`、原 skill/source closure 和 scorer public projection
+- [x] 对 development prompt、`design-contract.json`、原 skill/source closure 和 scorer public projection
   建立逐条 instruction provenance；禁止读取 held-out tasks 或 raw model text。
-- [ ] 区分 scorer 必需的可观察输出合同、用户完成任务必需的程序性指导，以及只存在于原 skill 的增量
+- [x] 区分 scorer 必需的可观察输出合同、用户完成任务必需的程序性指导，以及只存在于原 skill 的增量
   知识，生成 instruction-overlap / sufficiency compact report。
-- [ ] 用删除公开证据则约束消失的 reverse test 和 gold/held-out leak canary 验证报告；不得为了制造
+- [x] 用删除公开证据则约束消失的 reverse test 和 gold/held-out leak canary 验证报告；不得为了制造
   no-skill failure 隐藏用户任务本身必须知道的输出格式或判分标准。
-- [ ] 根据 audit 结果三选一：收紧公开 task contract、转向原 skill 真正独有且可确定性检查的能力面，
+- [x] 根据 audit 结果三选一：收紧公开 task contract、转向原 skill 真正独有且可确定性检查的能力面，
   或冻结“强模型下该 skill 无可测增益”的负结果；完成书面评审前不创建第三批任务、不调用 API。
+
+执行结果：compact audit 绑定 15 个输入、2 份饱和分析和完整 8-file source closure。19 条 instruction
+中 13 条 scorer-required 要求全部向 no-skill 披露，`noSkillOperationalCoverage=1.0`；原 skill 的
+6 类增量知识均未被当前 scorer 测量，`skillIncrementalMeasurementCoverage=0`。Reverse-evidence、
+evaluation-split/gold/raw/model canary、digest 和 quote drift 测试全部通过。结论冻结为当前任务合同在
+已测 surface 上足以替代 skill 操作指导；不创建新任务、不调用 API、不放行 base IR。
+
+### Task 16.21：Skill-unique Semantic Surface 与 IR Re-entry 设计
+
+- [ ] 在书面设计中拆分 `task-visible interface` 与 `source-derived deterministic semantic oracle`：前者
+  继续公开必要输入/输出/schema/安全合同，后者只能从公开 source、task input 和 workdir 推导，不能把
+  解题配方或 scorer expected 投影进 no-skill prompt。
+- [ ] 从六类未测增量知识中选择 2--3 个可确定性验证、可构造 alternative-valid 与 invalid-control 的
+  能力面；优先考虑设计选择、replication/pseudoreplication、analysis-design alignment 与真实随机化，
+  并为每条规则写 source provenance、保守降级、reverse-evidence 和 leak canary。
+- [ ] 冻结新 development task/scorer 之前，定义 no-skill 可见面、oracle 输入面、hard gate、替代合法解、
+  held-out 隔离和旧 v2 task 的历史身份；书面评审通过前不创建第三批任务或调用 API。
+- [ ] 新 baseline 通过区分度门禁后，才从同一原 source 和新 task contract 编译 source-audited base IR，
+  运行 `no-skill | original | ir-static`；旧 IR 分数只进历史 ledger，不与新 benchmark 分数混算。
+- [ ] 用 `original x development` 的复现失败与 `ir-static x development` 的残差/回归共同构造 typed
+  dual-source evidence，再编译带 provenance 的 Final IR / validated artifact；development gate 通过后
+  才消费冻结 held-out。
+- [ ] 对已有 Env/Law/Experimental-design artifact 做 provenance compatibility 表：可直接验证的冻结产物
+  保持原 identity；task/scorer/source contract 不兼容时新编译 package/lock，禁止覆盖旧 digest。

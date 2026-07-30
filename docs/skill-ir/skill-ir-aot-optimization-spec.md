@@ -2203,3 +2203,38 @@ latency，仍无质量增益。因此不能继续把“增加 arm/unit/constrain
 约束投影与已冻结 compact result；不得读取 held-out task 内容，不得删除 deterministic scorer 所需的
 合法多解/安全边界，也不得据此直接创建新任务。先形成可审计的 instruction-overlap 与 task-sufficiency
 报告，再决定是收紧用户可见合同、改变任务能力面，还是承认该 skill 在强模型面板中没有可测增益。
+
+#### 24.9.21 Public contract task sufficiency result and IR re-entry
+
+Task 16.20 将两批 development prompt、公开合同、scorer public projection、完整原 skill/source
+closure 和两份冻结 saturation analysis 逐字节绑定。Audit 共登记 19 条 instruction：13 条是 scorer
+要求的输出或程序合同，13/13 都已向 no-skill 披露；其中 4 条同时重复原 skill 指导。原 skill 另有
+6 类增量知识，包括真实随机化质量、设计选择、伪重复风险、干扰控制、盲法和分析设计对齐，但当前
+scorer 对这些知识的确定性测量为 0/6。两批强模型结果合计 8 个 comparable pair、0 differing pair，
+因此报告结论为 `public-contract-operationally-sufficient-current-surface`，下一动作固定为
+`move-to-skill-unique-deterministic-capability`。
+
+该结论不表示旧 IR、Final IR 或 artifact 无价值。Wave A 已有结果继续按 skill 和 benchmark identity
+保存在 evidence ledger 中；Env 的确定性 repair、Law 的 development artifact 增益及 held-out 回归都
+仍是有效历史证据。它只说明这些旧分数不能与 experimental-design v2 的新 task/scorer 合同直接
+合并，也不能在 v2 baseline gate 失败时越过 base IR 门禁。
+
+新 benchmark 下的 IR 入场顺序固定为：
+
+```text
+public task interface + source-derived deterministic semantic oracle
+-> no-skill | exact original development baseline
+-> distinguishability gate
+-> same-source, same-contract base IR source audit
+-> no-skill | original | ir-static development matrix
+-> original residual + ir-static residual dual-source evidence
+-> provenance-bound Final IR / validated artifact development
+-> development gate
+-> frozen held-out consumption
+```
+
+Public task interface 必须继续公开完成任务所需的输入、输出、格式和安全要求；不能为了制造差异隐藏
+用户必须知道的合同。下一设计应把原 skill 独有、可从公开 source/task/workdir 独立推导的语义性质
+变为确定性 oracle，同时避免把求解步骤逐条投影给 no-skill。旧 artifact 若要进入新 benchmark，必须
+先通过 source/task/scorer provenance compatibility audit；不兼容时重新编译为新 identity，不原地修改
+冻结 package，也不直接复用旧分数。

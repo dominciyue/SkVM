@@ -1236,3 +1236,35 @@ results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31/calibra
 
 下一步不是继续增加 arm 或 runtime 版本，而是先审计用户可见 `design-contract.json` 是否已经提供了
 足以替代原 skill 的操作配方。该原因目前只是待验证假设，不从本轮满分结果直接推出。
+
+## 26. Public Contract Task Sufficiency 结果
+
+2026-07-31 的 Task 16.20 audit 只消费两批冻结 development compact analysis、development prompt、
+公开合同、scorer public projection 和原 skill/source closure；没有读取 held-out 或 raw model text。
+
+| 指标 | 结果 |
+|---|---:|
+| Bound inputs / source closure files | 15 / 8 |
+| Saturated analyses / comparable pairs | 2 / 8 |
+| Differing pairs | 0 |
+| Instructions | 19 |
+| Scorer-required publicly disclosed | 13/13 |
+| Public rules duplicating skill guidance | 4 |
+| Skill-incremental knowledge measured | 0/6 |
+| No-skill operational coverage | 1.0 |
+| Skill-incremental measurement coverage | 0.0 |
+
+这给两轮满分提供了比“模型太强”更具体的解释：当前 scorer 要求的全部操作面都已经公开给
+no-skill，原 skill 独有的设计知识又没有进入确定性成功定义。它仍不能证明模型因果，也不能说明
+原 skill 或旧 IR 没有价值。结论只适用于当前 experimental-design v2 development surface。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-public-contract-task-sufficiency-audit-2026-07-31.json
+```
+
+当前 decision 为 `move-to-skill-unique-deterministic-capability`。下一轮先书面定义 task-visible
+interface 与 source-derived semantic oracle，再重新校准 no-skill/original。区分度 gate 通过后才
+构造同版本 base IR、加入 ir-static，并用 original/static development residual 生成 Final IR/artifact。
+Env/Law 的历史 IR 与 artifact 数值继续保留，但不能与新 benchmark 分数混算。

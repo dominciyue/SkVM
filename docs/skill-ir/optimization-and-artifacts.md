@@ -913,3 +913,20 @@ profile。
 跨 skill 复用要到 Wave B 验证；单个 skill 的 artifact activation 只说明该 skill
 的固态化路径可执行。重复调用成本必须包含 compile、profile、package generation、
 process 和 validation，并与 no-skill/original 的同口径 baseline 比较。
+
+## 20. Benchmark 迁移时的 IR 证据与重新入场
+
+每个 skill 的优化结果按 source、task/scorer、model/adapter、split、IR/package digest 组成实验身份。
+Env 的 V4 repair、Law 的 validated artifact 和 Experimental-design 的历史 IR/artifact 都保留在 evidence
+ledger 中；切换 benchmark 不会删除这些结果，也不会把它们自动升级为新 benchmark 证据。
+
+新 benchmark 改变了成功定义或任务合同后，旧 score 不可直接合并。IR 的重新入场固定为：先跑
+`no-skill | exact original`，确认任务既可执行又有区分度；再从同一 source closure 和 task contract
+生成 source-audited base IR，运行 `no-skill | original | ir-static`。随后分别审计 original 的复现
+失败和 ir-static 的残差/回归，构造 typed dual-source evidence，编译新的 provenance-bound Final IR
+或 validated artifact。只有 development gate 通过才运行 held-out。
+
+旧 package 若 source/task/scorer provenance 与新合同完全兼容，可以作为冻结候选接受同版本验证；
+任一关键 digest 或语义 surface 不兼容，就必须编译新 package/lock。不能覆盖旧 digest，也不能把旧
+分数重标为新结果。这一边界让“以前的 IR 怎么样”和“新 benchmark 下 IR 是否有效”能够同时回答，
+又避免跨合同数字污染主结论。
