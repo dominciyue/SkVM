@@ -2183,3 +2183,23 @@ retries 0、task timeout 300 秒、teardown grace 60 秒、outer watchdog 360 �
 4/4 pairs、0 infrastructure、no-skill 非饱和和至少一个 differing pair。失败即冻结，不调整 task、
 scorer、threshold 或 repetitions；通过只允许开始 supplemental task-set 的 source-audited base IR，
 不直接允许 held-out 或产生优化主 claim。
+
+#### 24.9.20 Harder development result and next audit boundary
+
+Task 16.19 的 qualification 通过：Pi 0.67.68、resource probe、route exit/runStatus、3/3 outputs 与零
+harness residue 均满足冻结条件。唯一 8-row matrix 达到 8/8 rows、4/4 pairs、0 infrastructure，但
+no-skill/original 仍均为 4/4、mean 1.0，differing pairs 为 0。Gate 再次因 no-skill saturation 与无
+区分度失败，不允许 base IR 或 held-out。
+
+组合难度增加只提升了执行成本：相对旧两任务，no-skill 平均 latency 为 1.5444x、aggregate token 为
+1.43x，语义区分度没有变化；本轮 original 相对 no-skill 为 2.1856x aggregate token、1.0854x
+latency，仍无质量增益。因此不能继续把“增加 arm/unit/constraint 数量”当作默认修复。下一步先做
+`public-contract-task-sufficiency` audit，区分以下两个尚未证实的解释：
+
+1. 强模型本身足以从用户可见 task 推导合法设计；
+2. 当前 `design-contract.json` 已向 no-skill 提供了近似完整的操作配方，使原 skill 语义冗余。
+
+该 audit 只允许分析 development task prompt、public contract、原 skill/source closure、scorer 的公开
+约束投影与已冻结 compact result；不得读取 held-out task 内容，不得删除 deterministic scorer 所需的
+合法多解/安全边界，也不得据此直接创建新任务。先形成可审计的 instruction-overlap 与 task-sufficiency
+报告，再决定是收紧用户可见合同、改变任务能力面，还是承认该 skill 在强模型面板中没有可测增益。

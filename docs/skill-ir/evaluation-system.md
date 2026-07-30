@@ -1318,3 +1318,10 @@ Lock 固定 `xty/gpt-5.6-sol`、Pi 0.67.68 managed、Windows/clean、2 tasks x 2
 新 audit、完整 source closure、task/public contract/scorer 及执行代码 digest。Dry-run 当前为 8 rows、
 4 complete pairs、4 original with exact source、4 no-skill without source、8 managed commands、0 held-out
 sentinel。`qualification` 与 `execute` 均要求当前进程已有 `SKVM_XTY_API_KEY`。
+
+真实执行后 qualification 为 passed：Pi/resource 通过，route 195.693 秒、exit 0、runStatus ok、3/3
+outputs、零 residue。唯一 matrix 达到 8/8 rows、4/4 pairs、0 infrastructure，但两臂均 4/4、mean
+1.0，0 differing pair；gate failed。Original 使用 167,558 aggregate tokens、平均 102.142 秒，
+no-skill 为 76,666 tokens、平均 94.106 秒，即 2.1856x token 与 1.0854x latency，无质量增益。
+因此 runner/scorer 链路有效，supplemental task contract 对强模型仍无区分度；后续转向 public-contract
+task-sufficiency audit，不再追加 runtime 或直接编译 base IR。

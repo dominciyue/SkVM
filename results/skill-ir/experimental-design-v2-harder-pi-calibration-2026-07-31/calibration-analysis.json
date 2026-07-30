@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "skill-ir-experimental-design-v2-harder-calibration-analysis/v1",
+  "calibrationId": "experimental-design-v2-harder-pi-development-v1",
+  "methodEvidence": false,
+  "status": "gate-failed",
+  "inputs": {
+    "qualificationSha256": "23b0172315a90402cde17bcc5ba46024f6d95d0bf7e08cc1cfeb82579cae3462",
+    "gateSha256": "5b817dd84ee036cf1a12b5e5e0c573d16111abb01663f550ca47c35dd1e806e4",
+    "scoredSha256": "cedc72cfbc9e62b98c5ec81f0f9e59e3d145a4346e196929cf33d462e3677f9e",
+    "predecessorAnalysisSha256": "3311c159d465283155264fdc0086321ed61a6454d13a67e7ee18f060f7c1e7d3"
+  },
+  "qualification": {
+    "status": "passed",
+    "routeDurationMs": 195693,
+    "outputs": "3/3",
+    "harnessResidue": []
+  },
+  "matrix": {
+    "expectedRows": 8,
+    "observedRows": 8,
+    "completePairs": 4,
+    "infrastructureFailures": 0,
+    "comparablePairs": 4,
+    "differingPairs": 0
+  },
+  "systems": {
+    "no-skill": {
+      "successes": 4,
+      "rows": 4,
+      "meanScore": 1,
+      "meanLatencyMs": 94106,
+      "inputTokens": 63424,
+      "outputTokens": 13242,
+      "aggregateTokens": 76666
+    },
+    "original": {
+      "successes": 4,
+      "rows": 4,
+      "meanScore": 1,
+      "meanLatencyMs": 102142,
+      "inputTokens": 153185,
+      "outputTokens": 14373,
+      "aggregateTokens": 167558
+    }
+  },
+  "ratios": {
+    "originalToNoSkillMeanLatency": 1.0854,
+    "originalToNoSkillInputTokens": 2.4153,
+    "originalToNoSkillOutputTokens": 1.0854,
+    "originalToNoSkillAggregateTokens": 2.1856
+  },
+  "predecessorComparison": {
+    "noSkillMeanLatencyMultiplier": 1.5444,
+    "originalMeanLatencyMultiplier": 1.2198,
+    "noSkillAggregateTokenMultiplier": 1.43,
+    "originalAggregateTokenMultiplier": 0.9489,
+    "semanticDifferentiationChanged": false
+  },
+  "failedGates": [
+    "noSkillNonSaturated",
+    "distinguishable"
+  ],
+  "interpretation": {
+    "stableHarnessQualified": true,
+    "baseIrAuditAllowed": false,
+    "heldOutAllowed": false,
+    "skillOptimizationEvidence": false,
+    "nextAudit": "public-contract-task-sufficiency",
+    "finding": "The supplemental tasks increased execution cost but did not change semantic differentiation: the strong model still passed every row without the skill, while the original skill added tokens and latency without a quality gain. Audit whether the public task contract is operationally sufficient before authoring another task set."
+  }
+}

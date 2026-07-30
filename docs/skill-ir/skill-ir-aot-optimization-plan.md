@@ -2587,9 +2587,14 @@ Create  src/benchmarks/skill-ir/experimental-design-v2-harder-audit-run.ts
 Create  src/benchmarks/skill-ir/experimental-design-v2-harder-calibration.ts
 Create  src/benchmarks/skill-ir/experimental-design-v2-harder-calibration.test.ts
 Create  src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-run.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-analysis.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-analysis.test.ts
 Create  results/skill-ir/experimental-design-v2-harder-development-saturation-audit-2026-07-31.json
 Create  results/skill-ir/experimental-design-v2-harder-development-contract-audit-2026-07-31.json
 Create  results/skill-ir/experimental-design-v2-harder-development-materialization-audit-2026-07-31.json
+Create  results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31/qualification.json
+Create  results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31/gate-report.json
+Create  results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31/calibration-analysis.json
 Modify  docs/skill-ir/evaluation-system.md
 Modify  docs/skill-ir/experiment-results.md
 ```
@@ -2605,8 +2610,25 @@ Modify  docs/skill-ir/experiment-results.md
   report contradiction 与 extra-output；任意合法 allocation 和 CSV row order 必须通过。
 - [x] 在任何付费运行前冻结新 task-set identity、source/task/scorer digest、模型、adapter、repetitions、
   timeout、gate、audit 与结果路径；held-out freeze、旧 2+2 tasks 和 v2 scorer 保持字节不变。
-- [ ] 先跑本地 fixture、dry-run 与 single-route qualification，再运行一次冻结的
+- [x] 先跑本地 fixture、dry-run 与 single-route qualification，再运行一次冻结的
   `no-skill | original` development paired matrix。
-- [ ] 只有新 gate 同时满足无 infrastructure failure、no-skill 不饱和、存在可比较且有差异的 pairs，
+- [x] 只有新 gate 同时满足无 infrastructure failure、no-skill 不饱和、存在可比较且有差异的 pairs，
   才允许为 supplemental task-set 构造 source-audited base IR / `ir-static`；否则冻结失败证据并回到
   task-contract audit，不继续堆 runtime 版本。
+
+执行结果：qualification 通过（route 195.693 秒、3/3 outputs、零 residue）。唯一 8-row matrix 为
+8/8 rows、4/4 pairs、0 infrastructure；no-skill/original 均 4/4、mean 1.0、0 differing pair，gate 因
+`noSkillNonSaturated=false` 与 `distinguishable=false` 失败。Original 相对 no-skill 使用 2.1856x
+aggregate token 和 1.0854x latency，仍无质量增益。Task 16.19 已按失败分支冻结，不进入 base IR、
+held-out 或新 runtime；下一任务先审计 public contract 是否已经足以替代 skill 的操作指导。
+
+### Task 16.20：Public Contract Task Sufficiency Audit
+
+- [ ] 对 development prompt、`design-contract.json`、原 skill/source closure 和 scorer public projection
+  建立逐条 instruction provenance；禁止读取 held-out tasks 或 raw model text。
+- [ ] 区分 scorer 必需的可观察输出合同、用户完成任务必需的程序性指导，以及只存在于原 skill 的增量
+  知识，生成 instruction-overlap / sufficiency compact report。
+- [ ] 用删除公开证据则约束消失的 reverse test 和 gold/held-out leak canary 验证报告；不得为了制造
+  no-skill failure 隐藏用户任务本身必须知道的输出格式或判分标准。
+- [ ] 根据 audit 结果三选一：收紧公开 task contract、转向原 skill 真正独有且可确定性检查的能力面，
+  或冻结“强模型下该 skill 无可测增益”的负结果；完成书面评审前不创建第三批任务、不调用 API。

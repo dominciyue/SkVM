@@ -1202,3 +1202,37 @@ results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29/calibration-a
 development task 对强模型过易。该结果不放行 base IR、held-out 或 Skill optimization claim。下一步应
 在不消费 held-out 的前提下，新增能区分 no-skill/original 且仍由公开合同确定性判分的 harder
 development tasks，再重新预注册 calibration。
+
+## 25. Strong-model Harder Development Calibration
+
+2026-07-31 在旧 v2 2+2 split、held-out 和 scorer 保持字节不变的前提下，新增两个 development-only
+任务：3-arm individual+strata+sequential 与 4-arm cluster+strata+sequential，均含 full/partial block
+和 analysis-unit difference。付费前 saturation audit、12/12 differential cases、36/36 production
+materialization checks、lock 与 8-row dry-run 全部通过。
+
+Qualification 使用 original 的 4-arm cluster 任务，route 195.693 秒、exit 0、runStatus ok、3/3 outputs、
+零 harness residue。随后唯一矩阵结果为：
+
+| System | Rows | Success | Mean score | Mean latency | Input tokens | Output tokens | Total tokens |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| no-skill | 4 | 4 | 1.00 | 94.106 s | 63,424 | 13,242 | 76,666 |
+| original | 4 | 4 | 1.00 | 102.142 s | 153,185 | 14,373 | 167,558 |
+
+8/8 rows、4/4 pairs、0 infrastructure、4 comparable pairs，但 0 differing pair；五项 criterion 在所有
+行都通过。Gate 仍因 `noSkillNonSaturated=false` 与 `distinguishable=false` 失败。Original 相比 no-skill
+为 2.1856x aggregate token、2.4153x input token 和 1.0854x latency，没有质量增益。
+
+相对上一批较简单任务，no-skill 平均 latency 上升到 1.5444x、aggregate token 上升到 1.43x，
+original 分别为 1.2198x 与 0.9489x，但语义区分度仍为 0。说明本轮增加了计算负担，没有增加可测
+Skill 依赖。base IR、held-out 和 optimization claim 继续禁止。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31/qualification.json
+results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31/gate-report.json
+results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31/calibration-analysis.json
+```
+
+下一步不是继续增加 arm 或 runtime 版本，而是先审计用户可见 `design-contract.json` 是否已经提供了
+足以替代原 skill 的操作配方。该原因目前只是待验证假设，不从本轮满分结果直接推出。
