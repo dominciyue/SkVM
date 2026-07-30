@@ -2126,3 +2126,60 @@ harness failure，不作 Skill/benchmark 证据。Adapter 现于 subprocess 周�
 stable Pi harness 已具备受控实验资格，但当前两个 development task 对该强模型没有区分度；不得进入
 base IR/held-out。下一步应设计新的 development-only 难任务来暴露原 skill 可修复的失败，不再做
 Bun/transport 基础设施扩展。
+
+#### 24.9.19 Strong-model harder development contract
+
+Task 16.18 的 8 行有效结果只证明现有两个 development task 饱和，不允许据此修改冻结的
+`development/tasks.json`、task-split freeze、held-out、public contract 或 scorer。下一轮沿用
+`experimental-design-v2` 身份，新增独立 supplemental task-set：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/harder-development/tasks.json
+```
+
+它不是新 benchmark 版本、不是新 skill，也不进入默认 corpus manifest。Runner 直接消费该 task-set，
+复用 `materializeCaseArtifacts`、`executePlan`、Pi 0.67.68、现有 v2 evaluator 和 pre-IR gate；旧
+2+2 split 继续由 task-split/held-out freeze 保护。新 lock 必须同时绑定旧 freeze、public contract、
+supplemental tasks、saturation audit、differential audit、materialization audit、source closure、Pi 和
+orchestration digest。
+
+两项任务固定为：
+
+```text
+experimental-design-v2-three-arm-strata-sequential-dev-003
+  individual assignment; 3 arms; >=3 strata; sequential enrollment;
+  at least one full and one partial block; analysis unit differs
+
+experimental-design-v2-four-arm-cluster-strata-sequential-dev-004
+  cluster assignment; 4 arms; >=3 strata; sequential enrollment;
+  at least one full and one partial block; analysis unit differs
+```
+
+每项仍只提供公开 `study.json` 和逐字节相同的 `design-contract.json`，输出和五项 criterion 保持不变。
+难度只能来自公开约束组合、unit 数量、partial block 和跨产物一致性；不得增加唯一分配序列、私有
+method enum、固定报告措辞、evaluator expected、held-out 内容或 scorer-only 字段。任意满足公开合同的
+arm assignment 与 CSV row order 都必须通过。
+
+付费前门禁顺序固定为：
+
+```text
+old-matrix saturation audit
+-> supplemental task-set validation and leak scan
+-> canonical + alternative-valid + invalid-control differential audit
+-> no-model no-skill/original materialization audit
+-> new lock and 8-row dry-run
+-> one original qualification row
+-> one frozen 8-row no-skill|original matrix
+```
+
+Saturation audit 只消费 Task 16.18 compact gate/analysis、旧 development tasks 与 public contract；
+不得读取 held-out 或 raw model text。Differential audit 至少覆盖每项任务的 canonical pass、不同合法
+allocation pass、sequential violation、stratum violation、report contradiction 和 extra-output rejection。
+Materialization audit 必须在两臂上证明 protected input、source resource、initial/final delta 与 residue
+边界一致。
+
+新 calibration 仍固定 Windows/clean、`xty/gpt-5.6-sol`、Pi managed、2 tasks x 2 repetitions、
+retries 0、task timeout 300 秒、teardown grace 60 秒、outer watchdog 360 秒。Gate 要求 8/8 rows、
+4/4 pairs、0 infrastructure、no-skill 非饱和和至少一个 differing pair。失败即冻结，不调整 task、
+scorer、threshold 或 repetitions；通过只允许开始 supplemental task-set 的 source-audited base IR，
+不直接允许 held-out 或产生优化主 claim。

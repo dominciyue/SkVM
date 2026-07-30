@@ -2574,15 +2574,39 @@ task contract，不再继续 Bun/transport 修复。
 是否值得编译 base IR。新的任务集合必须使用新的 task-set identity 与 calibration lock，不能将
 Task 16.18 的结果覆盖或混入新 gate。
 
+**Files:**
+
+```text
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/harder-development/tasks.json
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-harder-pi-calibration-lock.json
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-development.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-development.test.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-audit.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-audit.test.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-audit-run.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-calibration.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-calibration.test.ts
+Create  src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-run.ts
+Create  results/skill-ir/experimental-design-v2-harder-development-saturation-audit-2026-07-31.json
+Create  results/skill-ir/experimental-design-v2-harder-development-contract-audit-2026-07-31.json
+Create  results/skill-ir/experimental-design-v2-harder-development-materialization-audit-2026-07-31.json
+Modify  docs/skill-ir/evaluation-system.md
+Modify  docs/skill-ir/experiment-results.md
+```
+
 - [ ] 从 Task 16.18 有效 8-row matrix 做 failure/saturation audit，只使用 development 输出和公开
   contract，禁止读取 held-out、scorer 私有中间值或 evaluator expected。
-- [ ] 定义 harder task dimensions：至少覆盖两个可公开推导、可由确定性 scorer 判断且当前任务未充分
-  施压的组合；优先增加组合约束冲突、顺序入组/cluster/strata 交互和报告证据一致性，不增加措辞金标。
+- [ ] 定义两个 supplemental task：3-arm individual+strata+sequential 与
+  4-arm cluster+strata+sequential，均含 full/partial block 和 analysis-unit difference；公共合同、输出、
+  五项 criterion 与阈值不变，不进入默认 corpus manifest。
 - [ ] TDD 编写 development-only task-set validator、负向 canary 与 materialization audit；证明 task
   难度来自公开输入语义，而不是隐藏答案、私有 enum 或 harness 差异。
+- [ ] Differential audit 对每项任务验证 canonical、alternative-valid、sequential/stratum invalid、
+  report contradiction 与 extra-output；任意合法 allocation 和 CSV row order 必须通过。
 - [ ] 在任何付费运行前冻结新 task-set identity、source/task/scorer digest、模型、adapter、repetitions、
-  timeout、gate 与结果路径；held-out freeze 和 v2 scorer 保持字节不变。
+  timeout、gate、audit 与结果路径；held-out freeze、旧 2+2 tasks 和 v2 scorer 保持字节不变。
 - [ ] 先跑本地 fixture、dry-run 与 single-route qualification，再运行一次冻结的
   `no-skill | original` development paired matrix。
 - [ ] 只有新 gate 同时满足无 infrastructure failure、no-skill 不饱和、存在可比较且有差异的 pairs，
-  才进入 base IR / `ir-static`；否则冻结失败证据并回到 task-contract audit，不继续堆 runtime 版本。
+  才允许为 supplemental task-set 构造 source-audited base IR / `ir-static`；否则冻结失败证据并回到
+  task-contract audit，不继续堆 runtime 版本。
