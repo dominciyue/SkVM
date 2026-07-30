@@ -2594,14 +2594,14 @@ Modify  docs/skill-ir/evaluation-system.md
 Modify  docs/skill-ir/experiment-results.md
 ```
 
-- [ ] 从 Task 16.18 有效 8-row matrix 做 failure/saturation audit，只使用 development 输出和公开
+- [x] 从 Task 16.18 有效 8-row matrix 做 failure/saturation audit，只使用 development 输出和公开
   contract，禁止读取 held-out、scorer 私有中间值或 evaluator expected。
-- [ ] 定义两个 supplemental task：3-arm individual+strata+sequential 与
+- [x] 定义两个 supplemental task：3-arm individual+strata+sequential 与
   4-arm cluster+strata+sequential，均含 full/partial block 和 analysis-unit difference；公共合同、输出、
   五项 criterion 与阈值不变，不进入默认 corpus manifest。
-- [ ] TDD 编写 development-only task-set validator、负向 canary 与 materialization audit；证明 task
+- [x] TDD 编写 development-only task-set validator、负向 canary 与 materialization audit；证明 task
   难度来自公开输入语义，而不是隐藏答案、私有 enum 或 harness 差异。
-- [ ] Differential audit 对每项任务验证 canonical、alternative-valid、sequential/stratum invalid、
+- [x] Differential audit 对每项任务验证 canonical、alternative-valid、sequential/stratum invalid、
   report contradiction 与 extra-output；任意合法 allocation 和 CSV row order 必须通过。
 - [ ] 在任何付费运行前冻结新 task-set identity、source/task/scorer digest、模型、adapter、repetitions、
   timeout、gate、audit 与结果路径；held-out freeze、旧 2+2 tasks 和 v2 scorer 保持字节不变。

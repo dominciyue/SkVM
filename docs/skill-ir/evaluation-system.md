@@ -1264,3 +1264,32 @@ execute 才运行 8 行并自动生成 `scored-runs.jsonl` 与 `gate-report.json
 首次 matrix 因 Pi 临时 `AGENTS.md` 未清理而无效。Pi adapter 现在只在 subprocess 周期内注入，结束后
 删除或逐字节恢复原文件。修复后 8 行无 infrastructure，但两臂全满分、零 differing pair，gate 失败。
 这证明 harness 已可用于受控实验，同时证明当前 development task 对强模型没有区分度；不放行 base IR。
+
+## 34. Strong-model Harder Development Audit
+
+Task 16.19 不修改冻结的 2+2 split，而是在同一 `experimental-design-v2` 公开合同下增加独立的
+development-only task-set。两项任务分别覆盖 3-arm individual 与 4-arm cluster，并同时施加 strata、
+sequential enrollment、full/partial block 和 analysis-unit difference。它不进入默认 corpus，也不构成
+新 benchmark 版本。
+
+无模型基线由一条命令重建：
+
+```powershell
+bun ./src/benchmarks/skill-ir/experimental-design-v2-harder-audit-run.ts
+```
+
+命令逐字节绑定 Task 16.18 compact gate/analysis、旧 development tasks 和 public contract，然后生成：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/harder-development/tasks.json
+results/skill-ir/experimental-design-v2-harder-development-saturation-audit-2026-07-31.json
+results/skill-ir/experimental-design-v2-harder-development-contract-audit-2026-07-31.json
+results/skill-ir/experimental-design-v2-harder-development-materialization-audit-2026-07-31.json
+```
+
+当前 saturation audit 只确认旧强模型矩阵的 no-skill 4/4、mean 1.0、0 differing pair，并据此允许增加
+supplemental development tasks。Differential audit 在每项任务上执行 canonical、alternative-valid、
+sequential-invalid、stratum-invalid、report-contradiction 和 extra-output，共 12/12 匹配；不同合法 arm
+rotation 和 CSV row order 均被接受。Materialization audit 复用生产 `prepareRunWorkspace`，在两任务的
+no-skill/original 四个 arm 上达到 36/36 checks。三份报告都只是契约和执行边界证据，不是模型效果、
+IR 优化或 held-out 证据。
