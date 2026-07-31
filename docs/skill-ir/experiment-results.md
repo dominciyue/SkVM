@@ -1417,3 +1417,31 @@ no-skill/original × 2 development tasks × 2 repetitions，共 8 rows/4 pairs�
 Dry-run 得到预期 8 rows/4 pairs，最大 workdir 路径长度 150，低于 220 上限；no-skill 无 skillPath，
 original 全部绑定 exact source。本节是调度与冻结证据，不是模型结果；qualification、baseline、IR、
 held-out 均未运行。
+
+## 34. API-tester strong-model baseline
+
+同日，唯一 original/YAML qualification 通过：Pi 0.67.68、Node/`yaml`、route、三个声明输出和 residue
+检查均正常。随后按冻结 lock 执行唯一 8-row matrix，没有重试或补样。
+
+| system | rows | success | mean score | aggregate tokens |
+|---|---:|---:|---:|---:|
+| no-skill | 4 | 0 | 0.2375 | 70,432 |
+| original | 4 | 0 | 0.4000 | 167,526 |
+
+8/8 rows、4/4 complete/comparable pairs、0 infrastructure、4/4 differing pairs。配对 delta 依次为
+-0.20、+0.15、+0.15、+0.55，original 为 3 正 1 负；token 为 no-skill 的 2.3785 倍。Original 将
+operation coverage 从 1/4 提到 4/4，但 schema-derived cases 两臂均 0/4，security/independence 各仅
+1/4。两个 task 都没有一次 original full success，`eachTaskOriginalSuccess=false`，总 gate failed。
+
+这说明 exact skill source 提供了局部可测信息，尤其帮助发现 operation，但仍不足以稳定完成公开任务。
+Residual audit 发现，表现最好的 original 行能够为每个 operation 生成 happy/boundary/error 框架，却通常
+只生成一个泛化 boundary/error case，没有按公开 schema 的每条 `min/max/enum/format/required` 证据生成
+独立 witness；这解释了 schema-derived criterion 的 0/4。该模式可作为未来确定性 schema-walker artifact
+的设计输入，但不能反向改变本轮预注册 gate。
+按预注册停止规则，`baseIrAuditAllowed=false`、`heldOutAllowed=false`；不修改 gate、不重跑、不构造 IR。
+Compact evidence：
+
+```text
+results/skill-ir/at-pi-v1/qualification.json
+results/skill-ir/at-pi-v1/gate-report.json
+```

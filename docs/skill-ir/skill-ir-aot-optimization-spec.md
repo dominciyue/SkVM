@@ -2456,4 +2456,13 @@ task 至少一次 original success。执行采用 direct Node Pi 与 `results/sk
 
 冻结 dry-run 已验证 8 rows、4 pairs、两个 task 与两个 run index；实际最大 workdir 长度 150，no-skill
 不含 skillPath，original 全部带 exact source。`real-agent-run` 只新增通用的显式 `skillIds` 透传，没有
-`api-tester` id 分支。Qualification 和模型 API 尚未运行，baseline、IR 与 optimization claim 仍为阻断态。
+`api-tester` id 分支。
+
+冻结 qualification 随后通过：Pi/version、Node/`yaml` resource probe、route、三项输出与 residue 全绿。
+唯一 baseline 得到 8/8 rows、4/4 pairs、0 infrastructure、no-skill 非饱和和 4/4 differing pairs；但
+no-skill/original 都是 0/4 full success，两个 task 均没有一次 original success，所以总 gate failed。
+Original mean 0.4000，高于 no-skill 0.2375；配对 delta 为 -0.20、+0.15、+0.15、+0.55，方向为 mixed。
+Original 167,526 aggregate tokens，是 no-skill 70,432 的 2.3785 倍。Criterion 上，original 将 operation
+coverage 从 1/4 提到 4/4，但 schema-derived cases 两臂均为 0/4；security 与 independence 仍各只有
+1/4。该结果说明 exact source 有局部语义贡献，但没有达到预注册的可成功基线，不能进入 base IR audit、
+held-out 或 optimization claim。不得用本结果事后放宽 gate；当前 surface 冻结为负结果。

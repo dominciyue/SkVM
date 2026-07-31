@@ -2793,9 +2793,9 @@ Task 16.21 不进入 base IR/held-out。
   reverse-evidence、leak 与 production materialization audit；本地审计未通过前不调用 API。
 - [x] 复用 direct Node Pi、short-path budget、source materialization、paired scoring 与 distinguishability
   gate；通用 core 不得增加 `api-tester` id 分支，不新增 runtime/transport/catalog。
-- [ ] 先跑 `no-skill | exact original` development gate。失败则冻结该 skill/model/task surface 的负结果；
+- [x] 先跑 `no-skill | exact original` development gate。失败则冻结该 skill/model/task surface 的负结果；
   通过才编译同 source/task identity 的 base IR 和 ir-static。
-- [ ] 报告 core branch delta、skill-specific adapter LOC、artifact kind 复用率、paired quality、稳定性和
+- [x] 报告 core branch delta、skill-specific adapter LOC、artifact kind 复用率、paired quality、稳定性和
   token 成本；development gate 前不消费 held-out。
 
 #### Task 16.22.1：Source closure、public contract 与 2+2 split
@@ -2841,8 +2841,15 @@ Task 16.22.3 calibration lock；lock 冻结前不得调用 API。
 
 - [x] 新 lock 冻结 `gpt-5.6-sol`、Pi 0.67.68、Windows/clean、2 tasks x 2 systems x 2 repetitions、retries 0，
   复用 direct Node + short-path 路径政策；8-row/4-pair dry-run 与 220 字符路径预算已验证。
-- [ ] 先运行唯一 original/YAML qualification，要求 Pi 版本、Node/`yaml` resource probe、三个输出、route
+- [x] 先运行唯一 original/YAML qualification，要求 Pi 版本、Node/`yaml` resource probe、三个输出、route
   status 与 harness residue 全部通过；qualification failed 时不得启动 8-row matrix。
-- [ ] 唯一 8-row baseline 要求完整分母、0 infrastructure、no-skill 非饱和、至少 1 differing pair 和每个
+- [x] 唯一 8-row baseline 要求完整分母、0 infrastructure、no-skill 非饱和、至少 1 differing pair 和每个
   task 至少一次 original success；结果出现前冻结数值 gate。
-- [ ] Gate failed 则停止；passed 才另写 base IR/source audit TDD，不在 baseline task 顺手生成 IR/Final IR。
+- [x] Gate failed 则停止；passed 才另写 base IR/source audit TDD，不在 baseline task 顺手生成 IR/Final IR。
+
+执行结果：qualification 全绿，8/8 rows、4/4 complete pairs、0 infrastructure、4 differing pairs；但
+no-skill/original 均 0/4 success，两个 task 的 `eachTaskOriginalSuccess` 均失败。Original mean 0.4000，
+no-skill mean 0.2375，4 pairs 中 3 正 1 负；original token 167,526，为 no-skill 70,432 的 2.3785 倍。
+Operation coverage 从 1/4 提升为 4/4，但 schema-derived cases 两臂均 0/4。当前 lock 冻结为负结果，
+不构造 base IR、不消费 held-out。通用 core 新增 0 个 skill-id branch；benchmark semantic adapter 为
+3 files/1,154 nonblank LOC，artifact compilation 未进入，reuse rate 记为 N/A。

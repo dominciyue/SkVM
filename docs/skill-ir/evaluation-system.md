@@ -1603,6 +1603,11 @@ bun ./src/benchmarks/skill-ir/api-tester-calibration-run.ts `
 ```
 
 2026-07-31 dry-run 得到 8 rows/4 complete pairs，最大 workdir 长度 150；no-skill 不带 skillPath，
-original 全部带 exact source。下一门是唯一 original/YAML qualification；只有本地 Pi、resource probe、
-route、三个输出和 residue 检查全部通过，才能执行 8-row baseline。当前尚未调用 API，也没有 baseline
-结果。
+original 全部带 exact source。唯一 original/YAML qualification 的本地 Pi、resource probe、route、三个
+输出和 residue 检查随后全部通过。
+
+冻结 8-row baseline 的 gate 为 failed：8/8 rows、4/4 pairs、0 infrastructure、no-skill 非饱和与 4/4
+differing pairs 均通过，`eachTaskOriginalSuccess` 唯一失败。No-skill 为 0/4、mean 0.2375、70,432
+tokens；original 为 0/4、mean 0.4000、167,526 tokens。四个配对中 3 个正向、1 个负向；original 的
+operation coverage 为 4/4，但 schema-derived criterion 为 0/4。按 lock，`baseIrAuditAllowed=false`、
+`heldOutAllowed=false`，不得重跑补样或事后修改 gate。
