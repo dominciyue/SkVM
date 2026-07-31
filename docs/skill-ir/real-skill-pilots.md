@@ -72,6 +72,9 @@ happy/boundary/error case、框架选择、数据策略、执行复测、安全�
 Task 16.22 不直接要求任意 Jest/Pytest 服务编排，而冻结 `api-test-generator/v1`：模型生成离线 JS
 generator、derived JSON test plan 和 verification report，确定性 scorer 重新执行 generator 并从公开
 OpenAPI 独立推导语义。这样保留“生成测试代码”的能力，同时避免数据库、live server 和测试框架噪声。
+
+当前付费前证据：development contract audit 18/18、production materialization 36/36，均未消费
+held-out。该结果允许进入 calibration lock 书面冻结，但还没有真实模型 baseline、IR 或跨 skill 增益。
 2 development + 2 held-out 必须在 scorer 前冻结；baseline 区分度 gate 通过前不创建 base IR。
 
 ## 4. Source Closure

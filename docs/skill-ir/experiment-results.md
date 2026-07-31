@@ -1387,3 +1387,22 @@ Compact evidence：
 results/skill-ir/su-pi-direct-v1/qualification.json
 results/skill-ir/su-pi-direct-v1/gate-report.json
 ```
+
+## 32. API-tester Wave B 付费前审计
+
+2026-07-31，首个 Wave B `api-tester` 完成 scorer 与生产物化的 development-only 审计。Contract audit
+在两个公开 OpenAPI task 上运行 9 类 case，共 18/18 matched：valid-edge 与 invalid-outside 两族等价
+实现通过，missing operation/boundary/auth、hardcoded secret、dependent case、nondeterministic generator
+和 input/file drift 被拒；reverse-evidence 与泄漏 canary 全绿。
+
+Production `prepareRunWorkspace` 的 no-skill/original 四个 arm 共 36/36 checks。No-skill 不带 source，
+original 带 exact source，两臂共享相同公开 fixture；输入篡改/删除、额外输出和链接入口均被 workdir
+provenance 拒绝。结果只说明 benchmark 合同可用于下一轮 calibration，不包含模型、held-out、IR 或优化
+效果。下一步先冻结 strong-model calibration lock，再决定是否调用项目 API。
+
+Compact evidence：
+
+```text
+results/skill-ir/api-tester-contract-audit-2026-07-31.json
+results/skill-ir/api-tester-materialization-audit-2026-07-31.json
+```

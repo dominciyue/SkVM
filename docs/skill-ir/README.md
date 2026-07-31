@@ -24,8 +24,9 @@ execution feedback 改善稳定性。
   下一步转向 Wave B 的不同真实 skill，不继续增加 experimental-design harder task 或 runtime 版本。
 - Task 16.22 已选择真实 `api-tester` 作为首个 Wave B replication，并在 scorer 前冻结 exact source、
   public generator ABI、2 development + 2 held-out split。公开 OpenAPI oracle 与五项确定性 evaluator 已
-  TDD 实现，可接受合法边界/越界无效两类策略并拒绝主要语义与产物错误；持久化 local audit、生产
-  materialization、强模型 baseline 和 IR 尚未完成，corpus 仍为 `tasks-authored`。
+  TDD 实现，可接受合法边界/越界无效两类策略并拒绝主要语义与产物错误。Development contract audit
+  18/18、production materialization 36/36 已持久化；强模型 calibration lock、baseline 和 IR 尚未完成，
+  corpus 仍为 `tasks-authored`。
 - 已加入 skill-neutral 的付费前 benchmark contract audit。三个 Wave A v1 benchmark 均未通过：
   env-manager 缺公开精确 schema rule 与分类金标合同，Law 的两个任务都拒绝等价审核措辞，
   experimental-design 的 plan 合同 2/2 通过，但 assignment、allocation、report 共 6/6

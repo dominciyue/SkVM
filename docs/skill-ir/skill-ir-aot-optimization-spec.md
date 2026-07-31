@@ -2444,4 +2444,6 @@ branch delta、skill-specific adapter LOC 和 artifact kind reuse。Baseline gat
 Constraint 采用逐证据 witness，接受合法 edge 或 just-outside invalid 两族策略；payload schema 与
 reverse-evidence 测试阻断 gold/raw/source-quote/held-out 回流。Generator replay 当前使用仓库内临时隔离
 副本、最小环境和静态 offline policy；它是 benchmark 可复现门禁，不宣称构成恶意代码安全沙箱。
-Local audit 报告与 production materialization 仍是 calibration lock 的未完成前置条件。
+Local audit 已以 18/18 differential cases 通过，production materialization 已以 36/36 checks 通过；
+两份 compact report 固定在 `results/skill-ir/api-tester-*-audit-2026-07-31.json`。这只解除 calibration
+lock 的起草前置条件，不等于 lock 已冻结、baseline 已运行或 benchmark 已证明 skill 有增益。

@@ -2829,13 +2829,13 @@ billing/webhook held-out、public generator ABI 和 split freeze 已建立。新
   independence oracle；公开证据不足时返回 `unconfirmed`。
 - [x] RED/GREEN：候选 generator 在隔离副本执行两次，要求相同 digest、输入不变、无网络/路径逃逸；
   五项 criterion 全部 hard gate，threshold 1.00。
-- [ ] RED/GREEN：两族 alternative-valid 通过，operation/boundary/auth/secret/determinism/file invalid 被拒；
+- [x] RED/GREEN：两族 alternative-valid 通过，operation/boundary/auth/secret/determinism/file invalid 被拒；
   reverse-evidence 与 gold/raw/model/source-quote/held-out canary fail closed。
-- [ ] 生产 `prepareRunWorkspace` 的 no-skill/original materialization audit 全绿后，才起草 calibration lock。
+- [x] 生产 `prepareRunWorkspace` 的 no-skill/original materialization audit 全绿后，才起草 calibration lock。
 
-当前实现：oracle 与 evaluator 共 10 项测试通过；两类 boundary strategy、response status、secret、
-determinism、exact output、reverse-evidence 和封闭 payload canary 已进入测试。尚未生成持久化 differential
-audit，也未完成生产 materialization，因此后两项保持未勾选且不得调用 API。
+执行结果：development differential contract audit 为 18/18 matched，生产 no-skill/original
+materialization 为 36/36 checks；两份 report 均已持久化。Task 16.22.2 关闭，下一步只起草并评审
+Task 16.22.3 calibration lock；lock 冻结前不得调用 API。
 
 #### Task 16.22.3：Strong-model baseline 与 IR re-entry gate
 

@@ -1559,5 +1559,17 @@ bun test ./src/benchmarks/skill-ir/api-tester-oracle.test.ts ./src/bench/evaluat
 bunx tsc --noEmit
 ```
 
-本阶段只证明 scorer 内核可执行。持久化 differential audit 与生产 `prepareRunWorkspace` 双臂物化尚未
-全绿，因此不得起草 calibration lock、调用模型 API 或把 `api-tester` 晋升为 runnable。
+`api-tester-contract-audit-2026-07-31.json` 已得到 2 tasks × 9 cases = 18/18 matched：两族
+alternative-valid 通过，missing operation/boundary/auth、hardcoded secret、dependent case、
+nondeterministic generator 与 input/file drift 被拒；reverse-evidence 和六项 leak/path canary 全绿。
+`api-tester-materialization-audit-2026-07-31.json` 使用生产 `prepareRunWorkspace` 得到 2 tasks × 2 arms ×
+9 checks = 36/36，no-skill 没有 source resource，original 有 exact source resource。
+
+复现持久化审计：
+
+```powershell
+bun ./src/benchmarks/skill-ir/api-tester-audit-run.ts
+```
+
+本阶段只证明 scorer 与物化合同可执行。现在允许起草 calibration lock，但 lock 尚未冻结、模型 API 尚未
+调用、`api-tester` 仍不得晋升为 runnable，也没有 IR 或 optimization claim。
