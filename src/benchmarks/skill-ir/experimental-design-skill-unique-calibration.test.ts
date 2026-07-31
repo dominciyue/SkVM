@@ -10,7 +10,7 @@ import {
 const rootDir = path.resolve(import.meta.dir, "../../..")
 const lockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-direct-cli-calibration-lock.json",
+  "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-direct-cli-short-path-calibration-lock.json",
 )
 
 function row(input: {
@@ -34,7 +34,7 @@ function row(input: {
     modelFamily: "gpt",
     adapter: "pi",
     adapterVersion: "0.67.68",
-    panelConfigId: "experimental-design-skill-unique-pi-direct-cli-development-v1",
+    panelConfigId: "experimental-design-skill-unique-pi-direct-cli-short-path-development-v1",
     runIndex: input.runIndex,
     taskSplit: "development",
     success,
@@ -86,12 +86,14 @@ describe("experimental-design skill-unique calibration lock and gate", () => {
     expect(lock.matrix).toMatchObject({ expectedRows: 8, expectedPairs: 4, repetitions: 2 })
     expect(lock.gate.requireEachTaskOriginalSuccess).toBe(true)
     expect(lock.harness.execution).toMatchObject({
-      kind: "bun-source-skvm-direct-pi-package",
+      kind: "bun-source-skvm-direct-pi-package-short-path",
       bunVersion: "1.3.14",
-      piResolution: "installed-package-node",
+      piResolution: "installed-package-node-short-path",
       nodeVersion: "v23.8.0",
       probe: { path: "results/skill-ir/pi-package-execution-probe-2026-07-31.json" },
       piCli: { path: "node_modules/@mariozechner/pi-coding-agent/dist/cli.js" },
+      outputRoot: "results/skill-ir/su-pi-direct-v1",
+      maximumWorkDirLength: 220,
     })
     expect(lock.frozenInputs.contract.path).toBe(
       "src/benchmarks/skill-ir/experimental-design-skill-unique-contract.ts",

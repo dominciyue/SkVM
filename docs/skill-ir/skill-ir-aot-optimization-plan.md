@@ -2785,3 +2785,6 @@ Direct-cli v1 qualification 已在 API 前失败，但 Node + Pi CLI 选择正�
 `maximumWorkDirLength=220` guard，并以 `results/skill-ir/su-pi-direct-v1` 为冻结短 output root；其
 dry-run 最大 workdir 长度 201。新 short-path lock 是本问题最后一个 execution identity，仍失败则转
 Wave B/stable external harness，不再继续修当前 coordinator。
+
+Short-path schema/lock/guard 已通过 9 tests、82 assertions 与 typecheck；正式 dry-run 为 8 rows、
+4 complete pairs、最大 workdir 201。提交该 identity 后才允许唯一 qualification。

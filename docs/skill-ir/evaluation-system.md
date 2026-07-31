@@ -1501,3 +1501,17 @@ execution identity 替换为 direct Node package CLI，并绑定 passed probe、
 package/CLI、adapter、source runner 与六个 orchestration digest。旧 `pi-calibration-lock.json` 和三份失败
 qualification 不修改。新 dry-run 为 8 rows、4 complete pairs；qualification 仍只允许一条预注册
 original route，通过后才可执行 matrix。
+
+首个 direct-cli qualification 的 Node/Pi version 与 resource probe 通过，adapter 也正确选择
+`node + dist/cli.js`，但 route 在 117ms 内仍为 `uv_spawn ENOENT`。相同 node spawn 在 265 字符真实 cwd
+可无 API 复现，在短 cwd 通过；旧 stable harness 路径约 192。因此新 lock 进一步冻结：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-direct-cli-short-path-calibration-lock.json
+outputRoot = results/skill-ir/su-pi-direct-v1
+maximumWorkDirLength = 220
+```
+
+Coordinator 在 plan 阶段逐行检查最终 workdir，并拒绝 output-root drift；正式 dry-run 为 8 rows、最大
+workdir 201。该 guard 在 API env/assert 与 execute 前生效。旧 direct-cli failed qualification 保持 compact
+evidence，不允许在原 identity 上补跑。

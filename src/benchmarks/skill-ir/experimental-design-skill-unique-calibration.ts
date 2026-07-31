@@ -59,6 +59,7 @@ export const ExperimentalDesignSkillUniqueCalibrationLockSchema = z.object({
   calibrationId: z.enum([
     "experimental-design-skill-unique-pi-development-v1",
     "experimental-design-skill-unique-pi-direct-cli-development-v1",
+    "experimental-design-skill-unique-pi-direct-cli-short-path-development-v1",
   ]),
   methodEvidence: z.literal(false),
   corpus: z.literal("pilot"),
@@ -106,6 +107,19 @@ export const ExperimentalDesignSkillUniqueCalibrationLockSchema = z.object({
         piCli: FrozenFileSchema,
         probe: FrozenFileSchema,
         sourceEntrypoint: FrozenFileSchema,
+      }).strict(),
+      z.object({
+        kind: z.literal("bun-source-skvm-direct-pi-package-short-path"),
+        bunVersion: z.literal("1.3.14"),
+        piResolution: z.literal("installed-package-node-short-path"),
+        nodeCommand: z.literal("node"),
+        nodeVersion: z.literal("v23.8.0"),
+        nodeExecutableSha256: Sha256Schema,
+        piCli: FrozenFileSchema,
+        probe: FrozenFileSchema,
+        sourceEntrypoint: FrozenFileSchema,
+        outputRoot: z.literal("results/skill-ir/su-pi-direct-v1"),
+        maximumWorkDirLength: z.literal(220),
       }).strict(),
     ]),
     orchestration: z.array(FrozenFileSchema).min(5).max(6),
@@ -180,10 +194,12 @@ export const ExperimentalDesignSkillUniqueCalibrationLockSchema = z.object({
   if (lock.runtime.outerWatchdogMs < lock.runtime.taskTimeoutMs + lock.runtime.teardownGraceMs) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "Skill-unique watchdog budget mismatch" })
   }
-  const direct = lock.harness.execution.piResolution === "installed-package-node"
-  const expectedCalibrationId = direct
-    ? "experimental-design-skill-unique-pi-direct-cli-development-v1"
-    : "experimental-design-skill-unique-pi-development-v1"
+  const direct = lock.harness.execution.piResolution !== "ascii-node-modules-junction"
+  const expectedCalibrationId = lock.harness.execution.piResolution === "installed-package-node-short-path"
+    ? "experimental-design-skill-unique-pi-direct-cli-short-path-development-v1"
+    : direct
+      ? "experimental-design-skill-unique-pi-direct-cli-development-v1"
+      : "experimental-design-skill-unique-pi-development-v1"
   if (lock.calibrationId !== expectedCalibrationId) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "Skill-unique execution identity mismatch" })
   }
@@ -236,7 +252,7 @@ export async function validateExperimentalDesignSkillUniqueCalibrationLock(
     verifyFrozenFile(rootDir, lock.harness.bunLock, "bun.lock"),
     verifyFrozenFile(rootDir, lock.harness.adapterSource, "Pi adapter"),
     verifyFrozenFile(rootDir, lock.harness.execution.sourceEntrypoint, "source entrypoint"),
-    ...(lock.harness.execution.piResolution === "installed-package-node"
+    ...(lock.harness.execution.piResolution !== "ascii-node-modules-junction"
       ? [
           verifyFrozenFile(rootDir, lock.harness.execution.piCli, "Pi package CLI"),
           verifyFrozenFile(rootDir, lock.harness.execution.probe, "Pi package execution probe"),
@@ -311,7 +327,7 @@ export async function validateExperimentalDesignSkillUniqueCalibrationLock(
   if (installed.version !== lock.harness.adapterVersion) {
     throw new Error("Skill-unique calibration installed Pi version mismatch")
   }
-  if (lock.harness.execution.piResolution === "installed-package-node") {
+  if (lock.harness.execution.piResolution !== "ascii-node-modules-junction") {
     const probe = PiPackageExecutionProbeReportSchema.parse(JSON.parse(await readFile(
       path.resolve(rootDir, lock.harness.execution.probe.path),
       "utf8",

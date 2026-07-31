@@ -45,6 +45,7 @@ const LocalPiQualificationSchema = z.object({
   calibrationId: z.enum([
     "experimental-design-skill-unique-pi-development-v1",
     "experimental-design-skill-unique-pi-direct-cli-development-v1",
+    "experimental-design-skill-unique-pi-direct-cli-short-path-development-v1",
   ]),
   methodEvidence: z.literal(false),
   status: z.enum(["passed", "failed"]),
@@ -86,6 +87,7 @@ const RouteRowSchema = z.object({
   panelConfigId: z.enum([
     "experimental-design-skill-unique-pi-development-v1",
     "experimental-design-skill-unique-pi-direct-cli-development-v1",
+    "experimental-design-skill-unique-pi-direct-cli-short-path-development-v1",
   ]),
   exitCode: z.number().int(),
   runStatus: z.string(),
@@ -98,6 +100,7 @@ export const ExperimentalDesignSkillUniqueQualificationReportSchema = z.object({
   calibrationId: z.enum([
     "experimental-design-skill-unique-pi-development-v1",
     "experimental-design-skill-unique-pi-direct-cli-development-v1",
+    "experimental-design-skill-unique-pi-direct-cli-short-path-development-v1",
   ]),
   methodEvidence: z.literal(false),
   status: z.enum(["passed", "failed"]),
@@ -220,9 +223,21 @@ export async function buildExperimentalDesignSkillUniqueCalibrationPlan(
   const outDir = path.isAbsolute(input.outDir) ? path.resolve(input.outDir) : path.resolve(rootDir, input.outDir)
   const lockPath = path.isAbsolute(input.lockPath) ? input.lockPath : path.resolve(rootDir, input.lockPath)
   const lock = await readAndValidateExperimentalDesignSkillUniqueCalibrationLock({ rootDir, lockPath })
+  if (lock.harness.execution.piResolution === "installed-package-node-short-path") {
+    const baseOutDir = path.resolve(rootDir, lock.harness.execution.outputRoot)
+    const expectedOutDir = input.phase === "qualification"
+      ? path.join(baseOutDir, "qualification-work")
+      : baseOutDir
+    if (path.resolve(outDir) !== path.resolve(expectedOutDir)) {
+      throw new Error("Skill-unique calibration output root drift")
+    }
+  }
   const runArgs = calibrationRunArgs(lock, rootDir, outDir, input.phase)
   const plan = projectManagedPiPlan(await buildPlan(runArgs), lock, rootDir)
   assertCalibrationPlan(plan, lock, rootDir)
+  if (lock.harness.execution.piResolution === "installed-package-node-short-path") {
+    assertExperimentalDesignSkillUniqueWorkDirBudget(plan, lock.harness.execution.maximumWorkDirLength)
+  }
   return {
     schemaVersion: "skill-ir-experimental-design-skill-unique-calibration-plan/v1",
     calibrationId: lock.calibrationId,
@@ -231,6 +246,18 @@ export async function buildExperimentalDesignSkillUniqueCalibrationPlan(
     lock,
     runArgs,
     plan,
+  }
+}
+
+export function assertExperimentalDesignSkillUniqueWorkDirBudget(
+  plan: Array<Pick<RealAgentRunPlanEntry, "workDir">>,
+  maximumWorkDirLength: number,
+): void {
+  const overBudget = plan.find((row) => path.resolve(row.workDir).length > maximumWorkDirLength)
+  if (overBudget) {
+    throw new Error(
+      `Skill-unique calibration workdir length exceeds ${maximumWorkDirLength}: ${path.resolve(overBudget.workDir).length}`,
+    )
   }
 }
 
@@ -319,7 +346,7 @@ async function calibrationEnvironment(
   env: Record<string, string | undefined>,
   lock: ExperimentalDesignSkillUniqueCalibrationLock,
 ): Promise<Record<string, string | undefined>> {
-  if (lock.harness.execution.piResolution === "installed-package-node") {
+  if (lock.harness.execution.piResolution !== "ascii-node-modules-junction") {
     return { ...env, SKVM_AUTO_PROBE: "0" }
   }
   const asciiNodeModules = await ensureExperimentalDesignSkillUniqueAsciiNodeModules(
@@ -341,7 +368,7 @@ export function buildExperimentalDesignSkillUniquePiVersionCommand(
   lock: ExperimentalDesignSkillUniqueCalibrationLock,
   rootDir: string,
 ): string[] {
-  if (lock.harness.execution.piResolution === "installed-package-node") {
+  if (lock.harness.execution.piResolution !== "ascii-node-modules-junction") {
     const node = Bun.which(lock.harness.execution.nodeCommand)
     if (!node) throw new Error("Skill-unique calibration Node executable is unavailable")
     return [node, path.resolve(rootDir, lock.harness.execution.piCli.path), "--version"]

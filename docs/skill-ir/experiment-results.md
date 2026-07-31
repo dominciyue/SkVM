@@ -1342,3 +1342,19 @@ results/skill-ir/pi-package-execution-probe-2026-07-31.json
 逆向测试覆盖缺 Node/CLI、版本漂移、timeout 和双流版本异常。报告不含绝对路径或 raw streams。它证明
 新的 child-spawn 边界在当前 Windows/Unicode 环境可用，只允许构造新 execution lock；API、route、
 8-row matrix、scorer 和 skill 效果仍未发生。
+
+## 30. Direct CLI Qualification 与 Windows 路径根因
+
+首个 direct-cli qualification 已正确选择系统 Node 和 Pi `dist/cli.js`：local Pi 0.67.68、resource probe
+均通过，但 route 在 117ms 内 `uv_spawn ENOENT`，0/2 outputs。它仍发生在 API 请求前。
+
+```text
+results/skill-ir/experimental-design-skill-unique-pi-direct-cli-run-2026-07-31/qualification.json
+```
+
+最小对照使用相同 `Bun.spawn(node --version)`：真实 qualification cwd 存在且长度 265，稳定复现
+ENOENT；短 cwd exit 0，旧 stable harness 对应路径约 192。根因从 Pi shim/命令解析进一步收敛为
+Windows/Bun cwd length，不是模型、网关、skill 或 scorer。
+
+新的 short-path identity 冻结 `results/skill-ir/su-pi-direct-v1` 和 220 字符上限，plan 阶段 fail closed。
+8-row dry-run 最大 workdir 长度 201。当前只放行一次新 qualification，尚无模型或优化结果。
