@@ -1460,3 +1460,15 @@ bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-calibration-run.t
 `plan.json`、`qualification-work/`、`run/raw-runs.jsonl`、workdir 与 `scored-runs.jsonl` 保持本地；
 仓库只提交脱敏 compact qualification、gate 和 analysis。Gate 失败时不补跑、不修改 scorer，不进入
 base IR/held-out；通过也只放行下一阶段的 same-source base IR audit。
+
+实际 qualification 已按失败分支停止。三次 route 都在 API 请求前失败；最终一次的 local Pi 与
+resource probe 通过，child command 已指向正确 ASCII junction 下的 `.bin/pi.exe`，但 Bun
+`uv_spawn` 仍返回 ENOENT，130ms 内 exit 1，0/2 outputs、零 harness residue。脱敏摘要为：
+
+```text
+results/skill-ir/experimental-design-skill-unique-pi-calibration-ascii-2026-07-31/qualification.json
+```
+
+这不是模型或 benchmark 分数。8-row `execute` 未运行，gate 未计算。当前 coordinator/lock 保留为
+失败的 infrastructure evidence；下一步先以独立无 API probe 验证直接 package CLI 启动边界，不能在
+本 lock 上继续追加路径补丁。

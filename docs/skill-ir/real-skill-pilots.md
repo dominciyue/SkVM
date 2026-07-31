@@ -433,13 +433,14 @@ artifact kind 复用率和新的 failure taxonomy。
 | law-to-markdown | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | 两个 task 的 alternative-valid 审核措辞均被拒；旧 development/held-out 结果降为 support evidence。 |
 | experimental-design | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | Plan canary 2/2 通过；其余 6/6 等价 canary 与四类私有 plan 合同失败，当前四臂实验阻断。 |
 | experimental-design-v2 | 复用同一冻结 source closure | 2+2 / public semantic；42/42 audit、独立 oracle、held-out freeze、36/36 materialization audit 通过 | 未开始 | Stable Pi normal/harder 两批均 8/8 rows、0 infra、两臂 4/4 mean 1.0、0 differing；Task 16.20 证明公开合同覆盖 13/13 scorer 操作要求，base IR 未放行。 |
-| experimental-design skill-unique slice | 同一 source，不计新 pilot | 2+2 split/interface 在 scorer 前冻结；18/18 differential、36/36 materialization 通过；8-row Pi lock/dry-run 已冻结 | 不允许 | 只测 independent replication/pseudoreplication 与 analysis alignment；等待 qualification 与唯一真实模型 calibration。 |
+| experimental-design skill-unique slice | 同一 source，不计新 pilot | 2+2 split/interface 在 scorer 前冻结；18/18 differential、36/36 materialization 通过；8-row Pi lock/dry-run 已冻结 | 不允许 | 三次 qualification 均在 API 前被 Windows/Bun child spawn 阻断；最终 ASCII junction 仍 `uv_spawn ENOENT`。无模型结果，8-row 未执行，当前 harness 已停止。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
 v3 的付费 calibration 只保留一份 `methodEvidence=false`、`promotionAllowed=false` 历史摘要；其
-root-output oracle 已并回 v2。当前不再开发 runtime 版本，而是在 skill-unique slice 上先实现
-source-derived oracle、差分/泄漏/物化审计。只有新的 8-row baseline 同时非饱和且出现 differing pair，
-才允许 base IR audit；失败则冻结负结果并转向 Wave B，不继续增加 harder task。
+root-output oracle 已并回 v2。Skill-unique source-derived oracle、差分/泄漏/物化审计已完成，但真实
+baseline 尚未越过 qualification。下一步先评审稳定 execution boundary；只有新的 8-row baseline 同时
+非饱和且出现 differing pair，才允许 base IR audit。不得把 qualification infrastructure failure 写成
+skill 负结果，也不继续增加 harder task。
 
 ## 13. 修改注意
 

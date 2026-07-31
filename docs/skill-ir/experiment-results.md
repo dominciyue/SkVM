@@ -1300,3 +1300,31 @@ results/skill-ir/experimental-design-skill-unique-materialization-audit-2026-07-
 这只证明新测量合同、本地 scorer 和 no-skill/original 物化边界可用。尚未调用模型，不能声称 original
 有增益、base IR 可入场或新 surface 优于强模型。下一步先冻结同一 strong-model 8-row calibration；
 若 no-skill 仍饱和或 0 differing pair，按停止规则转 Wave B，不再新增 harder experimental-design task。
+
+## 28. Skill-unique Pi Qualification 基础设施失败
+
+2026-07-31 在付费前冻结 `xty/gpt-5.6-sol`、Pi 0.67.68、Windows/clean、2 development tasks x
+`no-skill | original` x 2 repetitions 的 8-row method lock。Dry-run 为 8 rows、4 complete pairs，
+original 4/4 注入 exact source，no-skill 0/4 注入；未读取 held-out。
+
+三次 qualification 都在 API 请求前结束：
+
+| Attempt | Execution boundary | Result |
+|---|---|---|
+| package script | `bun run skvm` + Unicode repo path | 151ms，Pi path mojibake，0/2 outputs |
+| source entrypoint | Bun 1.3.14 + `src/index.ts` | 139ms，child PATH 中 Pi path mojibake，0/2 outputs |
+| source + ASCII junction | 正确 ASCII `node_modules/.bin/pi.exe` | 130ms，Bun `uv_spawn` ENOENT，0/2 outputs |
+
+最终尝试的 local Pi version 与 resource probe 均通过，route exit 1，零 harness residue。正确 ASCII
+路径已经进入 child command，但 Bun 仍无法 spawn 该 junction shim；因此本轮只能归类为
+infrastructure qualification failure，不能归因于模型、skill、benchmark、scorer 或 token 成本。
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-skill-unique-pi-calibration-ascii-2026-07-31/qualification.json
+```
+
+8-row matrix 没有启动，gate 没有计算，base IR/held-out 继续阻断。按预注册停止规则，当前 harness
+冻结，不再追加第四个路径补丁。下一步先以无 API standalone probe 评审直接 Node/package CLI
+execution boundary；失败则转用已经证明稳定的 harness/Wave B。

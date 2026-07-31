@@ -15,8 +15,9 @@ operation surface 对 no-skill 完全公开，而原 skill 的 6 类增量知识
 -> skill-unique semantic surface 书面合同
 -> development-only deterministic oracle + differential/leak audit
 -> no-model materialization/dry-run
--> frozen no-skill | original strong-model calibration
--> distinguishability gate
+-> frozen no-skill | original strong-model calibration qualification
+-> qualification infrastructure stop / architecture review
+-> 只有新 harness qualification 通过后才允许唯一 matrix 与 distinguishability gate
 -> gate 通过才允许 base IR / ir-static
 ```
 
@@ -2737,9 +2738,15 @@ Create  results/skill-ir/experimental-design-skill-unique-materialization-audit-
 - [ ] 复用现有 `real-agent-run`、custom scoring 与 gate primitives 完成 dry-run、resource/route
   qualification 和唯一 8-row run；不新增 runtime/transport/catalog 版本。当前 lock 和 dry-run 已完成：
   8 rows、4 complete pairs、8/8 managed Pi 参数、original 4/4 注入 exact source、no-skill 0/4 注入；
-  首次 qualification 在 API 前暴露 `bun run skvm` 中文路径转码失败，已按 TDD 改为冻结 Bun 直接
-  运行 `src/index.ts`；第二次仍定位到 child PATH 中的 Pi executable 乱码，已增加仓库外 ASCII
-  `node_modules` junction 并通过本地 `pi --version`/junction TDD。待修复 commit 后最后一次 qualification，
-  若仍失败则停止当前 harness，不继续叠补丁。
+  三次 qualification 均在 API 前失败：package script 与 source entrypoint 两次分别暴露中文路径和
+  child PATH 转码；最终 source + ASCII `node_modules` junction 已把 child executable 收敛为正确 ASCII
+  路径，但 Bun `uv_spawn` 仍在 130ms 内返回 ENOENT。Local Pi 0.67.68 与 resource probe 通过，route
+  0/2 outputs、未调用模型。当前 harness 已按预注册停止规则冻结，不运行 8-row matrix，也不继续叠
+  第四个路径补丁。
 - [ ] Gate 失败则冻结 compact evidence 并转 Wave B；通过才勾选上层 base IR re-entry，随后另写
   source-audited base IR TDD，不在本 task 顺手生成 Final IR 或消费 held-out。
+
+下一活跃动作是 execution-boundary architecture review：先用无 API standalone probe 验证“ASCII Node
+executable + Pi package CLI entry”能否稳定启动；只有该边界成立并以新 execution identity 书面冻结，
+才允许重新 qualification。若仍不成立，直接切换已经证明可用的稳定 harness/Wave B，不再为当前
+Windows/Bun shim 增加 runtime、transport 或 catalog 版本。

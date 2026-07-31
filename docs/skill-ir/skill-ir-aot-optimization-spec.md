@@ -2341,3 +2341,11 @@ Pi adapter 的文件 digest；执行命令使用冻结 Bun 1.3.14 直接运行 `
 三阶段，后两阶段必须从环境变量 `SKVM_XTY_API_KEY` 取凭据，compact result 不保存 key、prompt、答案
 正文或模型原始输出。Qualification 必须满足本地 Pi 版本、resource probe、预注册 original 单行、两个
 公开输出和零 harness residue；未通过时不得启动 8-row run。
+
+2026-07-31 的冻结 qualification 未满足该前置条件。前两次分别在 package-script 中文路径和 source
+entrypoint child PATH 处发生转码失败；最终尝试已将 Pi executable 收敛为仓库外的正确 ASCII junction
+路径，本地 Pi 0.67.68 与 resource probe 仍通过，但 Bun `uv_spawn` 在 130ms 内返回 ENOENT，两个公开
+输出均未生成。三次均发生在 API 请求前，因此没有模型、skill 效果、token、scorer 或 gate 证据。
+当前 harness 按停止规则冻结；不得执行 8-row matrix、构造 base IR 或消费 held-out。后续必须先通过
+独立无 API spawn probe 评审 execution boundary，并以新的 execution identity 明确冻结；这不允许原地
+修改本轮 method lock，也不构成新增 benchmark/catalog 版本。
