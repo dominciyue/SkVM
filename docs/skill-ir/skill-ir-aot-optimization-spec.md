@@ -2376,3 +2376,10 @@ stable harness 路径约 192。该 identity 冻结为 infrastructure failure，�
 `maximumWorkDirLength=220`；plan 阶段逐行计算最终 workdir 的 Windows 字符长度，任一超限必须在 API
 前 fail closed。预注册短 root 的 dry-run 当前最大长度为 201。这个修复只改变实验文件落点，不改变
 task、source、model、adapter、prompt、scorer、repetitions、timeout 或 gate。
+
+Short-path qualification 随后通过：route 30.075 秒、exit 0、2/2 outputs、零 residue。唯一 8-row
+matrix 为 8/8 rows、4/4 comparable pairs、0 infrastructure；no-skill 与 original 均 4/4、mean 1.0，
+0 differing pair。No-skill 使用 28,061 aggregate tokens，original 使用 89,217，即 3.1794x，质量无增益。
+Gate 因 no-skill saturation 与无区分度失败。该结果关闭 experimental-design skill-unique baseline：不
+构造 base IR、不运行 held-out、不继续增加 harder task；下一方法工作转向 Wave B 的不同真实 skill，
+以检验 pipeline 的跨 skill 适用性，而不是继续围绕强模型已饱和的 phenotype 调参。

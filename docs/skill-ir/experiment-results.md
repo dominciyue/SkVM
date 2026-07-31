@@ -1357,4 +1357,33 @@ ENOENT；短 cwd exit 0，旧 stable harness 对应路径约 192。根因从 Pi 
 Windows/Bun cwd length，不是模型、网关、skill 或 scorer。
 
 新的 short-path identity 冻结 `results/skill-ir/su-pi-direct-v1` 和 220 字符上限，plan 阶段 fail closed。
-8-row dry-run 最大 workdir 长度 201。当前只放行一次新 qualification，尚无模型或优化结果。
+8-row dry-run 最大 workdir 长度 201。该 identity 随后的最终结果见下一节。
+
+## 31. Skill-unique Strong-model Baseline 最终结果
+
+2026-07-31 使用冻结的 direct Node + short-path identity 运行唯一 qualification。Local Pi 0.67.68 与
+resource probe 均通过，route 30.075 秒、exit 0、2/2 outputs、零 harness residue。随后执行预注册的
+`gpt-5.6-sol` development matrix：
+
+| System | Rows | Success | Mean score | Input tokens | Output tokens | Total tokens |
+|---|---:|---:|---:|---:|---:|---:|
+| no-skill | 4 | 4 | 1.00 | 25,173 | 2,888 | 28,061 |
+| original | 4 | 4 | 1.00 | 84,691 | 4,526 | 89,217 |
+
+结果为 8/8 observed rows、4/4 complete/comparable pairs、0 infrastructure、0 no-skill semantic failure、
+0 differing pair。`completeRows`、`completePairs`、`zeroInfrastructure` 与 `eachTaskOriginalSuccess` 通过，
+但 `noSkillNonSaturated=false`、`distinguishable=false`，因此 gate failed。Original aggregate token 为
+no-skill 的 3.1794 倍，在本测量面没有质量增益。
+
+这次结果应拆成两层理解：新 benchmark 的本地合同能接受等价合法解并拒绝伪重复、错误分析单位和
+错误 lineage，18/18 differential 与 36/36 materialization 说明 scorer 机制比旧 v1 的私有枚举/唯一
+措辞约束更稳健；真实强模型 baseline 仍没有经验区分度，因此不能据此声称 original、IR 或 artifact
+得到优化。按预注册停止规则，不构造 base IR、不运行 held-out、不继续增加 experimental-design harder
+task。下一阶段转向 Wave B 的 `api-tester` 候选，以不同 phenotype 检验通用流程是否可复用。
+
+Compact evidence：
+
+```text
+results/skill-ir/su-pi-direct-v1/qualification.json
+results/skill-ir/su-pi-direct-v1/gate-report.json
+```

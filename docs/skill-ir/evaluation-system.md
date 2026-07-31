@@ -1515,3 +1515,9 @@ maximumWorkDirLength = 220
 Coordinator 在 plan 阶段逐行检查最终 workdir，并拒绝 output-root drift；正式 dry-run 为 8 rows、最大
 workdir 201。该 guard 在 API env/assert 与 execute 前生效。旧 direct-cli failed qualification 保持 compact
 evidence，不允许在原 identity 上补跑。
+
+Short-path qualification 最终通过：local Pi/resource 通过，route 30.075 秒、exit 0、2/2 outputs、零
+residue。唯一 8-row matrix 为 8/8 rows、4/4 comparable pairs、0 infrastructure；两臂均 4/4、mean
+1.0，differing pairs 为 0。Gate 的 `noSkillNonSaturated=false`、`distinguishable=false`，因此 failed。
+No-skill 为 28,061 aggregate tokens，original 为 89,217，即 3.1794x。该结果只说明当前 strong-model
+surface 无可测 original 增益；base IR、held-out 和 optimization claim 均不允许。

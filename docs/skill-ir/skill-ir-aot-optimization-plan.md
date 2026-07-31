@@ -7,18 +7,17 @@
 
 ## 0. 当前执行窗口
 
-唯一活跃任务为 Task 16.21。2026-07-31 的 Task 16.20 已证明当前 experimental-design v2
-operation surface 对 no-skill 完全公开，而原 skill 的 6 类增量知识没有进入 scorer。当前顺序固定为：
+Task 16.21 已按预注册失败分支关闭：skill-unique local audit 与真实 8-row matrix 都完成，但强模型
+no-skill/original 仍 4/4、0 differing pair。当前活跃任务转为 Task 16.22 Wave B cross-skill replication。
+顺序固定为：
 
 ```text
-入口/计划治理
--> skill-unique semantic surface 书面合同
--> development-only deterministic oracle + differential/leak audit
--> no-model materialization/dry-run
--> frozen no-skill | original strong-model calibration qualification
--> qualification infrastructure stop / architecture review
--> 只有新 harness qualification 通过后才允许唯一 matrix 与 distinguishability gate
--> gate 通过才允许 base IR / ir-static
+冻结 Task 16.21 负结果
+-> 选择一个不同 phenotype 的真实 Wave B skill
+-> public contract + deterministic scorer audit
+-> no-skill | exact original development baseline
+-> 只有区分度 gate 通过才允许 base IR / ir-static
+-> development gate 后才允许 held-out
 ```
 
 本窗口禁止新增 runtime、transport 或 artifact catalog 版本。旧 package、lock、runner 和 compact
@@ -127,18 +126,15 @@ manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phen
 
 ## 4. 下一阶段顺序
 
-### 当前下一刀：Skill-unique Semantic Surface
+### 当前下一刀：Wave B 不同真实 Skill 复用
 
-1. 保留所有 v1/v2 冻结 task、scorer、audit、lock、package 与结果，不原地修改。
-2. 只选择 pseudoreplication/independent replicate 与 analysis-design alignment 两个语义面；
-   seeded randomization 作为可选 deterministic profile，不进入本轮主成功条件。
-3. 用户可见接口只公开输入、输出、字段形状和安全边界，不公开从研究结构推导答案的步骤。
-4. Scorer 从 agent 可见的结构化 study graph 独立推导 oracle，允许自由方法名、解释措辞和字段顺序；
-   evaluator expected、held-out、历史模型正文和原 skill 文本不得作为运行时输入。
-5. 先通过 alternative-valid、invalid-control、reverse-evidence、leak 和 materialization audit，再冻结
-   `no-skill | original` strong-model calibration；本轮不新增 runtime/catalog。
-6. Gate 若仍饱和或无差异，冻结“强模型当前无可测 skill 增益”，转向 Wave B；不得继续增加 harder
-   task。Gate 通过才构造同一 source/task identity 的 base IR 和 ir-static。
+1. Task 16.21 已按预注册停止规则关闭；保留所有 task、scorer、audit、lock 和 compact result，不原地修改。
+2. 从冻结 intake 中优先选择 `api-tester`，审计 exact source、license、resource closure 和可确定性判分面。
+3. 先冻结 2 development + 2 held-out、task-visible contract、deterministic scorer 和本地差分/泄漏/物化审计。
+4. 复用 direct Node Pi、short-path budget、runner/scoring/gate core；不新增 runtime、transport 或 artifact catalog。
+5. 先运行 `no-skill | exact original` development 区分度 gate；只有 gate 通过才构造 base IR 和 ir-static。
+6. Wave B 报告通用 core branch delta、adapter LOC、artifact kind 复用率、质量、稳定性与 token 成本；
+   development gate 前不消费 held-out。
 
 ### 已完成前置：文档治理
 
@@ -2666,13 +2662,10 @@ evaluation-split/gold/raw/model canary、digest 和 quote drift 测试全部通�
   reverse-evidence 和 leak canary。
 - [x] 冻结新 development task/scorer 之前，定义 no-skill 可见面、oracle 输入面、hard gate、替代合法解、
   held-out 隔离和旧 v2 task 的历史身份；书面评审通过前不创建第三批任务或调用 API。
-- [ ] 新 baseline 通过区分度门禁后，才从同一原 source 和新 task contract 编译 source-audited base IR，
-  运行 `no-skill | original | ir-static`；旧 IR 分数只进历史 ledger，不与新 benchmark 分数混算。
-- [ ] 用 `original x development` 的复现失败与 `ir-static x development` 的残差/回归共同构造 typed
-  dual-source evidence，再编译带 provenance 的 Final IR / validated artifact；development gate 通过后
-  才消费冻结 held-out。
-- [ ] 对已有 Env/Law/Experimental-design artifact 做 provenance compatibility 表：可直接验证的冻结产物
-  保持原 identity；task/scorer/source contract 不兼容时新编译 package/lock，禁止覆盖旧 digest。
+- [x] 区分度门禁失败后停止 base IR re-entry；没有把旧 IR 分数与新 benchmark 混算。
+- [x] 因 baseline 不可区分，未构造 dual-source evidence、Final IR 或 validated artifact，也未消费 held-out。
+- [x] 旧 Env/Law/Experimental-design artifact 保持原 identity；本轮没有以不兼容 task/scorer/source
+  contract 覆盖任何旧 package 或 lock digest。
 
 #### Task 16.21.1：Task split 与公开接口（先于 scorer）
 
@@ -2735,21 +2728,15 @@ Create  results/skill-ir/experimental-design-skill-unique-materialization-audit-
 
 - [x] 本地 audit 全绿且 spec/plan/组件文档同步后，先提交 task/scorer/audit；再冻结新的 Pi calibration
   method lock 和数值 gate，不修改任何旧 runner/lock digest。
-- [ ] 复用现有 `real-agent-run`、custom scoring 与 gate primitives 完成 dry-run、resource/route
-  qualification 和唯一 8-row run；不新增 runtime/transport/catalog 版本。当前 lock 和 dry-run 已完成：
-  8 rows、4 complete pairs、8/8 managed Pi 参数、original 4/4 注入 exact source、no-skill 0/4 注入；
-  三次 qualification 均在 API 前失败：package script 与 source entrypoint 两次分别暴露中文路径和
-  child PATH 转码；最终 source + ASCII `node_modules` junction 已把 child executable 收敛为正确 ASCII
-  路径，但 Bun `uv_spawn` 仍在 130ms 内返回 ENOENT。Local Pi 0.67.68 与 resource probe 通过，route
-  0/2 outputs、未调用模型。当前 harness 已按预注册停止规则冻结，不运行 8-row matrix，也不继续叠
-  第四个路径补丁。
-- [ ] Gate 失败则冻结 compact evidence 并转 Wave B；通过才勾选上层 base IR re-entry，随后另写
+- [x] 复用现有 `real-agent-run`、custom scoring 与 gate primitives 完成 dry-run、resource/route
+  qualification 和唯一 8-row run；没有新增 runtime/transport/catalog 版本。早期三个 execution identity
+  的 API 前失败均保持冻结；direct Node + short-path identity 的 qualification 与 matrix 最终通过执行
+  链路，结果见 Task 16.21.5。
+- [x] Gate 失败则冻结 compact evidence 并转 Wave B；通过才勾选上层 base IR re-entry，随后另写
   source-audited base IR TDD，不在本 task 顺手生成 Final IR 或消费 held-out。
 
-下一活跃动作是 execution-boundary architecture review：先用无 API standalone probe 验证“ASCII Node
-executable + Pi package CLI entry”能否稳定启动；只有该边界成立并以新 execution identity 书面冻结，
-才允许重新 qualification。若仍不成立，直接切换已经证明可用的稳定 harness/Wave B，不再为当前
-Windows/Bun shim 增加 runtime、transport 或 catalog 版本。
+该 execution-boundary architecture review 已在 Task 16.21.5 完成。基础设施通过后，真实结果仍因
+no-skill 饱和与 0 differing pair 触发停止规则；当前活跃动作已转为 Task 16.22。
 
 #### Task 16.21.5：Direct Node Pi execution boundary
 
@@ -2773,7 +2760,7 @@ Modify  corresponding tests and active documentation
   语义保持，compact probe 不保存绝对路径或 stdout/stderr。
 - [x] Probe 通过后才提交新的 execution lock；继承原 task/source/scorer/model/matrix/gate，绑定 Node、Pi
   CLI、adapter/source runner/coordinator digest，不覆盖失败 lock。
-- [ ] 新 lock 先 dry-run 与唯一 qualification；通过才运行一次 8-row matrix/scoring/gate。任何 API 前
+- [x] 新 lock 先 dry-run 与唯一 qualification；通过才运行一次 8-row matrix/scoring/gate。任何 API 前
   infrastructure failure 都冻结并停止，不能归因为 skill 或模型。
 
 本地 probe 已通过：Node v23.8.0 直接启动 Pi 0.67.68，exit 0、非 timeout、821ms；报告只保存
@@ -2788,3 +2775,20 @@ Wave B/stable external harness，不再继续修当前 coordinator。
 
 Short-path schema/lock/guard 已通过 9 tests、82 assertions 与 typecheck；正式 dry-run 为 8 rows、
 4 complete pairs、最大 workdir 201。提交该 identity 后才允许唯一 qualification。
+
+最终结果：qualification passed（30.075 秒、2/2 outputs、零 residue）；matrix 8/8、4/4 pairs、0 infra，
+但两臂均 4/4、mean 1.0、0 differing。Original 89,217 tokens，no-skill 28,061 tokens。Gate failed，
+Task 16.21 不进入 base IR/held-out。
+
+### Task 16.22：Wave B 不同真实 Skill 复用
+
+- [ ] 从已冻结 intake 中优先选择 `api-tester`，先确认 exact public source/license/resource closure；若其
+  source 合同不适合确定性判分，再按书面理由选择同等不同 phenotype，不扩成多 skill 并行 intake。
+- [ ] 先写 2 development + 2 held-out、task-visible public contract 与 deterministic scorer；本地合法多解、
+  leak、materialization audit 未通过前不调用 API。
+- [ ] 复用已验证的 direct Node Pi 与 short-path budget core，不新增 runtime/transport/catalog；只允许
+  skill-specific source adapter、task contract 与 evaluator。
+- [ ] 先跑 `no-skill | exact original` 区分度 gate。失败则记录“该 skill/strong-model surface 无可测增益”
+  并重新评估 skill 选择；通过才编译同 source/task identity 的 base IR 和 ir-static。
+- [ ] 报告通用 core branch delta、adapter LOC、artifact kind 复用率、paired quality、稳定性和 token 成本；
+  不在 development gate 前消费 held-out。
