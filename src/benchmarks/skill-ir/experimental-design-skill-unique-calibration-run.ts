@@ -1,4 +1,5 @@
-import { lstat, mkdir, readFile, writeFile } from "node:fs/promises"
+import { lstat, mkdir, readFile, realpath, symlink, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
 import path from "node:path"
 import { z } from "zod"
 import {
@@ -273,11 +274,43 @@ export function buildExperimentalDesignSkillUniqueQualificationReport(input: {
   })
 }
 
-function calibrationEnvironment(
+export async function ensureExperimentalDesignSkillUniqueAsciiNodeModules(
+  rootDir: string,
+  linkRoot: string,
+): Promise<string> {
+  const resolvedLinkRoot = path.resolve(linkRoot)
+  if (!/^[\x00-\x7f]+$/u.test(resolvedLinkRoot)) {
+    throw new Error("Skill-unique Pi junction root must be ASCII")
+  }
+  await mkdir(resolvedLinkRoot, { recursive: true })
+  const target = await realpath(path.resolve(rootDir, "node_modules"))
+  const linkPath = path.join(resolvedLinkRoot, "skvm-node-modules-pi-0.67.68")
+  try {
+    const stat = await lstat(linkPath)
+    if (!stat.isSymbolicLink()) {
+      throw new Error("Skill-unique Pi ASCII path exists but is not a junction")
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
+    await symlink(target, linkPath, "junction")
+  }
+  const observedTarget = await realpath(linkPath)
+  const normalize = (value: string) => process.platform === "win32" ? value.toLowerCase() : value
+  if (normalize(observedTarget) !== normalize(target)) {
+    throw new Error("Skill-unique Pi ASCII junction target mismatch")
+  }
+  return linkPath
+}
+
+async function calibrationEnvironment(
   rootDir: string,
   env: Record<string, string | undefined>,
-): Record<string, string | undefined> {
-  const localBin = path.resolve(rootDir, "node_modules/.bin")
+): Promise<Record<string, string | undefined>> {
+  const asciiNodeModules = await ensureExperimentalDesignSkillUniqueAsciiNodeModules(
+    rootDir,
+    path.join(tmpdir(), "skvm-skill-ir-harness"),
+  )
+  const localBin = path.join(asciiNodeModules, ".bin")
   const currentPath = env.PATH ?? env.Path ?? ""
   const mergedPath = `${localBin}${path.delimiter}${currentPath}`
   return {
@@ -396,7 +429,7 @@ export async function runExperimentalDesignSkillUniqueCalibration(
     return built
   }
 
-  const env = calibrationEnvironment(rootDir, baseEnv)
+  const env = await calibrationEnvironment(rootDir, baseEnv)
   const planOutDir = input.phase === "qualification" ? path.join(outDir, "qualification-work") : outDir
   const built = await buildExperimentalDesignSkillUniqueCalibrationPlan({ ...input, rootDir, outDir: planOutDir })
   assertRequiredEnv(built.runArgs, env)

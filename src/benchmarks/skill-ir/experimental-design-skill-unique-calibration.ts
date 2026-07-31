@@ -87,6 +87,8 @@ export const ExperimentalDesignSkillUniqueCalibrationLockSchema = z.object({
     execution: z.object({
       kind: z.literal("bun-source-skvm"),
       bunVersion: z.literal("1.3.14"),
+      piResolution: z.literal("ascii-node-modules-junction"),
+      asciiLinkName: z.literal("skvm-node-modules-pi-0.67.68"),
       sourceEntrypoint: FrozenFileSchema,
     }).strict(),
     orchestration: z.array(FrozenFileSchema).length(5),

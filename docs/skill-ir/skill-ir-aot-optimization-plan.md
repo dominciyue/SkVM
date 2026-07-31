@@ -2738,6 +2738,8 @@ Create  results/skill-ir/experimental-design-skill-unique-materialization-audit-
   qualification 和唯一 8-row run；不新增 runtime/transport/catalog 版本。当前 lock 和 dry-run 已完成：
   8 rows、4 complete pairs、8/8 managed Pi 参数、original 4/4 注入 exact source、no-skill 0/4 注入；
   首次 qualification 在 API 前暴露 `bun run skvm` 中文路径转码失败，已按 TDD 改为冻结 Bun 直接
-  运行 `src/index.ts`；待修复 commit 后重新 qualification，再决定是否执行付费 run。
+  运行 `src/index.ts`；第二次仍定位到 child PATH 中的 Pi executable 乱码，已增加仓库外 ASCII
+  `node_modules` junction 并通过本地 `pi --version`/junction TDD。待修复 commit 后最后一次 qualification，
+  若仍失败则停止当前 harness，不继续叠补丁。
 - [ ] Gate 失败则冻结 compact evidence 并转 Wave B；通过才勾选上层 base IR re-entry，随后另写
   source-audited base IR TDD，不在本 task 顺手生成 Final IR 或消费 held-out。

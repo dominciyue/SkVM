@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdtemp, realpath, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import {
   buildExperimentalDesignSkillUniqueCalibrationPlan,
   buildExperimentalDesignSkillUniqueQualificationReport,
+  ensureExperimentalDesignSkillUniqueAsciiNodeModules,
   selectExperimentalDesignSkillUniqueQualificationRow,
 } from "./experimental-design-skill-unique-calibration-run.ts"
 
@@ -24,6 +25,12 @@ afterAll(async () => {
 })
 
 describe("experimental-design skill-unique calibration orchestration", () => {
+  test("exposes node_modules through an ASCII junction for Pi command resolution", async () => {
+    const link = await ensureExperimentalDesignSkillUniqueAsciiNodeModules(rootDir, outDir)
+    expect(link).toMatch(/^[\x00-\x7f]+$/u)
+    expect(await realpath(link)).toBe(await realpath(path.join(rootDir, "node_modules")))
+  })
+
   test("builds eight managed-Pi rows as four complete no-skill/original pairs", async () => {
     const built = await buildExperimentalDesignSkillUniqueCalibrationPlan({
       rootDir,
