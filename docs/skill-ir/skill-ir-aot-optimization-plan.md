@@ -2732,9 +2732,11 @@ Create  results/skill-ir/experimental-design-skill-unique-materialization-audit-
 
 #### Task 16.21.4：本地门禁与一次强模型 calibration
 
-- [ ] 本地 audit 全绿且 spec/plan/组件文档同步后，先提交 task/scorer/audit；再冻结新的 Pi calibration
+- [x] 本地 audit 全绿且 spec/plan/组件文档同步后，先提交 task/scorer/audit；再冻结新的 Pi calibration
   method lock 和数值 gate，不修改任何旧 runner/lock digest。
 - [ ] 复用现有 `real-agent-run`、custom scoring 与 gate primitives 完成 dry-run、resource/route
-  qualification 和唯一 8-row run；不新增 runtime/transport/catalog 版本。
+  qualification 和唯一 8-row run；不新增 runtime/transport/catalog 版本。当前 lock 和 dry-run 已完成：
+  8 rows、4 complete pairs、8/8 managed Pi 参数、original 4/4 注入 exact source、no-skill 0/4 注入；
+  待 lock commit 后执行 qualification 和付费 run。
 - [ ] Gate 失败则冻结 compact evidence 并转 Wave B；通过才勾选上层 base IR re-entry，随后另写
   source-audited base IR TDD，不在本 task 顺手生成 Final IR 或消费 held-out。

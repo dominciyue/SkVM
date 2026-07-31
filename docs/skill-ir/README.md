@@ -17,8 +17,9 @@ execution feedback 改善稳定性。
   harness 已达到 8/8 rows、0 infrastructure；但普通与 harder 两批 no-skill/original 都为
   4/4、mean 1.00、0 differing pair，base IR 与 held-out 均未放行。
 - Task 16.20 task-sufficiency audit 发现 13/13 scorer-required 操作要求已向 no-skill 披露，
-  原 skill 的 6 类增量知识 0/6 被当前 scorer 测量。当前唯一活跃任务是 Task 16.21：用有界的
-  skill-unique deterministic semantic surface 重新校准，再决定 IR 是否入场。
+  原 skill 的 6 类增量知识 0/6 被旧 scorer 测量。Task 16.21 已建立 skill-unique surface，完成
+  18/18 differential、36/36 materialization audit，并冻结 8-row Pi calibration lock；下一步仅执行
+  qualification 与唯一 development run，再由区分度 gate 决定 IR 是否入场。
 - 已加入 skill-neutral 的付费前 benchmark contract audit。三个 Wave A v1 benchmark 均未通过：
   env-manager 缺公开精确 schema rule 与分类金标合同，Law 的两个任务都拒绝等价审核措辞，
   experimental-design 的 plan 合同 2/2 通过，但 assignment、allocation、report 共 6/6

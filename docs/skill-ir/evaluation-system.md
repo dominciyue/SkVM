@@ -1360,7 +1360,7 @@ baseline 通过区分度门禁，才允许为同一 task/scorer identity 构造 
 ## 36. Skill-unique Task Split 与公开接口
 
 Task 16.21 使用 `experimental-design-v2-skill-unique` capability slice，不增加真实 pilot 计数，也不覆盖
-旧 v2。当前先冻结以下边界，scorer 在后续 commit 才实现：
+旧 v2。Task split 先于 scorer 冻结，随后 scorer 已在独立 commit 中实现：
 
 ```text
 benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/public-interface.json
@@ -1419,4 +1419,39 @@ bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-audit-run.ts
 两种合法解，以及 measurement-as-replicate、错误风险、缺/虚构 grouping、输入修改、缺输出和多输出。
 Production `prepareRunWorkspace` 的 no-skill/original 物化为 36/36 checks。Compact report 绑定 task、
 interface、split freeze、source provenance、contract/oracle/evaluator/audit implementation digest，但不保存
-输出答案或模型正文。下一步仅是冻结付费前 method lock；当前结果不等于真实模型或优化增益。
+输出答案或模型正文。当前结果不等于真实模型或优化增益。
+
+### 36.2 Pi calibration lock 与运行方式
+
+付费前方法锁：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-calibration-lock.json
+```
+
+它固定 `xty/gpt-5.6-sol`、Pi `0.67.68` managed mode、Windows/clean、2 个 development task、
+`no-skill | original`、2 repetitions、retries 0、300 秒 task timeout 与 360 秒 outer watchdog。Gate
+沿用通用 pre-IR paired evaluator，并增加 `eachTaskOriginalSuccess`：要求 8/8 rows、4/4 pairs、零
+infrastructure、no-skill 非饱和、至少 1 个 differing pair，且两个 task 各至少一次 original success。
+
+三阶段命令如下；`plan` 不调用模型，`qualification` 只执行预注册的一条 original route，只有
+qualification 通过后 `execute` 才运行唯一 8-row matrix：
+
+```powershell
+$lock = 'benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-calibration-lock.json'
+$out = 'results/skill-ir/experimental-design-skill-unique-pi-calibration-2026-07-31'
+
+bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-calibration-run.ts `
+  "--lock=$lock" "--out-dir=$out" '--phase=plan'
+
+$env:SKVM_XTY_API_KEY = '<project-api-key>'
+bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-calibration-run.ts `
+  "--lock=$lock" "--out-dir=$out" '--phase=qualification'
+
+bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-calibration-run.ts `
+  "--lock=$lock" "--out-dir=$out" '--phase=execute'
+```
+
+`plan.json`、`qualification-work/`、`run/raw-runs.jsonl`、workdir 与 `scored-runs.jsonl` 保持本地；
+仓库只提交脱敏 compact qualification、gate 和 analysis。Gate 失败时不补跑、不修改 scorer，不进入
+base IR/held-out；通过也只放行下一阶段的 same-source base IR audit。

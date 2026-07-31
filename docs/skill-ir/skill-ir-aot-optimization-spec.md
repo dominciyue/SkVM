@@ -2329,3 +2329,12 @@ calibration。Gate 要求 8/8 rows、4/4 pairs、0 infrastructure、no-skill 非
 pair，且每个 task 至少一个 original success。失败即冻结“当前强模型面板无可测 skill 增益”，不再
 创建第四批 harder tasks；通过只允许同 source/task identity 的 base IR source audit，不直接允许
 held-out、Final IR 或优化主 claim。
+
+付费前方法身份冻结在
+`benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-calibration-lock.json`。Lock 绑定
+source closure、development task、public interface、resource contract、contract/audit/oracle/scorer/registry、split freeze、
+source provenance、18/18 contract audit、36/36 materialization audit，以及现有通用 runner、scoring 和
+Pi adapter 的文件 digest；旧 lock/runner 不参与修改。执行入口只提供 `plan | qualification | execute`
+三阶段，后两阶段必须从环境变量 `SKVM_XTY_API_KEY` 取凭据，compact result 不保存 key、prompt、答案
+正文或模型原始输出。Qualification 必须满足本地 Pi 版本、resource probe、预注册 original 单行、两个
+公开输出和零 harness residue；未通过时不得启动 8-row run。
