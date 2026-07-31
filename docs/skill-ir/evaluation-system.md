@@ -1433,6 +1433,9 @@ benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-calibration-lo
 `no-skill | original`、2 repetitions、retries 0、300 秒 task timeout 与 360 秒 outer watchdog。Gate
 沿用通用 pre-IR paired evaluator，并增加 `eachTaskOriginalSuccess`：要求 8/8 rows、4/4 pairs、零
 infrastructure、no-skill 非饱和、至少 1 个 differing pair，且两个 task 各至少一次 original success。
+命令投影固定为 Bun 1.3.14 直接运行仓库 `src/index.ts`；这复用已验证的 source-runner 边界，避免
+`bun run skvm` package script 在 Windows 中文路径中把 Pi executable argv 转成乱码。它不是新的
+runtime/catalog，也不改变 task、model、scorer 或 gate。
 
 三阶段命令如下；`plan` 不调用模型，`qualification` 只执行预注册的一条 original route，只有
 qualification 通过后 `execute` 才运行唯一 8-row matrix：

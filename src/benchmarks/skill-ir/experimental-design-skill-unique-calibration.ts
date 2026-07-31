@@ -84,6 +84,11 @@ export const ExperimentalDesignSkillUniqueCalibrationLockSchema = z.object({
     packageJson: FrozenFileSchema,
     bunLock: FrozenFileSchema,
     adapterSource: FrozenFileSchema,
+    execution: z.object({
+      kind: z.literal("bun-source-skvm"),
+      bunVersion: z.literal("1.3.14"),
+      sourceEntrypoint: FrozenFileSchema,
+    }).strict(),
     orchestration: z.array(FrozenFileSchema).length(5),
     installedPackageJson: z.literal("node_modules/@mariozechner/pi-coding-agent/package.json"),
     executable: z.literal("node_modules/.bin/pi.exe"),
@@ -195,6 +200,7 @@ export async function validateExperimentalDesignSkillUniqueCalibrationLock(
     verifyFrozenFile(rootDir, lock.harness.packageJson, "package.json"),
     verifyFrozenFile(rootDir, lock.harness.bunLock, "bun.lock"),
     verifyFrozenFile(rootDir, lock.harness.adapterSource, "Pi adapter"),
+    verifyFrozenFile(rootDir, lock.harness.execution.sourceEntrypoint, "source entrypoint"),
     ...lock.harness.orchestration.map((file) => verifyFrozenFile(rootDir, file, "orchestration")),
   ])
   validateExperimentalDesignSkillUniqueTaskSet(
@@ -253,6 +259,9 @@ export async function validateExperimentalDesignSkillUniqueCalibrationLock(
     ?? packageJson.devDependencies?.["@mariozechner/pi-coding-agent"]
   if (declared !== lock.harness.adapterVersion) {
     throw new Error("Skill-unique calibration declared Pi version mismatch")
+  }
+  if (Bun.version !== lock.harness.execution.bunVersion) {
+    throw new Error("Skill-unique calibration Bun version mismatch")
   }
   const installed = JSON.parse(await readFile(
     path.resolve(rootDir, lock.harness.installedPackageJson),

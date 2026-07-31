@@ -2737,6 +2737,7 @@ Create  results/skill-ir/experimental-design-skill-unique-materialization-audit-
 - [ ] 复用现有 `real-agent-run`、custom scoring 与 gate primitives 完成 dry-run、resource/route
   qualification 和唯一 8-row run；不新增 runtime/transport/catalog 版本。当前 lock 和 dry-run 已完成：
   8 rows、4 complete pairs、8/8 managed Pi 参数、original 4/4 注入 exact source、no-skill 0/4 注入；
-  待 lock commit 后执行 qualification 和付费 run。
+  首次 qualification 在 API 前暴露 `bun run skvm` 中文路径转码失败，已按 TDD 改为冻结 Bun 直接
+  运行 `src/index.ts`；待修复 commit 后重新 qualification，再决定是否执行付费 run。
 - [ ] Gate 失败则冻结 compact evidence 并转 Wave B；通过才勾选上层 base IR re-entry，随后另写
   source-audited base IR TDD，不在本 task 顺手生成 Final IR 或消费 held-out。

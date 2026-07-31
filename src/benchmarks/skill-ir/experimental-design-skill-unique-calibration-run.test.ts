@@ -34,6 +34,12 @@ describe("experimental-design skill-unique calibration orchestration", () => {
     expect(built.plan).toHaveLength(8)
     expect(new Set(built.plan.map((item) => `${item.caseId}:${item.runIndex}`)).size).toBe(4)
     for (const row of built.plan) {
+      expect(row.command.slice(0, 4)).toEqual([
+        process.execPath,
+        "run",
+        path.join(rootDir, "src/index.ts"),
+        "run",
+      ])
       expect(row.panelConfigId).toBe("experimental-design-skill-unique-pi-development-v1")
       expect(row.command).toContain("--adapter-config=managed")
       expect(row.command).toContain("--timeout-ms=300000")

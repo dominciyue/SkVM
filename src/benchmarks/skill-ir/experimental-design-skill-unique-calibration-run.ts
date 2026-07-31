@@ -138,11 +138,16 @@ function calibrationRunArgs(
 function projectManagedPiPlan(
   plan: RealAgentRunPlanEntry[],
   lock: ExperimentalDesignSkillUniqueCalibrationLock,
+  rootDir: string,
 ): RealAgentRunPlanEntry[] {
   return plan.map((row) => ({
     ...row,
     command: [
-      ...row.command.filter((arg) =>
+      process.execPath,
+      "run",
+      path.resolve(rootDir, lock.harness.execution.sourceEntrypoint.path),
+      "run",
+      ...row.command.slice(4).filter((arg) =>
         !arg.startsWith("--adapter-config=")
         && !arg.startsWith("--timeout-ms=")
         && !arg.startsWith("--max-steps=")),
@@ -156,6 +161,7 @@ function projectManagedPiPlan(
 function assertCalibrationPlan(
   plan: RealAgentRunPlanEntry[],
   lock: ExperimentalDesignSkillUniqueCalibrationLock,
+  rootDir: string,
 ): void {
   if (plan.length !== lock.matrix.expectedRows) {
     throw new Error(`Skill-unique calibration row mismatch: expected ${lock.matrix.expectedRows}, got ${plan.length}`)
@@ -174,6 +180,10 @@ function assertCalibrationPlan(
       || !row.command.includes("--adapter-config=managed")
       || !row.command.includes(`--timeout-ms=${lock.runtime.taskTimeoutMs}`)
       || !row.command.includes(`--max-steps=${lock.runtime.maxSteps}`)
+      || row.command[0] !== process.execPath
+      || row.command[1] !== "run"
+      || row.command[2] !== path.resolve(rootDir, lock.harness.execution.sourceEntrypoint.path)
+      || row.command[3] !== "run"
     ) {
       throw new Error("Skill-unique calibration plan identity or runtime drift")
     }
@@ -198,8 +208,8 @@ export async function buildExperimentalDesignSkillUniqueCalibrationPlan(
   const lockPath = path.isAbsolute(input.lockPath) ? input.lockPath : path.resolve(rootDir, input.lockPath)
   const lock = await readAndValidateExperimentalDesignSkillUniqueCalibrationLock({ rootDir, lockPath })
   const runArgs = calibrationRunArgs(lock, rootDir, outDir, input.phase)
-  const plan = projectManagedPiPlan(await buildPlan(runArgs), lock)
-  assertCalibrationPlan(plan, lock)
+  const plan = projectManagedPiPlan(await buildPlan(runArgs), lock, rootDir)
+  assertCalibrationPlan(plan, lock, rootDir)
   return {
     schemaVersion: "skill-ir-experimental-design-skill-unique-calibration-plan/v1",
     calibrationId: lock.calibrationId,

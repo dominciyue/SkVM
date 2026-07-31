@@ -85,6 +85,7 @@ describe("experimental-design skill-unique calibration lock and gate", () => {
     const lock = await readAndValidateExperimentalDesignSkillUniqueCalibrationLock({ rootDir, lockPath })
     expect(lock.matrix).toMatchObject({ expectedRows: 8, expectedPairs: 4, repetitions: 2 })
     expect(lock.gate.requireEachTaskOriginalSuccess).toBe(true)
+    expect(lock.harness.execution).toMatchObject({ kind: "bun-source-skvm", bunVersion: "1.3.14" })
     expect(lock.frozenInputs.contract.path).toBe(
       "src/benchmarks/skill-ir/experimental-design-skill-unique-contract.ts",
     )
