@@ -84,6 +84,7 @@ export type CorpusMatrixMode = "runnable" | "tasks-authored-calibration";
 
 export type BuildCorpusMatrixOptions = {
   mode?: CorpusMatrixMode;
+  skillIds?: string[];
 };
 
 export const COLD_START_EXPERIMENT_SYSTEMS: ExperimentSystem[] = [
@@ -157,8 +158,14 @@ export function buildCorpusMatrixInput(
   const manifest = readJson<CorpusManifest>(resolveCorpusManifestPath(corpus, rootDir));
   const contextSet = readJson<ContextSet>(join(rootDir, "benchmarks/skill-ir/contexts/standard-contexts.json"));
   const mode = options.mode ?? "runnable";
+  if (mode === "tasks-authored-calibration" && options.skillIds?.length !== 1) {
+    throw new Error("tasks-authored-calibration requires exactly one explicit skillId");
+  }
   const eligibleStatus = mode === "tasks-authored-calibration" ? "tasks-authored" : "runnable";
-  const eligibleSkills = manifest.skills.filter((skill) => skill.status === eligibleStatus);
+  const requestedSkillIds = options.skillIds ? new Set(options.skillIds) : null;
+  const eligibleSkills = manifest.skills.filter((skill) =>
+    skill.status === eligibleStatus && (!requestedSkillIds || requestedSkillIds.has(skill.id))
+  );
   if (eligibleSkills.length === 0) {
     throw new Error(
       `Corpus ${corpus} has 0 ${eligibleStatus} skills out of ${manifest.skills.length} registered skills`,

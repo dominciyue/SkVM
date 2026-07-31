@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "skill-ir-api-tester-interface/v1",
+  "interfaceId": "api-tester-generator-interface-v1",
+  "protectedInputs": [
+    "<task-openapi-path>",
+    "api-test-interface.json"
+  ],
+  "outputs": [
+    "api-test-generator.mjs",
+    "generated/api-test-plan.json",
+    "api-test-report.json"
+  ],
+  "generator": {
+    "path": "api-test-generator.mjs",
+    "command": [
+      "node",
+      "api-test-generator.mjs",
+      "--input",
+      "<relative-openapi-path>",
+      "--out",
+      "<relative-plan-path>"
+    ],
+    "exitCode": 0,
+    "deterministic": true
+  },
+  "plan": {
+    "requiredFields": [
+      "schemaVersion",
+      "source",
+      "framework",
+      "endpoints"
+    ],
+    "endpointFields": [
+      "method",
+      "path",
+      "cases"
+    ],
+    "caseFields": [
+      "id",
+      "category",
+      "request",
+      "expectedStatus",
+      "assertions",
+      "independent",
+      "timeoutMs"
+    ],
+    "categoryValues": [
+      "happy",
+      "boundary",
+      "error"
+    ],
+    "allowAdditionalFields": true,
+    "allowAnyCaseOrder": true
+  },
+  "report": {
+    "requiredFields": [
+      "schemaVersion",
+      "discoverySource",
+      "generatedCaseCount",
+      "verification",
+      "limitations"
+    ],
+    "verificationStatus": [
+      "passed",
+      "failed",
+      "not-run"
+    ]
+  },
+  "resourcePolicy": {
+    "network": false,
+    "packageInstall": false,
+    "allowedRuntime": "node",
+    "availablePackages": [
+      "yaml"
+    ]
+  },
+  "outputPolicy": {
+    "exactOutputSet": true,
+    "freeTextLanguage": "any"
+  }
+}

@@ -59,7 +59,10 @@ describe("skill-ir corpus fixtures", () => {
     expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "law-to-markdown")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "experimental-design")?.status).toBe("runnable");
-    expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
+    expect(pilot.skills.find((skill) => skill.id === "api-tester")?.status).toBe("tasks-authored");
+    expect(pilot.skills.filter(
+      (skill) => skill.wave === "B" && skill.id !== "api-tester",
+    ).every((skill) => skill.status === "selected")).toBe(true);
   });
 
   test("env-manager pilot has four deterministic fixtures and a source-audited runnable base IR", () => {

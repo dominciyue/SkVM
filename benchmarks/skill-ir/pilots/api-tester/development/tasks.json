@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "api-tester",
+  "tasks": [
+    {
+      "id": "api-tester-openapi-users-dev-001",
+      "split": "development",
+      "prompt": "Read the protected API definition and api-test-interface.json without modifying either input. Implement api-test-generator.mjs using the public offline CLI contract. Run it for the given API definition to create generated/api-test-plan.json. Create api-test-report.json and report verification truthfully. Produce exactly the three declared outputs; do not install packages, contact a server, or use the network. Input path: api/openapi.yaml.",
+      "fixtures": {
+        "api/openapi.yaml": "openapi: 3.0.3\ninfo:\n  title: User API\n  version: 1.0.0\ncomponents:\n  securitySchemes:\n    bearerAuth:\n      type: http\n      scheme: bearer\npaths:\n  /users:\n    post:\n      security:\n        - bearerAuth: []\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              required: [name, email]\n              properties:\n                name:\n                  type: string\n                  minLength: 3\n                  maxLength: 40\n                email:\n                  type: string\n                  format: email\n                role:\n                  type: string\n                  enum: [reader, editor]\n      responses:\n        \"201\": { description: Created }\n        \"400\": { description: Invalid JSON }\n        \"401\": { description: Unauthorized }\n        \"422\": { description: Validation error }\n  /users/{userId}:\n    get:\n      security:\n        - bearerAuth: []\n      parameters:\n        - in: path\n          name: userId\n          required: true\n          schema: { type: string, minLength: 1 }\n      responses:\n        \"200\": { description: User }\n        \"401\": { description: Unauthorized }\n        \"404\": { description: Not found }\n",
+        "api-test-interface.json": "{\n  \"schemaVersion\": \"skill-ir-api-tester-interface/v1\",\n  \"interfaceId\": \"api-tester-generator-interface-v1\",\n  \"protectedInputs\": [\n    \"<task-openapi-path>\",\n    \"api-test-interface.json\"\n  ],\n  \"outputs\": [\n    \"api-test-generator.mjs\",\n    \"generated/api-test-plan.json\",\n    \"api-test-report.json\"\n  ],\n  \"generator\": {\n    \"path\": \"api-test-generator.mjs\",\n    \"command\": [\n      \"node\",\n      \"api-test-generator.mjs\",\n      \"--input\",\n      \"<relative-openapi-path>\",\n      \"--out\",\n      \"<relative-plan-path>\"\n    ],\n    \"exitCode\": 0,\n    \"deterministic\": true\n  },\n  \"plan\": {\n    \"requiredFields\": [\n      \"schemaVersion\",\n      \"source\",\n      \"framework\",\n      \"endpoints\"\n    ],\n    \"endpointFields\": [\n      \"method\",\n      \"path\",\n      \"cases\"\n    ],\n    \"caseFields\": [\n      \"id\",\n      \"category\",\n      \"request\",\n      \"expectedStatus\",\n      \"assertions\",\n      \"independent\",\n      \"timeoutMs\"\n    ],\n    \"categoryValues\": [\n      \"happy\",\n      \"boundary\",\n      \"error\"\n    ],\n    \"allowAdditionalFields\": true,\n    \"allowAnyCaseOrder\": true\n  },\n  \"report\": {\n    \"requiredFields\": [\n      \"schemaVersion\",\n      \"discoverySource\",\n      \"generatedCaseCount\",\n      \"verification\",\n      \"limitations\"\n    ],\n    \"verificationStatus\": [\n      \"passed\",\n      \"failed\",\n      \"not-run\"\n    ]\n  },\n  \"resourcePolicy\": {\n    \"network\": false,\n    \"packageInstall\": false,\n    \"allowedRuntime\": \"node\",\n    \"availablePackages\": [\n      \"yaml\"\n    ]\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"freeTextLanguage\": \"any\"\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "api-generator-integrity",
+          "name": "Protected inputs and deterministic generator execution",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "generator-integrity",
+            "paths": {
+              "openapi": "api/openapi.yaml",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "48c3710c769fe11513b2ba01acd1893b2885041b3f5104d5e5b86da78d1c10b8",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "api-operation-coverage",
+          "name": "Every documented operation is represented",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "operation-coverage",
+            "paths": {
+              "openapi": "api/openapi.yaml",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "48c3710c769fe11513b2ba01acd1893b2885041b3f5104d5e5b86da78d1c10b8",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "api-schema-derived-cases",
+          "name": "Cases reflect documented valid, boundary, and invalid inputs",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "schema-derived-cases",
+            "paths": {
+              "openapi": "api/openapi.yaml",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "48c3710c769fe11513b2ba01acd1893b2885041b3f5104d5e5b86da78d1c10b8",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "api-security-response",
+          "name": "Security and response assertions follow the public API definition",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "security-response",
+            "paths": {
+              "openapi": "api/openapi.yaml",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "48c3710c769fe11513b2ba01acd1893b2885041b3f5104d5e5b86da78d1c10b8",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "api-independence-verification",
+          "name": "Cases are independent and verification claims are grounded",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "independence-verification",
+            "paths": {
+              "openapi": "api/openapi.yaml",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "48c3710c769fe11513b2ba01acd1893b2885041b3f5104d5e5b86da78d1c10b8",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "api-generator-integrity",
+        "api-operation-coverage",
+        "api-schema-derived-cases",
+        "api-security-response",
+        "api-independence-verification"
+      ],
+      "passThreshold": 1
+    },
+    {
+      "id": "api-tester-openapi-inventory-dev-002",
+      "split": "development",
+      "prompt": "Read the protected API definition and api-test-interface.json without modifying either input. Implement api-test-generator.mjs using the public offline CLI contract. Run it for the given API definition to create generated/api-test-plan.json. Create api-test-report.json and report verification truthfully. Produce exactly the three declared outputs; do not install packages, contact a server, or use the network. Input path: api/openapi.json.",
+      "fixtures": {
+        "api/openapi.json": "{\"openapi\":\"3.0.3\",\"info\":{\"title\":\"Inventory API\",\"version\":\"1.0.0\"},\"components\":{\"securitySchemes\":{\"apiKey\":{\"type\":\"apiKey\",\"in\":\"header\",\"name\":\"X-API-Key\"}}},\"paths\":{\"/inventory\":{\"get\":{\"security\":[{\"apiKey\":[]}],\"parameters\":[{\"in\":\"query\",\"name\":\"limit\",\"schema\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":100}},{\"in\":\"query\",\"name\":\"status\",\"schema\":{\"type\":\"string\",\"enum\":[\"in-stock\",\"reserved\"]}}],\"responses\":{\"200\":{\"description\":\"Items\"},\"400\":{\"description\":\"Bad query\"},\"401\":{\"description\":\"Unauthorized\"}}},\"post\":{\"security\":[{\"apiKey\":[]}],\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"sku\",\"quantity\"],\"properties\":{\"sku\":{\"type\":\"string\",\"minLength\":4,\"maxLength\":24},\"quantity\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":500}}}}}},\"responses\":{\"201\":{\"description\":\"Created\"},\"400\":{\"description\":\"Invalid item\"},\"401\":{\"description\":\"Unauthorized\"},\"409\":{\"description\":\"Duplicate SKU\"}}}}}}\n",
+        "api-test-interface.json": "{\n  \"schemaVersion\": \"skill-ir-api-tester-interface/v1\",\n  \"interfaceId\": \"api-tester-generator-interface-v1\",\n  \"protectedInputs\": [\n    \"<task-openapi-path>\",\n    \"api-test-interface.json\"\n  ],\n  \"outputs\": [\n    \"api-test-generator.mjs\",\n    \"generated/api-test-plan.json\",\n    \"api-test-report.json\"\n  ],\n  \"generator\": {\n    \"path\": \"api-test-generator.mjs\",\n    \"command\": [\n      \"node\",\n      \"api-test-generator.mjs\",\n      \"--input\",\n      \"<relative-openapi-path>\",\n      \"--out\",\n      \"<relative-plan-path>\"\n    ],\n    \"exitCode\": 0,\n    \"deterministic\": true\n  },\n  \"plan\": {\n    \"requiredFields\": [\n      \"schemaVersion\",\n      \"source\",\n      \"framework\",\n      \"endpoints\"\n    ],\n    \"endpointFields\": [\n      \"method\",\n      \"path\",\n      \"cases\"\n    ],\n    \"caseFields\": [\n      \"id\",\n      \"category\",\n      \"request\",\n      \"expectedStatus\",\n      \"assertions\",\n      \"independent\",\n      \"timeoutMs\"\n    ],\n    \"categoryValues\": [\n      \"happy\",\n      \"boundary\",\n      \"error\"\n    ],\n    \"allowAdditionalFields\": true,\n    \"allowAnyCaseOrder\": true\n  },\n  \"report\": {\n    \"requiredFields\": [\n      \"schemaVersion\",\n      \"discoverySource\",\n      \"generatedCaseCount\",\n      \"verification\",\n      \"limitations\"\n    ],\n    \"verificationStatus\": [\n      \"passed\",\n      \"failed\",\n      \"not-run\"\n    ]\n  },\n  \"resourcePolicy\": {\n    \"network\": false,\n    \"packageInstall\": false,\n    \"allowedRuntime\": \"node\",\n    \"availablePackages\": [\n      \"yaml\"\n    ]\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"freeTextLanguage\": \"any\"\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "api-generator-integrity",
+          "name": "Protected inputs and deterministic generator execution",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "generator-integrity",
+            "paths": {
+              "openapi": "api/openapi.json",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "000d8c6bc419076dcfc1b0c62f7a1704eab5b9d0671eca937733d4faba32bb8d",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "api-operation-coverage",
+          "name": "Every documented operation is represented",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "operation-coverage",
+            "paths": {
+              "openapi": "api/openapi.json",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "000d8c6bc419076dcfc1b0c62f7a1704eab5b9d0671eca937733d4faba32bb8d",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "api-schema-derived-cases",
+          "name": "Cases reflect documented valid, boundary, and invalid inputs",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "schema-derived-cases",
+            "paths": {
+              "openapi": "api/openapi.json",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "000d8c6bc419076dcfc1b0c62f7a1704eab5b9d0671eca937733d4faba32bb8d",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "api-security-response",
+          "name": "Security and response assertions follow the public API definition",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "security-response",
+            "paths": {
+              "openapi": "api/openapi.json",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "000d8c6bc419076dcfc1b0c62f7a1704eab5b9d0671eca937733d4faba32bb8d",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "api-independence-verification",
+          "name": "Cases are independent and verification claims are grounded",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-api-tester",
+          "payload": {
+            "schemaVersion": "skill-ir-api-tester-eval/v1",
+            "check": "independence-verification",
+            "paths": {
+              "openapi": "api/openapi.json",
+              "interface": "api-test-interface.json",
+              "generator": "api-test-generator.mjs",
+              "plan": "generated/api-test-plan.json",
+              "report": "api-test-report.json"
+            },
+            "protectedSha256": {
+              "openapi": "000d8c6bc419076dcfc1b0c62f7a1704eab5b9d0671eca937733d4faba32bb8d",
+              "interface": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "api-generator-integrity",
+        "api-operation-coverage",
+        "api-schema-derived-cases",
+        "api-security-response",
+        "api-independence-verification"
+      ],
+      "passThreshold": 1
+    }
+  ]
+}

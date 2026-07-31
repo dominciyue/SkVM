@@ -22,6 +22,9 @@ execution feedback 改善稳定性。
   唯一 8-row 强模型矩阵为 8/8、0 infrastructure；但 no-skill/original 均 4/4、mean 1.0、0 differing
   pair，original token 为 no-skill 的 3.1794 倍。Task 16.21 按停止规则关闭，base IR/held-out 不放行；
   下一步转向 Wave B 的不同真实 skill，不继续增加 experimental-design harder task 或 runtime 版本。
+- Task 16.22 已选择真实 `api-tester` 作为首个 Wave B replication，并在 scorer 前冻结 exact source、
+  public generator ABI、2 development + 2 held-out split。当前仅为 `tasks-authored`；oracle/scorer、
+  local audit、强模型 baseline 和 IR 均尚未开始。
 - 已加入 skill-neutral 的付费前 benchmark contract audit。三个 Wave A v1 benchmark 均未通过：
   env-manager 缺公开精确 schema rule 与分类金标合同，Law 的两个任务都拒绝等价审核措辞，
   experimental-design 的 plan 合同 2/2 通过，但 assignment、allocation、report 共 6/6

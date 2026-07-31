@@ -1521,3 +1521,19 @@ residue。唯一 8-row matrix 为 8/8 rows、4/4 comparable pairs、0 infrastruc
 1.0，differing pairs 为 0。Gate 的 `noSkillNonSaturated=false`、`distinguishable=false`，因此 failed。
 No-skill 为 28,061 aggregate tokens，original 为 89,217，即 3.1794x。该结果只说明当前 strong-model
 surface 无可测 original 增益；base IR、held-out 和 optimization claim 均不允许。
+
+## 37. API-tester Wave B Task Contract
+
+Task 16.22.1 把首个 Wave B `api-tester` 从 `selected` 推进到 `tasks-authored`，仍无 `irPath`、scorer、
+calibration lock 或 runnable promotion。Source closure 同时冻结上游 CRLF digest 和仓库 LF 规范化 digest，
+避免 Git 换行规则破坏 provenance。
+
+公开任务要求生成离线 `api-test-generator.mjs`、`generated/api-test-plan.json` 和
+`api-test-report.json`。Development 为 OpenAPI YAML/bearer 与 JSON/api-key 两个 task；held-out 为不同
+billing/webhook domain。Public interface 只给出 CLI、产物 shape、Node/`yaml` 资源和无网络/无安装边界，
+不包含 endpoint 对应的派生 case。
+
+`buildCorpusMatrixInput(..., { mode: "tasks-authored-calibration" })` 现在必须同时给出恰好一个
+`skillIds`。这是 skill-neutral fail-closed 规则：多个 task-authored entry 共存时，默认不再把它们混成
+一张 pre-IR matrix。API-tester 当前只能通过显式 `skillIds: ["api-tester"]` 进入 development plan；
+held-out 仍由 task contract 隔离且不参与该模式。

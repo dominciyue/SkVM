@@ -222,23 +222,33 @@ describe("buildCorpusMatrixInput", () => {
     expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);
   });
 
-  test("pre-IR mode exposes only the active experimental-design v2 calibration entry", () => {
+  test("pre-IR mode requires one explicit task-authored skill", () => {
+    expect(() => buildCorpusMatrixInput("pilot", process.cwd(), {
+      mode: "tasks-authored-calibration",
+    })).toThrow("exactly one explicit skillId")
+
     const input = buildCorpusMatrixInput("pilot", process.cwd(), {
       mode: "tasks-authored-calibration",
+      skillIds: ["api-tester"],
     });
 
     expect(input.skills).toEqual([{
-      id: "experimental-design-v2",
+      id: "api-tester",
       packaging: "focused",
       provenance: "real-public",
-      evidenceWeight: "support-real",
+      evidenceWeight: "main-real",
     }]);
     expect(input.tasksBySkill).toEqual({
-      "experimental-design-v2": [
-        "experimental-design-v2-stratified-dev-001",
-        "experimental-design-v2-cluster-sequential-dev-002",
+      "api-tester": [
+        "api-tester-openapi-users-dev-001",
+        "api-tester-openapi-inventory-dev-002",
       ],
     });
     expect(input.systems).toEqual(["no-skill", "original"]);
+
+    expect(() => buildCorpusMatrixInput("pilot", process.cwd(), {
+      mode: "tasks-authored-calibration",
+      skillIds: ["api-tester", "experimental-design-v2"],
+    })).toThrow("exactly one explicit skillId")
   });
 });

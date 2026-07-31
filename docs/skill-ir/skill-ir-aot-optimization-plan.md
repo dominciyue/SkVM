@@ -2787,7 +2787,7 @@ Task 16.21 不进入 base IR/held-out。
   script/resource，运行期只需要 Node 与已固定 `yaml` package。
 - [x] 冻结 benchmark 形态为离线 `api-test-generator/v1`：候选生成 JS generator、derived plan 与 report；
   scorer 执行 generator 并从 agent-visible OpenAPI 独立推导语义，不比较框架/命名/措辞。
-- [ ] 先写 2 development + 2 held-out、task-visible public contract 与 split freeze；scorer 文件不得在
+- [x] 先写 2 development + 2 held-out、task-visible public contract 与 split freeze；scorer 文件不得在
   split freeze commit 之前出现。
 - [ ] TDD 实现 source-derived oracle、五项 hard-gate scorer、两族 alternative-valid、invalid control、
   reverse-evidence、leak 与 production materialization audit；本地审计未通过前不调用 API。
@@ -2814,10 +2814,14 @@ Create  src/benchmarks/skill-ir/api-tester-contract.ts
 Modify  benchmarks/skill-ir/corpus/corpora/pilot.json
 ```
 
-- [ ] RED：拒绝 source/license digest 漂移、非 2+2 split、混合 split、重复 task、绝对/逃逸路径、task-visible
+- [x] RED：拒绝 source/license digest 漂移、非 2+2 split、混合 split、重复 task、绝对/逃逸路径、task-visible
   expected/gold/oracle/source quote、held-out sentinel、网络/package-install 权限和缺失 CLI/output ABI。
-- [ ] GREEN：提交 exact source closure、两种 development OpenAPI 表示、两种不同 held-out domain、公开
+- [x] GREEN：提交 exact source closure、两种 development OpenAPI 表示、两种不同 held-out domain、公开
   generator ABI 和 split freeze；corpus 仍为 `tasks-authored` 且无 `irPath`。
+
+执行结果：source closure 同时冻结上游 CRLF digest 与 committed LF digest；YAML/JSON development、
+billing/webhook held-out、public generator ABI 和 split freeze 已建立。新增通用门禁要求
+`tasks-authored-calibration` 显式且只选择一个 skill，防止旧 Wave A 与新 Wave B 默认混跑。
 
 #### Task 16.22.2：Oracle、Scorer 与本地审计
 

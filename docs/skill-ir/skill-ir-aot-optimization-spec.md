@@ -2389,9 +2389,11 @@ Gate 因 no-skill saturation 与无区分度失败。该结果关闭 experimenta
 Task 16.22 选择冻结 intake 中的 `api-tester` 作为首个 Wave B replication。Exact source 来自
 `laolaoshiren/claude-code-skills-zh` commit `1e221579b0504082d25d5548b194399a7785f10f`，上游路径为
 `skills/api-tester/SKILL.md`，license 为 MIT。Source closure v1 只包含原始 `SKILL.md` 与上游 LICENSE；
-该 skill 没有 bundled script/resource。原始 source SHA-256 为
+该 skill 没有 bundled script/resource。上游 CRLF source SHA-256 为
 `fdc81d971835c9585af9be44df9bf1ed4310029489009ddf6ace2705395b7be9`，license SHA-256 为
-`494baa32c21079f6ab4cb73815fa8b119045e22f0d8b5c2bd553c4a0905ac1b2`。
+`494baa32c21079f6ab4cb73815fa8b119045e22f0d8b5c2bd553c4a0905ac1b2`。Committed closure 采用
+Git-stable `crlf-to-lf` 规范化，分别冻结规范化后 digest；逐行正文必须与上游一致，freeze 同时保存
+上游与 closure 两组 digest，避免把换行转换误记为 source drift。
 
 本轮比较三种 benchmark 形态：纯 declarative plan 容易退回字段/措辞匹配；任意 Jest/Pytest 加 live
 server 会把框架、数据库和进程生命周期混入主结果；正式采用中间方案 `api-test-generator/v1`。Agent

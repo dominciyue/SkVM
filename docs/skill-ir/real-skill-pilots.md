@@ -80,7 +80,7 @@ OpenAPI 独立推导语义。这样保留“生成测试代码”的能力，同
 benchmarks/skill-ir/pilots/law-to-markdown/source/
 benchmarks/skill-ir/pilots/env-manager/source/
 benchmarks/skill-ir/pilots/experimental-design/source/
-benchmarks/skill-ir/pilots/api-tester/source/          # Task 16.22.1 创建后生效
+benchmarks/skill-ir/pilots/api-tester/source/
 ```
 
 `benchmarks/skill-ir/corpus/corpora/pilot.json` 固定：
