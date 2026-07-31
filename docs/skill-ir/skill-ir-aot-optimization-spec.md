@@ -2349,3 +2349,21 @@ entrypoint child PATH 处发生转码失败；最终尝试已将 Pi executable �
 当前 harness 按停止规则冻结；不得执行 8-row matrix、构造 base IR 或消费 held-out。后续必须先通过
 独立无 API spawn probe 评审 execution boundary，并以新的 execution identity 明确冻结；这不允许原地
 修改本轮 method lock，也不构成新增 benchmark/catalog 版本。
+
+#### 24.9.23 Direct Node Pi package execution boundary
+
+架构评审采用 direct Node package entry，不再修补 `.bin/pi.exe`、PATH、junction 或仓库复制。Pi adapter
+在显式 `repoPath` 之后、PATH/npx 之前增加 installed-package tier：只有项目声明并安装的
+`@mariozechner/pi-coding-agent/dist/cli.js` 与系统 Node 同时存在时，命令才为
+`<node> <package>/dist/cli.js`；否则保持既有 fallback。该顺序复用 adapter 已有 repo dist entry 的
+Node 启动语义，同时绕过 Bun/npm Windows shim。
+
+进入 API 前必须在含非 ASCII 的独立 cwd 中，通过真实 `runSubprocess` 完成 `--version` probe，要求
+exit 0、非 timeout、精确版本 0.67.68，且实际 command 不包含 `.bin/pi` 或 junction。Compact probe 只
+保存 command kind、Node/Pi 版本、digest、exit/timing 和脱敏失败分类，不保存绝对路径、环境值或输出
+正文。失败即停止，不创建新的 qualification。
+
+Probe 通过后建立独立 execution lock，继承同一 task/source/scorer/model/matrix/gate，只替换并绑定：
+adapter source、Pi installed package/CLI、Node executable/version、source runner 和 coordinator digest。
+旧 method lock、三份失败 qualification 与旧 stable harness evidence 保持不可变。新 lock 仍先运行唯一
+original qualification；只有 Pi/resource/route/2 outputs/residue 全绿才允许一次 8-row matrix。

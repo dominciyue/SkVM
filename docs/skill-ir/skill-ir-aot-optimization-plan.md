@@ -2750,3 +2750,28 @@ Create  results/skill-ir/experimental-design-skill-unique-materialization-audit-
 executable + Pi package CLI entry”能否稳定启动；只有该边界成立并以新 execution identity 书面冻结，
 才允许重新 qualification。若仍不成立，直接切换已经证明可用的稳定 harness/Wave B，不再为当前
 Windows/Bun shim 增加 runtime、transport 或 catalog 版本。
+
+#### Task 16.21.5：Direct Node Pi execution boundary
+
+**Files:**
+
+```text
+Modify  src/adapters/pi.ts
+Modify  src/adapters/pi.test.ts
+Create  src/benchmarks/skill-ir/pi-package-execution-probe.ts
+Create  src/benchmarks/skill-ir/pi-package-execution-probe.test.ts
+Create  results/skill-ir/pi-package-execution-probe-2026-07-31.json
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-direct-cli-calibration-lock.json
+Modify  src/benchmarks/skill-ir/experimental-design-skill-unique-calibration.ts
+Modify  src/benchmarks/skill-ir/experimental-design-skill-unique-calibration-run.ts
+Modify  corresponding tests and active documentation
+```
+
+- [ ] RED：在含非 ASCII 的 cwd 中从 Bun parent 调用 installed Pi package `--version`；要求 command 为
+  Node + `dist/cli.js`，拒绝 `.bin`/junction、缺 Node、缺 CLI、版本漂移和 timeout。
+- [ ] GREEN：adapter resolution 顺序固定为 explicit repo -> installed package -> PATH -> npx；普通 fallback
+  语义保持，compact probe 不保存绝对路径或 stdout/stderr。
+- [ ] Probe 通过后才提交新的 execution lock；继承原 task/source/scorer/model/matrix/gate，绑定 Node、Pi
+  CLI、adapter/source runner/coordinator digest，不覆盖失败 lock。
+- [ ] 新 lock 先 dry-run 与唯一 qualification；通过才运行一次 8-row matrix/scoring/gate。任何 API 前
+  infrastructure failure 都冻结并停止，不能归因为 skill 或模型。
