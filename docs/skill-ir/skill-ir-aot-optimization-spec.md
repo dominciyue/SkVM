@@ -2439,3 +2439,9 @@ Wave B 复用现有 source materialization、Pi direct-package execution、short
 distinguishability gate；通用 core 禁止出现 `api-tester` id 分支。付费前记录相对 Task 16.21 的 core
 branch delta、skill-specific adapter LOC 和 artifact kind reuse。Baseline gate 失败就冻结该 surface 的负
 结果；通过才允许 source-audited base IR、ir-static 和后续 artifact 编译，不提前消费 held-out。
+
+实现状态（2026-07-31）：source-derived oracle 与 `skill-ir-api-tester` evaluator 已按上述合同落地。
+Constraint 采用逐证据 witness，接受合法 edge 或 just-outside invalid 两族策略；payload schema 与
+reverse-evidence 测试阻断 gold/raw/source-quote/held-out 回流。Generator replay 当前使用仓库内临时隔离
+副本、最小环境和静态 offline policy；它是 benchmark 可复现门禁，不宣称构成恶意代码安全沙箱。
+Local audit 报告与 production materialization 仍是 calibration lock 的未完成前置条件。

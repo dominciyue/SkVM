@@ -1537,3 +1537,27 @@ billing/webhook domain。Public interface 只给出 CLI、产物 shape、Node/`y
 `skillIds`。这是 skill-neutral fail-closed 规则：多个 task-authored entry 共存时，默认不再把它们混成
 一张 pre-IR matrix。API-tester 当前只能通过显式 `skillIds: ["api-tester"]` 进入 development plan；
 held-out 仍由 task contract 隔离且不参与该模式。
+
+### 37.1 Source-derived oracle 与 deterministic evaluator
+
+`api-tester-oracle.ts` 只解析 agent 可见的 OpenAPI YAML/JSON：它按 method/path 推导 operation、2xx/4xx-5xx
+状态、bearer/api-key header，以及 required、min/max、enum、format 等逐条 constraint。每个 constraint
+保留独立 witness，因此合法边界值和刚好越界的无效值都可被接受；删除公开 constraint 后对应要求同步
+消失。缺 paths、缺成功响应或出现首版不支持的证据形态时返回 `unconfirmed`，不猜测 evaluator gold。
+
+`skill-ir-api-tester` evaluator 的 payload 为严格封闭 schema，不允许 gold、raw model、source quote 或
+held-out 字段。`generator-integrity` 先核对 initial-workdir manifest、protected digest 与 exact output set，
+再在仓库内临时隔离副本中用最小环境复跑 generator 两次；两次 bytes 及提交 plan 必须完全一致。静态
+resource policy 拒绝网络、child process、worker 与 package-install 入口。其余四项分别检查 operation、
+schema witness、security/response 与 independence/report honesty。所有 criterion 都是二值 hard gate；
+runtime replay 不是 live API test，最终成功仍由这套 workdir evaluator 决定。
+
+当前验证命令：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/api-tester-oracle.test.ts ./src/bench/evaluators/api-tester-grade.test.ts
+bunx tsc --noEmit
+```
+
+本阶段只证明 scorer 内核可执行。持久化 differential audit 与生产 `prepareRunWorkspace` 双臂物化尚未
+全绿，因此不得起草 calibration lock、调用模型 API 或把 `api-tester` 晋升为 runnable。

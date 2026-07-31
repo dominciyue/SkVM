@@ -26,6 +26,7 @@ import "./law-to-markdown-grade.ts"
 import "./experimental-design-grade.ts"
 import "./experimental-design-grade-v2.ts"
 import "./experimental-design-skill-unique-grade.ts"
+import "./api-tester-grade.ts"
 // import "./docker-grader.ts"   // example of future addition
 // import "./js-grader.ts"       // example of future addition
 
@@ -37,6 +38,7 @@ export const customEvaluatorSourcePaths = new Map<string, string>([
   ["skill-ir-experimental-design", "src/bench/evaluators/experimental-design-grade.ts"],
   ["skill-ir-experimental-design-v2", "src/bench/evaluators/experimental-design-grade-v2.ts"],
   ["skill-ir-experimental-design-skill-unique", "src/bench/evaluators/experimental-design-skill-unique-grade.ts"],
+  ["skill-ir-api-tester", "src/bench/evaluators/api-tester-grade.ts"],
 ])
 
 export const customEvaluatorSourceDigests = new Map<string, string>([
@@ -47,6 +49,7 @@ export const customEvaluatorSourceDigests = new Map<string, string>([
   ["skill-ir-experimental-design", "6030a23048d1f12d59d72790635ed0c5ccf5b40d4cace8171eb0a7763ed2cd19"],
   ["skill-ir-experimental-design-v2", "6dda3cbc9e369fa6b1ab1dbe974c86baa3cad967bd707e1d5668eb1ea2d51960"],
   ["skill-ir-experimental-design-skill-unique", "d74e81e90925a1dd62104be10dd8cb536f13f7ce8e4a10a3e063e0980fea1e4f"],
+  ["skill-ir-api-tester", "8c32311030502fccdf8d56e70bb946d070ffee47c560604ad846b974272bba22"],
 ])
 
 export const customEvaluatorImplementations = new Map<string, CustomEvaluator>(
