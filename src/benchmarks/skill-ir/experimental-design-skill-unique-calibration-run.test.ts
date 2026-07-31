@@ -1,18 +1,18 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { mkdtemp, realpath, rm } from "node:fs/promises"
+import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import {
   buildExperimentalDesignSkillUniqueCalibrationPlan,
+  buildExperimentalDesignSkillUniquePiVersionCommand,
   buildExperimentalDesignSkillUniqueQualificationReport,
-  ensureExperimentalDesignSkillUniqueAsciiNodeModules,
   selectExperimentalDesignSkillUniqueQualificationRow,
 } from "./experimental-design-skill-unique-calibration-run.ts"
 
 const rootDir = path.resolve(import.meta.dir, "../../..")
 const lockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-calibration-lock.json",
+  "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-direct-cli-calibration-lock.json",
 )
 let outDir: string
 
@@ -25,10 +25,20 @@ afterAll(async () => {
 })
 
 describe("experimental-design skill-unique calibration orchestration", () => {
-  test("exposes node_modules through an ASCII junction for Pi command resolution", async () => {
-    const link = await ensureExperimentalDesignSkillUniqueAsciiNodeModules(rootDir, outDir)
-    expect(link).toMatch(/^[\x00-\x7f]+$/u)
-    expect(await realpath(link)).toBe(await realpath(path.join(rootDir, "node_modules")))
+  test("builds the frozen direct Node Pi version command without a shim", async () => {
+    const built = await buildExperimentalDesignSkillUniqueCalibrationPlan({
+      rootDir,
+      lockPath,
+      outDir,
+      phase: "plan",
+    })
+    const command = buildExperimentalDesignSkillUniquePiVersionCommand(built.lock, rootDir)
+    expect(command).toEqual([
+      Bun.which("node")!,
+      path.join(rootDir, "node_modules/@mariozechner/pi-coding-agent/dist/cli.js"),
+      "--version",
+    ])
+    expect(command.some((part) => part.includes(`${path.sep}.bin${path.sep}`))).toBe(false)
   })
 
   test("builds eight managed-Pi rows as four complete no-skill/original pairs", async () => {
@@ -47,7 +57,7 @@ describe("experimental-design skill-unique calibration orchestration", () => {
         path.join(rootDir, "src/index.ts"),
         "run",
       ])
-      expect(row.panelConfigId).toBe("experimental-design-skill-unique-pi-development-v1")
+      expect(row.panelConfigId).toBe("experimental-design-skill-unique-pi-direct-cli-development-v1")
       expect(row.command).toContain("--adapter-config=managed")
       expect(row.command).toContain("--timeout-ms=300000")
       expect(row.command).toContain("--max-steps=30")

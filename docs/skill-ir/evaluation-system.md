@@ -1489,3 +1489,15 @@ bun ./src/benchmarks/skill-ir/pi-package-execution-probe.ts `
 结果为 passed：Node v23.8.0、Pi 0.67.68、exit 0、非 timeout、总计 821ms。Compact report 只保存
 command kind、版本、Node/Pi package/CLI digest、timing 与封闭失败码，不保存绝对路径、stdout/stderr 或
 环境变量。该结果只放行新的 execution lock 构造，不是 route/model/skill 优化证据。
+
+新的 execution lock 为：
+
+```text
+benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-direct-cli-calibration-lock.json
+```
+
+它继承相同的 source/task/interface/scorer/model、2 x 2 x 2 matrix、retries 0 和区分度 gate，只将
+execution identity 替换为 direct Node package CLI，并绑定 passed probe、Node executable/version、Pi
+package/CLI、adapter、source runner 与六个 orchestration digest。旧 `pi-calibration-lock.json` 和三份失败
+qualification 不修改。新 dry-run 为 8 rows、4 complete pairs；qualification 仍只允许一条预注册
+original route，通过后才可执行 matrix。

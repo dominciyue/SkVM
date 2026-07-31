@@ -2771,10 +2771,11 @@ Modify  corresponding tests and active documentation
   Node + `dist/cli.js`，拒绝 `.bin`/junction、缺 Node、缺 CLI、版本漂移和 timeout。
 - [x] GREEN：adapter resolution 顺序固定为 explicit repo -> installed package -> PATH -> npx；普通 fallback
   语义保持，compact probe 不保存绝对路径或 stdout/stderr。
-- [ ] Probe 通过后才提交新的 execution lock；继承原 task/source/scorer/model/matrix/gate，绑定 Node、Pi
+- [x] Probe 通过后才提交新的 execution lock；继承原 task/source/scorer/model/matrix/gate，绑定 Node、Pi
   CLI、adapter/source runner/coordinator digest，不覆盖失败 lock。
 - [ ] 新 lock 先 dry-run 与唯一 qualification；通过才运行一次 8-row matrix/scoring/gate。任何 API 前
   infrastructure failure 都冻结并停止，不能归因为 skill 或模型。
 
 本地 probe 已通过：Node v23.8.0 直接启动 Pi 0.67.68，exit 0、非 timeout、821ms；报告只保存
-executable/package/CLI digest 和封闭状态。下一步先提交该边界，再生成并验证新的 execution lock。
+executable/package/CLI digest 和封闭状态。新 direct-cli lock 已通过 schema/digest/probe 验证；正式
+dry-run 为 8 rows、4 complete pairs，下一步提交 lock 后只运行一条预注册 original qualification。

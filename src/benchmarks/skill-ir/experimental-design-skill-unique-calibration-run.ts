@@ -42,10 +42,16 @@ export type ExperimentalDesignSkillUniqueCalibrationPlan = {
 
 const LocalPiQualificationSchema = z.object({
   schemaVersion: z.literal("skill-ir-local-pi-qualification/v1"),
-  calibrationId: z.literal("experimental-design-skill-unique-pi-development-v1"),
+  calibrationId: z.enum([
+    "experimental-design-skill-unique-pi-development-v1",
+    "experimental-design-skill-unique-pi-direct-cli-development-v1",
+  ]),
   methodEvidence: z.literal(false),
   status: z.enum(["passed", "failed"]),
-  executable: z.literal("node_modules/.bin/pi.exe"),
+  executable: z.enum([
+    "node_modules/.bin/pi.exe",
+    "node_modules/@mariozechner/pi-coding-agent/dist/cli.js",
+  ]),
   expectedVersion: z.literal("0.67.68"),
   observedVersion: z.string(),
   exitCode: z.number().int().optional(),
@@ -77,7 +83,10 @@ const RouteRowSchema = z.object({
   model: z.literal("xty/gpt-5.6-sol"),
   adapter: z.literal("pi"),
   adapterVersion: z.literal("0.67.68"),
-  panelConfigId: z.literal("experimental-design-skill-unique-pi-development-v1"),
+  panelConfigId: z.enum([
+    "experimental-design-skill-unique-pi-development-v1",
+    "experimental-design-skill-unique-pi-direct-cli-development-v1",
+  ]),
   exitCode: z.number().int(),
   runStatus: z.string(),
   durationMs: z.number().nonnegative(),
@@ -86,7 +95,10 @@ const RouteRowSchema = z.object({
 
 export const ExperimentalDesignSkillUniqueQualificationReportSchema = z.object({
   schemaVersion: z.literal("skill-ir-experimental-design-skill-unique-qualification/v1"),
-  calibrationId: z.literal("experimental-design-skill-unique-pi-development-v1"),
+  calibrationId: z.enum([
+    "experimental-design-skill-unique-pi-development-v1",
+    "experimental-design-skill-unique-pi-direct-cli-development-v1",
+  ]),
   methodEvidence: z.literal(false),
   status: z.enum(["passed", "failed"]),
   localPi: LocalPiQualificationSchema,
@@ -305,7 +317,11 @@ export async function ensureExperimentalDesignSkillUniqueAsciiNodeModules(
 async function calibrationEnvironment(
   rootDir: string,
   env: Record<string, string | undefined>,
+  lock: ExperimentalDesignSkillUniqueCalibrationLock,
 ): Promise<Record<string, string | undefined>> {
+  if (lock.harness.execution.piResolution === "installed-package-node") {
+    return { ...env, SKVM_AUTO_PROBE: "0" }
+  }
   const asciiNodeModules = await ensureExperimentalDesignSkillUniqueAsciiNodeModules(
     rootDir,
     path.join(tmpdir(), "skvm-skill-ir-harness"),
@@ -319,6 +335,18 @@ async function calibrationEnvironment(
     ...(process.platform === "win32" ? { Path: mergedPath } : {}),
     SKVM_AUTO_PROBE: "0",
   }
+}
+
+export function buildExperimentalDesignSkillUniquePiVersionCommand(
+  lock: ExperimentalDesignSkillUniqueCalibrationLock,
+  rootDir: string,
+): string[] {
+  if (lock.harness.execution.piResolution === "installed-package-node") {
+    const node = Bun.which(lock.harness.execution.nodeCommand)
+    if (!node) throw new Error("Skill-unique calibration Node executable is unavailable")
+    return [node, path.resolve(rootDir, lock.harness.execution.piCli.path), "--version"]
+  }
+  return [path.resolve(rootDir, lock.harness.executable), "--version"]
 }
 
 async function readJsonl<T>(filePath: string): Promise<T[]> {
@@ -429,15 +457,19 @@ export async function runExperimentalDesignSkillUniqueCalibration(
     return built
   }
 
-  const env = await calibrationEnvironment(rootDir, baseEnv)
   const planOutDir = input.phase === "qualification" ? path.join(outDir, "qualification-work") : outDir
   const built = await buildExperimentalDesignSkillUniqueCalibrationPlan({ ...input, rootDir, outDir: planOutDir })
+  const env = await calibrationEnvironment(rootDir, baseEnv, built.lock)
   assertRequiredEnv(built.runArgs, env)
   if (input.phase === "qualification") {
     await writePlan(built, planOutDir)
     const localPi = summarizeLocalPi(
       built.lock,
-      await runCommandWithTimeout([path.resolve(rootDir, built.lock.harness.executable), "--version"], 30000, env),
+      await runCommandWithTimeout(
+        buildExperimentalDesignSkillUniquePiVersionCommand(built.lock, rootDir),
+        30000,
+        env,
+      ),
     )
     const probePath = path.relative(rootDir, path.join(outDir, "resource-probe.json")).split(path.sep).join("/")
     if (!probePath || probePath.startsWith("../")) {

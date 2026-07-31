@@ -17,6 +17,7 @@ import {
   type PreIrCalibrationGateReport,
 } from "./pre-ir-calibration-gate.ts"
 import type { ScoredAgentRunRow } from "./scoring.ts"
+import { PiPackageExecutionProbeReportSchema } from "./pi-package-execution-probe.ts"
 import { sha256Bytes } from "./source-fixture.ts"
 
 const FrozenFileSchema = z.object({
@@ -55,7 +56,10 @@ const SourceOracleProvenanceSchema = z.object({
 export const ExperimentalDesignSkillUniqueCalibrationLockSchema = z.object({
   schemaVersion: z.literal("skill-ir-experimental-design-skill-unique-calibration-lock/v1"),
   status: z.literal("preregistered"),
-  calibrationId: z.literal("experimental-design-skill-unique-pi-development-v1"),
+  calibrationId: z.enum([
+    "experimental-design-skill-unique-pi-development-v1",
+    "experimental-design-skill-unique-pi-direct-cli-development-v1",
+  ]),
   methodEvidence: z.literal(false),
   corpus: z.literal("pilot"),
   skillId: z.literal("experimental-design-v2-skill-unique"),
@@ -84,16 +88,32 @@ export const ExperimentalDesignSkillUniqueCalibrationLockSchema = z.object({
     packageJson: FrozenFileSchema,
     bunLock: FrozenFileSchema,
     adapterSource: FrozenFileSchema,
-    execution: z.object({
-      kind: z.literal("bun-source-skvm"),
-      bunVersion: z.literal("1.3.14"),
-      piResolution: z.literal("ascii-node-modules-junction"),
-      asciiLinkName: z.literal("skvm-node-modules-pi-0.67.68"),
-      sourceEntrypoint: FrozenFileSchema,
-    }).strict(),
-    orchestration: z.array(FrozenFileSchema).length(5),
+    execution: z.discriminatedUnion("piResolution", [
+      z.object({
+        kind: z.literal("bun-source-skvm"),
+        bunVersion: z.literal("1.3.14"),
+        piResolution: z.literal("ascii-node-modules-junction"),
+        asciiLinkName: z.literal("skvm-node-modules-pi-0.67.68"),
+        sourceEntrypoint: FrozenFileSchema,
+      }).strict(),
+      z.object({
+        kind: z.literal("bun-source-skvm-direct-pi-package"),
+        bunVersion: z.literal("1.3.14"),
+        piResolution: z.literal("installed-package-node"),
+        nodeCommand: z.literal("node"),
+        nodeVersion: z.literal("v23.8.0"),
+        nodeExecutableSha256: Sha256Schema,
+        piCli: FrozenFileSchema,
+        probe: FrozenFileSchema,
+        sourceEntrypoint: FrozenFileSchema,
+      }).strict(),
+    ]),
+    orchestration: z.array(FrozenFileSchema).min(5).max(6),
     installedPackageJson: z.literal("node_modules/@mariozechner/pi-coding-agent/package.json"),
-    executable: z.literal("node_modules/.bin/pi.exe"),
+    executable: z.enum([
+      "node_modules/.bin/pi.exe",
+      "node_modules/@mariozechner/pi-coding-agent/dist/cli.js",
+    ]),
   }).strict(),
   model: z.object({
     route: z.literal("xty/gpt-5.6-sol"),
@@ -160,6 +180,19 @@ export const ExperimentalDesignSkillUniqueCalibrationLockSchema = z.object({
   if (lock.runtime.outerWatchdogMs < lock.runtime.taskTimeoutMs + lock.runtime.teardownGraceMs) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "Skill-unique watchdog budget mismatch" })
   }
+  const direct = lock.harness.execution.piResolution === "installed-package-node"
+  const expectedCalibrationId = direct
+    ? "experimental-design-skill-unique-pi-direct-cli-development-v1"
+    : "experimental-design-skill-unique-pi-development-v1"
+  if (lock.calibrationId !== expectedCalibrationId) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Skill-unique execution identity mismatch" })
+  }
+  const expectedExecutable = direct
+    ? "node_modules/@mariozechner/pi-coding-agent/dist/cli.js"
+    : "node_modules/.bin/pi.exe"
+  if (lock.harness.executable !== expectedExecutable || lock.harness.orchestration.length !== (direct ? 6 : 5)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Skill-unique execution binding mismatch" })
+  }
 })
 
 export type ExperimentalDesignSkillUniqueCalibrationLock = z.infer<
@@ -203,6 +236,12 @@ export async function validateExperimentalDesignSkillUniqueCalibrationLock(
     verifyFrozenFile(rootDir, lock.harness.bunLock, "bun.lock"),
     verifyFrozenFile(rootDir, lock.harness.adapterSource, "Pi adapter"),
     verifyFrozenFile(rootDir, lock.harness.execution.sourceEntrypoint, "source entrypoint"),
+    ...(lock.harness.execution.piResolution === "installed-package-node"
+      ? [
+          verifyFrozenFile(rootDir, lock.harness.execution.piCli, "Pi package CLI"),
+          verifyFrozenFile(rootDir, lock.harness.execution.probe, "Pi package execution probe"),
+        ]
+      : []),
     ...lock.harness.orchestration.map((file) => verifyFrozenFile(rootDir, file, "orchestration")),
   ])
   validateExperimentalDesignSkillUniqueTaskSet(
@@ -271,6 +310,29 @@ export async function validateExperimentalDesignSkillUniqueCalibrationLock(
   )) as { version?: string }
   if (installed.version !== lock.harness.adapterVersion) {
     throw new Error("Skill-unique calibration installed Pi version mismatch")
+  }
+  if (lock.harness.execution.piResolution === "installed-package-node") {
+    const probe = PiPackageExecutionProbeReportSchema.parse(JSON.parse(await readFile(
+      path.resolve(rootDir, lock.harness.execution.probe.path),
+      "utf8",
+    )))
+    if (
+      probe.status !== "passed"
+      || probe.commandKind !== "node-installed-package-cli"
+      || probe.node?.version !== lock.harness.execution.nodeVersion
+      || probe.node.executableSha256 !== lock.harness.execution.nodeExecutableSha256
+      || probe.pi?.version !== lock.harness.adapterVersion
+      || probe.pi.cliSha256 !== lock.harness.execution.piCli.sha256
+      || probe.pi.packageJsonSha256 !== sha256Bytes(await readFile(
+        path.resolve(rootDir, lock.harness.installedPackageJson),
+      ))
+    ) {
+      throw new Error("Skill-unique calibration direct Pi probe binding mismatch")
+    }
+    const nodeExecutable = Bun.which(lock.harness.execution.nodeCommand)
+    if (!nodeExecutable || sha256Bytes(await readFile(nodeExecutable)) !== lock.harness.execution.nodeExecutableSha256) {
+      throw new Error("Skill-unique calibration Node executable drift")
+    }
   }
   const executable = await lstat(path.resolve(rootDir, lock.harness.executable))
   if (!executable.isFile() || executable.isSymbolicLink()) {
