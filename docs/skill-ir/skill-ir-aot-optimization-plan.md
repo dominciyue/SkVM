@@ -2704,9 +2704,9 @@ Create  src/bench/evaluators/experimental-design-skill-unique-grade.ts
 Modify  src/bench/evaluators/index.ts
 ```
 
-- [ ] RED：覆盖 replicate/count/measurement 推导、pseudoreplication、aggregate 与 hierarchical 两族
+- [x] RED：覆盖 replicate/count/measurement 推导、pseudoreplication、aggregate 与 hierarchical 两族
   合法解、缺 ancestor/invented grouping、输入 mutation、缺/多输出和 symlink/path escape。
-- [ ] GREEN：实现五项二值 hard gate、1.00 threshold；payload 只含路径与 protected digest，oracle
+- [x] GREEN：实现五项二值 hard gate、1.00 threshold；payload 只含路径与 protected digest，oracle
   只读 agent-visible graph，缺公开证据返回 `unconfirmed`。
 
 #### Task 16.21.3：差分、泄漏与物化审计
@@ -2717,14 +2717,18 @@ Modify  src/bench/evaluators/index.ts
 Create  src/benchmarks/skill-ir/experimental-design-skill-unique-audit.test.ts
 Create  src/benchmarks/skill-ir/experimental-design-skill-unique-audit.ts
 Create  src/benchmarks/skill-ir/experimental-design-skill-unique-audit-run.ts
+Create  benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/source-oracle-provenance.json
 Create  results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json
 Create  results/skill-ir/experimental-design-skill-unique-materialization-audit-2026-07-31.json
 ```
 
-- [ ] RED/GREEN：每个 development task 跑 canonical、alternative、三类 semantic invalid 和文件边界
+- [x] RED/GREEN：每个 development task 跑 canonical、alternative、四类 semantic invalid 和三类文件边界
   invalid；alternative wording/order 不得影响结果。
-- [ ] RED/GREEN：reverse-evidence、gold/source quote/raw/model/held-out canary 与 production
+- [x] RED/GREEN：reverse-evidence、gold/source quote/raw/model/held-out canary 与 production
   `prepareRunWorkspace` 的 no-skill/original 两臂物化全部 fail closed 或通过预期检查。
+
+本地结果：2 tasks x 9 cases = 18/18 matched；2 tasks x 2 systems x 9 materialization checks =
+36/36 passed。Oracle/scorer 只证明测量机制成立，尚无模型区分度、IR 增益或 held-out 结果。
 
 #### Task 16.21.4：本地门禁与一次强模型 calibration
 

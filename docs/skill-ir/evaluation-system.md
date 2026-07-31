@@ -1384,3 +1384,39 @@ bun test ./src/benchmarks/skill-ir/experimental-design-skill-unique-contract.tes
 Contract test 会重建 2+2 task、验证 source/task/interface digest，并拒绝循环、多根、断裂 lineage、
 gold/source quote/held-out sentinel 和 split drift。Corpus entry 保持 `tasks-authored`、无 `irPath`，
 因此默认主矩阵不会误调度它。
+
+### 36.1 Oracle、scorer 与本地审计
+
+实现入口：
+
+```text
+src/benchmarks/skill-ir/experimental-design-skill-unique-oracle.ts
+src/bench/evaluators/experimental-design-skill-unique-grade.ts
+src/benchmarks/skill-ir/experimental-design-skill-unique-audit.ts
+benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/source-oracle-provenance.json
+```
+
+Oracle 只读最终 workdir 中的公开 graph：treatment assignment entity 决定 independent replicate，
+response entity 决定 measurement unit；二者存在严格祖先关系时标记 pseudoreplication risk。Analysis
+可以聚合到 replicate，或停留在任意下层实体并完整列出到 replicate 的 ancestor grouping。Grouping
+顺序、method 名称、rationale 语言和额外 JSON 字段不影响评分；缺 ancestor、虚构/重复 group 会失败。
+
+五项二值 criterion 权重为 `0.10/0.10/0.30/0.20/0.30`，全部 hard gate，threshold 1.00。Evaluator
+payload 只有相对路径和两个 protected digest；source claim 的文件/行片段 digest 只供离线 audit，
+`runtimeReadable=false`、`taskVisible=false`。
+
+运行本地审计：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/experimental-design-skill-unique-oracle.test.ts `
+  ./src/bench/evaluators/experimental-design-skill-unique-grade.test.ts `
+  ./src/benchmarks/skill-ir/experimental-design-skill-unique-audit.test.ts
+
+bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-audit-run.ts
+```
+
+当前 contract differential 为 18/18 matched：每个 development task 含 aggregate 与 hierarchical
+两种合法解，以及 measurement-as-replicate、错误风险、缺/虚构 grouping、输入修改、缺输出和多输出。
+Production `prepareRunWorkspace` 的 no-skill/original 物化为 36/36 checks。Compact report 绑定 task、
+interface、split freeze、source provenance、contract/oracle/evaluator/audit implementation digest，但不保存
+输出答案或模型正文。下一步仅是冻结付费前 method lock；当前结果不等于真实模型或优化增益。

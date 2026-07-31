@@ -433,7 +433,7 @@ artifact kind 复用率和新的 failure taxonomy。
 | law-to-markdown | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | 两个 task 的 alternative-valid 审核措辞均被拒；旧 development/held-out 结果降为 support evidence。 |
 | experimental-design | 完成 | 2+2 / deterministic；contract audit failed | 完成并 source-audited | Plan canary 2/2 通过；其余 6/6 等价 canary 与四类私有 plan 合同失败，当前四臂实验阻断。 |
 | experimental-design-v2 | 复用同一冻结 source closure | 2+2 / public semantic；42/42 audit、独立 oracle、held-out freeze、36/36 materialization audit 通过 | 未开始 | Stable Pi normal/harder 两批均 8/8 rows、0 infra、两臂 4/4 mean 1.0、0 differing；Task 16.20 证明公开合同覆盖 13/13 scorer 操作要求，base IR 未放行。 |
-| experimental-design skill-unique slice | 同一 source，不计新 pilot | 2+2 split/interface 已在 scorer 前冻结；oracle/scorer 待实现 | 不允许 | 只测 independent replication/pseudoreplication 与 analysis alignment；尚无真实模型结果。 |
+| experimental-design skill-unique slice | 同一 source，不计新 pilot | 2+2 split/interface 在 scorer 前冻结；18/18 differential、36/36 materialization 通过 | 不允许 | 只测 independent replication/pseudoreplication 与 analysis alignment；尚无真实模型结果。 |
 | Wave B 3 skills | intake 完成 | 未开始 | 未开始 | 阻断。 |
 
 v3 的付费 calibration 只保留一份 `methodEvidence=false`、`promotionAllowed=false` 历史摘要；其

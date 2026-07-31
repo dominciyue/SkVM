@@ -1268,3 +1268,35 @@ results/skill-ir/experimental-design-v2-public-contract-task-sufficiency-audit-2
 interface 与 source-derived semantic oracle，再重新校准 no-skill/original。区分度 gate 通过后才
 构造同版本 base IR、加入 ir-static，并用 original/static development residual 生成 Final IR/artifact。
 Env/Law 的历史 IR 与 artifact 数值继续保留，但不能与新 benchmark 分数混算。
+
+## 27. Skill-unique Semantic Surface 本地机制结果
+
+2026-07-31 在 scorer 实现前先提交 2 development + 2 held-out split、public interface 与 source digest
+freeze。新 capability slice 复用同一真实 experimental-design source，不计为新 pilot，不修改旧 v2
+task/scorer/lock/result，也没有 `irPath`。
+
+本轮只测两个旧 scorer 未覆盖的 source claim：independent replication/pseudoreplication 与
+analysis-design alignment。Deterministic oracle 从 agent 可见的 study graph 推导 replicate、measurement、
+risk 和 lineage；允许 aggregate-to-replicate 与 lower-level hierarchical 两族合法解，不比较方法名、
+解释语言或字段顺序。
+
+| Local audit | Result |
+|---|---:|
+| Development tasks / cases | 2 / 18 |
+| Differential matched | 18/18 |
+| Canonical + alternative-valid | 4/4 accepted |
+| Semantic/file invalid controls | 14/14 rejected |
+| Materialization arms / checks | 4 / 36 |
+| Materialization passed | 36/36 |
+| Reverse-evidence / leak checks | all passed |
+
+Compact evidence：
+
+```text
+results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json
+results/skill-ir/experimental-design-skill-unique-materialization-audit-2026-07-31.json
+```
+
+这只证明新测量合同、本地 scorer 和 no-skill/original 物化边界可用。尚未调用模型，不能声称 original
+有增益、base IR 可入场或新 surface 优于强模型。下一步先冻结同一 strong-model 8-row calibration；
+若 no-skill 仍饱和或 0 differing pair，按停止规则转 Wave B，不再新增 harder experimental-design task。
