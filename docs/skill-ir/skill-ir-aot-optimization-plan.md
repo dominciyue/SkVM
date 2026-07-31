@@ -2789,9 +2789,9 @@ Task 16.21 不进入 base IR/held-out。
   scorer 执行 generator 并从 agent-visible OpenAPI 独立推导语义，不比较框架/命名/措辞。
 - [x] 先写 2 development + 2 held-out、task-visible public contract 与 split freeze；scorer 文件不得在
   split freeze commit 之前出现。
-- [ ] TDD 实现 source-derived oracle、五项 hard-gate scorer、两族 alternative-valid、invalid control、
+- [x] TDD 实现 source-derived oracle、五项 hard-gate scorer、两族 alternative-valid、invalid control、
   reverse-evidence、leak 与 production materialization audit；本地审计未通过前不调用 API。
-- [ ] 复用 direct Node Pi、short-path budget、source materialization、paired scoring 与 distinguishability
+- [x] 复用 direct Node Pi、short-path budget、source materialization、paired scoring 与 distinguishability
   gate；通用 core 不得增加 `api-tester` id 分支，不新增 runtime/transport/catalog。
 - [ ] 先跑 `no-skill | exact original` development gate。失败则冻结该 skill/model/task surface 的负结果；
   通过才编译同 source/task identity 的 base IR 和 ir-static。
@@ -2839,8 +2839,10 @@ Task 16.22.3 calibration lock；lock 冻结前不得调用 API。
 
 #### Task 16.22.3：Strong-model baseline 与 IR re-entry gate
 
-- [ ] 新 lock 继承 `gpt-5.6-sol`、Pi 0.67.68、Windows/clean、2 tasks x 2 systems x 2 repetitions、retries 0，
-  复用 direct Node + short-path 路径政策并先通过 qualification。
+- [x] 新 lock 冻结 `gpt-5.6-sol`、Pi 0.67.68、Windows/clean、2 tasks x 2 systems x 2 repetitions、retries 0，
+  复用 direct Node + short-path 路径政策；8-row/4-pair dry-run 与 220 字符路径预算已验证。
+- [ ] 先运行唯一 original/YAML qualification，要求 Pi 版本、Node/`yaml` resource probe、三个输出、route
+  status 与 harness residue 全部通过；qualification failed 时不得启动 8-row matrix。
 - [ ] 唯一 8-row baseline 要求完整分母、0 infrastructure、no-skill 非饱和、至少 1 differing pair 和每个
   task 至少一次 original success；结果出现前冻结数值 gate。
 - [ ] Gate failed 则停止；passed 才另写 base IR/source audit TDD，不在 baseline task 顺手生成 IR/Final IR。

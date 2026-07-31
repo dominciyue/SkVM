@@ -17,7 +17,9 @@ import { sha256Bytes } from "./source-fixture.ts"
 
 const DEVELOPMENT_PATH = "benchmarks/skill-ir/pilots/api-tester/development/tasks.json"
 const INTERFACE_PATH = "benchmarks/skill-ir/pilots/api-tester/public-interface.json"
+const SPLIT_FREEZE_PATH = "benchmarks/skill-ir/pilots/api-tester/task-split-freeze.json"
 const PROVENANCE_PATH = "benchmarks/skill-ir/pilots/api-tester/source-oracle-provenance.json"
+const CONTRACT_PATH = "src/benchmarks/skill-ir/api-tester-contract.ts"
 const ORACLE_PATH = "src/benchmarks/skill-ir/api-tester-oracle.ts"
 const EVALUATOR_PATH = "src/bench/evaluators/api-tester-grade.ts"
 const AUDIT_PATH = "src/benchmarks/skill-ir/api-tester-contract-audit.ts"
@@ -60,7 +62,9 @@ export const ApiTesterContractAuditReportSchema = z.object({
   inputs: z.object({
     developmentTasksSha256: Sha256Schema,
     publicInterfaceSha256: Sha256Schema,
+    taskSplitFreezeSha256: Sha256Schema,
     sourceProvenanceSha256: Sha256Schema,
+    contractImplementationSha256: Sha256Schema,
     oracleImplementationSha256: Sha256Schema,
     evaluatorImplementationSha256: Sha256Schema,
     auditImplementationSha256: Sha256Schema,
@@ -305,8 +309,9 @@ export async function buildApiTesterContractAudit(input: {
 }): Promise<ApiTesterContractAuditReport> {
   const rootDir = path.resolve(input.rootDir)
   const read = (relativePath: string) => readFile(path.join(rootDir, ...relativePath.split("/")))
-  const [developmentBytes, interfaceBytes, provenanceBytes, oracleBytes, evaluatorBytes, auditBytes] = await Promise.all([
-    read(DEVELOPMENT_PATH), read(INTERFACE_PATH), read(PROVENANCE_PATH), read(ORACLE_PATH), read(EVALUATOR_PATH), read(AUDIT_PATH),
+  const [developmentBytes, interfaceBytes, splitFreezeBytes, provenanceBytes, contractBytes, oracleBytes, evaluatorBytes, auditBytes] = await Promise.all([
+    read(DEVELOPMENT_PATH), read(INTERFACE_PATH), read(SPLIT_FREEZE_PATH), read(PROVENANCE_PATH),
+    read(CONTRACT_PATH), read(ORACLE_PATH), read(EVALUATOR_PATH), read(AUDIT_PATH),
   ])
   const taskSet = ApiTesterTaskSetSchema.parse(parseJson(developmentBytes))
   await validateProvenance(rootDir, parseJson(provenanceBytes))
@@ -353,7 +358,8 @@ export async function buildApiTesterContractAudit(input: {
     status: issues.length === 0 && allChecks ? "passed" : "failed",
     inputs: {
       developmentTasksSha256: sha256(developmentBytes), publicInterfaceSha256: sha256(interfaceBytes),
-      sourceProvenanceSha256: sha256(provenanceBytes), oracleImplementationSha256: sha256(oracleBytes),
+      taskSplitFreezeSha256: sha256(splitFreezeBytes), sourceProvenanceSha256: sha256(provenanceBytes),
+      contractImplementationSha256: sha256(contractBytes), oracleImplementationSha256: sha256(oracleBytes),
       evaluatorImplementationSha256: sha256(evaluatorBytes), auditImplementationSha256: sha256(auditBytes),
     },
     counts: { tasks: taskSet.tasks.length, cases: cases.length, matched: cases.length - issues.length },

@@ -2445,5 +2445,15 @@ Constraint 采用逐证据 witness，接受合法 edge 或 just-outside invalid 
 reverse-evidence 测试阻断 gold/raw/source-quote/held-out 回流。Generator replay 当前使用仓库内临时隔离
 副本、最小环境和静态 offline policy；它是 benchmark 可复现门禁，不宣称构成恶意代码安全沙箱。
 Local audit 已以 18/18 differential cases 通过，production materialization 已以 36/36 checks 通过；
-两份 compact report 固定在 `results/skill-ir/api-tester-*-audit-2026-07-31.json`。这只解除 calibration
-lock 的起草前置条件，不等于 lock 已冻结、baseline 已运行或 benchmark 已证明 skill 有增益。
+两份 compact report 固定在 `results/skill-ir/api-tester-*-audit-2026-07-31.json`。
+
+Calibration lock `skill-ir-api-tester-calibration-lock/v1` 已在付费前冻结：模型为
+`xty/gpt-5.6-sol`，harness 为 managed Pi 0.67.68，环境为 Windows/clean，矩阵为
+`no-skill | original` × 2 development tasks × 2 repetitions，共 8 rows/4 complete pairs，retries 0。
+Gate 要求 complete denominator、0 infrastructure、no-skill 非饱和、至少一个 differing pair，以及每个
+task 至少一次 original success。执行采用 direct Node Pi 与 `results/skill-ir/at-pi-v1` short-path root，
+最大 workdir 长度上限 220。
+
+冻结 dry-run 已验证 8 rows、4 pairs、两个 task 与两个 run index；实际最大 workdir 长度 150，no-skill
+不含 skillPath，original 全部带 exact source。`real-agent-run` 只新增通用的显式 `skillIds` 透传，没有
+`api-tester` id 分支。Qualification 和模型 API 尚未运行，baseline、IR 与 optimization claim 仍为阻断态。

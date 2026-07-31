@@ -651,6 +651,7 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
   assertDevelopmentReplayArgs(args);
   const input = buildCorpusMatrixInput(args.corpus, args.rootDir, {
     mode: args.allowTasksAuthored ? "tasks-authored-calibration" : "runnable",
+    skillIds: args.allowTasksAuthored ? [...args.skills!] : undefined,
   });
   if (args.systems) {
     input.systems = [...args.systems];

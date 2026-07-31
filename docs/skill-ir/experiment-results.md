@@ -1406,3 +1406,14 @@ Compact evidence：
 results/skill-ir/api-tester-contract-audit-2026-07-31.json
 results/skill-ir/api-tester-materialization-audit-2026-07-31.json
 ```
+
+## 33. API-tester strong-model calibration 冻结计划
+
+2026-07-31，在未调用模型 API 的前提下冻结 `api-tester-pi-direct-cli-short-path-development-v1`。
+预注册面板为 `xty/gpt-5.6-sol`、managed Pi 0.67.68、Windows/clean、retries 0；矩阵固定为
+no-skill/original × 2 development tasks × 2 repetitions，共 8 rows/4 pairs。数值 gate 要求完整分母、
+0 infrastructure、no-skill 非饱和、至少一个 differing pair，以及每个 task 至少一次 original success。
+
+Dry-run 得到预期 8 rows/4 pairs，最大 workdir 路径长度 150，低于 220 上限；no-skill 无 skillPath，
+original 全部绑定 exact source。本节是调度与冻结证据，不是模型结果；qualification、baseline、IR、
+held-out 均未运行。

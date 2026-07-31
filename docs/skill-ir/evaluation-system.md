@@ -1571,5 +1571,38 @@ nondeterministic generator 与 input/file drift 被拒；reverse-evidence 和六
 bun ./src/benchmarks/skill-ir/api-tester-audit-run.ts
 ```
 
-本阶段只证明 scorer 与物化合同可执行。现在允许起草 calibration lock，但 lock 尚未冻结、模型 API 尚未
-调用、`api-tester` 仍不得晋升为 runnable，也没有 IR 或 optimization claim。
+本阶段只证明 scorer 与物化合同可执行；`api-tester` 仍不得晋升为 runnable，也没有 IR 或
+optimization claim。
+
+### 37.2 Strong-model calibration lock 与调度
+
+`pi-direct-cli-short-path-calibration-lock.json` 在任何模型调用前冻结以下身份：
+
+```text
+model              xty/gpt-5.6-sol
+adapter            managed Pi 0.67.68
+host/context       Windows / clean
+matrix             no-skill|original x 2 development tasks x 2 repetitions
+rows/pairs          8 / 4
+retries            0
+output root        results/skill-ir/at-pi-v1
+max workdir length 220
+```
+
+Lock 逐项绑定 source、task、public interface、resource contract、scorer/oracle、两份本地 audit、runner、
+gate、Pi CLI 和 Node executable digest。`buildPlan` 在 tasks-authored 模式把已经过门禁的唯一
+`skills` 集合透传为 `skillIds`；该改动是 skill-neutral wiring，不含 `api-tester` 分支。
+
+仅生成冻结计划：
+
+```powershell
+bun ./src/benchmarks/skill-ir/api-tester-calibration-run.ts `
+  --lock=benchmarks/skill-ir/pilots/api-tester/pi-direct-cli-short-path-calibration-lock.json `
+  --out-dir=results/skill-ir/at-pi-v1 `
+  --phase=plan
+```
+
+2026-07-31 dry-run 得到 8 rows/4 complete pairs，最大 workdir 长度 150；no-skill 不带 skillPath，
+original 全部带 exact source。下一门是唯一 original/YAML qualification；只有本地 Pi、resource probe、
+route、三个输出和 residue 检查全部通过，才能执行 8-row baseline。当前尚未调用 API，也没有 baseline
+结果。

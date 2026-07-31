@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "skill-ir-api-tester-calibration-lock/v1",
+  "status": "preregistered",
+  "calibrationId": "api-tester-pi-direct-cli-short-path-development-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "api-tester",
+  "frozenInputs": {
+    "source": { "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md", "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a" },
+    "tasks": { "path": "benchmarks/skill-ir/pilots/api-tester/development/tasks.json", "sha256": "54062e72eb11a16aac4c89ed072c017f18fdff2cbeee7bac9d6efc403322076b" },
+    "publicInterface": { "path": "benchmarks/skill-ir/pilots/api-tester/public-interface.json", "sha256": "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d" },
+    "resourceContract": { "path": "benchmarks/skill-ir/pilots/api-tester/resource-contract.json", "sha256": "5952a2374f34b9ac15beb14888137fd21cd1a744ee54b2f7af2430fe8a9e5365" },
+    "scorer": { "path": "src/bench/evaluators/api-tester-grade.ts", "sha256": "8c32311030502fccdf8d56e70bb946d070ffee47c560604ad846b974272bba22" },
+    "oracle": { "path": "src/benchmarks/skill-ir/api-tester-oracle.ts", "sha256": "9449a5ed13e53de978714492ff4e759ce9f7e1efe71a60706602da6e1f77cdd2" },
+    "contract": { "path": "src/benchmarks/skill-ir/api-tester-contract.ts", "sha256": "969a5dfd880a55e70669e9fd2126fcec99c9f26bbe51c15f61e0a79bdeb5e811" },
+    "audit": { "path": "src/benchmarks/skill-ir/api-tester-contract-audit.ts", "sha256": "7ad3f714b76f42943f272778ee44de5fd2365b8ae9059696abb8b2d50435d6b5" },
+    "evaluatorRegistry": { "path": "src/bench/evaluators/index.ts", "sha256": "f1b424a6ea4b5435ac8cd0198f471a1e0529ce8de38b22bc8ce44018ab4a00a3" }
+  },
+  "sourceClosure": [
+    { "path": "benchmarks/skill-ir/pilots/api-tester/source/LICENSE.upstream", "sha256": "0137c0bf5ebe749bb97f8af36adbae05ed9bd19cc1f01ff30553173adb0544f7" },
+    { "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md", "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a" }
+  ],
+  "benchmarkGuards": [
+    { "kind": "api-tester-task-split-freeze", "path": "benchmarks/skill-ir/pilots/api-tester/task-split-freeze.json", "sha256": "4a044c60655b4dcb4083b36036870563bdc32c2a634058fd9bc108beb4634a7f" },
+    { "kind": "api-tester-source-oracle-provenance", "path": "benchmarks/skill-ir/pilots/api-tester/source-oracle-provenance.json", "sha256": "cbb3a405b73f4770706f3ceb4992ff0a9f1e7f272bcd41b01b0ae8349f72a4a3" },
+    { "kind": "api-tester-contract-audit", "path": "results/skill-ir/api-tester-contract-audit-2026-07-31.json", "sha256": "84b19c9e0b251f78d80a371622de68ac53351e2a91c654620416ebaf12d76d4a" },
+    { "kind": "api-tester-materialization-audit", "path": "results/skill-ir/api-tester-materialization-audit-2026-07-31.json", "sha256": "3bb038dfb52b20706bf7111274088382e901633251decc6d84b57772a79d83ab" }
+  ],
+  "harness": {
+    "adapter": "pi",
+    "adapterVersion": "0.67.68",
+    "mode": "managed",
+    "packageJson": { "path": "package.json", "sha256": "bd50f7d5a9ad459960bc9615070e669d483f1c53318a3ac8a759d9743c97ee30" },
+    "bunLock": { "path": "bun.lock", "sha256": "b6814f09782eecf544fca3c7426a706afe8793c750064d67bdb7b937a91cadfb" },
+    "adapterSource": { "path": "src/adapters/pi.ts", "sha256": "5357a7a5529db02ca8628b24fde3dbb8c5033889cc8c54ffca49944f218552ab" },
+    "execution": {
+      "kind": "bun-source-skvm-direct-pi-package-short-path",
+      "bunVersion": "1.3.14",
+      "piResolution": "installed-package-node-short-path",
+      "nodeCommand": "node",
+      "nodeVersion": "v23.8.0",
+      "nodeExecutableSha256": "8a0e6be40de816f334e65eb2de19d4a9b833c413eb866015eac19dceca9c3edf",
+      "piCli": { "path": "node_modules/@mariozechner/pi-coding-agent/dist/cli.js", "sha256": "423de19e292535dba74aea4102f2e407fc62986828d832ddcadaa9b4cfe47ecb" },
+      "probe": { "path": "results/skill-ir/pi-package-execution-probe-2026-07-31.json", "sha256": "75c8f45c7a759ec41646533b6b09592ee1995f957d2eb5face16e96783ecaf38" },
+      "sourceEntrypoint": { "path": "src/index.ts", "sha256": "09a706c72625151ca419197714957269bec072c691e561ca77cdb965b51342c0" },
+      "outputRoot": "results/skill-ir/at-pi-v1",
+      "maximumWorkDirLength": 220
+    },
+    "orchestration": [
+      { "path": "src/benchmarks/skill-ir/real-agent-run.ts", "sha256": "2e4038e0b5665996921d88fae0c4af45ed2e3823a63290493f82df03dfe4f201" },
+      { "path": "src/benchmarks/skill-ir/score-real-agent-runs.ts", "sha256": "262055c7840b82acb60da268175c203a3933c5916542341cb2abeabd6e6e41b1" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-calibration-gate.ts", "sha256": "533013f990b30a92a5310d5ba2973d2619a93fd4e24a9fba4b7bb3a08cb196a9" },
+      { "path": "src/benchmarks/skill-ir/api-tester-calibration.ts", "sha256": "023f92286fae9561f64b829f3a743084ce003df84a5ccd86193b2c96b365b410" },
+      { "path": "src/benchmarks/skill-ir/api-tester-calibration-run.ts", "sha256": "ec1353460c746478f0f727f75416383e5494a5a7ef9aaae78a343df102d45c16" },
+      { "path": "src/benchmarks/skill-ir/pi-package-execution-probe.ts", "sha256": "2994f7052571d119695ea886e3a0df45303a8f1f0961e7eed9a0a60900a46e7f" }
+    ],
+    "installedPackageJson": "node_modules/@mariozechner/pi-coding-agent/package.json",
+    "executable": "node_modules/@mariozechner/pi-coding-agent/dist/cli.js"
+  },
+  "model": { "route": "xty/gpt-5.6-sol", "family": "gpt" },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": ["api-tester-openapi-users-dev-001", "api-tester-openapi-inventory-dev-002"],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "qualification": { "system": "original", "taskId": "api-tester-openapi-users-dev-001", "runIndex": 1 },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "retries": 0,
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "teardownGraceMs": 60000,
+    "outerWatchdogMs": 360000
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": false,
+    "requireEachTaskOriginalSuccess": true
+  },
+  "claimBoundary": {
+    "developmentOnly": true,
+    "capabilityCalibration": true,
+    "harnessSpecific": true,
+    "createsBaseIr": false,
+    "permitsHeldOut": false,
+    "skillOptimizationEvidence": false,
+    "tokenEvidence": false
+  }
+}

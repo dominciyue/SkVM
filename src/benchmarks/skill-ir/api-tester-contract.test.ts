@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
+import { ResourceContractSchema } from "./resource-contract.ts"
 import {
   API_TESTER_DEVELOPMENT_TASK_IDS,
   API_TESTER_HELDOUT_TASK_IDS,
@@ -18,6 +19,17 @@ async function readJson(relativePath: string): Promise<unknown> {
 }
 
 describe("api-tester Wave B contract", () => {
+  test("freezes the offline Node and yaml runtime contract", async () => {
+    const contract = ResourceContractSchema.parse(await readJson("resource-contract.json"))
+    expect(contract).toMatchObject({
+      inputFormats: ["json", "yaml"],
+      network: "forbidden",
+      packageInstall: "forbidden",
+      interpreter: { fallbackCommand: "node", minimumVersion: "23" },
+      probe: { requiredModules: ["yaml"] },
+    })
+  })
+
   test("binds the exact MIT upstream source closure", async () => {
     const closure = await validateApiTesterSourceClosure(rootDir)
     expect(closure.commit).toBe("1e221579b0504082d25d5548b194399a7785f10f")
