@@ -91,6 +91,19 @@ export function resolvePiOnPath(
   return resolved ? [resolved] : null
 }
 
+export async function resolveInstalledPiPackageCommand(input: {
+  packageDir?: string
+  which?: (name: string) => string | null
+} = {}): Promise<string[] | null> {
+  const packageDir = input.packageDir
+    ?? path.resolve(import.meta.dir, "../../node_modules/@mariozechner/pi-coding-agent")
+  const node = (input.which ?? Bun.which)("node")
+  if (!node) return null
+  const cliEntry = path.join(packageDir, "dist/cli.js")
+  if (!await Bun.file(cliEntry).exists()) return null
+  return [node, cliEntry]
+}
+
 export async function withPiInjectedAgentsFile<T>(
   workDir: string,
   content: string,
@@ -114,13 +127,19 @@ const tierGlobal: Tier = async () => {
   return { cmd, logLine: `Using global pi: ${cmd[0]}` }
 }
 
+const tierInstalledPackage: Tier = async () => {
+  const cmd = await resolveInstalledPiPackageCommand()
+  if (!cmd) return null
+  return { cmd, logLine: `Using installed pi package: ${cmd[1]}` }
+}
+
 const tierNpx: Tier = async () => ({
   cmd: ["npx", "-y", "@mariozechner/pi-coding-agent"],
   logLine: "Falling back to npx @mariozechner/pi-coding-agent",
 })
 
 export async function resolvePiCmd(): Promise<string[]> {
-  for (const tier of [tierAdapterRepo, tierGlobal, tierNpx]) {
+  for (const tier of [tierAdapterRepo, tierInstalledPackage, tierGlobal, tierNpx]) {
     const hit = await tier()
     if (hit) {
       log.info(hit.logLine)

@@ -1328,3 +1328,17 @@ results/skill-ir/experimental-design-skill-unique-pi-calibration-ascii-2026-07-3
 8-row matrix 没有启动，gate 没有计算，base IR/held-out 继续阻断。按预注册停止规则，当前 harness
 冻结，不再追加第四个路径补丁。下一步先以无 API standalone probe 评审直接 Node/package CLI
 execution boundary；失败则转用已经证明稳定的 harness/Wave B。
+
+## 29. Direct Node Pi Package 无 API Probe
+
+2026-07-31 使用 Bun parent 的真实 `runSubprocess`，在含中文的临时 cwd 中以系统 Node 直接启动已安装
+Pi package 的 `dist/cli.js --version`。结果为 Node v23.8.0、Pi 0.67.68、exit 0、非 timeout、821ms，
+command 不经过 `.bin` 或 junction。
+
+```text
+results/skill-ir/pi-package-execution-probe-2026-07-31.json
+```
+
+逆向测试覆盖缺 Node/CLI、版本漂移、timeout 和双流版本异常。报告不含绝对路径或 raw streams。它证明
+新的 child-spawn 边界在当前 Windows/Unicode 环境可用，只允许构造新 execution lock；API、route、
+8-row matrix、scorer 和 skill 效果仍未发生。

@@ -2,7 +2,12 @@ import { afterAll, describe, expect, test } from "bun:test"
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
-import { resolvePiOnPath, withPiInjectedAgentsFile } from "./pi.ts"
+import { runSubprocess } from "../core/subprocess.ts"
+import {
+  resolveInstalledPiPackageCommand,
+  resolvePiOnPath,
+  withPiInjectedAgentsFile,
+} from "./pi.ts"
 
 const tempDirs: string[] = []
 
@@ -23,6 +28,36 @@ describe("Pi adapter command resolution", () => {
 
   test("returns null when Pi is absent from PATH", () => {
     expect(resolvePiOnPath(() => null)).toBeNull()
+  })
+
+  test("runs the installed Pi package through Node from a non-ASCII cwd", async () => {
+    const packageDir = path.resolve(rootDir, "node_modules/@mariozechner/pi-coding-agent")
+    const node = Bun.which("node")
+    expect(node).toBeTruthy()
+    const command = await resolveInstalledPiPackageCommand({
+      packageDir,
+      which: (name) => name === "node" ? node : null,
+    })
+    expect(command).toEqual([node!, path.join(packageDir, "dist/cli.js")])
+    expect(command?.some((part) => part.includes(`${path.sep}.bin${path.sep}`))).toBe(false)
+
+    const workDir = await mkdtemp(path.join(tmpdir(), "skvm-pi-中文-"))
+    tempDirs.push(workDir)
+    const result = await runSubprocess([...command!, "--version"], { cwd: workDir, timeoutMs: 30000 })
+    expect(result).toMatchObject({ exitCode: 0, timedOut: false })
+    const streams = [result.stdout.trim(), result.stderr.trim()].filter(Boolean)
+    expect(streams).toEqual(["0.67.68"])
+  })
+
+  test("does not select the installed package tier without both Node and the CLI", async () => {
+    expect(await resolveInstalledPiPackageCommand({
+      packageDir: path.join(tmpdir(), "missing-pi-package"),
+      which: () => "C:\\Program Files\\nodejs\\node.exe",
+    })).toBeNull()
+    expect(await resolveInstalledPiPackageCommand({
+      packageDir: path.resolve(rootDir, "node_modules/@mariozechner/pi-coding-agent"),
+      which: () => null,
+    })).toBeNull()
   })
 
   test("removes a harness-owned AGENTS.md after the Pi subprocess", async () => {
@@ -46,3 +81,5 @@ describe("Pi adapter command resolution", () => {
     expect(new Uint8Array(await readFile(agentsPath))).toEqual(original)
   })
 })
+
+const rootDir = path.resolve(import.meta.dir, "../..")

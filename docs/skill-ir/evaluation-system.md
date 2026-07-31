@@ -1472,3 +1472,20 @@ results/skill-ir/experimental-design-skill-unique-pi-calibration-ascii-2026-07-3
 这不是模型或 benchmark 分数。8-row `execute` 未运行，gate 未计算。当前 coordinator/lock 保留为
 失败的 infrastructure evidence；下一步先以独立无 API probe 验证直接 package CLI 启动边界，不能在
 本 lock 上继续追加路径补丁。
+
+### 36.3 Direct Node Pi package probe
+
+新边界不再消费 `.bin/pi.exe`。`src/adapters/pi.ts` 的解析顺序为 explicit repo、项目已安装 package、
+PATH、npx；installed-package tier 使用系统 Node 直接启动
+`node_modules/@mariozechner/pi-coding-agent/dist/cli.js`。普通 fallback 保持不变。
+
+无 API probe 使用真实 `runSubprocess`，在中文临时 cwd 中分别运行 Node 与 Pi `--version`：
+
+```powershell
+bun ./src/benchmarks/skill-ir/pi-package-execution-probe.ts `
+  '--out=results/skill-ir/pi-package-execution-probe-2026-07-31.json'
+```
+
+结果为 passed：Node v23.8.0、Pi 0.67.68、exit 0、非 timeout、总计 821ms。Compact report 只保存
+command kind、版本、Node/Pi package/CLI digest、timing 与封闭失败码，不保存绝对路径、stdout/stderr 或
+环境变量。该结果只放行新的 execution lock 构造，不是 route/model/skill 优化证据。
