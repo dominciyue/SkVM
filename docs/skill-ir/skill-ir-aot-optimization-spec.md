@@ -2367,3 +2367,12 @@ Probe 通过后建立独立 execution lock，继承同一 task/source/scorer/mod
 adapter source、Pi installed package/CLI、Node executable/version、source runner 和 coordinator digest。
 旧 method lock、三份失败 qualification 与旧 stable harness evidence 保持不可变。新 lock 仍先运行唯一
 original qualification；只有 Pi/resource/route/2 outputs/residue 全绿才允许一次 8-row matrix。
+
+首个 direct-cli qualification 进一步定位出与 Pi command 无关的 Windows/Bun cwd 长度边界：实际
+workdir 长度为 265，`Bun.spawn(node --version)` 在该 cwd 可独立复现 ENOENT；同命令在短 cwd 成功，旧
+stable harness 路径约 192。该 identity 冻结为 infrastructure failure，不运行 matrix。
+
+后续只允许建立一个 short-path execution identity：lock 必须冻结 repository-relative output root 与
+`maximumWorkDirLength=220`；plan 阶段逐行计算最终 workdir 的 Windows 字符长度，任一超限必须在 API
+前 fail closed。预注册短 root 的 dry-run 当前最大长度为 201。这个修复只改变实验文件落点，不改变
+task、source、model、adapter、prompt、scorer、repetitions、timeout 或 gate。

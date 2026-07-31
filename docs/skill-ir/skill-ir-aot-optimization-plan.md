@@ -2779,3 +2779,9 @@ Modify  corresponding tests and active documentation
 本地 probe 已通过：Node v23.8.0 直接启动 Pi 0.67.68，exit 0、非 timeout、821ms；报告只保存
 executable/package/CLI digest 和封闭状态。新 direct-cli lock 已通过 schema/digest/probe 验证；正式
 dry-run 为 8 rows、4 complete pairs，下一步提交 lock 后只运行一条预注册 original qualification。
+
+Direct-cli v1 qualification 已在 API 前失败，但 Node + Pi CLI 选择正确；同一 `Bun.spawn(node --version)`
+在 265 字符真实 cwd 复现 ENOENT，短 cwd 成功，根因为 Windows/Bun cwd length。下一步增加 plan-time
+`maximumWorkDirLength=220` guard，并以 `results/skill-ir/su-pi-direct-v1` 为冻结短 output root；其
+dry-run 最大 workdir 长度 201。新 short-path lock 是本问题最后一个 execution identity，仍失败则转
+Wave B/stable external harness，不再继续修当前 coordinator。
