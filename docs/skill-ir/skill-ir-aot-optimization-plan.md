@@ -2782,13 +2782,57 @@ Task 16.21 不进入 base IR/held-out。
 
 ### Task 16.22：Wave B 不同真实 Skill 复用
 
-- [ ] 从已冻结 intake 中优先选择 `api-tester`，先确认 exact public source/license/resource closure；若其
-  source 合同不适合确定性判分，再按书面理由选择同等不同 phenotype，不扩成多 skill 并行 intake。
-- [ ] 先写 2 development + 2 held-out、task-visible public contract 与 deterministic scorer；本地合法多解、
-  leak、materialization audit 未通过前不调用 API。
-- [ ] 复用已验证的 direct Node Pi 与 short-path budget core，不新增 runtime/transport/catalog；只允许
-  skill-specific source adapter、task contract 与 evaluator。
-- [ ] 先跑 `no-skill | exact original` 区分度 gate。失败则记录“该 skill/strong-model surface 无可测增益”
-  并重新评估 skill 选择；通过才编译同 source/task identity 的 base IR 和 ir-static。
-- [ ] 报告通用 core branch delta、adapter LOC、artifact kind 复用率、paired quality、稳定性和 token 成本；
-  不在 development gate 前消费 held-out。
+- [x] 选择 `api-tester`：exact source 为 `laolaoshiren/claude-code-skills-zh` commit
+  `1e221579b0504082d25d5548b194399a7785f10f` 的 `skills/api-tester/SKILL.md`，MIT；无 bundled
+  script/resource，运行期只需要 Node 与已固定 `yaml` package。
+- [x] 冻结 benchmark 形态为离线 `api-test-generator/v1`：候选生成 JS generator、derived plan 与 report；
+  scorer 执行 generator 并从 agent-visible OpenAPI 独立推导语义，不比较框架/命名/措辞。
+- [ ] 先写 2 development + 2 held-out、task-visible public contract 与 split freeze；scorer 文件不得在
+  split freeze commit 之前出现。
+- [ ] TDD 实现 source-derived oracle、五项 hard-gate scorer、两族 alternative-valid、invalid control、
+  reverse-evidence、leak 与 production materialization audit；本地审计未通过前不调用 API。
+- [ ] 复用 direct Node Pi、short-path budget、source materialization、paired scoring 与 distinguishability
+  gate；通用 core 不得增加 `api-tester` id 分支，不新增 runtime/transport/catalog。
+- [ ] 先跑 `no-skill | exact original` development gate。失败则冻结该 skill/model/task surface 的负结果；
+  通过才编译同 source/task identity 的 base IR 和 ir-static。
+- [ ] 报告 core branch delta、skill-specific adapter LOC、artifact kind 复用率、paired quality、稳定性和
+  token 成本；development gate 前不消费 held-out。
+
+#### Task 16.22.1：Source closure、public contract 与 2+2 split
+
+**Files:**
+
+```text
+Create  benchmarks/skill-ir/pilots/api-tester/source/SKILL.md
+Create  benchmarks/skill-ir/pilots/api-tester/source/LICENSE.upstream
+Create  benchmarks/skill-ir/pilots/api-tester/public-interface.json
+Create  benchmarks/skill-ir/pilots/api-tester/development/tasks.json
+Create  benchmarks/skill-ir/pilots/api-tester/heldout/tasks.json
+Create  benchmarks/skill-ir/pilots/api-tester/task-split-freeze.json
+Create  src/benchmarks/skill-ir/api-tester-contract.test.ts
+Create  src/benchmarks/skill-ir/api-tester-contract.ts
+Modify  benchmarks/skill-ir/corpus/corpora/pilot.json
+```
+
+- [ ] RED：拒绝 source/license digest 漂移、非 2+2 split、混合 split、重复 task、绝对/逃逸路径、task-visible
+  expected/gold/oracle/source quote、held-out sentinel、网络/package-install 权限和缺失 CLI/output ABI。
+- [ ] GREEN：提交 exact source closure、两种 development OpenAPI 表示、两种不同 held-out domain、公开
+  generator ABI 和 split freeze；corpus 仍为 `tasks-authored` 且无 `irPath`。
+
+#### Task 16.22.2：Oracle、Scorer 与本地审计
+
+- [ ] RED/GREEN：独立解析 OpenAPI YAML/JSON，推导 operation、schema constraint、security、response 与
+  independence oracle；公开证据不足时返回 `unconfirmed`。
+- [ ] RED/GREEN：候选 generator 在隔离副本执行两次，要求相同 digest、输入不变、无网络/路径逃逸；
+  五项 criterion 全部 hard gate，threshold 1.00。
+- [ ] RED/GREEN：两族 alternative-valid 通过，operation/boundary/auth/secret/determinism/file invalid 被拒；
+  reverse-evidence 与 gold/raw/model/source-quote/held-out canary fail closed。
+- [ ] 生产 `prepareRunWorkspace` 的 no-skill/original materialization audit 全绿后，才起草 calibration lock。
+
+#### Task 16.22.3：Strong-model baseline 与 IR re-entry gate
+
+- [ ] 新 lock 继承 `gpt-5.6-sol`、Pi 0.67.68、Windows/clean、2 tasks x 2 systems x 2 repetitions、retries 0，
+  复用 direct Node + short-path 路径政策并先通过 qualification。
+- [ ] 唯一 8-row baseline 要求完整分母、0 infrastructure、no-skill 非饱和、至少 1 differing pair 和每个
+  task 至少一次 original success；结果出现前冻结数值 gate。
+- [ ] Gate failed 则停止；passed 才另写 base IR/source audit TDD，不在 baseline task 顺手生成 IR/Final IR。

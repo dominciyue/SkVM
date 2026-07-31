@@ -2383,3 +2383,57 @@ matrix 为 8/8 rows、4/4 comparable pairs、0 infrastructure；no-skill 与 ori
 Gate 因 no-skill saturation 与无区分度失败。该结果关闭 experimental-design skill-unique baseline：不
 构造 base IR、不运行 held-out、不继续增加 harder task；下一方法工作转向 Wave B 的不同真实 skill，
 以检验 pipeline 的跨 skill 适用性，而不是继续围绕强模型已饱和的 phenotype 调参。
+
+#### 24.9.24 Wave B API-tester source 与 benchmark contract
+
+Task 16.22 选择冻结 intake 中的 `api-tester` 作为首个 Wave B replication。Exact source 来自
+`laolaoshiren/claude-code-skills-zh` commit `1e221579b0504082d25d5548b194399a7785f10f`，上游路径为
+`skills/api-tester/SKILL.md`，license 为 MIT。Source closure v1 只包含原始 `SKILL.md` 与上游 LICENSE；
+该 skill 没有 bundled script/resource。原始 source SHA-256 为
+`fdc81d971835c9585af9be44df9bf1ed4310029489009ddf6ace2705395b7be9`，license SHA-256 为
+`494baa32c21079f6ab4cb73815fa8b119045e22f0d8b5c2bd553c4a0905ac1b2`。
+
+本轮比较三种 benchmark 形态：纯 declarative plan 容易退回字段/措辞匹配；任意 Jest/Pytest 加 live
+server 会把框架、数据库和进程生命周期混入主结果；正式采用中间方案 `api-test-generator/v1`。Agent
+在只含本地 API 定义和项目元数据的 workdir 中生成：
+
+```text
+api-test-generator.mjs
+generated/api-test-plan.json
+api-test-report.json
+```
+
+生成器的公开 ABI 为：
+
+```text
+node api-test-generator.mjs --input <relative-openapi-path> --out <relative-plan-path>
+```
+
+它必须离线、确定性、不得修改输入或访问网络；输出计划允许额外字段、自由 case id、自由顺序和
+等价断言表达。Task-visible contract 只公开 CLI、三项文件、JSON shape 与安全边界，不公开每个 endpoint
+应得到哪些 happy/boundary/error case。Original arm 额外看到 exact upstream skill；no-skill arm 不看到
+source quote、oracle、expected case、scorer threshold 或 held-out 内容。
+
+Development 与 held-out 均为 2 个 task，并在 scorer 实现前冻结。Development 覆盖 OpenAPI YAML +
+bearer auth 与 OpenAPI JSON + api-key/path/query constraints；held-out 使用不同 domain、operation/constraint
+组合，且不得进入 development oracle fixture、audit canary、calibration lock 或模型 prompt。运行环境只
+承诺 Node 与仓库已固定的 `yaml` package，不允许 package install、外部 server 或网络请求。
+
+Deterministic scorer 重新执行候选 generator，并从 agent-visible OpenAPI 独立推导五个封闭语义面：
+
+1. protected input、三项 artifact、generator exit/determinism；
+2. operation coverage 与 method/path identity；
+3. schema-derived happy/boundary/error cases；
+4. documented security、secret-env discipline 与响应断言；
+5. case independence、timeout、verification honesty 与无网络副作用。
+
+五项均为 hard gate，primary threshold 为 1.00。Scorer 不比较框架名、函数名、case id、JSON 字段顺序、
+说明语言或测试代码字面量。公开证据不足时只返回 `unconfirmed`，不得猜 evaluator gold。Differential
+audit 必须至少覆盖两族 alternative-valid generator、missing operation、schema boundary、auth、secret、
+non-determinism/input mutation/path escape 和 held-out/gold/source-quote leak canary。只有 local audit 与
+production materialization 全绿，才冻结 `no-skill | exact original` development baseline。
+
+Wave B 复用现有 source materialization、Pi direct-package execution、short-path budget、paired scoring 和
+distinguishability gate；通用 core 禁止出现 `api-tester` id 分支。付费前记录相对 Task 16.21 的 core
+branch delta、skill-specific adapter LOC 和 artifact kind reuse。Baseline gate 失败就冻结该 surface 的负
+结果；通过才允许 source-audited base IR、ir-static 和后续 artifact 编译，不提前消费 held-out。

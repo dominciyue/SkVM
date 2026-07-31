@@ -64,12 +64,23 @@ zh-readme
 
 Wave B 在 Wave A 方法冻结后运行，不能用于回调同一份主结果配置。
 
+首个 Wave B 纵切选择 `api-tester`。上游 exact source 为
+`laolaoshiren/claude-code-skills-zh@1e221579b0504082d25d5548b194399a7785f10f` 的
+`skills/api-tester/SKILL.md`，MIT，无 bundled script/resource。它覆盖 OpenAPI/route 发现、schema-derived
+happy/boundary/error case、框架选择、数据策略、执行复测、安全与独立性，和三个 Wave A phenotype 不同。
+
+Task 16.22 不直接要求任意 Jest/Pytest 服务编排，而冻结 `api-test-generator/v1`：模型生成离线 JS
+generator、derived JSON test plan 和 verification report，确定性 scorer 重新执行 generator 并从公开
+OpenAPI 独立推导语义。这样保留“生成测试代码”的能力，同时避免数据库、live server 和测试框架噪声。
+2 development + 2 held-out 必须在 scorer 前冻结；baseline 区分度 gate 通过前不创建 base IR。
+
 ## 4. Source Closure
 
 ```text
 benchmarks/skill-ir/pilots/law-to-markdown/source/
 benchmarks/skill-ir/pilots/env-manager/source/
 benchmarks/skill-ir/pilots/experimental-design/source/
+benchmarks/skill-ir/pilots/api-tester/source/          # Task 16.22.1 创建后生效
 ```
 
 `benchmarks/skill-ir/corpus/corpora/pilot.json` 固定：
