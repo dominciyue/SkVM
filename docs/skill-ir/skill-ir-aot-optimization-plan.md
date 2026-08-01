@@ -9,8 +9,8 @@
 
 Task 16.21 已按预注册失败分支关闭；Task 16.22 API Tester 也完成 local audit、qualification 和唯一
 8-row baseline，并因两个 task 都没有 original full success 而按冻结 gate 关闭。Base IR 与 held-out
-均未放行。下一实现动作需要先明确 partial-but-attributable original benefit 的 prospective re-entry 规则，
-不能事后修改 Task 16.22 的 gate。
+均未放行。后续决定采用 prospective partial-attributable re-entry：Task 16.22 不改判，API Tester 转为
+方法开发 case，另一项 untouched real skill 承担 replication。
 
 项目资源分配采用双主轴：研究方法/实验可信度与通用可用 optimizer 同等优先。显著正向单案例优先级
 最低，不能以专用分支或放宽实验合同换取；同时禁止连续堆叠 benchmark/governance 而不推进通用 compiler、
@@ -24,8 +24,9 @@ artifact 或 intake 能力。
 
 ```text
 冻结 Task 16.21 与 Task 16.22 结果
--> 前瞻性确定 original partial benefit 的 re-entry 定义
--> 决定 API Tester 是方法开发 case，还是转向下一 untouched real skill
+-> 冻结 original partial benefit 的 prospective re-entry 定义
+-> API Tester 进入 method-development，另选 untouched replication skill
+-> 扩展到至少 6 个真实 method-development cases，并区分 studied/contract-qualified
 -> 每个阶段同时标注 research-method 与 reusable-system 贡献
 -> 新 lock / IR / held-out 只能按确认后的规则继续
 ```
@@ -41,7 +42,7 @@ result 保持原路径与 digest；后文旧任务中的未完成动作若已被
 | IR schema/parser/validator/profiler/passes/lowering | 完成 | 保持回归测试，按 `ir-core.md` 修改。 |
 | Synthetic corpus/matrix/analyzer | 完成，低权重 | 只用于 calibration 和受控失败。 |
 | Real-agent runner/scorer/pairing | 完成 | 已支持 persistent workdir 和完整 run identity。 |
-| Real skill provenance intake | 完成首轮 | 6 个 pilot，Wave A 3 + Wave B 3。 |
+| Real skill provenance intake | 首轮完成，待扩 | 历史 3+3；方法开发目标至少 6，另保留 untouched replication。 |
 | `env-manager` task/scorer/base IR | 完成 | 首个 runnable 真实 pilot，保留冻结实验链路。 |
 | Static IR development run | 完成 | Partial correctness 改善，binary success 仍 0/4。 |
 | Dual-source Final IR | 完成候选 | V1/v2 均未过 development gate。 |
@@ -54,7 +55,7 @@ result 保持原路径与 digest；后文旧任务中的未完成动作若已被
 | `law-to-markdown` vertical slice | Held-out gate 失败并冻结 | Development 4/4、0.925；held-out 2/4、0.725，manual task 两次回归。 |
 | `experimental-design` second phenotype | v2 基线饱和 | stable Pi 两批均 4/4 vs 4/4、0 differing；Task 16.21 转向 skill-unique semantic surface。 |
 | Benchmark contract audit | Wave A v1 已完成 | 3/3 pilot audit failed，历史结果降为 `support-real`；先修复测量再继续付费。 |
-| Held-out / pooled panel / Wave B | Law 已执行，其余阻断 | v2 audit 与 development gate 通过后，优先用 `api-tester` 做冻结 Wave B replication。 |
+| Held-out / pooled panel / replication | Law 已执行，其余阻断 | API Tester 转方法开发；另选 untouched skill 承担 replication。 |
 | 文档压缩与入口治理 | 完成 | 10 份权威文档、唯一入口和仓库级旧路径门禁已生效。 |
 
 ## 2. 已完成能力
@@ -136,15 +137,20 @@ manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phen
 
 ## 4. 下一阶段顺序
 
-### 当前下一刀：Wave B 不同真实 Skill 复用
+### 当前下一刀：Partial-benefit Re-entry 与真实 Skill Portfolio
 
-1. Task 16.21 已按预注册停止规则关闭；保留所有 task、scorer、audit、lock 和 compact result，不原地修改。
-2. 从冻结 intake 中优先选择 `api-tester`，审计 exact source、license、resource closure 和可确定性判分面。
-3. 先冻结 2 development + 2 held-out、task-visible contract、deterministic scorer 和本地差分/泄漏/物化审计。
-4. 复用 direct Node Pi、short-path budget、runner/scoring/gate core；不新增 runtime、transport 或 artifact catalog。
-5. 先运行 `no-skill | exact original` development 区分度 gate；只有 gate 通过才构造 base IR 和 ir-static。
-6. Wave B 报告通用 core branch delta、adapter LOC、artifact kind 复用率、质量、稳定性与 token 成本；
-   development gate 前不消费 held-out。
+1. Task 16.21 与 Task 16.22 均按预注册停止规则关闭；保留所有 task、scorer、audit、lock 和 compact result，
+   不原地修改或改判。
+2. 先把 prospective partial-attributable re-entry 写成可执行、版本化 policy；旧结果只能作为 admission
+   输入，不能用于事后修改原 gate。
+3. API Tester 在新 identity 下进入 method-development。复用 direct Node Pi、short-path budget、
+   runner/scoring/gate core；不新增 runtime、transport 或 artifact catalog。
+4. 方法开发 portfolio 扩展到至少 6 个有 provenance 的真实 skill，覆盖不同 phenotype；逐项记录
+   admission、公开合同审计、人工适配量、可复用 artifact kind 和停止原因。
+5. `studied`、`contract-qualified` 与 `untouched replication` 使用独立分母。Audit-failed 历史案例可以
+   解释方法演进，不能自动填充 contract-qualified 分母。
+6. 另选未参与 policy/catalog/adapter 调整的真实 skill 做冻结 replication；具体适配边界在 Q-004
+   决定后写入 intake/lock，development gate 前不消费 held-out。
 
 ### 已完成前置：文档治理
 
@@ -248,9 +254,10 @@ Windows-safe direct interpreter tool plan，再以新的 development lock 做本
 - aggregate/per-model/worst-model/negative-delta 报告；
 - leave-one-model-out 只作为独立 transfer ablation。
 
-### Step 7：Wave B replication
+### Step 7：Untouched replication
 
-冻结 Wave A 方法和 scorer 后，运行：
+冻结方法开发 portfolio 的 policy、catalog、scorer contract 与允许的适配边界后，从未参与上述调整的
+真实候选中预注册 replication skill。历史候选为：
 
 ```text
 zh-code-reviewer
@@ -258,7 +265,8 @@ api-tester
 zh-readme
 ```
 
-Wave B 不得用于调优同一份主结果配置。
+`api-tester` 已转为 method-development，不能再从该列表中承担 untouched replication。最终候选不得用于
+调优同一份主结果配置，也不得反向修改方法开发 case。
 
 ## 5. Step 2 文件级实施计划
 
@@ -1379,9 +1387,9 @@ task/scorer/package，不执行 held-out。
   不得消费 held-out ID、path、digest、fixture 或 sentinel。
 - **阻断中的 held-out 工作：** 只有 Task 16.21 的新 development gate 通过后，才另建 held-out
   lock 并验证 freeze、parent gate、package/scorer digest 与 fail-closed 回流隔离。
-- **未来 Wave B：** Wave A 方法冻结后，以 `api-tester` 为首个跨 skill 复用对象；通用 core
-  不得新增 skill-id 分支，并报告 adapter LOC、artifact kind 复用率、core branch delta 和 failure
-  taxonomy。
+- **历史 Wave B 安排已替代：** Task 16.22 已完成 API Tester baseline 并冻结失败结果；后续 API Tester
+  转为 method-development。Untouched replication 必须另选真实 skill，通用 core 不得新增 skill-id
+  分支，并报告 adapter LOC、artifact kind 复用率、core branch delta 和 failure taxonomy。
 - **未来摊销实验：** 质量不回归后再按 `N=1,2,5,10` 报告 compile/profile/package/runtime
   总成本和 break-even；当前没有同口径数据，不声称 token reduction。
 

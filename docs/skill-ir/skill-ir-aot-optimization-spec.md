@@ -168,13 +168,13 @@ package/catalog、一次 repair 上限和 development gate 全部保持冻结。
 ### 计划轴
 
 - 固定多模型 panel 与 panel-conditioned shared artifact。
-- 第二个和第三个 Wave A 真实 skill。
-- Wave B 冻结 replication。
+- 至少 6 个真实 skill 的方法开发 portfolio；最终数量按新增信息量和实验成本调整。
+- 使用未参与 policy/catalog 调整的真实 skill 做冻结 replication。
 - 真实 Linux/macOS host 与多个 agent adapter。
 
 ## 4. 真实 Skill 范围
 
-Wave A：
+历史 Wave A：
 
 ```text
 law-to-markdown
@@ -182,7 +182,7 @@ env-manager
 experimental-design
 ```
 
-Wave B：
+历史 Wave B 候选：
 
 ```text
 zh-code-reviewer
@@ -190,8 +190,28 @@ api-tester
 zh-readme
 ```
 
-Wave A 用于方法开发。完整主 claim 必须包含 Wave B，并且 Wave B 不得用于调优
-同一份待报告配置。Synthetic seed 只作为 `calibration-low` 证据。
+这组 3+3 是项目早期的角色划分。Wave A 用于方法开发，Wave B 原计划承担冻结 replication；
+Synthetic seed 只作为 `calibration-low` 证据。2026-08-01 的新决定保留这些历史身份和结果，
+但后续证据角色改用 `method-development portfolio` 与 `untouched replication` 明确命名，避免把
+已经参与方法调整的 skill 继续称为 Wave B。
+
+2026-08-01 起，方法开发 portfolio 的目标下限扩为 6 个有 provenance 的真实 skill。历史 Wave A 三项与
+API Tester 都可作为 studied case，但最终报告必须分开给出：
+
+```text
+studied real-skill cases
+contract-qualified method-development cases
+untouched replication cases
+```
+
+Audit-failed 历史 benchmark 可以解释方法演进，不能自动计入 contract-qualified 分母。最终数量可以在
+超过 6 后继续扩展，也可以因重复 phenotype、资源不可用或边际信息不足停止，但必须记录 admission 与
+stop reason。
+
+Task 16.22 的 API Tester Wave B gate/result 保持不可变。后续若继续使用 API Tester，必须建立新的
+prospective partial-attributable re-entry policy，并把新工作标为 method development；它不再是 untouched
+replication。新的跨 skill 确认证据必须来自未参与 re-entry policy、catalog 或 skill-specific adapter
+调整的另一项真实 skill。
 
 ## 5. 静态与动态结合契约
 
@@ -219,7 +239,7 @@ source audit 和确定性 lowering。后续预算按风险和证据自适应：
 4. 只有候选通过冻结 development gate，才运行 held-out、多模型 panel 或 artifact promotion。
 
 Source、task contract、compiler 和 artifact digest 未变化时可复用已验证产物，不重复付费。
-当前 Wave A deep pilots 为论文方法验证，需走完整链路；Wave B 使用冻结方法做 replication；
+方法开发 portfolio 中进入深度证据层的 pilot 需走完整链路；untouched skill 使用冻结方法做 replication；
 其余 intake candidate 不因“被收录”自动获得完整实验预算。Validation planner 将来负责自动
 分配层级，当前仍只是 advisory tooling，不能替代预注册实验门禁。
 
@@ -1606,17 +1626,18 @@ v2 实施必须包含以下负向测试：
 calibration lock。Held-out task 不参与 development audit 的 canary 设计，也不用于调整
 `0.95` 阈值、criterion 权重或 hard gate。
 
-### 24.6 泛化判定：Wave B 才是证据
+### 24.6 泛化判定：Untouched Replication 才是证据
 
 v2 通过只能说明 `experimental-design-v2` 的测量方法可用，不能说明它自动适配
-任意 skill。跨 skill 泛化必须在冻结 Wave A 方法后，使用未参与 v2 设计的 Wave B
-skill（优先 `api-tester`）进行 replication：
+任意 skill。跨 skill 泛化必须在冻结方法后，使用未参与 re-entry policy、catalog、adapter 或
+benchmark 调整的真实 skill 进行 untouched replication。早期“优先 `api-tester`”的安排已由
+Task 16.22 执行并形成冻结负结果；API Tester 此后转为方法开发 case，不能再承担该角色：
 
 - 使用同一通用 catalog、runtime、lock 生命周期和主 scorer 约束；
 - 允许新增 skill adapter，但通用 core 不得按 skill id 增加分支；
 - 记录 adapter 新增代码量、artifact kind 复用率、需要新增的 runtime/catalog
   分支数和 failure taxonomy；
-- Wave B 不得反向修改 Wave A 的 task、scorer、package 或 gate；
+- untouched replication 不得反向修改方法开发 portfolio 的 task、scorer、package 或 gate；
 - 若需要大量 skill-specific 特例，应将结论降级为“方法可迁移但 catalog 尚未
   泛化”，不能宣称任意 skill 自动优化。
 
