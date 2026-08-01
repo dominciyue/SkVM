@@ -84,7 +84,8 @@ Development contract audit 18/18、production materialization 36/36，均未消�
 case，因此不再承担 untouched Wave B replication。新的 replication skill 必须从未参与 policy、catalog
 或 adapter 调整的真实候选中选择并单独冻结。
 
-方法开发 portfolio 的目标下限为 6 个真实 skill，最终数量根据实验新增信息量和成本调整。报告使用三套
+方法开发 portfolio 以 6 个真实 skill 为起点，最终数量根据 readiness gap、实验新增信息量和成本调整。
+不能在第 6 个案例后按数量自动冻结方法。报告使用三套
 分母：`studied`、`contract-qualified`、`untouched replication`。当前三项 Wave A 和 API Tester 可计入
 studied；只有通过公开合同、差分/泄漏/物化审计的对应版本才能计入 contract-qualified。
 
@@ -450,6 +451,12 @@ Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭�
 最终使用者不承担逐 skill 分析；系统应自动选择已支持 adapter/catalog，只有低置信度、资源/权限、证据
 冲突或回归才进入人工审核。Untouched replication 不得修改通用 core；若只能靠 skill-id 分支通过，
 该 case 只能证明专用实现，不能计作泛化证据。
+
+进入 untouched replication 的 portfolio readiness 要求：至少 6 个 contract-qualified case、目标
+phenotype coverage 完整、最近连续 3 个新 case 不修改 core、自动生成 IR/contract/validation/package
+候选且人工适配量下降、至少 2 个不同 phenotype 通过 development gate，并且 benchmark/leak/
+materialization 阻塞全部关闭。未达到时继续选择能填补具体 readiness gap 的方法案例，禁止为扩数量选择
+重复 phenotype。
 
 注意：一个 pilot 的 benchmark audit 通过，只能说明该 pilot 的测量合同可用，不能
 说明 catalog 自动适配其他 skill。跨 skill 结论必须由冻结方法后的 untouched

@@ -18,6 +18,9 @@ adapter/contract，但禁止在通用 core 中按 skill id 分支，并必须报
 供 SkVM/其他 Agent 集成，Agent 只编排同一套 core，不维护另一套优化逻辑。三者共同产出 optimized
 package、validation report 和 cost report。
 
+最终交付由研究论文/技术报告、可复现工程仓库和 CLI 现场演示组成；向学校仓库提交 PR 是附加成果。
+有效负结果、failure taxonomy 和方法修正进入正文，不为包装改变冻结 gate 或强行制造正例。
+
 ## 当前状态
 
 - 已完成 Skill IR schema、parser、validator、profiler、静态 passes 和 lowering。
@@ -45,7 +48,8 @@ package、validation report 和 cost report。
   base IR/held-out 不放行，corpus 仍为 `tasks-authored`。
 - 后续方法决定不改写 Task 16.22：API Tester 将以新的 prospective partial-benefit policy 转为方法开发
   case，不再承担 untouched Wave B 证据；跨 skill replication 改由另一项未参与方法设计的真实 skill
-  承担。方法开发 portfolio 目标至少 6 个真实 skill，studied 与 contract-qualified 数量分开报告。
+  承担。方法开发 portfolio 以至少 6 个真实 skill 起步，但不设固定终止数量；只有通用 core、自动化、
+  人工适配收敛和跨 phenotype development evidence 共同通过 readiness gate 后才进入 replication。
 - 已加入 skill-neutral 的付费前 benchmark contract audit。三个 Wave A v1 benchmark 均未通过：
   env-manager 缺公开精确 schema rule 与分类金标合同，Law 的两个任务都拒绝等价审核措辞，
   experimental-design 的 plan 合同 2/2 通过，但 assignment、allocation、report 共 6/6

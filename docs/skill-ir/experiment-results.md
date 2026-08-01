@@ -11,6 +11,8 @@ scope、核心数字、解释和 claim 边界，不复制 raw transcript。
 4. Development 结果不等于 held-out evidence。
 5. Runtime validator 与 deterministic scorer 分开报告。
 6. Gate 失败后不运行 held-out，不事后改 scorer、package、task 或 threshold。
+7. 通过冻结合同得到的 benchmark 饱和、held-out 回归、partial-benefit gate failure 和 infrastructure/
+   semantic 分离都属于正文研究结果；不得只保留正向 case 或为包装重跑失败样本。
 
 ## 2. Synthetic Task 11 校准阶段
 

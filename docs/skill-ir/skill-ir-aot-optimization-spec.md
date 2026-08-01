@@ -25,6 +25,10 @@
 规则；也不得只继续扩 benchmark/governance 而不推进 compiler、artifact 和导入流程。阶段计划应同时
 说明其对研究可信度与通用系统能力的贡献，允许单阶段偏重一侧，但连续阶段不能长期只推进一侧。
 
+最终交付固定为三件套：研究论文/完整技术报告、可复现工程仓库、CLI 现场演示。向学校仓库提交 PR 是
+附加成果，不是成功必要条件。通过冻结合同产生的负结果、failure taxonomy 和方法修正属于正文研究证据；
+项目继续争取完整正向 case，但不得为了包装改 gate、丢分母或隐藏回归。
+
 ### 1.2 用户侧自动化与适配边界
 
 最终用户入口以“导入 skill -> 生成 optimized package”为目标。使用者提供 source/resource、允许的
@@ -236,6 +240,19 @@ untouched replication cases
 Audit-failed 历史 benchmark 可以解释方法演进，不能自动计入 contract-qualified 分母。最终数量可以在
 超过 6 后继续扩展，也可以因重复 phenotype、资源不可用或边际信息不足停止，但必须记录 admission 与
 stop reason。
+
+六个方法案例只是 portfolio 的最低启动规模，不是自动晋升点。进入 untouched replication 前必须通过
+`method-portfolio-readiness/v1`：
+
+1. 至少 6 个 contract-qualified 真实方法案例，且预注册 phenotype coverage 没有未解释空缺；
+2. 最近连续 3 个新案例的 `coreBranchDelta=0`，skill 差异只进入声明式 adapter/contract/artifact；
+3. 系统能自动生成 IR、contract、validation plan 与 package candidate，人工修改限制在声明式输入，
+   且 adaptation time/LOC 相对早期案例呈下降趋势；
+4. 至少 2 个不同 phenotype 的 optimized package 通过冻结 development gate；
+5. 没有未关闭的 benchmark-contract、gold/leak、materialization 或 scorer-authority 阻塞。
+
+任一条件未满足时，继续增加信息互补的方法案例或修正通用系统。案例数量本身不能替代 readiness；达到
+条件后冻结方法，后续 untouched skill 才能承担 replication，不再用于继续提炼同一配置。
 
 Task 16.22 的 API Tester Wave B gate/result 保持不可变。后续若继续使用 API Tester，必须建立新的
 prospective partial-attributable re-entry policy，并把新工作标为 method development；它不再是 untouched

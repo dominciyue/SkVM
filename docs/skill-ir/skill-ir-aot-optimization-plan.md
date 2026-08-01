@@ -26,7 +26,8 @@ artifact 或 intake 能力。
 冻结 Task 16.21 与 Task 16.22 结果
 -> 冻结 original partial benefit 的 prospective re-entry 定义
 -> API Tester 进入 method-development，另选 untouched replication skill
--> 扩展到至少 6 个真实 method-development cases，并区分 studied/contract-qualified
+-> 以至少 6 个真实 method-development cases 起步，并区分 studied/contract-qualified
+-> 持续提炼直至 method-portfolio readiness gate 通过
 -> 每个阶段同时标注 research-method 与 reusable-system 贡献
 -> 新 lock / IR / held-out 只能按确认后的规则继续
 ```
@@ -40,6 +41,11 @@ Q-005--Q-007 同时冻结：最终交付采用 CLI 主入口、TypeScript librar
 最低覆盖 6 个 method-development skill、1 个且争取 2 个 untouched replication、3 个模型族、clean 与
 noisy/long context、稳定 Pi 和真实 Windows。付费实验在 lock/audit/dry-run/qualification 通过后可直接
 使用项目 API，无需逐批确认且不设 Token 上限；预注册分母、`retries=0`、失败停止和成本记账继续强制。
+
+Q-008--Q-010 冻结最终三件套、负结果正文和开放数量 portfolio。至少 6 个方法案例只是起点；不得按
+案例序号切到自动化或 replication。只有 readiness gate 同时满足 contract-qualified/phenotype coverage、
+最近 3 个新案例 core delta 为 0、自动生成与人工适配收敛、至少 2 个不同 phenotype development gate
+通过、测量/泄漏/物化无未关闭阻塞，才冻结方法并进入 untouched replication。
 
 本窗口禁止新增 runtime、transport 或 artifact catalog 版本。旧 package、lock、runner 和 compact
 result 保持原路径与 digest；后文旧任务中的未完成动作若已被后续 gate 或 Task 16.21 覆盖，均不再是
@@ -155,8 +161,9 @@ manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phen
    输入，不能用于事后修改原 gate。
 3. API Tester 在新 identity 下进入 method-development。复用 direct Node Pi、short-path budget、
    runner/scoring/gate core；不新增 runtime、transport 或 artifact catalog。
-4. 方法开发 portfolio 扩展到至少 6 个有 provenance 的真实 skill，覆盖不同 phenotype；逐项记录
-   admission、公开合同审计、人工适配时间/LOC、可复用 artifact kind、未自动化步骤和停止原因。
+4. 方法开发 portfolio 以至少 6 个有 provenance 的真实 skill 起步，覆盖不同 phenotype；逐项记录
+   admission、公开合同审计、人工适配时间/LOC、可复用 artifact kind、未自动化步骤和停止原因。六个
+   之后按 readiness gap 继续增加，不按固定数量停止。
 5. `studied`、`contract-qualified` 与 `untouched replication` 使用独立分母。Audit-failed 历史案例可以
    解释方法演进，不能自动填充 contract-qualified 分母。
 6. 另选未参与 policy/catalog/adapter 调整的真实 skill 做冻结 replication；适配边界已确定为“通用 core
