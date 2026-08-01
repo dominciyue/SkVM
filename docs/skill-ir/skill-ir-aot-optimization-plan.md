@@ -16,6 +16,10 @@ Task 16.21 已按预注册失败分支关闭；Task 16.22 API Tester 也完成 l
 最低，不能以专用分支或放宽实验合同换取；同时禁止连续堆叠 benchmark/governance 而不推进通用 compiler、
 artifact 或 intake 能力。
 
+结果判定采用“硬门槛 + 双优化目标”：质量不劣、稳定性提高和回归受控先过门；随后同时提高平均质量，
+并降低多次调用的摊销 Token。成本分析必须包含一次性 compile/profile/package 成本、单次 runtime 成本、
+`N=1,2,5,10` 累计值和 break-even，禁止用质量下降换取 Token 数字。
+
 当前顺序为：
 
 ```text

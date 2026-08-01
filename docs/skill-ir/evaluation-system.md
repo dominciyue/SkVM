@@ -3,6 +3,27 @@
 本文档说明 corpus、matrix、真实 agent runner、workdir scorer、分析器、route health
 和 validation planning。冻结实验结果见 `docs/skill-ir/experiment-results.md`。
 
+## 0. 主指标与成本顺序
+
+优化结果先检查质量与稳定性硬门槛：相对 exact original 的聚合质量不劣、至少一个预注册稳定性指标
+改善、负向 pair/hard-gate regression 受控、完整分母且 infrastructure 单列。只有硬门槛通过后，平均
+质量提升与重复调用 Token 降低才作为双优化目标进入主结论。
+
+Token 表必须分列：
+
+```text
+C_compile_profile_package
+C_original_per_run
+C_optimized_per_run
+C_original(N) = N * C_original_per_run
+C_optimized(N) = C_compile_profile_package + N * C_optimized_per_run
+N = 1, 2, 5, 10
+break_even_N
+```
+
+质量回归、跳过验证或不完整输出带来的 Token 降低不得计为优化收益。当前历史实验尚未满足完整摊销
+claim，继续保持诊断/未来指标定位。
+
 ## 1. 目录
 
 ```text

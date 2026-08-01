@@ -32,6 +32,26 @@
 > disjoint held-out tasks 上比较 `no-skill`、`original`、`ir-static` 和
 > `ir-pgo`，评估成功率、最差表现、回归和成本。
 
+### 2.1 优化成功与优化目标
+
+主 claim 使用两层判定，不能把所有指标混成一个加权分数：
+
+**硬门槛：**
+
+1. 相对 exact original，聚合成功率和平均质量至少不劣；
+2. 跨模型、上下文、task 或 repetition 的最差表现、失败率或离散度至少有一个预注册稳定性指标改善；
+3. 逐样本负向 pair 和 hard-gate regression 不超过预注册上限，并按 slice 完整披露；
+4. infrastructure failure 与 semantic outcome 分列，不能用缺失分母美化结果。
+
+**通过硬门槛后的双优化目标：**
+
+1. 在可比质量合同下尽可能提高平均质量；
+2. 尽可能降低重复调用的摊销 Token 成本。
+
+Token 指标必须拆为 compile/profile/package 一次性成本和 optimized runtime 单次成本，并至少报告
+`N=1,2,5,10` 的累计成本及 break-even `N*`。在达到质量与稳定性硬门槛前，Token 降低只能作为诊断，
+不能独立构成优化成功；减少输出、跳过验证或降低模型质量造成的 Token 节省一律不计为正向结果。
+
 这段文字是研究方向的完整目标，不代表当前证据已经足以支撑全部主张。当前
 benchmark v2 设计阶段必须把三类问题分开报告：
 
