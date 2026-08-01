@@ -36,6 +36,11 @@ Q-004 已冻结用户侧边界：最终入口自动执行 intake、静态分析�
 开发，但通用 core 必须保持 0 个 skill-id branch，并逐 case 记录人工时间、adapter LOC、artifact kind
 复用率和未自动化步骤。Untouched replication 不允许修改 core。
 
+Q-005--Q-007 同时冻结：最终交付采用 CLI 主入口、TypeScript library 集成和 Optimizer Agent 编排；主证据
+最低覆盖 6 个 method-development skill、1 个且争取 2 个 untouched replication、3 个模型族、clean 与
+noisy/long context、稳定 Pi 和真实 Windows。付费实验在 lock/audit/dry-run/qualification 通过后可直接
+使用项目 API，无需逐批确认且不设 Token 上限；预注册分母、`retries=0`、失败停止和成本记账继续强制。
+
 本窗口禁止新增 runtime、transport 或 artifact catalog 版本。旧 package、lock、runner 和 compact
 result 保持原路径与 digest；后文旧任务中的未完成动作若已被后续 gate 或 Task 16.21 覆盖，均不再是
 活跃 checkbox。新的实现优先复用通用 runner/scoring/gate，仅在测量合同本身需要时增加代码。
@@ -154,8 +159,8 @@ manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phen
    admission、公开合同审计、人工适配时间/LOC、可复用 artifact kind、未自动化步骤和停止原因。
 5. `studied`、`contract-qualified` 与 `untouched replication` 使用独立分母。Audit-failed 历史案例可以
    解释方法演进，不能自动填充 contract-qualified 分母。
-6. 另选未参与 policy/catalog/adapter 调整的真实 skill 做冻结 replication；具体适配边界在 Q-004
-   决定后写入 intake/lock，development gate 前不消费 held-out。
+6. 另选未参与 policy/catalog/adapter 调整的真实 skill 做冻结 replication；适配边界已确定为“通用 core
+   不变、声明式适配、低置信度审核”，下一步写入 intake/lock；development gate 前不消费 held-out。
 
 ### 已完成前置：文档治理
 
@@ -389,6 +394,8 @@ bun ./src/benchmarks/skill-ir/route-probe-run.ts `
 4. Component doc 与代码同阶段更新；不新增重复 run 文档。
 5. 结果提交 compact scored JSONL、CSV、summary 和 provenance；raw/workdir 留本地。
 6. 每个阶段追加 `D:\skill优化\conversation_log.md`。
+7. 真实 API 实验无需逐批请求用户确认，也不设 Token 额度上限；只有 lock、benchmark contract audit、
+   dry-run、resource/route qualification 全部通过后才能执行。默认零重试，失败按预注册停止并完整记账。
 
 ## 8. 质量门禁
 

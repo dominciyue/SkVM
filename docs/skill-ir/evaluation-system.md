@@ -24,6 +24,25 @@ break_even_N
 质量回归、跳过验证或不完整输出带来的 Token 降低不得计为优化收益。当前历史实验尚未满足完整摊销
 claim，继续保持诊断/未来指标定位。
 
+### 0.1 真实 API 执行授权与研究停止规则
+
+项目专属 API 的真实实验在通过以下门禁后可自主执行，不需要逐批向用户确认，也不设置 Token 额度上限：
+
+```text
+committed source/task/scorer/lock/gate
+-> local contract/leak/materialization audit
+-> lock-bound dry-run
+-> resource probe
+-> single route/qualification probe
+-> one preregistered matrix
+```
+
+无额度上限只表示操作授权，不允许扩大结果自由度。正式矩阵默认 `retries=0`；任一预注册 infrastructure
+failure 或 gate failure 按 lock 的停止规则冻结，不补跑失败行、不增加 repetition 筛选正例、不事后调整
+threshold/scorer/task。所有运行继续记录 aggregate/input/output/repair token、latency、missing usage、模型/
+task/system 分母和 compile/profile/package/runtime 成本。API key 只从环境变量读取，不写入 plan、lock、
+结果、文档或沟通台账。
+
 ## 1. 目录
 
 ```text

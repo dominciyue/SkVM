@@ -14,6 +14,10 @@ execution feedback 改善稳定性。
 低置信度、资源/权限缺失、证据冲突或质量回归时请求确认。方法开发允许人工编写和审核 declarative
 adapter/contract，但禁止在通用 core 中按 skill id 分支，并必须报告新增适配成本。
 
+交付入口固定为 CLI + TypeScript library API + Optimizer Agent：CLI 是主要使用和汇报演示入口，library
+供 SkVM/其他 Agent 集成，Agent 只编排同一套 core，不维护另一套优化逻辑。三者共同产出 optimized
+package、validation report 和 cost report。
+
 ## 当前状态
 
 - 已完成 Skill IR schema、parser、validator、profiler、静态 passes 和 lowering。

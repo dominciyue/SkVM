@@ -46,6 +46,10 @@ artifact 配置；每个 case 必须报告人工时间、adapter LOC、artifact 
 可以请求用户审核：低置信度语义、资源或权限缺失、公开证据冲突、验证预算升级和质量回归；常见已支持
 路径应自动完成，不能把逐 skill 优化分析转嫁给最终使用者。
 
+产品入口固定为三层：CLI 负责 `import/optimize/validate/report` 和主要演示，TypeScript library API 暴露
+同一阶段能力供 SkVM/其他 Agent 调用，Optimizer Agent 只负责选择与编排这些 API。三层必须共享同一
+IR、catalog、validation 与 provenance contract，不能各自形成行为不同的优化实现。
+
 ## 2. 当前主 Claim
 
 > 对一组有明确来源的真实 skill，将自然语言 skill 编译为静态 Skill IR，
@@ -188,10 +192,14 @@ package/catalog、一次 repair 上限和 development gate 全部保持冻结。
 
 ### 计划轴
 
-- 固定多模型 panel 与 panel-conditioned shared artifact。
 - 至少 6 个真实 skill 的方法开发 portfolio；最终数量按新增信息量和实验成本调整。
-- 使用未参与 policy/catalog 调整的真实 skill 做冻结 replication。
-- 真实 Linux/macOS host 与多个 agent adapter。
+- 至少 1 个、争取 2 个未参与 policy/catalog 调整的真实 skill 做冻结 replication。
+- 至少 3 个模型族组成固定 panel，并报告 aggregate/per-family/worst-family/negative delta。
+- 至少覆盖 clean 与 noisy/long-context 两类上下文。
+- 稳定 Pi harness 与真实 Windows 是最低已测执行面；Linux/macOS 与第二 agent harness 有可用环境后加入，
+  未实测前只列为计划轴。
+- 完整优化对比使用 `no-skill | original | ir-static | optimized artifact/final IR`；无法进入后续系统的
+  skill 仍按冻结 gate 和完整分母报告。
 
 ## 4. 真实 Skill 范围
 
