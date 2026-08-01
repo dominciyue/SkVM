@@ -25,6 +25,27 @@
 规则；也不得只继续扩 benchmark/governance 而不推进 compiler、artifact 和导入流程。阶段计划应同时
 说明其对研究可信度与通用系统能力的贡献，允许单阶段偏重一侧，但连续阶段不能长期只推进一侧。
 
+### 1.2 用户侧自动化与适配边界
+
+最终用户入口以“导入 skill -> 生成 optimized package”为目标。使用者提供 source/resource、允许的
+工具环境和可选代表性任务，不需要手工阅读失败、编写 IR、选择 repair 或设计 artifact。系统负责：
+
+```text
+source/provenance intake
+-> static analysis + base IR
+-> declarative adapter/catalog selection
+-> artifact compilation
+-> risk-based validation
+-> bounded dynamic feedback
+-> validated package or explicit review/block report
+```
+
+通用 core 不得按 skill id 分支。方法开发阶段允许新增或审核声明式 adapter、公开 task contract 和
+artifact 配置；每个 case 必须报告人工时间、adapter LOC、artifact kind 复用率、core branch delta 与
+未自动化步骤。Untouched replication 不得修改 core，只能使用冻结的 catalog/adapter 机制。以下情况
+可以请求用户审核：低置信度语义、资源或权限缺失、公开证据冲突、验证预算升级和质量回归；常见已支持
+路径应自动完成，不能把逐 skill 优化分析转嫁给最终使用者。
+
 ## 2. 当前主 Claim
 
 > 对一组有明确来源的真实 skill，将自然语言 skill 编译为静态 Skill IR，

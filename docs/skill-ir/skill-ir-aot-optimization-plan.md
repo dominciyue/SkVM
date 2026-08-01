@@ -31,6 +31,11 @@ artifact 或 intake 能力。
 -> 新 lock / IR / held-out 只能按确认后的规则继续
 ```
 
+Q-004 已冻结用户侧边界：最终入口自动执行 intake、静态分析、声明式适配、artifact 编译和分层验证；
+使用者只在低置信度、资源/权限、证据冲突或回归时审核。六个方法开发 case 可以有人工 adapter/contract
+开发，但通用 core 必须保持 0 个 skill-id branch，并逐 case 记录人工时间、adapter LOC、artifact kind
+复用率和未自动化步骤。Untouched replication 不允许修改 core。
+
 本窗口禁止新增 runtime、transport 或 artifact catalog 版本。旧 package、lock、runner 和 compact
 result 保持原路径与 digest；后文旧任务中的未完成动作若已被后续 gate 或 Task 16.21 覆盖，均不再是
 活跃 checkbox。新的实现优先复用通用 runner/scoring/gate，仅在测量合同本身需要时增加代码。
@@ -146,7 +151,7 @@ manifest、execution-plan 与 runtime 已被第二个 `experimental-design` phen
 3. API Tester 在新 identity 下进入 method-development。复用 direct Node Pi、short-path budget、
    runner/scoring/gate core；不新增 runtime、transport 或 artifact catalog。
 4. 方法开发 portfolio 扩展到至少 6 个有 provenance 的真实 skill，覆盖不同 phenotype；逐项记录
-   admission、公开合同审计、人工适配量、可复用 artifact kind 和停止原因。
+   admission、公开合同审计、人工适配时间/LOC、可复用 artifact kind、未自动化步骤和停止原因。
 5. `studied`、`contract-qualified` 与 `untouched replication` 使用独立分母。Audit-failed 历史案例可以
    解释方法演进，不能自动填充 contract-qualified 分母。
 6. 另选未参与 policy/catalog/adapter 调整的真实 skill 做冻结 replication；具体适配边界在 Q-004

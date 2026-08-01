@@ -9,6 +9,11 @@ execution feedback 改善稳定性。
 实验合同；同样也不能只完善测量基础设施而不推进 optimizer 的实际能力。优化成功先要求质量不劣、
 稳定性提高且回归受控，再持续提高平均质量并降低多次调用的摊销 Token；Token 节省不能抵消质量回归。
 
+面向最终使用者的目标是导入原始 skill 后自动得到 provenance-bound optimized package。使用者不需要
+自行分析失败或设计优化；通用 core 自动完成静态分析、声明式适配选择、artifact 编译和分层验证，只有
+低置信度、资源/权限缺失、证据冲突或质量回归时请求确认。方法开发允许人工编写和审核 declarative
+adapter/contract，但禁止在通用 core 中按 skill id 分支，并必须报告新增适配成本。
+
 ## 当前状态
 
 - 已完成 Skill IR schema、parser、validator、profiler、静态 passes 和 lowering。

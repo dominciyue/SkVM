@@ -445,6 +445,12 @@ original skill 或 artifact 增益证据；当前四臂 development、held-out �
 
 Corpus 不因 intake 表变大而自动扩大。完成一个 pilot 的证据闭环后再加入下一个。
 
+方法开发阶段允许为新 phenotype 编写声明式 adapter、公开 contract 和 skill-specific scorer/oracle，
+这些工作必须与通用 core 分离并记录人工时间、nonblank LOC、artifact kind 复用率和 core branch delta。
+最终使用者不承担逐 skill 分析；系统应自动选择已支持 adapter/catalog，只有低置信度、资源/权限、证据
+冲突或回归才进入人工审核。Untouched replication 不得修改通用 core；若只能靠 skill-id 分支通过，
+该 case 只能证明专用实现，不能计作泛化证据。
+
 注意：一个 pilot 的 benchmark audit 通过，只能说明该 pilot 的测量合同可用，不能
 说明 catalog 自动适配其他 skill。跨 skill 结论必须由冻结方法后的 untouched
 replication 支撑，并同时记录通用 core 是否新增 skill-id 分支、adapter 新增代码量、
