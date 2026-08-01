@@ -4,6 +4,10 @@
 自然语言 skill 编译成结构化 IR 和可执行 artifact，并利用 development
 execution feedback 改善稳定性。
 
+项目采用两条同等优先的交付主轴：一条是可审计、可复现的研究方法与实验可信度，另一条是能够接收
+不同真实 skill 的通用可用优化系统。显著正向单案例是次级验证目标，不能用来交换通用系统边界或放宽
+实验合同；同样也不能只完善测量基础设施而不推进 optimizer 的实际能力。
+
 ## 当前状态
 
 - 已完成 Skill IR schema、parser、validator、profiler、静态 passes 和 lowering。

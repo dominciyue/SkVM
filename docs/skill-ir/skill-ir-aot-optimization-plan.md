@@ -1,23 +1,29 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-07-31
+**最后更新：** 2026-08-01
 
 本文件只记录当前状态和下一步。已完成阶段的详细演进见
 `docs/skill-ir/history.md`，组件契约见对应权威文档。
 
 ## 0. 当前执行窗口
 
-Task 16.21 已按预注册失败分支关闭：skill-unique local audit 与真实 8-row matrix 都完成，但强模型
-no-skill/original 仍 4/4、0 differing pair。当前活跃任务转为 Task 16.22 Wave B cross-skill replication。
-顺序固定为：
+Task 16.21 已按预注册失败分支关闭；Task 16.22 API Tester 也完成 local audit、qualification 和唯一
+8-row baseline，并因两个 task 都没有 original full success 而按冻结 gate 关闭。Base IR 与 held-out
+均未放行。下一实现动作需要先明确 partial-but-attributable original benefit 的 prospective re-entry 规则，
+不能事后修改 Task 16.22 的 gate。
+
+项目资源分配采用双主轴：研究方法/实验可信度与通用可用 optimizer 同等优先。显著正向单案例优先级
+最低，不能以专用分支或放宽实验合同换取；同时禁止连续堆叠 benchmark/governance 而不推进通用 compiler、
+artifact 或 intake 能力。
+
+当前顺序为：
 
 ```text
-冻结 Task 16.21 负结果
--> 选择一个不同 phenotype 的真实 Wave B skill
--> public contract + deterministic scorer audit
--> no-skill | exact original development baseline
--> 只有区分度 gate 通过才允许 base IR / ir-static
--> development gate 后才允许 held-out
+冻结 Task 16.21 与 Task 16.22 结果
+-> 前瞻性确定 original partial benefit 的 re-entry 定义
+-> 决定 API Tester 是方法开发 case，还是转向下一 untouched real skill
+-> 每个阶段同时标注 research-method 与 reusable-system 贡献
+-> 新 lock / IR / held-out 只能按确认后的规则继续
 ```
 
 本窗口禁止新增 runtime、transport 或 artifact catalog 版本。旧 package、lock、runner 和 compact
