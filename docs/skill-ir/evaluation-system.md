@@ -1,1653 +1,215 @@
 # Skill IR 评估系统
 
-本文档说明 corpus、matrix、真实 agent runner、workdir scorer、分析器、route health
-和 validation planning。冻结实验结果见 `docs/skill-ir/experiment-results.md`。
+本文只说明当前通用评估组件。单个 skill 的 task、lock、命令和结果放在 pilot 或 evidence ledger 中。
 
-## 0. 主指标与成本顺序
+## 1. 评估原则
 
-优化结果先检查质量与稳定性硬门槛：相对 exact original 的聚合质量不劣、至少一个预注册稳定性指标
-改善、负向 pair/hard-gate regression 受控、完整分母且 infrastructure 单列。只有硬门槛通过后，平均
-质量提升与重复调用 Token 降低才作为双优化目标进入主结论。
+1. 先验证 benchmark 合同，再判断 skill/IR/artifact 效果。
+2. 主比较使用相同 skill/task/context/model/runIndex 的 paired cells。
+3. No-skill、exact original、ir-static 与 optimized 分开；original 必须读取完整 source closure。
+4. Deterministic scorer 是成功权威，LLM judge 只作辅助诊断。
+5. Runtime validator、semantic failure 与 infrastructure failure 分列。
+6. 预注册分母不因失败丢行；`retries=0`。
+7. Development 与 held-out 在文件、digest、runner identity 和可见性上隔离。
 
-Token 表必须分列：
-
-```text
-C_compile_profile_package
-C_original_per_run
-C_optimized_per_run
-C_original(N) = N * C_original_per_run
-C_optimized(N) = C_compile_profile_package + N * C_optimized_per_run
-N = 1, 2, 5, 10
-break_even_N
-```
-
-质量回归、跳过验证或不完整输出带来的 Token 降低不得计为优化收益。当前历史实验尚未满足完整摊销
-claim，继续保持诊断/未来指标定位。
-
-### 0.1 真实 API 执行授权与研究停止规则
-
-项目专属 API 的真实实验在通过以下门禁后可自主执行，不需要逐批向用户确认，也不设置 Token 额度上限：
+## 2. 目录与职责
 
 ```text
-committed source/task/scorer/lock/gate
--> local contract/leak/materialization audit
--> lock-bound dry-run
--> resource probe
--> single route/qualification probe
--> one preregistered matrix
+benchmarks/skill-ir/corpus/                 corpus registry、intake、portfolio
+benchmarks/skill-ir/contexts/               context definitions
+benchmarks/skill-ir/pilots/<skill>/         source、tasks、contract、IR、package、lock
+src/benchmarks/skill-ir/matrix.ts            systems/cells
+src/benchmarks/skill-ir/real-agent*.ts       materialization 与 execution
+src/benchmarks/skill-ir/scoring.ts           scored row 与 pairing
+src/bench/evaluators/                        task-specific deterministic scorer
+src/benchmarks/skill-ir/*gate*.ts            preregistered gates
+results/skill-ir/                            compact evidence 与本地 raw runs
 ```
 
-无额度上限只表示操作授权，不允许扩大结果自由度。正式矩阵默认 `retries=0`；任一预注册 infrastructure
-failure 或 gate failure 按 lock 的停止规则冻结，不补跑失败行、不增加 repetition 筛选正例、不事后调整
-threshold/scorer/task。所有运行继续记录 aggregate/input/output/repair token、latency、missing usage、模型/
-task/system 分母和 compile/profile/package/runtime 成本。API key 只从环境变量读取，不写入 plan、lock、
-结果、文档或沟通台账。
+## 3. Corpus 生命周期
 
-## 1. 目录
+Corpus registry 要求显式 `--corpus=calibration|pilot`。Synthetic calibration 与真实 pilot 不混用。
+
+真实 skill 常见状态：
 
 ```text
-benchmarks/skill-ir/corpus/                  corpus registry
-benchmarks/skill-ir/tasks/                   synthetic calibration tasks
-benchmarks/skill-ir/pilots/                  real pilot source/tasks/IR/package
-src/benchmarks/skill-ir/matrix.ts            experiment matrix
-src/benchmarks/skill-ir/real-agent.ts        materialization and command
-src/benchmarks/skill-ir/real-agent-run.ts    plan and execute CLI
-src/benchmarks/skill-ir/scoring.ts           raw -> scored
-src/benchmarks/skill-ir/score-real-agent-runs.ts
-scripts/analyze_skill_ir_results.py
-scripts/analyze_skill_ir_slices.py
+selected
+-> source-frozen
+-> tasks-authored
+-> benchmark-audited
+-> runnable (有 source-audited base IR)
+-> development-gated
+-> heldout-eligible
 ```
 
-## 2. Corpus
+`tasks-authored-calibration` 只允许一个显式 skill，并只调度 `no-skill | original` 的 development tasks。
+它不会伪造 `irPath` 或 runnable 状态。
 
-Runner 必须显式选择：
+当前证据角色由 `method-portfolio.json` 管理；旧 Wave 标签不作为研究分母。
+
+## 4. Experiment Systems
+
+| System | 含义 | 调度条件 |
+|---|---|---|
+| `no-skill` | 只给用户可见任务。 | baseline |
+| `original` | 完整、精确 source closure。 | baseline |
+| `ir-static` | profile-empty base IR 经静态 passes/lowering。 | source audit 后 |
+| `ir-pgo-dev` | development-only dynamic candidate。 | typed residual 后 |
+| `ir-pgo` | Final IR held-out consumption。 | development gate 后 |
+| `validated-artifact` | package compiler/runtime 产物。 | package+execution freeze 后 |
+
+默认 cold-start 为前三项；`ir-pgo` 从不默认出现。其他历史 system label 仅显式 ablation 使用。
+
+## 5. Matrix Identity
+
+最小 run identity：
 
 ```text
---corpus=calibration
---corpus=pilot
+caseId, skill, task, taskSplit, system,
+model, modelFamily, agent, adapter, adapterVersion,
+environment, context, panelConfigId, runIndex,
+sourceDigest, irDigest, packageDigest, lockDigest
 ```
 
-`calibration` 包含 synthetic seed，证据权重为 `calibration-low`。`pilot` 包含有
-provenance 的真实 skill。Corpus entry 固定：
+Pairing 只在除 system 外身份一致时成立。跨时间、跨 provider、跨 harness 的均值不能冒充 paired delta。
 
-- source kind/path/digest；
-- provenance 与 evidence weight；
-- status：source-imported、tasks-authored、runnable；
-- IR/task/resource path；
-- license 和 upstream commit。
+## 6. Materialization
 
-Runner 默认只收录 `runnable`。Pre-IR calibration 必须使用显式
-`--allow-tasks-authored`，且仅允许一个 pilot、development、clean 和
-`no-skill | original`。
+Runner 为每行建立隔离 workdir，并保存初始 manifest。Exact original 从 `sourcePath/sourceFiles` 读取正文和
+资源，不能只显示 `Source file: <path>`。Protected input 和 source closure 必须在执行后重新验 digest。
 
-## 3. Experiment Systems
+Task-specific scorer 只查看最终 workdir 与初始 manifest，判断：
 
-```ts
-type ExperimentSystem =
-  | "no-skill"
-  | "original"
-  | "ir-only"
-  | "ir-static"
-  | "ir-profile"
-  | "ir-pgo-dev"
-  | "ir-pgo"
-  | "ir-artifact-dev"
-  | "skvm-aot";
-```
+- required outputs 是否存在、路径是否合法；
+- protected inputs 是否被改写；
+- schema/semantic contract 是否满足；
+- 多余文件、secret、absolute path、nondeterminism 是否出现；
+- infrastructure 是否阻止了可判分执行。
 
-冷启动默认系统由 `COLD_START_EXPERIMENT_SYSTEMS` 固定为：
+## 7. Runner CLI
 
-```text
-no-skill | original | ir-static
-```
-
-`ir-pgo-dev`、`ir-pgo` 和 `ir-artifact-dev` 都需要额外 provenance/lock guard。
-`skvm-aot` 在接入真实 upstream AOT path 前不进入主表。
-
-## 4. Matrix 和 Identity
-
-`buildExperimentMatrix` 组合 skill、system、context、agent、environment 和 task。
-每个真实 run 还记录：
-
-```text
-model
-modelFamily
-adapter
-adapterVersion
-runIndex
-panelConfigId
-skillProvenance
-evidenceWeight
-```
-
-重复运行必须按完整 identity 配对。Partial identity、重复 construction evidence 或
-混合 legacy/identified row 会失败，不允许用 task id 单独配对。
-
-## 5. Materialization
-
-`materializeCaseArtifacts` 为每行创建：
-
-```text
-task/task.json
-skill/SKILL.md
-workdir/
-```
-
-行为：
-
-- no-skill 不注入 skill；
-- original file source 读取 exact committed `SKILL.md` 和 resources；
-- IR system 渲染对应 IR/final artifact；
-- fixture 和 resource 复制到持久化 workdir；
-- task JSON 使用用户可见 prompt，evaluator payload 不进入 prompt。
-
-## 6. Runner CLI
-
-无执行 dry-run 示例：
+通用 dry-run：
 
 ```powershell
 bun ./src/benchmarks/skill-ir/real-agent-run.ts `
   '--corpus=pilot' `
-  '--skills=env-manager' `
   '--systems=no-skill,original,ir-static' `
   '--contexts=clean' `
   '--agents=skvm' `
   '--environments=windows' `
-  '--tasks=env-manager-node-audit-dev-001' `
-  '--model=xty/gpt-4.1-mini' `
-  '--adapter=bare-agent' `
-  '--out-dir=results/skill-ir/example-dry-run'
+  '--model=xty/gpt-5.6-sol' `
+  '--adapter=pi' `
+  '--out-dir=results/skill-ir/<run-id>'
 ```
 
-不加 `--execute` 时只生成 `plan.json` 和 materialized artifacts。真实执行还需：
+真实执行必须由对应 lock-specific runner 或显式 `--execute` 命令生成，先完成 lock validation、resource
+probe、route probe 和 qualification。API key 只从环境变量读取，禁止写入 config、plan、raw row 或文档。
 
-```text
---execute
---require-env=<provider-key-env>
-```
-
-API key 只存在环境变量，不写入 config、plan、raw/scored row 或文档。
-
-## 7. 运行边界
-
-### Development replay
-
-- 只允许 pilot corpus；
-- 一个显式 skill；
-- 显式 development tasks；
-- clean context；
-- matching provenance/lock；
-- 不得混入 held-out。
-
-### Held-out PGO
-
-- 必须提供 Final IR override directory；
-- provenance 必须匹配 corpus、skill、source/base/final digest；
-- construction evidence 只来自 development；
-- selected skill 必须存在 repair；
-- held-out task 不得出现在 construction evidence。
-
-### Artifact development
-
-- system 只能是 `ir-artifact-dev`；
-- package catalog 和 lock identity 必须匹配；
-- model、adapter、environment、context、tasks、repetitions、repair mode 和 digest
-  由 lock 约束。
-
-GPT-4.1 能力诊断使用两层 lock：
-
-```text
-env-manager-gpt41-capability-diagnostic-lock.json
-  -> 冻结 12+4+4 矩阵、source/base/task/scorer/package digest、gate 和解释边界
-env-manager-executable-semantic-artifact-v2-gpt41-lock.json
-  -> 给现有 artifact runner 使用的 GPT-4.1 兼容投影
-```
-
-协调 lock 不传给 agent，也不包含 evaluator expected。它只用于预注册、dry-run
-完整性验证和离线归因；runner lock 继续使用现有严格 semantic artifact schema。
-
-能力诊断 dry-run compiler：
-
-```powershell
-bun ./src/benchmarks/skill-ir/capability-diagnostic-run.ts `
-  --lock=benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-lock.json `
-  --out-dir=results/skill-ir/env-manager-gpt41-capability-diagnostic-dry-run
-```
-
-该 CLI 故意不支持 `--execute`。输出 `diagnostic-plan.json` 和三组已有 runner plan；
-只有 route probe 通过后，才允许按保存参数分别执行。
-
-## 8. Raw Rows 与 Workdir
-
-`executePlan` 按行重建限定 workdir、执行 SkVM、提取 adapter `RunStatus`、token 和
-artifact runtime metadata，再追加 `raw-runs.jsonl`。
-
-Non-ok adapter status 即使 wrapper exit code 为 0，也按 infrastructure 处理，不让
-final output 文本伪装成功。
-
-Raw rows 和 workdir 默认保留本地，便于重评分和审计；compact scored rows 和 summary
-提交到 Git。
-
-Real-skill source closure 在 manifest 存在 `sourceFiles` 时只复制声明文件，并逐文件
-验证 SHA-256。未登记的 `__pycache__`、本地日志或编辑器文件不能进入 materialized
-original/static skill。没有 source manifest 的 legacy calibration fixture 继续使用旧的
-目录复制兼容路径。
-
-文件型 benchmark 可通过 `--initial-workdir-manifest=<run-dir path>` 请求初始工作区证据。
-`prepareRunWorkspace` 先复制 task fixtures 和可选 skill resource closure，再在 agent setup
-之前写出 `skvm-initial-workdir-manifest/v1`。Manifest 必须位于 agent workdir 外，只保存排序后
-的 POSIX 相对路径、entry type 与文件 SHA-256；raw/scored `RunResult` 只携带 manifest path 与
-digest reference。绝对/逃逸路径、重复或未排序记录、symlink/junction/reparse/special entry、
-manifest 摘要漂移均 fail closed。
-
-`assessWorkdirDelta` 比较该初始 manifest 与最终 workdir：初始文件不得修改、删除或变型，
-声明输出必须是新增文件，其他新增 entry 拒绝。因此 original 在启动前合法复制的脚本、引用和
-license 不会再被误判为模型输出，同时 agent 运行后新增的 root debug 文件仍会失败。通用
-benchmark contract audit 的 canary 可选绑定 `initialFixturePath`/digest，以便本地 scorer audit
-与真实 runner 使用同一增量语义。
-
-## 9. Scoring
-
-```ts
-scoreRawRunRows(...)
-scoreRawRunRowsBySkill(...)
-classifyFailureType(...)
-```
-
-Scorer 先处理执行/infrastructure，再调用 task evaluator。`env-manager` evaluator
-读取最终 workdir，不使用 LLM judge，检查：
-
-- protected inputs；
-- synthetic secret leak；
-- required artifacts；
-- exact classification；
-- `.env.example` safety；
-- schema rules。
-
-Hard gate 与 weighted threshold 同时满足才 success。Evaluator exception 只影响当前
-row，并记录为 infrastructure/evaluation，不中断整批评分。
-
-`law-to-markdown` 使用 `skill-ir-law-to-markdown` custom evaluator，覆盖 protected input、
-artifact policy、字符流保真、heading hierarchy、项/目换行、报告 source 和审核结论。
-法律与非法律 task 共用 criterion identity，但 payload check 按公开文档策略切换。路径
-逃逸、symlink 逃逸、payload 错误和 workdir I/O 失败属于 infrastructure；普通内容或格式
-错误属于 evaluation failure。Scored row 只保留 criterion pass/score。
-
-资源预检：
-
-```powershell
-$env:SKVM_PYTHON = '<python-with-required-modules>'
-bun ./src/benchmarks/skill-ir/resource-contract-run.ts `
-  '--contract=benchmarks/skill-ir/pilots/law-to-markdown/resource-contract.json' `
-  '--out=results/skill-ir/law-to-markdown-resource-probe/result.json'
-```
-
-Runner 尚不自动安装依赖；probe 非 `ok` 时不得执行付费 calibration。
-
-评分命令：
+评分与通用分析：
 
 ```powershell
 bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts `
-  '--raw=<run-dir>/raw-runs.jsonl' `
-  '--tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json' `
-  '--out=<run-dir>/scored-results.jsonl'
+  '--raw=results/skill-ir/<run-id>/raw-runs.jsonl' `
+  '--manifest=benchmarks/skill-ir/corpus/corpora/pilot.json' `
+  '--out=results/skill-ir/<run-id>/scored-runs.jsonl'
+
+python scripts/analyze_skill_ir_results.py `
+  results/skill-ir/<run-id>/scored-runs.jsonl `
+  results/skill-ir/<run-id>/summary.csv
 ```
 
-## 10. Analysis
+具体冻结实验优先运行其专用 `*-run.ts`，不要从此示例猜测参数。
 
-主表：
+## 8. Benchmark Contract Audit
 
-```powershell
-python scripts/analyze_skill_ir_results.py <scored.jsonl> <table.csv>
-```
+付费前 audit 至少覆盖：
 
-Slice：
+1. source provenance 与公开 task contract；
+2. alternative-valid positive fixtures；
+3. semantic/structural negative fixtures；
+4. reverse-evidence：删除公开证据后约束消失；
+5. gold/expected/sourceQuote/heldout/secret canary；
+6. production materialization：真实 fixture、initial manifest、最终 delta；
+7. scorer authority：runtime report 不能覆盖最终 scorer。
 
-```powershell
-python scripts/analyze_skill_ir_slices.py <scored.jsonl> <slices.csv>
-```
+Benchmark v2 当前审计结果为 42/42 differential 与 36/36 materialization。该结论只说明测量合同可用，
+不保证模型条件下有区分度。
 
-报告字段包括 mean/worst success、variance、rule violations、token、latency、paired
-delta、regression、negative delta、infrastructure 和 provenance/model/context slice。
-
-能力诊断 failure audit：
-
-```powershell
-bun ./src/benchmarks/skill-ir/failure-audit-run.ts `
-  --lock=benchmarks/skill-ir/pilots/env-manager/env-manager-gpt41-capability-diagnostic-lock.json `
-  --out-dir=results/skill-ir/env-manager-gpt41-capability-failure-audit
-```
-
-无 `--strong-scored` 时，CLI 从 lock 加载历史 mini 的 static/check-only/one-repair
-20 行并生成 audit。强模型完成后必须提供三次 `--strong-scored=<path>`，再生成逐
-criterion transition。Audit 只保留错误码、相对路径、JSON pointer、criterion pass
-和失败分类，不复制 stdout、workdir 内容、secret 或 evaluator expected。
-
-CLI 在输出前逐格验证冻结的 12+4+4 identity：model/family、skill、task、system/mode、
-context、agent、environment、adapter/version、panel、run index、criteria 和 case id
-必须完全匹配，重复或缺失格直接失败。Runtime report 重新通过 v1/v2 正式 schema，
-白名单字符串还会拒绝绝对路径、控制字符、secret canary 与常见凭据形态。Comparison
-索引也拒绝重复 key，不允许静默覆盖。
-
-跨批次独立生成只能作诊断，不能替代同一冻结矩阵内 paired comparison。
-
-V3 artifact 归因使用 `artifact-snapshot.ts` 保存同一 generation 的 pre/post workdir。
-raw 行中的 snapshot reference 只携带 generation identity、phase、绝对路径和目录摘要；
-scorer 先验证摘要，再展开 `check-only` 与 `one-repair` 两条逻辑行。前者读取 pre
-snapshot 并只计 generation token，后者读取 post snapshot、计 aggregate token，且
-继续单列 `repairUsage`。缺一侧快照、identity/phase 不一致、摘要漂移或重复逻辑 key
-都会拒绝整批评分。没有 snapshot metadata 的历史 raw 行不自动展开。
-
-`failure-audit.ts` 支持 v1/v2/v3 runtime report。V3 audit 只额外保留封闭
-`contractRef` 与 `operation`，仍拒绝 secret canary、绝对路径、自由文本和超长字段；
-stdout、workdir 内容、evaluator expected 不进入 compact audit。
-
-### V4 Coverage Audit 与 Offline Replay
-
-`contract-coverage-run.ts` 将六个 env-manager scorer criterion 映射到 runtime check、
-公开 evidence、deterministic repair 和 residual gap。输入只包含 criterion registry、
-封闭 runtime code 和失败 criterion id；输出不是 scorer，也不包含 evaluator payload。
-
-```powershell
-bun ./src/benchmarks/skill-ir/contract-coverage-run.ts `
-  '--runtime-codes=INVALID_REPORT_FIELD_TYPE,MISSING_CLASSIFICATION_ENTRY' `
-  '--failed-criteria=env-classification,env-schema-rules' `
-  '--tasks=benchmarks/skill-ir/pilots/env-manager/tasks.json' `
-  '--out=results/skill-ir/env-manager-v4-deterministic-replay-evidence-2026-07-22/contract-coverage-audit.json'
-```
-
-`deterministic-repair-replay-run.ts` 只复制冻结 lock 中的 development V3 pre snapshot。
-CLI 校验 V3 package/lock/source summary digest、完整矩阵 identity、task split 与 generation
-唯一性，并通过 `env-manager-v4-deterministic-replay-freeze.json` 绑定 tasks/scorer bytes、
-criterion registry 和 learned-rule lineage。Repairer 自行读取并校验 protected runtime contract 文件；tasks/scorer payload
-只在独立的 before/after evaluator 阶段加载。
-Replay summary 投影 score、criterion id、runtime code、operation 和 digest，不提交复制的
-workdir。原 raw 中没有完整 snapshot 的 generation 计入 source denominator；summary
-同时报告 replay-only 3/3 与 gate-compatible source 3/4、mean 0.75，不伪造逻辑 arm，
-也不从结果中静默消失。
-
-离线 replay 是无模型的 development mechanism evidence，不能写成 V4 真实实验 gate 通过。
-V4 Runner 现已通过独立 system `ir-contract-artifact-dev` 接线，并由
-`env-manager-contract-repair-artifact-v4-lock.json` 冻结 2 个 development task × 2 次
-repetition 的 4-generation 分母。2026-07-22 的 dry-run 生成 4 行计划但没有执行模型。
-
-同日冻结付费 development 已完成。4 个 raw generation 全部保留；其中 3 个有完整 pre/post
-snapshot，1 个 generation-stage Bun crash 形成 missing pair。Scorer 生成 7 个逻辑行：
-3 个 check-only、3 个 one-repair 和 1 个 infrastructure。Generation gate 不以完整 pair
-重新缩小分母，最终记录 3 success、paired 3、missing pair 1、mean 0.75、hard-gate
-regression 0、infrastructure 1，gate failed。该结果不允许补跑或进入 held-out。
-
-Generation gate 由 `artifact-development-gate.ts` 记账：完整 pre/post pair 以 post arm 判定
-success/score，以 pre/post 判断 hard-gate regression；缺 raw generation 或缺 pair 都按 0 分
-计入冻结分母并记为 infrastructure。CLI 从 lock 读取 task、次数和数值阈值，并验证 tasks
-digest：
-
-```powershell
-bun ./src/benchmarks/skill-ir/artifact-development-gate-run.ts `
-  '--raw=<run-dir>/raw-runs.jsonl' `
-  '--scored=<scored-results.jsonl>' `
-  '--lock=benchmarks/skill-ir/pilots/env-manager/env-manager-contract-repair-artifact-v4-lock.json' `
-  '--out=<run-dir>/development-gate-report.json'
-```
-
-Dry-run 中含逗号的筛选参数在 PowerShell 必须整体使用单引号，例如
-`'--tasks=env-manager-node-audit-dev-001,env-manager-vite-audit-dev-002'`。未整体引用会改变
-传入 Runner 的任务集合，并被 lock 的 exact-match guard 拒绝。
-
-Compact summary 将 raw、scored、gate、route probe、failure audit 和冻结 lock 全部以
-SHA-256 绑定。Raw、snapshot、workdir 和 route artifacts 留本地；提交 scored JSONL、gate、
-route probe compact row、failure audit 与 summary。Pre/post 中 binary success 均为 3/3，
-归因报告只写 score 0.90→1.00 与 3 个 schema criterion 转绿，不写 repaired-to-success。
-
-### V4 Infrastructure Diagnostic
-
-`infrastructure-diagnostic-run.ts` 对冻结 raw 做只读、脱敏的 post-hoc 审计。Lock 绑定
-raw/summary/gate SHA-256、完整 model/adapter/panel/task identity、一次执行和
-`heldOutAllowed=false`；它不运行模型、不补跑 source generation，也不能把 report 标为
-method evidence。
-
-```powershell
-bun ./src/benchmarks/skill-ir/infrastructure-diagnostic-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/env-manager/env-manager-v4-infrastructure-diagnostic-lock.json' `
-  '--out=results/skill-ir/env-manager-v4-infrastructure-diagnostic-2026-07-22/report.json'
-```
-
-输出只含 task/run、stage、run status、exit code、封闭 crash class、Bun version 和安全字段
-fingerprint；不保存 stdout、stderr、绝对路径或模型正文。当前审计得到 1 条
-`bun-internal-assertion` / Bun 1.3.14 / generation record，reproducibility 为
-`inconclusive`。若以后做复现 probe，必须新建 execution identity，不能回填冻结 V4 gate。
-
-### Pre-IR Calibration Gate
-
-`pre-ir-calibration-run.ts` 从 digest-bound lock 编译 `tasks-authored` skill 的精确
-`no-skill | original` development 计划。`plan` 不执行；`route-probe` 只保存脱敏 route
-状态；`execute` 要求 fresh resource probe、成功 route probe 和 API key 后运行完整矩阵。
-
-`pre-ir-calibration-gate-run.ts` 验证 scored row 的 model/family/adapter/panel/task/split
-身份，固定缺行与缺 pair 的分母，并报告 system success/mean/token、paired score delta 和
-criterion pass transition。Gate 要求完整、零 infrastructure、no-skill 非饱和和至少一个
-pair 有不同 outcome vector；不要求 original 优于 no-skill。Compact report 只绑定
-lock/raw/scored/resource/route SHA-256，不保存路径、模型输出或 evaluator details。
-
-Pre-IR lock 在 pilot 晋级后仍可按 digest 重建历史 plan，但 `route-probe/execute` 会重新
-检查 live corpus 必须仍为 `tasks-authored` 且没有 base IR，因此旧阶段不能被误重放。
-
-### Static Development Lock
-
-`static-development.ts` 定义通用 `skill-ir-static-development-lock/v1`。Lock 要求 live pilot
-已经 `runnable`，并同时绑定 source、tasks、resource contract、deterministic scorer、
-profile-empty base IR 与 source-audit sidecar。计划只允许：
+## 9. Gate 顺序
 
 ```text
-no-skill | original | ir-static
-development x clean x windows x 2 repetitions
+task/source freeze
+-> benchmark contract audit
+-> materialization audit
+-> no-skill/original distinguishability calibration
+-> source-audited base IR
+-> static development
+-> typed residual / artifact development
+-> development gate
+-> held-out freeze + execution
+-> promotion or frozen failure
 ```
 
-CLI 只接受 `plan | route-probe | execute`。后两个 phase 都重新运行 resource probe；route
-probe 只保存 compact status，execute 要求同目录已有成功且身份一致的 probe：
-probe 还携带 lock SHA-256，防止同名 lock 漂移后误用旧结果。
+Calibration 常见门禁：完整 rows/pairs、0 infra、no-skill 不饱和、至少一个 differing pair。是否要求每个
+task 的 original success 由预注册 lock 决定。Partial-benefit re-entry 是新的 prospective admission，
+不能改写旧 gate。
+
+当前 re-entry 与 portfolio report 可无成本重建：
 
 ```powershell
-bun ./src/benchmarks/skill-ir/static-development-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-static-development-lock.json' `
-  '--out-dir=results/skill-ir/law-to-markdown-static-development-dry-run-2026-07-23' `
-  '--phase=plan'
+bun ./src/benchmarks/skill-ir/partial-benefit-reentry-run.ts
+bun ./src/benchmarks/skill-ir/method-portfolio-run.ts
 ```
 
-将最后一项依次改为 `--phase=route-probe` 和 `--phase=execute`。执行结果写入
-`<out-dir>/run/raw-runs.jsonl`，评分后运行：
+## 10. Scored Rows 与分析
 
-```powershell
-bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts `
-  '--raw=<out-dir>/run/raw-runs.jsonl' `
-  '--tasks=benchmarks/skill-ir/pilots/law-to-markdown/tasks.json' `
-  '--out=<out-dir>/scored.jsonl'
+Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、
+latency 和完整 identity。分析器输出：
 
-bun ./src/benchmarks/skill-ir/static-development-gate-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-static-development-lock.json' `
-  '--raw=<out-dir>/run/raw-runs.jsonl' `
-  '--scored=<out-dir>/scored.jsonl' `
-  '--resource=<out-dir>/resource-probe.json' `
-  '--route=<out-dir>/route-probe.json' `
-  '--out=<out-dir>/gate-report.json'
-```
+- per-system success/mean/worst；
+- paired positive/equal/negative；
+- per-task/model/context slices；
+- hard-gate 与 criterion failure counts；
+- infrastructure counts 和固定分母；
+- compile/profile/runtime/repair token 分解。
 
-冻结 law 矩阵为 12 rows / 4 complete triplets，模型 `xty/gpt-5.6-sol`，gate 为
-`ir-static success >= 3/4`、mean `>= 0.85`、0 infrastructure、0 hard-gate regression、
-至少一个相对 original 改善 pair。该 gate 在付费前写入 lock，不允许由结果反推。
-缺 raw/scored 或 raw infrastructure 均在固定分母中按 0 分处理。Gate 通过只允许规划新的
-held-out lock，不能直接执行 held-out 或写成主 claim。
+Token 在质量 gate 通过前只作诊断。Artifact 的 0 model token 不能忽略预编译成本。
 
-2026-07-23 冻结批次得到 `ir-static=1/4, mean=0.7875`，与 original 聚合结果相同；
-1 个 pair 改善 document-policy，1 个 pair 回归 review-outcome，2 个相同，gate failed。
-Failure audit 显示 scorer 的 canonical review strings 来自公开 bundled script，但当前 lowering
-未将其物化为 template/schema；该差距进入下一 catalog 设计，本 gate/scorer 不做事后修改。
+## 11. Stable Pi 与基础设施
 
-## 11. Route Health
+当前 Windows 主执行面使用 direct Node Pi package + short-path workdir。资格检查绑定 Pi/Bun/Node 版本、
+CLI digest、adapter source、maximum path length 和 output root。历史 Bun crash、fetch-active、transport 与
+source-process replay 是基础设施诊断，不进入 skill 效果分母。
 
-`route-probe-run.ts` 对每个模型运行一个代表 case，输出：
+新增 runtime 版本必须解决新的可复现 blocker；不能为单个实验继续堆 transport/harness 变体。
 
-```text
-ok | timeout | infrastructure | agent
-```
+## 12. 结果持久化
 
-Windows 超时时使用 process-tree termination，避免 `bun run -> cmd -> bun` 后代持有
-pipe。Probe 只判断 route 可用性，不评分 skill quality。
+提交到 Git：
 
-```powershell
-bun ./src/benchmarks/skill-ir/route-probe-run.ts `
-  '--corpus=pilot' `
-  '--models=xty/gpt-4.1-mini' `
-  '--task=env-manager-node-audit-dev-001' `
-  '--timeout-ms=120000' `
-  '--require-env=SKVM_XTY_API_KEY'
-```
+- task/source/heldout freeze；
+- lock、audit、gate report；
+- compact scored rows/summary；
+- 被 provenance 直接绑定的必要 snapshot。
 
-## 12. Advisory Tools
+默认仅本地：
 
-Promotion policy 和 validation planner 根据已有 scored rows 产生保守信号：
+- raw run workdir、qualification-work、临时 artifacts；
+- route/debug probe；
+- 可由 lock+runner 重新生成的 plan。
 
-```text
-promote-ir-pgo -> 候选 regression validation，不是自动部署
-keep-ir-profile -> 保留静态基线并审计 Final IR
-hold-for-more-validation -> route health + 更多 paired evidence
-```
+治理时不得删除仍被 digest 或结果引用的文件。原始本地数据先通过 inventory 判断，再由用户决定清理。
 
-它们不自动修改 corpus、base IR 或 package，当前冻结扩展，优先补真实 skill 证据。
-
-## 13. 结果持久化
-
-提交：
-
-- scored JSONL；
-- CSV/JSON summary；
-- route probe compact row；
-- overlay/final IR/provenance；
-- package、manifest、lock。
-
-不提交：
-
-- API key 和 `.skvm/config`；
-- provider log；
-- bulky raw transcript；
-- materialized workdir；
-- external source checkout cache。
-
-## 14. 测试和修改注意
+## 13. 验证与修改注意
 
 ```powershell
 bun test ./src/benchmarks/skill-ir
-python scripts/analyze_skill_ir_results_test.py
-python scripts/analyze_skill_ir_slices_test.py
 bun run typecheck
+python scripts/check_skill_ir_doc_links.py --root .
+git diff --check
 ```
 
-修改时：
-
-1. 新系统必须显式更新 matrix、materialization、runner guard、scoring 和 docs。
-2. 新 identity 字段必须端到端进入 plan/raw/scored/pairing/provenance。
-3. 新 evaluator 先写 deterministic fixture tests。
-4. 不把 infrastructure failure 解释为 skill regression。
-5. 不为单次 run 新建文档；更新 `experiment-results.md` 和 compact results。
-
-## 15. Validated Artifact 本地验证
-
-通用 package/runtime 的工程测试：
-
-```powershell
-bun test `
-  ./src/benchmarks/skill-ir/validated-artifact-catalog.test.ts `
-  ./src/benchmarks/skill-ir/validated-artifact-runtime.test.ts `
-  ./src/benchmarks/skill-ir/law-artifact-compiler.test.ts
-```
-
-Law 真实 Python activation 需要先设置已通过 resource contract 的解释器：
-
-```powershell
-$env:SKVM_PYTHON = '<python-with-docx-and-pdfplumber>'
-bun test ./src/benchmarks/skill-ir/law-artifact-activation.test.ts
-```
-
-Activation 会编译临时 package、运行 resource probe、分别执行两个 development fixture，
-再调用既有 `lawToMarkdownGrade`。未设置 `SKVM_PYTHON` 时集成测试显式 skip，不会错误使用
-缺依赖的默认解释器。Runtime pass 与 scorer success 分列；测试失败时不能通过放宽 scorer、
-读取 evaluator expected 或运行 held-out 修补。
-
-## 16. Law Validated Artifact Development
-
-冻结 lock：
-
-```text
-benchmarks/skill-ir/pilots/law-to-markdown/
-  law-to-markdown-validated-artifact-development-lock.json
-```
-
-无成本生成 16 行计划：
-
-```powershell
-bun ./src/benchmarks/skill-ir/validated-artifact-development-run.ts `
-  '--phase=plan' `
-  '--out-dir=results/skill-ir/law-to-markdown-validated-artifact-development-dry-run-2026-07-24'
-```
-
-只执行 4 条 direct artifact 行：
-
-```powershell
-$env:SKVM_PYTHON = '<python-with-docx-and-pdfplumber>'
-bun ./src/benchmarks/skill-ir/validated-artifact-development-run.ts `
-  '--phase=artifact-execute' `
-  '--out-dir=results/skill-ir/law-to-markdown-validated-artifact-development-artifact-arm-2026-07-24'
-```
-
-计划固定为 `no-skill | original | ir-static | validated-artifact`、2 task × 2 repetition：
-16 个逻辑样本中 12 行属于模型臂，4 行属于 direct deterministic 臂。`artifact-execute`
-不会读取 API key 或调用模型；runner 只把 fixture 投影到 workdir，package runtime 看不到
-evaluator payload，最终 workdir 才交给既有 scorer。
-
-`buildValidatedArtifactDevelopmentGateReport` 使用 16 行固定分母。缺行按 infrastructure
-失败，重复/身份漂移直接拒绝；artifact 必须 4/4 success、总均分和逐 task 均分均不低于
-0.85、无 hard-gate/基础设施失败，并逐样本不低于 original 与 ir-static 中较高者。
-
-完整模型对照不修改上述已绑定 direct runner，而使用从属 execution freeze：
-
-```text
-benchmarks/skill-ir/pilots/law-to-markdown/
-  law-to-markdown-validated-artifact-execution-freeze.json
-```
-
-该 freeze 绑定父 lock digest、model runner、scoring、route/resource、bare-agent 与独立
-orchestration 源码。先在同一输出目录执行 route probe：
-
-```powershell
-$env:SKVM_PYTHON = '<python-with-docx-and-pdfplumber>'
-bun ./src/benchmarks/skill-ir/validated-artifact-development-execution-run.ts `
-  '--phase=route-probe' `
-  '--out-dir=results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24'
-```
-
-成功后只把 `--phase` 改为 `execute`。Execute 会重新验证父 lock、execution freeze 和资源，
-只接受同目录中绑定两个 digest 的成功 route evidence，执行冻结 12 条模型行并重跑 4 条
-direct 行，最终生成 16 行 gate。Raw transcript、provider log、plan 与 workdir 不提交；
-compact resource/route/scored/cost/summary/gate 可以持久化。Gate 失败仍是有效结果，禁止补跑、
-调 scorer/package/lock 或进入 held-out。
-
-2026-07-24 冻结批次已完成：16/16 rows、4/4 quartets、0 infrastructure。Artifact 为
-4/4 success、mean 0.925、0 hard-gate failure、0 pairwise regression 和 0 model tokens；
-original 为 0/4、mean 0.75，ir-static 为 1/4、mean 0.80。Gate passed 只允许起草新的
-held-out lock，本 runner 与 development lock 仍禁止直接执行 held-out。
-
-## 17. Law Validated Artifact Held-out
-
-独立 held-out 实验使用：
-
-```text
-benchmarks/skill-ir/pilots/law-to-markdown/
-  law-to-markdown-validated-artifact-heldout-lock.json
-```
-
-该 lock 递归绑定已通过的 development lock、execution freeze、gate 与 summary，并直接冻结
-tasks、resource contract、deterministic scorer 及 held-out planner/runner/gate 摘要。三项
-直接输入必须与 development lock 完全相同；runner 不使用硬编码 task 或资源路径。Package
-仍保持 `constructionSplit=development`，两个 held-out task 不得出现在构造 task contract
-中，`held-out` 仍是 forbidden evidence class。
-
-无成本生成 16 行 held-out 计划：
-
-```powershell
-bun ./src/benchmarks/skill-ir/validated-artifact-heldout-run.ts `
-  '--phase=plan' `
-  '--out-dir=results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24'
-```
-
-同一输出目录依次运行 `--phase=route-probe` 和 `--phase=execute`。Route probe 只持久化
-脱敏身份与状态，并同时绑定 held-out lock 和上游 execution freeze 摘要。Execute 固定执行
-12 条 GPT-5.6 模型行与 4 条 direct artifact 行，`retries=0`；development raw output、
-workdir 或模型正文均不能作为输入。
-
-Held-out gate 使用 16 行固定分母，并把 `no-skill`、`original`、`ir-static` 三者中的最高分
-作为逐样本基线。Artifact 必须 4/4 success、总均分和逐任务均分不低于 0.85、零
-infrastructure/hard-gate failure/paired regression，且至少一个四元组严格提升。缺行按
-0 分与 infrastructure 计入；重复或 task/model/adapter/repetition identity 漂移直接拒绝。
-Gate 通过只构成 Law 单 skill 的 held-out evidence，不扩展为跨 skill、跨模型、跨 agent、
-跨 OS 或 break-even 结论。
-
-2026-07-24 唯一正式批次得到 16/16 rows、4/4 quartets、0 infrastructure。Artifact 为
-2/4、mean 0.725；法规 task 两次为 0.85/success，manual task 两次为 0.60/failure。
-逐四元组比较三条 baseline 的最佳值后为 1 improvement、1 equal、2 regressions，gate
-failed。失败集中在 manual 的 `law-document-policy` 与 `law-review-outcome`；冻结脚本把
-带“章/条”结构的设备手册判作可交付法律文档。该观察只进入失败审计，不得进入当前
-package、IR、scorer 或重跑决策。
-
-## 18. Experimental-design 本地机制验证
-
-新 scorer 为 `src/bench/evaluators/experimental-design-grade.ts`，只读取最终 workdir。六项
-criterion 分别检查输入保护、三项产物、plan contract、assignment/replication safety、
-seeded allocation consistency 和 report completeness；前三类安全面中的输入保护、产物和
-assignment safety 是 hard gate，阈值 0.85。
-
-四个任务固定为 2 development + 2 held-out。本阶段只运行两个 development fixture：
-stratified individual assignment 与 cluster assignment。Package 通过同一个
-`runValidatedArtifactPlan` 执行，两个任务的 runtime validation 与离线 scorer 均通过，
-score 为 1.00，模型 token 为 0。Held-out 的 sequential/permuted-block 与 simple-randomized
-任务只注册和验证 split，没有执行。
-
-现有 `pre-ir-calibration-lock/v1` 只允许 `tasks-authored` 生命周期；现有 validated artifact
-development lock 又把 Law identity 写成 literal。两者都不能无修改地作为本 pilot 的冻结
-付费合同。下一阶段先抽象 skill-neutral baseline/development orchestration，保留旧 Law
-lock/digest 不变，再执行 `no-skill | original` calibration。绕过 lock 直接调用 runner 的
-结果不得进入研究证据。
-
-## 19. Runnable Baseline Calibration
-
-通用 runner 使用 `skill-ir-baseline-calibration-lock/v1`，服务已经具有 source-audited base IR
-的 `runnable` pilot。它不替代 `tasks-authored` pre-IR runner，也不修改任何 Law lock。
-
-Experimental-design 的冻结实例位于：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/
-  experimental-design-baseline-calibration-lock.json
-```
-
-无成本生成计划：
-
-```powershell
-bun ./src/benchmarks/skill-ir/baseline-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/experimental-design-baseline-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-baseline-calibration-2026-07-25' `
-  '--phase=plan'
-```
-
-计划固定为 `no-skill | original`、两个 development task、2 repetitions，共 8 rows/4 pairs，
-且 `allowTasksAuthored=false`、`retries=0`。Lock 绑定 source/tasks/resource/scorer/base IR/
-source audit 和 lock/runner/gate/model/scoring/route/resource/adapter 实现摘要；route evidence
-再绑定 lock digest。
-
-同一输出目录按 `plan -> route-probe -> execute` 推进。Route/execute 要求
-`SKVM_XTY_API_KEY`，Python 由 `SKVM_PYTHON` 选择。Execute 后先用既有
-`score-real-agent-runs.ts` 生成 scored JSONL，再运行：
-
-```powershell
-bun ./src/benchmarks/skill-ir/baseline-calibration-gate-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/experimental-design-baseline-calibration-lock.json' `
-  '--raw=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/run/raw-runs.jsonl' `
-  '--scored=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/scored.jsonl' `
-  '--resource=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/resource-probe.json' `
-  '--route=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/route-probe.json' `
-  '--out=results/skill-ir/experimental-design-baseline-calibration-2026-07-25/gate-report.json'
-```
-
-Gate 固定要求 8/8 rows、4/4 pairs、0 infrastructure、no-skill 非饱和和至少一个两臂 outcome
-差异。通过只允许起草新的四臂 development lock；held-out、scorer/task/package 调整、PGO 和
-主 claim 始终被禁止。
-
-2026-07-25 的正式结果为 8/8 rows、4/4 pairs、0 infrastructure；no-skill/original 都是
-0/4、mean 0.30，四个 pair 完全相同，gate failed。两臂均通过输入保护和产物存在，只在
-plan/assignment/allocation/report 四项语义检查失败。Exact-source 和 prompt-encoding 审计
-排除了注入与编码问题；scorer contract 审计确认其强制了 prompt 未声明的 schema enum、
-唯一 PRNG schedule 和逐字 report labels。该结果冻结为 benchmark contract failure，
-不能归因为模型或 skill；四臂 development 与 held-out 均不得执行。
-
-## 20. 付费前 Benchmark Contract Audit
-
-入口：
-
-```powershell
-bun ./src/benchmarks/skill-ir/benchmark-contract-audit-run.ts `
-  '--manifest=benchmarks/skill-ir/pilots/<skill>/benchmark-contract-audit.json' `
-  '--out=results/skill-ir/benchmark-contract-audit/<skill>.json'
-```
-
-Audit manifest 使用 `skill-ir-benchmark-contract-audit/v1`，绑定 development tasks、scorer、
-公开 source 与 canary fixture。每条 scorer requirement 分别记录源码锚点和合法公开证据；
-evaluator payload、IR、package、历史结果、held-out 和模型正文不得充当公开证据。
-
-Runner 先执行静态合同验证，再从 custom evaluator registry 调用真实 scorer 运行
-`canonical-valid`、`alternative-valid` 和 `invalid-control` canary。任何 digest、criterion、
-hard gate、证据 locator 或 canary 漂移都会产生 `failed`；命令仍写出脱敏 report，并以非零
-退出码结束，便于 CI 和付费前 gate 阻断。
-
-Evaluator 身份同时绑定 registry path、冻结 source digest 和模块加载后注册对象。Runner
-从 digest 验证过的 task bytes 构造 criterion，并把 canary 复制到临时目录后再次计算树摘要，
-只有快照摘要仍匹配时才交给 evaluator，避免检查与执行读取两份不同输入。Bound file 与
-canary 根目录都经过 `realpath` containment，父目录 junction 逃逸同样 fail closed。
-
-审计报告只保存 requirement/canary ID、状态与稳定错误码，不保存 evaluator payload、fixture
-内容、secret、模型输出或 held-out 数据；`provenance.manifestSha256` 绑定 schema parse
-后的运行时 manifest 值序列化摘要。报告可见 ID 仅允许有界 ASCII 标识符。未通过的 pilot
-在 corpus 中降为 `support-real`，
-表示仍可用于来源、基础设施和失败机制分析，但不能支撑稳定性主 claim。历史实验文件保持
-不可变。
-
-Manifest 的核心字段：
-
-```text
-tasks/scorer/sources          path + sha256
-scope                         development task IDs
-criteria                      criterion ID + task IDs + hardGate + requirement IDs
-requirements                  class + equivalence + optional taskIds + scorerAnchors + publicEvidence
-canaries                      task/criterion + role + fixturePath/digest + expectedPass
-```
-
-`publicEvidence` 只接受 `task-prompt`、`skill-source` 和 `workdir-fixture`。对于
-`exact-public-contract`，每个适用 task 分支的 `contractTokens` 都必须能从该分支声明的公开
-内容中找到；对于 `semantic-equivalence`，每个适用 task 分支至少要有一项
-`alternative-valid` canary；`safety-invariant` 则逐分支要求 canonical-valid 与
-invalid-control。仅部分 task 适用的要求必须显式声明 `requirement.taskIds`。Runner 返回非零
-表示审计阻断，这是预期研究结果，不是命令基础设施失败。
-
-Canary 目录使用排序后的 `relativePath + fileDigest` 生成树摘要。根目录或任意子项出现
-symlink/junction/special file、目录内容漂移或 digest 不一致时，静态审计和 runner 都拒绝执行。
-
-2026-07-25 对三个 Wave A pilot 的冻结结果：
-
-| Pilot | Static | Canary | 结论 |
-|---|---|---|---|
-| env-manager | failed | 0 | 两个 task 均缺精确 schema rule 与分类成员金标的公开合同。 |
-| law-to-markdown | passed | 0/2 matched | 法律/非法律两个分支的公开合法结论措辞都被逐字 scorer 拒绝。 |
-| experimental-design | failed | 2/8 matched | plan 字段合同 2/2 通过；assignment、allocation、report 6/6 被拒，另有四类私有 plan 约束。 |
-
-Compact reports：
-
-```text
-results/skill-ir/benchmark-contract-audit/env-manager.json
-results/skill-ir/benchmark-contract-audit/law-to-markdown.json
-results/skill-ir/benchmark-contract-audit/experimental-design.json
-```
-
-三者未来默认 `evidenceWeight=support-real`。这不会改写历史结果，也不表示三个真实 source
-无效；它只撤回旧 benchmark 对稳定性主 claim 的资格。任何新付费运行都要先设计新版本合同并
-通过本审计。
-
-## 21. Benchmark v2 的指标分层
-
-`experimental-design` v1 的 task/scorer/lock/result 永久冻结。后续若继续该 skill，
-必须使用独立的 `experimental-design-v2` 身份，先修复测量合同。
-
-v2 的主 scorer 判定公开语义：输入保持、产物完整、方法适用性、分配安全和报告一致性。
-它必须接受公开合同允许的合法等价实现，不能把私有 schema、封闭 enum、唯一 PRNG、
-唯一 schedule 或逐字报告模板当成默认成功条件。确定性 allocation/profile 属于独立
-次指标；只有公开合同明确要求的确定性行为才可进入 hard gate。
-
-五项权重固定为 `0.10/0.10/0.25/0.35/0.20`，row threshold 为 `0.95`。输入、
-产物、方法语义、allocation 安全和“报告无事实冲突”是 hard gate。方法名称是自由文本；
-scorer 检查公开 `designProperties` 与 allocation invariants。报告自然语言不判分，
-只校验公开 fenced JSON `design-evidence` block 与 study/plan/allocation 是否一致。
-
-`designProperties` 在 plan 和 report evidence 中均为必填，四个公开布尔值必须逐项等于
-scorer 从 study/allocation 复算的值；plan 不一致记为 `designSemantics=0`，report 不一致
-记为 `reportContradiction=true`。初版支持 individual/cluster、strata/no-strata、
-sequential/non-sequential 的八种组合，按 assignment unit -> stratum partition ->
-sequential block 的固定顺序判定。混合 strata、重复 unit、非法 arms 和成员级 cluster
-allocation 在 task schema 层拒绝。
-
-报告必须且只能有一个 opening marker 为 `json design-evidence` 的严格 JSON fenced block；
-多个、缺失、非法 JSON 或重复 key 令 report criterion 得 `pass=true, score=0`，不单独触发
-hard gate；已出现字段与 study/plan/allocation 冲突时才返回 `pass=false`。结构化
-`limitationFlags` 比较公开 source-derived 集合，额外自然语言 warnings 不比较措辞。
-
-实现位于 `experimental-design-grade-v2.ts`，注册 ID 为
-`skill-ir-experimental-design-v2`。五个 payload check 共用严格 path schema；文件路径逐段
-拒绝 symlink/junction 和根目录逃逸。Payload、workdir、路径与 I/O 问题记 infrastructure；
-缺失/损坏的 agent 产物记 evaluation failure。Plan 不要求 schema version，`method` 为
-非空自由文本并允许额外字段；主语义只比较公开 study 字段、四个 `designProperties` 和
-allocation invariants。当前通用 scored row 的 `evaluatorScore` 即 v2 的
-`primarySemanticScore`，artifact 尚未存在时不生成 `deterministicProfileScore` 伪值。
-
-结果表必须分列：
-
-```text
-primarySemanticScore
-deterministicProfileScore
-profileReproducibility
-runtime/process/validation/package cost
-modelGenerationTokens
-modelRepairTokens
-```
-
-v2 audit、development gate 和 Wave B replication 是三个不同门槛。audit 只证明
-benchmark 合同可测，development gate 才允许消费 held-out，Wave B 才能支持跨 skill
-泛化。没有包含 compile/profile/package 成本的重复调用实验，不报告总 token 节省或
-break-even。
-
-时序固定为：2+2 task creation -> task-split freeze -> scorer/development-only audit ->
-held-out freeze -> calibration。`task-split-freeze` 先绑定 task/fixture；任意 API run 前的
-`heldout-freeze` 再绑定 scorer digest。该隔离是非消费式隔离而非实验者盲法。Development
-audit、lock、compiler、package、scorer 和 feedback API 都不得读取 held-out
-ID/path/digest/content；只有 development gate 通过后，held-out runner 才能消费冻结
-package。对应的 path/digest/sentinel 泄漏和结果回流均须有 fail-closed 负向测试。
-
-Task-split freeze 由 `experimental-design-v2-task-freeze-run.ts` 生成或只读验证。生成模式
-只接受 `--task-commit` 与 `--out`，`--verify-only` 不写文件；validator 会从该 commit
-读取公开合同、source audit、2+2 tasks、source closure 与六项 v1 immutable refs，复核
-fixture projection、claim coverage、quote 和 digest。冻结摘要使用 Git blob bytes；工作区
-只允许 Git text 文件的 CRLF/LF 检出差异，其他内容漂移均拒绝。
-
-Development-only differential audit 由 `experimental-design-v2-audit-fixtures.ts` 确定性
-生成 30 个隔离 fixture 和 manifest，再由通用 `benchmark-contract-audit-run.ts` 执行。
-当前 compact report 记录 42/42 canary matched、`status=passed`，覆盖两个 development task
-分支、八种公开组合、替代合法产物、非法控制与 report 的 `0/0.25/0.5/0.75` 部分分数。
-通用审计因此支持 `partial-control.expectedScore`：`pass=true` 只表示没有事实冲突或 hard-gate
-失败，不再被错误等同于 criterion 满分。Manifest、fixture 和 compact report 均不含 held-out
-ID、digest、sentinel、模型正文或 evaluator payload；该结果是 benchmark contract evidence，
-不是模型运行或 Skill IR 优化结果。
-
-Held-out identity 由 `experimental-design-v2-heldout-freeze-run.ts` 在 audit passed 后生成：
-
-```powershell
-bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
-  --inputs-commit=91f48a07bf84364f2984b5147d59080478ff5748 `
-  --out=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
-bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
-  --verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json
-```
-
-Verifier 从 `inputsCommit` 读取 Git blob，并与工作区字节核对；它同时复核 task-split freeze、
-held-out task digest、v2 scorer/registry identity、audit manifest provenance、passed report 和
-全部 matched canary。`assertNoExperimentalDesignV2HeldoutEvidence` 为 development lock、compiler、
-package 和 feedback 四类 construction sink 提供递归 fail-closed 扫描。Freeze 不执行 API，
-不读取 held-out 输出，也不允许 compiler/repair 消费 held-out。
-
-Registry 是可追加扩展点，不作为整文件 immutable blob。Freeze 要求旧 `inputsCommit` 中包含
-冻结 evaluatorId/path/digest 三元组，当前运行时 registry map 仍映射到相同 path/digest；新增
-其他 evaluator 不使历史 freeze 失效。Scorer 文件自身、task、audit 和 held-out bytes 仍按
-freeze digest 与工作区逐字复核，不能借 registry 的可追加性放宽。
-
-## 22. Experimental-design v2 Materialized-delta 校准
-
-v2 是唯一活跃的下一代 experimental-design benchmark，当前合同修订为
-`materialized-delta/v1`。Scorer 按 runner 在 agent 前生成的 external initial-workdir manifest
-评价最终增量；original 预置的 license、references 和 scripts 属于初始树，不再算模型输出，
-agent 后新增的 root extra 仍会失败。v3 的 hard-coded oracle 已并入 v2，旧 v3 只在历史摘要中
-保留一次污染诊断。
-
-付费前依次执行本地 contract audit、materialization audit、freeze verify 和 dry-run：
-
-```powershell
-bun ./src/benchmarks/skill-ir/experimental-design-v2-materialization-audit.ts `
-  '--out=results/skill-ir/benchmark-contract-audit/experimental-design-v2-materialization.json'
-bun ./src/benchmarks/skill-ir/experimental-design-v2-task-freeze-run.ts `
-  '--verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/task-split-freeze.json'
-bun ./src/benchmarks/skill-ir/experimental-design-v2-heldout-freeze-run.ts `
-  '--verify-only=benchmarks/skill-ir/pilots/experimental-design/v2/heldout-freeze.json'
-bun ./src/benchmarks/skill-ir/pre-ir-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27' `
-  '--phase=plan'
-# resource/route 通过后，分别改为 --phase=route-probe 和 --phase=execute
-
-bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts `
-  '--raw=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/run/raw-runs.jsonl' `
-  '--corpus=pilot' '--allow-tasks-authored' '--normalize-pre-ir-runtime' `
-  '--out=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/scored.jsonl'
-
-bun ./src/benchmarks/skill-ir/pre-ir-calibration-gate-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pre-ir-calibration-lock.json' `
-  '--raw=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/run/raw-runs.jsonl' `
-  '--scored=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/scored.jsonl' `
-  '--resource=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/resource-probe.json' `
-  '--route=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/route-probe.json' `
-  '--out=results/skill-ir/experimental-design-v2-materialized-delta-calibration-2026-07-27/gate.json'
-```
-
-当前本地证据为 42/42 development canary matched、独立 oracle 12/12、materialization audit
-36/36、2+2 freeze verify 通过，dry-run 精确生成 8 rows / 4 pairs。Pre-IR lock 在 plan、route 和
-execute 前同时重验 held-out freeze 与 materialization report digest。
-
-2026-07-27 已执行冻结的 8-row 真实 API 批次。Route/resource probe 均通过，但 3 行在子 Bun
-`1.3.14` 中触发 internal assertion crash；修正通用 failure classifier 后，gate 为 failed：
-3 infrastructure、1/4 comparable pairs、0 differing pairs。唯一可比较 pair 的 no-skill 和
-original 均为 1.0。Raw/workdir 留在本地，仓库只保存 compact summary、脱敏 failure audit、
-gate 和 probe。该结果不允许 base IR 或 held-out。
-
-付费 raw 保持原样。评分时显式使用 `--normalize-pre-ir-runtime`，由 tasks-authored pilot 专用层
-从非零退出和 stderr Bun crash signature 投影 `runStatus=adapter-crashed`，通用 scoring 随后得到
-`failureType=infrastructure`；该开关不能用于普通 corpus。Pre-IR gate 只从非 infrastructure pair
-推断方向，并显式报告 `comparablePairs`；全污染时方向为 `inconclusive`。这没有修改历史冻结的
-runner/scoring bytes，也没有修改 v2 evaluator、task、public contract、threshold 或 lock。
-
-## 23. Stable execution runtime qualification
-
-`pre-ir-runtime-qualification-run.ts` 为 pre-IR calibration 生成
-`skill-ir-execution-runtime-qualification/v1` compact report。探测合同不可通过 CLI 调参：固定对
-编译后的 SkVM executable 顺序运行 20 次 `--help`，要求全部 exit 0、无 timeout、无 Bun crash
-signature。报告只保存计数、运行时身份与摘要，不保存 stdout/stderr、绝对路径或环境变量值。
-
-先从已提交源码构建本机 binary，再用该源码提交生成资格报告：
-
-```powershell
-bun run build:binary
-$commit = git rev-parse HEAD
-bun ./src/benchmarks/skill-ir/pre-ir-runtime-qualification-run.ts `
-  '--executable=dist/skvm.exe' `
-  '--qualification-id=experimental-design-v2-compiled-runtime-win32-v1' `
-  "--source-commit=$commit" `
-  '--out=results/skill-ir/experimental-design-v2-runtime-qualification-2026-07-27.json'
-```
-
-Binary 是本机实验载体，不提交 Git。后续 runtime-qualified calibration lock 必须绑定 executable
-locator/digest、qualification report digest 和 source commit。Lock 校验会重算两个 digest，要求
-report `passed` 且 platform/arch 与当前主机一致。只有这种新锁会把 plan 中精确的
-`bun run skvm run ...` 投影为 `<qualified executable> run ...`；普通 real-agent runner 和旧
-pre-IR lock 不接受环境变量或隐式 runtime 覆盖。
-
-本地 qualification 只证明进程启动载体通过固定 smoke probes。真实 agent loop 仍须经过新
-calibration identity 的 route probe 与完整 8-row matrix；任何 infrastructure failure 都使新批次
-冻结，不能用补跑填洞。
-
-2026-07-27 首个本机资格结果为 20/20 success、0 timeout、0 Bun crash，绑定源码提交
-`b34c130a44acd3971921946960816aec72d61958`。新锁为：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/v2/
-  experimental-design-v2-runtime-qualified-calibration-lock.json
-```
-
-对应 dry-run 生成 8 rows / 4 pairs，所有命令均由 lock 投影到冻结的 `dist/skvm.exe run`，没有
-`bun run skvm` 前缀。该 binary 保持本地 ignored，compact qualification report 与 lock 进入仓库。
-
-首个 compiled lock 的 route probe 在 239 ms 内 exit 1，compact status 为 `agent`，但 stderr
-审计显示进程尚未调用模型：binary 的 cache root 为 `~/.skvm`，没有加载仓库
-`.skvm/skvm.config.json`，所以 `xty/gpt-5.6-sol` 找不到 provider route。无 API 的
-`config show` A/B 对照为：默认 cache 看不到 `xty/*`/gateway，绑定仓库 `.skvm` 后两者均可见。
-
-后续 config-bound lock 在 `executionRuntime.cacheRoot` 保存安全仓库相对路径。验证器只检查目录
-和 `skvm.config.json` 是非 symlink 普通项，不读取或保存配置正文；pre-IR runner 在 route/execute
-operation 内设置 `SKVM_CACHE`，并在成功或异常后恢复父进程环境。首个 lock 与失败 route 文件
-不覆盖，新 identity 才能继续 probe。
-
-Config-bound replacement lock：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/v2/
-  experimental-design-v2-config-bound-calibration-lock.json
-```
-
-它复用同一 qualified binary、qualification report、模型、2+2 task split、scorer 和数值 gate；
-只新增 `cacheRoot=.skvm` 并采用新的 calibration/adapter identity。对应 dry-run 仍为 8 rows，
-不包含 held-out。
-
-诊断进一步确认 Bun.spawn 不会可靠继承运行中对父 `process.env` 的修改；child 必须通过 spawn
-options 显式接收派生环境。`runCommandWithTimeout` 与 `executePlan` 因此接受显式 env，pre-IR
-helper 返回包含 lock-bound `SKVM_CACHE` 的副本，不修改父环境。最终 replacement lock 还逐文件
-绑定 pre-IR planner、route probe 和 agent executor 的摘要，防止 parent orchestration 漂移。
-
-最终 `explicit-child-env` identity 的 resource probe 为 `ok`，但 route probe 在 56.79 秒后以
-exit 3、`status=agent` 结束，未超时且未创建任务产物。Runner 因此没有执行 8-row matrix。
-Compact preflight 只保存状态、计时、digest 和封闭归因，不保存 stderr/模型正文；现有证据不足以
-进一步区分 gateway、adapter 或无签名 runtime exit，统一保留为 unresolved，不计入方法结果。
-
-后续独立 root-cause probe 捕获到相同 exit 3 的完整进程边界：Bun 1.3.14 Windows x64
-standalone 在 `fetch(11)` 后触发 internal assertion。`pre-ir-route-diagnostic.ts` 将 stream 只投影为
-封闭 failure code、Bun runtime identity、UTF-8 byte count 和 SHA-256；不序列化 stream 正文。
-`pre-ir-fetch-active-qualification-run.ts` 是新的非方法门禁：复用 runtime-qualified lock 的唯一
-original development route，且只有 route exit 0、failureCode=`none` 和 public contract 声明的
-全部输出均为普通文件时才返回 `passed`。
-
-```powershell
-bun ./src/benchmarks/skill-ir/pre-ir-fetch-active-qualification-run.ts `
-  '--lock=<runtime-qualified-lock.json>' `
-  '--qualification-id=<preregistered-id>' `
-  '--out-dir=<local-materialization-dir>' `
-  '--report=<compact-report.json>'
-```
-
-命令不接受 retries、model、task、system 或 threshold 覆盖。失败报告仍写盘后返回非零；不得用
-同一 qualification identity 重复运行筛选成功样本。
-
-## 24. Fetch-qualified Calibration 与网络传输隔离
-
-Bun 1.3.13 候选从纯 ASCII 本地路径构建，startup 20/20 和单条 fetch-active route 均通过。
-`skill-ir-fetch-qualified-pre-ir-calibration-lock/v1` 进一步绑定候选 lock/report 后生成 8 rows / 4
-pairs。最终 resource/route preflight 均为 `ok`，完整矩阵也写出 8 条 raw；但两条 row 仍以
-exit 3 触发 Bun 1.3.13 `fetch` internal assertion。重评分得到 2 infrastructure、2/4 comparable
-pairs，gate failed。
-
-因此 startup/单 route 资格只降低风险，不能替代完整矩阵的零 infrastructure gate。该 identity
-冻结且不补跑。后续 transport candidate 必须显式绑定，不允许通过全局环境悄悄切换：Node
-helper 从 stdin 接收单个 OpenAI-compatible request envelope，API key 不放入 argv；helper
-executable/source digest 与父编排进入新 lock。默认 provider 仍走原 fetch，只有新 lock 才注入
-helper env。先做本地协议测试和单 route qualification，通过后才能建立另一 8-row identity。
-
-## 25. Node HTTP Matrix 与 Source Runtime 下一候选
-
-Node helper 的本地协议、20/20 startup、单 route qualification 和最终 route preflight 均通过；
-最终冻结矩阵一次写出 8 rows / 4 pairs。不过 cluster-sequential task 的 no-skill run 2 与 original
-run 1 仍分别在 75.705 秒、107.186 秒触发 Bun 1.3.13 internal assertion，exit 3。两行 stderr
-不再含 `fetch(n)` counter，但分别含 `spawn(9)`、`spawn(12)`，且 crash report signature 与原
-compiled runtime 相同。
-
-Gate 报告 2 infrastructure、2/4 comparable pairs、0 differing pair；两个可比较 pair 都是
-no-skill=original=1.0，因而同时触发 zero-infrastructure、no-skill non-saturation 和
-distinguishability 失败。该轮只证明外移 HTTP 没有让 compiled standalone runtime 达到实验要求，
-不能解释模型能力、Skill 效果或 token 效率。
-
-下一候选不改 HTTP helper 和研究变量，只去掉 `standalone_executable`：用本地 pin 的 ASCII Bun
-直接运行 committed `src/index.ts`。Source runtime 使用独立 guard/report/lock 身份，必须绑定 Bun
-executable、entrypoint/source commit、Node helper 和 parent orchestration，并重新通过 startup 与
-fetch-active 两级资格。旧 Node matrix 和 raw/scored/workdir 不被重写。
-
-Source runtime 使用 `skill-ir-source-execution-runtime-qualification/v1`；compact report 的 probe
-argv 固定投影为 `run <entrypoint> --help`，其中 `<entrypoint>` 是占位符，不保存绝对路径。Guard
-的 `kind=bun-source-skvm`、`commandMode=bun-source` 同时绑定 Bun executable、entrypoint、
-qualification report、source commit、cache 和 orchestration。Planner 只接受原始
-`bun run skvm run ...` 前缀，并改写为 `<bun> run <entrypoint> run ...`；compiled v1 仍走原 direct
-投影。Windows 实验通过临时 ASCII 根盘符运行同一相对路径内容，盘符和绝对路径不进入 lock 或
-compact report。
-
-实际 source candidate 使用官方 Bun 1.3.13：20/20 source startup 全部成功，随后唯一预注册
-`xty/gpt-5.6-sol` original development route 通过，failure code 为 `none` 且公开输出完整。这是
-execution candidate 资格证据，不是 benchmark row；它只解除“能否建立新 8-row identity”的门禁。
-
-## 26. Source Final Preflight 与当前阻断
-
-Source fetch-qualified lock 已建立并生成 8 rows / 4 pairs 的冻结 plan。最终 identity 重新执行的
-resource probe 为 `ok`，route probe 为 exit 3 / `agent` / 88.083 秒 / non-timeout，三个公开输出
-均已生成。由于 `skill-ir-pre-ir-route-probe-result/v1` 不含脱敏 stream fingerprint，该证据不能
-判定为 Bun crash、adapter teardown 或正常生成后的进程收尾错误。
-
-本轮不执行 matrix、scoring 或 gate，也不复用 candidate qualification 代替最终 route。下一
-identity 必须把现有 fetch-active closed-code diagnostic 接入 pre-IR route failure path；诊断通过
-后仍需完整 8-row 达到 0 infrastructure。该接线只属于运行基础设施，不能修改 benchmark task、
-scorer、public contract、threshold 或 held-out freeze。
-
-## 27. Closed Source Route 与 Matrix Gate
-
-`pre-ir-calibration-run.ts` 现对 source fetch-qualified final lock 额外写入
-`route-diagnostic.json`。它复用 fetch-active 的封闭 failure taxonomy，streams 只保留 byte count 与
-SHA-256，并从公开 `design-contract.json.outputs` 检查普通文件是否完整。旧
-`route-probe.json` v1 不变；execute 会在缺文件、identity/status 漂移、nonzero/timeout 或输出不全时
-fail closed。该改动没有增加 runtime 或 transport 版本。
-
-2026-07-28 新 route 在 `xty/gpt-5.6-sol` 上通过：67.358 秒、exit 0、failureCode=`none`、3/3
-output。随后唯一 8-row matrix 完整结束，但 4 行触发 Bun internal assertion，分布在 no-skill 与
-original。Gate 为 4 infrastructure、1/4 comparable、1 differing；唯一 comparable delta=-0.75，
-original direction=`worse`。由于 zero-infrastructure 失败，base IR/held-out 继续禁止；aggregate
-token 的有效行分母不同，也不得进行效率比较。
-
-下一步不再做 runtime 版本枚举，而是以 v1 简洁 source runner 为参照，审计 source command、
-bare-agent 子进程与 teardown 的边界。任何下一次付费仍须是新的预注册 calibration identity，但
-runtime/transport 保持现有冻结值。
-
-## 28. Benchmark Evidence 与 Skill Optimization Ledger
-
-`benchmark-evidence.ts` 把 benchmark 测量质量、真实运行质量和 Skill 优化结果拆成三个互不替代的
-证据层：
-
-1. `compareMeasurementContracts` 只比较 audit/materialization 指标，以 fail-closed Pareto 规则输出
-   `v2-measurement-contract-dominates`。
-2. `summarizeRunnerBoundary` 从冻结 plan/raw 只投影 runner path、adapter、command entry、manifest、
-   helper、退出码、时长与 Bun assertion 数；不保留 stdout/stderr 或模型正文。
-3. `summarizeSkillOptimization` 分别记录 env-manager、law-to-markdown 和 experimental-design 的
-   development、held-out 与 benchmark-blocked 状态。
-
-生成与复验命令：
-
-```powershell
-bun ./src/benchmarks/skill-ir/benchmark-evidence-run.ts `
-  '--out=results/skill-ir/benchmark-and-optimization-evidence-2026-07-29.json'
-
-bun ./src/benchmarks/skill-ir/benchmark-evidence-run.ts `
-  '--verify-only=results/skill-ir/benchmark-and-optimization-evidence-2026-07-29.json'
-```
-
-生成报告绑定 12 个冻结输入的相对路径与 SHA-256。`--verify-only` 不重新评分；任一源文件缺失、
-路径逃逸或 digest 漂移都会失败。Raw run 保持本地，长期报告只提交无正文的统计投影与 raw digest。
-
-当前报告允许的最大结论是：v2 的本地 measurement contract 更可信，项目已有局部机制正向证据；
-不允许据此声称 v2 real discrimination 更好、三个 Skill 都已稳定优化、held-out 泛化或 token
-break-even 已证明。
-
-## 29. Source-process Replay
-
-`source-process-replay.ts` 是无 API infrastructure diagnostic。它启动本地 OpenAI-compatible
-responder，并让真实 source child 继续经过 `src/index.ts run`、`bare-agent`、Node HTTP helper、
-tool executor、initial manifest 和 teardown。Responder 为每个 session 固定五阶段：并行读取输入、
-三个并行 shell/Node 命令、并行写三个输出、回读输出、最终结束。
-
-正式 CLI 不接受 repetition 参数，固定 `no-skill|original` 各 10 次：
-
-```powershell
-bun ./src/benchmarks/skill-ir/source-process-replay-run.ts `
-  '--out=results/skill-ir/experimental-design-v2-source-process-replay-2026-07-29.json'
-
-bun ./src/benchmarks/skill-ir/source-process-replay-run.ts `
-  '--verify-only=results/skill-ir/experimental-design-v2-source-process-replay-2026-07-29.json'
-```
-
-运行需要本机已有 `.skvm/runtime/bun-1.3.13-source-2026-07-27/bun.exe` 与同目录 `node.exe`。
-临时 config/task/skill/workdir 在 OS temp 下创建并在结束后删除；report 只保留摘要、封闭 failure
-code、计数和相对 evidence digest。它不读取 `SKVM_XTY_API_KEY`，也不调用真实网关。
-
-2026-07-29 结果为 20/20 exit 0、3/3 outputs、protocol complete，0 timeout/crash/nonzero；
-no-skill/original median 为 577.8/597.4 ms。它证明固定低延迟 trajectory 下基础 source process
-可稳定退出，不证明真实模型、benchmark 或 Skill 效果。真实成功行的时长和自由工具序列明显更大，
-下一阶段应审计既有日志中的 trajectory shape/latency，不能据此直接付费重跑。
-
-## 30. Trajectory Shape / Latency Audit
-
-`trajectory-shape-audit.ts` 只投影冻结 source matrix 的结构信息。正式 CLI 把 raw、plan、replay、
-session index、matrix 起点和实现文件固定在代码中；不接受临时替换输入：
-
-```powershell
-bun ./src/benchmarks/skill-ir/trajectory-shape-audit-run.ts `
-  '--out=results/skill-ir/experimental-design-v2-trajectory-shape-audit-2026-07-29.json'
-
-bun ./src/benchmarks/skill-ir/trajectory-shape-audit-run.ts `
-  '--verify-only=results/skill-ir/experimental-design-v2-trajectory-shape-audit-2026-07-29.json'
-```
-
-映射先排除 route session，从冻结 matrix start 开始读取 8 个唯一 session；raw/plan 的 case、system、
-run index 必须一致，session task 和可观察 duration delta 必须在 1 秒内。Completed session 只允许一个
-conversation JSONL，request/response 必须成对并以无 tool call 的 `end_turn` 结束。目录创建跨秒时，
-只在 session key 前后 2 秒内接受唯一候选。
-
-报告只保存封闭 tool type 和数量、fan-out、stop reason、provider duration、runtime outcome 与相对
-evidence digest。Prompt、message、模型文本、tool argument/result、stream、token、secret 和绝对路径
-都不序列化。Crash session 没有 completed record 时只记 `session-not-finalized`，不能推断 crash 前
-轨迹。
-
-正式结果为 4 条成功轨迹可用、4 条 crash 轨迹不可用。成功 envelope 的 response/tool/fan-out/
-raw duration 最大值为 16/23/6/220.124 秒，旧 deterministic replay 为 5/11/3/0.674 秒；四项覆盖
-均失败。因此下一实验是无 API 的 delayed/high-fan-out replay，不是付费 matrix。
-
-## 31. Delayed / High-fan-out Source-process Replay
-
-`delayed-source-process-replay.ts` 是 Task 16.15 的后继 infrastructure diagnostic。它不修改已由旧
-report 绑定的 `source-process-replay.ts`，而以独立 schema 复用相同 source entry、Node helper、
-adapter 和 tool executor。正式 CLI 不接受 delay、system、repetition 或 timeout 参数：
-
-```powershell
-bun ./src/benchmarks/skill-ir/delayed-source-process-replay-run.ts `
-  '--out=results/skill-ir/experimental-design-v2-delayed-source-process-replay-2026-07-29.json'
-
-bun ./src/benchmarks/skill-ir/delayed-source-process-replay-run.ts `
-  '--verify-only=results/skill-ir/experimental-design-v2-delayed-source-process-replay-2026-07-29.json'
-```
-
-每行固定 16 次 response、23 次 tool、fan-out 6 和 221 秒 provider wait。内部 `delayScale=0` 只供
-测试同一 source child 接线，report 会保持 `passed=false` 和 duration coverage=false；正式 CLI 固定
-scale 1。父进程 360 秒 watchdog，输出仍只保存 compact stream digest、计数、时长和 evidence digest。
-
-正式结果为两行 exit 0、protocol/output complete、零 timeout/crash/nonzero。No-skill 222.625 秒，
-original 222.535 秒，六个 envelope coverage predicate 全 true。它证明确定性成功负载包络可稳定执行，
-不能证明历史 crash 的自由模型内容或工具参数稳定；下一步是 opt-in durable compact trace。
-
-## 32. Durable Compact Runtime Trace
-
-`durable-runtime-trace.ts` 由 `SKVM_DURABLE_RUNTIME_TRACE` 显式启用。默认缺失时不创建文件；启用后
-每个封闭事件同步 append 并 `fsync`。事件只含 sequence、turn、elapsed、provider/tool 边界、封闭
-tool type/count/fan-out 和 duration，禁止模型正文、tool 参数/结果、stream、token、secret 和路径。
-进程 crash 或 provider error 只留下 durable prefix，不伪造 finalize。
-
-本地接线验证：
-
-```powershell
-bun ./src/benchmarks/skill-ir/durable-runtime-trace-validation-run.ts `
-  '--out=results/skill-ir/experimental-design-v2-durable-runtime-trace-validation-2026-07-29.json'
-
-bun ./src/benchmarks/skill-ir/durable-runtime-trace-validation-run.ts `
-  '--verify-only=results/skill-ir/experimental-design-v2-durable-runtime-trace-validation-2026-07-29.json'
-```
-
-真实单路由诊断先 dry-run，再 execute：
-
-```powershell
-bun ./src/benchmarks/skill-ir/durable-runtime-trace-route-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-durable-runtime-trace-route-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-durable-runtime-trace-route-2026-07-29' `
-  '--phase=plan'
-
-bun ./src/benchmarks/skill-ir/durable-runtime-trace-route-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-durable-runtime-trace-route-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-durable-runtime-trace-route-2026-07-29' `
-  '--phase=execute'
-```
-
-Execute 需要 `SKVM_XTY_API_KEY`，且 lock 只允许 original、指定 development task、clean/Windows、
-`gpt-5.6-sol`、run 1、retries 0。Raw trace 只留本地，提交 `route-report.json` 的计数、last event、
-stream digest 和 output materialization。
-
-本轮 trace 显示 9 个完整 turn 后，在 elapsed 179.649 秒写入第 10 个 request-start，外层 180 秒
-watchdog 随即终止。Materialized task 自身为 300 秒，因此新执行合同必须满足
-`outer watchdog >= task timeout + teardown grace`；不得把这一 timeout 写成 provider 或 Bun 结论。
-
-## 33. Stable Pi Harness Qualification
-
-Task 16.18 复用项目本地 `@mariozechner/pi-coding-agent@0.67.68` 和现有 `PiAdapter`。Lock 同时冻结
-Pi package、`pi.ts`、generic real-agent runner 与 stable runner digest；managed mode、Windows、clean、
-`xty/gpt-5.6-sol`、retries 0、task timeout 300 秒、teardown grace 60 秒和 outer watchdog 360 秒均不可
-由 CLI 改写。运行顺序固定为：
-
-```powershell
-bun ./src/benchmarks/skill-ir/stable-harness-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pi-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29' `
-  '--phase=plan'
-
-bun ./src/benchmarks/skill-ir/stable-harness-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pi-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29' `
-  '--phase=qualification'
-
-bun ./src/benchmarks/skill-ir/stable-harness-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-pi-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-pi-post-cleanup-2026-07-29' `
-  '--phase=execute'
-```
-
-后两条命令要求 `SKVM_XTY_API_KEY` 已在当前进程环境设置。Qualification 只运行冻结的 original 单行；
-Pi version、resource probe、exit/runStatus、3/3 output 和零 `AGENTS.md`/`.pi-skills` residue 全通过后，
-execute 才运行 8 行并自动生成 `scored-runs.jsonl` 与 `gate-report.json`。Generic runner 的
-`--outer-watchdog-ms` 是 opt-in，未设置时不改变旧路径；Windows timeout 会终止完整进程树。
-
-首次 matrix 因 Pi 临时 `AGENTS.md` 未清理而无效。Pi adapter 现在只在 subprocess 周期内注入，结束后
-删除或逐字节恢复原文件。修复后 8 行无 infrastructure，但两臂全满分、零 differing pair，gate 失败。
-这证明 harness 已可用于受控实验，同时证明当前 development task 对强模型没有区分度；不放行 base IR。
-
-## 34. Strong-model Harder Development Audit
-
-Task 16.19 不修改冻结的 2+2 split，而是在同一 `experimental-design-v2` 公开合同下增加独立的
-development-only task-set。两项任务分别覆盖 3-arm individual 与 4-arm cluster，并同时施加 strata、
-sequential enrollment、full/partial block 和 analysis-unit difference。它不进入默认 corpus，也不构成
-新 benchmark 版本。
-
-无模型基线由一条命令重建：
-
-```powershell
-bun ./src/benchmarks/skill-ir/experimental-design-v2-harder-audit-run.ts
-```
-
-命令逐字节绑定 Task 16.18 compact gate/analysis、旧 development tasks 和 public contract，然后生成：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/v2/harder-development/tasks.json
-results/skill-ir/experimental-design-v2-harder-development-saturation-audit-2026-07-31.json
-results/skill-ir/experimental-design-v2-harder-development-contract-audit-2026-07-31.json
-results/skill-ir/experimental-design-v2-harder-development-materialization-audit-2026-07-31.json
-```
-
-当前 saturation audit 只确认旧强模型矩阵的 no-skill 4/4、mean 1.0、0 differing pair，并据此允许增加
-supplemental development tasks。Differential audit 在每项任务上执行 canonical、alternative-valid、
-sequential-invalid、stratum-invalid、report-contradiction 和 extra-output，共 12/12 匹配；不同合法 arm
-rotation 和 CSV row order 均被接受。Materialization audit 复用生产 `prepareRunWorkspace`，在两任务的
-no-skill/original 四个 arm 上达到 36/36 checks。三份报告都只是契约和执行边界证据，不是模型效果、
-IR 优化或 held-out 证据。
-
-付费 calibration 使用独立 lock 与 runner，必须按顺序执行：
-
-```powershell
-bun ./src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-harder-pi-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31' `
-  '--phase=plan'
-
-bun ./src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-harder-pi-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31' `
-  '--phase=qualification'
-
-bun ./src/benchmarks/skill-ir/experimental-design-v2-harder-calibration-run.ts `
-  '--lock=benchmarks/skill-ir/pilots/experimental-design/v2/experimental-design-v2-harder-pi-calibration-lock.json' `
-  '--out-dir=results/skill-ir/experimental-design-v2-harder-pi-calibration-2026-07-31' `
-  '--phase=execute'
-```
-
-Lock 固定 `xty/gpt-5.6-sol`、Pi 0.67.68 managed、Windows/clean、2 tasks x 2 repetitions x
-2 systems、retries 0 和 300s+60s<=360s timeout 预算；同时绑定旧 task-split/held-out freeze、三份
-新 audit、完整 source closure、task/public contract/scorer 及执行代码 digest。Dry-run 当前为 8 rows、
-4 complete pairs、4 original with exact source、4 no-skill without source、8 managed commands、0 held-out
-sentinel。`qualification` 与 `execute` 均要求当前进程已有 `SKVM_XTY_API_KEY`。
-
-真实执行后 qualification 为 passed：Pi/resource 通过，route 195.693 秒、exit 0、runStatus ok、3/3
-outputs、零 residue。唯一 matrix 达到 8/8 rows、4/4 pairs、0 infrastructure，但两臂均 4/4、mean
-1.0，0 differing pair；gate failed。Original 使用 167,558 aggregate tokens、平均 102.142 秒，
-no-skill 为 76,666 tokens、平均 94.106 秒，即 2.1856x token 与 1.0854x latency，无质量增益。
-因此 runner/scorer 链路有效，supplemental task contract 对强模型仍无区分度；后续转向 public-contract
-task-sufficiency audit，不再追加 runtime 或直接编译 base IR。
-
-## 35. Public Contract Task Sufficiency Audit
-
-Task 16.20 在不读取 held-out 和 raw model text 的条件下，审计当前 task contract 是否已经向 no-skill
-提供了足以通过 scorer 的完整操作配方。配置、实现与 compact result 分别为：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/v2/public-contract-task-sufficiency-audit.json
-src/benchmarks/skill-ir/experimental-design-v2-task-sufficiency.ts
-results/skill-ir/experimental-design-v2-public-contract-task-sufficiency-audit-2026-07-31.json
-```
-
-生成和复核：
-
-```powershell
-bun ./src/benchmarks/skill-ir/experimental-design-v2-task-sufficiency-run.ts
-bun ./src/benchmarks/skill-ir/experimental-design-v2-task-sufficiency-run.ts `
-  '--verify-only=results/skill-ir/experimental-design-v2-public-contract-task-sufficiency-audit-2026-07-31.json'
-```
-
-Audit 逐字节绑定 15 个输入，包括两批 development tasks、公开合同、scorer/contract implementation、
-两份饱和 compact analysis 和完整 8-file source closure。结果为 19 条 instruction、13 条
-scorer-required、13/13 向 no-skill 披露，操作覆盖率 1.0；原 skill 另有 6 类增量知识，但当前测量
-覆盖率为 0。报告不保存 task 正文或模型输出，并以 reverse-evidence、held-out/gold/raw/model canary、
-digest 和 quote drift 测试 fail closed。
-
-因此下一 benchmark 不能只增加 arm、unit 或 prompt 长度。它需要公开必要的任务接口，同时用独立、
-source-derived 的 deterministic semantic oracle 衡量 skill 独有能力。只有新的 no-skill/original
-baseline 通过区分度门禁，才允许为同一 task/scorer identity 构造 base IR 并扩成
-`no-skill | original | ir-static`。旧 IR/artifact 结果保留在 evidence ledger，但跨 benchmark 的分数
-不直接比较；冻结 artifact 需要先做 provenance compatibility audit，必要时新编译而不覆盖旧产物。
-
-## 36. Skill-unique Task Split 与公开接口
-
-Task 16.21 使用 `experimental-design-v2-skill-unique` capability slice，不增加真实 pilot 计数，也不覆盖
-旧 v2。Task split 先于 scorer 冻结，随后 scorer 已在独立 commit 中实现：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/public-interface.json
-benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/development/tasks.json
-benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/heldout/tasks.json
-benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/task-split-freeze.json
-```
-
-两臂都只收到 `study-graph.json` 与 `analysis-interface.json`，并只能生成
-`design/replication-plan.json` 与 `design/analysis-plan.json`。公开接口声明字段形状、实体引用边界和
-精确输出集合，不公开 task-specific replicate/grouping 答案、source quote 或 evaluator payload。
-Development 覆盖 cage→mouse→cell 和 participant→visit；held-out 只由 split freeze 绑定，本阶段不运行。
-
-本地验证：
-
-```powershell
-bun test ./src/benchmarks/skill-ir/experimental-design-skill-unique-contract.test.ts `
-  ./src/skill-ir/corpus-fixtures.test.ts
-```
-
-Contract test 会重建 2+2 task、验证 source/task/interface digest，并拒绝循环、多根、断裂 lineage、
-gold/source quote/held-out sentinel 和 split drift。Corpus entry 保持 `tasks-authored`、无 `irPath`，
-因此默认主矩阵不会误调度它。
-
-### 36.1 Oracle、scorer 与本地审计
-
-实现入口：
-
-```text
-src/benchmarks/skill-ir/experimental-design-skill-unique-oracle.ts
-src/bench/evaluators/experimental-design-skill-unique-grade.ts
-src/benchmarks/skill-ir/experimental-design-skill-unique-audit.ts
-benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/source-oracle-provenance.json
-```
-
-Oracle 只读最终 workdir 中的公开 graph：treatment assignment entity 决定 independent replicate，
-response entity 决定 measurement unit；二者存在严格祖先关系时标记 pseudoreplication risk。Analysis
-可以聚合到 replicate，或停留在任意下层实体并完整列出到 replicate 的 ancestor grouping。Grouping
-顺序、method 名称、rationale 语言和额外 JSON 字段不影响评分；缺 ancestor、虚构/重复 group 会失败。
-
-五项二值 criterion 权重为 `0.10/0.10/0.30/0.20/0.30`，全部 hard gate，threshold 1.00。Evaluator
-payload 只有相对路径和两个 protected digest；source claim 的文件/行片段 digest 只供离线 audit，
-`runtimeReadable=false`、`taskVisible=false`。
-
-运行本地审计：
-
-```powershell
-bun test ./src/benchmarks/skill-ir/experimental-design-skill-unique-oracle.test.ts `
-  ./src/bench/evaluators/experimental-design-skill-unique-grade.test.ts `
-  ./src/benchmarks/skill-ir/experimental-design-skill-unique-audit.test.ts
-
-bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-audit-run.ts
-```
-
-当前 contract differential 为 18/18 matched：每个 development task 含 aggregate 与 hierarchical
-两种合法解，以及 measurement-as-replicate、错误风险、缺/虚构 grouping、输入修改、缺输出和多输出。
-Production `prepareRunWorkspace` 的 no-skill/original 物化为 36/36 checks。Compact report 绑定 task、
-interface、split freeze、source provenance、contract/oracle/evaluator/audit implementation digest，但不保存
-输出答案或模型正文。当前结果不等于真实模型或优化增益。
-
-### 36.2 Pi calibration lock 与运行方式
-
-付费前方法锁：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-calibration-lock.json
-```
-
-它固定 `xty/gpt-5.6-sol`、Pi `0.67.68` managed mode、Windows/clean、2 个 development task、
-`no-skill | original`、2 repetitions、retries 0、300 秒 task timeout 与 360 秒 outer watchdog。Gate
-沿用通用 pre-IR paired evaluator，并增加 `eachTaskOriginalSuccess`：要求 8/8 rows、4/4 pairs、零
-infrastructure、no-skill 非饱和、至少 1 个 differing pair，且两个 task 各至少一次 original success。
-命令投影固定为 Bun 1.3.14 直接运行仓库 `src/index.ts`；这复用已验证的 source-runner 边界，避免
-`bun run skvm` package script 的额外边界。Runner 还会在系统临时目录创建或校验纯 ASCII
-`node_modules` junction，并只把 junction 下的 `.bin` 放到 child PATH 首位；这是因为 Pi 的 Bun bin shim
-需要相邻 package metadata，不能只复制 `pi.exe`。Junction 不进入 workdir，也不是新的 runtime/catalog，
-不改变 task、model、scorer 或 gate。
-
-三阶段命令如下；`plan` 不调用模型，`qualification` 只执行预注册的一条 original route，只有
-qualification 通过后 `execute` 才运行唯一 8-row matrix：
-
-```powershell
-$lock = 'benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-calibration-lock.json'
-$out = 'results/skill-ir/experimental-design-skill-unique-pi-calibration-2026-07-31'
-
-bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-calibration-run.ts `
-  "--lock=$lock" "--out-dir=$out" '--phase=plan'
-
-$env:SKVM_XTY_API_KEY = '<project-api-key>'
-bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-calibration-run.ts `
-  "--lock=$lock" "--out-dir=$out" '--phase=qualification'
-
-bun ./src/benchmarks/skill-ir/experimental-design-skill-unique-calibration-run.ts `
-  "--lock=$lock" "--out-dir=$out" '--phase=execute'
-```
-
-`plan.json`、`qualification-work/`、`run/raw-runs.jsonl`、workdir 与 `scored-runs.jsonl` 保持本地；
-仓库只提交脱敏 compact qualification、gate 和 analysis。Gate 失败时不补跑、不修改 scorer，不进入
-base IR/held-out；通过也只放行下一阶段的 same-source base IR audit。
-
-实际 qualification 已按失败分支停止。三次 route 都在 API 请求前失败；最终一次的 local Pi 与
-resource probe 通过，child command 已指向正确 ASCII junction 下的 `.bin/pi.exe`，但 Bun
-`uv_spawn` 仍返回 ENOENT，130ms 内 exit 1，0/2 outputs、零 harness residue。脱敏摘要为：
-
-```text
-results/skill-ir/experimental-design-skill-unique-pi-calibration-ascii-2026-07-31/qualification.json
-```
-
-这不是模型或 benchmark 分数。8-row `execute` 未运行，gate 未计算。当前 coordinator/lock 保留为
-失败的 infrastructure evidence；下一步先以独立无 API probe 验证直接 package CLI 启动边界，不能在
-本 lock 上继续追加路径补丁。
-
-### 36.3 Direct Node Pi package probe
-
-新边界不再消费 `.bin/pi.exe`。`src/adapters/pi.ts` 的解析顺序为 explicit repo、项目已安装 package、
-PATH、npx；installed-package tier 使用系统 Node 直接启动
-`node_modules/@mariozechner/pi-coding-agent/dist/cli.js`。普通 fallback 保持不变。
-
-无 API probe 使用真实 `runSubprocess`，在中文临时 cwd 中分别运行 Node 与 Pi `--version`：
-
-```powershell
-bun ./src/benchmarks/skill-ir/pi-package-execution-probe.ts `
-  '--out=results/skill-ir/pi-package-execution-probe-2026-07-31.json'
-```
-
-结果为 passed：Node v23.8.0、Pi 0.67.68、exit 0、非 timeout、总计 821ms。Compact report 只保存
-command kind、版本、Node/Pi package/CLI digest、timing 与封闭失败码，不保存绝对路径、stdout/stderr 或
-环境变量。该结果只放行新的 execution lock 构造，不是 route/model/skill 优化证据。
-
-新的 execution lock 为：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-direct-cli-calibration-lock.json
-```
-
-它继承相同的 source/task/interface/scorer/model、2 x 2 x 2 matrix、retries 0 和区分度 gate，只将
-execution identity 替换为 direct Node package CLI，并绑定 passed probe、Node executable/version、Pi
-package/CLI、adapter、source runner 与六个 orchestration digest。旧 `pi-calibration-lock.json` 和三份失败
-qualification 不修改。新 dry-run 为 8 rows、4 complete pairs；qualification 仍只允许一条预注册
-original route，通过后才可执行 matrix。
-
-首个 direct-cli qualification 的 Node/Pi version 与 resource probe 通过，adapter 也正确选择
-`node + dist/cli.js`，但 route 在 117ms 内仍为 `uv_spawn ENOENT`。相同 node spawn 在 265 字符真实 cwd
-可无 API 复现，在短 cwd 通过；旧 stable harness 路径约 192。因此新 lock 进一步冻结：
-
-```text
-benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/pi-direct-cli-short-path-calibration-lock.json
-outputRoot = results/skill-ir/su-pi-direct-v1
-maximumWorkDirLength = 220
-```
-
-Coordinator 在 plan 阶段逐行检查最终 workdir，并拒绝 output-root drift；正式 dry-run 为 8 rows、最大
-workdir 201。该 guard 在 API env/assert 与 execute 前生效。旧 direct-cli failed qualification 保持 compact
-evidence，不允许在原 identity 上补跑。
-
-Short-path qualification 最终通过：local Pi/resource 通过，route 30.075 秒、exit 0、2/2 outputs、零
-residue。唯一 8-row matrix 为 8/8 rows、4/4 comparable pairs、0 infrastructure；两臂均 4/4、mean
-1.0，differing pairs 为 0。Gate 的 `noSkillNonSaturated=false`、`distinguishable=false`，因此 failed。
-No-skill 为 28,061 aggregate tokens，original 为 89,217，即 3.1794x。该结果只说明当前 strong-model
-surface 无可测 original 增益；base IR、held-out 和 optimization claim 均不允许。
-
-## 37. API-tester Wave B Task Contract
-
-Task 16.22.1 把首个 Wave B `api-tester` 从 `selected` 推进到 `tasks-authored`，仍无 `irPath`、scorer、
-calibration lock 或 runnable promotion。Source closure 同时冻结上游 CRLF digest 和仓库 LF 规范化 digest，
-避免 Git 换行规则破坏 provenance。
-
-公开任务要求生成离线 `api-test-generator.mjs`、`generated/api-test-plan.json` 和
-`api-test-report.json`。Development 为 OpenAPI YAML/bearer 与 JSON/api-key 两个 task；held-out 为不同
-billing/webhook domain。Public interface 只给出 CLI、产物 shape、Node/`yaml` 资源和无网络/无安装边界，
-不包含 endpoint 对应的派生 case。
-
-`buildCorpusMatrixInput(..., { mode: "tasks-authored-calibration" })` 现在必须同时给出恰好一个
-`skillIds`。这是 skill-neutral fail-closed 规则：多个 task-authored entry 共存时，默认不再把它们混成
-一张 pre-IR matrix。API-tester 当前只能通过显式 `skillIds: ["api-tester"]` 进入 development plan；
-held-out 仍由 task contract 隔离且不参与该模式。
-
-### 37.1 Source-derived oracle 与 deterministic evaluator
-
-`api-tester-oracle.ts` 只解析 agent 可见的 OpenAPI YAML/JSON：它按 method/path 推导 operation、2xx/4xx-5xx
-状态、bearer/api-key header，以及 required、min/max、enum、format 等逐条 constraint。每个 constraint
-保留独立 witness，因此合法边界值和刚好越界的无效值都可被接受；删除公开 constraint 后对应要求同步
-消失。缺 paths、缺成功响应或出现首版不支持的证据形态时返回 `unconfirmed`，不猜测 evaluator gold。
-
-`skill-ir-api-tester` evaluator 的 payload 为严格封闭 schema，不允许 gold、raw model、source quote 或
-held-out 字段。`generator-integrity` 先核对 initial-workdir manifest、protected digest 与 exact output set，
-再在仓库内临时隔离副本中用最小环境复跑 generator 两次；两次 bytes 及提交 plan 必须完全一致。静态
-resource policy 拒绝网络、child process、worker 与 package-install 入口。其余四项分别检查 operation、
-schema witness、security/response 与 independence/report honesty。所有 criterion 都是二值 hard gate；
-runtime replay 不是 live API test，最终成功仍由这套 workdir evaluator 决定。
-
-当前验证命令：
-
-```powershell
-bun test ./src/benchmarks/skill-ir/api-tester-oracle.test.ts ./src/bench/evaluators/api-tester-grade.test.ts
-bunx tsc --noEmit
-```
-
-`api-tester-contract-audit-2026-07-31.json` 已得到 2 tasks × 9 cases = 18/18 matched：两族
-alternative-valid 通过，missing operation/boundary/auth、hardcoded secret、dependent case、
-nondeterministic generator 与 input/file drift 被拒；reverse-evidence 和六项 leak/path canary 全绿。
-`api-tester-materialization-audit-2026-07-31.json` 使用生产 `prepareRunWorkspace` 得到 2 tasks × 2 arms ×
-9 checks = 36/36，no-skill 没有 source resource，original 有 exact source resource。
-
-复现持久化审计：
-
-```powershell
-bun ./src/benchmarks/skill-ir/api-tester-audit-run.ts
-```
-
-本阶段只证明 scorer 与物化合同可执行；`api-tester` 仍不得晋升为 runnable，也没有 IR 或
-optimization claim。
-
-### 37.2 Strong-model calibration lock 与调度
-
-`pi-direct-cli-short-path-calibration-lock.json` 在任何模型调用前冻结以下身份：
-
-```text
-model              xty/gpt-5.6-sol
-adapter            managed Pi 0.67.68
-host/context       Windows / clean
-matrix             no-skill|original x 2 development tasks x 2 repetitions
-rows/pairs          8 / 4
-retries            0
-output root        results/skill-ir/at-pi-v1
-max workdir length 220
-```
-
-Lock 逐项绑定 source、task、public interface、resource contract、scorer/oracle、两份本地 audit、runner、
-gate、Pi CLI 和 Node executable digest。`buildPlan` 在 tasks-authored 模式把已经过门禁的唯一
-`skills` 集合透传为 `skillIds`；该改动是 skill-neutral wiring，不含 `api-tester` 分支。
-
-仅生成冻结计划：
-
-```powershell
-bun ./src/benchmarks/skill-ir/api-tester-calibration-run.ts `
-  --lock=benchmarks/skill-ir/pilots/api-tester/pi-direct-cli-short-path-calibration-lock.json `
-  --out-dir=results/skill-ir/at-pi-v1 `
-  --phase=plan
-```
-
-2026-07-31 dry-run 得到 8 rows/4 complete pairs，最大 workdir 长度 150；no-skill 不带 skillPath，
-original 全部带 exact source。唯一 original/YAML qualification 的本地 Pi、resource probe、route、三个
-输出和 residue 检查随后全部通过。
-
-冻结 8-row baseline 的 gate 为 failed：8/8 rows、4/4 pairs、0 infrastructure、no-skill 非饱和与 4/4
-differing pairs 均通过，`eachTaskOriginalSuccess` 唯一失败。No-skill 为 0/4、mean 0.2375、70,432
-tokens；original 为 0/4、mean 0.4000、167,526 tokens。四个配对中 3 个正向、1 个负向；original 的
-operation coverage 为 4/4，但 schema-derived criterion 为 0/4。按 lock，`baseIrAuditAllowed=false`、
-`heldOutAllowed=false`，不得重跑补样或事后修改 gate。
+- 修改 task/scorer/audit 后必须使用新 identity；冻结文件不原地改。
+- 不把 evaluator payload 放进 prompt、package、repair 或 raw model input。
+- 不把环境 label 当作真实 OS 证据。
+- 不因 API 预算充足而绕过 audit、qualification 或停止规则。

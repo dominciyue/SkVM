@@ -236,7 +236,7 @@ describe("buildCorpusMatrixInput", () => {
       id: "api-tester",
       packaging: "focused",
       provenance: "real-public",
-      evidenceWeight: "main-real",
+      evidenceWeight: "support-real",
     }]);
     expect(input.tasksBySkill).toEqual({
       "api-tester": [

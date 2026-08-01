@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "skill-ir-method-portfolio/v1",
+  "portfolioId": "skill-ir-method-development-2026-08-01",
+  "minimumContractQualifiedCases": 6,
+  "requiredPhenotypes": [
+    "environment-schema-repair",
+    "document-script-template",
+    "scientific-allocation-report",
+    "openapi-schema-test-plan",
+    "review-evidence-severity",
+    "repository-fact-documentation"
+  ],
+  "cases": [
+    {
+      "skillId": "env-manager",
+      "upstreamIdentity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "path": "skills/env-manager/SKILL.md"
+      },
+      "phenotypes": ["environment-schema-repair"],
+      "role": "method-development",
+      "methodSequence": 1,
+      "contractQualified": false,
+      "benchmarkVersions": ["v1"],
+      "developmentGate": { "status": "failed" },
+      "automation": {
+        "generatesIr": false,
+        "generatesContract": false,
+        "generatesValidationPlan": true,
+        "generatesPackageCandidate": true
+      },
+      "adaptation": {
+        "humanMinutes": null,
+        "adapterLoc": null,
+        "artifactKinds": ["checks", "schemas", "scripts"],
+        "coreBranchDelta": null,
+        "unautomatedSteps": ["base IR audit", "public contract adapter"]
+      },
+      "blockers": ["benchmark-contract"]
+    },
+    {
+      "skillId": "law-to-markdown",
+      "upstreamIdentity": {
+        "repository": "https://github.com/anbeime/skill",
+        "commit": "ddad6073e07addfe3690dc3de978b2e73ca8cf02",
+        "path": "skills/legal-assistant-skills-main/law-to-markdown/SKILL.md"
+      },
+      "phenotypes": ["document-script-template"],
+      "role": "method-development",
+      "methodSequence": 2,
+      "contractQualified": false,
+      "benchmarkVersions": ["v1"],
+      "developmentGate": {
+        "status": "passed",
+        "resultPath": "results/skill-ir/law-to-markdown-validated-artifact-development-gate-2026-07-24.json"
+      },
+      "automation": {
+        "generatesIr": false,
+        "generatesContract": false,
+        "generatesValidationPlan": true,
+        "generatesPackageCandidate": true
+      },
+      "adaptation": {
+        "humanMinutes": null,
+        "adapterLoc": null,
+        "artifactKinds": ["checks", "scripts", "templates"],
+        "coreBranchDelta": 0,
+        "unautomatedSteps": ["task-boundary adapter"]
+      },
+      "blockers": ["benchmark-contract", "heldout-regression"]
+    },
+    {
+      "skillId": "experimental-design",
+      "upstreamIdentity": {
+        "repository": "https://github.com/K-Dense-AI/claude-scientific-skills",
+        "commit": "fc0b9f692459ea7d9e5a5c64948a5878e1bce274",
+        "path": "skills/experimental-design/SKILL.md"
+      },
+      "phenotypes": ["scientific-allocation-report"],
+      "role": "method-development",
+      "methodSequence": 3,
+      "contractQualified": true,
+      "benchmarkVersions": ["v1", "v2", "v2-skill-unique"],
+      "developmentGate": { "status": "blocked" },
+      "automation": {
+        "generatesIr": false,
+        "generatesContract": false,
+        "generatesValidationPlan": true,
+        "generatesPackageCandidate": true
+      },
+      "adaptation": {
+        "humanMinutes": null,
+        "adapterLoc": null,
+        "artifactKinds": ["schemas", "scripts", "templates"],
+        "coreBranchDelta": 0,
+        "unautomatedSteps": ["semantic design contract"]
+      },
+      "blockers": ["baseline-saturation"]
+    },
+    {
+      "skillId": "api-tester",
+      "upstreamIdentity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "path": "skills/api-tester/SKILL.md"
+      },
+      "phenotypes": ["openapi-schema-test-plan"],
+      "role": "method-development",
+      "methodSequence": 4,
+      "contractQualified": true,
+      "benchmarkVersions": ["v1"],
+      "reentryPolicyPath": "benchmarks/skill-ir/corpus/partial-benefit-reentry/api-tester-v1.json",
+      "developmentGate": { "status": "not-run" },
+      "automation": {
+        "generatesIr": false,
+        "generatesContract": false,
+        "generatesValidationPlan": false,
+        "generatesPackageCandidate": false
+      },
+      "adaptation": {
+        "humanMinutes": null,
+        "adapterLoc": null,
+        "artifactKinds": ["schemas", "scripts", "templates", "tool-plans"],
+        "coreBranchDelta": 0,
+        "unautomatedSteps": ["base IR", "artifact adapter", "development lock"]
+      },
+      "blockers": ["reentry-development-not-run"]
+    },
+    {
+      "skillId": "zh-code-reviewer",
+      "upstreamIdentity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "path": "skills/zh-code-reviewer/SKILL.md"
+      },
+      "phenotypes": ["review-evidence-severity"],
+      "role": "untouched-candidate",
+      "contractQualified": false,
+      "benchmarkVersions": ["candidate"],
+      "developmentGate": { "status": "not-run" },
+      "automation": {
+        "generatesIr": false,
+        "generatesContract": false,
+        "generatesValidationPlan": false,
+        "generatesPackageCandidate": false
+      },
+      "adaptation": {
+        "humanMinutes": null,
+        "adapterLoc": null,
+        "artifactKinds": ["checks", "schemas"],
+        "coreBranchDelta": null,
+        "unautomatedSteps": ["source closure", "task contract", "scorer"]
+      },
+      "blockers": ["task-contract-not-authored"]
+    },
+    {
+      "skillId": "zh-readme",
+      "upstreamIdentity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "path": "skills/zh-readme/SKILL.md"
+      },
+      "phenotypes": ["repository-fact-documentation"],
+      "role": "untouched-candidate",
+      "contractQualified": false,
+      "benchmarkVersions": ["candidate"],
+      "developmentGate": { "status": "not-run" },
+      "automation": {
+        "generatesIr": false,
+        "generatesContract": false,
+        "generatesValidationPlan": false,
+        "generatesPackageCandidate": false
+      },
+      "adaptation": {
+        "humanMinutes": null,
+        "adapterLoc": null,
+        "artifactKinds": ["checks", "templates"],
+        "coreBranchDelta": null,
+        "unautomatedSteps": ["source closure", "task contract", "scorer"]
+      },
+      "blockers": ["task-contract-not-authored"]
+    }
+  ]
+}
