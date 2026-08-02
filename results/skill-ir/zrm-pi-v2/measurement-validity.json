@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "skill-ir-measurement-validity/v1",
+  "calibrationId": "zh-readme-pi-direct-cli-short-path-development-v2",
+  "status": "invalidated",
+  "numericGatePassed": false,
+  "claimValid": false,
+  "baseIrAuditAllowed": false,
+  "heldOutAllowed": false,
+  "reasonCode": "existing-path-command-argument-equivalence-false-reject",
+  "frozenEvidence": {
+    "lock": {
+      "path": "benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json",
+      "sha256": "d260eadd55fbe397eb68e2d9bb85fc09d798876ec2a52006bf75b356e5ef7fdd"
+    },
+    "qualification": {
+      "path": "results/skill-ir/zrm-pi-v2/qualification.json",
+      "sha256": "cac4e67e650e7c845d29d678e74858a7b02ea97ff221f5239d01df4ea9a82bd0"
+    },
+    "gate": {
+      "path": "results/skill-ir/zrm-pi-v2/gate-report.json",
+      "sha256": "d0ec1f91b14bbcad75c49560c426ead378a36213acf6fc89dfd96ce2a5a82aed"
+    },
+    "scoredRows": {
+      "path": "results/skill-ir/zrm-pi-v2/scored-runs.jsonl",
+      "sha256": "454ef5ad09f613c7bea5c01f59c0f83cdf072fbdb506467c4199b21d68dc0755"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/zh-readme-grade-v2.ts",
+      "sha256": "896662e5099be21ec8f2e52390f241c15b51381531c58f226711b69821bc951b"
+    },
+    "oracle": {
+      "path": "src/benchmarks/skill-ir/zh-readme-oracle-v2.ts",
+      "sha256": "a37c64940744bb3a64fc6634b1f5b64c966e1726ec652a053ee74bf1b79c3684"
+    },
+    "alternativeValidPythonOutput": {
+      "path": "results/skill-ir/zrm-pi-v2/run/artifacts/zh-readme__skvm__windows__clean__zh-readme-python-library-dev-002/no-skill/run-1/workdir/README.zh-CN.md",
+      "sha256": "475cc4c58042a97a1982792e987ee56147b46d19a40b51b45293e2e93184863c"
+    },
+    "brokenNodeReferenceOutput": {
+      "path": "results/skill-ir/zrm-pi-v2/run/artifacts/zh-readme__skvm__windows__clean__zh-readme-node-cli-dev-001/original/run-2/workdir/README.zh-CN.md",
+      "sha256": "47d8446f9bb345a98266de4ee8dfaf0e1d70293a4097c41523758959eadd7542"
+    },
+    "brokenPythonReferenceOutput": {
+      "path": "results/skill-ir/zrm-pi-v2/run/artifacts/zh-readme__skvm__windows__clean__zh-readme-python-library-dev-002/original/run-1/workdir/README.zh-CN.md",
+      "sha256": "16da1f41fd22fcec398d2b77b374972cfd6304aaf3e9e8f58a357721c1b0fe41"
+    }
+  },
+  "numericObservation": {
+    "rows": 8,
+    "pairs": 4,
+    "infrastructureFailures": 0,
+    "noSkillSuccesses": 3,
+    "originalSuccesses": 2,
+    "noSkillMean": 0.95,
+    "originalMean": 0.9,
+    "noSkillTokens": 40204,
+    "originalTokens": 120021,
+    "differingPairs": 2,
+    "positivePairs": 0,
+    "failedGates": ["positivePair", "originalMeanNonRegression"]
+  },
+  "invalidatingObservations": [
+    {
+      "code": "existing-path-command-argument-equivalence-unmodeled",
+      "publicContract": "a source-derived command may substitute one non-flag path argument with a real repository-local directory",
+      "privateScorerConstraint": "v2 accepts the exact documented token or an angle-bracket placeholder but rejects the existing path '.'",
+      "affectedEvidence": "the no-skill Python output uses 'note-index scan .' and is false rejected"
+    }
+  ],
+  "confirmedSemanticObservations": [
+    {
+      "code": "skill-package-reference-contamination",
+      "publicContract": "local README references must resolve inside the task repository",
+      "observedFailure": "two original outputs link to LICENSE.upstream, which exists only in the injected skill source closure"
+    }
+  ],
+  "sensitivity": {
+    "officialRescorePerformed": false,
+    "direction": "correcting the identified false reject can only increase the no-skill arm and cannot create an original-positive pair",
+    "claim": "diagnostic robustness only; not a replacement score or optimization result"
+  },
+  "response": {
+    "mutateV2": false,
+    "rescoreV2": false,
+    "rerunV2": false,
+    "createBaseIr": false,
+    "runHeldOut": false,
+    "nextStep": "design a skill-neutral, source-bound command semantic contract before any new calibration identity"
+  }
+}

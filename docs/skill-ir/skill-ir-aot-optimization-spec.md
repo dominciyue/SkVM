@@ -202,6 +202,15 @@ equivalence、reverse-evidence、gold/held-out leak 与 broken-local-link canary
 lock 中的 path+digest 动态加载，core 不按 skill id 分支；v1 registry 与结果保持不变。该状态只说明 v2
 measurement contract 已审计和预注册，付费 development 尚未运行，因此仍不构成区分度或优化证据。
 
+v2 唯一矩阵随后完成 8/8 rows、4/4 pairs、0 infrastructure；no-skill 3/4、mean 0.95、40204 tokens，
+original 2/4、mean 0.90、120021 tokens，0 original-positive pair。两个 original failure 都把 skill source
+closure 中的 `LICENSE.upstream` 当成 task repository 文件链接，属于公开合同违例；但 v2 scorer 又把
+`note-index scan .` 判错：命令结构来自公开文档，`.` 是真实存在的 repository-local directory，v2 仅接受
+字面参数或 `<placeholder>` 的规则仍产生 false reject。因此 v2 也冻结为 measurement-invalid，不重评分、
+不补跑、不进入 base IR。手工敏感性分析只说明修复该 false reject 会提高 no-skill、不会产生 original
+正向 pair；该方向性观察不是替代分数。下一步先设计 skill-neutral、source-bound command semantic contract，
+不立即创建新 calibration 版本。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段

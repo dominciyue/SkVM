@@ -29,7 +29,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   development 矩阵完成 16/16、0 infrastructure。No-skill/original/ir-static mean 分别为
   0.15/0.225/0.3875，artifact 为 4/4、mean 1.0、runtime model tokens 0，development gate 通过。
   该结果只计 method-development，不开放 held-out、replication 或跨模型 claim。
-- Method portfolio 已机器化登记 6 个 case：4 studied、2 contract-qualified、0 untouched replication、
+- `zh-readme` v1/v2 两次校准均冻结 measurement-invalid。v2 的 8/8 行无基础设施失败，并确认 original
+  会把 skill-package-only `LICENSE.upstream` 链接带入 task README；但 scorer 仍误拒绝 existing local path
+  command argument，因此不进入 base IR。
+- Method portfolio 已机器化登记 6 个 case：6 studied、4 contract-qualified、0 untouched replication、
   1 个“合同合格且 development pass”的 phenotype；readiness 仍未通过。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
@@ -40,6 +43,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 版本化 prospective partial-benefit re-entry
 -> 建立 method-development portfolio 与 readiness evaluator
 -> API Tester schema-derived artifact development gate passed
+-> zh-readme v2 invalidated；先提炼 skill-neutral command semantic contract
 -> 至少 6 个 contract-qualified 真实方法案例持续提炼通用 core
 -> readiness gate 通过
 -> 用另一项 untouched skill 做冻结 replication

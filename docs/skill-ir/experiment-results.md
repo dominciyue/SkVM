@@ -219,7 +219,26 @@ original mean non-regression 上失败。
 - `results/skill-ir/zrm-pi-v1/scored-runs.jsonl`
 - `results/skill-ir/zrm-pi-v1/measurement-validity.json`
 
-## 10. 本地与提交结果
+## 10. `zh-readme` v2 仍被真实等价输入击穿
+
+v2 保持原任务、模型、Pi 与 gate 不变，以新 scorer/oracle/audit 修复 v1 已知问题；24/24 synthetic audit
+通过，qualification 通过，唯一矩阵完成 8/8、4/4 pairs、0 infrastructure。冻结数值为：no-skill 3/4、
+mean 0.95、40204 tokens；original 2/4、mean 0.90、120021 tokens；0 positive pair，数值 gate 失败。
+
+两个 original 失败都引用了 task repository 不存在、仅 skill source closure 存在的 `LICENSE.upstream`，属于
+真实 skill contamination。与此同时，一个 no-skill 输出将公开命令的目录参数替换成真实存在的 `.`，v2
+却只接受字面参数或 `<placeholder>`，形成新的 false reject。故 v2 也冻结 measurement-invalid，不重评分、
+不补跑、不构造 base IR。敏感性审计显示修复该误判只会抬高 no-skill，不会产生 original-positive pair；
+这只是方向诊断，不能作为正式替代分数。
+
+关键路径：
+
+- `benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json`
+- `results/skill-ir/zrm-pi-v2/gate-report.json`
+- `results/skill-ir/zrm-pi-v2/scored-runs.jsonl`
+- `results/skill-ir/zrm-pi-v2/measurement-validity.json`
+
+## 11. 本地与提交结果
 
 当前 Git 中有约 252 个跟踪 result files，并有大量本地 raw workdir/qualification/artifact 文件。治理规则：
 
@@ -228,14 +247,14 @@ original mean non-regression 上失败。
 - 已经被 lock digest 或 committed report 引用的文件保持原位；
 - 不通过“文档治理”删除用户实验原始数据。
 
-## 11. 后续实验
+## 12. 后续实验
 
 1. 保持 API Tester development package/lock/result 不可变，不立即运行 held-out。
 2. 保持 `zh-code-reviewer` base IR/static lock/result 不可变；本轮 residual 已由 static 解决，不创建 overlay，
    后续只有在更多 development context/model 重复出现公开 residual 时才设计 artifact candidate。
-3. 先以新 identity 修复 `zh-readme` 的 bounded command/license equivalence、conservative evidence 和本地链接
-   canary；v2 已完成 24/24 contract audit 与付费前 lock，待唯一 development 区分度实验后决定是否进入
-   base IR；v1 保持 invalidated。
+3. `zh-readme` v2 已完成 24/24 audit 与唯一 8-row development，但 existing local path command argument
+   仍被 false reject；v1/v2 均冻结 invalidated，不进入 base IR。下一步先形成 skill-neutral command
+   semantic contract，不立即堆新 calibration 版本。
 4. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
 5. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。
 6. Readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。

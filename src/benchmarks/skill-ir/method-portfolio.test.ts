@@ -137,6 +137,11 @@ describe("method portfolio registry and readiness", () => {
       methodSequence: 6,
       contractQualified: true,
       benchmarkVersions: ["zh-readme-development-v1", "zh-readme-development-v2"],
+      developmentGate: {
+        status: "failed",
+        resultPath: "results/skill-ir/zrm-pi-v2/gate-report.json",
+      },
+      blockers: ["scorer-authority"],
     })
   })
 

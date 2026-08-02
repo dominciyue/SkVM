@@ -470,7 +470,7 @@ describe("skill-ir corpus fixtures", () => {
     expect(intake.candidates.find((candidate) => candidate.id === "api-tester")?.status)
       .toBe("prospective-method-development");
     expect(intake.candidates.find((candidate) => candidate.id === "zh-readme")?.status)
-      .toBe("method-development-v2-audited");
+      .toBe("method-development-v2-calibration-invalid");
     expect(selected.every((candidate) => candidate.sourcePath.endsWith("SKILL.md"))).toBe(true);
     expect(selected.every((candidate) => candidate.licenseStatus === "verified")).toBe(true);
 

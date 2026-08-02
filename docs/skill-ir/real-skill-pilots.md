@@ -194,7 +194,10 @@ v1 dry-run 为 8 rows/4 pairs、最长 workdir 145；qualification 的 Pi/resour
 解释为真实回归。下一次必须使用新 identity，先补 equivalence/broken-link canary 与新 audit/lock。
 
 v2 已完成上述修复并通过 24/24 audit；通用 runner 会按 lock 的 path+digest 动态加载 v2 scorer，仍没有
-`zh-readme` skill-id 分支。当前仅到付费前 preregistration，尚不能声称 v2 有区分度或改善 original。
+`zh-readme` skill-id 分支。唯一 development 执行是 8/8、0 infra；no-skill 3/4、mean 0.95，original
+2/4、mean 0.90，且 original token 为 120021、no-skill 为 40204。两个 original failure 确认是 task
+repository 中不存在的 `LICENSE.upstream` 链接；一个 no-skill failure 则暴露 existing local path 参数等价
+仍未建模。故 v2 同样标记 measurement-invalid，数值不用于 skill 效果，base IR/held-out 继续关闭。
 
 ## 11. 修改与验证
 

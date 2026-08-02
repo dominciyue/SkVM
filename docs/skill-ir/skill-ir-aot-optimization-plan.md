@@ -326,9 +326,12 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
      补跑和构造 base IR；
    - [x] 以新 identity 完成 v2 conservative evidence、bounded command/license equivalence、task-repository
      local-link 检查、24/24 contract audit、digest-bound dynamic scorer loading 与付费前 lock；
-   - [ ] 按 v2 lock 依次完成 dry-run、qualification、唯一 `retries=0` development 执行和 measurement
-     validity audit；失败时保持 base IR/held-out 关闭。
-7. [ ] 同步 evaluation、pilots、results、conversation log，运行 focused/full tests、typecheck、链接与 diff
+   - [x] 按 v2 lock 完成 dry-run、qualification、唯一 `retries=0` development 执行和 measurement
+     validity audit；8/8、0 infra，但 existing-path command argument 仍被 false reject，v2 冻结 invalidated，
+     base IR/held-out 保持关闭；
+   - [ ] 在不创建新 calibration identity 的前提下，先设计并审计 skill-neutral、source-bound command
+     semantic contract，覆盖 exact/alias/script body/placeholder/existing local path 的合法与反向 canary。
+7. [x] 同步 evaluation、pilots、results、conversation log，运行 focused/full tests、typecheck、链接与 diff
    check 后提交。
 
 ## 6. 验证与实验门禁
