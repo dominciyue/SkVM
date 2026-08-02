@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "skill-ir-measurement-validity/v1",
+  "calibrationId": "zh-readme-pi-direct-cli-short-path-development-v1",
+  "status": "invalidated",
+  "numericGatePassed": false,
+  "claimValid": false,
+  "baseIrAuditAllowed": false,
+  "heldOutAllowed": false,
+  "reasonCode": "public-equivalence-and-conservative-evidence-false-rejects",
+  "frozenEvidence": {
+    "lock": {
+      "path": "benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v1.json",
+      "sha256": "70af18d34bbe7f628a1ffd4830f078c94914ee11d1d7d163c78438abdd343098"
+    },
+    "qualification": {
+      "path": "results/skill-ir/zrm-pi-v1/qualification.json",
+      "sha256": "29cc51bfa8dff9646343e561cf1716f6a3542bbfe5290899bc517b641d8823b1"
+    },
+    "gate": {
+      "path": "results/skill-ir/zrm-pi-v1/gate-report.json",
+      "sha256": "762a99b41586a5da7612c73d658063959c1c26919409b3e1b8de9637b7b15d40"
+    },
+    "scoredRows": {
+      "path": "results/skill-ir/zrm-pi-v1/scored-runs.jsonl",
+      "sha256": "31784fbdd5d0ce7d110241b88d1e06dd99eea5c6f6da8b062aace8828924aa02"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/zh-readme-grade.ts",
+      "sha256": "a9da3bab92bbb8f24f2a0b8292e66c5c2122bddded4996c350d4bbdc061a8a45"
+    },
+    "oracle": {
+      "path": "src/benchmarks/skill-ir/zh-readme-oracle.ts",
+      "sha256": "dce3dc6de2bdd941d5678c667fb3cd94264b4e4c8b8c82f1a26077a8d12bb6d9"
+    },
+    "alternativeValidNodeOutput": {
+      "path": "results/skill-ir/zrm-pi-v1/run/artifacts/zh-readme__skvm__windows__clean__zh-readme-node-cli-dev-001/no-skill/run-1/workdir/README.zh-CN.md",
+      "sha256": "a898e459a9a5602bd1ce4b146f274161bb6909b29b674fa8f512b6215f8b2a34"
+    },
+    "alternativeValidPythonOutput": {
+      "path": "results/skill-ir/zrm-pi-v1/run/artifacts/zh-readme__skvm__windows__clean__zh-readme-python-library-dev-002/no-skill/run-1/workdir/README.zh-CN.md",
+      "sha256": "845431bc453291b9cfdf81c90f0418813d7bae90813c13d02bb2ab012e8e0bfd"
+    }
+  },
+  "numericObservation": {
+    "rows": 8,
+    "pairs": 4,
+    "infrastructureFailures": 0,
+    "noSkillSuccesses": 0,
+    "originalSuccesses": 1,
+    "noSkillMean": 0.8,
+    "originalMean": 0.7,
+    "differingPairs": 3,
+    "positivePairs": 1,
+    "failedGate": "originalMeanNonRegression"
+  },
+  "invalidatingObservations": [
+    {
+      "code": "unsupported-installation-default",
+      "publicContract": "when static installation evidence is absent, omit the command or mark it pending",
+      "privateScorerConstraint": "the v1 oracle invents npm install and requires every README to contain it",
+      "affectedEvidence": "both no-skill Node outputs conservatively mark installation pending and are false rejected"
+    },
+    {
+      "code": "command-equivalence-unmodeled",
+      "publicContract": "source-derived commands may use standard package-manager aliases or explicit script bodies",
+      "privateScorerConstraint": "the v1 scorer requires exact command-string membership",
+      "affectedEvidence": "npm start versus npm run start and other source-equivalent forms are rejected"
+    },
+    {
+      "code": "license-equivalence-unmodeled",
+      "publicContract": "license meaning is required, not one exact spelling",
+      "privateScorerConstraint": "Apache-2.0 must occur as an exact substring",
+      "affectedEvidence": "both no-skill Python outputs state Apache License 2.0 and are false rejected"
+    },
+    {
+      "code": "skill-package-reference-contamination",
+      "publicContract": "README local references must resolve against the task repository",
+      "privateScorerConstraint": "v1 does not audit every local Markdown link destination",
+      "affectedEvidence": "original outputs cite LICENSE.upstream from the skill source package as if it were a task-repository file"
+    }
+  ],
+  "response": {
+    "mutateV1": false,
+    "rescoreV1": false,
+    "rerunV1": false,
+    "nextIdentity": "zh-readme-pi-direct-cli-short-path-development-v2",
+    "requiredBeforeNextExecution": [
+      "remove unsupported command defaults from the public oracle",
+      "define and audit bounded public command and license equivalence",
+      "validate every local Markdown link against task-repository evidence",
+      "add positive and negative canaries for each repaired equivalence",
+      "freeze a new scorer, audit, registry digest, lock, and output root"
+    ]
+  }
+}

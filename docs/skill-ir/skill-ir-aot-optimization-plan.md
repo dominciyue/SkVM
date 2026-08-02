@@ -320,7 +320,7 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    development audit；
 5. [x] Audit 通过后更新 corpus/intake/portfolio，记录人工适配、`coreBranchDelta` 和 blockers；未通过时不
    调模型，不修改 scorer 迎合输出；
-6. [ ] 若 measurement 合格，冻结 direct Pi `no-skill | original` lock、数值 gate、dry-run、resource/route
+6. [x] 若 measurement 合格，冻结 direct Pi `no-skill | original` lock、数值 gate、dry-run、resource/route
    qualification 与唯一 `retries=0` development 执行；未过门则不补跑、不构造 IR；
 7. [ ] 同步 evaluation、pilots、results、conversation log，运行 focused/full tests、typecheck、链接与 diff
    check 后提交。

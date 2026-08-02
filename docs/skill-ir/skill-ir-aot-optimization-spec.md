@@ -187,6 +187,13 @@ original mean 不低于 no-skill。Qualification 还要求 resource probe、Pi �
 `README.zh-CN.md` 物化以及无 harness residue 全部通过。即使门禁通过，也只开放 source-audited base IR
 审计；held-out、skill optimization、跨模型和 Token claim 继续关闭。
 
+v1 唯一矩阵为 8/8 rows、4/4 pairs、0 infrastructure；no-skill 0/4、mean 0.8，original 1/4、mean
+0.7，门禁仅在 `originalMeanNonRegression` 失败。执行后审计发现 v1 oracle/scorer 违反上述公开合同：无安装
+证据时仍私自要求 `npm install`，把 `npm start` 等标准等价形式按字符串拒绝，把 `Apache License 2.0`
+与 `Apache-2.0` 当作不同事实，并未检查所有本地 Markdown link 是否属于 task repository。故 v1 冻结为
+measurement-invalid；数值不得用于 original 正负效应，不能进入 base IR。修复必须使用新 scorer/audit/
+calibration identity，加入 public equivalence 与 broken-local-link canary 后再运行；不得重评分或覆盖 v1。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段

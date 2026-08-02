@@ -44,7 +44,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
-| zh-readme | repository fact/documentation | contract-qualified method-development | exact source + 2+2 split + 20/20 audit；强模型区分度校准待执行。 |
+| zh-readme | repository fact/documentation | contract-qualified method-development | v1 calibration 8/8、0 infra，但 public-equivalence scorer false reject，measurement invalid。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -186,6 +186,12 @@ bun ./src/benchmarks/skill-ir/method-case-calibration-run.ts `
 closure、split/provenance/audit guards、Pi/Node/Bun 身份、8 行成对矩阵、Windows 短路径预算、唯一公开
 输出和 harness residue；执行结束后调用确定性 scorer 与通用 pre-IR gate。该合同可供后续方法案例复用，
 但既有 reviewer lock/result 保持不可变。
+
+v1 dry-run 为 8 rows/4 pairs、最长 workdir 145；qualification 的 Pi/resource/route/唯一 README/residue
+全部通过。唯一付费矩阵也是 8/8、0 infra，但 v1 scorer 把公开允许的保守安装说明、标准命令别名和许可证
+等价写法误判，同时漏检指向 skill-package `LICENSE.upstream` 的 task-repository 断链。因此 v1
+`measurement-validity.json` 标为 invalidated，不开放 base IR，也不把 original mean 0.7 与 no-skill 0.8
+解释为真实回归。下一次必须使用新 identity，先补 equivalence/broken-link canary 与新 audit/lock。
 
 ## 11. 修改与验证
 

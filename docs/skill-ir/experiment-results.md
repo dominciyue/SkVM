@@ -198,7 +198,28 @@ overlay。由于 prior original 为 4/4、本轮 no-skill 也为 4/4，单个正
 - `results/skill-ir/zcr-static-fidelity-v1/residual-audit.json`
 - `results/skill-ir/zcr-static-fidelity-v1/scored-runs.jsonl`
 
-## 9. 本地与提交结果
+## 9. `zh-readme` v1 区分度校准失效
+
+`zh-readme` 首轮使用通用 `method-case-calibration` 和冻结 direct Pi/`xty/gpt-5.6-sol` 身份。Dry-run
+为 8 rows/4 pairs，qualification 的 Pi 0.67.68、resource、route、唯一 `README.zh-CN.md` 与 residue
+均通过。唯一正式矩阵 8/8、4/4 pairs、0 infrastructure；no-skill 0/4、mean 0.8、35962 tokens，
+original 1/4、mean 0.7、98429 tokens。3 个 differing pair 中 1 positive、2 negative，预注册门禁只在
+original mean non-regression 上失败。
+
+该数值随后被 measurement audit 判为无效：v1 oracle 在没有公开安装证据时仍生成并强制要求
+`npm install`；scorer 对 `npm start`/`npm run start`、`Apache License 2.0`/`Apache-2.0` 等公开等价形式
+使用字面匹配；local-reference 检查又未覆盖指向 skill package `LICENSE.upstream` 的 task-repository 断链。
+至少四条 no-skill 输出包含可公开验证的 alternative-valid 语义却被扣分，因而两臂均分和 pair 方向都不能
+解释为 skill 效果。v1 不重评分、不补跑、不覆盖；base IR 与 held-out 保持关闭。
+
+关键路径：
+
+- `benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v1.json`
+- `results/skill-ir/zrm-pi-v1/gate-report.json`
+- `results/skill-ir/zrm-pi-v1/scored-runs.jsonl`
+- `results/skill-ir/zrm-pi-v1/measurement-validity.json`
+
+## 10. 本地与提交结果
 
 当前 Git 中有约 252 个跟踪 result files，并有大量本地 raw workdir/qualification/artifact 文件。治理规则：
 
@@ -207,12 +228,13 @@ overlay。由于 prior original 为 4/4、本轮 no-skill 也为 4/4，单个正
 - 已经被 lock digest 或 committed report 引用的文件保持原位；
 - 不通过“文档治理”删除用户实验原始数据。
 
-## 10. 后续实验
+## 11. 后续实验
 
 1. 保持 API Tester development package/lock/result 不可变，不立即运行 held-out。
 2. 保持 `zh-code-reviewer` base IR/static lock/result 不可变；本轮 residual 已由 static 解决，不创建 overlay，
    后续只有在更多 development context/model 重复出现公开 residual 时才设计 artifact candidate。
-3. 继续引入 `zh-readme` 和信息互补的第六案例，优先验证 base IR/source-audit/static runner 的跨 skill 复用。
+3. 先以新 identity 修复 `zh-readme` 的 bounded command/license equivalence、conservative evidence 和本地链接
+   canary，通过新 contract audit 与区分度门后再决定是否进入 base IR；v1 保持 invalidated。
 4. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
 5. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。
 6. Readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
