@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-01
+**最后更新：** 2026-08-02
 
 ## 1. 项目定位
 
@@ -105,8 +105,9 @@ untouched replication
 
 历史方法案例是 `env-manager`、`law-to-markdown`、`experimental-design`；API Tester 的冻结 Wave B
 baseline 不改判，但后续可通过新 prospective policy 转为 method-development。它不再承担 untouched
-replication。`zh-code-reviewer`、`zh-readme` 等只有在未参与 core/catalog 调整且重新冻结后，才可能
-承担 replication。
+replication。`zh-code-reviewer` 从 2026-08-02 起进入 method-development，用于检验判断/证据/严重度
+phenotype；因此不再承担 untouched replication。`zh-readme` 等只有在未参与 core/catalog 调整且重新
+冻结后，才可能承担 replication。
 
 方法开发以至少 6 个真实 skill 起步，但数量不固定。进入 replication 前必须通过
 `method-portfolio-readiness/v1`：
@@ -118,6 +119,19 @@ replication。`zh-code-reviewer`、`zh-readme` 等只有在未参与 core/catalo
 5. 没有未关闭的 benchmark-contract、gold leak、materialization 或 scorer-authority blocker。
 
 未满足时继续补充信息互补案例或修正通用系统。案例数量不能替代 readiness。
+
+### 4.1 `zh-code-reviewer` 方法案例合同
+
+该案例使用真实 MIT skill 的 exact source closure，先冻结 2 development + 2 held-out，再实现 scorer。
+公开 task contract 只规定中文审查产物的字段、证据定位方式和严重度语义；具体 finding 从 agent 可见源码
+推导，不写入 prompt 或 compiler 输入。首轮 oracle 只接受可由源码结构确定的规则，找不到强证据时降级为
+`unconfirmed`，不猜测 hidden gold。
+
+确定性 scorer 至少分开检查：protected source 与产物完整性、源码证据覆盖、严重度校准、修复建议可操作性、
+JSON/中文报告一致性。它必须接受 finding 顺序、自然语言措辞和额外有效 finding 的变化；必须拒绝错文件/错
+行锚点、漏掉高影响问题、严重度弱化、修改输入和无证据结论。删除公开问题模式后，对应 oracle 约束必须
+消失。Benchmark audit 通过前不运行付费校准；校准先限于 `no-skill | original` development，IR 与 artifact
+在区分度成立后另行设计。
 
 ## 5. 静态与动态结合
 

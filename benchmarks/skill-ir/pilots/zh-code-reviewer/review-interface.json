@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "skill-ir-zh-code-reviewer-interface/v1",
+  "interfaceId": "zh-code-reviewer-evidence-interface-v1",
+  "protectedInputs": ["<task-source-path>", "review-interface.json"],
+  "outputs": ["code-review.json", "code-review.md"],
+  "finding": {
+    "requiredFields": ["category", "severity", "path", "line", "symbol", "impact", "recommendation"],
+    "categoryValues": ["correctness", "security", "performance", "maintainability"],
+    "lineMeaning": "one-based source line containing the primary observable evidence",
+    "symbolMeaning": "smallest enclosing named function, method, or exported binding",
+    "allowAdditionalFields": true,
+    "allowAnyFindingOrder": true,
+    "allowAdditionalGroundedFindings": true
+  },
+  "severity": {
+    "values": ["critical", "major", "minor"],
+    "critical": "directly exploitable security boundary violation or secret exposure",
+    "major": "observable correctness, reliability, or material performance failure on a supported path",
+    "minor": "bounded maintainability, readability, or low-impact robustness improvement"
+  },
+  "jsonReport": {
+    "requiredFields": ["schemaVersion", "reviewedFiles", "findings", "highlights", "summary"],
+    "schemaVersion": "code-review/v1"
+  },
+  "markdownReport": {
+    "language": "zh-CN",
+    "mustReferenceEveryFindingLocation": true,
+    "exactWordingRequired": false
+  },
+  "resourcePolicy": {
+    "network": false,
+    "packageInstall": false,
+    "allowedRuntime": "node"
+  },
+  "outputPolicy": {
+    "exactOutputSet": true,
+    "protectedInputsMutable": false
+  }
+}

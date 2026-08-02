@@ -57,4 +57,22 @@ describe("skill-ir corpus registry", () => {
       evidenceWeight: "support-real",
     });
   });
+
+  test("exposes zh-code-reviewer only through the audited tasks-authored calibration lifecycle", () => {
+    const manifest = JSON.parse(readFileSync(
+      path.join(rootDir, "benchmarks/skill-ir/corpus/corpora/pilot.json"),
+      "utf8",
+    )) as { skills: Array<Record<string, unknown>> };
+    const reviewer = manifest.skills.find((skill) => skill.id === "zh-code-reviewer");
+
+    expect(reviewer).toMatchObject({
+      portfolioRole: "method-development",
+      depth: "benchmark-contract-qualified",
+      status: "tasks-authored",
+      tasksPath: "benchmarks/skill-ir/pilots/zh-code-reviewer/development/tasks.json",
+      benchmarkContractAuditPath: "results/skill-ir/benchmark-contract-audit/zh-code-reviewer.json",
+      evidenceWeight: "support-real",
+    });
+    expect(reviewer?.irPath).toBeUndefined();
+  });
 });

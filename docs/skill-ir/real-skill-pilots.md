@@ -43,7 +43,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | law-to-markdown | document/script/template | studied method-development | development pass，held-out regression。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
-| zh-code-reviewer | evidence/severity/report | untouched candidate | 未冻结任务与 scorer。 |
+| zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 2+2 冻结；development audit 18/18，尚未跑区分度。 |
 | zh-readme | fact extraction/template/link | untouched candidate | 未冻结任务与 scorer。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
@@ -119,8 +119,8 @@ artifactKinds + coreBranchDelta
 unautomatedSteps + blockers
 ```
 
-`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 6 registered、4 studied、2 qualified、
-0 replication、0 passed qualified phenotype，五项 gate 全 false。Readiness report 必须显示真实不足，
+`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 6 registered、5 studied、3 qualified、
+0 replication、1 passed qualified phenotype；readiness 仍 failed。Readiness report 必须显示真实不足，
 不能把 studied、benchmark version 或 audit-failed case 填充为 contract-qualified。
 
 ## 10. Intake 顺序
@@ -136,6 +136,17 @@ unautomatedSteps + blockers
 
 当前优先评估 `zh-code-reviewer`、`zh-readme` 和一个 license 已验证的非开发工具类 skill。不要一次导入大批
 候选后再补任务；每个案例先完成 provenance、task、scorer、audit 的竖切。
+
+`zh-code-reviewer` 当前可复建命令：
+
+```powershell
+bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-run.ts
+bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-audit-run.ts
+```
+
+第一条由冻结 builder 重建 development/heldout task JSON；第二条只读 development，生成
+`results/skill-ir/benchmark-contract-audit/zh-code-reviewer.json`。Audit 通过只说明 measurement contract
+可用，不开放 IR、artifact、held-out 或优化 claim。付费校准必须等 direct Node Pi short-path lock 冻结。
 
 ## 11. 修改与验证
 

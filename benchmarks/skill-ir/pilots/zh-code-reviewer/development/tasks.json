@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "zh-code-reviewer",
+  "tasks": [
+    {
+      "id": "zh-code-reviewer-user-service-dev-001",
+      "split": "development",
+      "prompt": "Review the protected source file using review-interface.json without modifying either input. Write code-review.json and a structured Chinese code-review.md. Ground each finding at the primary observable source line and smallest enclosing symbol. Apply the public severity meanings and make each recommendation actionable. Produce exactly the two declared outputs; do not install packages or use the network. Source path: src/user-service.ts.",
+      "fixtures": {
+        "src/user-service.ts": "export async function findUser(db, email, authToken) {\n  const query = `SELECT id, email FROM users WHERE email = '${email}'`\n  console.log(\"auth token\", authToken)\n  return db.query(query)\n}\n",
+        "review-interface.json": "{\n  \"schemaVersion\": \"skill-ir-zh-code-reviewer-interface/v1\",\n  \"interfaceId\": \"zh-code-reviewer-evidence-interface-v1\",\n  \"protectedInputs\": [\"<task-source-path>\", \"review-interface.json\"],\n  \"outputs\": [\"code-review.json\", \"code-review.md\"],\n  \"finding\": {\n    \"requiredFields\": [\"category\", \"severity\", \"path\", \"line\", \"symbol\", \"impact\", \"recommendation\"],\n    \"categoryValues\": [\"correctness\", \"security\", \"performance\", \"maintainability\"],\n    \"lineMeaning\": \"one-based source line containing the primary observable evidence\",\n    \"symbolMeaning\": \"smallest enclosing named function, method, or exported binding\",\n    \"allowAdditionalFields\": true,\n    \"allowAnyFindingOrder\": true,\n    \"allowAdditionalGroundedFindings\": true\n  },\n  \"severity\": {\n    \"values\": [\"critical\", \"major\", \"minor\"],\n    \"critical\": \"directly exploitable security boundary violation or secret exposure\",\n    \"major\": \"observable correctness, reliability, or material performance failure on a supported path\",\n    \"minor\": \"bounded maintainability, readability, or low-impact robustness improvement\"\n  },\n  \"jsonReport\": {\n    \"requiredFields\": [\"schemaVersion\", \"reviewedFiles\", \"findings\", \"highlights\", \"summary\"],\n    \"schemaVersion\": \"code-review/v1\"\n  },\n  \"markdownReport\": {\n    \"language\": \"zh-CN\",\n    \"mustReferenceEveryFindingLocation\": true,\n    \"exactWordingRequired\": false\n  },\n  \"resourcePolicy\": {\n    \"network\": false,\n    \"packageInstall\": false,\n    \"allowedRuntime\": \"node\"\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"protectedInputsMutable\": false\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "review-artifact-integrity",
+          "name": "Protected source and exact output contract",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "artifact-integrity",
+            "paths": {
+              "source": "src/user-service.ts",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "73752013734446a4163051e7b344c4a9f91882521bed8e28f797b37f3872fbd6",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "review-evidence-coverage",
+          "name": "Source-grounded high-impact finding coverage",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "evidence-coverage",
+            "paths": {
+              "source": "src/user-service.ts",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "73752013734446a4163051e7b344c4a9f91882521bed8e28f797b37f3872fbd6",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "review-severity-calibration",
+          "name": "Severity follows the public impact definitions",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "severity-calibration",
+            "paths": {
+              "source": "src/user-service.ts",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "73752013734446a4163051e7b344c4a9f91882521bed8e28f797b37f3872fbd6",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "review-actionability",
+          "name": "Every confirmed finding has an actionable recommendation",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "actionability",
+            "paths": {
+              "source": "src/user-service.ts",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "73752013734446a4163051e7b344c4a9f91882521bed8e28f797b37f3872fbd6",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "review-report-consistency",
+          "name": "Chinese Markdown and JSON reports agree",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "report-consistency",
+            "paths": {
+              "source": "src/user-service.ts",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "73752013734446a4163051e7b344c4a9f91882521bed8e28f797b37f3872fbd6",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "review-artifact-integrity",
+        "review-evidence-coverage",
+        "review-severity-calibration",
+        "review-actionability",
+        "review-report-consistency"
+      ],
+      "passThreshold": 1
+    },
+    {
+      "id": "zh-code-reviewer-report-service-dev-002",
+      "split": "development",
+      "prompt": "Review the protected source file using review-interface.json without modifying either input. Write code-review.json and a structured Chinese code-review.md. Ground each finding at the primary observable source line and smallest enclosing symbol. Apply the public severity meanings and make each recommendation actionable. Produce exactly the two declared outputs; do not install packages or use the network. Source path: src/report-service.js.",
+      "fixtures": {
+        "src/report-service.js": "export async function buildReports(ids, client) {\n  const reports = []\n  for (const id of ids) {\n    reports.push(await client.fetchReport(id))\n  }\n  return reports[0].title\n}\n",
+        "review-interface.json": "{\n  \"schemaVersion\": \"skill-ir-zh-code-reviewer-interface/v1\",\n  \"interfaceId\": \"zh-code-reviewer-evidence-interface-v1\",\n  \"protectedInputs\": [\"<task-source-path>\", \"review-interface.json\"],\n  \"outputs\": [\"code-review.json\", \"code-review.md\"],\n  \"finding\": {\n    \"requiredFields\": [\"category\", \"severity\", \"path\", \"line\", \"symbol\", \"impact\", \"recommendation\"],\n    \"categoryValues\": [\"correctness\", \"security\", \"performance\", \"maintainability\"],\n    \"lineMeaning\": \"one-based source line containing the primary observable evidence\",\n    \"symbolMeaning\": \"smallest enclosing named function, method, or exported binding\",\n    \"allowAdditionalFields\": true,\n    \"allowAnyFindingOrder\": true,\n    \"allowAdditionalGroundedFindings\": true\n  },\n  \"severity\": {\n    \"values\": [\"critical\", \"major\", \"minor\"],\n    \"critical\": \"directly exploitable security boundary violation or secret exposure\",\n    \"major\": \"observable correctness, reliability, or material performance failure on a supported path\",\n    \"minor\": \"bounded maintainability, readability, or low-impact robustness improvement\"\n  },\n  \"jsonReport\": {\n    \"requiredFields\": [\"schemaVersion\", \"reviewedFiles\", \"findings\", \"highlights\", \"summary\"],\n    \"schemaVersion\": \"code-review/v1\"\n  },\n  \"markdownReport\": {\n    \"language\": \"zh-CN\",\n    \"mustReferenceEveryFindingLocation\": true,\n    \"exactWordingRequired\": false\n  },\n  \"resourcePolicy\": {\n    \"network\": false,\n    \"packageInstall\": false,\n    \"allowedRuntime\": \"node\"\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"protectedInputsMutable\": false\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "review-artifact-integrity",
+          "name": "Protected source and exact output contract",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "artifact-integrity",
+            "paths": {
+              "source": "src/report-service.js",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "0813935871f14f9bdb62bfe61cbb7194ae9f2ff3062dd577fe271fe98487a42c",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "review-evidence-coverage",
+          "name": "Source-grounded high-impact finding coverage",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "evidence-coverage",
+            "paths": {
+              "source": "src/report-service.js",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "0813935871f14f9bdb62bfe61cbb7194ae9f2ff3062dd577fe271fe98487a42c",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "review-severity-calibration",
+          "name": "Severity follows the public impact definitions",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "severity-calibration",
+            "paths": {
+              "source": "src/report-service.js",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "0813935871f14f9bdb62bfe61cbb7194ae9f2ff3062dd577fe271fe98487a42c",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "review-actionability",
+          "name": "Every confirmed finding has an actionable recommendation",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "actionability",
+            "paths": {
+              "source": "src/report-service.js",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "0813935871f14f9bdb62bfe61cbb7194ae9f2ff3062dd577fe271fe98487a42c",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "review-report-consistency",
+          "name": "Chinese Markdown and JSON reports agree",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-code-reviewer",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-code-reviewer-eval/v1",
+            "check": "report-consistency",
+            "paths": {
+              "source": "src/report-service.js",
+              "interface": "review-interface.json",
+              "jsonReport": "code-review.json",
+              "markdownReport": "code-review.md"
+            },
+            "protectedSha256": {
+              "source": "0813935871f14f9bdb62bfe61cbb7194ae9f2ff3062dd577fe271fe98487a42c",
+              "interface": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "review-artifact-integrity",
+        "review-evidence-coverage",
+        "review-severity-calibration",
+        "review-actionability",
+        "review-report-consistency"
+      ],
+      "passThreshold": 1
+    }
+  ]
+}

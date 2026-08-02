@@ -13,6 +13,7 @@ const BlockerSchema = z.enum([
   "heldout-regression",
   "baseline-saturation",
   "reentry-development-not-run",
+  "distinguishability-not-run",
   "task-contract-not-authored",
 ])
 

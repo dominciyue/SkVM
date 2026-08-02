@@ -112,6 +112,12 @@ describe("method portfolio registry and readiness", () => {
     expect(() => MethodPortfolioSchema.parse(fractional)).toThrow()
   })
 
+  test("records an audited case whose distinguishability calibration has not run", () => {
+    const pending = passingPortfolio()
+    pending.cases[5]!.blockers = ["distinguishability-not-run"]
+    expect(MethodPortfolioSchema.parse(pending).cases[5]!.blockers).toEqual(["distinguishability-not-run"])
+  })
+
   test("reports the real portfolio as not ready without inflating benchmark versions", async () => {
     const portfolio = await readMethodPortfolio({ rootDir, portfolioPath })
     const report = evaluateMethodPortfolioReadiness(portfolio)
@@ -119,11 +125,11 @@ describe("method portfolio registry and readiness", () => {
     expect(portfolio.cases).toHaveLength(6)
     expect(report.passed).toBe(false)
     expect(report.counts).toMatchObject({
-      studiedCases: 4,
-      contractQualifiedMethodCases: 2,
+      studiedCases: 5,
+      contractQualifiedMethodCases: 3,
       untouchedReplicationCases: 0,
     })
-    expect(report.gaps.missingQualifiedCases).toBe(4)
+    expect(report.gaps.missingQualifiedCases).toBe(3)
     expect(report.gaps.openMeasurementBlockers.length).toBeGreaterThan(0)
   })
 

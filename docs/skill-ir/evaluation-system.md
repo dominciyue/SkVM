@@ -139,6 +139,17 @@ bun ./src/benchmarks/skill-ir/api-tester-artifact-development-run.ts `
 该 runner 从两个 `no-skill` identity 派生 direct artifact 行，按公开 fixture 路径选择 YAML/JSON package，
 最终形成 4 个完整 quartet。Qualification 与 lock digest 绑定，过期或失败时禁止 execute。
 
+`zh-code-reviewer` 的开发期 benchmark audit：
+
+```powershell
+cd D:\skill优化\SkVM
+bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-run.ts
+bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-audit-run.ts
+```
+
+当前结果为 2 task、18 cases、18 matched；包含 4 个 alternative-valid 正例和 14 个负例。该命令不调用
+模型。区分度校准尚未冻结，不能直接从通用 bare-agent 示例推导付费命令。
+
 ## 8. Benchmark Contract Audit
 
 付费前 audit 至少覆盖：

@@ -57,12 +57,13 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 6. 本轮已将可再生成的 `run/qualification-work/artifacts/snapshots/plan/resource-probe` 默认 ignore，
    untracked result files 从约 3741 降到约 216；剩余 scored/raw/diagnostic 候选需逐项判断是否应提交，
    不能治理性删除。
-7. 2026-08-02 全 benchmark suite 为 639 pass、4 skip、36 fail；失败集中在历史 lock 对
-   `route-probe.ts`、`scoring.ts`、`real-agent-run.ts` 等 live implementation digest 的漂移。本轮未改这些
-   文件，也不修改冻结 digest。新增失败还包括旧 API calibration 将 corpus lifecycle 固定为
-   `tasks-authored/no irPath`，而新 method identity 已提升为 `runnable/base IR`；这属于历史 snapshot 与当前
-   registry 的验证分层债务。新模块 focused tests 与 typecheck 全绿；后续需单独设计“冻结历史验证”与
-   “当前 HEAD 回归”分层，不能用重写旧 lock 或回退当前 corpus 消除失败。
+7. 2026-08-02 在 `zh-code-reviewer` 注册前，全 benchmark suite 为 639 pass、4 skip、36 fail；注册后为
+   651 pass、4 skip、39 fail。原 36 个失败集中在历史 lock 对 `route-probe.ts`、`scoring.ts`、
+   `real-agent-run.ts` 等 live implementation digest 的漂移，以及旧 API calibration 固定的 corpus lifecycle
+   与当前 registry 状态冲突。新增 3 个失败来自旧 API Tester artifact lock 对整个 `pilot.json` 和 evaluator
+   registry 的冻结：本轮加入真实 skill 与 scorer 必然改变这两个当前 HEAD 入口。旧 lock 仍不可修改，
+   reviewer focused tests 与 typecheck 全绿；后续需单独设计“冻结历史验证”与“当前 HEAD 回归”分层，不能
+   用重写旧 lock、撤销新注册或回退当前 corpus 消除失败。
 
 ## 4. 已冻结边界
 
@@ -206,6 +207,40 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 
 每个案例先完成 provenance、公开任务合同和 benchmark audit，再决定是否付费。若新案例要求修改通用 core，
 记录 `coreBranchDelta`；若只需 declarative adapter，则记录复用证据。
+
+#### Task 17.5.1 `zh-code-reviewer` benchmark 竖切
+
+**冻结边界**
+
+- [x] 将 upstream commit `1e221579b0504082d25d5548b194399a7785f10f` 的 exact `SKILL.md` 与 MIT
+  license 写入 `benchmarks/skill-ir/pilots/zh-code-reviewer/source/`，记录原始与提交后 digest；
+- [x] 提交公开 `review-interface.json`、无网络/无安装的 resource contract、2 development + 2 held-out
+  源码 fixture 和 `task-split-freeze.json`；held-out 在 scorer 前冻结，development 禁止读取 held-out 内容；
+- [x] portfolio 角色改为 `method-development`，不再把本案例计为 untouched replication candidate。
+
+**文件级 TDD**
+
+1. [x] RED `src/benchmarks/skill-ir/zh-code-reviewer-contract.test.ts`：先覆盖 source closure、公开 interface、
+   2+2 preregistered construction、gold/heldout/network canary 和 freeze drift；
+2. [x] GREEN `src/benchmarks/skill-ir/zh-code-reviewer-contract.ts`：实现严格 schema、task builder、source/freeze
+   validation；只暴露输出 ABI、严重度语义和 evidence location 结构；
+3. [x] RED/GREEN `src/benchmarks/skill-ir/zh-code-reviewer-oracle.test.ts` 与
+   `zh-code-reviewer-oracle.ts`：从 agent 可见源码推导 confirmed finding，删除问题模式后约束消失，未知
+   模式返回 `unconfirmed`；
+4. [x] RED/GREEN `src/bench/evaluators/zh-code-reviewer-grade.test.ts` 与 `zh-code-reviewer-grade.ts`：实现
+   protected source/产物、evidence coverage、severity calibration、actionability、双报告一致性五项确定性检查，
+   并在 evaluator barrel 注册 identity 与 digest；
+5. [x] RED/GREEN `src/benchmarks/skill-ir/zh-code-reviewer-contract-audit.test.ts` 与实现：至少覆盖两种
+   alternative-valid positive、漏 finding、错锚点、降 severity、输入污染、报告矛盾、gold/heldout/path canary
+   和真实 materialized workdir；输出 compact development audit；
+6. [ ] Audit 已 18/18 全绿；下一阶段复用现有 direct Node Pi short-path execution contract，冻结
+   `no-skill | original` development calibration lock，再依次 dry-run、route/Pi qualification、`retries=0`
+   的唯一付费执行与 deterministic gate。旧 bare-agent pre-IR lock 不进入付费路径；两臂饱和或共同失败时
+   停止，不造 IR。当前只成立 benchmark-contract-qualified 方法证据，不成立模型效果、IR 优化或跨 skill
+   claim。
+
+本竖切不得修改通用 runtime/catalog identity。第一阶段只证明 benchmark measurement contract，不声称 skill
+优化、held-out、跨模型或 Token 收益。
 
 ## 6. 验证与实验门禁
 

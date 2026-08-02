@@ -150,10 +150,21 @@ untouched replication 和 Token break-even 均未证明。
 | law-to-markdown | yes | no (v1 audit) | yes, held-out failed | no |
 | experimental-design | yes | yes (v2) | blocked by saturation | no |
 | api-tester | yes | yes | yes, artifact 4/4 | no |
+| zh-code-reviewer | yes | yes, audit 18/18 | not run | no |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：6 registered、4 studied、2
-contract-qualified、0 untouched replication、1 passed qualified phenotype；缺 4 个 qualified case，
+机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：6 registered、5 studied、3
+contract-qualified、0 untouched replication、1 passed qualified phenotype；缺 3 个 qualified case，
 Env/Law 仍有 benchmark-contract blocker，自动化指标也不完整。该失败是诚实状态，不应调整阈值。
+
+### 8.1 `zh-code-reviewer` measurement contract
+
+真实 MIT source closure、公开 evidence/severity interface 和 2 development + 2 held-out 已冻结。Development
+audit 对 2 个 task 各运行 9 类 workdir fixture：两种合法报告变化、漏 finding、错锚点、severity 弱化、
+不可操作建议、双报告矛盾、输入污染和多余文件，共 18/18 matched；reverse-evidence 与 leak checks 全绿。
+
+该结果把 portfolio 的 review/evidence/severity phenotype 提升为 contract-qualified，但尚无模型行、
+no-skill/original 区分度、IR 或优化效果。下一步先绑定现有 direct Node Pi short-path harness，再冻结付费
+development calibration，避免回退到旧 bare-agent 基础设施。
 
 ## 9. 本地与提交结果
 
@@ -167,7 +178,8 @@ Env/Law 仍有 benchmark-contract blocker，自动化指标也不完整。该失
 ## 10. 后续实验
 
 1. 保持 API Tester development package/lock/result 不可变，不立即运行 held-out。
-2. 继续引入 `zh-code-reviewer`、`zh-readme` 和信息互补的第六案例，提炼声明式 adapter。
-3. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
-4. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。
-5. Readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
+2. 对 `zh-code-reviewer` 运行冻结 no-skill/original 区分度校准；通过后再审计 base IR。
+3. 继续引入 `zh-readme` 和信息互补的第六案例，提炼声明式 adapter。
+4. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
+5. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。
+6. Readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
