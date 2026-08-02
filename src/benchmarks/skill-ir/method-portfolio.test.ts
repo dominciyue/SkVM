@@ -136,7 +136,7 @@ describe("method portfolio registry and readiness", () => {
       role: "method-development",
       methodSequence: 6,
       contractQualified: true,
-      benchmarkVersions: ["zh-readme-development-v1"],
+      benchmarkVersions: ["zh-readme-development-v1", "zh-readme-development-v2"],
     })
   })
 

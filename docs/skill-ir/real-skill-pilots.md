@@ -169,17 +169,17 @@ bun ./src/benchmarks/skill-ir/static-development-run.ts `
 
 ```powershell
 bun ./src/benchmarks/skill-ir/zh-readme-contract-run.ts
-bun ./src/benchmarks/skill-ir/zh-readme-contract-audit-run.ts
+bun ./src/benchmarks/skill-ir/zh-readme-contract-audit-v2-run.ts
 ```
 
-首条重建冻结的 development/heldout task JSON；第二条只消费 development，生成 20/20 compact audit。
+首条重建冻结的 development/heldout task JSON；第二条只消费 development，生成 24/24 v2 compact audit。
 该案例的付费校准使用技能无关的 `method-case-calibration-run.ts`，而不是再复制一个 `zh-readme` runtime：
 
 ```powershell
 bun ./src/benchmarks/skill-ir/method-case-calibration-run.ts `
   --phase=plan `
-  --lock=benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v1.json `
-  --out-dir=results/skill-ir/zrm-pi-v1
+  --lock=benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json `
+  --out-dir=results/skill-ir/zrm-pi-v2
 ```
 
 随后只在同一冻结目录把 `--phase` 改为 `qualification`、`execute`。Runner 会验证全部 digest、source
@@ -192,6 +192,9 @@ v1 dry-run 为 8 rows/4 pairs、最长 workdir 145；qualification 的 Pi/resour
 等价写法误判，同时漏检指向 skill-package `LICENSE.upstream` 的 task-repository 断链。因此 v1
 `measurement-validity.json` 标为 invalidated，不开放 base IR，也不把 original mean 0.7 与 no-skill 0.8
 解释为真实回归。下一次必须使用新 identity，先补 equivalence/broken-link canary 与新 audit/lock。
+
+v2 已完成上述修复并通过 24/24 audit；通用 runner 会按 lock 的 path+digest 动态加载 v2 scorer，仍没有
+`zh-readme` skill-id 分支。当前仅到付费前 preregistration，尚不能声称 v2 有区分度或改善 original。
 
 ## 11. 修改与验证
 

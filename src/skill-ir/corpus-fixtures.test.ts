@@ -299,7 +299,7 @@ describe("skill-ir corpus fixtures", () => {
       sourcePath: "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md",
       tasksPath: "benchmarks/skill-ir/pilots/zh-readme/development/tasks.json",
       resourceContractPath: "benchmarks/skill-ir/pilots/zh-readme/resource-contract.json",
-      benchmarkContractAuditPath: "results/skill-ir/benchmark-contract-audit/zh-readme-v1.json",
+      benchmarkContractAuditPath: "results/skill-ir/benchmark-contract-audit/zh-readme-v2.json",
     });
     expect(readme?.irPath).toBeUndefined();
 
@@ -307,7 +307,7 @@ describe("skill-ir corpus fixtures", () => {
       status: string;
       counts: { tasks: number; cases: number; matched: number };
     };
-    expect(audit).toMatchObject({ status: "passed", counts: { tasks: 2, cases: 20, matched: 20 } });
+    expect(audit).toMatchObject({ status: "passed", counts: { tasks: 2, cases: 24, matched: 24 } });
   });
 
   test("standard context perturbations cover clean, noisy, long, and compressed settings", () => {
@@ -470,7 +470,7 @@ describe("skill-ir corpus fixtures", () => {
     expect(intake.candidates.find((candidate) => candidate.id === "api-tester")?.status)
       .toBe("prospective-method-development");
     expect(intake.candidates.find((candidate) => candidate.id === "zh-readme")?.status)
-      .toBe("method-development-benchmark-audited");
+      .toBe("method-development-v2-audited");
     expect(selected.every((candidate) => candidate.sourcePath.endsWith("SKILL.md"))).toBe(true);
     expect(selected.every((candidate) => candidate.licenseStatus === "verified")).toBe(true);
 

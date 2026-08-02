@@ -2,9 +2,11 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import { customEvaluators } from "../../framework/types.ts"
 import {
   assertMethodCaseWorkDirBudget,
   inspectMethodCaseOutputs,
+  loadMethodCaseScorer,
   parseMethodCaseCalibrationRunArgs,
 } from "./method-case-calibration-run.ts"
 
@@ -43,5 +45,14 @@ describe("method-case calibration runner", () => {
     expect(() => parseMethodCaseCalibrationRunArgs([
       "--lock=lock.json", "--out-dir=results/skill-ir/demo", "--phase=heldout",
     ])).toThrow()
+  })
+
+  test("loads a digest-validated scorer module without a skill-id branch", async () => {
+    customEvaluators.delete("skill-ir-zh-readme")
+    await loadMethodCaseScorer(
+      path.resolve(import.meta.dir, "../../.."),
+      "src/bench/evaluators/zh-readme-grade-v2.ts",
+    )
+    expect(customEvaluators.has("skill-ir-zh-readme")).toBe(true)
   })
 })

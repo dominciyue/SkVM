@@ -1,5 +1,6 @@
 import { lstat, mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
+import { pathToFileURL } from "node:url"
 import { z } from "zod"
 import {
   evaluateMethodCaseCalibrationGate,
@@ -222,6 +223,18 @@ export async function inspectMethodCaseOutputs(
   })
 }
 
+export async function loadMethodCaseScorer(rootDir: string, scorerPath: string): Promise<void> {
+  const root = path.resolve(rootDir)
+  const absolute = path.resolve(root, ...scorerPath.split("/"))
+  const relative = path.relative(root, absolute)
+  if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error("Method-case scorer module escapes repository root")
+  }
+  const url = pathToFileURL(absolute)
+  url.searchParams.set("method-case-calibration", "1")
+  await import(url.href)
+}
+
 async function inspectHarnessResidue(workDir: string): Promise<Array<"AGENTS.md" | ".pi-skills">> {
   const found: Array<"AGENTS.md" | ".pi-skills"> = []
   for (const name of ["AGENTS.md", ".pi-skills"] as const) {
@@ -338,6 +351,7 @@ export async function runMethodCaseCalibration(
   }
   await writePlan(built, outDir)
   await executePlan(built.plan, built.runArgs, childEnv)
+  await loadMethodCaseScorer(rootDir, built.lock.frozenInputs.scorer.path)
   const scoredPath = path.join(outDir, "scored-runs.jsonl")
   await scoreRealAgentRuns({
     raw: path.join(built.runArgs.outDir, "raw-runs.jsonl"),

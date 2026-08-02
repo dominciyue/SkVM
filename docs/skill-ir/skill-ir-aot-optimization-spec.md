@@ -194,6 +194,14 @@ v1 唯一矩阵为 8/8 rows、4/4 pairs、0 infrastructure；no-skill 0/4、mean
 measurement-invalid；数值不得用于 original 正负效应，不能进入 base IR。修复必须使用新 scorer/audit/
 calibration identity，加入 public equivalence 与 broken-local-link canary 后再运行；不得重评分或覆盖 v1。
 
+v2 保持原 task、split freeze、source closure、模型、Pi 和数值 gate 不变，仅以新 identity 修复测量合同：
+无公开安装证据时不生成安装 hard gate；命令只接受源文件可证明的 exact form、标准 npm alias/script body
+和单个非 flag 参数的有界占位符；许可证只接受封闭 SPDX/display alias；本地 Markdown link 必须解析到
+task repository 内真实文件。新 audit 覆盖 2 development tasks x 12 cases，共 24/24 通过，包括 public
+equivalence、reverse-evidence、gold/held-out leak 与 broken-local-link canary。v2 scorer 由通用 runner 按
+lock 中的 path+digest 动态加载，core 不按 skill id 分支；v1 registry 与结果保持不变。该状态只说明 v2
+measurement contract 已审计和预注册，付费 development 尚未运行，因此仍不构成区分度或优化证据。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段

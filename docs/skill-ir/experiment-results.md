@@ -234,7 +234,8 @@ original mean non-regression 上失败。
 2. 保持 `zh-code-reviewer` base IR/static lock/result 不可变；本轮 residual 已由 static 解决，不创建 overlay，
    后续只有在更多 development context/model 重复出现公开 residual 时才设计 artifact candidate。
 3. 先以新 identity 修复 `zh-readme` 的 bounded command/license equivalence、conservative evidence 和本地链接
-   canary，通过新 contract audit 与区分度门后再决定是否进入 base IR；v1 保持 invalidated。
+   canary；v2 已完成 24/24 contract audit 与付费前 lock，待唯一 development 区分度实验后决定是否进入
+   base IR；v1 保持 invalidated。
 4. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
 5. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。
 6. Readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。

@@ -10,7 +10,7 @@ import {
 const rootDir = path.resolve(import.meta.dir, "../../..")
 const lockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v1.json",
+  "benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json",
 )
 const tasks = ["zh-readme-node-cli-dev-001", "zh-readme-python-library-dev-002"] as const
 
@@ -33,7 +33,7 @@ function row(input: {
     modelFamily: "gpt",
     adapter: "pi",
     adapterVersion: "0.67.68",
-    panelConfigId: "zh-readme-pi-direct-cli-short-path-development-v1",
+    panelConfigId: "zh-readme-pi-direct-cli-short-path-development-v2",
     runIndex: input.runIndex,
     taskSplit: "development",
     success: input.success,
