@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "skill-ir-static-fidelity-residual-audit/v1",
+  "experimentId": "zh-code-reviewer-static-fidelity-v1",
+  "status": "static-fidelity-passed",
+  "evidence": {
+    "lock": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json",
+      "sha256": "4b126d8ec44fc766a3ba8d04f0cc15dd4419d2a5898eca6aad6ed1fb6e124c40"
+    },
+    "raw": {
+      "path": "results/skill-ir/zcr-static-fidelity-v1/run/raw-runs.jsonl",
+      "sha256": "b69ab9618c6c9f2d5d376dab01f8374373d0dfaa5390f7d9c9301e67a52f5d71"
+    },
+    "scored": {
+      "path": "results/skill-ir/zcr-static-fidelity-v1/scored-runs.jsonl",
+      "sha256": "03c00ce4a03605d44cd23e1e044598fedd9ccec15db8403365d5801999ad71f7"
+    },
+    "gate": {
+      "path": "results/skill-ir/zcr-static-fidelity-v1/gate-report.json",
+      "sha256": "b77abb765df0e2a9c353c8a84ca9559d84b8a7c6974bfb42fcbe2446c57396eb"
+    }
+  },
+  "matrix": {
+    "rows": 12,
+    "triplets": 4,
+    "infrastructureFailures": 0,
+    "model": "xty/gpt-5.6-sol",
+    "adapter": "pi@0.67.68",
+    "environment": "windows",
+    "context": "clean",
+    "repetitions": 2
+  },
+  "systems": {
+    "no-skill": { "successes": 4, "meanScore": 1, "aggregateTokens": 35909 },
+    "original": { "successes": 3, "meanScore": 0.8375, "aggregateTokens": 93722 },
+    "ir-static": { "successes": 4, "meanScore": 1, "aggregateTokens": 98002 }
+  },
+  "pairedObservation": {
+    "improvedPairs": 1,
+    "regressedPairs": 0,
+    "hardGateRegressions": 0,
+    "meanScoreDeltaIrStaticMinusOriginal": 0.1625,
+    "successDeltaIrStaticMinusOriginal": 1
+  },
+  "observedResidual": {
+    "taskId": "zh-code-reviewer-report-service-dev-002",
+    "runIndex": 2,
+    "originalScore": 0.35,
+    "irStaticScore": 1,
+    "failedOriginalCriteria": [
+      "review-evidence-coverage",
+      "review-severity-calibration",
+      "review-actionability"
+    ],
+    "mechanism": "The original report described the three public source issues correctly but anchored the loop await at line 3 instead of line 4 and both return-expression findings at line 5 instead of line 6. The public interface requires the primary observable evidence line. The static IR report used lines 4 and 6 and passed all criteria.",
+    "publicContractRefs": [
+      "review-interface.json#/finding/lineMeaning",
+      "base-ir.json#rule-ground-findings",
+      "base-ir.json#check-finding-evidence"
+    ],
+    "dualSourceDisposition": "original-fail-static-pass-resolved",
+    "overlayRequired": false
+  },
+  "costDiagnostic": {
+    "irStaticMinusOriginalTokens": 4280,
+    "irStaticTokenRatio": 1.0457,
+    "interpretation": "The profile-empty static view improved one paired outcome in this draw but consumed more tokens. This run provides no token-saving or amortization evidence."
+  },
+  "stabilityCaveat": {
+    "priorCalibrationOriginalSuccesses": "4/4",
+    "currentNoSkillSuccesses": "4/4",
+    "interpretation": "The positive pair is credible development evidence for the public line-grounding mechanism, but the small single-model panel is stochastic and saturated in other cells. It is not yet a stable cross-context or cross-model optimization result."
+  },
+  "claimBoundary": {
+    "staticFidelityPassed": true,
+    "typedResidualAuditAllowed": true,
+    "dynamicOverlayCreated": false,
+    "heldOutAllowed": false,
+    "provesSkillOptimization": false,
+    "provesCrossModelStability": false,
+    "provesCrossEnvironmentStability": false,
+    "provesTokenBenefit": false,
+    "entersMainClaim": false
+  }
+}

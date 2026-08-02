@@ -271,10 +271,10 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
   或 v2 calibration 历史结果；
 - [x] 复用 v2 已验证的 `xty/gpt-5.6-sol`、Pi `0.67.68` managed direct Node short-path、Windows/clean 身份，
   固定 `no-skill | original | ir-static`、2 tasks x 2 repetitions、12 rows/4 triplets、`retries=0`；
-- [ ] 门禁在付费前固定为 static fidelity：12/12、4/4、0 infra、ir-static 4/4、mean 1.0、0 hard-gate
+- [x] 门禁在付费前固定为 static fidelity：12/12、4/4、0 infra、ir-static 4/4、mean 1.0、0 hard-gate
   regression、0 negative-score pair；由于 original 已冻结为 4/4，`minimumImprovedPairs=0`，不以零改善否决
   保真，也不将保真通过写成优化成功；
-- [ ] gate 通过只开放 typed residual audit，held-out、dynamic repair、artifact promotion、scorer retuning 和
+- [x] gate 通过只开放 typed residual audit，held-out、dynamic repair、artifact promotion、scorer retuning 和
   main claim 均保持关闭。
 
 **文件级 TDD**
@@ -286,11 +286,11 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    或任何单次运行残差；
 3. [x] RED/GREEN 扩展通用 `static-development`：保持 v1 law lock 兼容，声明式支持已冻结 Pi managed
    short-path 与 static-fidelity gate；禁止新增 runtime/catalog 版本或 skill-id core branch；
-4. [ ] 新建 reviewer static lock，冻结 source/tasks/public interface/resource/scorer/base IR/source audit、
+4. [x] 新建 reviewer static lock，冻结 source/tasks/public interface/resource/scorer/base IR/source audit、
    Pi harness 和数值 gate；完成 lock validation、dry-run、resource probe、route qualification；
-5. [ ] 执行唯一 `retries=0` development 矩阵，确定性评分并生成 compact gate/failure audit；未过门则不补跑、
+5. [x] 执行唯一 `retries=0` development 矩阵，确定性评分并生成 compact gate/failure audit；未过门则不补跑、
    不调 scorer、不运行 held-out；
-6. [ ] 同步 evaluation、pilots、results、portfolio 与 conversation log，运行 focused/full tests、typecheck、
+6. [x] 同步 evaluation、pilots、results、portfolio 与 conversation log，运行 focused/full tests、typecheck、
    文档链接和 diff check 后提交。
 
 ## 6. 验证与实验门禁

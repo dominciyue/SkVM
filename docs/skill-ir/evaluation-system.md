@@ -110,7 +110,7 @@ probe、route probe 和 qualification。API key 只从环境变量读取，禁�
 ```powershell
 bun ./src/benchmarks/skill-ir/score-real-agent-runs.ts `
   '--raw=results/skill-ir/<run-id>/raw-runs.jsonl' `
-  '--manifest=benchmarks/skill-ir/corpus/corpora/pilot.json' `
+  '--corpus=pilot' `
   '--out=results/skill-ir/<run-id>/scored-runs.jsonl'
 
 python scripts/analyze_skill_ir_results.py `
@@ -171,10 +171,11 @@ Qualification 与 execute 使用同一命令，只把 `--phase` 分别改为 `qu
 失败为多出的 `NUL` 文件违反公开 exact-output contract。`measurement-validity.json` 只开放 base IR audit，
 held-out 与优化 claim 仍关闭。
 
-Reviewer 的下一阶段复用通用 static-development runner，但 lock 将 adapter 声明为 Pi managed short-path，
-并使用 `evaluationMode=static-fidelity`。这是因为冻结 original 已 4/4；门禁预注册为 ir-static 4/4、mean
-1.0、0 infra、0 hard-gate/score regression，允许 0 improved pair。通过只开放 typed residual audit，不开放
-held-out 或 optimization claim。命令与锁路径见 `real-skill-pilots.md`。
+Reviewer 的静态阶段复用通用 static-development runner，lock 将 adapter 声明为 Pi managed short-path，
+并使用 `evaluationMode=static-fidelity`。冻结门禁为 ir-static 4/4、mean 1.0、0 infra、0 hard-gate/score
+regression，允许 0 improved pair。唯一执行为 12/12、4/4 triplets、0 infra；ir-static 4/4，original
+3/4，形成 1 positive、3 equal、0 negative。通过只开放 typed residual audit，不开放 held-out 或
+optimization claim；命令与锁路径见 `real-skill-pilots.md`。
 
 ## 8. Benchmark Contract Audit
 

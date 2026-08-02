@@ -28,6 +28,8 @@
 | API Tester baseline | 2 arms x 4 = 8 | no-skill 0/4, 0.2375；original 0/4, 0.4000；4 differing | Partial benefit；旧 original-success gate failed。 |
 | API Tester artifact development | 4 systems x 4 = 16 | artifact 4/4, 1.0；static 0/4, 0.3875；original 0/4, 0.225；no-skill 0/4, 0.15 | Development gate passed；只计 method evidence。 |
 | Zh Code Reviewer calibration v1 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75；数值 gate passed | Measurement invalid：唯一差异来自私有 summary 类型 false reject；不开放 base IR。 |
+| Zh Code Reviewer calibration v2 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75 | Measurement valid；开放 base IR/source audit。 |
+| Zh Code Reviewer static fidelity | 3 systems x 4 = 12 | no-skill 4/4；original 3/4, 0.8375；static 4/4, 1.0 | Gate passed；1 positive/3 equal/0 negative，只开放 residual audit。 |
 
 ## 3. Benchmark v1 与 v2
 
@@ -151,7 +153,7 @@ untouched replication 和 Token break-even 均未证明。
 | law-to-markdown | yes | no (v1 audit) | yes, held-out failed | no |
 | experimental-design | yes | yes (v2) | blocked by saturation | no |
 | api-tester | yes | yes | yes, artifact 4/4 | no |
-| zh-code-reviewer | yes | yes, v2 audit 20/20 | not run | no |
+| zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：6 registered、5 studied、3
 contract-qualified、0 untouched replication、1 passed qualified phenotype；缺 3 个 qualified case，
@@ -177,6 +179,25 @@ v2 已用新 scorer/audit/lock 和独立结果目录完成唯一一次强模型�
 允许开始 base IR/source audit。这里的 token 只说明 original 冷运行更贵，不能作为摊销收益；当前也没有
 ir-static/artifact 臂，不能把本批写成优化效果。
 
+随后 profile-empty base IR 与逐节点 source audit 将 exact skill、development 用户可见 prompt、公开 review
+interface 和 resource contract 绑定，未读取 held-out、evaluator expected、oracle 或 runtime residual。冻结
+static fidelity 矩阵为 12/12、4/4 triplets、0 infra：no-skill 4/4、mean 1.0、35909 tokens；original
+3/4、mean 0.8375、93722 tokens；ir-static 4/4、mean 1.0、98002 tokens。Static 相对 original 有 1
+positive、3 equal、0 negative、0 hard-gate regression，门禁通过。
+
+唯一 original failure 内容结论正确，但将循环内 `await` 锚在第 3 行而非第 4 行、两个 return-expression
+问题锚在第 5 行而非第 6 行，违反公开 primary observable line 定义；ir-static 按第 4/6 行定位并通过。
+该机制已由 base IR 的 grounding rule/check 解决，按双源规则属于 `original fail + static pass`，不生成动态
+overlay。由于 prior original 为 4/4、本轮 no-skill 也为 4/4，单个正向 pair 仍可能受随机性与局部饱和
+影响；且 static 比 original 多 4280 tokens（1.0457x），不能声称稳定优化或 Token 节省。
+
+关键路径：
+
+- `benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json`
+- `results/skill-ir/zcr-static-fidelity-v1/gate-report.json`
+- `results/skill-ir/zcr-static-fidelity-v1/residual-audit.json`
+- `results/skill-ir/zcr-static-fidelity-v1/scored-runs.jsonl`
+
 ## 9. 本地与提交结果
 
 当前 Git 中有约 252 个跟踪 result files，并有大量本地 raw workdir/qualification/artifact 文件。治理规则：
@@ -189,9 +210,9 @@ ir-static/artifact 臂，不能把本批写成优化效果。
 ## 10. 后续实验
 
 1. 保持 API Tester development package/lock/result 不可变，不立即运行 held-out。
-2. 对 `zh-code-reviewer` 开始 source-audited profile-empty base IR；只吸收能映射到公开 skill 的规则，先跑
-   `ir-static x development`，再判断是否需要动态 residual/artifact。
-3. 继续引入 `zh-readme` 和信息互补的第六案例，提炼声明式 adapter。
+2. 保持 `zh-code-reviewer` base IR/static lock/result 不可变；本轮 residual 已由 static 解决，不创建 overlay，
+   后续只有在更多 development context/model 重复出现公开 residual 时才设计 artifact candidate。
+3. 继续引入 `zh-readme` 和信息互补的第六案例，优先验证 base IR/source-audit/static runner 的跨 skill 复用。
 4. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
 5. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。
 6. Readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。

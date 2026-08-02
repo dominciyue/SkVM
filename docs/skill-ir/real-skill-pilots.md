@@ -43,7 +43,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | law-to-markdown | document/script/template | studied method-development | development pass，held-out regression。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
-| zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 2+2 冻结；v2 audit 20/20；profile-empty base IR/source audit 已完成，静态保真待执行。 |
+| zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
 | zh-readme | fact extraction/template/link | untouched candidate | 未冻结任务与 scorer。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
@@ -149,8 +149,11 @@ bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-audit-run.ts
 因结构化 summary 的私有 string 约束冻结为 invalid。修复后的 v2 校准为 8/8、0 infra，original 4/4、
 no-skill 3/4；唯一失败来自额外 `NUL` 文件违反公开 exact-output contract，因此允许进入 base IR/source
 audit。当前已提交逐节点 source audit 并晋升为 runnable；静态阶段使用同一 Pi/强模型身份运行
-`no-skill | original | ir-static` 12 行保真矩阵。该 gate 只开放 typed residual audit，仍不开放 artifact、
-held-out、跨模型或优化 claim。
+`no-skill | original | ir-static` 12 行保真矩阵。唯一执行为 12/12、4/4 triplets、0 infra：no-skill
+4/4、original 3/4、ir-static 4/4，static 相对 original 为 1 positive、3 equal、0 negative。正向 pair 来自
+original 将主要证据行各锚早一行，而 static 按公开 line contract 定位正确；该 residual 已由 base IR 解决，
+不生成 overlay。Static 比 original 多 4,280 tokens，故没有 Token 收益。该 gate 只开放 typed residual
+audit，仍不开放 artifact、held-out、跨模型或优化 claim。
 
 ```powershell
 bun ./src/benchmarks/skill-ir/static-development-run.ts `
