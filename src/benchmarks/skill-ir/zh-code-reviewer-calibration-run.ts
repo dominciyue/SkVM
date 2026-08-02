@@ -22,7 +22,7 @@ export type ZhCodeReviewerCalibrationRunArgs = {
   phase: ZhCodeReviewerCalibrationPhase
 }
 export type ZhCodeReviewerCalibrationPlan = {
-  schemaVersion: "skill-ir-zh-code-reviewer-calibration-plan/v1"
+  schemaVersion: "skill-ir-zh-code-reviewer-calibration-plan/v2"
   calibrationId: string
   methodEvidence: false
   phase: ZhCodeReviewerCalibrationPhase
@@ -59,8 +59,8 @@ const RouteSchema = z.object({
 }).strict()
 
 export const ZhCodeReviewerQualificationReportSchema = z.object({
-  schemaVersion: z.literal("skill-ir-zh-code-reviewer-qualification/v1"),
-  calibrationId: z.literal("zh-code-reviewer-pi-direct-cli-short-path-development-v1"),
+  schemaVersion: z.literal("skill-ir-zh-code-reviewer-qualification/v2"),
+  calibrationId: z.literal("zh-code-reviewer-pi-direct-cli-short-path-development-v2"),
   methodEvidence: z.literal(false),
   status: z.enum(["passed", "failed"]),
   localPi: LocalPiSchema,
@@ -170,7 +170,7 @@ export async function buildZhCodeReviewerCalibrationPlan(
   assertPlan(plan, lock, rootDir)
   assertZhCodeReviewerWorkDirBudget(plan, lock.harness.execution.maximumWorkDirLength)
   return {
-    schemaVersion: "skill-ir-zh-code-reviewer-calibration-plan/v1",
+    schemaVersion: "skill-ir-zh-code-reviewer-calibration-plan/v2",
     calibrationId: lock.calibrationId,
     methodEvidence: false,
     phase: input.phase,
@@ -215,7 +215,7 @@ export function buildZhCodeReviewerQualificationReport(input: {
     && route.outputs.present === route.outputs.declared && route.outputs.missing.length === 0
     && route.harnessResidue.length === 0
   return ZhCodeReviewerQualificationReportSchema.parse({
-    schemaVersion: "skill-ir-zh-code-reviewer-qualification/v1",
+    schemaVersion: "skill-ir-zh-code-reviewer-qualification/v2",
     calibrationId: input.lock.calibrationId,
     methodEvidence: false,
     status: passed ? "passed" : "failed",

@@ -37,9 +37,9 @@ const SourceProvenanceSchema = z.object({
 }).strict()
 
 export const ZhCodeReviewerCalibrationLockSchema = z.object({
-  schemaVersion: z.literal("skill-ir-zh-code-reviewer-calibration-lock/v1"),
+  schemaVersion: z.literal("skill-ir-zh-code-reviewer-calibration-lock/v2"),
   status: z.literal("preregistered"),
-  calibrationId: z.literal("zh-code-reviewer-pi-direct-cli-short-path-development-v1"),
+  calibrationId: z.literal("zh-code-reviewer-pi-direct-cli-short-path-development-v2"),
   methodEvidence: z.literal(false),
   corpus: z.literal("pilot"),
   skillId: z.literal("zh-code-reviewer"),
@@ -73,7 +73,7 @@ export const ZhCodeReviewerCalibrationLockSchema = z.object({
       piCli: FrozenFileSchema,
       probe: FrozenFileSchema,
       sourceEntrypoint: FrozenFileSchema,
-      outputRoot: z.literal("results/skill-ir/zcr-pi-v1"),
+      outputRoot: z.literal("results/skill-ir/zcr-pi-v2"),
       maximumWorkDirLength: z.literal(220),
     }).strict(),
     orchestration: z.tuple([
@@ -198,8 +198,8 @@ export async function validateZhCodeReviewerCalibrationLock(
       }
     } else {
       const report = ZhCodeReviewerContractAuditReportSchema.parse(value)
-      if (report.status !== "passed" || report.counts.matched !== 18 || report.issues.length !== 0) {
-        throw new Error("Reviewer contract audit did not pass 18/18")
+      if (report.status !== "passed" || report.counts.matched !== 20 || report.issues.length !== 0) {
+        throw new Error("Reviewer contract audit did not pass 20/20")
       }
       const expectedInputs = {
         developmentTasksSha256: lock.frozenInputs.tasks.sha256,
@@ -280,7 +280,7 @@ export type ZhCodeReviewerCalibrationGateReport = Omit<
   PreIrCalibrationGateReport,
   "schemaVersion" | "passed" | "counts" | "gates" | "interpretation"
 > & {
-  schemaVersion: "skill-ir-zh-code-reviewer-calibration-gate/v1"
+  schemaVersion: "skill-ir-zh-code-reviewer-calibration-gate/v2"
   passed: boolean
   counts: PreIrCalibrationGateReport["counts"] & { positivePairs: number; originalSuccesses: number }
   gates: PreIrCalibrationGateReport["gates"] & {
@@ -304,7 +304,7 @@ export function evaluateZhCodeReviewerCalibrationGate(
   const passed = base.passed && positivePair && originalHasSuccess && originalMeanNonRegression
   return {
     ...base,
-    schemaVersion: "skill-ir-zh-code-reviewer-calibration-gate/v1",
+    schemaVersion: "skill-ir-zh-code-reviewer-calibration-gate/v2",
     passed,
     counts: { ...base.counts, positivePairs, originalSuccesses },
     gates: { ...base.gates, positivePair, originalHasSuccess, originalMeanNonRegression },

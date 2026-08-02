@@ -42,12 +42,17 @@ const FindingSchema = z.object({
   recommendation: z.string().trim().min(1),
 }).passthrough()
 
+const StructuredSummarySchema = z.record(z.string(), z.unknown()).refine(
+  (value) => Object.keys(value).length > 0,
+  "structured summary must contain at least one field",
+)
+
 const ReportSchema = z.object({
   schemaVersion: z.literal("code-review/v1"),
   reviewedFiles: z.array(SafeRelativePathSchema).min(1),
   findings: z.array(FindingSchema),
   highlights: z.array(z.string()),
-  summary: z.string().trim().min(1),
+  summary: z.union([z.string().trim().min(1), StructuredSummarySchema]),
 }).passthrough()
 
 type Payload = z.infer<typeof ZhCodeReviewerGradePayloadSchema>

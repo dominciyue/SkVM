@@ -151,7 +151,7 @@ untouched replication 和 Token break-even 均未证明。
 | law-to-markdown | yes | no (v1 audit) | yes, held-out failed | no |
 | experimental-design | yes | yes (v2) | blocked by saturation | no |
 | api-tester | yes | yes | yes, artifact 4/4 | no |
-| zh-code-reviewer | yes | yes, audit 18/18 | not run | no |
+| zh-code-reviewer | yes | yes, v2 audit 20/20 | not run | no |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：6 registered、5 studied、3
 contract-qualified、0 untouched replication、1 passed qualified phenotype；缺 3 个 qualified case，
@@ -160,8 +160,9 @@ Env/Law 仍有 benchmark-contract blocker，自动化指标也不完整。该失
 ### 8.1 `zh-code-reviewer` measurement contract
 
 真实 MIT source closure、公开 evidence/severity interface 和 2 development + 2 held-out 已冻结。Development
-audit 对 2 个 task 各运行 9 类 workdir fixture：两种合法报告变化、漏 finding、错锚点、severity 弱化、
-不可操作建议、双报告矛盾、输入污染和多余文件，共 18/18 matched；reverse-evidence 与 leak checks 全绿。
+v2 audit 对 2 个 task 运行 20 个 workdir fixture：包含结构化 summary 在内的合法报告变化、漏 finding、
+错锚点、severity 弱化、不可操作建议、双报告矛盾、输入污染和多余文件，共 20/20 matched；
+reverse-evidence 与 leak checks 全绿。
 
 该结果把 portfolio 的 review/evidence/severity phenotype 提升为 contract-qualified，但尚无模型行、
 no-skill/original 区分度、IR 或优化效果。首个 direct Node Pi v1 已执行 8/8、0 infra：original 4/4、mean
@@ -169,6 +170,12 @@ no-skill/original 区分度、IR 或优化效果。首个 direct Node Pi v1 已�
 但失败行的完整合法报告仅因 `summary` 是对象而被私有 string schema 五项误拒；公开 interface 没有限制
 该类型。因此 `results/skill-ir/zcr-pi-v1/measurement-validity.json` 将本批标为 invalidated，不能当作 skill
 贡献或 base IR admission。v1 不重评分、不补跑；修复 scorer/audit 后使用新 identity。
+
+v2 已用新 scorer/audit/lock 和独立结果目录完成唯一一次强模型校准：8/8、4/4 pairs、0 infra；original
+4/4、mean 1.0、85390 tokens，no-skill 3/4、mean 0.75、38062 tokens，1 differing/positive pair。失败审计
+确认两个报告本身合法，失败来自额外 `NUL` 文件违反公开 exact-output contract，因此本批 measurement-valid，
+允许开始 base IR/source audit。这里的 token 只说明 original 冷运行更贵，不能作为摊销收益；当前也没有
+ir-static/artifact 臂，不能把本批写成优化效果。
 
 ## 9. 本地与提交结果
 
@@ -182,8 +189,8 @@ no-skill/original 区分度、IR 或优化效果。首个 direct Node Pi v1 已�
 ## 10. 后续实验
 
 1. 保持 API Tester development package/lock/result 不可变，不立即运行 held-out。
-2. 修复 `zh-code-reviewer` structured-summary false reject，新增 audit canary，以 v2 identity 重跑区分度；
-   只有 measurement-valid gate 通过才审计 base IR。
+2. 对 `zh-code-reviewer` 开始 source-audited profile-empty base IR；只吸收能映射到公开 skill 的规则，先跑
+   `ir-static x development`，再判断是否需要动态 residual/artifact。
 3. 继续引入 `zh-readme` 和信息互补的第六案例，提炼声明式 adapter。
 4. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
 5. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。

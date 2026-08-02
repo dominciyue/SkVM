@@ -52,7 +52,7 @@ export const customEvaluatorSourceDigests = new Map<string, string>([
   ["skill-ir-experimental-design-v2", "6dda3cbc9e369fa6b1ab1dbe974c86baa3cad967bd707e1d5668eb1ea2d51960"],
   ["skill-ir-experimental-design-skill-unique", "d74e81e90925a1dd62104be10dd8cb536f13f7ce8e4a10a3e063e0980fea1e4f"],
   ["skill-ir-api-tester", "8c32311030502fccdf8d56e70bb946d070ffee47c560604ad846b974272bba22"],
-  ["skill-ir-zh-code-reviewer", "1e727f530877bd8a043d1a864c5c511c35092c4f6b34420cd0494b2a46c174a4"],
+  ["skill-ir-zh-code-reviewer", "0c3bc91fd611317741d0a1700e57bd938f2e207f2adac5442e22d72e297cc3d2"],
 ])
 
 export const customEvaluatorImplementations = new Map<string, CustomEvaluator>(

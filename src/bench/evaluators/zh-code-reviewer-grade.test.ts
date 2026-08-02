@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import { createHash } from "node:crypto"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
@@ -102,16 +103,31 @@ async function withSubmittedReview(
 }
 
 describe("zh-code-reviewer deterministic evaluator", () => {
-  test("registers a source-bound evaluator identity", () => {
+  test("registers a source-bound evaluator identity", async () => {
+    const actualDigest = createHash("sha256").update(await readFile(path.join(
+      rootDir,
+      "src/bench/evaluators/zh-code-reviewer-grade.ts",
+    ))).digest("hex")
     expect(customEvaluatorSourcePaths.get("skill-ir-zh-code-reviewer"))
       .toBe("src/bench/evaluators/zh-code-reviewer-grade.ts")
     expect(customEvaluatorSourceDigests.get("skill-ir-zh-code-reviewer"))
-      .toBe("1e727f530877bd8a043d1a864c5c511c35092c4f6b34420cd0494b2a46c174a4")
+      .toBe(actualDigest)
     expect(customEvaluatorImplementations.get("skill-ir-zh-code-reviewer")).toBe(zhCodeReviewerGrade)
   })
 
   test("accepts alternative ordering and free Chinese wording", async () => {
     const results = await withSubmittedReview(() => {})
+    expect([...results.values()].every((entry) => entry.pass && !entry.infraError)).toBe(true)
+  })
+
+  test("accepts a non-empty structured summary allowed by the public interface", async () => {
+    const results = await withSubmittedReview(({ report }) => {
+      report.summary = {
+        findingCount: (report.findings as unknown[]).length,
+        critical: 2,
+        assessment: "建议优先处理已确认问题。",
+      }
+    })
     expect([...results.values()].every((entry) => entry.pass && !entry.infraError)).toBe(true)
   })
 

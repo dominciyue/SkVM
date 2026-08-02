@@ -147,12 +147,29 @@ bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-run.ts
 bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-audit-run.ts
 ```
 
-当前结果为 2 task、18 cases、18 matched；包含 4 个 alternative-valid 正例和 14 个负例。该命令不调用
-模型。区分度校准尚未冻结，不能直接从通用 bare-agent 示例推导付费命令。
+当前 v2 结果为 2 task、20 cases、20 matched；新增 structured-summary alternative-valid 正例与对应
+反向/泄漏约束。该命令不调用模型，写入
+`results/skill-ir/benchmark-contract-audit/zh-code-reviewer-v2.json`；旧 v1 audit 保留为历史证据。
 
 首个 direct Pi v1 校准虽数值 gate passed，但执行后 audit 发现 `summary` 的隐藏 string 类型约束误拒合法
 结构化对象；权威 `measurement-validity.json` 将其标为 invalidated。修复必须新增 alternative-valid canary 并
 使用新 calibration identity，不能修改或重评分 v1。
+
+v2 校准使用以下冻结入口：
+
+```powershell
+cd D:\skill优化\SkVM
+$env:SKVM_AUTO_PROBE = "0"
+bun ./src/benchmarks/skill-ir/zh-code-reviewer-calibration-run.ts `
+  --phase=plan `
+  --lock=benchmarks/skill-ir/pilots/zh-code-reviewer/pi-direct-cli-short-path-calibration-lock-v2.json `
+  --out-dir=results/skill-ir/zcr-pi-v2
+```
+
+Qualification 与 execute 使用同一命令，只把 `--phase` 分别改为 `qualification`、`execute`；execute 前必须
+已有通过的 `qualification.json`。本轮结果 8/8、0 infra，original 4/4、no-skill 3/4，gate passed；唯一
+失败为多出的 `NUL` 文件违反公开 exact-output contract。`measurement-validity.json` 只开放 base IR audit，
+held-out 与优化 claim 仍关闭。
 
 ## 8. Benchmark Contract Audit
 

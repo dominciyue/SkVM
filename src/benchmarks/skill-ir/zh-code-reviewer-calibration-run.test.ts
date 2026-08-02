@@ -11,9 +11,9 @@ import {
 const rootDir = path.resolve(import.meta.dir, "../../..")
 const lockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/pilots/zh-code-reviewer/pi-direct-cli-short-path-calibration-lock.json",
+  "benchmarks/skill-ir/pilots/zh-code-reviewer/pi-direct-cli-short-path-calibration-lock-v2.json",
 )
-const lockedOutDir = path.join(rootDir, "results/skill-ir/zcr-pi-v1")
+const lockedOutDir = path.join(rootDir, "results/skill-ir/zcr-pi-v2")
 
 describe("zh-code-reviewer calibration orchestration", () => {
   test("builds eight short-path managed-Pi rows as four complete pairs", async () => {

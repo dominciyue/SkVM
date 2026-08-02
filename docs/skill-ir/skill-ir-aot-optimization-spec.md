@@ -145,6 +145,13 @@ audit 发现唯一差异行的结构化 `summary` 被 scorer 私有 `string` 类
 下一次执行必须使用新 calibration identity，先加入 structured-summary alternative-valid canary 并冻结新
 scorer/audit/lock；这属于 benchmark 修复，不是 skill 优化。
 
+v2 修复后，development audit 为 20/20，唯一冻结校准为 8/8 rows、4/4 pairs、0 infrastructure；original
+4/4、mean 1.0，no-skill 3/4、mean 0.75。失败行的 JSON/中文报告可通过公开 schema 与语义检查，但额外
+生成 `NUL`，违反用户可见 prompt 及 `outputPolicy.exactOutputSet=true`。该差异属于公开任务合同违例，
+不是 scorer 私有约束，故 v2 measurement-valid 且允许 source-audited base IR；它仍是单模型、development、
+Windows/clean 的 admission evidence，不证明 skill 优化、跨模型稳定、held-out 泛化或 Token 收益。后续 IR
+只能吸收可映射到公开 skill/source contract 的语义；不得把一次随机 residual 或 evaluator 期望直接固化。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段

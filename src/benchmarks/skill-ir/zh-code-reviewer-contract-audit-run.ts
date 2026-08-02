@@ -3,7 +3,7 @@ import path from "node:path"
 import { buildZhCodeReviewerContractAudit } from "./zh-code-reviewer-contract-audit.ts"
 
 const rootDir = path.resolve(import.meta.dir, "../../..")
-const outputPath = path.join(rootDir, "results/skill-ir/benchmark-contract-audit/zh-code-reviewer.json")
+const outputPath = path.join(rootDir, "results/skill-ir/benchmark-contract-audit/zh-code-reviewer-v2.json")
 const report = await buildZhCodeReviewerContractAudit({ rootDir })
 await mkdir(path.dirname(outputPath), { recursive: true })
 await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`, "utf8")

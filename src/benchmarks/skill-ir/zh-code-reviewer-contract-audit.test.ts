@@ -10,8 +10,8 @@ describe("zh-code-reviewer benchmark contract audit", () => {
       await buildZhCodeReviewerContractAudit({ rootDir: process.cwd() }),
     )
     expect(report.status).toBe("passed")
-    expect(report.counts).toEqual({ tasks: 2, cases: 18, matched: 18 })
-    expect(report.cases.filter((entry) => entry.expectedPass).length).toBe(4)
+    expect(report.counts).toEqual({ tasks: 2, cases: 20, matched: 20 })
+    expect(report.cases.filter((entry) => entry.expectedPass).length).toBe(6)
     expect(report.cases.filter((entry) => !entry.expectedPass).length).toBe(14)
     expect(report.cases.every((entry) => entry.status === "matched")).toBe(true)
   })

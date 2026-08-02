@@ -10,7 +10,7 @@ import {
 const rootDir = path.resolve(import.meta.dir, "../../..")
 const lockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/pilots/zh-code-reviewer/pi-direct-cli-short-path-calibration-lock.json",
+  "benchmarks/skill-ir/pilots/zh-code-reviewer/pi-direct-cli-short-path-calibration-lock-v2.json",
 )
 const tasks = [
   "zh-code-reviewer-user-service-dev-001",
@@ -37,7 +37,7 @@ function row(input: {
     modelFamily: "gpt",
     adapter: "pi",
     adapterVersion: "0.67.68",
-    panelConfigId: "zh-code-reviewer-pi-direct-cli-short-path-development-v1",
+    panelConfigId: "zh-code-reviewer-pi-direct-cli-short-path-development-v2",
     runIndex: input.runIndex,
     taskSplit: "development",
     success: input.success,
@@ -73,7 +73,7 @@ describe("zh-code-reviewer calibration lock and gate", () => {
     expect(lock.matrix).toMatchObject({ expectedRows: 8, expectedPairs: 4, repetitions: 2 })
     expect(lock.harness.execution).toMatchObject({
       kind: "bun-source-skvm-direct-pi-package-short-path",
-      outputRoot: "results/skill-ir/zcr-pi-v1",
+      outputRoot: "results/skill-ir/zcr-pi-v2",
       maximumWorkDirLength: 220,
     })
     expect(lock.claimBoundary).toMatchObject({
@@ -107,7 +107,7 @@ describe("zh-code-reviewer calibration lock and gate", () => {
     const lock = await readAndValidateZhCodeReviewerCalibrationLock({ rootDir, lockPath })
     const passed = evaluateZhCodeReviewerCalibrationGate(admissibleRows(), lock)
     expect(passed).toMatchObject({
-      schemaVersion: "skill-ir-zh-code-reviewer-calibration-gate/v1",
+      schemaVersion: "skill-ir-zh-code-reviewer-calibration-gate/v2",
       passed: true,
       counts: { positivePairs: 3, originalSuccesses: 1 },
       gates: {

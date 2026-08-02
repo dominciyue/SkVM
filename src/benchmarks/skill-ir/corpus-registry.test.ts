@@ -70,7 +70,7 @@ describe("skill-ir corpus registry", () => {
       depth: "benchmark-contract-qualified",
       status: "tasks-authored",
       tasksPath: "benchmarks/skill-ir/pilots/zh-code-reviewer/development/tasks.json",
-      benchmarkContractAuditPath: "results/skill-ir/benchmark-contract-audit/zh-code-reviewer.json",
+      benchmarkContractAuditPath: "results/skill-ir/benchmark-contract-audit/zh-code-reviewer-v2.json",
       evidenceWeight: "support-real",
     });
     expect(reviewer?.irPath).toBeUndefined();

@@ -233,10 +233,10 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 5. [x] RED/GREEN `src/benchmarks/skill-ir/zh-code-reviewer-contract-audit.test.ts` 与实现：至少覆盖两种
    alternative-valid positive、漏 finding、错锚点、降 severity、输入污染、报告矛盾、gold/heldout/path canary
    和真实 materialized workdir；输出 compact development audit；
-6. [ ] Audit 已 18/18 全绿；下一阶段复用现有 direct Node Pi short-path execution contract，冻结
-   `no-skill | original` development calibration lock，再依次 dry-run、route/Pi qualification、`retries=0`
-   的唯一付费执行与 deterministic gate。旧 bare-agent pre-IR lock 不进入付费路径；两臂饱和或共同失败时
-   停止，不造 IR。当前只成立 benchmark-contract-qualified 方法证据，不成立模型效果、IR 优化或跨 skill
+6. [x] v2 Audit 已 20/20 全绿；复用现有 direct Node Pi short-path execution contract，冻结
+   `no-skill | original` development calibration lock，完成 dry-run、route/Pi qualification、`retries=0`
+   的唯一付费执行与 deterministic gate。旧 bare-agent pre-IR lock 未进入付费路径；本轮只成立
+   measurement-valid distinguishability 与 base IR/source audit admission，不成立 IR 优化、held-out 或跨 skill
    claim。
 
 **付费前冻结的 gate：** `8/8 rows`、`4/4 pairs`、`0 infra`、no-skill 非饱和、`differingPairs >= 1`、
@@ -249,6 +249,14 @@ qualification 只跑一个预注册 original row 并要求两个 exact outputs�
 该字段类型，但 scorer 私有要求 string，导致 5 criteria false reject。故 v1 measurement invalid，禁止 base IR、
 重评分和同 identity 补跑。先提交 v1 lock/gate/scored/validity，再以 v2 identity 增加 structured-summary
 positive canary、修 scorer/audit、重新冻结后执行。
+
+**v2 执行结果：** structured-summary 正例与反向测试纳入 20/20 audit，锁、scorer、audit 和输出目录全部
+换用 v2 identity。资格探测通过后，唯一 8 行矩阵得到 8/8、4/4 pairs、0 infra；original 4/4 mean 1.0，
+no-skill 3/4 mean 0.75，1 differing/positive pair，数值 gate passed。失败审计确认 no-skill 行的两个报告
+语义合法，但工作目录多出 `NUL`，违反 prompt 与公开 `exactOutputSet=true`，不存在新的私有 schema false
+reject。因此 measurement 有效并允许进入 base IR/source audit；该差异仍不构成因果优化证据，held-out 保持
+关闭。下一刀先做 source-audited profile-empty base IR，判断 exact-output residual 是否能由公开 skill 语义表达；
+无法映射时不得把随机执行差异硬编码进 IR。
 
 本竖切不得修改通用 runtime/catalog identity。第一阶段只证明 benchmark measurement contract，不声称 skill
 优化、held-out、跨模型或 Token 收益。

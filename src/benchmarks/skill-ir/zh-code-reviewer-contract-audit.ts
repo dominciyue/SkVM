@@ -31,6 +31,7 @@ const AUDIT_PATH = "src/benchmarks/skill-ir/zh-code-reviewer-contract-audit.ts"
 const CASE_IDS = [
   "positive-primary",
   "positive-reordered",
+  "positive-structured-summary",
   "missing-finding",
   "wrong-anchor",
   "severity-weakened",
@@ -61,8 +62,8 @@ const ProvenanceSchema = z.object({
 }).strict()
 
 export const ZhCodeReviewerContractAuditReportSchema = z.object({
-  schemaVersion: z.literal("skill-ir-zh-code-reviewer-contract-audit/v1"),
-  auditId: z.literal("zh-code-reviewer-development-v1"),
+  schemaVersion: z.literal("skill-ir-zh-code-reviewer-contract-audit/v2"),
+  auditId: z.literal("zh-code-reviewer-development-v2"),
   status: z.enum(["passed", "failed"]),
   inputs: z.object({
     developmentTasksSha256: Sha256Schema,
@@ -185,7 +186,9 @@ async function auditCase(task: Task, caseId: CaseId) {
       reviewedFiles: [sourcePath],
       findings,
       highlights: ["代码结构紧凑"],
-      summary: "发现需要优先处理的问题。",
+      summary: caseId === "positive-structured-summary"
+        ? { findingCount: findings.length, assessment: "发现需要优先处理的问题。" }
+        : "发现需要优先处理的问题。",
     }
     const markdown = caseId === "report-contradiction"
       ? "# 代码审查报告\n\n没有发现任何问题。"
@@ -210,7 +213,9 @@ async function auditCase(task: Task, caseId: CaseId) {
       })
     }
     const observedPass = criteria.every((entry) => entry.pass && !entry.infrastructure)
-    const expectedPass = caseId === "positive-primary" || caseId === "positive-reordered"
+    const expectedPass = caseId === "positive-primary"
+      || caseId === "positive-reordered"
+      || caseId === "positive-structured-summary"
     return {
       taskId: task.id,
       caseId,
@@ -304,8 +309,8 @@ export async function buildZhCodeReviewerContractAudit(input: {
     .map((entry) => ({ taskId: entry.taskId, caseId: entry.caseId }))
   const allChecks = [...Object.values(reverseEvidence), ...Object.values(leakChecks)].every(Boolean)
   return ZhCodeReviewerContractAuditReportSchema.parse({
-    schemaVersion: "skill-ir-zh-code-reviewer-contract-audit/v1",
-    auditId: "zh-code-reviewer-development-v1",
+    schemaVersion: "skill-ir-zh-code-reviewer-contract-audit/v2",
+    auditId: "zh-code-reviewer-development-v2",
     status: issues.length === 0 && allChecks ? "passed" : "failed",
     inputs: {
       developmentTasksSha256: sha256(developmentBytes),
