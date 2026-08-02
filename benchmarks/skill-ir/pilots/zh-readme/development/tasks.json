@@ -1,0 +1,272 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "zh-readme",
+  "tasks": [
+    {
+      "id": "zh-readme-node-cli-dev-001",
+      "split": "development",
+      "prompt": "Inspect every protected repository file and read readme-interface.json without modifying any input. Create a Chinese README.zh-CN.md that explains the project identity and includes source-supported installation, quick-start, development, and license information. Use only commands, local paths, and links supported by repository evidence; omit or mark unsupported facts as pending. Produce exactly README.zh-CN.md. Do not use the network, install packages, or execute project code.",
+      "fixtures": {
+        "package.json": "{\n  \"name\": \"echo-lab\",\n  \"version\": \"1.2.0\",\n  \"description\": \"Filter JSON Lines events into concise terminal summaries.\",\n  \"license\": \"MIT\",\n  \"homepage\": \"https://example.org/echo-lab/docs\",\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"https://github.com/example/echo-lab\"\n  },\n  \"bin\": {\n    \"echo-lab\": \"src/cli.js\"\n  },\n  \"scripts\": {\n    \"start\": \"node src/cli.js\",\n    \"test\": \"node --test\",\n    \"lint\": \"node --check src/cli.js\"\n  }\n}\n",
+        "src/cli.js": "export function summarize(line) { return JSON.parse(line).message }\n// Usage: echo-lab --input events.jsonl --level warn\n",
+        "README.md": "# Echo Lab\n\nCommand-line JSON Lines event summaries.\n",
+        "LICENSE": "MIT License\n",
+        "readme-interface.json": "{\n  \"schemaVersion\": \"skill-ir-zh-readme-interface/v1\",\n  \"interfaceId\": \"zh-readme-repository-fact-interface-v1\",\n  \"protectedInputs\": [\"<repository-files>\", \"readme-interface.json\"],\n  \"outputs\": [\"README.zh-CN.md\"],\n  \"language\": {\n    \"primary\": \"zh-CN\",\n    \"technicalEnglishAllowed\": true\n  },\n  \"semanticRoles\": [\"identity\", \"installation\", \"quickstart\", \"development\", \"license\"],\n  \"factPolicy\": {\n    \"sources\": [\"project-manifest\", \"entry-source\", \"existing-documentation\", \"license\"],\n    \"commandsMustBeSourceDerived\": true,\n    \"pathsMustExist\": true,\n    \"linksMustBeSourceDeclared\": true,\n    \"missingEvidence\": \"omit-or-mark-pending\",\n    \"exactWordingRequired\": false,\n    \"headingOrderRequired\": false\n  },\n  \"optionalPresentation\": {\n    \"badges\": true,\n    \"emoji\": true,\n    \"socialProofOnlyWhenSourceDeclared\": true\n  },\n  \"resourcePolicy\": {\n    \"network\": false,\n    \"packageInstall\": false,\n    \"executeProjectCode\": false,\n    \"allowedRuntime\": \"node\"\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"protectedInputsMutable\": false\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "readme-artifact-integrity",
+          "name": "Protected repository and exact output contract",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "artifact-integrity",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "package.json": "c3407ac5428fc8723efdc8ac9f70fc02d27636fb768bda8dc5b59cea3e9da5b3",
+              "src/cli.js": "a6bee258acf26ed2f454db76ee4a997e0f2388164dfd523461429a96c35f4107",
+              "README.md": "3aa09a5df1629b9b08660062ea3d25d1defe6b5c348c3dc3eb3cb95dbce7dab7",
+              "LICENSE": "267f7a2e19dfa9df99af774520985a0e521925293ea5b7e767ab06969d06bf91",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "readme-chinese-structure",
+          "name": "Chinese README covers the public semantic roles",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "chinese-structure",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "package.json": "c3407ac5428fc8723efdc8ac9f70fc02d27636fb768bda8dc5b59cea3e9da5b3",
+              "src/cli.js": "a6bee258acf26ed2f454db76ee4a997e0f2388164dfd523461429a96c35f4107",
+              "README.md": "3aa09a5df1629b9b08660062ea3d25d1defe6b5c348c3dc3eb3cb95dbce7dab7",
+              "LICENSE": "267f7a2e19dfa9df99af774520985a0e521925293ea5b7e767ab06969d06bf91",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "readme-command-fidelity",
+          "name": "Commands are supported by repository evidence",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "command-fidelity",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "package.json": "c3407ac5428fc8723efdc8ac9f70fc02d27636fb768bda8dc5b59cea3e9da5b3",
+              "src/cli.js": "a6bee258acf26ed2f454db76ee4a997e0f2388164dfd523461429a96c35f4107",
+              "README.md": "3aa09a5df1629b9b08660062ea3d25d1defe6b5c348c3dc3eb3cb95dbce7dab7",
+              "LICENSE": "267f7a2e19dfa9df99af774520985a0e521925293ea5b7e767ab06969d06bf91",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "readme-reference-fidelity",
+          "name": "Paths and links are source-derived",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "reference-fidelity",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "package.json": "c3407ac5428fc8723efdc8ac9f70fc02d27636fb768bda8dc5b59cea3e9da5b3",
+              "src/cli.js": "a6bee258acf26ed2f454db76ee4a997e0f2388164dfd523461429a96c35f4107",
+              "README.md": "3aa09a5df1629b9b08660062ea3d25d1defe6b5c348c3dc3eb3cb95dbce7dab7",
+              "LICENSE": "267f7a2e19dfa9df99af774520985a0e521925293ea5b7e767ab06969d06bf91",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "readme-fact-completeness",
+          "name": "Project identity and license facts are complete",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "fact-completeness",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "package.json": "c3407ac5428fc8723efdc8ac9f70fc02d27636fb768bda8dc5b59cea3e9da5b3",
+              "src/cli.js": "a6bee258acf26ed2f454db76ee4a997e0f2388164dfd523461429a96c35f4107",
+              "README.md": "3aa09a5df1629b9b08660062ea3d25d1defe6b5c348c3dc3eb3cb95dbce7dab7",
+              "LICENSE": "267f7a2e19dfa9df99af774520985a0e521925293ea5b7e767ab06969d06bf91",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "readme-artifact-integrity",
+        "readme-chinese-structure",
+        "readme-command-fidelity",
+        "readme-reference-fidelity",
+        "readme-fact-completeness"
+      ],
+      "passThreshold": 1
+    },
+    {
+      "id": "zh-readme-python-library-dev-002",
+      "split": "development",
+      "prompt": "Inspect every protected repository file and read readme-interface.json without modifying any input. Create a Chinese README.zh-CN.md that explains the project identity and includes source-supported installation, quick-start, development, and license information. Use only commands, local paths, and links supported by repository evidence; omit or mark unsupported facts as pending. Produce exactly README.zh-CN.md. Do not use the network, install packages, or execute project code.",
+      "fixtures": {
+        "pyproject.toml": "[project]\nname = \"note-index\"\nversion = \"0.4.0\"\ndescription = \"Build a searchable index from local Markdown notes.\"\nrequires-python = \">=3.11\"\nlicense = { text = \"Apache-2.0\" }\n\n[project.urls]\nHomepage = \"https://example.org/note-index\"\nRepository = \"https://github.com/example/note-index\"\n\n[project.scripts]\nnote-index = \"note_index.cli:main\"\n",
+        "src/note_index/cli.py": "def main():\n    \"\"\"Index Markdown files from a local directory.\"\"\"\n",
+        "docs/USAGE.md": "# Usage\n\n```bash\npython -m pip install .\nnote-index scan notes/\npython -m pytest\n```\n",
+        "LICENSE": "Apache License\nVersion 2.0\n",
+        "readme-interface.json": "{\n  \"schemaVersion\": \"skill-ir-zh-readme-interface/v1\",\n  \"interfaceId\": \"zh-readme-repository-fact-interface-v1\",\n  \"protectedInputs\": [\"<repository-files>\", \"readme-interface.json\"],\n  \"outputs\": [\"README.zh-CN.md\"],\n  \"language\": {\n    \"primary\": \"zh-CN\",\n    \"technicalEnglishAllowed\": true\n  },\n  \"semanticRoles\": [\"identity\", \"installation\", \"quickstart\", \"development\", \"license\"],\n  \"factPolicy\": {\n    \"sources\": [\"project-manifest\", \"entry-source\", \"existing-documentation\", \"license\"],\n    \"commandsMustBeSourceDerived\": true,\n    \"pathsMustExist\": true,\n    \"linksMustBeSourceDeclared\": true,\n    \"missingEvidence\": \"omit-or-mark-pending\",\n    \"exactWordingRequired\": false,\n    \"headingOrderRequired\": false\n  },\n  \"optionalPresentation\": {\n    \"badges\": true,\n    \"emoji\": true,\n    \"socialProofOnlyWhenSourceDeclared\": true\n  },\n  \"resourcePolicy\": {\n    \"network\": false,\n    \"packageInstall\": false,\n    \"executeProjectCode\": false,\n    \"allowedRuntime\": \"node\"\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"protectedInputsMutable\": false\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "readme-artifact-integrity",
+          "name": "Protected repository and exact output contract",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "artifact-integrity",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "pyproject.toml": "72138274d43288a9a8a1920d8e9fcb833ae721cea23bc78bafd8865ab8f22d90",
+              "src/note_index/cli.py": "07ca3a8f5ccab51ee059602089039737b598c6260105606d525c805bf5c50361",
+              "docs/USAGE.md": "6837cbc433752e34e6befeeb06eb4ec08b6ed4564a32b9c8b924d346aa18c90c",
+              "LICENSE": "85d81017399513713e80f72bd88fb7fae461c56972eee8d8c8859d8fa2b0cf7e",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "readme-chinese-structure",
+          "name": "Chinese README covers the public semantic roles",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "chinese-structure",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "pyproject.toml": "72138274d43288a9a8a1920d8e9fcb833ae721cea23bc78bafd8865ab8f22d90",
+              "src/note_index/cli.py": "07ca3a8f5ccab51ee059602089039737b598c6260105606d525c805bf5c50361",
+              "docs/USAGE.md": "6837cbc433752e34e6befeeb06eb4ec08b6ed4564a32b9c8b924d346aa18c90c",
+              "LICENSE": "85d81017399513713e80f72bd88fb7fae461c56972eee8d8c8859d8fa2b0cf7e",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "readme-command-fidelity",
+          "name": "Commands are supported by repository evidence",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "command-fidelity",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "pyproject.toml": "72138274d43288a9a8a1920d8e9fcb833ae721cea23bc78bafd8865ab8f22d90",
+              "src/note_index/cli.py": "07ca3a8f5ccab51ee059602089039737b598c6260105606d525c805bf5c50361",
+              "docs/USAGE.md": "6837cbc433752e34e6befeeb06eb4ec08b6ed4564a32b9c8b924d346aa18c90c",
+              "LICENSE": "85d81017399513713e80f72bd88fb7fae461c56972eee8d8c8859d8fa2b0cf7e",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "readme-reference-fidelity",
+          "name": "Paths and links are source-derived",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "reference-fidelity",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "pyproject.toml": "72138274d43288a9a8a1920d8e9fcb833ae721cea23bc78bafd8865ab8f22d90",
+              "src/note_index/cli.py": "07ca3a8f5ccab51ee059602089039737b598c6260105606d525c805bf5c50361",
+              "docs/USAGE.md": "6837cbc433752e34e6befeeb06eb4ec08b6ed4564a32b9c8b924d346aa18c90c",
+              "LICENSE": "85d81017399513713e80f72bd88fb7fae461c56972eee8d8c8859d8fa2b0cf7e",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "readme-fact-completeness",
+          "name": "Project identity and license facts are complete",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-zh-readme",
+          "payload": {
+            "schemaVersion": "skill-ir-zh-readme-eval/v1",
+            "check": "fact-completeness",
+            "paths": {
+              "interface": "readme-interface.json",
+              "readme": "README.zh-CN.md"
+            },
+            "protectedSha256": {
+              "pyproject.toml": "72138274d43288a9a8a1920d8e9fcb833ae721cea23bc78bafd8865ab8f22d90",
+              "src/note_index/cli.py": "07ca3a8f5ccab51ee059602089039737b598c6260105606d525c805bf5c50361",
+              "docs/USAGE.md": "6837cbc433752e34e6befeeb06eb4ec08b6ed4564a32b9c8b924d346aa18c90c",
+              "LICENSE": "85d81017399513713e80f72bd88fb7fae461c56972eee8d8c8859d8fa2b0cf7e",
+              "readme-interface.json": "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "readme-artifact-integrity",
+        "readme-chinese-structure",
+        "readme-command-fidelity",
+        "readme-reference-fidelity",
+        "readme-fact-completeness"
+      ],
+      "passThreshold": 1
+    }
+  ]
+}

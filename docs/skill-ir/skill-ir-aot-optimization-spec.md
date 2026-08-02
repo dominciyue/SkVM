@@ -152,6 +152,41 @@ v2 修复后，development audit 为 20/20，唯一冻结校准为 8/8 rows、4/
 Windows/clean 的 admission evidence，不证明 skill 优化、跨模型稳定、held-out 泛化或 Token 收益。后续 IR
 只能吸收可映射到公开 skill/source contract 的语义；不得把一次随机 residual 或 evaluator 期望直接固化。
 
+### 4.2 `zh-readme` 方法案例合同
+
+`zh-readme` 用于补齐 `repository-fact-documentation` phenotype。开始设计 benchmark 后，其角色从
+`untouched-candidate` 改为第 6 个 `method-development` case；后续 untouched replication 必须另选没有参与
+core、catalog、contract 或 scorer 调整的新 skill。
+
+该案例冻结真实 MIT `SKILL.md`、2 个 development 与 2 个 held-out 小型仓库。Task split 在 scorer 实现前
+冻结；development 代码、audit、calibration、compiler 和 repair 均不得读取 held-out 内容。仓库 fixture 只含
+离线文本文件，不允许网络、安装依赖或执行不受控项目代码。
+
+公开 task contract 要求生成且只生成 `README.zh-CN.md`，保留全部输入，并满足：中文项目定位、从仓库文件
+可验证的安装/快速开始/开发命令、存在的本地路径、许可证和正式链接。标题、章节顺序、中文措辞、emoji、
+badge 和额外真实说明均不固定；无静态证据时不得强制社会证明、版本、官网或安装方式，也不得把缺失事实
+猜成金标。
+
+确定性 scorer 从 agent 可见的 `package.json`、`pyproject.toml`、入口源码、已有文档和许可证派生事实，至少
+分开检查：protected input/exact output、中文与核心结构、命令真实性、路径与链接真实性、事实完整性与禁止
+虚构。它必须接受 alternative-valid 标题/顺序/表述，拒绝不存在的命令、URL、文件路径、许可证、纯英文
+空壳和输入污染；删除公开 manifest 字段后，相应约束必须消失。视觉质量和营销吸引力不进入 hard gate。
+
+付费前必须先通过 source closure、2+2 freeze、differential、reverse-evidence、gold/held-out leak 和真实
+materialization audit。首轮模型校准只允许 `no-skill | original`、development、同一冻结 Pi/Windows/clean
+身份；是否进入 base IR 由预注册的区分度与 original-success gate 决定，不因希望得到正例而事后放宽。
+
+该案例首次使用技能无关的 `skill-ir-method-case-calibration-lock/v1`，把 reviewer 阶段已验证的 direct Pi
+short-path 编排抽成通用合同；它不是新 runtime/catalog。Skill-specific 内容只通过 frozen inputs、source
+closure、三类 benchmark guards、公开 output set 和 task ids 声明，runner/core 不按 skill id 分支。
+
+唯一 development lock 固定 `xty/gpt-5.6-sol`、Pi `0.67.68`、Windows/clean、2 tasks x 2 repetitions x
+`no-skill | original`，共 8 rows/4 pairs、`retries=0`。数值门禁在调用前冻结为：0 infrastructure、no-skill
+不饱和、至少 1 个 differing pair、至少 1 个 original-positive pair、至少 1 次 original full success，且
+original mean 不低于 no-skill。Qualification 还要求 resource probe、Pi 版本、指定 original route、唯一
+`README.zh-CN.md` 物化以及无 harness residue 全部通过。即使门禁通过，也只开放 source-audited base IR
+审计；held-out、skill optimization、跨模型和 Token claim 继续关闭。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段

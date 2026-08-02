@@ -48,7 +48,7 @@ describe("skill-ir corpus fixtures", () => {
     const pilot = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
       corpusId: string;
       scopeCounts: Record<string, number>;
-      skills: { id: string; wave: string; status: string; benchmarkVersionOf?: string }[];
+      skills: { id: string; wave?: string; portfolioRole?: string; status: string; benchmarkVersionOf?: string }[];
     };
     expect(pilot.corpusId).toBe("pilot");
     expect(pilot.scopeCounts).toEqual({
@@ -59,12 +59,13 @@ describe("skill-ir corpus fixtures", () => {
     expect(pilot.skills.filter(
       (skill) => skill.wave === "A" && skill.benchmarkVersionOf === undefined,
     )).toHaveLength(3);
-    expect(pilot.skills.filter((skill) => skill.wave === "B").length).toBeGreaterThanOrEqual(1);
+    expect(pilot.skills.find((skill) => skill.id === "zh-readme")?.portfolioRole).toBe("method-development");
+    expect(pilot.skills.filter((skill) => skill.portfolioRole === "untouched-replication")).toHaveLength(0);
     expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "law-to-markdown")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "experimental-design")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "api-tester")?.status).toBe("runnable");
-    expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
+    expect(pilot.skills.find((skill) => skill.id === "zh-readme")?.status).toBe("tasks-authored");
   });
 
   test("env-manager pilot has four deterministic fixtures and a source-audited runnable base IR", () => {
@@ -278,6 +279,37 @@ describe("skill-ir corpus fixtures", () => {
     ]);
   });
 
+  test("zh-readme is a benchmark-audited tasks-authored method case without a base IR", () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
+      skills: Array<{
+        id: string;
+        portfolioRole?: string;
+        status: string;
+        sourcePath?: string;
+        tasksPath?: string;
+        irPath?: string;
+        resourceContractPath?: string;
+        benchmarkContractAuditPath?: string;
+      }>;
+    };
+    const readme = manifest.skills.find((candidate) => candidate.id === "zh-readme");
+    expect(readme).toMatchObject({
+      portfolioRole: "method-development",
+      status: "tasks-authored",
+      sourcePath: "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md",
+      tasksPath: "benchmarks/skill-ir/pilots/zh-readme/development/tasks.json",
+      resourceContractPath: "benchmarks/skill-ir/pilots/zh-readme/resource-contract.json",
+      benchmarkContractAuditPath: "results/skill-ir/benchmark-contract-audit/zh-readme-v1.json",
+    });
+    expect(readme?.irPath).toBeUndefined();
+
+    const audit = readJson(join(process.cwd(), readme!.benchmarkContractAuditPath!)) as {
+      status: string;
+      counts: { tasks: number; cases: number; matched: number };
+    };
+    expect(audit).toMatchObject({ status: "passed", counts: { tasks: 2, cases: 20, matched: 20 } });
+  });
+
   test("standard context perturbations cover clean, noisy, long, and compressed settings", () => {
     const contexts = readJson(join(process.cwd(), "benchmarks/skill-ir/contexts/standard-contexts.json")) as {
       schemaVersion: string;
@@ -434,15 +466,18 @@ describe("skill-ir corpus fixtures", () => {
       "experimental-design",
       "law-to-markdown",
       "zh-code-reviewer",
-      "zh-readme",
     ]);
     expect(intake.candidates.find((candidate) => candidate.id === "api-tester")?.status)
       .toBe("prospective-method-development");
+    expect(intake.candidates.find((candidate) => candidate.id === "zh-readme")?.status)
+      .toBe("method-development-benchmark-audited");
     expect(selected.every((candidate) => candidate.sourcePath.endsWith("SKILL.md"))).toBe(true);
     expect(selected.every((candidate) => candidate.licenseStatus === "verified")).toBe(true);
 
     const activeCandidates = intake.candidates.filter((candidate) =>
-      candidate.status === "selected-pilot" || candidate.status === "prospective-method-development");
+      candidate.status === "selected-pilot"
+      || candidate.status === "prospective-method-development"
+      || candidate.status === "method-development-benchmark-audited");
     const selectedCategories = new Set(activeCandidates.flatMap((candidate) => candidate.categories));
     for (const category of ["document-processing", "chinese-developer", "testing", "environment", "scientific-workflow"]) {
       expect(selectedCategories.has(category)).toBe(true);

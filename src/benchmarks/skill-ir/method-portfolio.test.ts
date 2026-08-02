@@ -125,12 +125,19 @@ describe("method portfolio registry and readiness", () => {
     expect(portfolio.cases).toHaveLength(6)
     expect(report.passed).toBe(false)
     expect(report.counts).toMatchObject({
-      studiedCases: 5,
-      contractQualifiedMethodCases: 3,
+      studiedCases: 6,
+      contractQualifiedMethodCases: 4,
       untouchedReplicationCases: 0,
     })
-    expect(report.gaps.missingQualifiedCases).toBe(3)
+    expect(report.gaps.missingQualifiedCases).toBe(2)
     expect(report.gaps.openMeasurementBlockers.length).toBeGreaterThan(0)
+    expect(portfolio.cases[5]).toMatchObject({
+      skillId: "zh-readme",
+      role: "method-development",
+      methodSequence: 6,
+      contractQualified: true,
+      benchmarkVersions: ["zh-readme-development-v1"],
+    })
   })
 
   test("writes the readiness report as a stable machine-readable artifact", async () => {

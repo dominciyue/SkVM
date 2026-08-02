@@ -293,6 +293,38 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 6. [x] 同步 evaluation、pilots、results、portfolio 与 conversation log，运行 focused/full tests、typecheck、
    文档链接和 diff check 后提交。
 
+#### Task 17.6 `zh-readme` repository-fact benchmark 竖切
+
+**冻结设计**
+
+- [x] 将 upstream commit `1e221579b0504082d25d5548b194399a7785f10f` 的 exact `skills/zh-readme/SKILL.md`
+  与 MIT license 固定到 pilot；把案例从 untouched candidate 改为第 6 个 method-development case，未来
+  replication 另选未参与方法设计的新 skill；
+- [x] 冻结 `readme-interface.json`、离线 resource contract、2 development + 2 held-out 仓库 fixture 和
+  `task-split-freeze.json`；held-out 必须在 scorer 前冻结且不进入 development audit；
+- [x] scorer 只从 agent 可见仓库事实推导命令、路径、license、链接和核心说明；章节名称/顺序/措辞可变，
+  社会证明、badge 与视觉营销不进 hard gate；
+- [x] 首轮只完成 benchmark contract 和 materialization audit。Audit 通过后才冻结同一强模型/Pi/Windows
+  `no-skill | original` development calibration；base IR、artifact、held-out 与 optimization claim 保持关闭。
+
+**文件级 TDD**
+
+1. [x] RED `zh-readme-contract.test.ts`：source closure、公开 interface、2+2 builder、split freeze、禁止
+   gold/heldout/network/package-install；GREEN 实现合同并提交冻结 fixture；
+2. [x] RED/GREEN `zh-readme-oracle.test.ts`：从 Node 与 Python 仓库派生项目名、命令、真实路径、license 和
+   URL；删除 manifest 字段后约束消失，无证据返回 `unconfirmed`；
+3. [x] RED/GREEN `zh-readme-grade.test.ts`：protected input/exact output、中文结构、命令、路径/链接与事实
+   五类确定性检查；接受 alternative-valid 标题/顺序/中文措辞，拒绝虚构事实与输入污染；
+4. [x] RED/GREEN `zh-readme-contract-audit.test.ts`：两种以上 positive、缺事实、假命令、假 URL/路径、
+   license 错误、英文空壳、输入污染、额外文件、gold/heldout/path canary 和真实 materialization；输出 compact
+   development audit；
+5. [x] Audit 通过后更新 corpus/intake/portfolio，记录人工适配、`coreBranchDelta` 和 blockers；未通过时不
+   调模型，不修改 scorer 迎合输出；
+6. [ ] 若 measurement 合格，冻结 direct Pi `no-skill | original` lock、数值 gate、dry-run、resource/route
+   qualification 与唯一 `retries=0` development 执行；未过门则不补跑、不构造 IR；
+7. [ ] 同步 evaluation、pilots、results、conversation log，运行 focused/full tests、typecheck、链接与 diff
+   check 后提交。
+
 ## 6. 验证与实验门禁
 
 每个实现阶段至少运行：

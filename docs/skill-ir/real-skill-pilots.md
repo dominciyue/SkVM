@@ -44,7 +44,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
-| zh-readme | fact extraction/template/link | untouched candidate | 未冻结任务与 scorer。 |
+| zh-readme | repository fact/documentation | contract-qualified method-development | exact source + 2+2 split + 20/20 audit；强模型区分度校准待执行。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -119,7 +119,7 @@ artifactKinds + coreBranchDelta
 unautomatedSteps + blockers
 ```
 
-`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 6 registered、5 studied、3 qualified、
+`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 6 registered、6 studied、4 qualified、
 0 replication、1 passed qualified phenotype；readiness 仍 failed。Readiness report 必须显示真实不足，
 不能把 studied、benchmark version 或 audit-failed case 填充为 contract-qualified。
 
@@ -134,7 +134,7 @@ unautomatedSteps + blockers
 5. 复用已有 artifact kind 的同时能检验通用 core；
 6. 预计人工适配可被声明式 contract 表达。
 
-当前优先评估 `zh-code-reviewer`、`zh-readme` 和一个 license 已验证的非开发工具类 skill。不要一次导入大批
+当前优先完成 `zh-readme` 的冻结区分度校准，再评估一个 license 已验证的非开发工具类 skill。不要一次导入大批
 候选后再补任务；每个案例先完成 provenance、task、scorer、audit 的竖切。
 
 `zh-code-reviewer` 当前可复建命令：
@@ -164,6 +164,28 @@ bun ./src/benchmarks/skill-ir/static-development-run.ts `
 
 后续将 `--phase` 依次改为 `route-probe`、`execute`。execute 后仍由冻结 deterministic scorer 与
 `static-development-gate-run.ts` 生成 compact gate；不得把静态保真通过解释为 skill 已优化。
+
+`zh-readme` 的 task 与 contract audit 可复建命令：
+
+```powershell
+bun ./src/benchmarks/skill-ir/zh-readme-contract-run.ts
+bun ./src/benchmarks/skill-ir/zh-readme-contract-audit-run.ts
+```
+
+首条重建冻结的 development/heldout task JSON；第二条只消费 development，生成 20/20 compact audit。
+该案例的付费校准使用技能无关的 `method-case-calibration-run.ts`，而不是再复制一个 `zh-readme` runtime：
+
+```powershell
+bun ./src/benchmarks/skill-ir/method-case-calibration-run.ts `
+  --phase=plan `
+  --lock=benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v1.json `
+  --out-dir=results/skill-ir/zrm-pi-v1
+```
+
+随后只在同一冻结目录把 `--phase` 改为 `qualification`、`execute`。Runner 会验证全部 digest、source
+closure、split/provenance/audit guards、Pi/Node/Bun 身份、8 行成对矩阵、Windows 短路径预算、唯一公开
+输出和 harness residue；执行结束后调用确定性 scorer 与通用 pre-IR gate。该合同可供后续方法案例复用，
+但既有 reviewer lock/result 保持不可变。
 
 ## 11. 修改与验证
 
