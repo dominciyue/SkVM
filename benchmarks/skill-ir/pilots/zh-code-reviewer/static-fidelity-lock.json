@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "skill-ir-static-development-lock/v1",
+  "status": "preregistered",
+  "experimentId": "zh-code-reviewer-static-fidelity-v1",
+  "evaluationMode": "static-fidelity",
+  "methodEvidence": true,
+  "corpus": "pilot",
+  "skillId": "zh-code-reviewer",
+  "frozenInputs": {
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+      "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40"
+    },
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/development/tasks.json",
+      "sha256": "ebff398dc66edc79e42702eb84ba8e37d812438e10de4186d7d1101ef479080b"
+    },
+    "resourceContract": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/resource-contract.json",
+      "sha256": "5600029ad8259b8698fd84dcb18777a8e27aa4143ee6741c4f60134be641ee09"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/zh-code-reviewer-grade.ts",
+      "sha256": "0c3bc91fd611317741d0a1700e57bd938f2e207f2adac5442e22d72e297cc3d2"
+    },
+    "baseIr": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir.json",
+      "sha256": "9a7aae641c210c05d81c5d2466ad5100681aa678f967b138b84e9cd434fca813"
+    },
+    "sourceAudit": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir-source-audit.json",
+      "sha256": "7aeb563aac34d4df230bbb442419afd4d6e525e47d2c900c6eb32a63b10c6367"
+    },
+    "publicContract": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/review-interface.json",
+      "sha256": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+    },
+    "admissionEvidence": {
+      "path": "results/skill-ir/zcr-pi-v2/measurement-validity.json",
+      "sha256": "5358c362abcd35677eaebef17d555b1fec59d5d72766c9d70a5103eca63e6afd"
+    }
+  },
+  "implementation": [
+    { "path": "src/benchmarks/skill-ir/static-development.ts", "sha256": "bf59ebfd00c24deee00168f39df9a9519edaad7e34baa2420aad32a0df64fa9d" },
+    { "path": "src/benchmarks/skill-ir/static-development-run.ts", "sha256": "d8aad1fb664123b3c1edc7d39fc6e4f0c324b3073a64334fdcad7851a9f2c019" },
+    { "path": "src/benchmarks/skill-ir/static-development-gate.ts", "sha256": "84b7a4d3ca78730925de68ba48563880bb706c08d9268a8363c658951b7b7a15" },
+    { "path": "src/benchmarks/skill-ir/static-development-gate-run.ts", "sha256": "47541039aea66872a4cc56c509020095876a01c0a65e55217d54fdac0757d250" },
+    { "path": "src/benchmarks/skill-ir/real-agent-run.ts", "sha256": "2e4038e0b5665996921d88fae0c4af45ed2e3823a63290493f82df03dfe4f201" },
+    { "path": "src/benchmarks/skill-ir/score-real-agent-runs.ts", "sha256": "262055c7840b82acb60da268175c203a3933c5916542341cb2abeabd6e6e41b1" },
+    { "path": "src/adapters/pi.ts", "sha256": "5357a7a5529db02ca8628b24fde3dbb8c5033889cc8c54ffca49944f218552ab" },
+    { "path": "src/index.ts", "sha256": "09a706c72625151ca419197714957269bec072c691e561ca77cdb965b51342c0" },
+    { "path": "package.json", "sha256": "bd50f7d5a9ad459960bc9615070e669d483f1c53318a3ac8a759d9743c97ee30" },
+    { "path": "bun.lock", "sha256": "b6814f09782eecf544fca3c7426a706afe8793c750064d67bdb7b937a91cadfb" }
+  ],
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "pi",
+    "version": "0.67.68"
+  },
+  "matrix": {
+    "systems": ["no-skill", "original", "ir-static"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "zh-code-reviewer-user-service-dev-001",
+      "zh-code-reviewer-report-service-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 12,
+    "expectedTriplets": 4
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "pythonEnv": "SKVM_PYTHON",
+    "retries": 0,
+    "routeProbeTimeoutMs": 180000,
+    "resourceProbeRequired": true,
+    "routeProbeRequired": true,
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "outerWatchdogMs": 360000,
+    "adapterConfig": "managed",
+    "maximumWorkDirLength": 220,
+    "outputRoot": "results/skill-ir/zcr-static-fidelity-v1"
+  },
+  "gate": {
+    "minimumIrStaticSuccesses": 4,
+    "minimumIrStaticMeanScore": 1,
+    "maximumInfrastructureFailures": 0,
+    "maximumHardGateRegressions": 0,
+    "minimumImprovedPairs": 0,
+    "maximumRegressedPairs": 0
+  },
+  "promotionBoundary": {
+    "corpusStatusAtRun": "runnable",
+    "entersMainClaim": false,
+    "permitsHeldOut": false,
+    "permitsDynamicRepair": false,
+    "permitsArtifactPromotion": false,
+    "permitsScorerRetuning": false,
+    "permitsResidualAudit": true
+  },
+  "prohibited": [
+    "held-out execution",
+    "profile or PGO compilation before typed residual audit",
+    "artifact promotion",
+    "scorer retuning from static development output",
+    "base IR or source-audit edits after execution begins",
+    "treating static fidelity as skill optimization success"
+  ]
+}

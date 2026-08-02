@@ -36,6 +36,7 @@ export type StaticDevelopmentGateReport = {
     infrastructureFailures: number;
     hardGateRegressions: number;
     improvedPairs: number;
+    regressedPairs: number;
   };
   systems: Record<StaticSystem, {
     expectedRows: number;
@@ -55,9 +56,11 @@ export type StaticDevelopmentGateReport = {
     maximumInfrastructureFailures: boolean;
     maximumHardGateRegressions: boolean;
     minimumImprovedPairs: boolean;
+    maximumRegressedPairs: boolean;
   };
   interpretation: {
     heldOutPlanningAllowed: boolean;
+    residualAuditAllowed?: boolean;
     heldOutExecutionAllowed: false;
     entersMainClaim: false;
   };
@@ -272,6 +275,7 @@ export function buildStaticDevelopmentGateReport(
   };
   const hardGateRegressions = pairs.filter((pair) => pair.hardGateRegression).length;
   const improvedPairs = pairs.filter((pair) => pair.improved).length;
+  const regressedPairs = pairs.filter((pair) => pair.status === "complete" && (pair.scoreDelta ?? 0) < 0).length;
   const gates = {
     completeRows: raw.size === lock.matrix.expectedRows && scored.size === lock.matrix.expectedRows,
     completeTriplets: completeTriplets === lock.matrix.expectedTriplets,
@@ -281,6 +285,8 @@ export function buildStaticDevelopmentGateReport(
     maximumInfrastructureFailures: infrastructureFailures <= lock.gate.maximumInfrastructureFailures,
     maximumHardGateRegressions: hardGateRegressions <= lock.gate.maximumHardGateRegressions,
     minimumImprovedPairs: improvedPairs >= lock.gate.minimumImprovedPairs,
+    maximumRegressedPairs: lock.gate.maximumRegressedPairs === undefined
+      || regressedPairs <= lock.gate.maximumRegressedPairs,
   };
   const passed = Object.values(gates).every(Boolean);
   return {
@@ -297,12 +303,14 @@ export function buildStaticDevelopmentGateReport(
       infrastructureFailures,
       hardGateRegressions,
       improvedPairs,
+      regressedPairs,
     },
     systems,
     pairs,
     gates,
     interpretation: {
-      heldOutPlanningAllowed: passed,
+      heldOutPlanningAllowed: lock.evaluationMode === "static-fidelity" ? false : passed,
+      ...(lock.evaluationMode === "static-fidelity" ? { residualAuditAllowed: passed } : {}),
       heldOutExecutionAllowed: false,
       entersMainClaim: false,
     },

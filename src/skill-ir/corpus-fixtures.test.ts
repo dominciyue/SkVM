@@ -44,25 +44,27 @@ describe("skill-ir corpus fixtures", () => {
     });
   });
 
-  test("pilot corpus records mandatory Wave A and Wave B scope", () => {
+  test("pilot corpus records method-development and untouched-replication scope", () => {
     const pilot = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
       corpusId: string;
       scopeCounts: Record<string, number>;
       skills: { id: string; wave: string; status: string; benchmarkVersionOf?: string }[];
     };
     expect(pilot.corpusId).toBe("pilot");
-    expect(pilot.scopeCounts).toEqual({ waveADeepPilots: 3, waveBReplicationPilots: 3 });
+    expect(pilot.scopeCounts).toEqual({
+      methodDevelopmentStartMinimum: 6,
+      untouchedReplicationMinimum: 1,
+      untouchedReplicationTarget: 2,
+    });
     expect(pilot.skills.filter(
       (skill) => skill.wave === "A" && skill.benchmarkVersionOf === undefined,
     )).toHaveLength(3);
-    expect(pilot.skills.filter((skill) => skill.wave === "B")).toHaveLength(3);
+    expect(pilot.skills.filter((skill) => skill.wave === "B").length).toBeGreaterThanOrEqual(1);
     expect(pilot.skills.find((skill) => skill.id === "env-manager")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "law-to-markdown")?.status).toBe("runnable");
     expect(pilot.skills.find((skill) => skill.id === "experimental-design")?.status).toBe("runnable");
-    expect(pilot.skills.find((skill) => skill.id === "api-tester")?.status).toBe("tasks-authored");
-    expect(pilot.skills.filter(
-      (skill) => skill.wave === "B" && skill.id !== "api-tester",
-    ).every((skill) => skill.status === "selected")).toBe(true);
+    expect(pilot.skills.find((skill) => skill.id === "api-tester")?.status).toBe("runnable");
+    expect(pilot.skills.filter((skill) => skill.wave === "B").every((skill) => skill.status === "selected")).toBe(true);
   });
 
   test("env-manager pilot has four deterministic fixtures and a source-audited runnable base IR", () => {
@@ -94,7 +96,7 @@ describe("skill-ir corpus fixtures", () => {
       tasksPath: "benchmarks/skill-ir/pilots/env-manager/tasks.json",
       irPath: "benchmarks/skill-ir/pilots/env-manager/base-ir.json",
     });
-    expect(pilot.skills.filter((skill) => skill.status === "runnable")).toHaveLength(3);
+    expect(pilot.skills.filter((skill) => skill.status === "runnable").length).toBeGreaterThanOrEqual(3);
 
     const irText = readFileSync(join(process.cwd(), envManager!.irPath!), "utf8");
     const ir = SkillIRSchema.parse(JSON.parse(irText));
@@ -225,6 +227,55 @@ describe("skill-ir corpus fixtures", () => {
         expect(createHash("sha256").update(bytes).digest("hex")).toBe(sourceFile.sha256);
       }
     }
+  });
+
+  test("zh-code-reviewer is runnable with a profile-empty source-audited base IR", async () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
+      skills: Array<{
+        id: string;
+        status: string;
+        sourcePath?: string;
+        tasksPath?: string;
+        irPath?: string;
+        sourceAuditPath?: string;
+        resourceContractPath?: string;
+      }>;
+    };
+    const reviewer = manifest.skills.find((candidate) => candidate.id === "zh-code-reviewer");
+    expect(reviewer).toMatchObject({
+      status: "runnable",
+      sourcePath: "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+      tasksPath: "benchmarks/skill-ir/pilots/zh-code-reviewer/development/tasks.json",
+      irPath: "benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir.json",
+      sourceAuditPath: "benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir-source-audit.json",
+      resourceContractPath: "benchmarks/skill-ir/pilots/zh-code-reviewer/resource-contract.json",
+    });
+
+    const { SkillIRSourceAuditSchema, verifySkillIRSourceAudit } = await import("./source-audit");
+    const ir = SkillIRSchema.parse(readJson(join(process.cwd(), reviewer!.irPath!)));
+    const audit = SkillIRSourceAuditSchema.parse(readJson(join(process.cwd(), reviewer!.sourceAuditPath!)));
+    expect(ir.id).toBe("zh-code-reviewer");
+    expect(ir.profile).toEqual([]);
+    expect(validateSkillIR(ir)).toEqual({ errors: [], warnings: [] });
+    expect(await verifySkillIRSourceAudit(ir, audit, process.cwd())).toEqual({ errors: [], warnings: [] });
+
+    const staticInputs = JSON.stringify({ ir, audit });
+    for (const forbidden of [
+      "zh-code-reviewer-cache-heldout-001",
+      "zh-code-reviewer-batch-heldout-002",
+      "review-evidence-coverage",
+      "evaluatorId",
+      "oracle",
+      '"NUL"',
+    ]) {
+      expect(staticInputs).not.toContain(forbidden);
+    }
+    expect(audit.excludedEvidenceClasses).toEqual([
+      "evaluator-payload",
+      "held-out",
+      "runtime-output",
+      "profile-feedback",
+    ]);
   });
 
   test("standard context perturbations cover clean, noisy, long, and compressed settings", () => {
@@ -379,17 +430,20 @@ describe("skill-ir corpus fixtures", () => {
 
     const selected = intake.candidates.filter((candidate) => candidate.status === "selected-pilot");
     expect(selected.map((candidate) => candidate.id).sort()).toEqual([
-      "api-tester",
       "env-manager",
       "experimental-design",
       "law-to-markdown",
       "zh-code-reviewer",
       "zh-readme",
     ]);
+    expect(intake.candidates.find((candidate) => candidate.id === "api-tester")?.status)
+      .toBe("prospective-method-development");
     expect(selected.every((candidate) => candidate.sourcePath.endsWith("SKILL.md"))).toBe(true);
     expect(selected.every((candidate) => candidate.licenseStatus === "verified")).toBe(true);
 
-    const selectedCategories = new Set(selected.flatMap((candidate) => candidate.categories));
+    const activeCandidates = intake.candidates.filter((candidate) =>
+      candidate.status === "selected-pilot" || candidate.status === "prospective-method-development");
+    const selectedCategories = new Set(activeCandidates.flatMap((candidate) => candidate.categories));
     for (const category of ["document-processing", "chinese-developer", "testing", "environment", "scientific-workflow"]) {
       expect(selectedCategories.has(category)).toBe(true);
     }

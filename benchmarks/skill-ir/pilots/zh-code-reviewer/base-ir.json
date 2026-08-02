@@ -1,0 +1,286 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "zh-code-reviewer",
+  "name": "Chinese Code Reviewer",
+  "category": ["workflow", "constraint-heavy"],
+  "intent": "读取用户指定的代码，从代码规范、正确性、性能、安全和设计等公开维度进行证据化审查，并生成相互一致的结构化 JSON 与中文 Markdown 报告。",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+    "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40"
+  },
+  "inputs": [
+    {
+      "id": "source-code",
+      "description": "用户指定、只读的 JavaScript 或 TypeScript 源文件。",
+      "required": true
+    },
+    {
+      "id": "review-interface",
+      "description": "用户可见的审查接口，声明 finding 字段、严重度语义、报告 schema、资源边界和输出策略。",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "json-report",
+      "description": "符合 code-review/v1 的 code-review.json，包含 reviewedFiles、findings、highlights 和 summary。",
+      "required": true
+    },
+    {
+      "id": "chinese-markdown-report",
+      "description": "结构化中文 code-review.md，覆盖 JSON 中每条 finding 的证据位置且允许自然语言措辞变化。",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "protected-inputs-readable",
+      "description": "源文件与 review-interface.json 是可读普通文件，并在执行期间保持不变。",
+      "checkability": "runtime"
+    },
+    {
+      "id": "offline-runtime-boundary",
+      "description": "任务在禁止联网和安装软件包的本地 Node 环境中执行。",
+      "checkability": "runtime"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-inspect-contract",
+      "title": "读取代码与公开审查合同",
+      "description": "读取用户指定的源文件和 review-interface.json，确认受保护输入、输出集合、字段与资源边界。",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["review-contract", "source-lines"],
+      "successCheckRefs": ["check-protected-inputs"],
+      "failureModes": ["missing-source", "invalid-review-interface"]
+    },
+    {
+      "id": "step-analyze-code",
+      "title": "按公开维度分析代码",
+      "description": "检查代码规范、潜在 Bug、性能、安全和设计问题；只保留能定位到实际相对路径、源代码行与最小命名符号的 finding。",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-inspect-contract"],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["grounded-findings", "highlights"],
+      "successCheckRefs": ["check-finding-evidence"],
+      "failureModes": ["unconfirmed-finding", "invalid-location"]
+    },
+    {
+      "id": "step-calibrate-severity",
+      "title": "按公开影响语义校准严重度",
+      "description": "依据 review-interface.json 中 critical、major、minor 的定义评估每条已确认 finding，不用隐藏期望猜测严重度。",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-analyze-code"],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["calibrated-findings"],
+      "successCheckRefs": ["check-severity"],
+      "failureModes": ["unsupported-severity", "severity-not-grounded"]
+    },
+    {
+      "id": "step-write-reports",
+      "title": "生成 JSON 与中文报告",
+      "description": "写入 code-review.json 和结构化中文 code-review.md；每条 finding 提供影响与可执行建议，并让两份报告表达同一组 finding。",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": ["step-calibrate-severity"],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["json-report", "chinese-markdown-report"],
+      "successCheckRefs": ["check-report-schema", "check-report-consistency"],
+      "failureModes": ["invalid-json-report", "missing-chinese-report", "report-contradiction"]
+    },
+    {
+      "id": "step-verify-delivery",
+      "title": "验证受保护输入与交付集合",
+      "description": "重新检查输入未变、两份报告 schema 与位置一致，并保证工作目录只增加公开声明的两个输出。",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": ["step-write-reports"],
+      "toolRefs": ["tool-filesystem", "tool-node-runtime"],
+      "produces": ["verification-result"],
+      "successCheckRefs": ["check-protected-inputs", "check-exact-output-set", "check-report-consistency"],
+      "failureModes": ["protected-input-changed", "unexpected-output", "report-validation-failed"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-review-dimensions",
+      "sourceText": "从代码规范、潜在 Bug、性能问题、安全漏洞和设计模式等维度评估。",
+      "level": "must",
+      "scope": "planning",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Review the code across style, correctness, performance, security, and design dimensions supported by observable evidence."
+    },
+    {
+      "id": "rule-ground-findings",
+      "sourceText": "公开任务要求每条 finding 定位到主要可观察行和最小命名符号。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Ground every finding in the actual relative source path, one-based evidence line, and smallest enclosing named symbol."
+    },
+    {
+      "id": "rule-public-severity",
+      "sourceText": "公开 review interface 定义 critical、major 和 minor 的影响边界。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Assign only critical, major, or minor according to the public impact definitions."
+    },
+    {
+      "id": "rule-chinese-structured-report",
+      "sourceText": "使用中文输出结构化报告。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Write a structured Chinese Markdown review and a machine-readable JSON report that describe the same findings."
+    },
+    {
+      "id": "rule-preserve-inputs",
+      "sourceText": "公开 output policy 规定 protected inputs 不可修改。",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never modify the protected source file or review-interface.json."
+    },
+    {
+      "id": "rule-exact-output-set",
+      "sourceText": "公开 output policy 规定只生成 code-review.json 和 code-review.md。",
+      "level": "must",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Produce exactly code-review.json and code-review.md in addition to the protected inputs."
+    },
+    {
+      "id": "rule-language-boundary",
+      "sourceText": "技术术语保留英文，代码示例保持原语言。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "Keep technical terms in English and preserve the original programming language in code examples."
+    },
+    {
+      "id": "rule-offline",
+      "sourceText": "公开资源合同禁止联网和安装软件包。",
+      "level": "never",
+      "scope": "tool-use",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never use the network or install packages during the pilot task."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-filesystem",
+      "name": "workspace filesystem",
+      "purpose": "读取受保护输入、按相对路径定位源代码并写入两份声明的报告。",
+      "required": true,
+      "alternatives": ["agent-native Glob and Read/Write tools"],
+      "platformNotes": {
+        "linux": "使用工作目录相对路径和 UTF-8。",
+        "macos": "保留路径大小写和 UTF-8。",
+        "windows": "使用受控的 Windows 路径并在报告中写正斜杠相对路径。"
+      },
+      "availabilityCheck": "确认两个受保护输入可读且输出目录可写。"
+    },
+    {
+      "id": "tool-node-runtime",
+      "name": "Node runtime",
+      "purpose": "在不安装依赖的情况下解析和复核 JSON 交付物。",
+      "required": true,
+      "alternatives": ["SKVM_NODE", "resource-contract fallbackCommand"],
+      "platformNotes": {
+        "linux": "使用资源探测通过的 Node。",
+        "macos": "使用资源探测通过的 Node。",
+        "windows": "优先使用显式 SKVM_NODE，避免 PATH 漂移。"
+      },
+      "availabilityCheck": "执行 resource-contract probe 并匹配成功标记。"
+    }
+  ],
+  "environment": [
+    {
+      "id": "env-contained-workdir",
+      "description": "任务在包含受保护输入的隔离工作目录中运行，只允许写入两份声明的输出。",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    },
+    {
+      "id": "env-node-offline",
+      "description": "本地 Node 必须满足资源合同；网络和包安装均被禁止。",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-protected-inputs",
+      "name": "受保护输入未变",
+      "kind": "rule-violation",
+      "targetRef": "rule-preserve-inputs",
+      "assertion": "执行前后源文件与 review-interface.json 的内容和身份保持一致。",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-finding-evidence",
+      "name": "finding 有源码证据",
+      "kind": "output",
+      "targetRef": "rule-ground-findings",
+      "assertion": "每条 finding 的 path、line 和 symbol 均能在受保护源码中复核。",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-severity",
+      "name": "严重度符合公开语义",
+      "kind": "output",
+      "targetRef": "rule-public-severity",
+      "assertion": "每条 finding 的严重度与公开 impact 定义和实际影响一致。",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-report-schema",
+      "name": "JSON 与中文报告结构完整",
+      "kind": "output",
+      "targetRef": "rule-chinese-structured-report",
+      "assertion": "JSON 具有公开 requiredFields，Markdown 为中文且引用每条 finding 的位置。",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-report-consistency",
+      "name": "双报告语义一致",
+      "kind": "output",
+      "targetRef": "step-write-reports",
+      "assertion": "JSON 与 Markdown 覆盖同一组 finding、位置、严重度、影响和建议。",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-exact-output-set",
+      "name": "输出集合精确",
+      "kind": "output",
+      "targetRef": "rule-exact-output-set",
+      "assertion": "除两个受保护输入外，工作目录只包含 code-review.json 和 code-review.md。",
+      "onFailure": "retry"
+    }
+  ],
+  "recovery": [
+    {
+      "id": "recovery-unconfirmed-finding",
+      "trigger": "候选问题无法定位到真实相对路径、源代码行或最小命名符号。",
+      "action": "stop",
+      "maxAttempts": 0,
+      "explanation": "删除未确认 finding，不根据 evaluator 期望猜测证据；只交付可复核结论。"
+    }
+  ],
+  "profile": []
+}

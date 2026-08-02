@@ -41,14 +41,14 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Law-to-markdown | 冻结 held-out failure | Development 4/4；held-out 2/4 且 2 regression。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
 | API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
-| Method portfolio | 已机器化，readiness failed | 6 registered、4 studied、2 qualified、1 passed phenotype、0 replication。 |
+| Method portfolio | 已机器化，readiness failed | 6 registered、5 studied、3 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
 | 文档治理 | 本轮重建 | 8 份权威文档，删除重复阶段全文。 |
 
 ## 3. 关键阻塞
 
-1. 当前 contract-qualified 方法案例只有 2 个，且通过 development gate 的 qualified phenotype 为 0。
+1. 当前 contract-qualified 方法案例有 3 个，仍缺 3 个；通过 development gate 的 phenotype 只有 1 个。
 2. Automation/adaptation 指标不完整，历史 Env/Law 仍有 benchmark-contract blocker。
 3. API Tester 的 schema-derived package 已通过冻结 development gate；下一缺口是更多信息互补、合同合格
    的方法案例和自动化/适配成本数据。
@@ -260,6 +260,38 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 
 本竖切不得修改通用 runtime/catalog identity。第一阶段只证明 benchmark measurement contract，不声称 skill
 优化、held-out、跨模型或 Token 收益。
+
+#### Task 17.5.2 `zh-code-reviewer` base IR 与静态保真
+
+**冻结设计**
+
+- [x] 生成 profile-empty `base-ir.json` 和逐节点 `base-ir-source-audit.json`；证据只来自 exact source、
+  development 用户可见 prompt、公开 review interface 与 resource contract；
+- [x] 将 corpus 从 `tasks-authored` 晋升为 `runnable`，登记 `irPath/sourceAuditPath`，不改变 held-out、scorer
+  或 v2 calibration 历史结果；
+- [x] 复用 v2 已验证的 `xty/gpt-5.6-sol`、Pi `0.67.68` managed direct Node short-path、Windows/clean 身份，
+  固定 `no-skill | original | ir-static`、2 tasks x 2 repetitions、12 rows/4 triplets、`retries=0`；
+- [ ] 门禁在付费前固定为 static fidelity：12/12、4/4、0 infra、ir-static 4/4、mean 1.0、0 hard-gate
+  regression、0 negative-score pair；由于 original 已冻结为 4/4，`minimumImprovedPairs=0`，不以零改善否决
+  保真，也不将保真通过写成优化成功；
+- [ ] gate 通过只开放 typed residual audit，held-out、dynamic repair、artifact promotion、scorer retuning 和
+  main claim 均保持关闭。
+
+**文件级 TDD**
+
+1. [x] RED `src/skill-ir/corpus-fixtures.test.ts`：要求 reviewer 为 runnable、base IR profile 为空、schema 与
+   source audit 全绿，并加入 held-out/evaluator/oracle/runtime residual 泄漏 canary；
+2. [x] GREEN 新建 `benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir.json`、
+   `base-ir-source-audit.json`，更新 `pilot.json`；exact-output 规则只映射公开 output policy，不写入 `NUL`
+   或任何单次运行残差；
+3. [x] RED/GREEN 扩展通用 `static-development`：保持 v1 law lock 兼容，声明式支持已冻结 Pi managed
+   short-path 与 static-fidelity gate；禁止新增 runtime/catalog 版本或 skill-id core branch；
+4. [ ] 新建 reviewer static lock，冻结 source/tasks/public interface/resource/scorer/base IR/source audit、
+   Pi harness 和数值 gate；完成 lock validation、dry-run、resource probe、route qualification；
+5. [ ] 执行唯一 `retries=0` development 矩阵，确定性评分并生成 compact gate/failure audit；未过门则不补跑、
+   不调 scorer、不运行 held-out；
+6. [ ] 同步 evaluation、pilots、results、portfolio 与 conversation log，运行 focused/full tests、typecheck、
+   文档链接和 diff check 后提交。
 
 ## 6. 验证与实验门禁
 

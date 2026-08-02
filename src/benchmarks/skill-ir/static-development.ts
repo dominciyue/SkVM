@@ -17,6 +17,7 @@ export const StaticDevelopmentLockSchema = z.object({
   schemaVersion: z.literal("skill-ir-static-development-lock/v1"),
   status: z.literal("preregistered"),
   experimentId: z.string().regex(/^[a-z0-9][a-z0-9.-]+$/),
+  evaluationMode: z.enum(["improvement", "static-fidelity"]).optional(),
   methodEvidence: z.literal(true),
   corpus: z.literal("pilot"),
   skillId: z.string().min(1),
@@ -27,13 +28,16 @@ export const StaticDevelopmentLockSchema = z.object({
     scorer: FrozenFileSchema,
     baseIr: FrozenFileSchema,
     sourceAudit: FrozenFileSchema,
+    publicContract: FrozenFileSchema.optional(),
+    admissionEvidence: FrozenFileSchema.optional(),
   }).strict(),
+  implementation: z.array(FrozenFileSchema).min(1).optional(),
   model: z.object({
     route: z.string().min(1),
     family: z.string().min(1),
   }).strict(),
   adapter: z.object({
-    id: z.literal("bare-agent"),
+    id: z.enum(["bare-agent", "pi"]),
     version: z.string().min(1),
   }).strict(),
   matrix: z.object({
@@ -54,13 +58,20 @@ export const StaticDevelopmentLockSchema = z.object({
     routeProbeTimeoutMs: z.literal(180000),
     resourceProbeRequired: z.literal(true),
     routeProbeRequired: z.literal(true),
+    taskTimeoutMs: z.literal(300000).optional(),
+    maxSteps: z.literal(30).optional(),
+    outerWatchdogMs: z.literal(360000).optional(),
+    adapterConfig: z.literal("managed").optional(),
+    maximumWorkDirLength: z.literal(220).optional(),
+    outputRoot: SafeRelativePathSchema.optional(),
   }).strict(),
   gate: z.object({
-    minimumIrStaticSuccesses: z.literal(3),
-    minimumIrStaticMeanScore: z.literal(0.85),
+    minimumIrStaticSuccesses: z.union([z.literal(3), z.literal(4)]),
+    minimumIrStaticMeanScore: z.union([z.literal(0.85), z.literal(1)]),
     maximumInfrastructureFailures: z.literal(0),
     maximumHardGateRegressions: z.literal(0),
-    minimumImprovedPairs: z.literal(1),
+    minimumImprovedPairs: z.union([z.literal(0), z.literal(1)]),
+    maximumRegressedPairs: z.literal(0).optional(),
   }).strict(),
   promotionBoundary: z.object({
     corpusStatusAtRun: z.literal("runnable"),
@@ -69,11 +80,31 @@ export const StaticDevelopmentLockSchema = z.object({
     permitsDynamicRepair: z.literal(false),
     permitsArtifactPromotion: z.literal(false),
     permitsScorerRetuning: z.literal(false),
+    permitsResidualAudit: z.literal(true).optional(),
   }).strict(),
   prohibited: z.array(z.string().min(1)).min(1),
 }).strict().superRefine((lock, ctx) => {
   if (new Set(lock.matrix.taskIds).size !== lock.matrix.taskIds.length) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Static development task ids must be unique" });
+  }
+  if (lock.adapter.id === "pi" && (
+    lock.runtime.taskTimeoutMs !== 300000
+    || lock.runtime.maxSteps !== 30
+    || lock.runtime.outerWatchdogMs !== 360000
+    || lock.runtime.adapterConfig !== "managed"
+    || lock.runtime.maximumWorkDirLength !== 220
+    || lock.runtime.outputRoot === undefined
+  )) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Pi static development requires the frozen managed short-path runtime" });
+  }
+  if (lock.evaluationMode === "static-fidelity" && (
+    lock.gate.minimumIrStaticSuccesses !== 4
+    || lock.gate.minimumIrStaticMeanScore !== 1
+    || lock.gate.minimumImprovedPairs !== 0
+    || lock.gate.maximumRegressedPairs !== 0
+    || lock.promotionBoundary.permitsResidualAudit !== true
+  )) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Static fidelity gate or residual boundary mismatch" });
   }
 });
 
@@ -108,6 +139,7 @@ export async function validateStaticDevelopmentLock(
 ): Promise<StaticDevelopmentLock> {
   const lock = StaticDevelopmentLockSchema.parse(input);
   await Promise.all(Object.values(lock.frozenInputs).map((file) => verifyDigest(rootDir, file)));
+  await Promise.all((lock.implementation ?? []).map((file) => verifyDigest(rootDir, file)));
 
   const manifest = overrides.manifest ?? JSON.parse(await readFile(
     path.resolve(rootDir, "benchmarks/skill-ir/corpus/corpora/pilot.json"),
@@ -197,6 +229,9 @@ export async function buildStaticDevelopmentPlan(opts: {
     execute: opts.execute ?? false,
     retries: lock.runtime.retries,
     retryDelayMs: 0,
+    ...(lock.runtime.outerWatchdogMs !== undefined
+      ? { outerWatchdogMs: lock.runtime.outerWatchdogMs }
+      : {}),
     rootDir,
     allowTasksAuthored: false,
     allowDevelopmentReplay: false,
@@ -209,7 +244,33 @@ export async function buildStaticDevelopmentPlan(opts: {
     tasks: new Set(lock.matrix.taskIds),
     requireEnv: new Set([lock.runtime.apiKeyEnv]),
   };
-  const plan = await buildPlan(runArgs);
+  if (lock.runtime.outputRoot !== undefined) {
+    const expectedOutDir = path.resolve(rootDir, lock.runtime.outputRoot, "run");
+    if (path.resolve(runArgs.outDir) !== expectedOutDir) {
+      throw new Error("Static development output root drift");
+    }
+  }
+  let plan = await buildPlan(runArgs);
+  if (lock.adapter.id === "pi") {
+    plan = plan.map((row) => ({
+      ...row,
+      command: [
+        process.execPath,
+        "run",
+        path.resolve(rootDir, "src/index.ts"),
+        "run",
+        ...row.command.slice(4).filter((arg) =>
+          !arg.startsWith("--adapter-config=")
+          && !arg.startsWith("--timeout-ms=")
+          && !arg.startsWith("--max-steps=")),
+        `--adapter-config=${lock.runtime.adapterConfig}`,
+        `--timeout-ms=${lock.runtime.taskTimeoutMs}`,
+        `--max-steps=${lock.runtime.maxSteps}`,
+      ],
+    }));
+    const overBudget = plan.find((row) => path.resolve(row.workDir).length > lock.runtime.maximumWorkDirLength!);
+    if (overBudget) throw new Error(`Static development workdir exceeds ${lock.runtime.maximumWorkDirLength}`);
+  }
   if (plan.length !== lock.matrix.expectedRows) {
     throw new Error(`Static development row mismatch: expected ${lock.matrix.expectedRows}, got ${plan.length}`);
   }

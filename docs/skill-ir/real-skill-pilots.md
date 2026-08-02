@@ -43,7 +43,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | law-to-markdown | document/script/template | studied method-development | development pass，held-out regression。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
-| zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 2+2 冻结；v2 audit 20/20；区分度 calibration 有效并开放 base IR audit。 |
+| zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 2+2 冻结；v2 audit 20/20；profile-empty base IR/source audit 已完成，静态保真待执行。 |
 | zh-readme | fact extraction/template/link | untouched candidate | 未冻结任务与 scorer。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
@@ -148,7 +148,19 @@ bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-audit-run.ts
 `results/skill-ir/benchmark-contract-audit/zh-code-reviewer-v2.json`。v2 audit 为 20/20；旧 v1 calibration
 因结构化 summary 的私有 string 约束冻结为 invalid。修复后的 v2 校准为 8/8、0 infra，original 4/4、
 no-skill 3/4；唯一失败来自额外 `NUL` 文件违反公开 exact-output contract，因此允许进入 base IR/source
-audit。它仍不开放 artifact、held-out、跨模型或优化 claim。
+audit。当前已提交逐节点 source audit 并晋升为 runnable；静态阶段使用同一 Pi/强模型身份运行
+`no-skill | original | ir-static` 12 行保真矩阵。该 gate 只开放 typed residual audit，仍不开放 artifact、
+held-out、跨模型或优化 claim。
+
+```powershell
+bun ./src/benchmarks/skill-ir/static-development-run.ts `
+  --phase=plan `
+  --lock=benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json `
+  --out-dir=results/skill-ir/zcr-static-fidelity-v1
+```
+
+后续将 `--phase` 依次改为 `route-probe`、`execute`。execute 后仍由冻结 deterministic scorer 与
+`static-development-gate-run.ts` 生成 compact gate；不得把静态保真通过解释为 skill 已优化。
 
 ## 11. 修改与验证
 

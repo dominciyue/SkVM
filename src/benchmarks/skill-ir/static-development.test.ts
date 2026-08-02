@@ -5,6 +5,7 @@ import { describe, expect, test } from "bun:test";
 import {
   buildStaticDevelopmentPlan,
   readAndValidateStaticDevelopmentLock,
+  StaticDevelopmentLockSchema,
   validateStaticDevelopmentLock,
 } from "./static-development";
 import {
@@ -18,6 +19,10 @@ const rootDir = path.resolve(import.meta.dir, "../../..");
 const lockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-static-development-lock.json",
+);
+const reviewerLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json",
 );
 
 async function rawLock(): Promise<Record<string, unknown>> {
@@ -116,6 +121,73 @@ describe("static development lock", () => {
     skill.status = "tasks-authored";
     delete skill.sourceAuditPath;
     await expect(validateStaticDevelopmentLock(lock, rootDir, { manifest })).rejects.toThrow("runnable audited IR");
+  });
+
+  test("accepts a preregistered Pi managed static-fidelity identity without changing the catalog version", async () => {
+    const lock = await rawLock();
+    const parsed = StaticDevelopmentLockSchema.parse({
+      ...lock,
+      experimentId: "reviewer-static-fidelity-v1",
+      evaluationMode: "static-fidelity",
+      adapter: { id: "pi", version: "0.67.68" },
+      runtime: {
+        ...(lock.runtime as Record<string, unknown>),
+        taskTimeoutMs: 300000,
+        maxSteps: 30,
+        outerWatchdogMs: 360000,
+        adapterConfig: "managed",
+        maximumWorkDirLength: 220,
+        outputRoot: "results/skill-ir/reviewer-static-fidelity-v1",
+      },
+      gate: {
+        minimumIrStaticSuccesses: 4,
+        minimumIrStaticMeanScore: 1,
+        maximumInfrastructureFailures: 0,
+        maximumHardGateRegressions: 0,
+        minimumImprovedPairs: 0,
+        maximumRegressedPairs: 0,
+      },
+      promotionBoundary: {
+        ...(lock.promotionBoundary as Record<string, unknown>),
+        permitsResidualAudit: true,
+      },
+    });
+    expect(parsed).toMatchObject({
+      schemaVersion: "skill-ir-static-development-lock/v1",
+      evaluationMode: "static-fidelity",
+      adapter: { id: "pi", version: "0.67.68" },
+      gate: { minimumImprovedPairs: 0, maximumRegressedPairs: 0 },
+    });
+  });
+
+  test("builds the frozen reviewer Pi plan as four complete short-path triplets", async () => {
+    const lock = await readAndValidateStaticDevelopmentLock({ rootDir, lockPath: reviewerLockPath });
+    expect(lock).toMatchObject({
+      experimentId: "zh-code-reviewer-static-fidelity-v1",
+      evaluationMode: "static-fidelity",
+      adapter: { id: "pi", version: "0.67.68" },
+      gate: {
+        minimumIrStaticSuccesses: 4,
+        minimumIrStaticMeanScore: 1,
+        minimumImprovedPairs: 0,
+        maximumRegressedPairs: 0,
+      },
+      promotionBoundary: { permitsResidualAudit: true, permitsHeldOut: false },
+    });
+    const result = await buildStaticDevelopmentPlan({
+      rootDir,
+      lockPath: reviewerLockPath,
+      outDir: path.join(rootDir, lock.runtime.outputRoot!, "run"),
+    });
+    expect(result.plan).toHaveLength(12);
+    expect(new Set(result.plan.map((row) => `${row.caseId}:${row.runIndex}`))).toHaveLength(4);
+    for (const row of result.plan) {
+      expect(row.command.slice(0, 4)).toEqual([process.execPath, "run", path.join(rootDir, "src/index.ts"), "run"]);
+      expect(row.command).toContain("--adapter-config=managed");
+      expect(row.command).toContain("--timeout-ms=300000");
+      expect(row.command).toContain("--max-steps=30");
+      expect(row.workDir.length).toBeLessThanOrEqual(220);
+    }
   });
 
   test("persists a plan-only dry-run and accepts only the three frozen phases", async () => {

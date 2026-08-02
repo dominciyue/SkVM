@@ -171,6 +171,11 @@ Qualification 与 execute 使用同一命令，只把 `--phase` 分别改为 `qu
 失败为多出的 `NUL` 文件违反公开 exact-output contract。`measurement-validity.json` 只开放 base IR audit，
 held-out 与优化 claim 仍关闭。
 
+Reviewer 的下一阶段复用通用 static-development runner，但 lock 将 adapter 声明为 Pi managed short-path，
+并使用 `evaluationMode=static-fidelity`。这是因为冻结 original 已 4/4；门禁预注册为 ir-static 4/4、mean
+1.0、0 infra、0 hard-gate/score regression，允许 0 improved pair。通过只开放 typed residual audit，不开放
+held-out 或 optimization claim。命令与锁路径见 `real-skill-pilots.md`。
+
 ## 8. Benchmark Contract Audit
 
 付费前 audit 至少覆盖：

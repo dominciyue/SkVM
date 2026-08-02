@@ -163,6 +163,26 @@ expected、held-out 内容、secret 或运行结果。
 Source audit 使用独立 sidecar，固定 source/task/resource digest，并要求 IR 节点映射到公开证据。
 Development task 只能暴露用户可见 prompt/fixture；scorer payload 不得成为编译输入。
 
+#### 5.1.1 `zh-code-reviewer` 静态保真阶段
+
+`zh-code-reviewer` 的 v2 calibration 已满足 base IR 准入，但 original 在冻结 development 分母上为
+4/4、mean 1.0，因此本阶段不能沿用“至少一个 original -> ir-static 改善 pair”的门禁。profile-empty
+base IR 仍只由 exact `SKILL.md`、development 用户可见 prompt、`review-interface.json` 与 resource contract
+构造；source audit 必须逐节点标明 `source-explicit`、`task-contract`、`resource-contract`、
+`static-clarification` 或 `schema-plumbing`，并继续排除 evaluator payload、held-out、runtime output 与
+profile feedback。
+
+静态开发固定同一强模型与 Pi managed direct Node short-path 身份，运行
+`no-skill | original | ir-static`、2 development tasks x 2 repetitions，共 12 行/4 triplets，
+`retries=0`。该阶段的 gate 是 **static fidelity gate**：要求 12/12 rows、4/4 triplets、0 infrastructure、
+ir-static 4/4 且 mean 1.0、相对 original 没有 hard-gate 或 score regression。`minimumImprovedPairs=0` 是由
+original 饱和预先决定，不是执行后放宽；no-skill 只保留为同身份参照。
+
+通过只说明 lowering 后的静态视图保留了冻结开发任务上的公开 skill 语义，并允许进入 typed residual
+审计。它不开放 held-out，不构成优化、跨模型、跨环境或 Token 收益证据。若 ir-static 退化，停止并修正
+base IR/lowering；若无公开可复现 residual，不生成动态 overlay；若出现 residual，则按 5.2 的双源规则
+分类，禁止把随机额外文件、具体 finding 金标或 scorer expected 硬编码进 IR。
+
 ### 5.2 动态阶段
 
 当前采用双源 residual：

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { readAndValidateStaticDevelopmentLock } from "./static-development";
+import { readAndValidateStaticDevelopmentLock, StaticDevelopmentLockSchema } from "./static-development";
 import { buildStaticDevelopmentGateReport } from "./static-development-gate";
 import { runStaticDevelopmentGateFile } from "./static-development-gate-run";
 import type { RawAgentRunRow, ScoredAgentRunRow } from "./scoring";
@@ -177,6 +177,62 @@ describe("static development gate", () => {
     expect(report.counts.hardGateRegressions).toBe(1);
     expect(report.gates.maximumHardGateRegressions).toBe(false);
     expect(report.passed).toBe(false);
+  });
+
+  test("admits saturated static fidelity with zero improvements and rejects any score regression", async () => {
+    const base = await readAndValidateStaticDevelopmentLock({ rootDir, lockPath });
+    const lock = StaticDevelopmentLockSchema.parse({
+      ...base,
+      evaluationMode: "static-fidelity",
+      gate: {
+        minimumIrStaticSuccesses: 4,
+        minimumIrStaticMeanScore: 1,
+        maximumInfrastructureFailures: 0,
+        maximumHardGateRegressions: 0,
+        minimumImprovedPairs: 0,
+        maximumRegressedPairs: 0,
+      },
+      promotionBoundary: { ...base.promotionBoundary, permitsResidualAudit: true },
+    });
+    const rows = passingRows();
+    rows.scoredRows = rows.scoredRows.map((entry) => {
+      if (entry.system === "no-skill") return entry;
+      if (entry.system !== "original" && entry.system !== "ir-static") {
+        throw new Error(`unexpected static test system ${entry.system}`);
+      }
+      return scored({
+        taskId: entry.task,
+        system: entry.system,
+        runIndex: entry.runIndex!,
+        success: true,
+        score: 1,
+      });
+    });
+    const passed = buildStaticDevelopmentGateReport({ lock, tasks, ...rows });
+    expect(passed).toMatchObject({
+      passed: true,
+      counts: { improvedPairs: 0, regressedPairs: 0 },
+      gates: { minimumImprovedPairs: true, maximumRegressedPairs: true },
+      interpretation: {
+        heldOutPlanningAllowed: false,
+        residualAuditAllowed: true,
+        heldOutExecutionAllowed: false,
+        entersMainClaim: false,
+      },
+    });
+
+    const regressed = rows.scoredRows.find((entry) => entry.system === "ir-static")!;
+    rows.scoredRows[rows.scoredRows.indexOf(regressed)] = scored({
+      taskId: regressed.task,
+      system: "ir-static",
+      runIndex: regressed.runIndex!,
+      success: false,
+      score: 0.8,
+    });
+    const failed = buildStaticDevelopmentGateReport({ lock, tasks, ...rows });
+    expect(failed.counts.regressedPairs).toBe(1);
+    expect(failed.gates.maximumRegressedPairs).toBe(false);
+    expect(failed.passed).toBe(false);
   });
 
   test("keeps missing and infrastructure rows in the frozen denominator", async () => {

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "skill-ir-source-audit/v1",
+  "skillId": "zh-code-reviewer",
+  "sources": [
+    {
+      "id": "skill-source",
+      "kind": "markdown",
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+      "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40"
+    },
+    {
+      "id": "task-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/development/tasks.json",
+      "sha256": "ebff398dc66edc79e42702eb84ba8e37d812438e10de4186d7d1101ef479080b",
+      "allowedPointers": ["/tasks/0/prompt", "/tasks/1/prompt"]
+    },
+    {
+      "id": "public-interface",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/review-interface.json",
+      "sha256": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43",
+      "allowedPointers": [
+        "/protectedInputs",
+        "/outputs",
+        "/finding",
+        "/severity",
+        "/jsonReport",
+        "/markdownReport",
+        "/resourcePolicy",
+        "/outputPolicy"
+      ]
+    },
+    {
+      "id": "resource-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/resource-contract.json",
+      "sha256": "5600029ad8259b8698fd84dcb18777a8e27aa4143ee6741c4f60134be641ee09",
+      "allowedPointers": [
+        "/inputFormats",
+        "/network",
+        "/packageInstall",
+        "/interpreter",
+        "/probe",
+        "/missingDependencyDisposition"
+      ]
+    }
+  ],
+  "mappings": [
+    { "targetRef": "category", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 8, "end": 20 } }] },
+    { "targetRef": "intent", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 11, "end": 20 } }] },
+    { "targetRef": "input:source-code", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 13, "end": 13 } }, { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "input:review-interface", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/finding" } }] },
+    { "targetRef": "output:json-report", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/jsonReport" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputs" } }] },
+    { "targetRef": "output:chinese-markdown-report", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 20, "end": 42 } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/markdownReport" } }] },
+    { "targetRef": "precondition:protected-inputs-readable", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/protectedInputs" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "precondition:offline-runtime-boundary", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/network" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/packageInstall" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter" } }] },
+    { "targetRef": "step:step-inspect-contract", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 13, "end": 13 } }, { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "step:step-analyze-code", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 14, "end": 19 } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/finding" } }] },
+    { "targetRef": "step:step-calibrate-severity", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/severity" } }] },
+    { "targetRef": "step:step-write-reports", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 20, "end": 42 } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/jsonReport" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/markdownReport" } }] },
+    { "targetRef": "step:step-verify-delivery", "construction": "static-clarification", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "rule:rule-review-dimensions", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 14, "end": 19 } }] },
+    { "targetRef": "rule:rule-ground-findings", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/finding" } }] },
+    { "targetRef": "rule:rule-public-severity", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/severity" } }] },
+    { "targetRef": "rule:rule-chinese-structured-report", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 20, "end": 42 } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/markdownReport" } }] },
+    { "targetRef": "rule:rule-preserve-inputs", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/protectedInputs" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "rule:rule-exact-output-set", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputs" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "rule:rule-language-boundary", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 44, "end": 47 } }] },
+    { "targetRef": "rule:rule-offline", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/network" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/packageInstall" } }] },
+    { "targetRef": "tool:tool-filesystem", "construction": "schema-plumbing", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 13, "end": 13 } }, { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "tool:tool-node-runtime", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/probe" } }] },
+    { "targetRef": "environment:env-contained-workdir", "construction": "task-contract", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "environment:env-node-offline", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/network" } }] },
+    { "targetRef": "check:check-protected-inputs", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/protectedInputs" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "check:check-finding-evidence", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/finding" } }] },
+    { "targetRef": "check:check-severity", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/severity" } }] },
+    { "targetRef": "check:check-report-schema", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/jsonReport" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/markdownReport" } }] },
+    { "targetRef": "check:check-report-consistency", "construction": "static-clarification", "evidence": [{ "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/markdownReport" } }] },
+    { "targetRef": "check:check-exact-output-set", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputs" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "recovery:recovery-unconfirmed-finding", "construction": "static-clarification", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/finding" } }, { "sourceId": "task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] }
+  ],
+  "excludedEvidenceClasses": ["evaluator-payload", "held-out", "runtime-output", "profile-feedback"]
+}
