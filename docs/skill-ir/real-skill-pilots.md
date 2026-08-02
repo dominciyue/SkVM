@@ -42,7 +42,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | env-manager | environment/schema/repair | studied method-development | v1 audit failed；机制证据保留。 |
 | law-to-markdown | document/script/template | studied method-development | development pass，held-out regression。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
-| api-tester | OpenAPI/schema/test-plan | method-development | 旧 Wave B gate failed；新 re-entry admission passed。 |
+| api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | untouched candidate | 未冻结任务与 scorer。 |
 | zh-readme | fact extraction/template/link | untouched candidate | 未冻结任务与 scorer。 |
 
@@ -100,9 +100,11 @@ Audit 必须证明 scorer：
 冻结 Task 16.22：8/8 rows、0 infra、4 differing pairs；original mean 高于 no-skill，但两 task 的
 original success 均为 false，旧 gate failed。该结果保持不变。
 
-新的 `skill-ir-partial-benefit-reentry/v1` 已验证 admission passed，只决定它能否以新 identity 成为
-method-development case，不能创建 base IR、开放 held-out 或把旧结果改为成功。首个方法目标是把公开 OpenAPI 的 operation、schema
-constraint、auth、boundary 与 independence 固化为可执行 schema walker/test-plan/template/checker。
+新的 `skill-ir-partial-benefit-reentry/v1` 验证 admission passed 后，API Tester 以新 identity 完成
+source-audited base IR、YAML/JSON 声明式 adapter 和两个 `validated-skill-artifact/v1` package。冻结
+development 矩阵 16/16、0 infra；artifact 4/4、mean 1.0、0 pairwise regression，模型三臂均 0/4。
+该结果只将它记为 passed method-development phenotype；不能把旧 gate 改判，也不开放 held-out、
+untouched replication 或跨模型 claim。
 
 ## 9. Portfolio Readiness
 

@@ -25,12 +25,12 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   出现 2 次回归，package 未晋升。
 - `experimental-design` v2 与 skill-unique slice 均出现 no-skill/original 饱和，说明当前任务不能
   支撑优化归因；该路线已按停止规则关闭。
-- `api-tester` baseline 为 8/8 rows、0 infrastructure、4 differing pairs；original mean 0.4000
-  高于 no-skill 0.2375，但两臂均 0/4 success。冻结旧 gate 仍失败，后续只允许通过新的 prospective
-  partial-benefit policy 进入 method-development，不能继续作为 untouched replication。该 policy 已以
-  新 identity 验证通过，只开放方法开发，不开放 base IR/held-out。
+- `api-tester` 旧 baseline gate 仍失败；prospective re-entry 后，新 source-audited schema-derived artifact
+  development 矩阵完成 16/16、0 infrastructure。No-skill/original/ir-static mean 分别为
+  0.15/0.225/0.3875，artifact 为 4/4、mean 1.0、runtime model tokens 0，development gate 通过。
+  该结果只计 method-development，不开放 held-out、replication 或跨模型 claim。
 - Method portfolio 已机器化登记 6 个 case：4 studied、2 contract-qualified、0 untouched replication、
-  0 个“合同合格且 development pass”的 phenotype；readiness 五项均未通过。
+  1 个“合同合格且 development pass”的 phenotype；readiness 仍未通过。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -39,7 +39,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 冻结旧结果，不改 gate
 -> 版本化 prospective partial-benefit re-entry
 -> 建立 method-development portfolio 与 readiness evaluator
--> API Tester 以新身份开发 schema-derived artifact
+-> API Tester schema-derived artifact development gate passed
 -> 至少 6 个 contract-qualified 真实方法案例持续提炼通用 core
 -> readiness gate 通过
 -> 用另一项 untouched skill 做冻结 replication

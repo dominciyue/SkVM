@@ -230,9 +230,11 @@ Benchmark v2 将主语义成功与 deterministic profile 分开：
 - 新工作使用新的 task/contract/lock/result identity；
 - 不计为 untouched replication，也不自动获得 base IR/held-out 权限。
 
-API Tester 是该 policy 的首个案例，prospective admission 已通过；旧 gate 仍失败，所有 claim boundary
-仍关闭。其主要残差 `api-schema-derived-cases` 可从公开 OpenAPI 推导，适合测试可执行 schema
-walker/template，而不是继续依赖 prompt repair。
+API Tester 是该 policy 的首个案例，prospective admission 已通过；旧 gate 仍失败且不改判。新身份下已
+完成 source-audited base IR、声明式双 OpenAPI 变体和 `validated-skill-artifact/v1` package。冻结
+development 矩阵为 `no-skill | original | ir-static | validated-artifact`、2 task x 2 repetitions，结果
+16/16 完整、0 infrastructure、artifact 4/4 success、mean 1.0、0 pairwise regression，development gate
+通过。该证据只开放 method-development portfolio 计数；held-out、replication、跨模型和 promotion 仍关闭。
 
 ## 10. 指标与报告
 
@@ -245,7 +247,8 @@ workdir、qualification 临时目录与调试 snapshot 默认留本机，除非�
 
 ## 11. 当前证据与不可声称项
 
-权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，通用优化主 claim 未完成”。
+权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
+development artifact 正向案例，通用优化主 claim 未完成”。
 
 不得声称：
 

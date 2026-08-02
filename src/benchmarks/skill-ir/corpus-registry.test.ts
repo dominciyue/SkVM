@@ -40,8 +40,11 @@ describe("skill-ir corpus registry", () => {
     });
     expect(apiTester).toMatchObject({
       portfolioRole: "prospective-method-development",
-      depth: "partial-benefit-reentry-candidate",
+      depth: "schema-derived-artifact-development",
+      status: "runnable",
       evidenceWeight: "support-real",
+      irPath: "benchmarks/skill-ir/pilots/api-tester/base-ir.json",
+      sourceAuditPath: "benchmarks/skill-ir/pilots/api-tester/base-ir-source-audit.json",
     });
     expect(apiTester?.wave).toBeUndefined();
 

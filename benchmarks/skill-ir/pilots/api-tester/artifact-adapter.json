@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "skill-ir-api-tester-artifact-adapter/v1",
+  "catalog": "validated-skill-artifact/v1",
+  "adapterId": "api-tester-schema-derived-test-plan",
+  "version": "v1",
+  "interfacePath": "api-test-interface.json",
+  "variants": [
+    {
+      "id": "openapi-yaml",
+      "inputPath": "api/openapi.yaml",
+      "inputFormat": "yaml"
+    },
+    {
+      "id": "openapi-json",
+      "inputPath": "api/openapi.json",
+      "inputFormat": "json"
+    }
+  ],
+  "outputs": {
+    "generator": "api-test-generator.mjs",
+    "plan": "generated/api-test-plan.json",
+    "report": "api-test-report.json"
+  },
+  "generationPolicy": {
+    "framework": "node:test",
+    "categories": ["happy", "boundary", "error"],
+    "securityPlaceholder": "${API_TEST_TOKEN}",
+    "caseTimeoutMs": 5000,
+    "deterministic": true,
+    "independent": true
+  },
+  "resourcePolicy": {
+    "network": "forbidden",
+    "packageInstall": "forbidden",
+    "shell": false
+  }
+}

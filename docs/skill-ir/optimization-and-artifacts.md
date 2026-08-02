@@ -90,7 +90,7 @@ scorer handoff。Skill 差异只能进入 declarative adapter 和编译产物：
 - Law：converter/checker/report template；
 - Experimental Design：allocation script/design schema/report evidence；
 - Env Manager：inventory/schema/check/repair；
-- API Tester 候选：OpenAPI schema walker/test-plan/template/checker。
+- API Tester：声明式 YAML/JSON OpenAPI 变体、bundled schema walker、test-plan generator 和 checker。
 
 通用 core 不得 `if (skillId === ...)`。新增案例必须记录 `coreBranchDelta`、adapter LOC、人工时间、artifact
 kind 复用率和未自动化步骤。
@@ -177,11 +177,29 @@ Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer �
 - Env 证明 deterministic repair 可以把已知 schema residual 固化为 0-token repair，但完整 gate 因 infra 失败。
 - Law 证明 code/template/checker artifact 可在 development 显著优于文本 skill，随后 held-out 边界回归。
 - Experimental Design 证明 catalog/runtime 可复用到第二 phenotype，但 benchmark 饱和阻断优化归因。
-- API Tester 暴露 source-attributable schema residual；prospective admission 已通过，适合作为下一
-  method-development artifact case。旧 Wave B result 与 admission 本身都不提供 base IR/held-out 权限。
+- API Tester 已把 source-attributable schema residual 固化为 profile-empty base IR、38 行声明式 adapter 和
+  两个同 catalog package 变体。冻结 development 为 4/4、mean 1.0、0 regression；模型三臂均 0/4。
+  这证明公开 OpenAPI 约束可以编译成稳定的 0-runtime-model-token artifact，不证明 held-out 或跨模型泛化。
 
-因此下一工作不是新增 runtime 版本，而是把 re-entry、portfolio readiness 和 schema-derived adapter 变成
-通用、可审计机制。
+因此下一工作不是新增 runtime 版本，而是用更多信息互补 skill 检验同一 core/catalog 是否只需声明式
+adapter，并补齐自动生成 IR/contract 和适配成本收敛证据。
+
+API Tester 的本地编译与冻结实验命令：
+
+```powershell
+cd D:\skill优化\SkVM
+bun ./src/benchmarks/skill-ir/api-tester-artifact-compile-run.ts
+bun test ./src/benchmarks/skill-ir/api-tester-artifact-compiler.test.ts `
+  ./src/benchmarks/skill-ir/api-tester-artifact-activation.test.ts `
+  ./src/benchmarks/skill-ir/api-tester-artifact-development.test.ts
+bun ./src/benchmarks/skill-ir/api-tester-artifact-development-run.ts `
+  --phase=plan `
+  --lock=benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json `
+  --out-dir=results/skill-ir/api-tester-schema-derived-artifact-development-v1
+```
+
+`qualification` 与 `execute` 使用相同参数，只替换 `--phase`；真实执行前必须通过 lock validation，且
+`SKVM_XTY_API_KEY` 只能存在于环境变量。
 
 ## 14. 成本
 

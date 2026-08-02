@@ -120,6 +120,25 @@ python scripts/analyze_skill_ir_results.py `
 
 具体冻结实验优先运行其专用 `*-run.ts`，不要从此示例猜测参数。
 
+API Tester schema-derived artifact 的四系统 development runner：
+
+```powershell
+cd D:\skill优化\SkVM
+$env:SKVM_AUTO_PROBE = "0"
+bun ./src/benchmarks/skill-ir/api-tester-artifact-development-run.ts `
+  --phase=qualification `
+  --lock=benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json `
+  --out-dir=results/skill-ir/api-tester-schema-derived-artifact-development-v1
+
+bun ./src/benchmarks/skill-ir/api-tester-artifact-development-run.ts `
+  --phase=execute `
+  --lock=benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json `
+  --out-dir=results/skill-ir/api-tester-schema-derived-artifact-development-v1
+```
+
+该 runner 从两个 `no-skill` identity 派生 direct artifact 行，按公开 fixture 路径选择 YAML/JSON package，
+最终形成 4 个完整 quartet。Qualification 与 lock digest 绑定，过期或失败时禁止 execute。
+
 ## 8. Benchmark Contract Audit
 
 付费前 audit 至少覆盖：

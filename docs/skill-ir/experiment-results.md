@@ -26,6 +26,7 @@
 | Experimental Design v2 | 2 arms x 4，普通与 harder | no-skill/original 均 4/4, 1.0 | 饱和，0 differing；不构造 base IR。 |
 | Experimental Design skill-unique | 2 arms x 4 | 均 4/4, 1.0；original token 3.1794x | 原 skill 增量仍未形成区分度，停止。 |
 | API Tester baseline | 2 arms x 4 = 8 | no-skill 0/4, 0.2375；original 0/4, 0.4000；4 differing | Partial benefit；旧 original-success gate failed。 |
+| API Tester artifact development | 4 systems x 4 = 16 | artifact 4/4, 1.0；static 0/4, 0.3875；original 0/4, 0.225；no-skill 0/4, 0.15 | Development gate passed；只计 method evidence。 |
 
 ## 3. Benchmark v1 与 v2
 
@@ -124,10 +125,22 @@ Original 改善了 operation coverage，但每个 task 的 full success 都为 f
 - `results/skill-ir/api-tester-contract-audit.json`
 - `results/skill-ir/api-tester-materialization-audit.json`
 
-新的 `skill-ir-partial-benefit-reentry/v1` 已对该冻结结果做 prospective admission，报告为 `admitted=true`；
-旧 `passed=false` 保持不变，`createsBaseIr/permitsHeldOut/untouchedReplication/rewritesOldGate` 全为 false。
-权威路径：`results/skill-ir/api-tester-partial-benefit-reentry.json`。下一目标是从公开 OpenAPI 固化
-schema-derived test-plan artifact。
+新的 `skill-ir-partial-benefit-reentry/v1` 对旧结果做 prospective admission 后，新身份完成了
+source-audited base IR、双输入变体 package 与冻结四系统 development：16/16 rows、4/4 quartets、0 infra。
+No-skill/original/ir-static 的 success 均为 0/4，mean 分别为 0.15、0.225、0.3875；validated artifact
+为 4/4、mean 1.0、0 hard-gate failure、0 pairwise regression。模型三臂合计 382605 tokens；artifact
+四次调用 runtime model tokens 为 0，deterministic process/validation 合计 257/260 ms，package 362715
+bytes。Compile 人工与一次性 token 成本未测，因此不计算 break-even。
+
+关键路径：
+
+- `benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json`
+- `results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json`
+- `results/skill-ir/api-tester-schema-derived-artifact-development-v1/scored-runs.jsonl`
+
+这批结果证明公开 OpenAPI 语义可被固化为稳定 artifact，并排除了本轮强模型/Pi route 基础设施失败。
+它仍是 development task、单模型、clean/Windows 证据；旧 baseline `passed=false` 不变，held-out、跨模型、
+untouched replication 和 Token break-even 均未证明。
 
 ## 8. 当前 Portfolio 证据
 
@@ -136,10 +149,10 @@ schema-derived test-plan artifact。
 | env-manager | yes | no (v1 audit) | no | no |
 | law-to-markdown | yes | no (v1 audit) | yes, held-out failed | no |
 | experimental-design | yes | yes (v2) | blocked by saturation | no |
-| api-tester | yes | yes | no, prospective re-entry pending | no |
+| api-tester | yes | yes | yes, artifact 4/4 | no |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：6 registered、4 studied、2
-contract-qualified、0 untouched replication、0 passed qualified phenotype；缺 4 个 qualified case，
+contract-qualified、0 untouched replication、1 passed qualified phenotype；缺 4 个 qualified case，
 Env/Law 仍有 benchmark-contract blocker，自动化指标也不完整。该失败是诚实状态，不应调整阈值。
 
 ## 9. 本地与提交结果
@@ -153,8 +166,8 @@ Env/Law 仍有 benchmark-contract blocker，自动化指标也不完整。该失
 
 ## 10. 后续实验
 
-1. 版本化 API Tester partial-benefit re-entry 与 portfolio readiness。
-2. 本地激活 schema-derived artifact，先证明 compiler/checker/alternative-valid/leak 边界。
-3. 新 lock、dry-run、qualification 后执行唯一 development 矩阵；未过即冻结，不跑 held-out。
-4. 继续引入 `zh-code-reviewer`、`zh-readme` 和信息互补的第六案例，提炼声明式 adapter。
+1. 保持 API Tester development package/lock/result 不可变，不立即运行 held-out。
+2. 继续引入 `zh-code-reviewer`、`zh-readme` 和信息互补的第六案例，提炼声明式 adapter。
+3. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
+4. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。
 5. Readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。

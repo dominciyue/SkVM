@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "skill-artifact-execution-plan/v1",
+  "entrypoint": "validate-api-test-artifacts",
+  "nodes": [
+    {
+      "id": "generate-api-test-artifacts",
+      "kind": "process",
+      "dependsOn": [],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_NODE",
+          "fallback": "node"
+        },
+        "artifactId": "api-test-generator",
+        "args": [
+          "generate",
+          "--workdir",
+          "{workdir}"
+        ],
+        "envAllowlist": [
+          "SKVM_NODE"
+        ]
+      },
+      "timeoutMs": 30000
+    },
+    {
+      "id": "validate-api-test-artifacts",
+      "kind": "validate",
+      "dependsOn": [
+        "generate-api-test-artifacts"
+      ],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_NODE",
+          "fallback": "node"
+        },
+        "artifactId": "api-test-checker",
+        "args": [
+          "validate",
+          "--workdir",
+          "{workdir}"
+        ],
+        "envAllowlist": [
+          "SKVM_NODE"
+        ]
+      },
+      "timeoutMs": 30000
+    }
+  ]
+}

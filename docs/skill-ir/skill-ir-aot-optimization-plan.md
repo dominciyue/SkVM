@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-01
+**最后更新：** 2026-08-02
 
 本文件只记录当前 ledger、执行顺序与活跃 TDD。已完成阶段的过程见 `history.md` 和 Git history；组件
 行为见对应权威文档；数值见 `experiment-results.md`。
@@ -40,8 +40,8 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Env-manager | 冻结 gate failure | 3 个 pair 0.90->1.00；完整分母含 1 infra。 |
 | Law-to-markdown | 冻结 held-out failure | Development 4/4；held-out 2/4 且 2 regression。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
-| API Tester | Re-entry admitted，旧 gate failure | 只开放新 method-development artifact；base IR/held-out 仍关闭。 |
-| Method portfolio | 已机器化，readiness failed | 6 registered、4 studied、2 qualified、0 replication。 |
+| API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
+| Method portfolio | 已机器化，readiness failed | 6 registered、4 studied、2 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
 | 文档治理 | 本轮重建 | 8 份权威文档，删除重复阶段全文。 |
@@ -50,16 +50,19 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 
 1. 当前 contract-qualified 方法案例只有 2 个，且通过 development gate 的 qualified phenotype 为 0。
 2. Automation/adaptation 指标不完整，历史 Env/Law 仍有 benchmark-contract blocker。
-3. API Tester 已允许以新身份进入方法开发，但还没有 source-audited base IR 或 schema-derived package。
+3. API Tester 的 schema-derived package 已通过冻结 development gate；下一缺口是更多信息互补、合同合格
+   的方法案例和自动化/适配成本数据。
 4. Law held-out 回归说明 artifact 的 task-boundary 泛化仍不足。
 5. Experimental Design 饱和与 API Tester 两臂均失败说明 task 区分度必须在优化前单独过门。
 6. 本轮已将可再生成的 `run/qualification-work/artifacts/snapshots/plan/resource-probe` 默认 ignore，
    untracked result files 从约 3741 降到约 216；剩余 scored/raw/diagnostic 候选需逐项判断是否应提交，
    不能治理性删除。
-7. 2026-08-01 全 benchmark suite 为 635 pass、4 skip、29 fail；失败集中在历史 lock 对
+7. 2026-08-02 全 benchmark suite 为 639 pass、4 skip、36 fail；失败集中在历史 lock 对
    `route-probe.ts`、`scoring.ts`、`real-agent-run.ts` 等 live implementation digest 的漂移。本轮未改这些
-   文件，也不修改冻结 digest。新模块 focused tests 与 typecheck 全绿；后续需单独设计“冻结历史验证”
-   与“当前 HEAD 回归”分层，不能用重写旧 lock 消除失败。
+   文件，也不修改冻结 digest。新增失败还包括旧 API calibration 将 corpus lifecycle 固定为
+   `tasks-authored/no irPath`，而新 method identity 已提升为 `runnable/base IR`；这属于历史 snapshot 与当前
+   registry 的验证分层债务。新模块 focused tests 与 typecheck 全绿；后续需单独设计“冻结历史验证”与
+   “当前 HEAD 回归”分层，不能用重写旧 lock 或回退当前 corpus 消除失败。
 
 ## 4. 已冻结边界
 
@@ -140,16 +143,58 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 2. 构造最小 6-case fixture 验证五个 gate 的独立失败/通过。
 3. 读取真实 registry，生成 compact readiness report。
 
-### Task 17.4 API Tester 方法开发下一刀
+### Task 17.4 API Tester 方法开发（完成，development gate passed）
 
 只有 Task 17.2/17.3 通过后执行：
 
-1. 复用公开 OpenAPI oracle，设计 declarative `schema-derived-test-plan` artifact adapter；
-2. 先做本地 compiler/checker activation，验证 protected input、determinism、alternative-valid 和 leak canary；
-3. 冻结新的 development lock，系统为 `original | ir-static | validated-artifact` 或与当前 catalog 一致的
-   三臂，不复用旧 Wave B identity；
-4. dry-run、route/qualification 通过后执行唯一 development 矩阵；
-5. 未过 gate 则冻结失败，不运行 held-out、不改 scorer；通过后也只计 method-development evidence。
+**文件**
+
+- 新建 `benchmarks/skill-ir/pilots/api-tester/base-ir.json`
+- 新建 `benchmarks/skill-ir/pilots/api-tester/base-ir-source-audit.json`
+- 新建 `benchmarks/skill-ir/pilots/api-tester/artifact-adapter.json`
+- 新建 `src/benchmarks/skill-ir/api-tester-artifact-compiler.ts`
+- 新建 `src/benchmarks/skill-ir/api-tester-artifact-compiler.test.ts`
+- 新建 `src/benchmarks/skill-ir/api-tester-artifact-activation.test.ts`
+- 新建 `src/benchmarks/skill-ir/api-tester-artifact-development.ts`
+- 新建 `src/benchmarks/skill-ir/api-tester-artifact-development.test.ts`
+- 新建 `src/benchmarks/skill-ir/api-tester-artifact-development-run.ts`
+- 新建 `benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json`
+
+**设计合同**
+
+1. 复用 `validated-skill-artifact/v1`、`runValidatedArtifactPlan`、公开 OpenAPI oracle 与现有 deterministic
+   scorer，不新增 runtime、transport 或 catalog 版本。
+2. Adapter 只声明公开输出合同、case generation policy 和两个输入变体：`api/openapi.yaml` 与
+   `api/openapi.json`。编译器按变体生成同 catalog package；差异只在 protected input/path config，禁止
+   task-id/core branch。
+3. Base IR 只映射 exact `SKILL.md`、development prompt、public interface 与 resource contract；profile
+   为空，source audit 显式排除 evaluator payload、held-out、runtime output 与 profile feedback。
+4. Package 固化 bundled offline OpenAPI parser、deterministic generator、semantic checker、schema、tool plan、
+   validation notes 和 base IR。Generator 必须支持公开 `node api-test-generator.mjs --input ... --out ...`
+   CLI；runtime process 负责生成三项 exact outputs，checker 独立从 protected OpenAPI 重建公开语义。
+5. Compiler 输出 byte-for-byte deterministic；额外 evaluator/gold/heldout/raw-model/secret canary 不得进入
+   package。删除公开 schema constraint 时，对应生成 case 必须消失或变化，形成 reverse-evidence。
+
+**TDD 与实验顺序**
+
+1. [x] RED：测试 base IR/source audit 缺失，compiler import/compile、双变体 protected input、determinism、
+   canary isolation 和 reverse-evidence 尚未成立。
+2. [x] GREEN：补 profile-empty base IR/source audit、严格 adapter schema 和最小 compiler；两变体均通过 package
+   validation。
+3. [x] Activation：对两个 development fixture 运行 resource probe 与通用 runtime，断言 protected digest
+   不变、runtime validation pass、model tokens 为 0、deterministic scorer full pass。
+4. [x] Activation 与现有 contract/materialization audit 全绿后冻结新的 development lock；系统固定为
+   `no-skill | original | ir-static | validated-artifact`，2 task x 2 repetitions 共 4 个完整 quartet，
+   不复用旧 Wave B identity。Artifact row 由 task fixture 的公开 OpenAPI 路径确定 package variant。
+5. [x] 新编排层只复用现有 Pi source runner、deterministic scorer、validated artifact runtime 与 frozen
+   benchmark guard；不修改旧 Law/API lock 绑定的实现，也不新增 runtime/catalog 版本。
+6. [x] Lock 在付费前固定模型、adapter、task、repetitions、双 package digest、实现 digest 和数值 gate；gate
+   要求 16/16 完整、0 infrastructure、artifact 4/4 success、均值及逐 task 均值 >= 0.85、无 hard-gate
+   failure，且相对 `max(original, ir-static)` 无 pairwise regression。
+7. [x] Lock validation、dry-run、resource probe、Pi/route qualification 通过后执行唯一 development 矩阵，
+   `retries=0`。
+   实际结果 16/16、0 infra、artifact 4/4、mean 1.0、0 regression，gate passed；只计
+   method-development evidence，不运行 held-out、不改 scorer。
 
 ### Task 17.5 扩充方法 Portfolio
 

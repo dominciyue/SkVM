@@ -1,0 +1,286 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "api-tester",
+  "name": "API Tester",
+  "category": ["workflow", "tool-use", "constraint-heavy", "environment-sensitive"],
+  "intent": "Discover an OpenAPI definition, derive deterministic happy, boundary, error, authentication, and response test cases from public schema evidence, and emit a replayable offline generator, plan, and truthful verification report.",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+    "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a"
+  },
+  "inputs": [
+    {
+      "id": "api-definition",
+      "description": "A protected OpenAPI 3 JSON or YAML document selected from the user-visible task workspace.",
+      "required": true
+    },
+    {
+      "id": "public-interface",
+      "description": "The protected public interface that declares the generator CLI, plan/report fields, resource policy, and exact output set.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "generator",
+      "description": "A deterministic offline Node generator that accepts --input and --out relative paths.",
+      "required": true
+    },
+    {
+      "id": "test-plan",
+      "description": "A JSON plan covering every public operation with schema-derived happy, boundary, error, security, and response witnesses.",
+      "required": true
+    },
+    {
+      "id": "verification-report",
+      "description": "A truthful JSON report binding the discovery source, generated case count, verification status, command, and limitations.",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "inputs-readable",
+      "description": "The OpenAPI and public interface files exist as readable regular files and remain unchanged.",
+      "checkability": "runtime"
+    },
+    {
+      "id": "node-runtime-available",
+      "description": "A Node runtime satisfying the resource contract is available before execution.",
+      "checkability": "runtime"
+    },
+    {
+      "id": "offline-boundary",
+      "description": "The task runs without network access or package installation and uses only the declared local runtime.",
+      "checkability": "runtime"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-discover-api",
+      "title": "Discover the public API definition",
+      "description": "Use the task-provided OpenAPI path and public interface instead of guessing routes from evaluator data.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": ["tool-filesystem"],
+      "produces": ["api-definition-reference"],
+      "successCheckRefs": ["check-protected-inputs"],
+      "failureModes": ["missing-openapi", "ambiguous-openapi", "invalid-interface"]
+    },
+    {
+      "id": "step-derive-operations",
+      "title": "Derive operations and constraints",
+      "description": "Parse documented methods, paths, response codes, parameters, request schemas, and supported security schemes from the public OpenAPI document.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-discover-api"],
+      "toolRefs": ["tool-openapi-parser"],
+      "produces": ["operation-inventory", "constraint-inventory"],
+      "successCheckRefs": ["check-operation-coverage"],
+      "failureModes": ["invalid-openapi", "unsupported-public-schema", "operation-without-success-response"]
+    },
+    {
+      "id": "step-generate-cases",
+      "title": "Generate schema-derived cases",
+      "description": "Create independent happy, boundary, documented error, and missing-authentication witnesses without embedding secrets.",
+      "kind": "plan",
+      "required": true,
+      "dependsOn": ["step-derive-operations"],
+      "toolRefs": ["tool-openapi-parser"],
+      "produces": ["test-case-plan"],
+      "successCheckRefs": ["check-schema-cases", "check-security-response"],
+      "failureModes": ["missing-constraint-witness", "undocumented-status", "hardcoded-secret", "dependent-case"]
+    },
+    {
+      "id": "step-emit-artifacts",
+      "title": "Emit deterministic artifacts",
+      "description": "Write exactly the public generator, generated JSON plan, and verification report using stable ordering and relative paths.",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": ["step-generate-cases"],
+      "toolRefs": ["tool-filesystem", "tool-node-runtime"],
+      "produces": ["generator", "test-plan", "verification-report"],
+      "successCheckRefs": ["check-output-contract"],
+      "failureModes": ["missing-output", "unexpected-output", "nondeterministic-output"]
+    },
+    {
+      "id": "step-verify-result",
+      "title": "Replay and report truthfully",
+      "description": "Replay the generator offline, validate the plan against public evidence, and report passed only when the replayed artifacts agree.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": ["step-emit-artifacts"],
+      "toolRefs": ["tool-node-runtime", "tool-filesystem"],
+      "produces": ["verification-status"],
+      "successCheckRefs": ["check-output-contract", "check-schema-cases"],
+      "failureModes": ["replay-failed", "report-mismatch", "unverified-success-claim"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-case-families",
+      "sourceText": "为每个 endpoint 生成正常场景、边界值测试和错误场景。",
+      "level": "must",
+      "scope": "planning",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Generate happy, boundary, and documented error cases from each public operation and schema constraint."
+    },
+    {
+      "id": "rule-independent-deterministic",
+      "sourceText": "测试用例应独立运行，不依赖执行顺序；固定数据适用于确定性测试。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Every case and generator replay must be independent, order-insensitive, and deterministic."
+    },
+    {
+      "id": "rule-secret-placeholder",
+      "sourceText": "敏感信息（API Key、Token）使用环境变量，不要硬编码。",
+      "level": "never",
+      "scope": "safety",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never hardcode credentials; represent required security headers with an environment placeholder."
+    },
+    {
+      "id": "rule-offline",
+      "sourceText": "当前公开任务禁止安装软件包、联系服务器或使用网络。",
+      "level": "never",
+      "scope": "tool-use",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never use the network or install packages during the pilot task."
+    },
+    {
+      "id": "rule-truthful-verification",
+      "sourceText": "无法执行时明确标注“未运行验证”，不要声称测试代码可直接通过。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Report verification as passed only after deterministic offline replay succeeds."
+    },
+    {
+      "id": "rule-exact-output-set",
+      "sourceText": "公开任务要求只生成三个声明的输出文件。",
+      "level": "must",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "medium",
+      "normalizedForm": "Produce exactly the declared generator, plan, and report without modifying protected inputs."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-filesystem",
+      "name": "workspace filesystem",
+      "purpose": "Read protected public inputs and write the exact declared output set using safe relative paths.",
+      "required": true,
+      "alternatives": ["agent-native file tools"],
+      "platformNotes": {
+        "linux": "Use POSIX relative paths and UTF-8.",
+        "macos": "Preserve path case and UTF-8.",
+        "windows": "Use contained Windows paths while serializing public paths with forward slashes."
+      },
+      "availabilityCheck": "Verify both protected inputs are regular readable files and the output directory is writable."
+    },
+    {
+      "id": "tool-node-runtime",
+      "name": "Node runtime",
+      "purpose": "Execute and replay the deterministic public generator without a shell.",
+      "required": true,
+      "alternatives": ["SKVM_NODE", "resource-contract fallbackCommand"],
+      "platformNotes": {
+        "linux": "Use an explicitly probed Node executable.",
+        "macos": "Use an explicitly probed Node executable.",
+        "windows": "Prefer SKVM_NODE when PATH resolution is ambiguous."
+      },
+      "availabilityCheck": "Run the resource-contract probe before package execution."
+    },
+    {
+      "id": "tool-openapi-parser",
+      "name": "bundled OpenAPI JSON/YAML parser",
+      "purpose": "Parse supported public OpenAPI structures and derive operations and schema constraints offline.",
+      "required": true,
+      "alternatives": ["declared local yaml package before bundling"],
+      "platformNotes": {},
+      "availabilityCheck": "Compiler bundles the declared parser and package validation binds its digest."
+    }
+  ],
+  "environment": [
+    {
+      "id": "env-node-yaml",
+      "description": "Compilation requires the declared local yaml module; runtime consumes the bundled script through Node without package installation.",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    },
+    {
+      "id": "env-offline-workdir",
+      "description": "Execution occurs in a contained workdir with protected inputs, exact outputs, no network, and no package installation.",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-protected-inputs",
+      "name": "Protected inputs unchanged",
+      "kind": "rule-violation",
+      "targetRef": "rule-exact-output-set",
+      "assertion": "The selected OpenAPI file and public interface retain their pre-execution digests.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-operation-coverage",
+      "name": "Public operations covered",
+      "kind": "output",
+      "targetRef": "step-derive-operations",
+      "assertion": "Every supported public OpenAPI operation appears exactly once in the generated plan.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-schema-cases",
+      "name": "Schema constraints witnessed",
+      "kind": "output",
+      "targetRef": "rule-case-families",
+      "assertion": "Every public required, length, numeric, enum, and supported format constraint has a valid or invalid witness with a documented status.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-security-response",
+      "name": "Security and response evidence grounded",
+      "kind": "output",
+      "targetRef": "rule-secret-placeholder",
+      "assertion": "Required headers use environment placeholders, unauthorized cases use documented 401/403 responses, and all expected statuses are documented.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-output-contract",
+      "name": "Generator, plan, and report agree",
+      "kind": "output",
+      "targetRef": "rule-truthful-verification",
+      "assertion": "The exact output set exists, generator replay is byte-stable, and report count/status match the generated plan.",
+      "onFailure": "report"
+    }
+  ],
+  "recovery": [
+    {
+      "id": "recovery-unconfirmed-openapi",
+      "trigger": "The public OpenAPI document is malformed or uses an unsupported operation, schema, or security form.",
+      "action": "stop",
+      "maxAttempts": 0,
+      "explanation": "Return an unconfirmed validation result instead of guessing operations or evaluator expectations."
+    },
+    {
+      "id": "recovery-runtime-unavailable",
+      "trigger": "The declared Node or parser resource probe fails.",
+      "action": "repair-environment",
+      "maxAttempts": 0,
+      "explanation": "Classify the row as preflight infrastructure and do not install dependencies during execution."
+    }
+  ],
+  "profile": []
+}
