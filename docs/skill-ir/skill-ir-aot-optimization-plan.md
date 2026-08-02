@@ -239,6 +239,17 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
    停止，不造 IR。当前只成立 benchmark-contract-qualified 方法证据，不成立模型效果、IR 优化或跨 skill
    claim。
 
+**付费前冻结的 gate：** `8/8 rows`、`4/4 pairs`、`0 infra`、no-skill 非饱和、`differingPairs >= 1`、
+`positivePairs >= 1`、`originalSuccesses >= 1`、`originalMean >= noSkillMean`。模型固定
+`xty/gpt-5.6-sol`，Pi `0.67.68` managed direct Node short-path，Windows/clean、2 repetitions、`retries=0`；
+qualification 只跑一个预注册 original row 并要求两个 exact outputs、无 harness residue。
+
+**v1 执行后审计（冻结失败证据）：** 8/8、0 infra、original 4/4 mean 1.0、no-skill 3/4 mean 0.75，
+数值 gate passed；唯一 differing/positive pair 的 no-skill 报告使用结构化 `summary`，公开 interface 未限制
+该字段类型，但 scorer 私有要求 string，导致 5 criteria false reject。故 v1 measurement invalid，禁止 base IR、
+重评分和同 identity 补跑。先提交 v1 lock/gate/scored/validity，再以 v2 identity 增加 structured-summary
+positive canary、修 scorer/audit、重新冻结后执行。
+
 本竖切不得修改通用 runtime/catalog identity。第一阶段只证明 benchmark measurement contract，不声称 skill
 优化、held-out、跨模型或 Token 收益。
 

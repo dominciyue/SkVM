@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "skill-ir-measurement-validity/v1",
+  "calibrationId": "zh-code-reviewer-pi-direct-cli-short-path-development-v1",
+  "status": "invalidated",
+  "numericGatePassed": true,
+  "claimValid": false,
+  "baseIrAuditAllowed": false,
+  "heldOutAllowed": false,
+  "reasonCode": "private-summary-type-false-reject",
+  "frozenEvidence": {
+    "lock": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/pi-direct-cli-short-path-calibration-lock.json",
+      "sha256": "0df9eb0ee3f92218b582175c6818c42f7e45f4d0f53872faf92d7e2ad4f35a0f"
+    },
+    "gate": {
+      "path": "results/skill-ir/zcr-pi-v1/gate-report.json",
+      "sha256": "c08da7cdf17c8b180c876380eac888c3a537959f9c242c7fb5bbea75af1b7f09"
+    },
+    "scoredRows": {
+      "path": "results/skill-ir/zcr-pi-v1/scored-runs.jsonl",
+      "sha256": "f2c6cea96013e32459289671ab32574b3efd00add690f15238c3220655debb01"
+    },
+    "publicInterface": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/review-interface.json",
+      "sha256": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/zh-code-reviewer-grade.ts",
+      "sha256": "1e727f530877bd8a043d1a864c5c511c35092c4f6b34420cd0494b2a46c174a4"
+    },
+    "localAlternativeValidOutput": {
+      "path": "results/skill-ir/zcr-pi-v1/run/artifacts/zh-code-reviewer__skvm__windows__clean__zh-code-reviewer-report-service-dev-002/no-skill/run-1/workdir/code-review.json",
+      "sha256": "b620faef5ac0fdf138775813e19e16d045b713b7254642fae077aa37bbf8e5af"
+    }
+  },
+  "observation": {
+    "taskId": "zh-code-reviewer-report-service-dev-002",
+    "system": "no-skill",
+    "runIndex": 1,
+    "publicContract": "summary is required but its JSON type is not restricted",
+    "privateScorerConstraint": "summary must be a non-empty string",
+    "observedAlternative": "summary is a non-empty structured object",
+    "falseRejectedCriteria": 5,
+    "effectOnGate": "the only differing and positive pair was created by the false reject"
+  },
+  "response": {
+    "mutateV1": false,
+    "rescoreV1": false,
+    "rerunV1": false,
+    "nextIdentity": "zh-code-reviewer-pi-direct-cli-short-path-development-v2",
+    "requiredBeforeNextExecution": [
+      "accept the public alternative-valid summary representation",
+      "add a structured-summary positive canary to the contract audit",
+      "freeze new scorer, audit, lock, and output root digests"
+    ]
+  }
+}

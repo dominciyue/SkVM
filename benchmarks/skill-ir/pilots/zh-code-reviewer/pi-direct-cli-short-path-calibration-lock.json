@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "skill-ir-zh-code-reviewer-calibration-lock/v1",
+  "status": "preregistered",
+  "calibrationId": "zh-code-reviewer-pi-direct-cli-short-path-development-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "zh-code-reviewer",
+  "frozenInputs": {
+    "source": { "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md", "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40" },
+    "tasks": { "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/development/tasks.json", "sha256": "ebff398dc66edc79e42702eb84ba8e37d812438e10de4186d7d1101ef479080b" },
+    "publicInterface": { "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/review-interface.json", "sha256": "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43" },
+    "resourceContract": { "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/resource-contract.json", "sha256": "5600029ad8259b8698fd84dcb18777a8e27aa4143ee6741c4f60134be641ee09" },
+    "scorer": { "path": "src/bench/evaluators/zh-code-reviewer-grade.ts", "sha256": "1e727f530877bd8a043d1a864c5c511c35092c4f6b34420cd0494b2a46c174a4" },
+    "oracle": { "path": "src/benchmarks/skill-ir/zh-code-reviewer-oracle.ts", "sha256": "383a80104cda29ba00c1aff0f6b9960d385d3010ab58fe21d1967f00a426147e" },
+    "contract": { "path": "src/benchmarks/skill-ir/zh-code-reviewer-contract.ts", "sha256": "6c9e7bf238e9bb51fa0a7684eb1f3f4ad4edbb7a5420dcc790921f9c7d021ab0" },
+    "audit": { "path": "src/benchmarks/skill-ir/zh-code-reviewer-contract-audit.ts", "sha256": "0d1e525502d5f263a7cc5669714db1fc77f17f4807036c548566849123fe8e13" },
+    "evaluatorRegistry": { "path": "src/bench/evaluators/index.ts", "sha256": "9d8e2b5a1cc708b31773469e153b83c991eeb8e065073c3761620acb47f764cb" }
+  },
+  "sourceClosure": [
+    { "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/LICENSE.upstream", "sha256": "0137c0bf5ebe749bb97f8af36adbae05ed9bd19cc1f01ff30553173adb0544f7" },
+    { "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md", "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40" }
+  ],
+  "benchmarkGuards": [
+    { "kind": "zh-code-reviewer-task-split-freeze", "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/task-split-freeze.json", "sha256": "89ef55db35d3b2476494f1a23a78e38810c2af898093e883df7fe161a57951e8" },
+    { "kind": "zh-code-reviewer-source-oracle-provenance", "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source-oracle-provenance.json", "sha256": "283c0765280ca50babd626e2eb2d77f3b5aaec5abd3188ba3c307f5b349f9b3d" },
+    { "kind": "zh-code-reviewer-contract-audit", "path": "results/skill-ir/benchmark-contract-audit/zh-code-reviewer.json", "sha256": "6b85b459b6188d2fa9193f86660cc69480d95524f3a4cbc7ed0086779cd0506d" }
+  ],
+  "harness": {
+    "adapter": "pi",
+    "adapterVersion": "0.67.68",
+    "mode": "managed",
+    "packageJson": { "path": "package.json", "sha256": "bd50f7d5a9ad459960bc9615070e669d483f1c53318a3ac8a759d9743c97ee30" },
+    "bunLock": { "path": "bun.lock", "sha256": "b6814f09782eecf544fca3c7426a706afe8793c750064d67bdb7b937a91cadfb" },
+    "adapterSource": { "path": "src/adapters/pi.ts", "sha256": "5357a7a5529db02ca8628b24fde3dbb8c5033889cc8c54ffca49944f218552ab" },
+    "execution": {
+      "kind": "bun-source-skvm-direct-pi-package-short-path",
+      "bunVersion": "1.3.14",
+      "piResolution": "installed-package-node-short-path",
+      "nodeCommand": "node",
+      "nodeVersion": "v23.8.0",
+      "nodeExecutableSha256": "8a0e6be40de816f334e65eb2de19d4a9b833c413eb866015eac19dceca9c3edf",
+      "piCli": { "path": "node_modules/@mariozechner/pi-coding-agent/dist/cli.js", "sha256": "423de19e292535dba74aea4102f2e407fc62986828d832ddcadaa9b4cfe47ecb" },
+      "probe": { "path": "results/skill-ir/pi-package-execution-probe-2026-07-31.json", "sha256": "75c8f45c7a759ec41646533b6b09592ee1995f957d2eb5face16e96783ecaf38" },
+      "sourceEntrypoint": { "path": "src/index.ts", "sha256": "09a706c72625151ca419197714957269bec072c691e561ca77cdb965b51342c0" },
+      "outputRoot": "results/skill-ir/zcr-pi-v1",
+      "maximumWorkDirLength": 220
+    },
+    "orchestration": [
+      { "path": "src/benchmarks/skill-ir/real-agent-run.ts", "sha256": "2e4038e0b5665996921d88fae0c4af45ed2e3823a63290493f82df03dfe4f201" },
+      { "path": "src/benchmarks/skill-ir/score-real-agent-runs.ts", "sha256": "262055c7840b82acb60da268175c203a3933c5916542341cb2abeabd6e6e41b1" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-calibration-gate.ts", "sha256": "533013f990b30a92a5310d5ba2973d2619a93fd4e24a9fba4b7bb3a08cb196a9" },
+      { "path": "src/benchmarks/skill-ir/zh-code-reviewer-calibration.ts", "sha256": "e84bc6cbcb9774ac232ca574e14149ba99fd6056e272ab38c4bcf8c494a4fd4f" },
+      { "path": "src/benchmarks/skill-ir/zh-code-reviewer-calibration-run.ts", "sha256": "47c1111b97e61193bc85a9721323fc8d1fc25e539c643e0e8f7b45d4d04d28e5" },
+      { "path": "src/benchmarks/skill-ir/pi-package-execution-probe.ts", "sha256": "2994f7052571d119695ea886e3a0df45303a8f1f0961e7eed9a0a60900a46e7f" }
+    ],
+    "installedPackageJson": "node_modules/@mariozechner/pi-coding-agent/package.json",
+    "executable": "node_modules/@mariozechner/pi-coding-agent/dist/cli.js"
+  },
+  "model": { "route": "xty/gpt-5.6-sol", "family": "gpt" },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": ["zh-code-reviewer-user-service-dev-001", "zh-code-reviewer-report-service-dev-002"],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "qualification": {
+    "system": "original",
+    "taskId": "zh-code-reviewer-user-service-dev-001",
+    "runIndex": 1
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "retries": 0,
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "teardownGraceMs": 60000,
+    "outerWatchdogMs": 360000
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": true,
+    "minimumPositivePairs": 1,
+    "minimumOriginalSuccesses": 1
+  },
+  "claimBoundary": {
+    "developmentOnly": true,
+    "capabilityCalibration": true,
+    "harnessSpecific": true,
+    "createsBaseIr": false,
+    "permitsHeldOut": false,
+    "skillOptimizationEvidence": false,
+    "tokenEvidence": false
+  }
+}

@@ -150,6 +150,10 @@ bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-audit-run.ts
 当前结果为 2 task、18 cases、18 matched；包含 4 个 alternative-valid 正例和 14 个负例。该命令不调用
 模型。区分度校准尚未冻结，不能直接从通用 bare-agent 示例推导付费命令。
 
+首个 direct Pi v1 校准虽数值 gate passed，但执行后 audit 发现 `summary` 的隐藏 string 类型约束误拒合法
+结构化对象；权威 `measurement-validity.json` 将其标为 invalidated。修复必须新增 alternative-valid canary 并
+使用新 calibration identity，不能修改或重评分 v1。
+
 ## 8. Benchmark Contract Audit
 
 付费前 audit 至少覆盖：

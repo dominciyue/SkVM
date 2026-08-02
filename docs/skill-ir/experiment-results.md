@@ -27,6 +27,7 @@
 | Experimental Design skill-unique | 2 arms x 4 | 均 4/4, 1.0；original token 3.1794x | 原 skill 增量仍未形成区分度，停止。 |
 | API Tester baseline | 2 arms x 4 = 8 | no-skill 0/4, 0.2375；original 0/4, 0.4000；4 differing | Partial benefit；旧 original-success gate failed。 |
 | API Tester artifact development | 4 systems x 4 = 16 | artifact 4/4, 1.0；static 0/4, 0.3875；original 0/4, 0.225；no-skill 0/4, 0.15 | Development gate passed；只计 method evidence。 |
+| Zh Code Reviewer calibration v1 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75；数值 gate passed | Measurement invalid：唯一差异来自私有 summary 类型 false reject；不开放 base IR。 |
 
 ## 3. Benchmark v1 与 v2
 
@@ -163,8 +164,11 @@ audit 对 2 个 task 各运行 9 类 workdir fixture：两种合法报告变化�
 不可操作建议、双报告矛盾、输入污染和多余文件，共 18/18 matched；reverse-evidence 与 leak checks 全绿。
 
 该结果把 portfolio 的 review/evidence/severity phenotype 提升为 contract-qualified，但尚无模型行、
-no-skill/original 区分度、IR 或优化效果。下一步先绑定现有 direct Node Pi short-path harness，再冻结付费
-development calibration，避免回退到旧 bare-agent 基础设施。
+no-skill/original 区分度、IR 或优化效果。首个 direct Node Pi v1 已执行 8/8、0 infra：original 4/4、mean
+1.0、83700 tokens；no-skill 3/4、mean 0.75、38814 tokens。数值 gate 显示 1 positive/1 differing pair，
+但失败行的完整合法报告仅因 `summary` 是对象而被私有 string schema 五项误拒；公开 interface 没有限制
+该类型。因此 `results/skill-ir/zcr-pi-v1/measurement-validity.json` 将本批标为 invalidated，不能当作 skill
+贡献或 base IR admission。v1 不重评分、不补跑；修复 scorer/audit 后使用新 identity。
 
 ## 9. 本地与提交结果
 
@@ -178,7 +182,8 @@ development calibration，避免回退到旧 bare-agent 基础设施。
 ## 10. 后续实验
 
 1. 保持 API Tester development package/lock/result 不可变，不立即运行 held-out。
-2. 对 `zh-code-reviewer` 运行冻结 no-skill/original 区分度校准；通过后再审计 base IR。
+2. 修复 `zh-code-reviewer` structured-summary false reject，新增 audit canary，以 v2 identity 重跑区分度；
+   只有 measurement-valid gate 通过才审计 base IR。
 3. 继续引入 `zh-readme` 和信息互补的第六案例，提炼声明式 adapter。
 4. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
 5. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。

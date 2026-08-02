@@ -43,7 +43,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | law-to-markdown | document/script/template | studied method-development | development pass，held-out regression。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
-| zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 2+2 冻结；development audit 18/18，尚未跑区分度。 |
+| zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 2+2 冻结；audit 18/18；首轮 calibration 因隐藏 summary 类型约束失效。 |
 | zh-readme | fact extraction/template/link | untouched candidate | 未冻结任务与 scorer。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
@@ -146,7 +146,9 @@ bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-audit-run.ts
 
 第一条由冻结 builder 重建 development/heldout task JSON；第二条只读 development，生成
 `results/skill-ir/benchmark-contract-audit/zh-code-reviewer.json`。Audit 通过只说明 measurement contract
-可用，不开放 IR、artifact、held-out 或优化 claim。付费校准必须等 direct Node Pi short-path lock 冻结。
+可用，不开放 IR、artifact、held-out 或优化 claim。首个 direct Pi v1 后续暴露 audit 漏测：公开合同允许
+结构化 summary，scorer 却私有要求 string，唯一差异 pair 因 false reject 产生；该批已冻结为 invalid，
+不得开放 base IR。下一轮须先补 positive canary，再冻结 v2 calibration。
 
 ## 11. 修改与验证
 

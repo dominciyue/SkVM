@@ -133,6 +133,18 @@ JSON/中文报告一致性。它必须接受 finding 顺序、自然语言措辞
 消失。Benchmark audit 通过前不运行付费校准；校准先限于 `no-skill | original` development，IR 与 artifact
 在区分度成立后另行设计。
 
+首轮校准固定为强模型 `xty/gpt-5.6-sol`、Pi managed direct Node short-path、Windows/clean、2 个 development
+task、每 task 2 次、`retries=0`，共 8 行和 4 个 paired cells。进入 base IR 审计前必须同时满足：8/8 行与
+4/4 pairs 完整、0 infrastructure、no-skill 未饱和、至少 1 个 differing pair、至少 1 个 original 正向
+score pair、original 至少 1 次 full success，且 original 聚合 mean 不低于 no-skill。两臂都饱和、original
+全失败、只有退化差异或均值回归时均停止，不构造 IR；held-out 始终关闭。
+
+首个 v1 校准实际为 8/8、0 infrastructure、original 4/4、no-skill 3/4，数值 gate 通过；随后 failure
+audit 发现唯一差异行的结构化 `summary` 被 scorer 私有 `string` 类型约束误拒，公开 interface 只要求字段
+存在而没有限制类型。因此该 gate 标为 measurement-invalid，`baseIrAuditAllowed=false`，不得重评分或覆盖。
+下一次执行必须使用新 calibration identity，先加入 structured-summary alternative-valid canary 并冻结新
+scorer/audit/lock；这属于 benchmark 修复，不是 skill 优化。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段
