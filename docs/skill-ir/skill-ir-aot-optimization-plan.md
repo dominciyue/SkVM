@@ -395,8 +395,18 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 3. [x] 实现 `src/skill-ir/resource-namespace-lock-run.ts`，生成 compact
    `results/skill-ir/namespaced-resource-development-lock-validation.json`；验证 Law/Experimental 两个
    source closure 均可重新编译为 ready package；
-4. [ ] 将 compiled skill view 接入 optimized runner 的 dry-run，保留 exact original/no-skill/ir-static
-   路径不变；完成前不创建付费 optimized development lock。
+4. [x] 将 compiled skill view 接入独立 optimized materialization runner dry-run，保留 exact
+   original/no-skill/ir-static 路径不变；Law/Experimental 均写出 agent-facing `SKILL.md`、verified manifest
+   和 namespaced resources，task 根目录无 flat resource；该结果不包含 agent/scorer 执行。
+
+#### Task 17.10 Namespaced resource 完整矩阵接入
+
+1. [ ] 在不修改默认 matrix 的前提下，为 `no-skill | original | ir-static | optimized` 新增显式 development
+   planner identity；optimized 行必须调用已验证的 materializer，其他三臂保持现有实现；
+2. [ ] 冻结 task/model/adapter/repetitions/gate 之前，完成 plan identity、workdir isolation、resource probe 和
+   mutation regression；
+3. [ ] 只有完整 dry-run 与 qualification 通过后才创建付费 optimized development lock；本阶段继续禁止
+   held-out、PGO 和 Token break-even claim。
 
 ## 6. 验证与实验门禁
 

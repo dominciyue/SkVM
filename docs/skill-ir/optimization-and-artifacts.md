@@ -182,6 +182,15 @@ cd D:\skill优化\SkVM
 输出只证明 package identity 可复现；必须先将 compiled skill view 接入 optimized runner，再冻结含
 `no-skill | original | ir-static | optimized` 的完整 development matrix。
 
+当前 materialization-only runner 也可单独复核：
+
+```powershell
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-runner-run.ts
+```
+
+它只在临时 workdir 写入 compiled `SKILL.md` 和 `.skvm` namespace，随后删除临时目录；结果不代表 agent
+执行或 scorer 成功。
+
 Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer 或阈值。失败结果冻结；若要修正方法，
 回到新的 development identity，不能消费旧 held-out 反馈后重跑同一分母。
 

@@ -269,8 +269,9 @@ Source closure 在进入 compiler 前排除生成性目录和缓存文件，包�
 canary、资源完整性与 deterministic scorer 均通过后，才允许进入新的 optimized development identity。当前新增
 的 `skill-ir-namespaced-resource-development-lock/v1` 只冻结 source/closure/package identity 和 canary
 实现，不代表 quality gate；它明确禁止付费执行、held-out、PGO、scorer 调参和原始基线重写。进入真正
-optimized development lock 前仍需把 compiled skill view 接入 runner，并固定完整
-`no-skill | original | ir-static | optimized` 的任务矩阵。
+optimized development lock 前仍需把 compiled skill view 接入完整实验 runner，并固定完整
+`no-skill | original | ir-static | optimized` 的任务矩阵；当前已完成 materialization-only runner dry-run，
+但还没有把它放进真实 agent 矩阵。
 
 2026-08-03 双案例 canary 已通过：Law 7 个 resources、Experimental Design 7 个 resources；两者均无
 unresolved reference、根目录 resource exposure 或完整性失败，5 个 Python 脚本全部通过无副作用语法编译。
