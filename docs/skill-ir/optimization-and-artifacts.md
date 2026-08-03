@@ -169,6 +169,19 @@ repair prompt、raw/scored row 或 gate。未来启用必须新 catalog/lock，�
 Artifact development 必须绑定 package digest、execution freeze、model/harness、task split、repetitions、
 scorer、gate 和 output root。只有完整 development matrix 通过，才创建新的 held-out lock。
 
+方案 3 当前先使用独立的
+`benchmarks/skill-ir/pilots/namespaced-resource-development-lock.json`。它是
+`compatibility-canary` lock：只绑定真实 source closure、namespace compiler/loader/canary digest 和
+canary report，禁止 paid/held-out/PGO/scorer 调参，不能替代 optimized quality development lock。运行：
+
+```powershell
+cd D:\skill优化\SkVM
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/skill-ir/resource-namespace-lock-run.ts
+```
+
+输出只证明 package identity 可复现；必须先将 compiled skill view 接入 optimized runner，再冻结含
+`no-skill | original | ir-static | optimized` 的完整 development matrix。
+
 Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer 或阈值。失败结果冻结；若要修正方法，
 回到新的 development identity，不能消费旧 held-out 反馈后重跑同一分母。
 

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "skill-ir-namespaced-resource-development-lock/v1",
+  "status": "preregistered",
+  "experimentId": "namespaced-resource-compatibility-v1",
+  "methodEvidence": true,
+  "corpus": "pilot",
+  "phase": "compatibility-canary",
+  "cases": [
+    {
+      "skillId": "law-to-markdown",
+      "packageId": "law-to-markdown",
+      "source": {
+        "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+        "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+      },
+      "expected": {
+        "sourceDigest": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0",
+        "closureDigest": "8fcd0b3ee8ca2b877392f35cdfcee1637ef2300477dc905211538aab31ea4ad4",
+        "namespaceRoot": ".skvm/skill-resources/law-to-markdown-8fcd0b3ee8ca",
+        "resourceFiles": 7,
+        "rewriteCount": 5
+      }
+    },
+    {
+      "skillId": "experimental-design",
+      "packageId": "experimental-design",
+      "source": {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+        "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+      },
+      "expected": {
+        "sourceDigest": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093",
+        "closureDigest": "f98bef93dec6be2ca3c83607f52459f264c4df8262b99d7513531ef410c8168c",
+        "namespaceRoot": ".skvm/skill-resources/experimental-design-f98bef93dec6",
+        "resourceFiles": 7,
+        "rewriteCount": 16
+      }
+    }
+  ],
+  "canaryReport": {
+    "path": "results/skill-ir/namespaced-resource-canary.json",
+    "sha256": "f21502e9cc84d3fc647871fea51121b59e20cc64c538f18864cc87e945358dc2"
+  },
+  "frozenImplementations": [
+    {
+      "path": "src/skill-ir/resource-namespace.ts",
+      "sha256": "8e08d5e027937be43b4bea94a47f879cc4f99602e86123dba49e6dbf20be7661"
+    },
+    {
+      "path": "src/core/skill-loader.ts",
+      "sha256": "d4b398d08b2d405776b823851fb2d4fc03d3f493e5c0ff6e3b1dd4c8ace58eae"
+    },
+    {
+      "path": "src/skill-ir/resource-namespace-canary.ts",
+      "sha256": "572b3db9a8ca4e5f409331c9d4a5cedc69bd28fffdc8cd628d89ca8a8ac1c581"
+    }
+  ],
+  "runtime": {
+    "pythonCommand": "python",
+    "syntaxOnly": true,
+    "networkAllowed": false,
+    "writesAllowed": false
+  },
+  "promotionBoundary": {
+    "optimizedOnly": true,
+    "exactOriginalUnchanged": true,
+    "entersMainClaim": false,
+    "permitsPaidExecution": false,
+    "permitsHeldOut": false,
+    "permitsPgo": false,
+    "permitsScorerRetuning": false,
+    "permitsPackageRecompile": false
+  },
+  "prohibited": [
+    "paid execution before an optimized development runner and quality gate are frozen",
+    "held-out execution",
+    "PGO or Final IR promotion",
+    "scorer retuning from the canary",
+    "rewriting the exact original baseline",
+    "claiming model quality, stability, or Token gains from this canary"
+  ]
+}

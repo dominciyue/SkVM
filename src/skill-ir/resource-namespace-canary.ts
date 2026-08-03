@@ -28,6 +28,9 @@ export interface NamespacedResourceCanaryReport {
     skillId: string
     status: "passed" | "failed"
     packageStatus: NamespacedSkillResourcePackage["status"]
+    sourceDigest: string
+    closureDigest: string
+    namespaceRoot: string
     resourceFiles: number
     rewriteCount: number
     unresolvedReferences: string[]
@@ -90,8 +93,11 @@ export async function buildNamespacedResourceCanary(rootDir: string): Promise<Na
           skillId: entry.skillId,
           status: passed ? "passed" : "failed",
           packageStatus: compiled.status,
+          sourceDigest: compiled.sourceDigest,
+          closureDigest: compiled.closureDigest,
+          namespaceRoot: compiled.namespaceRoot,
           resourceFiles: compiled.resources.length,
-          rewriteCount: compiled.rewrites.length,
+          rewriteCount: compiled.rewrites.reduce((sum, rewrite) => sum + rewrite.occurrences, 0),
           unresolvedReferences: compiled.unresolvedReferences,
           rootResourcePathsPresent,
           integrity,
@@ -103,8 +109,11 @@ export async function buildNamespacedResourceCanary(rootDir: string): Promise<Na
           skillId: entry.skillId,
           status: "failed",
           packageStatus: compiled.status,
+          sourceDigest: compiled.sourceDigest,
+          closureDigest: compiled.closureDigest,
+          namespaceRoot: compiled.namespaceRoot,
           resourceFiles: compiled.resources.length,
-          rewriteCount: compiled.rewrites.length,
+          rewriteCount: compiled.rewrites.reduce((sum, rewrite) => sum + rewrite.occurrences, 0),
           unresolvedReferences: compiled.unresolvedReferences,
           rootResourcePathsPresent,
           integrity: "failed",
@@ -117,6 +126,9 @@ export async function buildNamespacedResourceCanary(rootDir: string): Promise<Na
         skillId: entry.skillId,
         status: "failed",
         packageStatus: "blocked",
+        sourceDigest: "",
+        closureDigest: "",
+        namespaceRoot: "",
         resourceFiles: 0,
         rewriteCount: 0,
         unresolvedReferences: [],

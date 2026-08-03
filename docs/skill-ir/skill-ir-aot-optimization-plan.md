@@ -380,8 +380,23 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    closed；
 5. [x] 生成 compact `results/skill-ir/namespaced-resource-canary.json`，只记录结构、digest、compatibility 和
    blocked reason，不记录模型输出或 Token 优化 claim；
-6. [ ] 若 canary 全绿，再设计 optimized development lock；若任一真实 skill blocked，记录 adapter 缺口，保持
-   original/现有 artifact 结果冻结；同步 spec/evaluation/plan/conversation log 后验证提交。
+6. [x] 若 canary 全绿，先设计独立 `skill-ir-namespaced-resource-development-lock/v1`，冻结两个真实 source
+   closure、compiler/loader/canary digest 和 compatibility-only promotion boundary；lock validation 通过后再
+   进入 runner 接入。它不等同于质量 development lock，不允许付费、held-out、PGO 或 scorer 调参；若任一
+   真实 skill blocked，记录 adapter 缺口，保持 original/现有 artifact 结果冻结。
+
+#### Task 17.9 Namespaced resource lock 与 runner 接入前 dry-run
+
+1. [x] RED/GREEN `src/skill-ir/resource-namespace-lock.test.ts`：验证 lock schema 的双案例、source/closure/
+   namespace digest 一致性、canary digest 绑定和 mutation fail-closed；
+2. [x] 实现 `src/skill-ir/resource-namespace-lock.ts` 与
+   `benchmarks/skill-ir/pilots/namespaced-resource-development-lock.json`，把方案 3 的边界注册为独立
+   compatibility identity，不修改任何旧 lock；
+3. [x] 实现 `src/skill-ir/resource-namespace-lock-run.ts`，生成 compact
+   `results/skill-ir/namespaced-resource-development-lock-validation.json`；验证 Law/Experimental 两个
+   source closure 均可重新编译为 ready package；
+4. [ ] 将 compiled skill view 接入 optimized runner 的 dry-run，保留 exact original/no-skill/ir-static
+   路径不变；完成前不创建付费 optimized development lock。
 
 ## 6. 验证与实验门禁
 
