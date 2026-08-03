@@ -84,6 +84,10 @@ Runner 为每行建立隔离 workdir，并保存初始 manifest。Exact original
 `output-reference`。只有 digest 不同的覆盖 collision 和未授权 output-reference 是确认污染；单纯 exposure
 只作诊断。
 
+Source loader 会排除生成性缓存（`.git`、`node_modules`、`__pycache__`、`.pytest_cache`、`.mypy_cache`、
+`.ruff_cache`、`.pyc`、`.pyo`），避免本地工具运行改变 source closure digest。该排除只作用于非 authored
+缓存，不改变许可证、脚本、模板或 references 等公开 bundle resource。
+
 Task-specific scorer 只查看最终 workdir 与初始 manifest，判断：
 
 - required outputs 是否存在、路径是否合法；

@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-02
+**最后更新：** 2026-08-03
 
 ## 1. 项目定位
 
@@ -238,6 +238,40 @@ Skill bundle 是真实 skill 的组成部分：当前 SkVM 会在 task fixture �
 development fixture 与 bundle 的静态同路径 collision 为 0。已冻结 `zh-readme` v2 measurement evidence 提供
 1 条 confirmed output-reference contamination observation，涉及两个 original 输出。该结果把命名空间列为
 通用系统重点风险，但仍是 diagnostic evidence，不是优化效果或跨 skill 失败率。
+
+#### 4.2.2 Optimized/AOT 的 namespaced resource package
+
+方案 3 只作用于 optimized/AOT 产物，不改变 exact `original` 的 flat bundle baseline。编译器生成
+provenance-bound resource package：
+
+```text
+.skvm/
+  skill-resources/<skill-id>-<closure-digest>/
+    <bundle files>
+  skill-resource-manifest.json
+```
+
+`skill-resource-manifest.json` 绑定 source/closure digest、每个 resource 的 sha256、namespace 相对路径、
+公开 source 中识别到的重写映射和 unresolved reference。编译后的 `skill.md` 只重写可由 source closure
+逐字证明的 `scripts/`、`references/` 等路径；未知或歧义引用使 package 状态为 `blocked`，不能静默回退到
+根目录 flat copy。许可证等 passive resource 仍随 package 保留，但不进入 task repository 根命名空间。
+
+Namespace 的“只读”语义首版由完整性验证实现，而不是依赖 Windows/macOS/Linux 的文件权限：materializer
+拒绝符号链接，运行后重新计算 resource digest，任何修改都报告为 package-integrity failure。这样不把平台
+权限差异误当作实验结果。脚本和模板通过 namespace 内的真实路径调用；若旧 skill 依赖未被编译器证明的
+隐式 cwd/相对路径，package 必须停在 blocked 并进入人工适配，而不能影响 original baseline。
+
+Source closure 在进入 compiler 前排除生成性目录和缓存文件，包括 `.git`、`node_modules`、`__pycache__`、
+`.pytest_cache`、`.mypy_cache`、`.ruff_cache`、`.pyc` 和 `.pyo`。这些文件不属于公开 skill provenance；若不排除，
+本地解释器或测试运行会改变 closure digest，造成同一 skill 的非语义 package 漂移。
+
+该机制预期降低来源混淆和输出引用污染，但可能增加少量编译 metadata、路径文本和资源校验成本。只有双案例
+canary、资源完整性与 deterministic scorer 均通过后，才允许进入新的 optimized development identity；在此
+之前不得声称质量、稳定性或 Token 的正向收益。
+
+2026-08-03 双案例 canary 已通过：Law 7 个 resources、Experimental Design 7 个 resources；两者均无
+unresolved reference、根目录 resource exposure 或完整性失败，5 个 Python 脚本全部通过无副作用语法编译。
+这只证明 namespaced materialization 的本地兼容性，不证明 agent 任务质量收益。
 
 ## 5. 静态与动态结合
 

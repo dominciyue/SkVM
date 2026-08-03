@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-02
+**最后更新：** 2026-08-03
 
 本文件只记录当前 ledger、执行顺序与活跃 TDD。已完成阶段的过程见 `history.md` 和 Git history；组件
 行为见对应权威文档；数值见 `experiment-results.md`。
@@ -354,6 +354,34 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    case、0 静态路径 collision、1 条已冻结 output contamination observation；下一步进入兼容性 namespace
    设计，但保持 flat runtime 不变；
 5. [x] 同步 spec/evaluation/plan/conversation log，运行 focused/full tests、typecheck、链接与 diff check 后提交。
+
+#### Task 17.8 Optimized namespaced resource package
+
+**范围与不变量**
+
+- 方案 3 只用于 optimized/AOT compiled view；exact `original` 继续使用现有 flat bundle，保证 paired baseline
+  不变；
+- 不新增 benchmark v3、runtime/catalog identity 或付费实验；先完成本地 package canary；
+- resource namespace 使用 `.skvm/skill-resources/<skill-id>-<closure-digest>/`，manifest 绑定 source/closure、
+  file digest、rewrite map 和 unresolved reference；
+- 只重写 source closure 可逐字证明的路径。未知隐式路径进入 `blocked`，不回退到根目录 flat copy；
+- “只读”首版通过无 symlink materialization + post-run digest verification 实现，不依赖平台文件权限。
+
+**文件级 TDD**
+
+1. [x] RED/GREEN `src/skill-ir/resource-namespace.test.ts`：synthetic skill 的 scripts/references 路径映射、
+   passive license 隔离、closure digest determinism、未知路径 blocked 与 source/manifest canary；
+2. [x] RED/GREEN `src/skill-ir/resource-namespace.ts`：实现 namespace compiler、compiled skill view、manifest
+   schema、materializer 和 post-run integrity verifier；不修改 `src/run/index.ts` 的 original 路径；同时在
+   source loader 排除生成缓存，保持 closure digest 与公开 source freeze 一致；
+3. [x] RED/GREEN 双真实案例 canary：Law 的 7 个 Python/source resources 与 Experimental Design 的 7 个
+   script/reference resources 均能由 namespaced path 读取/编译，task 根目录不得出现 license/scripts/references；
+4. [x] RED/GREEN mutation canary：修改 namespace resource、替换 symlink 或伪造 manifest digest 时必须 fail
+   closed；
+5. [x] 生成 compact `results/skill-ir/namespaced-resource-canary.json`，只记录结构、digest、compatibility 和
+   blocked reason，不记录模型输出或 Token 优化 claim；
+6. [ ] 若 canary 全绿，再设计 optimized development lock；若任一真实 skill blocked，记录 adapter 缺口，保持
+   original/现有 artifact 结果冻结；同步 spec/evaluation/plan/conversation log 后验证提交。
 
 ## 6. 验证与实验门禁
 

@@ -117,7 +117,15 @@ export async function copySkillBundle(skill: ResolvedSkill, destDir: string): Pr
 }
 
 /** VCS metadata and OS junk that should never appear in a skill bundle. */
-const BUNDLE_EXCLUDED = new Set([".git", ".DS_Store"])
+const BUNDLE_EXCLUDED = new Set([
+  ".git",
+  ".DS_Store",
+  "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache",
+  ".ruff_cache",
+  "node_modules",
+])
 
 async function listBundleFiles(skillDir: string, prefix = ""): Promise<string[]> {
   const out: string[] = []
@@ -134,6 +142,7 @@ async function listBundleFiles(skillDir: string, prefix = ""): Promise<string[]>
       out.push(...await listBundleFiles(path.join(skillDir, entry.name), rel))
     } else if (entry.isFile()) {
       if (rel === "SKILL.md") continue
+      if (entry.name.endsWith(".pyc") || entry.name.endsWith(".pyo")) continue
       out.push(rel)
     }
   }
