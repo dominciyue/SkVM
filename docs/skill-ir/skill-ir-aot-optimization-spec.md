@@ -283,7 +283,7 @@ unresolved reference、根目录 resource exposure 或完整性失败，5 个 Py
 `results/skill-ir/namespaced-resource-development-lock-validation.json`。这只证明 namespaced materialization
 的本地兼容性和身份可复现性，不证明 agent 任务质量收益。
 
-在进入付费 lock 前，`namespaced-resource-development-qualification/v1` 还会执行资源合同 probe 和 mutation
+在进入付费 lock 前，`namespaced-resource-development-qualification/v1` 执行资源合同 probe 和 mutation
 regression。当前 qualification 在显式 `SKVM_PYTHON` 指向 `.skvm/law-runtime/Scripts/python.exe` 时为 ready：
 2/2 mutation regression 和 2/2 resource probe 均通过。未提供该环境时，Law 的 `docx`/`pdfplumber` 缺失只能
 标记为 preflight infrastructure blocker，不能计入 skill 质量、稳定性或优化收益；不得绕过 probe 创建付费
@@ -294,6 +294,17 @@ lock。qualification 命令为：
 $env:SKVM_PYTHON = (Resolve-Path '.skvm\law-runtime\Scripts\python.exe').Path
 & 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-qualification.ts
 ```
+
+资格通过后，独立的 `skill-ir-namespaced-resource-quality-development-lock/v1` 冻结单一
+`xty/gpt-5.6-sol`、Pi `0.67.68`、Windows/clean、两个真实 skill 的四个 development task、
+`no-skill | original | ir-static | optimized` 四臂和 `retries=0`。执行桥会在每个 optimized run 的
+workspace preflight 后重新物化 namespace resource，避免 `executePlan` 清空 workdir 时丢失资源；它不改旧
+default matrix。实际 16/16 rows、0 infrastructure failure 已完成，确定性 scorer 结果为 optimized
+success `1/4`、mean evaluator score `0.5625`、pairwise regression `2`，因此 quality gate failed。
+失败原因主要是 experimental-design 两个 task 的 semantic contract 未通过，以及 Law standard task 的
+report outcome 回归；这不是 resource probe 或 gateway failure。结果和 gate 报告保存在
+`results/skill-ir/namespaced-resource-quality-development-v1-r2/`，只能作为 development failure evidence，
+不允许进入 held-out、PGO、Final IR 或 Token 主 claim。
 
 ## 5. 静态与动态结合
 

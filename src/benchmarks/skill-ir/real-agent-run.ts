@@ -788,6 +788,9 @@ export async function executePlan(
   plan: RealAgentRunPlanEntry[],
   args: RealAgentRunArgs,
   agentEnv: Record<string, string | undefined> = process.env,
+  hooks?: {
+    beforeGenericRun?: (item: RealAgentRunPlanEntry) => Promise<void>;
+  },
 ): Promise<void> {
   const outDir = args.outDir;
   const rawRunsPath = join(outDir, "raw-runs.jsonl");
@@ -885,6 +888,7 @@ export async function executePlan(
               initialWorkdirManifestPath: item.initialWorkdirManifestPath,
             })
           : undefined;
+        await hooks?.beforeGenericRun?.(item);
         const startedAt = Date.now();
         const proc = Bun.spawn(item.command, {
           stdout: "pipe",

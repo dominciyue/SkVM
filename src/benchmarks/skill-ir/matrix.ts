@@ -14,7 +14,8 @@ export type ExperimentSystem =
   | "ir-artifact-dev"
   | "ir-public-artifact-dev"
   | "ir-contract-artifact-dev"
-  | "validated-artifact";
+  | "validated-artifact"
+  | "optimized";
 
 export type SkillPackaging = "focused" | "broad" | "unknown";
 

@@ -49,6 +49,7 @@ export type NamespacedResourceDevelopmentPlanRow = {
   caseId: string
   taskPath: string
   workDir: string
+  initialWorkdirManifestPath: string
   skillPath?: string
   namespaceRoot?: string
 }
@@ -190,6 +191,10 @@ export async function buildNamespacedResourceDevelopmentPlan(opts: {
             caseId,
             taskPath: portableRelative(outDir, taskPath),
             workDir: portableRelative(outDir, view.workDir),
+            initialWorkdirManifestPath: portableRelative(
+              outDir,
+              path.join(view.caseDir, "initial-workdir-manifest.json"),
+            ),
             skillPath: portableRelative(outDir, view.skillPath),
             namespaceRoot: view.namespaceRoot,
           })
@@ -219,6 +224,11 @@ export async function buildNamespacedResourceDevelopmentPlan(opts: {
           caseId,
           taskPath: portableRelative(outDir, materialized.taskPath),
           workDir: portableRelative(outDir, materialized.workDir),
+          initialWorkdirManifestPath: portableRelative(
+            outDir,
+            materialized.initialWorkdirManifestPath ??
+              path.join(path.dirname(materialized.workDir), "initial-workdir-manifest.json"),
+          ),
           ...(materialized.skillPath ? { skillPath: portableRelative(outDir, materialized.skillPath) } : {}),
         })
       }

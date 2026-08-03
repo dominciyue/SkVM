@@ -198,6 +198,18 @@ describe("buildCorpusMatrixInput", () => {
         provenance: "real-public",
         evidenceWeight: "support-real",
       },
+      {
+        id: "zh-code-reviewer",
+        packaging: "focused",
+        provenance: "real-public",
+        evidenceWeight: "support-real",
+      },
+      {
+        id: "api-tester",
+        packaging: "focused",
+        provenance: "real-public",
+        evidenceWeight: "support-real",
+      },
     ]);
     expect(input.tasksBySkill).toEqual({
       "law-to-markdown": [
@@ -218,6 +230,14 @@ describe("buildCorpusMatrixInput", () => {
         "experimental-design-sequential-heldout-001",
         "experimental-design-simple-heldout-002",
       ],
+      "zh-code-reviewer": [
+        "zh-code-reviewer-user-service-dev-001",
+        "zh-code-reviewer-report-service-dev-002",
+      ],
+      "api-tester": [
+        "api-tester-openapi-users-dev-001",
+        "api-tester-openapi-inventory-dev-002",
+      ],
     });
     expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);
   });
@@ -229,26 +249,26 @@ describe("buildCorpusMatrixInput", () => {
 
     const input = buildCorpusMatrixInput("pilot", process.cwd(), {
       mode: "tasks-authored-calibration",
-      skillIds: ["api-tester"],
+      skillIds: ["zh-readme"],
     });
 
     expect(input.skills).toEqual([{
-      id: "api-tester",
+      id: "zh-readme",
       packaging: "focused",
       provenance: "real-public",
       evidenceWeight: "support-real",
     }]);
     expect(input.tasksBySkill).toEqual({
-      "api-tester": [
-        "api-tester-openapi-users-dev-001",
-        "api-tester-openapi-inventory-dev-002",
+      "zh-readme": [
+        "zh-readme-node-cli-dev-001",
+        "zh-readme-python-library-dev-002",
       ],
     });
     expect(input.systems).toEqual(["no-skill", "original"]);
 
     expect(() => buildCorpusMatrixInput("pilot", process.cwd(), {
       mode: "tasks-authored-calibration",
-      skillIds: ["api-tester", "experimental-design-v2"],
+      skillIds: ["zh-readme", "experimental-design-v2"],
     })).toThrow("exactly one explicit skillId")
   });
 });

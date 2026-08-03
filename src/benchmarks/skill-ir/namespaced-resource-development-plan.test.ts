@@ -21,6 +21,7 @@ test("namespaced development planner emits explicit four-arm rows without changi
   expect(plan.rows.filter((row) => row.system === "no-skill")).toHaveLength(4)
   expect(plan.rows.filter((row) => row.system === "ir-static")).toHaveLength(4)
   expect(plan.rows.filter((row) => row.system === "optimized").every((row) => row.namespaceRoot !== undefined)).toBe(true)
+  expect(plan.rows.every((row) => row.initialWorkdirManifestPath !== undefined)).toBe(true)
   expect(plan.rows.every((row) => row.taskSplit === "development" && row.context === "clean")).toBe(true)
 })
 

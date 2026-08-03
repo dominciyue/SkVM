@@ -410,8 +410,15 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    `SKVM_PYTHON=.skvm/law-runtime/Scripts/python.exe` 的环境下，Law 与 Experimental Design 的 resource probe
    均通过（2/2）。未提供该环境时 Law 的 `docx`/`pdfplumber` 缺失仍必须按 `preflight-infrastructure` 阻塞，
    不能包装为 skill 质量失败，也不能绕过 probe 创建付费 lock。
-3. [ ] 只有完整 dry-run 与 qualification 通过后才创建付费 optimized development lock；本阶段继续禁止
-   held-out、PGO 和 Token break-even claim。
+3. [x] 完整 dry-run、qualification、route probe 通过后创建独立
+   `namespaced-resource-quality-development-lock/v1`，冻结 `xty/gpt-5.6-sol` + Pi `0.67.68`、
+   Windows/clean、两个真实 skill 的四个 development task、`no-skill | original | ir-static | optimized`、
+   16 rows 和 `retries=0`；执行桥在 optimized 行的 workspace preflight 后重新物化 namespace resources。
+   唯一付费 development 矩阵已完成 16/16、0 infrastructure failure，确定性 scorer 得到 optimized 1/4
+   success、mean evaluator score 0.5625、2 pairwise regressions，quality gate failed。该结果只作为
+   development failure evidence；不补跑、不调 scorer、不进入 held-out、PGO 或 Token break-even claim。
+4. [ ] 针对 gate failure 做 source-bound semantic failure audit：区分 namespace 资源机制未生效、模型未读取
+   resource、以及原始 workflow/任务合同本身不足；只有提出可验证修复并更新新 lock 后才能再次付费。
 
 ## 6. 验证与实验门禁
 

@@ -191,6 +191,22 @@ cd D:\skill优化\SkVM
 它只在临时 workdir 写入 compiled `SKILL.md` 和 `.skvm` namespace，随后删除临时目录；结果不代表 agent
 执行或 scorer 成功。
 
+完整 development 执行使用独立 quality lock 和执行桥：
+
+```powershell
+$env:Path = "C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin;" + $env:Path
+$env:SKVM_PYTHON = (Resolve-Path '.skvm\law-runtime\Scripts\python.exe').Path
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-execution.ts --execute --out-dir=results/skill-ir/namespaced-resource-quality-development-v1-r2 --model=xty/gpt-5.6-sol --adapter=pi --adapter-version=0.67.68 --panel-config-id=namespaced-resource-quality-development-v1
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/score-real-agent-runs.ts --raw=results/skill-ir/namespaced-resource-quality-development-v1-r2/raw-runs.jsonl --manifest=benchmarks/skill-ir/corpus/corpora/pilot.json --out=results/skill-ir/namespaced-resource-quality-development-v1-r2/scored.jsonl
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-gate.ts --scored=results/skill-ir/namespaced-resource-quality-development-v1-r2/scored.jsonl --out=results/skill-ir/namespaced-resource-quality-development-v1-r2/gate-report.json
+```
+
+执行桥在普通 runner 的 workspace preflight 之后重新物化 optimized namespace resources；这是必要的，因为
+每行开始会清空 workdir。`quality-development-lock/v1` 的四臂和 `retries=0` 是唯一允许的付费 development
+身份。2026-08-03 实验完成 16/16、0 infrastructure failure，但 optimized 仅 1/4 success、mean score
+0.5625、2 个相对 `max(original, ir-static)` 的 pairwise regression，gate failed。失败证据冻结在
+`results/skill-ir/namespaced-resource-quality-development-v1-r2/`，不进入 held-out/PGO，也不改 scorer。
+
 完整四臂接入先使用独立 dry-run planner，不改变默认 `real-agent-run` matrix：
 
 ```powershell

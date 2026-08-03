@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "skill-ir-namespaced-resource-quality-development-lock/v1",
+  "status": "preregistered",
+  "experimentId": "namespaced-resource-quality-development-v1",
+  "methodEvidence": true,
+  "corpus": "pilot",
+  "compatibilityLock": {
+    "path": "benchmarks/skill-ir/pilots/namespaced-resource-development-lock.json",
+    "sha256": "c88ac7a1eba0cbbc2cf26ad27116507b01ac48f1384698f3ee4f7be62ee28325"
+  },
+  "frozenImplementations": {
+    "planner": {
+      "path": "src/benchmarks/skill-ir/namespaced-resource-development-plan.ts",
+      "sha256": "eb145da0b62b7b012d07c7ba971fabce5f5837f3bdaecb8e7283220e037bd08a"
+    },
+    "execution": {
+      "path": "src/benchmarks/skill-ir/namespaced-resource-development-execution.ts",
+      "sha256": "8fbe680eaefe0cf8ec50b86d9c2bdc39a35c9e06355478af711e83a4ceb70004"
+    },
+    "runner": {
+      "path": "src/benchmarks/skill-ir/real-agent-run.ts",
+      "sha256": "3fbb31c9f320010c517f5674b9495a6ef7785c0dbba01fb4b13810241c24ffbd"
+    }
+  },
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "adapter": {
+    "id": "pi",
+    "version": "0.67.68"
+  },
+  "matrix": {
+    "systems": ["no-skill", "original", "ir-static", "optimized"],
+    "skills": ["law-to-markdown", "experimental-design"],
+    "taskIds": [
+      "law-to-markdown-statute-dev-001",
+      "law-to-markdown-standard-dev-002",
+      "experimental-design-stratified-dev-001",
+      "experimental-design-cluster-dev-002"
+    ],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "repetitions": 1,
+    "expectedRows": 16,
+    "expectedQuartets": 4
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "pythonEnv": "SKVM_PYTHON",
+    "retries": 0,
+    "retryDelayMs": 0,
+    "routeProbeRequired": true,
+    "resourceProbeRequired": true
+  },
+  "gate": {
+    "expectedRows": 16,
+    "expectedQuartets": 4,
+    "minimumOptimizedSuccesses": 4,
+    "minimumOptimizedMeanScore": 0.85,
+    "minimumOptimizedTaskMeanScore": 0.85,
+    "maximumInfrastructureFailures": 0,
+    "maximumPairwiseRegressions": 0
+  },
+  "promotionBoundary": {
+    "developmentOnly": true,
+    "entersMainClaim": false,
+    "permitsHeldOutPlanning": false,
+    "permitsHeldOutExecution": false,
+    "permitsPgo": false,
+    "permitsScorerRetuning": false,
+    "permitsPackageRecompile": false
+  },
+  "prohibited": [
+    "held-out execution before a separate lock",
+    "PGO or Final IR promotion",
+    "scorer retuning after execution",
+    "package recompilation after lock",
+    "claiming quality or Token gains from dry-run identity"
+  ]
+}
