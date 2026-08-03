@@ -191,6 +191,27 @@ cd D:\skill优化\SkVM
 它只在临时 workdir 写入 compiled `SKILL.md` 和 `.skvm` namespace，随后删除临时目录；结果不代表 agent
 执行或 scorer 成功。
 
+完整四臂接入先使用独立 dry-run planner，不改变默认 `real-agent-run` matrix：
+
+```powershell
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-plan-run.ts
+```
+
+它读取 compatibility lock 和 pilot development tasks，显式生成
+`no-skill | original | ir-static | optimized` 四臂身份；optimized 行调用 namespaced materializer，其他三
+臂复用现有 source runner。plan 是可审计的 16 行 dry-run 产物，不包含模型调用、scorer 结果或质量 claim。
+
+在创建付费 development lock 前必须再执行 qualification：
+
+```powershell
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-qualification.ts
+```
+
+qualification 把资源合同 probe、workdir namespace 隔离和 mutation fail-closed 分开报告。任何 probe 失败都
+是 preflight/infrastructure blocker；它不会触发 semantic repair，也不会被计入 skill 优化分数。当前结果为
+2/2 mutation regression、Experimental Design probe 通过，Law probe 因本机 Python 缺少 `docx`/`pdfplumber`
+而 blocked，故暂不创建付费 lock。
+
 Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer 或阈值。失败结果冻结；若要修正方法，
 回到新的 development identity，不能消费旧 held-out 反馈后重跑同一分母。
 

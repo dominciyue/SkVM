@@ -271,13 +271,27 @@ canary、资源完整性与 deterministic scorer 均通过后，才允许进入�
 实现，不代表 quality gate；它明确禁止付费执行、held-out、PGO、scorer 调参和原始基线重写。进入真正
 optimized development lock 前仍需把 compiled skill view 接入完整实验 runner，并固定完整
 `no-skill | original | ir-static | optimized` 的任务矩阵；当前已完成 materialization-only runner dry-run，
-但还没有把它放进真实 agent 矩阵。
+但还没有把它放进真实 agent 矩阵。随后新增的显式
+`namespaced-resource-development-plan/v1` 只生成 development dry-run identity，不修改默认矩阵：两个真实
+resource case 的两个 development task 各生成四臂，合计 16 行，所有 workdir 独立；`original` 仍走现有
+verified exact-source closure，`optimized` 才走 namespace materializer。结果保存在
+`results/skill-ir/namespaced-resource-development-plan.json`。
 
 2026-08-03 双案例 canary 已通过：Law 7 个 resources、Experimental Design 7 个 resources；两者均无
 unresolved reference、根目录 resource exposure 或完整性失败，5 个 Python 脚本全部通过无副作用语法编译。
 随后以独立 compatibility lock 做 digest/manifest/source closure 重验，结果写入
 `results/skill-ir/namespaced-resource-development-lock-validation.json`。这只证明 namespaced materialization
 的本地兼容性和身份可复现性，不证明 agent 任务质量收益。
+
+在进入付费 lock 前，`namespaced-resource-development-qualification/v1` 还会执行资源合同 probe 和 mutation
+regression。当前 qualification 结果为 blocked：2/2 mutation regression 通过，Experimental Design 的
+stdlib probe 通过，Law probe 因当前 `python` 缺少资源合同列出的 `docx`/`pdfplumber` 依赖而失败；该行只能
+标记为 preflight infrastructure blocker，不能计入 skill 质量、稳定性或优化收益。qualification 命令为：
+
+```powershell
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-plan-run.ts
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-qualification.ts
+```
 
 ## 5. 静态与动态结合
 

@@ -401,10 +401,14 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 
 #### Task 17.10 Namespaced resource 完整矩阵接入
 
-1. [ ] 在不修改默认 matrix 的前提下，为 `no-skill | original | ir-static | optimized` 新增显式 development
-   planner identity；optimized 行必须调用已验证的 materializer，其他三臂保持现有实现；
-2. [ ] 冻结 task/model/adapter/repetitions/gate 之前，完成 plan identity、workdir isolation、resource probe 和
-   mutation regression；
+1. [x] 在不修改默认 matrix 的前提下，为 `no-skill | original | ir-static | optimized` 新增显式 development
+   planner identity；`optimized` 行调用已验证的 namespaced materializer，其他三臂复用现有
+   `materializeCaseArtifacts`。`namespaced-resource-development-plan/v1` 固定两个真实 skill 的四个 development
+   task、clean/Windows/skvm/run-1，共 16 行；默认 cold-start matrix 保持不变。
+2. [x] 冻结 task/model/adapter/repetitions/gate 之前，完成 plan identity、workdir isolation、resource probe 和
+   mutation regression qualification。16 个 workdir 唯一、2/2 namespace mutation regression 通过；Experimental
+   Design resource probe 通过，Law probe 因当前 Python 缺少 `docx`（并连带 `pdfplumber`）而阻塞。该失败按
+   `preflight-infrastructure` 记录，不能包装为 skill 质量失败，也不能创建付费 lock。
 3. [ ] 只有完整 dry-run 与 qualification 通过后才创建付费 optimized development lock；本阶段继续禁止
    held-out、PGO 和 Token break-even claim。
 
