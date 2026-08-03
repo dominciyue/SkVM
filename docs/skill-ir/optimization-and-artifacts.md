@@ -220,6 +220,12 @@ $env:SKVM_PYTHON = (Resolve-Path '.skvm\law-runtime\Scripts\python.exe').Path
 failure rows 与已知 v1 benchmark contract sensitivity 对齐；Experimental Design optimized view 仍是
 source-rewrite-only。报告只用于归因，不替代 scorer，也不得进入 compiler/package、held-out 或 gate。
 
+随后对已有 deterministic artifact compiler 做本地 re-entry qualification：Law 与 Experimental Design 的
+compiler、通用 catalog/runtime、protected-input 与 deterministic scorer activation 共 20/20 focused tests
+通过（显式 `SKVM_PYTHON`）。这证明 L3 artifact 候选可以在不调用模型的情况下生成并改善 fixture workdir，
+但还没有把它接入新的 paid four-arm matrix；下一步仍需统一 adapter contract、冻结 public-contract benchmark
+lock，再做一次可归因的 development 实验。
+
 完整四臂接入先使用独立 dry-run planner，不改变默认 `real-agent-run` matrix：
 
 ```powershell

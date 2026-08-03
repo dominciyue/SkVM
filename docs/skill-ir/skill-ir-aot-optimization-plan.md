@@ -426,8 +426,10 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 
 #### Task 17.11 Source-bound compiled artifact re-entry（进行中）
 
-1. [ ] 使用现有 `experimental-design-artifact-compiler.ts` 与 `law-artifact-compiler.ts` 作为第一版
-   deterministic artifact compiler，不把 namespaced resource materialization 当作完整 optimized view；
+1. [x] 使用现有 `experimental-design-artifact-compiler.ts` 与 `law-artifact-compiler.ts` 作为第一版
+   deterministic artifact compiler，不把 namespaced resource materialization 当作完整 optimized view；在
+   显式 `SKVM_PYTHON` 下，compiler/catalog/runtime/scorer activation focused suite 通过 20/20 tests；该结果
+   仍是本地机制资格证据，不是 paid development 或主 claim；
 2. [ ] 为 compiler 生成的 `skill.md`、execution-plan、checker、template 和 provenance 建立统一 adapter
    contract，保留 `original | ir-static` 基线不变；
 3. [ ] 以已通过公开 contract audit 的 benchmark（优先 Experimental Design v2；Law 需先修复其 audit）

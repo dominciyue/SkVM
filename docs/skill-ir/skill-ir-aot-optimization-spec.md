@@ -317,6 +317,11 @@ optimized arm。完整诊断保存在同目录的 `semantic-failure-audit.json`�
 compiler/package。下一次付费实验必须同时满足：使用通过 public-contract audit 的 benchmark，并把
 source-rewrite-only view 替换为 provenance-bound deterministic artifact compiler。
 
+本地 re-entry qualification 已验证候选编译器的可执行性：Law 与 Experimental Design 的 deterministic
+compiler、validated catalog/runtime、protected-input 检查和原 scorer activation 共 20/20 focused tests
+通过（显式 `SKVM_PYTHON`）。这只是 L3 artifact 机制证据，尚未成为新的 paid development identity；统一
+adapter contract 和 public-contract benchmark lock 仍是下一阶段前置条件。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段
