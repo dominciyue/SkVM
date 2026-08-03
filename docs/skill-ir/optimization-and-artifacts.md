@@ -208,9 +208,10 @@ cd D:\skill优化\SkVM
 ```
 
 qualification 把资源合同 probe、workdir namespace 隔离和 mutation fail-closed 分开报告。任何 probe 失败都
-是 preflight/infrastructure blocker；它不会触发 semantic repair，也不会被计入 skill 优化分数。当前结果为
-2/2 mutation regression、Experimental Design probe 通过，Law probe 因本机 Python 缺少 `docx`/`pdfplumber`
-而 blocked，故暂不创建付费 lock。
+是 preflight/infrastructure blocker；它不会触发 semantic repair，也不会被计入 skill 优化分数。当前使用显式
+`SKVM_PYTHON=.skvm/law-runtime/Scripts/python.exe` 的结果为 2/2 mutation regression、2/2 resource probe
+通过。未提供该环境时，Law 的 `docx`/`pdfplumber` 缺失会使 qualification blocked，不能绕过 probe 创建付费
+lock。
 
 Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer 或阈值。失败结果冻结；若要修正方法，
 回到新的 development identity，不能消费旧 held-out 反馈后重跑同一分母。

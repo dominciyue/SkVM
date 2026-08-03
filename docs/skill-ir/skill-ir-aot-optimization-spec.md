@@ -284,12 +284,14 @@ unresolved reference、根目录 resource exposure 或完整性失败，5 个 Py
 的本地兼容性和身份可复现性，不证明 agent 任务质量收益。
 
 在进入付费 lock 前，`namespaced-resource-development-qualification/v1` 还会执行资源合同 probe 和 mutation
-regression。当前 qualification 结果为 blocked：2/2 mutation regression 通过，Experimental Design 的
-stdlib probe 通过，Law probe 因当前 `python` 缺少资源合同列出的 `docx`/`pdfplumber` 依赖而失败；该行只能
-标记为 preflight infrastructure blocker，不能计入 skill 质量、稳定性或优化收益。qualification 命令为：
+regression。当前 qualification 在显式 `SKVM_PYTHON` 指向 `.skvm/law-runtime/Scripts/python.exe` 时为 ready：
+2/2 mutation regression 和 2/2 resource probe 均通过。未提供该环境时，Law 的 `docx`/`pdfplumber` 缺失只能
+标记为 preflight infrastructure blocker，不能计入 skill 质量、稳定性或优化收益；不得绕过 probe 创建付费
+lock。qualification 命令为：
 
 ```powershell
 & 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-plan-run.ts
+$env:SKVM_PYTHON = (Resolve-Path '.skvm\law-runtime\Scripts\python.exe').Path
 & 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-development-qualification.ts
 ```
 

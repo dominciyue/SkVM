@@ -406,9 +406,10 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    `materializeCaseArtifacts`。`namespaced-resource-development-plan/v1` 固定两个真实 skill 的四个 development
    task、clean/Windows/skvm/run-1，共 16 行；默认 cold-start matrix 保持不变。
 2. [x] 冻结 task/model/adapter/repetitions/gate 之前，完成 plan identity、workdir isolation、resource probe 和
-   mutation regression qualification。16 个 workdir 唯一、2/2 namespace mutation regression 通过；Experimental
-   Design resource probe 通过，Law probe 因当前 Python 缺少 `docx`（并连带 `pdfplumber`）而阻塞。该失败按
-   `preflight-infrastructure` 记录，不能包装为 skill 质量失败，也不能创建付费 lock。
+   mutation regression qualification。16 个 workdir 唯一、2/2 namespace mutation regression 通过；在显式
+   `SKVM_PYTHON=.skvm/law-runtime/Scripts/python.exe` 的环境下，Law 与 Experimental Design 的 resource probe
+   均通过（2/2）。未提供该环境时 Law 的 `docx`/`pdfplumber` 缺失仍必须按 `preflight-infrastructure` 阻塞，
+   不能包装为 skill 质量失败，也不能绕过 probe 创建付费 lock。
 3. [ ] 只有完整 dry-run 与 qualification 通过后才创建付费 optimized development lock；本阶段继续禁止
    held-out、PGO 和 Token break-even claim。
 

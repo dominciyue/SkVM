@@ -50,7 +50,8 @@ async function readJson<T>(targetPath: string): Promise<T> {
 }
 
 async function runContractProbe(contract: ResourceContract, env: NodeJS.ProcessEnv): Promise<NamespacedResourceDevelopmentQualificationCase["probe"]> {
-  const command = env[contract.interpreter.env]?.trim() || contract.interpreter.fallbackCommand
+  const selected = env[contract.interpreter.env]?.trim()
+  const command = selected ? `env:${contract.interpreter.env}` : contract.interpreter.fallbackCommand
   const result = await runResourceProbe(contract, { env })
   const passed = result.status === "ok"
   const detail = passed ? undefined : result.stderrClass
