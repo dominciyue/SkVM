@@ -417,8 +417,23 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    唯一付费 development 矩阵已完成 16/16、0 infrastructure failure，确定性 scorer 得到 optimized 1/4
    success、mean evaluator score 0.5625、2 pairwise regressions，quality gate failed。该结果只作为
    development failure evidence；不补跑、不调 scorer、不进入 held-out、PGO 或 Token break-even claim。
-4. [ ] 针对 gate failure 做 source-bound semantic failure audit：区分 namespace 资源机制未生效、模型未读取
-   resource、以及原始 workflow/任务合同本身不足；只有提出可验证修复并更新新 lock 后才能再次付费。
+4. [x] 针对 gate failure 完成 source-bound semantic failure audit：4/4 optimized rows 的 namespace
+   manifest 与 declared resources 均 active，4/4 均产生 public task outputs，0 infrastructure failure；3/4
+   failure rows 与已冻结的非公开 exact/literal benchmark contract sensitivity 对齐，Experimental Design
+   optimized view 判定为 source-rewrite-only。报告冻结在
+   `results/skill-ir/namespaced-resource-quality-development-v1-r2/semantic-failure-audit.json`，不能进入
+   package/compiler 输入。
+
+#### Task 17.11 Source-bound compiled artifact re-entry（进行中）
+
+1. [ ] 使用现有 `experimental-design-artifact-compiler.ts` 与 `law-artifact-compiler.ts` 作为第一版
+   deterministic artifact compiler，不把 namespaced resource materialization 当作完整 optimized view；
+2. [ ] 为 compiler 生成的 `skill.md`、execution-plan、checker、template 和 provenance 建立统一 adapter
+   contract，保留 `original | ir-static` 基线不变；
+3. [ ] 以已通过公开 contract audit 的 benchmark（优先 Experimental Design v2；Law 需先修复其 audit）
+   建立新 development lock，先 dry-run/fixture，再付费；
+4. [ ] 只有 deterministic scorer 的 gate 通过后，才允许创建 held-out lock；本阶段不启用 PGO、不宣称
+   cross-skill 或 Token 收益。
 
 ## 6. 验证与实验门禁
 

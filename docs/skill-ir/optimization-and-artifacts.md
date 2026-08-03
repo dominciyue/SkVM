@@ -207,6 +207,19 @@ $env:SKVM_PYTHON = (Resolve-Path '.skvm\law-runtime\Scripts\python.exe').Path
 0.5625、2 个相对 `max(original, ir-static)` 的 pairwise regression，gate failed。失败证据冻结在
 `results/skill-ir/namespaced-resource-quality-development-v1-r2/`，不进入 held-out/PGO，也不改 scorer。
 
+门禁失败后先运行 source-bound semantic failure audit，而不是直接补跑：
+
+```powershell
+& 'C:\Users\14182\AppData\Roaming\npm\node_modules\bun\bin\bun.exe' ./src/benchmarks/skill-ir/namespaced-resource-semantic-failure-audit.ts `
+  --raw=results/skill-ir/namespaced-resource-quality-development-v1-r2/raw-runs.jsonl `
+  --scored=results/skill-ir/namespaced-resource-quality-development-v1-r2/scored.jsonl `
+  --out=results/skill-ir/namespaced-resource-quality-development-v1-r2/semantic-failure-audit.json
+```
+
+当前审计结果为 4/4 optimized namespace active、4/4 public outputs present、0 infrastructure，且 3/4
+failure rows 与已知 v1 benchmark contract sensitivity 对齐；Experimental Design optimized view 仍是
+source-rewrite-only。报告只用于归因，不替代 scorer，也不得进入 compiler/package、held-out 或 gate。
+
 完整四臂接入先使用独立 dry-run planner，不改变默认 `real-agent-run` matrix：
 
 ```powershell

@@ -301,10 +301,21 @@ $env:SKVM_PYTHON = (Resolve-Path '.skvm\law-runtime\Scripts\python.exe').Path
 workspace preflight 后重新物化 namespace resource，避免 `executePlan` 清空 workdir 时丢失资源；它不改旧
 default matrix。实际 16/16 rows、0 infrastructure failure 已完成，确定性 scorer 结果为 optimized
 success `1/4`、mean evaluator score `0.5625`、pairwise regression `2`，因此 quality gate failed。
-失败原因主要是 experimental-design 两个 task 的 semantic contract 未通过，以及 Law standard task 的
-report outcome 回归；这不是 resource probe 或 gateway failure。结果和 gate 报告保存在
+表面失败集中在 Experimental Design 两个 task 的 semantic contract 和 Law standard task 的 report outcome；
+结果和 gate 报告保存在
 `results/skill-ir/namespaced-resource-quality-development-v1-r2/`，只能作为 development failure evidence，
 不允许进入 held-out、PGO、Final IR 或 Token 主 claim。
+
+随后执行 `skill-ir-namespaced-resource-semantic-failure-audit/v1`：4/4 optimized rows 的 namespace manifest
+及 declared resources 均 active，4/4 均产生公开 task outputs，0 infrastructure failure，因此“namespace
+没有接入”与“模型没有执行”均不受证据支持。3 个 scorer failure 同时落在已冻结 audit failed 的 v1
+benchmark 上：Experimental Design v1 含非公开 method enum/allocation algorithm/report literals，Law v1 的
+alternative-valid review wording canary 也失败；这使本轮数值不能单独归因为优化语义退化。与此同时，
+Experimental Design 的 optimized `SKILL.md` 仍只是原始 skill 的 namespace path rewrite，没有把 base IR、
+deterministic generator/checker/template lowering 进 agent-facing view，说明 L3 artifact 仍未真正进入这条
+optimized arm。完整诊断保存在同目录的 `semantic-failure-audit.json`，它只决定下一步方法，不得回流到
+compiler/package。下一次付费实验必须同时满足：使用通过 public-contract audit 的 benchmark，并把
+source-rewrite-only view 替换为 provenance-bound deterministic artifact compiler。
 
 ## 5. 静态与动态结合
 

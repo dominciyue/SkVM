@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "skill-ir-namespaced-resource-semantic-failure-audit/v1",
+  "status": "completed",
+  "counts": {
+    "rawRows": 16,
+    "scoredRows": 16,
+    "optimizedRows": 4,
+    "namespaceActiveRows": 4,
+    "optimizedRowsWithProducedOutputs": 4,
+    "contractSensitiveRows": 3,
+    "sourceRewriteOnlyRows": 2,
+    "infrastructureRows": 0
+  },
+  "rows": [
+    {
+      "key": "law-to-markdown:skvm:windows:clean:law-to-markdown-statute-dev-001|optimized|1",
+      "skillId": "law-to-markdown",
+      "task": "law-to-markdown-statute-dev-001",
+      "namespace": "active",
+      "producedOutputs": "all-public-outputs",
+      "scored": "success",
+      "contractSensitivity": "not-supported",
+      "view": "compiled-view"
+    },
+    {
+      "key": "law-to-markdown:skvm:windows:clean:law-to-markdown-standard-dev-002|optimized|1",
+      "skillId": "law-to-markdown",
+      "task": "law-to-markdown-standard-dev-002",
+      "namespace": "active",
+      "producedOutputs": "all-public-outputs",
+      "scored": "failure",
+      "contractSensitivity": "supported",
+      "view": "compiled-view"
+    },
+    {
+      "key": "experimental-design:skvm:windows:clean:experimental-design-stratified-dev-001|optimized|1",
+      "skillId": "experimental-design",
+      "task": "experimental-design-stratified-dev-001",
+      "namespace": "active",
+      "producedOutputs": "all-public-outputs",
+      "scored": "failure",
+      "contractSensitivity": "supported",
+      "view": "source-rewrite-only"
+    },
+    {
+      "key": "experimental-design:skvm:windows:clean:experimental-design-cluster-dev-002|optimized|1",
+      "skillId": "experimental-design",
+      "task": "experimental-design-cluster-dev-002",
+      "namespace": "active",
+      "producedOutputs": "all-public-outputs",
+      "scored": "failure",
+      "contractSensitivity": "supported",
+      "view": "source-rewrite-only"
+    }
+  ],
+  "findings": [
+    {
+      "code": "NAMESPACE_ACTIVE",
+      "skillId": "law-to-markdown",
+      "task": "law-to-markdown-statute-dev-001"
+    },
+    {
+      "code": "PUBLIC_OUTPUTS_PRESENT",
+      "skillId": "law-to-markdown",
+      "task": "law-to-markdown-statute-dev-001"
+    },
+    {
+      "code": "NAMESPACE_ACTIVE",
+      "skillId": "law-to-markdown",
+      "task": "law-to-markdown-standard-dev-002"
+    },
+    {
+      "code": "PUBLIC_OUTPUTS_PRESENT",
+      "skillId": "law-to-markdown",
+      "task": "law-to-markdown-standard-dev-002"
+    },
+    {
+      "code": "BENCHMARK_CONTRACT_SENSITIVE",
+      "skillId": "law-to-markdown",
+      "task": "law-to-markdown-standard-dev-002"
+    },
+    {
+      "code": "NAMESPACE_ACTIVE",
+      "skillId": "experimental-design",
+      "task": "experimental-design-stratified-dev-001"
+    },
+    {
+      "code": "PUBLIC_OUTPUTS_PRESENT",
+      "skillId": "experimental-design",
+      "task": "experimental-design-stratified-dev-001"
+    },
+    {
+      "code": "BENCHMARK_CONTRACT_SENSITIVE",
+      "skillId": "experimental-design",
+      "task": "experimental-design-stratified-dev-001"
+    },
+    {
+      "code": "SOURCE_REWRITE_ONLY_VIEW",
+      "skillId": "experimental-design",
+      "task": "experimental-design-stratified-dev-001"
+    },
+    {
+      "code": "NAMESPACE_ACTIVE",
+      "skillId": "experimental-design",
+      "task": "experimental-design-cluster-dev-002"
+    },
+    {
+      "code": "PUBLIC_OUTPUTS_PRESENT",
+      "skillId": "experimental-design",
+      "task": "experimental-design-cluster-dev-002"
+    },
+    {
+      "code": "BENCHMARK_CONTRACT_SENSITIVE",
+      "skillId": "experimental-design",
+      "task": "experimental-design-cluster-dev-002"
+    },
+    {
+      "code": "SOURCE_REWRITE_ONLY_VIEW",
+      "skillId": "experimental-design",
+      "task": "experimental-design-cluster-dev-002"
+    }
+  ],
+  "attribution": {
+    "namespaceMechanism": "supported",
+    "modelExecution": "supported",
+    "benchmarkContract": "supported",
+    "remainingWorkflowGap": "supported"
+  },
+  "nextAction": "Do not rerun paid development on this v1 matrix. Replace the source-rewrite-only optimized view with a deterministic artifact compiler and rerun only after a public-contract benchmark lock passes.",
+  "claimBoundary": "Diagnostic evidence only; this report cannot promote an IR, package, benchmark, or Token claim."
+}
