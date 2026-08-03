@@ -329,10 +329,31 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    - [x] 按 v2 lock 完成 dry-run、qualification、唯一 `retries=0` development 执行和 measurement
      validity audit；8/8、0 infra，但 existing-path command argument 仍被 false reject，v2 冻结 invalidated，
      base IR/held-out 保持关闭；
-   - [ ] 在不创建新 calibration identity 的前提下，先设计并审计 skill-neutral、source-bound command
+   - [x] 在不创建新 calibration identity 的前提下，先设计并审计 skill-neutral、source-bound command
      semantic contract，覆盖 exact/alias/script body/placeholder/existing local path 的合法与反向 canary。
 7. [x] 同步 evaluation、pilots、results、conversation log，运行 focused/full tests、typecheck、链接与 diff
    check 后提交。
+
+#### Task 17.7 通用来源语义与 skill package 污染审计
+
+**范围约束**
+
+- 不创建 `zh-readme` v3，不修改 v1/v2 scorer、lock、raw/scored row 或 gate；
+- 不立即修改 SkVM flat bundle runtime；先量化 exposure、collision 与 output-reference 三类边界；
+- 通用 core 禁止 skill-id branch，所有命令参数槽与允许的 resource reference 都来自公开声明式证据。
+
+**文件级 TDD**
+
+1. [x] RED/GREEN `source-bound-command-contract.test.ts`：exact/alias/script body、完整 placeholder、真实
+   repository-local path；拒绝 shell control、absolute/escape/symlink/nonexistent path 和未声明 token 改写；
+2. [x] RED/GREEN `source-package-contamination-audit.test.ts`：区分仅暴露、同路径 collision、输出引用污染与
+   contract 明确允许的 resource reference，外部 URL 不误报；
+3. [x] 读取 method portfolio 与 pilot source/task registry，生成 6 个方法案例的 compact 本地审计报告；至少
+   覆盖 `zh-readme` 的 license 污染形状与 `law-to-markdown` 的脚本资源形状，不消费 held-out 内容；
+4. [x] 根据报告决定后续是否进入只读 namespace/显式 mount 设计；结果为 6/6 case 共 18 个资源、2 个脚本型
+   case、0 静态路径 collision、1 条已冻结 output contamination observation；下一步进入兼容性 namespace
+   设计，但保持 flat runtime 不变；
+5. [x] 同步 spec/evaluation/plan/conversation log，运行 focused/full tests、typecheck、链接与 diff check 后提交。
 
 ## 6. 验证与实验门禁
 

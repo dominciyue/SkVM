@@ -211,6 +211,34 @@ closure 中的 `LICENSE.upstream` 当成 task repository 文件链接，属于�
 正向 pair；该方向性观察不是替代分数。下一步先设计 skill-neutral、source-bound command semantic contract，
 不立即创建新 calibration 版本。
 
+#### 4.2.1 来源约束的命令语义与资源命名空间
+
+命令等价必须由公开 source evidence 构造声明式合同，通用 matcher 不按 skill id 分支，也不猜测参数语义。
+合同可声明 exact variant、公开 alias/script body，以及逐 token 的 `placeholder` 或 `repository-path` 参数槽。
+`repository-path` 只接受 task repository 根目录内真实存在且不经符号链接逃逸的相对路径；shell control、重定向、
+绝对路径、`..` 逃逸、未声明 token 改写和不存在路径均拒绝。没有足够公开证据时返回 `unconfirmed`，不得用
+模糊相似度补判。该合同先以独立 canary 验证，不修改冻结的 `zh-readme` v2 scorer 或 calibration identity。
+
+Skill bundle 是真实 skill 的组成部分：当前 SkVM 会在 task fixture 之后把除 `SKILL.md` 外的脚本、模板、
+参考资料和许可证复制到同一 workdir 根命名空间。这对 `law-to-markdown` 等脚本型 skill 是必要能力，但会引入
+三种不同风险，必须分列而不能统称为污染：
+
+1. `exposure`：skill-only resource 可见，但没有覆盖 task input，也未进入 task output；只作诊断；
+2. `collision`：task input 与 skill resource 同相对路径；无论 digest 是否相同都存在 provenance 歧义，digest
+   不同时为阻断级风险；
+3. `output-reference`：生成的 task artifact 把 skill-only resource 当作 task repository 内容引用；除非公开
+   task contract 明确允许，否则是确认的语义污染。
+
+首轮只实现 provenance audit 和 compact portfolio report，不改变 flat bundle runtime。后续命名空间迁移必须
+同时保留脚本/模板可执行性和旧 skill 兼容性，可考虑只读 resource namespace 或显式 task/resource mount；在
+跨至少两个不同 phenotype 的审计证据形成前，不为单个 skill 打补丁，也不把资源暴露本身计为优化失败。
+
+2026-08-03 的首轮 portfolio audit 覆盖 6 个真实 method-development case：6/6 都含非 `SKILL.md`
+资源，共 18 个文件；`law-to-markdown` 与 `experimental-design` 含可执行脚本，说明后续隔离不能只删 bundle；
+development fixture 与 bundle 的静态同路径 collision 为 0。已冻结 `zh-readme` v2 measurement evidence 提供
+1 条 confirmed output-reference contamination observation，涉及两个 original 输出。该结果把命名空间列为
+通用系统重点风险，但仍是 diagnostic evidence，不是优化效果或跨 skill 失败率。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段

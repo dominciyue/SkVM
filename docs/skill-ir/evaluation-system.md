@@ -78,6 +78,12 @@ Pairing 只在除 system 外身份一致时成立。跨时间、跨 provider、�
 Runner 为每行建立隔离 workdir，并保存初始 manifest。Exact original 从 `sourcePath/sourceFiles` 读取正文和
 资源，不能只显示 `Source file: <path>`。Protected input 和 source closure 必须在执行后重新验 digest。
 
+当前生产 materializer 会先复制 task fixture，再把 skill bundle 复制到同一 workdir 根目录。Bundle 中的
+脚本、模板和 reference 是 original skill 能力的一部分，不能从基线静默删除；同时必须区分三类 provenance
+结果：仅可见的 `exposure`、相对路径同名的 `collision`、以及 task output 引用未授权 skill-only resource 的
+`output-reference`。只有 digest 不同的覆盖 collision 和未授权 output-reference 是确认污染；单纯 exposure
+只作诊断。
+
 Task-specific scorer 只查看最终 workdir 与初始 manifest，判断：
 
 - required outputs 是否存在、路径是否合法；
@@ -119,6 +125,18 @@ python scripts/analyze_skill_ir_results.py `
 ```
 
 具体冻结实验优先运行其专用 `*-run.ts`，不要从此示例猜测参数。
+
+Source package portfolio 的无模型审计：
+
+```powershell
+cd D:\skill优化\SkVM
+bun ./src/benchmarks/skill-ir/source-package-portfolio-audit-run.ts
+```
+
+该命令读取 method portfolio、pilot source registry、development fixture 路径和显式传入的既有
+measurement-validity evidence，写入 `results/skill-ir/source-package-portfolio-audit.json`。它不修改 runtime、
+不消费 held-out 内容，不产生 skill 优化或 Token claim。来源约束命令 matcher 只接受声明式 exact variant、
+alias/script body 与显式参数槽；repository-path 槽必须解析到 task repository 内真实路径。
 
 API Tester schema-derived artifact 的四系统 development runner：
 
