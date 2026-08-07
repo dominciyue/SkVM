@@ -57,6 +57,7 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 
 | 文档 | 唯一职责 |
 |---|---|
+| `developer-guide.md` | 从零上手、命令、参数、实验生命周期、结果判读与当前开发接力点。 |
 | `skill-ir-aot-optimization-spec.md` | 当前研究契约、claim、证据边界和成功条件。 |
 | `skill-ir-aot-optimization-plan.md` | 当前 ledger、执行顺序和活跃文件级 TDD。 |
 | `ir-core.md` | IR 类型、parser、validator、passes 与 lowering。 |
@@ -70,7 +71,8 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 
 ## 阅读路径
 
-- 第一次了解：本文件 -> spec -> experiment results -> plan。
+- 第一次了解：本文件 -> `developer-guide.md` -> spec -> experiment results -> plan。
+- 第一次亲手开发或跑实验：`developer-guide.md` -> 对应组件文档 -> plan 的活跃 TDD。
 - 修改 IR：`ir-core.md` -> `src/skill-ir/` -> `src/profiler/`。
 - 修改评估：`evaluation-system.md` -> `src/benchmarks/skill-ir/` -> `src/bench/evaluators/`。
 - 修改优化产物：`optimization-and-artifacts.md` -> compiler/runtime/checker 代码。

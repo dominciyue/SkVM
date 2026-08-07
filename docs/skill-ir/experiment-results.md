@@ -154,10 +154,12 @@ untouched replication 和 Token break-even 均未证明。
 | experimental-design | yes | yes (v2) | blocked by saturation | no |
 | api-tester | yes | yes | yes, artifact 4/4 | no |
 | zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
+| zh-readme | yes | no，v1/v2 measurement invalid | no | no |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：6 registered、5 studied、3
-contract-qualified、0 untouched replication、1 passed qualified phenotype；缺 3 个 qualified case，
-Env/Law 仍有 benchmark-contract blocker，自动化指标也不完整。该失败是诚实状态，不应调整阈值。
+机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：6 registered、6 studied、4
+contract-qualified、0 untouched replication、1 passed qualified phenotype；缺 2 个 qualified case，
+Env/Law 仍有 benchmark-contract blocker，zh-readme 仍有 scorer-authority blocker，自动化指标也不完整。
+该失败是诚实状态，不应调整阈值。
 
 ### 8.1 `zh-code-reviewer` measurement contract
 
@@ -238,7 +240,28 @@ mean 0.95、40204 tokens；original 2/4、mean 0.90、120021 tokens；0 positive
 - `results/skill-ir/zrm-pi-v2/scored-runs.jsonl`
 - `results/skill-ir/zrm-pi-v2/measurement-validity.json`
 
-## 11. 本地与提交结果
+## 11. Namespaced 四臂与 deterministic artifact re-entry
+
+Namespaced resource quality development r2 使用 Law 与 Experimental Design 的四个 development task，固定
+`no-skill | original | ir-static | optimized`，完成 16/16、0 infrastructure failure。Optimized 只有 1/4
+success、mean 0.5625，并产生 2 个 pairwise regression，quality gate failed。后续 source-bound failure
+audit 确认 4/4 optimized 行都实际加载 namespace resources 并生成公开输出；3/4 失败行受既有 v1 benchmark
+contract sensitivity 影响，Experimental Design optimized view 仍只是 source rewrite。该结果证明 namespace
+机制和 runner 接入可用，不证明质量或 Token 正收益。
+
+随后 Task 17.11 复用现有 Law 与 Experimental Design deterministic artifact compiler。在显式
+`SKVM_PYTHON` 下，compiler/catalog/runtime/scorer activation focused suite 为 20/20：两个 skill 的本地
+fixture 均能从 scorer failure 进入 success，并保持 protected input 与 package digest 合同。该结果只属于
+本地机制资格证据；尚无统一 adapter contract、新 public-contract development lock 或付费四臂结果。
+
+关键路径：
+
+- `results/skill-ir/namespaced-resource-quality-development-v1-r2/gate-report.json`
+- `results/skill-ir/namespaced-resource-quality-development-v1-r2/semantic-failure-audit.json`
+- `src/benchmarks/skill-ir/experimental-design-artifact-compiler.ts`
+- `src/benchmarks/skill-ir/law-artifact-compiler.ts`
+
+## 12. 本地与提交结果
 
 当前 Git 中有约 252 个跟踪 result files，并有大量本地 raw workdir/qualification/artifact 文件。治理规则：
 
@@ -247,7 +270,7 @@ mean 0.95、40204 tokens；original 2/4、mean 0.90、120021 tokens；0 positive
 - 已经被 lock digest 或 committed report 引用的文件保持原位；
 - 不通过“文档治理”删除用户实验原始数据。
 
-## 12. 后续实验
+## 13. 后续实验
 
 1. 保持 API Tester development package/lock/result 不可变，不立即运行 held-out。
 2. 保持 `zh-code-reviewer` base IR/static lock/result 不可变；本轮 residual 已由 static 解决，不创建 overlay，
@@ -255,6 +278,10 @@ mean 0.95、40204 tokens；original 2/4、mean 0.90、120021 tokens；0 positive
 3. `zh-readme` v2 已完成 24/24 audit 与唯一 8-row development，但 existing local path command argument
    仍被 false reject；v1/v2 均冻结 invalidated，不进入 base IR。下一步先形成 skill-neutral command
    semantic contract，不立即堆新 calibration 版本。
-4. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势。
-5. 至少第二个合同合格 phenotype 通过 development，并满足 portfolio readiness。
-6. Readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
+4. 完成 Task 17.11 的 skill-neutral artifact adapter contract，把 `skill.md`、execution plan、checker、
+   template 与 provenance 的通用组装从 skill-specific compiler 中提取出来；不增加 runtime/catalog 版本。
+5. 用公开合同合格的 Experimental Design v2 建立新 development identity；先本地 fixture、audit、dry-run 和
+   qualification，再决定付费。Law 必须先关闭 benchmark-contract blocker。
+6. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势，并让至少第二个合同合格
+   phenotype 通过 development。
+7. Portfolio readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。

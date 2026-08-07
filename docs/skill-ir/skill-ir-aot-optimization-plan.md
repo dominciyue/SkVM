@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-03
+**最后更新：** 2026-08-07
 
 本文件只记录当前 ledger、执行顺序与活跃 TDD。已完成阶段的过程见 `history.md` 和 Git history；组件
 行为见对应权威文档；数值见 `experiment-results.md`。
@@ -41,14 +41,15 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Law-to-markdown | 冻结 held-out failure | Development 4/4；held-out 2/4 且 2 regression。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
 | API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
-| Method portfolio | 已机器化，readiness failed | 6 registered、5 studied、3 qualified、1 passed phenotype、0 replication。 |
+| Method portfolio | 已机器化，readiness failed | 6 registered、6 studied、4 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
-| 文档治理 | 本轮重建 | 8 份权威文档，删除重复阶段全文。 |
+| 文档治理 | 本轮重建 | 9 份权威文档，新增统一上手指南，删除重复阶段全文。 |
 
 ## 3. 关键阻塞
 
-1. 当前 contract-qualified 方法案例有 3 个，仍缺 3 个；通过 development gate 的 phenotype 只有 1 个。
+1. 当前 contract-qualified 方法案例有 4 个，距离 6 个起步条件仍缺 2 个；通过 development gate 的
+   phenotype 只有 1 个。
 2. Automation/adaptation 指标不完整，历史 Env/Law 仍有 benchmark-contract blocker。
 3. API Tester 的 schema-derived package 已通过冻结 development gate；下一缺口是更多信息互补、合同合格
    的方法案例和自动化/适配成本数据。
@@ -425,6 +426,9 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    package/compiler 输入。
 
 #### Task 17.11 Source-bound compiled artifact re-entry（进行中）
+
+从零接手本任务的目录、命令、参数和验证流程见 `developer-guide.md`；该指南只解释操作，不改变本节的
+研究边界、冻结身份或执行顺序。
 
 1. [x] 使用现有 `experimental-design-artifact-compiler.ts` 与 `law-artifact-compiler.ts` 作为第一版
    deterministic artifact compiler，不把 namespaced resource materialization 当作完整 optimized view；在
