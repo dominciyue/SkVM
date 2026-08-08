@@ -161,6 +161,18 @@ bun ./src/benchmarks/skill-ir/api-tester-artifact-development-run.ts `
 该 runner 从两个 `no-skill` identity 派生 direct artifact 行，按公开 fixture 路径选择 YAML/JSON package，
 最终形成 4 个完整 quartet。Qualification 与 lock digest 绑定，过期或失败时禁止 execute。
 
+公共 artifact assembly 与 Experimental Design v2 的无模型资格检查：
+
+```powershell
+cd D:\skill优化\SkVM
+bun ./src/benchmarks/skill-ir/validated-artifact-assembly-parity-run.ts
+bun ./src/benchmarks/skill-ir/experimental-design-v2-artifact-qualification-run.ts
+```
+
+前者对两个冻结 phenotype 做 shadow rebuild，不覆盖旧 package；后者运行两个公开 v2 development fixture，
+最终成功仍由现有 deterministic scorer 判定。当前结果仅为本地 mechanism qualification。相同任务的
+`no-skill | original` 已饱和，因此没有对应付费四臂 lock；不能从这两个命令推导质量改进或 Token 收益。
+
 `zh-code-reviewer` 的开发期 benchmark audit：
 
 ```powershell

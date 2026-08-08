@@ -57,7 +57,7 @@ optimized_skill/
 
 ### 1.3 现在已经做到哪里
 
-截至 2026-08-07：
+截至 2026-08-09：
 
 - IR schema、parser、validator、profile annotation、静态 pass、lowering、真实 runner、scorer、gate 和
   paired analyzer 已具备；
@@ -68,9 +68,9 @@ optimized_skill/
   residual failure 和 scorer 合同错误等不同问题；
 - portfolio 当前登记 6 个真实 case，但只有 4 个 contract-qualified、0 个 untouched replication，readiness
   尚未通过；
-- 当前活跃工作是 Task 17.11：把现有 skill-specific compiler 中的 `skill.md`、execution plan、checker、
-  template 和 provenance 抽象成统一、声明式 adapter contract，再用公开合同合格的 benchmark 做新一轮
-  development，而不是继续增加 runtime 或 catalog 版本。
+- Task 17.11 已把重复的 package assembly 抽为技能无关模块，并在 API Tester 与 Experimental Design v1
+  两种 phenotype 上完成逐字节 shadow parity；新的 Experimental Design v2 compiler 已接入公共 assembly，
+  本地 2/2 fixture 通过，但同一任务基线饱和，因此没有创建付费 optimized lock。
 
 ## 2. 第一次进入项目
 
@@ -242,8 +242,9 @@ packages/                        编译后的 artifact package
 ### 3.3 最值得参考的三个案例
 
 - API Tester：当前最清晰的声明式 schema-derived adapter 和 development 正向案例；
-- Experimental Design v2：公开语义合同、alternative-valid 与 held-out 隔离的 benchmark 参考，但现有旧
-  compiler 仍含 v1 私有语义，不能直接当成 v2 optimized artifact；
+- Experimental Design v2：公开语义合同、alternative-valid 与 held-out 隔离的 benchmark 参考；旧 v1
+  compiler 保留为历史，新 `experimental-design-v2-artifact-compiler.ts` 已绑定公开 v2 contract 并通过本地
+  2/2 qualification，但尚无付费质量改进证据；
 - Law to Markdown：脚本资源闭包和 held-out 回归案例，说明 development 通过不等于可晋升。
 
 ## 4. 必须掌握的术语
@@ -692,8 +693,10 @@ src/profiler/                      trace/profile annotation
 ```text
 src/benchmarks/skill-ir/validated-artifact-catalog.ts
 src/benchmarks/skill-ir/validated-artifact-runtime.ts
+src/benchmarks/skill-ir/validated-artifact-assembly.ts
 src/benchmarks/skill-ir/api-tester-artifact-compiler.ts
 src/benchmarks/skill-ir/experimental-design-artifact-compiler.ts
+src/benchmarks/skill-ir/experimental-design-v2-artifact-compiler.ts
 src/benchmarks/skill-ir/law-artifact-compiler.ts
 ```
 
@@ -702,20 +705,27 @@ validator 只负责运行时合同，它与离线 scorer 不是同一个东西�
 
 ### 12.3 当前 Task 17.11 的接手点
 
-你现在最适合从以下顺序开始：
+公共 assembly 和 Experimental Design v2 本地 qualification 已完成。相关无模型命令是：
 
-1. 阅读 API Tester 的 `artifact-adapter.json` 和 compiler，理解声明式配置如何生成 package；
-2. 阅读 validated artifact catalog/runtime，列出统一 adapter 必须描述的字段；
-3. 阅读 Law 和 Experimental Design compiler/test，标出重复的 `skill.md`、execution plan、checker、template、
-   provenance 生成逻辑；
-4. 先写失败测试：同一份 skill-neutral adapter schema 能表达至少两个 skill，不允许 core 出现 skill-id branch；
-5. 实现最小统一 schema/loader/compiler glue；
-6. 用本地 fixture 编译并运行，验证 manifest digest、protected input、execution order 和 deterministic scorer；
-7. 更新组件文档、plan 和 conversation log；
-8. 再为 Experimental Design v2 建立新 development lock。
+```powershell
+cd D:\skill优化\SkVM
+bun ./src/benchmarks/skill-ir/validated-artifact-assembly-parity-run.ts
+bun ./src/benchmarks/skill-ir/experimental-design-v2-artifact-qualification-run.ts
+```
 
-重要边界：现有 Experimental Design compiler 内仍有 v1 的 method/allocation/report 语义。统一 adapter 不能只是把
-这些私有常量搬进 JSON；它必须绑定 v2 的公开 contract，或明确停在机制 fixture，不能声称 v2 artifact 已完成。
+已提交的 v2 package 不允许原地覆盖；需要重编译时使用
+`experimental-design-v2-artifact-compile-run.ts --out=<empty-directory>`。下一阶段从以下顺序接手：
+
+1. 保持旧 package/lock/result 与公共 assembly parity report 不变；
+2. 选择通过公开 contract audit、且 `no-skill | original` 基线有区分度的新任务或 skill；
+3. 先做无付费 source/task/scorer/materialization audit，再生成 domain compiler 与公共 assembly 输入；
+4. 用本地 fixture 验证 package、protected input、execution order 和 deterministic scorer；
+5. 只有仍有可归因观察空间时，才冻结新 development lock、dry-run 与 qualification；
+6. 若目标只是证明质量不降时的成本差，必须单独预注册 quality-parity efficiency ablation，不能冒充质量改进。
+
+重要边界：现有 `experimental-design-artifact-compiler.ts` 仍是冻结 v1 历史实现；新 v2 compiler 没有修改
+它。公共 assembly 只解决 package 组装，领域 generator/checker 仍需从公开 contract 构造。v2 本地 2/2
+qualification 不能写成 paid development、held-out、跨模型或质量改进。
 
 ## 13. 第一次写 TypeScript 测试
 
@@ -871,15 +881,16 @@ git remote -v
 
 ## 17. 你现在可以接着做什么
 
-建议下一次实际开发从 Task 17.11 第 2 项开始，不立即付费：
+建议下一次实际开发从“有区分度的新 public-contract case”开始，不在 Experimental Design 的同一饱和
+分母上付费：
 
 ```text
-第一步：为 validated artifact 定义 skill-neutral adapter contract 的失败测试
-第二步：让 API Tester 与另一个 compiler fixture 都能被同一 schema 表达
-第三步：把重复的 skill.md / plan / checker / template / provenance 组装下沉到通用 compiler
-第四步：验证 coreBranchDelta 不依赖 skill id，运行本地 package/runtime/scorer
-第五步：审计 Experimental Design v2 的公开合同映射，建立新 development lock
-第六步：完成 dry-run、qualification 后再做正式 development
+第一步：从 portfolio 中挑选信息互补、公开合同可审计且基线未饱和的任务/skill
+第二步：冻结 source/task split，完成 scorer differential、reverse-evidence 与 materialization audit
+第三步：将领域 contract 编译为公共 assembly 输入，不增加 runtime/catalog 版本
+第四步：运行本地 package/runtime/scorer qualification，并记录人工分钟、adapter LOC 与 coreBranchDelta
+第五步：只有观察空间和前置门禁都成立，才冻结新的付费 development identity
+第六步：通过 development gate 后再讨论 held-out、跨模型和摊销 Token
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

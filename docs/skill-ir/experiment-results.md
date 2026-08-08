@@ -25,6 +25,7 @@
 | Law held-out | 4 systems x 4 = 16 | artifact 2/4, 0.725；2 regressions | Held-out gate failed，package 不晋升。 |
 | Experimental Design v2 | 2 arms x 4，普通与 harder | no-skill/original 均 4/4, 1.0 | 饱和，0 differing；不构造 base IR。 |
 | Experimental Design skill-unique | 2 arms x 4 | 均 4/4, 1.0；original token 3.1794x | 原 skill 增量仍未形成区分度，停止。 |
+| Experimental Design v2 artifact local | 2 development fixtures | scorer 2/2, mean 1.0；protected 2/2；runtime model tokens 0 | 本地机制 qualification；无付费质量 claim。 |
 | API Tester baseline | 2 arms x 4 = 8 | no-skill 0/4, 0.2375；original 0/4, 0.4000；4 differing | Partial benefit；旧 original-success gate failed。 |
 | API Tester artifact development | 4 systems x 4 = 16 | artifact 4/4, 1.0；static 0/4, 0.3875；original 0/4, 0.225；no-skill 0/4, 0.15 | Development gate passed；只计 method evidence。 |
 | Zh Code Reviewer calibration v1 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75；数值 gate passed | Measurement invalid：唯一差异来自私有 summary 类型 false reject；不开放 base IR。 |
@@ -105,12 +106,18 @@ Skill-unique surface 完成 18/18 differential、36/36 materialization，direct 
 通过，但唯一 8-row baseline 仍两臂满分；original token 为 no-skill 3.1794 倍。按停止规则关闭，不再堆
 harder task 或 runtime 版本。
 
+Task 17.11 后续没有改写 v1 package，而是新增只消费公开 v2 contract 的 artifact compiler。新 package
+通过 2 个 development fixture 的 runtime、protected-input 和 deterministic scorer，2/2 success、mean
+1.0、runtime model tokens 0。由于其对应的 no-skill/original 分母已经饱和，本轮按停止规则只记本地机制
+资格，不创建付费四臂 lock，不形成 optimized quality 或 Token break-even 证据。
+
 关键路径：
 
 - `results/skill-ir/benchmark-contract-audit/experimental-design.json`
 - `results/skill-ir/experimental-design-v2-contract-audit.json`
 - `results/skill-ir/experimental-design-v2-materialization-audit.json`
 - `results/skill-ir/su-pi-direct-v1/gate-report.json`
+- `results/skill-ir/experimental-design-v2-artifact-local-qualification.json`
 
 ## 7. API Tester
 
@@ -249,10 +256,12 @@ audit 确认 4/4 optimized 行都实际加载 namespace resources 并生成公�
 contract sensitivity 影响，Experimental Design optimized view 仍只是 source rewrite。该结果证明 namespace
 机制和 runner 接入可用，不证明质量或 Token 正收益。
 
-随后 Task 17.11 复用现有 Law 与 Experimental Design deterministic artifact compiler。在显式
-`SKVM_PYTHON` 下，compiler/catalog/runtime/scorer activation focused suite 为 20/20：两个 skill 的本地
-fixture 均能从 scorer failure 进入 success，并保持 protected input 与 package digest 合同。该结果只属于
-本地机制资格证据；尚无统一 adapter contract、新 public-contract development lock 或付费四臂结果。
+随后 Task 17.11 先复用现有 Law 与 Experimental Design deterministic artifact compiler完成 20/20 本地
+focused qualification，再抽取技能无关的公共 assembly。API Tester 与 Experimental Design v1 两种
+phenotype 的 shadow rebuild 共覆盖 23 个 production files，2/2 package byte parity、2/2 catalog valid，
+`coreBranchDelta=0`。新的 Experimental Design v2 compiler 通过公共 assembly 生成独立 package，并在两个
+公开 development fixture 上 2/2 scorer success、mean 1.0、0 runtime model tokens。旧 compiler/package/
+lock/result 未修改；由于基线饱和，没有新付费四臂结果，也不能把该本地通过写成优化增益。
 
 关键路径：
 
@@ -260,6 +269,9 @@ fixture 均能从 scorer failure 进入 success，并保持 protected input 与 
 - `results/skill-ir/namespaced-resource-quality-development-v1-r2/semantic-failure-audit.json`
 - `src/benchmarks/skill-ir/experimental-design-artifact-compiler.ts`
 - `src/benchmarks/skill-ir/law-artifact-compiler.ts`
+- `src/benchmarks/skill-ir/validated-artifact-assembly.ts`
+- `results/skill-ir/validated-artifact-assembly-parity.json`
+- `results/skill-ir/experimental-design-v2-artifact-local-qualification.json`
 
 ## 12. 本地与提交结果
 
@@ -278,10 +290,11 @@ fixture 均能从 scorer failure 进入 success，并保持 protected input 与 
 3. `zh-readme` v2 已完成 24/24 audit 与唯一 8-row development，但 existing local path command argument
    仍被 false reject；v1/v2 均冻结 invalidated，不进入 base IR。下一步先形成 skill-neutral command
    semantic contract，不立即堆新 calibration 版本。
-4. 完成 Task 17.11 的 skill-neutral artifact adapter contract，把 `skill.md`、execution plan、checker、
-   template 与 provenance 的通用组装从 skill-specific compiler 中提取出来；不增加 runtime/catalog 版本。
-5. 用公开合同合格的 Experimental Design v2 建立新 development identity；先本地 fixture、audit、dry-run 和
-   qualification，再决定付费。Law 必须先关闭 benchmark-contract blocker。
+4. 保持已完成的公共 artifact assembly 与 shadow parity 不变；后续新 compiler 默认接入它，旧冻结实现暂不
+   删除。领域语义仍通过公开 contract/compiler 生成，不把差异硬塞进 core。
+5. Experimental Design v2 已完成本地 artifact qualification；同一任务基线饱和，停止创建付费 optimized
+   identity。下一次付费 comparison 必须选择公开合同合格且基线有区分度的新任务/skill；单独研究质量等价下
+   的效率时，另行预注册 efficiency ablation。
 6. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势，并让至少第二个合同合格
    phenotype 通过 development。
 7. Portfolio readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。

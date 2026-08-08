@@ -95,6 +95,18 @@ scorer handoff。Skill 差异只能进入 declarative adapter 和编译产物：
 通用 core 不得 `if (skillId === ...)`。新增案例必须记录 `coreBranchDelta`、adapter LOC、人工时间、artifact
 kind 复用率和未自动化步骤。
 
+公共 adapter 只负责 package assembly envelope：catalog/skill/compiler identity、protected/generated paths、
+execution plan、artifact layout 和 provenance 输入投影。领域 compiler 仍负责生成 artifact bytes，并对公开
+source/task/resource evidence 的语义负责。这样统一的是重复的目录清理、写文件、digest、manifest、
+provenance 和最终 catalog validation，不把 Law、Experimental Design、API Tester 等不同语义压成一个
+checker 或模板。
+
+收敛使用 shadow-first：先从至少两个已冻结 package 重建到临时目录并要求 production files 逐字节一致，
+再允许新的未冻结 compiler 默认使用公共 assembly。任何已被 lock digest 绑定的 compiler/package 不原地
+重构；旧路径只有在新路径通过 development gate 后才讨论删除。缺失/多余 payload、重复 id/path、路径
+逃逸和 execution-plan 悬空引用必须 fail closed。该 parity 只证明工程收敛没有改变既有行为，不是新的
+优化效果证据。
+
 ## 7. Compiler
 
 Compiler 输入只允许：
@@ -222,9 +234,32 @@ source-rewrite-only。报告只用于归因，不替代 scorer，也不得进入
 
 随后对已有 deterministic artifact compiler 做本地 re-entry qualification：Law 与 Experimental Design 的
 compiler、通用 catalog/runtime、protected-input 与 deterministic scorer activation 共 20/20 focused tests
-通过（显式 `SKVM_PYTHON`）。这证明 L3 artifact 候选可以在不调用模型的情况下生成并改善 fixture workdir，
-但还没有把它接入新的 paid four-arm matrix；下一步仍需统一 adapter contract、冻结 public-contract benchmark
-lock，再做一次可归因的 development 实验。
+通过（显式 `SKVM_PYTHON`）。这证明 L3 artifact 候选可以在不调用模型的情况下生成并改善 fixture workdir。
+
+Task 17.11 已进一步提取 `validated-artifact-assembly.ts`：它只统一 manifest、provenance、execution plan 与
+artifact layout 组装，不统一领域 generator/checker/scorer。API Tester 与 Experimental Design v1 的 shadow
+rebuild 共覆盖 23 个 production files，2/2 package 逐字节一致、2/2 catalog valid、`coreBranchDelta=0`；
+compact report 在 `results/skill-ir/validated-artifact-assembly-parity.json`。旧 compiler/package/lock/result
+保持不变。
+
+新的 `experimental-design-v2-artifact-compiler.ts` 绑定公开 v2 contract，并默认通过公共 assembly 生成新
+package。2 个 development fixture 的本地 qualification 为 2/2 runtime complete、2/2 scorer success、
+mean 1.0、2/2 protected input pass，runtime model tokens 为 0；报告在
+`results/skill-ir/experimental-design-v2-artifact-local-qualification.json`。这仍是本地机制证据。相同任务的
+`no-skill | original` 基线已经饱和，因此不创建付费四臂 lock，也不把本地通过解释成质量改进。
+
+可重复的无模型命令：
+
+```powershell
+cd D:\skill优化\SkVM
+bun ./src/benchmarks/skill-ir/validated-artifact-assembly-parity-run.ts
+bun ./src/benchmarks/skill-ir/experimental-design-v2-artifact-compile-run.ts --out=<empty-directory>
+$env:SKVM_PYTHON = (Resolve-Path '.skvm\law-runtime\Scripts\python.exe').Path
+bun ./src/benchmarks/skill-ir/experimental-design-v2-artifact-qualification-run.ts
+```
+
+已提交的 v2 package 不应被原地覆盖；重新编译时必须把 `--out` 指向新的空目录。领域 compiler 仍负责
+生成约束和脚本，因此当前收敛的是 package assembly，不代表任意 skill 已能完全自动编译。
 
 完整四臂接入先使用独立 dry-run planner，不改变默认 `real-agent-run` matrix：
 

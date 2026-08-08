@@ -408,6 +408,38 @@ optimized_skill/
 稳定代码/模板/tool plan；L4 带版本、provenance、cache 与 regression evidence 的 validated package。
 当前只有若干 L3-oriented development prototype，没有跨 skill 证明的 L4。
 
+### 6.1 Artifact assembly 收敛与非回归合同
+
+本阶段只收敛各 skill compiler 重复的 package assembly，不把领域语义、generator、checker 或 scorer
+强行统一。公共 assembly adapter 固定复用 `validated-skill-artifact/v1`，声明 skill/package identity、
+compiler identity、protected inputs、generated outputs、execution plan 和 artifact layout；领域 compiler
+仍负责从公开 source/task/resource contract 生成 `skill.md`、script、schema、template、check 和 tool-plan
+内容。公共模块不得按 `skillId` 分支，也不得读取 evaluator payload、held-out、runtime output、profile
+feedback 或 secret。
+
+迁移采用 shadow-first，不原地修改已被 lock digest 绑定的 compiler/package：
+
+1. 用冻结 package 的公开 provenance、execution plan 和 artifact bytes 构造 adapter 输入；
+2. 公共 assembly 在临时目录重建 package，要求全部 production file 逐字节相同；
+3. 至少覆盖两个不同 phenotype，并继续通过 catalog validation、protected-input 和 activation tests；
+4. 缺失/多余 payload、重复 id/path、不安全路径或 plan 引用不存在 artifact 必须 fail closed；
+5. 只有连续至少两个 phenotype 通过 shadow parity，新的未冻结 compiler 才默认接入公共 assembly；旧冻结
+   compiler、package、lock 和 result 保留原路径与 digest；
+6. 删除旧重复实现须等新路径完成 development gate 后另行评审，不以 LOC 下降换取语义、质量或可复现性
+   回归。
+
+该阶段的成功证据是 assembly parity、验证/激活非回归和 `coreBranchDelta=0`，不是新的 skill 优化、
+held-out、跨模型或 Token 收益证据。若 public-contract benchmark 尚未具备区分度或对应 artifact 仍绑定
+旧私有语义，停止在本地机制资格，不为展示进度强行运行付费矩阵。
+
+2026-08-09 的 shadow parity 已覆盖 API Tester 与 Experimental Design v1 两种 phenotype：公共 assembly
+重建 23 个 production files，2/2 package 逐字节一致、2/2 catalog valid，`coreBranchDelta=0`。随后新的
+Experimental Design v2 compiler 只消费公开 v2 contract、development prompt 和 source-audited base IR，
+生成独立 `validated-skill-artifact/v1` package；2 个 development fixture 均完成 runtime、protected-input
+重验和 deterministic scorer，2/2 success、mean 1.0、runtime model tokens 0。该结果只说明新的未冻结
+compiler 已接入公共 assembly 且本地机制可执行。由于相同任务上的 `no-skill | original` 已 4/4、mean 1.0
+饱和，不创建付费四臂 lock，不声称 quality improvement、Token break-even、held-out 或跨模型收益。
+
 ## 7. Runtime 与 Scorer
 
 通用 runtime 状态机固定为：

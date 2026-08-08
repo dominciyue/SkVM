@@ -25,6 +25,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   出现 2 次回归，package 未晋升。
 - `experimental-design` v2 与 skill-unique slice 均出现 no-skill/original 饱和，说明当前任务不能
   支撑优化归因；该路线已按停止规则关闭。
+- 公共 artifact assembly 已在 API Tester 与 Experimental Design v1 两种 phenotype 上 shadow rebuild：
+  23 个 production files、2/2 package 逐字节一致、2/2 catalog valid、`coreBranchDelta=0`。新的
+  Experimental Design v2 compiler 已接入该 assembly，本地 2/2 development fixture 通过；因基线饱和，
+  没有创建付费 optimized lock，也不计为第二个 development 正向 phenotype。
 - `api-tester` 旧 baseline gate 仍失败；prospective re-entry 后，新 source-audited schema-derived artifact
   development 矩阵完成 16/16、0 infrastructure。No-skill/original/ir-static mean 分别为
   0.15/0.225/0.3875，artifact 为 4/4、mean 1.0、runtime model tokens 0，development gate 通过。
@@ -44,7 +48,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 建立 method-development portfolio 与 readiness evaluator
 -> API Tester schema-derived artifact development gate passed
 -> zh-readme v2 invalidated；先提炼 skill-neutral command semantic contract
+-> 公共 artifact assembly shadow parity + Experimental Design v2 本地 qualification completed
+-> 不在 Experimental Design 饱和分母上创建付费 optimized lock
 -> 至少 6 个 contract-qualified 真实方法案例持续提炼通用 core
+-> 为下一个有区分度的公开合同案例生成 artifact 并运行冻结 development
 -> readiness gate 通过
 -> 用另一项 untouched skill 做冻结 replication
 -> 再扩固定三模型族、clean + noisy/long 和成本摊销实验

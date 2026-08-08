@@ -434,10 +434,26 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    deterministic artifact compiler，不把 namespaced resource materialization 当作完整 optimized view；在
    显式 `SKVM_PYTHON` 下，compiler/catalog/runtime/scorer activation focused suite 通过 20/20 tests；该结果
    仍是本地机制资格证据，不是 paid development 或主 claim；
-2. [ ] 为 compiler 生成的 `skill.md`、execution-plan、checker、template 和 provenance 建立统一 adapter
+2. [x] 为 compiler 生成的 `skill.md`、execution-plan、checker、template 和 provenance 建立统一 assembly
    contract，保留 `original | ir-static` 基线不变；
-3. [ ] 以已通过公开 contract audit 的 benchmark（优先 Experimental Design v2；Law 需先修复其 audit）
-   建立新 development lock，先 dry-run/fixture，再付费；
+   - [x] 冻结收敛边界：只抽取 package assembly，领域 generator/checker/scorer 不统一；旧 lock 绑定的
+     compiler/package 不原地改；
+   - [x] TDD 定义技能无关 adapter schema 与 assembly API，先验证缺失/多余 payload、重复 id/path、路径
+     逃逸和 execution-plan dangling reference 均 fail closed；
+   - [x] 用 API Tester 与 Experimental Design 两个不同 phenotype 的冻结 package 做 shadow rebuild，要求
+     production files byte-for-byte parity、catalog validation 通过且 `coreBranchDelta=0`；
+   - [x] 运行两案例 compiler/activation/runtime focused suite 和全量 typecheck；生成 compact parity report，
+     不覆盖旧 package/result；
+   - [x] shadow parity 通过后，新的 Experimental Design v2 compiler 默认使用公共 assembly；旧冻结 compiler、
+     package 和重复实现保持不变，待新路径通过有区分度的 development gate 后再评审删除。
+3. [ ] 以已通过公开 contract audit 且有区分度的 benchmark 建立新 development lock，先
+   dry-run/fixture，再付费；
+   - [x] Experimental Design v2 已完成 public-contract compiler、新 package 和 2/2 development 本地
+     deterministic qualification；
+   - [x] 因同一 v2 development 分母的 `no-skill | original` 已 4/4、mean 1.0 饱和，本阶段按停止规则不创建
+     付费四臂 lock，不把本地 2/2 写成质量改进；
+   - [ ] 下一次付费 optimized comparison 必须换用通过公开 contract audit 且基线有区分度的新任务/skill；
+     若只研究质量等价下的效率，须另行预注册 quality-parity efficiency ablation。
 4. [ ] 只有 deterministic scorer 的 gate 通过后，才允许创建 held-out lock；本阶段不启用 PGO、不宣称
    cross-skill 或 Token 收益。
 
