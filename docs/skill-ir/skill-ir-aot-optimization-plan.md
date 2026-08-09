@@ -40,11 +40,11 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Runner/scorer/pairing/persistent workdir | 完成 | Stable Pi 已有 0-infra 矩阵。 |
 | Benchmark v2 measurement contract | 完成 | 42/42 differential、36/36 materialization。 |
 | Env-manager | 冻结 gate failure | 3 个 pair 0.90->1.00；完整分母含 1 infra。 |
-| Law-to-markdown | v1 冻结 measurement-invalid；v2 待实现 | 旧 development/held-out 数值只作诊断；先重建公共合同。 |
+| Law-to-markdown | v1 冻结 measurement-invalid；v2 audit 30/30 | 新基线未运行；旧 development/held-out 数值只作诊断。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
 | API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
-| i18n-helper | 已选真实来源，待竖切 | React+i18next；源码扫描/变换与可复用完整性 artifact。 |
-| Method portfolio | 已机器化，readiness failed | 6 registered、6 studied、4 qualified、1 passed phenotype、0 replication。 |
+| i18n-helper | React+i18next audit 30/30 | 新基线未运行；尚无 base IR/artifact。 |
+| Method portfolio | 已机器化，readiness failed | 7 registered、7 studied、6 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
 | 文档治理 | 本轮重建 | 9 份权威文档，新增统一上手指南，删除重复阶段全文。 |
@@ -463,11 +463,11 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 
 #### Task 17.12 Law v2 公共合同修复（进行中）
 
-1. [ ] 先提交独立 `law-to-markdown/v2` 的 public contract、2 development + 2 held-out tasks、source audit 与
+1. [x] 先提交独立 `law-to-markdown/v2` 的 public contract、2 development + 2 held-out tasks、source audit 与
    task-split freeze；v1 task/scorer/audit/lock/package/result 全部保持 digest 不变。
-2. [ ] RED/GREEN 新建 `law-to-markdown-grade-v2`：从 `document.txt` + `law-contract.json` 推导保守分类、标题
+2. [x] RED/GREEN 新建 `law-to-markdown-grade-v2`：从 `document.txt` + `law-contract.json` 推导保守分类、标题
    层级、字符流、项/目布局和结构化 review evidence；接受自由正文措辞，拒绝矛盾 evidence。
-3. [ ] RED/GREEN 建立 differential、reverse-evidence、gold/held-out leak、路径安全、额外产物和真实
+3. [x] RED/GREEN 建立 differential、reverse-evidence、gold/held-out leak、路径安全、额外产物和真实
    materialization audit；compact report 必须明确只证明 measurement contract。
 4. [ ] Audit 通过后才冻结 `no-skill | original`、Windows/clean、强模型、2 tasks x 2 repetitions 的新
    calibration；门禁在调用前写死，`retries=0`。未过区分度/成功门则停止，不构造 IR。
@@ -476,15 +476,15 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 
 #### Task 17.13 `i18n-helper` React+i18next 竖切（进行中）
 
-1. [ ] 导入 exact MIT source closure，登记 intake/corpus/portfolio；角色固定 method-development，phenotype
+1. [x] 导入 exact MIT source closure，登记 intake/corpus/portfolio；角色固定 method-development，phenotype
    为 `react-i18next-source-transformation`，不计 untouched replication。
-2. [ ] 先提交公开 i18n contract、2 development + 2 held-out React fixture 和 task-split freeze；首轮只允许
+2. [x] 先提交公开 i18n contract、2 development + 2 held-out React fixture 和 task-split freeze；首轮只允许
    修改声明的 `.tsx`，新增 `src/i18n.ts`、双语 JSON 与 `i18n-report.json`。
-3. [ ] RED/GREEN 为通用 `assessWorkdirDelta` 增加声明式 `allowedModifiedFiles`，保持现有调用默认行为不变，
+3. [x] RED/GREEN 为通用 `assessWorkdirDelta` 增加声明式 `allowedModifiedFiles`，保持现有调用默认行为不变，
    并拒绝未授权修改、删除、类型变化、symlink 与额外输出。
-4. [ ] RED/GREEN 实现 React+i18next public oracle/scorer：用户可见硬编码扫描、稳定 key、源码替换、插值
+4. [x] RED/GREEN 实现 React+i18next public oracle/scorer：用户可见硬编码扫描、稳定 key、源码替换、插值
    保留、双语 key 完整、源码可解析和 delta policy；无强证据文本返回 unconfirmed。
-5. [ ] 完成 alternative-valid、reverse-evidence、false-positive、gold/held-out leak 与 materialization audit；
+5. [x] 完成 alternative-valid、reverse-evidence、false-positive、gold/held-out leak 与 materialization audit；
    audit 通过后才决定是否冻结 `no-skill | original` development 校准。
 6. [ ] 只有基线有区分度且 original/source residual 可归因时，才生成 base IR、validation plan 和复用公共
    assembly 的 artifact candidate；首轮不得扩展框架或运行 held-out。

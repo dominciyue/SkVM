@@ -40,11 +40,12 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | Skill | Phenotype | 当前角色 | 关键边界 |
 |---|---|---|---|
 | env-manager | environment/schema/repair | studied method-development | v1 audit failed；机制证据保留。 |
-| law-to-markdown | document/script/template | studied method-development | development pass，held-out regression。 |
+| law-to-markdown | document/script/template | contract-qualified method-development | v2 audit 30/30；待新基线；v1 held-out regression 保留。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
 | zh-readme | repository fact/documentation | contract-qualified method-development | v1 calibration 8/8、0 infra，但 public-equivalence scorer false reject，measurement invalid。 |
+| i18n-helper | React+i18next source transformation | contract-qualified method-development | 首个竖切 audit 30/30；待区分度校准。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -92,8 +93,9 @@ Audit 必须证明 scorer：
 5. held-out/canary/gold 不进入 runtime；
 6. 在真实 materialized workdir 上与初始 manifest 一致。
 
-历史三个 Wave A v1 audit 均失败，因此只算 `support-real`。Experimental Design v2 和 API Tester 的新
-合同通过各自 audit，但仍需单独过区分度与优化 gate。
+历史三个 Wave A v1 audit 均失败，因此只算 `support-real`。Experimental Design v2、API Tester、Law v2
+和 i18n-helper 的新合同已通过各自 audit，但仍需单独过区分度与优化 gate。Law v2 与 i18n-helper 各有
+30/30 development-only canary matched；这两份结果不消费 held-out，也不是模型质量证据。
 
 ## 8. API Tester Re-entry
 
@@ -119,7 +121,7 @@ artifactKinds + coreBranchDelta
 unautomatedSteps + blockers
 ```
 
-`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 6 registered、6 studied、4 qualified、
+`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 7 registered、7 studied、6 qualified、
 0 replication、1 passed qualified phenotype；readiness 仍 failed。Readiness report 必须显示真实不足，
 不能把 studied、benchmark version 或 audit-failed case 填充为 contract-qualified。
 
@@ -134,8 +136,8 @@ unautomatedSteps + blockers
 5. 复用已有 artifact kind 的同时能检验通用 core；
 6. 预计人工适配可被声明式 contract 表达。
 
-当前优先完成 `zh-readme` 的冻结区分度校准，再评估一个 license 已验证的非开发工具类 skill。不要一次导入大批
-候选后再补任务；每个案例先完成 provenance、task、scorer、audit 的竖切。
+当前优先为 Law v2 与 i18n-helper 冻结并运行 `no-skill | original` 区分度校准；未过门时按停止规则处理，
+不提前构造 IR。不要一次导入大批候选后再补任务；每个案例先完成 provenance、task、scorer、audit 的竖切。
 
 `zh-code-reviewer` 当前可复建命令：
 

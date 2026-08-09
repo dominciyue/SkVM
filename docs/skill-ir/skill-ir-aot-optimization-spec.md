@@ -346,6 +346,13 @@ v2 audit 必须至少覆盖：两种 alternative-valid 审核措辞、不同但�
 回归，则按停止规则关闭，不构造 base IR/artifact。旧 Law artifact compiler 仍是机制候选；只有 v2 基线有
 区分度且 source audit 通过后，才允许通过公共 assembly 编译新的未冻结 package。
 
+截至 2026-08-09，独立 v2 identity 已冻结并实现：2+2 split、公开合同、保守分类、字符流/层级/项目布局、
+唯一结构化 review evidence 和 exact workdir delta 均由新 scorer 从公开输入重算。Development-only contract
+audit 为 30/30 matched，覆盖两个任务分支的 canonical、alternative-valid 与 invalid control；compact report
+位于 `results/skill-ir/benchmark-contract-audit/law-to-markdown-v2.json`。该结果只把 Law v2 提升为
+contract-qualified measurement case，尚未运行 `no-skill | original` 区分度校准，旧 v1 数值与 held-out
+regression 不改判。
+
 ### 4.4 `i18n-helper` React+i18next 方法案例
 
 `i18n-helper` 固定来自 `laolaoshiren/claude-code-skills-zh` commit
@@ -365,6 +372,14 @@ Scorer 只从 agent 可见 React 源码与公开合同派生候选文本，不�
 应用并运行 diff/语法/key-integrity 检查，只有歧义文本、超出允许路径、行为保持不确定或 protected input
 变更才阻断。首轮 audit 与基线校准通过前，不创建 optimized package、不运行 held-out，也不声称质量或
 Token 收益。
+
+截至 2026-08-09，React+i18next 首个竖切已完成 exact MIT source closure、2+2 split、task-split freeze、
+声明式 `allowedModifiedFiles`、TypeScript AST source oracle、locale/interpolation/report scorer 与 30/30
+development-only differential audit。任务 `tsconfig.json` 在 scorer 冻结前补入 `resolveJsonModule` 和
+`esModuleInterop`，保证公开要求的 locale JSON import 可实现；protected config 仍不得由 agent 修改。
+Audit 只证明 measurement contract，结果保存在
+`results/skill-ir/benchmark-contract-audit/i18n-helper.json`；区分度、base IR、artifact、held-out 与 Token
+结论仍未开放。
 
 ## 5. 静态与动态结合
 

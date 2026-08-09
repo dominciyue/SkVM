@@ -31,6 +31,8 @@
 | Zh Code Reviewer calibration v1 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75；数值 gate passed | Measurement invalid：唯一差异来自私有 summary 类型 false reject；不开放 base IR。 |
 | Zh Code Reviewer calibration v2 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75 | Measurement valid；开放 base IR/source audit。 |
 | Zh Code Reviewer static fidelity | 3 systems x 4 = 12 | no-skill 4/4；original 3/4, 0.8375；static 4/4, 1.0 | Gate passed；1 positive/3 equal/0 negative，只开放 residual audit。 |
+| Law v2 contract audit | 2 development tasks x 5 checks x 3 roles | 30/30 matched | Measurement contract passed；基线未运行。 |
+| i18n-helper contract audit | 2 development tasks x 5 checks x 3 roles | 30/30 matched | React+i18next measurement contract passed；基线未运行。 |
 
 ## 3. Benchmark v1 与 v2
 
@@ -92,6 +94,11 @@ manual task 两次失败；相对三条 baseline 最佳值有 2 regressions。He
 
 不能从 development 的 0 runtime model tokens 直接声称 Token 节省；compile/profile/package 成本尚未按同一
 合同重测，且 held-out 质量门槛失败。
+
+2026-08-09 新建独立 Law v2 benchmark，不覆盖 v1。公开合同 scorer 不再依赖固定中文审核句子，直接从
+`document.txt` 与 `law-contract.json` 推导分类、产物策略、字符流、标题层级和 review evidence。两个
+development 分支的 30 个 canonical/alternative/invalid canary 全部 matched；该结果只修复测量合同，
+`no-skill | original` 强模型区分度尚未运行。
 
 ## 6. Experimental Design
 
@@ -157,15 +164,17 @@ untouched replication 和 Token break-even 均未证明。
 | Case | Studied | Benchmark contract-qualified | Development optimized gate | Untouched |
 |---|---:|---:|---:|---:|
 | env-manager | yes | no (v1 audit) | no | no |
-| law-to-markdown | yes | no (v1 audit) | yes, held-out failed | no |
+| law-to-markdown | yes | yes (v2 audit 30/30) | v2 未运行；v1 held-out failed | no |
 | experimental-design | yes | yes (v2) | blocked by saturation | no |
 | api-tester | yes | yes | yes, artifact 4/4 | no |
 | zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
-| zh-readme | yes | no，v1/v2 measurement invalid | no | no |
+| zh-readme | yes | yes（audit），付费 measurement invalid | no | no |
+| i18n-helper | yes | yes（React+i18next audit 30/30） | 未运行 | no |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：6 registered、6 studied、4
-contract-qualified、0 untouched replication、1 passed qualified phenotype；缺 2 个 qualified case，
-Env/Law 仍有 benchmark-contract blocker，zh-readme 仍有 scorer-authority blocker，自动化指标也不完整。
+机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、6
+contract-qualified、0 untouched replication、1 passed qualified phenotype；数量门槛刚达到，但 Law v2 与
+i18n-helper 尚未做区分度校准，Env 仍有 benchmark-contract blocker，zh-readme 仍有 scorer-authority
+blocker，自动化指标也不完整。
 该失败是诚实状态，不应调整阈值。
 
 ### 8.1 `zh-code-reviewer` measurement contract
