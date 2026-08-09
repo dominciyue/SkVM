@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { i18nHelperGradeV2 } from "../../bench/evaluators/i18n-helper-grade-v2.ts"
+import { i18nHelperGradeV3 } from "../../bench/evaluators/i18n-helper-grade-v3.ts"
 import { lawToMarkdownGradeV3 } from "../../bench/evaluators/law-to-markdown-grade-v3.ts"
 import type { CustomEvaluator } from "../../framework/types.ts"
 import {
@@ -32,6 +33,13 @@ const cases: Array<{
     scorer: "src/bench/evaluators/i18n-helper-grade-v2.ts",
     evaluatorId: "skill-ir-i18n-helper-v2",
     evaluator: i18nHelperGradeV2,
+  },
+  {
+    label: "i18n v3",
+    root: "benchmarks/skill-ir/pilots/i18n-helper/v3",
+    scorer: "src/bench/evaluators/i18n-helper-grade-v3.ts",
+    evaluatorId: "skill-ir-i18n-helper-v3",
+    evaluator: i18nHelperGradeV3,
   },
 ]
 

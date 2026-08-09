@@ -533,6 +533,9 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    validator；旧 v1 lock 仍按原 schema 验证。
 4. [ ] 用独立 i18n successor identity 补 RED/GREEN、alternative-order canary、reverse-evidence 与 authority
    audit；付费前重新冻结 lock，不从 v2 结果修改 gate。
+   - [x] v3 public contract 与 2+2 task 先于 scorer 提交，task split 绑定 pre-scorer commit；
+   - [x] v3 scorer 使用 ABI v2 语义等价，alternative-order 单测和 30/30 development audit 通过；
+   - [ ] 创建并验证 dependency-bound v2 lock，完成 dry-run、qualification、唯一真实矩阵和 authority audit。
 
 ## 6. 验证与实验门禁
 

@@ -279,6 +279,10 @@ bun ./src/benchmarks/skill-ir/public-output-abi-authority-audit.ts `
 相对 import/export 的 path+digest，并在 lock validation 时用 TypeScript AST 重建和精确比对。旧 ABI/lock
 不原地迁移；只有新的 calibration identity 使用这两项 successor contract。
 
+i18n v3 是首个使用该组合的 measurement identity：2+2 task 在 scorer 前冻结，scorer unit test 接受
+`extractedKeys` 的 source-discovery order，development-only differential audit 为 30/30。此时尚无 lock 或
+真实模型结果；不得把 contract audit 写成基线或优化证据。
+
 ## 9. Gate 顺序
 
 ```text

@@ -406,6 +406,12 @@ original 为 1/4、mean 0.925，1 differing/positive pair，数值 gate passed�
 `measurement-invalid`；唯一正 pair 对 delta/source/locales/interpolation 的改善只保留为不可晋升的诊断信号。
 在新身份公开完整字段 ABI 并重做 audit/calibration 前，base IR、artifact、held-out 与 Token 结论保持关闭。
 
+独立 v3 identity 已在 pre-scorer commit 冻结同一 2+2 task 语义，并使用 `public-output-abi/v2`：
+`scannedFiles` 为 ordered，`extractedKeys` 与两个 locale 的 `missingKeys` 为 set-like，四者均禁止重复。
+新 scorer 通过 ABI 的递归语义等价比较 observable facts，source-discovery order 的 alternative-valid report
+不再被 lexical order 私约束拒绝。Development-only contract audit 为 30/30；该状态仍只说明测量合同和
+任务隔离成立，calibration lock、真实执行和 measurement-validity 尚未冻结。
+
 ### 4.5 Public output ABI 约束
 
 付费前的公开合同不能只列字段名。所有进入 deterministic scorer、runtime validator 或 repair report 的字段，

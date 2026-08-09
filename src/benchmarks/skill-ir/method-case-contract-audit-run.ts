@@ -3,6 +3,7 @@ import path from "node:path"
 import { lawToMarkdownGradeV2 } from "../../bench/evaluators/law-to-markdown-grade-v2.ts"
 import { i18nHelperGrade } from "../../bench/evaluators/i18n-helper-grade.ts"
 import { i18nHelperGradeV2 } from "../../bench/evaluators/i18n-helper-grade-v2.ts"
+import { i18nHelperGradeV3 } from "../../bench/evaluators/i18n-helper-grade-v3.ts"
 import { lawToMarkdownGradeV3 } from "../../bench/evaluators/law-to-markdown-grade-v3.ts"
 import type { CustomEvaluator } from "../../framework/types.ts"
 import { BenchmarkContractAuditManifestSchema } from "./benchmark-contract-audit.ts"
@@ -13,6 +14,7 @@ const evaluators = new Map<string, CustomEvaluator>([
   ["skill-ir-i18n-helper", i18nHelperGrade],
   ["skill-ir-law-to-markdown-v3", lawToMarkdownGradeV3],
   ["skill-ir-i18n-helper-v2", i18nHelperGradeV2],
+  ["skill-ir-i18n-helper-v3", i18nHelperGradeV3],
 ])
 
 function option(name: string): string {

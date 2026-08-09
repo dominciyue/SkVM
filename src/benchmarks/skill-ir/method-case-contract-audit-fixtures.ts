@@ -231,6 +231,16 @@ function makeI18nV2Variants(task: Task) {
   return { canonical, alternative, invalid }
 }
 
+function makeI18nV3Variants(task: Task) {
+  const variants = makeI18nV2Variants(task)
+  const alternativeReport = JSON.parse(variants.alternative["i18n-report.json"]!) as {
+    extractedKeys: string[]
+  }
+  alternativeReport.extractedKeys.reverse()
+  variants.alternative["i18n-report.json"] = json(alternativeReport)
+  return variants
+}
+
 function invalidI18nFiles(task: Task, markerKey: string): Files {
   return {
     ...task.fixtures,
@@ -316,6 +326,24 @@ const CASES: AuditCase[] = [
       { id: "i18n-v2-report", quote: "outputAbi", anchor: "validatePublicOutputRecord" },
     ],
     makeVariants: makeI18nV2Variants,
+  },
+  {
+    auditId: "i18n-helper-v3-public-output-abi-v2",
+    skillId: "i18n-helper-v3",
+    root: "benchmarks/skill-ir/pilots/i18n-helper/v3",
+    taskPath: "benchmarks/skill-ir/pilots/i18n-helper/v3/development/tasks.json",
+    contractPath: "benchmarks/skill-ir/pilots/i18n-helper/v3/public-contract.json",
+    sourceAuditPath: "benchmarks/skill-ir/pilots/i18n-helper/v3/public-contract-source-audit.json",
+    scorerPath: "src/bench/evaluators/i18n-helper-grade-v3.ts",
+    evaluatorId: "skill-ir-i18n-helper-v3",
+    criteria: [
+      { id: "i18n-v2-delta", quote: "allowedModifiedFiles", anchor: "checkDelta" },
+      { id: "i18n-v2-source-transform", quote: "keyRule", anchor: "checkSource" },
+      { id: "i18n-v2-locales", quote: "requiredNewFiles", anchor: "checkLocales" },
+      { id: "i18n-v2-interpolation", quote: "interpolationRule", anchor: "checkInterpolation" },
+      { id: "i18n-v2-report", quote: "outputAbi", anchor: "publicOutputRecordsEquivalent" },
+    ],
+    makeVariants: makeI18nV3Variants,
   },
 ]
 
@@ -406,12 +434,25 @@ async function generateCase(rootDir: string, auditCase: AuditCase): Promise<Benc
   return manifest
 }
 
-export async function generateMethodCaseContractAuditFixtures(rootDir = process.cwd()) {
-  return Promise.all(CASES.map((auditCase) => generateCase(rootDir, auditCase)))
+export async function generateMethodCaseContractAuditFixtures(
+  rootDir = process.cwd(),
+  skillIds?: readonly string[],
+) {
+  const selected = skillIds === undefined
+    ? CASES
+    : CASES.filter((auditCase) => skillIds.includes(auditCase.skillId))
+  if (selected.length === 0) throw new Error("No method-case audit fixture matched the requested skill")
+  return Promise.all(selected.map((auditCase) => generateCase(rootDir, auditCase)))
 }
 
 if (import.meta.main) {
-  const manifests = await generateMethodCaseContractAuditFixtures()
+  const skillIds = process.argv.slice(2).flatMap((argument) =>
+    argument.startsWith("--skill=") ? argument.slice("--skill=".length).split(",").filter(Boolean) : []
+  )
+  const manifests = await generateMethodCaseContractAuditFixtures(
+    process.cwd(),
+    skillIds.length > 0 ? skillIds : undefined,
+  )
   console.log(JSON.stringify(manifests.map((manifest) => ({
     auditId: manifest.auditId,
     canaries: manifest.canaries.length,
