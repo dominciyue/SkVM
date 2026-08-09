@@ -424,6 +424,12 @@ source-discovery order，却被 scorer 的私有 lexical order 拒绝。后续 A
 `ordered | set-like` 和 duplicate policy。Scorer 使用的共享 validator 也属于测量依赖闭包，新 lock 必须
 绑定其 path/digest；不允许只冻结顶层 evaluator 文件。
 
+`public-output-abi/v2` 是并列 successor，不修改 v1。每个 array 强制声明 `order: ordered | set-like`、
+`duplicates: forbid | allow` 与递归 element schema；ordered 逐位置比较，set-like 忽略顺序，允许重复时按
+multiset 比较。新 `public-contract-calibration-lock/v2` 还必须枚举并绑定 scorer 的全部静态直接相对
+import/export 文件；validator 通过 TypeScript AST 重建集合，缺项、多项或 digest drift 均 fail closed。
+Package import、Node builtin 与动态 import 不属于这份直接测量依赖清单。旧 v1 lock 继续按原 schema 验证。
+
 ## 5. 静态与动态结合
 
 ### 5.1 静态阶段

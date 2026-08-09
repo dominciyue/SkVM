@@ -526,10 +526,10 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 
 #### Task 17.15 Array semantics 与 scorer dependency closure（下一步）
 
-1. [ ] 保持 `public-output-abi/v1`、Law v3、i18n v2 contract/scorer/lock/result 不变；不为 Law 重跑基线。
-2. [ ] 设计 successor ABI，对 array 强制声明 `ordered` 或 `set-like`、duplicate policy 与 element semantics；
+1. [x] 保持 `public-output-abi/v1`、Law v3、i18n v2 contract/scorer/lock/result 不变；不为 Law 重跑基线。
+2. [x] 设计 successor ABI，对 array 强制声明 `ordered` 或 `set-like`、duplicate policy 与 element semantics；
    i18n `extractedKeys`、`scannedFiles` 和每个 locale 的 `missingKeys` 必须显式选择语义。
-3. [ ] 将 scorer 的直接依赖闭包加入新 calibration lock schema/digest 验证，至少绑定共享 ABI
+3. [x] 将 scorer 的直接依赖闭包加入新 calibration lock schema/digest 验证，至少绑定共享 ABI
    validator；旧 v1 lock 仍按原 schema 验证。
 4. [ ] 用独立 i18n successor identity 补 RED/GREEN、alternative-order canary、reverse-evidence 与 authority
    audit；付费前重新冻结 lock，不从 v2 结果修改 gate。

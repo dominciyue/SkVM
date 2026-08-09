@@ -274,6 +274,11 @@ bun ./src/benchmarks/skill-ir/public-output-abi-authority-audit.ts `
 当前 analyzer 记录共享 ABI module digest，但本轮 v1 lock 没有预注册该 dependency。下一 lock schema
 必须显式绑定 scorer dependency closure，不能用 post-run digest 替代付费前冻结。
 
+`public-output-abi/v2` 对数组增加显式 `order` 和 `duplicates`：`ordered` 按位置比较，`set-like` 忽略顺序，
+`duplicates=allow` 时保留元素计数。`public-contract-calibration-lock/v2` 在顶层 scorer 之外冻结全部静态直接
+相对 import/export 的 path+digest，并在 lock validation 时用 TypeScript AST 重建和精确比对。旧 ABI/lock
+不原地迁移；只有新的 calibration identity 使用这两项 successor contract。
+
 ## 9. Gate 顺序
 
 ```text
