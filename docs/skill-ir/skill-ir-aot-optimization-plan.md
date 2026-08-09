@@ -40,21 +40,21 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Runner/scorer/pairing/persistent workdir | 完成 | Stable Pi 已有 0-infra 矩阵。 |
 | Benchmark v2 measurement contract | 完成 | 42/42 differential、36/36 materialization。 |
 | Env-manager | 冻结 gate failure | 3 个 pair 0.90->1.00；完整分母含 1 infra。 |
-| Law-to-markdown | v1/v2 均冻结 measurement-invalid | v2 8/8、0 infra，但公开 `deliverable` 未声明类型，4 行被私有 boolean 约束误拒；不开放 base IR。 |
+| Law-to-markdown | v3 measurement-valid，baseline blocked | v3 8/8、0 infra、0 representation false reject；original mean 0.85 低于 no-skill 0.90，不开放 base IR。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
 | API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
-| i18n-helper | React+i18next 首轮 measurement-invalid | v1 8/8、0 infra，数值 gate passed，但 `missingKeys` 的公开类型缺失造成 5 行 false reject；不开放 base IR。 |
-| Method portfolio | 已机器化，readiness failed | 7 registered、7 studied、4 qualified、1 passed phenotype、0 replication。 |
+| i18n-helper | v1/v2 均 measurement-invalid | v2 8/8、0 infra，数值 gate passed，但数组顺序私约束造成 3 行 false reject；不开放 base IR。 |
+| Method portfolio | 已机器化，readiness failed | 7 registered、7 studied、5 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
 | 文档治理 | 本轮重建 | 9 份权威文档，新增统一上手指南，删除重复阶段全文。 |
 
 ## 3. 关键阻塞
 
-1. 当前 contract-qualified 方法案例有 4 个，距离 6 个起步条件仍缺 2 个；通过 development gate 的
+1. 当前 contract-qualified 方法案例有 5 个，距离 6 个起步条件仍缺 1 个；通过 development gate 的
    phenotype 只有 1 个。
-2. Automation/adaptation 指标不完整；Law v2 与 i18n 首轮真实输出共同暴露 public output ABI 只列字段名、
-   未声明字段类型的 scorer-authority blocker，这是当前最高价值的共享修复。
+2. Automation/adaptation 指标不完整；Law v3 已恢复公开表示层有效性，i18n v2 又暴露 array order 未声明与
+   scorer dependency closure 未冻结的问题，这是当前最高价值的共享修复。
 3. API Tester 的 schema-derived package 已通过冻结 development gate；下一缺口是更多信息互补、合同合格
    的方法案例和自动化/适配成本数据。
 4. Law 旧 held-out 回归与 v1 scorer literal sensitivity 混杂；v2 的 30/30 人工 audit 又漏掉真实 alternative
@@ -507,16 +507,32 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 6. [ ] 只有基线有区分度且 original/source residual 可归因时，才生成 base IR、validation plan 和复用公共
    assembly 的 artifact candidate；首轮不得扩展框架或运行 held-out。
 
-#### Task 17.14 Public output ABI 收敛（下一步）
+#### Task 17.14 Public output ABI 收敛（完成）
 
-1. [ ] 定义 skill-neutral `public-output-abi/v1`：每个 runtime-visible 字段必须公开声明 `type`、required、
+1. [x] 定义 skill-neutral `public-output-abi/v1`：每个 runtime-visible 字段必须公开声明 `type`、required、
    enum/nullability 以及 object/array value semantics；只列字段名不再视为完整公开合同。
-2. [ ] 先用 Law `deliverable` 与 i18n `missingKeys` 写 RED canary：覆盖真实 alternative shape、类型错误、
+2. [x] 先用 Law `deliverable` 与 i18n `missingKeys` 写 RED canary：覆盖真实 alternative shape、类型错误、
    reverse-evidence、gold/held-out leak 与旧 measurement-validity digest；不得修改 v2/v1 冻结身份。
-3. [ ] Law 下一身份使用无歧义的 `deliverablePath: string|null` 或等价显式 schema；i18n 下一身份固定
+3. [x] Law 下一身份使用无歧义的 `deliverablePath: string|null` 或等价显式 schema；i18n 下一身份固定
    locale-keyed string-array object。Scorer 必须只按公开 ABI 判分，不能另藏表示层约束。
-4. [ ] 新 contract/scorer/audit 通过后，分别冻结新的 calibration identity，再各执行唯一 qualification 与
+4. [x] 新 contract/scorer/audit 通过后，分别冻结新的 calibration identity，再各执行唯一 qualification 与
    `retries=0` development matrix。新结果有效前，不创建 base IR、artifact、held-out 或 Token claim。
+   - [x] Law v3 与 i18n v2 各完成 30/30 canary、split freeze、lock、qualification 和 8-row matrix，
+     均为 8/8 rows、4/4 pairs、0 infrastructure；
+   - [x] Law v3 的六份现存报告均通过 ABI，0 representation false reject；但 original 2/4、
+     mean 0.85 低于 no-skill 3/4、0.90，门禁失败，停在 `measurement-valid-baseline-blocked`；
+   - [x] i18n v2 数值 gate 通过，但 3 行只因 `extractedKeys` 使用 source-discovery order 而被私有
+     lexical-order 要求拒绝，冻结 `measurement-invalid`，不重评、不补跑。
+
+#### Task 17.15 Array semantics 与 scorer dependency closure（下一步）
+
+1. [ ] 保持 `public-output-abi/v1`、Law v3、i18n v2 contract/scorer/lock/result 不变；不为 Law 重跑基线。
+2. [ ] 设计 successor ABI，对 array 强制声明 `ordered` 或 `set-like`、duplicate policy 与 element semantics；
+   i18n `extractedKeys`、`scannedFiles` 和每个 locale 的 `missingKeys` 必须显式选择语义。
+3. [ ] 将 scorer 的直接依赖闭包加入新 calibration lock schema/digest 验证，至少绑定共享 ABI
+   validator；旧 v1 lock 仍按原 schema 验证。
+4. [ ] 用独立 i18n successor identity 补 RED/GREEN、alternative-order canary、reverse-evidence 与 authority
+   audit；付费前重新冻结 lock，不从 v2 结果修改 gate。
 
 ## 6. 验证与实验门禁
 

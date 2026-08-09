@@ -126,19 +126,20 @@ describe("method portfolio registry and readiness", () => {
     expect(report.passed).toBe(false)
     expect(report.counts).toMatchObject({
       studiedCases: 7,
-      contractQualifiedMethodCases: 4,
+      contractQualifiedMethodCases: 5,
       untouchedReplicationCases: 0,
     })
-    expect(report.gaps.missingQualifiedCases).toBe(2)
+    expect(report.gaps.missingQualifiedCases).toBe(1)
     expect(report.gaps.openMeasurementBlockers.length).toBeGreaterThan(0)
     expect(portfolio.cases[1]).toMatchObject({
       skillId: "law-to-markdown",
-      contractQualified: false,
+      contractQualified: true,
+      benchmarkVersions: ["v1", "v2-public-contract", "v3-public-output-abi"],
       developmentGate: {
         status: "failed",
-        resultPath: "results/skill-ir/law-to-markdown-v2-public-contract-calibration-v1/measurement-validity.json",
+        resultPath: "results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/measurement-validity.json",
       },
-      blockers: ["scorer-authority", "heldout-regression"],
+      blockers: ["heldout-regression"],
     })
     expect(portfolio.cases[5]).toMatchObject({
       skillId: "zh-readme",

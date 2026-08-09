@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "skill-ir-public-contract-calibration-validity/v1",
+  "calibrationId": "i18n-helper-v2-public-output-abi-development-v1",
+  "skillId": "i18n-helper-v2",
+  "status": "measurement-invalid",
+  "methodEvidence": false,
+  "numericGatePassed": true,
+  "inputs": {
+    "lock": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/development-calibration-lock.json",
+      "sha256": "353196b4ef8d64bb80cecd3d6c7236cf835d4c39ae0410ac69aff0311da03d42"
+    },
+    "qualification": {
+      "path": "results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/qualification.json",
+      "sha256": "ea8ea9c50c0d368755b68b1e2c18d9135a6ba0a1b142c6608f78fceca9cd580c"
+    },
+    "scoredRows": {
+      "path": "results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/scored-runs.jsonl",
+      "sha256": "84d3cc20a4a1d00140c29f9419d7b3e2b5e3b0f655cc70c0f11fbcfe52b393a9"
+    },
+    "gate": {
+      "path": "results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/gate-report.json",
+      "sha256": "521d3d87adc20dbb55be16ef1ceffa8c91172d1eec5ecdb42c5d948c814f65b7"
+    },
+    "authorityAudit": {
+      "path": "results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/authority-audit.json",
+      "sha256": "8032ab3f9a27b0eeed24ff054fbc8ac69c4eb7b578558588583ad7866c864543"
+    }
+  },
+  "matrix": {
+    "observedRows": 8,
+    "completePairs": 4,
+    "infrastructureFailures": 0,
+    "noSkill": { "successes": 1, "meanScore": 0.7, "aggregateTokens": 37879 },
+    "original": { "successes": 2, "meanScore": 0.725, "aggregateTokens": 176904 },
+    "differingPairs": 2,
+    "positivePairs": 1,
+    "negativePairs": 1
+  },
+  "scorerAuthority": {
+    "criterionId": "i18n-v2-report",
+    "field": "extractedKeys",
+    "publicTypeDeclared": true,
+    "publicOrderDeclared": false,
+    "privateExpectedOrder": "lexical",
+    "observedAlternativeOrder": "source-discovery",
+    "observedAlternativeMeaning": "The array contains the same unique marker-derived key set in source discovery order.",
+    "representationFalseRejectRows": 3,
+    "affectedTaskIds": ["i18n-helper-v2-react-basic-dev-001"]
+  },
+  "provenanceDebt": {
+    "scorerDependencyClosurePreregistered": false,
+    "path": "src/bench/public-output-abi.ts",
+    "sha256": "4a184b54ceb22839a78bd6c3b500e7b803d323bfd62949c07c8a27b96816289d",
+    "requiredBeforeNextCalibration": true
+  },
+  "decision": "Freeze the v2 result without rescoring. A successor ABI must declare ordered versus set-like array semantics, the scorer must compare set-like fields without a private lexical-order rule, and the lock must bind the shared ABI module before a new calibration.",
+  "interpretation": {
+    "baseIrAuditAllowed": false,
+    "heldOutAllowed": false,
+    "entersMainClaim": false,
+    "optimizationEvidence": false,
+    "tokenEvidence": false
+  }
+}

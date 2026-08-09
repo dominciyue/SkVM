@@ -96,9 +96,9 @@ Audit 必须证明 scorer：
    只列字段名不构成完整 ABI。
 
 历史三个 Wave A v1 audit 均失败，因此只算 `support-real`。Experimental Design v2 与 API Tester 的新合同
-通过各自 audit，仍需单独过区分度与优化 gate。Law v2 与 i18n-helper 虽各有 30/30 development-only canary
-matched，真实模型输出分别暴露未声明的 `deliverable` 与 `missingKeys` 表示，现已撤销 contract-qualified
-状态。两份测量失效结果不消费 held-out，也不是模型质量证据。
+通过各自 audit，仍需单独过区分度与优化 gate。Law v3 已用完整公开 ABI 恢复 contract-qualified，但
+baseline gate failed；i18n v2 仍因未声明 array order 的 scorer-authority 问题冻结 measurement-invalid。
+两者都不消费 held-out，也不是优化成功证据。
 
 ## 8. API Tester Re-entry
 
@@ -124,7 +124,7 @@ artifactKinds + coreBranchDelta
 unautomatedSteps + blockers
 ```
 
-`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 7 registered、7 studied、4 qualified、
+`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 7 registered、7 studied、5 qualified、
 0 replication、1 passed qualified phenotype；readiness 仍 failed。Readiness report 必须显示真实不足，
 不能把 studied、benchmark version 或 audit-failed case 填充为 contract-qualified。
 
@@ -139,9 +139,10 @@ unautomatedSteps + blockers
 5. 复用已有 artifact kind 的同时能检验通用 core；
 6. 预计人工适配可被声明式 contract 表达。
 
-当前优先是抽取共享 `public-output-abi/v1`，用新身份补全 Law 与 i18n 的字段类型和真实 alternative-shape
-canary，再决定是否各执行一次新校准。现有结果不重评分、不补跑，也不提前构造 IR。不要一次导入大批候选
-后再补任务；每个案例先完成 provenance、task、scorer、audit 的竖切。
+共享 `public-output-abi/v1` 与 Law v3/i18n v2 新身份已完成。Law 测量合同有效但基线门禁失败，
+本阶段不再跑；i18n 数值 gate 通过但被未公开的 lexical array order 约束击穿，v2 冻结 invalid。
+当前只修 i18n successor 的 ordered/set-like array semantics 与 scorer dependency closure，不将 benchmark alias
+计为新方法案例，不提前构造 IR。后续仍按 provenance、task、scorer、audit 的竖切扩展真实 skill。
 
 `zh-code-reviewer` 当前可复建命令：
 

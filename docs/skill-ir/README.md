@@ -36,7 +36,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 - `zh-readme` v1/v2 两次校准均冻结 measurement-invalid。v2 的 8/8 行无基础设施失败，并确认 original
   会把 skill-package-only `LICENSE.upstream` 链接带入 task README；但 scorer 仍误拒绝 existing local path
   command argument，因此不进入 base IR。
-- Method portfolio 已机器化登记 6 个 case：6 studied、4 contract-qualified、0 untouched replication、
+- Law v3 已补齐 `deliverablePath: string|null` 的公开 ABI，真实报告 0 representation false reject；但
+  original mean 0.85 低于 no-skill 0.90，基线 gate 失败。i18n v2 又暴露数组顺序语义和 scorer 依赖闭包
+  未冻结的问题，结果保持 measurement-invalid。
+- Method portfolio 已机器化登记 7 个 case：7 studied、5 contract-qualified、0 untouched replication、
   1 个“合同合格且 development pass”的 phenotype；readiness 仍未通过。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
@@ -50,6 +53,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> zh-readme v2 invalidated；先提炼 skill-neutral command semantic contract
 -> 公共 artifact assembly shadow parity + Experimental Design v2 本地 qualification completed
 -> 不在 Experimental Design 饱和分母上创建付费 optimized lock
+-> public output ABI v1 completed；Law v3 baseline blocked，i18n v2 array-order invalidated
+-> successor ABI 显式声明 ordered/set-like array，并冻结 scorer dependency closure
 -> 至少 6 个 contract-qualified 真实方法案例持续提炼通用 core
 -> 为下一个有区分度的公开合同案例生成 artifact 并运行冻结 development
 -> readiness gate 通过

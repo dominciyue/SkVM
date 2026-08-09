@@ -260,6 +260,20 @@ Law v2 与 i18n 的 30/30 人工 audit 说明仅靠预制 fixture 仍可能漏�
 中出现的、与公开合同一致的 alternative value 纳入 authority audit；若 scorer 私有收窄表示，当前 identity
 直接标记 measurement-invalid，并用新合同/校准身份修复，不能原地调整 scorer 或重算结果。
 
+`public-output-abi-authority-audit.ts` 从冻结 lock、compact scored rows 和本地 workdir 生成不含模型原文的
+shape 摘要，区分 missing/unparseable、ABI failure、semantic failure 与 representation false reject。用法：
+
+```powershell
+bun ./src/benchmarks/skill-ir/public-output-abi-authority-audit.ts `
+  --kind=i18n `
+  --lock=benchmarks/skill-ir/pilots/i18n-helper/v2/development-calibration-lock.json `
+  --results=results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1 `
+  --out=results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/authority-audit.json
+```
+
+当前 analyzer 记录共享 ABI module digest，但本轮 v1 lock 没有预注册该 dependency。下一 lock schema
+必须显式绑定 scorer dependency closure，不能用 post-run digest 替代付费前冻结。
+
 ## 9. Gate 顺序
 
 ```text

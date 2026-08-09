@@ -111,8 +111,9 @@ phenotype；因此不再承担 untouched replication。`zh-readme` 等只有在�
 
 2026-08-09 起，历史 `measurement-invalid` 结果继续保留原文件、原数值和原结论，但不计入
 contract-qualified 分母、质量均值、优化成功或主 claim。只有当旧 benchmark/scorer 阻塞新的可解释实验时
-才创建新身份修复；禁止原地改分、覆盖或删除失败证据。`law-to-markdown` 是当前优先修复案例；新增真实
-`i18n-helper` 作为源码扫描/变换 phenotype 的方法开发案例，不预注册为成功或 untouched replication。
+才创建新身份修复；禁止原地改分、覆盖或删除失败证据。Law v3 已恢复 contract-qualified 的公开表示层，
+但基线 gate 失败；`i18n-helper` 仍是源码扫描/变换 phenotype 的方法开发案例，不预注册为成功或
+untouched replication。
 
 方法开发以至少 6 个真实 skill 起步，但数量不固定。进入 replication 前必须通过
 `method-portfolio-readiness/v1`：
@@ -412,6 +413,16 @@ original 为 1/4、mean 0.925，1 differing/positive pair，数值 gate passed�
 在 evaluator 私有实现中增加公开合同没有的表示层约束。Contract audit 至少包含一种公开允许的 alternative
 shape、每类错误类型的 negative canary、reverse-evidence 和真实模型输出后的 authority audit；真实输出一旦
 暴露未公开的合法表示，当前 identity 必须冻结为 measurement-invalid，修复使用新身份，不原地改分。
+
+2026-08-09 的 `public-output-abi/v1` 实现了 recursive object/array、required、nullable、enum、
+unique-items 和稳定 JSON pointer error。Law v3 把原 boolean 改为公开 `deliverablePath: string|null`；
+真实运行中 6 份可解析报告全部符合 ABI，0 representation false reject，但 original 均分 0.85 低于
+no-skill 0.90。因此 measurement-valid 不等于基线准入。
+
+i18n v2 证明 array 仅声明元素类型和唯一性仍不完整：3 行 `extractedKeys` 包含相同 key set，仅使用
+source-discovery order，却被 scorer 的私有 lexical order 拒绝。后续 ABI 必须显式声明
+`ordered | set-like` 和 duplicate policy。Scorer 使用的共享 validator 也属于测量依赖闭包，新 lock 必须
+绑定其 path/digest；不允许只冻结顶层 evaluator 文件。
 
 ## 5. 静态与动态结合
 

@@ -35,6 +35,8 @@
 | Law v2 calibration | 2 systems x 4 = 8 | 两臂均 2/4、mean 0.90；0 differing；0 infra | 数值 gate failed；4 个 `deliverable` false reject，measurement-invalid。 |
 | i18n-helper contract audit | 2 development tasks x 5 checks x 3 roles | 30/30 matched | 预运行 canary 全绿，但未覆盖 `missingKeys` alternative shape。 |
 | i18n-helper calibration | 2 systems x 4 = 8 | no-skill 1/4、0.70；original 1/4、0.925；1 positive；0 infra | 数值 gate passed，但 5 个报告 false reject，measurement-invalid。 |
+| Law v3 public ABI | 2 systems x 4 = 8 | no-skill 3/4、0.90；original 2/4、0.85；1 positive/2 negative；0 infra | 6 报告 ABI pass、0 false reject；measurement-valid 但 baseline gate failed。 |
+| i18n v2 public ABI | 2 systems x 4 = 8 | no-skill 1/4、0.70；original 2/4、0.725；1 positive/1 negative；0 infra | 3 个 source-order key array 被私有 lexical order 误拒；measurement-invalid。 |
 
 ## 3. Benchmark v1 与 v2
 
@@ -106,6 +108,19 @@ development 分支的 30 个 canonical/alternative/invalid canary 全部 matched
 却要求 boolean，导致四个 false reject。因此该结果按 `measurement-validity.json` 冻结为 invalid，不开放
 base IR；30/30 只能记作不充分的预运行 audit，不能继续写成完整 measurement contract passed。
 
+Law v3 用 `deliverablePath: string|null` 和共享 public ABI 重建独立身份。30/30 audit、qualification
+与 8-row matrix 均完整，0 infrastructure。六份真实报告的 string/null shape 全部通过 ABI；两行失败是
+没有生成报告，不是表示层误拒。但 original 为 2/4、0.85，低于 no-skill 3/4、0.90；预注册
+non-regression gate 失败，所以冻结为 `measurement-valid-baseline-blocked`，不构造 base IR。
+
+i18n v2 同样完成 30/30 audit、qualification 和 8/8 matrix，数值 gate 通过。Post-run authority audit
+发现 6 份报告均通过字段类型 ABI，但 basic task 三行按源码发现顺序输出同一 key set，仅因 scorer 私有
+字典序要求被拒绝。该身份冻结 measurement-invalid，不重算数值门禁。权威路径：
+
+- `results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/measurement-validity.json`
+- `results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/measurement-validity.json`
+- 各目录中的 `authority-audit.json`、`gate-report.json` 与 `scored-runs.jsonl`
+
 ## 6. Experimental Design
 
 V1 audit 冻结为失败：8 个 alternative-valid 只有 2 个接受，包含私有 schema/method enum、唯一 allocation
@@ -170,17 +185,17 @@ untouched replication 和 Token break-even 均未证明。
 | Case | Studied | Benchmark contract-qualified | Development optimized gate | Untouched |
 |---|---:|---:|---:|---:|
 | env-manager | yes | no (v1 audit) | no | no |
-| law-to-markdown | yes | no（v2 scorer-authority） | v2 measurement-invalid；v1 held-out failed | no |
+| law-to-markdown | yes | yes（v3 public ABI） | v3 baseline gate failed；v1 held-out failed | no |
 | experimental-design | yes | yes (v2) | blocked by saturation | no |
 | api-tester | yes | yes | yes, artifact 4/4 | no |
 | zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
 | zh-readme | yes | yes（audit），付费 measurement invalid | no | no |
-| i18n-helper | yes | no（v1 scorer-authority） | numeric gate passed but measurement-invalid | no |
+| i18n-helper | yes | no（v2 array-order scorer-authority） | numeric gate passed but measurement-invalid | no |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、4
-contract-qualified、0 untouched replication、1 passed qualified phenotype。Law v2 与 i18n-helper 的真实输出
-都暴露 scorer-authority blocker，Env 仍有 benchmark-contract blocker，zh-readme 仍有 scorer-authority
-blocker，自动化指标也不完整。
+机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、5
+contract-qualified、0 untouched replication、1 passed qualified phenotype。Law v3 已恢复 contract-qualified，
+但 baseline gate failed；Env 仍有 benchmark-contract blocker，zh-readme 与 i18n-helper 仍有
+scorer-authority blocker，自动化指标也不完整。
 该失败是诚实状态，不应调整阈值。
 
 ### 8.1 `i18n-helper` 首轮校准
@@ -324,3 +339,5 @@ lock/result 未修改；由于基线饱和，没有新付费四臂结果，也�
 6. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势，并让至少第二个合同合格
    phenotype 通过 development。
 7. Portfolio readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
+8. 下一阶段保持 Law v3 与 i18n v2 冻结，升级共享 array semantics 与 scorer dependency closure；只为 i18n
+   创建新的 successor identity 和付费前 lock，不重跑 Law 基线。

@@ -66,4 +66,44 @@ describe("public-contract calibration persisted results", () => {
       interpretation: { baseIrAuditAllowed: false, heldOutAllowed: false, entersMainClaim: false },
     })
   })
+
+  test("records Law v3 as representation-valid but baseline-blocked", async () => {
+    const gate = await readJson("results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/gate-report.json")
+    const audit = await readJson("results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/measurement-validity.json")
+    await verifyBindings(audit)
+    expect(gate).toMatchObject({
+      passed: false,
+      counts: { observedRows: 8, completePairs: 4, infrastructureFailures: 0, positivePairs: 1 },
+      systems: { "no-skill": { meanScore: 0.9 }, original: { meanScore: 0.85 } },
+    })
+    expect(audit).toMatchObject({
+      status: "measurement-valid-baseline-blocked",
+      numericGatePassed: false,
+      scorerAuthority: { publicAbiComplete: true, representationFalseRejectRows: 0 },
+      interpretation: { baseIrAuditAllowed: false, heldOutAllowed: false, entersMainClaim: false },
+    })
+  })
+
+  test("freezes i18n v2 when the scorer privately sorts a public set-like array", async () => {
+    const gate = await readJson("results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/gate-report.json")
+    const audit = await readJson("results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/measurement-validity.json")
+    await verifyBindings(audit)
+    expect(gate).toMatchObject({
+      passed: true,
+      counts: { observedRows: 8, completePairs: 4, infrastructureFailures: 0, positivePairs: 1 },
+      systems: { "no-skill": { meanScore: 0.7 }, original: { meanScore: 0.725 } },
+    })
+    expect(audit).toMatchObject({
+      status: "measurement-invalid",
+      numericGatePassed: true,
+      scorerAuthority: {
+        field: "extractedKeys",
+        publicOrderDeclared: false,
+        privateExpectedOrder: "lexical",
+        observedAlternativeOrder: "source-discovery",
+        representationFalseRejectRows: 3,
+      },
+      interpretation: { baseIrAuditAllowed: false, heldOutAllowed: false, entersMainClaim: false },
+    })
+  })
 })

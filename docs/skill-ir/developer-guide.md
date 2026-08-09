@@ -66,7 +66,7 @@ optimized_skill/
   runtime model tokens 为 0；它仍只是 method-development 证据；
 - Env、Law、Experimental Design、Reviewer、zh-readme 分别暴露了基础设施分母、held-out 回归、任务饱和、
   residual failure 和 scorer 合同错误等不同问题；
-- portfolio 当前登记 6 个真实 case，但只有 4 个 contract-qualified、0 个 untouched replication，readiness
+- portfolio 当前登记 7 个真实 case，其中 5 个 contract-qualified、0 个 untouched replication，readiness
   尚未通过；
 - Task 17.11 已把重复的 package assembly 抽为技能无关模块，并在 API Tester 与 Experimental Design v1
   两种 phenotype 上完成逐字节 shadow parity；新的 Experimental Design v2 compiler 已接入公共 assembly，
