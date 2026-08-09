@@ -37,6 +37,8 @@
 | i18n-helper calibration | 2 systems x 4 = 8 | no-skill 1/4、0.70；original 1/4、0.925；1 positive；0 infra | 数值 gate passed，但 5 个报告 false reject，measurement-invalid。 |
 | Law v3 public ABI | 2 systems x 4 = 8 | no-skill 3/4、0.90；original 2/4、0.85；1 positive/2 negative；0 infra | 6 报告 ABI pass、0 false reject；measurement-valid 但 baseline gate failed。 |
 | i18n v2 public ABI | 2 systems x 4 = 8 | no-skill 1/4、0.70；original 2/4、0.725；1 positive/1 negative；0 infra | 3 个 source-order key array 被私有 lexical order 误拒；measurement-invalid。 |
+| i18n v3 array semantics | 2 systems x 4 = 8 | no-skill 3/4、0.75；original 2/4、0.50；1 positive/2 negative | 5/5 报告 ABI pass；2 条 original 为零 token/无输出，execution-observability blocked。 |
+| i18n v3 execution-bound successor | 2 systems x 4 = 8 | no-skill/original 均 4/4、1.0；0 differing；0 infra | 8/8 observable、8/8 ABI pass；baseline saturation。 |
 
 ## 3. Benchmark v1 与 v2
 
@@ -121,6 +123,22 @@ i18n v2 同样完成 30/30 audit、qualification 和 8/8 matrix，数值 gate �
 - `results/skill-ir/i18n-helper-v2-public-output-abi-calibration-v1/measurement-validity.json`
 - 各目录中的 `authority-audit.json`、`gate-report.json` 与 `scored-runs.jsonl`
 
+i18n v3 保持 v2 结果不变，以 `public-output-abi/v2` 显式区分 ordered/set-like array，并在付费前冻结 scorer
+及直接依赖闭包。新 identity 的 30/30 audit、qualification 和 8-row matrix 均完成；5 份可解析报告全部
+ABI pass，0 representation false reject，故 benchmark contract-qualified。冻结 gate 数值为 no-skill
+3/4、mean 0.75，original 2/4、mean 0.50。
+
+后验 execution audit 发现两个 original 失败行同时为 exit 0、旧 `runStatus=ok`、0 token、无 final output、
+无 task output。这两行不能作为 semantic failure，因此整批 numeric direction 不用于 skill 归因。冻结文件不
+重写；compact `execution-audit.json` 将状态记为 `execution-observability-blocked`。Prospective Pi parser 已
+改为把同类空终止事件标记 `parse-failed`，下一次验证使用新 calibration identity。
+
+Execution-bound successor 保持 i18n v3 task/contract/scorer/gate 不变，并冻结 Pi parser 到 gate 的 7 个关键
+执行依赖。第一份 lock 的 qualification 因未知 Pi content block 触发本地 TypeError，冻结失败且未进入矩阵；
+回归测试修复后使用新 lock。最终唯一矩阵 8/8、4/4 pairs、0 infrastructure，8 行全部 observable，8 份
+report 全部 ABI pass。No-skill 与 original 均 4/4、mean 1.0，0 differing/positive pair，故 baseline gate
+因 saturation 失败；不构造 base IR，也不把 original 额外 129787 tokens 解释为优化成本结论。
+
 ## 6. Experimental Design
 
 V1 audit 冻结为失败：8 个 alternative-valid 只有 2 个接受，包含私有 schema/method enum、唯一 allocation
@@ -190,12 +208,12 @@ untouched replication 和 Token break-even 均未证明。
 | api-tester | yes | yes | yes, artifact 4/4 | no |
 | zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
 | zh-readme | yes | yes（audit），付费 measurement invalid | no | no |
-| i18n-helper | yes | no（v2 array-order scorer-authority） | numeric gate passed but measurement-invalid | no |
+| i18n-helper | yes | yes（v3 ABI/dependency closure） | baseline saturated | no |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、5
+机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、6
 contract-qualified、0 untouched replication、1 passed qualified phenotype。Law v3 已恢复 contract-qualified，
-但 baseline gate failed；Env 仍有 benchmark-contract blocker，zh-readme 与 i18n-helper 仍有
-scorer-authority blocker，自动化指标也不完整。
+但 baseline gate failed；Env 仍有 benchmark-contract blocker，zh-readme 有 scorer-authority blocker；
+i18n-helper 的 measurement blocker 已清除，但 baseline saturation 和自动化指标仍未解决。
 该失败是诚实状态，不应调整阈值。
 
 ### 8.1 `i18n-helper` 首轮校准
@@ -339,5 +357,5 @@ lock/result 未修改；由于基线饱和，没有新付费四臂结果，也�
 6. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势，并让至少第二个合同合格
    phenotype 通过 development。
 7. Portfolio readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
-8. 下一阶段保持 Law v3 与 i18n v2 冻结，升级共享 array semantics 与 scorer dependency closure；只为 i18n
-   创建新的 successor identity 和付费前 lock，不重跑 Law 基线。
+8. 保持 Law v3、i18n v2/v3 及 execution-bound successor 冻结。i18n baseline 已证明饱和，不创建
+   benchmark v4、不加跑同一分母；转向下一个公开合同可评分且预期 no-skill 不饱和的真实 skill。

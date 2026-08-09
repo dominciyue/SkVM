@@ -118,6 +118,19 @@ describe("method portfolio registry and readiness", () => {
     expect(MethodPortfolioSchema.parse(pending).cases[5]!.blockers).toEqual(["distinguishability-not-run"])
   })
 
+  test("keeps execution observability separate from contract qualification", () => {
+    const blocked = passingPortfolio()
+    blocked.cases[5]!.blockers = ["execution-observability"]
+    const report = evaluateMethodPortfolioReadiness(blocked)
+    expect(report.counts.contractQualifiedMethodCases).toBe(6)
+    expect(report.gates.enoughQualifiedCasesAndCoverage).toBe(true)
+    expect(report.gates.noOpenMeasurementBlockers).toBe(false)
+    expect(report.gaps.openMeasurementBlockers).toContainEqual({
+      skillId: "skill-6",
+      blocker: "execution-observability",
+    })
+  })
+
   test("reports the real portfolio as not ready without inflating benchmark versions", async () => {
     const portfolio = await readMethodPortfolio({ rootDir, portfolioPath })
     const report = evaluateMethodPortfolioReadiness(portfolio)
@@ -126,10 +139,10 @@ describe("method portfolio registry and readiness", () => {
     expect(report.passed).toBe(false)
     expect(report.counts).toMatchObject({
       studiedCases: 7,
-      contractQualifiedMethodCases: 5,
+      contractQualifiedMethodCases: 6,
       untouchedReplicationCases: 0,
     })
-    expect(report.gaps.missingQualifiedCases).toBe(1)
+    expect(report.gaps.missingQualifiedCases).toBe(0)
     expect(report.gaps.openMeasurementBlockers.length).toBeGreaterThan(0)
     expect(portfolio.cases[1]).toMatchObject({
       skillId: "law-to-markdown",
@@ -157,13 +170,13 @@ describe("method portfolio registry and readiness", () => {
       skillId: "i18n-helper",
       role: "method-development",
       methodSequence: 7,
-      contractQualified: false,
-      benchmarkVersions: ["react-i18next-v1"],
+      contractQualified: true,
+      benchmarkVersions: ["react-i18next-v1", "v2-public-output-abi", "v3-array-semantics"],
       developmentGate: {
         status: "failed",
-        resultPath: "results/skill-ir/i18n-helper-public-contract-calibration-v1/measurement-validity.json",
+        resultPath: "results/skill-ir/i18n-helper-v3-execution-observable-calibration-v3/gate-report.json",
       },
-      blockers: ["scorer-authority"],
+      blockers: ["baseline-saturation"],
     })
   })
 

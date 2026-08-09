@@ -37,9 +37,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   会把 skill-package-only `LICENSE.upstream` 链接带入 task README；但 scorer 仍误拒绝 existing local path
   command argument，因此不进入 base IR。
 - Law v3 已补齐 `deliverablePath: string|null` 的公开 ABI，真实报告 0 representation false reject；但
-  original mean 0.85 低于 no-skill 0.90，基线 gate 失败。i18n v2 又暴露数组顺序语义和 scorer 依赖闭包
-  未冻结的问题，结果保持 measurement-invalid。
-- Method portfolio 已机器化登记 7 个 case：7 studied、5 contract-qualified、0 untouched replication、
+  original mean 0.85 低于 no-skill 0.90，基线 gate 失败。i18n v3 已补齐数组语义和 scorer 依赖闭包，
+  首跑 5/5 可解析报告 ABI pass，但有 2 条零 token/无输出；execution-bound successor 已达到 8/8 observable、
+  8/8 ABI pass，随后因 no-skill/original 均 4/4、mean 1.0 而冻结 baseline saturation。
+- Method portfolio 已机器化登记 7 个 case：7 studied、6 contract-qualified、0 untouched replication、
   1 个“合同合格且 development pass”的 phenotype；readiness 仍未通过。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
@@ -53,9 +54,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> zh-readme v2 invalidated；先提炼 skill-neutral command semantic contract
 -> 公共 artifact assembly shadow parity + Experimental Design v2 本地 qualification completed
 -> 不在 Experimental Design 饱和分母上创建付费 optimized lock
--> public output ABI v1 completed；Law v3 baseline blocked，i18n v2 array-order invalidated
--> successor ABI 显式声明 ordered/set-like array，并冻结 scorer dependency closure
--> 至少 6 个 contract-qualified 真实方法案例持续提炼通用 core
+-> public output ABI v2 completed；i18n v3 contract-qualified、execution observable、baseline saturated
+-> 不创建 benchmark v4；转向下一个预期有区分度的真实 skill 方法案例
+-> 6 个 contract-qualified 真实方法案例继续补 development phenotype 与自动化证据
 -> 为下一个有区分度的公开合同案例生成 artifact 并运行冻结 development
 -> readiness gate 通过
 -> 用另一项 untouched skill 做冻结 replication

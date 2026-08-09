@@ -1,13 +1,25 @@
 import { describe, expect, test } from "bun:test"
+import { createHash } from "node:crypto"
+import { readFile } from "node:fs/promises"
 import path from "node:path"
 import {
+  EXECUTION_OBSERVABILITY_DEPENDENCY_PATHS,
   evaluatePublicContractCalibrationGate,
   PublicContractCalibrationLockSchema,
+  PublicContractCalibrationLockV2Schema,
   readAndValidatePublicContractCalibrationLock,
+  validatePublicContractCalibrationLock,
 } from "./public-contract-calibration.ts"
 import type { ScoredAgentRunRow } from "./scoring.ts"
 
 const rootDir = path.resolve(import.meta.dir, "../../..")
+
+async function executionDependencies() {
+  return Promise.all(EXECUTION_OBSERVABILITY_DEPENDENCY_PATHS.map(async (filePath) => ({
+    path: filePath,
+    sha256: createHash("sha256").update(await readFile(path.join(rootDir, filePath))).digest("hex"),
+  })))
+}
 
 const cases = [
   {
@@ -33,6 +45,11 @@ const cases = [
   {
     skillId: "i18n-helper-v3",
     lockPath: "benchmarks/skill-ir/pilots/i18n-helper/v3/development-calibration-lock.json",
+    taskIds: ["i18n-helper-v3-react-basic-dev-001", "i18n-helper-v3-react-interpolation-dev-002"],
+  },
+  {
+    skillId: "i18n-helper-v3",
+    lockPath: "benchmarks/skill-ir/pilots/i18n-helper/v3/execution-observable-calibration-lock-v2.json",
     taskIds: ["i18n-helper-v3-react-basic-dev-001", "i18n-helper-v3-react-interpolation-dev-002"],
   },
 ] as const
@@ -145,6 +162,43 @@ describe("public-contract method-case calibration locks", () => {
       lockPath: cases[0].lockPath,
       overrides: { scorerSha256: "0".repeat(64) },
     })).rejects.toThrow("digest")
+  })
+
+  test("binds the prospective execution-observability path without changing old v2 locks", async () => {
+    const oldLock = await readAndValidatePublicContractCalibrationLock({
+      rootDir,
+      lockPath: cases[4].lockPath,
+    })
+    expect(oldLock.runtime).not.toHaveProperty("requireObservableCompletion")
+
+    const dependencies = await executionDependencies()
+    const prospective = {
+      ...oldLock,
+      calibrationId: "i18n-helper-v3-execution-observable-development-v2",
+      frozenInputs: { ...oldLock.frozenInputs, executionDependencies: dependencies },
+      runtime: { ...oldLock.runtime, requireObservableCompletion: true },
+    }
+    expect(PublicContractCalibrationLockV2Schema.parse(prospective)).toMatchObject({
+      runtime: { requireObservableCompletion: true },
+      frozenInputs: { executionDependencies: dependencies },
+    })
+    await expect(validatePublicContractCalibrationLock(prospective, rootDir)).resolves.toMatchObject({
+      calibrationId: prospective.calibrationId,
+    })
+
+    expect(() => PublicContractCalibrationLockV2Schema.parse({
+      ...prospective,
+      frozenInputs: { ...prospective.frozenInputs, executionDependencies: undefined },
+    })).toThrow("execution observability dependencies")
+    await expect(validatePublicContractCalibrationLock({
+      ...prospective,
+      frozenInputs: {
+        ...prospective.frozenInputs,
+        executionDependencies: dependencies.map((item, index) => index === 0
+          ? { ...item, sha256: "0".repeat(64) }
+          : item),
+      },
+    }, rootDir)).rejects.toThrow("digest mismatch")
   })
 
   test("requires a positive, successful, non-regressing original arm", async () => {

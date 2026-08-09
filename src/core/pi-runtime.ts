@@ -175,12 +175,29 @@ export function piEventsToRunRecord(events: PiEvent[]): RunRecordBuilder {
     .filter((m): m is PiAssistantMessage => m.role === "assistant")
     .pop()
 
+  const hasObservableActivity = messages.some((message) => {
+    if (message.role === "toolResult") return true
+    if (message.role !== "assistant") return false
+    return message.content.some((content) =>
+      content.type === "toolCall" || (content.type === "text" && content.text.trim().length > 0))
+  })
+  const hasPositiveUsage = messages.some((message) =>
+    message.role === "assistant"
+    && message.usage !== undefined
+    && message.usage.input + message.usage.output + message.usage.cacheRead + message.usage.cacheWrite > 0)
+  const silentZeroUsageCompletion = messages.length > 0 && !hasObservableActivity && !hasPositiveUsage
+
   builder.parseNote({
     ...(!lastAgentEnd && messages.length === 0
       ? {
           runStatus: "parse-failed",
           statusDetail: "pi produced no parseable events — telemetry only, workDir scored as-is",
         }
+      : silentZeroUsageCompletion
+        ? {
+            runStatus: "parse-failed",
+            statusDetail: "pi produced a terminal event with zero usage and no assistant or tool activity",
+          }
       : lastAssistant?.stopReason === "error"
         ? { statusDetail: `pi assistant stopped with error: ${lastAssistant.errorMessage ?? "unknown"}` }
         : {}),

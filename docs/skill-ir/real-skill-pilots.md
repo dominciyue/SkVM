@@ -40,12 +40,12 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | Skill | Phenotype | 当前角色 | 关键边界 |
 |---|---|---|---|
 | env-manager | environment/schema/repair | studied method-development | v1 audit failed；机制证据保留。 |
-| law-to-markdown | document/script/template | studied method-development | v2 8/8、0 infra，但 `deliverable` 私有类型造成 4 个 false reject；measurement-invalid，v1 held-out regression 保留。 |
+| law-to-markdown | document/script/template | contract-qualified method-development | v3 public ABI 0 false reject；baseline gate failed，v1 held-out regression 保留。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
-| zh-readme | repository fact/documentation | contract-qualified method-development | v1 calibration 8/8、0 infra，但 public-equivalence scorer false reject，measurement invalid。 |
-| i18n-helper | React+i18next source transformation | studied method-development | v1 8/8、0 infra、数值 gate passed，但 `missingKeys` 私有类型造成 5 个 false reject；measurement-invalid。 |
+| zh-readme | repository fact/documentation | contract-qualified method-development | benchmark audit 合格；v1/v2 付费 measurement 均 invalid，不开放 base IR。 |
+| i18n-helper | React+i18next source transformation | contract-qualified method-development | execution-bound successor 8/8 observable、8/8 ABI pass；两臂满分，baseline saturated。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -97,8 +97,8 @@ Audit 必须证明 scorer：
 
 历史三个 Wave A v1 audit 均失败，因此只算 `support-real`。Experimental Design v2 与 API Tester 的新合同
 通过各自 audit，仍需单独过区分度与优化 gate。Law v3 已用完整公开 ABI 恢复 contract-qualified，但
-baseline gate failed；i18n v2 仍因未声明 array order 的 scorer-authority 问题冻结 measurement-invalid。
-两者都不消费 held-out，也不是优化成功证据。
+baseline gate failed；i18n v3 也恢复 contract-qualified，execution-bound successor 已排除零 token/无输出，
+但两臂均满分。两者都不消费 held-out，也不是优化成功证据。
 
 ## 8. API Tester Re-entry
 
@@ -124,7 +124,7 @@ artifactKinds + coreBranchDelta
 unautomatedSteps + blockers
 ```
 
-`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 7 registered、7 studied、5 qualified、
+`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 7 registered、7 studied、6 qualified、
 0 replication、1 passed qualified phenotype；readiness 仍 failed。Readiness report 必须显示真实不足，
 不能把 studied、benchmark version 或 audit-failed case 填充为 contract-qualified。
 
@@ -139,10 +139,9 @@ unautomatedSteps + blockers
 5. 复用已有 artifact kind 的同时能检验通用 core；
 6. 预计人工适配可被声明式 contract 表达。
 
-共享 `public-output-abi/v1` 与 Law v3/i18n v2 新身份已完成。Law 测量合同有效但基线门禁失败，
-本阶段不再跑；i18n 数值 gate 通过但被未公开的 lexical array order 约束击穿，v2 冻结 invalid。
-当前只修 i18n successor 的 ordered/set-like array semantics 与 scorer dependency closure，不将 benchmark alias
-计为新方法案例，不提前构造 IR。后续仍按 provenance、task、scorer、audit 的竖切扩展真实 skill。
+共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
+closure 均已验证。i18n v3 execution-bound baseline 也已 8/8 可观测，但两臂 4/4 饱和；不创建 benchmark
+v4、不提前构造 IR。下一步按 provenance、task、scorer、audit 的竖切转向另一个预期有区分度的真实 skill。
 
 `zh-code-reviewer` 当前可复建命令：
 

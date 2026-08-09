@@ -2,6 +2,7 @@ import { createHash } from "node:crypto"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { validatePublicOutputRecord } from "../../bench/public-output-abi.ts"
+import { validatePublicOutputRecordV2 } from "../../bench/public-output-abi-v2.ts"
 
 type AbiStatus = "pass" | "fail" | "missing" | "unparseable"
 type JsonRecord = Record<string, unknown>
@@ -53,6 +54,20 @@ function resolveAbiStatus(
   if (validationStatus !== undefined) return validationStatus
   if (parseStatus === "parsed") throw new Error("parsed public output is missing ABI validation")
   return parseStatus
+}
+
+export function resolvePublicOutputAbiModulePath(abi: unknown): string {
+  const schemaVersion = (abi as { schemaVersion?: unknown } | undefined)?.schemaVersion
+  if (schemaVersion === "skill-ir-public-output-abi/v1") return "src/bench/public-output-abi.ts"
+  if (schemaVersion === "skill-ir-public-output-abi/v2") return "src/bench/public-output-abi-v2.ts"
+  throw new Error(`Unsupported public output ABI schema: ${String(schemaVersion)}`)
+}
+
+export function validateDeclaredPublicOutputAbi(abi: unknown, value: unknown) {
+  const modulePath = resolvePublicOutputAbiModulePath(abi)
+  return modulePath.endsWith("public-output-abi-v2.ts")
+    ? validatePublicOutputRecordV2(abi, value)
+    : validatePublicOutputRecord(abi, value)
 }
 
 export function classifyI18nReportAuthority(input: {
@@ -131,14 +146,19 @@ export async function runPublicOutputAbiAuthorityAudit(input: {
   const rootDir = path.resolve(input.rootDir)
   const lockBytes = await readFile(path.resolve(rootDir, input.lockPath))
   const lock = JSON.parse(lockBytes.toString("utf8")) as JsonRecord
-  const frozenInputs = lock.frozenInputs as Record<string, { path: string; sha256: string }>
+  const frozenInputs = lock.frozenInputs as Record<
+    string,
+    { path: string; sha256: string } | Array<{ path: string; sha256: string }>
+  >
   const matrix = lock.matrix as JsonRecord
   const skillId = String(lock.skillId)
   const resultsDir = path.resolve(rootDir, input.resultsDir)
   const scoredPath = path.join(resultsDir, "scored-runs.jsonl")
   const scoredBytes = await readFile(scoredPath)
   const rows = await readJsonl(scoredPath)
-  const contractBytes = await readFile(path.resolve(rootDir, frozenInputs.publicContract!.path))
+  const publicContractInput = frozenInputs.publicContract as { path: string; sha256: string }
+  const scorerInput = frozenInputs.scorer as { path: string; sha256: string }
+  const contractBytes = await readFile(path.resolve(rootDir, publicContractInput.path))
   const contract = JSON.parse(contractBytes.toString("utf8")) as JsonRecord
   const abi = contract.outputAbi
   const agent = (matrix.agents as string[])[0]!
@@ -188,7 +208,7 @@ export async function runPublicOutputAbiAuthorityAudit(input: {
       }
       derivedKeys = markerKeys(await readOptional(path.join(workDir, "src", "App.tsx")))
     }
-    const validation = report ? validatePublicOutputRecord(abi, report) : undefined
+    const validation = report ? validateDeclaredPublicOutputAbi(abi, report) : undefined
     const abiStatus = resolveAbiStatus(parseStatus, validation?.status)
     const reportCriterionFailed = Array.isArray(row.failedCriteria)
       && row.failedCriteria.includes(criterionId)
@@ -216,6 +236,15 @@ export async function runPublicOutputAbiAuthorityAudit(input: {
   const gateBytes = await readFile(path.join(resultsDir, "gate-report.json"))
   const gate = JSON.parse(gateBytes.toString("utf8")) as JsonRecord
   const falseRejectRows = observations.filter((row) => row.authority.status === "representation-false-reject").length
+  const abiModulePath = resolvePublicOutputAbiModulePath(abi)
+  const abiModuleBytes = await readFile(path.resolve(rootDir, abiModulePath))
+  const abiModuleSha256 = sha256(abiModuleBytes)
+  const scorerDependencies = Array.isArray(frozenInputs.scorerDependencies)
+    ? frozenInputs.scorerDependencies
+    : []
+  const preregisteredInLock = scorerDependencies.some((dependency) =>
+    dependency.path === abiModulePath && dependency.sha256 === abiModuleSha256
+  )
   const audit = {
     schemaVersion: "skill-ir-public-output-abi-authority-audit/v1",
     calibrationId: lock.calibrationId,
@@ -223,12 +252,12 @@ export async function runPublicOutputAbiAuthorityAudit(input: {
     kind: input.kind,
     inputs: {
       lock: { path: input.lockPath, sha256: sha256(lockBytes) },
-      publicContract: { path: frozenInputs.publicContract!.path, sha256: sha256(contractBytes) },
-      scorer: frozenInputs.scorer,
+      publicContract: { path: publicContractInput.path, sha256: sha256(contractBytes) },
+      scorer: scorerInput,
       publicOutputAbiModule: {
-        path: "src/bench/public-output-abi.ts",
-        sha256: sha256(await readFile(path.resolve(rootDir, "src/bench/public-output-abi.ts"))),
-        preregisteredInLock: false,
+        path: abiModulePath,
+        sha256: abiModuleSha256,
+        preregisteredInLock,
       },
       scoredRows: { path: path.relative(rootDir, scoredPath).replaceAll("\\", "/"), sha256: sha256(scoredBytes) },
       gate: { path: `${input.resultsDir}/gate-report.json`, sha256: sha256(gateBytes) },

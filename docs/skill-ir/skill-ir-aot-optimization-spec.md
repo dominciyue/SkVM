@@ -412,7 +412,22 @@ original 为 1/4、mean 0.925，1 differing/positive pair，数值 gate passed�
 不再被 lexical order 私约束拒绝。Development-only contract audit 为 30/30；该状态仍只说明测量合同和
 任务隔离成立。随后 `public-contract-calibration-lock/v2` 已在真实执行前冻结：模型、Pi、task、gate 与 v2
 保持一致，另绑定 scorer 及其三个直接依赖（ABI validator、workdir manifest、evaluator registry）的
-path+digest。真实执行和 measurement-validity 尚未产生。
+path+digest。唯一真实矩阵完成 8/8 rows、4/4 pairs；5 份可解析报告全部通过 ABI v2，0
+representation false reject，故该 benchmark identity 可计为 contract-qualified。
+
+冻结数值为 no-skill 3/4、mean 0.75，original 2/4、mean 0.50，1 positive、2 negative、1 equal，预注册
+original mean non-regression gate failed。但两条 original 行虽被旧 runner 记为 exit 0 / `runStatus=ok`，
+实际是 0 token、无 final output、无 task output。后验 `execution-audit.json` 不改写 raw/scored/gate，只将
+该批标记为 `execution-observability-blocked`：表示层合同成立，数值方向不能解释为 skill 语义效果，base IR、
+artifact、held-out 与 Token claim 继续关闭。同 identity 不补跑；后续使用新 calibration identity 验证修正后的
+执行可观测性，不创建 i18n benchmark v4。
+
+随后使用同一 i18n v3 benchmark 创建 execution-bound calibration successor，不修改 task/contract/scorer/gate。
+第一次 qualification 暴露未知 Pi content block 触发未检查 `text.trim()` 的本地 parser crash，因而冻结为
+qualification failure，未进入矩阵。TDD 修复后以新 lock 重新绑定 7 个关键执行依赖；qualification 通过，唯一
+矩阵 8/8 rows、4/4 pairs、0 infrastructure、8/8 observable、8/8 ABI pass。No-skill 与 original 均为
+4/4、mean 1.0、0 differing pair，故当前真实阻塞转为 `baseline-saturation`。这不否定 benchmark contract，
+也不允许 base IR、artifact、held-out 或 Token claim。
 
 ### 4.5 Public output ABI 约束
 
@@ -437,6 +452,11 @@ source-discovery order，却被 scorer 的私有 lexical order 拒绝。后续 A
 multiset 比较。新 `public-contract-calibration-lock/v2` 还必须枚举并绑定 scorer 的全部静态直接相对
 import/export 文件；validator 通过 TypeScript AST 重建集合，缺项、多项或 digest drift 均 fail closed。
 Package import、Node builtin 与动态 import 不属于这份直接测量依赖清单。旧 v1 lock 继续按原 schema 验证。
+
+模型执行的成功分母还必须满足可观测性：exit 0 不能单独证明模型完成。若 Pi 终止事件同时满足 usage 为 0、
+assistant 文本为空、无 tool call/result，则 prospective parser 必须返回 `parse-failed`；gate 将其计为
+infrastructure，而不是 semantic failure。对已经冻结的旧行只允许追加 digest-bound compact audit，不允许
+重写 failure type、分数或 gate。
 
 ## 5. 静态与动态结合
 

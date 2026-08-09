@@ -22,6 +22,16 @@ const SafeRelativePathSchema = z.string().min(1).refine((value) => {
 const DigestSchema = z.string().regex(/^[a-f0-9]{64}$/u)
 const FrozenFileSchema = z.object({ path: SafeRelativePathSchema, sha256: DigestSchema }).strict()
 
+export const EXECUTION_OBSERVABILITY_DEPENDENCY_PATHS = [
+  "src/core/pi-runtime.ts",
+  "src/adapters/pi.ts",
+  "src/cli/run.ts",
+  "src/benchmarks/skill-ir/real-agent-run.ts",
+  "src/benchmarks/skill-ir/scoring.ts",
+  "src/benchmarks/skill-ir/pre-ir-calibration-gate.ts",
+  "src/benchmarks/skill-ir/public-contract-calibration-run.ts",
+] as const
+
 export const PublicContractCalibrationLockSchema = z.object({
   schemaVersion: z.literal("skill-ir-public-contract-calibration-lock/v1"),
   status: z.literal("preregistered"),
@@ -123,6 +133,10 @@ export const PublicContractCalibrationLockV2Schema = z.object({
       (files) => new Set(files.map((file) => file.path)).size === files.length,
       "scorer dependency paths must be unique",
     ),
+    executionDependencies: z.array(FrozenFileSchema).min(1).refine(
+      (files) => new Set(files.map((file) => file.path)).size === files.length,
+      "execution dependency paths must be unique",
+    ).optional(),
     taskSplitFreeze: FrozenFileSchema,
     contractAuditManifest: FrozenFileSchema,
     contractAuditReport: FrozenFileSchema,
@@ -157,6 +171,7 @@ export const PublicContractCalibrationLockV2Schema = z.object({
     teardownGraceMs: z.literal(60000),
     outerWatchdogMs: z.literal(360000),
     explicitEvaluatorLoad: z.literal(true),
+    requireObservableCompletion: z.literal(true).optional(),
   }).strict(),
   gate: z.object({
     maximumInfrastructureFailures: z.literal(0),
@@ -189,6 +204,18 @@ export const PublicContractCalibrationLockV2Schema = z.object({
   }
   if (lock.runtime.outerWatchdogMs < lock.runtime.taskTimeoutMs + lock.runtime.teardownGraceMs) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "calibration watchdog budget mismatch" })
+  }
+  const declaredExecutionPaths = lock.frozenInputs.executionDependencies
+    ?.map((file) => file.path)
+    .sort((left, right) => left.localeCompare(right, "en"))
+  const requiredExecutionPaths = [...EXECUTION_OBSERVABILITY_DEPENDENCY_PATHS]
+    .sort((left, right) => left.localeCompare(right, "en"))
+  if (lock.runtime.requireObservableCompletion === true
+    && JSON.stringify(declaredExecutionPaths) !== JSON.stringify(requiredExecutionPaths)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "execution observability dependencies must be complete" })
+  }
+  if (lock.runtime.requireObservableCompletion !== true && declaredExecutionPaths !== undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "execution dependencies require observable completion" })
   }
 })
 
@@ -261,6 +288,9 @@ export async function validatePublicContractCalibrationLock(
     const declared = lock.frozenInputs.scorerDependencies.map((file) => file.path).sort((left, right) => left.localeCompare(right, "en"))
     if (JSON.stringify(actual) !== JSON.stringify(declared)) {
       throw new Error("calibration scorer dependency closure mismatch")
+    }
+    for (const [index, file] of (lock.frozenInputs.executionDependencies ?? []).entries()) {
+      await readFrozenFile(rootDir, file, `executionDependencies[${index}]`)
     }
   }
 

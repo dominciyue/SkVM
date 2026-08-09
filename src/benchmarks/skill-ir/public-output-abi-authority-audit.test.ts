@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test"
 import {
   classifyI18nReportAuthority,
   publicOutputShapeSignature,
+  resolvePublicOutputAbiModulePath,
+  validateDeclaredPublicOutputAbi,
 } from "./public-output-abi-authority-audit.ts"
 
 describe("public output ABI post-run authority audit", () => {
@@ -45,5 +47,28 @@ describe("public output ABI post-run authority audit", () => {
       missingKeys: { "zh-CN": [], "en-US": [] },
       extractedKeys: ["private.value"],
     })).toBe("object{extractedKeys:array<string>,missingKeys:object{en-US:array<empty>,zh-CN:array<empty>}}")
+  })
+
+  test("dispatches ABI v2 and preserves set-like report order", () => {
+    const abi = {
+      schemaVersion: "skill-ir-public-output-abi/v2",
+      additionalProperties: false,
+      fields: {
+        extractedKeys: {
+          required: true,
+          schema: {
+            type: "array",
+            nullable: false,
+            order: "set-like",
+            duplicates: "forbid",
+            items: { type: "string", nullable: false },
+          },
+        },
+      },
+    }
+    expect(validateDeclaredPublicOutputAbi(abi, {
+      extractedKeys: ["home.welcome", "home.save"],
+    })).toEqual({ status: "pass", issues: [] })
+    expect(resolvePublicOutputAbiModulePath(abi)).toBe("src/bench/public-output-abi-v2.ts")
   })
 })

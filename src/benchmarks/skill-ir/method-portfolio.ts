@@ -10,6 +10,7 @@ const BlockerSchema = z.enum([
   "gold-leak",
   "materialization",
   "scorer-authority",
+  "execution-observability",
   "heldout-regression",
   "baseline-saturation",
   "reentry-development-not-run",
@@ -159,7 +160,13 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
   const passedPhenotypes = new Set(qualified
     .filter((entry) => entry.developmentGate.status === "passed")
     .flatMap((entry) => entry.phenotypes))
-  const measurementBlockers = new Set(["benchmark-contract", "gold-leak", "materialization", "scorer-authority"])
+  const measurementBlockers = new Set([
+    "benchmark-contract",
+    "gold-leak",
+    "materialization",
+    "scorer-authority",
+    "execution-observability",
+  ])
   const openMeasurementBlockers = methodCases.flatMap((entry) => entry.blockers
     .filter((blocker) => measurementBlockers.has(blocker))
     .map((blocker) => ({ skillId: entry.skillId, blocker })))

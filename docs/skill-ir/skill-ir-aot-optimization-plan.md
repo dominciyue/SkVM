@@ -43,18 +43,18 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Law-to-markdown | v3 measurement-valid，baseline blocked | v3 8/8、0 infra、0 representation false reject；original mean 0.85 低于 no-skill 0.90，不开放 base IR。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
 | API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
-| i18n-helper | v1/v2 均 measurement-invalid | v2 8/8、0 infra，数值 gate passed，但数组顺序私约束造成 3 行 false reject；不开放 base IR。 |
-| Method portfolio | 已机器化，readiness failed | 7 registered、7 studied、5 qualified、1 passed phenotype、0 replication。 |
+| i18n-helper | v3 contract-qualified，baseline 饱和 | execution-bound successor 8/8 observable、8/8 ABI pass；两臂均 4/4、mean 1.0、0 differing。 |
+| Method portfolio | 已机器化，readiness failed | 7 registered、7 studied、6 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
 | 文档治理 | 本轮重建 | 9 份权威文档，新增统一上手指南，删除重复阶段全文。 |
 
 ## 3. 关键阻塞
 
-1. 当前 contract-qualified 方法案例有 5 个，距离 6 个起步条件仍缺 1 个；通过 development gate 的
-   phenotype 只有 1 个。
-2. Automation/adaptation 指标不完整；Law v3 已恢复公开表示层有效性，i18n v2 又暴露 array order 未声明与
-   scorer dependency closure 未冻结的问题，这是当前最高价值的共享修复。
+1. 当前 contract-qualified 方法案例达到 6 个起步条件，但通过 development gate 的 phenotype 仍只有 1 个，
+   且 untouched replication 为 0，readiness 仍失败。
+2. Automation/adaptation 指标不完整；i18n v3 已修复 array order、scorer dependency closure 和执行可观测性，
+   但新的完整 baseline 两臂均满分，当前任务无法测量 original skill 增益。
 3. API Tester 的 schema-derived package 已通过冻结 development gate；下一缺口是更多信息互补、合同合格
    的方法案例和自动化/适配成本数据。
 4. Law 旧 held-out 回归与 v1 scorer literal sensitivity 混杂；v2 的 30/30 人工 audit 又漏掉真实 alternative
@@ -524,19 +524,43 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    - [x] i18n v2 数值 gate 通过，但 3 行只因 `extractedKeys` 使用 source-discovery order 而被私有
      lexical-order 要求拒绝，冻结 `measurement-invalid`，不重评、不补跑。
 
-#### Task 17.15 Array semantics 与 scorer dependency closure（下一步）
+#### Task 17.15 Array semantics 与 scorer dependency closure（完成，执行观测阻断）
 
 1. [x] 保持 `public-output-abi/v1`、Law v3、i18n v2 contract/scorer/lock/result 不变；不为 Law 重跑基线。
 2. [x] 设计 successor ABI，对 array 强制声明 `ordered` 或 `set-like`、duplicate policy 与 element semantics；
    i18n `extractedKeys`、`scannedFiles` 和每个 locale 的 `missingKeys` 必须显式选择语义。
 3. [x] 将 scorer 的直接依赖闭包加入新 calibration lock schema/digest 验证，至少绑定共享 ABI
    validator；旧 v1 lock 仍按原 schema 验证。
-4. [ ] 用独立 i18n successor identity 补 RED/GREEN、alternative-order canary、reverse-evidence 与 authority
+4. [x] 用独立 i18n successor identity 补 RED/GREEN、alternative-order canary、reverse-evidence 与 authority
    audit；付费前重新冻结 lock，不从 v2 结果修改 gate。
    - [x] v3 public contract 与 2+2 task 先于 scorer 提交，task split 绑定 pre-scorer commit；
    - [x] v3 scorer 使用 ABI v2 语义等价，alternative-order 单测和 30/30 development audit 通过；
    - [x] 创建并验证 dependency-bound v2 lock，复用预注册模型/Pi/gate，并冻结三个 scorer 直接依赖；
-   - [ ] 完成 dry-run、qualification、唯一真实矩阵和 authority audit。
+   - [x] 完成 dry-run、qualification、唯一真实矩阵和 authority audit；8/8 rows、4/4 pairs，5/5 可解析报告
+     通过 ABI v2，0 representation false reject；benchmark contract-qualified。
+   - [x] 数值 gate 冻结失败：no-skill 3/4、mean 0.75，original 2/4、mean 0.50；后验审计识别两条
+     `exit 0 + runStatus ok + 0 token + 无输出`，故该批为 `execution-observability-blocked`，不开放 base IR。
+
+#### Task 17.16 i18n 执行可观测性恢复（下一步）
+
+1. [x] RED/GREEN：Pi 终止事件若同时为零 usage、无 assistant 文本、无 tool call/result，prospective
+   `piEventsToRunRecord` 必须标记 `parse-failed`；零 usage 但存在可观察文本时仍保留 `ok`。
+2. [x] 新增通用 compact execution audit，绑定 raw/scored/gate/authority digest，只报告可观测状态，不复制
+   模型原文，不重写 v3 冻结 failure type 或 gate。
+3. [x] 为新 calibration identity 冻结 execution-path dependency 与“所有行可观测或显式 infrastructure”合同；
+   复用 i18n v3 task/contract/scorer，不创建 benchmark v4，不修改 v3 结果。
+4. [x] 新身份依次完成 lock validation、dry-run、qualification 和唯一 `retries=0` baseline；第一次
+   qualification 因未知 Pi content block 触发 parser TypeError，冻结失败证据且未进矩阵；TDD 修复后另建
+   successor lock，最终 8/8 observable、0 infrastructure、两臂 4/4、mean 1.0，因 saturation gate failed。
+   停止在 baseline，不创建 base IR/artifact/held-out。
+
+#### Task 17.17 下一有区分度方法案例（下一步）
+
+1. 不继续在已冻结 i18n v3 的同一 2+2 分母上堆 task 或 calibration；其 benchmark 合同与饱和证据均保留。
+2. 从已完成 source closure 的真实 skill 候选中，优先选择公开合同可确定评分且预期 no-skill 不饱和的 phenotype；
+   先做 2+2 task freeze、contract audit 和 `no-skill | original` baseline，不预先生成 IR。
+3. 只有 baseline 有区分度且 original residual 能映射到公开 skill 语义，才进入 source-audited base IR 和公共
+   assembly artifact；否则按 saturation/measurement failure 停止并换案例。
 
 ## 6. 验证与实验门禁
 

@@ -282,7 +282,25 @@ bun ./src/benchmarks/skill-ir/public-output-abi-authority-audit.ts `
 i18n v3 是首个使用该组合的 measurement identity：2+2 task 在 scorer 前冻结，scorer unit test 接受
 `extractedKeys` 的 source-discovery order，development-only differential audit 为 30/30。新的 v2 lock 在
 付费前绑定 scorer、ABI validator、workdir manifest 与 evaluator registry 的 digest，并复用 v2 已预注册的
-数值 gate。此时尚无真实模型结果；不得把 contract audit 或 lock validation 写成基线或优化证据。
+数值 gate。唯一真实矩阵完成 8/8；authority audit 的 5 份可解析报告全部 ABI pass、0 representation false
+reject，因此 v3 measurement contract 合格。
+
+该批另有两条 original 行被旧执行路径记录为 exit 0 / `runStatus=ok`，但 token 为 0、没有 final output 和
+task output。运行下列后验审计可复建紧凑结论；它不改写冻结 raw/scored/gate：
+
+```powershell
+bun ./src/benchmarks/skill-ir/public-contract-calibration-execution-audit.ts `
+  --results=results/skill-ir/i18n-helper-v3-array-semantics-calibration-v1 `
+  --out=results/skill-ir/i18n-helper-v3-array-semantics-calibration-v1/execution-audit.json
+```
+
+审计结论为 `execution-observability-blocked`，所以数值 gate 的 0.75 vs 0.50 不能归因为 skill 语义。未来 Pi
+parser 将“零 usage + 无 assistant/tool activity”的终止事件标记为 `parse-failed`；已经冻结的旧结果不重分。
+
+同一 benchmark 的 execution-bound successor 另行冻结 7 个关键执行依赖。首个 qualification 因未知 Pi
+content block 触发 parser TypeError 而停止；修复使用新 calibration identity。最终 successor 为 8/8
+observable、0 infrastructure、8/8 report ABI pass，但 no-skill/original 均 4/4、mean 1.0，0 differing pair。
+因此执行合同已恢复，当前结论是 baseline saturation，不是 skill 优化或回归。
 
 ## 9. Gate 顺序
 
