@@ -142,4 +142,25 @@ describe("workdir delta", () => {
       { code: "INITIAL_FILE_MODIFIED", path: "study.json" },
     ])
   })
+
+  test("allows only explicitly declared initial files to be modified", async () => {
+    const { workDir, manifestPath } = await createRunRoot()
+    const reference = await writeInitialWorkdirManifest({ workDir, manifestPath })
+    const initialManifest = await readInitialWorkdirManifest({ workDir, reference })
+    await writeFile(join(workDir, "study.json"), "changed\n", "utf8")
+    await writeFile(join(workDir, "references", "guide.md"), "unauthorized\n", "utf8")
+
+    const result = await assessWorkdirDelta({
+      workDir,
+      initialManifest,
+      allowedNewDirectories: [],
+      requiredNewFiles: [],
+      allowedModifiedFiles: ["study.json"],
+    })
+
+    expect(result).toEqual({
+      status: "fail",
+      violations: [{ code: "INITIAL_FILE_MODIFIED", path: "references/guide.md" }],
+    })
+  })
 })

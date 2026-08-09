@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-07
+**最后更新：** 2026-08-09
 
 本文件只记录当前 ledger、执行顺序与活跃 TDD。已完成阶段的过程见 `history.md` 和 Git history；组件
 行为见对应权威文档；数值见 `experiment-results.md`。
@@ -20,6 +20,8 @@ development task 都没有 original full success 而 gate failed；base IR 和 h
 -> partial-benefit re-entry policy
 -> method portfolio registry + readiness evaluator
 -> API Tester schema-derived artifact development
+-> 修复 Law 公共合同 benchmark，恢复 document-script-template 的可信测量
+-> 引入 i18n-helper React+i18next 源码变换竖切
 -> 扩充信息互补的方法案例，至少 6 个起步
 -> readiness gate
 -> untouched replication
@@ -38,9 +40,10 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Runner/scorer/pairing/persistent workdir | 完成 | Stable Pi 已有 0-infra 矩阵。 |
 | Benchmark v2 measurement contract | 完成 | 42/42 differential、36/36 materialization。 |
 | Env-manager | 冻结 gate failure | 3 个 pair 0.90->1.00；完整分母含 1 infra。 |
-| Law-to-markdown | 冻结 held-out failure | Development 4/4；held-out 2/4 且 2 regression。 |
+| Law-to-markdown | v1 冻结 measurement-invalid；v2 待实现 | 旧 development/held-out 数值只作诊断；先重建公共合同。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
 | API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
+| i18n-helper | 已选真实来源，待竖切 | React+i18next；源码扫描/变换与可复用完整性 artifact。 |
 | Method portfolio | 已机器化，readiness failed | 6 registered、6 studied、4 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
@@ -50,10 +53,11 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 
 1. 当前 contract-qualified 方法案例有 4 个，距离 6 个起步条件仍缺 2 个；通过 development gate 的
    phenotype 只有 1 个。
-2. Automation/adaptation 指标不完整，历史 Env/Law 仍有 benchmark-contract blocker。
+2. Automation/adaptation 指标不完整，历史 Env/Law 仍有 benchmark-contract blocker；Law 是当前最高价值修复。
 3. API Tester 的 schema-derived package 已通过冻结 development gate；下一缺口是更多信息互补、合同合格
    的方法案例和自动化/适配成本数据。
-4. Law held-out 回归说明 artifact 的 task-boundary 泛化仍不足。
+4. Law 旧 held-out 回归与 v1 scorer literal sensitivity 混杂；必须先用新公共合同恢复有效测量，再讨论 artifact
+   的 task-boundary 泛化。
 5. Experimental Design 饱和与 API Tester 两臂均失败说明 task 区分度必须在优化前单独过门。
 6. 本轮已将可再生成的 `run/qualification-work/artifacts/snapshots/plan/resource-probe` 默认 ignore，
    untracked result files 从约 3741 降到约 216；剩余 scored/raw/diagnostic 候选需逐项判断是否应提交，
@@ -456,6 +460,34 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
      若只研究质量等价下的效率，须另行预注册 quality-parity efficiency ablation。
 4. [ ] 只有 deterministic scorer 的 gate 通过后，才允许创建 held-out lock；本阶段不启用 PGO、不宣称
    cross-skill 或 Token 收益。
+
+#### Task 17.12 Law v2 公共合同修复（进行中）
+
+1. [ ] 先提交独立 `law-to-markdown/v2` 的 public contract、2 development + 2 held-out tasks、source audit 与
+   task-split freeze；v1 task/scorer/audit/lock/package/result 全部保持 digest 不变。
+2. [ ] RED/GREEN 新建 `law-to-markdown-grade-v2`：从 `document.txt` + `law-contract.json` 推导保守分类、标题
+   层级、字符流、项/目布局和结构化 review evidence；接受自由正文措辞，拒绝矛盾 evidence。
+3. [ ] RED/GREEN 建立 differential、reverse-evidence、gold/held-out leak、路径安全、额外产物和真实
+   materialization audit；compact report 必须明确只证明 measurement contract。
+4. [ ] Audit 通过后才冻结 `no-skill | original`、Windows/clean、强模型、2 tasks x 2 repetitions 的新
+   calibration；门禁在调用前写死，`retries=0`。未过区分度/成功门则停止，不构造 IR。
+5. [ ] 基线有区分度且 source audit 通过后，才把 Law deterministic compiler 迁到公共 assembly，并建立
+   `ir-static | validated-artifact` development comparison；否则保留为本地机制候选。
+
+#### Task 17.13 `i18n-helper` React+i18next 竖切（进行中）
+
+1. [ ] 导入 exact MIT source closure，登记 intake/corpus/portfolio；角色固定 method-development，phenotype
+   为 `react-i18next-source-transformation`，不计 untouched replication。
+2. [ ] 先提交公开 i18n contract、2 development + 2 held-out React fixture 和 task-split freeze；首轮只允许
+   修改声明的 `.tsx`，新增 `src/i18n.ts`、双语 JSON 与 `i18n-report.json`。
+3. [ ] RED/GREEN 为通用 `assessWorkdirDelta` 增加声明式 `allowedModifiedFiles`，保持现有调用默认行为不变，
+   并拒绝未授权修改、删除、类型变化、symlink 与额外输出。
+4. [ ] RED/GREEN 实现 React+i18next public oracle/scorer：用户可见硬编码扫描、稳定 key、源码替换、插值
+   保留、双语 key 完整、源码可解析和 delta policy；无强证据文本返回 unconfirmed。
+5. [ ] 完成 alternative-valid、reverse-evidence、false-positive、gold/held-out leak 与 materialization audit；
+   audit 通过后才决定是否冻结 `no-skill | original` development 校准。
+6. [ ] 只有基线有区分度且 original/source residual 可归因时，才生成 base IR、validation plan 和复用公共
+   assembly 的 artifact candidate；首轮不得扩展框架或运行 held-out。
 
 ## 6. 验证与实验门禁
 

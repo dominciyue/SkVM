@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-03
+**最后更新：** 2026-08-09
 
 ## 1. 项目定位
 
@@ -108,6 +108,11 @@ baseline 不改判，但后续可通过新 prospective policy 转为 method-deve
 replication。`zh-code-reviewer` 从 2026-08-02 起进入 method-development，用于检验判断/证据/严重度
 phenotype；因此不再承担 untouched replication。`zh-readme` 等只有在未参与 core/catalog 调整且重新
 冻结后，才可能承担 replication。
+
+2026-08-09 起，历史 `measurement-invalid` 结果继续保留原文件、原数值和原结论，但不计入
+contract-qualified 分母、质量均值、优化成功或主 claim。只有当旧 benchmark/scorer 阻塞新的可解释实验时
+才创建新身份修复；禁止原地改分、覆盖或删除失败证据。`law-to-markdown` 是当前优先修复案例；新增真实
+`i18n-helper` 作为源码扫描/变换 phenotype 的方法开发案例，不预注册为成功或 untouched replication。
 
 方法开发以至少 6 个真实 skill 起步，但数量不固定。进入 replication 前必须通过
 `method-portfolio-readiness/v1`：
@@ -321,6 +326,45 @@ source-rewrite-only view 替换为 provenance-bound deterministic artifact compi
 compiler、validated catalog/runtime、protected-input 检查和原 scorer activation 共 20/20 focused tests
 通过（显式 `SKVM_PYTHON`）。这只是 L3 artifact 机制证据，尚未成为新的 paid development identity；统一
 adapter contract 和 public-contract benchmark lock 仍是下一阶段前置条件。
+
+### 4.3 `law-to-markdown` 公共合同重建
+
+冻结的 Law v1 task、scorer、audit、lock、package 和结果保持不可变。v1 development/held-out 数值只作
+历史诊断：其 review-outcome scorer 拒绝了语义等价措辞，因此不能继续承担 contract-qualified 或优化效果
+证据。新工作使用独立 `law-to-markdown-v2` benchmark identity，不复用旧结果分母。
+
+v2 的 2 development + 2 held-out task、公开 `law-contract.json` 和 source closure 必须在 scorer 实现前
+冻结。公开合同只选择来源中可确定、适合离线 toy fixture 的子集：输入保护、法律/明显非法律的保守分类、
+法律标题层级、原文字字符流、项/目独立换行、审核报告与最终产物的一致性。分类规则对 agent 与 scorer 同时
+可见；不确定输入不进入首轮任务。审核报告正文允许自由措辞，只要求唯一严格 JSON
+`law-review-evidence` block 声明输入路径、文档类别和是否可交付；scorer 从公开输入重新推导这些字段，不能
+使用私有金标标签或固定中文句子。
+
+v2 audit 必须至少覆盖：两种 alternative-valid 审核措辞、不同但合法的 Markdown 空白、错误分类、错误标题
+层级、文字丢失、输入污染、额外产物、gold/held-out 泄漏和真实 materialization。只有 audit 通过后才冻结
+`no-skill | original` development 校准；若两臂饱和、original 无完整成功、没有配对差异或 original 均值
+回归，则按停止规则关闭，不构造 base IR/artifact。旧 Law artifact compiler 仍是机制候选；只有 v2 基线有
+区分度且 source audit 通过后，才允许通过公共 assembly 编译新的未冻结 package。
+
+### 4.4 `i18n-helper` React+i18next 方法案例
+
+`i18n-helper` 固定来自 `laolaoshiren/claude-code-skills-zh` commit
+`1e221579b0504082d25d5548b194399a7785f10f`，许可证为 MIT。首轮仅覆盖 React + i18next，不扩展 Vue、
+Angular、Python、Java 或在线翻译。目标是验证通用系统能否处理“读取并修改已有源码”的 phenotype：扫描
+用户可见硬编码文本，生成稳定 key，创建 `zh-CN`/`en-US` 语言文件，替换源码调用，并验证 key、插值和
+输入/输出完整性。
+
+公开合同必须声明允许修改的源码路径、必须保持不变的 manifest/config、允许新增的 i18n 文件和唯一报告。
+Scorer 只从 agent 可见 React 源码与公开合同派生候选文本，不把完整 key 集合或翻译写进私有 payload；技术
+术语、import 路径、URL、测试选择器、日志和不可确定字符串保守排除。稳定 key 由公开文件/组件/语义规则
+生成，英文翻译质量首轮只作诊断，hard gate 检查覆盖、无硬编码残留、key 双语完整、插值保留、源码可解析
+以及未授权文件不变。
+
+该竖切需要通用 workdir delta 明确支持声明式 `allowedModifiedFiles`，不能为 `i18n-helper` 增加 skill-id
+分支。执行采用一次生成、确定性 validate、至多一次基于白名单错误的修复；本地可确定的源码 rewrite 直接
+应用并运行 diff/语法/key-integrity 检查，只有歧义文本、超出允许路径、行为保持不确定或 protected input
+变更才阻断。首轮 audit 与基线校准通过前，不创建 optimized package、不运行 held-out，也不声称质量或
+Token 收益。
 
 ## 5. 静态与动态结合
 

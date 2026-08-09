@@ -8,7 +8,8 @@
     "scientific-allocation-report",
     "openapi-schema-test-plan",
     "review-evidence-severity",
-    "repository-fact-documentation"
+    "repository-fact-documentation",
+    "react-i18next-source-transformation"
   ],
   "cases": [
     {
@@ -50,7 +51,7 @@
       "role": "method-development",
       "methodSequence": 2,
       "contractQualified": false,
-      "benchmarkVersions": ["v1"],
+      "benchmarkVersions": ["v1", "v2-public-contract"],
       "developmentGate": {
         "status": "passed",
         "resultPath": "results/skill-ir/law-to-markdown-validated-artifact-development-gate-2026-07-24.json"
@@ -188,6 +189,34 @@
         "unautomatedSteps": ["base IR/source audit", "validation plan", "artifact adapter"]
       },
       "blockers": ["scorer-authority"]
+    },
+    {
+      "skillId": "i18n-helper",
+      "upstreamIdentity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "path": "skills/i18n-helper/SKILL.md"
+      },
+      "phenotypes": ["react-i18next-source-transformation"],
+      "role": "method-development",
+      "methodSequence": 7,
+      "contractQualified": false,
+      "benchmarkVersions": ["react-i18next-v1"],
+      "developmentGate": { "status": "not-run" },
+      "automation": {
+        "generatesIr": false,
+        "generatesContract": false,
+        "generatesValidationPlan": false,
+        "generatesPackageCandidate": false
+      },
+      "adaptation": {
+        "humanMinutes": null,
+        "adapterLoc": 0,
+        "artifactKinds": ["checks", "schemas", "templates", "tool-plans"],
+        "coreBranchDelta": 0,
+        "unautomatedSteps": ["public contract audit", "source transformation oracle", "artifact adapter"]
+      },
+      "blockers": ["benchmark-contract"]
     }
   ]
 }

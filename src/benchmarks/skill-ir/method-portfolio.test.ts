@@ -122,10 +122,10 @@ describe("method portfolio registry and readiness", () => {
     const portfolio = await readMethodPortfolio({ rootDir, portfolioPath })
     const report = evaluateMethodPortfolioReadiness(portfolio)
 
-    expect(portfolio.cases).toHaveLength(6)
+    expect(portfolio.cases).toHaveLength(7)
     expect(report.passed).toBe(false)
     expect(report.counts).toMatchObject({
-      studiedCases: 6,
+      studiedCases: 7,
       contractQualifiedMethodCases: 4,
       untouchedReplicationCases: 0,
     })
@@ -142,6 +142,14 @@ describe("method portfolio registry and readiness", () => {
         resultPath: "results/skill-ir/zrm-pi-v2/gate-report.json",
       },
       blockers: ["scorer-authority"],
+    })
+    expect(portfolio.cases[6]).toMatchObject({
+      skillId: "i18n-helper",
+      role: "method-development",
+      methodSequence: 7,
+      contractQualified: false,
+      benchmarkVersions: ["react-i18next-v1"],
+      blockers: ["benchmark-contract"],
     })
   })
 

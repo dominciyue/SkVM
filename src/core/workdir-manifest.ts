@@ -143,6 +143,7 @@ export async function assessWorkdirDelta(input: {
   initialManifest: InitialWorkdirManifest
   allowedNewDirectories: string[]
   requiredNewFiles: string[]
+  allowedModifiedFiles?: string[]
 }): Promise<{ status: "pass" | "fail"; violations: WorkdirDeltaViolation[] }> {
   const initial = InitialWorkdirManifestSchema.parse(input.initialManifest)
   const current = await snapshotWorkdir(input.workDir)
@@ -150,6 +151,9 @@ export async function assessWorkdirDelta(input: {
   const currentByPath = new Map(current.map((entry) => [entry.path, entry]))
   const allowedDirectories = new Set(input.allowedNewDirectories.map((entry) => SafeRelativePathSchema.parse(entry)))
   const requiredFiles = new Set(input.requiredNewFiles.map((entry) => SafeRelativePathSchema.parse(entry)))
+  const allowedModifiedFiles = new Set(
+    (input.allowedModifiedFiles ?? []).map((entry) => SafeRelativePathSchema.parse(entry)),
+  )
   const violations: WorkdirDeltaViolation[] = []
 
   for (const [entryPath, entry] of initialByPath) {
@@ -158,7 +162,12 @@ export async function assessWorkdirDelta(input: {
       violations.push({ code: "INITIAL_ENTRY_MISSING", path: entryPath })
     } else if (finalEntry.type !== entry.type) {
       violations.push({ code: "INITIAL_ENTRY_TYPE_CHANGED", path: entryPath })
-    } else if (entry.type === "file" && finalEntry.type === "file" && entry.sha256 !== finalEntry.sha256) {
+    } else if (
+      entry.type === "file"
+      && finalEntry.type === "file"
+      && entry.sha256 !== finalEntry.sha256
+      && !allowedModifiedFiles.has(entryPath)
+    ) {
       violations.push({ code: "INITIAL_FILE_MODIFIED", path: entryPath })
     }
   }

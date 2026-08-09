@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "law-to-markdown-v2",
+  "tasks": [
+    {
+      "id": "law-to-markdown-v2-regulation-heldout-001",
+      "split": "held-out",
+      "prompt": "Read document.txt and the public law-contract.json. Do not modify either protected input. Apply the loaded law-to-markdown skill within the public contract subset. Produce the review report at the declared path and produce the final Markdown only when the document is classified as law and is deliverable. The review prose may vary, but it must contain exactly one strict JSON law-review-evidence block with the declared fields. Create no files outside the declared outputs. Do not use the network or install packages.",
+      "fixtures": {
+        "document.txt": "示例公共服务条例\n第一编 基本制度\n第一章 服务规则\n第一节 一般规定\n第一条 为了规范公共服务，制定本条例。\n第二条 公共服务应当遵循便民原则。\n（一）公开流程；（二）及时办理。\n",
+        "law-contract.json": "{\"schemaVersion\":\"skill-ir-law-to-markdown-public-contract/v2\",\"contractId\":\"law-to-markdown-public-contract-v2\",\"protectedInputs\":[\"document.txt\",\"law-contract.json\"],\"outputs\":{\"review\":\"markdown/document/document+审核报告.md\",\"deliverable\":\"markdown/document/document+最终成果.md\"},\"exactOutputSet\":true,\"classification\":{\"law\":\"The first nonempty line ends in 法、条例 or 规定 and the body contains at least one 第X条 heading.\",\"non-law\":\"The first nonempty line begins with GB/, GB／, ISO or IEC.\",\"ambiguous\":\"Inputs matching neither rule are outside this benchmark revision.\"},\"headingRules\":[{\"kind\":\"title\",\"level\":1},{\"kind\":\"编或分编\",\"level\":2},{\"kind\":\"章\",\"level\":3},{\"kind\":\"节\",\"level\":4},{\"kind\":\"条\",\"level\":5}],\"contentRules\":[\"A legal deliverable preserves the source character stream after Markdown heading markers and whitespace are removed.\",\"Chinese enumerated items such as （一）（二） are placed on separate nonempty lines.\",\"A non-law input produces no final deliverable.\"],\"reviewEvidence\":{\"openingMarker\":\"```json law-review-evidence\",\"closingMarker\":\"```\",\"blockCount\":1,\"fields\":[\"inputPath\",\"documentClass\",\"deliverable\"],\"documentClasses\":[\"law\",\"non-law\"]}}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        { "method": "custom", "id": "law-v2-input-and-delta", "name": "Protected inputs and exact output delta", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "input-and-delta" } },
+        { "method": "custom", "id": "law-v2-classification", "name": "Classification and deliverable policy", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "classification" } },
+        { "method": "custom", "id": "law-v2-fidelity", "name": "Legal character stream fidelity", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "content-fidelity" } },
+        { "method": "custom", "id": "law-v2-structure", "name": "Public legal hierarchy and item layout", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "structure" } },
+        { "method": "custom", "id": "law-v2-review", "name": "Structured review evidence matches observable facts", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "review-evidence" } }
+      ],
+      "hardGateIds": ["law-v2-input-and-delta", "law-v2-classification", "law-v2-fidelity", "law-v2-structure", "law-v2-review"],
+      "passThreshold": 1
+    },
+    {
+      "id": "law-to-markdown-v2-iso-heldout-002",
+      "split": "held-out",
+      "prompt": "Read document.txt and the public law-contract.json. Do not modify either protected input. Apply the loaded law-to-markdown skill within the public contract subset. Produce the review report at the declared path and produce the final Markdown only when the document is classified as law and is deliverable. The review prose may vary, but it must contain exactly one strict JSON law-review-evidence block with the declared fields. Create no files outside the declared outputs. Do not use the network or install packages.",
+      "fixtures": {
+        "document.txt": "ISO 9999:2026 Example service guide\n1 Scope\nThis document specifies general service requirements.\n2 Terms\nNo additional terms are defined.\n",
+        "law-contract.json": "{\"schemaVersion\":\"skill-ir-law-to-markdown-public-contract/v2\",\"contractId\":\"law-to-markdown-public-contract-v2\",\"protectedInputs\":[\"document.txt\",\"law-contract.json\"],\"outputs\":{\"review\":\"markdown/document/document+审核报告.md\",\"deliverable\":\"markdown/document/document+最终成果.md\"},\"exactOutputSet\":true,\"classification\":{\"law\":\"The first nonempty line ends in 法、条例 or 规定 and the body contains at least one 第X条 heading.\",\"non-law\":\"The first nonempty line begins with GB/, GB／, ISO or IEC.\",\"ambiguous\":\"Inputs matching neither rule are outside this benchmark revision.\"},\"headingRules\":[{\"kind\":\"title\",\"level\":1},{\"kind\":\"编或分编\",\"level\":2},{\"kind\":\"章\",\"level\":3},{\"kind\":\"节\",\"level\":4},{\"kind\":\"条\",\"level\":5}],\"contentRules\":[\"A legal deliverable preserves the source character stream after Markdown heading markers and whitespace are removed.\",\"Chinese enumerated items such as （一）（二） are placed on separate nonempty lines.\",\"A non-law input produces no final deliverable.\"],\"reviewEvidence\":{\"openingMarker\":\"```json law-review-evidence\",\"closingMarker\":\"```\",\"blockCount\":1,\"fields\":[\"inputPath\",\"documentClass\",\"deliverable\"],\"documentClasses\":[\"law\",\"non-law\"]}}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        { "method": "custom", "id": "law-v2-input-and-delta", "name": "Protected inputs and exact output delta", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "input-and-delta" } },
+        { "method": "custom", "id": "law-v2-classification", "name": "Classification and deliverable policy", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "classification" } },
+        { "method": "custom", "id": "law-v2-fidelity", "name": "Legal character stream fidelity", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "content-fidelity" } },
+        { "method": "custom", "id": "law-v2-structure", "name": "Public legal hierarchy and item layout", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "structure" } },
+        { "method": "custom", "id": "law-v2-review", "name": "Structured review evidence matches observable facts", "weight": 0.2, "evaluatorId": "skill-ir-law-to-markdown-v2", "payload": { "schemaVersion": "skill-ir-law-to-markdown-eval/v2", "check": "review-evidence" } }
+      ],
+      "hardGateIds": ["law-v2-input-and-delta", "law-v2-classification", "law-v2-fidelity", "law-v2-structure", "law-v2-review"],
+      "passThreshold": 1
+    }
+  ]
+}
