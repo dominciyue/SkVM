@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "skill-ir-public-contract-calibration-lock/v1",
+  "status": "preregistered",
+  "calibrationId": "law-to-markdown-v2-public-contract-development-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "law-to-markdown-v2",
+  "frozenInputs": {
+    "source": { "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md", "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0" },
+    "tasks": { "path": "benchmarks/skill-ir/pilots/law-to-markdown/v2/development/tasks.json", "sha256": "980943ac130008f807b5501b04fcbd8c03ff7e1e8e8279ac2f08bd7830867f12" },
+    "publicContract": { "path": "benchmarks/skill-ir/pilots/law-to-markdown/v2/public-contract.json", "sha256": "ac519ec2b174bd114c9ac1b7776055695951fa6ba3effadd0c52b49293a20666" },
+    "publicContractSourceAudit": { "path": "benchmarks/skill-ir/pilots/law-to-markdown/v2/public-contract-source-audit.json", "sha256": "93fd8f1b18c8cb32703eca400ad826fb456ba0712a2a14b6cdf7fdbac0419783" },
+    "scorer": { "path": "src/bench/evaluators/law-to-markdown-grade-v2.ts", "sha256": "4a3726e03b55ce543d749d590849a10184612c833e2aeef96250397d290624b0" },
+    "taskSplitFreeze": { "path": "benchmarks/skill-ir/pilots/law-to-markdown/v2/task-split-freeze.json", "sha256": "d6dc885ac2ee79ef7a181d89ffa6811d0171830d4d8c52b8d707c9f7be154e47" },
+    "contractAuditManifest": { "path": "benchmarks/skill-ir/pilots/law-to-markdown/v2/benchmark-contract-audit.json", "sha256": "b86ce93953223087b020c69b966a8e20bc5aa50691cefacc772ec940bda6487f" },
+    "contractAuditReport": { "path": "results/skill-ir/benchmark-contract-audit/law-to-markdown-v2.json", "sha256": "f66e380fc2504d2a2abfcd07465bd5022144dbb7d97615a2138e7aeb1e803440" }
+  },
+  "model": { "route": "xty/gpt-5.6-sol", "family": "gpt" },
+  "adapter": { "id": "pi", "version": "0.67.68" },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": ["law-to-markdown-v2-statute-dev-001", "law-to-markdown-v2-standard-dev-002"],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "qualification": { "system": "original", "taskId": "law-to-markdown-v2-statute-dev-001", "runIndex": 1 },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "retries": 0,
+    "adapterConfig": "managed",
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "teardownGraceMs": 60000,
+    "outerWatchdogMs": 360000,
+    "explicitEvaluatorLoad": true
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": true,
+    "minimumPositivePairs": 1,
+    "minimumOriginalSuccesses": 1
+  },
+  "claimBoundary": {
+    "developmentOnly": true,
+    "capabilityCalibration": true,
+    "createsBaseIr": false,
+    "permitsHeldOut": false,
+    "skillOptimizationEvidence": false,
+    "tokenEvidence": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "scorer retuning after model results",
+    "base IR construction before gate pass",
+    "optimization or token claim from calibration"
+  ]
+}

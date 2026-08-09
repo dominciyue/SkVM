@@ -353,6 +353,13 @@ audit 为 30/30 matched，覆盖两个任务分支的 canonical、alternative-va
 contract-qualified measurement case，尚未运行 `no-skill | original` 区分度校准，旧 v1 数值与 held-out
 regression 不改判。
 
+付费前 calibration identity 已另行冻结：固定 `xty/gpt-5.6-sol`、Pi 0.67.68 managed source runner、
+Windows/clean、`no-skill | original`、2 development tasks x 2 repetitions、`retries=0`。通用 runner 显式加载
+lock 绑定的 scorer，先运行一条 original qualification，再运行 8-row matrix。Qualification 只验证 route、
+deterministic scorer 和 harness 清理链路，不作为语义成功或优化证据；完整 gate 仍要求 0 infrastructure、
+no-skill 非饱和、至少一个 differing/positive pair、original 至少一次成功且均值不回归。当前仅完成 dry-run，
+不得提前构造 base IR。
+
 ### 4.4 `i18n-helper` React+i18next 方法案例
 
 `i18n-helper` 固定来自 `laolaoshiren/claude-code-skills-zh` commit
@@ -380,6 +387,12 @@ development-only differential audit。任务 `tsconfig.json` 在 scorer 冻结�
 Audit 只证明 measurement contract，结果保存在
 `results/skill-ir/benchmark-contract-audit/i18n-helper.json`；区分度、base IR、artifact、held-out 与 Token
 结论仍未开放。
+
+该案例复用同一 `skill-ir-public-contract-calibration-lock/v1` 和 runner，冻结与 Law 相同的模型、Pi、OS、
+context、repetition、timeout 和 gate，只替换公开 source/task/contract/scorer/audit identity。Dry-run 已确认
+8 rows/4 complete pairs，original 注入 exact skill、no-skill 不注入。Corpus 的顶层 category 使用 Skill IR v1
+已有的 `workflow | tool-use | constraint-heavy`；`react-i18next-source-transformation` 仍是 portfolio phenotype，
+不为单案例扩大全局 category schema。当前尚未运行 qualification 或完整 matrix。
 
 ## 5. 静态与动态结合
 

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "skill-ir-public-contract-calibration-lock/v1",
+  "status": "preregistered",
+  "calibrationId": "i18n-helper-react-i18next-development-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "i18n-helper",
+  "frozenInputs": {
+    "source": { "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md", "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729" },
+    "tasks": { "path": "benchmarks/skill-ir/pilots/i18n-helper/development/tasks.json", "sha256": "1e493679d8257ef8305e86670215be0fdb2a771bd42558cfe746de673a4d61df" },
+    "publicContract": { "path": "benchmarks/skill-ir/pilots/i18n-helper/public-contract.json", "sha256": "7954c110c2e7d048ffd543c7d65e33a854bdbadda65dd696f93c664e7d5a077f" },
+    "publicContractSourceAudit": { "path": "benchmarks/skill-ir/pilots/i18n-helper/public-contract-source-audit.json", "sha256": "174dfb615d5acec8985363ed0def766b03f60dec8965b64c6d9d46754c17ee96" },
+    "scorer": { "path": "src/bench/evaluators/i18n-helper-grade.ts", "sha256": "dc98db510e5ebb6904ff99e42b78713e68a1275f800ec93d59e28727334e391b" },
+    "taskSplitFreeze": { "path": "benchmarks/skill-ir/pilots/i18n-helper/task-split-freeze.json", "sha256": "142189d7a721aa45c2804221a05177250bf522292efc453e744b710a294848bd" },
+    "contractAuditManifest": { "path": "benchmarks/skill-ir/pilots/i18n-helper/benchmark-contract-audit.json", "sha256": "721785612f31f67c4e8300124fc1c18a007f6ddd7a40754ac5140c1b030f57a6" },
+    "contractAuditReport": { "path": "results/skill-ir/benchmark-contract-audit/i18n-helper.json", "sha256": "cce92a7808ac4a623ae42157664be03021140a6a0530c573fbb4c0a17f093a61" }
+  },
+  "model": { "route": "xty/gpt-5.6-sol", "family": "gpt" },
+  "adapter": { "id": "pi", "version": "0.67.68" },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": ["i18n-helper-react-basic-dev-001", "i18n-helper-react-interpolation-dev-002"],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "qualification": { "system": "original", "taskId": "i18n-helper-react-basic-dev-001", "runIndex": 1 },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "retries": 0,
+    "adapterConfig": "managed",
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "teardownGraceMs": 60000,
+    "outerWatchdogMs": 360000,
+    "explicitEvaluatorLoad": true
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": true,
+    "minimumPositivePairs": 1,
+    "minimumOriginalSuccesses": 1
+  },
+  "claimBoundary": {
+    "developmentOnly": true,
+    "capabilityCalibration": true,
+    "createsBaseIr": false,
+    "permitsHeldOut": false,
+    "skillOptimizationEvidence": false,
+    "tokenEvidence": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "scorer retuning after model results",
+    "base IR construction before gate pass",
+    "optimization or token claim from calibration"
+  ]
+}

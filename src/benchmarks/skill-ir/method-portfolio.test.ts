@@ -126,10 +126,10 @@ describe("method portfolio registry and readiness", () => {
     expect(report.passed).toBe(false)
     expect(report.counts).toMatchObject({
       studiedCases: 7,
-      contractQualifiedMethodCases: 4,
+      contractQualifiedMethodCases: 6,
       untouchedReplicationCases: 0,
     })
-    expect(report.gaps.missingQualifiedCases).toBe(2)
+    expect(report.gaps.missingQualifiedCases).toBe(0)
     expect(report.gaps.openMeasurementBlockers.length).toBeGreaterThan(0)
     expect(portfolio.cases[5]).toMatchObject({
       skillId: "zh-readme",
@@ -147,9 +147,9 @@ describe("method portfolio registry and readiness", () => {
       skillId: "i18n-helper",
       role: "method-development",
       methodSequence: 7,
-      contractQualified: false,
+      contractQualified: true,
       benchmarkVersions: ["react-i18next-v1"],
-      blockers: ["benchmark-contract"],
+      blockers: ["distinguishability-not-run"],
     })
   })
 

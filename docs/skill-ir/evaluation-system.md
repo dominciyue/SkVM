@@ -173,6 +173,28 @@ bun ./src/benchmarks/skill-ir/experimental-design-v2-artifact-qualification-run.
 最终成功仍由现有 deterministic scorer 判定。当前结果仅为本地 mechanism qualification。相同任务的
 `no-skill | original` 已饱和，因此没有对应付费四臂 lock；不能从这两个命令推导质量改进或 Token 收益。
 
+Law v2 与 `i18n-helper` 共用 public-contract calibration runner。先将 `LOCK` 和 `OUT` 分别设置为对应案例：
+
+```powershell
+cd D:\skill优化\SkVM
+$env:SKVM_AUTO_PROBE = "0"
+$LOCK = "benchmarks/skill-ir/pilots/law-to-markdown/v2/development-calibration-lock.json"
+$OUT = "results/skill-ir/law-to-markdown-v2-public-contract-calibration-v1"
+
+bun ./src/benchmarks/skill-ir/public-contract-calibration-run.ts `
+  "--lock=$LOCK" "--out-dir=$OUT" "--phase=plan"
+bun ./src/benchmarks/skill-ir/public-contract-calibration-run.ts `
+  "--lock=$LOCK" "--out-dir=$OUT" "--phase=qualification"
+bun ./src/benchmarks/skill-ir/public-contract-calibration-run.ts `
+  "--lock=$LOCK" "--out-dir=$OUT" "--phase=execute"
+```
+
+`i18n-helper` 使用 `benchmarks/skill-ir/pilots/i18n-helper/development-calibration-lock.json` 与输出目录
+`results/skill-ir/i18n-helper-public-contract-calibration-v1`。`qualification` 固定只运行 lock 中的一条 original
+row，并显式加载 scorer；它允许语义失败，只要求 route 非基础设施失败、确定性评分完成且没有 harness residue。
+`execute` 必须读取同 identity 的 passed qualification，随后一次性运行 8 rows、评分并写出 gate。两个阶段都
+只读取环境变量 `SKVM_XTY_API_KEY`，禁止把 key 写入命令、plan 或结果。
+
 `zh-code-reviewer` 的开发期 benchmark audit：
 
 ```powershell

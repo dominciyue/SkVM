@@ -40,10 +40,10 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Runner/scorer/pairing/persistent workdir | 完成 | Stable Pi 已有 0-infra 矩阵。 |
 | Benchmark v2 measurement contract | 完成 | 42/42 differential、36/36 materialization。 |
 | Env-manager | 冻结 gate failure | 3 个 pair 0.90->1.00；完整分母含 1 infra。 |
-| Law-to-markdown | v1 冻结 measurement-invalid；v2 audit 30/30 | 新基线未运行；旧 development/held-out 数值只作诊断。 |
+| Law-to-markdown | v1 冻结 measurement-invalid；v2 audit 30/30 | 新 calibration lock/dry-run 已冻结；qualification 与基线未运行。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
 | API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
-| i18n-helper | React+i18next audit 30/30 | 新基线未运行；尚无 base IR/artifact。 |
+| i18n-helper | React+i18next audit 30/30 | 新 calibration lock/dry-run 已冻结；qualification 与基线未运行。 |
 | Method portfolio | 已机器化，readiness failed | 7 registered、7 studied、6 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
@@ -471,6 +471,11 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    materialization audit；compact report 必须明确只证明 measurement contract。
 4. [ ] Audit 通过后才冻结 `no-skill | original`、Windows/clean、强模型、2 tasks x 2 repetitions 的新
    calibration；门禁在调用前写死，`retries=0`。未过区分度/成功门则停止，不构造 IR。
+   - [x] 冻结 `development-calibration-lock.json`：`xty/gpt-5.6-sol`、Pi 0.67.68 managed source runner、
+     8 rows/4 pairs、300s task timeout、60s teardown、360s watchdog 与单一 original qualification 行；
+   - [x] 通用 `public-contract-calibration-run.ts` 完成 `plan | qualification | execute`、显式 scorer 加载和
+     deterministic gate；Law dry-run 为 8/8 rows、4/4 pairs；
+   - [ ] 提交 lock 后运行唯一 qualification 与 development matrix，并按预注册 gate 停止或开放 base IR audit。
 5. [ ] 基线有区分度且 source audit 通过后，才把 Law deterministic compiler 迁到公共 assembly，并建立
    `ir-static | validated-artifact` development comparison；否则保留为本地机制候选。
 
@@ -486,6 +491,10 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    保留、双语 key 完整、源码可解析和 delta policy；无强证据文本返回 unconfirmed。
 5. [x] 完成 alternative-valid、reverse-evidence、false-positive、gold/held-out leak 与 materialization audit；
    audit 通过后才决定是否冻结 `no-skill | original` development 校准。
+   - [x] 复用通用 public-contract calibration lock/runner，冻结同一强模型/Pi/Windows 身份；i18n dry-run 为
+     8/8 rows、4/4 pairs。Corpus category 修正为 v1 schema 已支持的 `workflow`，源码变换差异继续由
+     portfolio phenotype 表达，不扩大全局 IR category enum；
+   - [ ] 提交 lock 后运行唯一 qualification 与 development matrix；未过门不补跑、不构造 base IR/artifact。
 6. [ ] 只有基线有区分度且 original/source residual 可归因时，才生成 base IR、validation plan 和复用公共
    assembly 的 artifact candidate；首轮不得扩展框架或运行 held-out。
 
