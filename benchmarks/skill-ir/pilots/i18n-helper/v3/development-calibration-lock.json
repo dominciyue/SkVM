@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "skill-ir-public-contract-calibration-lock/v2",
+  "status": "preregistered",
+  "calibrationId": "i18n-helper-v3-array-semantics-development-v1",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "i18n-helper-v3",
+  "frozenInputs": {
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+    },
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/development/tasks.json",
+      "sha256": "5a0a618ca9af4dbfd3afcd872f8055797bad8d99090b5c1914111ffe776e8120"
+    },
+    "publicContract": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/public-contract.json",
+      "sha256": "9f26f7bf79804469ecfb469b222c45e238b24d8f4fcb7467ee265bec4e5ca150"
+    },
+    "publicContractSourceAudit": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/public-contract-source-audit.json",
+      "sha256": "ec6b21641c136cf1d48cd31b8fa4958388608e925ed7dd9636fe87bfc67664cb"
+    },
+    "scorer": {
+      "path": "src/bench/evaluators/i18n-helper-grade-v3.ts",
+      "sha256": "1a086b34aff287bb75954c81c2cc771f5d27c5cf364a10d784140c4ee62df45b"
+    },
+    "scorerDependencies": [
+      {
+        "path": "src/bench/public-output-abi-v2.ts",
+        "sha256": "2db3455c51d6cf04c56641c27f9c24e54a97628849bea6dc490bae94a736baca"
+      },
+      {
+        "path": "src/core/workdir-manifest.ts",
+        "sha256": "3326e88b0199f8d2498c87fa3a00425d5d37ab4006645304d407c12fdfae54ff"
+      },
+      {
+        "path": "src/framework/types.ts",
+        "sha256": "28d8303c124c25b73bcca583c162f8a8f5a83d1b8b015e4539245f7ace0f51c7"
+      }
+    ],
+    "taskSplitFreeze": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/task-split-freeze.json",
+      "sha256": "e88f26b41e07ecb87b56ed1f16273526d7700cafbf3f9650c00ec92e2b0737a3"
+    },
+    "contractAuditManifest": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/benchmark-contract-audit.json",
+      "sha256": "1b663421f1c51d156189d9ccdae11744236f4eef606089c72e99511dd4b8519d"
+    },
+    "contractAuditReport": {
+      "path": "results/skill-ir/benchmark-contract-audit/i18n-helper-v3.json",
+      "sha256": "5755b3ee3fe867deff028f958550de8430d6d115cb9f02d2953195363d25b1fa"
+    }
+  },
+  "model": { "route": "xty/gpt-5.6-sol", "family": "gpt" },
+  "adapter": { "id": "pi", "version": "0.67.68" },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "i18n-helper-v3-react-basic-dev-001",
+      "i18n-helper-v3-react-interpolation-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "qualification": {
+    "system": "original",
+    "taskId": "i18n-helper-v3-react-basic-dev-001",
+    "runIndex": 1
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "retries": 0,
+    "adapterConfig": "managed",
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "teardownGraceMs": 60000,
+    "outerWatchdogMs": 360000,
+    "explicitEvaluatorLoad": true
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": true,
+    "minimumPositivePairs": 1,
+    "minimumOriginalSuccesses": 1
+  },
+  "claimBoundary": {
+    "developmentOnly": true,
+    "capabilityCalibration": true,
+    "createsBaseIr": false,
+    "permitsHeldOut": false,
+    "skillOptimizationEvidence": false,
+    "tokenEvidence": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "scorer retuning after model results",
+    "base IR construction before gate pass",
+    "optimization or token claim from calibration"
+  ]
+}

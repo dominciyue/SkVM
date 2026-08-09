@@ -410,7 +410,9 @@ original 为 1/4、mean 0.925，1 differing/positive pair，数值 gate passed�
 `scannedFiles` 为 ordered，`extractedKeys` 与两个 locale 的 `missingKeys` 为 set-like，四者均禁止重复。
 新 scorer 通过 ABI 的递归语义等价比较 observable facts，source-discovery order 的 alternative-valid report
 不再被 lexical order 私约束拒绝。Development-only contract audit 为 30/30；该状态仍只说明测量合同和
-任务隔离成立，calibration lock、真实执行和 measurement-validity 尚未冻结。
+任务隔离成立。随后 `public-contract-calibration-lock/v2` 已在真实执行前冻结：模型、Pi、task、gate 与 v2
+保持一致，另绑定 scorer 及其三个直接依赖（ABI validator、workdir manifest、evaluator registry）的
+path+digest。真实执行和 measurement-validity 尚未产生。
 
 ### 4.5 Public output ABI 约束
 

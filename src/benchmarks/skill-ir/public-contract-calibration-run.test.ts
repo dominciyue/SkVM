@@ -15,6 +15,7 @@ const lawLock = "benchmarks/skill-ir/pilots/law-to-markdown/v2/development-calib
 const i18nLock = "benchmarks/skill-ir/pilots/i18n-helper/development-calibration-lock.json"
 const lawV3Lock = "benchmarks/skill-ir/pilots/law-to-markdown/v3/development-calibration-lock.json"
 const i18nV2Lock = "benchmarks/skill-ir/pilots/i18n-helper/v2/development-calibration-lock.json"
+const i18nV3Lock = "benchmarks/skill-ir/pilots/i18n-helper/v3/development-calibration-lock.json"
 
 describe("public-contract calibration runner", () => {
   for (const [skillId, lockPath] of [
@@ -22,6 +23,7 @@ describe("public-contract calibration runner", () => {
     ["i18n-helper", i18nLock],
     ["law-to-markdown-v3", lawV3Lock],
     ["i18n-helper-v2", i18nV2Lock],
+    ["i18n-helper-v3", i18nV3Lock],
   ] as const) {
     test(`builds the frozen paired ${skillId} source-runner plan`, async () => {
       const built = await buildPublicContractCalibrationPlan({

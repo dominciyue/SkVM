@@ -1,10 +1,11 @@
 import { describe, expect, test } from "bun:test"
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import {
   collectDirectScorerDependencies,
   PublicContractCalibrationLockV2Schema,
+  validatePublicContractCalibrationLock,
 } from "./public-contract-calibration.ts"
 
 describe("public-contract calibration lock v2 dependency closure", () => {
@@ -100,5 +101,24 @@ describe("public-contract calibration lock v2 dependency closure", () => {
     } finally {
       await rm(root, { recursive: true, force: true })
     }
+  })
+
+  test("rejects missing and digest-drifted dependencies in the frozen i18n v3 lock", async () => {
+    const lockPath = path.join(
+      process.cwd(),
+      "benchmarks/skill-ir/pilots/i18n-helper/v3/development-calibration-lock.json",
+    )
+    const lock = JSON.parse(await readFile(lockPath, "utf8")) as any
+    const withoutAbi = structuredClone(lock)
+    withoutAbi.frozenInputs.scorerDependencies = withoutAbi.frozenInputs.scorerDependencies.filter(
+      (file: { path: string }) => file.path !== "src/bench/public-output-abi-v2.ts",
+    )
+    await expect(validatePublicContractCalibrationLock(withoutAbi, process.cwd())).rejects.toThrow(
+      "dependency closure mismatch",
+    )
+
+    const drifted = structuredClone(lock)
+    drifted.frozenInputs.scorerDependencies[0].sha256 = "0".repeat(64)
+    await expect(validatePublicContractCalibrationLock(drifted, process.cwd())).rejects.toThrow("digest mismatch")
   })
 })
