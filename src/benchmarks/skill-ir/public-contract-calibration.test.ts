@@ -20,6 +20,16 @@ const cases = [
     lockPath: "benchmarks/skill-ir/pilots/i18n-helper/development-calibration-lock.json",
     taskIds: ["i18n-helper-react-basic-dev-001", "i18n-helper-react-interpolation-dev-002"],
   },
+  {
+    skillId: "law-to-markdown-v3",
+    lockPath: "benchmarks/skill-ir/pilots/law-to-markdown/v3/development-calibration-lock.json",
+    taskIds: ["law-to-markdown-v3-statute-dev-001", "law-to-markdown-v3-standard-dev-002"],
+  },
+  {
+    skillId: "i18n-helper-v2",
+    lockPath: "benchmarks/skill-ir/pilots/i18n-helper/v2/development-calibration-lock.json",
+    taskIds: ["i18n-helper-v2-react-basic-dev-001", "i18n-helper-v2-react-interpolation-dev-002"],
+  },
 ] as const
 
 function scoredRow(input: {
