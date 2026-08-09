@@ -42,7 +42,6 @@ describe("public-contract calibration runner", () => {
   }
 
   test("loads only the lock-declared scorer without global registry edits", async () => {
-    customEvaluators.delete("skill-ir-i18n-helper")
     await loadPublicContractCalibrationScorer(rootDir, "src/bench/evaluators/i18n-helper-grade.ts")
     expect(customEvaluators.has("skill-ir-i18n-helper")).toBe(true)
   })

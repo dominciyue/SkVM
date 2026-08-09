@@ -195,6 +195,12 @@ row，并显式加载 scorer；它允许语义失败，只要求 route 非基础
 `execute` 必须读取同 identity 的 passed qualification，随后一次性运行 8 rows、评分并写出 gate。两个阶段都
 只读取环境变量 `SKVM_XTY_API_KEY`，禁止把 key 写入命令、plan 或结果。
 
+两组唯一执行均为 8/8 rows、4/4 pairs、0 infrastructure。Law 两臂均 2/4、mean 0.90、0 differing，数值
+gate failed；i18n 为 no-skill 1/4、mean 0.70，original 1/4、mean 0.925、1 positive，数值 gate passed。
+执行后 authority audit 分别发现公开 `deliverable` 与 `missingKeys` 没有声明类型，导致 4/5 行合法表示被
+私有 scorer shape 拒绝。因此两组 `measurement-validity.json` 都是 invalid；数值 gate 不开放 base IR，
+原输出不重评分，同 identity 不补跑。
+
 `zh-code-reviewer` 的开发期 benchmark audit：
 
 ```powershell
@@ -244,9 +250,15 @@ optimization claim；命令与锁路径见 `real-skill-pilots.md`。
 5. gold/expected/sourceQuote/heldout/secret canary；
 6. production materialization：真实 fixture、initial manifest、最终 delta；
 7. scorer authority：runtime report 不能覆盖最终 scorer。
+8. public output ABI：每个 scorer-visible 字段公开声明 type、required、enum/nullability、object/array semantics；
+   至少包含 alternative-shape positive 与 type-negative canary。
 
 Benchmark v2 当前审计结果为 42/42 differential 与 36/36 materialization。该结论只说明测量合同可用，
 不保证模型条件下有区分度。
+
+Law v2 与 i18n 的 30/30 人工 audit 说明仅靠预制 fixture 仍可能漏掉真实表示层。付费后必须把 raw workdir
+中出现的、与公开合同一致的 alternative value 纳入 authority audit；若 scorer 私有收窄表示，当前 identity
+直接标记 measurement-invalid，并用新合同/校准身份修复，不能原地调整 scorer 或重算结果。
 
 ## 9. Gate 顺序
 

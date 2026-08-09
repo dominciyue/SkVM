@@ -40,11 +40,11 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 | Runner/scorer/pairing/persistent workdir | 完成 | Stable Pi 已有 0-infra 矩阵。 |
 | Benchmark v2 measurement contract | 完成 | 42/42 differential、36/36 materialization。 |
 | Env-manager | 冻结 gate failure | 3 个 pair 0.90->1.00；完整分母含 1 infra。 |
-| Law-to-markdown | v1 冻结 measurement-invalid；v2 audit 30/30 | 新 calibration lock/dry-run 已冻结；qualification 与基线未运行。 |
+| Law-to-markdown | v1/v2 均冻结 measurement-invalid | v2 8/8、0 infra，但公开 `deliverable` 未声明类型，4 行被私有 boolean 约束误拒；不开放 base IR。 |
 | Experimental-design | 饱和关闭 | 两批与 skill-unique slice 均 4/4 vs 4/4。 |
 | API Tester | 新 development gate passed | 16/16、artifact 4/4、mean 1.0；只计 method-development。 |
-| i18n-helper | React+i18next audit 30/30 | 新 calibration lock/dry-run 已冻结；qualification 与基线未运行。 |
-| Method portfolio | 已机器化，readiness failed | 7 registered、7 studied、6 qualified、1 passed phenotype、0 replication。 |
+| i18n-helper | React+i18next 首轮 measurement-invalid | v1 8/8、0 infra，数值 gate passed，但 `missingKeys` 的公开类型缺失造成 5 行 false reject；不开放 base IR。 |
+| Method portfolio | 已机器化，readiness failed | 7 registered、7 studied、4 qualified、1 passed phenotype、0 replication。 |
 | Untouched replication | 尚未开始 | readiness 通过后选择并冻结。 |
 | Token amortization | 尚无主证据 | 质量门槛通过后才算 break-even。 |
 | 文档治理 | 本轮重建 | 9 份权威文档，新增统一上手指南，删除重复阶段全文。 |
@@ -53,11 +53,12 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
 
 1. 当前 contract-qualified 方法案例有 4 个，距离 6 个起步条件仍缺 2 个；通过 development gate 的
    phenotype 只有 1 个。
-2. Automation/adaptation 指标不完整，历史 Env/Law 仍有 benchmark-contract blocker；Law 是当前最高价值修复。
+2. Automation/adaptation 指标不完整；Law v2 与 i18n 首轮真实输出共同暴露 public output ABI 只列字段名、
+   未声明字段类型的 scorer-authority blocker，这是当前最高价值的共享修复。
 3. API Tester 的 schema-derived package 已通过冻结 development gate；下一缺口是更多信息互补、合同合格
    的方法案例和自动化/适配成本数据。
-4. Law 旧 held-out 回归与 v1 scorer literal sensitivity 混杂；必须先用新公共合同恢复有效测量，再讨论 artifact
-   的 task-boundary 泛化。
+4. Law 旧 held-out 回归与 v1 scorer literal sensitivity 混杂；v2 的 30/30 人工 audit 又漏掉真实 alternative
+   field shape。必须先以新身份恢复有效测量，再讨论 artifact 的 task-boundary 泛化。
 5. Experimental Design 饱和与 API Tester 两臂均失败说明 task 区分度必须在优化前单独过门。
 6. 本轮已将可再生成的 `run/qualification-work/artifacts/snapshots/plan/resource-probe` 默认 ignore，
    untracked result files 从约 3741 降到约 216；剩余 scored/raw/diagnostic 候选需逐项判断是否应提交，
@@ -469,13 +470,17 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    层级、字符流、项/目布局和结构化 review evidence；接受自由正文措辞，拒绝矛盾 evidence。
 3. [x] RED/GREEN 建立 differential、reverse-evidence、gold/held-out leak、路径安全、额外产物和真实
    materialization audit；compact report 必须明确只证明 measurement contract。
-4. [ ] Audit 通过后才冻结 `no-skill | original`、Windows/clean、强模型、2 tasks x 2 repetitions 的新
+4. [x] Audit 通过后冻结 `no-skill | original`、Windows/clean、强模型、2 tasks x 2 repetitions 的新
    calibration；门禁在调用前写死，`retries=0`。未过区分度/成功门则停止，不构造 IR。
    - [x] 冻结 `development-calibration-lock.json`：`xty/gpt-5.6-sol`、Pi 0.67.68 managed source runner、
      8 rows/4 pairs、300s task timeout、60s teardown、360s watchdog 与单一 original qualification 行；
    - [x] 通用 `public-contract-calibration-run.ts` 完成 `plan | qualification | execute`、显式 scorer 加载和
      deterministic gate；Law dry-run 为 8/8 rows、4/4 pairs；
-   - [ ] 提交 lock 后运行唯一 qualification 与 development matrix，并按预注册 gate 停止或开放 base IR audit。
+   - [x] 唯一 qualification 通过；development matrix 为 8/8、4/4 pairs、0 infra，两臂均 2/4、mean 0.90，
+     0 differing/positive pair，数值 gate failed；
+   - [x] 执行后 scorer-authority audit 发现公开 evidence 只列 `deliverable` 字段名，未声明类型。4 个 statute
+     行用公开 `outputs.deliverable` 路径字符串表达“已交付”，却被私有 boolean schema 拒绝；结果冻结为
+     `measurement-invalid`，不得重评分、补跑或开放 base IR。
 5. [ ] 基线有区分度且 source audit 通过后，才把 Law deterministic compiler 迁到公共 assembly，并建立
    `ir-static | validated-artifact` development comparison；否则保留为本地机制候选。
 
@@ -494,9 +499,24 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    - [x] 复用通用 public-contract calibration lock/runner，冻结同一强模型/Pi/Windows 身份；i18n dry-run 为
      8/8 rows、4/4 pairs。Corpus category 修正为 v1 schema 已支持的 `workflow`，源码变换差异继续由
      portfolio phenotype 表达，不扩大全局 IR category enum；
-   - [ ] 提交 lock 后运行唯一 qualification 与 development matrix；未过门不补跑、不构造 base IR/artifact。
+   - [x] 唯一 qualification 通过；development matrix 为 8/8、4/4 pairs、0 infra。No-skill 1/4、mean 0.70，
+     original 1/4、mean 0.925，1 differing/positive pair，数值 gate passed；
+   - [x] 执行后 scorer-authority audit 发现公开报告合同未声明 `missingKeys` 类型。5 行使用 locale-keyed empty
+     arrays 表达“无缺失 key”，却被私有 exact empty-array schema 拒绝；结果冻结为 `measurement-invalid`。
+     唯一正 pair 的四项公开准则改善只保留为诊断信号，不得晋升、重评分或补跑。
 6. [ ] 只有基线有区分度且 original/source residual 可归因时，才生成 base IR、validation plan 和复用公共
    assembly 的 artifact candidate；首轮不得扩展框架或运行 held-out。
+
+#### Task 17.14 Public output ABI 收敛（下一步）
+
+1. [ ] 定义 skill-neutral `public-output-abi/v1`：每个 runtime-visible 字段必须公开声明 `type`、required、
+   enum/nullability 以及 object/array value semantics；只列字段名不再视为完整公开合同。
+2. [ ] 先用 Law `deliverable` 与 i18n `missingKeys` 写 RED canary：覆盖真实 alternative shape、类型错误、
+   reverse-evidence、gold/held-out leak 与旧 measurement-validity digest；不得修改 v2/v1 冻结身份。
+3. [ ] Law 下一身份使用无歧义的 `deliverablePath: string|null` 或等价显式 schema；i18n 下一身份固定
+   locale-keyed string-array object。Scorer 必须只按公开 ABI 判分，不能另藏表示层约束。
+4. [ ] 新 contract/scorer/audit 通过后，分别冻结新的 calibration identity，再各执行唯一 qualification 与
+   `retries=0` development matrix。新结果有效前，不创建 base IR、artifact、held-out 或 Token claim。
 
 ## 6. 验证与实验门禁
 

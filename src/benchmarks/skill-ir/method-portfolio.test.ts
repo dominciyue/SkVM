@@ -126,11 +126,20 @@ describe("method portfolio registry and readiness", () => {
     expect(report.passed).toBe(false)
     expect(report.counts).toMatchObject({
       studiedCases: 7,
-      contractQualifiedMethodCases: 6,
+      contractQualifiedMethodCases: 4,
       untouchedReplicationCases: 0,
     })
-    expect(report.gaps.missingQualifiedCases).toBe(0)
+    expect(report.gaps.missingQualifiedCases).toBe(2)
     expect(report.gaps.openMeasurementBlockers.length).toBeGreaterThan(0)
+    expect(portfolio.cases[1]).toMatchObject({
+      skillId: "law-to-markdown",
+      contractQualified: false,
+      developmentGate: {
+        status: "failed",
+        resultPath: "results/skill-ir/law-to-markdown-v2-public-contract-calibration-v1/measurement-validity.json",
+      },
+      blockers: ["scorer-authority", "heldout-regression"],
+    })
     expect(portfolio.cases[5]).toMatchObject({
       skillId: "zh-readme",
       role: "method-development",
@@ -147,9 +156,13 @@ describe("method portfolio registry and readiness", () => {
       skillId: "i18n-helper",
       role: "method-development",
       methodSequence: 7,
-      contractQualified: true,
+      contractQualified: false,
       benchmarkVersions: ["react-i18next-v1"],
-      blockers: ["distinguishability-not-run"],
+      developmentGate: {
+        status: "failed",
+        resultPath: "results/skill-ir/i18n-helper-public-contract-calibration-v1/measurement-validity.json",
+      },
+      blockers: ["scorer-authority"],
     })
   })
 

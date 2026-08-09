@@ -349,16 +349,21 @@ v2 audit 必须至少覆盖：两种 alternative-valid 审核措辞、不同但�
 截至 2026-08-09，独立 v2 identity 已冻结并实现：2+2 split、公开合同、保守分类、字符流/层级/项目布局、
 唯一结构化 review evidence 和 exact workdir delta 均由新 scorer 从公开输入重算。Development-only contract
 audit 为 30/30 matched，覆盖两个任务分支的 canonical、alternative-valid 与 invalid control；compact report
-位于 `results/skill-ir/benchmark-contract-audit/law-to-markdown-v2.json`。该结果只把 Law v2 提升为
-contract-qualified measurement case，尚未运行 `no-skill | original` 区分度校准，旧 v1 数值与 held-out
-regression 不改判。
+位于 `results/skill-ir/benchmark-contract-audit/law-to-markdown-v2.json`。后续真实输出审计证明这组人工
+canary 不完整：公开 evidence 只列字段名，没有声明字段类型，因而不能单独授予 contract-qualified 身份。
 
 付费前 calibration identity 已另行冻结：固定 `xty/gpt-5.6-sol`、Pi 0.67.68 managed source runner、
 Windows/clean、`no-skill | original`、2 development tasks x 2 repetitions、`retries=0`。通用 runner 显式加载
 lock 绑定的 scorer，先运行一条 original qualification，再运行 8-row matrix。Qualification 只验证 route、
 deterministic scorer 和 harness 清理链路，不作为语义成功或优化证据；完整 gate 仍要求 0 infrastructure、
-no-skill 非饱和、至少一个 differing/positive pair、original 至少一次成功且均值不回归。当前仅完成 dry-run，
-不得提前构造 base IR。
+no-skill 非饱和、至少一个 differing/positive pair、original 至少一次成功且均值不回归。
+
+唯一 qualification 通过，完整矩阵为 8/8 rows、4/4 pairs、0 infrastructure；no-skill 与 original 均为
+2/4 success、mean 0.90，0 differing/positive pair，数值 gate failed。执行后 authority audit 又发现 4 个
+statute 行把公开 `outputs.deliverable` 路径字符串写入 evidence 的 `deliverable`，语义与公开合同一致，但
+scorer 私有要求 boolean，导致四个 `law-v2-review` false reject。该 identity 已由 digest-bound
+`measurement-validity.json` 冻结为 `measurement-invalid`：不重评分、不补跑、不开放 base IR、held-out、
+optimization 或 Token claim。旧 v1 数值与 held-out regression 仍不改判。
 
 ### 4.4 `i18n-helper` React+i18next 方法案例
 
@@ -384,15 +389,29 @@ Token 收益。
 声明式 `allowedModifiedFiles`、TypeScript AST source oracle、locale/interpolation/report scorer 与 30/30
 development-only differential audit。任务 `tsconfig.json` 在 scorer 冻结前补入 `resolveJsonModule` 和
 `esModuleInterop`，保证公开要求的 locale JSON import 可实现；protected config 仍不得由 agent 修改。
-Audit 只证明 measurement contract，结果保存在
-`results/skill-ir/benchmark-contract-audit/i18n-helper.json`；区分度、base IR、artifact、held-out 与 Token
-结论仍未开放。
+Audit 的 30/30 人工 canary 结果保存在 `results/skill-ir/benchmark-contract-audit/i18n-helper.json`；真实输出
+审计随后证明它没有覆盖公开字段的 alternative type，不能单独证明完整 measurement contract。
 
 该案例复用同一 `skill-ir-public-contract-calibration-lock/v1` 和 runner，冻结与 Law 相同的模型、Pi、OS、
 context、repetition、timeout 和 gate，只替换公开 source/task/contract/scorer/audit identity。Dry-run 已确认
 8 rows/4 complete pairs，original 注入 exact skill、no-skill 不注入。Corpus 的顶层 category 使用 Skill IR v1
 已有的 `workflow | tool-use | constraint-heavy`；`react-i18next-source-transformation` 仍是 portfolio phenotype，
-不为单案例扩大全局 category schema。当前尚未运行 qualification 或完整 matrix。
+不为单案例扩大全局 category schema。
+
+唯一 qualification 通过，完整矩阵为 8/8 rows、4/4 pairs、0 infrastructure；no-skill 为 1/4、mean 0.70，
+original 为 1/4、mean 0.925，1 differing/positive pair，数值 gate passed。但 5 行用
+`{ "zh-CN": [], "en-US": [] }` 表达无缺失 key，而公开报告合同没有声明 `missingKeys` 类型，私有 scorer
+却只接受 exact empty array，造成 `i18n-report` false reject。该 identity 因此冻结为
+`measurement-invalid`；唯一正 pair 对 delta/source/locales/interpolation 的改善只保留为不可晋升的诊断信号。
+在新身份公开完整字段 ABI 并重做 audit/calibration 前，base IR、artifact、held-out 与 Token 结论保持关闭。
+
+### 4.5 Public output ABI 约束
+
+付费前的公开合同不能只列字段名。所有进入 deterministic scorer、runtime validator 或 repair report 的字段，
+必须公开声明 type、required、enum/nullability，以及 object/array 的 key/value 或 element semantics。Scorer 不得
+在 evaluator 私有实现中增加公开合同没有的表示层约束。Contract audit 至少包含一种公开允许的 alternative
+shape、每类错误类型的 negative canary、reverse-evidence 和真实模型输出后的 authority audit；真实输出一旦
+暴露未公开的合法表示，当前 identity 必须冻结为 measurement-invalid，修复使用新身份，不原地改分。
 
 ## 5. 静态与动态结合
 

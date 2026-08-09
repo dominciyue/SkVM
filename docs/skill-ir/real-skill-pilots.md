@@ -40,12 +40,12 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | Skill | Phenotype | 当前角色 | 关键边界 |
 |---|---|---|---|
 | env-manager | environment/schema/repair | studied method-development | v1 audit failed；机制证据保留。 |
-| law-to-markdown | document/script/template | contract-qualified method-development | v2 audit 30/30；calibration lock/dry-run 已冻结，待 qualification/基线；v1 held-out regression 保留。 |
+| law-to-markdown | document/script/template | studied method-development | v2 8/8、0 infra，但 `deliverable` 私有类型造成 4 个 false reject；measurement-invalid，v1 held-out regression 保留。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
 | zh-readme | repository fact/documentation | contract-qualified method-development | v1 calibration 8/8、0 infra，但 public-equivalence scorer false reject，measurement invalid。 |
-| i18n-helper | React+i18next source transformation | contract-qualified method-development | 首个竖切 audit 30/30；calibration lock/dry-run 已冻结，待 qualification/基线。 |
+| i18n-helper | React+i18next source transformation | studied method-development | v1 8/8、0 infra、数值 gate passed，但 `missingKeys` 私有类型造成 5 个 false reject；measurement-invalid。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -92,10 +92,13 @@ Audit 必须证明 scorer：
 4. 删除公开证据后相应 oracle 约束消失；
 5. held-out/canary/gold 不进入 runtime；
 6. 在真实 materialized workdir 上与初始 manifest 一致。
+7. 完整公开所有 scorer-visible output 字段的 type、required、enum/nullability 与 object/array value semantics；
+   只列字段名不构成完整 ABI。
 
-历史三个 Wave A v1 audit 均失败，因此只算 `support-real`。Experimental Design v2、API Tester、Law v2
-和 i18n-helper 的新合同已通过各自 audit，但仍需单独过区分度与优化 gate。Law v2 与 i18n-helper 各有
-30/30 development-only canary matched；这两份结果不消费 held-out，也不是模型质量证据。
+历史三个 Wave A v1 audit 均失败，因此只算 `support-real`。Experimental Design v2 与 API Tester 的新合同
+通过各自 audit，仍需单独过区分度与优化 gate。Law v2 与 i18n-helper 虽各有 30/30 development-only canary
+matched，真实模型输出分别暴露未声明的 `deliverable` 与 `missingKeys` 表示，现已撤销 contract-qualified
+状态。两份测量失效结果不消费 held-out，也不是模型质量证据。
 
 ## 8. API Tester Re-entry
 
@@ -121,7 +124,7 @@ artifactKinds + coreBranchDelta
 unautomatedSteps + blockers
 ```
 
-`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 7 registered、7 studied、6 qualified、
+`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 7 registered、7 studied、4 qualified、
 0 replication、1 passed qualified phenotype；readiness 仍 failed。Readiness report 必须显示真实不足，
 不能把 studied、benchmark version 或 audit-failed case 填充为 contract-qualified。
 
@@ -136,8 +139,9 @@ unautomatedSteps + blockers
 5. 复用已有 artifact kind 的同时能检验通用 core；
 6. 预计人工适配可被声明式 contract 表达。
 
-当前优先为 Law v2 与 i18n-helper 运行已冻结的 `no-skill | original` 区分度校准；未过门时按停止规则处理，
-不提前构造 IR。不要一次导入大批候选后再补任务；每个案例先完成 provenance、task、scorer、audit 的竖切。
+当前优先是抽取共享 `public-output-abi/v1`，用新身份补全 Law 与 i18n 的字段类型和真实 alternative-shape
+canary，再决定是否各执行一次新校准。现有结果不重评分、不补跑，也不提前构造 IR。不要一次导入大批候选
+后再补任务；每个案例先完成 provenance、task、scorer、audit 的竖切。
 
 `zh-code-reviewer` 当前可复建命令：
 

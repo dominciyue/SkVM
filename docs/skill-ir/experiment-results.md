@@ -31,8 +31,10 @@
 | Zh Code Reviewer calibration v1 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75；数值 gate passed | Measurement invalid：唯一差异来自私有 summary 类型 false reject；不开放 base IR。 |
 | Zh Code Reviewer calibration v2 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75 | Measurement valid；开放 base IR/source audit。 |
 | Zh Code Reviewer static fidelity | 3 systems x 4 = 12 | no-skill 4/4；original 3/4, 0.8375；static 4/4, 1.0 | Gate passed；1 positive/3 equal/0 negative，只开放 residual audit。 |
-| Law v2 contract audit | 2 development tasks x 5 checks x 3 roles | 30/30 matched | Measurement contract passed；基线未运行。 |
-| i18n-helper contract audit | 2 development tasks x 5 checks x 3 roles | 30/30 matched | React+i18next measurement contract passed；基线未运行。 |
+| Law v2 contract audit | 2 development tasks x 5 checks x 3 roles | 30/30 matched | 预运行 canary 全绿，但真实输出暴露未声明字段类型，不能单独证明 measurement-valid。 |
+| Law v2 calibration | 2 systems x 4 = 8 | 两臂均 2/4、mean 0.90；0 differing；0 infra | 数值 gate failed；4 个 `deliverable` false reject，measurement-invalid。 |
+| i18n-helper contract audit | 2 development tasks x 5 checks x 3 roles | 30/30 matched | 预运行 canary 全绿，但未覆盖 `missingKeys` alternative shape。 |
+| i18n-helper calibration | 2 systems x 4 = 8 | no-skill 1/4、0.70；original 1/4、0.925；1 positive；0 infra | 数值 gate passed，但 5 个报告 false reject，measurement-invalid。 |
 
 ## 3. Benchmark v1 与 v2
 
@@ -97,8 +99,12 @@ manual task 两次失败；相对三条 baseline 最佳值有 2 regressions。He
 
 2026-08-09 新建独立 Law v2 benchmark，不覆盖 v1。公开合同 scorer 不再依赖固定中文审核句子，直接从
 `document.txt` 与 `law-contract.json` 推导分类、产物策略、字符流、标题层级和 review evidence。两个
-development 分支的 30 个 canonical/alternative/invalid canary 全部 matched；该结果只修复测量合同，
-`no-skill | original` 强模型区分度尚未运行。
+development 分支的 30 个 canonical/alternative/invalid canary 全部 matched。
+
+冻结强模型校准随后完成 8/8 rows、4/4 pairs、0 infra；no-skill 与 original 均为 2/4、mean 0.90，
+0 differing/positive pair。执行后审计发现 4 个 statute 报告把公开 deliverable 路径写入 evidence，私有 scorer
+却要求 boolean，导致四个 false reject。因此该结果按 `measurement-validity.json` 冻结为 invalid，不开放
+base IR；30/30 只能记作不充分的预运行 audit，不能继续写成完整 measurement contract passed。
 
 ## 6. Experimental Design
 
@@ -164,20 +170,31 @@ untouched replication 和 Token break-even 均未证明。
 | Case | Studied | Benchmark contract-qualified | Development optimized gate | Untouched |
 |---|---:|---:|---:|---:|
 | env-manager | yes | no (v1 audit) | no | no |
-| law-to-markdown | yes | yes (v2 audit 30/30) | v2 未运行；v1 held-out failed | no |
+| law-to-markdown | yes | no（v2 scorer-authority） | v2 measurement-invalid；v1 held-out failed | no |
 | experimental-design | yes | yes (v2) | blocked by saturation | no |
 | api-tester | yes | yes | yes, artifact 4/4 | no |
 | zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
 | zh-readme | yes | yes（audit），付费 measurement invalid | no | no |
-| i18n-helper | yes | yes（React+i18next audit 30/30） | 未运行 | no |
+| i18n-helper | yes | no（v1 scorer-authority） | numeric gate passed but measurement-invalid | no |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、6
-contract-qualified、0 untouched replication、1 passed qualified phenotype；数量门槛刚达到，但 Law v2 与
-i18n-helper 尚未做区分度校准，Env 仍有 benchmark-contract blocker，zh-readme 仍有 scorer-authority
+机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、4
+contract-qualified、0 untouched replication、1 passed qualified phenotype。Law v2 与 i18n-helper 的真实输出
+都暴露 scorer-authority blocker，Env 仍有 benchmark-contract blocker，zh-readme 仍有 scorer-authority
 blocker，自动化指标也不完整。
 该失败是诚实状态，不应调整阈值。
 
-### 8.1 `zh-code-reviewer` measurement contract
+### 8.1 `i18n-helper` 首轮校准
+
+React+i18next v1 的 qualification 通过，唯一矩阵完成 8/8 rows、4/4 pairs、0 infra。No-skill 为 1/4、
+mean 0.70、26969 tokens；original 为 1/4、mean 0.925、124267 tokens，出现 1 个 positive pair。该 pair 中
+original 确实改善了 delta、源码替换、双语 locale 与插值四项公开准则，但报告使用 locale-keyed empty arrays
+表达无缺失 key，私有 scorer 只接受 `missingKeys: []`；5 行因此被误拒。
+
+数值 gate passed 不覆盖测量有效性审计。该批已冻结为 measurement-invalid，正 pair 仅作诊断，不进入
+contract-qualified、base IR 或优化结论。两臂 token 只描述原始 skill 冷运行成本，既没有 optimized arm，也
+没有计入编译摊销，不能解释为 Token 优化证据。
+
+### 8.2 `zh-code-reviewer` measurement contract
 
 真实 MIT source closure、公开 evidence/severity interface 和 2 development + 2 held-out 已冻结。Development
 v2 audit 对 2 个 task 运行 20 个 workdir fixture：包含结构化 summary 在内的合法报告变化、漏 finding、
