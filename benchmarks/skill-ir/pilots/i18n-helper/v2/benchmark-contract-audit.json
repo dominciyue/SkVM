@@ -1,0 +1,707 @@
+{
+  "schemaVersion": "skill-ir-benchmark-contract-audit/v1",
+  "auditId": "i18n-helper-v2-public-output-abi-v1",
+  "skillId": "i18n-helper-v2",
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/development/tasks.json",
+    "sha256": "9ac7b2fe2160e2365438ff6813618294a0e6b0e77be89fcc0da7912409b73895"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/i18n-helper-grade-v2.ts",
+    "sha256": "5adb4583cb33eb9429d62b23b0187cb1a061c263f15164d284f5c13732e55e91",
+    "evaluatorId": "skill-ir-i18n-helper-v2"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+      "sha256": "e43f55b9181a1b25133d9e990dc0b05a02427d2b4ecd94b01c19b29c704b13e5"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract-source-audit.json",
+      "sha256": "d892c4d7e78774621f502b12dca13d8fed924c6e3b583bdfe947e6b64b62a38b"
+    }
+  ],
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "i18n-helper-v2-react-basic-dev-001",
+      "i18n-helper-v2-react-interpolation-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "i18n-v2-delta",
+      "hardGate": true,
+      "taskIds": [
+        "i18n-helper-v2-react-basic-dev-001",
+        "i18n-helper-v2-react-interpolation-dev-002"
+      ],
+      "requirementIds": [
+        "i18n-v2-delta-safety",
+        "i18n-v2-delta-equivalence"
+      ]
+    },
+    {
+      "id": "i18n-v2-source-transform",
+      "hardGate": true,
+      "taskIds": [
+        "i18n-helper-v2-react-basic-dev-001",
+        "i18n-helper-v2-react-interpolation-dev-002"
+      ],
+      "requirementIds": [
+        "i18n-v2-source-transform-safety",
+        "i18n-v2-source-transform-equivalence"
+      ]
+    },
+    {
+      "id": "i18n-v2-locales",
+      "hardGate": true,
+      "taskIds": [
+        "i18n-helper-v2-react-basic-dev-001",
+        "i18n-helper-v2-react-interpolation-dev-002"
+      ],
+      "requirementIds": [
+        "i18n-v2-locales-safety",
+        "i18n-v2-locales-equivalence"
+      ]
+    },
+    {
+      "id": "i18n-v2-interpolation",
+      "hardGate": true,
+      "taskIds": [
+        "i18n-helper-v2-react-basic-dev-001",
+        "i18n-helper-v2-react-interpolation-dev-002"
+      ],
+      "requirementIds": [
+        "i18n-v2-interpolation-safety",
+        "i18n-v2-interpolation-equivalence"
+      ]
+    },
+    {
+      "id": "i18n-v2-report",
+      "hardGate": true,
+      "taskIds": [
+        "i18n-helper-v2-react-basic-dev-001",
+        "i18n-helper-v2-react-interpolation-dev-002"
+      ],
+      "requirementIds": [
+        "i18n-v2-report-safety",
+        "i18n-v2-report-equivalence"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "i18n-v2-delta-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "i18n-v2-delta"
+      ],
+      "contractTokens": [
+        "allowedModifiedFiles"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkDelta"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "allowedModifiedFiles"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-delta-i18n-helper-v2-react-basic-dev-001-canonical",
+        "i18n-v2-delta-i18n-helper-v2-react-basic-dev-001-invalid",
+        "i18n-v2-delta-i18n-helper-v2-react-interpolation-dev-002-canonical",
+        "i18n-v2-delta-i18n-helper-v2-react-interpolation-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "i18n-v2-delta-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "i18n-v2-delta"
+      ],
+      "contractTokens": [
+        "allowedModifiedFiles"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkDelta"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "allowedModifiedFiles"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-delta-i18n-helper-v2-react-basic-dev-001-alternative",
+        "i18n-v2-delta-i18n-helper-v2-react-interpolation-dev-002-alternative"
+      ]
+    },
+    {
+      "id": "i18n-v2-source-transform-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "i18n-v2-source-transform"
+      ],
+      "contractTokens": [
+        "keyRule"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkSource"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "keyRule"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-source-transform-i18n-helper-v2-react-basic-dev-001-canonical",
+        "i18n-v2-source-transform-i18n-helper-v2-react-basic-dev-001-invalid",
+        "i18n-v2-source-transform-i18n-helper-v2-react-interpolation-dev-002-canonical",
+        "i18n-v2-source-transform-i18n-helper-v2-react-interpolation-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "i18n-v2-source-transform-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "i18n-v2-source-transform"
+      ],
+      "contractTokens": [
+        "keyRule"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkSource"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "keyRule"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-source-transform-i18n-helper-v2-react-basic-dev-001-alternative",
+        "i18n-v2-source-transform-i18n-helper-v2-react-interpolation-dev-002-alternative"
+      ]
+    },
+    {
+      "id": "i18n-v2-locales-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "i18n-v2-locales"
+      ],
+      "contractTokens": [
+        "requiredNewFiles"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkLocales"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "requiredNewFiles"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-locales-i18n-helper-v2-react-basic-dev-001-canonical",
+        "i18n-v2-locales-i18n-helper-v2-react-basic-dev-001-invalid",
+        "i18n-v2-locales-i18n-helper-v2-react-interpolation-dev-002-canonical",
+        "i18n-v2-locales-i18n-helper-v2-react-interpolation-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "i18n-v2-locales-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "i18n-v2-locales"
+      ],
+      "contractTokens": [
+        "requiredNewFiles"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkLocales"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "requiredNewFiles"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-locales-i18n-helper-v2-react-basic-dev-001-alternative",
+        "i18n-v2-locales-i18n-helper-v2-react-interpolation-dev-002-alternative"
+      ]
+    },
+    {
+      "id": "i18n-v2-interpolation-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "i18n-v2-interpolation"
+      ],
+      "contractTokens": [
+        "interpolationRule"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkInterpolation"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "interpolationRule"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-interpolation-i18n-helper-v2-react-basic-dev-001-canonical",
+        "i18n-v2-interpolation-i18n-helper-v2-react-basic-dev-001-invalid",
+        "i18n-v2-interpolation-i18n-helper-v2-react-interpolation-dev-002-canonical",
+        "i18n-v2-interpolation-i18n-helper-v2-react-interpolation-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "i18n-v2-interpolation-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "i18n-v2-interpolation"
+      ],
+      "contractTokens": [
+        "interpolationRule"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkInterpolation"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "interpolationRule"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-interpolation-i18n-helper-v2-react-basic-dev-001-alternative",
+        "i18n-v2-interpolation-i18n-helper-v2-react-interpolation-dev-002-alternative"
+      ]
+    },
+    {
+      "id": "i18n-v2-report-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "i18n-v2-report"
+      ],
+      "contractTokens": [
+        "outputAbi"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "validatePublicOutputRecord"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "outputAbi"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-report-i18n-helper-v2-react-basic-dev-001-canonical",
+        "i18n-v2-report-i18n-helper-v2-react-basic-dev-001-invalid",
+        "i18n-v2-report-i18n-helper-v2-react-interpolation-dev-002-canonical",
+        "i18n-v2-report-i18n-helper-v2-react-interpolation-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "i18n-v2-report-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "i18n-v2-report"
+      ],
+      "contractTokens": [
+        "outputAbi"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "validatePublicOutputRecord"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+          "quote": "outputAbi"
+        }
+      ],
+      "canaryIds": [
+        "i18n-v2-report-i18n-helper-v2-react-basic-dev-001-alternative",
+        "i18n-v2-report-i18n-helper-v2-react-interpolation-dev-002-alternative"
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "i18n-v2-delta-i18n-helper-v2-react-basic-dev-001-canonical",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-delta",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/canonical",
+      "fixtureSha256": "f0add696444d78fa2ede594c82573f5cb63d1624234e5f3367a57e180b0a014a",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-delta-i18n-helper-v2-react-basic-dev-001-alternative",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-delta",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/alternative",
+      "fixtureSha256": "b62d6edbb48d2b5380a819567e52a7c55d5350fc93542b2e1c5c86e06f8d1b1e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-delta-i18n-helper-v2-react-basic-dev-001-invalid",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-delta",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/invalid",
+      "fixtureSha256": "f592b77df55b6245a592ecddf23629265d0622568419372477db0647f20f8d08",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-source-transform-i18n-helper-v2-react-basic-dev-001-canonical",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-source-transform",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/canonical",
+      "fixtureSha256": "f0add696444d78fa2ede594c82573f5cb63d1624234e5f3367a57e180b0a014a",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-source-transform-i18n-helper-v2-react-basic-dev-001-alternative",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-source-transform",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/alternative",
+      "fixtureSha256": "b62d6edbb48d2b5380a819567e52a7c55d5350fc93542b2e1c5c86e06f8d1b1e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-source-transform-i18n-helper-v2-react-basic-dev-001-invalid",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-source-transform",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/invalid",
+      "fixtureSha256": "f592b77df55b6245a592ecddf23629265d0622568419372477db0647f20f8d08",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-locales-i18n-helper-v2-react-basic-dev-001-canonical",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-locales",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/canonical",
+      "fixtureSha256": "f0add696444d78fa2ede594c82573f5cb63d1624234e5f3367a57e180b0a014a",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-locales-i18n-helper-v2-react-basic-dev-001-alternative",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-locales",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/alternative",
+      "fixtureSha256": "b62d6edbb48d2b5380a819567e52a7c55d5350fc93542b2e1c5c86e06f8d1b1e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-locales-i18n-helper-v2-react-basic-dev-001-invalid",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-locales",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/invalid",
+      "fixtureSha256": "f592b77df55b6245a592ecddf23629265d0622568419372477db0647f20f8d08",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-interpolation-i18n-helper-v2-react-basic-dev-001-canonical",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-interpolation",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/canonical",
+      "fixtureSha256": "f0add696444d78fa2ede594c82573f5cb63d1624234e5f3367a57e180b0a014a",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-interpolation-i18n-helper-v2-react-basic-dev-001-alternative",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-interpolation",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/alternative",
+      "fixtureSha256": "b62d6edbb48d2b5380a819567e52a7c55d5350fc93542b2e1c5c86e06f8d1b1e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-interpolation-i18n-helper-v2-react-basic-dev-001-invalid",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-interpolation",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/invalid",
+      "fixtureSha256": "f592b77df55b6245a592ecddf23629265d0622568419372477db0647f20f8d08",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-report-i18n-helper-v2-react-basic-dev-001-canonical",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-report",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/canonical",
+      "fixtureSha256": "f0add696444d78fa2ede594c82573f5cb63d1624234e5f3367a57e180b0a014a",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-report-i18n-helper-v2-react-basic-dev-001-alternative",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-report",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/alternative",
+      "fixtureSha256": "b62d6edbb48d2b5380a819567e52a7c55d5350fc93542b2e1c5c86e06f8d1b1e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-report-i18n-helper-v2-react-basic-dev-001-invalid",
+      "taskId": "i18n-helper-v2-react-basic-dev-001",
+      "criterionId": "i18n-v2-report",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-basic-dev-001/invalid",
+      "fixtureSha256": "f592b77df55b6245a592ecddf23629265d0622568419372477db0647f20f8d08",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001",
+      "initialFixtureSha256": "3b33f7602d5f8259f8ca47b16b21feaa062955bafce026cc8dc828f04f89f836",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-delta-i18n-helper-v2-react-interpolation-dev-002-canonical",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-delta",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/canonical",
+      "fixtureSha256": "92c6e6b0bdc1c7347ba0d0234f200006500a31f21b65d73514d4d6cd0bebe27e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-delta-i18n-helper-v2-react-interpolation-dev-002-alternative",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-delta",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/alternative",
+      "fixtureSha256": "45996a7772400abacfbfc34b36fa24bede43087f22bff78199eb349eb2e118b4",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-delta-i18n-helper-v2-react-interpolation-dev-002-invalid",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-delta",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/invalid",
+      "fixtureSha256": "9f3457224866446928ad4297ae9a332e0e7030ee4e85e8eacb407356e49002cd",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-source-transform-i18n-helper-v2-react-interpolation-dev-002-canonical",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-source-transform",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/canonical",
+      "fixtureSha256": "92c6e6b0bdc1c7347ba0d0234f200006500a31f21b65d73514d4d6cd0bebe27e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-source-transform-i18n-helper-v2-react-interpolation-dev-002-alternative",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-source-transform",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/alternative",
+      "fixtureSha256": "45996a7772400abacfbfc34b36fa24bede43087f22bff78199eb349eb2e118b4",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-source-transform-i18n-helper-v2-react-interpolation-dev-002-invalid",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-source-transform",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/invalid",
+      "fixtureSha256": "9f3457224866446928ad4297ae9a332e0e7030ee4e85e8eacb407356e49002cd",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-locales-i18n-helper-v2-react-interpolation-dev-002-canonical",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-locales",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/canonical",
+      "fixtureSha256": "92c6e6b0bdc1c7347ba0d0234f200006500a31f21b65d73514d4d6cd0bebe27e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-locales-i18n-helper-v2-react-interpolation-dev-002-alternative",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-locales",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/alternative",
+      "fixtureSha256": "45996a7772400abacfbfc34b36fa24bede43087f22bff78199eb349eb2e118b4",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-locales-i18n-helper-v2-react-interpolation-dev-002-invalid",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-locales",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/invalid",
+      "fixtureSha256": "9f3457224866446928ad4297ae9a332e0e7030ee4e85e8eacb407356e49002cd",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-interpolation-i18n-helper-v2-react-interpolation-dev-002-canonical",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-interpolation",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/canonical",
+      "fixtureSha256": "92c6e6b0bdc1c7347ba0d0234f200006500a31f21b65d73514d4d6cd0bebe27e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-interpolation-i18n-helper-v2-react-interpolation-dev-002-alternative",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-interpolation",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/alternative",
+      "fixtureSha256": "45996a7772400abacfbfc34b36fa24bede43087f22bff78199eb349eb2e118b4",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-interpolation-i18n-helper-v2-react-interpolation-dev-002-invalid",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-interpolation",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/invalid",
+      "fixtureSha256": "9f3457224866446928ad4297ae9a332e0e7030ee4e85e8eacb407356e49002cd",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": false
+    },
+    {
+      "id": "i18n-v2-report-i18n-helper-v2-react-interpolation-dev-002-canonical",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-report",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/canonical",
+      "fixtureSha256": "92c6e6b0bdc1c7347ba0d0234f200006500a31f21b65d73514d4d6cd0bebe27e",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-report-i18n-helper-v2-react-interpolation-dev-002-alternative",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-report",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/alternative",
+      "fixtureSha256": "45996a7772400abacfbfc34b36fa24bede43087f22bff78199eb349eb2e118b4",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": true
+    },
+    {
+      "id": "i18n-v2-report-i18n-helper-v2-react-interpolation-dev-002-invalid",
+      "taskId": "i18n-helper-v2-react-interpolation-dev-002",
+      "criterionId": "i18n-v2-report",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-fixtures/i18n-helper-v2-react-interpolation-dev-002/invalid",
+      "fixtureSha256": "9f3457224866446928ad4297ae9a332e0e7030ee4e85e8eacb407356e49002cd",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-interpolation-dev-002",
+      "initialFixtureSha256": "ab5dd18f9de4cf4ceac7e91c18ec64a9694e74d17a2b98f46b83231463758114",
+      "expectedPass": false
+    }
+  ]
+}

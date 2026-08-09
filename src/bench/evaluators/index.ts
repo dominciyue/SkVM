@@ -23,12 +23,14 @@ import "./python-grade.ts"
 import "./junit-grade.ts"
 import "./env-manager-grade.ts"
 import "./law-to-markdown-grade.ts"
+import "./law-to-markdown-grade-v3.ts"
 import "./experimental-design-grade.ts"
 import "./experimental-design-grade-v2.ts"
 import "./experimental-design-skill-unique-grade.ts"
 import "./api-tester-grade.ts"
 import "./zh-code-reviewer-grade.ts"
 import "./zh-readme-grade.ts"
+import "./i18n-helper-grade-v2.ts"
 // import "./docker-grader.ts"   // example of future addition
 // import "./js-grader.ts"       // example of future addition
 
@@ -37,12 +39,14 @@ export const customEvaluatorSourcePaths = new Map<string, string>([
   ["junit-grade", "src/bench/evaluators/junit-grade.ts"],
   ["skill-ir-env-manager", "src/bench/evaluators/env-manager-grade.ts"],
   ["skill-ir-law-to-markdown", "src/bench/evaluators/law-to-markdown-grade.ts"],
+  ["skill-ir-law-to-markdown-v3", "src/bench/evaluators/law-to-markdown-grade-v3.ts"],
   ["skill-ir-experimental-design", "src/bench/evaluators/experimental-design-grade.ts"],
   ["skill-ir-experimental-design-v2", "src/bench/evaluators/experimental-design-grade-v2.ts"],
   ["skill-ir-experimental-design-skill-unique", "src/bench/evaluators/experimental-design-skill-unique-grade.ts"],
   ["skill-ir-api-tester", "src/bench/evaluators/api-tester-grade.ts"],
   ["skill-ir-zh-code-reviewer", "src/bench/evaluators/zh-code-reviewer-grade.ts"],
   ["skill-ir-zh-readme", "src/bench/evaluators/zh-readme-grade.ts"],
+  ["skill-ir-i18n-helper-v2", "src/bench/evaluators/i18n-helper-grade-v2.ts"],
 ])
 
 export const customEvaluatorSourceDigests = new Map<string, string>([
@@ -50,12 +54,14 @@ export const customEvaluatorSourceDigests = new Map<string, string>([
   ["junit-grade", "5f350a96b9060c5bdaced4f49abf3f003883dfc0b31358e9ddd5227bdab64aef"],
   ["skill-ir-env-manager", "c80d0b5637b2d9c480cbba8a816d042b5afd0e931fa06690d2fa3f1a950811a7"],
   ["skill-ir-law-to-markdown", "051d467ae8292dbc917316ce7c495915fe36377b529c22553cff3dd637d2d180"],
+  ["skill-ir-law-to-markdown-v3", "8c80e22f9efd411fc399dc76aaf0cf4bf0e02e148a4a0421fba26e76ce8a6cbb"],
   ["skill-ir-experimental-design", "6030a23048d1f12d59d72790635ed0c5ccf5b40d4cace8171eb0a7763ed2cd19"],
   ["skill-ir-experimental-design-v2", "6dda3cbc9e369fa6b1ab1dbe974c86baa3cad967bd707e1d5668eb1ea2d51960"],
   ["skill-ir-experimental-design-skill-unique", "d74e81e90925a1dd62104be10dd8cb536f13f7ce8e4a10a3e063e0980fea1e4f"],
   ["skill-ir-api-tester", "8c32311030502fccdf8d56e70bb946d070ffee47c560604ad846b974272bba22"],
   ["skill-ir-zh-code-reviewer", "0c3bc91fd611317741d0a1700e57bd938f2e207f2adac5442e22d72e297cc3d2"],
   ["skill-ir-zh-readme", "a9da3bab92bbb8f24f2a0b8292e66c5c2122bddded4996c350d4bbdc061a8a45"],
+  ["skill-ir-i18n-helper-v2", "5adb4583cb33eb9429d62b23b0187cb1a061c263f15164d284f5c13732e55e91"],
 ])
 
 export const customEvaluatorImplementations = new Map<string, CustomEvaluator>(

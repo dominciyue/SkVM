@@ -1,0 +1,707 @@
+{
+  "schemaVersion": "skill-ir-benchmark-contract-audit/v1",
+  "auditId": "law-to-markdown-v3-public-output-abi-v1",
+  "skillId": "law-to-markdown-v3",
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/development/tasks.json",
+    "sha256": "d9c8767f7723d76eb1015f48ddb9a3f8f569c685d59b88f7e78f791f319f7215"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/law-to-markdown-grade-v3.ts",
+    "sha256": "8c80e22f9efd411fc399dc76aaf0cf4bf0e02e148a4a0421fba26e76ce8a6cbb",
+    "evaluatorId": "skill-ir-law-to-markdown-v3"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+      "sha256": "58bfc8ec0a982d29af31f8d694ae8946815b6338abf76ce052033dd7bc4b47e8"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract-source-audit.json",
+      "sha256": "c08f8fae2c74496a2164159d7f5a5b420ca7331f49d0f59900ebcb3970b14fb4"
+    }
+  ],
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "law-to-markdown-v3-statute-dev-001",
+      "law-to-markdown-v3-standard-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "law-v3-input-and-delta",
+      "hardGate": true,
+      "taskIds": [
+        "law-to-markdown-v3-statute-dev-001",
+        "law-to-markdown-v3-standard-dev-002"
+      ],
+      "requirementIds": [
+        "law-v3-input-and-delta-safety",
+        "law-v3-input-and-delta-equivalence"
+      ]
+    },
+    {
+      "id": "law-v3-classification",
+      "hardGate": true,
+      "taskIds": [
+        "law-to-markdown-v3-statute-dev-001",
+        "law-to-markdown-v3-standard-dev-002"
+      ],
+      "requirementIds": [
+        "law-v3-classification-safety",
+        "law-v3-classification-equivalence"
+      ]
+    },
+    {
+      "id": "law-v3-fidelity",
+      "hardGate": true,
+      "taskIds": [
+        "law-to-markdown-v3-statute-dev-001",
+        "law-to-markdown-v3-standard-dev-002"
+      ],
+      "requirementIds": [
+        "law-v3-fidelity-safety",
+        "law-v3-fidelity-equivalence"
+      ]
+    },
+    {
+      "id": "law-v3-structure",
+      "hardGate": true,
+      "taskIds": [
+        "law-to-markdown-v3-statute-dev-001",
+        "law-to-markdown-v3-standard-dev-002"
+      ],
+      "requirementIds": [
+        "law-v3-structure-safety",
+        "law-v3-structure-equivalence"
+      ]
+    },
+    {
+      "id": "law-v3-review",
+      "hardGate": true,
+      "taskIds": [
+        "law-to-markdown-v3-statute-dev-001",
+        "law-to-markdown-v3-standard-dev-002"
+      ],
+      "requirementIds": [
+        "law-v3-review-safety",
+        "law-v3-review-equivalence"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "law-v3-input-and-delta-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "law-v3-input-and-delta"
+      ],
+      "contractTokens": [
+        "exactOutputSet"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkInputAndDelta"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "exactOutputSet"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-input-and-delta-law-to-markdown-v3-statute-dev-001-canonical",
+        "law-v3-input-and-delta-law-to-markdown-v3-statute-dev-001-invalid",
+        "law-v3-input-and-delta-law-to-markdown-v3-standard-dev-002-canonical",
+        "law-v3-input-and-delta-law-to-markdown-v3-standard-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "law-v3-input-and-delta-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "law-v3-input-and-delta"
+      ],
+      "contractTokens": [
+        "exactOutputSet"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkInputAndDelta"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "exactOutputSet"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-input-and-delta-law-to-markdown-v3-statute-dev-001-alternative",
+        "law-v3-input-and-delta-law-to-markdown-v3-standard-dev-002-alternative"
+      ]
+    },
+    {
+      "id": "law-v3-classification-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "law-v3-classification"
+      ],
+      "contractTokens": [
+        "classification"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkClassification"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "classification"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-classification-law-to-markdown-v3-statute-dev-001-canonical",
+        "law-v3-classification-law-to-markdown-v3-statute-dev-001-invalid",
+        "law-v3-classification-law-to-markdown-v3-standard-dev-002-canonical",
+        "law-v3-classification-law-to-markdown-v3-standard-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "law-v3-classification-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "law-v3-classification"
+      ],
+      "contractTokens": [
+        "classification"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkClassification"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "classification"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-classification-law-to-markdown-v3-statute-dev-001-alternative",
+        "law-v3-classification-law-to-markdown-v3-standard-dev-002-alternative"
+      ]
+    },
+    {
+      "id": "law-v3-fidelity-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "law-v3-fidelity"
+      ],
+      "contractTokens": [
+        "preserves the source character stream"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkContentFidelity"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "preserves the source character stream"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-fidelity-law-to-markdown-v3-statute-dev-001-canonical",
+        "law-v3-fidelity-law-to-markdown-v3-statute-dev-001-invalid",
+        "law-v3-fidelity-law-to-markdown-v3-standard-dev-002-canonical",
+        "law-v3-fidelity-law-to-markdown-v3-standard-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "law-v3-fidelity-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "law-v3-fidelity"
+      ],
+      "contractTokens": [
+        "preserves the source character stream"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkContentFidelity"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "preserves the source character stream"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-fidelity-law-to-markdown-v3-statute-dev-001-alternative",
+        "law-v3-fidelity-law-to-markdown-v3-standard-dev-002-alternative"
+      ]
+    },
+    {
+      "id": "law-v3-structure-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "law-v3-structure"
+      ],
+      "contractTokens": [
+        "headingRules"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkStructure"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "headingRules"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-structure-law-to-markdown-v3-statute-dev-001-canonical",
+        "law-v3-structure-law-to-markdown-v3-statute-dev-001-invalid",
+        "law-v3-structure-law-to-markdown-v3-standard-dev-002-canonical",
+        "law-v3-structure-law-to-markdown-v3-standard-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "law-v3-structure-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "law-v3-structure"
+      ],
+      "contractTokens": [
+        "headingRules"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "checkStructure"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "headingRules"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-structure-law-to-markdown-v3-statute-dev-001-alternative",
+        "law-v3-structure-law-to-markdown-v3-standard-dev-002-alternative"
+      ]
+    },
+    {
+      "id": "law-v3-review-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": [
+        "law-v3-review"
+      ],
+      "contractTokens": [
+        "outputAbi"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "validatePublicOutputRecord"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "outputAbi"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-review-law-to-markdown-v3-statute-dev-001-canonical",
+        "law-v3-review-law-to-markdown-v3-statute-dev-001-invalid",
+        "law-v3-review-law-to-markdown-v3-standard-dev-002-canonical",
+        "law-v3-review-law-to-markdown-v3-standard-dev-002-invalid"
+      ]
+    },
+    {
+      "id": "law-v3-review-equivalence",
+      "class": "semantic-invariant",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": [
+        "law-v3-review"
+      ],
+      "contractTokens": [
+        "outputAbi"
+      ],
+      "scorerAnchors": [
+        {
+          "quote": "validatePublicOutputRecord"
+        }
+      ],
+      "publicEvidence": [
+        {
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+          "quote": "outputAbi"
+        }
+      ],
+      "canaryIds": [
+        "law-v3-review-law-to-markdown-v3-statute-dev-001-alternative",
+        "law-v3-review-law-to-markdown-v3-standard-dev-002-alternative"
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "law-v3-input-and-delta-law-to-markdown-v3-statute-dev-001-canonical",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-input-and-delta",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/canonical",
+      "fixtureSha256": "8ccad86c8e2782654165591567e0edf0d98f603b6572eff79fe70709df6de461",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-input-and-delta-law-to-markdown-v3-statute-dev-001-alternative",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-input-and-delta",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/alternative",
+      "fixtureSha256": "d2851cfe54415f518e4d61576f7daed7237e301082a312067bbb82d503e2d58f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-input-and-delta-law-to-markdown-v3-statute-dev-001-invalid",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-input-and-delta",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/invalid",
+      "fixtureSha256": "d6b312080a5fe99b743f99a320ed8204ecc5c11c61afb02856452520f10aca98",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-classification-law-to-markdown-v3-statute-dev-001-canonical",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-classification",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/canonical",
+      "fixtureSha256": "8ccad86c8e2782654165591567e0edf0d98f603b6572eff79fe70709df6de461",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-classification-law-to-markdown-v3-statute-dev-001-alternative",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-classification",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/alternative",
+      "fixtureSha256": "d2851cfe54415f518e4d61576f7daed7237e301082a312067bbb82d503e2d58f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-classification-law-to-markdown-v3-statute-dev-001-invalid",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-classification",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/invalid",
+      "fixtureSha256": "d6b312080a5fe99b743f99a320ed8204ecc5c11c61afb02856452520f10aca98",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-fidelity-law-to-markdown-v3-statute-dev-001-canonical",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-fidelity",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/canonical",
+      "fixtureSha256": "8ccad86c8e2782654165591567e0edf0d98f603b6572eff79fe70709df6de461",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-fidelity-law-to-markdown-v3-statute-dev-001-alternative",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-fidelity",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/alternative",
+      "fixtureSha256": "d2851cfe54415f518e4d61576f7daed7237e301082a312067bbb82d503e2d58f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-fidelity-law-to-markdown-v3-statute-dev-001-invalid",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-fidelity",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/invalid",
+      "fixtureSha256": "d6b312080a5fe99b743f99a320ed8204ecc5c11c61afb02856452520f10aca98",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-structure-law-to-markdown-v3-statute-dev-001-canonical",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-structure",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/canonical",
+      "fixtureSha256": "8ccad86c8e2782654165591567e0edf0d98f603b6572eff79fe70709df6de461",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-structure-law-to-markdown-v3-statute-dev-001-alternative",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-structure",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/alternative",
+      "fixtureSha256": "d2851cfe54415f518e4d61576f7daed7237e301082a312067bbb82d503e2d58f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-structure-law-to-markdown-v3-statute-dev-001-invalid",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-structure",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/invalid",
+      "fixtureSha256": "d6b312080a5fe99b743f99a320ed8204ecc5c11c61afb02856452520f10aca98",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-review-law-to-markdown-v3-statute-dev-001-canonical",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-review",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/canonical",
+      "fixtureSha256": "8ccad86c8e2782654165591567e0edf0d98f603b6572eff79fe70709df6de461",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-review-law-to-markdown-v3-statute-dev-001-alternative",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-review",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/alternative",
+      "fixtureSha256": "d2851cfe54415f518e4d61576f7daed7237e301082a312067bbb82d503e2d58f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-review-law-to-markdown-v3-statute-dev-001-invalid",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "criterionId": "law-v3-review",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-statute-dev-001/invalid",
+      "fixtureSha256": "d6b312080a5fe99b743f99a320ed8204ecc5c11c61afb02856452520f10aca98",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-statute-dev-001",
+      "initialFixtureSha256": "f55b6d984e35db51dc76d134dc9c0a1719e80cf7a53efae22d7b99aea4a54e3c",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-input-and-delta-law-to-markdown-v3-standard-dev-002-canonical",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-input-and-delta",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/canonical",
+      "fixtureSha256": "1904b46f98904a57b6e6fcd3fd99a43440d031c47db366ed826777088cd5302f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-input-and-delta-law-to-markdown-v3-standard-dev-002-alternative",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-input-and-delta",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/alternative",
+      "fixtureSha256": "4d7d320faeeb4f045deaa9bfad4eab193fdbbc3ec87af01af6276fdf31217ce7",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-input-and-delta-law-to-markdown-v3-standard-dev-002-invalid",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-input-and-delta",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/invalid",
+      "fixtureSha256": "20456d9242d7be9e9e0a9afe9e254a9b5b71aa468f58e351e56ef760ab632647",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-classification-law-to-markdown-v3-standard-dev-002-canonical",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-classification",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/canonical",
+      "fixtureSha256": "1904b46f98904a57b6e6fcd3fd99a43440d031c47db366ed826777088cd5302f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-classification-law-to-markdown-v3-standard-dev-002-alternative",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-classification",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/alternative",
+      "fixtureSha256": "4d7d320faeeb4f045deaa9bfad4eab193fdbbc3ec87af01af6276fdf31217ce7",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-classification-law-to-markdown-v3-standard-dev-002-invalid",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-classification",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/invalid",
+      "fixtureSha256": "20456d9242d7be9e9e0a9afe9e254a9b5b71aa468f58e351e56ef760ab632647",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-fidelity-law-to-markdown-v3-standard-dev-002-canonical",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-fidelity",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/canonical",
+      "fixtureSha256": "1904b46f98904a57b6e6fcd3fd99a43440d031c47db366ed826777088cd5302f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-fidelity-law-to-markdown-v3-standard-dev-002-alternative",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-fidelity",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/alternative",
+      "fixtureSha256": "4d7d320faeeb4f045deaa9bfad4eab193fdbbc3ec87af01af6276fdf31217ce7",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-fidelity-law-to-markdown-v3-standard-dev-002-invalid",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-fidelity",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/invalid",
+      "fixtureSha256": "20456d9242d7be9e9e0a9afe9e254a9b5b71aa468f58e351e56ef760ab632647",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-structure-law-to-markdown-v3-standard-dev-002-canonical",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-structure",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/canonical",
+      "fixtureSha256": "1904b46f98904a57b6e6fcd3fd99a43440d031c47db366ed826777088cd5302f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-structure-law-to-markdown-v3-standard-dev-002-alternative",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-structure",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/alternative",
+      "fixtureSha256": "4d7d320faeeb4f045deaa9bfad4eab193fdbbc3ec87af01af6276fdf31217ce7",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-structure-law-to-markdown-v3-standard-dev-002-invalid",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-structure",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/invalid",
+      "fixtureSha256": "20456d9242d7be9e9e0a9afe9e254a9b5b71aa468f58e351e56ef760ab632647",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": false
+    },
+    {
+      "id": "law-v3-review-law-to-markdown-v3-standard-dev-002-canonical",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-review",
+      "role": "canonical-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/canonical",
+      "fixtureSha256": "1904b46f98904a57b6e6fcd3fd99a43440d031c47db366ed826777088cd5302f",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-review-law-to-markdown-v3-standard-dev-002-alternative",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-review",
+      "role": "alternative-valid",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/alternative",
+      "fixtureSha256": "4d7d320faeeb4f045deaa9bfad4eab193fdbbc3ec87af01af6276fdf31217ce7",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": true
+    },
+    {
+      "id": "law-v3-review-law-to-markdown-v3-standard-dev-002-invalid",
+      "taskId": "law-to-markdown-v3-standard-dev-002",
+      "criterionId": "law-v3-review",
+      "role": "invalid-control",
+      "fixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-fixtures/law-to-markdown-v3-standard-dev-002/invalid",
+      "fixtureSha256": "20456d9242d7be9e9e0a9afe9e254a9b5b71aa468f58e351e56ef760ab632647",
+      "initialFixturePath": "benchmarks/skill-ir/pilots/law-to-markdown/v3/audit-initial-fixtures/law-to-markdown-v3-standard-dev-002",
+      "initialFixtureSha256": "1e39b3c9c9459da0389d1f2478304836ac4a64d789878ee6df63ca1744191f51",
+      "expectedPass": false
+    }
+  ]
+}

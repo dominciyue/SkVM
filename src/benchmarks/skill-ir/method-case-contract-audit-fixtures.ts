@@ -95,6 +95,53 @@ function makeLawVariants(task: Task) {
   return { canonical, alternative, invalid }
 }
 
+function lawReportV3(
+  documentClass: "law" | "non-law",
+  alternative: boolean,
+  deliverablePath: unknown = documentClass === "law"
+    ? "markdown/document/document+最终成果.md"
+    : null,
+): string {
+  const prose = alternative
+    ? "本次核验依据公开合同完成，正文表达采用另一种合法措辞。"
+    : "公开规则核验完成。"
+  return `${prose}\n\n\`\`\`json law-review-evidence\n${JSON.stringify({
+    inputPath: "document.txt",
+    documentClass,
+    deliverablePath,
+  })}\n\`\`\`\n`
+}
+
+function makeLawV3Variants(task: Task) {
+  const document = task.fixtures["document.txt"]!
+  const documentClass = /^(?:GB[\/／]|ISO\b|IEC\b)/iu.test(document.trimStart()) ? "non-law" : "law"
+  const base = { ...task.fixtures }
+  const canonical: Files = {
+    ...base,
+    "markdown/document/document+审核报告.md": lawReportV3(documentClass, false),
+  }
+  const alternative: Files = {
+    ...base,
+    "markdown/document/document+审核报告.md": lawReportV3(documentClass, true),
+  }
+  if (documentClass === "law") {
+    canonical["markdown/document/document+最终成果.md"] = lawMarkdown(document)
+    alternative["markdown/document/document+最终成果.md"] = lawMarkdown(document)
+  }
+  const invalid: Files = {
+    ...base,
+    "document.txt": `${document}附加改动\n`,
+    "debug.log": "undeclared output\n",
+    "markdown/document/document+审核报告.md": lawReportV3(
+      documentClass === "law" ? "non-law" : "law",
+      false,
+      documentClass === "law" ? false : true,
+    ),
+  }
+  if (documentClass === "non-law") invalid["markdown/document/document+最终成果.md"] = "# 不应生成\n"
+  return { canonical, alternative, invalid }
+}
+
 const i18nSetup = [
   "import i18n from 'i18next';",
   "import { initReactI18next } from 'react-i18next';",
@@ -141,6 +188,47 @@ function makeI18nVariants(task: Task) {
   const canonical = i18nFiles(task, source, { profile: { greeting: "你好，{{name}}", logout: "退出登录" } }, { profile: { greeting: "Hello, {{name}}", logout: "Log out" } }, keys)
   const alternative = i18nFiles(task, source, { "profile.greeting": "{{name}}，你好", "profile.logout": "退出" }, { "profile.greeting": "Welcome {{name}}", "profile.logout": "Sign out" }, keys)
   return { canonical, alternative, invalid: invalidI18nFiles(task, "profile.greeting") }
+}
+
+function i18nFilesV2(
+  task: Task,
+  source: string,
+  zh: Record<string, unknown>,
+  en: Record<string, unknown>,
+  keys: string[],
+  missingKeys: unknown = { "zh-CN": [], "en-US": [] },
+): Files {
+  return {
+    ...task.fixtures,
+    "src/App.tsx": source,
+    "src/i18n.ts": i18nSetup,
+    "src/locales/zh-CN.json": json(zh),
+    "src/locales/en-US.json": json(en),
+    "i18n-report.json": json({
+      framework: "react-i18next",
+      scannedFiles: ["src/App.tsx"],
+      extractedKeys: keys,
+      missingKeys,
+    }),
+  }
+}
+
+function makeI18nV2Variants(task: Task) {
+  const isInterpolation = task.id.includes("interpolation")
+  if (!isInterpolation) {
+    const source = "import { useTranslation } from 'react-i18next';\nexport function App() { const { t } = useTranslation(); console.debug('HTTP'); return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>; }\n"
+    const keys = ["home.save", "home.welcome"]
+    const canonical = i18nFilesV2(task, source, { home: { save: "保存", welcome: "欢迎使用" } }, { home: { save: "Save", welcome: "Welcome" } }, keys)
+    const alternative = i18nFilesV2(task, source, { "home.save": "保存操作", "home.welcome": "欢迎回来" }, { "home.save": "Save now", "home.welcome": "Hello" }, keys)
+    const invalid = invalidI18nFiles(task, "home.welcome")
+    return { canonical, alternative, invalid }
+  }
+  const source = "import { useTranslation } from 'react-i18next';\nexport function App({ name }: { name: string }) { const { t } = useTranslation(); return <section><p data-i18n-key=\"profile.greeting\">{t('profile.greeting', { name })}</p><a href=\"https://example.test\">API</a><button data-i18n-key=\"profile.logout\">{t('profile.logout')}</button></section>; }\n"
+  const keys = ["profile.greeting", "profile.logout"]
+  const canonical = i18nFilesV2(task, source, { profile: { greeting: "你好，{{name}}", logout: "退出登录" } }, { profile: { greeting: "Hello, {{name}}", logout: "Log out" } }, keys)
+  const alternative = i18nFilesV2(task, source, { "profile.greeting": "{{name}}，你好", "profile.logout": "退出" }, { "profile.greeting": "Welcome {{name}}", "profile.logout": "Sign out" }, keys)
+  const invalid = invalidI18nFiles(task, "profile.greeting")
+  return { canonical, alternative, invalid }
 }
 
 function invalidI18nFiles(task: Task, markerKey: string): Files {
@@ -192,6 +280,42 @@ const CASES: AuditCase[] = [
       { id: "i18n-report", quote: "requiredFields", anchor: "checkReport" },
     ],
     makeVariants: makeI18nVariants,
+  },
+  {
+    auditId: "law-to-markdown-v3-public-output-abi-v1",
+    skillId: "law-to-markdown-v3",
+    root: "benchmarks/skill-ir/pilots/law-to-markdown/v3",
+    taskPath: "benchmarks/skill-ir/pilots/law-to-markdown/v3/development/tasks.json",
+    contractPath: "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+    sourceAuditPath: "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract-source-audit.json",
+    scorerPath: "src/bench/evaluators/law-to-markdown-grade-v3.ts",
+    evaluatorId: "skill-ir-law-to-markdown-v3",
+    criteria: [
+      { id: "law-v3-input-and-delta", quote: "exactOutputSet", anchor: "checkInputAndDelta" },
+      { id: "law-v3-classification", quote: "classification", anchor: "checkClassification" },
+      { id: "law-v3-fidelity", quote: "preserves the source character stream", anchor: "checkContentFidelity" },
+      { id: "law-v3-structure", quote: "headingRules", anchor: "checkStructure" },
+      { id: "law-v3-review", quote: "outputAbi", anchor: "validatePublicOutputRecord" },
+    ],
+    makeVariants: makeLawV3Variants,
+  },
+  {
+    auditId: "i18n-helper-v2-public-output-abi-v1",
+    skillId: "i18n-helper-v2",
+    root: "benchmarks/skill-ir/pilots/i18n-helper/v2",
+    taskPath: "benchmarks/skill-ir/pilots/i18n-helper/v2/development/tasks.json",
+    contractPath: "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract.json",
+    sourceAuditPath: "benchmarks/skill-ir/pilots/i18n-helper/v2/public-contract-source-audit.json",
+    scorerPath: "src/bench/evaluators/i18n-helper-grade-v2.ts",
+    evaluatorId: "skill-ir-i18n-helper-v2",
+    criteria: [
+      { id: "i18n-v2-delta", quote: "allowedModifiedFiles", anchor: "checkDelta" },
+      { id: "i18n-v2-source-transform", quote: "keyRule", anchor: "checkSource" },
+      { id: "i18n-v2-locales", quote: "requiredNewFiles", anchor: "checkLocales" },
+      { id: "i18n-v2-interpolation", quote: "interpolationRule", anchor: "checkInterpolation" },
+      { id: "i18n-v2-report", quote: "outputAbi", anchor: "validatePublicOutputRecord" },
+    ],
+    makeVariants: makeI18nV2Variants,
   },
 ]
 

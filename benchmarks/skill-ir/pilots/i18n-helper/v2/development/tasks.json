@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "i18n-helper-v2",
+  "tasks": [
+    {
+      "id": "i18n-helper-v2-react-basic-dev-001",
+      "split": "development",
+      "prompt": "Read the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays.",
+      "fixtures": {
+        "package.json": "{\"name\":\"i18n-basic\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n",
+        "tsconfig.json": "{\"compilerOptions\":{\"jsx\":\"react-jsx\",\"strict\":true,\"resolveJsonModule\":true,\"esModuleInterop\":true}}\n",
+        "src/App.tsx": "export function App() {\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">欢迎使用</h1><button data-i18n-key=\"home.save\">保存</button></main>;\n}\n",
+        "i18n-contract.json": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v2\",\"contractId\":\"i18n-helper-react-i18next-v2\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v1\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "i18n-v2-delta",
+          "name": "Only declared source modifications and outputs",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "delta-policy"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-v2-source-transform",
+          "name": "Confirmed hardcoded text is replaced by stable t() calls",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "source-transform"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-v2-locales",
+          "name": "Locale files contain the complete confirmed key set",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "locale-integrity"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-v2-interpolation",
+          "name": "Confirmed interpolation identifiers are preserved",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "interpolation"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-v2-report",
+          "name": "Public i18n report matches observable facts",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "report"
+          }
+        }
+      ],
+      "hardGateIds": [
+        "i18n-v2-delta",
+        "i18n-v2-source-transform",
+        "i18n-v2-locales",
+        "i18n-v2-interpolation",
+        "i18n-v2-report"
+      ],
+      "passThreshold": 1
+    },
+    {
+      "id": "i18n-helper-v2-react-interpolation-dev-002",
+      "split": "development",
+      "prompt": "Read the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays.",
+      "fixtures": {
+        "package.json": "{\"name\":\"i18n-profile\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n",
+        "tsconfig.json": "{\"compilerOptions\":{\"jsx\":\"react-jsx\",\"strict\":true,\"resolveJsonModule\":true,\"esModuleInterop\":true}}\n",
+        "src/App.tsx": "export function App({ name }: { name: string }) {\n  return <section><p data-i18n-key=\"profile.greeting\">你好，{name}</p><a href=\"https://example.test\">API</a><button data-i18n-key=\"profile.logout\">退出登录</button></section>;\n}\n",
+        "i18n-contract.json": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v2\",\"contractId\":\"i18n-helper-react-i18next-v2\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v1\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "i18n-v2-delta",
+          "name": "Only declared source modifications and outputs",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "delta-policy"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-v2-source-transform",
+          "name": "Confirmed hardcoded text is replaced by stable t() calls",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "source-transform"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-v2-locales",
+          "name": "Locale files contain the complete confirmed key set",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "locale-integrity"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-v2-interpolation",
+          "name": "Confirmed interpolation identifiers are preserved",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "interpolation"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-v2-report",
+          "name": "Public i18n report matches observable facts",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-i18n-helper-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-helper-eval/v2",
+            "check": "report"
+          }
+        }
+      ],
+      "hardGateIds": [
+        "i18n-v2-delta",
+        "i18n-v2-source-transform",
+        "i18n-v2-locales",
+        "i18n-v2-interpolation",
+        "i18n-v2-report"
+      ],
+      "passThreshold": 1
+    }
+  ]
+}
