@@ -2,6 +2,10 @@ import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
 import { BenchTaskFileSchema } from "../../bench/types.ts"
 import { PublicOutputAbiV2Schema } from "../../bench/public-output-abi-v2.ts"
+import {
+  MethodCaseTaskSplitFreezeSchema,
+  verifyMethodCaseTaskSplitFreeze,
+} from "./method-case-task-split-freeze.ts"
 
 const root = "benchmarks/skill-ir/pilots/i18n-helper/v3"
 
@@ -56,5 +60,22 @@ describe("i18n-helper v3 public contract", () => {
       "secret-value",
     ]))
     expect(auditText).not.toMatch(/expectedAnswer|modelOutput|raw-runs/iu)
+  })
+
+  test("binds the 2+2 split to the pre-scorer task commit", async () => {
+    const freeze = MethodCaseTaskSplitFreezeSchema.parse(JSON.parse(
+      await readFile(`${root}/task-split-freeze.json`, "utf8"),
+    ))
+    expect(freeze.benchmarkId).toBe("i18n-helper-v3")
+    expect(freeze.taskCommit).toBe("249a7b4c007f3f49a0e9bfadfaf27acb7ecce2cc")
+    expect(freeze.developmentTasks.taskIds).toEqual([
+      "i18n-helper-v3-react-basic-dev-001",
+      "i18n-helper-v3-react-interpolation-dev-002",
+    ])
+    expect(freeze.heldoutTasks.taskIds).toEqual([
+      "i18n-helper-v3-react-notice-heldout-001",
+      "i18n-helper-v3-react-count-heldout-002",
+    ])
+    await expect(verifyMethodCaseTaskSplitFreeze(process.cwd(), freeze)).resolves.toEqual(freeze)
   })
 })
