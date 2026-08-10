@@ -45,7 +45,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
 | zh-readme | repository fact/documentation | contract-qualified method-development | benchmark audit 合格；v1/v2 付费 measurement 均 invalid，不开放 base IR。 |
-| i18n-helper | React+i18next source transformation | contract-qualified method-development | v3 execution-bound baseline 饱和；contribution-v1 已通过静态贡献门禁并冻结新 baseline。 |
+| i18n-helper | React+i18next source transformation | contract-qualified method-development | contribution-v1 因 placeholder/plural 假拒冻结为 measurement-invalid；公开语义 v2 baseline gate passed，开放 base IR audit。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -97,8 +97,9 @@ Audit 必须证明 scorer：
 
 历史三个 Wave A v1 audit 均失败，因此只算 `support-real`。Experimental Design v2 与 API Tester 的新合同
 通过各自 audit，仍需单独过区分度与优化 gate。Law v3 已用完整公开 ABI 恢复 contract-qualified，但
-baseline gate failed；i18n v3 也恢复 contract-qualified，execution-bound successor 已排除零 token/无输出，
-但两臂均满分。两者都不消费 held-out，也不是优化成功证据。
+baseline gate failed；i18n v3 恢复 contract-qualified 后仍两臂满分。i18n contribution-v2 进一步公开
+placeholder/plural 语义并通过区分度 gate，现只开放 development base IR audit。上述案例都未消费 held-out，
+也不是优化成功证据。
 
 ## 8. API Tester Re-entry
 

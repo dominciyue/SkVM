@@ -60,6 +60,14 @@ const cases = [
       "i18n-helper-contribution-partial-plural-dev-002",
     ],
   },
+  {
+    skillId: "i18n-helper-contribution-v2",
+    lockPath: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/development-calibration-lock.json",
+    taskIds: [
+      "i18n-helper-contribution-multifile-dev-001",
+      "i18n-helper-contribution-partial-plural-dev-002",
+    ],
+  },
 ] as const
 
 function scoredRow(input: {

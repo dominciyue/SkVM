@@ -641,14 +641,16 @@ answer-bearing duplication、0 skill-derived coverage；skill-unique successor �
    等价代码结构；不使用 hidden key set；
 4. [x] 先通过 public output ABI、alternative-valid、prompt-only omission、reverse-evidence、gold/held-out
    leak、materialization 和 contribution-identifiability audit；失败则不付费；
-5. [ ] 审计通过后才冻结同一强模型/Pi/Windows/clean、`no-skill | original`、2 tasks x 2 repetitions、
+5. [x] 审计通过后才冻结同一强模型/Pi/Windows/clean、`no-skill | original`、2 tasks x 2 repetitions、
    `retries=0` 的唯一 baseline。若仍双臂满分，标记 `model-capability-saturated`，不继续堆任务。
 
-当前结果：新 `i18n-helper-contribution-v1` 的 pre-scorer task commit 与 2+2 split 已冻结；scorer 只从受保护
-baseline、公开 contract 和最终 workdir 派生候选，接受两套不同 key 分配。五类 contribution canary、
-materialization 和 forbidden-sink 检查通过，identifiability 报告为 `eligible-for-baseline`：3 条独立
-skill-derived claim、逐 task skill-derived weight `0.70`、0 answer-bearing duplication。baseline lock 已在
-付费前冻结并通过 8-row dry-run；qualification 与唯一付费矩阵尚未执行。
+当前结果：`contribution-v1` 的唯一付费矩阵 8/8 observable、0 infrastructure，但 scorer 私下要求报告
+`originalText` 使用 locale 双花括号，并拒绝标准 i18next v4 `_one/_other` family；反事实审计发现 5/8 行
+false rejection，因此旧 gate 冻结为 `measurement-invalid`，不用于判断 skill。前瞻 `contribution-v2` 将
+报告 `{name}`、locale `{{name}}` 和 plural family 写入 agent 可见、受保护 semantics；task commit、scorer、
+contract audit、identifiability 与 lock 均重新冻结。唯一真实矩阵 gate passed：8/8 rows、0 infra、4/4
+differing、3 positive、original 2/4 / mean 0.925，no-skill 1/4 / mean 0.525。该结果只开放 source-audited
+base IR；held-out、artifact 与优化 claim 仍关闭。
 
 **Task 17.17.4 结果分流**
 
@@ -656,6 +658,9 @@ skill-derived claim、逐 task skill-derived weight `0.70`、0 answer-bearing du
 2. [ ] 合同与贡献门禁通过但仍饱和时，只允许另行预注册 quality-parity efficiency ablation；
 3. [ ] i18n 完成后按同一门禁复核 Experimental Design，再决定回访 successor 还是选择新的信息互补 skill；
 4. [ ] 更新 portfolio 的 blocker/automation 指标；该阶段不改变 untouched replication 计数。
+
+下一刀：审计 partial/plural 两次 original 的稳定 `nul` workdir residue，把跨平台临时重定向与 undeclared
+file 防护映射到公开 source/base IR；随后只跑 development `ir-static`，不提前消费 held-out。
 
 ## 6. 验证与实验门禁
 

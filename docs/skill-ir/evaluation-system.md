@@ -340,9 +340,11 @@ manifest 中的 evidence 同时声明语义来源和物理 `kind`；例如 `skil
   skill-derived claim；
 - Experimental Design skill-unique：`eligible-for-baseline`，3 条独立 claim，逐 task skill-derived weight
   均为 `0.80`，5 类 canary 全通过。其历史 paired baseline 仍单独报告为强模型饱和，不能由静态审计改判。
-- i18n contribution-v1：`eligible-for-baseline`，3 条独立 claim，逐 task skill-derived weight `0.70`，0 条
-  answer-bearing duplication。Canonical 与两套 key 分配通过；遗漏技术术语排除规则的输出被拒绝；删除公开
-  evidence 后对应约束消失；scorer 不读取 held-out/gold。其 8-row paired baseline 只完成 dry-run，暂无模型结果。
+- i18n contribution-v1：静态审计曾为 `eligible-for-baseline`，真实运行后发现报告占位符与 plural family 的
+  公开语义未完整声明，5/8 false rejection，冻结为 `measurement-invalid`；静态资格不能覆盖真实测量缺陷。
+- i18n contribution-v2：公开 `{name}` / `{{name}}` 与 i18next v4 plural family，重新通过 canonical、
+  alternative、plural、omission、reverse-evidence、forbidden-sink 和 identifiability audit。真实 8-row paired
+  gate passed：0 infra、4 differing、3 positive，original/no-skill mean 0.925/0.525；只开放 base IR audit。
 
 `public-contract-calibration-lock/v2` 保持同一 schema：历史 lock 继续消费并要求 30-canary benchmark contract
 audit；新的 contribution case 可以消费 `skill-contribution-identifiability/v1` manifest + frozen compact report。

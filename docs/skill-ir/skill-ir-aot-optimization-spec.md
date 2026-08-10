@@ -668,13 +668,18 @@ public-skill overlap 与 `6/6` unmeasured incremental knowledge。Experimental D
 `eligible-for-baseline`，有 3 条独立 source-bound claim、逐 task weight `0.80` 和完整 5 类 canary；其历史
 no-skill/original 同时满分仍是单独的 model-capability saturation 证据，不构成 skill 优化成功。
 
-i18n 的 contribution-identifiable successor 使用新 `contribution-v1` task-set identity。2+2 split 在 scorer
-前绑定到提交 `e10e033548e8faa9103e0a7d4b470399a4a2e39c`；任务不提供 exact key 或完整 rewrite recipe，scorer
-从 agent 可见 baseline TSX、locale baseline、公开 contract 和最终 workdir 派生语义。它接受不同稳定 key，
-同时检查 UI 文本/属性、多文件重复复用、插值、技术术语/URL/log/test selector 排除、已有翻译保持和 report
-一致性。本地五类 canary 与 materialization 全通过，静态报告为 `eligible-for-baseline`，3 条独立 claim、
-skill-derived weight `0.70`、0 answer-bearing duplication。该状态只允许冻结 `no-skill | original` baseline，
-不构成优化、Token 或 held-out 证据。
+i18n 的首个 contribution-identifiable task surface 使用 `contribution-v1`。它虽然通过静态 canary，但唯一
+真实 baseline 暴露两个公开合同缺口：报告占位符的单/双花括号未声明，locale scorer 也没有实现准则名称所称
+的 i18next v4 plural family。5/8 行在公开语义反事实复算中由 fail 变 pass，因此 v1 冻结为
+`measurement-invalid`，不得用其 0 success 判定模型或 skill。
+
+前瞻 `contribution-v2` 不修改 v1，而是增加受保护的 `i18n-report-semantics.json`：报告中的源码占位符固定为
+`{name}`，locale 插值为 `{{name}}`，含 `count` 的 base key 可对应 `_one/_other` family。2+2 task surface
+绑定到提交 `5c755af3d5f9a47c52711e531bc4d525554d8cb2`；新 scorer 复用冻结 v1 的结构/delta/preservation，单独
+实现公开 extraction/locale 语义。Contract audit 与 contribution audit 通过，真实 paired gate 也通过：
+8/8 observable、0 infrastructure、4/4 differing、3 positive；original 2/4、mean 0.925，no-skill 1/4、
+mean 0.525。两次 original partial row 均因额外 `nul` 文件只失去 delta gate，形成 source/base IR 审计目标。
+该证据允许进入 development base IR，不开放 held-out，也不构成优化或 Token claim。
 
 ## 9. Prospective Partial-benefit Re-entry
 

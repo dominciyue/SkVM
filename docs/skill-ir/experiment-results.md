@@ -39,6 +39,8 @@
 | i18n v2 public ABI | 2 systems x 4 = 8 | no-skill 1/4、0.70；original 2/4、0.725；1 positive/1 negative；0 infra | 3 个 source-order key array 被私有 lexical order 误拒；measurement-invalid。 |
 | i18n v3 array semantics | 2 systems x 4 = 8 | no-skill 3/4、0.75；original 2/4、0.50；1 positive/2 negative | 5/5 报告 ABI pass；2 条 original 为零 token/无输出，execution-observability blocked。 |
 | i18n v3 execution-bound successor | 2 systems x 4 = 8 | no-skill/original 均 4/4、1.0；0 differing；0 infra | 8/8 observable、8/8 ABI pass；baseline saturation。 |
+| i18n contribution-v1 | 2 systems x 4 = 8 | 冻结分数 no-skill 0/4、0.40；original 0/4、0.425 | 5/8 placeholder/plural false reject；`measurement-invalid`，不判断 skill。 |
+| i18n contribution-v2 | 2 systems x 4 = 8 | no-skill 1/4、0.525；original 2/4、0.925；3 positive/1 negative | 8/8 observable、0 infra、4 differing；baseline gate passed，只开放 base IR audit。 |
 
 ## 3. Benchmark v1 与 v2
 
@@ -227,7 +229,29 @@ original 确实改善了 delta、源码替换、双语 locale 与插值四项公
 contract-qualified、base IR 或优化结论。两臂 token 只描述原始 skill 冷运行成本，既没有 optimized arm，也
 没有计入编译摊销，不能解释为 Token 优化证据。
 
-### 8.2 `zh-code-reviewer` measurement contract
+### 8.2 `i18n-helper` contribution-identifiable successor
+
+旧 i18n v3 的 execution-bound 基线两臂均满分，不能识别 skill 贡献。新的 contribution task 移除 exact key
+和完整 rewrite recipe，改测多文件扫描、部分迁移、重复文本、插值/复数、技术术语排除和已有翻译保持。
+contribution-v1 虽通过静态审计，真实 8 行却暴露未公开的报告占位符 normalization 与 plural-family 假拒；
+冻结分数 no-skill 0/4、mean 0.40，original 0/4、mean 0.425。反事实公开语义复算有 5/8 行转为 pass，
+因此 v1 标记 measurement-invalid，不用于 skill 判断。
+
+contribution-v2 以新 task/scorer/lock 身份公开 `{name}` 报告语法、`{{name}}` locale 插值和 i18next v4
+`_one/_other` family。Qualification 为 success、score 1.0；唯一矩阵 8/8、4/4 pairs、0 infra。No-skill
+1/4、mean 0.525、63225 tokens；original 2/4、mean 0.925、193607 tokens。4 个 pair 全部有差异，3 positive、
+1 negative，预注册 gate passed。两次 partial original 都额外生成 Windows `nul` 文件，因此只在 delta hard
+gate 回归，语义项通过。结果开放 source-audited base IR，尚无 ir-static/optimized arm，不能声称优化或
+Token 节省，也不允许 held-out。
+
+关键路径：
+
+- `benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/development-calibration-lock.json`
+- `results/skill-ir/i18n-helper-contribution-development-v1/measurement-audit.json`
+- `results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json`
+- `results/skill-ir/i18n-helper-contribution-development-v2/scored-runs.jsonl`
+
+### 8.3 `zh-code-reviewer` measurement contract
 
 真实 MIT source closure、公开 evidence/severity interface 和 2 development + 2 held-out 已冻结。Development
 v2 audit 对 2 个 task 运行 20 个 workdir fixture：包含结构化 summary 在内的合法报告变化、漏 finding、
