@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "skill-ir-i18n-contribution-public-contract/v1",
+  "contractId": "i18n-helper-contribution-identifiable-v1",
+  "framework": "react-i18next",
+  "sourceFiles": [
+    "src/App.tsx",
+    "src/Panel.tsx"
+  ],
+  "baselineFiles": {
+    "src/App.tsx": "baseline/src/App.tsx",
+    "src/Panel.tsx": "baseline/src/Panel.tsx",
+    "src/locales/zh-CN.json": "baseline/src/locales/zh-CN.json",
+    "src/locales/en-US.json": "baseline/src/locales/en-US.json"
+  },
+  "allowedModifiedFiles": [
+    "src/App.tsx",
+    "src/Panel.tsx",
+    "src/i18n.ts",
+    "src/locales/zh-CN.json",
+    "src/locales/en-US.json"
+  ],
+  "requiredOutputFiles": [
+    "src/i18n.ts",
+    "src/locales/zh-CN.json",
+    "src/locales/en-US.json",
+    "i18n-report.json"
+  ],
+  "protectedFiles": [
+    "package.json",
+    "tsconfig.json",
+    "i18n-contract.json",
+    "baseline/src/App.tsx",
+    "baseline/src/Panel.tsx",
+    "baseline/src/locales/zh-CN.json",
+    "baseline/src/locales/en-US.json"
+  ],
+  "keyPolicy": "Use any stable nonempty dot-separated key. No exact key spelling is prescribed.",
+  "report": {
+    "path": "i18n-report.json"
+  },
+  "outputAbi": {
+    "schemaVersion": "skill-ir-public-output-abi/v2",
+    "additionalProperties": false,
+    "fields": {
+      "framework": {
+        "required": true,
+        "schema": {
+          "type": "string",
+          "nullable": false,
+          "enum": ["react-i18next"]
+        }
+      },
+      "scannedFiles": {
+        "required": true,
+        "schema": {
+          "type": "array",
+          "nullable": false,
+          "order": "ordered",
+          "duplicates": "forbid",
+          "items": {
+            "type": "string",
+            "nullable": false
+          }
+        }
+      },
+      "entries": {
+        "required": true,
+        "schema": {
+          "type": "array",
+          "nullable": false,
+          "order": "set-like",
+          "duplicates": "forbid",
+          "items": {
+            "type": "object",
+            "nullable": false,
+            "additionalProperties": false,
+            "fields": {
+              "sourceFile": {
+                "required": true,
+                "schema": { "type": "string", "nullable": false }
+              },
+              "originalText": {
+                "required": true,
+                "schema": { "type": "string", "nullable": false }
+              },
+              "key": {
+                "required": true,
+                "schema": { "type": "string", "nullable": false }
+              },
+              "placeholders": {
+                "required": true,
+                "schema": {
+                  "type": "array",
+                  "nullable": false,
+                  "order": "set-like",
+                  "duplicates": "forbid",
+                  "items": { "type": "string", "nullable": false }
+                }
+              },
+              "occurrences": {
+                "required": true,
+                "schema": { "type": "integer", "nullable": false }
+              }
+            }
+          }
+        }
+      },
+      "missingKeys": {
+        "required": true,
+        "schema": {
+          "type": "object",
+          "nullable": false,
+          "additionalProperties": false,
+          "fields": {
+            "zh-CN": {
+              "required": true,
+              "schema": {
+                "type": "array",
+                "nullable": false,
+                "order": "set-like",
+                "duplicates": "forbid",
+                "items": { "type": "string", "nullable": false }
+              }
+            },
+            "en-US": {
+              "required": true,
+              "schema": {
+                "type": "array",
+                "nullable": false,
+                "order": "set-like",
+                "duplicates": "forbid",
+                "items": { "type": "string", "nullable": false }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
