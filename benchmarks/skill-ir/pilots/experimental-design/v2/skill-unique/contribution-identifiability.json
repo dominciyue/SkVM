@@ -1,0 +1,285 @@
+{
+  "schemaVersion": "skill-contribution-identifiability/v1",
+  "auditId": "experimental-design-skill-unique-contribution-v1",
+  "skillId": "experimental-design-v2-skill-unique",
+  "taskSetId": "experimental-design-skill-unique-development-v1",
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "experimental-design-skill-unique-cage-cell-dev-001",
+      "experimental-design-skill-unique-repeated-visit-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "cage-input-integrity",
+      "taskId": "experimental-design-skill-unique-cage-cell-dev-001",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-artifact-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "cage-artifact-contract",
+      "taskId": "experimental-design-skill-unique-cage-cell-dev-001",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-artifact-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "cage-independent-replication",
+      "taskId": "experimental-design-skill-unique-cage-cell-dev-001",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["independent-replication-level"],
+      "provenance": ["skill-derived", "fixture-derived"]
+    },
+    {
+      "id": "cage-pseudoreplication-guard",
+      "taskId": "experimental-design-skill-unique-cage-cell-dev-001",
+      "weight": 0.2,
+      "hardGate": true,
+      "claimIds": ["measurement-is-not-replication"],
+      "provenance": ["skill-derived", "fixture-derived"]
+    },
+    {
+      "id": "cage-analysis-alignment",
+      "taskId": "experimental-design-skill-unique-cage-cell-dev-001",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["nested-analysis-alignment"],
+      "provenance": ["skill-derived", "fixture-derived"]
+    },
+    {
+      "id": "visit-input-integrity",
+      "taskId": "experimental-design-skill-unique-repeated-visit-dev-002",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-artifact-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "visit-artifact-contract",
+      "taskId": "experimental-design-skill-unique-repeated-visit-dev-002",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-artifact-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "visit-independent-replication",
+      "taskId": "experimental-design-skill-unique-repeated-visit-dev-002",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["independent-replication-level"],
+      "provenance": ["skill-derived", "fixture-derived"]
+    },
+    {
+      "id": "visit-pseudoreplication-guard",
+      "taskId": "experimental-design-skill-unique-repeated-visit-dev-002",
+      "weight": 0.2,
+      "hardGate": true,
+      "claimIds": ["measurement-is-not-replication"],
+      "provenance": ["skill-derived", "fixture-derived"]
+    },
+    {
+      "id": "visit-analysis-alignment",
+      "taskId": "experimental-design-skill-unique-repeated-visit-dev-002",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["nested-analysis-alignment"],
+      "provenance": ["skill-derived", "fixture-derived"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "public-artifact-contract",
+      "summary": "Preserve the protected inputs and produce only the two public JSON outputs.",
+      "taskIds": [
+        "experimental-design-skill-unique-cage-cell-dev-001",
+        "experimental-design-skill-unique-repeated-visit-dev-002"
+      ],
+      "failureMode": "artifact-contract-violation",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "task-outcome",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/development/tasks.json",
+          "sha256": "3cc6d771741b3eeae06f55f7d454046aeac212a11baf6ba292e42b2467557c9a",
+          "quote": "Produce exactly design/replication-plan.json and design/analysis-plan.json."
+        }
+      ]
+    },
+    {
+      "id": "independent-replication-level",
+      "summary": "Independent replication follows the entity level where treatment is assigned.",
+      "taskIds": [
+        "experimental-design-skill-unique-cage-cell-dev-001",
+        "experimental-design-skill-unique-repeated-visit-dev-002"
+      ],
+      "failureMode": "wrong-independent-replicate-level",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093",
+          "quote": "The replicate must be at the level the"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/development/tasks.json",
+          "sha256": "3cc6d771741b3eeae06f55f7d454046aeac212a11baf6ba292e42b2467557c9a",
+          "quote": "assignedToEntityType"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/experimental-design-skill-unique-grade.ts",
+          "sha256": "d74e81e90925a1dd62104be10dd8cb536f13f7ce8e4a10a3e063e0980fea1e4f",
+          "quote": "plan.independentReplicateUnit === state.oracle.independentReplicateUnit"
+        }
+      ]
+    },
+    {
+      "id": "measurement-is-not-replication",
+      "summary": "Measurements below the assignment level do not increase independent replicate count.",
+      "taskIds": [
+        "experimental-design-skill-unique-cage-cell-dev-001",
+        "experimental-design-skill-unique-repeated-visit-dev-002"
+      ],
+      "failureMode": "measurement-counted-as-replication",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+          "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093",
+          "quote": "The most common fatal error is **pseudoreplication**"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/development/tasks.json",
+          "sha256": "3cc6d771741b3eeae06f55f7d454046aeac212a11baf6ba292e42b2467557c9a",
+          "quote": "observedOnEntityType"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/experimental-design-skill-unique-grade.ts",
+          "sha256": "d74e81e90925a1dd62104be10dd8cb536f13f7ce8e4a10a3e063e0980fea1e4f",
+          "quote": "plan.pseudoreplicationRisk === state.oracle.pseudoreplicationRisk"
+        }
+      ]
+    },
+    {
+      "id": "nested-analysis-alignment",
+      "summary": "The analysis preserves grouping for the observable entity hierarchy.",
+      "taskIds": [
+        "experimental-design-skill-unique-cage-cell-dev-001",
+        "experimental-design-skill-unique-repeated-visit-dev-002"
+      ],
+      "failureMode": "analysis-ignores-nesting",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/source/references/design_types.md",
+          "sha256": "881993eca7f23cc4d8a2b1db28c4a9f05a86a6bd4b6a2a30e528466f0a5a22b9",
+          "quote": "Analyze with the nesting respected"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/development/tasks.json",
+          "sha256": "3cc6d771741b3eeae06f55f7d454046aeac212a11baf6ba292e42b2467557c9a",
+          "quote": "parentType"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/experimental-design-skill-unique-grade.ts",
+          "sha256": "d74e81e90925a1dd62104be10dd8cb536f13f7ce8e4a10a3e063e0980fea1e4f",
+          "quote": "assessExperimentalDesignSkillUniqueAnalysis("
+        }
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "skill-unique-canonical",
+      "role": "canonical-valid",
+      "taskIds": ["experimental-design-skill-unique-cage-cell-dev-001"],
+      "claimIds": ["independent-replication-level", "measurement-is-not-replication", "nested-analysis-alignment"],
+      "observation": {
+        "path": "results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json",
+        "sha256": "820fc8a655495b34a48ba83d29ba1e68204f2da9969b1c1d233bf8aa827fa0b1",
+        "jsonPointer": "/cases/0/observedPass",
+        "expected": true
+      }
+    },
+    {
+      "id": "skill-unique-alternative",
+      "role": "alternative-valid",
+      "taskIds": ["experimental-design-skill-unique-cage-cell-dev-001"],
+      "claimIds": ["independent-replication-level", "measurement-is-not-replication", "nested-analysis-alignment"],
+      "observation": {
+        "path": "results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json",
+        "sha256": "820fc8a655495b34a48ba83d29ba1e68204f2da9969b1c1d233bf8aa827fa0b1",
+        "jsonPointer": "/cases/1/observedPass",
+        "expected": true
+      }
+    },
+    {
+      "id": "skill-unique-prompt-omission",
+      "role": "prompt-only-omission",
+      "taskIds": ["experimental-design-skill-unique-cage-cell-dev-001"],
+      "claimIds": ["independent-replication-level"],
+      "observation": {
+        "path": "results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json",
+        "sha256": "820fc8a655495b34a48ba83d29ba1e68204f2da9969b1c1d233bf8aa827fa0b1",
+        "jsonPointer": "/cases/2/observedPass",
+        "expected": false
+      }
+    },
+    {
+      "id": "skill-unique-reverse-evidence",
+      "role": "reverse-evidence",
+      "taskIds": ["experimental-design-skill-unique-cage-cell-dev-001", "experimental-design-skill-unique-repeated-visit-dev-002"],
+      "claimIds": ["independent-replication-level", "nested-analysis-alignment"],
+      "observation": {
+        "path": "results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json",
+        "sha256": "820fc8a655495b34a48ba83d29ba1e68204f2da9969b1c1d233bf8aa827fa0b1",
+        "jsonPointer": "/reverseEvidence/missingParentIsUnconfirmed",
+        "expected": true
+      }
+    },
+    {
+      "id": "skill-unique-forbidden-sink",
+      "role": "forbidden-sink",
+      "taskIds": ["experimental-design-skill-unique-cage-cell-dev-001", "experimental-design-skill-unique-repeated-visit-dev-002"],
+      "claimIds": ["public-artifact-contract"],
+      "observation": {
+        "path": "results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json",
+        "sha256": "820fc8a655495b34a48ba83d29ba1e68204f2da9969b1c1d233bf8aa827fa0b1",
+        "jsonPointer": "/leakChecks/taskVisibleHasNoGoldKeys",
+        "expected": true
+      }
+    }
+  ],
+  "forbiddenEvidenceClasses": [
+    "evaluation-split-task",
+    "evaluator-expected",
+    "historical-raw-model-text",
+    "package-generated-answer",
+    "secret",
+    "absolute-path"
+  ]
+}

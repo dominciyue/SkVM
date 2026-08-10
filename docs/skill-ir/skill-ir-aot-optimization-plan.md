@@ -570,16 +570,16 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
 
 **Task 17.17.1 通用 manifest、analyzer 与 compact report**
 
-1. [ ] RED：新建 `src/benchmarks/skill-ir/skill-contribution-identifiability.test.ts`，覆盖安全相对路径、
+1. [x] RED：新建 `src/benchmarks/skill-ir/skill-contribution-identifiability.test.ts`，覆盖安全相对路径、
    path+digest/quote drift、重复 claim/criterion、criterion weight/hard gate、逐 task coverage 和封闭来源类型；
-2. [ ] RED：覆盖 canonical、alternative-valid、prompt-only omission、reverse-evidence 与 forbidden sink；删除
+2. [x] RED：覆盖 canonical、alternative-valid、prompt-only omission、reverse-evidence 与 forbidden sink；删除
    skill source anchor 后约束必须消失或降级 unconfirmed；
-3. [ ] GREEN：实现 `skill-contribution-identifiability.ts`。通用 core 只读取声明式 manifest，不按 skill id
+3. [x] GREEN：实现 `skill-contribution-identifiability.ts`。通用 core 只读取声明式 manifest，不按 skill id
    分支，不用文本相似度自动猜测 claim；
-4. [ ] GREEN：报告 skill-derived claim 数、逐 task coverage、归一化 criterion weight、answer-bearing duplication、
+4. [x] GREEN：报告 skill-derived claim 数、逐 task coverage、归一化 criterion weight、answer-bearing duplication、
    canary 状态和付费前资格分类；paired baseline 后的最终诊断由既有 calibration/gate evidence 合成，不让静态
    analyzer 猜测模型表现；首版门禁使用 spec 8.1 的固定阈值；
-5. [ ] 新建无模型 run entry，显式输入 manifest/output path，compact report 禁止包含 held-out 内容、evaluator
+5. [x] 新建无模型 run entry，显式输入 manifest/output path，compact report 禁止包含 held-out 内容、evaluator
    expected、raw model text、secret 或绝对路径。
 
 首版文件与公共接口固定为：
@@ -602,27 +602,34 @@ export type ContributionSource =
 export function verifyContributionManifest(
   manifest: unknown,
   rootDir: string,
-): ContributionManifestVerification;
+): Promise<VerifiedContributionManifest>;
 
 export function analyzeSkillContribution(
   verified: VerifiedContributionManifest,
 ): SkillContributionReport;
 ```
 
-manifest 必须显式列出 task/criterion/claim id、权重、hard gate、source 类型、quote+relative path+digest anchor、
+manifest 必须显式列出 task/criterion/claim id、权重、hard gate、source 类型、物理 `kind`、
+quote+relative path+digest anchor、
 canary fixture 和 forbidden sink；analyzer 不接收模型输出，也不访问网络。run entry 只负责解析
 `--manifest=<path> --out=<path>`、调用 core 并以非零退出码表示 schema、安全或门禁失败。具体字段由 RED schema
 测试冻结，不能为某个 pilot 增加隐藏分支。
 
 **Task 17.17.2 既有饱和案例审计**
 
-1. [ ] 为 Experimental Design v2/skill-unique 和 i18n v3 分别提交 development-only manifest；只引用既有
+1. [x] 为 Experimental Design v2/skill-unique 和 i18n v3 分别提交 development-only manifest；只引用既有
    source/task/contract/scorer 和冻结 compact gate，不消费 held-out；
-2. [ ] Experimental Design 必须复现旧 13/13 operational disclosure、6/6 unmeasured incremental knowledge，
+2. [x] Experimental Design 必须复现旧 13/13 operational disclosure、6/6 unmeasured incremental knowledge，
    并单独报告 skill-unique successor 在贡献面合格后仍被强模型解决的情况；
-3. [ ] i18n v3 必须量化 exact `data-i18n-key`、prompt 操作序列和 scorer criteria 的重叠，预期诊断为
+3. [x] i18n v3 必须量化 exact `data-i18n-key`、prompt 操作序列和 scorer criteria 的重叠，预期诊断为
    `benchmark-underidentified`；若证据不支持，不得为了符合预期修改分类；
-4. [ ] 报告写入新的 compact result，不覆盖旧 task-sufficiency、gate 或 experiment result。
+4. [x] 报告写入新的 compact result，不覆盖旧 task-sufficiency、gate 或 experiment result。
+
+完成结果：旧 Experimental Design v2 为 `benchmark-underidentified`，报告复现 13 条 fixture/scorer operational
+claim、4 条公开/skill overlap、6 条未测 skill-derived claim；i18n v3 为 `benchmark-underidentified`，4 条
+answer-bearing duplication、0 skill-derived coverage；skill-unique successor 为 `eligible-for-baseline`，3 条
+独立 claim、逐 task skill-derived weight `0.80`、5 类 canary 全通过。静态资格不改写其历史强模型双臂满分，
+后者仍单独解释为贡献面合格后的 capability saturation。
 
 **Task 17.17.3 i18n contribution-identifiable successor**
 

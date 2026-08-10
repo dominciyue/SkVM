@@ -1,0 +1,344 @@
+{
+  "schemaVersion": "skill-contribution-identifiability/v1",
+  "auditId": "i18n-helper-v3-contribution-v1",
+  "skillId": "i18n-helper-v3",
+  "taskSetId": "i18n-helper-v3-development-v1",
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "i18n-helper-v3-react-basic-dev-001",
+      "i18n-helper-v3-react-interpolation-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "basic-delta",
+      "taskId": "i18n-helper-v3-react-basic-dev-001",
+      "weight": 0.2,
+      "hardGate": true,
+      "claimIds": ["public-output-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "basic-source-transform",
+      "taskId": "i18n-helper-v3-react-basic-dev-001",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["exact-marker-keys", "complete-rewrite-procedure"],
+      "provenance": ["task-outcome", "fixture-derived", "overlap"]
+    },
+    {
+      "id": "basic-locales",
+      "taskId": "i18n-helper-v3-react-basic-dev-001",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["exact-marker-keys", "locale-key-completeness"],
+      "provenance": ["task-outcome", "fixture-derived", "overlap"]
+    },
+    {
+      "id": "basic-interpolation",
+      "taskId": "i18n-helper-v3-react-basic-dev-001",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["interpolation-preservation"],
+      "provenance": ["task-outcome", "overlap"]
+    },
+    {
+      "id": "basic-report",
+      "taskId": "i18n-helper-v3-react-basic-dev-001",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-output-contract"],
+      "provenance": ["task-outcome", "fixture-derived"]
+    },
+    {
+      "id": "interpolation-delta",
+      "taskId": "i18n-helper-v3-react-interpolation-dev-002",
+      "weight": 0.2,
+      "hardGate": true,
+      "claimIds": ["public-output-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "interpolation-source-transform",
+      "taskId": "i18n-helper-v3-react-interpolation-dev-002",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["exact-marker-keys", "complete-rewrite-procedure"],
+      "provenance": ["task-outcome", "fixture-derived", "overlap"]
+    },
+    {
+      "id": "interpolation-locales",
+      "taskId": "i18n-helper-v3-react-interpolation-dev-002",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["exact-marker-keys", "locale-key-completeness"],
+      "provenance": ["task-outcome", "fixture-derived", "overlap"]
+    },
+    {
+      "id": "interpolation-identifiers",
+      "taskId": "i18n-helper-v3-react-interpolation-dev-002",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["interpolation-preservation"],
+      "provenance": ["task-outcome", "fixture-derived", "overlap"]
+    },
+    {
+      "id": "interpolation-report",
+      "taskId": "i18n-helper-v3-react-interpolation-dev-002",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-output-contract"],
+      "provenance": ["task-outcome", "fixture-derived"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "public-output-contract",
+      "summary": "Modify only the declared source and produce the public i18next files and report.",
+      "taskIds": [
+        "i18n-helper-v3-react-basic-dev-001",
+        "i18n-helper-v3-react-interpolation-dev-002"
+      ],
+      "failureMode": "output-contract-violation",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "task-outcome",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/development/tasks.json",
+          "sha256": "5a0a618ca9af4dbfd3afcd872f8055797bad8d99090b5c1914111ffe776e8120",
+          "quote": "create exactly the declared i18next files and report"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-grade-v3.ts",
+          "sha256": "1a086b34aff287bb75954c81c2cc771f5d27c5cf364a10d784140c4ee62df45b",
+          "quote": "requiredNewFiles: [...contract.requiredNewFiles]"
+        }
+      ]
+    },
+    {
+      "id": "exact-marker-keys",
+      "summary": "Copy each exact data-i18n-key value into the t call and both locale key sets.",
+      "taskIds": [
+        "i18n-helper-v3-react-basic-dev-001",
+        "i18n-helper-v3-react-interpolation-dev-002"
+      ],
+      "failureMode": "marker-key-mismatch",
+      "answerBearingDuplication": true,
+      "evidence": [
+        {
+          "source": "task-outcome",
+          "kind": "public-contract",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/public-contract.json",
+          "sha256": "9f26f7bf79804469ecfb469b222c45e238b24d8f4fcb7467ee265bec4e5ca150",
+          "quote": "Use the exact data-i18n-key value as the locale key and t() argument."
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/development/tasks.json",
+          "sha256": "5a0a618ca9af4dbfd3afcd872f8055797bad8d99090b5c1914111ffe776e8120",
+          "quote": "data-i18n-key"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-grade-v3.ts",
+          "sha256": "1a086b34aff287bb75954c81c2cc771f5d27c5cf364a10d784140c4ee62df45b",
+          "quote": "call.key !== key"
+        }
+      ]
+    },
+    {
+      "id": "complete-rewrite-procedure",
+      "summary": "The prompt repeats the source workflow to extract confirmed text and replace it with t calls.",
+      "taskIds": [
+        "i18n-helper-v3-react-basic-dev-001",
+        "i18n-helper-v3-react-interpolation-dev-002"
+      ],
+      "failureMode": "confirmed-text-not-rewritten",
+      "answerBearingDuplication": true,
+      "evidence": [
+        {
+          "source": "overlap",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/development/tasks.json",
+          "sha256": "5a0a618ca9af4dbfd3afcd872f8055797bad8d99090b5c1914111ffe776e8120",
+          "quote": "Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage"
+        },
+        {
+          "source": "overlap",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+          "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+          "quote": "将硬编码文本替换为 i18n 函数调用"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-grade-v3.ts",
+          "sha256": "1a086b34aff287bb75954c81c2cc771f5d27c5cf364a10d784140c4ee62df45b",
+          "quote": "The source retains confirmed text, changes a marker key"
+        }
+      ]
+    },
+    {
+      "id": "locale-key-completeness",
+      "summary": "Both locale files contain the complete marker-derived key set.",
+      "taskIds": [
+        "i18n-helper-v3-react-basic-dev-001",
+        "i18n-helper-v3-react-interpolation-dev-002"
+      ],
+      "failureMode": "incomplete-locale-key-set",
+      "answerBearingDuplication": true,
+      "evidence": [
+        {
+          "source": "overlap",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/development/tasks.json",
+          "sha256": "5a0a618ca9af4dbfd3afcd872f8055797bad8d99090b5c1914111ffe776e8120",
+          "quote": "keep both locale key sets complete"
+        },
+        {
+          "source": "overlap",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+          "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+          "quote": "对比主语言文件与翻译文件的 key 差异"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-grade-v3.ts",
+          "sha256": "1a086b34aff287bb75954c81c2cc771f5d27c5cf364a10d784140c4ee62df45b",
+          "quote": "Both locales contain exactly the marker-derived key set."
+        }
+      ]
+    },
+    {
+      "id": "interpolation-preservation",
+      "summary": "Preserve source interpolation identifiers in locale placeholders and t arguments.",
+      "taskIds": [
+        "i18n-helper-v3-react-basic-dev-001",
+        "i18n-helper-v3-react-interpolation-dev-002"
+      ],
+      "failureMode": "interpolation-identifier-loss",
+      "answerBearingDuplication": true,
+      "evidence": [
+        {
+          "source": "overlap",
+          "kind": "public-contract",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/v3/public-contract.json",
+          "sha256": "9f26f7bf79804469ecfb469b222c45e238b24d8f4fcb7467ee265bec4e5ca150",
+          "quote": "Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t()."
+        },
+        {
+          "source": "overlap",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+          "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+          "quote": "保持原有格式和变量插值"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-grade-v3.ts",
+          "sha256": "1a086b34aff287bb75954c81c2cc771f5d27c5cf364a10d784140c4ee62df45b",
+          "quote": "Locale placeholders and t() interpolation arguments agree."
+        }
+      ]
+    },
+    {
+      "id": "excluded-text-classes",
+      "summary": "Do not rewrite URLs, imports, debug logs, or technical terms as user-visible text.",
+      "taskIds": [
+        "i18n-helper-v3-react-basic-dev-001",
+        "i18n-helper-v3-react-interpolation-dev-002"
+      ],
+      "failureMode": "non-user-visible-text-rewritten",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+          "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+          "quote": "排除：变量名、URL、正则表达式、import 路径、日志调试信息"
+        }
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "i18n-v3-canonical",
+      "role": "canonical-valid",
+      "taskIds": ["i18n-helper-v3-react-basic-dev-001"],
+      "claimIds": ["public-output-contract", "exact-marker-keys"],
+      "observation": {
+        "path": "results/skill-ir/benchmark-contract-audit/i18n-helper-v3.json",
+        "sha256": "5755b3ee3fe867deff028f958550de8430d6d115cb9f02d2953195363d25b1fa",
+        "jsonPointer": "/canaries/0/actualPass",
+        "expected": true
+      }
+    },
+    {
+      "id": "i18n-v3-alternative",
+      "role": "alternative-valid",
+      "taskIds": ["i18n-helper-v3-react-basic-dev-001"],
+      "claimIds": ["public-output-contract", "exact-marker-keys"],
+      "observation": {
+        "path": "results/skill-ir/benchmark-contract-audit/i18n-helper-v3.json",
+        "sha256": "5755b3ee3fe867deff028f958550de8430d6d115cb9f02d2953195363d25b1fa",
+        "jsonPointer": "/canaries/1/actualPass",
+        "expected": true
+      }
+    },
+    {
+      "id": "i18n-v3-prompt-omission-missing",
+      "role": "prompt-only-omission",
+      "taskIds": ["i18n-helper-v3-react-basic-dev-001", "i18n-helper-v3-react-interpolation-dev-002"],
+      "claimIds": ["excluded-text-classes"],
+      "observation": {
+        "path": "results/skill-ir/benchmark-contract-audit/i18n-helper-v3.json",
+        "sha256": "5755b3ee3fe867deff028f958550de8430d6d115cb9f02d2953195363d25b1fa",
+        "jsonPointer": "/contributionCanaries/promptOnlyOmission",
+        "expected": true
+      }
+    },
+    {
+      "id": "i18n-v3-reverse-evidence-missing",
+      "role": "reverse-evidence",
+      "taskIds": ["i18n-helper-v3-react-basic-dev-001", "i18n-helper-v3-react-interpolation-dev-002"],
+      "claimIds": ["excluded-text-classes"],
+      "observation": {
+        "path": "results/skill-ir/benchmark-contract-audit/i18n-helper-v3.json",
+        "sha256": "5755b3ee3fe867deff028f958550de8430d6d115cb9f02d2953195363d25b1fa",
+        "jsonPointer": "/contributionCanaries/reverseEvidence",
+        "expected": true
+      }
+    },
+    {
+      "id": "i18n-v3-forbidden-sink-missing",
+      "role": "forbidden-sink",
+      "taskIds": ["i18n-helper-v3-react-basic-dev-001", "i18n-helper-v3-react-interpolation-dev-002"],
+      "claimIds": ["public-output-contract"],
+      "observation": {
+        "path": "results/skill-ir/benchmark-contract-audit/i18n-helper-v3.json",
+        "sha256": "5755b3ee3fe867deff028f958550de8430d6d115cb9f02d2953195363d25b1fa",
+        "jsonPointer": "/contributionCanaries/forbiddenSink",
+        "expected": true
+      }
+    }
+  ],
+  "forbiddenEvidenceClasses": [
+    "evaluation-split-task",
+    "evaluator-expected",
+    "historical-raw-model-text",
+    "package-generated-answer",
+    "secret",
+    "absolute-path"
+  ]
+}

@@ -321,6 +321,26 @@ source closure 和 criterion 定义。每条 claim 使用 quote+path+digest anch
 该审计通过不保证 no-skill 低于满分。它保证饱和时可以把结果归为模型能力覆盖，而不是任务没有测到 skill。
 审计失败时不得付费；应新建 task-set identity 修复任务贡献面，不能调低通过阈值或给 scorer 加隐藏答案。
 
+实现入口：
+
+```powershell
+bun ./src/benchmarks/skill-ir/skill-contribution-identifiability-run.ts `
+  --manifest=benchmarks/skill-ir/pilots/<pilot>/contribution-identifiability.json `
+  --out=results/skill-ir/<pilot>-contribution-identifiability-v1/report.json
+```
+
+manifest 中的 evidence 同时声明语义来源和物理 `kind`；例如 `skill-derived` 只能绑定 `skill-source`，一个
+可计入 coverage 的 claim 必须同时有 source、task/public fixture 和 scorer 三类锚点。Canary observation 可声明
+预期布尔值；因此“prompt-only omission 应被拒绝”使用 `expected=false`，拒绝本身视为 canary 通过。
+
+首批冻结审计的实测结论为：
+
+- i18n v3：`benchmark-underidentified`，4 条 answer-bearing duplication，skill-derived weight 为 0；
+- Experimental Design v2：`benchmark-underidentified`，复现 13 条 operational、4 条 overlap、6 条未测
+  skill-derived claim；
+- Experimental Design skill-unique：`eligible-for-baseline`，3 条独立 claim，逐 task skill-derived weight
+  均为 `0.80`，5 类 canary 全通过。其历史 paired baseline 仍单独报告为强模型饱和，不能由静态审计改判。
+
 ## 9. Gate 顺序
 
 ```text

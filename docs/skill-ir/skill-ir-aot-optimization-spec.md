@@ -662,6 +662,12 @@ ablation，比较相同质量下的 runtime/compile/profile/package Token；该�
 相似度猜测语义。现有 Experimental Design 专用 task-sufficiency audit 保留为历史证据；新 analyzer 首先对
 Experimental Design 与 i18n v3 生成可比较的 compact report，再决定 successor task，而不是继续盲选 skill。
 
+首批 compact audit 已完成：i18n v3 和旧 Experimental Design v2 均为 `benchmark-underidentified`；前者有
+4 条 answer-bearing duplication、0 skill-derived weight，后者复现 `13/13` operational disclosure、4 条
+public-skill overlap 与 `6/6` unmeasured incremental knowledge。Experimental Design skill-unique 为
+`eligible-for-baseline`，有 3 条独立 source-bound claim、逐 task weight `0.80` 和完整 5 类 canary；其历史
+no-skill/original 同时满分仍是单独的 model-capability saturation 证据，不构成 skill 优化成功。
+
 ## 9. Prospective Partial-benefit Re-entry
 
 旧 gate 失败结果不可事后改判。一个案例只有满足版本化 policy 才能以新 identity 进入方法开发：
