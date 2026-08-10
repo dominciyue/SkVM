@@ -1,16 +1,16 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-09
+**最后更新：** 2026-08-10
 
 本文件只记录当前 ledger、执行顺序与活跃 TDD。已完成阶段的过程见 `history.md` 和 Git history；组件
 行为见对应权威文档；数值见 `experiment-results.md`。
 
 ## 1. 当前执行窗口
 
-Task 16.21 Experimental Design 按饱和停止规则关闭。Task 16.22 API Tester 完成冻结 baseline，因两个
-development task 都没有 original full success 而 gate failed；base IR 和 held-out 均未放行。旧结果不
-改判。下一阶段采用 prospective partial-benefit re-entry，把 API Tester 作为 method-development case，
-另选 untouched real skill 承担 replication。
+Task 16.21 Experimental Design 和 Task 17.16 i18n 均已冻结饱和证据；API Tester 保留首个通过
+development gate 的 artifact case。旧结果不改判。下一阶段暂停“遇到饱和就继续换 skill”的循环，先实现
+通用 Skill Contribution Identifiability 门禁，区分 benchmark underidentification 与真实模型能力饱和，再
+以新 task-set identity 回访 i18n 和 Experimental Design。
 
 当前顺序：
 
@@ -22,7 +22,9 @@ development task 都没有 original full success 而 gate failed；base IR 和 h
 -> API Tester schema-derived artifact development
 -> 修复 Law 公共合同 benchmark，恢复 document-script-template 的可信测量
 -> 引入 i18n-helper React+i18next 源码变换竖切
--> 扩充信息互补的方法案例，至少 6 个起步
+-> 贡献可识别性门禁与既有饱和案例审计
+-> i18n successor task-set 竖切
+-> 回访 Experimental Design 或扩充信息互补案例
 -> readiness gate
 -> untouched replication
 -> 固定三模型族、context 与摊销成本主实验
@@ -59,7 +61,9 @@ gate、validated artifact catalog 和 OpenAPI oracle。旧 lock/package/result �
    的方法案例和自动化/适配成本数据。
 4. Law 旧 held-out 回归与 v1 scorer literal sensitivity 混杂；v2 的 30/30 人工 audit 又漏掉真实 alternative
    field shape。必须先以新身份恢复有效测量，再讨论 artifact 的 task-boundary 泛化。
-5. Experimental Design 饱和与 API Tester 两臂均失败说明 task 区分度必须在优化前单独过门。
+5. Experimental Design 与 i18n 饱和说明“合同合法”和“贡献可识别”是两道门。Experimental Design 旧
+   task-sufficiency audit 已证明 13/13 scorer-required 操作对 no-skill 公开、6/6 skill 增量知识未被旧任务
+   测量；i18n v3 又把 exact marker key、操作顺序和完整输出合同交给了 no-skill。继续盲选案例会重复该问题。
 6. 本轮已将可再生成的 `run/qualification-work/artifacts/snapshots/plan/resource-probe` 默认 ignore，
    untracked result files 从约 3741 降到约 216；剩余 scored/raw/diagnostic 候选需逐项判断是否应提交，
    不能治理性删除。
@@ -554,13 +558,91 @@ reject。因此 measurement 有效并允许进入 base IR/source audit；该差�
    successor lock，最终 8/8 observable、0 infrastructure、两臂 4/4、mean 1.0，因 saturation gate failed。
    停止在 baseline，不创建 base IR/artifact/held-out。
 
-#### Task 17.17 下一有区分度方法案例（下一步）
+#### Task 17.17 Skill Contribution Identifiability 与饱和案例回访（下一步）
 
-1. 不继续在已冻结 i18n v3 的同一 2+2 分母上堆 task 或 calibration；其 benchmark 合同与饱和证据均保留。
-2. 从已完成 source closure 的真实 skill 候选中，优先选择公开合同可确定评分且预期 no-skill 不饱和的 phenotype；
-   先做 2+2 task freeze、contract audit 和 `no-skill | original` baseline，不预先生成 IR。
-3. 只有 baseline 有区分度且 original residual 能映射到公开 skill 语义，才进入 source-audited base IR 和公共
-   assembly artifact；否则按 saturation/measurement failure 停止并换案例。
+**冻结边界**
+
+- 不修改 i18n v3、Experimental Design v2/skill-unique 的 task、scorer、lock、raw/scored/gate 或历史审计；
+- 不以目标 no-skill 分数反推难度，不增加私有 gold、唯一算法、唯一 key 或措辞约束；
+- 新门禁只决定 benchmark 是否具备可归因贡献面，不授予 base IR、artifact、held-out 或优化 claim；
+- 修复 underidentified task 使用新 task-set 和 calibration identity，尽量复用现有 ABI、runner 与 scorer core，
+  不新增 runtime、transport 或 artifact catalog 版本。
+
+**Task 17.17.1 通用 manifest、analyzer 与 compact report**
+
+1. [ ] RED：新建 `src/benchmarks/skill-ir/skill-contribution-identifiability.test.ts`，覆盖安全相对路径、
+   path+digest/quote drift、重复 claim/criterion、criterion weight/hard gate、逐 task coverage 和封闭来源类型；
+2. [ ] RED：覆盖 canonical、alternative-valid、prompt-only omission、reverse-evidence 与 forbidden sink；删除
+   skill source anchor 后约束必须消失或降级 unconfirmed；
+3. [ ] GREEN：实现 `skill-contribution-identifiability.ts`。通用 core 只读取声明式 manifest，不按 skill id
+   分支，不用文本相似度自动猜测 claim；
+4. [ ] GREEN：报告 skill-derived claim 数、逐 task coverage、归一化 criterion weight、answer-bearing duplication、
+   canary 状态和付费前资格分类；paired baseline 后的最终诊断由既有 calibration/gate evidence 合成，不让静态
+   analyzer 猜测模型表现；首版门禁使用 spec 8.1 的固定阈值；
+5. [ ] 新建无模型 run entry，显式输入 manifest/output path，compact report 禁止包含 held-out 内容、evaluator
+   expected、raw model text、secret 或绝对路径。
+
+首版文件与公共接口固定为：
+
+```text
+src/benchmarks/skill-ir/skill-contribution-identifiability.ts
+src/benchmarks/skill-ir/skill-contribution-identifiability.test.ts
+src/benchmarks/skill-ir/skill-contribution-identifiability-run.ts
+benchmarks/skill-ir/pilots/<pilot>/contribution-identifiability.json
+results/skill-ir/<pilot>-contribution-identifiability-v1/report.json
+```
+
+```ts
+export type ContributionSource =
+  | "task-outcome"
+  | "fixture-derived"
+  | "skill-derived"
+  | "overlap";
+
+export function verifyContributionManifest(
+  manifest: unknown,
+  rootDir: string,
+): ContributionManifestVerification;
+
+export function analyzeSkillContribution(
+  verified: VerifiedContributionManifest,
+): SkillContributionReport;
+```
+
+manifest 必须显式列出 task/criterion/claim id、权重、hard gate、source 类型、quote+relative path+digest anchor、
+canary fixture 和 forbidden sink；analyzer 不接收模型输出，也不访问网络。run entry 只负责解析
+`--manifest=<path> --out=<path>`、调用 core 并以非零退出码表示 schema、安全或门禁失败。具体字段由 RED schema
+测试冻结，不能为某个 pilot 增加隐藏分支。
+
+**Task 17.17.2 既有饱和案例审计**
+
+1. [ ] 为 Experimental Design v2/skill-unique 和 i18n v3 分别提交 development-only manifest；只引用既有
+   source/task/contract/scorer 和冻结 compact gate，不消费 held-out；
+2. [ ] Experimental Design 必须复现旧 13/13 operational disclosure、6/6 unmeasured incremental knowledge，
+   并单独报告 skill-unique successor 在贡献面合格后仍被强模型解决的情况；
+3. [ ] i18n v3 必须量化 exact `data-i18n-key`、prompt 操作序列和 scorer criteria 的重叠，预期诊断为
+   `benchmark-underidentified`；若证据不支持，不得为了符合预期修改分类；
+4. [ ] 报告写入新的 compact result，不覆盖旧 task-sufficiency、gate 或 experiment result。
+
+**Task 17.17.3 i18n contribution-identifiable successor**
+
+1. [ ] 先冻结新 2+2 task split 与 task-set identity，再实现 scorer/audit。沿用 React+i18next phenotype，但
+   不在源代码预填 exact key；prompt 只声明用户目标、允许修改范围和输出 ABI，不给完整 rewrite recipe；
+2. [ ] development fixture 至少覆盖多文件/已有部分 i18n、插值或复数、重复文本复用、URL/log/test selector
+   排除和 protected behavior；实际组合以 source-attributable 且可确定评分为准；
+3. [ ] scorer 从公开源码和最终 workdir 派生候选文本、调用/locale 一致性和行为保持，接受多种稳定 key 与
+   等价代码结构；不使用 hidden key set；
+4. [ ] 先通过 public output ABI、alternative-valid、prompt-only omission、reverse-evidence、gold/held-out
+   leak、materialization 和 contribution-identifiability audit；失败则不付费；
+5. [ ] 审计通过后才冻结同一强模型/Pi/Windows/clean、`no-skill | original`、2 tasks x 2 repetitions、
+   `retries=0` 的唯一 baseline。若仍双臂满分，标记 `model-capability-saturated`，不继续堆任务。
+
+**Task 17.17.4 结果分流**
+
+1. [ ] 有区分度且 original residual 可映射到 source 时，进入 source-audited base IR 和公共 assembly；
+2. [ ] 合同与贡献门禁通过但仍饱和时，只允许另行预注册 quality-parity efficiency ablation；
+3. [ ] i18n 完成后按同一门禁复核 Experimental Design，再决定回访 successor 还是选择新的信息互补 skill；
+4. [ ] 更新 portfolio 的 blocker/automation 指标；该阶段不改变 untouched replication 计数。
 
 ## 6. 验证与实验门禁
 
@@ -581,6 +663,7 @@ git diff --check
 schema/contract tests
 -> source + task split freeze
 -> differential + leak + materialization audit
+-> skill contribution identifiability audit
 -> lock commit/digest validation
 -> dry-run
 -> resource/route probe

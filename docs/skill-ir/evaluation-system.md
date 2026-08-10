@@ -302,12 +302,32 @@ content block 触发 parser TypeError 而停止；修复使用新 calibration id
 observable、0 infrastructure、8/8 report ABI pass，但 no-skill/original 均 4/4、mean 1.0，0 differing pair。
 因此执行合同已恢复，当前结论是 baseline saturation，不是 skill 优化或回归。
 
+### 8.1 贡献可识别性审计
+
+Contract audit 证明 scorer 没有私有收窄；贡献可识别性审计进一步证明 scorer 确实测到了 skill 的独有方法或
+风险处理。两者必须分开，后者不能用“no-skill 实际得分较低”倒推通过。
+
+通用 `skill-contribution-identifiability/v1` manifest 绑定 development task/prompt、public contract、scorer、
+source closure 和 criterion 定义。每条 claim 使用 quote+path+digest anchor，并区分 `task-outcome`、
+`fixture-derived`、`skill-derived`、`overlap`。报告至少输出：
+
+- skill-derived claim 总数、逐 task coverage 和 criterion weight；
+- answer-bearing procedure duplication；
+- canonical、alternative-valid、prompt-only omission 与 reverse-evidence 结果；
+- forbidden evidence sink、held-out/gold/secret/path safety；
+- 静态 `eligible-for-baseline | benchmark-underidentified | measurement-invalid` 状态；完成冻结 paired baseline 后，
+  工作流再输出 `benchmark-underidentified | distinguishable | model-capability-saturated | measurement-invalid` 最终诊断。
+
+该审计通过不保证 no-skill 低于满分。它保证饱和时可以把结果归为模型能力覆盖，而不是任务没有测到 skill。
+审计失败时不得付费；应新建 task-set identity 修复任务贡献面，不能调低通过阈值或给 scorer 加隐藏答案。
+
 ## 9. Gate 顺序
 
 ```text
 task/source freeze
 -> benchmark contract audit
 -> materialization audit
+-> skill contribution identifiability audit
 -> no-skill/original distinguishability calibration
 -> source-audited base IR
 -> static development

@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-09
+**最后更新：** 2026-08-10
 
 ## 1. 项目定位
 
@@ -610,6 +610,57 @@ Benchmark v2 将主语义成功与 deterministic profile 分开：
 
 当前 v2 measurement evidence 是 42/42 differential、36/36 materialization，足以说明其优于 v1 的
 测量合同；运行结果是否有区分度和优化是否有效仍需逐 skill 单独验证。
+
+### 8.1 Skill Contribution Identifiability
+
+Benchmark 合同合法不等于它能够识别 skill 的增量贡献。2026-08-10 起，新的方法开发 baseline 在付费前
+增加 `skill-contribution-identifiability/v1` 门禁；旧 task、scorer、lock、result 和 task-sufficiency report
+保持冻结。该门禁不以“强行压低 no-skill 分数”为目标，而是判断当前任务是否给 skill 留出了可观察、可归因
+的贡献面。
+
+每个候选任务必须把要求分为四类：
+
+1. `task-outcome`：用户可见的目标、允许修改范围和输出 ABI；必须公开，但不应包含完整解法；
+2. `fixture-derived`：scorer 可从 agent 可见输入和最终 workdir 重建的事实；
+3. `skill-derived`：来自有 provenance 的 skill source、用于避免领域错误或改善方法质量的规则；
+4. `overlap`：同时出现在 task/prompt 与 skill 中的规则。若 prompt 已给出具体答案、完整操作序列或可直接
+   复制的 witness，必须标记为 `answer-bearing-duplication`，不能计为 skill 增量。
+
+每个 scorer criterion 必须声明 task、权重、hard-gate 身份和上述来源；一个 criterion 可以有多个来源，但
+只有绑定 source anchor、fixture-derived observable 和反向证据的部分才计入 skill-derived coverage。每个 task
+内的 criterion weight 必须归一化为 1，task-set coverage 是各 development task 的 skill-derived weight 算术
+平均。相互独立的 claim 必须具有不同 source anchor 或不同可观察失败语义，重复表述不重复计数。首版门禁固定为：
+
+- 整个 task set 至少有 2 个相互独立的 skill-derived claim；
+- 每个 development task 至少测量 1 个 skill-derived claim；
+- skill-derived criteria 的总权重至少为 0.30，或其中至少 1 项是 hard gate；
+- `answer-bearing-duplication` 为 0；输出文件名、ABI 和安全边界的公开不视为答案泄漏；
+- canonical、alternative-valid、prompt-only omission、reverse-evidence 和 forbidden-sink canary 全部通过；
+- 删除 source evidence 后，相应 claim 必须变成 unconfirmed 或从约束集合消失，不能由 evaluator 私有金标保留。
+
+`prompt-only omission` fixture 应能完成基本产物合同，但故意遗漏至少一个 source-attributable 风险处理；它
+必须只在对应 skill-derived criterion 上失败。该 fixture 用于证明 scorer 能观察增量语义，不代表真实
+no-skill 模型必然失败。禁止通过隐藏输出 schema、唯一措辞、唯一 key、唯一算法或 held-out 金标制造差异。
+
+付费前静态 analyzer 只输出 `eligible-for-baseline | benchmark-underidentified | measurement-invalid`。只有
+`eligible-for-baseline` 可以进入冻结 paired baseline；baseline 与 execution authority 完成后，工作流把资格状态
+收敛为以下四种互斥最终诊断：
+
+```text
+benchmark-underidentified   # 贡献面没有被任务/scorer 可靠测量
+distinguishable             # 合同合格，真实 paired baseline 存在差异
+model-capability-saturated  # 合同合格，但预注册强模型 no-skill/original 均饱和
+measurement-invalid         # scorer authority、ABI、执行分母或基础设施不成立
+```
+
+`model-capability-saturated` 是有效负结果，不能通过事后提高阈值改写。此时可以预注册 quality-parity efficiency
+ablation，比较相同质量下的 runtime/compile/profile/package Token；该结果不能冒充质量提升。只有
+`benchmark-underidentified` 才回到 task/scorer 设计。修复必须使用新的 task-set/calibration identity，不原地
+修改冻结 benchmark。
+
+通用 analyzer 只消费声明式 manifest、path+digest 和 evidence anchors，不按 skill id 分支，也不自动用文本
+相似度猜测语义。现有 Experimental Design 专用 task-sufficiency audit 保留为历史证据；新 analyzer 首先对
+Experimental Design 与 i18n v3 生成可比较的 compact report，再决定 successor task，而不是继续盲选 skill。
 
 ## 9. Prospective Partial-benefit Re-entry
 
