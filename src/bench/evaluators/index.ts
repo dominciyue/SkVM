@@ -31,6 +31,7 @@ import "./api-tester-grade.ts"
 import "./zh-code-reviewer-grade.ts"
 import "./zh-readme-grade.ts"
 import "./i18n-helper-grade-v2.ts"
+import "./i18n-helper-contribution-grade.ts"
 // import "./docker-grader.ts"   // example of future addition
 // import "./js-grader.ts"       // example of future addition
 
@@ -47,6 +48,7 @@ export const customEvaluatorSourcePaths = new Map<string, string>([
   ["skill-ir-zh-code-reviewer", "src/bench/evaluators/zh-code-reviewer-grade.ts"],
   ["skill-ir-zh-readme", "src/bench/evaluators/zh-readme-grade.ts"],
   ["skill-ir-i18n-helper-v2", "src/bench/evaluators/i18n-helper-grade-v2.ts"],
+  ["skill-ir-i18n-helper-contribution-v1", "src/bench/evaluators/i18n-helper-contribution-grade.ts"],
 ])
 
 export const customEvaluatorSourceDigests = new Map<string, string>([
@@ -62,6 +64,7 @@ export const customEvaluatorSourceDigests = new Map<string, string>([
   ["skill-ir-zh-code-reviewer", "0c3bc91fd611317741d0a1700e57bd938f2e207f2adac5442e22d72e297cc3d2"],
   ["skill-ir-zh-readme", "a9da3bab92bbb8f24f2a0b8292e66c5c2122bddded4996c350d4bbdc061a8a45"],
   ["skill-ir-i18n-helper-v2", "5adb4583cb33eb9429d62b23b0187cb1a061c263f15164d284f5c13732e55e91"],
+  ["skill-ir-i18n-helper-contribution-v1", "d439fbda85932240e4b78a0886bf116e06a6583e2a50608e301c9efefe09d536"],
 ])
 
 export const customEvaluatorImplementations = new Map<string, CustomEvaluator>(

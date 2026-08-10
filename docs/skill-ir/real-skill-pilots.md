@@ -45,7 +45,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
 | zh-readme | repository fact/documentation | contract-qualified method-development | benchmark audit 合格；v1/v2 付费 measurement 均 invalid，不开放 base IR。 |
-| i18n-helper | React+i18next source transformation | contract-qualified method-development | execution-bound successor 8/8 observable、8/8 ABI pass；两臂满分，baseline saturated。 |
+| i18n-helper | React+i18next source transformation | contract-qualified method-development | v3 execution-bound baseline 饱和；contribution-v1 已通过静态贡献门禁并冻结新 baseline。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -140,8 +140,10 @@ unautomatedSteps + blockers
 6. 预计人工适配可被声明式 contract 表达。
 
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
-closure 均已验证。i18n v3 execution-bound baseline 也已 8/8 可观测，但两臂 4/4 饱和；不创建 benchmark
-v4、不提前构造 IR。下一步按 provenance、task、scorer、audit 的竖切转向另一个预期有区分度的真实 skill。
+closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 `contribution-v1` 是独立 task-set，
+用于修复 answer-bearing task 造成的贡献不可识别。它已冻结 2+2 split、source-derived scorer、5 类 canary、
+materialization、identifiability report 和 `gpt-5.6-sol`/Pi/Windows/clean paired baseline lock。当前只完成 dry-run，
+qualification/付费 development 结果出来前不构造 IR，也不消费 held-out。
 
 `zh-code-reviewer` 当前可复建命令：
 

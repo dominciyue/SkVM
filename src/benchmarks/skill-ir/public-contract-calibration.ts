@@ -4,6 +4,12 @@ import ts from "typescript"
 import { z } from "zod"
 import { BenchmarkContractAuditManifestSchema } from "./benchmark-contract-audit.ts"
 import {
+  analyzeSkillContribution,
+  SkillContributionIdentifiabilityManifestSchema,
+  SkillContributionIdentifiabilityReportSchema,
+  verifyContributionManifest,
+} from "./skill-contribution-identifiability.ts"
+import {
   MethodCaseTaskSplitFreezeSchema,
   verifyMethodCaseTaskSplitFreeze,
 } from "./method-case-task-split-freeze.ts"
@@ -313,37 +319,71 @@ export async function validatePublicContractCalibrationLock(
     throw new Error("calibration task split or public source binding mismatch")
   }
 
-  const auditManifest = BenchmarkContractAuditManifestSchema.parse(JSON.parse(
-    bytes.get("contractAuditManifest")!.toString("utf8"),
-  ))
-  if (
-    auditManifest.skillId !== lock.skillId
-    || auditManifest.tasks.path !== lock.frozenInputs.tasks.path
-    || auditManifest.tasks.sha256 !== lock.frozenInputs.tasks.sha256
-    || auditManifest.scorer.path !== lock.frozenInputs.scorer.path
-    || auditManifest.scorer.sha256 !== lock.frozenInputs.scorer.sha256
-    || JSON.stringify(auditManifest.scope.taskIds) !== JSON.stringify(lock.matrix.taskIds)
-  ) {
-    throw new Error("calibration contract audit manifest binding mismatch")
+  const auditManifestValue = JSON.parse(bytes.get("contractAuditManifest")!.toString("utf8")) as {
+    schemaVersion?: unknown
   }
-  const auditReport = JSON.parse(bytes.get("contractAuditReport")!.toString("utf8")) as {
-    auditId?: string
-    skillId?: string
-    staticStatus?: string
-    status?: string
-    canaries?: Array<{ status?: string }>
-    issues?: unknown[]
-  }
-  if (
-    auditReport.auditId !== auditManifest.auditId
-    || auditReport.skillId !== lock.skillId
-    || auditReport.staticStatus !== "passed"
-    || auditReport.status !== "passed"
-    || auditReport.canaries?.length !== 30
-    || auditReport.canaries.some((canary) => canary.status !== "matched")
-    || auditReport.issues?.length !== 0
-  ) {
-    throw new Error("calibration requires a passed 30-canary contract audit")
+  if (auditManifestValue.schemaVersion === "skill-contribution-identifiability/v1") {
+    const auditManifest = SkillContributionIdentifiabilityManifestSchema.parse(auditManifestValue)
+    const taskEvidence = auditManifest.claims.flatMap((claim) => claim.evidence).some((evidence) =>
+      evidence.kind === "task-set"
+      && evidence.path === lock.frozenInputs.tasks.path
+      && evidence.sha256 === lock.frozenInputs.tasks.sha256
+    )
+    const scorerEvidence = auditManifest.claims.flatMap((claim) => claim.evidence).some((evidence) =>
+      evidence.kind === "scorer"
+      && evidence.path === lock.frozenInputs.scorer.path
+      && evidence.sha256 === lock.frozenInputs.scorer.sha256
+    )
+    if (
+      auditManifest.skillId !== lock.skillId
+      || JSON.stringify(auditManifest.scope.taskIds) !== JSON.stringify(lock.matrix.taskIds)
+      || !taskEvidence
+      || !scorerEvidence
+    ) {
+      throw new Error("calibration contribution audit manifest binding mismatch")
+    }
+    const computed = analyzeSkillContribution(await verifyContributionManifest(auditManifest, rootDir))
+    const frozen = SkillContributionIdentifiabilityReportSchema.parse(JSON.parse(
+      bytes.get("contractAuditReport")!.toString("utf8"),
+    ))
+    if (
+      JSON.stringify(frozen) !== JSON.stringify(computed)
+      || frozen.status !== "eligible-for-baseline"
+      || frozen.issues.length !== 0
+    ) {
+      throw new Error("calibration requires an eligible contribution-identifiability audit")
+    }
+  } else {
+    const auditManifest = BenchmarkContractAuditManifestSchema.parse(auditManifestValue)
+    if (
+      auditManifest.skillId !== lock.skillId
+      || auditManifest.tasks.path !== lock.frozenInputs.tasks.path
+      || auditManifest.tasks.sha256 !== lock.frozenInputs.tasks.sha256
+      || auditManifest.scorer.path !== lock.frozenInputs.scorer.path
+      || auditManifest.scorer.sha256 !== lock.frozenInputs.scorer.sha256
+      || JSON.stringify(auditManifest.scope.taskIds) !== JSON.stringify(lock.matrix.taskIds)
+    ) {
+      throw new Error("calibration contract audit manifest binding mismatch")
+    }
+    const auditReport = JSON.parse(bytes.get("contractAuditReport")!.toString("utf8")) as {
+      auditId?: string
+      skillId?: string
+      staticStatus?: string
+      status?: string
+      canaries?: Array<{ status?: string }>
+      issues?: unknown[]
+    }
+    if (
+      auditReport.auditId !== auditManifest.auditId
+      || auditReport.skillId !== lock.skillId
+      || auditReport.staticStatus !== "passed"
+      || auditReport.status !== "passed"
+      || auditReport.canaries?.length !== 30
+      || auditReport.canaries.some((canary) => canary.status !== "matched")
+      || auditReport.issues?.length !== 0
+    ) {
+      throw new Error("calibration requires a passed 30-canary contract audit")
+    }
   }
 
   const corpus = JSON.parse(await readFile(

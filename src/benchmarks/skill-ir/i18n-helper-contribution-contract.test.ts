@@ -2,6 +2,10 @@ import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
 import { BenchTaskFileSchema } from "../../bench/types.ts"
 import { PublicOutputAbiV2Schema } from "../../bench/public-output-abi-v2.ts"
+import {
+  MethodCaseTaskSplitFreezeSchema,
+  verifyMethodCaseTaskSplitFreeze,
+} from "./method-case-task-split-freeze.ts"
 
 const ROOT = "benchmarks/skill-ir/pilots/i18n-helper/contribution-v1"
 
@@ -75,5 +79,19 @@ describe("i18n-helper contribution-identifiable benchmark contract", () => {
     expect(`${contractText}\n${developmentText}\n${heldoutText}\n${auditText}`).not.toMatch(
       /TEST_ONLY_|expectedAnswer|modelOutput|raw-runs|historicalResult/iu,
     )
+  })
+
+  test("binds the task surface to its pre-scorer commit", async () => {
+    const freeze = MethodCaseTaskSplitFreezeSchema.parse(await readJson("task-split-freeze.json"))
+    expect(freeze.taskCommit).toBe("e10e033548e8faa9103e0a7d4b470399a4a2e39c")
+    expect(freeze.developmentTasks.taskIds).toEqual([
+      "i18n-helper-contribution-multifile-dev-001",
+      "i18n-helper-contribution-partial-plural-dev-002",
+    ])
+    expect(freeze.heldoutTasks.taskIds).toEqual([
+      "i18n-helper-contribution-notification-heldout-001",
+      "i18n-helper-contribution-inventory-heldout-002",
+    ])
+    await expect(verifyMethodCaseTaskSplitFreeze(process.cwd(), freeze)).resolves.toEqual(freeze)
   })
 })

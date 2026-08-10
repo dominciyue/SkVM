@@ -1,0 +1,371 @@
+{
+  "schemaVersion": "skill-contribution-identifiability/v1",
+  "auditId": "i18n-helper-contribution-v1-identifiability",
+  "skillId": "i18n-helper-contribution-v1",
+  "taskSetId": "i18n-helper-contribution-development-v1",
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "i18n-helper-contribution-multifile-dev-001",
+      "i18n-helper-contribution-partial-plural-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "multifile-delta",
+      "taskId": "i18n-helper-contribution-multifile-dev-001",
+      "weight": 0.15,
+      "hardGate": true,
+      "claimIds": [
+        "public-artifact-contract"
+      ],
+      "provenance": [
+        "task-outcome"
+      ]
+    },
+    {
+      "id": "multifile-artifact",
+      "taskId": "i18n-helper-contribution-multifile-dev-001",
+      "weight": 0.15,
+      "hardGate": true,
+      "claimIds": [
+        "public-artifact-contract"
+      ],
+      "provenance": [
+        "task-outcome",
+        "fixture-derived"
+      ]
+    },
+    {
+      "id": "multifile-extraction",
+      "taskId": "i18n-helper-contribution-multifile-dev-001",
+      "weight": 0.25,
+      "hardGate": true,
+      "claimIds": [
+        "visible-text-classification",
+        "interpolation-and-key-reuse"
+      ],
+      "provenance": [
+        "skill-derived",
+        "fixture-derived"
+      ]
+    },
+    {
+      "id": "multifile-preservation",
+      "taskId": "i18n-helper-contribution-multifile-dev-001",
+      "weight": 0.2,
+      "hardGate": true,
+      "claimIds": [
+        "visible-text-classification",
+        "existing-translation-preservation"
+      ],
+      "provenance": [
+        "skill-derived",
+        "fixture-derived"
+      ]
+    },
+    {
+      "id": "multifile-locales",
+      "taskId": "i18n-helper-contribution-multifile-dev-001",
+      "weight": 0.25,
+      "hardGate": true,
+      "claimIds": [
+        "interpolation-and-key-reuse",
+        "existing-translation-preservation"
+      ],
+      "provenance": [
+        "skill-derived",
+        "fixture-derived"
+      ]
+    },
+    {
+      "id": "partial-delta",
+      "taskId": "i18n-helper-contribution-partial-plural-dev-002",
+      "weight": 0.15,
+      "hardGate": true,
+      "claimIds": [
+        "public-artifact-contract"
+      ],
+      "provenance": [
+        "task-outcome"
+      ]
+    },
+    {
+      "id": "partial-artifact",
+      "taskId": "i18n-helper-contribution-partial-plural-dev-002",
+      "weight": 0.15,
+      "hardGate": true,
+      "claimIds": [
+        "public-artifact-contract"
+      ],
+      "provenance": [
+        "task-outcome",
+        "fixture-derived"
+      ]
+    },
+    {
+      "id": "partial-extraction",
+      "taskId": "i18n-helper-contribution-partial-plural-dev-002",
+      "weight": 0.25,
+      "hardGate": true,
+      "claimIds": [
+        "visible-text-classification",
+        "interpolation-and-key-reuse"
+      ],
+      "provenance": [
+        "skill-derived",
+        "fixture-derived"
+      ]
+    },
+    {
+      "id": "partial-preservation",
+      "taskId": "i18n-helper-contribution-partial-plural-dev-002",
+      "weight": 0.2,
+      "hardGate": true,
+      "claimIds": [
+        "visible-text-classification",
+        "existing-translation-preservation"
+      ],
+      "provenance": [
+        "skill-derived",
+        "fixture-derived"
+      ]
+    },
+    {
+      "id": "partial-locales",
+      "taskId": "i18n-helper-contribution-partial-plural-dev-002",
+      "weight": 0.25,
+      "hardGate": true,
+      "claimIds": [
+        "interpolation-and-key-reuse",
+        "existing-translation-preservation"
+      ],
+      "provenance": [
+        "skill-derived",
+        "fixture-derived"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "public-artifact-contract",
+      "summary": "Create only the declared i18next outputs and a report conforming to the public ABI.",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001",
+        "i18n-helper-contribution-partial-plural-dev-002"
+      ],
+      "failureMode": "artifact-contract-violation",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "task-outcome",
+          "kind": "public-contract",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v1/public-contract.json",
+          "sha256": "18f9ce787ecfc8512fa381d5ae42d9461c0f2a0a454cf8f3b2f10c2b3fed8d0a",
+          "quote": "Use any stable nonempty dot-separated key. No exact key spelling is prescribed."
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-contribution-grade.ts",
+          "sha256": "d439fbda85932240e4b78a0886bf116e06a6583e2a50608e301c9efefe09d536",
+          "quote": "validatePublicOutputRecordV2(evidence.contract.outputAbi"
+        }
+      ]
+    },
+    {
+      "id": "visible-text-classification",
+      "summary": "Extract user-visible UI text while preserving URLs, imports, debug strings, and technical terms.",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001",
+        "i18n-helper-contribution-partial-plural-dev-002"
+      ],
+      "failureMode": "visible-text-boundary-error",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+          "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+          "quote": "排除：变量名、URL、正则表达式、import 路径、日志调试信息"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v1/development/tasks.json",
+          "sha256": "054bc6fa23ce60864643e986a219ebffc6ef51733c79257e206d6aa34aec42cc",
+          "quote": "console.debug('HTTP')"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-contribution-grade.ts",
+          "sha256": "d439fbda85932240e4b78a0886bf116e06a6583e2a50608e301c9efefe09d536",
+          "quote": "const TECHNICAL_LITERAL = /^(?:API|HTTP|HTTPS|SDK)$/u"
+        }
+      ]
+    },
+    {
+      "id": "interpolation-and-key-reuse",
+      "summary": "Preserve named interpolation and reuse one stable key for repeated equivalent source messages.",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001",
+        "i18n-helper-contribution-partial-plural-dev-002"
+      ],
+      "failureMode": "interpolation-or-reuse-loss",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+          "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+          "quote": "保持原有格式和变量插值"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v1/development/tasks.json",
+          "sha256": "054bc6fa23ce60864643e986a219ebffc6ef51733c79257e206d6aa34aec42cc",
+          "quote": "欢迎，{name}"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-contribution-grade.ts",
+          "sha256": "d439fbda85932240e4b78a0886bf116e06a6583e2a50608e301c9efefe09d536",
+          "quote": "calls.length === entry.occurrences"
+        }
+      ]
+    },
+    {
+      "id": "existing-translation-preservation",
+      "summary": "Keep existing locale values and require complete locale entries with matching placeholders for every extracted message.",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001",
+        "i18n-helper-contribution-partial-plural-dev-002"
+      ],
+      "failureMode": "locale-completeness-or-preservation-loss",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+          "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+          "quote": "对比主语言文件与翻译文件的 key 差异"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v1/development/tasks.json",
+          "sha256": "054bc6fa23ce60864643e986a219ebffc6ef51733c79257e206d6aa34aec42cc",
+          "quote": "common.cart"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/i18n-helper-contribution-grade.ts",
+          "sha256": "d439fbda85932240e4b78a0886bf116e06a6583e2a50608e301c9efefe09d536",
+          "quote": "const preserved = baselineLocales.every"
+        }
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "i18n-contribution-canonical",
+      "role": "canonical-valid",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001"
+      ],
+      "claimIds": [
+        "visible-text-classification",
+        "interpolation-and-key-reuse",
+        "existing-translation-preservation"
+      ],
+      "observation": {
+        "path": "results/skill-ir/i18n-helper-contribution-contract-audit-v1/report.json",
+        "sha256": "3ef7a3d1c146330a42316a71f5304b7b7967952a3bd75af9d130e193a9f814ac",
+        "jsonPointer": "/canaries/canonicalValid",
+        "expected": true
+      }
+    },
+    {
+      "id": "i18n-contribution-alternative",
+      "role": "alternative-valid",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001"
+      ],
+      "claimIds": [
+        "interpolation-and-key-reuse"
+      ],
+      "observation": {
+        "path": "results/skill-ir/i18n-helper-contribution-contract-audit-v1/report.json",
+        "sha256": "3ef7a3d1c146330a42316a71f5304b7b7967952a3bd75af9d130e193a9f814ac",
+        "jsonPointer": "/canaries/alternativeValid",
+        "expected": true
+      }
+    },
+    {
+      "id": "i18n-contribution-omission",
+      "role": "prompt-only-omission",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001",
+        "i18n-helper-contribution-partial-plural-dev-002"
+      ],
+      "claimIds": [
+        "visible-text-classification"
+      ],
+      "observation": {
+        "path": "results/skill-ir/i18n-helper-contribution-contract-audit-v1/report.json",
+        "sha256": "3ef7a3d1c146330a42316a71f5304b7b7967952a3bd75af9d130e193a9f814ac",
+        "jsonPointer": "/canaries/promptOnlyOmissionAccepted",
+        "expected": false
+      }
+    },
+    {
+      "id": "i18n-contribution-reverse",
+      "role": "reverse-evidence",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001",
+        "i18n-helper-contribution-partial-plural-dev-002"
+      ],
+      "claimIds": [
+        "visible-text-classification"
+      ],
+      "observation": {
+        "path": "results/skill-ir/i18n-helper-contribution-contract-audit-v1/report.json",
+        "sha256": "3ef7a3d1c146330a42316a71f5304b7b7967952a3bd75af9d130e193a9f814ac",
+        "jsonPointer": "/canaries/reverseEvidenceRemovesConstraint",
+        "expected": true
+      }
+    },
+    {
+      "id": "i18n-contribution-forbidden",
+      "role": "forbidden-sink",
+      "taskIds": [
+        "i18n-helper-contribution-multifile-dev-001",
+        "i18n-helper-contribution-partial-plural-dev-002"
+      ],
+      "claimIds": [
+        "public-artifact-contract"
+      ],
+      "observation": {
+        "path": "results/skill-ir/i18n-helper-contribution-contract-audit-v1/report.json",
+        "sha256": "3ef7a3d1c146330a42316a71f5304b7b7967952a3bd75af9d130e193a9f814ac",
+        "jsonPointer": "/canaries/forbiddenSinkFree",
+        "expected": true
+      }
+    }
+  ],
+  "forbiddenEvidenceClasses": [
+    "evaluation-split-task",
+    "evaluator-expected",
+    "historical-raw-model-text",
+    "package-generated-answer",
+    "secret",
+    "absolute-path"
+  ]
+}

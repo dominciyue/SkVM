@@ -633,16 +633,22 @@ answer-bearing duplication、0 skill-derived coverage；skill-unique successor �
 
 **Task 17.17.3 i18n contribution-identifiable successor**
 
-1. [ ] 先冻结新 2+2 task split 与 task-set identity，再实现 scorer/audit。沿用 React+i18next phenotype，但
+1. [x] 先冻结新 2+2 task split 与 task-set identity，再实现 scorer/audit。沿用 React+i18next phenotype，但
    不在源代码预填 exact key；prompt 只声明用户目标、允许修改范围和输出 ABI，不给完整 rewrite recipe；
-2. [ ] development fixture 至少覆盖多文件/已有部分 i18n、插值或复数、重复文本复用、URL/log/test selector
+2. [x] development fixture 至少覆盖多文件/已有部分 i18n、插值或复数、重复文本复用、URL/log/test selector
    排除和 protected behavior；实际组合以 source-attributable 且可确定评分为准；
-3. [ ] scorer 从公开源码和最终 workdir 派生候选文本、调用/locale 一致性和行为保持，接受多种稳定 key 与
+3. [x] scorer 从公开源码和最终 workdir 派生候选文本、调用/locale 一致性和行为保持，接受多种稳定 key 与
    等价代码结构；不使用 hidden key set；
-4. [ ] 先通过 public output ABI、alternative-valid、prompt-only omission、reverse-evidence、gold/held-out
+4. [x] 先通过 public output ABI、alternative-valid、prompt-only omission、reverse-evidence、gold/held-out
    leak、materialization 和 contribution-identifiability audit；失败则不付费；
 5. [ ] 审计通过后才冻结同一强模型/Pi/Windows/clean、`no-skill | original`、2 tasks x 2 repetitions、
    `retries=0` 的唯一 baseline。若仍双臂满分，标记 `model-capability-saturated`，不继续堆任务。
+
+当前结果：新 `i18n-helper-contribution-v1` 的 pre-scorer task commit 与 2+2 split 已冻结；scorer 只从受保护
+baseline、公开 contract 和最终 workdir 派生候选，接受两套不同 key 分配。五类 contribution canary、
+materialization 和 forbidden-sink 检查通过，identifiability 报告为 `eligible-for-baseline`：3 条独立
+skill-derived claim、逐 task skill-derived weight `0.70`、0 answer-bearing duplication。baseline lock 已在
+付费前冻结并通过 8-row dry-run；qualification 与唯一付费矩阵尚未执行。
 
 **Task 17.17.4 结果分流**
 

@@ -52,6 +52,14 @@ const cases = [
     lockPath: "benchmarks/skill-ir/pilots/i18n-helper/v3/execution-observable-calibration-lock-v2.json",
     taskIds: ["i18n-helper-v3-react-basic-dev-001", "i18n-helper-v3-react-interpolation-dev-002"],
   },
+  {
+    skillId: "i18n-helper-contribution-v1",
+    lockPath: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v1/development-calibration-lock.json",
+    taskIds: [
+      "i18n-helper-contribution-multifile-dev-001",
+      "i18n-helper-contribution-partial-plural-dev-002",
+    ],
+  },
 ] as const
 
 function scoredRow(input: {

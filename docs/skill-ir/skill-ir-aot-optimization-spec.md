@@ -668,6 +668,14 @@ public-skill overlap 与 `6/6` unmeasured incremental knowledge。Experimental D
 `eligible-for-baseline`，有 3 条独立 source-bound claim、逐 task weight `0.80` 和完整 5 类 canary；其历史
 no-skill/original 同时满分仍是单独的 model-capability saturation 证据，不构成 skill 优化成功。
 
+i18n 的 contribution-identifiable successor 使用新 `contribution-v1` task-set identity。2+2 split 在 scorer
+前绑定到提交 `e10e033548e8faa9103e0a7d4b470399a4a2e39c`；任务不提供 exact key 或完整 rewrite recipe，scorer
+从 agent 可见 baseline TSX、locale baseline、公开 contract 和最终 workdir 派生语义。它接受不同稳定 key，
+同时检查 UI 文本/属性、多文件重复复用、插值、技术术语/URL/log/test selector 排除、已有翻译保持和 report
+一致性。本地五类 canary 与 materialization 全通过，静态报告为 `eligible-for-baseline`，3 条独立 claim、
+skill-derived weight `0.70`、0 answer-bearing duplication。该状态只允许冻结 `no-skill | original` baseline，
+不构成优化、Token 或 held-out 证据。
+
 ## 9. Prospective Partial-benefit Re-entry
 
 旧 gate 失败结果不可事后改判。一个案例只有满足版本化 policy 才能以新 identity 进入方法开发：

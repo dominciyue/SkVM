@@ -438,6 +438,9 @@ describe("skill contribution identifiability", () => {
     }, {
       path: "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/contribution-identifiability.json",
       expectedStatus: "eligible-for-baseline",
+    }, {
+      path: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v1/contribution-identifiability.json",
+      expectedStatus: "eligible-for-baseline",
     }] as const
 
     const reports = new Map<string, ReturnType<typeof analyzeSkillContribution>>()
@@ -469,5 +472,11 @@ describe("skill contribution identifiability", () => {
     expect(skillUnique.counts.independentSkillDerivedClaims).toBe(3)
     expect(skillUnique.coverage.taskSetSkillDerivedWeight).toBe(0.8)
     expect(skillUnique.gates.requiredCanariesPassed).toBe(true)
+
+    const i18nContribution = reports.get(cases[3].path)!
+    expect(i18nContribution.counts.independentSkillDerivedClaims).toBe(3)
+    expect(i18nContribution.coverage.taskSetSkillDerivedWeight).toBe(0.7)
+    expect(i18nContribution.counts.answerBearingDuplications).toBe(0)
+    expect(i18nContribution.gates.requiredCanariesPassed).toBe(true)
   })
 })
