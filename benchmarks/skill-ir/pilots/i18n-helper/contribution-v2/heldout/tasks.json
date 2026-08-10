@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "i18n-helper-contribution-v2",
+  "tasks": [
+    {
+      "id": "i18n-helper-contribution-notification-heldout-001",
+      "split": "held-out",
+      "prompt": "Internationalize the user-visible text in the declared React source files with react-i18next. Preserve existing behavior and translations. Read i18n-contract.json and i18n-report-semantics.json for the allowed files and public output ABI, create or update the required outputs, and write the report. Do not install packages, use the network, modify protected inputs, or create undeclared files.",
+      "fixtures": {
+        "package.json": "{\"name\":\"i18n-contribution-notification\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n",
+        "tsconfig.json": "{\"compilerOptions\":{\"jsx\":\"react-jsx\",\"strict\":true,\"resolveJsonModule\":true,\"esModuleInterop\":true}}\n",
+        "src/App.tsx": "import { Panel } from './Panel';\n\nexport function App({ user }: { user: string }) {\n  console.warn('HTTP');\n  return <main data-testid=\"notice-shell\"><h1>你好，{user}</h1><p>更新已完成</p><Panel /></main>;\n}\n",
+        "src/Panel.tsx": "export function Panel() {\n  return <section aria-label=\"通知操作\"><button title=\"关闭通知\">关闭</button><button>关闭</button><a href=\"https://notice.example.test\">API</a></section>;\n}\n",
+        "baseline/src/App.tsx": "import { Panel } from './Panel';\n\nexport function App({ user }: { user: string }) {\n  console.warn('HTTP');\n  return <main data-testid=\"notice-shell\"><h1>你好，{user}</h1><p>更新已完成</p><Panel /></main>;\n}\n",
+        "baseline/src/Panel.tsx": "export function Panel() {\n  return <section aria-label=\"通知操作\"><button title=\"关闭通知\">关闭</button><button>关闭</button><a href=\"https://notice.example.test\">API</a></section>;\n}\n",
+        "baseline/src/locales/zh-CN.json": "{}\n",
+        "baseline/src/locales/en-US.json": "{}\n",
+        "i18n-contract.json": "{\"schemaVersion\":\"skill-ir-i18n-contribution-public-contract/v1\",\"contractId\":\"i18n-helper-contribution-identifiable-v1\",\"framework\":\"react-i18next\",\"sourceFiles\":[\"src/App.tsx\",\"src/Panel.tsx\"],\"baselineFiles\":{\"src/App.tsx\":\"baseline/src/App.tsx\",\"src/Panel.tsx\":\"baseline/src/Panel.tsx\",\"src/locales/zh-CN.json\":\"baseline/src/locales/zh-CN.json\",\"src/locales/en-US.json\":\"baseline/src/locales/en-US.json\"},\"allowedModifiedFiles\":[\"src/App.tsx\",\"src/Panel.tsx\",\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\"],\"requiredOutputFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\",\"i18n-report-semantics.json\",\"baseline/src/App.tsx\",\"baseline/src/Panel.tsx\",\"baseline/src/locales/zh-CN.json\",\"baseline/src/locales/en-US.json\"],\"keyPolicy\":\"Use any stable nonempty dot-separated key. No exact key spelling is prescribed.\",\"report\":{\"path\":\"i18n-report.json\"},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"entries\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"sourceFile\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false}},\"originalText\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false}},\"key\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false}},\"placeholders\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"occurrences\":{\"required\":true,\"schema\":{\"type\":\"integer\",\"nullable\":false}}}}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}",
+        "i18n-report-semantics.json": "{\"schemaVersion\":\"skill-ir-i18n-report-semantics/v1\",\"originalTextPlaceholderSyntax\":\"single-brace\",\"localeInterpolationSyntax\":\"double-brace\",\"pluralKeyPolicy\":\"i18next-v4\"}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "i18n-contribution-delta",
+          "name": "Only declared files change and all outputs exist",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "delta-policy"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-contribution-artifact",
+          "name": "Outputs satisfy the public artifact contract",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "artifact-contract"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-contribution-extraction",
+          "name": "All source-derived user-visible messages are extracted with stable reusable keys",
+          "weight": 0.25,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "extraction-coverage"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-contribution-preservation",
+          "name": "Non-user-visible and protected behavior literals remain intact",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "literal-preservation"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-contribution-locales",
+          "name": "Locales, placeholders, plurals, existing translations, and report agree",
+          "weight": 0.25,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "locale-semantics"
+          }
+        }
+      ],
+      "hardGateIds": [
+        "i18n-contribution-delta",
+        "i18n-contribution-artifact",
+        "i18n-contribution-extraction",
+        "i18n-contribution-preservation",
+        "i18n-contribution-locales"
+      ],
+      "passThreshold": 1
+    },
+    {
+      "id": "i18n-helper-contribution-inventory-heldout-002",
+      "split": "held-out",
+      "prompt": "Internationalize the user-visible text in the declared React source files with react-i18next. Preserve existing behavior and translations. Read i18n-contract.json and i18n-report-semantics.json for the allowed files and public output ABI, create or update the required outputs, and write the report. Do not install packages, use the network, modify protected inputs, or create undeclared files.",
+      "fixtures": {
+        "package.json": "{\"name\":\"i18n-contribution-inventory\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n",
+        "tsconfig.json": "{\"compilerOptions\":{\"jsx\":\"react-jsx\",\"strict\":true,\"resolveJsonModule\":true,\"esModuleInterop\":true}}\n",
+        "src/App.tsx": "import { useTranslation } from 'react-i18next';\nimport { Panel } from './Panel';\n\nexport function App({ count }: { count: number }) {\n  const { t } = useTranslation();\n  console.info('SDK');\n  return <main data-testid=\"inventory-shell\"><h1>{t('inventory.title')}</h1><p>当前有 {count} 个库存项</p><Panel /></main>;\n}\n",
+        "src/Panel.tsx": "import { useTranslation } from 'react-i18next';\n\nexport function Panel() {\n  const { t } = useTranslation();\n  return <aside aria-label=\"库存操作\"><button>{t('common.refresh')}</button><button title=\"导出当前库存\">导出</button><a href=\"https://inventory.example.test\">HTTP</a></aside>;\n}\n",
+        "baseline/src/App.tsx": "import { useTranslation } from 'react-i18next';\nimport { Panel } from './Panel';\n\nexport function App({ count }: { count: number }) {\n  const { t } = useTranslation();\n  console.info('SDK');\n  return <main data-testid=\"inventory-shell\"><h1>{t('inventory.title')}</h1><p>当前有 {count} 个库存项</p><Panel /></main>;\n}\n",
+        "baseline/src/Panel.tsx": "import { useTranslation } from 'react-i18next';\n\nexport function Panel() {\n  const { t } = useTranslation();\n  return <aside aria-label=\"库存操作\"><button>{t('common.refresh')}</button><button title=\"导出当前库存\">导出</button><a href=\"https://inventory.example.test\">HTTP</a></aside>;\n}\n",
+        "src/i18n.ts": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport zhCN from './locales/zh-CN.json';\nimport enUS from './locales/en-US.json';\n\ni18n.use(initReactI18next).init({ resources: { 'zh-CN': { translation: zhCN }, 'en-US': { translation: enUS } }, lng: 'zh-CN' });\nexport default i18n;\n",
+        "src/locales/zh-CN.json": "{\"inventory\":{\"title\":\"库存\"},\"common\":{\"refresh\":\"刷新\"}}\n",
+        "src/locales/en-US.json": "{\"inventory\":{\"title\":\"Inventory\"},\"common\":{\"refresh\":\"Refresh\"}}\n",
+        "baseline/src/locales/zh-CN.json": "{\"inventory\":{\"title\":\"库存\"},\"common\":{\"refresh\":\"刷新\"}}\n",
+        "baseline/src/locales/en-US.json": "{\"inventory\":{\"title\":\"Inventory\"},\"common\":{\"refresh\":\"Refresh\"}}\n",
+        "i18n-contract.json": "{\"schemaVersion\":\"skill-ir-i18n-contribution-public-contract/v1\",\"contractId\":\"i18n-helper-contribution-identifiable-v1\",\"framework\":\"react-i18next\",\"sourceFiles\":[\"src/App.tsx\",\"src/Panel.tsx\"],\"baselineFiles\":{\"src/App.tsx\":\"baseline/src/App.tsx\",\"src/Panel.tsx\":\"baseline/src/Panel.tsx\",\"src/locales/zh-CN.json\":\"baseline/src/locales/zh-CN.json\",\"src/locales/en-US.json\":\"baseline/src/locales/en-US.json\"},\"allowedModifiedFiles\":[\"src/App.tsx\",\"src/Panel.tsx\",\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\"],\"requiredOutputFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\",\"i18n-report-semantics.json\",\"baseline/src/App.tsx\",\"baseline/src/Panel.tsx\",\"baseline/src/locales/zh-CN.json\",\"baseline/src/locales/en-US.json\"],\"keyPolicy\":\"Use any stable nonempty dot-separated key. No exact key spelling is prescribed.\",\"report\":{\"path\":\"i18n-report.json\"},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"entries\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"sourceFile\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false}},\"originalText\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false}},\"key\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false}},\"placeholders\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"occurrences\":{\"required\":true,\"schema\":{\"type\":\"integer\",\"nullable\":false}}}}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}",
+        "i18n-report-semantics.json": "{\"schemaVersion\":\"skill-ir-i18n-report-semantics/v1\",\"originalTextPlaceholderSyntax\":\"single-brace\",\"localeInterpolationSyntax\":\"double-brace\",\"pluralKeyPolicy\":\"i18next-v4\"}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "i18n-contribution-delta",
+          "name": "Only declared files change and all outputs exist",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "delta-policy"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-contribution-artifact",
+          "name": "Outputs satisfy the public artifact contract",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "artifact-contract"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-contribution-extraction",
+          "name": "All source-derived user-visible messages are extracted with stable reusable keys",
+          "weight": 0.25,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "extraction-coverage"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-contribution-preservation",
+          "name": "Non-user-visible and protected behavior literals remain intact",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "literal-preservation"
+          }
+        },
+        {
+          "method": "custom",
+          "id": "i18n-contribution-locales",
+          "name": "Locales, placeholders, plurals, existing translations, and report agree",
+          "weight": 0.25,
+          "evaluatorId": "skill-ir-i18n-helper-contribution-v2",
+          "payload": {
+            "schemaVersion": "skill-ir-i18n-contribution-eval/v2",
+            "check": "locale-semantics"
+          }
+        }
+      ],
+      "hardGateIds": [
+        "i18n-contribution-delta",
+        "i18n-contribution-artifact",
+        "i18n-contribution-extraction",
+        "i18n-contribution-preservation",
+        "i18n-contribution-locales"
+      ],
+      "passThreshold": 1
+    }
+  ]
+}
