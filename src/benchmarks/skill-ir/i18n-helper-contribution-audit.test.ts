@@ -4,7 +4,9 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import {
   I18nContributionAuditReportSchema,
+  I18nContributionV2AuditReportSchema,
   runI18nContributionAudit,
+  runI18nContributionV2Audit,
 } from "./i18n-helper-contribution-audit.ts"
 
 const roots: string[] = []
@@ -34,5 +36,28 @@ describe("i18n-helper contribution-identifiable contract audit", () => {
       evaluatorDoesNotReadHeldoutOrGold: true,
     })
     expect(JSON.parse(await readFile(outputPath, "utf8"))).toEqual(report)
+  })
+
+  test("audits the public placeholder and plural-family successor independently", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "i18n-contribution-v2-audit-"))
+    roots.push(root)
+    const outputPath = path.join(root, "audit.json")
+    const report = await runI18nContributionV2Audit({ repositoryRoot: process.cwd(), outputPath })
+
+    expect(I18nContributionV2AuditReportSchema.parse(report)).toEqual(report)
+    expect(report.canaries).toEqual({
+      canonicalValid: true,
+      alternativeValid: true,
+      pluralFamilyValid: true,
+      promptOnlyOmissionAccepted: false,
+      reverseEvidenceRemovesConstraint: true,
+      forbiddenSinkFree: true,
+    })
+    expect(report.materialization).toEqual({
+      taskContractMatchesAuthority: true,
+      semanticsMatchesAuthority: true,
+      protectedBaselinesPresent: true,
+      evaluatorDoesNotReadHeldoutOrGold: true,
+    })
   })
 })

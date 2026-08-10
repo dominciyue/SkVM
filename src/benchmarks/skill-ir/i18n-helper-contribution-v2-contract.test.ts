@@ -3,6 +3,10 @@ import { readFile } from "node:fs/promises"
 import { z } from "zod"
 import { PublicOutputAbiV2Schema } from "../../bench/public-output-abi-v2.ts"
 import { BenchTaskFileSchema } from "../../bench/types.ts"
+import {
+  MethodCaseTaskSplitFreezeSchema,
+  verifyMethodCaseTaskSplitFreeze,
+} from "./method-case-task-split-freeze.ts"
 
 const ROOT = "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2"
 
@@ -74,5 +78,14 @@ describe("i18n-helper contribution v2 benchmark contract", () => {
     expect(texts.join("\n")).not.toMatch(
       /TEST_ONLY_|expectedAnswer|modelOutput|raw-runs|historicalResult/iu,
     )
+  })
+
+  test("binds tasks and public semantics to the pre-scorer commit", async () => {
+    const freeze = MethodCaseTaskSplitFreezeSchema.parse(await readJson("task-split-freeze.json"))
+    expect(freeze.taskCommit).toBe("5c755af3d5f9a47c52711e531bc4d525554d8cb2")
+    expect(freeze.sourceClosure.map((entry) => entry.path)).toContain(
+      "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/i18n-report-semantics.json",
+    )
+    await expect(verifyMethodCaseTaskSplitFreeze(process.cwd(), freeze)).resolves.toEqual(freeze)
   })
 })

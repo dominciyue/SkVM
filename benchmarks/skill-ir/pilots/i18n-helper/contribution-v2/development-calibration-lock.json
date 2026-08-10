@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "skill-ir-public-contract-calibration-lock/v2",
+  "status": "preregistered",
+  "calibrationId": "i18n-helper-contribution-development-v2",
+  "methodEvidence": false,
+  "corpus": "pilot",
+  "skillId": "i18n-helper-contribution-v2",
+  "frozenInputs": {
+    "source": { "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md", "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729" },
+    "tasks": { "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/development/tasks.json", "sha256": "43c7b288ba493956224683f56b56e5aa2c8b040f6d78485c5e29b39bca021d4c" },
+    "publicContract": { "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/public-contract.json", "sha256": "073462f3ce7a8697be4fa2014b8335877013ce6a6e167df2784b4161a3d1c7d9" },
+    "publicContractSourceAudit": { "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/public-contract-source-audit.json", "sha256": "a67b4c88ce51432d6a5e5affd8cd9fa73c9421bc9599fbd7ead2c1769cac879b" },
+    "scorer": { "path": "src/bench/evaluators/i18n-helper-contribution-v2-grade.ts", "sha256": "f868a925abfe96bc18cacd85947becbf60df059cb7a4fdb654440f4a8003a264" },
+    "scorerDependencies": [
+      { "path": "src/bench/evaluators/i18n-helper-contribution-grade.ts", "sha256": "d439fbda85932240e4b78a0886bf116e06a6583e2a50608e301c9efefe09d536" },
+      { "path": "src/framework/types.ts", "sha256": "28d8303c124c25b73bcca583c162f8a8f5a83d1b8b015e4539245f7ace0f51c7" }
+    ],
+    "executionDependencies": [
+      { "path": "src/core/pi-runtime.ts", "sha256": "ac7ca993fbd6c0e742f3fad5fa9b5dbfc973b09e3f56b8575ea1fce85658100d" },
+      { "path": "src/adapters/pi.ts", "sha256": "5357a7a5529db02ca8628b24fde3dbb8c5033889cc8c54ffca49944f218552ab" },
+      { "path": "src/cli/run.ts", "sha256": "18ee8cc8a0a309de33a3d01481cf2f360c99ddd8ebc7820c74e215f0d2d418a1" },
+      { "path": "src/benchmarks/skill-ir/real-agent-run.ts", "sha256": "3fbb31c9f320010c517f5674b9495a6ef7785c0dbba01fb4b13810241c24ffbd" },
+      { "path": "src/benchmarks/skill-ir/scoring.ts", "sha256": "7bdb06a6449d2e6253c3d840b7ecb295b1024beeed4183ba43c6984f0f3b248a" },
+      { "path": "src/benchmarks/skill-ir/pre-ir-calibration-gate.ts", "sha256": "533013f990b30a92a5310d5ba2973d2619a93fd4e24a9fba4b7bb3a08cb196a9" },
+      { "path": "src/benchmarks/skill-ir/public-contract-calibration-run.ts", "sha256": "4c71259c88c16eb03d9860c3c3135fd4c7387c9bfbe8c0c0d42dfe765f4883f5" }
+    ],
+    "taskSplitFreeze": { "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/task-split-freeze.json", "sha256": "00e8640b72ad31a074d8d460ae5621c3f6d13d8515408933b29a650aabb5b356" },
+    "contractAuditManifest": { "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/contribution-identifiability.json", "sha256": "bf2a06e3e1d12ecc0a5a9fc2a48c3d90880fb7a2957be377746e62ff61911599" },
+    "contractAuditReport": { "path": "results/skill-ir/i18n-helper-contribution-identifiability-v2/report.json", "sha256": "9117365b86ad1cd5f0bea4d646638f1f8dd1bf30629d8d1a2e2c57454fb73035" }
+  },
+  "model": { "route": "xty/gpt-5.6-sol", "family": "gpt" },
+  "adapter": { "id": "pi", "version": "0.67.68" },
+  "matrix": {
+    "systems": ["no-skill", "original"],
+    "contexts": ["clean"],
+    "agents": ["skvm"],
+    "environments": ["windows"],
+    "taskSplit": "development",
+    "taskIds": [
+      "i18n-helper-contribution-multifile-dev-001",
+      "i18n-helper-contribution-partial-plural-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 8,
+    "expectedPairs": 4
+  },
+  "qualification": { "system": "original", "taskId": "i18n-helper-contribution-multifile-dev-001", "runIndex": 1 },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "retries": 0,
+    "adapterConfig": "managed",
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "teardownGraceMs": 60000,
+    "outerWatchdogMs": 360000,
+    "explicitEvaluatorLoad": true,
+    "requireObservableCompletion": true
+  },
+  "gate": {
+    "maximumInfrastructureFailures": 0,
+    "requireNoSkillNonSaturation": true,
+    "minimumDifferingPairs": 1,
+    "requireOriginalNonRegression": true,
+    "minimumPositivePairs": 1,
+    "minimumOriginalSuccesses": 1
+  },
+  "claimBoundary": {
+    "developmentOnly": true,
+    "capabilityCalibration": true,
+    "createsBaseIr": false,
+    "permitsHeldOut": false,
+    "skillOptimizationEvidence": false,
+    "tokenEvidence": false
+  },
+  "prohibited": [
+    "held-out execution",
+    "scorer retuning after model results",
+    "base IR construction before gate pass",
+    "optimization or token claim from calibration"
+  ]
+}
