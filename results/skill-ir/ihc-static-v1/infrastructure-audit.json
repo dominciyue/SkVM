@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "skill-ir-static-development-infrastructure-audit/v1",
+  "experimentId": "i18n-helper-contribution-static-development-v1",
+  "methodEvidence": true,
+  "status": "frozen-infrastructure-failed",
+  "evidence": {
+    "lock": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock.json",
+      "sha256": "af1b2659211fc266915a321a2f868be90aa8a74d5a4f26882e022a65e12f153e"
+    },
+    "raw": {
+      "path": "results/skill-ir/ihc-static-v1/run/raw-runs.jsonl",
+      "sha256": "a20be8258f595c1fe9bea84d3c8db3ed9098b6eadcba7729653e3c7f5db95980",
+      "committed": false
+    },
+    "scored": {
+      "path": "results/skill-ir/ihc-static-v1/scored-runs.jsonl",
+      "sha256": "2579df400b75186586fb67da6e19fbb679955039e7c7d7fb27d79724b12b4261",
+      "committed": false
+    },
+    "gate": {
+      "path": "results/skill-ir/ihc-static-v1/gate-report.json",
+      "sha256": "1baf51726cc361fd2f0698fafaee821e2b4ca032b8a3018d27f95743073f2883"
+    }
+  },
+  "denominator": {
+    "expectedRows": 12,
+    "observedRawRows": 12,
+    "observedScoredRows": 12,
+    "expectedTriplets": 4,
+    "completeTriplets": 4,
+    "retries": 0
+  },
+  "nonOkRows": [
+    {
+      "taskId": "i18n-helper-contribution-multifile-dev-001",
+      "system": "ir-static",
+      "runIndex": 1,
+      "runStatus": "timeout",
+      "durationMs": 300269,
+      "inputTokens": 69471,
+      "outputTokens": 7669
+    },
+    {
+      "taskId": "i18n-helper-contribution-partial-plural-dev-002",
+      "system": "no-skill",
+      "runIndex": 2,
+      "runStatus": "parse-failed",
+      "durationMs": 3931,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    {
+      "taskId": "i18n-helper-contribution-partial-plural-dev-002",
+      "system": "original",
+      "runIndex": 2,
+      "runStatus": "parse-failed",
+      "durationMs": 3973,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    {
+      "taskId": "i18n-helper-contribution-partial-plural-dev-002",
+      "system": "ir-static",
+      "runIndex": 2,
+      "runStatus": "parse-failed",
+      "durationMs": 17562,
+      "inputTokens": 0,
+      "outputTokens": 0
+    }
+  ],
+  "classification": {
+    "infrastructureFailures": 4,
+    "crossSystemSameTaskRunIndexFailure": true,
+    "semanticAttributionAllowed": false,
+    "sameLockRerunAllowed": false,
+    "artifactEligibilityAllowed": false,
+    "heldOutAllowed": false
+  },
+  "notes": "Three parse-failed rows share the same second task and run index across all systems and have zero observable token usage. One ir-static row reached the frozen 300000 ms timeout. The preregistered gate therefore remains failed; no replacement rows or scorer reinterpretation are permitted."
+}

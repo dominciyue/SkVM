@@ -45,7 +45,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
 | zh-readme | repository fact/documentation | contract-qualified method-development | benchmark audit 合格；v1/v2 付费 measurement 均 invalid，不开放 base IR。 |
-| i18n-helper | React+i18next source transformation | contract-qualified method-development | contribution-v1 冻结 measurement-invalid；公开语义 v2 baseline gate 与 source-audited base IR 已通过，static 尚未运行。 |
+| i18n-helper | React+i18next source transformation | contract-qualified method-development | v2 baseline/base IR passed；首个 static identity 12/12 但 4 infra，gate failed。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -188,6 +188,11 @@ bun ./src/benchmarks/skill-ir/static-development-run.ts `
 该 lock 冻结 12 rows/4 triplets、Pi managed short-path、`retries=0` 和 improvement gate；`route-probe`、
 `execute` 只能在 lock 提交后按顺序运行。即使 development gate 通过，也只允许 residual audit/artifact
 eligibility，held-out 仍关闭。
+
+该 identity 的 qualification 通过，唯一 execute 也完整落盘 12 rows/4 triplets；但 1 个 static timeout 和
+同一 partial-plural run-index 横跨三臂的 3 个 zero-usage `parse-failed` 使 infrastructure gate failed。
+有效 pair 中 1 positive、1 equal、0 regression 不能覆盖 4 个 infra，故 artifact eligibility 与 held-out
+继续关闭，且不允许用同一 lock 补行。
 
 `zh-readme` 的 task 与 contract audit 可复建命令：
 

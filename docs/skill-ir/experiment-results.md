@@ -211,12 +211,12 @@ untouched replication 和 Token break-even 均未证明。
 | api-tester | yes | yes | yes, artifact 4/4 | no |
 | zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
 | zh-readme | yes | yes（audit），付费 measurement invalid | no | no |
-| i18n-helper | yes | yes（contribution-v2 public semantics） | base IR audit passed；static/optimized development not-run | no |
+| i18n-helper | yes | yes（contribution-v2 public semantics） | base IR passed；static development infra-failed；optimized not-run | no |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、6
 contract-qualified、0 untouched replication、1 passed qualified phenotype。Law v3 已恢复 contract-qualified，
 但 baseline gate failed；Env 仍有 benchmark-contract blocker，zh-readme 有 scorer-authority blocker；
-i18n-helper 的 contribution-v2 已通过 baseline admission 与 source-audited base IR，但 static 与 optimized development 尚未运行，
+i18n-helper 已通过 baseline/base IR，但 static identity 新增 execution-observability blocker，optimized development 尚未运行，
 不能计为第二个 passed phenotype。自动化与适配成本指标也仍不完整。
 该失败是诚实状态，不应调整阈值。
 
@@ -244,8 +244,14 @@ contribution-v2 以新 task/scorer/lock 身份公开 `{name}` 报告语法、`{{
 1/4、mean 0.525、63225 tokens；original 2/4、mean 0.925、193607 tokens。4 个 pair 全部有差异，3 positive、
 1 negative，预注册 gate passed。两次 partial original 都额外生成 Windows `nul` 文件，因此只在 delta hard
 gate 回归，语义项通过。随后 profile-empty base IR 与逐节点 source audit 已通过 schema、validator、lowering
-和 leak canary；它不包含后验 `nul` 文件名。尚无 ir-static/optimized arm，不能声称优化或 Token 节省，也
-不允许 held-out。
+和 leak canary；它不包含后验 `nul` 文件名。
+
+首个 static development identity 冻结 12 rows/4 triplets、`retries=0`，resource 与 route qualification 均
+通过。正式分母 12/12 raw、12/12 scored、4/4 triplets，但 4 个 infrastructure failure：multifile 的一个
+ir-static 行达到 300 秒 timeout；partial-plural 的 run-index 2 在 no-skill/original/ir-static 三臂均
+`parse-failed`、0 tokens。后者跨三臂同位，不能归因给 skill 或 static IR。有效可比 pair 中有 1 positive、
+1 equal、0 regression；aggregate 仍因 infra 被计零，ir-static 2/4、mean 0.50，gate failed。禁止同锁补跑、
+artifact eligibility、held-out 与优化/Token claim。
 
 关键路径：
 
@@ -253,6 +259,9 @@ gate 回归，语义项通过。随后 profile-empty base IR 与逐节点 source
 - `results/skill-ir/i18n-helper-contribution-development-v1/measurement-audit.json`
 - `results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json`
 - `results/skill-ir/i18n-helper-contribution-development-v2/scored-runs.jsonl`
+- `benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock.json`
+- `results/skill-ir/ihc-static-v1/gate-report.json`
+- `results/skill-ir/ihc-static-v1/infrastructure-audit.json`
 
 ### 8.3 `zh-code-reviewer` measurement contract
 

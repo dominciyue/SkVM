@@ -179,9 +179,10 @@ describe("method portfolio registry and readiness", () => {
         "contribution-v2-public-semantics",
       ],
       developmentGate: {
-        status: "not-run",
+        status: "failed",
+        resultPath: "results/skill-ir/ihc-static-v1/gate-report.json",
       },
-      blockers: [],
+      blockers: ["execution-observability"],
     })
   })
 

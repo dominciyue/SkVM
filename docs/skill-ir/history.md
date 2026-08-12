@@ -101,6 +101,15 @@ git show <commit>:docs/skill-ir/<file>
 - Corpus 晋升 `runnable`，只开放 `no-skill | original | ir-static` development；artifact、held-out、优化与
   Token claim 仍关闭。
 
+### 2026-08-12：i18n Static Development Infrastructure Failure
+
+- 首个 static identity 复用通用 runner，冻结 12 rows/4 triplets、Pi/Windows/clean 与 `retries=0`；resource、
+  route qualification 均通过。
+- 正式分母完整，但 1 个 static timeout 和同一 task/run-index 横跨三臂的 3 个 zero-usage `parse-failed`
+  使 gate failed；同锁不补跑、不调 scorer/gate。
+- 有效 pair 的 1 positive、1 equal、0 regression 不覆盖 infrastructure gate；artifact、held-out 与优化 claim
+  继续关闭，portfolio 新增 `execution-observability` blocker。
+
 ## 2. 关键冻结决策
 
 1. No-skill 是主 baseline，不能只比较 original 与 IR。

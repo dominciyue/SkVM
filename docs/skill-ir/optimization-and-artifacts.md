@@ -296,9 +296,10 @@ Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer �
   这证明公开 OpenAPI 约束可以编译成稳定的 0-runtime-model-token artifact，不证明 held-out 或跨模型泛化。
 
 因此下一工作不是新增 runtime 版本。i18n contribution-v2 已提供有区分度的 source-transformation baseline，
-其 source-audited profile-empty base IR 也已通过；下一步运行 static development，再判断是否能把 scanner、
-rewrite plan、locale schema、checker 和 report template 编译为公共 assembly 输入。该纵切之后才决定是否
-扩新 skill，并同步补齐自动生成 IR/contract 与适配成本收敛证据。
+其 source-audited profile-empty base IR 也已通过；但首个 static development identity 因 1 timeout 和 3 个
+跨三臂同位 `parse-failed` 冻结失败，不能进入 artifact candidate。下一步先把 current regression、
+frozen-history compatibility 与 provider/execution observability 分层，再决定新预注册身份或替代方法案例；
+不得在同一 lock 下补跑筛正例。
 
 API Tester 的本地编译与冻结实验命令：
 

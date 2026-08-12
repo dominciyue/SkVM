@@ -683,8 +683,9 @@ mean 0.525。两次 original partial row 均因额外 `nul` 文件只失去 delt
 随后提交的 profile-empty base IR 只消费 exact `SKILL.md`、development prompt、public contract 与公开 report
 semantics；逐节点 source audit 明确排除 evaluator payload、held-out、runtime output 与 profile feedback。IR
 保留扫描/排除、稳定 key、插值、i18next v4 复数、已有翻译、完整性和声明输出边界，但只表达通用的“禁止
-未声明产物”，不固化后验 `nul` 文件名。该状态只开放 static development，不开放 held-out，也不构成优化
-或 Token claim。
+未声明产物”，不固化后验 `nul` 文件名。首个 static development identity 后来以完整 12-row 分母执行，
+但因 1 timeout 与 3 个同 task/run-index 的跨三臂 `parse-failed` 冻结失败；不开放 artifact/held-out，也不
+构成优化或 Token claim。
 
 ## 9. Prospective Partial-benefit Re-entry
 
@@ -714,8 +715,8 @@ workdir、qualification 临时目录与调试 snapshot 默认留本机，除非�
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
-development artifact 正向案例；i18n contribution-v2 已通过有区分度的 baseline admission 并完成
-source-audited base IR，但尚未运行 static/artifact development；通用优化主 claim 未完成”。
+development artifact 正向案例；i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
+但首个 static development identity infrastructure-failed，artifact 尚未运行；通用优化主 claim 未完成”。
 
 第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；

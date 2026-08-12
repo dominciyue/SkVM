@@ -13,6 +13,11 @@ const lockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/law-to-markdown/law-to-markdown-static-development-lock.json",
 );
+const i18nGatePath = path.join(rootDir, "results/skill-ir/ihc-static-v1/gate-report.json");
+const i18nInfrastructureAuditPath = path.join(
+  rootDir,
+  "results/skill-ir/ihc-static-v1/infrastructure-audit.json",
+);
 const tasks = [
   { id: "law-to-markdown-statute-dev-001", split: "development", hardGateIds: [
     "law-protected-input", "law-required-artifacts", "law-source-accounting",
@@ -124,6 +129,61 @@ function passingRows() {
 }
 
 describe("static development gate", () => {
+  test("freezes the i18n infrastructure failure without private execution content", async () => {
+    const gateText = await readFile(i18nGatePath, "utf8");
+    const auditText = await readFile(i18nInfrastructureAuditPath, "utf8");
+    const gate = JSON.parse(gateText) as {
+      passed: boolean;
+      counts: Record<string, number>;
+      interpretation: Record<string, boolean>;
+      evidence: Record<string, string>;
+    };
+    const audit = JSON.parse(auditText) as {
+      status: string;
+      denominator: Record<string, number>;
+      nonOkRows: Array<{ runStatus: string; inputTokens: number; outputTokens: number }>;
+      classification: Record<string, boolean | number>;
+      evidence: { gate: { sha256: string } };
+    };
+    expect(gate).toMatchObject({
+      passed: false,
+      counts: {
+        expectedRows: 12,
+        observedRawRows: 12,
+        observedScoredRows: 12,
+        expectedTriplets: 4,
+        completeTriplets: 4,
+        infrastructureFailures: 4,
+      },
+      interpretation: {
+        heldOutPlanningAllowed: false,
+        residualAuditAllowed: false,
+        heldOutExecutionAllowed: false,
+        entersMainClaim: false,
+      },
+    });
+    expect(audit).toMatchObject({
+      status: "frozen-infrastructure-failed",
+      denominator: { expectedRows: 12, observedRawRows: 12, observedScoredRows: 12, retries: 0 },
+      classification: {
+        infrastructureFailures: 4,
+        crossSystemSameTaskRunIndexFailure: true,
+        semanticAttributionAllowed: false,
+        sameLockRerunAllowed: false,
+        artifactEligibilityAllowed: false,
+        heldOutAllowed: false,
+      },
+    });
+    expect(audit.nonOkRows.map((row) => row.runStatus)).toEqual([
+      "timeout", "parse-failed", "parse-failed", "parse-failed",
+    ]);
+    expect(audit.nonOkRows.slice(1).every((row) => row.inputTokens === 0 && row.outputTokens === 0)).toBe(true);
+    expect(audit.evidence.gate.sha256).toBe(sha256Bytes(Buffer.from(gateText)));
+    expect(`${gateText}\n${auditText}`).not.toMatch(
+      /(?:[A-Za-z]:\\|sk-[A-Za-z0-9_-]{16,}|authorization|bearer\s+|stdout|stderr|final output)/iu,
+    );
+  });
+
   test("passes the frozen denominator with three static successes and an improved pair", async () => {
     const lock = await readAndValidateStaticDevelopmentLock({ rootDir, lockPath });
     const report = buildStaticDevelopmentGateReport({ lock, tasks, ...passingRows() });

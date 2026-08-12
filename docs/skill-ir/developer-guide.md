@@ -886,15 +886,15 @@ git remote -v
 
 ## 17. 你现在可以接着做什么
 
-当前接力点是 i18n contribution-v2 的 static development，不回到 Experimental Design 或旧 i18n v3 的
-饱和分母：
+当前接力点是处理 i18n contribution-v2 首个 static identity 的 infrastructure failure，不回到 Experimental
+Design 或旧 i18n v3 的饱和分母：
 
 ```text
 第一步：profile-empty base IR 和逐节点 source audit（已完成）
-第二步：复用通用 static-development runner，冻结 no-skill | original | ir-static（当前）
-第三步：只在公开、重复 residual 存在时生成 typed feedback；static 已解决的问题不进 overlay
-第四步：将 scanner/rewrite/locale schema/checker 编译为公共 assembly 输入，不增加 runtime/catalog 版本
-第五步：运行本地 package/runtime/scorer qualification，并记录人工分钟、adapter LOC 与 coreBranchDelta
+第二步：首个 no-skill | original | ir-static identity 已冻结 infrastructure-failed（12/12，4 infra）
+第三步：分层 current regression、frozen-history compatibility 与 provider/execution observability
+第四步：只有新的有效 static gate 才生成 typed feedback 或进入公共 assembly，不在同锁补跑
+第五步：若选择新身份，重新预注册并记录人工分钟、adapter LOC 与 coreBranchDelta
 第六步：只有 optimized development gate 通过，才把它计为第二 phenotype；readiness 通过后再做 untouched
 replication、跨模型/context 和摊销 Token
 ```

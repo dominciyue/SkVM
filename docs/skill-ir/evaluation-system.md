@@ -245,6 +245,11 @@ Windows/clean、`retries=0`。Gate 要求完整分母、0 infrastructure、至�
 至少 0.85、相对 original 0 score/hard-gate regression 且至少 1 个 improved pair。通过只开放 typed residual
 audit/artifact eligibility，不开放 held-out planning/execution；锁路径见 `real-skill-pilots.md`。
 
+唯一执行的 resource/route qualification 均通过，正式分母也完整，但 gate 因 4 个 infrastructure failure
+冻结失败：1 个 static timeout，另 3 个是同一 task/run-index 横跨三臂的 zero-usage `parse-failed`。Gate
+报告仍把缺失可观测执行计入分母并禁止 residual audit/artifact/held-out；不因两个有效 static success 或一个
+positive pair 事后改判，也不在同锁下补跑。
+
 ## 8. Benchmark Contract Audit
 
 付费前 audit 至少覆盖：
@@ -352,7 +357,8 @@ manifest 中的 evidence 同时声明语义来源和物理 `kind`；例如 `skil
 - i18n contribution-v2：公开 `{name}` / `{{name}}` 与 i18next v4 plural family，重新通过 canonical、
   alternative、plural、omission、reverse-evidence、forbidden-sink 和 identifiability audit。真实 8-row paired
   gate passed：0 infra、4 differing、3 positive，original/no-skill mean 0.925/0.525。随后 profile-empty base IR
-  与逐节点 source audit 通过，registry 晋升 `runnable`；当前只开放 static development。
+  与逐节点 source audit 通过，registry 晋升 `runnable`；首个 static development identity 随后因 4 个
+  infrastructure failure 冻结失败，artifact 与 held-out 继续关闭。
 
 `public-contract-calibration-lock/v2` 保持同一 schema：历史 lock 继续消费并要求 30-canary benchmark contract
 audit；新的 contribution case 可以消费 `skill-contribution-identifiability/v1` manifest + frozen compact report。

@@ -42,10 +42,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   contribution-v2 任务删除 answer-bearing recipe，并公开 placeholder/plural 语义，真实 paired gate 为
   8/8、0 infra、4/4 differing、3 positive，original/no-skill mean 为 0.925/0.525。现已完成只绑定 exact
   source、development prompt、public contract 与 report semantics 的 profile-empty base IR 和逐节点 source
-  audit；尚无 `ir-static`、artifact、held-out 或 Token 优化证据。
+  audit。首个 12-row static development 分母完整，但有 4 个 infrastructure failure（1 timeout、3 个同位
+  cross-system parse-failed），gate 冻结失败；尚无 artifact、held-out 或 Token 优化证据。
 - Method portfolio 已机器化登记 7 个 case：7 studied、6 contract-qualified、0 untouched replication、
-  1 个 optimized development-passed phenotype；readiness 仍未通过。i18n 当前 optimized development 状态为
-  `not-run`，不能把 baseline admission 当作第二个优化正例。
+  1 个 optimized development-passed phenotype；readiness 仍未通过。i18n static development 已运行但因
+  infrastructure gate failed，不能把局部正向 pair 当作第二个优化正例。
 - 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
   Optimizer Agent 尚未串成最终用户路径。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
@@ -56,9 +57,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 冻结旧结果，不改 gate
 -> contribution-v2 已证明 i18n 的 skill 增量可识别
 -> source-audited profile-empty base IR（已完成）
--> no-skill | original | ir-static development
--> 公开 typed residual 或静态保真结论
--> 公共 assembly 的 i18n artifact candidate
+-> no-skill | original | ir-static development（首个 identity 因 infrastructure 冻结失败）
+-> 分离 current regression 与 frozen-history/infra failure，决定新的预注册身份或替代方法案例
+-> 只有有效 static gate 后才进入公共 assembly artifact candidate
 -> 第二个 optimized development phenotype
 -> portfolio 状态分层与自动化/适配成本补齐
 -> readiness gate
