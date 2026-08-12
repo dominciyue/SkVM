@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "env-manager-v3",
+  "name": "Environment Variable Manager Scorer-Authority Successor",
+  "category": ["tool-use", "constraint-heavy", "environment-sensitive"],
+  "intent": "Audit environment definitions and static references, preserve uncertainty, and emit the public report, example, and schema without changing initial inputs or exposing secret material.",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+    "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+  },
+  "inputs": [
+    { "id": "protected-workspace", "description": "The frozen initial workspace containing environment definitions, source references, and arm-specific source-closure resources.", "required": true },
+    { "id": "public-env-interface", "description": "The task-visible interface defining output paths, finding forms, schema representations, derivation policy, and protected-input semantics.", "required": true }
+  ],
+  "outputs": [
+    { "id": "env-example", "description": "The declared .env.example containing every discovered variable without copied secret values.", "required": true },
+    { "id": "env-schema", "description": "The declared .env.schema.json in either published schema representation with evidence-derived rules.", "required": true },
+    { "id": "env-report", "description": "The declared env-report.json with all five public finding fields derived from workspace evidence.", "required": true }
+  ],
+  "preconditions": [
+    { "id": "workspace-and-interface-readable", "description": "The initial workspace manifest and public interface are readable before analysis or edits.", "checkability": "runtime" }
+  ],
+  "steps": [
+    {
+      "id": "step-read-boundary", "title": "Read the public audit boundary",
+      "description": "Read the public interface and frozen workspace before deriving findings.", "kind": "read", "required": true,
+      "dependsOn": [], "toolRefs": ["tool-workspace-filesystem"], "produces": ["audit-boundary"],
+      "successCheckRefs": ["check-initial-inputs"], "failureModes": ["missing-interface", "unreadable-workspace"]
+    },
+    {
+      "id": "step-derive-oracle", "title": "Derive environment evidence",
+      "description": "Inventory environment definitions and supported static references, then derive classifications and schema rules only from the published policy.",
+      "kind": "analyze", "required": true, "dependsOn": ["step-read-boundary"], "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["environment-inventory", "finding-set", "schema-rules"], "successCheckRefs": ["check-public-semantics"],
+      "failureModes": ["unsupported-inference", "overstated-unused", "missed-exposure"]
+    },
+    {
+      "id": "step-write-outputs", "title": "Write declared safe artifacts",
+      "description": "Write exactly the three declared outputs using either equivalent public schema representation and no secret values.",
+      "kind": "edit", "required": true, "dependsOn": ["step-derive-oracle"], "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["env-example", "env-schema", "env-report"], "successCheckRefs": ["check-output-contract"],
+      "failureModes": ["missing-output", "secret-disclosure", "undeclared-delta"]
+    },
+    {
+      "id": "step-verify-outputs", "title": "Verify preservation and consistency",
+      "description": "Re-read outputs, verify the frozen initial manifest is unchanged, and check report/example/schema agreement with public workspace evidence.",
+      "kind": "verify", "required": true, "dependsOn": ["step-write-outputs"], "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["verification-result"], "successCheckRefs": ["check-initial-inputs", "check-public-semantics", "check-output-contract"],
+      "failureModes": ["protected-input-change", "inconsistent-artifact", "secret-in-output"]
+    }
+  ],
+  "rules": [
+    { "id": "rule-preserve-initial-inputs", "sourceText": "Do not change any existing initial-workdir entry.", "level": "never", "scope": "file-edit", "checkability": "runtime", "severity": "high", "normalizedForm": "Never modify or remove an entry recorded by the frozen initial workdir manifest." },
+    { "id": "rule-redact-secrets", "sourceText": "真实值必须脱敏，不写入报告或终端输出", "level": "never", "scope": "safety", "checkability": "runtime", "severity": "high", "normalizedForm": "Never copy environment or hardcoded secret material into generated artifacts or visible output." },
+    { "id": "rule-preserve-uncertainty", "sourceText": "‘未使用’只代表静态扫描没有发现", "level": "must", "scope": "output", "checkability": "runtime", "severity": "high", "normalizedForm": "Report absent static references as unconfirmed unused, not as proof that deletion is safe." },
+    { "id": "rule-public-policy-only", "sourceText": "derive type, URI format, range, sensitivity, and minimum length from the public policy patterns", "level": "must", "scope": "planning", "checkability": "runtime", "severity": "high", "normalizedForm": "Infer schema rules only from the public name patterns and reference-derived requiredness; default other variables to string." },
+    { "id": "rule-public-schema-equivalence", "sourceText": "variables wrapper and JSON Schema object are equivalent", "level": "must", "scope": "output", "checkability": "runtime", "severity": "medium", "normalizedForm": "Either published schema representation is valid when requiredness and sensitivity retain equivalent semantics." }
+  ],
+  "tools": [
+    {
+      "id": "tool-workspace-filesystem", "name": "workspace filesystem",
+      "purpose": "Read the contained workspace, write only declared outputs, and verify the final delta.", "required": true,
+      "alternatives": ["agent-native read, search, edit, and diff tools"],
+      "platformNotes": { "linux": "Use contained relative paths.", "macos": "Preserve path case.", "windows": "Use Windows-safe file operations and serialize report paths with forward slashes." },
+      "availabilityCheck": "Confirm the initial workspace and public interface are readable and output parents are writable."
+    }
+  ],
+  "environment": [
+    { "id": "env-contained-workdir", "description": "Execution occurs in a contained workdir whose initial entries are frozen and whose generated delta is limited to the three public outputs.", "platforms": ["linux", "macos", "windows", "wsl", "container"], "checkability": "runtime" }
+  ],
+  "checks": [
+    { "id": "check-initial-inputs", "name": "Frozen initial inputs remain unchanged", "kind": "rule-violation", "targetRef": "rule:rule-preserve-initial-inputs", "assertion": "Every initial manifest entry retains its type and content.", "onFailure": "abort" },
+    { "id": "check-public-semantics", "name": "Findings and rules follow public evidence", "kind": "output", "targetRef": "rule:rule-public-policy-only", "assertion": "Report fields and schema rules equal the result of the published workspace-evidence policy.", "onFailure": "retry" },
+    { "id": "check-output-contract", "name": "Declared artifacts are complete and safe", "kind": "output", "targetRef": "output:env-report", "assertion": "Exactly the declared output files exist, parse correctly, agree with one another, and contain no secret material.", "onFailure": "abort" }
+  ],
+  "recovery": [],
+  "profile": []
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "skill-artifact-execution-plan/v1",
+  "entrypoint": "validate-env-audit",
+  "nodes": [
+    {
+      "id": "generate-env-audit",
+      "kind": "process",
+      "dependsOn": [],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_NODE",
+          "fallback": "node"
+        },
+        "artifactId": "env-audit-runtime",
+        "args": [
+          "generate",
+          "--workdir",
+          "{workdir}"
+        ],
+        "envAllowlist": [
+          "SKVM_NODE"
+        ]
+      },
+      "timeoutMs": 30000
+    },
+    {
+      "id": "validate-env-audit",
+      "kind": "validate",
+      "dependsOn": [
+        "generate-env-audit"
+      ],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_NODE",
+          "fallback": "node"
+        },
+        "artifactId": "env-audit-check",
+        "args": [
+          "validate",
+          "--workdir",
+          "{workdir}"
+        ],
+        "envAllowlist": [
+          "SKVM_NODE"
+        ]
+      },
+      "timeoutMs": 30000
+    }
+  ]
+}
