@@ -414,6 +414,55 @@ source-process replay 是基础设施诊断，不进入 skill 效果分母。
 
 新增 runtime 版本必须解决新的可复现 blocker；不能为单个实验继续堆 transport/harness 变体。
 
+### 11.1 Execution resilience successor
+
+未来付费 identity 可以容忍确认的偶发执行前故障，但不能改写、补跑或重评分任何冻结 `v1` 结果。Successor
+使用 `skill-ir-static-development-lock/v2`、`skill-ir-static-development-gate-report/v2` 和
+`skill-ir-execution-envelope/v1`；旧 schema、lock 和 result 保持原义。
+
+每个 attempted row 生成 value-free execution envelope。它只记录 identity、进程起止/退出、provider request/
+response、assistant/tool activity 数、首末活动时间、terminal/stop reason、usage availability/aggregate、parser
+outcome、未知 event/content-block 类型名、输出文件计数和 timeout/step-limit；禁止写入 key、模型正文、tool
+参数/结果或 evaluator score。分类在 scoring 前完成，未知类型 fail closed：
+
+| 分类 | 含义 | 可 replacement |
+|---|---|---:|
+| `qualification-failure` | route、credential、resource、版本或 materialization 预检失败 | 否，矩阵不得开始 |
+| `transport-transient` | 语义活动前发生已识别的瞬时 provider/network 故障 | 是 |
+| `empty-terminal` | terminal 存在，但零 usage 且无 assistant/tool activity | 是 |
+| `pre-semantic-idle-timeout` | request 已发出，但 idle 窗口内没有语义活动 | 是 |
+| `parser-incompatible` | 收到有效但不支持的 event/content block | 否，停止 identity 并修 parser |
+| `runtime-crash` | Node、Pi 或本地 runtime 崩溃 | 否；可复现时停止 identity |
+| `active-idle-timeout` | 已开始活动，随后超过 idle 窗口 | 否 |
+| `active-absolute-timeout` | 已有活动后达到 absolute 上限 | 否 |
+| `step-limit` | 达到冻结 agent step 上限 | 否 |
+| `semantic-complete` | 可观测完成，可以交给 scorer | 无需替换 |
+| `measurement-invalid` | scorer authority 或 public ABI 无效 | 否，冻结 identity |
+
+首个 successor Pi identity 冻结 `absoluteTimeoutMs=600000`、`idleTimeoutMs=120000`、`maxSteps=30`、
+`outerWatchdogMs=660000`。Adapter 必须增量消费 Pi NDJSON；provider response、非空 assistant、tool call/result
+或 usage update 重置 idle timer，setup banner 不算活动，absolute timer 永不重置。Active timeout 是 arm 的实测
+行为，不能因为后续尝试成功而改成 transient。
+
+Replacement 以 matched block 为单位。Static development 的一个 block 是同一 task/repetition 的完整
+`no-skill | original | ir-static` triplet。Lock 在执行前冻结 target 和 reserve block 数及顺序；selector 只
+读取 envelope，不接收 scored row。任一 arm 为 eligible transient 时，完整 block 留在 all-attempt evidence、
+不进入 selected paired analysis，并启用下一 reserve。非 replaceable execution/semantic failure 的 block 必须
+进入主分母；reserve 耗尽仍不足 target 时 gate failed。
+
+Gate 同时输出 selected blocks 和 all attempts。前者应用预注册质量、均值、hard-gate 与 regression 门槛；后者
+披露每次 transient、active timeout、step-limit、latency、tokens 和 arm asymmetry。使用 replacement、各 arm
+transient 不对称或两个口径方向不一致时标记 `infrastructureSensitive=true`；这会禁止无条件稳定性 claim，
+但有界、对称、预注册的 transient replacement 不自动使 development method evidence 无效。
+
+Qualification failure、parser incompatibility、可复现 runtime crash、digest drift、reserve exhaustion、protected/
+held-out/credential boundary violation 都会停止 identity。验证分成 current regression、frozen-history
+compatibility 和 provider/execution observability；不得修改旧 lock 或回滚当前 corpus 来换取全量数字全绿。
+
+实现必须使用确定性 TDD 覆盖 idle/absolute timer、setup banner、empty terminal、transport、unknown block、
+active timeout、step-limit、整组选择、reserve exhaustion、双口径守恒、v1 compatibility 和 compact envelope
+无 secret/model/tool text。机制验证不需要付费调用；通过后才冻结新的 i18n static identity。
+
 ## 12. 结果持久化
 
 提交到 Git：

@@ -134,6 +134,23 @@ src/skill-ir/corpus-fixtures.test.ts
    infrastructure gate failed；冻结结果、不补跑、不生成 overlay/artifact、不运行 held-out。下一步先处理
    execution observability/frozen-history validation 分层，再决定新预注册 identity 或替代方法案例。
 
+### Task 18.3A execution resilience successor
+
+**目标：** 在不修改任何冻结 `v1` 证据的前提下，为未来身份增加可审计的执行容错，避免一次明确的执行前
+瞬时故障冻结整批，同时不把 active timeout、tool loop、parser/runtime 缺陷或语义失败洗成可替换噪声。
+
+权威设计见 `docs/skill-ir/evaluation-system.md` 的 execution resilience successor。确认的实现边界为：
+
+1. [ ] 新增 value-free execution envelope 与纯故障分类器；分类发生在 scorer 之前，未知类型 fail closed；
+2. [ ] Pi 使用流式事件观测，首个 successor 冻结 600 秒 absolute、120 秒 idle、30 steps、660 秒 outer
+   watchdog；持续活动只重置 idle，不重置 absolute；
+3. [ ] 新增 `static-development-lock/v2`，预注册完整 matched triplet 的 target/reserve 数；selector 不接收
+   scorer output，任一 eligible arm 只触发整组 replacement；
+4. [ ] 新增 dual-denominator gate：selected blocks 用于 paired method gate，all attempts 披露所有瞬时故障、
+   active timeout、Token、latency 与 arm asymmetry；
+5. [ ] 分离 current regression、frozen-history compatibility 与 provider/execution observability；不修改旧 lock；
+6. [ ] 确定性 TDD 全部通过后，以新 identity 预注册 i18n static；qualification 通过才运行付费矩阵。
+
 ### Task 18.4 i18n artifact candidate 与第二 phenotype
 
 只有 Task 18.3 通过或产生公开、可重复的 typed residual 时进入。
