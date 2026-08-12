@@ -5,6 +5,7 @@ import {
   validateStaticDevelopmentV2Lock,
   StaticDevelopmentV2LockSchema,
 } from "./static-development-v2";
+import { staticDevelopmentV2QualificationWatchdogMs } from "./static-development-v2-cli";
 
 function lockInput() {
   const frozen = { path: "path/file.json", sha256: "a".repeat(64) };
@@ -144,5 +145,12 @@ describe("static development v2 lock", () => {
       frozenInputs: Object.fromEntries(Object.keys(lockInput().frozenInputs).map((key) => [key, existing])),
       implementation: [existing],
     }, path.resolve(import.meta.dir, "../../.."))).rejects.toThrow("digest mismatch");
+  });
+
+  test("gives a full qualification row the outer watchdog, not the route-probe timeout", () => {
+    expect(staticDevelopmentV2QualificationWatchdogMs({
+      routeProbeTimeoutMs: 180_000,
+      outerWatchdogMs: 660_000,
+    })).toBe(660_000);
   });
 });

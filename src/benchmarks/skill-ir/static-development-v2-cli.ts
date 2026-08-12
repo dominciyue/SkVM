@@ -1,7 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { runResourceProbeFile } from "./resource-contract-run";
-import { runCommandWithTimeout, classifyProbeExecution } from "./route-probe";
+import { classifyProbeExecution } from "./route-probe";
 import { sha256Bytes } from "./source-fixture";
 import {
   buildStaticDevelopmentV2Plan,
@@ -15,8 +15,19 @@ import {
 import { scoreRealAgentRuns } from "./score-real-agent-runs";
 import { buildStaticDevelopmentV2GateReport } from "./static-development-gate-v2";
 import type { ScoredAgentRunRow } from "./scoring";
+import { executeGenericPlanRow } from "./real-agent-run";
 
 type Phase = "plan" | "qualification" | "execute";
+
+export function staticDevelopmentV2QualificationWatchdogMs(input: {
+  outerWatchdogMs: number;
+  routeProbeTimeoutMs: number;
+}): number {
+  if (input.outerWatchdogMs <= input.routeProbeTimeoutMs) {
+    throw new Error("qualification watchdog must exceed route probe timeout");
+  }
+  return input.outerWatchdogMs;
+}
 
 function parseArgs(argv: string[]) {
   const args: { rootDir: string; lock?: string; outDir?: string; phase?: Phase } = { rootDir: process.cwd() };
@@ -57,9 +68,14 @@ async function main() {
   if (args.phase === "qualification") {
     const entry = plan.plan.find((row) => row.system === "original" && row.runIndex === 1);
     if (!entry) throw new Error("Static development v2 qualification row missing");
-    const execution = await runCommandWithTimeout(entry.command, lock.runtime.routeProbeTimeoutMs);
     const observationArg = entry.command.find((arg) => arg.startsWith("--execution-observation="));
     const observationPath = observationArg?.slice("--execution-observation=".length);
+    if (!observationPath) throw new Error("Static development v2 qualification observation path missing");
+    await rm(observationPath, { force: true });
+    const execution = await executeGenericPlanRow(entry, {
+      outerWatchdogMs: staticDevelopmentV2QualificationWatchdogMs(lock.runtime),
+      exposeOuterTimedOut: true,
+    });
     let classification = "qualification-failure";
     if (observationPath && await Bun.file(observationPath).exists()) {
       const observation = JSON.parse(await readFile(observationPath, "utf8"));
@@ -77,9 +93,14 @@ async function main() {
       schemaVersion: "skill-ir-static-development-qualification/v2",
       experimentId: lock.experimentId,
       lockSha256,
-      status: classifyProbeExecution(execution),
+      status: classifyProbeExecution({
+        exitCode: execution.exitCode,
+        timedOut: execution.outerTimedOut === true,
+        stdout: execution.stdout,
+        stderr: execution.stderr,
+      }),
       classification,
-      timedOut: execution.timedOut,
+      timedOut: execution.outerTimedOut,
       exitCode: execution.exitCode,
       durationMs: execution.durationMs,
     };

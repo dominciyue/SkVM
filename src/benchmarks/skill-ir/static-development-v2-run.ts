@@ -1,5 +1,5 @@
 import type { RealAgentRunPlanEntry } from "./real-agent";
-import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { RunExecutionObservationSchema, type RunExecutionObservation } from "../../core/types";
 import {
@@ -116,9 +116,10 @@ export async function executeStaticDevelopmentV2Plan(input: {
       const observationArg = row.command.find((arg) => arg.startsWith("--execution-observation="));
       if (!observationArg) throw new Error(`Static development v2 observation path missing: ${row.caseId}`);
       const observationPath = observationArg.slice("--execution-observation=".length);
+      await rm(observationPath, { force: true });
       const raw = await executeGenericPlanRow(
         row,
-        { outerWatchdogMs: lock.runtime.outerWatchdogMs },
+        { outerWatchdogMs: lock.runtime.outerWatchdogMs, exposeOuterTimedOut: true },
         input.agentEnv ?? process.env,
       );
       let observation: RunExecutionObservation;

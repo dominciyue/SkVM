@@ -887,7 +887,7 @@ export async function executePlan(
 
 export async function executeGenericPlanRow(
   item: RealAgentRunPlanEntry,
-  args: Pick<RealAgentRunArgs, "outerWatchdogMs">,
+  args: Pick<RealAgentRunArgs, "outerWatchdogMs"> & { exposeOuterTimedOut?: boolean },
   agentEnv: Record<string, string | undefined> = process.env,
   hooks?: { beforeGenericRun?: (item: RealAgentRunPlanEntry) => Promise<void> },
 ) {
@@ -934,7 +934,7 @@ export async function executeGenericPlanRow(
     workDir: item.workDir, ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
     exitCode, runStatus: outerTimedOut ? "timeout" as const : extractRunStatus(stdout),
     durationMs: Date.now() - startedAt, stdout, stderr, successSource: "execution-only" as const,
-    outerTimedOut,
+    ...(args.exposeOuterTimedOut ? { outerTimedOut } : {}),
   };
 }
 
