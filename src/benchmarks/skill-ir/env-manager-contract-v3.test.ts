@@ -57,7 +57,7 @@ describe("env-manager scorer-authority benchmark contract v3", () => {
   })
 
   test("preregisters one resilient paired baseline against the committed v3 identity", async () => {
-    const lockPath = `${root}/development-calibration-lock-v3.json`
+    const lockPath = `${root}/development-calibration-lock-v4.json`
     const lock = await readAndValidatePublicContractCalibrationLock({ rootDir: process.cwd(), lockPath })
     expect(lock.schemaVersion).toBe("skill-ir-public-contract-calibration-lock/v3")
     if (lock.schemaVersion !== "skill-ir-public-contract-calibration-lock/v3") {
