@@ -505,6 +505,27 @@ artifact 4/4、mean 1.0、0 hard-gate failure、0 pairwise regression，而同�
 这满足第二 optimized phenotype 的 development 门槛，并开放预注册多模型族 development 小面板；held-out、
 promotion、跨模型主 claim 与 Token break-even 仍保持关闭。
 
+#### 5.1.3 三模型族 development 小面板
+
+首个多模型族面板固定为 `gpt | claude | deepseek` 三条 route，同批覆盖 API Tester 与 Env Manager v3 各两个
+既有 development task。每个 route/skill/task 使用 `no-skill | original | ir-static` 完整 triplet；目标为每格
+1 个 selected block，另有至多 1 个只供预语义 transient 使用的 reserve block。正常路径为 36 个 selected
+model rows，最大 attempted model rows 为 72。旧模型资格只能用于选择候选 route，本次执行前必须重新完成与
+panel lock digest、Pi 版本和 resource contract 绑定的逐 route qualification。
+
+validated artifact 不接收模型输入，因此不是“每个模型族的一条 arm”。同一冻结 package 每个 skill/task 只执行
+一次，共 4 个 shared deterministic anchors；面板的最终逻辑分母为 36 model rows + 4 anchors = 40。按三个模型
+族重复 artifact 会把同一次确定性机制伪装成独立重复，明确禁止。
+
+面板复用 `execution-envelope/v1`：只有 transport transient、empty terminal 和 pre-semantic idle timeout 可整组
+替换；active timeout、step limit、parser/runtime blocker 与 semantic failure 都不可替换。报告必须同时保留
+selected 与 all-attempt 口径，分开输出 route/harness compatibility、failure taxonomy、original 相对 no-skill、
+ir-static 相对 original，以及 shared artifact 相对各模型臂的 score/hard-gate 下界。
+
+这是 development diagnostic，不是 promotion gate。它可以证明指定路线在固定 Pi/Windows/clean/task identity
+下是否可执行，并显示方向是 non-regressing、mixed 还是 regressing；不能外推到 held-out、noisy/long、其他
+agent/OS、模型总体排名或跨模型泛化。后续主实验仍要求完整 readiness 与 untouched replication。
+
 ### 5.2 动态阶段
 
 当前采用双源 residual：

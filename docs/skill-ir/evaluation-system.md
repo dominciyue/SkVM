@@ -440,6 +440,30 @@ Env adapter、领域 compiler 和实验 planner/runner。冻结矩阵为同一 2
 4/4、mean 1.0、0 hard-gate/paired regression。这证明当前 execution contract 可用于第二种 phenotype，但仍不
 构成跨模型、held-out 或完整 readiness 证据。
 
+### 9.1 多模型族 development 面板合同
+
+首个面板以三条 route 为真实执行轴，而不是只写 `modelFamily` 标签。Qualification 逐 route 运行同一公开
+original task，要求 Pi/local resource 预检通过、execution envelope 为 `semantic-complete` 且声明输出存在；
+qualification 不用 scorer success 排名模型。两个 skill 的 resource contract 均在矩阵开始前验证，任一失败都
+阻止 execute。
+
+选择单元是 `model family x skill x task` 的完整三臂 block。每单元 1 target + 1 reserve；selector 不读取分数，
+只读取 compact envelope。Selected 质量分母固定为 12 triplets/36 model rows，shared artifact 另有 4 个直接行。
+All-attempt 报告包含所有 reserve 消耗；发生 replacement 或各 arm transient 不对称时标记
+`infrastructureSensitive=true`，但预注册、整组、有界的 transient 不自动抹除 development 证据。
+
+分析至少分为四层：
+
+1. identity/coverage：资格 digest、selected triplet、artifact anchor 与 scorer row 是否完整；
+2. execution compatibility：逐族 transient、active timeout、step-limit、parser/runtime 与 measurement blocker；
+3. method direction：逐族 original-no-skill 与 ir-static-original 的 paired gain/equal/regression，缺失的不可评分
+   selected row 按固定分母失败处理；
+4. deterministic anchor：4 个 artifact 行的 success、mean、hard gate，以及其是否低于同 task 任一族的
+   original/ir-static。Artifact 的零 model token 单列，不复制到各模型族。
+
+面板只有 `development-diagnostic` 解释状态；“execution compatible”不等于“质量方向一致”，二者都不等于
+promotion。Mixed/regressing 结果仍是有效的冻结发现，禁止通过删掉模型族、任务或失败行修成全绿。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、
