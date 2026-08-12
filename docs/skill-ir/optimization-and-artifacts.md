@@ -12,7 +12,8 @@ L0 raw skill
 -> L4 validated package + provenance + regression evidence
 ```
 
-项目当前具备 L1/L2 通用能力和若干 L3 development prototype，尚未证明跨 skill 的 L4。
+项目当前具备 L1/L2 通用能力，并已有 API Tester 与 Env Manager 两种 phenotype 通过 L4 development gate；
+尚未证明 held-out、untouched replication 或跨模型 L4。
 
 ## 2. 静态优化
 
@@ -288,7 +289,8 @@ Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer �
 
 ## 13. 当前机制结论
 
-- Env 证明 deterministic repair 可以把已知 schema residual 固化为 0-token repair，但完整 gate 因 infra 失败。
+- Env v3 证明公开 workspace-derived environment/schema 语义可经公共 assembly 编译为 Node/Vite package；冻结
+  development 为 4/4、mean 1.0、0 regression，四次 runtime model tokens 为 0。
 - Law 证明 code/template/checker artifact 可在 development 显著优于文本 skill，随后 held-out 边界回归。
 - Experimental Design 证明 catalog/runtime 可复用到第二 phenotype，但 benchmark 饱和阻断优化归因。
 - API Tester 已把 source-attributable schema residual 固化为 profile-empty base IR、38 行声明式 adapter 和

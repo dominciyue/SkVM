@@ -16,15 +16,15 @@
   均有实现与测试；
 - runner、Pi harness、workdir materialization、deterministic scorer、paired gate、结果持久化和 benchmark
   contract audit 已形成研究基础设施；
-- 7 个真实 skill 已进入 method portfolio，6 个 contract-qualified；
-- API Tester 是唯一通过 optimized development gate 的 phenotype；
+- 7 个真实 skill 已进入 method portfolio，7 个 contract-qualified；
+- API Tester 与 Env Manager 两种 phenotype 已通过 optimized development gate；
 - i18n contribution-v2 已通过基线准入并完成 source-audited profile-empty base IR；首个 static identity 因
   4 个 infrastructure failure 冻结，resilient v4 已消除 execution blocker，但因 1 个 paired quality regression
   失败，仍无 artifact、held-out 或 Token 优化证据；
 - untouched replication、三模型族、noisy/long context、break-even 和面向用户的统一 optimizer CLI 尚未完成。
 
 因此当前不能写“优化系统已经闭环”或“任意 skill 均可自动优化”。准确表述是：**测量与执行框架较成熟，
-通用优化内核已有一个 development 正例和多个机制/负结果，跨 skill 复现与产品化仍在关键路径上。**
+通用优化内核已有两个 development 正例和多个机制/负结果，跨模型方向性测试、跨 skill 复现与产品化仍在关键路径上。**
 
 ## 2. 机器状态 Ledger
 
@@ -38,7 +38,7 @@
 | Zh Code Reviewer | base IR/static fidelity gate passed | 残差已被 static 解决，不强造 overlay |
 | Zh README | v1/v2 measurement-invalid | skill-neutral command semantics 已提炼，暂不堆新版本 |
 | i18n Helper | contribution-v2 base IR passed；v4 static 0 infra 但 paired gate failed | 不开放 artifact；转向替代 qualified case |
-| Method portfolio | 7 studied、7 qualified、1 passed phenotype、0 replication | 补第二个 optimized phenotype 与自动化指标 |
+| Method portfolio | 7 studied、7 qualified、2 passed phenotypes、0 replication | 70% 小面板门槛已达到；冻结跨模型开发面板与自动化边界 |
 | Product entry | 研究脚本可运行；统一 `import/optimize/validate/report` 尚未接入 | 方法 readiness 后收敛 CLI/library/Agent |
 
 机器权威入口：
@@ -54,8 +54,8 @@ results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json
 
 ### P0：优化证据仍薄
 
-当前只有 API Tester 一个 contract-qualified phenotype 通过 optimized development gate。i18n contribution-v2
-只是证明 original skill 在合法任务上有可识别增量，并没有证明 IR/artifact 比 original 更好。
+API Tester 与 Env Manager 已有两个 contract-qualified phenotype 通过 optimized development gate。证据仍限于
+单模型、Windows/clean development；i18n contribution-v2 的可信静态负结果继续保留，不以正例覆盖。
 
 ### P0：自动导入与自动编译尚未形成产品路径
 
@@ -212,8 +212,9 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
    interface，明确排除 evaluator payload、held-out、runtime output 与 profile feedback；corpus 晋升 runnable。
    静态保真锁在 original 已饱和的前提下预注册 `minimumImprovedPairs=0`，唯一矩阵完成 12/12 rows、4/4
    triplets、0 replacement/infra；三臂均 4/4、mean 1.0，ir-static 相对 original 0 regression，static gate 通过；
-5. [ ] 只有 static gate 或公开可重复 residual 合法开放时，才通过公共 assembly 编译 Env Manager artifact，并
-   运行四臂 development。质量无回归、完整分母和 0 material infrastructure 是第二 phenotype 的硬门槛；
+5. [x] 通过公共 assembly 编译 Env Manager Node/Vite artifact，并运行冻结四臂 development。16/16 rows、
+   4/4 quartets、0 infrastructure；artifact 4/4、mean 1.0、0 hard-gate failure、0 pair regression，成为第二
+   optimized phenotype。模型三臂共 367332 tokens；artifact 四次 runtime model tokens 为 0；
 6. [x] 首个 baseline 因 scorer authority 失败已冻结；未补跑、未重评分、未读取或执行 held-out。后续仅能以
    新 contract/scorer/lock identity 继续。
 
@@ -241,11 +242,12 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 6. 预注册模型族小面板先测 development 的方向一致性、failure taxonomy 与基础设施兼容性；只有方向可信后才扩
    clean/noisy/long 和 held-out 主矩阵。
 
-当前约为该单模型族门槛的 **66%--68%**：Env Manager v3 已恢复 7/7 contract-qualified，并通过 baseline、
-source-audited base IR 与 static fidelity；尚缺第二个 optimized phenotype，以及进入多模型前对公共 assembly、
-runner/scorer boundary 和适配成本记录的最后冻结。现实估计约 **1--2 周净工作时间**到达 70%；若 Env v3
-artifact development 一次通过，可接近下限；质量 gate 失败仍会触发冻结与方案复盘而非补跑。单模型优化 gate
-未通过时，可以做小规模跨模型诊断，但不能写成正式多模型族优化验证。
+当前约为该单模型族门槛的 **70%--72%**：Env Manager v3 已完成 contract、baseline、source-audited base IR、
+static fidelity 与 artifact development，portfolio 现为 7/7 contract-qualified、3 static passed、2 optimized
+phenotypes。公共 assembly/runtime/gate 在本次新 phenotype 中保持 `coreBranchDelta=0`，适配成本也已前瞻登记。
+因此现在可以进入第二/第三模型族的 **development 小面板**；下一步约 **2--4 个净工作日**用于冻结模型路线、
+资格探针、最小任务/系统矩阵和 failure taxonomy。完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness、
+untouched replication 和更完整自动化，不能把小面板提前写成正式泛化结论。
 
 ## 5. 时间估算
 

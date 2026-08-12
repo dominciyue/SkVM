@@ -205,7 +205,7 @@ untouched replication 和 Token break-even 均未证明。
 
 | Case | Contract | Baseline | Static fidelity | Optimized development | Promotion |
 |---|---:|---:|---:|---:|---:|
-| env-manager | invalidated（v2 baseline 暴露 scorer authority） | invalidated | blocked | blocked | blocked |
+| env-manager | passed（v3 scorer authority） | passed | passed | passed，artifact 4/4 | not-run |
 | law-to-markdown | passed（v3 public ABI） | failed（regression） | blocked | old result invalidated | old result invalidated |
 | experimental-design | passed | blocked（saturation） | blocked | blocked | blocked |
 | api-tester | passed | passed | passed | passed，artifact 4/4 | not-run |
@@ -214,7 +214,7 @@ untouched replication 和 Token break-even 均未证明。
 | i18n-helper | passed（contribution-v2） | passed | failed（quality regression） | blocked | blocked |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 已升级为 v2 且仍 failed：7 registered、7 studied、
-7 contract-qualified、3 static-fidelity passed、0 untouched replication、1 optimized-development passed phenotype。
+7 contract-qualified、3 static-fidelity passed、0 untouched replication、2 optimized-development passed phenotypes。
 Law 的 baseline regression、zh-readme 的 scorer-authority invalidation 与 i18n v4 的 paired quality regression 分属
 不同 lifecycle stage，不再被单一 development gate 混写。自动化仍不完整；历史人工时间标记
 `historical-unavailable`，Env Manager successor 从 2026-08-12 起前瞻记录。
@@ -254,6 +254,18 @@ attempted rows、4/4 triplets、0 replacement/transient/active/parser/runtime bl
 均 4/4、mean 1.0，0 improved、0 regressed、0 hard-gate regression，gate passed。Ir-static 为 94324 非缓存
 tokens、394865ms，original 为 133090 tokens、476211ms，分别低 29.13% 与 17.08%；这些只作 development
 成本诊断，不单独构成 optimized phenotype 或跨模型/held-out 证据。Static 通过后开放 artifact development。
+
+随后 Env-specific 声明式 adapter 通过既有 `validated-skill-artifact/v1` assembly/catalog/runtime 编译 Node/Vite
+两个 package，公共 core 无分支改动；compiler 只消费 exact source closure、profile-empty base IR/source audit、
+公开 interface、development prompt projection 和 resource contract。Package determinism、禁止证据 canary、
+两种 fixture runtime/scorer activation 全部通过。冻结四臂资格行为 original，自然完成并输出 3/3 artifacts。
+
+唯一 artifact development 矩阵完成 16/16 rows、4/4 quartets、0 infrastructure failure。No-skill 与 original
+均 4/4、mean 1.0；ir-static 为 3/4、mean 0.9125，其中一次 Node run 的 artifact consistency 为真实语义失败；
+validated artifact 为 4/4、mean 1.0、0 hard-gate failure、0 pairwise regression。模型三臂共 367332 tokens；
+artifact 四次调用 runtime model tokens 为 0，deterministic process/validation 合计 243/255ms，package 最大
+29652 bytes。一次性编译 token/自动 optimizer 成本尚未测，故不计算 break-even；证据只支持单模型、Windows/
+clean development 下的第二 optimized phenotype，不支持 held-out 或跨模型泛化。
 
 ### 8.1 `i18n-helper` 首轮校准
 
@@ -445,9 +457,11 @@ raw workdir/qualification/artifact 文件。治理规则：
 5. Experimental Design v2 已完成本地 artifact qualification；同一任务基线饱和，停止创建付费 optimized
    identity。下一次付费 comparison 必须选择公开合同合格且基线有区分度的新任务/skill；单独研究质量等价下
    的效率时，另行预注册 efficiency ablation。
-6. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势，并让至少第二个合同合格
-   phenotype 通过 development。
-7. Portfolio readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
+6. Env Manager 已补齐第二 phenotype、前瞻人工分钟、adapter LOC、artifact reuse 与 `coreBranchDelta=0`；继续
+   提高 IR/contract/package candidate 自动化，不能把本次领域 compiler 误写成完全自动 optimizer。
+7. 当前已达到约 70% 的单模型族启动门槛；下一步先冻结第二/第三模型族 development 小面板，检查方向一致性、
+   failure taxonomy 与 route/harness 兼容性。Untouched replication、context、held-out 和 Token amortization 主表
+   仍须等待完整 readiness。
 8. 保持 Law v3、i18n v2/v3、execution-bound successor、contribution-v1 及 static v1--v4 冻结。
    contribution-v2 已通过 baseline admission 与 source-audited base IR；v4 已排除 execution blocker，但
    static paired quality gate failed。停止该案例的 artifact 纵切，转向另一个 contract-qualified 方法案例；

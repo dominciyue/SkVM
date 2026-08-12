@@ -499,6 +499,12 @@ Env Manager v3 的 original baseline 已为 4/4、mean 1.0，因此同样在执�
 476211ms，少 17.08%。这些成本差只作 development 诊断：静态通过开放公共 assembly/artifact development，
 不单独计作 optimized phenotype，不开放 held-out 或跨模型 claim。
 
+Static 通过后，Env Manager v3 通过公共 `validated-skill-artifact/v1` assembly/catalog/runtime 编译 Node/Vite
+两个确定性 package。冻结四臂 development 完成 16/16 rows、4/4 quartets、0 infrastructure；validated
+artifact 4/4、mean 1.0、0 hard-gate failure、0 pairwise regression，而同矩阵 ir-static 有一次公开语义失败。
+这满足第二 optimized phenotype 的 development 门槛，并开放预注册多模型族 development 小面板；held-out、
+promotion、跨模型主 claim 与 Token break-even 仍保持关闭。
+
 ### 5.2 动态阶段
 
 当前采用双源 residual：

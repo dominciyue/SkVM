@@ -433,6 +433,13 @@ harness。Qualification 114853ms、`semantic-complete`；唯一矩阵 12/12 rows
 execution blocker。No-skill、original、ir-static 均 4/4、mean 1.0，static 对 original 无 score/hard-gate
 regression。由于 original 在锁定前已饱和，`minimumImprovedPairs=0` 是预注册设计而不是后验放宽。
 
+Env Manager v3 artifact development 继续复用公共 assembly/catalog/runtime 与通用 artifact gate，只新增声明式
+Env adapter、领域 compiler 和实验 planner/runner。冻结矩阵为同一 2 tasks x 2 repetitions 的
+`no-skill | original | ir-static | validated-artifact`，模型行采用 600 秒 absolute、120 秒 idle、30 steps、
+660 秒 outer，artifact 行直接确定性执行。Qualification 与唯一 16-row 矩阵均通过，0 infrastructure；artifact
+4/4、mean 1.0、0 hard-gate/paired regression。这证明当前 execution contract 可用于第二种 phenotype，但仍不
+构成跨模型、held-out 或完整 readiness 证据。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、

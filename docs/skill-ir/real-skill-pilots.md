@@ -39,7 +39,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 
 | Skill | Phenotype | 当前角色 | 关键边界 |
 |---|---|---|---|
-| env-manager | environment/schema/repair | studied method-development | v1 audit failed；机制证据保留。 |
+| env-manager | environment/schema/repair | contract-qualified method-development | v3 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | law-to-markdown | document/script/template | contract-qualified method-development | v3 public ABI 0 false reject；baseline gate failed，v1 held-out regression 保留。 |
 | experimental-design | scientific allocation/report | studied method-development | v2 measurement qualified，baseline saturated。 |
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
@@ -128,7 +128,7 @@ artifactKinds + reusedArtifactKinds + unautomatedSteps
 ```
 
 `method-portfolio-readiness/v2` 五条件以 spec 为准。当前报告为 7 registered、7 studied、7 qualified、
-2 static-fidelity passed、0 replication、1 optimized-development passed phenotype；readiness 仍 failed。
+3 static-fidelity passed、0 replication、2 optimized-development passed phenotypes；readiness 仍 failed。
 Readiness report 必须显示真实不足，不能把 studied、benchmark version、baseline/static pass 或 audit-failed case
 填充为 optimized/contract-qualified。`method-successor-selection-report/v1` 已在 Env Manager successor 合同开发前
 冻结全部 7 个候选，Env Manager 因填补 environment-schema-repair、已有确定性 repair/package 机制且信息互补性
@@ -140,6 +140,11 @@ Env Manager successor v2 已完成新的 source-derived contract：两个 develo
 发现 audit 未覆盖的 source-resource arm asymmetry 与标准 JSON Schema 表示 false reject；因此 contract 与 baseline
 均回退为 scorer-authority invalidated。执行基础设施本身完成 8/8、4/4、0 replacement/active/parser/runtime failure。
 下一 identity 必须先公开两种 schema 表示等价并用真实 resource materialization canary 验证。
+
+Env Manager v3 已完成上述修复并通过 baseline/static/artifact 全链路。Artifact 使用公共 assembly、catalog、
+runtime 与 gate，领域差异进入 25 行声明式 adapter 和 compiler；前瞻记录为 214 分钟、`coreBranchDelta=0`，
+checks/schemas/scripts 三种 artifact kind 均复用公共 package envelope。冻结 development 为 16/16、0 infra，
+artifact 4/4、mean 1.0、0 regression；该结果计作第二 optimized phenotype，但不开放 held-out。
 该修复已由 successor v3 完成：公开 interface 明确 wrapper/标准 JSON Schema/敏感标记等价规则；scorer 以 frozen
 initial manifest 保护每个 arm 实际存在的全部初始资源，8/8 contract canary matched。v2 measurement-invalid
 保持不变；v3 已冻结 development-only task/source identity，held-out 保持 `not-authored` 且未来须重新隔离。

@@ -55,7 +55,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   `LICENSE.upstream` materialization 的 8/8 canary。v4 baseline 已以 8/8 rows、4/4 pairs、0 infrastructure、
   original 4/4 vs no-skill 3/4 通过 admission；profile-empty base IR 与逐节点 source audit 已完成，corpus 晋升
   runnable。随后 static-fidelity 唯一矩阵 12/12、4/4 triplets、0 infra，三臂均 4/4、mean 1.0，static 对
-  original 无回退；当前开放 artifact development，held-out 仍关闭。
+  original 无回退；artifact 四臂唯一矩阵随后 16/16、4/4 quartets、0 infra，validated artifact 4/4、mean
+  1.0、0 regression、runtime model tokens 0。Portfolio 已有第二 optimized phenotype，held-out 仍关闭。
 - 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
   Optimizer Agent 尚未串成最终用户路径。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
@@ -70,10 +71,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> lifecycle v2 已分离 contract/baseline/static/optimized/promotion
 -> successor policy 已预注册 Env Manager
 -> Env Manager v2 baseline-v1 已冻结 measurement-invalid
--> Env Manager v3 contract + freeze + baseline + source-audited base IR passed -> static -> artifact
--> 第二个 optimized development phenotype
--> 补齐前瞻自动化/适配成本
--> readiness gate
+-> Env Manager v3 contract -> baseline -> base IR -> static -> artifact（均已完成）
+-> 第二个 optimized development phenotype 与前瞻适配成本（已完成）
+-> 冻结第二/第三模型族 development 小面板
+-> 继续补齐自动化并通过完整 readiness gate
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口
