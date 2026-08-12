@@ -205,7 +205,7 @@ untouched replication 和 Token break-even 均未证明。
 
 | Case | Contract | Baseline | Static fidelity | Optimized development | Promotion |
 |---|---:|---:|---:|---:|---:|
-| env-manager | passed（v2 source-derived；v1 保持 failed） | not-run | blocked | blocked | blocked |
+| env-manager | invalidated（v2 baseline 暴露 scorer authority） | invalidated | blocked | blocked | blocked |
 | law-to-markdown | passed（v3 public ABI） | failed（regression） | blocked | old result invalidated | old result invalidated |
 | experimental-design | passed | blocked（saturation） | blocked | blocked | blocked |
 | api-tester | passed | passed | passed | passed，artifact 4/4 | not-run |
@@ -214,7 +214,7 @@ untouched replication 和 Token break-even 均未证明。
 | i18n-helper | passed（contribution-v2） | passed | failed（quality regression） | blocked | blocked |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 已升级为 v2 且仍 failed：7 registered、7 studied、
-7 contract-qualified、2 static-fidelity passed、0 untouched replication、1 optimized-development passed phenotype。
+6 contract-qualified、2 static-fidelity passed、0 untouched replication、1 optimized-development passed phenotype。
 Law 的 baseline regression、zh-readme 的 scorer-authority invalidation 与 i18n v4 的 paired quality regression 分属
 不同 lifecycle stage，不再被单一 development gate 混写。自动化仍不完整；历史人工时间标记
 `historical-unavailable`，Env Manager successor 从 2026-08-12 起前瞻记录。
@@ -226,10 +226,13 @@ Law 的 baseline regression、zh-readme 的 scorer-authority invalidation 与 i1
 0.90 -> 1.00 的信号均只作诊断；新身份必须从公开 workspace 证据动态推导合同，并重新经过 contract、baseline、
 static 与 optimized development。
 
-Env Manager successor v2 当前 contract audit 为 passed：2 development tasks、3 criteria、3 requirements、8/8
-semantic/safety canaries matched。新 scorer 从公开 `.env`、源码引用与 `env-audit-interface/v2` 动态派生分类及
-schema 规则，alternative canary 覆盖对象式 finding、不同排序和额外解释，reverse-evidence 单测确认删除源码引用
-会改变 oracle、修改 task 标签不会。此结果只开放 baseline admission，不是模型效果或优化证据。
+Env Manager successor v2 的本地 contract audit 曾以 2 development tasks、3 criteria、3 requirements、8/8
+semantic/safety canaries matched。随后首个 resilient baseline qualification 在 88200ms semantic-complete，正式
+矩阵 8/8 selected/attempted、4/4 pair、0 replacement/transient/active/parser/runtime blocker，证明通用执行基础设施
+在该 phenotype 上有效；但真实运行暴露 canary 未覆盖的 scorer-authority 缺口。Original arm 合法 materialize
+`LICENSE.upstream`，却因 payload `protectedPaths` 未列出而被系统性误判；全部 8 行还都生成标准 JSON Schema
+`properties + required`，被未公开的 `{variables: ...}` 私有表示要求拒绝。冻结数值 no-skill mean 0.60、original
+0.45、0 positive/3 regression 不可解释，整批标记 measurement-invalid，禁止重评分或同 identity 重跑。
 
 ### 8.1 `i18n-helper` 首轮校准
 

@@ -16,6 +16,34 @@ async function verifyBindings(audit: Record<string, any>) {
 }
 
 describe("public-contract calibration persisted results", () => {
+  test("freezes Env v2 baseline v1 as scorer-authority invalid despite complete resilient execution", async () => {
+    const audit = await readJson("results/skill-ir/emv2-base-v1/measurement-validity.json")
+    await verifyBindings(audit)
+    expect(audit).toMatchObject({
+      status: "measurement-invalid",
+      numericGatePassed: false,
+      execution: {
+        selectedRows: 8,
+        selectedPairs: 4,
+        attemptedRows: 8,
+        replacedPairs: 0,
+        transientFailures: 0,
+        activeExecutionFailures: 0,
+        parserOrRuntimeBlockers: 0,
+        infrastructureSensitive: false,
+      },
+      scorerAuthority: {
+        valid: false,
+        issues: [
+          { code: "ARM_DEPENDENT_INITIAL_RESOURCE", scope: "artifact-integrity" },
+          { code: "UNDECLARED_SCHEMA_REPRESENTATION", scope: "artifact-consistency" },
+        ],
+      },
+      frozenEvidencePolicy: { permitsRescore: false, permitsSameIdentityRerun: false },
+      interpretation: { baselineAdmissionAllowed: false, numericDirectionInterpretable: false },
+    })
+  })
+
   test("freezes Law v2 as measurement-invalid despite a complete infrastructure-clean matrix", async () => {
     const gate = await readJson("results/skill-ir/law-to-markdown-v2-public-contract-calibration-v1/gate-report.json")
     const audit = await readJson("results/skill-ir/law-to-markdown-v2-public-contract-calibration-v1/measurement-validity.json")

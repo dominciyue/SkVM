@@ -266,11 +266,12 @@ describe("method portfolio registry and readiness", () => {
     expect(report.passed).toBe(false)
     expect(report.counts).toMatchObject({
       studiedCases: 7,
-      contractQualifiedMethodCases: 7,
+      contractQualifiedMethodCases: 6,
       untouchedReplicationCases: 0,
     })
     expect(report.gaps.missingQualifiedCases).toBe(0)
     expect(report.gaps.openMeasurementBlockers).toEqual([
+      { skillId: "env-manager", stage: "benchmarkContract", blocker: "scorer-authority" },
       { skillId: "zh-readme", stage: "baselineAdmission", blocker: "scorer-authority" },
     ])
     expect(portfolio.cases[1]).toMatchObject({

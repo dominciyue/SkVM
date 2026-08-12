@@ -406,8 +406,10 @@ assessment。Compact report 公开 phenotype coverage、合同/基线状态、ar
 
 Env Manager v2 是首个按这一路径启动的 successor。它不再把逐 fixture 预期集合放进 evaluator payload；
 `env-audit-interface/v2` 公开分类语义、变量名推导政策和输出路径，scorer 从初始 workspace 动态重建 oracle。
-Benchmark contract 用 alternative-valid、canonical-valid 与 invalid-control 共 8 个 canary 验证等价表达和安全
-边界；通过只开放 baseline，不能复用旧 V4 的 0.90 -> 1.00 作为新身份结果。
+Benchmark contract 首版用 alternative-valid、canonical-valid 与 invalid-control 共 8 个 canary 验证等价表达和
+安全边界；真实 baseline 随后证明该集合仍不足：它未覆盖 original arm 的 source-resource materialization，也未
+覆盖标准 JSON Schema 的 `properties + required` 表示。该身份必须冻结 measurement-invalid；后续 contract audit
+必须加入真实 resource materialization canary，并显式声明标准 JSON Schema 与自定义 wrapper 的语义等价。
 
 ## 10. Scored Rows 与分析
 

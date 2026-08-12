@@ -733,9 +733,11 @@ Portfolio v2 将 `benchmarkContract`、`baselineAdmission`、`staticFidelity`、
 `historical-unavailable | prospective-in-progress | prospective-measured`；只有最后一种可进入收敛计算，且必须
 具备起止时间、人工分钟、adapter LOC 和 core branch delta。Successor selection 必须在新合同前冻结并覆盖
 全部 method-development case；当前 policy 预先选择 Env Manager，旧合同/旧模型结果只用于候选理由与失败诊断。
-Env Manager successor 的 `env-audit-interface/v2` 只公开通用输出/推导合同，scorer 从公开 workspace 重建 oracle，
-不携带逐 task gold 集合；首轮 8/8 contract canary 已通过，因此 portfolio contract-qualified 变为 7/7，但
-baseline/static/optimized 状态仍不变，不能据此增加 optimized phenotype 计数。
+Env Manager successor 的 `env-audit-interface/v2` 不携带逐 task gold 集合，首轮 8/8 local canary 通过；但真实
+resilient baseline 暴露 arm-dependent source resource 与未公开 schema 表示两项 scorer-authority 缺口，故该
+contract/baseline identity 冻结 measurement-invalid，portfolio contract-qualified 回退为 6/7。8/8 rows、4/4
+pairs、0 transient/active/parser/runtime blocker 只证明 execution infrastructure 有效，不能解释数值方向或进入
+base IR、optimized、held-out。
 
 第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；

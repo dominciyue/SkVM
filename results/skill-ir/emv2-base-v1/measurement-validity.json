@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "skill-ir-public-contract-calibration-measurement-validity/v3",
+  "calibrationId": "env-manager-source-contract-baseline-v1",
+  "status": "measurement-invalid",
+  "numericGatePassed": false,
+  "inputs": {
+    "lock": { "path": "benchmarks/skill-ir/pilots/env-manager/successor-v2/development-calibration-lock-v3.json", "sha256": "74b75b1fc22a603efb4146e403c6983f69c66759bb29fbcb6199502b20f58c89" },
+    "qualification": { "path": "results/skill-ir/emv2-base-v1/qualification.json", "sha256": "5827fffaba4bcaf9b1aa832001a2a62a2c68c160d05b4c14fd0e4bf9420b64c4" },
+    "gate": { "path": "results/skill-ir/emv2-base-v1/gate-report.json", "sha256": "6ef2d0ef7ebdaee8c98ff5a7b14a14015ac462a810919b8c1246bdb710ffc01a" },
+    "executionEnvelopes": { "path": "results/skill-ir/emv2-base-v1/run/execution-envelopes.jsonl", "sha256": "3bc581bbaa35b15c468eb5cb2923a902f8ce79523b2b429f9e8a8fa0a1248dcb" },
+    "scoredRows": { "path": "results/skill-ir/emv2-base-v1/run/selected-scored-runs.jsonl", "sha256": "71961e1a2c3c97858a57d0c6ddd024420865279fa2455f2f449ca0a6018e8d17" }
+  },
+  "execution": {
+    "selectedRows": 8,
+    "selectedPairs": 4,
+    "attemptedRows": 8,
+    "replacedPairs": 0,
+    "transientFailures": 0,
+    "activeExecutionFailures": 0,
+    "parserOrRuntimeBlockers": 0,
+    "infrastructureSensitive": false
+  },
+  "scorerAuthority": {
+    "valid": false,
+    "issues": [
+      {
+        "code": "ARM_DEPENDENT_INITIAL_RESOURCE",
+        "scope": "artifact-integrity",
+        "observed": "The original arm materializes LICENSE.upstream from the declared source closure while the no-skill arm does not; protectedPaths treated this legitimate source resource as an undeclared input."
+      },
+      {
+        "code": "UNDECLARED_SCHEMA_REPRESENTATION",
+        "scope": "artifact-consistency",
+        "observed": "All selected rows emitted a standard JSON Schema using properties and top-level required, while the scorer privately required a custom variables wrapper not declared by the public interface."
+      }
+    ]
+  },
+  "frozenEvidencePolicy": {
+    "rewritesRawRows": false,
+    "rewritesScoredRows": false,
+    "rewritesGate": false,
+    "permitsRescore": false,
+    "permitsSameIdentityRerun": false
+  },
+  "interpretation": {
+    "baselineAdmissionAllowed": false,
+    "baseIrAuditAllowed": false,
+    "heldOutAllowed": false,
+    "entersMainClaim": false,
+    "numericDirectionInterpretable": false
+  },
+  "requiredSuccessorRepairs": [
+    "Publish the accepted standard-JSON-Schema and variables-wrapper equivalence in the public interface and cover both with canaries.",
+    "Derive protected initial inputs from the frozen initial workdir manifest while allowing declared source-closure resources symmetrically in the integrity contract.",
+    "Create a new scorer, contract audit, and calibration lock identity before any additional paid baseline."
+  ]
+}

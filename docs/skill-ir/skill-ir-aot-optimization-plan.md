@@ -197,13 +197,17 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
    可由公开 source/task 支持的语义，不读取 held-out 或把历史模型答案写入新合同；
 2. [x] 创建新的 task/scorer/audit identity，覆盖 alternative-valid、reverse-evidence、public ABI、materialization、
    secret/gold leak 和贡献可识别性；强模型任务不得给出 answer-bearing 精确动作或预期结果；
-3. [ ] 本地 audit 全绿后冻结 resilient Pi 单模型 baseline，qualification 通过才执行唯一
-   `no-skill | original` development；baseline 必须 measurement-valid、有配对差异且不发生 original 回归；
+3. [x] 首个 resilient Pi baseline qualification 通过且唯一矩阵完成 8/8 rows、4/4 pairs、0 replacement/transient/
+   active/parser/runtime blocker；真实运行暴露 arm-dependent source resource 与未公开 schema 表示两项 scorer-
+   authority 缺口，整批冻结 measurement-invalid，不重评分、不以同 identity 重跑；
+3a. [ ] 新 contract/scorer identity 公开标准 JSON Schema 与 `variables` wrapper 的语义等价，完整性从冻结 initial
+   manifest 派生并覆盖 original source-resource materialization；新 canary 全绿后才允许第二个唯一 baseline；
 4. [ ] 通过后创建 profile-empty source-audited base IR，再运行 `no-skill | original | ir-static`；static 只消费
    公开 source/task，不消费 runtime output；
 5. [ ] 只有 static gate 或公开可重复 residual 合法开放时，才通过公共 assembly 编译 Env Manager artifact，并
    运行四臂 development。质量无回归、完整分母和 0 material infrastructure 是第二 phenotype 的硬门槛；
-6. [ ] 任一 measurement/quality gate 失败即冻结该 identity；不补跑筛正例、不提前运行 held-out。
+6. [x] 首个 baseline 因 scorer authority 失败已冻结；未补跑、未重评分、未读取或执行 held-out。后续仅能以
+   新 contract/scorer/lock identity 继续。
 
 ### Task 18.6 Readiness、Untouched Replication 与主实验
 
@@ -229,8 +233,9 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 6. 预注册模型族小面板先测 development 的方向一致性、failure taxonomy 与基础设施兼容性；只有方向可信后才扩
    clean/noisy/long 和 held-out 主矩阵。
 
-当前约为该单模型族门槛的 **55%--60%**。若 Env Manager successor 一次通过合同、baseline、static/artifact
-development，预计还需 **8--15 个净工作日**达到约 70%；若再次 measurement-invalid，现实估计为 **3--4 周**。
+当前约为该单模型族门槛的 **55%--60%**。Env Manager 首个 successor 已 measurement-invalid，因此现实估计改为
+**3--4 周**到达约 70%；其中先需 3--5 个净工作日完成 contract v3 与无付费 canary，再重新执行 baseline，之后
+才进入 base IR/static/artifact。单模型质量 gate 未通过时，可以做小规模跨模型诊断，但不能写成正式验证。
 单模型质量 gate 未通过时，可以做小规模跨模型诊断，但不能把它写成正式多模型族优化验证。
 
 ## 5. 时间估算

@@ -22,17 +22,18 @@
       "phenotypes": ["environment-schema-repair"],
       "role": "method-development",
       "methodSequence": 1,
-      "contractQualified": true,
-      "benchmarkVersions": ["v1", "v2-source-derived-contract"],
+      "contractQualified": false,
+      "benchmarkVersions": ["v1", "v2-source-derived-contract", "v2-baseline-v1-invalidated"],
       "lifecycle": {
         "benchmarkContract": {
-          "status": "passed",
-          "evidencePath": "results/skill-ir/benchmark-contract-audit/env-manager-v2.json"
+          "status": "invalidated",
+          "evidencePath": "results/skill-ir/emv2-base-v1/measurement-validity.json",
+          "blocker": "scorer-authority"
         },
-        "baselineAdmission": { "status": "not-run", "blocker": "distinguishability-not-run" },
-        "staticFidelity": { "status": "blocked", "blocker": "distinguishability-not-run" },
-        "optimizedDevelopment": { "status": "blocked", "blocker": "distinguishability-not-run" },
-        "heldOutPromotion": { "status": "blocked", "blocker": "distinguishability-not-run" }
+        "baselineAdmission": { "status": "invalidated", "evidencePath": "results/skill-ir/emv2-base-v1/measurement-validity.json", "blocker": "scorer-authority" },
+        "staticFidelity": { "status": "blocked", "blocker": "scorer-authority" },
+        "optimizedDevelopment": { "status": "blocked", "blocker": "scorer-authority" },
+        "heldOutPromotion": { "status": "blocked", "blocker": "scorer-authority" }
       },
       "legacyDevelopmentEvidence": { "status": "failed" },
       "automation": {
@@ -50,7 +51,7 @@
         "artifactKinds": ["checks", "schemas", "scripts"],
         "reusedArtifactKinds": [],
         "coreBranchDelta": null,
-        "unautomatedSteps": ["base IR audit", "public contract adapter"]
+        "unautomatedSteps": ["public contract successor repair", "base IR audit", "public contract adapter"]
       }
     },
     {
