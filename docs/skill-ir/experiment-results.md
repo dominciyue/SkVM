@@ -214,7 +214,7 @@ untouched replication 和 Token break-even 均未证明。
 | i18n-helper | passed（contribution-v2） | passed | failed（quality regression） | blocked | blocked |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 已升级为 v2 且仍 failed：7 registered、7 studied、
-7 contract-qualified、2 static-fidelity passed、0 untouched replication、1 optimized-development passed phenotype。
+7 contract-qualified、3 static-fidelity passed、0 untouched replication、1 optimized-development passed phenotype。
 Law 的 baseline regression、zh-readme 的 scorer-authority invalidation 与 i18n v4 的 paired quality regression 分属
 不同 lifecycle stage，不再被单一 development gate 混写。自动化仍不完整；历史人工时间标记
 `historical-unavailable`，Env Manager successor 从 2026-08-12 起前瞻记录。
@@ -249,7 +249,11 @@ no-skill 3/4、mean 0.9125、64147 tokens；original 4/4、mean 1.0、655117 tok
 base IR/static，仍不证明 optimized、held-out、跨模型或 Token 收益。
 随后创建的 profile-empty base IR 逐节点绑定 exact source、两条 development prompt 与 public interface，并在
 source audit 中排除 evaluator payload、held-out、runtime output 与 profile feedback；验证 0 errors，corpus 晋升
-`runnable`。这仍是无付费静态保真准备，不新增质量数值。
+`runnable`。随后 static-fidelity qualification 在 114853ms `semantic-complete`。唯一矩阵完成 12/12 selected/
+attempted rows、4/4 triplets、0 replacement/transient/active/parser/runtime blocker；no-skill、original、ir-static
+均 4/4、mean 1.0，0 improved、0 regressed、0 hard-gate regression，gate passed。Ir-static 为 94324 非缓存
+tokens、394865ms，original 为 133090 tokens、476211ms，分别低 29.13% 与 17.08%；这些只作 development
+成本诊断，不单独构成 optimized phenotype 或跨模型/held-out 证据。Static 通过后开放 artifact development。
 
 ### 8.1 `i18n-helper` 首轮校准
 

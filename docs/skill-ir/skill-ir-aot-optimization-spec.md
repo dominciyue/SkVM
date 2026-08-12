@@ -487,6 +487,18 @@ original 饱和预先决定，不是执行后放宽；no-skill 只保留为同�
 base IR/lowering；若无公开可复现 residual，不生成动态 overlay；若出现 residual，则按 5.2 的双源规则
 分类，禁止把随机额外文件、具体 finding 金标或 scorer expected 硬编码进 IR。
 
+#### 5.1.2 `env-manager` successor v3 静态保真阶段
+
+Env Manager v3 的 original baseline 已为 4/4、mean 1.0，因此同样在执行前选择 static-fidelity 模式，不要求
+不可能的正向质量 pair。冻结身份为 2 development tasks x 2 repetitions x
+`no-skill | original | ir-static`，另预留每 task 1 个完整三臂 reserve block；`retries=0`，禁止单臂替换。
+
+唯一执行选择首批 12/12 rows、4/4 triplets，0 reserve、0 transient/active/parser/runtime blocker。三臂均为
+4/4、mean 1.0，ir-static 相对 original 为 0 improved、0 regressed、0 hard-gate regression，故 static fidelity
+通过。Ir-static 使用 94324 非缓存 tokens，original 使用 133090，少 29.13%；对应执行时长 394865ms 与
+476211ms，少 17.08%。这些成本差只作 development 诊断：静态通过开放公共 assembly/artifact development，
+不单独计作 optimized phenotype，不开放 held-out 或跨模型 claim。
+
 ### 5.2 动态阶段
 
 当前采用双源 residual：
@@ -752,7 +764,10 @@ Env v3 held-out 不能从该旧 split 派生，必须由未接触旧内容的独
 identity 仅因调用层硬 timeout 过短而冻结为 operator failure，不计入模型、skill 或 resilience 结论。
 Profile-empty base IR 随后完成逐节点 source audit：唯一来源为 exact upstream skill、两条 development prompt 与
 public interface；evaluator payload、held-out、runtime output 与 profile feedback 全部排除。该步骤只令 corpus
-晋升 `runnable` 并开放 static development，不构成 optimized evidence。
+晋升 `runnable` 并开放 static development，不构成 optimized evidence。随后冻结的 static-fidelity identity 完成
+12/12 rows、4/4 triplets、0 execution blocker，三臂均 4/4、mean 1.0，ir-static 对 original 无回退；其
+29.13% 非缓存 token 与 17.08% 时长下降只作诊断。该 gate 开放 artifact development，但仍不构成第二个
+optimized phenotype。
 
 第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；

@@ -428,6 +428,11 @@ Development-only freeze 与 v4 lock 随后绑定同一 task/scorer/runner identi
 调用层 shell timeout 必须大于 frozen outer watchdog；1/10 秒的工具硬终止只能登记为 operator failure，不能归入
 项目内部 idle/absolute timeout 或 skill 语义。
 
+Env Manager v3 的 static-fidelity identity 继续复用同一 v2 lock/selector/envelope，没有新增 skill-specific
+harness。Qualification 114853ms、`semantic-complete`；唯一矩阵 12/12 rows、4/4 triplets、0 reserve 和 0
+execution blocker。No-skill、original、ir-static 均 4/4、mean 1.0，static 对 original 无 score/hard-gate
+regression。由于 original 在锁定前已饱和，`minimumImprovedPairs=0` 是预注册设计而不是后验放宽。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、
