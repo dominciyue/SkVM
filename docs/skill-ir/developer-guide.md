@@ -57,11 +57,12 @@ optimized_skill/
 
 ### 1.3 现在已经做到哪里
 
-截至 2026-08-09：
+截至 2026-08-10：
 
 - IR schema、parser、validator、profile annotation、静态 pass、lowering、真实 runner、scorer、gate 和
   paired analyzer 已具备；
-- Benchmark v2 已显著降低 v1 的私有措辞、唯一算法和 alternative-valid false reject，可用于方法开发；
+- Experimental Design Benchmark v2 已显著降低该案例 v1 的私有措辞、唯一算法和 alternative-valid false
+  reject；它沉淀出的审计协议可复用，但不是所有 skill 共用一套 scorer；
 - API Tester 的 source-audited schema-derived artifact 在冻结 development 中达到 4/4、mean 1.0，且
   runtime model tokens 为 0；它仍只是 method-development 证据；
 - Env、Law、Experimental Design、Reviewer、zh-readme 分别暴露了基础设施分母、held-out 回归、任务饱和、
@@ -71,6 +72,10 @@ optimized_skill/
 - Task 17.11 已把重复的 package assembly 抽为技能无关模块，并在 API Tester 与 Experimental Design v1
   两种 phenotype 上完成逐字节 shadow parity；新的 Experimental Design v2 compiler 已接入公共 assembly，
   本地 2/2 fixture 通过，但同一任务基线饱和，因此没有创建付费 optimized lock。
+- i18n contribution-v2 已修复旧任务的贡献不可识别和 placeholder/plural 私有语义，唯一 paired baseline
+  8/8、0 infra、4/4 differing、3 positive；它只开放 base IR/source audit，尚无静态或 artifact 优化证据。
+- 当前实验通过研究脚本运行；spec 约定的统一 `import/optimize/validate/report` CLI/library/Agent 用户路径
+  尚未完成。
 
 ## 2. 第一次进入项目
 
@@ -703,7 +708,7 @@ src/benchmarks/skill-ir/law-artifact-compiler.ts
 catalog 定义 package/manifest；compiler 生成文件与 digest；runtime 按 execution DAG 运行并保护输入。runtime
 validator 只负责运行时合同，它与离线 scorer 不是同一个东西。
 
-### 12.3 当前 Task 17.11 的接手点
+### 12.3 公共 assembly 的接手边界
 
 公共 assembly 和 Experimental Design v2 本地 qualification 已完成。相关无模型命令是：
 
@@ -881,16 +886,17 @@ git remote -v
 
 ## 17. 你现在可以接着做什么
 
-建议下一次实际开发从“有区分度的新 public-contract case”开始，不在 Experimental Design 的同一饱和
-分母上付费：
+建议下一次实际开发从 i18n contribution-v2 的 source-audited base IR 开始，不回到 Experimental Design
+或旧 i18n v3 的饱和分母：
 
 ```text
-第一步：从 portfolio 中挑选信息互补、公开合同可审计且基线未饱和的任务/skill
-第二步：冻结 source/task split，完成 scorer differential、reverse-evidence 与 materialization audit
-第三步：将领域 contract 编译为公共 assembly 输入，不增加 runtime/catalog 版本
-第四步：运行本地 package/runtime/scorer qualification，并记录人工分钟、adapter LOC 与 coreBranchDelta
-第五步：只有观察空间和前置门禁都成立，才冻结新的付费 development identity
-第六步：通过 development gate 后再讨论 held-out、跨模型和摊销 Token
+第一步：为 contribution-v2 生成 profile-empty base IR 和逐节点 source audit
+第二步：复用通用 static-development runner，冻结 no-skill | original | ir-static
+第三步：只在公开、重复 residual 存在时生成 typed feedback；static 已解决的问题不进 overlay
+第四步：将 scanner/rewrite/locale schema/checker 编译为公共 assembly 输入，不增加 runtime/catalog 版本
+第五步：运行本地 package/runtime/scorer qualification，并记录人工分钟、adapter LOC 与 coreBranchDelta
+第六步：只有 optimized development gate 通过，才把它计为第二 phenotype；readiness 通过后再做 untouched
+replication、跨模型/context 和摊销 Token
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

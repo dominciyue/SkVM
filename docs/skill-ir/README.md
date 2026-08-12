@@ -17,14 +17,15 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 
 - IR schema、parser、validator、profiler、静态 passes、lowering、真实 runner、持久化 workdir、
   确定性 scorer 和 paired analyzer 已实现。
-- Benchmark v2 的测量合同通过 42/42 differential 与 36/36 materialization audit；相较 v1，
+- Experimental Design Benchmark v2 的测量合同通过 42/42 differential 与 36/36 materialization audit；
+  相较该案例的 v1，
   alternative-valid false reject 从 6/8 降为 0/42，当前可以用于方法开发，但这不等于优化已成功。
 - `env-manager` 的确定性 repair 在 3 个完整 development pair 上由 0.90 提升到 1.00；预注册分母
   含 1 个 infrastructure failure，gate 失败。
 - `law-to-markdown` artifact 在 development 为 4/4、mean 0.925；held-out 为 2/4、mean 0.725，
   出现 2 次回归，package 未晋升。
-- `experimental-design` v2 与 skill-unique slice 均出现 no-skill/original 饱和，说明当前任务不能
-  支撑优化归因；该路线已按停止规则关闭。
+- `experimental-design` v2 的旧任务贡献面不足；skill-unique slice 已通过贡献可识别性审计，但强模型
+  no-skill/original 仍同时饱和。两者分别属于 benchmark underidentification 与 model capability saturation。
 - 公共 artifact assembly 已在 API Tester 与 Experimental Design v1 两种 phenotype 上 shadow rebuild：
   23 个 production files、2/2 package 逐字节一致、2/2 catalog valid、`coreBranchDelta=0`。新的
   Experimental Design v2 compiler 已接入该 assembly，本地 2/2 development fixture 通过；因基线饱和，
@@ -37,30 +38,32 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   会把 skill-package-only `LICENSE.upstream` 链接带入 task README；但 scorer 仍误拒绝 existing local path
   command argument，因此不进入 base IR。
 - Law v3 已补齐 `deliverablePath: string|null` 的公开 ABI，真实报告 0 representation false reject；但
-  original mean 0.85 低于 no-skill 0.90，基线 gate 失败。i18n v3 已补齐数组语义和 scorer 依赖闭包，
-  首跑 5/5 可解析报告 ABI pass，但有 2 条零 token/无输出；execution-bound successor 已达到 8/8 observable、
-  8/8 ABI pass，随后因 no-skill/original 均 4/4、mean 1.0 而冻结 baseline saturation。
+  original mean 0.85 低于 no-skill 0.90，基线 gate 失败。旧 i18n v3 执行可观测 successor 两臂饱和；新的
+  contribution-v2 任务删除 answer-bearing recipe，并公开 placeholder/plural 语义，真实 paired gate 为
+  8/8、0 infra、4/4 differing、3 positive，original/no-skill mean 为 0.925/0.525。它只开放 base IR audit，
+  尚无 `ir-static`、artifact、held-out 或 Token 优化证据。
 - Method portfolio 已机器化登记 7 个 case：7 studied、6 contract-qualified、0 untouched replication、
-  1 个“合同合格且 development pass”的 phenotype；readiness 仍未通过。
+  1 个 optimized development-passed phenotype；readiness 仍未通过。i18n 当前 optimized development 状态为
+  `not-run`，不能把 baseline admission 当作第二个优化正例。
+- 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
+  Optimizer Agent 尚未串成最终用户路径。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
 
 ```text
 冻结旧结果，不改 gate
--> 版本化 prospective partial-benefit re-entry
--> 建立 method-development portfolio 与 readiness evaluator
--> API Tester schema-derived artifact development gate passed
--> zh-readme v2 invalidated；先提炼 skill-neutral command semantic contract
--> 公共 artifact assembly shadow parity + Experimental Design v2 本地 qualification completed
--> 不在 Experimental Design 饱和分母上创建付费 optimized lock
--> public output ABI v2 completed；i18n v3 contract-qualified、execution observable、baseline saturated
--> 不创建 benchmark v4；转向下一个预期有区分度的真实 skill 方法案例
--> 6 个 contract-qualified 真实方法案例继续补 development phenotype 与自动化证据
--> 为下一个有区分度的公开合同案例生成 artifact 并运行冻结 development
--> readiness gate 通过
+-> contribution-v2 已证明 i18n 的 skill 增量可识别
+-> source-audited profile-empty base IR
+-> no-skill | original | ir-static development
+-> 公开 typed residual 或静态保真结论
+-> 公共 assembly 的 i18n artifact candidate
+-> 第二个 optimized development phenotype
+-> portfolio 状态分层与自动化/适配成本补齐
+-> readiness gate
 -> 用另一项 untouched skill 做冻结 replication
--> 再扩固定三模型族、clean + noisy/long 和成本摊销实验
+-> 固定三模型族、clean + noisy/long 与成本摊销主实验
+-> 统一 CLI/library/Optimizer Agent 交付入口
 ```
 
 方法案例数量不固定，6 只是起点。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式

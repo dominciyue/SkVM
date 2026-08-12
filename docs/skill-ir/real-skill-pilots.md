@@ -141,10 +141,11 @@ unautomatedSteps + blockers
 6. 预计人工适配可被声明式 contract 表达。
 
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
-closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 `contribution-v1` 是独立 task-set，
-用于修复 answer-bearing task 造成的贡献不可识别。它已冻结 2+2 split、source-derived scorer、5 类 canary、
-materialization、identifiability report 和 `gpt-5.6-sol`/Pi/Windows/clean paired baseline lock。当前只完成 dry-run，
-qualification/付费 development 结果出来前不构造 IR，也不消费 held-out。
+closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
+answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为
+measurement-invalid；`contribution-v2` 公开这些语义后完成唯一 8-row baseline：0 infra、4/4 differing、
+3 positive，original/no-skill mean 0.925/0.525，gate passed。当前允许构造 source-audited base IR；
+`ir-static`、optimized artifact 与 held-out 均尚未运行。
 
 `zh-code-reviewer` 当前可复建命令：
 

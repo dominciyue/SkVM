@@ -40,7 +40,7 @@ git show <commit>:docs/skill-ir/<file>
 - 唯一 held-out 在 manual boundary 回归，2/4、mean 0.725，package 不晋升。
 - 该负结果明确了“开发集正向”与“跨 task 稳定”不能混写。
 
-### 2026-07-25 至 07-31：Benchmark v2 与 Stable Pi
+### 2026-07-25 至 07-31：Experimental Design Benchmark v2 与 Stable Pi
 
 - Wave A v1 contract audit 暴露私有 enum、唯一算法、唯一措辞与 materialization 缺失。
 - Experimental Design v2 形成公开语义合同、alternative-valid、reverse-evidence、held-out isolation 和
@@ -55,6 +55,42 @@ git show <commit>:docs/skill-ir/<file>
 - 决定采用 prospective partial-benefit re-entry：API Tester 转 method-development，另选 untouched skill。
 - 方法案例至少 6 个起步但不设固定终止数，以 portfolio readiness 决定何时冻结方法。
 - 用户侧目标固定为自动 optimizer；人工只审核声明式适配和低置信度边界。
+
+### 2026-08-01 至 08-03：方法组合、公共 Assembly 与资源命名空间
+
+- 建立 machine-readable method portfolio/readiness；方法案例至少 6 个起步，是否进入 replication 由能力
+  gate 决定。
+- API Tester 经 prospective re-entry 生成 schema-derived artifact，冻结 development 为 4/4、mean 1.0，
+  成为第一个 optimized development-passed phenotype。
+- 对 6 个真实案例审计 skill bundle，区分 exposure、collision 与 output-reference；建立 namespaced resource
+  package、完整性验证和双案例 canary。
+- Namespaced 四臂真实矩阵 16/16、0 infra，但 optimized 1/4、mean 0.5625、2 regressions；结果冻结为机制已
+  接入但质量 gate failed。
+- 抽取技能无关公共 assembly，在 API Tester 与 Experimental Design 两种 phenotype 上完成 byte parity；领域
+  compiler/checker 仍由公开合同负责。
+
+### 2026-08-09：真实输出反向审计与 Public Output ABI
+
+- Law、i18n 与 reviewer 的真实模型输出连续暴露 scorer 私有字段类型、数组顺序和执行可观测性问题，证明预制
+  canary 通过仍不等于 measurement-valid。
+- 建立 `public-output-abi/v1/v2`、scorer dependency closure 和 post-run authority audit；旧结果不重分，修复
+  使用新 identity。
+- Law v3 恢复 measurement-valid，但 baseline 回归；reviewer v2 恢复 measurement-valid 并完成 static fidelity；
+  zh-readme v1/v2 保持 measurement-invalid。
+- i18n v3 最终恢复 8/8 execution observable 与 8/8 ABI pass，但旧任务 no-skill/original 同时满分，冻结为
+  baseline saturation。
+
+### 2026-08-10：Skill Contribution Identifiability 与 i18n Successor
+
+- 新增通用 `skill-contribution-identifiability/v1`，把 benchmark contract 合法与 skill 增量可识别分开；静态
+  audit 不用真实分数倒推资格。
+- 旧 Experimental Design v2 和 i18n v3 被判为 benchmark-underidentified；Experimental Design skill-unique
+  贡献面合格，但历史强模型结果仍是 capability saturation。
+- i18n contribution-v1 移除 answer-bearing recipe 后完成真实运行，却暴露未公开 placeholder/plural 语义；
+  5/8 false reject，冻结 measurement-invalid。
+- contribution-v2 公开 `{name}`、`{{name}}` 与 i18next v4 plural family，唯一 8-row paired baseline 为
+  0 infra、4/4 differing、3 positive，original/no-skill mean 0.925/0.525。该结果只开放 base IR audit，
+  未形成静态、artifact、held-out 或 Token 优化结论。
 
 ## 2. 关键冻结决策
 

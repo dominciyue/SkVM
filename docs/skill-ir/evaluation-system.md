@@ -253,8 +253,9 @@ optimization claim；命令与锁路径见 `real-skill-pilots.md`。
 8. public output ABI：每个 scorer-visible 字段公开声明 type、required、enum/nullability、object/array semantics；
    至少包含 alternative-shape positive 与 type-negative canary。
 
-Benchmark v2 当前审计结果为 42/42 differential 与 36/36 materialization。该结论只说明测量合同可用，
-不保证模型条件下有区分度。
+Experimental Design Benchmark v2 当前审计结果为 42/42 differential 与 36/36 materialization。该结论
+只说明该案例的测量合同可用，并为其他 skill 提供 audit 协议参考；不同 skill 仍需自己的公开语义合同与
+deterministic scorer，也不保证模型条件下有区分度。
 
 Law v2 与 i18n 的 30/30 人工 audit 说明仅靠预制 fixture 仍可能漏掉真实表示层。付费后必须把 raw workdir
 中出现的、与公开合同一致的 alternative value 纳入 authority audit；若 scorer 私有收窄表示，当前 identity

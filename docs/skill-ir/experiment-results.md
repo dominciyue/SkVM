@@ -42,7 +42,7 @@
 | i18n contribution-v1 | 2 systems x 4 = 8 | 冻结分数 no-skill 0/4、0.40；original 0/4、0.425 | 5/8 placeholder/plural false reject；`measurement-invalid`，不判断 skill。 |
 | i18n contribution-v2 | 2 systems x 4 = 8 | no-skill 1/4、0.525；original 2/4、0.925；3 positive/1 negative | 8/8 observable、0 infra、4 differing；baseline gate passed，只开放 base IR audit。 |
 
-## 3. Benchmark v1 与 v2
+## 3. Experimental Design Benchmark v1 与 v2
 
 权威比较：`results/skill-ir/benchmark-and-optimization-evidence-2026-07-29.json`。
 
@@ -53,7 +53,8 @@
 | Private-contract issues | 8 | 0 |
 | Production materialization | 0 | 36/36 |
 
-结论：v2 在**测量合同**上明确支配 v1，修复了私有 enum、唯一算法、唯一措辞和未真实物化等问题。
+结论：Experimental Design v2 在**该案例的测量合同**上明确支配 v1，修复了私有 enum、唯一算法、唯一措辞
+和未真实物化等问题。共享的是 audit/runner 方法，不是跨 skill 的统一答案或 scorer。
 这不能推出 v2 的模型运行一定有区分度。Experimental Design 后续饱和正说明“scorer 合法”和“task 有用”
 是两道不同门。
 
@@ -210,12 +211,13 @@ untouched replication 和 Token break-even 均未证明。
 | api-tester | yes | yes | yes, artifact 4/4 | no |
 | zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
 | zh-readme | yes | yes（audit），付费 measurement invalid | no | no |
-| i18n-helper | yes | yes（v3 ABI/dependency closure） | baseline saturated | no |
+| i18n-helper | yes | yes（contribution-v2 public semantics） | optimized development not-run；baseline admission passed | no |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、6
 contract-qualified、0 untouched replication、1 passed qualified phenotype。Law v3 已恢复 contract-qualified，
 但 baseline gate failed；Env 仍有 benchmark-contract blocker，zh-readme 有 scorer-authority blocker；
-i18n-helper 的 measurement blocker 已清除，但 baseline saturation 和自动化指标仍未解决。
+i18n-helper 的 contribution-v2 已通过 baseline admission，但 base IR、static 与 optimized development 尚未运行，
+不能计为第二个 passed phenotype。自动化与适配成本指标也仍不完整。
 该失败是诚实状态，不应调整阈值。
 
 ### 8.1 `i18n-helper` 首轮校准
@@ -358,12 +360,17 @@ lock/result 未修改；由于基线饱和，没有新付费四臂结果，也�
 
 ## 12. 本地与提交结果
 
-当前 Git 中有约 252 个跟踪 result files，并有大量本地 raw workdir/qualification/artifact 文件。治理规则：
+2026-08-10 审计时，Git 中有 344 个跟踪 `results/skill-ir` 文件，并有大量本地
+raw workdir/qualification/artifact 文件。治理规则：
 
 - Compact gate/audit/scored/summary/provenance 继续提交；
 - 可再生成的 raw run、workdir、qualification、debug probe 默认 ignore；
 - 已经被 lock digest 或 committed report 引用的文件保持原位；
 - 不通过“文档治理”删除用户实验原始数据。
+
+2026-08-12 只读复核发现 56 个未跟踪 result 入口，其中 13 个文件名属于 `scored`/`gate-report` compact
+候选。它们多为 7 月历史实验的评分行，尚未逐项完成绝对路径、敏感字段、重复 summary 和 provenance 审计；
+当前不批量提交或删除。该 backlog 不改变已冻结 gate 结论，但属于可复现性与仓库治理风险。
 
 ## 13. 后续实验
 
@@ -381,5 +388,6 @@ lock/result 未修改；由于基线饱和，没有新付费四臂结果，也�
 6. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势，并让至少第二个合同合格
    phenotype 通过 development。
 7. Portfolio readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
-8. 保持 Law v3、i18n v2/v3 及 execution-bound successor 冻结。i18n baseline 已证明饱和，不创建
-   benchmark v4、不加跑同一分母；转向下一个公开合同可评分且预期 no-skill 不饱和的真实 skill。
+8. 保持 Law v3、i18n v2/v3、execution-bound successor 与 contribution-v1 冻结。contribution-v2 已通过
+   baseline admission；下一步是 source-audited base IR 和 `ir-static` development，不再回到旧饱和分母，
+   也不提前消费 held-out。

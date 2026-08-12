@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-10
+**最后更新：** 2026-08-12
 
 ## 1. 项目定位
 
@@ -205,10 +205,8 @@ v2 保持原 task、split freeze、source closure、模型、Pi 和数值 gate �
 和单个非 flag 参数的有界占位符；许可证只接受封闭 SPDX/display alias；本地 Markdown link 必须解析到
 task repository 内真实文件。新 audit 覆盖 2 development tasks x 12 cases，共 24/24 通过，包括 public
 equivalence、reverse-evidence、gold/held-out leak 与 broken-local-link canary。v2 scorer 由通用 runner 按
-lock 中的 path+digest 动态加载，core 不按 skill id 分支；v1 registry 与结果保持不变。该状态只说明 v2
-measurement contract 已审计和预注册，付费 development 尚未运行，因此仍不构成区分度或优化证据。
-
-v2 唯一矩阵随后完成 8/8 rows、4/4 pairs、0 infrastructure；no-skill 3/4、mean 0.95、40204 tokens，
+lock 中的 path+digest 动态加载，core 不按 skill id 分支；v1 registry 与结果保持不变。v2 唯一矩阵完成
+8/8 rows、4/4 pairs、0 infrastructure；no-skill 3/4、mean 0.95、40204 tokens，
 original 2/4、mean 0.90、120021 tokens，0 original-positive pair。两个 original failure 都把 skill source
 closure 中的 `LICENSE.upstream` 当成 task repository 文件链接，属于公开合同违例；但 v2 scorer 又把
 `note-index scan .` 判错：命令结构来自公开文档，`.` 是真实存在的 repository-local directory，v2 仅接受
@@ -325,8 +323,8 @@ source-rewrite-only view 替换为 provenance-bound deterministic artifact compi
 
 本地 re-entry qualification 已验证候选编译器的可执行性：Law 与 Experimental Design 的 deterministic
 compiler、validated catalog/runtime、protected-input 检查和原 scorer activation 共 20/20 focused tests
-通过（显式 `SKVM_PYTHON`）。这只是 L3 artifact 机制证据，尚未成为新的 paid development identity；统一
-adapter contract 和 public-contract benchmark lock 仍是下一阶段前置条件。
+通过（显式 `SKVM_PYTHON`）。后续 Task 17.11 已完成公共 assembly 与双 phenotype shadow parity，详见 6.1；
+这些仍是 L3 artifact 机制证据，不是新的 paid development 或质量收益。
 
 ### 4.3 `law-to-markdown` 公共合同重建
 
@@ -598,9 +596,11 @@ digest、path containment、protected mutation 或 infrastructure failure 不触
 同 package 可做 `check-only` 与 `check+one-repair` 归因；只有 repair 实际触发，才讨论修复增益。Repair
 调用和 Token 单列。
 
-## 8. Benchmark v2 契约
+## 8. Benchmark v2 设计契约
 
-Benchmark v2 将主语义成功与 deterministic profile 分开：
+“Benchmark v2”首先指 Experimental Design 的版本化 benchmark，并由此沉淀出可复用的设计契约；它不是
+所有 skill 共用一套任务或 scorer。不同 skill 必须按同一原则建立自己的公开语义与 deterministic evaluator。
+该契约将主语义成功与 deterministic profile 分开：
 
 - 主成功只检查公开任务合同的语义等价，不要求私有 enum、唯一算法或报告字面量；
 - profile 记录确定性结构/分配等诊断，不偷偷成为 hard gate；
@@ -608,8 +608,9 @@ Benchmark v2 将主语义成功与 deterministic profile 分开：
 - scorer 必须接受多个 alternative-valid fixture，拒绝 gold/source-quote/held-out canary；
 - materialization audit 在真实 workdir 上验证污染、路径、protected input 与最终 delta。
 
-当前 v2 measurement evidence 是 42/42 differential、36/36 materialization，足以说明其优于 v1 的
-测量合同；运行结果是否有区分度和优化是否有效仍需逐 skill 单独验证。
+当前 42/42 differential、36/36 materialization 是 Experimental Design v2 的 measurement evidence，足以
+说明它在该案例上优于 v1 的测量合同；运行结果是否有区分度、审计协议是否被其他 skill 正确实例化、优化是否
+有效，仍需逐 skill 单独验证。
 
 ### 8.1 Skill Contribution Identifiability
 
@@ -709,7 +710,12 @@ workdir、qualification 临时目录与调试 snapshot 默认留本机，除非�
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
-development artifact 正向案例，通用优化主 claim 未完成”。
+development artifact 正向案例；i18n contribution-v2 已通过有区分度的 baseline admission，但尚未进入
+static/artifact development；通用优化主 claim 未完成”。
+
+第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
+分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；
+不得把已有命令名称当作该产品闭环已经实现。
 
 不得声称：
 

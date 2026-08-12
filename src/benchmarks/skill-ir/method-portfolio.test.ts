@@ -171,12 +171,17 @@ describe("method portfolio registry and readiness", () => {
       role: "method-development",
       methodSequence: 7,
       contractQualified: true,
-      benchmarkVersions: ["react-i18next-v1", "v2-public-output-abi", "v3-array-semantics"],
+      benchmarkVersions: [
+        "react-i18next-v1",
+        "v2-public-output-abi",
+        "v3-array-semantics",
+        "contribution-v1",
+        "contribution-v2-public-semantics",
+      ],
       developmentGate: {
-        status: "failed",
-        resultPath: "results/skill-ir/i18n-helper-v3-execution-observable-calibration-v3/gate-report.json",
+        status: "not-run",
       },
-      blockers: ["baseline-saturation"],
+      blockers: [],
     })
   })
 
