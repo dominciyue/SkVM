@@ -211,12 +211,12 @@ untouched replication 和 Token break-even 均未证明。
 | api-tester | yes | yes | yes, artifact 4/4 | no |
 | zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
 | zh-readme | yes | yes（audit），付费 measurement invalid | no | no |
-| i18n-helper | yes | yes（contribution-v2 public semantics） | optimized development not-run；baseline admission passed | no |
+| i18n-helper | yes | yes（contribution-v2 public semantics） | base IR audit passed；static/optimized development not-run | no |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、6
 contract-qualified、0 untouched replication、1 passed qualified phenotype。Law v3 已恢复 contract-qualified，
 但 baseline gate failed；Env 仍有 benchmark-contract blocker，zh-readme 有 scorer-authority blocker；
-i18n-helper 的 contribution-v2 已通过 baseline admission，但 base IR、static 与 optimized development 尚未运行，
+i18n-helper 的 contribution-v2 已通过 baseline admission 与 source-audited base IR，但 static 与 optimized development 尚未运行，
 不能计为第二个 passed phenotype。自动化与适配成本指标也仍不完整。
 该失败是诚实状态，不应调整阈值。
 
@@ -243,8 +243,9 @@ contribution-v2 以新 task/scorer/lock 身份公开 `{name}` 报告语法、`{{
 `_one/_other` family。Qualification 为 success、score 1.0；唯一矩阵 8/8、4/4 pairs、0 infra。No-skill
 1/4、mean 0.525、63225 tokens；original 2/4、mean 0.925、193607 tokens。4 个 pair 全部有差异，3 positive、
 1 negative，预注册 gate passed。两次 partial original 都额外生成 Windows `nul` 文件，因此只在 delta hard
-gate 回归，语义项通过。结果开放 source-audited base IR，尚无 ir-static/optimized arm，不能声称优化或
-Token 节省，也不允许 held-out。
+gate 回归，语义项通过。随后 profile-empty base IR 与逐节点 source audit 已通过 schema、validator、lowering
+和 leak canary；它不包含后验 `nul` 文件名。尚无 ir-static/optimized arm，不能声称优化或 Token 节省，也
+不允许 held-out。
 
 关键路径：
 

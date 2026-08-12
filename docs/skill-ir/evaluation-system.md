@@ -345,7 +345,8 @@ manifest 中的 evidence 同时声明语义来源和物理 `kind`；例如 `skil
   公开语义未完整声明，5/8 false rejection，冻结为 `measurement-invalid`；静态资格不能覆盖真实测量缺陷。
 - i18n contribution-v2：公开 `{name}` / `{{name}}` 与 i18next v4 plural family，重新通过 canonical、
   alternative、plural、omission、reverse-evidence、forbidden-sink 和 identifiability audit。真实 8-row paired
-  gate passed：0 infra、4 differing、3 positive，original/no-skill mean 0.925/0.525；只开放 base IR audit。
+  gate passed：0 infra、4 differing、3 positive，original/no-skill mean 0.925/0.525。随后 profile-empty base IR
+  与逐节点 source audit 通过，registry 晋升 `runnable`；当前只开放 static development。
 
 `public-contract-calibration-lock/v2` 保持同一 schema：历史 lock 继续消费并要求 30-canary benchmark contract
 audit；新的 contribution case 可以消费 `skill-contribution-identifiability/v1` manifest + frozen compact report。

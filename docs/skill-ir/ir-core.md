@@ -62,6 +62,12 @@ Markdown 证据使用行号范围；JSON 证据使用显式 allowlist pointer。
 必须保持空 `profile`。该 sidecar 是静态 provenance 门禁，不是 scorer，也不进入 agent
 prompt。
 
+`i18n-helper-contribution-v2` 是当前 source-transform 实例：base IR 绑定 exact `SKILL.md`、两个 development
+prompt、public contract 与 `i18n-report-semantics.json`。逐节点 audit 覆盖扫描/排除、稳定 key、插值与
+i18next v4 复数、已有翻译、protected inputs、声明输出集合及报告 ABI；不引用 held-out、evaluator、运行结果
+或 profile feedback，也不把后验 `nul` 文件名写入 IR。Corpus 只有在 schema、validator、source audit、
+controller/checker/adapter lowering 和 agent-facing render 全部通过后才标记为 `runnable`。
+
 ## 3. Parser
 
 公开函数：

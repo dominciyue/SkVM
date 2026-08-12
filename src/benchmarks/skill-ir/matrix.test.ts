@@ -210,6 +210,12 @@ describe("buildCorpusMatrixInput", () => {
         provenance: "real-public",
         evidenceWeight: "support-real",
       },
+      {
+        id: "i18n-helper-contribution-v2",
+        packaging: "focused",
+        provenance: "real-public",
+        evidenceWeight: "support-real",
+      },
     ]);
     expect(input.tasksBySkill).toEqual({
       "law-to-markdown": [
@@ -237,6 +243,10 @@ describe("buildCorpusMatrixInput", () => {
       "api-tester": [
         "api-tester-openapi-users-dev-001",
         "api-tester-openapi-inventory-dev-002",
+      ],
+      "i18n-helper-contribution-v2": [
+        "i18n-helper-contribution-multifile-dev-001",
+        "i18n-helper-contribution-partial-plural-dev-002",
       ],
     });
     expect(input.systems).toEqual(COLD_START_EXPERIMENT_SYSTEMS);

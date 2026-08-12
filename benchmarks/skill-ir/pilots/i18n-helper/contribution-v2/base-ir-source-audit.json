@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "skill-ir-source-audit/v1",
+  "skillId": "i18n-helper-contribution-v2",
+  "sources": [
+    {
+      "id": "skill-source",
+      "kind": "markdown",
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+    },
+    {
+      "id": "development-task-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/development/tasks.json",
+      "sha256": "43c7b288ba493956224683f56b56e5aa2c8b040f6d78485c5e29b39bca021d4c",
+      "allowedPointers": ["/tasks/0/prompt", "/tasks/1/prompt"]
+    },
+    {
+      "id": "public-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/public-contract.json",
+      "sha256": "073462f3ce7a8697be4fa2014b8335877013ce6a6e167df2784b4161a3d1c7d9",
+      "allowedPointers": [
+        "/framework",
+        "/sourceFiles",
+        "/baselineFiles",
+        "/allowedModifiedFiles",
+        "/requiredOutputFiles",
+        "/protectedFiles",
+        "/keyPolicy",
+        "/report",
+        "/outputAbi"
+      ]
+    },
+    {
+      "id": "report-semantics",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/i18n-report-semantics.json",
+      "sha256": "dffa3d191abeb1fe6d22f87924e4ea22221e3e86f8e0da62e13dec391018e2b6",
+      "allowedPointers": [
+        "/originalTextPlaceholderSyntax",
+        "/localeInterpolationSyntax",
+        "/pluralKeyPolicy"
+      ]
+    }
+  ],
+  "mappings": [
+    { "targetRef": "category", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 8, "end": 25 } }] },
+    { "targetRef": "intent", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 8, "end": 48 } }, { "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "input:declared-react-sources", "construction": "task-contract", "evidence": [{ "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/sourceFiles" } }, { "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "input:public-i18n-contract", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/allowedModifiedFiles" } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/pluralKeyPolicy" } }] },
+    { "targetRef": "input:existing-project-state", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/baselineFiles" } }] },
+    { "targetRef": "output:localized-react-sources", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 34, "end": 43 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/sourceFiles" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/allowedModifiedFiles" } }] },
+    { "targetRef": "output:i18n-runtime", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 17, "end": 30 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/requiredOutputFiles" } }] },
+    { "targetRef": "output:locale-files", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 27, "end": 32 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/requiredOutputFiles" } }] },
+    { "targetRef": "output:i18n-report", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 45, "end": 65 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/report" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/outputAbi" } }] },
+    { "targetRef": "precondition:declared-inputs-readable", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/protectedFiles" } }] },
+    { "targetRef": "precondition:contained-offline-workdir", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "step:step-read-contract", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/baselineFiles" } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/originalTextPlaceholderSyntax" } }] },
+    { "targetRef": "step:step-scan-sources", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 17, "end": 25 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/sourceFiles" } }] },
+    { "targetRef": "step:step-plan-localization", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 27, "end": 48 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/keyPolicy" } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/pluralKeyPolicy" } }] },
+    { "targetRef": "step:step-edit-localization", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 34, "end": 43 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/allowedModifiedFiles" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/protectedFiles" } }] },
+    { "targetRef": "step:step-write-report", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 50, "end": 65 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/outputAbi" } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/originalTextPlaceholderSyntax" } }] },
+    { "targetRef": "step:step-verify-delivery", "construction": "static-clarification", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 45, "end": 48 } }, { "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/requiredOutputFiles" } }] },
+    { "targetRef": "rule:rule-visible-text-boundary", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 22, "end": 25 } }, { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 76, "end": 79 } }] },
+    { "targetRef": "rule:rule-stable-key-policy", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 34, "end": 43 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/keyPolicy" } }] },
+    { "targetRef": "rule:rule-preserve-locale-semantics", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 76, "end": 79 } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/originalTextPlaceholderSyntax" } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/localeInterpolationSyntax" } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/pluralKeyPolicy" } }] },
+    { "targetRef": "rule:rule-preserve-existing-translations", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/baselineFiles" } }] },
+    { "targetRef": "rule:rule-preserve-protected-inputs", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/protectedFiles" } }] },
+    { "targetRef": "rule:rule-exact-output-set", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/allowedModifiedFiles" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/requiredOutputFiles" } }] },
+    { "targetRef": "rule:rule-offline-only", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }] },
+    { "targetRef": "tool:tool-workspace-filesystem", "construction": "schema-plumbing", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 17, "end": 48 } }, { "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "environment:env-contained-offline-workdir", "construction": "task-contract", "evidence": [{ "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/protectedFiles" } }] },
+    { "targetRef": "check:check-protected-inputs", "construction": "task-contract", "evidence": [{ "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/protectedFiles" } }] },
+    { "targetRef": "check:check-declared-delta", "construction": "task-contract", "evidence": [{ "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/allowedModifiedFiles" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/requiredOutputFiles" } }, { "sourceId": "development-task-contract", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }] },
+    { "targetRef": "check:check-extraction-boundary", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 22, "end": 25 } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/sourceFiles" } }] },
+    { "targetRef": "check:check-literal-preservation", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 22, "end": 25 } }, { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 76, "end": 79 } }] },
+    { "targetRef": "check:check-locale-integrity", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 45, "end": 48 } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/localeInterpolationSyntax" } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/pluralKeyPolicy" } }] },
+    { "targetRef": "check:check-report-abi", "construction": "task-contract", "evidence": [{ "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/outputAbi" } }, { "sourceId": "public-contract", "locator": { "kind": "json-pointer", "pointer": "/report" } }, { "sourceId": "report-semantics", "locator": { "kind": "json-pointer", "pointer": "/originalTextPlaceholderSyntax" } }] }
+  ],
+  "excludedEvidenceClasses": ["evaluator-payload", "held-out", "runtime-output", "profile-feedback"]
+}

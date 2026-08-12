@@ -1,0 +1,284 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "i18n-helper-contribution-v2",
+  "name": "i18n Helper Public-Semantics Contribution",
+  "category": ["workflow", "tool-use", "constraint-heavy"],
+  "intent": "Internationalize user-visible text in the React source files declared by the public contract, preserve behavior and existing translations, and deliver complete react-i18next sources, locales, and a public report without touching protected inputs or creating undeclared artifacts.",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+    "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+  },
+  "inputs": [
+    {
+      "id": "declared-react-sources",
+      "description": "The React source files listed by sourceFiles in the task-visible i18n contract.",
+      "required": true
+    },
+    {
+      "id": "public-i18n-contract",
+      "description": "The task-visible contract and report-semantics files that declare mutable paths, protected inputs, required outputs, key policy, report ABI, placeholder syntax, and plural policy.",
+      "required": true
+    },
+    {
+      "id": "existing-project-state",
+      "description": "Existing localized source, runtime configuration, and locale values that must be preserved unless the public contract authorizes an update.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "localized-react-sources",
+      "description": "The declared React sources with user-visible text replaced by react-i18next calls while non-user-visible literals and behavior remain intact.",
+      "required": true
+    },
+    {
+      "id": "i18n-runtime",
+      "description": "The declared src/i18n.ts runtime configuration using the existing local react-i18next dependencies.",
+      "required": true
+    },
+    {
+      "id": "locale-files",
+      "description": "Complete src/locales/zh-CN.json and src/locales/en-US.json files that preserve existing values and match extracted placeholders and plural families.",
+      "required": true
+    },
+    {
+      "id": "i18n-report",
+      "description": "The required i18n-report.json conforming to the public output ABI and agreeing with the final source and locale files.",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "declared-inputs-readable",
+      "description": "All declared source, baseline, contract, semantics, and protected files are readable regular files before editing begins.",
+      "checkability": "runtime"
+    },
+    {
+      "id": "contained-offline-workdir",
+      "description": "The task runs in its contained workdir without network access or package installation.",
+      "checkability": "runtime"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-read-contract",
+      "title": "Read the public localization boundary",
+      "description": "Read i18n-contract.json, i18n-report-semantics.json, the declared React sources, baseline mappings, and existing locales before planning changes.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["declared-path-boundary", "existing-locale-inventory"],
+      "successCheckRefs": ["check-protected-inputs"],
+      "failureModes": ["missing-contract", "missing-declared-source", "unreadable-existing-locale"]
+    },
+    {
+      "id": "step-scan-sources",
+      "title": "Scan declared sources for user-visible text",
+      "description": "Inspect only the declared React sources, collect user-visible UI text, and exclude imports, URLs, regular expressions, variable names, debug logs, and technical terms.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-read-contract"],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["source-message-inventory", "preserved-literal-inventory"],
+      "successCheckRefs": ["check-extraction-boundary"],
+      "failureModes": ["ambiguous-visible-text", "undeclared-source-scan"]
+    },
+    {
+      "id": "step-plan-localization",
+      "title": "Plan stable keys and locale semantics",
+      "description": "Assign stable nonempty dot-separated keys, preserve named interpolation, map count messages to i18next v4 plural families, and retain existing locale values.",
+      "kind": "plan",
+      "required": true,
+      "dependsOn": ["step-scan-sources"],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["localization-plan"],
+      "successCheckRefs": ["check-locale-integrity"],
+      "failureModes": ["unstable-key", "placeholder-loss", "plural-family-loss", "existing-translation-overwrite"]
+    },
+    {
+      "id": "step-edit-localization",
+      "title": "Apply the declared source and locale edits",
+      "description": "Update only allowedModifiedFiles, use react-i18next calls in the declared sources, and create or update the required runtime and locale files without changing protected inputs.",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": ["step-plan-localization"],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["localized-react-sources", "i18n-runtime", "locale-files"],
+      "successCheckRefs": ["check-declared-delta"],
+      "failureModes": ["protected-input-change", "undeclared-file", "behavior-literal-change"]
+    },
+    {
+      "id": "step-write-report",
+      "title": "Write the public i18n report",
+      "description": "Write i18n-report.json using the public ABI, single-brace originalText placeholders, and facts derived from the final declared source and locale files.",
+      "kind": "report",
+      "required": true,
+      "dependsOn": ["step-edit-localization"],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["i18n-report"],
+      "successCheckRefs": ["check-report-abi"],
+      "failureModes": ["invalid-report-abi", "report-source-mismatch", "report-locale-mismatch"]
+    },
+    {
+      "id": "step-verify-delivery",
+      "title": "Verify the final declared workdir delta",
+      "description": "Recheck protected inputs, allowed modifications, required outputs, extraction coverage, literal preservation, locale completeness, placeholders, plurals, existing translations, and report agreement.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": ["step-write-report"],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["static-verification-result"],
+      "successCheckRefs": [
+        "check-protected-inputs",
+        "check-declared-delta",
+        "check-extraction-boundary",
+        "check-literal-preservation",
+        "check-locale-integrity",
+        "check-report-abi"
+      ],
+      "failureModes": ["protected-input-change", "undeclared-file", "missing-output", "localization-validation-failed"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-visible-text-boundary",
+      "sourceText": "扫描用户可见的 UI 文本、错误提示和通知消息；排除变量名、URL、正则表达式、import 路径和日志调试信息；不要翻译技术术语。",
+      "level": "must",
+      "scope": "planning",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Extract user-visible messages only; preserve imports, URLs, regular expressions, variable names, debug strings, and technical terms such as API, SDK, and HTTP."
+    },
+    {
+      "id": "rule-stable-key-policy",
+      "sourceText": "Use any stable nonempty dot-separated key. No exact key spelling is prescribed.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Use any stable nonempty dot-separated key; do not depend on a hidden exact key spelling."
+    },
+    {
+      "id": "rule-preserve-locale-semantics",
+      "sourceText": "保持变量占位符并特殊处理复数；公开语义规定 originalText 使用 single-brace、locale 使用 double-brace、复数使用 i18next-v4。",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Preserve single-brace originalText placeholders, double-brace locale interpolation, and i18next-v4 plural key families."
+    },
+    {
+      "id": "rule-preserve-existing-translations",
+      "sourceText": "Preserve existing behavior and translations while checking locale key completeness.",
+      "level": "must",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Keep existing locale values unchanged, add complete values for extracted messages, and keep both locales structurally aligned."
+    },
+    {
+      "id": "rule-preserve-protected-inputs",
+      "sourceText": "Do not modify protected inputs.",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never modify package.json, tsconfig.json, public contract files, or protected baseline files."
+    },
+    {
+      "id": "rule-exact-output-set",
+      "sourceText": "Do not create undeclared files.",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never create files outside the declared output set or modify paths outside allowedModifiedFiles."
+    },
+    {
+      "id": "rule-offline-only",
+      "sourceText": "Do not install packages or use the network.",
+      "level": "never",
+      "scope": "tool-use",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never install packages or use the network during the task."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-workspace-filesystem",
+      "name": "workspace filesystem",
+      "purpose": "Read declared source and contract files, update only allowed paths, and verify the final relative-path workdir delta.",
+      "required": true,
+      "alternatives": ["agent-native read, edit, search, and diff tools"],
+      "platformNotes": {
+        "linux": "Use contained relative paths and UTF-8 JSON.",
+        "macos": "Preserve path case and UTF-8 JSON.",
+        "windows": "Use contained Windows paths while serializing public report paths with forward slashes."
+      },
+      "availabilityCheck": "Confirm every declared input is readable and every declared output parent is contained in the task workdir."
+    }
+  ],
+  "environment": [
+    {
+      "id": "env-contained-offline-workdir",
+      "description": "Execution occurs in the task workdir with declared protected inputs, no network, no package installation, and only contract-authorized file changes.",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-protected-inputs",
+      "name": "Protected inputs remain unchanged",
+      "kind": "rule-violation",
+      "targetRef": "rule:rule-preserve-protected-inputs",
+      "assertion": "Every path in protectedFiles retains its initial content and identity.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-declared-delta",
+      "name": "Only the declared workdir delta exists",
+      "kind": "output",
+      "targetRef": "rule:rule-exact-output-set",
+      "assertion": "Every changed path is allowed, every required output exists, and no undeclared artifact is present.",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-extraction-boundary",
+      "name": "User-visible source messages are extracted",
+      "kind": "output",
+      "targetRef": "rule:rule-visible-text-boundary",
+      "assertion": "Every source-derived user-visible message in the declared files is replaced by a stable react-i18next call.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-literal-preservation",
+      "name": "Non-user-visible literals and behavior are preserved",
+      "kind": "output",
+      "targetRef": "rule:rule-visible-text-boundary",
+      "assertion": "Imports, URLs, technical terms, logs, component behavior, and other excluded literals remain intact.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-locale-integrity",
+      "name": "Locales, placeholders, plurals, and existing values agree",
+      "kind": "output",
+      "targetRef": "rule:rule-preserve-locale-semantics",
+      "assertion": "Both locales contain every extracted key, preserve existing values, use matching double-brace placeholders, and provide required i18next-v4 plural families.",
+      "onFailure": "retry"
+    },
+    {
+      "id": "check-report-abi",
+      "name": "The public report matches final artifacts",
+      "kind": "output",
+      "targetRef": "output:i18n-report",
+      "assertion": "i18n-report.json satisfies the public ABI and its scanned files, entries, placeholders, occurrences, and missing keys agree with the final workdir.",
+      "onFailure": "retry"
+    }
+  ],
+  "recovery": [],
+  "profile": []
+}

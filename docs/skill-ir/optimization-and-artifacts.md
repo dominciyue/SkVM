@@ -295,10 +295,10 @@ Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer �
   两个同 catalog package 变体。冻结 development 为 4/4、mean 1.0、0 regression；模型三臂均 0/4。
   这证明公开 OpenAPI 约束可以编译成稳定的 0-runtime-model-token artifact，不证明 held-out 或跨模型泛化。
 
-因此下一工作不是新增 runtime 版本。i18n contribution-v2 已提供新的有区分度 source-transformation
-baseline；先为它生成 source-audited base IR、运行 static development，再判断是否能把 scanner、rewrite
-plan、locale schema、checker 和 report template 编译为公共 assembly 输入。该纵切之后才决定是否扩新 skill，
-并同步补齐自动生成 IR/contract 与适配成本收敛证据。
+因此下一工作不是新增 runtime 版本。i18n contribution-v2 已提供有区分度的 source-transformation baseline，
+其 source-audited profile-empty base IR 也已通过；下一步运行 static development，再判断是否能把 scanner、
+rewrite plan、locale schema、checker 和 report template 编译为公共 assembly 输入。该纵切之后才决定是否
+扩新 skill，并同步补齐自动生成 IR/contract 与适配成本收敛证据。
 
 API Tester 的本地编译与冻结实验命令：
 

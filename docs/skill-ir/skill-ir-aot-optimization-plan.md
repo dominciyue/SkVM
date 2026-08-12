@@ -18,8 +18,8 @@
   contract audit 已形成研究基础设施；
 - 7 个真实 skill 已进入 method portfolio，6 个 contract-qualified；
 - API Tester 是唯一通过 optimized development gate 的 phenotype；
-- i18n contribution-v2 已通过 `no-skill | original` 基线准入，允许开始 source-audited base IR；它尚无
-  `ir-static`、artifact、held-out 或 Token 优化证据；
+- i18n contribution-v2 已通过 `no-skill | original` 基线准入并完成 source-audited profile-empty base IR；
+  它尚无 `ir-static`、artifact、held-out 或 Token 优化证据；
 - untouched replication、三模型族、noisy/long context、break-even 和面向用户的统一 optimizer CLI 尚未完成。
 
 因此当前不能写“优化系统已经闭环”或“任意 skill 均可自动优化”。准确表述是：**测量与执行框架较成熟，
@@ -29,14 +29,14 @@
 
 | Workstream | 当前状态 | 下一判定点 |
 |---|---|---|
-| IR core | L1/L2 通用实现已具备 | 在 i18n base IR 上验证 source audit 与 lowering 保真 |
+| IR core | i18n base IR 的 source audit、validator 与 lowering 投影已通过 | 在 static development 验证 agent 执行保真 |
 | Benchmark/evaluation | 合同、贡献识别、runner、scorer 已具备 | 避免再出现 public ABI 或 execution authority 漂移 |
 | API Tester | optimized development 4/4、mean 1.0 | 冻结保留；不提前运行 held-out |
 | Law | v3 measurement-valid，但 baseline gate failed；旧 held-out 回归 | 暂不重跑，保留为 boundary failure case |
 | Experimental Design | 合同合格；skill-unique 贡献面合格但强模型饱和 | i18n 竖切后再决定 efficiency ablation 或 successor |
 | Zh Code Reviewer | base IR/static fidelity gate passed | 残差已被 static 解决，不强造 overlay |
 | Zh README | v1/v2 measurement-invalid | skill-neutral command semantics 已提炼，暂不堆新版本 |
-| i18n Helper | contribution-v2 baseline gate passed | 当前主线：base IR -> ir-static -> artifact eligibility |
+| i18n Helper | contribution-v2 base IR/source audit passed | 当前主线：ir-static -> artifact eligibility |
 | Method portfolio | 7 studied、6 qualified、1 passed phenotype、0 replication | 补第二个 optimized phenotype 与自动化指标 |
 | Product entry | 研究脚本可运行；统一 `import/optimize/validate/report` 尚未接入 | 方法 readiness 后收敛 CLI/library/Agent |
 
@@ -112,13 +112,13 @@ src/skill-ir/corpus-fixtures.test.ts
 
 **TDD 顺序：**
 
-1. [ ] RED：要求 contribution-v2 只有在 base IR profile 为空、逐节点 source audit 完整、held-out/evaluator/
+1. [x] RED：要求 contribution-v2 只有在 base IR profile 为空、逐节点 source audit 完整、held-out/evaluator/
    runtime output/profile feedback 全部不可见时才能晋升 `runnable`；
-2. [ ] GREEN：生成最小 base IR，保留扫描、排除、占位符、复数、已有翻译和完整性规则；
-3. [ ] 输出文件边界只能来自公开 task contract。不得把后验文件名 `nul` 硬编码为规则；若需要 guard，只能
+2. [x] GREEN：生成最小 base IR，保留扫描、排除、占位符、复数、已有翻译和完整性规则；
+3. [x] 输出文件边界只能来自公开 task contract。不得把后验文件名 `nul` 硬编码为规则；若需要 guard，只能
    表达“不得产生未声明产物”和“命令必须符合目标 OS”，并提供公开证据；
-4. [ ] 运行 source audit、IR validator、lowering snapshot 和 held-out/gold leak canary；
-5. [ ] 更新 corpus 为新 contribution-v2 runnable identity，不修改旧 i18n v1-v3 及 contribution-v1。
+4. [x] 运行 source audit、IR validator、lowering snapshot 和 held-out/gold leak canary；
+5. [x] 更新 corpus 为新 contribution-v2 runnable identity，不修改旧 i18n v1-v3 及 contribution-v1。
 
 ### Task 18.3 i18n static development
 

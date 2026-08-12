@@ -886,12 +886,12 @@ git remote -v
 
 ## 17. 你现在可以接着做什么
 
-建议下一次实际开发从 i18n contribution-v2 的 source-audited base IR 开始，不回到 Experimental Design
-或旧 i18n v3 的饱和分母：
+当前接力点是 i18n contribution-v2 的 static development，不回到 Experimental Design 或旧 i18n v3 的
+饱和分母：
 
 ```text
-第一步：为 contribution-v2 生成 profile-empty base IR 和逐节点 source audit
-第二步：复用通用 static-development runner，冻结 no-skill | original | ir-static
+第一步：profile-empty base IR 和逐节点 source audit（已完成）
+第二步：复用通用 static-development runner，冻结 no-skill | original | ir-static（当前）
 第三步：只在公开、重复 residual 存在时生成 typed feedback；static 已解决的问题不进 overlay
 第四步：将 scanner/rewrite/locale schema/checker 编译为公共 assembly 输入，不增加 runtime/catalog 版本
 第五步：运行本地 package/runtime/scorer qualification，并记录人工分钟、adapter LOC 与 coreBranchDelta

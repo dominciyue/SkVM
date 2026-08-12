@@ -40,8 +40,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 - Law v3 已补齐 `deliverablePath: string|null` 的公开 ABI，真实报告 0 representation false reject；但
   original mean 0.85 低于 no-skill 0.90，基线 gate 失败。旧 i18n v3 执行可观测 successor 两臂饱和；新的
   contribution-v2 任务删除 answer-bearing recipe，并公开 placeholder/plural 语义，真实 paired gate 为
-  8/8、0 infra、4/4 differing、3 positive，original/no-skill mean 为 0.925/0.525。它只开放 base IR audit，
-  尚无 `ir-static`、artifact、held-out 或 Token 优化证据。
+  8/8、0 infra、4/4 differing、3 positive，original/no-skill mean 为 0.925/0.525。现已完成只绑定 exact
+  source、development prompt、public contract 与 report semantics 的 profile-empty base IR 和逐节点 source
+  audit；尚无 `ir-static`、artifact、held-out 或 Token 优化证据。
 - Method portfolio 已机器化登记 7 个 case：7 studied、6 contract-qualified、0 untouched replication、
   1 个 optimized development-passed phenotype；readiness 仍未通过。i18n 当前 optimized development 状态为
   `not-run`，不能把 baseline admission 当作第二个优化正例。
@@ -54,7 +55,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 ```text
 冻结旧结果，不改 gate
 -> contribution-v2 已证明 i18n 的 skill 增量可识别
--> source-audited profile-empty base IR
+-> source-audited profile-empty base IR（已完成）
 -> no-skill | original | ir-static development
 -> 公开 typed residual 或静态保真结论
 -> 公共 assembly 的 i18n artifact candidate

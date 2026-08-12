@@ -92,6 +92,15 @@ git show <commit>:docs/skill-ir/<file>
   0 infra、4/4 differing、3 positive，original/no-skill mean 0.925/0.525。该结果只开放 base IR audit，
   未形成静态、artifact、held-out 或 Token 优化结论。
 
+### 2026-08-12：i18n Source-audited Base IR
+
+- contribution-v2 的 profile-empty base IR 只绑定 exact skill source、development prompt、public contract 与
+  report semantics；逐节点 audit 排除 evaluator、held-out、runtime output 与 profile feedback。
+- IR/lowering 保留用户可见文本扫描、稳定 key、插值/复数、已有翻译、protected input 与声明输出边界；后验
+  `nul` 文件名未进入静态语义。
+- Corpus 晋升 `runnable`，只开放 `no-skill | original | ir-static` development；artifact、held-out、优化与
+  Token claim 仍关闭。
+
 ## 2. 关键冻结决策
 
 1. No-skill 是主 baseline，不能只比较 original 与 IR。

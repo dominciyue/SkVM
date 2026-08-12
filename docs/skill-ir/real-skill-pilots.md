@@ -45,7 +45,7 @@ Synthetic seed 的证据权重固定为 `calibration-low`。真实案例也只�
 | api-tester | OpenAPI/schema/test-plan | method-development | 新 artifact development 4/4、mean 1.0；held-out 关闭。 |
 | zh-code-reviewer | evidence/severity/report | contract-qualified method-development | 静态保真 12/12、0 infra、ir-static 4/4、0 regression；optimization/held-out 未开放。 |
 | zh-readme | repository fact/documentation | contract-qualified method-development | benchmark audit 合格；v1/v2 付费 measurement 均 invalid，不开放 base IR。 |
-| i18n-helper | React+i18next source transformation | contract-qualified method-development | contribution-v1 因 placeholder/plural 假拒冻结为 measurement-invalid；公开语义 v2 baseline gate passed，开放 base IR audit。 |
+| i18n-helper | React+i18next source transformation | contract-qualified method-development | contribution-v1 冻结 measurement-invalid；公开语义 v2 baseline gate 与 source-audited base IR 已通过，static 尚未运行。 |
 
 方法开发至少 6 个 contract-qualified case 起步，并在 readiness 未过时继续扩充。API Tester 进入方法开发后
 不再是 untouched。Replication 需要另选 skill。
@@ -98,8 +98,9 @@ Audit 必须证明 scorer：
 历史三个 Wave A v1 audit 均失败，因此只算 `support-real`。Experimental Design v2 与 API Tester 的新合同
 通过各自 audit，仍需单独过区分度与优化 gate。Law v3 已用完整公开 ABI 恢复 contract-qualified，但
 baseline gate failed；i18n v3 恢复 contract-qualified 后仍两臂满分。i18n contribution-v2 进一步公开
-placeholder/plural 语义并通过区分度 gate，现只开放 development base IR audit。上述案例都未消费 held-out，
-也不是优化成功证据。
+placeholder/plural 语义并通过区分度 gate；现已用 exact source、development prompt、public contract 与公开
+report semantics 完成 profile-empty base IR 和逐节点 source audit，corpus 晋升 `runnable`。上述案例都未
+消费 held-out，这也不是优化成功证据。
 
 ## 8. API Tester Re-entry
 
@@ -144,8 +145,8 @@ unautomatedSteps + blockers
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为
 measurement-invalid；`contribution-v2` 公开这些语义后完成唯一 8-row baseline：0 infra、4/4 differing、
-3 positive，original/no-skill mean 0.925/0.525，gate passed。当前允许构造 source-audited base IR；
-`ir-static`、optimized artifact 与 held-out 均尚未运行。
+3 positive，original/no-skill mean 0.925/0.525，gate passed。Source-audited base IR 已完成并通过 validator、
+lowering 与 leak canary；`ir-static`、optimized artifact 与 held-out 均尚未运行。
 
 `zh-code-reviewer` 当前可复建命令：
 

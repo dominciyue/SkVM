@@ -1,8 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, posix, win32 } from "node:path";
 import { EnvManagerGradePayloadSchema } from "../bench/evaluators/env-manager-grade";
+import { renderSkillMarkdown } from "../benchmarks/skill-ir/real-agent";
+import { lowerToAdapterSpec } from "./lowering/adapter";
+import { lowerToCheckerSpec } from "./lowering/checker";
+import { lowerToControllerPlan } from "./lowering/controller";
 import { SkillIRSchema } from "./schema";
 import { validateSkillIR } from "./validate";
 
@@ -277,6 +281,125 @@ describe("skill-ir corpus fixtures", () => {
       "runtime-output",
       "profile-feedback",
     ]);
+  });
+
+  test("i18n contribution v2 is runnable only with a profile-empty source-audited static lowering", async () => {
+    const manifest = readJson(join(process.cwd(), "benchmarks/skill-ir/corpus/corpora/pilot.json")) as {
+      skills: Array<{
+        id: string;
+        depth: string;
+        status: string;
+        sourcePath?: string;
+        tasksPath?: string;
+        irPath?: string;
+        sourceAuditPath?: string;
+        benchmarkContractAuditPath?: string;
+      }>;
+    };
+    const expected = {
+      depth: "source-audited-base-ir",
+      status: "runnable",
+      sourcePath: "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      tasksPath: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/development/tasks.json",
+      irPath: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/base-ir.json",
+      sourceAuditPath: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/base-ir-source-audit.json",
+      benchmarkContractAuditPath:
+        "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/contribution-identifiability.json",
+    };
+    const skill = manifest.skills.find((candidate) => candidate.id === "i18n-helper-contribution-v2");
+    expect(skill).toMatchObject(expected);
+
+    const irPath = join(process.cwd(), expected.irPath);
+    const auditPath = join(process.cwd(), expected.sourceAuditPath);
+    expect({ ir: existsSync(irPath), audit: existsSync(auditPath) }).toEqual({ ir: true, audit: true });
+    if (!existsSync(irPath) || !existsSync(auditPath)) return;
+
+    const { SkillIRSourceAuditSchema, verifySkillIRSourceAudit } = await import("./source-audit");
+    const ir = SkillIRSchema.parse(readJson(irPath));
+    const audit = SkillIRSourceAuditSchema.parse(readJson(auditPath));
+    expect(ir.id).toBe("i18n-helper-contribution-v2");
+    expect(ir.profile).toEqual([]);
+    expect(validateSkillIR(ir)).toEqual({ errors: [], warnings: [] });
+    expect(await verifySkillIRSourceAudit(ir, audit, process.cwd())).toEqual({ errors: [], warnings: [] });
+    expect(audit.excludedEvidenceClasses).toEqual([
+      "evaluator-payload",
+      "held-out",
+      "runtime-output",
+      "profile-feedback",
+    ]);
+
+    const staticIr = JSON.stringify(ir).toLowerCase();
+    for (const forbidden of [
+      "i18n-helper-contribution-notification-heldout-001",
+      "i18n-helper-contribution-inventory-heldout-002",
+      "evaluatorid",
+      "gold",
+      "runtime-output",
+      "profile-feedback",
+      '"nul"',
+    ]) {
+      expect(staticIr).not.toContain(forbidden);
+    }
+    const auditSources = audit.sources.map((source) => source.path.toLowerCase()).join("\n");
+    expect(auditSources).not.toContain("/heldout/");
+    expect(auditSources).not.toContain("/gold/");
+    expect(auditSources).not.toContain("src/bench/evaluators/");
+    expect(auditSources).not.toContain("results/skill-ir/");
+
+    const controller = lowerToControllerPlan(ir);
+    const checker = lowerToCheckerSpec(ir);
+    const adapter = lowerToAdapterSpec(ir);
+    const rendered = renderSkillMarkdown(ir, "ir-static")!;
+    expect({
+      controller: controller.steps.map((step) => [step.id, step.kind, step.dependsOn, step.checks]),
+      checker: checker.checks.map((check) => [check.id, check.targetRef, check.onFailure]),
+      adapter: {
+        tools: adapter.tools.map((tool) => tool.id),
+        environment: adapter.environment.map((environment) => environment.id),
+      },
+    }).toEqual({
+      controller: [
+        ["step-read-contract", "read", [], ["check-protected-inputs"]],
+        ["step-scan-sources", "analyze", ["step-read-contract"], ["check-extraction-boundary"]],
+        ["step-plan-localization", "plan", ["step-scan-sources"], ["check-locale-integrity"]],
+        ["step-edit-localization", "edit", ["step-plan-localization"], ["check-declared-delta"]],
+        ["step-write-report", "report", ["step-edit-localization"], ["check-report-abi"]],
+        [
+          "step-verify-delivery",
+          "verify",
+          ["step-write-report"],
+          [
+            "check-protected-inputs",
+            "check-declared-delta",
+            "check-extraction-boundary",
+            "check-literal-preservation",
+            "check-locale-integrity",
+            "check-report-abi",
+          ],
+        ],
+      ],
+      checker: [
+        ["check-protected-inputs", "rule:rule-preserve-protected-inputs", "abort"],
+        ["check-declared-delta", "rule:rule-exact-output-set", "retry"],
+        ["check-extraction-boundary", "rule:rule-visible-text-boundary", "report"],
+        ["check-literal-preservation", "rule:rule-visible-text-boundary", "report"],
+        ["check-locale-integrity", "rule:rule-preserve-locale-semantics", "retry"],
+        ["check-report-abi", "output:i18n-report", "retry"],
+      ],
+      adapter: {
+        tools: ["tool-workspace-filesystem"],
+        environment: ["env-contained-offline-workdir"],
+      },
+    });
+    for (const requiredText of [
+      "Use any stable nonempty dot-separated key",
+      "single-brace",
+      "double-brace",
+      "i18next-v4",
+      "Never create files outside the declared output set",
+    ]) {
+      expect(rendered).toContain(requiredText);
+    }
   });
 
   test("zh-readme is a benchmark-audited tasks-authored method case without a base IR", () => {
