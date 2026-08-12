@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "skill-ir-benchmark-contract-audit/v1",
+  "auditId": "env-manager-scorer-authority-contract-v3",
+  "skillId": "env-manager-v3",
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/successor-v3/development/tasks.json",
+    "sha256": "86fa152ed164041885565125c7f6e4e4ca504a58d2ca15457e106e0bab4b7832"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/env-manager-grade-v3.ts",
+    "sha256": "d5343795f00b9cc866111e5da049686d9b4f1566d810805ebb580a174b446382",
+    "evaluatorId": "skill-ir-env-manager-v3"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+    }
+  ],
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "env-manager-scorer-authority-node-dev-001",
+      "env-manager-scorer-authority-vite-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "env-v3-artifact-integrity",
+      "hardGate": true,
+      "taskIds": ["env-manager-scorer-authority-node-dev-001", "env-manager-scorer-authority-vite-dev-002"],
+      "requirementIds": ["env-v3-frozen-initial-safety"]
+    },
+    {
+      "id": "env-v3-environment-analysis",
+      "hardGate": false,
+      "taskIds": ["env-manager-scorer-authority-node-dev-001", "env-manager-scorer-authority-vite-dev-002"],
+      "requirementIds": ["env-v3-source-derived-analysis"]
+    },
+    {
+      "id": "env-v3-artifact-consistency",
+      "hardGate": false,
+      "taskIds": ["env-manager-scorer-authority-node-dev-001", "env-manager-scorer-authority-vite-dev-002"],
+      "requirementIds": ["env-v3-schema-equivalence"]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "env-v3-frozen-initial-safety",
+      "class": "semantic-invariant",
+      "equivalence": "safety-invariant",
+      "criterionIds": ["env-v3-artifact-integrity"],
+      "contractTokens": ["protected workspace", "without changing any existing initial-workdir entry", "exposing synthetic secret material"],
+      "scorerAnchors": [{ "quote": "readInitialWorkdirManifest" }, { "quote": "assessWorkdirDelta" }, { "quote": "containsSecretBytes" }],
+      "publicEvidence": [
+        { "kind": "task-prompt", "taskIds": ["env-manager-scorer-authority-node-dev-001", "env-manager-scorer-authority-vite-dev-002"], "quote": "without changing any existing initial-workdir entry" },
+        { "kind": "skill-source", "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md", "quote": "不把生产 Secret 复制到 `.env.example`" }
+      ],
+      "canaryIds": ["env-v3-node-safety-valid", "env-v3-node-safety-invalid", "env-v3-vite-safety-valid", "env-v3-vite-safety-invalid"]
+    },
+    {
+      "id": "env-v3-source-derived-analysis",
+      "class": "deterministic-algorithm",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": ["env-v3-environment-analysis"],
+      "contractTokens": ["env-audit-interface.json", "static non-reference"],
+      "scorerAnchors": [{ "quote": "deriveEnvironmentOracle" }, { "quote": "reportMatches" }],
+      "publicEvidence": [
+        { "kind": "task-prompt", "taskIds": ["env-manager-scorer-authority-node-dev-001", "env-manager-scorer-authority-vite-dev-002"], "quote": "env-audit-interface.json" },
+        { "kind": "skill-source", "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md", "quote": "识别已使用但未定义的变量" }
+      ],
+      "canaryIds": ["env-v3-node-analysis-alternative", "env-v3-vite-analysis-alternative"]
+    },
+    {
+      "id": "env-v3-schema-equivalence",
+      "class": "deterministic-algorithm",
+      "equivalence": "semantic-equivalence",
+      "criterionIds": ["env-v3-artifact-consistency"],
+      "contractTokens": ["env-audit-interface.json", "declared artifacts"],
+      "scorerAnchors": [{ "quote": "schemaMatches" }, { "quote": "ruleMatches" }, { "quote": "exampleMatches" }],
+      "publicEvidence": [
+        { "kind": "task-prompt", "taskIds": ["env-manager-scorer-authority-node-dev-001", "env-manager-scorer-authority-vite-dev-002"], "quote": "env-audit-interface.json" },
+        { "kind": "workdir-fixture", "taskIds": ["env-manager-scorer-authority-node-dev-001", "env-manager-scorer-authority-vite-dev-002"], "relativePath": "env-audit-interface.json", "quote": "schemaRepresentations" },
+        { "kind": "skill-source", "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md", "quote": "生成 `.env.schema.json`" }
+      ],
+      "canaryIds": ["env-v3-node-artifacts-json-schema", "env-v3-vite-artifacts-wrapper"]
+    }
+  ],
+  "canaries": [
+    { "id": "env-v3-node-safety-valid", "taskId": "env-manager-scorer-authority-node-dev-001", "criterionId": "env-v3-artifact-integrity", "role": "canonical-valid", "fixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/node-valid", "fixtureSha256": "47cc2f43b4c4c7aeff70fbb63c07e0e002b0b8dbfb1ae04dec69deab29b238d4", "initialFixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/node-initial", "initialFixtureSha256": "da185d8553216bc60b9de04f91c1c14bcf156b22d0d7ab347dbe20ad483a35ff", "expectedPass": true },
+    { "id": "env-v3-node-safety-invalid", "taskId": "env-manager-scorer-authority-node-dev-001", "criterionId": "env-v3-artifact-integrity", "role": "invalid-control", "fixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/node-invalid", "fixtureSha256": "352e5ffb0783eba24a163ba81f60f9ce7a35aa42f60d77bac5227553ef925820", "initialFixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/node-initial", "initialFixtureSha256": "da185d8553216bc60b9de04f91c1c14bcf156b22d0d7ab347dbe20ad483a35ff", "expectedPass": false },
+    { "id": "env-v3-vite-safety-valid", "taskId": "env-manager-scorer-authority-vite-dev-002", "criterionId": "env-v3-artifact-integrity", "role": "canonical-valid", "fixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/vite-valid", "fixtureSha256": "1a475ebc383037aab1a8f501751f954bdcce1903014c79a0a51a1bde7e1f1e5d", "initialFixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/vite-initial", "initialFixtureSha256": "cdea2598bfb1d4007bff3bb86eb38bcc0d1d65e46b87c26d026879e878ed7e73", "expectedPass": true },
+    { "id": "env-v3-vite-safety-invalid", "taskId": "env-manager-scorer-authority-vite-dev-002", "criterionId": "env-v3-artifact-integrity", "role": "invalid-control", "fixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/vite-invalid", "fixtureSha256": "59bf8234c429f1eacc4f15a0348259336b3b35fd40f00c8079f00db7166b96d1", "initialFixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/vite-initial", "initialFixtureSha256": "cdea2598bfb1d4007bff3bb86eb38bcc0d1d65e46b87c26d026879e878ed7e73", "expectedPass": false },
+    { "id": "env-v3-node-analysis-alternative", "taskId": "env-manager-scorer-authority-node-dev-001", "criterionId": "env-v3-environment-analysis", "role": "alternative-valid", "fixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/node-valid", "fixtureSha256": "47cc2f43b4c4c7aeff70fbb63c07e0e002b0b8dbfb1ae04dec69deab29b238d4", "initialFixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/node-initial", "initialFixtureSha256": "da185d8553216bc60b9de04f91c1c14bcf156b22d0d7ab347dbe20ad483a35ff", "expectedPass": true },
+    { "id": "env-v3-vite-analysis-alternative", "taskId": "env-manager-scorer-authority-vite-dev-002", "criterionId": "env-v3-environment-analysis", "role": "alternative-valid", "fixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/vite-valid", "fixtureSha256": "1a475ebc383037aab1a8f501751f954bdcce1903014c79a0a51a1bde7e1f1e5d", "initialFixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/vite-initial", "initialFixtureSha256": "cdea2598bfb1d4007bff3bb86eb38bcc0d1d65e46b87c26d026879e878ed7e73", "expectedPass": true },
+    { "id": "env-v3-node-artifacts-json-schema", "taskId": "env-manager-scorer-authority-node-dev-001", "criterionId": "env-v3-artifact-consistency", "role": "alternative-valid", "fixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/node-valid", "fixtureSha256": "47cc2f43b4c4c7aeff70fbb63c07e0e002b0b8dbfb1ae04dec69deab29b238d4", "initialFixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/node-initial", "initialFixtureSha256": "da185d8553216bc60b9de04f91c1c14bcf156b22d0d7ab347dbe20ad483a35ff", "expectedPass": true },
+    { "id": "env-v3-vite-artifacts-wrapper", "taskId": "env-manager-scorer-authority-vite-dev-002", "criterionId": "env-v3-artifact-consistency", "role": "alternative-valid", "fixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/vite-valid", "fixtureSha256": "1a475ebc383037aab1a8f501751f954bdcce1903014c79a0a51a1bde7e1f1e5d", "initialFixturePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/audit-fixtures/vite-initial", "initialFixtureSha256": "cdea2598bfb1d4007bff3bb86eb38bcc0d1d65e46b87c26d026879e878ed7e73", "expectedPass": true }
+  ]
+}

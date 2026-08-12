@@ -127,7 +127,7 @@ humanMinutes + adapterLoc + coreBranchDelta
 artifactKinds + reusedArtifactKinds + unautomatedSteps
 ```
 
-`method-portfolio-readiness/v2` 五条件以 spec 为准。当前报告为 7 registered、7 studied、6 qualified、
+`method-portfolio-readiness/v2` 五条件以 spec 为准。当前报告为 7 registered、7 studied、7 qualified、
 2 static-fidelity passed、0 replication、1 optimized-development passed phenotype；readiness 仍 failed。
 Readiness report 必须显示真实不足，不能把 studied、benchmark version、baseline/static pass 或 audit-failed case
 填充为 optimized/contract-qualified。`method-successor-selection-report/v1` 已在 Env Manager successor 合同开发前
@@ -140,6 +140,9 @@ Env Manager successor v2 已完成新的 source-derived contract：两个 develo
 发现 audit 未覆盖的 source-resource arm asymmetry 与标准 JSON Schema 表示 false reject；因此 contract 与 baseline
 均回退为 scorer-authority invalidated。执行基础设施本身完成 8/8、4/4、0 replacement/active/parser/runtime failure。
 下一 identity 必须先公开两种 schema 表示等价并用真实 resource materialization canary 验证。
+该修复已由 successor v3 完成：公开 interface 明确 wrapper/标准 JSON Schema/敏感标记等价规则；scorer 以 frozen
+initial manifest 保护每个 arm 实际存在的全部初始资源，8/8 contract canary matched。v2 measurement-invalid
+保持不变；v3 只恢复 contract qualification，task split freeze、baseline、base IR、static 和 artifact 仍未完成。
 
 ## 10. Intake 顺序
 

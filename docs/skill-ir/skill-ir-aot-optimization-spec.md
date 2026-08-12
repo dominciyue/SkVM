@@ -738,6 +738,10 @@ resilient baseline 暴露 arm-dependent source resource 与未公开 schema 表�
 contract/baseline identity 冻结 measurement-invalid，portfolio contract-qualified 回退为 6/7。8/8 rows、4/4
 pairs、0 transient/active/parser/runtime blocker 只证明 execution infrastructure 有效，不能解释数值方向或进入
 base IR、optimized、held-out。
+Successor v3 以新 identity 修复这两个 authority 缺口：公开 interface 同时接受 `variables` wrapper 与标准 JSON
+Schema，并定义 `sensitive=true` / `writeOnly=true` 等价；完整性直接使用 frozen initial manifest 保护各 arm 的
+全部初始条目。包含 source-closure resource 的 Node canary 与 Vite wrapper/secret controls 共 8/8 matched，故
+portfolio contract-qualified 恢复为 7/7；这只开放 task-split/lock 准备，不等于 baseline 或优化通过。
 
 第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；

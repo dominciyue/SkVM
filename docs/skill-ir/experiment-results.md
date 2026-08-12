@@ -214,7 +214,7 @@ untouched replication 和 Token break-even 均未证明。
 | i18n-helper | passed（contribution-v2） | passed | failed（quality regression） | blocked | blocked |
 
 机器报告 `results/skill-ir/method-portfolio-readiness.json` 已升级为 v2 且仍 failed：7 registered、7 studied、
-6 contract-qualified、2 static-fidelity passed、0 untouched replication、1 optimized-development passed phenotype。
+7 contract-qualified、2 static-fidelity passed、0 untouched replication、1 optimized-development passed phenotype。
 Law 的 baseline regression、zh-readme 的 scorer-authority invalidation 与 i18n v4 的 paired quality regression 分属
 不同 lifecycle stage，不再被单一 development gate 混写。自动化仍不完整；历史人工时间标记
 `historical-unavailable`，Env Manager successor 从 2026-08-12 起前瞻记录。
@@ -233,6 +233,11 @@ semantic/safety canaries matched。随后首个 resilient baseline qualification
 `LICENSE.upstream`，却因 payload `protectedPaths` 未列出而被系统性误判；全部 8 行还都生成标准 JSON Schema
 `properties + required`，被未公开的 `{variables: ...}` 私有表示要求拒绝。冻结数值 no-skill mean 0.60、original
 0.45、0 positive/3 regression 不可解释，整批标记 measurement-invalid，禁止重评分或同 identity 重跑。
+
+Env Manager successor v3 随后只修复测量合同，不复写 v2：公开标准 JSON Schema 与 wrapper 的语义等价，将
+frozen initial manifest 作为 arm-neutral protected-input authority，并用包含 `LICENSE.upstream` 初始资源的 Node
+样例、Vite wrapper、标准 JSON Schema 与 secret invalid controls 完成 8/8 local contract canary。该结果恢复
+portfolio 的 contract-qualified 状态，但尚无新模型 baseline、base IR、static、artifact 或 held-out 证据。
 
 ### 8.1 `i18n-helper` 首轮校准
 

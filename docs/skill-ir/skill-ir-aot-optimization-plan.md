@@ -200,8 +200,9 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 3. [x] 首个 resilient Pi baseline qualification 通过且唯一矩阵完成 8/8 rows、4/4 pairs、0 replacement/transient/
    active/parser/runtime blocker；真实运行暴露 arm-dependent source resource 与未公开 schema 表示两项 scorer-
    authority 缺口，整批冻结 measurement-invalid，不重评分、不以同 identity 重跑；
-3a. [ ] 新 contract/scorer identity 公开标准 JSON Schema 与 `variables` wrapper 的语义等价，完整性从冻结 initial
-   manifest 派生并覆盖 original source-resource materialization；新 canary 全绿后才允许第二个唯一 baseline；
+3a. [x] 新 contract/scorer identity 公开标准 JSON Schema 与 `variables` wrapper 的语义等价，完整性从冻结 initial
+   manifest 派生并覆盖 original source-resource materialization；8/8 canary 全绿。下一步先独立冻结 task split
+   与 calibration lock，再允许第二个唯一 baseline；
 4. [ ] 通过后创建 profile-empty source-audited base IR，再运行 `no-skill | original | ir-static`；static 只消费
    公开 source/task，不消费 runtime output；
 5. [ ] 只有 static gate 或公开可重复 residual 合法开放时，才通过公共 assembly 编译 Env Manager artifact，并

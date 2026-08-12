@@ -410,6 +410,11 @@ Benchmark contract 首版用 alternative-valid、canonical-valid 与 invalid-con
 安全边界；真实 baseline 随后证明该集合仍不足：它未覆盖 original arm 的 source-resource materialization，也未
 覆盖标准 JSON Schema 的 `properties + required` 表示。该身份必须冻结 measurement-invalid；后续 contract audit
 必须加入真实 resource materialization canary，并显式声明标准 JSON Schema 与自定义 wrapper 的语义等价。
+Env Manager v3 已按此建立新 evaluator/task/interface/audit identity：payload 不再携带 arm-dependent
+`protectedPaths`，`assessWorkdirDelta` 直接以 frozen initial manifest 保护全部初始条目；schema matcher 将
+`variables + per-rule required/sensitive` 与标准 JSON Schema `properties + top-level required/writeOnly` 归一为
+同一公开语义。Node canary 将 `LICENSE.upstream` 放入 initial manifest，Node/Vite 分别覆盖标准 JSON Schema 与
+wrapper，另保留 secret 泄漏 invalid control；本地 contract audit 为 8/8 matched。该结果仍不是模型成功证据。
 
 ## 10. Scored Rows 与分析
 
