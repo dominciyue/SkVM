@@ -3,8 +3,9 @@ import { readFile } from "node:fs/promises"
 import { BenchmarkContractAuditManifestSchema } from "./benchmark-contract-audit.ts"
 import { runBenchmarkContractAudit } from "./benchmark-contract-audit-run.ts"
 import { verifyMethodCaseTaskSplitFreeze } from "./method-case-task-split-freeze.ts"
-import { readAndValidatePublicContractCalibrationLock } from "./public-contract-calibration.ts"
-import { buildPublicContractCalibrationV3Plan } from "./public-contract-calibration-v3-run.ts"
+import { PublicContractCalibrationLockV3Schema } from "./public-contract-calibration.ts"
+import { SkillIRSchema } from "../../skill-ir/schema.ts"
+import { SkillIRSourceAuditSchema, verifySkillIRSourceAudit } from "../../skill-ir/source-audit.ts"
 
 const root = "benchmarks/skill-ir/pilots/env-manager/successor-v3"
 
@@ -31,15 +32,18 @@ describe("env-manager scorer-authority benchmark contract v3", () => {
     expect(report.issues).toEqual([])
   })
 
-  test("registers a distinct successor alias without increasing the method-case count", async () => {
+  test("registers a runnable successor alias without increasing the method-case count", async () => {
     const corpus = JSON.parse(await readFile("benchmarks/skill-ir/corpus/corpora/pilot.json", "utf8"))
     const successor = corpus.skills.find((skill: { id: string }) => skill.id === "env-manager-v3")
     expect(successor).toMatchObject({
       benchmarkVersionOf: "env-manager",
       portfolioRole: "method-development",
-      status: "tasks-authored",
+      status: "runnable",
       tasksPath: `${root}/development/tasks.json`,
       benchmarkContractAuditPath: `${root}/benchmark-contract-audit.json`,
+      resourceContractPath: `${root}/public-interface.json`,
+      irPath: `${root}/base-ir.json`,
+      sourceAuditPath: `${root}/base-ir-source-audit.json`,
     })
   })
 
@@ -56,20 +60,23 @@ describe("env-manager scorer-authority benchmark contract v3", () => {
     })
   })
 
-  test("preregisters one resilient paired baseline against the committed v3 identity", async () => {
+  test("keeps the frozen resilient baseline denominator after lifecycle promotion", async () => {
     const lockPath = `${root}/development-calibration-lock-v4.json`
-    const lock = await readAndValidatePublicContractCalibrationLock({ rootDir: process.cwd(), lockPath })
-    expect(lock.schemaVersion).toBe("skill-ir-public-contract-calibration-lock/v3")
-    if (lock.schemaVersion !== "skill-ir-public-contract-calibration-lock/v3") {
-      throw new Error("expected resilient v3 calibration lock")
-    }
-    const plan = await buildPublicContractCalibrationV3Plan({
-      rootDir: process.cwd(),
-      outDir: "results/skill-ir/env-manager-v3-scorer-authority-baseline-v1",
-      lock,
+    const lock = PublicContractCalibrationLockV3Schema.parse(JSON.parse(await readFile(lockPath, "utf8")))
+    expect(lock.matrix).toMatchObject({
+      systems: ["no-skill", "original"],
+      expectedSelectedRows: 8,
+      expectedSelectedPairs: 4,
+      maximumAttemptRows: 12,
     })
-    expect(plan.plan).toHaveLength(12)
-    expect(new Set(plan.plan.map((row) => row.system))).toEqual(new Set(["no-skill", "original"]))
+  })
+
+  test("publishes a profile-empty base IR with complete public-source provenance", async () => {
+    const ir = SkillIRSchema.parse(JSON.parse(await readFile(`${root}/base-ir.json`, "utf8")))
+    const audit = SkillIRSourceAuditSchema.parse(JSON.parse(await readFile(`${root}/base-ir-source-audit.json`, "utf8")))
+    expect(ir.id).toBe("env-manager-v3")
+    expect(ir.profile).toEqual([])
+    await expect(verifySkillIRSourceAudit(ir, audit, process.cwd())).resolves.toMatchObject({ errors: [] })
   })
 
 })

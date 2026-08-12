@@ -247,6 +247,9 @@ no-skill 3/4、mean 0.9125、64147 tokens；original 4/4、mean 1.0、655117 tok
 唯一 no-skill failure 将未命中任何公开类型模式的 `UNUSED_FLAG` 声明为 boolean，而公开合同要求默认 string，
 属于真实语义错误，不是 v2 式 false reject。Gate passed、`baseIrAuditAllowed=true`；该证据只开放 profile-empty
 base IR/static，仍不证明 optimized、held-out、跨模型或 Token 收益。
+随后创建的 profile-empty base IR 逐节点绑定 exact source、两条 development prompt 与 public interface，并在
+source audit 中排除 evaluator payload、held-out、runtime output 与 profile feedback；验证 0 errors，corpus 晋升
+`runnable`。这仍是无付费静态保真准备，不新增质量数值。
 
 ### 8.1 `i18n-helper` 首轮校准
 

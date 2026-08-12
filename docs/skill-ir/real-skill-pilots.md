@@ -145,7 +145,8 @@ initial manifest 保护每个 arm 实际存在的全部初始资源，8/8 contra
 保持不变；v3 已冻结 development-only task/source identity，held-out 保持 `not-authored` 且未来须重新隔离。
 当前只恢复 contract qualification；baseline、base IR、static 和 artifact 仍未完成。
 v4 paired baseline 随后以 8/8 rows、4/4 pairs、0 infrastructure、original 4/4 vs no-skill 3/4 通过 admission；
-当前已开放 base IR/static，optimized artifact 与 held-out 仍关闭。
+profile-empty base IR 与逐节点 source audit 只绑定 exact source、development prompt 与 public interface，排除
+runtime/profile/evaluator/held-out，corpus 已晋升 runnable。当前开放 static，optimized artifact 与 held-out 仍关闭。
 
 ## 10. Intake 顺序
 

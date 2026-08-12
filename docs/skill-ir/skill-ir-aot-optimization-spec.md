@@ -750,6 +750,9 @@ Env v3 held-out 不能从该旧 split 派生，必须由未接触旧内容的独
 冻结 v4 baseline 完成 8/8 rows、4/4 pairs、0 execution blocker；original 4/4、mean 1.0，no-skill 3/4、mean
 0.9125，1 positive、0 regression，因此 baseline admission 通过并开放 profile-empty base IR。前三个 qualification
 identity 仅因调用层硬 timeout 过短而冻结为 operator failure，不计入模型、skill 或 resilience 结论。
+Profile-empty base IR 随后完成逐节点 source audit：唯一来源为 exact upstream skill、两条 development prompt 与
+public interface；evaluator payload、held-out、runtime output 与 profile feedback 全部排除。该步骤只令 corpus
+晋升 `runnable` 并开放 static development，不构成 optimized evidence。
 
 第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；
