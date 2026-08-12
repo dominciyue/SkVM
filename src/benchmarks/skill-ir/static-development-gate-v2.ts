@@ -53,6 +53,7 @@ export type StaticDevelopmentV2GateReport = {
     attemptedTokens: number;
     attemptedDurationMs: number;
     perSystemTransientFailures: Record<StaticSystem, number>;
+    methodDirection: "positive" | "neutral" | "negative" | "unavailable";
   };
   gates: {
     selectedDenominatorComplete: boolean;
@@ -233,6 +234,27 @@ export function buildStaticDevelopmentV2GateReport(input: {
   const attemptedTokens = envelopes.reduce((sum, item) =>
     sum + item.usage.input + item.usage.output + item.usage.cacheRead + item.usage.cacheWrite, 0);
   const attemptedDurationMs = envelopes.reduce((sum, item) => sum + item.process.durationMs, 0);
+  const allAttemptDeltas: number[] = [];
+  const blocks = new Set(envelopes.map((item) => `${item.taskId}\0${item.candidateBlock}`));
+  for (const block of blocks) {
+    const [taskId, rawCandidate] = block.split("\0");
+    const candidateBlock = Number(rawCandidate);
+    const originalEnvelope = envelopes.find((item) => item.taskId === taskId
+      && item.candidateBlock === candidateBlock && item.system === "original");
+    const staticEnvelope = envelopes.find((item) => item.taskId === taskId
+      && item.candidateBlock === candidateBlock && item.system === "ir-static");
+    if (originalEnvelope?.classification !== "semantic-complete"
+      || staticEnvelope?.classification !== "semantic-complete") continue;
+    const original = scored.get(rowKey(taskId!, candidateBlock, "original"));
+    const irStatic = scored.get(rowKey(taskId!, candidateBlock, "ir-static"));
+    if (original && irStatic) allAttemptDeltas.push(scoreOf(irStatic) - scoreOf(original));
+  }
+  const allAttemptDelta = allAttemptDeltas.reduce((sum, value) => sum + value, 0);
+  const methodDirection = allAttemptDeltas.length === 0 ? "unavailable" as const
+    : allAttemptDelta > 0 ? "positive" as const
+      : allAttemptDelta < 0 ? "negative" as const : "neutral" as const;
+  const selectedDirection = improvedPairs > regressedPairs ? "positive"
+    : improvedPairs < regressedPairs ? "negative" : "neutral";
   const selectedScoringComplete = selectedEnvelopes.every((item) =>
     item.classification !== "semantic-complete"
     || scored.has(rowKey(item.taskId, item.candidateBlock, item.system)));
@@ -252,7 +274,8 @@ export function buildStaticDevelopmentV2GateReport(input: {
   const passed = Object.values(gates).every(Boolean);
   const transientCounts = Object.values(perSystemTransientFailures);
   const infrastructureSensitive = selection.replacedBlocks.length > 0
-    || new Set(transientCounts).size > 1;
+    || new Set(transientCounts).size > 1
+    || (methodDirection !== "unavailable" && methodDirection !== selectedDirection);
 
   return {
     schemaVersion: "skill-ir-static-development-gate-report/v2",
@@ -282,6 +305,7 @@ export function buildStaticDevelopmentV2GateReport(input: {
       attemptedTokens,
       attemptedDurationMs,
       perSystemTransientFailures,
+      methodDirection,
     },
     gates,
     interpretation: {

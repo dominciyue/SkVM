@@ -142,6 +142,65 @@ export type MatchedExecutionBlockSelection = {
   abortReason?: "replacement-budget-exhausted" | "incomplete-block" | "execution-blocker";
 };
 
+/**
+ * Execute candidate blocks sequentially so reserve consumption is decided
+ * before scorer output exists and future blocks are never run unnecessarily.
+ */
+export async function executeMatchedExecutionBlocks(input: {
+  taskIds: readonly string[];
+  systems: readonly string[];
+  targetBlocksPerTask: number;
+  reserveBlocksPerTask: number;
+  executeBlock: (taskId: string, candidateBlock: number) => Promise<ExecutionEnvelope[]>;
+}): Promise<MatchedExecutionBlockSelection & { envelopes: ExecutionEnvelope[] }> {
+  const envelopes: ExecutionEnvelope[] = [];
+  const selectedBlocks: MatchedExecutionBlock[] = [];
+  const replacedBlocks: ReplacedExecutionBlock[] = [];
+  const maximumCandidate = input.targetBlocksPerTask + input.reserveBlocksPerTask;
+  let abortReason: MatchedExecutionBlockSelection["abortReason"];
+
+  for (const taskId of input.taskIds) {
+    let selectedForTask = 0;
+    for (let candidateBlock = 1; candidateBlock <= maximumCandidate; candidateBlock += 1) {
+      if (selectedForTask >= input.targetBlocksPerTask) break;
+      const rows = await input.executeBlock(taskId, candidateBlock);
+      envelopes.push(...rows);
+      const block = selectMatchedExecutionBlocks({
+        taskIds: [taskId],
+        systems: input.systems,
+        targetBlocksPerTask: 1,
+        reserveBlocksPerTask: 0,
+        envelopes: rows.map((row) => ({ ...row, candidateBlock: 1 })),
+      });
+      if (block.abortReason === "incomplete-block" || block.abortReason === "execution-blocker") {
+        abortReason = block.abortReason;
+        break;
+      }
+      if (block.replacedBlocks.length > 0) {
+        replacedBlocks.push({ taskId, candidateBlock, reasons: block.replacedBlocks[0]!.reasons });
+      } else {
+        selectedBlocks.push({ taskId, candidateBlock });
+        selectedForTask += 1;
+      }
+    }
+    if (abortReason) break;
+    if (selectedForTask < input.targetBlocksPerTask) {
+      abortReason = "replacement-budget-exhausted";
+      break;
+    }
+  }
+
+  return {
+    complete: abortReason === undefined,
+    selectedBlocks,
+    replacedBlocks,
+    attemptedRows: envelopes.length,
+    selectedRows: selectedBlocks.length * new Set(input.systems).size,
+    ...(abortReason ? { abortReason } : {}),
+    envelopes,
+  };
+}
+
 export function selectMatchedExecutionBlocks(input: {
   taskIds: readonly string[];
   systems: readonly string[];

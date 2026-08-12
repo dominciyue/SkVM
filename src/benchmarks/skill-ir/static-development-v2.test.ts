@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { StaticDevelopmentV2LockSchema } from "./static-development-v2";
+import path from "node:path";
+import {
+  buildStaticDevelopmentV2Plan,
+  validateStaticDevelopmentV2Lock,
+  StaticDevelopmentV2LockSchema,
+} from "./static-development-v2";
 
 function lockInput() {
   const frozen = { path: "path/file.json", sha256: "a".repeat(64) };
@@ -103,5 +108,41 @@ describe("static development v2 lock", () => {
       ...lockInput(),
       runtime: { ...lockInput().runtime, absoluteTimeoutMs: 300000 },
     })).toThrow("progress-aware");
+  });
+
+  test("materializes a sequential candidate plan with progress-aware sidecars", async () => {
+    const result = await buildStaticDevelopmentV2Plan({
+      rootDir: path.resolve(import.meta.dir, "../../.."),
+      lock: StaticDevelopmentV2LockSchema.parse({
+        ...lockInput(),
+        skillId: "i18n-helper-contribution-v2",
+        frozenInputs: {
+          source: { path: "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md", sha256: "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729" },
+          tasks: { path: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/development/tasks.json", sha256: "43c7b288ba493956224683f56b56e5aa2c8b040f6d78485c5e29b39bca021d4c" },
+          resourceContract: { path: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/resource-contract.json", sha256: "aa23b9ac49e2609cb1cefedce99e8290c0546c1ea74f8914bb8c57aa1b237cb5" },
+          scorer: { path: "src/bench/evaluators/i18n-helper-contribution-v2-grade.ts", sha256: "f868a925abfe96bc18cacd85947becbf60df059cb7a4fdb654440f4a8003a264" },
+          baseIr: { path: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/base-ir.json", sha256: "9a10f30a16541238f952fb4afbfa73c068ce7c63699c45decf508d88d6277645" },
+          sourceAudit: { path: "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/base-ir-source-audit.json", sha256: "4bd4753826afca9d335200efb22c40c2ed08c83485072bb582a71d56f672c0c4" },
+        },
+        implementation: [{ path: "src/core/pi-runtime.ts", sha256: "a".repeat(64) }],
+        matrix: {
+          ...lockInput().matrix,
+          taskIds: ["i18n-helper-contribution-multifile-dev-001", "i18n-helper-contribution-partial-plural-dev-002"],
+        },
+      }),
+      outDir: "results/skill-ir/future-static-v2/run",
+    });
+    expect(result.plan).toHaveLength(30);
+    expect(result.plan.every((row) => row.command.includes("--idle-timeout-ms=120000"))).toBe(true);
+    expect(result.plan.every((row) => row.command.some((arg) => arg.startsWith("--execution-observation=")))).toBe(true);
+  });
+
+  test("fails closed when a frozen implementation digest drifts", async () => {
+    const existing = { path: "src/core/pi-runtime.ts", sha256: "0".repeat(64) };
+    await expect(validateStaticDevelopmentV2Lock({
+      ...lockInput(),
+      frozenInputs: Object.fromEntries(Object.keys(lockInput().frozenInputs).map((key) => [key, existing])),
+      implementation: [existing],
+    }, path.resolve(import.meta.dir, "../../.."))).rejects.toThrow("digest mismatch");
   });
 });

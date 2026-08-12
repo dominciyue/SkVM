@@ -126,6 +126,7 @@ describe("static development v2 dual-denominator gate", () => {
         transientFailures: 1,
         attemptedTokens: 2040,
         attemptedDurationMs: 18000,
+        methodDirection: "positive",
       },
       interpretation: { infrastructureSensitive: true, residualAuditAllowed: true },
     });
@@ -177,5 +178,30 @@ describe("static development v2 dual-denominator gate", () => {
     });
     expect(report.gates.selectedScoringComplete).toBe(false);
     expect(report.passed).toBe(false);
+  });
+
+  test("marks a selected/all-attempt method direction mismatch as infrastructure sensitive", () => {
+    const envelopes = [
+      ...systems.map((system) => envelope(1, system, system === "ir-static")),
+      ...systems.map((system) => envelope(2, system)),
+      ...systems.map((system) => envelope(3, system)),
+    ];
+    const scoredRows = [
+      scored(1, "no-skill"), scored(1, "original"),
+      ...systems.map((system) => scored(2, system)),
+      ...systems.map((system) => ({
+        ...scored(3, system),
+        ...(system === "original" ? { evaluatorScore: 1, success: true } : {}),
+        ...(system === "ir-static" ? { evaluatorScore: 0, success: false } : {}),
+      })),
+    ];
+    const report = buildStaticDevelopmentV2GateReport({
+      lock,
+      tasks: [{ id: "task-a", split: "development", hardGateIds: [] }],
+      envelopes,
+      scoredRows,
+    });
+    expect(report.allAttempts.methodDirection).toBe("negative");
+    expect(report.interpretation.infrastructureSensitive).toBe(true);
   });
 });

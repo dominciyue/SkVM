@@ -878,81 +878,64 @@ export async function executePlan(
       continue;
     }
     const result = await runWithInfrastructureRetries(
-      async () => {
-        await resetPersistentWorkDir(item.workDir);
-        const initialWorkdirManifest = item.initialWorkdirManifestPath
-          ? await prepareRunWorkspace({
-              task: await loadRunTask(item.taskPath),
-              skill: item.skillPath ? await loadRunSkill(item.skillPath) : undefined,
-              workDir: item.workDir,
-              initialWorkdirManifestPath: item.initialWorkdirManifestPath,
-            })
-          : undefined;
-        await hooks?.beforeGenericRun?.(item);
-        const startedAt = Date.now();
-        const proc = Bun.spawn(item.command, {
-          stdout: "pipe",
-          stderr: "pipe",
-          env: agentEnv,
-        });
-        let outerTimedOut = false;
-        let treeTermination: Promise<number> | undefined;
-        const watchdog = args.outerWatchdogMs === undefined
-          ? undefined
-          : setTimeout(() => {
-              outerTimedOut = true;
-              if (process.platform === "win32") {
-                treeTermination = Bun.spawn(
-                  ["taskkill", "/PID", String(proc.pid), "/T", "/F"],
-                  { stdout: "ignore", stderr: "ignore" },
-                ).exited;
-              } else {
-                proc.kill("SIGKILL");
-              }
-            }, args.outerWatchdogMs);
-        let stdout: string;
-        let stderr: string;
-        let exitCode: number;
-        try {
-          [stdout, stderr, exitCode] = await Promise.all([
-            new Response(proc.stdout).text(),
-            new Response(proc.stderr).text(),
-            proc.exited,
-          ]);
-          if (treeTermination) await treeTermination;
-        } finally {
-          if (watchdog !== undefined) clearTimeout(watchdog);
-        }
-        if (outerTimedOut) {
-          stderr = `${stderr}\nOuter watchdog timeout after ${args.outerWatchdogMs}ms`.trim();
-        }
-        return {
-          caseId: item.caseId,
-          system: item.system,
-          model: item.model,
-          modelFamily: item.modelFamily,
-          adapter: item.adapter,
-          adapterVersion: item.adapterVersion,
-          runIndex: item.runIndex,
-          panelConfigId: item.panelConfigId,
-          skillProvenance: item.skillProvenance,
-          evidenceWeight: item.evidenceWeight,
-          taskPath: item.taskPath,
-          skillPath: item.skillPath,
-          workDir: item.workDir,
-          ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
-          exitCode,
-          runStatus: outerTimedOut ? "timeout" : extractRunStatus(stdout),
-          durationMs: Date.now() - startedAt,
-          stdout,
-          stderr,
-          successSource: "execution-only" as const,
-        };
-      },
+      () => executeGenericPlanRow(item, args, agentEnv, hooks),
       { maxRetries: args.retries, retryDelayMs: args.retryDelayMs },
     );
     await writeFile(rawRunsPath, `${JSON.stringify({ ...result.row, attempts: result.attempts })}\n`, { flag: "a" });
   }
+}
+
+export async function executeGenericPlanRow(
+  item: RealAgentRunPlanEntry,
+  args: Pick<RealAgentRunArgs, "outerWatchdogMs">,
+  agentEnv: Record<string, string | undefined> = process.env,
+  hooks?: { beforeGenericRun?: (item: RealAgentRunPlanEntry) => Promise<void> },
+) {
+  await resetPersistentWorkDir(item.workDir);
+  const initialWorkdirManifest = item.initialWorkdirManifestPath
+    ? await prepareRunWorkspace({
+        task: await loadRunTask(item.taskPath),
+        skill: item.skillPath ? await loadRunSkill(item.skillPath) : undefined,
+        workDir: item.workDir,
+        initialWorkdirManifestPath: item.initialWorkdirManifestPath,
+      })
+    : undefined;
+  await hooks?.beforeGenericRun?.(item);
+  const startedAt = Date.now();
+  const proc = Bun.spawn(item.command, { stdout: "pipe", stderr: "pipe", env: agentEnv });
+  let outerTimedOut = false;
+  let treeTermination: Promise<number> | undefined;
+  const watchdog = args.outerWatchdogMs === undefined ? undefined : setTimeout(() => {
+    outerTimedOut = true;
+    if (process.platform === "win32") {
+      treeTermination = Bun.spawn(
+        ["taskkill", "/PID", String(proc.pid), "/T", "/F"],
+        { stdout: "ignore", stderr: "ignore" },
+      ).exited;
+    } else proc.kill("SIGKILL");
+  }, args.outerWatchdogMs);
+  let stdout: string;
+  let stderr: string;
+  let exitCode: number;
+  try {
+    [stdout, stderr, exitCode] = await Promise.all([
+      new Response(proc.stdout).text(), new Response(proc.stderr).text(), proc.exited,
+    ]);
+    if (treeTermination) await treeTermination;
+  } finally {
+    if (watchdog !== undefined) clearTimeout(watchdog);
+  }
+  if (outerTimedOut) stderr = `${stderr}\nOuter watchdog timeout after ${args.outerWatchdogMs}ms`.trim();
+  return {
+    caseId: item.caseId, system: item.system, model: item.model, modelFamily: item.modelFamily,
+    adapter: item.adapter, adapterVersion: item.adapterVersion, runIndex: item.runIndex,
+    panelConfigId: item.panelConfigId, skillProvenance: item.skillProvenance,
+    evidenceWeight: item.evidenceWeight, taskPath: item.taskPath, skillPath: item.skillPath,
+    workDir: item.workDir, ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
+    exitCode, runStatus: outerTimedOut ? "timeout" as const : extractRunStatus(stdout),
+    durationMs: Date.now() - startedAt, stdout, stderr, successSource: "execution-only" as const,
+    outerTimedOut,
+  };
 }
 
 async function materializeTaskFixtures(taskPath: string, workDir: string): Promise<void> {

@@ -3,6 +3,7 @@ import {
   ExecutionEnvelopeSchema,
   classifyExecutionEnvelope,
   selectMatchedExecutionBlocks,
+  executeMatchedExecutionBlocks,
   type ExecutionEnvelope,
 } from "./execution-resilience";
 
@@ -104,6 +105,56 @@ describe("execution resilience envelope", () => {
 });
 
 describe("matched execution block selection", () => {
+  test("executes reserve blocks only after a whole transient triplet", async () => {
+    const systems = ["no-skill", "original", "ir-static"] as const;
+    const calls: string[] = [];
+    const result = await executeMatchedExecutionBlocks({
+      taskIds: ["task-a", "task-b"],
+      systems,
+      targetBlocksPerTask: 1,
+      reserveBlocksPerTask: 1,
+      executeBlock: async (taskId, candidateBlock) => {
+        calls.push(`${taskId}:${candidateBlock}`);
+        return systems.map((system) => {
+          const base = envelope({
+            taskId,
+            system,
+            candidateBlock,
+            attemptId: `${taskId}:block-${candidateBlock}:${system}`,
+          });
+          return taskId === "task-a" && candidateBlock === 1 && system === "original"
+            ? {
+                ...base,
+                activity: {
+                  requestDispatched: true,
+                  providerResponses: 1,
+                  assistantMessages: 0,
+                  toolCalls: 0,
+                  toolResults: 0,
+                },
+                terminal: { present: true, stopReason: "stop" },
+                usage: { available: true, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+                parser: { outcome: "empty" as const, unknownTypes: [] },
+                outputs: { fileCount: 0 },
+                classification: "empty-terminal" as const,
+                replacementEligible: true,
+              }
+            : base;
+        });
+      },
+    });
+    expect(calls).toEqual(["task-a:1", "task-a:2", "task-b:1"]);
+    expect(result).toMatchObject({
+      complete: true,
+      selectedBlocks: [
+        { taskId: "task-a", candidateBlock: 2 },
+        { taskId: "task-b", candidateBlock: 1 },
+      ],
+      replacedBlocks: [{ taskId: "task-a", candidateBlock: 1 }],
+      attemptedRows: 9,
+    });
+  });
+
   test("replaces the whole earliest transient triplet without reading scores", () => {
     const systems = ["no-skill", "original", "ir-static"] as const;
     const rows: ExecutionEnvelope[] = [];

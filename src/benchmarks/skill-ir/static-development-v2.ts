@@ -1,5 +1,12 @@
 import { z } from "zod";
 import { SafeRelativePathSchema, Sha256Schema } from "./artifact-package";
+import path from "node:path";
+import { readFile } from "node:fs/promises";
+import { buildPlan, type RealAgentRunArgs } from "./real-agent-run";
+import type { RealAgentRunPlanEntry } from "./real-agent";
+import { SkillIRSchema } from "../../skill-ir/schema";
+import { SkillIRSourceAuditSchema, verifySkillIRSourceAudit } from "../../skill-ir/source-audit";
+import { sha256Bytes } from "./source-fixture";
 
 const FrozenFileSchema = z.object({
   path: SafeRelativePathSchema,
@@ -108,3 +115,128 @@ export const StaticDevelopmentV2LockSchema = z.object({
 });
 
 export type StaticDevelopmentV2Lock = z.infer<typeof StaticDevelopmentV2LockSchema>;
+
+export async function validateStaticDevelopmentV2Lock(
+  input: unknown,
+  rootDir: string,
+): Promise<StaticDevelopmentV2Lock> {
+  const lock = StaticDevelopmentV2LockSchema.parse(input);
+  const root = path.resolve(rootDir);
+  for (const file of [...Object.values(lock.frozenInputs), ...lock.implementation]) {
+    const actual = sha256Bytes(await readFile(path.resolve(root, file.path)));
+    if (actual !== file.sha256) throw new Error(`Static development v2 digest mismatch for ${file.path}`);
+  }
+  const manifest = JSON.parse(await readFile(
+    path.join(root, "benchmarks/skill-ir/corpus/corpora/pilot.json"), "utf8",
+  )) as { skills: Array<Record<string, unknown>> };
+  const skill = manifest.skills.find((item) => item.id === lock.skillId);
+  if (
+    !skill || skill.status !== "runnable"
+    || skill.sourcePath !== lock.frozenInputs.source.path
+    || skill.tasksPath !== lock.frozenInputs.tasks.path
+    || skill.resourceContractPath !== lock.frozenInputs.resourceContract.path
+    || skill.irPath !== lock.frozenInputs.baseIr.path
+    || skill.sourceAuditPath !== lock.frozenInputs.sourceAudit.path
+  ) throw new Error("Static development v2 corpus identity drift");
+  const tasks = JSON.parse(await readFile(path.resolve(root, lock.frozenInputs.tasks.path), "utf8")) as {
+    skillId?: string; tasks?: Array<{ id?: string; split?: string }>;
+  };
+  const split = new Map((tasks.tasks ?? []).map((task) => [task.id, task.split]));
+  if (tasks.skillId !== lock.skillId || lock.matrix.taskIds.some((id) => split.get(id) !== "development")) {
+    throw new Error("Static development v2 task identity drift");
+  }
+  const ir = SkillIRSchema.parse(JSON.parse(await readFile(path.resolve(root, lock.frozenInputs.baseIr.path), "utf8")));
+  const audit = SkillIRSourceAuditSchema.parse(JSON.parse(
+    await readFile(path.resolve(root, lock.frozenInputs.sourceAudit.path), "utf8"),
+  ));
+  const report = await verifySkillIRSourceAudit(ir, audit, root);
+  if (report.errors.length > 0) throw new Error(`Static development v2 source audit failed: ${report.errors.join("; ")}`);
+  return lock;
+}
+
+export async function readAndValidateStaticDevelopmentV2Lock(input: {
+  rootDir: string;
+  lockPath: string;
+}): Promise<StaticDevelopmentV2Lock> {
+  const root = path.resolve(input.rootDir);
+  const lockPath = path.isAbsolute(input.lockPath) ? input.lockPath : path.resolve(root, input.lockPath);
+  return validateStaticDevelopmentV2Lock(JSON.parse(await readFile(lockPath, "utf8")), root);
+}
+
+export type StaticDevelopmentV2Plan = {
+  schemaVersion: "skill-ir-static-development-plan/v2";
+  experimentId: string;
+  lock: StaticDevelopmentV2Lock;
+  runArgs: RealAgentRunArgs;
+  plan: RealAgentRunPlanEntry[];
+};
+
+export async function buildStaticDevelopmentV2Plan(input: {
+  rootDir: string;
+  lock: StaticDevelopmentV2Lock;
+  outDir: string;
+}): Promise<StaticDevelopmentV2Plan> {
+  const lock = StaticDevelopmentV2LockSchema.parse(input.lock);
+  const rootDir = path.resolve(input.rootDir);
+  const outDir = path.resolve(rootDir, input.outDir);
+  const runArgs: RealAgentRunArgs = {
+    corpus: lock.corpus,
+    model: lock.model.route,
+    modelFamily: lock.model.family,
+    adapter: lock.adapter.id,
+    adapterVersion: lock.adapter.version,
+    repetitions: lock.matrix.targetBlocksPerTask + lock.matrix.reserveBlocksPerTask,
+    panelConfigId: lock.experimentId,
+    outDir,
+    limit: lock.matrix.maximumAttemptRows,
+    execute: false,
+    retries: 0,
+    retryDelayMs: 0,
+    outerWatchdogMs: lock.runtime.outerWatchdogMs,
+    rootDir,
+    allowTasksAuthored: false,
+    allowDevelopmentReplay: false,
+    allowArtifactDevelopmentReplay: false,
+    skills: new Set([lock.skillId]),
+    systems: new Set(lock.matrix.systems),
+    contexts: new Set(lock.matrix.contexts),
+    agents: new Set(lock.matrix.agents),
+    environments: new Set(lock.matrix.environments),
+    tasks: new Set(lock.matrix.taskIds),
+    requireEnv: new Set([lock.runtime.apiKeyEnv]),
+  };
+  const basePlan = await buildPlan(runArgs);
+  const plan = basePlan.map((row) => {
+    const observationPath = path.join(path.dirname(row.workDir), "execution-observation.json");
+    return {
+      ...row,
+      command: [
+        process.execPath, "run", path.join(rootDir, "src/index.ts"), "run",
+        ...row.command.slice(4).filter((arg) =>
+          !arg.startsWith("--adapter-config=")
+          && !arg.startsWith("--timeout-ms=")
+          && !arg.startsWith("--idle-timeout-ms=")
+          && !arg.startsWith("--max-steps=")
+          && !arg.startsWith("--execution-observation=")),
+        "--adapter-config=managed",
+        `--timeout-ms=${lock.runtime.absoluteTimeoutMs}`,
+        `--idle-timeout-ms=${lock.runtime.idleTimeoutMs}`,
+        `--max-steps=${lock.runtime.maxSteps}`,
+        `--execution-observation=${observationPath}`,
+      ],
+    };
+  });
+  if (plan.length !== lock.matrix.maximumAttemptRows) {
+    throw new Error(`Static development v2 plan row mismatch: ${plan.length}`);
+  }
+  if (plan.some((row) => row.workDir.length > lock.runtime.maximumWorkDirLength)) {
+    throw new Error("Static development v2 workdir exceeds frozen path budget");
+  }
+  return {
+    schemaVersion: "skill-ir-static-development-plan/v2",
+    experimentId: lock.experimentId,
+    lock,
+    runArgs,
+    plan,
+  };
+}
