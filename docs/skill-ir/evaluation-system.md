@@ -404,6 +404,11 @@ Successor selection policy 必须在新合同开发前冻结，并为 registry �
 assessment。Compact report 公开 phenotype coverage、合同/基线状态、artifact mechanism、信息互补性、下一阶段
 和排除原因；这防止运行后删除失败候选或只挑最容易产生正例的案例。
 
+Env Manager v2 是首个按这一路径启动的 successor。它不再把逐 fixture 预期集合放进 evaluator payload；
+`env-audit-interface/v2` 公开分类语义、变量名推导政策和输出路径，scorer 从初始 workspace 动态重建 oracle。
+Benchmark contract 用 alternative-valid、canonical-valid 与 invalid-control 共 8 个 canary 验证等价表达和安全
+边界；通过只开放 baseline，不能复用旧 V4 的 0.90 -> 1.00 作为新身份结果。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "skill-ir-env-manager-interface/v2",
+  "outputs": {
+    "example": ".env.example",
+    "schema": ".env.schema.json",
+    "report": "env-report.json"
+  },
+  "reportFields": [
+    "definedAndUsed",
+    "definedUnconfirmedUnused",
+    "usedUndefined",
+    "hardcodedSecrets",
+    "exposureRisks"
+  ],
+  "findingForms": {
+    "variable": "a variable-name string or an object with a name field",
+    "located": "a path:name string or an object with path and name fields"
+  },
+  "policy": {
+    "sensitiveNamePattern": "(?:KEY|TOKEN|PASSWORD|SECRET)$",
+    "integerNamePattern": "(?:PORT|COUNT)$",
+    "uriNamePattern": "(?:URL|URI|ORIGIN|DSN)$",
+    "clientPrefixes": ["VITE_", "NEXT_PUBLIC_", "REACT_APP_", "NUXT_PUBLIC_", "VUE_APP_"],
+    "secretMinimumLength": 32
+  },
+  "semantics": {
+    "definedAndUsed": "defined in an environment file and statically referenced by project source",
+    "definedUnconfirmedUnused": "defined but not found by the supported static reference scan; not evidence that deletion is safe",
+    "usedUndefined": "statically referenced but absent from environment definitions",
+    "hardcodedSecrets": "a sensitive-named binding assigned a string literal outside environment files",
+    "exposureRisks": "a sensitive variable using a configured client prefix at a source reference",
+    "schemaRequired": "true exactly when the variable is statically referenced",
+    "schemaRules": "derive type, URI format, range, sensitivity, and minimum length from the public policy patterns",
+    "additionalMetadata": "allowed when it does not contradict the required semantic fields"
+  }
+}

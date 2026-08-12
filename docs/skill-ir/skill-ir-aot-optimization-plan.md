@@ -38,7 +38,7 @@
 | Zh Code Reviewer | base IR/static fidelity gate passed | 残差已被 static 解决，不强造 overlay |
 | Zh README | v1/v2 measurement-invalid | skill-neutral command semantics 已提炼，暂不堆新版本 |
 | i18n Helper | contribution-v2 base IR passed；v4 static 0 infra 但 paired gate failed | 不开放 artifact；转向替代 qualified case |
-| Method portfolio | 7 studied、6 qualified、1 passed phenotype、0 replication | 补第二个 optimized phenotype 与自动化指标 |
+| Method portfolio | 7 studied、7 qualified、1 passed phenotype、0 replication | 补第二个 optimized phenotype 与自动化指标 |
 | Product entry | 研究脚本可运行；统一 `import/optimize/validate/report` 尚未接入 | 方法 readiness 后收敛 CLI/library/Agent |
 
 机器权威入口：
@@ -193,9 +193,9 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 
 ### Task 18.5A Env Manager contract successor 与第二 phenotype
 
-1. [ ] 审计现有 source/task/scorer、v1 benchmark-contract failure、V4 artifact 与 raw failure taxonomy；只提取
+1. [x] 审计现有 source/task/scorer、v1 benchmark-contract failure、V4 artifact 与 raw failure taxonomy；只提取
    可由公开 source/task 支持的语义，不读取 held-out 或把历史模型答案写入新合同；
-2. [ ] 创建新的 task/scorer/audit identity，覆盖 alternative-valid、reverse-evidence、public ABI、materialization、
+2. [x] 创建新的 task/scorer/audit identity，覆盖 alternative-valid、reverse-evidence、public ABI、materialization、
    secret/gold leak 和贡献可识别性；强模型任务不得给出 answer-bearing 精确动作或预期结果；
 3. [ ] 本地 audit 全绿后冻结 resilient Pi 单模型 baseline，qualification 通过才执行唯一
    `no-skill | original` development；baseline 必须 measurement-valid、有配对差异且不发生 original 回归；

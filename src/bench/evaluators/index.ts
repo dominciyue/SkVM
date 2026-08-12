@@ -22,6 +22,7 @@ import { customEvaluators, type CustomEvaluator } from "../../framework/types.ts
 import "./python-grade.ts"
 import "./junit-grade.ts"
 import "./env-manager-grade.ts"
+import "./env-manager-grade-v2.ts"
 import "./law-to-markdown-grade.ts"
 import "./law-to-markdown-grade-v3.ts"
 import "./experimental-design-grade.ts"
@@ -40,6 +41,7 @@ export const customEvaluatorSourcePaths = new Map<string, string>([
   ["python-grade", "src/bench/evaluators/python-grade.ts"],
   ["junit-grade", "src/bench/evaluators/junit-grade.ts"],
   ["skill-ir-env-manager", "src/bench/evaluators/env-manager-grade.ts"],
+  ["skill-ir-env-manager-v2", "src/bench/evaluators/env-manager-grade-v2.ts"],
   ["skill-ir-law-to-markdown", "src/bench/evaluators/law-to-markdown-grade.ts"],
   ["skill-ir-law-to-markdown-v3", "src/bench/evaluators/law-to-markdown-grade-v3.ts"],
   ["skill-ir-experimental-design", "src/bench/evaluators/experimental-design-grade.ts"],
@@ -57,6 +59,7 @@ export const customEvaluatorSourceDigests = new Map<string, string>([
   ["python-grade", "5a9063435c993e7211d1b84e5df398fc353a8d960586a01b7692929494622fb6"],
   ["junit-grade", "5f350a96b9060c5bdaced4f49abf3f003883dfc0b31358e9ddd5227bdab64aef"],
   ["skill-ir-env-manager", "c80d0b5637b2d9c480cbba8a816d042b5afd0e931fa06690d2fa3f1a950811a7"],
+  ["skill-ir-env-manager-v2", "a0250bb09ea07fcfb981110644c93b943de6fc1ce40e7df1695bca4e1a8119d3"],
   ["skill-ir-law-to-markdown", "051d467ae8292dbc917316ce7c495915fe36377b529c22553cff3dd637d2d180"],
   ["skill-ir-law-to-markdown-v3", "8c80e22f9efd411fc399dc76aaf0cf4bf0e02e148a4a0421fba26e76ce8a6cbb"],
   ["skill-ir-experimental-design", "6030a23048d1f12d59d72790635ed0c5ccf5b40d4cace8171eb0a7763ed2cd19"],

@@ -127,12 +127,17 @@ humanMinutes + adapterLoc + coreBranchDelta
 artifactKinds + reusedArtifactKinds + unautomatedSteps
 ```
 
-`method-portfolio-readiness/v2` 五条件以 spec 为准。当前报告为 7 registered、7 studied、6 qualified、
+`method-portfolio-readiness/v2` 五条件以 spec 为准。当前报告为 7 registered、7 studied、7 qualified、
 2 static-fidelity passed、0 replication、1 optimized-development passed phenotype；readiness 仍 failed。
 Readiness report 必须显示真实不足，不能把 studied、benchmark version、baseline/static pass 或 audit-failed case
 填充为 optimized/contract-qualified。`method-successor-selection-report/v1` 已在 Env Manager successor 合同开发前
 冻结全部 7 个候选，Env Manager 因填补 environment-schema-repair、已有确定性 repair/package 机制且信息互补性
 高而入选；旧 benchmark 和 V4 结果只作诊断，不自动取得任何新阶段资格。
+
+Env Manager successor v2 已完成新的 source-derived contract：两个 development task 只公开统一 interface 与
+推导政策，不公开逐 fixture 的 gold 集合；scorer 从 `.env` 与源码引用动态重建 oracle，接受 string/object finding、
+任意顺序和不矛盾的额外说明。2 task、3 criterion、8 个 alternative/safety canary 全部 matched，benchmark
+contract 已通过；baseline、base IR、static 与 optimized 仍必须按顺序重新运行。
 
 ## 10. Intake 顺序
 

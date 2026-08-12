@@ -44,11 +44,12 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   source、development prompt、public contract 与 report semantics 的 profile-empty base IR 和逐节点 source
   audit。首个 12-row static development 分母完整，但有 4 个 infrastructure failure（1 timeout、3 个同位
   cross-system parse-failed），gate 冻结失败；尚无 artifact、held-out 或 Token 优化证据。
-- Method portfolio v2 已机器化登记 7 个 case：7 studied、6 contract-qualified、2 static-fidelity passed、
+- Method portfolio v2 已机器化登记 7 个 case：7 studied、7 contract-qualified、2 static-fidelity passed、
   0 untouched replication、1 个 optimized-development-passed phenotype；readiness 仍未通过。i18n v4 已排除
   infrastructure blocker，但因 1 个 paired quality regression 冻结为方法负结果。
 - 通用 successor selection policy/report 已冻结全部 7 个候选并预先选择 Env Manager。旧 Env benchmark 有
-  4 个未公开精确合同问题；新身份从公开 workspace 证据动态派生并前瞻记录适配成本。
+  4 个未公开精确合同问题；新 source-derived identity 已以 8/8 semantic/safety canary 通过 benchmark contract，
+  并从公开 workspace 证据动态派生、前瞻记录适配成本。Baseline 尚未运行。
 - 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
   Optimizer Agent 尚未串成最终用户路径。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
