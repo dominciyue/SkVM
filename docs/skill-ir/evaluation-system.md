@@ -437,6 +437,12 @@ source-process replay 是基础设施诊断，不进入 skill 效果分母。
 使用 `skill-ir-static-development-lock/v2`、`skill-ir-static-development-gate-report/v2` 和
 `skill-ir-execution-envelope/v1`；旧 schema、lock 和 result 保持原义。
 
+公共合同 baseline 从 `skill-ir-public-contract-calibration-lock/v3` 起复用同一 execution envelope 和 selector，
+一个 matched block 是同一 task/repetition 的完整 `no-skill | original` pair；static development 的 block 则是
+`no-skill | original | ir-static` triplet。两者共用 600 秒 absolute、120 秒 idle、30 steps、660 秒 outer、
+pre-semantic-only replacement 和 selected/all-attempt 双口径，不再维护 skill-specific harness。v1/v2 calibration
+lock 继续按冻结实现校验；implementation digest 漂移表示该旧执行身份不可在当前代码上重放，不改写其历史结果。
+
 每个 attempted row 生成 value-free execution envelope。它只记录 identity、进程起止/退出、provider request/
 response、assistant/tool activity 数、首末活动时间、terminal/stop reason、usage availability/aggregate、parser
 outcome、未知 event/content-block 类型名、输出文件计数和 timeout/step-limit；禁止写入 key、模型正文、tool
@@ -461,8 +467,7 @@ outcome、未知 event/content-block 类型名、输出文件计数和 timeout/s
 或 usage update 重置 idle timer，setup banner 不算活动，absolute timer 永不重置。Active timeout 是 arm 的实测
 行为，不能因为后续尝试成功而改成 transient。
 
-Replacement 以 matched block 为单位。Static development 的一个 block 是同一 task/repetition 的完整
-`no-skill | original | ir-static` triplet。Lock 在执行前冻结 target 和 reserve block 数及顺序；selector 只
+Replacement 以 matched block 为单位。Lock 在执行前冻结 target 和 reserve block 数及顺序；selector 只
 读取 envelope，不接收 scored row。任一 arm 为 eligible transient 时，完整 block 留在 all-attempt evidence、
 不进入 selected paired analysis，并启用下一 reserve。非 replaceable execution/semantic failure 的 block 必须
 进入主分母；reserve 耗尽仍不足 target 时 gate failed。

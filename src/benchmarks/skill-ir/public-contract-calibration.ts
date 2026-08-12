@@ -226,7 +226,105 @@ export const PublicContractCalibrationLockV2Schema = z.object({
 })
 
 export type PublicContractCalibrationLockV2 = z.infer<typeof PublicContractCalibrationLockV2Schema>
-export type AnyPublicContractCalibrationLock = PublicContractCalibrationLock | PublicContractCalibrationLockV2
+
+const PublicContractCalibrationLockV3MatrixSchema = z.object({
+  systems: z.tuple([z.literal("no-skill"), z.literal("original")]),
+  contexts: z.tuple([z.literal("clean")]),
+  agents: z.tuple([z.literal("skvm")]),
+  environments: z.tuple([z.literal("windows")]),
+  taskSplit: z.literal("development"),
+  taskIds: z.tuple([z.string().min(1), z.string().min(1)]),
+  targetBlocksPerTask: z.number().int().positive(),
+  reserveBlocksPerTask: z.number().int().nonnegative(),
+  expectedSelectedRows: z.number().int().positive(),
+  expectedSelectedPairs: z.number().int().positive(),
+  maximumAttemptRows: z.number().int().positive(),
+  maximumCandidatePairs: z.number().int().positive(),
+}).strict()
+
+export const PublicContractCalibrationLockV3Schema = z.object({
+  schemaVersion: z.literal("skill-ir-public-contract-calibration-lock/v3"),
+  status: z.literal("preregistered"),
+  calibrationId: z.string().regex(/^[a-z0-9][a-z0-9.-]+$/u),
+  methodEvidence: z.literal(false),
+  corpus: z.literal("pilot"),
+  skillId: z.string().min(1),
+  frozenInputs: z.object({
+    source: FrozenFileSchema,
+    tasks: FrozenFileSchema,
+    publicContract: FrozenFileSchema,
+    publicContractSourceAudit: FrozenFileSchema,
+    scorer: FrozenFileSchema,
+    scorerDependencies: z.array(FrozenFileSchema).min(1).refine(
+      (files) => new Set(files.map((file) => file.path)).size === files.length,
+      "scorer dependency paths must be unique",
+    ),
+    implementation: z.array(FrozenFileSchema).min(1).refine(
+      (files) => new Set(files.map((file) => file.path)).size === files.length,
+      "implementation paths must be unique",
+    ),
+    taskSplitFreeze: FrozenFileSchema,
+    contractAuditManifest: FrozenFileSchema,
+    contractAuditReport: FrozenFileSchema,
+  }).strict(),
+  model: z.object({ route: z.literal("xty/gpt-5.6-sol"), family: z.literal("gpt") }).strict(),
+  adapter: z.object({ id: z.literal("pi"), version: z.literal("0.67.68") }).strict(),
+  matrix: PublicContractCalibrationLockV3MatrixSchema,
+  qualification: z.object({
+    system: z.literal("original"),
+    taskId: z.string().min(1),
+    candidateBlock: z.literal(1),
+  }).strict(),
+  runtime: z.object({
+    apiKeyEnv: z.literal("SKVM_XTY_API_KEY"),
+    retries: z.literal(0),
+    adapterConfig: z.literal("managed"),
+    absoluteTimeoutMs: z.literal(600000),
+    idleTimeoutMs: z.literal(120000),
+    maxSteps: z.literal(30),
+    outerWatchdogMs: z.literal(660000),
+    maximumWorkDirLength: z.literal(220),
+  }).strict(),
+  gate: z.object({
+    requireNoSkillNonSaturation: z.literal(true),
+    minimumDifferingPairs: z.number().int().positive(),
+    minimumPositivePairs: z.number().int().positive(),
+    minimumOriginalSuccesses: z.number().int().positive(),
+    requireOriginalNonRegression: z.literal(true),
+    maximumActiveExecutionFailures: z.number().int().nonnegative(),
+    maximumParserOrRuntimeBlockers: z.number().int().nonnegative(),
+  }).strict(),
+  claimBoundary: z.object({
+    developmentOnly: z.literal(true), capabilityCalibration: z.literal(true), createsBaseIr: z.literal(false),
+    permitsHeldOut: z.literal(false), skillOptimizationEvidence: z.literal(false), tokenEvidence: z.literal(false),
+  }).strict(),
+  prohibited: z.array(z.string().min(1)).min(1),
+}).strict().superRefine((lock, context) => {
+  if (new Set(lock.matrix.taskIds).size !== lock.matrix.taskIds.length
+    || !lock.matrix.taskIds.includes(lock.qualification.taskId)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "calibration task identity mismatch" })
+  }
+  const taskCount = lock.matrix.taskIds.length
+  const systemCount = lock.matrix.systems.length
+  const selectedPairs = taskCount * lock.matrix.targetBlocksPerTask
+  const candidatePairs = taskCount * (lock.matrix.targetBlocksPerTask + lock.matrix.reserveBlocksPerTask)
+  if (lock.matrix.expectedSelectedPairs !== selectedPairs
+    || lock.matrix.expectedSelectedRows !== selectedPairs * systemCount
+    || lock.matrix.maximumCandidatePairs !== candidatePairs
+    || lock.matrix.maximumAttemptRows !== candidatePairs * systemCount) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "resilient calibration denominator arithmetic mismatch" })
+  }
+  if (lock.runtime.idleTimeoutMs >= lock.runtime.absoluteTimeoutMs
+    || lock.runtime.outerWatchdogMs <= lock.runtime.absoluteTimeoutMs) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "resilient calibration requires progress-aware timeout ordering" })
+  }
+})
+
+export type PublicContractCalibrationLockV3 = z.infer<typeof PublicContractCalibrationLockV3Schema>
+export type LegacyPublicContractCalibrationLock = PublicContractCalibrationLock | PublicContractCalibrationLockV2
+export type AnyPublicContractCalibrationLock =
+  | LegacyPublicContractCalibrationLock
+  | PublicContractCalibrationLockV3
 
 export async function collectDirectScorerDependencies(rootDir: string, scorerPath: string): Promise<string[]> {
   const root = await realpath(path.resolve(rootDir))
@@ -280,13 +378,17 @@ export async function validatePublicContractCalibrationLock(
   input: unknown,
   rootDir: string,
 ): Promise<AnyPublicContractCalibrationLock> {
-  const lock = z.union([PublicContractCalibrationLockSchema, PublicContractCalibrationLockV2Schema]).parse(input)
+  const lock = z.union([
+    PublicContractCalibrationLockSchema,
+    PublicContractCalibrationLockV2Schema,
+    PublicContractCalibrationLockV3Schema,
+  ]).parse(input)
   const bytes = new Map<string, Buffer>()
   for (const [label, file] of Object.entries(lock.frozenInputs)) {
     if (Array.isArray(file)) continue
     bytes.set(label, await readFrozenFile(rootDir, file, label))
   }
-  if (lock.schemaVersion === "skill-ir-public-contract-calibration-lock/v2") {
+  if (lock.schemaVersion !== "skill-ir-public-contract-calibration-lock/v1") {
     for (const [index, file] of lock.frozenInputs.scorerDependencies.entries()) {
       await readFrozenFile(rootDir, file, `scorerDependencies[${index}]`)
     }
@@ -295,8 +397,14 @@ export async function validatePublicContractCalibrationLock(
     if (JSON.stringify(actual) !== JSON.stringify(declared)) {
       throw new Error("calibration scorer dependency closure mismatch")
     }
-    for (const [index, file] of (lock.frozenInputs.executionDependencies ?? []).entries()) {
-      await readFrozenFile(rootDir, file, `executionDependencies[${index}]`)
+    if (lock.schemaVersion === "skill-ir-public-contract-calibration-lock/v2") {
+      for (const [index, file] of (lock.frozenInputs.executionDependencies ?? []).entries()) {
+        await readFrozenFile(rootDir, file, `executionDependencies[${index}]`)
+      }
+    } else {
+      for (const [index, file] of lock.frozenInputs.implementation.entries()) {
+        await readFrozenFile(rootDir, file, `implementation[${index}]`)
+      }
     }
   }
 
@@ -378,7 +486,7 @@ export async function validatePublicContractCalibrationLock(
       || auditReport.skillId !== lock.skillId
       || auditReport.staticStatus !== "passed"
       || auditReport.status !== "passed"
-      || auditReport.canaries?.length !== 30
+      || auditReport.canaries?.length !== auditManifest.canaries.length
       || auditReport.canaries.some((canary) => canary.status !== "matched")
       || auditReport.issues?.length !== 0
     ) {
@@ -413,7 +521,7 @@ export async function readAndValidatePublicContractCalibrationLock(input: {
   return validatePublicContractCalibrationLock(raw, input.rootDir)
 }
 
-function genericGateLock(lock: AnyPublicContractCalibrationLock): PreIrCalibrationGateLock {
+function genericGateLock(lock: LegacyPublicContractCalibrationLock): PreIrCalibrationGateLock {
   return {
     calibrationId: lock.calibrationId,
     skillId: lock.skillId,
@@ -443,6 +551,9 @@ export function evaluatePublicContractCalibrationGate(
   rows: ScoredAgentRunRow[],
   lock: AnyPublicContractCalibrationLock,
 ): PublicContractCalibrationGateReport {
+  if (lock.schemaVersion === "skill-ir-public-contract-calibration-lock/v3") {
+    throw new Error("Public-contract calibration v3 requires the resilient gate")
+  }
   const base = evaluatePreIrCalibrationGate(rows, genericGateLock(lock))
   const positivePairs = base.pairs.filter((pair) => pair.comparable && pair.scoreDelta > 0).length
   const originalSuccesses = base.systems.original.successes

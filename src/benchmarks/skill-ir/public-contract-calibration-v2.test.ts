@@ -5,10 +5,68 @@ import path from "node:path"
 import {
   collectDirectScorerDependencies,
   PublicContractCalibrationLockV2Schema,
+  PublicContractCalibrationLockV3Schema,
   validatePublicContractCalibrationLock,
 } from "./public-contract-calibration.ts"
 
 describe("public-contract calibration lock v2 dependency closure", () => {
+  test("defines a resilient paired v3 denominator without weakening v1/v2", () => {
+    const base = {
+      schemaVersion: "skill-ir-public-contract-calibration-lock/v3",
+      status: "preregistered",
+      calibrationId: "env-manager-source-contract-baseline-v1",
+      methodEvidence: false,
+      corpus: "pilot",
+      skillId: "env-manager-v2",
+      frozenInputs: {
+        source: { path: "source/SKILL.md", sha256: "0".repeat(64) },
+        tasks: { path: "development/tasks.json", sha256: "1".repeat(64) },
+        publicContract: { path: "public-contract.json", sha256: "2".repeat(64) },
+        publicContractSourceAudit: { path: "public-contract-source-audit.json", sha256: "3".repeat(64) },
+        scorer: { path: "src/bench/evaluators/env-manager-grade-v2.ts", sha256: "4".repeat(64) },
+        scorerDependencies: [{ path: "src/core/workdir-manifest.ts", sha256: "5".repeat(64) }],
+        implementation: [{ path: "src/benchmarks/skill-ir/execution-resilience.ts", sha256: "6".repeat(64) }],
+        taskSplitFreeze: { path: "task-split-freeze.json", sha256: "7".repeat(64) },
+        contractAuditManifest: { path: "benchmark-contract-audit.json", sha256: "8".repeat(64) },
+        contractAuditReport: { path: "results/audit.json", sha256: "9".repeat(64) },
+      },
+      model: { route: "xty/gpt-5.6-sol", family: "gpt" },
+      adapter: { id: "pi", version: "0.67.68" },
+      matrix: {
+        systems: ["no-skill", "original"], contexts: ["clean"], agents: ["skvm"], environments: ["windows"],
+        taskSplit: "development", taskIds: ["task-a", "task-b"], targetBlocksPerTask: 2, reserveBlocksPerTask: 1,
+        expectedSelectedRows: 8, expectedSelectedPairs: 4, maximumAttemptRows: 12, maximumCandidatePairs: 6,
+      },
+      qualification: { system: "original", taskId: "task-a", candidateBlock: 1 },
+      runtime: {
+        apiKeyEnv: "SKVM_XTY_API_KEY", retries: 0, adapterConfig: "managed", absoluteTimeoutMs: 600000,
+        idleTimeoutMs: 120000, maxSteps: 30, outerWatchdogMs: 660000, maximumWorkDirLength: 220,
+      },
+      gate: {
+        requireNoSkillNonSaturation: true, minimumDifferingPairs: 1, minimumPositivePairs: 1,
+        minimumOriginalSuccesses: 1, requireOriginalNonRegression: true, maximumActiveExecutionFailures: 0,
+        maximumParserOrRuntimeBlockers: 0,
+      },
+      claimBoundary: {
+        developmentOnly: true, capabilityCalibration: true, createsBaseIr: false, permitsHeldOut: false,
+        skillOptimizationEvidence: false, tokenEvidence: false,
+      },
+      prohibited: ["held-out execution", "score-aware pair replacement", "single-arm replacement"],
+    }
+    expect(PublicContractCalibrationLockV3Schema.parse(base)).toMatchObject({
+      matrix: { maximumAttemptRows: 12, expectedSelectedRows: 8 },
+      runtime: { absoluteTimeoutMs: 600000, idleTimeoutMs: 120000, outerWatchdogMs: 660000 },
+    })
+    expect(() => PublicContractCalibrationLockV3Schema.parse({
+      ...base,
+      runtime: { ...base.runtime, idleTimeoutMs: 600000 },
+    })).toThrow()
+    expect(() => PublicContractCalibrationLockV3Schema.parse({
+      ...base,
+      matrix: { ...base.matrix, maximumAttemptRows: 8 },
+    })).toThrow("denominator")
+  })
+
   test("requires a non-empty exact scorer dependency declaration", () => {
     const base = {
       schemaVersion: "skill-ir-public-contract-calibration-lock/v2",

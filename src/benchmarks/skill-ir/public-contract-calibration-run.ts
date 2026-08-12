@@ -7,6 +7,7 @@ import {
   readAndValidatePublicContractCalibrationLock,
   type PublicContractCalibrationGateReport,
   type AnyPublicContractCalibrationLock,
+  type LegacyPublicContractCalibrationLock,
 } from "./public-contract-calibration.ts"
 import { assertRequiredEnv, buildPlan, executePlan, type RealAgentRunArgs } from "./real-agent-run.ts"
 import type { RealAgentRunPlanEntry } from "./real-agent.ts"
@@ -25,7 +26,7 @@ export type PublicContractCalibrationPlan = {
   calibrationId: string
   methodEvidence: false
   phase: PublicContractCalibrationPhase
-  lock: AnyPublicContractCalibrationLock
+  lock: LegacyPublicContractCalibrationLock
   runArgs: RealAgentRunArgs
   plan: RealAgentRunPlanEntry[]
 }
@@ -55,7 +56,7 @@ const QualificationSchema = z.object({
 export type PublicContractCalibrationQualification = z.infer<typeof QualificationSchema>
 
 function runArgs(
-  lock: AnyPublicContractCalibrationLock,
+  lock: LegacyPublicContractCalibrationLock,
   rootDir: string,
   outDir: string,
   phase: PublicContractCalibrationPhase,
@@ -91,7 +92,7 @@ function runArgs(
 
 function projectSourceRunner(
   plan: RealAgentRunPlanEntry[],
-  lock: AnyPublicContractCalibrationLock,
+  lock: LegacyPublicContractCalibrationLock,
   rootDir: string,
 ): RealAgentRunPlanEntry[] {
   return plan.map((row) => ({
@@ -120,7 +121,7 @@ function assertOutputRoot(rootDir: string, outDir: string): void {
   }
 }
 
-function assertPlan(plan: RealAgentRunPlanEntry[], lock: AnyPublicContractCalibrationLock, rootDir: string): void {
+function assertPlan(plan: RealAgentRunPlanEntry[], lock: LegacyPublicContractCalibrationLock, rootDir: string): void {
   if (plan.length !== lock.matrix.expectedRows) throw new Error("Public-contract calibration row mismatch")
   const pairs = new Map<string, Set<string>>()
   for (const row of plan) {
@@ -154,6 +155,9 @@ export async function buildPublicContractCalibrationPlan(
   const outDir = path.isAbsolute(input.outDir) ? path.resolve(input.outDir) : path.resolve(rootDir, input.outDir)
   assertOutputRoot(rootDir, outDir)
   const lock = await readAndValidatePublicContractCalibrationLock({ rootDir, lockPath })
+  if (lock.schemaVersion === "skill-ir-public-contract-calibration-lock/v3") {
+    throw new Error("Public-contract calibration v3 requires the resilient runner")
+  }
   const args = runArgs(lock, rootDir, outDir, input.phase)
   const plan = projectSourceRunner(await buildPlan(args), lock, rootDir)
   assertPlan(plan, lock, rootDir)
@@ -170,7 +174,7 @@ export async function buildPublicContractCalibrationPlan(
 
 export function selectPublicContractQualificationRow(
   plan: RealAgentRunPlanEntry[],
-  lock: AnyPublicContractCalibrationLock,
+  lock: LegacyPublicContractCalibrationLock,
 ): RealAgentRunPlanEntry {
   const matches = plan.filter((row) => row.system === lock.qualification.system
     && row.runIndex === lock.qualification.runIndex
@@ -210,7 +214,7 @@ async function harnessResidue(workDir: string): Promise<Array<"AGENTS.md" | ".pi
 }
 
 export function buildPublicContractQualificationReport(input: {
-  lock: AnyPublicContractCalibrationLock
+  lock: LegacyPublicContractCalibrationLock
   raw: RawAgentRunRow
   scored: ScoredAgentRunRow
   harnessResidue: Array<"AGENTS.md" | ".pi-skills">
