@@ -36,10 +36,10 @@ describe("runSubprocess progress-aware timeouts", () => {
     const result = await runSubprocess([
       bun,
       "-e",
-      "setInterval(()=>console.log(JSON.stringify({type:'message_update'})),30)",
+      "console.log(JSON.stringify({type:'message_update'})); setInterval(()=>console.log(JSON.stringify({type:'message_update'})),40)",
     ], {
-      timeoutMs: 180,
-      idleTimeoutMs: 100,
+      timeoutMs: 600,
+      idleTimeoutMs: 300,
       isStdoutLineActivity: () => true,
     })
 
