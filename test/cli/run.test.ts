@@ -26,7 +26,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       adapter: CLI_DEFAULTS.adapter,
       workdir: undefined,
       "initial-workdir-manifest": undefined,
+      "execution-observation": undefined,
       "timeout-ms": undefined,
+      "idle-timeout-ms": undefined,
       "max-steps": undefined,
       "adapter-config": undefined,
     })
@@ -40,7 +42,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "--skill-mode=discover",
       "--adapter=opencode",
       "--workdir=/tmp/wd",
+      "--execution-observation=/tmp/observation.json",
       "--timeout-ms=90000",
+      "--idle-timeout-ms=30000",
       "--max-steps=12",
       "--adapter-config=managed",
     ])).toEqual({
@@ -52,7 +56,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       adapter: "opencode",
       workdir: "/tmp/wd",
       "initial-workdir-manifest": undefined,
+      "execution-observation": "/tmp/observation.json",
       "timeout-ms": 90000,
+      "idle-timeout-ms": 30000,
       "max-steps": 12,
       "adapter-config": "managed",
     })
@@ -79,12 +85,15 @@ describe("RUN_FLAGS.parse — typed config", () => {
     )
   })
 
-  test("--timeout-ms / --max-steps validate as positive integers", () => {
+  test("--timeout-ms / --idle-timeout-ms / --max-steps validate as positive integers", () => {
     expect(parseError(["--task=t", "--model=m", "--timeout-ms=0"]).message).toBe(
       "run: --timeout-ms must be >= 1, got 0",
     )
     expect(parseError(["--task=t", "--model=m", "--max-steps=abc"]).message).toBe(
       'run: --max-steps expects an integer, got "abc"',
+    )
+    expect(parseError(["--task=t", "--model=m", "--idle-timeout-ms=0"]).message).toBe(
+      "run: --idle-timeout-ms must be >= 1, got 0",
     )
   })
 
@@ -131,10 +140,12 @@ Options:
   --adapter=<name>                     Agent adapter: ${ALL_ADAPTERS.join(" | ")} (default: ${CLI_DEFAULTS.adapter})
   --workdir=<path>                     Use this directory instead of a temp work directory
   --initial-workdir-manifest=<path>    Write a pre-agent workdir manifest outside the work directory
+  --execution-observation=<path>       Write a value-free execution observation JSON sidecar
   --timeout-ms=<n>                     Override the per-task agent execution timeout (ms).
                                        This caps how long the target adapter spends solving
                                        one task. Falls back to task.json's \`timeoutMs\`,
                                        then to the built-in default (${TIMEOUT_DEFAULTS.taskExec}).
+  --idle-timeout-ms=<n>                Optional inactivity deadline for progress-aware adapters (ms).
   --max-steps=<n>                      Override max steps for the adapter
   --adapter-config=<m>                 native | managed (default: from skvm.config.json, else managed)
 

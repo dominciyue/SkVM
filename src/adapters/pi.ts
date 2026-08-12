@@ -22,6 +22,8 @@ import {
 } from "../core/adapter-sandbox.ts"
 import {
   parsePiNDJSON,
+  isPiNDJSONActivityLine,
+  observePiExecution,
   piEventsToRunRecord,
   toPiModel,
   renderPiBaseUrlOverride,
@@ -157,6 +159,8 @@ export class PiAdapter implements AgentAdapter {
   readonly name = "pi"
   private model = ""
   private timeoutMs: number = TASK_FILE_DEFAULTS.timeoutMs
+  private idleTimeoutMs: number | undefined
+  private maxSteps: number = TASK_FILE_DEFAULTS.maxSteps
   private cmdPrefix: string[] = []
   private mode: AdapterConfigMode = "managed"
   private extraCliArgs: string[] = []
@@ -167,6 +171,8 @@ export class PiAdapter implements AgentAdapter {
 
   async setup(config: AdapterConfig): Promise<void> {
     this.timeoutMs = config.timeoutMs ?? TASK_FILE_DEFAULTS.timeoutMs
+    this.idleTimeoutMs = config.idleTimeoutMs
+    this.maxSteps = config.maxSteps ?? TASK_FILE_DEFAULTS.maxSteps
     this.mode = config.mode ?? "managed"
 
     const settings = getAdapterSettings("pi")
@@ -243,6 +249,7 @@ export class PiAdapter implements AgentAdapter {
     taskId?: string
     convLog?: import("../core/conversation-logger.ts").ConversationLog
     timeoutMs?: number
+    idleTimeoutMs?: number
   }): Promise<RunResult> {
     let skillLoaded: boolean | undefined
     let skillPath: string | undefined
@@ -290,14 +297,26 @@ export class PiAdapter implements AgentAdapter {
     const envOverlay: Record<string, string> = { ...this.routeEnv }
     if (this.piAgentDir) envOverlay.PI_CODING_AGENT_DIR = this.piAgentDir
 
+    let completedTurns = 0
     const runPi = () => runSubprocess(cmd, {
       cwd: task.workDir,
       timeoutMs: task.timeoutMs ?? this.timeoutMs,
+      idleTimeoutMs: task.idleTimeoutMs ?? this.idleTimeoutMs,
+      isStdoutLineActivity: isPiNDJSONActivityLine,
+      shouldStopAfterStdoutLine: (line) => {
+        try {
+          return (JSON.parse(line) as { type?: unknown }).type === "turn_end"
+            && ++completedTurns >= this.maxSteps
+        } catch {
+          return false
+        }
+      },
       env: envOverlay,
     })
-    const { stdout, stderr, exitCode, timedOut } = injectedAgentsContent === undefined
+    const subprocess = injectedAgentsContent === undefined
       ? await runPi()
       : await withPiInjectedAgentsFile(task.workDir, injectedAgentsContent, runPi)
+    const { stdout, stderr, exitCode, timedOut } = subprocess
 
     const durationMs = performance.now() - startMs
 
@@ -317,6 +336,7 @@ export class PiAdapter implements AgentAdapter {
 
     const events = parsePiNDJSON(stdout)
     const builder = piEventsToRunRecord(events)
+    const executionObservation = observePiExecution(events, subprocess)
 
     if (task.skill && skillLoaded === false) {
       const skillSnippet = task.skill.content.replace(/^#.*\n/m, "").trim().slice(0, 60)
@@ -337,11 +357,14 @@ export class PiAdapter implements AgentAdapter {
       label: "pi",
       timedOut,
       exitCode,
-      timeoutMs: task.timeoutMs ?? this.timeoutMs,
+      timeoutMs: subprocess.timeoutKind === "idle"
+        ? task.idleTimeoutMs ?? this.idleTimeoutMs ?? this.timeoutMs
+        : task.timeoutMs ?? this.timeoutMs,
       stderr,
     })
 
-    return builder.finish({ workDir: task.workDir, durationMs, skillLoaded, ...verdict })
+    const result = builder.finish({ workDir: task.workDir, durationMs, skillLoaded, ...verdict })
+    return { ...result, executionObservation }
   }
 
   async teardown(): Promise<void> {

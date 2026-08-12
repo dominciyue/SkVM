@@ -9,7 +9,8 @@
  * `AgentSession.subscribe()`. The result mapping is identical.
  */
 
-import type { ProviderRoute } from "./types.ts"
+import type { ProviderRoute, RunExecutionObservation } from "./types.ts"
+import type { SubprocessResult } from "./subprocess.ts"
 import { RunRecordBuilder } from "./run-record.ts"
 import { createLogger } from "./logger.ts"
 import { resolveBackendModel } from "../providers/registry.ts"
@@ -105,6 +106,126 @@ export function parsePiNDJSON(output: string): PiEvent[] {
     }
   }
   return events
+}
+
+const PI_EVENT_TYPES = new Set([
+  "session", "agent_start", "agent_end", "turn_start", "turn_end",
+  "message_start", "message_update", "message_end",
+  "tool_execution_start", "tool_execution_update", "tool_execution_end",
+  "auto_retry_start",
+])
+
+/** True only for Pi NDJSON events proving provider/assistant/tool progress. */
+export function isPiNDJSONActivityLine(line: string): boolean {
+  try {
+    const parsed = JSON.parse(line) as { type?: unknown }
+    return typeof parsed.type === "string" && new Set([
+      "agent_end", "turn_end", "message_start", "message_update", "message_end",
+      "tool_execution_start", "tool_execution_update", "tool_execution_end",
+      "auto_retry_start",
+    ]).has(parsed.type)
+  } catch {
+    return false
+  }
+}
+
+function piMessages(events: readonly PiEvent[]): PiMessage[] {
+  const terminal = [...events].reverse().find(
+    (event): event is Extract<PiEvent, { type: "agent_end" }> => event.type === "agent_end",
+  )
+  if (terminal) return terminal.messages
+  return events
+    .filter((event): event is Extract<PiEvent, { type: "message_end" }> => event.type === "message_end")
+    .map((event) => event.message)
+    .filter((message) => message.role === "assistant" || message.role === "toolResult")
+}
+
+function classifyTransientError(messages: readonly PiMessage[], events: readonly PiEvent[]):
+  RunExecutionObservation["transientError"] {
+  const errors = [
+    ...events.filter((event): event is Extract<PiEvent, { type: "auto_retry_start" }> =>
+      event.type === "auto_retry_start").map((event) => event.errorMessage),
+    ...messages.filter((message): message is PiAssistantMessage =>
+      message.role === "assistant" && message.stopReason === "error")
+      .map((message) => message.errorMessage ?? ""),
+  ]
+  for (const error of errors) {
+    if (/\b429\b|rate.?limit/i.test(error)) return "rate-limit"
+    if (/\b5\d\d\b|upstream|service unavailable|bad gateway/i.test(error)) return "provider-5xx"
+    if (/ECONNRESET|connection reset|socket hang up/i.test(error)) return "connection-reset"
+    if (/ETIMEDOUT|network timeout|request timed out/i.test(error)) return "network-timeout"
+  }
+  return undefined
+}
+
+export function observePiExecution(
+  events: readonly PiEvent[],
+  subprocess: Pick<SubprocessResult,
+    "exitCode" | "durationMs" | "timedOut" | "timeoutKind" | "stoppedByStdoutLine"
+    | "firstActivityMs" | "lastActivityMs">,
+): RunExecutionObservation {
+  const messages = piMessages(events)
+  const assistants = messages.filter((message): message is PiAssistantMessage => message.role === "assistant")
+  const toolResults = messages.filter((message): message is PiToolResultMessage => message.role === "toolResult")
+  const unknownTypes = new Set<string>()
+  for (const event of events as Array<PiEvent & { type: string }>) {
+    if (!PI_EVENT_TYPES.has(event.type)) unknownTypes.add(`event:${event.type}`)
+  }
+  for (const message of assistants) {
+    for (const content of message.content as Array<{ type: string }>) {
+      if (content.type !== "text" && content.type !== "toolCall") unknownTypes.add(`content:${content.type}`)
+    }
+  }
+  const usage = assistants.reduce((total, message) => ({
+    input: total.input + (message.usage?.input ?? 0),
+    output: total.output + (message.usage?.output ?? 0),
+    cacheRead: total.cacheRead + (message.usage?.cacheRead ?? 0),
+    cacheWrite: total.cacheWrite + (message.usage?.cacheWrite ?? 0),
+  }), { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 })
+  const terminal = [...events].reverse().find(
+    (event): event is Extract<PiEvent, { type: "agent_end" }> => event.type === "agent_end",
+  )
+  const lastAssistant = assistants.at(-1)
+  const toolCalls = assistants.reduce((count, message) => count
+    + message.content.filter((content) => content.type === "toolCall").length, 0)
+  const hasPayload = assistants.some((message) => message.content.some((content) =>
+    content.type === "toolCall" || (content.type === "text" && content.text.trim().length > 0)))
+    || toolResults.length > 0
+  const usageTotal = usage.input + usage.output + usage.cacheRead + usage.cacheWrite
+  const parserOutcome = unknownTypes.size > 0
+    ? "incompatible"
+    : events.length === 0 || (terminal !== undefined && !hasPayload && usageTotal === 0)
+      ? "empty"
+      : "ok"
+  const termination = subprocess.stoppedByStdoutLine
+    ? "step-limit"
+    : subprocess.timedOut
+    ? subprocess.timeoutKind === "idle" ? "idle-timeout" : "absolute-timeout"
+    : subprocess.exitCode === 0 ? "natural" : "crash"
+  const transientError = classifyTransientError(messages, events)
+
+  return {
+    schemaVersion: "skvm-run-execution-observation/v1",
+    process: { exitCode: subprocess.exitCode, termination, durationMs: subprocess.durationMs },
+    activity: {
+      requestDispatched: events.some((event) => event.type === "agent_start" || event.type === "turn_start"),
+      providerResponses: assistants.length,
+      assistantMessages: assistants.length,
+      toolCalls,
+      toolResults: toolResults.length,
+      ...(subprocess.firstActivityMs === undefined ? {} : {
+        firstActivityMs: subprocess.firstActivityMs,
+        lastActivityMs: subprocess.lastActivityMs,
+      }),
+    },
+    terminal: {
+      present: terminal !== undefined,
+      ...(lastAssistant?.stopReason ? { stopReason: lastAssistant.stopReason } : {}),
+    },
+    usage: { available: assistants.some((message) => message.usage !== undefined), ...usage },
+    parser: { outcome: parserOutcome, unknownTypes: [...unknownTypes].sort() },
+    ...(transientError ? { transientError } : {}),
+  }
 }
 
 // ---------------------------------------------------------------------------

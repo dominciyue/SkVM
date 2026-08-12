@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { piEventsToRunRecord, type PiEvent } from "./pi-runtime.ts"
+import {
+  isPiNDJSONActivityLine,
+  observePiExecution,
+  piEventsToRunRecord,
+  type PiEvent,
+} from "./pi-runtime.ts"
 
 function assistantEvent(
   input: { text?: string; inputTokens: number; outputTokens: number },
@@ -27,6 +32,77 @@ function assistantEvent(
 }
 
 describe("pi runtime execution observability", () => {
+  test("resets idle time only for provider, assistant, or tool progress", () => {
+    expect(isPiNDJSONActivityLine(JSON.stringify({ type: "session" }))).toBe(false)
+    expect(isPiNDJSONActivityLine(JSON.stringify({ type: "turn_start" }))).toBe(false)
+    expect(isPiNDJSONActivityLine(JSON.stringify({ type: "message_update" }))).toBe(true)
+    expect(isPiNDJSONActivityLine(JSON.stringify({ type: "tool_execution_update" }))).toBe(true)
+    expect(isPiNDJSONActivityLine("not json")).toBe(false)
+  })
+
+  test("builds value-free compact execution evidence from Pi events", () => {
+    const terminal = assistantEvent({ text: "PRIVATE MODEL TEXT", inputTokens: 12, outputTokens: 3 })
+    const observation = observePiExecution([
+      { type: "agent_start" },
+      { type: "turn_start" },
+      terminal,
+    ], {
+      exitCode: 0,
+      durationMs: 250,
+      timedOut: false,
+      firstActivityMs: 100,
+      lastActivityMs: 200,
+    })
+
+    expect(observation).toMatchObject({
+      schemaVersion: "skvm-run-execution-observation/v1",
+      process: { exitCode: 0, termination: "natural", durationMs: 250 },
+      activity: {
+        requestDispatched: true,
+        providerResponses: 1,
+        assistantMessages: 1,
+        firstActivityMs: 100,
+        lastActivityMs: 200,
+      },
+      terminal: { present: true, stopReason: "stop" },
+      usage: { available: true, input: 12, output: 3 },
+      parser: { outcome: "ok", unknownTypes: [] },
+    })
+    expect(JSON.stringify(observation)).not.toContain("PRIVATE")
+  })
+
+  test("reports incompatible Pi content and pre-semantic provider transients", () => {
+    const incompatible = assistantEvent({ inputTokens: 0, outputTokens: 0 })
+    const assistant = incompatible.messages[0]!
+    if (assistant.role !== "assistant") throw new Error("assistant fixture mismatch")
+    assistant.content = [{ type: "thinking", thinking: "PRIVATE" }] as unknown as typeof assistant.content
+    expect(observePiExecution([incompatible], {
+      exitCode: 0, durationMs: 1, timedOut: false,
+    }).parser).toEqual({ outcome: "incompatible", unknownTypes: ["content:thinking"] })
+
+    const transient = observePiExecution([{
+      type: "auto_retry_start",
+      attempt: 1,
+      maxAttempts: 1,
+      delayMs: 0,
+      errorMessage: "HTTP 503 upstream unavailable",
+    }], {
+      exitCode: 1, durationMs: 20, timedOut: false,
+    })
+    expect(transient.transientError).toBe("provider-5xx")
+    expect(JSON.stringify(transient)).not.toContain("503 upstream")
+  })
+
+  test("records a harness-enforced Pi step limit separately from timeout", () => {
+    const observation = observePiExecution([{ type: "turn_start" }], {
+      exitCode: 143,
+      durationMs: 100,
+      timedOut: false,
+      stoppedByStdoutLine: true,
+    })
+    expect(observation.process.termination).toBe("step-limit")
+  })
+
   test("marks a terminal zero-usage empty assistant event as parse-failed", () => {
     const result = piEventsToRunRecord([
       { type: "agent_start" },

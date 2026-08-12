@@ -136,6 +136,7 @@ export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunRes
       // rather than reading task.timeoutMs directly — otherwise a CLI
       // --timeoutMs would be silently shadowed by the task file's value.
       timeoutMs: adapterConfig.timeoutMs,
+      idleTimeoutMs: adapterConfig.idleTimeoutMs,
     })
 
     return {

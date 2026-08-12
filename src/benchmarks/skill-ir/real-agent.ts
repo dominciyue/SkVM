@@ -75,7 +75,9 @@ export type BuildRunCommandOptions = {
   skillMode?: "inject" | "discover";
   workdir?: string;
   initialWorkdirManifestPath?: string;
+  executionObservationPath?: string;
   timeoutMs?: number;
+  idleTimeoutMs?: number;
   maxSteps?: number;
 };
 
@@ -477,8 +479,16 @@ export function buildSkvmRunCommand(opts: BuildRunCommandOptions): string[] {
     command.push(`--initial-workdir-manifest=${opts.initialWorkdirManifestPath}`);
   }
 
+  if (opts.executionObservationPath) {
+    command.push(`--execution-observation=${opts.executionObservationPath}`);
+  }
+
   if (opts.timeoutMs) {
     command.push(`--timeout-ms=${opts.timeoutMs}`);
+  }
+
+  if (opts.idleTimeoutMs) {
+    command.push(`--idle-timeout-ms=${opts.idleTimeoutMs}`);
   }
 
   if (opts.maxSteps) {

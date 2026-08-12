@@ -196,6 +196,41 @@ export const RunStatusSchema = z.enum([
 ])
 export type RunStatus = z.infer<typeof RunStatusSchema>
 
+export const RunExecutionObservationSchema = z.object({
+  schemaVersion: z.literal("skvm-run-execution-observation/v1"),
+  process: z.object({
+    exitCode: z.number().int().nullable(),
+    termination: z.enum(["natural", "crash", "idle-timeout", "absolute-timeout", "step-limit"]),
+    durationMs: z.number().nonnegative(),
+  }).strict(),
+  activity: z.object({
+    requestDispatched: z.boolean(),
+    providerResponses: z.number().int().nonnegative(),
+    assistantMessages: z.number().int().nonnegative(),
+    toolCalls: z.number().int().nonnegative(),
+    toolResults: z.number().int().nonnegative(),
+    firstActivityMs: z.number().nonnegative().optional(),
+    lastActivityMs: z.number().nonnegative().optional(),
+  }).strict(),
+  terminal: z.object({
+    present: z.boolean(),
+    stopReason: z.string().min(1).optional(),
+  }).strict(),
+  usage: z.object({
+    available: z.boolean(),
+    input: z.number().int().nonnegative(),
+    output: z.number().int().nonnegative(),
+    cacheRead: z.number().int().nonnegative(),
+    cacheWrite: z.number().int().nonnegative(),
+  }).strict(),
+  parser: z.object({
+    outcome: z.enum(["ok", "empty", "incompatible"]),
+    unknownTypes: z.array(z.string().min(1)),
+  }).strict(),
+  transientError: z.enum(["provider-5xx", "rate-limit", "connection-reset", "network-timeout"]).optional(),
+}).strict()
+export type RunExecutionObservation = z.infer<typeof RunExecutionObservationSchema>
+
 export const RunResultSchema = z.object({
   text: z.string(),
   steps: z.array(AgentStepSchema),
@@ -216,6 +251,8 @@ export const RunResultSchema = z.object({
    * the absent-means-available rule for unmigrated adapters.
    */
   usageAvailable: z.boolean().optional(),
+  /** Value-free execution evidence for reliability classification and timeout audit. */
+  executionObservation: RunExecutionObservationSchema.optional(),
   /** Display-only: human-debug stderr snippet. NOT a status signal — check runStatus instead. */
   adapterError: z.object({
     exitCode: z.number(),
@@ -452,6 +489,8 @@ export const AdapterConfigSchema = z.object({
   apiKey: z.string().optional(),
   maxSteps: z.number().default(TASK_FILE_DEFAULTS.maxSteps),
   timeoutMs: z.number().default(TASK_FILE_DEFAULTS.timeoutMs),
+  /** Optional progress-aware deadline; currently consumed by the Pi adapter. */
+  idleTimeoutMs: z.number().int().positive().optional(),
   providerOptions: z.record(z.unknown()).optional(),
   /**
    * Which config-source mode to use when building the sandbox HOME for the
@@ -604,6 +643,8 @@ export interface AgentAdapter {
     convLog?: ConversationLog
     /** Per-task timeout override (ms). Falls back to adapter setup timeout. */
     timeoutMs?: number
+    /** Optional per-task inactivity timeout (ms). */
+    idleTimeoutMs?: number
   }): Promise<RunResult>
   teardown(): Promise<void>
 }

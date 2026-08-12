@@ -388,6 +388,21 @@ describe("real-agent Task 11A helpers", () => {
     ).toContain("--skill=tmp/skill/SKILL.md");
   });
 
+  test("buildSkvmRunCommand forwards the progress-aware idle deadline", () => {
+    expect(buildSkvmRunCommand({
+      taskPath: "tmp/task.json",
+      model: "xty/gpt-5.6-sol",
+      adapter: "pi",
+      timeoutMs: 600_000,
+      idleTimeoutMs: 120_000,
+      maxSteps: 30,
+    })).toEqual(expect.arrayContaining([
+      "--timeout-ms=600000",
+      "--idle-timeout-ms=120000",
+      "--max-steps=30",
+    ]));
+  });
+
   test("materializeCaseArtifacts writes task and skill files for one case", async () => {
     const tempDir = await mkdtemp(join(tmpdir(), "skill-ir-real-agent-"));
     tempDirs.push(tempDir);

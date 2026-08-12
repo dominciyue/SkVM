@@ -66,10 +66,20 @@ export const RUN_FLAGS = defineFlags(
       placeholder: "<path>",
       help: "Write a pre-agent workdir manifest outside the work directory",
     },
+    "execution-observation": {
+      kind: "string",
+      placeholder: "<path>",
+      help: "Write a value-free execution observation JSON sidecar",
+    },
     "timeout-ms": {
       kind: "int",
       min: 1,
       help: `Override the per-task agent execution timeout (ms).\nThis caps how long the target adapter spends solving\none task. Falls back to task.json's \`timeoutMs\`,\nthen to the built-in default (${TIMEOUT_DEFAULTS.taskExec}).`,
+    },
+    "idle-timeout-ms": {
+      kind: "int",
+      min: 1,
+      help: "Optional inactivity deadline for progress-aware adapters (ms).",
     },
     "max-steps": {
       kind: "int",
@@ -144,6 +154,7 @@ export async function runRun(config: RunConfig): Promise<void> {
     model,
     maxSteps: runRuntime.maxSteps,
     timeoutMs: runRuntime.timeoutMs,
+    idleTimeoutMs: config["idle-timeout-ms"],
     mode: adapterModeRun,
   }
 
@@ -172,6 +183,19 @@ export async function runRun(config: RunConfig): Promise<void> {
       keepWorkDir: true,
       initialWorkdirManifestPath: config["initial-workdir-manifest"],
     })
+    if (config["execution-observation"]) {
+      if (!result.runResult.executionObservation) {
+        throw new Error(`Adapter ${harness} did not provide execution observation`)
+      }
+      const { dirname } = await import("node:path")
+      const { mkdir, writeFile } = await import("node:fs/promises")
+      await mkdir(dirname(config["execution-observation"]), { recursive: true })
+      await writeFile(
+        config["execution-observation"],
+        `${JSON.stringify(result.runResult.executionObservation, null, 2)}\n`,
+        "utf8",
+      )
+    }
     runSp.succeed(`Task ${task.id} complete`)
 
     console.log(`\n=== Run Complete ===`)
