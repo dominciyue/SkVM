@@ -24,6 +24,10 @@ const reviewerLockPath = path.join(
   rootDir,
   "benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json",
 );
+const i18nLockPath = path.join(
+  rootDir,
+  "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock.json",
+);
 
 async function rawLock(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(lockPath, "utf8")) as Record<string, unknown>;
@@ -188,6 +192,47 @@ describe("static development lock", () => {
       expect(row.command).toContain("--max-steps=30");
       expect(row.workDir.length).toBeLessThanOrEqual(220);
     }
+  });
+
+  test("builds the preregistered i18n improvement plan without opening held-out", async () => {
+    const lock = await readAndValidateStaticDevelopmentLock({ rootDir, lockPath: i18nLockPath });
+    expect(lock).toMatchObject({
+      experimentId: "i18n-helper-contribution-static-development-v1",
+      evaluationMode: "improvement",
+      skillId: "i18n-helper-contribution-v2",
+      adapter: { id: "pi", version: "0.67.68" },
+      matrix: {
+        taskIds: [
+          "i18n-helper-contribution-multifile-dev-001",
+          "i18n-helper-contribution-partial-plural-dev-002",
+        ],
+        expectedRows: 12,
+        expectedTriplets: 4,
+      },
+      gate: {
+        minimumIrStaticSuccesses: 3,
+        minimumIrStaticMeanScore: 0.85,
+        minimumImprovedPairs: 1,
+        maximumRegressedPairs: 0,
+      },
+      promotionBoundary: {
+        permitsHeldOut: false,
+        permitsResidualAudit: true,
+        permitsArtifactPromotion: false,
+      },
+    });
+    const result = await buildStaticDevelopmentPlan({
+      rootDir,
+      lockPath: i18nLockPath,
+      outDir: path.join(rootDir, lock.runtime.outputRoot!, "run"),
+    });
+    expect(result.plan).toHaveLength(12);
+    expect(new Set(result.plan.map((row) => `${row.caseId}:${row.runIndex}`))).toHaveLength(4);
+    expect(new Set(result.plan.map((row) => row.system))).toEqual(new Set([
+      "no-skill", "original", "ir-static",
+    ]));
+    expect(result.plan.every((row) => row.workDir.length <= 220)).toBe(true);
+    expect(await readFile(i18nLockPath, "utf8")).not.toMatch(/sk-[A-Za-z0-9_-]{16,}/);
   });
 
   test("persists a plan-only dry-run and accepts only the three frozen phases", async () => {

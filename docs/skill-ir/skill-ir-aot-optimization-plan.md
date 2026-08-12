@@ -125,9 +125,9 @@ src/skill-ir/corpus-fixtures.test.ts
 **目标：** 在同一冻结强模型/Pi/Windows/clean 身份下比较
 `no-skill | original | ir-static`，判断静态编译视图是否保真并产生可归因改善。
 
-1. [ ] 复用通用 `static-development-lock/v1` 与 runner，不新增 runtime/catalog；
-2. [ ] 付费前冻结 2 development tasks x 2 repetitions x 3 systems = 12 rows、4 triplets、`retries=0`；
-3. [ ] Gate 至少要求 12/12、4/4、0 infrastructure、ir-static mean 不低于 original、0 hard-gate/score
+1. [x] 复用通用 `static-development-lock/v1` 与 runner，不新增 runtime/catalog；
+2. [x] 付费前冻结 2 development tasks x 2 repetitions x 3 systems = 12 rows、4 triplets、`retries=0`；
+3. [x] Gate 至少要求 12/12、4/4、0 infrastructure、ir-static mean 不低于 original、0 hard-gate/score
    regression、至少 1 个 positive pair；
 4. [ ] 运行 dry-run、route/resource qualification、唯一 execute、deterministic scoring 与 compact gate；
 5. [ ] 若 static 解决 residual，不生成动态 overlay；若 original/static 均重复失败，才生成 typed residual；

@@ -176,6 +176,19 @@ bun ./src/benchmarks/skill-ir/static-development-run.ts `
 后续将 `--phase` 依次改为 `route-probe`、`execute`。execute 后仍由冻结 deterministic scorer 与
 `static-development-gate-run.ts` 生成 compact gate；不得把静态保真通过解释为 skill 已优化。
 
+`i18n-helper-contribution-v2` 的静态预注册复用同一入口：
+
+```powershell
+bun ./src/benchmarks/skill-ir/static-development-run.ts `
+  --phase=plan `
+  --lock=benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock.json `
+  --out-dir=results/skill-ir/ihc-static-v1
+```
+
+该 lock 冻结 12 rows/4 triplets、Pi managed short-path、`retries=0` 和 improvement gate；`route-probe`、
+`execute` 只能在 lock 提交后按顺序运行。即使 development gate 通过，也只允许 residual audit/artifact
+eligibility，held-out 仍关闭。
+
 `zh-readme` 的 task 与 contract audit 可复建命令：
 
 ```powershell

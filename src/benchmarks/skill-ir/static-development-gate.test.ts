@@ -235,6 +235,24 @@ describe("static development gate", () => {
     expect(failed.passed).toBe(false);
   });
 
+  test("routes an improvement gate to residual audit without opening held-out planning", async () => {
+    const base = await readAndValidateStaticDevelopmentLock({ rootDir, lockPath });
+    const lock = StaticDevelopmentLockSchema.parse({
+      ...base,
+      evaluationMode: "improvement",
+      gate: { ...base.gate, maximumRegressedPairs: 0 },
+      promotionBoundary: { ...base.promotionBoundary, permitsResidualAudit: true },
+    });
+    const report = buildStaticDevelopmentGateReport({ lock, tasks, ...passingRows() });
+    expect(report.passed).toBe(true);
+    expect(report.interpretation).toEqual({
+      heldOutPlanningAllowed: false,
+      residualAuditAllowed: true,
+      heldOutExecutionAllowed: false,
+      entersMainClaim: false,
+    });
+  });
+
   test("keeps missing and infrastructure rows in the frozen denominator", async () => {
     const lock = await readAndValidateStaticDevelopmentLock({ rootDir, lockPath });
     const missing = passingRows();

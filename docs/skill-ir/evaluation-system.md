@@ -239,6 +239,12 @@ regression，允许 0 improved pair。唯一执行为 12/12、4/4 triplets、0 i
 3/4，形成 1 positive、3 equal、0 negative。通过只开放 typed residual audit，不开放 held-out 或
 optimization claim；命令与锁路径见 `real-skill-pilots.md`。
 
+i18n contribution-v2 同样复用 `static-development-lock/v1` 与现有 runner，不增加 runtime/catalog。预注册身份为
+2 development tasks x 2 repetitions x `no-skill | original | ir-static` = 12 rows/4 triplets，Pi 0.67.68、
+Windows/clean、`retries=0`。Gate 要求完整分母、0 infrastructure、至少 3 个 static success、static mean
+至少 0.85、相对 original 0 score/hard-gate regression 且至少 1 个 improved pair。通过只开放 typed residual
+audit/artifact eligibility，不开放 held-out planning/execution；锁路径见 `real-skill-pilots.md`。
+
 ## 8. Benchmark Contract Audit
 
 付费前 audit 至少覆盖：

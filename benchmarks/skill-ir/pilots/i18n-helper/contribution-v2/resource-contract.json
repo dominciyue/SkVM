@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "skill-ir-resource-contract/v1",
+  "inputFormats": ["typescript", "json"],
+  "network": "forbidden",
+  "packageInstall": "forbidden",
+  "interpreter": {
+    "env": "SKVM_NODE",
+    "fallbackCommand": "node",
+    "minimumVersion": "23"
+  },
+  "probe": {
+    "args": [
+      "--input-type=module",
+      "-e",
+      "import('yaml').then(() => console.log('SKVM_I18N_CONTRIBUTION_NODE_YAML_OK'))"
+    ],
+    "requiredModules": ["yaml"],
+    "successMarker": "SKVM_I18N_CONTRIBUTION_NODE_YAML_OK"
+  },
+  "missingDependencyDisposition": "preflight-infrastructure"
+}

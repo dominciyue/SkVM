@@ -309,8 +309,8 @@ export function buildStaticDevelopmentGateReport(
     pairs,
     gates,
     interpretation: {
-      heldOutPlanningAllowed: lock.evaluationMode === "static-fidelity" ? false : passed,
-      ...(lock.evaluationMode === "static-fidelity" ? { residualAuditAllowed: passed } : {}),
+      heldOutPlanningAllowed: passed && lock.promotionBoundary.permitsResidualAudit !== true,
+      ...(lock.promotionBoundary.permitsResidualAudit === true ? { residualAuditAllowed: passed } : {}),
       heldOutExecutionAllowed: false,
       entersMainClaim: false,
     },
