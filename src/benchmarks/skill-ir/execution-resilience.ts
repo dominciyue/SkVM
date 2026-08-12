@@ -160,6 +160,15 @@ export function selectMatchedExecutionBlocks(input: {
     throw new Error("matched block systems must be unique");
   }
   const parsed = input.envelopes.map((item) => ExecutionEnvelopeSchema.parse(item));
+  for (const envelope of parsed) {
+    const canonical = classifyExecutionEnvelope(envelope);
+    if (
+      envelope.classification !== canonical.classification
+      || envelope.replacementEligible !== canonical.replacementEligible
+    ) {
+      throw new Error(`Execution envelope classification mismatch: ${envelope.attemptId}`);
+    }
+  }
   const selectedBlocks: MatchedExecutionBlock[] = [];
   const replacedBlocks: ReplacedExecutionBlock[] = [];
   let abortReason: MatchedExecutionBlockSelection["abortReason"];

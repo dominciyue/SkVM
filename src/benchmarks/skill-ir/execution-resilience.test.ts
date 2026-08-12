@@ -115,7 +115,22 @@ describe("matched execution block selection", () => {
           attemptId: `task-a:block-${candidateBlock}:${system}`,
         });
         rows.push(candidateBlock === 1 && system === "original"
-          ? { ...base, classification: "empty-terminal", replacementEligible: true }
+          ? {
+              ...base,
+              activity: {
+                requestDispatched: true,
+                providerResponses: 1,
+                assistantMessages: 0,
+                toolCalls: 0,
+                toolResults: 0,
+              },
+              terminal: { present: true, stopReason: "stop" },
+              usage: { available: true, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+              parser: { outcome: "empty", unknownTypes: [] },
+              outputs: { fileCount: 0 },
+              classification: "empty-terminal",
+              replacementEligible: true,
+            }
           : base);
       }
     }
@@ -145,7 +160,17 @@ describe("matched execution block selection", () => {
       system,
       attemptId: `task-a:block-1:${system}`,
       ...(system === "ir-static"
-        ? { classification: "active-absolute-timeout" as const, replacementEligible: false }
+        ? {
+            process: {
+              started: true,
+              exitCode: 143,
+              termination: "absolute-timeout" as const,
+              durationMs: 600000,
+            },
+            terminal: { present: false },
+            classification: "active-absolute-timeout" as const,
+            replacementEligible: false,
+          }
         : {}),
     }));
     expect(selectMatchedExecutionBlocks({
@@ -153,10 +178,35 @@ describe("matched execution block selection", () => {
     })).toMatchObject({ complete: true, selectedBlocks: [{ taskId: "task-a", candidateBlock: 1 }] });
 
     const transientRows = activeRows.map((row) => ({
-      ...row, classification: "empty-terminal" as const, replacementEligible: true,
+      ...row,
+      process: { started: true, exitCode: 0, termination: "natural" as const, durationMs: 100 },
+      activity: {
+        requestDispatched: true,
+        providerResponses: 1,
+        assistantMessages: 0,
+        toolCalls: 0,
+        toolResults: 0,
+      },
+      terminal: { present: true, stopReason: "stop" },
+      usage: { available: true, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      parser: { outcome: "empty" as const, unknownTypes: [] },
+      outputs: { fileCount: 0 },
+      classification: "empty-terminal" as const,
+      replacementEligible: true,
     }));
     expect(selectMatchedExecutionBlocks({
       taskIds: ["task-a"], systems, targetBlocksPerTask: 1, reserveBlocksPerTask: 0, envelopes: transientRows,
     })).toMatchObject({ complete: false, abortReason: "replacement-budget-exhausted", selectedRows: 0 });
+  });
+
+  test("rejects a stored classification that disagrees with compact evidence", () => {
+    const forged = envelope({ classification: "empty-terminal", replacementEligible: true });
+    expect(() => selectMatchedExecutionBlocks({
+      taskIds: ["task-a"],
+      systems: ["no-skill", "original"],
+      targetBlocksPerTask: 1,
+      reserveBlocksPerTask: 0,
+      envelopes: [forged, envelope({ system: "original", attemptId: "task-a:block-1:original" })],
+    })).toThrow("classification mismatch");
   });
 });
