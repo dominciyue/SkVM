@@ -463,6 +463,24 @@ compatibility 和 provider/execution observability；不得修改旧 lock 或回
 active timeout、step-limit、整组选择、reserve exhaustion、双口径守恒、v1 compatibility 和 compact envelope
 无 secret/model/tool text。机制验证不需要付费调用；通过后才冻结新的 i18n static identity。
 
+截至 2026-08-12，该 successor 已实现。`runSubprocess` 增量消费 stdout，Pi adapter 将标准 `thinking` 识别为
+已知但非交付内容，真正未知 event/content 仍 fail closed；idle、absolute 与按 `turn_end` 计数的 step limit
+均实际生效。`skvm run --execution-observation=<path>` 写出 value-free sidecar；v2 runner 在每行前删除旧
+sidecar，按 task/block 顺序执行完整 triplet，选择固定后才评分所有 semantic attempt，并分别计算 selected
+gate 与 all-attempt 方向/成本。旧 v1 schema、lock、runner 输出保持兼容。
+
+i18n successor 保留两份不可覆盖的 qualification failure：v2 把 180 秒 route-probe budget 错用于完整任务，
+在 `180310ms` 截断仍活跃行；v3 使用完整 660 秒 watchdog 后自然完成，但 envelope allowlist 漏识别 Pi 0.67.68
+标准 `content:thinking`。修复均先 TDD、再创建新 identity。v4 qualification 在 `153150ms` 以
+`semantic-complete` 通过；唯一矩阵完成 12/12 attempted/selected rows、4/4 triplets、0 replacement、0 transient、
+0 active timeout、0 parser/runtime blocker，因此 `infrastructureSensitive=false`。
+
+v4 数值 gate failed，但不是基础设施失败：no-skill 2/4、mean 0.65；original 3/4、mean 0.9625；ir-static
+3/4、mean 0.875。Static 达到预注册绝对成功/均值门槛，却相对 original 为 0 improved、1 regressed pair，
+违反 `minimumImprovedPairs=1` 与 `maximumRegressedPairs=0`。Static 非缓存 aggregate tokens 为 161220，低于
+original 的 213935，但质量回归阻止 efficiency/optimized promotion。Residual audit、artifact、held-out 与
+main claim 继续关闭；该结果是可信的 development 方法负结果。
+
 ## 12. 结果持久化
 
 提交到 Git：

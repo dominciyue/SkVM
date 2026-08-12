@@ -177,12 +177,16 @@ describe("method portfolio registry and readiness", () => {
         "v3-array-semantics",
         "contribution-v1",
         "contribution-v2-public-semantics",
+        "static-development-v1",
+        "static-development-v2",
+        "static-development-v3",
+        "static-development-v4",
       ],
       developmentGate: {
         status: "failed",
-        resultPath: "results/skill-ir/ihc-static-v1/gate-report.json",
+        resultPath: "results/skill-ir/ihc-static-v4/gate-report.json",
       },
-      blockers: ["execution-observability"],
+      blockers: [],
     })
   })
 

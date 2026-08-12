@@ -253,6 +253,18 @@ ir-static 行达到 300 秒 timeout；partial-plural 的 run-index 2 在 no-skil
 1 equal、0 regression；aggregate 仍因 infra 被计零，ir-static 2/4、mean 0.50，gate failed。禁止同锁补跑、
 artifact eligibility、held-out 与优化/Token claim。
 
+execution resilience successor 先后冻结两个 qualification failure：v2 把 180 秒 probe budget 误用于完整任务，
+在仍有活动时被外层截断；v3 放宽完整任务 watchdog 后自然完成，但 value-free parser 未识别 Pi 0.67.68 的标准
+`thinking` content。两个问题均先通过确定性测试修复，再创建新 identity，不覆盖旧结果。v4 qualification
+在 153150ms 自然完成；唯一矩阵为 12/12 attempted/selected、4/4 triplets、0 replacement、0 transient、
+0 active timeout、0 parser/runtime blocker，故 `infrastructureSensitive=false`。
+
+v4 仍冻结 gate failed：no-skill 2/4、mean 0.65、64069 非缓存 tokens；original 3/4、mean 0.9625、
+213935 tokens；ir-static 3/4、mean 0.875、161220 tokens。Static 相对 original 为 0 improved、1 regressed，
+违反至少 1 improvement、0 regression 的预注册门槛。24.64% 的非缓存 token 降幅只能作诊断，不能抵消质量
+回归，也不开放 residual audit、artifact、held-out 或 efficiency/optimization claim。该批把 v1 的执行权威问题
+与方法质量问题分开，给出了可信的 development 负结果。
+
 关键路径：
 
 - `benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/development-calibration-lock.json`
@@ -262,6 +274,9 @@ artifact eligibility、held-out 与优化/Token claim。
 - `benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock.json`
 - `results/skill-ir/ihc-static-v1/gate-report.json`
 - `results/skill-ir/ihc-static-v1/infrastructure-audit.json`
+- `benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock-v4.json`
+- `results/skill-ir/ihc-static-v4/gate-report.json`
+- `results/skill-ir/ihc-static-v4/run/execution-envelopes.jsonl`
 
 ### 8.3 `zh-code-reviewer` measurement contract
 
@@ -398,6 +413,7 @@ raw workdir/qualification/artifact 文件。治理规则：
 6. 补齐自动生成 IR/contract、人工分钟、adapter LOC 与 `coreBranchDelta` 趋势，并让至少第二个合同合格
    phenotype 通过 development。
 7. Portfolio readiness 通过后才用 untouched skill replication，再扩三模型族、context 和 Token amortization。
-8. 保持 Law v3、i18n v2/v3、execution-bound successor 与 contribution-v1 冻结。contribution-v2 已通过
-   baseline admission；下一步是 source-audited base IR 和 `ir-static` development，不再回到旧饱和分母，
-   也不提前消费 held-out。
+8. 保持 Law v3、i18n v2/v3、execution-bound successor、contribution-v1 及 static v1--v4 冻结。
+   contribution-v2 已通过 baseline admission 与 source-audited base IR；v4 已排除 execution blocker，但
+   static paired quality gate failed。停止该案例的 artifact 纵切，转向另一个 contract-qualified 方法案例；
+   不回到旧饱和分母，也不消费 held-out。

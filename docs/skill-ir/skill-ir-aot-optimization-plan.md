@@ -18,8 +18,9 @@
   contract audit 已形成研究基础设施；
 - 7 个真实 skill 已进入 method portfolio，6 个 contract-qualified；
 - API Tester 是唯一通过 optimized development gate 的 phenotype；
-- i18n contribution-v2 已通过基线准入并完成 source-audited profile-empty base IR；首个 static development
-  identity 因 4 个 infrastructure failure 冻结失败，尚无 artifact、held-out 或 Token 优化证据；
+- i18n contribution-v2 已通过基线准入并完成 source-audited profile-empty base IR；首个 static identity 因
+  4 个 infrastructure failure 冻结，resilient v4 已消除 execution blocker，但因 1 个 paired quality regression
+  失败，仍无 artifact、held-out 或 Token 优化证据；
 - untouched replication、三模型族、noisy/long context、break-even 和面向用户的统一 optimizer CLI 尚未完成。
 
 因此当前不能写“优化系统已经闭环”或“任意 skill 均可自动优化”。准确表述是：**测量与执行框架较成熟，
@@ -29,14 +30,14 @@
 
 | Workstream | 当前状态 | 下一判定点 |
 |---|---|---|
-| IR core | i18n base IR 的 source audit、validator 与 lowering 投影已通过 | 首个 static identity infra-failed，需分离执行可观测性 |
+| IR core | i18n base IR 与执行韧性 successor 已通过机制验证 | v4 static 为可信质量回归，不开放 artifact |
 | Benchmark/evaluation | 合同、贡献识别、runner、scorer 已具备 | 避免再出现 public ABI 或 execution authority 漂移 |
 | API Tester | optimized development 4/4、mean 1.0 | 冻结保留；不提前运行 held-out |
 | Law | v3 measurement-valid，但 baseline gate failed；旧 held-out 回归 | 暂不重跑，保留为 boundary failure case |
 | Experimental Design | 合同合格；skill-unique 贡献面合格但强模型饱和 | i18n 竖切后再决定 efficiency ablation 或 successor |
 | Zh Code Reviewer | base IR/static fidelity gate passed | 残差已被 static 解决，不强造 overlay |
 | Zh README | v1/v2 measurement-invalid | skill-neutral command semantics 已提炼，暂不堆新版本 |
-| i18n Helper | contribution-v2 base IR passed；static identity infrastructure-failed | 不开放 artifact；决定新 identity 或替代方法案例 |
+| i18n Helper | contribution-v2 base IR passed；v4 static 0 infra 但 paired gate failed | 不开放 artifact；转向替代 qualified case |
 | Method portfolio | 7 studied、6 qualified、1 passed phenotype、0 replication | 补第二个 optimized phenotype 与自动化指标 |
 | Product entry | 研究脚本可运行；统一 `import/optimize/validate/report` 尚未接入 | 方法 readiness 后收敛 CLI/library/Agent |
 
@@ -141,17 +142,22 @@ src/skill-ir/corpus-fixtures.test.ts
 
 权威设计见 `docs/skill-ir/evaluation-system.md` 的 execution resilience successor。确认的实现边界为：
 
-1. [ ] 新增 value-free execution envelope 与纯故障分类器；分类发生在 scorer 之前，未知类型 fail closed；
-2. [ ] Pi 使用流式事件观测，首个 successor 冻结 600 秒 absolute、120 秒 idle、30 steps、660 秒 outer
+1. [x] 新增 value-free execution envelope 与纯故障分类器；分类发生在 scorer 之前，未知类型 fail closed；
+2. [x] Pi 使用流式事件观测，首个 successor 冻结 600 秒 absolute、120 秒 idle、30 steps、660 秒 outer
    watchdog；持续活动只重置 idle，不重置 absolute；
-3. [ ] 新增 `static-development-lock/v2`，预注册完整 matched triplet 的 target/reserve 数；selector 不接收
+3. [x] 新增 `static-development-lock/v2`，预注册完整 matched triplet 的 target/reserve 数；selector 不接收
    scorer output，任一 eligible arm 只触发整组 replacement；
-4. [ ] 新增 dual-denominator gate：selected blocks 用于 paired method gate，all attempts 披露所有瞬时故障、
+4. [x] 新增 dual-denominator gate：selected blocks 用于 paired method gate，all attempts 披露所有瞬时故障、
    active timeout、Token、latency 与 arm asymmetry；
-5. [ ] 分离 current regression、frozen-history compatibility 与 provider/execution observability；不修改旧 lock；
-6. [ ] 确定性 TDD 全部通过后，以新 identity 预注册 i18n static；qualification 通过才运行付费矩阵。
+5. [x] 分离 current regression、frozen-history compatibility 与 provider/execution observability；不修改旧 lock；
+6. [x] 确定性 TDD 全部通过后，以新 identity 预注册 i18n static；v4 qualification 通过后唯一矩阵完成。
 
-### Task 18.4 i18n artifact candidate 与第二 phenotype
+**结果：** v4 为 12/12 rows、4/4 triplets、0 replacement、0 transient/active/parser/runtime failure，
+`infrastructureSensitive=false`。ir-static 3/4、mean 0.875，但相对 original 0 improved、1 regressed，故 paired
+gate failed；artifact/held-out/residual audit 保持关闭。v2/v3 qualification failure 分别冻结为错误外层 180 秒
+截断与标准 Pi thinking 漏识别，不覆盖、不重评分。
+
+### Task 18.4 i18n artifact candidate 与第二 phenotype（本 identity 未开放）
 
 只有 Task 18.3 通过或产生公开、可重复的 typed residual 时进入。
 
@@ -163,6 +169,10 @@ src/skill-ir/corpus-fixtures.test.ts
 4. [ ] 记录 compile/profile/package/runtime/repair token、人工分钟、adapter LOC、artifact kind 复用和
    `coreBranchDelta`；
 5. [ ] 通过后，i18n 才能成为第二个 optimized development phenotype；未通过则冻结失败，不补跑筛正例。
+
+**停止判定：** v4 没有产生可进入 artifact 的正向 gate 或公开、可重复 residual，反而出现 1 个 static
+paired quality regression。因此本 identity 不执行上述 artifact 工作；这些未勾选项是未运行，不是遗漏。
+当前恢复点转到 Task 18.5，先拆分状态并从现有 qualified case 选择替代候选。
 
 ### Task 18.5 Portfolio 与自动化状态模型
 
@@ -193,16 +203,17 @@ src/skill-ir/corpus-fixtures.test.ts
 |---|---:|---|
 | 当前审计与状态治理 | 1 | 权威状态、收敛 plan、机器 portfolio 一致 |
 | i18n base IR + static development | 3-5 | 第二个真实 source-transform skill 的静态证据 |
-| i18n artifact development | 4-7 | 第二 phenotype 的通过或高质量失败证据 |
+| 替代 qualified case 的 artifact development | 4-7 | 第二 phenotype 的通过或高质量失败证据 |
 | Portfolio 状态分层与自动化指标 | 3-5 | readiness 缺口可机器判定，不再靠人工表述 |
 | 补齐第二 phenotype/readiness | 5-10 | 方法冻结候选 |
 | Untouched replication | 5-8 | 首个真正的跨 skill 泛化证据 |
 | 三模型族/context/cost 主实验 | 7-12 | 稳定性、回归和 Token 摊销主表 |
 | CLI/library/报告收口 | 4-7 | 可演示产品入口与研究报告 |
 
-若 i18n 顺利成为第二 phenotype，**2 周左右**可以形成比当前更完整的阶段汇报：两种 optimized phenotype、
-一套贡献可识别性方法和明确 readiness 缺口。达到 spec 的完整研究完成条件，现实估计还需 **6-9 周**。
-若再出现 measurement-invalid 或第二 phenotype gate failure，时间会增加 1-3 周；这类失败不能靠压缩验证绕过。
+i18n 已留下 infrastructure-insensitive 的 static 质量负结果，不能成为第二 phenotype。若 Task 18.5 选出的
+替代案例顺利通过，**2 周左右**可以形成更完整的阶段汇报：两种 optimized phenotype、一套贡献可识别性方法
+和明确 readiness 缊口。达到 spec 的完整研究完成条件，现实估计还需 **6-9 周**；新的 measurement-invalid
+或第二 phenotype gate failure 会增加 1-3 周，不能靠压缩验证绕过。
 
 ## 6. 计划合理性复核
 

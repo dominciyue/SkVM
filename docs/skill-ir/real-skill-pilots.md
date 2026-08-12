@@ -194,6 +194,13 @@ eligibility，held-out 仍关闭。
 有效 pair 中 1 positive、1 equal、0 regression 不能覆盖 4 个 infra，故 artifact eligibility 与 held-out
 继续关闭，且不允许用同一 lock 补行。
 
+后续并列 v2 runner 使用 value-free streaming envelope、idle/absolute/step/outer 四层终止语义、预注册整组
+replacement 与 selected/all-attempt 双口径。v2/v3 qualification 分别冻结“完整任务误用 180 秒 probe budget”
+和“标准 Pi thinking 未被 allowlist 识别”，修复后才创建 v4。v4 qualification 与唯一 12 行矩阵均自然完成，
+12/12 selected、0 replacement、0 infrastructure sensitivity。质量 gate 仍 failed：original 3/4、mean
+0.9625；ir-static 3/4、mean 0.875；0 improved、1 regressed。Static 非缓存 token 少 24.64% 不能抵消质量
+回归，故 i18n artifact candidate、held-out 与 optimized/efficiency claim 均关闭；下一步改选另一个已合格案例。
+
 `zh-readme` 的 task 与 contract audit 可复建命令：
 
 ```powershell

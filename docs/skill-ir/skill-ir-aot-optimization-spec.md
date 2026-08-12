@@ -687,6 +687,15 @@ semantics；逐节点 source audit 明确排除 evaluator payload、held-out、r
 但因 1 timeout 与 3 个同 task/run-index 的跨三臂 `parse-failed` 冻结失败；不开放 artifact/held-out，也不
 构成优化或 Token claim。
 
+随后 execution resilience successor 以并列 `static-development-lock/v2` 引入 value-free envelope、Pi 流式
+活动、600 秒 absolute/120 秒 idle/30 steps/660 秒 outer、预注册整组三臂 reserve 与 selected/all-attempt
+双口径。v2 qualification 证明完整任务被误用的 180 秒 probe budget 截断；v3 证明 Pi 标准 thinking block
+漏入 allowlist；两者均冻结失败、不覆盖。TDD 修复后的 v4 qualification 为 semantic-complete，唯一矩阵
+12/12 rows、4/4 triplets、0 replacement/transient/active/parser/runtime failure，故不再是 execution blocked。
+其 gate 仍失败：original 3/4、mean 0.9625，ir-static 3/4、mean 0.875，0 improved、1 regressed pair。
+Static 161220 非缓存 tokens 虽低于 original 213935，但质量回归禁止 optimized/efficiency、artifact、held-out
+或主 claim；该案例冻结为 measurement-valid、infrastructure-insensitive 的 development 方法负结果。
+
 ## 9. Prospective Partial-benefit Re-entry
 
 旧 gate 失败结果不可事后改判。一个案例只有满足版本化 policy 才能以新 identity 进入方法开发：
