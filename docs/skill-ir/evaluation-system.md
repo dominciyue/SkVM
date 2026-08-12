@@ -421,6 +421,12 @@ Env Manager v3 已按此建立新 evaluator/task/interface/audit identity：payl
 `variables + per-rule required/sensitive` 与标准 JSON Schema `properties + top-level required/writeOnly` 归一为
 同一公开语义。Node canary 将 `LICENSE.upstream` 放入 initial manifest，Node/Vite 分别覆盖标准 JSON Schema 与
 wrapper，另保留 secret 泄漏 invalid control；本地 contract audit 为 8/8 matched。该结果仍不是模型成功证据。
+Development-only freeze 与 v4 lock 随后绑定同一 task/scorer/runner identity。Qualification 87613ms
+`semantic-complete`；唯一矩阵 8/8 rows、4/4 pairs、0 replacement 或 execution blocker，original 4/4、mean
+1.0，no-skill 3/4、mean 0.9125，1 positive、0 regression。逐失败复核确认 no-skill 把无公开类型依据的
+`UNUSED_FLAG` 声明为 boolean，属于语义错误而非 false reject，因此 admission 通过并只开放 base IR/static。
+调用层 shell timeout 必须大于 frozen outer watchdog；1/10 秒的工具硬终止只能登记为 operator failure，不能归入
+项目内部 idle/absolute timeout 或 skill 语义。
 
 ## 10. Scored Rows 与分析
 

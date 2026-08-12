@@ -52,7 +52,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   parser/runtime failure 暴露两项 scorer-authority 缺口：original 独有的合法 source resource 被误判为输入漂移，
   且标准 JSON Schema 被未公开的 `variables` 包装要求误拒。该身份已冻结 measurement-invalid；successor v3
   已公开两种 schema 表示等价，以 frozen initial manifest 作为 arm-neutral protection authority，并通过包含
-  `LICENSE.upstream` materialization 的 8/8 canary。新 baseline 尚未运行。
+  `LICENSE.upstream` materialization 的 8/8 canary。v4 baseline 已以 8/8 rows、4/4 pairs、0 infrastructure、
+  original 4/4 vs no-skill 3/4 通过 admission；当前开放 profile-empty base IR/static，artifact/held-out 仍关闭。
 - 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
   Optimizer Agent 尚未串成最终用户路径。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
@@ -67,7 +68,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> lifecycle v2 已分离 contract/baseline/static/optimized/promotion
 -> successor policy 已预注册 Env Manager
 -> Env Manager v2 baseline-v1 已冻结 measurement-invalid
--> Env Manager v3 contract 8/8 canary passed -> task split/lock -> 新 baseline -> base IR/static -> artifact
+-> Env Manager v3 contract + development freeze + baseline admission passed -> base IR/static -> artifact
 -> 第二个 optimized development phenotype
 -> 补齐前瞻自动化/适配成本
 -> readiness gate

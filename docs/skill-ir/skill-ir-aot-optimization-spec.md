@@ -747,6 +747,9 @@ source audit、两条 development task 与 source closure，同时把 held-out �
 重新建立隔离。历史 2+2 freeze 继续有效；development-only 校准不再为了满足结构门禁而提前创作或复用 held-out。
 主线程曾在合同开发后读取 successor v2 的旧 held-out 文件，虽然其内容未进入 v3 task/scorer/canary，但未来
 Env v3 held-out 不能从该旧 split 派生，必须由未接触旧内容的独立流程或用户提供新的预冻结任务。
+冻结 v4 baseline 完成 8/8 rows、4/4 pairs、0 execution blocker；original 4/4、mean 1.0，no-skill 3/4、mean
+0.9125，1 positive、0 regression，因此 baseline admission 通过并开放 profile-empty base IR。前三个 qualification
+identity 仅因调用层硬 timeout 过短而冻结为 operator failure，不计入模型、skill 或 resilience 结论。
 
 第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；

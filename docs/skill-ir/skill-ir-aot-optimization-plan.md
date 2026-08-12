@@ -205,6 +205,9 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 3b. [x] 使用 development-only freeze 冻结公开合同、开发任务与 source closure；held-out 明确登记为尚未创作、
    不允许执行且未来必须重新建立隔离，避免为 development calibration 伪造或复用已暴露的 held-out；下一步冻结
    calibration lock 后执行唯一 qualification/baseline；
+3c. [x] v4 qualification `semantic-complete` 且确定性评分通过；唯一矩阵 8/8 rows、4/4 pairs、0 replacement/
+   infrastructure blocker，original 4/4、mean 1.0，no-skill 3/4、mean 0.9125，1 positive、0 regression；开放
+   profile-empty base IR，不开放 held-out；前三个 identity 因调用层 1/1/10 秒硬终止分别冻结为 operator failure；
 4. [ ] 通过后创建 profile-empty source-audited base IR，再运行 `no-skill | original | ir-static`；static 只消费
    公开 source/task，不消费 runtime output；
 5. [ ] 只有 static gate 或公开可重复 residual 合法开放时，才通过公共 assembly 编译 Env Manager artifact，并
@@ -236,8 +239,8 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 6. 预注册模型族小面板先测 development 的方向一致性、failure taxonomy 与基础设施兼容性；只有方向可信后才扩
    clean/noisy/long 和 held-out 主矩阵。
 
-当前约为该单模型族门槛的 **60%--62%**：Env Manager v3 已恢复 7/7 contract-qualified，并冻结 development-only
-输入，尚缺新 baseline、base IR/static 和第二个 optimized phenotype。现实估计约 **2.5--3.5 周净工作时间**到达
+当前约为该单模型族门槛的 **63%--65%**：Env Manager v3 已恢复 7/7 contract-qualified 且 baseline admission
+通过，尚缺 base IR/static 和第二个 optimized phenotype。现实估计约 **2--3 周净工作时间**到达
 70%；若 Env v3 的 baseline/static/artifact 连续通过可接近下限，任何质量 gate 失败都会触发冻结与方案复盘而非
 补跑。单模型质量 gate 未通过时，可以做小规模跨模型诊断，但不能写成正式多模型族优化验证。
 

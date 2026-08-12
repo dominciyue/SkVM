@@ -237,7 +237,16 @@ semantic/safety canaries matched。随后首个 resilient baseline qualification
 Env Manager successor v3 随后只修复测量合同，不复写 v2：公开标准 JSON Schema 与 wrapper 的语义等价，将
 frozen initial manifest 作为 arm-neutral protected-input authority，并用包含 `LICENSE.upstream` 初始资源的 Node
 样例、Vite wrapper、标准 JSON Schema 与 secret invalid controls 完成 8/8 local contract canary。该结果恢复
-portfolio 的 contract-qualified 状态，但尚无新模型 baseline、base IR、static、artifact 或 held-out 证据。
+portfolio 的 contract-qualified 状态。Development-only freeze 随后绑定公开合同、两条 task 与 source closure；
+held-out 保持未创作、未执行。前三次 qualification 因操作层错误设置 1/1/10 秒 shell hard timeout 而终止，分别
+冻结为无语义解释的 operator failure；它们不算 execution infrastructure failure，也不重跑同 identity。
+
+v4 使用 720 秒调用层预算后，qualification 在 87613ms `semantic-complete`、确定性 scorer 与语义结果均通过。
+唯一 paired baseline 完成 8/8 selected/attempted、4/4 pairs、0 replacement/transient/active/parser/runtime blocker：
+no-skill 3/4、mean 0.9125、64147 tokens；original 4/4、mean 1.0、655117 tokens；1 positive、0 regression。
+唯一 no-skill failure 将未命中任何公开类型模式的 `UNUSED_FLAG` 声明为 boolean，而公开合同要求默认 string，
+属于真实语义错误，不是 v2 式 false reject。Gate passed、`baseIrAuditAllowed=true`；该证据只开放 profile-empty
+base IR/static，仍不证明 optimized、held-out、跨模型或 Token 收益。
 
 ### 8.1 `i18n-helper` 首轮校准
 
