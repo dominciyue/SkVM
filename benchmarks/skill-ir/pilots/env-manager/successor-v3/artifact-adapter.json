@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "skill-ir-env-manager-v3-artifact-adapter/v1",
+  "catalog": "validated-skill-artifact/v1",
+  "adapterId": "env-manager-public-evidence-audit",
+  "version": "v1",
+  "interfacePath": "env-audit-interface.json",
+  "variants": [
+    {
+      "id": "node",
+      "taskId": "env-manager-scorer-authority-node-dev-001",
+      "protectedInputs": [".env", ".gitignore", "src/auth.js", "src/config.js", "env-audit-interface.json"]
+    },
+    {
+      "id": "vite",
+      "taskId": "env-manager-scorer-authority-vite-dev-002",
+      "protectedInputs": [".env", ".gitignore", "src/client.ts", "src/server.ts", "env-audit-interface.json"]
+    }
+  ],
+  "outputs": [".env.example", ".env.schema.json", "env-report.json"],
+  "resourcePolicy": {
+    "network": "forbidden",
+    "packageInstall": "forbidden",
+    "shell": false
+  }
+}
