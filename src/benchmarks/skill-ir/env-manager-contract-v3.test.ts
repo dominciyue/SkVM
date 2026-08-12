@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises"
 import { BenchmarkContractAuditManifestSchema } from "./benchmark-contract-audit.ts"
 import { runBenchmarkContractAudit } from "./benchmark-contract-audit-run.ts"
 import { verifyMethodCaseTaskSplitFreeze } from "./method-case-task-split-freeze.ts"
+import { readAndValidatePublicContractCalibrationLock } from "./public-contract-calibration.ts"
+import { buildPublicContractCalibrationV3Plan } from "./public-contract-calibration-v3-run.ts"
 
 const root = "benchmarks/skill-ir/pilots/env-manager/successor-v3"
 
@@ -52,6 +54,22 @@ describe("env-manager scorer-authority benchmark contract v3", () => {
         futureTasksRequireFreshIsolation: true,
       },
     })
+  })
+
+  test("preregisters one resilient paired baseline against the committed v3 identity", async () => {
+    const lockPath = `${root}/development-calibration-lock-v1.json`
+    const lock = await readAndValidatePublicContractCalibrationLock({ rootDir: process.cwd(), lockPath })
+    expect(lock.schemaVersion).toBe("skill-ir-public-contract-calibration-lock/v3")
+    if (lock.schemaVersion !== "skill-ir-public-contract-calibration-lock/v3") {
+      throw new Error("expected resilient v3 calibration lock")
+    }
+    const plan = await buildPublicContractCalibrationV3Plan({
+      rootDir: process.cwd(),
+      outDir: "results/skill-ir/env-manager-v3-scorer-authority-baseline-v1",
+      lock,
+    })
+    expect(plan.plan).toHaveLength(12)
+    expect(new Set(plan.plan.map((row) => row.system))).toEqual(new Set(["no-skill", "original"]))
   })
 
 })
