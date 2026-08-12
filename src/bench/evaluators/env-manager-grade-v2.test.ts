@@ -193,4 +193,35 @@ describe("env-manager v2 semantic evaluator", () => {
     expect(result).toMatchObject({ pass: false, score: 0 })
     expect(result.infraError).toBeUndefined()
   })
+
+  test("rejects synthetic secret material encoded as UTF-16 in a declared output", async () => {
+    const { workDir, initialWorkdirManifest } = await fixture()
+    await writeFile(path.join(workDir, ".env.example"), Buffer.from(
+      "DB_PASSWORD=TEST_ONLY_DB_PASSWORD\n",
+      "utf16le",
+    ))
+    await writeFile(path.join(workDir, ".env.schema.json"), '{"variables":{}}', "utf8")
+    await writeFile(path.join(workDir, "env-report.json"), JSON.stringify({
+      definedAndUsed: [], definedUnconfirmedUnused: [], usedUndefined: [],
+      hardcodedSecrets: [], exposureRisks: [],
+    }), "utf8")
+    const result = await envManagerGradeV2.run({
+      criterion: {
+        method: "custom",
+        evaluatorId: "skill-ir-env-manager-v2",
+        payload: {
+          schemaVersion: "skill-ir-env-manager-eval/v2",
+          check: "artifact-integrity",
+          interfacePath: "env-audit-interface.json",
+          protectedPaths: [".env", "src/config.js", "src/auth.js", "env-audit-interface.json"],
+        },
+      },
+      runResult: {
+        text: "done", steps: [], tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, cost: 0,
+        durationMs: 0, llmDurationMs: 0, workDir, initialWorkdirManifest, runStatus: "ok",
+      },
+    })
+    expect(result).toMatchObject({ pass: false, score: 0 })
+    expect(result.infraError).toBeUndefined()
+  })
 })

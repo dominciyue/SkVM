@@ -11,6 +11,7 @@ describe("env-manager source-derived benchmark contract v2", () => {
       JSON.parse(await readFile(manifestPath, "utf8")),
     )
     const report = await runBenchmarkContractAudit(manifest)
+    expect(report.skillId).toBe("env-manager-v2")
     expect(report.status).toBe("passed")
     expect(report.staticStatus).toBe("passed")
     expect(report.counts).toEqual({ tasks: 2, criteria: 3, requirements: 3, canaries: 8 })

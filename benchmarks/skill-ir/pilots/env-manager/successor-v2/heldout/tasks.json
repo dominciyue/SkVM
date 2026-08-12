@@ -3,113 +3,41 @@
   "skillId": "env-manager-v2",
   "tasks": [
     {
-      "id": "env-manager-source-contract-node-dev-001",
-      "split": "development",
+      "id": "env-manager-source-contract-python-heldout-001",
+      "split": "held-out",
       "prompt": "Audit the environment configuration represented by the protected workspace. Use env-audit-interface.json as the public output and interpretation contract. Produce the declared artifacts without changing any existing file, exposing synthetic secret material, using the network, or installing packages. Treat static non-reference as uncertainty rather than proof that a variable is safe to delete.",
       "fixtures": {
-        ".env": "APP_PORT=3000\nREDIS_URL=redis://localhost:6379\nDB_PASSWORD=TEST_ONLY_NODE_DB_PASSWORD_7F2A\nOLD_API_KEY=TEST_ONLY_NODE_OLD_API_KEY_19BC\n",
-        ".gitignore": "node_modules/\n.env\n.env.*\n!.env.example\n",
-        "src/config.js": "const port = Number(process.env.APP_PORT);\nconst redisUrl = process.env.REDIS_URL;\nconst sendgridKey = process.env.SENDGRID_API_KEY;\nmodule.exports = { port, redisUrl, sendgridKey };\n",
-        "src/auth.js": "const INTERNAL_TOKEN = \"TEST_ONLY_NODE_INTERNAL_TOKEN_D4E8\";\nmodule.exports = { INTERNAL_TOKEN };\n",
+        ".env": "WORKER_COUNT=4\nSTORAGE_URI=https://storage.example.test\nADMIN_TOKEN=TEST_ONLY_PY_ADMIN_TOKEN_35AE\nLEGACY_PASSWORD=TEST_ONLY_PY_LEGACY_PASSWORD_918C\n",
+        ".gitignore": ".venv/\n.env\n.env.*\n!.env.example\n",
+        "app/settings.py": "import os\nworker_count = int(os.environ[\"WORKER_COUNT\"])\nstorage_uri = os.getenv(\"STORAGE_URI\")\nqueue_url = os.getenv(\"QUEUE_URL\")\n",
+        "app/auth.py": "SERVICE_SECRET = \"TEST_ONLY_PY_SERVICE_SECRET_2D74\"\n",
         "env-audit-interface.json": "{\n  \"schemaVersion\": \"skill-ir-env-manager-interface/v2\",\n  \"outputs\": {\"example\": \".env.example\", \"schema\": \".env.schema.json\", \"report\": \"env-report.json\"},\n  \"reportFields\": [\"definedAndUsed\", \"definedUnconfirmedUnused\", \"usedUndefined\", \"hardcodedSecrets\", \"exposureRisks\"],\n  \"findingForms\": {\"variable\": \"a variable-name string or an object with a name field\", \"located\": \"a path:name string or an object with path and name fields\"},\n  \"policy\": {\"sensitiveNamePattern\": \"(?:KEY|TOKEN|PASSWORD|SECRET)$\", \"integerNamePattern\": \"(?:PORT|COUNT)$\", \"uriNamePattern\": \"(?:URL|URI|ORIGIN|DSN)$\", \"clientPrefixes\": [\"VITE_\", \"NEXT_PUBLIC_\", \"REACT_APP_\", \"NUXT_PUBLIC_\", \"VUE_APP_\"], \"secretMinimumLength\": 32},\n  \"semantics\": {\"definedAndUsed\": \"defined in an environment file and statically referenced by project source\", \"definedUnconfirmedUnused\": \"defined but not found by the supported static reference scan; not evidence that deletion is safe\", \"usedUndefined\": \"statically referenced but absent from environment definitions\", \"hardcodedSecrets\": \"a sensitive-named binding assigned a string literal outside environment files\", \"exposureRisks\": \"a sensitive variable using a configured client prefix at a source reference\", \"schemaRequired\": \"true exactly when the variable is statically referenced\", \"schemaRules\": \"derive type, URI format, range, sensitivity, and minimum length from the public policy patterns\", \"additionalMetadata\": \"allowed when it does not contradict the required semantic fields\"}\n}\n"
       },
       "successCriteria": [],
       "eval": [
-        {
-          "method": "custom",
-          "id": "env-v2-artifact-integrity",
-          "name": "Protected inputs, exact output delta, and redaction",
-          "weight": 0.2,
-          "evaluatorId": "skill-ir-env-manager-v2",
-          "payload": {
-            "schemaVersion": "skill-ir-env-manager-eval/v2",
-            "check": "artifact-integrity",
-            "interfacePath": "env-audit-interface.json",
-            "protectedPaths": [".env", ".gitignore", "src/config.js", "src/auth.js", "env-audit-interface.json"]
-          }
-        },
-        {
-          "method": "custom",
-          "id": "env-v2-environment-analysis",
-          "name": "Analysis follows public workspace evidence",
-          "weight": 0.45,
-          "evaluatorId": "skill-ir-env-manager-v2",
-          "payload": {
-            "schemaVersion": "skill-ir-env-manager-eval/v2",
-            "check": "environment-analysis",
-            "interfacePath": "env-audit-interface.json",
-            "protectedPaths": [".env", ".gitignore", "src/config.js", "src/auth.js", "env-audit-interface.json"]
-          }
-        },
-        {
-          "method": "custom",
-          "id": "env-v2-artifact-consistency",
-          "name": "Example and schema follow public workspace evidence",
-          "weight": 0.35,
-          "evaluatorId": "skill-ir-env-manager-v2",
-          "payload": {
-            "schemaVersion": "skill-ir-env-manager-eval/v2",
-            "check": "artifact-consistency",
-            "interfacePath": "env-audit-interface.json",
-            "protectedPaths": [".env", ".gitignore", "src/config.js", "src/auth.js", "env-audit-interface.json"]
-          }
-        }
+        { "method": "custom", "id": "env-v2-artifact-integrity", "name": "Protected inputs, exact output delta, and redaction", "weight": 0.2, "evaluatorId": "skill-ir-env-manager-v2", "payload": { "schemaVersion": "skill-ir-env-manager-eval/v2", "check": "artifact-integrity", "interfacePath": "env-audit-interface.json", "protectedPaths": [".env", ".gitignore", "app/settings.py", "app/auth.py", "env-audit-interface.json"] } },
+        { "method": "custom", "id": "env-v2-environment-analysis", "name": "Analysis follows public workspace evidence", "weight": 0.45, "evaluatorId": "skill-ir-env-manager-v2", "payload": { "schemaVersion": "skill-ir-env-manager-eval/v2", "check": "environment-analysis", "interfacePath": "env-audit-interface.json", "protectedPaths": [".env", ".gitignore", "app/settings.py", "app/auth.py", "env-audit-interface.json"] } },
+        { "method": "custom", "id": "env-v2-artifact-consistency", "name": "Example and schema follow public workspace evidence", "weight": 0.35, "evaluatorId": "skill-ir-env-manager-v2", "payload": { "schemaVersion": "skill-ir-env-manager-eval/v2", "check": "artifact-consistency", "interfacePath": "env-audit-interface.json", "protectedPaths": [".env", ".gitignore", "app/settings.py", "app/auth.py", "env-audit-interface.json"] } }
       ],
       "hardGateIds": ["env-v2-artifact-integrity"],
       "passThreshold": 0.85
     },
     {
-      "id": "env-manager-source-contract-vite-dev-002",
-      "split": "development",
+      "id": "env-manager-source-contract-next-heldout-002",
+      "split": "held-out",
       "prompt": "Audit the environment configuration represented by the protected workspace. Use env-audit-interface.json as the public output and interpretation contract. Produce the declared artifacts without changing any existing file, exposing synthetic secret material, using the network, or installing packages. Treat public client prefixes as exposure boundaries and static non-reference as an unconfirmed finding.",
       "fixtures": {
-        ".env": "VITE_API_URL=https://api.example.test\nVITE_PUBLIC_TOKEN=TEST_ONLY_VITE_PUBLIC_TOKEN_A1B2\nSERVER_SECRET=TEST_ONLY_VITE_SERVER_SECRET_C3D4\nUNUSED_FLAG=true\n",
-        ".gitignore": "dist/\n.env\n.env.*\n!.env.example\n",
-        "src/client.ts": "export const apiUrl = import.meta.env.VITE_API_URL;\nexport const publicToken = import.meta.env.VITE_PUBLIC_TOKEN;\n",
-        "src/server.ts": "export const secret = process.env.SERVER_SECRET;\nexport const sentryDsn = process.env.SENTRY_DSN;\n",
+        ".env": "NEXT_PUBLIC_API_ORIGIN=https://web.example.test\nNEXT_PUBLIC_AUTH_TOKEN=TEST_ONLY_NEXT_AUTH_TOKEN_47BC\nDATABASE_URL=https://db.example.test\nUNUSED_SECRET=TEST_ONLY_NEXT_UNUSED_SECRET_802F\n",
+        ".gitignore": ".next/\n.env\n.env.*\n!.env.example\n",
+        "src/client.ts": "export const origin = process.env.NEXT_PUBLIC_API_ORIGIN;\nexport const authToken = process.env.NEXT_PUBLIC_AUTH_TOKEN;\n",
+        "src/server.ts": "export const databaseUrl = process.env.DATABASE_URL;\nexport const internalKey = process.env.INTERNAL_API_KEY;\n",
         "env-audit-interface.json": "{\n  \"schemaVersion\": \"skill-ir-env-manager-interface/v2\",\n  \"outputs\": {\"example\": \".env.example\", \"schema\": \".env.schema.json\", \"report\": \"env-report.json\"},\n  \"reportFields\": [\"definedAndUsed\", \"definedUnconfirmedUnused\", \"usedUndefined\", \"hardcodedSecrets\", \"exposureRisks\"],\n  \"findingForms\": {\"variable\": \"a variable-name string or an object with a name field\", \"located\": \"a path:name string or an object with path and name fields\"},\n  \"policy\": {\"sensitiveNamePattern\": \"(?:KEY|TOKEN|PASSWORD|SECRET)$\", \"integerNamePattern\": \"(?:PORT|COUNT)$\", \"uriNamePattern\": \"(?:URL|URI|ORIGIN|DSN)$\", \"clientPrefixes\": [\"VITE_\", \"NEXT_PUBLIC_\", \"REACT_APP_\", \"NUXT_PUBLIC_\", \"VUE_APP_\"], \"secretMinimumLength\": 32},\n  \"semantics\": {\"definedAndUsed\": \"defined in an environment file and statically referenced by project source\", \"definedUnconfirmedUnused\": \"defined but not found by the supported static reference scan; not evidence that deletion is safe\", \"usedUndefined\": \"statically referenced but absent from environment definitions\", \"hardcodedSecrets\": \"a sensitive-named binding assigned a string literal outside environment files\", \"exposureRisks\": \"a sensitive variable using a configured client prefix at a source reference\", \"schemaRequired\": \"true exactly when the variable is statically referenced\", \"schemaRules\": \"derive type, URI format, range, sensitivity, and minimum length from the public policy patterns\", \"additionalMetadata\": \"allowed when it does not contradict the required semantic fields\"}\n}\n"
       },
       "successCriteria": [],
       "eval": [
-        {
-          "method": "custom",
-          "id": "env-v2-artifact-integrity",
-          "name": "Protected inputs, exact output delta, and redaction",
-          "weight": 0.2,
-          "evaluatorId": "skill-ir-env-manager-v2",
-          "payload": {
-            "schemaVersion": "skill-ir-env-manager-eval/v2",
-            "check": "artifact-integrity",
-            "interfacePath": "env-audit-interface.json",
-            "protectedPaths": [".env", ".gitignore", "src/client.ts", "src/server.ts", "env-audit-interface.json"]
-          }
-        },
-        {
-          "method": "custom",
-          "id": "env-v2-environment-analysis",
-          "name": "Analysis follows public workspace evidence",
-          "weight": 0.45,
-          "evaluatorId": "skill-ir-env-manager-v2",
-          "payload": {
-            "schemaVersion": "skill-ir-env-manager-eval/v2",
-            "check": "environment-analysis",
-            "interfacePath": "env-audit-interface.json",
-            "protectedPaths": [".env", ".gitignore", "src/client.ts", "src/server.ts", "env-audit-interface.json"]
-          }
-        },
-        {
-          "method": "custom",
-          "id": "env-v2-artifact-consistency",
-          "name": "Example and schema follow public workspace evidence",
-          "weight": 0.35,
-          "evaluatorId": "skill-ir-env-manager-v2",
-          "payload": {
-            "schemaVersion": "skill-ir-env-manager-eval/v2",
-            "check": "artifact-consistency",
-            "interfacePath": "env-audit-interface.json",
-            "protectedPaths": [".env", ".gitignore", "src/client.ts", "src/server.ts", "env-audit-interface.json"]
-          }
-        }
+        { "method": "custom", "id": "env-v2-artifact-integrity", "name": "Protected inputs, exact output delta, and redaction", "weight": 0.2, "evaluatorId": "skill-ir-env-manager-v2", "payload": { "schemaVersion": "skill-ir-env-manager-eval/v2", "check": "artifact-integrity", "interfacePath": "env-audit-interface.json", "protectedPaths": [".env", ".gitignore", "src/client.ts", "src/server.ts", "env-audit-interface.json"] } },
+        { "method": "custom", "id": "env-v2-environment-analysis", "name": "Analysis follows public workspace evidence", "weight": 0.45, "evaluatorId": "skill-ir-env-manager-v2", "payload": { "schemaVersion": "skill-ir-env-manager-eval/v2", "check": "environment-analysis", "interfacePath": "env-audit-interface.json", "protectedPaths": [".env", ".gitignore", "src/client.ts", "src/server.ts", "env-audit-interface.json"] } },
+        { "method": "custom", "id": "env-v2-artifact-consistency", "name": "Example and schema follow public workspace evidence", "weight": 0.35, "evaluatorId": "skill-ir-env-manager-v2", "payload": { "schemaVersion": "skill-ir-env-manager-eval/v2", "check": "artifact-consistency", "interfacePath": "env-audit-interface.json", "protectedPaths": [".env", ".gitignore", "src/client.ts", "src/server.ts", "env-audit-interface.json"] } }
       ],
       "hardGateIds": ["env-v2-artifact-integrity"],
       "passThreshold": 0.85
