@@ -6,6 +6,8 @@ import { verifyMethodCaseTaskSplitFreeze } from "./method-case-task-split-freeze
 import { PublicContractCalibrationLockV3Schema } from "./public-contract-calibration.ts"
 import { SkillIRSchema } from "../../skill-ir/schema.ts"
 import { SkillIRSourceAuditSchema, verifySkillIRSourceAudit } from "../../skill-ir/source-audit.ts"
+import { ResourceContractSchema } from "./resource-contract.ts"
+import { buildStaticDevelopmentV2Plan, readAndValidateStaticDevelopmentV2Lock } from "./static-development-v2.ts"
 
 const root = "benchmarks/skill-ir/pilots/env-manager/successor-v3"
 
@@ -41,7 +43,7 @@ describe("env-manager scorer-authority benchmark contract v3", () => {
       status: "runnable",
       tasksPath: `${root}/development/tasks.json`,
       benchmarkContractAuditPath: `${root}/benchmark-contract-audit.json`,
-      resourceContractPath: `${root}/public-interface.json`,
+      resourceContractPath: `${root}/resource-contract.json`,
       irPath: `${root}/base-ir.json`,
       sourceAuditPath: `${root}/base-ir-source-audit.json`,
     })
@@ -77,6 +79,28 @@ describe("env-manager scorer-authority benchmark contract v3", () => {
     expect(ir.id).toBe("env-manager-v3")
     expect(ir.profile).toEqual([])
     await expect(verifySkillIRSourceAudit(ir, audit, process.cwd())).resolves.toMatchObject({ errors: [] })
+  })
+
+  test("declares a dependency-free Node resource contract for static execution", async () => {
+    const contract = ResourceContractSchema.parse(JSON.parse(await readFile(`${root}/resource-contract.json`, "utf8")))
+    expect(contract).toMatchObject({
+      network: "forbidden",
+      packageInstall: "forbidden",
+      probe: { requiredModules: [] },
+    })
+  })
+
+  test("preregisters a static-fidelity triplet matrix without demanding improvement over a perfect original", async () => {
+    const lockPath = `${root}/static-development-lock-v1.json`
+    const lock = await readAndValidateStaticDevelopmentV2Lock({ rootDir: process.cwd(), lockPath })
+    expect(lock).toMatchObject({
+      evaluationMode: "static-fidelity",
+      gate: { minimumIrStaticMeanScore: 1, minimumImprovedPairs: 0, maximumRegressedPairs: 0 },
+    })
+    const plan = await buildStaticDevelopmentV2Plan({
+      rootDir: process.cwd(), lock, outDir: "results/skill-ir/env-manager-v3-static-fidelity-v1/run",
+    })
+    expect(plan.plan).toHaveLength(18)
   })
 
 })
