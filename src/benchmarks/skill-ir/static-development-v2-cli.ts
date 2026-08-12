@@ -8,6 +8,7 @@ import {
   readAndValidateStaticDevelopmentV2Lock,
 } from "./static-development-v2";
 import {
+  buildExecutionEnvelope,
   executeStaticDevelopmentV2Plan,
   selectRawRowsForScoring,
 } from "./static-development-v2-run";
@@ -57,24 +58,43 @@ async function main() {
     const entry = plan.plan.find((row) => row.system === "original" && row.runIndex === 1);
     if (!entry) throw new Error("Static development v2 qualification row missing");
     const execution = await runCommandWithTimeout(entry.command, lock.runtime.routeProbeTimeoutMs);
+    const observationArg = entry.command.find((arg) => arg.startsWith("--execution-observation="));
+    const observationPath = observationArg?.slice("--execution-observation=".length);
+    let classification = "qualification-failure";
+    if (observationPath && await Bun.file(observationPath).exists()) {
+      const observation = JSON.parse(await readFile(observationPath, "utf8"));
+      classification = buildExecutionEnvelope({
+        experimentId: lock.experimentId,
+        taskId: lock.matrix.taskIds[0]!,
+        system: "original",
+        candidateBlock: 1,
+        attemptId: `${lock.matrix.taskIds[0]}:qualification:original`,
+        observation,
+        outputFileCount: 0,
+      }).classification;
+    }
     const qualification = {
       schemaVersion: "skill-ir-static-development-qualification/v2",
       experimentId: lock.experimentId,
       lockSha256,
       status: classifyProbeExecution(execution),
+      classification,
       timedOut: execution.timedOut,
       exitCode: execution.exitCode,
       durationMs: execution.durationMs,
     };
     await writeFile(path.join(args.outDir, "qualification.json"), `${JSON.stringify(qualification, null, 2)}\n`, "utf8");
-    if (qualification.status !== "ok") throw new Error(`Static development v2 qualification failed: ${qualification.status}`);
+    if (qualification.status !== "ok" || qualification.classification !== "semantic-complete") {
+      throw new Error(`Static development v2 qualification failed: ${qualification.status}/${qualification.classification}`);
+    }
     return { phase: args.phase, qualification };
   }
 
   const qualification = JSON.parse(await readFile(path.join(args.outDir, "qualification.json"), "utf8")) as {
-    experimentId?: string; lockSha256?: string; status?: string;
+    experimentId?: string; lockSha256?: string; status?: string; classification?: string;
   };
-  if (qualification.experimentId !== lock.experimentId || qualification.lockSha256 !== lockSha256 || qualification.status !== "ok") {
+  if (qualification.experimentId !== lock.experimentId || qualification.lockSha256 !== lockSha256
+    || qualification.status !== "ok" || qualification.classification !== "semantic-complete") {
     throw new Error("Static development v2 qualification identity mismatch");
   }
   const execution = await executeStaticDevelopmentV2Plan({ plan });
