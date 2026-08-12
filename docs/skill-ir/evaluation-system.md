@@ -381,6 +381,12 @@ task/source freeze
 -> promotion or frozen failure
 ```
 
+仅用于 development capability calibration 的 successor 可以使用
+`skill-ir-method-case-development-freeze/v1`，冻结 public contract、source audit、development tasks 与 source
+closure，并把 held-out 明确标记为 `not-authored`、`permitsExecution=false`、未来重新隔离。它不是降低 held-out
+标准，而是避免在尚未获准消费 held-out 的阶段为了通过结构检查而提前创建敏感 split；一旦进入 promotion，仍须
+在未接触旧 held-out 内容的流程中另行冻结完整 disjoint held-out identity。既有 2+2 freeze 不变。
+
 Calibration 常见门禁：完整 rows/pairs、0 infra、no-skill 不饱和、至少一个 differing pair。是否要求每个
 task 的 original success 由预注册 lock 决定。Partial-benefit re-entry 是新的 prospective admission，
 不能改写旧 gate。

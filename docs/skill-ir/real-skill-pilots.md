@@ -142,7 +142,8 @@ Env Manager successor v2 已完成新的 source-derived contract：两个 develo
 下一 identity 必须先公开两种 schema 表示等价并用真实 resource materialization canary 验证。
 该修复已由 successor v3 完成：公开 interface 明确 wrapper/标准 JSON Schema/敏感标记等价规则；scorer 以 frozen
 initial manifest 保护每个 arm 实际存在的全部初始资源，8/8 contract canary matched。v2 measurement-invalid
-保持不变；v3 只恢复 contract qualification，task split freeze、baseline、base IR、static 和 artifact 仍未完成。
+保持不变；v3 已冻结 development-only task/source identity，held-out 保持 `not-authored` 且未来须重新隔离。
+当前只恢复 contract qualification；baseline、base IR、static 和 artifact 仍未完成。
 
 ## 10. Intake 顺序
 

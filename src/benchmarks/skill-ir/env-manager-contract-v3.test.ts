@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
 import { BenchmarkContractAuditManifestSchema } from "./benchmark-contract-audit.ts"
 import { runBenchmarkContractAudit } from "./benchmark-contract-audit-run.ts"
+import { verifyMethodCaseTaskSplitFreeze } from "./method-case-task-split-freeze.ts"
 
 const root = "benchmarks/skill-ir/pilots/env-manager/successor-v3"
 
@@ -37,6 +38,19 @@ describe("env-manager scorer-authority benchmark contract v3", () => {
       status: "tasks-authored",
       tasksPath: `${root}/development/tasks.json`,
       benchmarkContractAuditPath: `${root}/benchmark-contract-audit.json`,
+    })
+  })
+
+  test("freezes development inputs while keeping the future held-out split unconsumed", async () => {
+    const freeze = JSON.parse(await readFile(`${root}/development-task-freeze.json`, "utf8"))
+    const verified = await verifyMethodCaseTaskSplitFreeze(process.cwd(), freeze)
+    expect(verified).toMatchObject({
+      benchmarkId: "env-manager-v3",
+      heldoutBoundary: {
+        status: "not-authored",
+        permitsExecution: false,
+        futureTasksRequireFreshIsolation: true,
+      },
     })
   })
 

@@ -742,6 +742,11 @@ Successor v3 以新 identity 修复这两个 authority 缺口：公开 interface
 Schema，并定义 `sensitive=true` / `writeOnly=true` 等价；完整性直接使用 frozen initial manifest 保护各 arm 的
 全部初始条目。包含 source-closure resource 的 Node canary 与 Vite wrapper/secret controls 共 8/8 matched，故
 portfolio contract-qualified 恢复为 7/7；这只开放 task-split/lock 准备，不等于 baseline 或优化通过。
+该 identity 的首个校准只消费 development，因此使用 `skill-ir-method-case-development-freeze/v1`：冻结公开合同、
+source audit、两条 development task 与 source closure，同时把 held-out 登记为 `not-authored`、禁止执行且未来必须
+重新建立隔离。历史 2+2 freeze 继续有效；development-only 校准不再为了满足结构门禁而提前创作或复用 held-out。
+主线程曾在合同开发后读取 successor v2 的旧 held-out 文件，虽然其内容未进入 v3 task/scorer/canary，但未来
+Env v3 held-out 不能从该旧 split 派生，必须由未接触旧内容的独立流程或用户提供新的预冻结任务。
 
 第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；

@@ -45,6 +45,36 @@ export const MethodCaseTaskSplitFreezeSchema = z.object({
 
 export type MethodCaseTaskSplitFreeze = z.infer<typeof MethodCaseTaskSplitFreezeSchema>
 
+export const MethodCaseDevelopmentFreezeSchema = z.object({
+  schemaVersion: z.literal("skill-ir-method-case-development-freeze/v1"),
+  benchmarkId: z.string().min(1),
+  taskCommit: z.string().regex(/^[a-f0-9]{40}$/),
+  publicContract: BoundFileSchema,
+  publicContractSourceAudit: BoundFileSchema,
+  developmentTasks: BoundTasksSchema.extend({ split: z.literal("development") }).strict(),
+  heldoutBoundary: z.object({
+    status: z.literal("not-authored"),
+    permitsExecution: z.literal(false),
+    futureTasksRequireFreshIsolation: z.literal(true),
+  }).strict(),
+  sourceClosure: z.array(BoundFileSchema).min(1),
+  frozenHistorical: z.array(BoundFileSchema).optional(),
+}).strict().superRefine((freeze, context) => {
+  const paths = [
+    freeze.publicContract.path,
+    freeze.publicContractSourceAudit.path,
+    freeze.developmentTasks.path,
+    ...freeze.sourceClosure.map((entry) => entry.path),
+    ...(freeze.frozenHistorical ?? []).map((entry) => entry.path),
+  ]
+  if (new Set(paths).size !== paths.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "frozen paths must be unique" })
+  }
+})
+
+export type MethodCaseDevelopmentFreeze = z.infer<typeof MethodCaseDevelopmentFreezeSchema>
+export type AnyMethodCaseTaskFreeze = MethodCaseTaskSplitFreeze | MethodCaseDevelopmentFreeze
+
 function sha256(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex")
 }
@@ -132,13 +162,13 @@ function verifyTaskSet(
 export async function verifyMethodCaseTaskSplitFreeze(
   rootDir: string,
   rawFreeze: unknown,
-): Promise<MethodCaseTaskSplitFreeze> {
-  const freeze = MethodCaseTaskSplitFreezeSchema.parse(rawFreeze)
+): Promise<AnyMethodCaseTaskFreeze> {
+  const freeze = z.union([MethodCaseTaskSplitFreezeSchema, MethodCaseDevelopmentFreezeSchema]).parse(rawFreeze)
   const files = [
     freeze.publicContract,
     freeze.publicContractSourceAudit,
     freeze.developmentTasks,
-    freeze.heldoutTasks,
+    ...(freeze.schemaVersion === "skill-ir-method-case-task-split-freeze/v1" ? [freeze.heldoutTasks] : []),
     ...freeze.sourceClosure,
     ...(freeze.frozenHistorical ?? []),
   ]
@@ -152,11 +182,13 @@ export async function verifyMethodCaseTaskSplitFreeze(
     "development",
     freeze.developmentTasks.taskIds,
   )
-  verifyTaskSet(
-    bytesByPath.get(freeze.heldoutTasks.path)!,
-    freeze.benchmarkId,
-    "held-out",
-    freeze.heldoutTasks.taskIds,
-  )
+  if (freeze.schemaVersion === "skill-ir-method-case-task-split-freeze/v1") {
+    verifyTaskSet(
+      bytesByPath.get(freeze.heldoutTasks.path)!,
+      freeze.benchmarkId,
+      "held-out",
+      freeze.heldoutTasks.taskIds,
+    )
+  }
   return freeze
 }

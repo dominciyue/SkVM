@@ -10,6 +10,7 @@ import {
   verifyContributionManifest,
 } from "./skill-contribution-identifiability.ts"
 import {
+  MethodCaseDevelopmentFreezeSchema,
   MethodCaseTaskSplitFreezeSchema,
   verifyMethodCaseTaskSplitFreeze,
 } from "./method-case-task-split-freeze.ts"
@@ -408,7 +409,9 @@ export async function validatePublicContractCalibrationLock(
     }
   }
 
-  const freeze = MethodCaseTaskSplitFreezeSchema.parse(JSON.parse(bytes.get("taskSplitFreeze")!.toString("utf8")))
+  const freeze = z.union([MethodCaseTaskSplitFreezeSchema, MethodCaseDevelopmentFreezeSchema]).parse(
+    JSON.parse(bytes.get("taskSplitFreeze")!.toString("utf8")),
+  )
   await verifyMethodCaseTaskSplitFreeze(rootDir, freeze)
   if (
     freeze.benchmarkId !== lock.skillId
@@ -419,7 +422,8 @@ export async function validatePublicContractCalibrationLock(
     || freeze.publicContractSourceAudit.path !== lock.frozenInputs.publicContractSourceAudit.path
     || freeze.publicContractSourceAudit.sha256 !== lock.frozenInputs.publicContractSourceAudit.sha256
     || JSON.stringify(freeze.developmentTasks.taskIds) !== JSON.stringify(lock.matrix.taskIds)
-    || freeze.heldoutTasks.taskIds.some((taskId) => lock.matrix.taskIds.includes(taskId))
+    || (freeze.schemaVersion === "skill-ir-method-case-task-split-freeze/v1"
+      && freeze.heldoutTasks.taskIds.some((taskId) => lock.matrix.taskIds.includes(taskId)))
     || !freeze.sourceClosure.some((entry) =>
       entry.path === lock.frozenInputs.source.path
     )

@@ -201,8 +201,10 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
    active/parser/runtime blocker；真实运行暴露 arm-dependent source resource 与未公开 schema 表示两项 scorer-
    authority 缺口，整批冻结 measurement-invalid，不重评分、不以同 identity 重跑；
 3a. [x] 新 contract/scorer identity 公开标准 JSON Schema 与 `variables` wrapper 的语义等价，完整性从冻结 initial
-   manifest 派生并覆盖 original source-resource materialization；8/8 canary 全绿。下一步先独立冻结 task split
-   与 calibration lock，再允许第二个唯一 baseline；
+   manifest 派生并覆盖 original source-resource materialization；8/8 canary 全绿；
+3b. [x] 使用 development-only freeze 冻结公开合同、开发任务与 source closure；held-out 明确登记为尚未创作、
+   不允许执行且未来必须重新建立隔离，避免为 development calibration 伪造或复用已暴露的 held-out；下一步冻结
+   calibration lock 后执行唯一 qualification/baseline；
 4. [ ] 通过后创建 profile-empty source-audited base IR，再运行 `no-skill | original | ir-static`；static 只消费
    公开 source/task，不消费 runtime output；
 5. [ ] 只有 static gate 或公开可重复 residual 合法开放时，才通过公共 assembly 编译 Env Manager artifact，并
@@ -234,10 +236,10 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 6. 预注册模型族小面板先测 development 的方向一致性、failure taxonomy 与基础设施兼容性；只有方向可信后才扩
    clean/noisy/long 和 held-out 主矩阵。
 
-当前约为该单模型族门槛的 **55%--60%**。Env Manager 首个 successor 已 measurement-invalid，因此现实估计改为
-**3--4 周**到达约 70%；其中先需 3--5 个净工作日完成 contract v3 与无付费 canary，再重新执行 baseline，之后
-才进入 base IR/static/artifact。单模型质量 gate 未通过时，可以做小规模跨模型诊断，但不能写成正式验证。
-单模型质量 gate 未通过时，可以做小规模跨模型诊断，但不能把它写成正式多模型族优化验证。
+当前约为该单模型族门槛的 **60%--62%**：Env Manager v3 已恢复 7/7 contract-qualified，并冻结 development-only
+输入，尚缺新 baseline、base IR/static 和第二个 optimized phenotype。现实估计约 **2.5--3.5 周净工作时间**到达
+70%；若 Env v3 的 baseline/static/artifact 连续通过可接近下限，任何质量 gate 失败都会触发冻结与方案复盘而非
+补跑。单模型质量 gate 未通过时，可以做小规模跨模型诊断，但不能写成正式多模型族优化验证。
 
 ## 5. 时间估算
 

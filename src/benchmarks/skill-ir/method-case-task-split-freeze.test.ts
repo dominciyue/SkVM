@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
 import {
+  MethodCaseDevelopmentFreezeSchema,
   verifyMethodCaseTaskSplitFreeze,
 } from "./method-case-task-split-freeze.ts"
 
@@ -16,8 +17,12 @@ describe("generic method-case task split freeze", () => {
     test(`verifies ${label} against committed source, contract, and 2+2 tasks`, async () => {
       const freeze = JSON.parse(await readFile(freezePath, "utf8"))
       const verified = await verifyMethodCaseTaskSplitFreeze(rootDir, freeze)
+      expect(verified.schemaVersion).toBe("skill-ir-method-case-task-split-freeze/v1")
       expect(verified.taskCommit).toBe(taskCommit)
       expect(verified.developmentTasks.taskIds).toHaveLength(2)
+      if (verified.schemaVersion !== "skill-ir-method-case-task-split-freeze/v1") {
+        throw new Error("expected historical 2+2 task split freeze")
+      }
       expect(verified.heldoutTasks.taskIds).toHaveLength(2)
     })
   }
@@ -33,5 +38,30 @@ describe("generic method-case task split freeze", () => {
       ...freeze,
       evaluatorPayload: { answer: "private" },
     })).rejects.toThrow()
+  })
+
+  test("permits an explicit development-only freeze without inventing held-out tasks", () => {
+    const frozenFile = { path: "fixtures/example.json", sha256: "0".repeat(64) }
+    expect(MethodCaseDevelopmentFreezeSchema.parse({
+      schemaVersion: "skill-ir-method-case-development-freeze/v1",
+      benchmarkId: "env-manager-v3",
+      taskCommit: "1".repeat(40),
+      publicContract: { ...frozenFile, path: "public-interface.json" },
+      publicContractSourceAudit: { ...frozenFile, path: "public-contract-source-audit.json" },
+      developmentTasks: {
+        ...frozenFile,
+        path: "development/tasks.json",
+        split: "development",
+        taskIds: ["task-a", "task-b"],
+      },
+      heldoutBoundary: {
+        status: "not-authored",
+        permitsExecution: false,
+        futureTasksRequireFreshIsolation: true,
+      },
+      sourceClosure: [{ ...frozenFile, path: "source/SKILL.md" }],
+    })).toMatchObject({
+      heldoutBoundary: { status: "not-authored", permitsExecution: false },
+    })
   })
 })
