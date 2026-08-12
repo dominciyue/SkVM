@@ -725,7 +725,14 @@ workdir、qualification 临时目录与调试 snapshot 默认留本机，除非�
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
 development artifact 正向案例；i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
-但首个 static development identity infrastructure-failed，artifact 尚未运行；通用优化主 claim 未完成”。
+execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
+方法负结果；portfolio v2 只计 1 个 optimized phenotype，通用优化主 claim 未完成”。
+
+Portfolio v2 将 `benchmarkContract`、`baselineAdmission`、`staticFidelity`、`optimizedDevelopment` 与
+`heldOutPromotion` 分开保存和派生，不允许用较早阶段的通过填充后续阶段。适配成本必须注明
+`historical-unavailable | prospective-in-progress | prospective-measured`；只有最后一种可进入收敛计算，且必须
+具备起止时间、人工分钟、adapter LOC 和 core branch delta。Successor selection 必须在新合同前冻结并覆盖
+全部 method-development case；当前 policy 预先选择 Env Manager，旧合同/旧模型结果只用于候选理由与失败诊断。
 
 第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；

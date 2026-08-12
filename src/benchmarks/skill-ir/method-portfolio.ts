@@ -16,7 +16,68 @@ const BlockerSchema = z.enum([
   "reentry-development-not-run",
   "distinguishability-not-run",
   "task-contract-not-authored",
+  "baseline-regression",
+  "quality-regression",
 ])
+
+const LifecycleStatusSchema = z.enum(["passed", "failed", "blocked", "not-run", "invalidated"])
+const LifecycleStageNameSchema = z.enum([
+  "benchmarkContract",
+  "baselineAdmission",
+  "staticFidelity",
+  "optimizedDevelopment",
+  "heldOutPromotion",
+])
+
+const LifecycleStageSchema = z.object({
+  status: LifecycleStatusSchema,
+  evidencePath: SafeRelativePathSchema.optional(),
+  blocker: BlockerSchema.optional(),
+}).strict().superRefine((stage, context) => {
+  if (["passed", "failed", "invalidated"].includes(stage.status) && !stage.evidencePath) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: `${stage.status} lifecycle stage requires evidencePath` })
+  }
+  if (["blocked", "invalidated"].includes(stage.status) && !stage.blocker) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: `${stage.status} lifecycle stage requires blocker` })
+  }
+})
+
+const AdaptationEvidenceSchema = z.object({
+  measurementStatus: z.enum(["historical-unavailable", "prospective-in-progress", "prospective-measured"]),
+  measurementStartedAt: z.string().datetime().nullable(),
+  measurementCompletedAt: z.string().datetime().nullable(),
+  humanMinutes: z.number().nonnegative().nullable(),
+  adapterLoc: z.number().int().nonnegative().nullable(),
+  artifactKinds: z.array(ArtifactKindSchema),
+  reusedArtifactKinds: z.array(ArtifactKindSchema),
+  coreBranchDelta: z.number().int().nonnegative().nullable(),
+  unautomatedSteps: z.array(z.string().min(1)),
+}).strict().superRefine((adaptation, context) => {
+  for (const artifactKind of adaptation.reusedArtifactKinds) {
+    if (!adaptation.artifactKinds.includes(artifactKind)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `reused artifact kind is not declared by the case: ${artifactKind}`,
+      })
+    }
+  }
+  if (adaptation.measurementStatus === "prospective-in-progress"
+    && adaptation.measurementStartedAt === null) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "prospective adaptation evidence requires a start timestamp" })
+  }
+  if (adaptation.measurementStatus === "prospective-measured" && (
+    adaptation.measurementStartedAt === null
+    || adaptation.measurementCompletedAt === null
+    || adaptation.humanMinutes === null
+    || adaptation.adapterLoc === null
+    || adaptation.coreBranchDelta === null
+  )) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "prospective adaptation evidence requires timestamps and complete cost metrics",
+    })
+  }
+})
 
 const PortfolioCaseSchema = z.object({
   skillId: z.string().min(1),
@@ -31,24 +92,24 @@ const PortfolioCaseSchema = z.object({
   contractQualified: z.boolean(),
   benchmarkVersions: z.array(z.string().min(1)).min(1),
   reentryPolicyPath: SafeRelativePathSchema.optional(),
-  developmentGate: z.object({
+  lifecycle: z.object({
+    benchmarkContract: LifecycleStageSchema,
+    baselineAdmission: LifecycleStageSchema,
+    staticFidelity: LifecycleStageSchema,
+    optimizedDevelopment: LifecycleStageSchema,
+    heldOutPromotion: LifecycleStageSchema,
+  }).strict(),
+  legacyDevelopmentEvidence: z.object({
     status: z.enum(["passed", "failed", "blocked", "not-run"]),
     resultPath: SafeRelativePathSchema.optional(),
-  }).strict(),
+  }).strict().optional(),
   automation: z.object({
     generatesIr: z.boolean(),
     generatesContract: z.boolean(),
     generatesValidationPlan: z.boolean(),
     generatesPackageCandidate: z.boolean(),
   }).strict(),
-  adaptation: z.object({
-    humanMinutes: z.number().nonnegative().nullable(),
-    adapterLoc: z.number().int().nonnegative().nullable(),
-    artifactKinds: z.array(ArtifactKindSchema),
-    coreBranchDelta: z.number().int().nonnegative().nullable(),
-    unautomatedSteps: z.array(z.string().min(1)),
-  }).strict(),
-  blockers: z.array(BlockerSchema),
+  adaptation: AdaptationEvidenceSchema,
 }).strict().superRefine((entry, context) => {
   if (entry.role === "method-development" && entry.methodSequence === undefined) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "method-development case requires methodSequence" })
@@ -56,11 +117,15 @@ const PortfolioCaseSchema = z.object({
   if (entry.role !== "method-development" && entry.methodSequence !== undefined) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "non-method case cannot carry methodSequence" })
   }
+  if (entry.contractQualified !== (entry.lifecycle.benchmarkContract.status === "passed")) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "contractQualified summary drift" })
+  }
   if (entry.role === "untouched-replication" && (
     entry.adaptation.coreBranchDelta !== 0
     || entry.adaptation.unautomatedSteps.length > 0
     || !entry.contractQualified
-    || entry.developmentGate.status !== "passed"
+    || entry.lifecycle.optimizedDevelopment.status !== "passed"
+    || entry.lifecycle.heldOutPromotion.status !== "passed"
   )) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
@@ -70,7 +135,7 @@ const PortfolioCaseSchema = z.object({
 })
 
 export const MethodPortfolioSchema = z.object({
-  schemaVersion: z.literal("skill-ir-method-portfolio/v1"),
+  schemaVersion: z.literal("skill-ir-method-portfolio/v2"),
   portfolioId: z.string().min(1),
   minimumContractQualifiedCases: z.number().int().min(6),
   requiredPhenotypes: z.array(z.string().min(1)).min(1),
@@ -100,8 +165,105 @@ export const MethodPortfolioSchema = z.object({
 
 export type MethodPortfolio = z.infer<typeof MethodPortfolioSchema>
 
+export const MethodSuccessorSelectionPolicySchema = z.object({
+  schemaVersion: z.literal("skill-ir-method-successor-selection-policy/v1"),
+  selectionId: z.string().min(1),
+  selectedSkillId: z.string().min(1),
+  targetPhenotype: z.string().min(1),
+  selectionBoundary: z.literal("before-successor-contract"),
+  assessments: z.array(z.object({
+    skillId: z.string().min(1),
+    artifactMechanism: z.enum(["deterministic-repair-package", "validated-artifact-package", "static-only", "none"]),
+    informationComplementarity: z.enum(["high", "medium", "low"]),
+    nextRequiredStage: LifecycleStageNameSchema,
+    exclusionReason: z.string().min(1).nullable(),
+  }).strict()).min(1),
+}).strict().superRefine((policy, context) => {
+  const selected = policy.assessments.filter((assessment) => assessment.skillId === policy.selectedSkillId)
+  if (selected.length !== 1) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "selection policy requires exactly one selected assessment" })
+  } else if (selected[0]!.exclusionReason !== null) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "selected candidate cannot have an exclusion reason" })
+  }
+  const seen = new Set<string>()
+  for (const [index, assessment] of policy.assessments.entries()) {
+    if (seen.has(assessment.skillId)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["assessments", index], message: "duplicate candidate assessment" })
+    }
+    seen.add(assessment.skillId)
+    if (assessment.skillId !== policy.selectedSkillId && assessment.exclusionReason === null) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["assessments", index], message: "non-selected candidate requires an exclusion reason" })
+    }
+  }
+})
+
+export const MethodSuccessorSelectionReportSchema = z.object({
+  schemaVersion: z.literal("skill-ir-method-successor-selection-report/v1"),
+  selectionId: z.string().min(1),
+  portfolioId: z.string().min(1),
+  selectedSkillId: z.string().min(1),
+  targetPhenotype: z.string().min(1),
+  selectionBoundary: z.literal("before-successor-contract"),
+  candidates: z.array(z.object({
+    skillId: z.string().min(1),
+    phenotypeCoverage: z.array(z.string().min(1)).min(1),
+    benchmarkContractStatus: LifecycleStatusSchema,
+    baselineAdmissionStatus: LifecycleStatusSchema,
+    artifactMechanism: z.enum(["deterministic-repair-package", "validated-artifact-package", "static-only", "none"]),
+    informationComplementarity: z.enum(["high", "medium", "low"]),
+    nextRequiredStage: LifecycleStageNameSchema,
+    exclusionReason: z.string().min(1).nullable(),
+  }).strict()).min(1),
+}).strict()
+
+export type MethodSuccessorSelectionPolicy = z.infer<typeof MethodSuccessorSelectionPolicySchema>
+export type MethodSuccessorSelectionReport = z.infer<typeof MethodSuccessorSelectionReportSchema>
+
+export function evaluateMethodSuccessorSelection(
+  portfolioInput: unknown,
+  policyInput: unknown,
+): MethodSuccessorSelectionReport {
+  const portfolio = MethodPortfolioSchema.parse(portfolioInput)
+  const policy = MethodSuccessorSelectionPolicySchema.parse(policyInput)
+  const methodCases = portfolio.cases
+    .filter((entry) => entry.role === "method-development")
+    .sort((a, b) => a.methodSequence! - b.methodSequence!)
+  const assessmentBySkill = new Map(policy.assessments.map((assessment) => [assessment.skillId, assessment]))
+  if (methodCases.length !== policy.assessments.length
+    || methodCases.some((entry) => !assessmentBySkill.has(entry.skillId))) {
+    throw new Error("selection policy requires exactly one assessment for every method-development case")
+  }
+  const selected = methodCases.find((entry) => entry.skillId === policy.selectedSkillId)
+  if (!selected) throw new Error("selected successor is not a method-development case")
+  if (!selected.phenotypes.includes(policy.targetPhenotype)) {
+    throw new Error("selected successor does not cover target phenotype")
+  }
+
+  return MethodSuccessorSelectionReportSchema.parse({
+    schemaVersion: "skill-ir-method-successor-selection-report/v1",
+    selectionId: policy.selectionId,
+    portfolioId: portfolio.portfolioId,
+    selectedSkillId: policy.selectedSkillId,
+    targetPhenotype: policy.targetPhenotype,
+    selectionBoundary: policy.selectionBoundary,
+    candidates: methodCases.map((entry) => {
+      const assessment = assessmentBySkill.get(entry.skillId)!
+      return {
+        skillId: entry.skillId,
+        phenotypeCoverage: entry.phenotypes,
+        benchmarkContractStatus: entry.lifecycle.benchmarkContract.status,
+        baselineAdmissionStatus: entry.lifecycle.baselineAdmission.status,
+        artifactMechanism: assessment.artifactMechanism,
+        informationComplementarity: assessment.informationComplementarity,
+        nextRequiredStage: assessment.nextRequiredStage,
+        exclusionReason: assessment.exclusionReason,
+      }
+    }),
+  })
+}
+
 export const MethodPortfolioReadinessReportSchema = z.object({
-  schemaVersion: z.literal("skill-ir-method-portfolio-readiness/v1"),
+  schemaVersion: z.literal("skill-ir-method-portfolio-readiness/v2"),
   portfolioId: z.string().min(1),
   passed: z.boolean(),
   counts: z.object({
@@ -109,6 +271,7 @@ export const MethodPortfolioReadinessReportSchema = z.object({
     studiedCases: z.number().int().nonnegative(),
     contractQualifiedMethodCases: z.number().int().nonnegative(),
     untouchedReplicationCases: z.number().int().nonnegative(),
+    passedStaticFidelityCases: z.number().int().nonnegative(),
     passedDevelopmentPhenotypes: z.number().int().nonnegative(),
   }).strict(),
   gates: z.object({
@@ -121,7 +284,11 @@ export const MethodPortfolioReadinessReportSchema = z.object({
   gaps: z.object({
     missingQualifiedCases: z.number().int().nonnegative(),
     missingPhenotypes: z.array(z.string()),
-    openMeasurementBlockers: z.array(z.object({ skillId: z.string(), blocker: BlockerSchema }).strict()),
+    openMeasurementBlockers: z.array(z.object({
+      skillId: z.string(),
+      stage: LifecycleStageNameSchema,
+      blocker: BlockerSchema,
+    }).strict()),
     automationIncompleteSkills: z.array(z.string()),
   }).strict(),
 }).strict()
@@ -158,7 +325,8 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
       <= mean(firstThree.map((entry) => entry.adaptation.adapterLoc!))
 
   const passedPhenotypes = new Set(qualified
-    .filter((entry) => entry.developmentGate.status === "passed")
+    .filter((entry) => entry.lifecycle.baselineAdmission.status === "passed"
+      && entry.lifecycle.optimizedDevelopment.status === "passed")
     .flatMap((entry) => entry.phenotypes))
   const measurementBlockers = new Set([
     "benchmark-contract",
@@ -167,9 +335,19 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
     "scorer-authority",
     "execution-observability",
   ])
-  const openMeasurementBlockers = methodCases.flatMap((entry) => entry.blockers
-    .filter((blocker) => measurementBlockers.has(blocker))
-    .map((blocker) => ({ skillId: entry.skillId, blocker })))
+  const lifecycleStages = [
+    "benchmarkContract",
+    "baselineAdmission",
+    "staticFidelity",
+    "optimizedDevelopment",
+    "heldOutPromotion",
+  ] as const
+  const openMeasurementBlockers = methodCases.flatMap((entry) => {
+    const stage = lifecycleStages.find((candidate) => entry.lifecycle[candidate].status !== "passed")
+    if (!stage) return []
+    const blocker = entry.lifecycle[stage].blocker
+    return blocker && measurementBlockers.has(blocker) ? [{ skillId: entry.skillId, stage, blocker }] : []
+  })
   const gates = {
     enoughQualifiedCasesAndCoverage: qualified.length >= portfolio.minimumContractQualifiedCases
       && missingPhenotypes.length === 0,
@@ -179,7 +357,7 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
     noOpenMeasurementBlockers: openMeasurementBlockers.length === 0,
   }
   return MethodPortfolioReadinessReportSchema.parse({
-    schemaVersion: "skill-ir-method-portfolio-readiness/v1",
+    schemaVersion: "skill-ir-method-portfolio-readiness/v2",
     portfolioId: portfolio.portfolioId,
     passed: Object.values(gates).every(Boolean),
     counts: {
@@ -187,6 +365,7 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
       studiedCases: methodCases.length,
       contractQualifiedMethodCases: qualified.length,
       untouchedReplicationCases: portfolio.cases.filter((entry) => entry.role === "untouched-replication").length,
+      passedStaticFidelityCases: qualified.filter((entry) => entry.lifecycle.staticFidelity.status === "passed").length,
       passedDevelopmentPhenotypes: passedPhenotypes.size,
     },
     gates,
@@ -229,6 +408,22 @@ export async function writeMethodPortfolioReadinessReport(input: {
 }): Promise<MethodPortfolioReadinessReport> {
   const portfolio = await readMethodPortfolio(input)
   const report = evaluateMethodPortfolioReadiness(portfolio)
+  await mkdir(path.dirname(path.resolve(input.outputPath)), { recursive: true })
+  await writeFile(path.resolve(input.outputPath), `${JSON.stringify(report, null, 2)}\n`, "utf8")
+  return report
+}
+
+export async function writeMethodSuccessorSelectionReport(input: {
+  rootDir: string
+  portfolioPath: string
+  policyPath: string
+  outputPath: string
+}): Promise<MethodSuccessorSelectionReport> {
+  const portfolio = await readMethodPortfolio(input)
+  const policy = MethodSuccessorSelectionPolicySchema.parse(
+    JSON.parse(await readFile(path.resolve(input.policyPath), "utf8")),
+  )
+  const report = evaluateMethodSuccessorSelection(portfolio, policy)
   await mkdir(path.dirname(path.resolve(input.outputPath)), { recursive: true })
   await writeFile(path.resolve(input.outputPath), `${JSON.stringify(report, null, 2)}\n`, "utf8")
   return report

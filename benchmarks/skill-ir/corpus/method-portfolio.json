@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "skill-ir-method-portfolio/v1",
+  "schemaVersion": "skill-ir-method-portfolio/v2",
   "portfolioId": "skill-ir-method-development-2026-08-01",
   "minimumContractQualifiedCases": 6,
   "requiredPhenotypes": [
@@ -24,7 +24,18 @@
       "methodSequence": 1,
       "contractQualified": false,
       "benchmarkVersions": ["v1"],
-      "developmentGate": { "status": "failed" },
+      "lifecycle": {
+        "benchmarkContract": {
+          "status": "failed",
+          "evidencePath": "results/skill-ir/benchmark-contract-audit/env-manager.json",
+          "blocker": "benchmark-contract"
+        },
+        "baselineAdmission": { "status": "blocked", "blocker": "benchmark-contract" },
+        "staticFidelity": { "status": "blocked", "blocker": "benchmark-contract" },
+        "optimizedDevelopment": { "status": "blocked", "blocker": "benchmark-contract" },
+        "heldOutPromotion": { "status": "blocked", "blocker": "benchmark-contract" }
+      },
+      "legacyDevelopmentEvidence": { "status": "failed" },
       "automation": {
         "generatesIr": false,
         "generatesContract": false,
@@ -32,13 +43,16 @@
         "generatesPackageCandidate": true
       },
       "adaptation": {
+        "measurementStatus": "prospective-in-progress",
+        "measurementStartedAt": "2026-08-12T09:47:17.734Z",
+        "measurementCompletedAt": null,
         "humanMinutes": null,
         "adapterLoc": null,
         "artifactKinds": ["checks", "schemas", "scripts"],
+        "reusedArtifactKinds": [],
         "coreBranchDelta": null,
         "unautomatedSteps": ["base IR audit", "public contract adapter"]
-      },
-      "blockers": ["benchmark-contract"]
+      }
     },
     {
       "skillId": "law-to-markdown",
@@ -52,7 +66,29 @@
       "methodSequence": 2,
       "contractQualified": true,
       "benchmarkVersions": ["v1", "v2-public-contract", "v3-public-output-abi"],
-      "developmentGate": {
+      "lifecycle": {
+        "benchmarkContract": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/authority-audit.json"
+        },
+        "baselineAdmission": {
+          "status": "failed",
+          "evidencePath": "results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/measurement-validity.json",
+          "blocker": "baseline-regression"
+        },
+        "staticFidelity": { "status": "blocked", "blocker": "baseline-regression" },
+        "optimizedDevelopment": {
+          "status": "invalidated",
+          "evidencePath": "results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/gate-report.json",
+          "blocker": "benchmark-contract"
+        },
+        "heldOutPromotion": {
+          "status": "invalidated",
+          "evidencePath": "results/skill-ir/law-to-markdown-validated-artifact-heldout-run-2026-07-24/gate-report.json",
+          "blocker": "benchmark-contract"
+        }
+      },
+      "legacyDevelopmentEvidence": {
         "status": "failed",
         "resultPath": "results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/measurement-validity.json"
       },
@@ -63,13 +99,16 @@
         "generatesPackageCandidate": true
       },
       "adaptation": {
+        "measurementStatus": "historical-unavailable",
+        "measurementStartedAt": null,
+        "measurementCompletedAt": null,
         "humanMinutes": null,
         "adapterLoc": null,
         "artifactKinds": ["checks", "scripts", "templates"],
+        "reusedArtifactKinds": [],
         "coreBranchDelta": 0,
         "unautomatedSteps": ["task-boundary adapter"]
-      },
-      "blockers": ["heldout-regression"]
+      }
     },
     {
       "skillId": "experimental-design",
@@ -83,7 +122,20 @@
       "methodSequence": 3,
       "contractQualified": true,
       "benchmarkVersions": ["v1", "v2", "v2-skill-unique"],
-      "developmentGate": { "status": "blocked" },
+      "lifecycle": {
+        "benchmarkContract": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json"
+        },
+        "baselineAdmission": {
+          "status": "blocked",
+          "blocker": "baseline-saturation"
+        },
+        "staticFidelity": { "status": "blocked", "blocker": "baseline-saturation" },
+        "optimizedDevelopment": { "status": "blocked", "blocker": "baseline-saturation" },
+        "heldOutPromotion": { "status": "blocked", "blocker": "baseline-saturation" }
+      },
+      "legacyDevelopmentEvidence": { "status": "blocked" },
       "automation": {
         "generatesIr": false,
         "generatesContract": false,
@@ -91,13 +143,16 @@
         "generatesPackageCandidate": true
       },
       "adaptation": {
+        "measurementStatus": "historical-unavailable",
+        "measurementStartedAt": null,
+        "measurementCompletedAt": null,
         "humanMinutes": null,
         "adapterLoc": null,
         "artifactKinds": ["schemas", "scripts", "templates"],
+        "reusedArtifactKinds": [],
         "coreBranchDelta": 0,
         "unautomatedSteps": ["semantic design contract"]
-      },
-      "blockers": ["baseline-saturation"]
+      }
     },
     {
       "skillId": "api-tester",
@@ -112,7 +167,26 @@
       "contractQualified": true,
       "benchmarkVersions": ["v1"],
       "reentryPolicyPath": "benchmarks/skill-ir/corpus/partial-benefit-reentry/api-tester-v1.json",
-      "developmentGate": {
+      "lifecycle": {
+        "benchmarkContract": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/api-tester-contract-audit-2026-07-31.json"
+        },
+        "baselineAdmission": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/api-tester-partial-benefit-reentry.json"
+        },
+        "staticFidelity": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json"
+        },
+        "optimizedDevelopment": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json"
+        },
+        "heldOutPromotion": { "status": "not-run" }
+      },
+      "legacyDevelopmentEvidence": {
         "status": "passed",
         "resultPath": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json"
       },
@@ -123,13 +197,16 @@
         "generatesPackageCandidate": true
       },
       "adaptation": {
+        "measurementStatus": "historical-unavailable",
+        "measurementStartedAt": null,
+        "measurementCompletedAt": null,
         "humanMinutes": null,
         "adapterLoc": 38,
         "artifactKinds": ["schemas", "scripts", "templates", "tool-plans"],
+        "reusedArtifactKinds": [],
         "coreBranchDelta": 0,
         "unautomatedSteps": ["base IR/source audit", "artifact adapter", "development lock"]
-      },
-      "blockers": []
+      }
     },
     {
       "skillId": "zh-code-reviewer",
@@ -143,7 +220,23 @@
       "methodSequence": 5,
       "contractQualified": true,
       "benchmarkVersions": ["zh-code-reviewer-development-v1", "zh-code-reviewer-development-v2"],
-      "developmentGate": { "status": "not-run" },
+      "lifecycle": {
+        "benchmarkContract": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/benchmark-contract-audit/zh-code-reviewer-v2.json"
+        },
+        "baselineAdmission": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/zcr-pi-v2/measurement-validity.json"
+        },
+        "staticFidelity": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/zcr-static-fidelity-v1/gate-report.json"
+        },
+        "optimizedDevelopment": { "status": "not-run" },
+        "heldOutPromotion": { "status": "not-run" }
+      },
+      "legacyDevelopmentEvidence": { "status": "not-run" },
       "automation": {
         "generatesIr": false,
         "generatesContract": true,
@@ -151,13 +244,16 @@
         "generatesPackageCandidate": false
       },
       "adaptation": {
+        "measurementStatus": "historical-unavailable",
+        "measurementStartedAt": null,
+        "measurementCompletedAt": null,
         "humanMinutes": null,
         "adapterLoc": 0,
         "artifactKinds": ["checks", "schemas"],
+        "reusedArtifactKinds": [],
         "coreBranchDelta": 0,
         "unautomatedSteps": ["base IR/source audit", "artifact adapter", "development lock"]
-      },
-      "blockers": []
+      }
     },
     {
       "skillId": "zh-readme",
@@ -171,7 +267,21 @@
       "methodSequence": 6,
       "contractQualified": true,
       "benchmarkVersions": ["zh-readme-development-v1", "zh-readme-development-v2"],
-      "developmentGate": {
+      "lifecycle": {
+        "benchmarkContract": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/benchmark-contract-audit/zh-readme-v2.json"
+        },
+        "baselineAdmission": {
+          "status": "invalidated",
+          "evidencePath": "results/skill-ir/zrm-pi-v2/measurement-validity.json",
+          "blocker": "scorer-authority"
+        },
+        "staticFidelity": { "status": "blocked", "blocker": "scorer-authority" },
+        "optimizedDevelopment": { "status": "blocked", "blocker": "scorer-authority" },
+        "heldOutPromotion": { "status": "blocked", "blocker": "scorer-authority" }
+      },
+      "legacyDevelopmentEvidence": {
         "status": "failed",
         "resultPath": "results/skill-ir/zrm-pi-v2/gate-report.json"
       },
@@ -182,13 +292,16 @@
         "generatesPackageCandidate": false
       },
       "adaptation": {
+        "measurementStatus": "historical-unavailable",
+        "measurementStartedAt": null,
+        "measurementCompletedAt": null,
         "humanMinutes": null,
         "adapterLoc": 0,
         "artifactKinds": ["checks", "templates"],
+        "reusedArtifactKinds": [],
         "coreBranchDelta": 0,
         "unautomatedSteps": ["base IR/source audit", "validation plan", "artifact adapter"]
-      },
-      "blockers": ["scorer-authority"]
+      }
     },
     {
       "skillId": "i18n-helper",
@@ -212,7 +325,24 @@
         "static-development-v3",
         "static-development-v4"
       ],
-      "developmentGate": {
+      "lifecycle": {
+        "benchmarkContract": {
+          "status": "passed",
+          "evidencePath": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/contribution-identifiability.json"
+        },
+        "baselineAdmission": {
+          "status": "passed",
+          "evidencePath": "results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json"
+        },
+        "staticFidelity": {
+          "status": "failed",
+          "evidencePath": "results/skill-ir/ihc-static-v4/gate-report.json",
+          "blocker": "quality-regression"
+        },
+        "optimizedDevelopment": { "status": "blocked", "blocker": "quality-regression" },
+        "heldOutPromotion": { "status": "blocked", "blocker": "quality-regression" }
+      },
+      "legacyDevelopmentEvidence": {
         "status": "failed",
         "resultPath": "results/skill-ir/ihc-static-v4/gate-report.json"
       },
@@ -223,16 +353,19 @@
         "generatesPackageCandidate": false
       },
       "adaptation": {
+        "measurementStatus": "historical-unavailable",
+        "measurementStartedAt": null,
+        "measurementCompletedAt": null,
         "humanMinutes": null,
         "adapterLoc": 0,
         "artifactKinds": ["checks", "schemas", "templates", "tool-plans"],
+        "reusedArtifactKinds": [],
         "coreBranchDelta": 0,
         "unautomatedSteps": [
           "artifact adapter",
           "optimized development lock"
         ]
-      },
-      "blockers": []
+      }
     }
   ]
 }

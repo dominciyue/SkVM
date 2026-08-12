@@ -203,22 +203,28 @@ untouched replication 和 Token break-even 均未证明。
 
 ## 8. 当前 Portfolio 证据
 
-| Case | Studied | Benchmark contract-qualified | Development optimized gate | Untouched |
-|---|---:|---:|---:|---:|
-| env-manager | yes | no (v1 audit) | no | no |
-| law-to-markdown | yes | yes（v3 public ABI） | v3 baseline gate failed；v1 held-out failed | no |
-| experimental-design | yes | yes (v2) | blocked by saturation | no |
-| api-tester | yes | yes | yes, artifact 4/4 | no |
-| zh-code-reviewer | yes | yes, v2 audit 20/20 | static fidelity passed；optimized gate 未运行 | no |
-| zh-readme | yes | yes（audit），付费 measurement invalid | no | no |
-| i18n-helper | yes | yes（contribution-v2 public semantics） | base IR passed；static development infra-failed；optimized not-run | no |
+| Case | Contract | Baseline | Static fidelity | Optimized development | Promotion |
+|---|---:|---:|---:|---:|---:|
+| env-manager | failed（v1） | blocked | blocked | blocked | blocked |
+| law-to-markdown | passed（v3 public ABI） | failed（regression） | blocked | old result invalidated | old result invalidated |
+| experimental-design | passed | blocked（saturation） | blocked | blocked | blocked |
+| api-tester | passed | passed | passed | passed，artifact 4/4 | not-run |
+| zh-code-reviewer | passed，v2 audit 20/20 | passed | passed | not-run | not-run |
+| zh-readme | passed | invalidated（scorer authority） | blocked | blocked | blocked |
+| i18n-helper | passed（contribution-v2） | passed | failed（quality regression） | blocked | blocked |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 为 failed：7 registered、7 studied、6
-contract-qualified、0 untouched replication、1 passed qualified phenotype。Law v3 已恢复 contract-qualified，
-但 baseline gate failed；Env 仍有 benchmark-contract blocker，zh-readme 有 scorer-authority blocker；
-i18n-helper 已通过 baseline/base IR，但 static identity 新增 execution-observability blocker，optimized development 尚未运行，
-不能计为第二个 passed phenotype。自动化与适配成本指标也仍不完整。
+机器报告 `results/skill-ir/method-portfolio-readiness.json` 已升级为 v2 且仍 failed：7 registered、7 studied、
+6 contract-qualified、2 static-fidelity passed、0 untouched replication、1 optimized-development passed phenotype。
+Law 的 baseline regression、zh-readme 的 scorer-authority invalidation 与 i18n v4 的 paired quality regression 分属
+不同 lifecycle stage，不再被单一 development gate 混写。自动化仍不完整；历史人工时间标记
+`historical-unavailable`，Env Manager successor 从 2026-08-12 起前瞻记录。
 该失败是诚实状态，不应调整阈值。
+
+`results/skill-ir/method-successor-selection.json` 在 successor 合同开发前冻结全部 7 个方法案例。Env Manager
+因补齐唯一缺失的 environment-schema-repair phenotype、已有 deterministic repair/package 机制且对 API Tester
+正例提供更高信息互补性而入选。旧 Env v1 audit 的 4 个 `EXACT_CONTRACT_NOT_PUBLIC` 与旧 V4 3 个完整 pair
+0.90 -> 1.00 的信号均只作诊断；新身份必须从公开 workspace 证据动态推导合同，并重新经过 contract、baseline、
+static 与 optimized development。
 
 ### 8.1 `i18n-helper` 首轮校准
 

@@ -176,13 +176,34 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 
 ### Task 18.5 Portfolio 与自动化状态模型
 
-1. [ ] 将机器 registry 的 baseline admission、static fidelity、optimized development 和 held-out/promotion
-   状态分开，迁移现有 7 个 case 并保持旧结果路径；
-2. [ ] 为至少 6 个 qualified case 补齐可审计的 `humanMinutes`、`adapterLoc`、`coreBranchDelta`、artifact
-   reuse 和未自动化步骤；
-3. [ ] 统计哪些 IR/contract/validation plan/package 字段能够由同一 core 自动生成，哪些仍需声明式人工审核；
-4. [ ] 若 i18n 未成为第二 phenotype，优先从现有 qualified case 选择信息互补且基线有区分度的案例，不再
-   盲目扩 corpus。
+1. [x] 将机器 registry 升级为 v2 lifecycle：`benchmarkContract`、`baselineAdmission`、`staticFidelity`、
+   `optimizedDevelopment`、`heldOutPromotion` 各自保存 status、compact evidence 和 blocker；保留
+   `contractQualified` 作为受 schema 校验的兼容摘要，删除会混淆阶段的单一 `developmentGate`；
+2. [x] 迁移现有 7 个 case 并保持旧结果路径。Readiness 从 lifecycle 派生 qualified、passed phenotype 和
+   measurement blockers；不得把 baseline/static pass 算作 optimized pass，也不得把历史 measurement-invalid
+   development 结果晋升为当前有效证据；
+3. [x] 将适配成本改成有 provenance 的测量合同。已有历史 `humanMinutes=null` 不后验编造；明确标记
+   `historical-unavailable`。从 Env Manager successor 起记录 stage start/end、人工步骤、声明式 adapter LOC、
+   `coreBranchDelta`、artifact kind reuse 和仍未自动化步骤；
+4. [x] 生成 skill-neutral candidate-selection compact report。候选必须披露 phenotype coverage、合同/基线状态、
+   现有 artifact mechanism、信息互补性、下一必需阶段和排除原因，不能按“最可能出正例”后验挑选；
+5. [x] 本轮预先选择 Env Manager 作为 `environment-schema-repair` successor：它补齐当前缺失 phenotype，已有
+   deterministic repair/package candidate 和历史 0.90 -> 1.00 的机制信号，但旧 benchmark-contract 与 infra
+   gate 均不可复用为有效结论。先修公开合同与贡献可识别性，再依次执行 baseline -> base IR/static -> artifact。
+
+### Task 18.5A Env Manager contract successor 与第二 phenotype
+
+1. [ ] 审计现有 source/task/scorer、v1 benchmark-contract failure、V4 artifact 与 raw failure taxonomy；只提取
+   可由公开 source/task 支持的语义，不读取 held-out 或把历史模型答案写入新合同；
+2. [ ] 创建新的 task/scorer/audit identity，覆盖 alternative-valid、reverse-evidence、public ABI、materialization、
+   secret/gold leak 和贡献可识别性；强模型任务不得给出 answer-bearing 精确动作或预期结果；
+3. [ ] 本地 audit 全绿后冻结 resilient Pi 单模型 baseline，qualification 通过才执行唯一
+   `no-skill | original` development；baseline 必须 measurement-valid、有配对差异且不发生 original 回归；
+4. [ ] 通过后创建 profile-empty source-audited base IR，再运行 `no-skill | original | ir-static`；static 只消费
+   公开 source/task，不消费 runtime output；
+5. [ ] 只有 static gate 或公开可重复 residual 合法开放时，才通过公共 assembly 编译 Env Manager artifact，并
+   运行四臂 development。质量无回归、完整分母和 0 material infrastructure 是第二 phenotype 的硬门槛；
+6. [ ] 任一 measurement/quality gate 失败即冻结该 identity；不补跑筛正例、不提前运行 held-out。
 
 ### Task 18.6 Readiness、Untouched Replication 与主实验
 
@@ -194,6 +215,23 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 4. [ ] 再扩到至少 3 个模型族、clean + noisy/long、稳定 Pi 和真实 Windows；
 5. [ ] 在质量门槛通过的 case 上计算 `N=1,2,5,10` 与 break-even；
 6. [ ] 最后把同一 core 接入用户可运行的 CLI、TypeScript library 与 Optimizer Agent 编排。
+
+### 单模型族 70% 与多模型族启动门槛
+
+“70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
+小面板；完整 held-out 主矩阵仍需 readiness 与 promotion 条件：
+
+1. execution resilience 在当前主 Pi/Windows 单模型路线稳定，current regression 全绿，冻结历史兼容性单列；
+2. 7 个 case 的五阶段 lifecycle 可机器判定，至少 6 个 contract-qualified，measurement blocker 无未解释漂移；
+3. 至少两个不同 phenotype 通过 optimized development，且完整分母、paired regression 与 all-attempt 成本可审计；
+4. 新 successor 的人工分钟、adapter LOC、core branch delta、artifact reuse 与未自动化步骤从开始时前瞻记录；
+5. 公共 assembly、runner、scorer boundary 和 candidate-selection policy 冻结，不再为进入不同模型族改 core；
+6. 预注册模型族小面板先测 development 的方向一致性、failure taxonomy 与基础设施兼容性；只有方向可信后才扩
+   clean/noisy/long 和 held-out 主矩阵。
+
+当前约为该单模型族门槛的 **55%--60%**。若 Env Manager successor 一次通过合同、baseline、static/artifact
+development，预计还需 **8--15 个净工作日**达到约 70%；若再次 measurement-invalid，现实估计为 **3--4 周**。
+单模型质量 gate 未通过时，可以做小规模跨模型诊断，但不能把它写成正式多模型族优化验证。
 
 ## 5. 时间估算
 
@@ -212,7 +250,7 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 
 i18n 已留下 infrastructure-insensitive 的 static 质量负结果，不能成为第二 phenotype。若 Task 18.5 选出的
 替代案例顺利通过，**2 周左右**可以形成更完整的阶段汇报：两种 optimized phenotype、一套贡献可识别性方法
-和明确 readiness 缊口。达到 spec 的完整研究完成条件，现实估计还需 **6-9 周**；新的 measurement-invalid
+和明确 readiness 缺口。达到 spec 的完整研究完成条件，现实估计还需 **6-9 周**；新的 measurement-invalid
 或第二 phenotype gate failure 会增加 1-3 周，不能靠压缩验证绕过。
 
 ## 6. 计划合理性复核

@@ -119,16 +119,20 @@ Registry 对每个案例记录：
 
 ```text
 provenance + phenotype
-role + benchmark audit
-development gate
-humanMinutes + adapterLoc
-artifactKinds + coreBranchDelta
-unautomatedSteps + blockers
+role + benchmarkContract
+baselineAdmission + staticFidelity
+optimizedDevelopment + heldOutPromotion
+adaptation measurementStatus + timestamps
+humanMinutes + adapterLoc + coreBranchDelta
+artifactKinds + reusedArtifactKinds + unautomatedSteps
 ```
 
-`method-portfolio-readiness/v1` 五条件以 spec 为准。当前报告为 7 registered、7 studied、6 qualified、
-0 replication、1 passed qualified phenotype；readiness 仍 failed。Readiness report 必须显示真实不足，
-不能把 studied、benchmark version 或 audit-failed case 填充为 contract-qualified。
+`method-portfolio-readiness/v2` 五条件以 spec 为准。当前报告为 7 registered、7 studied、6 qualified、
+2 static-fidelity passed、0 replication、1 optimized-development passed phenotype；readiness 仍 failed。
+Readiness report 必须显示真实不足，不能把 studied、benchmark version、baseline/static pass 或 audit-failed case
+填充为 optimized/contract-qualified。`method-successor-selection-report/v1` 已在 Env Manager successor 合同开发前
+冻结全部 7 个候选，Env Manager 因填补 environment-schema-repair、已有确定性 repair/package 机制且信息互补性
+高而入选；旧 benchmark 和 V4 结果只作诊断，不自动取得任何新阶段资格。
 
 ## 10. Intake 顺序
 

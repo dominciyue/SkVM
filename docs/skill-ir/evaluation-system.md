@@ -385,12 +385,24 @@ Calibration 常见门禁：完整 rows/pairs、0 infra、no-skill 不饱和、�
 task 的 original success 由预注册 lock 决定。Partial-benefit re-entry 是新的 prospective admission，
 不能改写旧 gate。
 
-当前 re-entry 与 portfolio report 可无成本重建：
+当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell
 bun ./src/benchmarks/skill-ir/partial-benefit-reentry-run.ts
 bun ./src/benchmarks/skill-ir/method-portfolio-run.ts
+bun ./src/benchmarks/skill-ir/method-successor-selection-run.ts
 ```
+
+Portfolio v2 不再用单一 `developmentGate` 混写进度，而是分别记录 `benchmarkContract`、
+`baselineAdmission`、`staticFidelity`、`optimizedDevelopment` 和 `heldOutPromotion`。`contractQualified`
+只是与首阶段一致性受 schema 校验的兼容摘要；readiness 的 optimized phenotype 只从
+`baselineAdmission=passed && optimizedDevelopment=passed` 派生。适配证据另有 provenance：历史未前瞻记录的
+案例标记 `historical-unavailable`，不得把空值解释为零成本；`prospective-measured` 必须同时提供起止时间、
+人工分钟、adapter LOC 和 core branch delta。
+
+Successor selection policy 必须在新合同开发前冻结，并为 registry 中每个 method-development case 提供一条
+assessment。Compact report 公开 phenotype coverage、合同/基线状态、artifact mechanism、信息互补性、下一阶段
+和排除原因；这防止运行后删除失败候选或只挑最容易产生正例的案例。
 
 ## 10. Scored Rows 与分析
 
