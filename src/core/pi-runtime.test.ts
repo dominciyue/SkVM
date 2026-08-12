@@ -71,15 +71,25 @@ describe("pi runtime execution observability", () => {
     expect(JSON.stringify(observation)).not.toContain("PRIVATE")
   })
 
-  test("reports incompatible Pi content and pre-semantic provider transients", () => {
+  test("accepts standard thinking blocks but rejects truly unknown Pi content", () => {
+    const thinking = assistantEvent({ inputTokens: 1, outputTokens: 1 })
+    const thinkingAssistant = thinking.messages[0]!
+    if (thinkingAssistant.role !== "assistant") throw new Error("assistant fixture mismatch")
+    thinkingAssistant.content = [{ type: "thinking", thinking: "PRIVATE" }] as unknown as typeof thinkingAssistant.content
+    expect(observePiExecution([thinking], {
+      exitCode: 0, durationMs: 1, timedOut: false,
+    }).parser).toEqual({ outcome: "ok", unknownTypes: [] })
+
     const incompatible = assistantEvent({ inputTokens: 0, outputTokens: 0 })
     const assistant = incompatible.messages[0]!
     if (assistant.role !== "assistant") throw new Error("assistant fixture mismatch")
-    assistant.content = [{ type: "thinking", thinking: "PRIVATE" }] as unknown as typeof assistant.content
+    assistant.content = [{ type: "future-block", payload: "PRIVATE" }] as unknown as typeof assistant.content
     expect(observePiExecution([incompatible], {
       exitCode: 0, durationMs: 1, timedOut: false,
-    }).parser).toEqual({ outcome: "incompatible", unknownTypes: ["content:thinking"] })
+    }).parser).toEqual({ outcome: "incompatible", unknownTypes: ["content:future-block"] })
+  })
 
+  test("reports pre-semantic provider transients without private text", () => {
     const transient = observePiExecution([{
       type: "auto_retry_start",
       attempt: 1,

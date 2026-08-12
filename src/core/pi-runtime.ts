@@ -173,7 +173,9 @@ export function observePiExecution(
   }
   for (const message of assistants) {
     for (const content of message.content as Array<{ type: string }>) {
-      if (content.type !== "text" && content.type !== "toolCall") unknownTypes.add(`content:${content.type}`)
+      if (content.type !== "text" && content.type !== "toolCall" && content.type !== "thinking") {
+        unknownTypes.add(`content:${content.type}`)
+      }
     }
   }
   const usage = assistants.reduce((total, message) => ({
