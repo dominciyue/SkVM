@@ -263,6 +263,12 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
     启动；不是 timeout 过短或 allowlist 故障，不在同 identity 补跑。
 11. [ ] 在不消费 benchmark/task/scorer 的 route-only 诊断中区分 xty route 可用性、Pi provider 协议兼容性与
     tool-use 支持；若能预先证明替代 route，再新建 v3 identity，不能沿用或修改 v2。
+    - [x] xty catalog 与直接 `/chat/completions` 文本/工具探针均通过；根因定位为 subprocess Pi 对目录外模型
+      错误继承 `openai-responses`，而非 route 名称、鉴权或 tool schema。
+    - [x] TDD 后 subprocess 与 headless driver 统一为：已收录模型保留 metadata，未收录 openai-compatible
+      模型显式注册 `openai-completions`。Claude route-only 两轮工具回路通过；DeepSeek 首轮/多轮可成功但仍有
+      120 秒内无 response 的波动，后续只由既有 bounded reserve 处理。
+12. [ ] 冻结绑定新 Pi adapter digest 的 v3 identity；重新运行唯一资格，通过才启动矩阵，失败仍按原合同封存。
 
 ### 单模型族 70% 与多模型族启动门槛
 

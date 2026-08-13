@@ -509,6 +509,19 @@ v2 资格也已冻结失败，矩阵未启动。本地 Pi 0.67.68 与两个 reso
 不是单次偶发失败：有界 reserve 已耗尽。该 identity 不补跑；下一步只能在新 identity 前做 route/provider/Pi
 兼容性诊断或选择有证据的新 route，不能用放宽分类器来把失败改成通过。
 
+后续 route-only 诊断没有读取 benchmark task、skill 或 scorer。xty 模型目录仍精确包含三条冻结 route；对
+Claude/DeepSeek 的 `/chat/completions` 纯文本与强制单工具请求均为 HTTP 200、usage 可用且 tool call 正常。
+Pi 0.67.68 自身目录则不包含这些新模型。源码核对确认：subprocess managed adapter 对未知
+`openai/<model>` 只写 baseUrl，Pi CLI fallback 会复制默认 `gpt-5.4` 模型对象，因而继承
+`openai-responses`；同仓库 headless Pi driver 已对未知模型显式注册 `api: openai-completions`。这解释了同一
+错误为何表现为 GPT 成功、Claude 5xx、DeepSeek empty terminal。
+
+公共 adapter 已改为与 headless driver 相同的目录判定：Pi 已收录的模型只覆盖 baseUrl，未收录模型显式注册
+到 `openai-completions`，不硬编码任何模型族。修复后的 route-only Pi 文本请求中 Claude/DeepSeek 均
+`parser=ok` 且有 usage；Claude 两轮 write 工具回路完整成功。DeepSeek 一次完成 write/tool result 后等待终答
+超过 90 秒，另一次在正式 120 秒 idle 内无首个 response，说明其 route 仍有独立延迟波动。新 identity 可以
+保留既有 120 秒与单次 bounded reserve，但不能把该波动解释为已消失，也不能加无限重试。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、

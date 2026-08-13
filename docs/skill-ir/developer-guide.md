@@ -197,6 +197,12 @@ if ([string]::IsNullOrWhiteSpace($env:SKVM_XTY_API_KEY)) {
 关闭该终端后环境变量会消失，这是有意的安全边界。不要把真实 key 写入 Markdown、JSON、脚本、测试、
 conversation log 或 Git commit，也不要使用会打印全部环境变量的命令。
 
+Pi managed adapter 会先查询当前安装的 Pi model catalog。目录内模型只写 route 的 baseUrl override，以保留
+Pi 冻结的 reasoning/context/token metadata；目录外的 openai-compatible 模型必须在隔离的 `models.json`
+中显式注册为 `openai-completions`。不能依赖 Pi CLI 的 unknown-model fallback：该 fallback 会复制 OpenAI
+默认模型并可能继承 `openai-responses`，使只支持 `/chat/completions` 的代理网关出现按模型不同的 5xx、空
+terminal 或协议错误。该规则按 catalog/route kind 泛化，不应写成 Claude、DeepSeek 等模型名特判。
+
 ## 3. 项目文件地图
 
 ### 3.1 顶层目录

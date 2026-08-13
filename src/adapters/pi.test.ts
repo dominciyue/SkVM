@@ -6,6 +6,7 @@ import { runSubprocess } from "../core/subprocess.ts"
 import {
   resolveInstalledPiPackageCommand,
   resolvePiOnPath,
+  selectManagedPiModelsJson,
   withPiInjectedAgentsFile,
 } from "./pi.ts"
 
@@ -16,6 +17,26 @@ afterAll(async () => {
 })
 
 describe("Pi adapter command resolution", () => {
+  test("registers uncatalogued openai-compatible models on the completions API", () => {
+    const route = {
+      match: "xty/*",
+      kind: "openai-compatible" as const,
+      apiKeyEnv: "SKVM_XTY_API_KEY",
+      baseUrl: "https://svip.xty.app/v1",
+    }
+    expect(JSON.parse(selectManagedPiModelsJson(route, "deepseek-v4-pro", false)!)).toEqual({
+      providers: {
+        openai: {
+          baseUrl: "https://svip.xty.app/v1",
+          models: [{ id: "deepseek-v4-pro", api: "openai-completions" }],
+        },
+      },
+    })
+    expect(JSON.parse(selectManagedPiModelsJson(route, "gpt-5.4", true)!)).toEqual({
+      providers: { openai: { baseUrl: "https://svip.xty.app/v1" } },
+    })
+  })
+
   test("uses Bun's cross-platform PATH resolver without spawning Unix which", () => {
     const calls: string[] = []
     const resolved = resolvePiOnPath((name) => {

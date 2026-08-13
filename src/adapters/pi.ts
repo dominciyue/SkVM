@@ -4,9 +4,11 @@ import type {
   AgentAdapter,
   AdapterConfig,
   AdapterConfigMode,
+  ProviderRoute,
   RunResult,
   SkillBundle,
 } from "../core/types.ts"
+import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent"
 import { createLogger } from "../core/logger.ts"
 import { getAdapterRepoDir, getAdapterSettings } from "../core/config.ts"
 import { envForRoute, resolveRoute, validateModelIdForRoute } from "../providers/registry.ts"
@@ -27,6 +29,8 @@ import {
   piEventsToRunRecord,
   toPiModel,
   renderPiBaseUrlOverride,
+  renderPiModelRegistration,
+  splitPiModel,
 } from "../core/pi-runtime.ts"
 
 const log = createLogger("pi")
@@ -121,6 +125,16 @@ export async function withPiInjectedAgentsFile<T>(
     if (previous) await writeFile(agentsPath, previous)
     else await rm(agentsPath, { force: true })
   }
+}
+
+export function selectManagedPiModelsJson(
+  route: ProviderRoute,
+  modelId: string,
+  isCatalogued: boolean,
+): string | null {
+  return isCatalogued
+    ? renderPiBaseUrlOverride(route)
+    : renderPiModelRegistration(route, modelId)
 }
 
 const tierGlobal: Tier = async () => {
@@ -226,15 +240,14 @@ export class PiAdapter implements AgentAdapter {
       symlinkIfExists(path.join(PI_USER_AGENT_DIR, "tools"), path.join(root, "tools"))
       symlinkIfExists(path.join(PI_USER_AGENT_DIR, "bin"), path.join(root, "bin"))
     } else {
-      // Managed: start from empty. The pi CLI has a relaxed fallback that
-      // synthesises a model entry for uncatalogued ids, so we never need to
-      // register model ids here — doing so would clobber built-in metadata
-      // (reasoning / contextWindow / maxTokens) for any id pi already knows.
-      // We only write models.json when an openai-compatible baseUrl override
-      // is needed to redirect the endpoint. Auth flows in via env vars derived
-      // from the route — no auth.json needed.
+      // Managed: preserve built-in metadata for catalogued models, but register
+      // uncatalogued ids explicitly. Pi's CLI fallback copies the provider's
+      // default model, which would make an unknown openai-compatible id inherit
+      // openai-responses instead of the gateway's chat/completions dialect.
       const route = resolveRoute(config.model)
-      const doc = renderPiBaseUrlOverride(route)
+      const { provider, modelId } = splitPiModel(this.model)
+      const registry = ModelRegistry.inMemory(AuthStorage.inMemory())
+      const doc = selectManagedPiModelsJson(route, modelId, registry.find(provider, modelId) !== undefined)
       if (doc) await Bun.write(path.join(root, "models.json"), doc)
     }
 
