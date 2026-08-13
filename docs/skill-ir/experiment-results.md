@@ -469,6 +469,10 @@ raw workdir/qualification/artifact 文件。治理规则：
    contribution-v2 已通过 baseline admission 与 source-audited base IR；v4 已排除 execution blocker，但
    static paired quality gate failed。停止该案例的 artifact 纵切，转向另一个 contract-qualified 方法案例；
    不回到旧饱和分母，也不消费 held-out。
+9. 通用 dual-source residual admission 与 Final IR v3 development path 已完成 synthetic eligible 端到端验证。
+   对 Env Manager v3 冻结 static-fidelity 输入的真实重算得到 `no-reproducible-residual`、0 records、0 repairs；
+   compact 证据为 `results/skill-ir/env-manager-v3-static-fidelity-v1/residual-admission.json`。该结果不计
+   dynamic-profile 或优化正例；下一付费实验应选择新的 prospective candidate，而不是为 Env v3 制造残差。
 
 ## 14. 三模型族 development 小面板 v4
 

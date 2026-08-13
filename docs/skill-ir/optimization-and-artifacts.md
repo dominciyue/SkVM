@@ -65,6 +65,52 @@ solidify` 产品路径。后续应选择一个在 original 与 ir-static 上跨�
 residual，先完成单模型 development 竖切；若找不到这种案例，宁可继续记录停止原因，也不为提高 dynamic 覆盖率
 制造 residual。固化完成后仍须比较 profile/compile/package/all-attempt 成本，质量不回归才有资格讨论效率。
 
+### 3.2 通用双源残差准入
+
+历史 `repair-evidence/v1` 只能处理 Env Manager v1：criterion mapping 与 `lineageCatalog` 固定在代码中，而且可
+直接消费任意 paired scored rows，没有强制核对 static gate、execution envelope、source audit 或固定分母。它
+保留用于冻结 package 兼容，不再作为新案例入口。
+
+新的准入合同采用声明式 catalog，并执行以下顺序：
+
+1. 解析 v2 static lock、gate、execution envelopes 与 selected scored rows，使用当前同版本 gate builder 重算
+   compact gate；任何身份或分母不一致都 fail closed；
+2. 验证 profile-empty base IR 与 source audit，并检查 catalog 的每个 evidence target 已存在于 audit mappings；
+3. 对每个 matched `original | ir-static` pair 计算 criterion transition；regression 立即阻断，resolved 只记录；
+4. 对 reproduced/newly-observable residual 先按 criterion 判断任务内重复，再判断跨任务数；只有稳定 criterion 才
+   可按显式 directive id 合并；
+5. 输出互斥状态：`eligible`、`no-reproducible-residual`、`blocked-catalog-scope`、`blocked-static-gate`、
+   `blocked-infrastructure`、`blocked-incomplete-denominator`、`blocked-static-regression` 或
+   `blocked-unmapped-residual`；只有第一种可生成 overlay/Final IR。
+
+Evidence 只持久化 value-free identity、criterion transition、计数和 digest ref，不复制 evaluator details、模型
+原文、task expected、secret 或绝对路径。若 catalog 或输入对象出现这些 sink，schema/runner 必须拒绝。Final IR
+provenance 通过 repair evidence digest 传递绑定 static gate、catalog、source audit 和 scored results。该链路只
+收敛动态候选的准入与构造；artifact compiler 仍需按公开领域合同 solidify 并通过独立 development/cost gate。
+
+权威 runner 是 `dual-source-residual-admission-run.ts`。它按同一 execution-envelope 选择器重算 gate，只将实际
+selected block 的 `original | ir-static` 行送入 residual admission；reserve/replacement scored rows 仍绑定在
+输入 digest 与 all-attempt 证据中，但不得混入 residual 分母。JSON 对象键顺序不影响 gate 等价性，任一字段值、
+分母或 digest 漂移仍阻断。Static-only criterion 只有在声明式 mapping 的 prerequisite 在 original 中明确失败时
+才可标记 `newly-observable`，无法解释的 criterion-set drift 按分母不完整停止。
+
+`dual-source-feedback-run.ts --repair-evidence=<eligible.json> --out-dir=<dir>` 消费 v2 admitted evidence，生成 typed
+overlay、Final IR、summary 与 `skill-ir-final-provenance/v3`。v3 provenance 显式携带 lock/gate/envelope/results/
+base IR/source audit/catalog 的传递 path+digest，并在读取端交叉核对 evidence、skill、experiment、catalog 与
+repair catalog。它只授权 `ir-pgo-dev` development validation；在独立 promotion 合同出现前，`ir-pgo` held-out
+consumption fail closed。`no-reproducible-residual` 与任何 blocked status 都不会生成 overlay/Final IR。
+
+Catalog 的 `scope` 分开历史诊断与前瞻授权。`prospective-development` 必须通过 current-HEAD implementation
+closure 的完整 lock digest 校验；`analysis-only` 仅可在冻结实现已因后续公共修复漂移时重验 lock schema、全部
+frozen semantic inputs、source audit、固定分母和 gate 重算，输出只能是诊断/停止报告。即使历史 residual 看似
+稳定，`analysis-only` 也返回 `blocked-catalog-scope`，不得生成 overlay、Final IR 或补写旧 claim。
+
+Env Manager v3 的冻结 static-fidelity 证据已用 `analysis-only` catalog 复核：12/12 selected rows、4/4 triplets、
+0 infrastructure/0 regression，original 与 ir-static 的三个公开 criterion 均通过，因此报告为
+`no-reproducible-residual`、0 records、0 repairs。权威 compact 结果是
+`results/skill-ir/env-manager-v3-static-fidelity-v1/residual-admission.json`。这证明“合法无残差”可被持久化并
+停止，不是 dynamic-profile 成功，也不改变 Env v3 的 fidelity-preserving 分类。
+
 ## 4. Final IR Provenance
 
 Final IR candidate 至少绑定：

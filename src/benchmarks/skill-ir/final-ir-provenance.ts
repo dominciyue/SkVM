@@ -3,10 +3,19 @@ import { dirname, isAbsolute, join, relative } from "node:path";
 import { z } from "zod";
 import type { CorpusId } from "./corpus-registry";
 import type { ScoredAgentRunRow } from "./scoring";
+import { DualSourceRepairEvidenceV2Schema } from "./repair-evidence";
 import { sha256Bytes } from "./source-fixture";
 
 const DigestPathSchema = z.object({
   path: z.string().min(1),
+  sha256: z.string().regex(/^[0-9a-f]{64}$/i),
+});
+
+const PortableDigestPathSchema = z.object({
+  path: z.string().min(1).refine((value) => {
+    if (value.includes("\\") || value.startsWith("/") || /^[A-Za-z]:/.test(value)) return false;
+    return value.split("/").every((segment) => segment.length > 0 && segment !== "." && segment !== "..");
+  }, "provenance path must be repository-relative or artifact-relative"),
   sha256: z.string().regex(/^[0-9a-f]{64}$/i),
 });
 
@@ -102,6 +111,15 @@ const FinalIRSkillProvenanceSchema = z.object({
   annotationCount: z.number().int().nonnegative(),
 });
 
+const FinalIRSkillProvenanceV3Schema = z.object({
+  skillId: z.string().min(1),
+  sourceSha256: z.string().regex(/^[0-9a-f]{64}$/i),
+  baseIR: PortableDigestPathSchema,
+  overlay: PortableDigestPathSchema,
+  finalIR: PortableDigestPathSchema,
+  annotationCount: z.number().int().nonnegative(),
+});
+
 const FinalIRProvenanceV1Schema = z.object({
   schemaVersion: z.literal("skill-ir-final-provenance/v1"),
   corpus: z.enum(["calibration", "pilot"]),
@@ -128,15 +146,53 @@ const FinalIRProvenanceV2Schema = z.object({
   skills: z.array(FinalIRSkillProvenanceSchema),
 });
 
+const FinalIRProvenanceV3Schema = z.object({
+  schemaVersion: z.literal("skill-ir-final-provenance/v3"),
+  corpus: z.literal("pilot"),
+  sourceSystems: z.tuple([z.literal("original"), z.literal("ir-static")]),
+  evidencePolicy: z.literal("dual-source-residual/v2"),
+  experimentId: z.string().min(1),
+  catalogId: z.string().min(1),
+  repairCatalog: z.enum(["typed-output-repair/v1", "typed-output-repair/v2"]),
+  taskSplit: z.literal("development"),
+  manifest: PortableDigestPathSchema,
+  results: PortableDigestPathSchema,
+  repairEvidence: PortableDigestPathSchema,
+  constructionConfigs: ConstructionConfigsSchema,
+  skills: z.array(FinalIRSkillProvenanceV3Schema),
+  evidenceBindings: z.object({
+    staticLock: PortableDigestPathSchema,
+    staticGate: PortableDigestPathSchema,
+    executionEnvelopes: PortableDigestPathSchema,
+    scoredResults: PortableDigestPathSchema,
+    baseIR: PortableDigestPathSchema,
+    sourceAudit: PortableDigestPathSchema,
+    mappingCatalog: PortableDigestPathSchema,
+  }).strict(),
+});
+
 export const FinalIRProvenanceSchema = z.discriminatedUnion("schemaVersion", [
   FinalIRProvenanceV1Schema,
   FinalIRProvenanceV2Schema,
+  FinalIRProvenanceV3Schema,
 ]);
 
 export type FinalIRProvenance = z.infer<typeof FinalIRProvenanceSchema>;
 export type FinalIRProvenanceV1 = z.infer<typeof FinalIRProvenanceV1Schema>;
 export type FinalIRProvenanceV2 = z.infer<typeof FinalIRProvenanceV2Schema>;
+export type FinalIRProvenanceV3 = z.infer<typeof FinalIRProvenanceV3Schema>;
 export type ConstructionConfig = z.infer<typeof ConstructionConfigSchema>;
+
+export function assertFinalIRProvenanceUse(
+  record: FinalIRProvenance,
+  use: "development-validation" | "held-out-consumption",
+): void {
+  if (use === "held-out-consumption" && record.schemaVersion === "skill-ir-final-provenance/v3") {
+    throw new Error(
+      "Final IR provenance v3 is development-only until a separate promotion contract authorizes held-out consumption",
+    );
+  }
+}
 
 export function validateFinalIRProvenanceRecord(
   candidate: unknown,
@@ -280,7 +336,9 @@ export function validateConstructionConfigsMatchRows(
 ): void {
   const expected = deriveConstructionConfigs(
     rows,
-    record.schemaVersion === "skill-ir-final-provenance/v2" ? ["original", "ir-static"] : ["original"],
+    record.schemaVersion === "skill-ir-final-provenance/v2"
+      || record.schemaVersion === "skill-ir-final-provenance/v3"
+      ? ["original", "ir-static"] : ["original"],
   );
   if (JSON.stringify(record.constructionConfigs) !== JSON.stringify(expected)) {
     throw new Error("Final IR provenance construction configs do not match hashed results");
@@ -427,6 +485,89 @@ export async function buildDualSourceFinalIRProvenance(opts: {
   });
 }
 
+export async function buildDualSourceFinalIRProvenanceV3(opts: {
+  rootDir: string;
+  artifactRoot: string;
+  corpus: "pilot";
+  manifestPath: string;
+  resultsPath: string;
+  repairEvidencePath: string;
+  repairCatalog?: "typed-output-repair/v1" | "typed-output-repair/v2";
+  skills: { skillId: string; sourceSha256: string; baseIRPath: string; annotationCount: number }[];
+}): Promise<FinalIRProvenanceV3> {
+  const [scoredRows, evidenceBytes] = await Promise.all([
+    readScoredRows(opts.resultsPath),
+    readFile(opts.repairEvidencePath),
+  ]);
+  assertDualSourcePairs(scoredRows);
+  const evidence = DualSourceRepairEvidenceV2Schema.parse(JSON.parse(evidenceBytes.toString("utf8")));
+  if (evidence.admission.status !== "eligible" || evidence.repairs.length === 0) {
+    throw new Error(`Final IR provenance v3 requires eligible repair evidence, got ${evidence.admission.status}`);
+  }
+  if (evidence.catalogScope !== "prospective-development") {
+    throw new Error("Final IR provenance v3 requires a prospective-development catalog");
+  }
+  if (opts.repairCatalog && opts.repairCatalog !== evidence.repairCatalog) {
+    throw new Error("Final IR provenance v3 repair catalog mismatch");
+  }
+  if (opts.skills.length !== 1 || opts.skills[0]!.skillId !== evidence.skillId) {
+    throw new Error("Final IR provenance v3 repair evidence skill mismatch");
+  }
+  const bindings = Object.entries(evidence.bindings) as Array<[
+    keyof typeof evidence.bindings,
+    (typeof evidence.bindings)[keyof typeof evidence.bindings],
+  ]>;
+  for (const [name, binding] of bindings) {
+    const recordedPath = resolveRecordedPath(opts.rootDir, binding.path);
+    if ((await digestFile(recordedPath)) !== binding.sha256) {
+      throw new Error(`Final IR provenance v3 ${name} binding digest mismatch`);
+    }
+  }
+  if (evidence.bindings.scoredResults.sha256 !== await digestFile(opts.resultsPath)) {
+    throw new Error("Final IR provenance v3 scored results binding mismatch");
+  }
+  if (evidence.bindings.scoredResults.path !== portableRelative(opts.rootDir, opts.resultsPath)) {
+    throw new Error("Final IR provenance v3 scored results binding path mismatch");
+  }
+  if (evidence.bindings.baseIR.sha256 !== await digestFile(opts.skills[0]!.baseIRPath)) {
+    throw new Error("Final IR provenance v3 base IR binding mismatch");
+  }
+  if (evidence.bindings.baseIR.path !== portableRelative(opts.rootDir, opts.skills[0]!.baseIRPath)) {
+    throw new Error("Final IR provenance v3 base IR binding path mismatch");
+  }
+  const skills = await Promise.all(opts.skills.map(async (skill) => {
+    const overlayPath = join(opts.artifactRoot, "overlay", `${skill.skillId}.json`);
+    const finalIRPath = join(opts.artifactRoot, "final-ir", `${skill.skillId}.json`);
+    return {
+      skillId: skill.skillId,
+      sourceSha256: skill.sourceSha256,
+      baseIR: { path: portableRelative(opts.rootDir, skill.baseIRPath), sha256: await digestFile(skill.baseIRPath) },
+      overlay: { path: portableRelative(opts.artifactRoot, overlayPath), sha256: await digestFile(overlayPath) },
+      finalIR: { path: portableRelative(opts.artifactRoot, finalIRPath), sha256: await digestFile(finalIRPath) },
+      annotationCount: skill.annotationCount,
+    };
+  }));
+  return FinalIRProvenanceV3Schema.parse({
+    schemaVersion: "skill-ir-final-provenance/v3",
+    corpus: opts.corpus,
+    sourceSystems: ["original", "ir-static"],
+    evidencePolicy: "dual-source-residual/v2",
+    experimentId: evidence.experimentId,
+    catalogId: evidence.catalogId,
+    repairCatalog: evidence.repairCatalog,
+    taskSplit: "development",
+    manifest: { path: portableRelative(opts.rootDir, opts.manifestPath), sha256: await digestFile(opts.manifestPath) },
+    results: { path: portableRelative(opts.rootDir, opts.resultsPath), sha256: await digestFile(opts.resultsPath) },
+    repairEvidence: {
+      path: portableRelative(opts.artifactRoot, opts.repairEvidencePath),
+      sha256: sha256Bytes(evidenceBytes),
+    },
+    evidenceBindings: evidence.bindings,
+    constructionConfigs: deriveConstructionConfigs(scoredRows, ["original", "ir-static"]),
+    skills,
+  });
+}
+
 function resolveRecordedPath(baseDir: string, path: string): string {
   return isAbsolute(path) ? path : join(baseDir, path);
 }
@@ -460,10 +601,51 @@ export async function readAndValidateFinalIRProvenance(opts: {
     throw new Error("Final IR provenance results digest mismatch");
   }
   validateConstructionConfigsMatchRows(record, await readScoredRows(resultsPath));
-  if (record.schemaVersion === "skill-ir-final-provenance/v2") {
+  if (record.schemaVersion === "skill-ir-final-provenance/v2"
+    || record.schemaVersion === "skill-ir-final-provenance/v3") {
     const repairEvidencePath = resolveRecordedPath(artifactRoot, record.repairEvidence.path);
     if ((await digestFile(repairEvidencePath)) !== record.repairEvidence.sha256) {
       throw new Error("Final IR provenance repair evidence digest mismatch");
+    }
+    if (record.schemaVersion === "skill-ir-final-provenance/v3") {
+      const evidence = DualSourceRepairEvidenceV2Schema.parse(JSON.parse(await readFile(repairEvidencePath, "utf8")));
+      if (evidence.admission.status !== "eligible" || evidence.repairs.length === 0) {
+        throw new Error("Final IR provenance v3 repair evidence is not eligible");
+      }
+      if (evidence.catalogScope !== "prospective-development") {
+        throw new Error("Final IR provenance v3 requires prospective-development repair evidence");
+      }
+      const selectedSkill = record.skills[0];
+      if (record.skills.length !== 1 || !selectedSkill || evidence.skillId !== selectedSkill.skillId) {
+        throw new Error("Final IR provenance v3 repair evidence skill mismatch");
+      }
+      if (evidence.experimentId !== record.experimentId) {
+        throw new Error("Final IR provenance v3 repair evidence experiment mismatch");
+      }
+      if (evidence.catalogId !== record.catalogId) {
+        throw new Error("Final IR provenance v3 repair evidence catalog mismatch");
+      }
+      if (evidence.repairCatalog !== record.repairCatalog) {
+        throw new Error("Final IR provenance v3 repair catalog mismatch");
+      }
+      if (evidence.bindings.scoredResults.path !== record.results.path
+        || evidence.bindings.scoredResults.sha256 !== record.results.sha256) {
+        throw new Error("Final IR provenance v3 results binding mismatch");
+      }
+      if (evidence.bindings.baseIR.path !== selectedSkill.baseIR.path
+        || evidence.bindings.baseIR.sha256 !== selectedSkill.baseIR.sha256) {
+        throw new Error("Final IR provenance v3 base IR binding mismatch");
+      }
+      for (const [name, binding] of Object.entries(evidence.bindings)) {
+        const provenanceBinding = record.evidenceBindings[name as keyof typeof record.evidenceBindings];
+        if (binding.path !== provenanceBinding.path || binding.sha256 !== provenanceBinding.sha256) {
+          throw new Error(`Final IR provenance v3 ${name} binding path mismatch`);
+        }
+        const bindingPath = resolveRecordedPath(opts.rootDir, binding.path);
+        if ((await digestFile(bindingPath)) !== binding.sha256) {
+          throw new Error(`Final IR provenance v3 ${name} binding digest mismatch`);
+        }
+      }
     }
   }
 

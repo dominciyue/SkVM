@@ -591,6 +591,33 @@ original pass + static fail -> static regression，阻断 Final IR
 Overlay 只包含公开可修复的 typed evidence。Schema/location 类型残差必须来自 ir-static 审计；original
 只证明失败是否持续出现。Scorer expected 金标、held-out、raw secret、绝对路径与模型原文禁止进入 overlay。
 
+双源路径的通用 successor 使用声明式 repair mapping，而不是 core 内的 skill/criterion 分支。Mapping 只允许
+引用 criterion id、typed repair、prerequisite 以及已经由 `skill-ir-source-audit/v1` 验证的 target refs；catalog
+自身与 source audit、base IR、static v2 lock/gate、execution envelopes 和 selected scored rows 一并按
+path+sha256 绑定。准入必须重算静态 gate 并核对固定分母，不能仅凭任意 scored JSONL 构造 overlay。
+
+残差稳定性同时要求至少两个预注册 development task，并在每个计入的 task 上至少两个 matched repetitions。
+阈值按 criterion 独立计算；不同一次性 criterion failure 不得先合并成同一 repair 来凑计数。Static gate 未通过、
+分母/评分不完整、存在 execution blocker、original pass/static fail regression，或达到稳定阈值但没有公开 mapping
+时均阻断。合法矩阵没有稳定 residual 时输出 `no-reproducible-residual` 并停止，不把“没有东西可 profile”当作
+基础设施错误。
+
+该 successor 的 evidence/provenance schema 提升属于语义合同变化：新证据增加 gate/catalog/source-audit 的
+传递 digest 绑定和显式 admission status。历史 `skill-ir-repair-evidence/v1`、`dual-source-residual/v1` 与 Final IR
+provenance v2 保持可读且不可覆盖，但不满足新准入，也不能被追认为当前 dynamic-profile 证据。新的 Final IR
+成功编译仍只开放 development validation；不自动产生 artifact、优化正例、held-out、跨模型或效率 claim。
+
+准入 runner 必须使用 static gate 相同的 execution-envelope selection，把 reserve/replacement attempt 保留在
+all-attempt digest/cost 中、但只审计 selected original/static rows。Static-only criterion 仅在声明式 mapping 的
+公开 prerequisite 于 original 明确失败时属于 `newly-observable`；其他 criterion-set drift 按不完整分母阻断。
+Evidence schema 自校验 admission/repair/record/稳定阈值一致性，Final IR provenance v3 显式传递所有输入绑定并
+在读取端交叉核对。v3 是 development-only construction contract；没有另一个 promotion 合同就不能被
+`ir-pgo` 用于 held-out。
+
+Env Manager v3 的冻结 static-fidelity 矩阵在该通用路径中得到 `no-reproducible-residual`：4 个 matched pairs 的
+original/static criterion 均通过，0 records、0 repairs。该停止结果验证机制，不增加 portfolio 的
+dynamic-profile 数，也不改变 fidelity-preserving/readiness 结论。
+
 ### 5.3 新 Skill 的验证预算
 
 所有新 skill 先走低成本 provenance、schema/static validation、source audit 和 deterministic lowering。

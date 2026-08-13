@@ -19,7 +19,10 @@ import {
   type SkillIRBenchmarkTask,
 } from "./real-agent";
 import { runWithInfrastructureRetries } from "./real-agent-retry";
-import { readAndValidateFinalIRProvenance } from "./final-ir-provenance";
+import {
+  assertFinalIRProvenanceUse,
+  readAndValidateFinalIRProvenance,
+} from "./final-ir-provenance";
 import { inferModelFamily } from "./promotion-policy";
 import { sha256Bytes } from "./source-fixture";
 import {
@@ -693,8 +696,16 @@ export async function buildPlan(args: RealAgentRunArgs): Promise<RealAgentRunPla
         return { skillId, sourceSha256, baseIRPath: fixture.baseIRPath };
       }),
     });
-    if (input.systems.includes("ir-pgo-dev") && provenance.schemaVersion !== "skill-ir-final-provenance/v2") {
-      throw new Error("ir-pgo-dev requires dual-source Final IR provenance v2");
+    if (input.systems.includes("ir-pgo-dev")
+      && provenance.schemaVersion !== "skill-ir-final-provenance/v2"
+      && provenance.schemaVersion !== "skill-ir-final-provenance/v3") {
+      throw new Error("ir-pgo-dev requires dual-source Final IR provenance v2 or v3");
+    }
+    if (input.systems.includes("ir-pgo-dev")) {
+      assertFinalIRProvenanceUse(provenance, "development-validation");
+    }
+    if (input.systems.includes("ir-pgo")) {
+      assertFinalIRProvenanceUse(provenance, "held-out-consumption");
     }
   }
   const plan: RealAgentRunPlanEntry[] = [];

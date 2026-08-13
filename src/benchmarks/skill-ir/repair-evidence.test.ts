@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import type { ScoredAgentRunRow } from "./scoring";
-import { buildDualSourceRepairEvidence } from "./repair-evidence";
+import {
+  DualSourceRepairMappingCatalogSchema,
+  DualSourceRepairEvidenceV2Schema,
+  buildDualSourceRepairAdmission,
+  buildDualSourceRepairEvidence,
+  type DualSourceRepairAdmissionInput,
+  type DualSourceRepairAdmissionStatus,
+} from "./repair-evidence";
 
 function criterion(id: string, pass: boolean) {
   return { method: "custom", id, name: id, pass, score: pass ? 1 : 0, details: pass ? "Criterion passed" : "Criterion failed" };
@@ -183,5 +190,270 @@ describe("dual-source repair evidence", () => {
     expect(() => buildDualSourceRepairEvidence([original, original, staticRow], {
       skillId: "env-manager", lineageCatalog: "env-manager/v1", minDistinctTasks: 1,
     })).toThrow("duplicate");
+  });
+});
+
+function admissionInput(rows: ScoredAgentRunRow[] = pairedResidualRows()): DualSourceRepairAdmissionInput {
+  return {
+    skillId: "env-manager",
+    experimentId: "env-manager-static-v1",
+    staticGate: {
+      schemaVersion: "skill-ir-static-development-gate-report/v2",
+      experimentId: "env-manager-static-v1",
+      passed: true,
+      selection: { complete: true, selectedTriplets: 4, selectedRows: 12, attemptedRows: 12 },
+      selected: { regressedPairs: 0, hardGateRegressions: 0, activeExecutionFailures: 0 },
+      allAttempts: { parserOrRuntimeBlockers: 0 },
+      gates: { selectedDenominatorComplete: true, selectedScoringComplete: true, noExecutionBlocker: true },
+      interpretation: { residualAuditAllowed: true },
+    },
+    bindings: {
+      staticLock: { path: "lock.json", sha256: "1".repeat(64) },
+      staticGate: { path: "gate.json", sha256: "2".repeat(64) },
+      executionEnvelopes: { path: "envelopes.jsonl", sha256: "3".repeat(64) },
+      scoredResults: { path: "scored.jsonl", sha256: "4".repeat(64) },
+      baseIR: { path: "base-ir.json", sha256: "5".repeat(64) },
+      sourceAudit: { path: "source-audit.json", sha256: "6".repeat(64) },
+      mappingCatalog: { path: "mapping.json", sha256: "7".repeat(64) },
+    },
+    sourceAuditTargetRefs: ["rule:rule-json-schema-contract", "rule:rule-source-qualified-findings"],
+    catalog: {
+      schemaVersion: "skill-ir-dual-source-repair-mapping/v1",
+      catalogId: "env-manager-public-residuals",
+      skillId: "env-manager",
+      scope: "prospective-development",
+      repairCatalog: "typed-output-repair/v1",
+      sourceAudit: { path: "source-audit.json", sha256: "6".repeat(64) },
+      criteria: [
+        {
+          criterionId: "env-classification",
+          directiveId: "repair-source-qualified-finding",
+          repairKind: "source-qualified-finding",
+          targetRef: "rule-source-qualified-findings",
+          evidenceTargetRefs: ["rule:rule-source-qualified-findings"],
+          prerequisites: ["env-required-artifacts"],
+        },
+        {
+          criterionId: "env-schema-rules",
+          directiveId: "repair-json-schema-contract",
+          repairKind: "json-schema-contract",
+          targetRef: "rule-json-schema-contract",
+          evidenceTargetRefs: ["rule:rule-json-schema-contract"],
+          prerequisites: ["env-required-artifacts"],
+        },
+      ],
+      stability: { minDistinctTasks: 2, minRepetitionsPerTask: 2 },
+    },
+    rows,
+  };
+}
+
+describe("generic dual-source residual admission", () => {
+  test("admits only per-criterion residuals reproduced across tasks and repetitions", () => {
+    const evidence = buildDualSourceRepairAdmission(admissionInput());
+
+    expect(evidence).toMatchObject({
+      schemaVersion: "skill-ir-repair-evidence/v2",
+      policyVersion: "dual-source-residual/v2",
+      admission: { status: "eligible" },
+      catalogId: "env-manager-public-residuals",
+      catalogScope: "prospective-development",
+      repairCatalog: "typed-output-repair/v1",
+      repairs: [
+        { id: "repair-json-schema-contract", distinctTaskCount: 2, minRepetitionsPerTask: 2 },
+        { id: "repair-source-qualified-finding", distinctTaskCount: 2, minRepetitionsPerTask: 2 },
+      ],
+    });
+    expect(evidence.bindings.mappingCatalog.sha256).toBe("7".repeat(64));
+  });
+
+  test("returns a typed stop when the static gate passed but no stable residual remains", () => {
+    const rows = ["node-dev", "vite-dev"].flatMap((task) => [1, 2].flatMap((runIndex) => [
+      row("original", task, runIndex, [criterion("env-schema-rules", false)]),
+      row("ir-static", task, runIndex, [criterion("env-schema-rules", true)]),
+    ]));
+
+    const evidence = buildDualSourceRepairAdmission(admissionInput(rows));
+
+    expect(evidence.admission.status).toBe("no-reproducible-residual");
+    expect(evidence.repairs).toEqual([]);
+    expect(evidence.resolvedCriteria).toEqual(["env-schema-rules"]);
+  });
+
+  test("does not pool different one-task criteria into one repair", () => {
+    const rows = [1, 2].flatMap((runIndex) => [
+      row("original", "node-dev", runIndex, [schemaFail]),
+      row("ir-static", "node-dev", runIndex, [schemaFail]),
+      row("original", "vite-dev", runIndex, [classificationFail]),
+      row("ir-static", "vite-dev", runIndex, [classificationFail]),
+    ]);
+
+    const evidence = buildDualSourceRepairAdmission(admissionInput(rows));
+
+    expect(evidence.admission.status).toBe("no-reproducible-residual");
+    expect(evidence.repairs).toEqual([]);
+  });
+
+  test("admits a stable static-only residual only when its public prerequisite failed in original", () => {
+    const rows = ["node-dev", "vite-dev"].flatMap((task) => [1, 2].flatMap((runIndex) => [
+      row("original", task, runIndex, [criterion("env-required-artifacts", false)]),
+      row("ir-static", task, runIndex, [requiredPass, schemaFail]),
+    ]));
+
+    const evidence = buildDualSourceRepairAdmission(admissionInput(rows));
+
+    expect(evidence.admission.status).toBe("eligible");
+    expect(evidence.records).toHaveLength(4);
+    expect(evidence.records.every((record) => record.lineage === "newly-observable")).toBe(true);
+  });
+
+  test("blocks unexplained static-only criterion drift", () => {
+    const rows = ["node-dev", "vite-dev"].flatMap((task) => [1, 2].flatMap((runIndex) => [
+      row("original", task, runIndex, [requiredPass]),
+      row("ir-static", task, runIndex, [requiredPass, schemaFail]),
+    ]));
+
+    expect(buildDualSourceRepairAdmission(admissionInput(rows)).admission.status)
+      .toBe("blocked-incomplete-denominator");
+  });
+
+  test("does not block on an unmapped residual below the stability threshold", () => {
+    const base = admissionInput();
+    const rows = pairedResidualRows().map((candidate) => candidate.task === "node-dev" && candidate.runIndex === 1
+      ? {
+          ...candidate,
+          evaluationSummary: [...candidate.evaluationSummary!, criterion("one-off-public-criterion", false)],
+        }
+      : candidate);
+
+    const evidence = buildDualSourceRepairAdmission({ ...base, rows });
+
+    expect(evidence.admission.status).toBe("eligible");
+    expect(evidence.unmappedCriteria).toEqual([]);
+    expect(evidence.unstableCriteria).toContain("one-off-public-criterion");
+  });
+
+  test("blocks a stable residual when the catalog is analysis-only", () => {
+    const base = admissionInput();
+    const evidence = buildDualSourceRepairAdmission({
+      ...base,
+      catalog: { ...base.catalog, scope: "analysis-only" },
+    });
+
+    expect(evidence.admission.status).toBe("blocked-catalog-scope");
+    expect(evidence.repairs).toEqual([]);
+  });
+
+  test("binds the selected typed repair catalog into admission evidence", () => {
+    const base = admissionInput();
+    const evidence = buildDualSourceRepairAdmission({
+      ...base,
+      catalog: { ...base.catalog, repairCatalog: "typed-output-repair/v2" },
+    });
+
+    expect(evidence.repairCatalog).toBe("typed-output-repair/v2");
+  });
+
+  test("fails closed on criterion-set drift and a mismatched pair denominator", () => {
+    const base = admissionInput();
+    const criterionDrift = base.rows.map((candidate, index) => index === 0
+      ? { ...candidate, evaluationSummary: candidate.evaluationSummary!.slice(1) }
+      : candidate);
+    expect(buildDualSourceRepairAdmission({ ...base, rows: criterionDrift }).admission.status)
+      .toBe("blocked-incomplete-denominator");
+    expect(buildDualSourceRepairAdmission({ ...base, rows: base.rows.slice(0, 2) }).admission.status)
+      .toBe("blocked-incomplete-denominator");
+    expect(buildDualSourceRepairAdmission({
+      ...base,
+      staticGate: {
+        ...base.staticGate,
+        selection: { ...base.staticGate.selection, selectedRows: 11 },
+      },
+    }).admission.status).toBe("blocked-incomplete-denominator");
+  });
+
+  test("blocks incomplete, infrastructure, gate-failed, regression, and unmapped residual evidence", () => {
+    const base = admissionInput();
+    const regressionRows = ["node-dev", "vite-dev"].flatMap((task) => [1, 2].flatMap((runIndex) => [
+      row("original", task, runIndex, [criterion("env-schema-rules", true)]),
+      row("ir-static", task, runIndex, [criterion(
+        "env-schema-rules",
+        !(task === "node-dev" && runIndex === 1),
+      )]),
+    ]));
+    const cases: Array<[Partial<DualSourceRepairAdmissionInput>, DualSourceRepairAdmissionStatus]> = [
+      [{ staticGate: { ...base.staticGate, selection: { ...base.staticGate.selection, complete: false } } }, "blocked-incomplete-denominator"],
+      [{ staticGate: { ...base.staticGate, selected: { ...base.staticGate.selected, activeExecutionFailures: 1 } } }, "blocked-infrastructure"],
+      [{ staticGate: { ...base.staticGate, passed: false, interpretation: { residualAuditAllowed: false } } }, "blocked-static-gate"],
+      [{ rows: regressionRows }, "blocked-static-regression"],
+      [{ catalog: { ...base.catalog, criteria: [] } }, "blocked-unmapped-residual"],
+    ];
+
+    for (const [overrides, expected] of cases) {
+      const evidence = buildDualSourceRepairAdmission({ ...base, ...overrides });
+      expect(evidence.admission.status).toBe(expected);
+      expect(evidence.repairs).toEqual([]);
+    }
+  });
+
+  test("requires public source-audit targets and rejects forbidden sinks", () => {
+    const base = admissionInput();
+    expect(() => buildDualSourceRepairAdmission({
+      ...base,
+      sourceAuditTargetRefs: ["rule:rule-json-schema-contract"],
+    })).toThrow("source-audit target");
+    expect(() => buildDualSourceRepairAdmission({
+      ...base,
+      catalog: {
+        ...base.catalog,
+        sourceAudit: { ...base.catalog.sourceAudit, sha256: "8".repeat(64) },
+      },
+    })).toThrow("source audit binding");
+    expect(() => DualSourceRepairMappingCatalogSchema.parse({
+      ...base.catalog,
+      expected: { secret: "TEST_ONLY_GOLD" },
+    })).toThrow();
+  });
+
+  test("rejects one directive id mapped to incompatible repair semantics", () => {
+    const base = admissionInput();
+    expect(() => DualSourceRepairMappingCatalogSchema.parse({
+      ...base.catalog,
+      criteria: base.catalog.criteria.map((mapping, index) => index === 0
+        ? { ...mapping, directiveId: "repair-shared" }
+        : { ...mapping, directiveId: "repair-shared" }),
+    })).toThrow("incompatible repair semantics");
+    expect(() => DualSourceRepairMappingCatalogSchema.parse({
+      ...base.catalog,
+      criteria: base.catalog.criteria.map((mapping, index) => index === 0
+        ? { ...mapping, targetRef: "rule-wrong-template" }
+        : mapping),
+    })).toThrow("typed repair target");
+  });
+
+  test("rejects internally inconsistent admitted evidence", () => {
+    const eligible = buildDualSourceRepairAdmission(admissionInput());
+    expect(() => DualSourceRepairEvidenceV2Schema.parse({
+      ...eligible,
+      admission: { status: "eligible", reasons: ["contradiction"] },
+    })).toThrow("eligible evidence cannot contain stop reasons");
+    expect(() => DualSourceRepairEvidenceV2Schema.parse({
+      ...eligible,
+      admission: { status: "no-reproducible-residual", reasons: ["none"] },
+    })).toThrow("stopped evidence cannot contain repairs");
+    expect(() => DualSourceRepairEvidenceV2Schema.parse({
+      ...eligible,
+      repairs: eligible.repairs.map((repair) => ({ ...repair, distinctTaskCount: 1 })),
+    })).toThrow("repair stability is below the admitted threshold");
+    expect(() => DualSourceRepairEvidenceV2Schema.parse({
+      ...eligible,
+      records: [],
+    })).toThrow("repair evidence ids must resolve to admitted records");
+    expect(() => DualSourceRepairEvidenceV2Schema.parse({
+      ...eligible,
+      repairs: eligible.repairs.map((repair, index) => index === 0
+        ? { ...repair, observationCount: repair.observationCount + 1 }
+        : repair),
+    })).toThrow("repair evidence counts");
   });
 });

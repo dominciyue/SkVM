@@ -59,6 +59,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   original 无回退；artifact 四臂唯一矩阵随后 16/16、4/4 quartets、0 infra，validated artifact 4/4、mean
   1.0、0 regression、runtime model tokens 0。该结果证明第二 phenotype 的 artifact fidelity，但编译成本与
   break-even 未闭合，不能作为第二个 readiness 优化正例；held-out 仍关闭。
+- 通用双源 residual admission 已从 Env 特化路径中拆出：声明式 mapping 绑定 static v2 lock/gate/envelopes/
+  selected scored rows/base IR/source audit，按 criterion 同时要求跨任务与任务内重复。Eligible evidence 可通过
+  同一命令入口编译为 typed overlay、Final IR 与 development-only provenance v3；blocked/无残差都停止。
+  Env Manager v3 当前冻结 static evidence 的真实复核为 `no-reproducible-residual`、0 repairs，因此没有生成
+  dynamic Final IR，也没有改变其 fidelity-preserving 分类。
 - 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
   Optimizer Agent 尚未串成最终用户路径。
 - 三模型族 v4 development 小面板已执行 36 个 model attempts + 4 个 shared anchors：GPT/Claude 各 12/12
@@ -81,7 +86,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 第二 phenotype 的 artifact fidelity 与前瞻适配成本（已完成，但不等于优化正例）
 -> 第二/第三模型族 development 小面板已完成首个冻结诊断（blocked/mixed）
 -> 取得第二个 quality-positive，或完成质量等价 + 全成本 + break-even 的 efficiency-positive
--> 将已有 profiler/RepairEvidence/Final IR 串为可复用 dynamic -> solidification 闭环
+-> 通用 RepairEvidence admission -> Final IR development 闭环已完成；Env v3 合法无残差并停止
+-> 选择新的 prospective candidate，验证真实 dynamic residual -> artifact solidification，并记录全成本
 -> 继续补齐自动化并通过完整 readiness gate
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
