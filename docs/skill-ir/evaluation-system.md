@@ -522,6 +522,19 @@ Pi 0.67.68 自身目录则不包含这些新模型。源码核对确认：subpro
 超过 90 秒，另一次在正式 120 秒 idle 内无首个 response，说明其 route 仍有独立延迟波动。新 identity 可以
 保留既有 120 秒与单次 bounded reserve，但不能把该波动解释为已消失，也不能加无限重试。
 
+`three-family-development-v3` 绑定修复后的 Pi adapter，资格仍冻结失败且矩阵未启动。GPT 在 123418ms
+`semantic-complete` 且输出齐全；Claude 在 200158ms 自然结束，3 次 provider response、3 次 tool call/result、
+parser/usage 正常，但没有生成三个声明输出；DeepSeek 持续活跃至 600034ms absolute timeout，期间 16 次
+provider response、30 次 tool call/result、parser/usage 正常。与 v2 相比，Claude 的 provider 5xx 和 DeepSeek
+的 empty terminal 均已消失，证明 API 选择修复生效；v3 的剩余失败是任务履约/活跃超时，不是预语义
+基础设施故障。
+
+这也暴露 v1--v3 qualification gate 过度绑定任务结果：若用输出齐全或 semantic-complete 淘汰 route，再运行
+矩阵会按 development task 表现预筛模型。继任资格应只回答“该 route 是否能形成可信固定分母”：预语义
+transient/empty/idle 仍允许一次 reserve；parser/runtime/measurement/qualification blocker 仍阻断；已有语义
+活动的 `semantic-complete`、active timeout 与 step-limit 都准入矩阵，输出是否齐全只披露、不参与资格通过。
+这些 active/缺失输出随后在模型矩阵中按原 fixed denominator 计为失败，质量门槛没有放宽。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、

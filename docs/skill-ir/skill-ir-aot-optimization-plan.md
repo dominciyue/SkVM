@@ -270,7 +270,12 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
       120 秒内无 response 的波动，后续只由既有 bounded reserve 处理。
 12. [x] 冻结绑定新 Pi adapter digest 的 v3 identity；schema/experiment/qualification 后缀严格绑定，继续使用
     36 selected model rows + 4 shared anchors、120 秒 idle 和每 route 至多一次预语义 reserve。
-13. [ ] 运行 v3 digest-bound plan 与唯一资格；通过才启动矩阵，失败仍按原合同封存。
+13. [x] v3 digest-bound plan 与资格完成：GPT 完成且输出齐全；Claude 完成但未产出声明输出；DeepSeek 有
+    16 次 provider response/30 次工具调用后触发 600 秒 active absolute timeout。协议修复有效，但旧资格合同
+    按任务结果预筛 route，compact failure 已冻结且矩阵未启动。
+14. [ ] 以新 identity 将资格收窄为 infrastructure/observability eligibility：预语义 transient 使用一次 reserve；
+    parser/runtime/measurement blocker 阻断；semantic-complete、active timeout、step-limit 均进入矩阵固定分母，
+    outputsPresent 只披露。确定性测试与 lock 冻结后再执行唯一资格/矩阵。
 
 ### 单模型族 70% 与多模型族启动门槛
 
