@@ -258,8 +258,11 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
    活动。两项均先修公共 value-free observability，再以 v2 identity 重新资格；禁止覆盖或重跑 v1。
 9. [x] 以 TDD 修复公共 Pi 事件 allowlist 与空 terminal 分类，并创建 v2 继任 identity；v2 额外冻结
    `pi-runtime.ts`，资格 reserve 只允许替换 1 次预语义 transient，不能替换 active/semantic/quality failure。
-10. [ ] 运行 v2 的 digest-bound plan 与三 route 资格；通过则执行唯一 36-row selected model matrix 与 4 个 shared
-    artifact anchors，失败则冻结 compact qualification 并停止，不在同 identity 补跑。
+10. [x] v2 digest-bound plan 为 72 candidate model rows + 4 shared anchors；资格中 GPT 首次通过，Claude 两次
+    provider 5xx，DeepSeek 两次零 usage empty terminal。有界 reserve 已耗尽，compact failure 冻结且矩阵未
+    启动；不是 timeout 过短或 allowlist 故障，不在同 identity 补跑。
+11. [ ] 在不消费 benchmark/task/scorer 的 route-only 诊断中区分 xty route 可用性、Pi provider 协议兼容性与
+    tool-use 支持；若能预先证明替代 route，再新建 v3 identity，不能沿用或修改 v2。
 
 ### 单模型族 70% 与多模型族启动门槛
 

@@ -502,6 +502,13 @@ base lock 的共享 registry digest 与当前版本一致。该 projection 规�
 adapter 外，v2 还直接冻结 `src/core/pi-runtime.ts`，避免事件 allowlist 或空 terminal 解析在资格后漂移。v1
 结果不迁移到 v2；v2 必须重新生成 plan、重新资格，且只有资格通过才允许启动唯一矩阵。
 
+v2 资格也已冻结失败，矩阵未启动。本地 Pi 0.67.68 与两个 resource contract 均通过；GPT target 在
+145127ms 内 `semantic-complete` 且输出齐全。Claude target/reserve 分别在 28071/29267ms 返回语义前
+`provider-5xx`，均归类 `transport-transient`；DeepSeek target/reserve 分别在 4967/5069ms 返回自然结束的
+`stopReason=error`、0 usage、0 tool、空 parser，均归类 `empty-terminal`。因此这不是 120 秒 idle timeout，也
+不是单次偶发失败：有界 reserve 已耗尽。该 identity 不补跑；下一步只能在新 identity 前做 route/provider/Pi
+兼容性诊断或选择有证据的新 route，不能用放宽分类器来把失败改成通过。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、
