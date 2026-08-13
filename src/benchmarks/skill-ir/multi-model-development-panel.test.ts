@@ -6,7 +6,9 @@ import {
   buildMultiModelDevelopmentPanelQualification,
   buildMultiModelDevelopmentPanelQualificationV2,
   buildMultiModelDevelopmentPanelQualificationV3,
+  buildMultiModelDevelopmentPanelQualificationV4,
   selectMultiModelQualificationAttempt,
+  selectMultiModelInfrastructureQualificationAttempt,
   buildMultiModelDevelopmentPanelReport,
   buildMultiModelPanelEntries,
   type MultiModelDevelopmentPanelLock,
@@ -134,6 +136,41 @@ function completeEvidence() {
 }
 
 describe("multi-model development panel", () => {
+  test("v4 qualifies observable active outcomes without preselecting task success", () => {
+    expect(selectMultiModelInfrastructureQualificationAttempt([
+      { candidate: 1, classification: "semantic-complete", outputsPresent: false },
+    ])).toEqual({ selectedCandidate: 1, passed: true })
+    expect(selectMultiModelInfrastructureQualificationAttempt([
+      { candidate: 1, classification: "active-absolute-timeout", outputsPresent: false },
+    ])).toEqual({ selectedCandidate: 1, passed: true })
+    expect(selectMultiModelInfrastructureQualificationAttempt([
+      { candidate: 1, classification: "step-limit", outputsPresent: false },
+    ])).toEqual({ selectedCandidate: 1, passed: true })
+    expect(selectMultiModelInfrastructureQualificationAttempt([
+      { candidate: 1, classification: "transport-transient", outputsPresent: false },
+      { candidate: 2, classification: "active-idle-timeout", outputsPresent: false },
+    ])).toEqual({ selectedCandidate: 2, passed: true })
+    expect(selectMultiModelInfrastructureQualificationAttempt([
+      { candidate: 1, classification: "parser-incompatible", outputsPresent: false },
+    ])).toEqual({ selectedCandidate: null, passed: false })
+
+    const routes = [
+      { ...lock.models[0], attempts: [{ candidate: 1 as const, classification: "semantic-complete" as const, outputsPresent: true }], selectedCandidate: 1 as const, status: "passed" as const },
+      { ...lock.models[1], attempts: [{ candidate: 1 as const, classification: "semantic-complete" as const, outputsPresent: false }], selectedCandidate: 1 as const, status: "passed" as const },
+      { ...lock.models[2], attempts: [{ candidate: 1 as const, classification: "active-absolute-timeout" as const, outputsPresent: false }], selectedCandidate: 1 as const, status: "passed" as const },
+    ] as const
+    expect(buildMultiModelDevelopmentPanelQualificationV4({
+      lockSha256: "a".repeat(64),
+      localPi: { status: "passed", observedVersion: "0.67.68" },
+      resources: [{ skillId: "api-tester", status: "ok" }, { skillId: "env-manager-v3", status: "ok" }],
+      routes: routes as never,
+    })).toMatchObject({
+      schemaVersion: "skill-ir-multi-model-development-panel-qualification/v4",
+      experimentId: "skill-ir-three-family-development-panel-v4",
+      status: "passed",
+    })
+  })
+
   test("binds v3 lock and bounded qualification to the v3 experiment identity", () => {
     const v3Lock = {
       ...lock,

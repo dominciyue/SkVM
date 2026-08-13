@@ -7,7 +7,7 @@ import { buildMultiModelDevelopmentPanelPlan } from "./multi-model-development-p
 const rootDir = path.resolve(import.meta.dir, "../../..");
 const lockPath = path.join(
   rootDir,
-  "benchmarks/skill-ir/panels/three-family-development-v3/panel-lock.json",
+  "benchmarks/skill-ir/panels/three-family-development-v4/panel-lock.json",
 );
 
 describe("multi-model development panel real planner", () => {

@@ -276,6 +276,8 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 14. [ ] 以新 identity 将资格收窄为 infrastructure/observability eligibility：预语义 transient 使用一次 reserve；
     parser/runtime/measurement blocker 阻断；semantic-complete、active timeout、step-limit 均进入矩阵固定分母，
     outputsPresent 只披露。确定性测试与 lock 冻结后再执行唯一资格/矩阵。
+    - [x] v4 schema/selector/runner 与 lock 已冻结；资格通过只代表可形成可信分母，不代表任务成功或质量通过。
+    - [ ] 运行 v4 资格；通过后运行唯一模型矩阵与 shared artifacts，并按 selected/all-attempt 双口径报告。
 
 ### 单模型族 70% 与多模型族启动门槛
 

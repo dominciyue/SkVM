@@ -7,14 +7,18 @@ import {
   buildMultiModelDevelopmentPanelQualification,
   buildMultiModelDevelopmentPanelQualificationV2,
   buildMultiModelDevelopmentPanelQualificationV3,
+  buildMultiModelDevelopmentPanelQualificationV4,
   buildMultiModelDevelopmentPanelReport,
   MultiModelDevelopmentPanelQualificationSchema,
   MultiModelDevelopmentPanelQualificationV2Schema,
   MultiModelDevelopmentPanelQualificationV3Schema,
+  MultiModelDevelopmentPanelQualificationV4Schema,
   selectMultiModelQualificationAttempt,
+  selectMultiModelInfrastructureQualificationAttempt,
   type MultiModelDevelopmentPanelQualification,
   type MultiModelDevelopmentPanelQualificationV2,
   type MultiModelDevelopmentPanelQualificationV3,
+  type MultiModelDevelopmentPanelQualificationV4,
 } from "./multi-model-development-panel";
 import { buildMultiModelDevelopmentPanelPlan, type MultiModelDevelopmentPanelPlan } from "./multi-model-development-panel-plan";
 import { executeMatchedExecutionBlocks, type ExecutionEnvelope } from "./execution-resilience";
@@ -242,7 +246,7 @@ async function runQualificationBounded(
   args: MultiModelDevelopmentPanelRunArgs,
   plan: MultiModelDevelopmentPanelPlan,
   env: Record<string, string | undefined>,
-): Promise<MultiModelDevelopmentPanelQualificationV2 | MultiModelDevelopmentPanelQualificationV3> {
+): Promise<MultiModelDevelopmentPanelQualificationV2 | MultiModelDevelopmentPanelQualificationV3 | MultiModelDevelopmentPanelQualificationV4> {
   for (const item of plan.runArgs) assertRequiredEnv(item, env);
   const node = Bun.which(plan.lock.harness.nodeCommand);
   if (!node) throw new Error("Multi-model qualification Node executable unavailable");
@@ -286,7 +290,9 @@ async function runQualificationBounded(
       if (attempts.at(-1)!.classification === "semantic-complete" && attempts.at(-1)!.outputsPresent) break;
       if (!["transport-transient", "empty-terminal", "pre-semantic-idle-timeout"].includes(attempts.at(-1)!.classification)) break;
     }
-    const selection = selectMultiModelQualificationAttempt(attempts);
+    const selection = plan.lock.schemaVersion.endsWith("/v4")
+      ? selectMultiModelInfrastructureQualificationAttempt(attempts)
+      : selectMultiModelQualificationAttempt(attempts);
     routes.push({
       family: model.family,
       route: model.route,
@@ -301,9 +307,11 @@ async function runQualificationBounded(
     resources: resources as MultiModelDevelopmentPanelQualificationV2["resources"],
     routes: routes as MultiModelDevelopmentPanelQualificationV2["routes"],
   };
-  return plan.lock.schemaVersion.endsWith("/v3")
-    ? buildMultiModelDevelopmentPanelQualificationV3(input)
-    : buildMultiModelDevelopmentPanelQualificationV2(input);
+  return plan.lock.schemaVersion.endsWith("/v4")
+    ? buildMultiModelDevelopmentPanelQualificationV4(input)
+    : plan.lock.schemaVersion.endsWith("/v3")
+      ? buildMultiModelDevelopmentPanelQualificationV3(input)
+      : buildMultiModelDevelopmentPanelQualificationV2(input);
 }
 
 async function executeModelMatrix(
@@ -460,9 +468,11 @@ export async function runMultiModelDevelopmentPanel(
     return qualification;
   }
   const qualificationInput = JSON.parse(await readFile(path.join(args.outDir, "qualification.json"), "utf8"));
-  const qualification = plan.lock.schemaVersion.endsWith("/v3")
-    ? MultiModelDevelopmentPanelQualificationV3Schema.parse(qualificationInput)
-    : plan.lock.schemaVersion.endsWith("/v2")
+  const qualification = plan.lock.schemaVersion.endsWith("/v4")
+    ? MultiModelDevelopmentPanelQualificationV4Schema.parse(qualificationInput)
+    : plan.lock.schemaVersion.endsWith("/v3")
+      ? MultiModelDevelopmentPanelQualificationV3Schema.parse(qualificationInput)
+      : plan.lock.schemaVersion.endsWith("/v2")
       ? MultiModelDevelopmentPanelQualificationV2Schema.parse(qualificationInput)
       : MultiModelDevelopmentPanelQualificationSchema.parse(qualificationInput);
   if (qualification.status !== "passed" || qualification.lockSha256 !== await lockDigest(args.lockPath)) {

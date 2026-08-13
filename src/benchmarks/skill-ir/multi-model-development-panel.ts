@@ -20,12 +20,14 @@ export const MultiModelDevelopmentPanelLockSchema = z.object({
     "skill-ir-multi-model-development-panel-lock/v1",
     "skill-ir-multi-model-development-panel-lock/v2",
     "skill-ir-multi-model-development-panel-lock/v3",
+    "skill-ir-multi-model-development-panel-lock/v4",
   ]),
   status: z.literal("preregistered"),
   experimentId: z.enum([
     "skill-ir-three-family-development-panel-v1",
     "skill-ir-three-family-development-panel-v2",
     "skill-ir-three-family-development-panel-v3",
+    "skill-ir-three-family-development-panel-v4",
   ]),
   methodEvidence: z.literal(true),
   models: z.tuple([
@@ -290,6 +292,16 @@ export type MultiModelDevelopmentPanelQualificationV3 = z.infer<
   typeof MultiModelDevelopmentPanelQualificationV3Schema
 >;
 
+export const MultiModelDevelopmentPanelQualificationV4Schema = MultiModelDevelopmentPanelQualificationV2Schema.extend({
+  schemaVersion: z.literal("skill-ir-multi-model-development-panel-qualification/v4"),
+  experimentId: z.literal("skill-ir-three-family-development-panel-v4"),
+  claimBoundary: z.literal("Infrastructure and execution-observability qualification with one bounded pre-semantic reserve only; task outputs and active execution outcomes are disclosed but never used to preselect models; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence."),
+}).strict();
+
+export type MultiModelDevelopmentPanelQualificationV4 = z.infer<
+  typeof MultiModelDevelopmentPanelQualificationV4Schema
+>;
+
 export function buildMultiModelDevelopmentPanelQualificationV2(input: Omit<
   MultiModelDevelopmentPanelQualificationV2,
   "schemaVersion" | "experimentId" | "status" | "claimBoundary"
@@ -333,6 +345,55 @@ export function buildMultiModelDevelopmentPanelQualificationV3(input: Omit<
     ...input,
     status: passed ? "passed" : "failed",
     claimBoundary: "Route, Pi, resource, and execution-observability qualification with one bounded pre-semantic reserve only; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence.",
+  });
+}
+
+export function selectMultiModelInfrastructureQualificationAttempt(attempts: Array<{
+  candidate: number;
+  classification: ExecutionFailureClassification;
+  outputsPresent: boolean;
+}>): { selectedCandidate: number | null; passed: boolean } {
+  if (attempts.length < 1 || attempts.length > 2) {
+    throw new Error("Multi-model infrastructure qualification requires one target and at most one reserve attempt");
+  }
+  const first = attempts[0]!;
+  if (first.candidate !== 1) throw new Error("Multi-model qualification target candidate must be 1");
+  const eligible = (classification: ExecutionFailureClassification) => classification === "semantic-complete"
+    || classification === "active-idle-timeout"
+    || classification === "active-absolute-timeout"
+    || classification === "step-limit";
+  if (eligible(first.classification)) return { selectedCandidate: 1, passed: true };
+  const replaceable = first.classification === "transport-transient"
+    || first.classification === "empty-terminal"
+    || first.classification === "pre-semantic-idle-timeout";
+  if (!replaceable || attempts.length === 1) return { selectedCandidate: null, passed: false };
+  const second = attempts[1]!;
+  if (second.candidate !== 2) throw new Error("Multi-model qualification reserve candidate must be 2");
+  return eligible(second.classification)
+    ? { selectedCandidate: 2, passed: true }
+    : { selectedCandidate: null, passed: false };
+}
+
+export function buildMultiModelDevelopmentPanelQualificationV4(input: Omit<
+  MultiModelDevelopmentPanelQualificationV4,
+  "schemaVersion" | "experimentId" | "status" | "claimBoundary"
+>): MultiModelDevelopmentPanelQualificationV4 {
+  for (const route of input.routes) {
+    const selected = selectMultiModelInfrastructureQualificationAttempt(route.attempts);
+    if (route.selectedCandidate !== selected.selectedCandidate
+      || route.status !== (selected.passed ? "passed" : "failed")) {
+      throw new Error(`Multi-model qualification v4 route selection mismatch: ${route.family}`);
+    }
+  }
+  const passed = input.localPi.status === "passed"
+    && input.resources.every((item) => item.status === "ok")
+    && input.routes.every((item) => item.status === "passed");
+  return MultiModelDevelopmentPanelQualificationV4Schema.parse({
+    schemaVersion: "skill-ir-multi-model-development-panel-qualification/v4",
+    experimentId: "skill-ir-three-family-development-panel-v4",
+    ...input,
+    status: passed ? "passed" : "failed",
+    claimBoundary: "Infrastructure and execution-observability qualification with one bounded pre-semantic reserve only; task outputs and active execution outcomes are disclosed but never used to preselect models; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence.",
   });
 }
 

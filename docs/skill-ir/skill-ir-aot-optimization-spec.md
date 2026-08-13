@@ -514,9 +514,11 @@ model rows，最大 attempted model rows 为 72。旧模型资格只能用于选
 panel lock digest、Pi 版本和 resource contract 绑定的逐 route qualification。
 
 资格本身也遵循相同的有界替换语义：每条 route 只有 1 个 target 和至多 1 个 reserve，且 reserve 只在 target
-尚无语义活动的 transient/empty/idle 分类时启用。已开始语义执行、解析器/运行时不兼容、active timeout、
-step-limit，或 semantic-complete 但没有生成公开合同声明输出，均作为该 route 的真实资格失败，不通过重复调用
-消除。继任 identity 必须冻结直接产生 value-free observation 的 Pi runtime，而不只冻结外层 adapter/selector。
+尚无语义活动的 transient/empty/idle 分类时启用。资格只判定能否形成可信固定分母，不按 development task
+表现预筛模型：`semantic-complete` 无论输出是否齐全均准入；已有活动的 idle/absolute timeout 与 step-limit 也
+准入，并在矩阵固定分母中按真实失败处理。parser/runtime/measurement/qualification blocker 继续阻断。输出存在性
+只披露，不参与资格选择。继任 identity 必须冻结直接产生 value-free observation 的 Pi runtime，而不只冻结
+外层 adapter/selector。资格准入不等于任务成功、质量通过、execution compatibility 或 promotion。
 
 validated artifact 不接收模型输入，因此不是“每个模型族的一条 arm”。同一冻结 package 每个 skill/task 只执行
 一次，共 4 个 shared deterministic anchors；面板的最终逻辑分母为 36 model rows + 4 anchors = 40。按三个模型
