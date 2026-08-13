@@ -488,6 +488,13 @@ entry 与 evaluator import/path/source-digest projection 未变，独占 task/sc
 base lock 的共享 registry digest 与当前版本一致。该 projection 规则只适用于 append-only 共享 registry，不适用
 于独占 scorer、task、source、IR、package 或 runtime 实现。
 
+首个 `three-family-development-v1` qualification 已冻结失败，矩阵未启动。Pi/local resource 均通过；GPT
+在 120072ms 内 semantic-complete 且三个声明输出齐全。Claude 路线遇到 provider 5xx，Pi 发出标准
+`auto_retry_end`，但 v1 allowlist 漏识别该事件而报告 `parser-incompatible`；DeepSeek 在 4887ms 以
+`stopReason=error`、0 usage、0 tool、无输出结束，v1 classifier 因计入一个无 payload assistant 占位事件而
+误写 `semantic-complete`，但 qualification 仍由精确输出检查正确阻断。该结果不重跑、不覆盖；观测合同修复
+必须使用新 panel identity，v1 只保留为 route/harness qualification failure。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、
