@@ -654,7 +654,15 @@ skill 的差异应落在公开 contract/adapter：输入 schema、允许资源�
 - lock/gate；
 - raw/scored/summary。
 
-旧版本有问题时，保留它作为失败证据，新建版本身份。版本不是为了堆数量，而是为了保证旧结论可复现。
+冻结对象有问题时先判断问题类型。若 task/scorer/schema/分母/promotion 或报告研究含义改变，保留旧证据并创建
+新语义版本，写明 semantic delta、兼容性和 claim 影响。若只是 parser allowlist、timeout、日志、provider
+transient 或确定性实现 bug，则保持同一 protocol/component version，创建新的 attempt/freeze instance/result
+目录并绑定新实现 digest；不要把一次次运行叫成 `v2/v3/v4`。历史名称保持可追溯，但不作为新命名范例。
+
+Portfolio v3 的 `benchmarkVersions` 只放 benchmark/contract 语义版本，不能混入 baseline/static/artifact
+attempt。优化证据必须分类：质量真实改善为 `quality-positive`；只证明 package 不回归为
+`fidelity-preserving`；质量等价且 all-attempt/compile/profile/package/break-even 完整才是
+`efficiency-positive`。后一项缺成本或 break-even 时不得提前晋级。
 
 ### 11.2 v2 相比 v1 改了什么
 

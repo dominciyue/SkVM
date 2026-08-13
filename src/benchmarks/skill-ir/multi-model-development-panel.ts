@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ExecutionEnvelopeSchema,
   ExecutionFailureClassificationSchema,
   selectMatchedExecutionBlocks,
   type ExecutionEnvelope,
@@ -177,22 +178,51 @@ export function buildMultiModelPanelEntries(input: {
   return { modelRows, artifactRows };
 }
 
-type DirectionCounts = { gains: number; equals: number; regressions: number };
+type DirectionCounts = { gains: number; equals: number; regressions: number; missing: number };
+
+const DirectionCountsSchema = z.object({
+  gains: z.number().int().nonnegative(),
+  equals: z.number().int().nonnegative(),
+  regressions: z.number().int().nonnegative(),
+  missing: z.number().int().nonnegative(),
+}).strict();
+
+type MultiModelFamilyCostSummary = {
+  selectedScoredTokens: number;
+  attemptedInputTokens: number;
+  attemptedOutputTokens: number;
+  attemptedCacheReadTokens: number;
+  attemptedCacheWriteTokens: number;
+  attemptedDurationMs: number;
+};
+
+const MultiModelFamilyCostSummarySchema = z.object({
+  selectedScoredTokens: z.number().int().nonnegative(),
+  attemptedInputTokens: z.number().int().nonnegative(),
+  attemptedOutputTokens: z.number().int().nonnegative(),
+  attemptedCacheReadTokens: z.number().int().nonnegative(),
+  attemptedCacheWriteTokens: z.number().int().nonnegative(),
+  attemptedDurationMs: z.number().int().nonnegative(),
+}).strict();
 
 export type MultiModelFamilyPanelSummary = {
   route: string;
+  expectedSelectedRows: number;
   selectedRows: number;
   attemptedRows: number;
   semanticCompleteRows: number;
+  expectedComparisonCells: number;
   executionCompatible: boolean;
   failureTaxonomy: Record<ExecutionFailureClassification, number>;
   originalVsNoSkill: DirectionCounts;
   staticVsOriginal: DirectionCounts;
+  cost: MultiModelFamilyCostSummary;
+  /** @deprecated Use cost.selectedScoredTokens. Kept for report/v1 compatibility. */
   aggregateTokens: number;
 };
 
 export type MultiModelDevelopmentPanelReport = {
-  schemaVersion: "skill-ir-multi-model-development-panel-report/v1";
+  schemaVersion: "skill-ir-multi-model-development-panel-report/v2";
   experimentId: string;
   denominator: "preregistered-selected-logical-row";
   status: "completed" | "blocked";
@@ -228,6 +258,115 @@ export type MultiModelDevelopmentPanelReport = {
     mainClaimAllowed: false;
   };
 };
+
+const SupplementalFamilySchema = z.object({
+  expectedSelectedRows: z.number().int().nonnegative(),
+  selectedRows: z.number().int().nonnegative(),
+  attemptedRows: z.number().int().nonnegative(),
+  expectedComparisonCells: z.number().int().positive(),
+  originalVsNoSkill: DirectionCountsSchema,
+  staticVsOriginal: DirectionCountsSchema,
+  cost: MultiModelFamilyCostSummarySchema,
+}).strict();
+
+export const MultiModelDevelopmentPanelSupplementalAuditSchema = z.object({
+  schemaVersion: z.literal("skill-ir-multi-model-development-panel-supplemental-audit/v1"),
+  experimentId: z.string().min(1),
+  status: z.literal("analysis-only"),
+  sources: z.object({
+    report: FrozenFileSchema,
+    executionEnvelopes: FrozenFileSchema,
+  }).strict(),
+  modelFamilies: z.object({
+    gpt: SupplementalFamilySchema,
+    claude: SupplementalFamilySchema,
+    deepseek: SupplementalFamilySchema,
+  }).strict(),
+  claimBoundary: z.literal("Supplemental denominator and all-attempt cost audit only; frozen source rows, scores, classifications, selection, and promotion status are unchanged."),
+}).strict();
+
+export type MultiModelDevelopmentPanelSupplementalAudit = z.infer<
+  typeof MultiModelDevelopmentPanelSupplementalAuditSchema
+>;
+
+type SupplementalSourceFamily = {
+  selectedRows: number;
+  attemptedRows: number;
+  originalVsNoSkill: { gains: number; equals: number; regressions: number; missing?: number };
+  staticVsOriginal: { gains: number; equals: number; regressions: number; missing?: number };
+  aggregateTokens: number;
+};
+
+type SupplementalSourceReport = {
+  experimentId: string;
+  counts: { expectedSelectedModelRows: number };
+  modelFamilies: Record<ModelFamily, SupplementalSourceFamily>;
+};
+
+function completeDirectionCounts(
+  observed: SupplementalSourceFamily["originalVsNoSkill"],
+  expectedComparisonCells: number,
+): DirectionCounts {
+  const observedComparisons = observed.gains + observed.equals + observed.regressions;
+  const missing = observed.missing ?? Math.max(0, expectedComparisonCells - observedComparisons);
+  if (observedComparisons + missing !== expectedComparisonCells) {
+    throw new Error("Multi-model supplemental comparison denominator drift");
+  }
+  return { gains: observed.gains, equals: observed.equals, regressions: observed.regressions, missing };
+}
+
+export function buildMultiModelDevelopmentPanelSupplementalAudit(input: {
+  sourceReport: SupplementalSourceReport;
+  envelopes: ExecutionEnvelope[];
+  sourceReportPath: string;
+  sourceReportSha256: string;
+  sourceEnvelopesPath: string;
+  sourceEnvelopesSha256: string;
+}): MultiModelDevelopmentPanelSupplementalAudit {
+  const envelopes = input.envelopes.map((item) => ExecutionEnvelopeSchema.parse(item));
+  if (envelopes.some((item) => item.experimentId !== input.sourceReport.experimentId)) {
+    throw new Error("Multi-model supplemental experiment identity drift");
+  }
+  const expectedComparisonCells = input.sourceReport.counts.expectedSelectedModelRows
+    / ModelFamilySchema.options.length / ModelSystemSchema.options.length;
+  if (!Number.isInteger(expectedComparisonCells) || expectedComparisonCells < 1) {
+    throw new Error("Multi-model supplemental expected comparison denominator is invalid");
+  }
+  const modelFamilies = Object.fromEntries(ModelFamilySchema.options.map((family) => {
+    const source = input.sourceReport.modelFamilies[family];
+    const familyEnvelopes = envelopes.filter((item) => item.attemptId.startsWith(`${family}:`));
+    if (familyEnvelopes.length !== source.attemptedRows) {
+      throw new Error(`Multi-model supplemental attempted row denominator drift: ${family}`);
+    }
+    return [family, {
+      expectedSelectedRows: expectedComparisonCells * ModelSystemSchema.options.length,
+      selectedRows: source.selectedRows,
+      attemptedRows: familyEnvelopes.length,
+      expectedComparisonCells,
+      originalVsNoSkill: completeDirectionCounts(source.originalVsNoSkill, expectedComparisonCells),
+      staticVsOriginal: completeDirectionCounts(source.staticVsOriginal, expectedComparisonCells),
+      cost: {
+        selectedScoredTokens: source.aggregateTokens,
+        attemptedInputTokens: familyEnvelopes.reduce((sum, item) => sum + item.usage.input, 0),
+        attemptedOutputTokens: familyEnvelopes.reduce((sum, item) => sum + item.usage.output, 0),
+        attemptedCacheReadTokens: familyEnvelopes.reduce((sum, item) => sum + item.usage.cacheRead, 0),
+        attemptedCacheWriteTokens: familyEnvelopes.reduce((sum, item) => sum + item.usage.cacheWrite, 0),
+        attemptedDurationMs: familyEnvelopes.reduce((sum, item) => sum + item.process.durationMs, 0),
+      },
+    }];
+  }));
+  return MultiModelDevelopmentPanelSupplementalAuditSchema.parse({
+    schemaVersion: "skill-ir-multi-model-development-panel-supplemental-audit/v1",
+    experimentId: input.sourceReport.experimentId,
+    status: "analysis-only",
+    sources: {
+      report: { path: input.sourceReportPath, sha256: input.sourceReportSha256 },
+      executionEnvelopes: { path: input.sourceEnvelopesPath, sha256: input.sourceEnvelopesSha256 },
+    },
+    modelFamilies,
+    claimBoundary: "Supplemental denominator and all-attempt cost audit only; frozen source rows, scores, classifications, selection, and promotion status are unchanged.",
+  });
+}
 
 export const MultiModelDevelopmentPanelQualificationSchema = z.object({
   schemaVersion: z.literal("skill-ir-multi-model-development-panel-qualification/v1"),
@@ -525,16 +664,22 @@ export function buildMultiModelDevelopmentPanelReport(input: {
   const familySummaries = {} as Record<ModelFamily, MultiModelFamilyPanelSummary>;
   for (const model of lock.models) {
     const taxonomy = emptyTaxonomy();
-    const originalVsNoSkill: DirectionCounts = { gains: 0, equals: 0, regressions: 0 };
-    const staticVsOriginal: DirectionCounts = { gains: 0, equals: 0, regressions: 0 };
+    const originalVsNoSkill: DirectionCounts = { gains: 0, equals: 0, regressions: 0, missing: 0 };
+    const staticVsOriginal: DirectionCounts = { gains: 0, equals: 0, regressions: 0, missing: 0 };
     const familyEnvelopes = input.envelopes.filter((item) => item.attemptId.startsWith(`${model.family}:`));
     for (const item of familyEnvelopes) taxonomy[item.classification] += 1;
+    const expectedComparisonCells = lock.cases.reduce((sum, item) => sum + item.taskIds.length, 0);
+    const expectedSelectedRows = expectedComparisonCells * lock.matrix.modelSystems.length;
     let selectedRows = 0;
     let semanticCompleteRows = 0;
     let aggregateTokens = 0;
     for (const panelCase of lock.cases) for (const taskId of panelCase.taskIds) {
       const block = selected.get(`${model.family}\0${panelCase.skillId}\0${taskId}`);
-      if (!block) continue;
+      if (!block) {
+        originalVsNoSkill.missing += 1;
+        staticVsOriginal.missing += 1;
+        continue;
+      }
       selectedRows += lock.matrix.modelSystems.length;
       const selectedEnvelopes = cellEnvelopes(input.envelopes, model.family, panelCase.skillId, taskId)
         .filter((item) => item.candidateBlock === block.candidateBlock);
@@ -546,14 +691,23 @@ export function buildMultiModelDevelopmentPanelReport(input: {
       direction(score(staticRow), score(original), staticVsOriginal);
       aggregateTokens += [noSkill, original, staticRow].reduce((sum, row) => sum + (row?.tokenCost ?? 0), 0);
     }
+    const cost: MultiModelFamilyCostSummary = {
+      selectedScoredTokens: aggregateTokens,
+      attemptedInputTokens: familyEnvelopes.reduce((sum, item) => sum + item.usage.input, 0),
+      attemptedOutputTokens: familyEnvelopes.reduce((sum, item) => sum + item.usage.output, 0),
+      attemptedCacheReadTokens: familyEnvelopes.reduce((sum, item) => sum + item.usage.cacheRead, 0),
+      attemptedCacheWriteTokens: familyEnvelopes.reduce((sum, item) => sum + item.usage.cacheWrite, 0),
+      attemptedDurationMs: familyEnvelopes.reduce((sum, item) => sum + item.process.durationMs, 0),
+    };
     const blockers = taxonomy["qualification-failure"] + taxonomy["parser-incompatible"]
       + taxonomy["runtime-crash"] + taxonomy["active-idle-timeout"]
       + taxonomy["active-absolute-timeout"] + taxonomy["step-limit"]
       + taxonomy["measurement-invalid"];
     familySummaries[model.family] = {
-      route: model.route, selectedRows, attemptedRows: familyEnvelopes.length, semanticCompleteRows,
-      executionCompatible: blockers === 0 && semanticCompleteRows === selectedRows,
-      failureTaxonomy: taxonomy, originalVsNoSkill, staticVsOriginal, aggregateTokens,
+      route: model.route, expectedSelectedRows, selectedRows, attemptedRows: familyEnvelopes.length,
+      semanticCompleteRows, expectedComparisonCells,
+      executionCompatible: blockers === 0 && semanticCompleteRows === expectedSelectedRows,
+      failureTaxonomy: taxonomy, originalVsNoSkill, staticVsOriginal, cost, aggregateTokens,
     };
   }
 
@@ -597,7 +751,7 @@ export function buildMultiModelDevelopmentPanelReport(input: {
     sum + familySummaries[family].staticVsOriginal.gains, 0);
 
   return {
-    schemaVersion: "skill-ir-multi-model-development-panel-report/v1",
+    schemaVersion: "skill-ir-multi-model-development-panel-report/v2",
     experimentId: lock.experimentId,
     denominator: "preregistered-selected-logical-row",
     status: input.qualificationPassed && selectionComplete && artifactKeys.size === lock.matrix.expectedSharedArtifactRows

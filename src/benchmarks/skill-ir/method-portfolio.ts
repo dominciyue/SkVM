@@ -79,6 +79,54 @@ const AdaptationEvidenceSchema = z.object({
   }
 })
 
+const OptimizationEvidenceSchema = z.object({
+  classification: z.enum([
+    "not-established",
+    "quality-positive",
+    "fidelity-preserving",
+    "efficiency-positive",
+  ]),
+  evidencePath: SafeRelativePathSchema.optional(),
+  qualityComparisonComplete: z.boolean(),
+  allAttemptCostComplete: z.boolean(),
+  breakEvenComplete: z.boolean(),
+}).strict()
+
+const OptimizationPathSchema = z.object({
+  route: z.enum([
+    "dynamic-profile",
+    "direct-deterministic-artifact",
+    "static-sufficient",
+    "stopped-before-dynamic",
+  ]),
+  reason: z.enum([
+    "public-reproducible-residual",
+    "source-contract-direct-compilation",
+    "no-reproducible-residual",
+    "baseline-regression",
+    "baseline-saturation",
+    "measurement-invalid",
+    "static-quality-regression",
+    "optimized-development-failed",
+  ]),
+}).strict().superRefine((entry, context) => {
+  const allowedReasons = {
+    "dynamic-profile": ["public-reproducible-residual"],
+    "direct-deterministic-artifact": ["source-contract-direct-compilation"],
+    "static-sufficient": ["no-reproducible-residual"],
+    "stopped-before-dynamic": [
+      "baseline-regression",
+      "baseline-saturation",
+      "measurement-invalid",
+      "static-quality-regression",
+      "optimized-development-failed",
+    ],
+  } as const
+  if (!(allowedReasons[entry.route] as readonly string[]).includes(entry.reason)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "optimization route and reason mismatch" })
+  }
+})
+
 const PortfolioCaseSchema = z.object({
   skillId: z.string().min(1),
   upstreamIdentity: z.object({
@@ -91,6 +139,8 @@ const PortfolioCaseSchema = z.object({
   methodSequence: z.number().int().positive().optional(),
   contractQualified: z.boolean(),
   benchmarkVersions: z.array(z.string().min(1)).min(1),
+  optimizationEvidence: OptimizationEvidenceSchema,
+  optimizationPath: OptimizationPathSchema,
   reentryPolicyPath: SafeRelativePathSchema.optional(),
   lifecycle: z.object({
     benchmarkContract: LifecycleStageSchema,
@@ -120,6 +170,29 @@ const PortfolioCaseSchema = z.object({
   if (entry.contractQualified !== (entry.lifecycle.benchmarkContract.status === "passed")) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "contractQualified summary drift" })
   }
+  const optimization = entry.optimizationEvidence
+  if (optimization.classification === "not-established") {
+    if (optimization.evidencePath
+      || optimization.qualityComparisonComplete
+      || optimization.allAttemptCostComplete
+      || optimization.breakEvenComplete) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "not-established optimization evidence cannot claim completed evidence" })
+    }
+    if (entry.lifecycle.optimizedDevelopment.status === "passed") {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "passed optimized development requires classified optimization evidence" })
+    }
+  } else {
+    if (entry.lifecycle.optimizedDevelopment.status !== "passed" || !optimization.evidencePath) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "classified optimization evidence requires passed development evidence" })
+    }
+    if (!optimization.qualityComparisonComplete) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "classified optimization evidence requires a complete quality comparison" })
+    }
+    if (optimization.classification === "efficiency-positive"
+      && (!optimization.allAttemptCostComplete || !optimization.breakEvenComplete)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "efficiency-positive requires all-attempt cost and break-even evidence" })
+    }
+  }
   if (entry.role === "untouched-replication" && (
     entry.adaptation.coreBranchDelta !== 0
     || entry.adaptation.unautomatedSteps.length > 0
@@ -135,7 +208,7 @@ const PortfolioCaseSchema = z.object({
 })
 
 export const MethodPortfolioSchema = z.object({
-  schemaVersion: z.literal("skill-ir-method-portfolio/v2"),
+  schemaVersion: z.literal("skill-ir-method-portfolio/v3"),
   portfolioId: z.string().min(1),
   minimumContractQualifiedCases: z.number().int().min(6),
   requiredPhenotypes: z.array(z.string().min(1)).min(1),
@@ -263,7 +336,7 @@ export function evaluateMethodSuccessorSelection(
 }
 
 export const MethodPortfolioReadinessReportSchema = z.object({
-  schemaVersion: z.literal("skill-ir-method-portfolio-readiness/v2"),
+  schemaVersion: z.literal("skill-ir-method-portfolio-readiness/v3"),
   portfolioId: z.string().min(1),
   passed: z.boolean(),
   counts: z.object({
@@ -272,13 +345,20 @@ export const MethodPortfolioReadinessReportSchema = z.object({
     contractQualifiedMethodCases: z.number().int().nonnegative(),
     untouchedReplicationCases: z.number().int().nonnegative(),
     passedStaticFidelityCases: z.number().int().nonnegative(),
-    passedDevelopmentPhenotypes: z.number().int().nonnegative(),
+    readinessEligibleDevelopmentPhenotypes: z.number().int().nonnegative(),
+    qualityPositiveDevelopmentPhenotypes: z.number().int().nonnegative(),
+    efficiencyPositiveDevelopmentPhenotypes: z.number().int().nonnegative(),
+    fidelityPreservingDevelopmentPhenotypes: z.number().int().nonnegative(),
+    dynamicProfileCases: z.number().int().nonnegative(),
+    directDeterministicArtifactCases: z.number().int().nonnegative(),
+    staticSufficientCases: z.number().int().nonnegative(),
+    stoppedBeforeDynamicCases: z.number().int().nonnegative(),
   }).strict(),
   gates: z.object({
     enoughQualifiedCasesAndCoverage: z.boolean(),
     lastThreeCoreBranchDeltaZero: z.boolean(),
     automationAndAdaptationConverging: z.boolean(),
-    twoPhenotypesPassedDevelopment: z.boolean(),
+    twoEvidenceQualifiedPhenotypes: z.boolean(),
     noOpenMeasurementBlockers: z.boolean(),
   }).strict(),
   gaps: z.object({
@@ -324,9 +404,19 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
     && mean(lastThree.map((entry) => entry.adaptation.adapterLoc!))
       <= mean(firstThree.map((entry) => entry.adaptation.adapterLoc!))
 
-  const passedPhenotypes = new Set(qualified
+  const developmentEvidenceCases = qualified
     .filter((entry) => entry.lifecycle.baselineAdmission.status === "passed"
       && entry.lifecycle.optimizedDevelopment.status === "passed")
+  const evidencePhenotypes = (classification: "quality-positive" | "efficiency-positive" | "fidelity-preserving") =>
+    new Set(developmentEvidenceCases
+      .filter((entry) => entry.optimizationEvidence.classification === classification)
+      .flatMap((entry) => entry.phenotypes))
+  const qualityPositivePhenotypes = evidencePhenotypes("quality-positive")
+  const efficiencyPositivePhenotypes = evidencePhenotypes("efficiency-positive")
+  const fidelityPreservingPhenotypes = evidencePhenotypes("fidelity-preserving")
+  const readinessEligiblePhenotypes = new Set(developmentEvidenceCases
+    .filter((entry) => entry.optimizationEvidence.classification === "quality-positive"
+      || entry.optimizationEvidence.classification === "efficiency-positive")
     .flatMap((entry) => entry.phenotypes))
   const measurementBlockers = new Set([
     "benchmark-contract",
@@ -353,11 +443,11 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
       && missingPhenotypes.length === 0,
     lastThreeCoreBranchDeltaZero,
     automationAndAdaptationConverging,
-    twoPhenotypesPassedDevelopment: passedPhenotypes.size >= 2,
+    twoEvidenceQualifiedPhenotypes: readinessEligiblePhenotypes.size >= 2,
     noOpenMeasurementBlockers: openMeasurementBlockers.length === 0,
   }
   return MethodPortfolioReadinessReportSchema.parse({
-    schemaVersion: "skill-ir-method-portfolio-readiness/v2",
+    schemaVersion: "skill-ir-method-portfolio-readiness/v3",
     portfolioId: portfolio.portfolioId,
     passed: Object.values(gates).every(Boolean),
     counts: {
@@ -366,7 +456,14 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
       contractQualifiedMethodCases: qualified.length,
       untouchedReplicationCases: portfolio.cases.filter((entry) => entry.role === "untouched-replication").length,
       passedStaticFidelityCases: qualified.filter((entry) => entry.lifecycle.staticFidelity.status === "passed").length,
-      passedDevelopmentPhenotypes: passedPhenotypes.size,
+      readinessEligibleDevelopmentPhenotypes: readinessEligiblePhenotypes.size,
+      qualityPositiveDevelopmentPhenotypes: qualityPositivePhenotypes.size,
+      efficiencyPositiveDevelopmentPhenotypes: efficiencyPositivePhenotypes.size,
+      fidelityPreservingDevelopmentPhenotypes: fidelityPreservingPhenotypes.size,
+      dynamicProfileCases: methodCases.filter((entry) => entry.optimizationPath.route === "dynamic-profile").length,
+      directDeterministicArtifactCases: methodCases.filter((entry) => entry.optimizationPath.route === "direct-deterministic-artifact").length,
+      staticSufficientCases: methodCases.filter((entry) => entry.optimizationPath.route === "static-sufficient").length,
+      stoppedBeforeDynamicCases: methodCases.filter((entry) => entry.optimizationPath.route === "stopped-before-dynamic").length,
     },
     gates,
     gaps: {

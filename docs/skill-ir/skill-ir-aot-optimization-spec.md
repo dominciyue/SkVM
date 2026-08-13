@@ -116,7 +116,7 @@ contract-qualified 分母、质量均值、优化成功或主 claim。只有当�
 untouched replication。
 
 方法开发以至少 6 个真实 skill 起步，但数量不固定。进入 replication 前必须通过
-`method-portfolio-readiness/v1`：
+`method-portfolio-readiness/v3`：
 
 1. 至少 6 个 contract-qualified real cases，预注册 phenotype coverage 无未解释空缺；
 2. 最近连续 3 个新案例 `coreBranchDelta=0`，差异只进入声明式 adapter/contract/artifact；
@@ -125,6 +125,38 @@ untouched replication。
 5. 没有未关闭的 benchmark-contract、gold leak、materialization 或 scorer-authority blocker。
 
 未满足时继续补充信息互补案例或修正通用系统。案例数量不能替代 readiness。
+
+### 4.0 版本、运行身份与优化证据
+
+版本号只描述会改变兼容性、实验分母或研究结论的语义合同。新增/修改 task 语义、scorer authority、
+selection/denominator、promotion gate、公共 schema 的不兼容字段，或者改变报告字段的研究含义，才创建新的
+protocol/schema/benchmark major identity。局部 parser、timeout、allowlist、日志、确定性实现 bug 修复，以及同一
+冻结合同下的 provider/transient 重试，不得把组件从 `v1` 连续改名为 `v2/v3/v4`。它们使用新的
+`attemptId`、freeze instance 或结果目录，并继续引用同一语义版本。若修复改变了被冻结的实现 digest，旧 lock
+和结果保持不可变，新 lock instance 绑定新 digest，但 protocol version 不随运行次数增长。
+
+每次版本提升必须在现有 spec/plan/component 文档中写明 `semantic delta`、兼容性边界以及对历史 claim 的影响；
+写不出这三项时默认不提升版本。历史上已经冻结的 `v1--v4` 名称继续保留以保证可追溯性，但不作为未来命名
+范例。Portfolio 的 `benchmarkVersions` 只登记 benchmark/contract 的语义版本，不再混入 baseline、static、
+artifact 或 provider attempt 名称。
+
+Optimized development 的通过分为三种互斥证据，不再用单一 `passed` 冒充同一种收益：
+
+1. `quality-positive`：完整冻结分母上，相对合格 baseline 有可测量、非反事实的质量改善；
+2. `fidelity-preserving`：artifact/package 保持公开语义且不回归，但没有证明质量或摊销成本改善；
+3. `efficiency-positive`：质量等价且预注册成本显著改善，同时具备 all-attempt、compile/profile/package 成本与
+   break-even；缺任一项只能保持 `fidelity-preserving`。
+
+Readiness 的“两种 phenotype”只计 `quality-positive` 或证据完整的 `efficiency-positive`；
+`fidelity-preserving` 是重要机制证据，但不计优化正例。当前 API Tester 为 `quality-positive`，Env Manager v3
+为 `fidelity-preserving`，后者没有完整 compile cost 与 break-even，因此当前只有 1 个 readiness-eligible
+optimized phenotype。
+
+Portfolio 还必须为每个案例记录 optimization path：`dynamic-profile`、
+`direct-deterministic-artifact`、`static-sufficient` 或 `stopped-before-dynamic`，并绑定公开停止理由。动态阶段
+不是所有案例的必经层：baseline regression/saturation、measurement invalid、static regression 都必须先停止；
+static 已消除 residual 时不得编造 overlay；公开 source contract 已能直接编译确定性 artifact 时可以跳过 PGO。
+只有 original 与 ir-static 都稳定复现、可由公开证据修复的 residual，才进入 5.2 的动态剖析与固化。
 
 ### 4.1 `zh-code-reviewer` 方法案例合同
 
@@ -502,8 +534,10 @@ Env Manager v3 的 original baseline 已为 4/4、mean 1.0，因此同样在执�
 Static 通过后，Env Manager v3 通过公共 `validated-skill-artifact/v1` assembly/catalog/runtime 编译 Node/Vite
 两个确定性 package。冻结四臂 development 完成 16/16 rows、4/4 quartets、0 infrastructure；validated
 artifact 4/4、mean 1.0、0 hard-gate failure、0 pairwise regression，而同矩阵 ir-static 有一次公开语义失败。
-这满足第二 optimized phenotype 的 development 门槛，并开放预注册多模型族 development 小面板；held-out、
-promotion、跨模型主 claim 与 Token break-even 仍保持关闭。
+这满足第二 phenotype 的 artifact development fidelity，并曾开放预注册多模型族 development 小面板；但它
+没有证明相对合格 baseline 的质量改善，也缺 compile cost 与 break-even，按 4.0 只能分类为
+`fidelity-preserving`，不计第二个 readiness 优化正例。Held-out、promotion、跨模型主 claim 与 Token
+break-even 仍保持关闭。
 
 #### 5.1.3 三模型族 development 小面板
 
@@ -780,10 +814,11 @@ workdir、qualification 临时目录与调试 snapshot 默认留本机，除非�
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
 development artifact 正向案例；i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
-方法负结果；portfolio v2 只计 1 个 optimized phenotype，通用优化主 claim 未完成”。
+方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。
 
-Portfolio v2 将 `benchmarkContract`、`baselineAdmission`、`staticFidelity`、`optimizedDevelopment` 与
-`heldOutPromotion` 分开保存和派生，不允许用较早阶段的通过填充后续阶段。适配成本必须注明
+Portfolio v3 将 `benchmarkContract`、`baselineAdmission`、`staticFidelity`、`optimizedDevelopment` 与
+`heldOutPromotion` 分开保存和派生，并增加优化证据分类与 dynamic path，不允许用较早阶段的通过填充后续阶段。
+适配成本必须注明
 `historical-unavailable | prospective-in-progress | prospective-measured`；只有最后一种可进入收敛计算，且必须
 具备起止时间、人工分钟、adapter LOC 和 core branch delta。Successor selection 必须在新合同前冻结并覆盖
 全部 method-development case；当前 policy 预先选择 Env Manager，旧合同/旧模型结果只用于候选理由与失败诊断。

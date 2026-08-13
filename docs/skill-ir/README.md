@@ -44,9 +44,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   source、development prompt、public contract 与 report semantics 的 profile-empty base IR 和逐节点 source
   audit。首个 12-row static development 分母完整，但有 4 个 infrastructure failure（1 timeout、3 个同位
   cross-system parse-failed），gate 冻结失败；尚无 artifact、held-out 或 Token 优化证据。
-- Method portfolio v2 已机器化登记 7 个 case：7 studied、7 contract-qualified、3 static-fidelity passed、
-  0 untouched replication、1 个 optimized-development-passed phenotype；readiness 仍未通过。i18n v4 已排除
-  infrastructure blocker，但因 1 个 paired quality regression 冻结为方法负结果。
+- Method portfolio v3 已机器化登记 7 个 case：7 studied、7 contract-qualified、2 static-fidelity passed、
+  0 untouched replication；API Tester 是 1 个 `quality-positive`，Env Manager 是 1 个
+  `fidelity-preserving`，尚无 `efficiency-positive`，所以 readiness-eligible optimized phenotype 只有 1 个。
+  i18n v4 已排除 infrastructure blocker，但因 1 个 paired quality regression 冻结为方法负结果。
 - 通用 successor selection policy/report 已冻结全部 7 个候选并预先选择 Env Manager。首个 source-derived
   identity 虽以 8/8 canary 通过本地 audit，真实 resilient baseline 的 8/8 行、4/4 pair、0 transient/active/
   parser/runtime failure 暴露两项 scorer-authority 缺口：original 独有的合法 source resource 被误判为输入漂移，
@@ -56,12 +57,14 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   original 4/4 vs no-skill 3/4 通过 admission；profile-empty base IR 与逐节点 source audit 已完成，corpus 晋升
   runnable。随后 static-fidelity 唯一矩阵 12/12、4/4 triplets、0 infra，三臂均 4/4、mean 1.0，static 对
   original 无回退；artifact 四臂唯一矩阵随后 16/16、4/4 quartets、0 infra，validated artifact 4/4、mean
-  1.0、0 regression、runtime model tokens 0。Portfolio 已有第二 optimized phenotype，held-out 仍关闭。
+  1.0、0 regression、runtime model tokens 0。该结果证明第二 phenotype 的 artifact fidelity，但编译成本与
+  break-even 未闭合，不能作为第二个 readiness 优化正例；held-out 仍关闭。
 - 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
   Optimizer Agent 尚未串成最终用户路径。
 - 三模型族 v4 development 小面板已执行 36 个 model attempts + 4 个 shared anchors：GPT/Claude 各 12/12
   semantic-complete；DeepSeek 因 2 次语义前 idle、1 次 active absolute timeout 与 1 个 Pi compaction parser
-  缺口，只完成 11/12 triplets、33/36 model rows，冻结为 blocked。已评分方向 mixed；这不是跨模型主证据。
+  缺口，只完成 11/12 triplets、33/36 model rows，冻结为 blocked。补充审计把缺失比较显式记为 `missing=1`
+  并恢复全尝试成本，原冻结报告与分数不变；已评分方向 mixed，这不是跨模型主证据。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -75,8 +78,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> successor policy 已预注册 Env Manager
 -> Env Manager v2 baseline-v1 已冻结 measurement-invalid
 -> Env Manager v3 contract -> baseline -> base IR -> static -> artifact（均已完成）
--> 第二个 optimized development phenotype 与前瞻适配成本（已完成）
+-> 第二 phenotype 的 artifact fidelity 与前瞻适配成本（已完成，但不等于优化正例）
 -> 第二/第三模型族 development 小面板已完成首个冻结诊断（blocked/mixed）
+-> 取得第二个 quality-positive，或完成质量等价 + 全成本 + break-even 的 efficiency-positive
+-> 将已有 profiler/RepairEvidence/Final IR 串为可复用 dynamic -> solidification 闭环
 -> 继续补齐自动化并通过完整 readiness gate
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验

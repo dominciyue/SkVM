@@ -399,10 +399,12 @@ bun ./src/benchmarks/skill-ir/method-portfolio-run.ts
 bun ./src/benchmarks/skill-ir/method-successor-selection-run.ts
 ```
 
-Portfolio v2 不再用单一 `developmentGate` 混写进度，而是分别记录 `benchmarkContract`、
+Portfolio v3 分别记录 `benchmarkContract`、
 `baselineAdmission`、`staticFidelity`、`optimizedDevelopment` 和 `heldOutPromotion`。`contractQualified`
-只是与首阶段一致性受 schema 校验的兼容摘要；readiness 的 optimized phenotype 只从
-`baselineAdmission=passed && optimizedDevelopment=passed` 派生。适配证据另有 provenance：历史未前瞻记录的
+只是与首阶段一致性受 schema 校验的兼容摘要。每个 optimized development 还必须分类为
+`quality-positive | fidelity-preserving | efficiency-positive | not-established`；readiness 只计前两类中的
+`quality-positive`，以及具备质量等价、all-attempt 成本和 break-even 的 `efficiency-positive`，不计单纯
+fidelity。每个案例另记录 dynamic/profile 路径及停止原因。适配证据另有 provenance：历史未前瞻记录的
 案例标记 `historical-unavailable`，不得把空值解释为零成本；`prospective-measured` 必须同时提供起止时间、
 人工分钟、adapter LOC 和 core branch delta。
 
@@ -452,15 +454,16 @@ value-free 分类与选择结果，不保存模型正文。
 
 选择单元是 `model family x skill x task` 的完整三臂 block。每单元 1 target + 1 reserve；selector 不读取分数，
 只读取 compact envelope。Selected 质量分母固定为 12 triplets/36 model rows，shared artifact 另有 4 个直接行。
-All-attempt 报告包含所有 reserve 消耗；发生 replacement 或各 arm transient 不对称时标记
+Report v2 的 all-attempt 成本直接从 execution envelope 汇总 input/output/cache/duration，并把
+selected-scored token 单列；发生 replacement 或各 arm transient 不对称时标记
 `infrastructureSensitive=true`，但预注册、整组、有界的 transient 不自动抹除 development 证据。
 
 分析至少分为四层：
 
 1. identity/coverage：资格 digest、selected triplet、artifact anchor 与 scorer row 是否完整；
 2. execution compatibility：逐族 transient、active timeout、step-limit、parser/runtime 与 measurement blocker；
-3. method direction：逐族 original-no-skill 与 ir-static-original 的 paired gain/equal/regression，缺失的不可评分
-   selected row 按固定分母失败处理；
+3. method direction：逐族 original-no-skill 与 ir-static-original 的 paired gain/equal/regression/missing；每族
+   固定 4 个 comparison cells，缺失整格仍占 `missing`，但不伪写为已观察的质量 regression；
 4. deterministic anchor：4 个 artifact 行的 success、mean、hard gate，以及其是否低于同 task 任一族的
    original/ir-static。Artifact 的零 model token 单列，不复制到各模型族。
 
@@ -483,6 +486,9 @@ bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
 bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
   --lock=benchmarks/skill-ir/panels/three-family-development-v4/panel-lock.json `
   --out-dir=results/skill-ir/three-family-development-panel-v4 --phase=execute
+
+# 只读重算冻结 v4 的固定分母与 all-attempt 成本；不执行模型、不覆盖 panel-report.json
+bun ./src/benchmarks/skill-ir/multi-model-development-panel-supplemental-audit-run.ts
 ```
 
 API Tester 的历史 base lock 创建时共享 corpus/evaluator registry 后续尚未追加 Env/Law/i18n 条目。新 panel
@@ -554,6 +560,11 @@ success、mean 1.0、0 hard-gate failure，但缺失 DeepSeek API Tester selecte
 regression，故 artifact gate false。面板结论只能是 `methodDirection=mixed` 与 DeepSeek 长任务执行稳定性风险，
 不能用于模型排名、跨模型泛化、held-out 或 promotion。
 
+冻结 `panel-report.json` 的 `aggregateTokens` 对 GPT/Claude 等于全部尝试，但 DeepSeek 只含 9 个 selected scored
+rows 的 304506，遗漏了 3 个执行失败尝试。Digest-bound `supplemental-audit.json` 不改原报告，按 envelope 恢复
+全口径：GPT input+output 414889 / 1597427ms，Claude 325639 / 1001389ms，DeepSeek 2348966 /
+3330245ms；DeepSeek 两个方向都明确为 3 observed + 1 missing。未来 report v2 原生输出相同结构。
+
 `selected-scored-runs.jsonl` 是可提交 compact evidence：runner 移除本机 manifest path，仅保留
 `initialWorkdirManifestSha256`。原始 stdout/stderr、workdir 和完整 manifest reference 继续只保存在本地
 `all-attempt-raw-runs.jsonl` 与 model workdir；execution envelope 仍不含模型正文。
@@ -578,7 +589,8 @@ Token 在质量 gate 通过前只作诊断。Artifact 的 0 model token 不能�
 CLI digest、adapter source、maximum path length 和 output root。历史 Bun crash、fetch-active、transport 与
 source-process replay 是基础设施诊断，不进入 skill 效果分母。
 
-新增 runtime 版本必须解决新的可复现 blocker；不能为单个实验继续堆 transport/harness 变体。
+版本只在语义合同、兼容边界或研究含义改变时提升。Parser allowlist、timeout、日志和确定性实现 bug 修复使用新
+attempt/freeze instance 与实现 digest，不能为单个实验继续堆 runtime/transport/harness `vN`。
 
 ### 11.1 Execution resilience successor
 

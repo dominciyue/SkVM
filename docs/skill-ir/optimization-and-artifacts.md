@@ -12,8 +12,9 @@ L0 raw skill
 -> L4 validated package + provenance + regression evidence
 ```
 
-项目当前具备 L1/L2 通用能力，并已有 API Tester 与 Env Manager 两种 phenotype 通过 L4 development gate；
-尚未证明 held-out、untouched replication 或跨模型 L4。
+项目当前具备 L1/L2 通用能力，API Tester 与 Env Manager 两种 phenotype 均有 L4-oriented development
+package；但只有 API Tester 是 `quality-positive`，Env Manager 目前只是 `fidelity-preserving`。尚未证明第二个
+readiness 优化正例、held-out、untouched replication 或跨模型 L4。
 
 ## 2. 静态优化
 
@@ -48,6 +49,21 @@ original 与 static 均失败、证据公开且可复现时生成 repair；stati
 
 同 `targetRef` 的证据可池化，但必须预注册模型面板、合并计数和冲突裁决。Development-only，held-out
 永不参与 overlay。Per-model overlay 只作诊断 ablation。
+
+### 3.1 为什么当前动态实验很少
+
+动态阶段是 residual-driven，不是每个 skill 的固定打卡步骤。Portfolio v3 当前机器分流为：0 个
+`dynamic-profile`、2 个 `direct-deterministic-artifact`（API Tester、Env Manager）、1 个
+`static-sufficient`（Zh Code Reviewer）和 4 个 `stopped-before-dynamic`（baseline regression、baseline
+saturation、measurement invalid、static quality regression）。因此“多数实验停在 static 前后”主要是门禁和
+证据结构的结果，而不是 dynamic 代码不存在：无可靠 residual 时运行 profile 会把随机失败或 scorer 私有期望
+固化进 overlay。
+
+这里仍有真实工程缺口：profiler、`RepairEvidence`、Final IR provenance 和 artifact compiler 各自存在，但尚未
+形成一条通用的 `select residual -> profile -> conflict adjudication -> overlay -> compile -> validate ->
+solidify` 产品路径。后续应选择一个在 original 与 ir-static 上跨重复稳定出现、能绑定公开 source/contract 的
+residual，先完成单模型 development 竖切；若找不到这种案例，宁可继续记录停止原因，也不为提高 dynamic 覆盖率
+制造 residual。固化完成后仍须比较 profile/compile/package/all-attempt 成本，质量不回归才有资格讨论效率。
 
 ## 4. Final IR Provenance
 
@@ -290,7 +306,8 @@ Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer �
 ## 13. 当前机制结论
 
 - Env v3 证明公开 workspace-derived environment/schema 语义可经公共 assembly 编译为 Node/Vite package；冻结
-  development 为 4/4、mean 1.0、0 regression，四次 runtime model tokens 为 0。
+  development 为 4/4、mean 1.0、0 regression，四次 runtime model tokens 为 0；但缺 compile cost 与
+  break-even，因此分类为 fidelity-preserving。
 - Law 证明 code/template/checker artifact 可在 development 显著优于文本 skill，随后 held-out 边界回归。
 - Experimental Design 证明 catalog/runtime 可复用到第二 phenotype，但 benchmark 饱和阻断优化归因。
 - API Tester 已把 source-attributable schema residual 固化为 profile-empty base IR、38 行声明式 adapter 和

@@ -28,6 +28,31 @@ function qualifiedCase(index: number): any {
     methodSequence: index,
     contractQualified: true,
     benchmarkVersions: ["v2"],
+    optimizationEvidence: index === 1 ? {
+      classification: "quality-positive",
+      evidencePath: `results/optimized/skill-${index}.json`,
+      qualityComparisonComplete: true,
+      allAttemptCostComplete: false,
+      breakEvenComplete: false,
+    } : index === 2 ? {
+      classification: "efficiency-positive",
+      evidencePath: `results/optimized/skill-${index}.json`,
+      qualityComparisonComplete: true,
+      allAttemptCostComplete: true,
+      breakEvenComplete: true,
+    } : {
+      classification: "not-established",
+      qualityComparisonComplete: false,
+      allAttemptCostComplete: false,
+      breakEvenComplete: false,
+    },
+    optimizationPath: index <= 2 ? {
+      route: "direct-deterministic-artifact",
+      reason: "source-contract-direct-compilation",
+    } : {
+      route: "stopped-before-dynamic",
+      reason: "optimized-development-failed",
+    },
     lifecycle: {
       benchmarkContract: { status: "passed", evidencePath: `results/contracts/skill-${index}.json` },
       baselineAdmission: { status: "passed", evidencePath: `results/baselines/skill-${index}.json` },
@@ -61,7 +86,7 @@ function qualifiedCase(index: number): any {
 function passingPortfolio(): any {
   const cases = Array.from({ length: 6 }, (_, index) => qualifiedCase(index + 1))
   return {
-    schemaVersion: "skill-ir-method-portfolio/v2",
+    schemaVersion: "skill-ir-method-portfolio/v3",
     portfolioId: "test-portfolio",
     minimumContractQualifiedCases: 6,
     requiredPhenotypes: cases.map((entry) => entry.phenotypes[0]),
@@ -90,14 +115,23 @@ describe("method portfolio registry and readiness", () => {
   test("passes only when all five readiness dimensions are satisfied", () => {
     const report = evaluateMethodPortfolioReadiness(passingPortfolio())
     expect(report).toMatchObject({
-      schemaVersion: "skill-ir-method-portfolio-readiness/v2",
+      schemaVersion: "skill-ir-method-portfolio-readiness/v3",
       passed: true,
-      counts: { studiedCases: 6, contractQualifiedMethodCases: 6, passedDevelopmentPhenotypes: 2 },
+      counts: {
+        studiedCases: 6,
+        contractQualifiedMethodCases: 6,
+        readinessEligibleDevelopmentPhenotypes: 2,
+        qualityPositiveDevelopmentPhenotypes: 1,
+        efficiencyPositiveDevelopmentPhenotypes: 1,
+        fidelityPreservingDevelopmentPhenotypes: 0,
+        directDeterministicArtifactCases: 2,
+        stoppedBeforeDynamicCases: 4,
+      },
       gates: {
         enoughQualifiedCasesAndCoverage: true,
         lastThreeCoreBranchDeltaZero: true,
         automationAndAdaptationConverging: true,
-        twoPhenotypesPassedDevelopment: true,
+        twoEvidenceQualifiedPhenotypes: true,
         noOpenMeasurementBlockers: true,
       },
     })
@@ -123,8 +157,12 @@ describe("method portfolio registry and readiness", () => {
     expect(evaluateMethodPortfolioReadiness(manual).gates.automationAndAdaptationConverging).toBe(false)
 
     const onePhenotype = structuredClone(base)
-    onePhenotype.cases[1]!.lifecycle.optimizedDevelopment.status = "failed"
-    expect(evaluateMethodPortfolioReadiness(onePhenotype).gates.twoPhenotypesPassedDevelopment).toBe(false)
+    onePhenotype.cases[1]!.optimizationEvidence.classification = "fidelity-preserving"
+    onePhenotype.cases[1]!.optimizationEvidence.allAttemptCostComplete = false
+    onePhenotype.cases[1]!.optimizationEvidence.breakEvenComplete = false
+    const onePhenotypeReport = evaluateMethodPortfolioReadiness(onePhenotype)
+    expect(onePhenotypeReport.gates.twoEvidenceQualifiedPhenotypes).toBe(false)
+    expect(onePhenotypeReport.counts.fidelityPreservingDevelopmentPhenotypes).toBe(1)
 
     const blocked = structuredClone(base)
     blocked.cases[0]!.lifecycle.benchmarkContract = {
@@ -156,6 +194,10 @@ describe("method portfolio registry and readiness", () => {
     const missingProspectiveCost = passingPortfolio()
     missingProspectiveCost.cases[0]!.adaptation.humanMinutes = null
     expect(() => MethodPortfolioSchema.parse(missingProspectiveCost)).toThrow("prospective adaptation evidence")
+
+    const incompleteEfficiency = passingPortfolio()
+    incompleteEfficiency.cases[1]!.optimizationEvidence.breakEvenComplete = false
+    expect(() => MethodPortfolioSchema.parse(incompleteEfficiency)).toThrow("efficiency-positive")
 
     const historical = passingPortfolio()
     historical.cases[0]!.adaptation = {
@@ -204,6 +246,12 @@ describe("method portfolio registry and readiness", () => {
     const portfolio = passingPortfolio()
     portfolio.cases[0]!.lifecycle.staticFidelity.status = "failed"
     portfolio.cases[0]!.lifecycle.optimizedDevelopment.status = "not-run"
+    portfolio.cases[0]!.optimizationEvidence = {
+      classification: "not-established",
+      qualityComparisonComplete: false,
+      allAttemptCostComplete: false,
+      breakEvenComplete: false,
+    }
     portfolio.cases[1]!.lifecycle.baselineAdmission = {
       status: "invalidated",
       blocker: "scorer-authority",
@@ -213,7 +261,7 @@ describe("method portfolio registry and readiness", () => {
     const report = evaluateMethodPortfolioReadiness(portfolio)
     expect(report.counts.contractQualifiedMethodCases).toBe(6)
     expect(report.counts.passedStaticFidelityCases).toBe(5)
-    expect(report.counts.passedDevelopmentPhenotypes).toBe(0)
+    expect(report.counts.readinessEligibleDevelopmentPhenotypes).toBe(0)
     expect(report.gaps.openMeasurementBlockers).toContainEqual({
       skillId: "skill-2",
       stage: "baselineAdmission",
@@ -323,10 +371,6 @@ describe("method portfolio registry and readiness", () => {
         "v3-array-semantics",
         "contribution-v1",
         "contribution-v2-public-semantics",
-        "static-development-v1",
-        "static-development-v2",
-        "static-development-v3",
-        "static-development-v4",
       ],
       lifecycle: {
         benchmarkContract: { status: "passed" },
@@ -342,6 +386,18 @@ describe("method portfolio registry and readiness", () => {
         },
       },
     })
+    expect(report.counts).toMatchObject({
+      passedStaticFidelityCases: 2,
+      readinessEligibleDevelopmentPhenotypes: 1,
+      qualityPositiveDevelopmentPhenotypes: 1,
+      efficiencyPositiveDevelopmentPhenotypes: 0,
+      fidelityPreservingDevelopmentPhenotypes: 1,
+      dynamicProfileCases: 0,
+      directDeterministicArtifactCases: 2,
+      staticSufficientCases: 1,
+      stoppedBeforeDynamicCases: 4,
+    })
+    expect(report.gates.twoEvidenceQualifiedPhenotypes).toBe(false)
   })
 
   test("writes the readiness report as a stable machine-readable artifact", async () => {

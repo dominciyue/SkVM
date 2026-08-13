@@ -10,6 +10,7 @@ import {
   selectMultiModelQualificationAttempt,
   selectMultiModelInfrastructureQualificationAttempt,
   buildMultiModelDevelopmentPanelReport,
+  buildMultiModelDevelopmentPanelSupplementalAudit,
   buildMultiModelPanelEntries,
   type MultiModelDevelopmentPanelLock,
 } from "./multi-model-development-panel";
@@ -317,9 +318,89 @@ describe("multi-model development panel", () => {
     });
     expect(report.counts.selectedModelRows).toBe(36);
     expect(report.counts.attemptedModelRows).toBe(39);
+    expect(report.modelFamilies.claude.cost).toEqual({
+      selectedScoredTokens: 180,
+      attemptedInputTokens: 140,
+      attemptedOutputTokens: 70,
+      attemptedCacheReadTokens: 0,
+      attemptedCacheWriteTokens: 0,
+      attemptedDurationMs: 1500,
+    });
     expect(report.selection.replacedTriplets).toBe(1);
     expect(report.interpretation.infrastructureSensitive).toBe(true);
     expect(report.status).toBe("completed");
+  });
+
+  test("keeps a missing selected triplet in the fixed comparison denominator", () => {
+    const evidence = completeEvidence();
+    evidence.envelopes = evidence.envelopes.filter((item) =>
+      !item.attemptId.startsWith("deepseek:api-tester:api-a:"));
+    const report = buildMultiModelDevelopmentPanelReport({
+      lock, qualificationPassed: true, tasks: cases.flatMap((item) => item.taskIds.map((id) => ({ id, hardGateIds: ["hard"] }))),
+      envelopes: evidence.envelopes, scoredRows: evidence.scoredRows,
+    });
+
+    expect(report.status).toBe("blocked");
+    expect(report.schemaVersion).toBe("skill-ir-multi-model-development-panel-report/v2");
+    expect(report.modelFamilies.deepseek).toMatchObject({
+      expectedSelectedRows: 12,
+      selectedRows: 9,
+      expectedComparisonCells: 4,
+      originalVsNoSkill: { gains: 3, equals: 0, regressions: 0, missing: 1 },
+      staticVsOriginal: { gains: 3, equals: 0, regressions: 0, missing: 1 },
+    });
+    expect(Object.values(report.modelFamilies.deepseek.originalVsNoSkill)
+      .reduce((sum, value) => sum + value, 0)).toBe(4);
+
+    const audit = buildMultiModelDevelopmentPanelSupplementalAudit({
+      sourceReport: report,
+      envelopes: evidence.envelopes,
+      sourceReportPath: "results/panel-report.json",
+      sourceReportSha256: "a".repeat(64),
+      sourceEnvelopesPath: "results/execution-envelopes.jsonl",
+      sourceEnvelopesSha256: "b".repeat(64),
+    });
+    expect(audit).toMatchObject({
+      schemaVersion: "skill-ir-multi-model-development-panel-supplemental-audit/v1",
+      status: "analysis-only",
+      modelFamilies: {
+        deepseek: {
+          expectedComparisonCells: 4,
+          originalVsNoSkill: { missing: 1 },
+          cost: {
+            selectedScoredTokens: 135,
+            attemptedInputTokens: 90,
+            attemptedOutputTokens: 45,
+            attemptedDurationMs: 900,
+          },
+        },
+      },
+    });
+  });
+
+  test("rejects supplemental evidence with experiment or attempted-row drift", () => {
+    const evidence = completeEvidence();
+    const report = buildMultiModelDevelopmentPanelReport({
+      lock, qualificationPassed: true, tasks: cases.flatMap((item) => item.taskIds.map((id) => ({ id, hardGateIds: ["hard"] }))),
+      envelopes: evidence.envelopes, scoredRows: evidence.scoredRows,
+    });
+    const base = {
+      sourceReport: report,
+      envelopes: evidence.envelopes,
+      sourceReportPath: "results/panel-report.json",
+      sourceReportSha256: "a".repeat(64),
+      sourceEnvelopesPath: "results/execution-envelopes.jsonl",
+      sourceEnvelopesSha256: "b".repeat(64),
+    };
+    const foreign = structuredClone(evidence.envelopes);
+    foreign[0]!.experimentId = "foreign-experiment";
+    expect(() => buildMultiModelDevelopmentPanelSupplementalAudit({ ...base, envelopes: foreign }))
+      .toThrow("experiment identity drift");
+
+    const attemptedDrift = structuredClone(report);
+    attemptedDrift.modelFamilies.gpt.attemptedRows += 1;
+    expect(() => buildMultiModelDevelopmentPanelSupplementalAudit({ ...base, sourceReport: attemptedDrift }))
+      .toThrow("attempted row denominator drift");
   });
 
   test("keeps active timeout in the fixed denominator and reports family incompatibility", () => {

@@ -205,16 +205,18 @@ untouched replication 和 Token break-even 均未证明。
 
 | Case | Contract | Baseline | Static fidelity | Optimized development | Promotion |
 |---|---:|---:|---:|---:|---:|
-| env-manager | passed（v3 scorer authority） | passed | passed | passed，artifact 4/4 | not-run |
+| env-manager | passed（v3 scorer authority） | passed | passed | passed，artifact 4/4；fidelity-preserving | not-run |
 | law-to-markdown | passed（v3 public ABI） | failed（regression） | blocked | old result invalidated | old result invalidated |
 | experimental-design | passed | blocked（saturation） | blocked | blocked | blocked |
-| api-tester | passed | passed | passed | passed，artifact 4/4 | not-run |
+| api-tester | passed | passed | not-run | passed，artifact 4/4；quality-positive | not-run |
 | zh-code-reviewer | passed，v2 audit 20/20 | passed | passed | not-run | not-run |
 | zh-readme | passed | invalidated（scorer authority） | blocked | blocked | blocked |
 | i18n-helper | passed（contribution-v2） | passed | failed（quality regression） | blocked | blocked |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 已升级为 v2 且仍 failed：7 registered、7 studied、
-7 contract-qualified、3 static-fidelity passed、0 untouched replication、2 optimized-development passed phenotypes。
+机器报告 `results/skill-ir/method-portfolio-readiness.json` 已升级为 v3 且仍 failed：7 registered、7 studied、
+7 contract-qualified、2 static-fidelity passed、0 untouched replication；1 quality-positive、1
+fidelity-preserving、0 efficiency-positive，readiness-eligible optimized phenotype 只有 1 个。API Tester 从未有
+独立 static-fidelity gate，旧 registry 用 artifact gate 同时填充 static/optimized；v3 将 static 修正为 not-run。
 Law 的 baseline regression、zh-readme 的 scorer-authority invalidation 与 i18n v4 的 paired quality regression 分属
 不同 lifecycle stage，不再被单一 development gate 混写。自动化仍不完整；历史人工时间标记
 `historical-unavailable`，Env Manager successor 从 2026-08-12 起前瞻记录。
@@ -265,7 +267,7 @@ tokens、394865ms，original 为 133090 tokens、476211ms，分别低 29.13% 与
 validated artifact 为 4/4、mean 1.0、0 hard-gate failure、0 pairwise regression。模型三臂共 367332 tokens；
 artifact 四次调用 runtime model tokens 为 0，deterministic process/validation 合计 243/255ms，package 最大
 29652 bytes。一次性编译 token/自动 optimizer 成本尚未测，故不计算 break-even；证据只支持单模型、Windows/
-clean development 下的第二 optimized phenotype，不支持 held-out 或跨模型泛化。
+clean development 下的 artifact fidelity，不是第二个 readiness 优化正例，也不支持 held-out 或跨模型泛化。
 
 ### 8.1 `i18n-helper` 首轮校准
 
@@ -457,11 +459,12 @@ raw workdir/qualification/artifact 文件。治理规则：
 5. Experimental Design v2 已完成本地 artifact qualification；同一任务基线饱和，停止创建付费 optimized
    identity。下一次付费 comparison 必须选择公开合同合格且基线有区分度的新任务/skill；单独研究质量等价下
    的效率时，另行预注册 efficiency ablation。
-6. Env Manager 已补齐第二 phenotype、前瞻人工分钟、adapter LOC、artifact reuse 与 `coreBranchDelta=0`；继续
-   提高 IR/contract/package candidate 自动化，不能把本次领域 compiler 误写成完全自动 optimizer。
-7. 当前已达到约 70% 的单模型族启动门槛；下一步先冻结第二/第三模型族 development 小面板，检查方向一致性、
-   failure taxonomy 与 route/harness 兼容性。Untouched replication、context、held-out 和 Token amortization 主表
-   仍须等待完整 readiness。
+6. Env Manager 已补齐第二 phenotype 的 fidelity、前瞻人工分钟、adapter LOC、artifact reuse 与
+   `coreBranchDelta=0`；继续补 compile/profile/package 全成本与 break-even，或取得第二个 quality-positive，
+   不能把本次领域 compiler 误写成完全自动 optimizer。
+7. 工程覆盖粗估约 65%--68%，readiness 证据未到 70%：三模型族 development 小面板已冻结为 blocked/mixed，
+   不是跨模型主实验。下一步取得第二个 readiness-eligible phenotype，并完成可复用 dynamic/solidification 竖切。
+   Untouched replication、context、held-out 和 Token amortization 主表仍须等待完整 readiness。
 8. 保持 Law v3、i18n v2/v3、execution-bound successor、contribution-v1 及 static v1--v4 冻结。
    contribution-v2 已通过 baseline admission 与 source-audited base IR；v4 已排除 execution blocker，但
    static paired quality gate failed。停止该案例的 artifact 纵切，转向另一个 contract-qualified 方法案例；
@@ -474,10 +477,12 @@ attempts 与 4 个 shared deterministic artifact rows。最终 selection 为 11/
 因此状态冻结为 `blocked`，没有补跑或覆盖同 identity。
 
 - GPT：12/12 semantic-complete，execution-compatible；original/no-skill 2 gain、1 equal、1 regression，
-  ir-static/original 0/3/1，aggregate non-cache tokens 414889。
-- Claude：12/12 semantic-complete，execution-compatible；对应方向 1/3/0 与 2/1/1，tokens 325639。
+  ir-static/original 0/3/1；all-attempt input+output 414889、duration 1597427ms。
+- Claude：12/12 semantic-complete，execution-compatible；对应方向 1/3/0 与 2/1/1；all-attempt
+  input+output 325639、duration 1001389ms。
 - DeepSeek：12 attempted、9 selected、8 semantic-complete；2 pre-semantic idle timeout、1 active absolute
-  timeout，以及 1 个 Pi 标准 compaction event 被旧 allowlist 误判的 parser blocker，tokens 304506。
+  timeout，以及 1 个 Pi 标准 compaction event 被旧 allowlist 误判的 parser blocker。旧 report 的 304506 只含
+  selected-scored rows；all-attempt input+output 为 2348966、duration 3330245ms。
 - Shared artifact：4/4 success、mean 1.0、0 hard-gate failure；缺失 DeepSeek API Tester triplet 按固定分母
   下界计 1 次 regression，artifact gate false。
 
@@ -486,7 +491,12 @@ manifest path、保留 digest。两项修复不改变冻结 v4：parser blocker 
 选中 block。该结果支持 GPT/Claude 当前 execution compatibility 和 DeepSeek 长任务稳定性风险，质量方向为
 mixed；不支持跨模型泛化、模型排名、held-out、promotion 或 Token break-even claim。权威 compact evidence：
 
+`supplemental-audit.json` 绑定原 report/envelope digest，只补充固定 4-cell 方向分母和 all-attempt 成本：
+DeepSeek 两个方向都是 3 observed + 1 missing；它不覆盖原分数、分类、selection 或 promotion 状态。未来
+report v2 原生输出 `missing` 和分层 cost；原冻结 report/v1 保持不变。
+
 - `results/skill-ir/three-family-development-panel-v4/qualification.json`
 - `results/skill-ir/three-family-development-panel-v4/execution-envelopes.jsonl`
 - `results/skill-ir/three-family-development-panel-v4/selected-scored-runs.jsonl`
 - `results/skill-ir/three-family-development-panel-v4/panel-report.json`
+- `results/skill-ir/three-family-development-panel-v4/supplemental-audit.json`
