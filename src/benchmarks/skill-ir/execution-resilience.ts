@@ -73,6 +73,7 @@ export type ExecutionEnvelope = z.infer<typeof ExecutionEnvelopeSchema>;
 export type ExecutionClassification = Pick<ExecutionEnvelope, "classification" | "replacementEligible">;
 
 function hasSemanticActivity(envelope: ExecutionEnvelope): boolean {
+  if (envelope.parser.outcome === "empty") return false;
   const { activity, usage } = envelope;
   return activity.providerResponses > 0
     || activity.assistantMessages > 0
@@ -107,9 +108,8 @@ export function classifyExecutionEnvelope(input: ExecutionEnvelope): ExecutionCl
   const usageTotal = envelope.usage.input + envelope.usage.output
     + envelope.usage.cacheRead + envelope.usage.cacheWrite;
   if (
-    envelope.terminal.present
+    envelope.parser.outcome === "empty"
     && usageTotal === 0
-    && envelope.activity.assistantMessages === 0
     && envelope.activity.toolCalls === 0
     && envelope.activity.toolResults === 0
   ) {

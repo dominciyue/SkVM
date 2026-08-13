@@ -73,6 +73,37 @@ describe("execution resilience envelope", () => {
       transientError: "provider-5xx",
     }));
     expect(transport).toEqual({ classification: "transport-transient", replacementEligible: true });
+
+    const errorTerminal = classifyExecutionEnvelope(envelope({
+      activity: {
+        requestDispatched: true,
+        providerResponses: 1,
+        assistantMessages: 1,
+        toolCalls: 0,
+        toolResults: 0,
+      },
+      terminal: { present: true, stopReason: "error" },
+      usage: { available: true, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      parser: { outcome: "empty", unknownTypes: [] },
+      outputs: { fileCount: 0 },
+    }));
+    expect(errorTerminal).toEqual({ classification: "empty-terminal", replacementEligible: true });
+
+    const providerErrorPlaceholder = classifyExecutionEnvelope(envelope({
+      activity: {
+        requestDispatched: true,
+        providerResponses: 1,
+        assistantMessages: 1,
+        toolCalls: 0,
+        toolResults: 0,
+      },
+      terminal: { present: true, stopReason: "error" },
+      usage: { available: true, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      parser: { outcome: "empty", unknownTypes: [] },
+      outputs: { fileCount: 0 },
+      transientError: "provider-5xx",
+    }));
+    expect(providerErrorPlaceholder).toEqual({ classification: "transport-transient", replacementEligible: true });
   });
 
   test("fails closed for parser/runtime blockers and preserves active timeouts", () => {

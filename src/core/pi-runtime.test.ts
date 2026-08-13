@@ -103,6 +103,26 @@ describe("pi runtime execution observability", () => {
     expect(JSON.stringify(transient)).not.toContain("503 upstream")
   })
 
+  test("accepts the standard auto_retry_end event without hiding provider transients", () => {
+    const transient = observePiExecution([
+      {
+        type: "auto_retry_start",
+        attempt: 1,
+        maxAttempts: 1,
+        delayMs: 0,
+        errorMessage: "HTTP 503 upstream unavailable",
+      },
+      { type: "auto_retry_end", success: false, attempt: 1, finalError: "HTTP 503 upstream unavailable" },
+    ], {
+      exitCode: 0, durationMs: 20, timedOut: false,
+    })
+    expect(transient).toMatchObject({
+      parser: { outcome: "ok", unknownTypes: [] },
+      transientError: "provider-5xx",
+    })
+    expect(JSON.stringify(transient)).not.toContain("503 upstream")
+  })
+
   test("records a harness-enforced Pi step limit separately from timeout", () => {
     const observation = observePiExecution([{ type: "turn_start" }], {
       exitCode: 143,

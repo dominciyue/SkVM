@@ -90,6 +90,7 @@ export type PiEvent =
   | { type: "tool_execution_update"; toolCallId: string; toolName: string; args: unknown; partialResult: unknown }
   | { type: "tool_execution_end"; toolCallId: string; toolName: string; result: unknown; isError: boolean }
   | { type: "auto_retry_start"; attempt: number; maxAttempts: number; delayMs: number; errorMessage: string }
+  | { type: "auto_retry_end"; success: boolean; attempt: number; finalError?: string }
 
 // ---------------------------------------------------------------------------
 // NDJSON → events (subprocess adapter path)
@@ -112,7 +113,7 @@ const PI_EVENT_TYPES = new Set([
   "session", "agent_start", "agent_end", "turn_start", "turn_end",
   "message_start", "message_update", "message_end",
   "tool_execution_start", "tool_execution_update", "tool_execution_end",
-  "auto_retry_start",
+  "auto_retry_start", "auto_retry_end",
 ])
 
 /** True only for Pi NDJSON events proving provider/assistant/tool progress. */
