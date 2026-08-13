@@ -4,8 +4,10 @@ import type { ScoredAgentRunRow } from "./scoring";
 import {
   MultiModelDevelopmentPanelLockSchema,
   buildMultiModelDevelopmentPanelReport,
+  buildMultiModelPanelEntries,
   type MultiModelDevelopmentPanelLock,
 } from "./multi-model-development-panel";
+import type { RealAgentRunPlanEntry } from "./real-agent";
 
 const families = ["gpt", "claude", "deepseek"] as const;
 const systems = ["no-skill", "original", "ir-static"] as const;
@@ -112,6 +114,34 @@ function completeEvidence() {
 }
 
 describe("multi-model development panel", () => {
+  test("builds 72 candidate model rows and four non-duplicated shared anchors", () => {
+    const basePlans = Object.fromEntries(families.flatMap((family) => cases.map((item) => {
+      const route = lock.models.find((model) => model.family === family)!.route;
+      const rows = item.taskIds.flatMap((taskId) => [1, 2].flatMap((runIndex) => systems.map((system) => ({
+        caseId: `${item.skillId}:skvm:windows:clean:${taskId}`, system,
+        taskPath: `${item.skillId}/${taskId}.json`, workDir: `${family}/${item.skillId}/${taskId}/${runIndex}/${system}`,
+        model: route, modelFamily: family, adapter: "pi", adapterVersion: "0.67.68",
+        runIndex, panelConfigId: lock.experimentId, command: ["bun", "run"],
+      } satisfies RealAgentRunPlanEntry))));
+      return [`${family}:${item.skillId}`, rows];
+    })));
+    const built = buildMultiModelPanelEntries({
+      lock, basePlans,
+      artifactRows: cases.flatMap((item) => item.taskIds.map((taskId) => ({
+        caseId: `${item.skillId}:skvm:windows:clean:${taskId}`, system: "validated-artifact" as const,
+        taskPath: `${item.skillId}/${taskId}.json`, workDir: `artifact/${item.skillId}/${taskId}`,
+        model: "direct-deterministic", modelFamily: "none", adapter: "validated-artifact-runtime",
+        adapterVersion: "validated-artifact-runtime-v1", runIndex: 1, panelConfigId: lock.experimentId,
+        command: [], artifactPackageDir: `packages/${item.skillId}/${taskId}`,
+      }))),
+    });
+    expect(built.modelRows).toHaveLength(72);
+    expect(built.artifactRows).toHaveLength(4);
+    expect(new Set(built.modelRows.map((row) => `${row.modelFamily}:${row.caseId}:${row.runIndex}:${row.system}`)).size).toBe(72);
+    expect(new Set(built.artifactRows.map((row) => row.caseId)).size).toBe(4);
+    expect(built.modelRows.every((row) => row.panelConfigId === lock.experimentId)).toBe(true);
+  });
+
   test("freezes 36 selected model rows plus four shared artifact anchors", () => {
     expect(MultiModelDevelopmentPanelLockSchema.parse(lock).matrix).toMatchObject({
       expectedSelectedModelRows: 36, expectedSharedArtifactRows: 4, expectedLogicalRows: 40,

@@ -8,6 +8,7 @@ import {
   type ReplacedExecutionBlock,
 } from "./execution-resilience";
 import type { ScoredAgentRunRow } from "./scoring";
+import type { RealAgentRunPlanEntry } from "./real-agent";
 
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
 const FrozenFileSchema = z.object({ path: z.string().min(1), sha256: Sha256Schema }).strict();
@@ -88,6 +89,62 @@ export const MultiModelDevelopmentPanelLockSchema = z.object({
 export type MultiModelDevelopmentPanelLock = z.infer<typeof MultiModelDevelopmentPanelLockSchema>;
 type ModelFamily = z.infer<typeof ModelFamilySchema>;
 type ModelSystem = z.infer<typeof ModelSystemSchema>;
+
+export type MultiModelPanelPlanEntry = RealAgentRunPlanEntry & {
+  executionClass: "model-agent" | "direct-deterministic";
+  artifactPackageDir?: string;
+};
+
+export function buildMultiModelPanelEntries(input: {
+  lock: MultiModelDevelopmentPanelLock;
+  basePlans: Record<string, RealAgentRunPlanEntry[]>;
+  artifactRows: Array<RealAgentRunPlanEntry & { artifactPackageDir: string }>;
+}): { modelRows: MultiModelPanelPlanEntry[]; artifactRows: MultiModelPanelPlanEntry[] } {
+  const lock = MultiModelDevelopmentPanelLockSchema.parse(input.lock);
+  const modelRows: MultiModelPanelPlanEntry[] = [];
+  for (const model of lock.models) for (const panelCase of lock.cases) {
+    const key = `${model.family}:${panelCase.skillId}`;
+    const rows = input.basePlans[key];
+    if (!rows) throw new Error(`Multi-model base plan missing: ${key}`);
+    for (const taskId of panelCase.taskIds) for (
+      let block = 1;
+      block <= lock.matrix.targetBlocksPerCell + lock.matrix.reserveBlocksPerCell;
+      block += 1
+    ) for (const system of lock.matrix.modelSystems) {
+      const matches = rows.filter((row) => row.caseId.endsWith(`:${taskId}`)
+        && row.runIndex === block && row.system === system);
+      if (matches.length !== 1) {
+        throw new Error(`Multi-model plan arm mismatch: ${model.family}/${panelCase.skillId}/${taskId}/${block}/${system}`);
+      }
+      const row = matches[0]!;
+      if (row.model !== model.route || row.modelFamily !== model.family
+        || row.adapter !== lock.harness.adapter || row.adapterVersion !== lock.harness.adapterVersion
+        || row.panelConfigId !== lock.experimentId) {
+        throw new Error(`Multi-model plan identity drift: ${key}`);
+      }
+      modelRows.push({ ...row, executionClass: "model-agent" });
+    }
+  }
+  if (modelRows.length !== lock.matrix.maximumAttemptModelRows) {
+    throw new Error(`Multi-model candidate row denominator drift: ${modelRows.length}`);
+  }
+
+  const artifactRows: MultiModelPanelPlanEntry[] = [];
+  for (const panelCase of lock.cases) for (const taskId of panelCase.taskIds) {
+    const matches = input.artifactRows.filter((row) => row.caseId.endsWith(`:${taskId}`));
+    if (matches.length !== 1) throw new Error(`Multi-model shared artifact row mismatch: ${panelCase.skillId}/${taskId}`);
+    const row = matches[0]!;
+    if (row.model !== "direct-deterministic" || row.modelFamily !== "none"
+      || row.runIndex !== 1 || row.panelConfigId !== lock.experimentId) {
+      throw new Error(`Multi-model shared artifact identity drift: ${panelCase.skillId}/${taskId}`);
+    }
+    artifactRows.push({ ...row, executionClass: "direct-deterministic" });
+  }
+  if (artifactRows.length !== lock.matrix.expectedSharedArtifactRows) {
+    throw new Error(`Multi-model shared artifact denominator drift: ${artifactRows.length}`);
+  }
+  return { modelRows, artifactRows };
+}
 
 type DirectionCounts = { gains: number; equals: number; regressions: number };
 
