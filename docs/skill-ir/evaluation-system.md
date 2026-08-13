@@ -540,6 +540,24 @@ Claude target 为 `semantic-complete + outputsMissing`，DeepSeek target 为 `se
 开放同 lock digest 的唯一 development matrix；Claude 的缺失输出仍是已披露的任务负结果，不被资格通过改写，
 矩阵也不得删除该模型族或按资格行结果调整 scorer/task。
 
+唯一 v4 matrix 已执行全部 36 个首块 model attempts 和 4 个 shared artifact anchors，但 selector 只完成
+11/12 triplets、33/36 selected model rows，因此 compact report 冻结为 `blocked`。GPT 与 Claude 各 12/12
+`semantic-complete`，说明两条 route 在本 Pi/Windows/clean/task identity 下 execution-compatible；DeepSeek 为
+8 个 semantic-complete、2 个 pre-semantic idle timeout、1 个 active absolute timeout，另有 1 行在完成 18 次
+provider response、22 次工具调用并自然结束后，被当时的 parser 以未知 `event:compaction_start` 阻断。Pi
+0.67.68 官方 NDJSON 合同包含 `compaction_start | compaction_end`，公共 allowlist 已用 TDD 补齐；由于 blocker
+当时使整格立即停止且未运行 reserve，新代码不能反事实补全该冻结 identity，v4 仍保持 blocked。
+
+已评分行显示逐族方向并不一致：GPT 的 original/no-skill 为 2 gain、1 equal、1 regression，static/original 为
+0/3/1；Claude 分别为 1/3/0 与 2/1/1；DeepSeek 的不完整分母分别为 2/0/1 与 1/1/1。共同 artifact 4/4
+success、mean 1.0、0 hard-gate failure，但缺失 DeepSeek API Tester selected triplet 按预注册下界比较计 1 次
+regression，故 artifact gate false。面板结论只能是 `methodDirection=mixed` 与 DeepSeek 长任务执行稳定性风险，
+不能用于模型排名、跨模型泛化、held-out 或 promotion。
+
+`selected-scored-runs.jsonl` 是可提交 compact evidence：runner 移除本机 manifest path，仅保留
+`initialWorkdirManifestSha256`。原始 stdout/stderr、workdir 和完整 manifest reference 继续只保存在本地
+`all-attempt-raw-runs.jsonl` 与 model workdir；execution envelope 仍不含模型正文。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、

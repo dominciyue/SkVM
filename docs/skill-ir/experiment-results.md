@@ -466,3 +466,27 @@ raw workdir/qualification/artifact 文件。治理规则：
    contribution-v2 已通过 baseline admission 与 source-audited base IR；v4 已排除 execution blocker，但
    static paired quality gate failed。停止该案例的 artifact 纵切，转向另一个 contract-qualified 方法案例；
    不回到旧饱和分母，也不消费 held-out。
+
+## 14. 三模型族 development 小面板 v4
+
+`three-family-development-v4` 在 infrastructure-only qualification 首次通过后执行唯一矩阵：36 个首块 model
+attempts 与 4 个 shared deterministic artifact rows。最终 selection 为 11/12 triplets、33/36 model rows，
+因此状态冻结为 `blocked`，没有补跑或覆盖同 identity。
+
+- GPT：12/12 semantic-complete，execution-compatible；original/no-skill 2 gain、1 equal、1 regression，
+  ir-static/original 0/3/1，aggregate non-cache tokens 414889。
+- Claude：12/12 semantic-complete，execution-compatible；对应方向 1/3/0 与 2/1/1，tokens 325639。
+- DeepSeek：12 attempted、9 selected、8 semantic-complete；2 pre-semantic idle timeout、1 active absolute
+  timeout，以及 1 个 Pi 标准 compaction event 被旧 allowlist 误判的 parser blocker，tokens 304506。
+- Shared artifact：4/4 success、mean 1.0、0 hard-gate failure；缺失 DeepSeek API Tester triplet 按固定分母
+  下界计 1 次 regression，artifact gate false。
+
+公共 Pi parser 已将 `compaction_start | compaction_end` 纳入标准事件，compact scored writer 也已去除绝对
+manifest path、保留 digest。两项修复不改变冻结 v4：parser blocker 发生时 reserve 尚未执行，不能事后构造
+选中 block。该结果支持 GPT/Claude 当前 execution compatibility 和 DeepSeek 长任务稳定性风险，质量方向为
+mixed；不支持跨模型泛化、模型排名、held-out、promotion 或 Token break-even claim。权威 compact evidence：
+
+- `results/skill-ir/three-family-development-panel-v4/qualification.json`
+- `results/skill-ir/three-family-development-panel-v4/execution-envelopes.jsonl`
+- `results/skill-ir/three-family-development-panel-v4/selected-scored-runs.jsonl`
+- `results/skill-ir/three-family-development-panel-v4/panel-report.json`

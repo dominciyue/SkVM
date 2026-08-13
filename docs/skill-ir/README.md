@@ -59,6 +59,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   1.0、0 regression、runtime model tokens 0。Portfolio 已有第二 optimized phenotype，held-out 仍关闭。
 - 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
   Optimizer Agent 尚未串成最终用户路径。
+- 三模型族 v4 development 小面板已执行 36 个 model attempts + 4 个 shared anchors：GPT/Claude 各 12/12
+  semantic-complete；DeepSeek 因 2 次语义前 idle、1 次 active absolute timeout 与 1 个 Pi compaction parser
+  缺口，只完成 11/12 triplets、33/36 model rows，冻结为 blocked。已评分方向 mixed；这不是跨模型主证据。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -73,7 +76,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Env Manager v2 baseline-v1 已冻结 measurement-invalid
 -> Env Manager v3 contract -> baseline -> base IR -> static -> artifact（均已完成）
 -> 第二个 optimized development phenotype 与前瞻适配成本（已完成）
--> 冻结第二/第三模型族 development 小面板
+-> 第二/第三模型族 development 小面板已完成首个冻结诊断（blocked/mixed）
 -> 继续补齐自动化并通过完整 readiness gate
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验

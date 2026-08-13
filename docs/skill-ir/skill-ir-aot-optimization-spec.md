@@ -533,6 +533,14 @@ ir-static 相对 original，以及 shared artifact 相对各模型臂的 score/h
 下是否可执行，并显示方向是 non-regressing、mixed 还是 regressing；不能外推到 held-out、noisy/long、其他
 agent/OS、模型总体排名或跨模型泛化。后续主实验仍要求完整 readiness 与 untouched replication。
 
+首个通过 infrastructure-only qualification 的 v4 identity 最终执行 36 个 model attempts 与 4 个 shared
+anchors，选中 11/12 triplets、33/36 model rows，因 DeepSeek API Tester 整格 execution blocker 冻结为
+`blocked`。GPT/Claude 各 12/12 semantic-complete；DeepSeek 同时暴露预语义 idle、活跃 absolute timeout 与
+Pi compaction event allowlist 缺口。公共 parser 修复只应用于后续 identity，不覆盖或反事实补全 v4。已观测
+quality direction 为 mixed，shared artifact 虽 4/4 success 仍因缺失 triplet 的固定分母下界失败。因此该批只
+支持“GPT/Claude execution-compatible、DeepSeek 长任务稳定性不足、方法方向不一致”的 development 诊断，
+仍不开放 held-out、promotion、Token break-even 或跨模型主 claim。
+
 ### 5.2 动态阶段
 
 当前采用双源 residual：
