@@ -16,9 +16,15 @@ const ModelFamilySchema = z.enum(["gpt", "claude", "deepseek"]);
 const ModelSystemSchema = z.enum(["no-skill", "original", "ir-static"]);
 
 export const MultiModelDevelopmentPanelLockSchema = z.object({
-  schemaVersion: z.literal("skill-ir-multi-model-development-panel-lock/v1"),
+  schemaVersion: z.enum([
+    "skill-ir-multi-model-development-panel-lock/v1",
+    "skill-ir-multi-model-development-panel-lock/v2",
+  ]),
   status: z.literal("preregistered"),
-  experimentId: z.literal("skill-ir-three-family-development-panel-v1"),
+  experimentId: z.enum([
+    "skill-ir-three-family-development-panel-v1",
+    "skill-ir-three-family-development-panel-v2",
+  ]),
   methodEvidence: z.literal(true),
   models: z.tuple([
     z.object({ route: z.string().min(1), family: z.literal("gpt") }).strict(),
@@ -44,6 +50,7 @@ export const MultiModelDevelopmentPanelLockSchema = z.object({
     modelPlanner: FrozenFileSchema,
     scoring: FrozenFileSchema,
     piAdapter: FrozenFileSchema,
+    piRuntime: FrozenFileSchema.optional(),
   }).strict(),
   harness: z.object({
     adapter: z.literal("pi"), adapterVersion: z.literal("0.67.68"),
@@ -80,6 +87,13 @@ export const MultiModelDevelopmentPanelLockSchema = z.object({
   }).strict(),
   prohibited: z.array(z.string().min(1)).min(1),
 }).strict().superRefine((lock, context) => {
+  const version = lock.schemaVersion.endsWith("/v2") ? "v2" : "v1";
+  if (!lock.experimentId.endsWith(`-${version}`)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "multi-model lock schema and experiment identity mismatch" });
+  }
+  if (version === "v2" && lock.frozenImplementations.piRuntime === undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "multi-model v2 must freeze Pi runtime observability" });
+  }
   const cells = lock.models.length * lock.cases.reduce((sum, item) => sum + item.taskIds.length, 0);
   const selected = cells * lock.matrix.targetBlocksPerCell * lock.matrix.modelSystems.length;
   const attempted = cells * (lock.matrix.targetBlocksPerCell + lock.matrix.reserveBlocksPerCell)
@@ -229,9 +243,92 @@ export const MultiModelDevelopmentPanelQualificationSchema = z.object({
   claimBoundary: z.literal("Route, Pi, resource, and execution-observability qualification only; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence."),
 }).strict();
 
+const QualificationAttemptSchema = z.object({
+  candidate: z.union([z.literal(1), z.literal(2)]),
+  classification: ExecutionFailureClassificationSchema,
+  outputsPresent: z.boolean(),
+}).strict();
+
+const QualificationRouteV2Schema = z.object({
+  family: ModelFamilySchema,
+  route: z.string().min(1),
+  attempts: z.array(QualificationAttemptSchema).min(1).max(2),
+  selectedCandidate: z.union([z.literal(1), z.literal(2)]).nullable(),
+  status: z.enum(["passed", "failed"]),
+}).strict();
+
+export const MultiModelDevelopmentPanelQualificationV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-multi-model-development-panel-qualification/v2"),
+  experimentId: z.literal("skill-ir-three-family-development-panel-v2"),
+  lockSha256: Sha256Schema,
+  status: z.enum(["passed", "failed"]),
+  localPi: z.object({ status: z.enum(["passed", "failed"]), observedVersion: z.string() }).strict(),
+  resources: z.tuple([
+    z.object({ skillId: z.literal("api-tester"), status: z.enum(["ok", "failed", "unavailable"]) }).strict(),
+    z.object({ skillId: z.literal("env-manager-v3"), status: z.enum(["ok", "failed", "unavailable"]) }).strict(),
+  ]),
+  routes: z.tuple([
+    QualificationRouteV2Schema.extend({ family: z.literal("gpt") }).strict(),
+    QualificationRouteV2Schema.extend({ family: z.literal("claude") }).strict(),
+    QualificationRouteV2Schema.extend({ family: z.literal("deepseek") }).strict(),
+  ]),
+  claimBoundary: z.literal("Route, Pi, resource, and execution-observability qualification with one bounded pre-semantic reserve only; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence."),
+}).strict();
+
+export type MultiModelDevelopmentPanelQualificationV2 = z.infer<
+  typeof MultiModelDevelopmentPanelQualificationV2Schema
+>;
+
+export function buildMultiModelDevelopmentPanelQualificationV2(input: Omit<
+  MultiModelDevelopmentPanelQualificationV2,
+  "schemaVersion" | "experimentId" | "status" | "claimBoundary"
+>): MultiModelDevelopmentPanelQualificationV2 {
+  for (const route of input.routes) {
+    const selected = selectMultiModelQualificationAttempt(route.attempts);
+    if (route.selectedCandidate !== selected.selectedCandidate
+      || route.status !== (selected.passed ? "passed" : "failed")) {
+      throw new Error(`Multi-model qualification v2 route selection mismatch: ${route.family}`);
+    }
+  }
+  const passed = input.localPi.status === "passed"
+    && input.resources.every((item) => item.status === "ok")
+    && input.routes.every((item) => item.status === "passed");
+  return MultiModelDevelopmentPanelQualificationV2Schema.parse({
+    schemaVersion: "skill-ir-multi-model-development-panel-qualification/v2",
+    experimentId: "skill-ir-three-family-development-panel-v2",
+    ...input,
+    status: passed ? "passed" : "failed",
+    claimBoundary: "Route, Pi, resource, and execution-observability qualification with one bounded pre-semantic reserve only; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence.",
+  });
+}
+
 export type MultiModelDevelopmentPanelQualification = z.infer<
   typeof MultiModelDevelopmentPanelQualificationSchema
 >;
+
+export function selectMultiModelQualificationAttempt(attempts: Array<{
+  candidate: number;
+  classification: ExecutionFailureClassification;
+  outputsPresent: boolean;
+}>): { selectedCandidate: number | null; passed: boolean } {
+  if (attempts.length < 1 || attempts.length > 2) {
+    throw new Error("Multi-model qualification requires one target and at most one reserve attempt");
+  }
+  const first = attempts[0]!;
+  if (first.candidate !== 1) throw new Error("Multi-model qualification target candidate must be 1");
+  if (first.classification === "semantic-complete" && first.outputsPresent) {
+    return { selectedCandidate: 1, passed: true };
+  }
+  const replaceable = first.classification === "transport-transient"
+    || first.classification === "empty-terminal"
+    || first.classification === "pre-semantic-idle-timeout";
+  if (!replaceable || attempts.length === 1) return { selectedCandidate: null, passed: false };
+  const second = attempts[1]!;
+  if (second.candidate !== 2) throw new Error("Multi-model qualification reserve candidate must be 2");
+  return second.classification === "semantic-complete" && second.outputsPresent
+    ? { selectedCandidate: 2, passed: true }
+    : { selectedCandidate: null, passed: false };
+}
 
 export function buildMultiModelDevelopmentPanelQualification(input: Omit<
   MultiModelDevelopmentPanelQualification,

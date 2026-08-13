@@ -5,9 +5,13 @@ import { RunExecutionObservationSchema, type RunExecutionObservation } from "../
 import { parseSafeRelativePath } from "./artifact-package";
 import {
   buildMultiModelDevelopmentPanelQualification,
+  buildMultiModelDevelopmentPanelQualificationV2,
   buildMultiModelDevelopmentPanelReport,
   MultiModelDevelopmentPanelQualificationSchema,
+  MultiModelDevelopmentPanelQualificationV2Schema,
+  selectMultiModelQualificationAttempt,
   type MultiModelDevelopmentPanelQualification,
+  type MultiModelDevelopmentPanelQualificationV2,
 } from "./multi-model-development-panel";
 import { buildMultiModelDevelopmentPanelPlan, type MultiModelDevelopmentPanelPlan } from "./multi-model-development-panel-plan";
 import { executeMatchedExecutionBlocks, type ExecutionEnvelope } from "./execution-resilience";
@@ -231,6 +235,71 @@ async function runQualification(
   });
 }
 
+async function runQualificationV2(
+  args: MultiModelDevelopmentPanelRunArgs,
+  plan: MultiModelDevelopmentPanelPlan,
+  env: Record<string, string | undefined>,
+): Promise<MultiModelDevelopmentPanelQualificationV2> {
+  for (const item of plan.runArgs) assertRequiredEnv(item, env);
+  const node = Bun.which(plan.lock.harness.nodeCommand);
+  if (!node) throw new Error("Multi-model qualification Node executable unavailable");
+  const version = await runCommandWithTimeout([
+    node, path.resolve(args.rootDir, plan.lock.harness.piCli.path), "--version",
+  ], 30_000, env);
+  const observedVersion = version.stdout.trim() || version.stderr.trim();
+  const localPi = {
+    status: version.exitCode === 0 && !version.timedOut && observedVersion === plan.lock.harness.adapterVersion
+      ? "passed" as const : "failed" as const,
+    observedVersion,
+  };
+  const resources = [] as MultiModelDevelopmentPanelQualificationV2["resources"][number][];
+  for (const panelCase of plan.lock.cases) {
+    const contract = ResourceContractSchema.parse(JSON.parse(await readFile(
+      plan.caseInputs[panelCase.skillId]!.resourceContractPath, "utf8",
+    )));
+    const result = await runResourceProbe(contract, { env });
+    resources.push({ skillId: panelCase.skillId, status: result.status });
+  }
+  const routes = [] as MultiModelDevelopmentPanelQualificationV2["routes"][number][];
+  for (const model of plan.lock.models) {
+    const attempts: Array<{ candidate: 1 | 2; classification: ExecutionEnvelope["classification"]; outputsPresent: boolean }> = [];
+    for (const candidate of [1, 2] as const) {
+      if (candidate === 2) {
+        const decision = selectMultiModelQualificationAttempt(attempts);
+        const first = attempts[0]!;
+        if (decision.passed || !first || !first.classification
+          || !["transport-transient", "empty-terminal", "pre-semantic-idle-timeout"].includes(first.classification)) break;
+      }
+      const row = plan.modelRows.find((item) => item.modelFamily === model.family
+        && item.system === plan.lock.qualification.system && item.runIndex === candidate
+        && item.caseId.endsWith(`:${plan.lock.qualification.taskId}`));
+      if (!row) throw new Error(`Multi-model qualification row missing: ${model.family}/${candidate}`);
+      const executed = await executeModelRow(plan, row, { ...env, SKVM_AUTO_PROBE: "0" });
+      attempts.push({
+        candidate,
+        classification: executed.envelope.classification,
+        outputsPresent: await multiModelQualificationOutputsPresent(row.workDir),
+      });
+      if (attempts.at(-1)!.classification === "semantic-complete" && attempts.at(-1)!.outputsPresent) break;
+      if (!["transport-transient", "empty-terminal", "pre-semantic-idle-timeout"].includes(attempts.at(-1)!.classification)) break;
+    }
+    const selection = selectMultiModelQualificationAttempt(attempts);
+    routes.push({
+      family: model.family,
+      route: model.route,
+      attempts,
+      selectedCandidate: selection.selectedCandidate,
+      status: selection.passed ? "passed" : "failed",
+    } as MultiModelDevelopmentPanelQualificationV2["routes"][number]);
+  }
+  return buildMultiModelDevelopmentPanelQualificationV2({
+    lockSha256: await lockDigest(args.lockPath),
+    localPi,
+    resources: resources as MultiModelDevelopmentPanelQualificationV2["resources"],
+    routes: routes as MultiModelDevelopmentPanelQualificationV2["routes"],
+  });
+}
+
 async function executeModelMatrix(
   plan: MultiModelDevelopmentPanelPlan,
   env: Record<string, string | undefined>,
@@ -378,13 +447,16 @@ export async function runMultiModelDevelopmentPanel(
   await writeJson(path.join(args.outDir, "plan.json"), projection);
   if (args.phase === "plan") return projection;
   if (args.phase === "qualification") {
-    const qualification = await runQualification(args, plan, env);
+    const qualification = plan.lock.schemaVersion.endsWith("/v2")
+      ? await runQualificationV2(args, plan, env)
+      : await runQualification(args, plan, env);
     await writeJson(path.join(args.outDir, "qualification.json"), qualification);
     return qualification;
   }
-  const qualification = MultiModelDevelopmentPanelQualificationSchema.parse(JSON.parse(await readFile(
-    path.join(args.outDir, "qualification.json"), "utf8",
-  )));
+  const qualificationInput = JSON.parse(await readFile(path.join(args.outDir, "qualification.json"), "utf8"));
+  const qualification = plan.lock.schemaVersion.endsWith("/v2")
+    ? MultiModelDevelopmentPanelQualificationV2Schema.parse(qualificationInput)
+    : MultiModelDevelopmentPanelQualificationSchema.parse(qualificationInput);
   if (qualification.status !== "passed" || qualification.lockSha256 !== await lockDigest(args.lockPath)) {
     throw new Error("Multi-model panel qualification is absent, failed, or stale");
   }

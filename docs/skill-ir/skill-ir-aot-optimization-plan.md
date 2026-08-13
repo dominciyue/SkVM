@@ -256,6 +256,10 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
 8. [x] v1 qualification 已冻结失败且未启动矩阵：GPT semantic-complete；Claude 的 provider 5xx 暴露标准
    `auto_retry_end` allowlist 缺口；DeepSeek 的零 usage/error terminal 暴露无 payload assistant 被误计为语义
    活动。两项均先修公共 value-free observability，再以 v2 identity 重新资格；禁止覆盖或重跑 v1。
+9. [x] 以 TDD 修复公共 Pi 事件 allowlist 与空 terminal 分类，并创建 v2 继任 identity；v2 额外冻结
+   `pi-runtime.ts`，资格 reserve 只允许替换 1 次预语义 transient，不能替换 active/semantic/quality failure。
+10. [ ] 运行 v2 的 digest-bound plan 与三 route 资格；通过则执行唯一 36-row selected model matrix 与 4 个 shared
+    artifact anchors，失败则冻结 compact qualification 并停止，不在同 identity 补跑。
 
 ### 单模型族 70% 与多模型族启动门槛
 

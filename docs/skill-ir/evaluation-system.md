@@ -445,7 +445,10 @@ Env adapter、领域 compiler 和实验 planner/runner。冻结矩阵为同一 2
 首个面板以三条 route 为真实执行轴，而不是只写 `modelFamily` 标签。Qualification 逐 route 运行同一公开
 original task，要求 Pi/local resource 预检通过、execution envelope 为 `semantic-complete` 且声明输出存在；
 qualification 不用 scorer success 排名模型。两个 skill 的 resource contract 均在矩阵开始前验证，任一失败都
-阻止 execute。
+阻止 execute。v2 资格为每条 route 预注册 1 个 target 和至多 1 个 reserve：只有 target 在语义活动前被分类为
+`transport-transient | empty-terminal | pre-semantic-idle-timeout` 才运行 reserve；active timeout、step-limit、
+parser/runtime blocker、已发生语义活动后的失败或“执行完成但缺少声明输出”都不替换。资格报告保留两次尝试的
+value-free 分类与选择结果，不保存模型正文。
 
 选择单元是 `model family x skill x task` 的完整三臂 block。每单元 1 target + 1 reserve；selector 不读取分数，
 只读取 compact envelope。Selected 质量分母固定为 12 triplets/36 model rows，shared artifact 另有 4 个直接行。
@@ -470,16 +473,16 @@ scoring 与 direct artifact）。使用顺序：
 
 ```powershell
 bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
-  --lock=benchmarks/skill-ir/panels/three-family-development-v1/panel-lock.json `
-  --out-dir=results/skill-ir/three-family-development-panel-v1 --phase=plan
+  --lock=benchmarks/skill-ir/panels/three-family-development-v2/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v2 --phase=plan
 
 bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
-  --lock=benchmarks/skill-ir/panels/three-family-development-v1/panel-lock.json `
-  --out-dir=results/skill-ir/three-family-development-panel-v1 --phase=qualification
+  --lock=benchmarks/skill-ir/panels/three-family-development-v2/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v2 --phase=qualification
 
 bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
-  --lock=benchmarks/skill-ir/panels/three-family-development-v1/panel-lock.json `
-  --out-dir=results/skill-ir/three-family-development-panel-v1 --phase=execute
+  --lock=benchmarks/skill-ir/panels/three-family-development-v2/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v2 --phase=execute
 ```
 
 API Tester 的历史 base lock 创建时共享 corpus/evaluator registry 后续尚未追加 Env/Law/i18n 条目。新 panel
@@ -494,6 +497,10 @@ base lock 的共享 registry digest 与当前版本一致。该 projection 规�
 `stopReason=error`、0 usage、0 tool、无输出结束，v1 classifier 因计入一个无 payload assistant 占位事件而
 误写 `semantic-complete`，但 qualification 仍由精确输出检查正确阻断。该结果不重跑、不覆盖；观测合同修复
 必须使用新 panel identity，v1 只保留为 route/harness qualification failure。
+
+`three-family-development-v2` 是上述公共观测修正后的继任 identity。除继续冻结 panel、selector、scorer 与 Pi
+adapter 外，v2 还直接冻结 `src/core/pi-runtime.ts`，避免事件 allowlist 或空 terminal 解析在资格后漂移。v1
+结果不迁移到 v2；v2 必须重新生成 plan、重新资格，且只有资格通过才允许启动唯一矩阵。
 
 ## 10. Scored Rows 与分析
 

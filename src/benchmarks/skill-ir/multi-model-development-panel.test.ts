@@ -4,6 +4,8 @@ import type { ScoredAgentRunRow } from "./scoring";
 import {
   MultiModelDevelopmentPanelLockSchema,
   buildMultiModelDevelopmentPanelQualification,
+  buildMultiModelDevelopmentPanelQualificationV2,
+  selectMultiModelQualificationAttempt,
   buildMultiModelDevelopmentPanelReport,
   buildMultiModelPanelEntries,
   type MultiModelDevelopmentPanelLock,
@@ -131,6 +133,36 @@ function completeEvidence() {
 }
 
 describe("multi-model development panel", () => {
+  test("qualification uses one bounded reserve only for pre-semantic transients", () => {
+    expect(selectMultiModelQualificationAttempt([
+      { candidate: 1, classification: "transport-transient", outputsPresent: false },
+      { candidate: 2, classification: "semantic-complete", outputsPresent: true },
+    ])).toEqual({ selectedCandidate: 2, passed: true });
+    expect(selectMultiModelQualificationAttempt([
+      { candidate: 1, classification: "parser-incompatible", outputsPresent: false },
+      { candidate: 2, classification: "semantic-complete", outputsPresent: true },
+    ])).toEqual({ selectedCandidate: null, passed: false });
+    expect(selectMultiModelQualificationAttempt([
+      { candidate: 1, classification: "empty-terminal", outputsPresent: false },
+    ])).toEqual({ selectedCandidate: null, passed: false });
+    const routes = lock.models.map((model) => ({
+      ...model,
+      attempts: [{ candidate: 1 as const, classification: "semantic-complete" as const, outputsPresent: true }],
+      selectedCandidate: 1 as const,
+      status: "passed" as const,
+    })) as [
+      { family: "gpt"; route: string; attempts: [{ candidate: 1; classification: "semantic-complete"; outputsPresent: true }]; selectedCandidate: 1; status: "passed" },
+      { family: "claude"; route: string; attempts: [{ candidate: 1; classification: "semantic-complete"; outputsPresent: true }]; selectedCandidate: 1; status: "passed" },
+      { family: "deepseek"; route: string; attempts: [{ candidate: 1; classification: "semantic-complete"; outputsPresent: true }]; selectedCandidate: 1; status: "passed" },
+    ];
+    expect(buildMultiModelDevelopmentPanelQualificationV2({
+      lockSha256: "a".repeat(64),
+      localPi: { status: "passed", observedVersion: "0.67.68" },
+      resources: [{ skillId: "api-tester", status: "ok" }, { skillId: "env-manager-v3", status: "ok" }],
+      routes,
+    }).status).toBe("passed");
+  });
+
   test("qualification checks execution observability but never scorer success", () => {
     const base = {
       lockSha256: "9".repeat(64),

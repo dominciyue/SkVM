@@ -513,6 +513,11 @@ promotion、跨模型主 claim 与 Token break-even 仍保持关闭。
 model rows，最大 attempted model rows 为 72。旧模型资格只能用于选择候选 route，本次执行前必须重新完成与
 panel lock digest、Pi 版本和 resource contract 绑定的逐 route qualification。
 
+资格本身也遵循相同的有界替换语义：每条 route 只有 1 个 target 和至多 1 个 reserve，且 reserve 只在 target
+尚无语义活动的 transient/empty/idle 分类时启用。已开始语义执行、解析器/运行时不兼容、active timeout、
+step-limit，或 semantic-complete 但没有生成公开合同声明输出，均作为该 route 的真实资格失败，不通过重复调用
+消除。继任 identity 必须冻结直接产生 value-free observation 的 Pi runtime，而不只冻结外层 adapter/selector。
+
 validated artifact 不接收模型输入，因此不是“每个模型族的一条 arm”。同一冻结 package 每个 skill/task 只执行
 一次，共 4 个 shared deterministic anchors；面板的最终逻辑分母为 36 model rows + 4 anchors = 40。按三个模型
 族重复 artifact 会把同一次确定性机制伪装成独立重复，明确禁止。
