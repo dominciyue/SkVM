@@ -89,6 +89,19 @@ describe("pi runtime execution observability", () => {
     }).parser).toEqual({ outcome: "incompatible", unknownTypes: ["content:future-block"] })
   })
 
+  test("accepts Pi compaction lifecycle events as standard parser input", () => {
+    const terminal = assistantEvent({ text: "done", inputTokens: 1, outputTokens: 1 })
+    const observation = observePiExecution([
+      { type: "compaction_start", reason: "threshold" } as unknown as PiEvent,
+      { type: "compaction_end", reason: "threshold", result: undefined, aborted: false, willRetry: false } as unknown as PiEvent,
+      terminal,
+    ], {
+      exitCode: 0, durationMs: 1, timedOut: false,
+    })
+
+    expect(observation.parser).toEqual({ outcome: "ok", unknownTypes: [] })
+  })
+
   test("reports pre-semantic provider transients without private text", () => {
     const transient = observePiExecution([{
       type: "auto_retry_start",

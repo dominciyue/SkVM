@@ -114,6 +114,7 @@ const PI_EVENT_TYPES = new Set([
   "message_start", "message_update", "message_end",
   "tool_execution_start", "tool_execution_update", "tool_execution_end",
   "auto_retry_start", "auto_retry_end",
+  "compaction_start", "compaction_end",
 ])
 
 /** True only for Pi NDJSON events proving provider/assistant/tool progress. */

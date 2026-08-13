@@ -7,6 +7,7 @@ import {
   executeMultiModelPanelCells,
   multiModelQualificationOutputsPresent,
   parseMultiModelDevelopmentPanelRunArgs,
+  sanitizeMultiModelPanelScoredRows,
   selectMultiModelPanelRawRowsForScoring,
 } from "./multi-model-development-panel-run";
 
@@ -91,5 +92,22 @@ describe("multi-model development panel runner", () => {
       selectedCells: [{ modelFamily: "gpt", skillId: "api-tester", taskId: "task-a", candidateBlock: 2 }],
     });
     expect(selected).toEqual([rawRows[1]!]);
+  });
+
+  test("removes local workdir manifest paths from compact scored evidence", () => {
+    const rows = [{
+      caseId: "api-tester:skvm:windows:clean:task-a",
+      system: "original",
+      initialWorkdirManifest: { path: "D:\\private\\run\\initial-workdir-manifest.json", sha256: "abc" },
+      evaluatorScore: 1,
+    }];
+
+    expect(sanitizeMultiModelPanelScoredRows(rows)).toEqual([{
+      caseId: "api-tester:skvm:windows:clean:task-a",
+      system: "original",
+      initialWorkdirManifestSha256: "abc",
+      evaluatorScore: 1,
+    }]);
+    expect(rows[0]?.initialWorkdirManifest.path).toContain("private");
   });
 });

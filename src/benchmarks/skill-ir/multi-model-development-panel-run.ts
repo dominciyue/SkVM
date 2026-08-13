@@ -100,6 +100,17 @@ export function selectMultiModelPanelRawRowsForScoring<Raw extends {
   });
 }
 
+export function sanitizeMultiModelPanelScoredRows<Row extends Record<string, unknown>>(
+  rows: readonly Row[],
+): Array<Omit<Row, "initialWorkdirManifest"> & { initialWorkdirManifestSha256?: string }> {
+  return rows.map(({ initialWorkdirManifest: localProvenance, ...portable }) => {
+    const sha256 = typeof localProvenance === "object" && localProvenance !== null
+      && "sha256" in localProvenance && typeof localProvenance.sha256 === "string"
+      ? localProvenance.sha256 : undefined;
+    return { ...portable, ...(sha256 ? { initialWorkdirManifestSha256: sha256 } : {}) };
+  });
+}
+
 export async function multiModelQualificationOutputsPresent(workDir: string): Promise<boolean> {
   for (const relativePath of [
     "api-test-generator.mjs",
@@ -500,7 +511,10 @@ export async function runMultiModelDevelopmentPanel(
   await Promise.all([
     writeJsonl(path.join(args.outDir, "all-attempt-raw-runs.jsonl"), execution.rawRows),
     writeJsonl(path.join(args.outDir, "execution-envelopes.jsonl"), execution.envelopes),
-    writeJsonl(path.join(args.outDir, "selected-scored-runs.jsonl"), scoredRows),
+    writeJsonl(
+      path.join(args.outDir, "selected-scored-runs.jsonl"),
+      sanitizeMultiModelPanelScoredRows(scoredRows),
+    ),
     writeJson(path.join(args.outDir, "panel-report.json"), report),
   ]);
   return report;
