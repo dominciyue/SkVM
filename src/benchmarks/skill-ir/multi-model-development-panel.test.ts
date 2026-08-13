@@ -5,6 +5,7 @@ import {
   MultiModelDevelopmentPanelLockSchema,
   buildMultiModelDevelopmentPanelQualification,
   buildMultiModelDevelopmentPanelQualificationV2,
+  buildMultiModelDevelopmentPanelQualificationV3,
   selectMultiModelQualificationAttempt,
   buildMultiModelDevelopmentPanelReport,
   buildMultiModelPanelEntries,
@@ -133,6 +134,40 @@ function completeEvidence() {
 }
 
 describe("multi-model development panel", () => {
+  test("binds v3 lock and bounded qualification to the v3 experiment identity", () => {
+    const v3Lock = {
+      ...lock,
+      schemaVersion: "skill-ir-multi-model-development-panel-lock/v3",
+      experimentId: "skill-ir-three-family-development-panel-v3",
+      frozenImplementations: {
+        ...lock.frozenImplementations,
+        piRuntime: { path: "pi-runtime.ts", sha256: "0".repeat(64) },
+      },
+    }
+    expect(MultiModelDevelopmentPanelLockSchema.parse(v3Lock).experimentId)
+      .toBe("skill-ir-three-family-development-panel-v3")
+    const routes = lock.models.map((model) => ({
+      ...model,
+      attempts: [{ candidate: 1 as const, classification: "semantic-complete" as const, outputsPresent: true }],
+      selectedCandidate: 1 as const,
+      status: "passed" as const,
+    })) as [
+      { family: "gpt"; route: string; attempts: [{ candidate: 1; classification: "semantic-complete"; outputsPresent: true }]; selectedCandidate: 1; status: "passed" },
+      { family: "claude"; route: string; attempts: [{ candidate: 1; classification: "semantic-complete"; outputsPresent: true }]; selectedCandidate: 1; status: "passed" },
+      { family: "deepseek"; route: string; attempts: [{ candidate: 1; classification: "semantic-complete"; outputsPresent: true }]; selectedCandidate: 1; status: "passed" },
+    ]
+    expect(buildMultiModelDevelopmentPanelQualificationV3({
+      lockSha256: "a".repeat(64),
+      localPi: { status: "passed", observedVersion: "0.67.68" },
+      resources: [{ skillId: "api-tester", status: "ok" }, { skillId: "env-manager-v3", status: "ok" }],
+      routes,
+    })).toMatchObject({
+      schemaVersion: "skill-ir-multi-model-development-panel-qualification/v3",
+      experimentId: "skill-ir-three-family-development-panel-v3",
+      status: "passed",
+    })
+  })
+
   test("qualification uses one bounded reserve only for pre-semantic transients", () => {
     expect(selectMultiModelQualificationAttempt([
       { candidate: 1, classification: "transport-transient", outputsPresent: false },

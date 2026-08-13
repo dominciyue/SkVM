@@ -473,16 +473,16 @@ scoring 与 direct artifact）。使用顺序：
 
 ```powershell
 bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
-  --lock=benchmarks/skill-ir/panels/three-family-development-v2/panel-lock.json `
-  --out-dir=results/skill-ir/three-family-development-panel-v2 --phase=plan
+  --lock=benchmarks/skill-ir/panels/three-family-development-v3/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v3 --phase=plan
 
 bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
-  --lock=benchmarks/skill-ir/panels/three-family-development-v2/panel-lock.json `
-  --out-dir=results/skill-ir/three-family-development-panel-v2 --phase=qualification
+  --lock=benchmarks/skill-ir/panels/three-family-development-v3/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v3 --phase=qualification
 
 bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
-  --lock=benchmarks/skill-ir/panels/three-family-development-v2/panel-lock.json `
-  --out-dir=results/skill-ir/three-family-development-panel-v2 --phase=execute
+  --lock=benchmarks/skill-ir/panels/three-family-development-v3/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v3 --phase=execute
 ```
 
 API Tester 的历史 base lock 创建时共享 corpus/evaluator registry 后续尚未追加 Env/Law/i18n 条目。新 panel

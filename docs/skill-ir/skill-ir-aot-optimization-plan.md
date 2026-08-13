@@ -268,7 +268,9 @@ paired quality regression。因此本 identity 不执行上述 artifact 工作�
     - [x] TDD 后 subprocess 与 headless driver 统一为：已收录模型保留 metadata，未收录 openai-compatible
       模型显式注册 `openai-completions`。Claude route-only 两轮工具回路通过；DeepSeek 首轮/多轮可成功但仍有
       120 秒内无 response 的波动，后续只由既有 bounded reserve 处理。
-12. [ ] 冻结绑定新 Pi adapter digest 的 v3 identity；重新运行唯一资格，通过才启动矩阵，失败仍按原合同封存。
+12. [x] 冻结绑定新 Pi adapter digest 的 v3 identity；schema/experiment/qualification 后缀严格绑定，继续使用
+    36 selected model rows + 4 shared anchors、120 秒 idle 和每 route 至多一次预语义 reserve。
+13. [ ] 运行 v3 digest-bound plan 与唯一资格；通过才启动矩阵，失败仍按原合同封存。
 
 ### 单模型族 70% 与多模型族启动门槛
 

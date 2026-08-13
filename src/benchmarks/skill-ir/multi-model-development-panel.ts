@@ -19,11 +19,13 @@ export const MultiModelDevelopmentPanelLockSchema = z.object({
   schemaVersion: z.enum([
     "skill-ir-multi-model-development-panel-lock/v1",
     "skill-ir-multi-model-development-panel-lock/v2",
+    "skill-ir-multi-model-development-panel-lock/v3",
   ]),
   status: z.literal("preregistered"),
   experimentId: z.enum([
     "skill-ir-three-family-development-panel-v1",
     "skill-ir-three-family-development-panel-v2",
+    "skill-ir-three-family-development-panel-v3",
   ]),
   methodEvidence: z.literal(true),
   models: z.tuple([
@@ -87,12 +89,12 @@ export const MultiModelDevelopmentPanelLockSchema = z.object({
   }).strict(),
   prohibited: z.array(z.string().min(1)).min(1),
 }).strict().superRefine((lock, context) => {
-  const version = lock.schemaVersion.endsWith("/v2") ? "v2" : "v1";
+  const version = lock.schemaVersion.split("/").at(-1)!;
   if (!lock.experimentId.endsWith(`-${version}`)) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "multi-model lock schema and experiment identity mismatch" });
   }
-  if (version === "v2" && lock.frozenImplementations.piRuntime === undefined) {
-    context.addIssue({ code: z.ZodIssueCode.custom, message: "multi-model v2 must freeze Pi runtime observability" });
+  if (version !== "v1" && lock.frozenImplementations.piRuntime === undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: `multi-model ${version} must freeze Pi runtime observability` });
   }
   const cells = lock.models.length * lock.cases.reduce((sum, item) => sum + item.taskIds.length, 0);
   const selected = cells * lock.matrix.targetBlocksPerCell * lock.matrix.modelSystems.length;
@@ -279,6 +281,15 @@ export type MultiModelDevelopmentPanelQualificationV2 = z.infer<
   typeof MultiModelDevelopmentPanelQualificationV2Schema
 >;
 
+export const MultiModelDevelopmentPanelQualificationV3Schema = MultiModelDevelopmentPanelQualificationV2Schema.extend({
+  schemaVersion: z.literal("skill-ir-multi-model-development-panel-qualification/v3"),
+  experimentId: z.literal("skill-ir-three-family-development-panel-v3"),
+}).strict();
+
+export type MultiModelDevelopmentPanelQualificationV3 = z.infer<
+  typeof MultiModelDevelopmentPanelQualificationV3Schema
+>;
+
 export function buildMultiModelDevelopmentPanelQualificationV2(input: Omit<
   MultiModelDevelopmentPanelQualificationV2,
   "schemaVersion" | "experimentId" | "status" | "claimBoundary"
@@ -296,6 +307,29 @@ export function buildMultiModelDevelopmentPanelQualificationV2(input: Omit<
   return MultiModelDevelopmentPanelQualificationV2Schema.parse({
     schemaVersion: "skill-ir-multi-model-development-panel-qualification/v2",
     experimentId: "skill-ir-three-family-development-panel-v2",
+    ...input,
+    status: passed ? "passed" : "failed",
+    claimBoundary: "Route, Pi, resource, and execution-observability qualification with one bounded pre-semantic reserve only; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence.",
+  });
+}
+
+export function buildMultiModelDevelopmentPanelQualificationV3(input: Omit<
+  MultiModelDevelopmentPanelQualificationV3,
+  "schemaVersion" | "experimentId" | "status" | "claimBoundary"
+>): MultiModelDevelopmentPanelQualificationV3 {
+  for (const route of input.routes) {
+    const selected = selectMultiModelQualificationAttempt(route.attempts);
+    if (route.selectedCandidate !== selected.selectedCandidate
+      || route.status !== (selected.passed ? "passed" : "failed")) {
+      throw new Error(`Multi-model qualification v3 route selection mismatch: ${route.family}`);
+    }
+  }
+  const passed = input.localPi.status === "passed"
+    && input.resources.every((item) => item.status === "ok")
+    && input.routes.every((item) => item.status === "passed");
+  return MultiModelDevelopmentPanelQualificationV3Schema.parse({
+    schemaVersion: "skill-ir-multi-model-development-panel-qualification/v3",
+    experimentId: "skill-ir-three-family-development-panel-v3",
     ...input,
     status: passed ? "passed" : "failed",
     claimBoundary: "Route, Pi, resource, and execution-observability qualification with one bounded pre-semantic reserve only; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence.",
