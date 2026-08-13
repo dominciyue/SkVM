@@ -535,6 +535,11 @@ transient/empty/idle 仍允许一次 reserve；parser/runtime/measurement/qualif
 活动的 `semantic-complete`、active timeout 与 step-limit 都准入矩阵，输出是否齐全只披露、不参与资格通过。
 这些 active/缺失输出随后在模型矩阵中按原 fixed denominator 计为失败，质量门槛没有放宽。
 
+v4 infrastructure-only qualification 已通过且未消耗 reserve：GPT target 为 `semantic-complete + outputsPresent`，
+Claude target 为 `semantic-complete + outputsMissing`，DeepSeek target 为 `semantic-complete + outputsPresent`。这只
+开放同 lock digest 的唯一 development matrix；Claude 的缺失输出仍是已披露的任务负结果，不被资格通过改写，
+矩阵也不得删除该模型族或按资格行结果调整 scorer/task。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、
