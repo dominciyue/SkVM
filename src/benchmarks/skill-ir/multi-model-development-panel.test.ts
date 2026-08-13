@@ -3,6 +3,7 @@ import type { ExecutionEnvelope } from "./execution-resilience";
 import type { ScoredAgentRunRow } from "./scoring";
 import {
   MultiModelDevelopmentPanelLockSchema,
+  buildMultiModelDevelopmentPanelQualification,
   buildMultiModelDevelopmentPanelReport,
   buildMultiModelPanelEntries,
   type MultiModelDevelopmentPanelLock,
@@ -30,7 +31,23 @@ const lock = {
     { skillId: "api-tester", baseLock: { path: "api.json", sha256: "a".repeat(64) }, taskIds: ["api-a", "api-b"] },
     { skillId: "env-manager-v3", baseLock: { path: "env.json", sha256: "b".repeat(64) }, taskIds: ["env-a", "env-b"] },
   ],
-  harness: { adapter: "pi", adapterVersion: "0.67.68", environment: "windows", context: "clean" },
+  frozenImplementations: {
+    panelContract: { path: "panel.ts", sha256: "c".repeat(64) },
+    panelPlanner: { path: "panel-plan.ts", sha256: "7".repeat(64) },
+    panelRunner: { path: "panel-run.ts", sha256: "8".repeat(64) },
+    executionResilience: { path: "resilience.ts", sha256: "d".repeat(64) },
+    executionRunner: { path: "runner.ts", sha256: "e".repeat(64) },
+    modelPlanner: { path: "planner.ts", sha256: "f".repeat(64) },
+    scoring: { path: "scoring.ts", sha256: "1".repeat(64) },
+    piAdapter: { path: "pi.ts", sha256: "2".repeat(64) },
+  },
+  harness: {
+    adapter: "pi", adapterVersion: "0.67.68", environment: "windows", context: "clean", maximumWorkDirLength: 220,
+    packageJson: { path: "package.json", sha256: "3".repeat(64) },
+    bunLock: { path: "bun.lock", sha256: "4".repeat(64) },
+    piCli: { path: "pi.js", sha256: "5".repeat(64) }, installedPackageJson: "pi-package.json",
+    nodeCommand: "node", nodeVersion: "v23.8.0", nodeExecutableSha256: "6".repeat(64), bunVersion: "1.3.14",
+  },
   matrix: {
     modelSystems: [...systems], targetBlocksPerCell: 1, reserveBlocksPerCell: 1,
     expectedSelectedTriplets: 12, expectedSelectedModelRows: 36,
@@ -114,6 +131,34 @@ function completeEvidence() {
 }
 
 describe("multi-model development panel", () => {
+  test("qualification checks execution observability but never scorer success", () => {
+    const base = {
+      lockSha256: "9".repeat(64),
+      localPi: { status: "passed" as const, observedVersion: "0.67.68" },
+      resources: [
+        { skillId: "api-tester" as const, status: "ok" as const },
+        { skillId: "env-manager-v3" as const, status: "ok" as const },
+      ] as [
+        { skillId: "api-tester"; status: "ok" },
+        { skillId: "env-manager-v3"; status: "ok" },
+      ],
+      routes: lock.models.map((model) => ({
+        ...model, classification: "semantic-complete" as const, outputsPresent: true,
+      })) as [
+        { family: "gpt"; route: string; classification: "semantic-complete"; outputsPresent: true },
+        { family: "claude"; route: string; classification: "semantic-complete"; outputsPresent: true },
+        { family: "deepseek"; route: string; classification: "semantic-complete"; outputsPresent: true },
+      ],
+    };
+    expect(buildMultiModelDevelopmentPanelQualification(base).status).toBe("passed");
+    expect(buildMultiModelDevelopmentPanelQualification({
+      ...base,
+      routes: [base.routes[0], base.routes[1], {
+        ...base.routes[2], classification: "active-absolute-timeout", outputsPresent: false,
+      }],
+    }).status).toBe("failed");
+  });
+
   test("builds 72 candidate model rows and four non-duplicated shared anchors", () => {
     const basePlans = Object.fromEntries(families.flatMap((family) => cases.map((item) => {
       const route = lock.models.find((model) => model.family === family)!.route;

@@ -464,6 +464,30 @@ All-attempt 报告包含所有 reserve 消耗；发生 replacement 或各 arm tr
 面板只有 `development-diagnostic` 解释状态；“execution compatible”不等于“质量方向一致”，二者都不等于
 promotion。Mixed/regressing 结果仍是有效的冻结发现，禁止通过删掉模型族、任务或失败行修成全绿。
 
+实现入口为 `multi-model-development-panel.ts`（schema/report）、`multi-model-development-panel-plan.ts`
+（base-lock closure 与 72+4 candidate plan）和 `multi-model-development-panel-run.ts`（资格、逐 cell selector、
+scoring 与 direct artifact）。使用顺序：
+
+```powershell
+bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
+  --lock=benchmarks/skill-ir/panels/three-family-development-v1/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v1 --phase=plan
+
+bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
+  --lock=benchmarks/skill-ir/panels/three-family-development-v1/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v1 --phase=qualification
+
+bun ./src/benchmarks/skill-ir/multi-model-development-panel-run.ts `
+  --lock=benchmarks/skill-ir/panels/three-family-development-v1/panel-lock.json `
+  --out-dir=results/skill-ir/three-family-development-panel-v1 --phase=execute
+```
+
+API Tester 的历史 base lock 创建时共享 corpus/evaluator registry 后续尚未追加 Env/Law/i18n 条目。新 panel
+不修改旧 lock，也不要求当前共享聚合文件回滚到旧字节；它冻结旧 base-lock digest，同时验证当前目标 skill
+entry 与 evaluator import/path/source-digest projection 未变，独占 task/scorer/package 仍逐文件验 hash。Env v3
+base lock 的共享 registry digest 与当前版本一致。该 projection 规则只适用于 append-only 共享 registry，不适用
+于独占 scorer、task、source、IR、package 或 runtime 实现。
+
 ## 10. Scored Rows 与分析
 
 Scored row 至少包含：`success`、`evaluatorScore`、`failedCriteria`、`runStatus`、`failureType`、tokens、

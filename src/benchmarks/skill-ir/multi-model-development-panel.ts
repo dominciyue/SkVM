@@ -35,9 +35,22 @@ export const MultiModelDevelopmentPanelLockSchema = z.object({
       taskIds: z.tuple([z.string().min(1), z.string().min(1)]),
     }).strict(),
   ]),
+  frozenImplementations: z.object({
+    panelContract: FrozenFileSchema,
+    panelPlanner: FrozenFileSchema,
+    panelRunner: FrozenFileSchema,
+    executionResilience: FrozenFileSchema,
+    executionRunner: FrozenFileSchema,
+    modelPlanner: FrozenFileSchema,
+    scoring: FrozenFileSchema,
+    piAdapter: FrozenFileSchema,
+  }).strict(),
   harness: z.object({
     adapter: z.literal("pi"), adapterVersion: z.literal("0.67.68"),
-    environment: z.literal("windows"), context: z.literal("clean"),
+    environment: z.literal("windows"), context: z.literal("clean"), maximumWorkDirLength: z.literal(220),
+    packageJson: FrozenFileSchema, bunLock: FrozenFileSchema, piCli: FrozenFileSchema,
+    installedPackageJson: z.string().min(1), nodeCommand: z.literal("node"), nodeVersion: z.literal("v23.8.0"),
+    nodeExecutableSha256: Sha256Schema, bunVersion: z.literal("1.3.14"),
   }).strict(),
   matrix: z.object({
     modelSystems: z.tuple([
@@ -197,6 +210,44 @@ export type MultiModelDevelopmentPanelReport = {
     mainClaimAllowed: false;
   };
 };
+
+export const MultiModelDevelopmentPanelQualificationSchema = z.object({
+  schemaVersion: z.literal("skill-ir-multi-model-development-panel-qualification/v1"),
+  experimentId: z.literal("skill-ir-three-family-development-panel-v1"),
+  lockSha256: Sha256Schema,
+  status: z.enum(["passed", "failed"]),
+  localPi: z.object({ status: z.enum(["passed", "failed"]), observedVersion: z.string() }).strict(),
+  resources: z.tuple([
+    z.object({ skillId: z.literal("api-tester"), status: z.enum(["ok", "failed", "unavailable"]) }).strict(),
+    z.object({ skillId: z.literal("env-manager-v3"), status: z.enum(["ok", "failed", "unavailable"]) }).strict(),
+  ]),
+  routes: z.tuple([
+    z.object({ family: z.literal("gpt"), route: z.string(), classification: ExecutionFailureClassificationSchema, outputsPresent: z.boolean() }).strict(),
+    z.object({ family: z.literal("claude"), route: z.string(), classification: ExecutionFailureClassificationSchema, outputsPresent: z.boolean() }).strict(),
+    z.object({ family: z.literal("deepseek"), route: z.string(), classification: ExecutionFailureClassificationSchema, outputsPresent: z.boolean() }).strict(),
+  ]),
+  claimBoundary: z.literal("Route, Pi, resource, and execution-observability qualification only; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence."),
+}).strict();
+
+export type MultiModelDevelopmentPanelQualification = z.infer<
+  typeof MultiModelDevelopmentPanelQualificationSchema
+>;
+
+export function buildMultiModelDevelopmentPanelQualification(input: Omit<
+  MultiModelDevelopmentPanelQualification,
+  "schemaVersion" | "experimentId" | "status" | "claimBoundary"
+>): MultiModelDevelopmentPanelQualification {
+  const passed = input.localPi.status === "passed"
+    && input.resources.every((item) => item.status === "ok")
+    && input.routes.every((item) => item.classification === "semantic-complete" && item.outputsPresent);
+  return MultiModelDevelopmentPanelQualificationSchema.parse({
+    schemaVersion: "skill-ir-multi-model-development-panel-qualification/v1",
+    experimentId: "skill-ir-three-family-development-panel-v1",
+    ...input,
+    status: passed ? "passed" : "failed",
+    claimBoundary: "Route, Pi, resource, and execution-observability qualification only; no scorer ranking, quality, held-out, promotion, or cross-model main-claim evidence.",
+  });
+}
 
 type PanelTask = { id: string; hardGateIds: string[] };
 
