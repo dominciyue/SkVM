@@ -354,6 +354,58 @@ describe("generic dual-source residual admission", () => {
     expect(evidence.repairCatalog).toBe("typed-output-repair/v2");
   });
 
+  test("admits generic rule enforcement only with a v3 catalog and the matching audited rule target", () => {
+    const base = admissionInput();
+    const rows = ["power-dev-a", "power-dev-b"].flatMap((task) => [1, 2].flatMap((runIndex) => [
+      row("original", task, runIndex, [criterion("power-sensitivity", false)]),
+      row("ir-static", task, runIndex, [criterion("power-sensitivity", false)]),
+    ]));
+    const genericCatalog = {
+      ...base.catalog,
+      catalogId: "statistical-power-public-residuals",
+      repairCatalog: "typed-output-repair/v3",
+      criteria: [{
+        criterionId: "power-sensitivity",
+        directiveId: "repair-sensitivity-analysis",
+        repairKind: "source-audited-rule-enforcement",
+        targetRef: "rule-sensitivity-analysis",
+        evidenceTargetRefs: ["rule:rule-sensitivity-analysis"],
+        prerequisites: [],
+      }],
+    };
+
+    const evidence = buildDualSourceRepairAdmission({
+      ...base,
+      rows,
+      sourceAuditTargetRefs: ["rule:rule-sensitivity-analysis"],
+      catalog: genericCatalog,
+    } as never);
+
+    expect(evidence.admission.status).toBe("eligible");
+    expect(evidence.repairCatalog).toBe("typed-output-repair/v3");
+    expect(evidence.repairs).toContainEqual(expect.objectContaining({
+      id: "repair-sensitivity-analysis",
+      kind: "source-audited-rule-enforcement",
+      targetRef: "rule-sensitivity-analysis",
+    }));
+
+    expect(() => DualSourceRepairMappingCatalogSchema.parse({
+      ...genericCatalog,
+      repairCatalog: "typed-output-repair/v2",
+    })).toThrow("requires typed-output-repair/v3");
+    expect(() => DualSourceRepairMappingCatalogSchema.parse({
+      ...genericCatalog,
+      criteria: [{ ...genericCatalog.criteria[0], targetRef: "step-sensitivity-analysis" }],
+    })).toThrow("existing rule");
+    expect(() => DualSourceRepairMappingCatalogSchema.parse({
+      ...genericCatalog,
+      criteria: [{
+        ...genericCatalog.criteria[0],
+        evidenceTargetRefs: ["rule:rule-other"],
+      }],
+    })).toThrow("matching source-audit rule target");
+  });
+
   test("fails closed on criterion-set drift and a mismatched pair denominator", () => {
     const base = admissionInput();
     const criterionDrift = base.rows.map((candidate, index) => index === 0

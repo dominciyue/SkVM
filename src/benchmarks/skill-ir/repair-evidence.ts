@@ -1,7 +1,10 @@
 import { z } from "zod";
 import type { ScoredAgentRunRow } from "./scoring";
 
-export type RepairKind = "json-schema-contract" | "source-qualified-finding";
+export type RepairKind =
+  | "json-schema-contract"
+  | "source-qualified-finding"
+  | "source-audited-rule-enforcement";
 export type RepairLineage = "reproduced" | "newly-observable";
 
 export type RepairEvidenceRecord = {
@@ -82,12 +85,12 @@ export const DualSourceRepairMappingCatalogSchema = z.object({
   catalogId: z.string().regex(/^[a-z0-9][a-z0-9.-]+$/),
   skillId: z.string().min(1),
   scope: z.enum(["prospective-development", "analysis-only"]),
-  repairCatalog: z.enum(["typed-output-repair/v1", "typed-output-repair/v2"]),
+  repairCatalog: z.enum(["typed-output-repair/v1", "typed-output-repair/v2", "typed-output-repair/v3"]),
   sourceAudit: RepairEvidenceDigestRefSchema,
   criteria: z.array(z.object({
     criterionId: z.string().min(1),
     directiveId: z.string().regex(/^[a-z0-9][a-z0-9-]+$/),
-    repairKind: z.enum(["json-schema-contract", "source-qualified-finding"]),
+    repairKind: z.enum(["json-schema-contract", "source-qualified-finding", "source-audited-rule-enforcement"]),
     targetRef: z.string().min(1),
     evidenceTargetRefs: z.array(z.string().min(1)).min(1),
     prerequisites: z.array(z.string().min(1)),
@@ -103,7 +106,7 @@ export const DualSourceRepairMappingCatalogSchema = z.object({
   }
   const criteria = new Set<string>();
   const directiveSemantics = new Map<string, { repairKind: RepairKind; targetRef: string }>();
-  const targetByRepairKind: Record<RepairKind, string> = {
+  const targetByRepairKind: Partial<Record<RepairKind, string>> = {
     "json-schema-contract": "rule-json-schema-contract",
     "source-qualified-finding": "rule-source-qualified-findings",
   };
@@ -129,7 +132,29 @@ export const DualSourceRepairMappingCatalogSchema = z.object({
         targetRef: mapping.targetRef,
       });
     }
-    if (mapping.targetRef !== targetByRepairKind[mapping.repairKind]) {
+    if (mapping.repairKind === "source-audited-rule-enforcement") {
+      if (catalog.repairCatalog !== "typed-output-repair/v3") {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "source-audited-rule-enforcement requires typed-output-repair/v3",
+          path: ["criteria", index, "repairKind"],
+        });
+      }
+      if (!mapping.targetRef.startsWith("rule-")) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "source-audited-rule-enforcement must target an existing rule-* base IR rule",
+          path: ["criteria", index, "targetRef"],
+        });
+      }
+      if (!mapping.evidenceTargetRefs.includes(`rule:${mapping.targetRef}`)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "source-audited-rule-enforcement requires a matching source-audit rule target",
+          path: ["criteria", index, "evidenceTargetRefs"],
+        });
+      }
+    } else if (mapping.targetRef !== targetByRepairKind[mapping.repairKind]) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: `typed repair target for ${mapping.repairKind} must be ${targetByRepairKind[mapping.repairKind]}`,
@@ -232,7 +257,7 @@ export const DualSourceRepairEvidenceV2Schema = z.object({
   experimentId: z.string().min(1),
   catalogId: z.string().min(1),
   catalogScope: z.enum(["prospective-development", "analysis-only"]),
-  repairCatalog: z.enum(["typed-output-repair/v1", "typed-output-repair/v2"]),
+  repairCatalog: z.enum(["typed-output-repair/v1", "typed-output-repair/v2", "typed-output-repair/v3"]),
   sourceSystems: z.tuple([z.literal("original"), z.literal("ir-static")]),
   stability: z.object({
     minDistinctTasks: z.number().int().min(2),
@@ -258,10 +283,10 @@ export const DualSourceRepairEvidenceV2Schema = z.object({
   records: z.array(z.object({
     evidenceId: z.string().min(1), taskId: z.string().min(1), runIndex: z.number().int().positive(),
     criterionId: z.string().min(1), lineage: z.enum(["reproduced", "newly-observable"]),
-    repairKind: z.enum(["json-schema-contract", "source-qualified-finding"]), targetRef: z.string().min(1),
+    repairKind: z.enum(["json-schema-contract", "source-qualified-finding", "source-audited-rule-enforcement"]), targetRef: z.string().min(1),
   }).strict()),
   repairs: z.array(z.object({
-    id: z.string().min(1), kind: z.enum(["json-schema-contract", "source-qualified-finding"]),
+    id: z.string().min(1), kind: z.enum(["json-schema-contract", "source-qualified-finding", "source-audited-rule-enforcement"]),
     targetRef: z.string().min(1), distinctTaskCount: z.number().int().nonnegative(),
     observationCount: z.number().int().nonnegative(), minRepetitionsPerTask: z.number().int().nonnegative(),
     taskIds: z.array(z.string().min(1)), evidenceIds: z.array(z.string().min(1)),

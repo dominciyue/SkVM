@@ -594,12 +594,18 @@ describe("skill-ir corpus fixtures", () => {
       .toBe("prospective-method-development");
     expect(intake.candidates.find((candidate) => candidate.id === "zh-readme")?.status)
       .toBe("method-development-v2-calibration-invalid");
+    expect(intake.candidates.find((candidate) => candidate.id === "statistical-power")).toMatchObject({
+      sourceId: "claude-scientific-skills",
+      status: "prospective-dynamic-candidate",
+      licenseStatus: "verified",
+    });
     expect(selected.every((candidate) => candidate.sourcePath.endsWith("SKILL.md"))).toBe(true);
     expect(selected.every((candidate) => candidate.licenseStatus === "verified")).toBe(true);
 
     const activeCandidates = intake.candidates.filter((candidate) =>
       candidate.status === "selected-pilot"
       || candidate.status === "prospective-method-development"
+      || candidate.status === "prospective-dynamic-candidate"
       || candidate.status === "method-development-benchmark-audited");
     const selectedCategories = new Set(activeCandidates.flatMap((candidate) => candidate.categories));
     for (const category of ["document-processing", "chinese-developer", "testing", "environment", "scientific-workflow"]) {

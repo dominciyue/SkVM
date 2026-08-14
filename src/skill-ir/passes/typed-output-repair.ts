@@ -1,7 +1,13 @@
 import type { RuntimeCheck, Rule, SkillIR } from "../schema";
 
-export type TypedRepairKind = "json-schema-contract" | "source-qualified-finding";
-export type TypedRepairCatalog = "typed-output-repair/v1" | "typed-output-repair/v2";
+export type TypedRepairKind =
+  | "json-schema-contract"
+  | "source-qualified-finding"
+  | "source-audited-rule-enforcement";
+export type TypedRepairCatalog =
+  | "typed-output-repair/v1"
+  | "typed-output-repair/v2"
+  | "typed-output-repair/v3";
 
 export type TypedRepairDirective = {
   id: string;
@@ -18,7 +24,9 @@ type RepairTemplate = {
   check: Omit<RuntimeCheck, "id" | "targetRef">;
 };
 
-const REPAIR_TEMPLATES: Record<TypedRepairKind, RepairTemplate> = {
+type TemplatedRepairKind = Exclude<TypedRepairKind, "source-audited-rule-enforcement">;
+
+const REPAIR_TEMPLATES: Record<TemplatedRepairKind, RepairTemplate> = {
   "json-schema-contract": {
     targetRef: "rule-json-schema-contract",
     rule: {
@@ -55,7 +63,7 @@ const REPAIR_TEMPLATES: Record<TypedRepairKind, RepairTemplate> = {
   },
 };
 
-const REPAIR_TEMPLATES_V2: Record<TypedRepairKind, RepairTemplate> = {
+const REPAIR_TEMPLATES_V2: Record<TemplatedRepairKind, RepairTemplate> = {
   "json-schema-contract": {
     targetRef: "rule-json-schema-contract",
     rule: {
@@ -93,8 +101,11 @@ const REPAIR_TEMPLATES_V2: Record<TypedRepairKind, RepairTemplate> = {
 };
 
 function templateFor(directive: TypedRepairDirective, catalog: TypedRepairCatalog): RepairTemplate {
-  const templates = catalog === "typed-output-repair/v2" ? REPAIR_TEMPLATES_V2 : REPAIR_TEMPLATES;
-  const template = templates[directive.kind];
+  if (directive.kind === "source-audited-rule-enforcement") {
+    throw new Error("source-audited-rule-enforcement does not materialize a repair template");
+  }
+  const templates = catalog === "typed-output-repair/v1" ? REPAIR_TEMPLATES : REPAIR_TEMPLATES_V2;
+  const template = templates[directive.kind as TemplatedRepairKind];
   if (!template) {
     throw new Error(`Unsupported typed repair kind: ${String(directive.kind)}`);
   }
@@ -111,10 +122,20 @@ export function applyTypedOutputRepairs(
 ): SkillIR {
   const rules = [...ir.rules];
   const checks = [...ir.checks];
+  const baseRuleIds = new Set(ir.rules.map((rule) => rule.id));
   const ruleIds = new Set(rules.map((rule) => rule.id));
   const checkIds = new Set(checks.map((check) => check.id));
 
   for (const directive of directives) {
+    if (directive.kind === "source-audited-rule-enforcement") {
+      if (catalog !== "typed-output-repair/v3") {
+        throw new Error(`${directive.kind} requires typed-output-repair/v3`);
+      }
+      if (!directive.targetRef.startsWith("rule-") || !baseRuleIds.has(directive.targetRef)) {
+        throw new Error(`Typed repair ${directive.id} must target an existing base IR rule`);
+      }
+      continue;
+    }
     const template = templateFor(directive, catalog);
     if (!ruleIds.has(template.targetRef)) {
       rules.push({ id: template.targetRef, ...template.rule });

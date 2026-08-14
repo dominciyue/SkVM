@@ -153,7 +153,7 @@ const FinalIRProvenanceV3Schema = z.object({
   evidencePolicy: z.literal("dual-source-residual/v2"),
   experimentId: z.string().min(1),
   catalogId: z.string().min(1),
-  repairCatalog: z.enum(["typed-output-repair/v1", "typed-output-repair/v2"]),
+  repairCatalog: z.enum(["typed-output-repair/v1", "typed-output-repair/v2", "typed-output-repair/v3"]),
   taskSplit: z.literal("development"),
   manifest: PortableDigestPathSchema,
   results: PortableDigestPathSchema,
@@ -492,7 +492,7 @@ export async function buildDualSourceFinalIRProvenanceV3(opts: {
   manifestPath: string;
   resultsPath: string;
   repairEvidencePath: string;
-  repairCatalog?: "typed-output-repair/v1" | "typed-output-repair/v2";
+  repairCatalog?: "typed-output-repair/v1" | "typed-output-repair/v2" | "typed-output-repair/v3";
   skills: { skillId: string; sourceSha256: string; baseIRPath: string; annotationCount: number }[];
 }): Promise<FinalIRProvenanceV3> {
   const [scoredRows, evidenceBytes] = await Promise.all([

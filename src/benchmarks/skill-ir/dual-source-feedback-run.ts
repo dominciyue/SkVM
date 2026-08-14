@@ -20,11 +20,13 @@ import {
 } from "./final-ir-provenance";
 import { sha256Bytes } from "./source-fixture";
 
+type LegacyTypedRepairCatalog = Exclude<TypedRepairCatalog, "typed-output-repair/v3">;
+
 export type DualSourceFeedbackOptions = {
   skillId: string;
   lineageCatalog: "env-manager/v1";
   minDistinctTasks: number;
-  repairCatalog?: TypedRepairCatalog;
+  repairCatalog?: LegacyTypedRepairCatalog;
 };
 
 export type DualSourceFeedbackArtifacts = {
@@ -36,7 +38,7 @@ export type DualSourceFeedbackArtifacts = {
     skillId: string;
     evidencePolicy: "dual-source-residual/v1";
     lineageCatalog: "env-manager/v1";
-    repairCatalog: TypedRepairCatalog;
+    repairCatalog: LegacyTypedRepairCatalog;
     inputRows: number;
     residualRecords: number;
     repairCount: number;

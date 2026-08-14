@@ -98,6 +98,61 @@ describe("typed output repair", () => {
     expect(findingRule.normalizedForm).toContain("does not define an object item schema");
   });
 
+  test("v3 preserves v2 templates for existing repair kinds", () => {
+    expect(applyTypedOutputRepairs(baseIR(), directives, "typed-output-repair/v3" as never))
+      .toEqual(applyTypedOutputRepairs(baseIR(), directives, "typed-output-repair/v2"));
+  });
+
+  test("v3 binds a generic repair to an existing rule without injecting rule or check text", () => {
+    const source = baseIR();
+    source.rules.push({
+      id: "rule-sensitivity-analysis",
+      sourceText: "Report how sample size changes across plausible effect sizes.",
+      level: "must",
+      scope: "output",
+      checkability: "runtime",
+      severity: "high",
+      normalizedForm: "The report includes a sensitivity analysis across plausible effect sizes.",
+    });
+    const genericDirective = {
+      id: "repair-sensitivity-analysis",
+      kind: "source-audited-rule-enforcement" as TypedRepairDirective["kind"],
+      targetRef: "rule-sensitivity-analysis",
+      observationCount: 4,
+      distinctTaskCount: 2,
+      evidenceIds: ["evidence-power-1", "evidence-power-2"],
+    };
+
+    const repaired = applyTypedOutputRepairs(
+      source,
+      [genericDirective],
+      "typed-output-repair/v3" as never,
+    );
+
+    expect(repaired).toEqual(source);
+    expect(repaired.rules).toHaveLength(1);
+    expect(repaired.checks).toEqual([]);
+  });
+
+  test("generic rule enforcement fails closed for missing targets and older catalogs", () => {
+    const genericDirective = {
+      id: "repair-sensitivity-analysis",
+      kind: "source-audited-rule-enforcement" as TypedRepairDirective["kind"],
+      targetRef: "rule-sensitivity-analysis",
+      observationCount: 4,
+      distinctTaskCount: 2,
+      evidenceIds: ["evidence-power-1", "evidence-power-2"],
+    };
+
+    expect(() => applyTypedOutputRepairs(
+      baseIR(),
+      [genericDirective],
+      "typed-output-repair/v3" as never,
+    )).toThrow("existing base IR rule");
+    expect(() => applyTypedOutputRepairs(baseIR(), [genericDirective], "typed-output-repair/v2"))
+      .toThrow("requires typed-output-repair/v3");
+  });
+
   test("rejects unsupported repair kinds and mismatched target refs", () => {
     expect(() => applyTypedOutputRepairs(baseIR(), [{
       ...directives[0]!,

@@ -140,6 +140,14 @@ protocol/schema/benchmark major identity。局部 parser、timeout、allowlist�
 范例。Portfolio 的 `benchmarkVersions` 只登记 benchmark/contract 的语义版本，不再混入 baseline、static、
 artifact 或 provider attempt 名称。
 
+Task 18.10 的 `typed-output-repair/v3` 是符合上述规则的语义升级，而不是运行次数命名。Semantic delta 是新增
+`source-audited-rule-enforcement`：它只能引用 profile-empty base IR 中已经存在的 `rule-*`，mapping 必须同时
+绑定同一 `rule:<targetRef>` source-audit target，不允许携带自由文本或创建新领域规则；v3 对既有两个 repair
+kind 完全继承 v2 语义。兼容性边界是 v1/v2 catalog 和历史 Final IR provenance 保持原有枚举与字节语义，只有
+通用 v2 admission 与 provenance v3 链路可以消费新 kind。Claim 影响仅为未来新领域 residual 提供可审计的
+通用编译能力，不追认旧 dynamic 结果，也不证明当前已经取得质量、效率、held-out 或跨模型收益。后续同一
+语义下的 parser、timeout、日志和确定性 bug 修复留在 v3，以 implementation digest/attempt 区分。
+
 Optimized development 的通过分为三种互斥证据，不再用单一 `passed` 冒充同一种收益：
 
 1. `quality-positive`：完整冻结分母上，相对合格 baseline 有可测量、非反事实的质量改善；

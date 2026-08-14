@@ -111,6 +111,32 @@ Env Manager v3 的冻结 static-fidelity 证据已用 `analysis-only` catalog �
 `results/skill-ir/env-manager-v3-static-fidelity-v1/residual-admission.json`。这证明“合法无残差”可被持久化并
 停止，不是 dynamic-profile 成功，也不改变 Env v3 的 fidelity-preserving 分类。
 
+### 3.3 Source-audited Rule Enforcement
+
+`typed-output-repair/v1` 与 v2 的 `json-schema-contract`、`source-qualified-finding` 是固定领域模板；它们继续
+保持原字节语义。v3 新增的 `source-audited-rule-enforcement` 不是第三份自由文本模板，而是把通用 residual
+绑定回 profile-empty base IR 中已经存在、已经通过 source audit 的规则：
+
+1. `targetRef` 必须是输入 base IR 中已有的 `rule-*`；同一 pass 新建规则后再引用不合法；
+2. mapping 使用 repair catalog v3，并包含与 target 完全相同的 `rule:<targetRef>` evidence ref；准入 runner
+   继续验证该 target 实际存在于绑定的 source audit；
+3. typed pass 只生成 target binding，不接收 rule/check/recovery 自由文本。后续 profile-guided repair 从该
+   rule 的 `normalizedForm` 确定性生成 check 和单次 retry recovery；
+4. 既有两个 kind 在 v3 中继承 v2 模板；v1/v2 catalog 与历史 provenance 仍拒绝新 kind，只有 Final IR
+   provenance v3 可以传递 repair catalog v3。
+
+因此该扩展只证明新领域残差可以沿同一通用、可审计路径进入 Final IR candidate。它没有绕过 artifact runtime：
+声明式 check/recovery 只有在后续 compiler 固化并由 validator 执行时才成为 enforcement，也不产生历史或当前的
+quality、efficiency、held-out、跨模型 claim。
+
+Task 18.10 同时在 benchmark contract 之前冻结 `statistical-power` 为下一 prospective candidate。选择报告绑定
+MIT、exact upstream repository/commit/path、checked-in source closure digest 和完整候选比较；初始预算只允许
+`original | ir-static`、2 development tasks x 2 repetitions、`retries=0`，即最多 8 次付费调用。只有未来
+dual-source admission 返回 `eligible` 才可追加最多 4 次 dynamic development；当前
+`paidExecution=false`、`dynamicProfile=false`、`heldOut=false`，且该候选不进入 7 个既有 method case 的 readiness
+分母。权威输入与报告分别为 `benchmarks/skill-ir/corpus/prospective-dynamic-candidate.json` 和
+`results/skill-ir/prospective-dynamic-candidate.json`。
+
 ## 4. Final IR Provenance
 
 Final IR candidate 至少绑定：

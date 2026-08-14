@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { SkillIRSchema } from "../../skill-ir/schema";
@@ -90,6 +90,145 @@ describe("dual-source feedback compiler", () => {
     expect(artifacts.overlay.repairs?.[0]?.id).toBe("repair-json-schema-contract");
     expect(artifacts.finalIR.profile).toHaveLength(1);
     expect(artifacts.summary.evidencePolicy).toBe("dual-source-residual/v2");
+  });
+
+  test("compiles v3 generic enforcement from an audited base rule without injecting domain text", async () => {
+    const workDir = await mkdtemp(join(rootDir, ".tmp-generic-rule-enforcement-"));
+    tempDirs.push(workDir);
+    const manifestPath = join(workDir, "benchmarks/skill-ir/corpus/corpora/pilot.json");
+    const basePath = join(workDir, "benchmarks/skill-ir/pilots/statistical-power/base-ir.json");
+    const scoredPath = join(workDir, "results/static/scored.jsonl");
+    await Promise.all([
+      mkdir(join(manifestPath, ".."), { recursive: true }),
+      mkdir(join(basePath, ".."), { recursive: true }),
+      mkdir(join(scoredPath, ".."), { recursive: true }),
+    ]);
+    await writeFile(manifestPath, `${JSON.stringify({
+      skills: [{ id: "statistical-power", status: "runnable", irPath: "benchmarks/skill-ir/pilots/statistical-power/base-ir.json" }],
+    })}\n`, "utf8");
+    await writeFile(join(workDir, "benchmarks/skill-ir/corpus/manifest.json"), `${JSON.stringify({
+      schemaVersion: "skill-ir-corpus-registry/v1",
+      corpora: {
+        calibration: { manifestPath: "benchmarks/skill-ir/corpus/corpora/calibration.json", role: "calibration" },
+        pilot: { manifestPath: "benchmarks/skill-ir/corpus/corpora/pilot.json", role: "pilot" },
+      },
+    })}\n`, "utf8");
+    const baseIR = SkillIRSchema.parse({
+      schemaVersion: "skill-ir/v1",
+      id: "statistical-power",
+      name: "Statistical Power",
+      category: ["workflow", "constraint-heavy"],
+      intent: "Plan a transparent statistical power analysis.",
+      source: { kind: "inline", text: "Use sensitivity analysis for uncertain effect sizes." },
+      inputs: [], outputs: [], preconditions: [], steps: [], tools: [], environment: [], checks: [], recovery: [], profile: [],
+      rules: [{
+        id: "rule-sensitivity-analysis",
+        sourceText: "Use sensitivity analysis for uncertain effect sizes.",
+        level: "must",
+        scope: "output",
+        checkability: "runtime",
+        severity: "high",
+        normalizedForm: "The report includes a sensitivity analysis across plausible effect sizes.",
+      }],
+    });
+    const baseText = `${JSON.stringify(baseIR, null, 2)}\n`;
+    await writeFile(basePath, baseText, "utf8");
+    const scoredRows = ["power-dev-a", "power-dev-b"].flatMap((task) => [1, 2].flatMap((runIndex) =>
+      ["original", "ir-static"].map((system) => ({
+        caseId: `statistical-power:${task}`,
+        skill: "statistical-power",
+        task,
+        system,
+        taskSplit: "development",
+        model: "test/model",
+        modelFamily: "test",
+        adapter: "pi",
+        adapterVersion: "test",
+        runIndex,
+        panelConfigId: "statistical-power-static-v1",
+      }))));
+    const scoredText = `${scoredRows.map((row) => JSON.stringify(row)).join("\n")}\n`;
+    await writeFile(scoredPath, scoredText, "utf8");
+
+    const bindingFiles = {
+      staticLock: "results/static/lock.json",
+      staticGate: "results/static/gate.json",
+      executionEnvelopes: "results/static/envelopes.jsonl",
+      scoredResults: "results/static/scored.jsonl",
+      baseIR: "benchmarks/skill-ir/pilots/statistical-power/base-ir.json",
+      sourceAudit: "benchmarks/skill-ir/pilots/statistical-power/source-audit.json",
+      mappingCatalog: "benchmarks/skill-ir/pilots/statistical-power/mapping.json",
+    };
+    for (const [name, relativePath] of Object.entries(bindingFiles)) {
+      if (name === "scoredResults" || name === "baseIR") continue;
+      const absolute = join(workDir, relativePath);
+      await mkdir(join(absolute, ".."), { recursive: true });
+      await writeFile(absolute, `${name}\n`, "utf8");
+    }
+    const bindings = Object.fromEntries(await Promise.all(Object.entries(bindingFiles).map(async ([name, relativePath]) => [
+      name,
+      { path: relativePath, sha256: sha256Bytes(await readFile(join(workDir, relativePath))) },
+    ])));
+    const evidence = DualSourceRepairEvidenceV2Schema.parse({
+      schemaVersion: "skill-ir-repair-evidence/v2",
+      policyVersion: "dual-source-residual/v2",
+      skillId: "statistical-power",
+      experimentId: "statistical-power-static-v1",
+      catalogId: "statistical-power-public-residuals",
+      catalogScope: "prospective-development",
+      repairCatalog: "typed-output-repair/v3",
+      sourceSystems: ["original", "ir-static"],
+      stability: { minDistinctTasks: 2, minRepetitionsPerTask: 2 },
+      bindings,
+      admission: { status: "eligible", reasons: [] },
+      records: ["power-dev-a", "power-dev-b"].flatMap((taskId) => [1, 2].map((runIndex) => ({
+        evidenceId: `e-${taskId}-${runIndex}`,
+        taskId,
+        runIndex,
+        criterionId: "power-sensitivity",
+        lineage: "reproduced",
+        repairKind: "source-audited-rule-enforcement",
+        targetRef: "rule-sensitivity-analysis",
+      }))),
+      repairs: [{
+        id: "repair-sensitivity-analysis",
+        kind: "source-audited-rule-enforcement",
+        targetRef: "rule-sensitivity-analysis",
+        distinctTaskCount: 2,
+        observationCount: 4,
+        minRepetitionsPerTask: 2,
+        taskIds: ["power-dev-a", "power-dev-b"],
+        evidenceIds: ["e-power-dev-a-1", "e-power-dev-a-2", "e-power-dev-b-1", "e-power-dev-b-2"],
+      }],
+      resolvedCriteria: [], regressions: [], unstableCriteria: [], unmappedCriteria: [],
+    });
+    const evidencePath = join(workDir, "results/static/repair-evidence.json");
+    const outDir = join(workDir, "results/compiled");
+    await writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
+
+    await runDualSourceFeedbackCompilerV2({
+      corpus: "pilot",
+      rootDir: workDir,
+      repairEvidencePath: evidencePath,
+      outDir,
+    });
+
+    const finalIR = SkillIRSchema.parse(JSON.parse(await readFile(join(outDir, "final-ir/statistical-power.json"), "utf8")));
+    expect(finalIR.rules).toEqual(baseIR.rules);
+    expect(finalIR.checks).toContainEqual(expect.objectContaining({
+      id: "check-rule-sensitivity-analysis-profile",
+      targetRef: "rule-sensitivity-analysis",
+    }));
+    expect(finalIR.recovery).toContainEqual(expect.objectContaining({
+      id: "recover-rule-sensitivity-analysis",
+      maxAttempts: 1,
+    }));
+    expect(JSON.stringify(finalIR)).not.toContain("128 participants");
+    const provenance = FinalIRProvenanceSchema.parse(JSON.parse(await readFile(join(outDir, "provenance.json"), "utf8")));
+    expect(provenance).toMatchObject({
+      schemaVersion: "skill-ir-final-provenance/v3",
+      repairCatalog: "typed-output-repair/v3",
+    });
   });
 
   test("refuses to compile a typed stop into an overlay", async () => {

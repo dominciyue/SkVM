@@ -166,8 +166,12 @@ applyProfileGuidedRepair(ir: SkillIR): SkillIR
 applyTypedOutputRepairs(ir, directives, catalog): SkillIR
 ```
 
-支持 `json-schema-contract` 与 `source-qualified-finding`。Catalog 版本改变语义时
-必须新建版本，旧 Final IR provenance 不得静默接收。
+v1/v2 支持固定模板 `json-schema-contract` 与 `source-qualified-finding`。v3 另支持
+`source-audited-rule-enforcement`：target 必须是输入 base IR 中已经存在的 `rule-*`，typed pass 只绑定 target，
+不接收新规则或 check/recovery 自由文本；repair mapping 还必须包含同一 `rule:<targetRef>` source-audit target。
+后续 profile-guided repair 从已有 rule 的 `normalizedForm` 确定性派生 check/recovery。既有两个 kind 在 v3 中继承
+v2 字节语义；v1/v2 catalog 和历史 provenance 仍拒绝新 kind。只有 semantic delta 才提升 catalog 版本，后续
+parser、timeout、日志或确定性实现修复继续使用 v3，以 implementation digest/attempt 区分。
 
 ## 7. Lowering
 

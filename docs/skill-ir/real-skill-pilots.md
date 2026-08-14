@@ -170,6 +170,20 @@ development，held-out 仍关闭。
 5. 复用已有 artifact kind 的同时能检验通用 core；
 6. 预计人工适配可被声明式 contract 表达。
 
+2026-08-14 的 prospective selector 在 7 个既有 method cases 与新候选之间完成机器可核验比较，并冻结
+`statistical-power` 为下一案例。候选来源是
+`openai/skills` commit `fc0b9f692459ea7d9e5a5c64948a5878e1bce274` 下的 exact `skills/statistical-power`，
+许可证为 MIT；checked-in runtime source closure 包含 `SKILL.md`、3 个 references 与 2 个 scripts，逐文件 digest
+及整体 closure digest 由选择合同重算。其 phenotype 是此前未覆盖的 statistical-design/tool-use，规则可映射到
+通用 source-audited base IR，而无需为该 skill 增加 core branch。
+
+权威 selection input/report 分别是 `benchmarks/skill-ir/corpus/prospective-dynamic-candidate.json` 与
+`results/skill-ir/prospective-dynamic-candidate.json`。当前只授权下一步编写 benchmark contract：先固定 2 个
+development tasks，运行 `original | ir-static`、每 task 2 repetitions、`retries=0`，初始最大付费预算 8；只有
+双源 residual admission 为 `eligible` 才允许追加最多 4 次 dynamic development。选择阶段未运行付费调用、未
+编写或读取 held-out、未生成 profile/overlay/Final IR，也不把该候选登记为 contract-qualified、studied 或
+readiness 正例；现有 7/7 method portfolio 分母保持不变。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为
