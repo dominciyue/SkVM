@@ -825,6 +825,9 @@ Static 161220 非缓存 tokens 虽低于 original 213935，但质量回归禁止
 设计：两独立均值与两独立比例；两者都覆盖非等额分配、Bonferroni 多重比较、SESOI、失访膨胀和敏感性分析。
 任务只公开 study facts 与输出 ABI，不公开动作序列、预期样本量、gold 或 source quote。Scorer 必须从公开输入
 重算分析样本量与入组样本量，接受 ABI 允许的说明文本，不得用隐藏字段、私有数组顺序或逐 fixture 答案判分。
+“公开输出 ABI”必须覆盖 scorer 实际读取的每个 JSON pointer；只声明父对象、再由隐藏 strict schema 规定子字段
+不算公开。Contract audit 必须以独立 disclosure manifest 比较 public/evaluator pointer，canonical fixture 不能
+仅由同一隐藏 parser 生成后自证通过。该检查只公开字段和类型，不公开动作序列或预期数值。
 
 该案例的领域特异部分限定为声明式 study adapter、数学 oracle 与 criterion-to-source anchors；task/source freeze、
 workdir delta、贡献可识别性、paired runner、execution observability、gate 与 compact report 必须复用公共组件且
@@ -839,6 +842,11 @@ residual admission eligible 时才允许最多 4 行 dynamic development。三�
 完成该 skill 后必须暂停候选扩张，按全过程证据复盘真实瓶颈、自动化缺口、每 case 适配成本、正负证据比例和目标
 难度。统一封装的候选边界是 `import -> contract -> audit -> calibrate -> optimize -> report`；是否交付该封装、
 进入多模型族或弱化“通用优化”目标，必须由复盘结果决定，不能由单个正例或文件覆盖率决定。
+
+首轮真实执行已触发该停止点：qualification 1 行和 paired matrix 8 行均健康完成，但 public interface 未披露
+scorer 所需的 23 个嵌套 pointer，8/8 报告满足公开顶层字段、0/8 通过隐藏 strict schema。因此该 identity 是
+`measurement-invalid`，不是 original 的正/负效果证据；base IR、static、dynamic 和 held-out 均关闭。后续修复
+若改变 agent 可见字段合同，必须建立新的 measurement identity；不得重评分旧结果。
 
 ## 9. Prospective Partial-benefit Re-entry
 
@@ -942,3 +950,20 @@ optimized phenotype。
 6. scorer、runtime validator、infrastructure 和成本分列；
 7. 在质量硬门槛通过的案例上报告 `N=1,2,5,10` 与 break-even；
 8. CLI、library 与 Optimizer Agent 共用同一 core，能输出 package、validation 和 cost report。
+
+上述仍是长期研究完成条件，不再作为当前单模型里程碑的单一完成百分比。复盘后近期目标收窄为：在
+Windows/clean、一个冻结模型族和一个稳定 harness 上，证明面向 deterministic/contract-heavy skill 的公共 AOT
+生命周期可复用。该里程碑要求：
+
+1. 公共 `import -> contract -> audit -> calibrate -> optimize -> report` wrapper 以 declarative adapter 驱动，
+   并在 API Tester 与 Env Manager 上 shadow rebuild/parity；
+2. 至少 1 个 quality-positive phenotype，加上第 2 个 quality-positive 或具有完整 all-attempt/compile/profile/
+   package 成本与 break-even 的 efficiency-positive phenotype；单纯 fidelity 不计；
+3. 至少 1 个 untouched replication，期间 `coreBranchDelta=0`；
+4. scorer authority、execution failure、semantic failure 与成本分列；已解释、冻结的负结果保留在 corpus，但
+   只有未解释漂移或当前候选 blocker 才阻断方法冻结；
+5. dynamic-profile 不作为强制数量指标。只有公开、跨任务且跨重复稳定的 residual 才运行 dynamic/
+   solidification；没有 residual 时，typed stop 是合格结果。
+
+跨 agent、跨 OS、noisy/long、三模型族主表与普遍稳定性仍属于后续扩展目标。这个收窄不降低已有 quality、
+fixed-denominator、held-out 或 provenance 标准，只减少当前里程碑同时必须证明的外推范围。

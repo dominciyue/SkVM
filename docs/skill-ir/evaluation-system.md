@@ -410,10 +410,12 @@ bun ./src/benchmarks/skill-ir/skill-contribution-identifiability-run.ts `
   --out=results/skill-ir/statistical-power-contribution-identifiability-v1/report.json
 ```
 
-Contract audit 为 5/5，覆盖 canonical、alternative-valid、prompt-only omission、reverse-evidence、forbidden sink
-和真实 workdir materialization。通用贡献 analyzer 输出 `eligible-for-baseline`：4 条独立 skill-derived claim、
-逐 task weight 0.80、0 answer-bearing duplication、5 类 canary 全通过。它们只开放冻结 baseline lock，不是模型
-表现或优化证据。
+首轮 contract audit 为 5/5，覆盖 canonical、alternative-valid、prompt-only omission、reverse-evidence、forbidden
+sink 和真实 workdir materialization。通用贡献 analyzer 输出 `eligible-for-baseline`：4 条独立 skill-derived
+claim、逐 task weight 0.80、0 answer-bearing duplication、5 类 canary 全通过。真实 baseline 随后证明该 audit
+仍漏掉一类 authority 条件：canonical canary 由隐藏 `StatisticalPowerReportSchema` 直接生成，不能证明公开 interface
+足以让 agent 唯一重建 scorer 要求的嵌套字段。因此这些 pre-run 结果只说明既有 canary 自洽，不能继续授予有效
+baseline measurement。
 
 Baseline 使用既有 resilient v3 runner，仍严格服从本案例的 8-call calibration authorization：
 
@@ -425,9 +427,28 @@ bun ./src/benchmarks/skill-ir/public-contract-calibration-v3-cli.ts `
 ```
 
 Qualification/execute 复用同一命令并替换 `--phase`。Lock 使用 600 秒 absolute、120 秒 idle、660 秒 outer 和
-execution sidecar；由于本阶段授权上限就是 8 calls，`reserveBlocksPerTask=0`、不得以 transient replacement 超过
-预算。若出现偶发 infrastructure failure，本 identity 冻结为 infrastructure-sensitive，再由新的 attempt/
-authorization 决定是否预注册 reserve；不能在运行中临时补行。
+execution sidecar；`reserveBlocksPerTask=0`，正式 paired matrix 固定为 8 calls，不得以 transient replacement
+扩大分母。Qualification 自身另有 1 次付费 original preflight，因此本轮真实总成本是 1 qualification + 8
+selected matrix = 9 calls。旧 authorization 的 `maxPaidCalls=8` 实际表达 matrix denominator，不含 preflight；
+这是需要由统一封装显式拆分的计费命名缺口，不能把实际总调用写成 8。
+
+2026-08-15 qualification 在 148425ms 后以 `semantic-complete` 通过；唯一 matrix 的 8/8 行全部自然结束，0
+replacement、0 transient/active/parser/runtime blocker，行耗时 100--159 秒，总耗时 1008585ms。该结果证明
+600/120/660 秒预算适合当前任务，也证明旧的较短硬 timeout 会误杀正常的两到三分钟执行；它不证明所有历史
+故障都来自 timeout。
+
+Numeric gate 表面为 no-skill/original mean 0.1/0.1、0 differing pair、0 success，但 post-run authority audit
+将该批冻结为 `measurement-invalid`，而不是 skill 无收益：8/8 `power-analysis.json` 可解析且满足公开顶层字段，
+0/8 满足 scorer 隐藏的 strict nested schema。公开 interface 只列 `analysis`、`sampleSize`、`reproducibility`
+等父对象，scorer 却读取 23 个未披露的嵌套 JSON pointer；original 多数数值与 oracle 一致也会因字段名不同而
+整份解析失败。权威 compact 结果是
+`results/skill-ir/statistical-power-development-baseline-v1/measurement-validity.json`。Base IR、static、dynamic 与
+held-out 全部关闭，旧 gate 不重评分、不用新 scorer 冒充预注册结果。
+
+新增的 `public-json-contract-disclosure.ts` 是 skill-neutral preflight：adapter 声明公开字段 pointer 和 evaluator
+实际读取的 pointer，父对象不能隐式覆盖子字段，缺失项 fail closed。它不公开预期数值、动作配方或 gold；后续
+contract audit 必须先通过 disclosure，再运行 canonical/alternative/reverse canary。Statistical Power 的薄适配
+器和 `statistical-power-measurement-validity-run.ts` 只负责列出领域 pointer、读取冻结证据并绑定 digest。
 
 跨 skill 统一化采用“公共生命周期 + 领域 adapter”而不是统一语义 scorer。公共层负责 source closure、task/
 contract freeze、manifest/delta、contribution audit、runner、observability、gate、cost 和 report；adapter 只声明

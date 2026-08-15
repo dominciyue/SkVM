@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-13
+**最后更新：** 2026-08-15
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -22,11 +22,13 @@
 - i18n contribution-v2 已通过基线准入并完成 source-audited profile-empty base IR；首个 static identity 因
   4 个 infrastructure failure 冻结，resilient v4 已消除 execution blocker，但因 1 个 paired quality regression
   失败，仍无 artifact、held-out 或 Token 优化证据；
+- Statistical Power 首轮 baseline 8/8 行无 execution blocker，但 public interface 未披露 scorer 的 23 个嵌套
+  JSON pointer，冻结 scorer-authority `measurement-invalid`；没有进入 base IR/static/dynamic；
 - untouched replication、三模型族主实验、noisy/long context、break-even 和面向用户的统一 optimizer CLI 尚未完成；
 
-因此当前不能写“优化系统已经闭环”或“任意 skill 均可自动优化”。准确表述是：**测量与执行框架较成熟，
-通用优化内核有一个质量正例、一个 fidelity 案例和多个机制/负结果，跨模型方向性诊断已完成首批
-blocked/mixed 面板，跨 skill 复现、动态固化闭环与产品化仍在关键路径上。**
+因此当前不能写“优化系统已经闭环”或“任意 skill 均可自动优化”。准确表述是：**执行框架较成熟，但 scorer
+authority preflight 仍不完备；通用优化内核有一个质量正例、一个 fidelity 案例和多个机制/负结果，跨模型方向性
+诊断已完成首批 blocked/mixed 面板，生命周期封装、跨 skill 复现、全成本与产品化仍在关键路径上。**
 
 ## 2. 机器状态 Ledger
 
@@ -392,7 +394,7 @@ parser、timeout、日志或实现 bug 修复继续留在 v3，以新的 impleme
 聚焦验证为 81 pass、0 fail，typecheck 与文档检查通过；相关广测为 929 pass、6 skip、62 fail，失败仍属于
 冻结历史 digest/lifecycle compatibility，不能通过改写旧 lock 消除，也不能声称仓库级全绿。
 
-### Task 18.11：Statistical Power 竖切与阶段授权（进行中）
+### Task 18.11：Statistical Power 竖切与阶段授权（完成，measurement-invalid 停止）
 
 **目标：** 用两道纯闭式、可独立重算的 development task 验证 statistical-design/tool-use phenotype；先证明
 公开合同、数值 oracle 和 skill 贡献可识别，再依 gate 顺序运行 `no-skill | original`、source-audited base IR 与
@@ -423,19 +425,39 @@ parser、timeout、日志或实现 bug 修复继续留在 v3，以新的 impleme
    RED，再实现 compact contract audit；
 5. [x] 建 `skill-contribution-identifiability/v1` manifest，要求至少 2 个独立 skill-derived failure mode、逐 task
    skill-derived weight >= 0.30 或 hard gate、0 answer-bearing duplication、5 类 canary 全通过；
-6. [ ] 生成 development-only freeze 和分阶段授权；本地确定性检查全绿且贡献审计 eligible 后，才允许 plan/
+6. [x] 生成 development-only freeze 和分阶段授权；本地确定性检查全绿且贡献审计 eligible 后，才允许 plan/
    qualification/execute baseline；baseline 通过后才写 profile-empty base IR，static 通过后才审 residual；
-7. [ ] 更新现有 spec、evaluation、pilot、ledger、handoff 和 conversation log；不新增说明性 Markdown；
-8. [ ] 该 skill 阶段关闭后执行项目全过程复盘，明确继续、弱化或停止条件，再决定是否新增案例或多模型族矩阵。
+7. [x] 更新现有 spec、evaluation、pilot、ledger、handoff 和 conversation log；不新增说明性 Markdown；
+8. [x] 该 skill 阶段关闭后执行项目全过程复盘，明确继续、弱化或停止条件，再决定是否新增案例或多模型族矩阵。
 
 **版本纪律：** 本任务不改写 Task 18.10 的冻结证据，也不为实现 bug、timeout 或 scorer 小修滚版本。新的
 development authorization 是 selection 之后的新生命周期组件，不是旧组件 v2；只有 task/scorer 可观察语义、
 实验分母或 claim eligibility 发生变化时，才建立 successor identity。
 
-**冻结进度（2026-08-15）：** contract surface 已提交为 `7e383c8`；development-only freeze、完整 source closure、
-v3 resilient baseline lock 与 corpus `tasks-authored` entry 已建立并通过 8-row plan。Lock 不预留 replacement block，
-因此 maximum attempt rows 与 calibration authorization 同为 8；600/120/660 秒 progress-aware timeout 用来降低误杀，
-而不是放宽付费分母。Qualification 与 execute 仍待锁提交后运行。
+**冻结结果（2026-08-15）：** contract surface 为 `7e383c8`，freeze/lock 为 `9c90eda`。Qualification 1 行与
+matrix 8 行均完成；matrix 8/8 semantic-complete、0 replacement/infra，正常行耗时 100--159 秒。正式分母是
+8，但 qualification 另付费 1 次，真实总调用为 9。Numeric gate 为两臂 mean 0.1、0 differing、failed；post-run
+audit 发现 8/8 报告满足公开顶层合同、0/8 满足隐藏 strict schema，公开/评分 pointer 缺口为 23，因此冻结
+`measurement-invalid`。不重评分、不补跑、不建立 base IR，不进入 static/dynamic/held-out。通用 public JSON
+disclosure preflight 已以 TDD 加入未来合同流程。
+
+### Task 18.12：全过程复盘与统一封装决策（完成，下一实现已冻结）
+
+1. [x] 逐案核对 7-case portfolio 与 Statistical Power：只有 API Tester 是 quality-positive；Env Manager 是
+   fidelity-preserving；Zh Code Reviewer static-sufficient；Law/Experimental Design/Zh README/i18n/Statistical
+   Power 分别因 baseline regression、saturation、scorer authority、static regression、scorer authority 停止；
+2. [x] 核对 dynamic 缺失：0 case 进入 dynamic-profile 是 residual-driven 门禁结果，不是要求每个 skill 必须补做
+   dynamic；通用 admission/Final IR 机制只有 synthetic eligible，真实 Env evidence 是合法 no-residual stop；
+3. [x] 核对统一化现状：公共 assembly/runner/envelope/gate 已存在，但目录仍有 78 个 `*-run.ts`，多模型 plan
+   仍含 package 的 skill 分支，5/7 case 无前瞻人工时间，不能声称自动适配已收敛；
+4. [x] 将当前成熟度拆成三轴：执行/测量约 70%，单模型研究证据约 40%--50%，用户产品路径约 25%--35%；
+   不再用单一文件覆盖百分比代表项目完成度；
+5. [x] 收窄近期目标为一个模型族/Windows/clean 下 deterministic/contract-heavy skill 的 AOT lifecycle
+   viability；长期跨 agent/OS/context/model 稳定仍保留为扩展目标；dynamic 不再是近期强制数量门；
+6. [x] 冻结下一实现为 declarative `PilotAdapter` + 公共 lifecycle wrapper，shadow-first 复建 API Tester/Env
+   Manager，并用 Statistical Power 作为 disclosure 负 canary；在两正一负 parity 前暂停新增 skill 和付费矩阵；
+7. [ ] wrapper parity 后补 Env Manager compile/profile/package/all-attempt 成本与 break-even，决定其是否可从
+   fidelity 晋升 efficiency-positive；随后再选择 1 个 untouched replication。
 
 ### 单模型族 70% 与多模型族启动门槛
 
@@ -453,10 +475,11 @@ v3 resilient baseline lock 与 corpus `tasks-authored` entry 已建立并通过 
 
 当前尚未达到这条研究证据门槛：7/7 contract-qualified 不变，但机器口径修正后只有 API Tester 1 个
 readiness-eligible optimized phenotype；Env Manager v3 是 fidelity-preserving，不是尚未核算 compile cost 与
-break-even 的 efficiency-positive。若只按工程覆盖粗估约 **65%--68%**，不再用文件数或 artifact pass 抬到
-70%。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，不等于跨模型主实验已经启动。
-下一优先级是取得第二个真实优化正例或完整效率正例，并补齐可复用的 dynamic/solidification 闭环；完整
-held-out、noisy/long 与跨模型主 claim 仍须等待 readiness、untouched replication 和更完整自动化。
+break-even 的 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
+**40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
+不等于跨模型主实验已经启动。下一优先级不是继续找新 skill，而是完成 lifecycle wrapper shadow parity、修正
+scorer disclosure preflight，并补 Env Manager 全成本/break-even 或取得第二个质量正例。真实 dynamic 只在稳定
+residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 
 ## 5. 时间估算
 
@@ -473,10 +496,11 @@ held-out、noisy/long 与跨模型主 claim 仍须等待 readiness、untouched r
 | 三模型族/context/cost 主实验 | 7-12 | 稳定性、回归和 Token 摊销主表 |
 | CLI/library/报告收口 | 4-7 | 可演示产品入口与研究报告 |
 
-i18n 已留下 infrastructure-insensitive 的 static 质量负结果，不能成为第二 phenotype。若 Task 18.5 选出的
-替代案例顺利通过，**2 周左右**可以形成更完整的阶段汇报：两种 optimized phenotype、一套贡献可识别性方法
-和明确 readiness 缺口。达到 spec 的完整研究完成条件，现实估计还需 **6-9 周**；新的 measurement-invalid
-或第二 phenotype gate failure 会增加 1-3 周，不能靠压缩验证绕过。
+i18n 已留下 infrastructure-insensitive 的 static 质量负结果，Statistical Power 又留下 scorer-authority
+measurement-invalid；继续串行新增案例的边际收益已经低于收敛现有流程。当前收窄里程碑预计还需 **2--4 周**：
+lifecycle wrapper/parity、Env Manager 全成本与 break-even、一个 untouched replication。达到 spec 的完整跨
+agent/OS/context/三模型族研究条件仍可能需要 **6--9 周以上**；新的 measurement-invalid 或 replication failure
+必须作为结果保留，不能靠缩短验证或继续换案例绕过。
 
 ## 6. 计划合理性复核
 

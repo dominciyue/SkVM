@@ -196,6 +196,36 @@ checker 或模板。
 逃逸和 execution-plan 悬空引用必须 fail closed。该 parity 只证明工程收敛没有改变既有行为，不是新的
 优化效果证据。
 
+2026-08-15 全过程复盘确认，项目已经有公共 assembly、runner、execution envelope、paired gate、source audit
+和 residual admission，但入口仍明显碎片化：`src/benchmarks/skill-ir` 下有 78 个 `*-run.ts`，大量只是为不同
+历史 identity 拼装相同阶段；多模型 planner 仍显式按 API Tester/Env Manager 选择 package。Registry 中只有 Env
+Manager 前瞻记录了完整人工时间（214 分钟）与 25 行 adapter，API Tester 只有 38 行 adapter、无时间；其余
+5/7 method cases 是 `historical-unavailable` 或零占位，不能据此声称适配成本已收敛。Statistical Power 又证明
+contract canary 可以在公开/隐藏 schema 不一致时自证通过。因此现在的首要工程缺口是 lifecycle orchestration
+和 adapter evidence，不是增加新的领域 compiler 或 runtime 版本。
+
+统一封装采用一个公共 `PilotAdapter`，只允许声明：
+
+```text
+source closure + license/provenance
+development task builder + public input/output contract
+public/evaluator JSON pointer disclosure
+domain oracle/scorer entry + source anchors
+base-IR mapping + artifact compiler capability（可选）
+runtime/resource requirements
+phase budgets + stop policy
+```
+
+公共 wrapper 固定执行 `import -> contract -> disclosure/canary audit -> freeze -> qualification -> calibrate ->
+base IR/static -> residual admission -> optional dynamic/artifact -> report`，并统一 task/lock digest、execution sidecar、
+selected/all-attempt 分母、付费调用分解、状态机和 compact evidence。领域 oracle、semantic normalization 与 artifact
+generator 仍是 adapter/plugin；统一它们会把统计功效、OpenAPI、AST rewrite 和文档转换错误地压成同一 scorer。
+
+实现必须 shadow-first：先让 wrapper 对 API Tester 和 Env Manager 读取既有冻结输入，在临时目录重建 plan/
+package/report，并要求 identity、行数、production bytes 与 gate 逐项 parity；不改旧 lock/result。Statistical Power
+作为 `public-scorer-schema-underdetermined` 负 canary，必须在任何付费 qualification 前被 disclosure 阻断。完成
+两正一负 shadow parity 后才允许新 skill 或 untouched replication 使用 wrapper 默认路径。
+
 ## 7. Compiler
 
 Compiler 输入只允许：

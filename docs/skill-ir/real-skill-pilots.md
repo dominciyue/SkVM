@@ -190,13 +190,18 @@ Task 18.11 的两条 development task 都是纯闭式设计：一条两独立均
 allocation、Bonferroni multiplicity、SESOI、attrition 与 sensitivity。领域差异只进入 study adapter、数值 oracle
 和 source anchor；输出 ABI、workdir manifest、贡献审计、runner、gate 与报告复用公共组件。该 skill 完成后
 暂停新增候选，复盘各案例的 adapter LOC、core branch delta、人工步骤和证据增量，再确定统一封装与目标校准。
-当前 public interface、2-task development set 与 8+8+conditional-4 authorization 已可确定性重建；contract
+Public interface、2-task development set 与 8+8+conditional-4 authorization 可确定性重建；pre-run contract
 audit 5/5，贡献审计为 `eligible-for-baseline`，4 条独立 skill claim、逐 task skill-derived weight 0.80、0
-answer-bearing duplication。此状态仍未运行付费模型、未建立 base IR、未创作 held-out，也未改变 portfolio 分母。
+answer-bearing duplication。但 2026-08-15 真实 baseline 证伪了该 audit 的充分性：canonical fixture 由 scorer
+隐藏 schema 自己生成，而公开 interface 没有展开 scorer 所需的嵌套字段。
 Development-only freeze 绑定 contract commit `7e383c8a2436f48f9d6921b4f11b959486b72837`、完整 source closure 和
 `heldout=not-authored`。Resilient v3 baseline lock 已通过 path/digest/dependency/corpus/8-row plan 校验；它复用
-Pi 0.67.68 和 progress-aware execution sidecar，但 reserve 固定为 0，确保最多 8 次付费调用，不把偶发失败在
-同一 authorization 下静默补行。
+Pi 0.67.68 和 progress-aware execution sidecar，reserve 固定为 0。Qualification 1 行和 matrix 8 行全部
+自然结束，matrix 8/8 semantic-complete、0 infrastructure；真实总付费口径是 1+8=9，原授权中的 8 只覆盖
+paired matrix。Numeric gate 的两臂 mean 均为 0.1，但 8/8 报告满足公开顶层合同、0/8 满足隐藏 strict schema，
+且 disclosure audit 找到 23 个未公开 evaluator pointer。因此该 identity 冻结为 scorer-authority
+`measurement-invalid`，不进入 base IR/static/dynamic/held-out，也不改变 7-case portfolio 分母。新的通用
+public JSON disclosure preflight 已加入未来合同流程；旧结果保持不可变。
 
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复

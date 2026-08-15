@@ -504,3 +504,30 @@ report v2 原生输出 `missing` 和分层 cost；原冻结 report/v1 保持不�
 - `results/skill-ir/three-family-development-panel-v4/selected-scored-runs.jsonl`
 - `results/skill-ir/three-family-development-panel-v4/panel-report.json`
 - `results/skill-ir/three-family-development-panel-v4/supplemental-audit.json`
+
+## 15. Statistical Power development baseline
+
+2026-08-15 的首个 Statistical Power qualification 调用在 148425ms 后形成可观测、可确定性评分的完整行；随后
+唯一 `no-skill | original` matrix 完成 8/8 selected rows、4/4 pairs、0 replacement、0 transient、0 active
+timeout、0 parser/runtime blocker。八行均自然结束，单行耗时为 100--159 秒；all-attempt duration 为
+1008585ms，input+output+cache aggregate 为 547034 tokens。该 execution 证据支持当前 600 秒 absolute / 120 秒
+idle / 660 秒 outer 配置，并说明旧短 timeout 确实可能误判正常长任务，但不能外推为所有历史故障的唯一原因。
+
+冻结 numeric gate 为 no-skill/original mean 0.1/0.1、0 differing、0 positive、0 success，`passed=false`。逐产物
+authority audit 发现这不是可解释的 skill 质量负结果：8/8 JSON 均可解析且具备公开 interface 声明的全部顶层
+字段，但 0/8 通过 scorer 私有的 strict nested schema。公开合同只声明 `analysis`、`sampleSize`、
+`reproducibility` 等父对象，没有声明 scorer 实际读取的 23 个嵌套 JSON pointer；canary 又直接用同一隐藏 Zod
+schema 生成 canonical fixture，形成了自证循环。Original 产物中关键样本量多与公开 oracle 一致，仍因
+`comparisonAlpha`/`adjustedAlpha`、`analyzableGroup1`/`analyzed.group1` 等字段命名差异被整份拒绝。
+
+因此 `measurement-validity.json` 将本 identity 冻结为 `measurement-invalid`，blocker 为
+`public-scorer-schema-underdetermined`。它绑定 lock、public interface、scorer、qualification report、selected scored
+rows、execution envelopes 与 gate digest；记录真实付费口径为 1 次 qualification + 8 次 matrix = 9 次。该批
+既不能证明 original 有益，也不能证明 original 无益；base IR、static residual、dynamic、held-out 与 portfolio
+promotion 全部关闭。后续若要修 contract，必须是新的可观察 measurement identity；旧结果不重评分、不补跑。
+
+- `results/skill-ir/statistical-power-development-baseline-v1/qualification.json`
+- `results/skill-ir/statistical-power-development-baseline-v1/run/execution-envelopes.jsonl`
+- `results/skill-ir/statistical-power-development-baseline-v1/run/selected-scored-runs.jsonl`
+- `results/skill-ir/statistical-power-development-baseline-v1/gate-report.json`
+- `results/skill-ir/statistical-power-development-baseline-v1/measurement-validity.json`

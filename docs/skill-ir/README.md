@@ -70,6 +70,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   semantic-complete；DeepSeek 因 2 次语义前 idle、1 次 active absolute timeout 与 1 个 Pi compaction parser
   缺口，只完成 11/12 triplets、33/36 model rows，冻结为 blocked。补充审计把缺失比较显式记为 `missing=1`
   并恢复全尝试成本，原冻结报告与分数不变；已评分方向 mixed，这不是跨模型主证据。
+- Statistical Power 首轮 qualification + baseline 共实际调用 9 次；正式 matrix 8/8 semantic-complete、0
+  infrastructure，证明当前 progress-aware timeout 足以容纳正常的 100--159 秒任务。但公开 interface 只声明
+  JSON 顶层字段，scorer 私下要求 23 个嵌套 pointer，造成 8/8 顶层合同满足、0/8 strict schema 满足；该批冻结
+  `measurement-invalid`，不进入 base IR/static/dynamic，也不能解释 skill 效果。通用 public JSON disclosure
+  preflight 已补入未来合同流程。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -87,8 +92,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 第二/第三模型族 development 小面板已完成首个冻结诊断（blocked/mixed）
 -> 取得第二个 quality-positive，或完成质量等价 + 全成本 + break-even 的 efficiency-positive
 -> 通用 RepairEvidence admission -> Final IR development 闭环已完成；Env v3 合法无残差并停止
--> 选择新的 prospective candidate，验证真实 dynamic residual -> artifact solidification，并记录全成本
--> 继续补齐自动化并通过完整 readiness gate
+-> Statistical Power 已以 scorer-authority measurement-invalid 停止，不新增候选
+-> 先把公共生命周期封装为 declarative pilot adapter，并对 API Tester/Env Manager 做 shadow parity
+-> 补 Env Manager 全成本与 break-even，或取得第二个 quality-positive
+-> 再决定是否需要真实 dynamic residual；dynamic 是 residual-driven 路径，不是成熟度打卡项
+-> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口
@@ -143,8 +151,10 @@ provenance 明确引用时才提交。不得因治理删除冻结结果或用户
 
 ```text
 Public SKILL.md + provenance
-  -> static parse/source audit
-  -> base Skill IR + static passes
+  -> public task/contract + scorer disclosure/canary audit
+  -> no-skill | original baseline admission
+  -> source-audited profile-empty base Skill IR
+  -> static passes
   -> ir-static
   -> original/static development execution
   -> typed residual RepairEvidence
