@@ -172,17 +172,27 @@ development，held-out 仍关闭。
 
 2026-08-14 的 prospective selector 在 7 个既有 method cases 与新候选之间完成机器可核验比较，并冻结
 `statistical-power` 为下一案例。候选来源是
-`openai/skills` commit `fc0b9f692459ea7d9e5a5c64948a5878e1bce274` 下的 exact `skills/statistical-power`，
+`K-Dense-AI/claude-scientific-skills` commit `fc0b9f692459ea7d9e5a5c64948a5878e1bce274` 下的 exact
+`skills/statistical-power`，
 许可证为 MIT；checked-in runtime source closure 包含 `SKILL.md`、3 个 references 与 2 个 scripts，逐文件 digest
 及整体 closure digest 由选择合同重算。其 phenotype 是此前未覆盖的 statistical-design/tool-use，规则可映射到
 通用 source-audited base IR，而无需为该 skill 增加 core branch。
 
 权威 selection input/report 分别是 `benchmarks/skill-ir/corpus/prospective-dynamic-candidate.json` 与
-`results/skill-ir/prospective-dynamic-candidate.json`。当前只授权下一步编写 benchmark contract：先固定 2 个
-development tasks，运行 `original | ir-static`、每 task 2 repetitions、`retries=0`，初始最大付费预算 8；只有
-双源 residual admission 为 `eligible` 才允许追加最多 4 次 dynamic development。选择阶段未运行付费调用、未
-编写或读取 held-out、未生成 profile/overlay/Final IR，也不把该候选登记为 contract-qualified、studied 或
-readiness 正例；现有 7/7 method portfolio 分母保持不变。
+`results/skill-ir/prospective-dynamic-candidate.json`。其中 2 task x 2 repetitions x `original | ir-static` 的 8-call
+intent 是 static residual slice，不足以授权整条实验链：项目 gate 仍要求先做 `no-skill | original`。Task 18.11
+因此以新的 development authorization 依次冻结 calibration 8 calls、static residual 8 calls，以及仅在 residual
+admission eligible 时的 dynamic 4 calls；各段 `retries=0`，前段失败即停止。选择阶段本身仍未运行付费调用、未
+编写或读取 held-out、未生成 profile/overlay/Final IR，也不把候选登记为 contract-qualified、studied 或
+readiness 正例；selection input/report 保持不可变，现有 7/7 method portfolio 分母保持不变。
+
+Task 18.11 的两条 development task 都是纯闭式设计：一条两独立均值、一条两独立比例，同时覆盖 unequal
+allocation、Bonferroni multiplicity、SESOI、attrition 与 sensitivity。领域差异只进入 study adapter、数值 oracle
+和 source anchor；输出 ABI、workdir manifest、贡献审计、runner、gate 与报告复用公共组件。该 skill 完成后
+暂停新增候选，复盘各案例的 adapter LOC、core branch delta、人工步骤和证据增量，再确定统一封装与目标校准。
+当前 public interface、2-task development set 与 8+8+conditional-4 authorization 已可确定性重建；contract
+audit 5/5，贡献审计为 `eligible-for-baseline`，4 条独立 skill claim、逐 task skill-derived weight 0.80、0
+answer-bearing duplication。此状态仍未运行付费模型、未建立 base IR、未创作 held-out，也未改变 portfolio 分母。
 
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复

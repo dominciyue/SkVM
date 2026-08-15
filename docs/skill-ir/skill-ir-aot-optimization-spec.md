@@ -819,6 +819,27 @@ semantics；逐节点 source audit 明确排除 evaluator payload、held-out、r
 Static 161220 非缓存 tokens 虽低于 original 213935，但质量回归禁止 optimized/efficiency、artifact、held-out
 或主 claim；该案例冻结为 measurement-valid、infrastructure-insensitive 的 development 方法负结果。
 
+### 8.1 Statistical Power prospective 竖切
+
+`statistical-power` 的首个任务面只使用闭式功效计算，不使用 Monte Carlo。development 固定两种可独立重算的
+设计：两独立均值与两独立比例；两者都覆盖非等额分配、Bonferroni 多重比较、SESOI、失访膨胀和敏感性分析。
+任务只公开 study facts 与输出 ABI，不公开动作序列、预期样本量、gold 或 source quote。Scorer 必须从公开输入
+重算分析样本量与入组样本量，接受 ABI 允许的说明文本，不得用隐藏字段、私有数组顺序或逐 fixture 答案判分。
+
+该案例的领域特异部分限定为声明式 study adapter、数学 oracle 与 criterion-to-source anchors；task/source freeze、
+workdir delta、贡献可识别性、paired runner、execution observability、gate 与 compact report 必须复用公共组件且
+`coreBranchDelta=0`。不同 skill 无法共享同一个语义 oracle，但必须共享同一生命周期协议和证据 envelope。
+
+Task 18.10 selection report 中的 `original | ir-static` 预算仅是候选选择时冻结的 static residual intent，不是跳过
+baseline 的执行授权。Task 18.11 另行冻结 development authorization：先 `no-skill | original` 8 行；通过贡献、
+execution 与 distinguishability gate 后才允许 source-audited base IR；随后 `original | ir-static` 8 行；只有 typed
+residual admission eligible 时才允许最多 4 行 dynamic development。三段均 `retries=0`，held-out 不创作、不读取、
+不执行。selection input/report 保持不可变；新授权是后续 lifecycle component，不通过改写历史或无意义滚版本修复。
+
+完成该 skill 后必须暂停候选扩张，按全过程证据复盘真实瓶颈、自动化缺口、每 case 适配成本、正负证据比例和目标
+难度。统一封装的候选边界是 `import -> contract -> audit -> calibrate -> optimize -> report`；是否交付该封装、
+进入多模型族或弱化“通用优化”目标，必须由复盘结果决定，不能由单个正例或文件覆盖率决定。
+
 ## 9. Prospective Partial-benefit Re-entry
 
 旧 gate 失败结果不可事后改判。一个案例只有满足版本化 policy 才能以新 identity 进入方法开发：

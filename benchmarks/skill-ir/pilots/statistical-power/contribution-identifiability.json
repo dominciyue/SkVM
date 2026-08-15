@@ -1,0 +1,334 @@
+{
+  "schemaVersion": "skill-contribution-identifiability/v1",
+  "auditId": "statistical-power-contribution-v1",
+  "skillId": "statistical-power",
+  "taskSetId": "statistical-power-development-v1",
+  "scope": {
+    "split": "development",
+    "taskIds": [
+      "statistical-power-unequal-means-dev-001",
+      "statistical-power-two-proportions-dev-002"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "means-input-integrity",
+      "taskId": "statistical-power-unequal-means-dev-001",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-report-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "means-artifact-contract",
+      "taskId": "statistical-power-unequal-means-dev-001",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-report-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "means-analysis-alignment",
+      "taskId": "statistical-power-unequal-means-dev-001",
+      "weight": 0.15,
+      "hardGate": true,
+      "claimIds": ["closed-form-method-alignment"],
+      "provenance": ["skill-derived"]
+    },
+    {
+      "id": "means-multiplicity",
+      "taskId": "statistical-power-unequal-means-dev-001",
+      "weight": 0.15,
+      "hardGate": true,
+      "claimIds": ["multiplicity-control"],
+      "provenance": ["skill-derived"]
+    },
+    {
+      "id": "means-allocation-attrition",
+      "taskId": "statistical-power-unequal-means-dev-001",
+      "weight": 0.2,
+      "hardGate": true,
+      "claimIds": ["allocation-attrition-control"],
+      "provenance": ["skill-derived"]
+    },
+    {
+      "id": "means-sensitivity-effect-basis",
+      "taskId": "statistical-power-unequal-means-dev-001",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["sesoi-sensitivity"],
+      "provenance": ["skill-derived"]
+    },
+    {
+      "id": "proportions-input-integrity",
+      "taskId": "statistical-power-two-proportions-dev-002",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-report-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "proportions-artifact-contract",
+      "taskId": "statistical-power-two-proportions-dev-002",
+      "weight": 0.1,
+      "hardGate": true,
+      "claimIds": ["public-report-contract"],
+      "provenance": ["task-outcome"]
+    },
+    {
+      "id": "proportions-analysis-alignment",
+      "taskId": "statistical-power-two-proportions-dev-002",
+      "weight": 0.15,
+      "hardGate": true,
+      "claimIds": ["closed-form-method-alignment"],
+      "provenance": ["skill-derived"]
+    },
+    {
+      "id": "proportions-multiplicity",
+      "taskId": "statistical-power-two-proportions-dev-002",
+      "weight": 0.15,
+      "hardGate": true,
+      "claimIds": ["multiplicity-control"],
+      "provenance": ["skill-derived"]
+    },
+    {
+      "id": "proportions-allocation-attrition",
+      "taskId": "statistical-power-two-proportions-dev-002",
+      "weight": 0.2,
+      "hardGate": true,
+      "claimIds": ["allocation-attrition-control"],
+      "provenance": ["skill-derived"]
+    },
+    {
+      "id": "proportions-sensitivity-effect-basis",
+      "taskId": "statistical-power-two-proportions-dev-002",
+      "weight": 0.3,
+      "hardGate": true,
+      "claimIds": ["sesoi-sensitivity"],
+      "provenance": ["skill-derived"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "public-report-contract",
+      "summary": "The task requires a protected-input, exact-output reproducible report.",
+      "taskIds": [
+        "statistical-power-unequal-means-dev-001",
+        "statistical-power-two-proportions-dev-002"
+      ],
+      "failureMode": "missing-or-mutated-public-artifact",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "task-outcome",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/development/tasks.json",
+          "sha256": "4c81e100645460c8ce7fdbb62465f634a13f9477258f18c3e74ec4ac4b9ab0a8",
+          "quote": "Produce exactly power-analysis.json and power-analysis.md under the public field contract."
+        }
+      ]
+    },
+    {
+      "id": "closed-form-method-alignment",
+      "summary": "The power method and effect metric must match the declared analysis design.",
+      "taskIds": [
+        "statistical-power-unequal-means-dev-001",
+        "statistical-power-two-proportions-dev-002"
+      ],
+      "failureMode": "mismatched-power-method",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/source/SKILL.md",
+          "sha256": "40f9c8bd0cc940b775fa834b401f7244a3e4bf09ff1a9fe5f1c22d87b355a194",
+          "quote": "The test you will run determines the power method."
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/development/tasks.json",
+          "sha256": "4c81e100645460c8ce7fdbb62465f634a13f9477258f18c3e74ec4ac4b9ab0a8",
+          "quote": "statistical-power-unequal-means-dev-001"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/statistical-power-grade.ts",
+          "sha256": "7bd401739806a8991d7324f5aa8921e229c2b4ebd634132c3a20d6ebf1165093",
+          "quote": "payload.check === \"analysis-alignment\""
+        }
+      ]
+    },
+    {
+      "id": "multiplicity-control",
+      "summary": "Confirmatory comparisons use the declared family-wise alpha allocation.",
+      "taskIds": [
+        "statistical-power-unequal-means-dev-001",
+        "statistical-power-two-proportions-dev-002"
+      ],
+      "failureMode": "unadjusted-family-alpha",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/source/SKILL.md",
+          "sha256": "40f9c8bd0cc940b775fa834b401f7244a3e4bf09ff1a9fe5f1c22d87b355a194",
+          "quote": "If the analysis tests *m* hypotheses with a Bonferroni-style correction"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/development/tasks.json",
+          "sha256": "4c81e100645460c8ce7fdbb62465f634a13f9477258f18c3e74ec4ac4b9ab0a8",
+          "quote": "statistical-power-two-proportions-dev-002"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/statistical-power-grade.ts",
+          "sha256": "7bd401739806a8991d7324f5aa8921e229c2b4ebd634132c3a20d6ebf1165093",
+          "quote": "payload.check === \"multiplicity\""
+        }
+      ]
+    },
+    {
+      "id": "allocation-attrition-control",
+      "summary": "Analyzed and enrolled group sizes reflect unequal allocation and attrition.",
+      "taskIds": [
+        "statistical-power-unequal-means-dev-001",
+        "statistical-power-two-proportions-dev-002"
+      ],
+      "failureMode": "under-enrollment-or-allocation-mismatch",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/source/SKILL.md",
+          "sha256": "40f9c8bd0cc940b775fa834b401f7244a3e4bf09ff1a9fe5f1c22d87b355a194",
+          "quote": "Power gives the n you need *analyzed*."
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/development/tasks.json",
+          "sha256": "4c81e100645460c8ce7fdbb62465f634a13f9477258f18c3e74ec4ac4b9ab0a8",
+          "quote": "confirmatory-unequal-means-dev"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/statistical-power-grade.ts",
+          "sha256": "7bd401739806a8991d7324f5aa8921e229c2b4ebd634132c3a20d6ebf1165093",
+          "quote": "payload.check === \"allocation-attrition\""
+        }
+      ]
+    },
+    {
+      "id": "sesoi-sensitivity",
+      "summary": "The planning effect is decision-grounded and accompanied by complete sensitivity results.",
+      "taskIds": [
+        "statistical-power-unequal-means-dev-001",
+        "statistical-power-two-proportions-dev-002"
+      ],
+      "failureMode": "single-optimistic-effect",
+      "answerBearingDuplication": false,
+      "evidence": [
+        {
+          "source": "skill-derived",
+          "kind": "skill-source",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/source/SKILL.md",
+          "sha256": "40f9c8bd0cc940b775fa834b401f7244a3e4bf09ff1a9fe5f1c22d87b355a194",
+          "quote": "Whatever you pick, run a **sensitivity analysis**"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "task-set",
+          "path": "benchmarks/skill-ir/pilots/statistical-power/development/tasks.json",
+          "sha256": "4c81e100645460c8ce7fdbb62465f634a13f9477258f18c3e74ec4ac4b9ab0a8",
+          "quote": "confirmatory-two-proportions-dev"
+        },
+        {
+          "source": "fixture-derived",
+          "kind": "scorer",
+          "path": "src/bench/evaluators/statistical-power-grade.ts",
+          "sha256": "7bd401739806a8991d7324f5aa8921e229c2b4ebd634132c3a20d6ebf1165093",
+          "quote": "const sensitivityMatches ="
+        }
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "power-canonical-valid",
+      "role": "canonical-valid",
+      "taskIds": ["statistical-power-unequal-means-dev-001"],
+      "claimIds": ["closed-form-method-alignment", "multiplicity-control", "allocation-attrition-control", "sesoi-sensitivity"],
+      "observation": {
+        "path": "results/skill-ir/statistical-power-contract-audit-v1/report.json",
+        "sha256": "db716281eb068579d6b70457ee9074a5df02b8e0db4cfb6aeb2959c4032a52ce",
+        "jsonPointer": "/roles/canonicalValid",
+        "expected": true
+      }
+    },
+    {
+      "id": "power-alternative-valid",
+      "role": "alternative-valid",
+      "taskIds": ["statistical-power-two-proportions-dev-002"],
+      "claimIds": ["closed-form-method-alignment", "sesoi-sensitivity"],
+      "observation": {
+        "path": "results/skill-ir/statistical-power-contract-audit-v1/report.json",
+        "sha256": "db716281eb068579d6b70457ee9074a5df02b8e0db4cfb6aeb2959c4032a52ce",
+        "jsonPointer": "/roles/alternativeValid",
+        "expected": true
+      }
+    },
+    {
+      "id": "power-prompt-only-omission",
+      "role": "prompt-only-omission",
+      "taskIds": ["statistical-power-unequal-means-dev-001"],
+      "claimIds": ["multiplicity-control", "allocation-attrition-control"],
+      "observation": {
+        "path": "results/skill-ir/statistical-power-contract-audit-v1/report.json",
+        "sha256": "db716281eb068579d6b70457ee9074a5df02b8e0db4cfb6aeb2959c4032a52ce",
+        "jsonPointer": "/roles/promptOnlyOmission",
+        "expected": true
+      }
+    },
+    {
+      "id": "power-reverse-evidence",
+      "role": "reverse-evidence",
+      "taskIds": ["statistical-power-unequal-means-dev-001"],
+      "claimIds": ["multiplicity-control"],
+      "observation": {
+        "path": "results/skill-ir/statistical-power-contract-audit-v1/report.json",
+        "sha256": "db716281eb068579d6b70457ee9074a5df02b8e0db4cfb6aeb2959c4032a52ce",
+        "jsonPointer": "/roles/reverseEvidence",
+        "expected": true
+      }
+    },
+    {
+      "id": "power-forbidden-sink",
+      "role": "forbidden-sink",
+      "taskIds": ["statistical-power-unequal-means-dev-001", "statistical-power-two-proportions-dev-002"],
+      "claimIds": ["closed-form-method-alignment", "multiplicity-control", "allocation-attrition-control", "sesoi-sensitivity"],
+      "observation": {
+        "path": "results/skill-ir/statistical-power-contract-audit-v1/report.json",
+        "sha256": "db716281eb068579d6b70457ee9074a5df02b8e0db4cfb6aeb2959c4032a52ce",
+        "jsonPointer": "/roles/forbiddenSink",
+        "expected": true
+      }
+    }
+  ],
+  "forbiddenEvidenceClasses": [
+    "evaluation-split-task",
+    "evaluator-expected",
+    "historical-raw-model-text",
+    "package-generated-answer",
+    "secret",
+    "absolute-path"
+  ]
+}

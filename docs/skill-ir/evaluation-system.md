@@ -45,6 +45,10 @@ selected
 `tasks-authored-calibration` 只允许一个显式 skill，并只调度 `no-skill | original` 的 development tasks。
 它不会伪造 `irPath` 或 runnable 状态。
 
+候选选择报告可以预先描述后续 residual slice，但不能替代 lifecycle execution authorization。每个新 case 的
+授权必须把 `no-skill | original` calibration、source-audited base IR、static residual 与 conditional dynamic
+分成有序阶段；前一 gate 未通过时，后一阶段即使出现在 selection intent 中也不得调度。
+
 当前证据角色由 `method-portfolio.json` 管理；旧 Wave 标签不作为研究分母。
 
 ## 4. Experiment Systems
@@ -390,6 +394,32 @@ closure，并把 held-out 明确标记为 `not-authored`、`permitsExecution=fal
 Calibration 常见门禁：完整 rows/pairs、0 infra、no-skill 不饱和、至少一个 differing pair。是否要求每个
 task 的 original success 由预注册 lock 决定。Partial-benefit re-entry 是新的 prospective admission，
 不能改写旧 gate。
+
+Statistical Power 是该规则的首个前瞻新案例。Task 18.10 的 selection intent 只选择候选并描述 static residual，
+Task 18.11 的 development authorization 才是执行权威：calibration 8 rows -> static residual 8 rows -> conditional
+dynamic 4 rows，逐段 `retries=0`、前段失败即停止、held-out 全程关闭。它使用两道纯闭式任务，数值 oracle 从
+公开 study facts 重算，不把预期样本量写入 task/evaluator payload。
+
+当前本地合同可用以下命令重建：
+
+```powershell
+bun ./src/benchmarks/skill-ir/statistical-power-contract-run.ts
+bun ./src/benchmarks/skill-ir/statistical-power-contract-audit-run.ts
+bun ./src/benchmarks/skill-ir/skill-contribution-identifiability-run.ts `
+  --manifest=benchmarks/skill-ir/pilots/statistical-power/contribution-identifiability.json `
+  --out=results/skill-ir/statistical-power-contribution-identifiability-v1/report.json
+```
+
+Contract audit 为 5/5，覆盖 canonical、alternative-valid、prompt-only omission、reverse-evidence、forbidden sink
+和真实 workdir materialization。通用贡献 analyzer 输出 `eligible-for-baseline`：4 条独立 skill-derived claim、
+逐 task weight 0.80、0 answer-bearing duplication、5 类 canary 全通过。它们只开放冻结 baseline lock，不是模型
+表现或优化证据。
+
+跨 skill 统一化采用“公共生命周期 + 领域 adapter”而不是统一语义 scorer。公共层负责 source closure、task/
+contract freeze、manifest/delta、contribution audit、runner、observability、gate、cost 和 report；adapter 只声明
+fixture schema、public ABI、oracle 与 source-bound criteria。完成 Statistical Power 后，必须用真实 adapter LOC、
+`coreBranchDelta`、人工分钟与未自动化步骤复盘是否形成统一 `import -> contract -> audit -> calibrate -> optimize ->
+report` 工具；在复盘前不为抽象而新增 core 分支。
 
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 

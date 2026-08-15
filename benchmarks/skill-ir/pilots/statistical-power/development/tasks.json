@@ -1,0 +1,300 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "statistical-power",
+  "tasks": [
+    {
+      "id": "statistical-power-unequal-means-dev-001",
+      "split": "development",
+      "prompt": "Read study.json and power-interface.json without modifying either protected input. Prepare a defensible, reproducible a priori sample-size justification for the described study. Produce exactly power-analysis.json and power-analysis.md under the public field contract. Do not create any other output or use the network.",
+      "fixtures": {
+        "study.json": "{\n  \"schemaVersion\": \"skill-ir-statistical-power-study/v1\",\n  \"studyId\": \"confirmatory-unequal-means-dev\",\n  \"question\": \"What enrollment supports the confirmatory comparison under the stated design?\",\n  \"alternative\": \"two-sided\",\n  \"targetPower\": 0.9,\n  \"errorControl\": {\n    \"familyAlpha\": 0.05,\n    \"method\": \"bonferroni\",\n    \"confirmatoryComparisons\": 2\n  },\n  \"allocationRatio\": 2,\n  \"attritionRate\": 0.15,\n  \"effectBasis\": {\n    \"kind\": \"sesoi\",\n    \"rationale\": \"d=0.45 is the smallest standardized difference that would change the adoption decision.\"\n  },\n  \"design\": {\n    \"test\": \"t_ind\",\n    \"groups\": 2\n  },\n  \"effect\": {\n    \"metric\": \"cohens-d\",\n    \"planningValue\": 0.45,\n    \"sensitivityValues\": [\n      0.35,\n      0.45,\n      0.55\n    ]\n  }\n}\n",
+        "power-interface.json": "{\n  \"schemaVersion\": \"skill-ir-statistical-power-interface/v1\",\n  \"interfaceId\": \"statistical-power-public-interface-v1\",\n  \"protectedInputs\": [\n    \"study.json\",\n    \"power-interface.json\"\n  ],\n  \"outputs\": [\n    \"power-analysis.json\",\n    \"power-analysis.md\"\n  ],\n  \"jsonContract\": {\n    \"schemaVersion\": \"skill-ir-statistical-power-report/v1\",\n    \"requiredTopLevelFields\": [\n      \"schemaVersion\",\n      \"studyId\",\n      \"analysis\",\n      \"sampleSize\",\n      \"sensitivity\",\n      \"assumptions\",\n      \"reproducibility\"\n    ],\n    \"sampleCountType\": \"positive-integer\",\n    \"probabilityType\": \"finite-number-between-zero-and-one\",\n    \"assumptions\": {\n      \"type\": \"nonempty-string-array\",\n      \"order\": \"set-like\",\n      \"duplicates\": \"forbid\"\n    },\n    \"sensitivity\": {\n      \"type\": \"object-array\",\n      \"fields\": [\n        \"inputEffect\",\n        \"standardizedEffect\",\n        \"sampleSize\"\n      ],\n      \"arraySemantics\": {\n        \"order\": \"study-declared\",\n        \"duplicates\": \"forbid\"\n      }\n    },\n    \"allowAdditionalJsonFields\": false\n  },\n  \"markdownContract\": {\n    \"type\": \"nonempty-utf8-markdown\",\n    \"mustAgreeWithJson\": true,\n    \"freeTextLanguage\": \"any\"\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"allowNetwork\": false\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "power-input-integrity",
+          "name": "Protected study and interface remain unchanged",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "input-integrity",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "4eb8ff20e33f4a4214f2f98a4b11cc1b27fa933f658118de89414bf2a6e7c79f",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-artifact-contract",
+          "name": "The exact public output contract is satisfied",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "artifact-contract",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "4eb8ff20e33f4a4214f2f98a4b11cc1b27fa933f658118de89414bf2a6e7c79f",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-analysis-alignment",
+          "name": "The analysis matches the declared study design",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "analysis-alignment",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "4eb8ff20e33f4a4214f2f98a4b11cc1b27fa933f658118de89414bf2a6e7c79f",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-multiplicity",
+          "name": "Family-wise error control is represented correctly",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "multiplicity",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "4eb8ff20e33f4a4214f2f98a4b11cc1b27fa933f658118de89414bf2a6e7c79f",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-allocation-attrition",
+          "name": "Analyzed and enrolled group sizes respect design losses",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "allocation-attrition",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "4eb8ff20e33f4a4214f2f98a4b11cc1b27fa933f658118de89414bf2a6e7c79f",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-sensitivity-effect-basis",
+          "name": "SESOI sensitivity and reproducibility are complete",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "sensitivity-effect-basis",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "4eb8ff20e33f4a4214f2f98a4b11cc1b27fa933f658118de89414bf2a6e7c79f",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "power-input-integrity",
+        "power-artifact-contract",
+        "power-analysis-alignment",
+        "power-multiplicity",
+        "power-allocation-attrition",
+        "power-sensitivity-effect-basis"
+      ],
+      "passThreshold": 1
+    },
+    {
+      "id": "statistical-power-two-proportions-dev-002",
+      "split": "development",
+      "prompt": "Read study.json and power-interface.json without modifying either protected input. Prepare a defensible, reproducible a priori sample-size justification for the described study. Produce exactly power-analysis.json and power-analysis.md under the public field contract. Do not create any other output or use the network.",
+      "fixtures": {
+        "study.json": "{\n  \"schemaVersion\": \"skill-ir-statistical-power-study/v1\",\n  \"studyId\": \"confirmatory-two-proportions-dev\",\n  \"question\": \"What enrollment supports the confirmatory response-rate comparison under the stated design?\",\n  \"alternative\": \"two-sided\",\n  \"targetPower\": 0.85,\n  \"errorControl\": {\n    \"familyAlpha\": 0.05,\n    \"method\": \"bonferroni\",\n    \"confirmatoryComparisons\": 3\n  },\n  \"allocationRatio\": 1.5,\n  \"attritionRate\": 0.1,\n  \"effectBasis\": {\n    \"kind\": \"sesoi\",\n    \"rationale\": \"A response rate of 0.50 versus 0.35 is the smallest difference that changes the deployment decision.\"\n  },\n  \"design\": {\n    \"test\": \"two_proportions\",\n    \"groups\": 2\n  },\n  \"effect\": {\n    \"metric\": \"group2-proportion\",\n    \"referenceProportion\": 0.35,\n    \"planningValue\": 0.5,\n    \"sensitivityValues\": [\n      0.45,\n      0.5,\n      0.55\n    ]\n  }\n}\n",
+        "power-interface.json": "{\n  \"schemaVersion\": \"skill-ir-statistical-power-interface/v1\",\n  \"interfaceId\": \"statistical-power-public-interface-v1\",\n  \"protectedInputs\": [\n    \"study.json\",\n    \"power-interface.json\"\n  ],\n  \"outputs\": [\n    \"power-analysis.json\",\n    \"power-analysis.md\"\n  ],\n  \"jsonContract\": {\n    \"schemaVersion\": \"skill-ir-statistical-power-report/v1\",\n    \"requiredTopLevelFields\": [\n      \"schemaVersion\",\n      \"studyId\",\n      \"analysis\",\n      \"sampleSize\",\n      \"sensitivity\",\n      \"assumptions\",\n      \"reproducibility\"\n    ],\n    \"sampleCountType\": \"positive-integer\",\n    \"probabilityType\": \"finite-number-between-zero-and-one\",\n    \"assumptions\": {\n      \"type\": \"nonempty-string-array\",\n      \"order\": \"set-like\",\n      \"duplicates\": \"forbid\"\n    },\n    \"sensitivity\": {\n      \"type\": \"object-array\",\n      \"fields\": [\n        \"inputEffect\",\n        \"standardizedEffect\",\n        \"sampleSize\"\n      ],\n      \"arraySemantics\": {\n        \"order\": \"study-declared\",\n        \"duplicates\": \"forbid\"\n      }\n    },\n    \"allowAdditionalJsonFields\": false\n  },\n  \"markdownContract\": {\n    \"type\": \"nonempty-utf8-markdown\",\n    \"mustAgreeWithJson\": true,\n    \"freeTextLanguage\": \"any\"\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"allowNetwork\": false\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "power-input-integrity",
+          "name": "Protected study and interface remain unchanged",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "input-integrity",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "173b36dff66e1418e6b594a587a2041ac638a7e23f8d2c8d48c09a6edec67746",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-artifact-contract",
+          "name": "The exact public output contract is satisfied",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "artifact-contract",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "173b36dff66e1418e6b594a587a2041ac638a7e23f8d2c8d48c09a6edec67746",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-analysis-alignment",
+          "name": "The analysis matches the declared study design",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "analysis-alignment",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "173b36dff66e1418e6b594a587a2041ac638a7e23f8d2c8d48c09a6edec67746",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-multiplicity",
+          "name": "Family-wise error control is represented correctly",
+          "weight": 0.15,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "multiplicity",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "173b36dff66e1418e6b594a587a2041ac638a7e23f8d2c8d48c09a6edec67746",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-allocation-attrition",
+          "name": "Analyzed and enrolled group sizes respect design losses",
+          "weight": 0.2,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "allocation-attrition",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "173b36dff66e1418e6b594a587a2041ac638a7e23f8d2c8d48c09a6edec67746",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "power-sensitivity-effect-basis",
+          "name": "SESOI sensitivity and reproducibility are complete",
+          "weight": 0.3,
+          "evaluatorId": "skill-ir-statistical-power",
+          "payload": {
+            "schemaVersion": "skill-ir-statistical-power-eval/v1",
+            "check": "sensitivity-effect-basis",
+            "paths": {
+              "study": "study.json",
+              "interface": "power-interface.json",
+              "reportJson": "power-analysis.json",
+              "reportMarkdown": "power-analysis.md"
+            },
+            "protectedSha256": {
+              "study": "173b36dff66e1418e6b594a587a2041ac638a7e23f8d2c8d48c09a6edec67746",
+              "interface": "23c18d5d5f9e259ae28f8866fb378e64381ed7f3593cc0b8fe9158e7166708e3"
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "power-input-integrity",
+        "power-artifact-contract",
+        "power-analysis-alignment",
+        "power-multiplicity",
+        "power-allocation-attrition",
+        "power-sensitivity-effect-basis"
+      ],
+      "passThreshold": 1
+    }
+  ]
+}

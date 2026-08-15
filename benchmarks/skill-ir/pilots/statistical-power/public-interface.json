@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "skill-ir-statistical-power-interface/v1",
+  "interfaceId": "statistical-power-public-interface-v1",
+  "protectedInputs": [
+    "study.json",
+    "power-interface.json"
+  ],
+  "outputs": [
+    "power-analysis.json",
+    "power-analysis.md"
+  ],
+  "jsonContract": {
+    "schemaVersion": "skill-ir-statistical-power-report/v1",
+    "requiredTopLevelFields": [
+      "schemaVersion",
+      "studyId",
+      "analysis",
+      "sampleSize",
+      "sensitivity",
+      "assumptions",
+      "reproducibility"
+    ],
+    "sampleCountType": "positive-integer",
+    "probabilityType": "finite-number-between-zero-and-one",
+    "assumptions": {
+      "type": "nonempty-string-array",
+      "order": "set-like",
+      "duplicates": "forbid"
+    },
+    "sensitivity": {
+      "type": "object-array",
+      "fields": [
+        "inputEffect",
+        "standardizedEffect",
+        "sampleSize"
+      ],
+      "arraySemantics": {
+        "order": "study-declared",
+        "duplicates": "forbid"
+      }
+    },
+    "allowAdditionalJsonFields": false
+  },
+  "markdownContract": {
+    "type": "nonempty-utf8-markdown",
+    "mustAgreeWithJson": true,
+    "freeTextLanguage": "any"
+  },
+  "outputPolicy": {
+    "exactOutputSet": true,
+    "allowNetwork": false
+  }
+}

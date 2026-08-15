@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "skill-contribution-identifiability-report/v1",
+  "auditId": "statistical-power-contribution-v1",
+  "skillId": "statistical-power",
+  "taskSetId": "statistical-power-development-v1",
+  "status": "eligible-for-baseline",
+  "inputs": [
+    {
+      "path": "benchmarks/skill-ir/pilots/statistical-power/development/tasks.json",
+      "sha256": "4c81e100645460c8ce7fdbb62465f634a13f9477258f18c3e74ec4ac4b9ab0a8"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/statistical-power/source/SKILL.md",
+      "sha256": "40f9c8bd0cc940b775fa834b401f7244a3e4bf09ff1a9fe5f1c22d87b355a194"
+    },
+    {
+      "path": "results/skill-ir/statistical-power-contract-audit-v1/report.json",
+      "sha256": "db716281eb068579d6b70457ee9074a5df02b8e0db4cfb6aeb2959c4032a52ce"
+    },
+    {
+      "path": "src/bench/evaluators/statistical-power-grade.ts",
+      "sha256": "7bd401739806a8991d7324f5aa8921e229c2b4ebd634132c3a20d6ebf1165093"
+    }
+  ],
+  "counts": {
+    "tasks": 2,
+    "criteria": 12,
+    "claims": 5,
+    "independentSkillDerivedClaims": 4,
+    "answerBearingDuplications": 0,
+    "canaries": 5,
+    "provenanceClaims": {
+      "taskOutcome": 1,
+      "fixtureDerived": 4,
+      "skillDerived": 4,
+      "overlap": 0,
+      "unmeasuredSkillDerived": 0
+    }
+  },
+  "coverage": {
+    "taskSetSkillDerivedWeight": 0.8,
+    "byTask": [
+      {
+        "taskId": "statistical-power-unequal-means-dev-001",
+        "skillDerivedClaims": 4,
+        "skillDerivedWeight": 0.8
+      },
+      {
+        "taskId": "statistical-power-two-proportions-dev-002",
+        "skillDerivedClaims": 4,
+        "skillDerivedWeight": 0.8
+      }
+    ]
+  },
+  "canaries": [
+    {
+      "id": "power-canonical-valid",
+      "role": "canonical-valid",
+      "passed": true
+    },
+    {
+      "id": "power-alternative-valid",
+      "role": "alternative-valid",
+      "passed": true
+    },
+    {
+      "id": "power-prompt-only-omission",
+      "role": "prompt-only-omission",
+      "passed": true
+    },
+    {
+      "id": "power-reverse-evidence",
+      "role": "reverse-evidence",
+      "passed": true
+    },
+    {
+      "id": "power-forbidden-sink",
+      "role": "forbidden-sink",
+      "passed": true
+    }
+  ],
+  "gates": {
+    "enoughIndependentClaims": true,
+    "everyTaskMeasuresSkillClaim": true,
+    "enoughSkillDerivedWeightOrHardGate": true,
+    "noAnswerBearingDuplication": true,
+    "requiredCanariesPassed": true
+  },
+  "issues": [],
+  "claimBoundary": "This static audit checks whether development tasks can identify provenance-bound skill contribution. It is not model-performance or optimization evidence."
+}
