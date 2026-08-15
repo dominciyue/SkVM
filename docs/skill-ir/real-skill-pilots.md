@@ -193,6 +193,10 @@ allocation、Bonferroni multiplicity、SESOI、attrition 与 sensitivity。领�
 当前 public interface、2-task development set 与 8+8+conditional-4 authorization 已可确定性重建；contract
 audit 5/5，贡献审计为 `eligible-for-baseline`，4 条独立 skill claim、逐 task skill-derived weight 0.80、0
 answer-bearing duplication。此状态仍未运行付费模型、未建立 base IR、未创作 held-out，也未改变 portfolio 分母。
+Development-only freeze 绑定 contract commit `7e383c8a2436f48f9d6921b4f11b959486b72837`、完整 source closure 和
+`heldout=not-authored`。Resilient v3 baseline lock 已通过 path/digest/dependency/corpus/8-row plan 校验；它复用
+Pi 0.67.68 和 progress-aware execution sidecar，但 reserve 固定为 0，确保最多 8 次付费调用，不把偶发失败在
+同一 authorization 下静默补行。
 
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复

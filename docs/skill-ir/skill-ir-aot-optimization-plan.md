@@ -432,6 +432,11 @@ parser、timeout、日志或实现 bug 修复继续留在 v3，以新的 impleme
 development authorization 是 selection 之后的新生命周期组件，不是旧组件 v2；只有 task/scorer 可观察语义、
 实验分母或 claim eligibility 发生变化时，才建立 successor identity。
 
+**冻结进度（2026-08-15）：** contract surface 已提交为 `7e383c8`；development-only freeze、完整 source closure、
+v3 resilient baseline lock 与 corpus `tasks-authored` entry 已建立并通过 8-row plan。Lock 不预留 replacement block，
+因此 maximum attempt rows 与 calibration authorization 同为 8；600/120/660 秒 progress-aware timeout 用来降低误杀，
+而不是放宽付费分母。Qualification 与 execute 仍待锁提交后运行。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

@@ -10,6 +10,7 @@ import {
   buildStatisticalPowerPublicInterface,
   deriveStatisticalPowerOracle,
 } from "./statistical-power-contract.ts"
+import { verifyMethodCaseTaskSplitFreeze } from "./method-case-task-split-freeze.ts"
 
 describe("statistical-power development contract", () => {
   test("rebuilds the checked-in public interface, tasks, and phased authorization", async () => {
@@ -54,6 +55,20 @@ describe("statistical-power development contract", () => {
       "profile-feedback",
       "secret-value",
     ])
+  })
+
+  test("verifies the committed development-only freeze without held-out tasks", async () => {
+    const freeze = JSON.parse(await readFile(path.join(
+      process.cwd(),
+      "benchmarks/skill-ir/pilots/statistical-power/development-task-freeze.json",
+    ), "utf8"))
+    const verified = await verifyMethodCaseTaskSplitFreeze(process.cwd(), freeze)
+    expect(verified).toMatchObject({
+      schemaVersion: "skill-ir-method-case-development-freeze/v1",
+      benchmarkId: "statistical-power",
+      taskCommit: "7e383c8a2436f48f9d6921b4f11b959486b72837",
+      heldoutBoundary: { status: "not-authored", permitsExecution: false },
+    })
   })
 
   test("builds two closed-form development tasks without answer-bearing instructions", () => {

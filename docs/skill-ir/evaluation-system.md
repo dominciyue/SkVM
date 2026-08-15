@@ -415,6 +415,20 @@ Contract audit 为 5/5，覆盖 canonical、alternative-valid、prompt-only omis
 逐 task weight 0.80、0 answer-bearing duplication、5 类 canary 全通过。它们只开放冻结 baseline lock，不是模型
 表现或优化证据。
 
+Baseline 使用既有 resilient v3 runner，仍严格服从本案例的 8-call calibration authorization：
+
+```powershell
+bun ./src/benchmarks/skill-ir/public-contract-calibration-v3-cli.ts `
+  --phase=plan `
+  --lock=benchmarks/skill-ir/pilots/statistical-power/development-calibration-lock.json `
+  --out-dir=results/skill-ir/statistical-power-development-baseline-v1
+```
+
+Qualification/execute 复用同一命令并替换 `--phase`。Lock 使用 600 秒 absolute、120 秒 idle、660 秒 outer 和
+execution sidecar；由于本阶段授权上限就是 8 calls，`reserveBlocksPerTask=0`、不得以 transient replacement 超过
+预算。若出现偶发 infrastructure failure，本 identity 冻结为 infrastructure-sensitive，再由新的 attempt/
+authorization 决定是否预注册 reserve；不能在运行中临时补行。
+
 跨 skill 统一化采用“公共生命周期 + 领域 adapter”而不是统一语义 scorer。公共层负责 source closure、task/
 contract freeze、manifest/delta、contribution audit、runner、observability、gate、cost 和 report；adapter 只声明
 fixture schema、public ABI、oracle 与 source-bound criteria。完成 Statistical Power 后，必须用真实 adapter LOC、

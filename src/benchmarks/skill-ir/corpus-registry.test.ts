@@ -75,4 +75,22 @@ describe("skill-ir corpus registry", () => {
     });
     expect(reviewer?.irPath).toBe("benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir.json");
   });
+
+  test("registers statistical-power only for tasks-authored calibration", () => {
+    const manifest = JSON.parse(readFileSync(
+      path.join(rootDir, "benchmarks/skill-ir/corpus/corpora/pilot.json"),
+      "utf8",
+    )) as { skills: Array<Record<string, unknown>> };
+    const power = manifest.skills.find((skill) => skill.id === "statistical-power");
+
+    expect(power).toMatchObject({
+      portfolioRole: "prospective-method-development",
+      depth: "contribution-identifiable-audited",
+      status: "tasks-authored",
+      sourcePath: "benchmarks/skill-ir/pilots/statistical-power/source/SKILL.md",
+      tasksPath: "benchmarks/skill-ir/pilots/statistical-power/development/tasks.json",
+      benchmarkContractAuditPath: "benchmarks/skill-ir/pilots/statistical-power/contribution-identifiability.json",
+    });
+    expect(power?.irPath).toBeUndefined();
+  });
 });
