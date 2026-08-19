@@ -226,6 +226,18 @@ package/report，并要求 identity、行数、production bytes 与 gate 逐项 
 作为 `public-scorer-schema-underdetermined` 负 canary，必须在任何付费 qualification 前被 disclosure 阻断。完成
 两正一负 shadow parity 后才允许新 skill 或 untouched replication 使用 wrapper 默认路径。
 
+Task 18.13 已把上述合同实现为 `pilot-lifecycle.ts`、声明式
+`benchmarks/skill-ir/corpus/pilot-adapters.json` 和无模型 shadow runner。API Tester 与 Env Manager 各从冻结
+lock 重建 16 行逻辑 plan、4 个 quartet，并用公共 development gate 从冻结 tasks/raw/scored evidence 逐字段
+重算 report；两者分别保持 `quality-positive` 与 `fidelity-preserving`。公共 assembly 同时重建两者共 4 个
+package，4/4 production file sets 逐字节一致，公共 core 不含 skill id 分支。
+
+API Tester 的历史 lock 绑定了共享 `pilot.json` 的旧 digest，而该聚合 corpus 后续有合法的 append-only 扩展。
+因此 wrapper 会加载并验证领域 task-builder export，但不调用会重新读取当前聚合 corpus 的历史 builder；逻辑
+plan 直接从不可变 lock matrix 构造，完整 gate 则从该 identity 的冻结 raw/scored/tasks 重放。这样既验证公共
+生命周期，又不通过修改旧 lock 或回滚共享 corpus 换取表面 parity。Statistical Power 在 disclosure stage
+停止，adapter builder load/call、logical plan build、qualification 和 paid call 均为 0。
+
 ## 7. Compiler
 
 Compiler 输入只允许：
@@ -372,6 +384,7 @@ mean 1.0、2/2 protected input pass，runtime model tokens 为 0；报告在
 ```powershell
 cd D:\skill优化\SkVM
 bun ./src/benchmarks/skill-ir/validated-artifact-assembly-parity-run.ts
+bun ./src/benchmarks/skill-ir/pilot-lifecycle-shadow-run.ts
 bun ./src/benchmarks/skill-ir/experimental-design-v2-artifact-compile-run.ts --out=<empty-directory>
 $env:SKVM_PYTHON = (Resolve-Path '.skvm\law-runtime\Scripts\python.exe').Path
 bun ./src/benchmarks/skill-ir/experimental-design-v2-artifact-qualification-run.ts

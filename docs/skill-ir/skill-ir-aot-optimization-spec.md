@@ -965,5 +965,11 @@ Windows/clean、一个冻结模型族和一个稳定 harness 上，证明面向 
 5. dynamic-profile 不作为强制数量指标。只有公开、跨任务且跨重复稳定的 residual 才运行 dynamic/
    solidification；没有 residual 时，typed stop 是合格结果。
 
+Task 18.13 已完成该近期目标的第一项工程收敛：同一 `PilotAdapter/v1` 与公共 lifecycle wrapper 对 API Tester、
+Env Manager v3 完成 plan/gate shadow parity，并通过公共 assembly 重建 4 个逐字节一致的 package；Statistical
+Power 由同一入口在加载 task builder 或进入 qualification 前按 disclosure evidence fail closed。整个 shadow
+阶段 0 次付费调用、`coreBranchDelta=0`，且未修改旧 lock、package 或结果。该证据只证明公共编排可以保持
+既有冻结语义，不补足第二个 readiness-eligible phenotype、全成本、untouched replication 或产品入口。
+
 跨 agent、跨 OS、noisy/long、三模型族主表与普遍稳定性仍属于后续扩展目标。这个收窄不降低已有 quality、
 fixed-denominator、held-out 或 provenance 标准，只减少当前里程碑同时必须证明的外推范围。

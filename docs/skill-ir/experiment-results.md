@@ -531,3 +531,18 @@ promotion 全部关闭。后续若要修 contract，必须是新的可观察 mea
 - `results/skill-ir/statistical-power-development-baseline-v1/run/selected-scored-runs.jsonl`
 - `results/skill-ir/statistical-power-development-baseline-v1/gate-report.json`
 - `results/skill-ir/statistical-power-development-baseline-v1/measurement-validity.json`
+
+## 16. Pilot lifecycle shadow parity
+
+2026-08-19 的 Task 18.13 使用 `PilotAdapter/v1` 和同一公共 wrapper 只读重放 3 个已冻结案例，不调用付费模型。
+API Tester 与 Env Manager v3 各重建 16 行逻辑 plan、4 个 quartet，并从冻结 tasks/raw/scored evidence 通过
+公共 gate 复算完整 report；2/2 plan parity、2/2 report parity。公共 assembly 共重建 4 个 package，4/4
+production file sets 逐字节一致，`coreBranchDelta=0`。原证据分类保持为 API Tester `quality-positive`、Env
+Manager `fidelity-preserving`，因此该 shadow 结果不是新的质量正例或 Token 节省证据。
+
+两个正例各加载 1 次 adapter builder export、调用 0 次历史领域 builder、执行 1 次 lock-derived logical plan
+build。Statistical Power 读取既有 disclosure audit 后冻结为
+`measurement-invalid / public-scorer-schema-underdetermined`，在 builder load/call、logical plan、qualification
+和付费阶段之前停止；对应计数全部为 0。Compact 结果位于：
+
+- `results/skill-ir/pilot-lifecycle-shadow-parity.json`

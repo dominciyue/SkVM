@@ -1,0 +1,225 @@
+{
+  "schemaVersion": "skill-ir-pilot-adapter-catalog/v1",
+  "adapters": [
+    {
+      "schemaVersion": "skill-ir-pilot-adapter/v1",
+      "adapterId": "api-tester-development",
+      "skillId": "api-tester",
+      "phenotype": "openapi-schema-test-plan",
+      "source": {
+        "closure": ["benchmarks/skill-ir/pilots/api-tester/source/SKILL.md"],
+        "licensePath": "benchmarks/skill-ir/pilots/api-tester/source/LICENSE.upstream",
+        "provenancePath": "benchmarks/skill-ir/pilots/api-tester/source-oracle-provenance.json"
+      },
+      "contract": {
+        "taskBuilder": {
+          "modulePath": "src/benchmarks/skill-ir/api-tester-artifact-development.ts",
+          "exportName": "buildApiTesterArtifactDevelopmentPlan"
+        },
+        "taskRegistryPath": "benchmarks/skill-ir/pilots/api-tester/development/tasks.json",
+        "publicInterfacePath": "benchmarks/skill-ir/pilots/api-tester/public-interface.json",
+        "audit": {
+          "path": "results/skill-ir/api-tester-contract-audit-2026-07-31.json",
+          "statusPointer": "/status",
+          "passValue": "passed"
+        }
+      },
+      "scorer": {
+        "entryPath": "src/bench/evaluators/api-tester-grade.ts",
+        "oracleEntryPath": "src/benchmarks/skill-ir/api-tester-oracle.ts",
+        "sourceAnchors": [
+          {
+            "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+            "lineStart": 1
+          }
+        ],
+        "disclosure": {
+          "path": "results/skill-ir/api-tester-contract-audit-2026-07-31.json",
+          "statusPointer": "/status",
+          "passValue": "passed"
+        }
+      },
+      "artifact": {
+        "packages": [
+          {
+            "caseId": "api-tester-openapi-yaml",
+            "phenotype": "schema-derived-tool-generation",
+            "packagePath": "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml"
+          },
+          {
+            "caseId": "api-tester-openapi-json",
+            "phenotype": "schema-derived-tool-generation",
+            "packagePath": "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json"
+          }
+        ]
+      },
+      "runtime": {
+        "resourceContractPath": "benchmarks/skill-ir/pilots/api-tester/resource-contract.json",
+        "platforms": ["windows"],
+        "requiredEnvironment": ["SKVM_XTY_API_KEY", "SKVM_NODE"]
+      },
+      "budgets": {
+        "qualificationCalls": 1,
+        "calibrationCalls": 8,
+        "staticCalls": 4,
+        "dynamicCalls": 0,
+        "heldOutCalls": 0
+      },
+      "stopPolicy": {
+        "stopOnDisclosureFailure": true,
+        "stopOnStageFailure": true
+      },
+      "shadow": {
+        "kind": "positive-parity",
+        "lockPath": "benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json",
+        "qualificationPath": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/qualification.json",
+        "rawRowsPath": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/raw-runs.jsonl",
+        "scoredRowsPath": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/scored-runs.jsonl",
+        "gateReportPath": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json",
+        "expectedDecision": "quality-positive"
+      }
+    },
+    {
+      "schemaVersion": "skill-ir-pilot-adapter/v1",
+      "adapterId": "env-manager-v3-development",
+      "skillId": "env-manager-v3",
+      "phenotype": "environment-schema-repair",
+      "source": {
+        "closure": ["benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"],
+        "licensePath": "benchmarks/skill-ir/pilots/env-manager/source/LICENSE.upstream"
+      },
+      "contract": {
+        "taskBuilder": {
+          "modulePath": "src/benchmarks/skill-ir/env-manager-v3-artifact-development.ts",
+          "exportName": "buildEnvManagerV3ArtifactDevelopmentPlan"
+        },
+        "taskRegistryPath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/development/tasks.json",
+        "publicInterfacePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/public-interface.json",
+        "audit": {
+          "path": "results/skill-ir/benchmark-contract-audit/env-manager-v3.json",
+          "statusPointer": "/status",
+          "passValue": "passed"
+        }
+      },
+      "scorer": {
+        "entryPath": "src/bench/evaluators/env-manager-grade-v3.ts",
+        "sourceAnchors": [
+          {
+            "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+            "lineStart": 1
+          }
+        ],
+        "disclosure": {
+          "path": "results/skill-ir/benchmark-contract-audit/env-manager-v3.json",
+          "statusPointer": "/status",
+          "passValue": "passed"
+        }
+      },
+      "artifact": {
+        "packages": [
+          {
+            "caseId": "env-manager-v3-node",
+            "phenotype": "environment-schema-repair",
+            "packagePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/node"
+          },
+          {
+            "caseId": "env-manager-v3-vite",
+            "phenotype": "environment-schema-repair",
+            "packagePath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/vite"
+          }
+        ]
+      },
+      "runtime": {
+        "resourceContractPath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/resource-contract.json",
+        "platforms": ["windows"],
+        "requiredEnvironment": ["SKVM_XTY_API_KEY", "SKVM_NODE"]
+      },
+      "budgets": {
+        "qualificationCalls": 1,
+        "calibrationCalls": 8,
+        "staticCalls": 4,
+        "dynamicCalls": 0,
+        "heldOutCalls": 0
+      },
+      "stopPolicy": {
+        "stopOnDisclosureFailure": true,
+        "stopOnStageFailure": true
+      },
+      "shadow": {
+        "kind": "positive-parity",
+        "lockPath": "benchmarks/skill-ir/pilots/env-manager/successor-v3/artifact-development-lock-v1.json",
+        "qualificationPath": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/qualification.json",
+        "rawRowsPath": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/raw-runs.jsonl",
+        "scoredRowsPath": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/scored-runs.jsonl",
+        "gateReportPath": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/gate-report.json",
+        "expectedDecision": "fidelity-preserving"
+      }
+    },
+    {
+      "schemaVersion": "skill-ir-pilot-adapter/v1",
+      "adapterId": "statistical-power-development",
+      "skillId": "statistical-power",
+      "phenotype": "statistical-design-tool-use",
+      "source": {
+        "closure": [
+          "benchmarks/skill-ir/pilots/statistical-power/source/SKILL.md",
+          "benchmarks/skill-ir/pilots/statistical-power/source/references/closed_form_recipes.md",
+          "benchmarks/skill-ir/pilots/statistical-power/source/references/effect_sizes.md",
+          "benchmarks/skill-ir/pilots/statistical-power/source/references/simulation_based_power.md",
+          "benchmarks/skill-ir/pilots/statistical-power/source/scripts/power.py",
+          "benchmarks/skill-ir/pilots/statistical-power/source/scripts/simulate_power.py"
+        ],
+        "licensePath": "benchmarks/skill-ir/pilots/statistical-power/source/LICENSE.upstream.md",
+        "provenancePath": "benchmarks/skill-ir/corpus/prospective-dynamic-candidate.json"
+      },
+      "contract": {
+        "taskBuilder": {
+          "modulePath": "src/benchmarks/skill-ir/statistical-power-contract.ts",
+          "exportName": "buildStatisticalPowerDevelopmentTaskSet"
+        },
+        "taskRegistryPath": "benchmarks/skill-ir/pilots/statistical-power/development/tasks.json",
+        "publicInterfacePath": "benchmarks/skill-ir/pilots/statistical-power/public-interface.json",
+        "audit": {
+          "path": "results/skill-ir/statistical-power-contract-audit-v1/report.json",
+          "statusPointer": "/gates/publicAbiClosed",
+          "passValue": true
+        }
+      },
+      "scorer": {
+        "entryPath": "src/bench/evaluators/statistical-power-grade.ts",
+        "sourceAnchors": [
+          {
+            "path": "benchmarks/skill-ir/pilots/statistical-power/source/SKILL.md",
+            "lineStart": 1
+          }
+        ],
+        "disclosure": {
+          "path": "results/skill-ir/statistical-power-development-baseline-v1/measurement-validity.json",
+          "statusPointer": "/scorerAuthority/disclosure/status",
+          "passValue": "passed",
+          "blockerPointer": "/blocker"
+        }
+      },
+      "runtime": {
+        "platforms": ["windows"],
+        "requiredEnvironment": ["SKVM_XTY_API_KEY"]
+      },
+      "budgets": {
+        "qualificationCalls": 1,
+        "calibrationCalls": 8,
+        "staticCalls": 8,
+        "dynamicCalls": 4,
+        "heldOutCalls": 0
+      },
+      "stopPolicy": {
+        "stopOnDisclosureFailure": true,
+        "stopOnStageFailure": true
+      },
+      "shadow": {
+        "kind": "negative-disclosure-canary",
+        "expectedDecision": "measurement-invalid",
+        "expectedBlocker": "public-scorer-schema-underdetermined"
+      }
+    }
+  ]
+}

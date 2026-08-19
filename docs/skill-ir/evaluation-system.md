@@ -450,6 +450,16 @@ held-out 全部关闭，旧 gate 不重评分、不用新 scorer 冒充预注册
 contract audit 必须先通过 disclosure，再运行 canonical/alternative/reverse canary。Statistical Power 的薄适配
 器和 `statistical-power-measurement-validity-run.ts` 只负责列出领域 pointer、读取冻结证据并绑定 digest。
 
+Task 18.13 已将 disclosure 接入公共 `PilotAdapter/v1` shadow lifecycle。正例先验证 adapter contract 与冻结
+qualification，再从 lock matrix 重建逻辑 plan，并通过公共 gate 重新读取冻结 tasks/raw/scored evidence 复算
+完整 report；由于 API Tester 的旧 lock 绑定共享 corpus 的历史 digest，领域 builder export 只加载并验证为
+callable，不调用它来改写历史 identity。负 canary 在 disclosure failure 后阻断 builder load/call、logical plan、
+qualification 和所有付费阶段。无模型复核入口为：
+
+```powershell
+bun ./src/benchmarks/skill-ir/pilot-lifecycle-shadow-run.ts
+```
+
 跨 skill 统一化采用“公共生命周期 + 领域 adapter”而不是统一语义 scorer。公共层负责 source closure、task/
 contract freeze、manifest/delta、contribution audit、runner、observability、gate、cost 和 report；adapter 只声明
 fixture schema、public ABI、oracle 与 source-bound criteria。完成 Statistical Power 后，必须用真实 adapter LOC、

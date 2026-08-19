@@ -729,6 +729,7 @@ validator 只负责运行时合同，它与离线 scorer 不是同一个东西�
 ```powershell
 cd D:\skill优化\SkVM
 bun ./src/benchmarks/skill-ir/validated-artifact-assembly-parity-run.ts
+bun ./src/benchmarks/skill-ir/pilot-lifecycle-shadow-run.ts
 bun ./src/benchmarks/skill-ir/experimental-design-v2-artifact-qualification-run.ts
 ```
 
@@ -900,17 +901,17 @@ git remote -v
 
 ## 17. 你现在可以接着做什么
 
-当前接力点是处理 i18n contribution-v2 首个 static identity 的 infrastructure failure，不回到 Experimental
-Design 或旧 i18n v3 的饱和分母：
+Task 18.13 已完成公共 `PilotAdapter/v1` 与 lifecycle shadow parity：API Tester/Env Manager 的 plan、gate 与
+4 个 package 保持冻结 parity，Statistical Power 在 disclosure stage 提前停止，0 paid、
+`coreBranchDelta=0`。当前接力点是补 Env Manager v3 的完整成本与 break-even，不再重做 wrapper 或新增版本：
 
 ```text
-第一步：profile-empty base IR 和逐节点 source audit（已完成）
-第二步：首个 no-skill | original | ir-static identity 已冻结 infrastructure-failed（12/12，4 infra）
-第三步：分层 current regression、frozen-history compatibility 与 provider/execution observability
-第四步：只有新的有效 static gate 才生成 typed feedback 或进入公共 assembly，不在同锁补跑
-第五步：若选择新身份，重新预注册并记录人工分钟、adapter LOC 与 coreBranchDelta
-第六步：只有 optimized development gate 通过，才把它计为第二 phenotype；readiness 通过后再做 untouched
-replication、跨模型/context 和摊销 Token
+第一步：盘点 Env v3 已有 214 humanMinutes、25 adapter LOC、冻结 all-attempt 与 artifact evidence
+第二步：分列 compile/profile/package/runtime/scorer/repair 与人工审核成本，缺失项明确标记 missing，不反事实填数
+第三步：在质量等价前提下计算 N=1,2,5,10 与 break-even，判断是否可成为 efficiency-positive
+第四步：若证据不足，保持 fidelity-preserving，并寻找第二个 quality-positive；不得只凭 artifact runtime 0 token 晋升
+第五步：正证据达到门槛后冻结窄方法，用 untouched real skill 在 coreBranchDelta=0 下 replication
+第六步：只有公开、跨任务和重复稳定的 residual 才进入 dynamic；其后才扩多模型主表和统一产品入口
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

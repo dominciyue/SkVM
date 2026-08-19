@@ -93,7 +93,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 取得第二个 quality-positive，或完成质量等价 + 全成本 + break-even 的 efficiency-positive
 -> 通用 RepairEvidence admission -> Final IR development 闭环已完成；Env v3 合法无残差并停止
 -> Statistical Power 已以 scorer-authority measurement-invalid 停止，不新增候选
--> 先把公共生命周期封装为 declarative pilot adapter，并对 API Tester/Env Manager 做 shadow parity
+-> 公共 declarative pilot adapter/lifecycle shadow parity 已完成（两正一负、0 paid、coreBranchDelta=0）
 -> 补 Env Manager 全成本与 break-even，或取得第二个 quality-positive
 -> 再决定是否需要真实 dynamic residual；dynamic 是 residual-driven 路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断

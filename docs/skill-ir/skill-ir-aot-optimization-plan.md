@@ -459,6 +459,33 @@ disclosure preflight 已以 TDD 加入未来合同流程。
 7. [ ] wrapper parity 后补 Env Manager compile/profile/package/all-attempt 成本与 break-even，决定其是否可从
    fidelity 晋升 efficiency-positive；随后再选择 1 个 untouched replication。
 
+### Task 18.13：PilotAdapter 与公共 lifecycle wrapper shadow parity
+
+**目标：** 不改写旧 lock、package 或结果，不调用付费模型，把 API Tester、Env Manager v3 与 Statistical
+Power 的差异收进声明式 adapter；公共 wrapper 固定执行
+`import -> contract -> disclosure -> freeze -> qualification -> calibrate -> base IR/static -> residual admission -> artifact -> report`，
+并以两正一负证明 core 不按 skill 分支。
+
+1. [x] 先以失败测试冻结 `PilotAdapter` schema、固定状态顺序、安全仓库路径、phase budget/stop policy，以及
+   disclosure failure 必须发生在 task builder/qualification 之前；
+2. [x] 为 API Tester 与 Env Manager v3 声明 source/license、task builder、public contract、disclosure evidence、
+   scorer/oracle anchors、runtime/resource、artifact package、冻结结果与预算；领域 builder/oracle 保持 plugin；
+3. [x] 公共 wrapper 在临时目录 shadow rebuild 两个正例的 plan，要求 identity multiset、16 行、4 quartet 与冻结
+   gate records 一致；从冻结 raw/scored/task/lock 重新生成完整 gate，要求逐字段 parity；
+4. [x] 通过公共 assembly shadow rebuild API Tester 两个 package 与 Env Manager 两个 package，要求全部 production
+   files byte parity、catalog valid、`coreBranchDelta=0`；旧目录和 digest 不变；
+5. [x] Statistical Power 使用同一 adapter schema 和 wrapper，读取既有 disclosure audit 后冻结为
+   `public-scorer-schema-underdetermined`，要求 0 adapter builder load/call、0 logical plan build、0 qualification/
+   paid calls；
+6. [x] 生成一个 compact parity report，保留 API Tester `quality-positive`、Env Manager
+   `fidelity-preserving` 与 Statistical Power `measurement-invalid`，并同步既有 spec/component/ledger/handoff/log；
+7. [x] focused/typecheck/doc-link/相关 broad verification 后提交并只推送 `skill-ir-aot`；不纳入 `1.md`、缓存、
+   历史 raw/workdir 或其它本地结果。
+
+**版本纪律：** `PilotAdapter`/wrapper 是首次建立的新公共协议，因此只使用首个 `v1` schema；实现修复、测试
+补强和 adapter 数据修正继续原位修改，不建立 `v2/v3`。只有公共可观察字段、状态语义、实验分母或 claim
+eligibility 发生不兼容变化时才允许 successor schema。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
@@ -477,8 +504,9 @@ disclosure preflight 已以 TDD 加入未来合同流程。
 readiness-eligible optimized phenotype；Env Manager v3 是 fidelity-preserving，不是尚未核算 compile cost 与
 break-even 的 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
 **40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
-不等于跨模型主实验已经启动。下一优先级不是继续找新 skill，而是完成 lifecycle wrapper shadow parity、修正
-scorer disclosure preflight，并补 Env Manager 全成本/break-even 或取得第二个质量正例。真实 dynamic 只在稳定
+不等于跨模型主实验已经启动。lifecycle wrapper shadow parity 与 scorer disclosure preflight 已完成；下一优先级
+不是继续找新 skill，而是补 Env Manager 全成本/break-even，判断能否形成 efficiency-positive，或取得第二个质量
+正例。真实 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 
 ## 5. 时间估算
