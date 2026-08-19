@@ -269,6 +269,15 @@ artifact 四次调用 runtime model tokens 为 0，deterministic process/validat
 29652 bytes。一次性编译 token/自动 optimizer 成本尚未测，故不计算 break-even；证据只支持单模型、Windows/
 clean development 下的 artifact fidelity，不是第二个 readiness 优化正例，也不支持 held-out 或跨模型泛化。
 
+Task 18.14 随后对所有已追踪证据做了只读全成本审计。Production 口径中 original 4 次合计 197606 tokens、
+平均 49401.5/次与 124751.5ms/次；artifact 为 0 tokens、135.25ms/次。Profile-empty 路径记 0，deterministic
+package assembly model tokens 记 0，package 为 29652 bytes；自动 optimizer/compiler token、compile duration 与
+package duration保持 missing。Research 已知下界为 input+output 878163、cache-read 1154560、cache-write 0、
+duration 3159164ms；v3 operator termination、static/artifact qualification、旧 artifact cache 与 scorer duration
+等不可恢复字段逐项列为 missing。因此 N=1/2/5/10 只报告 original 49401.5/98803/247007.5/494015，optimized
+保持 null，break-even=`not-computable`，Env Manager 继续是 `fidelity-preserving`。权威补充报告为
+`results/skill-ir/env-manager-v3-cost-accounting.json`。
+
 ### 8.1 `i18n-helper` 首轮校准
 
 React+i18next v1 的 qualification 通过，唯一矩阵完成 8/8 rows、4/4 pairs、0 infra。No-skill 为 1/4、

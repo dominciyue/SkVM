@@ -542,10 +542,11 @@ Env Manager v3 的 original baseline 已为 4/4、mean 1.0，因此同样在执�
 Static 通过后，Env Manager v3 通过公共 `validated-skill-artifact/v1` assembly/catalog/runtime 编译 Node/Vite
 两个确定性 package。冻结四臂 development 完成 16/16 rows、4/4 quartets、0 infrastructure；validated
 artifact 4/4、mean 1.0、0 hard-gate failure、0 pairwise regression，而同矩阵 ir-static 有一次公开语义失败。
-这满足第二 phenotype 的 artifact development fidelity，并曾开放预注册多模型族 development 小面板；但它
-没有证明相对合格 baseline 的质量改善，也缺 compile cost 与 break-even，按 4.0 只能分类为
-`fidelity-preserving`，不计第二个 readiness 优化正例。Held-out、promotion、跨模型主 claim 与 Token
-break-even 仍保持关闭。
+这满足第二 phenotype 的 artifact development fidelity，并曾开放预注册多模型族 development 小面板。后续
+全成本审计按 production/research 分账绑定全部已追踪证据：runtime 为 0 model tokens，但自动 optimizer/compiler
+token、compile/package duration 与部分历史 all-attempt 字段显式 missing，N=1/2/5/10 的 optimized 总量和
+break-even 均不得反事实计算。因此按 4.0 仍只能分类为 `fidelity-preserving`，不计第二个 readiness 优化正例。
+Held-out、promotion、跨模型主 claim 与 Token break-even 继续关闭。
 
 #### 5.1.3 三模型族 development 小面板
 

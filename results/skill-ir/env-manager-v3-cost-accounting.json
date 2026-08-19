@@ -1,0 +1,648 @@
+{
+  "schemaVersion": "skill-ir-optimization-cost-accounting/v1",
+  "skillId": "env-manager-v3",
+  "experimentId": "env-manager-v3-cost-accounting",
+  "quality": {
+    "equivalent": true,
+    "evidence": {
+      "path": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/gate-report.json",
+      "sha256": "0c78923069c2328f173c4eb9ea9a199b7696246efe705e57f099bcdbaed7f911"
+    }
+  },
+  "adaptation": {
+    "humanMinutes": 214,
+    "adapterLoc": 25,
+    "coreBranchDelta": 0,
+    "reusedArtifactKinds": [
+      "checks",
+      "schemas",
+      "scripts"
+    ],
+    "unautomatedSteps": [
+      "base IR/source audit",
+      "artifact adapter",
+      "development lock"
+    ]
+  },
+  "production": {
+    "oneTime": {
+      "compile": {
+        "modelTokens": {
+          "status": "missing",
+          "value": null,
+          "reason": "the package was manually engineered; an automatic optimizer/compiler token cost was not prospectively observed"
+        },
+        "durationMs": {
+          "status": "missing",
+          "value": null,
+          "reason": "the frozen package predated compile-duration accounting"
+        }
+      },
+      "profile": {
+        "modelTokens": {
+          "status": "measured",
+          "value": 0
+        },
+        "durationMs": {
+          "status": "measured",
+          "value": 0
+        }
+      },
+      "package": {
+        "modelTokens": {
+          "status": "measured",
+          "value": 0
+        },
+        "durationMs": {
+          "status": "missing",
+          "value": null,
+          "reason": "package assembly duration was not prospectively persisted"
+        },
+        "bytes": {
+          "status": "measured",
+          "value": 29652
+        }
+      }
+    },
+    "runtime": {
+      "original": {
+        "samples": 4,
+        "aggregateModelTokens": 197606,
+        "aggregateDurationMs": 499006,
+        "modelTokensPerRun": 49401.5,
+        "durationMsPerRun": 124751.5
+      },
+      "optimized": {
+        "samples": 4,
+        "aggregateModelTokens": 0,
+        "aggregateDurationMs": 541,
+        "repairModelTokensPerRun": 0,
+        "modelTokensPerRun": 0,
+        "durationMsPerRun": 135.25
+      }
+    },
+    "missing": [
+      "production.oneTime.compile.modelTokens",
+      "production.oneTime.compile.durationMs",
+      "production.oneTime.package.durationMs"
+    ]
+  },
+  "research": {
+    "attempts": [
+      {
+        "id": "baseline-v1-operator-launch",
+        "kind": "operator-failure",
+        "attempts": 1,
+        "usage": {
+          "inputTokens": {
+            "status": "measured",
+            "value": 0
+          },
+          "outputTokens": {
+            "status": "measured",
+            "value": 0
+          },
+          "cacheReadTokens": {
+            "status": "measured",
+            "value": 0
+          },
+          "cacheWriteTokens": {
+            "status": "measured",
+            "value": 0
+          }
+        },
+        "durationMs": {
+          "status": "missing",
+          "value": null,
+          "reason": "operator launch duration was not persisted"
+        }
+      },
+      {
+        "id": "baseline-v2-operator-launch",
+        "kind": "operator-failure",
+        "attempts": 1,
+        "usage": {
+          "inputTokens": {
+            "status": "measured",
+            "value": 0
+          },
+          "outputTokens": {
+            "status": "measured",
+            "value": 0
+          },
+          "cacheReadTokens": {
+            "status": "measured",
+            "value": 0
+          },
+          "cacheWriteTokens": {
+            "status": "measured",
+            "value": 0
+          }
+        },
+        "durationMs": {
+          "status": "missing",
+          "value": null,
+          "reason": "operator launch duration was not persisted"
+        }
+      },
+      {
+        "id": "baseline-v3-operator-termination",
+        "kind": "operator-failure",
+        "attempts": 1,
+        "usage": {
+          "inputTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "model invocation evidence is explicitly unknown"
+          },
+          "outputTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "model invocation evidence is explicitly unknown"
+          },
+          "cacheReadTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "model invocation evidence is explicitly unknown"
+          },
+          "cacheWriteTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "model invocation evidence is explicitly unknown"
+          }
+        },
+        "durationMs": {
+          "status": "missing",
+          "value": null,
+          "reason": "only an approximate outer-tool termination time was recorded"
+        }
+      },
+      {
+        "id": "baseline-v4-qualification",
+        "kind": "qualification",
+        "attempts": 1,
+        "usage": {
+          "inputTokens": {
+            "status": "measured",
+            "value": 26935
+          },
+          "outputTokens": {
+            "status": "measured",
+            "value": 3123
+          },
+          "cacheReadTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "qualification cache usage was not persisted in the scored row"
+          },
+          "cacheWriteTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "qualification cache usage was not persisted in the scored row"
+          }
+        },
+        "durationMs": {
+          "status": "measured",
+          "value": 87613
+        }
+      },
+      {
+        "id": "baseline-v4-matrix",
+        "kind": "matrix",
+        "attempts": 8,
+        "usage": {
+          "inputTokens": {
+            "status": "measured",
+            "value": 177581
+          },
+          "outputTokens": {
+            "status": "measured",
+            "value": 20467
+          },
+          "cacheReadTokens": {
+            "status": "measured",
+            "value": 521216
+          },
+          "cacheWriteTokens": {
+            "status": "measured",
+            "value": 0
+          }
+        },
+        "durationMs": {
+          "status": "measured",
+          "value": 634591
+        },
+        "selected": {
+          "attempts": 8,
+          "usage": {
+            "inputTokens": {
+              "status": "measured",
+              "value": 177581
+            },
+            "outputTokens": {
+              "status": "measured",
+              "value": 20467
+            },
+            "cacheReadTokens": {
+              "status": "measured",
+              "value": 521216
+            },
+            "cacheWriteTokens": {
+              "status": "measured",
+              "value": 0
+            }
+          },
+          "durationMs": {
+            "status": "measured",
+            "value": 634591
+          }
+        }
+      },
+      {
+        "id": "static-v1-qualification",
+        "kind": "qualification",
+        "attempts": 1,
+        "usage": {
+          "inputTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "static qualification persisted classification and duration but not token usage"
+          },
+          "outputTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "static qualification persisted classification and duration but not token usage"
+          },
+          "cacheReadTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "static qualification persisted classification and duration but not token usage"
+          },
+          "cacheWriteTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "static qualification persisted classification and duration but not token usage"
+          }
+        },
+        "durationMs": {
+          "status": "measured",
+          "value": 114853
+        }
+      },
+      {
+        "id": "static-v1-matrix",
+        "kind": "matrix",
+        "attempts": 12,
+        "usage": {
+          "inputTokens": {
+            "status": "measured",
+            "value": 250910
+          },
+          "outputTokens": {
+            "status": "measured",
+            "value": 31815
+          },
+          "cacheReadTokens": {
+            "status": "measured",
+            "value": 633344
+          },
+          "cacheWriteTokens": {
+            "status": "measured",
+            "value": 0
+          }
+        },
+        "durationMs": {
+          "status": "measured",
+          "value": 1121892
+        },
+        "selected": {
+          "attempts": 12,
+          "usage": {
+            "inputTokens": {
+              "status": "measured",
+              "value": 250910
+            },
+            "outputTokens": {
+              "status": "measured",
+              "value": 31815
+            },
+            "cacheReadTokens": {
+              "status": "measured",
+              "value": 633344
+            },
+            "cacheWriteTokens": {
+              "status": "measured",
+              "value": 0
+            }
+          },
+          "durationMs": {
+            "status": "measured",
+            "value": 1121892
+          }
+        }
+      },
+      {
+        "id": "artifact-v1-qualification",
+        "kind": "qualification",
+        "attempts": 1,
+        "usage": {
+          "inputTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "artifact qualification persisted route success but not token usage"
+          },
+          "outputTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "artifact qualification persisted route success but not token usage"
+          },
+          "cacheReadTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "artifact qualification persisted route success but not token usage"
+          },
+          "cacheWriteTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "artifact qualification persisted route success but not token usage"
+          }
+        },
+        "durationMs": {
+          "status": "missing",
+          "value": null,
+          "reason": "artifact qualification duration was not persisted"
+        }
+      },
+      {
+        "id": "artifact-v1-matrix",
+        "kind": "matrix",
+        "attempts": 16,
+        "usage": {
+          "inputTokens": {
+            "status": "measured",
+            "value": 330363
+          },
+          "outputTokens": {
+            "status": "measured",
+            "value": 36969
+          },
+          "cacheReadTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "artifact development runner did not persist cache token fields"
+          },
+          "cacheWriteTokens": {
+            "status": "missing",
+            "value": null,
+            "reason": "artifact development runner did not persist cache token fields"
+          }
+        },
+        "durationMs": {
+          "status": "measured",
+          "value": 1200215
+        },
+        "selected": {
+          "attempts": 16,
+          "usage": {
+            "inputTokens": {
+              "status": "measured",
+              "value": 330363
+            },
+            "outputTokens": {
+              "status": "measured",
+              "value": 36969
+            },
+            "cacheReadTokens": {
+              "status": "missing",
+              "value": null,
+              "reason": "artifact development runner did not persist cache token fields"
+            },
+            "cacheWriteTokens": {
+              "status": "missing",
+              "value": null,
+              "reason": "artifact development runner did not persist cache token fields"
+            }
+          },
+          "durationMs": {
+            "status": "measured",
+            "value": 1200215
+          }
+        }
+      }
+    ],
+    "scorer": {
+      "modelTokens": {
+        "status": "measured",
+        "value": 0
+      },
+      "durationMs": {
+        "status": "missing",
+        "value": null,
+        "reason": "deterministic scorer duration was not separately measured"
+      }
+    },
+    "repair": {
+      "modelTokens": {
+        "status": "measured",
+        "value": 0
+      },
+      "durationMs": {
+        "status": "measured",
+        "value": 0
+      }
+    },
+    "knownModelTokens": 878163,
+    "knownCacheReadTokens": 1154560,
+    "knownCacheWriteTokens": 0,
+    "knownDurationMs": 3159164,
+    "missing": [
+      "research.attempts.baseline-v1-operator-launch.durationMs",
+      "research.attempts.baseline-v2-operator-launch.durationMs",
+      "research.attempts.baseline-v3-operator-termination.usage.inputTokens",
+      "research.attempts.baseline-v3-operator-termination.usage.outputTokens",
+      "research.attempts.baseline-v3-operator-termination.usage.cacheReadTokens",
+      "research.attempts.baseline-v3-operator-termination.usage.cacheWriteTokens",
+      "research.attempts.baseline-v3-operator-termination.durationMs",
+      "research.attempts.baseline-v4-qualification.usage.cacheReadTokens",
+      "research.attempts.baseline-v4-qualification.usage.cacheWriteTokens",
+      "research.attempts.static-v1-qualification.usage.inputTokens",
+      "research.attempts.static-v1-qualification.usage.outputTokens",
+      "research.attempts.static-v1-qualification.usage.cacheReadTokens",
+      "research.attempts.static-v1-qualification.usage.cacheWriteTokens",
+      "research.attempts.artifact-v1-qualification.usage.inputTokens",
+      "research.attempts.artifact-v1-qualification.usage.outputTokens",
+      "research.attempts.artifact-v1-qualification.usage.cacheReadTokens",
+      "research.attempts.artifact-v1-qualification.usage.cacheWriteTokens",
+      "research.attempts.artifact-v1-qualification.durationMs",
+      "research.attempts.artifact-v1-matrix.usage.cacheReadTokens",
+      "research.attempts.artifact-v1-matrix.usage.cacheWriteTokens",
+      "research.scorer.durationMs"
+    ]
+  },
+  "amortization": [
+    {
+      "calls": 1,
+      "originalModelTokens": 49401.5,
+      "optimizedModelTokens": null,
+      "status": "missing"
+    },
+    {
+      "calls": 2,
+      "originalModelTokens": 98803,
+      "optimizedModelTokens": null,
+      "status": "missing"
+    },
+    {
+      "calls": 5,
+      "originalModelTokens": 247007.5,
+      "optimizedModelTokens": null,
+      "status": "missing"
+    },
+    {
+      "calls": 10,
+      "originalModelTokens": 494015,
+      "optimizedModelTokens": null,
+      "status": "missing"
+    }
+  ],
+  "breakEven": {
+    "status": "not-computable",
+    "calls": null,
+    "missing": [
+      "production.oneTime.compile.modelTokens"
+    ]
+  },
+  "completeness": {
+    "productionCostComplete": false,
+    "allAttemptCostComplete": false,
+    "breakEvenComplete": false
+  },
+  "eligibility": {
+    "classification": "fidelity-preserving",
+    "efficiencyPositiveEligible": false,
+    "reasons": [
+      "production compile/profile/package cost is incomplete",
+      "research all-attempt cost is incomplete",
+      "break-even is not computable"
+    ]
+  },
+  "evidence": [
+    {
+      "path": "benchmarks/skill-ir/corpus/method-portfolio.json",
+      "sha256": "8c106b36053f01b15d555025d819c8b4cc2f4030086232a9b869bfeaca102d2b"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/successor-v3/base-ir.json",
+      "sha256": "301be846a10a11ece823a9c58b9a1233360b70bccb05bbec02f782b946b6f53e"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/successor-v3/base-ir-source-audit.json",
+      "sha256": "c3f73d4fac8fe2e88f0c34adff732e44b75e22d36e7ff5d0be267502486443e0"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/successor-v3/artifact-adapter.json",
+      "sha256": "47420b5b8f2f565a8a36c9e6bbd771fa7a3ab855c88b47b375749ac29068ac70"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/successor-v3/resource-contract.json",
+      "sha256": "6cefa4244f745fb8cb41a65de7539a28b347e8b29bf58ca71189759838a69085"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/node/package-manifest.json",
+      "sha256": "01d7146e560d8e397e0f7b9abbefffcdcff45968d74b6a5c2d86980bc329cb99"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/vite/package-manifest.json",
+      "sha256": "739bafc91ff8f035a16d2eeec2073dea1ea61090440e80abfa7bb7473ff304f9"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/env-manager-v3-artifact-compiler.ts",
+      "sha256": "283cf982b72bf2752e26e33b698d0f663e03f6b2403984b92fda337766534915"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/optimization-cost-accounting.ts",
+      "sha256": "678001f4071edea528b1ecccf96541098211ff96e173dee34c650cd83e04fd55"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/env-manager-v3-cost-accounting-run.ts",
+      "sha256": "f152dbbd4b0da19ddd6b87b1a4dab02c6502b58a9a45d2a6a9d1f6a8642eb490"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/validated-artifact-assembly.ts",
+      "sha256": "6aaafd4c26ff9115aaf768ec8e876356404f6039fc944f83db2686445517e8b4"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/validated-artifact-catalog.ts",
+      "sha256": "d13a9e49b09092f41940509e5467d813e6194bb14e30a725ab2e39c06909c93d"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/validated-artifact-runtime.ts",
+      "sha256": "20fc00b4dab3510b602ab73a2e6b46f9d6d6a7ced1fe686b620b1c94744f823a"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-scorer-authority-baseline-v1/qualification-launch-failure.json",
+      "sha256": "9fef3c06b293c3b55a1f1f805b78530fc6ff8ddc024f5deb5436fea2f4ef1b56"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-scorer-authority-baseline-v2/qualification-launch-failure.json",
+      "sha256": "61158617cc2796aff658247621737f2cc59696372bcbbdc3838886bec05df7ee"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-scorer-authority-baseline-v3/qualification-launch-failure.json",
+      "sha256": "bbea32d56b4525ca83e8a2e92ff3577185e5e1726d7d1c400ece256aabe0b776"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-scorer-authority-baseline-v4/qualification.json",
+      "sha256": "8d9f1a2bfd49781f5465fce6c48143495c25790fb29a9f5c0bfd96c5f6aa07ed"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-scorer-authority-baseline-v4/qualification/scored-runs.jsonl",
+      "sha256": "4a9a30d52815e114468246b619d60f559950ba4d3b7d8b15c834f4d6c537e9f3"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-scorer-authority-baseline-v4/gate-report.json",
+      "sha256": "03b2b4c4c8293954d9152d83935298d1560ec54f674162a606c7aee2206cc98a"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-scorer-authority-baseline-v4/run/execution-envelopes.jsonl",
+      "sha256": "5aeb6fd303649b170444cd143c4640088f00016abe6462ce11cb0e55f5f4f05e"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-scorer-authority-baseline-v4/run/selected-scored-runs.jsonl",
+      "sha256": "187e4b889593fe8984424d8fbcef6975b2f7f0bc468950d811cb8f12a32efdb1"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-static-fidelity-v1/qualification.json",
+      "sha256": "f544fda63943b8d95db3c0f88ad3d43e5cebec1f4cb55a2dc382257afd46ddca"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-static-fidelity-v1/gate-report.json",
+      "sha256": "01311c0f077e8dc736f54bca2724dd5b9a51a217edb94be06baaaddbc978e782"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-static-fidelity-v1/run/execution-envelopes.jsonl",
+      "sha256": "9c280cc23729df0af3405cb00d241ee6211f2d6c8d8c03e5eb03f2c005347426"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-static-fidelity-v1/run/scored-runs.jsonl",
+      "sha256": "8f1f909ba271c29b4e6a29427a11dfd06cc5192296aee609e89eb61d28a82ca7"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/qualification.json",
+      "sha256": "e50eb5abb372ddacb4d806760e20adbd706af3749d0e288ee5d2ed85a6db074c"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/gate-report.json",
+      "sha256": "0c78923069c2328f173c4eb9ea9a199b7696246efe705e57f099bcdbaed7f911"
+    },
+    {
+      "path": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/scored-runs.jsonl",
+      "sha256": "2628bb9be61137929d6fc8fe4bab4744ed90b54c3b88f8c4ecfc4082020fc0b7"
+    }
+  ],
+  "claimBoundary": "Token amortization uses production AOT cost only; research validation cost and human effort remain separately disclosed and are required for efficiency-positive eligibility."
+}

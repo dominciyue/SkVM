@@ -57,8 +57,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   original 4/4 vs no-skill 3/4 通过 admission；profile-empty base IR 与逐节点 source audit 已完成，corpus 晋升
   runnable。随后 static-fidelity 唯一矩阵 12/12、4/4 triplets、0 infra，三臂均 4/4、mean 1.0，static 对
   original 无回退；artifact 四臂唯一矩阵随后 16/16、4/4 quartets、0 infra，validated artifact 4/4、mean
-  1.0、0 regression、runtime model tokens 0。该结果证明第二 phenotype 的 artifact fidelity，但编译成本与
-  break-even 未闭合，不能作为第二个 readiness 优化正例；held-out 仍关闭。
+  1.0、0 regression、runtime model tokens 0。全成本审计已恢复 production/research 分账、N=1/2/5/10 与
+  历史 missing 清单；自动 compiler token 仍未前瞻测量，break-even 不可计算。因此结果只证明第二 phenotype
+  的 artifact fidelity，不能作为第二个 readiness 优化正例；held-out 仍关闭。
 - 通用双源 residual admission 已从 Env 特化路径中拆出：声明式 mapping 绑定 static v2 lock/gate/envelopes/
   selected scored rows/base IR/source audit，按 criterion 同时要求跨任务与任务内重复。Eligible evidence 可通过
   同一命令入口编译为 typed overlay、Final IR 与 development-only provenance v3；blocked/无残差都停止。
@@ -94,7 +95,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 通用 RepairEvidence admission -> Final IR development 闭环已完成；Env v3 合法无残差并停止
 -> Statistical Power 已以 scorer-authority measurement-invalid 停止，不新增候选
 -> 公共 declarative pilot adapter/lifecycle shadow parity 已完成（两正一负、0 paid、coreBranchDelta=0）
--> 补 Env Manager 全成本与 break-even，或取得第二个 quality-positive
+-> Env Manager 全成本审计已完成：历史缺失不补零，break-even 不可计算，继续 fidelity-preserving
+-> 回看全过程并校准下一信息增益：前瞻自动 compiler 成本身份 / 第二个 quality-positive / untouched replication
 -> 再决定是否需要真实 dynamic residual；dynamic 是 residual-driven 路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
 -> 用另一项 untouched skill 做冻结 replication

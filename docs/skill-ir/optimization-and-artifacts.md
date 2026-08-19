@@ -422,7 +422,8 @@ Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer �
 
 - Env v3 证明公开 workspace-derived environment/schema 语义可经公共 assembly 编译为 Node/Vite package；冻结
   development 为 4/4、mean 1.0、0 regression，四次 runtime model tokens 为 0；但缺 compile cost 与
-  break-even，因此分类为 fidelity-preserving。
+  break-even，因此分类为 fidelity-preserving。后续全成本审计没有重写该结果：它精确恢复了已追踪的
+  production/research 成本，但自动 optimizer/compiler token 仍为 missing，break-even 仍不可计算。
 - Law 证明 code/template/checker artifact 可在 development 显著优于文本 skill，随后 held-out 边界回归。
 - Experimental Design 证明 catalog/runtime 可复用到第二 phenotype，但 benchmark 饱和阻断优化归因。
 - API Tester 已把 source-attributable schema residual 固化为 profile-empty base IR、38 行声明式 adapter 和
@@ -465,6 +466,22 @@ break-even N*
 ```
 
 缓存命中必须绑定 source/compiler/catalog/environment digest；任何输入变化都使缓存失效或重新验证。
+
+通用 `optimization-cost-accounting.ts` 将成本分成两本账：production 账用于 N 次摊销，research 账披露
+qualification、selected/all-attempt、scorer、repair 与失败尝试。`measured(0)` 与 `missing` 是不同状态；只有
+compile/profile/package 的 model-token 字段齐全时才计算 Token break-even，只有 production、research
+all-attempt 与质量证据都完整时才允许 `efficiency-positive`。Env Manager 薄适配只读取已追踪 compact evidence：
+
+```powershell
+bun ./src/benchmarks/skill-ir/env-manager-v3-cost-accounting-run.ts
+bun test ./src/benchmarks/skill-ir/optimization-cost-accounting.test.ts `
+  ./src/benchmarks/skill-ir/env-manager-v3-cost-accounting-run.test.ts
+```
+
+当前报告为 `results/skill-ir/env-manager-v3-cost-accounting.json`：original 4 次共 197606 model tokens、每次
+49401.5；artifact 4 次为 0、平均 135.25ms；profile 与 deterministic package assembly model tokens 为 0，
+package 最大 29652 bytes。但自动 compiler token、compile duration、package duration，以及部分历史
+qualification/cache/scorer duration 不可恢复，故 N=1/2/5/10 的 optimized 总量保持 null，分类不晋级。
 
 ## 15. 测试
 

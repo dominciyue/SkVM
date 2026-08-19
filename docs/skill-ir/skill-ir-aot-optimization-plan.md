@@ -456,8 +456,9 @@ disclosure preflight 已以 TDD 加入未来合同流程。
    viability；长期跨 agent/OS/context/model 稳定仍保留为扩展目标；dynamic 不再是近期强制数量门；
 6. [x] 冻结下一实现为 declarative `PilotAdapter` + 公共 lifecycle wrapper，shadow-first 复建 API Tester/Env
    Manager，并用 Statistical Power 作为 disclosure 负 canary；在两正一负 parity 前暂停新增 skill 和付费矩阵；
-7. [ ] wrapper parity 后补 Env Manager compile/profile/package/all-attempt 成本与 break-even，决定其是否可从
-   fidelity 晋升 efficiency-positive；随后再选择 1 个 untouched replication。
+7. [x] wrapper parity 后补 Env Manager compile/profile/package/all-attempt 成本与 break-even 审计；结果确认
+   自动 optimizer/compiler token、compile/package duration 与部分历史 qualification/all-attempt 字段缺失，故
+   break-even 不可计算，继续保持 fidelity-preserving，不反事实补数。
 
 ### Task 18.13：PilotAdapter 与公共 lifecycle wrapper shadow parity
 
@@ -486,6 +487,21 @@ Power 的差异收进声明式 adapter；公共 wrapper 固定执行
 补强和 adapter 数据修正继续原位修改，不建立 `v2/v3`。只有公共可观察字段、状态语义、实验分母或 claim
 eligibility 发生不兼容变化时才允许 successor schema。
 
+### Task 18.14：通用全成本合同与 Env Manager v3 成本审计
+
+1. [x] 以 TDD 建立首个通用 `skill-ir-optimization-cost-accounting/v1` 合同，生产 AOT 成本与研究验证成本分账；
+2. [x] 生产账分列 compile/profile/package、original/optimized runtime、repair、人工分钟与 package bytes；缺失值
+   使用显式 `missing`，artifact runtime 的 0 model tokens 不向一次性成本传播；
+3. [x] 研究账覆盖 v1--v3 operator failure、v4 baseline、static 与 artifact 的 qualification、selected/all-attempt
+   matrix、input/output/cache/duration、scorer 与 repair；只消费 Git 已追踪 compact evidence 并绑定 digest；
+4. [x] 质量等价后输出 N=1/2/5/10。Original 每次均值为 49401.5 model tokens；optimized runtime 为 0，但因
+   `production.oneTime.compile.modelTokens` 缺失，四个 optimized 累计值保持 null，break-even 为 not-computable；
+5. [x] `results/skill-ir/env-manager-v3-cost-accounting.json` 冻结已知研究下界：878163 input+output、1154560
+   cache-read、0 cache-write、3159164ms；历史缺失清单完整保留，portfolio 仍为 fidelity-preserving；
+6. [x] 完成 focused/typecheck/doc/broad verification，更新 ledger/handoff/log，提交并仅推送 `skill-ir-aot`；
+7. [ ] 下一阶段先做项目全过程复盘与目标校准：判断应建立前瞻自动 compiler 成本身份、取得第二个
+   quality-positive，还是先做 untouched replication；在结论前不新增付费矩阵。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
@@ -501,12 +517,12 @@ eligibility 发生不兼容变化时才允许 successor schema。
    clean/noisy/long 和 held-out 主矩阵。
 
 当前尚未达到这条研究证据门槛：7/7 contract-qualified 不变，但机器口径修正后只有 API Tester 1 个
-readiness-eligible optimized phenotype；Env Manager v3 是 fidelity-preserving，不是尚未核算 compile cost 与
-break-even 的 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
+readiness-eligible optimized phenotype；Env Manager v3 的全成本审计已完成，但因自动 compiler token 与部分
+历史 all-attempt 字段缺失，仍是 fidelity-preserving，不是 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
 **40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
 不等于跨模型主实验已经启动。lifecycle wrapper shadow parity 与 scorer disclosure preflight 已完成；下一优先级
-不是继续找新 skill，而是补 Env Manager 全成本/break-even，判断能否形成 efficiency-positive，或取得第二个质量
-正例。真实 dynamic 只在稳定
+是按全过程证据复盘自动 compiler 成本身份、第二个质量正例与 untouched replication 的信息价值，而不是继续
+修补不可恢复的历史缺失或直接烧新矩阵。真实 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 
 ## 5. 时间估算

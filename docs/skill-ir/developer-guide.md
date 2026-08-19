@@ -901,17 +901,17 @@ git remote -v
 
 ## 17. 你现在可以接着做什么
 
-Task 18.13 已完成公共 `PilotAdapter/v1` 与 lifecycle shadow parity：API Tester/Env Manager 的 plan、gate 与
-4 个 package 保持冻结 parity，Statistical Power 在 disclosure stage 提前停止，0 paid、
-`coreBranchDelta=0`。当前接力点是补 Env Manager v3 的完整成本与 break-even，不再重做 wrapper 或新增版本：
+Task 18.13 已完成公共 `PilotAdapter/v1` 与 lifecycle shadow parity。Task 18.14 又完成 Env Manager v3 的全成本
+审计：新合同是首次公开成本 schema，使用 `v1`；它不改旧 runner/package/gate 版本。报告确认 runtime 0 token，
+但自动 compiler token 与若干历史 all-attempt 字段不可恢复，所以 break-even 不可计算、分类不晋级。当前接力点
+不是反复修补历史结果，而是做全过程复盘与下一信息增益选择：
 
 ```text
-第一步：盘点 Env v3 已有 214 humanMinutes、25 adapter LOC、冻结 all-attempt 与 artifact evidence
-第二步：分列 compile/profile/package/runtime/scorer/repair 与人工审核成本，缺失项明确标记 missing，不反事实填数
-第三步：在质量等价前提下计算 N=1,2,5,10 与 break-even，判断是否可成为 efficiency-positive
-第四步：若证据不足，保持 fidelity-preserving，并寻找第二个 quality-positive；不得只凭 artifact runtime 0 token 晋升
-第五步：正证据达到门槛后冻结窄方法，用 untouched real skill 在 coreBranchDelta=0 下 replication
-第六步：只有公开、跨任务和重复稳定的 residual 才进入 dynamic；其后才扩多模型主表和统一产品入口
+已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
+已完成：N=1,2,5,10 的 original 值；optimized 因 compile token missing 保持 null，break-even not-computable
+下一步：复盘手写 compiler、adapter 和 qualification 缺口，判断前瞻自动 compile identity 是否值得建立
+下一步：比较第二个 quality-positive 与 untouched replication 的信息增益，冻结一个窄目标后再开发
+后续：只有公开、跨任务和重复稳定的 residual 才进入 dynamic；正证据达门槛后才扩多模型主表和产品入口
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

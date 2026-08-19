@@ -658,6 +658,12 @@ latency 和完整 identity。分析器输出：
 
 Token 在质量 gate 通过前只作诊断。Artifact 的 0 model token 不能忽略预编译成本。
 
+Task 18.14 新增通用全成本报告合同，但没有更改任何冻结 runner/gate 版本。报告把 production 的
+compile/profile/package/runtime 与 research 的 qualification/selected/all-attempt/scorer/repair 分开；attempt usage
+分别记录 input/output/cache-read/cache-write/duration。`missing` 不参与求和，已知总量明确是下界；只有 production
+token 字段齐全才计算 N=1/2/5/10 和 break-even，research all-attempt 不完整则即使 break-even 可算也不能晋级
+`efficiency-positive`。Env Manager 当前两项均不完整，保持 fidelity-preserving。
+
 ## 11. Stable Pi 与基础设施
 
 当前 Windows 主执行面使用 direct Node Pi package + short-path workdir。资格检查绑定 Pi/Bun/Node 版本、
