@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-15
+**最后更新：** 2026-08-22
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -448,7 +448,7 @@ disclosure preflight 已以 TDD 加入未来合同流程。
    Power 分别因 baseline regression、saturation、scorer authority、static regression、scorer authority 停止；
 2. [x] 核对 dynamic 缺失：0 case 进入 dynamic-profile 是 residual-driven 门禁结果，不是要求每个 skill 必须补做
    dynamic；通用 admission/Final IR 机制只有 synthetic eligible，真实 Env evidence 是合法 no-residual stop；
-3. [x] 核对统一化现状：公共 assembly/runner/envelope/gate 已存在，但目录仍有 78 个 `*-run.ts`，多模型 plan
+3. [x] 核对统一化现状：公共 assembly/runner/envelope/gate 已存在，但当时目录有 78 个 `*-run.ts`，多模型 plan
    仍含 package 的 skill 分支，5/7 case 无前瞻人工时间，不能声称自动适配已收敛；
 4. [x] 将当前成熟度拆成三轴：执行/测量约 70%，单模型研究证据约 40%--50%，用户产品路径约 25%--35%；
    不再用单一文件覆盖百分比代表项目完成度；
@@ -499,8 +499,61 @@ eligibility 发生不兼容变化时才允许 successor schema。
 5. [x] `results/skill-ir/env-manager-v3-cost-accounting.json` 冻结已知研究下界：878163 input+output、1154560
    cache-read、0 cache-write、3159164ms；历史缺失清单完整保留，portfolio 仍为 fidelity-preserving；
 6. [x] 完成 focused/typecheck/doc/broad verification，更新 ledger/handoff/log，提交并仅推送 `skill-ir-aot`；
-7. [ ] 下一阶段先做项目全过程复盘与目标校准：判断应建立前瞻自动 compiler 成本身份、取得第二个
-   quality-positive，还是先做 untouched replication；在结论前不新增付费矩阵。
+7. [x] 下一阶段先做项目全过程复盘与目标校准：判断应建立前瞻自动 compiler 成本身份、取得第二个
+   quality-positive，还是先做 untouched replication；在结论前不新增付费矩阵。Task 18.15 已选择前瞻成本
+   identity 作为第二正例和 replication 的共同前置条件。
+
+### Task 18.15：全过程复盘与前瞻 optimizer/compiler 成本身份
+
+**复盘结论：** 当前 7 个 method case 的终态不再有未解释 infrastructure blocker。API Tester、Env Manager、
+Zh Code Reviewer 分别提供 `quality-positive`、`fidelity-preserving`、`static-sufficient`；Law、Experimental
+Design、i18n 是 measurement-valid 的 baseline regression、capability saturation、static quality regression；
+Zh README 是 scorer-authority blocker。把随后停止的 Statistical Power 纳入最近竖切，8 个案例/候选中有
+2 个 measurement-invalid、3 个方法负结果、3 个正向或机制证据，0 个当前终态由 timeout/provider transient
+单独解释。旧短 timeout 确实误杀过正常长任务，但 successor 证据已经把它与方法/测量失败分开。
+
+统一化仍未达到自动 optimizer：7/7 method case 都依赖领域 deterministic scorer；portfolio 的
+`generatesIr` 为 0/7、`generatesContract` 为 2/7、`generatesValidationPlan` 为 4/7、
+`generatesPackageCandidate` 为 4/7。只有 Env Manager 前瞻记录完整人工分钟；API Tester 只留下 adapter LOC，
+其余历史适配成本不可恢复。当前 `src/benchmarks/skill-ir` 已有 80 个 `*-run.ts`；Task 18.13 的公共 wrapper
+证明两正一负 shadow parity，但尚未对新 prospective construction 保存完整成本身份。
+
+**路线比较与选择：**
+
+1. **A，前瞻自动 optimizer/compiler 成本 identity（当前选择）。** 0 付费；不增加质量正例，但先消除下一
+   候选再次出现“artifact runtime 为 0、自动构造成本 missing”的结构性风险。失败仍能精确说明是自动化边界、
+   digest closure、model usage 或 package validation 哪一项不完整。
+2. **B，直接争取第二个 quality-positive。** 若通过，claim 增量最高；但需要新的领域合同/scorer/compiler 与至少
+   qualification + baseline 的付费分母，且在 A 之前仍会重复 Env 的成本证据缺口和 Statistical Power 的测量风险。
+   A 完成后立即回到 B，不以继续建设基础设施替代方法实验。
+3. **C，先做 untouched replication。** 当前 readiness 的自动化收敛、第二证据 phenotype 和 measurement blocker
+   均未通过；此时冻结会复制已知手写边界，不能成为可信 replication。C 继续排在第二 readiness 正证据之后。
+
+**实现合同与 TDD：**
+
+1. [x] 新建首个、独立的 `skill-ir-prospective-compiler-cost/v1`；不修改
+   `skill-ir-optimization-cost-accounting/v1` 或任何冻结 cost/gate/result；
+2. [x] RED：要求 identity 绑定 source/task/public/resource contract、base IR/source audit、adapter、compiler
+   implementation、catalog/runtime 与 environment digest；缺项、绝对路径、digest 重复/漂移 fail closed；
+3. [x] RED：实际包裹一次 compiler callback，保存端到端 duration、模型调用与 input/output/cache token、package
+   count/bytes/digest；callback failure 不能生成成功成本证据；
+4. [x] RED：`automatic-prospective` 只有在 0 未自动化 construction steps、完整 model usage 和 package validation
+   下才可作为 automatic compile cost；`manual-existing` 即使实测 0 model tokens 也只能是 mechanism canary；
+5. [x] GREEN：最小实现通用 capture，并对 API Tester/Env Manager 现有 compiler 在临时目录各重建两个 package、
+   验证冻结 package byte parity；生成一份无模型 compact report，分类保持不变；
+6. [x] 同步 optimization/evaluation/results/README/spec、portfolio 风险说明和本地 ledger/handoff/log；focused、
+   relevant broad、typecheck、doc links、`git diff --check` 后显式提交并推送；不纳入 `1.md`、raw/workdir/cache。
+
+**停止边界：** 本任务不会把当前手写 compiler 的确定性执行时间或 0 model tokens 当作“自动 optimizer 生成
+compiler”的成本，也不会反事实闭合 Env 的 break-even。A 完成后，下一信息增益回到 B：选择一个 disclosure、
+贡献可识别性与 prospective cost capture 都先通过的新 quality-positive candidate；只有第二 readiness 正证据成立
+后才进入 C。
+
+**实现结果（2026-08-22）：** 双案例 canary 在 Bun 1.3.14 / Windows x64 下重建 4 个 package，4/4
+validation 与 frozen manifest byte parity；API Tester/Env Manager v3 实测 133.46ms/63.16ms，0 model calls、
+0 tokens。Identity 同时绑定 cost capture/runner 自身；正模型调用配全零 usage、绝对/重复路径、digest drift、
+callback/package failure 均 fail closed。两个历史 compiler 都保持 `mechanism-only`，所以 A 只关闭采集缺口，
+没有新增 readiness 正例。完成验证与交接后下一任务按路线 B 选择新候选。
 
 ### 单模型族 70% 与多模型族启动门槛
 
@@ -517,11 +570,12 @@ eligibility 发生不兼容变化时才允许 successor schema。
    clean/noisy/long 和 held-out 主矩阵。
 
 当前尚未达到这条研究证据门槛：7/7 contract-qualified 不变，但机器口径修正后只有 API Tester 1 个
-readiness-eligible optimized phenotype；Env Manager v3 的全成本审计已完成，但因自动 compiler token 与部分
+readiness-eligible optimized phenotype；Env Manager v3 的历史全成本审计与前瞻 capture canary 已完成，但因自动
+compiler 构造并未前瞻发生、部分
 历史 all-attempt 字段缺失，仍是 fidelity-preserving，不是 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
 **40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
-不等于跨模型主实验已经启动。lifecycle wrapper shadow parity 与 scorer disclosure preflight 已完成；下一优先级
-是按全过程证据复盘自动 compiler 成本身份、第二个质量正例与 untouched replication 的信息价值，而不是继续
+不等于跨模型主实验已经启动。lifecycle wrapper shadow parity、scorer disclosure preflight 与 prospective
+compiler cost capture 已完成；下一优先级是取得第二个质量正例，而不是继续
 修补不可恢复的历史缺失或直接烧新矩阵。真实 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 

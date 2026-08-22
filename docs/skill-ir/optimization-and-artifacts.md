@@ -483,6 +483,26 @@ bun test ./src/benchmarks/skill-ir/optimization-cost-accounting.test.ts `
 package 最大 29652 bytes。但自动 compiler token、compile duration、package duration，以及部分历史
 qualification/cache/scorer duration 不可恢复，故 N=1/2/5/10 的 optimized 总量保持 null，分类不晋级。
 
+Task 18.15 新增独立首版 `prospective-compiler-cost.ts`，用于新候选从 construction 开始保存成本，而不是修改
+上述历史审计。Identity 绑定 source closure、task/public/resource contract、base IR/source audit、adapter、
+compiler、cost capture/runner、catalog/runtime 和 runtime environment digest；执行前逐项重算 sha256。每个
+`optimizer | compiler | package | compiler-package` stage 记录实际 duration、model call 与 input/output/cache
+usage，正模型调用配全零 usage、证据漂移、callback failure、输出越界、package validation/skill 不一致都 fail
+closed。输出只含仓库相对路径；临时 package 在验证后删除。
+
+```powershell
+bun ./src/benchmarks/skill-ir/prospective-compiler-cost-run.ts
+bun test ./src/benchmarks/skill-ir/prospective-compiler-cost.test.ts `
+  ./src/benchmarks/skill-ir/prospective-compiler-cost-run.test.ts
+```
+
+Canary 报告位于 `results/skill-ir/prospective-compiler-cost-canary.json`。Bun 1.3.14 / Windows x64 下，API
+Tester 两包实测 133.46ms、725430 bytes，Env Manager v3 两包实测 63.16ms、59296 bytes；4/4 manifest
+与冻结 package 一致，0 model calls、0 aggregate model tokens。两案例都是 `manual-existing` 且明确列出四项
+未自动化步骤，所以 0/2 eligible、2/2 `mechanism-only`。只有未来 `automatic-prospective` identity 同时具备
+零未自动化步骤、完整 optimizer/compiler/package stages、非矛盾 usage 与有效 package，才可提供 automatic
+production compile cost。本结果不反事实闭合 Env Manager 的历史 break-even。
+
 ## 15. 测试
 
 ```powershell

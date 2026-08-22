@@ -555,3 +555,19 @@ build。Statistical Power 读取既有 disclosure audit 后冻结为
 和付费阶段之前停止；对应计数全部为 0。Compact 结果位于：
 
 - `results/skill-ir/pilot-lifecycle-shadow-parity.json`
+
+## 17. Prospective compiler cost canary
+
+2026-08-22 的 Task 18.15 在不调用付费模型、不修改冻结 package 的前提下，对 API Tester 与 Env Manager v3
+现有 compiler 各执行一次临时目录重建。两案例的 identity 绑定 source/task/public/resource/base IR/source
+audit/adapter/compiler/capture/catalog/runtime/environment digest；报告不含绝对路径。API Tester 的
+`openapi-json | openapi-yaml` 为 2/2 validation、2/2 frozen manifest parity，实测 133.46ms、725430 bytes；
+Env Manager v3 的 `node | vite` 同样 2/2、2/2，实测 63.16ms、59296 bytes。汇总为 4 packages、4/4 byte
+parity、0 model calls、0 aggregate model tokens。
+
+两类 compiler、adapter 和 development lock 都在本次 capture 之前由人手写，因此两行均为
+`manual-existing / mechanism-only`，automatic eligible 为 0。这是成本采集与确定性重建机制的正证据，不是
+第二个 quality/efficiency-positive，不恢复历史人工分钟或 compiler token，也不改变 Env Manager
+`not-computable` break-even。权威 compact evidence：
+
+- `results/skill-ir/prospective-compiler-cost-canary.json`

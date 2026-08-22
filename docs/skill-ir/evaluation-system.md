@@ -664,6 +664,13 @@ compile/profile/package/runtime 与 research 的 qualification/selected/all-atte
 token 字段齐全才计算 N=1/2/5/10 和 break-even，research all-attempt 不完整则即使 break-even 可算也不能晋级
 `efficiency-positive`。Env Manager 当前两项均不完整，保持 fidelity-preserving。
 
+Task 18.15 的 `skill-ir-prospective-compiler-cost/v1` 解决的是未来证据采集，不回填历史 missing。它把
+construction origin 显式分为 `automatic-prospective` 与 `manual-existing`：后者即使一次确定性调用观测为
+0 model tokens，也只可作为 capture/package parity 的机制证据。Automatic eligibility 要求身份 closure 完整、
+未自动化步骤为 0、optimizer/compiler/package 三段齐全、每个模型调用都有非零实际 usage，并且输出 package
+通过公共 catalog validation。API Tester/Env Manager canary 为 4/4 byte parity、0/2 automatic eligible；
+portfolio 分类与 readiness 分母均不改变。
+
 ## 11. Stable Pi 与基础设施
 
 当前 Windows 主执行面使用 direct Node Pi package + short-path workdir。资格检查绑定 Pi/Bun/Node 版本、

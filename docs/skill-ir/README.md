@@ -76,6 +76,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   JSON 顶层字段，scorer 私下要求 23 个嵌套 pointer，造成 8/8 顶层合同满足、0/8 strict schema 满足；该批冻结
   `measurement-invalid`，不进入 base IR/static/dynamic，也不能解释 skill 效果。通用 public JSON disclosure
   preflight 已补入未来合同流程。
+- Task 18.15 已完成独立的前瞻 compiler cost capture。API Tester 与 Env Manager v3 的既有 compiler 在
+  Bun 1.3.14 / Windows x64 临时目录重建 4 个 package，4/4 manifest byte parity、4/4 package validation，
+  实测 compiler/package duration 分别为 133.46ms 与 63.16ms，模型调用和 token 均为 0。两者因 adapter、
+  compiler 与 development lock 都是历史手写，严格保持 `mechanism-only`；这证明未来候选可前瞻保存成本，
+  不会把历史人工构造成本补写成 0，也不改变 Env Manager 的 break-even 或 portfolio 分类。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -96,7 +101,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Statistical Power 已以 scorer-authority measurement-invalid 停止，不新增候选
 -> 公共 declarative pilot adapter/lifecycle shadow parity 已完成（两正一负、0 paid、coreBranchDelta=0）
 -> Env Manager 全成本审计已完成：历史缺失不补零，break-even 不可计算，继续 fidelity-preserving
--> 回看全过程并校准下一信息增益：前瞻自动 compiler 成本身份 / 第二个 quality-positive / untouched replication
+-> 全过程复盘与前瞻 compiler cost capture 已完成：双案例 4/4 byte parity，历史手写路径保持 mechanism-only
+-> 选择 disclosure、贡献可识别性和前瞻成本身份均可冻结的新候选，争取第二个 quality-positive
 -> 再决定是否需要真实 dynamic residual；dynamic 是 residual-driven 路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
 -> 用另一项 untouched skill 做冻结 replication

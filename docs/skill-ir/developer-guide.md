@@ -901,16 +901,17 @@ git remote -v
 
 ## 17. 你现在可以接着做什么
 
-Task 18.13 已完成公共 `PilotAdapter/v1` 与 lifecycle shadow parity。Task 18.14 又完成 Env Manager v3 的全成本
-审计：新合同是首次公开成本 schema，使用 `v1`；它不改旧 runner/package/gate 版本。报告确认 runtime 0 token，
-但自动 compiler token 与若干历史 all-attempt 字段不可恢复，所以 break-even 不可计算、分类不晋级。当前接力点
-不是反复修补历史结果，而是做全过程复盘与下一信息增益选择：
+Task 18.13 已完成公共 `PilotAdapter/v1` 与 lifecycle shadow parity，Task 18.14 完成 Env Manager v3 历史全成本
+审计。Task 18.15 又完成独立首版 prospective compiler cost capture：API Tester/Env Manager v3 在临时目录
+重建 4 个 package 并取得 4/4 frozen manifest parity，但两个既有 compiler 都因历史手写 construction 保持
+`mechanism-only`。因此该机制能保证下一候选从开始保存 construction/compile/package 成本，却不会反事实补齐
+Env 的 break-even。当前接力点已回到路线 B：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
 已完成：N=1,2,5,10 的 original 值；optimized 因 compile token missing 保持 null，break-even not-computable
-下一步：复盘手写 compiler、adapter 和 qualification 缺口，判断前瞻自动 compile identity 是否值得建立
-下一步：比较第二个 quality-positive 与 untouched replication 的信息增益，冻结一个窄目标后再开发
+已完成：prospective compiler cost identity/capture；双案例 4/4 parity，历史手写路径不误报自动成本
+下一步：先做 disclosure、贡献可识别性和成本采集身份审计，再冻结第二个 quality-positive 候选
 后续：只有公开、跨任务和重复稳定的 residual 才进入 dynamic；正证据达门槛后才扩多模型主表和产品入口
 ```
 

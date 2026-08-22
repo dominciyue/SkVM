@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-12
+**最后更新：** 2026-08-22
 
 ## 1. 项目定位
 
@@ -873,6 +873,32 @@ development 矩阵为 `no-skill | original | ir-static | validated-artifact`、2
 
 实验结果分两层持久化：Git 提交 compact report、scored rows、freeze、summary 和必要 provenance；raw
 workdir、qualification 临时目录与调试 snapshot 默认留本机，除非被冻结 digest 直接引用。
+
+### 10.1 前瞻 optimizer/compiler 成本身份
+
+Task 18.14 的历史审计证明，确定性 artifact runtime 的 `0 model tokens` 不能回答 optimizer 如何产生 compiler、
+adapter 和 package。后续新候选在任何 optimized development 之前必须建立 prospective construction identity，
+至少绑定 source closure、task/public/resource contract、base IR/source audit、declarative adapter、compiler
+implementation、catalog/runtime 与 environment digest，并实测一次 compiler/package 调用的 duration、模型调用及
+input/output/cache token、输出 package
+bytes/digest 和 validation 结果。缺失字段保持 missing，不从 callback 类型、人工回忆或 runtime 0 token 外推。
+
+Construction origin 必须分开：
+
+1. `automatic-prospective`：compiler/package 由本次冻结自动路径产生，且所有 construction steps、model usage、
+   package validation 和 identity closure 都前瞻保存；只有这一类可以提供 production automatic compile cost；
+2. `manual-existing`：调用已经由人手写的 compiler。即使执行本身确定性且实测 0 model tokens，也只能证明成本
+   capture 与 package parity 机制可用，不能把历史人工设计成本记为 0，不能补写旧 break-even。
+
+该职责使用独立首版 `skill-ir-prospective-compiler-cost/v1`，不改变
+`skill-ir-optimization-cost-accounting/v1` 的既有报告语义或任何冻结 cost result。当前 API Tester 与 Env Manager
+只作为 `manual-existing` 无模型 canary；A 路线完成后仍须通过新的 prospective candidate 取得第二个
+quality-positive，随后才允许冻结方法并做 untouched replication。
+
+Task 18.15 的 canary 已在 Bun 1.3.14 / Windows x64 重建两案例共 4 个 package，4/4 package validation 与
+frozen manifest byte parity，0 model calls/0 tokens；两例均因历史手写 construction 保持 `mechanism-only`，
+automatic eligible 为 0。报告还绑定 cost capture/runner 自身，正模型调用配全零 usage、绝对/重复证据路径、
+digest drift 与 package failure 均 fail closed。该结果关闭未来采集机制缺口，不补写任何历史成本。
 
 ## 11. 当前证据与不可声称项
 
