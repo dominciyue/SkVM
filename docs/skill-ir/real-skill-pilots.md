@@ -234,6 +234,12 @@ package capture 为 0 model tokens、217697 bytes，仍是 mechanism-only。Deve
 paired improvement、dynamic、held-out、readiness 与 portfolio 晋升全部关闭。任何修复必须使用新的 successor
 measurement identity，不原地改 scorer 或重评分。
 
+Task 18.19 用旧 public/scorer/development 与冻结 audit 作只读 preflight，未读取模型输出或 held-out。旧 17-pointer
+closure 保持 passed；新通用 value-semantics 层在 17 个真实 scorer canary 全部一致的情况下，识别 2/7 已公开、
+5/7 未公开，状态为 `blocked-before-paid`。这把后验 residual 结论前移成未来候选的预付费门禁，但不反事实改变
+BIDS v1。下一步只有在 5 项语义可用 non-answer-bearing contract 公开、且 source-derived canary 能区分合法多表示
+与真实语义错误时，才值得创建 successor measurement identity。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为

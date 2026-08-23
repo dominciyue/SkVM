@@ -935,6 +935,18 @@ oracle 对 `affectedPath`/`evidencePaths` 的唯一表示选择，而 public con
 真实运行只能冻结为 measurement-invalid。本 BIDS v1 的数值 quality/paired improvement 不进入研究 claim，旧
 task/scorer/lock/result 不原地修改；只有新 successor measurement identity 可修复语义合同。
 
+Task 18.19 将该要求固化为并列首版 `skill-ir-public-json-value-semantics-disclosure-audit/v1`，不滚动或改写旧
+pointer audit。声明必须使用稳定 semantic id、`canonical-value | representation-equivalence |
+array-element-identity | normalization | cross-field-relationship` kind、规则 id、带角色的 JSON pointer targets 与
+公开说明；同 id 的 public/evaluator descriptor 必须精确一致。每项至少有 canonical/invalid 差分 canary，表示等价
+与数组元素身份还要求 alternative-valid。缺失、descriptor drift、canary coverage 或 outcome 不一致均在
+qualification/paid 前 fail closed。
+
+BIDS v1 只读 preflight 证明该门可工作：原 17/17 pointer closure 保持 passed，7 项 evaluator value semantics 中
+2 项 set-like equivalence 已公开、5 项未公开，17 个真实 scorer canary 全部按预期；因此状态
+`blocked-before-paid`，0 model/held-out consumption。该新报告是旧 measurement-invalid 的预付费复现，不是旧结果
+重判，也不是 successor contract 已完成。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

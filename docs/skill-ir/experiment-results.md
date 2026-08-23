@@ -597,8 +597,19 @@ duration 678661ms；确定性 artifact control 为 4/4。
 保留，数值 paired improvement 决策、automatic optimized、dynamic、held-out、readiness 与 portfolio promotion
 全部关闭。旧 task/scorer/lock/result 不改、不重评分；若继续 BIDS，必须先建立语义变化明确的 successor contract。
 
+Task 18.19 没有调用模型，而是用 BIDS v1 的 public interface、development tasks、source rules、scorer、旧 contract
+audit 与 residual audit 做只读回放。旧 pointer disclosure 保持 17 public / 17 evaluator / 0 undisclosed；新的
+value-semantics audit 枚举 7 项 evaluator 语义和 17 个差分 canary。两项 set-like order equivalence 已公开，
+canary 为 17/17 角色一致；其余 5 项 canonical path role、source-reference role、issue element identity、path
+normalization 与 summary count relationship 未公开。因此 compact preflight 为 `blocked-before-paid`，保持
+qualification/paid/dynamic/held-out/readiness 全 false。报告读取冻结 residual audit 作为覆盖证据，但明确
+`residualAuditConsumed=true`、
+`modelOutputContentConsumed=false`、`heldOutConsumed=false`。该结果证明新 preflight 能在付费前捕获 BIDS v1
+缺口，不证明 successor 已可测量，也不授权重跑。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
 - `results/skill-ir/bids-prospective-development-v1/result.json`
 - `results/skill-ir/bids-prospective-development-v1/residual-audit.json`
+- `results/skill-ir/bids-value-semantics-preflight-v1.json`

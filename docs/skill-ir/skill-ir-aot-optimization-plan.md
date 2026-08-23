@@ -627,6 +627,24 @@ adapter、source-derived oracle 和 evaluator；不新建通用 schema 框架，
 **下一步：** 把 public JSON disclosure 从 pointer 完整提升为 value semantics/representation equivalence 完整，
 再决定是否建立 BIDS successor。不得原地改 v1 scorer、重评分或立即再烧矩阵。
 
+### Task 18.19：Public JSON value-semantics disclosure preflight
+
+1. [x] 保留既有 `skill-ir-public-json-contract-disclosure-audit/v1` 的输入/输出与历史消费者，不修改 BIDS v1
+   task/scorer/lock/result，不重评分、不补跑；
+2. [x] 新增并列首版 `skill-ir-public-json-value-semantics-disclosure-audit/v1`，声明 stable id、五类 semantic kind、
+   rule、带角色 targets 与公开 description；public/evaluator descriptor 精确匹配；
+3. [x] TDD 覆盖五类 kind、pointer 全公开但 value 隐藏、descriptor drift、canonical/alternative-valid/invalid
+   canary、唯一规范化不虚构 alternative，以及旧 pointer v1 兼容；
+4. [x] BIDS 薄 preflight 只读取 public interface、development tasks、source rules、scorer、旧 contract audit 与
+   residual audit；不读取 raw/model output/workdir/held-out，0 paid；
+5. [x] Compact blocker 保持 pointer `17/17/0` passed；7 项 evaluator semantics 中 2 项 set-like equivalence 已
+   公开、5 项未公开；17 canaries、0 missing role、0 outcome failure，状态 `blocked-before-paid`；
+6. [x] 保持 qualification/paid/dynamic/held-out/readiness 全 false。该结果只证明未来 preflight 可前移阻断，不
+   证明 BIDS successor 已成立。
+
+**下一步：** 评审 5 项缺失语义能否在不泄露逐 task 答案的前提下形成公开、source-derived successor contract。
+若能，语义合同变化足以新建 BIDS measurement identity；若不能，停止 BIDS 并返回候选选择，不直接重跑。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

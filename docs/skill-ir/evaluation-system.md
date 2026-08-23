@@ -374,7 +374,11 @@ qualification，唯一矩阵 12/12 semantic-complete、0 infrastructure blocker�
 semantics 相同、仅 1/12 与 scorer 的精确 issue-path 表示一致。`affectedPath` 和 `evidencePaths` 虽在 17-pointer
 列表内，但公开合同没有规定 data/sidecar/source-reference 多种合理路径之间的 canonical choice；六角色 canary
 也只测试数组顺序，没有测试表示等价类。因此该 identity 冻结为 measurement-invalid，数值得分和 paired delta
-全部失去 claim 资格。未来 disclosure gate 必须覆盖 scorer 精确消费的 value domain、normalization 和跨字段关系。
+全部失去 claim 资格。Task 18.19 的只读 preflight 进一步把该缺口机器化：旧 pointer audit 仍是 17/17 passed；
+新层枚举 7 项 evaluator value semantics，其中 issues/evidence array 的 2 项 set-like equivalence 已公开，
+`affectedPath` canonical role、`evidencePaths` source-reference role、issue element identity、path normalization 和
+summary count relationship 共 5 项未公开。17 个 evaluator canary 全部符合角色预期，所以 blocker 来自合同披露，
+不是 scorer 执行或基础设施。
 
 ## 9. Gate 顺序
 
@@ -452,10 +456,13 @@ Numeric gate 表面为 no-skill/original mean 0.1/0.1、0 differing pair、0 suc
 `results/skill-ir/statistical-power-development-baseline-v1/measurement-validity.json`。Base IR、static、dynamic 与
 held-out 全部关闭，旧 gate 不重评分、不用新 scorer 冒充预注册结果。
 
-新增的 `public-json-contract-disclosure.ts` 是 skill-neutral preflight：adapter 声明公开字段 pointer 和 evaluator
-实际读取的 pointer，父对象不能隐式覆盖子字段，缺失项 fail closed。它不公开预期数值、动作配方或 gold；后续
-contract audit 必须先通过 disclosure，再运行 canonical/alternative/reverse canary。Statistical Power 的薄适配
-器和 `statistical-power-measurement-validity-run.ts` 只负责列出领域 pointer、读取冻结证据并绑定 digest。
+`public-json-contract-disclosure.ts` 提供两个并列首版、skill-neutral preflight。原
+`skill-ir-public-json-contract-disclosure-audit/v1` 保持原输出，只比较公开/evaluator pointer，父对象不能隐式覆盖
+子字段；新 `skill-ir-public-json-value-semantics-disclosure-audit/v1` 比较稳定 id、五类 kind、规则、带角色的 JSON
+pointer targets 与公开说明。每项至少要求 canonical/invalid canary；representation equivalence 和 array element
+identity 还必须有 alternative-valid canary。缺失声明、同 id descriptor drift、canary coverage 缺失或观测与角色
+预期不一致均 fail closed。它不公开 fixture 答案、动作配方或 gold，也不改变旧 audit/result。Statistical Power
+薄适配与既有 evidence 继续消费旧 pointer v1；未来新身份才同时消费两层合同。
 
 Task 18.13 已将 disclosure 接入公共 `PilotAdapter/v1` shadow lifecycle。正例先验证 adapter contract 与冻结
 qualification，再从 lock matrix 重建逻辑 plan，并通过公共 gate 重新读取冻结 tasks/raw/scored evidence 复算

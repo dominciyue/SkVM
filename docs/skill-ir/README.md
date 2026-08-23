@@ -81,6 +81,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   实测 compiler/package duration 分别为 133.46ms 与 63.16ms，模型调用和 token 均为 0。两者因 adapter、
   compiler 与 development lock 都是历史手写，严格保持 `mechanism-only`；这证明未来候选可前瞻保存成本，
   不会把历史人工构造成本补写成 0，也不改变 Env Manager 的 break-even 或 portfolio 分类。
+- Task 18.19 已把 public JSON preflight 从 pointer closure 扩展到独立首版 value-semantics disclosure。通用合同
+  覆盖 canonical value、representation equivalence、array element identity、normalization 与 cross-field
+  relationship，并要求真实 evaluator canary。BIDS v1 只读回放保持 pointer 17/17 passed，但 7 项 evaluator
+  value semantics 只有 2 项已公开、5 项未公开，因而在 qualification/paid 前明确 blocked；0 模型调用。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -104,7 +108,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 全过程复盘与前瞻 compiler cost capture 已完成：双案例 4/4 byte parity，历史手写路径保持 mechanism-only
 -> BIDS construction/qualification/唯一 12-call 分母已完成：12/12 semantic-complete、0 infrastructure blocker
 -> residual audit 发现 12/12 repair semantics 匹配但 11/12 被未公开的 issue-path 表示选择拒绝；v1 measurement-invalid
--> 扩展 public JSON preflight 到 value semantics/representation equivalence；禁止原地改 BIDS v1 或立即重跑
+-> public JSON value-semantics preflight 已完成：BIDS v1 pointer pass、5 项语义未公开，付费前 blocked
+-> 先评审 successor 是否值得建立；若建立必须新 measurement identity，不原地改 BIDS v1 或立即重跑
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
 -> 用另一项 untouched skill 做冻结 replication
