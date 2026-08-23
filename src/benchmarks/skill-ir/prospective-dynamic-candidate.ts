@@ -181,7 +181,10 @@ export async function evaluateProspectiveDynamicCandidate(
   const intake = IntakeSchema.parse(input.intake);
   const policy = ProspectiveDynamicCandidatePolicySchema.parse(input.policy);
   const methodCases = portfolio.cases.filter((entry) => entry.role === "method-development");
-  const prospective = intake.candidates.filter((entry) => entry.status === "prospective-dynamic-candidate");
+  const prospective = intake.candidates.filter((entry) => (
+    entry.status === "prospective-dynamic-candidate"
+    || (entry.id === policy.selectedSkillId && entry.status === "prospective-measurement-invalid")
+  ));
   const expectedCandidates = new Map<string, "method-portfolio" | "intake">();
   for (const entry of methodCases) expectedCandidates.set(entry.skillId, "method-portfolio");
   for (const entry of prospective) {

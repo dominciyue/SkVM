@@ -900,6 +900,22 @@ frozen manifest byte parity，0 model calls/0 tokens；两例均因历史手写 
 automatic eligible 为 0。报告还绑定 cost capture/runner 自身，正模型调用配全零 usage、绝对/重复证据路径、
 digest drift 与 package failure 均 fail closed。该结果关闭未来采集机制缺口，不补写任何历史成本。
 
+### 10.2 前瞻质量候选与单次分母复用
+
+新质量候选必须在 benchmark contract 之前绑定 verified intake、双层 license、exact source closure 与
+attribution。任何付费 execution 之前，必须同时通过公开 JSON contract、全部 evaluator JSON pointer disclosure、
+贡献可识别性、deterministic scorer canary、prospective construction cost identity 和 qualification lock。缺一项只
+能生成 fail-closed preflight report，不能用真实模型输出倒推或修补合同。
+
+同一候选、task set、model identity、context 与 repetition lock 下，`no-skill`、`original`、`ir-static` 行只生成
+一次并向后续 gate 复用；不得为 calibration/static/artifact 三个标签重复调用等价模型行。当前 BIDS 候选冻结为
+2 tasks x 2 repetitions x 3 model systems，即 dynamic 前最多 12 次付费调用；validated artifact 的 4 行是确定性
+runtime。只有公开、跨任务且任务内重复的 residual admission 为 `eligible` 时才可追加 4 次 dynamic arm。
+
+Task 18.16 使用独立首版 `skill-ir-prospective-quality-candidate/v1` 完成上述 selection freeze。BIDS source 在固定
+commit 下绑定 `SKILL.md` 直接引用的全部 6 个本地资源与 repository license，共 8 个逐文件 digest；skill 声明
+CC-BY-4.0、仓库根为 MIT，两者不折叠。该结果不增加 studied/qualified/optimized denominator，也不授权 held-out。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

@@ -555,6 +555,34 @@ validation 与 frozen manifest byte parity；API Tester/Env Manager v3 实测 13
 callback/package failure 均 fail closed。两个历史 compiler 都保持 `mechanism-only`，所以 A 只关闭采集缺口，
 没有新增 readiness 正例。完成验证与交接后下一任务按路线 B 选择新候选。
 
+### Task 18.16：第二质量正例候选冻结与付费前边界
+
+**优先级结论：** 当前真正阻塞目标的是第二个 `quality-positive` phenotype，而不是 dynamic 打卡、统一 CLI、
+历史 raw 修复或提前扩跨模型矩阵。Statistical Power 已由 23 个未公开 evaluator pointer 证明
+measurement-invalid；继续修同一 identity 会引入结果后选合同。新候选选择 `bids`：它提供独立的
+schema-heavy scientific-data-layout phenotype，固定上游同时包含机器可读 BIDS schema，可离线构造
+validator/repair artifact，且不需要网络、随机模拟或新 core branch。
+
+1. [x] 把 intake 中 Statistical Power 的过时 `prospective-dynamic-candidate` 状态同步为
+   `prospective-measurement-invalid`，不改其冻结 selection/result；
+2. [x] 从固定 `K-Dense-AI/claude-scientific-skills@fc0b9f6...` 导入 BIDS `SKILL.md` 及其直接引用的全部
+   6 个本地 `references/`/`scripts/` 资源与仓库 license，共 8 文件逐项绑定 sha256；skill 声明 CC-BY-4.0、
+   仓库根 MIT，两层身份与 attribution 均显式保留；
+3. [x] RED：新增独立首版 `skill-ir-prospective-quality-candidate/v1`，要求 selected intake/status/license、
+   upstream identity、regular non-symlink closure 与 digest 全部闭合，漂移 fail closed；
+4. [x] RED/GREEN：任何付费前必须依次具备 public JSON contract audit、evaluator pointer closure、贡献可识别
+   audit、deterministic scorer canary、prospective construction cost identity 与 qualification lock；selection
+   本身不授权付费、held-out 或 readiness promotion；
+5. [x] 冻结 2 tasks x 2 repetitions、`retries=0`。`no-skill | original | ir-static` 在同一 lock 下只执行并向前
+   复用一次，付费上限由重复跑矩阵的 20+ 降为 12；artifact 是确定性 4 行，只有合法 residual 才可追加 4 次
+   dynamic，dynamic 不是候选选择目标；
+6. [x] 生成 compact selection report；BIDS 当前不进入 7-case portfolio 分母，下一阶段为 public contract、
+   evaluator disclosure 与 contribution audit，仍是 0 paid。
+
+**实现边界：** 该阶段只证明候选与实验入口可审计，不证明 BIDS baseline、static、artifact 或质量改善。
+`bids_schema.json` 只使用固定 closure，不在实验期间联网刷新。下一步直接构建两条不泄露动作/答案的任务和完整
+公开 JSON schema，先让 evaluator pointer closure 与 canary 通过，再允许 qualification；不插入新的通用框架。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

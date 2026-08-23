@@ -205,6 +205,20 @@ paired matrix。Numeric gate 的两臂 mean 均为 0.1，但 8/8 报告满足公
 `measurement-invalid`，不进入 base IR/static/dynamic/held-out，也不改变 7-case portfolio 分母。新的通用
 public JSON disclosure preflight 已加入未来合同流程；旧结果保持不可变。
 
+2026-08-23 的第二质量正例选择不再以“预期存在 dynamic residual”为目标，而以可完成的公开合同、确定性 scorer
+与 artifact solidification 为目标。冻结候选为同一上游 commit 的 `bids`，phenotype 是
+`bids-dataset-repair`。Exact source closure 包含 `SKILL.md` 直接引用的全部 6 个 `references/`/`scripts/` 本地
+资源及仓库 `LICENSE.md` 副本，共 8 个逐文件 digest；skill frontmatter 的 CC-BY-4.0 与仓库 MIT 分开保存，并要求
+attribution。选择输入与 compact
+报告分别为 `benchmarks/skill-ir/corpus/prospective-quality-candidate.json` 和
+`results/skill-ir/prospective-quality-candidate.json`。
+
+新 policy 把 Statistical Power 暴露出的缺口变成付费前硬条件：public JSON contract audit、evaluator pointer
+closure、contribution audit、scorer canary、prospective construction cost identity 和 qualification lock 全部完成
+前，`paidExecution=false`。同一冻结 lock 的三条模型 arm 只向前复用，2 tasks x 2 repetitions x
+`no-skill | original | ir-static` 最多 12 次付费；artifact 为确定性 4 行，dynamic 仅在合法 residual 后追加 4 次。
+当前只完成 selection/source import，不构成 contract-qualified、studied 或 optimization evidence。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为

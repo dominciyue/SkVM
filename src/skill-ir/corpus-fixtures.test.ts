@@ -596,7 +596,12 @@ describe("skill-ir corpus fixtures", () => {
       .toBe("method-development-v2-calibration-invalid");
     expect(intake.candidates.find((candidate) => candidate.id === "statistical-power")).toMatchObject({
       sourceId: "claude-scientific-skills",
-      status: "prospective-dynamic-candidate",
+      status: "prospective-measurement-invalid",
+      licenseStatus: "verified",
+    });
+    expect(intake.candidates.find((candidate) => candidate.id === "bids")).toMatchObject({
+      sourceId: "claude-scientific-skills",
+      status: "prospective-quality-candidate",
       licenseStatus: "verified",
     });
     expect(selected.every((candidate) => candidate.sourcePath.endsWith("SKILL.md"))).toBe(true);
@@ -606,6 +611,7 @@ describe("skill-ir corpus fixtures", () => {
       candidate.status === "selected-pilot"
       || candidate.status === "prospective-method-development"
       || candidate.status === "prospective-dynamic-candidate"
+      || candidate.status === "prospective-quality-candidate"
       || candidate.status === "method-development-benchmark-audited");
     const selectedCategories = new Set(activeCandidates.flatMap((candidate) => candidate.categories));
     for (const category of ["document-processing", "chinese-developer", "testing", "environment", "scientific-workflow"]) {

@@ -175,6 +175,16 @@ describe("prospective dynamic candidate selection", () => {
     expect(JSON.parse(await readFile(outputPath, "utf8"))).toEqual(report);
   });
 
+  test("keeps the frozen selection verifiable after its selected intake entry reaches a terminal status", async () => {
+    const input = await fixtures();
+    input.intake.candidates[0]!.status = "prospective-measurement-invalid";
+
+    const report = await evaluateProspectiveDynamicCandidate(input);
+
+    expect(report.selectedSkillId).toBe("statistical-power");
+    expect(report.authorizations.paidExecution).toBe(false);
+  });
+
   test("validates the committed statistical-power selection against its exact upstream closure", async () => {
     const [portfolio, intake, policy] = await Promise.all([
       readFile(path.join(projectRoot, "benchmarks/skill-ir/corpus/method-portfolio.json"), "utf8").then(JSON.parse),

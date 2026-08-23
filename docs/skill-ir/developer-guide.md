@@ -904,14 +904,16 @@ git remote -v
 Task 18.13 已完成公共 `PilotAdapter/v1` 与 lifecycle shadow parity，Task 18.14 完成 Env Manager v3 历史全成本
 审计。Task 18.15 又完成独立首版 prospective compiler cost capture：API Tester/Env Manager v3 在临时目录
 重建 4 个 package 并取得 4/4 frozen manifest parity，但两个既有 compiler 都因历史手写 construction 保持
-`mechanism-only`。因此该机制能保证下一候选从开始保存 construction/compile/package 成本，却不会反事实补齐
-Env 的 break-even。当前接力点已回到路线 B：
+`mechanism-only`。Task 18.16 随后选择并冻结 BIDS：exact source closure 与 CC-BY-4.0/MIT 双层 license 已绑定，
+同一 lock 的三条模型 arm 只运行一次，dynamic 前付费上限为 12；六项 pre-paid gate 未完成前仍不授权调用。
+当前接力点是路线 B 的合同阶段：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
 已完成：N=1,2,5,10 的 original 值；optimized 因 compile token missing 保持 null，break-even not-computable
 已完成：prospective compiler cost identity/capture；双案例 4/4 parity，历史手写路径不误报自动成本
-下一步：先做 disclosure、贡献可识别性和成本采集身份审计，再冻结第二个 quality-positive 候选
+已完成：BIDS prospective-quality selection/source closure；0 paid，未进入 portfolio 分母
+下一步：BIDS public JSON contract -> evaluator pointer closure -> contribution audit -> scorer canary
 后续：只有公开、跨任务和重复稳定的 residual 才进入 dynamic；正证据达门槛后才扩多模型主表和产品入口
 ```
 
