@@ -916,6 +916,13 @@ Task 18.16 使用独立首版 `skill-ir-prospective-quality-candidate/v1` 完成
 commit 下绑定 `SKILL.md` 直接引用的全部 6 个本地资源与 repository license，共 8 个逐文件 digest；skill 声明
 CC-BY-4.0、仓库根为 MIT，两者不折叠。该结果不增加 studied/qualified/optimized denominator，也不授权 held-out。
 
+Task 18.17 完成六项 pre-paid gate 的前四项。两条 BIDS development task 不携带动作配方、具体必填字段或预期
+issue；`bids-audit.json` 完整公开 17 个 scorer-visible pointer 及 set-like semantics。确定性 evaluator 从冻结
+schema/metadata source 现场派生 entity ordering、metadata inheritance 与 required BOLD metadata，contract audit
+的六角色 canary 和 contribution audit 的五角色 canary 全通过。贡献报告识别 3 个独立 skill-derived failure
+mode、逐 task weight 0.80、0 answer-bearing duplication。该静态证据只授权继续构建 prospective construction
+identity 与 qualification lock；`paidExecution`、held-out、qualification 和 portfolio promotion 仍为 false。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

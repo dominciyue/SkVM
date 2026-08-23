@@ -217,7 +217,15 @@ attribution。选择输入与 compact
 closure、contribution audit、scorer canary、prospective construction cost identity 和 qualification lock 全部完成
 前，`paidExecution=false`。同一冻结 lock 的三条模型 arm 只向前复用，2 tasks x 2 repetitions x
 `no-skill | original | ir-static` 最多 12 次付费；artifact 为确定性 4 行，dynamic 仅在合法 residual 后追加 4 次。
-当前只完成 selection/source import，不构成 contract-qualified、studied 或 optimization evidence。
+Task 18.17 已继续完成前四项 gate：两条 development prompt 不披露修复动作、entity order、具体必填字段或预期
+issue；公开 contract 完整列出 17 个 scorer-visible pointer 和 set-like semantics。确定性 evaluator 从冻结
+`bids_schema.json` 与 `metadata_fields.md` 重算 oracle，六角色 contract canary 全通过。贡献 audit 为
+`eligible-for-baseline`：entity ordering、metadata inheritance、required BOLD metadata 三个独立 skill-derived
+失败模式，逐 task skill-derived weight 0.80，0 answer-bearing duplication，五类贡献 canary 全通过。
+
+这仍不构成 contract-qualified、studied 或 optimization evidence。Prospective construction cost identity 与
+qualification lock 尚未完成，因此 `paidExecution=false`、`heldOut=false`、`qualification=false`；不得提前运行
+12-call development 分母。
 
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复

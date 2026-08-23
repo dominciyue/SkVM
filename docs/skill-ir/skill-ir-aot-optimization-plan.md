@@ -583,6 +583,30 @@ validator/repair artifact，且不需要网络、随机模拟或新 core branch�
 `bids_schema.json` 只使用固定 closure，不在实验期间联网刷新。下一步直接构建两条不泄露动作/答案的任务和完整
 公开 JSON schema，先让 evaluator pointer closure 与 canary 通过，再允许 qualification；不插入新的通用框架。
 
+### Task 18.17：BIDS 公开测量合同与贡献可识别性
+
+**优先级结论：** 第二质量正例当前最重要的缺口是“先证明测量对象正确”，不是继续扩通用 CLI、补历史 raw 或
+提前调用模型。本阶段复用 `public-json-contract-disclosure` 与 `skill-contribution-identifiability`，只增加 BIDS 薄
+adapter、source-derived oracle 和 evaluator；不新建通用 schema 框架，不连接外部 validator。
+
+1. [x] RED/GREEN：冻结 2 条 non-answer-bearing development task。prompt 只要求独立判断给定逻辑 dataset 是否
+   适合 BIDS submission，不提示 rename、entity order、具体必填字段、预期 issue 或 gold；
+2. [x] RED/GREEN：公开 `bids-audit.json` 的完整 17-pointer JSON contract，明确 issue/evidence 为 set-like、禁止
+   重复，并冻结 protected input、唯一 output 与 exact workdir delta；
+3. [x] RED/GREEN：从固定 `bids_schema.json` 的 `rules.entities` 与 `metadata_fields.md` 现场派生 filename order、
+   metadata inheritance、BOLD required-field oracle；evaluator 注册 digest，并允许 set-like 顺序等价；
+4. [x] RED/GREEN：contract audit 通过 17/17 pointer disclosure 和 canonical、alternative、prompt omission、
+   reverse evidence、forbidden sink、type-negative 六角色 canary；
+5. [x] RED/GREEN：贡献 audit 为 `eligible-for-baseline`。6 个 criterion 中每 task 的 skill-derived weight 为
+   `0.80`，entity ordering、metadata inheritance、required BOLD metadata 三个独立失败模式都有 source、task、
+   scorer 三方 digest/quote anchor，answer-bearing duplication 为 0，五类贡献 canary 全通过；
+6. [x] 保持 fail closed：本阶段只完成六项 pre-paid gate 的前四项；`paidExecution=false`、`heldOut=false`、
+   `qualification=false`，BIDS 不进入 studied/qualified/optimized 或 portfolio 分母。
+
+**停止边界：** 下一阶段直接建立 BIDS prospective construction cost identity 与 qualification lock。只有剩余两项
+也通过后才允许唯一一次 12-call `no-skill | original | ir-static` development 分母；不能用模型输出倒推合同，也
+不能把本阶段静态 preflight 写成质量正例。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

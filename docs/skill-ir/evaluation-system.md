@@ -369,6 +369,12 @@ audit；新的 contribution case 可以消费 `skill-contribution-identifiabilit
 后者必须重新计算得到逐字一致的 `eligible-for-baseline` 报告，并绑定同一 tasks/scorer digest，不能用静态资格
 绕开 runner、execution observability 或真实 paired gate。
 
+BIDS 是 disclosure 修复后的首个新 prospective candidate。两条 task 公开 `bids-audit.json` 的完整 17-pointer
+contract；evaluator 从冻结 schema/metadata source 重算而不读取隐藏 expected artifact。Contract preflight 通过
+canonical、alternative、prompt-only omission、reverse-evidence、forbidden-sink、type-negative 六角色；贡献审计
+识别 3 个独立 skill-derived failure mode，逐 task weight 0.80、0 answer-bearing duplication，五类 canary 全通过。
+这只完成 pre-paid gate 的 4/6；construction identity 与 qualification lock 缺失时仍必须 fail closed。
+
 ## 9. Gate 顺序
 
 ```text

@@ -1,0 +1,222 @@
+{
+  "schemaVersion": "skill-ir-tasks/v1",
+  "skillId": "bids",
+  "tasks": [
+    {
+      "id": "bids-entity-order-dev-001",
+      "split": "development",
+      "prompt": "Read dataset-manifest.json and bids-audit-interface.json without modifying either protected input. Independently assess whether the supplied logical dataset is suitable for BIDS submission. Produce exactly bids-audit.json under the complete public contract, create no other output, and do not use the network.",
+      "fixtures": {
+        "dataset-manifest.json": "{\n  \"schemaVersion\": \"skill-ir-bids-dataset-manifest/v1\",\n  \"datasetId\": \"bids-entity-order-dev\",\n  \"files\": [\n    {\n      \"path\": \"dataset_description.json\",\n      \"kind\": \"dataset-metadata\",\n      \"json\": {\n        \"Name\": \"Entity ordering study\",\n        \"BIDSVersion\": \"1.10.0\"\n      }\n    },\n    {\n      \"path\": \"sub-01/ses-pre/func/sub-01_task-nback_ses-pre_run-01_echo-1_bold.nii.gz\",\n      \"kind\": \"data\"\n    },\n    {\n      \"path\": \"sub-01/ses-pre/func/sub-01_task-nback_ses-pre_run-01_echo-1_bold.json\",\n      \"kind\": \"json-sidecar\",\n      \"json\": {\n        \"RepetitionTime\": 1.2,\n        \"TaskName\": \"nback\",\n        \"EchoTime\": 0.015\n      }\n    }\n  ]\n}\n",
+        "bids-audit-interface.json": "{\n  \"schemaVersion\": \"skill-ir-bids-public-interface/v1\",\n  \"interfaceId\": \"bids-public-interface-v1\",\n  \"protectedInputs\": [\n    \"dataset-manifest.json\",\n    \"bids-audit-interface.json\"\n  ],\n  \"outputs\": [\n    \"bids-audit.json\"\n  ],\n  \"publicFieldPaths\": [\n    \"/schemaVersion\",\n    \"/datasetId\",\n    \"/issues\",\n    \"/issues/*/code\",\n    \"/issues/*/severity\",\n    \"/issues/*/affectedPath\",\n    \"/issues/*/evidencePaths\",\n    \"/issues/*/evidencePaths/*\",\n    \"/issues/*/repair\",\n    \"/issues/*/repair/operation\",\n    \"/issues/*/repair/targetPath\",\n    \"/issues/*/repair/destinationPath\",\n    \"/issues/*/repair/field\",\n    \"/issues/*/repair/value\",\n    \"/summary\",\n    \"/summary/issueCount\",\n    \"/summary/errorCount\"\n  ],\n  \"reportContract\": {\n    \"schemaVersion\": \"skill-ir-bids-audit-report/v1\",\n    \"additionalProperties\": false,\n    \"issueCodes\": [\n      \"ENTITY_ORDER\",\n      \"MISSING_REQUIRED_METADATA\",\n      \"TASK_NAME_MISMATCH\"\n    ],\n    \"severity\": [\n      \"error\"\n    ],\n    \"issues\": {\n      \"order\": \"set-like\",\n      \"duplicates\": \"forbid\",\n      \"requiredFields\": [\n        \"code\",\n        \"severity\",\n        \"affectedPath\",\n        \"evidencePaths\",\n        \"repair\"\n      ],\n      \"evidencePaths\": {\n        \"type\": \"relative-path-array\",\n        \"order\": \"set-like\",\n        \"duplicates\": \"forbid\"\n      },\n      \"repair\": {\n        \"requiredFields\": [\n          \"operation\",\n          \"targetPath\",\n          \"destinationPath\",\n          \"field\",\n          \"value\"\n        ],\n        \"operations\": [\n          \"rename\",\n          \"set-json-field\"\n        ],\n        \"nullableFields\": [\n          \"destinationPath\",\n          \"field\",\n          \"value\"\n        ]\n      }\n    },\n    \"summary\": {\n      \"requiredFields\": [\n        \"issueCount\",\n        \"errorCount\"\n      ],\n      \"type\": \"nonnegative-integer-counts\"\n    }\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"allowNetwork\": false\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "bids-entity-order-dev-001-input-integrity",
+          "name": "Protected inputs remain unchanged",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-bids",
+          "payload": {
+            "schemaVersion": "skill-ir-bids-eval/v1",
+            "check": "input-integrity",
+            "paths": {
+              "manifest": "dataset-manifest.json",
+              "interface": "bids-audit-interface.json",
+              "report": "bids-audit.json"
+            },
+            "protectedSha256": {
+              "manifest": "cc1335b7306e36c56f085a632a4b0a840d66919e9b19448c952639bf372e1a27",
+              "interface": "d407db7eb2c5b8699d523f0362f5969529d73404cd2c5872331c6948c5f0b530"
+            },
+            "sourceRules": {
+              "schema": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json",
+                "sha256": "6d72e394c87a94da5a2ce57e00f9e390ea5eeefb4cc39aa607d54d074aa6408b"
+              },
+              "metadata": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md",
+                "sha256": "33407c21a2b36cf69f7f616d011ade487498cdb197eb215b9f2847aff5bac68a"
+              }
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "bids-entity-order-dev-001-artifact-contract",
+          "name": "The exact public output contract is satisfied",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-bids",
+          "payload": {
+            "schemaVersion": "skill-ir-bids-eval/v1",
+            "check": "artifact-contract",
+            "paths": {
+              "manifest": "dataset-manifest.json",
+              "interface": "bids-audit-interface.json",
+              "report": "bids-audit.json"
+            },
+            "protectedSha256": {
+              "manifest": "cc1335b7306e36c56f085a632a4b0a840d66919e9b19448c952639bf372e1a27",
+              "interface": "d407db7eb2c5b8699d523f0362f5969529d73404cd2c5872331c6948c5f0b530"
+            },
+            "sourceRules": {
+              "schema": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json",
+                "sha256": "6d72e394c87a94da5a2ce57e00f9e390ea5eeefb4cc39aa607d54d074aa6408b"
+              },
+              "metadata": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md",
+                "sha256": "33407c21a2b36cf69f7f616d011ade487498cdb197eb215b9f2847aff5bac68a"
+              }
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "bids-entity-order-dev-001-semantic-audit",
+          "name": "The BIDS audit matches the source-derived rules",
+          "weight": 0.8,
+          "evaluatorId": "skill-ir-bids",
+          "payload": {
+            "schemaVersion": "skill-ir-bids-eval/v1",
+            "check": "semantic-audit",
+            "paths": {
+              "manifest": "dataset-manifest.json",
+              "interface": "bids-audit-interface.json",
+              "report": "bids-audit.json"
+            },
+            "protectedSha256": {
+              "manifest": "cc1335b7306e36c56f085a632a4b0a840d66919e9b19448c952639bf372e1a27",
+              "interface": "d407db7eb2c5b8699d523f0362f5969529d73404cd2c5872331c6948c5f0b530"
+            },
+            "sourceRules": {
+              "schema": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json",
+                "sha256": "6d72e394c87a94da5a2ce57e00f9e390ea5eeefb4cc39aa607d54d074aa6408b"
+              },
+              "metadata": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md",
+                "sha256": "33407c21a2b36cf69f7f616d011ade487498cdb197eb215b9f2847aff5bac68a"
+              }
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "bids-entity-order-dev-001-input-integrity",
+        "bids-entity-order-dev-001-artifact-contract",
+        "bids-entity-order-dev-001-semantic-audit"
+      ],
+      "passThreshold": 1
+    },
+    {
+      "id": "bids-metadata-inheritance-dev-002",
+      "split": "development",
+      "prompt": "Read dataset-manifest.json and bids-audit-interface.json without modifying either protected input. Independently assess whether the supplied logical dataset is suitable for BIDS submission. Produce exactly bids-audit.json under the complete public contract, create no other output, and do not use the network.",
+      "fixtures": {
+        "dataset-manifest.json": "{\n  \"schemaVersion\": \"skill-ir-bids-dataset-manifest/v1\",\n  \"datasetId\": \"bids-metadata-inheritance-dev\",\n  \"files\": [\n    {\n      \"path\": \"dataset_description.json\",\n      \"kind\": \"dataset-metadata\",\n      \"json\": {\n        \"Name\": \"Metadata inheritance study\",\n        \"BIDSVersion\": \"1.10.0\"\n      }\n    },\n    {\n      \"path\": \"task-rest_bold.json\",\n      \"kind\": \"json-sidecar\",\n      \"json\": {\n        \"RepetitionTime\": 2,\n        \"TaskName\": \"rest\"\n      }\n    },\n    {\n      \"path\": \"sub-02/sub-02_task-rest_bold.json\",\n      \"kind\": \"json-sidecar\",\n      \"json\": {\n        \"RepetitionTime\": 1.5\n      }\n    },\n    {\n      \"path\": \"sub-02/func/sub-02_task-rest_run-01_bold.nii.gz\",\n      \"kind\": \"data\"\n    },\n    {\n      \"path\": \"sub-02/func/sub-02_task-rest_run-01_bold.json\",\n      \"kind\": \"json-sidecar\",\n      \"json\": {\n        \"EchoTime\": 0.03\n      }\n    },\n    {\n      \"path\": \"sub-02/func/sub-02_task-rest_run-02_bold.nii.gz\",\n      \"kind\": \"data\"\n    },\n    {\n      \"path\": \"sub-02/func/sub-02_task-rest_run-02_bold.json\",\n      \"kind\": \"json-sidecar\",\n      \"json\": {\n        \"TaskName\": \"oddball\",\n        \"EchoTime\": 0.03\n      }\n    },\n    {\n      \"path\": \"sub-02/func/sub-02_task-memory_run-01_bold.nii.gz\",\n      \"kind\": \"data\"\n    },\n    {\n      \"path\": \"sub-02/func/sub-02_task-memory_run-01_bold.json\",\n      \"kind\": \"json-sidecar\",\n      \"json\": {\n        \"EchoTime\": 0.03\n      }\n    }\n  ]\n}\n",
+        "bids-audit-interface.json": "{\n  \"schemaVersion\": \"skill-ir-bids-public-interface/v1\",\n  \"interfaceId\": \"bids-public-interface-v1\",\n  \"protectedInputs\": [\n    \"dataset-manifest.json\",\n    \"bids-audit-interface.json\"\n  ],\n  \"outputs\": [\n    \"bids-audit.json\"\n  ],\n  \"publicFieldPaths\": [\n    \"/schemaVersion\",\n    \"/datasetId\",\n    \"/issues\",\n    \"/issues/*/code\",\n    \"/issues/*/severity\",\n    \"/issues/*/affectedPath\",\n    \"/issues/*/evidencePaths\",\n    \"/issues/*/evidencePaths/*\",\n    \"/issues/*/repair\",\n    \"/issues/*/repair/operation\",\n    \"/issues/*/repair/targetPath\",\n    \"/issues/*/repair/destinationPath\",\n    \"/issues/*/repair/field\",\n    \"/issues/*/repair/value\",\n    \"/summary\",\n    \"/summary/issueCount\",\n    \"/summary/errorCount\"\n  ],\n  \"reportContract\": {\n    \"schemaVersion\": \"skill-ir-bids-audit-report/v1\",\n    \"additionalProperties\": false,\n    \"issueCodes\": [\n      \"ENTITY_ORDER\",\n      \"MISSING_REQUIRED_METADATA\",\n      \"TASK_NAME_MISMATCH\"\n    ],\n    \"severity\": [\n      \"error\"\n    ],\n    \"issues\": {\n      \"order\": \"set-like\",\n      \"duplicates\": \"forbid\",\n      \"requiredFields\": [\n        \"code\",\n        \"severity\",\n        \"affectedPath\",\n        \"evidencePaths\",\n        \"repair\"\n      ],\n      \"evidencePaths\": {\n        \"type\": \"relative-path-array\",\n        \"order\": \"set-like\",\n        \"duplicates\": \"forbid\"\n      },\n      \"repair\": {\n        \"requiredFields\": [\n          \"operation\",\n          \"targetPath\",\n          \"destinationPath\",\n          \"field\",\n          \"value\"\n        ],\n        \"operations\": [\n          \"rename\",\n          \"set-json-field\"\n        ],\n        \"nullableFields\": [\n          \"destinationPath\",\n          \"field\",\n          \"value\"\n        ]\n      }\n    },\n    \"summary\": {\n      \"requiredFields\": [\n        \"issueCount\",\n        \"errorCount\"\n      ],\n      \"type\": \"nonnegative-integer-counts\"\n    }\n  },\n  \"outputPolicy\": {\n    \"exactOutputSet\": true,\n    \"allowNetwork\": false\n  }\n}\n"
+      },
+      "successCriteria": [],
+      "eval": [
+        {
+          "method": "custom",
+          "id": "bids-metadata-inheritance-dev-002-input-integrity",
+          "name": "Protected inputs remain unchanged",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-bids",
+          "payload": {
+            "schemaVersion": "skill-ir-bids-eval/v1",
+            "check": "input-integrity",
+            "paths": {
+              "manifest": "dataset-manifest.json",
+              "interface": "bids-audit-interface.json",
+              "report": "bids-audit.json"
+            },
+            "protectedSha256": {
+              "manifest": "a041cf807681c1d50cacfae491d5150a6a9975f1463dd75a9cccfba164349e27",
+              "interface": "d407db7eb2c5b8699d523f0362f5969529d73404cd2c5872331c6948c5f0b530"
+            },
+            "sourceRules": {
+              "schema": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json",
+                "sha256": "6d72e394c87a94da5a2ce57e00f9e390ea5eeefb4cc39aa607d54d074aa6408b"
+              },
+              "metadata": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md",
+                "sha256": "33407c21a2b36cf69f7f616d011ade487498cdb197eb215b9f2847aff5bac68a"
+              }
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "bids-metadata-inheritance-dev-002-artifact-contract",
+          "name": "The exact public output contract is satisfied",
+          "weight": 0.1,
+          "evaluatorId": "skill-ir-bids",
+          "payload": {
+            "schemaVersion": "skill-ir-bids-eval/v1",
+            "check": "artifact-contract",
+            "paths": {
+              "manifest": "dataset-manifest.json",
+              "interface": "bids-audit-interface.json",
+              "report": "bids-audit.json"
+            },
+            "protectedSha256": {
+              "manifest": "a041cf807681c1d50cacfae491d5150a6a9975f1463dd75a9cccfba164349e27",
+              "interface": "d407db7eb2c5b8699d523f0362f5969529d73404cd2c5872331c6948c5f0b530"
+            },
+            "sourceRules": {
+              "schema": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json",
+                "sha256": "6d72e394c87a94da5a2ce57e00f9e390ea5eeefb4cc39aa607d54d074aa6408b"
+              },
+              "metadata": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md",
+                "sha256": "33407c21a2b36cf69f7f616d011ade487498cdb197eb215b9f2847aff5bac68a"
+              }
+            }
+          }
+        },
+        {
+          "method": "custom",
+          "id": "bids-metadata-inheritance-dev-002-semantic-audit",
+          "name": "The BIDS audit matches the source-derived rules",
+          "weight": 0.8,
+          "evaluatorId": "skill-ir-bids",
+          "payload": {
+            "schemaVersion": "skill-ir-bids-eval/v1",
+            "check": "semantic-audit",
+            "paths": {
+              "manifest": "dataset-manifest.json",
+              "interface": "bids-audit-interface.json",
+              "report": "bids-audit.json"
+            },
+            "protectedSha256": {
+              "manifest": "a041cf807681c1d50cacfae491d5150a6a9975f1463dd75a9cccfba164349e27",
+              "interface": "d407db7eb2c5b8699d523f0362f5969529d73404cd2c5872331c6948c5f0b530"
+            },
+            "sourceRules": {
+              "schema": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json",
+                "sha256": "6d72e394c87a94da5a2ce57e00f9e390ea5eeefb4cc39aa607d54d074aa6408b"
+              },
+              "metadata": {
+                "path": "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md",
+                "sha256": "33407c21a2b36cf69f7f616d011ade487498cdb197eb215b9f2847aff5bac68a"
+              }
+            }
+          }
+        }
+      ],
+      "hardGateIds": [
+        "bids-metadata-inheritance-dev-002-input-integrity",
+        "bids-metadata-inheritance-dev-002-artifact-contract",
+        "bids-metadata-inheritance-dev-002-semantic-audit"
+      ],
+      "passThreshold": 1
+    }
+  ]
+}

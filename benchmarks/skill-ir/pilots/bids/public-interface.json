@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "skill-ir-bids-public-interface/v1",
+  "interfaceId": "bids-public-interface-v1",
+  "protectedInputs": [
+    "dataset-manifest.json",
+    "bids-audit-interface.json"
+  ],
+  "outputs": [
+    "bids-audit.json"
+  ],
+  "publicFieldPaths": [
+    "/schemaVersion",
+    "/datasetId",
+    "/issues",
+    "/issues/*/code",
+    "/issues/*/severity",
+    "/issues/*/affectedPath",
+    "/issues/*/evidencePaths",
+    "/issues/*/evidencePaths/*",
+    "/issues/*/repair",
+    "/issues/*/repair/operation",
+    "/issues/*/repair/targetPath",
+    "/issues/*/repair/destinationPath",
+    "/issues/*/repair/field",
+    "/issues/*/repair/value",
+    "/summary",
+    "/summary/issueCount",
+    "/summary/errorCount"
+  ],
+  "reportContract": {
+    "schemaVersion": "skill-ir-bids-audit-report/v1",
+    "additionalProperties": false,
+    "issueCodes": [
+      "ENTITY_ORDER",
+      "MISSING_REQUIRED_METADATA",
+      "TASK_NAME_MISMATCH"
+    ],
+    "severity": [
+      "error"
+    ],
+    "issues": {
+      "order": "set-like",
+      "duplicates": "forbid",
+      "requiredFields": [
+        "code",
+        "severity",
+        "affectedPath",
+        "evidencePaths",
+        "repair"
+      ],
+      "evidencePaths": {
+        "type": "relative-path-array",
+        "order": "set-like",
+        "duplicates": "forbid"
+      },
+      "repair": {
+        "requiredFields": [
+          "operation",
+          "targetPath",
+          "destinationPath",
+          "field",
+          "value"
+        ],
+        "operations": [
+          "rename",
+          "set-json-field"
+        ],
+        "nullableFields": [
+          "destinationPath",
+          "field",
+          "value"
+        ]
+      }
+    },
+    "summary": {
+      "requiredFields": [
+        "issueCount",
+        "errorCount"
+      ],
+      "type": "nonnegative-integer-counts"
+    }
+  },
+  "outputPolicy": {
+    "exactOutputSet": true,
+    "allowNetwork": false
+  }
+}

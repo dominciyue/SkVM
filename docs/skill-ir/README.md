@@ -103,7 +103,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Env Manager 全成本审计已完成：历史缺失不补零，break-even 不可计算，继续 fidelity-preserving
 -> 全过程复盘与前瞻 compiler cost capture 已完成：双案例 4/4 byte parity，历史手写路径保持 mechanism-only
 -> BIDS 已按 exact source/双层 license/12-call 单次分母冻结为第二质量正例候选；付费仍关闭
--> 构建 BIDS 完整公开 JSON contract、evaluator pointer closure、贡献 audit 与 scorer canary
+-> BIDS 完整公开 JSON contract、17/17 pointer closure、贡献 audit 与 scorer canary 已完成（pre-paid 4/6）
+-> 建立 BIDS prospective construction cost identity 与 qualification lock；二者通过前继续 0 paid
 -> 再决定是否需要真实 dynamic residual；dynamic 是 residual-driven 路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
 -> 用另一项 untouched skill 做冻结 replication
