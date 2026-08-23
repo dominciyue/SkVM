@@ -915,7 +915,9 @@ value semantics，故 BIDS v1 冻结为 measurement-invalid。Task 18.19 随后�
 successor 可行，但必须重设计 evaluator：保留 normalization/summary，泛化 affected path，并以 repair-related
 manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化；15/15 feasibility canary 通过。Task 18.21
 已冻结新的 `bids-successor-semantic-scorer-v2`：17/17 pointer、7/7 value semantics、21/21 scorer canary 全绿，
-旧 v1 不重评分。当前接力点是另行冻结 successor qualification/development identity，而不是复用旧行：
+旧 v1 不重评分。Task 18.22 又完成首版 successor qualification/development lock 与零付费 compact freeze：
+12-row dry-run 全部使用 successor task/evaluator/payload，scorer lock-local direct-load，只开放下一次 infrastructure
+qualification。当前接力点是正式资格，而不是复用旧行或直接运行矩阵：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -928,7 +930,8 @@ manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化�
 已完成：通用 value-semantics disclosure + BIDS 只读 blocker；0 paid，旧 v1 文件与结果不改
 已完成：successor feasibility；2 retain + 1 generalize + 2 replace，15/15 canary，0 model/held-out
 已完成：successor public contract + semantic scorer + disclosure freeze；21/21 canary，0 model/held-out
-下一步：新 qualification/development lock；只向前执行一份 successor 分母，不复用或重评分 v1
+已完成：successor qualification/development identity；12-row dry-run、lock-local scorer、0 paid
+下一步：重新核对 API key，只执行一次 infrastructure qualification；通过后才运行唯一 12-row successor 分母
 ```
 
 本地重建命令：
@@ -944,6 +947,9 @@ bun run ./src/benchmarks/skill-ir/bids-successor-contract-audit.ts
 bun test ./src/benchmarks/skill-ir/bids-successor-contract.test.ts `
   ./src/bench/evaluators/bids-successor-grade.test.ts `
   ./src/benchmarks/skill-ir/bids-successor-contract-audit.test.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-development.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-development-run.ts --phase=plan
+bun test ./src/benchmarks/skill-ir/bids-successor-development.test.ts
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

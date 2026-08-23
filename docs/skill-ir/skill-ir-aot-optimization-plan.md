@@ -693,6 +693,34 @@ source-reference evidence 改为 repair-related manifest evidence，issue identi
 兼容性边界是 BIDS v1 全部冻结证据继续只读且不重评分；claim 影响只是在 deterministic audit 通过后允许后续另行
 评审 qualification identity，本任务本身不产生模型质量、优化、held-out 或 readiness 证据。
 
+### Task 18.22：BIDS successor 资格与唯一开发分母身份冻结
+
+**目标：** 只以前一阶段冻结的 successor public interface、development tasks、semantic scorer 与 compact audit
+作为新测量身份，复用现有 prospective execution lifecycle 冻结一份向前使用的 qualification/development lock。
+本阶段只完成零付费 lock、dry-run 与 scorer 直载 canary；不执行 qualification、development matrix、dynamic 或
+held-out，也不读取或重评分 BIDS v1 模型行。
+
+**实现选择：** 使用 successor 薄适配层复用公共 plan/materialization/execution primitives。不得修改共享 evaluator
+registry 或 BIDS v1 lock；successor runner 只按 lock 中的 scorer source path 直接加载。不得为了本任务提升通用
+prospective schema/runtime 版本，也不得把旧 tasks/scorer 作为新测量 authority。
+
+**文件级 TDD：**
+
+1. [x] RED：新 lock test 要求 measurement/scorer/task/public/audit identity 全部指向 successor，绑定 Pi 0.67.68、
+   `xty/gpt-5.6-sol`、Windows/clean、`retries=0`、2 task x 2 repetition x 3 arm、12 行唯一分母、0 reserve、exact
+   output 与 1+12 付费上限；qualification 只开放单次基础设施资格，matrix/dynamic/held-out/readiness 保持关闭；
+2. [x] RED：plan materialization 必须把 successor evaluator/payload 写入全部 12 行，不从 pilot corpus 重新引入 v1
+   task；scorer loader 必须限制在仓库内并只加载 lock-declared source，不依赖共享 registry entry；
+3. [x] RED：qualification report 只以 resource、route、observability、deterministic scorer runnable 为门；已有语义
+   活动的 task failure、缺 exact output 或 scorer failure 只披露，不能预筛模型；pre-semantic/unknown parser/scorer
+   不可运行仍 fail closed；
+4. [x] GREEN：实现独立首版 successor development lock/schema、薄 plan overlay、lock-local scorer loader 与
+   qualification runner；复用公共 execution envelope，不复制或升级 harness；
+5. [x] 生成 committed lock 与零付费 compact freeze，证明 lock 可重建、12-row dry-run 完整、scorer 直载可运行、
+   BIDS v1 frozen digests 未改变；authorization 仅开放下一阶段一次 qualification；
+6. [x] 运行 focused/related tests、typecheck、doc links、current broad suite、secret/absolute-path 与
+   `git diff --check`；正式 qualification 前重新核对 API key，只显式提交本阶段文件。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

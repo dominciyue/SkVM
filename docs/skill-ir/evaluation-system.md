@@ -412,6 +412,27 @@ descriptor drift、缺 canary role、无关 manifest path、重复 semantic repa
 都会 fail closed。该命令不读取 model output/held-out、不调用 API，也不创建 qualification lock；下一阶段若继续，
 必须另行冻结一个只向前使用新 scorer 的 qualification/development identity。
 
+Task 18.22 已完成该零付费 identity freeze。首版 lock 固定 Pi 0.67.68、Windows/clean、
+`xty/gpt-5.6-sol`、`retries=0`、2 task x 2 repetition x 3 system = 12 rows、4 triplets、0 reserve、exact output
+set，以及 qualification 1 次 + matrix 12 次的上限。Plan 不从 pilot corpus 取回 BIDS v1 task，而是直接把
+successor task/evaluator/payload v2 物化到全部 12 行。Scorer loader 同时校验 lock-declared path、digest 和仓库内
+路径，再注册该次执行所需的 named evaluator；共享 evaluator registry 文件不是冻结权威，也没有改动。
+
+确定性重建与 dry-run 入口为：
+
+```powershell
+bun run ./src/benchmarks/skill-ir/bids-successor-development.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-development-run.ts --phase=plan
+bun test ./src/benchmarks/skill-ir/bids-successor-development.test.ts
+```
+
+Committed lock 为 `benchmarks/skill-ir/pilots/bids/successor-v2/development-lock.json`，compact freeze 为
+`results/skill-ir/bids-successor-development-freeze-v1.json`。Freeze 证明 lock 可重建、12/12 行均为 successor
+authority、scorer 可 lock-local direct-load、BIDS v1 predecessor digest 未变，且本阶段 0 paid / 0 model output /
+0 held-out。Runner 还提供 `--phase=qualification`，但本阶段没有调用；正式运行前必须重新核对 API key。
+Qualification 只以 resource、route、observability、scorer runnable 为门，task semantic success 和 exact output
+只披露。当前 authorization 仅为一次 qualification；matrix、dynamic、held-out 和 readiness promotion 仍关闭。
+
 ## 9. Gate 顺序
 
 ```text

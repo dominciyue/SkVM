@@ -253,6 +253,14 @@ manifest evidence、重复 semantic repair、非规范 path、summary drift 与�
 predecessor digest，并声明 v1 不重评分、历史 claim 不变。该阶段仍是 0 paid/0 held-out，只开放后续另行设计
 qualification identity，不把 BIDS 加入现有七案例 portfolio 或 readiness 正例。
 
+Task 18.22 已进一步冻结首版 successor qualification/development identity，但没有执行付费资格或矩阵。新 lock
+固定 Pi 0.67.68、Windows/clean、`xty/gpt-5.6-sol`、`retries=0` 与 2 task x 2 repetition x 3 system 的唯一
+12-row forward-only 分母；0 reserve，不允许 v1 row reuse。12-row dry-run 全部物化 successor evaluator/payload，
+scorer 只从 lock 绑定的 source path 直载，共享 registry 文件不作为 authority。Compact freeze 为 passed、
+0 paid、0 model output、0 held-out，并逐项绑定 BIDS v1 predecessor digest 为 preserved/not-rescored。它只开放以后
+一次 infrastructure qualification；资格不以 task success、semantic success 或 exact output 预筛模型，通过后才
+允许同一 lock 的一份 12-row matrix，dynamic/held-out/readiness 继续关闭。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为

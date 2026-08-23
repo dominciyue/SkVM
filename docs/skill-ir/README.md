@@ -118,7 +118,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> public JSON value-semantics preflight 已完成：BIDS v1 pointer pass、5 项语义未公开，付费前 blocked
 -> successor feasibility 已完成：2 项保留、1 项泛化、2 项替换，15/15 canary；不原地改 BIDS v1
 -> successor public contract + semantic scorer + disclosure identity 已冻结并通过 21/21 canary
--> 下一步另行冻结 successor qualification/development identity；只运行一份向前分母，不复用或重评分 v1
+-> successor qualification/development identity 已零付费冻结：12-row dry-run、lock-local scorer、只开放一次资格
+-> 下一步重新核对 API key 并只执行一次 infrastructure qualification；通过后才运行唯一 12-row successor 分母
+-> BIDS v1 始终不复用、不补跑、不重评分；qualification 也不以 task success 或 exact output 预筛模型
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
 -> 用另一项 untouched skill 做冻结 replication

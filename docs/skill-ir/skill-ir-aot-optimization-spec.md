@@ -972,6 +972,20 @@ predecessor 和 Task 18.20 evidence digest。该结果只证明新的 determinis
 Successor scorer 不写入共享 evaluator registry；后续 qualification 必须按新 lock 冻结的 source path 直接加载，
 避免无关 registry 变更破坏历史 BIDS v1 lock。
 
+Task 18.22 又冻结了独立首版 `skill-ir-bids-successor-development-lock/v1`。它只把 Task 18.21 的 successor
+interface、tasks、scorer 与 contract audit 作为新测量权威，并绑定 Pi 0.67.68、Windows/clean、
+`xty/gpt-5.6-sol`、`retries=0`、2 task x 2 repetition x 3 system 的唯一 12-row forward-only 分母、0 reserve、
+exact output set 与 1+12 调用上限。薄适配层直接复用公共 materialization/plan/execution primitives，不升级通用
+prospective runtime，也不把 scorer 加入共享 registry；scorer 只能从 lock 声明的仓库内 source path 直载。
+
+Committed lock 位于 `benchmarks/skill-ir/pilots/bids/successor-v2/development-lock.json`，零付费 compact freeze
+位于 `results/skill-ir/bids-successor-development-freeze-v1.json`。重建得到 12/12 successor task rows、4 triplets、
+direct-loaded scorer、0 paid calls；BIDS v1 的 tasks/scorer/lock/result digest 同时绑定为 preserved/not-rescored。
+当前只授权以后执行一次 infrastructure qualification。资格门只检查 resource、route、observability 与
+deterministic scorer runnable；已有语义活动后的 task failure、exact output 缺失或 semantic failure 只披露，不作
+模型筛选。Paid matrix、dynamic、held-out、模型质量 claim 与 readiness promotion 继续关闭；资格通过后也只允许
+同一 lock 下的一份 12-row successor 分母。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

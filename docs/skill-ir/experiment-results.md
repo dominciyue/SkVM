@@ -622,6 +622,14 @@ summary 与语义遗漏均拒绝。Compact 状态为 `passed`，但 authorizatio
 qualification、paid、dynamic、held-out 与 readiness promotion 均为 false。这是测量身份证据，不是新模型质量、
 artifact 优化或第二 readiness 正例。
 
+Task 18.22 冻结了 `skill-ir-bids-successor-development-lock/v1` 与 compact development freeze，仍为 0 API、
+0 model output、0 held-out。确定性重建产生 12-row / 4-triplet plan，12/12 行均使用 successor tasks、
+`skill-ir-bids-successor` evaluator 与 v2 payload；`retries=0`、reserve=0、exact output set、forward-only。Scorer
+按 lock 声明的仓库内 source path 和 digest 直接加载，不依赖共享 registry 文件；四个 BIDS v1 predecessor 文件
+继续 preserved 且 `bidsV1Rescored=false`。Compact status 为 `passed`，但只授权未来一次 resource/route/
+observability/scorer infrastructure qualification。Qualification 本阶段未执行，paid matrix、dynamic、held-out、
+模型质量与 readiness promotion 仍 false；因此该证据不是第二质量正例。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -630,3 +638,4 @@ artifact 优化或第二 readiness 正例。
 - `results/skill-ir/bids-value-semantics-preflight-v1.json`
 - `results/skill-ir/bids-successor-value-semantics-feasibility-v1.json`
 - `results/skill-ir/bids-successor-contract-audit-v1.json`
+- `results/skill-ir/bids-successor-development-freeze-v1.json`
