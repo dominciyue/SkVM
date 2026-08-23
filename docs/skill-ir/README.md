@@ -88,6 +88,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 - Task 18.20 已完成 BIDS successor 可行性审计。五项缺失语义均可公开且非 answer-bearing，但 v1 的精确表示不应
   原样继承：保留 normalization/summary，泛化 affected path，替换 source-reference evidence 与 path-sensitive
   issue identity。15/15 source-derived canary 通过，结论为 `feasible-with-evaluator-redesign`；只开放新身份冻结。
+- Task 18.21 已冻结独立的 `bids-successor-semantic-scorer-v2` 测量身份。新 public interface/scorer 的 pointer
+  closure 为 17/17，7 项 value semantics 全部公开且精确一致，21/21 canonical/alternative/invalid canary 通过；
+  data/sidecar 表示均可接受，无关 manifest path、重复 semantic repair、非规范路径、错误 summary 与语义遗漏均
+  被拒绝。BIDS v1 字节与 claim 保持不变；本阶段 0 模型调用、0 held-out，尚未授权 qualification 或付费执行。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -113,7 +117,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> residual audit 发现 12/12 repair semantics 匹配但 11/12 被未公开的 issue-path 表示选择拒绝；v1 measurement-invalid
 -> public JSON value-semantics preflight 已完成：BIDS v1 pointer pass、5 项语义未公开，付费前 blocked
 -> successor feasibility 已完成：2 项保留、1 项泛化、2 项替换，15/15 canary；不原地改 BIDS v1
--> 下一步冻结新 public contract + semantic scorer + disclosure identity；通过前不 qualification、不付费
+-> successor public contract + semantic scorer + disclosure identity 已冻结并通过 21/21 canary
+-> 下一步另行冻结 successor qualification/development identity；只运行一份向前分母，不复用或重评分 v1
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
 -> 用另一项 untouched skill 做冻结 replication

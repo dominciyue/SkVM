@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-22
+**最后更新：** 2026-08-23
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -663,6 +663,35 @@ adapter、source-derived oracle 和 evaluator；不新建通用 schema 框架，
 **下一步：** Task 18.21 冻结新的 BIDS successor public contract、semantic scorer 与 value-semantics disclosure
 identity，并先通过 deterministic canary/audit。任何付费 qualification 或 development matrix 都必须等待该身份
 冻结且通过，不复用或覆盖 BIDS v1。
+
+### Task 18.21：BIDS successor 测量身份冻结
+
+**目标：** 保持 BIDS v1 task/scorer/lock/result 字节不可变，以新的 public interface、report schema、evaluator
+和 task-set digest 冻结 successor measurement identity。该阶段只运行本地确定性 canary，不执行 qualification、
+付费模型、dynamic 或 held-out。
+
+**文件级 TDD：**
+
+1. [x] RED：新 contract test 要求 17 个 evaluator pointer 全公开，7 项 public/evaluator value semantics 精确一致，
+   development prompt 不增加动作配方或预期结果，且 committed successor interface/tasks 可确定性重建；
+2. [x] RED：新 semantic scorer test 要求 data/sidecar 两种 repair-related 表示都接受，同时拒绝 unrelated manifest
+   path、重复 semantic repair、非规范 path、错误 summary 和语义遗漏；
+3. [x] GREEN：实现独立 successor report/payload/task contract 与 evaluator id；可以复用 v1 的 source-derived
+   repair oracle，但不得导入 v1 的 source-reference evidence 或 path-sensitive equality；scorer 保持 lock-local
+   direct-load，不改共享 evaluator registry，避免使冻结 v1 lock 产生无关 digest drift；
+4. [x] GREEN：实现 pointer + value-semantics audit，至少覆盖 7 项 semantics 的 canonical、alternative-valid、
+   invalid canary，并冻结 task/scorer/source/implementation digests；
+5. [x] 生成 successor public interface、development tasks 与 compact audit evidence；报告必须写明 semantic delta、
+   v1 兼容边界、claim boundary 和全部 false 的付费/qualification/dynamic/held-out/readiness authorization；
+6. [x] 运行 focused/related tests、typecheck、doc links、broad suite、secret/absolute-path 与 `git diff --check`；只显式
+   提交本阶段文件，不纳入 `1.md`、缓存、raw/model/workdir 或历史本地结果。
+
+**版本语义：** 这是 BIDS 首次真正改变 agent-visible value semantics 与 scorer authority 的 successor measurement
+identity，因此允许使用新的 report/interface/evaluator identity。Semantic delta 是 `2 retain + 1 generalize +
+2 replace`：保留安全 POSIX path 与 summary relationship，affected path 泛化为 repair-related manifest role，
+source-reference evidence 改为 repair-related manifest evidence，issue identity 改为 code、severity 与完整 repair。
+兼容性边界是 BIDS v1 全部冻结证据继续只读且不重评分；claim 影响只是在 deterministic audit 通过后允许后续另行
+评审 qualification identity，本任务本身不产生模型质量、优化、held-out 或 readiness 证据。
 
 ### 单模型族 70% 与多模型族启动门槛
 

@@ -1,0 +1,226 @@
+{
+  "schemaVersion": "skill-ir-bids-public-interface/v2",
+  "interfaceId": "bids-successor-public-interface-v2",
+  "measurementIdentity": "bids-successor-semantic-scorer-v2",
+  "protectedInputs": [
+    "dataset-manifest.json",
+    "bids-audit-interface.json"
+  ],
+  "outputs": [
+    "bids-audit.json"
+  ],
+  "publicFieldPaths": [
+    "/schemaVersion",
+    "/datasetId",
+    "/issues",
+    "/issues/*/code",
+    "/issues/*/severity",
+    "/issues/*/affectedPath",
+    "/issues/*/evidencePaths",
+    "/issues/*/evidencePaths/*",
+    "/issues/*/repair",
+    "/issues/*/repair/operation",
+    "/issues/*/repair/targetPath",
+    "/issues/*/repair/destinationPath",
+    "/issues/*/repair/field",
+    "/issues/*/repair/value",
+    "/summary",
+    "/summary/issueCount",
+    "/summary/errorCount"
+  ],
+  "valueSemantics": [
+    {
+      "id": "issues-order-equivalence",
+      "kind": "representation-equivalence",
+      "rule": "set-like-permutation",
+      "targets": [
+        {
+          "role": "array",
+          "path": "/issues"
+        }
+      ],
+      "description": "Issue array order does not affect report meaning."
+    },
+    {
+      "id": "evidence-paths-order-equivalence",
+      "kind": "representation-equivalence",
+      "rule": "set-like-permutation",
+      "targets": [
+        {
+          "role": "array",
+          "path": "/issues/*/evidencePaths"
+        }
+      ],
+      "description": "Evidence path array order does not affect issue meaning."
+    },
+    {
+      "id": "affected-path-repair-related-role",
+      "kind": "representation-equivalence",
+      "rule": "repair-target-or-logical-data-file",
+      "targets": [
+        {
+          "role": "affected",
+          "path": "/issues/*/affectedPath"
+        },
+        {
+          "role": "repair-target",
+          "path": "/issues/*/repair/targetPath"
+        }
+      ],
+      "description": "The affected path may name the repair target or its corresponding logical data file from the dataset manifest."
+    },
+    {
+      "id": "repair-related-manifest-evidence",
+      "kind": "representation-equivalence",
+      "rule": "nonempty-unique-repair-related-manifest-paths",
+      "targets": [
+        {
+          "role": "evidence-array",
+          "path": "/issues/*/evidencePaths"
+        },
+        {
+          "role": "evidence-value",
+          "path": "/issues/*/evidencePaths/*"
+        },
+        {
+          "role": "repair-target",
+          "path": "/issues/*/repair/targetPath"
+        }
+      ],
+      "description": "Evidence paths are a non-empty unique set of dataset-manifest entries related to the repair; source-reference filenames are not required."
+    },
+    {
+      "id": "issue-semantic-repair-identity",
+      "kind": "array-element-identity",
+      "rule": "code-severity-complete-repair-key",
+      "targets": [
+        {
+          "role": "array",
+          "path": "/issues"
+        },
+        {
+          "role": "identity-code",
+          "path": "/issues/*/code"
+        },
+        {
+          "role": "identity-repair",
+          "path": "/issues/*/repair"
+        },
+        {
+          "role": "identity-severity",
+          "path": "/issues/*/severity"
+        }
+      ],
+      "description": "Issue identity is code, severity, and the complete semantic repair; path presentation does not create another issue."
+    },
+    {
+      "id": "report-path-normalization",
+      "kind": "normalization",
+      "rule": "posix-relative-no-dot-segments",
+      "targets": [
+        {
+          "role": "affected",
+          "path": "/issues/*/affectedPath"
+        },
+        {
+          "role": "destination",
+          "path": "/issues/*/repair/destinationPath"
+        },
+        {
+          "role": "evidence",
+          "path": "/issues/*/evidencePaths/*"
+        },
+        {
+          "role": "target",
+          "path": "/issues/*/repair/targetPath"
+        }
+      ],
+      "description": "Report paths use POSIX separators and contain no absolute or dot segments."
+    },
+    {
+      "id": "summary-count-relationship",
+      "kind": "cross-field-relationship",
+      "rule": "issue-and-error-counts-match-array",
+      "targets": [
+        {
+          "role": "array",
+          "path": "/issues"
+        },
+        {
+          "role": "error-count",
+          "path": "/summary/errorCount"
+        },
+        {
+          "role": "issue-count",
+          "path": "/summary/issueCount"
+        }
+      ],
+      "description": "issueCount equals the issue array length and errorCount equals the number of error-severity issues."
+    }
+  ],
+  "reportContract": {
+    "schemaVersion": "skill-ir-bids-audit-report/v2",
+    "additionalProperties": false,
+    "issueCodes": [
+      "ENTITY_ORDER",
+      "MISSING_REQUIRED_METADATA",
+      "TASK_NAME_MISMATCH"
+    ],
+    "severity": [
+      "error"
+    ],
+    "issues": {
+      "order": "set-like",
+      "duplicates": "forbid",
+      "identity": "code-severity-complete-repair",
+      "requiredFields": [
+        "code",
+        "severity",
+        "affectedPath",
+        "evidencePaths",
+        "repair"
+      ],
+      "affectedPath": {
+        "type": "repair-related-manifest-path"
+      },
+      "evidencePaths": {
+        "type": "repair-related-manifest-path-array",
+        "order": "set-like",
+        "duplicates": "forbid",
+        "minimumItems": 1
+      },
+      "repair": {
+        "requiredFields": [
+          "operation",
+          "targetPath",
+          "destinationPath",
+          "field",
+          "value"
+        ],
+        "operations": [
+          "rename",
+          "set-json-field"
+        ],
+        "nullableFields": [
+          "destinationPath",
+          "field",
+          "value"
+        ]
+      }
+    },
+    "paths": {
+      "syntax": "posix-relative-no-dot-segments"
+    },
+    "summary": {
+      "requiredFields": [
+        "issueCount",
+        "errorCount"
+      ],
+      "relationship": "issue-and-error-counts-match-array"
+    }
+  },
+  "outputPolicy": {
+    "exactOutputSet": true,
+    "allowNetwork": false
+  }
+}

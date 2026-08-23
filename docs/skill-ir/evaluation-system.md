@@ -387,6 +387,31 @@ repair。这样接受语义等价的 data/sidecar 表示，同时拒绝无关 ma
 错误 summary。五类各有 canonical、alternative-valid、invalid canary，共 15/15 通过。该 development-only
 evidence 只允许创建新的 contract/scorer identity，不允许用新规则回算 v1。
 
+Task 18.21 已把该设计冻结为 `bids-successor-semantic-scorer-v2`。新 contract 位于
+`benchmarks/skill-ir/pilots/bids/successor-v2/`，使用独立 report/interface v2、`skill-ir-bids-successor`
+evaluator 和 eval payload v2；两条 development problem/prompt 语义保持不变，但 interface fixture 与 task-set
+digest 均重新冻结。Scorer 从 source-derived repair oracle 取得完整 semantic repair set，再按 manifest 关系验证
+path 表示：rename 关联其现有 target；set-json-field 关联 target sidecar 与对应 logical data file。`affectedPath`
+可选择任一关联项，`evidencePaths` 必须非空、唯一且全部关联；issue 以 code、severity、完整 repair 去重。
+
+本地重建入口为：
+
+```powershell
+bun ./src/benchmarks/skill-ir/bids-successor-contract.ts
+bun ./src/benchmarks/skill-ir/bids-successor-contract-audit.ts
+bun test ./src/benchmarks/skill-ir/bids-successor-contract.test.ts `
+  ./src/bench/evaluators/bids-successor-grade.test.ts `
+  ./src/benchmarks/skill-ir/bids-successor-contract-audit.test.ts
+```
+
+Compact freeze 为 `results/skill-ir/bids-successor-contract-audit-v1.json`：pointer 17/17、value semantics 7/7、
+21/21 canary，且绑定 public/task/scorer/source/implementation/predecessor digests。Successor scorer 不加入共享
+evaluator registry；后续 runner 必须像现有 method-case 路径一样，只按新 qualification lock 冻结的 source path
+直接加载，从而不改变历史 BIDS v1 registry digest。任何已绑定 digest drift、
+descriptor drift、缺 canary role、无关 manifest path、重复 semantic repair、非规范 path、错误 summary 或语义遗漏
+都会 fail closed。该命令不读取 model output/held-out、不调用 API，也不创建 qualification lock；下一阶段若继续，
+必须另行冻结一个只向前使用新 scorer 的 qualification/development identity。
+
 ## 9. Gate 顺序
 
 ```text

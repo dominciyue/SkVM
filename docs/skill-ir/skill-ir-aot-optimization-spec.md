@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-22
+**最后更新：** 2026-08-23
 
 ## 1. 项目定位
 
@@ -957,6 +957,20 @@ element identity 改为 code、severity 与完整 semantic repair，path present
 该结论只授权冻结新的 successor measurement identity。新的 public contract 与 semantic scorer 必须共同冻结并
 重新通过 pointer/value-semantics disclosure；BIDS v1 task/scorer/lock/result 继续不可变，也不得重评分。付费
 qualification、development、dynamic、held-out 与 readiness promotion 在 successor identity 完成前仍关闭。
+
+Task 18.21 已建立独立的 `bids-successor-semantic-scorer-v2` measurement identity。Agent-visible public interface
+和 report schema 提升为 v2，task 的问题语义与公开 prompt 保持不变，但 evaluator id、payload、interface fixture、
+report value semantics 与全部 digest 使用新身份。Semantic scorer 先按 `code + severity + complete repair` 匹配
+source-derived issue，再要求 `affectedPath` 与非空唯一 `evidencePaths` 属于 repair target 或其对应 logical data
+file 的 manifest 集合；它不再要求 source-reference filename，也不把 path presentation 当成另一条 issue。
+
+新的 pointer disclosure 为 17 public / 17 evaluator / 0 undisclosed；7 项 public/evaluator value semantics 为
+7/7 精确一致，21 个 canonical / alternative-valid / invalid canary 全部通过。Freeze 同时绑定 successor interface、
+development tasks、scorer、contract/audit implementation、source rules、共享依赖、BIDS v1
+predecessor 和 Task 18.20 evidence digest。该结果只证明新的 deterministic measurement contract 已冻结；BIDS v1
+不重评分，qualification、paid development、dynamic、held-out、quality claim 与 readiness promotion 仍未授权。
+Successor scorer 不写入共享 evaluator registry；后续 qualification 必须按新 lock 冻结的 source path 直接加载，
+避免无关 registry 变更破坏历史 BIDS v1 lock。
 
 ## 11. 当前证据与不可声称项
 

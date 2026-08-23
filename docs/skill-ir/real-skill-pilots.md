@@ -246,6 +246,13 @@ sidecar role，evidence 改为唯一 repair-related manifest entries，issue ide
 repair。15/15 source-derived canary 通过。BIDS 继续作为第二质量正例候选，但当前仍不进入 readiness/portfolio
 分母；下一阶段只冻结 successor contract/scorer identity，不执行模型或 held-out。
 
+Task 18.21 已完成该 identity freeze。`bids-successor-semantic-scorer-v2` 复用同两条 development problem 的公开
+语义，但使用新的 interface/report/payload/evaluator 与 task-set digest；17/17 pointer closure、7/7 value-semantics
+descriptor 和 21/21 scorer canary 全绿。新 scorer 接受 repair target/data 两种 manifest 关联表示，拒绝无关
+manifest evidence、重复 semantic repair、非规范 path、summary drift 与语义遗漏。Freeze 显式绑定 BIDS v1
+predecessor digest，并声明 v1 不重评分、历史 claim 不变。该阶段仍是 0 paid/0 held-out，只开放后续另行设计
+qualification identity，不把 BIDS 加入现有七案例 portfolio 或 readiness 正例。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为

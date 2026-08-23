@@ -913,8 +913,9 @@ value semantics，故 BIDS v1 冻结为 measurement-invalid。Task 18.19 随后�
 不改变旧 pointer v1 输出；BIDS 只读 preflight 的 17/17 pointer 仍 passed，但 7 项 evaluator 语义仅 2 项公开、
 5 项缺失，17 个确定性 canary 全部按预期，最终在 qualification/paid 前 blocked。Task 18.20 已进一步确认
 successor 可行，但必须重设计 evaluator：保留 normalization/summary，泛化 affected path，并以 repair-related
-manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化；15/15 feasibility canary 通过。当前接力点
-是冻结新的 contract/scorer/disclosure identity，而不是直接重跑：
+manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化；15/15 feasibility canary 通过。Task 18.21
+已冻结新的 `bids-successor-semantic-scorer-v2`：17/17 pointer、7/7 value semantics、21/21 scorer canary 全绿，
+旧 v1 不重评分。当前接力点是另行冻结 successor qualification/development identity，而不是复用旧行：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -926,7 +927,8 @@ manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化�
 已冻结：BIDS v1 issue-path value semantics 缺失，quality delta 作废；artifact 仅 mechanism-only
 已完成：通用 value-semantics disclosure + BIDS 只读 blocker；0 paid，旧 v1 文件与结果不改
 已完成：successor feasibility；2 retain + 1 generalize + 2 replace，15/15 canary，0 model/held-out
-下一步：冻结新 public contract + semantic scorer + disclosure identity；通过前不 qualification、不付费
+已完成：successor public contract + semantic scorer + disclosure freeze；21/21 canary，0 model/held-out
+下一步：新 qualification/development lock；只向前执行一份 successor 分母，不复用或重评分 v1
 ```
 
 本地重建命令：
@@ -937,6 +939,11 @@ bun test ./src/benchmarks/skill-ir/bids-value-semantics-preflight.test.ts
 bun run ./src/benchmarks/skill-ir/bids-value-semantics-preflight.ts
 bun test ./src/benchmarks/skill-ir/bids-successor-value-semantics-feasibility.test.ts
 bun run ./src/benchmarks/skill-ir/bids-successor-value-semantics-feasibility.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-contract.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-contract-audit.ts
+bun test ./src/benchmarks/skill-ir/bids-successor-contract.test.ts `
+  ./src/bench/evaluators/bids-successor-grade.test.ts `
+  ./src/benchmarks/skill-ir/bids-successor-contract-audit.test.ts
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

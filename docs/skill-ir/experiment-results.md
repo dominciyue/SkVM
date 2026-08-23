@@ -614,6 +614,14 @@ evaluator specificities（evidence path、issue identity）。15/15 canonical / 
 compact 状态为 `feasible-with-evaluator-redesign`。该结果只授权冻结新 measurement identity，不恢复 v1 quality
 score，也不开放 qualification、paid、dynamic、held-out 或 readiness。
 
+Task 18.21 随后冻结新 `bids-successor-semantic-scorer-v2`，没有修改或回算上述 v1 文件。Successor public/task/
+scorer/source/implementation closure 已逐文件绑定；pointer disclosure 为 17/17、0 undisclosed，value semantics 为
+7 public / 7 evaluator、0 undisclosed、0 mismatch。21 个 canonical/alternative-valid/invalid canary 全部通过：
+repair target 与对应 data/sidecar 表示均接受，无关 manifest path、重复 semantic repair、非规范 path、错误
+summary 与语义遗漏均拒绝。Compact 状态为 `passed`，但 authorization 只有 `successorIdentityFrozen=true`；
+qualification、paid、dynamic、held-out 与 readiness promotion 均为 false。这是测量身份证据，不是新模型质量、
+artifact 优化或第二 readiness 正例。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -621,3 +629,4 @@ score，也不开放 qualification、paid、dynamic、held-out 或 readiness。
 - `results/skill-ir/bids-prospective-development-v1/residual-audit.json`
 - `results/skill-ir/bids-value-semantics-preflight-v1.json`
 - `results/skill-ir/bids-successor-value-semantics-feasibility-v1.json`
+- `results/skill-ir/bids-successor-contract-audit-v1.json`
