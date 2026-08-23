@@ -986,6 +986,17 @@ deterministic scorer runnable；已有语义活动后的 task failure、exact ou
 模型筛选。Paid matrix、dynamic、held-out、模型质量 claim 与 readiness promotion 继续关闭；资格通过后也只允许
 同一 lock 下的一份 12-row successor 分母。
 
+Task 18.23 已按该 lock 执行唯一一次 qualification。API key 只检查存在性且未读取/记录内容；resource、route、
+observability、lock-local deterministic scorer 四门均为 true，execution 为 `semantic-complete`，33,632ms、exit 0、
+4 provider responses，usage input/output/cache-read 为 18,344/1,338/44,544，`paidCalls=1`。Scorer row 已产生、
+semantic success 为 true；全 workdir exact-set disclosure 为 false，但该项按预注册规则 `usedAsGate=false`，没有参与
+资格判定或模型选择。Qualification compact 与 resource probe 均绑定 committed lock/resource digest，状态 passed，
+只把 `paidMatrix` 提升为 true；dynamic、held-out 与 readiness promotion 继续 false。
+
+该通过不等于 12-row 模型结果或第二正例。下一阶段必须在任何 matrix call 前冻结 successor analysis policy 与
+matrix runner implementation closure，并只执行同一 lock 的 12 个 forward-only rows；不得重复 qualification、
+更换 task/candidate、复用 v1 行或依据这一次 semantic success 调整分母。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

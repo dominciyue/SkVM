@@ -630,6 +630,17 @@ Task 18.22 冻结了 `skill-ir-bids-successor-development-lock/v1` 与 compact d
 observability/scorer infrastructure qualification。Qualification 本阶段未执行，paid matrix、dynamic、held-out、
 模型质量与 readiness promotion 仍 false；因此该证据不是第二质量正例。
 
+Task 18.23 消费唯一 1 次 successor qualification 调用。Compact 结果为 `passed`：resource/route/observability/
+scorer 四项全 true；execution classification `semantic-complete`、duration 33,632ms、exit 0、request dispatched、
+4 provider responses、parser ok；usage input 18,344、output 1,338、cache read 44,544、cache write 0。Scorer 产生
+deterministic-evaluator row，semantic success true。`exactOutputsPresent=false` 被如实披露但
+`usedAsGate=false`，没有影响资格或分母选择。Resource probe status ok、fallback executable、0 required modules、
+34ms；qualification 的 lock/resource digest 均匹配。
+
+该结果只证明当前 Pi/Windows/clean/route/scorer 基础设施可用于冻结分母，并把 `paidMatrix=true`；它没有产生
+12-row quality delta，也不授权 dynamic、held-out 或 readiness。API credential、raw/scored/plan/workdir 不属于
+compact 证据。下一阶段须先绑定 analysis/matrix runner implementation，再执行唯一 successor 分母。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -639,3 +650,5 @@ observability/scorer infrastructure qualification。Qualification 本阶段未�
 - `results/skill-ir/bids-successor-value-semantics-feasibility-v1.json`
 - `results/skill-ir/bids-successor-contract-audit-v1.json`
 - `results/skill-ir/bids-successor-development-freeze-v1.json`
+- `results/skill-ir/bids-successor-development-v1/qualification.json`
+- `results/skill-ir/bids-successor-development-v1/qualification/resource-probe.json`

@@ -261,6 +261,13 @@ scorer 只从 lock 绑定的 source path 直载，共享 registry 文件不作�
 一次 infrastructure qualification；资格不以 task success、semantic success 或 exact output 预筛模型，通过后才
 允许同一 lock 的一份 12-row matrix，dynamic/held-out/readiness 继续关闭。
 
+Task 18.23 随后只执行了这一次资格。Resource、route、observability、lock-local scorer 四门全过；真实行
+`semantic-complete`，33,632ms、exit 0、4 provider responses，deterministic scorer row 可用且 semantic success
+为 true，总付费调用 1。全 workdir exact-set disclosure 为 false，但预注册为 `usedAsGate=false`，没有触发换候选、
+重试或 gate 修改。Qualification 与 resource compact 分别绑定 lock/resource digest，API credential、raw response、
+scored row 与 workdir 不提交。当前 BIDS 仍不是第二质量正例；下一阶段先冻结 successor analysis/matrix runner
+identity，再执行同一 lock 的唯一 12 rows，dynamic/held-out/readiness 继续关闭。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为

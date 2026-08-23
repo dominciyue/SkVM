@@ -433,6 +433,24 @@ authority、scorer 可 lock-local direct-load、BIDS v1 predecessor digest 未�
 Qualification 只以 resource、route、observability、scorer runnable 为门，task semantic success 和 exact output
 只披露。当前 authorization 仅为一次 qualification；matrix、dynamic、held-out 和 readiness promotion 仍关闭。
 
+Task 18.23 已执行一次且仅一次：
+
+```powershell
+bun run ./src/benchmarks/skill-ir/bids-successor-development-run.ts --phase=qualification
+```
+
+`results/skill-ir/bids-successor-development-v1/qualification.json` 为 `passed`，resource/route/observability/scorer
+四项 checks 全 true；execution `semantic-complete`、33,632ms、exit 0、4 provider responses，scorer row 为
+deterministic evaluator，`paidCalls=1`。`exactOutputsPresent=false` 与 `semanticSuccess=true` 都只在 disclosure 中，
+`usedAsGate=false`，因此没有以后验 task 结果筛选模型。Resource probe 为 `status=ok`、fallback executable、0
+required modules、34ms。Compact 的 lock/resource digest 已重新计算并匹配；API credential 内容、raw response 和
+workdir 不进入 compact。
+
+Qualification 现在只授权下一阶段的 paid matrix。因为 Task 18.22 lock 没有预绑定尚未实现的 matrix runner，正式
+12-row 调用前仍须冻结一份 `after-qualification-before-model-matrix` analysis/execution identity，绑定当前 lock、
+本次 qualification、successor scorer/tasks 与 runner implementation。该步骤不得改 lock 或重跑 qualification；
+dynamic、held-out、readiness 仍关闭。
+
 ## 9. Gate 顺序
 
 ```text

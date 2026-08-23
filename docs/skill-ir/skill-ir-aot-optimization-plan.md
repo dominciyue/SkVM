@@ -721,6 +721,33 @@ prospective schema/runtime 版本，也不得把旧 tasks/scorer 作为新测量
 6. [x] 运行 focused/related tests、typecheck、doc links、current broad suite、secret/absolute-path 与
    `git diff --check`；正式 qualification 前重新核对 API key，只显式提交本阶段文件。
 
+### Task 18.23：BIDS successor 单次基础设施资格执行
+
+**目标：** 只按 Task 18.22 committed lock 执行一个 `original` qualification row，判断当前
+Pi/Windows/clean/model route、resource、execution observability 与 lock-local deterministic scorer 是否可运行。
+这是一次冻结的付费基础设施资格，不是模型质量筛选；不得因 task semantic failure、exact output 缺失或 scorer
+failure 更换候选、重试或修改 gate。
+
+**执行与停止规则：** 使用既有 successor runner 的 `--phase=qualification`，不新增 harness 或版本。运行前只核对
+API key 存在性、lock/freeze authorization 与 focused regression；运行后只提交 compact qualification evidence，
+raw/scored/workdir 保持本地。若 resource、route、observability 或 scorer runnable 任一失败，冻结该 qualification
+并停止，不执行 matrix；只有四门全过才允许下一阶段为同一 lock 实现并执行唯一 12-row matrix。
+
+**文件级步骤：**
+
+1. [x] 只读预检：确认 HEAD 为 Task 18.22、tracked tree clean、`SKVM_XTY_API_KEY` 存在且内容未读取，lock/freeze
+   仍只授权一份 qualification；
+2. [x] 运行 focused lock/qualification tests，确认 committed lock 可重建、scorer direct-load 与 infrastructure-only
+   gate 当前全绿；
+3. [x] 仅执行一次 `bun run ./src/benchmarks/skill-ir/bids-successor-development-run.ts
+   --phase=qualification`，不得 retry、reserve、换 task 或重复 probe；
+4. [x] 校验 compact `qualification.json` 的 lock digest、`paidCalls=1`、四项 checks、execution classification、
+   disclosure 与 authorization；不得提交 raw/scored/plan/workdir 或 secret；
+5. [x] 若资格 passed，同步现有 spec/plan/evaluation/results/pilots/developer guide，并把下一刀收敛为同一 lock 的
+   12-row execute TDD；若 failed，则记录 blocker、关闭 matrix 并进入根因诊断；
+6. [x] 运行相关测试、typecheck、doc links、current broad suite、secret/absolute-path 与 `git diff --check`；显式提交
+   compact evidence 和既有权威文档，不纳入 `1.md` 或历史本地数据。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

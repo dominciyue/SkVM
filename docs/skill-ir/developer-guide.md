@@ -917,7 +917,9 @@ manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化�
 已冻结新的 `bids-successor-semantic-scorer-v2`：17/17 pointer、7/7 value semantics、21/21 scorer canary 全绿，
 旧 v1 不重评分。Task 18.22 又完成首版 successor qualification/development lock 与零付费 compact freeze：
 12-row dry-run 全部使用 successor task/evaluator/payload，scorer lock-local direct-load，只开放下一次 infrastructure
-qualification。当前接力点是正式资格，而不是复用旧行或直接运行矩阵：
+qualification。Task 18.23 已完成唯一一次资格：resource/route/observability/scorer 四门全过、1 paid、
+semantic-complete；exact workdir set false 只披露、不作 gate。当前接力点是在付费矩阵前冻结 successor
+analysis/matrix runner identity，而不是重跑资格、复用旧行或直接调用未绑定 runner：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -931,7 +933,8 @@ qualification。当前接力点是正式资格，而不是复用旧行或直接�
 已完成：successor feasibility；2 retain + 1 generalize + 2 replace，15/15 canary，0 model/held-out
 已完成：successor public contract + semantic scorer + disclosure freeze；21/21 canary，0 model/held-out
 已完成：successor qualification/development identity；12-row dry-run、lock-local scorer、0 paid
-下一步：重新核对 API key，只执行一次 infrastructure qualification；通过后才运行唯一 12-row successor 分母
+已完成：successor infrastructure qualification；四门全绿、1 paid，matrix authorization true
+下一步：冻结 successor analysis/matrix runner identity，再运行同一 lock 的唯一 12-row 分母
 ```
 
 本地重建命令：
@@ -949,6 +952,7 @@ bun test ./src/benchmarks/skill-ir/bids-successor-contract.test.ts `
   ./src/benchmarks/skill-ir/bids-successor-contract-audit.test.ts
 bun run ./src/benchmarks/skill-ir/bids-successor-development.ts
 bun run ./src/benchmarks/skill-ir/bids-successor-development-run.ts --phase=plan
+bun run ./src/benchmarks/skill-ir/bids-successor-development-run.ts --phase=qualification
 bun test ./src/benchmarks/skill-ir/bids-successor-development.test.ts
 ```
 
