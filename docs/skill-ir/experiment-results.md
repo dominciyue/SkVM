@@ -571,3 +571,34 @@ parity、0 model calls、0 aggregate model tokens。
 `not-computable` break-even。权威 compact evidence：
 
 - `results/skill-ir/prospective-compiler-cost-canary.json`
+
+## 18. BIDS prospective construction、development 与残差有效性
+
+2026-08-23 的 Task 18.18 从冻结候选继续：profile-empty source-audited base IR、23 LOC 声明式 adapter 与手写
+compiler/runtime 生成 catalog-valid package。前瞻 construction 为 10 human minutes、0 core branch delta；一次
+compiler-package 实测 52.5008ms、217697 bytes、0 calls/tokens。因存在人工 construction steps，身份保持
+`manual-existing / mechanism-only`，不提供 automatic compile-cost 正证据。
+
+Development-only lock 绑定五项已完成 gate、完整 source/task/public/resource/scorer/construction closure、
+`xty/gpt-5.6-sol`、Pi 0.67.68、Windows/clean、2 tasks x 2 repetitions x 3 arms、`retries=0` 与精确输出集合。
+Qualification 1 次为 semantic-complete，resource/route/observability/scorer 四门全过；该行 semantic failure 与
+输出缺失只披露、不作门。唯一矩阵随后完成 12/12 semantic-complete、12/12 deterministic-scored、0 active failure、
+0 parser/runtime blocker。矩阵 execution totals 为 input 282646、output 31699、cache-read 867328、cache-write 0、
+duration 678661ms；确定性 artifact control 为 4/4。
+
+预注册机械投影为：no-skill `0/4, 0.2`，original `0/4, 0.2`，ir-static `1/4, 0.4`，validated artifact
+`4/4, 1.0`；paired mean delta 分别为 `0.0`、`+0.2`、`+0.8`。但 residual audit 随后发现 12/12 model outputs
+的 issue code、repair 与 summary 都匹配 source-derived oracle，只有 1/12 在 `affectedPath`/`evidencePaths` 的精确
+表示上匹配。Public contract 虽公开这两个 pointer，却没有规定 data path、sidecar path 与 source reference path
+之间的 canonical value semantics；contract canary 也未覆盖该等价类。
+
+因此 `residual-audit.json` 将本 v1 quality measurement 冻结为
+`measurement-invalid / underspecified-issue-path-value-semantics`。12/12 基础设施证据和 4/4 手写 artifact 机制证据
+保留，数值 paired improvement 决策、automatic optimized、dynamic、held-out、readiness 与 portfolio promotion
+全部关闭。旧 task/scorer/lock/result 不改、不重评分；若继续 BIDS，必须先建立语义变化明确的 successor contract。
+
+- `results/skill-ir/bids-prospective-construction-v1/report.json`
+- `results/skill-ir/bids-prospective-development-v1/qualification.json`
+- `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
+- `results/skill-ir/bids-prospective-development-v1/result.json`
+- `results/skill-ir/bids-prospective-development-v1/residual-audit.json`

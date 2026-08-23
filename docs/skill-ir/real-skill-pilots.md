@@ -223,9 +223,16 @@ issue；公开 contract 完整列出 17 个 scorer-visible pointer 和 set-like 
 `eligible-for-baseline`：entity ordering、metadata inheritance、required BOLD metadata 三个独立 skill-derived
 失败模式，逐 task skill-derived weight 0.80，0 answer-bearing duplication，五类贡献 canary 全通过。
 
-这仍不构成 contract-qualified、studied 或 optimization evidence。Prospective construction cost identity 与
-qualification lock 尚未完成，因此 `paidExecution=false`、`heldOut=false`、`qualification=false`；不得提前运行
-12-call development 分母。
+Task 18.18 随后完成 10 human minutes、23 adapter LOC、0 core delta 的前瞻 construction；手写 compiler 的一次
+package capture 为 0 model tokens、217697 bytes，仍是 mechanism-only。Development lock 与资格四门通过后，唯一
+12-call 分母完成 12/12 semantic-complete/scored、0 infrastructure blocker；本地 validated artifact 为 4/4。
+预注册数值投影 no-skill/original/ir-static/artifact mean `0.2/0.2/0.4/1.0`。
+
+这些数值最终不能作为质量证据。Residual audit 证明 12/12 model 输出的 issue/repair/summary 语义相同，11 行只因
+`affectedPath`/`evidencePaths` 采用公开合同未区分的合理表示而被 exact oracle 拒绝。因此 BIDS v1 冻结为
+`measurement-invalid / underspecified-issue-path-value-semantics`；基础设施完整性与手写 artifact 机制证据保留，
+paired improvement、dynamic、held-out、readiness 与 portfolio 晋升全部关闭。任何修复必须使用新的 successor
+measurement identity，不原地改 scorer 或重评分。
 
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复

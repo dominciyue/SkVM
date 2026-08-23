@@ -218,6 +218,12 @@ SKILL.md
   -> controller/checker/adapter/skill.md lowering
 ```
 
+Task 18.18 的 BIDS base IR 是该链路的新真实案例：`profile=[]`，所有 intent/input/output/step/rule/tool/check 节点均
+由固定 source closure 审计；领域执行差异进入 23 LOC 声明式 artifact adapter 和独立 compiler/runtime，不进入
+通用 `src/skill-ir` 分支，因此相对 construction baseline 的 core branch delta 为 0。该 IR 的 deterministic
+artifact 机制测试通过，但后续质量矩阵因 benchmark value-semantics disclosure 缺口 measurement-invalid；source
+audit 通过不能替代 scorer 合同有效性。
+
 ## 9. 测试
 
 ```powershell

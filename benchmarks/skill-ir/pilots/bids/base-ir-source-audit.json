@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "skill-ir-source-audit/v1",
+  "skillId": "bids",
+  "sources": [
+    {
+      "id": "skill-source",
+      "kind": "markdown",
+      "path": "benchmarks/skill-ir/pilots/bids/source/SKILL.md",
+      "sha256": "7c83b0ce63561ab9ae4e16d5f4b1a890e9fb68303dcf7ce6a361598ab80b4e5e"
+    },
+    {
+      "id": "development-tasks",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/bids/development/tasks.json",
+      "sha256": "959c89546c614982297fa9aa503c6b31b7b5583a79e2eb279f5c30348f277806",
+      "allowedPointers": ["/tasks/0/prompt", "/tasks/1/prompt"]
+    },
+    {
+      "id": "public-interface",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/bids/public-interface.json",
+      "sha256": "d407db7eb2c5b8699d523f0362f5969529d73404cd2c5872331c6948c5f0b530",
+      "allowedPointers": [
+        "/protectedInputs",
+        "/outputs",
+        "/publicFieldPaths",
+        "/reportContract",
+        "/outputPolicy"
+      ]
+    },
+    {
+      "id": "bids-schema",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json",
+      "sha256": "6d72e394c87a94da5a2ce57e00f9e390ea5eeefb4cc39aa607d54d074aa6408b",
+      "allowedPointers": ["/rules/entities", "/objects/entities"]
+    },
+    {
+      "id": "metadata-reference",
+      "kind": "markdown",
+      "path": "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md",
+      "sha256": "33407c21a2b36cf69f7f616d011ade487498cdb197eb215b9f2847aff5bac68a"
+    },
+    {
+      "id": "resource-contract",
+      "kind": "json",
+      "path": "benchmarks/skill-ir/pilots/bids/resource-contract.json",
+      "sha256": "a864e80ce2cb5bf874134d5f104848738d140bb27dc192a9cfe82f504c7b9da6",
+      "allowedPointers": [
+        "/inputFormats",
+        "/network",
+        "/packageInstall",
+        "/interpreter",
+        "/probe",
+        "/missingDependencyDisposition"
+      ]
+    }
+  ],
+  "mappings": [
+    { "targetRef": "category", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 15, "end": 43 } }] },
+    { "targetRef": "intent", "construction": "task-contract", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 31, "end": 43 } }, { "sourceId": "development-tasks", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "input:dataset-manifest", "construction": "task-contract", "evidence": [{ "sourceId": "development-tasks", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }] },
+    { "targetRef": "input:public-audit-interface", "construction": "task-contract", "evidence": [{ "sourceId": "development-tasks", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/reportContract" } }] },
+    { "targetRef": "output:bids-audit", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputs" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/publicFieldPaths" } }] },
+    { "targetRef": "precondition:protected-inputs-readable", "construction": "static-clarification", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/protectedInputs" } }] },
+    { "targetRef": "precondition:node-runtime-available", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/probe" } }] },
+    { "targetRef": "step:step-read-public-boundary", "construction": "task-contract", "evidence": [{ "sourceId": "development-tasks", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/protectedInputs" } }] },
+    { "targetRef": "step:step-derive-source-audit", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 257, "end": 283 } }, { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 368, "end": 424 } }] },
+    { "targetRef": "step:step-write-audit", "construction": "task-contract", "evidence": [{ "sourceId": "development-tasks", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputs" } }] },
+    { "targetRef": "step:step-verify-audit", "construction": "static-clarification", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/reportContract" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "rule:rule-entity-order", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 257, "end": 283 } }, { "sourceId": "bids-schema", "locator": { "kind": "json-pointer", "pointer": "/rules/entities" } }] },
+    { "targetRef": "rule:rule-metadata-inheritance", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 193, "end": 209 } }, { "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 368, "end": 379 } }] },
+    { "targetRef": "rule:rule-required-bold-metadata", "construction": "source-explicit", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 381, "end": 424 } }, { "sourceId": "metadata-reference", "locator": { "kind": "line-range", "start": 56, "end": 83 } }] },
+    { "targetRef": "rule:rule-protect-inputs", "construction": "task-contract", "evidence": [{ "sourceId": "development-tasks", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/protectedInputs" } }] },
+    { "targetRef": "rule:rule-exact-offline-output", "construction": "task-contract", "evidence": [{ "sourceId": "development-tasks", "locator": { "kind": "json-pointer", "pointer": "/tasks/1/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "tool:tool-workspace-filesystem", "construction": "schema-plumbing", "evidence": [{ "sourceId": "development-tasks", "locator": { "kind": "json-pointer", "pointer": "/tasks/0/prompt" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputs" } }] },
+    { "targetRef": "tool:tool-node-runtime", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/interpreter" } }] },
+    { "targetRef": "environment:env-contained-offline-workdir", "construction": "resource-contract", "evidence": [{ "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/network" } }, { "sourceId": "resource-contract", "locator": { "kind": "json-pointer", "pointer": "/packageInstall" } }] },
+    { "targetRef": "check:check-protected-inputs", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/protectedInputs" } }] },
+    { "targetRef": "check:check-source-derived-semantics", "construction": "source-explicit", "evidence": [{ "sourceId": "bids-schema", "locator": { "kind": "json-pointer", "pointer": "/rules/entities" } }, { "sourceId": "metadata-reference", "locator": { "kind": "line-range", "start": 56, "end": 83 } }] },
+    { "targetRef": "check:check-output-contract", "construction": "task-contract", "evidence": [{ "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/reportContract" } }, { "sourceId": "public-interface", "locator": { "kind": "json-pointer", "pointer": "/outputPolicy" } }] },
+    { "targetRef": "recovery:recovery-unconfirmed-source-rule", "construction": "static-clarification", "evidence": [{ "sourceId": "skill-source", "locator": { "kind": "line-range", "start": 259, "end": 263 } }] }
+  ],
+  "excludedEvidenceClasses": [
+    "evaluator-payload",
+    "held-out",
+    "runtime-output",
+    "profile-feedback"
+  ]
+}

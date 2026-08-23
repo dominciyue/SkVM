@@ -1,0 +1,208 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "bids",
+  "name": "Brain Imaging Data Structure Audit",
+  "category": ["workflow", "tool-use", "constraint-heavy"],
+  "intent": "Audit a protected logical BIDS dataset manifest against source-defined entity ordering and inherited BOLD metadata, then emit one complete public repair report without changing inputs or using the network.",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/bids/source/SKILL.md",
+    "sha256": "7c83b0ce63561ab9ae4e16d5f4b1a890e9fb68303dcf7ce6a361598ab80b4e5e"
+  },
+  "inputs": [
+    {
+      "id": "dataset-manifest",
+      "description": "The protected logical dataset manifest containing relative BIDS paths and JSON sidecar contents.",
+      "required": true
+    },
+    {
+      "id": "public-audit-interface",
+      "description": "The protected public contract defining the exact audit report fields, set semantics, and output boundary.",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "bids-audit",
+      "description": "The sole bids-audit.json artifact containing source-derived issues, repairs, evidence paths, and summary counts.",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "protected-inputs-readable",
+      "description": "Both declared protected JSON inputs exist as readable regular files.",
+      "checkability": "runtime"
+    },
+    {
+      "id": "node-runtime-available",
+      "description": "The declared local Node interpreter passes the resource probe before artifact execution.",
+      "checkability": "runtime"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-read-public-boundary",
+      "title": "Read the protected manifest and public contract",
+      "description": "Load the two task-visible inputs and preserve their original bytes.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["dataset-inventory", "audit-contract"],
+      "successCheckRefs": ["check-protected-inputs"],
+      "failureModes": ["missing-manifest", "invalid-public-contract"]
+    },
+    {
+      "id": "step-derive-source-audit",
+      "title": "Derive BIDS issues from public source rules",
+      "description": "Apply the schema entity order and BIDS metadata inheritance to derive filename and BOLD metadata repairs.",
+      "kind": "analyze",
+      "required": true,
+      "dependsOn": ["step-read-public-boundary"],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["source-derived-issue-set"],
+      "successCheckRefs": ["check-source-derived-semantics"],
+      "failureModes": ["unknown-entity", "unsupported-manifest-entry", "unconfirmed-metadata"]
+    },
+    {
+      "id": "step-write-audit",
+      "title": "Write the exact public audit artifact",
+      "description": "Serialize the unique issue set and matching counts to bids-audit.json only.",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": ["step-derive-source-audit"],
+      "toolRefs": ["tool-workspace-filesystem"],
+      "produces": ["bids-audit"],
+      "successCheckRefs": ["check-output-contract"],
+      "failureModes": ["missing-output", "duplicate-issue", "undeclared-output"]
+    },
+    {
+      "id": "step-verify-audit",
+      "title": "Verify preservation and report semantics",
+      "description": "Recompute the source-derived issue set, verify the public schema and exact output delta, and stop on mismatch.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": ["step-write-audit"],
+      "toolRefs": ["tool-node-runtime", "tool-workspace-filesystem"],
+      "produces": ["validation-result"],
+      "successCheckRefs": ["check-protected-inputs", "check-source-derived-semantics", "check-output-contract"],
+      "failureModes": ["protected-input-change", "semantic-mismatch", "contract-mismatch"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-entity-order",
+      "sourceText": "Entity ordering in filenames is fixed by the spec (defined in rules.entities in bids_schema.json).",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Compare every recognized BIDS filename entity sequence with the source schema order and emit a rename repair when it differs."
+    },
+    {
+      "id": "rule-metadata-inheritance",
+      "sourceText": "Metadata fields follow the inheritance principle: a sidecar at a higher directory level applies to all matching files below.",
+      "level": "must",
+      "scope": "planning",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Resolve matching JSON sidecars from least to most specific before deciding whether BOLD metadata is missing or inconsistent."
+    },
+    {
+      "id": "rule-required-bold-metadata",
+      "sourceText": "RepetitionTime and TaskName are required for BOLD.",
+      "level": "must",
+      "scope": "output",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Require RepetitionTime and TaskName for functional BOLD data after inheritance, with EchoTime also required for multi-echo BOLD."
+    },
+    {
+      "id": "rule-protect-inputs",
+      "sourceText": "Read dataset-manifest.json and bids-audit-interface.json without modifying either protected input.",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Never modify or remove either protected input."
+    },
+    {
+      "id": "rule-exact-offline-output",
+      "sourceText": "Produce exactly bids-audit.json, create no other output, and do not use the network.",
+      "level": "must",
+      "scope": "tool-use",
+      "checkability": "runtime",
+      "severity": "high",
+      "normalizedForm": "Create exactly bids-audit.json under the complete public contract without network or package installation."
+    }
+  ],
+  "tools": [
+    {
+      "id": "tool-workspace-filesystem",
+      "name": "workspace filesystem",
+      "purpose": "Read protected inputs, write the sole declared output, and verify the final contained delta.",
+      "required": true,
+      "alternatives": ["agent-native read, edit, and diff tools"],
+      "platformNotes": {
+        "linux": "Use contained POSIX relative paths.",
+        "macos": "Preserve path case and UTF-8.",
+        "windows": "Use contained Windows paths while serializing report paths with forward slashes."
+      },
+      "availabilityCheck": "Confirm both protected inputs are readable and the output root is writable."
+    },
+    {
+      "id": "tool-node-runtime",
+      "name": "Node runtime",
+      "purpose": "Run the deterministic bundled generator and checker without shell or network access.",
+      "required": true,
+      "alternatives": ["SKVM_NODE", "resource-contract fallbackCommand"],
+      "platformNotes": {},
+      "availabilityCheck": "Run the frozen resource-contract probe before execution."
+    }
+  ],
+  "environment": [
+    {
+      "id": "env-contained-offline-workdir",
+      "description": "Execution occurs in a contained workdir with two protected inputs, one generated output, and no network or package installation.",
+      "platforms": ["linux", "macos", "windows", "wsl", "container"],
+      "checkability": "runtime"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-protected-inputs",
+      "name": "Protected inputs remain unchanged",
+      "kind": "rule-violation",
+      "targetRef": "rule:rule-protect-inputs",
+      "assertion": "The manifest and public interface retain their pre-execution digests.",
+      "onFailure": "abort"
+    },
+    {
+      "id": "check-source-derived-semantics",
+      "name": "Issue set follows source-derived BIDS rules",
+      "kind": "output",
+      "targetRef": "rule:rule-entity-order",
+      "assertion": "The unique set-like issues and repairs equal the result of entity ordering and inherited BOLD metadata rules.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-output-contract",
+      "name": "Exact public output contract passes",
+      "kind": "output",
+      "targetRef": "output:bids-audit",
+      "assertion": "Only bids-audit.json is added, every public field is present with the declared type, and summary counts match issues.",
+      "onFailure": "abort"
+    }
+  ],
+  "recovery": [
+    {
+      "id": "recovery-unconfirmed-source-rule",
+      "trigger": "The protected manifest or source-derived rule cannot be interpreted without guessing.",
+      "action": "stop",
+      "maxAttempts": 0,
+      "explanation": "Stop rather than infer hidden evaluator expectations or invent a repair."
+    }
+  ],
+  "profile": []
+}

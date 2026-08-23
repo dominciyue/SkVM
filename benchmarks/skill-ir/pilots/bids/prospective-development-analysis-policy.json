@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "skill-ir-prospective-development-analysis-policy/v1",
+  "analysisId": "bids-prospective-development-analysis-2026-08-23",
+  "frozenAt": "2026-08-23T05:31:08.209Z",
+  "timing": "after-qualification-before-model-matrix",
+  "lock": {
+    "path": "benchmarks/skill-ir/pilots/bids/prospective-development-lock.json",
+    "sha256": "ef443e7dfea73f4a2c029292de1f488c3ccb215bea91f22cba38fcc17aa36afe"
+  },
+  "qualification": {
+    "path": "results/skill-ir/bids-prospective-development-v1/qualification.json",
+    "sha256": "b2b17755149b048da7f14b15b7e61735e725140b14b4f1822e7df1472a435080"
+  },
+  "implementation": [
+    {
+      "path": "src/benchmarks/skill-ir/bids-prospective-development-matrix-run.ts",
+      "sha256": "cf0038bb3a5334c677719fd601973de3155e33ff63859d2dedcc5816b7a4c76f"
+    }
+  ],
+  "denominator": {
+    "modelRows": 12,
+    "deterministicControlRows": 4
+  },
+  "estimands": [
+    {
+      "id": "original-minus-no-skill",
+      "treatment": "original",
+      "comparator": "no-skill",
+      "metric": "deterministic-evaluator-score",
+      "pairing": "same-task-and-repetition",
+      "reportMeanDelta": true,
+      "reportPositiveZeroRegressedPairs": true
+    },
+    {
+      "id": "ir-static-minus-original",
+      "treatment": "ir-static",
+      "comparator": "original",
+      "metric": "deterministic-evaluator-score",
+      "pairing": "same-task-and-repetition",
+      "reportMeanDelta": true,
+      "reportPositiveZeroRegressedPairs": true
+    },
+    {
+      "id": "validated-artifact-minus-original",
+      "treatment": "validated-artifact",
+      "comparator": "original",
+      "metric": "deterministic-evaluator-score",
+      "pairing": "same-task-and-repetition",
+      "reportMeanDelta": true,
+      "reportPositiveZeroRegressedPairs": true
+    }
+  ],
+  "measurementEligibility": {
+    "requiredModelRows": 12,
+    "requiredScoredModelRows": 12,
+    "requiredDeterministicControlRows": 4,
+    "maximumActiveExecutionFailures": 1,
+    "maximumParserOrRuntimeBlockers": 0,
+    "deterministicScorerRequired": true
+  },
+  "decisionRules": {
+    "contributionIdentified": {
+      "estimand": "original-minus-no-skill",
+      "minimumPositivePairs": 1,
+      "maximumRegressedPairs": 0
+    },
+    "irStaticImproved": {
+      "estimand": "ir-static-minus-original",
+      "meanDeltaMustBePositive": true,
+      "minimumPositivePairs": 1,
+      "maximumRegressedPairs": 0
+    },
+    "validatedArtifactImproved": {
+      "estimand": "validated-artifact-minus-original",
+      "allArtifactRowsMustPass": true,
+      "meanDeltaMustBePositive": true,
+      "minimumPositivePairs": 1,
+      "maximumRegressedPairs": 0
+    }
+  },
+  "dynamicTrigger": {
+    "mode": "residual-driven-only",
+    "maximumConditionalPaidCalls": 4,
+    "authorized": false
+  },
+  "authorizations": {
+    "modelMatrix": true,
+    "deterministicControl": true,
+    "dynamic": false,
+    "heldOut": false
+  },
+  "claimBoundary": "Prospective development estimands and decision rules only. Results cannot authorize held-out, readiness, automatic construction, dynamic repair, or main claims."
+}

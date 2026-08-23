@@ -923,6 +923,18 @@ schema/metadata source 现场派生 entity ordering、metadata inheritance 与 r
 mode、逐 task weight 0.80、0 answer-bearing duplication。该静态证据只授权继续构建 prospective construction
 identity 与 qualification lock；`paidExecution`、held-out、qualification 和 portfolio promotion 仍为 false。
 
+Task 18.18 补齐 construction identity 与 qualification lock，并暴露 disclosure 合同的新边界。手写 BIDS compiler
+的实际构建为 10 human minutes、23 adapter LOC、0 core branch delta、0 model tokens、217697 package bytes，
+必须保持 `manual-existing / mechanism-only`。Qualification 只检查 resource、route、execution observation 与
+deterministic scorer，不以任务成功为条件。冻结的唯一 12-call matrix 为 12/12 semantic-complete、0
+infrastructure blocker，但 residual audit 发现：12/12 输出的 issue code、repair 和 summary 一致，仅 1/12 满足
+oracle 对 `affectedPath`/`evidencePaths` 的唯一表示选择，而 public contract 没有公开这两个字段的 value semantics。
+
+因此 disclosure 合格不能只由 JSON pointer 集合相等推出。凡 scorer 对枚举值、规范化路径、表示等价类、数组
+元素身份或跨字段关系作精确判定，public contract 与 canary 必须同时公开并差分测试这些 value semantics；否则
+真实运行只能冻结为 measurement-invalid。本 BIDS v1 的数值 quality/paired improvement 不进入研究 claim，旧
+task/scorer/lock/result 不原地修改；只有新 successor measurement identity 可修复语义合同。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

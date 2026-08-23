@@ -607,6 +607,26 @@ adapter、source-derived oracle 和 evaluator；不新建通用 schema 框架，
 也通过后才允许唯一一次 12-call `no-skill | original | ir-static` development 分母；不能用模型输出倒推合同，也
 不能把本阶段静态 preflight 写成质量正例。
 
+### Task 18.18：BIDS 前瞻构建、资格锁、唯一分母与残差审计
+
+1. [x] 以首版 BIDS 声明式 adapter、source-audited base IR 和确定性 compiler/runtime 生成 catalog-valid package；
+2. [x] 前瞻记录 10 human minutes、23 adapter LOC、0 core branch delta；一次 compiler/package 为 0 model
+   calls/tokens、217697 bytes、validation passed。手写 compiler 严格保持 `manual-existing / mechanism-only`；
+3. [x] 冻结首版通用 prospective development lock：五项 pre-paid gate、完整证据 closure、Pi 0.67.68、
+   Windows/clean、2 task x 2 repetition x 3 arm、12 行、`retries=0`、exact output 及 1+12 付费上限；
+4. [x] qualification 只以 resource、route、observability、deterministic scorer 为门。唯一资格行四门全过；任务
+   failure 只披露，不参与模型筛选；
+5. [x] 结果前冻结 paired analysis policy，并执行唯一 12-call 分母：12/12 semantic-complete/scored、0 active
+   failure、0 parser/runtime blocker；确定性 artifact control 4/4；
+6. [x] 数值投影为 no-skill/original/ir-static/artifact mean `0.2/0.2/0.4/1.0`，但 residual audit 发现
+   12/12 repair semantics 正确、仅 1/12 满足 scorer 的精确 issue-path 表示。公开 contract 没有区分
+   `affectedPath`/`evidencePaths` 的合理取值，故 BIDS v1 冻结为
+   `measurement-invalid / underspecified-issue-path-value-semantics`；数值 improvement 作废，dynamic、held-out、
+   readiness 继续关闭，artifact 只保留手写机制证据。
+
+**下一步：** 把 public JSON disclosure 从 pointer 完整提升为 value semantics/representation equivalence 完整，
+再决定是否建立 BIDS successor。不得原地改 v1 scorer、重评分或立即再烧矩阵。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

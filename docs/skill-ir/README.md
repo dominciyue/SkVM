@@ -102,10 +102,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 公共 declarative pilot adapter/lifecycle shadow parity 已完成（两正一负、0 paid、coreBranchDelta=0）
 -> Env Manager 全成本审计已完成：历史缺失不补零，break-even 不可计算，继续 fidelity-preserving
 -> 全过程复盘与前瞻 compiler cost capture 已完成：双案例 4/4 byte parity，历史手写路径保持 mechanism-only
--> BIDS 已按 exact source/双层 license/12-call 单次分母冻结为第二质量正例候选；付费仍关闭
--> BIDS 完整公开 JSON contract、17/17 pointer closure、贡献 audit 与 scorer canary 已完成（pre-paid 4/6）
--> 建立 BIDS prospective construction cost identity 与 qualification lock；二者通过前继续 0 paid
--> 再决定是否需要真实 dynamic residual；dynamic 是 residual-driven 路径，不是成熟度打卡项
+-> BIDS construction/qualification/唯一 12-call 分母已完成：12/12 semantic-complete、0 infrastructure blocker
+-> residual audit 发现 12/12 repair semantics 匹配但 11/12 被未公开的 issue-path 表示选择拒绝；v1 measurement-invalid
+-> 扩展 public JSON preflight 到 value semantics/representation equivalence；禁止原地改 BIDS v1 或立即重跑
+-> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验

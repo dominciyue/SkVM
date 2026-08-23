@@ -503,6 +503,13 @@ Tester 两包实测 133.46ms、725430 bytes，Env Manager v3 两包实测 63.16m
 零未自动化步骤、完整 optimizer/compiler/package stages、非矛盾 usage 与有效 package，才可提供 automatic
 production compile cost。本结果不反事实闭合 Env Manager 的历史 break-even。
 
+Task 18.18 将该 capture 用到 BIDS 新候选：10 human minutes、23 adapter LOC、0 core branch delta；一次 package
+construction 为 0 calls/tokens、217697 bytes、catalog validation passed。由于 base IR、adapter、compiler 和 tests
+仍由人手写，automatic eligible 保持 false。确定性 artifact 在两任务两重复上为 4/4、mean 1.0，但同期 12-call
+模型矩阵的 residual audit 发现公开 issue-path value semantics 不完整，故 artifact 只证明 source-derived compiler/
+runtime 机制，不是 automatic optimized 或 quality-positive 正例。Dynamic 未授权；必须先修复通用 disclosure
+preflight 对 canonical value/representation equivalence 的覆盖。
+
 ## 15. 测试
 
 ```powershell

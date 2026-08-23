@@ -369,11 +369,12 @@ audit；新的 contribution case 可以消费 `skill-contribution-identifiabilit
 后者必须重新计算得到逐字一致的 `eligible-for-baseline` 报告，并绑定同一 tasks/scorer digest，不能用静态资格
 绕开 runner、execution observability 或真实 paired gate。
 
-BIDS 是 disclosure 修复后的首个新 prospective candidate。两条 task 公开 `bids-audit.json` 的完整 17-pointer
-contract；evaluator 从冻结 schema/metadata source 重算而不读取隐藏 expected artifact。Contract preflight 通过
-canonical、alternative、prompt-only omission、reverse-evidence、forbidden-sink、type-negative 六角色；贡献审计
-识别 3 个独立 skill-derived failure mode，逐 task weight 0.80、0 answer-bearing duplication，五类 canary 全通过。
-这只完成 pre-paid gate 的 4/6；construction identity 与 qualification lock 缺失时仍必须 fail closed。
+BIDS 是 pointer disclosure 通过但 value-semantics disclosure 失败的前瞻案例。Task 18.18 补齐 construction 与
+qualification，唯一矩阵 12/12 semantic-complete、0 infrastructure blocker，随后 residual audit 发现 12/12 repair
+semantics 相同、仅 1/12 与 scorer 的精确 issue-path 表示一致。`affectedPath` 和 `evidencePaths` 虽在 17-pointer
+列表内，但公开合同没有规定 data/sidecar/source-reference 多种合理路径之间的 canonical choice；六角色 canary
+也只测试数组顺序，没有测试表示等价类。因此该 identity 冻结为 measurement-invalid，数值得分和 paired delta
+全部失去 claim 资格。未来 disclosure gate 必须覆盖 scorer 精确消费的 value domain、normalization 和跨字段关系。
 
 ## 9. Gate 顺序
 
