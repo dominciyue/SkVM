@@ -645,6 +645,25 @@ adapter、source-derived oracle 和 evaluator；不新建通用 schema 框架，
 **下一步：** 评审 5 项缺失语义能否在不泄露逐 task 答案的前提下形成公开、source-derived successor contract。
 若能，语义合同变化足以新建 BIDS measurement identity；若不能，停止 BIDS 并返回候选选择，不直接重跑。
 
+### Task 18.20：BIDS successor value-semantics feasibility
+
+1. [x] 只读绑定 public interface、development tasks、BIDS source schema/metadata、旧 contract/scorer、Task 18.19
+   preflight 与冻结 residual audit；不读取模型正文或 held-out，不调用 API，不修改 BIDS v1；
+2. [x] 逐项评审五个缺失语义，确认全部都可由公开 source contract 推导、可形成跨 task 通则、非
+   answer-bearing，并由 source-derived canary 验证；
+3. [x] 保留 path normalization 与 summary count relationship 两项公共义务；把 `affectedPath` 泛化为
+   repair target 或对应 logical data file；
+4. [x] 不复制 v1 的 source-reference filename 与 path-sensitive issue identity：`evidencePaths` 改为唯一且
+   repair-related 的 manifest evidence，issue identity 改为 code + severity + complete semantic repair；
+5. [x] 15 个 canonical / alternative-valid / invalid canary 全通过，compact verdict 为
+   `feasible-with-evaluator-redesign`；
+6. [x] 只开放新的 successor measurement identity freeze。Qualification、paid、dynamic、held-out、readiness
+   仍全部关闭，v1 不重评分、不补跑。
+
+**下一步：** Task 18.21 冻结新的 BIDS successor public contract、semantic scorer 与 value-semantics disclosure
+identity，并先通过 deterministic canary/audit。任何付费 qualification 或 development matrix 都必须等待该身份
+冻结且通过，不复用或覆盖 BIDS v1。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

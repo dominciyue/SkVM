@@ -1,0 +1,267 @@
+{
+  "schemaVersion": "skill-ir-bids-successor-value-semantics-feasibility/v1",
+  "auditId": "bids-successor-value-semantics-feasibility-v1",
+  "status": "feasible-with-evaluator-redesign",
+  "inputs": [
+    {
+      "path": "benchmarks/skill-ir/pilots/bids/public-interface.json",
+      "sha256": "d407db7eb2c5b8699d523f0362f5969529d73404cd2c5872331c6948c5f0b530"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/bids/development/tasks.json",
+      "sha256": "959c89546c614982297fa9aa503c6b31b7b5583a79e2eb279f5c30348f277806"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json",
+      "sha256": "6d72e394c87a94da5a2ce57e00f9e390ea5eeefb4cc39aa607d54d074aa6408b"
+    },
+    {
+      "path": "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md",
+      "sha256": "33407c21a2b36cf69f7f616d011ade487498cdb197eb215b9f2847aff5bac68a"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/bids-contract.ts",
+      "sha256": "72a9b1805970143136ae373247facc1f7db9c5a70ef1083f999adcb19f4d4e87"
+    },
+    {
+      "path": "src/bench/evaluators/bids-grade.ts",
+      "sha256": "e0b0b552a7f646ee5b98109d3c398c60102c67d96f47a81c6546f4ae59387bee"
+    },
+    {
+      "path": "results/skill-ir/bids-value-semantics-preflight-v1.json",
+      "sha256": "c8fe81aaf13fd52ffe5dd5b347149a6a16f3cbdd4b16c5af0cf54c9832152579"
+    },
+    {
+      "path": "results/skill-ir/bids-prospective-development-v1/residual-audit.json",
+      "sha256": "57b6b3f85950343ca7f3d550ce4de80c8af358d9b85456e72a51f6efca14fdd4"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/bids-successor-value-semantics-feasibility.ts",
+      "sha256": "22e3e9b02fa3d9cbb681cd0bdf7d3a5c148c94dd250437a3ae511bcd204e8ff8"
+    }
+  ],
+  "assessments": [
+    {
+      "id": "affected-path-canonical-role",
+      "v1Classification": "measurement-obligation",
+      "successorTreatment": "generalize-to-repair-related-manifest-path",
+      "sourceDerivable": true,
+      "generalTaskRule": true,
+      "answerBearing": false,
+      "canaryBacked": true,
+      "publicRule": "affectedPath must name a dataset-manifest entry that is the repair target or its corresponding logical data file.",
+      "sourceBasis": [
+        "src/benchmarks/skill-ir/bids-contract.ts",
+        "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json"
+      ]
+    },
+    {
+      "id": "evidence-path-canonical-role",
+      "v1Classification": "evaluator-over-specificity",
+      "successorTreatment": "replace-with-repair-related-manifest-evidence",
+      "sourceDerivable": true,
+      "generalTaskRule": true,
+      "answerBearing": false,
+      "canaryBacked": true,
+      "publicRule": "evidencePaths must contain unique dataset-manifest entries related to the issue repair; source-reference filenames are not semantic answers.",
+      "sourceBasis": [
+        "src/benchmarks/skill-ir/bids-contract.ts",
+        "benchmarks/skill-ir/pilots/bids/source/references/metadata_fields.md"
+      ]
+    },
+    {
+      "id": "issue-element-identity",
+      "v1Classification": "evaluator-over-specificity",
+      "successorTreatment": "replace-with-semantic-repair-identity",
+      "sourceDerivable": true,
+      "generalTaskRule": true,
+      "answerBearing": false,
+      "canaryBacked": true,
+      "publicRule": "Issue identity is code, severity, and the complete semantic repair; affected/evidence path presentation does not create another issue.",
+      "sourceBasis": [
+        "src/benchmarks/skill-ir/bids-contract.ts",
+        "src/bench/evaluators/bids-grade.ts"
+      ]
+    },
+    {
+      "id": "report-path-normalization",
+      "v1Classification": "measurement-obligation",
+      "successorTreatment": "retain-public-obligation",
+      "sourceDerivable": true,
+      "generalTaskRule": true,
+      "answerBearing": false,
+      "canaryBacked": true,
+      "publicRule": "Every report path is relative POSIX syntax with no empty, absolute, dot, or parent segments.",
+      "sourceBasis": [
+        "src/benchmarks/skill-ir/bids-contract.ts",
+        "benchmarks/skill-ir/pilots/bids/source/references/bids_schema.json"
+      ]
+    },
+    {
+      "id": "summary-count-relationship",
+      "v1Classification": "measurement-obligation",
+      "successorTreatment": "retain-public-obligation",
+      "sourceDerivable": true,
+      "generalTaskRule": true,
+      "answerBearing": false,
+      "canaryBacked": true,
+      "publicRule": "issueCount equals issues.length and errorCount equals the number of error-severity issues.",
+      "sourceBasis": [
+        "src/benchmarks/skill-ir/bids-contract.ts"
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "affected-role-canonical",
+      "semanticId": "affected-path-canonical-role",
+      "role": "canonical",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "affected-role-alternative",
+      "semanticId": "affected-path-canonical-role",
+      "role": "alternative-valid",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "affected-role-invalid",
+      "semanticId": "affected-path-canonical-role",
+      "role": "invalid",
+      "expected": "rejected",
+      "observed": "rejected",
+      "passed": true
+    },
+    {
+      "id": "evidence-role-canonical",
+      "semanticId": "evidence-path-canonical-role",
+      "role": "canonical",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "evidence-role-alternative",
+      "semanticId": "evidence-path-canonical-role",
+      "role": "alternative-valid",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "evidence-role-invalid",
+      "semanticId": "evidence-path-canonical-role",
+      "role": "invalid",
+      "expected": "rejected",
+      "observed": "rejected",
+      "passed": true
+    },
+    {
+      "id": "issue-identity-canonical",
+      "semanticId": "issue-element-identity",
+      "role": "canonical",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "issue-identity-alternative",
+      "semanticId": "issue-element-identity",
+      "role": "alternative-valid",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "issue-identity-invalid",
+      "semanticId": "issue-element-identity",
+      "role": "invalid",
+      "expected": "rejected",
+      "observed": "rejected",
+      "passed": true
+    },
+    {
+      "id": "path-normalization-canonical",
+      "semanticId": "report-path-normalization",
+      "role": "canonical",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "path-normalization-alternative",
+      "semanticId": "report-path-normalization",
+      "role": "alternative-valid",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "path-normalization-invalid",
+      "semanticId": "report-path-normalization",
+      "role": "invalid",
+      "expected": "rejected",
+      "observed": "rejected",
+      "passed": true
+    },
+    {
+      "id": "summary-relationship-canonical",
+      "semanticId": "summary-count-relationship",
+      "role": "canonical",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "summary-relationship-alternative",
+      "semanticId": "summary-count-relationship",
+      "role": "alternative-valid",
+      "expected": "accepted",
+      "observed": "accepted",
+      "passed": true
+    },
+    {
+      "id": "summary-relationship-invalid",
+      "semanticId": "summary-count-relationship",
+      "role": "invalid",
+      "expected": "rejected",
+      "observed": "rejected",
+      "passed": true
+    }
+  ],
+  "counts": {
+    "missingV1Semantics": 5,
+    "retainedPublicObligations": 2,
+    "generalizedSemantics": 1,
+    "replacedEvaluatorSpecificities": 2,
+    "canaries": 15,
+    "failedCanaries": 0
+  },
+  "decision": {
+    "continueBids": true,
+    "preserveV1": true,
+    "requiresNewMeasurementIdentity": true,
+    "requiresEvaluatorRedesign": true,
+    "nextStage": "freeze-successor-contract-and-scorer-before-any-paid-run"
+  },
+  "historicalEvidence": {
+    "bidsV1Preserved": true,
+    "residualAuditConsumed": true,
+    "valuePreflightConsumed": true,
+    "modelOutputContentConsumed": false,
+    "heldOutConsumed": false
+  },
+  "authorizations": {
+    "successorIdentityFreeze": true,
+    "qualification": false,
+    "paidExecution": false,
+    "dynamic": false,
+    "heldOut": false,
+    "readinessPromotion": false
+  },
+  "claimBoundary": "This development-only feasibility audit shows that a BIDS successor can disclose and canary-test its value semantics after removing v1 evaluator over-specificity. It authorizes only freezing a new measurement identity; it does not authorize rescoring v1, model execution, qualification, dynamic repair, held-out use, or readiness promotion."
+}

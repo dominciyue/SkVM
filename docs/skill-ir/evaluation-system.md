@@ -380,6 +380,13 @@ semantics 相同、仅 1/12 与 scorer 的精确 issue-path 表示一致。`affe
 summary count relationship 共 5 项未公开。17 个 evaluator canary 全部符合角色预期，所以 blocker 来自合同披露，
 不是 scorer 执行或基础设施。
 
+Task 18.20 的 successor feasibility audit 将“缺失”与“应该原样公开”分开。新 scorer 应保留安全 POSIX path
+normalization 和 summary/count 一致性；允许 `affectedPath` 使用 repair target 或对应 logical data file；要求
+`evidencePaths` 非空、唯一、且都是 repair-related manifest entries；issue 去重身份只使用 code、severity 与完整
+repair。这样接受语义等价的 data/sidecar 表示，同时拒绝无关 manifest path、重复 semantic repair、非规范路径与
+错误 summary。五类各有 canonical、alternative-valid、invalid canary，共 15/15 通过。该 development-only
+evidence 只允许创建新的 contract/scorer identity，不允许用新规则回算 v1。
+
 ## 9. Gate 顺序
 
 ```text

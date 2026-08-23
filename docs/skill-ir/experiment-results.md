@@ -607,9 +607,17 @@ qualification/paid/dynamic/held-out/readiness 全 false。报告读取冻结 res
 `modelOutputContentConsumed=false`、`heldOutConsumed=false`。该结果证明新 preflight 能在付费前捕获 BIDS v1
 缺口，不证明 successor 已可测量，也不授权重跑。
 
+Task 18.20 同样为 0 模型调用、0 held-out 的确定性 feasibility audit。五个缺失语义全部满足 source-derived、
+general-task-rule、non-answer-bearing 与 canary-backed，但处理方式不同：2 项 retained public obligations
+（path normalization、summary relationship），1 项 generalized semantics（affected path），2 项 replaced v1
+evaluator specificities（evidence path、issue identity）。15/15 canonical / alternative-valid / invalid canary 通过，
+compact 状态为 `feasible-with-evaluator-redesign`。该结果只授权冻结新 measurement identity，不恢复 v1 quality
+score，也不开放 qualification、paid、dynamic、held-out 或 readiness。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
 - `results/skill-ir/bids-prospective-development-v1/result.json`
 - `results/skill-ir/bids-prospective-development-v1/residual-audit.json`
 - `results/skill-ir/bids-value-semantics-preflight-v1.json`
+- `results/skill-ir/bids-successor-value-semantics-feasibility-v1.json`

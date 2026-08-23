@@ -911,8 +911,10 @@ Task 18.17 又完成两条 non-answer-bearing task、完整 17-pointer contract�
 semantic-complete 且 0 infrastructure blocker，residual audit 证明 contract 只公开字段、没有公开精确 issue-path
 value semantics，故 BIDS v1 冻结为 measurement-invalid。Task 18.19 随后新增并列首版 value-semantics audit，
 不改变旧 pointer v1 输出；BIDS 只读 preflight 的 17/17 pointer 仍 passed，但 7 项 evaluator 语义仅 2 项公开、
-5 项缺失，17 个确定性 canary 全部按预期，最终在 qualification/paid 前 blocked。当前接力点是决定是否建立
-语义合同明确的 BIDS successor，而不是直接重跑：
+5 项缺失，17 个确定性 canary 全部按预期，最终在 qualification/paid 前 blocked。Task 18.20 已进一步确认
+successor 可行，但必须重设计 evaluator：保留 normalization/summary，泛化 affected path，并以 repair-related
+manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化；15/15 feasibility canary 通过。当前接力点
+是冻结新的 contract/scorer/disclosure identity，而不是直接重跑：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -923,7 +925,8 @@ value semantics，故 BIDS v1 冻结为 measurement-invalid。Task 18.19 随后�
 已完成：BIDS construction identity -> qualification -> 唯一 12-call 分母；付费口径 1 + 12
 已冻结：BIDS v1 issue-path value semantics 缺失，quality delta 作废；artifact 仅 mechanism-only
 已完成：通用 value-semantics disclosure + BIDS 只读 blocker；0 paid，旧 v1 文件与结果不改
-下一步：评审 5 项缺失语义是否能形成 non-answer-bearing successor contract；能则新建身份，不能则停止 BIDS
+已完成：successor feasibility；2 retain + 1 generalize + 2 replace，15/15 canary，0 model/held-out
+下一步：冻结新 public contract + semantic scorer + disclosure identity；通过前不 qualification、不付费
 ```
 
 本地重建命令：
@@ -932,6 +935,8 @@ value semantics，故 BIDS v1 冻结为 measurement-invalid。Task 18.19 随后�
 bun test ./src/benchmarks/skill-ir/public-json-value-semantics-disclosure.test.ts
 bun test ./src/benchmarks/skill-ir/bids-value-semantics-preflight.test.ts
 bun run ./src/benchmarks/skill-ir/bids-value-semantics-preflight.ts
+bun test ./src/benchmarks/skill-ir/bids-successor-value-semantics-feasibility.test.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-value-semantics-feasibility.ts
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

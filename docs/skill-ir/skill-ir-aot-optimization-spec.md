@@ -947,6 +947,17 @@ BIDS v1 只读 preflight 证明该门可工作：原 17/17 pointer closure 保�
 `blocked-before-paid`，0 model/held-out consumption。该新报告是旧 measurement-invalid 的预付费复现，不是旧结果
 重判，也不是 successor contract 已完成。
 
+Task 18.20 对五项缺失语义继续做 source-bound、non-answer-bearing feasibility audit。结论不是把 v1 scorer 的
+精确表示直接搬进公开合同，而是 `feasible-with-evaluator-redesign`：path normalization 与 summary count
+relationship 继续作为公共义务；`affectedPath` 泛化为 repair target 或对应 logical data file；
+`evidencePaths` 改为唯一且与 repair 相关的 manifest evidence，不再要求私有 source-reference filename；issue
+element identity 改为 code、severity 与完整 semantic repair，path presentation 不制造新 issue。五项规则均由
+公开 source closure 推导，且 canonical / alternative-valid / invalid 共 15 个 canary 全通过。
+
+该结论只授权冻结新的 successor measurement identity。新的 public contract 与 semantic scorer 必须共同冻结并
+重新通过 pointer/value-semantics disclosure；BIDS v1 task/scorer/lock/result 继续不可变，也不得重评分。付费
+qualification、development、dynamic、held-out 与 readiness promotion 在 successor identity 完成前仍关闭。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

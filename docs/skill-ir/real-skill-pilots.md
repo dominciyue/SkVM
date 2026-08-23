@@ -240,6 +240,12 @@ closure 保持 passed；新通用 value-semantics 层在 17 个真实 scorer can
 BIDS v1。下一步只有在 5 项语义可用 non-answer-bearing contract 公开、且 source-derived canary 能区分合法多表示
 与真实语义错误时，才值得创建 successor measurement identity。
 
+Task 18.20 已完成这项评审并得到 `feasible-with-evaluator-redesign`。五项都可由 source closure 推导且不泄露逐
+task 答案，但只保留 path normalization 与 summary relationship；affected path 泛化为 repair-related data/
+sidecar role，evidence 改为唯一 repair-related manifest entries，issue identity 改为 code + severity + semantic
+repair。15/15 source-derived canary 通过。BIDS 继续作为第二质量正例候选，但当前仍不进入 readiness/portfolio
+分母；下一阶段只冻结 successor contract/scorer identity，不执行模型或 held-out。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为
