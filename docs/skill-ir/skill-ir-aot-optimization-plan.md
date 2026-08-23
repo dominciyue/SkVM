@@ -748,6 +748,45 @@ raw/scored/workdir 保持本地。若 resource、route、observability 或 score
 6. [x] 运行相关测试、typecheck、doc links、current broad suite、secret/absolute-path 与 `git diff --check`；显式提交
    compact evidence 和既有权威文档，不纳入 `1.md` 或历史本地数据。
 
+### Task 18.24：BIDS successor analysis/matrix execution identity 冻结
+
+**目标：** 在任何 12-row matrix call 前，以 Task 18.22 lock 与 Task 18.23 passed qualification 为不可变父身份，
+冻结 successor 专属 analysis policy、固定行顺序、可恢复前缀协议和 matrix runner implementation closure。本阶段
+只做 plan/materialization/scorer dry-run 与 compact freeze，0 新 API 调用；下一阶段才允许首次从 0/12 开始执行。
+
+**实现选择：** 新建独立首版 successor policy/runner，不修改被旧 lock 绑定的通用 prospective runner、旧 BIDS v1
+policy/runner 或共享 evaluator registry。Policy 继续使用三组预注册 estimand：original-no-skill contribution、
+ir-static-original static、validated-artifact-original artifact；measurement eligibility 保持 12 scored model rows、
+4 deterministic controls、最多 1 个 active execution failure、0 parser/runtime blocker与 deterministic scorer complete。
+这不是通用 framework 升版，只是 Task 18.21 新 measurement identity 的第一份 analysis/matrix 身份。
+
+**文件级 TDD：**
+
+1. [x] RED：policy test 要求 exact binding 当前 successor lock/qualification/tasks/scorer 与新 runner/analysis
+   implementation；qualification 必须 passed、`paidCalls=1`、`paidMatrix=true` 且 lock digest 一致，任何 drift fail closed；
+2. [x] RED：冻结 2 task x 2 repetition x no-skill/original/ir-static = 12 rows/4 triplets，行顺序固定为 task ->
+   repetition -> system，`retries=0`、reserve=0、forward-only；重复、缺失或乱序 persisted prefix 必须拒绝；
+3. [x] RED：policy 固定三组 paired estimand 与既有 measurement eligibility，dynamic trigger 仅 residual-driven 且未
+   授权；held-out/readiness/qualification-repeat/v1-row-reuse 全部禁止；
+4. [x] GREEN：实现 successor policy schema/builder/validator、薄 matrix runner、固定行排序与 persisted-prefix guard；
+   runner 直载 lock scorer，以单一原子 checkpoint 逐行持久化 raw/envelope 对，完成固定分母后才投影 JSONL、统一
+   评分与 compact capture；
+5. [x] 生成 committed analysis policy 与 0-paid compact freeze，证明 12/12 successor rows、scorer direct-load、
+   parent digest closure、matrix 尚未执行且只授权下一阶段一次 forward-only matrix；
+6. [x] 同步既有权威文档与日志；运行 focused/related、typecheck、doc links、current broad、secret/absolute-path 与
+   `git diff --check`，只显式提交本阶段文件，不纳入 qualification raw/scored/plan/workdir、`1.md` 或历史数据。
+
+### Task 18.25：BIDS successor 唯一 12-row 开发矩阵
+
+**目标：** 只消费 Task 18.24 committed policy 所授权的同一 lock/qualification 下 12 个 model rows，从 0/12
+开始按固定顺序执行并持久化完整分母。不得重复 qualification、使用 reserve/retry、复用或重评分 BIDS v1 行，
+也不得因中间 task 结果、score 或 active failure 改变后续行；中断后只能从摘要完全一致的 prefix 继续。
+
+**停止边界：** parser/runtime blocker、digest/identity drift、checkpoint 损坏或资格失效立即停止。Active timeout/
+step-limit 作为冻结行进入分母，累计是否超过 measurement eligibility 上限只在完整捕获后判定；本阶段不执行
+dynamic、held-out、readiness，也不先验承诺第二质量正例。模型矩阵完成并通过完整性核验后，再以已冻结的 4 个
+deterministic controls 生成 development result。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

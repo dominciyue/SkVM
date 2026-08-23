@@ -268,6 +268,12 @@ Task 18.23 随后只执行了这一次资格。Resource、route、observability�
 scored row 与 workdir 不提交。当前 BIDS 仍不是第二质量正例；下一阶段先冻结 successor analysis/matrix runner
 identity，再执行同一 lock 的唯一 12 rows，dynamic/held-out/readiness 继续关闭。
 
+Task 18.24 已在 0 新 API 调用下完成该 runner identity。新 analysis policy 绑定当前 lock、唯一 qualification、
+successor task/scorer 和四个 execution/analysis implementation digest，固定三组 estimand、12 model rows、4
+deterministic controls、task -> repetition -> system 顺序与 0 retry/reserve。独立薄 runner 用原子 raw+envelope
+prefix checkpoint 支持中断恢复，只接受完全匹配的连续前缀；12 行齐全后才评分。Compact freeze 为 passed、matrix
+0/12，BIDS v1 仍 preserved/not-rescored。当前仍不是第二质量正例；下一步只运行该唯一 development 分母。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为

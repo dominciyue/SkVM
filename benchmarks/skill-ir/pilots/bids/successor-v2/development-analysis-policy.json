@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "skill-ir-bids-successor-analysis-policy/v1",
+  "analysisId": "bids-successor-development-analysis-2026-08-23",
+  "frozenAt": "2026-08-23T00:00:00.000Z",
+  "timing": "after-qualification-before-model-matrix",
+  "measurementIdentity": "bids-successor-semantic-scorer-v2",
+  "lock": {
+    "path": "benchmarks/skill-ir/pilots/bids/successor-v2/development-lock.json",
+    "sha256": "b7dec5eb120520bba8542656ae4f7cde9890b44a82f7799306cc2544c4207338"
+  },
+  "qualification": {
+    "path": "results/skill-ir/bids-successor-development-v1/qualification.json",
+    "sha256": "aa084f378cfed488f67b14252283c57b398616bbda158dd8d9f6988834504001"
+  },
+  "tasks": {
+    "path": "benchmarks/skill-ir/pilots/bids/successor-v2/development/tasks.json",
+    "sha256": "ee9a03f10def1f2115e1d7936b2469acf3ed1994e906c5529d66a2c626e5cb20"
+  },
+  "scorer": {
+    "path": "src/bench/evaluators/bids-successor-grade.ts",
+    "sha256": "fba0a428f64dc03e0826155522a46f47a5493ada92d1306b8407046db30244d5"
+  },
+  "implementation": [
+    {
+      "path": "src/benchmarks/skill-ir/bids-successor-matrix.ts",
+      "sha256": "b1311c265ee60c0fdcf8422eabd1ccb219804b445791155f09bd201fe9d701c5"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/bids-successor-matrix-run.ts",
+      "sha256": "400748973a3553b58da3dff239fa79d1b8d148abe5e1b88563a3c35171c157b1"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/prospective-development-run.ts",
+      "sha256": "85c0606a93bc2fe6a373c116989a01e86618efaab68f99e7e7d2b9020a4fd0b5"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/prospective-development-result.ts",
+      "sha256": "172b8f42c8b60077fa9e03c277b89d825652b0df5956000d3e42d6ec0ea879b7"
+    }
+  ],
+  "denominator": {
+    "modelRows": 12,
+    "modelTriplets": 4,
+    "deterministicControlRows": 4,
+    "systems": [
+      "no-skill",
+      "original",
+      "ir-static"
+    ],
+    "order": "task-then-repetition-then-system",
+    "retries": 0,
+    "reserveBlocksPerTask": 0,
+    "forwardOnly": true
+  },
+  "estimands": [
+    {
+      "id": "original-minus-no-skill",
+      "treatment": "original",
+      "comparator": "no-skill",
+      "metric": "deterministic-evaluator-score",
+      "pairing": "same-task-and-repetition",
+      "reportMeanDelta": true,
+      "reportPositiveZeroRegressedPairs": true
+    },
+    {
+      "id": "ir-static-minus-original",
+      "treatment": "ir-static",
+      "comparator": "original",
+      "metric": "deterministic-evaluator-score",
+      "pairing": "same-task-and-repetition",
+      "reportMeanDelta": true,
+      "reportPositiveZeroRegressedPairs": true
+    },
+    {
+      "id": "validated-artifact-minus-original",
+      "treatment": "validated-artifact",
+      "comparator": "original",
+      "metric": "deterministic-evaluator-score",
+      "pairing": "same-task-and-repetition",
+      "reportMeanDelta": true,
+      "reportPositiveZeroRegressedPairs": true
+    }
+  ],
+  "measurementEligibility": {
+    "requiredModelRows": 12,
+    "requiredScoredModelRows": 12,
+    "requiredDeterministicControlRows": 4,
+    "maximumActiveExecutionFailures": 1,
+    "maximumParserOrRuntimeBlockers": 0,
+    "deterministicScorerRequired": true
+  },
+  "decisionRules": {
+    "contributionIdentified": {
+      "estimand": "original-minus-no-skill",
+      "minimumPositivePairs": 1,
+      "maximumRegressedPairs": 0
+    },
+    "irStaticImproved": {
+      "estimand": "ir-static-minus-original",
+      "meanDeltaMustBePositive": true,
+      "minimumPositivePairs": 1,
+      "maximumRegressedPairs": 0
+    },
+    "validatedArtifactImproved": {
+      "estimand": "validated-artifact-minus-original",
+      "allArtifactRowsMustPass": true,
+      "meanDeltaMustBePositive": true,
+      "minimumPositivePairs": 1,
+      "maximumRegressedPairs": 0
+    }
+  },
+  "dynamicTrigger": {
+    "mode": "residual-driven-only",
+    "maximumConditionalPaidCalls": 4,
+    "authorized": false
+  },
+  "accounting": {
+    "priorQualificationPaidCalls": 1,
+    "currentStagePaidCalls": 0,
+    "modelMatrixPaidCallCeiling": 12,
+    "retriesPaidCallCeiling": 0
+  },
+  "authorizations": {
+    "modelMatrix": true,
+    "deterministicControl": true,
+    "dynamic": false,
+    "heldOut": false,
+    "readinessPromotion": false
+  },
+  "prohibited": [
+    "qualification-repeat",
+    "bids-v1-rescoring-or-row-reuse",
+    "retry-or-reserve-selection",
+    "post-hoc-row-selection",
+    "dynamic",
+    "held-out",
+    "readiness-promotion"
+  ],
+  "claimBoundary": "Successor development estimands, eligibility, execution order, and forward-only persistence are frozen after the passed one-call qualification and before the 12-call matrix. This policy does not authorize qualification repetition, BIDS v1 reuse or rescoring, retries, reserve selection, dynamic repair, held-out use, readiness promotion, or a model-quality claim."
+}

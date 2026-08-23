@@ -997,6 +997,21 @@ semantic success 为 true；全 workdir exact-set disclosure 为 false，但该�
 matrix runner implementation closure，并只执行同一 lock 的 12 个 forward-only rows；不得重复 qualification、
 更换 task/candidate、复用 v1 行或依据这一次 semantic success 调整分母。
 
+Task 18.24 已完成这项付费前冻结。`skill-ir-bids-successor-analysis-policy/v1` 精确绑定当前 lock、唯一 passed
+qualification、successor tasks/scorer，以及独立 successor matrix policy/runner 与复用的 execution/result
+implementation digest。它预注册 original-no-skill、ir-static-original、validated-artifact-original 三组同
+task/repetition estimand；measurement eligibility 固定为 12/12 model scored rows、4 deterministic controls、最多
+1 个 active execution failure、0 parser/runtime blocker和 deterministic scorer complete。模型行严格按 task ->
+repetition -> no-skill/original/ir-static 执行，0 retry、0 reserve、forward-only；runner 用一个同时包含 raw 与
+envelope 的原子 prefix checkpoint 恢复，缺失、重复、乱序或身份漂移均失败关闭；committed freeze 反向绑定
+policy 路径与 digest closure。Parser/runtime/qualification/measurement blocker 在该行持久化后立即停止且不可
+跨过，active timeout/step-limit 留在固定分母中继续执行；完整 12 行后才投影 JSONL 并评分。
+Committed policy 与 compact freeze 分别位于
+`benchmarks/skill-ir/pilots/bids/successor-v2/development-analysis-policy.json` 和
+`results/skill-ir/bids-successor-matrix-freeze-v1.json`。本阶段新 API 调用为 0、matrix 为 0/12；qualification 不
+重复，dynamic、held-out、readiness 与模型质量 claim 仍关闭。该首版是 successor measurement identity 的专属薄
+层，不是通用 framework 或历史 BIDS v1 的版本升级。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

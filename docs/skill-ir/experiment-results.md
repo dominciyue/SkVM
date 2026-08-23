@@ -641,6 +641,14 @@ deterministic-evaluator row，semantic success true。`exactOutputsPresent=false
 12-row quality delta，也不授权 dynamic、held-out 或 readiness。API credential、raw/scored/plan/workdir 不属于
 compact 证据。下一阶段须先绑定 analysis/matrix runner implementation，再执行唯一 successor 分母。
 
+Task 18.24 在任何 matrix call 前生成 `skill-ir-bids-successor-analysis-policy/v1` 与 compact matrix freeze。Policy
+精确绑定 Task 18.22 lock、Task 18.23 qualification、successor tasks/scorer 和独立 runner/复用原语 digest；资格
+保持 `passed`、`paidCalls=1`、`paidMatrix=true` 且 lock digest 一致。固定模型分母为 12 rows/4 triplets，顺序
+task -> repetition -> no-skill/original/ir-static，0 retry、0 reserve、forward-only；确定性 control 为 4 rows。
+Measurement eligibility 仍要求 12 scored model rows、4 controls、active failure <= 1、parser/runtime blocker = 0、
+deterministic scorer complete。零付费 freeze 重建 12/12 successor plan rows、lock-local scorer 与空原子 prefix，
+记录 `currentStagePaidCalls=0`、`matrixExecuted=false`；因此这里没有质量 delta，也不改变 readiness 或 portfolio。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -652,3 +660,5 @@ compact 证据。下一阶段须先绑定 analysis/matrix runner implementation�
 - `results/skill-ir/bids-successor-development-freeze-v1.json`
 - `results/skill-ir/bids-successor-development-v1/qualification.json`
 - `results/skill-ir/bids-successor-development-v1/qualification/resource-probe.json`
+- `benchmarks/skill-ir/pilots/bids/successor-v2/development-analysis-policy.json`
+- `results/skill-ir/bids-successor-matrix-freeze-v1.json`

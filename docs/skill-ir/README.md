@@ -92,6 +92,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   closure 为 17/17，7 项 value semantics 全部公开且精确一致，21/21 canonical/alternative/invalid canary 通过；
   data/sidecar 表示均可接受，无关 manifest path、重复 semantic repair、非规范路径、错误 summary 与语义遗漏均
   被拒绝。BIDS v1 字节与 claim 保持不变；本阶段 0 模型调用、0 held-out，尚未授权 qualification 或付费执行。
+- Task 18.22--18.24 已依次冻结 successor 的 1+12 development lock、完成唯一一次基础设施资格，并在付费矩阵前
+  冻结 analysis/runner 身份。资格四门全绿、`paidCalls=1`；新 policy 固定 12 model rows、4 deterministic
+  controls、三组 paired estimand、task -> repetition -> system 顺序与单一原子 prefix checkpoint。Compact matrix
+  freeze 为 0 新调用、0/12 matrix rows，只授权下一阶段执行同一 lock 的唯一 forward-only 分母。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -120,7 +124,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> successor public contract + semantic scorer + disclosure identity 已冻结并通过 21/21 canary
 -> successor qualification/development identity 已零付费冻结：12-row dry-run、lock-local scorer、只开放一次资格
 -> successor 单次 infrastructure qualification 已通过：四门全绿、1 paid、semantic-complete、deterministic scorer
--> 下一步冻结 successor analysis/matrix runner identity，再运行唯一 12-row 分母；资格不得重复、v1 行不得复用
+-> successor analysis/matrix runner identity 已冻结：固定顺序、精确 prefix、12+4 denominator，matrix 仍为 0/12
+-> 下一步执行同一 lock 的唯一 12-row successor 分母；资格不得重复、v1 行不得复用、不得重试或后验选行
 -> BIDS v1 始终不复用、不补跑、不重评分；qualification 也不以 task success 或 exact output 预筛模型
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断

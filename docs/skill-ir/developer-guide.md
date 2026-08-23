@@ -918,8 +918,9 @@ manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化�
 旧 v1 不重评分。Task 18.22 又完成首版 successor qualification/development lock 与零付费 compact freeze：
 12-row dry-run 全部使用 successor task/evaluator/payload，scorer lock-local direct-load，只开放下一次 infrastructure
 qualification。Task 18.23 已完成唯一一次资格：resource/route/observability/scorer 四门全过、1 paid、
-semantic-complete；exact workdir set false 只披露、不作 gate。当前接力点是在付费矩阵前冻结 successor
-analysis/matrix runner identity，而不是重跑资格、复用旧行或直接调用未绑定 runner：
+semantic-complete；exact workdir set false 只披露、不作 gate。Task 18.24 又在 0 新调用下冻结 successor
+analysis/matrix runner identity：12-row 顺序、三组 estimand、4 个 deterministic controls 与原子 prefix resume
+协议都已绑定。当前接力点是从 0/12 执行这份唯一矩阵，而不是重跑资格、复用旧行或更换 runner：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -934,7 +935,8 @@ analysis/matrix runner identity，而不是重跑资格、复用旧行或直接�
 已完成：successor public contract + semantic scorer + disclosure freeze；21/21 canary，0 model/held-out
 已完成：successor qualification/development identity；12-row dry-run、lock-local scorer、0 paid
 已完成：successor infrastructure qualification；四门全绿、1 paid，matrix authorization true
-下一步：冻结 successor analysis/matrix runner identity，再运行同一 lock 的唯一 12-row 分母
+已完成：successor analysis/matrix identity；固定顺序/精确 prefix/12+4 denominator，0 新 paid，matrix 0/12
+下一步：运行同一 lock 的唯一 12-row 分母；不重试、不补资格、不复用 v1
 ```
 
 本地重建命令：
@@ -954,6 +956,9 @@ bun run ./src/benchmarks/skill-ir/bids-successor-development.ts
 bun run ./src/benchmarks/skill-ir/bids-successor-development-run.ts --phase=plan
 bun run ./src/benchmarks/skill-ir/bids-successor-development-run.ts --phase=qualification
 bun test ./src/benchmarks/skill-ir/bids-successor-development.test.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-matrix.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-matrix-run.ts --phase=plan
+bun test ./src/benchmarks/skill-ir/bids-successor-matrix.test.ts
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

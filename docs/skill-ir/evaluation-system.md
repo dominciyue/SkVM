@@ -451,6 +451,29 @@ Qualification 现在只授权下一阶段的 paid matrix。因为 Task 18.22 loc
 本次 qualification、successor scorer/tasks 与 runner implementation。该步骤不得改 lock 或重跑 qualification；
 dynamic、held-out、readiness 仍关闭。
 
+Task 18.24 已冻结该身份。重建和无付费 plan 入口为：
+
+```powershell
+bun run ./src/benchmarks/skill-ir/bids-successor-matrix.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-matrix-run.ts --phase=plan
+bun test ./src/benchmarks/skill-ir/bids-successor-matrix.test.ts
+```
+
+Policy 固定 12 model rows、4 paired triplets、4 deterministic controls 与三组 paired estimand，行序必须是 task ->
+repetition -> `no-skill | original | ir-static`；0 retry、0 reserve、forward-only。Runner 使用独立 successor 薄层，
+复用既有 row execution/result analysis 原语但不修改它们；scorer 仍按 lock-local source/digest 直载。每完成一行，
+raw 与 value-free envelope 作为同一 entry 写入原子替换的 `matrix-prefix.json`；恢复时只接受计划的精确前缀，任何
+gap、duplicate、乱序、双侧身份不一致或摘要漂移均停止。只有 12/12 prefix 完成后才生成 raw/envelope JSONL、
+调用 deterministic scorer 并写 compact capture。每次 plan/execute 还会用 committed freeze 反向验证固定 policy
+路径及其 digest closure；`parser-incompatible`、`runtime-crash`、`qualification-failure` 或
+`measurement-invalid` 在该行原子落盘后立即停止，已有 blocker prefix 也不得继续。Active timeout/step-limit
+作为冻结行保留并继续固定分母。
+
+Committed policy 为 `benchmarks/skill-ir/pilots/bids/successor-v2/development-analysis-policy.json`，零付费证据为
+`results/skill-ir/bids-successor-matrix-freeze-v1.json`。Freeze 重建 12/12 successor rows、直载 scorer，并确认
+matrix 仍为 0/12、本阶段 0 新调用。下一步 `--phase=execute` 只能执行这一份分母；qualification-repeat、BIDS v1
+reuse/rescore、dynamic、held-out 与 readiness 均禁止。
+
 ## 9. Gate 顺序
 
 ```text
