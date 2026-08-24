@@ -123,6 +123,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   Env/Law execute 为 2 logical paid attempts、0 retry/held-out/evaluator payload，但两案均在 plan 形成前落入首版
   `provider-or-parse` 合并分类；synthesis/transfer/eligibility 均 0/2。由于没有细分 HTTP/tool/JSON/schema 且失败
   usage/duration 不可用，当前只能冻结“未产出自动计划”，不能声称 domain 模型能力天花板。
+- Task 18.32 的独立 transport qualification 用同 route/backend、同 forced-tool schema 与 strict parser 返回 canonical
+  exact match：1 call、632 input/134 output、5.02 秒、0 retry/task/held-out/evaluator payload。它排除了持续工具合同
+  不兼容，但不追溯重分类 18.31。当前自动化产品边界是“候选/结构/局部 projection 自动化 + domain runtime 人工
+  审核或补齐”，portfolio automation 仍 0/7，readiness 不变；本轮自动化工作到此暂停。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -162,7 +166,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 首个 output primitive 已跨两案例生成部分产物；3 fields generated、15 unresolved、0/2 automatic eligible
 -> JSON Pointer successor 已真实复制 3 fields；15 -> 12，ceiling=pointer 1/query 1/domain-runtime 10
 -> Restricted Domain Plan 唯一双案例生成 0/2；2 calls/0 retry，但 provider-vs-parse 归因未建立
--> 下一步只做 1-call、无 task 的 forced-tool transport qualification；不重跑原请求或扩 DSL
+-> forced-tool transport qualification exact-match passed；不重分类历史 18.31
+-> 自动化阶段暂停：不重跑/扩 DSL/接 7-case；后续以人工审核 domain runtime 的产品边界继续
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

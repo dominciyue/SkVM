@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import {
   buildRestrictedDomainPlanPreModelFreeze,
   RestrictedDomainPlanShadowCatalogSchema,
@@ -79,6 +79,27 @@ describe("restricted Domain Plan shadow", () => {
     expect(JSON.parse(await readFile(join(outDir, "pre-model-freeze.json"), "utf8"))).toEqual(freeze);
   });
 
+  test("does not load the manual evaluator while freezing model requests", async () => {
+    const rootDir = process.cwd();
+    const catalog = RestrictedDomainPlanShadowCatalogSchema.parse(JSON.parse(await readFile(
+      join(rootDir, "benchmarks/skill-ir/corpus/automatic-domain-plan-shadow-v1.json"),
+      "utf8",
+    )));
+    const outDir = await mkdtemp(join(tmpdir(), "skill-ir-domain-plan-no-evaluator-load-"));
+    temporaryDirectories.push(outDir);
+    const freeze = await buildRestrictedDomainPlanPreModelFreeze(rootDir, {
+      ...catalog,
+      cases: catalog.cases.map((entry) => ({
+        ...entry,
+        manualEvaluatorModule: {
+          path: "src/benchmarks/skill-ir/absent-manual-evaluator.ts",
+          sha256: "0".repeat(64),
+        },
+      })),
+    }, outDir);
+    expect(freeze.summary.evaluatorPayloadAccesses).toBe(0);
+  });
+
   test("rejects a pre-model measurement start that is still in the future", async () => {
     const rootDir = process.cwd();
     const catalog = RestrictedDomainPlanShadowCatalogSchema.parse(JSON.parse(await readFile(
@@ -99,10 +120,10 @@ describe("restricted Domain Plan shadow", () => {
       join(rootDir, "benchmarks/skill-ir/corpus/automatic-domain-plan-shadow-v1.json"),
       "utf8",
     )));
-    const freeze = RestrictedDomainPlanPreModelFreezeSchema.parse(JSON.parse(await readFile(
-      join(rootDir, "results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json"),
-      "utf8",
-    )));
+    const freezeDir = await mkdtemp(join(rootDir, "results/skill-ir/automatic-domain-plan-shadow-test-"));
+    temporaryDirectories.push(freezeDir);
+    const freeze = await buildRestrictedDomainPlanPreModelFreeze(rootDir, catalog, freezeDir);
+    const preModelFreezePath = relative(rootDir, join(freezeDir, "pre-model-freeze.json")).replaceAll("\\", "/");
     const outDir = await mkdtemp(join(tmpdir(), "skill-ir-domain-plan-shadow-out-"));
     temporaryDirectories.push(outDir);
     const plans = {
@@ -182,6 +203,7 @@ describe("restricted Domain Plan shadow", () => {
         outDir,
         measurementCompletedAt: "2026-08-24T15:00:00.000Z",
         meteredHumanMinutes: 10,
+        preModelFreezePath,
         complete: async ({ caseId }) => ({
           plan: plans[caseId as keyof typeof plans],
           providerAttempts: 1,

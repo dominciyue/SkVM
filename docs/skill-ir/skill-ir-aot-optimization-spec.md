@@ -1131,13 +1131,21 @@ parser，但请求中只给出显式 canonical minimal plan，0 task/source/eval
 Qualification pass 只能排除持续的 forced-tool contract incompatibility，不能追溯重分类 18.31；qualification fail
 才能建立当前 transport blocker。两种结果都不授权原任务重跑、DSL 扩展、7-case 接入或 readiness promotion。
 
+唯一 qualification 已通过：canonical plan exact match，632 input/134 output tokens、5,023.5 ms、0 retry/task/
+held-out/evaluator payload。它否定的是“当前 route 持续不支持 forced tool + strict parser”这一窄假设；
+`historicalTaskFailuresReclassified=false` 保证 18.31 仍保持 0/2 且归因未知。由此冻结当前产品边界：系统可自动生成
+source/declaration candidates、执行结构门并构造局部 projection，但 domain-runtime plan/package 仍需人工审核或
+补齐。`automationAndAdaptationConverging` 不晋升；除非有能解释历史失败、前瞻覆盖至少两案例的新设计，否则暂停
+全自动 DSL 扩展、重复模型调用、7-case rollout、held-out 与多模型自动化实验。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
 development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但贡献和 static 均未通过；
 source-only 与薄声明 domain construction 均能生成 7/7 四类候选，结构 checker/runtime 已真实执行；首个通用
 output/pointer primitives 又在两个案例生成部分产物并将 unresolved 从 15 降到 12，但仍为 0/2 automatic eligible，
-且剩余 10 项需要 domain runtime，portfolio 的 0/7 automation 状态不变；
+且剩余 10 项需要 domain runtime；Restricted Domain Plan 双案例生成 0/2，独立 transport qualification 通过但不
+重分类历史失败，portfolio 的 0/7 automation 状态不变；
 i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
 方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。

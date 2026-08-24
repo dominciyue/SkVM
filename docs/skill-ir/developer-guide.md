@@ -928,7 +928,8 @@ task 声明语义层、结构 predicate 的真实 execution bridge 与首个跨�
 随后 Task 18.30 用 value-free JSON Pointer successor 将 unresolved 从 15 降到 12，并量化出 10 项 domain-runtime
 floor。Task 18.31 已完成 restricted Domain Plan、single-call 生成器、真实 workdir package 编排和 pre-model freeze；
 唯一双案例 execute 中两案都未形成 strict plan，且首版 `provider-or-parse` 无法精确区分 transport/JSON/schema。
-当前接力点只做独立 forced-tool qualification 澄清测量归因，不重跑原请求、不扩 pointer/query/DSL 或追加手写候选：
+Task 18.32 的独立 forced-tool qualification 已 exact-match 通过，但不重分类历史 18.31。自动化阶段现已暂停在
+“候选/结构/局部投影自动化 + 人工审核/补齐 domain runtime”边界，不重跑原请求、不扩 pointer/query/DSL：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -955,7 +956,8 @@ floor。Task 18.31 已完成 restricted Domain Plan、single-call 生成器、�
 已完成：Restricted Domain Plan pre-model freeze；2 cases/2 requests、0 paid/retry/held-out/evaluator payload
 已完成：Restricted Domain Plan 唯一 execute；2 calls/0 retry、synthesis/transfer/eligibility=0/2，归因未建立
 已完成：transport qualification pre-model freeze；canonical plan、1 authorized call、0 task/held-out/evaluator payload
-下一步：1-call 无 task transport qualification；结果只诊断 forced-tool 合同，不追溯重分类或补跑
+已完成：transport qualification exact-match pass；632/134 tokens、5.02 秒，不追溯重分类 18.31
+当前边界：自动化工作告一段落；domain runtime 需人工审核/补齐，readiness/portfolio 不晋升
 ```
 
 本地重建命令：

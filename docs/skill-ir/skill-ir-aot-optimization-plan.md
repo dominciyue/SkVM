@@ -1014,10 +1014,19 @@ automatic eligibility 0/2。两个 failure digest 不同，但首版 report 将 
    body、API key 或模型 reasoning；
 2. [x] 预先冻结 canonical request/expected-plan digest、同 route/backend、implementation closure、1-call authorization、
    0 retry/held-out/evaluator/task payload，并在 execute 前重验所有 identity；future measurement time fail closed；
-3. [ ] 唯一执行后冻结 pass/fail 与 tokens/duration。Pass 只排除“持续 forced-tool 合同不兼容”，不能反推 18.31
+3. [x] 唯一执行后冻结 pass/fail 与 tokens/duration。Pass 只排除“持续 forced-tool 合同不兼容”，不能反推 18.31
    两个历史错误具体属于 plan schema；fail 才能按机器 stage 支撑 transport blocker；
-4. [ ] 无论结果如何，都不重跑 18.31、不扩 DSL、不接 7-case/held-out/多模型。完成后基于 18.26--18.32 全链写明
+4. [x] 无论结果如何，都不重跑 18.31、不扩 DSL、不接 7-case/held-out/多模型。完成后基于 18.26--18.32 全链写明
    当前产品边界、人工审核点和 readiness 不晋升，并让本轮自动化工作告一段落。
+
+**资格结果与停止判定（2026-08-24）：** 唯一 1-call qualification 在 5,023.5 ms 内返回 schema-valid 且与
+canonical plan digest 精确一致的 forced-tool arguments；632 input、134 output、0 cache、0 retry/task/held-out/
+evaluator payload，结论为 `persistent-forced-tool-contract-compatible`。机器字段保持
+`historicalTaskFailuresReclassified=false`：它排除当前持续 transport incompatibility，但不追溯解释 18.31 两个
+历史失败。Task 18.26--18.30 证明 source/declaration skeleton、结构 runtime 与局部 projection 可自动化；18.31 未
+证明 domain-plan 自动生成可靠性，完整 package/manual parity 与 portfolio eligibility 仍为 0。故本轮自动化工作
+到此暂停：终态产品边界改为“自动生成候选 + 人工审核/补齐 domain runtime”，在新证据或新设计评审前不继续扩
+DSL、重复强模型、接 7-case/held-out 或据此晋升 readiness。
 
 ### 单模型族 70% 与多模型族启动门槛
 
@@ -1039,9 +1048,10 @@ compiler 构造并未前瞻发生、部分
 历史 all-attempt 字段缺失，仍是 fidelity-preserving，不是 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
 **40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
 不等于跨模型主实验已经启动。lifecycle wrapper shadow parity、scorer disclosure preflight 与 prospective
-compiler cost capture、薄声明构造、结构 execution bridge 和首个部分 output compiler 已完成；下一优先级是让
-通用语义变换消解至少两个案例的当前 unresolved，并逐步达到完整 domain predicate/manual parity，而不是继续修补
-不可恢复的历史缺失或直接烧新矩阵。真实 dynamic 只在稳定
+compiler cost capture、薄声明构造、结构 execution bridge、部分 output compiler 与受限 Domain Plan 主瓶颈试验
+已完成。当前自动化路线暂停在“候选生成 + 人工 domain runtime 审核”产品边界；不再用更多窄原语或重复模型调用
+追逐 unresolved 数字。后续若要恢复全自动目标，必须先提出能解释 18.31 失败并带双案例前瞻证据的新设计。真实
+dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 
 ## 5. 时间估算

@@ -331,6 +331,11 @@ Task 18.32 的 transport qualification 复用同一 `completeRestrictedDomainPla
 status 与 detail digest，不保存 body/reasoning。Pre-model freeze 绑定 4-file closure、request/expected-plan、route/
 backend 和唯一 1-call/0-retry authorization；它是独立诊断，不会重分类 Task 18.31。
 
+真实 qualification 返回 canonical exact match，632/134 input/output tokens、5,023.5 ms、failure null。这证明当前
+provider 能承载该 tool schema 且 strict parser 可接受返回值；不证明复杂 domain request 会稳定生成合法计划。历史
+18.31 仍为 0/2 且归因未知。Restricted Domain Plan 保留为受限候选机制，暂不接 7-case production path；domain
+runtime 需要人工审核/补齐，直到新的双案例前瞻设计建立可靠性。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `

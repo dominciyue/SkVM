@@ -748,6 +748,19 @@ digest 不同；首版 taxonomy 均为 `provider-or-parse`，且失败 token/dur
 结果编排；pre-measurement core work 继续 `not-measured`。这是一项“未产出计划且归因未建立”的正式负结果，不是
 domain 模型能力天花板，也不得通过重跑原请求或手工修 plan 改写。
 
+Task 18.32 随后以独立 identity 检查同一 forced-tool transport，而不重放任何 domain request。请求只含显式 canonical
+two-step plan，task/source/evaluator/held-out payload 为 0；freeze 绑定同 route/backend、tool/parser 实现与唯一
+1-call/0-retry budget。真实 qualification 在 5,023.5114 ms 内返回 schema-valid 且 digest 精确匹配的 canonical plan，
+token 为 input 632、output 134、cache read/write 0，status `passed`、failure null、结论
+`persistent-forced-tool-contract-compatible`。
+
+该结果排除当前持续 transport/tool contract incompatibility，但 `historicalTaskFailuresReclassified=false`，所以不能
+把 18.31 的两个历史合并错误改写为 plan-schema failure，也不能证明 domain plan 自动生成可靠。自动化全过程因此
+冻结在如下边界：source-only/declaration candidate 7/7、结构 runtime 33 scenarios、partial projection 3 fields、pointer
+后 unresolved 12（其中 domain-runtime 10），但 restricted Domain Plan synthesis 0/2、完整 automatic eligibility 0。
+本轮不再扩 DSL、重试强模型、接 7-case/held-out/多模型；产品默认需要人工审核/补齐 domain runtime，readiness 与
+portfolio automation 不更新。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -772,3 +785,5 @@ domain 模型能力天花板，也不得通过重跑原请求或手工修 plan �
 - `results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json`
 - `results/skill-ir/automatic-domain-plan-shadow-v1/report.json`
+- `results/skill-ir/automatic-domain-plan-transport-qualification-v1/pre-model-freeze.json`
+- `results/skill-ir/automatic-domain-plan-transport-qualification-v1/report.json`

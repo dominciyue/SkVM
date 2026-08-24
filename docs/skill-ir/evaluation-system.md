@@ -647,6 +647,10 @@ Transport qualification 的 pre-model freeze 只绑定 canonical request/expecte
 request 与 provider identity，再调用一次。Schema-valid tool arguments 即证明当前 forced-tool + strict-parser 合同可用；
 canonical exact match 另行披露但不决定 transport pass。任何失败按六段 stage 报告，原始 response 永不落盘。
 
+真实 qualification 为 pass 且 canonical exact match，1 attempt/0 retry、632 input/134 output、5,023.5 ms。该观测
+排除当前持续 transport incompatibility；report 强制 `historicalTaskFailuresReclassified=false`，所以 Task 18.31 仍
+保持合并归因。Qualification 不进入 automation eligibility、method phenotype 或 readiness 分母。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

@@ -267,8 +267,7 @@ export async function buildRestrictedDomainPlanPreModelFreeze(
       readPinned(rootDir, generation.source),
       readPinned(rootDir, generation.taskDescription),
       readPinned(rootDir, entry.taskSet),
-      readPinned(rootDir, entry.manualEvaluatorModule),
-    ]).then(([source, description, tasks]) => [source, description, tasks]);
+    ]);
     const description = ThinTaskDescriptionSchema.parse(JSON.parse(descriptionBytes.toString("utf8")));
     const taskSet = TaskSetSchema.parse(JSON.parse(taskSetBytes.toString("utf8")));
     const constructionTask = taskSet.tasks.find((task) => task.id === entry.constructionTaskId);
@@ -378,7 +377,13 @@ const ManualCriterionSchema = z.object({
 const TaskExecutionSchema = z.object({
   taskId: IdentifierSchema,
   role: z.enum(["construction", "transfer"]),
-  packageStatus: z.enum(["complete", "validation-failure", "infrastructure-failure", "protected-input-failure"]),
+  packageStatus: z.enum([
+    "complete",
+    "process-failure",
+    "validation-failure",
+    "infrastructure-failure",
+    "protected-input-failure",
+  ]),
   processStatus: z.enum(["complete", "failed", "timeout", "not-run"]),
   validationStatus: z.enum(["pass", "fail", "not-produced"]),
   validationErrorCodes: z.array(z.string()),
@@ -704,6 +709,7 @@ export async function runRestrictedDomainPlanShadow(options: {
   outDir: string;
   measurementCompletedAt: string;
   meteredHumanMinutes: number;
+  preModelFreezePath?: string;
   complete?: (input: {
     caseId: string;
     request: RestrictedDomainPlanRequest;
@@ -717,7 +723,8 @@ export async function runRestrictedDomainPlanShadow(options: {
   }
   const completedAt = z.string().datetime().parse(options.measurementCompletedAt);
   if (Date.parse(completedAt) < Date.parse(catalog.measurementStartedAt)) throw new Error("measurement completion precedes start");
-  const freezePath = "results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json";
+  const freezePath = options.preModelFreezePath
+    ?? "results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json";
   const freezeBytes = await readPinned(options.rootDir, {
     path: freezePath,
     sha256: sha256Bytes(Buffer.from(jsonText(freeze), "utf8")),

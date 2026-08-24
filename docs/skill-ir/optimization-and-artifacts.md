@@ -608,6 +608,11 @@ arguments 返回并通过同一 strict parser；六段 typed failure 和 duratio
 blocker。0-paid freeze 固定 1 authorized call、0 retry/task/held-out/evaluator payload 及 4-file implementation closure。
 即使 qualification 通过，也只排除当前持续工具合同不兼容，不会把历史 18.31 的 0/2 追溯改成 plan-schema failure。
 
+唯一 qualification 实际为 canonical exact-match pass：632 input、134 output tokens、5,023.5 ms、0 retry，因而当前
+没有持续 forced-tool transport blocker。Artifact 自动构造仍没有改善：18.31 没有 plan，四个预注册 workdir 均未
+执行，full package/manual parity 与 eligibility 仍为 0。产品阶段在此收口为“自动候选/结构/局部投影 + 人工
+domain-runtime 审核”，不把 transport 正例冒充 optimizer 正例。
+
 ## 15. 测试
 
 ```powershell
