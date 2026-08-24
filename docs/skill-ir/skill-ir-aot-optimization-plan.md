@@ -1009,10 +1009,10 @@ automatic eligibility 0/2。两个 failure digest 不同，但首版 report 将 
 `submit_restricted_domain_plan` tool schema 和同一 strict parser 发送一个显式 canonical、无领域语义的最小计划，
 只判断 forced-tool transport/parse 合同是否可用。最多 1 paid call、`retries=0`。
 
-1. [ ] RED/GREEN：把 synthesis failure 分成 `transport | http | response-json | tool-call | arguments-json |
+1. [x] RED/GREEN：把 synthesis failure 分成 `transport | http | response-json | tool-call | arguments-json |
    plan-schema`，失败也记录 request duration；compact report 只保留 stage/status/body-or-error digest，不保存 response
    body、API key 或模型 reasoning；
-2. [ ] 预先冻结 canonical request/expected-plan digest、同 route/backend、implementation closure、1-call authorization、
+2. [x] 预先冻结 canonical request/expected-plan digest、同 route/backend、implementation closure、1-call authorization、
    0 retry/held-out/evaluator/task payload，并在 execute 前重验所有 identity；future measurement time fail closed；
 3. [ ] 唯一执行后冻结 pass/fail 与 tokens/duration。Pass 只排除“持续 forced-tool 合同不兼容”，不能反推 18.31
    两个历史错误具体属于 plan schema；fail 才能按机器 stage 支撑 transport blocker；

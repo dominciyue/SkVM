@@ -642,6 +642,11 @@ workdir，也不加载 manual evaluator。首版 `provider-or-parse` 把 HTTP、
 domain semantic failure 或 infrastructure failure。原请求不补跑，独立 transport qualification 只能诊断同一工具
 合同的当前可用性，不能追溯重写历史行。
 
+Transport qualification 的 pre-model freeze 只绑定 canonical request/expected plan、同 route/backend、4 个实现文件和
+1-call budget；summary 强制 task/source/evaluator/held-out payload 为 0。Execute 先重验 freeze bytes、catalog、实现、
+request 与 provider identity，再调用一次。Schema-valid tool arguments 即证明当前 forced-tool + strict-parser 合同可用；
+canonical exact match 另行披露但不决定 transport pass。任何失败按六段 stage 报告，原始 response 永不落盘。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

@@ -4,6 +4,7 @@ import {
   buildRestrictedDomainPlanRequest,
   completeRestrictedDomainPlanOnce,
   deriveForbiddenTaskDataLiterals,
+  RestrictedDomainPlanSynthesisError,
 } from "./automatic-domain-plan-synthesis";
 import { RestrictedDomainPlanSchema } from "./automatic-restricted-domain-plan";
 
@@ -129,5 +130,46 @@ describe("restricted Domain Plan synthesis", () => {
       logicalPaidCalls: 1,
       tokens: { input: 60, output: 25, cacheRead: 40, cacheWrite: 0 },
     });
+  });
+
+  test("classifies each provider and parse boundary without exposing raw details", async () => {
+    const request = {
+      system: "Generate the plan.",
+      prompt: "Use the schema.",
+      audit: { evaluatorPayloadAccesses: 0 as const, heldOutAccesses: 0 as const, retries: 0 as const, requestedCalls: 1 as const, toolAccess: false as const },
+    };
+    const cases = [
+      { stage: "transport", fetchImpl: async () => { throw new Error("private transport detail"); } },
+      { stage: "http", fetchImpl: async () => new Response("private upstream detail", { status: 502 }) },
+      { stage: "response-json", fetchImpl: async () => new Response("not-json", { status: 200 }) },
+      { stage: "tool-call", fetchImpl: async () => new Response(JSON.stringify({ choices: [{ message: {} }] }), { status: 200 }) },
+      {
+        stage: "arguments-json",
+        fetchImpl: async () => new Response(JSON.stringify({ choices: [{ message: { tool_calls: [{ function: { name: "submit_restricted_domain_plan", arguments: "{" } }] } }] }), { status: 200 }),
+      },
+      {
+        stage: "plan-schema",
+        fetchImpl: async () => new Response(JSON.stringify({ choices: [{ message: { tool_calls: [{ function: { name: "submit_restricted_domain_plan", arguments: JSON.stringify({ schemaVersion: "skill-ir-restricted-domain-plan/v1" }) } }] } }] }), { status: 200 }),
+      },
+    ] as const;
+    for (const entry of cases) {
+      try {
+        await completeRestrictedDomainPlanOnce({
+          baseUrl: "https://example.invalid/v1",
+          apiKey: "test-key",
+          backendModel: "test-model",
+          request,
+          fetchImpl: entry.fetchImpl,
+        });
+        throw new Error(`expected ${entry.stage} failure`);
+      } catch (error) {
+        expect(error).toBeInstanceOf(RestrictedDomainPlanSynthesisError);
+        const failure = error as RestrictedDomainPlanSynthesisError;
+        expect(failure.stage).toBe(entry.stage);
+        expect(failure.durationMs).toBeGreaterThanOrEqual(0);
+        expect(failure.detailDigest).toMatch(/^[a-f0-9]{64}$/);
+        expect(failure.message).not.toContain("private");
+      }
+    }
   });
 });

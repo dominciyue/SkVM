@@ -325,6 +325,12 @@ workdir evidence。首版合并分类为 `provider-or-parse`，failure digest �
 arguments JSON/Zod；plan LOC/steps、execution 与 manual load 均为 0。Automatic eligibility 与 reuse gate 明确失败，
 而 precise failure attribution 保持 `not-established`。原请求不重跑；后续只允许无 task 的同工具合同 qualification。
 
+Task 18.32 的 transport qualification 复用同一 `completeRestrictedDomainPlanOnce`、tool schema 与 strict plan parser，
+但 request 只包含一个显式 canonical two-step plan，task/source/evaluator/held-out payload 均为 0。Synthesis error 在
+`transport/http/response-json/tool-call/arguments-json/plan-schema` 六个边界分型；失败仅持久化 stage、duration、HTTP
+status 与 detail digest，不保存 body/reasoning。Pre-model freeze 绑定 4-file closure、request/expected-plan、route/
+backend 和唯一 1-call/0-retry authorization；它是独立诊断，不会重分类 Task 18.31。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `
@@ -356,6 +362,10 @@ bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan.test.ts `
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=execute `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=execute `
+  --measurement-completed-at=<ISO-8601>
 ```
 
 Task 18.18 的 BIDS base IR 是该链路的新真实案例：`profile=[]`，所有 intent/input/output/step/rule/tool/check 节点均

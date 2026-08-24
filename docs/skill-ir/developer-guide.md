@@ -954,6 +954,7 @@ floor。Task 18.31 已完成 restricted Domain Plan、single-call 生成器、�
 已完成：JSON Pointer successor；3 copies、15 -> 12、pointer/query/domain ceiling=1/1/10、0/2 eligible
 已完成：Restricted Domain Plan pre-model freeze；2 cases/2 requests、0 paid/retry/held-out/evaluator payload
 已完成：Restricted Domain Plan 唯一 execute；2 calls/0 retry、synthesis/transfer/eligibility=0/2，归因未建立
+已完成：transport qualification pre-model freeze；canonical plan、1 authorized call、0 task/held-out/evaluator payload
 下一步：1-call 无 task transport qualification；结果只诊断 forced-tool 合同，不追溯重分类或补跑
 ```
 
@@ -1008,6 +1009,10 @@ bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan.test.ts `
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=execute `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=execute `
+  --measurement-completed-at=<ISO-8601>
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

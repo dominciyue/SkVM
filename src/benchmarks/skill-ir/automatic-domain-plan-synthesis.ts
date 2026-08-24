@@ -4,6 +4,7 @@ import {
   RestrictedDomainPlanSchema,
   type RestrictedDomainPlan,
 } from "./automatic-restricted-domain-plan";
+import { sha256Bytes } from "./source-fixture";
 
 const SafePathSchema = z.string().min(1).max(240).refine((value) =>
   !/^(?:[A-Za-z]:[\\/]|[\\/])/u.test(value)
@@ -175,6 +176,54 @@ const TOOL_SCHEMA = {
 
 type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
+export const RestrictedDomainPlanSynthesisFailureStageSchema = z.enum([
+  "transport",
+  "http",
+  "response-json",
+  "tool-call",
+  "arguments-json",
+  "plan-schema",
+]);
+
+export type RestrictedDomainPlanSynthesisFailureStage = z.infer<
+  typeof RestrictedDomainPlanSynthesisFailureStageSchema
+>;
+
+export class RestrictedDomainPlanSynthesisError extends Error {
+  readonly stage: RestrictedDomainPlanSynthesisFailureStage;
+  readonly durationMs: number;
+  readonly detailDigest: string;
+  readonly httpStatus: number | null;
+
+  constructor(options: {
+    stage: RestrictedDomainPlanSynthesisFailureStage;
+    durationMs: number;
+    detail: string;
+    httpStatus?: number;
+  }) {
+    super(`restricted Domain Plan synthesis failed at ${options.stage}`);
+    this.name = "RestrictedDomainPlanSynthesisError";
+    this.stage = options.stage;
+    this.durationMs = options.durationMs;
+    this.detailDigest = sha256Bytes(Buffer.from(options.detail, "utf8"));
+    this.httpStatus = options.httpStatus ?? null;
+  }
+}
+
+function synthesisFailure(
+  stage: RestrictedDomainPlanSynthesisFailureStage,
+  started: number,
+  detail: unknown,
+  httpStatus?: number,
+): RestrictedDomainPlanSynthesisError {
+  return new RestrictedDomainPlanSynthesisError({
+    stage,
+    durationMs: performance.now() - started,
+    detail: detail instanceof Error ? `${detail.name}:${detail.message}` : String(detail),
+    httpStatus,
+  });
+}
+
 export async function completeRestrictedDomainPlanOnce(options: {
   baseUrl: string;
   apiKey: string;
@@ -186,45 +235,73 @@ export async function completeRestrictedDomainPlanOnce(options: {
   const request = RestrictedDomainPlanRequestSchema.parse(options.request);
   const fetchImpl = options.fetchImpl ?? fetch;
   const started = performance.now();
-  const response = await fetchImpl(`${options.baseUrl.replace(/\/+$/u, "")}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${options.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: options.backendModel,
-      messages: [
-        { role: "system", content: request.system },
-        { role: "user", content: request.prompt },
-      ],
-      temperature: 0,
-      max_tokens: 16_384,
-      tools: [{
-        type: "function",
-        function: {
-          name: "submit_restricted_domain_plan",
-          description: "Submit the complete restricted Domain Plan and no prose.",
-          parameters: TOOL_SCHEMA,
-        },
-      }],
-      tool_choice: { type: "function", function: { name: "submit_restricted_domain_plan" } },
-    }),
-    signal: AbortSignal.timeout(options.timeoutMs ?? 660_000),
-  });
-  const bodyText = await response.text();
-  if (!response.ok) throw new Error(`Domain Plan synthesis HTTP ${response.status}: ${bodyText.slice(0, 500)}`);
-  const body = JSON.parse(bodyText) as Record<string, unknown>;
+  let response: Response;
+  try {
+    response = await fetchImpl(`${options.baseUrl.replace(/\/+$/u, "")}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${options.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: options.backendModel,
+        messages: [
+          { role: "system", content: request.system },
+          { role: "user", content: request.prompt },
+        ],
+        temperature: 0,
+        max_tokens: 16_384,
+        tools: [{
+          type: "function",
+          function: {
+            name: "submit_restricted_domain_plan",
+            description: "Submit the complete restricted Domain Plan and no prose.",
+            parameters: TOOL_SCHEMA,
+          },
+        }],
+        tool_choice: { type: "function", function: { name: "submit_restricted_domain_plan" } },
+      }),
+      signal: AbortSignal.timeout(options.timeoutMs ?? 660_000),
+    });
+  } catch (error) {
+    throw synthesisFailure("transport", started, error);
+  }
+  let bodyText: string;
+  try {
+    bodyText = await response.text();
+  } catch (error) {
+    throw synthesisFailure("transport", started, error);
+  }
+  if (!response.ok) throw synthesisFailure("http", started, bodyText, response.status);
+  let body: Record<string, unknown>;
+  try {
+    body = JSON.parse(bodyText) as Record<string, unknown>;
+  } catch (error) {
+    throw synthesisFailure("response-json", started, error);
+  }
   const choices = body.choices as Array<Record<string, unknown>> | undefined;
   const message = choices?.[0]?.message as Record<string, unknown> | undefined;
   const toolCalls = message?.tool_calls as Array<Record<string, unknown>> | undefined;
-  if (!toolCalls || toolCalls.length !== 1) throw new Error("Domain Plan synthesis did not return exactly one tool call");
+  if (!toolCalls || toolCalls.length !== 1) {
+    throw synthesisFailure("tool-call", started, "response did not contain exactly one tool call");
+  }
   const toolCall = toolCalls[0]!;
   const fn = toolCall.function as Record<string, unknown> | undefined;
   if (fn?.name !== "submit_restricted_domain_plan" || typeof fn.arguments !== "string") {
-    throw new Error("Domain Plan synthesis returned the wrong tool call");
+    throw synthesisFailure("tool-call", started, "response contained wrong tool call name or argument type");
   }
-  const plan = RestrictedDomainPlanSchema.parse(JSON.parse(fn.arguments));
+  let rawPlan: unknown;
+  try {
+    rawPlan = JSON.parse(fn.arguments);
+  } catch (error) {
+    throw synthesisFailure("arguments-json", started, error);
+  }
+  let plan: RestrictedDomainPlan;
+  try {
+    plan = RestrictedDomainPlanSchema.parse(rawPlan);
+  } catch (error) {
+    throw synthesisFailure("plan-schema", started, error);
+  }
   const usage = body.usage as {
     prompt_tokens?: number;
     completion_tokens?: number;

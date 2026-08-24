@@ -603,6 +603,11 @@ held-out/evaluator payload 隔离与 core branch 0 保持，但 token/duration �
 是 provider transport 还是模型生成的 arguments/plan 不合 schema；两案不同 failure digest 也不能弥补这个缺口。
 历史请求冻结且不得重跑，artifact 层的自动化主张仍为未建立。
 
+独立 transport qualification 不运行 artifact/task。它只要求同 route/backend 把显式 canonical plan 作为 forced-tool
+arguments 返回并通过同一 strict parser；六段 typed failure 和 duration/digest 用来区分持续 transport contract
+blocker。0-paid freeze 固定 1 authorized call、0 retry/task/held-out/evaluator payload 及 4-file implementation closure。
+即使 qualification 通过，也只排除当前持续工具合同不兼容，不会把历史 18.31 的 0/2 追溯改成 plan-schema failure。
+
 ## 15. 测试
 
 ```powershell
@@ -632,6 +637,10 @@ bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan.test.ts `
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=execute `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=execute `
+  --measurement-completed-at=<ISO-8601>
 bun test ./src/benchmarks/skill-ir
 bun run typecheck
 ```
