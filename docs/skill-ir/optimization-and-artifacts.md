@@ -628,7 +628,9 @@ dataflow type gate 已能在 runtime 前识别该必错流；它没有修改冻�
 Task 18.35 的独立 parity runner 已在同两个 partial workdir 上实际调用冻结 Env evaluator：baseline 0/6、post-plan
 1/6、distance-to-full=5，只有 Node 的 environment-analysis 一项通过，hard gate 与 threshold 均未过。新的 Law
 single-generation freeze 只授权一次 strict task-bound call；只有 leakage、双 task binding 与 static type audit 全过
-才持久化计划并进入相同 parity。该顺序仍不构造 validated artifact package，也不开放 held-out 或 eligibility。
+才持久化计划并进入相同 parity。唯一调用的 tool arguments 在 strict plan schema 被拒，因此没有 Law 计划、
+workdir 或 package；跨 skill 聚合明确 failed。Go/no-go 已触发停止：不为该失败增加 DSL primitive 或 skill 分支，
+自动化产物路径继续以人工 domain-runtime 审核/补齐为产品边界，也不开放 held-out 或 eligibility。
 
 ## 15. 测试
 

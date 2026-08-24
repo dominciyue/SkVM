@@ -931,8 +931,9 @@ floor。Task 18.31 已完成 restricted Domain Plan、single-call 生成器、�
 Task 18.32 的独立 forced-tool qualification 已 exact-match 通过，但不重分类历史 18.31。Task 18.33 的窄归因随后
 3/3 成功并生成通过 leakage/双 task 静态 binding 的计划；Task 18.34 再用两个真实 workdir 证明该计划 0/2 runtime
 complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏检。Task 18.35 进一步在 partial workdir 上实际运行
-冻结 Env evaluator，得到 baseline 0/6 -> post-plan 1/6、distance-to-full=5；Law 的一次 strict task-bound generation
-已经冻结但尚未执行。自动化阶段仍不扩 pointer/query/DSL/7-case：
+冻结 Env evaluator，得到 baseline 0/6 -> post-plan 1/6、distance-to-full=5。Law 的一次 strict task-bound generation
+收到 HTTP 200/指定 tool call，但被本地 plan schema 严格拒绝；0 retry 且无安全 plan 可进入 workdir。跨案例聚合
+因此 failed，自动化阶段按 no-go 停止扩 pointer/query/DSL/7-case：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -965,8 +966,9 @@ complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏
 已完成：Task 18.34 真实 workdir 语义检查；0/2 runtime complete、2/2 protected、每案 1/3 输出、0 paid
 已完成：additive static dataflow type gate 在 runtime 前拒绝已知 string-array -> text 必错流
 已完成：Task 18.35 Env manual parity；真实 evaluator 分母 6，0/6 -> 1/6，full task parity 0/2
-已冻结：Law 单调用 generation；strict request、双 task binding/static-type 前门、1 call/0 retry，当前 0 paid
-当前边界：Law 未执行、跨 skill parity 未通过；eligibility、readiness/portfolio 不晋升
+已完成：Law 单调用 generation；1 call/0 retry，plan-schema strict reject，binding/static-type 因无安全 plan 未运行
+已完成：跨 skill parity 聚合；selected 2/evaluated 1/full 0，typed blockers 3，semantic parity failed
+当前边界：停止扩 DSL，恢复自动候选 + 人工 domain runtime；eligibility、readiness/portfolio 不晋升
 ```
 
 本地重建命令：
@@ -1030,6 +1032,11 @@ bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --pha
 bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-static-types.test.ts `
   ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection-run.ts
+bun test ./src/benchmarks/skill-ir/automatic-domain-plan-manual-parity.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-single-generation.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-cross-skill-parity.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-manual-parity-run.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-cross-skill-parity-run.ts
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

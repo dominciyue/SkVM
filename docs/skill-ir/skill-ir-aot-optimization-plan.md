@@ -1095,9 +1095,10 @@ Env 每任务真实为 3 项，Law 每任务真实为 5 项；禁止把不同 ev
 5. [x] 新增 case-driven、单 task-bound request 的生成 identity，从既有双案例 catalog 选择 Law。冻结 exact
    source/declaration/task/request/provider payload、相关 implementation digest、`maximumPaidCalls=1`、`retries=0`，
    提交并推送 pre-model identity 后才允许一次调用；
-6. [ ] Law 安全计划必须通过 leakage、两个 development task binding 与 skill-neutral static type audit后才落盘；随后
-   在两个 Law workdir 运行同一 parity。Raw provider body、arguments、fixture/output 正文、secret 不持久化；
-7. [ ] Go/no-go：若 Env/Law 的真实 checker gap 明显缩小且 Law 跨任务成立，才设计最多 1--2 个新的通用修复；若
+6. [x] 执行唯一 Law 调用；安全计划只有通过 leakage、两个 development task binding 与 skill-neutral static type
+   audit 才落盘并进入两个 Law workdir。实际 arguments 在 plan schema 被拒，故未落盘、未运行后续 audit/parity；
+   raw provider body、arguments、fixture/output 正文、secret 均未持久化；
+7. [x] Go/no-go：若 Env/Law 的真实 checker gap 明显缩小且 Law 跨任务成立，才设计最多 1--2 个新的通用修复；若
    pass rate 仍低、只能靠 Env/Law 特判或跨 skill parity failed，则停止扩 DSL，转回“自动候选 + 人工 domain
    runtime”产品边界。无论结果如何都不开放 held-out、7-case、noisy/long、replication 或 readiness 晋级。
 
@@ -1105,7 +1106,14 @@ Env 每任务真实为 3 项，Law 每任务真实为 5 项；禁止把不同 ev
 每任务 3 项而非 5 项；Node task 从 baseline 0/3 提升到 post-plan 1/3（weighted 0 -> 0.45），Vite 保持 0/3，
 合计 0/6 -> 1/6、distance-to-full=5、full parity tasks=0/2。两案 runtime 均因同一已知静态类型错失败，
 protected inputs 2/2 保持。Law 单调用 freeze 已绑定 11,431-char request、45,431-char strict provider payload、
-9-file implementation closure、1-call/0-retry authorization；当前仍为 0 paid，须先提交并推送该 identity。
+9-file implementation closure、1-call/0-retry authorization；该 identity 已先提交推送，再完成唯一调用。
+
+**最终结果（2026-08-25）：** Law 调用在 31,453.3698 ms 后返回 HTTP 200、一个指定 tool call 与 usage metadata，
+但 tool arguments 未通过本地 strict plan schema，分类为 `provider-failure/plan-schema/strict-schema-reject`；usage
+数值不可用，按冻结合同不重试。Leakage/binding/static-type 均为 `not-run`，因为没有可安全持久化的计划。跨 skill
+聚合选定 2 案、实际评估 1 案、full pass 0，typed blockers 为 `insufficient-distinct-skills`、
+`case-parity-failed`、`plan-unavailable`，结论 `semanticParity=failed`。Go/no-go 选择 no-go：不增加通用修复或
+DSL 原语，恢复“自动候选 + 人工 domain runtime”边界；held-out、7-case、replication 与 readiness 继续关闭。
 
 ### 单模型族 70% 与多模型族启动门槛
 

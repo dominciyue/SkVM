@@ -133,6 +133,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   计划通过 leakage 与双 task 静态 binding。它排除了持续 context/schema/task-binding blocker，但不追溯重分类
   18.31。随后零付费真实执行在两个 workdir 都因同一 text-template 类型错误停止，只生成 1/3 输出；初始输入均
   保持不变，另检出 3 个读取后未使用的接口值与 2 个未覆盖的 Vite 引用。因此 semantic parity/eligibility 仍未建立。
+- Task 18.35 已用冻结 development evaluator 做真实 parity：Env baseline 0/6 -> post-plan 1/6、0/2 full task。
+  Law 的唯一一次 strict task-bound 调用为 HTTP 200 且返回指定 tool call，但 arguments 被本地 plan schema 拒绝；
+  按 1 call/0 retry 合同没有重放，也没有可安全执行的 Law plan。两案例聚合 `semanticParity=failed`，blocker 为
+  `insufficient-distinct-skills | case-parity-failed | plan-unavailable`；停止扩 DSL，保留“自动候选 + 人工 domain
+  runtime 审核/补齐”产品边界。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -177,7 +182,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Task 18.34 已在两个真实 workdir 零付费执行：0/2 runtime complete、protected 2/2、每案仅 1/3 输出
 -> 新增通用静态数据流类型门，能在 runtime 前拒绝该数组到 text-template 的必错流；不修改冻结 18.33 closure
 -> Task 18.35 已真实运行 Env manual evaluator：baseline 0/6 -> post-plan 1/6，distance-to-full 5，case parity failed
--> Law 单调用 strict generation identity 已冻结为 1 call/0 retry；尚未执行，不扩 DSL/7-case/held-out
+-> Law 唯一 strict generation 已执行：1 call/0 retry，HTTP 200/tool call 可用，但本地 plan-schema strict reject
+-> 跨 skill semantic parity failed：只评估 1/2 case、0/2 full pass；按 no-go 停止扩 DSL/7-case/held-out
 -> 计划仍忽略 3 个接口规则派生值并漏掉 2 个 Vite 引用；eligibility/readiness 不成立
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验

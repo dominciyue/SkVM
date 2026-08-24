@@ -1165,8 +1165,12 @@ protected input preserved、全部 criterion pass 且无 infrastructure error；
 Env 现有计划按该合同得到 baseline 0/6、post-plan 1/6、distance-to-full=5、0/2 full task parity。下一项 Law
 证据使用新的 case-driven 单调用 freeze，仍消费既有 `SKILL.md + 薄声明 + 一个公开 development construction task`，
 不扩 DSL；计划在持久化前必须通过 task literal leakage、两个 development binding 与通用 static type audit。
-Freeze 只授权 1 paid call、0 retry，不读 held-out，不把 evaluator payload发给模型。Law 尚未执行前，跨 skill parity、
-automatic eligibility、portfolio/readiness 均不得晋级。
+Freeze 只授权 1 paid call、0 retry，不读 held-out，不把 evaluator payload 发给模型。唯一调用返回 HTTP 200 与指定
+tool call，但 arguments 被本地 strict plan schema 拒绝；未保存 raw body/arguments，未重试，且因为没有安全计划而
+不执行 Law workdir/evaluator。跨案例报告据此给出 `semanticParity=failed`：selected 2、evaluated 1、full pass 0，
+blocker 为案例不足、Env parity failed 与 Law plan unavailable。该 no-go 不证明模型永久能力天花板，但已触发停止
+规则：不再扩 DSL/重复调用，产品边界回到自动候选 + 人工 domain-runtime 审核/补齐；automatic eligibility、
+portfolio/readiness 均不晋级。
 
 ## 11. 当前证据与不可声称项
 
@@ -1174,8 +1178,9 @@ automatic eligibility、portfolio/readiness 均不得晋级。
 development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但贡献和 static 均未通过；
 source-only 与薄声明 domain construction 均能生成 7/7 四类候选，结构 checker/runtime 已真实执行；首个通用
 output/pointer primitives 又在两个案例生成部分产物并将 unresolved 从 15 降到 12，但仍为 0/2 automatic eligible，
-且剩余 10 项需要 domain runtime；Restricted Domain Plan 双案例生成 0/2，独立 transport qualification 通过但不
-重分类历史失败，portfolio 的 0/7 automation 状态不变；
+且剩余 10 项需要 domain runtime；Restricted Domain Plan 历史双案例生成 0/2，独立 transport qualification 通过但不
+重分类历史失败；successor 的 Env real parity 失败且 Law single generation 无安全 plan，跨 skill parity 明确失败，
+portfolio 的 0/7 automation 状态不变；
 i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
 方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。

@@ -782,8 +782,16 @@ Task 18.35 首先补做了真正的 frozen manual-evaluator execution，而不�
 
 随后只冻结 Law 的单 task-bound generation identity：request/provider payload 为 11,431/45,431 chars，
 `maximumPaidCalls=1`、`retries=0`、0 held-out/evaluator payload，且计划必须先过 leakage、两个 Law development
-binding 与通用 static type audit才可落盘。当前该 identity 尚未执行，不能把预模型 freeze 写成 Law 计划或跨 skill
-semantic parity 证据。
+binding 与通用 static type audit 才可落盘。Identity 提交推送后执行唯一调用：31,453.3698 ms、HTTP 200、1 个
+指定 tool call、usage metadata present；但 2,040-char arguments 被本地 strict plan schema 拒绝，分类为
+`provider-failure/plan-schema/strict-schema-reject`。Usage 数值 unavailable；按冻结合同 1 paid call、0 retry，raw
+body/arguments persisted=0。因为没有安全计划，leakage/binding/static-type 和两个 Law workdir parity 均未运行。
+
+新的 digest-pinned 跨 skill 聚合不以 `not-established` 占位：Env 是 `evaluated-failed`，Law 是
+`plan-unavailable`，selected/evaluated/full-pass skill 为 2/1/0，blockers 为
+`insufficient-distinct-skills | case-parity-failed | plan-unavailable`，最终 `semanticParity=failed`。合计 1 paid
+call、0 retry/held-out/evaluator payload/core branch delta。该结果触发 no-go：不扩 DSL 或重复调用，automatic
+eligibility、portfolio/readiness 均不更新；它也不外推为模型永久 domain-plan 能力天花板。
 
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
@@ -810,6 +818,8 @@ semantic parity 证据。
 - `results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json`
 - `results/skill-ir/automatic-domain-plan-manual-parity-v1/env-manager.json`
 - `results/skill-ir/automatic-domain-plan-single-generation-v1/pre-model-freeze.json`
+- `results/skill-ir/automatic-domain-plan-single-generation-v1/report.json`
+- `results/skill-ir/automatic-domain-plan-cross-skill-parity-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-shadow-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-transport-qualification-v1/pre-model-freeze.json`
 - `results/skill-ir/automatic-domain-plan-transport-qualification-v1/report.json`

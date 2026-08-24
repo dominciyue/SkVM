@@ -678,6 +678,12 @@ Env Vite 为 0/3 -> 0/3；合计 0/6 -> 1/6，0 infrastructure error、0/2 full 
 判据要求至少两个 distinct case 各自两项 development task full pass 且 `coreBranchDelta=0`，否则输出 typed failed
 reason，不再用占位 literal 冒充判断。
 
+Law successor 的唯一调用只持久化脱敏 transport 元数据：HTTP 200、tool-call/usage presence、body/arguments
+length/digest 与 typed failure；不保存 body、arguments 或模型文本。它在 `plan-schema` 阶段 strict reject，故没有
+计划可进入 leakage/binding/static-type 或 evaluator。跨 skill 聚合只读取上述 Law failure report 与 Env parity report
+的 digest-pinned compact evidence，结果为 selected 2、evaluated 1、full 0，三项 blocker 守恒到输入 evidence，
+`semanticParity=failed`。这是一项真实失败判定，不是未评估案例的成功/失败分数填补。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

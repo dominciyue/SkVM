@@ -362,7 +362,10 @@ protected inputs preserved 与所有 criterion pass。Env 的真实口径为每�
 task binding 只来自 catalog，core 不含 case id 分支。它在计划落盘前依次执行 task-only literal leakage、两个
 development binding 与通用 static type audit；pre-model freeze 绑定 exact strict request/provider payload、route、
 candidate 与 9-file implementation closure，授权 1 call、0 retry。该首版 identity 不扩 DSL，也不提升旧 component
-版本。
+版本。唯一 Law 调用返回指定 tool call，但 arguments 被既有严格 schema 拒绝；因此后续 leakage/binding/static-type
+均未运行，也没有安全 plan。`automatic-domain-plan-cross-skill-parity.ts` 只聚合 digest-pinned compact evidence，
+不解释模型内容、不修改 Domain Plan core，最终以三项 typed blocker 给出真实 `failed`。该 no-go 保持
+`coreBranchDelta=0`，停止继续增加窄 DSL 原语。
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
@@ -405,6 +408,10 @@ bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --pha
 bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-static-types.test.ts `
   ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection-run.ts
+bun test ./src/benchmarks/skill-ir/automatic-domain-plan-manual-parity.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-single-generation.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-cross-skill-parity.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-cross-skill-parity-run.ts
 ```
 
 Task 18.18 的 BIDS base IR 是该链路的新真实案例：`profile=[]`，所有 intent/input/output/step/rule/tool/check 节点均
