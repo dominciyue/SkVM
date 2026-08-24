@@ -213,6 +213,12 @@ function jsonText(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
+function assertMeasurementStartNotFuture(measurementStartedAt: string): void {
+  if (Date.parse(measurementStartedAt) > Date.now()) {
+    throw new Error("restricted Domain Plan measurement start is in the future");
+  }
+}
+
 const IMPLEMENTATION_PATHS = [
   "src/benchmarks/skill-ir/automatic-restricted-domain-plan.ts",
   "src/benchmarks/skill-ir/automatic-domain-plan-synthesis.ts",
@@ -242,6 +248,7 @@ export async function buildRestrictedDomainPlanPreModelFreeze(
   outDir: string,
 ): Promise<RestrictedDomainPlanPreModelFreeze> {
   const catalog = RestrictedDomainPlanShadowCatalogSchema.parse(rawCatalog);
+  assertMeasurementStartNotFuture(catalog.measurementStartedAt);
   const [domainCatalogBytes, domainReportBytes] = await Promise.all([
     readPinned(rootDir, catalog.automaticDomainCatalog),
     readPinned(rootDir, catalog.automaticDomainReport),
@@ -704,6 +711,10 @@ export async function runRestrictedDomainPlanShadow(options: {
 }) : Promise<RestrictedDomainPlanShadowReport> {
   const catalog = RestrictedDomainPlanShadowCatalogSchema.parse(options.catalog);
   const freeze = RestrictedDomainPlanPreModelFreezeSchema.parse(options.preModelFreeze);
+  assertMeasurementStartNotFuture(catalog.measurementStartedAt);
+  if (freeze.measurementStartedAt !== catalog.measurementStartedAt) {
+    throw new Error("restricted Domain Plan measurement identity drift");
+  }
   const completedAt = z.string().datetime().parse(options.measurementCompletedAt);
   if (Date.parse(completedAt) < Date.parse(catalog.measurementStartedAt)) throw new Error("measurement completion precedes start");
   const freezePath = "results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json";

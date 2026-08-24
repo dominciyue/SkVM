@@ -79,6 +79,20 @@ describe("restricted Domain Plan shadow", () => {
     expect(JSON.parse(await readFile(join(outDir, "pre-model-freeze.json"), "utf8"))).toEqual(freeze);
   });
 
+  test("rejects a pre-model measurement start that is still in the future", async () => {
+    const rootDir = process.cwd();
+    const catalog = RestrictedDomainPlanShadowCatalogSchema.parse(JSON.parse(await readFile(
+      join(rootDir, "benchmarks/skill-ir/corpus/automatic-domain-plan-shadow-v1.json"),
+      "utf8",
+    )));
+    const outDir = await mkdtemp(join(tmpdir(), "skill-ir-domain-plan-future-freeze-"));
+    temporaryDirectories.push(outDir);
+    await expect(buildRestrictedDomainPlanPreModelFreeze(rootDir, {
+      ...catalog,
+      measurementStartedAt: "2099-01-01T00:00:00.000Z",
+    }, outDir)).rejects.toThrow("measurement start is in the future");
+  });
+
   test("freezes both generated plans before real two-task execution and manual evaluation", async () => {
     const rootDir = process.cwd();
     const catalog = RestrictedDomainPlanShadowCatalogSchema.parse(JSON.parse(await readFile(
