@@ -510,6 +510,20 @@ construction 为 0 calls/tokens、217697 bytes、catalog validation passed。由
 runtime 机制，不是 automatic optimized 或 quality-positive 正例。Dynamic 未授权；必须先修复通用 disclosure
 preflight 对 canonical value/representation equivalence 的覆盖。
 
+Task 18.26 第一次把公开 source 到四类 candidate 的公共路径实际串起。`automatic-construction-shadow-v1` 对
+method portfolio 7 个案例先冻结候选、后读取人工 oracle；7/7 contract、7/7 schema-valid base IR、7/7
+construction validation plan、7/7 non-executable package candidate 均生成，0 API/model call、0 held-out、0
+evaluator payload。公共 core 不含 7 个 case id，case-specific transformation adapter LOC 与激活人工分钟均为 0；
+共享核心从前瞻起点到最终实跑记录 28 human minutes，二者分账，不能把共享开发成本说成 0。
+
+Shadow gap 是实质结果而不是失败美化：6 个存在 manual base IR 的案例全部为 schema-valid oracle，但自动/手工规则
+精确重合为 0；Zh README 没有冻结 manual base IR，Reviewer/README/i18n 没有 validated package oracle。自动
+contract 仍缺 benchmark task ABI/value semantics，自动 IR 缺领域实体、tool binding、runtime invariant，validation
+plan 没有独立 domain scorer/runtime oracle，package 刻意保持 non-executable。因此四类 portfolio eligibility 均
+为 0/7，`automationAndAdaptationConverging` 与 readiness 保持 failed。权威差距报告为
+`results/skill-ir/automatic-construction-shadow-v1/report.json`；下一刀应自动融合公开 task contract 与 source audit，
+而不是继续优化 Markdown 结构抽取或把 candidate skeleton 记作已自动化。
+
 ## 15. 测试
 
 ```powershell

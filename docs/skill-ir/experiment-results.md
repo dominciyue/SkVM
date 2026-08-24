@@ -667,6 +667,17 @@ Readiness v4 同步把 Zh README 的 invalidated scorer-authority 投影为 `exp
 blocker 从 1 降为 0，`noOpenMeasurementBlockers=true`。这只是修正滞后派生；phenotype 仍为 1，automation
 incomplete skills 仍为 7，readiness 继续 failed，untouched replication 仍未授权。
 
+Task 18.26 的 source-only shadow 自动构造覆盖全部 7 个 method case。生成阶段只读各自 digest-pinned
+`SKILL.md`，并在读取 path+sha256 pinned manual oracle 前冻结 candidate digest；contract/base IR/validation-plan/package candidate
+均为 7/7，SkillIR schema/reference error 为 0，0 model/API call、0 held-out/evaluator payload、core branch delta 0。
+每案例无需 transformation adapter，故 adapter LOC 与激活 human minutes 为 0；共享核心开发从前瞻起点到实跑为
+28 human minutes，独立披露。
+
+差距报告没有把结构生成当作语义通过：6 个 manual base IR 均 schema-valid，但自动/手工 exact rule sourceText
+overlap 为 0；Zh README 缺 manual base IR，Reviewer/README/i18n 缺 validated package oracle。自动 contract 缺 task
+ABI/value semantics，IR 缺 domain entity/tool/check/recovery，validation plan 缺 domain scorer/runtime oracle，package
+为明确的 non-executable candidate。因此四类 portfolio eligibility 均为 0/7，registry/readiness 未晋级。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -684,3 +695,4 @@ incomplete skills 仍为 7，readiness 继续 failed，untouched replication 仍
 - `results/skill-ir/bids-successor-development-v1/matrix-capture.json`
 - `results/skill-ir/bids-successor-development-v1/result.json`
 - `results/skill-ir/method-portfolio-readiness.json`
+- `results/skill-ir/automatic-construction-shadow-v1/report.json`

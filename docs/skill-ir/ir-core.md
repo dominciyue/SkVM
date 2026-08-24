@@ -218,6 +218,33 @@ SKILL.md
   -> controller/checker/adapter/skill.md lowering
 ```
 
+### 8.1 Source-only automatic construction candidate
+
+Task 18.26 新增 `automatic-construction.ts`，作为零模型、零付费的保守构造入口。输入 schema 只接受一个
+digest-pinned 的公开 `SKILL.md` 及 upstream provenance；schema 为 strict，不能夹带 manual base IR、benchmark
+contract、scorer、held-out 或模型输出路径。抽取器统一读取 frontmatter、workflow、output 和 rule-like 段落：编号
+workflow 子标题优先于其实现 bullet，没有编号子标题时才使用有序列表。它不按 skill id 分支。
+
+一次调用稳定产生四个 candidate：source contract、`skill-ir/v1` base IR、construction validation plan 和
+non-executable package candidate。前三项通过 source digest、schema、cross-reference 和 source-trace 检查；validation
+plan 把 task ABI/domain semantics 与 package runtime 明确标为 `requires-human`，package 的 execution plan 保持
+`null`，并列出 domain compiler/checker/output contract blocker。这里的 “candidate” 不等于 source-audited、
+benchmark-qualified 或 runtime validated。
+
+`automatic-construction-shadow.ts` 强制先生成并持久化全部 candidate digest，之后才读取由 catalog path+sha256
+预先冻结的手工 oracle；oracle 漂移直接 fail closed。7 个 method
+case 均成功生成四类候选且 SkillIR reference error 为 0，公共 core 的 case-id branch delta 为 0；但 6 个有手工
+base IR 的案例中，自动/手工 rule `sourceText` 精确重合均为 0。手工件融合了公开 benchmark task ABI、domain
+entity/tool/check/recovery 语义，source-only 抽取不能诚实补齐，因此当前没有任何 candidate 达到 portfolio automation
+资格，既有 flags 不变。
+
+```powershell
+bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
+  ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601>
+```
+
 Task 18.18 的 BIDS base IR 是该链路的新真实案例：`profile=[]`，所有 intent/input/output/step/rule/tool/check 节点均
 由固定 source closure 审计；领域执行差异进入 23 LOC 声明式 artifact adapter 和独立 compiler/runtime，不进入
 通用 `src/skill-ir` 分支，因此相对 construction baseline 的 core branch delta 为 0。该 IR 的 deterministic

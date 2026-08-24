@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "skill-ir-automatic-construction-result/v1",
+  "sourceSnapshot": {
+    "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+    "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40",
+    "text": "---\nname: zh-code-reviewer\ndescription: 中文代码审查专家 - 生成详细的中文代码审查报告\n---\n\n# 中文代码审查专家\n\n## 触发条件\n当用户要求审查代码、code review、代码检查、代码质量评估时激活此技能。\n\n## 工作流程\n\n1. **读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码\n2. **分析代码质量** — 从以下维度评估：\n   - 代码规范（命名、格式、注释）\n   - 潜在 Bug（空指针、越界、并发问题）\n   - 性能问题（N+1 查询、内存泄漏、不必要的循环）\n   - 安全漏洞（SQL 注入、XSS、硬编码密钥）\n   - 设计模式（是否合理使用、是否有更好的方案）\n3. **生成审查报告** — 使用中文输出结构化报告\n\n## 输出格式\n\n```\n## 📋 代码审查报告\n\n### 📊 总体评分：X/10\n\n### 🔴 严重问题（必须修复）\n- [文件:行号] 问题描述\n  💡 修复建议：...\n\n### 🟡 建议改进（推荐修复）\n- [文件:行号] 问题描述\n  💡 改进建议：...\n\n### 🟢 亮点\n- 做得好的地方\n\n### 📝 总结\n一段总结性评价\n```\n\n## 注意事项\n- 技术术语保留英文（如 null pointer、SQL injection）\n- 代码示例保持原语言\n- 对于中文变量名/注释，也要检查是否恰当\n"
+  },
+  "contract": {
+    "schemaVersion": "skill-ir-source-contract-candidate/v1",
+    "skillId": "zh-code-reviewer",
+    "name": "中文代码审查专家",
+    "intent": "中文代码审查专家 - 生成详细的中文代码审查报告",
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+      "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40"
+    },
+    "activationConditions": [],
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "sourceText": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "constraints": [
+      "技术术语保留英文（如 null pointer、SQL injection）",
+      "代码示例保持原语言",
+      "对于中文变量名/注释，也要检查是否恰当"
+    ],
+    "unresolvedSemantics": [
+      "Benchmark task input and output ABI are not derivable from the public skill source alone.",
+      "Domain checker and runtime compiler behavior require independent qualification."
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "zh-code-reviewer",
+    "name": "中文代码审查专家",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy"
+    ],
+    "intent": "中文代码审查专家 - 生成详细的中文代码审查报告",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+      "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40"
+    },
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "description": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "**读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码",
+        "description": "**读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "**分析代码质量** — 从以下维度评估：",
+        "description": "**分析代码质量** — 从以下维度评估：",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "**生成审查报告** — 使用中文输出结构化报告",
+        "description": "**生成审查报告** — 使用中文输出结构化报告",
+        "kind": "report",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "技术术语保留英文（如 null pointer、SQL injection）",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "技术术语保留英文（如 null pointer、SQL injection）"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "代码示例保持原语言",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "代码示例保持原语言"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "对于中文变量名/注释，也要检查是否恰当",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "对于中文变量名/注释，也要检查是否恰当"
+      }
+    ],
+    "tools": [],
+    "environment": [],
+    "checks": [],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-construction-validation-plan/v1",
+    "skillId": "zh-code-reviewer",
+    "checks": [
+      {
+        "id": "source-digest",
+        "status": "passed",
+        "evidence": "sha256:b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40"
+      },
+      {
+        "id": "contract-structure",
+        "status": "passed",
+        "evidence": "source contract candidate schema"
+      },
+      {
+        "id": "skill-ir-schema",
+        "status": "passed",
+        "evidence": "SkillIRSchema.parse"
+      },
+      {
+        "id": "skill-ir-references",
+        "status": "passed",
+        "evidence": "validateSkillIR:0 errors"
+      },
+      {
+        "id": "source-trace",
+        "status": "passed",
+        "evidence": "every extracted step and rule is traced to public SKILL.md"
+      },
+      {
+        "id": "domain-semantics",
+        "status": "requires-human",
+        "evidence": "task ABI and domain invariants are absent from source-only generation inputs"
+      },
+      {
+        "id": "package-runtime",
+        "status": "requires-human",
+        "evidence": "no domain compiler, checker, or executable plan was generated"
+      }
+    ],
+    "promotionEligible": false,
+    "prohibitedEvidenceClasses": [
+      "model-output",
+      "evaluator-payload",
+      "held-out",
+      "scorer-gold",
+      "secret-value"
+    ]
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-package-candidate/v1",
+    "skillId": "zh-code-reviewer",
+    "status": "non-executable",
+    "protectedInputs": [
+      "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md"
+    ],
+    "generatedOutputs": [],
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "path": "skill.md",
+        "kind": "skill-view",
+        "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40",
+        "content": "---\nname: zh-code-reviewer\ndescription: 中文代码审查专家 - 生成详细的中文代码审查报告\n---\n\n# 中文代码审查专家\n\n## 触发条件\n当用户要求审查代码、code review、代码检查、代码质量评估时激活此技能。\n\n## 工作流程\n\n1. **读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码\n2. **分析代码质量** — 从以下维度评估：\n   - 代码规范（命名、格式、注释）\n   - 潜在 Bug（空指针、越界、并发问题）\n   - 性能问题（N+1 查询、内存泄漏、不必要的循环）\n   - 安全漏洞（SQL 注入、XSS、硬编码密钥）\n   - 设计模式（是否合理使用、是否有更好的方案）\n3. **生成审查报告** — 使用中文输出结构化报告\n\n## 输出格式\n\n```\n## 📋 代码审查报告\n\n### 📊 总体评分：X/10\n\n### 🔴 严重问题（必须修复）\n- [文件:行号] 问题描述\n  💡 修复建议：...\n\n### 🟡 建议改进（推荐修复）\n- [文件:行号] 问题描述\n  💡 改进建议：...\n\n### 🟢 亮点\n- 做得好的地方\n\n### 📝 总结\n一段总结性评价\n```\n\n## 注意事项\n- 技术术语保留英文（如 null pointer、SQL injection）\n- 代码示例保持原语言\n- 对于中文变量名/注释，也要检查是否恰当\n"
+      },
+      {
+        "path": "skill-ir.json",
+        "kind": "skill-ir",
+        "sha256": "560e8c31d9f4c9c4c873d5b30fd273b2f25706f4f0949cf415f48c9c2b3d1f18",
+        "content": "{\n  \"schemaVersion\": \"skill-ir/v1\",\n  \"id\": \"zh-code-reviewer\",\n  \"name\": \"中文代码审查专家\",\n  \"category\": [\n    \"workflow\",\n    \"generative\",\n    \"diagnostic\",\n    \"constraint-heavy\"\n  ],\n  \"intent\": \"中文代码审查专家 - 生成详细的中文代码审查报告\",\n  \"source\": {\n    \"kind\": \"file\",\n    \"path\": \"benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md\",\n    \"sha256\": \"b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40\"\n  },\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"description\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"preconditions\": [\n    {\n      \"id\": \"public-source-readable\",\n      \"description\": \"The digest-pinned public skill source is readable before execution.\",\n      \"checkability\": \"static\"\n    }\n  ],\n  \"steps\": [\n    {\n      \"id\": \"step-01\",\n      \"title\": \"**读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码\",\n      \"description\": \"**读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码\",\n      \"kind\": \"read\",\n      \"required\": true,\n      \"dependsOn\": [],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-02\",\n      \"title\": \"**分析代码质量** — 从以下维度评估：\",\n      \"description\": \"**分析代码质量** — 从以下维度评估：\",\n      \"kind\": \"analyze\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-01\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-03\",\n      \"title\": \"**生成审查报告** — 使用中文输出结构化报告\",\n      \"description\": \"**生成审查报告** — 使用中文输出结构化报告\",\n      \"kind\": \"report\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-02\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    }\n  ],\n  \"rules\": [\n    {\n      \"id\": \"rule-01\",\n      \"sourceText\": \"技术术语保留英文（如 null pointer、SQL injection）\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"技术术语保留英文（如 null pointer、SQL injection）\"\n    },\n    {\n      \"id\": \"rule-02\",\n      \"sourceText\": \"代码示例保持原语言\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"代码示例保持原语言\"\n    },\n    {\n      \"id\": \"rule-03\",\n      \"sourceText\": \"对于中文变量名/注释，也要检查是否恰当\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"对于中文变量名/注释，也要检查是否恰当\"\n    }\n  ],\n  \"tools\": [],\n  \"environment\": [],\n  \"checks\": [],\n  \"recovery\": [],\n  \"profile\": []\n}\n"
+      },
+      {
+        "path": "source-contract.json",
+        "kind": "source-contract",
+        "sha256": "789ffb0576406bb5b7536d732856ed42dabcb8aae823319b4cbfb572be3cb74e",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-source-contract-candidate/v1\",\n  \"skillId\": \"zh-code-reviewer\",\n  \"name\": \"中文代码审查专家\",\n  \"intent\": \"中文代码审查专家 - 生成详细的中文代码审查报告\",\n  \"source\": {\n    \"path\": \"benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md\",\n    \"sha256\": \"b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40\"\n  },\n  \"activationConditions\": [],\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"sourceText\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"constraints\": [\n    \"技术术语保留英文（如 null pointer、SQL injection）\",\n    \"代码示例保持原语言\",\n    \"对于中文变量名/注释，也要检查是否恰当\"\n  ],\n  \"unresolvedSemantics\": [\n    \"Benchmark task input and output ABI are not derivable from the public skill source alone.\",\n    \"Domain checker and runtime compiler behavior require independent qualification.\"\n  ]\n}\n"
+      },
+      {
+        "path": "validation-plan.json",
+        "kind": "validation-plan",
+        "sha256": "ae2ed5da0138e54ac27fc2ec8d9174c2204388055c9ea68c0ce2c99c5648f2c2",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-construction-validation-plan/v1\",\n  \"skillId\": \"zh-code-reviewer\",\n  \"checks\": [\n    {\n      \"id\": \"source-digest\",\n      \"status\": \"passed\",\n      \"evidence\": \"sha256:b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40\"\n    },\n    {\n      \"id\": \"contract-structure\",\n      \"status\": \"passed\",\n      \"evidence\": \"source contract candidate schema\"\n    },\n    {\n      \"id\": \"skill-ir-schema\",\n      \"status\": \"passed\",\n      \"evidence\": \"SkillIRSchema.parse\"\n    },\n    {\n      \"id\": \"skill-ir-references\",\n      \"status\": \"passed\",\n      \"evidence\": \"validateSkillIR:0 errors\"\n    },\n    {\n      \"id\": \"source-trace\",\n      \"status\": \"passed\",\n      \"evidence\": \"every extracted step and rule is traced to public SKILL.md\"\n    },\n    {\n      \"id\": \"domain-semantics\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"task ABI and domain invariants are absent from source-only generation inputs\"\n    },\n    {\n      \"id\": \"package-runtime\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"no domain compiler, checker, or executable plan was generated\"\n    }\n  ],\n  \"promotionEligible\": false,\n  \"prohibitedEvidenceClasses\": [\n    \"model-output\",\n    \"evaluator-payload\",\n    \"held-out\",\n    \"scorer-gold\",\n    \"secret-value\"\n  ]\n}\n"
+      }
+    ],
+    "blockers": [
+      "domain-compiler-not-generated",
+      "runtime-checker-not-generated",
+      "task-output-contract-not-qualified"
+    ]
+  },
+  "audit": {
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md"
+    ],
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0
+  }
+}

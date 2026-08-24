@@ -96,6 +96,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   冻结 analysis/runner 身份。资格四门全绿、`paidCalls=1`；新 policy 固定 12 model rows、4 deterministic
   controls、三组 paired estimand、task -> repetition -> system 顺序与单一原子 prefix checkpoint。Compact matrix
   freeze 为 0 新调用、0/12 matrix rows，只授权下一阶段执行同一 lock 的唯一 forward-only 分母。
+- Task 18.26 已实现首个 source-only automatic construction：7 个 method case 均在 manual oracle 读取前生成
+  contract/base IR/validation-plan/non-executable package candidate，0 model/API、0 held-out/evaluator、0 case-specific
+  adapter LOC/activation human minutes、core branch delta 0；共享核心成本为 28 human minutes。6 个可比较 manual
+  base IR 的 exact rule overlap 均为 0，说明 benchmark task ABI 与领域 runtime 语义仍需人工/后续自动融合；四类
+  portfolio eligibility 仍为 0/7，readiness 不变。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -131,7 +136,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> BIDS v1 始终不复用、不补跑、不重评分；qualification 也不以 task success 或 exact output 预筛模型
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> readiness v4 已区分 explained-and-frozen/open-candidate：open=0，但 phenotype=1、automation 7/7 incomplete
--> 下一步收敛自动生成 contract/IR/validation-plan/package 的公共路径，不再用新增手写候选代替 optimizer
+-> source-only 四类 candidate 路径已完成；下一步自动融合公开 task contract/source audit 与领域 checker/compiler
+   资格，不把结构 skeleton 误计为 optimizer 收敛
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

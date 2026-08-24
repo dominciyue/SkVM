@@ -1,0 +1,317 @@
+{
+  "schemaVersion": "skill-ir-automatic-construction-result/v1",
+  "sourceSnapshot": {
+    "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+    "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+    "text": "---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n"
+  },
+  "contract": {
+    "schemaVersion": "skill-ir-source-contract-candidate/v1",
+    "skillId": "i18n-helper",
+    "name": "🌍 i18n-helper — 国际化/本地化助手",
+    "intent": "国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译",
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+    },
+    "activationConditions": [
+      "扫描代码中的硬编码中文/英文文本",
+      "为项目添加国际化支持（i18n）",
+      "批量提取和翻译语言文件",
+      "检查翻译完整性（缺失 key 检测）"
+    ],
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "sourceText": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "constraints": [
+      "不要翻译技术术语（API、SDK、HTTP 等）",
+      "保留变量占位符 `{name}` `{{count}}` `%s` 等格式",
+      "复数形式和性别变体需要特殊处理",
+      "日期、数字、货币格式需使用 locale 感知的格式化函数"
+    ],
+    "unresolvedSemantics": [
+      "Benchmark task input and output ABI are not derivable from the public skill source alone.",
+      "Domain checker and runtime compiler behavior require independent qualification."
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "i18n-helper",
+    "name": "🌍 i18n-helper — 国际化/本地化助手",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy"
+    ],
+    "intent": "国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+    },
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "description": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "1. 项目分析",
+        "description": "1. 项目分析",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "2. 硬编码文本扫描",
+        "description": "2. 硬编码文本扫描",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "3. 语言文件生成",
+        "description": "3. 语言文件生成",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "4. 代码替换",
+        "description": "4. 代码替换",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "5. 完整性检查",
+        "description": "5. 完整性检查",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "不要翻译技术术语（API、SDK、HTTP 等）",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "不要翻译技术术语（API、SDK、HTTP 等）"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "保留变量占位符 `{name}` `{{count}}` `%s` 等格式",
+        "level": "should",
+        "scope": "output",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "保留变量占位符 `{name}` `{{count}}` `%s` 等格式"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "复数形式和性别变体需要特殊处理",
+        "level": "must",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "复数形式和性别变体需要特殊处理"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "日期、数字、货币格式需使用 locale 感知的格式化函数",
+        "level": "should",
+        "scope": "output",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "日期、数字、货币格式需使用 locale 感知的格式化函数"
+      }
+    ],
+    "tools": [],
+    "environment": [],
+    "checks": [],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-construction-validation-plan/v1",
+    "skillId": "i18n-helper",
+    "checks": [
+      {
+        "id": "source-digest",
+        "status": "passed",
+        "evidence": "sha256:7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+      },
+      {
+        "id": "contract-structure",
+        "status": "passed",
+        "evidence": "source contract candidate schema"
+      },
+      {
+        "id": "skill-ir-schema",
+        "status": "passed",
+        "evidence": "SkillIRSchema.parse"
+      },
+      {
+        "id": "skill-ir-references",
+        "status": "passed",
+        "evidence": "validateSkillIR:0 errors"
+      },
+      {
+        "id": "source-trace",
+        "status": "passed",
+        "evidence": "every extracted step and rule is traced to public SKILL.md"
+      },
+      {
+        "id": "domain-semantics",
+        "status": "requires-human",
+        "evidence": "task ABI and domain invariants are absent from source-only generation inputs"
+      },
+      {
+        "id": "package-runtime",
+        "status": "requires-human",
+        "evidence": "no domain compiler, checker, or executable plan was generated"
+      }
+    ],
+    "promotionEligible": false,
+    "prohibitedEvidenceClasses": [
+      "model-output",
+      "evaluator-payload",
+      "held-out",
+      "scorer-gold",
+      "secret-value"
+    ]
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-package-candidate/v1",
+    "skillId": "i18n-helper",
+    "status": "non-executable",
+    "protectedInputs": [
+      "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md"
+    ],
+    "generatedOutputs": [],
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "path": "skill.md",
+        "kind": "skill-view",
+        "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+        "content": "---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n"
+      },
+      {
+        "path": "skill-ir.json",
+        "kind": "skill-ir",
+        "sha256": "c63ca0380f9d0f3c58b62c6b45b1be09c424c023124c2d58160d098f02563210",
+        "content": "{\n  \"schemaVersion\": \"skill-ir/v1\",\n  \"id\": \"i18n-helper\",\n  \"name\": \"🌍 i18n-helper — 国际化/本地化助手\",\n  \"category\": [\n    \"workflow\",\n    \"generative\",\n    \"diagnostic\",\n    \"constraint-heavy\"\n  ],\n  \"intent\": \"国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\",\n  \"source\": {\n    \"kind\": \"file\",\n    \"path\": \"benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md\",\n    \"sha256\": \"7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729\"\n  },\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"description\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"preconditions\": [\n    {\n      \"id\": \"public-source-readable\",\n      \"description\": \"The digest-pinned public skill source is readable before execution.\",\n      \"checkability\": \"static\"\n    }\n  ],\n  \"steps\": [\n    {\n      \"id\": \"step-01\",\n      \"title\": \"1. 项目分析\",\n      \"description\": \"1. 项目分析\",\n      \"kind\": \"analyze\",\n      \"required\": true,\n      \"dependsOn\": [],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-02\",\n      \"title\": \"2. 硬编码文本扫描\",\n      \"description\": \"2. 硬编码文本扫描\",\n      \"kind\": \"read\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-01\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-03\",\n      \"title\": \"3. 语言文件生成\",\n      \"description\": \"3. 语言文件生成\",\n      \"kind\": \"edit\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-02\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-04\",\n      \"title\": \"4. 代码替换\",\n      \"description\": \"4. 代码替换\",\n      \"kind\": \"edit\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-03\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-05\",\n      \"title\": \"5. 完整性检查\",\n      \"description\": \"5. 完整性检查\",\n      \"kind\": \"read\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-04\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    }\n  ],\n  \"rules\": [\n    {\n      \"id\": \"rule-01\",\n      \"sourceText\": \"不要翻译技术术语（API、SDK、HTTP 等）\",\n      \"level\": \"never\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"不要翻译技术术语（API、SDK、HTTP 等）\"\n    },\n    {\n      \"id\": \"rule-02\",\n      \"sourceText\": \"保留变量占位符 `{name}` `{{count}}` `%s` 等格式\",\n      \"level\": \"should\",\n      \"scope\": \"output\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"保留变量占位符 `{name}` `{{count}}` `%s` 等格式\"\n    },\n    {\n      \"id\": \"rule-03\",\n      \"sourceText\": \"复数形式和性别变体需要特殊处理\",\n      \"level\": \"must\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"复数形式和性别变体需要特殊处理\"\n    },\n    {\n      \"id\": \"rule-04\",\n      \"sourceText\": \"日期、数字、货币格式需使用 locale 感知的格式化函数\",\n      \"level\": \"should\",\n      \"scope\": \"output\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"日期、数字、货币格式需使用 locale 感知的格式化函数\"\n    }\n  ],\n  \"tools\": [],\n  \"environment\": [],\n  \"checks\": [],\n  \"recovery\": [],\n  \"profile\": []\n}\n"
+      },
+      {
+        "path": "source-contract.json",
+        "kind": "source-contract",
+        "sha256": "250fedf56ce035167961448fc5d901344a8b740f83d3c33d7ac8a6ea092322e9",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-source-contract-candidate/v1\",\n  \"skillId\": \"i18n-helper\",\n  \"name\": \"🌍 i18n-helper — 国际化/本地化助手\",\n  \"intent\": \"国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\",\n  \"source\": {\n    \"path\": \"benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md\",\n    \"sha256\": \"7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729\"\n  },\n  \"activationConditions\": [\n    \"扫描代码中的硬编码中文/英文文本\",\n    \"为项目添加国际化支持（i18n）\",\n    \"批量提取和翻译语言文件\",\n    \"检查翻译完整性（缺失 key 检测）\"\n  ],\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"sourceText\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"constraints\": [\n    \"不要翻译技术术语（API、SDK、HTTP 等）\",\n    \"保留变量占位符 `{name}` `{{count}}` `%s` 等格式\",\n    \"复数形式和性别变体需要特殊处理\",\n    \"日期、数字、货币格式需使用 locale 感知的格式化函数\"\n  ],\n  \"unresolvedSemantics\": [\n    \"Benchmark task input and output ABI are not derivable from the public skill source alone.\",\n    \"Domain checker and runtime compiler behavior require independent qualification.\"\n  ]\n}\n"
+      },
+      {
+        "path": "validation-plan.json",
+        "kind": "validation-plan",
+        "sha256": "2fc931e8f92d6e55e7cab7156975d3b00a70e3ee5cf7e6283c8efbd1c50a62f2",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-construction-validation-plan/v1\",\n  \"skillId\": \"i18n-helper\",\n  \"checks\": [\n    {\n      \"id\": \"source-digest\",\n      \"status\": \"passed\",\n      \"evidence\": \"sha256:7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729\"\n    },\n    {\n      \"id\": \"contract-structure\",\n      \"status\": \"passed\",\n      \"evidence\": \"source contract candidate schema\"\n    },\n    {\n      \"id\": \"skill-ir-schema\",\n      \"status\": \"passed\",\n      \"evidence\": \"SkillIRSchema.parse\"\n    },\n    {\n      \"id\": \"skill-ir-references\",\n      \"status\": \"passed\",\n      \"evidence\": \"validateSkillIR:0 errors\"\n    },\n    {\n      \"id\": \"source-trace\",\n      \"status\": \"passed\",\n      \"evidence\": \"every extracted step and rule is traced to public SKILL.md\"\n    },\n    {\n      \"id\": \"domain-semantics\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"task ABI and domain invariants are absent from source-only generation inputs\"\n    },\n    {\n      \"id\": \"package-runtime\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"no domain compiler, checker, or executable plan was generated\"\n    }\n  ],\n  \"promotionEligible\": false,\n  \"prohibitedEvidenceClasses\": [\n    \"model-output\",\n    \"evaluator-payload\",\n    \"held-out\",\n    \"scorer-gold\",\n    \"secret-value\"\n  ]\n}\n"
+      }
+    ],
+    "blockers": [
+      "domain-compiler-not-generated",
+      "runtime-checker-not-generated",
+      "task-output-contract-not-qualified"
+    ]
+  },
+  "audit": {
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md"
+    ],
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0
+  }
+}

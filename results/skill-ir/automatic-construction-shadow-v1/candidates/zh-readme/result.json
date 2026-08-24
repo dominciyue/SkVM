@@ -1,0 +1,484 @@
+{
+  "schemaVersion": "skill-ir-automatic-construction-result/v1",
+  "sourceSnapshot": {
+    "path": "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md",
+    "sha256": "e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b",
+    "text": "---\nname: zh-readme\ndescription: 中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README\n---\n\n# 中文 README 生成器\n\n## 触发条件\n当用户要求写 README、重写项目介绍、补全文档首页、优化开源仓库展示页时激活此技能。\n\n## 核心原则\n1. 先读代码和目录，再写 README；不要只凭项目名猜功能。\n2. 面向中文开发者表达，技术名词保留英文，解释用自然中文。\n3. 首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。\n4. 优先给出真实命令、真实路径、真实示例，少写空泛宣传语。\n5. 如果项目已有 README，先保留有效信息，再补全缺失结构。\n6. 如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。\n7. 项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。\n8. README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。\n9. 如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。\n10. 如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。\n\n## 首屏优化模板\n- **一句话价值主张**：明确解决什么问题，避免“强大/优雅/现代化”之类空词。\n- **适合谁用**：点名目标用户或典型场景，例如“面向中文开发者”“适合团队协作”“适合零配置上手”。\n- **最短安装方式**：给出一段可直接复制的命令，优先放 GitHub 原生地址；如有镜像，再作为补充。\n- **统一入口**：官网、文档、Issue 征集、下载方式尽量收敛到 1 个正式入口，减少用户决策成本。\n- **社交证明**：在不堆砌数据的前提下，展示 star、精选数量、更新时间或代表性案例。\n\n## 推荐结构\n\n```markdown\n# 项目名称\n\n> 一句话价值主张，告诉用户“这东西解决什么问题”\n\n[![Stars](badge)](link)\n[![License](badge)](link)\n[![Version](badge)](link)\n\n## ✨ 项目亮点\n- 亮点 1：解决什么痛点\n- 亮点 2：与同类方案相比优势是什么\n- 亮点 3：适合谁使用\n\n## 📦 安装\n```bash\npip install xxx\n# 或 npm install / go install / cargo install\n```\n\n## 🚀 快速开始\n```bash\nxxx init\nxxx run\n```\n\n## 🧭 使用示例\n```python\nfrom xxx import yyy\n```\n\n## 📁 项目结构\n- `src/`：核心实现\n- `tests/`：测试\n- `docs/`：扩展文档\n\n## ❓ 适用场景\n- 场景 1\n- 场景 2\n- 场景 3\n\n## 🛠️ 开发\n```bash\nmake test\nmake lint\n```\n\n## 🤝 贡献\n欢迎 PR / Issue。\n\n## 📝 License\nMIT\n```\n\n## 工作流程\n1. 检查项目结构、包管理文件、入口文件、测试目录和已有文档。\n2. 提炼项目定位：目标用户、核心能力、和替代方案相比的差异点。\n3. 优先补全“安装 / 快速开始 / 使用示例 / 项目结构 / 开发方式”。\n4. 如果缺少真实命令，基于仓库中的 `package.json`、`pyproject.toml`、`Makefile`、`Cargo.toml` 等提取。\n5. 用中文重写标题、摘要和亮点，避免“强大、优雅、现代化”这类空词。\n6. 最后检查 README 是否能支持首次访问者在 30 秒内理解并开始使用。\n\n## 输出要求\n- 默认使用 Markdown。\n- 标题层级清晰，emoji 适量，不要堆砌。\n- 示例命令必须可复制。\n- 如果信息不足，显式标注“待补充”，不要编造不存在的特性。\n\n## 自检清单\n- 是否说明了项目解决的问题？\n- 是否给出最短可运行示例？\n- 是否覆盖安装、使用、贡献、License？\n- 是否避免了 AI 腔和空泛营销语？\n- 是否让中文开发者一眼看懂？\n"
+  },
+  "contract": {
+    "schemaVersion": "skill-ir-source-contract-candidate/v1",
+    "skillId": "zh-readme",
+    "name": "或 npm install / go install / cargo install",
+    "intent": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md",
+      "sha256": "e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b"
+    },
+    "activationConditions": [],
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "sourceText": "默认使用 Markdown。",
+        "required": true
+      },
+      {
+        "id": "output-02",
+        "sourceText": "标题层级清晰，emoji 适量，不要堆砌。",
+        "required": true
+      },
+      {
+        "id": "output-03",
+        "sourceText": "示例命令必须可复制。",
+        "required": true
+      },
+      {
+        "id": "output-04",
+        "sourceText": "如果信息不足，显式标注“待补充”，不要编造不存在的特性。",
+        "required": true
+      }
+    ],
+    "constraints": [
+      "先读代码和目录，再写 README；不要只凭项目名猜功能。",
+      "面向中文开发者表达，技术名词保留英文，解释用自然中文。",
+      "首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。",
+      "优先给出真实命令、真实路径、真实示例，少写空泛宣传语。",
+      "如果项目已有 README，先保留有效信息，再补全缺失结构。",
+      "如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。",
+      "项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。",
+      "README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。",
+      "如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。",
+      "如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。",
+      "是否说明了项目解决的问题？",
+      "是否给出最短可运行示例？",
+      "是否覆盖安装、使用、贡献、License？",
+      "是否避免了 AI 腔和空泛营销语？",
+      "是否让中文开发者一眼看懂？"
+    ],
+    "unresolvedSemantics": [
+      "Benchmark task input and output ABI are not derivable from the public skill source alone.",
+      "Domain checker and runtime compiler behavior require independent qualification."
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "zh-readme",
+    "name": "或 npm install / go install / cargo install",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy",
+      "environment-sensitive"
+    ],
+    "intent": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md",
+      "sha256": "e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b"
+    },
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "description": "默认使用 Markdown。",
+        "required": true
+      },
+      {
+        "id": "output-02",
+        "description": "标题层级清晰，emoji 适量，不要堆砌。",
+        "required": true
+      },
+      {
+        "id": "output-03",
+        "description": "示例命令必须可复制。",
+        "required": true
+      },
+      {
+        "id": "output-04",
+        "description": "如果信息不足，显式标注“待补充”，不要编造不存在的特性。",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "检查项目结构、包管理文件、入口文件、测试目录和已有文档。",
+        "description": "检查项目结构、包管理文件、入口文件、测试目录和已有文档。",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "提炼项目定位：目标用户、核心能力、和替代方案相比的差异点。",
+        "description": "提炼项目定位：目标用户、核心能力、和替代方案相比的差异点。",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "优先补全“安装 / 快速开始 / 使用示例 / 项目结构 / 开发方式”。",
+        "description": "优先补全“安装 / 快速开始 / 使用示例 / 项目结构 / 开发方式”。",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "如果缺少真实命令，基于仓库中的 `package.json`、`pyproject.toml`、`Makefile`、`Cargo.toml` 等提取。",
+        "description": "如果缺少真实命令，基于仓库中的 `package.json`、`pyproject.toml`、`Makefile`、`Cargo.toml` 等提取。",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "用中文重写标题、摘要和亮点，避免“强大、优雅、现代化”这类空词。",
+        "description": "用中文重写标题、摘要和亮点，避免“强大、优雅、现代化”这类空词。",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-06",
+        "title": "最后检查 README 是否能支持首次访问者在 30 秒内理解并开始使用。",
+        "description": "最后检查 README 是否能支持首次访问者在 30 秒内理解并开始使用。",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [
+          "step-05"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "先读代码和目录，再写 README；不要只凭项目名猜功能。",
+        "level": "never",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "先读代码和目录，再写 README；不要只凭项目名猜功能。"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "面向中文开发者表达，技术名词保留英文，解释用自然中文。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "面向中文开发者表达，技术名词保留英文，解释用自然中文。"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "优先给出真实命令、真实路径、真实示例，少写空泛宣传语。",
+        "level": "should",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "优先给出真实命令、真实路径、真实示例，少写空泛宣传语。"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "如果项目已有 README，先保留有效信息，再补全缺失结构。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "如果项目已有 README，先保留有效信息，再补全缺失结构。"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。",
+        "level": "must",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。"
+      },
+      {
+        "id": "rule-09",
+        "sourceText": "如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。"
+      },
+      {
+        "id": "rule-10",
+        "sourceText": "如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。"
+      },
+      {
+        "id": "rule-11",
+        "sourceText": "是否说明了项目解决的问题？",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "是否说明了项目解决的问题？"
+      },
+      {
+        "id": "rule-12",
+        "sourceText": "是否给出最短可运行示例？",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "是否给出最短可运行示例？"
+      },
+      {
+        "id": "rule-13",
+        "sourceText": "是否覆盖安装、使用、贡献、License？",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "是否覆盖安装、使用、贡献、License？"
+      },
+      {
+        "id": "rule-14",
+        "sourceText": "是否避免了 AI 腔和空泛营销语？",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "是否避免了 AI 腔和空泛营销语？"
+      },
+      {
+        "id": "rule-15",
+        "sourceText": "是否让中文开发者一眼看懂？",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "是否让中文开发者一眼看懂？"
+      }
+    ],
+    "tools": [],
+    "environment": [
+      {
+        "id": "environment-from-source",
+        "description": "The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.",
+        "platforms": [
+          "linux",
+          "macos",
+          "windows",
+          "wsl",
+          "container"
+        ],
+        "checkability": "human"
+      }
+    ],
+    "checks": [],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-construction-validation-plan/v1",
+    "skillId": "zh-readme",
+    "checks": [
+      {
+        "id": "source-digest",
+        "status": "passed",
+        "evidence": "sha256:e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b"
+      },
+      {
+        "id": "contract-structure",
+        "status": "passed",
+        "evidence": "source contract candidate schema"
+      },
+      {
+        "id": "skill-ir-schema",
+        "status": "passed",
+        "evidence": "SkillIRSchema.parse"
+      },
+      {
+        "id": "skill-ir-references",
+        "status": "passed",
+        "evidence": "validateSkillIR:0 errors"
+      },
+      {
+        "id": "source-trace",
+        "status": "passed",
+        "evidence": "every extracted step and rule is traced to public SKILL.md"
+      },
+      {
+        "id": "domain-semantics",
+        "status": "requires-human",
+        "evidence": "task ABI and domain invariants are absent from source-only generation inputs"
+      },
+      {
+        "id": "package-runtime",
+        "status": "requires-human",
+        "evidence": "no domain compiler, checker, or executable plan was generated"
+      }
+    ],
+    "promotionEligible": false,
+    "prohibitedEvidenceClasses": [
+      "model-output",
+      "evaluator-payload",
+      "held-out",
+      "scorer-gold",
+      "secret-value"
+    ]
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-package-candidate/v1",
+    "skillId": "zh-readme",
+    "status": "non-executable",
+    "protectedInputs": [
+      "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md"
+    ],
+    "generatedOutputs": [],
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "path": "skill.md",
+        "kind": "skill-view",
+        "sha256": "e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b",
+        "content": "---\nname: zh-readme\ndescription: 中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README\n---\n\n# 中文 README 生成器\n\n## 触发条件\n当用户要求写 README、重写项目介绍、补全文档首页、优化开源仓库展示页时激活此技能。\n\n## 核心原则\n1. 先读代码和目录，再写 README；不要只凭项目名猜功能。\n2. 面向中文开发者表达，技术名词保留英文，解释用自然中文。\n3. 首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。\n4. 优先给出真实命令、真实路径、真实示例，少写空泛宣传语。\n5. 如果项目已有 README，先保留有效信息，再补全缺失结构。\n6. 如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。\n7. 项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。\n8. README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。\n9. 如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。\n10. 如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。\n\n## 首屏优化模板\n- **一句话价值主张**：明确解决什么问题，避免“强大/优雅/现代化”之类空词。\n- **适合谁用**：点名目标用户或典型场景，例如“面向中文开发者”“适合团队协作”“适合零配置上手”。\n- **最短安装方式**：给出一段可直接复制的命令，优先放 GitHub 原生地址；如有镜像，再作为补充。\n- **统一入口**：官网、文档、Issue 征集、下载方式尽量收敛到 1 个正式入口，减少用户决策成本。\n- **社交证明**：在不堆砌数据的前提下，展示 star、精选数量、更新时间或代表性案例。\n\n## 推荐结构\n\n```markdown\n# 项目名称\n\n> 一句话价值主张，告诉用户“这东西解决什么问题”\n\n[![Stars](badge)](link)\n[![License](badge)](link)\n[![Version](badge)](link)\n\n## ✨ 项目亮点\n- 亮点 1：解决什么痛点\n- 亮点 2：与同类方案相比优势是什么\n- 亮点 3：适合谁使用\n\n## 📦 安装\n```bash\npip install xxx\n# 或 npm install / go install / cargo install\n```\n\n## 🚀 快速开始\n```bash\nxxx init\nxxx run\n```\n\n## 🧭 使用示例\n```python\nfrom xxx import yyy\n```\n\n## 📁 项目结构\n- `src/`：核心实现\n- `tests/`：测试\n- `docs/`：扩展文档\n\n## ❓ 适用场景\n- 场景 1\n- 场景 2\n- 场景 3\n\n## 🛠️ 开发\n```bash\nmake test\nmake lint\n```\n\n## 🤝 贡献\n欢迎 PR / Issue。\n\n## 📝 License\nMIT\n```\n\n## 工作流程\n1. 检查项目结构、包管理文件、入口文件、测试目录和已有文档。\n2. 提炼项目定位：目标用户、核心能力、和替代方案相比的差异点。\n3. 优先补全“安装 / 快速开始 / 使用示例 / 项目结构 / 开发方式”。\n4. 如果缺少真实命令，基于仓库中的 `package.json`、`pyproject.toml`、`Makefile`、`Cargo.toml` 等提取。\n5. 用中文重写标题、摘要和亮点，避免“强大、优雅、现代化”这类空词。\n6. 最后检查 README 是否能支持首次访问者在 30 秒内理解并开始使用。\n\n## 输出要求\n- 默认使用 Markdown。\n- 标题层级清晰，emoji 适量，不要堆砌。\n- 示例命令必须可复制。\n- 如果信息不足，显式标注“待补充”，不要编造不存在的特性。\n\n## 自检清单\n- 是否说明了项目解决的问题？\n- 是否给出最短可运行示例？\n- 是否覆盖安装、使用、贡献、License？\n- 是否避免了 AI 腔和空泛营销语？\n- 是否让中文开发者一眼看懂？\n"
+      },
+      {
+        "path": "skill-ir.json",
+        "kind": "skill-ir",
+        "sha256": "a760bbabb2b18176a82c71b0dc8a16479dd697388d4291c4e74b45e2579ac39c",
+        "content": "{\n  \"schemaVersion\": \"skill-ir/v1\",\n  \"id\": \"zh-readme\",\n  \"name\": \"或 npm install / go install / cargo install\",\n  \"category\": [\n    \"workflow\",\n    \"generative\",\n    \"diagnostic\",\n    \"constraint-heavy\",\n    \"environment-sensitive\"\n  ],\n  \"intent\": \"中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README\",\n  \"source\": {\n    \"kind\": \"file\",\n    \"path\": \"benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md\",\n    \"sha256\": \"e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b\"\n  },\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"description\": \"默认使用 Markdown。\",\n      \"required\": true\n    },\n    {\n      \"id\": \"output-02\",\n      \"description\": \"标题层级清晰，emoji 适量，不要堆砌。\",\n      \"required\": true\n    },\n    {\n      \"id\": \"output-03\",\n      \"description\": \"示例命令必须可复制。\",\n      \"required\": true\n    },\n    {\n      \"id\": \"output-04\",\n      \"description\": \"如果信息不足，显式标注“待补充”，不要编造不存在的特性。\",\n      \"required\": true\n    }\n  ],\n  \"preconditions\": [\n    {\n      \"id\": \"public-source-readable\",\n      \"description\": \"The digest-pinned public skill source is readable before execution.\",\n      \"checkability\": \"static\"\n    }\n  ],\n  \"steps\": [\n    {\n      \"id\": \"step-01\",\n      \"title\": \"检查项目结构、包管理文件、入口文件、测试目录和已有文档。\",\n      \"description\": \"检查项目结构、包管理文件、入口文件、测试目录和已有文档。\",\n      \"kind\": \"read\",\n      \"required\": true,\n      \"dependsOn\": [],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-02\",\n      \"title\": \"提炼项目定位：目标用户、核心能力、和替代方案相比的差异点。\",\n      \"description\": \"提炼项目定位：目标用户、核心能力、和替代方案相比的差异点。\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-01\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-03\",\n      \"title\": \"优先补全“安装 / 快速开始 / 使用示例 / 项目结构 / 开发方式”。\",\n      \"description\": \"优先补全“安装 / 快速开始 / 使用示例 / 项目结构 / 开发方式”。\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-02\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-04\",\n      \"title\": \"如果缺少真实命令，基于仓库中的 `package.json`、`pyproject.toml`、`Makefile`、`Cargo.toml` 等提取。\",\n      \"description\": \"如果缺少真实命令，基于仓库中的 `package.json`、`pyproject.toml`、`Makefile`、`Cargo.toml` 等提取。\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-03\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-05\",\n      \"title\": \"用中文重写标题、摘要和亮点，避免“强大、优雅、现代化”这类空词。\",\n      \"description\": \"用中文重写标题、摘要和亮点，避免“强大、优雅、现代化”这类空词。\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-04\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-06\",\n      \"title\": \"最后检查 README 是否能支持首次访问者在 30 秒内理解并开始使用。\",\n      \"description\": \"最后检查 README 是否能支持首次访问者在 30 秒内理解并开始使用。\",\n      \"kind\": \"read\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-05\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    }\n  ],\n  \"rules\": [\n    {\n      \"id\": \"rule-01\",\n      \"sourceText\": \"先读代码和目录，再写 README；不要只凭项目名猜功能。\",\n      \"level\": \"never\",\n      \"scope\": \"file-edit\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"先读代码和目录，再写 README；不要只凭项目名猜功能。\"\n    },\n    {\n      \"id\": \"rule-02\",\n      \"sourceText\": \"面向中文开发者表达，技术名词保留英文，解释用自然中文。\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"面向中文开发者表达，技术名词保留英文，解释用自然中文。\"\n    },\n    {\n      \"id\": \"rule-03\",\n      \"sourceText\": \"首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。\"\n    },\n    {\n      \"id\": \"rule-04\",\n      \"sourceText\": \"优先给出真实命令、真实路径、真实示例，少写空泛宣传语。\",\n      \"level\": \"should\",\n      \"scope\": \"file-edit\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"优先给出真实命令、真实路径、真实示例，少写空泛宣传语。\"\n    },\n    {\n      \"id\": \"rule-05\",\n      \"sourceText\": \"如果项目已有 README，先保留有效信息，再补全缺失结构。\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"如果项目已有 README，先保留有效信息，再补全缺失结构。\"\n    },\n    {\n      \"id\": \"rule-06\",\n      \"sourceText\": \"如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。\",\n      \"level\": \"must\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。\"\n    },\n    {\n      \"id\": \"rule-07\",\n      \"sourceText\": \"项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。\"\n    },\n    {\n      \"id\": \"rule-08\",\n      \"sourceText\": \"README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。\",\n      \"level\": \"never\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。\"\n    },\n    {\n      \"id\": \"rule-09\",\n      \"sourceText\": \"如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。\"\n    },\n    {\n      \"id\": \"rule-10\",\n      \"sourceText\": \"如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。\"\n    },\n    {\n      \"id\": \"rule-11\",\n      \"sourceText\": \"是否说明了项目解决的问题？\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"是否说明了项目解决的问题？\"\n    },\n    {\n      \"id\": \"rule-12\",\n      \"sourceText\": \"是否给出最短可运行示例？\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"是否给出最短可运行示例？\"\n    },\n    {\n      \"id\": \"rule-13\",\n      \"sourceText\": \"是否覆盖安装、使用、贡献、License？\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"是否覆盖安装、使用、贡献、License？\"\n    },\n    {\n      \"id\": \"rule-14\",\n      \"sourceText\": \"是否避免了 AI 腔和空泛营销语？\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"是否避免了 AI 腔和空泛营销语？\"\n    },\n    {\n      \"id\": \"rule-15\",\n      \"sourceText\": \"是否让中文开发者一眼看懂？\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"是否让中文开发者一眼看懂？\"\n    }\n  ],\n  \"tools\": [],\n  \"environment\": [\n    {\n      \"id\": \"environment-from-source\",\n      \"description\": \"The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.\",\n      \"platforms\": [\n        \"linux\",\n        \"macos\",\n        \"windows\",\n        \"wsl\",\n        \"container\"\n      ],\n      \"checkability\": \"human\"\n    }\n  ],\n  \"checks\": [],\n  \"recovery\": [],\n  \"profile\": []\n}\n"
+      },
+      {
+        "path": "source-contract.json",
+        "kind": "source-contract",
+        "sha256": "105d8fcc03e460a9865a22bd29c8cae3b7312eebc5e79f7f551da619154c572d",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-source-contract-candidate/v1\",\n  \"skillId\": \"zh-readme\",\n  \"name\": \"或 npm install / go install / cargo install\",\n  \"intent\": \"中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README\",\n  \"source\": {\n    \"path\": \"benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md\",\n    \"sha256\": \"e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b\"\n  },\n  \"activationConditions\": [],\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"sourceText\": \"默认使用 Markdown。\",\n      \"required\": true\n    },\n    {\n      \"id\": \"output-02\",\n      \"sourceText\": \"标题层级清晰，emoji 适量，不要堆砌。\",\n      \"required\": true\n    },\n    {\n      \"id\": \"output-03\",\n      \"sourceText\": \"示例命令必须可复制。\",\n      \"required\": true\n    },\n    {\n      \"id\": \"output-04\",\n      \"sourceText\": \"如果信息不足，显式标注“待补充”，不要编造不存在的特性。\",\n      \"required\": true\n    }\n  ],\n  \"constraints\": [\n    \"先读代码和目录，再写 README；不要只凭项目名猜功能。\",\n    \"面向中文开发者表达，技术名词保留英文，解释用自然中文。\",\n    \"首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。\",\n    \"优先给出真实命令、真实路径、真实示例，少写空泛宣传语。\",\n    \"如果项目已有 README，先保留有效信息，再补全缺失结构。\",\n    \"如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。\",\n    \"项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。\",\n    \"README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。\",\n    \"如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。\",\n    \"如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。\",\n    \"是否说明了项目解决的问题？\",\n    \"是否给出最短可运行示例？\",\n    \"是否覆盖安装、使用、贡献、License？\",\n    \"是否避免了 AI 腔和空泛营销语？\",\n    \"是否让中文开发者一眼看懂？\"\n  ],\n  \"unresolvedSemantics\": [\n    \"Benchmark task input and output ABI are not derivable from the public skill source alone.\",\n    \"Domain checker and runtime compiler behavior require independent qualification.\"\n  ]\n}\n"
+      },
+      {
+        "path": "validation-plan.json",
+        "kind": "validation-plan",
+        "sha256": "22b6d6a07ef38dd74016612c83ab5b1d23fa7a34fec04b516f3b617391d8e9a7",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-construction-validation-plan/v1\",\n  \"skillId\": \"zh-readme\",\n  \"checks\": [\n    {\n      \"id\": \"source-digest\",\n      \"status\": \"passed\",\n      \"evidence\": \"sha256:e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b\"\n    },\n    {\n      \"id\": \"contract-structure\",\n      \"status\": \"passed\",\n      \"evidence\": \"source contract candidate schema\"\n    },\n    {\n      \"id\": \"skill-ir-schema\",\n      \"status\": \"passed\",\n      \"evidence\": \"SkillIRSchema.parse\"\n    },\n    {\n      \"id\": \"skill-ir-references\",\n      \"status\": \"passed\",\n      \"evidence\": \"validateSkillIR:0 errors\"\n    },\n    {\n      \"id\": \"source-trace\",\n      \"status\": \"passed\",\n      \"evidence\": \"every extracted step and rule is traced to public SKILL.md\"\n    },\n    {\n      \"id\": \"domain-semantics\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"task ABI and domain invariants are absent from source-only generation inputs\"\n    },\n    {\n      \"id\": \"package-runtime\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"no domain compiler, checker, or executable plan was generated\"\n    }\n  ],\n  \"promotionEligible\": false,\n  \"prohibitedEvidenceClasses\": [\n    \"model-output\",\n    \"evaluator-payload\",\n    \"held-out\",\n    \"scorer-gold\",\n    \"secret-value\"\n  ]\n}\n"
+      }
+    ],
+    "blockers": [
+      "domain-compiler-not-generated",
+      "runtime-checker-not-generated",
+      "task-output-contract-not-qualified"
+    ]
+  },
+  "audit": {
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md"
+    ],
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0
+  }
+}

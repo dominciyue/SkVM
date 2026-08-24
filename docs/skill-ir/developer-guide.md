@@ -942,7 +942,8 @@ no-skill 无净贡献、static 回归且 construction 非自动，因此 BIDS �
 已完成：successor pre-model artifact controls；4/4、0 model call/token，report v2 与 repair evidence 合同匹配
 已完成：successor 唯一 matrix；12/12 semantic-complete/scored、0 retry，贡献 false、static regression
 已完成：readiness v4；open measurement blocker 0，但 phenotype=1、automation 7/7 incomplete，整体 failed
-下一步：收敛自动生成 contract/IR/validation-plan/package 的公共路径，用冻结案例做 0-paid shadow parity
+已完成：source-only automatic construction；7/7 四类 candidate、0 paid/held-out、但 0/7 portfolio eligible
+下一步：融合公开 task contract/source audit，自动生成可审计 domain semantics 与 checker/compiler
 ```
 
 本地重建命令：

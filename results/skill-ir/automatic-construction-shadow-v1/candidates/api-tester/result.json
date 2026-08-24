@@ -1,0 +1,335 @@
+{
+  "schemaVersion": "skill-ir-automatic-construction-result/v1",
+  "sourceSnapshot": {
+    "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+    "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a",
+    "text": "---\nname: api-tester\ndescription: API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试\n---\n\n# API 测试生成器\n\n## 触发条件\n当用户要求测试 API、生成测试用例、接口测试、集成测试时激活此技能。\n\n## 工作流程\n\n### 第 1 步：发现 API\n按优先级查找 API 定义：\n1. OpenAPI/Swagger 文件（`openapi.yaml`、`swagger.json`）\n2. 路由定义文件（Express routes、Flask blueprints、Spring controllers）\n3. API 目录结构（`/api/`、`/routes/`、`/controllers/`）\n\n**OpenAPI 解析方法**：\n```bash\n# 使用 swagger-cli 验证\nnpx @apidevtools/swagger-cli validate openapi.yaml\n\n# 使用 redocly 提取端点信息\nnpx @redocly/cli lint openapi.yaml\n\n# 查看端点、Schema 和统计信息，避免用 grep 误解析 YAML\nnpx @redocly/cli stats openapi.yaml\n```\n\n### 第 2 步：生成测试用例\n为每个 endpoint 生成三类测试：\n- **正常场景**（happy path）— 合法输入，期望成功响应\n- **边界值测试** — 空值、超长字符串、特殊字符、极值\n- **错误场景** — 400/401/403/404/422/500\n\n### 第 3 步：生成测试代码\n根据项目技术栈选择测试框架并生成代码。\n\n### 第 4 步：测试数据生成\n\n**策略**：\n| 策略 | 适用场景 | 工具/方法 |\n|------|---------|----------|\n| 固定数据 | 简单接口、确定性测试 | JSON fixture 文件 |\n| Faker 随机生成 | 大量测试数据、压力测试 | `@faker-js/faker`、`Faker`(Python) |\n| 工厂模式 | 复杂对象关系 | factory_boy、fishery |\n| 从 Schema 生成 | 基于 OpenAPI 自动生成 | `json-schema-faker` |\n\n### 第 5 步：执行和复测\n\n- 使用项目现有测试命令运行生成的测试。\n- 根据真实失败信息修正 fixture、认证、状态码或环境依赖。\n- 再次运行，确认测试独立且可重复。\n- 无法执行时明确标注“未运行验证”，不要声称测试代码可直接通过。\n\n## 测试模板\n\n### pytest (Python)\n```python\nimport pytest\n\n# 正常场景\ndef test_get_users_success(client):\n    response = client.get(\"/api/users\")\n    assert response.status_code == 200\n    assert isinstance(response.json(), list)\n\n# 边界值测试\ndef test_create_user_empty_name(client):\n    response = client.post(\"/api/users\", json={\"name\": \"\"})\n    assert response.status_code == 422\n\n# 认证测试\ndef test_get_users_unauthorized(client):\n    response = client.get(\"/api/users\", headers={})\n    assert response.status_code == 401\n\n# 参数化批量测试\n@pytest.mark.parametrize(\"name,expected_status\", [\n    (\"Alice\", 200),\n    (\"\", 422),\n    (\"a\" * 500, 422),\n    (None, 422),\n])\ndef test_create_user_validation(client, name, expected_status):\n    response = client.post(\"/api/users\", json={\"name\": name})\n    assert response.status_code == expected_status\n```\n\n### Jest (JavaScript/TypeScript)\n```typescript\nimport request from 'supertest';\nimport app from '../src/app';\n\ndescribe('GET /api/users', () => {\n  it('应返回用户列表', async () => {\n    const res = await request(app)\n      .get('/api/users')\n      .set('Authorization', 'Bearer test-token');\n    expect(res.status).toBe(200);\n    expect(Array.isArray(res.body)).toBe(true);\n  });\n\n  it('未认证应返回 401', async () => {\n    const res = await request(app).get('/api/users');\n    expect(res.status).toBe(401);\n  });\n});\n\ndescribe('POST /api/users', () => {\n  it('空名称应返回 422', async () => {\n    const res = await request(app)\n      .post('/api/users')\n      .send({ name: '' });\n    expect(res.status).toBe(422);\n  });\n\n  it('有效数据应返回 201', async () => {\n    const res = await request(app)\n      .post('/api/users')\n      .send({ name: 'Alice', email: 'alice@test.com' });\n    expect(res.status).toBe(201);\n    expect(res.body).toHaveProperty('id');\n  });\n});\n```\n\n### curl 测试脚本\n```bash\n#!/bin/bash\nBASE_URL=\"http://localhost:3000/api\"\nAPI_TOKEN=\"${API_TOKEN:?请先设置 API_TOKEN}\"\n\n# 正常请求\necho \"=== GET /users ===\"\ncurl -s -w \"\\nHTTP Status: %{http_code}\\n\" \\\n  -H \"Authorization: Bearer $API_TOKEN\" \\\n  \"$BASE_URL/users\"\n\n# POST 创建资源\necho \"=== POST /users ===\"\ncurl -s -w \"\\nHTTP Status: %{http_code}\\n\" \\\n  -X POST \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer $API_TOKEN\" \\\n  -d '{\"name\":\"Alice\",\"email\":\"alice@test.com\"}' \\\n  \"$BASE_URL/users\"\n\n# 错误场景 - 空 body\necho \"=== POST /users (empty) ===\"\ncurl -s -w \"\\nHTTP Status: %{http_code}\\n\" \\\n  -X POST \\\n  -H \"Content-Type: application/json\" \\\n  -d '{}' \\\n  \"$BASE_URL/users\"\n```\n\n## 注意事项\n- 测试用例应独立运行，不依赖执行顺序\n- 使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理\n- 敏感信息（API Key、Token）使用环境变量，不要硬编码\n- 集成测试建议使用独立的测试数据库\n- 关注响应时间，添加超时断言\n"
+  },
+  "contract": {
+    "schemaVersion": "skill-ir-source-contract-candidate/v1",
+    "skillId": "api-tester",
+    "name": "API 测试生成器",
+    "intent": "API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试",
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+      "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a"
+    },
+    "activationConditions": [],
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "sourceText": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "constraints": [
+      "测试用例应独立运行，不依赖执行顺序",
+      "使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理",
+      "敏感信息（API Key、Token）使用环境变量，不要硬编码",
+      "集成测试建议使用独立的测试数据库",
+      "关注响应时间，添加超时断言"
+    ],
+    "unresolvedSemantics": [
+      "Benchmark task input and output ABI are not derivable from the public skill source alone.",
+      "Domain checker and runtime compiler behavior require independent qualification."
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "api-tester",
+    "name": "API 测试生成器",
+    "category": [
+      "workflow",
+      "generative",
+      "constraint-heavy",
+      "environment-sensitive"
+    ],
+    "intent": "API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+      "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a"
+    },
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "description": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "第 1 步：发现 API",
+        "description": "第 1 步：发现 API",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "第 2 步：生成测试用例",
+        "description": "第 2 步：生成测试用例",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "第 3 步：生成测试代码",
+        "description": "第 3 步：生成测试代码",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "第 4 步：测试数据生成",
+        "description": "第 4 步：测试数据生成",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "第 5 步：执行和复测",
+        "description": "第 5 步：执行和复测",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "测试用例应独立运行，不依赖执行顺序",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "测试用例应独立运行，不依赖执行顺序"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "敏感信息（API Key、Token）使用环境变量，不要硬编码",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "敏感信息（API Key、Token）使用环境变量，不要硬编码"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "集成测试建议使用独立的测试数据库",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "集成测试建议使用独立的测试数据库"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "关注响应时间，添加超时断言",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "关注响应时间，添加超时断言"
+      }
+    ],
+    "tools": [],
+    "environment": [
+      {
+        "id": "environment-from-source",
+        "description": "The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.",
+        "platforms": [
+          "linux",
+          "macos",
+          "windows",
+          "wsl",
+          "container"
+        ],
+        "checkability": "human"
+      }
+    ],
+    "checks": [],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-construction-validation-plan/v1",
+    "skillId": "api-tester",
+    "checks": [
+      {
+        "id": "source-digest",
+        "status": "passed",
+        "evidence": "sha256:b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a"
+      },
+      {
+        "id": "contract-structure",
+        "status": "passed",
+        "evidence": "source contract candidate schema"
+      },
+      {
+        "id": "skill-ir-schema",
+        "status": "passed",
+        "evidence": "SkillIRSchema.parse"
+      },
+      {
+        "id": "skill-ir-references",
+        "status": "passed",
+        "evidence": "validateSkillIR:0 errors"
+      },
+      {
+        "id": "source-trace",
+        "status": "passed",
+        "evidence": "every extracted step and rule is traced to public SKILL.md"
+      },
+      {
+        "id": "domain-semantics",
+        "status": "requires-human",
+        "evidence": "task ABI and domain invariants are absent from source-only generation inputs"
+      },
+      {
+        "id": "package-runtime",
+        "status": "requires-human",
+        "evidence": "no domain compiler, checker, or executable plan was generated"
+      }
+    ],
+    "promotionEligible": false,
+    "prohibitedEvidenceClasses": [
+      "model-output",
+      "evaluator-payload",
+      "held-out",
+      "scorer-gold",
+      "secret-value"
+    ]
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-package-candidate/v1",
+    "skillId": "api-tester",
+    "status": "non-executable",
+    "protectedInputs": [
+      "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md"
+    ],
+    "generatedOutputs": [],
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "path": "skill.md",
+        "kind": "skill-view",
+        "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a",
+        "content": "---\nname: api-tester\ndescription: API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试\n---\n\n# API 测试生成器\n\n## 触发条件\n当用户要求测试 API、生成测试用例、接口测试、集成测试时激活此技能。\n\n## 工作流程\n\n### 第 1 步：发现 API\n按优先级查找 API 定义：\n1. OpenAPI/Swagger 文件（`openapi.yaml`、`swagger.json`）\n2. 路由定义文件（Express routes、Flask blueprints、Spring controllers）\n3. API 目录结构（`/api/`、`/routes/`、`/controllers/`）\n\n**OpenAPI 解析方法**：\n```bash\n# 使用 swagger-cli 验证\nnpx @apidevtools/swagger-cli validate openapi.yaml\n\n# 使用 redocly 提取端点信息\nnpx @redocly/cli lint openapi.yaml\n\n# 查看端点、Schema 和统计信息，避免用 grep 误解析 YAML\nnpx @redocly/cli stats openapi.yaml\n```\n\n### 第 2 步：生成测试用例\n为每个 endpoint 生成三类测试：\n- **正常场景**（happy path）— 合法输入，期望成功响应\n- **边界值测试** — 空值、超长字符串、特殊字符、极值\n- **错误场景** — 400/401/403/404/422/500\n\n### 第 3 步：生成测试代码\n根据项目技术栈选择测试框架并生成代码。\n\n### 第 4 步：测试数据生成\n\n**策略**：\n| 策略 | 适用场景 | 工具/方法 |\n|------|---------|----------|\n| 固定数据 | 简单接口、确定性测试 | JSON fixture 文件 |\n| Faker 随机生成 | 大量测试数据、压力测试 | `@faker-js/faker`、`Faker`(Python) |\n| 工厂模式 | 复杂对象关系 | factory_boy、fishery |\n| 从 Schema 生成 | 基于 OpenAPI 自动生成 | `json-schema-faker` |\n\n### 第 5 步：执行和复测\n\n- 使用项目现有测试命令运行生成的测试。\n- 根据真实失败信息修正 fixture、认证、状态码或环境依赖。\n- 再次运行，确认测试独立且可重复。\n- 无法执行时明确标注“未运行验证”，不要声称测试代码可直接通过。\n\n## 测试模板\n\n### pytest (Python)\n```python\nimport pytest\n\n# 正常场景\ndef test_get_users_success(client):\n    response = client.get(\"/api/users\")\n    assert response.status_code == 200\n    assert isinstance(response.json(), list)\n\n# 边界值测试\ndef test_create_user_empty_name(client):\n    response = client.post(\"/api/users\", json={\"name\": \"\"})\n    assert response.status_code == 422\n\n# 认证测试\ndef test_get_users_unauthorized(client):\n    response = client.get(\"/api/users\", headers={})\n    assert response.status_code == 401\n\n# 参数化批量测试\n@pytest.mark.parametrize(\"name,expected_status\", [\n    (\"Alice\", 200),\n    (\"\", 422),\n    (\"a\" * 500, 422),\n    (None, 422),\n])\ndef test_create_user_validation(client, name, expected_status):\n    response = client.post(\"/api/users\", json={\"name\": name})\n    assert response.status_code == expected_status\n```\n\n### Jest (JavaScript/TypeScript)\n```typescript\nimport request from 'supertest';\nimport app from '../src/app';\n\ndescribe('GET /api/users', () => {\n  it('应返回用户列表', async () => {\n    const res = await request(app)\n      .get('/api/users')\n      .set('Authorization', 'Bearer test-token');\n    expect(res.status).toBe(200);\n    expect(Array.isArray(res.body)).toBe(true);\n  });\n\n  it('未认证应返回 401', async () => {\n    const res = await request(app).get('/api/users');\n    expect(res.status).toBe(401);\n  });\n});\n\ndescribe('POST /api/users', () => {\n  it('空名称应返回 422', async () => {\n    const res = await request(app)\n      .post('/api/users')\n      .send({ name: '' });\n    expect(res.status).toBe(422);\n  });\n\n  it('有效数据应返回 201', async () => {\n    const res = await request(app)\n      .post('/api/users')\n      .send({ name: 'Alice', email: 'alice@test.com' });\n    expect(res.status).toBe(201);\n    expect(res.body).toHaveProperty('id');\n  });\n});\n```\n\n### curl 测试脚本\n```bash\n#!/bin/bash\nBASE_URL=\"http://localhost:3000/api\"\nAPI_TOKEN=\"${API_TOKEN:?请先设置 API_TOKEN}\"\n\n# 正常请求\necho \"=== GET /users ===\"\ncurl -s -w \"\\nHTTP Status: %{http_code}\\n\" \\\n  -H \"Authorization: Bearer $API_TOKEN\" \\\n  \"$BASE_URL/users\"\n\n# POST 创建资源\necho \"=== POST /users ===\"\ncurl -s -w \"\\nHTTP Status: %{http_code}\\n\" \\\n  -X POST \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer $API_TOKEN\" \\\n  -d '{\"name\":\"Alice\",\"email\":\"alice@test.com\"}' \\\n  \"$BASE_URL/users\"\n\n# 错误场景 - 空 body\necho \"=== POST /users (empty) ===\"\ncurl -s -w \"\\nHTTP Status: %{http_code}\\n\" \\\n  -X POST \\\n  -H \"Content-Type: application/json\" \\\n  -d '{}' \\\n  \"$BASE_URL/users\"\n```\n\n## 注意事项\n- 测试用例应独立运行，不依赖执行顺序\n- 使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理\n- 敏感信息（API Key、Token）使用环境变量，不要硬编码\n- 集成测试建议使用独立的测试数据库\n- 关注响应时间，添加超时断言\n"
+      },
+      {
+        "path": "skill-ir.json",
+        "kind": "skill-ir",
+        "sha256": "b090739c05646a03b7779b95ce128c65e41b55a732355a539d057574404d2f7f",
+        "content": "{\n  \"schemaVersion\": \"skill-ir/v1\",\n  \"id\": \"api-tester\",\n  \"name\": \"API 测试生成器\",\n  \"category\": [\n    \"workflow\",\n    \"generative\",\n    \"constraint-heavy\",\n    \"environment-sensitive\"\n  ],\n  \"intent\": \"API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试\",\n  \"source\": {\n    \"kind\": \"file\",\n    \"path\": \"benchmarks/skill-ir/pilots/api-tester/source/SKILL.md\",\n    \"sha256\": \"b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a\"\n  },\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"description\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"preconditions\": [\n    {\n      \"id\": \"public-source-readable\",\n      \"description\": \"The digest-pinned public skill source is readable before execution.\",\n      \"checkability\": \"static\"\n    }\n  ],\n  \"steps\": [\n    {\n      \"id\": \"step-01\",\n      \"title\": \"第 1 步：发现 API\",\n      \"description\": \"第 1 步：发现 API\",\n      \"kind\": \"read\",\n      \"required\": true,\n      \"dependsOn\": [],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-02\",\n      \"title\": \"第 2 步：生成测试用例\",\n      \"description\": \"第 2 步：生成测试用例\",\n      \"kind\": \"edit\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-01\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-03\",\n      \"title\": \"第 3 步：生成测试代码\",\n      \"description\": \"第 3 步：生成测试代码\",\n      \"kind\": \"edit\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-02\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-04\",\n      \"title\": \"第 4 步：测试数据生成\",\n      \"description\": \"第 4 步：测试数据生成\",\n      \"kind\": \"edit\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-03\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-05\",\n      \"title\": \"第 5 步：执行和复测\",\n      \"description\": \"第 5 步：执行和复测\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-04\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    }\n  ],\n  \"rules\": [\n    {\n      \"id\": \"rule-01\",\n      \"sourceText\": \"测试用例应独立运行，不依赖执行顺序\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"测试用例应独立运行，不依赖执行顺序\"\n    },\n    {\n      \"id\": \"rule-02\",\n      \"sourceText\": \"使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理\"\n    },\n    {\n      \"id\": \"rule-03\",\n      \"sourceText\": \"敏感信息（API Key、Token）使用环境变量，不要硬编码\",\n      \"level\": \"never\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"敏感信息（API Key、Token）使用环境变量，不要硬编码\"\n    },\n    {\n      \"id\": \"rule-04\",\n      \"sourceText\": \"集成测试建议使用独立的测试数据库\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"集成测试建议使用独立的测试数据库\"\n    },\n    {\n      \"id\": \"rule-05\",\n      \"sourceText\": \"关注响应时间，添加超时断言\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"关注响应时间，添加超时断言\"\n    }\n  ],\n  \"tools\": [],\n  \"environment\": [\n    {\n      \"id\": \"environment-from-source\",\n      \"description\": \"The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.\",\n      \"platforms\": [\n        \"linux\",\n        \"macos\",\n        \"windows\",\n        \"wsl\",\n        \"container\"\n      ],\n      \"checkability\": \"human\"\n    }\n  ],\n  \"checks\": [],\n  \"recovery\": [],\n  \"profile\": []\n}\n"
+      },
+      {
+        "path": "source-contract.json",
+        "kind": "source-contract",
+        "sha256": "32623ca3165e9f5f0956b4b30ae9b1ea386ea689477f04e0173c0dcd764ed717",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-source-contract-candidate/v1\",\n  \"skillId\": \"api-tester\",\n  \"name\": \"API 测试生成器\",\n  \"intent\": \"API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试\",\n  \"source\": {\n    \"path\": \"benchmarks/skill-ir/pilots/api-tester/source/SKILL.md\",\n    \"sha256\": \"b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a\"\n  },\n  \"activationConditions\": [],\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"sourceText\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"constraints\": [\n    \"测试用例应独立运行，不依赖执行顺序\",\n    \"使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理\",\n    \"敏感信息（API Key、Token）使用环境变量，不要硬编码\",\n    \"集成测试建议使用独立的测试数据库\",\n    \"关注响应时间，添加超时断言\"\n  ],\n  \"unresolvedSemantics\": [\n    \"Benchmark task input and output ABI are not derivable from the public skill source alone.\",\n    \"Domain checker and runtime compiler behavior require independent qualification.\"\n  ]\n}\n"
+      },
+      {
+        "path": "validation-plan.json",
+        "kind": "validation-plan",
+        "sha256": "75d5d76eb4f74c379637c564edcddd67b1e09a9f4c4e59169f8e9759bd87c6df",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-construction-validation-plan/v1\",\n  \"skillId\": \"api-tester\",\n  \"checks\": [\n    {\n      \"id\": \"source-digest\",\n      \"status\": \"passed\",\n      \"evidence\": \"sha256:b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a\"\n    },\n    {\n      \"id\": \"contract-structure\",\n      \"status\": \"passed\",\n      \"evidence\": \"source contract candidate schema\"\n    },\n    {\n      \"id\": \"skill-ir-schema\",\n      \"status\": \"passed\",\n      \"evidence\": \"SkillIRSchema.parse\"\n    },\n    {\n      \"id\": \"skill-ir-references\",\n      \"status\": \"passed\",\n      \"evidence\": \"validateSkillIR:0 errors\"\n    },\n    {\n      \"id\": \"source-trace\",\n      \"status\": \"passed\",\n      \"evidence\": \"every extracted step and rule is traced to public SKILL.md\"\n    },\n    {\n      \"id\": \"domain-semantics\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"task ABI and domain invariants are absent from source-only generation inputs\"\n    },\n    {\n      \"id\": \"package-runtime\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"no domain compiler, checker, or executable plan was generated\"\n    }\n  ],\n  \"promotionEligible\": false,\n  \"prohibitedEvidenceClasses\": [\n    \"model-output\",\n    \"evaluator-payload\",\n    \"held-out\",\n    \"scorer-gold\",\n    \"secret-value\"\n  ]\n}\n"
+      }
+    ],
+    "blockers": [
+      "domain-compiler-not-generated",
+      "runtime-checker-not-generated",
+      "task-output-contract-not-qualified"
+    ]
+  },
+  "audit": {
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md"
+    ],
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0
+  }
+}

@@ -1,0 +1,417 @@
+{
+  "schemaVersion": "skill-ir-automatic-construction-result/v1",
+  "sourceSnapshot": {
+    "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+    "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093",
+    "text": "---\r\nname: experimental-design\r\ndescription: Design experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so the results will actually be interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking, stratification, controls, factorial or fractional-factorial designs, design of experiments (DOE), screening many factors, response-surface optimization, crossover or repeated-measures or split-plot designs, cluster/group randomization, Latin squares, plate layouts, batch/run-order effects, replication vs. pseudoreplication, or sequential/adaptive/group-sequential designs. Trigger this even for informal phrasings like \"how should I set up this experiment\", \"how do I avoid confounding\", \"what's the best way to test these 6 factors\", or \"assign these mice to conditions\". For computing the sample size or power once the design is chosen, use statistical-power; for analyzing data already collected, use statistical-analysis.\r\nallowed-tools: Read Write Edit Bash\r\ncompatibility: Requires Python >=3.10. Scripts use numpy, pandas, and pyDOE3 (DOE matrices). Install with uv as shown below.\r\nlicense: MIT license\r\nmetadata: {\"version\": \"1.0\", \"skill-author\": \"K-Dense Inc.\"}\r\n---\r\n\r\n# Experimental Design\r\n\r\n## Overview\r\n\r\nThe design of a study — how units are assigned to conditions, what is held constant, what is varied, and in what structure — determines what questions the data can answer. No analysis can rescue a confounded or pseudoreplicated design after the fact. This skill is about the decisions made *before* data collection: picking a design that isolates the effect of interest, randomizing to license causal claims, blocking to remove known nuisance variation, and structuring multi-factor experiments so effects are estimable rather than tangled together.\r\n\r\nThe three ideas behind almost every good design (Fisher's principles):\r\n- **Randomization** — assign treatments at random so that confounders, known and unknown, are balanced in expectation. This is what turns a comparison into a causal claim.\r\n- **Replication** — independent repetition at the right level, so you can estimate variability and your effects aren't artifacts of a single unit. The most common fatal error is **pseudoreplication**: counting repeated measurements on the same unit as independent replicates.\r\n- **Blocking / local control** — group similar units (by batch, day, site, litter) and randomize within blocks, removing that nuisance variation from the error term instead of letting it inflate noise.\r\n\r\nThis skill helps you choose among design types, generate the actual randomization or DOE layout (with reproducible scripts), and avoid the structural mistakes that make data uninterpretable.\r\n\r\n## When to Use This Skill\r\n\r\n- Planning any comparative experiment or trial and deciding how to assign units\r\n- Randomizing subjects/samples to arms (simple, blocked, stratified, or cluster)\r\n- Removing nuisance variation by blocking or stratification\r\n- Designing multi-factor experiments: full or fractional factorial, screening designs\r\n- Optimizing a response over continuous factors (response-surface designs)\r\n- Within-subject / repeated-measures, crossover, split-plot, or Latin-square designs\r\n- Cluster- or group-randomized designs (sites, clinics, classrooms, litters)\r\n- Deciding the number and level of replicates and avoiding pseudoreplication\r\n- Sequential, group-sequential, or adaptive designs with interim analyses\r\n- Laying out plates/batches and randomizing run order to defeat drift\r\n\r\n## Installation\r\n\r\n```bash\r\nuv pip install \"numpy>=1.26\" \"pandas>=2.0\" pyDOE3\r\n```\r\n\r\n`pyDOE3` is the maintained successor to pyDOE/pyDOE2 and supplies factorial,\r\nfractional-factorial, Plackett-Burman, central-composite, Box-Behnken, and\r\nLatin-hypercube generators. The bundled scripts wrap it to return designs in real\r\nfactor units with named columns and randomized run order.\r\n\r\n---\r\n\r\n## Choosing a design\r\n\r\nStart from the question and the structure of your units, not from a favorite design.\r\n\r\n```\r\nWhat are you trying to learn?\r\n│\r\n├─ Compare a few predefined conditions (A vs B vs C)?\r\n│   ├─ Units independent, possibly with a known nuisance factor (day, batch, site)?\r\n│   │     → Completely randomized (no nuisance) or RANDOMIZED BLOCK design.\r\n│   ├─ Each unit can receive every condition in sequence (washout possible)?\r\n│   │     → CROSSOVER / repeated-measures design (more power, watch carry-over).\r\n│   └─ You can only randomize groups, not individuals (schools, clinics)?\r\n│         → CLUSTER-randomized design (analyze at the cluster level; see pseudoreplication).\r\n│\r\n├─ Screen MANY factors (5+) to find the few that matter?\r\n│     → FRACTIONAL FACTORIAL or PLACKETT-BURMAN screening design.\r\n│\r\n├─ Quantify main effects AND interactions among a handful of factors?\r\n│     → FULL 2^k FACTORIAL design.\r\n│\r\n├─ Find the settings that OPTIMIZE a response (curvature matters)?\r\n│     → RESPONSE-SURFACE design: central composite or Box-Behnken.\r\n│\r\n└─ Explore a simulation/computer model over a continuous space?\r\n      → SPACE-FILLING design: Latin hypercube.\r\n```\r\n\r\nDetailed guidance per branch:\r\n- **Randomization, blocking, stratification, controls** → `references/randomization_and_blocking.md`\r\n- **Factorial, fractional-factorial, screening, response-surface, DOE concepts (aliasing, resolution)** → `references/factorial_and_doe.md`\r\n- **Crossover, repeated-measures, split-plot, Latin-square, cluster, nested designs** → `references/design_types.md`\r\n- **Sequential, group-sequential, and adaptive designs (interim analyses)** → `references/sequential_and_adaptive.md`\r\n\r\n---\r\n\r\n## Generating the design\r\n\r\nTwo scripts produce ready-to-use, reproducible layouts. Run them from the skill's\r\n`scripts/` directory or add it to `sys.path`. Everything is seeded so the exact\r\nschedule can be archived and regenerated — a requirement for trial registration\r\nand good lab practice.\r\n\r\n### Randomization / allocation schedules — `scripts/randomization.py`\r\n\r\n```python\r\nfrom randomization import (\r\n    simple_randomization, block_randomization,\r\n    stratified_block_randomization, cluster_randomization,\r\n    assign_factorial_runs, arm_balance,\r\n)\r\n\r\n# Permuted blocks keep the arms balanced throughout enrollment (use for n < ~100\r\n# or sequential intake — simple randomization can drift out of balance with small n)\r\nsched = block_randomization(n=60, arms=[\"treatment\", \"control\"], seed=42)\r\n\r\n# Balance a prognostic variable across arms by randomizing within each stratum\r\nsched = stratified_block_randomization({\"siteA\": 30, \"siteB\": 30},\r\n                                       arms=[\"drug\", \"placebo\"], ratio=(2, 1), seed=42)\r\n\r\n# Randomize whole clusters, not individuals (the cluster is the unit)\r\nsched = cluster_randomization([\"clinic1\", \"clinic2\", \"clinic3\", \"clinic4\"], seed=42)\r\n\r\narm_balance(sched)            # sanity-check the counts per arm\r\nsched.to_csv(\"allocation_schedule.csv\", index=False)\r\n```\r\n\r\nChoosing among them: **simple** is fine for large n but can produce imbalance with\r\nsmall n; **block** guarantees balance throughout; **stratified block** additionally\r\nbalances a known prognostic factor; **cluster** is mandatory when the intervention\r\nis delivered at a group level. See `references/randomization_and_blocking.md`.\r\n\r\n### DOE matrices — `scripts/doe_designs.py`\r\n\r\n```python\r\nfrom doe_designs import (\r\n    full_factorial, two_level_factorial, fractional_factorial,\r\n    plackett_burman, central_composite, box_behnken, latin_hypercube,\r\n)\r\n\r\n# Factors as real-world (low, high) ranges -> design comes back in real units\r\nfactors = {\"temp_C\": (20, 60), \"conc_mM\": (1, 10), \"pH\": (6, 8)}\r\n\r\n# Full 2^3: all main effects + all interactions (8 runs), run order randomized\r\ndesign = two_level_factorial(factors, seed=42)\r\n\r\n# Screen 7 factors cheaply (main effects only)\r\nmany = {f\"factor_{i}\": (0, 1) for i in range(7)}\r\ndesign = plackett_burman(many, seed=42)\r\n\r\n# Optimize over 2 factors with curvature (response-surface)\r\ndesign = central_composite({\"temp_C\": (20, 60), \"conc_mM\": (1, 10)}, seed=42)\r\n\r\ndesign.to_csv(\"experimental_runs.csv\", index=False)\r\n```\r\n\r\nRun order is randomized by default so factors aren't confounded with time/drift\r\n(machine warm-up, reagent aging). See `references/factorial_and_doe.md` for picking\r\ngenerators, reading the alias structure, and choosing resolution.\r\n\r\n---\r\n\r\n## The mistakes that ruin studies\r\n\r\nThese are structural — they can't be fixed in analysis, only in design.\r\n\r\n1. **Pseudoreplication.** Treating repeated measurements of one unit as independent\r\n   replicates: 3 mice with 100 cells each is n = 3 (mice), not n = 300 (cells), for\r\n   any treatment applied to the mouse. The replicate must be at the level the\r\n   treatment is randomized. This single error invalidates a large share of published\r\n   experiments. Randomize and replicate at the right level; analyze with the nesting\r\n   respected (mixed model). See `references/design_types.md`.\r\n2. **Confounding by a nuisance variable.** Running all treatment samples on Monday\r\n   and all controls on Tuesday confounds treatment with day. Randomize across, or\r\n   block on, every nuisance factor you can name (batch, day, plate, technician,\r\n   instrument, position).\r\n3. **No or broken randomization.** Convenience assignment (first-come → treatment)\r\n   lets confounders sneak in. Use a seeded schedule and follow it.\r\n4. **No proper control.** Without a concurrent control (and, where relevant, a\r\n   vehicle/sham and blinding), you can't separate the treatment effect from time,\r\n   placebo, or handling effects.\r\n5. **Batch effects mistaken for biology.** In omics especially, process samples in a\r\n   randomized/blocked order across batches; never let batch align with the condition.\r\n6. **Edge/position effects on plates.** Evaporation and thermal gradients make plate\r\n   edges differ. Randomize or block sample positions; don't put all controls in\r\n   column 1.\r\n7. **Aliasing ignored in fractional designs.** A low-resolution fractional factorial\r\n   confounds main effects with interactions; know your alias structure before\r\n   concluding a factor \"has no effect.\"\r\n8. **Optimizing without curvature.** A two-level factorial can't detect a curved\r\n   response; you'll miss an interior optimum. Use a response-surface design.\r\n\r\n---\r\n\r\n## Workflow\r\n\r\n1. **State the question, the unit, and the response.** What is randomized? What is\r\n   measured? At what level is a true independent replicate? This determines everything.\r\n2. **List nuisance factors** (batch, day, site, operator, position) — plan to block,\r\n   stratify, or randomize across each.\r\n3. **Pick the design** using the decision tree and reference files.\r\n4. **Decide replication** at the correct level (and get n from the\r\n   **statistical-power** skill for the chosen design).\r\n5. **Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.\r\n6. **Randomize run/processing order** and plate/batch positions.\r\n7. **Document** the design, seed, and schedule (pre-register if possible) so the\r\n   analysis is confirmatory and the layout is auditable.\r\n8. **Match the analysis to the design** — blocks, strata, clusters, and nesting must\r\n   appear in the model (hand off to **statistical-analysis** / **statsmodels**).\r\n\r\n---\r\n\r\n## Resources\r\n\r\n### Scripts\r\n- `scripts/randomization.py` — seeded allocation schedules: `simple_randomization`,\r\n  `block_randomization`, `stratified_block_randomization`, `cluster_randomization`,\r\n  `assign_factorial_runs`, `arm_balance`.\r\n- `scripts/doe_designs.py` — DOE matrices in real units: `full_factorial`,\r\n  `two_level_factorial`, `fractional_factorial`, `plackett_burman`,\r\n  `central_composite`, `box_behnken`, `latin_hypercube`.\r\n\r\n### References\r\n- `references/randomization_and_blocking.md` — randomization methods, blocking,\r\n  stratification, controls, blinding, batch/plate layout.\r\n- `references/factorial_and_doe.md` — factorial and fractional designs, resolution\r\n  and aliasing, screening, and response-surface methodology.\r\n- `references/design_types.md` — completely randomized, randomized block, crossover,\r\n  repeated-measures, split-plot, Latin-square, cluster, and nested designs; the\r\n  pseudoreplication problem in depth.\r\n- `references/sequential_and_adaptive.md` — group-sequential designs, alpha spending,\r\n  interim stopping, and adaptive sample-size re-estimation.\r\n\r\n### Related skills\r\n- **statistical-power** — required sample size / power for the design you've chosen.\r\n- **statistical-analysis** — running and reporting the analysis after collection.\r\n- **statsmodels** / **pymc** — fitting the models the design implies.\r\n\r\n### Key references\r\n- Fisher, R. A. (1935). *The Design of Experiments*.\r\n- Montgomery, D. C. (2019). *Design and Analysis of Experiments* (10th ed.).\r\n- Hurlbert, S. H. (1984). Pseudoreplication and the design of ecological field\r\n  experiments. *Ecological Monographs*, 54(2), 187–211.\r\n- Lazic, S. E. (2016). *Experimental Design for Laboratory Biologists*.\r\n"
+  },
+  "contract": {
+    "schemaVersion": "skill-ir-source-contract-candidate/v1",
+    "skillId": "experimental-design",
+    "name": "Experimental Design",
+    "intent": "Design experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so the results will actually be interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking, stratification, controls, factorial or fractional-factorial designs, design of experiments (DOE), screening many factors, response-surface optimization, crossover or repeated-measures or split-plot designs, cluster/group randomization, Latin squares, plate layouts, batch/run-order effects, replication vs. pseudoreplication, or sequential/adaptive/group-sequential designs. Trigger this even for informal phrasings like \"how should I set up this experiment\", \"how do I avoid confounding\", \"what's the best way to test these 6 factors\", or \"assign these mice to conditions\". For computing the sample size or power once the design is chosen, use statistical-power; for analyzing data already collected, use statistical-analysis.",
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    },
+    "activationConditions": [
+      "Planning any comparative experiment or trial and deciding how to assign units",
+      "Randomizing subjects/samples to arms (simple, blocked, stratified, or cluster)",
+      "Removing nuisance variation by blocking or stratification",
+      "Designing multi-factor experiments: full or fractional factorial, screening designs",
+      "Optimizing a response over continuous factors (response-surface designs)",
+      "Within-subject / repeated-measures, crossover, split-plot, or Latin-square designs",
+      "Cluster- or group-randomized designs (sites, clinics, classrooms, litters)",
+      "Deciding the number and level of replicates and avoiding pseudoreplication",
+      "Sequential, group-sequential, or adaptive designs with interim analyses",
+      "Laying out plates/batches and randomizing run order to defeat drift"
+    ],
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "sourceText": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "constraints": [
+      "**Pseudoreplication.** Treating repeated measurements of one unit as independent",
+      "**Confounding by a nuisance variable.** Running all treatment samples on Monday",
+      "**No or broken randomization.** Convenience assignment (first-come → treatment)",
+      "**No proper control.** Without a concurrent control (and, where relevant, a",
+      "**Batch effects mistaken for biology.** In omics especially, process samples in a",
+      "**Edge/position effects on plates.** Evaporation and thermal gradients make plate",
+      "**Aliasing ignored in fractional designs.** A low-resolution fractional factorial",
+      "**Optimizing without curvature.** A two-level factorial can't detect a curved"
+    ],
+    "unresolvedSemantics": [
+      "Benchmark task input and output ABI are not derivable from the public skill source alone.",
+      "Domain checker and runtime compiler behavior require independent qualification."
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "experimental-design",
+    "name": "Experimental Design",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy"
+    ],
+    "intent": "Design experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so the results will actually be interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking, stratification, controls, factorial or fractional-factorial designs, design of experiments (DOE), screening many factors, response-surface optimization, crossover or repeated-measures or split-plot designs, cluster/group randomization, Latin squares, plate layouts, batch/run-order effects, replication vs. pseudoreplication, or sequential/adaptive/group-sequential designs. Trigger this even for informal phrasings like \"how should I set up this experiment\", \"how do I avoid confounding\", \"what's the best way to test these 6 factors\", or \"assign these mice to conditions\". For computing the sample size or power once the design is chosen, use statistical-power; for analyzing data already collected, use statistical-analysis.",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    },
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "description": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "**State the question, the unit, and the response.** What is randomized? What is",
+        "description": "**State the question, the unit, and the response.** What is randomized? What is",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "**List nuisance factors** (batch, day, site, operator, position) — plan to block,",
+        "description": "**List nuisance factors** (batch, day, site, operator, position) — plan to block,",
+        "kind": "plan",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "**Pick the design** using the decision tree and reference files.",
+        "description": "**Pick the design** using the decision tree and reference files.",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "**Decide replication** at the correct level (and get n from the",
+        "description": "**Decide replication** at the correct level (and get n from the",
+        "kind": "plan",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "**Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.",
+        "description": "**Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-06",
+        "title": "**Randomize run/processing order** and plate/batch positions.",
+        "description": "**Randomize run/processing order** and plate/batch positions.",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-05"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-07",
+        "title": "**Document** the design, seed, and schedule (pre-register if possible) so the",
+        "description": "**Document** the design, seed, and schedule (pre-register if possible) so the",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-06"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-08",
+        "title": "**Match the analysis to the design** — blocks, strata, clusters, and nesting must",
+        "description": "**Match the analysis to the design** — blocks, strata, clusters, and nesting must",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [
+          "step-07"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "**Pseudoreplication.** Treating repeated measurements of one unit as independent",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Pseudoreplication.** Treating repeated measurements of one unit as independent"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "**Confounding by a nuisance variable.** Running all treatment samples on Monday",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Confounding by a nuisance variable.** Running all treatment samples on Monday"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "**No or broken randomization.** Convenience assignment (first-come → treatment)",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**No or broken randomization.** Convenience assignment (first-come → treatment)"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "**No proper control.** Without a concurrent control (and, where relevant, a",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**No proper control.** Without a concurrent control (and, where relevant, a"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "**Batch effects mistaken for biology.** In omics especially, process samples in a",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Batch effects mistaken for biology.** In omics especially, process samples in a"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "**Edge/position effects on plates.** Evaporation and thermal gradients make plate",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Edge/position effects on plates.** Evaporation and thermal gradients make plate"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "**Aliasing ignored in fractional designs.** A low-resolution fractional factorial",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Aliasing ignored in fractional designs.** A low-resolution fractional factorial"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "**Optimizing without curvature.** A two-level factorial can't detect a curved",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Optimizing without curvature.** A two-level factorial can't detect a curved"
+      }
+    ],
+    "tools": [],
+    "environment": [],
+    "checks": [],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-construction-validation-plan/v1",
+    "skillId": "experimental-design",
+    "checks": [
+      {
+        "id": "source-digest",
+        "status": "passed",
+        "evidence": "sha256:f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+      },
+      {
+        "id": "contract-structure",
+        "status": "passed",
+        "evidence": "source contract candidate schema"
+      },
+      {
+        "id": "skill-ir-schema",
+        "status": "passed",
+        "evidence": "SkillIRSchema.parse"
+      },
+      {
+        "id": "skill-ir-references",
+        "status": "passed",
+        "evidence": "validateSkillIR:0 errors"
+      },
+      {
+        "id": "source-trace",
+        "status": "passed",
+        "evidence": "every extracted step and rule is traced to public SKILL.md"
+      },
+      {
+        "id": "domain-semantics",
+        "status": "requires-human",
+        "evidence": "task ABI and domain invariants are absent from source-only generation inputs"
+      },
+      {
+        "id": "package-runtime",
+        "status": "requires-human",
+        "evidence": "no domain compiler, checker, or executable plan was generated"
+      }
+    ],
+    "promotionEligible": false,
+    "prohibitedEvidenceClasses": [
+      "model-output",
+      "evaluator-payload",
+      "held-out",
+      "scorer-gold",
+      "secret-value"
+    ]
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-package-candidate/v1",
+    "skillId": "experimental-design",
+    "status": "non-executable",
+    "protectedInputs": [
+      "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md"
+    ],
+    "generatedOutputs": [],
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "path": "skill.md",
+        "kind": "skill-view",
+        "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093",
+        "content": "---\r\nname: experimental-design\r\ndescription: Design experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so the results will actually be interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking, stratification, controls, factorial or fractional-factorial designs, design of experiments (DOE), screening many factors, response-surface optimization, crossover or repeated-measures or split-plot designs, cluster/group randomization, Latin squares, plate layouts, batch/run-order effects, replication vs. pseudoreplication, or sequential/adaptive/group-sequential designs. Trigger this even for informal phrasings like \"how should I set up this experiment\", \"how do I avoid confounding\", \"what's the best way to test these 6 factors\", or \"assign these mice to conditions\". For computing the sample size or power once the design is chosen, use statistical-power; for analyzing data already collected, use statistical-analysis.\r\nallowed-tools: Read Write Edit Bash\r\ncompatibility: Requires Python >=3.10. Scripts use numpy, pandas, and pyDOE3 (DOE matrices). Install with uv as shown below.\r\nlicense: MIT license\r\nmetadata: {\"version\": \"1.0\", \"skill-author\": \"K-Dense Inc.\"}\r\n---\r\n\r\n# Experimental Design\r\n\r\n## Overview\r\n\r\nThe design of a study — how units are assigned to conditions, what is held constant, what is varied, and in what structure — determines what questions the data can answer. No analysis can rescue a confounded or pseudoreplicated design after the fact. This skill is about the decisions made *before* data collection: picking a design that isolates the effect of interest, randomizing to license causal claims, blocking to remove known nuisance variation, and structuring multi-factor experiments so effects are estimable rather than tangled together.\r\n\r\nThe three ideas behind almost every good design (Fisher's principles):\r\n- **Randomization** — assign treatments at random so that confounders, known and unknown, are balanced in expectation. This is what turns a comparison into a causal claim.\r\n- **Replication** — independent repetition at the right level, so you can estimate variability and your effects aren't artifacts of a single unit. The most common fatal error is **pseudoreplication**: counting repeated measurements on the same unit as independent replicates.\r\n- **Blocking / local control** — group similar units (by batch, day, site, litter) and randomize within blocks, removing that nuisance variation from the error term instead of letting it inflate noise.\r\n\r\nThis skill helps you choose among design types, generate the actual randomization or DOE layout (with reproducible scripts), and avoid the structural mistakes that make data uninterpretable.\r\n\r\n## When to Use This Skill\r\n\r\n- Planning any comparative experiment or trial and deciding how to assign units\r\n- Randomizing subjects/samples to arms (simple, blocked, stratified, or cluster)\r\n- Removing nuisance variation by blocking or stratification\r\n- Designing multi-factor experiments: full or fractional factorial, screening designs\r\n- Optimizing a response over continuous factors (response-surface designs)\r\n- Within-subject / repeated-measures, crossover, split-plot, or Latin-square designs\r\n- Cluster- or group-randomized designs (sites, clinics, classrooms, litters)\r\n- Deciding the number and level of replicates and avoiding pseudoreplication\r\n- Sequential, group-sequential, or adaptive designs with interim analyses\r\n- Laying out plates/batches and randomizing run order to defeat drift\r\n\r\n## Installation\r\n\r\n```bash\r\nuv pip install \"numpy>=1.26\" \"pandas>=2.0\" pyDOE3\r\n```\r\n\r\n`pyDOE3` is the maintained successor to pyDOE/pyDOE2 and supplies factorial,\r\nfractional-factorial, Plackett-Burman, central-composite, Box-Behnken, and\r\nLatin-hypercube generators. The bundled scripts wrap it to return designs in real\r\nfactor units with named columns and randomized run order.\r\n\r\n---\r\n\r\n## Choosing a design\r\n\r\nStart from the question and the structure of your units, not from a favorite design.\r\n\r\n```\r\nWhat are you trying to learn?\r\n│\r\n├─ Compare a few predefined conditions (A vs B vs C)?\r\n│   ├─ Units independent, possibly with a known nuisance factor (day, batch, site)?\r\n│   │     → Completely randomized (no nuisance) or RANDOMIZED BLOCK design.\r\n│   ├─ Each unit can receive every condition in sequence (washout possible)?\r\n│   │     → CROSSOVER / repeated-measures design (more power, watch carry-over).\r\n│   └─ You can only randomize groups, not individuals (schools, clinics)?\r\n│         → CLUSTER-randomized design (analyze at the cluster level; see pseudoreplication).\r\n│\r\n├─ Screen MANY factors (5+) to find the few that matter?\r\n│     → FRACTIONAL FACTORIAL or PLACKETT-BURMAN screening design.\r\n│\r\n├─ Quantify main effects AND interactions among a handful of factors?\r\n│     → FULL 2^k FACTORIAL design.\r\n│\r\n├─ Find the settings that OPTIMIZE a response (curvature matters)?\r\n│     → RESPONSE-SURFACE design: central composite or Box-Behnken.\r\n│\r\n└─ Explore a simulation/computer model over a continuous space?\r\n      → SPACE-FILLING design: Latin hypercube.\r\n```\r\n\r\nDetailed guidance per branch:\r\n- **Randomization, blocking, stratification, controls** → `references/randomization_and_blocking.md`\r\n- **Factorial, fractional-factorial, screening, response-surface, DOE concepts (aliasing, resolution)** → `references/factorial_and_doe.md`\r\n- **Crossover, repeated-measures, split-plot, Latin-square, cluster, nested designs** → `references/design_types.md`\r\n- **Sequential, group-sequential, and adaptive designs (interim analyses)** → `references/sequential_and_adaptive.md`\r\n\r\n---\r\n\r\n## Generating the design\r\n\r\nTwo scripts produce ready-to-use, reproducible layouts. Run them from the skill's\r\n`scripts/` directory or add it to `sys.path`. Everything is seeded so the exact\r\nschedule can be archived and regenerated — a requirement for trial registration\r\nand good lab practice.\r\n\r\n### Randomization / allocation schedules — `scripts/randomization.py`\r\n\r\n```python\r\nfrom randomization import (\r\n    simple_randomization, block_randomization,\r\n    stratified_block_randomization, cluster_randomization,\r\n    assign_factorial_runs, arm_balance,\r\n)\r\n\r\n# Permuted blocks keep the arms balanced throughout enrollment (use for n < ~100\r\n# or sequential intake — simple randomization can drift out of balance with small n)\r\nsched = block_randomization(n=60, arms=[\"treatment\", \"control\"], seed=42)\r\n\r\n# Balance a prognostic variable across arms by randomizing within each stratum\r\nsched = stratified_block_randomization({\"siteA\": 30, \"siteB\": 30},\r\n                                       arms=[\"drug\", \"placebo\"], ratio=(2, 1), seed=42)\r\n\r\n# Randomize whole clusters, not individuals (the cluster is the unit)\r\nsched = cluster_randomization([\"clinic1\", \"clinic2\", \"clinic3\", \"clinic4\"], seed=42)\r\n\r\narm_balance(sched)            # sanity-check the counts per arm\r\nsched.to_csv(\"allocation_schedule.csv\", index=False)\r\n```\r\n\r\nChoosing among them: **simple** is fine for large n but can produce imbalance with\r\nsmall n; **block** guarantees balance throughout; **stratified block** additionally\r\nbalances a known prognostic factor; **cluster** is mandatory when the intervention\r\nis delivered at a group level. See `references/randomization_and_blocking.md`.\r\n\r\n### DOE matrices — `scripts/doe_designs.py`\r\n\r\n```python\r\nfrom doe_designs import (\r\n    full_factorial, two_level_factorial, fractional_factorial,\r\n    plackett_burman, central_composite, box_behnken, latin_hypercube,\r\n)\r\n\r\n# Factors as real-world (low, high) ranges -> design comes back in real units\r\nfactors = {\"temp_C\": (20, 60), \"conc_mM\": (1, 10), \"pH\": (6, 8)}\r\n\r\n# Full 2^3: all main effects + all interactions (8 runs), run order randomized\r\ndesign = two_level_factorial(factors, seed=42)\r\n\r\n# Screen 7 factors cheaply (main effects only)\r\nmany = {f\"factor_{i}\": (0, 1) for i in range(7)}\r\ndesign = plackett_burman(many, seed=42)\r\n\r\n# Optimize over 2 factors with curvature (response-surface)\r\ndesign = central_composite({\"temp_C\": (20, 60), \"conc_mM\": (1, 10)}, seed=42)\r\n\r\ndesign.to_csv(\"experimental_runs.csv\", index=False)\r\n```\r\n\r\nRun order is randomized by default so factors aren't confounded with time/drift\r\n(machine warm-up, reagent aging). See `references/factorial_and_doe.md` for picking\r\ngenerators, reading the alias structure, and choosing resolution.\r\n\r\n---\r\n\r\n## The mistakes that ruin studies\r\n\r\nThese are structural — they can't be fixed in analysis, only in design.\r\n\r\n1. **Pseudoreplication.** Treating repeated measurements of one unit as independent\r\n   replicates: 3 mice with 100 cells each is n = 3 (mice), not n = 300 (cells), for\r\n   any treatment applied to the mouse. The replicate must be at the level the\r\n   treatment is randomized. This single error invalidates a large share of published\r\n   experiments. Randomize and replicate at the right level; analyze with the nesting\r\n   respected (mixed model). See `references/design_types.md`.\r\n2. **Confounding by a nuisance variable.** Running all treatment samples on Monday\r\n   and all controls on Tuesday confounds treatment with day. Randomize across, or\r\n   block on, every nuisance factor you can name (batch, day, plate, technician,\r\n   instrument, position).\r\n3. **No or broken randomization.** Convenience assignment (first-come → treatment)\r\n   lets confounders sneak in. Use a seeded schedule and follow it.\r\n4. **No proper control.** Without a concurrent control (and, where relevant, a\r\n   vehicle/sham and blinding), you can't separate the treatment effect from time,\r\n   placebo, or handling effects.\r\n5. **Batch effects mistaken for biology.** In omics especially, process samples in a\r\n   randomized/blocked order across batches; never let batch align with the condition.\r\n6. **Edge/position effects on plates.** Evaporation and thermal gradients make plate\r\n   edges differ. Randomize or block sample positions; don't put all controls in\r\n   column 1.\r\n7. **Aliasing ignored in fractional designs.** A low-resolution fractional factorial\r\n   confounds main effects with interactions; know your alias structure before\r\n   concluding a factor \"has no effect.\"\r\n8. **Optimizing without curvature.** A two-level factorial can't detect a curved\r\n   response; you'll miss an interior optimum. Use a response-surface design.\r\n\r\n---\r\n\r\n## Workflow\r\n\r\n1. **State the question, the unit, and the response.** What is randomized? What is\r\n   measured? At what level is a true independent replicate? This determines everything.\r\n2. **List nuisance factors** (batch, day, site, operator, position) — plan to block,\r\n   stratify, or randomize across each.\r\n3. **Pick the design** using the decision tree and reference files.\r\n4. **Decide replication** at the correct level (and get n from the\r\n   **statistical-power** skill for the chosen design).\r\n5. **Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.\r\n6. **Randomize run/processing order** and plate/batch positions.\r\n7. **Document** the design, seed, and schedule (pre-register if possible) so the\r\n   analysis is confirmatory and the layout is auditable.\r\n8. **Match the analysis to the design** — blocks, strata, clusters, and nesting must\r\n   appear in the model (hand off to **statistical-analysis** / **statsmodels**).\r\n\r\n---\r\n\r\n## Resources\r\n\r\n### Scripts\r\n- `scripts/randomization.py` — seeded allocation schedules: `simple_randomization`,\r\n  `block_randomization`, `stratified_block_randomization`, `cluster_randomization`,\r\n  `assign_factorial_runs`, `arm_balance`.\r\n- `scripts/doe_designs.py` — DOE matrices in real units: `full_factorial`,\r\n  `two_level_factorial`, `fractional_factorial`, `plackett_burman`,\r\n  `central_composite`, `box_behnken`, `latin_hypercube`.\r\n\r\n### References\r\n- `references/randomization_and_blocking.md` — randomization methods, blocking,\r\n  stratification, controls, blinding, batch/plate layout.\r\n- `references/factorial_and_doe.md` — factorial and fractional designs, resolution\r\n  and aliasing, screening, and response-surface methodology.\r\n- `references/design_types.md` — completely randomized, randomized block, crossover,\r\n  repeated-measures, split-plot, Latin-square, cluster, and nested designs; the\r\n  pseudoreplication problem in depth.\r\n- `references/sequential_and_adaptive.md` — group-sequential designs, alpha spending,\r\n  interim stopping, and adaptive sample-size re-estimation.\r\n\r\n### Related skills\r\n- **statistical-power** — required sample size / power for the design you've chosen.\r\n- **statistical-analysis** — running and reporting the analysis after collection.\r\n- **statsmodels** / **pymc** — fitting the models the design implies.\r\n\r\n### Key references\r\n- Fisher, R. A. (1935). *The Design of Experiments*.\r\n- Montgomery, D. C. (2019). *Design and Analysis of Experiments* (10th ed.).\r\n- Hurlbert, S. H. (1984). Pseudoreplication and the design of ecological field\r\n  experiments. *Ecological Monographs*, 54(2), 187–211.\r\n- Lazic, S. E. (2016). *Experimental Design for Laboratory Biologists*.\r\n"
+      },
+      {
+        "path": "skill-ir.json",
+        "kind": "skill-ir",
+        "sha256": "8d46bae3a798ab38526d658152afe440194bdadd4a48bdfb8e785e0269dccdde",
+        "content": "{\n  \"schemaVersion\": \"skill-ir/v1\",\n  \"id\": \"experimental-design\",\n  \"name\": \"Experimental Design\",\n  \"category\": [\n    \"workflow\",\n    \"generative\",\n    \"diagnostic\",\n    \"constraint-heavy\"\n  ],\n  \"intent\": \"Design experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so the results will actually be interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking, stratification, controls, factorial or fractional-factorial designs, design of experiments (DOE), screening many factors, response-surface optimization, crossover or repeated-measures or split-plot designs, cluster/group randomization, Latin squares, plate layouts, batch/run-order effects, replication vs. pseudoreplication, or sequential/adaptive/group-sequential designs. Trigger this even for informal phrasings like \\\"how should I set up this experiment\\\", \\\"how do I avoid confounding\\\", \\\"what's the best way to test these 6 factors\\\", or \\\"assign these mice to conditions\\\". For computing the sample size or power once the design is chosen, use statistical-power; for analyzing data already collected, use statistical-analysis.\",\n  \"source\": {\n    \"kind\": \"file\",\n    \"path\": \"benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md\",\n    \"sha256\": \"f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093\"\n  },\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"description\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"preconditions\": [\n    {\n      \"id\": \"public-source-readable\",\n      \"description\": \"The digest-pinned public skill source is readable before execution.\",\n      \"checkability\": \"static\"\n    }\n  ],\n  \"steps\": [\n    {\n      \"id\": \"step-01\",\n      \"title\": \"**State the question, the unit, and the response.** What is randomized? What is\",\n      \"description\": \"**State the question, the unit, and the response.** What is randomized? What is\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-02\",\n      \"title\": \"**List nuisance factors** (batch, day, site, operator, position) — plan to block,\",\n      \"description\": \"**List nuisance factors** (batch, day, site, operator, position) — plan to block,\",\n      \"kind\": \"plan\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-01\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-03\",\n      \"title\": \"**Pick the design** using the decision tree and reference files.\",\n      \"description\": \"**Pick the design** using the decision tree and reference files.\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-02\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-04\",\n      \"title\": \"**Decide replication** at the correct level (and get n from the\",\n      \"description\": \"**Decide replication** at the correct level (and get n from the\",\n      \"kind\": \"plan\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-03\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-05\",\n      \"title\": \"**Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.\",\n      \"description\": \"**Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.\",\n      \"kind\": \"edit\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-04\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-06\",\n      \"title\": \"**Randomize run/processing order** and plate/batch positions.\",\n      \"description\": \"**Randomize run/processing order** and plate/batch positions.\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-05\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-07\",\n      \"title\": \"**Document** the design, seed, and schedule (pre-register if possible) so the\",\n      \"description\": \"**Document** the design, seed, and schedule (pre-register if possible) so the\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-06\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-08\",\n      \"title\": \"**Match the analysis to the design** — blocks, strata, clusters, and nesting must\",\n      \"description\": \"**Match the analysis to the design** — blocks, strata, clusters, and nesting must\",\n      \"kind\": \"analyze\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-07\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    }\n  ],\n  \"rules\": [\n    {\n      \"id\": \"rule-01\",\n      \"sourceText\": \"**Pseudoreplication.** Treating repeated measurements of one unit as independent\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**Pseudoreplication.** Treating repeated measurements of one unit as independent\"\n    },\n    {\n      \"id\": \"rule-02\",\n      \"sourceText\": \"**Confounding by a nuisance variable.** Running all treatment samples on Monday\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**Confounding by a nuisance variable.** Running all treatment samples on Monday\"\n    },\n    {\n      \"id\": \"rule-03\",\n      \"sourceText\": \"**No or broken randomization.** Convenience assignment (first-come → treatment)\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**No or broken randomization.** Convenience assignment (first-come → treatment)\"\n    },\n    {\n      \"id\": \"rule-04\",\n      \"sourceText\": \"**No proper control.** Without a concurrent control (and, where relevant, a\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**No proper control.** Without a concurrent control (and, where relevant, a\"\n    },\n    {\n      \"id\": \"rule-05\",\n      \"sourceText\": \"**Batch effects mistaken for biology.** In omics especially, process samples in a\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**Batch effects mistaken for biology.** In omics especially, process samples in a\"\n    },\n    {\n      \"id\": \"rule-06\",\n      \"sourceText\": \"**Edge/position effects on plates.** Evaporation and thermal gradients make plate\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**Edge/position effects on plates.** Evaporation and thermal gradients make plate\"\n    },\n    {\n      \"id\": \"rule-07\",\n      \"sourceText\": \"**Aliasing ignored in fractional designs.** A low-resolution fractional factorial\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**Aliasing ignored in fractional designs.** A low-resolution fractional factorial\"\n    },\n    {\n      \"id\": \"rule-08\",\n      \"sourceText\": \"**Optimizing without curvature.** A two-level factorial can't detect a curved\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**Optimizing without curvature.** A two-level factorial can't detect a curved\"\n    }\n  ],\n  \"tools\": [],\n  \"environment\": [],\n  \"checks\": [],\n  \"recovery\": [],\n  \"profile\": []\n}\n"
+      },
+      {
+        "path": "source-contract.json",
+        "kind": "source-contract",
+        "sha256": "b93f643eb4353a19b0efd39cea34c39be8eb8574235cf2225c2e27ecdc6a22c3",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-source-contract-candidate/v1\",\n  \"skillId\": \"experimental-design\",\n  \"name\": \"Experimental Design\",\n  \"intent\": \"Design experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so the results will actually be interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking, stratification, controls, factorial or fractional-factorial designs, design of experiments (DOE), screening many factors, response-surface optimization, crossover or repeated-measures or split-plot designs, cluster/group randomization, Latin squares, plate layouts, batch/run-order effects, replication vs. pseudoreplication, or sequential/adaptive/group-sequential designs. Trigger this even for informal phrasings like \\\"how should I set up this experiment\\\", \\\"how do I avoid confounding\\\", \\\"what's the best way to test these 6 factors\\\", or \\\"assign these mice to conditions\\\". For computing the sample size or power once the design is chosen, use statistical-power; for analyzing data already collected, use statistical-analysis.\",\n  \"source\": {\n    \"path\": \"benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md\",\n    \"sha256\": \"f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093\"\n  },\n  \"activationConditions\": [\n    \"Planning any comparative experiment or trial and deciding how to assign units\",\n    \"Randomizing subjects/samples to arms (simple, blocked, stratified, or cluster)\",\n    \"Removing nuisance variation by blocking or stratification\",\n    \"Designing multi-factor experiments: full or fractional factorial, screening designs\",\n    \"Optimizing a response over continuous factors (response-surface designs)\",\n    \"Within-subject / repeated-measures, crossover, split-plot, or Latin-square designs\",\n    \"Cluster- or group-randomized designs (sites, clinics, classrooms, litters)\",\n    \"Deciding the number and level of replicates and avoiding pseudoreplication\",\n    \"Sequential, group-sequential, or adaptive designs with interim analyses\",\n    \"Laying out plates/batches and randomizing run order to defeat drift\"\n  ],\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"sourceText\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"constraints\": [\n    \"**Pseudoreplication.** Treating repeated measurements of one unit as independent\",\n    \"**Confounding by a nuisance variable.** Running all treatment samples on Monday\",\n    \"**No or broken randomization.** Convenience assignment (first-come → treatment)\",\n    \"**No proper control.** Without a concurrent control (and, where relevant, a\",\n    \"**Batch effects mistaken for biology.** In omics especially, process samples in a\",\n    \"**Edge/position effects on plates.** Evaporation and thermal gradients make plate\",\n    \"**Aliasing ignored in fractional designs.** A low-resolution fractional factorial\",\n    \"**Optimizing without curvature.** A two-level factorial can't detect a curved\"\n  ],\n  \"unresolvedSemantics\": [\n    \"Benchmark task input and output ABI are not derivable from the public skill source alone.\",\n    \"Domain checker and runtime compiler behavior require independent qualification.\"\n  ]\n}\n"
+      },
+      {
+        "path": "validation-plan.json",
+        "kind": "validation-plan",
+        "sha256": "f4ab246258e288a4bc2fe66d4ace3370985d76b7097814632db91dabbd4748e4",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-construction-validation-plan/v1\",\n  \"skillId\": \"experimental-design\",\n  \"checks\": [\n    {\n      \"id\": \"source-digest\",\n      \"status\": \"passed\",\n      \"evidence\": \"sha256:f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093\"\n    },\n    {\n      \"id\": \"contract-structure\",\n      \"status\": \"passed\",\n      \"evidence\": \"source contract candidate schema\"\n    },\n    {\n      \"id\": \"skill-ir-schema\",\n      \"status\": \"passed\",\n      \"evidence\": \"SkillIRSchema.parse\"\n    },\n    {\n      \"id\": \"skill-ir-references\",\n      \"status\": \"passed\",\n      \"evidence\": \"validateSkillIR:0 errors\"\n    },\n    {\n      \"id\": \"source-trace\",\n      \"status\": \"passed\",\n      \"evidence\": \"every extracted step and rule is traced to public SKILL.md\"\n    },\n    {\n      \"id\": \"domain-semantics\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"task ABI and domain invariants are absent from source-only generation inputs\"\n    },\n    {\n      \"id\": \"package-runtime\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"no domain compiler, checker, or executable plan was generated\"\n    }\n  ],\n  \"promotionEligible\": false,\n  \"prohibitedEvidenceClasses\": [\n    \"model-output\",\n    \"evaluator-payload\",\n    \"held-out\",\n    \"scorer-gold\",\n    \"secret-value\"\n  ]\n}\n"
+      }
+    ],
+    "blockers": [
+      "domain-compiler-not-generated",
+      "runtime-checker-not-generated",
+      "task-output-contract-not-qualified"
+    ]
+  },
+  "audit": {
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md"
+    ],
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0
+  }
+}

@@ -1032,10 +1032,19 @@ measurement blocker 明确投影为 `open-candidate` 或 `explained-and-frozen`�
 `noOpenMeasurementBlockers`；`invalidated` 且带冻结 evidence 的 Zh README scorer-authority 属于后者。该修正没有
 改写历史实验，也没有令 readiness 通过：readiness-eligible phenotype 仍为 1，7/7 automation 仍不完整。
 
+Task 18.26 实现首个 source-only automatic construction v1。严格输入只允许 digest-pinned 公开 `SKILL.md` 与
+upstream provenance；7 个 method case 的 candidate 在任何 manual oracle 读取前全部冻结。四类候选各生成 7/7，
+SkillIR schema/reference validation 全过，0 model/API、0 held-out/evaluator payload、0 case-specific adapter LOC/
+activation human minutes、core branch delta 0；共享核心前瞻开发成本单列为 28 human minutes。Shadow 之后显示，
+6 个 manual base IR 的 exact rule sourceText overlap 全为 0，且自动 contract/IR/plan/package 分别缺 benchmark task
+ABI、领域语义、domain oracle 与 executable compiler/checker。故四类 portfolio eligibility 均为 0/7，机器 flags
+保持不变。这证明统一结构构造可行，也证明 source-only extraction 不是自动 optimizer 的充分条件。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
-development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但自动构造、贡献和 static 均未通过；
+development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但贡献和 static 均未通过；
+source-only automatic construction 已能生成 7/7 四类结构候选，但 0/7 达到 benchmark/domain/runtime 资格；
 i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
 方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。

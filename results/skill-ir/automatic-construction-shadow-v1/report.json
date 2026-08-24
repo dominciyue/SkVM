@@ -1,0 +1,936 @@
+{
+  "schemaVersion": "skill-ir-automatic-construction-shadow-report/v1",
+  "catalogId": "method-portfolio-shadow-v1",
+  "catalogSha256": "2c43c383a34a03a8642381238454417475657d1bda0a01056d52f9842d2952c7",
+  "implementation": [
+    {
+      "path": "src/benchmarks/skill-ir/automatic-construction.ts",
+      "sha256": "90183c6da2fb6a5668cd6d8fff464a3ca0f6202e5c62e464dfd42aaaeb20176f"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-construction-shadow.ts",
+      "sha256": "d3e6bb11385a19c4e67a2da580d9171a80ef28a755011df692486d054e2a6dd9"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-construction-shadow-run.ts",
+      "sha256": "77f199bb1f294f918e40f11b532c17478d7261f3fb34404bcf607a700713cda4"
+    }
+  ],
+  "candidateFreezeCompletedBeforeShadowRead": true,
+  "cases": [
+    {
+      "caseId": "env-manager",
+      "methodSequence": 1,
+      "candidateDigest": "ef16f0825b9efcbf1fd266aff1a0a6fbf617630249cb8cee63b24272be0faac3",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/public-interface.json",
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/base-ir.json",
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/static-development-lock-v1.json",
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/node/package-manifest.json",
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/vite/package-manifest.json"
+      ],
+      "generated": {
+        "contract": true,
+        "baseIr": true,
+        "validationPlan": true,
+        "packageCandidate": true
+      },
+      "portfolioEligible": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      },
+      "automaticStructure": {
+        "steps": 4,
+        "rules": 15,
+        "outputs": 1,
+        "skillIrSchemaValid": true,
+        "skillIrReferenceErrors": 0
+      },
+      "baseIrComparison": {
+        "automatic": {
+          "steps": 4,
+          "rules": 15,
+          "outputs": 1
+        },
+        "manual": {
+          "steps": 4,
+          "rules": 5,
+          "outputs": 3
+        },
+        "exactSourceRuleMatches": 0,
+        "semanticParity": "not-established"
+      },
+      "shadow": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/public-interface.json"
+          ],
+          "sha256": [
+            "864f629ed22692dd94a523b7f2a417b1fc0d4317e87d5bf6227d69b29ec30ee6"
+          ],
+          "semanticParity": "not-established"
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/base-ir.json"
+          ],
+          "sha256": [
+            "301be846a10a11ece823a9c58b9a1233360b70bccb05bbec02f782b946b6f53e"
+          ],
+          "semanticParity": "not-established"
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/static-development-lock-v1.json"
+          ],
+          "sha256": [
+            "a0be63a32d819498c7df91022800f6ab6afb9da2d708ec543093a0c3bba8dca2"
+          ],
+          "semanticParity": "not-established"
+        },
+        "package": {
+          "status": "compared",
+          "manualCount": 2,
+          "schemaValidCount": 2,
+          "paths": [
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/node/package-manifest.json",
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/vite/package-manifest.json"
+          ],
+          "sha256": [
+            "01d7146e560d8e397e0f7b9abbefffcdcff45968d74b6a5c2d86980bc329cb99",
+            "739bafc91ff8f035a16d2eeec2073dea1ea61090440e80abfa7bb7473ff304f9"
+          ],
+          "semanticParity": "not-established"
+        }
+      },
+      "contractGap": {
+        "status": "semantic-review-required",
+        "reason": "source-only contract lacks the benchmark task ABI and domain value semantics present in the frozen manual contract"
+      },
+      "baseIrGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic base IR is schema-valid and source-traced but lacks benchmark-specific entities, tool bindings, and runtime invariants"
+      },
+      "validationPlanGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic validation covers provenance and IR structure but does not implement the frozen domain scorer or runtime oracle"
+      },
+      "packageGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic package is deliberately non-executable until a domain compiler and runtime checker are qualified"
+      },
+      "manualWorkRemaining": [
+        "qualify the benchmark task input/output ABI against public evidence",
+        "encode domain entities, invariants, tool bindings, and recovery semantics in the IR",
+        "implement and freeze a domain runtime checker independent of model output",
+        "compile an executable validated-artifact package and prove catalog/runtime parity"
+      ],
+      "adaptation": {
+        "measurementStatus": "prospective-measured",
+        "measurementStartedAt": "2026-08-24T05:11:30.689Z",
+        "measurementCompletedAt": "2026-08-24T05:39:04.469Z",
+        "humanMinutes": 0,
+        "humanMinutesBoundary": "case-specific generation adapter work after the shared core was available",
+        "adapterLoc": 0,
+        "adapterLocBoundary": "case-specific executable or declarative transformation logic; shadow oracle registry excluded",
+        "coreBranchDelta": 0
+      }
+    },
+    {
+      "caseId": "law-to-markdown",
+      "methodSequence": 2,
+      "candidateDigest": "7cfdb011e174760316c1f83a37f881d73e805e98af5ae4f166d3c8a77b153a1d",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+        "benchmarks/skill-ir/pilots/law-to-markdown/base-ir.json",
+        "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/validation-policy.json",
+        "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/package-manifest.json"
+      ],
+      "generated": {
+        "contract": true,
+        "baseIr": true,
+        "validationPlan": true,
+        "packageCandidate": true
+      },
+      "portfolioEligible": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      },
+      "automaticStructure": {
+        "steps": 6,
+        "rules": 32,
+        "outputs": 16,
+        "skillIrSchemaValid": true,
+        "skillIrReferenceErrors": 0
+      },
+      "baseIrComparison": {
+        "automatic": {
+          "steps": 6,
+          "rules": 32,
+          "outputs": 16
+        },
+        "manual": {
+          "steps": 7,
+          "rules": 10,
+          "outputs": 3
+        },
+        "exactSourceRuleMatches": 0,
+        "semanticParity": "not-established"
+      },
+      "shadow": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json"
+          ],
+          "sha256": [
+            "58bfc8ec0a982d29af31f8d694ae8946815b6338abf76ce052033dd7bc4b47e8"
+          ],
+          "semanticParity": "not-established"
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/law-to-markdown/base-ir.json"
+          ],
+          "sha256": [
+            "fd00e8f858f72b2394849c8f0d6864b593150aca9dfc8b23b205211d5512ffb3"
+          ],
+          "semanticParity": "not-established"
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/validation-policy.json"
+          ],
+          "sha256": [
+            "108fc52e7f0155c0066a0517371944c1ef948f0ee5fa24b8cc4b8944d3b848d6"
+          ],
+          "semanticParity": "not-established"
+        },
+        "package": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/package-manifest.json"
+          ],
+          "sha256": [
+            "bb614f8bcc1a72fc92584c4c214454bbb53bf766084918dd3adf30aa3116e1a8"
+          ],
+          "semanticParity": "not-established"
+        }
+      },
+      "contractGap": {
+        "status": "semantic-review-required",
+        "reason": "source-only contract lacks the benchmark task ABI and domain value semantics present in the frozen manual contract"
+      },
+      "baseIrGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic base IR is schema-valid and source-traced but lacks benchmark-specific entities, tool bindings, and runtime invariants"
+      },
+      "validationPlanGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic validation covers provenance and IR structure but does not implement the frozen domain scorer or runtime oracle"
+      },
+      "packageGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic package is deliberately non-executable until a domain compiler and runtime checker are qualified"
+      },
+      "manualWorkRemaining": [
+        "qualify the benchmark task input/output ABI against public evidence",
+        "encode domain entities, invariants, tool bindings, and recovery semantics in the IR",
+        "implement and freeze a domain runtime checker independent of model output",
+        "compile an executable validated-artifact package and prove catalog/runtime parity"
+      ],
+      "adaptation": {
+        "measurementStatus": "prospective-measured",
+        "measurementStartedAt": "2026-08-24T05:11:30.689Z",
+        "measurementCompletedAt": "2026-08-24T05:39:04.469Z",
+        "humanMinutes": 0,
+        "humanMinutesBoundary": "case-specific generation adapter work after the shared core was available",
+        "adapterLoc": 0,
+        "adapterLocBoundary": "case-specific executable or declarative transformation logic; shadow oracle registry excluded",
+        "coreBranchDelta": 0
+      }
+    },
+    {
+      "caseId": "experimental-design",
+      "methodSequence": 3,
+      "candidateDigest": "53b872212e21794561d0cce1624df2b88cb715c09ad38c98d6863f6f9b66d618",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/public-interface.json",
+        "benchmarks/skill-ir/pilots/experimental-design/base-ir.json",
+        "benchmarks/skill-ir/pilots/experimental-design/v2/packages/validated-skill-artifact-v1/validation-policy.json",
+        "benchmarks/skill-ir/pilots/experimental-design/v2/packages/validated-skill-artifact-v1/package-manifest.json"
+      ],
+      "generated": {
+        "contract": true,
+        "baseIr": true,
+        "validationPlan": true,
+        "packageCandidate": true
+      },
+      "portfolioEligible": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      },
+      "automaticStructure": {
+        "steps": 8,
+        "rules": 8,
+        "outputs": 1,
+        "skillIrSchemaValid": true,
+        "skillIrReferenceErrors": 0
+      },
+      "baseIrComparison": {
+        "automatic": {
+          "steps": 8,
+          "rules": 8,
+          "outputs": 1
+        },
+        "manual": {
+          "steps": 6,
+          "rules": 8,
+          "outputs": 3
+        },
+        "exactSourceRuleMatches": 0,
+        "semanticParity": "not-established"
+      },
+      "shadow": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/public-interface.json"
+          ],
+          "sha256": [
+            "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+          ],
+          "semanticParity": "not-established"
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/experimental-design/base-ir.json"
+          ],
+          "sha256": [
+            "3f5602a4ad32b0cc11757b16716b6a12712789ab87c1ea33e9bde7dd114ee264"
+          ],
+          "semanticParity": "not-established"
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/experimental-design/v2/packages/validated-skill-artifact-v1/validation-policy.json"
+          ],
+          "sha256": [
+            "fa27cdc20bdbb699cf1a05d164e605a687aaa586071d29e4ce7012a755068e65"
+          ],
+          "semanticParity": "not-established"
+        },
+        "package": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/experimental-design/v2/packages/validated-skill-artifact-v1/package-manifest.json"
+          ],
+          "sha256": [
+            "939797a86e42e7e0db3a4447eef34a6323a054a9e54994d1b0937a4436675495"
+          ],
+          "semanticParity": "not-established"
+        }
+      },
+      "contractGap": {
+        "status": "semantic-review-required",
+        "reason": "source-only contract lacks the benchmark task ABI and domain value semantics present in the frozen manual contract"
+      },
+      "baseIrGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic base IR is schema-valid and source-traced but lacks benchmark-specific entities, tool bindings, and runtime invariants"
+      },
+      "validationPlanGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic validation covers provenance and IR structure but does not implement the frozen domain scorer or runtime oracle"
+      },
+      "packageGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic package is deliberately non-executable until a domain compiler and runtime checker are qualified"
+      },
+      "manualWorkRemaining": [
+        "qualify the benchmark task input/output ABI against public evidence",
+        "encode domain entities, invariants, tool bindings, and recovery semantics in the IR",
+        "implement and freeze a domain runtime checker independent of model output",
+        "compile an executable validated-artifact package and prove catalog/runtime parity"
+      ],
+      "adaptation": {
+        "measurementStatus": "prospective-measured",
+        "measurementStartedAt": "2026-08-24T05:11:30.689Z",
+        "measurementCompletedAt": "2026-08-24T05:39:04.469Z",
+        "humanMinutes": 0,
+        "humanMinutesBoundary": "case-specific generation adapter work after the shared core was available",
+        "adapterLoc": 0,
+        "adapterLocBoundary": "case-specific executable or declarative transformation logic; shadow oracle registry excluded",
+        "coreBranchDelta": 0
+      }
+    },
+    {
+      "caseId": "api-tester",
+      "methodSequence": 4,
+      "candidateDigest": "9dbebafe50d91f352c02998437e9cb3ff98ce361c0ff77e6a75d5376b91fb54a",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/api-tester/public-interface.json",
+        "benchmarks/skill-ir/pilots/api-tester/base-ir.json",
+        "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json/validation-policy.json",
+        "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml/validation-policy.json",
+        "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json/package-manifest.json",
+        "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml/package-manifest.json"
+      ],
+      "generated": {
+        "contract": true,
+        "baseIr": true,
+        "validationPlan": true,
+        "packageCandidate": true
+      },
+      "portfolioEligible": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      },
+      "automaticStructure": {
+        "steps": 5,
+        "rules": 5,
+        "outputs": 1,
+        "skillIrSchemaValid": true,
+        "skillIrReferenceErrors": 0
+      },
+      "baseIrComparison": {
+        "automatic": {
+          "steps": 5,
+          "rules": 5,
+          "outputs": 1
+        },
+        "manual": {
+          "steps": 5,
+          "rules": 6,
+          "outputs": 3
+        },
+        "exactSourceRuleMatches": 0,
+        "semanticParity": "not-established"
+      },
+      "shadow": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/api-tester/public-interface.json"
+          ],
+          "sha256": [
+            "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+          ],
+          "semanticParity": "not-established"
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/api-tester/base-ir.json"
+          ],
+          "sha256": [
+            "0905672a17de1be6bdfed2cd1a347fbdeb195343c61afe1bb054d16282ae0441"
+          ],
+          "semanticParity": "not-established"
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 2,
+          "schemaValidCount": 2,
+          "paths": [
+            "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json/validation-policy.json",
+            "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml/validation-policy.json"
+          ],
+          "sha256": [
+            "30c45224fe037faab438f5c456f0f21812a0cbc1d2001d031e0a74848c44bd8a",
+            "e755eeae4e518e2c273cd3ef21b861b6888a7bfa145f4280ac1210f7b8039d11"
+          ],
+          "semanticParity": "not-established"
+        },
+        "package": {
+          "status": "compared",
+          "manualCount": 2,
+          "schemaValidCount": 2,
+          "paths": [
+            "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json/package-manifest.json",
+            "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml/package-manifest.json"
+          ],
+          "sha256": [
+            "8ebab7577c670e4fa9c9da99701e6bea4c65223f57152e62bfbe434e450ea1eb",
+            "10e316f3cca357e85d949e66dbd08629033d4ecf3cf81557290b1557b7925ea8"
+          ],
+          "semanticParity": "not-established"
+        }
+      },
+      "contractGap": {
+        "status": "semantic-review-required",
+        "reason": "source-only contract lacks the benchmark task ABI and domain value semantics present in the frozen manual contract"
+      },
+      "baseIrGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic base IR is schema-valid and source-traced but lacks benchmark-specific entities, tool bindings, and runtime invariants"
+      },
+      "validationPlanGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic validation covers provenance and IR structure but does not implement the frozen domain scorer or runtime oracle"
+      },
+      "packageGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic package is deliberately non-executable until a domain compiler and runtime checker are qualified"
+      },
+      "manualWorkRemaining": [
+        "qualify the benchmark task input/output ABI against public evidence",
+        "encode domain entities, invariants, tool bindings, and recovery semantics in the IR",
+        "implement and freeze a domain runtime checker independent of model output",
+        "compile an executable validated-artifact package and prove catalog/runtime parity"
+      ],
+      "adaptation": {
+        "measurementStatus": "prospective-measured",
+        "measurementStartedAt": "2026-08-24T05:11:30.689Z",
+        "measurementCompletedAt": "2026-08-24T05:39:04.469Z",
+        "humanMinutes": 0,
+        "humanMinutesBoundary": "case-specific generation adapter work after the shared core was available",
+        "adapterLoc": 0,
+        "adapterLocBoundary": "case-specific executable or declarative transformation logic; shadow oracle registry excluded",
+        "coreBranchDelta": 0
+      }
+    },
+    {
+      "caseId": "zh-code-reviewer",
+      "methodSequence": 5,
+      "candidateDigest": "99b804085df294fe580e66381b83e1c51fd90dd39c62149300f3fa1299ee7f0b",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/zh-code-reviewer/review-interface.json",
+        "benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir.json",
+        "benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json"
+      ],
+      "generated": {
+        "contract": true,
+        "baseIr": true,
+        "validationPlan": true,
+        "packageCandidate": true
+      },
+      "portfolioEligible": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      },
+      "automaticStructure": {
+        "steps": 3,
+        "rules": 3,
+        "outputs": 1,
+        "skillIrSchemaValid": true,
+        "skillIrReferenceErrors": 0
+      },
+      "baseIrComparison": {
+        "automatic": {
+          "steps": 3,
+          "rules": 3,
+          "outputs": 1
+        },
+        "manual": {
+          "steps": 5,
+          "rules": 8,
+          "outputs": 2
+        },
+        "exactSourceRuleMatches": 0,
+        "semanticParity": "not-established"
+      },
+      "shadow": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-code-reviewer/review-interface.json"
+          ],
+          "sha256": [
+            "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+          ],
+          "semanticParity": "not-established"
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir.json"
+          ],
+          "sha256": [
+            "9a7aae641c210c05d81c5d2466ad5100681aa678f967b138b84e9cd434fca813"
+          ],
+          "semanticParity": "not-established"
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json"
+          ],
+          "sha256": [
+            "4b126d8ec44fc766a3ba8d04f0cc15dd4419d2a5898eca6aad6ed1fb6e124c40"
+          ],
+          "semanticParity": "not-established"
+        },
+        "package": {
+          "status": "manual-oracle-absent",
+          "manualCount": 0,
+          "schemaValidCount": 0,
+          "paths": [],
+          "sha256": [],
+          "semanticParity": "not-applicable"
+        }
+      },
+      "contractGap": {
+        "status": "semantic-review-required",
+        "reason": "source-only contract lacks the benchmark task ABI and domain value semantics present in the frozen manual contract"
+      },
+      "baseIrGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic base IR is schema-valid and source-traced but lacks benchmark-specific entities, tool bindings, and runtime invariants"
+      },
+      "validationPlanGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic validation covers provenance and IR structure but does not implement the frozen domain scorer or runtime oracle"
+      },
+      "packageGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic package is deliberately non-executable until a domain compiler and runtime checker are qualified"
+      },
+      "manualWorkRemaining": [
+        "qualify the benchmark task input/output ABI against public evidence",
+        "encode domain entities, invariants, tool bindings, and recovery semantics in the IR",
+        "implement and freeze a domain runtime checker independent of model output",
+        "compile an executable validated-artifact package and prove catalog/runtime parity"
+      ],
+      "adaptation": {
+        "measurementStatus": "prospective-measured",
+        "measurementStartedAt": "2026-08-24T05:11:30.689Z",
+        "measurementCompletedAt": "2026-08-24T05:39:04.469Z",
+        "humanMinutes": 0,
+        "humanMinutesBoundary": "case-specific generation adapter work after the shared core was available",
+        "adapterLoc": 0,
+        "adapterLocBoundary": "case-specific executable or declarative transformation logic; shadow oracle registry excluded",
+        "coreBranchDelta": 0
+      }
+    },
+    {
+      "caseId": "zh-readme",
+      "methodSequence": 6,
+      "candidateDigest": "b1483ba1c513a7db107b92d4de75140f62ffc61949018b94ee2ef60c05f8d5b5",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/zh-readme/readme-interface.json",
+        "benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json"
+      ],
+      "generated": {
+        "contract": true,
+        "baseIr": true,
+        "validationPlan": true,
+        "packageCandidate": true
+      },
+      "portfolioEligible": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      },
+      "automaticStructure": {
+        "steps": 6,
+        "rules": 15,
+        "outputs": 4,
+        "skillIrSchemaValid": true,
+        "skillIrReferenceErrors": 0
+      },
+      "baseIrComparison": {
+        "automatic": {
+          "steps": 6,
+          "rules": 15,
+          "outputs": 4
+        },
+        "manual": null,
+        "exactSourceRuleMatches": 0,
+        "semanticParity": "not-applicable"
+      },
+      "shadow": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-readme/readme-interface.json"
+          ],
+          "sha256": [
+            "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+          ],
+          "semanticParity": "not-established"
+        },
+        "baseIr": {
+          "status": "manual-oracle-absent",
+          "manualCount": 0,
+          "schemaValidCount": 0,
+          "paths": [],
+          "sha256": [],
+          "semanticParity": "not-applicable"
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json"
+          ],
+          "sha256": [
+            "d260eadd55fbe397eb68e2d9bb85fc09d798876ec2a52006bf75b356e5ef7fdd"
+          ],
+          "semanticParity": "not-established"
+        },
+        "package": {
+          "status": "manual-oracle-absent",
+          "manualCount": 0,
+          "schemaValidCount": 0,
+          "paths": [],
+          "sha256": [],
+          "semanticParity": "not-applicable"
+        }
+      },
+      "contractGap": {
+        "status": "semantic-review-required",
+        "reason": "source-only contract lacks the benchmark task ABI and domain value semantics present in the frozen manual contract"
+      },
+      "baseIrGap": {
+        "status": "manual-oracle-absent",
+        "reason": "no frozen manual baseIr oracle exists for shadow semantic comparison"
+      },
+      "validationPlanGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic validation covers provenance and IR structure but does not implement the frozen domain scorer or runtime oracle"
+      },
+      "packageGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic package is deliberately non-executable until a domain compiler and runtime checker are qualified"
+      },
+      "manualWorkRemaining": [
+        "qualify the benchmark task input/output ABI against public evidence",
+        "encode domain entities, invariants, tool bindings, and recovery semantics in the IR",
+        "implement and freeze a domain runtime checker independent of model output",
+        "compile an executable validated-artifact package and prove catalog/runtime parity"
+      ],
+      "adaptation": {
+        "measurementStatus": "prospective-measured",
+        "measurementStartedAt": "2026-08-24T05:11:30.689Z",
+        "measurementCompletedAt": "2026-08-24T05:39:04.469Z",
+        "humanMinutes": 0,
+        "humanMinutesBoundary": "case-specific generation adapter work after the shared core was available",
+        "adapterLoc": 0,
+        "adapterLocBoundary": "case-specific executable or declarative transformation logic; shadow oracle registry excluded",
+        "coreBranchDelta": 0
+      }
+    },
+    {
+      "caseId": "i18n-helper",
+      "methodSequence": 7,
+      "candidateDigest": "6e5be83f0c8e90d3c7ded11fd96a8aa2b42ded9b26995d90a23bdbcf9e3e0878",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/public-contract.json",
+        "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/base-ir.json",
+        "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock-v4.json"
+      ],
+      "generated": {
+        "contract": true,
+        "baseIr": true,
+        "validationPlan": true,
+        "packageCandidate": true
+      },
+      "portfolioEligible": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      },
+      "automaticStructure": {
+        "steps": 5,
+        "rules": 4,
+        "outputs": 1,
+        "skillIrSchemaValid": true,
+        "skillIrReferenceErrors": 0
+      },
+      "baseIrComparison": {
+        "automatic": {
+          "steps": 5,
+          "rules": 4,
+          "outputs": 1
+        },
+        "manual": {
+          "steps": 6,
+          "rules": 7,
+          "outputs": 4
+        },
+        "exactSourceRuleMatches": 0,
+        "semanticParity": "not-established"
+      },
+      "shadow": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/public-contract.json"
+          ],
+          "sha256": [
+            "073462f3ce7a8697be4fa2014b8335877013ce6a6e167df2784b4161a3d1c7d9"
+          ],
+          "semanticParity": "not-established"
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/base-ir.json"
+          ],
+          "sha256": [
+            "9a10f30a16541238f952fb4afbfa73c068ce7c63699c45decf508d88d6277645"
+          ],
+          "semanticParity": "not-established"
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock-v4.json"
+          ],
+          "sha256": [
+            "a9867fe43fe603ac0cf264d688c84432662dbe5db0d999dbde8c1fa4c219f141"
+          ],
+          "semanticParity": "not-established"
+        },
+        "package": {
+          "status": "manual-oracle-absent",
+          "manualCount": 0,
+          "schemaValidCount": 0,
+          "paths": [],
+          "sha256": [],
+          "semanticParity": "not-applicable"
+        }
+      },
+      "contractGap": {
+        "status": "semantic-review-required",
+        "reason": "source-only contract lacks the benchmark task ABI and domain value semantics present in the frozen manual contract"
+      },
+      "baseIrGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic base IR is schema-valid and source-traced but lacks benchmark-specific entities, tool bindings, and runtime invariants"
+      },
+      "validationPlanGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic validation covers provenance and IR structure but does not implement the frozen domain scorer or runtime oracle"
+      },
+      "packageGap": {
+        "status": "semantic-review-required",
+        "reason": "automatic package is deliberately non-executable until a domain compiler and runtime checker are qualified"
+      },
+      "manualWorkRemaining": [
+        "qualify the benchmark task input/output ABI against public evidence",
+        "encode domain entities, invariants, tool bindings, and recovery semantics in the IR",
+        "implement and freeze a domain runtime checker independent of model output",
+        "compile an executable validated-artifact package and prove catalog/runtime parity"
+      ],
+      "adaptation": {
+        "measurementStatus": "prospective-measured",
+        "measurementStartedAt": "2026-08-24T05:11:30.689Z",
+        "measurementCompletedAt": "2026-08-24T05:39:04.469Z",
+        "humanMinutes": 0,
+        "humanMinutesBoundary": "case-specific generation adapter work after the shared core was available",
+        "adapterLoc": 0,
+        "adapterLocBoundary": "case-specific executable or declarative transformation logic; shadow oracle registry excluded",
+        "coreBranchDelta": 0
+      }
+    }
+  ],
+  "summary": {
+    "caseCount": 7,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "generated": {
+      "contracts": 7,
+      "baseIrs": 7,
+      "validationPlans": 7,
+      "packageCandidates": 7
+    },
+    "portfolioEligible": {
+      "contracts": 0,
+      "baseIrs": 0,
+      "validationPlans": 0,
+      "packageCandidates": 0
+    },
+    "adaptationMeasurement": {
+      "sharedCoreHumanMinutes": 28,
+      "caseSpecificHumanMinutesTotal": 0,
+      "caseSpecificAdapterLocTotal": 0,
+      "boundary": "shared-core elapsed development time is separate from zero per-case adapter activation cost"
+    },
+    "casesRequiringHumanSemantics": 7,
+    "casesMissingAtLeastOneManualOracle": 3
+  }
+}

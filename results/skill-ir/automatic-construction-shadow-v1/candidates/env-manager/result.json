@@ -1,0 +1,418 @@
+{
+  "schemaVersion": "skill-ir-automatic-construction-result/v1",
+  "sourceSnapshot": {
+    "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+    "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c",
+    "text": "---\r\nname: env-manager\r\ndescription: 环境变量管理器：扫描、校验、同步 .env 文件，生成安全配置模板\r\n---\r\n\r\n# 环境变量管理器\r\n\r\n## 触发条件\r\n当用户要求管理环境变量、.env 文件、配置同步、Secrets 检查时激活。\r\n\r\n## 工作流程\r\n\r\n### 1. 扫描项目\r\n- 检测所有 `.env*` 文件（.env / .env.local / .env.development / .env.production）\r\n- 默认只提取变量名、来源文件和是否为空；真实值必须脱敏，不写入报告或终端输出\r\n- 扫描代码中引用的环境变量（`process.env.XXX` / `os.environ['XXX']` / `os.getenv('XXX')`）\r\n- 识别静态扫描中未发现引用的变量（仅作为待人工确认候选）\r\n- 识别已使用但未定义的变量（缺失配置）\r\n\r\n### 2. 校验分析\r\n- 检查必填变量是否有默认值\r\n- 验证 URL 格式、端口号范围、布尔值格式\r\n- 检测硬编码的敏感信息（API Key / Token / Password）\r\n- 对比 .env.example 与实际 .env 文件的差异\r\n\r\n### 3. 生成/修复\r\n- 生成 `.env.example` 模板（仅包含变量名和说明，不含真实值）\r\n- 生成 `.env.schema.json`（结构化校验规则）\r\n- 检测到硬编码密钥时，建议迁移到环境变量\r\n- 生成 `dotenv` 加载配置（针对不同框架）\r\n\r\n### 4. 同步\r\n- 在 monorepo 中同步共享环境变量\r\n- 生成 Docker Compose 的 env_file 配置\r\n- 生成 CI/CD 的 Secrets 配置清单\r\n\r\n## 输出格式\r\n\r\n### .env.example 示例\r\n```bash\r\n# 应用配置\r\nAPP_NAME=my-app\r\nAPP_ENV=development          # development | staging | production\r\nAPP_PORT=3000                # 服务端口 (1-65535)\r\nAPP_DEBUG=true               # 调试模式\r\n\r\n# 数据库\r\nDB_HOST=localhost\r\nDB_PORT=5432\r\nDB_NAME=mydb\r\nDB_USER=                     # 必填\r\nDB_PASSWORD=                 # 必填，生产环境请使用 Secrets\r\n\r\n# 第三方服务\r\nREDIS_URL=                   # 必填，格式：redis://host:port\r\nJWT_SECRET=                  # 必填，至少 32 位随机字符串\r\n```\r\n\r\n### 校验报告示例\r\n```\r\n📋 环境变量分析报告\r\n==================\r\n✅ 定义且使用: 12 个\r\n⚠️  定义未使用: 2 个（S3_BUCKET, OLD_API_KEY）\r\n❌ 使用未定义: 1 个（SENDGRID_API_KEY）\r\n🔒 硬编码敏感信息: 1 处（src/auth.js:23）\r\n\r\n建议：\r\n1. 人工确认 S3_BUCKET 和 OLD_API_KEY 是否被 CI、部署脚本或动态代码引用，再决定是否删除\r\n2. 在 .env 中添加 SENDGRID_API_KEY\r\n3. 将 src/auth.js:23 的硬编码 token 迁移到环境变量\r\n```\r\n\r\n## 安全检查清单\r\n- [ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret\r\n- [ ] `.env` 已添加到 `.gitignore`\r\n- [ ] `.env.example` 存在且与代码同步\r\n- [ ] 无硬编码的 API Key / Token / Password\r\n- [ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）\r\n- [ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）\r\n- [ ] 数据库密码不在日志中输出\r\n\r\n## 修改边界\r\n\r\n- 不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。\r\n- “未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。\r\n- 不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。\r\n\r\n## 常见陷阱\r\n- **Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀\r\n- **Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆\r\n- **Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入\r\n- **Vite**：使用 `VITE_` 前缀暴露变量给客户端\r\n- **monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置\r\n\r\n## 框架适配\r\n\r\n| 框架 | 客户端前缀 | 配置文件 | 加载方式 |\r\n|------|-----------|---------|---------|\r\n| Next.js | NEXT_PUBLIC_ | .env.local | 自动 |\r\n| Vite | VITE_ | .env | 自动 |\r\n| CRA | REACT_APP_ | .env | 自动 |\r\n| Nuxt | NUXT_PUBLIC_ | .env | 自动 |\r\n| Vue CLI | VUE_APP_ | .env | 自动 |\r\n"
+  },
+  "contract": {
+    "schemaVersion": "skill-ir-source-contract-candidate/v1",
+    "skillId": "env-manager",
+    "name": "环境变量管理器",
+    "intent": "环境变量管理器：扫描、校验、同步 .env 文件，生成安全配置模板",
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+    },
+    "activationConditions": [],
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "sourceText": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "constraints": [
+      "[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret",
+      "[ ] `.env` 已添加到 `.gitignore`",
+      "[ ] `.env.example` 存在且与代码同步",
+      "[ ] 无硬编码的 API Key / Token / Password",
+      "[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）",
+      "[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）",
+      "[ ] 数据库密码不在日志中输出",
+      "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。",
+      "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。",
+      "不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。",
+      "**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀",
+      "**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆",
+      "**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入",
+      "**Vite**：使用 `VITE_` 前缀暴露变量给客户端",
+      "**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置"
+    ],
+    "unresolvedSemantics": [
+      "Benchmark task input and output ABI are not derivable from the public skill source alone.",
+      "Domain checker and runtime compiler behavior require independent qualification."
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "env-manager",
+    "name": "环境变量管理器",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy",
+      "environment-sensitive"
+    ],
+    "intent": "环境变量管理器：扫描、校验、同步 .env 文件，生成安全配置模板",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+    },
+    "inputs": [
+      {
+        "id": "task-context",
+        "description": "User-provided task context and workspace referenced by the public skill source.",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "output-01",
+        "description": "Result described by the public skill source.",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "1. 扫描项目",
+        "description": "1. 扫描项目",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "2. 校验分析",
+        "description": "2. 校验分析",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "3. 生成/修复",
+        "description": "3. 生成/修复",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "4. 同步",
+        "description": "4. 同步",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "[ ] `.env` 已添加到 `.gitignore`",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] `.env` 已添加到 `.gitignore`"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "[ ] `.env.example` 存在且与代码同步",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] `.env.example` 存在且与代码同步"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "[ ] 无硬编码的 API Key / Token / Password",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] 无硬编码的 API Key / Token / Password"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "[ ] 数据库密码不在日志中输出",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] 数据库密码不在日志中输出"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。",
+        "level": "never",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。"
+      },
+      {
+        "id": "rule-09",
+        "sourceText": "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。"
+      },
+      {
+        "id": "rule-10",
+        "sourceText": "不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。"
+      },
+      {
+        "id": "rule-11",
+        "sourceText": "**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀"
+      },
+      {
+        "id": "rule-12",
+        "sourceText": "**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆"
+      },
+      {
+        "id": "rule-13",
+        "sourceText": "**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入",
+        "level": "must",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入"
+      },
+      {
+        "id": "rule-14",
+        "sourceText": "**Vite**：使用 `VITE_` 前缀暴露变量给客户端",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Vite**：使用 `VITE_` 前缀暴露变量给客户端"
+      },
+      {
+        "id": "rule-15",
+        "sourceText": "**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置",
+        "level": "must",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置"
+      }
+    ],
+    "tools": [],
+    "environment": [
+      {
+        "id": "environment-from-source",
+        "description": "The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.",
+        "platforms": [
+          "linux",
+          "macos",
+          "windows",
+          "wsl",
+          "container"
+        ],
+        "checkability": "human"
+      }
+    ],
+    "checks": [],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-construction-validation-plan/v1",
+    "skillId": "env-manager",
+    "checks": [
+      {
+        "id": "source-digest",
+        "status": "passed",
+        "evidence": "sha256:1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+      },
+      {
+        "id": "contract-structure",
+        "status": "passed",
+        "evidence": "source contract candidate schema"
+      },
+      {
+        "id": "skill-ir-schema",
+        "status": "passed",
+        "evidence": "SkillIRSchema.parse"
+      },
+      {
+        "id": "skill-ir-references",
+        "status": "passed",
+        "evidence": "validateSkillIR:0 errors"
+      },
+      {
+        "id": "source-trace",
+        "status": "passed",
+        "evidence": "every extracted step and rule is traced to public SKILL.md"
+      },
+      {
+        "id": "domain-semantics",
+        "status": "requires-human",
+        "evidence": "task ABI and domain invariants are absent from source-only generation inputs"
+      },
+      {
+        "id": "package-runtime",
+        "status": "requires-human",
+        "evidence": "no domain compiler, checker, or executable plan was generated"
+      }
+    ],
+    "promotionEligible": false,
+    "prohibitedEvidenceClasses": [
+      "model-output",
+      "evaluator-payload",
+      "held-out",
+      "scorer-gold",
+      "secret-value"
+    ]
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-package-candidate/v1",
+    "skillId": "env-manager",
+    "status": "non-executable",
+    "protectedInputs": [
+      "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"
+    ],
+    "generatedOutputs": [],
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "path": "skill.md",
+        "kind": "skill-view",
+        "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c",
+        "content": "---\r\nname: env-manager\r\ndescription: 环境变量管理器：扫描、校验、同步 .env 文件，生成安全配置模板\r\n---\r\n\r\n# 环境变量管理器\r\n\r\n## 触发条件\r\n当用户要求管理环境变量、.env 文件、配置同步、Secrets 检查时激活。\r\n\r\n## 工作流程\r\n\r\n### 1. 扫描项目\r\n- 检测所有 `.env*` 文件（.env / .env.local / .env.development / .env.production）\r\n- 默认只提取变量名、来源文件和是否为空；真实值必须脱敏，不写入报告或终端输出\r\n- 扫描代码中引用的环境变量（`process.env.XXX` / `os.environ['XXX']` / `os.getenv('XXX')`）\r\n- 识别静态扫描中未发现引用的变量（仅作为待人工确认候选）\r\n- 识别已使用但未定义的变量（缺失配置）\r\n\r\n### 2. 校验分析\r\n- 检查必填变量是否有默认值\r\n- 验证 URL 格式、端口号范围、布尔值格式\r\n- 检测硬编码的敏感信息（API Key / Token / Password）\r\n- 对比 .env.example 与实际 .env 文件的差异\r\n\r\n### 3. 生成/修复\r\n- 生成 `.env.example` 模板（仅包含变量名和说明，不含真实值）\r\n- 生成 `.env.schema.json`（结构化校验规则）\r\n- 检测到硬编码密钥时，建议迁移到环境变量\r\n- 生成 `dotenv` 加载配置（针对不同框架）\r\n\r\n### 4. 同步\r\n- 在 monorepo 中同步共享环境变量\r\n- 生成 Docker Compose 的 env_file 配置\r\n- 生成 CI/CD 的 Secrets 配置清单\r\n\r\n## 输出格式\r\n\r\n### .env.example 示例\r\n```bash\r\n# 应用配置\r\nAPP_NAME=my-app\r\nAPP_ENV=development          # development | staging | production\r\nAPP_PORT=3000                # 服务端口 (1-65535)\r\nAPP_DEBUG=true               # 调试模式\r\n\r\n# 数据库\r\nDB_HOST=localhost\r\nDB_PORT=5432\r\nDB_NAME=mydb\r\nDB_USER=                     # 必填\r\nDB_PASSWORD=                 # 必填，生产环境请使用 Secrets\r\n\r\n# 第三方服务\r\nREDIS_URL=                   # 必填，格式：redis://host:port\r\nJWT_SECRET=                  # 必填，至少 32 位随机字符串\r\n```\r\n\r\n### 校验报告示例\r\n```\r\n📋 环境变量分析报告\r\n==================\r\n✅ 定义且使用: 12 个\r\n⚠️  定义未使用: 2 个（S3_BUCKET, OLD_API_KEY）\r\n❌ 使用未定义: 1 个（SENDGRID_API_KEY）\r\n🔒 硬编码敏感信息: 1 处（src/auth.js:23）\r\n\r\n建议：\r\n1. 人工确认 S3_BUCKET 和 OLD_API_KEY 是否被 CI、部署脚本或动态代码引用，再决定是否删除\r\n2. 在 .env 中添加 SENDGRID_API_KEY\r\n3. 将 src/auth.js:23 的硬编码 token 迁移到环境变量\r\n```\r\n\r\n## 安全检查清单\r\n- [ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret\r\n- [ ] `.env` 已添加到 `.gitignore`\r\n- [ ] `.env.example` 存在且与代码同步\r\n- [ ] 无硬编码的 API Key / Token / Password\r\n- [ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）\r\n- [ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）\r\n- [ ] 数据库密码不在日志中输出\r\n\r\n## 修改边界\r\n\r\n- 不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。\r\n- “未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。\r\n- 不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。\r\n\r\n## 常见陷阱\r\n- **Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀\r\n- **Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆\r\n- **Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入\r\n- **Vite**：使用 `VITE_` 前缀暴露变量给客户端\r\n- **monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置\r\n\r\n## 框架适配\r\n\r\n| 框架 | 客户端前缀 | 配置文件 | 加载方式 |\r\n|------|-----------|---------|---------|\r\n| Next.js | NEXT_PUBLIC_ | .env.local | 自动 |\r\n| Vite | VITE_ | .env | 自动 |\r\n| CRA | REACT_APP_ | .env | 自动 |\r\n| Nuxt | NUXT_PUBLIC_ | .env | 自动 |\r\n| Vue CLI | VUE_APP_ | .env | 自动 |\r\n"
+      },
+      {
+        "path": "skill-ir.json",
+        "kind": "skill-ir",
+        "sha256": "bfeb2634e40004815ede0f96d42bdaa5b28b5f1e978a32fd0a460be421e8dd48",
+        "content": "{\n  \"schemaVersion\": \"skill-ir/v1\",\n  \"id\": \"env-manager\",\n  \"name\": \"环境变量管理器\",\n  \"category\": [\n    \"workflow\",\n    \"generative\",\n    \"diagnostic\",\n    \"constraint-heavy\",\n    \"environment-sensitive\"\n  ],\n  \"intent\": \"环境变量管理器：扫描、校验、同步 .env 文件，生成安全配置模板\",\n  \"source\": {\n    \"kind\": \"file\",\n    \"path\": \"benchmarks/skill-ir/pilots/env-manager/source/SKILL.md\",\n    \"sha256\": \"1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c\"\n  },\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"description\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"preconditions\": [\n    {\n      \"id\": \"public-source-readable\",\n      \"description\": \"The digest-pinned public skill source is readable before execution.\",\n      \"checkability\": \"static\"\n    }\n  ],\n  \"steps\": [\n    {\n      \"id\": \"step-01\",\n      \"title\": \"1. 扫描项目\",\n      \"description\": \"1. 扫描项目\",\n      \"kind\": \"read\",\n      \"required\": true,\n      \"dependsOn\": [],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-02\",\n      \"title\": \"2. 校验分析\",\n      \"description\": \"2. 校验分析\",\n      \"kind\": \"analyze\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-01\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-03\",\n      \"title\": \"3. 生成/修复\",\n      \"description\": \"3. 生成/修复\",\n      \"kind\": \"edit\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-02\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    },\n    {\n      \"id\": \"step-04\",\n      \"title\": \"4. 同步\",\n      \"description\": \"4. 同步\",\n      \"kind\": \"execute\",\n      \"required\": true,\n      \"dependsOn\": [\n        \"step-03\"\n      ],\n      \"toolRefs\": [],\n      \"produces\": [\n        \"output-01\"\n      ],\n      \"successCheckRefs\": [],\n      \"failureModes\": [\n        \"source-semantics-insufficient\"\n      ]\n    }\n  ],\n  \"rules\": [\n    {\n      \"id\": \"rule-01\",\n      \"sourceText\": \"[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret\",\n      \"level\": \"should\",\n      \"scope\": \"safety\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret\"\n    },\n    {\n      \"id\": \"rule-02\",\n      \"sourceText\": \"[ ] `.env` 已添加到 `.gitignore`\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"[ ] `.env` 已添加到 `.gitignore`\"\n    },\n    {\n      \"id\": \"rule-03\",\n      \"sourceText\": \"[ ] `.env.example` 存在且与代码同步\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"[ ] `.env.example` 存在且与代码同步\"\n    },\n    {\n      \"id\": \"rule-04\",\n      \"sourceText\": \"[ ] 无硬编码的 API Key / Token / Password\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"[ ] 无硬编码的 API Key / Token / Password\"\n    },\n    {\n      \"id\": \"rule-05\",\n      \"sourceText\": \"[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）\",\n      \"level\": \"should\",\n      \"scope\": \"safety\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）\"\n    },\n    {\n      \"id\": \"rule-06\",\n      \"sourceText\": \"[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）\",\n      \"level\": \"should\",\n      \"scope\": \"safety\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）\"\n    },\n    {\n      \"id\": \"rule-07\",\n      \"sourceText\": \"[ ] 数据库密码不在日志中输出\",\n      \"level\": \"should\",\n      \"scope\": \"safety\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"[ ] 数据库密码不在日志中输出\"\n    },\n    {\n      \"id\": \"rule-08\",\n      \"sourceText\": \"不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。\",\n      \"level\": \"never\",\n      \"scope\": \"file-edit\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。\"\n    },\n    {\n      \"id\": \"rule-09\",\n      \"sourceText\": \"“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。\"\n    },\n    {\n      \"id\": \"rule-10\",\n      \"sourceText\": \"不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。\",\n      \"level\": \"should\",\n      \"scope\": \"safety\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。\"\n    },\n    {\n      \"id\": \"rule-11\",\n      \"sourceText\": \"**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀\",\n      \"level\": \"never\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀\"\n    },\n    {\n      \"id\": \"rule-12\",\n      \"sourceText\": \"**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆\",\n      \"level\": \"never\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆\"\n    },\n    {\n      \"id\": \"rule-13\",\n      \"sourceText\": \"**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入\",\n      \"level\": \"must\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入\"\n    },\n    {\n      \"id\": \"rule-14\",\n      \"sourceText\": \"**Vite**：使用 `VITE_` 前缀暴露变量给客户端\",\n      \"level\": \"should\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"medium\",\n      \"normalizedForm\": \"**Vite**：使用 `VITE_` 前缀暴露变量给客户端\"\n    },\n    {\n      \"id\": \"rule-15\",\n      \"sourceText\": \"**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置\",\n      \"level\": \"must\",\n      \"scope\": \"planning\",\n      \"checkability\": \"human\",\n      \"severity\": \"high\",\n      \"normalizedForm\": \"**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置\"\n    }\n  ],\n  \"tools\": [],\n  \"environment\": [\n    {\n      \"id\": \"environment-from-source\",\n      \"description\": \"The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.\",\n      \"platforms\": [\n        \"linux\",\n        \"macos\",\n        \"windows\",\n        \"wsl\",\n        \"container\"\n      ],\n      \"checkability\": \"human\"\n    }\n  ],\n  \"checks\": [],\n  \"recovery\": [],\n  \"profile\": []\n}\n"
+      },
+      {
+        "path": "source-contract.json",
+        "kind": "source-contract",
+        "sha256": "949d5ea503a19b70f979665117d843f945a3d8c1afa82cc4bf6569c28d8e8407",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-source-contract-candidate/v1\",\n  \"skillId\": \"env-manager\",\n  \"name\": \"环境变量管理器\",\n  \"intent\": \"环境变量管理器：扫描、校验、同步 .env 文件，生成安全配置模板\",\n  \"source\": {\n    \"path\": \"benchmarks/skill-ir/pilots/env-manager/source/SKILL.md\",\n    \"sha256\": \"1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c\"\n  },\n  \"activationConditions\": [],\n  \"inputs\": [\n    {\n      \"id\": \"task-context\",\n      \"description\": \"User-provided task context and workspace referenced by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"outputs\": [\n    {\n      \"id\": \"output-01\",\n      \"sourceText\": \"Result described by the public skill source.\",\n      \"required\": true\n    }\n  ],\n  \"constraints\": [\n    \"[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret\",\n    \"[ ] `.env` 已添加到 `.gitignore`\",\n    \"[ ] `.env.example` 存在且与代码同步\",\n    \"[ ] 无硬编码的 API Key / Token / Password\",\n    \"[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）\",\n    \"[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）\",\n    \"[ ] 数据库密码不在日志中输出\",\n    \"不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。\",\n    \"“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。\",\n    \"不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。\",\n    \"**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀\",\n    \"**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆\",\n    \"**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入\",\n    \"**Vite**：使用 `VITE_` 前缀暴露变量给客户端\",\n    \"**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置\"\n  ],\n  \"unresolvedSemantics\": [\n    \"Benchmark task input and output ABI are not derivable from the public skill source alone.\",\n    \"Domain checker and runtime compiler behavior require independent qualification.\"\n  ]\n}\n"
+      },
+      {
+        "path": "validation-plan.json",
+        "kind": "validation-plan",
+        "sha256": "109c2730253e2daa978919efcc53700105aceaad75112015d6a16b77247c68a9",
+        "content": "{\n  \"schemaVersion\": \"skill-ir-construction-validation-plan/v1\",\n  \"skillId\": \"env-manager\",\n  \"checks\": [\n    {\n      \"id\": \"source-digest\",\n      \"status\": \"passed\",\n      \"evidence\": \"sha256:1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c\"\n    },\n    {\n      \"id\": \"contract-structure\",\n      \"status\": \"passed\",\n      \"evidence\": \"source contract candidate schema\"\n    },\n    {\n      \"id\": \"skill-ir-schema\",\n      \"status\": \"passed\",\n      \"evidence\": \"SkillIRSchema.parse\"\n    },\n    {\n      \"id\": \"skill-ir-references\",\n      \"status\": \"passed\",\n      \"evidence\": \"validateSkillIR:0 errors\"\n    },\n    {\n      \"id\": \"source-trace\",\n      \"status\": \"passed\",\n      \"evidence\": \"every extracted step and rule is traced to public SKILL.md\"\n    },\n    {\n      \"id\": \"domain-semantics\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"task ABI and domain invariants are absent from source-only generation inputs\"\n    },\n    {\n      \"id\": \"package-runtime\",\n      \"status\": \"requires-human\",\n      \"evidence\": \"no domain compiler, checker, or executable plan was generated\"\n    }\n  ],\n  \"promotionEligible\": false,\n  \"prohibitedEvidenceClasses\": [\n    \"model-output\",\n    \"evaluator-payload\",\n    \"held-out\",\n    \"scorer-gold\",\n    \"secret-value\"\n  ]\n}\n"
+      }
+    ],
+    "blockers": [
+      "domain-compiler-not-generated",
+      "runtime-checker-not-generated",
+      "task-output-contract-not-qualified"
+    ]
+  },
+  "audit": {
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md"
+    ],
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0
+  }
+}

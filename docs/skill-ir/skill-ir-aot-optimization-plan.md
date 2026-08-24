@@ -830,6 +830,22 @@ contract/value-semantics audit、base IR、artifact assembly 与 scorer boundary
 PackageCandidate`、`coreBranchDelta` 和 package parity 判断收敛。不得用硬编码 skill id、后验模型输出或 held-out
 补齐生成结果；只有自动路径通过 deterministic validation 后，才决定是否需要新的付费 quality experiment。
 
+**执行合同修正（2026-08-24）：** Task 18.26 的 shadow 分母扩为当前 method portfolio 的全部 7 个冻结案例，
+但仍保持零付费、development-only。实现和判定顺序冻结如下：
+
+1. [x] 新增 first-version automatic-construction 机器合同，显式分离 `generationInputs` 与 `shadowOracles`；构造阶段
+   只能读取 digest-pinned 的公开 skill source/closure，人工 contract/base IR/validation/package 只能在构造完成后比较；
+2. [x] RED/GREEN 实现单一公共构造核心：从 frontmatter、工作流、输出与约束段保守地产生 contract、schema-valid
+   base IR、construction validation-plan 和非冒充可执行性的 package candidate；公共核心不得按 skill id 分支；
+3. [x] 7 个案例由同一 runner 串行生成并先冻结候选 digest，再进入 shadow compare。比较报告必须区分
+   `structural-valid`、`semantic-review-required` 与 `manual-oracle-absent`，不得把结构骨架计作自动化收敛；
+4. [x] 每案例报告四类候选是否生成、与人工件的结构覆盖、仍需人工的领域语义/checker/runtime 缺口、case-specific
+   adapter LOC、前瞻 humanMinutes 与 `coreBranchDelta`；shadow oracle 注册表属于评估配置，不得反馈到生成结果；
+5. [x] 只有候选同时通过来源隔离、SkillIR 引用校验、领域语义充分性和（适用时）catalog/runtime package parity，
+   才允许把 method portfolio 的对应 automation flag 改为 true。否则保留原值并把差距作为 Task 18.26 正式结果；
+6. [x] 全程禁止模型/API 调用、held-out、evaluator payload 和 scorer gold；完成后写入现有组件文档、台账与日志，
+   并运行 focused tests、Task 18.26 runner、method portfolio/readiness 以及相关 broad regression。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
