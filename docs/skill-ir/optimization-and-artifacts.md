@@ -597,6 +597,12 @@ request 显式剥离 evaluator/gold/held-out。计划只能使用有界通用数
 runtime 链可执行，不是模型自动化结果；package/manual parity、跨任务 transfer 和 automatic eligibility 在付费结果
 冻结前继续 `not-established`。
 
+真实 Task 18.31 execute 没有到达 artifact runtime：Env/Law 各一次逻辑 paid attempt 均在 strict plan 形成前进入
+`provider-or-parse`，因此 0/2 synthesis、0/4 workdir、0 manual evaluator load、0/2 transfer/eligibility。零重试、
+held-out/evaluator payload 隔离与 core branch 0 保持，但 token/duration 在失败路径不可用。该分类粒度不足以判断
+是 provider transport 还是模型生成的 arguments/plan 不合 schema；两案不同 failure digest 也不能弥补这个缺口。
+历史请求冻结且不得重跑，artifact 层的自动化主张仍为未建立。
+
 ## 15. 测试
 
 ```powershell

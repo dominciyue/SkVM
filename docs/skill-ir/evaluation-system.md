@@ -636,6 +636,12 @@ Reuse gate 只在两个不同案例的同一自动生成机制均满足 task2 pr
 仍要求同案两个 task 的完整 package 和全部 manual criteria 通过。Focused test 的 injected completion 只测试执行
 排序与真实 workdir runtime，不能计入 paid shadow evidence。
 
+唯一 Task 18.31 execute 在生成阶段即停止：2 logical paid attempts、0 retry，两案都没有 plan，因此按合同不执行
+workdir，也不加载 manual evaluator。首版 `provider-or-parse` 把 HTTP、response/tool、arguments JSON 与 Zod schema
+合并，失败 token/duration 为空；这满足调用/隔离守恒，但不满足精确 failure attribution。报告不能据此把 0/2 记成
+domain semantic failure 或 infrastructure failure。原请求不补跑，独立 transport qualification 只能诊断同一工具
+合同的当前可用性，不能追溯重写历史行。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

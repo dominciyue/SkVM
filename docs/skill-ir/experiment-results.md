@@ -735,6 +735,19 @@ parity `not-established`、automatic eligibility 0/2。全部 12 个 remaining u
 `not-measured`。声明/分类 freeze 只早于当前重放中的 task/evaluator 读取；18.29 历史手工证据此前已知，不能称为
 blind freeze。0 paid/API、0 held-out、0 compiler evaluator-payload access，portfolio/readiness 不更新。
 
+Task 18.31 冻结了首个模型生成 Restricted Domain Plan 的双案例主瓶颈试验。Pre-model identity 绑定 Env Manager/
+Law 的 exact source、薄声明、一个 construction development task、第二个 transfer task、7-file implementation
+closure、`xty/gpt-5.6-sol` route/backend 和每案一次/0 retry。Future-start 时区误标在调用前被预检发现并在同一 v1
+修正为真实 UTC，同时新增 freeze/execute fail-closed；该错误没有消耗模型调用。
+
+随后唯一 execute 完成 2 个逻辑 paid attempts、0 retry、0 held-out、0 evaluator payload、core branch delta 0。
+两案均在 strict plan 形成前失败：synthesis 0/2、model plan LOC/steps 0、task execution 0/4、manual evaluator load 0、
+transfer executable 0/2、reuse gate failed、automatic eligibility 0/2、semantic parity `not-established`。两个 failure
+digest 不同；首版 taxonomy 均为 `provider-or-parse`，且失败 token/duration unavailable，因此现有 compact evidence
+不能区分 HTTP/provider、tool-call、arguments JSON 或 plan-schema failure。10 metered human minutes 只覆盖冻结后的执行/
+结果编排；pre-measurement core work 继续 `not-measured`。这是一项“未产出计划且归因未建立”的正式负结果，不是
+domain 模型能力天花板，也不得通过重跑原请求或手工修 plan 改写。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -757,3 +770,5 @@ blind freeze。0 paid/API、0 held-out、0 compiler evaluator-payload access，p
 - `results/skill-ir/automatic-structural-execution-shadow-v1/report.json`
 - `results/skill-ir/automatic-output-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`
+- `results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json`
+- `results/skill-ir/automatic-domain-plan-shadow-v1/report.json`

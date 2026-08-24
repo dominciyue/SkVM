@@ -1120,6 +1120,17 @@ authorization；摘要必须保持 0 paid、0 retry、0 held-out、0 evaluator p
 implementation digest，并比较当前 provider base URL hash/backend；测试注入只能绕过 provider 调用，不能绕过冻结
 实现与请求核验。计划生成失败也消耗该案唯一逻辑调用，不补问、不 retry，且其它案例仍按预注册独立继续。
 
+Task 18.31 的唯一双案例执行得到 0/2 synthesis：两个逻辑 paid attempt 均无 retry、无 held-out/evaluator payload，
+但都在 strict plan 形成前进入首版 `provider-or-parse` 合并分类，token 与 duration 也未保留。不同 failure digest 只
+证明不是同一固定错误文本，不能区分 HTTP、forced tool、arguments JSON 或 Zod plan schema。因此该结果足以拒绝
+automatic eligibility，却不足以把失败归因于 domain-runtime 模型能力；禁止重跑原请求或人工修 plan 后补计。
+
+Task 18.32 只允许一个与领域任务解耦的 transport qualification。它复用同 route/backend、tool schema 与 strict
+parser，但请求中只给出显式 canonical minimal plan，0 task/source/evaluator/held-out payload；最多 1 paid call、
+`retries=0`。错误必须在 HTTP/response/tool/arguments/schema 边界机器分型并记录无敏感内容的 digest 与 duration。
+Qualification pass 只能排除持续的 forced-tool contract incompatibility，不能追溯重分类 18.31；qualification fail
+才能建立当前 transport blocker。两种结果都不授权原任务重跑、DSL 扩展、7-case 接入或 readiness promotion。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

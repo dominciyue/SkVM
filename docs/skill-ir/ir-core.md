@@ -317,8 +317,13 @@ binding 做静态校验。`automatic-restricted-domain-plan-runtime.ts` 将同�
 
 Shadow runner 先冻结两个案例的全部成功计划，才执行 Env Manager 与 Law 各两个真实 workdir，最后在隔离子进程中
 加载 digest-pinned manual evaluator。Pre-model freeze 另绑定实现 closure、请求 digest 和 provider route/backend；
-执行前任何漂移都会阻断。当前仅完成 0-paid freeze，完整 execution/manual parity/eligibility 结论必须等待唯一两次
-生成调用，不能从 focused integration fixture 推导。
+执行前任何漂移都会阻断。0-paid freeze 只授权唯一两次生成调用，不能从 focused integration fixture 推导
+execution/manual parity 或 eligibility。
+
+唯一双案例 execute 后，两案均未产生 strict plan，故解释器/package 的 focused 正例没有转化为 model-generated
+workdir evidence。首版合并分类为 `provider-or-parse`，failure digest 不同，但没有足够字段区分 HTTP/tool-call/
+arguments JSON/Zod；plan LOC/steps、execution 与 manual load 均为 0。Automatic eligibility 与 reuse gate 明确失败，
+而 precise failure attribution 保持 `not-established`。原请求不重跑；后续只允许无 task 的同工具合同 qualification。
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `

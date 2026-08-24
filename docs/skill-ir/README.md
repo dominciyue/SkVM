@@ -119,6 +119,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   `copy-json-value`；baseline pass、突变 fail、protected input 不变，unresolved 15 -> 12。剩余 12 项中仅 1 个
   pointer、1 个 selector/lookup 可投影/查询，10 个需要 domain runtime，纯查询路线理论 floor=10；selector 未实现，
   package 仍 2/2 validation-failure、automatic eligibility 0/2。
+- Task 18.31 已完成受限 Domain Plan 的 single-call 生成、确定性解释器、package/runtime 与双任务隔离合同。唯一
+  Env/Law execute 为 2 logical paid attempts、0 retry/held-out/evaluator payload，但两案均在 plan 形成前落入首版
+  `provider-or-parse` 合并分类；synthesis/transfer/eligibility 均 0/2。由于没有细分 HTTP/tool/JSON/schema 且失败
+  usage/duration 不可用，当前只能冻结“未产出自动计划”，不能声称 domain 模型能力天花板。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -157,7 +161,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> source-only、薄声明 candidate 与封闭结构 runtime 已完成；7 案例 33 次执行、两条 exact parity，0 paid
 -> 首个 output primitive 已跨两案例生成部分产物；3 fields generated、15 unresolved、0/2 automatic eligible
 -> JSON Pointer successor 已真实复制 3 fields；15 -> 12，ceiling=pointer 1/query 1/domain-runtime 10
--> 下一步停止扩 pointer/query，直接选择可跨至少两案验证的 domain-runtime primitive；不提前跑付费/held-out
+-> Restricted Domain Plan 唯一双案例生成 0/2；2 calls/0 retry，但 provider-vs-parse 归因未建立
+-> 下一步只做 1-call、无 task 的 forced-tool transport qualification；不重跑原请求或扩 DSL
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

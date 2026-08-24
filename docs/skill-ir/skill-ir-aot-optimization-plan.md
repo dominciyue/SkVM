@@ -974,13 +974,13 @@ Domain Plan。第二个 development instance 只作同案迁移检验；不读�
 4. [x] 过拟合审计禁止计划携带 construction task 的 secret canary、环境变量名、文档标题/长原文或其它只在
    task1 data fixture 出现的值；来自公开 contract、task declaration 或 skill source 的字段/规则必须单独分账，
    不能把公开领域合同误报为 gold；
-5. [ ] 每案计划 digest 在任何 manual evaluator 读取前冻结。随后同一计划分别运行 task1 与未见过的 task2 真实
+5. [x] 每案计划 digest 在任何 manual evaluator 读取前冻结。随后同一计划分别运行 task1 与未见过的 task2 真实
    workdir，并组装 catalog-valid package；报告 process/structural runtime、protected input、生成输出、domain
    predicate coverage 和 transfer drift；
-6. [ ] 最后才 lock-local 加载手工 evaluator，逐 criterion 报告 pass/fail 与自动计划实际覆盖。完整 manual parity
+6. [x] 最后才 lock-local 加载手工 evaluator，逐 criterion 报告 pass/fail 与自动计划实际覆盖。完整 manual parity
    未建立时继续写 `semanticParity=not-established`；单个 criterion 改善、construction-task 成功或 package
    structural pass 都不得直接晋升 automatic eligibility；
-7. [ ] 报告 paid calls/tokens/duration、invalid/blocked reason、model-generated plan LOC、人工分钟、adapter LOC、
+7. [x] 报告 paid calls/tokens/duration、invalid/blocked reason、model-generated plan LOC、人工分钟、adapter LOC、
    core branch delta 和未实现 domain predicates。只有至少两个案例在 task2 上无需人工修 plan、无泄漏、真实
    runtime 可执行，才算 restricted Domain Plan runtime 具有跨案例机制证据；readiness 仍由完整四类自动构造和
    package/manual parity 决定。
@@ -996,6 +996,28 @@ task2 迁移上失败，或只有手工增补计划才能通过，则冻结“�
 绑定 exact source、薄声明和一个 development construction task。Execute 重新核验 catalog、request、实现 closure
 及 provider route/backend identity，任何漂移在调用前 fail closed。手工 evaluator 路径和 digest 已登记用于后测，
 但 evaluator module 只能在全部生成计划已冻结且四个真实 workdir 执行完成后加载。
+
+**冻结结果（2026-08-24）：** 唯一 execute 消耗 2 个逻辑 paid attempts、0 retry；两案均在 plan 产生前以
+`provider-or-parse` 失败，因此 synthesis 0/2、plan/workdir/manual evaluator 0、transfer 0/2、reuse gate failed、
+automatic eligibility 0/2。两个 failure digest 不同，但首版 report 将 HTTP、tool-call、arguments JSON 与 plan Zod
+错误合并，且失败时 usage/duration 不可用，故不能把本次 0/2 精确归因为 provider infrastructure 或 domain-plan
+能力天花板。原请求不得重跑；下一步只允许独立 transport qualification 澄清 forced-tool 合同，不改写该结果。
+
+### Task 18.32：Restricted Domain Plan transport qualification 与自动化停止判定
+
+**范围：** 不重放 Env/Law 请求，不读取 task、skill、evaluator 或 held-out。用同一 route/backend、同一
+`submit_restricted_domain_plan` tool schema 和同一 strict parser 发送一个显式 canonical、无领域语义的最小计划，
+只判断 forced-tool transport/parse 合同是否可用。最多 1 paid call、`retries=0`。
+
+1. [ ] RED/GREEN：把 synthesis failure 分成 `transport | http | response-json | tool-call | arguments-json |
+   plan-schema`，失败也记录 request duration；compact report 只保留 stage/status/body-or-error digest，不保存 response
+   body、API key 或模型 reasoning；
+2. [ ] 预先冻结 canonical request/expected-plan digest、同 route/backend、implementation closure、1-call authorization、
+   0 retry/held-out/evaluator/task payload，并在 execute 前重验所有 identity；future measurement time fail closed；
+3. [ ] 唯一执行后冻结 pass/fail 与 tokens/duration。Pass 只排除“持续 forced-tool 合同不兼容”，不能反推 18.31
+   两个历史错误具体属于 plan schema；fail 才能按机器 stage 支撑 transport blocker；
+4. [ ] 无论结果如何，都不重跑 18.31、不扩 DSL、不接 7-case/held-out/多模型。完成后基于 18.26--18.32 全链写明
+   当前产品边界、人工审核点和 readiness 不晋升，并让本轮自动化工作告一段落。
 
 ### 单模型族 70% 与多模型族启动门槛
 
