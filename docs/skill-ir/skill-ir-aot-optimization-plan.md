@@ -803,16 +803,32 @@ assembly/catalog/runtime 的已 pin 文件，也不得修改 Task 18.24 policy �
    证明 4/4 deterministic success、0 model call/token、0 held-out，且不授权修改 measurement identity；
 4. [x] Artifact control 实测为 4/4、0 model call/token、0 held-out；compact freeze 为
    `results/skill-ir/bids-successor-artifact-control-freeze-v1.json`。本结果只证明控制臂与 successor 测量合同兼容；
-5. [ ] 重新核验 matrix identity digest 与 API key 存在性，然后执行唯一一次 `--phase=execute`，从真实 persisted
+5. [x] 重新核验 matrix identity digest 与 API key 存在性，然后执行唯一一次 `--phase=execute`，从真实 persisted
    prefix 0/12 开始；不得把临时目录中的 dry-run/focused test 误写为已生成持久 `run/plan.json`；
-6. [ ] 12/12 后先核对 raw/scored/envelope/matrix-capture identity、`matrixPaidCalls=12`、`retries=0`、严格连续
+6. [x] 12/12 后先核对 raw/scored/envelope/matrix-capture identity、`matrixPaidCalls=12`、`retries=0`、严格连续
    prefix 与 classification 守恒，再由预模型冻结的 artifact evidence 构建 development result；
-7. [ ] 结果分层报告 measurement eligibility、contribution、static、hand-authored artifact、automatic construction
+7. [x] 结果分层报告 measurement eligibility、contribution、static、hand-authored artifact、automatic construction
    五类结论。即使 BIDS 正向，也只可能补足第二 phenotype；`automationAndAdaptationConverging` 仍由 7/7
    `generatesIr=false` 支撑，所以 readiness 仍不得晋升，untouched replication/多模型/noisy-long 仍关闭；
-8. [ ] 最后单独修正 readiness blocker 派生：显式区分 `explained-and-frozen` 历史负结果与
+8. [x] 最后单独修正 readiness blocker 派生：显式区分 `explained-and-frozen` 历史负结果与
    `open-candidate`/unexplained blocker，并因研究结论语义变化提升 readiness schema。不得只放宽表达式而静默重写
    Zh README 历史证据；该修正本身也不会让另外两道 false gate 通过。
+
+**冻结结果：** 唯一 matrix 为 12/12 `semantic-complete`、12/12 scored、0 retry、0 active/parser/runtime blocker，
+matrix input/output/cache-read 为 223224/32547/461312、duration 663008ms。No-skill/original/ir-static/artifact
+分别为 3/4、3/4、2/4、4/4，mean 0.8/0.8/0.6/1.0。Original-no-skill 为 1 positive/2 equal/1
+regression、mean delta 0，贡献未识别；static-original 为 0/3/1、delta -0.2；hand-authored artifact-original 为
+1/3/0、delta +0.2，但 construction 仍是 manual/mechanism-only，`automaticOptimizedResult=false`。BIDS 因而不计
+第二个 readiness phenotype。Readiness v4 将 Zh README 的已解释 invalidated scorer-authority 归为
+`explained-and-frozen`，open blocker 归零；总 readiness 仍因 phenotype=1 与 automation 7/7 incomplete 而 failed。
+
+### Task 18.26：自动构造能力收敛
+
+**当前下一刀：** 不再通过增加候选或手写 artifact 追求第二正例。先把现有公共 lifecycle、source closure、public
+contract/value-semantics audit、base IR、artifact assembly 与 scorer boundary 收敛为可调用的自动构造路径，选择
+一个已冻结案例做 shadow generation，并以前瞻 `humanMinutes`、`adapterLoc`、`generatesIr/Contract/ValidationPlan/
+PackageCandidate`、`coreBranchDelta` 和 package parity 判断收敛。不得用硬编码 skill id、后验模型输出或 held-out
+补齐生成结果；只有自动路径通过 deterministic validation 后，才决定是否需要新的付费 quality experiment。
 
 ### 单模型族 70% 与多模型族启动门槛
 

@@ -126,11 +126,12 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> successor 单次 infrastructure qualification 已通过：四门全绿、1 paid、semantic-complete、deterministic scorer
 -> successor analysis/matrix runner identity 已冻结：固定顺序、精确 prefix、12+4 denominator，matrix 仍为 0/12
 -> successor pre-model artifact controls 已冻结：report v2/repair evidence 合同匹配，4/4、0 model call/token
--> 下一步重新核验 digest 与真实 prefix 0/12，再执行同一 lock 的唯一 12-row successor 分母；资格不得重复、
-   v1 行不得复用、不得重试或后验选行
+-> successor 唯一矩阵已完成：12/12 semantic-complete/scored、0 retry/infra；贡献 false、static -0.2
+-> hand-authored artifact 4/4 且相对 original +0.2，但 automatic construction=false，BIDS 不计第二 phenotype
 -> BIDS v1 始终不复用、不补跑、不重评分；qualification 也不以 task success 或 exact output 预筛模型
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
--> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
+-> readiness v4 已区分 explained-and-frozen/open-candidate：open=0，但 phenotype=1、automation 7/7 incomplete
+-> 下一步收敛自动生成 contract/IR/validation-plan/package 的公共路径，不再用新增手写候选代替 optimizer
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

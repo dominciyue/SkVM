@@ -656,6 +656,17 @@ Task 18.25 在任何 successor 模型输出被读取前执行预注册的 4 条 
 `results/skill-ir/bids-successor-artifact-control-freeze-v1.json`。这证明 hand-authored artifact control 可被当前
 successor scorer 合法测量，不证明模型质量或 automatic construction，也不改变 matrix 0/12。
 
+随后在 execute 前确认 key 存在、parent digest 零漂移且持久 run/plan/prefix 均不存在，从真实 0/12 完成唯一
+matrix。12/12 semantic-complete/scored、0 retry、0 active/parser/runtime blocker；input/output/cache-read 为
+223224/32547/461312，duration 663008ms。No-skill/original/ir-static/artifact success 为 3/4、3/4、2/4、4/4，
+mean 0.8/0.8/0.6/1.0。Original-no-skill 为 1 positive、2 equal、1 regression、delta 0，故 contribution false；
+static-original 为 0/3/1、delta -0.2；artifact-original 为 1/3/0、delta +0.2。Measurement eligible、
+validatedArtifactImproved true，但 `automaticOptimizedResult=false`，BIDS 不进入第二 readiness phenotype。
+
+Readiness v4 同步把 Zh README 的 invalidated scorer-authority 投影为 `explained-and-frozen`，open measurement
+blocker 从 1 降为 0，`noOpenMeasurementBlockers=true`。这只是修正滞后派生；phenotype 仍为 1，automation
+incomplete skills 仍为 7，readiness 继续 failed，untouched replication 仍未授权。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -670,3 +681,6 @@ successor scorer 合法测量，不证明模型质量或 automatic construction�
 - `benchmarks/skill-ir/pilots/bids/successor-v2/development-analysis-policy.json`
 - `results/skill-ir/bids-successor-matrix-freeze-v1.json`
 - `results/skill-ir/bids-successor-artifact-control-freeze-v1.json`
+- `results/skill-ir/bids-successor-development-v1/matrix-capture.json`
+- `results/skill-ir/bids-successor-development-v1/result.json`
+- `results/skill-ir/method-portfolio-readiness.json`

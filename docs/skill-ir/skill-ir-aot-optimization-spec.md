@@ -1018,12 +1018,25 @@ Successor 专属 compiler/runtime 只导入被 BIDS v1 prospective construction 
 旧 BIDS v1 或 Task 18.24 的四文件 implementation closure。2 task x 2 repetition 的确定性实测为 4/4 success、
 0 model call/token、0 held-out，compact pre-model freeze 位于
 `results/skill-ir/bids-successor-artifact-control-freeze-v1.json`。这只排除了 artifact/scorer 测量合同错配造成的
-假负结果；12 个模型行仍为 0/12，下一步仍须重新核验 digest 后才可执行唯一 matrix。
+假负结果；随后真实执行前重新核验为零漂移，并从不存在持久 plan/prefix 的 0/12 开始唯一 matrix。
+
+唯一 successor matrix 完成 12/12 semantic-complete/scored、0 retry、0 active/parser/runtime blocker；模型行
+input/output/cache-read 为 223224/32547/461312，duration 663008ms。No-skill/original/ir-static 为
+3/4、3/4、2/4，mean 0.8/0.8/0.6；original-no-skill 是 1 positive、2 equal、1 regression，贡献未识别；
+ir-static-original 是 0/3/1，mean delta -0.2。预模型 artifact 4/4、mean 1.0，相对 original 为 1/3/0、
+delta +0.2，但它来自 hand-authored construction，不能晋升 automatic optimized result 或第二 readiness phenotype。
+Dynamic、held-out、replication 与主 claim 继续关闭。
+
+Readiness report 因派生研究含义变化提升为 `skill-ir-method-portfolio-readiness/v4`。它把首个非 passed 阶段的
+measurement blocker 明确投影为 `open-candidate` 或 `explained-and-frozen`：只有前者阻断
+`noOpenMeasurementBlockers`；`invalidated` 且带冻结 evidence 的 Zh README scorer-authority 属于后者。该修正没有
+改写历史实验，也没有令 readiness 通过：readiness-eligible phenotype 仍为 1，7/7 automation 仍不完整。
 
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
-development artifact 正向案例；i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
+development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但自动构造、贡献和 static 均未通过；
+i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
 方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。
 

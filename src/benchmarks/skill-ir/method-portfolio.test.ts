@@ -115,7 +115,7 @@ describe("method portfolio registry and readiness", () => {
   test("passes only when all five readiness dimensions are satisfied", () => {
     const report = evaluateMethodPortfolioReadiness(passingPortfolio())
     expect(report).toMatchObject({
-      schemaVersion: "skill-ir-method-portfolio-readiness/v3",
+      schemaVersion: "skill-ir-method-portfolio-readiness/v4",
       passed: true,
       counts: {
         studiedCases: 6,
@@ -239,6 +239,7 @@ describe("method portfolio registry and readiness", () => {
       skillId: "skill-6",
       stage: "staticFidelity",
       blocker: "execution-observability",
+      disposition: "open-candidate",
     })
   })
 
@@ -262,10 +263,17 @@ describe("method portfolio registry and readiness", () => {
     expect(report.counts.contractQualifiedMethodCases).toBe(6)
     expect(report.counts.passedStaticFidelityCases).toBe(5)
     expect(report.counts.readinessEligibleDevelopmentPhenotypes).toBe(0)
-    expect(report.gaps.openMeasurementBlockers).toContainEqual({
+    expect(report.gaps.openMeasurementBlockers).not.toContainEqual({
       skillId: "skill-2",
       stage: "baselineAdmission",
       blocker: "scorer-authority",
+      disposition: "open-candidate",
+    })
+    expect(report.gaps.explainedAndFrozenMeasurementBlockers).toContainEqual({
+      skillId: "skill-2",
+      stage: "baselineAdmission",
+      blocker: "scorer-authority",
+      disposition: "explained-and-frozen",
     })
   })
 
@@ -318,8 +326,14 @@ describe("method portfolio registry and readiness", () => {
       untouchedReplicationCases: 0,
     })
     expect(report.gaps.missingQualifiedCases).toBe(0)
-    expect(report.gaps.openMeasurementBlockers).toEqual([
-      { skillId: "zh-readme", stage: "baselineAdmission", blocker: "scorer-authority" },
+    expect(report.gaps.openMeasurementBlockers).toEqual([])
+    expect(report.gaps.explainedAndFrozenMeasurementBlockers).toEqual([
+      {
+        skillId: "zh-readme",
+        stage: "baselineAdmission",
+        blocker: "scorer-authority",
+        disposition: "explained-and-frozen",
+      },
     ])
     expect(portfolio.cases[1]).toMatchObject({
       skillId: "law-to-markdown",
@@ -398,6 +412,9 @@ describe("method portfolio registry and readiness", () => {
       stoppedBeforeDynamicCases: 4,
     })
     expect(report.gates.twoEvidenceQualifiedPhenotypes).toBe(false)
+    expect(report.gates.automationAndAdaptationConverging).toBe(false)
+    expect(report.gates.noOpenMeasurementBlockers).toBe(true)
+    expect(report.passed).toBe(false)
   })
 
   test("writes the readiness report as a stable machine-readable artifact", async () => {

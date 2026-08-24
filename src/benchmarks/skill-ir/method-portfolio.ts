@@ -336,7 +336,7 @@ export function evaluateMethodSuccessorSelection(
 }
 
 export const MethodPortfolioReadinessReportSchema = z.object({
-  schemaVersion: z.literal("skill-ir-method-portfolio-readiness/v3"),
+  schemaVersion: z.literal("skill-ir-method-portfolio-readiness/v4"),
   portfolioId: z.string().min(1),
   passed: z.boolean(),
   counts: z.object({
@@ -368,6 +368,13 @@ export const MethodPortfolioReadinessReportSchema = z.object({
       skillId: z.string(),
       stage: LifecycleStageNameSchema,
       blocker: BlockerSchema,
+      disposition: z.literal("open-candidate"),
+    }).strict()),
+    explainedAndFrozenMeasurementBlockers: z.array(z.object({
+      skillId: z.string(),
+      stage: LifecycleStageNameSchema,
+      blocker: BlockerSchema,
+      disposition: z.literal("explained-and-frozen"),
     }).strict()),
     automationIncompleteSkills: z.array(z.string()),
   }).strict(),
@@ -432,12 +439,25 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
     "optimizedDevelopment",
     "heldOutPromotion",
   ] as const
-  const openMeasurementBlockers = methodCases.flatMap((entry) => {
+  const measurementBlockerDispositions = methodCases.flatMap((entry) => {
     const stage = lifecycleStages.find((candidate) => entry.lifecycle[candidate].status !== "passed")
     if (!stage) return []
-    const blocker = entry.lifecycle[stage].blocker
-    return blocker && measurementBlockers.has(blocker) ? [{ skillId: entry.skillId, stage, blocker }] : []
+    const lifecycle = entry.lifecycle[stage]
+    const blocker = lifecycle.blocker
+    if (!blocker || !measurementBlockers.has(blocker)) return []
+    return [{
+      skillId: entry.skillId,
+      stage,
+      blocker,
+      disposition: lifecycle.status === "invalidated"
+        ? "explained-and-frozen" as const
+        : "open-candidate" as const,
+    }]
   })
+  const openMeasurementBlockers = measurementBlockerDispositions
+    .filter((entry) => entry.disposition === "open-candidate")
+  const explainedAndFrozenMeasurementBlockers = measurementBlockerDispositions
+    .filter((entry) => entry.disposition === "explained-and-frozen")
   const gates = {
     enoughQualifiedCasesAndCoverage: qualified.length >= portfolio.minimumContractQualifiedCases
       && missingPhenotypes.length === 0,
@@ -447,7 +467,7 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
     noOpenMeasurementBlockers: openMeasurementBlockers.length === 0,
   }
   return MethodPortfolioReadinessReportSchema.parse({
-    schemaVersion: "skill-ir-method-portfolio-readiness/v3",
+    schemaVersion: "skill-ir-method-portfolio-readiness/v4",
     portfolioId: portfolio.portfolioId,
     passed: Object.values(gates).every(Boolean),
     counts: {
@@ -470,6 +490,7 @@ export function evaluateMethodPortfolioReadiness(input: unknown): MethodPortfoli
       missingQualifiedCases: Math.max(0, portfolio.minimumContractQualifiedCases - qualified.length),
       missingPhenotypes,
       openMeasurementBlockers,
+      explainedAndFrozenMeasurementBlockers,
       automationIncompleteSkills,
     },
   })

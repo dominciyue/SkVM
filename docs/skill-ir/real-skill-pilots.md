@@ -278,7 +278,11 @@ Task 18.25 已先补齐 successor 专属 artifact controls，避免把 v1 report
 结果。新薄层只 import 被 prospective construction 证据冻结的旧 compiler/runtime/public artifact 模块，生成
 report v2 与 repair-related evidence；4 条确定性行全部 success、0 model call/token、0 held-out，并在模型输出被
 读取前冻结 implementation/package/raw/scored closure。该结果只证明 hand-authored artifact arm 可合法计量，
-不是 automatic optimizer 证据；模型矩阵仍为 0/12，下一步先重验 digest 再执行唯一分母。
+不是 automatic optimizer 证据。随后唯一矩阵从真实 0/12 完成：12/12 semantic-complete/scored、0 retry/infra；
+no-skill/original/ir-static 为 3/4、3/4、2/4，mean 0.8/0.8/0.6。Original 相对 no-skill 为 1 positive、2
+equal、1 regression，贡献未识别；static 相对 original 为 0/3/1、delta -0.2。Artifact 4/4、mean 1.0、相对
+original 1/3/0，但 construction 保持 manual/mechanism-only。因此 BIDS 是合法的 artifact 机制证据和可信负结果，
+不是第二个 automatic/readiness 正例；dynamic、held-out 与 replication 继续关闭。
 
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复

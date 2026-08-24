@@ -489,6 +489,13 @@ public interface/scorer、旧 construction report、被 pin 的六个上游实�
 scored 与 workdir 留本地。这里的 12-row/0-paid 先前证据来自临时 dry-run/focused validator，不代表持久
 `run/plan.json` 已生成；正式 execute 前仍必须重新验证 digest 与真实 prefix 0/12。
 
+该唯一 execute 已完成 12/12 `semantic-complete`、12/12 scored、0 retry、0 active/parser/runtime blocker；capture
+绑定原 lock/qualification/policy digest，计费严格为 qualification 1 + matrix 12。Result 直读已冻结 artifact
+evidence，给出 no-skill/original/ir-static/artifact success `3/4, 3/4, 2/4, 4/4` 与 mean
+`0.8, 0.8, 0.6, 1.0`。Contribution estimand 为 1 positive/2 equal/1 regression、delta 0；static 为
+0/3/1、delta -0.2；artifact 为 1/3/0、delta +0.2。Measurement eligible，但 contribution/static/automatic
+optimized 均 false，只有 hand-authored artifact mechanism 为正；不得据此开放 dynamic、held-out 或 readiness。
+
 ## 9. Gate 顺序
 
 ```text
@@ -605,6 +612,12 @@ Portfolio v3 分别记录 `benchmarkContract`、
 fidelity。每个案例另记录 dynamic/profile 路径及停止原因。适配证据另有 provenance：历史未前瞻记录的
 案例标记 `historical-unavailable`，不得把空值解释为零成本；`prospective-measured` 必须同时提供起止时间、
 人工分钟、adapter LOC 和 core branch delta。
+
+Readiness 派生报告 v4 不再把所有历史 measurement-invalid 永久算作 open。首个非 passed lifecycle stage 若为
+measurement blocker，`invalidated` 且已有 evidence 的终态明确输出到
+`explainedAndFrozenMeasurementBlockers`，其它当前/未解释状态输出为带 `disposition=open-candidate` 的
+`openMeasurementBlockers`；只有后者参与 `noOpenMeasurementBlockers`。当前 Zh README 被保留为已解释冻结证据，
+open 数为 0，但 automation convergence 与 two-evidence phenotype 两门仍 false，所以 readiness 仍 failed。
 
 Successor selection policy 必须在新合同开发前冻结，并为 registry 中每个 method-development case 提供一条
 assessment。Compact report 公开 phenotype coverage、合同/基线状态、artifact mechanism、信息互补性、下一阶段
