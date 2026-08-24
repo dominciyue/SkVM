@@ -302,6 +302,24 @@ Experimental Design 两次复制、i18n 一次复制均在真实 workdir baselin
 selector/lookup 1、domain-runtime 10；这是查询路线理论 floor=10 的 ceiling 审计，不是 selector 实现或 semantic
 parity 证据。Core source 不含两个 case id，reuse gate 只对同一 primitive 的双案例执行证据通过。
 
+### 8.6 Restricted Domain Plan
+
+Task 18.31 的 `automatic-restricted-domain-plan.ts` 是 additive、skill-neutral 的受限数据流解释器。Strict v1 计划最多
+64 个前向引用步骤，只允许有界 text/JSON read、JSON pointer、key-value/regex fact extraction、pluck/filter/project、
+set/boolean/choose 和声明输出 write/copy；路径必须落在公开 read binding 或声明 write binding 内。Shell、network、
+动态 import、任意 JavaScript、未知 operation、前向/循环引用、路径逃逸及未声明输出均 fail closed。
+
+`automatic-domain-plan-synthesis.ts` 从 exact `SKILL.md`、薄 task description、一个公开 development task 的
+`id/split/prompt/fixtures` 投影和 DSL 合同构造单次 forced-tool request；`eval`、gold、threshold、held-out 与 evaluator
+payload 不进入请求。生成后先执行 construction-task-only literal leakage audit，再对两个 development task 的真实
+binding 做静态校验。`automatic-restricted-domain-plan-runtime.ts` 将同一计划装入 catalog-valid artifact，process 在
+真实 workdir 执行，checker 复用 18.28 structural plan；protected initial manifest 始终独立核验。
+
+Shadow runner 先冻结两个案例的全部成功计划，才执行 Env Manager 与 Law 各两个真实 workdir，最后在隔离子进程中
+加载 digest-pinned manual evaluator。Pre-model freeze 另绑定实现 closure、请求 digest 和 provider route/backend；
+执行前任何漂移都会阻断。当前仅完成 0-paid freeze，完整 execution/manual parity/eligibility 结论必须等待唯一两次
+生成调用，不能从 focused integration fixture 推导。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `
@@ -325,6 +343,13 @@ bun test ./src/benchmarks/skill-ir/automatic-json-pointer-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-json-pointer-construction-runtime.test.ts `
   ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-synthesis.test.ts `
+  ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=execute `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
 ```
 

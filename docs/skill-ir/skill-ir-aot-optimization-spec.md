@@ -1102,6 +1102,24 @@ inputs preserved，旧 base projection relation 同时通过；15 个 unresolved
 selector/lookup，两个 package 仍 validation-failure，manual parity、semantic parity 和 eligibility 均未建立。Freeze
 只证明声明与分类早于本次 shadow 的 task/evaluator 读取；Task 18.29 的历史 task/manual 证据已知，不声称盲化。
 
+Task 18.31 将 domain-runtime 自动化限定为“模型生成受限计划、确定性解释器执行”，而不是让用户把 scorer 或
+领域程序写进 task 声明。自动生成器可以额外消费一个公开 development construction instance，但必须先移除
+`eval`、evaluator payload、hard gate、threshold、gold 与 held-out；每案最多一个冻结请求、零重试。计划只允许
+有界 read/parse/regex/set/boolean/write 数据流原语，不允许 shell、network、任意代码、动态 import 或未声明路径。
+
+为了把自动生成与 task1 记忆区分开，同一计划必须在任何手工 evaluator 读取前通过 task-data literal 泄漏审计并
+冻结 digest，再原样执行第二个公开 development task。公开 contract/source 中的规则和值可以进入计划且按来源
+记账；只在 construction fixture 出现的 secret、变量名、文档标题/长原文不得进入计划。第二任务失败、schema
+invalid 或需要未知原语都是正式自动化边界，不允许人工修 plan 后仍计 automatic。跨案例机制证据至少要求两个
+不同 case 的未见 task2 都无需人工修计划、protected input 保持、runtime 可执行且 `coreBranchDelta=0`；即使达到，
+若完整 domain/manual parity 与四类 candidate eligibility 未建立，`automationAndAdaptationConverging` 仍不得晋升。
+
+该协议的执行前 identity 已冻结为 `skill-ir-restricted-domain-plan-pre-model-freeze/v1`。Freeze 保存两份 canonical
+request digest、实现 closure digest、父级 18.27 evidence、model route/backend 的非秘密身份以及精确 2-call
+authorization；摘要必须保持 0 paid、0 retry、0 held-out、0 evaluator payload。Execute 在首次调用前重新读取这些
+implementation digest，并比较当前 provider base URL hash/backend；测试注入只能绕过 provider 调用，不能绕过冻结
+实现与请求核验。计划生成失败也消耗该案唯一逻辑调用，不补问、不 retry，且其它案例仍按预注册独立继续。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

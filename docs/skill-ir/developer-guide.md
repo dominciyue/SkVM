@@ -926,7 +926,8 @@ no-skill 无净贡献、static 回归且 construction 非自动，因此 BIDS �
 只清除了 Zh README 这个已解释冻结 blocker，另两门仍 false。Task 18.26--18.29 已依次建立 source-only 构造、薄
 task 声明语义层、结构 predicate 的真实 execution bridge 与首个跨两案例的 partial output primitive；当前接力点
 随后 Task 18.30 用 value-free JSON Pointer successor 将 unresolved 从 15 降到 12，并量化出 10 项 domain-runtime
-floor。当前接力点转为跨案例 domain-runtime primitive，不再扩 pointer/query 或追加手写候选：
+floor。Task 18.31 已完成 restricted Domain Plan、single-call 生成器、真实 workdir package 编排和 pre-model freeze；
+当前接力点是执行唯一两次已冻结调用并冻结真实迁移/人工差距，不再扩 pointer/query 或追加手写候选：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -950,7 +951,8 @@ floor。当前接力点转为跨案例 domain-runtime primitive，不再扩 poin
 已完成：结构 execution bridge；7 case/33 scenarios、2 exact parity、0 paid/held-out/core branch，semantic parity 未建立
 已完成：partial output compiler；2 cases/3 files/3 fields、15 unresolved、2/2 validation fail、0/2 eligible
 已完成：JSON Pointer successor；3 copies、15 -> 12、pointer/query/domain ceiling=1/1/10、0/2 eligible
-下一步：停止扩 pointer/query，选择能跨至少两个案例验证的 domain-runtime primitive；不为数字添加 skill 特判
+已完成：Restricted Domain Plan pre-model freeze；2 cases/2 requests、0 paid/retry/held-out/evaluator payload
+下一步：提交并推送 pre-model identity 后执行每案唯一调用；失败不 retry、不人工修 plan
 ```
 
 本地重建命令：
@@ -996,6 +998,13 @@ bun test ./src/benchmarks/skill-ir/automatic-json-pointer-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-json-pointer-construction-runtime.test.ts `
   ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-synthesis.test.ts `
+  ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=execute `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
 ```
 

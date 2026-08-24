@@ -956,6 +956,47 @@ needs-domain-runtime 10；纯 projection/query 的理论 floor 是 10，而且 s
 阶段为 20 human minutes，之前 core 开发仍诚实标记 `not-measured`。权威报告为
 `results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`。
 
+### Task 18.31：受限 Domain Plan 自动生成与跨任务 shadow
+
+**范围：** 直接攻击 Task 18.30 留下的 domain-runtime floor，不再扩 pointer、selector 或 lookup。选择
+Env Manager 与 Law 两个已有双 development task、公开合同完整且领域语义不同的案例；自动化输入仍是
+`SKILL.md + 薄声明`，另允许一个公开 development construction instance 用于把自然语言规则编译成受限
+Domain Plan。第二个 development instance 只作同案迁移检验；不读取或执行 held-out。
+
+1. [x] RED/GREEN：新增首个 `skill-ir-restricted-domain-plan/v1`。计划只允许有界文件读取、JSON/文本解析、
+   regex fact extraction、集合投影/过滤/运算、布尔选择和声明输出写入；拒绝 shell、network、任意代码、动态
+   import、路径逃逸、未声明输出、无限循环及未知 operation；interpreter/core 不得含 skill/case id 分支；
+2. [x] 生成请求严格剥离 task 的 `eval`、evaluator payload、hard gate、threshold 和任何 held-out/gold 字段。
+   每案只把 exact source、薄声明、task prompt、公开 fixtures 和 DSL 合同交给模型；模型不能调用工具或修改文件；
+3. [x] 在付费前冻结两份 canonical request digest、模型/route、实现 closure、调用上限 2、每案 1 次且
+   `retries=0`。若 response 不是 strict plan、需要未知 primitive 或触发泄漏审计，按该案自动生成失败冻结，不
+   补问、不人工修 plan；
+4. [x] 过拟合审计禁止计划携带 construction task 的 secret canary、环境变量名、文档标题/长原文或其它只在
+   task1 data fixture 出现的值；来自公开 contract、task declaration 或 skill source 的字段/规则必须单独分账，
+   不能把公开领域合同误报为 gold；
+5. [ ] 每案计划 digest 在任何 manual evaluator 读取前冻结。随后同一计划分别运行 task1 与未见过的 task2 真实
+   workdir，并组装 catalog-valid package；报告 process/structural runtime、protected input、生成输出、domain
+   predicate coverage 和 transfer drift；
+6. [ ] 最后才 lock-local 加载手工 evaluator，逐 criterion 报告 pass/fail 与自动计划实际覆盖。完整 manual parity
+   未建立时继续写 `semanticParity=not-established`；单个 criterion 改善、construction-task 成功或 package
+   structural pass 都不得直接晋升 automatic eligibility；
+7. [ ] 报告 paid calls/tokens/duration、invalid/blocked reason、model-generated plan LOC、人工分钟、adapter LOC、
+   core branch delta 和未实现 domain predicates。只有至少两个案例在 task2 上无需人工修 plan、无泄漏、真实
+   runtime 可执行，才算 restricted Domain Plan runtime 具有跨案例机制证据；readiness 仍由完整四类自动构造和
+   package/manual parity 决定。
+
+**停止边界：** 18.31 是自动化路线的主瓶颈试验，不保证正向。如果两个案例都在 strict schema、泄漏审计或
+task2 迁移上失败，或只有手工增补计划才能通过，则冻结“当前公开输入 + 单次强模型 + 受限 DSL”的自动化天花板，
+不继续用更多窄原语或重复调用粉饰结果；下一步应转为明确产品边界/人工审核点。若至少两案形成真实迁移证据，
+再评审是否把该生成器接回 7-case construction，而不是立即扩 held-out、多模型或新 skill。
+
+**执行前冻结（2026-08-24）：** Env Manager 与 Law 的两个 canonical request 已写入
+`results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json`。冻结摘要为 2 cases、2 requests、
+0 paid、最多 2 paid、每案 1 次、0 retry、0 held-out、0 evaluator payload、`coreBranchDelta=0`；请求 digest 分别
+绑定 exact source、薄声明和一个 development construction task。Execute 重新核验 catalog、request、实现 closure
+及 provider route/backend identity，任何漂移在调用前 fail closed。手工 evaluator 路径和 digest 已登记用于后测，
+但 evaluator module 只能在全部生成计划已冻结且四个真实 workdir 执行完成后加载。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

@@ -625,6 +625,17 @@ remaining unresolved 绑定唯一分类。冻结计数为 pointer 1、selector/l
 validation-failure，因此不更新 portfolio/readiness。机器字段只记录 freeze 发生在本次 task/evaluator read 之前；
 既有 18.29 task/manual 证据并未被假装成未知。
 
+Task 18.31 将 domain-runtime probe 升为严格的 pre-model/post-model 顺序合同。Pre-model freeze 绑定请求、实现、父证据、
+route/backend 和调用预算；execute 在首次调用前复核全部 identity。生成阶段每案只允许一个请求并继续独立案例，
+任何 schema/leakage/binding failure 都冻结为该案失败。只有两个生成循环都结束、全部成功 plan 原子写盘后，runner 才
+materialize task1/task2、写 initial manifest 并运行 validated artifact；所有 workdir 完成后才 digest-check 并加载
+manual evaluator module。Evaluator 的登记 path/digest 是后测身份，不代表其 payload 曾进入模型请求。
+
+Reuse gate 只在两个不同案例的同一自动生成机制均满足 task2 process executable、无 plan 手工修订、无泄漏且
+`coreBranchDelta=0` 时通过。它不等于 package validation、manual criterion 或 semantic parity；automatic eligibility
+仍要求同案两个 task 的完整 package 和全部 manual criteria 通过。Focused test 的 injected completion 只测试执行
+排序与真实 workdir runtime，不能计入 paid shadow evidence。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

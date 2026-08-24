@@ -586,6 +586,17 @@ projection/query 未来全部实现，理论 unresolved floor 仍为 10；本阶
 绿灯后的声明/shadow 20 human minutes，pre-measurement core work 不追溯。权威报告为
 `results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`。
 
+Task 18.31 不再扩 projection/query，而是让强模型把公开 source、薄声明和一个 development construction task 编译为
+strict Restricted Domain Plan，再由确定性解释器执行。模型只有每案一次 forced-tool completion、0 retry、无工具；
+request 显式剥离 evaluator/gold/held-out。计划只能使用有界通用数据流原语，不能携带 task1-only secret、变量名、
+文档标题或长原文，也不能通过 case/skill 分支进入 core。
+
+执行前 freeze 已绑定 Env Manager/Law 的 2 个 request、7 个实现文件、父证据、route/backend 和 2-call 上限，摘要为
+0 paid/held-out/evaluator payload/retry、`coreBranchDelta=0`。Execute 先复核所有 digest 与 provider identity；随后先
+持久化全部成功 plan，再执行 4 个真实 workdir，最后才加载 manual evaluator。Focused 的注入计划只证明编排与
+runtime 链可执行，不是模型自动化结果；package/manual parity、跨任务 transfer 和 automatic eligibility 在付费结果
+冻结前继续 `not-established`。
+
 ## 15. 测试
 
 ```powershell
@@ -607,6 +618,13 @@ bun test ./src/benchmarks/skill-ir/automatic-json-pointer-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-json-pointer-construction-runtime.test.ts `
   ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-synthesis.test.ts `
+  ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-shadow-run.ts --phase=execute `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
 bun test ./src/benchmarks/skill-ir
 bun run typecheck
