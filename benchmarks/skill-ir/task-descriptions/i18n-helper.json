@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "react-i18n-transformation-task",
+  "taskKind": "workspace-transformation",
+  "inputs": [
+    { "id": "react-source", "path": "<declared-react-source-files>", "format": "directory", "access": "read-write", "required": true },
+    { "id": "baseline-files", "path": "baseline/", "format": "directory", "access": "read-only", "required": true },
+    { "id": "public-contract", "path": "i18n-contract.json", "format": "json", "access": "read-only", "required": true },
+    { "id": "report-semantics", "path": "i18n-report-semantics.json", "format": "json", "access": "read-only", "required": true }
+  ],
+  "outputs": [
+    { "id": "source-updates", "path": "<declared-react-source-files>", "format": "directory", "required": true, "structure": { "kind": "opaque" } },
+    { "id": "i18n-runtime", "path": "src/i18n.ts", "format": "source-file", "required": true, "structure": { "kind": "source-file", "language": "TypeScript module" } },
+    { "id": "zh-locale", "path": "src/locales/zh-CN.json", "format": "json", "required": true, "structure": { "kind": "opaque" } },
+    { "id": "en-locale", "path": "src/locales/en-US.json", "format": "json", "required": true, "structure": { "kind": "opaque" } },
+    { "id": "i18n-report", "path": "i18n-report.json", "format": "json", "required": true, "structure": { "kind": "json-object", "requiredFields": ["framework", "scannedFiles", "entries"], "allowAdditionalFields": false } }
+  ],
+  "passCriteria": [
+    { "id": "protected-stable", "predicate": "input-integrity", "targetRefs": ["baseline-files", "public-contract", "report-semantics"], "statement": "Declared protected and baseline files remain unchanged." },
+    { "id": "declared-delta", "predicate": "exact-output-set", "targetRefs": ["source-updates", "i18n-runtime", "zh-locale", "en-locale", "i18n-report"], "statement": "Only declared source and output files change or appear." },
+    { "id": "report-shape", "predicate": "json-shape", "targetRefs": ["i18n-report"], "statement": "The report contains framework, scanned file, and entry fields." },
+    { "id": "message-extraction", "predicate": "source-grounding", "targetRefs": ["react-source", "source-updates", "i18n-report"], "statement": "User-visible messages are extracted while non-user-visible literals and behavior remain intact." },
+    { "id": "locale-semantics", "predicate": "content-fidelity", "targetRefs": ["report-semantics", "zh-locale", "en-locale"], "statement": "Placeholders, interpolation, plural forms, and existing translations follow the public semantics." },
+    { "id": "artifact-consistency", "predicate": "cross-artifact-consistency", "targetRefs": ["source-updates", "i18n-runtime", "zh-locale", "en-locale", "i18n-report"], "statement": "Source calls, locale keys, runtime configuration, and report entries agree." }
+  ]
+}

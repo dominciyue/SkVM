@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "chinese-readme-generation-task",
+  "taskKind": "analysis-report",
+  "inputs": [
+    { "id": "repository-files", "path": "<repository-files>", "format": "directory", "access": "read-only", "required": true },
+    { "id": "public-interface", "path": "readme-interface.json", "format": "json", "access": "read-only", "required": true }
+  ],
+  "outputs": [
+    { "id": "chinese-readme", "path": "README.zh-CN.md", "format": "markdown", "required": true, "structure": { "kind": "markdown", "requiredSemanticRoles": ["project identity", "installation", "quick start", "development", "license"] } }
+  ],
+  "passCriteria": [
+    { "id": "inputs-stable", "predicate": "input-integrity", "targetRefs": ["repository-files", "public-interface"], "statement": "Every initial repository file remains unchanged." },
+    { "id": "output-exact", "predicate": "exact-output-set", "targetRefs": ["chinese-readme"], "statement": "README.zh-CN.md is the only created artifact." },
+    { "id": "semantic-coverage", "predicate": "source-grounding", "targetRefs": ["repository-files", "chinese-readme"], "statement": "The Chinese README covers each declared semantic role using repository evidence." },
+    { "id": "command-reference-fidelity", "predicate": "content-fidelity", "targetRefs": ["repository-files", "chinese-readme"], "statement": "Commands, local paths, and links are source-declared and locally supported." },
+    { "id": "uncertainty-policy", "predicate": "source-grounding", "targetRefs": ["repository-files", "chinese-readme"], "statement": "Unsupported facts are omitted or explicitly marked pending." }
+  ]
+}

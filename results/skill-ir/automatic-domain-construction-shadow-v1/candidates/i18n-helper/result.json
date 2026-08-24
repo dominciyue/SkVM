@@ -1,0 +1,822 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-result/v1",
+  "contract": {
+    "schemaVersion": "skill-ir-domain-contract-candidate/v1",
+    "skillId": "i18n-helper",
+    "taskDescriptionId": "react-i18n-transformation-task",
+    "taskKind": "workspace-transformation",
+    "intent": "国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译",
+    "inputs": [
+      {
+        "id": "react-source",
+        "path": "<declared-react-source-files>",
+        "format": "directory",
+        "access": "read-write",
+        "required": true
+      },
+      {
+        "id": "baseline-files",
+        "path": "baseline/",
+        "format": "directory",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "public-contract",
+        "path": "i18n-contract.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "report-semantics",
+        "path": "i18n-report-semantics.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "source-updates",
+        "path": "<declared-react-source-files>",
+        "format": "directory",
+        "required": true,
+        "structure": {
+          "kind": "opaque"
+        }
+      },
+      {
+        "id": "i18n-runtime",
+        "path": "src/i18n.ts",
+        "format": "source-file",
+        "required": true,
+        "structure": {
+          "kind": "source-file",
+          "language": "TypeScript module"
+        }
+      },
+      {
+        "id": "zh-locale",
+        "path": "src/locales/zh-CN.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "opaque"
+        }
+      },
+      {
+        "id": "en-locale",
+        "path": "src/locales/en-US.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "opaque"
+        }
+      },
+      {
+        "id": "i18n-report",
+        "path": "i18n-report.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "framework",
+            "scannedFiles",
+            "entries"
+          ],
+          "allowAdditionalFields": false
+        }
+      }
+    ],
+    "passCriteria": [
+      {
+        "id": "protected-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "baseline-files",
+          "public-contract",
+          "report-semantics"
+        ],
+        "statement": "Declared protected and baseline files remain unchanged."
+      },
+      {
+        "id": "declared-delta",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "statement": "Only declared source and output files change or appear."
+      },
+      {
+        "id": "report-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "i18n-report"
+        ],
+        "statement": "The report contains framework, scanned file, and entry fields."
+      },
+      {
+        "id": "message-extraction",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "react-source",
+          "source-updates",
+          "i18n-report"
+        ],
+        "statement": "User-visible messages are extracted while non-user-visible literals and behavior remain intact."
+      },
+      {
+        "id": "locale-semantics",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "report-semantics",
+          "zh-locale",
+          "en-locale"
+        ],
+        "statement": "Placeholders, interpolation, plural forms, and existing translations follow the public semantics."
+      },
+      {
+        "id": "artifact-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "statement": "Source calls, locale keys, runtime configuration, and report entries agree."
+      }
+    ],
+    "sourceRules": [
+      {
+        "id": "rule-01",
+        "sourceText": "不要翻译技术术语（API、SDK、HTTP 等）"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "保留变量占位符 `{name}` `{{count}}` `%s` 等格式"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "复数形式和性别变体需要特殊处理"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "日期、数字、货币格式需使用 locale 感知的格式化函数"
+      }
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "i18n-helper",
+    "name": "🌍 i18n-helper — 国际化/本地化助手",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy"
+    ],
+    "intent": "国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+    },
+    "inputs": [
+      {
+        "id": "react-source",
+        "description": "<declared-react-source-files> (directory, read-write)",
+        "required": true
+      },
+      {
+        "id": "baseline-files",
+        "description": "baseline/ (directory, read-only)",
+        "required": true
+      },
+      {
+        "id": "public-contract",
+        "description": "i18n-contract.json (json, read-only)",
+        "required": true
+      },
+      {
+        "id": "report-semantics",
+        "description": "i18n-report-semantics.json (json, read-only)",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "source-updates",
+        "description": "<declared-react-source-files> (directory, opaque)",
+        "required": true
+      },
+      {
+        "id": "i18n-runtime",
+        "description": "src/i18n.ts (source-file, source-file)",
+        "required": true
+      },
+      {
+        "id": "zh-locale",
+        "description": "src/locales/zh-CN.json (json, opaque)",
+        "required": true
+      },
+      {
+        "id": "en-locale",
+        "description": "src/locales/en-US.json (json, opaque)",
+        "required": true
+      },
+      {
+        "id": "i18n-report",
+        "description": "i18n-report.json (json, json-object)",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "1. 项目分析",
+        "description": "1. 项目分析",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "2. 硬编码文本扫描",
+        "description": "2. 硬编码文本扫描",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "3. 语言文件生成",
+        "description": "3. 语言文件生成",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "4. 代码替换",
+        "description": "4. 代码替换",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "5. 完整性检查",
+        "description": "5. 完整性检查",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01",
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "successCheckRefs": [
+          "check-protected-stable",
+          "check-declared-delta",
+          "check-report-shape",
+          "check-message-extraction",
+          "check-locale-semantics",
+          "check-artifact-consistency"
+        ],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "不要翻译技术术语（API、SDK、HTTP 等）",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "不要翻译技术术语（API、SDK、HTTP 等）"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "保留变量占位符 `{name}` `{{count}}` `%s` 等格式",
+        "level": "should",
+        "scope": "output",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "保留变量占位符 `{name}` `{{count}}` `%s` 等格式"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "复数形式和性别变体需要特殊处理",
+        "level": "must",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "复数形式和性别变体需要特殊处理"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "日期、数字、货币格式需使用 locale 感知的格式化函数",
+        "level": "should",
+        "scope": "output",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "日期、数字、货币格式需使用 locale 感知的格式化函数"
+      }
+    ],
+    "tools": [],
+    "environment": [],
+    "checks": [
+      {
+        "id": "check-protected-stable",
+        "name": "protected-stable",
+        "kind": "rule-violation",
+        "targetRef": "baseline-files",
+        "assertion": "input-integrity: Declared protected and baseline files remain unchanged.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-declared-delta",
+        "name": "declared-delta",
+        "kind": "output",
+        "targetRef": "source-updates",
+        "assertion": "exact-output-set: Only declared source and output files change or appear.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-report-shape",
+        "name": "report-shape",
+        "kind": "output",
+        "targetRef": "i18n-report",
+        "assertion": "json-shape: The report contains framework, scanned file, and entry fields.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-message-extraction",
+        "name": "message-extraction",
+        "kind": "output",
+        "targetRef": "react-source",
+        "assertion": "source-grounding: User-visible messages are extracted while non-user-visible literals and behavior remain intact.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-locale-semantics",
+        "name": "locale-semantics",
+        "kind": "output",
+        "targetRef": "report-semantics",
+        "assertion": "content-fidelity: Placeholders, interpolation, plural forms, and existing translations follow the public semantics.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-artifact-consistency",
+        "name": "artifact-consistency",
+        "kind": "output",
+        "targetRef": "source-updates",
+        "assertion": "cross-artifact-consistency: Source calls, locale keys, runtime configuration, and report entries agree.",
+        "onFailure": "report"
+      }
+    ],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-domain-construction-validation-plan/v1",
+    "predicates": [
+      {
+        "criterionId": "protected-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "baseline-files",
+          "public-contract",
+          "report-semantics"
+        ],
+        "assertion": "Declared protected and baseline files remain unchanged.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "declared-delta",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "assertion": "Only declared source and output files change or appear.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "report-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "i18n-report"
+        ],
+        "assertion": "The report contains framework, scanned file, and entry fields.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "message-extraction",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "react-source",
+          "source-updates",
+          "i18n-report"
+        ],
+        "assertion": "User-visible messages are extracted while non-user-visible literals and behavior remain intact.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "locale-semantics",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "report-semantics",
+          "zh-locale",
+          "en-locale"
+        ],
+        "assertion": "Placeholders, interpolation, plural forms, and existing translations follow the public semantics.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "artifact-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "assertion": "Source calls, locale keys, runtime configuration, and report entries agree.",
+        "loweringStatus": "domain-runtime-required"
+      }
+    ],
+    "deterministicGate": {
+      "status": "passed",
+      "checks": [
+        {
+          "id": "source-digest",
+          "status": "passed",
+          "detail": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+        },
+        {
+          "id": "declaration-digest",
+          "status": "passed",
+          "detail": "3c99fbc7562ef65b5bc3285b0e9c67c5270e46ae6b126cdd0b3a5c0bc60c62c6"
+        },
+        {
+          "id": "declaration-thinness",
+          "status": "passed",
+          "detail": "within-limit"
+        },
+        {
+          "id": "domain-bindings",
+          "status": "passed",
+          "detail": "contract, IR, and plan bindings agree"
+        }
+      ]
+    },
+    "semanticParity": {
+      "status": "not-established",
+      "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+    }
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-domain-package-candidate/v1",
+    "status": "non-executable",
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "id": "skill-markdown",
+        "path": "skill.md"
+      },
+      {
+        "id": "skill-ir",
+        "path": "skill-ir.json"
+      },
+      {
+        "id": "domain-contract",
+        "path": "domain-contract.json"
+      },
+      {
+        "id": "validation-plan",
+        "path": "validation-plan.json"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "runtime-message-extraction",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "react-source",
+          "source-updates",
+          "i18n-report"
+        ],
+        "reason": "message-extraction requires a domain runtime implementation: User-visible messages are extracted while non-user-visible literals and behavior remain intact."
+      },
+      {
+        "id": "runtime-locale-semantics",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "report-semantics",
+          "zh-locale",
+          "en-locale"
+        ],
+        "reason": "locale-semantics requires a domain runtime implementation: Placeholders, interpolation, plural forms, and existing translations follow the public semantics."
+      },
+      {
+        "id": "runtime-artifact-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "reason": "artifact-consistency requires a domain runtime implementation: Source calls, locale keys, runtime configuration, and report entries agree."
+      },
+      {
+        "id": "package-source-updates",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "reason": "no qualified compiler emits <declared-react-source-files>, src/i18n.ts, src/locales/zh-CN.json, src/locales/en-US.json, i18n-report.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "thinness": {
+    "status": "within-limit",
+    "loc": 27,
+    "maxLoc": 80,
+    "semanticEntries": 18,
+    "maxSemanticEntries": 40,
+    "reasons": []
+  },
+  "semanticAccounting": {
+    "fromSkillSource": {
+      "units": [
+        {
+          "id": "step-01",
+          "kind": "workflow-step",
+          "value": "1. 项目分析"
+        },
+        {
+          "id": "step-02",
+          "kind": "workflow-step",
+          "value": "2. 硬编码文本扫描"
+        },
+        {
+          "id": "step-03",
+          "kind": "workflow-step",
+          "value": "3. 语言文件生成"
+        },
+        {
+          "id": "step-04",
+          "kind": "workflow-step",
+          "value": "4. 代码替换"
+        },
+        {
+          "id": "step-05",
+          "kind": "workflow-step",
+          "value": "5. 完整性检查"
+        },
+        {
+          "id": "rule-01",
+          "kind": "rule",
+          "value": "不要翻译技术术语（API、SDK、HTTP 等）"
+        },
+        {
+          "id": "rule-02",
+          "kind": "rule",
+          "value": "保留变量占位符 `{name}` `{{count}}` `%s` 等格式"
+        },
+        {
+          "id": "rule-03",
+          "kind": "rule",
+          "value": "复数形式和性别变体需要特殊处理"
+        },
+        {
+          "id": "rule-04",
+          "kind": "rule",
+          "value": "日期、数字、货币格式需使用 locale 感知的格式化函数"
+        },
+        {
+          "id": "output-01",
+          "kind": "output-description",
+          "value": "Result described by the public skill source."
+        }
+      ]
+    },
+    "fromTaskDeclaration": {
+      "units": [
+        {
+          "id": "react-source",
+          "kind": "input",
+          "value": "<declared-react-source-files>"
+        },
+        {
+          "id": "baseline-files",
+          "kind": "input",
+          "value": "baseline/"
+        },
+        {
+          "id": "public-contract",
+          "kind": "input",
+          "value": "i18n-contract.json"
+        },
+        {
+          "id": "report-semantics",
+          "kind": "input",
+          "value": "i18n-report-semantics.json"
+        },
+        {
+          "id": "source-updates",
+          "kind": "output",
+          "value": "<declared-react-source-files>"
+        },
+        {
+          "id": "i18n-runtime",
+          "kind": "output",
+          "value": "src/i18n.ts"
+        },
+        {
+          "id": "zh-locale",
+          "kind": "output",
+          "value": "src/locales/zh-CN.json"
+        },
+        {
+          "id": "en-locale",
+          "kind": "output",
+          "value": "src/locales/en-US.json"
+        },
+        {
+          "id": "i18n-report",
+          "kind": "output",
+          "value": "i18n-report.json"
+        },
+        {
+          "id": "protected-stable",
+          "kind": "pass-criterion",
+          "value": "Declared protected and baseline files remain unchanged."
+        },
+        {
+          "id": "declared-delta",
+          "kind": "pass-criterion",
+          "value": "Only declared source and output files change or appear."
+        },
+        {
+          "id": "report-shape",
+          "kind": "pass-criterion",
+          "value": "The report contains framework, scanned file, and entry fields."
+        },
+        {
+          "id": "message-extraction",
+          "kind": "pass-criterion",
+          "value": "User-visible messages are extracted while non-user-visible literals and behavior remain intact."
+        },
+        {
+          "id": "locale-semantics",
+          "kind": "pass-criterion",
+          "value": "Placeholders, interpolation, plural forms, and existing translations follow the public semantics."
+        },
+        {
+          "id": "artifact-consistency",
+          "kind": "pass-criterion",
+          "value": "Source calls, locale keys, runtime configuration, and report entries agree."
+        }
+      ]
+    },
+    "automationProduced": {
+      "contractBindings": 15,
+      "irTaskAbiBindings": 9,
+      "validationPredicates": 6,
+      "genericDeterministicPredicates": 3
+    },
+    "stillRequiresHuman": [
+      {
+        "id": "runtime-message-extraction",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "react-source",
+          "source-updates",
+          "i18n-report"
+        ],
+        "reason": "message-extraction requires a domain runtime implementation: User-visible messages are extracted while non-user-visible literals and behavior remain intact."
+      },
+      {
+        "id": "runtime-locale-semantics",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "report-semantics",
+          "zh-locale",
+          "en-locale"
+        ],
+        "reason": "locale-semantics requires a domain runtime implementation: Placeholders, interpolation, plural forms, and existing translations follow the public semantics."
+      },
+      {
+        "id": "runtime-artifact-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "reason": "artifact-consistency requires a domain runtime implementation: Source calls, locale keys, runtime configuration, and report entries agree."
+      },
+      {
+        "id": "package-source-updates",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "source-updates",
+          "i18n-runtime",
+          "zh-locale",
+          "en-locale",
+          "i18n-report"
+        ],
+        "reason": "no qualified compiler emits <declared-react-source-files>, src/i18n.ts, src/locales/zh-CN.json, src/locales/en-US.json, i18n-report.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "semanticParity": {
+    "status": "not-established",
+    "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+  },
+  "audit": {
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "benchmarks/skill-ir/task-descriptions/i18n-helper.json"
+    ]
+  }
+}

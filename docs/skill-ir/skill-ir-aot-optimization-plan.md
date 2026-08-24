@@ -846,6 +846,30 @@ PackageCandidate`、`coreBranchDelta` 和 package parity 判断收敛。不得�
 6. [x] 全程禁止模型/API 调用、held-out、evaluator payload 和 scorer gold；完成后写入现有组件文档、台账与日志，
    并运行 focused tests、Task 18.26 runner、method portfolio/readiness 以及相关 broad regression。
 
+### Task 18.27：薄声明驱动的 domain semantic construction
+
+**产品边界：** 18.26 已证明 source-only 只能生成 schema-valid skeleton。终态输入固定为 `SKILL.md` + 少量声明式
+task 说明；声明提供 task ABI 与公开 pass semantics，自动化负责 contract、IR、validation plan 和 package candidate。
+本阶段零付费、development/public-only，既有 7 个手工冻结件只作 generation freeze 之后的 shadow oracle。
+
+1. [x] 新增 strict `skill-ir-task-description/v1`：只允许输入/输出文件、artifact structure 与封闭 pass predicate；
+   禁止 scorer/evaluator、gold/answer、held-out、模型输出及任意扩展字段。数组/文本设 schema 上限，另以前瞻
+   `nonEmptyLoc<=80`、`semanticEntries<=40` 判定薄度；超限标记 `declaration-heavy`，不删除证据、不宣称收敛；
+2. [x] 以 additive domain construction 包装 18.26 source-only core，不修改旧 v1 语义。由 source 产出 workflow/rule
+   provenance，由声明生成 inputs/outputs、domain contract、IR check bindings 与 validation-plan predicates；core
+   不得出现 7 个 case id 分支，`coreBranchDelta=0`；
+3. [x] RED/GREEN 覆盖 digest、path containment、禁用 evidence、引用闭包、薄度、确定性、旧 v1 compatibility、
+   semantic parity `not-established` 和无 case-id branch。结构 predicate 可进入通用 deterministic enforcement；
+   content/source/cross-artifact/runtime predicate 若无通用 runtime，必须显式 `implementation-required`；
+4. [x] 为 7 案例在读取 manual oracle 前写入并 digest-pin 薄声明及前瞻 authoring minutes。Runner 先生成并冻结全部
+   candidates/digest，再读取旧 contract/base IR/validation/package oracle；不得读取 held-out 或 evaluator payload；
+5. [x] 报告逐案分列 `fromTaskDeclaration`、`fromSkillSource`、`automationProduced`、`stillRequiresHuman`，并记录声明
+   LOC/semantic entries/humanMinutes、adapter LOC、core branch delta。Gap 必须由该案 predicate/output 的实际 lowering
+   coverage 推导，禁止 `gapFor` 式模板 reason；未真正测量语义 parity 时只能写 `not-established`；
+6. [x] 运行 focused tests、零付费 7-case shadow、相关 benchmark broad suite、typecheck 与文档/Git 检查；只有声明
+   within-limit 且 domain/runtime/package 门全部满足时才允许改变 automation/readiness flag，本任务不得为好看数字
+   提前晋升。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

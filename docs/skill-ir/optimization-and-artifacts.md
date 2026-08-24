@@ -524,6 +524,16 @@ plan 没有独立 domain scorer/runtime oracle，package 刻意保持 non-execut
 `results/skill-ir/automatic-construction-shadow-v1/report.json`；下一刀应自动融合公开 task contract 与 source audit，
 而不是继续优化 Markdown 结构抽取或把 candidate skeleton 记作已自动化。
 
+Task 18.27 完成了这层输入桥，但没有把它夸成 runtime 自动化。`skill-ir-task-description/v1` 的 7 个声明只写
+input/output path、artifact shape 和封闭 pass predicate，均为 20--27 LOC、13--20 semantic entries；总前瞻
+authoring 15 human minutes，case adapter LOC 与 core branch delta 都为 0。生成器把这些声明和 source-only 结果编成
+domain contract、task-ABI IR、cross-artifact validation plan 与 package candidate，并由独立 verifier 重验绑定。
+Shadow 共记录 19 个可进入通用确定性 plan 的结构 predicate，以及 21 个仍需领域 runtime 的 source/content/cross-
+artifact/behavior predicate；后者逐案形成不同 gap，另有对应 output compiler gap。因为本阶段没有执行 task output、
+没有 qualified domain runtime，7/7 semantic parity 均为 `not-established`，package 仍 non-executable，eligibility
+仍为 0/7。下一阶段应实现封闭 predicate 到公共 checker/runtime 的 lowering 和至少一个 0-paid execution parity，
+而不是扩充声明去模拟手工 scorer。
+
 ## 15. 测试
 
 ```powershell

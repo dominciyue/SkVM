@@ -1,0 +1,800 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-result/v1",
+  "contract": {
+    "schemaVersion": "skill-ir-domain-contract-candidate/v1",
+    "skillId": "experimental-design",
+    "taskDescriptionId": "experimental-design-analysis-task",
+    "taskKind": "analysis-report",
+    "intent": "Design experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so the results will actually be interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking, stratification, controls, factorial or fractional-factorial designs, design of experiments (DOE), screening many factors, response-surface optimization, crossover or repeated-measures or split-plot designs, cluster/group randomization, Latin squares, plate layouts, batch/run-order effects, replication vs. pseudoreplication, or sequential/adaptive/group-sequential designs. Trigger this even for informal phrasings like \"how should I set up this experiment\", \"how do I avoid confounding\", \"what's the best way to test these 6 factors\", or \"assign these mice to conditions\". For computing the sample size or power once the design is chosen, use statistical-power; for analyzing data already collected, use statistical-analysis.",
+    "inputs": [
+      {
+        "id": "study-graph",
+        "path": "study-graph.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "path": "analysis-interface.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "replication-plan",
+        "path": "design/replication-plan.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "studyId",
+            "independentReplicateUnit",
+            "independentReplicateCount",
+            "measurementUnit",
+            "pseudoreplicationRisk",
+            "rationale"
+          ],
+          "allowAdditionalFields": true
+        }
+      },
+      {
+        "id": "analysis-plan",
+        "path": "design/analysis-plan.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "studyId",
+            "analysisUnit",
+            "groupingFactors",
+            "method",
+            "rationale"
+          ],
+          "allowAdditionalFields": true
+        }
+      }
+    ],
+    "passCriteria": [
+      {
+        "id": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "study-graph",
+          "public-interface"
+        ],
+        "statement": "The study graph and public interface remain unchanged."
+      },
+      {
+        "id": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "statement": "Exactly the two declared plans are created."
+      },
+      {
+        "id": "plan-shapes",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "statement": "Both plans contain their declared top-level fields."
+      },
+      {
+        "id": "replication-grounding",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "study-graph",
+          "replication-plan"
+        ],
+        "statement": "Independent replicate unit and count follow treatment assignment and entity totals."
+      },
+      {
+        "id": "analysis-alignment",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "study-graph",
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "statement": "Measurement, analysis, and grouping units respect the declared entity hierarchy."
+      }
+    ],
+    "sourceRules": [
+      {
+        "id": "rule-01",
+        "sourceText": "**Pseudoreplication.** Treating repeated measurements of one unit as independent"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "**Confounding by a nuisance variable.** Running all treatment samples on Monday"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "**No or broken randomization.** Convenience assignment (first-come → treatment)"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "**No proper control.** Without a concurrent control (and, where relevant, a"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "**Batch effects mistaken for biology.** In omics especially, process samples in a"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "**Edge/position effects on plates.** Evaporation and thermal gradients make plate"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "**Aliasing ignored in fractional designs.** A low-resolution fractional factorial"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "**Optimizing without curvature.** A two-level factorial can't detect a curved"
+      }
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "experimental-design",
+    "name": "Experimental Design",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy"
+    ],
+    "intent": "Design experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so the results will actually be interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking, stratification, controls, factorial or fractional-factorial designs, design of experiments (DOE), screening many factors, response-surface optimization, crossover or repeated-measures or split-plot designs, cluster/group randomization, Latin squares, plate layouts, batch/run-order effects, replication vs. pseudoreplication, or sequential/adaptive/group-sequential designs. Trigger this even for informal phrasings like \"how should I set up this experiment\", \"how do I avoid confounding\", \"what's the best way to test these 6 factors\", or \"assign these mice to conditions\". For computing the sample size or power once the design is chosen, use statistical-power; for analyzing data already collected, use statistical-analysis.",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+    },
+    "inputs": [
+      {
+        "id": "study-graph",
+        "description": "study-graph.json (json, read-only)",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "description": "analysis-interface.json (json, read-only)",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "replication-plan",
+        "description": "design/replication-plan.json (json, json-object)",
+        "required": true
+      },
+      {
+        "id": "analysis-plan",
+        "description": "design/analysis-plan.json (json, json-object)",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "**State the question, the unit, and the response.** What is randomized? What is",
+        "description": "**State the question, the unit, and the response.** What is randomized? What is",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "**List nuisance factors** (batch, day, site, operator, position) — plan to block,",
+        "description": "**List nuisance factors** (batch, day, site, operator, position) — plan to block,",
+        "kind": "plan",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "**Pick the design** using the decision tree and reference files.",
+        "description": "**Pick the design** using the decision tree and reference files.",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "**Decide replication** at the correct level (and get n from the",
+        "description": "**Decide replication** at the correct level (and get n from the",
+        "kind": "plan",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "**Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.",
+        "description": "**Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-06",
+        "title": "**Randomize run/processing order** and plate/batch positions.",
+        "description": "**Randomize run/processing order** and plate/batch positions.",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-05"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-07",
+        "title": "**Document** the design, seed, and schedule (pre-register if possible) so the",
+        "description": "**Document** the design, seed, and schedule (pre-register if possible) so the",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-06"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-08",
+        "title": "**Match the analysis to the design** — blocks, strata, clusters, and nesting must",
+        "description": "**Match the analysis to the design** — blocks, strata, clusters, and nesting must",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [
+          "step-07"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01",
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "successCheckRefs": [
+          "check-inputs-stable",
+          "check-outputs-exact",
+          "check-plan-shapes",
+          "check-replication-grounding",
+          "check-analysis-alignment"
+        ],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "**Pseudoreplication.** Treating repeated measurements of one unit as independent",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Pseudoreplication.** Treating repeated measurements of one unit as independent"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "**Confounding by a nuisance variable.** Running all treatment samples on Monday",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Confounding by a nuisance variable.** Running all treatment samples on Monday"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "**No or broken randomization.** Convenience assignment (first-come → treatment)",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**No or broken randomization.** Convenience assignment (first-come → treatment)"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "**No proper control.** Without a concurrent control (and, where relevant, a",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**No proper control.** Without a concurrent control (and, where relevant, a"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "**Batch effects mistaken for biology.** In omics especially, process samples in a",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Batch effects mistaken for biology.** In omics especially, process samples in a"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "**Edge/position effects on plates.** Evaporation and thermal gradients make plate",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Edge/position effects on plates.** Evaporation and thermal gradients make plate"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "**Aliasing ignored in fractional designs.** A low-resolution fractional factorial",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Aliasing ignored in fractional designs.** A low-resolution fractional factorial"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "**Optimizing without curvature.** A two-level factorial can't detect a curved",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Optimizing without curvature.** A two-level factorial can't detect a curved"
+      }
+    ],
+    "tools": [],
+    "environment": [],
+    "checks": [
+      {
+        "id": "check-inputs-stable",
+        "name": "inputs-stable",
+        "kind": "rule-violation",
+        "targetRef": "study-graph",
+        "assertion": "input-integrity: The study graph and public interface remain unchanged.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-outputs-exact",
+        "name": "outputs-exact",
+        "kind": "output",
+        "targetRef": "replication-plan",
+        "assertion": "exact-output-set: Exactly the two declared plans are created.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-plan-shapes",
+        "name": "plan-shapes",
+        "kind": "output",
+        "targetRef": "replication-plan",
+        "assertion": "json-shape: Both plans contain their declared top-level fields.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-replication-grounding",
+        "name": "replication-grounding",
+        "kind": "output",
+        "targetRef": "study-graph",
+        "assertion": "source-grounding: Independent replicate unit and count follow treatment assignment and entity totals.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-analysis-alignment",
+        "name": "analysis-alignment",
+        "kind": "output",
+        "targetRef": "study-graph",
+        "assertion": "cross-artifact-consistency: Measurement, analysis, and grouping units respect the declared entity hierarchy.",
+        "onFailure": "report"
+      }
+    ],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-domain-construction-validation-plan/v1",
+    "predicates": [
+      {
+        "criterionId": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "study-graph",
+          "public-interface"
+        ],
+        "assertion": "The study graph and public interface remain unchanged.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "assertion": "Exactly the two declared plans are created.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "plan-shapes",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "assertion": "Both plans contain their declared top-level fields.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "replication-grounding",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "study-graph",
+          "replication-plan"
+        ],
+        "assertion": "Independent replicate unit and count follow treatment assignment and entity totals.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "analysis-alignment",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "study-graph",
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "assertion": "Measurement, analysis, and grouping units respect the declared entity hierarchy.",
+        "loweringStatus": "domain-runtime-required"
+      }
+    ],
+    "deterministicGate": {
+      "status": "passed",
+      "checks": [
+        {
+          "id": "source-digest",
+          "status": "passed",
+          "detail": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093"
+        },
+        {
+          "id": "declaration-digest",
+          "status": "passed",
+          "detail": "17f902c4a19a0f0c0e686ea88c1e9003344da3f42a319f08d4d016a2cea895f5"
+        },
+        {
+          "id": "declaration-thinness",
+          "status": "passed",
+          "detail": "within-limit"
+        },
+        {
+          "id": "domain-bindings",
+          "status": "passed",
+          "detail": "contract, IR, and plan bindings agree"
+        }
+      ]
+    },
+    "semanticParity": {
+      "status": "not-established",
+      "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+    }
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-domain-package-candidate/v1",
+    "status": "non-executable",
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "id": "skill-markdown",
+        "path": "skill.md"
+      },
+      {
+        "id": "skill-ir",
+        "path": "skill-ir.json"
+      },
+      {
+        "id": "domain-contract",
+        "path": "domain-contract.json"
+      },
+      {
+        "id": "validation-plan",
+        "path": "validation-plan.json"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "runtime-replication-grounding",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "study-graph",
+          "replication-plan"
+        ],
+        "reason": "replication-grounding requires a domain runtime implementation: Independent replicate unit and count follow treatment assignment and entity totals."
+      },
+      {
+        "id": "runtime-analysis-alignment",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "study-graph",
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "reason": "analysis-alignment requires a domain runtime implementation: Measurement, analysis, and grouping units respect the declared entity hierarchy."
+      },
+      {
+        "id": "package-replication-plan",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "reason": "no qualified compiler emits design/replication-plan.json, design/analysis-plan.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "thinness": {
+    "status": "within-limit",
+    "loc": 21,
+    "maxLoc": 80,
+    "semanticEntries": 20,
+    "maxSemanticEntries": 40,
+    "reasons": []
+  },
+  "semanticAccounting": {
+    "fromSkillSource": {
+      "units": [
+        {
+          "id": "step-01",
+          "kind": "workflow-step",
+          "value": "**State the question, the unit, and the response.** What is randomized? What is"
+        },
+        {
+          "id": "step-02",
+          "kind": "workflow-step",
+          "value": "**List nuisance factors** (batch, day, site, operator, position) — plan to block,"
+        },
+        {
+          "id": "step-03",
+          "kind": "workflow-step",
+          "value": "**Pick the design** using the decision tree and reference files."
+        },
+        {
+          "id": "step-04",
+          "kind": "workflow-step",
+          "value": "**Decide replication** at the correct level (and get n from the"
+        },
+        {
+          "id": "step-05",
+          "kind": "workflow-step",
+          "value": "**Generate the layout** with `randomization.py` / `doe_designs.py`, seeded."
+        },
+        {
+          "id": "step-06",
+          "kind": "workflow-step",
+          "value": "**Randomize run/processing order** and plate/batch positions."
+        },
+        {
+          "id": "step-07",
+          "kind": "workflow-step",
+          "value": "**Document** the design, seed, and schedule (pre-register if possible) so the"
+        },
+        {
+          "id": "step-08",
+          "kind": "workflow-step",
+          "value": "**Match the analysis to the design** — blocks, strata, clusters, and nesting must"
+        },
+        {
+          "id": "rule-01",
+          "kind": "rule",
+          "value": "**Pseudoreplication.** Treating repeated measurements of one unit as independent"
+        },
+        {
+          "id": "rule-02",
+          "kind": "rule",
+          "value": "**Confounding by a nuisance variable.** Running all treatment samples on Monday"
+        },
+        {
+          "id": "rule-03",
+          "kind": "rule",
+          "value": "**No or broken randomization.** Convenience assignment (first-come → treatment)"
+        },
+        {
+          "id": "rule-04",
+          "kind": "rule",
+          "value": "**No proper control.** Without a concurrent control (and, where relevant, a"
+        },
+        {
+          "id": "rule-05",
+          "kind": "rule",
+          "value": "**Batch effects mistaken for biology.** In omics especially, process samples in a"
+        },
+        {
+          "id": "rule-06",
+          "kind": "rule",
+          "value": "**Edge/position effects on plates.** Evaporation and thermal gradients make plate"
+        },
+        {
+          "id": "rule-07",
+          "kind": "rule",
+          "value": "**Aliasing ignored in fractional designs.** A low-resolution fractional factorial"
+        },
+        {
+          "id": "rule-08",
+          "kind": "rule",
+          "value": "**Optimizing without curvature.** A two-level factorial can't detect a curved"
+        },
+        {
+          "id": "output-01",
+          "kind": "output-description",
+          "value": "Result described by the public skill source."
+        }
+      ]
+    },
+    "fromTaskDeclaration": {
+      "units": [
+        {
+          "id": "study-graph",
+          "kind": "input",
+          "value": "study-graph.json"
+        },
+        {
+          "id": "public-interface",
+          "kind": "input",
+          "value": "analysis-interface.json"
+        },
+        {
+          "id": "replication-plan",
+          "kind": "output",
+          "value": "design/replication-plan.json"
+        },
+        {
+          "id": "analysis-plan",
+          "kind": "output",
+          "value": "design/analysis-plan.json"
+        },
+        {
+          "id": "inputs-stable",
+          "kind": "pass-criterion",
+          "value": "The study graph and public interface remain unchanged."
+        },
+        {
+          "id": "outputs-exact",
+          "kind": "pass-criterion",
+          "value": "Exactly the two declared plans are created."
+        },
+        {
+          "id": "plan-shapes",
+          "kind": "pass-criterion",
+          "value": "Both plans contain their declared top-level fields."
+        },
+        {
+          "id": "replication-grounding",
+          "kind": "pass-criterion",
+          "value": "Independent replicate unit and count follow treatment assignment and entity totals."
+        },
+        {
+          "id": "analysis-alignment",
+          "kind": "pass-criterion",
+          "value": "Measurement, analysis, and grouping units respect the declared entity hierarchy."
+        }
+      ]
+    },
+    "automationProduced": {
+      "contractBindings": 9,
+      "irTaskAbiBindings": 4,
+      "validationPredicates": 5,
+      "genericDeterministicPredicates": 3
+    },
+    "stillRequiresHuman": [
+      {
+        "id": "runtime-replication-grounding",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "study-graph",
+          "replication-plan"
+        ],
+        "reason": "replication-grounding requires a domain runtime implementation: Independent replicate unit and count follow treatment assignment and entity totals."
+      },
+      {
+        "id": "runtime-analysis-alignment",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "study-graph",
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "reason": "analysis-alignment requires a domain runtime implementation: Measurement, analysis, and grouping units respect the declared entity hierarchy."
+      },
+      {
+        "id": "package-replication-plan",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "replication-plan",
+          "analysis-plan"
+        ],
+        "reason": "no qualified compiler emits design/replication-plan.json, design/analysis-plan.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "semanticParity": {
+    "status": "not-established",
+    "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+  },
+  "audit": {
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "benchmarks/skill-ir/task-descriptions/experimental-design.json"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "offline-api-test-generation-task",
+  "taskKind": "artifact-generation",
+  "inputs": [
+    { "id": "api-definition", "path": "<task-openapi-path>", "format": "yaml", "access": "read-only", "required": true },
+    { "id": "public-interface", "path": "api-test-interface.json", "format": "json", "access": "read-only", "required": true }
+  ],
+  "outputs": [
+    { "id": "generator", "path": "api-test-generator.mjs", "format": "source-file", "required": true, "structure": { "kind": "source-file", "language": "JavaScript module" } },
+    { "id": "test-plan", "path": "generated/api-test-plan.json", "format": "json", "required": true, "structure": { "kind": "json-object", "requiredFields": ["schemaVersion", "source", "framework", "endpoints"], "allowAdditionalFields": true } },
+    { "id": "test-report", "path": "api-test-report.json", "format": "json", "required": true, "structure": { "kind": "json-object", "requiredFields": ["schemaVersion", "discoverySource", "generatedCaseCount", "verification", "limitations"], "allowAdditionalFields": true } }
+  ],
+  "passCriteria": [
+    { "id": "inputs-stable", "predicate": "input-integrity", "targetRefs": ["api-definition", "public-interface"], "statement": "The API definition and public interface remain unchanged." },
+    { "id": "outputs-exact", "predicate": "exact-output-set", "targetRefs": ["generator", "test-plan", "test-report"], "statement": "Exactly the generator, plan, and report are created." },
+    { "id": "json-shapes", "predicate": "json-shape", "targetRefs": ["test-plan", "test-report"], "statement": "Plan and report contain the declared top-level fields." },
+    { "id": "generator-execution", "predicate": "runtime-behavior", "targetRefs": ["api-definition", "generator", "test-plan"], "statement": "The offline command exits successfully and deterministically writes the requested plan." },
+    { "id": "operation-coverage", "predicate": "source-grounding", "targetRefs": ["api-definition", "test-plan"], "statement": "Every documented operation and public request constraint is represented in the plan." },
+    { "id": "verification-consistency", "predicate": "cross-artifact-consistency", "targetRefs": ["generator", "test-plan", "test-report"], "statement": "Report verification claims agree with generator execution and plan contents." }
+  ]
+}

@@ -678,6 +678,18 @@ overlap 为 0；Zh README 缺 manual base IR，Reviewer/README/i18n 缺 validate
 ABI/value semantics，IR 缺 domain entity/tool/check/recovery，validation plan 缺 domain scorer/runtime oracle，package
 为明确的 non-executable candidate。因此四类 portfolio eligibility 均为 0/7，registry/readiness 未晋级。
 
+Task 18.27 在不改 18.26 identity 的前提下新增薄 task 说明 successor。7 个声明都通过 strict schema 和双薄度
+门：单案 20--27 physical LOC、13--20 semantic entries，总计 159 LOC、120 entries；前瞻 authoring 分配总计
+15 human minutes，case-specific transformation adapter LOC=0、core branch delta=0。生成阶段严格只读 7 份 source
+与 7 份声明，全部 candidate digest 写完后才读取原 manual oracle；0 model/API、0 held-out/evaluator payload。
+
+四类 candidate 再次各为 7/7，但语义分账发生实质变化：source 自动抽取 144 units，人工声明提供 75 units，core
+生成 150 contract/IR/plan bindings；40 个 pass predicates 中 19 个结构 predicate 进入通用 deterministic plan，
+21 个 source-grounding/content-fidelity/cross-artifact/runtime-behavior predicate 仍标
+`domain-runtime-required`。每案 gap 直接引用自己的 predicate id、target 和 statement，另列该案 output compiler gap；
+7/7 仍需人工、semantic parity 均为 `not-established`、package 均 non-executable，四类 portfolio eligibility 仍为
+0/7。这证明薄声明足以自动补齐 task ABI/plan semantic layer，不证明 checker/runtime 或 optimizer 已收敛。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -696,3 +708,4 @@ ABI/value semantics，IR 缺 domain entity/tool/check/recovery，validation plan
 - `results/skill-ir/bids-successor-development-v1/result.json`
 - `results/skill-ir/method-portfolio-readiness.json`
 - `results/skill-ir/automatic-construction-shadow-v1/report.json`
+- `results/skill-ir/automatic-domain-construction-shadow-v1/report.json`

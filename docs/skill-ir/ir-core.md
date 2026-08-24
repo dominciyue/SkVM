@@ -238,10 +238,34 @@ base IR 的案例中，自动/手工 rule `sourceText` 精确重合均为 0。�
 entity/tool/check/recovery 语义，source-only 抽取不能诚实补齐，因此当前没有任何 candidate 达到 portfolio automation
 资格，既有 flags 不变。
 
+### 8.2 Thin task description domain construction
+
+Task 18.27 新增 additive `automatic-domain-construction.ts`，不修改 18.26 source-only v1。输入由同一 digest-pinned
+`SKILL.md` 加 `skill-ir-task-description/v1` 组成；声明 strict 限定 `inputs`、`outputs.structure` 与封闭
+`passCriteria.predicate`，所有层拒绝 scorer/evaluator、gold/answer、held-out、模型输出和未知字段。物理 LOC 上限
+为 80，`inputs + outputs + criteria + required fields/semantic roles` 上限为 40；超限仍保留 shadow evidence，但
+标记 `declaration-heavy`，deterministic construction gate 失败。
+
+Domain core 先复用 source-only extractor，再确定性替换 IR task ABI、生成 `check-*` binding、domain contract、
+validation-plan predicate 和 non-executable package candidate。`verifyDomainConstructionBindings` 可独立重验声明、
+contract、IR 与 plan 的 input/output/check/predicate 闭包；篡改任一层会失败。`input-integrity`、
+`output-presence`、`exact-output-set`、`json-shape` 当前只表示可由通用确定性 plan 下沉，Task 18.27 没有执行
+workdir runtime；`source-grounding`、`content-fidelity`、`cross-artifact-consistency` 与 `runtime-behavior` 明确标记
+`domain-runtime-required`。因此 semantic parity 固定为 `not-established`，不能从结构对齐推断任务成功。
+
+7-case shadow 先写完全部 candidate digest，之后才读取手工冻结件。7 份声明均在薄度预算内（总 159 LOC、120
+semantic entries、15 human minutes），生成 144 个 source units、75 个 declaration units 和 150 个自动 binding；
+19 个结构 predicate 与 21 个 domain-runtime predicate 分账。每案 gap 由其实际未下沉 predicate 和 output path
+推导，不再使用模板 reason。7/7 仍需 runtime/compiler，四类 portfolio eligibility 均为 0/7。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
-  ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts
+  ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-construction.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-construction-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601>
+bun run ./src/benchmarks/skill-ir/automatic-domain-construction-shadow-run.ts `
   --measurement-completed-at=<ISO-8601>
 ```
 

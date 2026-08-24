@@ -1,0 +1,768 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-result/v1",
+  "contract": {
+    "schemaVersion": "skill-ir-domain-contract-candidate/v1",
+    "skillId": "api-tester",
+    "taskDescriptionId": "offline-api-test-generation-task",
+    "taskKind": "artifact-generation",
+    "intent": "API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试",
+    "inputs": [
+      {
+        "id": "api-definition",
+        "path": "<task-openapi-path>",
+        "format": "yaml",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "path": "api-test-interface.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "generator",
+        "path": "api-test-generator.mjs",
+        "format": "source-file",
+        "required": true,
+        "structure": {
+          "kind": "source-file",
+          "language": "JavaScript module"
+        }
+      },
+      {
+        "id": "test-plan",
+        "path": "generated/api-test-plan.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "schemaVersion",
+            "source",
+            "framework",
+            "endpoints"
+          ],
+          "allowAdditionalFields": true
+        }
+      },
+      {
+        "id": "test-report",
+        "path": "api-test-report.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "schemaVersion",
+            "discoverySource",
+            "generatedCaseCount",
+            "verification",
+            "limitations"
+          ],
+          "allowAdditionalFields": true
+        }
+      }
+    ],
+    "passCriteria": [
+      {
+        "id": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "api-definition",
+          "public-interface"
+        ],
+        "statement": "The API definition and public interface remain unchanged."
+      },
+      {
+        "id": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "statement": "Exactly the generator, plan, and report are created."
+      },
+      {
+        "id": "json-shapes",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "test-plan",
+          "test-report"
+        ],
+        "statement": "Plan and report contain the declared top-level fields."
+      },
+      {
+        "id": "generator-execution",
+        "predicate": "runtime-behavior",
+        "targetRefs": [
+          "api-definition",
+          "generator",
+          "test-plan"
+        ],
+        "statement": "The offline command exits successfully and deterministically writes the requested plan."
+      },
+      {
+        "id": "operation-coverage",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "api-definition",
+          "test-plan"
+        ],
+        "statement": "Every documented operation and public request constraint is represented in the plan."
+      },
+      {
+        "id": "verification-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "statement": "Report verification claims agree with generator execution and plan contents."
+      }
+    ],
+    "sourceRules": [
+      {
+        "id": "rule-01",
+        "sourceText": "测试用例应独立运行，不依赖执行顺序"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "敏感信息（API Key、Token）使用环境变量，不要硬编码"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "集成测试建议使用独立的测试数据库"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "关注响应时间，添加超时断言"
+      }
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "api-tester",
+    "name": "API 测试生成器",
+    "category": [
+      "workflow",
+      "generative",
+      "constraint-heavy",
+      "environment-sensitive"
+    ],
+    "intent": "API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+      "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a"
+    },
+    "inputs": [
+      {
+        "id": "api-definition",
+        "description": "<task-openapi-path> (yaml, read-only)",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "description": "api-test-interface.json (json, read-only)",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "generator",
+        "description": "api-test-generator.mjs (source-file, source-file)",
+        "required": true
+      },
+      {
+        "id": "test-plan",
+        "description": "generated/api-test-plan.json (json, json-object)",
+        "required": true
+      },
+      {
+        "id": "test-report",
+        "description": "api-test-report.json (json, json-object)",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "第 1 步：发现 API",
+        "description": "第 1 步：发现 API",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "第 2 步：生成测试用例",
+        "description": "第 2 步：生成测试用例",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "第 3 步：生成测试代码",
+        "description": "第 3 步：生成测试代码",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "第 4 步：测试数据生成",
+        "description": "第 4 步：测试数据生成",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "第 5 步：执行和复测",
+        "description": "第 5 步：执行和复测",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01",
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "successCheckRefs": [
+          "check-inputs-stable",
+          "check-outputs-exact",
+          "check-json-shapes",
+          "check-generator-execution",
+          "check-operation-coverage",
+          "check-verification-consistency"
+        ],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "测试用例应独立运行，不依赖执行顺序",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "测试用例应独立运行，不依赖执行顺序"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "敏感信息（API Key、Token）使用环境变量，不要硬编码",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "敏感信息（API Key、Token）使用环境变量，不要硬编码"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "集成测试建议使用独立的测试数据库",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "集成测试建议使用独立的测试数据库"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "关注响应时间，添加超时断言",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "关注响应时间，添加超时断言"
+      }
+    ],
+    "tools": [],
+    "environment": [
+      {
+        "id": "environment-from-source",
+        "description": "The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.",
+        "platforms": [
+          "linux",
+          "macos",
+          "windows",
+          "wsl",
+          "container"
+        ],
+        "checkability": "human"
+      }
+    ],
+    "checks": [
+      {
+        "id": "check-inputs-stable",
+        "name": "inputs-stable",
+        "kind": "rule-violation",
+        "targetRef": "api-definition",
+        "assertion": "input-integrity: The API definition and public interface remain unchanged.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-outputs-exact",
+        "name": "outputs-exact",
+        "kind": "output",
+        "targetRef": "generator",
+        "assertion": "exact-output-set: Exactly the generator, plan, and report are created.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-json-shapes",
+        "name": "json-shapes",
+        "kind": "output",
+        "targetRef": "test-plan",
+        "assertion": "json-shape: Plan and report contain the declared top-level fields.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-generator-execution",
+        "name": "generator-execution",
+        "kind": "output",
+        "targetRef": "api-definition",
+        "assertion": "runtime-behavior: The offline command exits successfully and deterministically writes the requested plan.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-operation-coverage",
+        "name": "operation-coverage",
+        "kind": "output",
+        "targetRef": "api-definition",
+        "assertion": "source-grounding: Every documented operation and public request constraint is represented in the plan.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-verification-consistency",
+        "name": "verification-consistency",
+        "kind": "output",
+        "targetRef": "generator",
+        "assertion": "cross-artifact-consistency: Report verification claims agree with generator execution and plan contents.",
+        "onFailure": "report"
+      }
+    ],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-domain-construction-validation-plan/v1",
+    "predicates": [
+      {
+        "criterionId": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "api-definition",
+          "public-interface"
+        ],
+        "assertion": "The API definition and public interface remain unchanged.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "assertion": "Exactly the generator, plan, and report are created.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "json-shapes",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "test-plan",
+          "test-report"
+        ],
+        "assertion": "Plan and report contain the declared top-level fields.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "generator-execution",
+        "predicate": "runtime-behavior",
+        "targetRefs": [
+          "api-definition",
+          "generator",
+          "test-plan"
+        ],
+        "assertion": "The offline command exits successfully and deterministically writes the requested plan.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "operation-coverage",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "api-definition",
+          "test-plan"
+        ],
+        "assertion": "Every documented operation and public request constraint is represented in the plan.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "verification-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "assertion": "Report verification claims agree with generator execution and plan contents.",
+        "loweringStatus": "domain-runtime-required"
+      }
+    ],
+    "deterministicGate": {
+      "status": "passed",
+      "checks": [
+        {
+          "id": "source-digest",
+          "status": "passed",
+          "detail": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a"
+        },
+        {
+          "id": "declaration-digest",
+          "status": "passed",
+          "detail": "112c3deb40bdd840b106e57aa56e94231e094e4c948b1425b618657a573fd731"
+        },
+        {
+          "id": "declaration-thinness",
+          "status": "passed",
+          "detail": "within-limit"
+        },
+        {
+          "id": "domain-bindings",
+          "status": "passed",
+          "detail": "contract, IR, and plan bindings agree"
+        }
+      ]
+    },
+    "semanticParity": {
+      "status": "not-established",
+      "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+    }
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-domain-package-candidate/v1",
+    "status": "non-executable",
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "id": "skill-markdown",
+        "path": "skill.md"
+      },
+      {
+        "id": "skill-ir",
+        "path": "skill-ir.json"
+      },
+      {
+        "id": "domain-contract",
+        "path": "domain-contract.json"
+      },
+      {
+        "id": "validation-plan",
+        "path": "validation-plan.json"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "runtime-generator-execution",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "api-definition",
+          "generator",
+          "test-plan"
+        ],
+        "reason": "generator-execution requires a domain runtime implementation: The offline command exits successfully and deterministically writes the requested plan."
+      },
+      {
+        "id": "runtime-operation-coverage",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "api-definition",
+          "test-plan"
+        ],
+        "reason": "operation-coverage requires a domain runtime implementation: Every documented operation and public request constraint is represented in the plan."
+      },
+      {
+        "id": "runtime-verification-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "reason": "verification-consistency requires a domain runtime implementation: Report verification claims agree with generator execution and plan contents."
+      },
+      {
+        "id": "package-generator",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "reason": "no qualified compiler emits api-test-generator.mjs, generated/api-test-plan.json, api-test-report.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "thinness": {
+    "status": "within-limit",
+    "loc": 23,
+    "maxLoc": 80,
+    "semanticEntries": 20,
+    "maxSemanticEntries": 40,
+    "reasons": []
+  },
+  "semanticAccounting": {
+    "fromSkillSource": {
+      "units": [
+        {
+          "id": "step-01",
+          "kind": "workflow-step",
+          "value": "第 1 步：发现 API"
+        },
+        {
+          "id": "step-02",
+          "kind": "workflow-step",
+          "value": "第 2 步：生成测试用例"
+        },
+        {
+          "id": "step-03",
+          "kind": "workflow-step",
+          "value": "第 3 步：生成测试代码"
+        },
+        {
+          "id": "step-04",
+          "kind": "workflow-step",
+          "value": "第 4 步：测试数据生成"
+        },
+        {
+          "id": "step-05",
+          "kind": "workflow-step",
+          "value": "第 5 步：执行和复测"
+        },
+        {
+          "id": "rule-01",
+          "kind": "rule",
+          "value": "测试用例应独立运行，不依赖执行顺序"
+        },
+        {
+          "id": "rule-02",
+          "kind": "rule",
+          "value": "使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理"
+        },
+        {
+          "id": "rule-03",
+          "kind": "rule",
+          "value": "敏感信息（API Key、Token）使用环境变量，不要硬编码"
+        },
+        {
+          "id": "rule-04",
+          "kind": "rule",
+          "value": "集成测试建议使用独立的测试数据库"
+        },
+        {
+          "id": "rule-05",
+          "kind": "rule",
+          "value": "关注响应时间，添加超时断言"
+        },
+        {
+          "id": "output-01",
+          "kind": "output-description",
+          "value": "Result described by the public skill source."
+        }
+      ]
+    },
+    "fromTaskDeclaration": {
+      "units": [
+        {
+          "id": "api-definition",
+          "kind": "input",
+          "value": "<task-openapi-path>"
+        },
+        {
+          "id": "public-interface",
+          "kind": "input",
+          "value": "api-test-interface.json"
+        },
+        {
+          "id": "generator",
+          "kind": "output",
+          "value": "api-test-generator.mjs"
+        },
+        {
+          "id": "test-plan",
+          "kind": "output",
+          "value": "generated/api-test-plan.json"
+        },
+        {
+          "id": "test-report",
+          "kind": "output",
+          "value": "api-test-report.json"
+        },
+        {
+          "id": "inputs-stable",
+          "kind": "pass-criterion",
+          "value": "The API definition and public interface remain unchanged."
+        },
+        {
+          "id": "outputs-exact",
+          "kind": "pass-criterion",
+          "value": "Exactly the generator, plan, and report are created."
+        },
+        {
+          "id": "json-shapes",
+          "kind": "pass-criterion",
+          "value": "Plan and report contain the declared top-level fields."
+        },
+        {
+          "id": "generator-execution",
+          "kind": "pass-criterion",
+          "value": "The offline command exits successfully and deterministically writes the requested plan."
+        },
+        {
+          "id": "operation-coverage",
+          "kind": "pass-criterion",
+          "value": "Every documented operation and public request constraint is represented in the plan."
+        },
+        {
+          "id": "verification-consistency",
+          "kind": "pass-criterion",
+          "value": "Report verification claims agree with generator execution and plan contents."
+        }
+      ]
+    },
+    "automationProduced": {
+      "contractBindings": 11,
+      "irTaskAbiBindings": 5,
+      "validationPredicates": 6,
+      "genericDeterministicPredicates": 3
+    },
+    "stillRequiresHuman": [
+      {
+        "id": "runtime-generator-execution",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "api-definition",
+          "generator",
+          "test-plan"
+        ],
+        "reason": "generator-execution requires a domain runtime implementation: The offline command exits successfully and deterministically writes the requested plan."
+      },
+      {
+        "id": "runtime-operation-coverage",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "api-definition",
+          "test-plan"
+        ],
+        "reason": "operation-coverage requires a domain runtime implementation: Every documented operation and public request constraint is represented in the plan."
+      },
+      {
+        "id": "runtime-verification-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "reason": "verification-consistency requires a domain runtime implementation: Report verification claims agree with generator execution and plan contents."
+      },
+      {
+        "id": "package-generator",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "generator",
+          "test-plan",
+          "test-report"
+        ],
+        "reason": "no qualified compiler emits api-test-generator.mjs, generated/api-test-plan.json, api-test-report.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "semanticParity": {
+    "status": "not-established",
+    "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+  },
+  "audit": {
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+      "benchmarks/skill-ir/task-descriptions/api-tester.json"
+    ]
+  }
+}

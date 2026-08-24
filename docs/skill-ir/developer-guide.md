@@ -943,7 +943,8 @@ no-skill 无净贡献、static 回归且 construction 非自动，因此 BIDS �
 已完成：successor 唯一 matrix；12/12 semantic-complete/scored、0 retry，贡献 false、static regression
 已完成：readiness v4；open measurement blocker 0，但 phenotype=1、automation 7/7 incomplete，整体 failed
 已完成：source-only automatic construction；7/7 四类 candidate、0 paid/held-out、但 0/7 portfolio eligible
-下一步：融合公开 task contract/source audit，自动生成可审计 domain semantics 与 checker/compiler
+已完成：薄 task 声明 domain construction；7/7 within-limit、19 structural + 21 domain-runtime predicates、0/7 eligible
+下一步：把封闭 predicate 降到公共 checker/runtime，并做至少一个零付费 execution parity；不扩声明模拟 scorer
 ```
 
 本地重建命令：
@@ -971,6 +972,10 @@ bun run ./src/benchmarks/skill-ir/bids-successor-artifact-control-run.ts
 bun run ./src/benchmarks/skill-ir/bids-successor-development-result-run.ts
 bun test ./src/benchmarks/skill-ir/method-portfolio.test.ts
 bun run ./src/benchmarks/skill-ir/method-portfolio-run.ts
+bun test ./src/benchmarks/skill-ir/automatic-domain-construction.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-construction-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601>
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

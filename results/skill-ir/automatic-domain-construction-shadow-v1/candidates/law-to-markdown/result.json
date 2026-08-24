@@ -1,0 +1,1335 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-result/v1",
+  "contract": {
+    "schemaVersion": "skill-ir-domain-contract-candidate/v1",
+    "skillId": "law-to-markdown",
+    "taskDescriptionId": "law-markdown-conversion-task",
+    "taskKind": "workspace-transformation",
+    "intent": "将法条/规范文件（.txt/.docx/.pdf）转为 Markdown。适用于用户要求“法条转 markdown”“pdf/docx 转 markdown”。处理 .pdf/.docx 时先检查是否已安装 mineru-ocr skill；未安装先引导安装，安装后优先用 mineru-ocr；仅在用户明确同意时再用本地回退方案。",
+    "inputs": [
+      {
+        "id": "document",
+        "path": "document.txt",
+        "format": "text",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "public-contract",
+        "path": "law-contract.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "review-report",
+        "path": "markdown/document/document+审核报告.md",
+        "format": "markdown",
+        "required": true,
+        "structure": {
+          "kind": "markdown",
+          "requiredSemanticRoles": [
+            "document classification",
+            "structured review evidence"
+          ]
+        }
+      },
+      {
+        "id": "law-deliverable",
+        "path": "markdown/document/document+最终成果.md",
+        "format": "markdown",
+        "required": false,
+        "structure": {
+          "kind": "markdown",
+          "requiredSemanticRoles": [
+            "legal hierarchy",
+            "source content"
+          ]
+        }
+      }
+    ],
+    "passCriteria": [
+      {
+        "id": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "document",
+          "public-contract"
+        ],
+        "statement": "The source document and public contract remain unchanged."
+      },
+      {
+        "id": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "review-report",
+          "law-deliverable"
+        ],
+        "statement": "No undeclared file is created and the optional deliverable follows classification."
+      },
+      {
+        "id": "document-classification",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "document",
+          "review-report",
+          "law-deliverable"
+        ],
+        "statement": "Law versus non-law classification follows observable title and article markers."
+      },
+      {
+        "id": "legal-fidelity",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "document",
+          "law-deliverable"
+        ],
+        "statement": "A legal deliverable preserves the source character stream apart from Markdown markers and whitespace."
+      },
+      {
+        "id": "legal-structure",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "document",
+          "law-deliverable"
+        ],
+        "statement": "Markdown heading levels and enumerated-item layout follow the declared legal hierarchy."
+      },
+      {
+        "id": "review-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "review-report",
+          "law-deliverable"
+        ],
+        "statement": "Structured review evidence agrees with classification and deliverable presence."
+      }
+    ],
+    "sourceRules": [
+      {
+        "id": "rule-01",
+        "sourceText": "输入为 `.txt`：直接转存为 `.md`。"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "输入为 `.pdf` / `.docx`："
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "先检查是否已安装 `mineru-ocr` skill。"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "未安装：提示先安装 `mineru-ocr`，安装地址："
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "已安装：优先调用 `mineru-ocr` 处理。"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "调用失败：先提示检查 `mineru-ocr` 配置/Token。"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "仅当用户明确同意时，才使用本地回退（`python-docx` / `pdfplumber`）。"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）："
+      },
+      {
+        "id": "rule-09",
+        "sourceText": "由调用该 skill 的大模型先判断“法律/非法律”，并把结果传给脚本。"
+      },
+      {
+        "id": "rule-10",
+        "sourceText": "若调用方未传结果，则脚本使用硬规则自动识别（`--law-decision auto`）。"
+      },
+      {
+        "id": "rule-11",
+        "sourceText": "法律名称 `#`"
+      },
+      {
+        "id": "rule-12",
+        "sourceText": "编/分编 `##`"
+      },
+      {
+        "id": "rule-13",
+        "sourceText": "章 `###`"
+      },
+      {
+        "id": "rule-14",
+        "sourceText": "节 `####`"
+      },
+      {
+        "id": "rule-15",
+        "sourceText": "条 `#####`（仅“第X条”为标题；`第X条【条标】`整行为标题不拆）"
+      },
+      {
+        "id": "rule-16",
+        "sourceText": "款/项/目无标题"
+      },
+      {
+        "id": "rule-17",
+        "sourceText": "项、目按标记换行"
+      },
+      {
+        "id": "rule-18",
+        "sourceText": "清理多余空格：去行尾空格、去行首 ASCII 空格、去正文行首全角缩进、规范标题后的空格"
+      },
+      {
+        "id": "rule-19",
+        "sourceText": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。"
+      },
+      {
+        "id": "rule-20",
+        "sourceText": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。"
+      },
+      {
+        "id": "rule-21",
+        "sourceText": "默认执行第三阶段检查（双子阶段，硬门槛）："
+      },
+      {
+        "id": "rule-22",
+        "sourceText": "Stage3-A：校验 `stage2` 相对 `stage1` 的文字内容准确性（去标题符号与空白后字符流必须一致）"
+      },
+      {
+        "id": "rule-23",
+        "sourceText": "Stage3-B：校验结构效果（结构层级、条标题规则、非法律策略、空格规范、项/目换行）"
+      },
+      {
+        "id": "rule-24",
+        "sourceText": "任一失败触发自动重走，最多 2 次；仍失败默认报错退出"
+      },
+      {
+        "id": "rule-25",
+        "sourceText": "默认输出到输入文件同目录的 `markdown/` 子目录，并按输入文件名创建独立目录："
+      },
+      {
+        "id": "rule-26",
+        "sourceText": "`markdown/<文件名>/`"
+      },
+      {
+        "id": "rule-27",
+        "sourceText": "默认（`--artifact-level minimal`）输出："
+      },
+      {
+        "id": "rule-28",
+        "sourceText": "`<原文件名>+审核报告.md`（详细过程和结论）"
+      },
+      {
+        "id": "rule-29",
+        "sourceText": "`<原文件名>+最终成果.md`（仅法律文本且审核通过时生成）"
+      },
+      {
+        "id": "rule-30",
+        "sourceText": "非法律文档（如 GB/标准类）："
+      },
+      {
+        "id": "rule-31",
+        "sourceText": "结论为“拒绝处理”"
+      },
+      {
+        "id": "rule-32",
+        "sourceText": "仅输出 `<原文件名>+审核报告.md`"
+      }
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "law-to-markdown",
+    "name": "Law To Markdown",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy",
+      "environment-sensitive"
+    ],
+    "intent": "将法条/规范文件（.txt/.docx/.pdf）转为 Markdown。适用于用户要求“法条转 markdown”“pdf/docx 转 markdown”。处理 .pdf/.docx 时先检查是否已安装 mineru-ocr skill；未安装先引导安装，安装后优先用 mineru-ocr；仅在用户明确同意时再用本地回退方案。",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+    },
+    "inputs": [
+      {
+        "id": "document",
+        "description": "document.txt (text, read-only)",
+        "required": true
+      },
+      {
+        "id": "public-contract",
+        "description": "law-contract.json (json, read-only)",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "review-report",
+        "description": "markdown/document/document+审核报告.md (markdown, markdown)",
+        "required": true
+      },
+      {
+        "id": "law-deliverable",
+        "description": "markdown/document/document+最终成果.md (markdown, markdown)",
+        "required": false
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "输入为 `.txt`：直接转存为 `.md`。",
+        "description": "输入为 `.txt`：直接转存为 `.md`。",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "输入为 `.pdf` / `.docx`：",
+        "description": "输入为 `.pdf` / `.docx`：",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）：",
+        "description": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）：",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。",
+        "description": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。",
+        "description": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-06",
+        "title": "默认执行第三阶段检查（双子阶段，硬门槛）：",
+        "description": "默认执行第三阶段检查（双子阶段，硬门槛）：",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [
+          "step-05"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01",
+          "review-report",
+          "law-deliverable"
+        ],
+        "successCheckRefs": [
+          "check-inputs-stable",
+          "check-outputs-exact",
+          "check-document-classification",
+          "check-legal-fidelity",
+          "check-legal-structure",
+          "check-review-consistency"
+        ],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "输入为 `.txt`：直接转存为 `.md`。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "输入为 `.txt`：直接转存为 `.md`。"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "输入为 `.pdf` / `.docx`：",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "输入为 `.pdf` / `.docx`："
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "先检查是否已安装 `mineru-ocr` skill。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "先检查是否已安装 `mineru-ocr` skill。"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "未安装：提示先安装 `mineru-ocr`，安装地址：",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "未安装：提示先安装 `mineru-ocr`，安装地址："
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "已安装：优先调用 `mineru-ocr` 处理。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "已安装：优先调用 `mineru-ocr` 处理。"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "调用失败：先提示检查 `mineru-ocr` 配置/Token。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "调用失败：先提示检查 `mineru-ocr` 配置/Token。"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "仅当用户明确同意时，才使用本地回退（`python-docx` / `pdfplumber`）。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "仅当用户明确同意时，才使用本地回退（`python-docx` / `pdfplumber`）。"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）：",
+        "level": "should",
+        "scope": "output",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）："
+      },
+      {
+        "id": "rule-09",
+        "sourceText": "由调用该 skill 的大模型先判断“法律/非法律”，并把结果传给脚本。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "由调用该 skill 的大模型先判断“法律/非法律”，并把结果传给脚本。"
+      },
+      {
+        "id": "rule-10",
+        "sourceText": "若调用方未传结果，则脚本使用硬规则自动识别（`--law-decision auto`）。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "若调用方未传结果，则脚本使用硬规则自动识别（`--law-decision auto`）。"
+      },
+      {
+        "id": "rule-11",
+        "sourceText": "法律名称 `#`",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "法律名称 `#`"
+      },
+      {
+        "id": "rule-12",
+        "sourceText": "编/分编 `##`",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "编/分编 `##`"
+      },
+      {
+        "id": "rule-13",
+        "sourceText": "章 `###`",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "章 `###`"
+      },
+      {
+        "id": "rule-14",
+        "sourceText": "节 `####`",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "节 `####`"
+      },
+      {
+        "id": "rule-15",
+        "sourceText": "条 `#####`（仅“第X条”为标题；`第X条【条标】`整行为标题不拆）",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "条 `#####`（仅“第X条”为标题；`第X条【条标】`整行为标题不拆）"
+      },
+      {
+        "id": "rule-16",
+        "sourceText": "款/项/目无标题",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "款/项/目无标题"
+      },
+      {
+        "id": "rule-17",
+        "sourceText": "项、目按标记换行",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "项、目按标记换行"
+      },
+      {
+        "id": "rule-18",
+        "sourceText": "清理多余空格：去行尾空格、去行首 ASCII 空格、去正文行首全角缩进、规范标题后的空格",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "清理多余空格：去行尾空格、去行首 ASCII 空格、去正文行首全角缩进、规范标题后的空格"
+      },
+      {
+        "id": "rule-19",
+        "sourceText": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。"
+      },
+      {
+        "id": "rule-20",
+        "sourceText": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。"
+      },
+      {
+        "id": "rule-21",
+        "sourceText": "默认执行第三阶段检查（双子阶段，硬门槛）：",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "默认执行第三阶段检查（双子阶段，硬门槛）："
+      },
+      {
+        "id": "rule-22",
+        "sourceText": "Stage3-A：校验 `stage2` 相对 `stage1` 的文字内容准确性（去标题符号与空白后字符流必须一致）",
+        "level": "must",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "Stage3-A：校验 `stage2` 相对 `stage1` 的文字内容准确性（去标题符号与空白后字符流必须一致）"
+      },
+      {
+        "id": "rule-23",
+        "sourceText": "Stage3-B：校验结构效果（结构层级、条标题规则、非法律策略、空格规范、项/目换行）",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "Stage3-B：校验结构效果（结构层级、条标题规则、非法律策略、空格规范、项/目换行）"
+      },
+      {
+        "id": "rule-24",
+        "sourceText": "任一失败触发自动重走，最多 2 次；仍失败默认报错退出",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "任一失败触发自动重走，最多 2 次；仍失败默认报错退出"
+      },
+      {
+        "id": "rule-25",
+        "sourceText": "默认输出到输入文件同目录的 `markdown/` 子目录，并按输入文件名创建独立目录：",
+        "level": "should",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "默认输出到输入文件同目录的 `markdown/` 子目录，并按输入文件名创建独立目录："
+      },
+      {
+        "id": "rule-26",
+        "sourceText": "`markdown/<文件名>/`",
+        "level": "should",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "`markdown/<文件名>/`"
+      },
+      {
+        "id": "rule-27",
+        "sourceText": "默认（`--artifact-level minimal`）输出：",
+        "level": "should",
+        "scope": "output",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "默认（`--artifact-level minimal`）输出："
+      },
+      {
+        "id": "rule-28",
+        "sourceText": "`<原文件名>+审核报告.md`（详细过程和结论）",
+        "level": "should",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "`<原文件名>+审核报告.md`（详细过程和结论）"
+      },
+      {
+        "id": "rule-29",
+        "sourceText": "`<原文件名>+最终成果.md`（仅法律文本且审核通过时生成）",
+        "level": "should",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "`<原文件名>+最终成果.md`（仅法律文本且审核通过时生成）"
+      },
+      {
+        "id": "rule-30",
+        "sourceText": "非法律文档（如 GB/标准类）：",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "非法律文档（如 GB/标准类）："
+      },
+      {
+        "id": "rule-31",
+        "sourceText": "结论为“拒绝处理”",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "结论为“拒绝处理”"
+      },
+      {
+        "id": "rule-32",
+        "sourceText": "仅输出 `<原文件名>+审核报告.md`",
+        "level": "should",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "仅输出 `<原文件名>+审核报告.md`"
+      }
+    ],
+    "tools": [],
+    "environment": [
+      {
+        "id": "environment-from-source",
+        "description": "The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.",
+        "platforms": [
+          "linux",
+          "macos",
+          "windows",
+          "wsl",
+          "container"
+        ],
+        "checkability": "human"
+      }
+    ],
+    "checks": [
+      {
+        "id": "check-inputs-stable",
+        "name": "inputs-stable",
+        "kind": "rule-violation",
+        "targetRef": "document",
+        "assertion": "input-integrity: The source document and public contract remain unchanged.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-outputs-exact",
+        "name": "outputs-exact",
+        "kind": "output",
+        "targetRef": "review-report",
+        "assertion": "exact-output-set: No undeclared file is created and the optional deliverable follows classification.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-document-classification",
+        "name": "document-classification",
+        "kind": "output",
+        "targetRef": "document",
+        "assertion": "source-grounding: Law versus non-law classification follows observable title and article markers.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-legal-fidelity",
+        "name": "legal-fidelity",
+        "kind": "output",
+        "targetRef": "document",
+        "assertion": "content-fidelity: A legal deliverable preserves the source character stream apart from Markdown markers and whitespace.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-legal-structure",
+        "name": "legal-structure",
+        "kind": "output",
+        "targetRef": "document",
+        "assertion": "source-grounding: Markdown heading levels and enumerated-item layout follow the declared legal hierarchy.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-review-consistency",
+        "name": "review-consistency",
+        "kind": "output",
+        "targetRef": "review-report",
+        "assertion": "cross-artifact-consistency: Structured review evidence agrees with classification and deliverable presence.",
+        "onFailure": "report"
+      }
+    ],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-domain-construction-validation-plan/v1",
+    "predicates": [
+      {
+        "criterionId": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "document",
+          "public-contract"
+        ],
+        "assertion": "The source document and public contract remain unchanged.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "review-report",
+          "law-deliverable"
+        ],
+        "assertion": "No undeclared file is created and the optional deliverable follows classification.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "document-classification",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "document",
+          "review-report",
+          "law-deliverable"
+        ],
+        "assertion": "Law versus non-law classification follows observable title and article markers.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "legal-fidelity",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "document",
+          "law-deliverable"
+        ],
+        "assertion": "A legal deliverable preserves the source character stream apart from Markdown markers and whitespace.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "legal-structure",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "document",
+          "law-deliverable"
+        ],
+        "assertion": "Markdown heading levels and enumerated-item layout follow the declared legal hierarchy.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "review-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "review-report",
+          "law-deliverable"
+        ],
+        "assertion": "Structured review evidence agrees with classification and deliverable presence.",
+        "loweringStatus": "domain-runtime-required"
+      }
+    ],
+    "deterministicGate": {
+      "status": "passed",
+      "checks": [
+        {
+          "id": "source-digest",
+          "status": "passed",
+          "detail": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+        },
+        {
+          "id": "declaration-digest",
+          "status": "passed",
+          "detail": "79fcc52008a5f79329e069d6e84ee6942c1e1acb79ab1c8247b405d1c3706fb7"
+        },
+        {
+          "id": "declaration-thinness",
+          "status": "passed",
+          "detail": "within-limit"
+        },
+        {
+          "id": "domain-bindings",
+          "status": "passed",
+          "detail": "contract, IR, and plan bindings agree"
+        }
+      ]
+    },
+    "semanticParity": {
+      "status": "not-established",
+      "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+    }
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-domain-package-candidate/v1",
+    "status": "non-executable",
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "id": "skill-markdown",
+        "path": "skill.md"
+      },
+      {
+        "id": "skill-ir",
+        "path": "skill-ir.json"
+      },
+      {
+        "id": "domain-contract",
+        "path": "domain-contract.json"
+      },
+      {
+        "id": "validation-plan",
+        "path": "validation-plan.json"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "runtime-document-classification",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "document",
+          "review-report",
+          "law-deliverable"
+        ],
+        "reason": "document-classification requires a domain runtime implementation: Law versus non-law classification follows observable title and article markers."
+      },
+      {
+        "id": "runtime-legal-fidelity",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "document",
+          "law-deliverable"
+        ],
+        "reason": "legal-fidelity requires a domain runtime implementation: A legal deliverable preserves the source character stream apart from Markdown markers and whitespace."
+      },
+      {
+        "id": "runtime-legal-structure",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "document",
+          "law-deliverable"
+        ],
+        "reason": "legal-structure requires a domain runtime implementation: Markdown heading levels and enumerated-item layout follow the declared legal hierarchy."
+      },
+      {
+        "id": "runtime-review-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "review-report",
+          "law-deliverable"
+        ],
+        "reason": "review-consistency requires a domain runtime implementation: Structured review evidence agrees with classification and deliverable presence."
+      },
+      {
+        "id": "package-review-report",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "review-report",
+          "law-deliverable"
+        ],
+        "reason": "no qualified compiler emits markdown/document/document+审核报告.md, markdown/document/document+最终成果.md and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "thinness": {
+    "status": "within-limit",
+    "loc": 22,
+    "maxLoc": 80,
+    "semanticEntries": 14,
+    "maxSemanticEntries": 40,
+    "reasons": []
+  },
+  "semanticAccounting": {
+    "fromSkillSource": {
+      "units": [
+        {
+          "id": "step-01",
+          "kind": "workflow-step",
+          "value": "输入为 `.txt`：直接转存为 `.md`。"
+        },
+        {
+          "id": "step-02",
+          "kind": "workflow-step",
+          "value": "输入为 `.pdf` / `.docx`："
+        },
+        {
+          "id": "step-03",
+          "kind": "workflow-step",
+          "value": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）："
+        },
+        {
+          "id": "step-04",
+          "kind": "workflow-step",
+          "value": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。"
+        },
+        {
+          "id": "step-05",
+          "kind": "workflow-step",
+          "value": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。"
+        },
+        {
+          "id": "step-06",
+          "kind": "workflow-step",
+          "value": "默认执行第三阶段检查（双子阶段，硬门槛）："
+        },
+        {
+          "id": "rule-01",
+          "kind": "rule",
+          "value": "输入为 `.txt`：直接转存为 `.md`。"
+        },
+        {
+          "id": "rule-02",
+          "kind": "rule",
+          "value": "输入为 `.pdf` / `.docx`："
+        },
+        {
+          "id": "rule-03",
+          "kind": "rule",
+          "value": "先检查是否已安装 `mineru-ocr` skill。"
+        },
+        {
+          "id": "rule-04",
+          "kind": "rule",
+          "value": "未安装：提示先安装 `mineru-ocr`，安装地址："
+        },
+        {
+          "id": "rule-05",
+          "kind": "rule",
+          "value": "已安装：优先调用 `mineru-ocr` 处理。"
+        },
+        {
+          "id": "rule-06",
+          "kind": "rule",
+          "value": "调用失败：先提示检查 `mineru-ocr` 配置/Token。"
+        },
+        {
+          "id": "rule-07",
+          "kind": "rule",
+          "value": "仅当用户明确同意时，才使用本地回退（`python-docx` / `pdfplumber`）。"
+        },
+        {
+          "id": "rule-08",
+          "kind": "rule",
+          "value": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）："
+        },
+        {
+          "id": "rule-09",
+          "kind": "rule",
+          "value": "由调用该 skill 的大模型先判断“法律/非法律”，并把结果传给脚本。"
+        },
+        {
+          "id": "rule-10",
+          "kind": "rule",
+          "value": "若调用方未传结果，则脚本使用硬规则自动识别（`--law-decision auto`）。"
+        },
+        {
+          "id": "rule-11",
+          "kind": "rule",
+          "value": "法律名称 `#`"
+        },
+        {
+          "id": "rule-12",
+          "kind": "rule",
+          "value": "编/分编 `##`"
+        },
+        {
+          "id": "rule-13",
+          "kind": "rule",
+          "value": "章 `###`"
+        },
+        {
+          "id": "rule-14",
+          "kind": "rule",
+          "value": "节 `####`"
+        },
+        {
+          "id": "rule-15",
+          "kind": "rule",
+          "value": "条 `#####`（仅“第X条”为标题；`第X条【条标】`整行为标题不拆）"
+        },
+        {
+          "id": "rule-16",
+          "kind": "rule",
+          "value": "款/项/目无标题"
+        },
+        {
+          "id": "rule-17",
+          "kind": "rule",
+          "value": "项、目按标记换行"
+        },
+        {
+          "id": "rule-18",
+          "kind": "rule",
+          "value": "清理多余空格：去行尾空格、去行首 ASCII 空格、去正文行首全角缩进、规范标题后的空格"
+        },
+        {
+          "id": "rule-19",
+          "kind": "rule",
+          "value": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。"
+        },
+        {
+          "id": "rule-20",
+          "kind": "rule",
+          "value": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。"
+        },
+        {
+          "id": "rule-21",
+          "kind": "rule",
+          "value": "默认执行第三阶段检查（双子阶段，硬门槛）："
+        },
+        {
+          "id": "rule-22",
+          "kind": "rule",
+          "value": "Stage3-A：校验 `stage2` 相对 `stage1` 的文字内容准确性（去标题符号与空白后字符流必须一致）"
+        },
+        {
+          "id": "rule-23",
+          "kind": "rule",
+          "value": "Stage3-B：校验结构效果（结构层级、条标题规则、非法律策略、空格规范、项/目换行）"
+        },
+        {
+          "id": "rule-24",
+          "kind": "rule",
+          "value": "任一失败触发自动重走，最多 2 次；仍失败默认报错退出"
+        },
+        {
+          "id": "rule-25",
+          "kind": "rule",
+          "value": "默认输出到输入文件同目录的 `markdown/` 子目录，并按输入文件名创建独立目录："
+        },
+        {
+          "id": "rule-26",
+          "kind": "rule",
+          "value": "`markdown/<文件名>/`"
+        },
+        {
+          "id": "rule-27",
+          "kind": "rule",
+          "value": "默认（`--artifact-level minimal`）输出："
+        },
+        {
+          "id": "rule-28",
+          "kind": "rule",
+          "value": "`<原文件名>+审核报告.md`（详细过程和结论）"
+        },
+        {
+          "id": "rule-29",
+          "kind": "rule",
+          "value": "`<原文件名>+最终成果.md`（仅法律文本且审核通过时生成）"
+        },
+        {
+          "id": "rule-30",
+          "kind": "rule",
+          "value": "非法律文档（如 GB/标准类）："
+        },
+        {
+          "id": "rule-31",
+          "kind": "rule",
+          "value": "结论为“拒绝处理”"
+        },
+        {
+          "id": "rule-32",
+          "kind": "rule",
+          "value": "仅输出 `<原文件名>+审核报告.md`"
+        },
+        {
+          "id": "output-01",
+          "kind": "output-description",
+          "value": "默认输出到输入文件同目录的 `markdown/` 子目录，并按输入文件名创建独立目录："
+        },
+        {
+          "id": "output-02",
+          "kind": "output-description",
+          "value": "`markdown/<文件名>/`"
+        },
+        {
+          "id": "output-03",
+          "kind": "output-description",
+          "value": "默认（`--artifact-level minimal`）输出："
+        },
+        {
+          "id": "output-04",
+          "kind": "output-description",
+          "value": "`<原文件名>+审核报告.md`（详细过程和结论）"
+        },
+        {
+          "id": "output-05",
+          "kind": "output-description",
+          "value": "`<原文件名>+最终成果.md`（仅法律文本且审核通过时生成）"
+        },
+        {
+          "id": "output-06",
+          "kind": "output-description",
+          "value": "非法律文档（如 GB/标准类）："
+        },
+        {
+          "id": "output-07",
+          "kind": "output-description",
+          "value": "结论为“拒绝处理”"
+        },
+        {
+          "id": "output-08",
+          "kind": "output-description",
+          "value": "仅输出 `<原文件名>+审核报告.md`"
+        },
+        {
+          "id": "output-09",
+          "kind": "output-description",
+          "value": "不输出 `<原文件名>+最终成果.md`"
+        },
+        {
+          "id": "output-10",
+          "kind": "output-description",
+          "value": "审核未通过时会自动保留过程文件用于排查："
+        },
+        {
+          "id": "output-11",
+          "kind": "output-description",
+          "value": "`<文件名>.stage1.md`"
+        },
+        {
+          "id": "output-12",
+          "kind": "output-description",
+          "value": "`<文件名>.stage2.md`"
+        },
+        {
+          "id": "output-13",
+          "kind": "output-description",
+          "value": "`<文件名>.stage3-check.md`"
+        },
+        {
+          "id": "output-14",
+          "kind": "output-description",
+          "value": "若需更多产物可切换："
+        },
+        {
+          "id": "output-15",
+          "kind": "output-description",
+          "value": "`--artifact-level standard`：保留 `stage1/stage2/stage3-check`"
+        },
+        {
+          "id": "output-16",
+          "kind": "output-description",
+          "value": "`--artifact-level debug`：保留全部调试产物"
+        }
+      ]
+    },
+    "fromTaskDeclaration": {
+      "units": [
+        {
+          "id": "document",
+          "kind": "input",
+          "value": "document.txt"
+        },
+        {
+          "id": "public-contract",
+          "kind": "input",
+          "value": "law-contract.json"
+        },
+        {
+          "id": "review-report",
+          "kind": "output",
+          "value": "markdown/document/document+审核报告.md"
+        },
+        {
+          "id": "law-deliverable",
+          "kind": "output",
+          "value": "markdown/document/document+最终成果.md"
+        },
+        {
+          "id": "inputs-stable",
+          "kind": "pass-criterion",
+          "value": "The source document and public contract remain unchanged."
+        },
+        {
+          "id": "outputs-exact",
+          "kind": "pass-criterion",
+          "value": "No undeclared file is created and the optional deliverable follows classification."
+        },
+        {
+          "id": "document-classification",
+          "kind": "pass-criterion",
+          "value": "Law versus non-law classification follows observable title and article markers."
+        },
+        {
+          "id": "legal-fidelity",
+          "kind": "pass-criterion",
+          "value": "A legal deliverable preserves the source character stream apart from Markdown markers and whitespace."
+        },
+        {
+          "id": "legal-structure",
+          "kind": "pass-criterion",
+          "value": "Markdown heading levels and enumerated-item layout follow the declared legal hierarchy."
+        },
+        {
+          "id": "review-consistency",
+          "kind": "pass-criterion",
+          "value": "Structured review evidence agrees with classification and deliverable presence."
+        }
+      ]
+    },
+    "automationProduced": {
+      "contractBindings": 10,
+      "irTaskAbiBindings": 4,
+      "validationPredicates": 6,
+      "genericDeterministicPredicates": 2
+    },
+    "stillRequiresHuman": [
+      {
+        "id": "runtime-document-classification",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "document",
+          "review-report",
+          "law-deliverable"
+        ],
+        "reason": "document-classification requires a domain runtime implementation: Law versus non-law classification follows observable title and article markers."
+      },
+      {
+        "id": "runtime-legal-fidelity",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "document",
+          "law-deliverable"
+        ],
+        "reason": "legal-fidelity requires a domain runtime implementation: A legal deliverable preserves the source character stream apart from Markdown markers and whitespace."
+      },
+      {
+        "id": "runtime-legal-structure",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "document",
+          "law-deliverable"
+        ],
+        "reason": "legal-structure requires a domain runtime implementation: Markdown heading levels and enumerated-item layout follow the declared legal hierarchy."
+      },
+      {
+        "id": "runtime-review-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "review-report",
+          "law-deliverable"
+        ],
+        "reason": "review-consistency requires a domain runtime implementation: Structured review evidence agrees with classification and deliverable presence."
+      },
+      {
+        "id": "package-review-report",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "review-report",
+          "law-deliverable"
+        ],
+        "reason": "no qualified compiler emits markdown/document/document+审核报告.md, markdown/document/document+最终成果.md and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "semanticParity": {
+    "status": "not-established",
+    "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+  },
+  "audit": {
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "benchmarks/skill-ir/task-descriptions/law-to-markdown.json"
+    ]
+  }
+}

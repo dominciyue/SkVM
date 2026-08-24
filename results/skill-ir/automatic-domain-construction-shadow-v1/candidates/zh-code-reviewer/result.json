@@ -1,0 +1,636 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-result/v1",
+  "contract": {
+    "schemaVersion": "skill-ir-domain-contract-candidate/v1",
+    "skillId": "zh-code-reviewer",
+    "taskDescriptionId": "source-code-review-task",
+    "taskKind": "analysis-report",
+    "intent": "中文代码审查专家 - 生成详细的中文代码审查报告",
+    "inputs": [
+      {
+        "id": "source-file",
+        "path": "<task-source-path>",
+        "format": "source-file",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "path": "review-interface.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "json-review",
+        "path": "code-review.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "schemaVersion",
+            "reviewedFiles",
+            "findings",
+            "highlights",
+            "summary"
+          ],
+          "allowAdditionalFields": true
+        }
+      },
+      {
+        "id": "markdown-review",
+        "path": "code-review.md",
+        "format": "markdown",
+        "required": true,
+        "structure": {
+          "kind": "markdown",
+          "requiredSemanticRoles": [
+            "Chinese summary",
+            "source-located findings",
+            "actionable recommendations"
+          ]
+        }
+      }
+    ],
+    "passCriteria": [
+      {
+        "id": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "source-file",
+          "public-interface"
+        ],
+        "statement": "The reviewed source and public interface remain unchanged."
+      },
+      {
+        "id": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "json-review",
+          "markdown-review"
+        ],
+        "statement": "Exactly the JSON and Markdown review reports are created."
+      },
+      {
+        "id": "json-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "json-review"
+        ],
+        "statement": "The JSON review contains the declared top-level report fields."
+      },
+      {
+        "id": "finding-grounding",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "source-file",
+          "json-review"
+        ],
+        "statement": "Every finding cites the primary observable line and smallest enclosing named symbol."
+      },
+      {
+        "id": "severity-actionability",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "source-file",
+          "json-review"
+        ],
+        "statement": "Severity follows public impact meanings and every finding has an actionable recommendation."
+      },
+      {
+        "id": "report-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "json-review",
+          "markdown-review"
+        ],
+        "statement": "The Chinese Markdown and JSON reports describe the same grounded findings."
+      }
+    ],
+    "sourceRules": [
+      {
+        "id": "rule-01",
+        "sourceText": "技术术语保留英文（如 null pointer、SQL injection）"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "代码示例保持原语言"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "对于中文变量名/注释，也要检查是否恰当"
+      }
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "zh-code-reviewer",
+    "name": "中文代码审查专家",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy"
+    ],
+    "intent": "中文代码审查专家 - 生成详细的中文代码审查报告",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+      "sha256": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40"
+    },
+    "inputs": [
+      {
+        "id": "source-file",
+        "description": "<task-source-path> (source-file, read-only)",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "description": "review-interface.json (json, read-only)",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "json-review",
+        "description": "code-review.json (json, json-object)",
+        "required": true
+      },
+      {
+        "id": "markdown-review",
+        "description": "code-review.md (markdown, markdown)",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "**读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码",
+        "description": "**读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "**分析代码质量** — 从以下维度评估：",
+        "description": "**分析代码质量** — 从以下维度评估：",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "**生成审查报告** — 使用中文输出结构化报告",
+        "description": "**生成审查报告** — 使用中文输出结构化报告",
+        "kind": "report",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01",
+          "json-review",
+          "markdown-review"
+        ],
+        "successCheckRefs": [
+          "check-inputs-stable",
+          "check-outputs-exact",
+          "check-json-shape",
+          "check-finding-grounding",
+          "check-severity-actionability",
+          "check-report-consistency"
+        ],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "技术术语保留英文（如 null pointer、SQL injection）",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "技术术语保留英文（如 null pointer、SQL injection）"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "代码示例保持原语言",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "代码示例保持原语言"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "对于中文变量名/注释，也要检查是否恰当",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "对于中文变量名/注释，也要检查是否恰当"
+      }
+    ],
+    "tools": [],
+    "environment": [],
+    "checks": [
+      {
+        "id": "check-inputs-stable",
+        "name": "inputs-stable",
+        "kind": "rule-violation",
+        "targetRef": "source-file",
+        "assertion": "input-integrity: The reviewed source and public interface remain unchanged.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-outputs-exact",
+        "name": "outputs-exact",
+        "kind": "output",
+        "targetRef": "json-review",
+        "assertion": "exact-output-set: Exactly the JSON and Markdown review reports are created.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-json-shape",
+        "name": "json-shape",
+        "kind": "output",
+        "targetRef": "json-review",
+        "assertion": "json-shape: The JSON review contains the declared top-level report fields.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-finding-grounding",
+        "name": "finding-grounding",
+        "kind": "output",
+        "targetRef": "source-file",
+        "assertion": "source-grounding: Every finding cites the primary observable line and smallest enclosing named symbol.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-severity-actionability",
+        "name": "severity-actionability",
+        "kind": "output",
+        "targetRef": "source-file",
+        "assertion": "content-fidelity: Severity follows public impact meanings and every finding has an actionable recommendation.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-report-consistency",
+        "name": "report-consistency",
+        "kind": "output",
+        "targetRef": "json-review",
+        "assertion": "cross-artifact-consistency: The Chinese Markdown and JSON reports describe the same grounded findings.",
+        "onFailure": "report"
+      }
+    ],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-domain-construction-validation-plan/v1",
+    "predicates": [
+      {
+        "criterionId": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "source-file",
+          "public-interface"
+        ],
+        "assertion": "The reviewed source and public interface remain unchanged.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "json-review",
+          "markdown-review"
+        ],
+        "assertion": "Exactly the JSON and Markdown review reports are created.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "json-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "json-review"
+        ],
+        "assertion": "The JSON review contains the declared top-level report fields.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "finding-grounding",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "source-file",
+          "json-review"
+        ],
+        "assertion": "Every finding cites the primary observable line and smallest enclosing named symbol.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "severity-actionability",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "source-file",
+          "json-review"
+        ],
+        "assertion": "Severity follows public impact meanings and every finding has an actionable recommendation.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "report-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "json-review",
+          "markdown-review"
+        ],
+        "assertion": "The Chinese Markdown and JSON reports describe the same grounded findings.",
+        "loweringStatus": "domain-runtime-required"
+      }
+    ],
+    "deterministicGate": {
+      "status": "passed",
+      "checks": [
+        {
+          "id": "source-digest",
+          "status": "passed",
+          "detail": "b7ec773f213d78067607554fb9f5ca3c9265b57b6e80ec6daa334c94ef00aa40"
+        },
+        {
+          "id": "declaration-digest",
+          "status": "passed",
+          "detail": "3653300f5c40c34cc88c0691aad9a184f8db282e2fbbae88fc0dc6a574061a33"
+        },
+        {
+          "id": "declaration-thinness",
+          "status": "passed",
+          "detail": "within-limit"
+        },
+        {
+          "id": "domain-bindings",
+          "status": "passed",
+          "detail": "contract, IR, and plan bindings agree"
+        }
+      ]
+    },
+    "semanticParity": {
+      "status": "not-established",
+      "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+    }
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-domain-package-candidate/v1",
+    "status": "non-executable",
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "id": "skill-markdown",
+        "path": "skill.md"
+      },
+      {
+        "id": "skill-ir",
+        "path": "skill-ir.json"
+      },
+      {
+        "id": "domain-contract",
+        "path": "domain-contract.json"
+      },
+      {
+        "id": "validation-plan",
+        "path": "validation-plan.json"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "runtime-finding-grounding",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "source-file",
+          "json-review"
+        ],
+        "reason": "finding-grounding requires a domain runtime implementation: Every finding cites the primary observable line and smallest enclosing named symbol."
+      },
+      {
+        "id": "runtime-severity-actionability",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "source-file",
+          "json-review"
+        ],
+        "reason": "severity-actionability requires a domain runtime implementation: Severity follows public impact meanings and every finding has an actionable recommendation."
+      },
+      {
+        "id": "runtime-report-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "json-review",
+          "markdown-review"
+        ],
+        "reason": "report-consistency requires a domain runtime implementation: The Chinese Markdown and JSON reports describe the same grounded findings."
+      },
+      {
+        "id": "package-json-review",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "json-review",
+          "markdown-review"
+        ],
+        "reason": "no qualified compiler emits code-review.json, code-review.md and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "thinness": {
+    "status": "within-limit",
+    "loc": 22,
+    "maxLoc": 80,
+    "semanticEntries": 18,
+    "maxSemanticEntries": 40,
+    "reasons": []
+  },
+  "semanticAccounting": {
+    "fromSkillSource": {
+      "units": [
+        {
+          "id": "step-01",
+          "kind": "workflow-step",
+          "value": "**读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码"
+        },
+        {
+          "id": "step-02",
+          "kind": "workflow-step",
+          "value": "**分析代码质量** — 从以下维度评估："
+        },
+        {
+          "id": "step-03",
+          "kind": "workflow-step",
+          "value": "**生成审查报告** — 使用中文输出结构化报告"
+        },
+        {
+          "id": "rule-01",
+          "kind": "rule",
+          "value": "技术术语保留英文（如 null pointer、SQL injection）"
+        },
+        {
+          "id": "rule-02",
+          "kind": "rule",
+          "value": "代码示例保持原语言"
+        },
+        {
+          "id": "rule-03",
+          "kind": "rule",
+          "value": "对于中文变量名/注释，也要检查是否恰当"
+        },
+        {
+          "id": "output-01",
+          "kind": "output-description",
+          "value": "Result described by the public skill source."
+        }
+      ]
+    },
+    "fromTaskDeclaration": {
+      "units": [
+        {
+          "id": "source-file",
+          "kind": "input",
+          "value": "<task-source-path>"
+        },
+        {
+          "id": "public-interface",
+          "kind": "input",
+          "value": "review-interface.json"
+        },
+        {
+          "id": "json-review",
+          "kind": "output",
+          "value": "code-review.json"
+        },
+        {
+          "id": "markdown-review",
+          "kind": "output",
+          "value": "code-review.md"
+        },
+        {
+          "id": "inputs-stable",
+          "kind": "pass-criterion",
+          "value": "The reviewed source and public interface remain unchanged."
+        },
+        {
+          "id": "outputs-exact",
+          "kind": "pass-criterion",
+          "value": "Exactly the JSON and Markdown review reports are created."
+        },
+        {
+          "id": "json-shape",
+          "kind": "pass-criterion",
+          "value": "The JSON review contains the declared top-level report fields."
+        },
+        {
+          "id": "finding-grounding",
+          "kind": "pass-criterion",
+          "value": "Every finding cites the primary observable line and smallest enclosing named symbol."
+        },
+        {
+          "id": "severity-actionability",
+          "kind": "pass-criterion",
+          "value": "Severity follows public impact meanings and every finding has an actionable recommendation."
+        },
+        {
+          "id": "report-consistency",
+          "kind": "pass-criterion",
+          "value": "The Chinese Markdown and JSON reports describe the same grounded findings."
+        }
+      ]
+    },
+    "automationProduced": {
+      "contractBindings": 10,
+      "irTaskAbiBindings": 4,
+      "validationPredicates": 6,
+      "genericDeterministicPredicates": 3
+    },
+    "stillRequiresHuman": [
+      {
+        "id": "runtime-finding-grounding",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "source-file",
+          "json-review"
+        ],
+        "reason": "finding-grounding requires a domain runtime implementation: Every finding cites the primary observable line and smallest enclosing named symbol."
+      },
+      {
+        "id": "runtime-severity-actionability",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "source-file",
+          "json-review"
+        ],
+        "reason": "severity-actionability requires a domain runtime implementation: Severity follows public impact meanings and every finding has an actionable recommendation."
+      },
+      {
+        "id": "runtime-report-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "json-review",
+          "markdown-review"
+        ],
+        "reason": "report-consistency requires a domain runtime implementation: The Chinese Markdown and JSON reports describe the same grounded findings."
+      },
+      {
+        "id": "package-json-review",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "json-review",
+          "markdown-review"
+        ],
+        "reason": "no qualified compiler emits code-review.json, code-review.md and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "semanticParity": {
+    "status": "not-established",
+    "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+  },
+  "audit": {
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+      "benchmarks/skill-ir/task-descriptions/zh-code-reviewer.json"
+    ]
+  }
+}

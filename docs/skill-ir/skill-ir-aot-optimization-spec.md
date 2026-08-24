@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-23
+**最后更新：** 2026-08-24
 
 ## 1. 项目定位
 
@@ -24,9 +24,12 @@ benchmark/governance 而不推进 compiler、artifact 和 intake 自动化。
 
 ### 1.2 用户与交付边界
 
-最终用户提供 source/resource、允许的工具环境和可选代表性任务。系统负责 intake、静态分析、声明式
-适配、artifact 编译、分层验证和有界动态反馈。只有低置信度语义、资源/权限缺失、证据冲突、预算升级
-或质量回归时请求用户审核。
+最终用户提供 `SKILL.md`、少量声明式 task 说明、source/resource closure 和允许的工具环境。薄 task 说明只
+声明输入/输出文件、期望产物结构与 pass predicate，不是 scorer 实现，不含 gold、held-out 或模型结果。系统
+负责 intake、source 抽取、task ABI/IR/validation-plan/package candidate 构造、artifact 编译、分层验证和有界
+动态反馈。只有声明超过薄度预算、低置信度领域语义无法由封闭 predicate 表达、资源/权限缺失、证据冲突、
+预算升级或质量回归时请求用户审核。`SKILL.md` 单独不足以恢复 benchmark/domain ABI；这是产品输入边界，
+不得把人工声明的信息记作自动 source extraction。
 
 交付入口是同一 core 的三种视图：
 
@@ -1040,11 +1043,26 @@ activation human minutes、core branch delta 0；共享核心前瞻开发成本�
 ABI、领域语义、domain oracle 与 executable compiler/checker。故四类 portfolio eligibility 均为 0/7，机器 flags
 保持不变。这证明统一结构构造可行，也证明 source-only extraction 不是自动 optimizer 的充分条件。
 
+Task 18.27 采用 additive successor，而不原地扩宽 18.26：新增 `skill-ir-task-description/v1` 与独立 domain
+construction/shadow identity，旧 source-only input/result/report 和实现 digest 继续代表原冻结结论。Semantic delta
+是终态输入从“只有 `SKILL.md`”变为“`SKILL.md` + 薄声明式 task 说明”，并允许由声明确定性生成 domain contract、
+task ABI inputs/outputs、IR checks 与 validation-plan predicate bindings；兼容边界是 v1 source-only consumer 不会
+自动接受新输入，历史 18.26 claim、候选字节和 0/7 eligibility 不改。声明 strict schema 禁止 scorer/gold/held-out，
+每案同时受非空物理 LOC 80 与语义条目 40 的预算；超限只标记 `declaration-heavy`，不能靠塞入 checker 逻辑换取
+自动化数字。Shadow 报告必须分别列出来自声明、来自 source 抽取、自动生成的 bindings 与仍需人工的领域 runtime/
+compiler gap；未实际执行语义等价评估时固定写 `not-established`。
+
+冻结 shadow 结果为 7/7 声明 `within-limit`（20--27 LOC、13--20 semantic entries），总声明成本 15
+human minutes；四类 candidate 各生成 7/7，0 model/API、0 held-out/evaluator payload、adapter LOC=0、core branch
+delta=0。严格分账为 144 source units、75 declaration units、150 automatic bindings；40 个 predicate 中 19 个结构
+predicate 形成通用 deterministic plan，21 个仍需 domain runtime。7/7 仍有逐案 runtime/compiler gap，semantic
+parity 全为 `not-established`，四类 eligibility 仍为 0/7；portfolio/readiness flags 不变。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
 development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但贡献和 static 均未通过；
-source-only automatic construction 已能生成 7/7 四类结构候选，但 0/7 达到 benchmark/domain/runtime 资格；
+source-only 与薄声明 domain construction 均能生成 7/7 四类候选，但 0/7 达到 runtime/package 资格；
 i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
 方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。

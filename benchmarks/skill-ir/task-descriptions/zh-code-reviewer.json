@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "source-code-review-task",
+  "taskKind": "analysis-report",
+  "inputs": [
+    { "id": "source-file", "path": "<task-source-path>", "format": "source-file", "access": "read-only", "required": true },
+    { "id": "public-interface", "path": "review-interface.json", "format": "json", "access": "read-only", "required": true }
+  ],
+  "outputs": [
+    { "id": "json-review", "path": "code-review.json", "format": "json", "required": true, "structure": { "kind": "json-object", "requiredFields": ["schemaVersion", "reviewedFiles", "findings", "highlights", "summary"], "allowAdditionalFields": true } },
+    { "id": "markdown-review", "path": "code-review.md", "format": "markdown", "required": true, "structure": { "kind": "markdown", "requiredSemanticRoles": ["Chinese summary", "source-located findings", "actionable recommendations"] } }
+  ],
+  "passCriteria": [
+    { "id": "inputs-stable", "predicate": "input-integrity", "targetRefs": ["source-file", "public-interface"], "statement": "The reviewed source and public interface remain unchanged." },
+    { "id": "outputs-exact", "predicate": "exact-output-set", "targetRefs": ["json-review", "markdown-review"], "statement": "Exactly the JSON and Markdown review reports are created." },
+    { "id": "json-shape", "predicate": "json-shape", "targetRefs": ["json-review"], "statement": "The JSON review contains the declared top-level report fields." },
+    { "id": "finding-grounding", "predicate": "source-grounding", "targetRefs": ["source-file", "json-review"], "statement": "Every finding cites the primary observable line and smallest enclosing named symbol." },
+    { "id": "severity-actionability", "predicate": "content-fidelity", "targetRefs": ["source-file", "json-review"], "statement": "Severity follows public impact meanings and every finding has an actionable recommendation." },
+    { "id": "report-consistency", "predicate": "cross-artifact-consistency", "targetRefs": ["json-review", "markdown-review"], "statement": "The Chinese Markdown and JSON reports describe the same grounded findings." }
+  ]
+}

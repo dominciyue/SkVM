@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "experimental-design-analysis-task",
+  "taskKind": "analysis-report",
+  "inputs": [
+    { "id": "study-graph", "path": "study-graph.json", "format": "json", "access": "read-only", "required": true },
+    { "id": "public-interface", "path": "analysis-interface.json", "format": "json", "access": "read-only", "required": true }
+  ],
+  "outputs": [
+    { "id": "replication-plan", "path": "design/replication-plan.json", "format": "json", "required": true, "structure": { "kind": "json-object", "requiredFields": ["studyId", "independentReplicateUnit", "independentReplicateCount", "measurementUnit", "pseudoreplicationRisk", "rationale"], "allowAdditionalFields": true } },
+    { "id": "analysis-plan", "path": "design/analysis-plan.json", "format": "json", "required": true, "structure": { "kind": "json-object", "requiredFields": ["studyId", "analysisUnit", "groupingFactors", "method", "rationale"], "allowAdditionalFields": true } }
+  ],
+  "passCriteria": [
+    { "id": "inputs-stable", "predicate": "input-integrity", "targetRefs": ["study-graph", "public-interface"], "statement": "The study graph and public interface remain unchanged." },
+    { "id": "outputs-exact", "predicate": "exact-output-set", "targetRefs": ["replication-plan", "analysis-plan"], "statement": "Exactly the two declared plans are created." },
+    { "id": "plan-shapes", "predicate": "json-shape", "targetRefs": ["replication-plan", "analysis-plan"], "statement": "Both plans contain their declared top-level fields." },
+    { "id": "replication-grounding", "predicate": "source-grounding", "targetRefs": ["study-graph", "replication-plan"], "statement": "Independent replicate unit and count follow treatment assignment and entity totals." },
+    { "id": "analysis-alignment", "predicate": "cross-artifact-consistency", "targetRefs": ["study-graph", "replication-plan", "analysis-plan"], "statement": "Measurement, analysis, and grouping units respect the declared entity hierarchy." }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "law-markdown-conversion-task",
+  "taskKind": "workspace-transformation",
+  "inputs": [
+    { "id": "document", "path": "document.txt", "format": "text", "access": "read-only", "required": true },
+    { "id": "public-contract", "path": "law-contract.json", "format": "json", "access": "read-only", "required": true }
+  ],
+  "outputs": [
+    { "id": "review-report", "path": "markdown/document/document+审核报告.md", "format": "markdown", "required": true, "structure": { "kind": "markdown", "requiredSemanticRoles": ["document classification", "structured review evidence"] } },
+    { "id": "law-deliverable", "path": "markdown/document/document+最终成果.md", "format": "markdown", "required": false, "structure": { "kind": "markdown", "requiredSemanticRoles": ["legal hierarchy", "source content"] } }
+  ],
+  "passCriteria": [
+    { "id": "inputs-stable", "predicate": "input-integrity", "targetRefs": ["document", "public-contract"], "statement": "The source document and public contract remain unchanged." },
+    { "id": "outputs-exact", "predicate": "exact-output-set", "targetRefs": ["review-report", "law-deliverable"], "statement": "No undeclared file is created and the optional deliverable follows classification." },
+    { "id": "document-classification", "predicate": "source-grounding", "targetRefs": ["document", "review-report", "law-deliverable"], "statement": "Law versus non-law classification follows observable title and article markers." },
+    { "id": "legal-fidelity", "predicate": "content-fidelity", "targetRefs": ["document", "law-deliverable"], "statement": "A legal deliverable preserves the source character stream apart from Markdown markers and whitespace." },
+    { "id": "legal-structure", "predicate": "source-grounding", "targetRefs": ["document", "law-deliverable"], "statement": "Markdown heading levels and enumerated-item layout follow the declared legal hierarchy." },
+    { "id": "review-consistency", "predicate": "cross-artifact-consistency", "targetRefs": ["review-report", "law-deliverable"], "statement": "Structured review evidence agrees with classification and deliverable presence." }
+  ]
+}

@@ -1,0 +1,2439 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-shadow-report/v1",
+  "catalogId": "method-portfolio-domain-shadow-v1",
+  "catalogSha256": "0424867dd1d4e2720a4bfc0edbef685b551465d5af46519a501e0604bb841b72",
+  "measurementStartedAt": "2026-08-24T06:22:53.702Z",
+  "measurementCompletedAt": "2026-08-24T06:57:29.7377351Z",
+  "implementation": [
+    {
+      "path": "src/benchmarks/skill-ir/automatic-construction.ts",
+      "sha256": "90183c6da2fb6a5668cd6d8fff464a3ca0f6202e5c62e464dfd42aaaeb20176f"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-domain-construction.ts",
+      "sha256": "db2624f195cbd33be9a2f3003865c0870e8373b32bc90f750fc76512eff7eb3c"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-domain-construction-shadow.ts",
+      "sha256": "cac453aaa80d526af0776d542aa1ebc398c7d3527c3bf8465a1487ea41131c22"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-domain-construction-shadow-run.ts",
+      "sha256": "e01ac6975deda27ca1619e4102298c9f50ec9e67dc03f5ce327e673b3da56733"
+    }
+  ],
+  "candidateFreezeCompletedBeforeShadowRead": true,
+  "generationFreeze": [
+    {
+      "caseId": "env-manager",
+      "candidateDigest": "50ff989a800a27181bdb25999f1e1674cedef85b9401bbbe73a791f1322a642d"
+    },
+    {
+      "caseId": "law-to-markdown",
+      "candidateDigest": "c3f651bba0b35a0d95dfb011a358b8495089e22fd8b73076b84430d77f88eaa9"
+    },
+    {
+      "caseId": "experimental-design",
+      "candidateDigest": "7290f3a149de29dae017dc9b0eef8adaf324d23eca5c3ac5d4b45bc9f32321ea"
+    },
+    {
+      "caseId": "api-tester",
+      "candidateDigest": "07900a0e3b1612bfd035895cd900ceb4861cfbcf80bb490b3f64cef150cd7670"
+    },
+    {
+      "caseId": "zh-code-reviewer",
+      "candidateDigest": "46e8f06f4b4a2e0e50e98766444f34361c2ef4e722f92848f388c2cec3907d80"
+    },
+    {
+      "caseId": "zh-readme",
+      "candidateDigest": "1a9e8a26fe40c8bf4d228f8a2015bf5803e92c1b4836982e4785f528526702bf"
+    },
+    {
+      "caseId": "i18n-helper",
+      "candidateDigest": "b8bd0fa86c8ca4e6ba452ccc8c32b5a393ed9b225b612ee86d52990cc1436fa9"
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "env-manager",
+      "methodSequence": 1,
+      "candidateDigest": "50ff989a800a27181bdb25999f1e1674cedef85b9401bbbe73a791f1322a642d",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+        "benchmarks/skill-ir/task-descriptions/env-manager.json"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/public-interface.json",
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/base-ir.json",
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/static-development-lock-v1.json",
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/node/package-manifest.json",
+        "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/vite/package-manifest.json"
+      ],
+      "adaptation": {
+        "declarationStatus": "within-limit",
+        "declarationLoc": 24,
+        "declarationSemanticEntries": 17,
+        "declarationHumanMinutes": 3,
+        "declarationMeasurementStartedAt": "2026-08-24T06:22:53.702Z",
+        "declarationMeasurementCompletedAt": "2026-08-24T06:37:27.986Z",
+        "adapterLoc": 0,
+        "coreBranchDelta": 0
+      },
+      "semanticAccounting": {
+        "fromSkillSource": {
+          "units": [
+            {
+              "id": "step-01",
+              "kind": "workflow-step",
+              "value": "1. 扫描项目"
+            },
+            {
+              "id": "step-02",
+              "kind": "workflow-step",
+              "value": "2. 校验分析"
+            },
+            {
+              "id": "step-03",
+              "kind": "workflow-step",
+              "value": "3. 生成/修复"
+            },
+            {
+              "id": "step-04",
+              "kind": "workflow-step",
+              "value": "4. 同步"
+            },
+            {
+              "id": "rule-01",
+              "kind": "rule",
+              "value": "[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret"
+            },
+            {
+              "id": "rule-02",
+              "kind": "rule",
+              "value": "[ ] `.env` 已添加到 `.gitignore`"
+            },
+            {
+              "id": "rule-03",
+              "kind": "rule",
+              "value": "[ ] `.env.example` 存在且与代码同步"
+            },
+            {
+              "id": "rule-04",
+              "kind": "rule",
+              "value": "[ ] 无硬编码的 API Key / Token / Password"
+            },
+            {
+              "id": "rule-05",
+              "kind": "rule",
+              "value": "[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）"
+            },
+            {
+              "id": "rule-06",
+              "kind": "rule",
+              "value": "[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）"
+            },
+            {
+              "id": "rule-07",
+              "kind": "rule",
+              "value": "[ ] 数据库密码不在日志中输出"
+            },
+            {
+              "id": "rule-08",
+              "kind": "rule",
+              "value": "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。"
+            },
+            {
+              "id": "rule-09",
+              "kind": "rule",
+              "value": "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。"
+            },
+            {
+              "id": "rule-10",
+              "kind": "rule",
+              "value": "不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。"
+            },
+            {
+              "id": "rule-11",
+              "kind": "rule",
+              "value": "**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀"
+            },
+            {
+              "id": "rule-12",
+              "kind": "rule",
+              "value": "**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆"
+            },
+            {
+              "id": "rule-13",
+              "kind": "rule",
+              "value": "**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入"
+            },
+            {
+              "id": "rule-14",
+              "kind": "rule",
+              "value": "**Vite**：使用 `VITE_` 前缀暴露变量给客户端"
+            },
+            {
+              "id": "rule-15",
+              "kind": "rule",
+              "value": "**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置"
+            },
+            {
+              "id": "output-01",
+              "kind": "output-description",
+              "value": "Result described by the public skill source."
+            }
+          ]
+        },
+        "fromTaskDeclaration": {
+          "units": [
+            {
+              "id": "environment-file",
+              "kind": "input",
+              "value": ".env"
+            },
+            {
+              "id": "project-source",
+              "kind": "input",
+              "value": "<project-source-files>"
+            },
+            {
+              "id": "public-interface",
+              "kind": "input",
+              "value": "env-audit-interface.json"
+            },
+            {
+              "id": "environment-example",
+              "kind": "output",
+              "value": ".env.example"
+            },
+            {
+              "id": "environment-schema",
+              "kind": "output",
+              "value": ".env.schema.json"
+            },
+            {
+              "id": "environment-report",
+              "kind": "output",
+              "value": "env-report.json"
+            },
+            {
+              "id": "inputs-stable",
+              "kind": "pass-criterion",
+              "value": "Every initial workspace entry remains unchanged."
+            },
+            {
+              "id": "outputs-exact",
+              "kind": "pass-criterion",
+              "value": "Only the three declared audit artifacts are created."
+            },
+            {
+              "id": "report-shape",
+              "kind": "pass-criterion",
+              "value": "The report contains all declared finding collections."
+            },
+            {
+              "id": "environment-classification",
+              "kind": "pass-criterion",
+              "value": "Defined, referenced, missing, and sensitive variables follow observable workspace evidence."
+            },
+            {
+              "id": "artifact-consistency",
+              "kind": "pass-criterion",
+              "value": "Example, schema, and report describe the same variable inventory and requiredness."
+            },
+            {
+              "id": "secret-redaction",
+              "kind": "pass-criterion",
+              "value": "Sensitive values are never copied into generated artifacts."
+            }
+          ]
+        },
+        "automationProduced": {
+          "contractBindings": 12,
+          "irTaskAbiBindings": 6,
+          "validationPredicates": 6,
+          "genericDeterministicPredicates": 3
+        },
+        "stillRequiresHuman": [
+          {
+            "id": "runtime-environment-classification",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "environment-file",
+              "project-source",
+              "environment-report"
+            ],
+            "reason": "environment-classification requires a domain runtime implementation: Defined, referenced, missing, and sensitive variables follow observable workspace evidence."
+          },
+          {
+            "id": "runtime-artifact-consistency",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "environment-example",
+              "environment-schema",
+              "environment-report"
+            ],
+            "reason": "artifact-consistency requires a domain runtime implementation: Example, schema, and report describe the same variable inventory and requiredness."
+          },
+          {
+            "id": "runtime-secret-redaction",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "environment-file",
+              "environment-example",
+              "environment-report"
+            ],
+            "reason": "secret-redaction requires a domain runtime implementation: Sensitive values are never copied into generated artifacts."
+          },
+          {
+            "id": "package-environment-example",
+            "kind": "artifact-compiler",
+            "targetRefs": [
+              "environment-example",
+              "environment-schema",
+              "environment-report"
+            ],
+            "reason": "no qualified compiler emits .env.example, .env.schema.json, env-report.json and binds its domain-runtime validation"
+          }
+        ]
+      },
+      "semanticGap": [
+        {
+          "id": "runtime-environment-classification",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "environment-file",
+            "project-source",
+            "environment-report"
+          ],
+          "reason": "environment-classification requires a domain runtime implementation: Defined, referenced, missing, and sensitive variables follow observable workspace evidence."
+        },
+        {
+          "id": "runtime-artifact-consistency",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "environment-example",
+            "environment-schema",
+            "environment-report"
+          ],
+          "reason": "artifact-consistency requires a domain runtime implementation: Example, schema, and report describe the same variable inventory and requiredness."
+        },
+        {
+          "id": "runtime-secret-redaction",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "environment-file",
+            "environment-example",
+            "environment-report"
+          ],
+          "reason": "secret-redaction requires a domain runtime implementation: Sensitive values are never copied into generated artifacts."
+        },
+        {
+          "id": "package-environment-example",
+          "kind": "artifact-compiler",
+          "targetRefs": [
+            "environment-example",
+            "environment-schema",
+            "environment-report"
+          ],
+          "reason": "no qualified compiler emits .env.example, .env.schema.json, env-report.json and binds its domain-runtime validation"
+        }
+      ],
+      "manualComparison": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/public-interface.json"
+          ],
+          "sha256": [
+            "864f629ed22692dd94a523b7f2a417b1fc0d4317e87d5bf6227d69b29ec30ee6"
+          ],
+          "declaredPathMatches": 3
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/base-ir.json"
+          ],
+          "sha256": [
+            "301be846a10a11ece823a9c58b9a1233360b70bccb05bbec02f782b946b6f53e"
+          ],
+          "inputIdMatches": 0,
+          "outputIdMatches": 0,
+          "checkIdMatches": 0,
+          "exactSourceRuleMatches": 0
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/static-development-lock-v1.json"
+          ],
+          "sha256": [
+            "a0be63a32d819498c7df91022800f6ab6afb9da2d708ec543093a0c3bba8dca2"
+          ]
+        },
+        "package": {
+          "status": "compared",
+          "manualCount": 2,
+          "schemaValidCount": 2,
+          "paths": [
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/node/package-manifest.json",
+            "benchmarks/skill-ir/pilots/env-manager/successor-v3/packages/validated-skill-artifact-v1/vite/package-manifest.json"
+          ],
+          "sha256": [
+            "01d7146e560d8e397e0f7b9abbefffcdcff45968d74b6a5c2d86980bc329cb99",
+            "739bafc91ff8f035a16d2eeec2073dea1ea61090440e80abfa7bb7473ff304f9"
+          ]
+        },
+        "semanticParity": "not-established"
+      },
+      "semanticParity": "not-established",
+      "eligibility": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      }
+    },
+    {
+      "caseId": "law-to-markdown",
+      "methodSequence": 2,
+      "candidateDigest": "c3f651bba0b35a0d95dfb011a358b8495089e22fd8b73076b84430d77f88eaa9",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+        "benchmarks/skill-ir/task-descriptions/law-to-markdown.json"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json",
+        "benchmarks/skill-ir/pilots/law-to-markdown/base-ir.json",
+        "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/validation-policy.json",
+        "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/package-manifest.json"
+      ],
+      "adaptation": {
+        "declarationStatus": "within-limit",
+        "declarationLoc": 22,
+        "declarationSemanticEntries": 14,
+        "declarationHumanMinutes": 2,
+        "declarationMeasurementStartedAt": "2026-08-24T06:22:53.702Z",
+        "declarationMeasurementCompletedAt": "2026-08-24T06:37:27.986Z",
+        "adapterLoc": 0,
+        "coreBranchDelta": 0
+      },
+      "semanticAccounting": {
+        "fromSkillSource": {
+          "units": [
+            {
+              "id": "step-01",
+              "kind": "workflow-step",
+              "value": "输入为 `.txt`：直接转存为 `.md`。"
+            },
+            {
+              "id": "step-02",
+              "kind": "workflow-step",
+              "value": "输入为 `.pdf` / `.docx`："
+            },
+            {
+              "id": "step-03",
+              "kind": "workflow-step",
+              "value": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）："
+            },
+            {
+              "id": "step-04",
+              "kind": "workflow-step",
+              "value": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。"
+            },
+            {
+              "id": "step-05",
+              "kind": "workflow-step",
+              "value": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。"
+            },
+            {
+              "id": "step-06",
+              "kind": "workflow-step",
+              "value": "默认执行第三阶段检查（双子阶段，硬门槛）："
+            },
+            {
+              "id": "rule-01",
+              "kind": "rule",
+              "value": "输入为 `.txt`：直接转存为 `.md`。"
+            },
+            {
+              "id": "rule-02",
+              "kind": "rule",
+              "value": "输入为 `.pdf` / `.docx`："
+            },
+            {
+              "id": "rule-03",
+              "kind": "rule",
+              "value": "先检查是否已安装 `mineru-ocr` skill。"
+            },
+            {
+              "id": "rule-04",
+              "kind": "rule",
+              "value": "未安装：提示先安装 `mineru-ocr`，安装地址："
+            },
+            {
+              "id": "rule-05",
+              "kind": "rule",
+              "value": "已安装：优先调用 `mineru-ocr` 处理。"
+            },
+            {
+              "id": "rule-06",
+              "kind": "rule",
+              "value": "调用失败：先提示检查 `mineru-ocr` 配置/Token。"
+            },
+            {
+              "id": "rule-07",
+              "kind": "rule",
+              "value": "仅当用户明确同意时，才使用本地回退（`python-docx` / `pdfplumber`）。"
+            },
+            {
+              "id": "rule-08",
+              "kind": "rule",
+              "value": "第一阶段完成后默认执行第二阶段格式调整（仅格式，不改原文字符）："
+            },
+            {
+              "id": "rule-09",
+              "kind": "rule",
+              "value": "由调用该 skill 的大模型先判断“法律/非法律”，并把结果传给脚本。"
+            },
+            {
+              "id": "rule-10",
+              "kind": "rule",
+              "value": "若调用方未传结果，则脚本使用硬规则自动识别（`--law-decision auto`）。"
+            },
+            {
+              "id": "rule-11",
+              "kind": "rule",
+              "value": "法律名称 `#`"
+            },
+            {
+              "id": "rule-12",
+              "kind": "rule",
+              "value": "编/分编 `##`"
+            },
+            {
+              "id": "rule-13",
+              "kind": "rule",
+              "value": "章 `###`"
+            },
+            {
+              "id": "rule-14",
+              "kind": "rule",
+              "value": "节 `####`"
+            },
+            {
+              "id": "rule-15",
+              "kind": "rule",
+              "value": "条 `#####`（仅“第X条”为标题；`第X条【条标】`整行为标题不拆）"
+            },
+            {
+              "id": "rule-16",
+              "kind": "rule",
+              "value": "款/项/目无标题"
+            },
+            {
+              "id": "rule-17",
+              "kind": "rule",
+              "value": "项、目按标记换行"
+            },
+            {
+              "id": "rule-18",
+              "kind": "rule",
+              "value": "清理多余空格：去行尾空格、去行首 ASCII 空格、去正文行首全角缩进、规范标题后的空格"
+            },
+            {
+              "id": "rule-19",
+              "kind": "rule",
+              "value": "若识别为明显非法律文本（如 GB/标准类文档），第二阶段明确拒绝：`Stage2: rejected (non-law-document)`。"
+            },
+            {
+              "id": "rule-20",
+              "kind": "rule",
+              "value": "若第二阶段未识别法律结构或保真校验失败，则自动 no-op，不改文本。"
+            },
+            {
+              "id": "rule-21",
+              "kind": "rule",
+              "value": "默认执行第三阶段检查（双子阶段，硬门槛）："
+            },
+            {
+              "id": "rule-22",
+              "kind": "rule",
+              "value": "Stage3-A：校验 `stage2` 相对 `stage1` 的文字内容准确性（去标题符号与空白后字符流必须一致）"
+            },
+            {
+              "id": "rule-23",
+              "kind": "rule",
+              "value": "Stage3-B：校验结构效果（结构层级、条标题规则、非法律策略、空格规范、项/目换行）"
+            },
+            {
+              "id": "rule-24",
+              "kind": "rule",
+              "value": "任一失败触发自动重走，最多 2 次；仍失败默认报错退出"
+            },
+            {
+              "id": "rule-25",
+              "kind": "rule",
+              "value": "默认输出到输入文件同目录的 `markdown/` 子目录，并按输入文件名创建独立目录："
+            },
+            {
+              "id": "rule-26",
+              "kind": "rule",
+              "value": "`markdown/<文件名>/`"
+            },
+            {
+              "id": "rule-27",
+              "kind": "rule",
+              "value": "默认（`--artifact-level minimal`）输出："
+            },
+            {
+              "id": "rule-28",
+              "kind": "rule",
+              "value": "`<原文件名>+审核报告.md`（详细过程和结论）"
+            },
+            {
+              "id": "rule-29",
+              "kind": "rule",
+              "value": "`<原文件名>+最终成果.md`（仅法律文本且审核通过时生成）"
+            },
+            {
+              "id": "rule-30",
+              "kind": "rule",
+              "value": "非法律文档（如 GB/标准类）："
+            },
+            {
+              "id": "rule-31",
+              "kind": "rule",
+              "value": "结论为“拒绝处理”"
+            },
+            {
+              "id": "rule-32",
+              "kind": "rule",
+              "value": "仅输出 `<原文件名>+审核报告.md`"
+            },
+            {
+              "id": "output-01",
+              "kind": "output-description",
+              "value": "默认输出到输入文件同目录的 `markdown/` 子目录，并按输入文件名创建独立目录："
+            },
+            {
+              "id": "output-02",
+              "kind": "output-description",
+              "value": "`markdown/<文件名>/`"
+            },
+            {
+              "id": "output-03",
+              "kind": "output-description",
+              "value": "默认（`--artifact-level minimal`）输出："
+            },
+            {
+              "id": "output-04",
+              "kind": "output-description",
+              "value": "`<原文件名>+审核报告.md`（详细过程和结论）"
+            },
+            {
+              "id": "output-05",
+              "kind": "output-description",
+              "value": "`<原文件名>+最终成果.md`（仅法律文本且审核通过时生成）"
+            },
+            {
+              "id": "output-06",
+              "kind": "output-description",
+              "value": "非法律文档（如 GB/标准类）："
+            },
+            {
+              "id": "output-07",
+              "kind": "output-description",
+              "value": "结论为“拒绝处理”"
+            },
+            {
+              "id": "output-08",
+              "kind": "output-description",
+              "value": "仅输出 `<原文件名>+审核报告.md`"
+            },
+            {
+              "id": "output-09",
+              "kind": "output-description",
+              "value": "不输出 `<原文件名>+最终成果.md`"
+            },
+            {
+              "id": "output-10",
+              "kind": "output-description",
+              "value": "审核未通过时会自动保留过程文件用于排查："
+            },
+            {
+              "id": "output-11",
+              "kind": "output-description",
+              "value": "`<文件名>.stage1.md`"
+            },
+            {
+              "id": "output-12",
+              "kind": "output-description",
+              "value": "`<文件名>.stage2.md`"
+            },
+            {
+              "id": "output-13",
+              "kind": "output-description",
+              "value": "`<文件名>.stage3-check.md`"
+            },
+            {
+              "id": "output-14",
+              "kind": "output-description",
+              "value": "若需更多产物可切换："
+            },
+            {
+              "id": "output-15",
+              "kind": "output-description",
+              "value": "`--artifact-level standard`：保留 `stage1/stage2/stage3-check`"
+            },
+            {
+              "id": "output-16",
+              "kind": "output-description",
+              "value": "`--artifact-level debug`：保留全部调试产物"
+            }
+          ]
+        },
+        "fromTaskDeclaration": {
+          "units": [
+            {
+              "id": "document",
+              "kind": "input",
+              "value": "document.txt"
+            },
+            {
+              "id": "public-contract",
+              "kind": "input",
+              "value": "law-contract.json"
+            },
+            {
+              "id": "review-report",
+              "kind": "output",
+              "value": "markdown/document/document+审核报告.md"
+            },
+            {
+              "id": "law-deliverable",
+              "kind": "output",
+              "value": "markdown/document/document+最终成果.md"
+            },
+            {
+              "id": "inputs-stable",
+              "kind": "pass-criterion",
+              "value": "The source document and public contract remain unchanged."
+            },
+            {
+              "id": "outputs-exact",
+              "kind": "pass-criterion",
+              "value": "No undeclared file is created and the optional deliverable follows classification."
+            },
+            {
+              "id": "document-classification",
+              "kind": "pass-criterion",
+              "value": "Law versus non-law classification follows observable title and article markers."
+            },
+            {
+              "id": "legal-fidelity",
+              "kind": "pass-criterion",
+              "value": "A legal deliverable preserves the source character stream apart from Markdown markers and whitespace."
+            },
+            {
+              "id": "legal-structure",
+              "kind": "pass-criterion",
+              "value": "Markdown heading levels and enumerated-item layout follow the declared legal hierarchy."
+            },
+            {
+              "id": "review-consistency",
+              "kind": "pass-criterion",
+              "value": "Structured review evidence agrees with classification and deliverable presence."
+            }
+          ]
+        },
+        "automationProduced": {
+          "contractBindings": 10,
+          "irTaskAbiBindings": 4,
+          "validationPredicates": 6,
+          "genericDeterministicPredicates": 2
+        },
+        "stillRequiresHuman": [
+          {
+            "id": "runtime-document-classification",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "document",
+              "review-report",
+              "law-deliverable"
+            ],
+            "reason": "document-classification requires a domain runtime implementation: Law versus non-law classification follows observable title and article markers."
+          },
+          {
+            "id": "runtime-legal-fidelity",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "document",
+              "law-deliverable"
+            ],
+            "reason": "legal-fidelity requires a domain runtime implementation: A legal deliverable preserves the source character stream apart from Markdown markers and whitespace."
+          },
+          {
+            "id": "runtime-legal-structure",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "document",
+              "law-deliverable"
+            ],
+            "reason": "legal-structure requires a domain runtime implementation: Markdown heading levels and enumerated-item layout follow the declared legal hierarchy."
+          },
+          {
+            "id": "runtime-review-consistency",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "review-report",
+              "law-deliverable"
+            ],
+            "reason": "review-consistency requires a domain runtime implementation: Structured review evidence agrees with classification and deliverable presence."
+          },
+          {
+            "id": "package-review-report",
+            "kind": "artifact-compiler",
+            "targetRefs": [
+              "review-report",
+              "law-deliverable"
+            ],
+            "reason": "no qualified compiler emits markdown/document/document+审核报告.md, markdown/document/document+最终成果.md and binds its domain-runtime validation"
+          }
+        ]
+      },
+      "semanticGap": [
+        {
+          "id": "runtime-document-classification",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "document",
+            "review-report",
+            "law-deliverable"
+          ],
+          "reason": "document-classification requires a domain runtime implementation: Law versus non-law classification follows observable title and article markers."
+        },
+        {
+          "id": "runtime-legal-fidelity",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "document",
+            "law-deliverable"
+          ],
+          "reason": "legal-fidelity requires a domain runtime implementation: A legal deliverable preserves the source character stream apart from Markdown markers and whitespace."
+        },
+        {
+          "id": "runtime-legal-structure",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "document",
+            "law-deliverable"
+          ],
+          "reason": "legal-structure requires a domain runtime implementation: Markdown heading levels and enumerated-item layout follow the declared legal hierarchy."
+        },
+        {
+          "id": "runtime-review-consistency",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "review-report",
+            "law-deliverable"
+          ],
+          "reason": "review-consistency requires a domain runtime implementation: Structured review evidence agrees with classification and deliverable presence."
+        },
+        {
+          "id": "package-review-report",
+          "kind": "artifact-compiler",
+          "targetRefs": [
+            "review-report",
+            "law-deliverable"
+          ],
+          "reason": "no qualified compiler emits markdown/document/document+审核报告.md, markdown/document/document+最终成果.md and binds its domain-runtime validation"
+        }
+      ],
+      "manualComparison": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/law-to-markdown/v3/public-contract.json"
+          ],
+          "sha256": [
+            "58bfc8ec0a982d29af31f8d694ae8946815b6338abf76ce052033dd7bc4b47e8"
+          ],
+          "declaredPathMatches": 4
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/law-to-markdown/base-ir.json"
+          ],
+          "sha256": [
+            "fd00e8f858f72b2394849c8f0d6864b593150aca9dfc8b23b205211d5512ffb3"
+          ],
+          "inputIdMatches": 0,
+          "outputIdMatches": 1,
+          "checkIdMatches": 0,
+          "exactSourceRuleMatches": 0
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/validation-policy.json"
+          ],
+          "sha256": [
+            "108fc52e7f0155c0066a0517371944c1ef948f0ee5fa24b8cc4b8944d3b848d6"
+          ]
+        },
+        "package": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/law-to-markdown/packages/validated-skill-artifact-v1/package-manifest.json"
+          ],
+          "sha256": [
+            "bb614f8bcc1a72fc92584c4c214454bbb53bf766084918dd3adf30aa3116e1a8"
+          ]
+        },
+        "semanticParity": "not-established"
+      },
+      "semanticParity": "not-established",
+      "eligibility": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      }
+    },
+    {
+      "caseId": "experimental-design",
+      "methodSequence": 3,
+      "candidateDigest": "7290f3a149de29dae017dc9b0eef8adaf324d23eca5c3ac5d4b45bc9f32321ea",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+        "benchmarks/skill-ir/task-descriptions/experimental-design.json"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/public-interface.json",
+        "benchmarks/skill-ir/pilots/experimental-design/base-ir.json",
+        "benchmarks/skill-ir/pilots/experimental-design/v2/packages/validated-skill-artifact-v1/validation-policy.json",
+        "benchmarks/skill-ir/pilots/experimental-design/v2/packages/validated-skill-artifact-v1/package-manifest.json"
+      ],
+      "adaptation": {
+        "declarationStatus": "within-limit",
+        "declarationLoc": 21,
+        "declarationSemanticEntries": 20,
+        "declarationHumanMinutes": 2,
+        "declarationMeasurementStartedAt": "2026-08-24T06:22:53.702Z",
+        "declarationMeasurementCompletedAt": "2026-08-24T06:37:27.986Z",
+        "adapterLoc": 0,
+        "coreBranchDelta": 0
+      },
+      "semanticAccounting": {
+        "fromSkillSource": {
+          "units": [
+            {
+              "id": "step-01",
+              "kind": "workflow-step",
+              "value": "**State the question, the unit, and the response.** What is randomized? What is"
+            },
+            {
+              "id": "step-02",
+              "kind": "workflow-step",
+              "value": "**List nuisance factors** (batch, day, site, operator, position) — plan to block,"
+            },
+            {
+              "id": "step-03",
+              "kind": "workflow-step",
+              "value": "**Pick the design** using the decision tree and reference files."
+            },
+            {
+              "id": "step-04",
+              "kind": "workflow-step",
+              "value": "**Decide replication** at the correct level (and get n from the"
+            },
+            {
+              "id": "step-05",
+              "kind": "workflow-step",
+              "value": "**Generate the layout** with `randomization.py` / `doe_designs.py`, seeded."
+            },
+            {
+              "id": "step-06",
+              "kind": "workflow-step",
+              "value": "**Randomize run/processing order** and plate/batch positions."
+            },
+            {
+              "id": "step-07",
+              "kind": "workflow-step",
+              "value": "**Document** the design, seed, and schedule (pre-register if possible) so the"
+            },
+            {
+              "id": "step-08",
+              "kind": "workflow-step",
+              "value": "**Match the analysis to the design** — blocks, strata, clusters, and nesting must"
+            },
+            {
+              "id": "rule-01",
+              "kind": "rule",
+              "value": "**Pseudoreplication.** Treating repeated measurements of one unit as independent"
+            },
+            {
+              "id": "rule-02",
+              "kind": "rule",
+              "value": "**Confounding by a nuisance variable.** Running all treatment samples on Monday"
+            },
+            {
+              "id": "rule-03",
+              "kind": "rule",
+              "value": "**No or broken randomization.** Convenience assignment (first-come → treatment)"
+            },
+            {
+              "id": "rule-04",
+              "kind": "rule",
+              "value": "**No proper control.** Without a concurrent control (and, where relevant, a"
+            },
+            {
+              "id": "rule-05",
+              "kind": "rule",
+              "value": "**Batch effects mistaken for biology.** In omics especially, process samples in a"
+            },
+            {
+              "id": "rule-06",
+              "kind": "rule",
+              "value": "**Edge/position effects on plates.** Evaporation and thermal gradients make plate"
+            },
+            {
+              "id": "rule-07",
+              "kind": "rule",
+              "value": "**Aliasing ignored in fractional designs.** A low-resolution fractional factorial"
+            },
+            {
+              "id": "rule-08",
+              "kind": "rule",
+              "value": "**Optimizing without curvature.** A two-level factorial can't detect a curved"
+            },
+            {
+              "id": "output-01",
+              "kind": "output-description",
+              "value": "Result described by the public skill source."
+            }
+          ]
+        },
+        "fromTaskDeclaration": {
+          "units": [
+            {
+              "id": "study-graph",
+              "kind": "input",
+              "value": "study-graph.json"
+            },
+            {
+              "id": "public-interface",
+              "kind": "input",
+              "value": "analysis-interface.json"
+            },
+            {
+              "id": "replication-plan",
+              "kind": "output",
+              "value": "design/replication-plan.json"
+            },
+            {
+              "id": "analysis-plan",
+              "kind": "output",
+              "value": "design/analysis-plan.json"
+            },
+            {
+              "id": "inputs-stable",
+              "kind": "pass-criterion",
+              "value": "The study graph and public interface remain unchanged."
+            },
+            {
+              "id": "outputs-exact",
+              "kind": "pass-criterion",
+              "value": "Exactly the two declared plans are created."
+            },
+            {
+              "id": "plan-shapes",
+              "kind": "pass-criterion",
+              "value": "Both plans contain their declared top-level fields."
+            },
+            {
+              "id": "replication-grounding",
+              "kind": "pass-criterion",
+              "value": "Independent replicate unit and count follow treatment assignment and entity totals."
+            },
+            {
+              "id": "analysis-alignment",
+              "kind": "pass-criterion",
+              "value": "Measurement, analysis, and grouping units respect the declared entity hierarchy."
+            }
+          ]
+        },
+        "automationProduced": {
+          "contractBindings": 9,
+          "irTaskAbiBindings": 4,
+          "validationPredicates": 5,
+          "genericDeterministicPredicates": 3
+        },
+        "stillRequiresHuman": [
+          {
+            "id": "runtime-replication-grounding",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "study-graph",
+              "replication-plan"
+            ],
+            "reason": "replication-grounding requires a domain runtime implementation: Independent replicate unit and count follow treatment assignment and entity totals."
+          },
+          {
+            "id": "runtime-analysis-alignment",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "study-graph",
+              "replication-plan",
+              "analysis-plan"
+            ],
+            "reason": "analysis-alignment requires a domain runtime implementation: Measurement, analysis, and grouping units respect the declared entity hierarchy."
+          },
+          {
+            "id": "package-replication-plan",
+            "kind": "artifact-compiler",
+            "targetRefs": [
+              "replication-plan",
+              "analysis-plan"
+            ],
+            "reason": "no qualified compiler emits design/replication-plan.json, design/analysis-plan.json and binds its domain-runtime validation"
+          }
+        ]
+      },
+      "semanticGap": [
+        {
+          "id": "runtime-replication-grounding",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "study-graph",
+            "replication-plan"
+          ],
+          "reason": "replication-grounding requires a domain runtime implementation: Independent replicate unit and count follow treatment assignment and entity totals."
+        },
+        {
+          "id": "runtime-analysis-alignment",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "study-graph",
+            "replication-plan",
+            "analysis-plan"
+          ],
+          "reason": "analysis-alignment requires a domain runtime implementation: Measurement, analysis, and grouping units respect the declared entity hierarchy."
+        },
+        {
+          "id": "package-replication-plan",
+          "kind": "artifact-compiler",
+          "targetRefs": [
+            "replication-plan",
+            "analysis-plan"
+          ],
+          "reason": "no qualified compiler emits design/replication-plan.json, design/analysis-plan.json and binds its domain-runtime validation"
+        }
+      ],
+      "manualComparison": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/public-interface.json"
+          ],
+          "sha256": [
+            "725e393ba6e40c6cf0e9f445acce73a0d6d0a33a5c8014c86553cd1d642e2271"
+          ],
+          "declaredPathMatches": 4
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/experimental-design/base-ir.json"
+          ],
+          "sha256": [
+            "3f5602a4ad32b0cc11757b16716b6a12712789ab87c1ea33e9bde7dd114ee264"
+          ],
+          "inputIdMatches": 0,
+          "outputIdMatches": 0,
+          "checkIdMatches": 0,
+          "exactSourceRuleMatches": 0
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/experimental-design/v2/packages/validated-skill-artifact-v1/validation-policy.json"
+          ],
+          "sha256": [
+            "fa27cdc20bdbb699cf1a05d164e605a687aaa586071d29e4ce7012a755068e65"
+          ]
+        },
+        "package": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/experimental-design/v2/packages/validated-skill-artifact-v1/package-manifest.json"
+          ],
+          "sha256": [
+            "939797a86e42e7e0db3a4447eef34a6323a054a9e54994d1b0937a4436675495"
+          ]
+        },
+        "semanticParity": "not-established"
+      },
+      "semanticParity": "not-established",
+      "eligibility": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      }
+    },
+    {
+      "caseId": "api-tester",
+      "methodSequence": 4,
+      "candidateDigest": "07900a0e3b1612bfd035895cd900ceb4861cfbcf80bb490b3f64cef150cd7670",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+        "benchmarks/skill-ir/task-descriptions/api-tester.json"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/api-tester/public-interface.json",
+        "benchmarks/skill-ir/pilots/api-tester/base-ir.json",
+        "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json/validation-policy.json",
+        "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml/validation-policy.json",
+        "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json/package-manifest.json",
+        "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml/package-manifest.json"
+      ],
+      "adaptation": {
+        "declarationStatus": "within-limit",
+        "declarationLoc": 23,
+        "declarationSemanticEntries": 20,
+        "declarationHumanMinutes": 2,
+        "declarationMeasurementStartedAt": "2026-08-24T06:22:53.702Z",
+        "declarationMeasurementCompletedAt": "2026-08-24T06:37:27.986Z",
+        "adapterLoc": 0,
+        "coreBranchDelta": 0
+      },
+      "semanticAccounting": {
+        "fromSkillSource": {
+          "units": [
+            {
+              "id": "step-01",
+              "kind": "workflow-step",
+              "value": "第 1 步：发现 API"
+            },
+            {
+              "id": "step-02",
+              "kind": "workflow-step",
+              "value": "第 2 步：生成测试用例"
+            },
+            {
+              "id": "step-03",
+              "kind": "workflow-step",
+              "value": "第 3 步：生成测试代码"
+            },
+            {
+              "id": "step-04",
+              "kind": "workflow-step",
+              "value": "第 4 步：测试数据生成"
+            },
+            {
+              "id": "step-05",
+              "kind": "workflow-step",
+              "value": "第 5 步：执行和复测"
+            },
+            {
+              "id": "rule-01",
+              "kind": "rule",
+              "value": "测试用例应独立运行，不依赖执行顺序"
+            },
+            {
+              "id": "rule-02",
+              "kind": "rule",
+              "value": "使用 `beforeEach` 或 fixture 管理测试数据的初始化和清理"
+            },
+            {
+              "id": "rule-03",
+              "kind": "rule",
+              "value": "敏感信息（API Key、Token）使用环境变量，不要硬编码"
+            },
+            {
+              "id": "rule-04",
+              "kind": "rule",
+              "value": "集成测试建议使用独立的测试数据库"
+            },
+            {
+              "id": "rule-05",
+              "kind": "rule",
+              "value": "关注响应时间，添加超时断言"
+            },
+            {
+              "id": "output-01",
+              "kind": "output-description",
+              "value": "Result described by the public skill source."
+            }
+          ]
+        },
+        "fromTaskDeclaration": {
+          "units": [
+            {
+              "id": "api-definition",
+              "kind": "input",
+              "value": "<task-openapi-path>"
+            },
+            {
+              "id": "public-interface",
+              "kind": "input",
+              "value": "api-test-interface.json"
+            },
+            {
+              "id": "generator",
+              "kind": "output",
+              "value": "api-test-generator.mjs"
+            },
+            {
+              "id": "test-plan",
+              "kind": "output",
+              "value": "generated/api-test-plan.json"
+            },
+            {
+              "id": "test-report",
+              "kind": "output",
+              "value": "api-test-report.json"
+            },
+            {
+              "id": "inputs-stable",
+              "kind": "pass-criterion",
+              "value": "The API definition and public interface remain unchanged."
+            },
+            {
+              "id": "outputs-exact",
+              "kind": "pass-criterion",
+              "value": "Exactly the generator, plan, and report are created."
+            },
+            {
+              "id": "json-shapes",
+              "kind": "pass-criterion",
+              "value": "Plan and report contain the declared top-level fields."
+            },
+            {
+              "id": "generator-execution",
+              "kind": "pass-criterion",
+              "value": "The offline command exits successfully and deterministically writes the requested plan."
+            },
+            {
+              "id": "operation-coverage",
+              "kind": "pass-criterion",
+              "value": "Every documented operation and public request constraint is represented in the plan."
+            },
+            {
+              "id": "verification-consistency",
+              "kind": "pass-criterion",
+              "value": "Report verification claims agree with generator execution and plan contents."
+            }
+          ]
+        },
+        "automationProduced": {
+          "contractBindings": 11,
+          "irTaskAbiBindings": 5,
+          "validationPredicates": 6,
+          "genericDeterministicPredicates": 3
+        },
+        "stillRequiresHuman": [
+          {
+            "id": "runtime-generator-execution",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "api-definition",
+              "generator",
+              "test-plan"
+            ],
+            "reason": "generator-execution requires a domain runtime implementation: The offline command exits successfully and deterministically writes the requested plan."
+          },
+          {
+            "id": "runtime-operation-coverage",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "api-definition",
+              "test-plan"
+            ],
+            "reason": "operation-coverage requires a domain runtime implementation: Every documented operation and public request constraint is represented in the plan."
+          },
+          {
+            "id": "runtime-verification-consistency",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "generator",
+              "test-plan",
+              "test-report"
+            ],
+            "reason": "verification-consistency requires a domain runtime implementation: Report verification claims agree with generator execution and plan contents."
+          },
+          {
+            "id": "package-generator",
+            "kind": "artifact-compiler",
+            "targetRefs": [
+              "generator",
+              "test-plan",
+              "test-report"
+            ],
+            "reason": "no qualified compiler emits api-test-generator.mjs, generated/api-test-plan.json, api-test-report.json and binds its domain-runtime validation"
+          }
+        ]
+      },
+      "semanticGap": [
+        {
+          "id": "runtime-generator-execution",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "api-definition",
+            "generator",
+            "test-plan"
+          ],
+          "reason": "generator-execution requires a domain runtime implementation: The offline command exits successfully and deterministically writes the requested plan."
+        },
+        {
+          "id": "runtime-operation-coverage",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "api-definition",
+            "test-plan"
+          ],
+          "reason": "operation-coverage requires a domain runtime implementation: Every documented operation and public request constraint is represented in the plan."
+        },
+        {
+          "id": "runtime-verification-consistency",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "generator",
+            "test-plan",
+            "test-report"
+          ],
+          "reason": "verification-consistency requires a domain runtime implementation: Report verification claims agree with generator execution and plan contents."
+        },
+        {
+          "id": "package-generator",
+          "kind": "artifact-compiler",
+          "targetRefs": [
+            "generator",
+            "test-plan",
+            "test-report"
+          ],
+          "reason": "no qualified compiler emits api-test-generator.mjs, generated/api-test-plan.json, api-test-report.json and binds its domain-runtime validation"
+        }
+      ],
+      "manualComparison": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/api-tester/public-interface.json"
+          ],
+          "sha256": [
+            "79f8356d86bebe49cc8e71d883159be461c16bb6d238973ec4daaa2e39d5f16d"
+          ],
+          "declaredPathMatches": 5
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/api-tester/base-ir.json"
+          ],
+          "sha256": [
+            "0905672a17de1be6bdfed2cd1a347fbdeb195343c61afe1bb054d16282ae0441"
+          ],
+          "inputIdMatches": 2,
+          "outputIdMatches": 2,
+          "checkIdMatches": 1,
+          "exactSourceRuleMatches": 0
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 2,
+          "schemaValidCount": 2,
+          "paths": [
+            "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json/validation-policy.json",
+            "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml/validation-policy.json"
+          ],
+          "sha256": [
+            "30c45224fe037faab438f5c456f0f21812a0cbc1d2001d031e0a74848c44bd8a",
+            "e755eeae4e518e2c273cd3ef21b861b6888a7bfa145f4280ac1210f7b8039d11"
+          ]
+        },
+        "package": {
+          "status": "compared",
+          "manualCount": 2,
+          "schemaValidCount": 2,
+          "paths": [
+            "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-json/package-manifest.json",
+            "benchmarks/skill-ir/pilots/api-tester/packages/validated-skill-artifact-v1/openapi-yaml/package-manifest.json"
+          ],
+          "sha256": [
+            "8ebab7577c670e4fa9c9da99701e6bea4c65223f57152e62bfbe434e450ea1eb",
+            "10e316f3cca357e85d949e66dbd08629033d4ecf3cf81557290b1557b7925ea8"
+          ]
+        },
+        "semanticParity": "not-established"
+      },
+      "semanticParity": "not-established",
+      "eligibility": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      }
+    },
+    {
+      "caseId": "zh-code-reviewer",
+      "methodSequence": 5,
+      "candidateDigest": "46e8f06f4b4a2e0e50e98766444f34361c2ef4e722f92848f388c2cec3907d80",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+        "benchmarks/skill-ir/task-descriptions/zh-code-reviewer.json"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/zh-code-reviewer/review-interface.json",
+        "benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir.json",
+        "benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json"
+      ],
+      "adaptation": {
+        "declarationStatus": "within-limit",
+        "declarationLoc": 22,
+        "declarationSemanticEntries": 18,
+        "declarationHumanMinutes": 2,
+        "declarationMeasurementStartedAt": "2026-08-24T06:22:53.702Z",
+        "declarationMeasurementCompletedAt": "2026-08-24T06:37:27.986Z",
+        "adapterLoc": 0,
+        "coreBranchDelta": 0
+      },
+      "semanticAccounting": {
+        "fromSkillSource": {
+          "units": [
+            {
+              "id": "step-01",
+              "kind": "workflow-step",
+              "value": "**读取目标文件** — 使用 Glob 和 Read 工具获取要审查的代码"
+            },
+            {
+              "id": "step-02",
+              "kind": "workflow-step",
+              "value": "**分析代码质量** — 从以下维度评估："
+            },
+            {
+              "id": "step-03",
+              "kind": "workflow-step",
+              "value": "**生成审查报告** — 使用中文输出结构化报告"
+            },
+            {
+              "id": "rule-01",
+              "kind": "rule",
+              "value": "技术术语保留英文（如 null pointer、SQL injection）"
+            },
+            {
+              "id": "rule-02",
+              "kind": "rule",
+              "value": "代码示例保持原语言"
+            },
+            {
+              "id": "rule-03",
+              "kind": "rule",
+              "value": "对于中文变量名/注释，也要检查是否恰当"
+            },
+            {
+              "id": "output-01",
+              "kind": "output-description",
+              "value": "Result described by the public skill source."
+            }
+          ]
+        },
+        "fromTaskDeclaration": {
+          "units": [
+            {
+              "id": "source-file",
+              "kind": "input",
+              "value": "<task-source-path>"
+            },
+            {
+              "id": "public-interface",
+              "kind": "input",
+              "value": "review-interface.json"
+            },
+            {
+              "id": "json-review",
+              "kind": "output",
+              "value": "code-review.json"
+            },
+            {
+              "id": "markdown-review",
+              "kind": "output",
+              "value": "code-review.md"
+            },
+            {
+              "id": "inputs-stable",
+              "kind": "pass-criterion",
+              "value": "The reviewed source and public interface remain unchanged."
+            },
+            {
+              "id": "outputs-exact",
+              "kind": "pass-criterion",
+              "value": "Exactly the JSON and Markdown review reports are created."
+            },
+            {
+              "id": "json-shape",
+              "kind": "pass-criterion",
+              "value": "The JSON review contains the declared top-level report fields."
+            },
+            {
+              "id": "finding-grounding",
+              "kind": "pass-criterion",
+              "value": "Every finding cites the primary observable line and smallest enclosing named symbol."
+            },
+            {
+              "id": "severity-actionability",
+              "kind": "pass-criterion",
+              "value": "Severity follows public impact meanings and every finding has an actionable recommendation."
+            },
+            {
+              "id": "report-consistency",
+              "kind": "pass-criterion",
+              "value": "The Chinese Markdown and JSON reports describe the same grounded findings."
+            }
+          ]
+        },
+        "automationProduced": {
+          "contractBindings": 10,
+          "irTaskAbiBindings": 4,
+          "validationPredicates": 6,
+          "genericDeterministicPredicates": 3
+        },
+        "stillRequiresHuman": [
+          {
+            "id": "runtime-finding-grounding",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "source-file",
+              "json-review"
+            ],
+            "reason": "finding-grounding requires a domain runtime implementation: Every finding cites the primary observable line and smallest enclosing named symbol."
+          },
+          {
+            "id": "runtime-severity-actionability",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "source-file",
+              "json-review"
+            ],
+            "reason": "severity-actionability requires a domain runtime implementation: Severity follows public impact meanings and every finding has an actionable recommendation."
+          },
+          {
+            "id": "runtime-report-consistency",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "json-review",
+              "markdown-review"
+            ],
+            "reason": "report-consistency requires a domain runtime implementation: The Chinese Markdown and JSON reports describe the same grounded findings."
+          },
+          {
+            "id": "package-json-review",
+            "kind": "artifact-compiler",
+            "targetRefs": [
+              "json-review",
+              "markdown-review"
+            ],
+            "reason": "no qualified compiler emits code-review.json, code-review.md and binds its domain-runtime validation"
+          }
+        ]
+      },
+      "semanticGap": [
+        {
+          "id": "runtime-finding-grounding",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "source-file",
+            "json-review"
+          ],
+          "reason": "finding-grounding requires a domain runtime implementation: Every finding cites the primary observable line and smallest enclosing named symbol."
+        },
+        {
+          "id": "runtime-severity-actionability",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "source-file",
+            "json-review"
+          ],
+          "reason": "severity-actionability requires a domain runtime implementation: Severity follows public impact meanings and every finding has an actionable recommendation."
+        },
+        {
+          "id": "runtime-report-consistency",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "json-review",
+            "markdown-review"
+          ],
+          "reason": "report-consistency requires a domain runtime implementation: The Chinese Markdown and JSON reports describe the same grounded findings."
+        },
+        {
+          "id": "package-json-review",
+          "kind": "artifact-compiler",
+          "targetRefs": [
+            "json-review",
+            "markdown-review"
+          ],
+          "reason": "no qualified compiler emits code-review.json, code-review.md and binds its domain-runtime validation"
+        }
+      ],
+      "manualComparison": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-code-reviewer/review-interface.json"
+          ],
+          "sha256": [
+            "15a2de06634eaeba214e7d919eacc9ef8cb88e619e810146162b194f2a113e43"
+          ],
+          "declaredPathMatches": 4
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-code-reviewer/base-ir.json"
+          ],
+          "sha256": [
+            "9a7aae641c210c05d81c5d2466ad5100681aa678f967b138b84e9cd434fca813"
+          ],
+          "inputIdMatches": 0,
+          "outputIdMatches": 0,
+          "checkIdMatches": 1,
+          "exactSourceRuleMatches": 0
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json"
+          ],
+          "sha256": [
+            "4b126d8ec44fc766a3ba8d04f0cc15dd4419d2a5898eca6aad6ed1fb6e124c40"
+          ]
+        },
+        "package": {
+          "status": "manual-oracle-absent",
+          "manualCount": 0,
+          "schemaValidCount": 0,
+          "paths": [],
+          "sha256": []
+        },
+        "semanticParity": "not-established"
+      },
+      "semanticParity": "not-established",
+      "eligibility": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      }
+    },
+    {
+      "caseId": "zh-readme",
+      "methodSequence": 6,
+      "candidateDigest": "1a9e8a26fe40c8bf4d228f8a2015bf5803e92c1b4836982e4785f528526702bf",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md",
+        "benchmarks/skill-ir/task-descriptions/zh-readme.json"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/zh-readme/readme-interface.json",
+        "benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json"
+      ],
+      "adaptation": {
+        "declarationStatus": "within-limit",
+        "declarationLoc": 20,
+        "declarationSemanticEntries": 13,
+        "declarationHumanMinutes": 1,
+        "declarationMeasurementStartedAt": "2026-08-24T06:22:53.702Z",
+        "declarationMeasurementCompletedAt": "2026-08-24T06:37:27.986Z",
+        "adapterLoc": 0,
+        "coreBranchDelta": 0
+      },
+      "semanticAccounting": {
+        "fromSkillSource": {
+          "units": [
+            {
+              "id": "step-01",
+              "kind": "workflow-step",
+              "value": "检查项目结构、包管理文件、入口文件、测试目录和已有文档。"
+            },
+            {
+              "id": "step-02",
+              "kind": "workflow-step",
+              "value": "提炼项目定位：目标用户、核心能力、和替代方案相比的差异点。"
+            },
+            {
+              "id": "step-03",
+              "kind": "workflow-step",
+              "value": "优先补全“安装 / 快速开始 / 使用示例 / 项目结构 / 开发方式”。"
+            },
+            {
+              "id": "step-04",
+              "kind": "workflow-step",
+              "value": "如果缺少真实命令，基于仓库中的 `package.json`、`pyproject.toml`、`Makefile`、`Cargo.toml` 等提取。"
+            },
+            {
+              "id": "step-05",
+              "kind": "workflow-step",
+              "value": "用中文重写标题、摘要和亮点，避免“强大、优雅、现代化”这类空词。"
+            },
+            {
+              "id": "step-06",
+              "kind": "workflow-step",
+              "value": "最后检查 README 是否能支持首次访问者在 30 秒内理解并开始使用。"
+            },
+            {
+              "id": "rule-01",
+              "kind": "rule",
+              "value": "先读代码和目录，再写 README；不要只凭项目名猜功能。"
+            },
+            {
+              "id": "rule-02",
+              "kind": "rule",
+              "value": "面向中文开发者表达，技术名词保留英文，解释用自然中文。"
+            },
+            {
+              "id": "rule-03",
+              "kind": "rule",
+              "value": "首页要解决三个问题：这是什么、为什么值得用、怎么快速上手。"
+            },
+            {
+              "id": "rule-04",
+              "kind": "rule",
+              "value": "优先给出真实命令、真实路径、真实示例，少写空泛宣传语。"
+            },
+            {
+              "id": "rule-05",
+              "kind": "rule",
+              "value": "如果项目已有 README，先保留有效信息，再补全缺失结构。"
+            },
+            {
+              "id": "rule-06",
+              "kind": "rule",
+              "value": "如果项目包含官网或文档站，README 中必须给出统一、可点击的正式入口链接，避免 README / 官网 / Issue 模板地址不一致。"
+            },
+            {
+              "id": "rule-07",
+              "kind": "rule",
+              "value": "项目介绍页要尽量补上社交证明信号（如 Star、精选数量、更新时间、代表性场景），帮助访客快速判断是否值得继续浏览。"
+            },
+            {
+              "id": "rule-08",
+              "kind": "rule",
+              "value": "README 首屏必须具备“30 秒价值判断”能力：首句价值主张 + 适合谁用 + 最短安装方式，缺一不可。"
+            },
+            {
+              "id": "rule-09",
+              "kind": "rule",
+              "value": "如果项目带官网、Issue 模板、下载镜像或社区入口，优先整理为单一正式入口，减少用户在多个链接间来回跳转。"
+            },
+            {
+              "id": "rule-10",
+              "kind": "rule",
+              "value": "如存在 badge、Hero 文案、官网首页等配套渠道，README 文案要与这些渠道保持口径一致，避免承诺和数据冲突。"
+            },
+            {
+              "id": "rule-11",
+              "kind": "rule",
+              "value": "是否说明了项目解决的问题？"
+            },
+            {
+              "id": "rule-12",
+              "kind": "rule",
+              "value": "是否给出最短可运行示例？"
+            },
+            {
+              "id": "rule-13",
+              "kind": "rule",
+              "value": "是否覆盖安装、使用、贡献、License？"
+            },
+            {
+              "id": "rule-14",
+              "kind": "rule",
+              "value": "是否避免了 AI 腔和空泛营销语？"
+            },
+            {
+              "id": "rule-15",
+              "kind": "rule",
+              "value": "是否让中文开发者一眼看懂？"
+            },
+            {
+              "id": "output-01",
+              "kind": "output-description",
+              "value": "默认使用 Markdown。"
+            },
+            {
+              "id": "output-02",
+              "kind": "output-description",
+              "value": "标题层级清晰，emoji 适量，不要堆砌。"
+            },
+            {
+              "id": "output-03",
+              "kind": "output-description",
+              "value": "示例命令必须可复制。"
+            },
+            {
+              "id": "output-04",
+              "kind": "output-description",
+              "value": "如果信息不足，显式标注“待补充”，不要编造不存在的特性。"
+            }
+          ]
+        },
+        "fromTaskDeclaration": {
+          "units": [
+            {
+              "id": "repository-files",
+              "kind": "input",
+              "value": "<repository-files>"
+            },
+            {
+              "id": "public-interface",
+              "kind": "input",
+              "value": "readme-interface.json"
+            },
+            {
+              "id": "chinese-readme",
+              "kind": "output",
+              "value": "README.zh-CN.md"
+            },
+            {
+              "id": "inputs-stable",
+              "kind": "pass-criterion",
+              "value": "Every initial repository file remains unchanged."
+            },
+            {
+              "id": "output-exact",
+              "kind": "pass-criterion",
+              "value": "README.zh-CN.md is the only created artifact."
+            },
+            {
+              "id": "semantic-coverage",
+              "kind": "pass-criterion",
+              "value": "The Chinese README covers each declared semantic role using repository evidence."
+            },
+            {
+              "id": "command-reference-fidelity",
+              "kind": "pass-criterion",
+              "value": "Commands, local paths, and links are source-declared and locally supported."
+            },
+            {
+              "id": "uncertainty-policy",
+              "kind": "pass-criterion",
+              "value": "Unsupported facts are omitted or explicitly marked pending."
+            }
+          ]
+        },
+        "automationProduced": {
+          "contractBindings": 8,
+          "irTaskAbiBindings": 3,
+          "validationPredicates": 5,
+          "genericDeterministicPredicates": 2
+        },
+        "stillRequiresHuman": [
+          {
+            "id": "runtime-semantic-coverage",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "repository-files",
+              "chinese-readme"
+            ],
+            "reason": "semantic-coverage requires a domain runtime implementation: The Chinese README covers each declared semantic role using repository evidence."
+          },
+          {
+            "id": "runtime-command-reference-fidelity",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "repository-files",
+              "chinese-readme"
+            ],
+            "reason": "command-reference-fidelity requires a domain runtime implementation: Commands, local paths, and links are source-declared and locally supported."
+          },
+          {
+            "id": "runtime-uncertainty-policy",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "repository-files",
+              "chinese-readme"
+            ],
+            "reason": "uncertainty-policy requires a domain runtime implementation: Unsupported facts are omitted or explicitly marked pending."
+          },
+          {
+            "id": "package-chinese-readme",
+            "kind": "artifact-compiler",
+            "targetRefs": [
+              "chinese-readme"
+            ],
+            "reason": "no qualified compiler emits README.zh-CN.md and binds its domain-runtime validation"
+          }
+        ]
+      },
+      "semanticGap": [
+        {
+          "id": "runtime-semantic-coverage",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "repository-files",
+            "chinese-readme"
+          ],
+          "reason": "semantic-coverage requires a domain runtime implementation: The Chinese README covers each declared semantic role using repository evidence."
+        },
+        {
+          "id": "runtime-command-reference-fidelity",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "repository-files",
+            "chinese-readme"
+          ],
+          "reason": "command-reference-fidelity requires a domain runtime implementation: Commands, local paths, and links are source-declared and locally supported."
+        },
+        {
+          "id": "runtime-uncertainty-policy",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "repository-files",
+            "chinese-readme"
+          ],
+          "reason": "uncertainty-policy requires a domain runtime implementation: Unsupported facts are omitted or explicitly marked pending."
+        },
+        {
+          "id": "package-chinese-readme",
+          "kind": "artifact-compiler",
+          "targetRefs": [
+            "chinese-readme"
+          ],
+          "reason": "no qualified compiler emits README.zh-CN.md and binds its domain-runtime validation"
+        }
+      ],
+      "manualComparison": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-readme/readme-interface.json"
+          ],
+          "sha256": [
+            "1dedb680efbfa0ed7e8ce04680d5e419449233511d99a588469844fb1f727ffe"
+          ],
+          "declaredPathMatches": 3
+        },
+        "baseIr": {
+          "status": "manual-oracle-absent",
+          "manualCount": 0,
+          "schemaValidCount": 0,
+          "paths": [],
+          "sha256": [],
+          "inputIdMatches": 0,
+          "outputIdMatches": 0,
+          "checkIdMatches": 0,
+          "exactSourceRuleMatches": 0
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json"
+          ],
+          "sha256": [
+            "d260eadd55fbe397eb68e2d9bb85fc09d798876ec2a52006bf75b356e5ef7fdd"
+          ]
+        },
+        "package": {
+          "status": "manual-oracle-absent",
+          "manualCount": 0,
+          "schemaValidCount": 0,
+          "paths": [],
+          "sha256": []
+        },
+        "semanticParity": "not-established"
+      },
+      "semanticParity": "not-established",
+      "eligibility": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      }
+    },
+    {
+      "caseId": "i18n-helper",
+      "methodSequence": 7,
+      "candidateDigest": "b8bd0fa86c8ca4e6ba452ccc8c32b5a393ed9b225b612ee86d52990cc1436fa9",
+      "generationReadPaths": [
+        "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+        "benchmarks/skill-ir/task-descriptions/i18n-helper.json"
+      ],
+      "shadowReadPaths": [
+        "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/public-contract.json",
+        "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/base-ir.json",
+        "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock-v4.json"
+      ],
+      "adaptation": {
+        "declarationStatus": "within-limit",
+        "declarationLoc": 27,
+        "declarationSemanticEntries": 18,
+        "declarationHumanMinutes": 3,
+        "declarationMeasurementStartedAt": "2026-08-24T06:22:53.702Z",
+        "declarationMeasurementCompletedAt": "2026-08-24T06:37:27.986Z",
+        "adapterLoc": 0,
+        "coreBranchDelta": 0
+      },
+      "semanticAccounting": {
+        "fromSkillSource": {
+          "units": [
+            {
+              "id": "step-01",
+              "kind": "workflow-step",
+              "value": "1. 项目分析"
+            },
+            {
+              "id": "step-02",
+              "kind": "workflow-step",
+              "value": "2. 硬编码文本扫描"
+            },
+            {
+              "id": "step-03",
+              "kind": "workflow-step",
+              "value": "3. 语言文件生成"
+            },
+            {
+              "id": "step-04",
+              "kind": "workflow-step",
+              "value": "4. 代码替换"
+            },
+            {
+              "id": "step-05",
+              "kind": "workflow-step",
+              "value": "5. 完整性检查"
+            },
+            {
+              "id": "rule-01",
+              "kind": "rule",
+              "value": "不要翻译技术术语（API、SDK、HTTP 等）"
+            },
+            {
+              "id": "rule-02",
+              "kind": "rule",
+              "value": "保留变量占位符 `{name}` `{{count}}` `%s` 等格式"
+            },
+            {
+              "id": "rule-03",
+              "kind": "rule",
+              "value": "复数形式和性别变体需要特殊处理"
+            },
+            {
+              "id": "rule-04",
+              "kind": "rule",
+              "value": "日期、数字、货币格式需使用 locale 感知的格式化函数"
+            },
+            {
+              "id": "output-01",
+              "kind": "output-description",
+              "value": "Result described by the public skill source."
+            }
+          ]
+        },
+        "fromTaskDeclaration": {
+          "units": [
+            {
+              "id": "react-source",
+              "kind": "input",
+              "value": "<declared-react-source-files>"
+            },
+            {
+              "id": "baseline-files",
+              "kind": "input",
+              "value": "baseline/"
+            },
+            {
+              "id": "public-contract",
+              "kind": "input",
+              "value": "i18n-contract.json"
+            },
+            {
+              "id": "report-semantics",
+              "kind": "input",
+              "value": "i18n-report-semantics.json"
+            },
+            {
+              "id": "source-updates",
+              "kind": "output",
+              "value": "<declared-react-source-files>"
+            },
+            {
+              "id": "i18n-runtime",
+              "kind": "output",
+              "value": "src/i18n.ts"
+            },
+            {
+              "id": "zh-locale",
+              "kind": "output",
+              "value": "src/locales/zh-CN.json"
+            },
+            {
+              "id": "en-locale",
+              "kind": "output",
+              "value": "src/locales/en-US.json"
+            },
+            {
+              "id": "i18n-report",
+              "kind": "output",
+              "value": "i18n-report.json"
+            },
+            {
+              "id": "protected-stable",
+              "kind": "pass-criterion",
+              "value": "Declared protected and baseline files remain unchanged."
+            },
+            {
+              "id": "declared-delta",
+              "kind": "pass-criterion",
+              "value": "Only declared source and output files change or appear."
+            },
+            {
+              "id": "report-shape",
+              "kind": "pass-criterion",
+              "value": "The report contains framework, scanned file, and entry fields."
+            },
+            {
+              "id": "message-extraction",
+              "kind": "pass-criterion",
+              "value": "User-visible messages are extracted while non-user-visible literals and behavior remain intact."
+            },
+            {
+              "id": "locale-semantics",
+              "kind": "pass-criterion",
+              "value": "Placeholders, interpolation, plural forms, and existing translations follow the public semantics."
+            },
+            {
+              "id": "artifact-consistency",
+              "kind": "pass-criterion",
+              "value": "Source calls, locale keys, runtime configuration, and report entries agree."
+            }
+          ]
+        },
+        "automationProduced": {
+          "contractBindings": 15,
+          "irTaskAbiBindings": 9,
+          "validationPredicates": 6,
+          "genericDeterministicPredicates": 3
+        },
+        "stillRequiresHuman": [
+          {
+            "id": "runtime-message-extraction",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "react-source",
+              "source-updates",
+              "i18n-report"
+            ],
+            "reason": "message-extraction requires a domain runtime implementation: User-visible messages are extracted while non-user-visible literals and behavior remain intact."
+          },
+          {
+            "id": "runtime-locale-semantics",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "report-semantics",
+              "zh-locale",
+              "en-locale"
+            ],
+            "reason": "locale-semantics requires a domain runtime implementation: Placeholders, interpolation, plural forms, and existing translations follow the public semantics."
+          },
+          {
+            "id": "runtime-artifact-consistency",
+            "kind": "domain-runtime",
+            "targetRefs": [
+              "source-updates",
+              "i18n-runtime",
+              "zh-locale",
+              "en-locale",
+              "i18n-report"
+            ],
+            "reason": "artifact-consistency requires a domain runtime implementation: Source calls, locale keys, runtime configuration, and report entries agree."
+          },
+          {
+            "id": "package-source-updates",
+            "kind": "artifact-compiler",
+            "targetRefs": [
+              "source-updates",
+              "i18n-runtime",
+              "zh-locale",
+              "en-locale",
+              "i18n-report"
+            ],
+            "reason": "no qualified compiler emits <declared-react-source-files>, src/i18n.ts, src/locales/zh-CN.json, src/locales/en-US.json, i18n-report.json and binds its domain-runtime validation"
+          }
+        ]
+      },
+      "semanticGap": [
+        {
+          "id": "runtime-message-extraction",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "react-source",
+            "source-updates",
+            "i18n-report"
+          ],
+          "reason": "message-extraction requires a domain runtime implementation: User-visible messages are extracted while non-user-visible literals and behavior remain intact."
+        },
+        {
+          "id": "runtime-locale-semantics",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "report-semantics",
+            "zh-locale",
+            "en-locale"
+          ],
+          "reason": "locale-semantics requires a domain runtime implementation: Placeholders, interpolation, plural forms, and existing translations follow the public semantics."
+        },
+        {
+          "id": "runtime-artifact-consistency",
+          "kind": "domain-runtime",
+          "targetRefs": [
+            "source-updates",
+            "i18n-runtime",
+            "zh-locale",
+            "en-locale",
+            "i18n-report"
+          ],
+          "reason": "artifact-consistency requires a domain runtime implementation: Source calls, locale keys, runtime configuration, and report entries agree."
+        },
+        {
+          "id": "package-source-updates",
+          "kind": "artifact-compiler",
+          "targetRefs": [
+            "source-updates",
+            "i18n-runtime",
+            "zh-locale",
+            "en-locale",
+            "i18n-report"
+          ],
+          "reason": "no qualified compiler emits <declared-react-source-files>, src/i18n.ts, src/locales/zh-CN.json, src/locales/en-US.json, i18n-report.json and binds its domain-runtime validation"
+        }
+      ],
+      "manualComparison": {
+        "contract": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/public-contract.json"
+          ],
+          "sha256": [
+            "073462f3ce7a8697be4fa2014b8335877013ce6a6e167df2784b4161a3d1c7d9"
+          ],
+          "declaredPathMatches": 6
+        },
+        "baseIr": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/base-ir.json"
+          ],
+          "sha256": [
+            "9a10f30a16541238f952fb4afbfa73c068ce7c63699c45decf508d88d6277645"
+          ],
+          "inputIdMatches": 0,
+          "outputIdMatches": 2,
+          "checkIdMatches": 1,
+          "exactSourceRuleMatches": 0
+        },
+        "validationPlan": {
+          "status": "compared",
+          "manualCount": 1,
+          "schemaValidCount": 1,
+          "paths": [
+            "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock-v4.json"
+          ],
+          "sha256": [
+            "a9867fe43fe603ac0cf264d688c84432662dbe5db0d999dbde8c1fa4c219f141"
+          ]
+        },
+        "package": {
+          "status": "manual-oracle-absent",
+          "manualCount": 0,
+          "schemaValidCount": 0,
+          "paths": [],
+          "sha256": []
+        },
+        "semanticParity": "not-established"
+      },
+      "semanticParity": "not-established",
+      "eligibility": {
+        "contract": false,
+        "baseIr": false,
+        "validationPlan": false,
+        "packageCandidate": false
+      }
+    }
+  ],
+  "summary": {
+    "caseCount": 7,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "declarations": {
+      "withinLimit": 7,
+      "heavy": 0,
+      "locTotal": 159,
+      "semanticEntriesTotal": 120,
+      "humanMinutesTotal": 15
+    },
+    "generated": {
+      "contracts": 7,
+      "baseIrs": 7,
+      "validationPlans": 7,
+      "packageCandidates": 7
+    },
+    "semanticAccounting": {
+      "fromSkillSourceUnits": 144,
+      "fromTaskDeclarationUnits": 75,
+      "automationProducedBindings": 150,
+      "genericDeterministicPredicates": 19,
+      "domainRuntimeRequiredPredicates": 21,
+      "casesStillRequiringHuman": 7
+    },
+    "portfolioEligible": {
+      "contracts": 0,
+      "baseIrs": 0,
+      "validationPlans": 0,
+      "packageCandidates": 0
+    }
+  }
+}
