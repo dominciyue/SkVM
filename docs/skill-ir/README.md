@@ -126,7 +126,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 - Task 18.32 的独立 transport qualification 用同 route/backend、同 forced-tool schema 与 strict parser 返回 canonical
   exact match：1 call、632 input/134 output、5.02 秒、0 retry/task/held-out/evaluator payload。它排除了持续工具合同
   不兼容，但不追溯重分类 18.31。当前自动化产品边界是“候选/结构/局部 projection 自动化 + domain runtime 人工
-  审核或补齐”，portfolio automation 仍 0/7，readiness 不变；本轮自动化工作到此暂停。
+  审核或补齐”，portfolio automation 仍 0/7，readiness 不变。
+- Task 18.33 仅为解释 18.31 的合并失败窄范围重开归因，不恢复 DSL/7-case rollout。预模型身份以 Env Manager
+  单案例按 `context-minimal -> context-strict -> task-bound-strict` 逐级加入真实 source/declaration、完整 tool schema
+  与双 task binding，固定最多 3 calls、0 retry；失败只保存脱敏 HTTP/tool-call/长度/usage 元数据，绝不落盘 response
+  body。当前只有冻结件，尚无付费结果，产品边界与 readiness 均未改变。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -167,7 +171,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> JSON Pointer successor 已真实复制 3 fields；15 -> 12，ceiling=pointer 1/query 1/domain-runtime 10
 -> Restricted Domain Plan 唯一双案例生成 0/2；2 calls/0 retry，但 provider-vs-parse 归因未建立
 -> forced-tool transport qualification exact-match passed；不重分类历史 18.31
--> 自动化阶段暂停：不重跑/扩 DSL/接 7-case；后续以人工审核 domain runtime 的产品边界继续
+-> Task 18.33 failure attribution 已预模型冻结：Env 单案例三阶段 progressive bisection、最多 3 calls/0 retry
+-> 只在 transport 修复且产生安全 plan 后检查 task binding/语义；不扩 DSL/7-case/held-out
+-> 若归因后仍无计划，自动化阶段按人工审核 domain runtime 的产品边界收口
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

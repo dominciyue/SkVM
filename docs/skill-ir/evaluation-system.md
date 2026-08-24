@@ -651,6 +651,17 @@ canonical exact match 另行披露但不决定 transport pass。任何失败按�
 排除当前持续 transport incompatibility；report 强制 `historicalTaskFailuresReclassified=false`，所以 Task 18.31 仍
 保持合并归因。Qualification 不进入 automation eligibility、method phenotype 或 readiness 分母。
 
+Task 18.33 以新 `skill-ir-restricted-domain-plan-attribution/v1` 身份做 progressive bisection。Freeze 绑定历史
+18.31 catalog/report、18.32 passed report、Env source/declaration/task 与 9 个实现文件，并在调用前冻结三个 exact
+request/provider payload digest。Runner 始终独立执行三阶段，`retries=0`；`attribution-prefix.json` 只接受冻结顺序的
+连续前缀并原子替换，因此进程中断可以恢复，但不能重复已经完成的 paid stage。
+
+每行只保存 request/payload digest、duration、typed failure 与 sanitized response metadata：HTTP status、body
+length/digest、JSON parse、choice/finish reason、assistant content 是否存在及长度、tool call 数、指定 tool 是否存在、
+arguments 长度和 usage 是否存在。禁止保存 response body、content、reasoning、tool arguments、prompt、key 或绝对
+路径。最后阶段只有在 leakage audit 通过后才保存 safe parsed plan，并对 construction/transfer 两条 development
+task 做静态 binding。当前 freeze 为 3 stages、0 paid、最多 3 calls；尚无结果，不能更新 eligibility/readiness。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

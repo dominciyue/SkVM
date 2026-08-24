@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   auditRestrictedDomainPlanLeakage,
+  buildRestrictedDomainPlanCompletionPayload,
   buildRestrictedDomainPlanRequest,
   completeRestrictedDomainPlanOnce,
   deriveForbiddenTaskDataLiterals,
@@ -129,7 +130,45 @@ describe("restricted Domain Plan synthesis", () => {
       providerAttempts: 1,
       logicalPaidCalls: 1,
       tokens: { input: 60, output: 25, cacheRead: 40, cacheWrite: 0 },
+      responseMetadata: {
+        httpStatus: 200,
+        responseJsonParsed: true,
+        choiceCount: 1,
+        toolCallCount: 1,
+        requestedToolCallPresent: true,
+        requestedToolCallArgumentsLength: JSON.stringify(expected).length,
+        usagePresent: true,
+      },
     });
+  });
+
+  test("keeps the historical minimal tool schema and can opt into the complete strict Domain Plan schema", () => {
+    const request = {
+      system: "Generate the plan.",
+      prompt: "Use the schema.",
+      audit: { evaluatorPayloadAccesses: 0 as const, heldOutAccesses: 0 as const, retries: 0 as const, requestedCalls: 1 as const, toolAccess: false as const },
+    };
+    const minimal = buildRestrictedDomainPlanCompletionPayload({
+      backendModel: "test-model",
+      request,
+      toolSchemaMode: "shape-minimal",
+    });
+    const strict = buildRestrictedDomainPlanCompletionPayload({
+      backendModel: "test-model",
+      request,
+      toolSchemaMode: "domain-plan-strict",
+    });
+    const minimalFunction = minimal.tools[0]!.function;
+    const strictFunction = strict.tools[0]!.function;
+    expect(minimalFunction.strict).toBeUndefined();
+    expect(minimalFunction.parameters.properties.steps.items).not.toHaveProperty("anyOf");
+    expect(strictFunction.strict).toBe(true);
+    expect(strictFunction.parameters.properties.steps.items.anyOf).toHaveLength(15);
+    const serializedStrict = JSON.stringify(strict);
+    expect(serializedStrict).not.toContain('"oneOf"');
+    expect(serializedStrict).not.toContain("?!");
+    expect(serializedStrict).not.toContain("\\\\1");
+    expect(JSON.stringify(strict).length).toBeGreaterThan(JSON.stringify(minimal).length);
   });
 
   test("classifies each provider and parse boundary without exposing raw details", async () => {
@@ -166,9 +205,23 @@ describe("restricted Domain Plan synthesis", () => {
         expect(error).toBeInstanceOf(RestrictedDomainPlanSynthesisError);
         const failure = error as RestrictedDomainPlanSynthesisError;
         expect(failure.stage).toBe(entry.stage);
+        expect(failure.failureClass).toBe(
+          entry.stage === "transport" || entry.stage === "http" ? "http-or-network"
+            : entry.stage === "tool-call" ? "content-or-missing-tool-call"
+              : entry.stage === "plan-schema" ? "strict-schema-reject" : "json-parse-failure",
+        );
         expect(failure.durationMs).toBeGreaterThanOrEqual(0);
         expect(failure.detailDigest).toMatch(/^[a-f0-9]{64}$/);
         expect(failure.message).not.toContain("private");
+        expect(JSON.stringify(failure.responseMetadata)).not.toContain("private");
+        if (entry.stage === "transport") {
+          expect(failure.responseMetadata.httpStatus).toBeNull();
+          expect(failure.responseMetadata.responseBodyTextLength).toBeNull();
+        } else {
+          expect(failure.responseMetadata.httpStatus).toBe(entry.stage === "http" ? 502 : 200);
+          expect(failure.responseMetadata.responseBodyTextLength).toBeGreaterThan(0);
+          expect(failure.responseMetadata.responseBodySha256).toMatch(/^[a-f0-9]{64}$/);
+        }
       }
     }
   });

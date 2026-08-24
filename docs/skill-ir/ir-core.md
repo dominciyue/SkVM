@@ -336,6 +336,16 @@ provider 能承载该 tool schema 且 strict parser 可接受返回值；不证�
 18.31 仍为 0/2 且归因未知。Restricted Domain Plan 保留为受限候选机制，暂不接 7-case production path；domain
 runtime 需要人工审核/补齐，直到新的双案例前瞻设计建立可靠性。
 
+Task 18.33 为同一 Restricted Domain Plan v1 增加的是 observability 与独立 attribution identity，不滚动 DSL/schema
+版本。`buildRestrictedDomainPlanCompletionPayload` 显式选择历史 `shape-minimal` 或完整
+`domain-plan-strict` provider schema；后者用 provider 可接受的结构约束表达 15 种 step，本地 Zod 继续执行 safe
+path、JSON Pointer、regex flag、引用顺序与计划不变量的严格验证。Completion 返回脱敏 response metadata，错误被归入
+HTTP/network、缺 tool call/content、JSON parse 或 strict local schema reject，不暴露 raw body/content。
+
+归因 runner 的 `context-minimal -> context-strict -> task-bound-strict` 三阶段只改变一个变量层级。只有最后阶段的
+安全计划才会经过 task1 literal leakage 与两个 development task binding，并写入 `generated-plan.json`；任何 raw
+provider response 都不持久化。该机制尚未执行真实调用，semantic parity 与 production generalization 均未建立。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `
@@ -371,6 +381,9 @@ bun test ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=execute `
   --measurement-completed-at=<ISO-8601>
+bun test ./src/benchmarks/skill-ir/automatic-domain-plan-attribution.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=execute
 ```
 
 Task 18.18 的 BIDS base IR 是该链路的新真实案例：`profile=[]`，所有 intent/input/output/step/rule/tool/check 节点均

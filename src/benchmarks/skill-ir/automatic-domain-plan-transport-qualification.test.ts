@@ -68,6 +68,20 @@ describe("restricted Domain Plan transport qualification", () => {
         logicalPaidCalls: 1,
         tokens: { input: 40, output: 20, cacheRead: 0, cacheWrite: 0 },
         durationMs: 1200,
+        responseMetadata: {
+          httpStatus: null,
+          responseBodyTextLength: null,
+          responseBodySha256: null,
+          responseJsonParsed: false,
+          choiceCount: null,
+          finishReason: null,
+          assistantContentPresent: null,
+          assistantContentTextLength: null,
+          toolCallCount: null,
+          requestedToolCallPresent: null,
+          requestedToolCallArgumentsLength: null,
+          usagePresent: null,
+        },
       }),
     });
     expect(report).toMatchObject({

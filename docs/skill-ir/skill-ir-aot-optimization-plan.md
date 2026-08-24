@@ -1028,6 +1028,29 @@ evaluator payload，结论为 `persistent-forced-tool-contract-compatible`。机
 到此暂停：终态产品边界改为“自动生成候选 + 人工审核/补齐 domain runtime”，在新证据或新设计评审前不继续扩
 DSL、重复强模型、接 7-case/held-out 或据此晋升 readiness。
 
+### Task 18.33：Restricted Domain Plan failure attribution progressive bisection
+
+**范围：** 仅重新打开 18.31 的失败归因，不重放 Env/Law 原请求、不扩 DSL、不接 7-case。以 Env Manager 为唯一
+案例，把 18.32 的通过请求逐级增加真实 context、完整 strict schema 和 task binding；三个阶段独立执行，最多
+3 paid calls、`retries=0`。Response 只允许保存脱敏 transport/tool-call/长度元数据，不保存原始 body 或模型内容。
+
+1. [x] RED/GREEN：synthesis success/failure 均携带 sanitized response metadata，并将
+   `http-or-network | content-or-missing-tool-call | json-parse-failure | strict-schema-reject` 分开；历史默认仍使用
+   shape-minimal schema；
+2. [x] 定义三个精确阶段：`context-minimal`（真实 SKILL.md + declaration、minimal schema）、`context-strict`
+   （同 request + strict schema）、`task-bound-strict`（真实 18.31 request + strict schema + leakage/two-task binding）；
+3. [x] 预模型 freeze 绑定 18.31/18.32 父证据、catalog、9-file implementation closure、route/backend、三个 exact
+   request/provider payload digest 与 3-call/0-retry authorization；prefix 原子持久化且不保存 raw response；
+4. [ ] 提交并推送冻结件后，重新核验 digest、真实 prefix=0、key 仅存在性，再以前台顺序执行 3 个阶段；
+5. [ ] 工程问题则最小修复并优先取得至少一个安全 plan，再检查 leakage/binding 和计划语义；只有 transport 已
+   可用且重复不能产出计划时，才冻结/转回人工 domain-runtime 产品边界。Semantic parity 在真实计划前保持
+   `not-established`。
+
+**预模型状态（2026-08-24）：** 三阶段 request chars 为 7,278 / 7,278 / 12,251，provider payload chars 为
+9,297 / 41,278 / 46,251；0 paid、0 held-out/evaluator payload、`coreBranchDelta=0`。完整 strict provider schema
+只表达结构，路径/regex 等复杂安全约束继续由本地 Zod fail closed，避免 provider 不支持的 regex/`oneOf` 产生
+假 transport 失败。当前尚无执行结果，不改变 18.31、产品边界、portfolio 或 readiness。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
@@ -1049,8 +1072,8 @@ compiler 构造并未前瞻发生、部分
 **40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
 不等于跨模型主实验已经启动。lifecycle wrapper shadow parity、scorer disclosure preflight 与 prospective
 compiler cost capture、薄声明构造、结构 execution bridge、部分 output compiler 与受限 Domain Plan 主瓶颈试验
-已完成。当前自动化路线暂停在“候选生成 + 人工 domain runtime 审核”产品边界；不再用更多窄原语或重复模型调用
-追逐 unresolved 数字。后续若要恢复全自动目标，必须先提出能解释 18.31 失败并带双案例前瞻证据的新设计。真实
+已完成。当前自动化路线只为 Task 18.33 的失败归因临时窄开，默认产品边界仍是“候选生成 + 人工 domain runtime
+审核”；不再用更多窄原语或重复模型调用追逐 unresolved 数字。归因结果若不能建立安全 plan，将恢复暂停状态。真实
 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 

@@ -1138,6 +1138,15 @@ source/declaration candidates、执行结构门并构造局部 projection，但 
 补齐。`automationAndAdaptationConverging` 不晋升；除非有能解释历史失败、前瞻覆盖至少两案例的新设计，否则暂停
 全自动 DSL 扩展、重复模型调用、7-case rollout、held-out 与多模型自动化实验。
 
+Task 18.33 是对“18.31 失败归因未建立”这一证据缺口的窄范围复核，不是撤销上述产品边界。它只选择 Env Manager，
+在同一 provider/backend 上按三个独立阶段逐级加入变量：`context-minimal` 使用真实公开 SKILL.md + 薄声明但保持
+18.32 的 shape-minimal schema；`context-strict` 只换成完整 Restricted Domain Plan strict schema；
+`task-bound-strict` 再使用 18.31 的真实 task-bound request，并执行 leakage audit 与两个 development task binding。
+最多 3 paid calls、每阶段恰好 1 次、`retries=0`，阶段互不因前一失败而跳过。结果只保存 HTTP status、body 长度与
+digest、response JSON/tool-call/usage 是否存在、arguments 长度等脱敏元数据，不保存 body、assistant content、
+reasoning、secret 或 held-out。只有 transport/strict-schema 工程问题修复且产生安全 plan 后，才可在设计 semantic
+parity 前检查计划语义；没有该结果前不得扩 DSL、7-case、held-out、replication 或更新 automation/readiness。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

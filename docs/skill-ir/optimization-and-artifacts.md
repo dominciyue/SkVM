@@ -613,6 +613,12 @@ blocker。0-paid freeze 固定 1 authorized call、0 retry/task/held-out/evaluat
 执行，full package/manual parity 与 eligibility 仍为 0。产品阶段在此收口为“自动候选/结构/局部投影 + 人工
 domain-runtime 审核”，不把 transport 正例冒充 optimizer 正例。
 
+Task 18.33 不新增 artifact primitive，而是在实际 artifact execution 前定位 plan synthesis 边界。三个阶段逐级加入
+真实 context、完整 strict tool schema 和 task binding；只有 task-bound 阶段产生安全计划时，后续才允许评审计划
+是否值得进入现有 deterministic runtime/package。预模型 freeze 为 3 authorized calls、0 retry/held-out/evaluator
+payload；当前没有 package、workdir、manual parity 或 semantic parity 新证据，因此 18.31 的 0/2 与人工审核产品
+边界暂不改变。
+
 ## 15. 测试
 
 ```powershell
@@ -646,6 +652,9 @@ bun test ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-run.ts --phase=execute `
   --measurement-completed-at=<ISO-8601>
+bun test ./src/benchmarks/skill-ir/automatic-domain-plan-attribution.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=execute
 bun test ./src/benchmarks/skill-ir
 bun run typecheck
 ```

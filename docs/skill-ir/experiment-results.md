@@ -761,6 +761,12 @@ token 为 input 632、output 134、cache read/write 0，status `passed`、failur
 本轮不再扩 DSL、重试强模型、接 7-case/held-out/多模型；产品默认需要人工审核/补齐 domain runtime，readiness 与
 portfolio automation 不更新。
 
+Task 18.33 在不改写 18.31/18.32 的前提下冻结了一个三阶段 failure-attribution identity，尚未执行付费调用。唯一
+案例为 Env Manager；阶段依次使用真实 source/declaration + minimal schema、同 request + strict schema、真实
+task-bound request + strict schema/two-task binding。Request chars 为 7,278/7,278/12,251，provider payload chars
+为 9,297/41,278/46,251；上限 3 calls、0 retry、0 held-out/evaluator payload、core branch delta 0。Freeze 只说明
+归因方法已前瞻固定，不构成 transport、plan 生成、task transfer、package 或 semantic parity 结果。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -787,3 +793,4 @@ portfolio automation 不更新。
 - `results/skill-ir/automatic-domain-plan-shadow-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-transport-qualification-v1/pre-model-freeze.json`
 - `results/skill-ir/automatic-domain-plan-transport-qualification-v1/report.json`
+- `results/skill-ir/automatic-domain-plan-attribution-v1/pre-model-freeze.json`
