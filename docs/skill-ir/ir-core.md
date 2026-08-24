@@ -342,9 +342,15 @@ Task 18.33 为同一 Restricted Domain Plan v1 增加的是 observability 与独
 path、JSON Pointer、regex flag、引用顺序与计划不变量的严格验证。Completion 返回脱敏 response metadata，错误被归入
 HTTP/network、缺 tool call/content、JSON parse 或 strict local schema reject，不暴露 raw body/content。
 
-归因 runner 的 `context-minimal -> context-strict -> task-bound-strict` 三阶段只改变一个变量层级。只有最后阶段的
-安全计划才会经过 task1 literal leakage 与两个 development task binding，并写入 `generated-plan.json`；任何 raw
-provider response 都不持久化。该机制尚未执行真实调用，semantic parity 与 production generalization 均未建立。
+归因 runner 的 `context-minimal -> context-strict -> task-bound-strict` 三阶段只改变一个变量层级。真实执行 3/3
+成功，最后阶段的 26-step 安全计划经过 task1 literal leakage 与两个 development task binding 后写入
+`generated-plan.json`；任何 raw provider response 都未持久化。这证明当前生成/结构绑定路径可用，不证明计划可执行。
+
+Task 18.34 的真实 workdir 执行揭示原 v1 结构 validator 缺少 register 数据流类型关系：`parse-key-value-lines` 的
+string-array 可通过 schema/binding，却在 `write-text-template encoding=text` 处必然失败。为保留 Task 18.33 冻结
+closure，修复采用 additive `automatic-restricted-domain-plan-static-types.ts`，不滚动 Domain Plan schema 版本，也不
+修改旧解释器；successor 入口可在 runtime 前调用该通用审计。它只修复已证实的类型门缺口，不把未使用公开规则或
+Vite 引用漏检伪装为已解决语义。
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
@@ -384,6 +390,9 @@ bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-
 bun test ./src/benchmarks/skill-ir/automatic-domain-plan-attribution.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=execute
+bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-static-types.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection-run.ts
 ```
 
 Task 18.18 的 BIDS base IR 是该链路的新真实案例：`profile=[]`，所有 intent/input/output/step/rule/tool/check 节点均

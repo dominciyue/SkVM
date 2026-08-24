@@ -1041,15 +1041,35 @@ DSL、重复强模型、接 7-case/held-out 或据此晋升 readiness。
    （同 request + strict schema）、`task-bound-strict`（真实 18.31 request + strict schema + leakage/two-task binding）；
 3. [x] 预模型 freeze 绑定 18.31/18.32 父证据、catalog、9-file implementation closure、route/backend、三个 exact
    request/provider payload digest 与 3-call/0-retry authorization；prefix 原子持久化且不保存 raw response；
-4. [ ] 提交并推送冻结件后，重新核验 digest、真实 prefix=0、key 仅存在性，再以前台顺序执行 3 个阶段；
-5. [ ] 工程问题则最小修复并优先取得至少一个安全 plan，再检查 leakage/binding 和计划语义；只有 transport 已
+4. [x] 提交并推送冻结件后，重新核验 digest、真实 prefix=0、key 仅存在性，再以前台顺序执行 3 个阶段；
+5. [x] 工程问题则最小修复并优先取得至少一个安全 plan，再检查 leakage/binding 和计划语义；只有 transport 已
    可用且重复不能产出计划时，才冻结/转回人工 domain-runtime 产品边界。Semantic parity 在真实计划前保持
    `not-established`。
 
 **预模型状态（2026-08-24）：** 三阶段 request chars 为 7,278 / 7,278 / 12,251，provider payload chars 为
 9,297 / 41,278 / 46,251；0 paid、0 held-out/evaluator payload、`coreBranchDelta=0`。完整 strict provider schema
 只表达结构，路径/regex 等复杂安全约束继续由本地 Zod fail closed，避免 provider 不支持的 regex/`oneOf` 产生
-假 transport 失败。当前尚无执行结果，不改变 18.31、产品边界、portfolio 或 readiness。
+假 transport 失败。
+
+**执行结果（2026-08-24）：** 三阶段均为 HTTP 200、指定 tool call 存在且 strict parse 通过，input/output token
+分别为 2,544/146、4,259/125、5,260/3,274，duration 为 7,500.44/4,344.96/61,601.01 ms；合计 3 paid calls、
+0 retry。Task-bound 计划通过 leakage 与两个 development task 的静态 binding，故 18.31 的失败不能再解释为当前
+持续 context/schema/task-binding blocker；`historicalTaskFailuresReclassified=false` 仍保持，不能反推历史原因。
+
+### Task 18.34：生成计划的零付费语义检查与静态类型门
+
+**范围：** 不新增模型调用、不改 Task 18.33 的 9-file freeze closure、不扩 DSL/案例。直接在 Env Manager 两个
+development workdir 执行安全计划，在进入 manual evaluator 或 semantic parity 设计前检查 runtime、protected input、
+输出完成度与公开语义覆盖。
+
+1. [x] RED/GREEN：新增 additive、skill-neutral 的前向数据流类型审计；已知非字符串 register 进入
+   `write-text-template encoding=text` 时在 runtime 前拒绝；
+2. [x] 两个真实 workdir 均实际调用既有 interpreter，0/2 complete；同一 `template-binding-type` 失败，2/2 protected
+   input digest 不变，每案只存在 `env-report.json`（1/3 声明输出）；
+3. [x] 计划语义审计记录 1 个静态类型错、3 个读取后未消费的 interface-derived register，以及 Vite task 2 个
+   `import.meta.env` 引用未被计划 regex 覆盖；不保存 fixture 值、输出正文或错误原文；
+4. [x] manual evaluator 保持 `not-run`，`semanticParity=not-established`、`eligibilityChanged=false`、0 paid/held-out/
+   evaluator payload/core branch delta。当前自动化路线按人工审核/补齐 domain runtime 的产品边界收口。
 
 ### 单模型族 70% 与多模型族启动门槛
 

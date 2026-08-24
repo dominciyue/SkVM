@@ -660,7 +660,16 @@ request/provider payload digest。Runner 始终独立执行三阶段，`retries=
 length/digest、JSON parse、choice/finish reason、assistant content 是否存在及长度、tool call 数、指定 tool 是否存在、
 arguments 长度和 usage 是否存在。禁止保存 response body、content、reasoning、tool arguments、prompt、key 或绝对
 路径。最后阶段只有在 leakage audit 通过后才保存 safe parsed plan，并对 construction/transfer 两条 development
-task 做静态 binding。当前 freeze 为 3 stages、0 paid、最多 3 calls；尚无结果，不能更新 eligibility/readiness。
+task 做静态 binding。预模型 freeze 为 3 stages、0 paid、最多 3 calls；该冻结本身不更新 eligibility/readiness。
+
+唯一 attribution execute 已完成 3/3 stage、0 retry：三行均 HTTP 200、tool call/usage 可观测，前两行 canonical
+exact match，最后一行产生安全 plan 并通过 leakage 与双 task 静态 binding；总计 12,063 input / 3,545 output
+tokens。该结果排除当前持续 context/schema/task-binding blocker，但不追溯重分类 18.31。
+
+后续语义检查不是另一轮模型测量，而是 0-paid workdir execution。两个 development fixture 均物化到临时目录，
+执行现有 interpreter 后复核全部初始 fixture digest；两案 protected 均不变，但均在 text template 数据类型处失败，
+只出现 1/3 声明输出。失败报告只保存分类与 message digest，不保存错误原文、fixture/output 内容或临时绝对路径；
+manual evaluator 因 runtime 未完成而保持 `not-run`，semantic parity 与 eligibility 不更新。
 
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 

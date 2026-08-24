@@ -129,8 +129,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   审核或补齐”，portfolio automation 仍 0/7，readiness 不变。
 - Task 18.33 仅为解释 18.31 的合并失败窄范围重开归因，不恢复 DSL/7-case rollout。预模型身份以 Env Manager
   单案例按 `context-minimal -> context-strict -> task-bound-strict` 逐级加入真实 source/declaration、完整 tool schema
-  与双 task binding，固定最多 3 calls、0 retry；失败只保存脱敏 HTTP/tool-call/长度/usage 元数据，绝不落盘 response
-  body。当前只有冻结件，尚无付费结果，产品边界与 readiness 均未改变。
+  与双 task binding；真实执行 3/3 返回 schema-valid plan，合计 12,063 input / 3,545 output tokens、0 retry，最后
+  计划通过 leakage 与双 task 静态 binding。它排除了持续 context/schema/task-binding blocker，但不追溯重分类
+  18.31。随后零付费真实执行在两个 workdir 都因同一 text-template 类型错误停止，只生成 1/3 输出；初始输入均
+  保持不变，另检出 3 个读取后未使用的接口值与 2 个未覆盖的 Vite 引用。因此 semantic parity/eligibility 仍未建立。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -171,9 +173,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> JSON Pointer successor 已真实复制 3 fields；15 -> 12，ceiling=pointer 1/query 1/domain-runtime 10
 -> Restricted Domain Plan 唯一双案例生成 0/2；2 calls/0 retry，但 provider-vs-parse 归因未建立
 -> forced-tool transport qualification exact-match passed；不重分类历史 18.31
--> Task 18.33 failure attribution 已预模型冻结：Env 单案例三阶段 progressive bisection、最多 3 calls/0 retry
--> 只在 transport 修复且产生安全 plan 后检查 task binding/语义；不扩 DSL/7-case/held-out
--> 若归因后仍无计划，自动化阶段按人工审核 domain runtime 的产品边界收口
+-> Task 18.33 progressive bisection 3/3 通过并产生安全计划；0 retry，不重分类历史 18.31
+-> Task 18.34 已在两个真实 workdir 零付费执行：0/2 runtime complete、protected 2/2、每案仅 1/3 输出
+-> 新增通用静态数据流类型门，能在 runtime 前拒绝该数组到 text-template 的必错流；不修改冻结 18.33 closure
+-> 计划仍忽略 3 个接口规则派生值并漏掉 2 个 Vite 引用，semantic parity/eligibility 不成立
+-> 自动化阶段恢复“人工审核/补齐 domain runtime”产品边界，不扩 DSL/7-case/held-out
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

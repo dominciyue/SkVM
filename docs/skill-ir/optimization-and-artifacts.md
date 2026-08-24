@@ -616,8 +616,13 @@ domain-runtime 审核”，不把 transport 正例冒充 optimizer 正例。
 Task 18.33 不新增 artifact primitive，而是在实际 artifact execution 前定位 plan synthesis 边界。三个阶段逐级加入
 真实 context、完整 strict tool schema 和 task binding；只有 task-bound 阶段产生安全计划时，后续才允许评审计划
 是否值得进入现有 deterministic runtime/package。预模型 freeze 为 3 authorized calls、0 retry/held-out/evaluator
-payload；当前没有 package、workdir、manual parity 或 semantic parity 新证据，因此 18.31 的 0/2 与人工审核产品
-边界暂不改变。
+payload；在执行前没有 package、workdir、manual parity 或 semantic parity 新证据，因此冻结本身不改变 18.31。
+
+真实 attribution 后确有一个通过 leakage/binding 的计划，但 Task 18.34 的两个临时真实 workdir 执行均在
+`.env.example` 写入前发生 `template-binding-type`：解释器已先写 `env-report.json`，其余两个声明输出不存在，
+protected inputs 均保持摘要一致。计划还读取但未消费 3 个 public-interface 派生值，并漏掉 2 个 Vite 引用，因此
+不能进入 manual evaluator 或 full package/semantic parity。Additive static dataflow type gate 已能在 runtime 前识别该
+必错流；它没有修改冻结 artifact/runtime，也不构成 automatic package 正例。
 
 ## 15. 测试
 
@@ -655,6 +660,9 @@ bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-
 bun test ./src/benchmarks/skill-ir/automatic-domain-plan-attribution.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=execute
+bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-static-types.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection-run.ts
 bun test ./src/benchmarks/skill-ir
 bun run typecheck
 ```

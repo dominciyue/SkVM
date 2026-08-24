@@ -1,0 +1,272 @@
+{
+  "schemaVersion": "skill-ir-restricted-domain-plan/v1",
+  "planId": "audit-environment-safely",
+  "steps": [
+    {
+      "id": "read-env",
+      "op": "read-text",
+      "path": ".env"
+    },
+    {
+      "id": "read-interface",
+      "op": "read-json",
+      "path": "env-audit-interface.json"
+    },
+    {
+      "id": "defined-keys",
+      "op": "parse-key-value-lines",
+      "path": ".env",
+      "keyPattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+    },
+    {
+      "id": "js-env-refs",
+      "op": "regex-find-files",
+      "includePathPattern": "^(?!\\.env(?:\\.|$)).*$",
+      "contentPattern": "process\\.env\\.(?<name>[A-Za-z_][A-Za-z0-9_]*)",
+      "flags": "g",
+      "captures": [
+        "name"
+      ]
+    },
+    {
+      "id": "python-environ-refs",
+      "op": "regex-find-files",
+      "includePathPattern": "^(?!\\.env(?:\\.|$)).*$",
+      "contentPattern": "os\\.environ\\[['\"](?<name>[A-Za-z_][A-Za-z0-9_]*)['\"]\\]",
+      "flags": "g",
+      "captures": [
+        "name"
+      ]
+    },
+    {
+      "id": "python-getenv-refs",
+      "op": "regex-find-files",
+      "includePathPattern": "^(?!\\.env(?:\\.|$)).*$",
+      "contentPattern": "os\\.getenv\\(['\"](?<name>[A-Za-z_][A-Za-z0-9_]*)['\"]\\)",
+      "flags": "g",
+      "captures": [
+        "name"
+      ]
+    },
+    {
+      "id": "client-sensitive-refs",
+      "op": "regex-find-files",
+      "includePathPattern": "^(?!\\.env(?:\\.|$)).*$",
+      "contentPattern": "(?:process\\.env\\.|os\\.environ\\[['\"]|os\\.getenv\\(['\"])(?<name>[A-Za-z_][A-Za-z0-9_]*)",
+      "flags": "g",
+      "captures": [
+        "name"
+      ]
+    },
+    {
+      "id": "hardcoded-sensitive-bindings",
+      "op": "regex-find-files",
+      "includePathPattern": "^(?!\\.env(?:\\.|$)).*$",
+      "contentPattern": "\\b(?:const|let|var)\\s+(?<name>[A-Z][A-Z0-9_]*(?:KEY|TOKEN|PASSWORD|SECRET))\\s*=\\s*[\"'][^\"']+[\"']",
+      "flags": "g",
+      "captures": [
+        "name"
+      ]
+    },
+    {
+      "id": "js-used-names",
+      "op": "pluck",
+      "source": "js-env-refs",
+      "field": "name"
+    },
+    {
+      "id": "python-environ-used-names",
+      "op": "pluck",
+      "source": "python-environ-refs",
+      "field": "name"
+    },
+    {
+      "id": "python-getenv-used-names",
+      "op": "pluck",
+      "source": "python-getenv-refs",
+      "field": "name"
+    },
+    {
+      "id": "client-sensitive-names",
+      "op": "pluck",
+      "source": "client-sensitive-refs",
+      "field": "name"
+    },
+    {
+      "id": "used-names",
+      "op": "set-operation",
+      "operator": "union",
+      "left": "js-used-names",
+      "right": "python-environ-used-names"
+    },
+    {
+      "id": "all-used-names",
+      "op": "set-operation",
+      "operator": "union",
+      "left": "used-names",
+      "right": "python-getenv-used-names"
+    },
+    {
+      "id": "defined-and-used",
+      "op": "set-operation",
+      "operator": "intersection",
+      "left": "defined-keys",
+      "right": "all-used-names"
+    },
+    {
+      "id": "defined-unconfirmed-unused",
+      "op": "set-operation",
+      "operator": "difference",
+      "left": "defined-keys",
+      "right": "all-used-names"
+    },
+    {
+      "id": "used-undefined",
+      "op": "set-operation",
+      "operator": "difference",
+      "left": "all-used-names",
+      "right": "defined-keys"
+    },
+    {
+      "id": "hardcoded-locations",
+      "op": "project-records",
+      "source": "hardcoded-sensitive-bindings",
+      "fields": [
+        "path",
+        "name"
+      ]
+    },
+    {
+      "id": "client-sensitive-name-filter",
+      "op": "filter-regex",
+      "source": "client-sensitive-refs",
+      "field": "name",
+      "pattern": "^(?:VITE_|NEXT_PUBLIC_|REACT_APP_|NUXT_PUBLIC_|VUE_APP_).*(?:KEY|TOKEN|PASSWORD|SECRET)$",
+      "flags": "i",
+      "keep": "matching"
+    },
+    {
+      "id": "exposure-risks",
+      "op": "project-records",
+      "source": "client-sensitive-name-filter",
+      "fields": [
+        "path",
+        "name"
+      ]
+    },
+    {
+      "id": "contract-report-fields",
+      "op": "json-pointer",
+      "source": "read-interface",
+      "pointer": "/reportFields"
+    },
+    {
+      "id": "contract-schema-rules",
+      "op": "json-pointer",
+      "source": "read-interface",
+      "pointer": "/schemaRepresentations"
+    },
+    {
+      "id": "contract-policy",
+      "op": "json-pointer",
+      "source": "read-interface",
+      "pointer": "/policy"
+    },
+    {
+      "id": "write-report",
+      "op": "write-json",
+      "path": "env-report.json",
+      "fields": [
+        {
+          "key": "definedAndUsed",
+          "value": {
+            "kind": "ref",
+            "ref": "defined-and-used"
+          }
+        },
+        {
+          "key": "definedUnconfirmedUnused",
+          "value": {
+            "kind": "ref",
+            "ref": "defined-unconfirmed-unused"
+          }
+        },
+        {
+          "key": "usedUndefined",
+          "value": {
+            "kind": "ref",
+            "ref": "used-undefined"
+          }
+        },
+        {
+          "key": "hardcodedSecrets",
+          "value": {
+            "kind": "ref",
+            "ref": "hardcoded-locations"
+          }
+        },
+        {
+          "key": "exposureRisks",
+          "value": {
+            "kind": "ref",
+            "ref": "exposure-risks"
+          }
+        },
+        {
+          "key": "variableInventory",
+          "value": {
+            "kind": "ref",
+            "ref": "defined-keys"
+          }
+        }
+      ]
+    },
+    {
+      "id": "write-example",
+      "op": "write-text-template",
+      "path": ".env.example",
+      "template": "# Generated environment template. Values are intentionally omitted; review and assign them manually.\\n{{keys}}\\n",
+      "bindings": [
+        {
+          "token": "keys",
+          "value": {
+            "kind": "ref",
+            "ref": "defined-keys"
+          },
+          "encoding": "text"
+        }
+      ]
+    },
+    {
+      "id": "write-schema",
+      "op": "write-text-template",
+      "path": ".env.schema.json",
+      "template": "{\"variables\":{{keys}},\"required\":{{required}}}\\n",
+      "bindings": [
+        {
+          "token": "keys",
+          "value": {
+            "kind": "ref",
+            "ref": "defined-keys"
+          },
+          "encoding": "json"
+        },
+        {
+          "token": "required",
+          "value": {
+            "kind": "ref",
+            "ref": "all-used-names"
+          },
+          "encoding": "json"
+        }
+      ]
+    }
+  ],
+  "audit": {
+    "paidCalls": 1,
+    "retries": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "skillSpecificBranches": 0
+  }
+}

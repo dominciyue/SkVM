@@ -928,10 +928,10 @@ task 声明语义层、结构 predicate 的真实 execution bridge 与首个跨�
 随后 Task 18.30 用 value-free JSON Pointer successor 将 unresolved 从 15 降到 12，并量化出 10 项 domain-runtime
 floor。Task 18.31 已完成 restricted Domain Plan、single-call 生成器、真实 workdir package 编排和 pre-model freeze；
 唯一双案例 execute 中两案都未形成 strict plan，且首版 `provider-or-parse` 无法精确区分 transport/JSON/schema。
-Task 18.32 的独立 forced-tool qualification 已 exact-match 通过，但不重分类历史 18.31。自动化阶段现已暂停在
-“候选/结构/局部投影自动化 + 人工审核/补齐 domain runtime”边界。Task 18.33 仅为失败归因窄范围重开：Env
-Manager 的三个独立阶段逐级增加真实 context、完整 strict schema 与 task binding，最多 3 calls、0 retry；它不
-恢复 pointer/query/DSL/7-case 扩展：
+Task 18.32 的独立 forced-tool qualification 已 exact-match 通过，但不重分类历史 18.31。Task 18.33 的窄归因随后
+3/3 成功并生成通过 leakage/双 task 静态 binding 的计划；Task 18.34 再用两个真实 workdir 证明该计划 0/2 runtime
+complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏检。自动化阶段因此恢复在“候选/结构/局部投影
+自动化 + 人工审核/补齐 domain runtime”边界，不扩 pointer/query/DSL/7-case：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -960,7 +960,10 @@ Manager 的三个独立阶段逐级增加真实 context、完整 strict schema �
 已完成：transport qualification pre-model freeze；canonical plan、1 authorized call、0 task/held-out/evaluator payload
 已完成：transport qualification exact-match pass；632/134 tokens、5.02 秒，不追溯重分类 18.31
 已完成：Task 18.33 pre-model freeze；3 stages、0 paid、最多 3 calls/0 retry、sanitized response metadata
-当前边界：等待唯一 attribution execute；domain runtime 默认仍需人工审核/补齐，readiness/portfolio 不晋升
+已完成：Task 18.33 attribution execute；3/3 passed、12063/3545 tokens、0 retry、安全 plan + 双 task binding
+已完成：Task 18.34 真实 workdir 语义检查；0/2 runtime complete、2/2 protected、每案 1/3 输出、0 paid
+已完成：additive static dataflow type gate 在 runtime 前拒绝已知 string-array -> text 必错流
+当前边界：domain runtime 默认仍需人工审核/补齐；semantic parity、eligibility、readiness/portfolio 不晋升
 ```
 
 本地重建命令：
@@ -1021,6 +1024,9 @@ bun run ./src/benchmarks/skill-ir/automatic-domain-plan-transport-qualification-
 bun test ./src/benchmarks/skill-ir/automatic-domain-plan-attribution.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --phase=execute
+bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-static-types.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection-run.ts
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

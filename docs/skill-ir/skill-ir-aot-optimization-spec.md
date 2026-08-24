@@ -1147,6 +1147,15 @@ digest、response JSON/tool-call/usage 是否存在、arguments 长度等脱敏�
 reasoning、secret 或 held-out。只有 transport/strict-schema 工程问题修复且产生安全 plan 后，才可在设计 semantic
 parity 前检查计划语义；没有该结果前不得扩 DSL、7-case、held-out、replication 或更新 automation/readiness。
 
+真实归因的三个阶段均成功，task-bound 阶段产生一个 26-step 安全计划并通过 leakage 与两个 development task 的
+静态路径 binding；3 calls 合计 12,063 input / 3,545 output tokens、0 retry。因此当前持续 transport、strict schema
+或 task-binding 不兼容均被排除，但历史 18.31 仍不重分类。Task 18.34 随即零付费物化两个真实 workdir 并调用既有
+interpreter：两案都因 string-array 进入 text-only template binding 而停止，只生成 1/3 输出，protected inputs
+2/2 不变；计划另有 3 个读取后未消费的公开接口派生值，并漏掉 Vite task 的 2 个 `import.meta.env` 引用。新静态
+数据流类型门可在 runtime 前拒绝这项已知必错流，但它不修补模型计划，也不建立 domain semantic parity。故
+`automationAndAdaptationConverging`、portfolio eligibility 与 readiness 均不变，默认产品边界仍是自动候选 + 人工
+domain-runtime 审核/补齐。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

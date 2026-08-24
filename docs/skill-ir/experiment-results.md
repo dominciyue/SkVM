@@ -761,11 +761,18 @@ token 为 input 632、output 134、cache read/write 0，status `passed`、failur
 本轮不再扩 DSL、重试强模型、接 7-case/held-out/多模型；产品默认需要人工审核/补齐 domain runtime，readiness 与
 portfolio automation 不更新。
 
-Task 18.33 在不改写 18.31/18.32 的前提下冻结了一个三阶段 failure-attribution identity，尚未执行付费调用。唯一
-案例为 Env Manager；阶段依次使用真实 source/declaration + minimal schema、同 request + strict schema、真实
-task-bound request + strict schema/two-task binding。Request chars 为 7,278/7,278/12,251，provider payload chars
-为 9,297/41,278/46,251；上限 3 calls、0 retry、0 held-out/evaluator payload、core branch delta 0。Freeze 只说明
-归因方法已前瞻固定，不构成 transport、plan 生成、task transfer、package 或 semantic parity 结果。
+Task 18.33 在不改写 18.31/18.32 的前提下执行了冻结的三阶段 failure attribution。三行均 HTTP 200 且指定 tool
+call/usage 可用；前两行 canonical exact match，task-bound 行生成 digest `1a7beb7d...c7882` 的 26-step plan，并
+通过 task1 literal leakage 与两个 development task 静态 binding。逐行 input/output tokens 为 2,544/146、
+4,259/125、5,260/3,274，duration 为 7,500.44/4,344.96/61,601.01 ms；共 3 calls、0 retry、0 held-out/evaluator
+payload，raw provider bodies persisted=0。这排除当前持续 context/strict-schema/task-binding blocker，但
+`historicalTaskFailuresReclassified=false`，不反推 18.31 的历史原因。
+
+Task 18.34 随后以 0 paid 调用在 Env Manager 的 Node/Vite 两个真实 development workdir 执行该计划。两案均在
+string-array 作为 text template binding 时失败，runtime complete=0/2；初始 fixture digest 2/2 保持，且每案只
+存在 `env-report.json`（1/3 声明输出）。计划数据流另有 3 个 public-interface pointer 结果读取后未消费，Vite
+workdir 的 2 个 `import.meta.env` 引用没有被任何计划 regex 捕获。Manual evaluator 未运行，semantic parity 保持
+`not-established`、eligibility 不变。新增通用静态类型门能在 runtime 前识别这 1 个必错流，但不修补剩余领域语义。
 
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
@@ -794,3 +801,6 @@ task-bound request + strict schema/two-task binding。Request chars 为 7,278/7,
 - `results/skill-ir/automatic-domain-plan-transport-qualification-v1/pre-model-freeze.json`
 - `results/skill-ir/automatic-domain-plan-transport-qualification-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-attribution-v1/pre-model-freeze.json`
+- `results/skill-ir/automatic-domain-plan-attribution-v1/report.json`
+- `results/skill-ir/automatic-domain-plan-attribution-v1/generated-plan.json`
+- `results/skill-ir/automatic-domain-plan-semantic-inspection-v1/report.json`
