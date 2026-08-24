@@ -920,7 +920,9 @@ manifest evidence 和 semantic repair identity 替换 v1 的两项表示特化�
 qualification。Task 18.23 已完成唯一一次资格：resource/route/observability/scorer 四门全过、1 paid、
 semantic-complete；exact workdir set false 只披露、不作 gate。Task 18.24 又在 0 新调用下冻结 successor
 analysis/matrix runner identity：12-row 顺序、三组 estimand、4 个 deterministic controls 与原子 prefix resume
-协议都已绑定。当前接力点是从 0/12 执行这份唯一矩阵，而不是重跑资格、复用旧行或更换 runner：
+协议都已绑定。Task 18.25 已在任何模型输出被读取前补齐 successor 专属 artifact compiler/runtime/control：确定性
+4 行为 4/4、0 model call/token，并冻结旧 construction 与新 implementation closure。当前接力点是重新核验 digest
+和真实 prefix 0/12 后执行唯一矩阵，而不是重跑资格、复用旧行或更换 runner：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -936,7 +938,8 @@ analysis/matrix runner identity：12-row 顺序、三组 estimand、4 个 determ
 已完成：successor qualification/development identity；12-row dry-run、lock-local scorer、0 paid
 已完成：successor infrastructure qualification；四门全绿、1 paid，matrix authorization true
 已完成：successor analysis/matrix identity；固定顺序/精确 prefix/12+4 denominator，0 新 paid，matrix 0/12
-下一步：运行同一 lock 的唯一 12-row 分母；不重试、不补资格、不复用 v1
+已完成：successor pre-model artifact controls；4/4、0 model call/token，report v2 与 repair evidence 合同匹配
+下一步：重新核验 digest 与真实 prefix 0/12，运行同一 lock 的唯一 12-row 分母；不重试、不补资格、不复用 v1
 ```
 
 本地重建命令：
@@ -959,6 +962,10 @@ bun test ./src/benchmarks/skill-ir/bids-successor-development.test.ts
 bun run ./src/benchmarks/skill-ir/bids-successor-matrix.ts
 bun run ./src/benchmarks/skill-ir/bids-successor-matrix-run.ts --phase=plan
 bun test ./src/benchmarks/skill-ir/bids-successor-matrix.test.ts
+bun test ./src/benchmarks/skill-ir/bids-successor-artifact-control.test.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-artifact-control-run.ts
+# 12/12 model capture 完成后：
+bun run ./src/benchmarks/skill-ir/bids-successor-development-result-run.ts
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

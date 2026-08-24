@@ -474,6 +474,21 @@ Committed policy 为 `benchmarks/skill-ir/pilots/bids/successor-v2/development-a
 matrix 仍为 0/12、本阶段 0 新调用。下一步 `--phase=execute` 只能执行这一份分母；qualification-repeat、BIDS v1
 reuse/rescore、dynamic、held-out 与 readiness 均禁止。
 
+Task 18.25 将确定性 artifact controls 前移到付费矩阵之前。旧 artifact runtime 的 report v1/source-reference
+evidence 不满足 successor report v2/repair-related evidence 合同，因此由 successor 专属薄层生成 package，并用
+lock-local scorer 对 `successor-v2/development/tasks.json` 直路径评分；result runner 不使用 `corpus: pilot` 或共享
+evaluator registry。复建入口为：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/bids-successor-artifact-control.test.ts
+bun run ./src/benchmarks/skill-ir/bids-successor-artifact-control-run.ts
+```
+
+实测固定 4 行全部 success、0 model call/token、0 held-out；compact freeze 还绑定 policy/lock/qualification/tasks/
+public interface/scorer、旧 construction report、被 pin 的六个上游实现和六个 successor 新文件。Package、raw、
+scored 与 workdir 留本地。这里的 12-row/0-paid 先前证据来自临时 dry-run/focused validator，不代表持久
+`run/plan.json` 已生成；正式 execute 前仍必须重新验证 digest 与真实 prefix 0/12。
+
 ## 9. Gate 顺序
 
 ```text

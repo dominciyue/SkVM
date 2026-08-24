@@ -787,6 +787,33 @@ step-limit 作为冻结行进入分母，累计是否超过 measurement eligibil
 dynamic、held-out、readiness，也不先验承诺第二质量正例。模型矩阵完成并通过完整性核验后，再以已冻结的 4 个
 deterministic controls 生成 development result。
 
+**执行顺序修正（2026-08-24）：** Task 18.24 只冻结了 4 条 deterministic control 的分母与 estimand，尚未实现
+successor artifact compiler/runtime/control。旧 BIDS v1 artifact 产生 report v1 和 source-reference evidence，不能
+直接交给 successor report v2/scorer，否则会制造 measurement-contract mismatch 的假负结果。因此在任何 12-row
+付费调用前，先用新增的 successor 专属薄层完成以下步骤；该薄层只 import、不得修改 BIDS v1 与公共 artifact
+assembly/catalog/runtime 的已 pin 文件，也不得修改 Task 18.24 policy 的四文件 implementation closure。
+
+1. [x] RED/GREEN：新增 successor artifact adapter/compiler/runtime，必须消费 successor public interface 与 task
+   contract，并通过 `deriveBidsSuccessorAuditOracle` 产生 report v2、summary 与 repair-related manifest evidence；
+2. [x] RED/GREEN：新增独立 control/result runner。4 行固定为 successor development 的 2 task x 2 repetition，
+   `system=validated-artifact`，评分前 lock-local 直载 successor scorer，调用 scorer 时只传 successor tasks 直路径，
+   禁止 `corpus: pilot`；
+3. [x] 在尚未读取任何 successor 模型输出前，生成 compact pre-model control freeze，绑定 policy/lock/tasks/public/
+   scorer、旧 construction report、被 pin 的上游 digest、新增实现 closure、package/raw/scored digest；冻结结果必须
+   证明 4/4 deterministic success、0 model call/token、0 held-out，且不授权修改 measurement identity；
+4. [x] Artifact control 实测为 4/4、0 model call/token、0 held-out；compact freeze 为
+   `results/skill-ir/bids-successor-artifact-control-freeze-v1.json`。本结果只证明控制臂与 successor 测量合同兼容；
+5. [ ] 重新核验 matrix identity digest 与 API key 存在性，然后执行唯一一次 `--phase=execute`，从真实 persisted
+   prefix 0/12 开始；不得把临时目录中的 dry-run/focused test 误写为已生成持久 `run/plan.json`；
+6. [ ] 12/12 后先核对 raw/scored/envelope/matrix-capture identity、`matrixPaidCalls=12`、`retries=0`、严格连续
+   prefix 与 classification 守恒，再由预模型冻结的 artifact evidence 构建 development result；
+7. [ ] 结果分层报告 measurement eligibility、contribution、static、hand-authored artifact、automatic construction
+   五类结论。即使 BIDS 正向，也只可能补足第二 phenotype；`automationAndAdaptationConverging` 仍由 7/7
+   `generatesIr=false` 支撑，所以 readiness 仍不得晋升，untouched replication/多模型/noisy-long 仍关闭；
+8. [ ] 最后单独修正 readiness blocker 派生：显式区分 `explained-and-frozen` 历史负结果与
+   `open-candidate`/unexplained blocker，并因研究结论语义变化提升 readiness schema。不得只放宽表达式而静默重写
+   Zh README 历史证据；该修正本身也不会让另外两道 false gate 通过。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

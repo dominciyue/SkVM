@@ -1012,6 +1012,14 @@ Committed policy 与 compact freeze 分别位于
 重复，dynamic、held-out、readiness 与模型质量 claim 仍关闭。该首版是 successor measurement identity 的专属薄
 层，不是通用 framework 或历史 BIDS v1 的版本升级。
 
+Task 18.25 在任何 successor 模型输出被读取前补齐了冻结分母中预注册但尚未实现的 4 条 artifact control。
+Successor 专属 compiler/runtime 只导入被 BIDS v1 prospective construction 证据 pin 住的公共模块，使用
+`deriveBidsSuccessorAuditOracle` 生成 `skill-ir-bids-audit-report/v2`、summary 与 repair-target evidence；没有修改
+旧 BIDS v1 或 Task 18.24 的四文件 implementation closure。2 task x 2 repetition 的确定性实测为 4/4 success、
+0 model call/token、0 held-out，compact pre-model freeze 位于
+`results/skill-ir/bids-successor-artifact-control-freeze-v1.json`。这只排除了 artifact/scorer 测量合同错配造成的
+假负结果；12 个模型行仍为 0/12，下一步仍须重新核验 digest 后才可执行唯一 matrix。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

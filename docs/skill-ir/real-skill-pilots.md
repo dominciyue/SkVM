@@ -274,6 +274,12 @@ deterministic controls、task -> repetition -> system 顺序与 0 retry/reserve�
 prefix checkpoint 支持中断恢复，只接受完全匹配的连续前缀；12 行齐全后才评分。Compact freeze 为 passed、matrix
 0/12，BIDS v1 仍 preserved/not-rescored。当前仍不是第二质量正例；下一步只运行该唯一 development 分母。
 
+Task 18.25 已先补齐 successor 专属 artifact controls，避免把 v1 report/evidence 直接交给 v2 scorer 产生假负
+结果。新薄层只 import 被 prospective construction 证据冻结的旧 compiler/runtime/public artifact 模块，生成
+report v2 与 repair-related evidence；4 条确定性行全部 success、0 model call/token、0 held-out，并在模型输出被
+读取前冻结 implementation/package/raw/scored closure。该结果只证明 hand-authored artifact arm 可合法计量，
+不是 automatic optimizer 证据；模型矩阵仍为 0/12，下一步先重验 digest 再执行唯一分母。
+
 共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
 closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
 answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为

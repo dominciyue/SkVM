@@ -649,6 +649,13 @@ Measurement eligibility 仍要求 12 scored model rows、4 controls、active fai
 deterministic scorer complete。零付费 freeze 重建 12/12 successor plan rows、lock-local scorer 与空原子 prefix，
 记录 `currentStagePaidCalls=0`、`matrixExecuted=false`；因此这里没有质量 delta，也不改变 readiness 或 portfolio。
 
+Task 18.25 在任何 successor 模型输出被读取前执行预注册的 4 条 deterministic artifact controls。Successor 专属
+薄层把 v1 oracle 映射为 report v2，并把每项 evidence 收紧为 repair target；2 task x 2 repetition 全部通过，
+`successfulRows=4`、model calls/tokens 为 0、held-out 为 0。Package manifest SHA-256 为
+`21ee31b593584e92dcf63d706223fa0241135faece78502e5a73c2cb786ccdce`；compact freeze 为
+`results/skill-ir/bids-successor-artifact-control-freeze-v1.json`。这证明 hand-authored artifact control 可被当前
+successor scorer 合法测量，不证明模型质量或 automatic construction，也不改变 matrix 0/12。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -662,3 +669,4 @@ deterministic scorer complete。零付费 freeze 重建 12/12 successor plan row
 - `results/skill-ir/bids-successor-development-v1/qualification/resource-probe.json`
 - `benchmarks/skill-ir/pilots/bids/successor-v2/development-analysis-policy.json`
 - `results/skill-ir/bids-successor-matrix-freeze-v1.json`
+- `results/skill-ir/bids-successor-artifact-control-freeze-v1.json`

@@ -125,7 +125,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> successor qualification/development identity 已零付费冻结：12-row dry-run、lock-local scorer、只开放一次资格
 -> successor 单次 infrastructure qualification 已通过：四门全绿、1 paid、semantic-complete、deterministic scorer
 -> successor analysis/matrix runner identity 已冻结：固定顺序、精确 prefix、12+4 denominator，matrix 仍为 0/12
--> 下一步执行同一 lock 的唯一 12-row successor 分母；资格不得重复、v1 行不得复用、不得重试或后验选行
+-> successor pre-model artifact controls 已冻结：report v2/repair evidence 合同匹配，4/4、0 model call/token
+-> 下一步重新核验 digest 与真实 prefix 0/12，再执行同一 lock 的唯一 12-row successor 分母；资格不得重复、
+   v1 行不得复用、不得重试或后验选行
 -> BIDS v1 始终不复用、不补跑、不重评分；qualification 也不以 task success 或 exact output 预筛模型
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> 调整 readiness：已解释并冻结的负结果保留，但不应永久阻断方法冻结；未解释漂移仍阻断
