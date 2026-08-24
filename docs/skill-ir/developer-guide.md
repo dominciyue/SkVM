@@ -930,8 +930,9 @@ floor。Task 18.31 已完成 restricted Domain Plan、single-call 生成器、�
 唯一双案例 execute 中两案都未形成 strict plan，且首版 `provider-or-parse` 无法精确区分 transport/JSON/schema。
 Task 18.32 的独立 forced-tool qualification 已 exact-match 通过，但不重分类历史 18.31。Task 18.33 的窄归因随后
 3/3 成功并生成通过 leakage/双 task 静态 binding 的计划；Task 18.34 再用两个真实 workdir 证明该计划 0/2 runtime
-complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏检。自动化阶段因此恢复在“候选/结构/局部投影
-自动化 + 人工审核/补齐 domain runtime”边界，不扩 pointer/query/DSL/7-case：
+complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏检。Task 18.35 进一步在 partial workdir 上实际运行
+冻结 Env evaluator，得到 baseline 0/6 -> post-plan 1/6、distance-to-full=5；Law 的一次 strict task-bound generation
+已经冻结但尚未执行。自动化阶段仍不扩 pointer/query/DSL/7-case：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -963,7 +964,9 @@ complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏
 已完成：Task 18.33 attribution execute；3/3 passed、12063/3545 tokens、0 retry、安全 plan + 双 task binding
 已完成：Task 18.34 真实 workdir 语义检查；0/2 runtime complete、2/2 protected、每案 1/3 输出、0 paid
 已完成：additive static dataflow type gate 在 runtime 前拒绝已知 string-array -> text 必错流
-当前边界：domain runtime 默认仍需人工审核/补齐；semantic parity、eligibility、readiness/portfolio 不晋升
+已完成：Task 18.35 Env manual parity；真实 evaluator 分母 6，0/6 -> 1/6，full task parity 0/2
+已冻结：Law 单调用 generation；strict request、双 task binding/static-type 前门、1 call/0 retry，当前 0 paid
+当前边界：Law 未执行、跨 skill parity 未通过；eligibility、readiness/portfolio 不晋升
 ```
 
 本地重建命令：

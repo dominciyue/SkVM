@@ -1071,6 +1071,42 @@ development workdir 执行安全计划，在进入 manual evaluator 或 semantic
 4. [x] manual evaluator 保持 `not-run`，`semanticParity=not-established`、`eligibilityChanged=false`、0 paid/held-out/
    evaluator payload/core branch delta。当前自动化路线按人工审核/补齐 domain runtime 的产品边界收口。
 
+**证据口径修正（2026-08-25）：** Task 18.33 只覆盖 Env Manager 的两个 development task，不是跨 skill
+证据。Task 18.34 的 `/reportFields`、`/schemaRepresentations`、`/policy` 与 `import.meta.env` 检查是 Env 专用
+diagnostic adapter；只有前向 register 类型审计是 skill-neutral core。18.34 没有运行手工 evaluator，因此不得把
+其占位的 `semanticParity=not-established` 当成已经完成的 parity 判定，也不得表述为计划“不能进入 evaluator”。
+
+### Task 18.35：真实 manual-evaluator semantic parity 与 Law 单调用迁移
+
+**范围：** 不修改 18.33/18.34 冻结报告，不扩 Restricted Domain Plan DSL，不读 held-out。新增独立首版
+semantic-parity evidence：在真实 development workdir 上执行自动计划后，无论 runtime complete 或 partial failure，
+都调用 digest-pinned 手工 development evaluator，并以任务自身冻结的 criterion、weight、hard gate 与 threshold 判定。
+Env 每任务真实为 3 项，Law 每任务真实为 5 项；禁止把不同 evaluator 伪装成统一 5/5。
+
+1. [x] RED/GREEN：实现 skill-neutral parity core，逐任务记录 baseline/post-plan 的 `passed/total`、weighted score、
+   hard-gate status、threshold status、infrastructure failure、距 full pass 的 criterion count 与 delta；
+2. [x] 任务 full parity 仅在 runtime complete、protected inputs preserved、全部冻结 evaluator criterion pass、无
+   infrastructure failure 时成立；案例 parity 要求同一 skill 两个 development task 都 full parity；
+3. [x] 跨 skill `semanticParity` 必须输出真实 `passed|failed`，只在至少两个不同案例均 case parity passed 且
+   `coreBranchDelta=0` 时 passed。案例不足、任一案例失败或 core branch 漂移均给 typed failure reason，不再使用
+   literal `not-established`；
+4. [x] 先对 18.33 已冻结 Env plan 做 0-paid parity，诚实报告真实分母、pass rate 与距 full pass 的差值；旧 Env
+   diagnostic findings 作为 adapter 观察，不进入通用 parity core；
+5. [x] 新增 case-driven、单 task-bound request 的生成 identity，从既有双案例 catalog 选择 Law。冻结 exact
+   source/declaration/task/request/provider payload、相关 implementation digest、`maximumPaidCalls=1`、`retries=0`，
+   提交并推送 pre-model identity 后才允许一次调用；
+6. [ ] Law 安全计划必须通过 leakage、两个 development task binding 与 skill-neutral static type audit后才落盘；随后
+   在两个 Law workdir 运行同一 parity。Raw provider body、arguments、fixture/output 正文、secret 不持久化；
+7. [ ] Go/no-go：若 Env/Law 的真实 checker gap 明显缩小且 Law 跨任务成立，才设计最多 1--2 个新的通用修复；若
+   pass rate 仍低、只能靠 Env/Law 特判或跨 skill parity failed，则停止扩 DSL，转回“自动候选 + 人工 domain
+   runtime”产品边界。无论结果如何都不开放 held-out、7-case、noisy/long、replication 或 readiness 晋级。
+
+**执行前状态（2026-08-25）：** 通用 parity 已在 Env 的两个真实 workdir 上运行冻结 evaluator。真实分母为
+每任务 3 项而非 5 项；Node task 从 baseline 0/3 提升到 post-plan 1/3（weighted 0 -> 0.45），Vite 保持 0/3，
+合计 0/6 -> 1/6、distance-to-full=5、full parity tasks=0/2。两案 runtime 均因同一已知静态类型错失败，
+protected inputs 2/2 保持。Law 单调用 freeze 已绑定 11,431-char request、45,431-char strict provider payload、
+9-file implementation closure、1-call/0-retry authorization；当前仍为 0 paid，须先提交并推送该 identity。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

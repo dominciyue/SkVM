@@ -1156,6 +1156,18 @@ interpreter：两案都因 string-array 进入 text-only template binding 而停
 `automationAndAdaptationConverging`、portfolio eligibility 与 readiness 均不变，默认产品边界仍是自动候选 + 人工
 domain-runtime 审核/补齐。
 
+Task 18.35 将真实 semantic parity 定义为独立、不可回写旧冻结件的证据合同。自动计划在 development workdir 执行
+后，无论 runtime complete 或 partial failure，都调用该 task-set digest 绑定的 manual evaluator；逐任务使用自身
+criterion 分母、weight、hard gate 与 threshold，禁止统一伪造 5/5。Task full parity 要求 runtime complete、
+protected input preserved、全部 criterion pass 且无 infrastructure error；case parity 要求两项 development task
+都 full pass；跨 skill parity 还要求至少两个不同 case 全部通过且 `coreBranchDelta=0`。
+
+Env 现有计划按该合同得到 baseline 0/6、post-plan 1/6、distance-to-full=5、0/2 full task parity。下一项 Law
+证据使用新的 case-driven 单调用 freeze，仍消费既有 `SKILL.md + 薄声明 + 一个公开 development construction task`，
+不扩 DSL；计划在持久化前必须通过 task literal leakage、两个 development binding 与通用 static type audit。
+Freeze 只授权 1 paid call、0 retry，不读 held-out，不把 evaluator payload发给模型。Law 尚未执行前，跨 skill parity、
+automatic eligibility、portfolio/readiness 均不得晋级。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

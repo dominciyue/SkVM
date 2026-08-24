@@ -669,7 +669,14 @@ tokens。该结果排除当前持续 context/schema/task-binding blocker，但�
 后续语义检查不是另一轮模型测量，而是 0-paid workdir execution。两个 development fixture 均物化到临时目录，
 执行现有 interpreter 后复核全部初始 fixture digest；两案 protected 均不变，但均在 text template 数据类型处失败，
 只出现 1/3 声明输出。失败报告只保存分类与 message digest，不保存错误原文、fixture/output 内容或临时绝对路径；
-manual evaluator 因 runtime 未完成而保持 `not-run`，semantic parity 与 eligibility 不更新。
+18.34 当时没有运行 manual evaluator，故只保留 `not-run/not-established`，这不是“失败 workdir 不能评分”的规则。
+
+Task 18.35 新增真实 manual-evaluator parity 报告。每个 task 的 pristine baseline 与 post-plan workdir 共用各自冻结
+initial manifest 和 evaluator criterion；报告只保留 criterion id/status/weight/hard-gate、pass rate、weighted
+score、threshold 与 distance-to-full，不保存 evaluator details 或产物正文。Env Node 为 0/3 -> 1/3、0 -> 0.45，
+Env Vite 为 0/3 -> 0/3；合计 0/6 -> 1/6，0 infrastructure error、0/2 full task parity。跨 skill parity 的机器
+判据要求至少两个 distinct case 各自两项 development task full pass 且 `coreBranchDelta=0`，否则输出 typed failed
+reason，不再用占位 literal 冒充判断。
 
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 

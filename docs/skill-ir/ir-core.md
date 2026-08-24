@@ -352,6 +352,18 @@ closure，修复采用 additive `automatic-restricted-domain-plan-static-types.t
 修改旧解释器；successor 入口可在 runtime 前调用该通用审计。它只修复已证实的类型门缺口，不把未使用公开规则或
 Vite 引用漏检伪装为已解决语义。
 
+Task 18.35 不改写 18.34，而是新增 `automatic-domain-plan-manual-parity.ts`。它把同一 task 的 pristine baseline 与
+post-plan partial workdir 同时交给 digest-pinned development evaluator，按任务自身 criterion/weight/hard gate/
+threshold 汇总；runtime failure 不再成为“不运行 evaluator”的理由。Full task parity 仍严格要求 runtime complete、
+protected inputs preserved 与所有 criterion pass。Env 的真实口径为每任务 3 项，结果合计 0/6 -> 1/6，两个 task
+均未 full pass。
+
+同阶段的 `automatic-domain-plan-single-generation.ts` 是 case-driven 单请求 successor：case/source/declaration/
+task binding 只来自 catalog，core 不含 case id 分支。它在计划落盘前依次执行 task-only literal leakage、两个
+development binding 与通用 static type audit；pre-model freeze 绑定 exact strict request/provider payload、route、
+candidate 与 9-file implementation closure，授权 1 call、0 retry。该首版 identity 不扩 DSL，也不提升旧 component
+版本。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `

@@ -176,8 +176,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Task 18.33 progressive bisection 3/3 通过并产生安全计划；0 retry，不重分类历史 18.31
 -> Task 18.34 已在两个真实 workdir 零付费执行：0/2 runtime complete、protected 2/2、每案仅 1/3 输出
 -> 新增通用静态数据流类型门，能在 runtime 前拒绝该数组到 text-template 的必错流；不修改冻结 18.33 closure
--> 计划仍忽略 3 个接口规则派生值并漏掉 2 个 Vite 引用，semantic parity/eligibility 不成立
--> 自动化阶段恢复“人工审核/补齐 domain runtime”产品边界，不扩 DSL/7-case/held-out
+-> Task 18.35 已真实运行 Env manual evaluator：baseline 0/6 -> post-plan 1/6，distance-to-full 5，case parity failed
+-> Law 单调用 strict generation identity 已冻结为 1 call/0 retry；尚未执行，不扩 DSL/7-case/held-out
+-> 计划仍忽略 3 个接口规则派生值并漏掉 2 个 Vite 引用；eligibility/readiness 不成立
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

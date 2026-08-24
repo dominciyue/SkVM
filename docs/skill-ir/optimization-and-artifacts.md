@@ -621,8 +621,14 @@ payload；在执行前没有 package、workdir、manual parity 或 semantic pari
 真实 attribution 后确有一个通过 leakage/binding 的计划，但 Task 18.34 的两个临时真实 workdir 执行均在
 `.env.example` 写入前发生 `template-binding-type`：解释器已先写 `env-report.json`，其余两个声明输出不存在，
 protected inputs 均保持摘要一致。计划还读取但未消费 3 个 public-interface 派生值，并漏掉 2 个 Vite 引用，因此
-不能进入 manual evaluator 或 full package/semantic parity。Additive static dataflow type gate 已能在 runtime 前识别该
-必错流；它没有修改冻结 artifact/runtime，也不构成 automatic package 正例。
+18.34 没有建立 full package/semantic parity；这不意味着 partial workdir 不能进入 manual evaluator。Additive static
+dataflow type gate 已能在 runtime 前识别该必错流；它没有修改冻结 artifact/runtime，也不构成 automatic package
+正例。
+
+Task 18.35 的独立 parity runner 已在同两个 partial workdir 上实际调用冻结 Env evaluator：baseline 0/6、post-plan
+1/6、distance-to-full=5，只有 Node 的 environment-analysis 一项通过，hard gate 与 threshold 均未过。新的 Law
+single-generation freeze 只授权一次 strict task-bound call；只有 leakage、双 task binding 与 static type audit 全过
+才持久化计划并进入相同 parity。该顺序仍不构造 validated artifact package，也不开放 held-out 或 eligibility。
 
 ## 15. 测试
 

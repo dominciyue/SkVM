@@ -774,6 +774,17 @@ string-array 作为 text template binding 时失败，runtime complete=0/2；初
 workdir 的 2 个 `import.meta.env` 引用没有被任何计划 regex 捕获。Manual evaluator 未运行，semantic parity 保持
 `not-established`、eligibility 不变。新增通用静态类型门能在 runtime 前识别这 1 个必错流，但不修补剩余领域语义。
 
+Task 18.35 首先补做了真正的 frozen manual-evaluator execution，而不是继续比较计划 JSON。Env v3 每任务实际只有
+3 个 criterion：pristine baseline 合计 0/6；post-plan 为 Node 1/3（weighted 0.45，hard gate/0.85 threshold 均未
+过）与 Vite 0/3，合计 1/6、distance-to-full=5。两项 evaluator 都无 infrastructure failure，protected inputs
+保持，但 runtime 0/2 complete，所以 case parity 明确为 `failed`，而非 `not-established`。这证明现有计划产生一个
+局部 evaluator 增量，不证明完整 Env 自动化。
+
+随后只冻结 Law 的单 task-bound generation identity：request/provider payload 为 11,431/45,431 chars，
+`maximumPaidCalls=1`、`retries=0`、0 held-out/evaluator payload，且计划必须先过 leakage、两个 Law development
+binding 与通用 static type audit才可落盘。当前该 identity 尚未执行，不能把预模型 freeze 写成 Law 计划或跨 skill
+semantic parity 证据。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -797,6 +808,8 @@ workdir 的 2 个 `import.meta.env` 引用没有被任何计划 regex 捕获。M
 - `results/skill-ir/automatic-output-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-shadow-v1/pre-model-freeze.json`
+- `results/skill-ir/automatic-domain-plan-manual-parity-v1/env-manager.json`
+- `results/skill-ir/automatic-domain-plan-single-generation-v1/pre-model-freeze.json`
 - `results/skill-ir/automatic-domain-plan-shadow-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-transport-qualification-v1/pre-model-freeze.json`
 - `results/skill-ir/automatic-domain-plan-transport-qualification-v1/report.json`
