@@ -534,6 +534,33 @@ artifact/behavior predicate；后者逐案形成不同 gap，另有对应 output
 仍为 0/7。下一阶段应实现封闭 predicate 到公共 checker/runtime 的 lowering 和至少一个 0-paid execution parity，
 而不是扩充声明去模拟手工 scorer。
 
+Task 18.28 完成结构 execution bridge。`automatic-structural-execution.ts` 将四类封闭 predicate 编成 strict
+`skill-ir-structural-execution-plan/v1`，并在真实 workdir 上使用 initial manifest 检查输入完整性、输出存在/
+精确集合和 JSON object shape。`automatic-structural-execution-runtime.ts` 把 source、base IR、construction audit、
+domain contract、plan、initial manifest 与 bundled checker 组装为真实 `validated-skill-artifact/v1` package，再交给
+既有 `runValidatedArtifactPlan`；没有修改共享/冻结 runtime，也没有 skill-id 分支。
+
+7-case shadow 先重建全部 18.27 candidate 并核验 digest，再加载 development task 和手工 evaluator。33 个隔离场景
+得到 7/7 structural baseline pass，所有 input tamper、missing/extra output 与 5 个 JSON shape drift 均命中预期
+错误；7 份声明内共 19 个实际结构 predicate。`output-presence` 虽由 focused test 与 runtime package test 覆盖，
+但 7 份冻结声明没有该实例，不能计入 19 条 case evidence。Parity catalog 为 297 physical LOC，其中多数是
+path binding 与 manual projection 评估配置；前瞻 authoring 3 human minutes、13 个 binding paths、9 个 manual
+oracle mappings，core branch delta 0。每个手工 evaluator 模块的 path+sha256 也由 catalog 声明，通用 checker
+在候选 freeze 之后校验并隔离加载，不包含任何 skill-id/module-name 分支。
+
+手工 checker 通常把结构条件与领域条件绑在一个 criterion 内，所以 runner 不以总 checker pass/fail 冒充同一
+predicate。手工 evaluator 按案例在隔离 Bun 子进程中批量执行，避免其注册副作用或模块缓存污染公共测试进程；
+临时 evaluator input 随 shadow workdir 删除，不进入 compact evidence。9 个 projection 被分为 `exact`、
+`manual-stricter`、`domain-bundled`；只有两条 exact projection 的
+全部观察一致并建立 execution parity。其余观察保留 agreement/difference 计数，但固定 `not-claimable`。
+`cross-artifact-consistency` 只完成一条 i18n 探针：通用 JSON pointer relation 接声明参数后 baseline pass、mismatch
+fail，额外声明 1 human minute，仍是 `productionGeneralization=not-established`、`semanticParity=not-established`。
+再往下需要 pointer/normalization/runtime-command/source-oracle 参数；若只能靠 skill 特判，不应进入 core。
+
+本阶段 package 是 validation-only checker，不会生成 task artifacts。因此它证明 structure enforcement 已从 plan
+落到 execution，没有证明 optimizer/compiler 自动产物路径收敛，7/7 automation eligibility 与 readiness 保持不变。
+权威报告为 `results/skill-ir/automatic-structural-execution-shadow-v1/report.json`。
+
 ## 15. 测试
 
 ```powershell
@@ -541,6 +568,11 @@ bun test ./src/benchmarks/skill-ir/repair-evidence.test.ts
 bun test ./src/benchmarks/skill-ir/final-ir-provenance.test.ts
 bun test ./src/benchmarks/skill-ir/validated-artifact-catalog.test.ts
 bun test ./src/benchmarks/skill-ir/validated-artifact-runtime.test.ts
+bun test ./src/benchmarks/skill-ir/automatic-structural-execution.test.ts `
+  ./src/benchmarks/skill-ir/automatic-structural-execution-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-structural-execution-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-structural-execution-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601>
 bun test ./src/benchmarks/skill-ir
 bun run typecheck
 ```

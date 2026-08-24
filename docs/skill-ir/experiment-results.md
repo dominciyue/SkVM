@@ -690,6 +690,25 @@ Task 18.27 在不改 18.26 identity 的前提下新增薄 task 说明 successor�
 7/7 仍需人工、semantic parity 均为 `not-established`、package 均 non-executable，四类 portfolio eligibility 仍为
 0/7。这证明薄声明足以自动补齐 task ABI/plan semantic layer，不证明 checker/runtime 或 optimizer 已收敛。
 
+Task 18.28 将 18.27 的结构 plan 接到真实 validated-artifact checker/runtime。7 个 frozen case 共执行 33 个隔离
+workdir 场景：7/7 baseline 通过；7/7 input tamper、7/7 missing output、7/7 extra output 与 5/5 适用 JSON shape
+drift 都命中预注册错误。实际 case 分母包含 19 个结构 predicate；四类 lowering 均有 focused test，但
+`output-presence` 没出现在这 7 份冻结声明中。报告记录 0 paid/API、0 held-out、core branch delta 0；parity catalog
+297 LOC、13 个 path binding、9 个 manual oracle mapping，前瞻 authoring 3 human minutes。手工 evaluator 模块
+由 catalog 逐案例做 path+sha256 声明，执行代码中没有 evaluator 名称分支。
+
+Manual comparison 不是把整个 checker 当成同一结构 oracle。9 条 projection 的 `agreement/difference/infra` 分别为：
+Env bundled 5/0/0；Law bundled 4/0/0；Experimental input exact 5/0/0、artifact manual-stricter 4/1/0；API
+bundled 4/1/0；Reviewer manual-stricter 4/1/0；README manual-stricter 4/0/0；i18n delta exact 5/0/0、artifact
+bundled 1/4/0。只有两条 exact projection 建立 execution parity；其它即使全 agreement 也因手工 criterion 更严格或
+混入 domain 语义而 `not-claimable`。全局 semantic parity 仍为 `not-established`。
+
+唯一 domain probe 为 i18n `cross-artifact-consistency`：一个通用 JSON pointer equality primitive 加 1 条声明参数
+得到 baseline pass/mismatch fail，声明前瞻成本 1 human minute、core branch delta 0。它只证明该原语在一个案例中
+可执行；生产泛化、自动参数提取与语义等价均未建立。Validation package 不生成任务产物，所以四类 automatic
+eligibility 仍为 0/7，method portfolio/readiness 不晋级。本阶段没有进行付费实验，因为模型调用不能加强结构
+execution parity，反而会把尚未收敛的 domain/compiler 路径混入证据。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -709,3 +728,4 @@ Task 18.27 在不改 18.26 identity 的前提下新增薄 task 说明 successor�
 - `results/skill-ir/method-portfolio-readiness.json`
 - `results/skill-ir/automatic-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-domain-construction-shadow-v1/report.json`
+- `results/skill-ir/automatic-structural-execution-shadow-v1/report.json`

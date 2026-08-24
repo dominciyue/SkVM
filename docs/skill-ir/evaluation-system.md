@@ -596,6 +596,21 @@ fixture schema、public ABI、oracle 与 source-bound criteria。完成 Statisti
 `coreBranchDelta`、人工分钟与未自动化步骤复盘是否形成统一 `import -> contract -> audit -> calibrate -> optimize ->
 report` 工具；在复盘前不为抽象而新增 core 分支。
 
+Task 18.28 为自动声明增加真实 structural execution 层，但不改变上述 domain adapter 边界。自动 candidate digest
+必须在 task/evaluator 读取前全部核验；随后以真实 initial manifest、隔离 workdir、catalog-valid package 和既有
+artifact runtime 执行 baseline/input tamper/missing output/extra output/JSON shape drift。7 个案例 33 次执行为
+7/7 baseline pass 且所有预注册结构负例被捕获，0 paid、0 held-out、core branch delta 0。
+
+Manual checker projection 必须显式标记：`exact` 表示 criterion 与自动 predicate 的被测条件和判定边界一致；
+`manual-stricter` 表示手工 criterion 还检查额外结构条件；`domain-bundled` 表示同一 criterion 混入内容或领域语义。
+只有 exact 且所有观测一致时能写 `exactExecutionParity=established`。本次 9 条 projection 中只有 2 条满足；其余
+agreement/difference 只作观测，不构成语义等价。报告自身用 strict schema 校验观察计数与摘要守恒。
+
+Domain predicate 只验证一条声明参数化探针：通用 JSON pointer relation 在 i18n 上 baseline pass、mismatch fail，
+没有 skill branch；这仍是单案例原语可执行性，`productionGeneralization` 和 `semanticParity` 都是
+`not-established`。若新 domain 实现需要 skill-id 特判，应停止并把缺少的 pointer/normalization/runtime-command/
+source-oracle 参数记录为自动化天花板，而不是把分支藏进 core。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

@@ -1,0 +1,226 @@
+{
+  "schemaVersion": "skill-ir-structural-execution-shadow-catalog/v1",
+  "catalogId": "method-portfolio-structural-shadow-v1",
+  "measurementStartedAt": "2026-08-24T07:41:59.4146540Z",
+  "automaticDomainCatalog": {
+    "path": "benchmarks/skill-ir/corpus/automatic-domain-construction-shadow-v1.json",
+    "sha256": "5887677ef36d36d221a9f2d9de9b30e189ef9d257b24256f9fbe314a7c3f818f"
+  },
+  "automaticDomainReport": {
+    "path": "results/skill-ir/automatic-domain-construction-shadow-v1/report.json",
+    "sha256": "2b77e921578ba27a2f28dcb31d9b75a1068380b1c4aa029c56bc2f6be8fdbfa1"
+  },
+  "adapterAuthoring": {
+    "measurementStartedAt": "2026-08-24T07:41:59.4146540Z",
+    "measurementCompletedAt": "2026-08-24T07:45:11.2865386Z",
+    "humanMinutes": 3
+  },
+  "cases": [
+    {
+      "caseId": "env-manager",
+      "expectedCandidateDigest": "50ff989a800a27181bdb25999f1e1674cedef85b9401bbbe73a791f1322a642d",
+      "taskSet": {
+        "path": "benchmarks/skill-ir/pilots/env-manager/successor-v3/development/tasks.json",
+        "sha256": "86fa152ed164041885565125c7f6e4e4ca504a58d2ca15457e106e0bab4b7832"
+      },
+      "manualEvaluatorModule": {
+        "path": "src/bench/evaluators/env-manager-grade-v3.ts",
+        "sha256": "d5343795f00b9cc866111e5da049686d9b4f1566d810805ebb580a174b446382"
+      },
+      "taskId": "env-manager-scorer-authority-node-dev-001",
+      "bindings": [
+        { "targetRef": "project-source", "paths": [".gitignore", "src/config.js", "src/auth.js"] }
+      ],
+      "manualComparisons": [
+        {
+          "id": "env-structural-bundle",
+          "automaticCriterionIds": ["inputs-stable", "outputs-exact"],
+          "manualCriterionId": "env-v3-artifact-integrity",
+          "comparability": "domain-bundled",
+          "reason": "The manual criterion also rejects secret-value propagation, which is a content-fidelity condition absent from the structural plan."
+        }
+      ]
+    },
+    {
+      "caseId": "law-to-markdown",
+      "expectedCandidateDigest": "c3f651bba0b35a0d95dfb011a358b8495089e22fd8b73076b84430d77f88eaa9",
+      "taskSet": {
+        "path": "benchmarks/skill-ir/pilots/law-to-markdown/v3/development/tasks.json",
+        "sha256": "d9c8767f7723d76eb1015f48ddb9a3f8f569c685d59b88f7e78f791f319f7215"
+      },
+      "manualEvaluatorModule": {
+        "path": "src/bench/evaluators/law-to-markdown-grade-v3.ts",
+        "sha256": "8c80e22f9efd411fc399dc76aaf0cf4bf0e02e148a4a0421fba26e76ce8a6cbb"
+      },
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "bindings": [],
+      "manualComparisons": [
+        {
+          "id": "law-input-delta-bundle",
+          "automaticCriterionIds": ["inputs-stable", "outputs-exact"],
+          "manualCriterionId": "law-v3-input-and-delta",
+          "comparability": "domain-bundled",
+          "reason": "The manual delta chooses required outputs by domain classification; the thin structural declaration marks the deliverable optional without encoding that classifier."
+        }
+      ]
+    },
+    {
+      "caseId": "experimental-design",
+      "expectedCandidateDigest": "7290f3a149de29dae017dc9b0eef8adaf324d23eca5c3ac5d4b45bc9f32321ea",
+      "taskSet": {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/v2/skill-unique/development/tasks.json",
+        "sha256": "3cc6d771741b3eeae06f55f7d454046aeac212a11baf6ba292e42b2467557c9a"
+      },
+      "manualEvaluatorModule": {
+        "path": "src/bench/evaluators/experimental-design-skill-unique-grade.ts",
+        "sha256": "d74e81e90925a1dd62104be10dd8cb536f13f7ce8e4a10a3e063e0980fea1e4f"
+      },
+      "taskId": "experimental-design-skill-unique-cage-cell-dev-001",
+      "bindings": [],
+      "manualComparisons": [
+        {
+          "id": "experimental-input-integrity",
+          "automaticCriterionIds": ["inputs-stable"],
+          "manualCriterionId": "skill-unique-input-integrity",
+          "comparability": "exact",
+          "reason": "Both checks compare the two protected input file digests."
+        },
+        {
+          "id": "experimental-artifact-contract",
+          "automaticCriterionIds": ["outputs-exact", "plan-shapes"],
+          "manualCriterionId": "skill-unique-artifact-contract",
+          "comparability": "manual-stricter",
+          "reason": "The manual checker validates field types with full schemas; the declaration supplies top-level required fields only."
+        }
+      ]
+    },
+    {
+      "caseId": "api-tester",
+      "expectedCandidateDigest": "07900a0e3b1612bfd035895cd900ceb4861cfbcf80bb490b3f64cef150cd7670",
+      "taskSet": {
+        "path": "benchmarks/skill-ir/pilots/api-tester/development/tasks.json",
+        "sha256": "54062e72eb11a16aac4c89ed072c017f18fdff2cbeee7bac9d6efc403322076b"
+      },
+      "manualEvaluatorModule": {
+        "path": "src/bench/evaluators/api-tester-grade.ts",
+        "sha256": "8c32311030502fccdf8d56e70bb946d070ffee47c560604ad846b974272bba22"
+      },
+      "taskId": "api-tester-openapi-users-dev-001",
+      "bindings": [
+        { "targetRef": "api-definition", "paths": ["api/openapi.yaml"] }
+      ],
+      "manualComparisons": [
+        {
+          "id": "api-generator-bundle",
+          "automaticCriterionIds": ["inputs-stable", "outputs-exact", "json-shapes"],
+          "manualCriterionId": "api-generator-integrity",
+          "comparability": "domain-bundled",
+          "reason": "The manual criterion additionally executes the generated program twice and compares replay bytes."
+        }
+      ]
+    },
+    {
+      "caseId": "zh-code-reviewer",
+      "expectedCandidateDigest": "46e8f06f4b4a2e0e50e98766444f34361c2ef4e722f92848f388c2cec3907d80",
+      "taskSet": {
+        "path": "benchmarks/skill-ir/pilots/zh-code-reviewer/development/tasks.json",
+        "sha256": "ebff398dc66edc79e42702eb84ba8e37d812438e10de4186d7d1101ef479080b"
+      },
+      "manualEvaluatorModule": {
+        "path": "src/bench/evaluators/zh-code-reviewer-grade.ts",
+        "sha256": "0c3bc91fd611317741d0a1700e57bd938f2e207f2adac5442e22d72e297cc3d2"
+      },
+      "taskId": "zh-code-reviewer-user-service-dev-001",
+      "bindings": [
+        { "targetRef": "source-file", "paths": ["src/user-service.ts"] }
+      ],
+      "manualComparisons": [
+        {
+          "id": "review-artifact-contract",
+          "automaticCriterionIds": ["inputs-stable", "outputs-exact", "json-shape"],
+          "manualCriterionId": "review-artifact-integrity",
+          "comparability": "manual-stricter",
+          "reason": "The manual checker validates nested finding types and Markdown UTF-8 while the declaration exposes top-level JSON fields."
+        }
+      ]
+    },
+    {
+      "caseId": "zh-readme",
+      "expectedCandidateDigest": "1a9e8a26fe40c8bf4d228f8a2015bf5803e92c1b4836982e4785f528526702bf",
+      "taskSet": {
+        "path": "benchmarks/skill-ir/pilots/zh-readme/development/tasks.json",
+        "sha256": "a5742e67a6432da64c7c7d15ed8ea65618178937f09b9178c5a1429c606d5967"
+      },
+      "manualEvaluatorModule": {
+        "path": "src/bench/evaluators/zh-readme-grade-v2.ts",
+        "sha256": "896662e5099be21ec8f2e52390f241c15b51381531c58f226711b69821bc951b"
+      },
+      "taskId": "zh-readme-node-cli-dev-001",
+      "bindings": [
+        { "targetRef": "repository-files", "paths": ["package.json", "src/cli.js", "README.md", "LICENSE"] }
+      ],
+      "manualComparisons": [
+        {
+          "id": "readme-artifact-contract",
+          "automaticCriterionIds": ["inputs-stable", "output-exact"],
+          "manualCriterionId": "readme-artifact-integrity",
+          "comparability": "manual-stricter",
+          "reason": "The manual checker additionally requires the Markdown output to decode as UTF-8."
+        }
+      ]
+    },
+    {
+      "caseId": "i18n-helper",
+      "expectedCandidateDigest": "b8bd0fa86c8ca4e6ba452ccc8c32b5a393ed9b225b612ee86d52990cc1436fa9",
+      "taskSet": {
+        "path": "benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/development/tasks.json",
+        "sha256": "43c7b288ba493956224683f56b56e5aa2c8b040f6d78485c5e29b39bca021d4c"
+      },
+      "manualEvaluatorModule": {
+        "path": "src/bench/evaluators/i18n-helper-contribution-v2-grade.ts",
+        "sha256": "f868a925abfe96bc18cacd85947becbf60df059cb7a4fdb654440f4a8003a264"
+      },
+      "taskId": "i18n-helper-contribution-multifile-dev-001",
+      "bindings": [
+        { "targetRef": "react-source", "paths": ["src/App.tsx", "src/Panel.tsx"] },
+        { "targetRef": "source-updates", "paths": ["src/App.tsx", "src/Panel.tsx"] }
+      ],
+      "manualComparisons": [
+        {
+          "id": "i18n-delta",
+          "automaticCriterionIds": ["protected-stable", "declared-delta"],
+          "manualCriterionId": "i18n-contribution-delta",
+          "comparability": "exact",
+          "reason": "Both checks preserve the declared protected subset and allow only declared source/output changes."
+        },
+        {
+          "id": "i18n-artifact-bundle",
+          "automaticCriterionIds": ["report-shape"],
+          "manualCriterionId": "i18n-contribution-artifact",
+          "comparability": "domain-bundled",
+          "reason": "The manual artifact checker also inspects i18next setup and the full public output ABI."
+        }
+      ]
+    }
+  ],
+  "domainProbe": {
+    "caseId": "i18n-helper",
+    "predicate": "cross-artifact-consistency",
+    "criterionId": "artifact-consistency",
+    "parameters": {
+      "schemaVersion": "skill-ir-cross-artifact-consistency-parameters/v1",
+      "comparisons": [
+        {
+          "left": { "path": "i18n-contract.json", "jsonPointer": "/framework" },
+          "right": { "path": "i18n-report.json", "jsonPointer": "/framework" },
+          "relation": "deep-equal"
+        }
+      ]
+    },
+    "declarationAuthoring": {
+      "measurementStartedAt": "2026-08-24T07:41:59.4146540Z",
+      "measurementCompletedAt": "2026-08-24T07:45:11.2865386Z",
+      "humanMinutes": 1
+    }
+  }
+}

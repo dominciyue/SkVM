@@ -1,0 +1,2089 @@
+{
+  "schemaVersion": "skill-ir-structural-execution-shadow-report/v1",
+  "catalogId": "method-portfolio-structural-shadow-v1",
+  "catalogSha256": "a2cf177c211ec9ce132a4826caf0d2087027ffaad6a58faa95b0e08fe6f9e37c",
+  "measurementStartedAt": "2026-08-24T07:41:59.4146540Z",
+  "measurementCompletedAt": "2026-08-24T08:29:23.7713724Z",
+  "implementation": [
+    {
+      "path": "src/benchmarks/skill-ir/automatic-structural-execution.ts",
+      "sha256": "c9e6020a835749b3db9dd633f0fbcd049e8099f9cae35023da30f70052e922f5"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-structural-execution-checker.ts",
+      "sha256": "08be47fe04655a047d69946d491c1b0d628b0c12ad726137b5862bed860e786f"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-structural-manual-checker.ts",
+      "sha256": "85f6860db0343c5c919eb570e856ec4de5dcd8a7017df86fd42dc139152d3a0c"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-structural-execution-runtime.ts",
+      "sha256": "e7456199c85b6e203ec1393037e42c861957e5d4f2e1abe880099b8961388269"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-structural-execution-shadow.ts",
+      "sha256": "e220c7cb91843fcf32d7e264743468eb2737c2b5761cc80b7e89e8115a4acf3f"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/automatic-structural-execution-shadow-run.ts",
+      "sha256": "7af6070a348afe2f353da1de533167367d39a358b1ce5074f90420fed6f79750"
+    }
+  ],
+  "candidateFreezeCompletedBeforeTaskOrEvaluatorRead": true,
+  "generationFreeze": [
+    {
+      "caseId": "env-manager",
+      "candidateDigest": "50ff989a800a27181bdb25999f1e1674cedef85b9401bbbe73a791f1322a642d"
+    },
+    {
+      "caseId": "law-to-markdown",
+      "candidateDigest": "c3f651bba0b35a0d95dfb011a358b8495089e22fd8b73076b84430d77f88eaa9"
+    },
+    {
+      "caseId": "experimental-design",
+      "candidateDigest": "7290f3a149de29dae017dc9b0eef8adaf324d23eca5c3ac5d4b45bc9f32321ea"
+    },
+    {
+      "caseId": "api-tester",
+      "candidateDigest": "07900a0e3b1612bfd035895cd900ceb4861cfbcf80bb490b3f64cef150cd7670"
+    },
+    {
+      "caseId": "zh-code-reviewer",
+      "candidateDigest": "46e8f06f4b4a2e0e50e98766444f34361c2ef4e722f92848f388c2cec3907d80"
+    },
+    {
+      "caseId": "zh-readme",
+      "candidateDigest": "1a9e8a26fe40c8bf4d228f8a2015bf5803e92c1b4836982e4785f528526702bf"
+    },
+    {
+      "caseId": "i18n-helper",
+      "candidateDigest": "b8bd0fa86c8ca4e6ba452ccc8c32b5a393ed9b225b612ee86d52990cc1436fa9"
+    }
+  ],
+  "adapterAccounting": {
+    "measurementStartedAt": "2026-08-24T07:41:59.4146540Z",
+    "measurementCompletedAt": "2026-08-24T07:45:11.2865386Z",
+    "humanMinutes": 3,
+    "parityCatalogLoc": 297,
+    "bindingPathCount": 13,
+    "manualOracleMappingCount": 9,
+    "coreBranchDelta": 0
+  },
+  "cases": [
+    {
+      "caseId": "env-manager",
+      "taskId": "env-manager-scorer-authority-node-dev-001",
+      "candidateDigest": "50ff989a800a27181bdb25999f1e1674cedef85b9401bbbe73a791f1322a642d",
+      "structuralPlanDigest": "6c66575a5230580758e95da463283a31b6480a61d9bf91f3ffb02b1c3d16c37b",
+      "packageManifestDigest": "49222773a3838800139e7041b50a9b357562658af5928255b5d6528452270d98",
+      "packageBytes": 188659,
+      "structuralPredicateCounts": {
+        "input-integrity": 1,
+        "output-presence": 0,
+        "exact-output-set": 1,
+        "json-shape": 1
+      },
+      "accounting": {
+        "fromTaskDeclaration": 3,
+        "parityAdapterBindings": 3,
+        "manualOracleMappings": 1,
+        "automaticRuntimeChecks": 3,
+        "coreBranchDelta": 0
+      },
+      "scenarios": [
+        {
+          "id": "baseline",
+          "automatic": {
+            "status": "pass",
+            "runtimeStatus": "complete",
+            "errors": [],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass",
+              "report-shape": "pass"
+            },
+            "expectedViolation": null,
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "env-v3-artifact-integrity": {
+              "status": "pass",
+              "details": "Frozen initial inputs and output delta are safe."
+            },
+            "env-v3-environment-analysis": {
+              "status": "fail",
+              "details": "Environment analysis is inconsistent with public workspace evidence."
+            },
+            "env-v3-artifact-consistency": {
+              "status": "fail",
+              "details": "Generated example or schema is inconsistent with public workspace evidence."
+            }
+          }
+        },
+        {
+          "id": "input-tamper",
+          "mutatedPath": ".env",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "INPUT_MODIFIED",
+                "relativePath": ".env",
+                "contractRef": "inputs-stable"
+              },
+              {
+                "code": "UNDECLARED_INPUT_MODIFIED",
+                "relativePath": ".env",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "fail",
+              "outputs-exact": "fail",
+              "report-shape": "pass"
+            },
+            "expectedViolation": "INPUT_MODIFIED",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "env-v3-artifact-integrity": {
+              "status": "fail",
+              "details": "Artifact integrity failed."
+            },
+            "env-v3-environment-analysis": {
+              "status": "fail",
+              "details": "Environment analysis is inconsistent with public workspace evidence."
+            },
+            "env-v3-artifact-consistency": {
+              "status": "fail",
+              "details": "Generated example or schema is inconsistent with public workspace evidence."
+            }
+          }
+        },
+        {
+          "id": "missing-output",
+          "mutatedPath": ".env.example",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "OUTPUT_MISSING",
+                "relativePath": ".env.example",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail",
+              "report-shape": "pass"
+            },
+            "expectedViolation": "OUTPUT_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "env-v3-artifact-integrity": {
+              "status": "fail",
+              "details": "Artifact integrity failed."
+            },
+            "env-v3-environment-analysis": {
+              "status": "fail",
+              "details": "Environment analysis is inconsistent with public workspace evidence."
+            },
+            "env-v3-artifact-consistency": {
+              "status": "fail",
+              "details": "Generated example or schema is inconsistent with public workspace evidence."
+            }
+          }
+        },
+        {
+          "id": "extra-output",
+          "mutatedPath": "unexpected-structural-parity.txt",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "UNEXPECTED_ENTRY",
+                "relativePath": "unexpected-structural-parity.txt",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail",
+              "report-shape": "pass"
+            },
+            "expectedViolation": "UNEXPECTED_ENTRY",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "env-v3-artifact-integrity": {
+              "status": "fail",
+              "details": "Artifact integrity failed."
+            },
+            "env-v3-environment-analysis": {
+              "status": "fail",
+              "details": "Environment analysis is inconsistent with public workspace evidence."
+            },
+            "env-v3-artifact-consistency": {
+              "status": "fail",
+              "details": "Generated example or schema is inconsistent with public workspace evidence."
+            }
+          }
+        },
+        {
+          "id": "json-shape-drift",
+          "mutatedPath": "env-report.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "JSON_REQUIRED_FIELD_MISSING",
+                "relativePath": "env-report.json",
+                "contractRef": "report-shape"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass",
+              "report-shape": "fail"
+            },
+            "expectedViolation": "JSON_REQUIRED_FIELD_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "env-v3-artifact-integrity": {
+              "status": "pass",
+              "details": "Frozen initial inputs and output delta are safe."
+            },
+            "env-v3-environment-analysis": {
+              "status": "fail",
+              "details": "Environment analysis is inconsistent with public workspace evidence."
+            },
+            "env-v3-artifact-consistency": {
+              "status": "fail",
+              "details": "Generated example or schema is inconsistent with public workspace evidence."
+            }
+          }
+        }
+      ],
+      "manualComparisons": [
+        {
+          "id": "env-structural-bundle",
+          "automaticCriterionIds": [
+            "inputs-stable",
+            "outputs-exact"
+          ],
+          "manualCriterionId": "env-v3-artifact-integrity",
+          "comparability": "domain-bundled",
+          "reason": "The manual criterion also rejects secret-value propagation, which is a content-fidelity condition absent from the structural plan.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "json-shape-drift",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 5,
+          "observedDifferenceCount": 0,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "not-claimable"
+        }
+      ],
+      "semanticParity": "not-established"
+    },
+    {
+      "caseId": "law-to-markdown",
+      "taskId": "law-to-markdown-v3-statute-dev-001",
+      "candidateDigest": "c3f651bba0b35a0d95dfb011a358b8495089e22fd8b73076b84430d77f88eaa9",
+      "structuralPlanDigest": "54954371dcd0bf5b3261179162944df8b6c73864d958c8353dab806877b72b79",
+      "packageManifestDigest": "a4e9fceab06119f58b9ac04f46694a336201b29b3e78018dc7231a674986e43c",
+      "packageBytes": 196253,
+      "structuralPredicateCounts": {
+        "input-integrity": 1,
+        "output-presence": 0,
+        "exact-output-set": 1,
+        "json-shape": 0
+      },
+      "accounting": {
+        "fromTaskDeclaration": 2,
+        "parityAdapterBindings": 0,
+        "manualOracleMappings": 1,
+        "automaticRuntimeChecks": 2,
+        "coreBranchDelta": 0
+      },
+      "scenarios": [
+        {
+          "id": "baseline",
+          "automatic": {
+            "status": "pass",
+            "runtimeStatus": "complete",
+            "errors": [],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass"
+            },
+            "expectedViolation": null,
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "law-v3-input-and-delta": {
+              "status": "pass",
+              "details": "Protected inputs and exact public output delta are valid."
+            },
+            "law-v3-classification": {
+              "status": "pass",
+              "details": "Deliverable presence matches the public document classification."
+            },
+            "law-v3-fidelity": {
+              "status": "fail",
+              "details": "The legal deliverable changes or loses source characters."
+            },
+            "law-v3-structure": {
+              "status": "fail",
+              "details": "Legal hierarchy or enumerated-item layout violates the public rules."
+            },
+            "law-v3-review": {
+              "status": "fail",
+              "details": "Structured review evidence is missing or contradicts observable public facts."
+            }
+          }
+        },
+        {
+          "id": "input-tamper",
+          "mutatedPath": "document.txt",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "INPUT_MODIFIED",
+                "relativePath": "document.txt",
+                "contractRef": "inputs-stable"
+              },
+              {
+                "code": "UNDECLARED_INPUT_MODIFIED",
+                "relativePath": "document.txt",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "fail",
+              "outputs-exact": "fail"
+            },
+            "expectedViolation": "INPUT_MODIFIED",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "law-v3-input-and-delta": {
+              "status": "fail",
+              "details": "The document is outside the conservative public classification subset."
+            },
+            "law-v3-classification": {
+              "status": "fail",
+              "details": "The document is outside the conservative public classification subset."
+            },
+            "law-v3-fidelity": {
+              "status": "fail",
+              "details": "The document is outside the conservative public classification subset."
+            },
+            "law-v3-structure": {
+              "status": "fail",
+              "details": "The document is outside the conservative public classification subset."
+            },
+            "law-v3-review": {
+              "status": "fail",
+              "details": "The document is outside the conservative public classification subset."
+            }
+          }
+        },
+        {
+          "id": "missing-output",
+          "mutatedPath": "markdown/document/document+审核报告.md",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "OUTPUT_MISSING",
+                "relativePath": "markdown/document/document+审核报告.md",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail"
+            },
+            "expectedViolation": "OUTPUT_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "law-v3-input-and-delta": {
+              "status": "fail",
+              "details": "A protected input or exact public output delta is invalid."
+            },
+            "law-v3-classification": {
+              "status": "pass",
+              "details": "Deliverable presence matches the public document classification."
+            },
+            "law-v3-fidelity": {
+              "status": "fail",
+              "details": "The legal deliverable changes or loses source characters."
+            },
+            "law-v3-structure": {
+              "status": "fail",
+              "details": "Legal hierarchy or enumerated-item layout violates the public rules."
+            },
+            "law-v3-review": {
+              "status": "fail",
+              "details": "The review report is missing or not UTF-8."
+            }
+          }
+        },
+        {
+          "id": "extra-output",
+          "mutatedPath": "unexpected-structural-parity.txt",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "UNEXPECTED_ENTRY",
+                "relativePath": "unexpected-structural-parity.txt",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail"
+            },
+            "expectedViolation": "UNEXPECTED_ENTRY",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "law-v3-input-and-delta": {
+              "status": "fail",
+              "details": "A protected input or exact public output delta is invalid."
+            },
+            "law-v3-classification": {
+              "status": "pass",
+              "details": "Deliverable presence matches the public document classification."
+            },
+            "law-v3-fidelity": {
+              "status": "fail",
+              "details": "The legal deliverable changes or loses source characters."
+            },
+            "law-v3-structure": {
+              "status": "fail",
+              "details": "Legal hierarchy or enumerated-item layout violates the public rules."
+            },
+            "law-v3-review": {
+              "status": "fail",
+              "details": "Structured review evidence is missing or contradicts observable public facts."
+            }
+          }
+        }
+      ],
+      "manualComparisons": [
+        {
+          "id": "law-input-delta-bundle",
+          "automaticCriterionIds": [
+            "inputs-stable",
+            "outputs-exact"
+          ],
+          "manualCriterionId": "law-v3-input-and-delta",
+          "comparability": "domain-bundled",
+          "reason": "The manual delta chooses required outputs by domain classification; the thin structural declaration marks the deliverable optional without encoding that classifier.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 4,
+          "observedDifferenceCount": 0,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "not-claimable"
+        }
+      ],
+      "semanticParity": "not-established"
+    },
+    {
+      "caseId": "experimental-design",
+      "taskId": "experimental-design-skill-unique-cage-cell-dev-001",
+      "candidateDigest": "7290f3a149de29dae017dc9b0eef8adaf324d23eca5c3ac5d4b45bc9f32321ea",
+      "structuralPlanDigest": "d1c06258246f0d2abd6011a02e45317a9290230e80e851e9905890896772fc8e",
+      "packageManifestDigest": "4e280cd52f00f8938e8430bf78da7876a3886a1f2ba37c11ac7723711914d279",
+      "packageBytes": 196876,
+      "structuralPredicateCounts": {
+        "input-integrity": 1,
+        "output-presence": 0,
+        "exact-output-set": 1,
+        "json-shape": 1
+      },
+      "accounting": {
+        "fromTaskDeclaration": 3,
+        "parityAdapterBindings": 0,
+        "manualOracleMappings": 2,
+        "automaticRuntimeChecks": 3,
+        "coreBranchDelta": 0
+      },
+      "scenarios": [
+        {
+          "id": "baseline",
+          "automatic": {
+            "status": "pass",
+            "runtimeStatus": "complete",
+            "errors": [],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass",
+              "plan-shapes": "pass"
+            },
+            "expectedViolation": null,
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "skill-unique-input-integrity": {
+              "status": "pass",
+              "details": "Protected input digests match"
+            },
+            "skill-unique-artifact-contract": {
+              "status": "fail",
+              "details": "Output JSON does not satisfy the public field contract"
+            },
+            "skill-unique-independent-replication": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            },
+            "skill-unique-pseudoreplication-guard": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            },
+            "skill-unique-analysis-alignment": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            }
+          }
+        },
+        {
+          "id": "input-tamper",
+          "mutatedPath": "study-graph.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "INPUT_MODIFIED",
+                "relativePath": "study-graph.json",
+                "contractRef": "inputs-stable"
+              },
+              {
+                "code": "UNDECLARED_INPUT_MODIFIED",
+                "relativePath": "study-graph.json",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "fail",
+              "outputs-exact": "fail",
+              "plan-shapes": "pass"
+            },
+            "expectedViolation": "INPUT_MODIFIED",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "skill-unique-input-integrity": {
+              "status": "fail",
+              "details": "Protected input digest changed"
+            },
+            "skill-unique-artifact-contract": {
+              "status": "fail",
+              "details": "Final workdir violates the exact output contract"
+            },
+            "skill-unique-independent-replication": {
+              "status": "fail",
+              "details": "Public study graph does not support a confirmed semantic oracle"
+            },
+            "skill-unique-pseudoreplication-guard": {
+              "status": "fail",
+              "details": "Public study graph does not support a confirmed semantic oracle"
+            },
+            "skill-unique-analysis-alignment": {
+              "status": "fail",
+              "details": "Public study graph does not support a confirmed semantic oracle"
+            }
+          }
+        },
+        {
+          "id": "missing-output",
+          "mutatedPath": "design/replication-plan.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "OUTPUT_MISSING",
+                "relativePath": "design/replication-plan.json",
+                "contractRef": "outputs-exact"
+              },
+              {
+                "code": "JSON_OBJECT_INVALID",
+                "relativePath": "design/replication-plan.json",
+                "contractRef": "plan-shapes"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail",
+              "plan-shapes": "fail"
+            },
+            "expectedViolation": "OUTPUT_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "skill-unique-input-integrity": {
+              "status": "pass",
+              "details": "Protected input digests match"
+            },
+            "skill-unique-artifact-contract": {
+              "status": "fail",
+              "details": "Final workdir violates the exact output contract"
+            },
+            "skill-unique-independent-replication": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            },
+            "skill-unique-pseudoreplication-guard": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            },
+            "skill-unique-analysis-alignment": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            }
+          }
+        },
+        {
+          "id": "extra-output",
+          "mutatedPath": "unexpected-structural-parity.txt",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "UNEXPECTED_ENTRY",
+                "relativePath": "unexpected-structural-parity.txt",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail",
+              "plan-shapes": "pass"
+            },
+            "expectedViolation": "UNEXPECTED_ENTRY",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "skill-unique-input-integrity": {
+              "status": "pass",
+              "details": "Protected input digests match"
+            },
+            "skill-unique-artifact-contract": {
+              "status": "fail",
+              "details": "Final workdir violates the exact output contract"
+            },
+            "skill-unique-independent-replication": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            },
+            "skill-unique-pseudoreplication-guard": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            },
+            "skill-unique-analysis-alignment": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            }
+          }
+        },
+        {
+          "id": "json-shape-drift",
+          "mutatedPath": "design/replication-plan.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "JSON_REQUIRED_FIELD_MISSING",
+                "relativePath": "design/replication-plan.json",
+                "contractRef": "plan-shapes"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass",
+              "plan-shapes": "fail"
+            },
+            "expectedViolation": "JSON_REQUIRED_FIELD_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "skill-unique-input-integrity": {
+              "status": "pass",
+              "details": "Protected input digests match"
+            },
+            "skill-unique-artifact-contract": {
+              "status": "fail",
+              "details": "Output JSON does not satisfy the public field contract"
+            },
+            "skill-unique-independent-replication": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            },
+            "skill-unique-pseudoreplication-guard": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            },
+            "skill-unique-analysis-alignment": {
+              "status": "fail",
+              "details": "Required semantic output is missing or invalid"
+            }
+          }
+        }
+      ],
+      "manualComparisons": [
+        {
+          "id": "experimental-input-integrity",
+          "automaticCriterionIds": [
+            "inputs-stable"
+          ],
+          "manualCriterionId": "skill-unique-input-integrity",
+          "comparability": "exact",
+          "reason": "Both checks compare the two protected input file digests.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            },
+            {
+              "scenarioId": "json-shape-drift",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 5,
+          "observedDifferenceCount": 0,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "established"
+        },
+        {
+          "id": "experimental-artifact-contract",
+          "automaticCriterionIds": [
+            "outputs-exact",
+            "plan-shapes"
+          ],
+          "manualCriterionId": "skill-unique-artifact-contract",
+          "comparability": "manual-stricter",
+          "reason": "The manual checker validates field types with full schemas; the declaration supplies top-level required fields only.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "fail",
+              "agreement": false
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "json-shape-drift",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 4,
+          "observedDifferenceCount": 1,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "not-claimable"
+        }
+      ],
+      "semanticParity": "not-established"
+    },
+    {
+      "caseId": "api-tester",
+      "taskId": "api-tester-openapi-users-dev-001",
+      "candidateDigest": "07900a0e3b1612bfd035895cd900ceb4861cfbcf80bb490b3f64cef150cd7670",
+      "structuralPlanDigest": "0805463cb40251b9e6a57633d68c911b43ae3b3039ce56bd58b3b313d20a2c65",
+      "packageManifestDigest": "68ba64f1b98e29ae510dbdd333caacafebeb6b60fa71683a6ba2cfa530b0eff0",
+      "packageBytes": 184261,
+      "structuralPredicateCounts": {
+        "input-integrity": 1,
+        "output-presence": 0,
+        "exact-output-set": 1,
+        "json-shape": 1
+      },
+      "accounting": {
+        "fromTaskDeclaration": 3,
+        "parityAdapterBindings": 1,
+        "manualOracleMappings": 1,
+        "automaticRuntimeChecks": 3,
+        "coreBranchDelta": 0
+      },
+      "scenarios": [
+        {
+          "id": "baseline",
+          "automatic": {
+            "status": "pass",
+            "runtimeStatus": "complete",
+            "errors": [],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass",
+              "json-shapes": "pass"
+            },
+            "expectedViolation": null,
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "api-generator-integrity": {
+              "status": "fail",
+              "details": "generator replay failed"
+            },
+            "api-operation-coverage": {
+              "status": "fail",
+              "details": "Plan does not cover the public operation set"
+            },
+            "api-schema-derived-cases": {
+              "status": "fail",
+              "details": "Cases do not witness every public schema constraint"
+            },
+            "api-security-response": {
+              "status": "fail",
+              "details": "Security or response evidence is inconsistent"
+            },
+            "api-independence-verification": {
+              "status": "fail",
+              "details": "Case independence or verification reporting is ungrounded"
+            }
+          }
+        },
+        {
+          "id": "input-tamper",
+          "mutatedPath": "api/openapi.yaml",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "INPUT_MODIFIED",
+                "relativePath": "api/openapi.yaml",
+                "contractRef": "inputs-stable"
+              },
+              {
+                "code": "UNDECLARED_INPUT_MODIFIED",
+                "relativePath": "api/openapi.yaml",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "fail",
+              "outputs-exact": "fail",
+              "json-shapes": "pass"
+            },
+            "expectedViolation": "INPUT_MODIFIED",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "api-generator-integrity": {
+              "status": "fail",
+              "details": "Generator integrity or exact output contract failed"
+            },
+            "api-operation-coverage": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-schema-derived-cases": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-security-response": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-independence-verification": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            }
+          }
+        },
+        {
+          "id": "missing-output",
+          "mutatedPath": "api-test-generator.mjs",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "OUTPUT_MISSING",
+                "relativePath": "api-test-generator.mjs",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail",
+              "json-shapes": "pass"
+            },
+            "expectedViolation": "OUTPUT_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "api-generator-integrity": {
+              "status": "fail",
+              "details": "Generator integrity or exact output contract failed"
+            },
+            "api-operation-coverage": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-schema-derived-cases": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-security-response": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-independence-verification": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            }
+          }
+        },
+        {
+          "id": "extra-output",
+          "mutatedPath": "unexpected-structural-parity.txt",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "UNEXPECTED_ENTRY",
+                "relativePath": "unexpected-structural-parity.txt",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail",
+              "json-shapes": "pass"
+            },
+            "expectedViolation": "UNEXPECTED_ENTRY",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "api-generator-integrity": {
+              "status": "fail",
+              "details": "Generator integrity or exact output contract failed"
+            },
+            "api-operation-coverage": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-schema-derived-cases": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-security-response": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            },
+            "api-independence-verification": {
+              "status": "fail",
+              "details": "Semantic plan is missing or invalid"
+            }
+          }
+        },
+        {
+          "id": "json-shape-drift",
+          "mutatedPath": "generated/api-test-plan.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "JSON_REQUIRED_FIELD_MISSING",
+                "relativePath": "generated/api-test-plan.json",
+                "contractRef": "json-shapes"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass",
+              "json-shapes": "fail"
+            },
+            "expectedViolation": "JSON_REQUIRED_FIELD_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "api-generator-integrity": {
+              "status": "fail",
+              "details": "generator replay failed"
+            },
+            "api-operation-coverage": {
+              "status": "fail",
+              "details": "Plan does not cover the public operation set"
+            },
+            "api-schema-derived-cases": {
+              "status": "fail",
+              "details": "Cases do not witness every public schema constraint"
+            },
+            "api-security-response": {
+              "status": "fail",
+              "details": "Security or response evidence is inconsistent"
+            },
+            "api-independence-verification": {
+              "status": "fail",
+              "details": "Case independence or verification reporting is ungrounded"
+            }
+          }
+        }
+      ],
+      "manualComparisons": [
+        {
+          "id": "api-generator-bundle",
+          "automaticCriterionIds": [
+            "inputs-stable",
+            "outputs-exact",
+            "json-shapes"
+          ],
+          "manualCriterionId": "api-generator-integrity",
+          "comparability": "domain-bundled",
+          "reason": "The manual criterion additionally executes the generated program twice and compares replay bytes.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "fail",
+              "agreement": false
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "json-shape-drift",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 4,
+          "observedDifferenceCount": 1,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "not-claimable"
+        }
+      ],
+      "semanticParity": "not-established"
+    },
+    {
+      "caseId": "zh-code-reviewer",
+      "taskId": "zh-code-reviewer-user-service-dev-001",
+      "candidateDigest": "46e8f06f4b4a2e0e50e98766444f34361c2ef4e722f92848f388c2cec3907d80",
+      "structuralPlanDigest": "fb3350c5894091fdb9666f3b9c73c4ebc7daf74ad0c00cfe7c6132b39ba425a1",
+      "packageManifestDigest": "268958d137b95225ca901f3aa12d68bf2a3c7e1911b3c77570129a542f271218",
+      "packageBytes": 177926,
+      "structuralPredicateCounts": {
+        "input-integrity": 1,
+        "output-presence": 0,
+        "exact-output-set": 1,
+        "json-shape": 1
+      },
+      "accounting": {
+        "fromTaskDeclaration": 3,
+        "parityAdapterBindings": 1,
+        "manualOracleMappings": 1,
+        "automaticRuntimeChecks": 3,
+        "coreBranchDelta": 0
+      },
+      "scenarios": [
+        {
+          "id": "baseline",
+          "automatic": {
+            "status": "pass",
+            "runtimeStatus": "complete",
+            "errors": [],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass",
+              "json-shape": "pass"
+            },
+            "expectedViolation": null,
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "review-artifact-integrity": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-evidence-coverage": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-severity-calibration": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-actionability": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-report-consistency": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            }
+          }
+        },
+        {
+          "id": "input-tamper",
+          "mutatedPath": "src/user-service.ts",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "INPUT_MODIFIED",
+                "relativePath": "src/user-service.ts",
+                "contractRef": "inputs-stable"
+              },
+              {
+                "code": "UNDECLARED_INPUT_MODIFIED",
+                "relativePath": "src/user-service.ts",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "fail",
+              "outputs-exact": "fail",
+              "json-shape": "pass"
+            },
+            "expectedViolation": "INPUT_MODIFIED",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "review-artifact-integrity": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-evidence-coverage": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-severity-calibration": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-actionability": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-report-consistency": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            }
+          }
+        },
+        {
+          "id": "missing-output",
+          "mutatedPath": "code-review.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "JSON_OBJECT_INVALID",
+                "relativePath": "code-review.json",
+                "contractRef": "json-shape"
+              },
+              {
+                "code": "OUTPUT_MISSING",
+                "relativePath": "code-review.json",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail",
+              "json-shape": "fail"
+            },
+            "expectedViolation": "OUTPUT_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "review-artifact-integrity": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-evidence-coverage": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-severity-calibration": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-actionability": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-report-consistency": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            }
+          }
+        },
+        {
+          "id": "extra-output",
+          "mutatedPath": "unexpected-structural-parity.txt",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "UNEXPECTED_ENTRY",
+                "relativePath": "unexpected-structural-parity.txt",
+                "contractRef": "outputs-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "fail",
+              "json-shape": "pass"
+            },
+            "expectedViolation": "UNEXPECTED_ENTRY",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "review-artifact-integrity": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-evidence-coverage": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-severity-calibration": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-actionability": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-report-consistency": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            }
+          }
+        },
+        {
+          "id": "json-shape-drift",
+          "mutatedPath": "code-review.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "JSON_REQUIRED_FIELD_MISSING",
+                "relativePath": "code-review.json",
+                "contractRef": "json-shape"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "outputs-exact": "pass",
+              "json-shape": "fail"
+            },
+            "expectedViolation": "JSON_REQUIRED_FIELD_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "review-artifact-integrity": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-evidence-coverage": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-severity-calibration": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-actionability": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            },
+            "review-report-consistency": {
+              "status": "fail",
+              "details": "protected inputs, exact outputs, or report schema failed"
+            }
+          }
+        }
+      ],
+      "manualComparisons": [
+        {
+          "id": "review-artifact-contract",
+          "automaticCriterionIds": [
+            "inputs-stable",
+            "outputs-exact",
+            "json-shape"
+          ],
+          "manualCriterionId": "review-artifact-integrity",
+          "comparability": "manual-stricter",
+          "reason": "The manual checker validates nested finding types and Markdown UTF-8 while the declaration exposes top-level JSON fields.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "fail",
+              "agreement": false
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "json-shape-drift",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 4,
+          "observedDifferenceCount": 1,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "not-claimable"
+        }
+      ],
+      "semanticParity": "not-established"
+    },
+    {
+      "caseId": "zh-readme",
+      "taskId": "zh-readme-node-cli-dev-001",
+      "candidateDigest": "1a9e8a26fe40c8bf4d228f8a2015bf5803e92c1b4836982e4785f528526702bf",
+      "structuralPlanDigest": "9ca87bd0d19fa678fe6dfaf956ca476e1570e12bfc6d7e5dea5f751829401e4f",
+      "packageManifestDigest": "b1a2e687468e730e47eeabbe51edce3c706ce4ef88077f28a471811f3486ae40",
+      "packageBytes": 188240,
+      "structuralPredicateCounts": {
+        "input-integrity": 1,
+        "output-presence": 0,
+        "exact-output-set": 1,
+        "json-shape": 0
+      },
+      "accounting": {
+        "fromTaskDeclaration": 2,
+        "parityAdapterBindings": 4,
+        "manualOracleMappings": 1,
+        "automaticRuntimeChecks": 2,
+        "coreBranchDelta": 0
+      },
+      "scenarios": [
+        {
+          "id": "baseline",
+          "automatic": {
+            "status": "pass",
+            "runtimeStatus": "complete",
+            "errors": [],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "output-exact": "pass"
+            },
+            "expectedViolation": null,
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "readme-artifact-integrity": {
+              "status": "pass",
+              "details": "Protected repository and exact README output pass"
+            },
+            "readme-chinese-structure": {
+              "status": "fail",
+              "details": "Chinese README semantic structure failed"
+            },
+            "readme-command-fidelity": {
+              "status": "fail",
+              "details": "README contains missing or unsupported commands"
+            },
+            "readme-reference-fidelity": {
+              "status": "fail",
+              "details": "README contains missing or unsupported links or paths"
+            },
+            "readme-fact-completeness": {
+              "status": "fail",
+              "details": "README identity, license, or factual wording failed"
+            }
+          }
+        },
+        {
+          "id": "input-tamper",
+          "mutatedPath": "package.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "INPUT_MODIFIED",
+                "relativePath": "package.json",
+                "contractRef": "inputs-stable"
+              },
+              {
+                "code": "UNDECLARED_INPUT_MODIFIED",
+                "relativePath": "package.json",
+                "contractRef": "output-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "fail",
+              "output-exact": "fail"
+            },
+            "expectedViolation": "INPUT_MODIFIED",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "readme-artifact-integrity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-chinese-structure": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-command-fidelity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-reference-fidelity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-fact-completeness": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            }
+          }
+        },
+        {
+          "id": "missing-output",
+          "mutatedPath": "README.zh-CN.md",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "OUTPUT_MISSING",
+                "relativePath": "README.zh-CN.md",
+                "contractRef": "output-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "output-exact": "fail"
+            },
+            "expectedViolation": "OUTPUT_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "readme-artifact-integrity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-chinese-structure": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-command-fidelity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-reference-fidelity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-fact-completeness": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            }
+          }
+        },
+        {
+          "id": "extra-output",
+          "mutatedPath": "unexpected-structural-parity.txt",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "UNEXPECTED_ENTRY",
+                "relativePath": "unexpected-structural-parity.txt",
+                "contractRef": "output-exact"
+              }
+            ],
+            "predicateStatus": {
+              "inputs-stable": "pass",
+              "output-exact": "fail"
+            },
+            "expectedViolation": "UNEXPECTED_ENTRY",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "readme-artifact-integrity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-chinese-structure": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-command-fidelity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-reference-fidelity": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            },
+            "readme-fact-completeness": {
+              "status": "fail",
+              "details": "protected inputs, exact output set, or README UTF-8 decoding failed"
+            }
+          }
+        }
+      ],
+      "manualComparisons": [
+        {
+          "id": "readme-artifact-contract",
+          "automaticCriterionIds": [
+            "inputs-stable",
+            "output-exact"
+          ],
+          "manualCriterionId": "readme-artifact-integrity",
+          "comparability": "manual-stricter",
+          "reason": "The manual checker additionally requires the Markdown output to decode as UTF-8.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 4,
+          "observedDifferenceCount": 0,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "not-claimable"
+        }
+      ],
+      "semanticParity": "not-established"
+    },
+    {
+      "caseId": "i18n-helper",
+      "taskId": "i18n-helper-contribution-multifile-dev-001",
+      "candidateDigest": "b8bd0fa86c8ca4e6ba452ccc8c32b5a393ed9b225b612ee86d52990cc1436fa9",
+      "structuralPlanDigest": "352cdc32ca2ea2d7ce6932fd9c4c333ec7aa6e32dd50bc57d69fe8e36f217163",
+      "packageManifestDigest": "46d129e7c3a5a38f8f6bb93ace932aa81eb26cd050f9e2194735d42f29c79a5d",
+      "packageBytes": 184580,
+      "structuralPredicateCounts": {
+        "input-integrity": 1,
+        "output-presence": 0,
+        "exact-output-set": 1,
+        "json-shape": 1
+      },
+      "accounting": {
+        "fromTaskDeclaration": 3,
+        "parityAdapterBindings": 4,
+        "manualOracleMappings": 2,
+        "automaticRuntimeChecks": 3,
+        "coreBranchDelta": 0
+      },
+      "scenarios": [
+        {
+          "id": "baseline",
+          "automatic": {
+            "status": "pass",
+            "runtimeStatus": "complete",
+            "errors": [],
+            "predicateStatus": {
+              "protected-stable": "pass",
+              "declared-delta": "pass",
+              "report-shape": "pass"
+            },
+            "expectedViolation": null,
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "i18n-contribution-delta": {
+              "status": "pass",
+              "details": "Workdir changes match the public contract."
+            },
+            "i18n-contribution-artifact": {
+              "status": "fail",
+              "details": "Artifact ABI or setup is invalid."
+            },
+            "i18n-contribution-extraction": {
+              "status": "fail",
+              "details": "Public source, report, or semantics evidence is unavailable."
+            },
+            "i18n-contribution-preservation": {
+              "status": "pass",
+              "details": "Protected technical literals, routes, and existing translations remain observable."
+            },
+            "i18n-contribution-locales": {
+              "status": "fail",
+              "details": "Public locale evidence is unavailable."
+            }
+          }
+        },
+        {
+          "id": "input-tamper",
+          "mutatedPath": "baseline/src/App.tsx",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "UNDECLARED_INPUT_MODIFIED",
+                "relativePath": "baseline/src/App.tsx",
+                "contractRef": "declared-delta"
+              },
+              {
+                "code": "INPUT_MODIFIED",
+                "relativePath": "baseline/src/App.tsx",
+                "contractRef": "protected-stable"
+              }
+            ],
+            "predicateStatus": {
+              "protected-stable": "fail",
+              "declared-delta": "fail",
+              "report-shape": "pass"
+            },
+            "expectedViolation": "INPUT_MODIFIED",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "i18n-contribution-delta": {
+              "status": "fail",
+              "details": "Workdir delta violates the public contract."
+            },
+            "i18n-contribution-artifact": {
+              "status": "fail",
+              "details": "Artifact ABI or setup is invalid."
+            },
+            "i18n-contribution-extraction": {
+              "status": "fail",
+              "details": "Public source, report, or semantics evidence is unavailable."
+            },
+            "i18n-contribution-preservation": {
+              "status": "pass",
+              "details": "Protected technical literals, routes, and existing translations remain observable."
+            },
+            "i18n-contribution-locales": {
+              "status": "fail",
+              "details": "Public locale evidence is unavailable."
+            }
+          }
+        },
+        {
+          "id": "missing-output",
+          "mutatedPath": "src/i18n.ts",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "OUTPUT_MISSING",
+                "relativePath": "src/i18n.ts",
+                "contractRef": "declared-delta"
+              }
+            ],
+            "predicateStatus": {
+              "protected-stable": "pass",
+              "declared-delta": "fail",
+              "report-shape": "pass"
+            },
+            "expectedViolation": "OUTPUT_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "i18n-contribution-delta": {
+              "status": "fail",
+              "details": "Workdir delta violates the public contract."
+            },
+            "i18n-contribution-artifact": {
+              "status": "fail",
+              "details": "Required i18n artifacts are missing or invalid."
+            },
+            "i18n-contribution-extraction": {
+              "status": "fail",
+              "details": "Public source, report, or semantics evidence is unavailable."
+            },
+            "i18n-contribution-preservation": {
+              "status": "pass",
+              "details": "Protected technical literals, routes, and existing translations remain observable."
+            },
+            "i18n-contribution-locales": {
+              "status": "fail",
+              "details": "Public locale evidence is unavailable."
+            }
+          }
+        },
+        {
+          "id": "extra-output",
+          "mutatedPath": "unexpected-structural-parity.txt",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "UNEXPECTED_ENTRY",
+                "relativePath": "unexpected-structural-parity.txt",
+                "contractRef": "declared-delta"
+              }
+            ],
+            "predicateStatus": {
+              "protected-stable": "pass",
+              "declared-delta": "fail",
+              "report-shape": "pass"
+            },
+            "expectedViolation": "UNEXPECTED_ENTRY",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "i18n-contribution-delta": {
+              "status": "fail",
+              "details": "Workdir delta violates the public contract."
+            },
+            "i18n-contribution-artifact": {
+              "status": "fail",
+              "details": "Artifact ABI or setup is invalid."
+            },
+            "i18n-contribution-extraction": {
+              "status": "fail",
+              "details": "Public source, report, or semantics evidence is unavailable."
+            },
+            "i18n-contribution-preservation": {
+              "status": "pass",
+              "details": "Protected technical literals, routes, and existing translations remain observable."
+            },
+            "i18n-contribution-locales": {
+              "status": "fail",
+              "details": "Public locale evidence is unavailable."
+            }
+          }
+        },
+        {
+          "id": "json-shape-drift",
+          "mutatedPath": "i18n-report.json",
+          "automatic": {
+            "status": "fail",
+            "runtimeStatus": "validation-failure",
+            "errors": [
+              {
+                "code": "JSON_REQUIRED_FIELD_MISSING",
+                "relativePath": "i18n-report.json",
+                "contractRef": "report-shape"
+              }
+            ],
+            "predicateStatus": {
+              "protected-stable": "pass",
+              "declared-delta": "pass",
+              "report-shape": "fail"
+            },
+            "expectedViolation": "JSON_REQUIRED_FIELD_MISSING",
+            "expectedViolationDetected": true
+          },
+          "manualCriterionStatus": {
+            "i18n-contribution-delta": {
+              "status": "pass",
+              "details": "Workdir changes match the public contract."
+            },
+            "i18n-contribution-artifact": {
+              "status": "fail",
+              "details": "Artifact ABI or setup is invalid."
+            },
+            "i18n-contribution-extraction": {
+              "status": "fail",
+              "details": "Public source, report, or semantics evidence is unavailable."
+            },
+            "i18n-contribution-preservation": {
+              "status": "pass",
+              "details": "Protected technical literals, routes, and existing translations remain observable."
+            },
+            "i18n-contribution-locales": {
+              "status": "fail",
+              "details": "Public locale evidence is unavailable."
+            }
+          }
+        }
+      ],
+      "manualComparisons": [
+        {
+          "id": "i18n-delta",
+          "automaticCriterionIds": [
+            "protected-stable",
+            "declared-delta"
+          ],
+          "manualCriterionId": "i18n-contribution-delta",
+          "comparability": "exact",
+          "reason": "Both checks preserve the declared protected subset and allow only declared source/output changes.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            },
+            {
+              "scenarioId": "json-shape-drift",
+              "automatic": "pass",
+              "manual": "pass",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 5,
+          "observedDifferenceCount": 0,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "established"
+        },
+        {
+          "id": "i18n-artifact-bundle",
+          "automaticCriterionIds": [
+            "report-shape"
+          ],
+          "manualCriterionId": "i18n-contribution-artifact",
+          "comparability": "domain-bundled",
+          "reason": "The manual artifact checker also inspects i18next setup and the full public output ABI.",
+          "observed": [
+            {
+              "scenarioId": "baseline",
+              "automatic": "pass",
+              "manual": "fail",
+              "agreement": false
+            },
+            {
+              "scenarioId": "input-tamper",
+              "automatic": "pass",
+              "manual": "fail",
+              "agreement": false
+            },
+            {
+              "scenarioId": "missing-output",
+              "automatic": "pass",
+              "manual": "fail",
+              "agreement": false
+            },
+            {
+              "scenarioId": "extra-output",
+              "automatic": "pass",
+              "manual": "fail",
+              "agreement": false
+            },
+            {
+              "scenarioId": "json-shape-drift",
+              "automatic": "fail",
+              "manual": "fail",
+              "agreement": true
+            }
+          ],
+          "observedAgreementCount": 1,
+          "observedDifferenceCount": 4,
+          "manualInfrastructureCount": 0,
+          "exactExecutionParity": "not-claimable"
+        }
+      ],
+      "semanticParity": "not-established"
+    }
+  ],
+  "domainProbe": {
+    "predicate": "cross-artifact-consistency",
+    "criterionId": "artifact-consistency",
+    "genericPrimitive": "json-pointer-relation",
+    "declarationParameterCount": 1,
+    "declarationAuthoring": {
+      "measurementStartedAt": "2026-08-24T07:41:59.4146540Z",
+      "measurementCompletedAt": "2026-08-24T07:45:11.2865386Z",
+      "humanMinutes": 1
+    },
+    "probeExecution": {
+      "baseline": "pass",
+      "mismatch": "fail"
+    },
+    "coreBranchDelta": 0,
+    "productionGeneralization": "not-established",
+    "semanticParity": "not-established",
+    "ceiling": "One declaration-parameterized probe executes without a skill branch; the remaining natural-language domain predicates still lack pointer, normalization, runtime-command, or source-oracle parameters."
+  },
+  "summary": {
+    "caseCount": 7,
+    "genericPredicateCount": 19,
+    "scenarioExecutionCount": 33,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "coreBranchDelta": 0,
+    "casesWithPassingStructuralBaseline": 7,
+    "exactManualComparisonsEstablished": 2,
+    "semanticParity": "not-established"
+  }
+}

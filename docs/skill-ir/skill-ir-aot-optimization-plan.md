@@ -870,6 +870,25 @@ task 说明；声明提供 task ABI 与公开 pass semantics，自动化负责 c
    within-limit 且 domain/runtime/package 门全部满足时才允许改变 automation/readiness flag，本任务不得为好看数字
    提前晋升。
 
+### Task 18.28：结构 predicate 的真实 execution parity
+
+**范围：** 只把 18.27 已生成的封闭结构 predicate 接到真实 workdir/checker runtime；冻结件只读、零付费、
+development-only。手工 checker 只在全部自动候选 digest 冻结后读取，并按可比性分层，不能把结构 agreement 冒充
+完整任务语义等价。
+
+1. [x] RED/GREEN 新增 additive `skill-ir-structural-execution-plan/v1`，统一 lowering `input-integrity`、
+   `output-presence`、`exact-output-set`、`json-shape`；公共 core 无 skill-id 分支，旧 18.26/18.27 identity 不改；
+2. [x] 将 plan、initial manifest 与 bundled checker 组装为真实 catalog-valid artifact package，并复用既有
+   `runValidatedArtifactPlan` 在隔离 workdir 执行；覆盖 baseline、input tamper、missing/extra output 与 JSON shape drift；
+3. [x] 7 个案例先重建并核验 18.27 candidate digest，再读取 digest-pinned development task 与 manual evaluator；
+   33 次执行覆盖 19 个已声明结构 predicate，7/7 baseline 通过，所有预注册结构突变均被捕获；
+4. [x] 手工比较显式分为 `exact | manual-stricter | domain-bundled`。只有两条 exact projection 的所有观测一致，
+   因而 `exactExecutionParity=established`；其余观察无论相同或不同都保持 `not-claimable`；
+5. [x] Domain 只做一条 `cross-artifact-consistency` 探针：用通用 JSON pointer relation + 声明参数实现 baseline pass/
+   mismatch fail、`coreBranchDelta=0`；单案例泛化与 semantic parity 均为 `not-established`，不继续添加 skill 特判；
+6. [x] 报告经 strict schema 与计数守恒校验，记录 0 paid、0 held-out、3 human minutes parity catalog、1 human minute
+   probe declaration。该 package 只验证产物，不生成任务产物；7/7 automation eligibility 与 readiness 不晋级。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
@@ -890,8 +909,9 @@ compiler 构造并未前瞻发生、部分
 历史 all-attempt 字段缺失，仍是 fidelity-preserving，不是 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
 **40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
 不等于跨模型主实验已经启动。lifecycle wrapper shadow parity、scorer disclosure preflight 与 prospective
-compiler cost capture 已完成；下一优先级是取得第二个质量正例，而不是继续
-修补不可恢复的历史缺失或直接烧新矩阵。真实 dynamic 只在稳定
+compiler cost capture、薄声明构造和结构 execution bridge 已完成；下一优先级是让自动路径生成任务产物，并将
+至少一类声明参数化的 domain predicate 在两个以上案例中建立可执行证据，而不是继续修补不可恢复的历史缺失或
+直接烧新矩阵。真实 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 
 ## 5. 时间估算

@@ -923,7 +923,9 @@ analysis/matrix runner identity：12-row 顺序、三组 estimand、4 个 determ
 协议都已绑定。Task 18.25 已在任何模型输出被读取前补齐 successor 专属 artifact compiler/runtime/control，再从
 真实 0/12 完成唯一矩阵。12/12 全部 semantic-complete/scored、0 retry/infra；artifact 4/4，但 original 对
 no-skill 无净贡献、static 回归且 construction 非自动，因此 BIDS 不成为第二 readiness phenotype。Readiness v4
-只清除了 Zh README 这个已解释冻结 blocker，另两门仍 false。当前接力点转为自动构造能力，不再追加手写候选：
+只清除了 Zh README 这个已解释冻结 blocker，另两门仍 false。Task 18.26--18.28 已依次建立 source-only 构造、薄
+task 声明语义层与结构 predicate 的真实 execution bridge；当前接力点转为自动产物生成和可跨案例参数化的 domain
+runtime，不再追加手写候选：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -944,7 +946,8 @@ no-skill 无净贡献、static 回归且 construction 非自动，因此 BIDS �
 已完成：readiness v4；open measurement blocker 0，但 phenotype=1、automation 7/7 incomplete，整体 failed
 已完成：source-only automatic construction；7/7 四类 candidate、0 paid/held-out、但 0/7 portfolio eligible
 已完成：薄 task 声明 domain construction；7/7 within-limit、19 structural + 21 domain-runtime predicates、0/7 eligible
-下一步：把封闭 predicate 降到公共 checker/runtime，并做至少一个零付费 execution parity；不扩声明模拟 scorer
+已完成：结构 execution bridge；7 case/33 scenarios、2 exact parity、0 paid/held-out/core branch，semantic parity 未建立
+下一步：让自动路径生成任务产物，并在至少两个案例验证同类声明参数化 domain predicate；不为数字添加 skill 特判
 ```
 
 本地重建命令：
@@ -975,6 +978,11 @@ bun run ./src/benchmarks/skill-ir/method-portfolio-run.ts
 bun test ./src/benchmarks/skill-ir/automatic-domain-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-domain-construction-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601>
+bun test ./src/benchmarks/skill-ir/automatic-structural-execution.test.ts `
+  ./src/benchmarks/skill-ir/automatic-structural-execution-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-structural-execution-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-structural-execution-shadow-run.ts `
   --measurement-completed-at=<ISO-8601>
 ```
 

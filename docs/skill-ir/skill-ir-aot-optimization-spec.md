@@ -1058,11 +1058,28 @@ delta=0。严格分账为 144 source units、75 declaration units、150 automati
 predicate 形成通用 deterministic plan，21 个仍需 domain runtime。7/7 仍有逐案 runtime/compiler gap，semantic
 parity 全为 `not-established`，四类 eligibility 仍为 0/7；portfolio/readiness flags 不变。
 
+Task 18.28 以 additive 首版把上述 19 个结构 predicate 接到真实 artifact checker/runtime，而不修改 18.26/
+18.27 冻结 identity。`skill-ir-structural-execution-plan/v1` 只 lower `input-integrity`、`output-presence`、
+`exact-output-set` 与 `json-shape`；plan、冻结 initial manifest 和 bundled checker 被组装为 catalog-valid
+validation package，并通过既有 `runValidatedArtifactPlan` 在隔离 workdir 执行。7 案例共 33 个预注册场景，7/7
+baseline 通过，input tamper、missing output、extra output 与适用的 JSON shape drift 均被捕获；0 paid/API、0
+held-out、`coreBranchDelta=0`。19 是 7 份冻结声明中的实际 predicate 数；`output-presence` 的实现由 focused test
+验证，但本次 7 份声明没有该类实例，不能把单元覆盖误写成 7-case evidence。
+
+自动结果与手工 checker 的比较显式标记 `exact | manual-stricter | domain-bundled`。9 个 projection 中只有
+Experimental Design 的 input-integrity 与 i18n 的 delta 两条属于 exact，且全部场景一致，因此只对这两条建立
+execution parity；其它 agreement/difference 都不能声称语义等价。Domain 层只做 i18n
+`cross-artifact-consistency` 探针：通用 JSON pointer relation 在声明参数下得到 baseline pass/mismatch fail，未增加
+skill branch；生产泛化和 semantic parity 仍为 `not-established`。报告自身经 strict schema、观察计数与摘要守恒
+校验。该 package 是 validation-only，不生成任务产物，故四类 automation eligibility 仍为 0/7，portfolio/readiness
+不变。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
 development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但贡献和 static 均未通过；
-source-only 与薄声明 domain construction 均能生成 7/7 四类候选，但 0/7 达到 runtime/package 资格；
+source-only 与薄声明 domain construction 均能生成 7/7 四类候选，结构 checker/runtime 已真实执行但仍不生成任务
+产物，0/7 达到自动 compiler/package 资格；
 i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
 方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。

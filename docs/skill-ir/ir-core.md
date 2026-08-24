@@ -258,6 +258,24 @@ semantic entries、15 human minutes），生成 144 个 source units、75 个 de
 19 个结构 predicate 与 21 个 domain-runtime predicate 分账。每案 gap 由其实际未下沉 predicate 和 output path
 推导，不再使用模板 reason。7/7 仍需 runtime/compiler，四类 portfolio eligibility 均为 0/7。
 
+### 8.3 Structural predicate execution bridge
+
+Task 18.28 新增 additive `automatic-structural-execution.ts`。它只接受 18.27 candidate 加声明式 path binding，将
+`input-integrity`、`output-presence`、`exact-output-set`、`json-shape` lowering 为 strict structural execution
+plan；通用 target/predicate 循环中没有 case id 或 skill id 分支。Symbolic ABI target 必须由评估 catalog 绑定到
+具体路径，literal directory 则保留 prefix 语义；adapter 路径数和人工分钟与声明/core 分账。
+
+执行不是内存占位：runner 为每个场景写 initial workdir manifest，以
+`automatic-structural-execution-runtime.ts` 构建 catalog-valid validated artifact package，再复用既有 runtime
+执行 bundled checker。Checker 比较真实 workdir snapshot 与初始 manifest，并返回 strict
+`skill-artifact-validation-report/v1`。Task 18.28 的 7 个 frozen case 共执行 33 个 baseline/negative 场景，19 个
+实际声明 predicate 均进入 runtime；`output-presence` 没有出现在该 7-case 分母中，只由 focused/runtime tests 覆盖。
+
+与手工 checker 的 shadow projection 先按 exact/manual-stricter/domain-bundled 分类，只有 exact projection 可建立
+execution parity；完整 semantic parity 始终不由结构结果派生。Domain 探针使用一个 skill-neutral JSON pointer
+relation primitive 加声明参数，i18n 单案例 baseline/mismatch 行为成立，但泛化与 semantic parity 未建立。下一层
+若需要 case-id 分支，应停在 adapter/declaration 边界，不能污染 core。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `
@@ -266,6 +284,11 @@ bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
 bun run ./src/benchmarks/skill-ir/automatic-construction-shadow-run.ts `
   --measurement-completed-at=<ISO-8601>
 bun run ./src/benchmarks/skill-ir/automatic-domain-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601>
+bun test ./src/benchmarks/skill-ir/automatic-structural-execution.test.ts `
+  ./src/benchmarks/skill-ir/automatic-structural-execution-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-structural-execution-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-structural-execution-shadow-run.ts `
   --measurement-completed-at=<ISO-8601>
 ```
 

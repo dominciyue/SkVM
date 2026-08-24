@@ -106,6 +106,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   validation plan 与 package candidate，并在 manual oracle 前冻结。报告严格分列 144 个 source units、75 个
   declaration units 和 150 个自动 bindings；19 个结构 predicate 可生成确定性 plan，21 个领域 predicate 仍缺
   qualified runtime，7/7 仍需人工，semantic parity 均为 `not-established`，四类 eligibility 保持 0/7。
+- Task 18.28 已把 4 类结构 predicate 接到真实 workdir/artifact runtime。7 案例完成 33 次零付费执行，19 个实际
+  声明 predicate 的 baseline 与预注册突变均符合预期，0 held-out、core branch delta 0；9 条手工 projection 中仅
+  2 条 exact comparison 建立 execution parity，其余 `manual-stricter/domain-bundled` 不冒充语义等价。单个通用
+  cross-artifact probe 为 pass/fail，但生产泛化和 semantic parity 仍为 `not-established`，package 仍不会生成任务
+  产物，automation/readiness 不晋级。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -141,8 +146,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> BIDS v1 始终不复用、不补跑、不重评分；qualification 也不以 task success 或 exact output 预筛模型
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> readiness v4 已区分 explained-and-frozen/open-candidate：open=0，但 phenotype=1、automation 7/7 incomplete
--> source-only 与薄声明 domain candidate 路径均已完成；下一步先把封闭结构 predicate 降到通用 runtime/checker，
-   再选择一个声明内、非 answer-bearing 的领域 predicate 做 0-paid execution parity，不把 plan binding 误计为 runtime 成功
+-> source-only、薄声明 candidate 与封闭结构 runtime 已完成；7 案例 33 次执行、两条 exact parity，0 paid
+-> domain probe 只建立单案例原语可执行性；下一步是自动生成任务产物，并在两个以上案例验证同类声明参数化 domain predicate
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口
