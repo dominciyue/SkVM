@@ -854,7 +854,7 @@ task 说明；声明提供 task ABI 与公开 pass semantics，自动化负责 c
 
 1. [x] 新增 strict `skill-ir-task-description/v1`：只允许输入/输出文件、artifact structure 与封闭 pass predicate；
    禁止 scorer/evaluator、gold/answer、held-out、模型输出及任意扩展字段。数组/文本设 schema 上限，另以前瞻
-   `nonEmptyLoc<=80`、`semanticEntries<=40` 判定薄度；超限标记 `declaration-heavy`，不删除证据、不宣称收敛；
+   `physicalLoc<=80`（空行也计入）、`semanticEntries<=40` 判定薄度；超限标记 `declaration-heavy`，不删除证据、不宣称收敛；
 2. [x] 以 additive domain construction 包装 18.26 source-only core，不修改旧 v1 语义。由 source 产出 workflow/rule
    provenance，由声明生成 inputs/outputs、domain contract、IR check bindings 与 validation-plan predicates；core
    不得出现 7 个 case id 分支，`coreBranchDelta=0`；
