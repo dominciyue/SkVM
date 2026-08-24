@@ -889,6 +889,34 @@ development-only。手工 checker 只在全部自动候选 digest 冻结后读�
 6. [x] 报告经 strict schema 与计数守恒校验，记录 0 paid、0 held-out、3 human minutes parity catalog、1 human minute
    probe declaration。该 package 只验证产物，不生成任务产物；7/7 automation eligibility 与 readiness 不晋级。
 
+### Task 18.29：最小自动产物生成与跨案例 domain reuse gate
+
+**范围：** 保持 18.26--18.28 冻结输入、实现与结果只读；零付费、development-only。新增首版自动 output
+compiler，从已冻结的 domain candidate、声明式 task ABI 与真实公开 workdir 输入发现唯一同名 JSON field
+projection，生成证据可追溯的部分 JSON 产物，再由同一 validated-artifact package 执行结构与 relation validation。
+不增加 gold、手写答案、case-id 分支或新模型调用。
+
+1. [x] RED：证明 compiler 必须在真实 workdir 生成此前不存在的文件、复制唯一公开 source field，并保持 protected
+   input digest；unsupported format、无唯一 source field 与未生成 required output 必须显式 unresolved，不能写 placeholder；
+2. [x] GREEN：新增 additive `skill-ir-automatic-output-construction-plan/v1` 与通用 process/checker package；process
+   只消费 plan + workdir，validation 复用 18.28 structural plan 并执行 `source-field-projection` relation；
+3. [x] 在 Experimental Design 与 i18n 两个不同案例执行同一 primitive。候选必须先 freeze，compiler 不接收 evaluator
+   payload；记录生成文件/字段、未解决字段/输出、process/validation 状态、manual checker 差距与成本分账；
+4. [x] 将 domain reuse 机器门设为至少两个不同 case 且 core branch delta 0；单案例、skill-specific transform 或未知
+   operation 必须 fail closed。跨两案 reuse 只证明 primitive 可复用，不证明任一完整 18.27 domain predicate 或
+   semantic parity；
+5. [x] 保持 0 paid、0 held-out、0 readiness promotion。只有任务全部 required output 被 compiler 生成、结构与完整
+   domain runtime 均通过且 manual parity 建立后，才允许重新讨论 automation eligibility。
+
+冻结 shadow 在 Experimental Design 与 i18n 上分别生成 2 与 1 个此前不存在的 JSON 文件，复制 2 与 1 个唯一
+同名公开输入字段；同一 `source-field-projection` primitive 的 baseline/mismatch 均为 pass/fail，跨 2 案 reuse
+gate 通过且 core branch delta=0。与此同时 15 个字段/产物显式 unresolved，两个 process 均 complete、两个 package
+均 validation-failure，手工 checker 均仅 1/5 criterion 通过；semantic parity 与完整 domain predicate parity 均为
+`not-established`，automatic eligibility 为 0/2。报告为
+`results/skill-ir/automatic-output-construction-shadow-v1/report.json`；前测 core 开发成本没有追溯估算，冻结 catalog
+之后的 shadow integration 为 8 human minutes、30 LOC，二者不得合并成“全自动零人工”。下一阶段只应增加能在至少
+两个案例消解真实 unresolved 的通用语义变换；若必须引入 case/skill 分支则保持 unresolved 并停止。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
@@ -909,9 +937,9 @@ compiler 构造并未前瞻发生、部分
 历史 all-attempt 字段缺失，仍是 fidelity-preserving，不是 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
 **40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
 不等于跨模型主实验已经启动。lifecycle wrapper shadow parity、scorer disclosure preflight 与 prospective
-compiler cost capture、薄声明构造和结构 execution bridge 已完成；下一优先级是让自动路径生成任务产物，并将
-至少一类声明参数化的 domain predicate 在两个以上案例中建立可执行证据，而不是继续修补不可恢复的历史缺失或
-直接烧新矩阵。真实 dynamic 只在稳定
+compiler cost capture、薄声明构造、结构 execution bridge 和首个部分 output compiler 已完成；下一优先级是让
+通用语义变换消解至少两个案例的当前 unresolved，并逐步达到完整 domain predicate/manual parity，而不是继续修补
+不可恢复的历史缺失或直接烧新矩阵。真实 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 
 ## 5. 时间估算

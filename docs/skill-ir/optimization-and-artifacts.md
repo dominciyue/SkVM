@@ -561,6 +561,18 @@ fail，额外声明 1 human minute，仍是 `productionGeneralization=not-establ
 落到 execution，没有证明 optimizer/compiler 自动产物路径收敛，7/7 automation eligibility 与 readiness 保持不变。
 权威报告为 `results/skill-ir/automatic-structural-execution-shadow-v1/report.json`。
 
+Task 18.29 增加真实 process node，但刻意限制能力而不伪造成功。公共 compiler 只为 JSON-object required field 寻找
+唯一同名的 public read-only JSON 顶层字段；匹配时生成带 source/target JSON pointer 的
+`source-field-projection`，否则把具体原因留在 unresolved。Runner 真正在 workdir 写文件，checker 复用 structural
+validation 并增加 relation validation；未知 operation 和任何 skill-specific branch 都 fail closed。
+
+Experimental Design 生成 replication/analysis 两个 partial plan，i18n 生成 partial report，共 3 files/3 fields；两案
+relation 均 baseline pass、人工注入 mismatch fail，protected inputs preserved。Reuse gate 因同一 primitive 在两个
+不同案例成立且 core branch delta 0 而 passed，但 15 unresolved、2/2 package validation-failure、manual checker
+各 1/5，故 complete construction、semantic parity、automatic eligibility 都是 0。报告还明确将 catalog freeze 后
+8 human minutes/30 LOC 与 pre-measurement core work `not-measured` 分开。权威报告为
+`results/skill-ir/automatic-output-construction-shadow-v1/report.json`。
+
 ## 15. 测试
 
 ```powershell
@@ -573,6 +585,11 @@ bun test ./src/benchmarks/skill-ir/automatic-structural-execution.test.ts `
   ./src/benchmarks/skill-ir/automatic-structural-execution-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-structural-execution-shadow-run.ts `
   --measurement-completed-at=<ISO-8601>
+bun test ./src/benchmarks/skill-ir/automatic-output-construction.test.ts `
+  ./src/benchmarks/skill-ir/automatic-output-construction-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-output-construction-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-output-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
 bun test ./src/benchmarks/skill-ir
 bun run typecheck
 ```

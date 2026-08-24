@@ -276,6 +276,19 @@ execution parity；完整 semantic parity 始终不由结构结果派生。Domai
 relation primitive 加声明参数，i18n 单案例 baseline/mismatch 行为成立，但泛化与 semantic parity 未建立。下一层
 若需要 case-id 分支，应停在 adapter/declaration 边界，不能污染 core。
 
+### 8.4 Minimal output construction
+
+Task 18.29 的 `automatic-output-construction.ts` 将结构 plan 中 public、read-only JSON inputs 与 JSON-object outputs
+编译为 strict `skill-ir-automatic-output-construction-plan/v1`。首版只有一个无 skill 分支的
+`source-field-projection`：若某 required output field 在恰好一个输入 JSON 的顶层出现，就记录 source path/pointer 与
+target pointer；缺失或歧义字段、非 JSON、opaque structure 和非具体 output 均进入 typed unresolved。Compiler 不写
+常量、占位符或 gold，也不读取 evaluator payload。
+
+Process runner 在真实 workdir 创建目标目录并写 JSON 文件；随后同一 package 的 checker 先执行 18.28 structural
+plan，再校验 projection relation。Experimental Design 与 i18n 共生成 3 个新文件/3 个字段，同一原语跨两案
+baseline pass/mismatch fail，但仍有 15 个 unresolved，两个 package 都因真实必需字段/文件缺失而 validation-failure。
+跨案 reuse 不是完整 domain predicate parity；semantic parity 与 automatic eligibility 均未建立。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `
@@ -290,6 +303,11 @@ bun test ./src/benchmarks/skill-ir/automatic-structural-execution.test.ts `
   ./src/benchmarks/skill-ir/automatic-structural-execution-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-structural-execution-shadow-run.ts `
   --measurement-completed-at=<ISO-8601>
+bun test ./src/benchmarks/skill-ir/automatic-output-construction.test.ts `
+  ./src/benchmarks/skill-ir/automatic-output-construction-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-output-construction-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-output-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
 ```
 
 Task 18.18 的 BIDS base IR 是该链路的新真实案例：`profile=[]`，所有 intent/input/output/step/rule/tool/check 节点均

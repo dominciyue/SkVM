@@ -709,6 +709,18 @@ bundled 1/4/0。只有两条 exact projection 建立 execution parity；其它�
 eligibility 仍为 0/7，method portfolio/readiness 不晋级。本阶段没有进行付费实验，因为模型调用不能加强结构
 execution parity，反而会把尚未收敛的 domain/compiler 路径混入证据。
 
+Task 18.29 新增最小 output compiler，并在任何 task/evaluator 读取前重新冻结两个 domain candidate。Compiler 只看
+真实 workdir 中声明为 public/read-only JSON 的输入，按唯一同名顶层字段生成 `source-field-projection`；不读取
+evaluator payload、gold 或 held-out。Experimental Design 生成 2 个新 JSON 文件并投影 2 个 `studyId`，i18n 生成
+1 个新 report 并投影 1 个 `framework`。3/3 文件初始均不存在，protected input digests 全部保持；两案 relation
+baseline 均 pass，注入 mismatch 后均 fail，因此同一 primitive 的 2-case reuse gate passed、core branch delta 0。
+
+这不是完整自动化正例。Experimental Design 仍有 9 个 field unresolved，i18n 有 6 个 output/field unresolved；两案
+process complete 但 package 均 validation-failure，manual checker 都只有 1/5 criterion pass。Complete construction、
+full semantic parity 与 automatic eligibility 分别为 0/2、0/2、0/2；完整 declared domain predicate parity 是
+`not-established`，portfolio/readiness 不更新。阶段为 0 paid/API、0 held-out、0 compiler evaluator-payload access；
+catalog freeze 后 shadow integration 记录 8 human minutes/30 LOC，之前 core 开发成本明确为 `not-measured`。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -729,3 +741,4 @@ execution parity，反而会把尚未收敛的 domain/compiler 路径混入证�
 - `results/skill-ir/automatic-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-domain-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-structural-execution-shadow-v1/report.json`
+- `results/skill-ir/automatic-output-construction-shadow-v1/report.json`

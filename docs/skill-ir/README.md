@@ -111,6 +111,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   2 条 exact comparison 建立 execution parity，其余 `manual-stricter/domain-bundled` 不冒充语义等价。单个通用
   cross-artifact probe 为 pass/fail，但生产泛化和 semantic parity 仍为 `not-established`，package 仍不会生成任务
   产物，automation/readiness 不晋级。
+- Task 18.29 已让同一 `source-field-projection` primitive 在 Experimental Design 与 i18n 的真实 workdir 生成
+  3 个此前不存在的 JSON 文件、投影 3 个公开输入字段；两案 relation 均 baseline pass/mismatch fail，跨案 reuse
+  gate 通过且 core branch delta 0。但 15 个字段/产物仍 unresolved，两个 package 均 validation-failure、手工
+  checker 均 1/5，semantic parity 与完整 domain predicate parity 未建立，automatic eligibility 仍为 0/2。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -147,7 +151,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
 -> readiness v4 已区分 explained-and-frozen/open-candidate：open=0，但 phenotype=1、automation 7/7 incomplete
 -> source-only、薄声明 candidate 与封闭结构 runtime 已完成；7 案例 33 次执行、两条 exact parity，0 paid
--> domain probe 只建立单案例原语可执行性；下一步是自动生成任务产物，并在两个以上案例验证同类声明参数化 domain predicate
+-> 首个 output primitive 已跨两案例生成部分产物；3 fields generated、15 unresolved、0/2 automatic eligible
+-> 下一步只扩能跨至少两案消解真实 unresolved 的通用语义变换；不加入 skill 特判，不提前跑付费/held-out
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

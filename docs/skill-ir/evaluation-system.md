@@ -611,6 +611,12 @@ Domain predicate 只验证一条声明参数化探针：通用 JSON pointer rela
 `not-established`。若新 domain 实现需要 skill-id 特判，应停止并把缺少的 pointer/normalization/runtime-command/
 source-oracle 参数记录为自动化天花板，而不是把分支藏进 core。
 
+Task 18.29 把“需要特判时停止”收紧为机器可审计边界：首个 output compiler 的 plan schema 只接受
+`source-field-projection`，未知 operation 被 strict schema 拒绝；reuse gate 要求同一 primitive 在至少两个 distinct
+case 通过且 skill-specific branches 为 0，任一特判直接抛错。Experimental Design 与 i18n 满足这个窄 reuse gate，
+但报告同时冻结 15 unresolved、2/2 package validation-failure、2/2 manual full parity not-established。这个 gate 不
+评价完整 18.27 domain predicate，不改变 semantic parity、automatic eligibility 或 readiness。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

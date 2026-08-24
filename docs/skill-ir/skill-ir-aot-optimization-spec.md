@@ -1074,12 +1074,21 @@ skill branch；生产泛化和 semantic parity 仍为 `not-established`。报告
 校验。该 package 是 validation-only，不生成任务产物，故四类 automation eligibility 仍为 0/7，portfolio/readiness
 不变。
 
+Task 18.29 新增首个真实产物构造薄层。`skill-ir-automatic-output-construction-plan/v1` 只从 public、read-only JSON
+输入发现唯一同名顶层字段，并以 `source-field-projection` 写入声明为 JSON-object 的具体输出；歧义、缺失、非 JSON、
+opaque structure 与非具体路径全部显式 unresolved，禁止 literal/placeholder。Experimental Design 与 i18n 的真实
+workdir 共生成 3 个此前不存在的文件、投影 3 个字段，protected inputs 保持不变；同一 primitive 在两案均为
+baseline pass/mismatch fail，reuse gate 通过且 core branch delta 0。该 gate 只证明原语跨案例复用：仍有 15 个
+unresolved，两个 package 均 validation-failure，手工 checker 均 1/5 通过，semantic parity、完整 domain predicate
+parity 与 automatic eligibility 分别保持 `not-established`、`not-established` 与 0/2。0 paid/API、0 held-out、
+compiler evaluator-payload access；readiness/portfolio 不更新。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
 development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但贡献和 static 均未通过；
-source-only 与薄声明 domain construction 均能生成 7/7 四类候选，结构 checker/runtime 已真实执行但仍不生成任务
-产物，0/7 达到自动 compiler/package 资格；
+source-only 与薄声明 domain construction 均能生成 7/7 四类候选，结构 checker/runtime 已真实执行；首个通用
+output primitive 又在两个案例生成部分产物，但仍为 0/2 automatic eligible，portfolio 的 0/7 automation 状态不变；
 i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
 方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。
