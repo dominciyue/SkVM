@@ -721,6 +721,20 @@ full semantic parity 与 automatic eligibility 分别为 0/2、0/2、0/2；完�
 `not-established`，portfolio/readiness 不更新。阶段为 0 paid/API、0 held-out、0 compiler evaluator-payload access；
 catalog freeze 后 shadow integration 记录 8 human minutes/30 LOC，之前 core 开发成本明确为 `not-measured`。
 
+Task 18.30 冻结一个 additive、value-free JSON Pointer successor。Experimental Design 声明两条
+`copy-json-value`（assigned entity -> replicate unit、observed entity -> measurement unit），i18n 声明一条
+`sourceFiles -> scannedFiles`；两个真实 workdir 均先执行 18.29 base plan，再执行 pointer copy。3/3 pointer relation
+baseline pass，定向 target mismatch 后 3/3 被捕获，base projection relation 仍 pass，protected inputs preserved。
+因此 unresolved 从 15 降为 12，双案例 reuse gate passed、core branch delta 0。
+
+结果仍不是自动化正例：两个 process complete、两个 package validation-failure，manual checker 各 1/5，semantic
+parity `not-established`、automatic eligibility 0/2。全部 12 个 remaining unresolved 一一分类：pointer-projectable
+1、selector/lookup-projectable 1、needs-domain-runtime 10，故纯 projection/query 的理论 floor 是 10；selector/lookup
+未实现，该 ceiling 不是 implementation evidence。两案合并声明为 53 LOC/22 semantic entries 与 46/19，均在 80/40
+上限内；pointer declarations 前瞻 3 human minutes，core 绿灯后的声明/shadow 20 human minutes，之前 core work
+`not-measured`。声明/分类 freeze 只早于当前重放中的 task/evaluator 读取；18.29 历史手工证据此前已知，不能称为
+blind freeze。0 paid/API、0 held-out、0 compiler evaluator-payload access，portfolio/readiness 不更新。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -742,3 +756,4 @@ catalog freeze 后 shadow integration 记录 8 human minutes/30 LOC，之前 cor
 - `results/skill-ir/automatic-domain-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-structural-execution-shadow-v1/report.json`
 - `results/skill-ir/automatic-output-construction-shadow-v1/report.json`
+- `results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`

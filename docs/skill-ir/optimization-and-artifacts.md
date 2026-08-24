@@ -573,6 +573,19 @@ relation 均 baseline pass、人工注入 mismatch fail，protected inputs prese
 8 human minutes/30 LOC 与 pre-measurement core work `not-measured` 分开。权威报告为
 `results/skill-ir/automatic-output-construction-shadow-v1/report.json`。
 
+Task 18.30 以 additive package 增加 `copy-json-value`，不改 18.29 冻结件。声明只保存 source/target
+targetRef、path、JSON Pointer 和 operation 名；literal、gold、scorer、held-out 与运行时值都不进入声明或 package。
+Process 先执行旧 base projection，再从 workdir 读取 source pointer 并覆盖 target pointer；checker 依次执行 structural、
+base source-field relation 和 pointer relation。Experimental Design 两条、i18n 一条 operation 在两个真实 workdir 均
+baseline pass，注入 target mismatch 后均 fail，protected inputs preserved，reuse gate 以双案例/core branch 0 通过。
+
+该局部成功没有伪装成完整构造：unresolved 15 -> 12，两个 package 继续 validation-failure、manual checker 各 1/5、
+automatic eligibility 0/2。全部剩余项的冻结分类为 pointer 1、selector/lookup 1、domain runtime 10，因此即使纯
+projection/query 未来全部实现，理论 unresolved floor 仍为 10；本阶段没有实现 selector/lookup。合并 task + pointer
+声明在两案分别为 53 LOC/22 semantic entries 与 46/19，均小于 80/40；pointer declaration 3 human minutes，core
+绿灯后的声明/shadow 20 human minutes，pre-measurement core work 不追溯。权威报告为
+`results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`。
+
 ## 15. 测试
 
 ```powershell
@@ -589,6 +602,11 @@ bun test ./src/benchmarks/skill-ir/automatic-output-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-output-construction-runtime.test.ts `
   ./src/benchmarks/skill-ir/automatic-output-construction-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-output-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-json-pointer-construction.test.ts `
+  ./src/benchmarks/skill-ir/automatic-json-pointer-construction-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow-run.ts `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
 bun test ./src/benchmarks/skill-ir
 bun run typecheck

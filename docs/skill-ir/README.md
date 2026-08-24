@@ -115,6 +115,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   3 个此前不存在的 JSON 文件、投影 3 个公开输入字段；两案 relation 均 baseline pass/mismatch fail，跨案 reuse
   gate 通过且 core branch delta 0。但 15 个字段/产物仍 unresolved，两个 package 均 validation-failure、手工
   checker 均 1/5，semantic parity 与完整 domain predicate parity 未建立，automatic eligibility 仍为 0/2。
+- Task 18.30 又以不含值/gold/scorer 的 source/target JSON Pointer 声明，在同一两个真实 workdir 执行 3 次
+  `copy-json-value`；baseline pass、突变 fail、protected input 不变，unresolved 15 -> 12。剩余 12 项中仅 1 个
+  pointer、1 个 selector/lookup 可投影/查询，10 个需要 domain runtime，纯查询路线理论 floor=10；selector 未实现，
+  package 仍 2/2 validation-failure、automatic eligibility 0/2。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -152,7 +156,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> readiness v4 已区分 explained-and-frozen/open-candidate：open=0，但 phenotype=1、automation 7/7 incomplete
 -> source-only、薄声明 candidate 与封闭结构 runtime 已完成；7 案例 33 次执行、两条 exact parity，0 paid
 -> 首个 output primitive 已跨两案例生成部分产物；3 fields generated、15 unresolved、0/2 automatic eligible
--> 下一步只扩能跨至少两案消解真实 unresolved 的通用语义变换；不加入 skill 特判，不提前跑付费/held-out
+-> JSON Pointer successor 已真实复制 3 fields；15 -> 12，ceiling=pointer 1/query 1/domain-runtime 10
+-> 下一步停止扩 pointer/query，直接选择可跨至少两案验证的 domain-runtime primitive；不提前跑付费/held-out
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

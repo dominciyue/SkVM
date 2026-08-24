@@ -1083,12 +1083,32 @@ unresolved，两个 package 均 validation-failure，手工 checker 均 1/5 通�
 parity 与 automatic eligibility 分别保持 `not-established`、`not-established` 与 0/2。0 paid/API、0 held-out、
 compiler evaluator-payload access；readiness/portfolio 不更新。
 
+Task 18.30 只允许在 additive successor 中增加声明式 JSON Pointer copy。每个 operation 必须只包含 source/target
+endpoint 与 `copy-json-value`，运行时值只能从公开 workdir 读取，不能进入声明、plan、package provenance 或
+compact report。Source 必须是 structural plan 中的 read-only JSON input；target 必须是具体 JSON-object output 中
+仍标记为 `source-field-missing` 的 required field。旧 18.29 plan/runtime/report 保持只读；未知 operation、literal、
+重复 target、路径逃逸、source/target contract 漂移和任何 skill-specific branch 均 fail closed。
+
+局部构造进展必须同时报告自动化天花板。转换后的每个 remaining unresolved 必须在 task/evaluator 读取前被前瞻
+分类为 `pointer-projectable`、`selector-lookup-projectable` 或 `needs-domain-runtime`，并由 runner 校验全覆盖、互斥和
+计数守恒。前两类只给出纯声明式 projection/query 的理论上限，不等于 operation 已实现、package 可执行或 semantic
+parity 已建立；第三类是 readiness 主瓶颈。Task 18.30 不实现 selector/lookup，也不得因 unresolved 数下降而改变
+portfolio automation、readiness、paid、held-out 或 replication authorization。
+
+冻结执行用两个真实 workdir 验证了上述窄合同：3 个 pointer copy 均 baseline pass、定向值突变后 fail，protected
+inputs preserved，旧 base projection relation 同时通过；15 个 unresolved 降为 12。剩余分类为 1 个
+`pointer-projectable`、1 个 `selector-lookup-projectable`、10 个 `needs-domain-runtime`，所以纯 projection/query 路线
+即使未来全部实现，理论 floor 仍是 10。该 ceiling 是前瞻分类而非 implementation evidence；Task 18.30 未实现
+selector/lookup，两个 package 仍 validation-failure，manual parity、semantic parity 和 eligibility 均未建立。Freeze
+只证明声明与分类早于本次 shadow 的 task/evaluator 读取；Task 18.29 的历史 task/manual 证据已知，不声称盲化。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
 development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但贡献和 static 均未通过；
 source-only 与薄声明 domain construction 均能生成 7/7 四类候选，结构 checker/runtime 已真实执行；首个通用
-output primitive 又在两个案例生成部分产物，但仍为 0/2 automatic eligible，portfolio 的 0/7 automation 状态不变；
+output/pointer primitives 又在两个案例生成部分产物并将 unresolved 从 15 降到 12，但仍为 0/2 automatic eligible，
+且剩余 10 项需要 domain runtime，portfolio 的 0/7 automation 状态不变；
 i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
 execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
 方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。

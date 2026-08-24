@@ -122,6 +122,7 @@ git show <commit>:docs/skill-ir/<file>
 8. 通用 core 禁止 skill-id branch；适配差异进入 declarative contract/adapter/artifact。
 9. 旧 gate failure 不事后改判；新方向使用新 policy/identity。
 10. 有效负结果进入论文正文。
+11. 自动构造阶段先量化声明式 projection/query 天花板；当剩余主要是 domain-runtime 时停止扩查询语法，直接攻语义运行时。
 
 ## 3. 文档治理
 

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "skill-ir-automatic-json-pointer-construction-shadow-catalog/v1",
+  "catalogId": "method-portfolio-json-pointer-construction-shadow-v1",
+  "measurementStartedAt": "2026-08-24T11:07:04.3758866Z",
+  "parentCatalog": {
+    "path": "benchmarks/skill-ir/corpus/automatic-output-construction-shadow-v1.json",
+    "sha256": "1b7d429c85a9239ac553ab03a283f585a248182a0c9a5eb7890b51409341f2e3"
+  },
+  "parentReport": {
+    "path": "results/skill-ir/automatic-output-construction-shadow-v1/report.json",
+    "sha256": "5e92b120ef47e60c0a876b66e8913c9241424e9b729c66ec1161b5c3ab6a39ec"
+  },
+  "costBoundary": {
+    "meteredScope": "declaration-and-shadow-after-core-green",
+    "preMeasurementCoreWork": "not-measured"
+  },
+  "cases": [
+    {
+      "caseId": "experimental-design",
+      "expectedCandidateDigest": "7290f3a149de29dae017dc9b0eef8adaf324d23eca5c3ac5d4b45bc9f32321ea",
+      "taskDescription": {
+        "path": "benchmarks/skill-ir/task-descriptions/experimental-design.json",
+        "sha256": "17f902c4a19a0f0c0e686ea88c1e9003344da3f42a319f08d4d016a2cea895f5"
+      },
+      "jsonPointerDeclaration": {
+        "path": "benchmarks/skill-ir/task-descriptions/experimental-design-json-pointer.json",
+        "sha256": "ba04ede027b62a7fe8838201c5a095b85f44b68c20c8ffc0ac3fc3ee5e0290e6",
+        "authoring": {
+          "measurementStartedAt": "2026-08-24T11:07:04.3758866Z",
+          "measurementCompletedAt": "2026-08-24T11:10:05.1078414Z",
+          "humanMinutes": 2
+        }
+      },
+      "remainingUnresolvedClassifications": [
+        {
+          "unresolved": { "targetRef": "replication-plan", "path": "design/replication-plan.json", "field": "independentReplicateCount", "reason": "source-field-missing" },
+          "classification": "selector-lookup-projectable",
+          "rationale": "The value is a count over source entities selected by treatment assignment; a reusable selector/count query could derive it, but Task 18.30 does not implement that primitive."
+        },
+        {
+          "unresolved": { "targetRef": "replication-plan", "path": "design/replication-plan.json", "field": "pseudoreplicationRisk", "reason": "source-field-missing" },
+          "classification": "needs-domain-runtime",
+          "rationale": "The output requires judging whether treatment assignment and observation units induce pseudoreplication, not copying or selecting a stored value."
+        },
+        {
+          "unresolved": { "targetRef": "replication-plan", "path": "design/replication-plan.json", "field": "rationale", "reason": "source-field-missing" },
+          "classification": "needs-domain-runtime",
+          "rationale": "The rationale must explain the experimental-design judgment and is not present as a source field."
+        },
+        {
+          "unresolved": { "targetRef": "analysis-plan", "path": "design/analysis-plan.json", "field": "analysisUnit", "reason": "source-field-missing" },
+          "classification": "pointer-projectable",
+          "rationale": "The declared observed entity type can be copied as the analysis unit, although doing so alone would not establish the full analysis-alignment criterion."
+        },
+        {
+          "unresolved": { "targetRef": "analysis-plan", "path": "design/analysis-plan.json", "field": "groupingFactors", "reason": "source-field-missing" },
+          "classification": "needs-domain-runtime",
+          "rationale": "Choosing grouping factors requires interpreting the treatment and entity hierarchy rather than projecting one stored field."
+        },
+        {
+          "unresolved": { "targetRef": "analysis-plan", "path": "design/analysis-plan.json", "field": "method", "reason": "source-field-missing" },
+          "classification": "needs-domain-runtime",
+          "rationale": "Selecting an analysis method requires domain reasoning over the design and response, not pointer or selector retrieval."
+        },
+        {
+          "unresolved": { "targetRef": "analysis-plan", "path": "design/analysis-plan.json", "field": "rationale", "reason": "source-field-missing" },
+          "classification": "needs-domain-runtime",
+          "rationale": "The rationale must justify a domain-level analysis choice and is absent from the public source values."
+        }
+      ]
+    },
+    {
+      "caseId": "i18n-helper",
+      "expectedCandidateDigest": "b8bd0fa86c8ca4e6ba452ccc8c32b5a393ed9b225b612ee86d52990cc1436fa9",
+      "taskDescription": {
+        "path": "benchmarks/skill-ir/task-descriptions/i18n-helper.json",
+        "sha256": "3c99fbc7562ef65b5bc3285b0e9c67c5270e46ae6b126cdd0b3a5c0bc60c62c6"
+      },
+      "jsonPointerDeclaration": {
+        "path": "benchmarks/skill-ir/task-descriptions/i18n-helper-json-pointer.json",
+        "sha256": "314f242f0dc3957b589f59234a3977bccf811a6be0a8abccbad3855265855121",
+        "authoring": {
+          "measurementStartedAt": "2026-08-24T11:07:04.3758866Z",
+          "measurementCompletedAt": "2026-08-24T11:10:05.1078414Z",
+          "humanMinutes": 1
+        }
+      },
+      "remainingUnresolvedClassifications": [
+        {
+          "unresolved": { "targetRef": "source-updates", "reason": "non-concrete-output" },
+          "classification": "needs-domain-runtime",
+          "rationale": "Rewriting React sources requires locating user-visible messages while preserving behavior and technical literals."
+        },
+        {
+          "unresolved": { "targetRef": "i18n-runtime", "path": "src/i18n.ts", "reason": "unsupported-output-format" },
+          "classification": "needs-domain-runtime",
+          "rationale": "Generating a working TypeScript i18n module requires framework-aware source construction, not structured value projection."
+        },
+        {
+          "unresolved": { "targetRef": "zh-locale", "path": "src/locales/zh-CN.json", "reason": "unsupported-output-structure" },
+          "classification": "needs-domain-runtime",
+          "rationale": "Locale entries require message extraction, key design, translation, and placeholder fidelity that are absent from pointer/query inputs."
+        },
+        {
+          "unresolved": { "targetRef": "en-locale", "path": "src/locales/en-US.json", "reason": "unsupported-output-structure" },
+          "classification": "needs-domain-runtime",
+          "rationale": "Locale entries require message extraction, key design, and placeholder fidelity rather than copying an existing structured field."
+        },
+        {
+          "unresolved": { "targetRef": "i18n-report", "path": "i18n-report.json", "field": "entries", "reason": "source-field-missing" },
+          "classification": "needs-domain-runtime",
+          "rationale": "The report entries must be derived from semantic source rewrites and locale artifacts, so no source pointer or simple lookup can supply them."
+        }
+      ]
+    }
+  ]
+}

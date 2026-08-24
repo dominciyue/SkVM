@@ -617,6 +617,14 @@ case 通过且 skill-specific branches 为 0，任一特判直接抛错。Experi
 但报告同时冻结 15 unresolved、2/2 package validation-failure、2/2 manual full parity not-established。这个 gate 不
 评价完整 18.27 domain predicate，不改变 semantic parity、automatic eligibility 或 readiness。
 
+Task 18.30 的关系门继续保持窄语义。`copy-json-value` 只验证声明的两个 JSON Pointer 在真实执行后深度相等；双案例
+reuse gate 要求至少两个 distinct case 的 baseline 通过、定向 mismatch 被捕获且 `coreBranchDelta=0`。这不证明该值
+满足完整手工 criterion。Shadow report 还要求 base unresolved、pointer resolved 与 remaining 三者守恒，并对每个
+remaining unresolved 绑定唯一分类。冻结计数为 pointer 1、selector/lookup 1、domain runtime 10；理论 query floor
+为 10。Selector/lookup 未实现，ceiling 固定为 `prospective-ceiling-not-implementation-evidence`，两个 package 仍
+validation-failure，因此不更新 portfolio/readiness。机器字段只记录 freeze 发生在本次 task/evaluator read 之前；
+既有 18.29 task/manual 证据并未被假装成未知。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

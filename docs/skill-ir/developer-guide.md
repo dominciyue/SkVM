@@ -925,7 +925,8 @@ analysis/matrix runner identity：12-row 顺序、三组 estimand、4 个 determ
 no-skill 无净贡献、static 回归且 construction 非自动，因此 BIDS 不成为第二 readiness phenotype。Readiness v4
 只清除了 Zh README 这个已解释冻结 blocker，另两门仍 false。Task 18.26--18.29 已依次建立 source-only 构造、薄
 task 声明语义层、结构 predicate 的真实 execution bridge 与首个跨两案例的 partial output primitive；当前接力点
-转为能消解多个真实 unresolved 的通用语义变换，不再追加手写候选：
+随后 Task 18.30 用 value-free JSON Pointer successor 将 unresolved 从 15 降到 12，并量化出 10 项 domain-runtime
+floor。当前接力点转为跨案例 domain-runtime primitive，不再扩 pointer/query 或追加手写候选：
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -948,7 +949,8 @@ task 声明语义层、结构 predicate 的真实 execution bridge 与首个跨�
 已完成：薄 task 声明 domain construction；7/7 within-limit、19 structural + 21 domain-runtime predicates、0/7 eligible
 已完成：结构 execution bridge；7 case/33 scenarios、2 exact parity、0 paid/held-out/core branch，semantic parity 未建立
 已完成：partial output compiler；2 cases/3 files/3 fields、15 unresolved、2/2 validation fail、0/2 eligible
-下一步：只实现能跨至少两个案例消解当前 unresolved 的通用语义变换；不为数字添加 skill 特判
+已完成：JSON Pointer successor；3 copies、15 -> 12、pointer/query/domain ceiling=1/1/10、0/2 eligible
+下一步：停止扩 pointer/query，选择能跨至少两个案例验证的 domain-runtime primitive；不为数字添加 skill 特判
 ```
 
 本地重建命令：
@@ -989,6 +991,11 @@ bun test ./src/benchmarks/skill-ir/automatic-output-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-output-construction-runtime.test.ts `
   ./src/benchmarks/skill-ir/automatic-output-construction-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-output-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-json-pointer-construction.test.ts `
+  ./src/benchmarks/skill-ir/automatic-json-pointer-construction-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow-run.ts `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
 ```
 

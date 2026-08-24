@@ -917,6 +917,45 @@ gate 通过且 core branch delta=0。与此同时 15 个字段/产物显式 unre
 之后的 shadow integration 为 8 human minutes、30 LOC，二者不得合并成“全自动零人工”。下一阶段只应增加能在至少
 两个案例消解真实 unresolved 的通用语义变换；若必须引入 case/skill 分支则保持 unresolved 并停止。
 
+### Task 18.30：声明式 JSON Pointer 投影与自动化天花板量化
+
+**范围：** 保持 Task 18.26--18.29 的 implementation、catalog、report 与候选 digest 只读；新增 additive 首版
+JSON Pointer successor，只在薄声明中接受 source endpoint、target endpoint 与 `copy-json-value` operation。声明
+不得携带 literal value、gold、scorer/evaluator、held-out、模型输出或 skill/case 分支。零付费、development-only。
+
+1. [x] RED：strict declaration/plan 拒绝未知 operation、literal value、绝对/逃逸路径、非 JSON/read-only source、
+   非声明 JSON-object target、非现存 `source-field-missing` unresolved、重复 target 与 skill-specific branch；
+2. [x] GREEN：先执行冻结的 `source-field-projection` base plan，再从真实 workdir 读取声明 source JSON Pointer，
+   将值复制到 target JSON Pointer；不得在 plan/package 中序列化运行时值，不修改 protected input；
+3. [x] Experimental Design 只增加
+   `/treatment/assignedToEntityType -> /independentReplicateUnit` 与
+   `/response/observedOnEntityType -> /measurementUnit`；i18n 只增加
+   `/sourceFiles -> /scannedFiles`。同一 `copy-json-value` 在两个 workdir 都必须 baseline pass、突变 fail；
+4. [x] 新 package/checker 同时执行 18.28 structural、18.29 source-field relation 与 18.30 pointer-copy relation。
+   未解决输出继续使 package validation fail；不得把局部 relation reuse 写成完整 domain/manual parity；
+5. [x] 报告必须逐项覆盖转换后的全部剩余 unresolved，并使用互斥标签
+   `pointer-projectable | selector-lookup-projectable | needs-domain-runtime`。分类声明在 task/evaluator 读取前冻结，
+   runner 校验与实际 remaining unresolved 一一对应且计数守恒；同时输出投影/查询路线的理论 unresolved floor；
+6. [x] 本阶段不得实现 selector/lookup。若某分类没有双案例 reuse evidence，只保留 prospective ceiling 标签，不
+   生成 operation。预期数值是 15 -> 12，而不是 package/eligibility 晋升；semantic parity 与 automatic
+   eligibility 在未建立完整 domain runtime/manual parity 时继续 `not-established` / false；
+7. [x] 声明与既有 task description 合并核算 LOC、semantic entries 和 humanMinutes；来自声明、runtime 自动读取、
+   仍需 domain runtime 三账分离。完成 focused、shadow、broad、typecheck、doc links、secret/path/digest 与 Git 检查。
+
+**停止边界：** Task 18.30 结束后先依据 ceiling 报告决定下一刀。不得连续扩 pointer/query 只为压低 unresolved；
+若剩余主要属于 `needs-domain-runtime`，下一阶段必须直接选择一个可跨至少两案复用的 domain-runtime primitive，或
+诚实记录自动化边界，不能用 selector/lookup 代替 readiness 主瓶颈。
+
+冻结结果精确达到 15 -> 12：Experimental Design 与 i18n 的两个真实 workdir 共执行 3 个 `copy-json-value`，基础
+projection 与 pointer relation baseline 全部 pass，pointer 值突变全部 fail，protected inputs 保持不变；两个 process
+complete，但 package 仍 validation-failure、manual checker 仍各 1/5，故 semantic parity 为 `not-established`、
+automatic eligibility 为 0/2。剩余 12 项分类为 pointer-projectable 1、selector/lookup-projectable 1、
+needs-domain-runtime 10；纯 projection/query 的理论 floor 是 10，而且 selector/lookup 未实现。这说明下一阶段不应
+继续为 unresolved 数字扩查询语法，而应直接验证可跨案例复用的 domain-runtime 能力。两案合并声明分别 53/22 与
+46/19 LOC/semantic entries，均在 80/40 上限内；pointer 声明前瞻记录 3 human minutes，core 绿灯后的声明/shadow
+阶段为 20 human minutes，之前 core 开发仍诚实标记 `not-measured`。权威报告为
+`results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

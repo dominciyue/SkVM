@@ -289,6 +289,19 @@ plan，再校验 projection relation。Experimental Design 与 i18n 共生成 3 
 baseline pass/mismatch fail，但仍有 15 个 unresolved，两个 package 都因真实必需字段/文件缺失而 validation-failure。
 跨案 reuse 不是完整 domain predicate parity；semantic parity 与 automatic eligibility 均未建立。
 
+### 8.5 Declarative JSON Pointer successor
+
+Task 18.30 的 additive `automatic-json-pointer-construction.ts` 只接受 value-free
+`copy-json-value(source endpoint, target endpoint)`。Compiler 校验 source 是 structural plan 中的 public read-only
+JSON input，target 是 base plan 已生成的 JSON-object required field，并且精确对应现存 `source-field-missing`
+unresolved；运行时值只在 workdir 执行期读取，不序列化到 plan/package/report。Runner 先执行 18.29 base plan，再
+覆盖 pointer target；checker 组合 structural、source-field projection 与 pointer-copy relation。
+
+Experimental Design 两次复制、i18n 一次复制均在真实 workdir baseline pass、值突变 fail，3 个 protected-input
+集合保持不变；unresolved 15 -> 12，但 package 仍 2/2 validation-failure。报告把剩余项完整分类为 pointer 1、
+selector/lookup 1、domain-runtime 10；这是查询路线理论 floor=10 的 ceiling 审计，不是 selector 实现或 semantic
+parity 证据。Core source 不含两个 case id，reuse gate 只对同一 primitive 的双案例执行证据通过。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `
@@ -307,6 +320,11 @@ bun test ./src/benchmarks/skill-ir/automatic-output-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-output-construction-runtime.test.ts `
   ./src/benchmarks/skill-ir/automatic-output-construction-shadow.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-output-construction-shadow-run.ts `
+  --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
+bun test ./src/benchmarks/skill-ir/automatic-json-pointer-construction.test.ts `
+  ./src/benchmarks/skill-ir/automatic-json-pointer-construction-runtime.test.ts `
+  ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow.test.ts
+bun run ./src/benchmarks/skill-ir/automatic-json-pointer-construction-shadow-run.ts `
   --measurement-completed-at=<ISO-8601> --metered-human-minutes=<minutes>
 ```
 
