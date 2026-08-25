@@ -936,9 +936,10 @@ complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏
 因此 failed，自动化阶段按 no-go 停止扩 pointer/query/DSL/7-case：
 
 该 no-go 随后被收窄：Env 的 1/6 来自同一 static type 错造成的 partial workdir，Law 又是 strict schema reject，
-两者都不是干净的 capability 上限。Task 18.36 已冻结一个 additive Env attempt：typed-register provider schema、
-required-output prompt/gate、local namespace + static audit、1 call/0 retry；六门全过后才运行两个真实 workdir parity。
-旧 18.33--18.35 evidence 不覆盖、不升组件版本，case 选择只在 catalog。
+两者都不是干净的 capability 上限。Task 18.36 的 additive Env attempt 以 typed-register provider schema、required-
+output prompt/gate 和 local namespace + static audit 清除该污染；pre-model identity 推送后唯一 1 call/0 retry 通过
+六门，并在两个真实 workdir 得到 2/2 runtime complete、每案 3/3 outputs、真实 evaluator 3/6 failed。旧
+18.33--18.35 evidence 不覆盖、不升组件版本，case 选择只在 catalog。
 
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
@@ -973,8 +974,9 @@ required-output prompt/gate、local namespace + static audit、1 call/0 retry；
 已完成：Task 18.35 Env manual parity；真实 evaluator 分母 6，0/6 -> 1/6，full task parity 0/2
 已完成：Law 单调用 generation；1 call/0 retry，plan-schema strict reject，binding/static-type 因无安全 plan 未运行
 已完成：跨 skill parity 聚合；selected 2/evaluated 1/full 0，typed blockers 3，semantic parity failed
-已完成：Task 18.36 pre-model freeze；typed register、3 required outputs、1-call/0-retry、core branch 0
-当前接力：提交并推送新 freeze 后执行唯一 Env 调用；仅 0 static issue + 3/3 outputs 才进入真实 parity
+已完成：Task 18.36 pre-model freeze 与唯一 Env 调用；1 call/0 retry，六门全过、core branch 0
+已完成：两个真实 Env workdir 2/2 runtime complete、每案 3/3 outputs；manual parity 0/6 -> 3/6、仍 failed
+当前接力：以清洁 Env 负结果区分领域覆盖遗漏与 DSL 动态产物表达力，不重放调用、不开放 eligibility/readiness
 ```
 
 本地重建命令：

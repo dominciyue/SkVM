@@ -801,6 +801,16 @@ evaluator、8-file additive implementation closure、13,174-char request、57,45
 required output 和 1-call/0-retry budget。Freeze 时 paid=0、held-out/evaluator payload=0、core branch delta 0；真实
 execute/parity 尚未发生，不得从注入 TDD 推断结果。
 
+随后 pre-model commit `2269296` 已先推送，唯一 Env execute 使用 1 paid call、0 retry，101,440.1425ms，reported
+tokens 为 input 6,304/output 3,054。HTTP 200、指定 tool call 与 4,614-char arguments 通过 strict schema；六项审计
+全 passed，namespace/static issue=0。相同 plan 在 Node/Vite 两个真实 development workdir 均 runtime complete、
+各 3/3 required output、protected input 保持，`engineeringContaminationRemoved=true`。
+
+真实 evaluator baseline 为 0/6；post-plan 为 3/6，Node 2/3（0.65）、Vite 1/3（0.20），full parity task 0/2、
+distance-to-full 3、infrastructure failure 0。两案 artifact integrity 通过，Node environment analysis 通过；Vite
+analysis 失败，两案 artifact consistency 失败。该结果证明通用 schema/prompt 修正确实去除了旧运行污染，却没有
+建立领域语义 parity；automatic eligibility、portfolio/readiness、held-out 与多模型证据均不更新。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`

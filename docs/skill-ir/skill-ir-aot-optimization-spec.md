@@ -1178,6 +1178,17 @@ consumer 类型关系，prompt 从薄 task declaration 明示所有 required out
 和无条件 required-output 写入审计。旧 18.33--18.35 文件与结论不改写，同一 Domain Plan v1 不升版，core 不含
 case/skill-id 分支。
 
+唯一执行在 pre-model commit `2269296` 推送后发生：1 paid call、0 retry，六项通用审计全过，typed/static issue
+均为 0；两个真实 Env development workdir 均完整执行、各生成 3/3 required output 并保持 protected inputs，因而
+建立 `engineeringContaminationRemoved=true`。真实 evaluator 从 baseline `0/6` 到 post-plan `3/6`，Node/Vite
+分别 2/3 与 1/3，full task 0/2、distance-to-full 3。这个结果推翻的是“旧 1/6 可当作领域能力分数”的错误归因，
+不是把 Env 自动化判为成功：manual semantic parity 仍 failed，automatic eligibility/readiness 不变。
+
+剩余失败必须按可执行产物解释：两案 artifact integrity 均通过；Vite 的 environment analysis 仍失败，生成计划没有
+覆盖 evaluator/public contract 已声明的 `import.meta.env` 引用；两案 artifact consistency 均失败，计划把变量清单
+写成注释/数组，而 evaluator 合同要求逐变量 `NAME=` example 与带每变量规则的 schema object。前者是领域覆盖遗漏，
+后者同时暴露当前 bounded DSL 缺少动态逐项渲染/对象构造表达力。不得再归因为 timeout、partial workdir 或缺失输出。
+
 该 attempt 只有在 leakage、两个 development binding、namespace、`staticTypeIssueCount=0` 和 declared-output gate
 全部通过后才持久化 plan，并在两个真实 Env development workdir 运行冻结 evaluator。清洁 execution 证据至少要求
 2/2 runtime complete、每案 3/3 required outputs 与 protected inputs preserved；manual semantic parity 继续按真实

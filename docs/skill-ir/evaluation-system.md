@@ -694,6 +694,12 @@ manifest，执行同一计划并逐项调用冻结的 3-criterion evaluator。`2
 只建立“工程污染已清除”，不等于 semantic parity；criterion、hard gate、threshold 与 distance-to-full 仍按实际结果
 报告。唯一 attempt 为 1 call/0 retry，失败不补跑，不改变 eligibility/readiness。
 
+实际执行满足前置合同：六门均 passed，namespace/static issue=0；两个真实 workdir 均 runtime complete、3/3 required
+output、protected input preserved。Manual evaluator 没有 infrastructure failure，Node 从 0/3 到 2/3（weighted
+0.65），Vite 从 0/3 到 1/3（weighted 0.20），合计 0/6 到 3/6、distance-to-full 3、full task 0/2。两案都通过
+artifact integrity；Node 额外通过 environment analysis；Vite analysis 与两案 artifact consistency 仍失败。
+因此 `engineeringContaminationRemoved=true` 与 `manualSemanticParity=failed` 同时成立，二者不得互相替代。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

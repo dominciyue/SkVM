@@ -1129,15 +1129,22 @@ identity 的历史判定。
 3. [x] 新 freeze `env-generic-type-and-output-repair-001` 绑定旧 attribution/parity 父证据、exact
    source/declaration/task/evaluator、8-file implementation closure、13,174-char request、57,455-char strict
    payload、3 个 required output 和 1-call/0-retry budget；`coreBranchDelta=0`；
-4. [ ] 预模型 identity 提交并推送后执行唯一 Env 调用。只有 leakage、双 task binding、typed namespace、既有
+4. [x] 预模型 identity 提交并推送后执行唯一 Env 调用。只有 leakage、双 task binding、typed namespace、既有
    static type（0 issue）和 required-output 完整性全部通过才持久化计划；
-5. [ ] 仅在上述六门通过后，在两个真实 Env development workdir 执行同一计划并调用冻结 evaluator；要求披露
+5. [x] 仅在上述六门通过后，在两个真实 Env development workdir 执行同一计划并调用冻结 evaluator；要求披露
    runtime 2/2、required outputs 3/3、protected inputs、真实 6-criterion parity 和 distance-to-full。失败不补跑；
-6. [ ] 基于无工程污染的结果重述边界，不开放 held-out、7-case、multi-model、eligibility 或 readiness。
+6. [x] 基于无工程污染的结果重述边界，不开放 held-out、7-case、multi-model、eligibility 或 readiness。
 
 **执行前状态（2026-08-25）：** focused TDD 为 3/3，注入计划确实运行两个真实 workdir；只有六门全过才启动
 manual evaluator。Freeze 为 paid=0、authorized=1、retries=0、held-out/evaluator payload=0。该阶段是新 attempt，
 不是 Domain Plan 组件升版，也不会覆盖 18.33--18.35 的 plan/report。
+
+**执行结果（2026-08-25）：** pre-model commit `2269296` 推送后只执行 1 次、0 retry。HTTP 200/tool call 通过 strict
+schema；leakage、双 task binding、typed namespace、static type 与 required-output 六门全部通过，namespace/static
+issue 均为 0。两项真实 workdir 均 runtime complete、各 3/3 required output、protected input 2/2 保持，故
+`engineeringContaminationRemoved=true`。冻结 evaluator 的 baseline `0/6` 提升为 post-plan `3/6`：Node 2/3、
+Vite 1/3、full task 0/2、distance-to-full 3，case parity 仍 failed。旧 `1/6` 的执行污染已排除，但剩余差距是
+可完整执行计划的领域语义/表达力缺口；这仍是单 Env 案例证据，不晋级 automatic eligibility/readiness。
 
 ### 单模型族 70% 与多模型族启动门槛
 

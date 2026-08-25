@@ -372,6 +372,12 @@ strict schema 用 step id 前缀区分 `text/strings/records/bool/json/unknown`�
 限制到相应 namespace；返回的对象仍是原 `skill-ir-restricted-domain-plan/v1`，因此不是 DSL/schema 升版。本地
 `auditRestrictedDomainPlanTypeNamespaces` 再验证同一关系，既有 static type gate 仍必须为 0 issue。
 
+冻结后唯一调用返回的 27-step plan 同时通过 namespace 与既有 static dataflow audit，issue 均为 0；同一 plan 在
+Node/Vite 两个真实 workdir 都完整运行并生成全部三项 output。这证明 typed provider schema + local audit 已清除旧
+`template-binding-type` 执行污染，且没有新增 skill-id branch（`coreBranchDelta=0`）。它没有使 IR 成为领域完备：
+plan 漏掉 `import.meta.env`，且 v1 原语只能把动态变量集合整体序列化，不能逐元素生成 `.env.example` 行或以变量名
+动态构造 schema rule object；因此 evaluator 仍是 3/6、semantic parity failed。
+
 `buildTypeConstrainedRestrictedDomainPlanRequest` 从薄声明逐项列出 required output；
 `assertDeclaredRequiredOutputWrites` 要求每项存在独立且无条件的 write。六项通用 audit 全过后才持久化计划并调用现有
 双 workdir manual parity。实现闭包不含 case id，Env 选择只存在于 catalog，`coreBranchDelta=0`。

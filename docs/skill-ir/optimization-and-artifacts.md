@@ -641,6 +641,12 @@ Law 又没有 schema-valid plan，因此尚未得到“可完整执行但 domain
 结果才标记 `engineeringContaminationRemoved=true`；之后冻结 evaluator 的 6 项总分母才用于解释 domain semantic gap。
 即使执行完整但 parity 失败，也只是一个干净的 Env 单案例负结果，不开放跨 skill reuse、eligibility 或 held-out。
 
+唯一执行正好落在该分支：2/2 runtime complete、每案 3/3 required output、2/2 protected input preserved，且两层
+类型 issue 均为 0，所以旧 partial-output/static-type 污染已经排除。Artifact integrity 两案都通过，但一致性两案都
+失败：`.env.example` 只包含数组注释而没有逐变量 `NAME=` 行，`.env.schema.json` 的 `variables` 是字符串数组而不是
+逐变量 rule object。该差距不能通过“文件存在”门抹平，也不能事后改 evaluator；它是当前自动 package 的真实
+domain artifact gap。
+
 ## 15. 测试
 
 ```powershell

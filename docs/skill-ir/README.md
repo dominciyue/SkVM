@@ -139,9 +139,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   `insufficient-distinct-skills | case-parity-failed | plan-unavailable`；停止扩 DSL，保留“自动候选 + 人工 domain
   runtime 审核/补齐”产品边界。
 - 对 18.35 的复核发现 no-go 含通用工程污染：Env 两个 workdir 共享同一 static type 错且仅 1/3 output，Law 停在
-  strict schema reject。Task 18.36 已以新 attempt 冻结 typed-register tool schema、全部 required-output prompt/gate、
-  exact 父证据与 1-call/0-retry budget；旧结果不改写，执行前 paid=0、`coreBranchDelta=0`。只有生成计划通过六门后
-  才会在两个真实 Env workdir 运行 frozen evaluator。
+  strict schema reject。Task 18.36 保留旧证据，以新 attempt 加入 typed-register tool schema 和全部 required-output
+  prompt/gate；pre-model commit `2269296` 推送后唯一 1-call/0-retry 执行通过六门，两个真实 Env workdir 均 0 static
+  issue、runtime complete、3/3 outputs 且 protected input 保持。真实 evaluator 为 `0/6 -> 3/6`、full task 0/2，
+  因此工程污染已清除但 manual semantic parity 仍 failed，eligibility/readiness 不变。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -188,8 +189,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Task 18.35 已真实运行 Env manual evaluator：baseline 0/6 -> post-plan 1/6，distance-to-full 5，case parity failed
 -> Law 唯一 strict generation 已执行：1 call/0 retry，HTTP 200/tool call 可用，但本地 plan-schema strict reject
 -> 跨 skill semantic parity failed：只评估 1/2 case、0/2 full pass；按 no-go 停止扩 DSL/7-case/held-out
--> Task 18.36 已冻结新的 Env 通用修复 attempt：typed register + 3 required outputs，0/1 paid，等待唯一 execute
--> 计划仍忽略 3 个接口规则派生值并漏掉 2 个 Vite 引用；eligibility/readiness 不成立
+-> Task 18.36 Env 通用修复完成：1 paid/0 retry，六门全过、2/2 runtime、每案 3/3 outputs，真实 parity 3/6 failed
+-> 清洁计划仍漏掉 Vite `import.meta.env` 语义并不能生成逐变量 example/schema rules；eligibility/readiness 不成立
 -> 用另一项 untouched skill 做冻结 replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口
