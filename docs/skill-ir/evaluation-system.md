@@ -723,13 +723,24 @@ measurement blocker，`invalidated` 且已有 evidence 的终态明确输出到
 `openMeasurementBlockers`；只有后者参与 `noOpenMeasurementBlockers`。当前 Zh README 被保留为已解释冻结证据，
 open 数为 0，但 automation convergence 与 two-evidence phenotype 两门仍 false，所以 readiness 仍 failed。
 
-当前 portfolio 对 optimized evidence 仍存在一处机器权威缺口：case JSON 自报 `classification`、
-`qualityComparisonComplete`、`allAttemptCostComplete`、`breakEvenComplete` 与 `evidencePath`，但 portfolio builder
-没有读取该路径、验证 schema/digest，也没有从全成本报告派生 classification。因而不能只改 JSON 布尔值把 Env
-从 fidelity 改成 efficiency。下一次允许改变 readiness 分母的语义 successor 必须把 evidence path、sha256、schema
-identity 和报告内判定纳入 closure，并由机器从质量等价、production 全成本、research all-attempt 与正 break-even
-派生分类。旧 v3 portfolio/v4 readiness 继续保持历史含义；successor 的兼容性变化是“自报分类改为证据派生”，
-claim 影响是阻止未核验路径静默解锁第二 phenotype。
+旧 portfolio v3/readiness v4 对 optimized evidence 存在机器权威缺口：case JSON 自报 `classification` 与三个
+completeness flag，builder 不读取 `evidencePath`。这些文件继续作为不可变历史，不再代表当前证据权威。语义
+successor 使用 `method-portfolio-authoritative.json` v4 overlay；输入只能保存 `not-established` 或
+`evidencePath + evidenceSha256`，并 digest 绑定旧 base portfolio，不能输入分类或 completeness。
+
+`method-portfolio-evidence-authority.ts` 实际读取 regular、非 symlink、仓库内 evidence，验证 SHA-256 与 strict
+schema。Validated-artifact gate 从 records/counts/systems 重算完整分母、逐臂 success/mean、hard/infrastructure/
+paired regression，再派生 quality-positive 或 fidelity-preserving；optimization cost report 递归验证其 quality
+evidence，并通过公共 cost builder 重算 production、research all-attempt、break-even 与 eligibility。未知 schema、
+路径越界、digest 漂移、报告摘要与原始行不一致均 fail closed。当前 runner 与报告为：
+
+```powershell
+bun run ./src/benchmarks/skill-ir/method-portfolio-evidence-authority-run.ts
+```
+
+生成的 readiness v5 内嵌逐案例 path/digest/schema/机器派生字段。零付费存量重验确认 API Tester 仍为
+`quality-positive`，Env Manager 仍为 `fidelity-preserving`；eligible phenotype 保持 1，automation 与 two-evidence
+两门仍 false。这修复了事实来源，不改变旧证据字节，也没有提前解锁付费实验或 replication。
 
 Successor selection policy 必须在新合同开发前冻结，并为 registry 中每个 method-development case 提供一条
 assessment。Compact report 公开 phenotype coverage、合同/基线状态、artifact mechanism、信息互补性、下一阶段

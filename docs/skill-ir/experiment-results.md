@@ -213,7 +213,7 @@ untouched replication 和 Token break-even 均未证明。
 | zh-readme | passed | invalidated（scorer authority） | blocked | blocked | blocked |
 | i18n-helper | passed（contribution-v2） | passed | failed（quality regression） | blocked | blocked |
 
-机器报告 `results/skill-ir/method-portfolio-readiness.json` 已升级为 v3 且仍 failed：7 registered、7 studied、
+历史机器报告 `results/skill-ir/method-portfolio-readiness.json` 使用 readiness v4 且仍 failed：7 registered、7 studied、
 7 contract-qualified、2 static-fidelity passed、0 untouched replication；1 quality-positive、1
 fidelity-preserving、0 efficiency-positive，readiness-eligible optimized phenotype 只有 1 个。API Tester 从未有
 独立 static-fidelity gate，旧 registry 用 artifact gate 同时填充 static/optimized；v3 将 static 修正为 not-run。
@@ -221,6 +221,15 @@ Law 的 baseline regression、zh-readme 的 scorer-authority invalidation 与 i1
 不同 lifecycle stage，不再被单一 development gate 混写。自动化仍不完整；历史人工时间标记
 `historical-unavailable`，Env Manager successor 从 2026-08-12 起前瞻记录。
 该失败是诚实状态，不应调整阈值。
+
+Task 18.38A 将这组自报分类降为历史兼容输入，新增
+`benchmarks/skill-ir/corpus/method-portfolio-authoritative.json` v4 overlay。Overlay 只包含 base portfolio 与两份
+evidence 的 path/SHA-256；authority loader 实际读取并按 schema 重算，不接受 classification 或 completeness flag。
+零付费存量重验写入 `results/skill-ir/method-portfolio-authoritative-readiness.json`（readiness v5）：API Tester 的
+16/16 rows、4/4 quartets、artifact 4/4、0 hard/infrastructure/regression 且相对 original strict improvement 成立，
+故 quality-positive “1”保留；Env Manager 质量等价但无 strict improvement，仍为 fidelity-preserving。当前计数仍是
+quality-positive 1、efficiency-positive 0、fidelity-preserving 1、eligible phenotype 1；readiness failed，未进行
+新的模型调用、held-out 或成本实验。旧 v3/v4 文件未修改，只保留其历史语义。
 
 `results/skill-ir/method-successor-selection.json` 在 successor 合同开发前冻结全部 7 个方法案例。Env Manager
 因补齐唯一缺失的 environment-schema-repair phenotype、已有 deterministic repair/package 机制且对 API Tester
@@ -828,6 +837,7 @@ analysis 失败，两案 artifact consistency 失败。该结果证明通用 sch
 - `results/skill-ir/bids-successor-development-v1/matrix-capture.json`
 - `results/skill-ir/bids-successor-development-v1/result.json`
 - `results/skill-ir/method-portfolio-readiness.json`
+- `results/skill-ir/method-portfolio-authoritative-readiness.json`
 - `results/skill-ir/automatic-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-domain-construction-shadow-v1/report.json`
 - `results/skill-ir/automatic-structural-execution-shadow-v1/report.json`

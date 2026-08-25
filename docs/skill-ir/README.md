@@ -147,6 +147,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   Readiness 仍有两道独立 false：eligible phenotype 仅 1 个，automation 仍 7/7 incomplete。Task 18.37 只做半天、
   零付费 review-required 薄层并诚实记录人工 delta；研究主线随后以前瞻 Env reviewed efficiency 为候选，先补
   portfolio 证据权威绑定，再用固定 8 行质量/成本分母判断能否形成第二 phenotype。
+- Optimization evidence authority successor 已完成且 0 付费：新 v4 overlay 只保存 digest-bound evidence reference，
+  loader 实读 gate/cost 文件并重算分类与 completeness，readiness v5 内嵌逐案例 authority。存量复核确认 API
+  Tester 的 quality-positive “1”保留，Env 仍为 fidelity-preserving；旧 portfolio v3/readiness v4 仅作不可变历史，
+  当前 eligible phenotype 仍为 1，automation 与 two-evidence gate 仍 false。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -195,8 +199,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 跨 skill semantic parity failed：只评估 1/2 case、0/2 full pass；按 no-go 停止扩 DSL/7-case/held-out
 -> Task 18.36 Env 通用修复完成：1 paid/0 retry，六门全过、2/2 runtime、每案 3/3 outputs，真实 parity 3/6 failed
 -> 清洁计划仍漏掉 Vite `import.meta.env` 语义并不能生成逐变量 example/schema rules；eligibility/readiness 不成立
+-> optimization evidence authority v5 已完成：实读+验 digest+重算；API quality-positive 保留，Env fidelity 不变
 -> Task 18.37 只做半天、零付费 review-required 竖切：独立人工 patch、来源/LOC/minutes 与 auto-only/reviewed 分账
--> Task 18.38 先修 classification evidence 权威绑定，再冻结 Env 2 tasks x 2 reps x 2 arms 的前瞻 efficiency 身份
+-> Task 18.38 authority 前置已完成；待 18.37 冻结后再冻结 Env 2 tasks x 2 reps x 2 arms 前瞻 efficiency 身份
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

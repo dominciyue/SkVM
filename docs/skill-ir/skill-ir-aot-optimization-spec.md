@@ -1223,6 +1223,31 @@ all-attempt/break-even 不完整而只是 `fidelity-preserving`。Task 18.36 的
 classification。这个改动会改变研究结论的机器来源，必须说明 semantic delta、旧 registry compatibility 与 claim
 影响；不能只把判断表达式放宽，也不能为实现细修连续滚动版本。
 
+该缺口影响所有已分类 phenotype，而不只影响未来 efficiency。当前 API Tester 的 quality-positive “1”同样来自
+registry 自报；因此 successor 必须在任何 18.38 付费行之前重验存量。`method-portfolio/v3` 与 readiness v4 文件
+保持不可变历史；当前 successor 使用新的 portfolio identity，classified case 在输入中只允许
+`evidencePath + evidenceSha256`，未建立案例只允许显式 `not-established`。输入中不再出现
+`classification`、`qualityComparisonComplete`、`allAttemptCostComplete` 或 `breakEvenComplete`，避免两个事实源。
+
+Authority loader 按 evidence 文件的 `schemaVersion` 做 skill-neutral dispatch。Validated-artifact development gate
+必须从 records/systems/counts 重新核对固定分母、唯一 task/run/system、完成行、逐臂 success/mean、hard gate、
+infrastructure 与 paired regression；由真实比较派生 quality-positive 或 fidelity-preserving。Optimization cost
+report 必须用公共 cost builder 从原始 production/research 字段重算 completeness、amortization、break-even 与
+eligibility，并递归读取、验 digest、解析其 `quality.evidence` 指向的 development gate；报告内自带的 quality/
+completeness/eligibility 只允许与重算结果一致，不能成为权威输入。缺文件、symlink、越界路径、digest 漂移、未知
+schema、数值不自洽或内容不支撑分类均 fail closed，不产生 readiness。
+
+新的 readiness report 必须内嵌逐 classified case 的 evidence path/digest/schema 与机器派生四元组，并明确记录
+存量重验结果。API Tester 只有在其 16/16 rows、4/4 quartets、artifact 4/4、0 hard/infrastructure/regression，且
+相对 original 存在真实 strict improvement 经重算成立时，才继续贡献
+`openapi-schema-test-plan` quality-positive。若重验失败，readiness eligible 从 1 降到 0，18.38 付费身份不得冻结。
+
+该 successor 已实现为 `method-portfolio-authoritative.json` v4 overlay、skill-neutral authority loader 与
+`method-portfolio-authoritative-readiness.json` v5 报告，旧 v3/v4 字节未修改。零付费存量重验中 API Tester 上述
+分母与 strict improvement 全部成立，quality-positive “1”保留；Env 的质量等价成立但 strict improvement 不成立，
+继续为 fidelity-preserving。当前 eligible phenotype 因而仍为 1、efficiency-positive 为 0；two-evidence 与
+automation gate 继续 false。本结果只关闭证据来源漏洞，不授权 18.38 paid rows、held-out 或 replication。
+
 Env 是首个 reviewed-AOT efficiency 候选，因为它与 API Tester phenotype 不同，现有冻结 artifact 已证明 4/4、
 mean 1.0、0 pair regression，且历史 runtime 为 original 197606 model tokens/499006ms 对 artifact 0 tokens/541ms。
 这些数值只说明实验可行，不闭合旧成本。新的 forward-only identity 必须把 Task 18.36 已测 automatic synthesis

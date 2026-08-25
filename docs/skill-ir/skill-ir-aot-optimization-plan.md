@@ -1169,16 +1169,17 @@ Vite 1/3、full task 0/2、distance-to-full 3，case parity 仍 failed。旧 `1/
 
 ### Task 18.38：Env `review-required` 前瞻效率实验与机器分类绑定
 
-**机器判定审计（已完成）：** `method-portfolio.ts` 只从 contract-qualified 且 baseline/optimized development
+**机器判定审计与 authority 修复（已完成）：** `method-portfolio.ts` 只从 contract-qualified 且 baseline/optimized development
 均 passed 的案例计数，并只把 `quality-positive | efficiency-positive` phenotype 放进
 `twoEvidenceQualifiedPhenotypes`。当前 API Tester 是唯一 quality-positive；Env 是不同的
 `environment-schema-repair` phenotype，但仍为 fidelity-preserving。现有 registry 还只信
 `optimizationEvidence.classification`、`allAttemptCostComplete`、`breakEvenComplete` 和一个未验 digest 的
-`evidencePath`，不会解析成本报告重新派生 classification；因此仅修改 JSON 即可错误晋级，是执行前必须修掉的
-authority gap。
+`evidencePath`，不会解析成本报告重新派生 classification；该历史 authority gap 已由 v4 overlay + loader +
+readiness v5 successor 关闭，旧 v3/v4 文件保持不可变。
 
-1. [ ] 在付费前建立真正的 evidence binding：portfolio 必须绑定 path+SHA-256+schema，读取
-   `optimization-cost-accounting` 报告并要求 `eligibility.efficiencyPositiveEligible=true`、分类与完整性字段一致。
+1. [x] 在付费前建立真正的 evidence binding：portfolio 必须绑定 path+SHA-256+schema，按 schema dispatch 读取并重算
+   validated-artifact gate 或 `optimization-cost-accounting` 报告；efficiency 路径还必须要求
+   `eligibility.efficiencyPositiveEligible=true`、分类与完整性字段一致。
    这是研究结论派生语义变化；实现时使用一次有明确 semantic delta/compatibility/claim 说明的 successor，不在旧
    v3/v4 上静默加宽，也不因 routine 修复连续滚版本；
 2. [ ] 只有 18.37 patch/result 冻结后才冻结新的 forward-only efficiency identity。Identity 绑定 Task 18.36
@@ -1204,6 +1205,37 @@ authority gap。
    直接替代。若要让 review-required 路线进入 replication，必须另行显式定义与 full-automation readiness 并存的
    review-required method-freeze gate，不能把原 gate 静默弱化。
 
+#### Task 18.38A：Optimization evidence authority successor（付费前硬前置）
+
+**语义 delta：** 旧 `method-portfolio/v3` + readiness v4 把 classification 和三个 completeness flag 当作 registry
+输入，只做字段自洽。Successor registry 不修改旧文件，classified case 只保存
+`evidencePath + evidenceSha256`；classification、quality comparison、all-attempt 与 break-even 全部由 evidence
+内容派生。新的 readiness identity 内嵌 authority report；任何 evidence failure 都 fail closed，不能回退到自报值。
+
+1. [x] RED：构造一个 JSON 自报 efficiency、但 path 缺失/内容为空/摘要漂移/数字不支撑的案例，证明旧 v3 evaluator
+   会错误计入，successor 必须分别拒绝；测试必须实际创建临时文件，不用 mock；
+2. [x] RED：为 validated-artifact gate 建立 schema 与重算 canary，覆盖重复 row、counts/systems/records 不一致、
+   artifact regression、gate 自称 passed 但真实比较失败，以及 API Tester exact frozen report；
+3. [x] RED：为 optimization-cost report 覆盖内部 quality evidence digest 漂移、报告 completeness/eligibility 与公共
+   builder 重算不一致、break-even not-computable 与真实 efficiency-positive；三个 completion flag 只能断言 loader
+   的派生输出，fixture registry 中不得出现这些字段；
+4. [x] GREEN：新增 skill-neutral authority loader，以 schemaVersion dispatch gate/cost 两类 evidence；路径 containment、
+   regular-file/no-symlink、SHA-256、strict schema、数值守恒与递归 quality evidence 全部 fail closed；
+5. [x] GREEN：新增一次语义 successor portfolio/readiness identity，旧 v3 registry/readiness v4 原字节保留。新增
+   authority runner 默认指向 successor；readiness evaluator 只能消费 loader 返回的 authority，不暴露可用自填
+   authority 绕过的入口；
+6. [x] 存量重验：先读取 API Tester 与 Env 当前 evidence，生成 compact authority/readiness。API Tester 只有重算得到
+   quality-positive 时，当前“1”才保留；Env 必须仍由 gate 内容派生为 fidelity-preserving。任一不成立都在付费前停止；
+7. [x] 验证与冻结：focused RED/GREEN、旧 v3 compatibility、current readiness、typecheck、文档链接和 diff check；报告
+   逐 case path/digest/schema/derived flags，不含模型正文、gold/held-out 或 credential。只有该结果提交推送后，才允许
+   18.37 零付费薄层或 18.38 的 4 个 original paid rows继续。
+
+**完成证据：** 当前 v5 report 逐文件实读并重算后，API Tester 保留 `quality-positive`，Env Manager 保持
+`fidelity-preserving`；readiness 仍因 `twoEvidenceQualifiedPhenotypes=false` 与
+`automationAndAdaptationConverging=false` 而 failed。本阶段 0 paid/model/held-out；focused + compatibility 为
+23 pass/0 fail，typecheck 与文档检查通过。Skill IR broad 为 1043 pass/6 skip/63 fail，其中是既有冻结历史兼容
+失败与 1 个 5 秒历史测试超时；authority 新测试在 broad 中 8/8 通过，不把该 broad 结果误报为全仓绿色。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
@@ -1218,7 +1250,8 @@ authority gap。
 6. 预注册模型族小面板先测 development 的方向一致性、failure taxonomy 与基础设施兼容性；只有方向可信后才扩
    clean/noisy/long 和 held-out 主矩阵。
 
-当前尚未达到这条研究证据门槛：7/7 contract-qualified 不变，但机器口径修正后只有 API Tester 1 个
+当前尚未达到这条研究证据门槛：7/7 contract-qualified 不变；authority v5 实读 evidence 并重算后，API Tester
+quality-positive “1”保留，Env 仍 fidelity-preserving，因此仍只有 1 个
 readiness-eligible optimized phenotype；Env Manager v3 的历史全成本审计与前瞻 capture canary 已完成，但因自动
 compiler 构造并未前瞻发生、部分
 历史 all-attempt 字段缺失，仍是 fidelity-preserving，不是 efficiency-positive。复盘后不再给单一完成度：执行/测量基础设施约 **70%**，单模型研究证据约
