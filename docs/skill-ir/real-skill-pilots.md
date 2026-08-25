@@ -378,6 +378,15 @@ v2 已完成上述修复并通过 24/24 audit；通用 runner 会按 lock 的 pa
 repository 中不存在的 `LICENSE.upstream` 链接；一个 no-skill failure 则暴露 existing local path 参数等价
 仍未建模。故 v2 同样标记 measurement-invalid，数值不用于 skill 效果，base IR/held-out 继续关闭。
 
+Env Manager 目前是第二 readiness phenotype 的首选 efficiency 候选，而不是新的质量正例候选。其冻结 artifact
+已建立 original/artifact 4/4 质量等价；历史 original 为 197606 total tokens、499006ms，artifact direct runtime
+为 0 model token、541ms。这组差距只证明 recurring-cost 可行性：旧身份缺 automatic construction、package duration
+和 research all-attempt 成本，不能回填成 break-even。下一身份必须从本次 synthesis 和人工 review/patch 开始前瞻
+采集完整成本，并由 digest-bound cost report 派生 classification。人工步骤意味着它只能是 reviewed-AOT efficiency，
+不能提升 automatic construction eligibility。若完整核算后 break-even 不为正或质量门失败，退回第二个独立
+quality-positive 候选；Zh Code Reviewer 因 contract/baseline/static 已通过，可优先做零付费身份可行性审计，但不得
+用其 measurement-invalid README 旧结果凑正例。
+
 ## 11. 修改与验证
 
 ```powershell

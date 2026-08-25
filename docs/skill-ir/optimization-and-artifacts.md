@@ -647,6 +647,17 @@ Law 又没有 schema-valid plan，因此尚未得到“可完整执行但 domain
 逐变量 rule object。该差距不能通过“文件存在”门抹平，也不能事后改 evaluator；它是当前自动 package 的真实
 domain artifact gap。
 
+下一步只允许一个半天、零付费、非阻塞的 `review-required` 竖切来固定人工边界。它不得修改自动生成 plan；独立的
+case-local patch 只读取公开 source/workdir/task/contract，写已声明 outputs，不读取 scorer/gold/held-out。Runner
+必须记录 patch path+digest、LOC、起止时间、humanMinutes、`coreBranchDelta=0`，并在新的 pristine Node/Vite
+workdir 上先执行原计划、再执行 patch、最后调用同一冻结 evaluator。报告同时保留 auto-only 3/6 与 reviewed
+结果；即使 reviewed 未达 6/6 也冻结，不扩 DSL、不补模型调用、不改变 portfolio/readiness。
+
+这种 reviewed artifact 明确不是 automatic construction，但若从 synthesis 开始前瞻记录完整 review、compile、
+profile、package、runtime、repair 与 research all-attempt 成本，它可以进入单独的 reviewed-AOT efficiency 评估。
+这条产品化证据与“全自动 optimizer 是否收敛”是两个轴，不能用人工 patch 的成功把
+`automationAndAdaptationConverging` 写成 true。
+
 ## 15. 测试
 
 ```powershell

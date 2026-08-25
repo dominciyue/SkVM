@@ -143,6 +143,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   prompt/gate；pre-model commit `2269296` 推送后唯一 1-call/0-retry 执行通过六门，两个真实 Env workdir 均 0 static
   issue、runtime complete、3/3 outputs 且 protected input 保持。真实 evaluator 为 `0/6 -> 3/6`、full task 0/2，
   因此工程污染已清除但 manual semantic parity 仍 failed，eligibility/readiness 不变。
+- Task 18.36 因而是当前 restricted DSL 全自动路线的干净停止点，不再通过 selector/lookup/新 primitive 追数字。
+  Readiness 仍有两道独立 false：eligible phenotype 仅 1 个，automation 仍 7/7 incomplete。Task 18.37 只做半天、
+  零付费 review-required 薄层并诚实记录人工 delta；研究主线随后以前瞻 Env reviewed efficiency 为候选，先补
+  portfolio 证据权威绑定，再用固定 8 行质量/成本分母判断能否形成第二 phenotype。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -191,7 +195,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 跨 skill semantic parity failed：只评估 1/2 case、0/2 full pass；按 no-go 停止扩 DSL/7-case/held-out
 -> Task 18.36 Env 通用修复完成：1 paid/0 retry，六门全过、2/2 runtime、每案 3/3 outputs，真实 parity 3/6 failed
 -> 清洁计划仍漏掉 Vite `import.meta.env` 语义并不能生成逐变量 example/schema rules；eligibility/readiness 不成立
--> 用另一项 untouched skill 做冻结 replication
+-> Task 18.37 只做半天、零付费 review-required 竖切：独立人工 patch、来源/LOC/minutes 与 auto-only/reviewed 分账
+-> Task 18.38 先修 classification evidence 权威绑定，再冻结 Env 2 tasks x 2 reps x 2 arms 的前瞻 efficiency 身份
+-> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口
 ```

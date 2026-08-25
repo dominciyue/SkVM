@@ -976,7 +976,10 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：跨 skill parity 聚合；selected 2/evaluated 1/full 0，typed blockers 3，semantic parity failed
 已完成：Task 18.36 pre-model freeze 与唯一 Env 调用；1 call/0 retry，六门全过、core branch 0
 已完成：两个真实 Env workdir 2/2 runtime complete、每案 3/3 outputs；manual parity 0/6 -> 3/6、仍 failed
-当前接力：以清洁 Env 负结果区分领域覆盖遗漏与 DSL 动态产物表达力，不重放调用、不开放 eligibility/readiness
+当前接力：Task 18.37 仅做半天零付费 review-required patch 竖切，保留 auto-only/reviewed 双结果，不扩 DSL
+后续主线：Task 18.38 先将 portfolio classification 改为 digest-bound cost evidence 派生，再冻结 Env 8-row
+prospective reviewed-efficiency；第二 phenotype 即使成立也不把 full-auto convergence 改成 true
+复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
 ```
 
 本地重建命令：

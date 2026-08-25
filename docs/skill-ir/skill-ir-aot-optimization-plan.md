@@ -1146,6 +1146,64 @@ issue 均为 0。两项真实 workdir 均 runtime complete、各 3/3 required ou
 Vite 1/3、full task 0/2、distance-to-full 3，case parity 仍 failed。旧 `1/6` 的执行污染已排除，但剩余差距是
 可完整执行计划的领域语义/表达力缺口；这仍是单 Env 案例证据，不晋级 automatic eligibility/readiness。
 
+### Task 18.37：`review-required` 竖切收口（半日、零付费、非主线 blocker）
+
+**定位：** Task 18.36 已给出清洁的 full-automation ceiling：同一受限计划在 2/2 真实 workdir 完整执行并生成
+3/3 产物，但真实 evaluator 仅 3/6、0/2 full task。继续加入动态逐项渲染、对象构造或 `import.meta.env` 特化会
+扩张 DSL/domain 分支，却没有跨案例 reuse 证据。因此 18.37 不再尝试把该计划修成“自动成功”，只把现有证据封装
+成可审计的近期产品路径。
+
+1. [ ] 新增一个 skill-neutral `review-required` orchestration/interface；输入绑定自动 candidate/plan、公开
+   task/contract/source 与独立人工 patch 的 path+digest，core 只负责顺序、隔离、保护输入和记账，不含 skill-id
+   分支；
+2. [ ] 人工 patch 必须位于自动 plan 之后，不能覆盖或回写 `generated-plan.json`。Patch 可以是案例本地的确定性
+   domain adapter，但只能读取公开 workdir/contract、只能写声明输出，禁止 evaluator payload、gold、held-out 和
+   后验答案常量；
+3. [ ] 在新鲜 Node/Vite development workdir 上依次执行 `automatic plan -> manual patch -> deterministic
+   validation/evaluator`，分别保留 automatic-only `3/6` 与 reviewed result；报告 patch LOC、起止时间、
+   humanMinutes、protected-input 结果、每项 criterion 和 `coreBranchDelta=0`；
+4. [ ] 固定半日和 0 paid/model replay。到时无论 reviewed result 是否 6/6 都冻结差距；不扩 Domain Plan DSL、
+   不重放 18.36、Law 或任何 held-out；
+5. [ ] 输出状态只能是 `review-required`，不能更新 portfolio automation flag、optimized classification、readiness
+   或 replication authorization。该切片是产品边界验证，不阻塞下面的效率主线。
+
+### Task 18.38：Env `review-required` 前瞻效率实验与机器分类绑定
+
+**机器判定审计（已完成）：** `method-portfolio.ts` 只从 contract-qualified 且 baseline/optimized development
+均 passed 的案例计数，并只把 `quality-positive | efficiency-positive` phenotype 放进
+`twoEvidenceQualifiedPhenotypes`。当前 API Tester 是唯一 quality-positive；Env 是不同的
+`environment-schema-repair` phenotype，但仍为 fidelity-preserving。现有 registry 还只信
+`optimizationEvidence.classification`、`allAttemptCostComplete`、`breakEvenComplete` 和一个未验 digest 的
+`evidencePath`，不会解析成本报告重新派生 classification；因此仅修改 JSON 即可错误晋级，是执行前必须修掉的
+authority gap。
+
+1. [ ] 在付费前建立真正的 evidence binding：portfolio 必须绑定 path+SHA-256+schema，读取
+   `optimization-cost-accounting` 报告并要求 `eligibility.efficiencyPositiveEligible=true`、分类与完整性字段一致。
+   这是研究结论派生语义变化；实现时使用一次有明确 semantic delta/compatibility/claim 说明的 successor，不在旧
+   v3/v4 上静默加宽，也不因 routine 修复连续滚版本；
+2. [ ] 只有 18.37 patch/result 冻结后才冻结新的 forward-only efficiency identity。Identity 绑定 Task 18.36
+   measured synthesis（1 call、9358 input+output tokens、101440.1425ms）、18.37 review/patch、compiler/profile/
+   package/runtime/scorer/cost implementation 与同一公开 Env source/task/evaluator；旧 214 分钟手写 artifact 历史
+   不能冒充本 identity 的前瞻构造成本；
+3. [ ] 固定 `2 tasks x 2 repetitions x (original | reviewed-validated-artifact)` = 8 logical rows：4 个 original
+   paid model rows、4 个 direct deterministic rows，顺序前台执行、0 retry/reserve。完整保存 value-free envelope
+   的 input/output/cache、duration、provider/assistant/tool activity；artifact 另报 execution node/process/validate
+   数，禁止把确定性进程节点写成 model/agent steps；
+4. [ ] 质量门先于效率：8/8 row、4/4 pair、reviewed artifact 4/4 success/mean 1.0、0 hard-gate 或 paired
+   regression，protected input 与 scorer authority 全过。任一失败都不得计算 efficiency-positive；
+5. [ ] Production 账覆盖 automatic synthesis、review patch、compile/profile/package、package bytes、original/
+   reviewed runtime 与 repair；research 账覆盖本 identity 的所有 preflight/attempt/scorer/repair，并分列 selected 与
+   all-attempt。报告 `N=1,2,5,10`、token break-even、逐臂 latency 与 steps；humanMinutes 不换算成 token，也不藏进
+   machine latency；
+6. [ ] 只有成本报告机器派生 `efficiency-positive` 后才允许更新 Env portfolio classification。该结果若成立，只会
+   把 readiness-eligible phenotype 从 1 提到 2；`automationAndAdaptationConverging` 仍保持 false，因为
+   review-required 不等于 automatic；
+7. [ ] 若 18.37 不能在半日内形成 2/2 质量等价 reviewed artifact，或完整前瞻构造/all-attempt 成本无法建立，Env
+   efficiency 记为 unreachable，不放宽合同。首选 fallback 是为 Zh Code Reviewer 等已过 baseline/static 的案例
+   另建第二 quality-positive optimized identity；现行 machine readiness 未通过前，untouched replication 不能作为
+   直接替代。若要让 review-required 路线进入 replication，必须另行显式定义与 full-automation readiness 并存的
+   review-required method-freeze gate，不能把原 gate 静默弱化。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development
@@ -1167,8 +1225,9 @@ compiler 构造并未前瞻发生、部分
 **40%--50%**，统一产品路径约 **25%--35%**。已经完成的三模型族 **development 小面板**是预注册兼容性诊断，
 不等于跨模型主实验已经启动。lifecycle wrapper shadow parity、scorer disclosure preflight 与 prospective
 compiler cost capture、薄声明构造、结构 execution bridge、部分 output compiler 与受限 Domain Plan 主瓶颈试验
-已完成。当前自动化路线只为 Task 18.33 的失败归因临时窄开，默认产品边界仍是“候选生成 + 人工 domain runtime
-审核”；不再用更多窄原语或重复模型调用追逐 unresolved 数字。归因结果若不能建立安全 plan，将恢复暂停状态。真实
+已完成。Task 18.36 已把自动化路线冻结在清洁的 `3/6` ceiling；默认产品边界是“候选生成 + 人工 domain runtime
+审核”，不再用更多窄原语或重复模型调用追逐 unresolved 数字。下一主线先用 18.37 封装 review-required 切片，再
+以 18.38 前瞻测量该切片能否形成第二个 efficiency-positive phenotype。真实
 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 

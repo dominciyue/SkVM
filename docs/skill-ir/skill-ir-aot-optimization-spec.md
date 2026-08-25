@@ -1195,6 +1195,54 @@ case/skill-id 分支。
 3-criterion/task 分母独立报告，不能因产物齐全自动视为通过。预算固定 1 call、0 retry、0 held-out/evaluator
 payload；失败或中断不补跑。Freeze identity 必须在调用前提交推送，并绑定旧 attribution/parity 父证据与实现闭包。
 
+Task 18.36 同时构成当前受限 DSL/full-automation 路线的清洁停止证据。剩余三项失败不是 timeout、静态类型、
+output-presence 或 protected-input 污染：两项 consistency 需要逐变量 `.env.example` 行和 schema rule object，Vite
+analysis 需要覆盖 `import.meta.env`。继续把动态逐项渲染、对象构造和 Env 引用语义加入公共 DSL，既没有第二案例
+reuse 证据，也会把 domain adapter 隐藏进“自动 core”。因此本轮不再扩 DSL 或加入 skill 特判；长期 full-auto
+目标诚实保持未完成，近期产品边界固定为 `automatic candidate -> review-required domain patch -> deterministic
+revalidation -> report`。
+
+`review-required` 不得偷换 `automatic`。人工 patch 必须与自动 plan 分文件、分 digest、分 LOC/humanMinutes 记账，
+只读取公开 source/task/contract/workdir，只写声明产物，并在新鲜 development workdir 上重新接受 protected-input、
+runtime、validator 和同一冻结 evaluator 检查。自动 plan 的 `3/6` 贡献与 patch 后结果必须同时保留；禁止修改自动
+plan、使用 evaluator payload/gold/held-out、把案例 adapter 塞进 core，或据此更新 portfolio automation flag。
+
+### 10.9 Optimization classification authority 与 reviewed-AOT efficiency
+
+机器 readiness 当前有两个独立 false gate，而不是一个：`twoEvidenceQualifiedPhenotypes=false` 与
+`automationAndAdaptationConverging=false`。前者要求 contract-qualified 且 baseline/optimized development passed 的
+不同 phenotype 至少两个被分类为 `quality-positive` 或 `efficiency-positive`；当前只有 API Tester 的
+`openapi-schema-test-plan`。Env 的 `environment-schema-repair` 虽通过 development 且质量等价，仍因 construction/
+all-attempt/break-even 不完整而只是 `fidelity-preserving`。Task 18.36 的 clean ceiling 使继续追 full-auto 收敛的近期
+信息增益很低，因此主线先争取第二 phenotype，但这不会自动清除另一个 automation gate。
+
+现有 `method-portfolio/v3` 的 `optimizationEvidence` 仍是自报分类：schema 只要求 efficiency 时两个 completeness
+布尔为 true，`readMethodPortfolio` 不校验 `evidencePath` 的 SHA-256、schema 或成本报告派生结果。故后续晋级前
+必须用语义 successor 建立 authority binding：读取 digest-bound `optimization-cost-accounting` evidence，并要求
+其 `eligibility.efficiencyPositiveEligible`、classification、quality 与 completeness 全部一致后再派生 portfolio
+classification。这个改动会改变研究结论的机器来源，必须说明 semantic delta、旧 registry compatibility 与 claim
+影响；不能只把判断表达式放宽，也不能为实现细修连续滚动版本。
+
+Env 是首个 reviewed-AOT efficiency 候选，因为它与 API Tester phenotype 不同，现有冻结 artifact 已证明 4/4、
+mean 1.0、0 pair regression，且历史 runtime 为 original 197606 model tokens/499006ms 对 artifact 0 tokens/541ms。
+这些数值只说明实验可行，不闭合旧成本。新的 forward-only identity 必须把 Task 18.36 已测 automatic synthesis
+（6304 input、3054 output、0 cache、101440.1425ms）、后续人工 review/patch、compile/profile/package、package
+bytes、runtime、scorer/repair 和该 identity 的所有 attempts 一起记账；旧 214 分钟 artifact engineering 和
+`manual-existing` canary 不能反事实变成本 identity 的前瞻构造。
+
+效率矩阵固定为两个 Env development task、两次 repetition、`original | reviewed-validated-artifact` 两臂，共 8
+logical rows；4 个 original model calls、4 个 direct deterministic rows，0 retry/reserve。先要求完整 4/4 pair、
+reviewed artifact 4/4/mean 1.0、0 hard-gate/pair regression 与 protected input/scorer authority 全过，再报告
+input/output/cache、latency、provider/assistant/tool activity 和 artifact process/validate node count。确定性 node 不得
+冒充 agent/model step。成本报告必须输出 `N=1,2,5,10` 与 token break-even，同时分开报告 machine latency 与
+humanMinutes；人工时间不换算成 token，也不因 token break-even 可算而消失。
+
+即使上述报告机器派生 `efficiency-positive`，它也只把 readiness-eligible phenotype 从 1 提到 2；
+review-required 构造仍令 full-automation readiness failed。Untouched replication 若要沿 reviewed 产品路线继续，
+必须另行建立与 full-auto readiness 并存、而非覆盖它的 review-required method-freeze gate。若 reviewed artifact 在
+半日零付费切片内不能达到 2/2 质量等价，或前瞻成本无法完整闭合，Env efficiency 必须冻结为 unreachable；优先
+fallback 是新建第二个 quality-positive optimized identity，不能直接越过现行 readiness 开始 replication。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

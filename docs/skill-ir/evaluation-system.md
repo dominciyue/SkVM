@@ -723,6 +723,14 @@ measurement blocker，`invalidated` 且已有 evidence 的终态明确输出到
 `openMeasurementBlockers`；只有后者参与 `noOpenMeasurementBlockers`。当前 Zh README 被保留为已解释冻结证据，
 open 数为 0，但 automation convergence 与 two-evidence phenotype 两门仍 false，所以 readiness 仍 failed。
 
+当前 portfolio 对 optimized evidence 仍存在一处机器权威缺口：case JSON 自报 `classification`、
+`qualityComparisonComplete`、`allAttemptCostComplete`、`breakEvenComplete` 与 `evidencePath`，但 portfolio builder
+没有读取该路径、验证 schema/digest，也没有从全成本报告派生 classification。因而不能只改 JSON 布尔值把 Env
+从 fidelity 改成 efficiency。下一次允许改变 readiness 分母的语义 successor 必须把 evidence path、sha256、schema
+identity 和报告内判定纳入 closure，并由机器从质量等价、production 全成本、research all-attempt 与正 break-even
+派生分类。旧 v3 portfolio/v4 readiness 继续保持历史含义；successor 的兼容性变化是“自报分类改为证据派生”，
+claim 影响是阻止未核验路径静默解锁第二 phenotype。
+
 Successor selection policy 必须在新合同开发前冻结，并为 registry 中每个 method-development case 提供一条
 assessment。Compact report 公开 phenotype coverage、合同/基线状态、artifact mechanism、信息互补性、下一阶段
 和排除原因；这防止运行后删除失败候选或只挑最容易产生正例的案例。
@@ -910,6 +918,17 @@ construction origin 显式分为 `automatic-prospective` 与 `manual-existing`�
 未自动化步骤为 0、optimizer/compiler/package 三段齐全、每个模型调用都有非零实际 usage，并且输出 package
 通过公共 catalog validation。API Tester/Env Manager canary 为 4/4 byte parity、0/2 automatic eligible；
 portfolio 分类与 readiness 分母均不改变。
+
+Review-required AOT 的效率证据必须与 automatic eligibility 分账。Env 的可行前瞻设计是固定两个 development
+task、两个 repetition、`original | reviewed-validated-artifact` 两臂，共 8 行；4 个 original 行是唯一付费分母，
+4 个 artifact 行直接确定性执行，全部顺序运行且 0 retry/reserve。先要求逐 task 配对质量等价、artifact 4/4、
+mean 1.0、0 hard-gate/regression，再分析成本。Original 按 execution envelope 分别报告 provider response、assistant
+message、tool call/result、input/output/cache token 与 latency；artifact 报告 compile/profile/package/runtime 的
+process/validate node 与持续时间，确定性 node 不冒充 agent step。Production 必须包含本次 synthesis、人工 review/
+patch、compile、profile、package、runtime 和 repair；research 另含 qualification、全部尝试、scorer 与 repair。
+报告计算 N=1/2/5/10 和 token break-even，并把人工分钟、adapter LOC、未自动化步骤单列。历史 Env artifact 的
+质量等价与 recurring 0 model token 只说明候选可行，缺失的旧构造成本不得回填；只有完整的新前瞻 identity 才能
+支持 reviewed efficiency-positive，且它仍不等于全自动 convergence。
 
 ## 11. Stable Pi 与基础设施
 
