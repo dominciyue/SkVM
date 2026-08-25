@@ -1115,6 +1115,30 @@ protected inputs 2/2 保持。Law 单调用 freeze 已绑定 11,431-char request
 `case-parity-failed`、`plan-unavailable`，结论 `semanticParity=failed`。Go/no-go 选择 no-go：不增加通用修复或
 DSL 原语，恢复“自动候选 + 人工 domain runtime”边界；held-out、7-case、replication 与 readiness 继续关闭。
 
+### Task 18.36：清除工程污染后的 Env 单次通用重生成
+
+**证据修正：** 18.35 的 Env 结果来自同一 `template-binding-type` 静态错误：两个 workdir 均
+`staticTypeIssueCount=1` 且只生成 `env-report.json`，所以 `1/6` 不能解释成 1 项 domain 能力。Law 也停在 strict
+schema reject。两项都不足以支撑干净的 capability no-go；旧冻结报告保持不变，但 D-054 的停止结论只保留为该
+identity 的历史判定。
+
+1. [x] RED/GREEN：新增 additive、case-driven repair core；tool schema 用六类 typed register namespace 约束
+   producer/consumer，local audit 复核命名空间，不修改旧 Domain Plan v1 parser/runtime/static gate；
+2. [x] 从薄 task declaration 自动枚举全部 required output 到 prompt；post-parse gate 要求每项都有独立且无条件的
+   write，缺失/条件写入均在落盘前 fail closed；
+3. [x] 新 freeze `env-generic-type-and-output-repair-001` 绑定旧 attribution/parity 父证据、exact
+   source/declaration/task/evaluator、8-file implementation closure、13,174-char request、57,455-char strict
+   payload、3 个 required output 和 1-call/0-retry budget；`coreBranchDelta=0`；
+4. [ ] 预模型 identity 提交并推送后执行唯一 Env 调用。只有 leakage、双 task binding、typed namespace、既有
+   static type（0 issue）和 required-output 完整性全部通过才持久化计划；
+5. [ ] 仅在上述六门通过后，在两个真实 Env development workdir 执行同一计划并调用冻结 evaluator；要求披露
+   runtime 2/2、required outputs 3/3、protected inputs、真实 6-criterion parity 和 distance-to-full。失败不补跑；
+6. [ ] 基于无工程污染的结果重述边界，不开放 held-out、7-case、multi-model、eligibility 或 readiness。
+
+**执行前状态（2026-08-25）：** focused TDD 为 3/3，注入计划确实运行两个真实 workdir；只有六门全过才启动
+manual evaluator。Freeze 为 paid=0、authorized=1、retries=0、held-out/evaluator payload=0。该阶段是新 attempt，
+不是 Domain Plan 组件升版，也不会覆盖 18.33--18.35 的 plan/report。
+
 ### 单模型族 70% 与多模型族启动门槛
 
 “70%”按证据合同判断，不按文件数或主观进度估计。满足以下条件后，允许开始第二、第三模型族的 development

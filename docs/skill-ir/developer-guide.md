@@ -935,6 +935,11 @@ complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏
 收到 HTTP 200/指定 tool call，但被本地 plan schema 严格拒绝；0 retry 且无安全 plan 可进入 workdir。跨案例聚合
 因此 failed，自动化阶段按 no-go 停止扩 pointer/query/DSL/7-case：
 
+该 no-go 随后被收窄：Env 的 1/6 来自同一 static type 错造成的 partial workdir，Law 又是 strict schema reject，
+两者都不是干净的 capability 上限。Task 18.36 已冻结一个 additive Env attempt：typed-register provider schema、
+required-output prompt/gate、local namespace + static audit、1 call/0 retry；六门全过后才运行两个真实 workdir parity。
+旧 18.33--18.35 evidence 不覆盖、不升组件版本，case 选择只在 catalog。
+
 ```text
 已完成：214 humanMinutes、25 adapter LOC、compile/profile/package/runtime/research 全成本与 missing 清单
 已完成：N=1,2,5,10 的 original 值；optimized 因 compile token missing 保持 null，break-even not-computable
@@ -968,7 +973,8 @@ complete，且存在类型错误、公开接口规则未消费与 Vite 引用漏
 已完成：Task 18.35 Env manual parity；真实 evaluator 分母 6，0/6 -> 1/6，full task parity 0/2
 已完成：Law 单调用 generation；1 call/0 retry，plan-schema strict reject，binding/static-type 因无安全 plan 未运行
 已完成：跨 skill parity 聚合；selected 2/evaluated 1/full 0，typed blockers 3，semantic parity failed
-当前边界：停止扩 DSL，恢复自动候选 + 人工 domain runtime；eligibility、readiness/portfolio 不晋升
+已完成：Task 18.36 pre-model freeze；typed register、3 required outputs、1-call/0-retry、core branch 0
+当前接力：提交并推送新 freeze 后执行唯一 Env 调用；仅 0 static issue + 3/3 outputs 才进入真实 parity
 ```
 
 本地重建命令：
@@ -1034,9 +1040,12 @@ bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-static-types
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection-run.ts
 bun test ./src/benchmarks/skill-ir/automatic-domain-plan-manual-parity.test.ts `
   ./src/benchmarks/skill-ir/automatic-domain-plan-single-generation.test.ts `
-  ./src/benchmarks/skill-ir/automatic-domain-plan-cross-skill-parity.test.ts
+  ./src/benchmarks/skill-ir/automatic-domain-plan-cross-skill-parity.test.ts `
+  ./src/benchmarks/skill-ir/automatic-domain-plan-generic-repair.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-manual-parity-run.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-cross-skill-parity-run.ts
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-generic-repair-run.ts --phase=freeze
+bun run ./src/benchmarks/skill-ir/automatic-domain-plan-generic-repair-run.ts --phase=execute
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

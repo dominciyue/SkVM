@@ -684,6 +684,16 @@ length/digest 与 typed failure；不保存 body、arguments 或模型文本。�
 的 digest-pinned compact evidence，结果为 selected 2、evaluated 1、full 0，三项 blocker 守恒到输入 evidence，
 `semanticParity=failed`。这是一项真实失败判定，不是未评估案例的成功/失败分数填补。
 
+Task 18.36 将 18.35 的 no-go 收窄为“旧 identity 的真实失败”，因为 Env 两行共享同一 static type 错且仅 1/3
+产物，Law 又停在 strict schema reject。新的 Env freeze 绑定旧 attribution/parity 父证据、exact public inputs、
+typed provider payload、实现闭包与单次预算。Execute 先重验全部 digest；计划必须依次通过 leakage、双 task binding、
+type namespace、static type 0 issue 和 required output 无条件写入，才可落盘并启动 evaluator。
+
+Manual parity 继续使用原 runner：在两个真实 development task 各建 pristine baseline/post-plan workdir，保存 initial
+manifest，执行同一计划并逐项调用冻结的 3-criterion evaluator。`2/2 runtime complete + 每案 3/3 required output`
+只建立“工程污染已清除”，不等于 semantic parity；criterion、hard gate、threshold 与 distance-to-full 仍按实际结果
+报告。唯一 attempt 为 1 call/0 retry，失败不补跑，不改变 eligibility/readiness。
+
 当前 re-entry、portfolio readiness 与预注册 successor selection report 可无成本重建：
 
 ```powershell

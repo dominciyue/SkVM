@@ -793,6 +793,14 @@ body/arguments persisted=0。因为没有安全计划，leakage/binding/static-t
 call、0 retry/held-out/evaluator payload/core branch delta。该结果触发 no-go：不扩 DSL 或重复调用，automatic
 eligibility、portfolio/readiness 均不更新；它也不外推为模型永久 domain-plan 能力天花板。
 
+Task 18.36 在付费前修正了该 no-go 的证据边界：Env 两行的 `1/6` 共享同一
+`template-binding-type`/`staticTypeIssueCount=1`，且每案只生成 `env-report.json`；Law 又停在 strict schema reject。
+因此旧结果是有效的 identity 失败，但不是清除工程污染后的 capability no-go。新 attempt
+`env-generic-type-and-output-repair-001` 已冻结旧 attribution/parity 两份父证据、exact source/declaration/task/
+evaluator、8-file additive implementation closure、13,174-char request、57,455-char typed strict payload、三项
+required output 和 1-call/0-retry budget。Freeze 时 paid=0、held-out/evaluator payload=0、core branch delta 0；真实
+execute/parity 尚未发生，不得从注入 TDD 推断结果。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -827,3 +835,4 @@ eligibility、portfolio/readiness 均不更新；它也不外推为模型永久 
 - `results/skill-ir/automatic-domain-plan-attribution-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-attribution-v1/generated-plan.json`
 - `results/skill-ir/automatic-domain-plan-semantic-inspection-v1/report.json`
+- `results/skill-ir/automatic-domain-plan-generic-repair-env-2026-08-25/pre-model-freeze.json`

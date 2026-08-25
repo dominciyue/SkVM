@@ -1172,6 +1172,18 @@ blocker 为案例不足、Env parity failed 与 Law plan unavailable。该 no-go
 规则：不再扩 DSL/重复调用，产品边界回到自动候选 + 人工 domain-runtime 审核/补齐；automatic eligibility、
 portfolio/readiness 均不晋级。
 
+上述 no-go 仍含两项可定位的通用工程污染，不能作为清洁的模型/DSL capability 上限。Task 18.36 因此只授权一个
+新的 Env attempt：provider strict schema 用 `text/strings/records/bool/json/unknown` 寄存器命名空间表达 producer/
+consumer 类型关系，prompt 从薄 task declaration 明示所有 required output，本地再执行 namespace、既有 static type
+和无条件 required-output 写入审计。旧 18.33--18.35 文件与结论不改写，同一 Domain Plan v1 不升版，core 不含
+case/skill-id 分支。
+
+该 attempt 只有在 leakage、两个 development binding、namespace、`staticTypeIssueCount=0` 和 declared-output gate
+全部通过后才持久化 plan，并在两个真实 Env development workdir 运行冻结 evaluator。清洁 execution 证据至少要求
+2/2 runtime complete、每案 3/3 required outputs 与 protected inputs preserved；manual semantic parity 继续按真实
+3-criterion/task 分母独立报告，不能因产物齐全自动视为通过。预算固定 1 call、0 retry、0 held-out/evaluator
+payload；失败或中断不补跑。Freeze identity 必须在调用前提交推送，并绑定旧 attribution/parity 父证据与实现闭包。
+
 ## 11. 当前证据与不可声称项
 
 权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的

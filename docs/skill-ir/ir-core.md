@@ -367,6 +367,15 @@ candidate 与 9-file implementation closure，授权 1 call、0 retry。该首�
 不解释模型内容、不修改 Domain Plan core，最终以三项 typed blocker 给出真实 `failed`。该 no-go 保持
 `coreBranchDelta=0`，停止继续增加窄 DSL 原语。
 
+Task 18.36 不修改上述冻结 core，而以 additive `automatic-domain-plan-generic-repair.ts` 建立新 attempt。Provider-only
+strict schema 用 step id 前缀区分 `text/strings/records/bool/json/unknown`，并把 regex/set/template/copy 等 consumer
+限制到相应 namespace；返回的对象仍是原 `skill-ir-restricted-domain-plan/v1`，因此不是 DSL/schema 升版。本地
+`auditRestrictedDomainPlanTypeNamespaces` 再验证同一关系，既有 static type gate 仍必须为 0 issue。
+
+`buildTypeConstrainedRestrictedDomainPlanRequest` 从薄声明逐项列出 required output；
+`assertDeclaredRequiredOutputWrites` 要求每项存在独立且无条件的 write。六项通用 audit 全过后才持久化计划并调用现有
+双 workdir manual parity。实现闭包不含 case id，Env 选择只存在于 catalog，`coreBranchDelta=0`。
+
 ```powershell
 bun test ./src/benchmarks/skill-ir/automatic-construction.test.ts `
   ./src/benchmarks/skill-ir/automatic-construction-shadow.test.ts `

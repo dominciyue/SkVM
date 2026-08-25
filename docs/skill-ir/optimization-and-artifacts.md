@@ -632,6 +632,15 @@ single-generation freeze 只授权一次 strict task-bound call；只有 leakage
 workdir 或 package；跨 skill 聚合明确 failed。Go/no-go 已触发停止：不为该失败增加 DSL primitive 或 skill 分支，
 自动化产物路径继续以人工 domain-runtime 审核/补齐为产品边界，也不开放 held-out 或 eligibility。
 
+Task 18.36 纠正上述收口的归因边界：Env 旧 parity 来自 0/2 runtime complete、每案 1/3 output 的同一静态类型错，
+Law 又没有 schema-valid plan，因此尚未得到“可完整执行但 domain semantic 失败”的干净证据。新的 additive attempt
+不扩 artifact/DSL，也不修改旧 freeze；它用 typed tool schema、local namespace/static audit 和 declared-output
+完整性 gate 清除这两类通用工程污染。
+
+只有安全 plan 能在两个真实 Env workdir 均 runtime complete、生成全部三项 required output 并保持 protected input，
+结果才标记 `engineeringContaminationRemoved=true`；之后冻结 evaluator 的 6 项总分母才用于解释 domain semantic gap。
+即使执行完整但 parity 失败，也只是一个干净的 Env 单案例负结果，不开放跨 skill reuse、eligibility 或 held-out。
+
 ## 15. 测试
 
 ```powershell
