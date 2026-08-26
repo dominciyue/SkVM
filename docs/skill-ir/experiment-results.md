@@ -616,6 +616,19 @@ implementation closure、完整 9358/0/0 production cost source 与新 0/8 denom
 future original calls、0 retry。真实 plan 已写出 8 rows、0 paid、matrix not executed。它仍只是 pre-model identity，
 不证明 quality、recurring saving、break-even、portfolio 或 readiness。
 
+Pre-model closure 以 `bb1d1b4` 推送后只调用一次 `start`。Row 1 Node original 在 93,038ms 内自然结束，7 个 provider
+responses、30 tool calls/results，execution classification 为 semantic-complete；usage input/output/cache-read/
+cache-write 为 60,913/4,184/258,048/0，三项目标输出均落盘。此时并发执行一次预期只读的 `status`，却触发
+`loadMatrixIdentity -> buildReviewedAotOriginalPlan -> materializeCaseArtifacts` 在生产目录清除同名 case；controller
+先报 EBUSY，但 task、skill 与 initial manifest 已被删。
+
+因此 row 1 的 frozen evaluator 只能返回 infrastructure failure，不能作为 quality observation；row 2 reviewed-AOT
+在模型调用为 0 的情况下因 task 文件缺失失败。Durable journal 如设计般固定为 failed：1/8 strict prefix、2
+dispatch、1 paid attempt 且 usage complete，没有重试或更多调用。该身份分类为
+`controller-observation-invalid-for-efficiency`，fixed denominator/quality/break-even/efficiency 均未建立，portfolio/
+readiness/Phase 2/held-out 不更新。根因属于 control-plane contamination，不是 original 或 reviewed-AOT 的质量负例；
+compact authority 为 `results/skill-ir/reviewed-aot-efficiency-resilient-observation-failure-v1.json`。
+
 ## 18. BIDS prospective construction、development 与残差有效性
 
 2026-08-23 的 Task 18.18 从冻结候选继续：profile-empty source-audited base IR、23 LOC 声明式 adapter 与手写
@@ -894,3 +907,4 @@ analysis 失败，两案 artifact consistency 失败。该结果证明通用 sch
 - `results/skill-ir/reviewed-aot-efficiency-interruption-v1.json`
 - `results/skill-ir/reviewed-aot-efficiency-resilience-qualification-v1.json`
 - `results/skill-ir/reviewed-aot-efficiency-matrix-resilient-freeze-v1.json`
+- `results/skill-ir/reviewed-aot-efficiency-resilient-observation-failure-v1.json`

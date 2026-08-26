@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "skill-ir-reviewed-aot-efficiency-resilient-observation-failure/v1",
+  "experimentId": "env-manager-reviewed-aot-efficiency-v2",
+  "status": "controller-observation-invalid-for-efficiency",
+  "detectedAtUtc": "2026-08-26T13:14:17.6675281Z",
+  "freezeAuthority": {
+    "path": "results/skill-ir/reviewed-aot-efficiency-matrix-resilient-freeze-v1.json",
+    "sha256": "1a4ff11f19cef2e51824d7f778350b83448629b3a9ae24f7f642b920f8def4f6",
+    "plannedRows": 8,
+    "plannedPaidOriginalRows": 4,
+    "plannedDeterministicReviewedAotRows": 4,
+    "retries": 0
+  },
+  "terminalState": {
+    "path": "results/skill-ir/env-manager-reviewed-aot-efficiency-v2/run/run-state.json",
+    "sha256": "027dfefb8bb57f6718422c5704394a92db211ba2b487431f395cdfaa5bf895eb",
+    "bytes": 3167,
+    "lastWriteUtc": "2026-08-26T13:05:14.9067792Z",
+    "phase": "failed",
+    "completedRows": 1,
+    "dispatchCount": 2,
+    "workerPid": 28748
+  },
+  "committedPrefix": {
+    "path": "results/skill-ir/env-manager-reviewed-aot-efficiency-v2/run/matrix-prefix.json",
+    "sha256": "63d875b6df7b5a08cb56bc14ac4f4e56c1e0ea14a974b66cde69d2d340a2062d",
+    "bytes": 9500,
+    "lastWriteUtc": "2026-08-26T13:05:14.8922613Z",
+    "rows": 1,
+    "recordedPaidOriginalRows": 1,
+    "recordedDeterministicReviewedAotRows": 0
+  },
+  "attempts": [
+    {
+      "attemptId": "row-01",
+      "taskId": "env-manager-scorer-authority-node-dev-001",
+      "repetition": 1,
+      "system": "original",
+      "paid": true,
+      "journalStatus": "completed",
+      "terminal": {
+        "path": "results/skill-ir/env-manager-reviewed-aot-efficiency-v2/run/attempts/row-01/terminal.json",
+        "sha256": "b86f91d492893cad1983c2dca61129b227a7766a77f883d73c523876c083644b",
+        "bytes": 9176,
+        "usageAvailable": true,
+        "processExitCode": 0,
+        "processTermination": "natural",
+        "executionClassification": "semantic-complete",
+        "inputTokens": 60913,
+        "outputTokens": 4184,
+        "cacheReadTokens": 258048,
+        "cacheWriteTokens": 0
+      },
+      "scoreUsableForQuality": false,
+      "scoreFailure": "The concurrent status observer removed the frozen initial manifest before scoring, so the evaluator returned infrastructure failure even though the model process and usage terminal were complete."
+    },
+    {
+      "attemptId": "row-02",
+      "taskId": "env-manager-scorer-authority-node-dev-001",
+      "repetition": 1,
+      "system": "reviewed-aot",
+      "paid": false,
+      "journalStatus": "failed",
+      "terminalPresent": false,
+      "failure": "executor-failed: the materialized task/task.json required by the deterministic control had been removed by the concurrent status observer",
+      "modelCalls": 0
+    }
+  ],
+  "executionObservation": {
+    "path": "results/skill-ir/env-manager-reviewed-aot-efficiency-v2/run/model-run/artifacts/env-manager-v3__skvm__windows__clean__env-manager-scorer-authority-node-dev-001/original/run-1/execution-observation.json",
+    "sha256": "99cb2a09293996fcecb2504541ed380ba38004f4f13d77bd670b89b58ec0a570",
+    "bytes": 616,
+    "requestDispatched": true,
+    "providerResponses": 7,
+    "terminalPresent": true,
+    "usageAvailable": true
+  },
+  "modelOutputs": [
+    {
+      "relativePath": "workdir/.env.example",
+      "sha256": "bcb74c1125fea7b5c204d7c86daa8c88312a300a3b7db54f666cfdfcbb7e87f9",
+      "bytes": 128,
+      "lastWriteUtc": "2026-08-26T13:04:54.7279266Z"
+    },
+    {
+      "relativePath": "workdir/.env.schema.json",
+      "sha256": "5028ef0b6d2ab2b9cb3bc9829e34243d17cc78f959897eb88968489fe006c442",
+      "bytes": 758,
+      "lastWriteUtc": "2026-08-26T13:04:54.7279266Z"
+    },
+    {
+      "relativePath": "workdir/env-report.json",
+      "sha256": "333f86f864ff35d3c6ecfd51b5715aaedd8460ad5ad8afb4993f03deb895d49c",
+      "bytes": 270,
+      "lastWriteUtc": "2026-08-26T13:04:54.7279266Z"
+    }
+  ],
+  "controllerActions": {
+    "startCalls": 1,
+    "statusCalls": 1,
+    "repeatedStartCalls": 0,
+    "statusReadOnlyContractViolated": true,
+    "observedError": "EBUSY while status rebuilt the original plan inside the active production run directory"
+  },
+  "rootCause": {
+    "category": "controller-observation-mutated-active-run",
+    "summary": "The status phase called loadMatrixIdentity, which called buildReviewedAotOriginalPlan with the production run directory. buildPlan then called materializeCaseArtifacts, whose first action recursively removes each existing case directory. While row 1 was executing, the observer therefore deleted its task, skill, and initial manifest before failing on the locked workdir. Row 1 subsequently became evaluator-infrastructure-invalid and row 2 failed because task/task.json no longer existed.",
+    "codeAuthority": [
+      {
+        "path": "src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-run.ts",
+        "sha256": "954c843eb91c5b911bac412b44c18b4d4df4d19b45e431ae1420fa17f85e6366",
+        "symbols": ["loadMatrixIdentity", "observeMatrix", "main"]
+      },
+      {
+        "path": "src/benchmarks/skill-ir/reviewed-aot-efficiency-matrix.ts",
+        "sha256": "6cdbe126c897da258dee90eeebe8cdf5ffd073334abf67f493af25dc67d712d8",
+        "symbols": ["buildReviewedAotOriginalPlan"]
+      },
+      {
+        "path": "src/benchmarks/skill-ir/real-agent.ts",
+        "sha256": "def5ee6774add130132d1f76db98dd3134888e33e342d8d696746386168820d7",
+        "symbols": ["materializeCaseArtifacts"]
+      }
+    ],
+    "qualificationGap": "The fake detached qualification proved controller termination and journal crash windows but never ran status concurrently with a materialized production row, so it did not exercise control-plane read-only behavior."
+  },
+  "accounting": {
+    "paidAttempts": 1,
+    "paidAttemptsWithCapturedUsage": 1,
+    "paidAttemptsWithUnknownUsage": 0,
+    "observedAttemptCostComplete": true,
+    "fixedDenominatorComplete": false,
+    "qualityComparisonEstablished": false,
+    "breakEvenStatus": "not-computable",
+    "efficiencyClassification": "not-established"
+  },
+  "decision": {
+    "resumeThisIdentity": false,
+    "additionalPaidCallsAuthorized": false,
+    "failedDeterministicRowMayBeRetried": false,
+    "portfolioUpdated": false,
+    "readinessUpdated": false,
+    "phase2Started": false,
+    "heldOutConsumed": false
+  },
+  "requiredSuccessorChange": "A future identity must separate validation/planning from observation: status and collect must validate frozen bytes without calling any plan builder or materializer, and a real concurrent-read regression test must prove that repeated observation leaves every active case path byte-identical.",
+  "claimBoundary": "This identity proves one paid original model process completed with complete usage authority, but its score was contaminated by the controller observer and the planned 8-row denominator stopped at a 1-row prefix. It establishes neither quality equivalence, recurring savings, break-even, nor efficiency-positive classification. The failure is infrastructure/control-plane contamination, not evidence that the original or reviewed-AOT system lacks task quality."
+}

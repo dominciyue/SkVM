@@ -973,6 +973,13 @@ strict prefix、identity digest 与 attempt count 守恒。只有 qualification�
 1，以及 dispatched 无 terminal 时固定 failed。并发 initializer 的首轮概率竞态也被重复测试捕获，最终以 O_EXCL
 只允许一个 worker 建立首次 run authority。报告为 0 API/model/paid，不能当作真实 matrix 结果。
 
+生产执行证明该 qualification 仍少一条必要维度：observer 必须真的只读。当前 `status` 先调用
+`loadMatrixIdentity`，后者为取得 original plan 在 active run directory 调用 materializer；materializer 的预期语义
+是清除同名 case 后重建，所以它与 worker 并发时会删除 task/skill/initial manifest。唯一 v2 run 因此停在 1/8：
+row 1 模型进程与 usage terminal 完整，但 scorer authority 被删除的 initial manifest 污染；row 2 是 0-model
+deterministic failure。后续 runner 的 qualification 必须加入 real materialized-row + concurrent repeated observation，
+并对 active tree 做 before/after byte manifest；`status/collect` 的 identity validation 必须与 plan materialization 分离。
+
 ## 11. Stable Pi 与基础设施
 
 当前 Windows 主执行面使用 direct Node Pi package + short-path workdir。资格检查绑定 Pi/Bun/Node 版本、

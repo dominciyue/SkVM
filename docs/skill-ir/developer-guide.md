@@ -983,7 +983,8 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已冻结失败：唯一 execute 固化 6/8；第 7 行 paid original 有 workdir side effect，但 usage/envelope 未持久化
 已完成：新 0/8 resilient identity；forced controller termination 后同一 detached worker 完成，重复 start 不重发
 已完成：terminal-before-prefix reconcile、dispatched-without-terminal fail closed、O_EXCL 单 worker authority
-当前接力：不要续跑/回填 v1；先推送新 policy/freeze closure，再唯一 start 完整 8 行并只用 status/collect 观察
+已冻结失败：v2 唯一 start 停在 1/8；并发 status 重建 plan 并删除 active task/manifest，row 1 score 与 row 2 control 失效
+当前接力：v1/v2 都不续跑；禁止对 active v2 调用 status/collect。先决定是否授权只读 control-plane successor
 结果边界：第二 phenotype 即使成立也不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
 ```
@@ -1062,8 +1063,7 @@ bun run ./src/benchmarks/skill-ir/automatic-domain-plan-generic-repair-run.ts --
 bun test ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient.test.ts `
   ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-detach.test.ts `
   ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-policy.test.ts
-bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-run.ts --phase=status
-bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-run.ts --phase=collect
+# v2 status/collect 会 materialize；冻结事故身份上禁止再调用。
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

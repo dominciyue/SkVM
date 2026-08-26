@@ -1290,6 +1290,14 @@ collector implementation、v1 interruption evidence 和 `9358/0/0` production co
 call 前提交推送。完整 8 行后还必须生成可由 evidence authority 从原始 records 重算的双臂 quality gate；旧 Env
 validated-artifact gate 或只含摘要的 capture 不能替代新 8-row 质量证据。
 
+该 successor 的真实执行又揭示“可观察”本身必须进入恢复合同。唯一 `start` 后 row 1 original process 正常完成、
+usage terminal 完整；但同时运行的 `status` 在 `loadMatrixIdentity` 中用生产 run directory 重建 original plan，而公共
+materializer 会先递归删除同一 case directory。结果 row 1 因 initial manifest 被删而 scorer infrastructure-invalid，
+row 2 deterministic control 因 `task/task.json` 被删而失败；journal 在 1/8 prefix、2 dispatch 处 fail closed。
+因此 v2 固定为 `controller-observation-invalid-for-efficiency`，不得重试、补行或解释为模型质量。未来 successor
+除 journal 恢复外，还必须机器证明：`status/collect` 不调用 plan builder/materializer，重复并发观察前后 active case
+路径逐字节不变。Fake worker 只证明进程/attempt 守恒，不足以证明 production control-plane isolation。
+
 效率矩阵固定为两个 Env development task、两次 repetition、`original | reviewed-validated-artifact` 两臂，共 8
 logical rows；4 个 original model calls、4 个 direct deterministic rows，0 retry/reserve。先要求完整 4/4 pair、
 reviewed artifact 4/4/mean 1.0、0 hard-gate/pair regression 与 protected input/scorer authority 全过，再报告

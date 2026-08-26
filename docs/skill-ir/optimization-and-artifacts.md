@@ -687,6 +687,12 @@ attempt authority：detached worker 独占 8 行；controller 退出后只允许
 dispatched-without-terminal 则 fail closed；并发首次创建使用 O_EXCL。新 policy/freeze 从 0/8 开始并显式禁止 v1
 row reuse/orphan backfill；当前 plan 为 8 rows、0 paid、matrix 未执行。
 
+真实 v2 唯一执行没有形成 recurring 分母。Row 1 original process 正常结束且 usage 完整，但并发 `status` 为验证
+identity 在生产目录重新 materialize 全部 original rows，删除了 active row 的 task/skill/initial manifest。Row 1
+因此无法得到可用质量 score；紧随其后的 deterministic row 又因 task 缺失失败，prefix 固定 1/8。该事故不否定
+reviewed artifact 机制，也不允许从单行 usage 计算 break-even。未来 identity 的 control plane 必须只读 frozen bytes、
+journal/state 和已冻结 plan；任何 plan builder/materializer 只能在 worker 启动前的隔离 staging directory 运行。
+
 ## 15. 测试
 
 ```powershell

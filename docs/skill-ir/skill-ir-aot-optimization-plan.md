@@ -1232,7 +1232,7 @@ deterministic reviewed-AOT，六行均成功）。桌面任务随后在第 7 行
 reachability 分析。用户已选择另建能耐受 controller/desktop-parent 中断的新 identity；旧 v1 继续只读冻结，6/8
 prefix、orphan attempt 与任何 row 均不得复用、补跑或重评分。
 
-#### Task 18.38B：Interruption-resilient efficiency successor（当前执行）
+#### Task 18.38B：Interruption-resilient efficiency successor（已冻结失败）
 
 **语义 delta：** 新 identity 保持 Task 18.38 的公开 task、reviewed package、scorer、质量门、2 x 2 x 2 分母与
 `retries=0` 不变，只改变 attempt authority 和执行所有权。Foreground controller 不再拥有模型子进程；它只核验
@@ -1255,9 +1255,9 @@ paid dispatch 前原子持久化 row attempt。该变化是实验身份/中断�
 5. [x] 新 policy/freeze 从 0/8 开始，绑定 v1 语义来源、v1 interruption evidence、新 worker/journal/collector 与
    production construction authority `9358/0/0`。Freeze 固定 4 paid original + 4 deterministic reviewed-AOT、顺序
    与 0 retry；不得复用 v1 六行。Pre-model identity、qualification 和 implementation closure 先提交并推送；
-6. [ ] 只执行一次 `start`，由同一 detached worker 完整运行 8 行。控制器轮询不得生成 attempt；完成后先核
-   8/8、4 paid、4 deterministic、0 retry、4/4 pair、protected/scorer authority 与逐行 usage conservation，再分析
-   quality；任一 fail-closed 状态立即停止，不补行；
+6. [x] 只执行一次 `start`。实际 detached worker 在 row 1 original 完成并写 terminal 后，被并发 `status` 的 plan
+   rematerialization 删除 active task/manifest；row 1 scorer infrastructure-invalid，row 2 deterministic 以 ENOENT
+   失败。Journal 固定 1/8 prefix、2 dispatch、1 paid usage-complete attempt，0 retry；按 stop condition 不补行；
 7. [ ] 为本 8-row identity 生成机器可重算的 reviewed-AOT quality gate，再由公共 cost builder 派生 production、
    research all-attempt、N=1/2/5/10 与 break-even。Evidence authority 必须实读并重算该新 gate；不能把弱 capture
    或旧 Env gate 代替新分母的质量证据；
@@ -1272,7 +1272,15 @@ initializer race；最小修正后使用 60 秒 handshake、O_EXCL 首次 author
 当前资格报告为 2 fake rows、同一 worker pid、2 dispatch，重复 start 后仍为 2；terminal-before-prefix 0 -> 1，
 dispatched-without-terminal 为 failed；0 API/model/paid。Policy/freeze 固定新 0/8 identity、4 future paid、0 retry、
 `rowReuse=false` 与 9358/0/0；真实 `--phase=plan` 为 8 rows、0 paid、matrix not executed。该 closure 已由提交
-`bb1d1b4` 推送到 `origin/skill-ir-aot`；付费前门禁闭合，尚未执行 `--phase=start`。
+`bb1d1b4` 推送到 `origin/skill-ir-aot`；付费前门禁当时闭合。
+
+**执行结论：** 唯一 `start` 后 row 1 模型执行自然结束、usage 60913/4184/258048/0 完整，但一次 `status` 并非
+只读。它经 `loadMatrixIdentity` 在生产 run directory 重建 original plan；公共 materializer 会先递归删除 case，故
+initial manifest/task/skill 在 active scorer/control 前消失。Row 1 不可用于质量，row 2 未调用模型即失败；v2 为
+`controller-observation-invalid-for-efficiency`，步骤 7--9 未开放。Compact 证据为
+`results/skill-ir/reviewed-aot-efficiency-resilient-observation-failure-v1.json`。下一 identity 的新增硬门不是扩大
+journal，而是用真实 materialized row 证明 concurrent repeated status/collect 前后 active tree byte-identical，并把
+observer identity validation 与任何 plan builder/materializer 完全分离；这需要用户按 Phase 1 失败回报点决定。
 
 #### Task 18.38A：Optimization evidence authority successor（付费前硬前置）
 
