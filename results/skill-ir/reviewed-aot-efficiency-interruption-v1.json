@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "skill-ir-reviewed-aot-efficiency-interruption/v1",
+  "experimentId": "env-reviewed-aot-efficiency-identity-v1",
+  "status": "interrupted-invalid-for-efficiency",
+  "detectedAtUtc": "2026-08-26T07:01:19.4049478Z",
+  "freezeAuthority": {
+    "path": "results/skill-ir/reviewed-aot-efficiency-matrix-freeze-v1.json",
+    "sha256": "6335850d814978377cbdaf847978ba85e3ad30735ce19ba4a6fb2d398ef7dbb4",
+    "plannedRows": 8,
+    "plannedPaidOriginalRows": 4,
+    "plannedDeterministicReviewedAotRows": 4,
+    "retries": 0
+  },
+  "committedPrefix": {
+    "path": "results/skill-ir/env-manager-reviewed-aot-efficiency-v1/run/matrix-prefix.json",
+    "sha256": "d174e97157c5b5cfc02d4cf9ecdcba4655274f3a9531d4a9b2e27efbda78463c",
+    "bytes": 37165,
+    "lastWriteUtc": "2026-08-26T06:43:53.0429792Z",
+    "rows": 6,
+    "recordedPaidOriginalRows": 3,
+    "recordedDeterministicReviewedAotRows": 3,
+    "lastCommittedRow": {
+      "taskId": "env-manager-scorer-authority-vite-dev-002",
+      "repetition": 1,
+      "system": "reviewed-aot",
+      "paid": false,
+      "success": true
+    }
+  },
+  "orphanAttempt": {
+    "plannedRowIndex": 7,
+    "taskId": "env-manager-scorer-authority-vite-dev-002",
+    "repetition": 2,
+    "system": "original",
+    "paid": true,
+    "workdirSideEffectsObserved": true,
+    "initialManifest": {
+      "path": "results/skill-ir/env-manager-reviewed-aot-efficiency-v1/run/model-run/artifacts/env-manager-v3__skvm__windows__clean__env-manager-scorer-authority-vite-dev-002/original/run-2/initial-workdir-manifest.json",
+      "sha256": "3c105b5d4411fd5cb8b750dcf329d54e54848d09cae3a9303a95ce67d12d852c",
+      "lastWriteUtc": "2026-08-26T06:43:53.5852548Z"
+    },
+    "observedOutputs": [
+      {
+        "relativePath": "workdir/.env.example",
+        "sha256": "5c052e6737d515870da17d306c22895fc8c875531d77dfb701bf526ff9a44fd2",
+        "lastWriteUtc": "2026-08-26T06:45:55.4892600Z"
+      },
+      {
+        "relativePath": "workdir/.env.schema.json",
+        "sha256": "cea1524fc61e4e91d64d8d4d1f9367538a941a33f6d2a3825b5eac30e6aee350",
+        "lastWriteUtc": "2026-08-26T06:45:55.4902600Z"
+      },
+      {
+        "relativePath": "workdir/env-report.json",
+        "sha256": "7b93b5f34b7cdf6f3ac4f33b6f8cbb7ef5bd9db62494879709c1de139ff6b893",
+        "lastWriteUtc": "2026-08-26T06:45:55.4902600Z"
+      }
+    ],
+    "executionObservationPresent": false,
+    "capturedUsagePresent": false,
+    "capturedScorePresent": false,
+    "capturedEnvelopePresent": false,
+    "committedToPrefix": false
+  },
+  "aggregateArtifacts": {
+    "rawRunsPresent": false,
+    "scoredRunsPresent": false,
+    "executionEnvelopesPresent": false,
+    "matrixCapturePresent": false,
+    "costAccountingPresent": false
+  },
+  "accounting": {
+    "minimumPaidAttempts": 4,
+    "paidAttemptsWithCapturedUsage": 3,
+    "paidAttemptsWithUnknownUsage": 1,
+    "allAttemptCostComplete": false,
+    "breakEvenStatus": "not-computable",
+    "efficiencyClassification": "not-established"
+  },
+  "rootCause": {
+    "category": "external-runner-parent-termination",
+    "summary": "The desktop task was aborted after row 7 produced workdir side effects but before the runner captured stdout, usage, score, execution envelope, and atomically appended the row to the strict prefix.",
+    "runnerProcessRecoverable": false,
+    "providerSessionTranscriptRecoverable": false
+  },
+  "decision": {
+    "resumeThisIdentity": false,
+    "additionalPaidCallsAuthorized": false,
+    "row7MayBeIgnored": false,
+    "row7MayBeBackfilled": false,
+    "portfolioUpdated": false,
+    "readinessUpdated": false,
+    "phase2Started": false,
+    "heldOutConsumed": false
+  },
+  "claimBoundary": "Rows 1-6 are a valid strict committed prefix with three paid original rows and three deterministic reviewed-AOT rows. Row 7 is an observed paid original attempt with unrecoverable usage authority and cannot be counted as complete, ignored, backfilled, or retried under this identity. Therefore the fixed eight-row denominator, all-attempt cost, break-even, and efficiency-positive classification are not established."
+}

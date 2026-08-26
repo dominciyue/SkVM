@@ -979,8 +979,9 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：optimization evidence authority v5；实读、验 digest、重算 gate/cost，API positive 保留、Env fidelity 不变
 已完成：Task 18.37 零付费 review-required；fresh workdir auto 3/6 -> reviewed 6/6，125 LOC/8 minutes，0 core branch
 已完成：Task 18.38 construction authority；one-time token mapping 9358/0/0、missing=[]，人工成本单列
-已完成：Env 8-row prospective freeze 与 plan；deterministic dry-run 2/2，0 paid、matrix not executed
-当前接力：只执行冻结的 4-call original/4-row direct matrix，0 retry；完整 quality/all-attempt 后才运行公共 cost builder
+已完成：Env 8-row prospective freeze 与 plan；deterministic dry-run 2/2
+已冻结失败：唯一 execute 固化 6/8；第 7 行 paid original 有 workdir side effect，但 usage/envelope 未持久化
+当前接力：不要续跑或回填 v1；all-attempt incomplete、break-even/classification not-established，等待新 identity/停止选择
 结果边界：第二 phenotype 即使成立也不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
 ```

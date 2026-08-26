@@ -596,6 +596,15 @@ rows、4 个 direct deterministic rows、0 retry/reserve、严格连续 prefix�
 在两个 fresh workdir dry-run 为 2/2 full pass；`--phase=plan` 为 8 rows、0 paid、matrix 未执行。因此当前仍没有新的
 recurring、all-attempt、break-even 或 efficiency-positive 结论，Env portfolio 继续 fidelity-preserving。
 
+随后启动的唯一 execution 只原子固化 6/8 strict prefix：3 个 paid original 与 3 个 direct reviewed-AOT 均已完成并
+记录。第 7 行 Vite repetition 2 original 在 prefix 写入后创建 initial manifest，并于约两分钟后写出全部三项目标
+产物；但桌面任务中断使父 runner 未能保存该行 execution observation、stdout usage、score 或 envelope，也没有追加
+prefix。Pi 以无 session 模式执行，进程结束后无法恢复 provider transcript。该 paid attempt 既不能当零，也不能在
+0-retry identity 下补跑，因此最低 paid attempts 为 4，其中 1 次 usage unknown；完整 8-row denominator、research
+all-attempt、break-even 与 efficiency classification 均未建立。Compact 证据冻结为
+`results/skill-ir/reviewed-aot-efficiency-interruption-v1.json`，Env authority/readiness 不更新，Phase 2 automation
+reachability 未启动。
+
 ## 18. BIDS prospective construction、development 与残差有效性
 
 2026-08-23 的 Task 18.18 从冻结候选继续：profile-empty source-audited base IR、23 LOC 声明式 adapter 与手写
@@ -871,3 +880,4 @@ analysis 失败，两案 artifact consistency 失败。该结果证明通用 sch
 - `results/skill-ir/automatic-domain-plan-attribution-v1/generated-plan.json`
 - `results/skill-ir/automatic-domain-plan-semantic-inspection-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-generic-repair-env-2026-08-25/pre-model-freeze.json`
+- `results/skill-ir/reviewed-aot-efficiency-interruption-v1.json`

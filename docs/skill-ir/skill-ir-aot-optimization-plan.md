@@ -1217,10 +1217,19 @@ readiness v5 successor 关闭，旧 v3/v4 文件保持不可变。
    直接替代。若要让 review-required 路线进入 replication，必须另行显式定义与 full-automation readiness 并存的
    review-required method-freeze gate，不能把原 gate 静默弱化。
 
-**当前 freeze 证据：** construction-source authority 实读 review report 及其 transitive refs，重算得到 compile
+**Freeze 时证据：** construction-source authority 实读 review report 及其 transitive refs，重算得到 compile
 bucket `9358` model tokens、profile `0`、package `0`、`missing=[]`；8 分钟人工 review 与 125 LOC 单列。随后
-`reviewed-aot-efficiency-policy/v1` 与 freeze 固定 8 行、4 个未来 paid calls、0 retry，当前仍为 0 paid/0 executed。
-该 freeze 只授权后续唯一矩阵，不是 quality、recurring saving、all-attempt complete 或 efficiency-positive 结果。
+`reviewed-aot-efficiency-policy/v1` 与 freeze 固定 8 行、4 个未来 paid calls、0 retry；freeze 时为 0 paid/0
+executed，只授权一次完整矩阵，不是 quality、recurring saving、all-attempt complete 或 efficiency-positive 结果。
+
+**唯一执行的闭合状态：** 2026-08-26 唯一 `--phase=execute` 原子固化到 6/8 strict prefix（3 paid original + 3
+deterministic reviewed-AOT，六行均成功）。桌面任务随后在第 7 行 Vite repetition 2 original 已产生 workdir 输出后
+终止父进程，但 runner 尚未捕获该行 stdout/usage/score/envelope，也未将其追加到 prefix；Pi 使用 `--no-session`，
+不存在可恢复的 provider transcript。该行因此是“付费尝试存在、用量未知”，不能忽略、回填或在 v1 下重试。
+`allAttemptCostComplete=false`、break-even not-computable、efficiency classification not-established；步骤 4--6 均未
+满足，Env portfolio/readiness 不更新。Compact 中断证据为
+`results/skill-ir/reviewed-aot-efficiency-interruption-v1.json`；按阶段 stop condition，不进入后续 automation
+reachability 分析，等待用户决定是否另建能在副作用前持久化 attempt/usage 的新 identity，或接受本路线不可达。
 
 #### Task 18.38A：Optimization evidence authority successor（付费前硬前置）
 
@@ -1277,7 +1286,8 @@ compiler 构造并未前瞻发生、部分
 compiler cost capture、薄声明构造、结构 execution bridge、部分 output compiler 与受限 Domain Plan 主瓶颈试验
 已完成。Task 18.36 已把自动化路线冻结在清洁的 `3/6` ceiling；默认产品边界是“候选生成 + 人工 domain runtime
 审核”，不再用更多窄原语或重复模型调用追逐 unresolved 数字。下一主线先用 18.37 封装 review-required 切片，再
-以 18.38 前瞻测量该切片能否形成第二个 efficiency-positive phenotype。真实
+以 18.38 前瞻测量该切片能否形成第二个 efficiency-positive phenotype；其 v1 唯一执行现已因第 7 行权威用量不可
+恢复而冻结为 `interrupted-invalid-for-efficiency`，不能续跑或据此分类。真实
 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 

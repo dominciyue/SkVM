@@ -671,6 +671,11 @@ Task 18.37 已把该边界做成真实运行薄层：自动 plan 在两个 fresh
 full pass，固定 8-row exact-prefix identity。本阶段均为 0 paid；quality/recurring/all-attempt/efficiency 仍待唯一
 4-call original matrix，不能从 dry-run 推断。
 
+该唯一矩阵后来只形成 6/8 原子 prefix。第 7 行 original 在目标 workdir 写出产物后，外部任务终止 runner；由于
+execution observation、usage、score 与 envelope 尚未落盘，且 provider 采用无 session 模式，成本权威不可恢复。
+同一 identity 重跑会成为冻结预算外的额外 paid attempt，忽略该行则会伪造 all-attempt 完整性，因此两者都禁止。
+v1 状态固定为 `interrupted-invalid-for-efficiency`，不生成 cost report、不更新 portfolio/readiness。
+
 ## 15. 测试
 
 ```powershell

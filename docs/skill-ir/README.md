@@ -156,7 +156,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   均保持。它仍明确标为 `review-required`，不冒充 full automatic。
 - 18.38 construction-source authority 已重算 one-time token mapping `9358/0/0` 且无 missing；随后冻结 8 行
   `2 tasks x 2 reps x (original | reviewed-aot)` 身份，并将 deterministic arm 在 fresh workdir dry-run 到 2/2。
-  当前 `--phase=plan` 为 8 rows/0 paid/matrix not executed；只开放后续 4-call、0-retry 的唯一 execution。
+  唯一 execution 固化 6/8 prefix 后，在第 7 行 paid original 已写 workdir、但 usage/envelope 尚未落盘时被外部任务
+  中断。该行不能忽略或重试，v1 因 all-attempt 不完整冻结为 `interrupted-invalid-for-efficiency`。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -207,8 +208,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 清洁计划仍漏掉 Vite `import.meta.env` 语义并不能生成逐变量 example/schema rules；eligibility/readiness 不成立
 -> optimization evidence authority v5 已完成：实读+验 digest+重算；API quality-positive 保留，Env fidelity 不变
 -> Task 18.37 已完成：独立 patch 后 6/6，125 LOC/8 minutes；auto-only 3/6 与 reviewed 分账，仍非 automatic
--> Task 18.38 构造成本前置与 8-row freeze 已完成：9358/0/0、missing=[]、deterministic dry-run 2/2、0 paid
--> 下一步只允许冻结 executor 的唯一 4-call original matrix；完整质量/all-attempt/break-even 前不得改 portfolio
+-> Task 18.38 构造成本前置与 8-row freeze 已完成：9358/0/0、missing=[]、deterministic dry-run 2/2
+-> 唯一 execution 停在 6/8；第 7 行 paid side effect 存在但 usage authority 缺失，v1 不续跑、不回填、不分类
+-> 下一步先由用户决定：另建可耐受父进程中断的新 identity，或接受 reviewed-efficiency 路线当前不可达
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

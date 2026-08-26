@@ -947,6 +947,13 @@ auto-only 3/6 并得到 reviewed 6/6；construction authority 从原始报告重
 exact prefix 与 deterministic arm 2/2 full pass。所有步骤仍是 0 paid、matrix 未执行；只有未来完整 8/8 rows、
 4/4 pairs、全部 execution envelope usage 与 research ledger 才可交给公共 cost builder 派生 classification。
 
+唯一 execute 的实际恢复边界证明“原子 row prefix”只保护已经完成 capture 的行，不保护正在运行行的付费用量。
+当前 prefix 为 6/8；第 7 行 workdir 已发生写入，但 execution observation/stdout/usage 尚未回到父 runner，外部任务终止
+后 Pi 的无 session 调用也没有可恢复 transcript。该 orphan attempt 必须进入 all-attempt 分母但其 usage unknown，
+所以 v1 不得 resume/backfill，也不得调用公共 cost builder。未来若新建 identity，必须在任何 workdir side effect 前
+持久化 attempt-dispatched authority，并把 provider usage 设计成父进程中断后仍可恢复；这属于新的实验身份设计，
+不能原地修改本 freeze closure。
+
 ## 11. Stable Pi 与基础设施
 
 当前 Windows 主执行面使用 direct Node Pi package + short-path workdir。资格检查绑定 Pi/Bun/Node 版本、

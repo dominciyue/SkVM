@@ -1268,6 +1268,13 @@ one-time bucket 为 `9358/0/0`，`missing=[]`。人工分钟不计入 token buck
 workdir 将 reviewed-AOT deterministic arm dry-run 到 2/2 full pass；freeze 当前 0 paid、matrix 未执行，只授权
 后续 4 个 original calls、0 retry 的唯一 forward-only execution。
 
+该唯一 execution 已尝试但没有形成完整分母：原子 prefix 只固化 6/8 行（3 个 paid original + 3 个 direct
+reviewed-AOT）。第 7 行 paid original 已在 workdir 写出三项目标产物，随后外部桌面任务终止 runner；该行的
+execution observation、usage、score 和 envelope 均未落盘，也未进入 prefix，provider session 因 `--no-session`
+不可恢复。它不能作为未发生的行忽略，也不能在同一 0-retry identity 下补跑。故该 identity 冻结为
+`interrupted-invalid-for-efficiency`：`allAttemptCostComplete=false`、break-even not-computable、efficiency
+classification not-established；Env portfolio/readiness 保持原值，held-out 与 replication 继续关闭。
+
 效率矩阵固定为两个 Env development task、两次 repetition、`original | reviewed-validated-artifact` 两臂，共 8
 logical rows；4 个 original model calls、4 个 direct deterministic rows，0 retry/reserve。先要求完整 4/4 pair、
 reviewed artifact 4/4/mean 1.0、0 hard-gate/pair regression 与 protected input/scorer authority 全过，再报告
