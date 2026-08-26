@@ -1252,7 +1252,7 @@ paid dispatch 前原子持久化 row attempt。该变化是实验身份/中断�
 4. [x] 零付费 qualification：在当前 Windows/Bun 上实际启动 detached fake worker，终止 foreground controller，
    证明同一 pid/attempt 完成且收集后 dispatch conservation 成立；再注入 terminal-before-prefix 与
    dispatched-without-terminal 两个 crash window。资格不读 task output/evaluator/held-out，不调用 API；
-5. [ ] 新 policy/freeze 从 0/8 开始，绑定 v1 语义来源、v1 interruption evidence、新 worker/journal/collector 与
+5. [x] 新 policy/freeze 从 0/8 开始，绑定 v1 语义来源、v1 interruption evidence、新 worker/journal/collector 与
    production construction authority `9358/0/0`。Freeze 固定 4 paid original + 4 deterministic reviewed-AOT、顺序
    与 0 retry；不得复用 v1 六行。Pre-model identity、qualification 和 implementation closure 先提交并推送；
 6. [ ] 只执行一次 `start`，由同一 detached worker 完整运行 8 行。控制器轮询不得生成 attempt；完成后先核
@@ -1271,8 +1271,8 @@ paid dispatch 前原子持久化 row attempt。该变化是实验身份/中断�
 initializer race；最小修正后使用 60 秒 handshake、O_EXCL 首次 authority 和真实 forced controller termination。
 当前资格报告为 2 fake rows、同一 worker pid、2 dispatch，重复 start 后仍为 2；terminal-before-prefix 0 -> 1，
 dispatched-without-terminal 为 failed；0 API/model/paid。Policy/freeze 固定新 0/8 identity、4 future paid、0 retry、
-`rowReuse=false` 与 9358/0/0；真实 `--phase=plan` 为 8 rows、0 paid、matrix not executed。步骤 5 只差把该
-implementation/qualification/policy/freeze closure 提交并推送，完成前不得 `--phase=start`。
+`rowReuse=false` 与 9358/0/0；真实 `--phase=plan` 为 8 rows、0 paid、matrix not executed。该 closure 已由提交
+`bb1d1b4` 推送到 `origin/skill-ir-aot`；付费前门禁闭合，尚未执行 `--phase=start`。
 
 #### Task 18.38A：Optimization evidence authority successor（付费前硬前置）
 
