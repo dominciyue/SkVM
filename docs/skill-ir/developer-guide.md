@@ -981,7 +981,9 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：Task 18.38 construction authority；one-time token mapping 9358/0/0、missing=[]，人工成本单列
 已完成：Env 8-row prospective freeze 与 plan；deterministic dry-run 2/2
 已冻结失败：唯一 execute 固化 6/8；第 7 行 paid original 有 workdir side effect，但 usage/envelope 未持久化
-当前接力：不要续跑或回填 v1；all-attempt incomplete、break-even/classification not-established，等待新 identity/停止选择
+已完成：新 0/8 resilient identity；forced controller termination 后同一 detached worker 完成，重复 start 不重发
+已完成：terminal-before-prefix reconcile、dispatched-without-terminal fail closed、O_EXCL 单 worker authority
+当前接力：不要续跑/回填 v1；先推送新 policy/freeze closure，再唯一 start 完整 8 行并只用 status/collect 观察
 结果边界：第二 phenotype 即使成立也不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
 ```
@@ -1057,6 +1059,11 @@ bun run ./src/benchmarks/skill-ir/automatic-domain-plan-manual-parity-run.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-cross-skill-parity-run.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-generic-repair-run.ts --phase=freeze
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-generic-repair-run.ts --phase=execute
+bun test ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient.test.ts `
+  ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-detach.test.ts `
+  ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-policy.test.ts
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-run.ts --phase=status
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-run.ts --phase=collect
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

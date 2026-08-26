@@ -676,6 +676,17 @@ execution observation、usage、score 与 envelope 尚未落盘，且 provider �
 同一 identity 重跑会成为冻结预算外的额外 paid attempt，忽略该行则会伪造 all-attempt 完整性，因此两者都禁止。
 v1 状态固定为 `interrupted-invalid-for-efficiency`，不生成 cost report、不更新 portfolio/readiness。
 
+用户选择的 successor 不复用 v1 row，而以新 0/8 identity 重跑完整分母。新的耐中断薄层只改变执行所有权和
+attempt authority：detached worker 独占 8 行；controller 退出后只允许观察同一 worker，不得重发。每行在副作用前
+原子写 `prepared/dispatched`，完成后先写 terminal usage/score/envelope，再推进 prefix；已 dispatched 且 terminal
+缺失时整个 identity fail closed。该机制须先用 fake executor 在真实 Windows detached process 上零付费验证，随后
+才绑定原有 reviewed package 与 `9358/0/0` production construction authority 冻结新实验身份。
+
+该 qualification 已在真实 Windows detached process 上完成：foreground controller 被强制终止后，同一 worker pid
+完成 2 个 fake rows；重复 start 未增加 dispatch。Journal 的 terminal-before-prefix 窗口可确定性 reconcile，
+dispatched-without-terminal 则 fail closed；并发首次创建使用 O_EXCL。新 policy/freeze 从 0/8 开始并显式禁止 v1
+row reuse/orphan backfill；当前 plan 为 8 rows、0 paid、matrix 未执行。
+
 ## 15. 测试
 
 ```powershell

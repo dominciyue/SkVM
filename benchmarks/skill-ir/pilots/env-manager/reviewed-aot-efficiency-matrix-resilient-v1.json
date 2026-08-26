@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "skill-ir-reviewed-aot-efficiency-resilient-policy/v1",
+  "experimentId": "env-manager-reviewed-aot-efficiency-v2",
+  "frozenAt": "2026-08-26T12:48:25.977Z",
+  "predecessor": {
+    "policy": {
+      "path": "benchmarks/skill-ir/pilots/env-manager/reviewed-aot-efficiency-matrix-v1.json",
+      "sha256": "54b57a47970b96a244f3c565cdc09853bb1a1641773eb2a37910db97c907eaf2"
+    },
+    "freeze": {
+      "path": "results/skill-ir/reviewed-aot-efficiency-matrix-freeze-v1.json",
+      "sha256": "6335850d814978377cbdaf847978ba85e3ad30735ce19ba4a6fb2d398ef7dbb4"
+    },
+    "interruption": {
+      "path": "results/skill-ir/reviewed-aot-efficiency-interruption-v1.json",
+      "sha256": "d841a28504de3885a592b15755261cf9fa46831de7df5f7fce96e9ed391aba87"
+    },
+    "rowReuse": false
+  },
+  "resilienceQualification": {
+    "path": "results/skill-ir/reviewed-aot-efficiency-resilience-qualification-v1.json",
+    "sha256": "4f56537889c43e2e3032f2db945ccd883b0ae92658d5260458d85047c0175525"
+  },
+  "implementation": [
+    {
+      "path": "src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient.ts",
+      "sha256": "332727bbe5a3b248d52bb4fcf2e54947d7481f1ac06597c64c3f1d5436fac82c"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-run.ts",
+      "sha256": "954c843eb91c5b911bac412b44c18b4d4df4d19b45e431ae1420fa17f85e6366"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-policy.ts",
+      "sha256": "1b9e46719ae21b86f15cca7320f4857282bd7f4f0661638be3022c8839d90737"
+    }
+  ],
+  "denominator": {
+    "rows": 8,
+    "pairs": 4,
+    "paidOriginalRows": 4,
+    "deterministicReviewedAotRows": 4,
+    "taskIds": [
+      "env-manager-scorer-authority-node-dev-001",
+      "env-manager-scorer-authority-vite-dev-002"
+    ],
+    "repetitions": 2,
+    "systems": [
+      "original",
+      "reviewed-aot"
+    ],
+    "order": "task-then-repetition-then-system",
+    "retries": 0,
+    "forwardOnly": true,
+    "orderedRows": [
+      {
+        "taskId": "env-manager-scorer-authority-node-dev-001",
+        "repetition": 1,
+        "system": "original",
+        "paid": true
+      },
+      {
+        "taskId": "env-manager-scorer-authority-node-dev-001",
+        "repetition": 1,
+        "system": "reviewed-aot",
+        "paid": false
+      },
+      {
+        "taskId": "env-manager-scorer-authority-node-dev-001",
+        "repetition": 2,
+        "system": "original",
+        "paid": true
+      },
+      {
+        "taskId": "env-manager-scorer-authority-node-dev-001",
+        "repetition": 2,
+        "system": "reviewed-aot",
+        "paid": false
+      },
+      {
+        "taskId": "env-manager-scorer-authority-vite-dev-002",
+        "repetition": 1,
+        "system": "original",
+        "paid": true
+      },
+      {
+        "taskId": "env-manager-scorer-authority-vite-dev-002",
+        "repetition": 1,
+        "system": "reviewed-aot",
+        "paid": false
+      },
+      {
+        "taskId": "env-manager-scorer-authority-vite-dev-002",
+        "repetition": 2,
+        "system": "original",
+        "paid": true
+      },
+      {
+        "taskId": "env-manager-scorer-authority-vite-dev-002",
+        "repetition": 2,
+        "system": "reviewed-aot",
+        "paid": false
+      }
+    ],
+    "startingPrefixRows": 0
+  },
+  "productionOneTime": {
+    "compileModelTokens": 9358,
+    "profileModelTokens": 0,
+    "packageModelTokens": 0,
+    "missing": []
+  },
+  "recovery": {
+    "executionOwner": "single-detached-worker",
+    "controllerRole": "validate-start-observe-collect",
+    "journalOrder": [
+      "prepared",
+      "dispatched",
+      "terminal-record",
+      "prefix-committed"
+    ],
+    "redispatchAfterDispatched": false,
+    "recoverableInterruption": "foreground-controller-or-desktop-parent-only",
+    "missingTerminalAfterDispatch": "fail-closed"
+  },
+  "authorization": {
+    "currentStagePaidCalls": 0,
+    "futurePaidOriginalCalls": 4,
+    "retries": 0,
+    "heldOut": false,
+    "readinessPromotion": false
+  },
+  "prohibited": [
+    "v1-row-reuse",
+    "v1-orphan-backfill",
+    "retry-or-reserve",
+    "post-hoc-row-selection",
+    "held-out"
+  ],
+  "claimBoundary": "This successor authorizes one fresh eight-row reviewed-AOT efficiency denominator. It does not recover or reuse v1 rows and does not establish quality, break-even, readiness, or automation before machine-derived results."
+}

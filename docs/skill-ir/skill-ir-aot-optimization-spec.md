@@ -1275,6 +1275,21 @@ execution observation、usage、score 和 envelope 均未落盘，也未进入 p
 `interrupted-invalid-for-efficiency`：`allAttemptCostComplete=false`、break-even not-computable、efficiency
 classification not-established；Env portfolio/readiness 保持原值，held-out 与 replication 继续关闭。
 
+用户选择的 successor 从全新 0/8 分母开始，不继承 v1 的已完成 row 或 orphan attempt。其恢复合同专门覆盖
+foreground controller/desktop-parent 中断：controller 只验证、启动、观察和收集；一个 detached worker 顺序拥有
+8 行。每行必须在任何 workdir side effect 或 paid dispatch 前，把 identity-bound attempt 原子写为 `prepared`，并在
+真正调用前写为 `dispatched`；`dispatched` 永不重发。Worker 先原子写包含 execution observation、usage、score 与
+envelope 的 terminal record，再推进严格连续 prefix。Controller 重启只连接同一 pid/state 或确定性 reconcile 已有
+terminal record，不能增加 attempt。若 worker/OS/power/provider 在 `dispatched` 后死亡且没有完整 terminal usage，
+新 identity 仍 fail closed；不得把这种缺证据故障宣传为可恢复。该 attempt-authority/ownership 变化构成新实验身份，
+但公开 task、package、scorer、2 x 2 x 2 分母、0 retry 与质量/成本阈值保持不变。
+
+新 identity 只有在零付费故障注入证明 controller 退出后同一 attempt 完成、重复 start 的 dispatch 守恒、
+terminal-before-prefix 可恢复且 dispatched-without-terminal 会失败后才能冻结。Freeze 必须绑定新 journal/worker/
+collector implementation、v1 interruption evidence 和 `9358/0/0` production construction authority，并在任何 paid
+call 前提交推送。完整 8 行后还必须生成可由 evidence authority 从原始 records 重算的双臂 quality gate；旧 Env
+validated-artifact gate 或只含摘要的 capture 不能替代新 8-row 质量证据。
+
 效率矩阵固定为两个 Env development task、两次 repetition、`original | reviewed-validated-artifact` 两臂，共 8
 logical rows；4 个 original model calls、4 个 direct deterministic rows，0 retry/reserve。先要求完整 4/4 pair、
 reviewed artifact 4/4/mean 1.0、0 hard-gate/pair regression 与 protected input/scorer authority 全过，再报告

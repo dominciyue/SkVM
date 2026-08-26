@@ -954,6 +954,25 @@ exact prefix 与 deterministic arm 2/2 full pass。所有步骤仍是 0 paid、m
 持久化 attempt-dispatched authority，并把 provider usage 设计成父进程中断后仍可恢复；这属于新的实验身份设计，
 不能原地修改本 freeze closure。
 
+该 successor 的恢复单位是同一个 identity-bound row attempt，不是 replacement/retry。Foreground controller 只
+启动和观察 detached worker；worker 对全部 8 行拥有唯一写权限。每行以原子 journal 执行
+`prepared -> dispatched -> terminal-record -> prefix-committed`，terminal record 必须先于 prefix 且包含 value-free
+execution observation、usage、score/envelope authority。重新运行 controller 时，live worker 只被观察；dead worker
+只有在尚未 dispatch 的 prepared row 或已经存在完整 terminal record 时才可确定性推进。`dispatched` 且 terminal
+缺失属于不可恢复的 measurement failure，禁止重新调用 provider。由此只承诺 controller/desktop-parent 中断恢复，
+不承诺 power-loss、worker crash 或 provider transcript 丢失恢复。
+
+付费前 qualification 必须在真实 detached process 上零付费故障注入，并证明：controller 退出后相同 pid/attempt
+继续；重复 start 不增加 dispatch；terminal-before-prefix 能 reconcile；dispatched-without-terminal fail closed；
+strict prefix、identity digest 与 attempt count 守恒。只有 qualification、policy/freeze 与 implementation closure
+先提交推送，才可从 0/8 启动一次完整 denominator。
+
+当前 successor 已完成上述零付费 qualification。测试不是只让 controller 正常返回，而是在 worker ready 且 state
+为 running 后实际强制终止 foreground controller；独立 worker pid 随后完成 2 个 fake rows，dispatch count 为 2，
+重复 start 只观察 done 且 count 仍为 2。另两个故障注入分别证明 terminal record 已写而 prefix 未写时可从 0 补到
+1，以及 dispatched 无 terminal 时固定 failed。并发 initializer 的首轮概率竞态也被重复测试捕获，最终以 O_EXCL
+只允许一个 worker 建立首次 run authority。报告为 0 API/model/paid，不能当作真实 matrix 结果。
+
 ## 11. Stable Pi 与基础设施
 
 当前 Windows 主执行面使用 direct Node Pi package + short-path workdir。资格检查绑定 Pi/Bun/Node 版本、

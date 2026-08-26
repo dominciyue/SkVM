@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "skill-ir-reviewed-aot-efficiency-resilience-qualification/v1",
+  "status": "passed",
+  "completedAt": "2026-08-26T12:47:54.775Z",
+  "implementation": [
+    {
+      "path": "src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient.ts",
+      "sha256": "332727bbe5a3b248d52bb4fcf2e54947d7481f1ac06597c64c3f1d5436fac82c"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-run.ts",
+      "sha256": "954c843eb91c5b911bac412b44c18b4d4df4d19b45e431ae1420fa17f85e6366"
+    }
+  ],
+  "scenarios": {
+    "controllerExitSameAttempt": {
+      "controllerPid": 29860,
+      "workerPid": 30404,
+      "controllerExitMode": "forced-termination",
+      "phaseAfterControllerExit": "running",
+      "finalPhase": "done",
+      "completedRows": 2,
+      "dispatchCount": 2,
+      "repeatedStartStatus": "observed-done",
+      "repeatedStartDispatchCount": 2,
+      "sameWorkerObserved": true
+    },
+    "terminalBeforePrefix": {
+      "prefixBefore": 0,
+      "prefixAfter": 1,
+      "recovered": true
+    },
+    "dispatchedWithoutTerminal": {
+      "phase": "failed",
+      "failure": "dispatched-without-terminal:row-01",
+      "failClosed": true
+    },
+    "identityAndOrder": {
+      "identityDriftRejected": true,
+      "outOfOrderTerminalRejected": true
+    }
+  },
+  "accounting": {
+    "fakeRows": 2,
+    "apiCalls": 0,
+    "modelCalls": 0,
+    "paidCalls": 0
+  },
+  "recoveryScope": "foreground-controller-or-desktop-parent-interruption-only",
+  "unsupportedRecovery": [
+    "worker-crash-after-dispatch-without-terminal",
+    "os-or-power-loss-after-dispatch-without-terminal",
+    "provider-transcript-loss"
+  ]
+}

@@ -605,6 +605,17 @@ all-attempt、break-even 与 efficiency classification 均未建立。Compact �
 `results/skill-ir/reviewed-aot-efficiency-interruption-v1.json`，Env authority/readiness 不更新，Phase 2 automation
 reachability 未启动。
 
+用户随后选择全新 resilient identity，而不是修改或续跑 v1。零付费 qualification 在 worker ready/state running 后
+实际强制终止 foreground controller；不同 pid 的 detached worker 仍完成 2/2 fake rows，dispatch count=2，重复
+start 只观察 done 且 count 不变。Terminal-before-prefix 注入从 0 reconcile 到 1；dispatched-without-terminal 固定
+failed。重复测试还捕获并修复首次 authority 的并发竞态，最终用 O_EXCL 保证单 worker 初始化。资格总计 0 API/
+model/paid，恢复范围只覆盖 controller/desktop-parent，不覆盖 worker/OS/power/provider transcript loss。
+
+`reviewed-aot-efficiency-matrix-resilient-v1.json` 与对应 freeze 绑定该资格、v1 interruption/predecessor、三文件
+implementation closure、完整 9358/0/0 production cost source 与新 0/8 denominator；明确 `rowReuse=false`、4 个
+future original calls、0 retry。真实 plan 已写出 8 rows、0 paid、matrix not executed。它仍只是 pre-model identity，
+不证明 quality、recurring saving、break-even、portfolio 或 readiness。
+
 ## 18. BIDS prospective construction、development 与残差有效性
 
 2026-08-23 的 Task 18.18 从冻结候选继续：profile-empty source-audited base IR、23 LOC 声明式 adapter 与手写
@@ -881,3 +892,5 @@ analysis 失败，两案 artifact consistency 失败。该结果证明通用 sch
 - `results/skill-ir/automatic-domain-plan-semantic-inspection-v1/report.json`
 - `results/skill-ir/automatic-domain-plan-generic-repair-env-2026-08-25/pre-model-freeze.json`
 - `results/skill-ir/reviewed-aot-efficiency-interruption-v1.json`
+- `results/skill-ir/reviewed-aot-efficiency-resilience-qualification-v1.json`
+- `results/skill-ir/reviewed-aot-efficiency-matrix-resilient-freeze-v1.json`

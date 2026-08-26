@@ -158,6 +158,12 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   `2 tasks x 2 reps x (original | reviewed-aot)` 身份，并将 deterministic arm 在 fresh workdir dry-run 到 2/2。
   唯一 execution 固化 6/8 prefix 后，在第 7 行 paid original 已写 workdir、但 usage/envelope 尚未落盘时被外部任务
   中断。该行不能忽略或重试，v1 因 all-attempt 不完整冻结为 `interrupted-invalid-for-efficiency`。
+- 用户已选择新建 interruption-resilient successor：从 0/8 重跑完整分母，不继承 v1 row。新身份先以零付费
+  detached-worker 故障注入证明 controller 中断后同一 attempt 继续、重复 start 不重发、缺 terminal usage 时
+  fail closed；qualification 与 freeze 提交推送后才允许新的 4 个 original calls。
+- 上述 qualification 已用 forced controller termination 实跑通过；并发初始化竞态由 O_EXCL 修复。新 policy/freeze
+  固定 0/8、4 future paid、0 retry、row reuse=false；真实 plan 为 8 rows、0 paid、matrix not executed。只有该
+  pre-model closure 提交推送后才会启动 detached worker。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -210,7 +216,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Task 18.37 已完成：独立 patch 后 6/6，125 LOC/8 minutes；auto-only 3/6 与 reviewed 分账，仍非 automatic
 -> Task 18.38 构造成本前置与 8-row freeze 已完成：9358/0/0、missing=[]、deterministic dry-run 2/2
 -> 唯一 execution 停在 6/8；第 7 行 paid side effect 存在但 usage authority 缺失，v1 不续跑、不回填、不分类
--> 下一步先由用户决定：另建可耐受父进程中断的新 identity，或接受 reviewed-efficiency 路线当前不可达
+-> 新 0/8 identity 已完成 durable journal、forced-controller qualification、policy/freeze 与 0-paid plan
+-> pre-model closure 提交推送后，由唯一 detached worker 完整执行 8 行；status/collect 不产生新 attempt
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

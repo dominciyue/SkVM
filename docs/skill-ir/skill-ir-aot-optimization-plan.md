@@ -1229,7 +1229,50 @@ deterministic reviewed-AOT，六行均成功）。桌面任务随后在第 7 行
 `allAttemptCostComplete=false`、break-even not-computable、efficiency classification not-established；步骤 4--6 均未
 满足，Env portfolio/readiness 不更新。Compact 中断证据为
 `results/skill-ir/reviewed-aot-efficiency-interruption-v1.json`；按阶段 stop condition，不进入后续 automation
-reachability 分析，等待用户决定是否另建能在副作用前持久化 attempt/usage 的新 identity，或接受本路线不可达。
+reachability 分析。用户已选择另建能耐受 controller/desktop-parent 中断的新 identity；旧 v1 继续只读冻结，6/8
+prefix、orphan attempt 与任何 row 均不得复用、补跑或重评分。
+
+#### Task 18.38B：Interruption-resilient efficiency successor（当前执行）
+
+**语义 delta：** 新 identity 保持 Task 18.38 的公开 task、reviewed package、scorer、质量门、2 x 2 x 2 分母与
+`retries=0` 不变，只改变 attempt authority 和执行所有权。Foreground controller 不再拥有模型子进程；它只核验
+freeze、启动一个隐藏 detached worker、读取状态和收集结果。Worker 顺序拥有全 8 行，并在任何 workdir 副作用或
+paid dispatch 前原子持久化 row attempt。该变化是实验身份/中断恢复语义变化，允许新 identity/schema；它不是对
+旧 runner 的 routine 修补，也不提升共享 runtime 版本。
+
+1. [x] RED：以真实临时目录和 fake row executor 覆盖 controller 退出后同一 worker/attempt 继续、重复 `start` 不增加
+   dispatch、completed terminal record 可补齐 lagging prefix、`dispatched` 且 terminal/usage 缺失时 fail closed、
+   错位/gap/digest drift 拒绝；先确认测试因 successor 尚不存在而失败；
+2. [x] GREEN：实现原子 `run-state` + per-row attempt journal。状态至少区分 `prepared | dispatched | completed |
+   failed`；只有 `prepared` 可在尚未 dispatch 时继续，`dispatched` 永不重发。先写 terminal record，再推进严格连续
+   prefix；collector 只做确定性 reconcile，不调用模型；
+3. [x] GREEN：复用项目既有 `Bun.spawn({ detached: true, ipc })`/ready-handshake/hidden-worker 模式。Controller
+   结束后 worker 继续；再次运行只观察同一 pid/identity。恢复范围只承诺 controller/desktop-parent 中断；worker/
+   OS/power/provider 在已 dispatch 行上丢失终态 evidence 时整项失败，不伪装成可恢复；
+4. [x] 零付费 qualification：在当前 Windows/Bun 上实际启动 detached fake worker，终止 foreground controller，
+   证明同一 pid/attempt 完成且收集后 dispatch conservation 成立；再注入 terminal-before-prefix 与
+   dispatched-without-terminal 两个 crash window。资格不读 task output/evaluator/held-out，不调用 API；
+5. [ ] 新 policy/freeze 从 0/8 开始，绑定 v1 语义来源、v1 interruption evidence、新 worker/journal/collector 与
+   production construction authority `9358/0/0`。Freeze 固定 4 paid original + 4 deterministic reviewed-AOT、顺序
+   与 0 retry；不得复用 v1 六行。Pre-model identity、qualification 和 implementation closure 先提交并推送；
+6. [ ] 只执行一次 `start`，由同一 detached worker 完整运行 8 行。控制器轮询不得生成 attempt；完成后先核
+   8/8、4 paid、4 deterministic、0 retry、4/4 pair、protected/scorer authority 与逐行 usage conservation，再分析
+   quality；任一 fail-closed 状态立即停止，不补行；
+7. [ ] 为本 8-row identity 生成机器可重算的 reviewed-AOT quality gate，再由公共 cost builder 派生 production、
+   research all-attempt、N=1/2/5/10 与 break-even。Evidence authority 必须实读并重算该新 gate；不能把弱 capture
+   或旧 Env gate 代替新分母的质量证据；
+8. [ ] 只有 quality equivalent、production/all-attempt complete 且 break-even computed 时，才建立新的 authoritative
+   portfolio/readiness successor 并将 Env 派生为 `efficiency-positive`。旧 portfolio/readiness 保持不可变；即使
+   two-evidence gate 因此通过，`automationAndAdaptationConverging` 仍为 false；
+9. [ ] Phase 1 成功后只做零付费、只读的 automation reachability Phase 2：复核 7 案例 adaptation cost 与
+   `automationAndAdaptationConverging` 的机器语义，产出 go/no-go 和最小工作分解后停止，等待用户决定 Phase 3。
+
+**Pre-model 实现证据：** TDD 先暴露 module 缺失、较弱 normal-exit qualification、未清 handshake timer 与并发
+initializer race；最小修正后使用 60 秒 handshake、O_EXCL 首次 authority 和真实 forced controller termination。
+当前资格报告为 2 fake rows、同一 worker pid、2 dispatch，重复 start 后仍为 2；terminal-before-prefix 0 -> 1，
+dispatched-without-terminal 为 failed；0 API/model/paid。Policy/freeze 固定新 0/8 identity、4 future paid、0 retry、
+`rowReuse=false` 与 9358/0/0；真实 `--phase=plan` 为 8 rows、0 paid、matrix not executed。步骤 5 只差把该
+implementation/qualification/policy/freeze closure 提交并推送，完成前不得 `--phase=start`。
 
 #### Task 18.38A：Optimization evidence authority successor（付费前硬前置）
 
