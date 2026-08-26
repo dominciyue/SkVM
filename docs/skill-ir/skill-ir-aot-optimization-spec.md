@@ -1255,6 +1255,19 @@ mean 1.0、0 pair regression，且历史 runtime 为 original 197606 model token
 bytes、runtime、scorer/repair 和该 identity 的所有 attempts 一起记账；旧 214 分钟 artifact engineering 和
 `manual-existing` canary 不能反事实变成本 identity 的前瞻构造。
 
+在冻结 8-row identity 之前还必须通过独立零付费 construction-source audit。该审计逐段验证 Task 18.36 synthesis、
+18.37 patch、实际 compile、profile 适用性决定与 package assembly 的 path/digest/usage/duration，证明最终成本报告的
+三个 one-time model-token bucket 都能无 `missing` 填充。重跑历史手写 Env compiler 得到的 0 token 只说明执行机制，
+不能替代新 identity 的 synthesis/review 构造成本；若任一生产段只能靠回填或推测，18.38 在付费前冻结
+`construction-cost-source-incomplete` 并换案例。Human review 继续以分钟和 LOC 单列，不换算成 model token；
+research all-attempt 另一本账完整披露，但不进入 production token break-even 分母。
+
+该前置现已由新 reviewed identity 通过：Task 18.36 synthesis 为 9358 input+output tokens，review patch 为 125 LOC/
+8 humanMinutes，deterministic compile/profile/package 的 model tokens 分别为 0/0/0；映射到公共成本 builder 后三个
+one-time bucket 为 `9358/0/0`，`missing=[]`。人工分钟不计入 token bucket。机器随后冻结固定 8 行并在两个 fresh
+workdir 将 reviewed-AOT deterministic arm dry-run 到 2/2 full pass；freeze 当前 0 paid、matrix 未执行，只授权
+后续 4 个 original calls、0 retry 的唯一 forward-only execution。
+
 效率矩阵固定为两个 Env development task、两次 repetition、`original | reviewed-validated-artifact` 两臂，共 8
 logical rows；4 个 original model calls、4 个 direct deterministic rows，0 retry/reserve。先要求完整 4/4 pair、
 reviewed artifact 4/4/mean 1.0、0 hard-gate/pair regression 与 protected input/scorer authority 全过，再报告

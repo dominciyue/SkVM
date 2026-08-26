@@ -658,6 +658,19 @@ profile、package、runtime、repair 与 research all-attempt 成本，它可以
 这条产品化证据与“全自动 optimizer 是否收敛”是两个轴，不能用人工 patch 的成功把
 `automationAndAdaptationConverging` 写成 true。
 
+Reviewed-AOT 的付费矩阵还有一道更早的硬前置：零付费 construction-source audit 必须先证明 synthesis、人工
+review/patch、实际 compile、profile 适用性与 package assembly 都有新 identity 下的 path/digest 和完整计量，且
+三个 one-time model-token bucket 无 `missing`。历史 `manual-existing` Env compiler 即使重跑为 0 token，也不能
+补写当时未观测的构造成本。审计只回答“是否值得冻结 recurring 实验”；quality、research all-attempt 与 runtime
+成本仍须由后续固定分母产生，humanMinutes/LOC 单列且不进入 token break-even 分母。
+
+Task 18.37 已把该边界做成真实运行薄层：自动 plan 在两个 fresh workdir 重现 3/6，独立 125 LOC patch 后为
+6/6；两阶段都经过 protected/exact-delta 与冻结 evaluator，且自动 plan digest 未变化。构造成本 authority 随后
+重算 synthesis/review/compile/profile/package，得到公共 builder 的 one-time token mapping `9358/0/0`、无 missing；
+8 humanMinutes 单列。Task 18.38 freeze 又重新编译并核对 patch bundle digest，在两个 fresh workdir dry-run 2/2
+full pass，固定 8-row exact-prefix identity。本阶段均为 0 paid；quality/recurring/all-attempt/efficiency 仍待唯一
+4-call original matrix，不能从 dry-run 推断。
+
 ## 15. 测试
 
 ```powershell

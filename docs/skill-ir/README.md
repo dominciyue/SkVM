@@ -151,6 +151,12 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   loader 实读 gate/cost 文件并重算分类与 completeness，readiness v5 内嵌逐案例 authority。存量复核确认 API
   Tester 的 quality-positive “1”保留，Env 仍为 fidelity-preserving；旧 portfolio v3/readiness v4 仅作不可变历史，
   当前 eligible phenotype 仍为 1，automation 与 two-evidence gate 仍 false。
+- Task 18.37 已零付费完成真实 `automatic plan -> independent review patch -> frozen evaluator`：两个 fresh Env
+  workdir 的 auto-only 为 3/6、reviewed 为 6/6，patch 125 LOC/8 humanMinutes，自动 plan digest 与 protected input
+  均保持。它仍明确标为 `review-required`，不冒充 full automatic。
+- 18.38 construction-source authority 已重算 one-time token mapping `9358/0/0` 且无 missing；随后冻结 8 行
+  `2 tasks x 2 reps x (original | reviewed-aot)` 身份，并将 deterministic arm 在 fresh workdir dry-run 到 2/2。
+  当前 `--phase=plan` 为 8 rows/0 paid/matrix not executed；只开放后续 4-call、0-retry 的唯一 execution。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步
@@ -200,8 +206,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Task 18.36 Env 通用修复完成：1 paid/0 retry，六门全过、2/2 runtime、每案 3/3 outputs，真实 parity 3/6 failed
 -> 清洁计划仍漏掉 Vite `import.meta.env` 语义并不能生成逐变量 example/schema rules；eligibility/readiness 不成立
 -> optimization evidence authority v5 已完成：实读+验 digest+重算；API quality-positive 保留，Env fidelity 不变
--> Task 18.37 只做半天、零付费 review-required 竖切：独立人工 patch、来源/LOC/minutes 与 auto-only/reviewed 分账
--> Task 18.38 authority 前置已完成；待 18.37 冻结后再冻结 Env 2 tasks x 2 reps x 2 arms 前瞻 efficiency 身份
+-> Task 18.37 已完成：独立 patch 后 6/6，125 LOC/8 minutes；auto-only 3/6 与 reviewed 分账，仍非 automatic
+-> Task 18.38 构造成本前置与 8-row freeze 已完成：9358/0/0、missing=[]、deterministic dry-run 2/2、0 paid
+-> 下一步只允许冻结 executor 的唯一 4-call original matrix；完整质量/all-attempt/break-even 前不得改 portfolio
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

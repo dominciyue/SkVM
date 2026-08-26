@@ -941,6 +941,12 @@ patch、compile、profile、package、runtime 和 repair；research 另含 quali
 质量等价与 recurring 0 model token 只说明候选可行，缺失的旧构造成本不得回填；只有完整的新前瞻 identity 才能
 支持 reviewed efficiency-positive，且它仍不等于全自动 convergence。
 
+当前 prospective identity 已完成付费前两层机器证据。Review-required runner 在 fresh Node/Vite workdir 保留
+auto-only 3/6 并得到 reviewed 6/6；construction authority 从原始报告重算 one-time model-token bucket 为
+`compile=9358/profile=0/package=0`、无 missing，并把 8 humanMinutes/125 LOC 单列。8-row freeze 随后验证固定顺序、
+exact prefix 与 deterministic arm 2/2 full pass。所有步骤仍是 0 paid、matrix 未执行；只有未来完整 8/8 rows、
+4/4 pairs、全部 execution envelope usage 与 research ledger 才可交给公共 cost builder 派生 classification。
+
 ## 11. Stable Pi 与基础设施
 
 当前 Windows 主执行面使用 direct Node Pi package + short-path workdir。资格检查绑定 Pi/Bun/Node 版本、

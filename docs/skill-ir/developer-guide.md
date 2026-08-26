@@ -977,9 +977,11 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：Task 18.36 pre-model freeze 与唯一 Env 调用；1 call/0 retry，六门全过、core branch 0
 已完成：两个真实 Env workdir 2/2 runtime complete、每案 3/3 outputs；manual parity 0/6 -> 3/6、仍 failed
 已完成：optimization evidence authority v5；实读、验 digest、重算 gate/cost，API positive 保留、Env fidelity 不变
-当前接力：Task 18.37 仅做半天零付费 review-required patch 竖切，保留 auto-only/reviewed 双结果，不扩 DSL
-后续主线：Task 18.38 的 authority 前置已完成；待 18.37 冻结后再冻结 Env 8-row prospective
-reviewed-efficiency；第二 phenotype 即使成立也不把 full-auto convergence 改成 true
+已完成：Task 18.37 零付费 review-required；fresh workdir auto 3/6 -> reviewed 6/6，125 LOC/8 minutes，0 core branch
+已完成：Task 18.38 construction authority；one-time token mapping 9358/0/0、missing=[]，人工成本单列
+已完成：Env 8-row prospective freeze 与 plan；deterministic dry-run 2/2，0 paid、matrix not executed
+当前接力：只执行冻结的 4-call original/4-row direct matrix，0 retry；完整 quality/all-attempt 后才运行公共 cost builder
+结果边界：第二 phenotype 即使成立也不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
 ```
 

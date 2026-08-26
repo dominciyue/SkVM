@@ -1153,19 +1153,24 @@ Vite 1/3、full task 0/2、distance-to-full 3，case parity 仍 failed。旧 `1/
 扩张 DSL/domain 分支，却没有跨案例 reuse 证据。因此 18.37 不再尝试把该计划修成“自动成功”，只把现有证据封装
 成可审计的近期产品路径。
 
-1. [ ] 新增一个 skill-neutral `review-required` orchestration/interface；输入绑定自动 candidate/plan、公开
+1. [x] 新增一个 skill-neutral `review-required` orchestration/interface；输入绑定自动 candidate/plan、公开
    task/contract/source 与独立人工 patch 的 path+digest，core 只负责顺序、隔离、保护输入和记账，不含 skill-id
    分支；
-2. [ ] 人工 patch 必须位于自动 plan 之后，不能覆盖或回写 `generated-plan.json`。Patch 可以是案例本地的确定性
+2. [x] 人工 patch 必须位于自动 plan 之后，不能覆盖或回写 `generated-plan.json`。Patch 可以是案例本地的确定性
    domain adapter，但只能读取公开 workdir/contract、只能写声明输出，禁止 evaluator payload、gold、held-out 和
    后验答案常量；
-3. [ ] 在新鲜 Node/Vite development workdir 上依次执行 `automatic plan -> manual patch -> deterministic
+3. [x] 在新鲜 Node/Vite development workdir 上依次执行 `automatic plan -> manual patch -> deterministic
    validation/evaluator`，分别保留 automatic-only `3/6` 与 reviewed result；报告 patch LOC、起止时间、
    humanMinutes、protected-input 结果、每项 criterion 和 `coreBranchDelta=0`；
-4. [ ] 固定半日和 0 paid/model replay。到时无论 reviewed result 是否 6/6 都冻结差距；不扩 Domain Plan DSL、
+4. [x] 固定半日和 0 paid/model replay。到时无论 reviewed result 是否 6/6 都冻结差距；不扩 Domain Plan DSL、
    不重放 18.36、Law 或任何 held-out；
-5. [ ] 输出状态只能是 `review-required`，不能更新 portfolio automation flag、optimized classification、readiness
+5. [x] 输出状态只能是 `review-required`，不能更新 portfolio automation flag、optimized classification、readiness
    或 replication authorization。该切片是产品边界验证，不阻塞下面的效率主线。
+
+**完成证据：** 新 runner 在两个 fresh development workdir 上真实执行 automatic plan 后再执行独立 patch，并以同一
+冻结 evaluator 复核；auto-only 精确重现 `3/6、0/2 full`，reviewed 为 `6/6、2/2 full`，protected input 与 exact
+output delta 全过。Patch 为 125 physical LOC、8 prospective humanMinutes、`coreBranchDelta=0`、0 project model
+calls；结果状态仍为 `review-required`，automation/portfolio/readiness/replication 均未改变。
 
 ### Task 18.38：Env `review-required` 前瞻效率实验与机器分类绑定
 
@@ -1182,12 +1187,18 @@ readiness v5 successor 关闭，旧 v3/v4 文件保持不可变。
    `eligibility.efficiencyPositiveEligible=true`、分类与完整性字段一致。
    这是研究结论派生语义变化；实现时使用一次有明确 semantic delta/compatibility/claim 说明的 successor，不在旧
    v3/v4 上静默加宽，也不因 routine 修复连续滚版本；
-2. [ ] 只有 18.37 patch/result 冻结后才冻结新的 forward-only efficiency identity。Identity 绑定 Task 18.36
+2. [x] 只有 18.37 patch/result 冻结后才冻结新的 forward-only efficiency identity。Identity 绑定 Task 18.36
    measured synthesis（1 call、9358 input+output tokens、101440.1425ms）、18.37 review/patch、compiler/profile/
    package/runtime/scorer/cost implementation 与同一公开 Env source/task/evaluator；旧 214 分钟手写 artifact 历史
    不能冒充本 identity 的前瞻构造成本；
-3. [ ] 固定 `2 tasks x 2 repetitions x (original | reviewed-validated-artifact)` = 8 logical rows：4 个 original
-   paid model rows、4 个 direct deterministic rows，顺序前台执行、0 retry/reserve。完整保存 value-free envelope
+   在任何 8-row freeze 或 original paid call 前，必须先由零付费机器审计证明本 identity 的 production construction
+   来源可完整闭合：synthesis、review patch、compile、profile 与 package 分账，三个 one-time model-token bucket 均
+   无 `missing`。历史 `manual-existing` compiler canary 或单纯重跑旧 compiler 的 0 token 不能满足该前置；若当前
+   reviewed construction 无法前瞻重建并逐段计量，立即停止并换案例，不得先测 recurring rows 再补成本；
+3. [x] 零付费冻结 `2 tasks x 2 repetitions x (original | reviewed-aot)` = 8 logical rows：4 个 original paid
+   model rows、4 个 direct deterministic rows，固定 task/repetition/system 顺序、0 retry/reserve、严格连续 prefix。
+   Freeze 在两个 fresh workdir 对 deterministic arm 实际 dry-run 为 2/2 full pass，并绑定真实 execute/cost runner；
+   `--phase=plan` 落盘 8 rows、0 paid、matrix 未执行。后续唯一 execute 必须完整保存 value-free envelope
    的 input/output/cache、duration、provider/assistant/tool activity；artifact 另报 execution node/process/validate
    数，禁止把确定性进程节点写成 model/agent steps；
 4. [ ] 质量门先于效率：8/8 row、4/4 pair、reviewed artifact 4/4 success/mean 1.0、0 hard-gate 或 paired
@@ -1195,7 +1206,8 @@ readiness v5 successor 关闭，旧 v3/v4 文件保持不可变。
 5. [ ] Production 账覆盖 automatic synthesis、review patch、compile/profile/package、package bytes、original/
    reviewed runtime 与 repair；research 账覆盖本 identity 的所有 preflight/attempt/scorer/repair，并分列 selected 与
    all-attempt。报告 `N=1,2,5,10`、token break-even、逐臂 latency 与 steps；humanMinutes 不换算成 token，也不藏进
-   machine latency；
+   machine latency。Research 验证成本不进入 production break-even 分母，但必须完整披露；构造成本前置审计只
+   授权 freeze，不得冒充未来 8-row 的 quality、recurring 或 all-attempt 结果；
 6. [ ] 只有成本报告机器派生 `efficiency-positive` 后才允许更新 Env portfolio classification。该结果若成立，只会
    把 readiness-eligible phenotype 从 1 提到 2；`automationAndAdaptationConverging` 仍保持 false，因为
    review-required 不等于 automatic；
@@ -1204,6 +1216,11 @@ readiness v5 successor 关闭，旧 v3/v4 文件保持不可变。
    另建第二 quality-positive optimized identity；现行 machine readiness 未通过前，untouched replication 不能作为
    直接替代。若要让 review-required 路线进入 replication，必须另行显式定义与 full-automation readiness 并存的
    review-required method-freeze gate，不能把原 gate 静默弱化。
+
+**当前 freeze 证据：** construction-source authority 实读 review report 及其 transitive refs，重算得到 compile
+bucket `9358` model tokens、profile `0`、package `0`、`missing=[]`；8 分钟人工 review 与 125 LOC 单列。随后
+`reviewed-aot-efficiency-policy/v1` 与 freeze 固定 8 行、4 个未来 paid calls、0 retry，当前仍为 0 paid/0 executed。
+该 freeze 只授权后续唯一矩阵，不是 quality、recurring saving、all-attempt complete 或 efficiency-positive 结果。
 
 #### Task 18.38A：Optimization evidence authority successor（付费前硬前置）
 

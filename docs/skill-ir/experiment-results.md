@@ -581,6 +581,21 @@ parity、0 model calls、0 aggregate model tokens。
 
 - `results/skill-ir/prospective-compiler-cost-canary.json`
 
+### 17.1 Env reviewed-AOT 前瞻构造与 8-row freeze
+
+2026-08-26 的 Task 18.37 没有扩 Restricted Domain Plan，也没有重放模型。新 runner 在两个 fresh Env development
+workdir 先执行冻结 automatic plan、再执行独立 case-local patch、最后运行同一 evaluator；auto-only 精确重现
+3/6、0/2 full，reviewed 为 6/6、2/2 full。Patch 为 125 physical LOC、8 prospective humanMinutes、
+`coreBranchDelta=0`，0 paid/retry/held-out；自动 plan digest、protected input 与 exact output delta 均保持。
+
+独立 construction-source authority 实读 review report、automatic synthesis 及 transitive path/digest，重算得到
+synthesis 1 call、9358 input+output tokens、0 cache，compile/profile/package 均为 0 model tokens。映射到公共
+optimization cost builder 的 one-time bucket 为 `9358/0/0`、`missing=[]`；人工 8 分钟/125 LOC 独立披露，不进入
+token break-even。随后冻结 `2 tasks x 2 repetitions x (original | reviewed-aot)` 共 8 行：4 个未来 original paid
+rows、4 个 direct deterministic rows、0 retry/reserve、严格连续 prefix。Freeze 重新编译并核对 bundle digest，
+在两个 fresh workdir dry-run 为 2/2 full pass；`--phase=plan` 为 8 rows、0 paid、matrix 未执行。因此当前仍没有新的
+recurring、all-attempt、break-even 或 efficiency-positive 结论，Env portfolio 继续 fidelity-preserving。
+
 ## 18. BIDS prospective construction、development 与残差有效性
 
 2026-08-23 的 Task 18.18 从冻结候选继续：profile-empty source-audited base IR、23 LOC 声明式 adapter 与手写
