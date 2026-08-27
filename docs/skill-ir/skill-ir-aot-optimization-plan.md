@@ -1201,14 +1201,14 @@ readiness v5 successor 关闭，旧 v3/v4 文件保持不可变。
    `--phase=plan` 落盘 8 rows、0 paid、matrix 未执行。后续唯一 execute 必须完整保存 value-free envelope
    的 input/output/cache、duration、provider/assistant/tool activity；artifact 另报 execution node/process/validate
    数，禁止把确定性进程节点写成 model/agent steps；
-4. [ ] 质量门先于效率：8/8 row、4/4 pair、reviewed artifact 4/4 success/mean 1.0、0 hard-gate 或 paired
+4. [x] 质量门先于效率：8/8 row、4/4 pair、reviewed artifact 4/4 success/mean 1.0、0 hard-gate 或 paired
    regression，protected input 与 scorer authority 全过。任一失败都不得计算 efficiency-positive；
-5. [ ] Production 账覆盖 automatic synthesis、review patch、compile/profile/package、package bytes、original/
+5. [x] Production 账覆盖 automatic synthesis、review patch、compile/profile/package、package bytes、original/
    reviewed runtime 与 repair；research 账覆盖本 identity 的所有 preflight/attempt/scorer/repair，并分列 selected 与
    all-attempt。报告 `N=1,2,5,10`、token break-even、逐臂 latency 与 steps；humanMinutes 不换算成 token，也不藏进
    machine latency。Research 验证成本不进入 production break-even 分母，但必须完整披露；构造成本前置审计只
    授权 freeze，不得冒充未来 8-row 的 quality、recurring 或 all-attempt 结果；
-6. [ ] 只有成本报告机器派生 `efficiency-positive` 后才允许更新 Env portfolio classification。该结果若成立，只会
+6. [x] 只有成本报告机器派生 `efficiency-positive` 后才允许更新 Env portfolio classification。该结果若成立，只会
    把 readiness-eligible phenotype 从 1 提到 2；`automationAndAdaptationConverging` 仍保持 false，因为
    review-required 不等于 automatic；
 7. [ ] 若 18.37 不能在半日内形成 2/2 质量等价 reviewed artifact，或完整前瞻构造/all-attempt 成本无法建立，Env
@@ -1367,6 +1367,14 @@ Task 18.38B 的失败不是模型或 reviewed-AOT 质量证据，而是 `status`
 0。串行状态机的正常完成、prefix-commit 恢复和 dispatched-without-terminal 停止均已通过。新 policy/freeze 固定
 `env-manager-reviewed-aot-efficiency-readonly-serial-001`、0/8、0 retry、0 production observer 与剩余修复身份 0；
 付费执行仍未发生，pre-model commit/push 前也不得创建正式 run directory 或检查 key。
+
+**完成证据：** pre-model closure `2666d80` 推送后，prepare 写出 exact 8-row plan；唯一 foreground execute 从 0/8
+顺序完成 8/8、4 paid original + 4 deterministic reviewed-AOT、0 retry/observer/infrastructure failure。四个 pair 的
+original/reviewed score 均为 1.0。公共成本 builder 重算 production one-time `9358` tokens、original recurring
+`202010/4=50502.5` tokens/run、optimized 0 tokens/run；production/all-attempt/break-even completeness 全 true，
+break-even 为 1 call。新 `method-portfolio/v5` authority 显式绑定旧 Env fidelity gate 作为 superseded evidence，
+再绑定 prospective cost report；readiness v6 得到 quality-positive=1、efficiency-positive=1、two-evidence=true。
+`automationAndAdaptationConverging` 仍 false、overall readiness 仍 failed，held-out/replication/多模型未授权。
 
 ## 5. 时间估算
 

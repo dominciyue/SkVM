@@ -1086,6 +1086,15 @@ gate 或 `qualityEquivalent`，而从 8 个 record 重建 4 个 original/reviewe
 结果。成本报告的 quality evidence 现在允许该 paired schema 或既有 validated-artifact gate；两者都必须先机器重算，
 再由公共 cost builder 重算 production/research/break-even/eligibility。
 
+正式 readonly-serial identity 已完成 8 records/4 pairs；authority 重建结果为 8/8 complete、4/4 reviewed pass、
+0 infrastructure/hard-gate/regression，quality equivalent。成本 authority 又递归核验 paired evidence 与全部 transitive
+digest，并调用公共 builder 重算 9358 one-time tokens、202010 original aggregate tokens、0 optimized tokens、
+all-attempt complete 与 break-even=1，最终 classification 为 `efficiency-positive`。
+
+当前 portfolio authority 的证据升级不是放宽 lifecycle 路径检查。`method-portfolio/v5` 要求当 current evidence 与
+base lifecycle evidence 不同时，显式提供 digest-bound `supersededEvidence` 和受限 reason；loader 先验证旧 evidence
+仍支持历史结论，再验证新 evidence。Authority report v2/readiness v6 因而保留完整 provenance，不静默重写 v5 历史报告。
+
 ## 12. 结果持久化
 
 提交到 Git：

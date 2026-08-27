@@ -636,12 +636,21 @@ case 的 task、skill 与 initial manifest；同时执行 12 次 status 和 12 �
 SHA-256 完全相同。另一个 2-row fake serial run 为 2 dispatch/2 complete/0 retry/0 observer；已提交 prefix 的 crash
 window 只 reconcile state，dispatched 而无 terminal/prefix 时 fail closed 且 executor 调用为 0。
 
-新 policy/freeze 使用 `env-manager-reviewed-aot-efficiency-readonly-serial-001`，固定 fresh 0/8、4 个未来 original
-paid rows、4 个 deterministic rows、0 retry、single foreground serial owner 与 `remainingInfrastructureRepairIdentities=0`。
-`prepare` 在 credential 检查前一次性生成 exact original plan 和 digest-bound bundle；status/collect 只读 frozen
-transitive closure、plan/state/prefix，execute 不调用 builder，也不启动 observer。完整结果将先写 8-record/4-pair
-quality evidence，由 authority 重建 counts/pairs/gates，再让公共 cost builder 重算 efficiency。当前阶段仍为 0 paid，
-production run 未创建，quality/recurring/break-even/portfolio/readiness 均未建立。
+新 policy/freeze 使用 `env-manager-reviewed-aot-efficiency-readonly-serial-001`，固定 fresh 0/8、4 个 original paid
+rows、4 个 deterministic rows、0 retry、single foreground serial owner 与 `remainingInfrastructureRepairIdentities=0`。
+Pre-model commit `2666d80` 推送后，`prepare` 一次生成 exact original plan 与 digest-bound bundle；唯一 foreground
+`execute` 未启动 observer，从 0/8 顺序完成 8/8。四个 original/reviewed pair 均 score=1、success=true，0
+infrastructure/hard-gate/regression；paired quality authority 重建后为 equivalent。
+
+Production original 4 次合计 202010 model tokens、814603ms（50502.5 tokens/run）；reviewed-AOT 合计 0 model
+tokens、276.9631ms。One-time compile/profile/package 为 9358/0/0 model tokens，package 13131 bytes；research 已知
+model/cache-read 为 211368/642560、missing=[]，8 humanMinutes/125 LOC 单列。公共 builder 重算 N=1/2/5/10，
+break-even=1 call，三个 completeness 全 true，分类为 `efficiency-positive`。
+
+新的 portfolio v5 authority 没有覆盖旧 Env gate：它把旧 fidelity gate 作为 digest-bound superseded evidence，与新
+cost report 一起重验。Readiness v6 现为 API quality-positive=1、Env efficiency-positive=1、eligible phenotypes=2，
+`twoEvidenceQualifiedPhenotypes=true`；但 automation incomplete 仍 7/7，overall readiness=false，held-out/
+untouched replication/多模型未授权。
 
 ## 18. BIDS prospective construction、development 与残差有效性
 
@@ -924,3 +933,6 @@ analysis 失败，两案 artifact consistency 失败。该结果证明通用 sch
 - `results/skill-ir/reviewed-aot-efficiency-resilient-observation-failure-v1.json`
 - `results/skill-ir/reviewed-aot-efficiency-readonly-qualification-v1.json`
 - `results/skill-ir/reviewed-aot-efficiency-readonly-serial-freeze-v1.json`
+- `results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/paired-quality-evidence.json`
+- `results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json`
+- `results/skill-ir/method-portfolio-authoritative-efficiency-readiness.json`

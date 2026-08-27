@@ -1427,5 +1427,16 @@ digest-validate successor policy/freeze、frozen plan、state/prefix，既不能
 语义化 `readonly-serial-001`，没有把 routine 修补描述为 v3/v4 重做；其 schema `/v1` 表示这些新增合同各自的首版。
 Freeze 仍只授权 prepare 与一个 fresh 8-row foreground execution，不授权 efficiency/readiness claim。
 
+该 foreground execution 已按授权完成：8/8 complete、4/4 pair quality equivalent、0 retry/observer/infrastructure/
+hard-gate/regression；original 4 次共 202010 model tokens，reviewed-AOT 4 次为 0。完整 production AOT 成本为 9358
+model tokens，research all-attempt 无 missing，公共 builder 重算 break-even=1 并派生 `efficiency-positive`。这是
+`review-required` AOT 的单模型/Windows/clean efficiency 正例；8 humanMinutes 与 125 adapter LOC 继续独立披露，
+不能据此把 automatic construction 写成已收敛。
+
+Portfolio 结论的更新必须显式保留证据连续性。新的 `method-portfolio/v5` registry 同时 digest-bind Env 原
+validated-artifact fidelity gate 与 prospective cost report，并以 `prospective-efficiency-identity` 标明 supersession；
+authority v2 重算两者后才生成 readiness v6。当前 two-evidence gate 为 true，但
+`automationAndAdaptationConverging=false`，所以 overall readiness、untouched replication、held-out 与多模型主张仍关闭。
+
 跨 agent、跨 OS、noisy/long、三模型族主表与普遍稳定性仍属于后续扩展目标。这个收窄不降低已有 quality、
 fixed-denominator、held-out 或 provenance 标准，只减少当前里程碑同时必须证明的外推范围。

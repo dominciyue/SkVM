@@ -167,9 +167,13 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 - 最后一次有界 successor 已改为语义化 `readonly-serial-001`，不是继续滚动 v3/v4。真实 4-row materialization 上，
   独立 holder 存在时 12 status + 12 collect 前后 41-entry active tree byte-identical；只读闭包外 import 与 builder/
   materializer/write API 均为 0。Foreground serial fake rows 2/2，prefix-commit 恢复与缺 terminal 停止均通过。
-  新 0/8 policy/freeze 已零付费生成，production run 尚未创建、key 尚未检查；pre-model push 后才允许 prepare 与唯一
-  foreground execute。该身份若再遇基础设施失败，立即转 Phase 2，不再修 control-plane。
-- 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
+  新 0/8 policy/freeze 零付费生成并先行推送；随后唯一 foreground execute 已完成 8/8、0 retry、0 observer，4/4
+  original/reviewed pairs 均为 1.0，0 infrastructure/hard-gate/regression。Original 4 次合计 202010 model tokens，
+  reviewed-AOT 为 0；完整 production one-time cost 为 9358 tokens，机器派生 break-even=1。
+- 新 v5 authority registry 不是覆盖旧 Env gate，而是同时 digest-bind 旧 fidelity evidence 与新的 prospective cost
+  evidence。Readiness v6 现有 API quality-positive + Env efficiency-positive 两个 phenotype，two-evidence gate 已通过；
+  但 reviewed patch 仍需 8 humanMinutes/125 LOC，7/7 `generatesIr=false`，所以 automation gate 与 overall readiness 仍
+  failed。当前只证明本单模型/Windows/clean reviewed-AOT 切片的摊销 Token 节省，不能外推跨模型、agent 或 OS。
 
 ## 当前下一步
 
@@ -223,6 +227,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 唯一 execution 停在 6/8；第 7 行 paid side effect 存在但 usage authority 缺失，v1 不续跑、不回填、不分类
 -> 新 0/8 identity 已完成 durable journal、forced-controller qualification、policy/freeze 与 0-paid plan
 -> 唯一 start 因 status 观测污染停在 1/8；v2 不续跑，未来 identity 必须让 status/collect 完全不 materialize
+-> final readonly-serial identity 已完成 8/8、4/4 quality parity、0 infra/retry/observer；Env efficiency-positive
+-> authority v5 显式保留旧 Env gate 并绑定新 cost evidence；readiness v6 two-evidence=true、automation=false、overall=false
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

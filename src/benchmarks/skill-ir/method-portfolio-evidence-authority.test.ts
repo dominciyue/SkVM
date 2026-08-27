@@ -4,7 +4,9 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import {
   MethodPortfolioAuthorityRegistrySchema,
+  MethodPortfolioAuthorityRegistryV5Schema,
   deriveOptimizationCostReportAuthority,
+  deriveExecutionEnvelopeCostAuthority,
   deriveReviewedAotPairedQualityAuthority,
   deriveValidatedArtifactGateAuthority,
   readAndEvaluateAuthoritativeMethodPortfolio,
@@ -314,7 +316,29 @@ describe("method portfolio optimization evidence authority", () => {
     }
   })
 
-  test("revalidates the stock API quality-positive before counting the current one", async () => {
+  test("recomputes original recurring and all-attempt usage from value-free execution envelopes", async () => {
+    const cost = await readJson(
+      "results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json",
+    )
+    const envelopeText = await readFile(path.join(
+      rootDir,
+      "results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/run/execution-envelopes.jsonl",
+    ), "utf8")
+    const envelopes = envelopeText.trim().split(/\r?\n/u).map((line) => JSON.parse(line))
+    expect(deriveExecutionEnvelopeCostAuthority(cost, envelopes)).toMatchObject({
+      samples: 4,
+      aggregateModelTokens: 202010,
+      aggregateCacheReadTokens: 642560,
+      aggregateEnvelopeDurationMs: 812234,
+    })
+
+    const tampered = structuredClone(cost)
+    tampered.production.runtime.original.aggregateModelTokens += 1
+    expect(() => deriveExecutionEnvelopeCostAuthority(tampered, envelopes))
+      .toThrow("execution envelope aggregate disagrees")
+  })
+
+  test("preserves the historical v4 API quality and Env fidelity conclusions", async () => {
     const report = await readAndEvaluateAuthoritativeMethodPortfolio({
       rootDir,
       portfolioPath: path.join(
@@ -341,12 +365,79 @@ describe("method portfolio optimization evidence authority", () => {
     }))
     expect(report.evidenceAuthority.cases).toContainEqual(expect.objectContaining({
       skillId: "env-manager",
+      evidenceSchemaVersion: "skill-ir-validated-artifact-development-gate-report/v1",
       classification: "fidelity-preserving",
+      productionCostComplete: false,
+      allAttemptCostComplete: false,
+      breakEvenComplete: false,
       qualityEquivalent: true,
       strictQualityImprovement: false,
     }))
     expect(report.gates.twoEvidenceQualifiedPhenotypes).toBe(false)
     expect(report.gates.automationAndAdaptationConverging).toBe(false)
+  })
+
+  test("revalidates API quality and explicitly superseded Env efficiency evidence before counting two phenotypes", async () => {
+    const report = await readAndEvaluateAuthoritativeMethodPortfolio({
+      rootDir,
+      portfolioPath: path.join(
+        rootDir,
+        "benchmarks/skill-ir/corpus/method-portfolio-authoritative-efficiency.json",
+      ),
+    })
+    expect(report.schemaVersion).toBe("skill-ir-method-portfolio-readiness/v6")
+    expect(report.counts).toMatchObject({
+      readinessEligibleDevelopmentPhenotypes: 2,
+      qualityPositiveDevelopmentPhenotypes: 1,
+      efficiencyPositiveDevelopmentPhenotypes: 1,
+      fidelityPreservingDevelopmentPhenotypes: 0,
+    })
+    expect(report.evidenceAuthority.schemaVersion)
+      .toBe("skill-ir-method-portfolio-evidence-authority/v2")
+    expect(report.evidenceAuthority.cases).toContainEqual(expect.objectContaining({
+      skillId: "api-tester",
+      evidenceSchemaVersion: "skill-ir-validated-artifact-development-gate-report/v1",
+      classification: "quality-positive",
+    }))
+    expect(report.evidenceAuthority.cases).toContainEqual(expect.objectContaining({
+      skillId: "env-manager",
+      evidenceSchemaVersion: "skill-ir-optimization-cost-accounting/v1",
+      classification: "efficiency-positive",
+      productionCostComplete: true,
+      allAttemptCostComplete: true,
+      breakEvenComplete: true,
+      qualityEquivalent: true,
+      strictQualityImprovement: false,
+      supersededEvidence: expect.objectContaining({
+        evidencePath: "results/skill-ir/env-manager-v3-validated-artifact-development-v1/gate-report.json",
+        evidenceSchemaVersion: "skill-ir-validated-artifact-development-gate-report/v1",
+        classification: "fidelity-preserving",
+      }),
+      supersessionReason: "prospective-efficiency-identity",
+    }))
+    expect(report.gates.twoEvidenceQualifiedPhenotypes).toBe(true)
+    expect(report.gates.automationAndAdaptationConverging).toBe(false)
+    expect(report.passed).toBe(false)
+  })
+
+  test("v5 successor requires an explicit digest-bound predecessor when current evidence supersedes lifecycle evidence", async () => {
+    const registry = await readJson(
+      "benchmarks/skill-ir/corpus/method-portfolio-authoritative-efficiency.json",
+    )
+    const env = registry.cases.find((entry: any) => entry.skillId === "env-manager")
+    delete env.supersededEvidence
+    delete env.supersessionReason
+    expect(() => MethodPortfolioAuthorityRegistryV5Schema.parse(registry)).not.toThrow()
+
+    const temp = await mkdtemp(path.join(rootDir, "results/skill-ir/authority-continuity-test-"))
+    const registryPath = path.join(temp, "registry.json")
+    try {
+      await writeFile(registryPath, `${JSON.stringify(registry, null, 2)}\n`, "utf8")
+      await expect(readAndEvaluateAuthoritativeMethodPortfolio({ rootDir, portfolioPath: registryPath }))
+        .rejects.toThrow("explicit superseded lifecycle evidence")
+    } finally {
+      await rm(temp, { recursive: true, force: true })
+    }
   })
 
   test("writes the authoritative readiness result without overwriting legacy v4", async () => {
@@ -363,6 +454,25 @@ describe("method portfolio optimization evidence authority", () => {
       })
       expect(JSON.parse(await readFile(outputPath, "utf8"))).toEqual(report)
       expect(report.schemaVersion).toBe("skill-ir-method-portfolio-readiness/v5")
+    } finally {
+      await rm(temp, { recursive: true, force: true })
+    }
+  })
+
+  test("writes successor readiness without overwriting historical v5 readiness", async () => {
+    const temp = await mkdtemp(path.join(tmpdir(), "skill-ir-authoritative-readiness-v6-"))
+    const outputPath = path.join(temp, "readiness.json")
+    try {
+      const report = await writeAuthoritativeMethodPortfolioReadinessReport({
+        rootDir,
+        portfolioPath: path.join(
+          rootDir,
+          "benchmarks/skill-ir/corpus/method-portfolio-authoritative-efficiency.json",
+        ),
+        outputPath,
+      })
+      expect(JSON.parse(await readFile(outputPath, "utf8"))).toEqual(report)
+      expect(report.schemaVersion).toBe("skill-ir-method-portfolio-readiness/v6")
     } finally {
       await rm(temp, { recursive: true, force: true })
     }

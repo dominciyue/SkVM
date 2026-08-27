@@ -14,7 +14,11 @@ import {
 } from "./method-portfolio.ts"
 import { readAndEvaluatePartialBenefitReentry } from "./partial-benefit-reentry.ts"
 import { sha256Bytes } from "./source-fixture.ts"
-import { ReviewedAotPairedQualityEvidenceSchema } from "./reviewed-aot-efficiency-readonly-contract.ts"
+import { ExecutionEnvelopeSchema } from "./execution-resilience.ts"
+import {
+  READONLY_SERIAL_EFFICIENCY_EXPERIMENT_ID,
+  ReviewedAotPairedQualityEvidenceSchema,
+} from "./reviewed-aot-efficiency-readonly-contract.ts"
 
 const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/)
 
@@ -32,6 +36,24 @@ const MethodPortfolioAuthorityCaseEnvelopeSchema = z.object({
   optimizationEvidence: MethodPortfolioOptimizationEvidenceReferenceSchema,
 }).strict()
 
+const MethodPortfolioAuthorityV5CaseEnvelopeSchema = z.object({
+  skillId: z.string().min(1),
+  optimizationEvidence: MethodPortfolioOptimizationEvidenceReferenceSchema,
+  supersededEvidence: z.object({
+    status: z.literal("evidence-ref"),
+    evidencePath: SafeRelativePathSchema,
+    evidenceSha256: Sha256Schema,
+  }).strict().optional(),
+  supersessionReason: z.literal("prospective-efficiency-identity").optional(),
+}).strict().superRefine((entry, context) => {
+  if ((entry.supersededEvidence === undefined) !== (entry.supersessionReason === undefined)) {
+    context.addIssue({
+      code: "custom",
+      message: "supersededEvidence and supersessionReason must be declared together",
+    })
+  }
+})
+
 export const MethodPortfolioAuthorityRegistrySchema = z.object({
   schemaVersion: z.literal("skill-ir-method-portfolio/v4"),
   portfolioId: z.string().min(1),
@@ -40,6 +62,16 @@ export const MethodPortfolioAuthorityRegistrySchema = z.object({
     sha256: Sha256Schema,
   }).strict(),
   cases: z.array(MethodPortfolioAuthorityCaseEnvelopeSchema).min(1),
+}).strict()
+
+export const MethodPortfolioAuthorityRegistryV5Schema = z.object({
+  schemaVersion: z.literal("skill-ir-method-portfolio/v5"),
+  portfolioId: z.string().min(1),
+  basePortfolio: z.object({
+    path: SafeRelativePathSchema,
+    sha256: Sha256Schema,
+  }).strict(),
+  cases: z.array(MethodPortfolioAuthorityV5CaseEnvelopeSchema).min(1),
 }).strict()
 
 const GateSystemNameSchema = z.enum(["no-skill", "original", "ir-static", "validated-artifact"])
@@ -400,6 +432,70 @@ export function deriveOptimizationCostReportAuthority(
   }
 }
 
+export function deriveExecutionEnvelopeCostAuthority(
+  rawCost: unknown,
+  rawEnvelopes: unknown[],
+) {
+  const report = OptimizationCostAccountingReportSchema.parse(rawCost)
+  const envelopes = rawEnvelopes.map((entry) => ExecutionEnvelopeSchema.parse(entry))
+  const keys = new Set(envelopes.map((entry) => `${entry.taskId}\0${entry.candidateBlock}`))
+  if (envelopes.length !== report.production.runtime.original.samples
+    || keys.size !== envelopes.length
+    || envelopes.some((entry) => entry.experimentId !== report.experimentId
+      || entry.system !== "original"
+      || entry.classification !== "semantic-complete"
+      || !entry.activity.requestDispatched
+      || !entry.usage.available)) {
+    throw new Error("execution envelope denominator does not support the cost report")
+  }
+  const summary = {
+    samples: envelopes.length,
+    aggregateModelTokens: envelopes.reduce((sum, entry) => sum + entry.usage.input + entry.usage.output, 0),
+    aggregateCacheReadTokens: envelopes.reduce((sum, entry) => sum + entry.usage.cacheRead, 0),
+    aggregateCacheWriteTokens: envelopes.reduce((sum, entry) => sum + entry.usage.cacheWrite, 0),
+    aggregateEnvelopeDurationMs: envelopes.reduce((sum, entry) => sum + entry.process.durationMs, 0),
+  }
+  const attempt = report.research.attempts.find((entry) => entry.id === "paid-original-matrix")
+  const expectedAttempt = attempt && {
+    attempts: attempt.attempts,
+    inputTokens: attempt.usage.inputTokens,
+    outputTokens: attempt.usage.outputTokens,
+    cacheReadTokens: attempt.usage.cacheReadTokens,
+    cacheWriteTokens: attempt.usage.cacheWriteTokens,
+    selected: attempt.selected && {
+      attempts: attempt.selected.attempts,
+      usage: attempt.selected.usage,
+    },
+  }
+  const measured = (value: number) => ({ status: "measured" as const, value })
+  const expectedSelected = {
+    attempts: summary.samples,
+    usage: {
+      inputTokens: measured(envelopes.reduce((sum, entry) => sum + entry.usage.input, 0)),
+      outputTokens: measured(envelopes.reduce((sum, entry) => sum + entry.usage.output, 0)),
+      cacheReadTokens: measured(summary.aggregateCacheReadTokens),
+      cacheWriteTokens: measured(summary.aggregateCacheWriteTokens),
+    },
+    durationMs: measured(summary.aggregateEnvelopeDurationMs),
+  }
+  const derivedAttempt = {
+    attempts: summary.samples,
+    inputTokens: expectedSelected.usage.inputTokens,
+    outputTokens: expectedSelected.usage.outputTokens,
+    cacheReadTokens: expectedSelected.usage.cacheReadTokens,
+    cacheWriteTokens: expectedSelected.usage.cacheWriteTokens,
+    selected: {
+      attempts: expectedSelected.attempts,
+      usage: expectedSelected.usage,
+    },
+  }
+  if (report.production.runtime.original.aggregateModelTokens !== summary.aggregateModelTokens
+    || !isDeepStrictEqual(expectedAttempt, derivedAttempt)) {
+    throw new Error("execution envelope aggregate disagrees with optimization cost report")
+  }
+  return summary
+}
+
 type OptimizationEvidenceReference = Extract<
   z.infer<typeof MethodPortfolioOptimizationEvidenceReferenceSchema>,
   { status: "evidence-ref" }
@@ -419,11 +515,34 @@ const EvidenceAuthorityCaseSchema = z.object({
   strictQualityImprovement: z.boolean(),
 }).strict()
 
+const SupersededEvidenceAuthoritySchema = EvidenceAuthorityCaseSchema
+  .omit({ skillId: true })
+  .strict()
+
+const EvidenceAuthorityCaseV2Schema = EvidenceAuthorityCaseSchema.extend({
+  supersededEvidence: SupersededEvidenceAuthoritySchema.optional(),
+  supersessionReason: z.literal("prospective-efficiency-identity").optional(),
+}).strict().superRefine((entry, context) => {
+  if ((entry.supersededEvidence === undefined) !== (entry.supersessionReason === undefined)) {
+    context.addIssue({
+      code: "custom",
+      message: "supersededEvidence and supersessionReason must be reported together",
+    })
+  }
+})
+
 export const MethodPortfolioEvidenceAuthorityReportSchema = z.object({
   schemaVersion: z.literal("skill-ir-method-portfolio-evidence-authority/v1"),
   authorityRegistry: z.object({ path: SafeRelativePathSchema, sha256: Sha256Schema }).strict(),
   basePortfolio: z.object({ path: SafeRelativePathSchema, sha256: Sha256Schema }).strict(),
   cases: z.array(EvidenceAuthorityCaseSchema),
+}).strict()
+
+export const MethodPortfolioEvidenceAuthorityReportV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-method-portfolio-evidence-authority/v2"),
+  authorityRegistry: z.object({ path: SafeRelativePathSchema, sha256: Sha256Schema }).strict(),
+  basePortfolio: z.object({ path: SafeRelativePathSchema, sha256: Sha256Schema }).strict(),
+  cases: z.array(EvidenceAuthorityCaseV2Schema),
 }).strict()
 
 export const AuthoritativeMethodPortfolioReadinessReportSchema = MethodPortfolioReadinessReportSchema
@@ -433,9 +552,24 @@ export const AuthoritativeMethodPortfolioReadinessReportSchema = MethodPortfolio
     evidenceAuthority: MethodPortfolioEvidenceAuthorityReportSchema,
   }).strict()
 
+export const AuthoritativeMethodPortfolioReadinessReportV6Schema = MethodPortfolioReadinessReportSchema
+  .omit({ schemaVersion: true })
+  .extend({
+    schemaVersion: z.literal("skill-ir-method-portfolio-readiness/v6"),
+    evidenceAuthority: MethodPortfolioEvidenceAuthorityReportV2Schema,
+  }).strict()
+
 export type AuthoritativeMethodPortfolioReadinessReport = z.infer<
   typeof AuthoritativeMethodPortfolioReadinessReportSchema
 >
+
+export type AuthoritativeMethodPortfolioReadinessReportV6 = z.infer<
+  typeof AuthoritativeMethodPortfolioReadinessReportV6Schema
+>
+
+export type AnyAuthoritativeMethodPortfolioReadinessReport =
+  | AuthoritativeMethodPortfolioReadinessReport
+  | AuthoritativeMethodPortfolioReadinessReportV6
 
 function containedPath(rootDir: string, relativePath: string, label: string): string {
   const root = path.resolve(rootDir)
@@ -526,8 +660,23 @@ async function readOptimizationEvidenceAuthorityInternal(input: {
     ]).has(qualityAuthority.evidenceSchemaVersion)) {
       throw new Error("optimization cost quality evidence must be a supported machine-derived quality gate")
     }
+    let executionEnvelopeEvidence = false
     for (const reference of report.evidence) {
-      await readDigestBoundBytes(input.rootDir, reference, "optimization cost transitive evidence")
+      const evidenceBytes = await readDigestBoundBytes(
+        input.rootDir,
+        reference,
+        "optimization cost transitive evidence",
+      )
+      if (reference.path.endsWith("/execution-envelopes.jsonl")) {
+        const envelopes = evidenceBytes.toString("utf8").trim().split(/\r?\n/u)
+          .filter(Boolean)
+          .map((line) => parseJsonEvidence(Buffer.from(line, "utf8"), reference.path))
+        deriveExecutionEnvelopeCostAuthority(report, envelopes)
+        executionEnvelopeEvidence = true
+      }
+    }
+    if (report.experimentId === READONLY_SERIAL_EFFICIENCY_EXPERIMENT_ID && !executionEnvelopeEvidence) {
+      throw new Error("read-only serial cost report requires value-free execution envelope authority")
     }
     return deriveOptimizationCostReportAuthority(report, qualityAuthority)
   }
@@ -567,15 +716,19 @@ async function validateReentryPolicies(rootDir: string, portfolio: z.infer<typeo
 export async function readAndEvaluateAuthoritativeMethodPortfolio(input: {
   rootDir: string
   portfolioPath: string
-}): Promise<AuthoritativeMethodPortfolioReadinessReport> {
+}): Promise<AnyAuthoritativeMethodPortfolioReadinessReport> {
   const rootDir = path.resolve(input.rootDir)
   const absoluteRegistryPath = path.resolve(input.portfolioPath)
   const relativeRegistryPath = path.relative(rootDir, absoluteRegistryPath).replaceAll("\\", "/")
   const normalizedRegistryPath = SafeRelativePathSchema.parse(relativeRegistryPath)
   const registryBytes = await readRegularFile(rootDir, normalizedRegistryPath, "portfolio authority registry")
-  const registry = MethodPortfolioAuthorityRegistrySchema.parse(
-    JSON.parse(registryBytes.toString("utf8")),
-  )
+  const rawRegistry = JSON.parse(registryBytes.toString("utf8"))
+  const registryVersion = z.object({ schemaVersion: z.string() }).passthrough().parse(rawRegistry).schemaVersion
+  const registry = registryVersion === "skill-ir-method-portfolio/v4"
+    ? MethodPortfolioAuthorityRegistrySchema.parse(rawRegistry)
+    : registryVersion === "skill-ir-method-portfolio/v5"
+      ? MethodPortfolioAuthorityRegistryV5Schema.parse(rawRegistry)
+      : (() => { throw new Error(`unsupported portfolio authority registry schema: ${registryVersion}`) })()
   const baseBytes = await readDigestBoundBytes(rootDir, registry.basePortfolio, "base method portfolio")
   const basePortfolio = MethodPortfolioSchema.parse(JSON.parse(baseBytes.toString("utf8")))
   if (registry.portfolioId !== basePortfolio.portfolioId) {
@@ -591,11 +744,20 @@ export async function readAndEvaluateAuthoritativeMethodPortfolio(input: {
     throw new Error("portfolio authority registry requires exactly one entry for every base case")
   }
 
-  const evidenceCases: z.infer<typeof EvidenceAuthorityCaseSchema>[] = []
+  const evidenceCases: unknown[] = []
   const resolvedCases = []
   for (const entry of basePortfolio.cases) {
     const authority = authorityBySkill.get(entry.skillId)!
+    const authoritySupersededEvidence = "supersededEvidence" in authority
+      ? authority.supersededEvidence
+      : undefined
+    const authoritySupersessionReason = "supersessionReason" in authority
+      ? authority.supersessionReason
+      : undefined
     if (authority.optimizationEvidence.status === "not-established") {
+      if (authoritySupersededEvidence !== undefined) {
+        throw new Error(`not-established authority cannot supersede lifecycle evidence: ${entry.skillId}`)
+      }
       resolvedCases.push({
         ...entry,
         optimizationEvidence: {
@@ -607,9 +769,40 @@ export async function readAndEvaluateAuthoritativeMethodPortfolio(input: {
       })
       continue
     }
-    if (entry.lifecycle.optimizedDevelopment.status !== "passed"
-      || entry.lifecycle.optimizedDevelopment.evidencePath !== authority.optimizationEvidence.evidencePath) {
+    if (entry.lifecycle.optimizedDevelopment.status !== "passed") {
       throw new Error(`portfolio optimized lifecycle and authority evidence disagree: ${entry.skillId}`)
+    }
+    const lifecycleEvidencePath = entry.lifecycle.optimizedDevelopment.evidencePath
+    const currentEvidencePath = authority.optimizationEvidence.evidencePath
+    let supersededEvidenceAuthority: z.infer<typeof SupersededEvidenceAuthoritySchema> | undefined
+    let supersessionReason: "prospective-efficiency-identity" | undefined
+    if (lifecycleEvidencePath !== currentEvidencePath) {
+      if (registry.schemaVersion !== "skill-ir-method-portfolio/v5"
+        || authoritySupersededEvidence === undefined
+        || authoritySupersessionReason === undefined) {
+        throw new Error(`portfolio authority requires explicit superseded lifecycle evidence: ${entry.skillId}`)
+      }
+      if (authoritySupersededEvidence.evidencePath !== lifecycleEvidencePath) {
+        throw new Error(`superseded evidence does not match optimized lifecycle evidence: ${entry.skillId}`)
+      }
+      const superseded = await readOptimizationEvidenceAuthority({
+        rootDir,
+        evidence: authoritySupersededEvidence,
+      })
+      if (superseded.classification === "not-established"
+        || !superseded.qualityComparisonComplete
+        || !superseded.qualityEquivalent) {
+        throw new Error(`superseded lifecycle evidence does not support its historical result: ${entry.skillId}`)
+      }
+      supersededEvidenceAuthority = SupersededEvidenceAuthoritySchema.parse({
+        evidencePath: authoritySupersededEvidence.evidencePath,
+        evidenceSha256: authoritySupersededEvidence.evidenceSha256,
+        ...superseded,
+      })
+      supersessionReason = authoritySupersessionReason
+    } else if (registry.schemaVersion === "skill-ir-method-portfolio/v5"
+      && authoritySupersededEvidence !== undefined) {
+      throw new Error(`portfolio authority cannot supersede identical lifecycle evidence: ${entry.skillId}`)
     }
     const derived = await readOptimizationEvidenceAuthority({
       rootDir,
@@ -620,12 +813,19 @@ export async function readAndEvaluateAuthoritativeMethodPortfolio(input: {
       || !derived.qualityEquivalent) {
       throw new Error(`optimization evidence does not support a classified result: ${entry.skillId}`)
     }
-    evidenceCases.push(EvidenceAuthorityCaseSchema.parse({
+    const evidenceCase = {
       skillId: entry.skillId,
       evidencePath: authority.optimizationEvidence.evidencePath,
       evidenceSha256: authority.optimizationEvidence.evidenceSha256,
       ...derived,
-    }))
+      ...(supersededEvidenceAuthority === undefined ? {} : {
+        supersededEvidence: supersededEvidenceAuthority,
+        supersessionReason,
+      }),
+    }
+    evidenceCases.push(registry.schemaVersion === "skill-ir-method-portfolio/v5"
+      ? EvidenceAuthorityCaseV2Schema.parse(evidenceCase)
+      : EvidenceAuthorityCaseSchema.parse(evidenceCase))
     resolvedCases.push({
       ...entry,
       optimizationEvidence: {
@@ -644,26 +844,37 @@ export async function readAndEvaluateAuthoritativeMethodPortfolio(input: {
   await validateReentryPolicies(rootDir, resolvedPortfolio)
   const legacyReport = evaluateMethodPortfolioReadiness(resolvedPortfolio)
   const { schemaVersion: _legacySchemaVersion, ...legacyBody } = legacyReport
-  return AuthoritativeMethodPortfolioReadinessReportSchema.parse({
-    ...legacyBody,
-    schemaVersion: "skill-ir-method-portfolio-readiness/v5",
-    evidenceAuthority: {
-      schemaVersion: "skill-ir-method-portfolio-evidence-authority/v1",
-      authorityRegistry: {
-        path: normalizedRegistryPath,
-        sha256: sha256Bytes(registryBytes),
-      },
-      basePortfolio: registry.basePortfolio,
-      cases: evidenceCases,
+  const evidenceAuthority = {
+    schemaVersion: registry.schemaVersion === "skill-ir-method-portfolio/v5"
+      ? "skill-ir-method-portfolio-evidence-authority/v2" as const
+      : "skill-ir-method-portfolio-evidence-authority/v1" as const,
+    authorityRegistry: {
+      path: normalizedRegistryPath,
+      sha256: sha256Bytes(registryBytes),
     },
-  })
+    basePortfolio: registry.basePortfolio,
+    cases: evidenceCases,
+  }
+  const reportBody = {
+    ...legacyBody,
+    evidenceAuthority,
+  }
+  return registry.schemaVersion === "skill-ir-method-portfolio/v5"
+    ? AuthoritativeMethodPortfolioReadinessReportV6Schema.parse({
+      ...reportBody,
+      schemaVersion: "skill-ir-method-portfolio-readiness/v6",
+    })
+    : AuthoritativeMethodPortfolioReadinessReportSchema.parse({
+      ...reportBody,
+      schemaVersion: "skill-ir-method-portfolio-readiness/v5",
+    })
 }
 
 export async function writeAuthoritativeMethodPortfolioReadinessReport(input: {
   rootDir: string
   portfolioPath: string
   outputPath: string
-}): Promise<AuthoritativeMethodPortfolioReadinessReport> {
+}): Promise<AnyAuthoritativeMethodPortfolioReadinessReport> {
   const report = await readAndEvaluateAuthoritativeMethodPortfolio(input)
   const outputPath = path.resolve(input.outputPath)
   await mkdir(path.dirname(outputPath), { recursive: true })

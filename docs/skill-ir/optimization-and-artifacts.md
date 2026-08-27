@@ -719,6 +719,15 @@ bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts
 envelope、paired quality 与 cost report。Plan builder 不在 execute 或 observer 的 import/call path。恢复只允许
 prefix 已提交而 state 未推进的确定窗口；in-flight 但无完整 prefix 时不会再次调用 executor。
 
+正式执行从 fresh 0/8 一次完成 8/8，生产期间没有启动 status/collect 或任何 observer。四个 original 和四个
+reviewed-AOT 全部 scorer success=1，四组 paired regression 均 false；reviewed runtime 合计 276.9631ms、0 model
+tokens，original 合计 814603ms、202010 model tokens。Production AOT one-time 是 compile/profile/package
+`9358/0/0` tokens，package 13131 bytes；human review 8 minutes/125 LOC 与 research attempts 单列。
+
+公共 cost builder 对 N=1/2/5/10 均可计算，break-even=1 call、production/all-attempt/break-even completeness 全 true，
+因此本切片为 `efficiency-positive`。这个结论只支持 reviewed-AOT 产品轴；case-local review patch 仍是明确的
+unautomated step，不能用于提升 automatic-construction gate。
+
 ## 15. 测试
 
 ```powershell

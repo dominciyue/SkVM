@@ -986,9 +986,11 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已冻结失败：v2 唯一 start 停在 1/8；并发 status 重建 plan 并删除 active task/manifest，row 1 score 与 row 2 control 失效
 已完成：final readonly-serial successor 零付费资格；4 materialized rows、12+12 concurrent reads、41-entry byte parity
 已完成：foreground serial 2/2、committed-prefix recovery、dispatched-without-terminal fail closed、0 observer/retry
-已冻结：新语义身份 readonly-serial-001 为 0/8；剩余 infrastructure repair identity=0，付费前 push 尚待完成
-当前接力：精确验证/提交/推送；随后才 prepare、只检查 key 存在性并唯一 foreground execute。若基础设施再失败转 Phase 2
-结果边界：第二 phenotype 即使成立也不把 full-auto convergence 改成 true
+已完成：readonly-serial-001 唯一 foreground execute 为 8/8、4/4 pair、0 retry/observer/infra，双臂均 score 1
+已完成：original 202010 tokens vs reviewed 0；one-time 9358，成本完整，break-even=1，Env efficiency-positive
+已完成：authority v5 显式保留旧 Env gate并绑定新 cost；readiness v6 two-evidence=true、automation=false、overall=false
+当前接力：只做零付费 automation reachability Phase 2，形成 go/no-go 与最小工作分解；Phase 3 前停下等待用户决定
+结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
 ```
 
