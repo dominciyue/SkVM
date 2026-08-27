@@ -5,6 +5,7 @@ import path from "node:path"
 import {
   MethodPortfolioAuthorityRegistrySchema,
   deriveOptimizationCostReportAuthority,
+  deriveReviewedAotPairedQualityAuthority,
   deriveValidatedArtifactGateAuthority,
   readAndEvaluateAuthoritativeMethodPortfolio,
   readOptimizationEvidenceAuthority,
@@ -87,6 +88,50 @@ describe("method portfolio optimization evidence authority", () => {
     )
     gate.systems["validated-artifact"].successes = 3
     expect(() => deriveValidatedArtifactGateAuthority(gate)).toThrow("systems summary")
+  })
+
+  test("recomputes reviewed-AOT paired quality from all eight records", () => {
+    const taskIds = [
+      "env-manager-scorer-authority-node-dev-001",
+      "env-manager-scorer-authority-vite-dev-002",
+    ]
+    const records = taskIds.flatMap((taskId) => [1, 2].flatMap((repetition) => [
+      { taskId, repetition, system: "original", status: "complete", success: true, score: 1,
+        infrastructureFailure: false, hardGateFailure: false },
+      { taskId, repetition, system: "reviewed-aot", status: "complete", success: true, score: 1,
+        infrastructureFailure: false, hardGateFailure: false },
+    ]))
+    const pairs = taskIds.flatMap((taskId) => [1, 2].map((repetition) => ({
+      taskId, repetition, originalScore: 1, reviewedAotScore: 1, regressed: false, reviewedAotPassed: true,
+    })))
+    const evidence = {
+      schemaVersion: "skill-ir-reviewed-aot-paired-quality-evidence/v1",
+      experimentId: "env-manager-reviewed-aot-efficiency-readonly-serial-001",
+      counts: { expectedRows: 8, observedRows: 8, expectedPairs: 4, completePairs: 4 },
+      records,
+      pairs,
+      gate: {
+        completeRows: true, completePairs: true, allReviewedPass: true,
+        noInfrastructureFailures: true, noReviewedHardGateFailures: true,
+        noPairwiseRegressions: true, passed: true,
+      },
+      qualityEquivalent: true,
+      authorizations: { heldOut: false, readinessPromotion: false },
+    }
+    expect(deriveReviewedAotPairedQualityAuthority(evidence)).toEqual({
+      evidenceSchemaVersion: "skill-ir-reviewed-aot-paired-quality-evidence/v1",
+      classification: "fidelity-preserving",
+      qualityComparisonComplete: true,
+      productionCostComplete: false,
+      allAttemptCostComplete: false,
+      breakEvenComplete: false,
+      qualityEquivalent: true,
+      strictQualityImprovement: false,
+    })
+
+    const tampered = structuredClone(evidence)
+    tampered.pairs[0]!.regressed = true
+    expect(() => deriveReviewedAotPairedQualityAuthority(tampered)).toThrow("pair summary")
   })
 
   test("recomputes cost completeness and efficiency instead of trusting report flags", async () => {

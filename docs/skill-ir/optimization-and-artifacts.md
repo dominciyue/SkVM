@@ -693,6 +693,32 @@ identity 在生产目录重新 materialize 全部 original rows，删除了 acti
 reviewed artifact 机制，也不允许从单行 usage 计算 break-even。未来 identity 的 control plane 必须只读 frozen bytes、
 journal/state 和已冻结 plan；任何 plan builder/materializer 只能在 worker 启动前的隔离 staging directory 运行。
 
+Task 18.38C 采用 additive read-only/serial successor，而不修改上述冻结文件。`prepare` 是唯一允许调用 original
+plan builder 和 materializer 的阶段；它在 key 检查与付费执行前一次性生成新 active root 的 plan/case artifacts 和
+deterministic bundle。随后 `status/collect` 只读取并核对冻结字节，且资格测试须在独立进程持有真实 case 文件时证明
+重复并发读取前后全树 byte-identical。Production 不再启动 observer 或 detached controller，而由单一 foreground
+runner 串行执行 `dispatched -> row -> atomic prefix`。该简化保留 0 retry/fail-closed：只有 prefix 已完整提交的窗口
+可以确定恢复，dispatched 但无完整证据不得重发。若资格通过后的新 0/8 身份仍发生基础设施失败，efficiency 修复
+立即止损并进入 Phase 2。
+
+正式命令分权如下。Qualification/freeze 全程 0 paid；`prepare` 只物化 plan/bundle/state/prefix，不检查或消费
+credential；只有 pre-model closure 推送后才允许运行 `execute`：
+
+```powershell
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts --phase=qualify
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts `
+  --phase=freeze --frozen-at=<ISO-8601>
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts --phase=prepare
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-control-run.ts --phase=status
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-control-run.ts --phase=collect
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts --phase=execute
+```
+
+生产期间禁止调用 status/collect，虽然这两个入口已被证明只读；它们只用于付费前 0/8 复核或异常后的取证。
+`execute` 消费 prepare 落盘的 4-row original plan 与 digest-bound bundle，顺序执行 8 行并直接落完整 raw/scored/
+envelope、paired quality 与 cost report。Plan builder 不在 execute 或 observer 的 import/call path。恢复只允许
+prefix 已提交而 state 未推进的确定窗口；in-flight 但无完整 prefix 时不会再次调用 executor。
+
 ## 15. 测试
 
 ```powershell

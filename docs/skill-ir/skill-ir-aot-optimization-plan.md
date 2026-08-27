@@ -1342,6 +1342,32 @@ compiler cost capture、薄声明构造、结构 execution bridge、部分 outpu
 dynamic 只在稳定
 residual 出现时执行；完整 held-out、noisy/long 与跨模型主 claim 仍须等待 readiness 与 untouched replication。
 
+### 4.27 Task 18.38C：只读观察与极简串行执行
+
+Task 18.38B 的失败不是模型或 reviewed-AOT 质量证据，而是 `status` 与 production materializer 共享
+`loadMatrixIdentity` 后删除 active case。18.38C 是 Phase 1 内最后一次有界修复，顺序固定如下：
+
+1. 新建 additive successor，不修改 v1/v2 冻结实现。只读 control-plane 只解析 schema、读取 regular file、核对
+   path containment 与 SHA-256；其依赖闭包不得包含 plan builder/materializer 或任何文件写 API。
+2. TDD 先建立真实 materialized active-tree 并发回归：另一进程持有 task/skill/manifest 时，重复并发执行真实
+   `status/collect`，前后全树 path + bytes digest 必须一致。该证明为 0 API/model/paid；失败则不得 freeze。
+3. 付费前 `prepare` 单独物化 4 行 original plan、编译 deterministic bundle，并将它们与 8-row denominator 一起落入
+   只读 plan。生产只运行一个
+   foreground serial executor，逐行 `dispatched -> execute -> atomic prefix`，不启动 detached worker、observer 或
+   polling controller。
+4. 新 identity 从 0/8 开始、0 retry，不复用 v1/v2 任何行。安全恢复只允许已完成 prefix 与 state 的确定性
+   reconcile；dispatched 后缺少完整行证据即 fail closed。
+5. Qualification、freeze、focused/typecheck/docs/broad 和 pre-model commit/push 全部完成后，才检查 key 存在性并
+   启动唯一 8 行执行。若此后再次出现基础设施失败，立即停止 Phase 1 修复并转 Phase 2；不再建立新 control-plane。
+6. 只有 8/8 后才由质量 gate、公共 cost builder、evidence authority 顺序派生 portfolio/readiness。无论 Phase 1
+   成败，随后 Phase 2 只读分析 automation reachability，并在 Phase 3 前停下等待用户决定。
+
+截至 2026-08-27，步骤 1--2 的 TDD 与零付费 qualification 已完成：真实 active tree 为 41 entries，独立 holder
+存在时 12 status + 12 collect 前后 byte digest 相同；只读闭包外 import、builder/materializer 与 mutation API 均为
+0。串行状态机的正常完成、prefix-commit 恢复和 dispatched-without-terminal 停止均已通过。新 policy/freeze 固定
+`env-manager-reviewed-aot-efficiency-readonly-serial-001`、0/8、0 retry、0 production observer 与剩余修复身份 0；
+付费执行仍未发生，pre-model commit/push 前也不得创建正式 run directory 或检查 key。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

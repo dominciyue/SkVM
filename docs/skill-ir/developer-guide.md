@@ -984,7 +984,10 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：新 0/8 resilient identity；forced controller termination 后同一 detached worker 完成，重复 start 不重发
 已完成：terminal-before-prefix reconcile、dispatched-without-terminal fail closed、O_EXCL 单 worker authority
 已冻结失败：v2 唯一 start 停在 1/8；并发 status 重建 plan 并删除 active task/manifest，row 1 score 与 row 2 control 失效
-当前接力：v1/v2 都不续跑；禁止对 active v2 调用 status/collect。先决定是否授权只读 control-plane successor
+已完成：final readonly-serial successor 零付费资格；4 materialized rows、12+12 concurrent reads、41-entry byte parity
+已完成：foreground serial 2/2、committed-prefix recovery、dispatched-without-terminal fail closed、0 observer/retry
+已冻结：新语义身份 readonly-serial-001 为 0/8；剩余 infrastructure repair identity=0，付费前 push 尚待完成
+当前接力：精确验证/提交/推送；随后才 prepare、只检查 key 存在性并唯一 foreground execute。若基础设施再失败转 Phase 2
 结果边界：第二 phenotype 即使成立也不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
 ```
@@ -1064,6 +1067,13 @@ bun test ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient.test.ts `
   ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-detach.test.ts `
   ./src/benchmarks/skill-ir/reviewed-aot-efficiency-resilient-policy.test.ts
 # v2 status/collect 会 materialize；冻结事故身份上禁止再调用。
+bun test ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-policy.test.ts `
+  ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial.test.ts `
+  ./src/benchmarks/skill-ir/method-portfolio-evidence-authority.test.ts
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts --phase=qualify
+bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts `
+  --phase=freeze --frozen-at=<ISO-8601>
+# pre-model push 后：prepare -> key existence -> execute；生产 execute 期间不启动 status/collect。
 ```
 
 这个阶段服务于项目最核心的问题：让使用者未来只需导入 skill/source 和少量可审计声明，系统自动生成稳定

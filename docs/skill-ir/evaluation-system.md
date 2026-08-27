@@ -1061,6 +1061,31 @@ v4 数值 gate failed，但不是基础设施失败：no-skill 2/4、mean 0.65�
 original 的 213935，但质量回归阻止 efficiency/optimized promotion。Residual audit、artifact、held-out 与
 main claim 继续关闭；该结果是可信的 development 方法负结果。
 
+### 11.4 只读 control-plane 资格
+
+Task 18.38C 把 observation 纳入 execution infrastructure 的可执行合同。`status/collect` 只允许 regular-file
+读取、schema parse、path containment、SHA-256 与内存派生；不得调用 plan builder/materializer，不得 reconcile 或
+写 state/prefix，也不得为了校验身份在 active root 中重新 materialize。资格测试必须使用真实 materialized original
+case tree，并由独立进程并发持有 task、skill 与 initial manifest；重复并发调用真实 status/collect 入口后，全 active root 的
+相对路径集合和逐文件字节 digest 必须一致。静态 forbidden-import 检查只作为辅助，不能替代该运行证明。
+
+生产执行采用一个 foreground serial owner，不运行 observer。每行在副作用前落 dispatched authority，完成后原子
+提交完整 prefix；中断恢复只接受可由既有 prefix 确定完成的窗口，dispatched 而无完整证据时 fail closed。新身份
+若在资格通过后仍因基础设施失败，按预注册止损转 Phase 2，不再用另一个 control-plane identity 消除负结果。
+
+实现由三个权限层组成：`reviewed-aot-efficiency-readonly-control.ts` 只有读、hash 与 schema API；
+`reviewed-aot-efficiency-readonly-contract.ts` 只含 schema/常量；`reviewed-aot-efficiency-readonly-control-run.ts`
+只暴露 `--phase=status|collect`。Production materialization 与写入全部留在独立的
+`reviewed-aot-efficiency-readonly-serial-run.ts`，且该 CLI 不提供 status/collect phase。零付费 qualification 实际
+物化 4 个 original case，由独立进程持有 task/skill/manifest，并发执行 12 次 status + 12 次 collect；41-entry
+active tree 前后 SHA-256 相同。串行 fake executor 另证实 2/2 dispatch/prefix、committed-prefix reconcile 与
+dispatched-without-terminal fail closed。
+
+完整 8 行后，质量先写 `skill-ir-reviewed-aot-paired-quality-evidence/v1`。Authority 不信任其中的 counts、pairs、
+gate 或 `qualityEquivalent`，而从 8 个 record 重建 4 个 original/reviewed pairs、infrastructure/hard-gate 与 regression
+结果。成本报告的 quality evidence 现在允许该 paired schema 或既有 validated-artifact gate；两者都必须先机器重算，
+再由公共 cost builder 重算 production/research/break-even/eligibility。
+
 ## 12. 结果持久化
 
 提交到 Git：

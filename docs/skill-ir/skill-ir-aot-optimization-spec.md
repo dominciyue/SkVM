@@ -1415,5 +1415,17 @@ Power 由同一入口在加载 task builder 或进入 qualification 前按 discl
 阶段 0 次付费调用、`coreBranchDelta=0`，且未修改旧 lock、package 或结果。该证据只证明公共编排可以保持
 既有冻结语义，不补足第二个 readiness-eligible phenotype、全成本、untouched replication 或产品入口。
 
+Task 18.38C 将 control-plane read-only 作为新的实验身份硬合同，而不是代码习惯：`status/collect` 只能读取并
+digest-validate successor policy/freeze、frozen plan、state/prefix，既不能直接调用，也不能通过 import closure
+触达 plan builder、materializer 或文件写 API。付费授权前必须用真实 materialized active case 和并发持有文件的
+独立进程，证明重复并发 observation 前后整个 active root 的路径集合与文件字节完全一致。Production runner 必须是
+单 foreground serial owner；运行期间不启动 observer。该身份仍为 0 retry，dispatched 后缺失完整 terminal/prefix
+时 fail closed。若通过上述资格后仍发生基础设施失败，本路线停止，不再滚动新的 control-plane 版本。
+
+该合同已由零付费真实 qualification 实现：4 个 materialized original rows、独立 holder process、12 次 status 与
+12 次 collect 的 41-entry tree byte parity，以及 2-row serial crash-window 测试全部通过。最终 identity 名称使用
+语义化 `readonly-serial-001`，没有把 routine 修补描述为 v3/v4 重做；其 schema `/v1` 表示这些新增合同各自的首版。
+Freeze 仍只授权 prepare 与一个 fresh 8-row foreground execution，不授权 efficiency/readiness claim。
+
 跨 agent、跨 OS、noisy/long、三模型族主表与普遍稳定性仍属于后续扩展目标。这个收窄不降低已有 quality、
 fixed-denominator、held-out 或 provenance 标准，只减少当前里程碑同时必须证明的外推范围。

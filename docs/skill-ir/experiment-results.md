@@ -629,6 +629,20 @@ dispatch、1 paid attempt 且 usage complete，没有重试或更多调用。该
 readiness/Phase 2/held-out 不更新。根因属于 control-plane contamination，不是 original 或 reviewed-AOT 的质量负例；
 compact authority 为 `results/skill-ir/reviewed-aot-efficiency-resilient-observation-failure-v1.json`。
 
+用户批准最后一次有界修复后，Task 18.38C 没有修改 v1/v2 冻结实现，而是建立独立的 readonly/serial identity。
+Control plane 的本地 import 只有 3 条，全部留在 read-only control/contract/CLI 闭包；闭包外 import、builder/
+materializer 与 mutation API 均为 0。零付费 qualification 真实物化 4 个 original case，并由独立进程持有第一个
+case 的 task、skill 与 initial manifest；同时执行 12 次 status 和 12 次 collect 后，41-entry active tree 的前后
+SHA-256 完全相同。另一个 2-row fake serial run 为 2 dispatch/2 complete/0 retry/0 observer；已提交 prefix 的 crash
+window 只 reconcile state，dispatched 而无 terminal/prefix 时 fail closed 且 executor 调用为 0。
+
+新 policy/freeze 使用 `env-manager-reviewed-aot-efficiency-readonly-serial-001`，固定 fresh 0/8、4 个未来 original
+paid rows、4 个 deterministic rows、0 retry、single foreground serial owner 与 `remainingInfrastructureRepairIdentities=0`。
+`prepare` 在 credential 检查前一次性生成 exact original plan 和 digest-bound bundle；status/collect 只读 frozen
+transitive closure、plan/state/prefix，execute 不调用 builder，也不启动 observer。完整结果将先写 8-record/4-pair
+quality evidence，由 authority 重建 counts/pairs/gates，再让公共 cost builder 重算 efficiency。当前阶段仍为 0 paid，
+production run 未创建，quality/recurring/break-even/portfolio/readiness 均未建立。
+
 ## 18. BIDS prospective construction、development 与残差有效性
 
 2026-08-23 的 Task 18.18 从冻结候选继续：profile-empty source-audited base IR、23 LOC 声明式 adapter 与手写
@@ -908,3 +922,5 @@ analysis 失败，两案 artifact consistency 失败。该结果证明通用 sch
 - `results/skill-ir/reviewed-aot-efficiency-resilience-qualification-v1.json`
 - `results/skill-ir/reviewed-aot-efficiency-matrix-resilient-freeze-v1.json`
 - `results/skill-ir/reviewed-aot-efficiency-resilient-observation-failure-v1.json`
+- `results/skill-ir/reviewed-aot-efficiency-readonly-qualification-v1.json`
+- `results/skill-ir/reviewed-aot-efficiency-readonly-serial-freeze-v1.json`

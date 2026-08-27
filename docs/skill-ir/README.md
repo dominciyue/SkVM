@@ -164,6 +164,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 - 因此 row 1 scorer 缺 initial manifest 而变成 infrastructure-invalid，row 2 deterministic control 又因 task 文件被
   observer 删除而失败；journal 在 1/8 prefix、2 dispatch 处 fail closed。v2 不重试、不分类，新增 paid call 未授权；
   compact 证据为 `reviewed-aot-efficiency-resilient-observation-failure-v1.json`。这不是模型质量负例。
+- 最后一次有界 successor 已改为语义化 `readonly-serial-001`，不是继续滚动 v3/v4。真实 4-row materialization 上，
+  独立 holder 存在时 12 status + 12 collect 前后 41-entry active tree byte-identical；只读闭包外 import 与 builder/
+  materializer/write API 均为 0。Foreground serial fake rows 2/2，prefix-commit 恢复与缺 terminal 停止均通过。
+  新 0/8 policy/freeze 已零付费生成，production run 尚未创建、key 尚未检查；pre-model push 后才允许 prepare 与唯一
+  foreground execute。该身份若再遇基础设施失败，立即转 Phase 2，不再修 control-plane。
 - 当前还不能声称跨模型、跨 agent、跨 OS 稳定或摊销 Token 节省。
 
 ## 当前下一步

@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { lstat, mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
+import { isDeepStrictEqual } from "node:util"
 import { SafeRelativePathSchema } from "./artifact-package.ts"
 import {
   OptimizationCostAccountingReportSchema,
@@ -13,6 +14,7 @@ import {
 } from "./method-portfolio.ts"
 import { readAndEvaluatePartialBenefitReentry } from "./partial-benefit-reentry.ts"
 import { sha256Bytes } from "./source-fixture.ts"
+import { ReviewedAotPairedQualityEvidenceSchema } from "./reviewed-aot-efficiency-readonly-contract.ts"
 
 const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/)
 
@@ -246,6 +248,79 @@ export function deriveValidatedArtifactGateAuthority(raw: unknown): DerivedOptim
   }
 }
 
+export function deriveReviewedAotPairedQualityAuthority(raw: unknown): DerivedOptimizationEvidence {
+  const report = ReviewedAotPairedQualityEvidenceSchema.parse(raw)
+  const recordsByKey = new Map<string, typeof report.records[number]>()
+  const recordsByPair = new Map<string, typeof report.records>()
+  for (const record of report.records) {
+    const key = `${record.taskId}\0${record.repetition}\0${record.system}`
+    if (recordsByKey.has(key)) throw new Error(`duplicate reviewed-AOT quality record: ${key}`)
+    recordsByKey.set(key, record)
+    const pairKey = `${record.taskId}\0${record.repetition}`
+    const pair = recordsByPair.get(pairKey) ?? []
+    pair.push(record)
+    recordsByPair.set(pairKey, pair)
+  }
+  if (recordsByKey.size !== report.counts.expectedRows
+    || recordsByPair.size !== report.counts.expectedPairs
+    || [...recordsByPair.values()].some((pair) => pair.length !== 2
+      || !pair.some((record) => record.system === "original")
+      || !pair.some((record) => record.system === "reviewed-aot"))) {
+    throw new Error("reviewed-AOT quality records do not realize the fixed paired denominator")
+  }
+  const derivedPairs = [...recordsByPair.values()].map((pair) => {
+    const original = pair.find((record) => record.system === "original")!
+    const reviewed = pair.find((record) => record.system === "reviewed-aot")!
+    return {
+      taskId: original.taskId,
+      repetition: original.repetition,
+      originalScore: original.score,
+      reviewedAotScore: reviewed.score,
+      regressed: reviewed.score < original.score || (original.success && !reviewed.success),
+      reviewedAotPassed: reviewed.success,
+    }
+  })
+  if (!isDeepStrictEqual(report.pairs, derivedPairs)) {
+    throw new Error("reviewed-AOT pair summary disagrees with records")
+  }
+  const observedRows = report.records.filter((record) => record.status === "complete").length
+  const completePairs = [...recordsByPair.values()].filter((pair) =>
+    pair.every((record) => record.status === "complete")).length
+  if (report.counts.observedRows !== observedRows || report.counts.completePairs !== completePairs) {
+    throw new Error("reviewed-AOT count summary disagrees with records")
+  }
+  const reviewedRecords = report.records.filter((record) => record.system === "reviewed-aot")
+  const gate = {
+    completeRows: observedRows === report.counts.expectedRows,
+    completePairs: completePairs === report.counts.expectedPairs,
+    allReviewedPass: reviewedRecords.every((record) => record.status === "complete" && record.success),
+    noInfrastructureFailures: report.records.every((record) => !record.infrastructureFailure),
+    noReviewedHardGateFailures: reviewedRecords.every((record) => !record.hardGateFailure),
+    noPairwiseRegressions: derivedPairs.every((pair) => !pair.regressed),
+  }
+  const passed = Object.values(gate).every(Boolean)
+  if (!isDeepStrictEqual(report.gate, { ...gate, passed }) || report.qualityEquivalent !== passed) {
+    throw new Error("reviewed-AOT quality gate summary disagrees with records")
+  }
+  const strictQualityImprovement = passed && [...recordsByPair.values()].some((pair) => {
+    const original = pair.find((record) => record.system === "original")!
+    const reviewed = pair.find((record) => record.system === "reviewed-aot")!
+    return reviewed.score > original.score || (reviewed.success && !original.success)
+  })
+  return {
+    evidenceSchemaVersion: report.schemaVersion,
+    classification: passed
+      ? strictQualityImprovement ? "quality-positive" : "fidelity-preserving"
+      : "not-established",
+    qualityComparisonComplete: gate.completeRows && gate.completePairs,
+    productionCostComplete: false,
+    allAttemptCostComplete: false,
+    breakEvenComplete: false,
+    qualityEquivalent: passed,
+    strictQualityImprovement,
+  }
+}
+
 export function deriveOptimizationCostReportAuthority(
   raw: unknown,
   qualityAuthority: DerivedOptimizationEvidence,
@@ -430,6 +505,9 @@ async function readOptimizationEvidenceAuthorityInternal(input: {
   if (schemaVersion.data.schemaVersion === "skill-ir-validated-artifact-development-gate-report/v1") {
     return deriveValidatedArtifactGateAuthority(document)
   }
+  if (schemaVersion.data.schemaVersion === "skill-ir-reviewed-aot-paired-quality-evidence/v1") {
+    return deriveReviewedAotPairedQualityAuthority(document)
+  }
   if (schemaVersion.data.schemaVersion === "skill-ir-optimization-cost-accounting/v1") {
     const report = OptimizationCostAccountingReportSchema.parse(document)
     const nextChain = new Set(input.qualityChain).add(key)
@@ -442,9 +520,11 @@ async function readOptimizationEvidenceAuthorityInternal(input: {
       },
       qualityChain: nextChain,
     })
-    if (qualityAuthority.evidenceSchemaVersion
-      !== "skill-ir-validated-artifact-development-gate-report/v1") {
-      throw new Error("optimization cost quality evidence must be a validated artifact development gate")
+    if (!new Set([
+      "skill-ir-validated-artifact-development-gate-report/v1",
+      "skill-ir-reviewed-aot-paired-quality-evidence/v1",
+    ]).has(qualityAuthority.evidenceSchemaVersion)) {
+      throw new Error("optimization cost quality evidence must be a supported machine-derived quality gate")
     }
     for (const reference of report.evidence) {
       await readDigestBoundBytes(input.rootDir, reference, "optimization cost transitive evidence")
