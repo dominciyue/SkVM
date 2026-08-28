@@ -1095,6 +1095,26 @@ all-attempt complete 与 break-even=1，最终 classification 为 `efficiency-po
 base lifecycle evidence 不同时，显式提供 digest-bound `supersededEvidence` 和受限 reason；loader 先验证旧 evidence
 仍支持历史结论，再验证新 evidence。Authority report v2/readiness v6 因而保留完整 provenance，不静默重写 v5 历史报告。
 
+### 11.5 Automation reachability authority
+
+`automation-reachability.ts` 是零付费、只读的决策证据层。输入 catalog 只包含 loader implementation、portfolio authority 与八份既有
+compact report 的 path/SHA-256；读取时要求仓库内 regular non-symlink file，并用各组件已经导出的严格 report schema
+重新 parse。Portfolio 部分不信任落盘 readiness，而是重新调用 optimization evidence authority，随后从 base
+portfolio 重算 7 案例 automation flags、adaptation completeness 和首三/末三成本可计算性。
+
+输出严格区分三类数值：Phase 2 本身 `paidCalls=0`；输入中历史 domain-plan/repair 共 2 次 paid call 单独披露；
+held-out/evaluator payload 本阶段均为 0。Candidate generation、结构 workdir 执行、局部 projection、自动 domain
+runtime 和人工 reviewed closure 分层记录，任何一层都不能替代后一层的 semantic parity/eligibility。
+
+当前直接 gate 不含 domain parity；它只读四类 boolean、完整成本和首末三例趋势。与此同时，当前政策要求 flag
+晋升先有 domain semantic sufficiency。机器 authority 暴露了二者间的缺口：portfolio schema 不要求 flag/cost
+evidence reference，无引用 canary 可令 gate `false -> true`。因此当前 gate 本身不可直接用于可发表的晋升。
+
+按现行政策，IR/contract/validation/package 的 candidate 都是 7/7，但 authority-qualified 都是 0；完整 qualification
+成本也是 0/7。薄声明 segment 为 15 humanMinutes/159 declaration LOC，人时趋势通过而 declaration LOC 趋势失败，
+所以 full trend 仍是 `metric-boundary-dependent-and-not-yet-claimable`。当前 flag promotion 与 attack-current-gate 均
+no-go；Phase 3A 仅 conditional-go，Phase 3B closeout 为 go，并在用户选择前停止。
+
 ## 12. 结果持久化
 
 提交到 Git：

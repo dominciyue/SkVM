@@ -174,6 +174,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   evidence。Readiness v6 现有 API quality-positive + Env efficiency-positive 两个 phenotype，two-evidence gate 已通过；
   但 reviewed patch 仍需 8 humanMinutes/125 LOC，7/7 `generatesIr=false`，所以 automation gate 与 overall readiness 仍
   failed。当前只证明本单模型/Windows/clean reviewed-AOT 切片的摊销 Token 节省，不能外推跨模型、agent 或 OS。
+- 零付费 automation reachability authority 已完成：机器 gate 的直接输入是 7 案例四类 boolean、完整适配成本与
+  首三/末三趋势，不含 domain parity；现行政策则要求 semantic sufficiency 才能晋升 flag。当前 schema 没有绑定这些
+  证据，无引用 canary 可令 gate `false -> true`，所以不能直接攻当前 gate。四类 candidate 均为 7/7，但按政策
+  authority-qualified 均为 0。薄声明为 15m/159 LOC；人时趋势通过而 declaration LOC 趋势失败。Phase 3A 仅在先建
+  evidence-bound authority、冻结成本边界并前瞻测 7 例后 conditional-go；按当前产品边界收口的 Phase 3B 为 go。
 
 ## 当前下一步
 
@@ -229,6 +234,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 唯一 start 因 status 观测污染停在 1/8；v2 不续跑，未来 identity 必须让 status/collect 完全不 materialize
 -> final readonly-serial identity 已完成 8/8、4/4 quality parity、0 infra/retry/observer；Env efficiency-positive
 -> authority v5 显式保留旧 Env gate 并绑定新 cost evidence；readiness v6 two-evidence=true、automation=false、overall=false
+-> Phase 2 reachability 已完成：直接 gate 不含 domain parity，但 flag 晋升政策要求语义资格；当前字段无证据绑定
+-> 四类 candidate 均 7/7、authority-qualified 均 0；成本趋势依赖是否把 declaration LOC 计入用户投入
+-> 当前停在用户决策点：Phase 3A evidence-bound 7-case attack conditional-go，Phase 3B 产品边界收口 go
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

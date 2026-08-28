@@ -728,6 +728,34 @@ tokens，original 合计 814603ms、202010 model tokens。Production AOT one-tim
 因此本切片为 `efficiency-positive`。这个结论只支持 reviewed-AOT 产品轴；case-local review patch 仍是明确的
 unautomated step，不能用于提升 automatic-construction gate。
 
+### 14.5 Automation reachability 决策薄层
+
+Phase 2 不新建生成 primitive，而是用 `automation-reachability-v1.json` 固定 loader implementation、当前 portfolio authority、source-only、
+薄声明、结构 execution、partial output、JSON Pointer、cross-skill domain plan、generic repair 与 review-required
+八份证据。公共 loader 只 import 各报告 schema 和 evidence authority；它不读取 candidate package、raw model body、
+held-out 或 evaluator payload，也不执行任何 compiler/runtime。
+
+报告中的 7 条 case row 保存当前四类 flag、缺失产物、adaptation measurement/humanMinutes/adapterLoc 和 authoritative
+optimization classification。它还显式拆开：gate 的直接字段、现行政策的间接语义资格、每个 flag 的证据充分性、
+成本 closure 与产品边界上下文。当前 schema 对 automation/cost 只信任自报字段；报告通过无引用 canary 证明，仅改
+字段即可令 gate `false -> true`，所以不会从当前 positive phenotype 反推 Phase 3 候选或 flag 晋升。
+
+四类产物均有 7/7 candidate，但当前政策下 authority-qualified 均为 0。薄声明的 15 humanMinutes/159 declaration
+LOC 是可复用的独立 segment；其它阶段的人时/LOC 测量口径重叠或不同，不能相加。声明人时的首末三例趋势通过，
+声明 LOC 趋势失败，完整 qualification trend 未建立。投影/查询 ceiling 与 domain-runtime floor 只作为产品边界上下文，
+不是当前 gate 的直接输入。
+
+运行与验证：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/automation-reachability.test.ts
+bun run ./src/benchmarks/skill-ir/automation-reachability-run.ts
+```
+
+输出为 `results/skill-ir/automation-reachability-v1/report.json`。若任一输入 digest 漂移、schema 不符、readiness 不再是
+two-evidence true/automation false，或组件 flag/cost 的当前语义边界改变，loader fail closed；应建立新的版本化研究
+决策，不能静默覆盖报告。当前只允许用户在 evidence-bound readiness attack（conditional-go）与 closeout（go）间选择。
+
 ## 15. 测试
 
 ```powershell

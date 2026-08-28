@@ -1376,6 +1376,31 @@ break-even 为 1 call。新 `method-portfolio/v5` authority 显式绑定旧 Env 
 再绑定 prospective cost report；readiness v6 得到 quality-positive=1、efficiency-positive=1、two-evidence=true。
 `automationAndAdaptationConverging` 仍 false、overall readiness 仍 failed，held-out/replication/多模型未授权。
 
+### 4.28 Phase 2：Automation reachability authority（已完成，Phase 3 前停止）
+
+Phase 2 不增加模型调用、不扩 selector/lookup/DSL，也不修改 portfolio flag。它用
+`automation-reachability-v1.json` digest-bind 当前 loader 实现、portfolio authority 与 18.26--18.37 的八份 compact evidence，
+再由 `automation-reachability.ts` 实读、验 SHA-256、按原 schema parse 并重算下列事实：
+
+1. 当前 gate 的直接输入是全部 7 个 contract-qualified 案例的四个 automation boolean、非空 `humanMinutes`/
+   `adapterLoc`，以及至少 6 例时末三例成本均值不得高于首三例；domain runtime/parity 不在判断表达式中。当前缺
+   IR/contract/validation/package 的案例数为 `7/5/3/3`，只有 1 例 prospective measured，趋势不可计算；
+2. 当前项目政策又明确要求 flag 晋升先满足 source isolation、IR reference validation、domain semantic sufficiency，
+   并在适用时满足 catalog/runtime/package parity。因此 domain parity 是间接资格证据，不是直接 gate 字段；
+3. 现有 portfolio schema 对 automation boolean 与 adaptation cost 都只接受自报值，不要求 evidence reference。
+   Canary 不增加任何引用、仅编辑这些字段就能使 gate `false -> true`，证明当前 gate 不能作为可攻的研究权威；
+4. 按当前政策逐 flag 复核，IR/contract/validation/package 虽各有 `7/7` candidate，但 authority-qualified 均为 0。
+   IR exact source-rule match 为 0，contract/validation semantic parity 为 0，package complete construction 为 0；
+5. 18.27 的薄声明可前瞻复用为 15 humanMinutes/159 declaration LOC。其它 28m、3m/297 LOC、8m、20m、
+   Env review 8m/125 LOC 的测量范围重叠或不同，不能相加；历史 6 个 null 不得回填，完整 qualification 成本仍需
+   7/7 前瞻测量。薄声明的人时趋势通过、若把 declaration LOC 计作用户工作量则趋势失败，故结论依赖成本边界。
+
+机器决策因此是：提升当前 flag=`no-go`，直接攻击当前 gate=`no-go`；Phase 3A readiness attack 仅为
+`conditional-go`，前提是先冻结 evidence-bound 的组件 flag authority、决定“结构存在”与“语义资格”的边界、
+冻结包含声明投入的成本口径，并对 7 例完整资格成本做前瞻计量。Phase 3B 以当前产品边界收口为 `go`。
+报告停在 `user-decision-required-before-phase-3`，由用户在 3A/3B 间选择；不授权 paid、held-out、replication、
+多模型执行或当前 gate 的无证据改写。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

@@ -652,6 +652,22 @@ cost report 一起重验。Readiness v6 现为 API quality-positive=1、Env effi
 `twoEvidenceQualifiedPhenotypes=true`；但 automation incomplete 仍 7/7，overall readiness=false，held-out/
 untouched replication/多模型未授权。
 
+随后零付费 Phase 2 以 digest-bound catalog 重读八份 automation compact evidence，并现场重算 portfolio/readiness，
+没有从 README 或旧对话复制结论。当前 7 个 contract-qualified 案例缺 IR/contract/validation/package 分别为
+`7/5/3/3`；adaptation 只有 Env 一例 prospective-measured，趋势不可计算。Gate 的直接表达式不含 domain parity，
+只看四类 automation boolean、完整成本和首末三例趋势。
+
+但当前项目政策要求 flag 晋升先有 source isolation、IR reference validation、domain semantic sufficiency，并在适用时
+有 catalog/runtime/package parity。现有 schema 没有把这些证据绑定到 boolean/cost；机器 canary 在 evidence reference
+增加 0 的情况下，仅修改字段就令 gate `false -> true`。按现行政策逐项重算，四类产物虽都有 7/7 candidate，
+authority-qualified 均为 0；这使“直接攻当前 gate”成为 no-go，而不是把两个 positive phenotype 当作自动化候选。
+
+成本证据同样没有闭合。18.27 薄声明共 15 humanMinutes/159 declaration LOC，可作为独立 segment 复用；其它
+28m、3m/297 LOC、8m、20m、Env review 8m/125 LOC 的范围重叠或不同，不能相加，6 个历史 null 也不能回填。
+薄声明人时趋势通过、declaration LOC 趋势失败，完整 qualification trend 未建立。最终决策是 Phase 3A readiness
+attack=`conditional-go`（先冻结 evidence-bound flag authority、资格/成本边界并前瞻测 7 例），Phase 3B closeout=`go`。
+报告本身 0 paid/held-out/evaluator payload，另披露输入历史证据 2 paid calls；当前停在用户选择点。
+
 ## 18. BIDS prospective construction、development 与残差有效性
 
 2026-08-23 的 Task 18.18 从冻结候选继续：profile-empty source-audited base IR、23 LOC 声明式 adapter 与手写

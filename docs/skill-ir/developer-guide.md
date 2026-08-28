@@ -989,7 +989,11 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：readonly-serial-001 唯一 foreground execute 为 8/8、4/4 pair、0 retry/observer/infra，双臂均 score 1
 已完成：original 202010 tokens vs reviewed 0；one-time 9358，成本完整，break-even=1，Env efficiency-positive
 已完成：authority v5 显式保留旧 Env gate并绑定新 cost；readiness v6 two-evidence=true、automation=false、overall=false
-当前接力：只做零付费 automation reachability Phase 2，形成 go/no-go 与最小工作分解；Phase 3 前停下等待用户决定
+已完成：零付费 direct-gate audit；7/7 incomplete、output gaps=7/5/3/3、当前成本趋势不可计算
+已完成：flag authority canary 证明字段仍为无引用自报；四类 candidate 均 7/7，authority-qualified 均 0
+已完成：薄声明 15m/159 LOC；人时趋势通过、声明 LOC 趋势失败，full qualification trend 未建立
+当前接力：attack-current-gate no-go；Phase 3A conditional-go、Phase 3B go，停在用户选择点
+禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
 结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
 ```
@@ -997,6 +1001,8 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 本地重建命令：
 
 ```powershell
+bun test ./src/benchmarks/skill-ir/automation-reachability.test.ts
+bun run ./src/benchmarks/skill-ir/automation-reachability-run.ts
 bun test ./src/benchmarks/skill-ir/public-json-value-semantics-disclosure.test.ts
 bun test ./src/benchmarks/skill-ir/bids-value-semantics-preflight.test.ts
 bun run ./src/benchmarks/skill-ir/bids-value-semantics-preflight.ts

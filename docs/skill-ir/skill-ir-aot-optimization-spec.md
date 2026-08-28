@@ -1438,5 +1438,28 @@ validated-artifact fidelity gate 与 prospective cost report，并以 `prospecti
 authority v2 重算两者后才生成 readiness v6。当前 two-evidence gate 为 true，但
 `automationAndAdaptationConverging=false`，所以 overall readiness、untouched replication、held-out 与多模型主张仍关闭。
 
+Automation reachability 必须由冻结证据重算，不能从 candidate 文件存在或人工 closure 反推。当前
+`skill-ir-automation-reachability-report/v1` 的 authority 输入只允许 loader 实现与证据的 repository-relative
+path + SHA-256；loader 拒绝
+symlink、路径逃逸、digest 漂移和 schema 不匹配，并重新执行当前 authoritative portfolio/readiness。Catalog 不得
+携带 `automationAndAdaptationConverging`、eligibility 或 go/no-go 自报字段。
+
+当前 gate 的精确直接语义是：对所有 contract-qualified method case，四个 automation flag 与 humanMinutes/
+adapterLoc 必须完整；至少 6 例后，末三例的两项平均成本均不得高于首三例。Domain runtime/parity 不是表达式输入，
+但 Task 18.26/18.27 已冻结的晋升政策要求 source isolation、IR reference validation、domain semantic sufficiency，
+并在适用时要求 catalog/runtime/package parity，所以它们仍是 flag 的间接资格证据。
+
+现有 portfolio schema 只接收自报 automation boolean 与 cost value，不要求 evidence reference；无引用 canary 可以把
+gate 从 false 改成 true。因此不得直接编辑 flag 或以当前表达式通过作为研究结论。四类产物虽均有 7/7 candidate，
+但按现行政策 authority-qualified 均为 0；任何 readiness attack 必须先建立版本化、evidence-bound、组件可分的
+flag authority，并明确“结构存在”与“语义资格”的边界。
+
+历史 6 例成本 null 不得回填。薄声明已有 7 例 15 humanMinutes/159 declaration LOC，可作为独立已测 segment；
+其它阶段测量范围重叠或不同，不能求和替代完整 qualification cost。首末三例趋势在只看声明人时时通过，在把
+declaration LOC 计为用户投入时失败，所以必须先冻结包含声明工作量的适配成本口径，再对 7 例前瞻测量。
+
+Phase 3A 攻 readiness 为 `conditional-go`，条件是上述 authority、语义边界、成本口径和 7 例前瞻测量全部先冻结；
+Phase 3B 按当前产品边界收口为 `go`。在用户选择前停止，paid、held-out、replication、多模型与 gate 修改均关闭。
+
 跨 agent、跨 OS、noisy/long、三模型族主表与普遍稳定性仍属于后续扩展目标。这个收窄不降低已有 quality、
 fixed-denominator、held-out 或 provenance 标准，只减少当前里程碑同时必须证明的外推范围。
