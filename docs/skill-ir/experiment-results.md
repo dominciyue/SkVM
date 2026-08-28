@@ -907,6 +907,17 @@ distance-to-full 3、infrastructure failure 0。两案 artifact integrity 通过
 analysis 失败，两案 artifact consistency 失败。该结果证明通用 schema/prompt 修正确实去除了旧运行污染，却没有
 建立领域语义 parity；automatic eligibility、portfolio/readiness、held-out 与多模型证据均不更新。
 
+Task 18.39 Stage A 将 Phase 2 发现的 self-report 漏洞收口为 component evidence authority。严格 catalog 只保存
+implementation、optimization authority、七份冻结组件 report 与 `full-qualified-adaptation` 成本政策的 digest；loader
+现场重算逐案例四组件 criteria/blocker 和 readiness v7。真实结果为四组件 candidate 各 7/7、authority-qualified
+各 0/7，完整 qualification cost 0/7、trend `not-established`，薄声明 segment 为 15 humanMinutes/159 physical LOC。
+
+攻击回归把 base portfolio 的四个 automation boolean 全改 true、填入通过旧趋势门的成本并同步 base/registry/
+catalog digest；legacy evaluator 的 automation gate 确实变 true，而 v7 仍为 false。再做未同步字节改动则 digest-fail。
+最终 five gates 是 coverage=true、coreBranchDelta=true、automation=false、two-evidence=true、no-open-blocker=true，
+overall=false；本阶段 0 paid、0 held-out、0 evaluator payload。该证据只证明当前 automation=false 的机器权威，
+不证明 7-case full qualification、untouched replication 或更强模型 full automation。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -952,3 +963,5 @@ analysis 失败，两案 artifact consistency 失败。该结果证明通用 sch
 - `results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/paired-quality-evidence.json`
 - `results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json`
 - `results/skill-ir/method-portfolio-authoritative-efficiency-readiness.json`
+- `benchmarks/skill-ir/corpus/method-portfolio-authoritative-automation.json`
+- `results/skill-ir/method-portfolio-authoritative-automation-readiness.json`

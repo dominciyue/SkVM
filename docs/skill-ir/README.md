@@ -179,6 +179,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   证据，无引用 canary 可令 gate `false -> true`，所以不能直接攻当前 gate。四类 candidate 均为 7/7，但按政策
   authority-qualified 均为 0。薄声明为 15m/159 LOC；人时趋势通过而 declaration LOC 趋势失败。Phase 3A 仅在先建
   evidence-bound authority、冻结成本边界并前瞻测 7 例后 conditional-go；按当前产品边界收口的 Phase 3B 为 go。
+- 用户选择 `3B+` 后，Task 18.39 Stage A 已完成 component-level authority。新 catalog 只绑定实现、现有 optimization
+  authority、七份组件 report 与成本政策；readiness v7 不消费 base portfolio 的 automation/cost 自报值。同步 digest
+  的攻击可令旧 evaluator 通过，却不能翻转 v7；未同步改动直接 digest-fail。当前四组件 candidate 仍是 7/7，
+  authority-qualified 0/7，完整成本 0/7，five gates 为 `true/true/false/true/true`、overall false，0 paid/held-out/
+  evaluator payload。Stage A 到此停止，等待用户确认 Stage B；这不是 7-case qualification 或 full-auto 正例。
 
 ## 当前下一步
 
@@ -236,7 +241,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> authority v5 显式保留旧 Env gate 并绑定新 cost evidence；readiness v6 two-evidence=true、automation=false、overall=false
 -> Phase 2 reachability 已完成：直接 gate 不含 domain parity，但 flag 晋升政策要求语义资格；当前字段无证据绑定
 -> 四类 candidate 均 7/7、authority-qualified 均 0；成本趋势依赖是否把 declaration LOC 计入用户投入
--> 当前停在用户决策点：Phase 3A evidence-bound 7-case attack conditional-go，Phase 3B 产品边界收口 go
+-> Phase 3B+ Stage A 已完成：component authority/readiness v7 机器证明 automation=false，自报字段攻击不可翻转
+-> 当前停在 Stage A 回报点；用户确认后才进入 Stage B 成果整合与论文骨架
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

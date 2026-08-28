@@ -1115,6 +1115,33 @@ evidence reference，无引用 canary 可令 gate `false -> true`。因此当前
 所以 full trend 仍是 `metric-boundary-dependent-and-not-yet-claimable`。当前 flag promotion 与 attack-current-gate 均
 no-go；Phase 3A 仅 conditional-go，Phase 3B closeout 为 go，并在用户选择前停止。
 
+### 11.6 Automation component evidence authority
+
+Task 18.39 Stage A 新增 additive readiness v7，而不改写 base portfolio、optimization authority v5、readiness v6
+或 Phase 2 report。Catalog 只允许 implementation、现有 portfolio authority、source-only、薄声明、真实 structural
+execution、JSON Pointer、cross-skill parity、generic repair、review-required closure 的 path/SHA-256，以及一份 closed
+cost policy；self-declared flag、cost、eligibility、readiness 字段都会被 strict schema 拒绝。
+
+Loader 先拒绝路径逃逸、symlink、digest/schema/case-set drift，再逐案例派生 IR/contract/validation-plan/package 的
+candidate、qualification criteria、typed blocker 与 evidence reference。Base portfolio 的 automation boolean 和 adaptation
+cost 不参与新 gate。回归测试把这些字段改到可令旧 evaluator 通过并同步全部上游 digest，v7 仍保持 false；随后任一
+未同步字节改动会 digest-fail。这一攻击证明的是 authority 隔离，不是候选能力提高。
+
+成本 scope 固定为 `full-qualified-adaptation`。薄声明的 15 humanMinutes/159 physical declaration LOC 是唯一可复用、
+已测 segment；shared core、structural catalog、partial output/JSON Pointer integration 和 review patch 不相加。每例仍缺
+qualification humanMinutes/adapterLoc，因此完整成本 0/7、trend `not-established`。当前四组件虽各有 candidate 7/7，
+authority-qualified 都是 0/7；readiness gates 为 `true/true/false/true/true`，overall false，Stage A accounting 为
+0 paid、0 held-out、0 evaluator payload。
+
+```powershell
+bun test ./src/benchmarks/skill-ir/method-portfolio-automation-authority.test.ts
+bun run ./src/benchmarks/skill-ir/method-portfolio-automation-authority-run.ts
+```
+
+Compact 输出为 `results/skill-ir/method-portfolio-authoritative-automation-readiness.json`。Stage A 到此停止；Stage B
+只在用户确认后整理贡献与论文骨架，Stage C 的 7-case prospective qualification、untouched replication 和更强模型
+full automation 不由本结果授权。
+
 ## 12. 结果持久化
 
 提交到 Git：

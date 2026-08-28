@@ -756,6 +756,22 @@ bun run ./src/benchmarks/skill-ir/automation-reachability-run.ts
 two-evidence true/automation false，或组件 flag/cost 的当前语义边界改变，loader fail closed；应建立新的版本化研究
 决策，不能静默覆盖报告。当前只允许用户在 evidence-bound readiness attack（conditional-go）与 closeout（go）间选择。
 
+### 14.6 Evidence-bound automation closeout authority
+
+Task 18.39 没有新增 compiler、runtime、primitive 或 skill adapter。它把 Phase 2 找到的 self-report 漏洞改成一个
+digest-bound component authority：`method-portfolio-automation-authority.ts` 只 import 已冻结 report schema 和既有
+optimization authority，逐例计算四种候选是否具有 source/reference/domain/runtime/package 资格。Catalog 不保存计算
+结果，compact readiness v7 才保存派生 criteria、blocker 与证据引用。
+
+“package candidate 已生成”仍不等于“complete executable package qualified”，review-required 6/6 也不等于 automatic。
+当前 source/thin/structural/partial construction 足以证明四类 candidate 7/7，却不足以证明 exact source-rule match、
+domain semantic sufficiency、full manual parity 与完整 executable package，因此四类 authority qualification 都是 0/7。
+这正是当前产品边界的机器表达，不是用更严格 schema 抹掉已经完成的候选工作。
+
+成本 authority 同样不复用 portfolio 中的 null/自报值。它只承认薄声明 15 分钟/159 physical LOC，并要求未来每例
+qualification 的非重叠 humanMinutes、adapterLoc 和 coreBranchDelta；当前 full cost 0/7、trend 未建立。旧 Phase 2
+canary 继续作为历史漏洞发现证据，但 v7 的研究结论来自 component reports + loader，而不是 canary 或 base fields。
+
 ## 15. 测试
 
 ```powershell
@@ -795,6 +811,8 @@ bun run ./src/benchmarks/skill-ir/automatic-domain-plan-attribution-run.ts --pha
 bun test ./src/benchmarks/skill-ir/automatic-restricted-domain-plan-static-types.test.ts `
   ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection.test.ts
 bun run ./src/benchmarks/skill-ir/automatic-domain-plan-semantic-inspection-run.ts
+bun test ./src/benchmarks/skill-ir/method-portfolio-automation-authority.test.ts
+bun run ./src/benchmarks/skill-ir/method-portfolio-automation-authority-run.ts
 bun test ./src/benchmarks/skill-ir
 bun run typecheck
 ```

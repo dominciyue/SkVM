@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-24
+**最后更新：** 2026-08-28
 
 ## 1. 项目定位
 
@@ -1459,7 +1459,31 @@ flag authority，并明确“结构存在”与“语义资格”的边界。
 declaration LOC 计为用户投入时失败，所以必须先冻结包含声明工作量的适配成本口径，再对 7 例前瞻测量。
 
 Phase 3A 攻 readiness 为 `conditional-go`，条件是上述 authority、语义边界、成本口径和 7 例前瞻测量全部先冻结；
-Phase 3B 按当前产品边界收口为 `go`。在用户选择前停止，paid、held-out、replication、多模型与 gate 修改均关闭。
+Phase 3B 按当前产品边界收口为 `go`。用户已选择 `3B+`：先吸收 3A 的第一项，把四个 automation component 与
+adaptation cost boundary 建成 digest-bound、逐案例、机器派生的 authority，然后停下复核；不执行 7-case
+prospective qualification，也不把该 authority 建设误写成 automation 收敛。
+
+该 successor 不修改 `method-portfolio/v3`、optimization authority v5 或 readiness v6。新的 authority catalog 只能
+保存现有 optimization authority、冻结组件报告、loader implementation 和成本政策的 path/SHA-256；不得保存
+`generatesIr`、`generatesContract`、`generatesValidationPlan`、`generatesPackageCandidate`、完整成本或 readiness
+结论。Loader 从 source-only、薄声明、真实 structural workdir、partial construction/domain parity 与 reviewed closure
+证据逐案例派生 candidate presence、source/reference/semantic/runtime/package qualification，并把“结构已生成”和
+“语义资格成立”分开。旧 portfolio 中的 automation boolean 与 adaptation cost 只能作为历史输入保留，不能参与新
+gate；即使修改这些字段并同步 base digest，只要组件证据不变，新 gate 也不得翻转。
+
+成本口径固定为 `full-qualified-adaptation`。薄 task 声明的人时与 physical declaration LOC 是可复用、已测且必须
+计入的 user-effort segment；shared-core development、结构 parity catalog、partial output/JSON Pointer 集成和 Env
+review patch 的范围重叠或职责不同，不得求和。完整成本还要求每案例非重叠的 qualification humanMinutes、
+qualification adapter LOC 与 coreBranchDelta 证据；缺任一项时 total 与趋势保持 `not-established`，历史 null 不回填。
+该语义变化生成新的 readiness schema；当前冻结证据预期仍为四组件 0/7 qualified、完整成本 0/7、
+`automationAndAdaptationConverging=false`。Stage A 完成后必须停止并等待用户确认，Stage B 才整理项目贡献与论文骨架。
+
+Stage A 已按上述合同完成。`method-portfolio-authoritative-automation.json` 只绑定 implementation、现有 optimization
+authority、七份组件 evidence 与闭合成本政策；readiness v7 内嵌逐案例组件 authority。攻击测试即使把 base
+portfolio 的四个 self-report boolean 与成本字段改到足以令旧 evaluator 通过，并同步 base/registry/catalog digest，
+新 gate 仍为 false；不同步 digest 则 fail closed。当前实测为四组件 candidate 7/7、authority-qualified 0/7，
+full-qualified cost 0/7，薄声明 segment 15 humanMinutes/159 physical LOC，0 paid/held-out/evaluator payload。
+这只确立“当前 false 可机器验证”，不确立 full automation，也不授权 Stage C。
 
 跨 agent、跨 OS、noisy/long、三模型族主表与普遍稳定性仍属于后续扩展目标。这个收窄不降低已有 quality、
 fixed-denominator、held-out 或 provenance 标准，只减少当前里程碑同时必须证明的外推范围。

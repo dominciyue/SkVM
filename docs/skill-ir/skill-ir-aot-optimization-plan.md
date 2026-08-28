@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-23
+**最后更新：** 2026-08-28
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -1400,6 +1400,40 @@ Phase 2 不增加模型调用、不扩 selector/lookup/DSL，也不修改 portfo
 冻结包含声明投入的成本口径，并对 7 例完整资格成本做前瞻计量。Phase 3B 以当前产品边界收口为 `go`。
 报告停在 `user-decision-required-before-phase-3`，由用户在 3A/3B 间选择；不授权 paid、held-out、replication、
 多模型执行或当前 gate 的无证据改写。
+
+### 4.29 Task 18.39：Phase 3B+ Stage A 组件级 automation authority
+
+**用户选择：** 采用 Phase 3B closeout，但先吸收 Phase 3A 的第一项。Stage A 只关闭四个 automation flag 与
+adaptation cost 的证据来源漏洞；完成、提交并推送后立即停止，等待用户确认 Stage B。不得顺手执行 7-case
+prospective qualification、付费、held-out、replication、多模型或 DSL 工作。
+
+**语义 delta：** 旧 `method-portfolio/v3` 与 readiness v6 从 base portfolio 的自报 automation/cost 字段计算
+convergence；新的 additive authority 只接受 digest-bound optimization authority、组件 evidence 与明确成本政策，
+逐案例派生四组件资格和完整成本，再生成 readiness v7。兼容边界是旧 portfolio、optimization authority、Phase 2
+report 与 readiness v6 保持不可变；claim 影响只把当前 automation=false 从“自报字段恰好为 false”提升为
+“冻结组件证据机器派生为 false”，不增加 automatic eligibility、优化正例或外推授权。
+
+1. [x] RED：新 catalog strict schema 只允许 implementation、现有 optimization authority、组件 evidence 与成本
+   policy 的 path/digest；加入 self-declared flag、cost、eligibility 或 readiness 字段必须拒绝；
+2. [x] RED：用真实 7-case evidence 要求逐案例/逐组件输出 candidate、qualification criteria、typed blocker 与
+   evidence refs；当前四组件均 7/7 candidate、0/7 authority-qualified；
+3. [x] RED：在临时目录把 base portfolio 四个 boolean 全改 true、填入可通过趋势的成本，并同步 base/registry/
+   catalog digest；组件证据不变时 authoritative readiness 仍必须 false。未同步 digest 的直接篡改必须 fail closed；
+4. [x] RED：成本边界必须计入薄声明 humanMinutes + physical declaration LOC，但只把它们记作已测 segment；其它
+   范围重叠的历史工作不得相加，qualification segment 缺失时 7/7 full cost 与 trend 保持 not-established；
+5. [x] GREEN：实现最小 skill-neutral loader/readiness successor；拒绝 symlink、路径逃逸、digest/schema/case-set
+   drift，不按 skill id 分支，不读取 candidate/raw/evaluator/held-out，也不信任旧 self-report 字段；
+6. [x] 生成 compact readiness v7，证明 two-evidence 仍 true、component qualification 0/7、完整成本 0/7、
+   `automationAndAdaptationConverging=false`、overall=false，且 `coreBranchDelta=0`；
+7. [x] 同步 evaluation/optimization/developer/README/results 与根台账、handoff、conversation log；运行 focused、
+   typecheck、doc links、current broad 与 `git diff --check`，显式提交推送，不纳入 `1.md`、cache、raw/workdir；
+8. [x] 报告 Stage A 并停止。只有用户确认后才进入 Stage B 的成果整合与论文骨架；untouched replication 和更强模型
+   full automation 继续属于 Stage C。
+
+**完成证据：** 首轮 RED 为 missing module；最终 focused 5/5。Readiness v7 的 five gates 为
+`true/true/false/true/true`，overall false；四组件 candidate 7/7、authority-qualified 0/7，full cost complete 0/7，
+`coreBranchDelta=0`，Stage A accounting 为 0/0/0。旧 self-report 攻击可令 legacy evaluator true，却不能翻转 v7；
+未同步字节改动被 digest 拒绝。当前接力点固定为“向用户报告并等待 Stage B 确认”，不是继续 qualification。
 
 ## 5. 时间估算
 
