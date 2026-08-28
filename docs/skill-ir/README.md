@@ -44,10 +44,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   source、development prompt、public contract 与 report semantics 的 profile-empty base IR 和逐节点 source
   audit。首个 12-row static development 分母完整，但有 4 个 infrastructure failure（1 timeout、3 个同位
   cross-system parse-failed），gate 冻结失败；尚无 artifact、held-out 或 Token 优化证据。
-- Method portfolio v3 已机器化登记 7 个 case：7 studied、7 contract-qualified、2 static-fidelity passed、
-  0 untouched replication；API Tester 是 1 个 `quality-positive`，Env Manager 是 1 个
-  `fidelity-preserving`，尚无 `efficiency-positive`，所以 readiness-eligible optimized phenotype 只有 1 个。
-  i18n v4 已排除 infrastructure blocker，但因 1 个 paired quality regression 冻结为方法负结果。
+- 当前 readiness v7 登记 7 studied、7 contract-qualified、2 static-fidelity passed、0 untouched replication；
+  API Tester 为 `quality-positive`，Env reviewed-AOT 为 `efficiency-positive`，因此 two-evidence gate 已通过。
+  Component authority 同时重算出四类 automation candidate 均 7/7、authority-qualified 均 0/7，故唯一失败门仍是
+  automation/adaptation convergence，overall readiness 仍 false。i18n v4 已排除 infrastructure blocker，但因
+  1 个 paired quality regression 冻结为方法负结果。
 - 通用 successor selection policy/report 已冻结全部 7 个候选并预先选择 Env Manager。首个 source-derived
   identity 虽以 8/8 canary 通过本地 audit，真实 resilient baseline 的 8/8 行、4/4 pair、0 transient/active/
   parser/runtime failure 暴露两项 scorer-authority 缺口：original 独有的合法 source resource 被误判为输入漂移，
@@ -57,9 +58,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   original 4/4 vs no-skill 3/4 通过 admission；profile-empty base IR 与逐节点 source audit 已完成，corpus 晋升
   runnable。随后 static-fidelity 唯一矩阵 12/12、4/4 triplets、0 infra，三臂均 4/4、mean 1.0，static 对
   original 无回退；artifact 四臂唯一矩阵随后 16/16、4/4 quartets、0 infra，validated artifact 4/4、mean
-  1.0、0 regression、runtime model tokens 0。全成本审计已恢复 production/research 分账、N=1/2/5/10 与
-  历史 missing 清单；自动 compiler token 仍未前瞻测量，break-even 不可计算。因此结果只证明第二 phenotype
-  的 artifact fidelity，不能作为第二个 readiness 优化正例；held-out 仍关闭。
+  1.0、0 regression、runtime model tokens 0。该历史 artifact identity 因 construction/all-attempt missing 只支持
+  fidelity；后续独立 readonly-serial prospective identity 已闭合 one-time 9358、4 x original 对 4 x reviewed-AOT
+  的质量等价分母与 break-even=1，因而晋升 efficiency-positive。两者证据连续性由 authority v5/v7 显式保留；
+  held-out 仍关闭。
 - 通用双源 residual admission 已从 Env 特化路径中拆出：声明式 mapping 绑定 static v2 lock/gate/envelopes/
   selected scored rows/base IR/source audit，按 criterion 同时要求跨任务与任务内重复。Eligible evidence 可通过
   同一命令入口编译为 typed overlay、Final IR 与 development-only provenance v3；blocked/无残差都停止。
@@ -144,7 +146,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   issue、runtime complete、3/3 outputs 且 protected input 保持。真实 evaluator 为 `0/6 -> 3/6`、full task 0/2，
   因此工程污染已清除但 manual semantic parity 仍 failed，eligibility/readiness 不变。
 - Task 18.36 因而是当前 restricted DSL 全自动路线的干净停止点，不再通过 selector/lookup/新 primitive 追数字。
-  Readiness 仍有两道独立 false：eligible phenotype 仅 1 个，automation 仍 7/7 incomplete。Task 18.37 只做半天、
+  在该时间点 readiness 仍有两道独立 false：eligible phenotype 仅 1 个，automation 仍 7/7 incomplete。Task 18.37 只做半天、
   零付费 review-required 薄层并诚实记录人工 delta；研究主线随后以前瞻 Env reviewed efficiency 为候选，先补
   portfolio 证据权威绑定，再用固定 8 行质量/成本分母判断能否形成第二 phenotype。
 - Optimization evidence authority successor 已完成且 0 付费：新 v4 overlay 只保存 digest-bound evidence reference，
@@ -184,6 +186,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   的攻击可令旧 evaluator 通过，却不能翻转 v7；未同步改动直接 digest-fail。当前四组件 candidate 仍是 7/7，
   authority-qualified 0/7，完整成本 0/7，five gates 为 `true/true/false/true/true`、overall false，0 paid/held-out/
   evaluator payload。Stage A 到此停止，等待用户确认 Stage B；这不是 7-case qualification 或 full-auto 正例。
+- 用户确认继续后，Task 18.40 Stage B 已把现有成果收敛为“machine-verifiable evidence-authority、review-required
+  verified skill artifact packaging”。Spec 现含 C1--C6 claim-authority matrix 与论文骨架：API quality-positive、
+  Env efficiency-positive/break-even=1 是正向结果；7/7 candidate 对 0/7 qualification、Env automatic 3/6 对
+  reviewed 6/6 是自动化与产品边界。Stage B 本身 0 paid/held-out/evaluator payload，不授权 Stage C。
 
 ## 当前下一步
 
@@ -202,7 +208,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 通用 RepairEvidence admission -> Final IR development 闭环已完成；Env v3 合法无残差并停止
 -> Statistical Power 已以 scorer-authority measurement-invalid 停止，不新增候选
 -> 公共 declarative pilot adapter/lifecycle shadow parity 已完成（两正一负、0 paid、coreBranchDelta=0）
--> Env Manager 全成本审计已完成：历史缺失不补零，break-even 不可计算，继续 fidelity-preserving
+-> Env Manager 历史全成本审计已完成：旧 missing 不补零；后续 readonly-serial prospective identity 已闭合 break-even=1
 -> 全过程复盘与前瞻 compiler cost capture 已完成：双案例 4/4 byte parity，历史手写路径保持 mechanism-only
 -> BIDS construction/qualification/唯一 12-call 分母已完成：12/12 semantic-complete、0 infrastructure blocker
 -> residual audit 发现 12/12 repair semantics 匹配但 11/12 被未公开的 issue-path 表示选择拒绝；v1 measurement-invalid
@@ -242,7 +248,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Phase 2 reachability 已完成：直接 gate 不含 domain parity，但 flag 晋升政策要求语义资格；当前字段无证据绑定
 -> 四类 candidate 均 7/7、authority-qualified 均 0；成本趋势依赖是否把 declaration LOC 计入用户投入
 -> Phase 3B+ Stage A 已完成：component authority/readiness v7 机器证明 automation=false，自报字段攻击不可翻转
--> 当前停在 Stage A 回报点；用户确认后才进入 Stage B 成果整合与论文骨架
+-> Phase 3B+ Stage B 已完成证据整合：C1--C6 claim matrix、review-required proposition 与论文骨架已冻结
+-> 当前停在论文骨架审阅点；Stage C 只有另行授权后才可执行
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

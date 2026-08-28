@@ -41,7 +41,7 @@ benchmark/governance 而不推进 compiler、artifact 和 intake 自动化。
 
 ## 2. Claim 与成功判定
 
-当前完整研究 claim 是：对一组有明确来源的真实 skill，将原文编译为静态 Skill IR，再使用
+长期完整研究 claim 是：对一组有明确来源的真实 skill，将原文编译为静态 Skill IR，再使用
 development execution feedback 生成 Final IR / artifact candidate；在 disjoint held-out 上比较
 `no-skill | original | ir-static | optimized`，评估质量、稳定性、回归和成本。
 
@@ -159,9 +159,11 @@ Optimized development 的通过分为三种互斥证据，不再用单一 `passe
    break-even；缺任一项只能保持 `fidelity-preserving`。
 
 Readiness 的“两种 phenotype”只计 `quality-positive` 或证据完整的 `efficiency-positive`；
-`fidelity-preserving` 是重要机制证据，但不计优化正例。当前 API Tester 为 `quality-positive`，Env Manager v3
-为 `fidelity-preserving`，后者没有完整 compile cost 与 break-even，因此当前只有 1 个 readiness-eligible
-optimized phenotype。
+`fidelity-preserving` 是重要机制证据，但不计优化正例。历史 Env Manager v3 artifact gate 只支持
+`fidelity-preserving`；后续 readonly-serial prospective identity 已在质量等价、完整 production/research 成本和
+break-even=1 全部成立后，将 reviewed-AOT successor 机器派生为 `efficiency-positive`。因此当前有 API Tester
+`quality-positive` 与 Env reviewed-AOT `efficiency-positive` 两个 readiness-eligible phenotype；这不改变
+review-required 构造仍非 full automatic 的边界。
 
 Portfolio 还必须为每个案例记录 optimization path：`dynamic-profile`、
 `direct-deterministic-artifact`、`static-sufficient` 或 `stopped-before-dynamic`，并绑定公开停止理由。动态阶段
@@ -1209,7 +1211,7 @@ plan、使用 evaluator payload/gold/held-out、把案例 adapter 塞进 core，
 
 ### 10.9 Optimization classification authority 与 reviewed-AOT efficiency
 
-机器 readiness 当前有两个独立 false gate，而不是一个：`twoEvidenceQualifiedPhenotypes=false` 与
+Task 18.37/18.38 开始前，机器 readiness 有两个独立 false gate，而不是一个：`twoEvidenceQualifiedPhenotypes=false` 与
 `automationAndAdaptationConverging=false`。前者要求 contract-qualified 且 baseline/optimized development passed 的
 不同 phenotype 至少两个被分类为 `quality-positive` 或 `efficiency-positive`；当前只有 API Tester 的
 `openapi-schema-test-plan`。Env 的 `environment-schema-repair` 虽通过 development 且质量等价，仍因 construction/
@@ -1313,16 +1315,16 @@ fallback 是新建第二个 quality-positive optimized identity，不能直接�
 
 ## 11. 当前证据与不可声称项
 
-权威数值见 `experiment-results.md`。当前结论是“测量与若干机制成立，API Tester 出现首个合同合格的
-development artifact 正向案例；BIDS successor 的 hand-authored artifact 正向但贡献和 static 均未通过；
-source-only 与薄声明 domain construction 均能生成 7/7 四类候选，结构 checker/runtime 已真实执行；首个通用
-output/pointer primitives 又在两个案例生成部分产物并将 unresolved 从 15 降到 12，但仍为 0/2 automatic eligible，
-且剩余 10 项需要 domain runtime；Restricted Domain Plan 历史双案例生成 0/2，独立 transport qualification 通过但不
-重分类历史失败；successor 的 Env real parity 失败且 Law single generation 无安全 plan，跨 skill parity 明确失败，
-portfolio 的 0/7 automation 状态不变；
-i18n contribution-v2 已通过 baseline admission 和 source-audited base IR，
-execution-resilience v4 已排除基础设施阻塞，但 static 相对 original 出现 paired quality regression，因而冻结为
-方法负结果；portfolio v3 只计 1 个 readiness-eligible optimized phenotype，通用优化主 claim 未完成”。
+权威数值见 `experiment-results.md`。当前收敛结论是：单模型、Pi/Windows/clean development 轴上，API Tester
+`quality-positive` 与 Env reviewed-AOT `efficiency-positive` 已由 evidence authority 重算成立，Env production token
+break-even 为 1；BIDS successor 的 hand-authored artifact 正向但 contribution 未识别、static 回归且 automatic=false，
+不能作为第三个自动优化正例。Source-only 与薄声明 construction 能生成 7/7 四类候选，结构 checker/runtime 已在
+真实 workdir 执行，局部 output/pointer primitive 在双案例把 unresolved 从 15 降到 12，但 component authority
+对 IR/contract/validation-plan/package 的资格仍全部为 0/7。Env 清洁 automatic domain path 只在该冻结案例上达到
+3/6 criterion、0/2 full task；独立 review patch 后达到 6/6、2/2 full。由此当前产品形态收敛为
+`automatic candidate -> review-required domain closure -> deterministic revalidation -> evidence-bound package/report`，
+不是 full-automatic optimizer。Readiness v7 的 five gates 为 `true/true/false/true/true`，overall 仍 false；
+untouched replication、held-out 与跨模型主 claim 未开放。
 
 Portfolio v3 将 `benchmarkContract`、`baselineAdmission`、`staticFidelity`、`optimizedDevelopment` 与
 `heldOutPromotion` 分开保存和派生，并增加优化证据分类与 dynamic path，不允许用较早阶段的通过填充后续阶段。
@@ -1362,7 +1364,8 @@ optimized phenotype。
 
 - 已普遍提高 held-out success；
 - 已证明跨模型、跨 agent、跨 OS 稳定；
-- 已证明摊销 Token 节省或 break-even；
+- 已普遍证明跨 skill、模型、agent 或 OS 的摊销 Token 节省；Env reviewed-AOT 的单模型/Windows/clean
+  development 切片 break-even=1 除外；
 - runtime validation pass 等于任务成功；
 - 单个成功样本或跨批次均值差构成因果增益；
 - audit-failed 历史案例计入 contract-qualified 分母。
@@ -1484,6 +1487,92 @@ portfolio 的四个 self-report boolean 与成本字段改到足以令旧 evalua
 新 gate 仍为 false；不同步 digest 则 fail closed。当前实测为四组件 candidate 7/7、authority-qualified 0/7，
 full-qualified cost 0/7，薄声明 segment 15 humanMinutes/159 physical LOC，0 paid/held-out/evaluator payload。
 这只确立“当前 false 可机器验证”，不确立 full automation，也不授权 Stage C。
+
+### 13.1 Phase 3B+ Stage B 收敛命题
+
+本阶段不再把长期 full-automatic、held-out 或跨模型北极星写成当前成果。当前可辩护命题固定为：
+
+> **带机器可校验证据权威的、review-required 的 verified skill artifact packaging。**
+>
+> **Machine-verifiable evidence-authority, review-required verified skill artifact packaging.**
+
+这里的 “verified” 指 package 的来源、输入、执行、质量和成本主张可回指 digest-bound evidence，并由公共 loader/
+builder 重算；它不表示每个 domain checker/compiler 都由模型或 core 自动生成。`review-required` 是产品合同的一部分，
+不是暂时省略在统计之外的人工步骤。当前证据支持以下贡献：
+
+1. 将 frozen artifact 结果的 path/digest/schema/transitive evidence、固定分母、质量比较与成本派生统一纳入
+   fail-closed evidence authority；
+2. 在两个不同 phenotype 上分别建立 quality-positive 与 quality-equivalent efficiency-positive development evidence；
+3. 用同一机器权威同时保存自动构造的结构进展与语义资格失败，避免 candidate presence、自报字段或人工 closure
+   被误升为 automatic convergence；
+4. 把 domain review patch 的 LOC、人时、模型调用和 core delta 与 automatic plan 分账，并重新运行同一冻结 evaluator；
+5. 将 measurement-invalid、baseline saturation、static regression、control-plane contamination 与 domain semantic
+   gap 分型保存，负结果不再被基础设施或总分叙事吞并。
+
+### 13.2 Claim-authority matrix
+
+| Claim | 可写入正文的结论 | 机器权威与绑定证据 | 允许范围 | 禁止外推 |
+|---|---|---|---|---|
+| C1 | API Tester schema-derived artifact 是 `quality-positive`；16/16 rows、4/4 quartets，artifact 4/4、mean 1.0、0 hard/infrastructure/regression | readiness v7 的 optimization authority 重算 `results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json`，SHA-256 `4465efd0...131f5c4` | `xty/gpt-5.6-sol`、Pi/Windows/clean、2 development tasks x 2 repetitions | held-out、跨模型/agent/OS、普遍 skill 改善 |
+| C2 | Env reviewed-AOT 在 4/4 quality-equivalent pairs 上为 `efficiency-positive`；original 为 202010/4=50502.5 model tokens/run，reviewed runtime 为 0，production one-time 为 9358，break-even=1 | readiness v7 递归重算 `results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json`，SHA-256 `ad706d6a...60f7245`；quality evidence SHA-256 `6281b7bf...c046cf5` | 同一单模型、Pi/Windows/clean、2 development tasks x 2 repetitions；人工 8 minutes/125 LOC 单列 | full automatic、跨模型/环境成本收益、人工成本为 0 |
+| C3 | 当前 automation=false 是从冻结组件 evidence 派生，不消费 base portfolio 自报 automation/cost 字段；digest 漂移 fail closed | `method-portfolio-authoritative-automation-readiness.json` v7；catalog SHA-256 `9c0e47aa...e32fcf`、loader SHA-256 `49ccca01...08e500`，以及其中七份 evidence path/digest | 当前 7-case authority catalog 与声明的 component/cost policy | 对未知 evidence schema 的通用安全证明、full qualification 已完成 |
+| C4 | IR/contract/validation-plan/package candidate 均为 7/7，但 authority-qualified 均为 0/7；完整 qualification cost 0/7，convergence=false | readiness v7 `automationEvidenceAuthority.summary/costEvidence`，并绑定 source/thin/structural/pointer/cross-skill/repair/review evidence | 当前七个 contract-qualified method cases | candidate=qualified、reviewed=automatic、历史 missing=0 |
+| C5 | 清洁 Env automatic domain plan 从 baseline 0/6 提升到 3/6、0/2 full task；独立 review patch 后为 6/6、2/2 full，125 LOC/8 minutes、core delta 0 | generic-repair SHA-256 `e56fa91c...4c0ef1` 与 review-required SHA-256 `1d792f54...06f2d6`，均由 v7 automation authority 绑定 | Env 的两个冻结 development workdir；说明当前清洁自动路径边界和 review closure 可行性 | 永久模型能力天花板、跨案例自动 parity、自动 eligibility 已改变 |
+| C6 | 当前诚实产品形态是 review-required verified packaging，而非 full-automatic optimizer | C2 + C3 + C4 + C5 的合取；不新增第三个事实源 | 本阶段项目收口命题 | readiness passed、untouched replication、held-out 或多模型主证据 |
+
+矩阵中的缩写 digest 只用于正文可读性；机器校验始终使用 authority report 中保存的完整 64 位 SHA-256。论文、
+报告、演示或 README 中的实证句必须标注至少一个 Claim ID，并链接到对应 authority/report；没有矩阵条目的观察只能
+写作诊断、历史过程或 future work，不能临时扩成主 claim。
+
+### 13.3 论文骨架
+
+**工作标题：** *Evidence-Authoritative Skill AOT: Review-Required Verified Artifact Packaging for LLM Skills*
+
+**核心问题：** 在 full automatic domain construction 尚未收敛时，是否仍能以机器可复核的证据合同，把真实 skill
+编译成质量或效率上有用、人工边界透明、不会由自报状态晋级的 verified artifact package？
+
+**研究问题：**
+
+- RQ1（证据可信度）：path/digest/schema/transitive-evidence 校验与原始记录重算，能否让优化分类和 readiness
+  不再依赖 self-report？对应 C3、C4。
+- RQ2（有效性）：在冻结 development 分母上，artifact packaging 能否提供质量正向或质量等价的摊销效率正向？
+  对应 C1、C2。
+- RQ3（自动化边界）：`SKILL.md + 薄 task 声明` 能自动完成多少结构与候选构造，domain closure 仍需要多少明确
+  review？对应 C4、C5、C6。
+
+**正文顺序：**
+
+1. **Introduction**：skill 跨执行环境的不稳定、AOT artifact 机会，以及“结果可验证”与“构造全自动”必须分开的
+   研究缺口；只提出 C1--C6 范围内贡献。
+2. **Threat model and evidence authority**：定义 self-report promotion、digest drift、scorer-authority、分母污染、
+   control-plane mutation 和 held-out leakage；说明 optimization authority 与 component authority 如何 fail closed（C3）。
+3. **System design**：Skill IR、公开 task ABI、artifact assembly/runtime、deterministic scorer、production/research 成本
+   分账，以及 review patch 的独立 provenance（C2、C5、C6）。
+4. **Evaluation protocol**：真实公开 skill、development-only fixed denominator、`no-skill | original | ir-static |
+   artifact` 的可比条件、quality/efficiency 分类与限制；明确不同 mechanism 不共享不可比较分母。
+5. **Positive results**：API Tester quality-positive case study（C1）；Env reviewed-AOT quality equivalence、runtime 0
+   model token、one-time 9358 与 break-even=1（C2）。
+6. **Automation and negative results**：7/7 candidate 对 0/7 qualification、Env clean automatic 3/6 对 reviewed 6/6，
+   并分开讨论 measurement-invalid、saturation、static regression 与 infrastructure incidents（C4、C5）。
+7. **Product boundary and discussion**：为何当前可交付形态是 evidence-authoritative、review-required packaging，而不是
+   full automatic optimizer；人工成本、domain oracle 与 CLI 产品闭环的尚缺项（C6）。
+8. **Threats to validity**：单模型、Windows/clean、development-only、案例与 task 数量、人工 patch 的 case-local 性质、
+   历史 broad compatibility failure；禁止把 clean Env 3/6 解释为永久能力上限。
+9. **Future work**：只有新的 reviewed method-freeze gate 获批后才做 untouched replication；更强模型 full-auto retry、
+   多模型/context/OS 与统一 CLI/library/Agent 均属于 Stage C，不在本阶段执行。
+10. **Conclusion**：只回收 C1--C6，不宣称 readiness passed 或跨环境普遍稳定。
+
+### 13.4 Stage C 进入边界
+
+Stage B 是零付费证据整合，不生成新实验事实。后续只有两条独立、必须另行授权的路线：
+
+1. `review-required method-freeze -> untouched replication`：新增与 full-auto readiness 并存的 gate，不能覆盖或放宽
+   v7；replication skill 在方法冻结后不得修改 core，held-out 继续预冻结隔离。
+2. 更强模型 full-automation retry：使用新的前瞻 identity 检验 domain plan/IR/scorer/compiler 自动生成，不重放
+   Task 18.31--18.36，不把 reviewed patch 作为 automatic gold，也不顺手扩 selector/lookup/DSL。
+
+两条路线都不得从 Stage B 的文档整合获得执行授权。Stage C 之外的多模型、noisy/long、跨 OS/harness 与统一产品
+入口继续作为长期工作，不得在论文当前结果表中填入计划值。
 
 跨 agent、跨 OS、noisy/long、三模型族主表与普遍稳定性仍属于后续扩展目标。这个收窄不降低已有 quality、
 fixed-denominator、held-out 或 provenance 标准，只减少当前里程碑同时必须证明的外推范围。

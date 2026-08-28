@@ -1435,6 +1435,35 @@ report 与 readiness v6 保持不可变；claim 影响只把当前 automation=fa
 `coreBranchDelta=0`，Stage A accounting 为 0/0/0。旧 self-report 攻击可令 legacy evaluator true，却不能翻转 v7；
 未同步字节改动被 digest 拒绝。当前接力点固定为“向用户报告并等待 Stage B 确认”，不是继续 qualification。
 
+### 4.30 Task 18.40：Phase 3B+ Stage B 成果整合与论文骨架
+
+**确认：** 用户在 Stage A 回报后要求继续。Stage B 只整理已有 authority-verified evidence，不创建新的 paper
+authority、自报 registry 或实验身份，不新增 Markdown，不调用模型/API，不读取 held-out，不执行 7-case qualification、
+replication、多模型/noisy-long 或 DSL 扩展。
+
+**收敛命题：** `machine-verifiable evidence-authority, review-required verified skill artifact packaging`。长期
+full-automatic Skill IR optimizer 仍是北极星，不作为当前完成状态。每条正文实证 claim 必须绑定现有 authority 的
+path/digest、允许范围与禁止外推；历史阶段状态与当前结论分开，不能用新结果静默重写旧 identity。
+
+1. [x] 复核 readiness v7、API Tester quality gate、Env readonly-serial quality/cost、clean automatic domain parity 与
+   review-required closure 的精确 schema、数值和 SHA-256；
+2. [x] 在 spec 中冻结 C1--C6 claim-authority matrix，明确 API quality-positive、Env efficiency-positive/break-even=1、
+   7/7 candidate 对 0/7 qualification、Env auto 3/6 对 reviewed 6/6，以及 review-required 产品边界；
+3. [x] 在同一 spec 中加入论文工作标题、核心问题、RQ、十节正文骨架、threats 与 Stage C future-only 边界；
+4. [x] 更新 experiment results、文档入口与 developer guide，消除“Env 仍 fidelity-only”“当前只有一个 phenotype”
+   等过期状态，同时保留这些说法在历史阶段中的当时语义；
+5. [x] 同步本地 communication/handoff/conversation log；Stage C 只列 future work，不因文档整合获得 execution
+   authorization；
+6. [x] 运行 authority focused、两个 authority runner、typecheck、文档单测/全仓链接、Skill IR broad 与
+   `git diff --check`；确认历史 62 fail 不增加；
+7. [x] 精确暂存现有文档，扫描 credential/绝对用户路径/`docs/skill-ir/1.md`，提交并推送到
+   `origin/skill-ir-aot`；在论文骨架审阅点停止。
+
+**Claim 分账：** Stage B 不新增 experimental sample，也不把旧 paid call 算作本阶段成本；本阶段 accounting 固定为
+0 paid / 0 held-out / 0 evaluator payload。论文引用旧实验时使用各自冻结分母与原成本，不跨机制拼接均值或
+amortization。Env clean automatic `3/6` 是当前单案例边界，不写成模型族永久上限；review patch 的 125 LOC/8 minutes
+不能消失，也不能反推 automatic eligibility。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。
@@ -1451,10 +1480,11 @@ report 与 readiness v6 保持不可变；claim 影响只把当前 automation=fa
 | CLI/library/报告收口 | 4-7 | 可演示产品入口与研究报告 |
 
 i18n 已留下 infrastructure-insensitive 的 static 质量负结果，Statistical Power 又留下 scorer-authority
-measurement-invalid；继续串行新增案例的边际收益已经低于收敛现有流程。当前收窄里程碑预计还需 **2--4 周**：
-lifecycle wrapper/parity、Env Manager 全成本与 break-even、一个 untouched replication。达到 spec 的完整跨
-agent/OS/context/三模型族研究条件仍可能需要 **6--9 周以上**；新的 measurement-invalid 或 replication failure
-必须作为结果保留，不能靠缩短验证或继续换案例绕过。
+measurement-invalid；继续串行新增案例的边际收益已经低于收敛现有流程。Phase 3B+ Stage B 已完成现有成果收口，
+不再沿用旧的 **2--4 周** 估算。若用户另行批准 Stage C，reviewed method-freeze 与首个 untouched replication
+预计需要 **5--8 个净工作日**；stronger-model full-auto、多模型族与 context 主实验是其后的独立、不确定阶段。
+达到 spec 的完整跨 agent/OS/context/三模型族研究条件仍可能需要 **6--9 周以上**；新的 measurement-invalid 或
+replication failure 必须作为结果保留，不能靠缩短验证或继续换案例绕过。
 
 ## 6. 计划合理性复核
 

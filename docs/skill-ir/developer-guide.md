@@ -994,7 +994,9 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：薄声明 15m/159 LOC；人时趋势通过、声明 LOC 趋势失败，full qualification trend 未建立
 已完成：Stage A component authority；同步 digest 的 self-report 攻击不能翻转 v7，未同步攻击 fail closed
 已完成：readiness v7 四组件 0/7 qualified、full cost 0/7、two-evidence=true、automation=false、overall=false
-当前接力：Stage A 已提交收口并停止；等待用户确认后才进入 Stage B 成果整合与论文骨架
+已完成：Stage B 成果整合；spec 冻结 C1--C6 claim-authority matrix、review-required 收敛命题与论文骨架
+当前接力：停在论文骨架审阅点；Stage C 的 reviewed method-freeze/untouched replication 或更强模型 full-auto
+必须由用户另行授权，不因 Stage B 文档完成自动开始
 禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
 结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate

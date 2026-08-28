@@ -918,6 +918,24 @@ catalog digest；legacy evaluator 的 automation gate 确实变 true，而 v7 �
 overall=false；本阶段 0 paid、0 held-out、0 evaluator payload。该证据只证明当前 automation=false 的机器权威，
 不证明 7-case full qualification、untouched replication 或更强模型 full automation。
 
+Task 18.40 Stage B 没有生成新实验行，而是将可发表结论收敛为一组 authority-bound claims。当前 proposition 是
+“带机器可校验证据权威的、review-required 的 verified skill artifact packaging”，不是 full-automatic optimizer。
+所有数字继续来自既有冻结分母；本阶段 accounting 为 0 paid、0 held-out、0 evaluator payload。
+
+| Claim | 当前机器结论 | 完整证据路径与 SHA-256 | 不能声称 |
+|---|---|---|---|
+| C1 | API Tester `quality-positive`：16/16 rows、4/4 quartets，artifact 4/4、mean 1.0、0 hard/infrastructure/regression | `results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json`；`4465efd0a1e3de62c6d3069e39740c6e30190104b58e6efb158827bc1131f5c4` | held-out、跨模型/agent/OS 改善 |
+| C2 | Env reviewed-AOT `efficiency-positive`：4/4 quality-equivalent pairs；original 202010 model tokens/4 runs，reviewed runtime 0；one-time 9358；break-even=1 | `results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json`；`ad706d6abbb438893765b522274f0c2ba7050fe2d77953536b0711f6c60f7245` | full automatic、人工成本为 0、跨环境普遍节省 |
+| C3--C4 | v7 不消费 base self-report automation/cost；四组件 candidate 各 7/7、authority-qualified 各 0/7，full cost 0/7，overall false | `results/skill-ir/method-portfolio-authoritative-automation-readiness.json`；其内绑定 catalog `9c0e47aa903a1b25c7cd12f2c4656fe16c3907f193ff9872c9498d53a2e32fcf` 与 loader `49ccca01b499f4b28df15001d520d394103c0eea8f5fdff3f5e5b96d2408e500` | candidate=qualified、readiness passed |
+| C5 | Env clean automatic path 为 0/6 -> 3/6、0/2 full；review-required 后为 6/6、2/2 full，125 LOC/8 minutes，core delta 0 | automatic `e56fa91c694776e5e211440db89eb45338ba956abebab81fa736a170114c0ef1`；review `1d792f543c83ab46f8ea0d059f2b19e388c0aa862b443bd5e1af9f20d306f2d6` | 永久模型天花板、跨案例自动 parity、review=automatic |
+| C6 | 当前诚实产品边界为 `automatic candidate -> review-required domain closure -> deterministic revalidation -> evidence-bound package/report` | C2--C5 的合取，不新增第三个事实源 | untouched replication、held-out、跨模型主 claim |
+
+上述表中的 C3--C6 由
+`results/skill-ir/method-portfolio-authoritative-automation-readiness.json` 的完整 evidence path/digest closure 连接；
+论文正文使用 spec 的 C1--C6 matrix，并把单模型、Pi/Windows/clean、development-only 与人工 review 成本一并写入
+限制。Stage C 的 untouched replication、reviewed method-freeze、更强模型 full automation、多模型/context/OS
+只列 future work，当前没有执行授权。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
