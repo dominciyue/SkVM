@@ -1464,6 +1464,32 @@ path/digest、允许范围与禁止外推；历史阶段状态与当前结论分
 amortization。Env clean automatic `3/6` 是当前单案例边界，不写成模型族永久上限；review patch 的 125 LOC/8 minutes
 不能消失，也不能反推 automatic eligibility。
 
+### 4.31 Phase E0：工程化就绪度与 evaluator 策略
+
+**授权与停止线：** 用户授权先完成 Phase E 的 E0。E0 只读现有实现与证据，产出工程就绪度、复用/重构/解耦清单和
+evaluator 策略；不写 E1 集成代码、不调用模型/API、不读取 held-out。E0 完成后必须停下等待用户决定，不能按推荐项
+自动进入 E1。
+
+1. [x] 复核 Restricted Domain Plan、artifact assembly/catalog/runtime、automatic construction、review closure、
+   cost accounting、evidence authority 与公共导出/CLI 现状；
+2. [x] 将组件分为 `reuse-after-export`、`refactor-public-view`、`candidate-only-refactor`、`decouple`、
+   `optional-plugin` 与 `missing`，明确现有研究实现不等于稳定产品 API；
+3. [x] 对比 A（用户提供薄确定性 checker）和 B（无 evaluator 的 token-saving-first + 用户验收），明确两者的接入
+   成本、证据强度、允许 claim 与失败边界；
+4. [x] 冻结双轨分账：产品 token 经济性可以独立计算；质量 assurance 为 `machine-checked | user-accepted |
+   not-established`；只有 `machine-checked` 可在其它门完整时进入既有研究 authority；
+5. [x] 推荐 B 为默认产品路径、A 为可选严格插件；不放宽 `efficiency-positive` 或 readiness 的机器证据语义；
+6. [x] 同步 spec、evaluation、optimization、README、developer guide 与本地 ledger/handoff/log，不新增 Markdown；
+7. [ ] 用户确认 evaluator 策略；确认前不进入 E1。
+
+**E1（未授权）：** 获得确认后才编写文件级 TDD 计划。预期最窄 vertical slice 是一个稳定公共库入口贯通
+`compile -> review/accept -> package -> run -> cost`，先用一个既有 pilot 验证；manual acceptance 与 evaluator plugin
+共用同一 runtime/cost 主链，`coreBranchDelta=0`。E1 不修改既有 research authority 的质量含义，也不执行项目外实验。
+
+**E2（未授权）：** 先接一个受控的仓内新 skill，再接至少一个项目外真实 skill；前瞻记录 production model tokens、
+recurring tokens、runtime、人工分钟/LOC 和所有 attempt。无 checker 时只报告 user-accepted 产品经济性；有 checker 时
+才评估 research eligibility。E2 完成后必须报告再决定是否扩多模型或环境轴。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

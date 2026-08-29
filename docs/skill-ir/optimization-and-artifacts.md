@@ -772,6 +772,34 @@ domain semantic sufficiency、full manual parity 与完整 executable package，
 qualification 的非重叠 humanMinutes、adapterLoc 和 coreBranchDelta；当前 full cost 0/7、trend 未建立。旧 Phase 2
 canary 继续作为历史漏洞发现证据，但 v7 的研究结论来自 component reports + loader，而不是 canary 或 base fields。
 
+### 14.7 Phase E0 artifact/runtime/cost 工程就绪度
+
+现有 restricted plan interpreter、validated artifact assembly/catalog/runtime 已经证明可以在真实 workdir 上执行，
+并具有路径约束、catalog digest 与确定性错误边界；它们适合复用，但当前位于 `src/benchmarks/skill-ir/`，不是稳定的
+产品库接口。E1 若获授权，应移动或包装通用逻辑并公开最小输入/输出类型，保留现有 benchmark adapter 作为兼容层，
+不能复制第二套 runtime。
+
+Automatic construction 只能输出 candidate/scaffold。Source/thin-declaration 路径的 7/7 candidate 与 0/7 authority
+qualification 必须同时保留；任何公共 `compile` 返回值默认标记 `review-required`。Review closure 需要把以下职责从
+Env-specific runner 中解耦：review delta 的应用、source/package provenance、protected-input 检查、package assembly、
+revalidation 与人工时间记录。Evaluator/task-set 加载只能是可选插件，不能出现在通用 patch/package API 的必需参数中。
+
+成本层应复用 `buildOptimizationCostAccountingReport` 的 one-time/recurring/amortization 数学，但不改宽研究 v1 的
+`quality.equivalent` 语义。产品层需要一个正交 view：
+
+| 维度 | 值 | 可支持的结论 |
+|---|---|---|
+| token economics | measured / incomplete | one-time、recurring、N=1/2/5/10、token break-even |
+| quality assurance | machine-checked | 可在既有 authority 的其它条件满足时进入研究分类 |
+| quality assurance | user-accepted | 产品可执行与用户接受成立；strict equality/research promotion 不成立 |
+| quality assurance | not-established | 只保存候选、成本诊断，不声称交付质量 |
+
+无 evaluator 的 acceptance receipt 必须不可变地绑定 source/package/input/output digest、精确 delta、acceptedAt、
+humanMinutes、decision/note，并声明无 gold/held-out/scorer。产品总成本视图要显示人工投入；现有 research token
+break-even 仍保持 production AOT model-token 口径，二者不得静默合并。若要声称“包含人工成本的产品 break-even”，
+必须预先声明 token/调用节省与人工时间的估值或换算政策；否则报告两个独立阈值，并把总成本结论保持
+`not-computable`。
+
 ## 15. 测试
 
 ```powershell

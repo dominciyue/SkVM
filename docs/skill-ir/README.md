@@ -190,6 +190,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   verified skill artifact packaging”。Spec 现含 C1--C6 claim-authority matrix 与论文骨架：API quality-positive、
   Env efficiency-positive/break-even=1 是正向结果；7/7 candidate 对 0/7 qualification、Env automatic 3/6 对
   reviewed 6/6 是自动化与产品边界。Stage B 本身 0 paid/held-out/evaluator payload，不授权 Stage C。
+- Phase E0 工程就绪度已完成：restricted plan 与 artifact runtime 可在导出后复用，cost 数学需增加产品视图，
+  candidate generator 仍默认 review-required，Env review closure 必须解耦 evaluator/task-set。建议 B（无 evaluator、
+  用户验收、客观 token 经济性）为默认交付路径，A（薄确定性 checker）为可选严格升级；两者共用 runtime/cost，且
+  B 不得进入 research `efficiency-positive`。当前等待用户确认策略，未开始 E1。
 
 ## 当前下一步
 
@@ -249,7 +253,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 四类 candidate 均 7/7、authority-qualified 均 0；成本趋势依赖是否把 declaration LOC 计入用户投入
 -> Phase 3B+ Stage A 已完成：component authority/readiness v7 机器证明 automation=false，自报字段攻击不可翻转
 -> Phase 3B+ Stage B 已完成证据整合：C1--C6 claim matrix、review-required proposition 与论文骨架已冻结
--> 当前停在论文骨架审阅点；Stage C 只有另行授权后才可执行
+-> Phase E0 已完成零付费工程就绪度与 evaluator 策略评审；当前等待用户选择 A、B 或建议的 B-default+A-optional
+-> 用户确认后才写 E1 文件级计划并实现一个既有 pilot 的 compile -> review/accept -> package -> run -> cost 单链
+-> E1 通过并回报后，E2 才接仓内新 skill 与至少一个项目外真实 skill，前瞻证明 token 节省与人工成本
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

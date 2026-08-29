@@ -1576,3 +1576,58 @@ Stage B 是零付费证据整合，不生成新实验事实。后续只有两条
 
 跨 agent、跨 OS、noisy/long、三模型族主表与普遍稳定性仍属于后续扩展目标。这个收窄不降低已有 quality、
 fixed-denominator、held-out 或 provenance 标准，只减少当前里程碑同时必须证明的外推范围。
+
+## 14. Phase E 工程交付契约
+
+Phase E 的目标不是继续增加研究案例，而是把已验证机制收敛成一条外部使用者能够运行、能够核对成本且不会误读
+研究结论的产品路径。E0 只做零付费工程就绪度与 evaluator 策略评审，不写集成代码；E1 只有在用户确认策略后才可
+开始。E2 才允许选择新的受控 skill 和至少一个项目外真实 skill，证明实际 token 节省与包含人工投入的正向
+break-even。E0 不授权 held-out、多模型、noisy/long 或新的模型调用。
+
+### 14.1 E0 工程就绪度
+
+当前组件按交付用途得到以下工程判定：
+
+| 组件 | E0 判定 | 工程边界 |
+|---|---|---|
+| Restricted Domain Plan interpreter | `reuse-after-export` | 有界、skill-neutral、workdir 驱动；从 benchmark namespace 移到稳定库接口，不改变 DSL |
+| Validated artifact assembly/catalog/runtime | `reuse-after-export` | 确定性且已真实运行；解耦 benchmark 路径与内部 Bun 调用，保留 digest/catalog fail-closed |
+| Optimization cost accounting | `refactor-public-view` | 复用 one-time/recurring/break-even 数学；产品报告拆开 token 经济性与质量 assurance，研究 v1 语义保持不变 |
+| Source/thin-declaration construction | `candidate-only-refactor` | 可作 scaffold/hint；当前 7/7 candidate、0/7 qualified，输出必须默认 review-required |
+| Review-required closure | `decouple` | patch apply、provenance、package/revalidation 从 Env evaluator、固定 task set 与 case-local runner 中拆出 |
+| Deterministic evaluator | `optional-plugin` | 严格质量路径可注入；不得成为所有真实 skill 的默认前置条件 |
+| Evidence authority | `reuse-research-only` | 继续只接受机器派生质量证据；用户验收票据不能进入 research promotion |
+| 统一 library/CLI | `missing` | 当前没有 `compile -> review -> package -> run -> cost` 的公共产品入口 |
+
+E1 的稳定边界应只有一条共享主链：candidate compile、显式 review/accept、digest-bound package、deterministic run、
+cost accounting。Evaluator 是这条链上的可选质量插件，不得形成第二套产品。`coreBranchDelta=0` 继续是所有新 skill
+接入的硬约束。
+
+### 14.2 Evaluator 策略与 claim 分账
+
+E0 比较两种接入策略：
+
+1. **A：用户提供薄确定性 checker。** 系统负责其余 compile/package/run/cost；checker 通过时可以建立机器质量等价，
+   并在其它 authority/cost 条件完整时进入既有 research classification。代价是每个新 domain 都有 checker authoring
+   门槛。
+2. **B：token-saving-first，不要求 evaluator。** 系统先交付候选 artifact，由用户检查差异并明确接受；运行与成本均
+   客观计量。它可以证明 artifact/runtime 的 token 经济性与产品 break-even，但只能把质量记作 `user-accepted`，不能
+   写成 strict quality equivalence、`efficiency-positive` research phenotype 或 readiness promotion。
+
+建议选择 **B 为默认路径、A 为可选严格升级**。这不是放宽现有 authority，而是增加正交的产品 assurance 状态：
+
+- `machine-checked`：机器 checker 建立质量证据；满足其它条件时才有 research eligibility；
+- `user-accepted`：用户对明确 artifact/output delta 做出验收；允许产品运行和 token 经济性报告，不允许研究晋级；
+- `not-established`：没有质量接受证据，只能保存候选与诊断。
+
+无 evaluator 的验收票据至少绑定 source/package/input/output digest、精确 artifact/output delta、接受时间、人工分钟、
+决定与备注，并显式记录 `checkerAbsent=true`、gold/held-out/scorer 未使用。人工分钟不得被记作 0，也不得混入现有
+只以 production AOT model token 为分母的 research break-even。E2 的“包含人工成本的正向 break-even”必须在执行前
+冻结 token 与人工的换算/估值政策，或同时报告 token break-even 与人工回收阈值；没有该政策时只能称 token
+break-even，不能称产品总成本已回收。
+
+### 14.3 阶段停止点
+
+E0 文档完成后必须等待用户选择 evaluator 策略。获得确认前不得设计或实现 E1 API。E1 只做一个既有 pilot 的单链
+vertical slice，并保持既有 authority/schema 向后兼容；E1 验证通过后再次报告，E2 才选择新 skill。项目外真实 skill
+的 token 节省、人工成本和用户接受均必须前瞻记录，不能从当前七案例回填。

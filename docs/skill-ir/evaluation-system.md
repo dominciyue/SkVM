@@ -1142,6 +1142,26 @@ Compact 输出为 `results/skill-ir/method-portfolio-authoritative-automation-re
 只在用户确认后整理贡献与论文骨架，Stage C 的 7-case prospective qualification、untouched replication 和更强模型
 full automation 不由本结果授权。
 
+### 11.7 Phase E0 evaluator 策略
+
+Phase E 的产品入口不应强迫每个新 skill 先实现完整 scorer。E0 比较后的建议是 B 默认、A 可选：
+
+| 路径 | 使用者提供 | 系统负责 | 质量状态 | 允许 claim |
+|---|---|---|---|---|
+| A：thin deterministic checker | 声明式 task 信息 + 薄 checker | compile/package/run/cost 与 checker 调用 | `machine-checked` | 其它门完整时可进入既有 research authority |
+| B：token-saving-first | 声明式 task 信息 + 对明确 delta 的人工验收 | compile/package/run/cost 与 acceptance receipt | `user-accepted` | 客观 token economics、产品 break-even、人工成本；不含 strict quality equality |
+| 无验收 | 声明式 task 信息 | candidate 与诊断 | `not-established` | 不声称交付质量或研究晋级 |
+
+两条路径使用同一个 execution/cost pipeline；checker 只是可选质量插件。B 不得通过自报 `accepted=true` 进入
+`method-portfolio-evidence-authority`：验收票据必须绑定 source/package/input/output digest、完整 delta、时间、人工分钟
+和决定，但它仍不是 deterministic scorer/gate report。Existing authority 继续拒绝未知/manual evidence schema，避免把
+产品接受静默重写为 `quality-equivalent` 或 `efficiency-positive`。
+
+Token 经济性与质量 assurance 分开派生。即使没有 evaluator，也可以基于真实 production one-time 与 recurring model
+usage 计算 N=1/2/5/10 和 token break-even；报告必须同时显示 `qualityAssurance=user-accepted`，并把 manual minutes/
+LOC 单列在产品总成本视图。只有 A 的机器证据才能在满足 complete production/all-attempt cost 等现有条件时进入研究
+classification。
+
 ## 12. 结果持久化
 
 提交到 Git：

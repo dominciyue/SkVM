@@ -995,8 +995,10 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：Stage A component authority；同步 digest 的 self-report 攻击不能翻转 v7，未同步攻击 fail closed
 已完成：readiness v7 四组件 0/7 qualified、full cost 0/7、two-evidence=true、automation=false、overall=false
 已完成：Stage B 成果整合；spec 冻结 C1--C6 claim-authority matrix、review-required 收敛命题与论文骨架
-当前接力：停在论文骨架审阅点；Stage C 的 reviewed method-freeze/untouched replication 或更强模型 full-auto
-必须由用户另行授权，不因 Stage B 文档完成自动开始
+已完成：Phase E0 工程就绪度；plan interpreter/artifact runtime 可复用，cost 产品视图需重构，review closure 需解耦
+已完成：evaluator 策略比较；建议 B-default（用户验收 + token 经济性）与 A-optional（薄 deterministic checker）
+当前接力：等待用户确认 evaluator 策略；确认前不写 E1 API、不做付费/项目外实验
+确认后：先用一个既有 pilot 实现 compile -> review/accept -> package -> run -> cost 单链，再回报是否进入 E2
 禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
 结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
@@ -1094,6 +1096,17 @@ bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts
 artifact，而不是要求使用者亲自阅读失败、手写专用程序。方法开发期仍允许人工审核 adapter，但必须记录
 `humanMinutes`、`adapterLoc`、`artifactKinds`、`coreBranchDelta` 和 `unautomatedSteps`，用这些指标判断自动化
 程度是否真的提高。
+
+### 17.1 Phase E0 交付接力
+
+当前尚无统一产品 API。`src/index.ts` 没有导出 verified artifact optimize/review/package/cost 入口，package manifest
+也没有 TypeScript library export；可运行组件主要仍在 benchmark namespace。E1 不应从头重写这些组件，而应为
+restricted plan interpreter、artifact assembly/catalog/runtime 和 cost math 建立稳定包装，并保留 benchmark compatibility。
+
+Review-required 路径当前把 manual evaluator module、development task set、两条固定 task 和 case-local patch 绑在一起。
+E1 的第一项解耦是让 patch/accept、provenance、package、revalidation、run 与 cost 不依赖 evaluator；checker 作为可选
+plugin 注入。无 checker 时必须生成 digest-bound acceptance receipt，质量状态为 `user-accepted`，不能传给研究
+evidence authority。获得用户策略确认前，不创建该 API 或实现计划。
 
 ## 18. 继续阅读
 
