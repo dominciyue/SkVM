@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "package-inventory-task",
+  "taskKind": "analysis-report",
+  "inputs": [
+    {
+      "id": "package-manifest",
+      "path": "package.json",
+      "format": "json",
+      "access": "read-only",
+      "required": true
+    },
+    {
+      "id": "public-interface",
+      "path": "package-inventory-interface.json",
+      "format": "json",
+      "access": "read-only",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "package-inventory",
+      "path": "package-inventory.json",
+      "format": "json",
+      "required": true,
+      "structure": {
+        "kind": "json-object",
+        "requiredFields": [
+          "packageName",
+          "productionDependencies",
+          "developmentDependencies",
+          "allDependencies",
+          "counts"
+        ],
+        "allowAdditionalFields": false
+      }
+    }
+  ],
+  "passCriteria": [
+    {
+      "id": "inputs-stable",
+      "predicate": "input-integrity",
+      "targetRefs": ["package-manifest", "public-interface"],
+      "statement": "The two public inputs remain byte-identical."
+    },
+    {
+      "id": "output-present",
+      "predicate": "output-presence",
+      "targetRefs": ["package-inventory"],
+      "statement": "The declared inventory output exists."
+    },
+    {
+      "id": "output-exact",
+      "predicate": "exact-output-set",
+      "targetRefs": ["package-inventory"],
+      "statement": "No file other than the declared inventory output is created."
+    },
+    {
+      "id": "output-shape",
+      "predicate": "json-shape",
+      "targetRefs": ["package-inventory"],
+      "statement": "The inventory contains exactly the five declared top-level fields."
+    },
+    {
+      "id": "dependency-grounding",
+      "predicate": "source-grounding",
+      "targetRefs": ["package-manifest", "package-inventory"],
+      "statement": "Dependency names and counts derive only from the public manifest maps."
+    },
+    {
+      "id": "ordering-fidelity",
+      "predicate": "content-fidelity",
+      "targetRefs": ["package-manifest", "public-interface", "package-inventory"],
+      "statement": "Lists are sorted, the combined list is unique, and versions are omitted."
+    }
+  ]
+}

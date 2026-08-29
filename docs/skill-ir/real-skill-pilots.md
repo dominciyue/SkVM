@@ -387,7 +387,18 @@ Env Manager 目前是第二 readiness phenotype 的首选 efficiency 候选，�
 quality-positive 候选；Zh Code Reviewer 因 contract/baseline/static 已通过，可优先做零付费身份可行性审计，但不得
 用其 measurement-invalid README 旧结果凑正例。
 
-## 11. 修改与验证
+## 11. Phase E2 package-inventory 受控产品探针
+
+`package-inventory` 是仓内新建、此前没有 taskSet、scorer、compiler 或 package 的受控 skill。公开输入只有
+`package.json` 与 `package-inventory-interface.json`；薄声明描述一个 JSON output。自动构造得到 schema-valid contract/
+IR/validation candidate，deterministic gate passed，但 semantic parity 仍 not-established、package 仍 non-executable。
+
+要走完产品链，人工 review 仍补了 53 LOC restricted plan 与 58 LOC patch；缺少的通用能力是 JSON object-key 枚举、
+字符串排序/去重与跨字段 count。两次 B-mode 完整链的 artifact/output digest 相同、protected input 未变，0 paid、0
+held-out、0 evaluator/taskSet/scorer、core delta 0。由于没有 original recurring token baseline，产品报告诚实给出
+token break-even not-computable；因此它是工程可运行性/适配鸿沟证据，不是 token-saving 正例或项目外泛化证据。
+
+## 12. 修改与验证
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/corpus-registry.test.ts

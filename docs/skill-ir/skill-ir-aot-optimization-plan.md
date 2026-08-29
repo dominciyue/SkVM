@@ -1480,15 +1480,36 @@ evaluator 策略；不写 E1 集成代码、不调用模型/API、不读取 held
    not-established`；只有 `machine-checked` 可在其它门完整时进入既有研究 authority；
 5. [x] 推荐 B 为默认产品路径、A 为可选严格插件；不放宽 `efficiency-positive` 或 readiness 的机器证据语义；
 6. [x] 同步 spec、evaluation、optimization、README、developer guide 与本地 ledger/handoff/log，不新增 Markdown；
-7. [ ] 用户确认 evaluator 策略；确认前不进入 E1。
+7. [x] 用户确认 B-default + A-optional；B 不能研究晋级，A 只取得 authority-review 资格，不自动晋级。
 
-**E1（未授权）：** 获得确认后才编写文件级 TDD 计划。预期最窄 vertical slice 是一个稳定公共库入口贯通
-`compile -> review/accept -> package -> run -> cost`，先用一个既有 pilot 验证；manual acceptance 与 evaluator plugin
-共用同一 runtime/cost 主链，`coreBranchDelta=0`。E1 不修改既有 research authority 的质量含义，也不执行项目外实验。
+**E1（已完成）：**
 
-**E2（未授权）：** 先接一个受控的仓内新 skill，再接至少一个项目外真实 skill；前瞻记录 production model tokens、
-recurring tokens、runtime、人工分钟/LOC 和所有 attempt。无 checker 时只报告 user-accepted 产品经济性；有 checker 时
-才评估 research eligibility。E2 完成后必须报告再决定是否扩多模型或环境轴。
+1. [x] RED：新增 `src/skill-ir/verified-artifact-product.test.ts`，先证明缺少共用 product API；覆盖 candidate 必须
+   `review-required`、B/A 仅质量证据分支、票据绑定 artifact/source/workdir input/output digest、任一字节漂移拒绝、
+   acceptance human minutes 只进入 one-time、B claim 文案与 research eligibility 收缩；
+2. [x] GREEN：新增 `src/skill-ir/verified-artifact-product.ts`，只 import 既有 automatic construction、Restricted
+   Domain Plan、validated assembly/catalog/runtime 与 cost evidence schema，不修改这些被历史 freeze pin 住的文件；
+3. [x] 新增 `src/skill-ir/verified-artifact-plan-runner.ts` 与 `verified-artifact-patch-runner.ts` 两个 skill-neutral
+   package runtime adapter；差异只能来自声明、review plan/patch 和可选 checker，core 不出现 skill-id 分支；
+4. [x] 新增 `src/skill-ir/verified-artifact-cli.ts` 与 focused CLI test，以单次命令执行
+   `compile -> review/accept -> package -> run -> cost`。暂不修改被大量历史 lock digest 绑定的 `src/index.ts`；主 CLI
+   dispatch 在完成 compatibility 迁移后接入，避免为 E1 新增历史失败；
+5. [x] 用 Env 既有 pilot 做 B-default vertical slice，taskSet 仅作 fixture materialization、产品链不消费 evaluator，
+   输出 compact product report、token break-even 与 `qualityEvidence=user-accepted`；复核 `coreBranchDelta=0`；
+6. [x] A-optional 用同一核心执行薄 deterministic checker 回归，只允许 `qualityEvidence=machine-checked` 与
+   `eligible-for-authority-review`，不直接写入现有 research authority。
+
+**E2（仅仓内受控探针已授权）：**
+
+1. [x] 新建一个项目内、此前没有 task/scorer/compiler/package 的 package-inventory 受控 skill，只提供 `SKILL.md + 薄 task 声明 +
+   fresh workdir`；review plan/patch 作为诚实的人工补齐段，前瞻记录 authoring 时间、physical LOC 与 core delta；
+2. [x] 用同一 E1 命令/API 从零 compile、B-mode accept、package、run、cost；重跑两次并比较 package/output digest，
+   记录实际自动生成、来自声明、来自人工 review 与仍未解决项；
+3. [x] 没有 original recurring model-token 基线，产品 cost 输出 `not-computable`，未为了得到好看的
+   break-even 调用模型或回填旧案例数据；
+4. [x] 运行 focused、`src/skill-ir`、benchmark compatibility、typecheck、文档与 broad；dependency-enabled broad 为
+   1233 pass/2 skip/21 historical fail，未超过历史 62；
+5. [x] 在探针差距报告后停止，等待用户判断项目外真实 skill 的选择和是否值得继续规模化。
 
 ## 5. 时间估算
 

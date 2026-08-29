@@ -1,0 +1,939 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-result/v1",
+  "contract": {
+    "schemaVersion": "skill-ir-domain-contract-candidate/v1",
+    "skillId": "env-manager",
+    "taskDescriptionId": "env-manager-audit-task",
+    "taskKind": "workspace-transformation",
+    "intent": "环境变量管理器：扫描、校验、同步 .env 文件，生成安全配置模板",
+    "inputs": [
+      {
+        "id": "environment-file",
+        "path": ".env",
+        "format": "text",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "project-source",
+        "path": "<project-source-files>",
+        "format": "directory",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "path": "env-audit-interface.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "environment-example",
+        "path": ".env.example",
+        "format": "text",
+        "required": true,
+        "structure": {
+          "kind": "opaque"
+        }
+      },
+      {
+        "id": "environment-schema",
+        "path": ".env.schema.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "opaque"
+        }
+      },
+      {
+        "id": "environment-report",
+        "path": "env-report.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "definedAndUsed",
+            "definedUnconfirmedUnused",
+            "usedUndefined",
+            "hardcodedSecrets",
+            "exposureRisks"
+          ],
+          "allowAdditionalFields": true
+        }
+      }
+    ],
+    "passCriteria": [
+      {
+        "id": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "environment-file",
+          "project-source",
+          "public-interface"
+        ],
+        "statement": "Every initial workspace entry remains unchanged."
+      },
+      {
+        "id": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "statement": "Only the three declared audit artifacts are created."
+      },
+      {
+        "id": "report-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "environment-report"
+        ],
+        "statement": "The report contains all declared finding collections."
+      },
+      {
+        "id": "environment-classification",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "environment-file",
+          "project-source",
+          "environment-report"
+        ],
+        "statement": "Defined, referenced, missing, and sensitive variables follow observable workspace evidence."
+      },
+      {
+        "id": "artifact-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "statement": "Example, schema, and report describe the same variable inventory and requiredness."
+      },
+      {
+        "id": "secret-redaction",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "environment-file",
+          "environment-example",
+          "environment-report"
+        ],
+        "statement": "Sensitive values are never copied into generated artifacts."
+      }
+    ],
+    "sourceRules": [
+      {
+        "id": "rule-01",
+        "sourceText": "[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "[ ] `.env` 已添加到 `.gitignore`"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "[ ] `.env.example` 存在且与代码同步"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "[ ] 无硬编码的 API Key / Token / Password"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "[ ] 数据库密码不在日志中输出"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。"
+      },
+      {
+        "id": "rule-09",
+        "sourceText": "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。"
+      },
+      {
+        "id": "rule-10",
+        "sourceText": "不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。"
+      },
+      {
+        "id": "rule-11",
+        "sourceText": "**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀"
+      },
+      {
+        "id": "rule-12",
+        "sourceText": "**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆"
+      },
+      {
+        "id": "rule-13",
+        "sourceText": "**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入"
+      },
+      {
+        "id": "rule-14",
+        "sourceText": "**Vite**：使用 `VITE_` 前缀暴露变量给客户端"
+      },
+      {
+        "id": "rule-15",
+        "sourceText": "**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置"
+      }
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "env-manager",
+    "name": "环境变量管理器",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy",
+      "environment-sensitive"
+    ],
+    "intent": "环境变量管理器：扫描、校验、同步 .env 文件，生成安全配置模板",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+    },
+    "inputs": [
+      {
+        "id": "environment-file",
+        "description": ".env (text, read-only)",
+        "required": true
+      },
+      {
+        "id": "project-source",
+        "description": "<project-source-files> (directory, read-only)",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "description": "env-audit-interface.json (json, read-only)",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "environment-example",
+        "description": ".env.example (text, opaque)",
+        "required": true
+      },
+      {
+        "id": "environment-schema",
+        "description": ".env.schema.json (json, opaque)",
+        "required": true
+      },
+      {
+        "id": "environment-report",
+        "description": "env-report.json (json, json-object)",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "1. 扫描项目",
+        "description": "1. 扫描项目",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "2. 校验分析",
+        "description": "2. 校验分析",
+        "kind": "analyze",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "3. 生成/修复",
+        "description": "3. 生成/修复",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "4. 同步",
+        "description": "4. 同步",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01",
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "successCheckRefs": [
+          "check-inputs-stable",
+          "check-outputs-exact",
+          "check-report-shape",
+          "check-environment-classification",
+          "check-artifact-consistency",
+          "check-secret-redaction"
+        ],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "[ ] `.env` 已添加到 `.gitignore`",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] `.env` 已添加到 `.gitignore`"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "[ ] `.env.example` 存在且与代码同步",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] `.env.example` 存在且与代码同步"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "[ ] 无硬编码的 API Key / Token / Password",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] 无硬编码的 API Key / Token / Password"
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）"
+      },
+      {
+        "id": "rule-07",
+        "sourceText": "[ ] 数据库密码不在日志中输出",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "[ ] 数据库密码不在日志中输出"
+      },
+      {
+        "id": "rule-08",
+        "sourceText": "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。",
+        "level": "never",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。"
+      },
+      {
+        "id": "rule-09",
+        "sourceText": "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。"
+      },
+      {
+        "id": "rule-10",
+        "sourceText": "不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。",
+        "level": "should",
+        "scope": "safety",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。"
+      },
+      {
+        "id": "rule-11",
+        "sourceText": "**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀"
+      },
+      {
+        "id": "rule-12",
+        "sourceText": "**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆"
+      },
+      {
+        "id": "rule-13",
+        "sourceText": "**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入",
+        "level": "must",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入"
+      },
+      {
+        "id": "rule-14",
+        "sourceText": "**Vite**：使用 `VITE_` 前缀暴露变量给客户端",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "**Vite**：使用 `VITE_` 前缀暴露变量给客户端"
+      },
+      {
+        "id": "rule-15",
+        "sourceText": "**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置",
+        "level": "must",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置"
+      }
+    ],
+    "tools": [],
+    "environment": [
+      {
+        "id": "environment-from-source",
+        "description": "The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.",
+        "platforms": [
+          "linux",
+          "macos",
+          "windows",
+          "wsl",
+          "container"
+        ],
+        "checkability": "human"
+      }
+    ],
+    "checks": [
+      {
+        "id": "check-inputs-stable",
+        "name": "inputs-stable",
+        "kind": "rule-violation",
+        "targetRef": "environment-file",
+        "assertion": "input-integrity: Every initial workspace entry remains unchanged.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-outputs-exact",
+        "name": "outputs-exact",
+        "kind": "output",
+        "targetRef": "environment-example",
+        "assertion": "exact-output-set: Only the three declared audit artifacts are created.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-report-shape",
+        "name": "report-shape",
+        "kind": "output",
+        "targetRef": "environment-report",
+        "assertion": "json-shape: The report contains all declared finding collections.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-environment-classification",
+        "name": "environment-classification",
+        "kind": "output",
+        "targetRef": "environment-file",
+        "assertion": "source-grounding: Defined, referenced, missing, and sensitive variables follow observable workspace evidence.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-artifact-consistency",
+        "name": "artifact-consistency",
+        "kind": "output",
+        "targetRef": "environment-example",
+        "assertion": "cross-artifact-consistency: Example, schema, and report describe the same variable inventory and requiredness.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-secret-redaction",
+        "name": "secret-redaction",
+        "kind": "output",
+        "targetRef": "environment-file",
+        "assertion": "content-fidelity: Sensitive values are never copied into generated artifacts.",
+        "onFailure": "report"
+      }
+    ],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-domain-construction-validation-plan/v1",
+    "predicates": [
+      {
+        "criterionId": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "environment-file",
+          "project-source",
+          "public-interface"
+        ],
+        "assertion": "Every initial workspace entry remains unchanged.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "assertion": "Only the three declared audit artifacts are created.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "report-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "environment-report"
+        ],
+        "assertion": "The report contains all declared finding collections.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "environment-classification",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "environment-file",
+          "project-source",
+          "environment-report"
+        ],
+        "assertion": "Defined, referenced, missing, and sensitive variables follow observable workspace evidence.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "artifact-consistency",
+        "predicate": "cross-artifact-consistency",
+        "targetRefs": [
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "assertion": "Example, schema, and report describe the same variable inventory and requiredness.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "secret-redaction",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "environment-file",
+          "environment-example",
+          "environment-report"
+        ],
+        "assertion": "Sensitive values are never copied into generated artifacts.",
+        "loweringStatus": "domain-runtime-required"
+      }
+    ],
+    "deterministicGate": {
+      "status": "passed",
+      "checks": [
+        {
+          "id": "source-digest",
+          "status": "passed",
+          "detail": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+        },
+        {
+          "id": "declaration-digest",
+          "status": "passed",
+          "detail": "398c49dd66c0fc7a75c4646cf5dded46131b8dc997a5c6ea7daccd97a6ff2ab4"
+        },
+        {
+          "id": "declaration-thinness",
+          "status": "passed",
+          "detail": "within-limit"
+        },
+        {
+          "id": "domain-bindings",
+          "status": "passed",
+          "detail": "contract, IR, and plan bindings agree"
+        }
+      ]
+    },
+    "semanticParity": {
+      "status": "not-established",
+      "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+    }
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-domain-package-candidate/v1",
+    "status": "non-executable",
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "id": "skill-markdown",
+        "path": "skill.md"
+      },
+      {
+        "id": "skill-ir",
+        "path": "skill-ir.json"
+      },
+      {
+        "id": "domain-contract",
+        "path": "domain-contract.json"
+      },
+      {
+        "id": "validation-plan",
+        "path": "validation-plan.json"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "runtime-environment-classification",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "environment-file",
+          "project-source",
+          "environment-report"
+        ],
+        "reason": "environment-classification requires a domain runtime implementation: Defined, referenced, missing, and sensitive variables follow observable workspace evidence."
+      },
+      {
+        "id": "runtime-artifact-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "reason": "artifact-consistency requires a domain runtime implementation: Example, schema, and report describe the same variable inventory and requiredness."
+      },
+      {
+        "id": "runtime-secret-redaction",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "environment-file",
+          "environment-example",
+          "environment-report"
+        ],
+        "reason": "secret-redaction requires a domain runtime implementation: Sensitive values are never copied into generated artifacts."
+      },
+      {
+        "id": "package-environment-example",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "reason": "no qualified compiler emits .env.example, .env.schema.json, env-report.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "thinness": {
+    "status": "within-limit",
+    "loc": 24,
+    "maxLoc": 80,
+    "semanticEntries": 17,
+    "maxSemanticEntries": 40,
+    "reasons": []
+  },
+  "semanticAccounting": {
+    "fromSkillSource": {
+      "units": [
+        {
+          "id": "step-01",
+          "kind": "workflow-step",
+          "value": "1. 扫描项目"
+        },
+        {
+          "id": "step-02",
+          "kind": "workflow-step",
+          "value": "2. 校验分析"
+        },
+        {
+          "id": "step-03",
+          "kind": "workflow-step",
+          "value": "3. 生成/修复"
+        },
+        {
+          "id": "step-04",
+          "kind": "workflow-step",
+          "value": "4. 同步"
+        },
+        {
+          "id": "rule-01",
+          "kind": "rule",
+          "value": "[ ] 扫描和报告只展示变量名及脱敏状态，不回显真实 Secret"
+        },
+        {
+          "id": "rule-02",
+          "kind": "rule",
+          "value": "[ ] `.env` 已添加到 `.gitignore`"
+        },
+        {
+          "id": "rule-03",
+          "kind": "rule",
+          "value": "[ ] `.env.example` 存在且与代码同步"
+        },
+        {
+          "id": "rule-04",
+          "kind": "rule",
+          "value": "[ ] 无硬编码的 API Key / Token / Password"
+        },
+        {
+          "id": "rule-05",
+          "kind": "rule",
+          "value": "[ ] 生产环境使用 Secrets 管理（GitHub Secrets / AWS SSM / Vault）"
+        },
+        {
+          "id": "rule-06",
+          "kind": "rule",
+          "value": "[ ] JWT_SECRET / ENCRYPTION_KEY 足够随机（32+ 字符）"
+        },
+        {
+          "id": "rule-07",
+          "kind": "rule",
+          "value": "[ ] 数据库密码不在日志中输出"
+        },
+        {
+          "id": "rule-08",
+          "kind": "rule",
+          "value": "不要自动删除或改写真实 `.env`；先展示差异并取得用户确认。"
+        },
+        {
+          "id": "rule-09",
+          "kind": "rule",
+          "value": "“未使用”只代表静态扫描没有发现，仍需检查 CI、容器、部署平台和动态变量访问。"
+        },
+        {
+          "id": "rule-10",
+          "kind": "rule",
+          "value": "不把生产 Secret 复制到 `.env.example`、Schema、日志、Issue 或聊天输出中。"
+        },
+        {
+          "id": "rule-11",
+          "kind": "rule",
+          "value": "**Next.js**：只有 `NEXT_PUBLIC_` 前缀的变量会暴露给客户端，后端专用变量不要加此前缀"
+        },
+        {
+          "id": "rule-12",
+          "kind": "rule",
+          "value": "**Docker**：构建时的 ARG 和运行时的 ENV 是不同的，不要混淆"
+        },
+        {
+          "id": "rule-13",
+          "kind": "rule",
+          "value": "**Create React App**：`.env` 中的变量必须以 `REACT_APP_` 开头才会被注入"
+        },
+        {
+          "id": "rule-14",
+          "kind": "rule",
+          "value": "**Vite**：使用 `VITE_` 前缀暴露变量给客户端"
+        },
+        {
+          "id": "rule-15",
+          "kind": "rule",
+          "value": "**monorepo**：根目录的 `.env` 不会自动被子包读取，需要显式配置"
+        },
+        {
+          "id": "output-01",
+          "kind": "output-description",
+          "value": "Result described by the public skill source."
+        }
+      ]
+    },
+    "fromTaskDeclaration": {
+      "units": [
+        {
+          "id": "environment-file",
+          "kind": "input",
+          "value": ".env"
+        },
+        {
+          "id": "project-source",
+          "kind": "input",
+          "value": "<project-source-files>"
+        },
+        {
+          "id": "public-interface",
+          "kind": "input",
+          "value": "env-audit-interface.json"
+        },
+        {
+          "id": "environment-example",
+          "kind": "output",
+          "value": ".env.example"
+        },
+        {
+          "id": "environment-schema",
+          "kind": "output",
+          "value": ".env.schema.json"
+        },
+        {
+          "id": "environment-report",
+          "kind": "output",
+          "value": "env-report.json"
+        },
+        {
+          "id": "inputs-stable",
+          "kind": "pass-criterion",
+          "value": "Every initial workspace entry remains unchanged."
+        },
+        {
+          "id": "outputs-exact",
+          "kind": "pass-criterion",
+          "value": "Only the three declared audit artifacts are created."
+        },
+        {
+          "id": "report-shape",
+          "kind": "pass-criterion",
+          "value": "The report contains all declared finding collections."
+        },
+        {
+          "id": "environment-classification",
+          "kind": "pass-criterion",
+          "value": "Defined, referenced, missing, and sensitive variables follow observable workspace evidence."
+        },
+        {
+          "id": "artifact-consistency",
+          "kind": "pass-criterion",
+          "value": "Example, schema, and report describe the same variable inventory and requiredness."
+        },
+        {
+          "id": "secret-redaction",
+          "kind": "pass-criterion",
+          "value": "Sensitive values are never copied into generated artifacts."
+        }
+      ]
+    },
+    "automationProduced": {
+      "contractBindings": 12,
+      "irTaskAbiBindings": 6,
+      "validationPredicates": 6,
+      "genericDeterministicPredicates": 3
+    },
+    "stillRequiresHuman": [
+      {
+        "id": "runtime-environment-classification",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "environment-file",
+          "project-source",
+          "environment-report"
+        ],
+        "reason": "environment-classification requires a domain runtime implementation: Defined, referenced, missing, and sensitive variables follow observable workspace evidence."
+      },
+      {
+        "id": "runtime-artifact-consistency",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "reason": "artifact-consistency requires a domain runtime implementation: Example, schema, and report describe the same variable inventory and requiredness."
+      },
+      {
+        "id": "runtime-secret-redaction",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "environment-file",
+          "environment-example",
+          "environment-report"
+        ],
+        "reason": "secret-redaction requires a domain runtime implementation: Sensitive values are never copied into generated artifacts."
+      },
+      {
+        "id": "package-environment-example",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "environment-example",
+          "environment-schema",
+          "environment-report"
+        ],
+        "reason": "no qualified compiler emits .env.example, .env.schema.json, env-report.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "semanticParity": {
+    "status": "not-established",
+    "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+  },
+  "audit": {
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "benchmarks/skill-ir/task-descriptions/env-manager.json"
+    ]
+  }
+}

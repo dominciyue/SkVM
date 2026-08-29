@@ -794,11 +794,32 @@ revalidation 与人工时间记录。Evaluator/task-set 加载只能是可选插
 | quality assurance | user-accepted | 产品可执行与用户接受成立；strict equality/research promotion 不成立 |
 | quality assurance | not-established | 只保存候选、成本诊断，不声称交付质量 |
 
-无 evaluator 的 acceptance receipt 必须不可变地绑定 source/package/input/output digest、精确 delta、acceptedAt、
-humanMinutes、decision/note，并声明无 gold/held-out/scorer。产品总成本视图要显示人工投入；现有 research token
+无 evaluator 的 acceptance receipt 必须不可变地绑定 source/package/input/output 的实际字节 digest、精确 delta、
+acceptedAt、humanMinutes、decision/note，并由最终 product manifest 绑定 receipt digest；任一闭包字节漂移都必须
+fail closed。它同时声明无 gold/held-out/scorer。产品总成本视图要显示人工投入；现有 research token
 break-even 仍保持 production AOT model-token 口径，二者不得静默合并。若要声称“包含人工成本的产品 break-even”，
 必须预先声明 token/调用节省与人工时间的估值或换算政策；否则报告两个独立阈值，并把总成本结论保持
 `not-computable`。
+
+Phase E1 已确认采用 B-default + A-optional。两种模式共用一个 candidate/package/runtime/cost 实现：B 在 preview
+output/delta 后生成 `user-accepted` 票据；A 在同一位置运行 digest-pinned deterministic checker，生成
+`machine-checked` 证据。验收人工分钟是 per-artifact one-time production 成本，不能进入 recurring runtime。
+产品报告必须使用 `qualityEvidence` 明示等级；B 的 claim 固定为“under user-accepted quality”，只有 A 可进入后续
+research authority review。现有 `skill-ir-optimization-cost-accounting/v1` 与研究分类不原地改宽。
+
+E1 实现落在新的 standalone product wrapper，不改历史冻结 runtime/cost schema，也不改被 lock digest 绑定的
+`src/index.ts`。Artifact 同时携带 source、task declaration、automatic construction candidate、reviewed plan/patch、
+执行 runner 与 `source-audit.json`；后者只证明 pinned bytes，明确写出 `semanticSourceAudit=not-established`。Package、
+quality evidence、run evidence 和 cost report 形成互相绑定的 digest closure。
+
+E2 的 package-inventory 探针两次全链都得到 artifact closure
+`2edc635b80638a68e720bad36e782f4eb06e9ed7b90dfdcbaf8dcb932eb99035` 与 output closure
+`16eb0509c900c917116272193ad726d2694bb8f88f0f4264c7d91e8dd9bbd113`。薄声明为 79 parser LOC/14 semantic entries，
+human review 为 53 LOC plan + 58 LOC patch；实际需要对象键枚举、排序/去重和跨字段计数。现有旧 plan ABI 仍把
+`audit.paidCalls` 固定为 1，不能字面表达本次实际 0 paid 的手写 plan；compact report 将两者并列而不改冻结 DSL。
+产品 cost v1 还区分三类 token 结论：正 recurring savings 才输出 `token-saving-under-*`；original recurring 为 0 时
+输出 `token-savings-not-reached`；缺 production 分母时输出 `token-economics-not-computable`。后二者的 claim boundary
+都明确禁止 token-saving 措辞。
 
 ## 15. 测试
 

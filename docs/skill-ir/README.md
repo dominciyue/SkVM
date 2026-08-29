@@ -190,10 +190,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   verified skill artifact packaging”。Spec 现含 C1--C6 claim-authority matrix 与论文骨架：API quality-positive、
   Env efficiency-positive/break-even=1 是正向结果；7/7 candidate 对 0/7 qualification、Env automatic 3/6 对
   reviewed 6/6 是自动化与产品边界。Stage B 本身 0 paid/held-out/evaluator payload，不授权 Stage C。
-- Phase E0 工程就绪度已完成：restricted plan 与 artifact runtime 可在导出后复用，cost 数学需增加产品视图，
-  candidate generator 仍默认 review-required，Env review closure 必须解耦 evaluator/task-set。建议 B（无 evaluator、
-  用户验收、客观 token 经济性）为默认交付路径，A（薄确定性 checker）为可选严格升级；两者共用 runtime/cost，且
-  B 不得进入 research `efficiency-positive`。当前等待用户确认策略，未开始 E1。
+- Phase E0/E1 与仓内 E2 受控探针已完成。用户确认的 B-default + A-optional 已落到一条共享产品链；B 的 digest-bound 用户
+  验收只支持“在用户认可质量前提下的 token 节省”，不得进入 research `efficiency-positive`；A 的薄 checker 只取得
+  authority-review 资格。Env E1 在 evaluator-free 产品视图复现 token break-even=1；新 package-inventory 探针两次全链
+  artifact/output closure 相同，但 automatic candidate 仍 non-executable、semantic parity 未建立，且无 original token 分母，
+  所以 break-even 为 not-computable。当前停在 E2 强制回报点，项目外真实 skill 未选择、未执行。
 
 ## 当前下一步
 
@@ -253,9 +254,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 四类 candidate 均 7/7、authority-qualified 均 0；成本趋势依赖是否把 declaration LOC 计入用户投入
 -> Phase 3B+ Stage A 已完成：component authority/readiness v7 机器证明 automation=false，自报字段攻击不可翻转
 -> Phase 3B+ Stage B 已完成证据整合：C1--C6 claim matrix、review-required proposition 与论文骨架已冻结
--> Phase E0 已完成零付费工程就绪度与 evaluator 策略评审；当前等待用户选择 A、B 或建议的 B-default+A-optional
--> 用户确认后才写 E1 文件级计划并实现一个既有 pilot 的 compile -> review/accept -> package -> run -> cost 单链
--> E1 通过并回报后，E2 才接仓内新 skill 与至少一个项目外真实 skill，前瞻证明 token 节省与人工成本
+-> Phase E0 已完成；用户确认 B-default+A-optional，四条 receipt/claim/cost/共享主链红线已同步
+-> E1 已用 Env evaluator-free vertical slice 跑通 compile -> review/accept -> package -> run -> cost，产品 token break-even=1
+-> E2 package-inventory 仓内新 skill 双运行完成：closure 确定，自动语义/package 与原始 token 分母仍缺
+-> 当前停在 E2 回报点；项目外真实 skill 的选择和实验须由用户复核后前瞻开展
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

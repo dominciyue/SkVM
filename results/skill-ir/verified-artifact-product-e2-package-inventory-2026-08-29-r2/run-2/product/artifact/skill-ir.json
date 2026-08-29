@@ -1,0 +1,228 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "package-inventory",
+  "name": "Package inventory",
+  "category": [
+    "workflow",
+    "generative",
+    "constraint-heavy",
+    "environment-sensitive"
+  ],
+  "intent": "Create a deterministic public dependency inventory from a package manifest.",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/package-inventory-probe/source/SKILL.md",
+    "sha256": "0ba0be8f86879d5edb3976ca132fce2985c3d7301d2330b7cc31d8d5d58af9b6"
+  },
+  "inputs": [
+    {
+      "id": "package-manifest",
+      "description": "package.json (json, read-only)",
+      "required": true
+    },
+    {
+      "id": "public-interface",
+      "description": "package-inventory-interface.json (json, read-only)",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "package-inventory",
+      "description": "package-inventory.json (json, json-object)",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "public-source-readable",
+      "description": "The digest-pinned public skill source is readable before execution.",
+      "checkability": "static"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-01",
+      "title": "1. Read public inputs",
+      "description": "1. Read public inputs",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": [],
+      "produces": [
+        "output-01"
+      ],
+      "successCheckRefs": [],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    },
+    {
+      "id": "step-02",
+      "title": "2. Derive the inventory",
+      "description": "2. Derive the inventory",
+      "kind": "execute",
+      "required": true,
+      "dependsOn": [
+        "step-01"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "output-01"
+      ],
+      "successCheckRefs": [],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    },
+    {
+      "id": "step-03",
+      "title": "3. Write the result",
+      "description": "3. Write the result",
+      "kind": "edit",
+      "required": true,
+      "dependsOn": [
+        "step-02"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "output-01",
+        "package-inventory"
+      ],
+      "successCheckRefs": [
+        "check-inputs-stable",
+        "check-output-present",
+        "check-output-exact",
+        "check-output-shape",
+        "check-dependency-grounding",
+        "check-ordering-fidelity"
+      ],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-01",
+      "sourceText": "Treat missing dependency maps as empty objects.",
+      "level": "should",
+      "scope": "planning",
+      "checkability": "human",
+      "severity": "medium",
+      "normalizedForm": "Treat missing dependency maps as empty objects."
+    },
+    {
+      "id": "rule-02",
+      "sourceText": "Preserve the package name exactly as declared.",
+      "level": "should",
+      "scope": "planning",
+      "checkability": "human",
+      "severity": "medium",
+      "normalizedForm": "Preserve the package name exactly as declared."
+    },
+    {
+      "id": "rule-03",
+      "sourceText": "Never include dependency versions, lockfile content, installed package state, or network data.",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "Never include dependency versions, lockfile content, installed package state, or network data."
+    },
+    {
+      "id": "rule-04",
+      "sourceText": "Do not modify or delete any initial workspace file.",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "Do not modify or delete any initial workspace file."
+    },
+    {
+      "id": "rule-05",
+      "sourceText": "Do not create files other than the declared inventory output.",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "Do not create files other than the declared inventory output."
+    },
+    {
+      "id": "rule-06",
+      "sourceText": "Keep output ordering deterministic.",
+      "level": "should",
+      "scope": "output",
+      "checkability": "human",
+      "severity": "medium",
+      "normalizedForm": "Keep output ordering deterministic."
+    }
+  ],
+  "tools": [],
+  "environment": [
+    {
+      "id": "environment-from-source",
+      "description": "The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows",
+        "wsl",
+        "container"
+      ],
+      "checkability": "human"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-inputs-stable",
+      "name": "inputs-stable",
+      "kind": "rule-violation",
+      "targetRef": "package-manifest",
+      "assertion": "input-integrity: The two public inputs remain byte-identical.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-output-present",
+      "name": "output-present",
+      "kind": "output",
+      "targetRef": "package-inventory",
+      "assertion": "output-presence: The declared inventory output exists.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-output-exact",
+      "name": "output-exact",
+      "kind": "output",
+      "targetRef": "package-inventory",
+      "assertion": "exact-output-set: No file other than the declared inventory output is created.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-output-shape",
+      "name": "output-shape",
+      "kind": "output",
+      "targetRef": "package-inventory",
+      "assertion": "json-shape: The inventory contains exactly the five declared top-level fields.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-dependency-grounding",
+      "name": "dependency-grounding",
+      "kind": "output",
+      "targetRef": "package-manifest",
+      "assertion": "source-grounding: Dependency names and counts derive only from the public manifest maps.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-ordering-fidelity",
+      "name": "ordering-fidelity",
+      "kind": "output",
+      "targetRef": "package-manifest",
+      "assertion": "content-fidelity: Lists are sorted, the combined list is unique, and versions are omitted.",
+      "onFailure": "report"
+    }
+  ],
+  "recovery": [],
+  "profile": []
+}

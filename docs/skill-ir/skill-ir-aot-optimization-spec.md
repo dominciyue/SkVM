@@ -1594,10 +1594,10 @@ break-even。E0 不授权 held-out、多模型、noisy/long 或新的模型调�
 | Validated artifact assembly/catalog/runtime | `reuse-after-export` | 确定性且已真实运行；解耦 benchmark 路径与内部 Bun 调用，保留 digest/catalog fail-closed |
 | Optimization cost accounting | `refactor-public-view` | 复用 one-time/recurring/break-even 数学；产品报告拆开 token 经济性与质量 assurance，研究 v1 语义保持不变 |
 | Source/thin-declaration construction | `candidate-only-refactor` | 可作 scaffold/hint；当前 7/7 candidate、0/7 qualified，输出必须默认 review-required |
-| Review-required closure | `decouple` | patch apply、provenance、package/revalidation 从 Env evaluator、固定 task set 与 case-local runner 中拆出 |
+| Review-required closure | `implemented-in-E1` | patch apply、provenance、package/revalidation 已从 Env evaluator 与固定 task set 解耦；reviewed plan/patch 仍是人工输入 |
 | Deterministic evaluator | `optional-plugin` | 严格质量路径可注入；不得成为所有真实 skill 的默认前置条件 |
 | Evidence authority | `reuse-research-only` | 继续只接受机器派生质量证据；用户验收票据不能进入 research promotion |
-| 统一 library/CLI | `missing` | 当前没有 `compile -> review -> package -> run -> cost` 的公共产品入口 |
+| 统一 library/CLI | `standalone-implemented` | E1 已有共享 library 与 standalone CLI；为避免历史 digest 漂移，尚未接入被 lock 绑定的 `src/index.ts` |
 
 E1 的稳定边界应只有一条共享主链：candidate compile、显式 review/accept、digest-bound package、deterministic run、
 cost accounting。Evaluator 是这条链上的可选质量插件，不得形成第二套产品。`coreBranchDelta=0` 继续是所有新 skill
@@ -1614,20 +1614,42 @@ E0 比较两种接入策略：
    客观计量。它可以证明 artifact/runtime 的 token 经济性与产品 break-even，但只能把质量记作 `user-accepted`，不能
    写成 strict quality equivalence、`efficiency-positive` research phenotype 或 readiness promotion。
 
-建议选择 **B 为默认路径、A 为可选严格升级**。这不是放宽现有 authority，而是增加正交的产品 assurance 状态：
+用户已确认 **B 为默认路径、A 为可选严格升级**。这不是放宽现有 authority，而是增加正交的产品 assurance 状态：
 
 - `machine-checked`：机器 checker 建立质量证据；满足其它条件时才有 research eligibility；
 - `user-accepted`：用户对明确 artifact/output delta 做出验收；允许产品运行和 token 经济性报告，不允许研究晋级；
 - `not-established`：没有质量接受证据，只能保存候选与诊断。
 
-无 evaluator 的验收票据至少绑定 source/package/input/output digest、精确 artifact/output delta、接受时间、人工分钟、
-决定与备注，并显式记录 `checkerAbsent=true`、gold/held-out/scorer 未使用。人工分钟不得被记作 0，也不得混入现有
+无 evaluator 的验收票据至少绑定 source/package/input/output 的实际字节 digest、精确 artifact/output delta、接受时间、
+人工分钟、决定与备注；最终产品 manifest 还必须反向绑定票据 digest，使 artifact、输入或输出的事后修改均
+fail closed。票据显式记录 `checkerAbsent=true`、gold/held-out/scorer 未使用。人工分钟不得被记作 0，也不得混入现有
 只以 production AOT model token 为分母的 research break-even。E2 的“包含人工成本的正向 break-even”必须在执行前
 冻结 token 与人工的换算/估值政策，或同时报告 token break-even 与人工回收阈值；没有该政策时只能称 token
 break-even，不能称产品总成本已回收。
 
+产品成本报告必须直接输出 `qualityEvidence: user-accepted | machine-checked`。`user-accepted` 只允许表述为
+“在用户认可质量前提下的 token 节省”；不得写作“质量等价下的效率”，也不得产生 research
+`efficiency-positive`。验收/审核是每个 artifact 的一次性 production 构造成本；票据签发后同一 artifact 的重复运行
+不再把人工审核计入 recurring 端。A/B 只能在质量证据产生点分支，其余 `compile -> review/accept -> package -> run ->
+cost` 均走同一实现。
+
 ### 14.3 阶段停止点
 
-E0 文档完成后必须等待用户选择 evaluator 策略。获得确认前不得设计或实现 E1 API。E1 只做一个既有 pilot 的单链
-vertical slice，并保持既有 authority/schema 向后兼容；E1 验证通过后再次报告，E2 才选择新 skill。项目外真实 skill
-的 token 节省、人工成本和用户接受均必须前瞻记录，不能从当前七案例回填。
+E0 已完成，用户于 2026-08-29 确认 B-default + A-optional，并授权连续完成 E1 与 E2 仓内受控探针。E1 只做一个
+既有 pilot 的单链 vertical slice，并保持既有 authority/schema 向后兼容。E1 通过后无需再次停下，可直接用一个
+从未建设过专属基础设施的仓内新 skill 测量最小输入、人工分钟/LOC 与适配鸿沟；该探针结果是下一强制回报点。
+项目外真实 skill 的选择与执行仍在回报点之后，且 token 节省、人工成本和用户接受均须前瞻记录，不能从当前七案例
+回填。
+
+### 14.4 E1/E2 当前证据与边界
+
+E1 Env vertical slice 已通过同一 library/CLI 完成 compile、preview accept、package、真实 workdir run 与 cost；产品
+质量为 user-accepted、research not-eligible，复用冻结 production 分母得到 token break-even=1。A-optional 回归使用同一
+artifact/runtime/cost 链，只在质量证据生成处调用 digest-pinned checker。
+
+E2 使用此前没有 taskSet/scorer/compiler/package 的 package-inventory 仓内新 skill。两次全链 artifact/output closure
+一致、coreBranchDelta=0、0 paid/held-out/evaluator/taskSet/scorer；自动构造 deterministic gate 通过，但 package 仍
+non-executable、semantic parity not-established。最小可运行输入实际包含 SKILL.md、薄 task 声明、public workdir、
+reviewed plan 和 review patch；人工层为 53+58 LOC，前瞻探针总墙钟 9 分钟。由于没有 original model-run 分母，token
+break-even 与总成本 break-even 均 not-computable。该结果只授权在此回报点讨论项目外真实 skill，不构成外部泛化、
+研究晋级或 full automation。

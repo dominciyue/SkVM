@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "skill-artifact-execution-plan/v1",
+  "entrypoint": "review-patch",
+  "nodes": [
+    {
+      "id": "automatic-plan",
+      "kind": "process",
+      "dependsOn": [],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_BUN",
+          "fallback": "bun"
+        },
+        "artifactId": "plan-runner",
+        "args": [
+          "{artifact:automatic-plan}",
+          "{artifact:task-description}",
+          "{workdir}"
+        ],
+        "envAllowlist": [
+          "SKVM_BUN"
+        ]
+      },
+      "timeoutMs": 60000
+    },
+    {
+      "id": "review-patch",
+      "kind": "process",
+      "dependsOn": [
+        "automatic-plan"
+      ],
+      "command": {
+        "interpreter": {
+          "env": "SKVM_BUN",
+          "fallback": "bun"
+        },
+        "artifactId": "patch-runner",
+        "args": [
+          "{artifact:review-patch}",
+          "{workdir}",
+          "package-inventory-interface.json",
+          "1"
+        ],
+        "envAllowlist": [
+          "SKVM_BUN"
+        ]
+      },
+      "timeoutMs": 60000
+    }
+  ]
+}

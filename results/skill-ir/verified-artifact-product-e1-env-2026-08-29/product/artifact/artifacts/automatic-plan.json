@@ -1,0 +1,278 @@
+{
+  "schemaVersion": "skill-ir-restricted-domain-plan/v1",
+  "planId": "env-manager-safe-audit",
+  "steps": [
+    {
+      "id": "json-interface",
+      "op": "read-json",
+      "path": "env-audit-interface.json"
+    },
+    {
+      "id": "json-contract-version",
+      "op": "json-pointer",
+      "source": "json-interface",
+      "pointer": "/schemaVersion"
+    },
+    {
+      "id": "json-policy",
+      "op": "json-pointer",
+      "source": "json-interface",
+      "pointer": "/policy"
+    },
+    {
+      "id": "strings-defined",
+      "op": "parse-key-value-lines",
+      "path": ".env",
+      "keyPattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+    },
+    {
+      "id": "records-references",
+      "op": "regex-find-files",
+      "includePathPattern": "^(?!\\.env(?:$|\\.)|env-audit-interface\\.json$|\\.env\\.example$|\\.env\\.schema\\.json$|env-report\\.json$).+",
+      "contentPattern": "(?:process\\s*\\.\\s*env\\s*\\.\\s*|os\\s*\\.\\s*environ\\s*\\[\\s*['\"]|os\\s*\\.\\s*getenv\\s*\\(\\s*['\"])(?<name>[A-Z][A-Z0-9_]*)",
+      "flags": "gmi",
+      "captures": [
+        "name"
+      ]
+    },
+    {
+      "id": "strings-used",
+      "op": "pluck",
+      "source": "records-references",
+      "field": "name"
+    },
+    {
+      "id": "strings-inventory",
+      "op": "set-operation",
+      "operator": "union",
+      "left": "strings-defined",
+      "right": "strings-used"
+    },
+    {
+      "id": "strings-defined-used",
+      "op": "set-operation",
+      "operator": "intersection",
+      "left": "strings-defined",
+      "right": "strings-used"
+    },
+    {
+      "id": "strings-unconfirmed-unused",
+      "op": "set-operation",
+      "operator": "difference",
+      "left": "strings-defined",
+      "right": "strings-used"
+    },
+    {
+      "id": "strings-used-undefined",
+      "op": "set-operation",
+      "operator": "difference",
+      "left": "strings-used",
+      "right": "strings-defined"
+    },
+    {
+      "id": "strings-sensitive",
+      "op": "filter-regex",
+      "source": "strings-inventory",
+      "pattern": "(?:KEY|TOKEN|PASSWORD|SECRET)$",
+      "flags": "i",
+      "keep": "matching"
+    },
+    {
+      "id": "strings-integer",
+      "op": "filter-regex",
+      "source": "strings-inventory",
+      "pattern": "(?:PORT|COUNT)$",
+      "flags": "i",
+      "keep": "matching"
+    },
+    {
+      "id": "strings-uri",
+      "op": "filter-regex",
+      "source": "strings-inventory",
+      "pattern": "(?:URL|URI|ORIGIN|DSN)$",
+      "flags": "i",
+      "keep": "matching"
+    },
+    {
+      "id": "records-hardcoded-raw",
+      "op": "regex-find-files",
+      "includePathPattern": "^(?!\\.env(?:$|\\.)|env-audit-interface\\.json$|\\.env\\.example$|\\.env\\.schema\\.json$|env-report\\.json$).+",
+      "contentPattern": "\\b(?<name>[A-Z][A-Z0-9_]*(?:KEY|TOKEN|PASSWORD|SECRET))\\s*=\\s*['\"][^'\"\\r\\n]+['\"]",
+      "flags": "gmi",
+      "captures": [
+        "name"
+      ]
+    },
+    {
+      "id": "records-hardcoded",
+      "op": "project-records",
+      "source": "records-hardcoded-raw",
+      "fields": [
+        "path",
+        "name"
+      ]
+    },
+    {
+      "id": "records-exposure-filtered",
+      "op": "filter-regex",
+      "source": "records-references",
+      "field": "name",
+      "pattern": "^(?:VITE_|NEXT_PUBLIC_|REACT_APP_|NUXT_PUBLIC_|VUE_APP_).*(?:KEY|TOKEN|PASSWORD|SECRET)$",
+      "flags": "i",
+      "keep": "matching"
+    },
+    {
+      "id": "records-exposure",
+      "op": "project-records",
+      "source": "records-exposure-filtered",
+      "fields": [
+        "path",
+        "name"
+      ]
+    },
+    {
+      "id": "text-write-example",
+      "op": "write-text-template",
+      "path": ".env.example",
+      "template": "# Generated environment-variable template\n# No values from protected environment files are copied here.\n# Variable inventory: {{inventory}}\n# Statically referenced (required): {{required}}\n# Sensitive-name candidates: {{sensitive}}\n# Populate each listed variable through an appropriate local or managed secret source.\n",
+      "bindings": [
+        {
+          "token": "inventory",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-inventory"
+          },
+          "encoding": "json"
+        },
+        {
+          "token": "required",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-used"
+          },
+          "encoding": "json"
+        },
+        {
+          "token": "sensitive",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-sensitive"
+          },
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "id": "json-write-schema",
+      "op": "write-json",
+      "path": ".env.schema.json",
+      "fields": [
+        {
+          "key": "schemaVersion",
+          "value": {
+            "kind": "literal",
+            "value": "env-manager-derived-schema/v1"
+          }
+        },
+        {
+          "key": "interfaceSchemaVersion",
+          "value": {
+            "kind": "ref",
+            "ref": "json-contract-version"
+          }
+        },
+        {
+          "key": "variables",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-inventory"
+          }
+        },
+        {
+          "key": "required",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-used"
+          }
+        },
+        {
+          "key": "sensitive",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-sensitive"
+          }
+        },
+        {
+          "key": "integer",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-integer"
+          }
+        },
+        {
+          "key": "uri",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-uri"
+          }
+        },
+        {
+          "key": "policy",
+          "value": {
+            "kind": "ref",
+            "ref": "json-policy"
+          }
+        }
+      ]
+    },
+    {
+      "id": "json-write-report",
+      "op": "write-json",
+      "path": "env-report.json",
+      "fields": [
+        {
+          "key": "definedAndUsed",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-defined-used"
+          }
+        },
+        {
+          "key": "definedUnconfirmedUnused",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-unconfirmed-unused"
+          }
+        },
+        {
+          "key": "usedUndefined",
+          "value": {
+            "kind": "ref",
+            "ref": "strings-used-undefined"
+          }
+        },
+        {
+          "key": "hardcodedSecrets",
+          "value": {
+            "kind": "ref",
+            "ref": "records-hardcoded"
+          }
+        },
+        {
+          "key": "exposureRisks",
+          "value": {
+            "kind": "ref",
+            "ref": "records-exposure"
+          }
+        }
+      ]
+    }
+  ],
+  "audit": {
+    "paidCalls": 1,
+    "retries": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "skillSpecificBranches": 0
+  }
+}

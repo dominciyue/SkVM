@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "env-manager-audit-task",
+  "taskKind": "workspace-transformation",
+  "inputs": [
+    { "id": "environment-file", "path": ".env", "format": "text", "access": "read-only", "required": true },
+    { "id": "project-source", "path": "<project-source-files>", "format": "directory", "access": "read-only", "required": true },
+    { "id": "public-interface", "path": "env-audit-interface.json", "format": "json", "access": "read-only", "required": true }
+  ],
+  "outputs": [
+    { "id": "environment-example", "path": ".env.example", "format": "text", "required": true, "structure": { "kind": "opaque" } },
+    { "id": "environment-schema", "path": ".env.schema.json", "format": "json", "required": true, "structure": { "kind": "opaque" } },
+    { "id": "environment-report", "path": "env-report.json", "format": "json", "required": true, "structure": { "kind": "json-object", "requiredFields": ["definedAndUsed", "definedUnconfirmedUnused", "usedUndefined", "hardcodedSecrets", "exposureRisks"], "allowAdditionalFields": true } }
+  ],
+  "passCriteria": [
+    { "id": "inputs-stable", "predicate": "input-integrity", "targetRefs": ["environment-file", "project-source", "public-interface"], "statement": "Every initial workspace entry remains unchanged." },
+    { "id": "outputs-exact", "predicate": "exact-output-set", "targetRefs": ["environment-example", "environment-schema", "environment-report"], "statement": "Only the three declared audit artifacts are created." },
+    { "id": "report-shape", "predicate": "json-shape", "targetRefs": ["environment-report"], "statement": "The report contains all declared finding collections." },
+    { "id": "environment-classification", "predicate": "source-grounding", "targetRefs": ["environment-file", "project-source", "environment-report"], "statement": "Defined, referenced, missing, and sensitive variables follow observable workspace evidence." },
+    { "id": "artifact-consistency", "predicate": "cross-artifact-consistency", "targetRefs": ["environment-example", "environment-schema", "environment-report"], "statement": "Example, schema, and report describe the same variable inventory and requiredness." },
+    { "id": "secret-redaction", "predicate": "content-fidelity", "targetRefs": ["environment-file", "environment-example", "environment-report"], "statement": "Sensitive values are never copied into generated artifacts." }
+  ]
+}

@@ -997,8 +997,9 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：Stage B 成果整合；spec 冻结 C1--C6 claim-authority matrix、review-required 收敛命题与论文骨架
 已完成：Phase E0 工程就绪度；plan interpreter/artifact runtime 可复用，cost 产品视图需重构，review closure 需解耦
 已完成：evaluator 策略比较；建议 B-default（用户验收 + token 经济性）与 A-optional（薄 deterministic checker）
-当前接力：等待用户确认 evaluator 策略；确认前不写 E1 API、不做付费/项目外实验
-确认后：先用一个既有 pilot 实现 compile -> review/accept -> package -> run -> cost 单链，再回报是否进入 E2
+已完成：E1 standalone product API/CLI；Env evaluator-free vertical slice 为 user-accepted、research-not-eligible、token break-even=1
+已完成：E2 package-inventory 受控新 skill 双运行；artifact/output closure 相同，自动 semantic parity 与 token 分母未建立
+当前接力：停在 E2 强制回报点，等待用户选择项目外真实 skill；不得自行开始外部实验
 禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
 结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
@@ -1104,9 +1105,35 @@ artifact，而不是要求使用者亲自阅读失败、手写专用程序。方
 restricted plan interpreter、artifact assembly/catalog/runtime 和 cost math 建立稳定包装，并保留 benchmark compatibility。
 
 Review-required 路径当前把 manual evaluator module、development task set、两条固定 task 和 case-local patch 绑在一起。
-E1 的第一项解耦是让 patch/accept、provenance、package、revalidation、run 与 cost 不依赖 evaluator；checker 作为可选
-plugin 注入。无 checker 时必须生成 digest-bound acceptance receipt，质量状态为 `user-accepted`，不能传给研究
-evidence authority。获得用户策略确认前，不创建该 API 或实现计划。
+用户已确认 B-default + A-optional，E1 的第一项解耦是让 patch/accept、provenance、package、revalidation、run 与 cost
+不依赖 evaluator；checker 只在质量证据产生点作为可选 plugin 注入。无 checker 时必须在真实 preview workdir 上生成
+artifact/source/input/output digest-bound acceptance receipt，质量状态为 `user-accepted`，不能传给研究 evidence
+authority。验收人工分钟只计入 per-artifact one-time；同一 artifact 的 recurring run 不重复计费。
+
+E1 使用新增 standalone library/CLI 做 vertical slice，暂不改 `src/index.ts`：该文件被多个历史 development lock 以
+SHA-256 绑定，直接加 subcommand 会无端增加 frozen-history compatibility failure。完成 compatibility 迁移后再把同一
+library 接入主 CLI，不复制产品逻辑。
+
+实现入口为 `src/skill-ir/verified-artifact-product.ts` 与 `verified-artifact-cli.ts`。产品配置绑定公开 skill、薄声明、
+reviewed plan/patch 和可选 checker；core 只接受 workdir/outDir，不按 skill id 分支。运行先在 cloned workdir 生成 preview，
+核 exact output delta，再生成 digest-bound quality evidence；接受后复核原 workdir 输入未漂移，复制并重验 package，最后在
+真实 workdir 执行同一 artifact。包内 source audit 只声明 digest-only 与 semantic-not-established，不把 candidate 冒充
+语义审计。
+
+复现命令：
+
+```powershell
+bun test ./src/skill-ir/verified-artifact-product.test.ts `
+  ./src/skill-ir/verified-artifact-cli.test.ts `
+  ./src/benchmarks/skill-ir/verified-artifact-product-e1.test.ts `
+  ./src/benchmarks/skill-ir/verified-artifact-product-e2.test.ts
+bun run ./src/benchmarks/skill-ir/verified-artifact-product-e1.ts `
+  --root=. --workdir=<fresh-workdir> --out=<fresh-product-dir> `
+  --accepted-at=<ISO-8601> --human-minutes=<positive> --note=<acceptance-note>
+bun run ./src/benchmarks/skill-ir/verified-artifact-product-e2.ts `
+  --root=. --run-root=<fresh-run-root> --accepted-at=<ISO-8601> `
+  --human-minutes=<positive> --note=<acceptance-note>
+```
 
 ## 18. 继续阅读
 

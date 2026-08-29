@@ -1162,6 +1162,24 @@ usage 计算 N=1/2/5/10 和 token break-even；报告必须同时显示 `quality
 LOC 单列在产品总成本视图。只有 A 的机器证据才能在满足 complete production/all-attempt cost 等现有条件时进入研究
 classification。
 
+用户已确认 B-default + A-optional。B 的验收不是一个可伪造的布尔字段：系统必须先在 preview workdir 观测实际
+artifact/input/output bytes 与 exact delta，再签发 receipt；最终 product manifest 绑定该 receipt digest。报告用
+`qualityEvidence=user-accepted`，claim 只能是“在用户认可质量前提下的 token 节省”。A 复用完全相同的主链，只把
+该步骤替换为 digest-pinned deterministic checker；`machine-checked` 只表示可送入既有 authority 复核，不自动晋级。
+验收时间属于 artifact 的一次性 production 构造成本，重复运行端不得重复计入。
+
+### 11.8 E1/E2 产品质量证据结果
+
+E1 实现了 `skill-ir-verified-artifact-quality-evidence/v1`：B receipt 绑定 artifact manifest/closure、四项构造源、真实
+workdir 输入、输出和 exact delta，最终 product manifest 再绑定 receipt digest。A checker 使用相同 preview/package/
+runtime/cost 链；测试证明 A/B artifact closure 相同，只有质量证据与允许 claim 不同。Env E1 的冻结 taskSet 只负责
+materialize 公开 fixture，产品配置与 report 不含 taskSet/evaluator/scorer，`evaluatorLoaded=false`。
+
+E2 package-inventory 没有 taskSet、scorer、checker 或旧 compiler。两次完整产品链的 artifact closure 与 output closure
+分别完全相同，protected inputs 保持不变；这建立的是 deterministic product execution，不是 semantic quality parity。
+质量仍为 `user-accepted`、research `not-eligible`；automatic construction 明确为 non-executable/not-established。没有
+original recurring model-token baseline，因此 token 与总成本 break-even 都保持 not-computable。
+
 ## 12. 结果持久化
 
 提交到 Git：

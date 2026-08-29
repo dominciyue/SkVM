@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "skill-ir-restricted-domain-plan/v1",
+  "planId": "package-inventory-reviewed-candidate",
+  "steps": [
+    {
+      "id": "package-manifest",
+      "op": "read-json",
+      "path": "package.json"
+    },
+    {
+      "id": "public-interface",
+      "op": "read-json",
+      "path": "package-inventory-interface.json"
+    },
+    {
+      "id": "package-name",
+      "op": "json-pointer",
+      "source": "package-manifest",
+      "pointer": "/name"
+    },
+    {
+      "id": "production-map",
+      "op": "json-pointer",
+      "source": "package-manifest",
+      "pointer": "/dependencies"
+    },
+    {
+      "id": "development-map",
+      "op": "json-pointer",
+      "source": "package-manifest",
+      "pointer": "/devDependencies"
+    },
+    {
+      "id": "write-review-required-candidate",
+      "op": "write-json",
+      "path": "package-inventory.json",
+      "fields": [
+        {
+          "key": "packageName",
+          "value": {
+            "kind": "ref",
+            "ref": "package-name"
+          }
+        },
+        {
+          "key": "productionDependencies",
+          "value": {
+            "kind": "ref",
+            "ref": "production-map"
+          }
+        },
+        {
+          "key": "developmentDependencies",
+          "value": {
+            "kind": "ref",
+            "ref": "development-map"
+          }
+        },
+        {
+          "key": "allDependencies",
+          "value": {
+            "kind": "literal",
+            "value": "review-required"
+          }
+        },
+        {
+          "key": "counts",
+          "value": {
+            "kind": "literal",
+            "value": "review-required"
+          }
+        }
+      ]
+    }
+  ],
+  "audit": {
+    "paidCalls": 1,
+    "retries": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "skillSpecificBranches": 0
+  }
+}

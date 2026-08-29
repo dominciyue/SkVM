@@ -936,6 +936,15 @@ Task 18.40 Stage B 没有生成新实验行，而是将可发表结论收敛为�
 限制。Stage C 的 untouched replication、reviewed method-freeze、更强模型 full automation、多模型/context/OS
 只列 future work，当前没有执行授权。
 
+Phase E1/E2 增加的是产品工程证据，不改变 C1--C6 研究分类。Env E1 在 evaluator-free 产品链复用冻结 production 分母，
+输出 `qualityEvidence=user-accepted`、research not-eligible、token break-even=1；这不能替代 C2 的 machine-checked authority。
+E2 package-inventory 是此前无专属基础设施的仓内新 skill：2 次完整链、0 paid/held-out/evaluator/taskSet/scorer，artifact
+closure `2edc635b...9035`、output closure `16eb0509...d113` 均一致，protected input 保持。自动层为 deterministic gate
+passed、package non-executable、semantic parity not-established；薄声明 79 parser LOC/14 semantic entries，人工 plan/patch
+53+58 LOC，完整受控探针前瞻墙钟 9 分钟。没有 original recurring model-token baseline，故 token 与 total-cost break-even
+均 not-computable。权威 compact report 为
+`results/skill-ir/verified-artifact-product-e2-package-inventory-2026-08-29-r2/report.json`。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`

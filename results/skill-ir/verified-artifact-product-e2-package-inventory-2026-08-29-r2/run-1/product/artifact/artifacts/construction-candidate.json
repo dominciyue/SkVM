@@ -1,0 +1,668 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-result/v1",
+  "contract": {
+    "schemaVersion": "skill-ir-domain-contract-candidate/v1",
+    "skillId": "package-inventory",
+    "taskDescriptionId": "package-inventory-task",
+    "taskKind": "analysis-report",
+    "intent": "Create a deterministic public dependency inventory from a package manifest.",
+    "inputs": [
+      {
+        "id": "package-manifest",
+        "path": "package.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "path": "package-inventory-interface.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "package-inventory",
+        "path": "package-inventory.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "packageName",
+            "productionDependencies",
+            "developmentDependencies",
+            "allDependencies",
+            "counts"
+          ],
+          "allowAdditionalFields": false
+        }
+      }
+    ],
+    "passCriteria": [
+      {
+        "id": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "package-manifest",
+          "public-interface"
+        ],
+        "statement": "The two public inputs remain byte-identical."
+      },
+      {
+        "id": "output-present",
+        "predicate": "output-presence",
+        "targetRefs": [
+          "package-inventory"
+        ],
+        "statement": "The declared inventory output exists."
+      },
+      {
+        "id": "output-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "package-inventory"
+        ],
+        "statement": "No file other than the declared inventory output is created."
+      },
+      {
+        "id": "output-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "package-inventory"
+        ],
+        "statement": "The inventory contains exactly the five declared top-level fields."
+      },
+      {
+        "id": "dependency-grounding",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "package-manifest",
+          "package-inventory"
+        ],
+        "statement": "Dependency names and counts derive only from the public manifest maps."
+      },
+      {
+        "id": "ordering-fidelity",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "package-manifest",
+          "public-interface",
+          "package-inventory"
+        ],
+        "statement": "Lists are sorted, the combined list is unique, and versions are omitted."
+      }
+    ],
+    "sourceRules": [
+      {
+        "id": "rule-01",
+        "sourceText": "Treat missing dependency maps as empty objects."
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "Preserve the package name exactly as declared."
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "Never include dependency versions, lockfile content, installed package state, or network data."
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "Do not modify or delete any initial workspace file."
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "Do not create files other than the declared inventory output."
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "Keep output ordering deterministic."
+      }
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "package-inventory",
+    "name": "Package inventory",
+    "category": [
+      "workflow",
+      "generative",
+      "constraint-heavy",
+      "environment-sensitive"
+    ],
+    "intent": "Create a deterministic public dependency inventory from a package manifest.",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/package-inventory-probe/source/SKILL.md",
+      "sha256": "0ba0be8f86879d5edb3976ca132fce2985c3d7301d2330b7cc31d8d5d58af9b6"
+    },
+    "inputs": [
+      {
+        "id": "package-manifest",
+        "description": "package.json (json, read-only)",
+        "required": true
+      },
+      {
+        "id": "public-interface",
+        "description": "package-inventory-interface.json (json, read-only)",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "package-inventory",
+        "description": "package-inventory.json (json, json-object)",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "1. Read public inputs",
+        "description": "1. Read public inputs",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "2. Derive the inventory",
+        "description": "2. Derive the inventory",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "3. Write the result",
+        "description": "3. Write the result",
+        "kind": "edit",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01",
+          "package-inventory"
+        ],
+        "successCheckRefs": [
+          "check-inputs-stable",
+          "check-output-present",
+          "check-output-exact",
+          "check-output-shape",
+          "check-dependency-grounding",
+          "check-ordering-fidelity"
+        ],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "Treat missing dependency maps as empty objects.",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "Treat missing dependency maps as empty objects."
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "Preserve the package name exactly as declared.",
+        "level": "should",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "Preserve the package name exactly as declared."
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "Never include dependency versions, lockfile content, installed package state, or network data.",
+        "level": "never",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "Never include dependency versions, lockfile content, installed package state, or network data."
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "Do not modify or delete any initial workspace file.",
+        "level": "never",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "Do not modify or delete any initial workspace file."
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "Do not create files other than the declared inventory output.",
+        "level": "never",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "Do not create files other than the declared inventory output."
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "Keep output ordering deterministic.",
+        "level": "should",
+        "scope": "output",
+        "checkability": "human",
+        "severity": "medium",
+        "normalizedForm": "Keep output ordering deterministic."
+      }
+    ],
+    "tools": [],
+    "environment": [
+      {
+        "id": "environment-from-source",
+        "description": "The public source mentions runtime, dependency, platform, installation, or environment constraints that require task-time confirmation.",
+        "platforms": [
+          "linux",
+          "macos",
+          "windows",
+          "wsl",
+          "container"
+        ],
+        "checkability": "human"
+      }
+    ],
+    "checks": [
+      {
+        "id": "check-inputs-stable",
+        "name": "inputs-stable",
+        "kind": "rule-violation",
+        "targetRef": "package-manifest",
+        "assertion": "input-integrity: The two public inputs remain byte-identical.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-output-present",
+        "name": "output-present",
+        "kind": "output",
+        "targetRef": "package-inventory",
+        "assertion": "output-presence: The declared inventory output exists.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-output-exact",
+        "name": "output-exact",
+        "kind": "output",
+        "targetRef": "package-inventory",
+        "assertion": "exact-output-set: No file other than the declared inventory output is created.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-output-shape",
+        "name": "output-shape",
+        "kind": "output",
+        "targetRef": "package-inventory",
+        "assertion": "json-shape: The inventory contains exactly the five declared top-level fields.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-dependency-grounding",
+        "name": "dependency-grounding",
+        "kind": "output",
+        "targetRef": "package-manifest",
+        "assertion": "source-grounding: Dependency names and counts derive only from the public manifest maps.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-ordering-fidelity",
+        "name": "ordering-fidelity",
+        "kind": "output",
+        "targetRef": "package-manifest",
+        "assertion": "content-fidelity: Lists are sorted, the combined list is unique, and versions are omitted.",
+        "onFailure": "report"
+      }
+    ],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-domain-construction-validation-plan/v1",
+    "predicates": [
+      {
+        "criterionId": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "package-manifest",
+          "public-interface"
+        ],
+        "assertion": "The two public inputs remain byte-identical.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "output-present",
+        "predicate": "output-presence",
+        "targetRefs": [
+          "package-inventory"
+        ],
+        "assertion": "The declared inventory output exists.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "output-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "package-inventory"
+        ],
+        "assertion": "No file other than the declared inventory output is created.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "output-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "package-inventory"
+        ],
+        "assertion": "The inventory contains exactly the five declared top-level fields.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "dependency-grounding",
+        "predicate": "source-grounding",
+        "targetRefs": [
+          "package-manifest",
+          "package-inventory"
+        ],
+        "assertion": "Dependency names and counts derive only from the public manifest maps.",
+        "loweringStatus": "domain-runtime-required"
+      },
+      {
+        "criterionId": "ordering-fidelity",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "package-manifest",
+          "public-interface",
+          "package-inventory"
+        ],
+        "assertion": "Lists are sorted, the combined list is unique, and versions are omitted.",
+        "loweringStatus": "domain-runtime-required"
+      }
+    ],
+    "deterministicGate": {
+      "status": "passed",
+      "checks": [
+        {
+          "id": "source-digest",
+          "status": "passed",
+          "detail": "0ba0be8f86879d5edb3976ca132fce2985c3d7301d2330b7cc31d8d5d58af9b6"
+        },
+        {
+          "id": "declaration-digest",
+          "status": "passed",
+          "detail": "3c6ce685f2f5980ae606d22e793795203ef79a8975758c26ccee0d385e2a0c0d"
+        },
+        {
+          "id": "declaration-thinness",
+          "status": "passed",
+          "detail": "within-limit"
+        },
+        {
+          "id": "domain-bindings",
+          "status": "passed",
+          "detail": "contract, IR, and plan bindings agree"
+        }
+      ]
+    },
+    "semanticParity": {
+      "status": "not-established",
+      "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+    }
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-domain-package-candidate/v1",
+    "status": "non-executable",
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "id": "skill-markdown",
+        "path": "skill.md"
+      },
+      {
+        "id": "skill-ir",
+        "path": "skill-ir.json"
+      },
+      {
+        "id": "domain-contract",
+        "path": "domain-contract.json"
+      },
+      {
+        "id": "validation-plan",
+        "path": "validation-plan.json"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "runtime-dependency-grounding",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "package-manifest",
+          "package-inventory"
+        ],
+        "reason": "dependency-grounding requires a domain runtime implementation: Dependency names and counts derive only from the public manifest maps."
+      },
+      {
+        "id": "runtime-ordering-fidelity",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "package-manifest",
+          "public-interface",
+          "package-inventory"
+        ],
+        "reason": "ordering-fidelity requires a domain runtime implementation: Lists are sorted, the combined list is unique, and versions are omitted."
+      },
+      {
+        "id": "package-package-inventory",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "package-inventory"
+        ],
+        "reason": "no qualified compiler emits package-inventory.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "thinness": {
+    "status": "within-limit",
+    "loc": 79,
+    "maxLoc": 80,
+    "semanticEntries": 14,
+    "maxSemanticEntries": 40,
+    "reasons": []
+  },
+  "semanticAccounting": {
+    "fromSkillSource": {
+      "units": [
+        {
+          "id": "step-01",
+          "kind": "workflow-step",
+          "value": "1. Read public inputs"
+        },
+        {
+          "id": "step-02",
+          "kind": "workflow-step",
+          "value": "2. Derive the inventory"
+        },
+        {
+          "id": "step-03",
+          "kind": "workflow-step",
+          "value": "3. Write the result"
+        },
+        {
+          "id": "rule-01",
+          "kind": "rule",
+          "value": "Treat missing dependency maps as empty objects."
+        },
+        {
+          "id": "rule-02",
+          "kind": "rule",
+          "value": "Preserve the package name exactly as declared."
+        },
+        {
+          "id": "rule-03",
+          "kind": "rule",
+          "value": "Never include dependency versions, lockfile content, installed package state, or network data."
+        },
+        {
+          "id": "rule-04",
+          "kind": "rule",
+          "value": "Do not modify or delete any initial workspace file."
+        },
+        {
+          "id": "rule-05",
+          "kind": "rule",
+          "value": "Do not create files other than the declared inventory output."
+        },
+        {
+          "id": "rule-06",
+          "kind": "rule",
+          "value": "Keep output ordering deterministic."
+        },
+        {
+          "id": "output-01",
+          "kind": "output-description",
+          "value": "Produce exactly the output path declared by the public interface."
+        },
+        {
+          "id": "output-02",
+          "kind": "output-description",
+          "value": "Write a JSON object with `packageName`, `productionDependencies`, `developmentDependencies`, `allDependencies`, and `counts`."
+        },
+        {
+          "id": "output-03",
+          "kind": "output-description",
+          "value": "A deterministic dependency inventory at the public interface's declared output path."
+        }
+      ]
+    },
+    "fromTaskDeclaration": {
+      "units": [
+        {
+          "id": "package-manifest",
+          "kind": "input",
+          "value": "package.json"
+        },
+        {
+          "id": "public-interface",
+          "kind": "input",
+          "value": "package-inventory-interface.json"
+        },
+        {
+          "id": "package-inventory",
+          "kind": "output",
+          "value": "package-inventory.json"
+        },
+        {
+          "id": "inputs-stable",
+          "kind": "pass-criterion",
+          "value": "The two public inputs remain byte-identical."
+        },
+        {
+          "id": "output-present",
+          "kind": "pass-criterion",
+          "value": "The declared inventory output exists."
+        },
+        {
+          "id": "output-exact",
+          "kind": "pass-criterion",
+          "value": "No file other than the declared inventory output is created."
+        },
+        {
+          "id": "output-shape",
+          "kind": "pass-criterion",
+          "value": "The inventory contains exactly the five declared top-level fields."
+        },
+        {
+          "id": "dependency-grounding",
+          "kind": "pass-criterion",
+          "value": "Dependency names and counts derive only from the public manifest maps."
+        },
+        {
+          "id": "ordering-fidelity",
+          "kind": "pass-criterion",
+          "value": "Lists are sorted, the combined list is unique, and versions are omitted."
+        }
+      ]
+    },
+    "automationProduced": {
+      "contractBindings": 9,
+      "irTaskAbiBindings": 3,
+      "validationPredicates": 6,
+      "genericDeterministicPredicates": 4
+    },
+    "stillRequiresHuman": [
+      {
+        "id": "runtime-dependency-grounding",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "package-manifest",
+          "package-inventory"
+        ],
+        "reason": "dependency-grounding requires a domain runtime implementation: Dependency names and counts derive only from the public manifest maps."
+      },
+      {
+        "id": "runtime-ordering-fidelity",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "package-manifest",
+          "public-interface",
+          "package-inventory"
+        ],
+        "reason": "ordering-fidelity requires a domain runtime implementation: Lists are sorted, the combined list is unique, and versions are omitted."
+      },
+      {
+        "id": "package-package-inventory",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "package-inventory"
+        ],
+        "reason": "no qualified compiler emits package-inventory.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "semanticParity": {
+    "status": "not-established",
+    "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+  },
+  "audit": {
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/package-inventory-probe/source/SKILL.md",
+      "benchmarks/skill-ir/pilots/package-inventory-probe/task-description.json"
+    ]
+  }
+}
