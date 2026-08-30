@@ -1190,6 +1190,19 @@ artifact consistency。持久化结果为 3/3，质量等级是 `machine-checked
 这个证据只把产品标记为 `eligible-for-authority-review-not-promoted`。它不直接改 method portfolio、readiness 或
 `efficiency-positive` 分类；任何研究晋级仍必须经过既有 evidence authority 重算。
 
+### 11.10 Collection qualification 与外部 baseline 合同
+
+Task 18.42 的 collection qualification 不是 plan 结构比较：runner 物化 package-inventory 与 API Tester 两个真实 workdir，
+执行旧 base plan 后再执行同一 collection interpreter，核对确切输出并逐字节比较 protected inputs。持久化报告重算实现/
+plan/patch digest 与 LOC，并把 paid/model/API/retry/held-out/evaluator/scorer 固定为 0；测试要求重建报告与提交报告逐字相等。
+这只建立两个窄原语的 execution reuse，不建立 domain semantic parity 或 automatic eligibility。
+
+Magpie 的 Step 1 baseline 合同显式区分 prompt reproducibility 与 usage observability。固定 public Step 0--2 的 skill、fixture 与
+prompt composition 可复现，但上游 harness 没有 token telemetry；因此不能回填历史 baseline。下一阶段若获授权，必须用项目
+Pi runtime 建新 identity，冻结 prompt/case/model/provider/adapter/temperature/timeout/runner，并从 0 行前瞻执行；上游 expected/
+assertions 和新 checker oracle 均不得进入 prompt。Task 18.42 本身没有 clone/import/external execution/model/API/paid/
+baseline/held-out，且不允许以 feasibility 报告冒充 token 结果。
+
 ## 12. 结果持久化
 
 提交到 Git：

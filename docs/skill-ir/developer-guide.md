@@ -1001,7 +1001,9 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：E2 package-inventory 受控新 skill 双运行；artifact/output closure 相同，自动 semantic parity 与 token 分母未建立
 已完成：Task 18.41 Env A 产品持久化；machine-checked 3/3、当前 0 paid、50502.5 -> 0 token/run、break-even=1
 已完成：DSL 多案例复核；object-key enumeration 与 sort/dedup 通过，宽泛 cross-field count 因 ABI 不收敛未批准
-当前接力：外部候选为 apache/magpie `magpie-release-audit-report`；未导入/执行，须先冻结 public Step 0--2 development identity
+已完成：Task 18.42 两个受限 collection 原语；package-inventory/API Tester 真实 workdir 通过，cross-field count 仍未实现
+已完成：Magpie Step 1 零执行可行性；prompt 可复现但上游无 token telemetry，现有 baseline rows=0
+当前接力：停在 Magpie Step 1；仅在用户显式确认后，才可最小导入并冻结新的 project-Pi public Step 0--2 identity
 禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
 结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
@@ -1138,6 +1140,14 @@ bun run ./src/benchmarks/skill-ir/verified-artifact-product-e2.ts `
 bun run ./src/benchmarks/skill-ir/verified-artifact-product-e1.ts `
   --quality=machine-checked --root=. --workdir=<fresh-workdir> `
   --out=<fresh-run-root> --completed-at=<ISO-8601>
+bun test ./src/skill-ir/artifact-closure-normalization.test.ts `
+  ./src/skill-ir/verified-artifact-collection-plan.test.ts `
+  ./src/skill-ir/verified-artifact-product-collection.test.ts `
+  ./src/benchmarks/skill-ir/verified-artifact-collection-qualification.test.ts `
+  ./src/benchmarks/skill-ir/magpie-release-audit-feasibility.test.ts
+bun run ./src/benchmarks/skill-ir/verified-artifact-collection-qualification.ts `
+  --root=. --run-root=<fresh-zero-paid-workdir> --out=<report.json>
+bun run ./src/benchmarks/skill-ir/magpie-release-audit-feasibility.ts --out=<report.json>
 ```
 
 Env A 的 compact report 位于
@@ -1146,6 +1156,8 @@ Env A 的 compact report 位于
 reference，并在运行前验证自身与 evaluator digest。
 产品 assembly 会把派生 `artifact/skill.md` 的 CRLF 规范化为 LF，但 source authority 继续绑定原始 `SKILL.md` digest；
 提交 compact product 前应从 staged index checkout 到临时目录，再运行 `validateVerifiedArtifactProduct`，不能只验工作树。
+Magpie feasibility runner 只重建固定静态报告，不 clone/import/execute 上游，也不产生 baseline。Step 2 的最小导入、checker/
+artifact TDD 与 original model rows 均是新的授权边界。
 
 ## 18. 继续阅读
 

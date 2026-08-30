@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "skill-ir-verified-artifact-collection-qualification/v1",
+  "qualificationId": "verified-artifact-collection-v1",
+  "status": "passed",
+  "operations": [
+    "enumerate-json-object-keys",
+    "sort-and-deduplicate-strings"
+  ],
+  "componentIdentity": [
+    {
+      "path": "src/skill-ir/verified-artifact-collection-plan.ts",
+      "sha256": "8813bff96177bdedd53ab67639f401c07f4e3fbe05369ee9ca634e9f5207047a",
+      "bytes": 9262
+    },
+    {
+      "path": "src/skill-ir/verified-artifact-collection-plan-runner.ts",
+      "sha256": "d0b4ccea58593af58582cfe75df85fc4fa5db20e23797997a7f15a45d1608b7b",
+      "bytes": 1265
+    },
+    {
+      "path": "src/skill-ir/artifact-closure-normalization.ts",
+      "sha256": "845f8b3e785f346efb90a4e3d70a59ac60b97a162481f5555e9d27419b6f595a",
+      "bytes": 630
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "package-inventory",
+      "workdirExecuted": true,
+      "protectedInputsPreserved": true,
+      "operations": [
+        "enumerate-json-object-keys",
+        "sort-and-deduplicate-strings"
+      ],
+      "outputPath": "package-inventory.json",
+      "outputSha256": "95a5287a09c3c644bbb29c8ea95795ea5798885698713a341f8bb538734c3465",
+      "executedSteps": 5,
+      "observed": [
+        "dependencies and devDependencies object keys were enumerated in the workdir",
+        "the two arrays were sorted and their union was deduplicated and sorted"
+      ]
+    },
+    {
+      "caseId": "api-tester",
+      "workdirExecuted": true,
+      "protectedInputsPreserved": true,
+      "operations": [
+        "enumerate-json-object-keys",
+        "sort-and-deduplicate-strings"
+      ],
+      "outputPath": "api-output-keys.json",
+      "outputSha256": "4a60f6b08acf09158aa7d118928f8b427248bd47bd09888dbf0389a6bec79deb",
+      "executedSteps": 2,
+      "observed": [
+        "the adapter output-map keys were enumerated, deduplicated, and sorted in the workdir"
+      ]
+    }
+  ],
+  "reuse": {
+    "caseCount": 2,
+    "sharedImplementation": true,
+    "coreBranchDelta": 0,
+    "status": "passed"
+  },
+  "effort": {
+    "measurement": "non-empty physical lines; development artifacts, not automatic optimizer output",
+    "historical": {
+      "planPhysicalLoc": 53,
+      "patchPhysicalLoc": 58,
+      "combinedPhysicalLoc": 111
+    },
+    "current": {
+      "planPhysicalLoc": 75,
+      "patchPhysicalLoc": 44,
+      "combinedPhysicalLoc": 119
+    },
+    "delta": {
+      "patchPhysicalLoc": -14,
+      "combinedPhysicalLoc": 8
+    },
+    "totalAdapterEffortReduced": false,
+    "conclusion": "The executable review patch is 14 physical LOC smaller, but the plan plus patch is 8 physical LOC larger; this stage does not establish lower total adaptation effort."
+  },
+  "closureNormalization": {
+    "sourceAuthority": "original-byte-digest",
+    "derivedSkillView": "valid UTF-8 with CRLF changed to LF only",
+    "bomPreserved": true,
+    "loneCarriageReturnPreserved": true,
+    "terminalNewlinePreserved": true,
+    "invalidUtf8": "rejected"
+  },
+  "accounting": {
+    "paidModelCalls": 0,
+    "apiCalls": 0,
+    "retries": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "scorerAccesses": 0
+  },
+  "claimBoundary": {
+    "crossFieldCounts": "not-implemented",
+    "semanticParity": "not-established",
+    "automaticEligibility": "not-established",
+    "readinessChanged": false,
+    "statement": "This zero-paid qualification establishes real-workdir execution and two-case reuse for exactly two collection primitives. It does not establish automatic plan generation, full semantic parity, machine-checked product quality, or readiness promotion."
+  }
+}

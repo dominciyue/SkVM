@@ -1659,6 +1659,13 @@ Task 18.41 还在同一 product v1 上持久化了 Env A-optional。当前 deter
 checker 3/3；产品报告 digest-bind 历史四对质量等价和 readonly-serial original/cost evidence，得到 original `50502.5`
 token/run、artifact `0`、one-time `9358`、break-even `1`。这只支持 authority review，不自动修改 portfolio/readiness。
 
-通用 DSL 的扩展仍按 multi-case reuse gate：对象键枚举和字符串排序/去重已有至少两个案例；宽泛跨字段 count 尚未形成
-不隐藏 selector/domain 语义的共同窄合同，因此不授权实现。外部候选第一实验只允许 public fixture 的 Step 0--2
-development slice，PR/私有 surface/held-out 均关闭。
+Task 18.42 已在不修改旧 Restricted Domain Plan v1 的前提下新增独立 collection-plan v1：只允许 JSON object-key
+枚举与字符串精确排序/去重。两个真实 workdir 的共享实现均通过且 coreBranchDelta=0；宽泛跨字段 count 仍未形成不隐藏
+selector/domain 语义的共同窄合同，因此未实现。派生 `skill.md` 的产品 closure 明确为 fatal UTF-8 解码后仅 CRLF-to-LF；
+source authority 继续绑定原始字节，BOM、lone CR、终止换行和其它 UTF-8 内容均不另行改写。
+
+Magpie Step 1 的零执行报告判定候选可进入下一阶段，但不是已有 baseline：固定公开 Step 0--2 的 skill/case/prompt closure
+可复现，上游 harness 却不采集 token usage。后续只能冻结新的 project Pi measurement identity，绑定 prompt/case/model/provider/
+adapter/temperature/timeout/runner，再前瞻执行 original rows；现有 baseline rows 为 0。受限 DSL 加有界领域 patch 可覆盖初始公开
+slice，machine checker 必须替换上游 judge，且不能读取私有 surface、held-out 或把 checker oracle 注入 prompt。Task 18.42 本身
+为 0 clone/import/external execution/model/API/paid/baseline/held-out；Step 2 仍须用户显式确认。

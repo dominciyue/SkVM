@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "skill-ir-verified-artifact-collection-plan/v1",
+  "planId": "package-inventory-collection-candidate",
+  "basePlan": {
+    "schemaVersion": "skill-ir-restricted-domain-plan/v1",
+    "planId": "package-inventory-collection-base",
+    "steps": [
+      { "id": "package-manifest", "op": "read-json", "path": "package.json" },
+      { "id": "package-name", "op": "json-pointer", "source": "package-manifest", "pointer": "/name" },
+      { "id": "production-map", "op": "json-pointer", "source": "package-manifest", "pointer": "/dependencies" },
+      { "id": "development-map", "op": "json-pointer", "source": "package-manifest", "pointer": "/devDependencies" },
+      {
+        "id": "write-collection-candidate",
+        "op": "write-json",
+        "path": "package-inventory.json",
+        "fields": [
+          { "key": "packageName", "value": { "kind": "ref", "ref": "package-name" } },
+          { "key": "productionDependencies", "value": { "kind": "ref", "ref": "production-map" } },
+          { "key": "developmentDependencies", "value": { "kind": "ref", "ref": "development-map" } },
+          { "key": "allDependencies", "value": { "kind": "literal", "value": "collection-required" } },
+          { "key": "counts", "value": { "kind": "literal", "value": "review-required" } }
+        ]
+      }
+    ],
+    "audit": {
+      "paidCalls": 1,
+      "retries": 0,
+      "heldOutAccesses": 0,
+      "evaluatorPayloadAccesses": 0,
+      "skillSpecificBranches": 0
+    }
+  },
+  "steps": [
+    {
+      "id": "enumerate-production",
+      "op": "enumerate-json-object-keys",
+      "source": { "path": "package-inventory.json", "pointer": "/productionDependencies" },
+      "target": { "path": "package-inventory.json", "pointer": "/productionDependencies" }
+    },
+    {
+      "id": "enumerate-development",
+      "op": "enumerate-json-object-keys",
+      "source": { "path": "package-inventory.json", "pointer": "/developmentDependencies" },
+      "target": { "path": "package-inventory.json", "pointer": "/developmentDependencies" }
+    },
+    {
+      "id": "sort-production",
+      "op": "sort-and-deduplicate-strings",
+      "sources": [{ "path": "package-inventory.json", "pointer": "/productionDependencies" }],
+      "target": { "path": "package-inventory.json", "pointer": "/productionDependencies" }
+    },
+    {
+      "id": "sort-development",
+      "op": "sort-and-deduplicate-strings",
+      "sources": [{ "path": "package-inventory.json", "pointer": "/developmentDependencies" }],
+      "target": { "path": "package-inventory.json", "pointer": "/developmentDependencies" }
+    },
+    {
+      "id": "merge-dependencies",
+      "op": "sort-and-deduplicate-strings",
+      "sources": [
+        { "path": "package-inventory.json", "pointer": "/productionDependencies" },
+        { "path": "package-inventory.json", "pointer": "/developmentDependencies" }
+      ],
+      "target": { "path": "package-inventory.json", "pointer": "/allDependencies" }
+    }
+  ],
+  "audit": {
+    "paidCalls": 0,
+    "retries": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "skillSpecificBranches": 0
+  }
+}

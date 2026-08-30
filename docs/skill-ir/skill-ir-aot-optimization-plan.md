@@ -1557,6 +1557,51 @@ selector 后 entity count，当前没有一个不隐藏 selector/domain 语义�
 重复运行、显式包含 AI-driven hand-back，又有固定字段抽取、MISSING/REDACTED、模板和 schema validation 核心，不是纯脚本。
 后续若获授权，只允许先冻结 public fixture 上的 Step 0--2 development slice；本任务没有导入、执行、建 baseline 或开 PR。
 
+### 4.33 Task 18.42：窄 collection DSL、closure 规范化合同与外部 Step 1 gate
+
+**目标与边界：** 先完成两个已有多案例需求的窄原语：JSON object-key 枚举与字符串排序/去重；不实现语义混杂的
+cross-field counts。随后只对固定 commit 的 Magpie release-audit 做零执行可行性评估，尤其先判断能否建立可信、可复现、
+可计量 token 的 original LLM baseline。本任务不得 clone/import 上游、不得执行 Magpie task/model/baseline、不得读取 held-out，
+也不得在 Step 1 后自行进入最小导入。Step 1 报告完成后必须停下等待用户决定。
+
+1. [x] 保持被历史 freeze digest 绑定的 `automatic-restricted-domain-plan.ts` 与 E2 原 plan/config/result 不变；新增首版
+   product-side collection-plan wrapper，内嵌并原样执行 Restricted Domain Plan v1，再只允许
+   `enumerate-json-object-keys` 与 `sort-and-deduplicate-strings` 两个 value-free operation；旧产品配置继续走原 runner，
+   不因新能力改变旧 artifact closure；
+2. [x] RED 先覆盖 strict schema、未知 operation、非法/未声明 path 与 JSON Pointer、非 object 枚举、非 string collection、
+   精确去重/稳定排序、输入保护和至少两个真实案例 workdir；GREEN 只实现满足这些合同的最小解释器，不加入表达式求值、
+   selector、lookup、count 或 skill-id 分支；
+3. [x] 建一个新的 package-inventory 产品 identity：base plan 先写结构化 dependency maps，collection-plan 再枚举/排序/合并；
+   人工 patch 只保留尚未统一的三项 count。报告必须对比旧/new review LOC、列出自动化与人工边界、0 API/model/paid、
+   `coreBranchDelta=0`，且不把局部原语晋升为 semantic parity、automatic eligibility 或 token-saving；
+4. [x] 将 `skill.md` 的派生展示字节规则提取为显式产品合同：source authority 始终绑定原始 bytes；派生 view 只把 CRLF
+   规范为 LF，保留既有 LF、lone CR、终止换行与其它 UTF-8 内容；为 CRLF/LF 等价、原始 digest 区分和 staged-index closure
+   增加 focused tests。该兼容性修复留在 product v1，不提升 artifact/runtime/cost 版本；
+5. [x] 通过只读 public upstream source 对 Magpie 固定 commit 做三门评估：original baseline 是否有公开、可重复的输入与精确
+   skill/prompt closure，且一次真实 original 运行可取得完整 usage；核心 Step 0--2 中有多少能由受限 DSL + 小 patch 固化；
+   machine-checked checker 需要哪些公开 oracle、fixture、代码与人工量。若 baseline 不可建，报告必须给出 no-go 并选择下一
+   候选，而不是先导入后补分母；
+6. [x] 只把 compact JSON evidence 作为新机器产物，结论追加到现有 spec/plan/optimization/evaluation/real-skill/results/
+   README/ledger/handoff/log；不新建 Markdown。完成 focused、`src/skill-ir`、相关 benchmark、typecheck、doc links、staged-index
+   closure、secret/path 与 `git diff --check`，显式暂存并排除 `docs/skill-ir/1.md`、旧 raw/workdir/cache。
+
+**版本纪律：** Restricted Domain Plan v1 不变；新的 collection wrapper 是独立首版合同，不是旧 DSL 的 v2。产品 workflow、
+artifact/runtime/cost 仍为 v1，只有新 plan identity 选择新 runner。若实现必须改变既有质量证据字段、成本含义或历史 closure，
+立即停止并重新评审 semantic delta，不能用小修名义静默改写。
+
+**完成证据与停止点：** 新的 `skill-ir-verified-artifact-collection-plan/v1` 以旧 plan 为 `basePlan`，只允许对象键枚举与
+字符串精确排序/去重。package-inventory 与 API Tester 两个真实 workdir 均执行通过、protected input 不变、共享实现且
+`coreBranchDelta=0`；历史 plan+patch 为 111 LOC，新 identity 为 119 LOC，其中人工 patch 从 58 降至 44 LOC，因此只证明
+两个原语复用和 patch 缩小，不证明总适配投入下降。`cross-field counts` 保持未实现，semantic parity、automatic eligibility
+和 readiness 均未建立。派生 `skill.md` 的 closure 合同已独立为 fatal UTF-8 + 仅 CRLF-to-LF；原始 source digest 仍绑定原字节。
+
+Magpie Step 1 结论为 conditional go：固定 public Step 0--2 的 prompt identity 可精确冻结，但上游 harness 只记录
+stdout/stderr/exit code，没有 token usage；可信分母必须由项目 Pi runtime 在新的前瞻 identity 中采集，现有 baseline rows=0。
+受限 DSL + 240--360 LOC 领域 patch 可覆盖初始公开 slice；替换上游 judge 的 machine checker 预计 260--420 LOC、4--8
+human-hours。持久化证据为 `results/skill-ir/verified-artifact-collection-qualification-v1/report.json` 与
+`results/skill-ir/magpie-release-audit-feasibility-v1/report.json`。本任务为 0 clone/import/external execution/model/API/paid/
+baseline/held-out，并按约定停在 Step 1；Step 2 必须等待用户显式确认。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

@@ -22,6 +22,8 @@ import {
   writeInitialWorkdirManifest,
   type InitialWorkdirManifestReference,
 } from "../core/workdir-manifest";
+import { normalizeDerivedSkillView } from "./artifact-closure-normalization";
+import { VerifiedArtifactCollectionPlanSchema } from "./verified-artifact-collection-plan";
 
 const IdentifierSchema = z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u);
 const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/u);
@@ -349,17 +351,26 @@ async function assembleCandidateArtifact(options: {
   protectedInputs: string[];
   outputPaths: string[];
 }): Promise<{ package: ValidatedArtifactPackage; artifact: z.infer<typeof ArtifactIdentitySchema> }> {
-  const plan = RestrictedDomainPlanSchema.parse(JSON.parse(options.planBytes.toString("utf8")));
+  const rawPlan = JSON.parse(options.planBytes.toString("utf8"));
+  const legacyPlan = RestrictedDomainPlanSchema.safeParse(rawPlan);
+  const collectionPlan = VerifiedArtifactCollectionPlanSchema.safeParse(rawPlan);
+  if (!legacyPlan.success && !collectionPlan.success) {
+    throw new Error("automatic plan is neither a Restricted Domain Plan nor a verified artifact collection plan");
+  }
+  const plan = legacyPlan.success ? legacyPlan.data : collectionPlan.data;
   const description = ThinTaskDescriptionSchema.parse(JSON.parse(options.descriptionBytes.toString("utf8")));
   const projectRoot = resolve(import.meta.dir, "../..");
   const [planRunner, patchRunner] = await Promise.all([
-    buildBundle(resolve(import.meta.dir, "verified-artifact-plan-runner.ts"), projectRoot),
+    buildBundle(resolve(
+      import.meta.dir,
+      collectionPlan.success ? "verified-artifact-collection-plan-runner.ts" : "verified-artifact-plan-runner.ts",
+    ), projectRoot),
     buildBundle(resolve(import.meta.dir, "verified-artifact-patch-runner.ts"), projectRoot),
   ]);
   auditReviewPatchSource(options.patchBytes.toString("utf8"), []);
   const baseIrText = jsonText(options.construction.baseIr);
   const constructionText = jsonText(options.construction);
-  const skillViewText = options.sourceBytes.toString("utf8").replace(/\r\n/gu, "\n");
+  const skillViewText = normalizeDerivedSkillView(options.sourceBytes);
   const sourceAuditText = jsonText({
     schemaVersion: "skill-ir-verified-artifact-source-audit/v1",
     status: "digest-only",

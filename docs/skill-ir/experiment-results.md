@@ -952,6 +952,14 @@ Task 18.41 随后在同一产品主链持久化 Env A-optional：machine checker
 写入 research authority。权威 compact report 为
 `results/skill-ir/verified-artifact-product-env-machine-checked-2026-08-29/report.json`。
 
+Task 18.42 新增两个零付费 compact result。collection qualification 在 package-inventory 与 API Tester 两个真实 workdir
+执行同一个首版 wrapper；对象键枚举与字符串排序/去重均通过，protected inputs 保持、coreBranchDelta=0。package-inventory
+patch 为 58 -> 44 LOC，但 plan+patch 合计 111 -> 119 LOC，所以 total adaptation effort reduced=false；cross-field counts、semantic
+parity、automatic eligibility 与 readiness 均未建立。Magpie feasibility 只读固定 public source 后给出
+`go-to-step-2-after-user-confirmation`：prompt closure 可复现，上游无 token telemetry，必须使用新的 project Pi identity；现有
+baseline rows=0。领域 patch 预计 240--360 LOC，machine checker 预计 260--420 LOC/4--8 human-hours。两份结果的 accounting 均
+为 0 model/API/paid/held-out；Magpie 另为 0 clone/import/external execution/baseline。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -1000,3 +1008,5 @@ Task 18.41 随后在同一产品主链持久化 Env A-optional：machine checker
 - `benchmarks/skill-ir/corpus/method-portfolio-authoritative-automation.json`
 - `results/skill-ir/method-portfolio-authoritative-automation-readiness.json`
 - `results/skill-ir/verified-artifact-product-env-machine-checked-2026-08-29/report.json`
+- `results/skill-ir/verified-artifact-collection-qualification-v1/report.json`
+- `results/skill-ir/magpie-release-audit-feasibility-v1/report.json`

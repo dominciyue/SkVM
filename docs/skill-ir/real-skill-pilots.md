@@ -410,6 +410,18 @@ MISSING/REDACTED 分账、结构化 JSON、Markdown 模板与 required-field sch
 不开 PR、不自动 merge，先前瞻冻结 original repeated-LLM baseline、人工分钟与适配 LOC。Task 18.41 只完成选择，没有克隆、
 导入、执行或建立 baseline。
 
+### 12.1 Task 18.42 零执行 feasibility
+
+固定 commit 的 public SKILL、eval README、schema 与 harness runner 足以冻结 Step 0--2 的确切 prompt/case closure；但上游
+harness 只捕获 stdout、stderr 与 exit code，不捕获 model token。因而 original baseline 不是已有数据，必须在后续新 identity
+中用项目 Pi runtime 绑定 model/provider/adapter/temperature/timeout 并前瞻采集，当前 baseline rows=0。
+
+初始公开 slice 可由已实现的对象键枚举、字符串排序/去重、既有 JSON pointer/write 原语加一个预计 240--360 LOC 的领域 patch
+固化；patch 负责公开 fixture parsing、MISSING/REDACTED/voter、固定 injection 与 template/schema violation，不把这些语义塞进
+core。上游 judge predicate 不能直接作为 machine authority；独立 deterministic checker 预计 260--420 LOC、4--8 human-hours，
+需覆盖 exact schema/type、sentinel consistency、violation set equality、隐私标记缺失与 mutation fail。该结论只支持 Step 2
+conditional-go；Task 18.42 为 0 clone/import/execution/model/API/paid/held-out，并停下等待用户确认。
+
 ## 13. 修改与验证
 
 ```powershell

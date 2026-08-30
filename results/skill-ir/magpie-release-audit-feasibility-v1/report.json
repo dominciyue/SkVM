@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "skill-ir-magpie-release-audit-feasibility/v1",
+  "auditId": "magpie-release-audit-step-1",
+  "status": "go-to-step-2-after-user-confirmation",
+  "upstream": {
+    "repository": "https://github.com/apache/magpie",
+    "commit": "453dd9f20bdebe9d4458d84682bd707be1414f80",
+    "evalTreeGitSha": "d7bea29471e00f49144d9c909d665c62186e879b",
+    "sources": [
+      {
+        "path": "skills/release-audit-report/SKILL.md",
+        "rawUrl": "https://raw.githubusercontent.com/apache/magpie/453dd9f20bdebe9d4458d84682bd707be1414f80/skills/release-audit-report/SKILL.md",
+        "gitBlobSha": "5a9740001a7a12886bcdf9b50581e53118f7580d",
+        "sha256": "750e114c6954d0982cd1090c2d06723934c91be31df612cfb58e13abc7f04f93",
+        "bytes": 20807
+      },
+      {
+        "path": "skills/release-audit-report/audit-record-schema.md",
+        "rawUrl": "https://raw.githubusercontent.com/apache/magpie/453dd9f20bdebe9d4458d84682bd707be1414f80/skills/release-audit-report/audit-record-schema.md",
+        "gitBlobSha": "a692eb289c6cae70c9b828342a9a0fcf843d87e4",
+        "sha256": "7d66edadc52e0b6f13f0ab4135dff4d6415a9a4d4ec6a41bdca2c735539fc8d4",
+        "bytes": 3739
+      },
+      {
+        "path": "tools/skill-evals/evals/release-audit-report/README.md",
+        "rawUrl": "https://raw.githubusercontent.com/apache/magpie/453dd9f20bdebe9d4458d84682bd707be1414f80/tools/skill-evals/evals/release-audit-report/README.md",
+        "gitBlobSha": "b4395b9e2bbc3471d66ec6cc5e2355c803c6410e",
+        "sha256": "647b5af2d8d3ab355b4845fe098e30b07adf574ec7e438659e6de037620524bd",
+        "bytes": 3479
+      },
+      {
+        "path": "tools/skill-evals/src/skill_evals/runner.py",
+        "rawUrl": "https://raw.githubusercontent.com/apache/magpie/453dd9f20bdebe9d4458d84682bd707be1414f80/tools/skill-evals/src/skill_evals/runner.py",
+        "gitBlobSha": "7b3b49d6fab851a44021465ce87f8d27a5632cd1",
+        "sha256": "9b1f8d46f6211155adfa420bd857e085f110d38e0041683cebf4d3dc908262f0",
+        "bytes": 53270
+      }
+    ],
+    "suites": [
+      {
+        "id": "step-0-preflight",
+        "cases": 3,
+        "deterministicPredicates": 1,
+        "judgePredicates": 0
+      },
+      {
+        "id": "step-1-gather-record",
+        "cases": 2,
+        "deterministicPredicates": 2,
+        "judgePredicates": 2
+      },
+      {
+        "id": "step-2-assemble-record",
+        "cases": 4,
+        "deterministicPredicates": 1,
+        "judgePredicates": 6
+      }
+    ],
+    "totalPublicCases": 9,
+    "promptConstruction": {
+      "skillSectionSelectedByExactHeading": true,
+      "sectionEndsAtNextPeerOrParentHeading": true,
+      "outputSpecAppended": true,
+      "publicReportInjectedIntoFixedTemplate": true,
+      "finalPromptJoin": "system_prompt + LF + LF + user_prompt"
+    }
+  },
+  "originalBaseline": {
+    "status": "feasible-with-new-project-measurement-identity",
+    "promptIdentityReproducible": true,
+    "upstreamHarnessCapturesModelTokens": false,
+    "upstreamHarnessTelemetry": "stdout-stderr-exit-code-only",
+    "projectRuntimeCapturesModelTokens": true,
+    "projectRuntimeEvidencePath": "src/core/pi-runtime.ts",
+    "existingBaselineRows": 0,
+    "requiredFreezeInputs": [
+      "fixed upstream commit and exact source digests",
+      "exact suite, case, extracted skill section, output spec, and user prompt bytes",
+      "model, provider, adapter, temperature policy, timeout policy, and project runner closure",
+      "fresh original rows with input, output, cache-read, and cache-write token telemetry"
+    ],
+    "prohibition": "Upstream expected.json and assertions are checker-only and must never enter the original model prompt or artifact compiler input."
+  },
+  "solidification": {
+    "status": "feasible-with-bounded-domain-patch",
+    "restrictedDslContribution": [
+      "read fixed structured JSON and select JSON-pointer fields",
+      "enumerate JSON object keys",
+      "sort and deduplicate string collections",
+      "write deterministic JSON records"
+    ],
+    "boundedPatchResponsibilities": [
+      "parse the public release-audit fixture format and normalize URLs and release fields",
+      "derive MISSING versus REDACTED and binding-voter roster handles",
+      "detect the fixed-contract forged-instruction patterns without executing them",
+      "render the audit-record Markdown template and required-field schema violations"
+    ],
+    "initialScope": "fixed public Step 0-2 fixtures; no live GitHub, mail archive, SVN, private tracker, or PR side effect",
+    "estimatedPatchPhysicalLoc": {
+      "minimum": 240,
+      "maximum": 360
+    },
+    "broadCrossFieldCountsImplemented": false,
+    "claim": "The deterministic record core is solidifiable, but live source discovery and open-ended privacy or injection judgment remain outside the first artifact boundary."
+  },
+  "machineChecker": {
+    "status": "feasible-but-must-replace-upstream-judge-authority",
+    "upstreamJudgePredicatesReusableAsMachineAuthority": false,
+    "deterministicAuthority": [
+      "strict output key and type validation",
+      "exact fixture-derived field and sentinel consistency",
+      "required-field schema-violation set equality",
+      "email and forbidden private-source marker absence",
+      "baseline-pass plus targeted mutation-fail checks"
+    ],
+    "estimatedPhysicalLoc": {
+      "minimum": 260,
+      "maximum": 420
+    },
+    "estimatedHumanHours": {
+      "minimum": 4,
+      "maximum": 8
+    },
+    "estimateStatus": "prospective-estimate-not-measured"
+  },
+  "risks": [
+    "The upstream harness does not expose token usage, so using it alone would leave break-even not computable.",
+    "Eight upstream assertions use an LLM judge and cannot qualify machine-checked quality without deterministic replacements.",
+    "A fixed-fixture artifact would not prove live-network or unseen-release generalization."
+  ],
+  "accounting": {
+    "cloneOperations": 0,
+    "importedFiles": 0,
+    "externalExecutions": 0,
+    "modelCalls": 0,
+    "apiCalls": 0,
+    "paidCalls": 0,
+    "baselineRows": 0,
+    "heldOutAccesses": 0
+  },
+  "decision": {
+    "candidate": "apache-magpie-release-audit-report",
+    "switchCandidate": false,
+    "step1Complete": true,
+    "step2Started": false,
+    "requiresUserConfirmation": true,
+    "nextStep": "After explicit confirmation, import only the frozen public source/eval slice, implement deterministic checker and artifact TDD, then freeze a new original-versus-artifact measurement identity before any model call."
+  },
+  "claimBoundary": "This report is a zero-execution feasibility decision based on fixed-commit public source bytes read in memory. It establishes neither release-audit correctness, imported fixture identity, an original token baseline, artifact quality, break-even, nor external-skill generalization."
+}

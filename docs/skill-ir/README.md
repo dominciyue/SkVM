@@ -195,8 +195,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   authority-review 资格。Env E1 在 evaluator-free 产品视图复现 token break-even=1；新 package-inventory 探针两次全链
   artifact/output closure 相同，但 automatic candidate 仍 non-executable、semantic parity 未建立，且无 original token 分母，
   所以 break-even 为 not-computable。Task 18.41 又在同一主链持久化 Env A：machine-checked 3/3、当前 0 paid，复用
-  digest-bound 历史分母得到 original `50502.5` token/run、artifact `0`、one-time `9358`、break-even `1`，只取得
-  authority-review 资格。项目外已只读选择 Apache Magpie `magpie-release-audit-report`，尚未导入或执行。
+	  digest-bound 历史分母得到 original `50502.5` token/run、artifact `0`、one-time `9358`、break-even `1`，只取得
+	  authority-review 资格。Task 18.42 新增的两个 collection 原语已在 package-inventory/API Tester 真实 workdir 复用；
+	  cross-field count 仍未实现。Apache Magpie Step 1 已完成零执行评估：公开 prompt 可冻结，但上游 harness 没有 token usage，
+	  后续必须用 project Pi 建新 baseline identity；当前仍未导入、执行或调用模型。
 
 ## 当前下一步
 
@@ -261,7 +263,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> E2 package-inventory 仓内新 skill 双运行完成：closure 确定，自动语义/package 与原始 token 分母仍缺
 -> Task 18.41 Env A 产品闭包完成：machine-checked 3/3、0 paid、50502.5 -> 0 token/run、break-even=1
 -> DSL 只读 gate：object-key enumeration 与 sort/dedup 有 multi-case 证据；宽泛 cross-field count 暂不实施
--> 外部候选锁定 apache/magpie release-audit-report；未导入/未执行，下一步须先获用户授权并冻结 public Step 0--2 identity
+-> Task 18.42 已实现两个窄 collection 原语；双真实 workdir 通过，patch 58 -> 44 LOC，但总 adapter 111 -> 119 LOC
+-> Magpie Step 1 conditional-go：prompt identity 可复现、上游无 token telemetry、现有 baseline=0；停下等待 Step 2 显式确认
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口
