@@ -96,7 +96,12 @@ process.stdout.write(JSON.stringify({ status: "patched", outputs: 1 }) + "\\n");
 `;
   const checkerText = `import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-export async function checkVerifiedArtifact(options: { workDir: string }) {
+export async function checkVerifiedArtifact(options: { workDir: string; initialWorkdirManifest?: { path: string; sha256: string } }) {
+  if (!options.initialWorkdirManifest) return { status: "fail", detail: "initial manifest reference is required" };
+  const manifest = JSON.parse(await readFile(options.initialWorkdirManifest.path, "utf8"));
+  if (manifest.entries.some((entry: { path: string }) => entry.path === "summary.json")) {
+    return { status: "fail", detail: "initial manifest must precede preview outputs" };
+  }
   const value = JSON.parse(await readFile(join(options.workDir, "summary.json"), "utf8"));
   return { status: value.normalizedName === "alpha project" ? "pass" : "fail", detail: "normalized public name" };
 }
@@ -219,6 +224,45 @@ describe("verified artifact product workflow", () => {
     await expect(validateVerifiedArtifactProduct(outDir)).rejects.toThrow("quality evidence digest mismatch");
   });
 
+  test("canonicalizes the packaged skill view so Git checkout preserves its closure", async () => {
+    const { rootDir, workDir, baseConfig } = await fixture();
+    const sourcePath = join(rootDir, "SKILL.md");
+    const crlfSource = (await readFile(sourcePath, "utf8")).replace(/\r?\n/gu, "\r\n");
+    await writeFile(sourcePath, crlfSource, "utf8");
+    const source = {
+      ...baseConfig.source,
+      sha256: sha256Bytes(Buffer.from(crlfSource, "utf8")),
+    };
+    const outDir = join(rootDir, "git-stable-product");
+
+    await runVerifiedArtifactWorkflow({
+      rootDir,
+      workDir,
+      outDir,
+      config: {
+        ...baseConfig,
+        source,
+        quality: { mode: "user-accepted" },
+        production: {
+          ...baseConfig.production,
+          originalRuntime: {
+            ...baseConfig.production.originalRuntime,
+            evidence: { path: source.path, sha256: source.sha256 },
+          },
+        },
+      },
+      accept: async () => ({
+        decision: "accepted",
+        acceptedAt: "2026-08-29T01:10:00.000Z",
+        humanMinutes: 1,
+        note: "Accepted.",
+      }),
+    });
+
+    expect(await readFile(join(outDir, "artifact/skill.md"), "utf8")).not.toContain("\r\n");
+    await expect(validateVerifiedArtifactProduct(outDir)).resolves.toBeDefined();
+  });
+
   test("uses the same artifact/runtime/cost chain for A-optional and changes only quality evidence", async () => {
     const first = await fixture();
     const user = await runVerifiedArtifactWorkflow({
@@ -306,5 +350,31 @@ describe("verified artifact product workflow", () => {
       claim: "token-savings-not-reached",
       breakEven: { status: "not-reached", calls: null },
     });
+  });
+
+  test("fails closed when imported recurring-cost evidence is not digest-bound", async () => {
+    const { rootDir, workDir, baseConfig } = await fixture();
+    await expect(runVerifiedArtifactWorkflow({
+      rootDir,
+      workDir,
+      outDir: join(rootDir, "cost-evidence-drift-product"),
+      config: {
+        ...baseConfig,
+        production: {
+          ...baseConfig.production,
+          originalRuntime: {
+            ...baseConfig.production.originalRuntime,
+            evidence: { ...baseConfig.production.originalRuntime.evidence, sha256: "0".repeat(64) },
+          },
+        },
+        quality: { mode: "user-accepted" },
+      },
+      accept: async () => ({
+        decision: "accepted",
+        acceptedAt: "2026-08-29T01:10:00.000Z",
+        humanMinutes: 1,
+        note: "This must not bypass imported-cost evidence validation.",
+      }),
+    })).rejects.toThrow("digest mismatch");
   });
 });

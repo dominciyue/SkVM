@@ -1180,6 +1180,16 @@ E2 package-inventory 没有 taskSet、scorer、checker 或旧 compiler。两次�
 质量仍为 `user-accepted`、research `not-eligible`；automatic construction 明确为 non-executable/not-established。没有
 original recurring model-token baseline，因此 token 与总成本 break-even 都保持 not-computable。
 
+### 11.9 Env A-optional 产品质量闭包
+
+Task 18.41 的 Env 产品 checker 不复制 evaluator 逻辑：它先核对 `env-manager-grade-v3.ts` 的冻结 digest，再把同一产品
+preview workdir 与 initial manifest 交给既有 evaluator，只取三个公开 criterion：artifact integrity、environment analysis、
+artifact consistency。持久化结果为 3/3，质量等级是 `machine-checked`。产品报告同时 digest-bind 历史四对 quality-equivalent
+证据和 readonly-serial cost evidence；这些历史 rows 未在本阶段重跑。
+
+这个证据只把产品标记为 `eligible-for-authority-review-not-promoted`。它不直接改 method portfolio、readiness 或
+`efficiency-positive` 分类；任何研究晋级仍必须经过既有 evidence authority 重算。
+
 ## 12. 结果持久化
 
 提交到 Git：

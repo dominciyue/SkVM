@@ -945,6 +945,13 @@ passed、package non-executable、semantic parity not-established；薄声明 79
 均 not-computable。权威 compact report 为
 `results/skill-ir/verified-artifact-product-e2-package-inventory-2026-08-29-r2/report.json`。
 
+Task 18.41 随后在同一产品主链持久化 Env A-optional：machine checker 的公开 v3 criterion 为 3/3；当前阶段为
+0 API/model/paid。报告通过 digest 引用已冻结的 4 对 quality-equivalent 与 readonly-serial original 分母，得到 original
+`202010/4=50502.5` model token/run、artifact `0`、one-time `9358`、break-even `1`。这些历史 original rows 没有重跑，
+所以结论是“当前 deterministic product + 历史 digest-bound 分母”的产品价值闭包，不是一次新 8-row 实验，也没有自动
+写入 research authority。权威 compact report 为
+`results/skill-ir/verified-artifact-product-env-machine-checked-2026-08-29/report.json`。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -992,3 +999,4 @@ passed、package non-executable、semantic parity not-established；薄声明 79
 - `results/skill-ir/method-portfolio-authoritative-efficiency-readiness.json`
 - `benchmarks/skill-ir/corpus/method-portfolio-authoritative-automation.json`
 - `results/skill-ir/method-portfolio-authoritative-automation-readiness.json`
+- `results/skill-ir/verified-artifact-product-env-machine-checked-2026-08-29/report.json`

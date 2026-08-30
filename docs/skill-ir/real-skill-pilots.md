@@ -398,7 +398,19 @@ IR/validation candidate，deterministic gate passed，但 semantic parity 仍 no
 held-out、0 evaluator/taskSet/scorer、core delta 0。由于没有 original recurring token baseline，产品报告诚实给出
 token break-even not-computable；因此它是工程可运行性/适配鸿沟证据，不是 token-saving 正例或项目外泛化证据。
 
-## 12. 修改与验证
+## 12. Task 18.41 项目外候选选择（未执行）
+
+只读筛选选择 Apache Magpie 的 `magpie-release-audit-report`：仓库 `apache/magpie`，选择时 main HEAD
+`453dd9f20bdebe9d4458d84682bd707be1414f80`，路径 `skills/release-audit-report/SKILL.md`，Apache-2.0。该 skill 对每个
+release 运行，也明确允许周期刷新；其 hand-back 被上游称为 AI-driven。固定核心包含公开 release surface 字段抽取、
+MISSING/REDACTED 分账、结构化 JSON、Markdown 模板与 required-field schema validation；自然语言 planning/vote/announce
+解析、privacy/injection 判断和 RM review 又使它不是一个纯脚本。
+
+若用户授权下一阶段，第一身份只允许 public fixture 上的 Step 0--2 development slice：不访问私有 tracker、不读 held-out、
+不开 PR、不自动 merge，先前瞻冻结 original repeated-LLM baseline、人工分钟与适配 LOC。Task 18.41 只完成选择，没有克隆、
+导入、执行或建立 baseline。
+
+## 13. 修改与验证
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/corpus-registry.test.ts

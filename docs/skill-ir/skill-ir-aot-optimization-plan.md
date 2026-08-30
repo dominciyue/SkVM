@@ -1511,6 +1511,52 @@ evaluator 策略；不写 E1 集成代码、不调用模型/API、不读取 held
    1233 pass/2 skip/21 historical fail，未超过历史 62；
 5. [x] 在探针差距报告后停止，等待用户判断项目外真实 skill 的选择和是否值得继续规模化。
 
+### 4.32 Task 18.41：Env A-optional 产品价值闭包与下一泛化回报点
+
+**目标与边界：** E2 只证明新案例的产品链可执行，`packageCandidate` 仍为 non-executable，且没有自然的
+original LLM recurring baseline，不能支持 token-saving claim。本任务先复用 Env Manager 已冻结的公开 fixture、
+deterministic v3 evaluator 与 readonly-serial 成本证据，在同一产品主链持久化一份 A-optional 产品；本阶段不重跑
+original 模型分母、不调用 API、不读 held-out，也不把历史研究矩阵冒充本次产品执行。
+
+1. [x] RED：Env 产品回归要求同一 `compile -> review-or-accept -> package -> run -> cost` 主链输出
+   `qualityEvidence=machine-checked`、`eligible-for-authority-review`、exact output delta、protected input preserved、
+   one-time `9358`、original `202010/4=50502.5`、artifact recurring `0` 与 break-even `1`；当前只有 B 配置时先失败；
+2. [x] GREEN：在 preview 前生成外置 initial-workdir manifest，只把 digest-bound manifest reference 交给可选 checker；
+   B/A 的 artifact/runtime/cost 主链不分叉。Env checker 复用 v3 evaluator 的三项公开 criterion，并在调用前核对
+   evaluator source digest；不得复制 scorer gold、读取 held-out 或按 task id 在产品 core 分支；
+3. [x] 新 machine-checked 配置必须绑定 source、薄声明、automatic plan、review patch、checker 与冻结 cost report。
+   Product report 明示 original recurring 数据来自既有 digest-bound historical evidence，本次模型/付费调用为 0；
+   `machine-checked` 只允许进入 authority review，不自动重写 research portfolio/readiness；
+4. [x] 用 Node development fixture 实际运行一次产品链，持久化 product manifest、quality/run/cost evidence，并用
+   独立 validator 重验 artifact/evidence digest closure、三项 checker 全过和精确 token 数值；
+5. [x] 随后只读评估 `enumerate JSON keys | sort/deduplicate | cross-field counts` 是否各有至少两个真实案例需求；
+   单案例证据不实施原语。按“原本反复使用 LLM、会重复执行、核心逻辑可确定性化、非纯脚本”的标准筛选一个真实
+   外部 skill；不导入、不执行、不建立 baseline；
+6. [x] 在新增 DSL 或执行外部 skill 前强制回报。同步现有 spec/plan/component/results/ledger/handoff/log，完成
+   focused、current broad、typecheck、doc links、secret/path 与 `git diff --check`，显式提交推送且排除 `1.md`、
+   raw/workdir/cache 与旧本地结果。
+
+**版本纪律：** 这是现有产品 v1 的 A-optional 证据闭包与一个新配置身份，不提升 artifact/runtime/cost schema。
+若实现发现必须改变机器质量证据的可观察字段或 eligibility 语义，应先停止并另行记录 semantic delta；普通 manifest
+传递、checker adapter 与 digest 修复留在现有版本。
+
+**完成证据与停止点：** Env A 产品持久化在
+`results/skill-ir/verified-artifact-product-env-machine-checked-2026-08-29/report.json`。当前执行为 0 API/model/paid，
+machine checker 的公开 v3 criterion 为 3/3；digest-bound 历史分母为 original `202010/4=50502.5` token/run、artifact
+`0`、one-time `9358`、break-even `1`。报告只标记 `eligible-for-authority-review-not-promoted`，不修改 portfolio/readiness。
+首次 staged-index checkout 发现派生 `skill.md` 的 CRLF 被 Git 规范化后会破坏 closure；新增 RED 后在 product v1 内将
+skill view 规范化为 LF、重建同一结果身份，并以 staged-index 临时 checkout 验证完整 product closure 通过。
+
+DSL 只读复核得到：JSON object-key 枚举至少由 package-inventory 与 API Tester 两案需要；字符串排序/去重至少由
+package-inventory、Env Manager 与 API Tester 三案需要，二者通过 multi-case reuse gate。宽泛的 `derive-cross-field-counts`
+虽在 package-inventory、API Tester/Experimental Design 出现，但分别包含 array length、distinct union、nested plan count 与
+selector 后 entity count，当前没有一个不隐藏 selector/domain 语义的共同窄合同，因此只保留候选，不实施。
+
+项目外候选选择 Apache Magpie 的 `magpie-release-audit-report`（`apache/magpie` main HEAD at selection
+`453dd9f20bdebe9d4458d84682bd707be1414f80`，`skills/release-audit-report/SKILL.md`，Apache-2.0）。它按 release/周期刷新
+重复运行、显式包含 AI-driven hand-back，又有固定字段抽取、MISSING/REDACTED、模板和 schema validation 核心，不是纯脚本。
+后续若获授权，只允许先冻结 public fixture 上的 Step 0--2 development slice；本任务没有导入、执行、建 baseline 或开 PR。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

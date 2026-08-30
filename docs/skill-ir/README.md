@@ -194,7 +194,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   验收只支持“在用户认可质量前提下的 token 节省”，不得进入 research `efficiency-positive`；A 的薄 checker 只取得
   authority-review 资格。Env E1 在 evaluator-free 产品视图复现 token break-even=1；新 package-inventory 探针两次全链
   artifact/output closure 相同，但 automatic candidate 仍 non-executable、semantic parity 未建立，且无 original token 分母，
-  所以 break-even 为 not-computable。当前停在 E2 强制回报点，项目外真实 skill 未选择、未执行。
+  所以 break-even 为 not-computable。Task 18.41 又在同一主链持久化 Env A：machine-checked 3/3、当前 0 paid，复用
+  digest-bound 历史分母得到 original `50502.5` token/run、artifact `0`、one-time `9358`、break-even `1`，只取得
+  authority-review 资格。项目外已只读选择 Apache Magpie `magpie-release-audit-report`，尚未导入或执行。
 
 ## 当前下一步
 
@@ -257,7 +259,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Phase E0 已完成；用户确认 B-default+A-optional，四条 receipt/claim/cost/共享主链红线已同步
 -> E1 已用 Env evaluator-free vertical slice 跑通 compile -> review/accept -> package -> run -> cost，产品 token break-even=1
 -> E2 package-inventory 仓内新 skill 双运行完成：closure 确定，自动语义/package 与原始 token 分母仍缺
--> 当前停在 E2 回报点；项目外真实 skill 的选择和实验须由用户复核后前瞻开展
+-> Task 18.41 Env A 产品闭包完成：machine-checked 3/3、0 paid、50502.5 -> 0 token/run、break-even=1
+-> DSL 只读 gate：object-key enumeration 与 sort/dedup 有 multi-case 证据；宽泛 cross-field count 暂不实施
+-> 外部候选锁定 apache/magpie release-audit-report；未导入/未执行，下一步须先获用户授权并冻结 public Step 0--2 identity
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

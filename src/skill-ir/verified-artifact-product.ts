@@ -18,6 +18,10 @@ import {
 } from "../benchmarks/skill-ir/validated-artifact-catalog";
 import { runValidatedArtifactPlan } from "../benchmarks/skill-ir/validated-artifact-runtime";
 import { sha256Bytes } from "../benchmarks/skill-ir/source-fixture";
+import {
+  writeInitialWorkdirManifest,
+  type InitialWorkdirManifestReference,
+} from "../core/workdir-manifest";
 
 const IdentifierSchema = z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u);
 const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/u);
@@ -355,6 +359,7 @@ async function assembleCandidateArtifact(options: {
   auditReviewPatchSource(options.patchBytes.toString("utf8"), []);
   const baseIrText = jsonText(options.construction.baseIr);
   const constructionText = jsonText(options.construction);
+  const skillViewText = options.sourceBytes.toString("utf8").replace(/\r\n/gu, "\n");
   const sourceAuditText = jsonText({
     schemaVersion: "skill-ir-verified-artifact-source-audit/v1",
     status: "digest-only",
@@ -456,7 +461,7 @@ async function assembleCandidateArtifact(options: {
     },
     artifactPayloads: [
       { id: "skill-ir", bytes: baseIrText },
-      { id: "skill-view", bytes: options.sourceBytes },
+      { id: "skill-view", bytes: skillViewText },
       { id: "plan-runner", bytes: planRunner },
       { id: "patch-runner", bytes: patchRunner },
       { id: "review-patch", bytes: options.patchBytes },
@@ -565,15 +570,18 @@ async function machineEvidence(options: {
   config: VerifiedArtifactWorkflowConfig;
   review: VerifiedArtifactReview;
   previewDir: string;
+  initialWorkdirManifest: InitialWorkdirManifestReference;
 }): Promise<VerifiedArtifactQualityEvidence> {
   if (options.config.quality.mode !== "machine-checked") throw new Error("machine checker mode is required");
   const checkerBytes = await readPinned(options.rootDir, options.config.quality.checker);
   const checkerPath = containedPath(options.rootDir, options.config.quality.checker.path);
   const module = await import(`${pathToFileURL(checkerPath).href}?sha256=${sha256Bytes(checkerBytes)}`) as {
     checkVerifiedArtifact?: (input: {
+      rootDir: string;
       workDir: string;
       outputs: z.infer<typeof SnapshotRecordSchema>[];
       delta: z.infer<typeof DeltaSchema>;
+      initialWorkdirManifest: InitialWorkdirManifestReference;
     }) => Promise<unknown>;
   };
   if (typeof module.checkVerifiedArtifact !== "function") throw new Error("checker must export checkVerifiedArtifact");
@@ -581,9 +589,11 @@ async function machineEvidence(options: {
     status: z.enum(["pass", "fail"]),
     detail: z.string().min(1).max(1000),
   }).strict().parse(await module.checkVerifiedArtifact({
+    rootDir: options.rootDir,
     workDir: options.previewDir,
     outputs: options.review.outputs,
     delta: options.review.delta,
+    initialWorkdirManifest: options.initialWorkdirManifest,
   }));
   if (checkerResult.status !== "pass") throw new Error(`deterministic checker failed: ${checkerResult.detail}`);
   return MachineCheckedEvidenceSchema.parse({
@@ -617,6 +627,9 @@ export async function runVerifiedArtifactWorkflow(options: {
   const workDir = resolve(options.workDir);
   const outDir = resolve(options.outDir);
   const config = VerifiedArtifactWorkflowConfigSchema.parse(options.config);
+  if (config.production.originalRuntime.status === "measured") {
+    await readPinned(rootDir, config.production.originalRuntime.evidence);
+  }
   await mkdir(outDir, { recursive: true });
   if ((await readdir(outDir)).length > 0) throw new Error(`product output directory must be empty: ${outDir}`);
   const initialInputs = await snapshot(workDir);
@@ -662,6 +675,10 @@ export async function runVerifiedArtifactWorkflow(options: {
     });
     const previewDir = join(temporaryRoot, "preview-workdir");
     await cp(workDir, previewDir, { recursive: true, force: false, errorOnExist: true });
+    const previewInitialWorkdirManifest = await writeInitialWorkdirManifest({
+      workDir: previewDir,
+      manifestPath: join(temporaryRoot, "preview-initial-workdir-manifest.json"),
+    });
     const previewExecution = await runValidatedArtifactPlan({
       package: assembled.package,
       workDir: previewDir,
@@ -712,7 +729,13 @@ export async function runVerifiedArtifactWorkflow(options: {
         researchDisposition: "not-eligible",
       });
     } else {
-      qualityEvidence = await machineEvidence({ rootDir, config, review, previewDir });
+      qualityEvidence = await machineEvidence({
+        rootDir,
+        config,
+        review,
+        previewDir,
+        initialWorkdirManifest: previewInitialWorkdirManifest,
+      });
     }
 
     if (!sameSnapshot(await snapshot(workDir), initialInputs)) {

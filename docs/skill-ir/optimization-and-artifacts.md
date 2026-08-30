@@ -817,6 +817,23 @@ E2 的 package-inventory 探针两次全链都得到 artifact closure
 `16eb0509c900c917116272193ad726d2694bb8f88f0f4264c7d91e8dd9bbd113`。薄声明为 79 parser LOC/14 semantic entries，
 human review 为 53 LOC plan + 58 LOC patch；实际需要对象键枚举、排序/去重和跨字段计数。现有旧 plan ABI 仍把
 `audit.paidCalls` 固定为 1，不能字面表达本次实际 0 paid 的手写 plan；compact report 将两者并列而不改冻结 DSL。
+
+Task 18.41 在同一 product v1 上补齐了 Env A-optional 的持久化证据，没有新建 artifact/runtime/cost 版本。产品 core
+在 preview 执行前写 initial-workdir manifest，并把 digest-bound reference 传给可选 checker；machine checker 再核对
+`env-manager-grade-v3.ts` source digest，并复用其三项公开 criterion。Historical original runtime evidence 现在也由产品
+core 主动读取并验 digest，而不是只信配置中的 token 数值。
+`skill.md` 是 source 的派生展示文件，assembly 现在把 CRLF 规范化为 LF 后再计算 artifact manifest/closure；source
+authority 仍绑定原始 `SKILL.md` 字节。这样 Git 索引或跨平台 checkout 不会静默改写产品 closure，属于 product v1 的
+字节稳定性修复，不改变 source/quality/cost 语义。
+
+持久化报告为 `results/skill-ir/verified-artifact-product-env-machine-checked-2026-08-29/report.json`：当前产品执行
+0 model/API/paid，checker 3/3，导入的冻结分母为 original `50502.5` token/run、artifact `0`、one-time `9358`、
+break-even `1`。导入的四对质量等价和 original rows 没有在本阶段重跑；A 只取得 authority-review 资格，不自动晋级。
+
+E2 gap 的原语判断按多案例收窄：`enumerate-json-object-keys`（package-inventory/API Tester）和
+`sort-and-deduplicate-strings`（package-inventory/Env/API Tester）已有复用证据；宽泛 cross-field count 把 length、distinct
+union、nested count 与 selector-after-count 混在一起，尚无可冻结的共同窄 ABI。它不得在没有 selector/collection 合同前
+实现成任意表达式求值器。
 产品 cost v1 还区分三类 token 结论：正 recurring savings 才输出 `token-saving-under-*`；original recurring 为 0 时
 输出 `token-savings-not-reached`；缺 production 分母时输出 `token-economics-not-computable`。后二者的 claim boundary
 都明确禁止 token-saving 措辞。

@@ -1639,7 +1639,8 @@ E0 已完成，用户于 2026-08-29 确认 B-default + A-optional，并授权连
 既有 pilot 的单链 vertical slice，并保持既有 authority/schema 向后兼容。E1 通过后无需再次停下，可直接用一个
 从未建设过专属基础设施的仓内新 skill 测量最小输入、人工分钟/LOC 与适配鸿沟；该探针结果是下一强制回报点。
 项目外真实 skill 的选择与执行仍在回报点之后，且 token 节省、人工成本和用户接受均须前瞻记录，不能从当前七案例
-回填。
+回填。Task 18.41 已只读选择 `apache/magpie` 的 `magpie-release-audit-report`，但尚未导入、执行或建立 baseline；任何执行
+仍是新的授权点。
 
 ### 14.4 E1/E2 当前证据与边界
 
@@ -1653,3 +1654,11 @@ non-executable、semantic parity not-established。最小可运行输入实际�
 reviewed plan 和 review patch；人工层为 53+58 LOC，前瞻探针总墙钟 9 分钟。由于没有 original model-run 分母，token
 break-even 与总成本 break-even 均 not-computable。该结果只授权在此回报点讨论项目外真实 skill，不构成外部泛化、
 研究晋级或 full automation。
+
+Task 18.41 还在同一 product v1 上持久化了 Env A-optional。当前 deterministic execution 为 0 API/model/paid，公开 v3
+checker 3/3；产品报告 digest-bind 历史四对质量等价和 readonly-serial original/cost evidence，得到 original `50502.5`
+token/run、artifact `0`、one-time `9358`、break-even `1`。这只支持 authority review，不自动修改 portfolio/readiness。
+
+通用 DSL 的扩展仍按 multi-case reuse gate：对象键枚举和字符串排序/去重已有至少两个案例；宽泛跨字段 count 尚未形成
+不隐藏 selector/domain 语义的共同窄合同，因此不授权实现。外部候选第一实验只允许 public fixture 的 Step 0--2
+development slice，PR/私有 surface/held-out 均关闭。
