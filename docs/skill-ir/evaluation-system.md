@@ -1224,7 +1224,11 @@ Magpie 的最终 production command 在 spawn 前用该 identity 把旧 builder 
 零付费资格实际物化新的 36 行 active tree，并发调用真实 status 入口 12 次。前后均为 39 个文件，tree SHA-256 均为
 `09108f98663d86815a51f8d956b7b416bca27186ddb7d866922227fb585126ec`，逐文件字节一致；计数为 0 model/API/paid、0 retry、
 0 held-out。资格报告绑定 001/002 compact failure 与 `reusedRows=0`。新的 `executable-bound` policy 固定 9 case x 2
-repetition x 2 arm、单前台串行、无 observer；它在 pre-model push 前仍是 0/36，不是质量、token 或 break-even 结果。
+repetition x 2 arm、单前台串行、无 observer；pre-model closure `67835f2` 推送后，唯一 003 完成 36/36，18 次 paid
+original 与 18 次 deterministic artifact、0 retry/infra。只读重建得到 state/dispatch/prefix=`done/36/36` 并与 report
+byte-semantically identical。Original 6/18 pass，artifact 18/18、0 pairwise regression；original input/output/cache-read
+为 73537/14038/40960，artifact model token 0。这里的 equivalence 只表示固定分母内 machine-checked non-regression，不是
+live source 或研究级 efficiency authority。
 
 ## 12. 结果持久化
 

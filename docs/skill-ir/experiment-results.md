@@ -973,8 +973,13 @@ Task 18.44 的零付费 executable 资格为 passed。当前 Bun 1.3.14 的 `pro
 原始字节 SHA-256 为 `0187f68d843f825a72ada4a7eca60db896ed753759a7f8252edcd31ac1bf1b9c`；真实 `--version`
 退出码为 0，报告未保存绝对路径。完整 36 行 active tree 在 12 次并发真实 status 前后都是 39 files、tree SHA-256
 `09108f98663d86815a51f8d956b7b416bca27186ddb7d866922227fb585126ec`，逐字节一致。新 policy 显式绑定 001/002
-失败摘要、`reusedRows=0`、9 case x 2 repetition x 2 arm、0 retry/reserve、`humanMinutes=null`；当前仍是 0/36、
-0 model/API/paid，不构成 external quality、recurring token 或 break-even 证据。
+失败摘要、`reusedRows=0`、9 case x 2 repetition x 2 arm、0 retry/reserve、`humanMinutes=null`；资格阶段是 0/36、
+0 model/API/paid，不构成 external quality、recurring token 或 break-even 证据。Pre-model commit `67835f2` 推送后才创建
+fresh run 并唯一执行；最终 36/36、18 paid model/API calls、18 artifact executions、0 retry/infra/held-out。Original
+6/18 pass，artifact 18/18，complete pair 18、pairwise regression 0；original input/output/cache-read/cache-write 为
+73537/14038/40960/0，artifact aggregate model tokens=0，mean saved=4865.2778/run。Explicit production API model token=0，
+conditional break-even 为 0 calls 且 first recurring run net positive。Development-agent token/human review 未测，因此
+allAttemptCostComplete=false、research efficiency-positive=false，portfolio/readiness/held-out/live promotion 全为 false。
 
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
@@ -1029,3 +1034,4 @@ Task 18.44 的零付费 executable 资格为 passed。当前 Bun 1.3.14 的 `pro
 - `results/skill-ir/magpie-release-audit-executable-governance-qualification.json`
 - `benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy-executable-bound.json`
 - `benchmarks/skill-ir/pilots/magpie-release-audit/measurement-tasks-executable-bound.json`
+- `results/skill-ir/magpie-release-audit-public-efficiency-003/report.json`

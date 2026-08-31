@@ -1711,3 +1711,8 @@ digest 完全一致，才能证明 observer 只读。资格与 successor freeze 
 即使 003 完成，结论也只限固定 public Step 0--2 slice 的 machine-checked non-regression、recurring runtime model-token savings
 和显式 production API token 口径下的 conditional break-even。Development-agent token 与实际 human review 仍未测，所以 research
 all-attempt cost、efficiency-positive、portfolio/readiness、held-out、live release 与跨项目泛化继续关闭。
+
+003 已按该合同完成：36/36、18 paid original + 18 deterministic artifact、0 retry/infra；original 6/18、artifact
+18/18、pairwise regression 0。Original input+output 共 87575，artifact model token 0，平均节省 4865.2778/run。
+显式 production API construction token 为 0，故条件式 break-even 为 0 calls、首个 recurring run 即净正。该结果不补齐
+development-agent token 或 human review，也不改变上一段列出的 research/推广禁区。

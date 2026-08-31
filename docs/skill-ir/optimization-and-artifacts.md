@@ -858,7 +858,10 @@ physical LOC 分账为 46 plan + 170 patch + 71 orchestration = 287；checker 35
 Task 18.44 只治理上述 process-start 基础设施，不改变 reviewed artifact、checker、task 或 cost 口径。共享 runtime executable
 identity 对 `process.execPath` 做 regular/non-symlink/byte-digest/version smoke，Magpie 的最终 spawn command 使用其绝对路径；
 compact 不保存机器路径。完整 36 行真实 materialization 与 12 次并发 status 的 byte-identical 资格已通过，新的 003 policy
-从 0/36 冻结并 `reusedRows=0`。这些仍只是零付费执行资格；artifact 的 0 model token 不能在 original rows 完成前被写成节省。
+从 0/36 冻结并 `reusedRows=0`。随后唯一分母完整完成：artifact 18/18、original 6/18、18 对 0 regression；artifact
+recurring model token 0，相对 original 平均节省 4865.2778 input+output token/run。显式 production API construction
+token 为 0，所以条件式 break-even=0 calls；但开发代理 token 与实际人工 review 仍不可观测，research all-attempt 与
+efficiency-positive 继续为 false，不能把固定 fixture 结果外推到 live source。
 
 ## 15. 测试
 

@@ -1648,14 +1648,22 @@ slice 的结果推广到 portfolio/readiness/live release。
    001/002 和其它历史 lock 绑定的 `real-agent.ts`，共享 core 不增加 skill-id 分支，`coreBranchDelta=0`；
 3. [x] 零付费资格必须对 36 行 successor 输入做真实 materialization，并对真实 status 入口并发重复读取至少 12 次；active tree
    的相对路径、文件字节和 SHA-256 在前后必须完全相同。资格报告还要绑定 001/002 failure digest，计数固定为 0 model/API/paid；
-4. [ ] 使用语义化 `executable-bound` policy/tasks 与 active identity 冻结 fresh 9 case x 2 repetition x 2 arm = 36 rows，
+4. [x] 使用语义化 `executable-bound` policy/tasks 与 active identity 冻结 fresh 9 case x 2 repetition x 2 arm = 36 rows，
    `reusedRows=0`、0 retry/reserve、`humanMinutes=null`；freeze/qualification/implementation closure 通过后先 commit 并 push；
-5. [ ] 只有 smoke、status byte parity、freeze 重建和 push 全部通过，才检查 `SKVM_XTY_API_KEY` 是否存在并执行唯一一次 003。
+5. [x] 只有 smoke、status byte parity、freeze 重建和 push 全部通过，才检查 `SKVM_XTY_API_KEY` 是否存在并执行唯一一次 003。
    若任一行出现 infrastructure failure，立即停止且不建 004；若完成，只报告固定 public slice 的 quality、runtime token 与
    conditional explicit-production-API token break-even，不晋级 research efficiency/portfolio/readiness/held-out/live claim。
 
 这不是 `measurement v3/v4` 重做：001/002 保持不可变，Task 18.44 只增加一个首版共享 executable identity 和一个新的
 attempt/freeze/result identity。Routine process-start 修复不得借机改变 task、checker、artifact、timeout 或 cost 口径。
+
+执行结果：pre-model closure `67835f2` 推送并确认 ahead/behind 0/0 后，003 从 fresh 0/36 唯一前台串行完成
+36/36，18 paid original + 18 deterministic artifact、0 retry、0 infrastructure failure。Original 6/18 pass，artifact
+18/18 pass，18 个 complete pair 中 0 regression，故只在固定 public slice 建立 machine-checked non-regression。
+Original input/output/cache-read 为 73537/14038/40960，artifact model token 为 0，平均 recurring saving
+4865.2778 input+output token/run。Production API construction token 显式为 0，所以 conditional break-even=0 calls、
+首个 recurring run 净正；development-agent token 与 human review 未测，research all-attempt/efficiency-positive、
+portfolio/readiness/held-out/live claim 继续关闭。
 
 ## 5. 时间估算
 

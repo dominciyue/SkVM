@@ -203,7 +203,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 	  模型进程 spawn 前因 control-plane 失败，均为 0 prefix/model/API/paid；所以 original baseline、质量对照、token 分母和
 	  break-even 仍未建立，不能把 deterministic qualification 冒充 external efficiency。Task 18.44 随后以共享
 	  `process.execPath` executable identity 完成真实 version smoke、36-row materialization 与 12-way status byte parity；新的
-	  executable-bound 003 已从 0/36 零付费冻结，尚未产生模型、质量或成本结果。
+	  executable-bound 003 随后从 fresh 0/36 完成 36/36、18 paid、0 retry/infra。固定 slice 上 original 6/18、artifact
+	  18/18、0 pair regression；平均 recurring model-token saving 4865.2778/run，conditional explicit-production-API
+	  break-even=0 calls。开发代理 token/human review 未测，所以不晋级 research efficiency、portfolio/readiness 或 live claim。
 
 ## 当前下一步
 
@@ -272,8 +274,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Magpie Step 2 固定 public slice 已完成：31 exact blobs、checker 9/9、mutation 6/6、artifact 9/9、287 adapter LOC
 -> project-Pi 001 因 row-01/run-N ABI 在 spawn 前失败；r2 修复后 002 又因 Windows 无法 uv_spawn 字面 bun 失败
 -> 两个失败身份均 0 prefix/model/API/paid；001/002 保持不可变且不复用
--> 共享 executable identity 已通过真实 smoke 与 36-row/12-way status byte parity，003 从 fresh 0/36 冻结
--> 先推送 pre-model closure，再只执行一次 003 foreground serial denominator；infra 再失败则停止且不建 004
+-> 共享 executable identity 已通过真实 smoke 与 36-row/12-way status byte parity，pre-model 67835f2 已推送
+-> 唯一 003 foreground serial denominator 已完成：36/36、18 paid、0 retry/infra、artifact 18/18、original 6/18
+-> 固定 slice recurring saving 已建立；research all-attempt/efficiency、portfolio/readiness、held-out/live 继续关闭
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

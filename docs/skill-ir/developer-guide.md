@@ -1006,7 +1006,8 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：Magpie Step 2 零付费层；31 exact blobs、checker 9/9、mutation 6/6、artifact 9/9、287 adapter LOC
 失败归档：001 的 row-01/run-N ABI 与 002 的 Windows literal-bun resolution 均在模型进程 spawn 前失败，0 prefix/model/API/paid
 已完成：共享 runtime executable identity；真实 --version smoke、36-row materialization、12-way status byte parity 全过，0 paid
-当前接力：executable-bound 003 已零付费冻结；先推送 pre-model closure，再从 fresh 0/36 只执行一次 foreground serial run
+已完成：pre-model 67835f2 推送后，executable-bound 003 从 fresh 0/36 完成 36/36、18 paid、0 retry/infra
+当前接力：只提交 compact report 与既有文档；不要晋级 portfolio/readiness 或把 fixed fixtures 外推到 live source
 禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
 结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
@@ -1178,8 +1179,11 @@ Magpie Step 2 的 `qualification.json` 只证明固定公开 9-case deterministi
 compact failure 分别保存在 `magpie-release-audit-public-efficiency-001/002`，都在模型进程 spawn 前结束，因此不能重建或
 补写 original rows。Task 18.44 已用 additive `runtime-executable-identity.ts` 解决 Windows direct-spawn 边界：旧
 `buildSkvmRunCommand` 与两份失败原件不改，最终 production command 才绑定经 smoke/digest 复核的 `process.execPath`。
-资格 compact 不保存绝对路径；完整 36 行 status tree 的 12-way byte parity 已通过。003 仍须在 pre-model closure 推送后从
-0/36 唯一执行；若再发生基础设施失败，停止且不得建立 004。
+资格 compact 不保存绝对路径；完整 36 行 status tree 的 12-way byte parity 已通过。003 已在 pre-model closure 推送后从
+0/36 唯一完成 36/36、18 paid original + 18 artifact、0 retry/infra。Original 6/18、artifact 18/18、0 regression；
+mean recurring saving 为 4865.2778 input+output token/run。Conditional explicit-production-API break-even=0 calls 只因
+该口径的 construction API token 明确为 0；development-agent token/human review 未测，故 research efficiency/portfolio/
+readiness/held-out/live source 仍不可声明。
 
 ## 18. 继续阅读
 

@@ -441,6 +441,12 @@ non-symlink、绑定字节摘要并真实运行 `--version`；Magpie 只在最�
 并显式绑定两份失败摘要、`reusedRows=0`、0 model/API/paid。新的 003 policy 仍只覆盖固定 public Step 0--2 的 9 case、2 次重复、
 original/reviewed-artifact 双臂；pre-model push 和 fresh 0/36 检查前不得执行，失败后不得创建 004。
 
+Pre-model commit `67835f2` 推送后，003 唯一执行完整得到 18 对：original 6/18、reviewed artifact 18/18、0 pairwise
+regression、0 infrastructure/retry。Original input/output/cache-read 为 73537/14038/40960；artifact model token 为 0，
+平均节省 4865.2778 input+output token/run。Production API construction token 在该固定 artifact 路径上为 0，因此条件式
+break-even=0 calls、首个 recurring run 净正。它只证明这 9 个固定公开 fixture 的 machine-checked non-regression 与 token
+经济性，不证明 live Magpie release、未见输入、跨项目或 research efficiency-positive。
+
 ## 13. 修改与验证
 
 ```powershell
