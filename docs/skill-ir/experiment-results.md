@@ -960,6 +960,15 @@ parity、automatic eligibility 与 readiness 均未建立。Magpie feasibility �
 baseline rows=0。领域 patch 预计 240--360 LOC，machine checker 预计 260--420 LOC/4--8 human-hours。两份结果的 accounting 均
 为 0 model/API/paid/held-out；Magpie 另为 0 clone/import/external execution/baseline。
 
+Task 18.43 的零付费实证比 Step 1 估计更精确：固定提交导入 31 个 exact blob；独立 checker 为 baseline 9/9、6 类 mutation
+6/6 fail；reviewed artifact 在 9 个真实 workdir 中 checker 9/9、protected 9/9、27 steps、coreBranchDelta=0。实际适配量是
+plan 46 + domain patch 170 + orchestration 71 = 287 LOC，checker 351 LOC；humanMinutes 未测，仅保留 240--480 分钟前瞻估计。
+
+original 分母仍为 0。001 在模型 spawn 前因 `row-01` 对 `run-N` ABI 失败；r2 用真实 prepare/shared-reset RED/GREEN 修正并从
+0/36 冻结，但 002 又在模型 spawn 前因 Windows `uv_spawn 'bun'` 失败。两份 compact failure 均为 completedRows=0、prefix=[]、
+0 model/API/paid/retry/held-out，不建立质量对照、recurring token、break-even 或 efficiency。按止损不创建第三 control-plane；
+这是真实外部 baseline 基础设施负结果，不是 Magpie 或 reviewed artifact 的质量负例。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`

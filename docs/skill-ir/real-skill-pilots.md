@@ -422,6 +422,17 @@ core。上游 judge predicate 不能直接作为 machine authority；独立 dete
 需覆盖 exact schema/type、sentinel consistency、violation set equality、隐私标记缺失与 mutation fail。该结论只支持 Step 2
 conditional-go；Task 18.42 为 0 clone/import/execution/model/API/paid/held-out，并停下等待用户确认。
 
+### 12.2 Task 18.43 固定公开 Step 0--2 slice
+
+Step 2 精确导入固定提交的 31 个 Git blob：19 个 public input、12 个 checker-only oracle。Windows checkout 的首次 LF/CRLF
+翻译被 digest 拒绝，最终从本地 Git archive 取 raw blob。Artifact/compiler 从未读取 checker-only 目录。独立 checker 在 9 个
+reference 上全过，并拒绝 extra key、sentinel 漏账、personal email、violation 缺失、injection flag 与 forged instruction 六类
+突变。Reviewed artifact 在 9 个真实 workdir 全过，protected report 不变；适配 287 LOC、checker 351 LOC，human review 未实测。
+
+项目 Pi original baseline 没有成功创建模型进程。001 为 path ABI pre-dispatch failure；002 为 Windows literal `bun` executable
+resolution pre-dispatch failure。两者均 0 completed/prefix/model/API/paid，不能支持 original-vs-artifact、token-saving、break-even、
+live-release 或项目外泛化。按 stop-loss 不继续 003；未来若恢复，必须先处理共享 runner 的 executable identity 与旧 freeze 影响。
+
 ## 13. 修改与验证
 
 ```powershell

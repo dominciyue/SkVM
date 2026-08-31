@@ -198,7 +198,10 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 	  digest-bound 历史分母得到 original `50502.5` token/run、artifact `0`、one-time `9358`、break-even `1`，只取得
 	  authority-review 资格。Task 18.42 新增的两个 collection 原语已在 package-inventory/API Tester 真实 workdir 复用；
 	  cross-field count 仍未实现。Apache Magpie Step 1 已完成零执行评估：公开 prompt 可冻结，但上游 harness 没有 token usage，
-	  后续必须用 project Pi 建新 baseline identity；当前仍未导入、执行或调用模型。
+	  后续必须用 project Pi 建新 baseline identity。Task 18.43 已精确导入固定提交的 31 个 blob；独立 checker baseline 9/9、
+	  mutation 6/6 fail，reviewed artifact 真实 workdir 9/9、coreBranchDelta=0。两个已推送的 project-Pi identity 都在 row 1
+	  模型进程 spawn 前因 control-plane 失败，均为 0 prefix/model/API/paid；所以 original baseline、质量对照、token 分母和
+	  break-even 仍未建立，不能把 deterministic qualification 冒充 external efficiency。
 
 ## 当前下一步
 
@@ -264,7 +267,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Task 18.41 Env A 产品闭包完成：machine-checked 3/3、0 paid、50502.5 -> 0 token/run、break-even=1
 -> DSL 只读 gate：object-key enumeration 与 sort/dedup 有 multi-case 证据；宽泛 cross-field count 暂不实施
 -> Task 18.42 已实现两个窄 collection 原语；双真实 workdir 通过，patch 58 -> 44 LOC，但总 adapter 111 -> 119 LOC
--> Magpie Step 1 conditional-go：prompt identity 可复现、上游无 token telemetry、现有 baseline=0；停下等待 Step 2 显式确认
+-> Magpie Step 2 固定 public slice 已完成：31 exact blobs、checker 9/9、mutation 6/6、artifact 9/9、287 adapter LOC
+-> project-Pi 001 因 row-01/run-N ABI 在 spawn 前失败；r2 修复后 002 又因 Windows 无法 uv_spawn 字面 bun 失败
+-> 两个身份均 0 prefix/model/API/paid；按止损不建第三身份，先决定是否治理共享 executable resolution 再恢复 external baseline
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

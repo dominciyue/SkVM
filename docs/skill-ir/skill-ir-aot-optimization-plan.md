@@ -1619,8 +1619,8 @@ preflight、完整/部分 gather、完整/缺失/injection assemble 语义所需
    执行并逐案通过独立 checker；记录 patch/plan/总 LOC、humanMinutes、coreBranchDelta=0 和仍未覆盖的 live/open-ended 边界；
 4. [x] 在任何模型调用前冻结新的 project-Pi identity，绑定 source/task/prompt/checker/artifact/model/provider/adapter/temperature/
    timeout/runner digest、严格有序 original/artifact rows、0 retry 与 fail-closed 前缀；先提交并 push freeze，再核验环境变量存在性；
-5. [ ] 仅在所有 pre-model gate 通过后串行执行新分母，original 从 0 行前瞻采集完整 input/output/cache-read/cache-write usage，
-   artifact 为 0 model token；质量、成本与 break-even 必须从冻结 identity 和完整行重算，失败即保留证据并停止，不能用旧行回填；
+5. [x] 仅在所有 pre-model gate 通过后串行执行新分母，original 从 0 行前瞻采集完整 input/output/cache-read/cache-write usage，
+   artifact 为 0 model token；实际两个身份均在模型 spawn 前基础设施失败，已保留 0 行 compact evidence 并按止损停止，未用旧行回填；
 6. [x] 结论只限固定公开 9-case slice。即使 machine-checked quality/efficiency 成立，也不自动晋升 method portfolio、full-auto
    convergence、untouched replication、held-out 或跨 release/live-network 泛化。
 
@@ -1629,6 +1629,12 @@ preflight、完整/部分 gather、完整/缺失/injection assemble 语义所需
 该身份保留为 `magpie-release-audit-public-efficiency-001/infrastructure-failure.json`，不得改写或复用。修复仅将 row directory
 映射为 `rows/run-N`，以真实 prepare + shared reset 的 RED/GREEN 证明 ABI；新的 `measurement-*-r2.json` / `002` successor
 重新从 0/36 冻结，显式 digest-bind 前驱失败并声明 reusedRows=0。
+
+r2/002 的真实 prepare、并发只读与 shared reset 均通过，但 production `Bun.spawn` 无法在 Windows 解析
+`buildSkvmRunCommand` 返回的字面 `bun`；shell 中 `bun` 实际为 PowerShell/cmd shim，而当前 Bun executable 不在 PATH。
+002 同样在模型进程创建前结束：completedRows=0、prefix=[]、0 model/API/paid。根据止损不建立 003；Task 18.43 以
+deterministic qualification 正向、external denominator infrastructure-not-established 收口，下一决策是共享 executable
+resolution 治理，而不是继续换 skill 或伪造 token 结论。
 
 ## 5. 时间估算
 

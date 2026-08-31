@@ -1003,7 +1003,9 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：DSL 多案例复核；object-key enumeration 与 sort/dedup 通过，宽泛 cross-field count 因 ABI 不收敛未批准
 已完成：Task 18.42 两个受限 collection 原语；package-inventory/API Tester 真实 workdir 通过，cross-field count 仍未实现
 已完成：Magpie Step 1 零执行可行性；prompt 可复现但上游无 token telemetry，现有 baseline rows=0
-当前接力：停在 Magpie Step 1；仅在用户显式确认后，才可最小导入并冻结新的 project-Pi public Step 0--2 identity
+已完成：Magpie Step 2 零付费层；31 exact blobs、checker 9/9、mutation 6/6、artifact 9/9、287 adapter LOC
+失败归档：001 的 row-01/run-N ABI 与 002 的 Windows literal-bun resolution 均在模型进程 spawn 前失败，0 prefix/model/API/paid
+当前接力：停止第三个 measurement identity；先决定是否在共享 runner 层治理 executable resolution，再恢复 external baseline
 禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
 结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
@@ -1148,6 +1150,12 @@ bun test ./src/skill-ir/artifact-closure-normalization.test.ts `
 bun run ./src/benchmarks/skill-ir/verified-artifact-collection-qualification.ts `
   --root=. --run-root=<fresh-zero-paid-workdir> --out=<report.json>
 bun run ./src/benchmarks/skill-ir/magpie-release-audit-feasibility.ts --out=<report.json>
+bun test ./src/benchmarks/skill-ir/magpie-release-audit-step2.test.ts `
+  ./src/benchmarks/skill-ir/magpie-release-audit-checker.test.ts `
+  ./src/benchmarks/skill-ir/magpie-release-audit-artifact.test.ts `
+  ./src/benchmarks/skill-ir/magpie-release-audit-qualification.test.ts `
+  ./src/benchmarks/skill-ir/magpie-release-audit-measurement.test.ts `
+  ./src/benchmarks/skill-ir/magpie-release-audit-measurement-run.test.ts
 ```
 
 Env A 的 compact report 位于
@@ -1156,8 +1164,10 @@ Env A 的 compact report 位于
 reference，并在运行前验证自身与 evaluator digest。
 产品 assembly 会把派生 `artifact/skill.md` 的 CRLF 规范化为 LF，但 source authority 继续绑定原始 `SKILL.md` digest；
 提交 compact product 前应从 staged index checkout 到临时目录，再运行 `validateVerifiedArtifactProduct`，不能只验工作树。
-Magpie feasibility runner 只重建固定静态报告，不 clone/import/execute 上游，也不产生 baseline。Step 2 的最小导入、checker/
-artifact TDD 与 original model rows 均是新的授权边界。
+Magpie Step 2 的 `qualification.json` 只证明固定公开 9-case deterministic quality；human review 未实测。两个 measurement
+compact failure 分别保存在 `magpie-release-audit-public-efficiency-001/002`，都在模型进程 spawn 前结束，因此不能重建或
+补写 original rows。共享 `buildSkvmRunCommand` 仍返回字面 `bun`；Windows 下 shell 能解析 `bun.ps1`/`bun.cmd` 不代表
+`Bun.spawn(["bun", ...])` 能解析它。除非先审计共享 runner/frozen-lock 影响并得到新授权，否则不要建立 003 identity。
 
 ## 18. 继续阅读
 

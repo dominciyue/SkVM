@@ -1690,3 +1690,8 @@ compiler input。独立 checker 从公开 fixture/schema 重建机器判据，�
 `run-N/workdir` 路径守卫在进程 spawn 前拒绝。该事件是 0 model/API/paid 的 control-plane 负证据，不得记为质量或成本行。
 successor 必须保留并绑定前驱 compact failure、只修正目录 ABI、以真实 prepare 回归测试证明 shared reset 可执行，并使用新的
 policy/tasks/active identity 从 0 行开始；旧身份和旧 prefix（空）均不得复用。
+
+successor 的 prepare/reset 证明通过后，production 仍在模型 spawn 前因 Windows 无法解析字面 `bun` executable 而失败；
+completedRows 与 prefix 继续为 0，model/API/paid 为 0。按预注册止损，不允许用第三 identity 继续修补、也不允许把 9/9
+deterministic artifact qualification 与不存在的 original 分母合成 efficiency claim。若未来恢复 external baseline，必须先把
+共享 executable identity、跨平台解析和历史 freeze 影响作为独立基础设施治理任务评审。

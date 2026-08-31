@@ -1203,6 +1203,17 @@ Pi runtime 建新 identity，冻结 prompt/case/model/provider/adapter/temperatu
 assertions 和新 checker oracle 均不得进入 prompt。Task 18.42 本身没有 clone/import/external execution/model/API/paid/
 baseline/held-out，且不允许以 feasibility 报告冒充 token 结果。
 
+### 11.11 Magpie Step 2 checker 与 pre-dispatch measurement failure
+
+Task 18.43 将 19 个 public-input 与 12 个 checker-only 文件物理分开。Prompt builder 只接受 public path；独立 checker 从
+public report/schema 重建 exact schema/type、URL、MISSING/REDACTED、violation、privacy 与 injection consistency。固定 9 案
+baseline 9/9、6 类 mutation 6/6 fail；reviewed artifact 在真实 workdir 9/9 通过且 protected report byte-identical。
+
+original measurement 没有产生可评分行。001 在 `executeGenericPlanRow` 的 reset 阶段因 `row-01/workdir` 不满足共享
+`run-N/workdir` ABI 而失败；TDD 修正目录后，002 在 `Bun.spawn` 对字面 `bun` 的 Windows executable resolution 处失败。
+两次 state 都是 completedRows=0、prefix=[]、无 observation，模型进程未创建，故 0 model/API/paid。Compact failure 只绑定
+plan/state/prefix/task 与冻结 policy，不是 quality/cost 证据；按止损不建第三身份。
+
 ## 12. 结果持久化
 
 提交到 Git：

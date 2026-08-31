@@ -842,6 +842,15 @@ Task 18.42 以独立 `skill-ir-verified-artifact-collection-plan/v1` 实现前�
 或 skill-id 分支。package-inventory 与 API Tester 两个真实 workdir 均通过，protected inputs 不变、coreBranchDelta=0。
 package-inventory 的人工 patch 从 58 LOC 降至 44 LOC，但 plan+patch 总量从 111 LOC 增至 119 LOC；因此证据只支持可复用
 原语和 patch 缩小，不支持“总适配成本下降”。
+
+Task 18.43 的 Magpie reviewed artifact 继续复用旧 Restricted Domain Plan v1，再加 skill-local bounded patch；generic core
+没有 skill-id 分支，coreBranchDelta=0。固定 9 案执行 27 个 plan steps，独立 checker 9/9，protected input 9/9。适配量按非空
+physical LOC 分账为 46 plan + 170 patch + 71 orchestration = 287；checker 351 LOC。旧 plan 的 `audit.paidCalls=1` 字面量与本次
+观察到的 construction paidCalls=0 并列记录，未为计数美化而改旧 ABI；human review 实际未发生，不能回填估计值。
+
+这仍不是 external token-saving 结果。两个新 measurement identity 都在模型进程 spawn 前 fail closed：先是 prepared row path
+不满足共享 `run-N/workdir`，修复并冻结 r2 后又是 Windows `uv_spawn` 无法解析字面 `bun`。两个 prefix 都为空且 0 model/API/paid；
+因此 artifact runtime 的 0 token 不能与不存在的 original 分母相减，也不能计算 break-even。按止损停止第三 identity。
 产品 cost v1 还区分三类 token 结论：正 recurring savings 才输出 `token-saving-under-*`；original recurring 为 0 时
 输出 `token-savings-not-reached`；缺 production 分母时输出 `token-economics-not-computable`。后二者的 claim boundary
 都明确禁止 token-saving 措辞。

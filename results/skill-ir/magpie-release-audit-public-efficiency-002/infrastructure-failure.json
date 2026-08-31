@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "skill-ir-magpie-release-audit-predispatch-failure/v1",
+  "experimentId": "magpie-release-audit-public-efficiency-2026-08-31-r2",
+  "status": "failed-before-model-dispatch",
+  "frozenCommit": "8beb8bc",
+  "policy": {
+    "path": "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy-r2.json",
+    "sha256": "7940683319ad49e0c01752b210d73051ffe63091eb9d373c93e7bca3bbc9f359"
+  },
+  "execution": {
+    "phase": "failed",
+    "completedRows": 0,
+    "dispatchCount": 1,
+    "prefixRows": 0,
+    "inFlightRowIndex": 0,
+    "modelProcessSpawnReached": false,
+    "failure": "executor-failed:row-01:ENOENT: no such file or directory, uv_spawn 'bun'"
+  },
+  "evidence": {
+    "plan": {
+      "path": "results/skill-ir/magpie-release-audit-public-efficiency-002/run/plan.json",
+      "sha256": "b82af49fa67a46e8b2fbd5aa70fcf3a12b0678fa6b382eea864bbeacf84f321b",
+      "bytes": 11603
+    },
+    "state": {
+      "path": "results/skill-ir/magpie-release-audit-public-efficiency-002/run/serial-state.json",
+      "sha256": "8357afdfda1adb7c59fd52b173047b96422dd87ca44a76e74600daf065546fc7",
+      "bytes": 496
+    },
+    "prefix": {
+      "path": "results/skill-ir/magpie-release-audit-public-efficiency-002/run/matrix-prefix.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "row1Task": {
+      "path": "results/skill-ir/magpie-release-audit-public-efficiency-002/run/rows/run-1/task.json",
+      "sha256": "d3a11da4327cb7112c4362737e10a9714c0d091cc6f434aae2d215b0358e5022",
+      "bytes": 3634
+    },
+    "observationFilePresent": false,
+    "terminalPrefixPresent": false
+  },
+  "diagnosis": {
+    "classification": "control-plane-executable-resolution-failure",
+    "commandExecutable": "bun",
+    "shellResolution": "<user-npm>/bun.ps1",
+    "bunWhich": "<user-npm>/bun.cmd",
+    "processExecPath": "<user-npm>/node_modules/bun/bin/bun.exe",
+    "controlFlow": "Bun.spawn received the literal executable name bun; Windows uv_spawn did not resolve the PowerShell/cmd shim, so no model subprocess was created",
+    "modelOrArtifactQualityEvidence": false
+  },
+  "accounting": {
+    "modelCalls": 0,
+    "apiCalls": 0,
+    "paidCalls": 0,
+    "artifactExecutions": 0,
+    "retries": 0,
+    "heldOutAccesses": 0
+  },
+  "stopDecision": "The post-fix successor encountered another infrastructure failure. Per the preregistered stop-loss, no third control-plane identity is authorized; work moves to Phase 2 read-only analysis.",
+  "claimBoundary": "This compact record preserves a second pre-dispatch infrastructure failure only. It is not quality, recurring-cost, break-even, efficiency, portfolio, readiness, live-source, or held-out evidence. The untracked active directory remains local for forensic verification and no row is reusable."
+}
