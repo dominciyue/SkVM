@@ -296,7 +296,7 @@ export async function snapshotMagpieActiveTree(rootDirInput: string) {
 }
 
 function rowDirectory(activeDir: string, rowIndex: number): string {
-  return resolve(activeDir, "rows", rowAttemptId(rowIndex));
+  return resolve(activeDir, "rows", `run-${rowIndex + 1}`);
 }
 
 function externalTaskJson(task: Awaited<ReturnType<typeof loadAndValidateMagpieReleaseAuditMeasurement>>["tasks"]["tasks"][number]) {
@@ -562,7 +562,7 @@ if (import.meta.main) {
     process.stdout.write(`${JSON.stringify({ status: "frozen", rows: frozen.policy.denominator.rows, paidCalls: 0 }, null, 2)}\n`);
   } else {
     if (!phase || !["prepare", "execute", "status"].includes(phase)) throw new Error("--phase=freeze|prepare|execute|status is required");
-    const activeDir = safeActiveDir(rootDir, argument("out-dir") ?? resolve(rootDir, "results/skill-ir/magpie-release-audit-public-efficiency-001/run"));
+    const activeDir = safeActiveDir(rootDir, argument("out-dir") ?? resolve(rootDir, "results/skill-ir/magpie-release-audit-public-efficiency-002/run"));
     if (phase === "prepare") {
       process.stdout.write(`${JSON.stringify(await prepareMagpieReleaseAuditMeasurementRun(rootDir, activeDir), null, 2)}\n`);
     } else if (phase === "execute") {

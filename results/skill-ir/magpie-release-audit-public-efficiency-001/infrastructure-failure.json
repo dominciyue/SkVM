@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "skill-ir-magpie-release-audit-predispatch-failure/v1",
+  "experimentId": "magpie-release-audit-public-efficiency-2026-08-31",
+  "status": "failed-before-model-dispatch",
+  "frozenCommit": "bc9c853",
+  "policy": {
+    "path": "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy.json",
+    "sha256": "5e3d62dfd5d6414135301dc1ce31761b8ffd761d18620e7fa62ec75c5fb3d960"
+  },
+  "execution": {
+    "phase": "failed",
+    "completedRows": 0,
+    "dispatchCount": 1,
+    "prefixRows": 0,
+    "inFlightRowIndex": 0,
+    "modelProcessSpawnReached": false,
+    "failure": "executor-failed:row-01:Refusing to reset non-materialized workdir: <active-dir>/rows/row-01/workdir"
+  },
+  "evidence": {
+    "plan": {
+      "path": "results/skill-ir/magpie-release-audit-public-efficiency-001/run/plan.json",
+      "sha256": "8e1f71c8fffa2d8c4fe0faafbd11726b3a975e24a51fb8bacb6320a98e09c54e",
+      "bytes": 11609
+    },
+    "state": {
+      "path": "results/skill-ir/magpie-release-audit-public-efficiency-001/run/serial-state.json",
+      "sha256": "1c103698bbd10a6626efa34f90f090519a117374789c4fd211900e0d698d2ce7",
+      "bytes": 600
+    },
+    "prefix": {
+      "path": "results/skill-ir/magpie-release-audit-public-efficiency-001/run/matrix-prefix.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "row1Task": {
+      "path": "results/skill-ir/magpie-release-audit-public-efficiency-001/run/rows/row-01/task.json",
+      "sha256": "d3a11da4327cb7112c4362737e10a9714c0d091cc6f434aae2d215b0358e5022",
+      "bytes": 3634
+    },
+    "observationFilePresent": false,
+    "terminalPrefixPresent": false
+  },
+  "diagnosis": {
+    "classification": "control-plane-path-abi-mismatch",
+    "preparedPathShape": "<active-dir>/rows/row-01/workdir",
+    "requiredPathShape": "<materialized-root>/run-N/workdir",
+    "controlFlow": "executeGenericPlanRow calls resetPersistentWorkDir before Bun.spawn; the path guard threw first",
+    "modelOrArtifactQualityEvidence": false
+  },
+  "accounting": {
+    "modelCalls": 0,
+    "apiCalls": 0,
+    "paidCalls": 0,
+    "artifactExecutions": 0,
+    "retries": 0,
+    "heldOutAccesses": 0
+  },
+  "claimBoundary": "This compact record preserves a pre-dispatch control-plane failure only. It is not quality, recurring-cost, break-even, efficiency, portfolio, readiness, live-source, or held-out evidence. The untracked active directory remains local for forensic verification and is not promoted as a reusable row prefix."
+}

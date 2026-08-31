@@ -10,10 +10,11 @@ import {
 } from "./magpie-release-audit-step2";
 import { sha256Bytes } from "./source-fixture";
 
-export const MAGPIE_MEASUREMENT_EXPERIMENT_ID = "magpie-release-audit-public-efficiency-2026-08-31";
-export const MAGPIE_MEASUREMENT_TASKS_PATH = "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-tasks.json";
-export const MAGPIE_MEASUREMENT_POLICY_PATH = "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy.json";
+export const MAGPIE_MEASUREMENT_EXPERIMENT_ID = "magpie-release-audit-public-efficiency-2026-08-31-r2";
+export const MAGPIE_MEASUREMENT_TASKS_PATH = "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-tasks-r2.json";
+export const MAGPIE_MEASUREMENT_POLICY_PATH = "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy-r2.json";
 export const MAGPIE_QUALIFICATION_PATH = "results/skill-ir/magpie-release-audit-public-step2-v1/qualification.json";
+export const MAGPIE_PREDECESSOR_FAILURE_PATH = "results/skill-ir/magpie-release-audit-public-efficiency-001/infrastructure-failure.json";
 
 const DigestSchema = z.string().regex(/^[0-9a-f]{64}$/u);
 const FileRefSchema = z.object({
@@ -23,6 +24,37 @@ const FileRefSchema = z.object({
   digestMode: z.literal("fatal-utf8-crlf-to-lf"),
 }).strict();
 const PromptInputSchema = z.object({ path: z.string().min(1), sha256: DigestSchema }).strict();
+const RawEvidenceRefSchema = z.object({ path: z.string().min(1), sha256: DigestSchema, bytes: z.number().int().positive() }).strict();
+
+export const MagpiePredispatchFailureSchema = z.object({
+  schemaVersion: z.literal("skill-ir-magpie-release-audit-predispatch-failure/v1"),
+  experimentId: z.literal("magpie-release-audit-public-efficiency-2026-08-31"),
+  status: z.literal("failed-before-model-dispatch"),
+  frozenCommit: z.literal("bc9c853"),
+  policy: z.object({
+    path: z.literal("benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy.json"),
+    sha256: z.literal("5e3d62dfd5d6414135301dc1ce31761b8ffd761d18620e7fa62ec75c5fb3d960"),
+  }).strict(),
+  execution: z.object({
+    phase: z.literal("failed"), completedRows: z.literal(0), dispatchCount: z.literal(1), prefixRows: z.literal(0),
+    inFlightRowIndex: z.literal(0), modelProcessSpawnReached: z.literal(false), failure: z.string().min(1),
+  }).strict(),
+  evidence: z.object({
+    plan: RawEvidenceRefSchema, state: RawEvidenceRefSchema, prefix: RawEvidenceRefSchema, row1Task: RawEvidenceRefSchema,
+    observationFilePresent: z.literal(false), terminalPrefixPresent: z.literal(false),
+  }).strict(),
+  diagnosis: z.object({
+    classification: z.literal("control-plane-path-abi-mismatch"),
+    preparedPathShape: z.literal("<active-dir>/rows/row-01/workdir"),
+    requiredPathShape: z.literal("<materialized-root>/run-N/workdir"),
+    controlFlow: z.string().min(1), modelOrArtifactQualityEvidence: z.literal(false),
+  }).strict(),
+  accounting: z.object({
+    modelCalls: z.literal(0), apiCalls: z.literal(0), paidCalls: z.literal(0), artifactExecutions: z.literal(0),
+    retries: z.literal(0), heldOutAccesses: z.literal(0),
+  }).strict(),
+  claimBoundary: z.string().min(1),
+}).strict();
 
 export const MagpieReleaseAuditMeasurementTasksSchema = z.object({
   schemaVersion: z.literal("skill-ir-magpie-release-audit-measurement-tasks/v1"),
@@ -65,6 +97,11 @@ export const MagpieReleaseAuditMeasurementPolicySchema = z.object({
   experimentId: z.literal(MAGPIE_MEASUREMENT_EXPERIMENT_ID),
   frozenAt: z.string().datetime(),
   timing: z.literal("after-zero-paid-nine-case-qualification-before-any-original-model-row"),
+  predecessor: z.object({
+    failure: FileRefSchema,
+    reusedRows: z.literal(0),
+    successorReason: z.literal("fix-pre-dispatch-run-directory-abi-mismatch"),
+  }).strict(),
   digestAuthority: z.object({
     mode: z.literal("fatal-utf8-crlf-to-lf"),
     scope: z.literal("measurement-policy-file-references-only"),
@@ -197,6 +234,7 @@ export async function writeMagpieReleaseAuditMeasurementFreeze(options: { rootDi
   const rootDir = resolve(options.rootDir);
   const qualificationPath = resolve(rootDir, MAGPIE_QUALIFICATION_PATH);
   MagpieReleaseAuditQualificationSchema.parse(JSON.parse(await readFile(qualificationPath, "utf8")));
+  MagpiePredispatchFailureSchema.parse(JSON.parse(await readFile(resolve(rootDir, MAGPIE_PREDECESSOR_FAILURE_PATH), "utf8")));
   const tasks = await buildMagpieReleaseAuditMeasurementTasks(rootDir);
   const tasksPath = resolve(rootDir, MAGPIE_MEASUREMENT_TASKS_PATH);
   await atomicJson(tasksPath, tasks);
@@ -205,6 +243,11 @@ export async function writeMagpieReleaseAuditMeasurementFreeze(options: { rootDi
     experimentId: MAGPIE_MEASUREMENT_EXPERIMENT_ID,
     frozenAt: options.frozenAt,
     timing: "after-zero-paid-nine-case-qualification-before-any-original-model-row",
+    predecessor: {
+      failure: await frozenRef(rootDir, MAGPIE_PREDECESSOR_FAILURE_PATH),
+      reusedRows: 0,
+      successorReason: "fix-pre-dispatch-run-directory-abi-mismatch",
+    },
     digestAuthority: {
       mode: "fatal-utf8-crlf-to-lf",
       scope: "measurement-policy-file-references-only",
@@ -241,7 +284,7 @@ export async function writeMagpieReleaseAuditMeasurementFreeze(options: { rootDi
     },
     authorization: { currentPaidRows: 0, paidDenominatorAuthorized: true, heldOut: false, portfolioPromotion: false, readinessPromotion: false },
     prohibited: ["historical-row-reuse", "retry-or-reserve-selection", "post-hoc-task-or-checker-change", "checker-oracle-in-prompt-or-compiler", "held-out", "research-efficiency-positive-claim"],
-    claimBoundary: "This identity may measure machine-checked quality and recurring model-token savings on exactly nine fixed public Step 0-2 cases with two repetitions. Development-agent tokens and human review are unmeasured, so research all-attempt cost and research efficiency-positive eligibility remain false; no live-source, portfolio, readiness, or held-out claim is authorized.",
+    claimBoundary: "This zero-row successor replaces a predecessor that failed before model process spawn because its prepared row directory violated the shared run-N/workdir ABI; it reuses no rows. It may measure machine-checked quality and recurring model-token savings on exactly nine fixed public Step 0-2 cases with two repetitions. Development-agent tokens and human review are unmeasured, so research all-attempt cost and research efficiency-positive eligibility remain false; no live-source, portfolio, readiness, or held-out claim is authorized.",
   });
   const policyPath = resolve(rootDir, MAGPIE_MEASUREMENT_POLICY_PATH);
   await atomicJson(policyPath, policy);
@@ -258,6 +301,7 @@ export async function loadAndValidateMagpieReleaseAuditMeasurement(rootDirInput:
   const tasks = MagpieReleaseAuditMeasurementTasksSchema.parse(JSON.parse(await readFile(resolve(rootDir, MAGPIE_MEASUREMENT_TASKS_PATH), "utf8")));
   const policy = MagpieReleaseAuditMeasurementPolicySchema.parse(JSON.parse(await readFile(resolve(rootDir, MAGPIE_MEASUREMENT_POLICY_PATH), "utf8")));
   await Promise.all([assertRef(rootDir, policy.qualification), assertRef(rootDir, policy.tasks),
+    assertRef(rootDir, policy.predecessor.failure),
     ...policy.implementation.map((reference) => assertRef(rootDir, reference)),
     assertRef(rootDir, policy.harness.packageJson), assertRef(rootDir, policy.harness.bunLock), assertRef(rootDir, policy.harness.piCli)]);
   const rebuiltTasks = await buildMagpieReleaseAuditMeasurementTasks(rootDir);

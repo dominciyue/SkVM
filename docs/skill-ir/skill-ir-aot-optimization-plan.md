@@ -1624,6 +1624,12 @@ preflight、完整/部分 gather、完整/缺失/injection assemble 语义所需
 6. [x] 结论只限固定公开 9-case slice。即使 machine-checked quality/efficiency 成立，也不自动晋升 method portfolio、full-auto
    convergence、untouched replication、held-out 或跨 release/live-network 泛化。
 
+首次提交的 `measurement-policy.json` 在 `bc9c853` 后以 0/36 启动，但 `prepare` 生成 `rows/row-01/workdir`，共享
+`resetPersistentWorkDir` 只接受 materialized `run-N/workdir`，因此在 `Bun.spawn` 前 fail closed：0 prefix、0 model/API/paid。
+该身份保留为 `magpie-release-audit-public-efficiency-001/infrastructure-failure.json`，不得改写或复用。修复仅将 row directory
+映射为 `rows/run-N`，以真实 prepare + shared reset 的 RED/GREEN 证明 ABI；新的 `measurement-*-r2.json` / `002` successor
+重新从 0/36 冻结，显式 digest-bind 前驱失败并声明 reusedRows=0。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

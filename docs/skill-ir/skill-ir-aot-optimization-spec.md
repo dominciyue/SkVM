@@ -1685,3 +1685,8 @@ compiler input。独立 checker 从公开 fixture/schema 重建机器判据，�
 `coreBranchDelta` 保持 0。任何 original 调用前必须先冻结并提交新的 project-Pi identity 和 runner closure；original usage 只能从
 该 identity 的新行前瞻采集，0 retry、串行、fail closed，不复用 Step 1 的零行报告或其它实验行。最终 claim 只覆盖固定公开
 9-case slice，不推出 live-source 泛化、full-auto convergence、portfolio/readiness 晋升或 held-out 资格。
+
+首次冻结身份在 0/36 执行入口暴露 prepare/runtime 路径 ABI 不匹配：prepare 的 `row-01/workdir` 被共享 runtime 的
+`run-N/workdir` 路径守卫在进程 spawn 前拒绝。该事件是 0 model/API/paid 的 control-plane 负证据，不得记为质量或成本行。
+successor 必须保留并绑定前驱 compact failure、只修正目录 ABI、以真实 prepare 回归测试证明 shared reset 可执行，并使用新的
+policy/tasks/active identity 从 0 行开始；旧身份和旧 prefix（空）均不得复用。

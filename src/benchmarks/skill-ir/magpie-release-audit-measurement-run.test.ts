@@ -1,15 +1,17 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { buildMagpieReleaseAuditOrderedRows } from "./magpie-release-audit-measurement";
 import {
   initializeMagpieMeasurementSerialState,
   buildMagpieReleaseAuditFinalResult,
   readMagpieMeasurementSerialStatus,
+  prepareMagpieReleaseAuditMeasurementRun,
   runMagpieMeasurementSerial,
   snapshotMagpieActiveTree,
 } from "./magpie-release-audit-measurement-run";
+import { resetPersistentWorkDir } from "./real-agent-run";
 
 const temporary: string[] = [];
 
@@ -32,6 +34,19 @@ function fakeEntry(row: ReturnType<typeof buildMagpieReleaseAuditOrderedRows>[nu
 }
 
 describe("Magpie release-audit foreground serial control plane", () => {
+  test("prepares original rows in the persistent run-N workdir ABI", async () => {
+    const fixtureRoot = await mkdtemp(join(tmpdir(), "magpie-measurement-prepare-"));
+    temporary.push(fixtureRoot);
+    const activeDir = join(fixtureRoot, "run");
+    await prepareMagpieReleaseAuditMeasurementRun(resolve(import.meta.dir, "../../.."), activeDir);
+    const workDir = join(activeDir, "rows", "run-1", "workdir");
+
+    await resetPersistentWorkDir(workDir);
+
+    expect((await stat(workDir)).isDirectory()).toBe(true);
+    expect(await Bun.file(join(activeDir, "rows", "run-1", "task.json")).exists()).toBe(true);
+  });
+
   test("commits rows in order and makes repeated status reads byte-identical", async () => {
     const activeDir = await mkdtemp(join(tmpdir(), "magpie-measurement-serial-"));
     temporary.push(activeDir);
@@ -92,7 +107,7 @@ describe("Magpie release-audit foreground serial control plane", () => {
     temporary.push(rootDir);
     const activeDir = join(rootDir, "results", "skill-ir", "candidate", "run");
     await mkdir(activeDir, { recursive: true });
-    const policyPath = join(rootDir, "benchmarks", "skill-ir", "pilots", "magpie-release-audit", "measurement-policy.json");
+    const policyPath = join(rootDir, "benchmarks", "skill-ir", "pilots", "magpie-release-audit", "measurement-policy-r2.json");
     await mkdir(join(policyPath, ".."), { recursive: true });
     await writeFile(policyPath, "{\"frozen\":true}\n", "utf8");
     const rows = buildMagpieReleaseAuditOrderedRows();
