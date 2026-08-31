@@ -8,13 +8,18 @@ import {
   buildMagpieReleaseAuditPrompt,
   loadAndValidateMagpieReleaseAuditSlice,
 } from "./magpie-release-audit-step2";
+import { RuntimeExecutableIdentitySchema } from "./runtime-executable-identity";
 import { sha256Bytes } from "./source-fixture";
 
-export const MAGPIE_MEASUREMENT_EXPERIMENT_ID = "magpie-release-audit-public-efficiency-2026-08-31-r2";
-export const MAGPIE_MEASUREMENT_TASKS_PATH = "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-tasks-r2.json";
-export const MAGPIE_MEASUREMENT_POLICY_PATH = "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy-r2.json";
+export const MAGPIE_MEASUREMENT_EXPERIMENT_ID = "magpie-release-audit-public-efficiency-executable-bound-003";
+export const MAGPIE_MEASUREMENT_TASKS_PATH = "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-tasks-executable-bound.json";
+export const MAGPIE_MEASUREMENT_POLICY_PATH = "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy-executable-bound.json";
 export const MAGPIE_QUALIFICATION_PATH = "results/skill-ir/magpie-release-audit-public-step2-v1/qualification.json";
-export const MAGPIE_PREDECESSOR_FAILURE_PATH = "results/skill-ir/magpie-release-audit-public-efficiency-001/infrastructure-failure.json";
+export const MAGPIE_EXECUTABLE_QUALIFICATION_PATH = "results/skill-ir/magpie-release-audit-executable-governance-qualification.json";
+export const MAGPIE_PREDECESSOR_FAILURE_PATHS = [
+  "results/skill-ir/magpie-release-audit-public-efficiency-001/infrastructure-failure.json",
+  "results/skill-ir/magpie-release-audit-public-efficiency-002/infrastructure-failure.json",
+] as const;
 
 const DigestSchema = z.string().regex(/^[0-9a-f]{64}$/u);
 const FileRefSchema = z.object({
@@ -55,6 +60,75 @@ export const MagpiePredispatchFailureSchema = z.object({
   }).strict(),
   claimBoundary: z.string().min(1),
 }).strict();
+
+export const MagpieExecutableResolutionFailureSchema = z.object({
+  schemaVersion: z.literal("skill-ir-magpie-release-audit-predispatch-failure/v1"),
+  experimentId: z.literal("magpie-release-audit-public-efficiency-2026-08-31-r2"),
+  status: z.literal("failed-before-model-dispatch"),
+  frozenCommit: z.literal("8beb8bc"),
+  policy: z.object({
+    path: z.literal("benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy-r2.json"),
+    sha256: z.literal("7940683319ad49e0c01752b210d73051ffe63091eb9d373c93e7bca3bbc9f359"),
+  }).strict(),
+  execution: z.object({
+    phase: z.literal("failed"), completedRows: z.literal(0), dispatchCount: z.literal(1), prefixRows: z.literal(0),
+    inFlightRowIndex: z.literal(0), modelProcessSpawnReached: z.literal(false), failure: z.string().min(1),
+  }).strict(),
+  evidence: z.object({
+    plan: RawEvidenceRefSchema, state: RawEvidenceRefSchema, prefix: RawEvidenceRefSchema, row1Task: RawEvidenceRefSchema,
+    observationFilePresent: z.literal(false), terminalPrefixPresent: z.literal(false),
+  }).strict(),
+  diagnosis: z.object({
+    classification: z.literal("control-plane-executable-resolution-failure"),
+    commandExecutable: z.literal("bun"),
+    shellResolution: z.string().min(1),
+    bunWhich: z.string().min(1),
+    processExecPath: z.string().min(1),
+    controlFlow: z.string().min(1),
+    modelOrArtifactQualityEvidence: z.literal(false),
+  }).strict(),
+  accounting: z.object({
+    modelCalls: z.literal(0), apiCalls: z.literal(0), paidCalls: z.literal(0), artifactExecutions: z.literal(0),
+    retries: z.literal(0), heldOutAccesses: z.literal(0),
+  }).strict(),
+  stopDecision: z.string().min(1),
+  claimBoundary: z.string().min(1),
+}).strict();
+
+const ActiveTreeSummarySchema = z.object({
+  fileCount: z.number().int().positive(),
+  treeSha256: DigestSchema,
+}).strict();
+
+export const MagpieReleaseAuditExecutableQualificationSchema = z.object({
+  schemaVersion: z.literal("skill-ir-magpie-release-audit-executable-qualification/v1"),
+  qualifiedAt: z.string().datetime(),
+  status: z.literal("passed"),
+  runtime: RuntimeExecutableIdentitySchema,
+  predecessors: z.object({
+    failures: z.tuple([FileRefSchema, FileRefSchema]),
+    reusedRows: z.literal(0),
+  }).strict(),
+  controlPlane: z.object({
+    materializedRows: z.literal(36),
+    concurrentStatusReads: z.literal(12),
+    before: ActiveTreeSummarySchema,
+    after: ActiveTreeSummarySchema,
+    byteIdentical: z.literal(true),
+  }).strict(),
+  commandBinding: z.object({
+    resolution: z.literal("process.execPath"),
+    productionExecutableAbsolute: z.literal(true),
+    literalBunInProductionCommand: z.literal(false),
+  }).strict(),
+  accounting: z.object({
+    modelCalls: z.literal(0), apiCalls: z.literal(0), paidCalls: z.literal(0), retries: z.literal(0), heldOutAccesses: z.literal(0),
+  }).strict(),
+  humanMinutes: z.null(),
+  claimBoundary: z.string().min(1),
+}).strict();
+
+export type MagpieReleaseAuditExecutableQualification = z.infer<typeof MagpieReleaseAuditExecutableQualificationSchema>;
 
 export const MagpieReleaseAuditMeasurementTasksSchema = z.object({
   schemaVersion: z.literal("skill-ir-magpie-release-audit-measurement-tasks/v1"),
@@ -98,9 +172,9 @@ export const MagpieReleaseAuditMeasurementPolicySchema = z.object({
   frozenAt: z.string().datetime(),
   timing: z.literal("after-zero-paid-nine-case-qualification-before-any-original-model-row"),
   predecessor: z.object({
-    failure: FileRefSchema,
+    failures: z.tuple([FileRefSchema, FileRefSchema]),
     reusedRows: z.literal(0),
-    successorReason: z.literal("fix-pre-dispatch-run-directory-abi-mismatch"),
+    successorReason: z.literal("shared-digest-bound-runtime-executable-governance"),
   }).strict(),
   digestAuthority: z.object({
     mode: z.literal("fatal-utf8-crlf-to-lf"),
@@ -108,11 +182,13 @@ export const MagpieReleaseAuditMeasurementPolicySchema = z.object({
     upstreamRawBlobAuthority: z.literal("unchanged-exact-bytes-in-qualification"),
   }).strict(),
   qualification: FileRefSchema,
+  executableQualification: FileRefSchema,
   tasks: FileRefSchema,
   implementation: z.array(FileRefSchema).min(10),
   harness: z.object({
     adapter: z.literal("pi"), adapterVersion: z.literal("0.67.68"), adapterConfig: z.literal("managed"),
-    bunVersion: z.literal("1.3.14"), packageJson: FileRefSchema, bunLock: FileRefSchema, piCli: FileRefSchema,
+    bunVersion: z.literal("1.3.14"), executable: RuntimeExecutableIdentitySchema,
+    packageJson: FileRefSchema, bunLock: FileRefSchema, piCli: FileRefSchema,
   }).strict(),
   model: z.object({
     route: z.literal("xty/gpt-5.6-sol"), family: z.literal("gpt"), providerProtocol: z.literal("openai-compatible"),
@@ -131,7 +207,8 @@ export const MagpieReleaseAuditMeasurementPolicySchema = z.object({
   }).strict(),
   costBoundary: z.object({
     productionCompileApiModelTokens: z.literal(0), productionProfileApiModelTokens: z.literal(0), productionPackageApiModelTokens: z.literal(0),
-    humanReview: z.literal("not-measured-no-human-review"), developmentAgentTokens: z.literal("not-observable-in-project-runtime"),
+    humanReview: z.literal("not-measured-no-human-review"), humanMinutes: z.null(),
+    developmentAgentTokens: z.literal("not-observable-in-project-runtime"),
     researchAllAttemptCostComplete: z.literal(false), allowedClaim: z.literal("runtime token savings and conditional explicit-API token break-even only"),
   }).strict(),
   decisionRules: z.object({
@@ -203,7 +280,7 @@ export function canonicalizeMagpieMeasurementFreezeText(bytes: Uint8Array): Buff
   return Buffer.from(text.replaceAll("\r\n", "\n"), "utf8");
 }
 
-async function frozenRef(rootDir: string, path: string) {
+export async function magpieMeasurementFrozenRef(rootDir: string, path: string) {
   const absolute = resolve(rootDir, ...path.split("/"));
   const fromRoot = relative(resolve(rootDir), absolute);
   if (!fromRoot || fromRoot.startsWith("..") || isAbsolute(fromRoot)) throw new Error(`Magpie freeze path escapes repository: ${path}`);
@@ -221,6 +298,7 @@ const IMPLEMENTATION_PATHS = [
   "src/benchmarks/skill-ir/magpie-release-audit-qualification.ts",
   "src/benchmarks/skill-ir/magpie-release-audit-measurement.ts",
   "src/benchmarks/skill-ir/magpie-release-audit-measurement-run.ts",
+  "src/benchmarks/skill-ir/runtime-executable-identity.ts",
   "src/benchmarks/skill-ir/automatic-restricted-domain-plan.ts",
   "src/benchmarks/skill-ir/real-agent.ts",
   "src/benchmarks/skill-ir/real-agent-run.ts",
@@ -234,7 +312,11 @@ export async function writeMagpieReleaseAuditMeasurementFreeze(options: { rootDi
   const rootDir = resolve(options.rootDir);
   const qualificationPath = resolve(rootDir, MAGPIE_QUALIFICATION_PATH);
   MagpieReleaseAuditQualificationSchema.parse(JSON.parse(await readFile(qualificationPath, "utf8")));
-  MagpiePredispatchFailureSchema.parse(JSON.parse(await readFile(resolve(rootDir, MAGPIE_PREDECESSOR_FAILURE_PATH), "utf8")));
+  MagpiePredispatchFailureSchema.parse(JSON.parse(await readFile(resolve(rootDir, MAGPIE_PREDECESSOR_FAILURE_PATHS[0]), "utf8")));
+  MagpieExecutableResolutionFailureSchema.parse(JSON.parse(await readFile(resolve(rootDir, MAGPIE_PREDECESSOR_FAILURE_PATHS[1]), "utf8")));
+  const executableQualification = MagpieReleaseAuditExecutableQualificationSchema.parse(
+    JSON.parse(await readFile(resolve(rootDir, MAGPIE_EXECUTABLE_QUALIFICATION_PATH), "utf8")),
+  );
   const tasks = await buildMagpieReleaseAuditMeasurementTasks(rootDir);
   const tasksPath = resolve(rootDir, MAGPIE_MEASUREMENT_TASKS_PATH);
   await atomicJson(tasksPath, tasks);
@@ -244,22 +326,24 @@ export async function writeMagpieReleaseAuditMeasurementFreeze(options: { rootDi
     frozenAt: options.frozenAt,
     timing: "after-zero-paid-nine-case-qualification-before-any-original-model-row",
     predecessor: {
-      failure: await frozenRef(rootDir, MAGPIE_PREDECESSOR_FAILURE_PATH),
+      failures: await Promise.all(MAGPIE_PREDECESSOR_FAILURE_PATHS.map((path) => magpieMeasurementFrozenRef(rootDir, path))),
       reusedRows: 0,
-      successorReason: "fix-pre-dispatch-run-directory-abi-mismatch",
+      successorReason: "shared-digest-bound-runtime-executable-governance",
     },
     digestAuthority: {
       mode: "fatal-utf8-crlf-to-lf",
       scope: "measurement-policy-file-references-only",
       upstreamRawBlobAuthority: "unchanged-exact-bytes-in-qualification",
     },
-    qualification: await frozenRef(rootDir, MAGPIE_QUALIFICATION_PATH),
-    tasks: await frozenRef(rootDir, MAGPIE_MEASUREMENT_TASKS_PATH),
-    implementation: await Promise.all(IMPLEMENTATION_PATHS.map((path) => frozenRef(rootDir, path))),
+    qualification: await magpieMeasurementFrozenRef(rootDir, MAGPIE_QUALIFICATION_PATH),
+    executableQualification: await magpieMeasurementFrozenRef(rootDir, MAGPIE_EXECUTABLE_QUALIFICATION_PATH),
+    tasks: await magpieMeasurementFrozenRef(rootDir, MAGPIE_MEASUREMENT_TASKS_PATH),
+    implementation: await Promise.all(IMPLEMENTATION_PATHS.map((path) => magpieMeasurementFrozenRef(rootDir, path))),
     harness: {
       adapter: "pi", adapterVersion: "0.67.68", adapterConfig: "managed", bunVersion: Bun.version,
-      packageJson: await frozenRef(rootDir, "package.json"), bunLock: await frozenRef(rootDir, "bun.lock"),
-      piCli: await frozenRef(rootDir, "node_modules/@mariozechner/pi-coding-agent/dist/cli.js"),
+      executable: executableQualification.runtime,
+      packageJson: await magpieMeasurementFrozenRef(rootDir, "package.json"), bunLock: await magpieMeasurementFrozenRef(rootDir, "bun.lock"),
+      piCli: await magpieMeasurementFrozenRef(rootDir, "node_modules/@mariozechner/pi-coding-agent/dist/cli.js"),
     },
     model: { route: "xty/gpt-5.6-sol", family: "gpt", providerProtocol: "openai-compatible", backendModel: "gpt-5.6-sol", temperaturePolicy: "provider-default-no-override" },
     runtime: {
@@ -274,7 +358,7 @@ export async function writeMagpieReleaseAuditMeasurementFreeze(options: { rootDi
     },
     costBoundary: {
       productionCompileApiModelTokens: 0, productionProfileApiModelTokens: 0, productionPackageApiModelTokens: 0,
-      humanReview: "not-measured-no-human-review", developmentAgentTokens: "not-observable-in-project-runtime",
+      humanReview: "not-measured-no-human-review", humanMinutes: null, developmentAgentTokens: "not-observable-in-project-runtime",
       researchAllAttemptCostComplete: false, allowedClaim: "runtime token savings and conditional explicit-API token break-even only",
     },
     decisionRules: {
@@ -284,7 +368,7 @@ export async function writeMagpieReleaseAuditMeasurementFreeze(options: { rootDi
     },
     authorization: { currentPaidRows: 0, paidDenominatorAuthorized: true, heldOut: false, portfolioPromotion: false, readinessPromotion: false },
     prohibited: ["historical-row-reuse", "retry-or-reserve-selection", "post-hoc-task-or-checker-change", "checker-oracle-in-prompt-or-compiler", "held-out", "research-efficiency-positive-claim"],
-    claimBoundary: "This zero-row successor replaces a predecessor that failed before model process spawn because its prepared row directory violated the shared run-N/workdir ABI; it reuses no rows. It may measure machine-checked quality and recurring model-token savings on exactly nine fixed public Step 0-2 cases with two repetitions. Development-agent tokens and human review are unmeasured, so research all-attempt cost and research efficiency-positive eligibility remain false; no live-source, portfolio, readiness, or held-out claim is authorized.",
+    claimBoundary: "This zero-row successor binds both pre-dispatch failures and reuses no rows. Its shared runtime executable identity is an absolute process.execPath regular-file digest with a real version smoke, and its active-tree status qualification is byte-identical. It may measure machine-checked quality and recurring model-token savings on exactly nine fixed public Step 0-2 cases with two repetitions. Development-agent tokens and human review are unmeasured, so research all-attempt cost and research efficiency-positive eligibility remain false; no live-source, portfolio, readiness, or held-out claim is authorized.",
   });
   const policyPath = resolve(rootDir, MAGPIE_MEASUREMENT_POLICY_PATH);
   await atomicJson(policyPath, policy);
@@ -292,7 +376,7 @@ export async function writeMagpieReleaseAuditMeasurementFreeze(options: { rootDi
 }
 
 async function assertRef(rootDir: string, reference: z.infer<typeof FileRefSchema>): Promise<void> {
-  const actual = await frozenRef(rootDir, reference.path);
+  const actual = await magpieMeasurementFrozenRef(rootDir, reference.path);
   if (!isDeepStrictEqual(actual, reference)) throw new Error(`Magpie frozen reference drift: ${reference.path}`);
 }
 
@@ -300,12 +384,18 @@ export async function loadAndValidateMagpieReleaseAuditMeasurement(rootDirInput:
   const rootDir = resolve(rootDirInput);
   const tasks = MagpieReleaseAuditMeasurementTasksSchema.parse(JSON.parse(await readFile(resolve(rootDir, MAGPIE_MEASUREMENT_TASKS_PATH), "utf8")));
   const policy = MagpieReleaseAuditMeasurementPolicySchema.parse(JSON.parse(await readFile(resolve(rootDir, MAGPIE_MEASUREMENT_POLICY_PATH), "utf8")));
-  await Promise.all([assertRef(rootDir, policy.qualification), assertRef(rootDir, policy.tasks),
-    assertRef(rootDir, policy.predecessor.failure),
+  await Promise.all([assertRef(rootDir, policy.qualification), assertRef(rootDir, policy.executableQualification), assertRef(rootDir, policy.tasks),
+    ...policy.predecessor.failures.map((reference) => assertRef(rootDir, reference)),
     ...policy.implementation.map((reference) => assertRef(rootDir, reference)),
     assertRef(rootDir, policy.harness.packageJson), assertRef(rootDir, policy.harness.bunLock), assertRef(rootDir, policy.harness.piCli)]);
   const rebuiltTasks = await buildMagpieReleaseAuditMeasurementTasks(rootDir);
   if (!isDeepStrictEqual(tasks, rebuiltTasks)) throw new Error("Magpie frozen prompt tasks drifted from public source bytes");
   if (!isDeepStrictEqual(policy.denominator.orderedRows, buildMagpieReleaseAuditOrderedRows())) throw new Error("Magpie frozen denominator row drift");
+  const executableQualification = MagpieReleaseAuditExecutableQualificationSchema.parse(
+    JSON.parse(await readFile(resolve(rootDir, policy.executableQualification.path), "utf8")),
+  );
+  if (!isDeepStrictEqual(executableQualification.runtime, policy.harness.executable)) {
+    throw new Error("Magpie runtime executable qualification drift");
+  }
   return { rootDir, tasks, policy };
 }

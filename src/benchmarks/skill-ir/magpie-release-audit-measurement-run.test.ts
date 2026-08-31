@@ -2,12 +2,16 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { buildMagpieReleaseAuditOrderedRows } from "./magpie-release-audit-measurement";
+import {
+  MAGPIE_MEASUREMENT_POLICY_PATH,
+  buildMagpieReleaseAuditOrderedRows,
+} from "./magpie-release-audit-measurement";
 import {
   initializeMagpieMeasurementSerialState,
   buildMagpieReleaseAuditFinalResult,
   readMagpieMeasurementSerialStatus,
   prepareMagpieReleaseAuditMeasurementRun,
+  runMagpieReleaseAuditExecutableQualification,
   runMagpieMeasurementSerial,
   snapshotMagpieActiveTree,
 } from "./magpie-release-audit-measurement-run";
@@ -34,6 +38,39 @@ function fakeEntry(row: ReturnType<typeof buildMagpieReleaseAuditOrderedRows>[nu
 }
 
 describe("Magpie release-audit foreground serial control plane", () => {
+  test("qualifies the real executable spawn and complete 36-row read-only status tree", async () => {
+    const fixtureRoot = await mkdtemp(join(tmpdir(), "magpie-executable-qualification-"));
+    temporary.push(fixtureRoot);
+    const reportPath = join(fixtureRoot, "qualification.json");
+
+    const report = await runMagpieReleaseAuditExecutableQualification({
+      rootDir: resolve(import.meta.dir, "../../.."),
+      outputPath: reportPath,
+      qualifiedAt: "2026-08-31T08:00:00.000Z",
+    });
+
+    expect(report.status).toBe("passed");
+    expect(report.runtime.smoke).toEqual(expect.objectContaining({ exitCode: 0, observedVersion: Bun.version }));
+    expect(report.controlPlane).toEqual(expect.objectContaining({
+      materializedRows: 36,
+      concurrentStatusReads: 12,
+      byteIdentical: true,
+    }));
+    expect(report.controlPlane.before).toEqual(report.controlPlane.after);
+    expect(report.predecessors.failures).toHaveLength(2);
+    expect(report.predecessors.reusedRows).toBe(0);
+    expect(report.accounting).toEqual({
+      modelCalls: 0,
+      apiCalls: 0,
+      paidCalls: 0,
+      retries: 0,
+      heldOutAccesses: 0,
+    });
+    expect(report.humanMinutes).toBeNull();
+    expect(await Bun.file(reportPath).exists()).toBe(true);
+    expect(await readFile(reportPath, "utf8")).not.toContain(process.execPath);
+  });
+
   test("prepares original rows in the persistent run-N workdir ABI", async () => {
     const fixtureRoot = await mkdtemp(join(tmpdir(), "magpie-measurement-prepare-"));
     temporary.push(fixtureRoot);
@@ -107,7 +144,7 @@ describe("Magpie release-audit foreground serial control plane", () => {
     temporary.push(rootDir);
     const activeDir = join(rootDir, "results", "skill-ir", "candidate", "run");
     await mkdir(activeDir, { recursive: true });
-    const policyPath = join(rootDir, "benchmarks", "skill-ir", "pilots", "magpie-release-audit", "measurement-policy-r2.json");
+    const policyPath = resolve(rootDir, ...MAGPIE_MEASUREMENT_POLICY_PATH.split("/"));
     await mkdir(join(policyPath, ".."), { recursive: true });
     await writeFile(policyPath, "{\"frozen\":true}\n", "utf8");
     const rows = buildMagpieReleaseAuditOrderedRows();

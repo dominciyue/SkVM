@@ -1695,3 +1695,19 @@ successor 的 prepare/reset 证明通过后，production 仍在模型 spawn 前�
 completedRows 与 prefix 继续为 0，model/API/paid 为 0。按预注册止损，不允许用第三 identity 继续修补、也不允许把 9/9
 deterministic artifact qualification 与不存在的 original 分母合成 efficiency claim。若未来恢复 external baseline，必须先把
 共享 executable identity、跨平台解析和历史 freeze 影响作为独立基础设施治理任务评审。
+
+### 14.6 共享 executable identity 与有界恢复
+
+用户随后显式批准该独立治理任务。恢复条件不是让 shell 替 `Bun.spawn` 猜测命令，而是从 `process.execPath` 取得当前已运行的
+Bun executable，要求 absolute regular non-symlink file、绑定原始字节 SHA-256，并在任何模型调用前真实 spawn `--version`。
+提交 evidence 不保存本机绝对路径；生产 plan/command 必须使用资格通过的绝对 executable，不能再把字面 `bun` 交给
+Windows process API。该实现必须是 skill-neutral additive core，不改写 001/002 或其它 frozen policy。
+
+新的零付费资格还必须使用完整 36 行输入物化真实 active tree，并并发重复调用真实 status 入口；前后相对路径集合与逐文件字节
+digest 完全一致，才能证明 observer 只读。资格与 successor freeze 显式绑定 001/002 compact failure、声明 reusedRows=0，继续固定
+9 case x 2 repetition x original/reviewed-artifact、0 retry/reserve、humanMinutes 未测为 null。只有这些证据先提交并推送后，才允许
+一次 003；若再次出现 infrastructure failure，立即停止且不建立 004。
+
+即使 003 完成，结论也只限固定 public Step 0--2 slice 的 machine-checked non-regression、recurring runtime model-token savings
+和显式 production API token 口径下的 conditional break-even。Development-agent token 与实际 human review 仍未测，所以 research
+all-attempt cost、efficiency-positive、portfolio/readiness、held-out、live release 与跨项目泛化继续关闭。

@@ -1214,6 +1214,18 @@ original measurement 没有产生可评分行。001 在 `executeGenericPlanRow` 
 两次 state 都是 completedRows=0、prefix=[]、无 observation，模型进程未创建，故 0 model/API/paid。Compact failure 只绑定
 plan/state/prefix/task 与冻结 policy，不是 quality/cost 证据；按止损不建第三身份。
 
+### 11.12 共享 runtime executable identity 与 003 零付费资格
+
+Task 18.44 的恢复不修改被历史 lock 绑定的 `real-agent.ts`。新增通用 runtime executable identity 从当前
+`process.execPath` 解析 Bun，要求 absolute regular non-symlink file、绑定原始字节 SHA-256，并真实执行
+`<absolute executable> --version`；compact 只保存解析方式、摘要、字节数、版本和 smoke 摘要，不保存本机绝对路径。
+Magpie 的最终 production command 在 spawn 前用该 identity 把旧 builder 返回的字面 `bun` 替换为已复核的绝对可执行文件。
+
+零付费资格实际物化新的 36 行 active tree，并发调用真实 status 入口 12 次。前后均为 39 个文件，tree SHA-256 均为
+`09108f98663d86815a51f8d956b7b416bca27186ddb7d866922227fb585126ec`，逐文件字节一致；计数为 0 model/API/paid、0 retry、
+0 held-out。资格报告绑定 001/002 compact failure 与 `reusedRows=0`。新的 `executable-bound` policy 固定 9 case x 2
+repetition x 2 arm、单前台串行、无 observer；它在 pre-model push 前仍是 0/36，不是质量、token 或 break-even 结果。
+
 ## 12. 结果持久化
 
 提交到 Git：

@@ -201,7 +201,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 	  后续必须用 project Pi 建新 baseline identity。Task 18.43 已精确导入固定提交的 31 个 blob；独立 checker baseline 9/9、
 	  mutation 6/6 fail，reviewed artifact 真实 workdir 9/9、coreBranchDelta=0。两个已推送的 project-Pi identity 都在 row 1
 	  模型进程 spawn 前因 control-plane 失败，均为 0 prefix/model/API/paid；所以 original baseline、质量对照、token 分母和
-	  break-even 仍未建立，不能把 deterministic qualification 冒充 external efficiency。
+	  break-even 仍未建立，不能把 deterministic qualification 冒充 external efficiency。Task 18.44 随后以共享
+	  `process.execPath` executable identity 完成真实 version smoke、36-row materialization 与 12-way status byte parity；新的
+	  executable-bound 003 已从 0/36 零付费冻结，尚未产生模型、质量或成本结果。
 
 ## 当前下一步
 
@@ -269,7 +271,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Task 18.42 已实现两个窄 collection 原语；双真实 workdir 通过，patch 58 -> 44 LOC，但总 adapter 111 -> 119 LOC
 -> Magpie Step 2 固定 public slice 已完成：31 exact blobs、checker 9/9、mutation 6/6、artifact 9/9、287 adapter LOC
 -> project-Pi 001 因 row-01/run-N ABI 在 spawn 前失败；r2 修复后 002 又因 Windows 无法 uv_spawn 字面 bun 失败
--> 两个身份均 0 prefix/model/API/paid；按止损不建第三身份，先决定是否治理共享 executable resolution 再恢复 external baseline
+-> 两个失败身份均 0 prefix/model/API/paid；001/002 保持不可变且不复用
+-> 共享 executable identity 已通过真实 smoke 与 36-row/12-way status byte parity，003 从 fresh 0/36 冻结
+-> 先推送 pre-model closure，再只执行一次 003 foreground serial denominator；infra 再失败则停止且不建 004
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

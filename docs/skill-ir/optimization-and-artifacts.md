@@ -855,6 +855,11 @@ physical LOC 分账为 46 plan + 170 patch + 71 orchestration = 287；checker 35
 输出 `token-savings-not-reached`；缺 production 分母时输出 `token-economics-not-computable`。后二者的 claim boundary
 都明确禁止 token-saving 措辞。
 
+Task 18.44 只治理上述 process-start 基础设施，不改变 reviewed artifact、checker、task 或 cost 口径。共享 runtime executable
+identity 对 `process.execPath` 做 regular/non-symlink/byte-digest/version smoke，Magpie 的最终 spawn command 使用其绝对路径；
+compact 不保存机器路径。完整 36 行真实 materialization 与 12 次并发 status 的 byte-identical 资格已通过，新的 003 policy
+从 0/36 冻结并 `reusedRows=0`。这些仍只是零付费执行资格；artifact 的 0 model token 不能在 original rows 完成前被写成节省。
+
 ## 15. 测试
 
 ```powershell

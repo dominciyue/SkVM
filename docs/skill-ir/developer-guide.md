@@ -1005,7 +1005,8 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：Magpie Step 1 零执行可行性；prompt 可复现但上游无 token telemetry，现有 baseline rows=0
 已完成：Magpie Step 2 零付费层；31 exact blobs、checker 9/9、mutation 6/6、artifact 9/9、287 adapter LOC
 失败归档：001 的 row-01/run-N ABI 与 002 的 Windows literal-bun resolution 均在模型进程 spawn 前失败，0 prefix/model/API/paid
-当前接力：停止第三个 measurement identity；先决定是否在共享 runner 层治理 executable resolution，再恢复 external baseline
+已完成：共享 runtime executable identity；真实 --version smoke、36-row materialization、12-way status byte parity 全过，0 paid
+当前接力：executable-bound 003 已零付费冻结；先推送 pre-model closure，再从 fresh 0/36 只执行一次 foreground serial run
 禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
 结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
 复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
@@ -1156,6 +1157,15 @@ bun test ./src/benchmarks/skill-ir/magpie-release-audit-step2.test.ts `
   ./src/benchmarks/skill-ir/magpie-release-audit-qualification.test.ts `
   ./src/benchmarks/skill-ir/magpie-release-audit-measurement.test.ts `
   ./src/benchmarks/skill-ir/magpie-release-audit-measurement-run.test.ts
+bun run ./src/benchmarks/skill-ir/magpie-release-audit-measurement-run.ts `
+  --phase=qualify-executable --qualified-at=<ISO-8601>
+bun run ./src/benchmarks/skill-ir/magpie-release-audit-measurement-run.ts `
+  --phase=freeze --frozen-at=<ISO-8601>
+# pre-model push 后才允许：prepare -> key existence -> execute；execute 期间不启动 status observer。
+bun run ./src/benchmarks/skill-ir/magpie-release-audit-measurement-run.ts `
+  --phase=prepare --out-dir=results/skill-ir/magpie-release-audit-public-efficiency-003/run
+bun run ./src/benchmarks/skill-ir/magpie-release-audit-measurement-run.ts `
+  --phase=execute --out-dir=results/skill-ir/magpie-release-audit-public-efficiency-003/run
 ```
 
 Env A 的 compact report 位于
@@ -1166,8 +1176,10 @@ reference，并在运行前验证自身与 evaluator digest。
 提交 compact product 前应从 staged index checkout 到临时目录，再运行 `validateVerifiedArtifactProduct`，不能只验工作树。
 Magpie Step 2 的 `qualification.json` 只证明固定公开 9-case deterministic quality；human review 未实测。两个 measurement
 compact failure 分别保存在 `magpie-release-audit-public-efficiency-001/002`，都在模型进程 spawn 前结束，因此不能重建或
-补写 original rows。共享 `buildSkvmRunCommand` 仍返回字面 `bun`；Windows 下 shell 能解析 `bun.ps1`/`bun.cmd` 不代表
-`Bun.spawn(["bun", ...])` 能解析它。除非先审计共享 runner/frozen-lock 影响并得到新授权，否则不要建立 003 identity。
+补写 original rows。Task 18.44 已用 additive `runtime-executable-identity.ts` 解决 Windows direct-spawn 边界：旧
+`buildSkvmRunCommand` 与两份失败原件不改，最终 production command 才绑定经 smoke/digest 复核的 `process.execPath`。
+资格 compact 不保存绝对路径；完整 36 行 status tree 的 12-way byte parity 已通过。003 仍须在 pre-model closure 推送后从
+0/36 唯一执行；若再发生基础设施失败，停止且不得建立 004。
 
 ## 18. 继续阅读
 

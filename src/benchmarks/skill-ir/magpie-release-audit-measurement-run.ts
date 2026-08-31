@@ -1,12 +1,15 @@
 import {
   copyFile,
   lstat,
+  mkdtemp,
   mkdir,
   readFile,
   readdir,
   rename,
+  rm,
   writeFile,
 } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import { isDeepStrictEqual } from "node:util";
@@ -15,16 +18,26 @@ import { RunExecutionObservationSchema } from "../../core/types";
 import { compileMagpieReleaseAuditArtifact, runMagpieReleaseAuditArtifact } from "./magpie-release-audit-artifact";
 import { scoreMagpieReleaseAuditOutput } from "./magpie-release-audit-checker";
 import {
+  MAGPIE_EXECUTABLE_QUALIFICATION_PATH,
   MAGPIE_MEASUREMENT_EXPERIMENT_ID,
   MAGPIE_MEASUREMENT_POLICY_PATH,
+  MAGPIE_PREDECESSOR_FAILURE_PATHS,
+  MagpieReleaseAuditExecutableQualificationSchema,
   MagpieMeasurementRowSchema,
   buildMagpieReleaseAuditOrderedRows,
+  buildMagpieReleaseAuditMeasurementTasks,
   loadAndValidateMagpieReleaseAuditMeasurement,
+  magpieMeasurementFrozenRef,
   writeMagpieReleaseAuditMeasurementFreeze,
   type MagpieMeasurementRow,
 } from "./magpie-release-audit-measurement";
 import { buildSkvmRunCommand, type RealAgentRunPlanEntry } from "./real-agent";
 import { executeGenericPlanRow } from "./real-agent-run";
+import {
+  bindQualifiedRuntimeExecutableCommand,
+  qualifyCurrentRuntimeExecutable,
+  resolveQualifiedRuntimeExecutable,
+} from "./runtime-executable-identity";
 import { extractFinalOutput } from "./scoring";
 import { loadAndValidateMagpieReleaseAuditSlice } from "./magpie-release-audit-step2";
 import { sha256Bytes } from "./source-fixture";
@@ -312,17 +325,21 @@ function externalTaskJson(task: Awaited<ReturnType<typeof loadAndValidateMagpieR
   };
 }
 
-export async function prepareMagpieReleaseAuditMeasurementRun(rootDirInput: string, activeDirInput: string) {
-  const rootDir = resolve(rootDirInput);
-  const activeDir = resolve(activeDirInput);
+async function prepareMagpieMeasurementInputs(options: {
+  rootDir: string;
+  activeDir: string;
+  experimentId: string;
+  identityDigest: string;
+  tasks: Awaited<ReturnType<typeof buildMagpieReleaseAuditMeasurementTasks>>;
+  rows: MagpieMeasurementRow[];
+}) {
+  const rootDir = resolve(options.rootDir);
+  const activeDir = resolve(options.activeDir);
   if (await exists(activeDir)) throw new Error("Magpie measurement active directory already exists");
-  const loaded = await loadAndValidateMagpieReleaseAuditMeasurement(rootDir);
-  const policyBytes = await readFile(resolve(rootDir, MAGPIE_MEASUREMENT_POLICY_PATH));
-  const identityDigest = sha256Bytes(policyBytes);
   await mkdir(activeDir, { recursive: true });
-  const tasks = new Map(loaded.tasks.tasks.map((task) => [task.caseId, task]));
+  const tasks = new Map(options.tasks.tasks.map((task) => [task.caseId, task]));
   const preparedFiles = [];
-  for (const [rowIndex, row] of loaded.policy.denominator.orderedRows.entries()) {
+  for (const [rowIndex, row] of options.rows.entries()) {
     const directory = rowDirectory(activeDir, rowIndex);
     const workDir = join(directory, "workdir");
     await mkdir(workDir, { recursive: true });
@@ -340,12 +357,95 @@ export async function prepareMagpieReleaseAuditMeasurementRun(rootDirInput: stri
   }
   const initialized = await initializeMagpieMeasurementSerialState({
     activeDir,
-    experimentId: loaded.policy.experimentId,
-    identityDigest,
-    rows: loaded.policy.denominator.orderedRows,
+    experimentId: options.experimentId,
+    identityDigest: options.identityDigest,
+    rows: options.rows,
     preparedFiles,
   });
-  return { status: "prepared" as const, rows: initialized.plan.rows.length, paidCalls: 0, retries: 0, identityDigest };
+  return { status: "prepared" as const, rows: initialized.plan.rows.length, paidCalls: 0, retries: 0, identityDigest: options.identityDigest };
+}
+
+export async function prepareMagpieReleaseAuditMeasurementRun(rootDirInput: string, activeDirInput: string) {
+  const rootDir = resolve(rootDirInput);
+  const loaded = await loadAndValidateMagpieReleaseAuditMeasurement(rootDir);
+  const identityDigest = sha256Bytes(await readFile(resolve(rootDir, MAGPIE_MEASUREMENT_POLICY_PATH)));
+  return prepareMagpieMeasurementInputs({
+    rootDir,
+    activeDir: resolve(activeDirInput),
+    experimentId: loaded.policy.experimentId,
+    identityDigest,
+    tasks: loaded.tasks,
+    rows: loaded.policy.denominator.orderedRows,
+  });
+}
+
+export async function runMagpieReleaseAuditExecutableQualification(options: {
+  rootDir: string;
+  outputPath: string;
+  qualifiedAt: string;
+}) {
+  const rootDir = resolve(options.rootDir);
+  const runtime = await qualifyCurrentRuntimeExecutable();
+  const executable = await resolveQualifiedRuntimeExecutable(runtime);
+  const boundSmokeCommand = bindQualifiedRuntimeExecutableCommand(["bun", "--version"], executable);
+  if (boundSmokeCommand[0] === "bun" || !isAbsolute(boundSmokeCommand[0]!)) {
+    throw new Error("Magpie production command did not bind an absolute runtime executable");
+  }
+  const tasks = await buildMagpieReleaseAuditMeasurementTasks(rootDir);
+  const rows = buildMagpieReleaseAuditOrderedRows();
+  const failures = await Promise.all(
+    MAGPIE_PREDECESSOR_FAILURE_PATHS.map((path) => magpieMeasurementFrozenRef(rootDir, path)),
+  );
+  const identityDigest = sha256Bytes(Buffer.from(`${JSON.stringify({ tasks, rows, runtime, failures })}\n`, "utf8"));
+  const temporaryRoot = await mkdtemp(join(tmpdir(), "magpie-executable-qualification-"));
+  const activeDir = join(temporaryRoot, "run");
+  try {
+    await prepareMagpieMeasurementInputs({
+      rootDir,
+      activeDir,
+      experimentId: MAGPIE_MEASUREMENT_EXPERIMENT_ID,
+      identityDigest,
+      tasks,
+      rows,
+    });
+    const beforeTree = await snapshotMagpieActiveTree(activeDir);
+    await Promise.all(Array.from({ length: 12 }, () => readMagpieMeasurementSerialStatus({
+      activeDir,
+      experimentId: MAGPIE_MEASUREMENT_EXPERIMENT_ID,
+      identityDigest,
+      rows,
+    })));
+    const afterTree = await snapshotMagpieActiveTree(activeDir);
+    if (!isDeepStrictEqual(beforeTree, afterTree)) {
+      throw new Error("Magpie repeated status changed the active tree");
+    }
+    const report = MagpieReleaseAuditExecutableQualificationSchema.parse({
+      schemaVersion: "skill-ir-magpie-release-audit-executable-qualification/v1",
+      qualifiedAt: options.qualifiedAt,
+      status: "passed",
+      runtime,
+      predecessors: { failures, reusedRows: 0 },
+      controlPlane: {
+        materializedRows: 36,
+        concurrentStatusReads: 12,
+        before: { fileCount: beforeTree.entries.length, treeSha256: beforeTree.treeSha256 },
+        after: { fileCount: afterTree.entries.length, treeSha256: afterTree.treeSha256 },
+        byteIdentical: true,
+      },
+      commandBinding: {
+        resolution: "process.execPath",
+        productionExecutableAbsolute: true,
+        literalBunInProductionCommand: false,
+      },
+      accounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0, retries: 0, heldOutAccesses: 0 },
+      humanMinutes: null,
+      claimBoundary: "This zero-paid qualification proves the digest-bound current Bun executable can be spawned by absolute path and that twelve concurrent reads of the real 36-row status tree are byte-identical. It is not model, quality, recurring-cost, break-even, portfolio, readiness, held-out, or live-release evidence.",
+    });
+    await atomicJson(resolve(options.outputPath), report);
+    return report;
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
 }
 
 function executionClassification(raw: { exitCode: number; runStatus?: string }, observation: z.infer<typeof RunExecutionObservationSchema>) {
@@ -364,12 +464,13 @@ async function executeOriginalRow(options: {
   task: Awaited<ReturnType<typeof loadAndValidateMagpieReleaseAuditMeasurement>>["tasks"]["tasks"][number];
   policy: Awaited<ReturnType<typeof loadAndValidateMagpieReleaseAuditMeasurement>>["policy"];
   slice: Awaited<ReturnType<typeof loadAndValidateMagpieReleaseAuditSlice>>;
+  runtimeExecutable: string;
 }) {
   const directory = rowDirectory(options.activeDir, options.rowIndex);
   const taskPath = join(directory, "task.json");
   const workDir = join(directory, "workdir");
   const observationPath = join(directory, "execution-observation.json");
-  const command = buildSkvmRunCommand({
+  const command = bindQualifiedRuntimeExecutableCommand(buildSkvmRunCommand({
     taskPath,
     model: options.policy.model.route,
     adapter: options.policy.harness.adapter,
@@ -378,7 +479,7 @@ async function executeOriginalRow(options: {
     timeoutMs: options.policy.runtime.absoluteTimeoutMs,
     idleTimeoutMs: options.policy.runtime.idleTimeoutMs,
     maxSteps: options.policy.runtime.maxSteps,
-  });
+  }), options.runtimeExecutable);
   const planRow = {
     caseId: `magpie:${options.task.taskId}`,
     system: "no-skill",
@@ -510,6 +611,7 @@ export async function executeMagpieReleaseAuditMeasurementRun(rootDirInput: stri
   const rootDir = resolve(rootDirInput);
   const activeDir = resolve(activeDirInput);
   const loaded = await loadAndValidateMagpieReleaseAuditMeasurement(rootDir);
+  const runtimeExecutable = await resolveQualifiedRuntimeExecutable(loaded.policy.harness.executable);
   if (!process.env[loaded.policy.runtime.apiKeyEnv]?.trim()) throw new Error(`Missing ${loaded.policy.runtime.apiKeyEnv}`);
   const identityDigest = sha256Bytes(await readFile(resolve(rootDir, MAGPIE_MEASUREMENT_POLICY_PATH)));
   const slice = await loadAndValidateMagpieReleaseAuditSlice(rootDir);
@@ -522,7 +624,7 @@ export async function executeMagpieReleaseAuditMeasurementRun(rootDirInput: stri
     rows: loaded.policy.denominator.orderedRows,
     executeRow: async (row, rowIndex) => {
       const entry = row.system === "original"
-        ? await executeOriginalRow({ rootDir, activeDir, row, rowIndex, task: tasks.get(row.caseId)!, policy: loaded.policy, slice })
+        ? await executeOriginalRow({ rootDir, activeDir, row, rowIndex, task: tasks.get(row.caseId)!, policy: loaded.policy, slice, runtimeExecutable })
         : await executeArtifactRow({ activeDir, row, rowIndex, compiled, slice });
       const stopAfterCommit = entry.infrastructureFailure || (row.system === "reviewed-artifact" && !entry.quality.passed);
       process.stdout.write(`${JSON.stringify({ completed: rowIndex + 1, total: 36, system: row.system, classification: entry.executionClassification, passed: entry.quality.passed })}\n`);
@@ -555,14 +657,23 @@ function safeActiveDir(rootDir: string, value: string) {
 if (import.meta.main) {
   const phase = argument("phase");
   const rootDir = resolve(argument("root") ?? process.cwd());
-  if (phase === "freeze") {
+  if (phase === "qualify-executable") {
+    const qualifiedAt = argument("qualified-at");
+    if (!qualifiedAt) throw new Error("--qualified-at is required for qualify-executable");
+    const report = await runMagpieReleaseAuditExecutableQualification({
+      rootDir,
+      outputPath: resolve(rootDir, argument("out") ?? MAGPIE_EXECUTABLE_QUALIFICATION_PATH),
+      qualifiedAt,
+    });
+    process.stdout.write(`${JSON.stringify({ status: report.status, rows: report.controlPlane.materializedRows, paidCalls: 0 }, null, 2)}\n`);
+  } else if (phase === "freeze") {
     const frozenAt = argument("frozen-at");
     if (!frozenAt) throw new Error("--frozen-at is required for freeze");
     const frozen = await writeMagpieReleaseAuditMeasurementFreeze({ rootDir, frozenAt });
     process.stdout.write(`${JSON.stringify({ status: "frozen", rows: frozen.policy.denominator.rows, paidCalls: 0 }, null, 2)}\n`);
   } else {
-    if (!phase || !["prepare", "execute", "status"].includes(phase)) throw new Error("--phase=freeze|prepare|execute|status is required");
-    const activeDir = safeActiveDir(rootDir, argument("out-dir") ?? resolve(rootDir, "results/skill-ir/magpie-release-audit-public-efficiency-002/run"));
+    if (!phase || !["prepare", "execute", "status"].includes(phase)) throw new Error("--phase=qualify-executable|freeze|prepare|execute|status is required");
+    const activeDir = safeActiveDir(rootDir, argument("out-dir") ?? resolve(rootDir, "results/skill-ir/magpie-release-audit-public-efficiency-003/run"));
     if (phase === "prepare") {
       process.stdout.write(`${JSON.stringify(await prepareMagpieReleaseAuditMeasurementRun(rootDir, activeDir), null, 2)}\n`);
     } else if (phase === "execute") {

@@ -1636,6 +1636,27 @@ r2/002 的真实 prepare、并发只读与 shared reset 均通过，但 producti
 deterministic qualification 正向、external denominator infrastructure-not-established 收口，下一决策是共享 executable
 resolution 治理，而不是继续换 skill 或伪造 token 结论。
 
+### 4.35 Task 18.44：共享可执行身份治理与条件式 003
+
+**重新授权与范围：** 用户在读取 001/002 compact failure 后，显式批准先把 Windows process-start 修成共享、可执行的
+基础设施合同，再决定是否运行一次 003。该授权不允许修改 001/002、扩展 DSL、访问 held-out、切换 skill，或把固定公开
+slice 的结果推广到 portfolio/readiness/live release。
+
+1. [x] 严格 TDD 新增 skill-neutral runtime executable identity：解析 `process.execPath`，要求 absolute regular non-symlink
+   file，绑定原始字节 SHA-256 与 Bun version，并真实执行 `<absolute executable> --version`；compact evidence 不保存本机绝对路径；
+2. [x] 003 的生产命令在 spawn 前必须由该 identity 绑定为绝对 executable，最终 plan/command 中禁止字面 `bun`；不修改被
+   001/002 和其它历史 lock 绑定的 `real-agent.ts`，共享 core 不增加 skill-id 分支，`coreBranchDelta=0`；
+3. [x] 零付费资格必须对 36 行 successor 输入做真实 materialization，并对真实 status 入口并发重复读取至少 12 次；active tree
+   的相对路径、文件字节和 SHA-256 在前后必须完全相同。资格报告还要绑定 001/002 failure digest，计数固定为 0 model/API/paid；
+4. [ ] 使用语义化 `executable-bound` policy/tasks 与 active identity 冻结 fresh 9 case x 2 repetition x 2 arm = 36 rows，
+   `reusedRows=0`、0 retry/reserve、`humanMinutes=null`；freeze/qualification/implementation closure 通过后先 commit 并 push；
+5. [ ] 只有 smoke、status byte parity、freeze 重建和 push 全部通过，才检查 `SKVM_XTY_API_KEY` 是否存在并执行唯一一次 003。
+   若任一行出现 infrastructure failure，立即停止且不建 004；若完成，只报告固定 public slice 的 quality、runtime token 与
+   conditional explicit-production-API token break-even，不晋级 research efficiency/portfolio/readiness/held-out/live claim。
+
+这不是 `measurement v3/v4` 重做：001/002 保持不可变，Task 18.44 只增加一个首版共享 executable identity 和一个新的
+attempt/freeze/result identity。Routine process-start 修复不得借机改变 task、checker、artifact、timeout 或 cost 口径。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

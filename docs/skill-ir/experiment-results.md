@@ -969,6 +969,13 @@ original 分母仍为 0。001 在模型 spawn 前因 `row-01` 对 `run-N` ABI �
 0 model/API/paid/retry/held-out，不建立质量对照、recurring token、break-even 或 efficiency。按止损不创建第三 control-plane；
 这是真实外部 baseline 基础设施负结果，不是 Magpie 或 reviewed artifact 的质量负例。
 
+Task 18.44 的零付费 executable 资格为 passed。当前 Bun 1.3.14 的 `process.execPath` 是 absolute regular non-symlink file，
+原始字节 SHA-256 为 `0187f68d843f825a72ada4a7eca60db896ed753759a7f8252edcd31ac1bf1b9c`；真实 `--version`
+退出码为 0，报告未保存绝对路径。完整 36 行 active tree 在 12 次并发真实 status 前后都是 39 files、tree SHA-256
+`09108f98663d86815a51f8d956b7b416bca27186ddb7d866922227fb585126ec`，逐字节一致。新 policy 显式绑定 001/002
+失败摘要、`reusedRows=0`、9 case x 2 repetition x 2 arm、0 retry/reserve、`humanMinutes=null`；当前仍是 0/36、
+0 model/API/paid，不构成 external quality、recurring token 或 break-even 证据。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -1019,3 +1026,6 @@ original 分母仍为 0。001 在模型 spawn 前因 `row-01` 对 `run-N` ABI �
 - `results/skill-ir/verified-artifact-product-env-machine-checked-2026-08-29/report.json`
 - `results/skill-ir/verified-artifact-collection-qualification-v1/report.json`
 - `results/skill-ir/magpie-release-audit-feasibility-v1/report.json`
+- `results/skill-ir/magpie-release-audit-executable-governance-qualification.json`
+- `benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy-executable-bound.json`
+- `benchmarks/skill-ir/pilots/magpie-release-audit/measurement-tasks-executable-bound.json`

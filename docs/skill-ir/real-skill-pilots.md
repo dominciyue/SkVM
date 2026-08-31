@@ -433,6 +433,14 @@ reference 上全过，并拒绝 extra key、sentinel 漏账、personal email、v
 resolution pre-dispatch failure。两者均 0 completed/prefix/model/API/paid，不能支持 original-vs-artifact、token-saving、break-even、
 live-release 或项目外泛化。按 stop-loss 不继续 003；未来若恢复，必须先处理共享 runner 的 executable identity 与旧 freeze 影响。
 
+### 12.3 Task 18.44 有界 executable 治理与条件式 003
+
+用户另行授权先治理共享 executable identity。通用实现从 `process.execPath` 取得当前 Bun，检查 absolute regular
+non-symlink、绑定字节摘要并真实运行 `--version`；Magpie 只在最终 spawn command 处消费该通用身份，`real-agent.ts`、001/002
+和所有旧 freeze 不改，`coreBranchDelta=0`。零付费资格对全 36 行真实物化目录执行 12 次并发 status，前后 39 个文件逐字节一致，
+并显式绑定两份失败摘要、`reusedRows=0`、0 model/API/paid。新的 003 policy 仍只覆盖固定 public Step 0--2 的 9 case、2 次重复、
+original/reviewed-artifact 双臂；pre-model push 和 fresh 0/36 检查前不得执行，失败后不得创建 004。
+
 ## 13. 修改与验证
 
 ```powershell
