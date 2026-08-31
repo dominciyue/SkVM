@@ -1602,6 +1602,28 @@ human-hours。持久化证据为 `results/skill-ir/verified-artifact-collection-
 `results/skill-ir/magpie-release-audit-feasibility-v1/report.json`。本任务为 0 clone/import/external execution/model/API/paid/
 baseline/held-out，并按约定停在 Step 1；Step 2 必须等待用户显式确认。
 
+### 4.34 Task 18.43：Magpie Step 2 最小公开切片、独立 checker 与新分母
+
+**授权与范围：** 用户已显式批准 Step 2。导入固定提交
+`453dd9f20bdebe9d4458d84682bd707be1414f80` 下 release-audit-report 的全部 9 个公开 Step 0--2 case；这是覆盖
+preflight、完整/部分 gather、完整/缺失/injection assemble 语义所需的最小公开切片，不导入 live GitHub/mail/SVN、Step 3/4
+副作用或任何 held-out/private surface。
+
+1. [x] 将原始公开 prompt 输入与 checker-only `expected.json`/`assertions.json` 分目录导入，逐文件绑定 upstream path、commit、
+   git blob 与 sha256；prompt builder 和 artifact compiler 必须拒绝 checker-oracle 路径，且输出精确复现上游
+   `step section + LF LF + output spec + LF LF + fixed user template(report)` 字节；
+2. [x] 严格 TDD 实现独立 deterministic checker：不把 upstream judge 当权威，从公开 report/schema 重建 exact schema/type、
+   canonical URL、MISSING/REDACTED、required-field violation、privacy marker 与 injection consistency，并要求 baseline-pass 加定向
+   mutation-fail；`expected/assertions` 只用于 checker-side 对照，不进入模型或 artifact 输入；
+3. [x] 用已批准的 restricted JSON/collection 原语加 skill-local bounded patch 构造 9 个 deterministic outputs，在真实临时 workdir
+   执行并逐案通过独立 checker；记录 patch/plan/总 LOC、humanMinutes、coreBranchDelta=0 和仍未覆盖的 live/open-ended 边界；
+4. [x] 在任何模型调用前冻结新的 project-Pi identity，绑定 source/task/prompt/checker/artifact/model/provider/adapter/temperature/
+   timeout/runner digest、严格有序 original/artifact rows、0 retry 与 fail-closed 前缀；先提交并 push freeze，再核验环境变量存在性；
+5. [ ] 仅在所有 pre-model gate 通过后串行执行新分母，original 从 0 行前瞻采集完整 input/output/cache-read/cache-write usage，
+   artifact 为 0 model token；质量、成本与 break-even 必须从冻结 identity 和完整行重算，失败即保留证据并停止，不能用旧行回填；
+6. [x] 结论只限固定公开 9-case slice。即使 machine-checked quality/efficiency 成立，也不自动晋升 method portfolio、full-auto
+   convergence、untouched replication、held-out 或跨 release/live-network 泛化。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

@@ -1669,3 +1669,19 @@ Magpie Step 1 的零执行报告判定候选可进入下一阶段，但不是已
 adapter/temperature/timeout/runner，再前瞻执行 original rows；现有 baseline rows 为 0。受限 DSL 加有界领域 patch 可覆盖初始公开
 slice，machine checker 必须替换上游 judge，且不能读取私有 surface、held-out 或把 checker oracle 注入 prompt。Task 18.42 本身
 为 0 clone/import/external execution/model/API/paid/baseline/held-out；Step 2 仍须用户显式确认。
+
+### 14.5 Magpie Step 2 的公开输入、oracle 隔离与证据边界
+
+用户已授权 Step 2。首个项目外执行身份固定为 Apache Magpie 提交
+`453dd9f20bdebe9d4458d84682bd707be1414f80` 的 release-audit-report 全部 9 个公开 Step 0--2 case。选择全 9 案是为了覆盖
+阻断、部分数据、全 required 缺失和 injection，而不是以 happy path 替代领域语义；导入范围仍排除 Step 3/4、live network、
+private tracker 与 held-out。
+
+公开 prompt closure 与 checker oracle 必须物理分账并分别绑定 digest。模型与 artifact 只可读取 SKILL section、output spec、固定
+user template 和 public `report.md`；`expected.json`、`assertions.json`、独立 checker 实现与其派生 oracle 不得进入 prompt 或
+compiler input。独立 checker 从公开 fixture/schema 重建机器判据，上游 judge 只能作为历史对照，不能作为质量 authority。
+
+所有 deterministic artifact 必须在真实 workdir 上执行并通过 baseline-pass/mutation-fail；skill-local patch 不进入 generic core，
+`coreBranchDelta` 保持 0。任何 original 调用前必须先冻结并提交新的 project-Pi identity 和 runner closure；original usage 只能从
+该 identity 的新行前瞻采集，0 retry、串行、fail closed，不复用 Step 1 的零行报告或其它实验行。最终 claim 只覆盖固定公开
+9-case slice，不推出 live-source 泛化、full-auto convergence、portfolio/readiness 晋升或 held-out 资格。
