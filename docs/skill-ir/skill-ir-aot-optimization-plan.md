@@ -1665,6 +1665,27 @@ Original input/output/cache-read 为 73537/14038/40960，artifact model token �
 首个 recurring run 净正；development-agent token 与 human review 未测，research all-attempt/efficiency-positive、
 portfolio/readiness/held-out/live claim 继续关闭。
 
+### 4.36 Stage P1：Magpie A-optional 产品配方（零付费）
+
+**目标与边界：** 停止新测量，把已经冻结的 Magpie 003 original 分母与 Task 18.43 deterministic checker 接到现有
+product v1 主链，使第二个真实 skill 真正通过 standalone CLI/library 生成 artifact、quality、run 与 cost closure。只做
+固定 public 9-case slice；不重跑 original、不访问 live source/held-out、不扩 DSL、不修改 portfolio/readiness，也不启动 P2。
+
+1. [x] 严格 TDD 修正 product v1 的四个窄诚实性边界：0 one-time token 得到 0-call break-even；review humanMinutes 和
+   historical aggregateDurationMs 可显式 missing；machine-checked 可在配置中选择 `not-eligible` 并给出原因。旧 Env 配置
+   缺省行为与非零 break-even=1 保持不变，不创建 product v2；
+2. [x] 新增 Magpie 薄 task declaration、patch CLI adapter 与 checker adapter。Patch 只 import 既有 reviewed artifact，checker
+   只 import 既有独立 checker；generic core 无 skill-id 分支，`coreBranchDelta=0`；
+3. [x] 对全部 9 个 public case 逐一物化真实 workdir，并实际调用 `runVerifiedArtifactCli` 完成
+   `compile -> review/accept -> package -> run -> cost`。每例 product closure 必须通过
+   `validateVerifiedArtifactProduct`，protected inputs 不变，当前阶段 model/API/paid=0；
+4. [x] P1 compact report 只从 digest-bound 003 report 读取 18 个 original 样本和 input/output/cache-read，核对 36/36、
+   original 6/18、artifact 18/18、0 regression、0 retry/infra；不得从 raw rows 或本地 workdir 补时长/人工；
+5. [x] 报告明确 `quality=machine-checked-fixed-slice-non-regression`、conditional explicit-production-API break-even=0、
+   `researchEligibility=not-eligible`、humanMinutes=null、adapter/checker=287/351 LOC，并关闭 portfolio/readiness/held-out/live/P2；
+6. [x] 完成 focused、product integration、全 Skill IR、typecheck、文档链接、`git diff --check` 与 staged-index product 验证；
+   同步现有 component docs、README、handoff/ledger/log 后提交并推送，在 P1 compact report 回报点停止。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

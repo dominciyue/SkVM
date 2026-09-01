@@ -206,6 +206,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 	  executable-bound 003 随后从 fresh 0/36 完成 36/36、18 paid、0 retry/infra。固定 slice 上 original 6/18、artifact
 	  18/18、0 pair regression；平均 recurring model-token saving 4865.2778/run，conditional explicit-production-API
 	  break-even=0 calls。开发代理 token/human review 未测，所以不晋级 research efficiency、portfolio/readiness 或 live claim。
+- Stage P1 已把 Magpie 接入现有 product v1：9/9 public case 分别真实调用 standalone CLI 的五阶段主链，当前
+  0 model/API/paid，003 original rerun=0。产品质量仅为 fixed-slice machine-checked non-regression；API-token
+  break-even=0，researchEligibility=not-eligible，P2 尚未启动。
 
 ## 当前下一步
 
@@ -277,6 +280,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 共享 executable identity 已通过真实 smoke 与 36-row/12-way status byte parity，pre-model 67835f2 已推送
 -> 唯一 003 foreground serial denominator 已完成：36/36、18 paid、0 retry/infra、artifact 18/18、original 6/18
 -> 固定 slice recurring saving 已建立；research all-attempt/efficiency、portfolio/readiness、held-out/live 继续关闭
+-> Stage P1 已完成 Magpie product v1：9/9 CLI 产品、0 当前 paid、003 original rerun=0、API-token break-even=0
+-> 产品 researchEligibility=not-eligible；raw workdir 本地保留，P2 未启动
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

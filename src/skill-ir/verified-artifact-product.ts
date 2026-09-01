@@ -1,6 +1,6 @@
 import { cp, lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, posix, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { performance } from "node:perf_hooks";
 import { z } from "zod";
@@ -60,7 +60,8 @@ const OriginalRuntimeSchema = z.discriminatedUnion("status", [
     status: z.literal("measured"),
     samples: z.number().int().positive(),
     aggregateModelTokens: z.number().nonnegative(),
-    aggregateDurationMs: z.number().nonnegative(),
+    aggregateDurationMs: z.number().nonnegative().nullable(),
+    durationMissingReason: z.string().min(1).optional(),
     evidence: DigestRefSchema,
   }).strict(),
   z.object({
@@ -71,8 +72,18 @@ const OriginalRuntimeSchema = z.discriminatedUnion("status", [
 
 const QualityModeSchema = z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("user-accepted") }).strict(),
-  z.object({ mode: z.literal("machine-checked"), checker: DigestRefSchema }).strict(),
+  z.object({
+    mode: z.literal("machine-checked"),
+    checker: DigestRefSchema,
+    researchDisposition: z.enum(["not-eligible", "eligible-for-authority-review"])
+      .default("eligible-for-authority-review"),
+    researchIneligibilityReason: z.string().min(1).optional(),
+  }).strict(),
 ]);
+
+const PatchDependencySchema = z.object({
+  source: DigestRefSchema,
+}).strict();
 
 export const VerifiedArtifactWorkflowConfigSchema = z.object({
   schemaVersion: z.literal("skill-ir-verified-artifact-workflow-config/v1"),
@@ -85,14 +96,50 @@ export const VerifiedArtifactWorkflowConfigSchema = z.object({
     publicInterfacePath: SafeRelativePathSchema,
     coreBranchDelta: z.literal(0),
     physicalLoc: z.number().int().positive(),
-    humanMinutes: z.number().nonnegative().default(0),
+    humanMinutes: z.number().nonnegative().nullable().default(0),
+    humanMinutesMissingReason: z.string().min(1).optional(),
+    packaging: z.enum(["source", "digest-bound-bundle"]).default("source"),
+    dependencies: z.array(PatchDependencySchema).max(16).default([]),
   }).strict(),
   production: z.object({
     oneTimeModelTokens: CostValueSchema,
     originalRuntime: OriginalRuntimeSchema,
   }).strict(),
   quality: QualityModeSchema,
-}).strict();
+}).strict().superRefine((config, context) => {
+  if (config.review.humanMinutes === null && !config.review.humanMinutesMissingReason) {
+    context.addIssue({
+      code: "custom",
+      path: ["review", "humanMinutesMissingReason"],
+      message: "missing review humanMinutes require an explicit reason",
+    });
+  }
+  if (config.review.packaging === "source" && config.review.dependencies.length > 0) {
+    context.addIssue({
+      code: "custom",
+      path: ["review", "dependencies"],
+      message: "source-packaged review patches cannot declare bundled dependencies",
+    });
+  }
+  if (config.production.originalRuntime.status === "measured"
+    && config.production.originalRuntime.aggregateDurationMs === null
+    && !config.production.originalRuntime.durationMissingReason) {
+    context.addIssue({
+      code: "custom",
+      path: ["production", "originalRuntime", "durationMissingReason"],
+      message: "missing aggregate runtime duration requires an explicit reason",
+    });
+  }
+  if (config.quality.mode === "machine-checked"
+    && config.quality.researchDisposition === "not-eligible"
+    && !config.quality.researchIneligibilityReason) {
+    context.addIssue({
+      code: "custom",
+      path: ["quality", "researchIneligibilityReason"],
+      message: "research ineligibility requires an explicit reason",
+    });
+  }
+});
 
 export type VerifiedArtifactWorkflowConfig = z.infer<typeof VerifiedArtifactWorkflowConfigSchema>;
 
@@ -108,7 +155,7 @@ const CandidateSchema = z.object({
 const CommonQualityEvidenceShape = {
   workflowId: IdentifierSchema,
   artifact: ArtifactIdentitySchema,
-  sourceInputs: z.array(DigestRefSchema).length(4),
+  sourceInputs: z.array(DigestRefSchema).min(4).max(20),
   workdirInputs: z.array(SnapshotRecordSchema).min(1),
   outputs: z.array(SnapshotRecordSchema).min(1),
   delta: DeltaSchema,
@@ -137,7 +184,8 @@ const MachineCheckedEvidenceSchema = z.object({
   checkerResultSha256: Sha256Schema,
   status: z.literal("pass"),
   detail: z.string().min(1),
-  researchDisposition: z.literal("eligible-for-authority-review"),
+  researchDisposition: z.enum(["not-eligible", "eligible-for-authority-review"]),
+  researchIneligibilityReason: z.string().min(1).optional(),
 }).strict();
 
 export const VerifiedArtifactQualityEvidenceSchema = z.discriminatedUnion("qualityEvidence", [
@@ -168,9 +216,13 @@ export const VerifiedArtifactProductCostReportSchema = z.object({
     oneTime: z.object({
       modelTokens: CostValueSchema,
       declaration: z.object({ humanMinutes: z.number().nonnegative() }).strict(),
-      reviewAdapter: z.object({ humanMinutes: z.number().nonnegative(), physicalLoc: z.number().int().positive() }).strict(),
+      reviewAdapter: z.object({
+        humanMinutes: z.number().nonnegative().nullable(),
+        humanMinutesMissingReason: z.string().min(1).optional(),
+        physicalLoc: z.number().int().positive(),
+      }).strict(),
       acceptance: z.object({ humanMinutes: z.number().nonnegative() }).strict(),
-      totalHumanMinutes: z.number().nonnegative(),
+      totalHumanMinutes: z.number().nonnegative().nullable(),
       packageBytes: z.number().int().positive(),
     }).strict(),
     recurring: z.object({
@@ -181,7 +233,7 @@ export const VerifiedArtifactProductCostReportSchema = z.object({
   }).strict(),
   amortization: z.tuple([AmortizationRowSchema, AmortizationRowSchema, AmortizationRowSchema, AmortizationRowSchema]),
   breakEven: z.discriminatedUnion("status", [
-    z.object({ status: z.literal("computed"), calls: z.number().int().positive(), reason: z.null() }).strict(),
+    z.object({ status: z.literal("computed"), calls: z.number().int().nonnegative(), reason: z.null() }).strict(),
     z.object({ status: z.literal("not-reached"), calls: z.null(), reason: z.string().min(1) }).strict(),
     z.object({ status: z.literal("not-computable"), calls: z.null(), reason: z.string().min(1) }).strict(),
   ]),
@@ -339,6 +391,33 @@ async function buildBundle(entrypoint: string, root: string): Promise<Buffer> {
   return Buffer.from(await build.outputs[0]!.arrayBuffer());
 }
 
+function auditDigestBoundBundleSource(sources: Array<{ path: string; bytes: Buffer }>): void {
+  const forbiddenSinks = [
+    "results/skill-ir", "held-out", "heldOut", "evaluatorId", "gold",
+    "fetch(", "Bun.spawn", "node:child_process", "child_process", "process.env", "import(", "require(",
+  ];
+  const allowedExternalImports = new Set(["node:fs/promises", "node:path", "zod"]);
+  const declared = new Set(sources.map((source) => source.path));
+  for (const source of sources) {
+    const text = source.bytes.toString("utf8");
+    for (const sink of forbiddenSinks) {
+      if (text.includes(sink)) throw new Error(`digest-bound review patch contains forbidden sink: ${sink}`);
+    }
+    const imports = [...text.matchAll(/from\s+["']([^"']+)["']/gu)].map((match) => match[1]!);
+    for (const imported of imports) {
+      if (allowedExternalImports.has(imported)) continue;
+      if (!imported.startsWith(".")) {
+        throw new Error(`digest-bound review patch imports an undeclared external module: ${imported}`);
+      }
+      const resolved = posix.normalize(posix.join(posix.dirname(source.path), imported));
+      const candidates = [resolved, `${resolved}.ts`, `${resolved}.js`];
+      if (!candidates.some((candidate) => declared.has(candidate))) {
+        throw new Error(`digest-bound review patch imports an undeclared local module: ${imported}`);
+      }
+    }
+  }
+}
+
 async function assembleCandidateArtifact(options: {
   rootDir: string;
   candidateDir: string;
@@ -348,6 +427,7 @@ async function assembleCandidateArtifact(options: {
   descriptionBytes: Buffer;
   planBytes: Buffer;
   patchBytes: Buffer;
+  patchDependencyBytes: Array<{ path: string; bytes: Buffer }>;
   protectedInputs: string[];
   outputPaths: string[];
 }): Promise<{ package: ValidatedArtifactPackage; artifact: z.infer<typeof ArtifactIdentitySchema> }> {
@@ -360,14 +440,24 @@ async function assembleCandidateArtifact(options: {
   const plan = legacyPlan.success ? legacyPlan.data : collectionPlan.data;
   const description = ThinTaskDescriptionSchema.parse(JSON.parse(options.descriptionBytes.toString("utf8")));
   const projectRoot = resolve(import.meta.dir, "../..");
-  const [planRunner, patchRunner] = await Promise.all([
+  const [planRunner, patchRunner, packagedPatchBytes] = await Promise.all([
     buildBundle(resolve(
       import.meta.dir,
       collectionPlan.success ? "verified-artifact-collection-plan-runner.ts" : "verified-artifact-plan-runner.ts",
     ), projectRoot),
     buildBundle(resolve(import.meta.dir, "verified-artifact-patch-runner.ts"), projectRoot),
+    options.config.review.packaging === "digest-bound-bundle"
+      ? buildBundle(containedPath(options.rootDir, options.config.review.patch.path), projectRoot)
+      : Promise.resolve(options.patchBytes),
   ]);
-  auditReviewPatchSource(options.patchBytes.toString("utf8"), []);
+  if (options.config.review.packaging === "digest-bound-bundle") {
+    auditDigestBoundBundleSource([
+      { path: options.config.review.patch.path, bytes: options.patchBytes },
+      ...options.patchDependencyBytes,
+    ]);
+  } else {
+    auditReviewPatchSource(options.patchBytes.toString("utf8"), []);
+  }
   const baseIrText = jsonText(options.construction.baseIr);
   const constructionText = jsonText(options.construction);
   const skillViewText = normalizeDerivedSkillView(options.sourceBytes);
@@ -434,6 +524,8 @@ async function assembleCandidateArtifact(options: {
     taskDescription: options.config.taskDescription,
     automaticPlan: options.config.review.automaticPlan,
     patch: options.config.review.patch,
+    patchPackaging: options.config.review.packaging,
+    patchDependencies: options.config.review.dependencies,
     publicInterfacePath: options.config.review.publicInterfacePath,
     protectedInputs: options.protectedInputs,
     outputPaths: options.outputPaths,
@@ -461,6 +553,7 @@ async function assembleCandidateArtifact(options: {
         { path: options.config.taskDescription.path, sha256: options.config.taskDescription.sha256 },
         options.config.review.automaticPlan,
         options.config.review.patch,
+        ...options.config.review.dependencies.map((dependency) => dependency.source),
       ],
       baseIr: { path: "skill-ir.json", sha256: sha256Bytes(Buffer.from(baseIrText, "utf8")) },
       sourceAudit: { path: "artifacts/source-audit.json", sha256: sha256Bytes(Buffer.from(sourceAuditText, "utf8")) },
@@ -475,7 +568,7 @@ async function assembleCandidateArtifact(options: {
       { id: "skill-view", bytes: skillViewText },
       { id: "plan-runner", bytes: planRunner },
       { id: "patch-runner", bytes: patchRunner },
-      { id: "review-patch", bytes: options.patchBytes },
+      { id: "review-patch", bytes: packagedPatchBytes },
       { id: "automatic-plan", bytes: jsonText(plan) },
       { id: "task-description", bytes: options.descriptionBytes },
       { id: "construction-candidate", bytes: constructionText },
@@ -520,7 +613,7 @@ function buildCostReport(options: {
       ? { status: "not-computable" as const, calls: null, reason: oneTime.status === "missing" ? oneTime.reason : "one-time model-token cost is unavailable" }
       : originalPerRun <= 0
         ? { status: "not-reached" as const, calls: null, reason: "original runtime has no positive recurring model-token cost" }
-        : { status: "computed" as const, calls: Math.max(1, Math.ceil(oneTimeTokens / originalPerRun)), reason: null };
+        : { status: "computed" as const, calls: Math.ceil(oneTimeTokens / originalPerRun), reason: null };
   const acceptanceHumanMinutes = options.qualityEvidence.qualityEvidence === "user-accepted"
     ? options.qualityEvidence.humanMinutes
     : 0;
@@ -532,10 +625,13 @@ function buildCostReport(options: {
     : breakEven.status === "not-reached"
       ? "token-savings-not-reached" as const
       : "token-economics-not-computable" as const;
+  const researchEligibility = options.qualityEvidence.researchDisposition;
   const claimBoundary = breakEven.status === "computed"
     ? qualityEvidence === "user-accepted"
       ? "Token savings are computed under user-accepted quality; this is not machine-established quality equivalence or research efficiency-positive evidence. Human review and acceptance are per-artifact one-time costs, never recurring costs."
-      : "Token savings are computed under machine-checked quality, but research promotion still requires the existing evidence authority and all of its independent gates. Human review is per-artifact one-time, never recurring."
+      : researchEligibility === "not-eligible"
+        ? `Token savings are computed under machine-checked fixed-scope quality, but this product is not research-eligible: ${options.qualityEvidence.researchIneligibilityReason ?? "required research-cost evidence is incomplete"}. The break-even counts only measured production model tokens; unknown human review remains separately disclosed.`
+        : "Token savings are computed under machine-checked quality, but research promotion still requires the existing evidence authority and all of its independent gates. Human review is per-artifact one-time, never recurring."
     : breakEven.status === "not-reached"
       ? "The measured original runtime has no positive recurring model-token cost, so this artifact does not establish token savings. Quality evidence and human costs remain separately disclosed."
       : "Token economics are not computable because a required production model-token input is missing. Quality evidence and human costs remain separately disclosed; no token-saving claim is made.";
@@ -544,20 +640,23 @@ function buildCostReport(options: {
     workflowId: options.config.workflowId,
     qualityEvidence,
     claim,
-    researchEligibility: qualityEvidence === "machine-checked"
-      ? "eligible-for-authority-review"
-      : "not-eligible",
+    researchEligibility,
     production: {
       oneTime: {
         modelTokens: oneTime,
         declaration: { humanMinutes: options.config.taskDescription.authoring.humanMinutes },
         reviewAdapter: {
           humanMinutes: options.config.review.humanMinutes,
+          ...(options.config.review.humanMinutes === null
+            ? { humanMinutesMissingReason: options.config.review.humanMinutesMissingReason }
+            : {}),
           physicalLoc: options.config.review.physicalLoc,
         },
         acceptance: { humanMinutes: acceptanceHumanMinutes },
-        totalHumanMinutes: options.config.taskDescription.authoring.humanMinutes
-          + options.config.review.humanMinutes + acceptanceHumanMinutes,
+        totalHumanMinutes: options.config.review.humanMinutes === null
+          ? null
+          : options.config.taskDescription.authoring.humanMinutes
+            + options.config.review.humanMinutes + acceptanceHumanMinutes,
         packageBytes: options.packageBytes,
       },
       recurring: {
@@ -623,7 +722,10 @@ async function machineEvidence(options: {
     checkerResultSha256: sha256Bytes(Buffer.from(JSON.stringify(checkerResult), "utf8")),
     status: "pass",
     detail: checkerResult.detail,
-    researchDisposition: "eligible-for-authority-review",
+    researchDisposition: options.config.quality.researchDisposition,
+    ...(options.config.quality.researchDisposition === "not-eligible"
+      ? { researchIneligibilityReason: options.config.quality.researchIneligibilityReason }
+      : {}),
   });
 }
 
@@ -645,11 +747,15 @@ export async function runVerifiedArtifactWorkflow(options: {
   if ((await readdir(outDir)).length > 0) throw new Error(`product output directory must be empty: ${outDir}`);
   const initialInputs = await snapshot(workDir);
   if (initialInputs.length === 0) throw new Error("workdir must contain at least one input file");
-  const [sourceBytes, descriptionBytes, planBytes, patchBytes] = await Promise.all([
+  const [sourceBytes, descriptionBytes, planBytes, patchBytes, patchDependencyBytes] = await Promise.all([
     readPinned(rootDir, config.source),
     readPinned(rootDir, { path: config.taskDescription.path, sha256: config.taskDescription.sha256 }),
     readPinned(rootDir, config.review.automaticPlan),
     readPinned(rootDir, config.review.patch),
+    Promise.all(config.review.dependencies.map(async (dependency) => ({
+      path: dependency.source.path,
+      bytes: await readPinned(rootDir, dependency.source),
+    }))),
   ]);
   const description = ThinTaskDescriptionSchema.parse(JSON.parse(descriptionBytes.toString("utf8")));
   const outputPaths = description.outputs.map((output) => output.path);
@@ -681,6 +787,7 @@ export async function runVerifiedArtifactWorkflow(options: {
       descriptionBytes,
       planBytes,
       patchBytes,
+      patchDependencyBytes,
       protectedInputs: initialInputs.map((entry) => entry.path),
       outputPaths,
     });
@@ -705,6 +812,7 @@ export async function runVerifiedArtifactWorkflow(options: {
       { path: config.taskDescription.path, sha256: config.taskDescription.sha256 },
       config.review.automaticPlan,
       config.review.patch,
+      ...config.review.dependencies.map((dependency) => dependency.source),
     ];
     const review = {
       candidate,

@@ -1167,6 +1167,11 @@ bun run ./src/benchmarks/skill-ir/magpie-release-audit-measurement-run.ts `
   --phase=prepare --out-dir=results/skill-ir/magpie-release-audit-public-efficiency-003/run
 bun run ./src/benchmarks/skill-ir/magpie-release-audit-measurement-run.ts `
   --phase=execute --out-dir=results/skill-ir/magpie-release-audit-public-efficiency-003/run
+bun test ./src/benchmarks/skill-ir/verified-artifact-product-magpie.test.ts
+bun run ./src/benchmarks/skill-ir/verified-artifact-product-magpie.ts `
+  --root=. `
+  --out=results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01 `
+  --completed-at=<ISO-8601>
 ```
 
 Env A 的 compact report 位于
@@ -1184,6 +1189,12 @@ compact failure 分别保存在 `magpie-release-audit-public-efficiency-001/002`
 mean recurring saving 为 4865.2778 input+output token/run。Conditional explicit-production-API break-even=0 calls 只因
 该口径的 construction API token 明确为 0；development-agent token/human review 未测，故 research efficiency/portfolio/
 readiness/held-out/live source 仍不可声明。
+
+Stage P1 的命令不读取 API key，也不重跑 original。它对九个 public fixture 分别物化 `report.md` 与公开 interface，随后真实
+调用 standalone `runVerifiedArtifactCli`；配置使用 `digest-bound-bundle` 把薄产品 adapter 与冻结 170 LOC domain patch
+编进同一 artifact，同时把两份 source digest 写入 provenance。P1 提交 `report.json` 与九份 product closure；`workdirs/`
+是本地重放材料，不提交。报告的 break-even=0 只对应显式 production API input+output token，researchEligibility 固定为
+not-eligible，不能据此修改 research authority。
 
 ## 18. 继续阅读
 

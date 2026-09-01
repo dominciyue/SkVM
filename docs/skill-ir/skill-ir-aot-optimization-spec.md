@@ -1716,3 +1716,21 @@ all-attempt cost、efficiency-positive、portfolio/readiness、held-out、live r
 18/18、pairwise regression 0。Original input+output 共 87575，artifact model token 0，平均节省 4865.2778/run。
 显式 production API construction token 为 0，故条件式 break-even 为 0 calls、首个 recurring run 即净正。该结果不补齐
 development-agent token 或 human review，也不改变上一段列出的 research/推广禁区。
+
+### 14.7 Stage P1：Magpie 产品主链接入合同
+
+用户授权停止测量扩张，以零付费方式把 Magpie 固定公开 9-case slice 接入既有 product v1
+`compile -> review/accept -> package -> run -> cost`。该接入必须实际调用现有 standalone CLI/library；不得复制第二套
+artifact/runtime/cost 实现。A-optional checker 只做薄适配并复用 Task 18.43 的独立 9/9 checker。Original recurring
+分母只允许读取并 digest-bind 003 compact report，不重跑 18 个 paid original，不读取 raw workdir 来补写缺失字段。
+
+产品 v1 允许做向后兼容的诚实性修正：显式 production one-time model token 为 0 时，数学 break-even 为 0 calls；
+历史 runtime duration 与 review humanMinutes 可显式标记 missing；machine-checked 配置可声明 `not-eligible` 并提供原因，
+而旧配置继续默认 `eligible-for-authority-review`。这些是同一 schema/version 的 additive compatibility 与计算纠错，不改变
+Env 的非零成本结果，也不是新 cost identity。缺失人工时间不得补 0，total human cost 保持不可计算。
+
+P1 compact report 必须同时绑定九份 product manifest/quality/cost closure、003 report 和既有 qualification/checker closure，
+并明确：quality 仅为固定公开 slice 的 machine-checked non-regression；original 通过 6/18 不是上游 judge 意义上的 33 分；
+`4865.2778` 只计 input+output，cache-read `40960` 单列；conditional break-even=0 只覆盖显式计量的 production API token。
+适配 287 LOC、checker 351 LOC 与 `humanMinutes=null` 必须并列披露，research efficiency、portfolio/readiness、held-out、
+live release 与 P2 均不由 P1 自动授权。

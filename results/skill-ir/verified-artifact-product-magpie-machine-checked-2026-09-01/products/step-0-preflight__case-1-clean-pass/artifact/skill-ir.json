@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "skill-ir/v1",
+  "id": "magpie-release-audit-report",
+  "name": "release-audit-report",
+  "category": [
+    "workflow",
+    "generative",
+    "diagnostic",
+    "constraint-heavy"
+  ],
+  "intent": "Assemble a per-release audit record from lifecycle artefacts (planning\nissue, vote thread, artefact list, promote revision, and announcement\nURL) and propose a PR appending it to the project's audit log.\nRead-only on every release surface; the only write is a PR the RM\nreviews and a committer merges.\n",
+  "source": {
+    "kind": "file",
+    "path": "benchmarks/skill-ir/pilots/magpie-release-audit/public/SKILL.md",
+    "sha256": "750e114c6954d0982cd1090c2d06723934c91be31df612cfb58e13abc7f04f93"
+  },
+  "inputs": [
+    {
+      "id": "report",
+      "description": "report.md (markdown, read-only)",
+      "required": true
+    },
+    {
+      "id": "interface",
+      "description": "release-audit-interface.json (json, read-only)",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "observations",
+      "description": "artifact-observations.json (json, json-object)",
+      "required": true
+    },
+    {
+      "id": "release-audit",
+      "description": "release-audit-output.json (json, json-object)",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    {
+      "id": "public-source-readable",
+      "description": "The digest-pinned public skill source is readable before execution.",
+      "checkability": "static"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-01",
+      "title": "**Version argument parseable.** `<version>` matches the expected",
+      "description": "**Version argument parseable.** `<version>` matches the expected",
+      "kind": "execute",
+      "required": true,
+      "dependsOn": [],
+      "toolRefs": [],
+      "produces": [
+        "output-01"
+      ],
+      "successCheckRefs": [],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    },
+    {
+      "id": "step-02",
+      "title": "**Planning issue found.** Either `--planning-issue <url>` was passed or",
+      "description": "**Planning issue found.** Either `--planning-issue <url>` was passed or",
+      "kind": "plan",
+      "required": true,
+      "dependsOn": [
+        "step-01"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "output-01"
+      ],
+      "successCheckRefs": [],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    },
+    {
+      "id": "step-03",
+      "title": "**`release-management-config.md` readable** and contains `audit_log_path`.",
+      "description": "**`release-management-config.md` readable** and contains `audit_log_path`.",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [
+        "step-02"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "output-01"
+      ],
+      "successCheckRefs": [],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    },
+    {
+      "id": "step-04",
+      "title": "**Roster file readable.** The file at `release_approver_roster_path`",
+      "description": "**Roster file readable.** The file at `release_approver_roster_path`",
+      "kind": "read",
+      "required": true,
+      "dependsOn": [
+        "step-03"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "output-01"
+      ],
+      "successCheckRefs": [],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    },
+    {
+      "id": "step-05",
+      "title": "**Drift check** — see *Snapshot drift* above.",
+      "description": "**Drift check** — see *Snapshot drift* above.",
+      "kind": "verify",
+      "required": true,
+      "dependsOn": [
+        "step-04"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "output-01"
+      ],
+      "successCheckRefs": [],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    },
+    {
+      "id": "step-06",
+      "title": "**Override consultation** — see *Adopter overrides* above.",
+      "description": "**Override consultation** — see *Adopter overrides* above.",
+      "kind": "execute",
+      "required": true,
+      "dependsOn": [
+        "step-05"
+      ],
+      "toolRefs": [],
+      "produces": [
+        "output-01",
+        "observations",
+        "release-audit"
+      ],
+      "successCheckRefs": [
+        "check-inputs-stable",
+        "check-outputs-present",
+        "check-outputs-exact",
+        "check-observations-shape",
+        "check-release-audit-fidelity"
+      ],
+      "failureModes": [
+        "source-semantics-insufficient"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-01",
+      "sourceText": "**Never write to any release surface.** No edits to the planning issue,",
+      "level": "never",
+      "scope": "file-edit",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "**Never write to any release surface.** No edits to the planning issue,"
+    },
+    {
+      "id": "rule-02",
+      "sourceText": "**Never open the audit-log PR on autopilot.** The PR open requires",
+      "level": "never",
+      "scope": "planning",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "**Never open the audit-log PR on autopilot.** The PR open requires"
+    },
+    {
+      "id": "rule-03",
+      "sourceText": "**Never auto-merge the audit-log PR.** Every PR merge requires",
+      "level": "never",
+      "scope": "planning",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "**Never auto-merge the audit-log PR.** Every PR merge requires"
+    },
+    {
+      "id": "rule-04",
+      "sourceText": "**Never invent field values.** A missing field is `MISSING`, not guessed.",
+      "level": "never",
+      "scope": "planning",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "**Never invent field values.** A missing field is `MISSING`, not guessed."
+    },
+    {
+      "id": "rule-05",
+      "sourceText": "**Never include content from the security tracker or non-public sources.**",
+      "level": "never",
+      "scope": "planning",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "**Never include content from the security tracker or non-public sources.**"
+    },
+    {
+      "id": "rule-06",
+      "sourceText": "**Never cite voters by personal email address.** Use PMC roster handles",
+      "level": "never",
+      "scope": "planning",
+      "checkability": "human",
+      "severity": "high",
+      "normalizedForm": "**Never cite voters by personal email address.** Use PMC roster handles"
+    }
+  ],
+  "tools": [],
+  "environment": [],
+  "checks": [
+    {
+      "id": "check-inputs-stable",
+      "name": "inputs-stable",
+      "kind": "rule-violation",
+      "targetRef": "report",
+      "assertion": "input-integrity: The public report and interface remain byte-identical.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-outputs-present",
+      "name": "outputs-present",
+      "kind": "output",
+      "targetRef": "observations",
+      "assertion": "output-presence: Both declared JSON artifacts are present.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-outputs-exact",
+      "name": "outputs-exact",
+      "kind": "output",
+      "targetRef": "observations",
+      "assertion": "exact-output-set: No undeclared files are created or modified.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-observations-shape",
+      "name": "observations-shape",
+      "kind": "output",
+      "targetRef": "observations",
+      "assertion": "json-shape: The observations object contains the report text and injection flag.",
+      "onFailure": "report"
+    },
+    {
+      "id": "check-release-audit-fidelity",
+      "name": "release-audit-fidelity",
+      "kind": "output",
+      "targetRef": "report",
+      "assertion": "content-fidelity: The release audit faithfully represents the fixed public report semantics.",
+      "onFailure": "report"
+    }
+  ],
+  "recovery": [],
+  "profile": []
+}

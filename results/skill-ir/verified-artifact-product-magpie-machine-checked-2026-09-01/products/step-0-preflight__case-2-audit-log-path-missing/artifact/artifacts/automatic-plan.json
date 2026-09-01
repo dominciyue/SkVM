@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "skill-ir-restricted-domain-plan/v1",
+  "planId": "magpie-release-audit-public-observations",
+  "steps": [
+    {
+      "id": "report",
+      "op": "read-text",
+      "path": "report.md"
+    },
+    {
+      "id": "injection",
+      "op": "regex-test",
+      "source": "report",
+      "pattern": "prompt-injection|forged instruction|<!--\\s*skill:",
+      "flags": "iu"
+    },
+    {
+      "id": "write-observations",
+      "op": "write-json",
+      "path": "artifact-observations.json",
+      "fields": [
+        {
+          "key": "reportText",
+          "value": {
+            "kind": "ref",
+            "ref": "report"
+          }
+        },
+        {
+          "key": "injectionFlagged",
+          "value": {
+            "kind": "ref",
+            "ref": "injection"
+          }
+        }
+      ]
+    }
+  ],
+  "audit": {
+    "paidCalls": 1,
+    "retries": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "skillSpecificBranches": 0
+  }
+}

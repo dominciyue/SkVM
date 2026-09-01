@@ -863,6 +863,26 @@ recurring model token 0，相对 original 平均节省 4865.2778 input+output to
 token 为 0，所以条件式 break-even=0 calls；但开发代理 token 与实际人工 review 仍不可观测，research all-attempt 与
 efficiency-positive 继续为 false，不能把固定 fixture 结果外推到 live source。
 
+### 14.8 Stage P1 Magpie 产品主链
+
+P1 没有新建产品版本。Product v1 做了四项向后兼容修正：0 one-time model token 的数学 break-even 不再被强制为 1；
+review humanMinutes 与 historical duration 可携带 missing reason；machine checker 可显式选择 `not-eligible`；review patch
+可用 `digest-bound-bundle` 绑定本地依赖后构建为单一可移植 payload。旧 `source` 模式、Env 默认
+`eligible-for-authority-review` 和 Env break-even=1 均由回归测试保持不变。Bundle audit 只允许静态声明依赖与窄 external
+allowlist，禁止 network/process/env/dynamic-import/evidence sinks；artifact provenance 与 quality sourceInputs 同时绑定入口和
+冻结 Magpie domain patch digest，最终 bundle 字节再由 artifact closure 绑定。
+
+Magpie 配方对 9 个 public case 分别真实调用 `runVerifiedArtifactCli`，每份 manifest 都记录同一
+`compile -> review-or-accept -> package -> run -> cost` stage order；九份产品经 `validateVerifiedArtifactProduct` 通过，artifact
+closure 相同，protected inputs 与 preview/production outputs 一致。Checker adapter 只复用并验 digest 的 Task 18.43 checker/
+qualification，不把 checker-only oracle 放进 artifact。当前 P1 为 0 model/API/paid；original 18 行只从 digest-bound 003
+compact report 导入，没有重跑或从 raw workdir 补字段。
+
+产品 cost v1 输出 machine-checked、research not-eligible、explicit production API token break-even=0，并保留
+review humanMinutes=null、historical duration missing、total human cost not-computable。Compact report 位于
+`results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json`；它把 cache-read 40960 单列，且把
+machine-checked 限定为固定公开切片 non-regression，不声称上游 judge 语义等价或“original skill 33%”。
+
 ## 15. 测试
 
 ```powershell

@@ -981,6 +981,18 @@ fresh run 并唯一执行；最终 36/36、18 paid model/API calls、18 artifact
 conditional break-even 为 0 calls 且 first recurring run net positive。Development-agent token/human review 未测，因此
 allAttemptCostComplete=false、research efficiency-positive=false，portfolio/readiness/held-out/live promotion 全为 false。
 
+Stage P1 随后以 0 model/API/paid 把 Magpie 接入既有 product v1。9 个 public case 都实际调用
+`runVerifiedArtifactCli` 并依次完成 compile/review-or-accept/package/run/cost；9/9 product validation、protected input 与
+checker 通过，artifact closure 统一为 `a94d9e70...18e80`。Original 18 行没有重跑，产品 loader 只从 digest
+`b31c0db0...41085` 的 003 report 重建 18 pair、6/18 vs 18/18 与 0 regression。
+
+产品 token view 为 input+output 87575/18=4865.2778 -> 0，显式 production API one-time=0，所以 conditional
+break-even=0；cache-read 40960 单列。Quality 是 fixed-slice machine-checked non-regression，不是上游 judge 语义等价或
+original skill 33% 分数。Adapter/checker 为 287/351 LOC，historical humanMinutes=null；虽然新 task declaration 前瞻记录 3
+分钟，development-agent token 与完整人工投入仍缺，故 total cost not-computable、researchEligibility=not-eligible。
+权威 compact report 为
+`results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json`。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -1029,6 +1041,7 @@ allAttemptCostComplete=false、research efficiency-positive=false，portfolio/re
 - `benchmarks/skill-ir/corpus/method-portfolio-authoritative-automation.json`
 - `results/skill-ir/method-portfolio-authoritative-automation-readiness.json`
 - `results/skill-ir/verified-artifact-product-env-machine-checked-2026-08-29/report.json`
+- `results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json`
 - `results/skill-ir/verified-artifact-collection-qualification-v1/report.json`
 - `results/skill-ir/magpie-release-audit-feasibility-v1/report.json`
 - `results/skill-ir/magpie-release-audit-executable-governance-qualification.json`

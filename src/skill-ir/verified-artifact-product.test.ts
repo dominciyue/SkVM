@@ -303,6 +303,78 @@ describe("verified artifact product workflow", () => {
     });
   });
 
+  test("keeps zero-call API-token economics separate from unknown human cost and research eligibility", async () => {
+    const { rootDir, workDir, baseConfig, checker } = await fixture();
+    const result = await runVerifiedArtifactWorkflow({
+      rootDir,
+      workDir,
+      outDir: join(rootDir, "machine-product-incomplete-research-cost"),
+      config: {
+        ...baseConfig,
+        review: {
+          ...baseConfig.review,
+          humanMinutes: null,
+          humanMinutesMissingReason: "historical review minutes were not prospectively measured",
+        },
+        production: {
+          oneTimeModelTokens: { status: "measured", value: 0 },
+          originalRuntime: {
+            status: "measured",
+            samples: 18,
+            aggregateModelTokens: 87575,
+            aggregateDurationMs: null,
+            durationMissingReason: "the compact historical denominator did not record aggregate duration",
+            evidence: baseConfig.production.originalRuntime.evidence,
+          },
+        },
+        quality: {
+          mode: "machine-checked",
+          checker,
+          researchDisposition: "not-eligible",
+          researchIneligibilityReason: "development-agent tokens and human review minutes are not observable",
+        },
+      },
+    });
+
+    expect(result.qualityEvidence).toMatchObject({
+      qualityEvidence: "machine-checked",
+      status: "pass",
+      researchDisposition: "not-eligible",
+      researchIneligibilityReason: "development-agent tokens and human review minutes are not observable",
+    });
+    expect(result.cost).toMatchObject({
+      qualityEvidence: "machine-checked",
+      claim: "token-saving-under-machine-checked-quality",
+      researchEligibility: "not-eligible",
+      production: {
+        oneTime: {
+          modelTokens: { status: "measured", value: 0 },
+          reviewAdapter: {
+            humanMinutes: null,
+            humanMinutesMissingReason: "historical review minutes were not prospectively measured",
+          },
+          totalHumanMinutes: null,
+        },
+        recurring: {
+          original: {
+            status: "measured",
+            samples: 18,
+            aggregateModelTokens: 87575,
+            aggregateDurationMs: null,
+            durationMissingReason: "the compact historical denominator did not record aggregate duration",
+          },
+        },
+      },
+      breakEven: { status: "computed", calls: 0, reason: null },
+    });
+    expect(result.cost.claimBoundary).toContain("not research-eligible");
+    await expect(validateVerifiedArtifactProduct(join(rootDir, "machine-product-incomplete-research-cost")))
+      .resolves.toMatchObject({
+        qualityEvidence: { researchDisposition: "not-eligible" },
+        cost: { breakEven: { status: "computed", calls: 0 } },
+      });
+  });
+
   test("fails closed when the accepted input bytes drift before the production run", async () => {
     const { rootDir, workDir, baseConfig } = await fixture();
     await expect(runVerifiedArtifactWorkflow({

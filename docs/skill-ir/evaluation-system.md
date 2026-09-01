@@ -1230,6 +1230,19 @@ byte-semantically identical。Original 6/18 pass，artifact 18/18、0 pairwise r
 为 73537/14038/40960，artifact model token 0。这里的 equivalence 只表示固定分母内 machine-checked non-regression，不是
 live source 或研究级 efficiency authority。
 
+### 11.13 Magpie P1 产品证据复核
+
+P1 report loader 不信任 003 的汇总布尔值：先验 report/policy digest，再从 36 条 compact records 重建 18 个完整 pair，
+重算 original=6、artifact=18、regression=0，并核对 original 通过的三类 case 各恰有两次。Token 口径再次从
+73537 input + 14038 output 重算为 87575/18；40960 cache-read 只披露、不进入均值。Qualification 同样按固定 digest 读取，
+复核 adapter=287 LOC、checker=351 LOC、9/9 checker 与 humanMinutes=null。
+
+九个产品 checker 在 preview workdir 上读取 initial manifest、public interface 与产物，加载既有独立 checker，并先验证
+qualification 及其五项 component identity。每个 product manifest/quality/cost digest 都进入 P1 compact report；raw workdirs
+不作为提交证据。结论只支持固定 public slice 的 product machine-check 与显式 API-token economics；research eligibility、
+portfolio/readiness、held-out、live source 仍为 false。权威结果为
+`results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json`。
+
 ## 12. 结果持久化
 
 提交到 Git：

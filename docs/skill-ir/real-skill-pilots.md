@@ -447,6 +447,17 @@ regression、0 infrastructure/retry。Original input/output/cache-read 为 73537
 break-even=0 calls、首个 recurring run 净正。它只证明这 9 个固定公开 fixture 的 machine-checked non-regression 与 token
 经济性，不证明 live Magpie release、未见输入、跨项目或 research efficiency-positive。
 
+### 12.4 Stage P1 产品主链接入
+
+P1 停止 measurement 扩张，将上述固定证据接到既有 Env product v1。新增薄 task declaration（77 行）、26 LOC patch adapter
+与 75 LOC checker adapter；前两者通过 digest-bound bundle 复用既有 170 LOC domain patch，checker adapter 则验
+qualification/component digest 后复用 351 LOC 独立 checker。九个真实 workdir 全部经 standalone CLI 的五阶段主链，九份
+artifact closure 相同，输出 digest 与 Task 18.43 qualification 逐例相等。
+
+历史 adapter 287 LOC 与 checker 351 LOC 继续作为冻结 construction evidence；historical humanMinutes 仍为 null。新 task
+declaration 只前瞻记录 3 分钟，其余开发代理 token/工程时间不可观测，所以 total cost 和 research efficiency 仍不可计算。
+当前阶段 0 model/API/paid、original rerun=0；不访问 live GitHub/mail，不晋级 portfolio/readiness，也未启动 P2。
+
 ## 13. 修改与验证
 
 ```powershell

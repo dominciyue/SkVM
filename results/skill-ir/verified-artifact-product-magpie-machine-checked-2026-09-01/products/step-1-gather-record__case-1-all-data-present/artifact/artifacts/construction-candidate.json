@@ -1,0 +1,684 @@
+{
+  "schemaVersion": "skill-ir-domain-automatic-construction-result/v1",
+  "contract": {
+    "schemaVersion": "skill-ir-domain-contract-candidate/v1",
+    "skillId": "magpie-release-audit-report",
+    "taskDescriptionId": "magpie-release-audit-public-product",
+    "taskKind": "analysis-report",
+    "intent": "Assemble a per-release audit record from lifecycle artefacts (planning\nissue, vote thread, artefact list, promote revision, and announcement\nURL) and propose a PR appending it to the project's audit log.\nRead-only on every release surface; the only write is a PR the RM\nreviews and a committer merges.\n",
+    "inputs": [
+      {
+        "id": "report",
+        "path": "report.md",
+        "format": "markdown",
+        "access": "read-only",
+        "required": true
+      },
+      {
+        "id": "interface",
+        "path": "release-audit-interface.json",
+        "format": "json",
+        "access": "read-only",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "observations",
+        "path": "artifact-observations.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [
+            "reportText",
+            "injectionFlagged"
+          ],
+          "allowAdditionalFields": false
+        }
+      },
+      {
+        "id": "release-audit",
+        "path": "release-audit-output.json",
+        "format": "json",
+        "required": true,
+        "structure": {
+          "kind": "json-object",
+          "requiredFields": [],
+          "allowAdditionalFields": true
+        }
+      }
+    ],
+    "passCriteria": [
+      {
+        "id": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "report",
+          "interface"
+        ],
+        "statement": "The public report and interface remain byte-identical."
+      },
+      {
+        "id": "outputs-present",
+        "predicate": "output-presence",
+        "targetRefs": [
+          "observations",
+          "release-audit"
+        ],
+        "statement": "Both declared JSON artifacts are present."
+      },
+      {
+        "id": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "observations",
+          "release-audit"
+        ],
+        "statement": "No undeclared files are created or modified."
+      },
+      {
+        "id": "observations-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "observations"
+        ],
+        "statement": "The observations object contains the report text and injection flag."
+      },
+      {
+        "id": "release-audit-fidelity",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "report",
+          "release-audit"
+        ],
+        "statement": "The release audit faithfully represents the fixed public report semantics."
+      }
+    ],
+    "sourceRules": [
+      {
+        "id": "rule-01",
+        "sourceText": "**Never write to any release surface.** No edits to the planning issue,"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "**Never open the audit-log PR on autopilot.** The PR open requires"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "**Never auto-merge the audit-log PR.** Every PR merge requires"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "**Never invent field values.** A missing field is `MISSING`, not guessed."
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "**Never include content from the security tracker or non-public sources.**"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "**Never cite voters by personal email address.** Use PMC roster handles"
+      }
+    ]
+  },
+  "baseIr": {
+    "schemaVersion": "skill-ir/v1",
+    "id": "magpie-release-audit-report",
+    "name": "release-audit-report",
+    "category": [
+      "workflow",
+      "generative",
+      "diagnostic",
+      "constraint-heavy"
+    ],
+    "intent": "Assemble a per-release audit record from lifecycle artefacts (planning\nissue, vote thread, artefact list, promote revision, and announcement\nURL) and propose a PR appending it to the project's audit log.\nRead-only on every release surface; the only write is a PR the RM\nreviews and a committer merges.\n",
+    "source": {
+      "kind": "file",
+      "path": "benchmarks/skill-ir/pilots/magpie-release-audit/public/SKILL.md",
+      "sha256": "750e114c6954d0982cd1090c2d06723934c91be31df612cfb58e13abc7f04f93"
+    },
+    "inputs": [
+      {
+        "id": "report",
+        "description": "report.md (markdown, read-only)",
+        "required": true
+      },
+      {
+        "id": "interface",
+        "description": "release-audit-interface.json (json, read-only)",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "observations",
+        "description": "artifact-observations.json (json, json-object)",
+        "required": true
+      },
+      {
+        "id": "release-audit",
+        "description": "release-audit-output.json (json, json-object)",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      {
+        "id": "public-source-readable",
+        "description": "The digest-pinned public skill source is readable before execution.",
+        "checkability": "static"
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-01",
+        "title": "**Version argument parseable.** `<version>` matches the expected",
+        "description": "**Version argument parseable.** `<version>` matches the expected",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-02",
+        "title": "**Planning issue found.** Either `--planning-issue <url>` was passed or",
+        "description": "**Planning issue found.** Either `--planning-issue <url>` was passed or",
+        "kind": "plan",
+        "required": true,
+        "dependsOn": [
+          "step-01"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-03",
+        "title": "**`release-management-config.md` readable** and contains `audit_log_path`.",
+        "description": "**`release-management-config.md` readable** and contains `audit_log_path`.",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [
+          "step-02"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-04",
+        "title": "**Roster file readable.** The file at `release_approver_roster_path`",
+        "description": "**Roster file readable.** The file at `release_approver_roster_path`",
+        "kind": "read",
+        "required": true,
+        "dependsOn": [
+          "step-03"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-05",
+        "title": "**Drift check** — see *Snapshot drift* above.",
+        "description": "**Drift check** — see *Snapshot drift* above.",
+        "kind": "verify",
+        "required": true,
+        "dependsOn": [
+          "step-04"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01"
+        ],
+        "successCheckRefs": [],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      },
+      {
+        "id": "step-06",
+        "title": "**Override consultation** — see *Adopter overrides* above.",
+        "description": "**Override consultation** — see *Adopter overrides* above.",
+        "kind": "execute",
+        "required": true,
+        "dependsOn": [
+          "step-05"
+        ],
+        "toolRefs": [],
+        "produces": [
+          "output-01",
+          "observations",
+          "release-audit"
+        ],
+        "successCheckRefs": [
+          "check-inputs-stable",
+          "check-outputs-present",
+          "check-outputs-exact",
+          "check-observations-shape",
+          "check-release-audit-fidelity"
+        ],
+        "failureModes": [
+          "source-semantics-insufficient"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "rule-01",
+        "sourceText": "**Never write to any release surface.** No edits to the planning issue,",
+        "level": "never",
+        "scope": "file-edit",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Never write to any release surface.** No edits to the planning issue,"
+      },
+      {
+        "id": "rule-02",
+        "sourceText": "**Never open the audit-log PR on autopilot.** The PR open requires",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Never open the audit-log PR on autopilot.** The PR open requires"
+      },
+      {
+        "id": "rule-03",
+        "sourceText": "**Never auto-merge the audit-log PR.** Every PR merge requires",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Never auto-merge the audit-log PR.** Every PR merge requires"
+      },
+      {
+        "id": "rule-04",
+        "sourceText": "**Never invent field values.** A missing field is `MISSING`, not guessed.",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Never invent field values.** A missing field is `MISSING`, not guessed."
+      },
+      {
+        "id": "rule-05",
+        "sourceText": "**Never include content from the security tracker or non-public sources.**",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Never include content from the security tracker or non-public sources.**"
+      },
+      {
+        "id": "rule-06",
+        "sourceText": "**Never cite voters by personal email address.** Use PMC roster handles",
+        "level": "never",
+        "scope": "planning",
+        "checkability": "human",
+        "severity": "high",
+        "normalizedForm": "**Never cite voters by personal email address.** Use PMC roster handles"
+      }
+    ],
+    "tools": [],
+    "environment": [],
+    "checks": [
+      {
+        "id": "check-inputs-stable",
+        "name": "inputs-stable",
+        "kind": "rule-violation",
+        "targetRef": "report",
+        "assertion": "input-integrity: The public report and interface remain byte-identical.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-outputs-present",
+        "name": "outputs-present",
+        "kind": "output",
+        "targetRef": "observations",
+        "assertion": "output-presence: Both declared JSON artifacts are present.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-outputs-exact",
+        "name": "outputs-exact",
+        "kind": "output",
+        "targetRef": "observations",
+        "assertion": "exact-output-set: No undeclared files are created or modified.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-observations-shape",
+        "name": "observations-shape",
+        "kind": "output",
+        "targetRef": "observations",
+        "assertion": "json-shape: The observations object contains the report text and injection flag.",
+        "onFailure": "report"
+      },
+      {
+        "id": "check-release-audit-fidelity",
+        "name": "release-audit-fidelity",
+        "kind": "output",
+        "targetRef": "report",
+        "assertion": "content-fidelity: The release audit faithfully represents the fixed public report semantics.",
+        "onFailure": "report"
+      }
+    ],
+    "recovery": [],
+    "profile": []
+  },
+  "validationPlan": {
+    "schemaVersion": "skill-ir-domain-construction-validation-plan/v1",
+    "predicates": [
+      {
+        "criterionId": "inputs-stable",
+        "predicate": "input-integrity",
+        "targetRefs": [
+          "report",
+          "interface"
+        ],
+        "assertion": "The public report and interface remain byte-identical.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "outputs-present",
+        "predicate": "output-presence",
+        "targetRefs": [
+          "observations",
+          "release-audit"
+        ],
+        "assertion": "Both declared JSON artifacts are present.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "outputs-exact",
+        "predicate": "exact-output-set",
+        "targetRefs": [
+          "observations",
+          "release-audit"
+        ],
+        "assertion": "No undeclared files are created or modified.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "observations-shape",
+        "predicate": "json-shape",
+        "targetRefs": [
+          "observations"
+        ],
+        "assertion": "The observations object contains the report text and injection flag.",
+        "loweringStatus": "generic-deterministic"
+      },
+      {
+        "criterionId": "release-audit-fidelity",
+        "predicate": "content-fidelity",
+        "targetRefs": [
+          "report",
+          "release-audit"
+        ],
+        "assertion": "The release audit faithfully represents the fixed public report semantics.",
+        "loweringStatus": "domain-runtime-required"
+      }
+    ],
+    "deterministicGate": {
+      "status": "passed",
+      "checks": [
+        {
+          "id": "source-digest",
+          "status": "passed",
+          "detail": "750e114c6954d0982cd1090c2d06723934c91be31df612cfb58e13abc7f04f93"
+        },
+        {
+          "id": "declaration-digest",
+          "status": "passed",
+          "detail": "0497862ce27488f3f9eb7332b0b16260db543685f8f0839f4afab1134c6ee986"
+        },
+        {
+          "id": "declaration-thinness",
+          "status": "passed",
+          "detail": "within-limit"
+        },
+        {
+          "id": "domain-bindings",
+          "status": "passed",
+          "detail": "contract, IR, and plan bindings agree"
+        }
+      ]
+    },
+    "semanticParity": {
+      "status": "not-established",
+      "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+    }
+  },
+  "packageCandidate": {
+    "schemaVersion": "skill-ir-domain-package-candidate/v1",
+    "status": "non-executable",
+    "executionPlan": null,
+    "artifacts": [
+      {
+        "id": "skill-markdown",
+        "path": "skill.md"
+      },
+      {
+        "id": "skill-ir",
+        "path": "skill-ir.json"
+      },
+      {
+        "id": "domain-contract",
+        "path": "domain-contract.json"
+      },
+      {
+        "id": "validation-plan",
+        "path": "validation-plan.json"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "runtime-release-audit-fidelity",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "report",
+          "release-audit"
+        ],
+        "reason": "release-audit-fidelity requires a domain runtime implementation: The release audit faithfully represents the fixed public report semantics."
+      },
+      {
+        "id": "package-observations",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "observations",
+          "release-audit"
+        ],
+        "reason": "no qualified compiler emits artifact-observations.json, release-audit-output.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "thinness": {
+    "status": "within-limit",
+    "loc": 78,
+    "maxLoc": 80,
+    "semanticEntries": 11,
+    "maxSemanticEntries": 40,
+    "reasons": []
+  },
+  "semanticAccounting": {
+    "fromSkillSource": {
+      "units": [
+        {
+          "id": "step-01",
+          "kind": "workflow-step",
+          "value": "**Version argument parseable.** `<version>` matches the expected"
+        },
+        {
+          "id": "step-02",
+          "kind": "workflow-step",
+          "value": "**Planning issue found.** Either `--planning-issue <url>` was passed or"
+        },
+        {
+          "id": "step-03",
+          "kind": "workflow-step",
+          "value": "**`release-management-config.md` readable** and contains `audit_log_path`."
+        },
+        {
+          "id": "step-04",
+          "kind": "workflow-step",
+          "value": "**Roster file readable.** The file at `release_approver_roster_path`"
+        },
+        {
+          "id": "step-05",
+          "kind": "workflow-step",
+          "value": "**Drift check** — see *Snapshot drift* above."
+        },
+        {
+          "id": "step-06",
+          "kind": "workflow-step",
+          "value": "**Override consultation** — see *Adopter overrides* above."
+        },
+        {
+          "id": "rule-01",
+          "kind": "rule",
+          "value": "**Never write to any release surface.** No edits to the planning issue,"
+        },
+        {
+          "id": "rule-02",
+          "kind": "rule",
+          "value": "**Never open the audit-log PR on autopilot.** The PR open requires"
+        },
+        {
+          "id": "rule-03",
+          "kind": "rule",
+          "value": "**Never auto-merge the audit-log PR.** Every PR merge requires"
+        },
+        {
+          "id": "rule-04",
+          "kind": "rule",
+          "value": "**Never invent field values.** A missing field is `MISSING`, not guessed."
+        },
+        {
+          "id": "rule-05",
+          "kind": "rule",
+          "value": "**Never include content from the security tracker or non-public sources.**"
+        },
+        {
+          "id": "rule-06",
+          "kind": "rule",
+          "value": "**Never cite voters by personal email address.** Use PMC roster handles"
+        },
+        {
+          "id": "output-01",
+          "kind": "output-description",
+          "value": "Result described by the public skill source."
+        }
+      ]
+    },
+    "fromTaskDeclaration": {
+      "units": [
+        {
+          "id": "report",
+          "kind": "input",
+          "value": "report.md"
+        },
+        {
+          "id": "interface",
+          "kind": "input",
+          "value": "release-audit-interface.json"
+        },
+        {
+          "id": "observations",
+          "kind": "output",
+          "value": "artifact-observations.json"
+        },
+        {
+          "id": "release-audit",
+          "kind": "output",
+          "value": "release-audit-output.json"
+        },
+        {
+          "id": "inputs-stable",
+          "kind": "pass-criterion",
+          "value": "The public report and interface remain byte-identical."
+        },
+        {
+          "id": "outputs-present",
+          "kind": "pass-criterion",
+          "value": "Both declared JSON artifacts are present."
+        },
+        {
+          "id": "outputs-exact",
+          "kind": "pass-criterion",
+          "value": "No undeclared files are created or modified."
+        },
+        {
+          "id": "observations-shape",
+          "kind": "pass-criterion",
+          "value": "The observations object contains the report text and injection flag."
+        },
+        {
+          "id": "release-audit-fidelity",
+          "kind": "pass-criterion",
+          "value": "The release audit faithfully represents the fixed public report semantics."
+        }
+      ]
+    },
+    "automationProduced": {
+      "contractBindings": 9,
+      "irTaskAbiBindings": 4,
+      "validationPredicates": 5,
+      "genericDeterministicPredicates": 4
+    },
+    "stillRequiresHuman": [
+      {
+        "id": "runtime-release-audit-fidelity",
+        "kind": "domain-runtime",
+        "targetRefs": [
+          "report",
+          "release-audit"
+        ],
+        "reason": "release-audit-fidelity requires a domain runtime implementation: The release audit faithfully represents the fixed public report semantics."
+      },
+      {
+        "id": "package-observations",
+        "kind": "artifact-compiler",
+        "targetRefs": [
+          "observations",
+          "release-audit"
+        ],
+        "reason": "no qualified compiler emits artifact-observations.json, release-audit-output.json and binds its domain-runtime validation"
+      }
+    ]
+  },
+  "semanticParity": {
+    "status": "not-established",
+    "reason": "shadow comparison does not execute task outputs or a qualified domain runtime"
+  },
+  "audit": {
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "evaluatorPayloadAccesses": 0,
+    "readPaths": [
+      "benchmarks/skill-ir/pilots/magpie-release-audit/public/SKILL.md",
+      "benchmarks/skill-ir/pilots/magpie-release-audit/product-task-description.json"
+    ]
+  }
+}
