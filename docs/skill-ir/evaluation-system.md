@@ -1243,6 +1243,18 @@ qualification 及其五项 component identity。每个 product manifest/quality/
 portfolio/readiness、held-out、live source 仍为 false。权威结果为
 `results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json`。
 
+### 11.14 Stage M qualification 与唯一矩阵 authority
+
+Stage M 不复用旧 three-family v4 的 reserve/selection 语义。Qualification 先按 family-then-case 顺序执行 27 个 original rows；
+每行保存 family/route/case/status/classification、usage availability 和 input/output/cache token、duration 与失败 detail。只有三族
+均为 9/9 semantic-complete 且 usage available 时，lock-digest-bound `qualification.json` 才授权 matrix。资格失败本身是冻结负结果，
+不 retry、不替换模型、不改 artifact。
+
+授权后的唯一矩阵只有 27 个 original model rows 和 9 个共享 frozen-artifact anchors。模型失败行保留在分母；缺 terminal 的
+attempt 不能重发。Artifact checker authority 是 P2 fixed output-digest regression，不是 P1 semantic checker，bundle 仍需现有 SkVM
+runtime，`report.md` 等 fixture 仍来自 workdir。报告只给 frozen development direction，不建立模型排名、跨模型泛化、held-out、
+promotion 或 readiness。
+
 ## 12. 结果持久化
 
 提交到 Git：

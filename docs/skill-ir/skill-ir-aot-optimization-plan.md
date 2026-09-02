@@ -1706,6 +1706,27 @@ closure 固化为可搬移 staging bundle，再复用现有 verified-artifact pr
 7. [x] focused importer/CLI/Magpie tests 12/12、product compatibility 18/18、typecheck 与 `git diff --check` 通过；未修改 P1 冻结
    结果、portfolio/readiness 或未跟踪历史实验材料。
 
+### 4.38 Stage M：冻结 Magpie 产物的跨模型族面板
+
+**目标与边界：** 停论文、停新 skill、停 DSL。只在 P1/P2 冻结产物上建立新的 development panel identity；先验证三族能完成
+完整 9-case usage 分母，再允许一次唯一矩阵。失败就是结果，不为了得到正例修改 artifact/package/route/case/timeout/DSL。
+
+1. [x] 用 TDD 固定独立 lock/schema：GPT=`xty/gpt-5.6-sol`、Claude=`xty/claude-opus-4-8`、DeepSeek=
+   `xty/deepseek-v4-pro`，9 个 public-development cases，Pi 0.67.68、Windows/clean、600000/120000/660000ms、30 steps、
+   0 retry、1 repetition、family-then-case；lock digest 绑定 P1 config/report/checker、artifact closure 和 prompt closure；
+2. [x] Qualification 固定 27 original rows。三族各 9/9、classification=`semantic-complete`、usage available 才授权 matrix；
+   缺行或失败写入 `qualification.json`，不补跑、不换 route、不删族；
+3. [x] 唯一矩阵固定 27 model original + 9 shared frozen-artifact = 36 logical rows。失败 model row 仍占分母；artifact 每 case
+   一行，不按族复制；0 reserve/replacement；
+4. [x] 实现前台 serial owner 与原子 plan/state/prefix。每行 dispatch 前持久化 in-flight；terminal 先入 prefix，再推进 state；
+   dispatched-without-terminal 永久 fail closed，重复入口不能重发；
+5. [x] 报告显式保留 usage、duration、classification、failure detail、output digest、direction、0 retry/replacement 和
+   `p2-gold-digest-output-regression` claim boundary；P2 checker 不是 P1 semantic checker；
+6. [x] 同步 component/spec/plan/README/evaluation/artifact/pilot/result 文档与本地 handoff/log，运行 focused/typecheck/diff 审计，
+   focused commit 并推送；
+7. [ ] 本轮不执行真实 qualification 或 matrix。后续若启动 qualification，任一族失败即冻结 negative result 并停止；只有三族
+   全过才允许一次 matrix，且结果不得更新 readiness/portfolio/held-out/promotion。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

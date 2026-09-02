@@ -883,6 +883,16 @@ review humanMinutes=null、historical duration missing、total human cost not-co
 `results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json`；它把 cache-read 40960 单列，且把
 machine-checked 限定为固定公开切片 non-regression，不声称上游 judge 语义等价或“original skill 33%”。
 
+### 14.9 P2 bundle 与 Stage M artifact anchor
+
+P2 bundle 不是独立 runtime；它只携带 skill/review closure，执行仍依赖现有 SkVM product CLI，`report.md` 等用户输入由
+workdir 提供。P2 Magpie checker 只验证 P1 output digest regression，不携带 P1 semantic checker；静态 import audit 也只是
+patch/checker 的按行正则检查，不是通用 JS dependency graph。
+
+Stage M 将该冻结 artifact 作为每 case 一个共享 deterministic anchor，不按模型族复制。Lock 绑定 P1 config/report/checker、统一
+artifact closure 与九个预期 output digest；matrix report 将 output digest mismatch 写为 artifact failed row，并保留 9-row 分母，
+不得修改 package 后补跑。该 artifact 比较只服务于固定 development panel，不改变 product researchEligibility。
+
 ## 15. 测试
 
 ```powershell

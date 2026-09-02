@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "skill-ir-stage-m-frozen-magpie-cross-model-panel-lock/v1",
+  "status": "preregistered",
+  "experimentId": "skill-ir-stage-m-frozen-magpie-cross-model-panel-001",
+  "artifact": {
+    "productConfig": {
+      "path": "benchmarks/skill-ir/pilots/magpie-release-audit/verified-artifact-product-machine-checked.json",
+      "sha256": "82927a33ca5e59211bcb8f946240d05f934b569867366a0ccce4b836aeccdd9f"
+    },
+    "productReport": {
+      "path": "results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json",
+      "sha256": "729f6b08e15fb5b2b5e6409520e5343d281ffeef59837cb17f6183db0029a55d"
+    },
+    "checker": {
+      "path": "src/benchmarks/skill-ir/verified-artifact-product-magpie-checker.ts",
+      "sha256": "b22c73a029a0f2980df40be4041cdd603fbc6255e8771f4687a1ef62e5065b70"
+    },
+    "closureSha256": "a94d9e70fbcf0fc29be0c308b01131ce388cb287d101ee78a0d80d9dc0918e80",
+    "checkerAuthority": "p2-gold-digest-output-regression"
+  },
+  "inputs": {
+    "measurementTasks": {
+      "path": "benchmarks/skill-ir/pilots/magpie-release-audit/measurement-tasks-executable-bound.json",
+      "sha256": "6a86f43c0cf8ca0c9a078f6fe3e1a8cf9f081faa8c2e5512b118dff7633eaca4"
+    },
+    "upstreamCommit": "453dd9f20bdebe9d4458d84682bd707be1414f80",
+    "split": "public-development"
+  },
+  "models": [
+    { "family": "gpt", "route": "xty/gpt-5.6-sol" },
+    { "family": "claude", "route": "xty/claude-opus-4-8" },
+    { "family": "deepseek", "route": "xty/deepseek-v4-pro" }
+  ],
+  "cases": [
+    { "caseId": "step-0-preflight/case-1-clean-pass", "split": "public-development" },
+    { "caseId": "step-0-preflight/case-2-audit-log-path-missing", "split": "public-development" },
+    { "caseId": "step-0-preflight/case-3-planning-issue-not-found", "split": "public-development" },
+    { "caseId": "step-1-gather-record/case-1-all-data-present", "split": "public-development" },
+    { "caseId": "step-1-gather-record/case-2-partial-data", "split": "public-development" },
+    { "caseId": "step-2-assemble-record/case-1-full-record", "split": "public-development" },
+    { "caseId": "step-2-assemble-record/case-2-missing-fields", "split": "public-development" },
+    { "caseId": "step-2-assemble-record/case-3-injection-in-planning-issue", "split": "public-development" },
+    { "caseId": "step-2-assemble-record/case-4-all-required-missing", "split": "public-development" }
+  ],
+  "harness": {
+    "adapter": "pi",
+    "adapterVersion": "0.67.68",
+    "adapterConfig": "managed",
+    "environment": "windows",
+    "context": "clean",
+    "absoluteTimeoutMs": 600000,
+    "idleTimeoutMs": 120000,
+    "maxSteps": 30,
+    "outerWatchdogMs": 660000,
+    "retries": 0
+  },
+  "matrix": {
+    "modelSystems": ["original"],
+    "artifactSystem": "frozen-artifact",
+    "repetitions": 1,
+    "expectedCases": 9,
+    "expectedModelRows": 27,
+    "expectedArtifactRows": 9,
+    "expectedLogicalRows": 36,
+    "order": "family-then-case"
+  },
+  "qualification": {
+    "expectedRowsPerFamily": 9,
+    "requiredUsage": true,
+    "matrixRequiresAllFamilies": true
+  },
+  "claims": {
+    "heldOutAllowed": false,
+    "promotionAllowed": false,
+    "readinessMutationAllowed": false,
+    "crossModelGeneralization": "not-established"
+  },
+  "prohibited": [
+    "artifact-or-package-mutation",
+    "retry-or-replacement",
+    "held-out",
+    "model-family-deletion",
+    "p1-checker-expansion",
+    "readiness-or-portfolio-mutation"
+  ]
+}

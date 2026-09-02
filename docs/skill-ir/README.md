@@ -209,6 +209,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   0 model/API/paid，003 original rerun=0。产品质量仅为 fixed-slice machine-checked non-regression；API-token
   break-even=0，researchEligibility=not-eligible。P2 又补上了可迁移 external import staging bundle，但不改变
   该研究资格边界。
+- Stage M 现已冻结独立的 Magpie 跨模型族 development panel 合同：GPT/Claude/DeepSeek 各先完成 9-case qualification；
+  三族全部通过后才允许一次 27 model + 9 shared artifact 的唯一矩阵。当前只完成 lock、runner、schema、测试和文档，
+  尚未启动模型/API；任何资格失败都作为负结果冻结，不 retry、不换 route、不改 package/DSL，也不晋级 readiness。
 
 ## 当前下一步
 
@@ -283,9 +286,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> Stage P1 已完成 Magpie product v1：9/9 CLI 产品、0 当前 paid、003 original rerun=0、API-token break-even=0
 -> 产品 researchEligibility=not-eligible；raw workdir 本地保留，P2 external import 已完成并保持研究边界
 -> P2 external import 已完成：strict recipe/manifest、exact closure verifier、CLI 与 checked-in 非 Magpie fixture；Magpie 仅 shadow `step-0-preflight/case-1-clean-pass`，搬移 bundle 后仍由现有 product CLI 五阶段执行，输出 digest 对上 P1，0 original rerun/0 当前 paid
--> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
--> 固定三模型族、clean + noisy/long 与成本摊销主实验
--> 统一 CLI/library/Optimizer Agent 交付入口
+-> Stage M 只在冻结产物上先跑三族 9-case usage qualification；任一族不完整即冻结 negative result 并停止
+-> qualification 全过后只允许一次 27 original + 9 shared artifact 唯一矩阵；0 retry/reserve/replacement
+-> Stage M 是 development diagnostic，不修改 portfolio/readiness，不开放 held-out/promotion/live Magpie
 ```
 
 方法案例数量不固定，6 只是起点。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式

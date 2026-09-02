@@ -458,6 +458,16 @@ artifact closure 相同，输出 digest 与 Task 18.43 qualification 逐例相�
 declaration 只前瞻记录 3 分钟，其余开发代理 token/工程时间不可观测，所以 total cost 和 research efficiency 仍不可计算。
 当前阶段 0 model/API/paid、original rerun=0；不访问 live GitHub/mail，不晋级 portfolio/readiness，也未启动 P2。
 
+### 12.5 Stage P2 与 Stage M 边界
+
+P2 importer 已完成显式 8-file closure、路径安全、可搬 staging bundle 与单案例 shadow。这里的 bundle 仍要求现有 SkVM runtime，
+不包含 `report.md` 等 workdir fixture；Magpie shadow checker 只做固定 output digest regression，不是 P1 semantic checker 搬迁，
+静态 import audit 也不是通用 JavaScript 模块图。
+
+Stage M 只复用上述冻结 product/artifact，不扩 Magpie。其 lock 固定三族各 9 个 qualification rows；三族全部完成且 usage 可观测
+后才允许一次 27 model + 9 shared artifact 矩阵。资格失败冻结为 negative result，0 retry/replacement，不改 P1/package/DSL，
+不晋级 readiness、held-out 或 live release。当前只完成 runner 合同，尚未启动模型执行。
+
 ## 13. 修改与验证
 
 ```powershell

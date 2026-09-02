@@ -1754,3 +1754,24 @@ Bundle 搬离原 checkout 后仍可由现有 SkVM verified-artifact CLI 以 `--r
 Magpie shadow 只执行 `step-0-preflight/case-1-clean-pass`，五阶段 product chain 输出 digest 与 P1 同案例一致。该证据只证明
 导入闭包、路径安全和现有 product 组合可工作，不证明独立 runtime、自动依赖发现、live-source 泛化、semantic parity、
 研究效率或 portfolio/readiness 晋级。
+
+Magpie P2 checker 只比较固定 P1 output digest，不是 P1 `scoreMagpieReleaseAuditOutput` semantic checker 的搬迁；因此
+`machine-checked` 在该 shadow 上必须解释为 output-digest regression。Bundle 只包含 skill/review closure，`report.md` 等用户输入
+fixture 仍由 workdir 提供，不得描述为整任务可搬运。静态 import audit 只按行正则扫描 recipe 声明的 patch/checker，不是通用
+JavaScript 模块图。
+
+### 14.9 Stage M：冻结产物上的跨模型族面板
+
+Stage M 使用独立 identity `skill-ir-stage-m-frozen-magpie-cross-model-panel-001`，只绑定 P1/P2 已冻结的 product config、product
+report、checker、artifact closure、Magpie public prompt closure 与 upstream commit。模型族固定为 `xty/gpt-5.6-sol`、
+`xty/claude-opus-4-8`、`xty/deepseek-v4-pro`；Pi 0.67.68、Windows/clean、600000/120000/660000ms timeout、30 steps、
+`retries=0`、一次 repetition 和 `family-then-case` 顺序均不可在结果后修改。
+
+先执行 27 个 original qualification rows，每族必须恰好完成 9/9 且 usage 可观测。任一族缺行、usage unavailable、parser/runtime/
+timeout/controller failure 都令 qualification `failed`、`matrixAuthorized=false`，并作为负结果冻结；不得 retry、替换 route、删除模型族
+或修改 artifact/package/DSL。只有 qualification 全过，才执行一次 27 model original + 9 shared frozen-artifact 的唯一矩阵。失败的
+model row 仍占分母，artifact anchor 每 case 只执行一次；dispatch 后缺 terminal 永久 fail closed。
+
+Stage M 的 artifact authority 固定为 `p2-gold-digest-output-regression`，不是 P1 semantic checker。该面板只作 development
+diagnostic，不建立跨模型泛化、held-out、promotion、portfolio 或 readiness 结论；当前阶段只冻结 lock/policy/runner/report schema/
+tests/docs，不启动模型/API。

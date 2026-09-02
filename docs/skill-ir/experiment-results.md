@@ -993,6 +993,14 @@ original skill 33% 分数。Adapter/checker 为 287/351 LOC，historical humanMi
 权威 compact report 为
 `results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json`。
 
+Stage P2 随后完成通用 external import staging bundle，但 Magpie shadow 只检查固定 P1 output digest，不等于 P1 semantic checker
+随 bundle 搬迁；bundle 仍依赖现有 SkVM runtime，且 `report.md` 等 fixture 来自外部 workdir。
+
+Stage M 已冻结 `skill-ir-stage-m-frozen-magpie-cross-model-panel-001` 的 lock、schema、plan/runner 与 focused tests。固定 route 为
+GPT/Claude/DeepSeek 三族，各 9 个 public-development qualification rows；只有 27/27 semantic-complete 且 usage 可观测才允许一次
+27 model + 9 shared artifact 的唯一矩阵。当前 model/API/paid calls 为 0，qualification/matrix 均未执行，因此没有新增模型质量、
+跨模型泛化或 readiness 结果。后续资格失败将直接作为 negative result 冻结，不 retry、replacement 或改包。
+
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`
 - `results/skill-ir/bids-prospective-development-v1/matrix-capture.json`
@@ -1048,3 +1056,4 @@ original skill 33% 分数。Adapter/checker 为 287/351 LOC，historical humanMi
 - `benchmarks/skill-ir/pilots/magpie-release-audit/measurement-policy-executable-bound.json`
 - `benchmarks/skill-ir/pilots/magpie-release-audit/measurement-tasks-executable-bound.json`
 - `results/skill-ir/magpie-release-audit-public-efficiency-003/report.json`
+- `benchmarks/skill-ir/panels/stage-m-frozen-magpie-001/panel-lock.json`
