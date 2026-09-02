@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "skill-ir-stage-n-cross-model-aot-stability-panel-lock/v1",
+  "status": "preregistered",
+  "experimentId": "skill-ir-stage-n-cross-model-aot-stability-001",
+  "models": [
+    { "family": "gpt", "route": "xty/gpt-5.6-sol" },
+    { "family": "claude", "route": "xty/claude-opus-4-8" },
+    { "family": "deepseek", "route": "xty/deepseek-v4-pro" }
+  ],
+  "skills": [
+    {
+      "skillId": "api-tester",
+      "sourceLock": { "path": "benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json", "sha256": "47d129479970669764c587b624310ae9dd3490bc42509c0b17d6a0686d3d384c" },
+      "originalEvidence": { "path": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json", "sha256": "4465efd0a1e3de62c6d3069e39740c6e30190104b58e6efb158827bc1131f5c4" },
+      "taskIds": ["api-tester-openapi-users-dev-001", "api-tester-openapi-inventory-dev-002"]
+    },
+    {
+      "skillId": "env-manager-v3",
+      "sourceLock": { "path": "benchmarks/skill-ir/pilots/env-manager/reviewed-aot-efficiency-readonly-serial-v1.json", "sha256": "029fb0bd42bab7905db2a56e4a1a46bcd28b21a735b4e723a712873aff1da672" },
+      "originalEvidence": { "path": "results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/paired-quality-evidence.json", "sha256": "6281b7bf22f618b546e22e22c89725d584bfe84075778c8dce2e0eea5c046cf5" },
+      "costEvidence": { "path": "results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json", "sha256": "ad706d6abbb438893765b522274f0c2ba7050fe2d77953536b0711f6c60f7245" },
+      "taskIds": ["env-manager-scorer-authority-node-dev-001", "env-manager-scorer-authority-vite-dev-002"]
+    }
+  ],
+  "harness": {
+    "adapter": "pi",
+    "adapterVersion": "0.67.68",
+    "adapterConfig": "managed",
+    "environment": "windows",
+    "context": "clean",
+    "absoluteTimeoutMs": 600000,
+    "idleTimeoutMs": 120000,
+    "maxSteps": 30,
+    "outerWatchdogMs": 660000
+  },
+  "denominator": { "skills": 2, "tasksPerSkill": 2, "repetitions": 2, "families": 3, "originalRows": 24, "artifactRows": 8, "logicalRows": 32 },
+  "smoke": { "rowsPerFamilyPerSkill": 1, "expectedRows": 6, "retries": 0, "reserve": 0 },
+  "matrix": { "authorized": false, "originalRows": 24, "artifactRows": 8, "logicalRows": 32, "paidOriginalRows": 16 },
+  "claims": { "heldOutAllowed": false, "promotionAllowed": false, "readinessMutationAllowed": false, "claim": "AOT removes runtime model" },
+  "prohibited": ["matrix-before-smoke-review", "retry-or-reserve", "held-out", "package-mutation", "readiness-mutation", "GPT-rerun"]
+}
