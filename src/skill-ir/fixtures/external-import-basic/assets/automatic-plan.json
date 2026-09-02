@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "skill-ir-restricted-domain-plan/v1",
+  "planId": "manifest-summary-candidate",
+  "steps": [
+    { "id": "manifest", "op": "read-json", "path": "manifest.json" },
+    { "id": "name", "op": "json-pointer", "source": "manifest", "pointer": "/name" },
+    {
+      "id": "write-summary",
+      "op": "write-json",
+      "path": "summary.json",
+      "fields": [
+        { "key": "name", "value": { "kind": "ref", "ref": "name" } },
+        { "key": "normalizedName", "value": { "kind": "ref", "ref": "name" } }
+      ]
+    }
+  ],
+  "audit": { "paidCalls": 1, "retries": 0, "heldOutAccesses": 0, "evaluatorPayloadAccesses": 0, "skillSpecificBranches": 0 }
+}

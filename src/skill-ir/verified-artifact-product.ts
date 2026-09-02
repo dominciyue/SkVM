@@ -382,6 +382,14 @@ async function buildBundle(entrypoint: string, root: string): Promise<Buffer> {
   const build = await Bun.build({
     entrypoints: [entrypoint],
     root,
+    plugins: [{
+      name: "verified-artifact-runtime-dependencies",
+      setup(builder) {
+        builder.onResolve({ filter: /^zod$/u }, () => ({
+          path: join(root, "node_modules/zod/index.js"),
+        }));
+      },
+    }],
     target: "bun",
     format: "esm",
     minify: false,
@@ -802,7 +810,11 @@ export async function runVerifiedArtifactWorkflow(options: {
       workDir: previewDir,
       env: { SKVM_BUN: process.execPath },
     });
-    if (previewExecution.status !== "complete") throw new Error(`candidate preview failed: ${previewExecution.status}`);
+    if (previewExecution.status !== "complete") {
+      const failed = previewExecution.nodes.find((node) => node.status === "failed");
+      const detail = failed ? " at " + failed.id + " (" + (failed.failureClass ?? "unknown") + ", exit=" + (failed.exitCode ?? "null") + ")" : "";
+      throw new Error("candidate preview failed: " + previewExecution.status + detail);
+    }
     const previewAfter = await snapshot(previewDir);
     const delta = deltaBetween(initialInputs, previewAfter, outputPaths);
     if (!delta.exactOutputSet) throw new Error("candidate preview does not produce the exact declared output delta");

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "skill-ir-task-description/v1",
+  "descriptionId": "manifest-summary-task",
+  "taskKind": "analysis-report",
+  "inputs": [
+    { "id": "manifest", "path": "manifest.json", "format": "json", "access": "read-only", "required": true },
+    { "id": "interface", "path": "summary-interface.json", "format": "json", "access": "read-only", "required": true }
+  ],
+  "outputs": [
+    {
+      "id": "summary",
+      "path": "summary.json",
+      "format": "json",
+      "required": true,
+      "structure": { "kind": "json-object", "requiredFields": ["name", "normalizedName"], "allowAdditionalFields": false }
+    }
+  ],
+  "passCriteria": [
+    { "id": "inputs-stable", "predicate": "input-integrity", "targetRefs": ["manifest", "interface"], "statement": "Inputs remain unchanged." },
+    { "id": "summary-shape", "predicate": "json-shape", "targetRefs": ["summary"], "statement": "The summary has the declared fields." }
+  ]
+}
