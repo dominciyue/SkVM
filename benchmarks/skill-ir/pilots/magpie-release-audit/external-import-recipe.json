@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "skill-ir-external-skill-import-recipe/v1",
+  "importId": "magpie-release-audit-external-shadow-v1",
+  "workflowId": "magpie-release-audit-product",
+  "provenance": {
+    "repository": "https://github.com/apache/magpie",
+    "commit": "453dd9f20bdebe9d4458d84682bd707be1414f80",
+    "upstreamPath": "skills/release-audit-report/SKILL.md",
+    "licenseExpression": "Apache-2.0"
+  },
+  "files": [
+    { "id": "skill", "root": "source", "inputPath": "SKILL.md", "targetPath": "source/SKILL.md", "role": "source-skill" },
+    { "id": "license", "root": "source", "inputPath": "LICENSE.upstream", "targetPath": "source/LICENSE", "role": "license" },
+    { "id": "task", "root": "asset", "inputPath": "benchmarks/skill-ir/pilots/magpie-release-audit/product-task-description.json", "targetPath": "recipe/task-description.json", "role": "task-description" },
+    { "id": "plan", "root": "asset", "inputPath": "benchmarks/skill-ir/pilots/magpie-release-audit/reviewed-plan.json", "targetPath": "recipe/automatic-plan.json", "role": "automatic-plan" },
+    { "id": "patch", "root": "asset", "inputPath": "src/benchmarks/skill-ir/verified-artifact-product-magpie-patch.ts", "targetPath": "recipe/review/patch.ts", "role": "review-patch" },
+    { "id": "patch-dependency", "root": "asset", "inputPath": "src/benchmarks/skill-ir/magpie-release-audit-artifact-patch.ts", "targetPath": "recipe/review/magpie-release-audit-artifact-patch.ts", "role": "review-dependency" },
+    { "id": "checker", "root": "asset", "inputPath": "src/benchmarks/skill-ir/external-skill-import-magpie-checker.ts", "targetPath": "recipe/checker/checker.ts", "role": "checker" },
+    { "id": "evidence", "root": "asset", "inputPath": "results/skill-ir/magpie-release-audit-public-efficiency-003/report.json", "targetPath": "recipe/evidence/003-report.json", "role": "evidence" }
+  ],
+  "references": {
+    "sourceSkillId": "skill",
+    "licenseFileId": "license",
+    "taskDescriptionFileId": "task",
+    "automaticPlanFileId": "plan",
+    "reviewPatchFileId": "patch",
+    "reviewDependencyIds": ["patch-dependency"],
+    "checkerFileId": "checker",
+    "checkerDependencyIds": [],
+    "evidenceFileIds": ["evidence"]
+  },
+  "taskDescriptionAuthoring": {
+    "measurementStartedAt": "2026-09-01T05:36:34.135Z",
+    "measurementCompletedAt": "2026-09-01T05:39:32.614Z",
+    "humanMinutes": 3
+  },
+  "review": {
+    "publicInterfacePath": "release-audit-interface.json",
+    "coreBranchDelta": 0,
+    "physicalLoc": 287,
+    "humanMinutes": null,
+    "humanMinutesMissingReason": "historical Magpie reviewed-artifact labor was not prospectively measured"
+  },
+  "production": {
+    "oneTimeModelTokens": { "status": "measured", "value": 0 },
+    "originalRuntime": {
+      "status": "measured",
+      "samples": 18,
+      "aggregateModelTokens": 87575,
+      "aggregateDurationMs": null,
+      "durationMissingReason": "the frozen 003 compact report does not record aggregate runtime duration",
+      "evidenceFileId": "evidence"
+    }
+  },
+  "quality": {
+    "mode": "machine-checked",
+    "checkerFileId": "checker",
+    "researchDisposition": "not-eligible",
+    "researchIneligibilityReason": "development-agent tokens and historical human review minutes are not observable"
+  }
+}
