@@ -67,8 +67,7 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   同一命令入口编译为 typed overlay、Final IR 与 development-only provenance v3；blocked/无残差都停止。
   Env Manager v3 当前冻结 static evidence 的真实复核为 `no-reproducible-residual`、0 repairs，因此没有生成
   dynamic Final IR，也没有改变其 fidelity-preserving 分类。
-- 研究脚本已经能完成各阶段实验，但 spec 约定的统一 `import/optimize/validate/report` CLI、library API 与
-  Optimizer Agent 尚未串成最终用户路径。
+- 研究脚本已经能完成各阶段实验；P2 现已补上独立的通用 `external-skill-import` library/CLI，用于把人工声明的 source/review/evidence closure 冻结成可迁移 staging bundle，再交给既有 verified-artifact product CLI。它不是独立 runtime，也不自动发现 Git source 或递归依赖。
 - 三模型族 v4 development 小面板已执行 36 个 model attempts + 4 个 shared anchors：GPT/Claude 各 12/12
   semantic-complete；DeepSeek 因 2 次语义前 idle、1 次 active absolute timeout 与 1 个 Pi compaction parser
   缺口，只完成 11/12 triplets、33/36 model rows，冻结为 blocked。补充审计把缺失比较显式记为 `missing=1`
@@ -208,7 +207,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 	  break-even=0 calls。开发代理 token/human review 未测，所以不晋级 research efficiency、portfolio/readiness 或 live claim。
 - Stage P1 已把 Magpie 接入现有 product v1：9/9 public case 分别真实调用 standalone CLI 的五阶段主链，当前
   0 model/API/paid，003 original rerun=0。产品质量仅为 fixed-slice machine-checked non-regression；API-token
-  break-even=0，researchEligibility=not-eligible，P2 尚未启动。
+  break-even=0，researchEligibility=not-eligible。P2 又补上了可迁移 external import staging bundle，但不改变
+  该研究资格边界。
 
 ## 当前下一步
 
@@ -281,7 +281,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 -> 唯一 003 foreground serial denominator 已完成：36/36、18 paid、0 retry/infra、artifact 18/18、original 6/18
 -> 固定 slice recurring saving 已建立；research all-attempt/efficiency、portfolio/readiness、held-out/live 继续关闭
 -> Stage P1 已完成 Magpie product v1：9/9 CLI 产品、0 当前 paid、003 original rerun=0、API-token break-even=0
--> 产品 researchEligibility=not-eligible；raw workdir 本地保留，P2 未启动
+-> 产品 researchEligibility=not-eligible；raw workdir 本地保留，P2 external import 已完成并保持研究边界
+-> P2 external import 已完成：strict recipe/manifest、exact closure verifier、CLI 与 checked-in 非 Magpie fixture；Magpie 仅 shadow `step-0-preflight/case-1-clean-pass`，搬移 bundle 后仍由现有 product CLI 五阶段执行，输出 digest 对上 P1，0 original rerun/0 当前 paid
 -> 只有完整 readiness，或显式批准且不伪装成 full-auto 的 reviewed method-freeze gate，才进入 untouched replication
 -> 固定三模型族、clean + noisy/long 与成本摊销主实验
 -> 统一 CLI/library/Optimizer Agent 交付入口

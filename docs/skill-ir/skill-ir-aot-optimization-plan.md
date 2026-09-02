@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-08-28
+**最后更新：** 2026-09-02
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -1685,6 +1685,26 @@ product v1 主链，使第二个真实 skill 真正通过 standalone CLI/library
    `researchEligibility=not-eligible`、humanMinutes=null、adapter/checker=287/351 LOC，并关闭 portfolio/readiness/held-out/live/P2；
 6. [x] 完成 focused、product integration、全 Skill IR、typecheck、文档链接、`git diff --check` 与 staged-index product 验证；
    同步现有 component docs、README、handoff/ledger/log 后提交并推送，在 P1 compact report 回报点停止。
+
+### 4.37 Stage P2：通用 external-skill import staging bundle（已完成）
+
+**目标与边界：** 在用户明确选择 P2 后，实现可执行的通用导入 library/CLI 与 digest-bound manifest，把人工声明的 source/review/evidence
+closure 固化为可搬移 staging bundle，再复用现有 verified-artifact product CLI。P2 不实现独立 runtime，不 clone/fetch，不联网，
+不自动发现或递归猜依赖，不调用模型/API，不读 held-out，不修改 P1/portfolio/readiness/`src/index.ts`。
+
+1. [x] 先以 TDD 固定 strict recipe/manifest、重复 id/target、unsafe path、缺失/额外输入、symlink、非空输出和 digest drift
+   的 fail-closed 行为；
+2. [x] 实现同级临时 staging + exact byte copy + atomic rename，生成 bundle-relative `workflow-config.json` 与逐文件/closure SHA-256
+   manifest；verifier 重新枚举 exact closure、workflow role binding、patch/checker 分离依赖闭包与 compact evidence allowlist；
+3. [x] 提供 `--recipe --source-root --asset-root --out` CLI。成功 stdout 只有一行 JSON，失败 stderr 为简洁诊断并返回非零；
+4. [x] 以 `src/skill-ir/fixtures/external-import-basic/` 做最小非 Magpie fixture，移动 bundle 后通过现有 product CLI/validator；
+   importer production source 不含 Magpie/known skill-id 分支；
+5. [x] 新增 Magpie 8-file recipe 和单案例 shadow，仅执行 `step-0-preflight/case-1-clean-pass`，复用现有
+   `compile -> review-or-accept -> package -> run -> cost`，并核对输出 digest 与 P1；
+6. [x] 持久化 `results/skill-ir/external-skill-import-magpie-shadow-v1/report.json`，记录 fileCount=8、closure/manifest/config digest、
+   output digest、original rerun/model/API/paid/network/held-out 全 0，研究资格 `not-eligible`；
+7. [x] focused importer/CLI/Magpie tests 12/12、product compatibility 18/18、typecheck 与 `git diff --check` 通过；未修改 P1 冻结
+   结果、portfolio/readiness 或未跟踪历史实验材料。
 
 ## 5. 时间估算
 

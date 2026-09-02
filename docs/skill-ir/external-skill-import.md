@@ -12,7 +12,7 @@ P2 提供：
 - 对 source、license、review plan/patch/dependency、可选 checker 和 compact cost evidence 的显式闭包；
 - 一个 Magpie shadow case 和一个非 Magpie fixture，证明 importer 没有 skill-id 分支。
 
-P2 只证明 staging 合同和现有 product CLI 的组合可工作。运行解释器仍是当前 SkVM checkout 中的 product CLI/library。
+P2 只证明 staging 合同和现有 product CLI 的组合可工作。**Bundle 不是独立运行时**；运行解释器仍是当前 SkVM checkout 中的 product CLI/library，搬走 bundle 本身不能脱离 SkVM 执行。
 
 ## 2. 非目标
 
@@ -113,10 +113,10 @@ Importer 和 verifier 均须 fail closed：
 2. 输入文件及其路径祖先必须是 regular non-symlink directory/file；
 3. 拒绝目录、symlink 和特殊文件作为声明文件；
 4. 主 `SKILL.md` 与 license 必须属于 source closure；
-5. bundle 输出目录必须为空，失败时删除本次部分输出；
+5. bundle 输出路径在 v1 中必须尚不存在；importer 在同级临时目录构建，失败时删除部分输出，验证通过后原子 rename；
 6. verifier 重新枚举 bundle，任何缺失、额外或 digest 漂移均失败；
 7. workflow config 的全部 file reference 必须指向 manifest 中相应角色的文件；
-8. patch/checker 的静态相对 import 必须在声明 closure 中解析，外部 package 只允许现有 product bundle audit 的窄 allowlist；
+8. patch 与 checker 分别在自己的声明 closure 中解析静态相对 import，不能互相借文件；动态 import/require 被拒绝。Node builtin 可由现有 SkVM runtime 提供，review patch 的第三方 package 仍受 product audit 限制为 `zod`；
 9. evidence 角色只接受 recipe 明确声明的 compact JSON 文件，路径或内容命中 raw/model-run/workdir 禁区即拒绝。
 
 ## 8. 数据流
@@ -151,11 +151,13 @@ P1 的配置、runner、九份 product closure 与 compact report保持逐字节
 5. 将最终 `release-audit-output.json` SHA-256 与 P1 同 case 的冻结输出 digest 比较；
 6. 记录本阶段 original rerun、model/API/paid、held-out 均为 0。
 
-该 shadow 不创建新的九案例实验身份，不重跑 original，不修改 P1 report。
+该 shadow 不创建新的九案例实验身份，不重跑 original，不修改 P1 report。**P2 checker 只是 P1 output-digest 回归检查，不是 P1 独立 machine-checked 语义 checker 的搬迁**；它用于确认当前薄适配与冻结输出字节未漂移，不扩张语义主张。
+
+Shadow 的 `report.md` 是用户输入 fixture，**不在 bundle 内**；bundle 只承载 skill source、review 资产、显式 checker/evidence 闭包，workdir 仍由后续 product 运行准备。因此该验证不是“整任务目录可搬运”。
 
 ## 10. 非 Magpie fixture
 
-测试在临时目录建立一个最小 source closure、task description、review plan/patch，以及 B-default 或薄 A-checker 资产。它通过同一个 public importer API 和 CLI 生成 bundle并验证 manifest。测试还扫描 importer production source，确保没有 Magpie/known skill id 分支。
+仓库内 fixture 位于 `src/skill-ir/fixtures/external-import-basic/`，包含 source、MIT license、task description、automatic plan、review patch 和手写 recipe。测试通过同一个 public importer API 生成 bundle，将 bundle 移到另一个临时目录后以现有 product workflow 执行并通过 product validator。测试还扫描 importer production source，确保没有 Magpie/known skill id 分支。
 
 该 fixture 证明通用路径与路径安全，不构成外部项目泛化或质量研究证据。
 
@@ -175,4 +177,21 @@ P1 的配置、runner、九份 product closure 与 compact report保持逐字节
 
 ## 12. 修改边界
 
-预计新增 `external-skill-import.ts`、`external-skill-import-cli.ts`、对应 tests、Magpie recipe/shadow runner 和 compact report。现有 product API/CLI 只在确有通用兼容缺口且先有失败测试时作最小修正。`src/index.ts`、P1 冻结输入/结果、portfolio/readiness 不修改。
+已新增 `external-skill-import.ts`、`external-skill-import-cli.ts`、对应 tests、checked-in 非 Magpie fixture、Magpie recipe/shadow runner/checker 与 compact report。现有 product bundler 只增加了 project-external entrypoint 对 SkVM 自带 `zod` 的窄 resolver，并在失败时报告具体节点；`src/index.ts`、P1 冻结输入/结果、portfolio/readiness 均未修改。
+
+## 13. 已实现 API 与 CLI（2026-09-02）
+
+Library exports：
+
+- `ExternalSkillImportRecipeSchema` / `ExternalSkillImportManifestSchema`；
+- `importExternalSkill({ recipe, sourceRoot, assetRoot, out })`；
+- `verifyExternalSkillImportBundle(bundleDir)`；
+- `ExternalSkillImportRelativePathSchema` 与对应 TypeScript types。
+
+CLI 位于 `src/skill-ir/external-skill-import-cli.ts`。成功时 stdout 只写一行 JSON，包含 `status=complete`、bundle 绝对位置（只作为本次进程结果，不写入 bundle）、import/workflow id、manifest/config 相对路径和 closure digest；失败时只向 stderr 写简洁诊断并以非零退出。CLI 不自动执行 product。
+
+Manifest v1 记录每个 production file 的 id、role、bundle-relative path、bytes、SHA-256，并记录 workflow config digest、排除 manifest 自身后的 production closure digest、五类零活动计数、`runtime=existing-skvm-product-cli-required`、`automaticDiscovery=false` 与 `costRecomputed=false`。Verifier 重新枚举 exact file set，重验 file/config/closure digest、workflow role binding、patch/checker 分离闭包和 compact evidence。
+
+Magpie recipe 的 production bundle 为 8 个显式文件：主 `SKILL.md`、license、task description、reviewed plan、薄 patch、patch 的相对实现依赖、self-contained one-case digest checker、003 compact report。该 checker 只做 P1 output-digest 回归，不等于 P1 的独立语义 checker。Shadow 只物化 `step-0-preflight/case-1-clean-pass`，其中 `report.md` 留在外部 workdir fixture，不进入 bundle；调用 `runVerifiedArtifactCli` 五阶段和 `validateVerifiedArtifactProduct`，输出 digest 为 `3a83e0530c3a04a81dcbb25d8488ec2f19a8da3417f109e6980481d5a3ce4a4e`。机器报告位于 `results/skill-ir/external-skill-import-magpie-shadow-v1/report.json`；它记录 original rerun/model/API/paid/network/held-out 均为 0，研究资格仍为 `not-eligible`。
+
+未来修改 recipe/schema 时必须保持 v1 fail-closed：新增角色、自动发现、额外 package resolver、成本推导或独立 runtime 声明都属于合同扩张，不能作为无版本的兼容修补。

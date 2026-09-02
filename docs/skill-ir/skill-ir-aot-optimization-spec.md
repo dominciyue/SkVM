@@ -1734,3 +1734,23 @@ P1 compact report 必须同时绑定九份 product manifest/quality/cost closure
 `4865.2778` 只计 input+output，cache-read `40960` 单列；conditional break-even=0 只覆盖显式计量的 production API token。
 适配 287 LOC、checker 351 LOC 与 `humanMinutes=null` 必须并列披露，research efficiency、portfolio/readiness、held-out、
 live release 与 P2 均不由 P1 自动授权。
+
+### 14.8 Stage P2：通用 external-skill import staging bundle
+
+用户随后明确选择 P2，边界固定为“可执行的通用导入 CLI + 机器可读 manifest”。Importer 接收人工准备的 source root、
+asset root、严格 recipe 和全新的输出路径；不 clone/fetch、不访问网络、不自动发现 Git source 或递归依赖、不调用模型/API、
+不读取 held-out，也不修改 P1、portfolio、readiness 或 `src/index.ts`。
+
+实现新增 `external-skill-import.ts` library、`external-skill-import-cli.ts` CLI、strict recipe/manifest schema、exact-closure
+verifier、checked-in 非 Magpie fixture，以及 Magpie 固定公开 case shadow。Recipe 显式列出 source、license、task description、
+automatic plan、review patch/dependencies、可选 checker/dependencies 和 compact evidence；所有输入路径与 bundle target 都拒绝
+绝对路径、反斜线、`.`、`..`、NUL、symlink、特殊文件、重复项和 undeclared extra files。Importer 在同级 staging 目录构建，
+失败时删除 staging，验证通过后原子 rename；manifest 逐文件绑定 role、bundle-relative path、bytes、SHA-256，并绑定 workflow
+config 与 production closure digest。Manifest 的 runtime 明确为 `existing-skvm-product-cli-required`，
+`automaticDiscovery=false`、`costRecomputed=false`，五类外部活动计数均为 0。
+
+Bundle 搬离原 checkout 后仍可由现有 SkVM verified-artifact CLI 以 `--root=<bundle>` 读取 bundle-relative workflow config；bundle
+本身不是独立 runtime，`zod` 等依赖仍由现有 SkVM checkout 提供。非 Magpie fixture 在 relocation 后通过现有 product validator；
+Magpie shadow 只执行 `step-0-preflight/case-1-clean-pass`，五阶段 product chain 输出 digest 与 P1 同案例一致。该证据只证明
+导入闭包、路径安全和现有 product 组合可工作，不证明独立 runtime、自动依赖发现、live-source 泛化、semantic parity、
+研究效率或 portfolio/readiness 晋级。
