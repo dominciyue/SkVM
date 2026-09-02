@@ -57,25 +57,33 @@ optimized_skill/
 
 ### 1.3 现在已经做到哪里
 
-截至 2026-08-10：
+截至 2026-09-02：
 
 - IR schema、parser、validator、profile annotation、静态 pass、lowering、真实 runner、scorer、gate 和
-  paired analyzer 已具备；
-- Experimental Design Benchmark v2 已显著降低该案例 v1 的私有措辞、唯一算法和 alternative-valid false
-  reject；它沉淀出的审计协议可复用，但不是所有 skill 共用一套 scorer；
-- API Tester 的 source-audited schema-derived artifact 在冻结 development 中达到 4/4、mean 1.0，且
-  runtime model tokens 为 0；它仍只是 method-development 证据；
-- Env、Law、Experimental Design、Reviewer、zh-readme 分别暴露了基础设施分母、held-out 回归、任务饱和、
-  residual failure 和 scorer 合同错误等不同问题；
-- portfolio 当前登记 7 个真实 case，其中 6 个 contract-qualified、0 个 untouched replication，readiness
-  尚未通过；
-- Task 17.11 已把重复的 package assembly 抽为技能无关模块，并在 API Tester 与 Experimental Design v1
-  两种 phenotype 上完成逐字节 shadow parity；新的 Experimental Design v2 compiler 已接入公共 assembly，
-  本地 2/2 fixture 通过，但同一任务基线饱和，因此没有创建付费 optimized lock。
-- i18n contribution-v2 已修复旧任务的贡献不可识别和 placeholder/plural 私有语义，唯一 paired baseline
-  8/8、0 infra、4/4 differing、3 positive；它只开放 base IR/source audit，尚无静态或 artifact 优化证据。
-- 当前实验通过研究脚本运行；spec 约定的统一 `import/optimize/validate/report` CLI/library/Agent 用户路径
-  尚未完成。
+  paired analyzer 已具备；portfolio/readiness 仍按冻结 registry 解释，不能从本指南的命令示例推导晋级。
+- API Tester 的 source-audited schema-derived artifact 与 Env reviewed-AOT 的 efficiency evidence 仍是
+  development 条件下的既有证据；它们不自动扩展为跨模型、跨 agent、跨环境或 held-out 结论。
+- Stage P1 已完成：Magpie 固定 public 9-case slice 通过现有 product CLI 的
+  `compile -> review/accept -> package -> run -> cost` 主链。报告位于
+  `results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json`，其
+  `researchEligibility=not-eligible`，不能改写 research authority。
+- Stage P2 已完成：`src/skill-ir/external-skill-import.ts` 与
+  `src/skill-ir/external-skill-import-cli.ts` 提供显式 source/asset closure 导入和 digest-bound
+  `import-manifest.json`。它生成的是 staging bundle，不是独立 runtime；后续仍需当前 SkVM checkout 的
+  verified-artifact product CLI。
+- Stage M 已冻结为 Magpie 预注册合同，但旧 identity
+  `skill-ir-stage-m-frozen-magpie-cross-model-panel-001` 已在读取 API key/dispatch 前拒绝
+  qualification/matrix，不能按旧的 27+9/54-call 设计执行，也不能把其 P2 gold-digest checker 写成 P1
+  语义 checker。
+- Stage N 已切换到 API Tester + Env Manager，identity 为
+  `skill-ir-stage-n-cross-model-aot-stability-001`。固定分母是 original 24（2 skill × 2 task × 2
+  repetition × 3 family）、artifact 8（确定性、跨族共用），共 32 logical rows；当前只完成 Stage 0 和
+  6-row smoke qualification，结果为 `failed`，仅 GPT eligible，Claude/DeepSeek 因 smoke timeout 出局，
+  matrix 未创建且 `matrix-report.json` 不存在。
+- Stage N smoke 只证明执行完成/usage qualification，不能证明质量、artifact gate、跨模型稳定性、held-out、
+  readiness 或“优化后的 LLM 更稳”。失败行留在分母中，不 retry、不换 route、不补跑；后续 matrix 必须另行授权。
+- 当前暂停的边界仍有效：不继续论文、新 skill、DSL、Stage C、Optimizer Agent、held-out 或 readiness 晋级。
+  需要统一用户路径时，优先复用现有 standalone product library/CLI；不要为 importer 或 Stage N 另造 runtime。
 
 ## 2. 第一次进入项目
 
@@ -220,11 +228,15 @@ D:\skill优化\
 ```text
 SkVM/
   src/skill-ir/                  IR schema、parser、validator、passes、lowering
+    external-skill-import.ts     P2 显式闭包导入 library
+    external-skill-import-cli.ts P2 导入 CLI
   src/profiler/                  trace 和 profile annotation
   src/benchmarks/skill-ir/       matrix、runner、artifact、lock、gate、audit
+    stage-n-cross-model-panel*.ts  Stage N plan/smoke 合同与 runner
   src/bench/evaluators/          确定性离线 scorer
   benchmarks/skill-ir/corpus/    corpus registry、intake、portfolio
   benchmarks/skill-ir/pilots/    每个真实 skill 的冻结输入和产物
+  benchmarks/skill-ir/panels/    跨模型 panel lock（含 Stage N）
   results/skill-ir/              实验结果与本地 raw workdir
   docs/skill-ir/                 权威文档
   scripts/                       结果分析和文档链接检查
@@ -258,6 +270,33 @@ packages/                        编译后的 artifact package
   2/2 qualification，但尚无付费质量改进证据；
 - Law to Markdown：脚本资源闭包和 held-out 回归案例，说明 development 通过不等于可晋升。
 
+### 3.4 P2 staging bundle 与 Stage N 结果目录
+
+P2 的 bundle 只承载已经显式声明并逐文件绑定 digest 的 source、review 资产、checker/evidence 和
+`workflow-config.json`。典型布局是：
+
+```text
+<bundle>/
+  source/                  SKILL.md 与显式 source closure
+  recipe/                  task description、plan、review、checker、compact evidence
+  workflow-config.json     bundle-relative 的 product 配置
+  import-manifest.json     file/closure SHA-256 与零活动计数
+```
+
+它是 staging bundle，不是独立 runtime；执行时仍要调用当前 SkVM 的
+`verified-artifact-cli.ts`，并由后续准备好的 workdir 提供任务 fixture（例如 Magpie 的 `report.md`）。
+不要把 bundle 描述为整任务可搬运包，也不要期待 importer 自动发现 source 或 checker 依赖。
+
+Stage N 的机器文件集中在：
+
+```text
+benchmarks/skill-ir/panels/stage-n-cross-model-aot-stability-001/panel-lock.json
+results/skill-ir/stage-n-cross-model-aot-stability-001/plan.json
+results/skill-ir/stage-n-cross-model-aot-stability-001/smoke-qualification.json
+```
+
+当前没有 `matrix-report.json`；这个缺失是“尚未获授权/未创建”的状态，不是需要补跑的错误。
+
 ## 4. 必须掌握的术语
 
 | 术语 | 含义 |
@@ -272,6 +311,10 @@ packages/                        编译后的 artifact package
 | `development` | 允许用于方法构造、调试和 gate 的任务集合。 |
 | `held-out` | 冻结后只用于最终验证，禁止进入 compiler、repair、prompt 或调参。 |
 | `lock` | 固定模型、adapter、任务、次数、digest、gate 和实验身份的机器可读文件。 |
+| `staging bundle` | P2 导入器生成的可搬移输入包；它保存显式闭包，但不能脱离当前 SkVM product CLI 运行。 |
+| `import manifest` | P2 逐文件与整体 closure 的 SHA-256、角色绑定和零活动计数清单。 |
+| `digest-bind` | 复用已冻结结果的 digest 绑定行；不产生新的模型调用，也不等于重新执行。 |
+| `smoke qualification` | Stage N 每族每 skill 一行的执行/usage 资格检查；不读取 scorer 质量，失败族直接出局。 |
 | `plan` | runner 将要执行的行；不代表已经运行。 |
 | `raw` | 模型输出、运行状态、token 和 workdir 引用；尚未由任务 scorer 判定。 |
 | `scored` | deterministic evaluator 对最终 workdir 的评分结果。 |
@@ -282,7 +325,7 @@ packages/                        编译后的 artifact package
 
 ## 5. 最安全的第一次实操
 
-以下命令不会执行付费模型调用。
+5.1--5.6 的命令不会执行付费模型调用；5.7 另行标注 Stage N smoke 的付费边界。
 
 ### 5.1 生成 pilot matrix
 
@@ -350,6 +393,60 @@ git diff --check
 `bun test` 的作用是运行项目测试，防止新功能破坏已有合同。开发一个小组件时先跑 focused test；阶段完成前再跑
 相关目录或全套测试。历史冻结测试与当前 HEAD 回归目前存在分层问题，所以全套失败时不要立刻重写旧 lock，
 先确认失败属于历史 digest 漂移还是新代码回归。
+
+### 5.6 试用 P2 external-skill import（无模型调用）
+
+P2 importer 只接收人工准备好的 source/asset 根目录和显式 recipe。`--out` 必须是尚不存在的目录；
+它不会联网、发现隐式依赖或自动执行 product：
+
+```powershell
+bun run ./src/skill-ir/external-skill-import-cli.ts `
+  --recipe=<recipe.json> `
+  --source-root=<prepared-source-root> `
+  --asset-root=<prepared-asset-root> `
+  --out=<new-empty-bundle>
+```
+
+成功输出的单行 JSON 会给出 manifest/config 相对路径和 closure digest。随后仍需使用当前 SkVM 的 product
+CLI，并把任务 fixture 放在单独的 workdir：
+
+```powershell
+bun run ./src/skill-ir/verified-artifact-cli.ts `
+  --root=<bundle> `
+  --config=workflow-config.json `
+  --workdir=<prepared-workdir> `
+  --out=<empty-product-directory>
+```
+
+bundle 不是独立 runtime；Magpie 的 `report.md` 等 workdir 输入也不在 bundle 内。importer 的静态 import audit
+只按行正则扫描 recipe 中 patch/checker 的显式闭包，不是通用 JavaScript 模块图。完整合同见
+`docs/skill-ir/external-skill-import.md`。
+
+### 5.7 了解 Stage N 的 plan/smoke（当前不重跑）
+
+Stage N 的第一步是零付费 plan，可用来核对 lock、旧证据和分母：
+
+```powershell
+bun run ./src/benchmarks/skill-ir/stage-n-cross-model-panel-run.ts `
+  --phase=plan `
+  --root-dir=D:/skill优化/SkVM `
+  --lock=benchmarks/skill-ir/panels/stage-n-cross-model-aot-stability-001/panel-lock.json `
+  --out-dir=results/skill-ir/stage-n-cross-model-aot-stability-001
+```
+
+smoke 命令如下，但该 identity 的 6-row smoke 已经执行过，包含 4 次新付费调用；不要把下面命令当作安全的
+第一次实操，也不要在没有新授权、新输出目录和新 evidence 绑定时重跑：
+
+```powershell
+bun run ./src/benchmarks/skill-ir/stage-n-cross-model-panel-run.ts `
+  --phase=smoke `
+  --root-dir=D:/skill优化/SkVM `
+  --lock=benchmarks/skill-ir/panels/stage-n-cross-model-aot-stability-001/panel-lock.json `
+  --out-dir=results/skill-ir/stage-n-cross-model-aot-stability-001
+```
+
+当前 smoke 结果是 `failed`：GPT 两行 digest-bind complete，Claude/DeepSeek 的 API Tester 行
+`active-absolute-timeout`，Env Manager 行 complete；失败行留在分母，matrix 未创建。
 
 ## 6. PowerShell 和命令参数写法
 
@@ -493,6 +590,33 @@ python scripts/analyze_skill_ir_slices.py --help
 
 先查看脚本帮助再填写参数，不要从旧实验复制不兼容的命令。
 
+### 8.4 Stage N 的特殊顺序
+
+Stage N 不沿用“资格全量后再跑同一矩阵”的旧 Magpie 设计，而是固定为：
+
+```text
+Stage 0 plan（0 paid）
+  -> 每族每 skill 1 次 smoke
+  -> 用户复核 smoke 结果
+  -> 另行授权后才可能执行唯一 matrix
+```
+
+它的唯一分母写死为 original 24（2 skill × 2 task × 2 repetition × 3 family）加 artifact 8，合计 32
+logical rows。GPT original 绑定现有 C1/C2 digest，不重跑；未来新付费 original 预算只对应 Claude 8 + 第三族 8，
+smoke 另计。任何族 smoke 跑不完就从未来主表出局，失败行仍保留在 6-row smoke 分母中，不 retry、不换 route、
+不补行。矩阵未获授权时，`matrix-report.json` 不应存在。
+
+因此，看到 `smoke-qualification.json` 只能说明执行/usage 资格，不要把它当成质量报告、artifact gate、跨模型
+稳定性主表或 readiness 证据。Stage N 的完整合同和当前结果见
+`docs/skill-ir/stage-n-cross-model-aot-stability-panel.md`。
+
+### 8.5 Stage M 的冻结执行门
+
+Stage M 的 Magpie identity 仍可用于阅读 lock、plan 和历史合同，但 runner 会在读取 API key 或 dispatch 前拒绝
+`--phase=qualification|matrix`。不要按旧的 27 qualification + 27 matrix original 设计付费；也不要把其
+P2 `p2-gold-digest-output-regression` checker 解释成 P1 全量 semantic checker。若未来要恢复跨模型研究，必须
+创建新 identity，并把稳定性主证据优先放回 API Tester/Env Manager。
+
 ## 9. 如何读实验结果
 
 ### 9.1 `plan.json`
@@ -553,6 +677,35 @@ N 次总成本 = 一次性成本 + N * 单次运行成本
 
 只有 optimized 质量门槛通过后，才计算它相对 original 的 break-even 次数。artifact 中确定性脚本为 0 runtime
 model tokens，不代表整个优化流程零成本。
+
+### 9.6 `import-manifest.json`
+
+P2 导入结果先看 manifest，而不是直接看 product 输出：
+
+- `files` 是否覆盖 recipe 声明的全部 source/license/review/checker/evidence 文件，且 role/path/bytes/SHA-256
+  一一对应；
+- `workflow-config.json` 的 digest 和所有路径是否仍指向 bundle 内对应角色；
+- `closureSha256` 是否由排序后的 production files 重新计算并匹配；
+- `runtime` 是否为 `existing-skvm-product-cli-required`，`automaticDiscovery=false`、`costRecomputed=false`；
+- `modelCalls`、`apiCalls`、`paidCalls`、`heldOutAccesses` 是否均为 0。
+
+manifest 没有本机绝对路径、secret、raw observation、workdir 或 evaluator payload。若出现缺失/额外文件、
+symlink、路径逃逸、digest drift 或 patch/checker 跨闭包导入，verifier 应 fail closed，不要手工删掉异常文件后继续。
+
+### 9.7 Stage N 的 `plan.json` 与 `smoke-qualification.json`
+
+`plan.json` 是 Stage 0 的冻结核验结果，重点看新 lock、旧 C1/C2 evidence 的 digest、6-row smoke 计划、
+`matrixAuthorized=false` 以及“未检查 API key、未 dispatch”。它不是模型执行报告。
+
+`smoke-qualification.json` 只按 execution-complete 和 usage observability 分类：
+
+- GPT 两行是绑定 C1/C2 的 `digest-bind`，不是新的 paid call；
+- Claude 与第三族各有两次新 original smoke，任何 `active-absolute-timeout` 都会让该族出局；
+- 失败行必须保留在 6-row 分母，不能 retry、换 route 或补行；
+- 整体 `failed` 时仍可保留 GPT/其它 eligible family 的未来主表资格，但必须等待用户复核，不能自行创建 matrix。
+
+该 compact 结果不提供质量分数、artifact gate、跨模型稳定性或 readiness 结论；这些问题只能在另一个明确授权的
+matrix identity 中回答。
 
 ## 10. 如何增加一个真实 skill
 
@@ -721,6 +874,16 @@ src/benchmarks/skill-ir/law-artifact-compiler.ts
 
 catalog 定义 package/manifest；compiler 生成文件与 digest；runtime 按 execution DAG 运行并保护输入。runtime
 validator 只负责运行时合同，它与离线 scorer 不是同一个东西。
+
+P2 importer 位于另一条“输入冻结”边界：它把 recipe 显式列出的 source/review/checker/evidence 文件复制到
+staging bundle，并生成 `import-manifest.json`，但不生成第二套 runtime，也不把 checker 变成 bundle 内自足的
+语义引擎。执行仍由 `verified-artifact-cli.ts` 解释 `workflow-config.json`；bundle 搬走后必须同时提供当前
+SkVM CLI 和外部 workdir fixture。
+
+Magpie P2 shadow 的 checker 只比较冻结 P1 output digest（`p2-gold-digest-output-regression`），不是
+`scoreMagpieReleaseAuditOutput` 的 P1 语义 checker 搬迁。它证明 plan/patch 产物字节没有漂移，不证明完整 machine-
+checked task semantics 跟着 bundle 一起可独立运行。静态 import audit 也只按行正则检查显式 patch/checker 闭包，
+不应被当作通用 JavaScript 模块图分析。
 
 ### 12.3 公共 assembly 的接手边界
 
@@ -898,6 +1061,15 @@ git remote -v
 - [ ] compact evidence 更新到 `experiment-results.md`；
 - [ ] 组件文档、plan 和 `D:\skill优化\conversation_log.md` 同步；
 - [ ] 只提交明确文件。
+
+### 16.4 P2 导入与 Stage N 的额外检查
+
+- [ ] P2 recipe 明确列出 source、license、task、plan、patch/checker、dependency 和 compact evidence；
+- [ ] `--out` 是新目录，导入后逐文件/closure digest 与 workflow role binding 均通过；
+- [ ] bundle 与 workdir 分开保存，确认 `report.md` 等任务 fixture 没有被误写进 bundle；
+- [ ] 执行 product CLI 时使用当前 SkVM checkout，不把 staging bundle 当作独立 runtime；
+- [ ] Stage N 先完成 Stage 0 plan，再做每族每 skill 一次 smoke，并在用户复核前停止；
+- [ ] 固定记账 original=24、artifact=8、logical=32，失败 smoke 行留分母，matrix 未授权时不创建报告。
 
 ## 17. 你现在可以接着做什么
 
@@ -1108,9 +1280,10 @@ artifact，而不是要求使用者亲自阅读失败、手写专用程序。方
 
 ### 17.1 Phase E0 交付接力
 
-当前尚无统一产品 API。`src/index.ts` 没有导出 verified artifact optimize/review/package/cost 入口，package manifest
-也没有 TypeScript library export；可运行组件主要仍在 benchmark namespace。E1 不应从头重写这些组件，而应为
-restricted plan interpreter、artifact assembly/catalog/runtime 和 cost math 建立稳定包装，并保留 benchmark compatibility。
+`src/index.ts` 仍没有导出 verified artifact 的统一 optimize/review/package/cost 入口，package manifest 也没有
+主入口的 TypeScript library export；但 E1 standalone product library/CLI 已可用，P2 importer 也已在其上完成
+staging bundle 接入。后续不应从头重写这些组件，而应继续为 restricted plan interpreter、artifact
+assembly/catalog/runtime 和 cost math 建立稳定包装，并保留 benchmark compatibility。
 
 Review-required 路径当前把 manual evaluator module、development task set、两条固定 task 和 case-local patch 绑在一起。
 用户已确认 B-default + A-optional，E1 的第一项解耦是让 patch/accept、provenance、package、revalidation、run 与 cost
@@ -1206,6 +1379,8 @@ not-eligible，不能据此修改 research authority。
 - Final IR 与 artifact：`docs/skill-ir/optimization-and-artifacts.md`
 - 新 skill 竖切：`docs/skill-ir/real-skill-pilots.md`
 - 已冻结实验数值：`docs/skill-ir/experiment-results.md`
+- P2 external-skill import：`docs/skill-ir/external-skill-import.md`
+- Stage N 跨模型 smoke 合同与结果边界：`docs/skill-ir/stage-n-cross-model-aot-stability-panel.md`
 - 阶段历史：`docs/skill-ir/history.md`
 
 遇到拿不准的设计问题时，先追加到 `D:\skill优化\project_communication.md` 的开放问题区；确认后再同步回
