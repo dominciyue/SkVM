@@ -1767,11 +1767,15 @@ report、checker、artifact closure、Magpie public prompt closure 与 upstream 
 `xty/claude-opus-4-8`、`xty/deepseek-v4-pro`；Pi 0.67.68、Windows/clean、600000/120000/660000ms timeout、30 steps、
 `retries=0`、一次 repetition 和 `family-then-case` 顺序均不可在结果后修改。
 
-先执行 27 个 original qualification rows，每族必须恰好完成 9/9 且 usage 可观测。任一族缺行、usage unavailable、parser/runtime/
-timeout/controller failure 都令 qualification `failed`、`matrixAuthorized=false`，并作为负结果冻结；不得 retry、替换 route、删除模型族
-或修改 artifact/package/DSL。只有 qualification 全过，才执行一次 27 model original + 9 shared frozen-artifact 的唯一矩阵。失败的
-model row 仍占分母，artifact anchor 每 case 只执行一次；dispatch 后缺 terminal 永久 fail closed。
+原设计先执行 27 个 original qualification rows，每族必须恰好完成 9/9 且 usage 可观测；但该 identity 现已收口为预注册冻结件，禁止
+真实 qualification/matrix。原因是原设计最多付费 27 次 qualification original，再重复付费 27 次 matrix original（共 54 次 Magpie
+original），且 `matrixRequiresAllFamilies=true` 会在 DeepSeek 末端失败时浪费前两族调用。`semantic-complete` 在旧 row schema 中只是
+执行状态标签，不是语义质量 oracle。旧 lock、schema、历史结果与 digest 不变。
 
 Stage M 的 artifact authority 固定为 `p2-gold-digest-output-regression`，不是 P1 semantic checker。该面板只作 development
 diagnostic，不建立跨模型泛化、held-out、promotion、portfolio 或 readiness 结论；当前阶段只冻结 lock/policy/runner/report schema/
-tests/docs，不启动模型/API。
+tests/docs，不启动模型/API。runner 对该 identity 的 `qualification` 与 `matrix` phase 在读取 API key 或 dispatch 前直接拒绝。
+
+若未来仍要做跨模型，必须另建新 identity：每族 1 次 smoke，矩阵只执行一次 27 original + 9 artifact；GPT 若能绑定 Magpie 003
+则复用该 original，DeepSeek smoke 失败则不进入主表。稳定性主证据优先回到 Env 与 API Tester，Magpie 仅作附录；以上不构成本阶段
+授权，也不创建 successor identity。

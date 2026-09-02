@@ -1245,15 +1245,17 @@ portfolio/readiness、held-out、live source 仍为 false。权威结果为
 
 ### 11.14 Stage M qualification 与唯一矩阵 authority
 
-Stage M 不复用旧 three-family v4 的 reserve/selection 语义。Qualification 先按 family-then-case 顺序执行 27 个 original rows；
+Stage M 不复用旧 three-family v4 的 reserve/selection 语义。原设计的 Qualification 先按 family-then-case 顺序执行 27 个 original rows；
 每行保存 family/route/case/status/classification、usage availability 和 input/output/cache token、duration 与失败 detail。只有三族
-均为 9/9 semantic-complete 且 usage available 时，lock-digest-bound `qualification.json` 才授权 matrix。资格失败本身是冻结负结果，
-不 retry、不替换模型、不改 artifact。
+均为 9/9 且 usage available 时，lock-digest-bound `qualification.json` 才授权 matrix；其中旧 schema 的 `semantic-complete` 只是执行状态
+标签，不是语义质量 oracle。评审后该 identity 仅保留为预注册合同，禁止真实 qualification/matrix，因为它会把 27 次资格 original
+与 27 次矩阵 original 重复付费，最多 54 次 Magpie original。
 
-授权后的唯一矩阵只有 27 个 original model rows 和 9 个共享 frozen-artifact anchors。模型失败行保留在分母；缺 terminal 的
-attempt 不能重发。Artifact checker authority 是 P2 fixed output-digest regression，不是 P1 semantic checker，bundle 仍需现有 SkVM
-runtime，`report.md` 等 fixture 仍来自 workdir。报告只给 frozen development direction，不建立模型排名、跨模型泛化、held-out、
-promotion 或 readiness。
+原设计授权后的唯一矩阵只有 27 个 original model rows 和 9 个共享 frozen-artifact anchors。模型失败行保留在分母；缺 terminal 的
+attempt 不能重发；`matrixRequiresAllFamilies=true` 会使末端 DeepSeek 失败时前两族调用沉没。该 identity 现由 runner 在 API key/dispatch
+前直接拒绝，故不会产生上述付费矩阵。Artifact checker authority 是 P2 fixed output-digest regression，不是 P1 semantic checker，bundle
+仍需现有 SkVM runtime，`report.md` 等 fixture 仍来自 workdir。未来跨模型需新 identity：每族 1 次 smoke、一次 27 original + 9 artifact；
+DeepSeek smoke 失败则踢出主表。稳定性主证据回到 Env 与 API Tester，Magpie 仅作附录，不更新 readiness。
 
 ## 12. 结果持久化
 

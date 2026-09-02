@@ -209,9 +209,11 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   0 model/API/paid，003 original rerun=0。产品质量仅为 fixed-slice machine-checked non-regression；API-token
   break-even=0，researchEligibility=not-eligible。P2 又补上了可迁移 external import staging bundle，但不改变
   该研究资格边界。
-- Stage M 现已冻结独立的 Magpie 跨模型族 development panel 合同：GPT/Claude/DeepSeek 各先完成 9-case qualification；
-  三族全部通过后才允许一次 27 model + 9 shared artifact 的唯一矩阵。当前只完成 lock、runner、schema、测试和文档，
-  尚未启动模型/API；任何资格失败都作为负结果冻结，不 retry、不换 route、不改 package/DSL，也不晋级 readiness。
+- Stage M 现已冻结独立的 Magpie 跨模型族 development panel 合同，但该 identity 仅作预注册设计，不执行 qualification/matrix。
+  原设计会先付费 27 个 qualification original，再重复付费 27 个 matrix original，最多 54 次 Magpie original；`matrixRequiresAllFamilies=true`
+  还会让末端 DeepSeek 失败时浪费前两族调用。runner 已加门禁，在读取 API key 或 dispatch 前拒绝两种付费 phase。它不产生跨模型主证据，
+  不更新 readiness；未来若要做跨模型，须新 identity、每族 1 次 smoke、一次 27 original + 9 artifact，稳定性主证据回到 Env/API Tester，
+  Magpie 仅作附录。
 
 ## 当前下一步
 

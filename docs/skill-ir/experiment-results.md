@@ -997,9 +997,10 @@ Stage P2 随后完成通用 external import staging bundle，但 Magpie shadow �
 随 bundle 搬迁；bundle 仍依赖现有 SkVM runtime，且 `report.md` 等 fixture 来自外部 workdir。
 
 Stage M 已冻结 `skill-ir-stage-m-frozen-magpie-cross-model-panel-001` 的 lock、schema、plan/runner 与 focused tests。固定 route 为
-GPT/Claude/DeepSeek 三族，各 9 个 public-development qualification rows；只有 27/27 semantic-complete 且 usage 可观测才允许一次
-27 model + 9 shared artifact 的唯一矩阵。当前 model/API/paid calls 为 0，qualification/matrix 均未执行，因此没有新增模型质量、
-跨模型泛化或 readiness 结果。后续资格失败将直接作为 negative result 冻结，不 retry、replacement 或改包。
+GPT/Claude/DeepSeek 三族，各 9 个 public-development qualification rows；但该 identity 仅作预注册设计，不执行 qualification/matrix。
+原设计会先付费 27 个 qualification original，再重复付费 27 个 matrix original，最多 54 次 Magpie original；`matrixRequiresAllFamilies=true`
+还会让末端 DeepSeek 失败时浪费前两族调用。当前 model/API/paid calls 为 0，runner 已在 API key/dispatch 前拒绝两种付费 phase，因此没有
+新增模型质量、跨模型泛化或 readiness 结果。未来跨模型需新 identity；稳定性主证据回到 Env/API Tester，Magpie 仅作附录。
 
 - `results/skill-ir/bids-prospective-construction-v1/report.json`
 - `results/skill-ir/bids-prospective-development-v1/qualification.json`

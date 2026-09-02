@@ -464,9 +464,13 @@ P2 importer 已完成显式 8-file closure、路径安全、可搬 staging bundl
 不包含 `report.md` 等 workdir fixture；Magpie shadow checker 只做固定 output digest regression，不是 P1 semantic checker 搬迁，
 静态 import audit 也不是通用 JavaScript 模块图。
 
-Stage M 只复用上述冻结 product/artifact，不扩 Magpie。其 lock 固定三族各 9 个 qualification rows；三族全部完成且 usage 可观测
-后才允许一次 27 model + 9 shared artifact 矩阵。资格失败冻结为 negative result，0 retry/replacement，不改 P1/package/DSL，
-不晋级 readiness、held-out 或 live release。当前只完成 runner 合同，尚未启动模型执行。
+Stage M 只复用上述冻结 product/artifact，不扩 Magpie。其 lock 固定三族各 9 个 qualification rows；但评审后该 identity 仅作为预注册
+合同冻结，禁止真实 qualification/matrix。原设计会先付费 27 个 qualification original，再重复付费 27 个 matrix original，最多 54 次
+Magpie original；`matrixRequiresAllFamilies=true` 还会在 DeepSeek 末端失败时浪费前两族调用。runner 现会在读取 API key 或 dispatch 前拒绝
+两种付费 phase；不改 P1/package/DSL，不晋级 readiness、held-out 或 live release。
+
+若未来获单独授权，需新建 identity：每族 1 次 smoke，矩阵只做一次 27 original + 9 artifact；GPT 能绑定 Magpie 003 就绑定，DeepSeek
+smoke 失败则不进入主表。跨模型稳定性主证据应回到 Env 与 API Tester，Magpie 仅作附录。
 
 ## 13. 修改与验证
 

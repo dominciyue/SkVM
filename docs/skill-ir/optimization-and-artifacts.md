@@ -891,7 +891,8 @@ patch/checker 的按行正则检查，不是通用 JS dependency graph。
 
 Stage M 将该冻结 artifact 作为每 case 一个共享 deterministic anchor，不按模型族复制。Lock 绑定 P1 config/report/checker、统一
 artifact closure 与九个预期 output digest；matrix report 将 output digest mismatch 写为 artifact failed row，并保留 9-row 分母，
-不得修改 package 后补跑。该 artifact 比较只服务于固定 development panel，不改变 product researchEligibility。
+不得修改 package 后补跑。评审后该 identity 只保留为预注册合同，runner 禁止付费 qualification/matrix；原设计的 27+27 original
+重复分母不再执行。该 artifact 比较只服务于固定 development panel，不改变 product researchEligibility。
 
 ## 15. 测试
 

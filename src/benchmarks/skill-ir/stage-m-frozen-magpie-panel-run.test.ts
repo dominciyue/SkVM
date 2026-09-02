@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { MAGPIE_RELEASE_AUDIT_CASE_IDS } from "./magpie-release-audit-step2";
 import {
+  assertStageMResearchExecutionDisabled,
   initializeStageMSerialRun,
   readStageMSerialRun,
   runStageMSerialRun,
@@ -27,6 +28,11 @@ function rows(): StageMPlannedRow[] {
 }
 
 describe("Stage M serial owner", () => {
+  test("blocks paid qualification and matrix execution for the frozen preregistration identity", () => {
+    expect(() => assertStageMResearchExecutionDisabled("qualification")).toThrow(/preregistration-only panel/);
+    expect(() => assertStageMResearchExecutionDisabled("matrix")).toThrow(/preregistration-only panel/);
+  });
+
   test("keeps a terminal failed row in the denominator and continues later rows", async () => {
     const activeDir = await mkdtemp(path.join(os.tmpdir(), "stage-m-serial-"));
     try {

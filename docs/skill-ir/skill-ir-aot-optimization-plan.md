@@ -1709,7 +1709,8 @@ closure 固化为可搬移 staging bundle，再复用现有 verified-artifact pr
 ### 4.38 Stage M：冻结 Magpie 产物的跨模型族面板
 
 **目标与边界：** 停论文、停新 skill、停 DSL。只在 P1/P2 冻结产物上建立新的 development panel identity；先验证三族能完成
-完整 9-case usage 分母，再允许一次唯一矩阵。失败就是结果，不为了得到正例修改 artifact/package/route/case/timeout/DSL。
+完整 9-case usage 分母，再允许一次唯一矩阵。失败就是结果，不为了得到正例修改 artifact/package/route/case/timeout/DSL。评审后该 identity
+仅作为预注册合同保留，禁止真实 qualification/matrix 执行；它不承担跨模型研究资格。
 
 1. [x] 用 TDD 固定独立 lock/schema：GPT=`xty/gpt-5.6-sol`、Claude=`xty/claude-opus-4-8`、DeepSeek=
    `xty/deepseek-v4-pro`，9 个 public-development cases，Pi 0.67.68、Windows/clean、600000/120000/660000ms、30 steps、
@@ -1724,8 +1725,11 @@ closure 固化为可搬移 staging bundle，再复用现有 verified-artifact pr
    `p2-gold-digest-output-regression` claim boundary；P2 checker 不是 P1 semantic checker；
 6. [x] 同步 component/spec/plan/README/evaluation/artifact/pilot/result 文档与本地 handoff/log，运行 focused/typecheck/diff 审计，
    focused commit 并推送；
-7. [ ] 本轮不执行真实 qualification 或 matrix。后续若启动 qualification，任一族失败即冻结 negative result 并停止；只有三族
-   全过才允许一次 matrix，且结果不得更新 readiness/portfolio/held-out/promotion。
+7. [x] 本轮及后续不执行该 identity 的真实 qualification 或 matrix。原设计的两阶段最多会付费 27 次 qualification original 加
+   27 次 matrix original（共 54 次 Magpie original）；`matrixRequiresAllFamilies=true` 还会让末端 DeepSeek 失败时浪费前两族调用。
+8. [x] runner 在读取 API key 或 dispatch 前拒绝 `--phase=qualification|matrix`，错误信息要求新建并单独授权 successor identity；旧 lock、schema、历史
+   结果与 digest 原样冻结。未来若获授权，跨模型 successor 只做每族 1 次 smoke，再做一次 27 original + 9 artifact 矩阵；GPT 可绑定
+   Magpie 003，DeepSeek smoke 失败则不进入主表。真正稳定性主证据回到 Env 与 API Tester，Magpie 仅作附录。
 
 ## 5. 时间估算
 

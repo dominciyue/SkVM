@@ -506,6 +506,7 @@ export async function executeStageMPanelRun(options: {
   lockPath?: string;
   env?: Record<string, string | undefined>;
 }) {
+  assertStageMResearchExecutionDisabled(options.phase);
   const context = await loadAndValidateStageMPanel(options.rootDir, options.lockPath ?? STAGE_M_LOCK_PATH);
   const outRoot = resolve(options.outRoot);
   const activeDir = resolve(outRoot, `${options.phase}-run`);
@@ -599,6 +600,10 @@ export async function executeStageMPanelRun(options: {
   const report = buildStageMMatrixReport({ lock: context.lock, lockSha256: context.lockSha256, qualification, modelRows, artifactRows });
   await atomicJson(resolve(outRoot, "panel-report.json"), report);
   return report;
+}
+
+export function assertStageMResearchExecutionDisabled(phase: "qualification" | "matrix"): never {
+  throw new Error(`Stage M ${phase} execution is disabled: this identity is a preregistration-only panel; paid qualification/matrix execution requires a new authorized identity`);
 }
 
 function argument(argv: string[], name: string): string | undefined {
