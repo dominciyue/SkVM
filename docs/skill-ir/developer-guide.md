@@ -57,8 +57,11 @@ optimized_skill/
 
 ### 1.3 现在已经做到哪里
 
-截至 2026-09-02：
+截至 2026-09-03：
 
+- 当前北极星是按“标准答案可得性”把 skill 分成公开产物可得、输入结构可得、专家判断可得三档；七案例
+  证据表位于 `docs/skill-ir/answer-availability-taxonomy.md`。主线 A 先整理冻结证据，主线 B 只在 API Tester
+  上做 trace + public-answer 提炼，主线 C 再把 API Tester 接入顶层 CLI。
 - IR schema、parser、validator、profile annotation、静态 pass、lowering、真实 runner、scorer、gate 和
   paired analyzer 已具备；portfolio/readiness 仍按冻结 registry 解释，不能从本指南的命令示例推导晋级。
 - API Tester 的 source-audited schema-derived artifact 与 Env reviewed-AOT 的 efficiency evidence 仍是
@@ -84,6 +87,32 @@ optimized_skill/
   readiness 或“优化后的 LLM 更稳”。失败行留在分母中，不 retry、不换 route、不补跑；后续 matrix 必须另行授权。
 - 当前暂停的边界仍有效：不继续论文、新 skill、DSL、Stage C、Optimizer Agent、held-out 或 readiness 晋级。
   需要统一用户路径时，优先复用现有 standalone product library/CLI；不要为 importer 或 Stage N 另造 runtime。
+
+### 1.4 先按“答案可得性”选开发路径
+
+开始一个新 pilot 前，先阅读 [`answer-availability-taxonomy.md`](answer-availability-taxonomy.md)，再判断答案属于哪一档。
+这一步决定允许的自动化主张和停止条件，不是给 skill 贴主题标签：
+
+| 档位 | 典型案例 | 先做什么 | 可以声称什么 | 何时停止 |
+|---|---|---|---|---|
+| 1. 公开产物可得 | `api-tester` | 绑定公开 schema/spec、建立 deterministic checker，再做 trace + public-answer 提炼 | 若 parity 与 gate 通过，可声称固定 development 条件下的 deterministic AOT 结果 | public answer 不足、checker authority 不完整或人工成本未测时，不声称最低人工或泛化 |
+| 2. 输入结构可得 | `env-manager`、`zh-readme`、`i18n-helper` | 从配置、源码、locale、manifest 生成结构化 IR/plan/package；把 mapping 和 review 单列 | 可声称结构自动化或 reviewed-AOT 的局部结果 | scorer-authority、静态质量或语义映射失败时保留负结果，不补跑筛正例 |
+| 3. 专家判断可得 | `law-to-markdown`、`experimental-design`、`zh-code-reviewer` | 生成可审计候选，显式记录 review-required 的人工边界 | 可声称候选构造、审查闭环或停止原因 | 不把格式正确、源码可读或模型饱和误写成专家语义已自动化 |
+
+分类表中的 `未测`、`历史不可得` 和 `0` 不等价。尤其是 registry 中的 `0 LOC` 只表示没有记录
+case-specific adapter，不代表全流程不需要人工；成本结论必须写明测量 scope。跨模型 smoke、held-out 和
+readiness 也不会因为命令能运行就自动获得授权。
+
+### 1.5 当前工作顺序与停止点
+
+当前只按下面的顺序推进，前一项没有证据就不跳到后一项：
+
+1. **主线 A：** 用冻结 registry、authority report 和结果文件维护七案例分类证据表；不重评分、不跑模型/API。
+2. **主线 B：** 仅在 API Tester 上冻结 trace schema、公开答案闭包、提炼规则和 parity checker；人工 authoring 与 review 分开计时。
+3. **主线 C：** B 通过后复用现有 product library/CLI，让 API Tester 与 Env Manager 走同一条产品链，再设计顶层 CLI 兼容接入。
+
+Stage N 只是类内子证据，当前 smoke 已失败且 matrix 未创建；Stage M 旧 identity 只保留为 fail-closed 预注册合同。
+不要因为看到历史命令或 `matrix-report.json` 路径就自行重跑、付费或新建 successor identity。
 
 ## 2. 第一次进入项目
 
@@ -1372,6 +1401,7 @@ not-eligible，不能据此修改 research authority。
 ## 18. 继续阅读
 
 - 项目入口与最新状态：`docs/skill-ir/README.md`
+- 七案例答案可得性分类：`docs/skill-ir/answer-availability-taxonomy.md`
 - 研究目标和成功条件：`docs/skill-ir/skill-ir-aot-optimization-spec.md`
 - 当前文件级任务：`docs/skill-ir/skill-ir-aot-optimization-plan.md`
 - IR 实现：`docs/skill-ir/ir-core.md`

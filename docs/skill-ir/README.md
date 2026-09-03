@@ -4,11 +4,13 @@
 skill 编译为结构化 IR 和可执行 artifact，并用 development execution feedback 提高不同模型、
 上下文与执行环境下的稳定性。
 
-项目有两条同等重要的主轴：
+当前北极星是：**建立一套以“标准答案可得性”为轴的 skill 分类学，并对“答案可得”的那一类做出可复现的
+AOT 优化与最低人工结论，最终统一收进 SkVM CLI。** 分类轴分为公开产物可得、输入结构可得、专家判断可得三档；
+七个 pilot 的逐案证据见 [`answer-availability-taxonomy.md`](answer-availability-taxonomy.md)。
 
-1. 研究方法与实验可信度：公开合同、确定性 scorer、development/held-out 隔离、完整分母和可追溯结果；
-2. 通用优化系统：同一套 core 接收不同真实 skill，自动生成 provenance-bound optimized package，
-   不依赖按 skill id 写死的分支。
+研究可信度与通用 core 仍是硬约束：公开合同、确定性 scorer、development/held-out 隔离、完整分母和可追溯
+结果必须成立；同一 core 不按 skill id 写死分支。三条长期工作线是分类学证据、第一档 API Tester 的 trace 提炼、
+以及 Env 之外的 API Tester 产品化并接入顶层 CLI。
 
 优化成功先要求质量不劣、稳定性改善且回归受控；通过后再比较平均质量和重复调用的摊销 Token。
 显著正向单案例不能替代通用性，Token 节省也不能抵消质量回归。
@@ -68,6 +70,9 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   Env Manager v3 当前冻结 static evidence 的真实复核为 `no-reproducible-residual`、0 repairs，因此没有生成
   dynamic Final IR，也没有改变其 fidelity-preserving 分类。
 - 研究脚本已经能完成各阶段实验；P2 现已补上独立的通用 `external-skill-import` library/CLI，用于把人工声明的 source/review/evidence closure 冻结成可迁移 staging bundle，再交给既有 verified-artifact product CLI。它不是独立 runtime，也不自动发现 Git source 或递归依赖。
+- Stage M 的 Magpie identity 继续保持 fail-closed，仅作预注册合同；Stage N 已切换到 API Tester + Env Manager，
+  只完成 Stage 0 与 6-row smoke，资格 failed、仅 GPT eligible，matrix 未创建。Stage N 现在只是分类轴的类内子证据，
+  不能写成跨模型主表或“优化后的 LLM 更稳”。
 - 三模型族 v4 development 小面板已执行 36 个 model attempts + 4 个 shared anchors：GPT/Claude 各 12/12
   semantic-complete；DeepSeek 因 2 次语义前 idle、1 次 active absolute timeout 与 1 个 Pi compaction parser
   缺口，只完成 11/12 triplets、33/36 model rows，冻结为 blocked。补充审计把缺失比较显式记为 `missing=1`
@@ -150,8 +155,8 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
   portfolio 证据权威绑定，再用固定 8 行质量/成本分母判断能否形成第二 phenotype。
 - Optimization evidence authority successor 已完成且 0 付费：新 v4 overlay 只保存 digest-bound evidence reference，
   loader 实读 gate/cost 文件并重算分类与 completeness，readiness v5 内嵌逐案例 authority。存量复核确认 API
-  Tester 的 quality-positive “1”保留，Env 仍为 fidelity-preserving；旧 portfolio v3/readiness v4 仅作不可变历史，
-  当前 eligible phenotype 仍为 1，automation 与 two-evidence gate 仍 false。
+  Tester 的 quality-positive “1”保留；**当时** Env 仍为 fidelity-preserving。该段属于旧 portfolio v3/readiness v4
+  的不可变历史，后续 readonly-serial successor 已另建 `efficiency-positive` authority，当前 eligible phenotype 为 2。
 - Task 18.37 已零付费完成真实 `automatic plan -> independent review patch -> frozen evaluator`：两个 fresh Env
   workdir 的 auto-only 为 3/6、reviewed 为 6/6，patch 125 LOC/8 humanMinutes，自动 plan digest 与 protected input
   均保持。它仍明确标为 `review-required`，不冒充 full automatic。
@@ -218,82 +223,20 @@ skill 编译为结构化 IR 和可执行 artifact，并用 development execution
 ## 当前下一步
 
 ```text
-冻结旧结果，不改 gate
--> contribution-v2 已证明 i18n 的 skill 增量可识别
--> source-audited profile-empty base IR（已完成）
--> no-skill | original | ir-static development（首个 identity 因 infrastructure 冻结失败）
--> lifecycle v2 已分离 contract/baseline/static/optimized/promotion
--> successor policy 已预注册 Env Manager
--> Env Manager v2 baseline-v1 已冻结 measurement-invalid
--> Env Manager v3 contract -> baseline -> base IR -> static -> artifact（均已完成）
--> 第二 phenotype 的 artifact fidelity 与前瞻适配成本（已完成，但不等于优化正例）
--> 第二/第三模型族 development 小面板已完成首个冻结诊断（blocked/mixed）
--> 取得第二个 quality-positive，或完成质量等价 + 全成本 + break-even 的 efficiency-positive
--> 通用 RepairEvidence admission -> Final IR development 闭环已完成；Env v3 合法无残差并停止
--> Statistical Power 已以 scorer-authority measurement-invalid 停止，不新增候选
--> 公共 declarative pilot adapter/lifecycle shadow parity 已完成（两正一负、0 paid、coreBranchDelta=0）
--> Env Manager 历史全成本审计已完成：旧 missing 不补零；后续 readonly-serial prospective identity 已闭合 break-even=1
--> 全过程复盘与前瞻 compiler cost capture 已完成：双案例 4/4 byte parity，历史手写路径保持 mechanism-only
--> BIDS construction/qualification/唯一 12-call 分母已完成：12/12 semantic-complete、0 infrastructure blocker
--> residual audit 发现 12/12 repair semantics 匹配但 11/12 被未公开的 issue-path 表示选择拒绝；v1 measurement-invalid
--> public JSON value-semantics preflight 已完成：BIDS v1 pointer pass、5 项语义未公开，付费前 blocked
--> successor feasibility 已完成：2 项保留、1 项泛化、2 项替换，15/15 canary；不原地改 BIDS v1
--> successor public contract + semantic scorer + disclosure identity 已冻结并通过 21/21 canary
--> successor qualification/development identity 已零付费冻结：12-row dry-run、lock-local scorer、只开放一次资格
--> successor 单次 infrastructure qualification 已通过：四门全绿、1 paid、semantic-complete、deterministic scorer
--> successor analysis/matrix runner identity 已冻结：固定顺序、精确 prefix、12+4 denominator，matrix 仍为 0/12
--> successor pre-model artifact controls 已冻结：report v2/repair evidence 合同匹配，4/4、0 model call/token
--> successor 唯一矩阵已完成：12/12 semantic-complete/scored、0 retry/infra；贡献 false、static -0.2
--> hand-authored artifact 4/4 且相对 original +0.2，但 automatic construction=false，BIDS 不计第二 phenotype
--> BIDS v1 始终不复用、不补跑、不重评分；qualification 也不以 task success 或 exact output 预筛模型
--> dynamic 继续关闭；它是可信 residual 驱动路径，不是成熟度打卡项
--> readiness v4 已区分 explained-and-frozen/open-candidate：open=0，但 phenotype=1、automation 7/7 incomplete
--> source-only、薄声明 candidate 与封闭结构 runtime 已完成；7 案例 33 次执行、两条 exact parity，0 paid
--> 首个 output primitive 已跨两案例生成部分产物；3 fields generated、15 unresolved、0/2 automatic eligible
--> JSON Pointer successor 已真实复制 3 fields；15 -> 12，ceiling=pointer 1/query 1/domain-runtime 10
--> Restricted Domain Plan 唯一双案例生成 0/2；2 calls/0 retry，但 provider-vs-parse 归因未建立
--> forced-tool transport qualification exact-match passed；不重分类历史 18.31
--> Task 18.33 progressive bisection 3/3 通过并产生安全计划；0 retry，不重分类历史 18.31
--> Task 18.34 已在两个真实 workdir 零付费执行：0/2 runtime complete、protected 2/2、每案仅 1/3 输出
--> 新增通用静态数据流类型门，能在 runtime 前拒绝该数组到 text-template 的必错流；不修改冻结 18.33 closure
--> Task 18.35 已真实运行 Env manual evaluator：baseline 0/6 -> post-plan 1/6，distance-to-full 5，case parity failed
--> Law 唯一 strict generation 已执行：1 call/0 retry，HTTP 200/tool call 可用，但本地 plan-schema strict reject
--> 跨 skill semantic parity failed：只评估 1/2 case、0/2 full pass；按 no-go 停止扩 DSL/7-case/held-out
--> Task 18.36 Env 通用修复完成：1 paid/0 retry，六门全过、2/2 runtime、每案 3/3 outputs，真实 parity 3/6 failed
--> 清洁计划仍漏掉 Vite `import.meta.env` 语义并不能生成逐变量 example/schema rules；eligibility/readiness 不成立
--> optimization evidence authority v5 已完成：实读+验 digest+重算；API quality-positive 保留，Env fidelity 不变
--> Task 18.37 已完成：独立 patch 后 6/6，125 LOC/8 minutes；auto-only 3/6 与 reviewed 分账，仍非 automatic
--> Task 18.38 构造成本前置与 8-row freeze 已完成：9358/0/0、missing=[]、deterministic dry-run 2/2
--> 唯一 execution 停在 6/8；第 7 行 paid side effect 存在但 usage authority 缺失，v1 不续跑、不回填、不分类
--> 新 0/8 identity 已完成 durable journal、forced-controller qualification、policy/freeze 与 0-paid plan
--> 唯一 start 因 status 观测污染停在 1/8；v2 不续跑，未来 identity 必须让 status/collect 完全不 materialize
--> final readonly-serial identity 已完成 8/8、4/4 quality parity、0 infra/retry/observer；Env efficiency-positive
--> authority v5 显式保留旧 Env gate 并绑定新 cost evidence；readiness v6 two-evidence=true、automation=false、overall=false
--> Phase 2 reachability 已完成：直接 gate 不含 domain parity，但 flag 晋升政策要求语义资格；当前字段无证据绑定
--> 四类 candidate 均 7/7、authority-qualified 均 0；成本趋势依赖是否把 declaration LOC 计入用户投入
--> Phase 3B+ Stage A 已完成：component authority/readiness v7 机器证明 automation=false，自报字段攻击不可翻转
--> Phase 3B+ Stage B 已完成证据整合：C1--C6 claim matrix、review-required proposition 与论文骨架已冻结
--> Phase E0 已完成；用户确认 B-default+A-optional，四条 receipt/claim/cost/共享主链红线已同步
--> E1 已用 Env evaluator-free vertical slice 跑通 compile -> review/accept -> package -> run -> cost，产品 token break-even=1
--> E2 package-inventory 仓内新 skill 双运行完成：closure 确定，自动语义/package 与原始 token 分母仍缺
--> Task 18.41 Env A 产品闭包完成：machine-checked 3/3、0 paid、50502.5 -> 0 token/run、break-even=1
--> DSL 只读 gate：object-key enumeration 与 sort/dedup 有 multi-case 证据；宽泛 cross-field count 暂不实施
--> Task 18.42 已实现两个窄 collection 原语；双真实 workdir 通过，patch 58 -> 44 LOC，但总 adapter 111 -> 119 LOC
--> Magpie Step 2 固定 public slice 已完成：31 exact blobs、checker 9/9、mutation 6/6、artifact 9/9、287 adapter LOC
--> project-Pi 001 因 row-01/run-N ABI 在 spawn 前失败；r2 修复后 002 又因 Windows 无法 uv_spawn 字面 bun 失败
--> 两个失败身份均 0 prefix/model/API/paid；001/002 保持不可变且不复用
--> 共享 executable identity 已通过真实 smoke 与 36-row/12-way status byte parity，pre-model 67835f2 已推送
--> 唯一 003 foreground serial denominator 已完成：36/36、18 paid、0 retry/infra、artifact 18/18、original 6/18
--> 固定 slice recurring saving 已建立；research all-attempt/efficiency、portfolio/readiness、held-out/live 继续关闭
--> Stage P1 已完成 Magpie product v1：9/9 CLI 产品、0 当前 paid、003 original rerun=0、API-token break-even=0
--> 产品 researchEligibility=not-eligible；raw workdir 本地保留，P2 external import 已完成并保持研究边界
--> P2 external import 已完成：strict recipe/manifest、exact closure verifier、CLI 与 checked-in 非 Magpie fixture；Magpie 仅 shadow `step-0-preflight/case-1-clean-pass`，搬移 bundle 后仍由现有 product CLI 五阶段执行，输出 digest 对上 P1，0 original rerun/0 当前 paid
--> Stage M 只在冻结产物上先跑三族 9-case usage qualification；任一族不完整即冻结 negative result 并停止
--> qualification 全过后只允许一次 27 original + 9 shared artifact 唯一矩阵；0 retry/reserve/replacement
--> Stage M 是 development diagnostic，不修改 portfolio/readiness，不开放 held-out/promotion/live Magpie
+主线 A：冻结七案例“标准答案可得性”分类与证据表（当前阶段，0 paid）
+  -> 档位 1：公开产物可得（API Tester）
+  -> 档位 2：输入结构可得（Env Manager、zh-readme、i18n-helper）
+  -> 档位 3：专家判断可得（Law、Experimental Design、zh-code-reviewer）
+  -> 只从冻结 registry/authority/report 派生人工 LOC、时间、自动化达成度和停止原因
+  -> 不把历史 null 写成 0，不重评分、不读取 held-out、不运行模型/API
+主线 B：API Tester trace + public-answer 提炼（待另行授权）
+  -> 新 identity、trace schema、公开答案闭包、deterministic parity、人工 authoring/review 计时
+  -> parity 或成本证据不完整即冻结负结果，不补跑筛正例
+主线 C：Env + API Tester 统一收进 SkVM 顶层 CLI（B 完成后）
+  -> 复用现有 standalone product library/CLI，不创建第二套 runtime 或 scorer
 ```
 
-方法案例数量不固定，6 只是起点。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式
+方法案例数量不固定，7 是当前分类表覆盖的冻结案例数，不代表未来 portfolio 只允许 7 个。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式
 adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`coreBranchDelta` 和未自动化步骤。
 
 ## 权威文档
@@ -301,6 +244,7 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 | 文档 | 唯一职责 |
 |---|---|
 | `developer-guide.md` | 从零上手、命令、参数、实验生命周期、结果判读与当前开发接力点。 |
+| `answer-availability-taxonomy.md` | 七案例答案可得性分类、人工成本 scope、自动化边界与冻结证据索引。 |
 | `skill-ir-aot-optimization-spec.md` | 当前研究契约、claim、证据边界和成功条件。 |
 | `skill-ir-aot-optimization-plan.md` | 当前 ledger、执行顺序和活跃文件级 TDD。 |
 | `ir-core.md` | IR 类型、parser、validator、passes 与 lowering。 |

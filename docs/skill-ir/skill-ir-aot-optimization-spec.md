@@ -1,8 +1,47 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-08-28
+**最后更新：** 2026-09-03
 
-## 1. 项目定位
+## 1. 北极星：以答案可得性组织 Skill IR / AOT
+
+**北极星（一句话）：** 建立一套以“标准答案可得性”为轴的 skill 分类学，并对“答案可得”的那一类做出
+可复现的 AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
+
+项目仍把 Skill IR 作为 SkVM AOT 编译链中的语义表示和优化 pass，但今后的顶层组织原则不再是堆叠案例或
+单独追逐跨模型面板，而是先判断任务答案能否从公开产物或用户输入中重建，再决定 AOT 固化和人工审核边界。
+
+### 1.1 答案可得性分类轴
+
+| 档位 | 名称 | 标准答案来源 | 预期优化边界 |
+|---|---|---|---|
+| 1 | 公开产物可得 | 公开、机器可读的 schema/spec/artifact；deterministic checker 可直接重算 | 最接近全自动 deterministic AOT；模型可从 runtime 热路径移出 |
+| 2 | 输入结构可得 | 用户可见的配置、仓库、源码、locale 或 manifest 结构；需要有限 mapping | 可自动生成结构化 IR/plan/package，低置信度领域映射保留 review |
+| 3 | 专家判断可得 | 公开输入不足以唯一确定答案，正确性依赖法律、科学或审查判断 | 不强行全自动；交付目标是可审计的 review-required 路径 |
+
+分类依据是“能否在不读取 hidden gold、不调用模型、不依赖未声明专家直觉的情况下重建判定标准”，不是 skill
+主题。当前七案例的逐案归类、人工成本和冻结证据见 `docs/skill-ir/answer-availability-taxonomy.md`。
+
+这条轴提出一个待验证、但可被证据逐步检验的单调性假设：答案越可得，deterministic scorer、AOT 固化和
+trace 提炼空间越大，人工判断越少。七案例表是整理后的观察证据，不单独构成因果定律。
+
+### 1.2 三条长期工作线
+
+1. **主线 A：分类学证据。** 用现有七个 pilot 的冻结证据，统一记录答案来源、人工 LOC/时间、自动化达成度、
+   optimization path 和停止原因，形成“答案可得性 → 优化/自动化结论”的总表；不跑新实验、不改历史结果。
+2. **主线 B：类内自动化。** 只在第 1 档“公开产物可得”上，以 API Tester 为最小闭环，验证执行 trace + 公开答案
+   能否提炼领域步骤，把人从作者降到审核者。第 3 档不硬做全自动。
+3. **主线 C：产品化收口。** 在 Env 之外，至少让第 1 档的 API Tester 走通现有 product 链，并把同一 core
+   接进 SkVM 顶层 CLI；不维护第二套 runtime 或第二套优化逻辑。
+
+### 1.3 降级与停止规则
+
+- Stage N 降级为主线 A 的类内子证据，只观察答案可得性档位内的模型族方差；其 smoke 失败或矩阵未授权时，
+  不把它升级成独立跨模型研究主线。
+- Stage M 的 Magpie identity 继续保持已冻结的 fail-closed，不复活、不按旧 identity qualification/matrix。
+- DSL 扩展、held-out、live release 和新的论文主张推迟到分类学与第 1 档最小闭环证明之后；它们不能反向定义
+  当前成功标准。
+
+## 1.4 项目定位（继承的系统边界）
 
 本项目把 Skill IR 作为 SkVM AOT 编译链中的语义表示和优化 pass。系统从有来源的自然语言 skill
 提取流程、规则、工具需求、环境假设、运行时检查和恢复策略，经静态分析与 development execution
@@ -12,17 +51,17 @@ feedback 生成可验证、可执行、可复用的 skill artifact。
 provenance-bound 编译产物提高成功率或最差表现并控制回归；在质量合同可比时，能否降低重复调用的
 摊销 Token。
 
-### 1.1 两条同等优先的主轴
+### 1.5 研究可信度与通用系统仍是硬约束
 
 1. **研究可信度：** 公开测量合同、确定性 scorer、development/held-out 隔离、完整分母、
    infrastructure/semantic 分离和可复现 provenance。
 2. **通用优化系统：** 通用 core 接收不同真实 skill，自动生成 IR、validation plan 和 package，
    不按 skill id 写死分支。
 
-显著正向单案例优先级较低。不得为漂亮结果放宽 scorer、回流 held-out 或隐藏回归；也不得只增加
-benchmark/governance 而不推进 compiler、artifact 和 intake 自动化。
+这两条是北极星下的硬约束，而不是另一套与分类轴并列的顶层路线。不得为漂亮结果放宽 scorer、回流 held-out
+或隐藏回归；也不得把第 3 档专家判断伪装成第 1 档 deterministic answer。
 
-### 1.2 用户与交付边界
+### 1.6 用户与交付边界
 
 最终用户提供 `SKILL.md`、少量声明式 task 说明、source/resource closure 和允许的工具环境。薄 task 说明只
 声明输入/输出文件、期望产物结构与 pass predicate，不是 scorer 实现，不含 gold、held-out 或模型结果。系统
@@ -1246,9 +1285,10 @@ schema、数值不自洽或内容不支撑分类均 fail closed，不产生 read
 
 该 successor 已实现为 `method-portfolio-authoritative.json` v4 overlay、skill-neutral authority loader 与
 `method-portfolio-authoritative-readiness.json` v5 报告，旧 v3/v4 字节未修改。零付费存量重验中 API Tester 上述
-分母与 strict improvement 全部成立，quality-positive “1”保留；Env 的质量等价成立但 strict improvement 不成立，
-继续为 fidelity-preserving。当前 eligible phenotype 因而仍为 1、efficiency-positive 为 0；two-evidence 与
-automation gate 继续 false。本结果只关闭证据来源漏洞，不授权 18.38 paid rows、held-out 或 replication。
+分母与 strict improvement 全部成立，quality-positive “1”保留；**在该 v4 overlay 的历史时点** Env 的质量等价成立
+但 strict improvement 不成立，继续为 fidelity-preserving，eligible phenotype 为 1、efficiency-positive 为 0。
+后续 readonly-serial successor 已另建并由 authority 派生 Env `efficiency-positive`；本段只记录旧证据来源修复，
+不授权 18.38 paid rows、held-out 或 replication。
 
 Env 是首个 reviewed-AOT efficiency 候选，因为它与 API Tester phenotype 不同，现有冻结 artifact 已证明 4/4、
 mean 1.0、0 pair regression，且历史 runtime 为 original 197606 model tokens/499006ms 对 artifact 0 tokens/541ms。
@@ -1356,7 +1396,7 @@ public interface；evaluator payload、held-out、runtime output 与 profile fee
 29.13% 非缓存 token 与 17.08% 时长下降只作诊断。该 gate 开放 artifact development，但仍不构成第二个
 optimized phenotype。
 
-第 1.2 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
+第 1.6 节定义的 CLI/library/Optimizer Agent 是交付合同，不是当前完成状态。现有 SkVM CLI 与研究脚本可以
 分别运行 AOT、agent 和实验组件，但尚未提供一条统一的 `import -> optimize -> validate -> report` 用户路径；
 不得把已有命令名称当作该产品闭环已经实现。
 

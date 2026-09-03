@@ -1,34 +1,38 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-09-02
+**最后更新：** 2026-09-03
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
 
-## 1. 当前判断
+## 1. 北极星与当前判断
 
-项目已经越过“能不能把 skill 写成 IR、能不能跑真实 agent、能不能确定性评分”的基础阶段，正在解决更难的
-问题：**一份真实 skill 的增量方法能否被合法 benchmark 识别，并进一步固化为跨重复调用可复用的 artifact。**
+**北极星：** 建立一套以“标准答案可得性”为轴的 skill 分类学，并对“答案可得”的那一类做出可复现的
+AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
+
+分类轴按答案来源分三档：
+
+1. **公开产物可得**：答案在公开、机器可读的 schema/spec/artifact 中，deterministic checker 可直接重算；
+2. **输入结构可得**：答案可从用户可见的配置、仓库、源码、locale 或 manifest 结构推导，需要有限 mapping；
+3. **专家判断可得**：公开输入不足以唯一确定答案，依赖法律、科学、审查严重度等领域判断。
+
+七案例的逐案证据、人工 LOC/时间、自动化达成度与停止原因固定在
+`docs/skill-ir/answer-availability-taxonomy.md`；本计划不从历史 null 推导“零人工”，也不把分类观察写成
+因果定律。
 
 截至当前：
 
-- IR schema、parser、validator、source audit、静态 pass、lowering、typed feedback 和 Final IR provenance
-  均有实现与测试；
-- runner、Pi harness、workdir materialization、deterministic scorer、paired gate、结果持久化和 benchmark
-  contract audit 已形成研究基础设施；
-- 7 个真实 skill 已进入 method portfolio，7 个 contract-qualified；
-- API Tester 为 quality-positive；Env Manager artifact gate 通过但只证明 fidelity-preserving，尚缺 compile cost
-  与 break-even，当前 readiness-eligible optimized phenotype 只有 1 个；
-- i18n contribution-v2 已通过基线准入并完成 source-audited profile-empty base IR；首个 static identity 因
-  4 个 infrastructure failure 冻结，resilient v4 已消除 execution blocker，但因 1 个 paired quality regression
-  失败，仍无 artifact、held-out 或 Token 优化证据；
-- Statistical Power 首轮 baseline 8/8 行无 execution blocker，但 public interface 未披露 scorer 的 23 个嵌套
-  JSON pointer，冻结 scorer-authority `measurement-invalid`；没有进入 base IR/static/dynamic；
-- untouched replication、三模型族主实验、noisy/long context、break-even 和面向用户的统一 optimizer CLI 尚未完成；
+- 7 个真实 skill 已进入 method portfolio，7 个 contract-qualified；分类表已覆盖全部案例；
+- API Tester（档位 1）为 `quality-positive`；Env Manager（档位 2）当前 reviewed-AOT 为
+  `efficiency-positive`，两者都是 readiness-eligible phenotype；
+- zh-readme 与 i18n-helper 属于档位 2，但分别被 scorer-authority 与 static quality regression 阻断；
+- Law、Experimental Design、zh-code-reviewer 属于档位 3，保留 review-required/停止证据，不强行转成全自动；
+- Stage N 已降级为分类轴的类内子证据：Stage 0 + smoke 已完成，资格 failed，仅 GPT eligible，matrix 未创建；
+- 面向用户的统一 optimizer CLI 尚未完成；现有 standalone product library/CLI 可复用，但不另造 importer 或
+  Stage N runtime。
 
-因此当前不能写“优化系统已经闭环”或“任意 skill 均可自动优化”。准确表述是：**执行框架较成熟，但 scorer
-authority preflight 仍不完备；通用优化内核有一个质量正例、一个 fidelity 案例和多个机制/负结果，跨模型方向性
-诊断已完成首批 blocked/mixed 面板，生命周期封装、跨 skill 复现、全成本与产品化仍在关键路径上。**
+准确表述是：**项目已经有“公开答案可得 → deterministic AOT 正例”和“输入结构可得 → reviewed-AOT 成本正例”，
+但自动化/最低人工仍未在全 portfolio 收敛；专家判断档位应以可审计 review-required 作为诚实终点。**
 
 ## 2. 机器状态 Ledger
 
@@ -36,42 +40,49 @@ authority preflight 仍不完备；通用优化内核有一个质量正例、一
 |---|---|---|
 | IR core | i18n base IR 与执行韧性 successor 已通过机制验证 | v4 static 为可信质量回归，不开放 artifact |
 | Benchmark/evaluation | 合同、贡献识别、runner、scorer 已具备 | 避免再出现 public ABI 或 execution authority 漂移 |
-| API Tester | optimized development 4/4、mean 1.0 | 冻结保留；不提前运行 held-out |
+| API Tester | 档位 1；optimized development 4/4、mean 1.0，`quality-positive` | 主线 B 的 trace + public-answer 最小闭环；不提前运行 held-out |
+| Env Manager | 档位 2；reviewed-AOT 4/4 quality-equivalent，`efficiency-positive`，break-even=1 | 作为前两档产品对照；不把 review-required 写成 full automatic |
 | Law | v3 measurement-valid，但 baseline gate failed；旧 held-out 回归 | 暂不重跑，保留为 boundary failure case |
 | Experimental Design | 合同合格；skill-unique 贡献面合格但强模型饱和 | i18n 竖切后再决定 efficiency ablation 或 successor |
 | Zh Code Reviewer | base IR/static fidelity gate passed | 残差已被 static 解决，不强造 overlay |
 | Zh README | v1/v2 measurement-invalid | skill-neutral command semantics 已提炼，暂不堆新版本 |
 | i18n Helper | contribution-v2 base IR passed；v4 static 0 infra 但 paired gate failed | 不开放 artifact；转向替代 qualified case |
-| Method portfolio | 7 studied、7 qualified、1 quality-positive、1 fidelity、0 efficiency/replication | 取得第二个 readiness-eligible phenotype；补 dynamic/solidification 闭环 |
-| Product entry | 研究脚本可运行；统一 `import/optimize/validate/report` 尚未接入 | 方法 readiness 后收敛 CLI/library/Agent |
+| Method portfolio | 7 studied、7 qualified、1 quality-positive、1 efficiency-positive、0 untouched replication、0 dynamic-profile | 维持 automation/adaptation convergence=false；先完成分类表再做第一档自动提炼 |
+| Product entry | standalone product library/CLI 可运行；顶层 `src/index.ts` 尚未接入统一用户路径 | 主线 C：Env 之外接入 API Tester，并统一收进 SkVM CLI |
+| Answer taxonomy | 7 案例三档分类表已提交，证据来自冻结 registry/authority reports | 先审阅主线 A，再决定主线 B 的 trace 提炼 identity |
 
 机器权威入口：
 
 ```text
 benchmarks/skill-ir/corpus/method-portfolio.json
-results/skill-ir/method-portfolio-readiness.json
+benchmarks/skill-ir/corpus/method-portfolio-authoritative-efficiency.json
+results/skill-ir/method-portfolio-authoritative-efficiency-readiness.json
+benchmarks/skill-ir/corpus/method-portfolio-authoritative-automation.json
+results/skill-ir/method-portfolio-authoritative-automation-readiness.json
 benchmarks/skill-ir/corpus/corpora/pilot.json
 results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json
 ```
 
 ## 3. 当前主要缺口
 
-### P0：优化证据仍薄
+### P0：分类学已成形，但类内自动化证据仍薄
 
-API Tester 是唯一 contract-qualified quality-positive phenotype；Env Manager 证明 artifact fidelity，但没有完整
-compile/profile/package 成本与 break-even，不能计 efficiency-positive。证据仍限于单模型、Windows/clean
-development；i18n contribution-v2 的可信静态负结果继续保留，不以正例覆盖。
+当前已有两条与分类轴相符的正向证据：API Tester（档位 1）为 `quality-positive`，Env reviewed-AOT（档位 2）为
+`efficiency-positive`、break-even=1。两者仍来自冻结 development/Windows/clean 条件；七案例的最低人工只
+能报告已测 scope，不能从历史 null 推导全流程 0 分钟。i18n、Law、Experimental Design、zh-readme 和
+zh-code-reviewer 的负结果继续保留，不能为填表改写。
 
-### P0：自动导入与自动编译尚未形成产品路径
+### P0：产品化主线仍未收口
 
-Spec 中的 CLI/library/Optimizer Agent 是北向交付合同。当前真实工作仍依赖 pilot-specific task、scorer、lock
-和研究脚本；`src/index.ts` 的既有 SkVM 命令尚未串起本项目的 intake -> base IR -> validation plan -> package
--> report 全流程。
+P2 已提供通用 external-skill import staging bundle，E1 standalone product library/CLI 已可运行，但 `src/index.ts`
+尚未串起面向用户的统一 `import -> optimize -> validate -> report` 路径。主线 C 的目标是先把 Env 之外的 API Tester
+接入同一 product chain，再统一收进顶层 CLI；不另造 runtime 或第二套优化逻辑。
 
-### P0：跨条件主证据尚未开始
+### P0：跨条件主证据暂不作为独立主线
 
-尚无冻结方法在 untouched skill、三模型族、clean + noisy/long 或第二 harness 上的完整主表，也没有质量通过
-后的 Token break-even。当前 Windows/Pi/强 GPT 结果不能外推到其他模型、agent 或 OS。
+Stage N 只保留为分类轴的类内子证据；其 Stage 0 + smoke 已完成但资格 failed，仅 GPT eligible，matrix 未创建。
+因此暂无跨模型主表，当前 Windows/Pi/强 GPT 结果不能外推到其他模型、agent 或 OS。新的跨模型执行必须服务于
+分类结论，而不是反过来驱动论文或 readiness。
 
 ### P1：动态优化与固化仍未形成通用执行闭环
 
@@ -92,6 +103,58 @@ workdir、qualification、probe 和调试结果，另有 13 个名称上属于 s
 再决定提交或明确保持本地。
 
 ## 4. 活跃开发计划
+
+### 当前主线顺序：A → B → C
+
+本阶段不按旧 Task 18 的案例堆叠顺序继续扩张。执行顺序固定为：
+
+```text
+主线 A：冻结证据分类表（0 paid）
+  -> 主线 B：API Tester 第 1 档 trace + public-answer 提炼
+  -> 主线 C：Env + API Tester 统一收进 SkVM 顶层 CLI
+```
+
+Stage N 仅作为主线 A 的类内子证据；Stage M、DSL 扩展、held-out、live release 和新的论文主张继续停线。
+
+### 主线 A：答案可得性分类学与证据表（当前阶段）
+
+**目标：** 用现有 7 个 method-portfolio pilot 的冻结 registry、authority report 和结果文件，建立三档答案
+可得性分类，并为每个案例补齐答案来源、人工 LOC/时间、自动化达成度、optimization path 和停止原因。
+
+**交付：** `docs/skill-ir/answer-availability-taxonomy.md`，并在本计划与 spec 中保持同一分类口径。
+
+- [x] 固定三档定义：公开产物可得、输入结构可得、专家判断可得；分类依据是可否从公开产物/输入重建判定标准。
+- [x] 覆盖 `api-tester`、`env-manager`、`zh-readme`、`i18n-helper`、`law-to-markdown`、
+  `experimental-design`、`zh-code-reviewer` 七个案例。
+- [x] 从 `method-portfolio.json` 读取 adapter LOC、humanMinutes、coreBranchDelta、automation flags 与
+  optimizationPath；历史 null 保持未测，不转换成 0。
+- [x] 用 authority v5/v7 与冻结 report 交叉核对 `quality-positive`、`efficiency-positive`、
+  `measurement-invalid`、`static-quality-regression` 和 `baseline-saturation` 等状态。
+- [x] 明确第一档已有 API Tester deterministic AOT 正例；最低人工仍只能报告已测下界，不能声称全流程最小值。
+
+**验证边界：** 本表是 evidence synthesis，不重评分、不新建 lock、不读取 held-out、不运行模型/API、不改变
+portfolio/readiness。若七案例证据之间有冲突，以 authority report 和冻结结果为准，并在表中保留 superseded 状态。
+
+### 主线 B：第 1 档 API Tester 的 trace 提炼（后续授权）
+
+**目标：** 只在公开产物可得的 API Tester 上，验证“执行 trace + OpenAPI/public answer”能否确定性提炼领域步骤，
+把人工从作者降为审核者。
+
+**必须先冻结：** 新 identity、OpenAPI/source closure、trace schema、提炼规则、deterministic parity checker、
+人工计时/LOC 口径和失败分类。不得把 Env 或专家判断档的 mapping 直接移植成第一档正例，也不得读取 held-out
+或用后验模型输出扩写答案。
+
+**成功定义：** 在冻结 development fixture 上，提炼结果与公开答案/现有 API Tester artifact 通过 parity，
+且人工 authoring scope 与 review scope 分开测量；若 parity 或成本证据不完整，冻结为负结果，不补跑筛正例。
+
+### 主线 C：产品化收口（B 完成后）
+
+**目标：** 复用现有 standalone verified-artifact product library/CLI，让 Env 之外的 API Tester 走通同一产品链，
+再把相同入口接入 SkVM 顶层 CLI；不创建第二套 runtime、不复制 scorer/optimizer 逻辑、不改 `src/index.ts` 的
+历史冻结合同，除非另行完成兼容迁移设计。
+
+**最小交付：** 用户可用一条统一命令完成已授权的 `import -> optimize -> validate -> report`，并能看到
+artifact provenance、validation report、cost report 和明确的 `user-accepted`/`machine-checked` 边界。
 
 ### Task 18.1 项目状态审计与文档收敛
 
