@@ -48,8 +48,8 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
 | Zh README | v1/v2 measurement-invalid | skill-neutral command semantics 已提炼，暂不堆新版本 |
 | i18n Helper | contribution-v2 base IR passed；v4 static 0 infra 但 paired gate failed | 不开放 artifact；转向替代 qualified case |
 | Method portfolio | 7 studied、7 qualified、1 quality-positive、1 efficiency-positive、0 untouched replication、0 dynamic-profile | 维持 automation/adaptation convergence=false；先完成分类表再做第一档自动提炼 |
-| Product entry | standalone product library/CLI 可运行；顶层 `src/index.ts` 尚未接入统一用户路径 | 主线 C：Env 之外接入 API Tester，并统一收进 SkVM CLI |
-| Answer taxonomy | 7 案例三档分类表已提交，证据来自冻结 registry/authority reports | 先审阅主线 A，再决定主线 B 的 trace 提炼 identity |
+| Product entry | standalone product library/CLI 可运行；顶层 `src/index.ts` 尚未接入统一用户路径 | 主线 C：先把 Env 与 API Tester 收进同一产品链，再接入顶层 CLI |
+| Answer taxonomy | 7 案例三档分类表已提交，证据来自冻结 registry/authority reports | 主线 A 已收口；主线 B 只做 API Tester trace 协议与零付费 dry-run |
 
 机器权威入口：
 
@@ -104,19 +104,21 @@ workdir、qualification、probe 和调试结果，另有 13 个名称上属于 s
 
 ## 4. 活跃开发计划
 
-### 当前主线顺序：A → B → C
+### 当前主线顺序：C → B（A 已收口）
 
-本阶段不按旧 Task 18 的案例堆叠顺序继续扩张。执行顺序固定为：
+本阶段不按旧 Task 18 的案例堆叠顺序继续扩张。分类学主线 A 已完成整理，当前接力固定为：
 
 ```text
-主线 A：冻结证据分类表（0 paid）
-  -> 主线 B：API Tester 第 1 档 trace + public-answer 提炼
-  -> 主线 C：Env + API Tester 统一收进 SkVM 顶层 CLI
+主线 C：Env + API Tester 统一收进现有产品链与 SkVM 顶层 CLI（0 paid）
+  -> 主线 B：API Tester 第 1 档 trace + public-answer 协议与 dry-run（0 paid）
+  -> B 的 paid run（需用户另行确认预算，当前未授权）
 ```
 
-Stage N 仅作为主线 A 的类内子证据；Stage M、DSL 扩展、held-out、live release 和新的论文主张继续停线。
+主线 C 只做产品工程接入，不修改旧 lock、P1/P2、core、DSL、scorer、artifact 或 readiness；主线 B 只做协议准备，
+不检查 API key、不 dispatch、不创建 paid rows。Stage N 仅作为分类轴的类内子证据；Stage M、DSL 扩展、held-out、
+live release 和新的论文主张继续停线。
 
-### 主线 A：答案可得性分类学与证据表（当前阶段）
+### 主线 A：答案可得性分类学与证据表（已收口）
 
 **目标：** 用现有 7 个 method-portfolio pilot 的冻结 registry、authority report 和结果文件，建立三档答案
 可得性分类，并为每个案例补齐答案来源、人工 LOC/时间、自动化达成度、optimization path 和停止原因。
@@ -135,7 +137,17 @@ Stage N 仅作为主线 A 的类内子证据；Stage M、DSL 扩展、held-out�
 **验证边界：** 本表是 evidence synthesis，不重评分、不新建 lock、不读取 held-out、不运行模型/API、不改变
 portfolio/readiness。若七案例证据之间有冲突，以 authority report 和冻结结果为准，并在表中保留 superseded 状态。
 
-### 主线 B：第 1 档 API Tester 的 trace 提炼（后续授权）
+### 主线 C：产品化收口（当前执行线）
+
+**目标：** 复用现有 standalone verified-artifact product library/CLI，让 Env 与 API Tester 走通同一产品链，
+再把相同入口接入 SkVM 顶层 CLI；不创建第二套 runtime、不复制 scorer/optimizer 逻辑。顶层 `src/index.ts` 只负责
+动态路由、帮助和参数错误，skill-specific 行为必须留在 preset/adapter。
+
+**最小交付：** Env 的 A-optional preset 与 API Tester 的薄 adapter 都能调用
+`compile -> review-or-accept -> package -> run -> cost`；统一入口通过 help、未知 preset、路径 containment、
+非空输出目录和旧命令兼容测试；`coreBranchDelta=0`，当前阶段 `modelCalls=apiCalls=paidCalls=0`。
+
+### 主线 B：第 1 档 API Tester 的 trace 提炼（只做准备）
 
 **目标：** 只在公开产物可得的 API Tester 上，验证“执行 trace + OpenAPI/public answer”能否确定性提炼领域步骤，
 把人工从作者降为审核者。
@@ -145,16 +157,8 @@ portfolio/readiness。若七案例证据之间有冲突，以 authority report �
 或用后验模型输出扩写答案。
 
 **成功定义：** 在冻结 development fixture 上，提炼结果与公开答案/现有 API Tester artifact 通过 parity，
-且人工 authoring scope 与 review scope 分开测量；若 parity 或成本证据不完整，冻结为负结果，不补跑筛正例。
-
-### 主线 C：产品化收口（B 完成后）
-
-**目标：** 复用现有 standalone verified-artifact product library/CLI，让 Env 之外的 API Tester 走通同一产品链，
-再把相同入口接入 SkVM 顶层 CLI；不创建第二套 runtime、不复制 scorer/optimizer 逻辑、不改 `src/index.ts` 的
-历史冻结合同，除非另行完成兼容迁移设计。
-
-**最小交付：** 用户可用一条统一命令完成已授权的 `import -> optimize -> validate -> report`，并能看到
-artifact provenance、validation report、cost report 和明确的 `user-accepted`/`machine-checked` 边界。
+且人工 authoring scope 与 review scope 分开测量；dry-run 必须包含 baseline-pass 与 mutation-fail。没有预算与
+明确授权前，不检查 API key、不执行 original rows；若 parity 或成本证据不完整，冻结为负结果，不补跑筛正例。
 
 ### Task 18.1 项目状态审计与文档收敛
 
