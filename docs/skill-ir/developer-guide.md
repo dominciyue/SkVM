@@ -477,6 +477,27 @@ bun run ./src/benchmarks/skill-ir/stage-n-cross-model-panel-run.ts `
 当前 smoke 结果是 `failed`：GPT 两行 digest-bind complete，Claude/DeepSeek 的 API Tester 行
 `active-absolute-timeout`，Env Manager 行 complete；失败行留在分母，matrix 未创建。
 
+把这份 compact 结果按“族是否能完成全部 smoke 行”来读，而不是按单行成功数来读：
+
+| 模型族 | API Tester smoke | Env Manager smoke | 资格状态 |
+|---|---|---|---|
+| GPT | `digest-bind` complete（不重跑） | `digest-bind` complete（不重跑） | eligible（仅作既有证据绑定） |
+| Claude | `active-absolute-timeout` | complete | 出局 |
+| DeepSeek | `active-absolute-timeout` | complete | 出局 |
+
+权威入口是 lock、Stage 0 计划和 smoke compact：
+
+```text
+benchmarks/skill-ir/panels/stage-n-cross-model-aot-stability-001/panel-lock.json
+results/skill-ir/stage-n-cross-model-aot-stability-001/plan.json
+results/skill-ir/stage-n-cross-model-aot-stability-001/smoke-qualification.json
+```
+
+`panel-lock.json` 的 SHA-256 为
+`b7a93c8886b948565ef7c5a1eadf5f26e041d06a2b8044ad28febd803cb1db35`；当前 smoke 是 6 行、4 次新付费
+调用、0 retry。不要把“Env Manager 行 complete”理解成 Claude 或 DeepSeek 已通过族资格：本合同要求同一族的
+两个 skill smoke 都能完成，任一失败都使该族出局。
+
 ## 6. PowerShell 和命令参数写法
 
 ### 6.1 多行命令
@@ -1208,10 +1229,13 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 失败归档：001 的 row-01/run-N ABI 与 002 的 Windows literal-bun resolution 均在模型进程 spawn 前失败，0 prefix/model/API/paid
 已完成：共享 runtime executable identity；真实 --version smoke、36-row materialization、12-way status byte parity 全过，0 paid
 已完成：pre-model 67835f2 推送后，executable-bound 003 从 fresh 0/36 完成 36/36、18 paid、0 retry/infra
-当前接力：只提交 compact report 与既有文档；不要晋级 portfolio/readiness 或把 fixed fixtures 外推到 live source
-禁区：不得先跑 paid/held-out/多模型，不得无 evidence-bound successor 就修改 convergence gate
-结果边界：第二 phenotype 已成立，但 reviewed patch 不把 full-auto convergence 改成 true
-复制边界：untouched replication 仍等待完整 readiness，或另行评审明确命名的 reviewed method-freeze gate
+当前接力（2026-09-03）：主线 A 维护七案例答案可得性分类；主线 B 只为 API Tester 设计 trace + public-answer 提炼；主线 C
+再把 API Tester 与 Env Manager 复用同一产品链并接入顶层 CLI。当前不创建新实验 identity，不重评分，不读取 held-out。
+Stage N smoke 已失败且 matrix 未创建；Stage M 旧 identity 继续 fail-closed，不能按旧合同重跑或付费。
+结果边界：API Tester 的 quality-positive 与 Env reviewed-AOT 的 efficiency-positive 仍只覆盖冻结 development/Windows/clean；
+P2 bundle 只是显式闭包 staging bundle，不是独立 runtime，也不把 Magpie checker 变成 P1 语义 checker。
+复制边界：untouched replication、多模型主证据、readiness 晋级和 full-auto convergence 仍未开放；任何扩大范围的动作都需要
+新的明确授权与独立 identity。
 ```
 
 本地重建命令：
