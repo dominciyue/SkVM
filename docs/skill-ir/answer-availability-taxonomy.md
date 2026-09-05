@@ -1,71 +1,62 @@
-# 答案可得性分类学与七案例证据表
+# 答案可得性路由框架与七案例回顾性证据表
 
-**最后更新：** 2026-09-03
-**证据范围：** 现有 7 个 method-portfolio pilot 的冻结 registry、authority report 和已提交结果；本表不创建新实验，不重评分，不补写历史人工成本。
+**最后更新：** 2026-09-06
+**证据范围：** 现有 7 个 method-portfolio pilot 的冻结 registry、authority report、公开 task/contract 和已提交结果。本表不创建新实验、不重评分、不修改 portfolio/readiness，也不补写历史人工成本。
 
-## 1. 分类轴
+## 1. 分类对象与三个独立问题
 
-本项目把 skill 按“判断对错的标准答案从哪里来”排成三档。分类对象不是 skill 的主题，而是一个任务的
-**可判定答案来源**：在不读取 hidden gold、不调用模型、不依赖未声明专家直觉的前提下，系统能否从公开
-产物或用户输入重建判定标准。
+分类对象固定为一个 `(skill, task slice, public contract, environment)` 四元组，不再给完整 skill 主题贴一个永久档位。每个对象分别回答：
 
-| 档位 | 名称 | 判定标准 | 预期 AOT/自动化边界 |
-|---|---|---|---|
-| 1 | 公开产物可得 | 答案已存在于公开、机器可读的 schema/spec/artifact 中，deterministic checker 可直接重算 | 最接近 deterministic AOT；可把运行时模型从热路径移出，但仍需记录 source audit、构造和审核成本 |
-| 2 | 输入结构可得 | 答案可从用户可见的配置、仓库、源码、locale 或 manifest 结构推导；需要有限 mapping，但不需要开放式专家裁决 | 可做结构化 IR/plan/package；领域映射和低置信度部分仍可能需要 review |
-| 3 | 专家判断可得 | 公开输入不足以唯一确定答案，正确性依赖法律、科学、审查严重度或其他专家语义 | 不强行全自动；诚实目标是 review-required、可审计边界和明确停止原因 |
+1. **验证覆盖：** 公开合同和 checker 覆盖了当前切片的哪些质量要求，哪些要求仍未覆盖；
+2. **构造映射：** 能否从公开输入确定性构造候选，映射是通用机制、领域规则还是人工 patch；
+3. **剩余判断：** 哪些硬要求仍需要人、外部语义来源或未公开 evaluator 判断。
 
-这条轴给出一个可检验的单调性假设：答案越可得，deterministic scorer/AOT 固化和 trace 可挖掘空间越大，
-人工判断越少。它是研究组织原则，不是由 7 个案例单独证明的因果定律；表中“结果”必须和“假设”分开报告。
+原来的三档保留为待验证的路由框架，而不是已经完成的分类学：
 
-## 2. 七案例总表
+| 路由 | 暂定含义 | 使用规则 |
+|---|---|---|
+| R1：显式规范可执行 | 公开 fixture/contract 足以让独立 checker 重算当前切片的全部 hard gates | 只说明“可验证”；不自动说明候选已经自动构造，也不要求唯一 canonical 文本 |
+| R2：公开结构需领域映射 | 输入结构公开，但从结构到合格候选仍需要领域 mapping、review 或 case adapter | 映射和人工必须单列，不能因 runtime 为 0 token 就写成 full automatic |
+| R3：当前合同仍有外部语义判断 | 至少一个 hard quality requirement 无法从当前公开合同执行，需要实际 reviewer、专家或新的外部 oracle | 只对未覆盖 requirement 使用；不得把完整领域的难度反投影到已收窄的机械切片 |
 
-“人工成本”只记录冻结证据中真实测过的 scope。`未测`、`历史不可得` 和 `0` 不等价；`0 LOC` 只表示
-该字段在 registry 中没有记录 adapter 代码，不表示全流程不需要人工。
+R1/R2/R3 不是互斥主题标签。同一切片可以是“R1 验证 + R2 构造”，也可以因部分 requirement 落入 R3 而标为 mixed。先按公开合同逐项分类，再看实验结果；禁止用成功、回归、饱和或测量失效倒推路由。
 
-| Skill | 档位 | 答案来源（当前证据解释） | AOT/自动化达成度 | 人工 LOC / 时间证据 | 当前冻结结论 | 权威证据 |
-|---|---:|---|---|---|---|---|
-| `api-tester` | 1 | OpenAPI schema、公开 endpoint/test-plan contract 与 deterministic evaluator | `quality-positive`；validated artifact 4/4、mean 1.0、0 infrastructure/regression、runtime model tokens 0；direct-deterministic-artifact | adapter 38 LOC；human minutes 未测；coreBranchDelta 0 | 第一档的可复现正例；尚未证明最低人工、held-out 或跨模型 | `results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json`；`benchmarks/skill-ir/corpus/method-portfolio.json` |
-| `env-manager` | 2 | 用户可见的环境配置、JSON/schema 结构和输入/输出关系 | reviewed-AOT `efficiency-positive`；4/4 quality-equivalent pairs、original 202010 tokens vs reviewed 0、break-even=1；direct-deterministic-artifact | reviewed-AOT patch 125 LOC / 8 min；更宽的历史 adaptation 214 min / 25 LOC，不能与前者相加或互换 | 第二档中最完整的产品化证据，但仍是 review-required，人工成本不是 0 | `results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/paired-quality-evidence.json`；`results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json` |
-| `zh-readme` | 2 | 仓库文件、manifest、入口源码、已有文档和许可证等 repository facts | contract candidate 可构造，但 baseline 因 scorer-authority `measurement-invalid`；未进入 base IR/package | registry 为 0 LOC；时间历史不可得；不能解释为自动化 | 输入事实可得，但 measurement authority 先于 AOT 失败；保留为分类负证据 | `results/skill-ir/zrm-pi-v2/measurement-validity.json`；`benchmarks/skill-ir/corpus/method-portfolio.json` |
-| `i18n-helper` | 2 | 源码/locale key 结构、placeholder/plural 公开语义和 task output ABI | contribution-v2 base IR/source audit 通过；static v4 因 1 个 paired quality regression 失败，artifact/held-out 关闭 | registry 为 0 LOC；时间历史不可得；不代表无人工 | 输入结构足以支持静态分析，但当前静态质量负结果阻止 AOT 晋级 | `results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json`；`results/skill-ir/ihc-static-v4/gate-report.json` |
-| `law-to-markdown` | 3 | 法律分类、交付语义和审核结果不能由公开格式唯一决定，需领域判断 | baseline regression；stopped-before-dynamic；旧 artifact/held-out 结果被 benchmark contract invalidated | LOC/时间历史不可得；不应从旧 artifact 的 0 runtime token 反推人工为 0 | 专家判断档的停止/无效证据；不把结构化 Markdown 误写成已自动化法律判断 | `results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/measurement-validity.json`；`benchmarks/skill-ir/corpus/method-portfolio.json` |
-| `experimental-design` | 3 | 研究设计、分配策略和报告语义依赖科学方法判断；skill-unique slice 仍不能替代专家 oracle | baseline-saturation；stopped-before-dynamic；无付费 optimized evidence | LOC/时间历史不可得 | 专家判断档的饱和负结果；公开合同合格不等于答案已可机械重建 | `results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json`；`benchmarks/skill-ir/corpus/method-portfolio.json` |
-| `zh-code-reviewer` | 3 | 源码事实可抽取，但 finding 的严重度、证据充分性和修复判断仍需 reviewer 语义 | static-sufficient；static fidelity 通过，但 optimized development 未运行 | registry 为 0 LOC；时间历史不可得 | 结构事实可读不等于审查结论唯一；停止在 static，保持 review-required 边界 | `results/skill-ir/zcr-static-fidelity-v1/gate-report.json`；`benchmarks/skill-ir/corpus/method-portfolio.json` |
+## 2. 结果类型必须与路由分开
 
-## 3. 当前可辩护结论
+七案例结果使用以下互斥解释标签：
 
-1. **第一档已经有一条可复现 AOT 正例。** API Tester 的公开 OpenAPI 语义被固化为 deterministic artifact，
-   development 16/16 行完整、artifact 4/4、mean 1.0、runtime model tokens 为 0。它证明“公开答案可得”
-   可以支撑 AOT 热路径移除模型，不证明整个构造流程已最低人工或已跨模型泛化。
-2. **第二档显示结构可得性带来不同程度的自动化，但不能混成一个成功率。** Env Manager 已有完整
-   reviewed-AOT efficiency evidence；zh-readme 被 scorer authority 阻断，i18n-helper 被静态质量回归阻断。
-   这组差异正是分类学要保留的负结果，而不是需要补跑来抹平的噪声。
-3. **第三档不应被强行改写成全自动目标。** Law、Experimental Design、zh-code-reviewer 的冻结证据都说明
-   公开结构、格式或源码事实不足以唯一给出领域判断；合理产品目标是可审计的 review-required 路径和明确
-   `not-established`/`blocked` 停止原因。
-4. **最低人工结论目前只能写成“已测下界”，不能写成全流程最小值。** API Tester 的 38 adapter LOC、Env
-   reviewed-AOT 的 125 LOC/8 min 是不同 scope 的真实测量；其余案例的历史人工成本不可得。后续主线 B
-   才负责在第一档 API Tester 上建立 trace + public-answer 的可复现提炼，并前瞻测量人工从作者降为审核者的
-   真实分钟数和 LOC。
+- `positive-evidence`：固定合同与分母内的质量或成本正向证据；
+- `implementation-failure`：当前转换实现发生质量回归，不代表同类任务不可确定性构造；
+- `measurement-invalid`：scorer/public contract 不足，不能据此判断方法或路由；
+- `baseline-saturation`：对照无增益空间，不能据此证明专家不可替代；
+- `contract-scope-boundary`：当前切片机械可判，但完整 skill 的更宽语义未进入 hard gate。
 
-## 4. 与跨模型实验的关系
+`未测`、`历史不可得` 和 `0` 不等价。一次合格流程的实测分钟只能说明该投入量可实现；它不是“最低人工下界”。
 
-Stage N 只作为这条轴的类内子证据：它用于观察同一答案可得性档位在不同模型族上的 execution/quality 方差，
-不重新定义分类轴。当前 Stage N smoke qualification 已失败（仅 GPT eligible，Claude/DeepSeek 出局），matrix
-未创建；因此现在没有跨模型主表，也不能把 smoke 结果写成“优化后的 LLM 更稳”。Stage M 的 Magpie identity
-继续保持 fail-closed 预注册合同，不复活。
+## 3. 七案例回顾表
 
-## 5. 证据来源与维护规则
+| Skill 与冻结切片 | 暂定路由 | 公开验证覆盖 | 构造与剩余人工 | 冻结结果类型与可写结论 | 权威证据 |
+|---|---|---|---|---|---|
+| `api-tester` / OpenAPI development / Pi-Windows-clean | R1 验证 + R2 构造 | OpenAPI、公开 test-plan contract 与独立 deterministic scorer 覆盖当前 hard gates | 已有 38 LOC 人工 adapter；human minutes 未测；自动构造未成立 | `positive-evidence`：人工实现 artifact 为 4/4、runtime model token 0。另一个 B original smoke 是 `implementation-failure`：operation-sequence parity exact 但三个质量 gate 失败。两者不是同一构造路径 | `results/skill-ir/api-tester-schema-derived-artifact-development-v1/gate-report.json`；`results/skill-ir/api-tester-trace-public-answer-paid-development-001/report.json` |
+| `env-manager` / readonly-serial development / Pi-Windows-clean | R1 验证 + R2 reviewed 构造 | 用户可见配置、schema、输入/输出关系与独立质量证据覆盖冻结切片 | reviewed-AOT patch 125 LOC / 8 active human min；历史 adaptation 214 min / 25 LOC 是另一 scope，不能相加或替换 | `positive-evidence`：4/4 quality-equivalent；production model-token 口径 one-time 9358、original 50502.5/run、break-even=1。不是总经济回本或零人工 | `results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/paired-quality-evidence.json`；`results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json` |
+| `zh-readme` / development v2 / Pi-Windows-clean | provisional R2；验证状态未决 | repository facts 公开，但 scorer 曾误拒合法 local-path command argument | 构造与人工时间均未建立；registry 的 0 LOC 只表示未记录 case adapter | `measurement-invalid`：只能说明 measurement authority 失败，不能判断该切片是否可自动构造 | `results/skill-ir/zrm-pi-v2/measurement-validity.json`；`benchmarks/skill-ir/corpus/method-portfolio.json` |
+| `i18n-helper` / contribution-v2 + static v4 / Pi-Windows-clean | R1 结构验证 + R2 构造；更宽翻译质量在 slice 外 | hard gates 主要覆盖 locale key、placeholder/plural、ABI 与结构；自然语言翻译质量不是完整 hard gate | source mapping 可确定，但当前 static 实现仍有一个 paired regression；人工时间历史不可得 | `implementation-failure`：当前 static 转换失败，不是“这一类不可优化”；更宽翻译语义属于 `contract-scope-boundary` | `results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json`；`results/skill-ir/ihc-static-v4/gate-report.json` |
+| `law-to-markdown` / v3 public subset / Pi-Windows-clean | R1 验证 + R2 构造；完整法律判断为 slice 外 R3 | v3 明确规定 law/non-law 规则、heading/content fidelity、output ABI；ambiguous 输入被排除 | 当前切片可机械分类与校验；完整法律文件审核仍未被该合同覆盖；人工时间历史不可得 | baseline 是 `implementation-failure`/regression；旧 artifact evidence 被 contract invalidated。不能把这些结果写成“专家判断不可替代”的实证 | `benchmarks/skill-ir/pilots/law-to-markdown/v3/development/tasks.json`；`results/skill-ir/law-to-markdown-v3-public-output-abi-calibration-v1/measurement-validity.json` |
+| `experimental-design` / skill-unique graph slice / Pi-Windows-clean | R1 图结构验证 + mixed R2/R3 | 公开 study graph 可机械导出 independent replicate、count、measurement lineage 与 required grouping factors；free-text method/rationale 只做非空检查 | 图映射已实现；更宽科学设计适切性没有被当前 hard gate 完整覆盖 | `baseline-saturation`：两臂 4/4、0 differing，只说明当前对照无增益空间；不证明完整科学判断不可机械化，也不证明当前构造有独立增益 | `src/benchmarks/skill-ir/experimental-design-skill-unique-oracle.ts`；`results/skill-ir/experimental-design-skill-unique-contract-audit-2026-07-31.json` |
+| `zh-code-reviewer` / two supported source-pattern tasks / Pi-Windows-clean | R1 有限规则验证 + R2 构造；完整代码审查为 slice 外 R3 | oracle 从六类源码模式机械生成 finding、line/symbol/category 和固定 severity；报告一致性/actionability 也由公开 interface 检查 | 当前有限模式可机械重建；未支持语言、复杂数据流、真实业务影响仍需 reviewer 或新 oracle；人工时间历史不可得 | `positive-evidence` 仅限 static fidelity；optimized development 未运行。该切片不能充当“专家不可替代”的实证 | `src/benchmarks/skill-ir/zh-code-reviewer-oracle.ts`；`results/skill-ir/zcr-static-fidelity-v1/gate-report.json` |
 
-- 基础 case identity、phenotype、optimization path、adapter LOC、human minutes 和 `coreBranchDelta`：
-  `benchmarks/skill-ir/corpus/method-portfolio.json`。
-- 当前 authority 分类与成本完整性：
-  `benchmarks/skill-ir/corpus/method-portfolio-authoritative.json`、
-  `benchmarks/skill-ir/corpus/method-portfolio-authoritative-efficiency.json`、
-  `results/skill-ir/method-portfolio-authoritative-efficiency-readiness.json`。
-- 自动化组件是否 authority-qualified：
-  `benchmarks/skill-ir/corpus/method-portfolio-authoritative-automation.json` 与
-  `results/skill-ir/method-portfolio-authoritative-automation-readiness.json`。
-- 若新增案例或重分类，必须使用新 identity/版本化文档，保留旧结果；不得因为想让某一档出现正例而修改
-  scorer、lock、artifact 或历史人工成本。
+## 4. 当前可辩护结论
+
+1. 七案例已经形成回顾性证据表，但没有证明三档互斥、对新任务有预测力或构成普适分类学。
+2. API Tester 与 Env Manager 证明了两个受限 development 切片可以形成确定性 artifact 路径；构造 mapping 与人工边界仍是方法的一部分。
+3. Law v3、Experimental Design skill-unique 和 Zh Code Reviewer 的当前切片含可执行公开规则；完整领域需要专家，不等于这些切片已经提供 R3 的正面实证。
+4. `measurement-invalid`、`implementation-failure`、`baseline-saturation` 和 `contract-scope-boundary` 必须分栏，不能合并成“该类不可优化”。
+5. 若未来要声称路由预测力或类内迁移性，必须在方法冻结后以前瞻新案例验证；当前七例不能承担该 claim。
+
+## 5. 维护规则
+
+- 新分类先冻结四元组和 hard requirements，再记录 checker 覆盖、构造 mapping 与剩余判断；结果发生在分类之后。
+- 人工成本只报告限定 scope 的真实 active minutes、LOC、失败尝试与未测项；不再使用“最低人工下界”。
+- 直接确定性脚本或成熟 schema 工具是未来方法增益的必要对照；没有该对照时，只主张工程封装与边界研究。
+- 若新增案例或重分类，使用新 identity/版本化文档，保留旧结果；不得为填满某一路由修改 scorer、lock、artifact 或历史人工成本。
+- 机器 portfolio/readiness 本阶段不随这份解释性校准自动改变。

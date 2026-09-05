@@ -1,16 +1,17 @@
 # Skill IR 文档入口
 
-本目录是 SkVM Skill IR / AOT 优化研究的唯一权威文档入口。项目研究如何把有来源的自然语言
-skill 编译为结构化 IR 和可执行 artifact，并用 development execution feedback 提高不同模型、
-上下文与执行环境下的稳定性。
+本目录是 SkVM Skill IR / AOT 优化研究的唯一权威文档入口。项目当前定位是：**以公开验证依据为组织原则，
+研究受限 skill 任务的确定性 AOT 转换与人工边界，并通过 SkVM 提供可复现的产物封装。**
 
-当前北极星是：**建立一套以“标准答案可得性”为轴的 skill 分类学，并对“答案可得”的那一类做出可复现的
-AOT 优化与最低人工结论，最终统一收进 SkVM CLI。** 分类轴分为公开产物可得、输入结构可得、专家判断可得三档；
-七个 pilot 的逐案证据见 [`answer-availability-taxonomy.md`](answer-availability-taxonomy.md)。
+答案可得性的三档只保留为待验证的路由框架；分类对象是
+`(skill, task slice, public contract, environment)`，七个 pilot 是回顾性案例研究，不是已完成的分类学、
+互斥分档或前瞻预测证据。当前一页状态见 [`current-status.md`](current-status.md)，逐案校准见
+[`answer-availability-taxonomy.md`](answer-availability-taxonomy.md)。
 
 研究可信度与通用 core 仍是硬约束：公开合同、确定性 scorer、development/held-out 隔离、完整分母和可追溯
-结果必须成立；同一 core 不按 skill id 写死分支。三条长期工作线是分类学证据、第一档 API Tester 的 trace 提炼、
-以及 Env 之外的 API Tester 产品化并接入顶层 CLI。
+结果必须成立；同一 core 不按 skill id 写死分支。当前顺序是先纠正证据口径和校准回顾表，再重新设计人工编写
+vs 候选审核/修复的 B 对照，随后验证外部使用者能否从干净源码 checkout 复现两条金路径。任何新付费实验仍需
+用户再次单独授权。
 
 优化成功先要求质量不劣、稳定性改善且回归受控；通过后再比较平均质量和重复调用的摊销 Token。
 显著正向单案例不能替代通用性，Token 节省也不能抵消质量回归。
@@ -70,15 +71,18 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。** 分类轴分�
   Env Manager v3 当前冻结 static evidence 的真实复核为 `no-reproducible-residual`、0 repairs，因此没有生成
   dynamic Final IR，也没有改变其 fidelity-preserving 分类。
 - 研究脚本已经能完成各阶段实验；P2 现已补上独立的通用 `external-skill-import` library/CLI，用于把人工声明的 source/review/evidence closure 冻结成可迁移 staging bundle，再交给既有 verified-artifact product CLI。它不是独立 runtime，也不自动发现 Git source 或递归依赖。
-- 主线 C 已补齐 `skvm artifact` 顶层分流：Env Manager machine-checked 与 API Tester JSON/YAML preset 共用
-  `compile -> review-or-accept -> package -> run -> cost` 产品链；source checkout 使用 Bun entrypoint，npm 安装由
+- 主线 C 已补齐 `skvm artifact` 顶层分流：Env Manager machine-checked 与 API Tester JSON/YAML preset 共享
+  底层 artifact 能力，但完整编排不同——API preset 直接调用冻结 compiler/package/runtime，Env preset 调用既有
+  product runner。source checkout 使用 Bun entrypoint，npm 安装由
   `bin/skvm.js` 分流到 `bin/skvm-artifact` companion；standalone tarball 应直接调用 companion，原生 `bin/skvm`
   仍不识别 artifact。companion 不内嵌 benchmark 数据，`--root` 仍须指向包含冻结 fixture/lock/package
   的 SkVM checkout。API Tester runtime 需要 Node；Env preset 还会从该 checkout 调用既有 Bun product CLI，二者
   都允许用显式环境变量覆盖并在缺失时 fail closed。主线 B 已冻结 API Tester trace/public-answer v1，并完成 4-row 零付费
-  `baseline-pass`/`mutation-fail` dry-run。首个 paid original identity 的第 1 行 trace 为 `exact`，但 deterministic scorer
-  有三个质量 criterion 失败，因此按 stop-loss 以 1 次调用冻结 `negative-smoke-frozen`，其余 3 行未执行且不补跑；
-  这些工程/协议与负结果证据不改变 portfolio/readiness。
+  `baseline-pass`/`mutation-fail` dry-run。首个 paid original identity 的第 1 行生成计划
+  operation-sequence projection 为 `exact`，但 deterministic scorer 有三个质量 criterion 失败，因此按 stop-loss
+  冻结 `negative-smoke-frozen`，其余 3 行未执行且不补跑。报告中的三个 calls 字段都按已分发 agent task row
+  计数为 1；同一行观测到 10 个 provider responses 和 15 个 tool calls，不能解释成一次底层模型 API 往返。
+  authoring/review 的 0/0 只表示自动运行窗口内无人介入，不是降人工对照。这些证据不改变 portfolio/readiness。
 - Stage M 的 Magpie identity 继续保持 fail-closed，仅作预注册合同；Stage N 已切换到 API Tester + Env Manager，
   只完成 Stage 0 与 6-row smoke，资格 failed、仅 GPT eligible，matrix 未创建。Stage N 现在只是分类轴的类内子证据，
   不能写成跨模型主表或“优化后的 LLM 更稳”。
@@ -232,19 +236,16 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。** 分类轴分�
 ## 当前下一步
 
 ```text
-主线 A：冻结七案例“标准答案可得性”分类与证据表（已收口，0 paid）
-  -> 档位 1：公开产物可得（API Tester）
-  -> 档位 2：输入结构可得（Env Manager、zh-readme、i18n-helper）
-  -> 档位 3：专家判断可得（Law、Experimental Design、zh-code-reviewer）
-  -> 只从冻结 registry/authority/report 派生人工 LOC、时间、自动化达成度和停止原因
-  -> 不把历史 null 写成 0，不重评分、不读取 held-out、不运行模型/API
-主线 C：Env + API Tester 统一收进 SkVM 顶层 CLI（已完成，0 paid）
-  -> `skvm artifact --preset=env-manager|api-tester`，API Tester 需显式 `--variant=openapi-json|openapi-yaml`
-  -> 复用现有 standalone product library/CLI，不创建第二套 runtime 或 scorer
-主线 B：API Tester trace + public-answer 提炼（零付费 dry-run 已完成）
-  -> `skill-ir-api-tester-trace-public-answer-development-001`
-  -> 4 rows（每个 development task 一条 baseline-pass + 一条 mutation-fail），不执行 original/paid rows
-下一判定点：B paid run（需用户另行确认预算；当前未授权）
+P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
+  -> B 旧 identity = negative-smoke-frozen；无活动付费任务
+P1：按四元组校准七案例（已完成，0 paid）
+  -> 三路由 provisional/mixed；结果类型与合同范围分开
+P2：重设计 B 人工编写 vs 候选审核/修复对照（已完成设计；未授权执行）
+  -> 相同质量标准；真实参与者 active minutes、失败尝试、修改 LOC
+  -> agentRuns / providerRequests / tokens / 货币费用分栏
+  -> taskSetStatus=not-authored；参与者未开始
+P3：外部使用者从干净源码 checkout 复现 Env + API Tester 金路径（下一步）
+  -> 再整理 claim-to-evidence；独立安装/跨平台另行验收
 ```
 
 方法案例数量不固定，7 是当前分类表覆盖的冻结案例数，不代表未来 portfolio 只允许 7 个。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式
@@ -255,7 +256,10 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 | 文档 | 唯一职责 |
 |---|---|
 | `developer-guide.md` | 从零上手、命令、参数、实验生命周期、结果判读与当前开发接力点。 |
-| `answer-availability-taxonomy.md` | 七案例答案可得性分类、人工成本 scope、自动化边界与冻结证据索引。 |
+| `current-status.md` | 一页式当前定位、三条主线、B/calls/minutes/break-even 口径和下一动作。 |
+| `answer-availability-taxonomy.md` | 待验证的答案可得性路由框架、七案例回顾性校准、结果类型与冻结证据索引。 |
+| `project-reassessment-2026-09-06.md` | 触发本轮口径修正、分类校准与后续重排的项目复核报告。 |
+| `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
 | `skill-ir-aot-optimization-spec.md` | 当前研究契约、claim、证据边界和成功条件。 |
 | `skill-ir-aot-optimization-plan.md` | 当前 ledger、执行顺序和活跃文件级 TDD。 |
 | `ir-core.md` | IR 类型、parser、validator、passes 与 lowering。 |
@@ -270,7 +274,7 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 
 ## 阅读路径
 
-- 第一次了解：本文件 -> `developer-guide.md` -> spec -> experiment results -> plan。
+- 第一次了解：本文件 -> `current-status.md` -> `developer-guide.md` -> spec -> experiment results -> plan。
 - 第一次亲手开发或跑实验：`developer-guide.md` -> 对应组件文档 -> plan 的活跃 TDD。
 - 修改 IR：`ir-core.md` -> `src/skill-ir/` -> `src/profiler/`。
 - 修改评估：`evaluation-system.md` -> `src/benchmarks/skill-ir/` -> `src/bench/evaluators/`。

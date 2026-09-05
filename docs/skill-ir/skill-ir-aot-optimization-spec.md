@@ -2,56 +2,67 @@
 
 **最后更新：** 2026-09-06
 
-## 1. 北极星：以答案可得性组织 Skill IR / AOT
+## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
-**北极星（一句话）：** 建立一套以“标准答案可得性”为轴的 skill 分类学，并对“答案可得”的那一类做出
-可复现的 AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
+**北极星（一句话）：** 以公开验证依据为组织原则，研究受限 skill 任务的确定性 AOT 转换与人工边界，
+并通过 SkVM 提供可复现的产物封装。
 
 项目仍把 Skill IR 作为 SkVM AOT 编译链中的语义表示和优化 pass，但今后的顶层组织原则不再是堆叠案例或
 单独追逐跨模型面板，而是先判断任务答案能否从公开产物或用户输入中重建，再决定 AOT 固化和人工审核边界。
 
-### 1.1 答案可得性分类轴
+### 1.1 答案可得性路由框架
 
-| 档位 | 名称 | 标准答案来源 | 预期优化边界 |
-|---|---|---|---|
-| 1 | 公开产物可得 | 公开、机器可读的 schema/spec/artifact；deterministic checker 可直接重算 | 最接近全自动 deterministic AOT；模型可从 runtime 热路径移出 |
-| 2 | 输入结构可得 | 用户可见的配置、仓库、源码、locale 或 manifest 结构；需要有限 mapping | 可自动生成结构化 IR/plan/package，低置信度领域映射保留 review |
-| 3 | 专家判断可得 | 公开输入不足以唯一确定答案，正确性依赖法律、科学或审查判断 | 不强行全自动；交付目标是可审计的 review-required 路径 |
+分类对象是 `(skill, task slice, public contract, environment)`，不是整个 skill 主题。每个对象分别记录
+公开验证覆盖、确定性构造映射和剩余外部语义判断。原三档降级为 provisional routing：
 
-分类依据是“能否在不读取 hidden gold、不调用模型、不依赖未声明专家直觉的情况下重建判定标准”，不是 skill
-主题。当前七案例的逐案归类、人工成本和冻结证据见 `docs/skill-ir/answer-availability-taxonomy.md`。
+| 路由 | 含义 | 边界 |
+|---|---|---|
+| R1：显式规范可执行 | 公开 fixture/contract 足以让独立 checker 重算当前 slice 的 hard gates | 可验证不等于自动构造，也不要求唯一 canonical 输出 |
+| R2：公开结构需领域映射 | 输入结构公开，但到合格候选仍需 mapping、review 或 adapter | 领域映射和人工必须单列 |
+| R3：当前合同仍有外部语义判断 | 至少一个 hard requirement 仍需 reviewer、专家或新的外部 oracle | 只对未覆盖 requirement 使用，不把完整领域难度投射到机械 slice |
 
-这条轴提出一个待验证、但可被证据逐步检验的单调性假设：答案越可得，deterministic scorer、AOT 固化和
-trace 提炼空间越大，人工判断越少。七案例表是整理后的观察证据，不单独构成因果定律。
+三路由不要求互斥；同一切片可以是 R1 验证 + R2 构造，或因部分 requirement 落入 R3 而标为 mixed。
+七案例只作为回顾性案例研究，不能证明路由互斥、单调性或对新任务的预测力。逐案证据见
+`docs/skill-ir/answer-availability-taxonomy.md`。
 
 ### 1.2 三条长期工作线
 
-1. **主线 A：分类学证据。** 用现有七个 pilot 的冻结证据，统一记录答案来源、人工 LOC/时间、自动化达成度、
-   optimization path 和停止原因，形成“答案可得性 → 优化/自动化结论”的总表；不跑新实验、不改历史结果。
-2. **主线 B：类内自动化。** 只在第 1 档“公开产物可得”上，以 API Tester 为最小闭环，验证执行 trace + 公开答案
-   能否提炼领域步骤，把人从作者降到审核者。第 3 档不硬做全自动。
-3. **主线 C：产品化收口。** 在 Env 之外，至少让第 1 档的 API Tester 走通现有 product 链，并把同一 core
-   接进 SkVM 顶层 CLI；不维护第二套 runtime 或第二套优化逻辑。
+1. **主线 A：路由框架校准。** 用七个 pilot 的公开合同和冻结证据分别记录验证覆盖、构造映射、剩余判断与
+   结果类型；不以成败倒推路由，不跑新实验、不改历史结果。
+2. **主线 B：人工边界。** 旧 trace identity 已冻结。successor 只能在相同质量标准下比较“人工编写”与
+   “候选自动生成后审核/修复”，前瞻记录真实 active minutes、失败尝试和修改量；新付费必须另行授权。
+3. **主线 C：可复现交付。** 近期目标是外部使用者从干净源码 checkout 跑通 Env 与 API Tester 两条金路径；
+   这不等于任意新 skill 的独立安装产品。
 
-当前实现已完成这两条线的零付费工程闭环：`skvm artifact` 由 `bin/skvm.js` 动态分流到 source checkout
+当前实现已完成两条受限金路径的本地工程闭环：`skvm artifact` 由 `bin/skvm.js` 动态分流到 source checkout
 的 `src/cli/artifact.ts` 或 npm 安装中的 `bin/skvm-artifact` companion；standalone tarball 须直接调用 companion，
-原生 `bin/skvm` 仍保持旧命令集。Env Manager 与 API Tester JSON/YAML
-均复用既有 verified-artifact product chain。companion 不内嵌冻结数据；API runtime 使用真实 Node，Env preset
+原生 `bin/skvm` 仍保持旧命令集。Env Manager 与 API Tester JSON/YAML 共享底层 artifact 能力，但完整编排不同：
+API preset 直接运行冻结 compiler/package/runtime，Env preset 调用既有 product runner。companion 不内嵌冻结数据；API runtime 使用真实 Node，Env preset
 从 `--root` checkout 调用既有 Bun product CLI，解释器缺失时 fail closed。API Tester trace/public-answer 协议只从 development task 的
 公开 OpenAPI fixture 构造 canonical operation sequence，并以 strict digest-bound report 做
 `exact/equivalent/missing/extra/invalid/ambiguous` 判定。该实现不改变 `src/index.ts`、core、DSL、scorer、
 历史 lock/result、portfolio/readiness；它仍不构成跨模型稳定性或 full-automatic convergence 证据。
-首个 paid identity 随后按 2 task × 2 repetition、最多 4 original rows 执行。第 1 行即 smoke，trace 为 `exact`
+首个 paid identity 随后按 2 task × 2 repetition、最多 4 original rows 执行。第 1 行即 smoke，从生成计划投影出的
+operation sequence 为 `exact`
 且 execution/usage 完整，但现有 deterministic scorer 判定三个质量 criterion 失败，因此 stop-loss 将该 identity
-冻结为 `negative-smoke-frozen`：只消费 1 次调用，未执行其余 3 行，0 retry/reserve/replacement。该负结果不改
+冻结为 `negative-smoke-frozen`：只分发 1 个 agent task row，未执行其余 3 行，0 retry/reserve/replacement。
+旧报告的 `modelCalls/apiCalls/paidCalls=1` 都以 dispatched row 为单位；该行有 10 个 provider responses 和
+15 个 tool calls，不能据此宣称底层模型请求数为 1 或不超过 4。authoring/review 的 0/0 只表示自动运行窗口无人介入，
+不构成人工编写 vs 审核/修复对照。该负结果不改
 public answer/checker/artifact，也不开放同 identity 补跑、held-out、portfolio/readiness 或新的稳定性主张。
+
+B successor 的零付费设计 identity 为 `skill-ir-api-tester-human-effort-successor-design-001`：人工从空白编写与
+确定性候选审核/修复使用同一 independent scorer，2 participant slots × 4 public development tasks 构成
+ABBA/BAAB 平衡 8-row 分母。active minutes 由前瞻、非重叠活动区间推导，失败尝试、修改 LOC、agentRuns、
+provider requests、token/cache 和货币费用分栏。当前 task set 未创作、参与者未开始、执行未授权；这只是
+machine-checked design，不是人工减少证据。若要归因到 Skill IR，还必须加入直接确定性脚本或成熟 schema 工具对照。
 
 ### 1.3 降级与停止规则
 
 - Stage N 降级为主线 A 的类内子证据，只观察答案可得性档位内的模型族方差；其 smoke 失败或矩阵未授权时，
   不把它升级成独立跨模型研究主线。
 - Stage M 的 Magpie identity 继续保持已冻结的 fail-closed，不复活、不按旧 identity qualification/matrix。
-- DSL 扩展、held-out、live release 和新的论文主张推迟到分类学与第 1 档最小闭环证明之后；它们不能反向定义
+- DSL 扩展、held-out、live release 和新的论文主张推迟到路由校准、B successor 设计与干净源码复现之后；它们不能反向定义
   当前成功标准。
 
 ## 1.4 项目定位（继承的系统边界）

@@ -7,32 +7,33 @@
 
 ## 1. 北极星与当前判断
 
-**北极星：** 建立一套以“标准答案可得性”为轴的 skill 分类学，并对“答案可得”的那一类做出可复现的
-AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
+**北极星：** 以公开验证依据为组织原则，研究受限 skill 任务的确定性 AOT 转换与人工边界，并通过 SkVM
+提供可复现的产物封装。
 
-分类轴按答案来源分三档：
+原三档降级为待验证的路由框架：
 
-1. **公开产物可得**：答案在公开、机器可读的 schema/spec/artifact 中，deterministic checker 可直接重算；
-2. **输入结构可得**：答案可从用户可见的配置、仓库、源码、locale 或 manifest 结构推导，需要有限 mapping；
-3. **专家判断可得**：公开输入不足以唯一确定答案，依赖法律、科学、审查严重度等领域判断。
+1. **R1 显式规范可执行**：公开合同可重算当前 slice 的 hard gates，但不自动意味着候选已自动构造；
+2. **R2 公开结构需领域映射**：输入公开，但到合格候选仍需 mapping、review 或 adapter；
+3. **R3 当前合同仍有外部语义判断**：至少一个 hard requirement 仍需实际 reviewer、专家或新 oracle。
 
-七案例的逐案证据、人工 LOC/时间、自动化达成度与停止原因固定在
-`docs/skill-ir/answer-availability-taxonomy.md`；本计划不从历史 null 推导“零人工”，也不把分类观察写成
-因果定律。
+分类对象固定为 `(skill, task slice, public contract, environment)`；路由可以 mixed。七案例固定为回顾性
+案例研究，不证明互斥分类或预测力。结果必须分成 positive、implementation-failure、measurement-invalid、
+baseline-saturation 与 contract-scope-boundary；不得用结果倒推路由。
 
 截至当前：
 
-- 7 个真实 skill 已进入 method portfolio，7 个 contract-qualified；分类表已覆盖全部案例；
-- API Tester（档位 1）为 `quality-positive`；Env Manager（档位 2）当前 reviewed-AOT 为
+- 7 个真实 skill 已进入 method portfolio，7 个 contract-qualified；回顾表已校准全部案例；
+- API Tester 的冻结 OpenAPI slice 为 `quality-positive`；Env Manager 当前 reviewed-AOT 为
   `efficiency-positive`，两者都是 readiness-eligible phenotype；
-- zh-readme 与 i18n-helper 属于档位 2，但分别被 scorer-authority 与 static quality regression 阻断；
-- Law、Experimental Design、zh-code-reviewer 属于档位 3，保留 review-required/停止证据，不强行转成全自动；
+- zh-readme 是 `measurement-invalid`，i18n-helper 是当前 static `implementation-failure`，不能合并成分类负证据；
+- Law v3、Experimental Design skill-unique 与 Zh Code Reviewer 的当前 slice 均含可机械重建规则；完整领域语义
+  不在 slice 内，不能据此声称专家判断不可替代；
 - Stage N 已降级为分类轴的类内子证据：Stage 0 + smoke 已完成，资格 failed，仅 GPT eligible，matrix 未创建；
 - 面向用户的 verified-artifact 入口已通过 `bin/skvm.js` 动态分流：source checkout 使用 Bun TypeScript
   companion，发布包使用独立 `bin/skvm-artifact`；现有 standalone product library/CLI 仍是唯一产品链。
 
-准确表述是：**项目已经有“公开答案可得 → deterministic AOT 正例”和“输入结构可得 → reviewed-AOT 成本正例”，
-但自动化/最低人工仍未在全 portfolio 收敛；专家判断档位应以可审计 review-required 作为诚实终点。**
+准确表述是：**项目已有两个受限 development slice 的确定性产物正例，但路由预测力、通用自动构造和人工减少
+均未建立；当前贡献应落在转换判据、可审计封装、质量/成本证据和明确的不可自动化边界。**
 
 ## 2. 机器状态 Ledger
 
@@ -40,16 +41,16 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
 |---|---|---|
 | IR core | i18n base IR 与执行韧性 successor 已通过机制验证 | v4 static 为可信质量回归，不开放 artifact |
 | Benchmark/evaluation | 合同、贡献识别、runner、scorer 已具备 | 避免再出现 public ABI 或 execution authority 漂移 |
-| API Tester | 档位 1；optimized development 4/4、mean 1.0，`quality-positive` | 主线 B 的 trace + public-answer 最小闭环；不提前运行 held-out |
-| Env Manager | 档位 2；reviewed-AOT 4/4 quality-equivalent，`efficiency-positive`，break-even=1 | 作为前两档产品对照；不把 review-required 写成 full automatic |
-| Law | v3 measurement-valid，但 baseline gate failed；旧 held-out 回归 | 暂不重跑，保留为 boundary failure case |
-| Experimental Design | 合同合格；skill-unique 贡献面合格但强模型饱和 | i18n 竖切后再决定 efficiency ablation 或 successor |
-| Zh Code Reviewer | base IR/static fidelity gate passed | 残差已被 static 解决，不强造 overlay |
+| API Tester | frozen slice artifact 4/4；B original smoke operation parity exact 但质量失败并冻结 | 旧 B 不重跑；successor 必须改为人工编写 vs 候选审核/修复的同质量对照 |
+| Env Manager | reviewed-AOT 4/4 quality-equivalent；production model-token break-even=1 | 只作限定成本证据，不写成总经济回本或 full automatic |
+| Law | v3 public subset 可机械验证；baseline regression；旧 artifact evidence invalidated | 分开 slice 内机械合同与完整法律审核边界，不把 regression 当 R3 证据 |
+| Experimental Design | skill-unique graph oracle 可机械导出关键结构；baseline saturation | saturation 只表示无增益空间；更宽科学语义记为未覆盖 |
+| Zh Code Reviewer | 当前两 task 的有限模式 oracle 可机械生成 finding/severity；static fidelity passed | 当前 slice 不再作为“专家不可替代”实证；完整 review 仍是 scope 外边界 |
 | Zh README | v1/v2 measurement-invalid | skill-neutral command semantics 已提炼，暂不堆新版本 |
 | i18n Helper | contribution-v2 base IR passed；v4 static 0 infra 但 paired gate failed | 不开放 artifact；转向替代 qualified case |
 | Method portfolio | 7 studied、7 qualified、1 quality-positive、1 efficiency-positive、0 untouched replication、0 dynamic-profile | 维持 automation/adaptation convergence=false；先完成分类表再做第一档自动提炼 |
-| Product entry | `bin/skvm.js artifact` 已把 Env 与 API Tester JSON/YAML 接入同一产品链；`src/index.ts` 保持历史字节不变 | 主线 C 已收口；后续只维护 source/package 路由与 release companion 兼容性，不据此晋级 readiness |
-| Answer taxonomy | 7 案例三档分类表已提交；API Tester trace/public-answer dry-run 已完成；首个 paid identity 在第 1 行 quality-failure 后冻结 | 保留负结果；不重跑、不补行、不改 checker/artifact，不据此晋级 |
+| Product entry | `bin/skvm.js artifact` 已接入 Env 与 API Tester JSON/YAML；两者共享底层能力但完整编排不同 | 近期验收是外部使用者从干净源码 checkout 跑通两条金路径；不据此声称独立安装通用产品 |
+| Answer routing | 7 案例回顾表已按公开合同校准；三路由 provisional/mixed | 若要预测力或迁移性 claim，必须方法冻结后用前瞻新案例验证 |
 
 机器权威入口：
 
@@ -65,12 +66,12 @@ results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json
 
 ## 3. 当前主要缺口
 
-### P0：分类学已成形，但类内自动化证据仍薄
+### P0：路由框架已校准，预测力与人工证据仍缺
 
-当前已有两条与分类轴相符的正向证据：API Tester（档位 1）为 `quality-positive`，Env reviewed-AOT（档位 2）为
-`efficiency-positive`、break-even=1。两者仍来自冻结 development/Windows/clean 条件；七案例的最低人工只
-能报告已测 scope，不能从历史 null 推导全流程 0 分钟。i18n、Law、Experimental Design、zh-readme 和
-zh-code-reviewer 的负结果继续保留，不能为填表改写。
+当前已有 API Tester 与 Env 两条受限 development/Windows/clean 正向证据。Env 的 break-even=1 只属于
+production model-token 口径；人工只报告限定 scope 的 active minutes、LOC 和未测项，不再使用“最低人工下界”。
+七案例已分开 implementation-failure、measurement-invalid、baseline-saturation 与 contract-scope-boundary；
+这仍是回顾性整理，不是前瞻分类证明。
 
 ### P0：统一 artifact 入口已收口，完整北向产品仍未收口
 
@@ -104,36 +105,39 @@ workdir、qualification、probe 和调试结果，另有 13 个名称上属于 s
 
 ## 4. 活跃开发计划
 
-### 当前主线顺序：C → B（A 已收口）
+### 当前主线顺序：P0 口径 → P1 校准 → P2 B 重设计 → P3 干净源码复现
 
-本阶段不按旧 Task 18 的案例堆叠顺序继续扩张。分类学主线 A 已完成整理，当前接力固定为：
+本阶段不按旧 Task 18 的案例堆叠顺序继续扩张，当前接力固定为：
 
 ```text
-主线 C：Env + API Tester 统一收进现有产品链与 SkVM 顶层 CLI（已完成，0 paid）
-  -> 主线 B：API Tester 第 1 档 trace + public-answer 协议与 dry-run（已完成，0 paid）
-  -> B 的首个 paid run（已在第 1 行 smoke quality-failure 后冻结，1/4 observed）
+P0：状态与 calls/minutes/break-even/产品口径同步（已完成，0 paid）
+  -> P1：七案例按四元组与三个问题重新校准（已完成，0 paid）
+  -> P2：人工编写 vs 候选审核/修复的 B successor 设计（已完成设计；task/participant 未就绪）
+  -> P3：外部使用者从干净源码 checkout 复现 Env + API Tester 金路径并整理 claim-to-evidence（下一步）
 ```
 
-主线 C 只做产品工程接入，不修改旧 lock、P1/P2、core、DSL、scorer、artifact 或 readiness。主线 B 首个 paid
-identity 已按冻结 stop-loss 收口：第 1 行 trace exact，但 deterministic quality scorer 失败，只消费 1 次调用并停机；
-同 identity 不重跑。Stage N 仅作为分类轴的类内子证据；Stage M、DSL 扩展、held-out、live release 和新的论文
-主张继续停线。
+旧 B identity 已按 stop-loss 收口：第 1 行只有生成计划的 operation-sequence parity exact，独立质量 scorer
+失败；只分发 1 个 agent task row 后停机。同 identity 不重跑。报告中的 calls 字段不是底层 provider request
+计数，0/0 minutes 也不是人工流程对照。Stage M/N、DSL 扩展、held-out、live release、portfolio/readiness
+和新的付费实验继续停线。
 
-### 主线 A：答案可得性分类学与证据表（已收口）
+### 主线 A：答案可得性路由框架与回顾表（已校准，预测力未建立）
 
-**目标：** 用现有 7 个 method-portfolio pilot 的冻结 registry、authority report 和结果文件，建立三档答案
-可得性分类，并为每个案例补齐答案来源、人工 LOC/时间、自动化达成度、optimization path 和停止原因。
+**目标：** 用现有 7 个 method-portfolio pilot 的公开合同、冻结 registry、authority report 和结果文件，
+分别记录验证覆盖、构造映射、剩余判断、人工 scope 与结果类型。
 
 **交付：** `docs/skill-ir/answer-availability-taxonomy.md`，并在本计划与 spec 中保持同一分类口径。
 
-- [x] 固定三档定义：公开产物可得、输入结构可得、专家判断可得；分类依据是可否从公开产物/输入重建判定标准。
+- [x] 将三档降级为 provisional/mixed 路由，不再要求互斥；分类单位固定为 skill + task slice + public contract + environment。
 - [x] 覆盖 `api-tester`、`env-manager`、`zh-readme`、`i18n-helper`、`law-to-markdown`、
   `experimental-design`、`zh-code-reviewer` 七个案例。
 - [x] 从 `method-portfolio.json` 读取 adapter LOC、humanMinutes、coreBranchDelta、automation flags 与
   optimizationPath；历史 null 保持未测，不转换成 0。
 - [x] 用 authority v5/v7 与冻结 report 交叉核对 `quality-positive`、`efficiency-positive`、
   `measurement-invalid`、`static-quality-regression` 和 `baseline-saturation` 等状态。
-- [x] 明确第一档已有 API Tester deterministic AOT 正例；最低人工仍只能报告已测下界，不能声称全流程最小值。
+- [x] 分开 positive、implementation-failure、measurement-invalid、baseline-saturation 和 contract-scope-boundary。
+- [x] 重标 Law v3、Experimental Design skill-unique、Zh Code Reviewer：当前 slice 有机械规则，完整领域边界不得替代 slice 证据。
+- [x] 人工只报告限定范围的实测投入与未测项，删除“最低人工已测下界”表述。
 
 **验证边界：** 本表是 evidence synthesis，不重评分、不新建 lock、不读取 held-out、不运行模型/API、不改变
 portfolio/readiness。若七案例证据之间有冲突，以 authority report 和冻结结果为准，并在表中保留 superseded 状态。
@@ -162,10 +166,11 @@ portfolio/readiness。若七案例证据之间有冲突，以 authority report �
 4. Env、API Tester JSON/YAML、source/package 路由和旧命令兼容均有 focused test。实现不修改 `src/index.ts`、
    core、DSL、scorer、artifact package 或历史 lock。
 
-### 主线 B：第 1 档 API Tester 的 trace 提炼（零付费 dry-run 已完成）
+### 主线 B：旧 trace identity 已冻结，successor 必须重设计
 
-**目标：** 只在公开产物可得的 API Tester 上，验证“执行 trace + OpenAPI/public answer”能否确定性提炼领域步骤，
-把人工从作者降为审核者。
+**旧目标与结论：** API Tester trace/public-answer dry-run 已实现；paid row 从生成计划投影 operation sequence，
+不是实际 HTTP 执行轨迹。首行 parity exact 但质量失败，旧 identity 永久冻结。该设计没有人工编写与
+审核/修复的同质量对照，即使四行全过也不足以证明“人从作者降为审核者”。
 
 **必须先冻结：** 新 identity、OpenAPI/source closure、trace schema、提炼规则、deterministic parity checker、
 人工计时/LOC 口径和失败分类。不得把 Env 或专家判断档的 mapping 直接移植成第一档正例，也不得读取 held-out
@@ -183,11 +188,20 @@ baseline-pass 与 mutation-fail 均绑定 source/public-answer/trace digest，`m
 authoring/review 分钟保持 `null/not-measured`。协议文档见
 `docs/skill-ir/api-tester-trace-public-answer-protocol.md`。
 
-**未来付费上限（未授权）：** 新 identity 只允许档 1 API Tester，固定 2 task × 2 repetition = 4 original rows；
-首行 smoke 包含在这 4 行内，`paidCalls/modelCalls/apiCalls <= 4`，`retries=0`、无 reserve/replacement。smoke
-失败立即停止并保留失败行，不补跑、不换 route、不修改 public answer/checker/artifact。
+**successor 设计要求（仅设计，未授权执行）：** 匹配任务上比较“人工从空白编写合格测试计划”与
+“确定性或其他候选生成后由人审核/修复”；两臂使用同一独立质量标准，前瞻记录真实参与者 active minutes、
+失败尝试、修改 LOC、最终 pass/fail，并分开一次性平台工程与每任务适配。计数拆为 agentRuns、
+provider/modelRequests、tokens（含 cache）和货币费用；未知项保持 unknown。公开规范可直接确定性生成候选时，
+不强制购买 LLM trace。任何 successor identity、参与者流程或付费执行必须再次单独授权。
 
-### 2026-09-05 C/B 收口验证
+**已完成设计：** `skill-ir-api-tester-human-effort-successor-design-001` 固定 2 个 participant slots、
+2 个 matched pairs、4 个新 public development tasks、ABBA/BAAB 平衡顺序和 8-row 分母；每行 30 active
+minutes、最多 2 次 scorer submission。schema 从非重叠 ISO 区间推导 active minutes，绑定 candidate/output/
+scorer digest，失败留分母；只有 8/8 最终通过同一 scorer 才输出描述性分钟差。当前
+`taskSetStatus=not-authored`、`paidExecutionAuthorized=false`，没有实际参与者或效果数据。详见
+`docs/skill-ir/api-tester-human-effort-successor.md`。
+
+### 2026-09-05 C/B 零付费冻结点（历史快照）
 
 - focused artifact CLI/preset/routing/trace tests：20/20 通过；Env fresh replay 与 API Tester JSON/YAML 均为
   deterministic pass，零模型/API/付费调用；
@@ -196,8 +210,9 @@ authoring/review 分钟保持 `null/not-measured`。协议文档见
   companion 也已真实执行 Env 与 API Tester JSON 两条完整链路，不只覆盖二进制存在性；
 - B dry-run 两个 development task 各生成 baseline-pass + mutation-fail，共 4 logical rows；无模型正文、
   gold/evaluator payload、absolute path、workdir 或 held-out；
-- 当前停止点：不执行 B paid run，不创建新的 qualification/matrix，不修改 portfolio/readiness，不把工程
-  入口或 trace parity 写成跨模型稳定性结论。
+- 当时停止点为“不执行 B paid run”。该状态已被随后独立授权的首行 smoke 取代：旧 paid identity 现已
+  `negative-smoke-frozen`，只分发 1 个 task row且质量失败。该历史段不构成活动授权；当前状态以
+  `docs/skill-ir/current-status.md` 和本计划顶部为准。
 
 ### Task 18.1 项目状态审计与文档收敛
 

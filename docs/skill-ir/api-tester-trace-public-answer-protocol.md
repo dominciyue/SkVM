@@ -2,15 +2,18 @@
 
 **状态：** development-only、零付费 dry-run 已实现；首个 paid original identity 已在第 1 行 smoke 失败后冻结为负结果。
 **identity：** dry-run `skill-ir-api-tester-trace-public-answer-development-001`；paid `skill-ir-api-tester-trace-public-answer-paid-development-001`
-**最后更新：** 2026-09-05
+**最后更新：** 2026-09-06
 
 ## 目的
 
-API Tester 属于“公开产物可得”档位。这个协议把一次合法 API 操作过程压缩为可审计的决策账，
-再从同一 development task 的公开 OpenAPI fixture 独立重建 canonical public answer，检查两者是否一致。
+本协议的历史 schema 名称保留 `trace`，但实现含义必须缩窄：dry-run trace 由 public answer 构造；paid
+trace 是从模型生成的 `api-test-plan.json` 投影出的 **operation sequence**。它不是从真实 HTTP tool event
+提取的执行轨迹，也不是完整 agent 决策链。系统另从同一 development task 的公开 OpenAPI fixture 独立重建
+canonical public answer，检查 method/path/顺序等结构是否一致。
 
-它不是 token 成本账、模型质量报告或独立 runtime。trace 不携带模型正文，也不把 evaluator/gold 搬进
-compiler 或 artifact。
+它不是 token 成本账、模型质量报告或独立 runtime。operation parity 不覆盖 schema-derived cases、安全响应、
+独立性等完整测试计划语义；这些继续由既有独立 scorer 判断。trace 不携带模型正文，也不把 evaluator/gold
+搬进 compiler 或 artifact。
 
 ## 权威实现
 
@@ -64,6 +67,10 @@ benchmarks/skill-ir/pilots/api-tester/development/tasks.json
 `inputShapeDigest`/`outputShapeDigest` 只承诺结构摘要，不保存真实参数或响应。`selectedNextStep` 必须与
 trace 内的顺序自洽；`expectedAnswerRef` 必须是归一化后的公开 operation ref。
 
+paid runner 读取模型生成计划中的 endpoints 后，由程序固定填入 `toolName=http-client`、
+`status=accepted` 和相邻 `selectedNextStep`。因此这些字段不能被解释为实际观察到的工具调用、接受决定或
+控制流。shape digest 会保存，但当前 parity 不用它判断完整输入/输出语义。
+
 禁止写入：raw reasoning、完整模型文本、prompt、API key/secret、绝对路径、workdir、gold/evaluator
 payload、held-out 内容。schema 为 strict，比较器也会对递归字段做 fail-closed sink audit。
 
@@ -73,8 +80,8 @@ payload、held-out 内容。schema 为 strict，比较器也会对递归字段�
 
 | parity | 含义 | pass |
 |---|---|---:|
-| `exact` | 操作顺序、method/path 表示和 public ref 完全一致 | 是 |
-| `equivalent` | 仅发生预注册 normalization，归一化后完全一致 | 是 |
+| `exact` | operation 顺序、method/path 表示和 public ref 完全一致 | 是 |
+| `equivalent` | operation sequence 仅发生预注册 normalization，归一化后完全一致 | 是 |
 | `missing` | trace 是公开答案的真子集 | 否 |
 | `extra` | 出现未在公开答案中的 operation | 否 |
 | `invalid` | schema、字段一致性、next-step、ref 或禁止 sink 失败 | 否 |
@@ -119,7 +126,7 @@ dry-run 会写入：
 
 ## Paid original 边界（已预注册）
 
-首个 paid identity 只允许档 1 的 API Tester，固定 2 task × 2 repetition = 4 original rows；
+首个 paid identity 固定 API Tester 的 2 task × 2 repetition = 4 original rows；
 这 4 行同时就是付费上限（`paidCalls <= 4`、`modelCalls <= 4`、`apiCalls <= 4`），首行包含在分母内并先作
 smoke，不另加资格调用。`retries=0`、无 reserve、无 replacement。smoke 失败立即停止，失败行留在分母中，
 不换 route、不补行、不修改 public answer/checker/artifact。held-out、portfolio/readiness 和“优化后的 LLM
@@ -130,10 +137,11 @@ smoke，不另加资格调用。`retries=0`、无 reserve、无 replacement。sm
 skill、checker、oracle、runner 和两份 public answer 的 SHA-256。`preflight` 只确认 API key 非空和这些 digest 未漂移，
 不保存 key 值、不 dispatch。
 
-人工分钟从 lock 的 `measurementStartedAt` 前瞻计量。只计入该窗口内真实发生的主动人工编写/审核分钟；模型等待、
-controller 和 scorer 时间不得冒充人工时间。本次由自动执行器完成、没有人介入逐行编写或审核时，合法观测为
-`authoringMinutes=0`、`reviewMinutes=0`，状态必须明确为 `prospective-measured-no-human-intervention`，不能填历史 LOC
-或后验估时。
+人工分钟从 lock 的 `measurementStartedAt` 前瞻计量，只表示该自动运行窗口内真实发生的主动人工介入；
+模型等待、controller 和 scorer 时间不得冒充人工时间。本次 `authoringMinutes=0`、
+`reviewMinutes=0` 与 `prospective-measured-no-human-intervention` 仅说明窗口内无人逐行编写或审核。
+执行器没有实际的人工作者流程、独立审核结果或审核后修复记录，所以这些字段不是人工编写/审核工作量测量，
+也不能支持“人已从作者降为审核者”。
 
 ## 首个 paid 结果
 
@@ -143,8 +151,19 @@ controller 和 scorer 时间不得冒充人工时间。本次由自动执行器�
 `exact`；但 deterministic API Tester scorer 未通过 `api-schema-derived-cases`、`api-security-response` 和
 `api-independence-verification`，因此执行分类为 `quality-failure`，触发 `smoke-failed`。
 
-结果只实际 dispatch 1 次：input/output/cache-read 为 `58060 / 7445 / 137344`，explicit input+output 总计
-`65505`；`modelCalls=apiCalls=paidCalls=1`。第 2--4 行没有执行，`retries=reserve=replacements=0`。失败行保留在
+结果只实际 dispatch 1 个 agent task row：input/output/cache-read 为 `58060 / 7445 / 137344`，
+explicit input+output 总计 `65505`；旧报告的 `modelCalls=apiCalls=paidCalls=1` 三个字段都由
+`requestDispatched=true` 的行数派生，不是三个独立计数器。该行 execution observation 另记录 10 个
+provider responses、10 个 assistant messages 和 15 个 tool calls；现有证据不能从这些事件还原供应商计费请求数。
+因此旧报告可以证明分发了 1 个 task row，不能证明只有一次底层模型 API 往返或底层请求数不超过 4。
+第 2--4 行没有执行，`retries=reserve=replacements=0`。失败行保留在
 固定四行分母中，整份 identity 状态为 `negative-smoke-frozen`；不得以同 identity 重跑、补齐或修改 route、
-public answer、checker、artifact。前瞻窗口内没有人介入逐行编写或审核，因此 authoring/review 均实测为 0，而非
-历史回填。该结果不改变 held-out、Stage M/N、portfolio 或 readiness。
+public answer、checker、artifact。该结果不改变 held-out、Stage M/N、portfolio 或 readiness。
+
+## Successor 边界
+
+旧 identity 不承担降人工结论，也不再补跑。若未来重新研究人工边界，必须使用新 identity，在匹配任务和同一
+独立质量标准下比较“人工从空白编写”与“候选生成后人工审核/修复”，前瞻记录实际参与者的 active minutes、
+失败尝试、修改 LOC 和最终 pass/fail。agent task、provider/model request、token/cache 和货币费用必须分栏；
+未知值保持 unknown。公开 OpenAPI 已能确定性生成候选时，不得把购买 LLM trace 设为前置条件。任何新付费执行
+都需要用户再次单独授权。

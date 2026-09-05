@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "skill-ir-api-tester-human-effort-protocol/v1",
+  "protocolId": "skill-ir-api-tester-human-effort-successor-design-001",
+  "status": "design-only-not-authorized",
+  "priorIdentity": "skill-ir-api-tester-trace-public-answer-paid-development-001",
+  "researchQuestion": "Under the same deterministic quality standard, how does active human effort differ between manual authoring and deterministic-candidate review/repair?",
+  "scope": {
+    "developmentOnly": true,
+    "permitsHeldOut": false,
+    "paidExecutionAuthorized": false,
+    "usesLlmTrace": false,
+    "claimScope": "participant-and-task-conditional"
+  },
+  "design": {
+    "arms": [
+      {
+        "id": "manual-from-scratch",
+        "startingPoint": "public-task-and-openapi-only"
+      },
+      {
+        "id": "deterministic-candidate-review-repair",
+        "startingPoint": "public-task-openapi-and-deterministic-candidate"
+      }
+    ],
+    "candidateConstruction": {
+      "kind": "deterministic-openapi",
+      "modelRequired": false,
+      "comparatorRequired": true,
+      "generator": {
+        "path": "src/benchmarks/skill-ir/api-tester-artifact-compiler.ts",
+        "sha256": "f748a8394929101516a07c164f4bcdf08360801952fc63944616163f340fc098"
+      }
+    },
+    "participantSlots": [
+      "participant-01",
+      "participant-02"
+    ],
+    "participantsMustNotAuthorTasksOrScorer": true,
+    "publicDevelopmentTasksRequired": 4,
+    "matchedPairsRequired": 2,
+    "taskSetStatus": "not-authored",
+    "assignment": {
+      "kind": "balanced-crossover",
+      "sequences": [
+        "ABBA",
+        "BAAB"
+      ],
+      "rowsPerParticipant": 4,
+      "expectedRows": 8
+    },
+    "timeboxMinutesPerRow": 30,
+    "maximumSubmissionsPerRow": 2
+  },
+  "quality": {
+    "scorer": {
+      "path": "src/bench/evaluators/api-tester-grade.ts",
+      "sha256": "8c32311030502fccdf8d56e70bb946d070ffee47c560604ad846b974272bba22"
+    },
+    "sameScorerForBothArms": true,
+    "allHardGatesRequired": true,
+    "finalPassRequiredForTimeComparison": true
+  },
+  "accounting": {
+    "units": [
+      "agentRuns",
+      "providerModelRequests",
+      "tokens",
+      "currencyCost",
+      "activeHumanMinutes",
+      "modifiedLoc",
+      "failedAttempts"
+    ],
+    "unknownValuesRemainNull": true,
+    "platformEngineeringSeparated": true
+  },
+  "stopRules": {
+    "failuresRemainInDenominator": true,
+    "noReplacement": true,
+    "noHistoricalMinuteBackfill": true,
+    "noMinimumHumanEffortClaim": true
+  }
+}
