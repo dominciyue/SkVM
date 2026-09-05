@@ -31,17 +31,20 @@
    结果类型；不以成败倒推路由，不跑新实验、不改历史结果。
 2. **主线 B：人工边界。** 旧 trace identity 已冻结。successor 只能在相同质量标准下比较“人工编写”与
    “候选自动生成后审核/修复”，前瞻记录真实 active minutes、失败尝试和修改量；新付费必须另行授权。
-3. **主线 C：可复现交付。** 近期目标是外部使用者从干净源码 checkout 跑通 Env 与 API Tester 两条金路径；
-   这不等于任意新 skill 的独立安装产品。
+3. **主线 C：可复现交付。** Env 与 API Tester 两条金路径已在同机 fresh detached worktree 通过；
+   当前证据不等于独立外部操作者、任意新 skill、独立安装或跨平台产品。
 
-当前实现已完成两条受限金路径的本地工程闭环：`skvm artifact` 由 `bin/skvm.js` 动态分流到 source checkout
+当前实现已完成两条受限金路径的本地工程闭环和干净源码 worktree 复现：`skvm artifact` 由 `bin/skvm.js` 动态分流到 source checkout
 的 `src/cli/artifact.ts` 或 npm 安装中的 `bin/skvm-artifact` companion；standalone tarball 须直接调用 companion，
 原生 `bin/skvm` 仍保持旧命令集。Env Manager 与 API Tester JSON/YAML 共享底层 artifact 能力，但完整编排不同：
 API preset 直接运行冻结 compiler/package/runtime，Env preset 调用既有 product runner。companion 不内嵌冻结数据；API runtime 使用真实 Node，Env preset
 从 `--root` checkout 调用既有 Bun product CLI，解释器缺失时 fail closed。API Tester trace/public-answer 协议只从 development task 的
 公开 OpenAPI fixture 构造 canonical operation sequence，并以 strict digest-bound report 做
 `exact/equivalent/missing/extra/invalid/ambiguous` 判定。该实现不改变 `src/index.ts`、core、DSL、scorer、
-历史 lock/result、portfolio/readiness；它仍不构成跨模型稳定性或 full-automatic convergence 证据。
+历史 lock/result、portfolio/readiness；它仍不构成跨模型稳定性或 full-automatic convergence 证据。干净复现绑定
+Windows x64、Bun 1.3.14、Node 23.8.0 和提交 `3bd7618`；两份 CLI report 均 passed、0 model/API/paid、
+`coreBranchDelta=0`。为保持旧 digest 精确不变，`.gitattributes` 只固定 Env source=CRLF、v3 evaluator=LF；
+未放宽校验。机器报告见 `results/skill-ir/clean-source-gold-path-reproduction-2026-09-06/report.json`。
 首个 paid identity 随后按 2 task × 2 repetition、最多 4 original rows 执行。第 1 行即 smoke，从生成计划投影出的
 operation sequence 为 `exact`
 且 execution/usage 完整，但现有 deterministic scorer 判定三个质量 criterion 失败，因此 stop-loss 将该 identity

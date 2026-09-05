@@ -8,7 +8,7 @@
 |---|---|---|---|
 | A：路由框架 | 七案例均已绑定公开合同、冻结结果和停止原因；结果类型可分为正向、实现失败、测量失效、基线饱和和合同范围边界 | 三档互斥性、对新任务的预测力、完整 skill 与冻结 slice 的同一分类 | 维持校准后的回顾表；未来只有为预测力/迁移性 claim 服务时才以前瞻新案例验证 |
 | B：人工边界 | 旧 original 首行已冻结负结果；successor 的两臂、平衡交叉分母、前瞻区间计时、质量门和成本单位已机器化 | 4 个新 public development tasks、2 位独立实际参与者、真实 session 和人工减少结果 | 旧 identity 永久停止；successor 保持 `design-only-not-authorized`，任何真实参与者或付费执行需再次授权 |
-| C：工程交付 | Env 与 API Tester JSON/YAML 可从当前源码 checkout 通过顶层 artifact 入口运行；两者共享底层 artifact 能力 | 任意新 skill 自动构造、两条 preset 完全相同的编排合同、独立安装/跨平台端到端可用性 | 把“外部使用者从干净源码 checkout 跑通两条金路径”作为近期交付验收 |
+| C：工程交付 | Env 与 API Tester JSON 可从 fresh detached worktree 复现，两路 passed、0 model/API/paid、`coreBranchDelta=0`；两者共享底层 artifact 能力 | 独立外部操作者、任意新 skill 自动构造、两条 preset 完全相同的编排合同、独立安装/跨平台端到端可用性 | 冻结同机 clean-source 证据；只有为独立安装/迁移主张服务时才另开验收 |
 
 ## B 冻结结果的正确读法
 
@@ -31,6 +31,7 @@
 2. 已完成：七案例回顾表校准，分开测量失效、实现失败、基线饱和与语义边界。
 3. 已完成设计：B successor 固定 2 participants × 4 tasks = 8 rows 的平衡交叉对照，`taskSetStatus=not-authored`；
    尚无参与者或效果数据。
-4. 下一步：从干净源码 checkout 验证 Env 与 API Tester 两条金路径，并整理 claim-to-evidence 表。
+4. 已完成：提交 `3bd7618` 的同机 fresh detached worktree 通过 Env 与 API Tester JSON 两条金路径；
+   机器报告与主张—证据表已落盘。独立操作者、独立安装和跨平台仍未测。
 
 持续禁止：复活 B 旧 identity、读取 held-out、启动 Stage M/N matrix、修改旧 lock/result、为正例改 scorer/artifact、扩 DSL 或据此晋级 portfolio/readiness。

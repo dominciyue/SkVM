@@ -997,6 +997,14 @@ original skill 33% 分数。Adapter/checker 为 287/351 LOC，historical humanMi
 Stage P2 随后完成通用 external import staging bundle，但 Magpie shadow 只检查固定 P1 output digest，不等于 P1 semantic checker
 随 bundle 搬迁；bundle 仍依赖现有 SkVM runtime，且 `report.md` 等 fixture 来自外部 workdir。
 
+2026-09-06 的 clean-source gold-path 复现从提交 `3bd7618` 建立 fresh detached Windows worktree，初始 tracked
+state clean，Bun 1.3.14/Node 23.8.0，并以 `--ignore-scripts --frozen-lockfile` 安装依赖。首次 Env 运行暴露 source
+lock 绑定 CRLF、checkout 产出 LF；精确固定 source CRLF 后又暴露 v3 evaluator 绑定 LF、checkout 产出 CRLF。
+两处只增加 `.gitattributes` 精确路径和回归测试，未改旧 digest/checker/artifact/scorer。第三个全新 worktree 中
+API Tester JSON 与 Env Manager 都通过：两份 CLI report 均为 0 model/API/paid、`coreBranchDelta=0`。机器汇总在
+`results/skill-ir/clean-source-gold-path-reproduction-2026-09-06/report.json`。该结果只支持同机 source-checkout
+复现，不支持独立外部操作者、发布包 clean-install、跨平台或任意新 skill 主张。
+
 Stage M 已冻结 `skill-ir-stage-m-frozen-magpie-cross-model-panel-001` 的 lock、schema、plan/runner 与 focused tests。固定 route 为
 GPT/Claude/DeepSeek 三族，各 9 个 public-development qualification rows；但该 identity 仅作预注册设计，不执行 qualification/matrix。
 原设计会先付费 27 个 qualification original，再重复付费 27 个 matrix original，最多 54 次 Magpie original；`matrixRequiresAllFamilies=true`

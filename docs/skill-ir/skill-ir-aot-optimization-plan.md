@@ -113,7 +113,7 @@ workdir、qualification、probe 和调试结果，另有 13 个名称上属于 s
 P0：状态与 calls/minutes/break-even/产品口径同步（已完成，0 paid）
   -> P1：七案例按四元组与三个问题重新校准（已完成，0 paid）
   -> P2：人工编写 vs 候选审核/修复的 B successor 设计（已完成设计；task/participant 未就绪）
-  -> P3：外部使用者从干净源码 checkout 复现 Env + API Tester 金路径并整理 claim-to-evidence（下一步）
+  -> P3：fresh detached worktree 复现 Env + API Tester 金路径并整理 claim-to-evidence（已完成，同机）
 ```
 
 旧 B identity 已按 stop-loss 收口：第 1 行只有生成计划的 operation-sequence parity exact，独立质量 scorer
@@ -200,6 +200,20 @@ minutes、最多 2 次 scorer submission。schema 从非重叠 ISO 区间推导 
 scorer digest，失败留分母；只有 8/8 最终通过同一 scorer 才输出描述性分钟差。当前
 `taskSetStatus=not-authored`、`paidExecutionAuthorized=false`，没有实际参与者或效果数据。详见
 `docs/skill-ir/api-tester-human-effort-successor.md`。
+
+### P3：干净源码金路径与主张—证据表（已完成，同机隔离验证）
+
+1. [x] 从已提交状态创建新的 detached Git worktree，先确认 tracked state clean，再以
+   `bun install --ignore-scripts --frozen-lockfile` 安装锁定依赖；
+2. [x] 第一次复现暴露 Env source 的 LF/CRLF digest mismatch；精确固定 source=CRLF 后，第二次又暴露
+   v3 evaluator 的反向 mismatch；两处均先加失败测试，再只用 `.gitattributes` 精确路径修复，不改旧 lock、
+   checker、artifact 或 scorer；
+3. [x] 最终在提交 `3bd7618` 的第三个全新 worktree 中运行 API Tester JSON 与 Env Manager；两路均
+   `status=passed`、`modelCalls=apiCalls=paidCalls=0`、`coreBranchDelta=0`；
+4. [x] 保存 digest-bound compact report 与两份 CLI report，新增 `clean-source-gold-path-reproduction.md` 和
+   `claim-evidence-table.md`；
+5. [x] 主张封顶为 Windows x64/Bun 1.3.14/Node 23.8.0 的同机干净源码复现。独立外部操作者、发布包
+   clean-install、跨平台和任意新 skill 仍未测。
 
 ### 2026-09-05 C/B 零付费冻结点（历史快照）
 

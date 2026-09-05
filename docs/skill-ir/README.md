@@ -244,8 +244,9 @@ P2：重设计 B 人工编写 vs 候选审核/修复对照（已完成设计；�
   -> 相同质量标准；真实参与者 active minutes、失败尝试、修改 LOC
   -> agentRuns / providerRequests / tokens / 货币费用分栏
   -> taskSetStatus=not-authored；参与者未开始
-P3：外部使用者从干净源码 checkout 复现 Env + API Tester 金路径（下一步）
-  -> 再整理 claim-to-evidence；独立安装/跨平台另行验收
+P3：干净源码 checkout 复现 Env + API Tester 金路径（已完成，同机隔离验证）
+  -> fresh detached worktree；两路 passed；0 model/API/paid；coreBranchDelta=0
+  -> 独立外部操作者、独立安装与跨平台仍须另行验收
 ```
 
 方法案例数量不固定，7 是当前分类表覆盖的冻结案例数，不代表未来 portfolio 只允许 7 个。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式
@@ -260,6 +261,8 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 | `answer-availability-taxonomy.md` | 待验证的答案可得性路由框架、七案例回顾性校准、结果类型与冻结证据索引。 |
 | `project-reassessment-2026-09-06.md` | 触发本轮口径修正、分类校准与后续重排的项目复核报告。 |
 | `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
+| `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |
+| `claim-evidence-table.md` | 当前可用于报告/论文的最窄主张、权威证据、覆盖范围和禁止外推。 |
 | `skill-ir-aot-optimization-spec.md` | 当前研究契约、claim、证据边界和成功条件。 |
 | `skill-ir-aot-optimization-plan.md` | 当前 ledger、执行顺序和活跃文件级 TDD。 |
 | `ir-core.md` | IR 类型、parser、validator、passes 与 lowering。 |

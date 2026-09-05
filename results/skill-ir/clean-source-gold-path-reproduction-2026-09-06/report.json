@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "skill-ir-clean-source-gold-path-reproduction/v1",
+  "identity": "skill-ir-clean-source-gold-path-reproduction-2026-09-06",
+  "status": "passed",
+  "completedAt": "2026-09-06T13:00:00.000Z",
+  "source": {
+    "commit": "3bd76188736a019e65e2a1f945a0d4bc307ca955",
+    "checkout": "fresh-detached-git-worktree",
+    "initialTrackedState": "clean",
+    "platform": "windows-x64",
+    "bunVersion": "1.3.14",
+    "nodeVersion": "23.8.0",
+    "dependencyInstall": {
+      "command": "bun install --ignore-scripts --frozen-lockfile",
+      "lockPath": "bun.lock",
+      "installedPackages": 236,
+      "postinstallRan": false
+    }
+  },
+  "checkoutByteBindings": [
+    {
+      "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "eol": "crlf",
+      "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c"
+    },
+    {
+      "path": "src/bench/evaluators/env-manager-grade-v3.ts",
+      "eol": "lf",
+      "sha256": "d5343795f00b9cc866111e5da049686d9b4f1566d810805ebb580a174b446382"
+    }
+  ],
+  "repairEvidence": [
+    {
+      "commit": "9e931310b714bc9504c345fdd12182b4770adf5c",
+      "status": "failed",
+      "detail": "Fresh checkout exposed an Env source digest mismatch: the lock binds CRLF bytes while the checkout produced LF bytes."
+    },
+    {
+      "commit": "742b939dd28ed80990259bfc2778141e81ae7d7a",
+      "status": "failed",
+      "detail": "After pinning the source to CRLF, the next fail-closed boundary exposed an evaluator digest mismatch caused by CRLF checkout of an LF-bound file."
+    },
+    {
+      "commit": "3bd76188736a019e65e2a1f945a0d4bc307ca955",
+      "status": "passed",
+      "detail": "Exact per-file checkout EOL attributes preserved both frozen byte digests; API Tester and Env Manager then passed from a new clean worktree."
+    }
+  ],
+  "reports": [
+    {
+      "preset": "api-tester",
+      "variant": "openapi-json",
+      "path": "api-cli-report.json",
+      "sha256": "d93b62acd3cd1ac2490191bed192986d24924f16b672c3c1ae87807fcfdb4c12"
+    },
+    {
+      "preset": "env-manager",
+      "path": "env-cli-report.json",
+      "sha256": "4af7f015f97ac7c420b702426749a605f1e7e5cec9e50aae90b4bc70e5803d53"
+    }
+  ],
+  "accounting": {
+    "modelCalls": 0,
+    "apiCalls": 0,
+    "paidCalls": 0
+  },
+  "scope": {
+    "heldOutRead": false,
+    "independentExternalOperatorObserved": false,
+    "cleanInstallTested": false,
+    "crossPlatformTested": false,
+    "arbitraryNewSkillTested": false
+  },
+  "claimBoundary": "One Windows x64 host reproduced the two frozen source-checkout presets from a fresh detached worktree at the bound commit with Bun 1.3.14, Node 23.8.0, locked dependencies, and zero model/API/paid calls. This is not an independent-user observation, clean npm/standalone install test, cross-platform result, arbitrary-skill product claim, or new research-quality result."
+}

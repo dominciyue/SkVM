@@ -152,4 +152,8 @@ Magpie 等扩展应保留独立分母与人工构造成本披露；固定公开�
 - P1 已落实：`answer-availability-taxonomy.md` 已改为 provisional/mixed 路由框架与七案例回顾表；Law v3、Experimental Design skill-unique、Zh Code Reviewer 均按实际公开 slice 重标。
 - P2 已完成零付费设计：两臂平衡交叉、前瞻活动区间、同一质量门和拆分成本单位已机器化；task set
   仍为 `not-authored`，参与者与真实 session 未开始，新付费仍需再次授权。
-- P3 未执行：近期目标是从干净源码 checkout 复现 Env 与 API Tester 两条金路径，并整理 claim-to-evidence。
+- P3 已完成同机隔离验收：提交 `3bd7618` 的 fresh detached worktree 中，API Tester JSON 与 Env Manager
+  两条路径均 passed、0 model/API/paid、`coreBranchDelta=0`。过程先后暴露 source CRLF 与 evaluator LF 的
+  checkout digest mismatch，并以精确 `.gitattributes` 规则修复；旧 lock/checker/artifact/scorer 未改。
+  证据见 `clean-source-gold-path-reproduction.md`、`claim-evidence-table.md` 和机器 report。独立外部操作者、
+  clean-install、跨平台与 arbitrary-skill 仍未建立。

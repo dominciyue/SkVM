@@ -61,7 +61,7 @@ optimized_skill/
 
 - 当前定位是以公开验证依据组织受限 skill 的确定性 AOT 与人工边界。三档降级为 provisional/mixed 路由，
   七案例是回顾性案例研究，不是已完成分类学。当前一页状态见 `docs/skill-ir/current-status.md`；旧 B
-  identity 已按 stop-loss 冻结负结果，接下来先重设计人工对照，再做干净源码 checkout 金路径复现。
+  identity 已按 stop-loss 冻结负结果；人工对照已完成 design-only 冻结，两条干净源码 checkout 金路径也已同机复现。
 - IR schema、parser、validator、profile annotation、静态 pass、lowering、真实 runner、scorer、gate 和
   paired analyzer 已具备；portfolio/readiness 仍按冻结 registry 解释，不能从本指南的命令示例推导晋级。
 - API Tester 的 source-audited schema-derived artifact 与 Env reviewed-AOT 的 efficiency evidence 仍是
@@ -125,7 +125,8 @@ readiness 也不会因为命令能运行就自动获得授权。
 2. **P1 七案例校准（已完成，0 paid）：** 三档改为 provisional/mixed 路由；结果类型与合同范围分开。
 3. **P2 B successor（已完成设计，未授权执行）：** 2 participant slots × 4 tasks 的 ABBA/BAAB
    人工编写 vs 候选审核/修复对照；task set 尚未创作，参与者未开始。
-4. **P3 可复现交付（下一步）：** 在干净源码 checkout 验证 Env 与 API Tester 两条金路径，再整理 claim-to-evidence。
+4. **P3 可复现交付（已完成，同机）：** fresh detached worktree 中 Env 与 API Tester JSON 均通过；
+   独立外部操作者、独立安装和跨平台仍未测。
 
 顶层 `src/index.ts` 保持历史字节不变；面向用户的 `bin/skvm.js` 负责 `artifact` 动态路由，其他旧命令继续进入原有
 `src/index.ts`/compiled binary。主线 B 旧 paid identity 已在 smoke 失败后冻结，不能补跑；successor 目前只有设计权限，
@@ -135,7 +136,7 @@ readiness 也不会因为命令能运行就自动获得授权。
 
 | 接力线 | 当前可做 | 当前不可做 | 主要入口 |
 |---|---|---|---|
-| 主线 C：两条源码金路径 | API/Env 共享底层 artifact 能力；当前 checkout 的 source 与 companion 路由均有本地证据 | 不把不同完整编排写成同一产品合同，不把依赖冻结 checkout 的 preset 写成任意 skill 独立安装产品 | `src/cli/artifact.ts`、`src/skill-ir/verified-artifact-presets.ts`、`bin/skvm.js`、`bin/skvm-route.js` |
+| 主线 C：两条源码金路径 | API/Env 共享底层 artifact 能力；提交 `3bd7618` 的 fresh detached worktree 已同机通过 Env/API JSON | 不把不同完整编排写成同一产品合同，不把依赖冻结 checkout 的 preset 写成任意 skill 独立安装或跨平台产品 | `src/cli/artifact.ts`、`src/skill-ir/verified-artifact-presets.ts`、`docs/skill-ir/clean-source-gold-path-reproduction.md` |
 | 主线 B：旧 operation projection | 只读公开 OpenAPI/spec 与 development task；schema、normalization、operation-sequence parity 和负结果已冻结 | 不把 projection 称为 HTTP execution trace；不以 exact 代替质量；不把 0/0 自动窗口分钟写成人工减少；同 identity 不重跑 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts`、`src/benchmarks/skill-ir/api-tester-trace-paid-run.ts`、`docs/skill-ir/api-tester-trace-public-answer-protocol.md` |
 
 这两条线共用现有产物和 deterministic runtime，但证据含义不同：C 是产品工程接入，B 是研究协议准备。任何一条线都不能
@@ -585,6 +586,37 @@ bun run ./src/benchmarks/skill-ir/api-tester-artifact-development-run.ts `
 API Tester 复用现有 compiler/package validator/runtime；没有复制 scorer，也没有把 `api-tester` 分支塞进
 `src/skill-ir/verified-artifact-product.ts`。编译后的 companion 已对 Env 与 API Tester 两条真实零付费路径做过
 端到端验证，不能把“companion 可启动”误当成“无需 checkout/runtime 依赖”。
+
+#### 5.7.1 从干净源码 checkout 复现
+
+2026-09-06 的绑定验收使用提交 `3bd7618` 的新 detached worktree。先确认 `git status --short` 没有 tracked
+变化，再执行：
+
+```powershell
+bun install --ignore-scripts --frozen-lockfile
+
+bun run ./src/cli/artifact.ts `
+  --preset=api-tester `
+  --variant=openapi-json `
+  --root=. `
+  --workdir=.skvm/repro/api-work `
+  --out=.skvm/repro/api-out `
+  --completed-at=<ISO-8601>
+
+$env:SKVM_BUN_BIN=(Get-Command bun).Source
+bun run ./src/cli/artifact.ts `
+  --preset=env-manager `
+  --root=. `
+  --workdir=.skvm/repro/env-work `
+  --out=.skvm/repro/env-out `
+  --completed-at=<ISO-8601>
+```
+
+两路都应得到 `status=passed`、三项调用计数为 0、`coreBranchDelta=0`。`--ignore-scripts` 是因为这里验证
+source checkout，不验证 Windows 发布包 postinstall。Env digest 若在新 checkout 失败，先运行
+`git check-attr text eol -- <path>`，不要改旧 lock：当前 source 必须 checkout 为 CRLF，v3 evaluator 必须为 LF。
+权威命令、失败历史、SHA-256 与边界见 `clean-source-gold-path-reproduction.md`；机器报告见
+`results/skill-ir/clean-source-gold-path-reproduction-2026-09-06/report.json`。
 
 ### 5.8 了解 Stage N 的 plan/smoke（当前不重跑）
 
@@ -1460,7 +1492,7 @@ output prompt/gate 和 local namespace + static audit 清除该污染；pre-mode
 已完成：共享 runtime executable identity；真实 --version smoke、36-row materialization、12-way status byte parity 全过，0 paid
 已完成：pre-model 67835f2 推送后，executable-bound 003 从 fresh 0/36 完成 36/36、18 paid、0 retry/infra
 当前接力（2026-09-06）：七案例已按公开合同校准为回顾表，三路由 provisional/mixed；旧 B paid identity
-首行质量失败后冻结。下一步只设计人工编写 vs 候选审核/修复对照，再从干净源码 checkout 复现 Env/API 金路径。
+首行质量失败后冻结。人工对照已完成 design-only 冻结；Env/API clean-source 金路径已在同机新 worktree 复现。
 新 B 付费、held-out、portfolio/readiness 均未授权。
 Stage N smoke 已失败且 matrix 未创建；Stage M 旧 identity 继续 fail-closed，不能按旧合同重跑或付费。
 结果边界：API Tester 的 quality-positive 与 Env reviewed-AOT 的 efficiency-positive 仍只覆盖冻结 development/Windows/clean；
@@ -1659,14 +1691,14 @@ not-eligible，不能据此修改 research authority。
 
 | 状态 | 事实 | 下一动作 |
 |---|---|---|
-| 可运行 | `skvm artifact` 已提供 Env Manager machine-checked 与 API Tester JSON/YAML preset；API 直接调用冻结 compiler/package/runtime，Env 调用既有 product runner | 用干净源码 checkout 和新 workdir/out 做 deterministic replay，不覆盖冻结结果 |
+| 可运行 | `skvm artifact` 已提供 Env Manager machine-checked 与 API Tester JSON/YAML preset；提交 `3bd7618` 的 fresh detached worktree 已通过 Env/API JSON | 保留机器 report；独立操作者、clean-install 或跨平台主张需另行验收 |
 | 已完成但不晋级 | 顶层 npm/source shim、companion 构建和当前 checkout E2E 已通过；两 preset 共享底层能力但完整编排不同 | 不写成任意 skill 独立安装产品，不改 core/scorer/lock/readiness |
 | 已冻结负结果 | B operation projection 首行 exact，但独立 scorer 三项失败；旧 calls=1 是 dispatched row 单位，0/0 minutes 是无人介入窗口 | 不补跑、不换 route |
 | 已设计未执行 | B successor 已固定 8-row 平衡交叉、前瞻计时、同一 scorer 与拆分成本单位；task set=`not-authored` | 不招募/启动参与者、不生成效果结论；新执行需单独授权 |
 | 明确关闭 | 新 B 付费、Stage N matrix、Stage M 旧 identity、held-out、readiness/portfolio 晋级、新 skill、DSL | 等用户对新实验单独授权 |
 
-主线 C 的当前 checkout 验收已完成，但 API 与 Env 的完整编排不同，近期还要在干净源码 checkout 复现两条
-金路径；顶层 CLI 只做路由和参数错误；
+主线 C 的当前 checkout 与同机 fresh detached worktree 验收均已完成，但 API 与 Env 的完整编排不同；
+顶层 CLI 只做路由和参数错误；
 `coreBranchDelta=0`、旧命令兼容、路径安全和非空输出目录检查全部通过。主线 B 的最小验收也已完成：trace 和公开答案
 各自有 digest，parity 能区分 `exact/equivalent/missing/extra/invalid/ambiguous`，并且 baseline-pass 与
 mutation-fail 都能在零付费环境中重演；paid smoke 同时证明 operation parity 不等于计划质量。下一判定点不是
