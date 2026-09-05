@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { validateVerifiedArtifactProduct } from "../../skill-ir/verified-artifact-product";
+import { ENV_MANAGER_PRODUCT_EVALUATOR_AUTHORITY } from "./verified-artifact-product-env-checker";
 import {
   ENV_MANAGER_A_OPTIONAL_CONFIG_PATH,
   ENV_MANAGER_E1_CONFIG_PATH,
@@ -19,16 +20,24 @@ afterEach(async () => {
 });
 
 describe("verified artifact product E1", () => {
-  test("pins the Env source checkout serialization to its frozen digest", async () => {
+  test("pins the Env digest-bound text files to stable checkout serialization", async () => {
     const rootDir = resolve(import.meta.dir, "../../..");
     const sourcePath = "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md";
+    const evaluatorPath = ENV_MANAGER_PRODUCT_EVALUATOR_AUTHORITY.path;
     const attributes = await readFile(join(rootDir, ".gitattributes"), "utf8");
     expect(attributes).toContain(`/${sourcePath} text eol=crlf`);
+    expect(attributes).toContain(`/${evaluatorPath} text eol=lf`);
 
     const config = JSON.parse(await readFile(join(rootDir, ENV_MANAGER_A_OPTIONAL_CONFIG_PATH), "utf8"));
     const source = await readFile(join(rootDir, sourcePath), "utf8");
     const checkoutBytes = Buffer.from(source.replace(/\r?\n/gu, "\r\n"), "utf8");
     expect(createHash("sha256").update(checkoutBytes).digest("hex")).toBe(config.source.sha256);
+
+    const evaluator = await readFile(join(rootDir, evaluatorPath), "utf8");
+    const evaluatorBytes = Buffer.from(evaluator.replace(/\r\n/gu, "\n"), "utf8");
+    expect(createHash("sha256").update(evaluatorBytes).digest("hex")).toBe(
+      ENV_MANAGER_PRODUCT_EVALUATOR_AUTHORITY.sha256,
+    );
   });
 
   test("runs the existing Env pilot through one evaluator-free product chain", async () => {
