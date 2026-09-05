@@ -1,6 +1,6 @@
 # API Tester Trace + Public Answer 协议
 
-**状态：** development-only、零付费 dry-run 已实现；首个 4-row paid original identity 已获授权并通过零付费 preflight，尚未 dispatch。
+**状态：** development-only、零付费 dry-run 已实现；首个 paid original identity 已在第 1 行 smoke 失败后冻结为负结果。
 **identity：** dry-run `skill-ir-api-tester-trace-public-answer-development-001`；paid `skill-ir-api-tester-trace-public-answer-paid-development-001`
 **最后更新：** 2026-09-05
 
@@ -134,3 +134,17 @@ skill、checker、oracle、runner 和两份 public answer 的 SHA-256。`preflig
 controller 和 scorer 时间不得冒充人工时间。本次由自动执行器完成、没有人介入逐行编写或审核时，合法观测为
 `authoringMinutes=0`、`reviewMinutes=0`，状态必须明确为 `prospective-measured-no-human-intervention`，不能填历史 LOC
 或后验估时。
+
+## 首个 paid 结果
+
+权威报告为 `results/skill-ir/api-tester-trace-public-answer-paid-development-001/report.json`，lock SHA-256 为
+`63d03f56d32f410f360374c2f4316e84bf3e403db102c70f6a4da3527604a130`。第 1 行
+`api-tester-openapi-users-dev-001 / repetition 1` 自然结束，parser 与 usage 可用，trace 对 public answer 为
+`exact`；但 deterministic API Tester scorer 未通过 `api-schema-derived-cases`、`api-security-response` 和
+`api-independence-verification`，因此执行分类为 `quality-failure`，触发 `smoke-failed`。
+
+结果只实际 dispatch 1 次：input/output/cache-read 为 `58060 / 7445 / 137344`，explicit input+output 总计
+`65505`；`modelCalls=apiCalls=paidCalls=1`。第 2--4 行没有执行，`retries=reserve=replacements=0`。失败行保留在
+固定四行分母中，整份 identity 状态为 `negative-smoke-frozen`；不得以同 identity 重跑、补齐或修改 route、
+public answer、checker、artifact。前瞻窗口内没有人介入逐行编写或审核，因此 authoring/review 均实测为 0，而非
+历史回填。该结果不改变 held-out、Stage M/N、portfolio 或 readiness。

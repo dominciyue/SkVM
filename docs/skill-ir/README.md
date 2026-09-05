@@ -76,7 +76,9 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。** 分类轴分�
   仍不识别 artifact。companion 不内嵌 benchmark 数据，`--root` 仍须指向包含冻结 fixture/lock/package
   的 SkVM checkout。API Tester runtime 需要 Node；Env preset 还会从该 checkout 调用既有 Bun product CLI，二者
   都允许用显式环境变量覆盖并在缺失时 fail closed。主线 B 已冻结 API Tester trace/public-answer v1，并完成 4-row 零付费
-  `baseline-pass`/`mutation-fail` dry-run；这些都是工程/协议证据，不改变 portfolio/readiness。
+  `baseline-pass`/`mutation-fail` dry-run。首个 paid original identity 的第 1 行 trace 为 `exact`，但 deterministic scorer
+  有三个质量 criterion 失败，因此按 stop-loss 以 1 次调用冻结 `negative-smoke-frozen`，其余 3 行未执行且不补跑；
+  这些工程/协议与负结果证据不改变 portfolio/readiness。
 - Stage M 的 Magpie identity 继续保持 fail-closed，仅作预注册合同；Stage N 已切换到 API Tester + Env Manager，
   只完成 Stage 0 与 6-row smoke，资格 failed、仅 GPT eligible，matrix 未创建。Stage N 现在只是分类轴的类内子证据，
   不能写成跨模型主表或“优化后的 LLM 更稳”。

@@ -28,6 +28,7 @@
 | Experimental Design v2 artifact local | 2 development fixtures | scorer 2/2, mean 1.0；protected 2/2；runtime model tokens 0 | 本地机制 qualification；无付费质量 claim。 |
 | API Tester baseline | 2 arms x 4 = 8 | no-skill 0/4, 0.2375；original 0/4, 0.4000；4 differing | Partial benefit；旧 original-success gate failed。 |
 | API Tester artifact development | 4 systems x 4 = 16 | artifact 4/4, 1.0；static 0/4, 0.3875；original 0/4, 0.225；no-skill 0/4, 0.15 | Development gate passed；只计 method evidence。 |
+| API Tester trace paid smoke | fixed 4 original rows；首行即 smoke | observed 1/4；trace exact；quality-failure；1 paid call、65505 explicit tokens | `negative-smoke-frozen`；其余 3 行未执行，同 identity 不补跑。 |
 | Zh Code Reviewer calibration v1 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75；数值 gate passed | Measurement invalid：唯一差异来自私有 summary 类型 false reject；不开放 base IR。 |
 | Zh Code Reviewer calibration v2 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75 | Measurement valid；开放 base IR/source audit。 |
 | Zh Code Reviewer static fidelity | 3 systems x 4 = 12 | no-skill 4/4；original 3/4, 0.8375；static 4/4, 1.0 | Gate passed；1 positive/3 equal/0 negative，只开放 residual audit。 |

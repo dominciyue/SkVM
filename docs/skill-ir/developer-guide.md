@@ -57,12 +57,12 @@ optimized_skill/
 
 ### 1.3 现在已经做到哪里
 
-截至 2026-09-05：
+截至 2026-09-06：
 
 - 当前北极星是按“标准答案可得性”把 skill 分成公开产物可得、输入结构可得、专家判断可得三档；七案例
   证据表位于 `docs/skill-ir/answer-availability-taxonomy.md`。分类证据已收口，当前工程接力调整为：先做主线 C
-  的统一产品入口（0 付费），再做主线 B 的 API Tester trace + public-answer 协议与零付费 dry-run；这不代表
-  B 已获得真实模型矩阵授权。
+  的统一产品入口（0 付费），再做主线 B 的 API Tester trace + public-answer 协议与零付费 dry-run；首个 paid
+  identity 已按 stop-loss 执行并冻结为负结果。
 - IR schema、parser、validator、profile annotation、静态 pass、lowering、真实 runner、scorer、gate 和
   paired analyzer 已具备；portfolio/readiness 仍按冻结 registry 解释，不能从本指南的命令示例推导晋级。
 - API Tester 的 source-audited schema-derived artifact 与 Env reviewed-AOT 的 efficiency evidence 仍是
@@ -92,7 +92,10 @@ optimized_skill/
 - 主线 B 已完成零付费协议闭环：`skill-ir-api-tester-trace-public-answer-development-001` 从公开 OpenAPI
   独立构造 public answer，完成 strict trace/parity checker 与 4-row baseline/mutation dry-run；authoring/review
   分钟仍为 `null/not-measured`，不能当作人工成本结论。
-- 当前暂停的边界仍有效：不继续论文、新 skill、DSL、Stage N matrix、B paid run、Optimizer Agent、held-out 或
+- B paid identity `skill-ir-api-tester-trace-public-answer-paid-development-001` 的第 1 行自然完成且 trace `exact`，
+  但 deterministic scorer 的 schema-derived/security/independence 三项失败，故以 1 paid call 触发 smoke stop；
+  第 2--4 行未执行，0 retry/reserve/replacement，authoring/review 前瞻实测为 0/0（无人介入，不含模型等待）。
+- 当前暂停的边界仍有效：不继续论文、新 skill、DSL、Stage N matrix、B 同 identity 重跑、Optimizer Agent、held-out 或
   readiness 晋级。C/B 只证明工程与协议闭环，不产生跨模型稳定性或“优化后的 LLM 更稳”结论。
 
 ### 1.4 先按“答案可得性”选开发路径
@@ -119,7 +122,7 @@ readiness 也不会因为命令能运行就自动获得授权。
    `src/index.ts`、lock、package、scorer 或 readiness。
 2. **主线 B（已完成零付费 dry-run）：** API Tester 已冻结 trace schema、公开答案闭包、normalization/parity checker，
    两个 development task 各完成 baseline-pass 与 mutation-fail；authoring/review scope 分开但尚未测量。
-3. **未来的 B paid run（未授权）：** 只有用户另行确认预算后，才可从新 identity、0 retry、固定分母的协议进入真实模型执行。
+3. **B paid run（已冻结负结果）：** 第 1 行即 smoke 且留在四行分母；quality-failure 后立即停止，不补行、不换 route。
 
 顶层 `src/index.ts` 保持历史字节不变；面向用户的 `bin/skvm.js` 负责 `artifact` 动态路由，其他旧命令继续进入原有
 `src/index.ts`/compiled binary。主线 B 的 trace 协议已完成但没有进入 paid qualification。Stage N 只是既有分类轴的类内
@@ -131,7 +134,7 @@ readiness 也不会因为命令能运行就自动获得授权。
 | 接力线 | 当前可做 | 当前不可做 | 主要入口 |
 |---|---|---|---|
 | 主线 C：统一产品入口 | 复用现有 compile → review-or-accept → package → run → cost；Env 与 API Tester preset 已通过 fresh replay；source checkout 与 packaged companion 均可路由 | 不复制 runtime/scorer，不把 skill id 分支塞进公共 core，不把 CLI 接入误写成研究晋级 | `src/cli/artifact.ts`、`src/skill-ir/verified-artifact-presets.ts`、`bin/skvm.js`、`bin/skvm-route.js` |
-| 主线 B：API Tester trace | 只读公开 OpenAPI/spec 与 development task；trace/public-answer schema、normalization、parity 和 4-row dry-run 已冻结 | 不读 raw/model text、gold/evaluator payload 或 held-out；不以 trace 代替模型质量分数；未授权不付费 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts`、`docs/skill-ir/api-tester-trace-public-answer-protocol.md` |
+| 主线 B：API Tester trace | 只读公开 OpenAPI/spec 与 development task；trace/public-answer schema、normalization、parity 和 dry-run 已冻结；paid smoke 负结果已落盘 | 不读 raw/model text、gold/evaluator payload 或 held-out；不以 exact trace 代替模型质量分数；同 identity 不重跑 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts`、`src/benchmarks/skill-ir/api-tester-trace-paid-run.ts`、`docs/skill-ir/api-tester-trace-public-answer-protocol.md` |
 
 这两条线共用现有产物和 deterministic runtime，但证据含义不同：C 是产品工程接入，B 是研究协议准备。任何一条线都不能
 自动修改 portfolio/readiness，也不能把“0 model token 的 artifact 热路径”改写成“优化后的 LLM 更稳定”。

@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-09-04
+**最后更新：** 2026-09-06
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -49,7 +49,7 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
 | i18n Helper | contribution-v2 base IR passed；v4 static 0 infra 但 paired gate failed | 不开放 artifact；转向替代 qualified case |
 | Method portfolio | 7 studied、7 qualified、1 quality-positive、1 efficiency-positive、0 untouched replication、0 dynamic-profile | 维持 automation/adaptation convergence=false；先完成分类表再做第一档自动提炼 |
 | Product entry | `bin/skvm.js artifact` 已把 Env 与 API Tester JSON/YAML 接入同一产品链；`src/index.ts` 保持历史字节不变 | 主线 C 已收口；后续只维护 source/package 路由与 release companion 兼容性，不据此晋级 readiness |
-| Answer taxonomy | 7 案例三档分类表已提交；API Tester trace/public-answer 的 4-row 零付费 dry-run 已完成 | 主线 A 与 B 的零付费准备已收口；paid identity 仍须用户另行授权 |
+| Answer taxonomy | 7 案例三档分类表已提交；API Tester trace/public-answer dry-run 已完成；首个 paid identity 在第 1 行 quality-failure 后冻结 | 保留负结果；不重跑、不补行、不改 checker/artifact，不据此晋级 |
 
 机器权威入口：
 
@@ -111,12 +111,13 @@ workdir、qualification、probe 和调试结果，另有 13 个名称上属于 s
 ```text
 主线 C：Env + API Tester 统一收进现有产品链与 SkVM 顶层 CLI（已完成，0 paid）
   -> 主线 B：API Tester 第 1 档 trace + public-answer 协议与 dry-run（已完成，0 paid）
-  -> B 的 paid run（需用户另行确认预算，当前未授权）
+  -> B 的首个 paid run（已在第 1 行 smoke quality-failure 后冻结，1/4 observed）
 ```
 
-主线 C 只做产品工程接入，不修改旧 lock、P1/P2、core、DSL、scorer、artifact 或 readiness；主线 B 只做协议准备，
-不检查 API key、不 dispatch、不创建 paid rows。Stage N 仅作为分类轴的类内子证据；Stage M、DSL 扩展、held-out、
-live release 和新的论文主张继续停线。
+主线 C 只做产品工程接入，不修改旧 lock、P1/P2、core、DSL、scorer、artifact 或 readiness。主线 B 首个 paid
+identity 已按冻结 stop-loss 收口：第 1 行 trace exact，但 deterministic quality scorer 失败，只消费 1 次调用并停机；
+同 identity 不重跑。Stage N 仅作为分类轴的类内子证据；Stage M、DSL 扩展、held-out、live release 和新的论文
+主张继续停线。
 
 ### 主线 A：答案可得性分类学与证据表（已收口）
 

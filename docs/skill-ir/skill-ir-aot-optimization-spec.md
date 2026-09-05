@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-05
+**最后更新：** 2026-09-06
 
 ## 1. 北极星：以答案可得性组织 Skill IR / AOT
 
@@ -40,9 +40,11 @@ trace 提炼空间越大，人工判断越少。七案例表是整理后的观�
 从 `--root` checkout 调用既有 Bun product CLI，解释器缺失时 fail closed。API Tester trace/public-answer 协议只从 development task 的
 公开 OpenAPI fixture 构造 canonical operation sequence，并以 strict digest-bound report 做
 `exact/equivalent/missing/extra/invalid/ambiguous` 判定。该实现不改变 `src/index.ts`、core、DSL、scorer、
-历史 lock/result、portfolio/readiness 或任何付费分母；它仍不构成跨模型稳定性或 full-automatic convergence 证据。
-未来若另获付费授权，新 identity 仅限档 1 API Tester，固定 2 task × 2 repetition = 4 original rows；首行
-smoke 包含在这 4 行内，`paidCalls/modelCalls/apiCalls <= 4`、`retries=0`、无 reserve/replacement，smoke 失败即停。
+历史 lock/result、portfolio/readiness；它仍不构成跨模型稳定性或 full-automatic convergence 证据。
+首个 paid identity 随后按 2 task × 2 repetition、最多 4 original rows 执行。第 1 行即 smoke，trace 为 `exact`
+且 execution/usage 完整，但现有 deterministic scorer 判定三个质量 criterion 失败，因此 stop-loss 将该 identity
+冻结为 `negative-smoke-frozen`：只消费 1 次调用，未执行其余 3 行，0 retry/reserve/replacement。该负结果不改
+public answer/checker/artifact，也不开放同 identity 补跑、held-out、portfolio/readiness 或新的稳定性主张。
 
 ### 1.3 降级与停止规则
 
