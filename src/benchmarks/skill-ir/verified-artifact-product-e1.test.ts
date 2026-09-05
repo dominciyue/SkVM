@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -18,6 +19,18 @@ afterEach(async () => {
 });
 
 describe("verified artifact product E1", () => {
+  test("pins the Env source checkout serialization to its frozen digest", async () => {
+    const rootDir = resolve(import.meta.dir, "../../..");
+    const sourcePath = "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md";
+    const attributes = await readFile(join(rootDir, ".gitattributes"), "utf8");
+    expect(attributes).toContain(`/${sourcePath} text eol=crlf`);
+
+    const config = JSON.parse(await readFile(join(rootDir, ENV_MANAGER_A_OPTIONAL_CONFIG_PATH), "utf8"));
+    const source = await readFile(join(rootDir, sourcePath), "utf8");
+    const checkoutBytes = Buffer.from(source.replace(/\r?\n/gu, "\r\n"), "utf8");
+    expect(createHash("sha256").update(checkoutBytes).digest("hex")).toBe(config.source.sha256);
+  });
+
   test("runs the existing Env pilot through one evaluator-free product chain", async () => {
     const rootDir = resolve(import.meta.dir, "../../..");
     const temporaryRoot = await mkdtemp(join(tmpdir(), "skvm-verified-artifact-e1-"));
