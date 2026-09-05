@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "skill-ir-api-tester-trace-paid-lock/v1",
+  "status": "preregistered",
+  "experimentId": "skill-ir-api-tester-trace-public-answer-paid-development-001",
+  "priorIdentity": "skill-ir-api-tester-trace-public-answer-development-001",
+  "measurementStartedAt": "2026-09-05T15:40:15.659Z",
+  "model": {
+    "route": "xty/gpt-5.6-sol",
+    "family": "gpt"
+  },
+  "matrix": {
+    "taskIds": [
+      "api-tester-openapi-users-dev-001",
+      "api-tester-openapi-inventory-dev-002"
+    ],
+    "repetitions": 2,
+    "expectedRows": 4,
+    "systems": ["original"],
+    "context": "clean",
+    "environment": "windows"
+  },
+  "budget": {
+    "maximumPaidCalls": 4,
+    "maximumModelCalls": 4,
+    "maximumApiCalls": 4,
+    "retries": 0,
+    "reserve": 0,
+    "replacements": 0
+  },
+  "stopLoss": {
+    "firstRowIsSmoke": true,
+    "smokeFailureStopsAll": true,
+    "failedRowsRemainInDenominator": true,
+    "routeChangesForbidden": true
+  },
+  "frozenInputs": {
+    "tasks": {
+      "path": "benchmarks/skill-ir/pilots/api-tester/development/tasks.json",
+      "sha256": "54062e72eb11a16aac4c89ed072c017f18fdff2cbeee7bac9d6efc403322076b"
+    },
+    "source": {
+      "path": "benchmarks/skill-ir/pilots/api-tester/source/SKILL.md",
+      "sha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a"
+    },
+    "checker": {
+      "path": "src/benchmarks/skill-ir/api-tester-trace-public-answer.ts",
+      "sha256": "0b6f61e035ba714cac52843ff6858c7e8f4c4def6af8738bccd14dd2ceedb2d2"
+    },
+    "oracle": {
+      "path": "src/benchmarks/skill-ir/api-tester-oracle.ts",
+      "sha256": "9449a5ed13e53de978714492ff4e759ce9f7e1efe71a60706602da6e1f77cdd2"
+    },
+    "runner": {
+      "path": "src/benchmarks/skill-ir/api-tester-trace-paid-run.ts",
+      "sha256": "0ca52624c87992167a237c175143684f69ab46349ea78d1b71cd5fff8926b61f"
+    },
+    "publicAnswers": [
+      {
+        "taskId": "api-tester-openapi-users-dev-001",
+        "sha256": "1048a1b238f709c45c7065486aec32220948fe83f6d81118620a249c218c4d0c"
+      },
+      {
+        "taskId": "api-tester-openapi-inventory-dev-002",
+        "sha256": "23b3356a44d1b2f99e2e977b9e95259abe4f65b89ba2862e19a0b3a9f3a16473"
+      }
+    ]
+  },
+  "runtime": {
+    "apiKeyEnv": "SKVM_XTY_API_KEY",
+    "adapter": "pi",
+    "adapterVersion": "0.67.68",
+    "taskTimeoutMs": 300000,
+    "maxSteps": 30,
+    "outerWatchdogMs": 360000
+  },
+  "claimBoundary": {
+    "developmentOnly": true,
+    "permitsHeldOut": false,
+    "changesReadiness": false,
+    "optimizedLlmStabilityClaim": false
+  }
+}

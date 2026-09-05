@@ -1,7 +1,7 @@
 # API Tester Trace + Public Answer 协议
 
-**状态：** development-only、零付费 dry-run 已实现；未授权 paid qualification。
-**identity：** `skill-ir-api-tester-trace-public-answer-development-001`
+**状态：** development-only、零付费 dry-run 已实现；首个 4-row paid original identity 已获授权并通过零付费 preflight，尚未 dispatch。
+**identity：** dry-run `skill-ir-api-tester-trace-public-answer-development-001`；paid `skill-ir-api-tester-trace-public-answer-paid-development-001`
 **最后更新：** 2026-09-05
 
 ## 目的
@@ -117,10 +117,20 @@ dry-run 会写入：
 报告固定为 4 rows，`modelCalls=0`、`apiCalls=0`、`paidCalls=0`。`authoringMinutes` 与 `reviewMinutes`
 在这个 dry-run 中为 `null/not-measured`，不能把历史 adapter LOC 或模型运行时间后验填入。
 
-## 未来付费边界（仅预注册建议）
+## Paid original 边界（已预注册）
 
-若另获授权，首个 paid identity 只允许档 1 的 API Tester，固定 2 task × 2 repetition = 4 original rows；
+首个 paid identity 只允许档 1 的 API Tester，固定 2 task × 2 repetition = 4 original rows；
 这 4 行同时就是付费上限（`paidCalls <= 4`、`modelCalls <= 4`、`apiCalls <= 4`），首行包含在分母内并先作
 smoke，不另加资格调用。`retries=0`、无 reserve、无 replacement。smoke 失败立即停止，失败行留在分母中，
 不换 route、不补行、不修改 public answer/checker/artifact。held-out、portfolio/readiness 和“优化后的 LLM
 更稳”均不由本协议授权。
+
+新 lock 位于 `benchmarks/skill-ir/pilots/api-tester/trace-public-answer-paid-development-001-lock.json`；执行器为
+`src/benchmarks/skill-ir/api-tester-trace-paid-run.ts`。lock 固定 GPT route、task 顺序、预算、stop-loss，以及 task、
+skill、checker、oracle、runner 和两份 public answer 的 SHA-256。`preflight` 只确认 API key 非空和这些 digest 未漂移，
+不保存 key 值、不 dispatch。
+
+人工分钟从 lock 的 `measurementStartedAt` 前瞻计量。只计入该窗口内真实发生的主动人工编写/审核分钟；模型等待、
+controller 和 scorer 时间不得冒充人工时间。本次由自动执行器完成、没有人介入逐行编写或审核时，合法观测为
+`authoringMinutes=0`、`reviewMinutes=0`，状态必须明确为 `prospective-measured-no-human-intervention`，不能填历史 LOC
+或后验估时。
