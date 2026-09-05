@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-09-03
+**最后更新：** 2026-09-04
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -28,8 +28,8 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
 - zh-readme 与 i18n-helper 属于档位 2，但分别被 scorer-authority 与 static quality regression 阻断；
 - Law、Experimental Design、zh-code-reviewer 属于档位 3，保留 review-required/停止证据，不强行转成全自动；
 - Stage N 已降级为分类轴的类内子证据：Stage 0 + smoke 已完成，资格 failed，仅 GPT eligible，matrix 未创建；
-- 面向用户的统一 optimizer CLI 尚未完成；现有 standalone product library/CLI 可复用，但不另造 importer 或
-  Stage N runtime。
+- 面向用户的 verified-artifact 入口已通过 `bin/skvm.js` 动态分流：source checkout 使用 Bun TypeScript
+  companion，发布包使用独立 `bin/skvm-artifact`；现有 standalone product library/CLI 仍是唯一产品链。
 
 准确表述是：**项目已经有“公开答案可得 → deterministic AOT 正例”和“输入结构可得 → reviewed-AOT 成本正例”，
 但自动化/最低人工仍未在全 portfolio 收敛；专家判断档位应以可审计 review-required 作为诚实终点。**
@@ -48,8 +48,8 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。
 | Zh README | v1/v2 measurement-invalid | skill-neutral command semantics 已提炼，暂不堆新版本 |
 | i18n Helper | contribution-v2 base IR passed；v4 static 0 infra 但 paired gate failed | 不开放 artifact；转向替代 qualified case |
 | Method portfolio | 7 studied、7 qualified、1 quality-positive、1 efficiency-positive、0 untouched replication、0 dynamic-profile | 维持 automation/adaptation convergence=false；先完成分类表再做第一档自动提炼 |
-| Product entry | standalone product library/CLI 可运行；顶层 `src/index.ts` 尚未接入统一用户路径 | 主线 C：先把 Env 与 API Tester 收进同一产品链，再接入顶层 CLI |
-| Answer taxonomy | 7 案例三档分类表已提交，证据来自冻结 registry/authority reports | 主线 A 已收口；主线 B 只做 API Tester trace 协议与零付费 dry-run |
+| Product entry | `bin/skvm.js artifact` 已把 Env 与 API Tester JSON/YAML 接入同一产品链；`src/index.ts` 保持历史字节不变 | 主线 C 已收口；后续只维护 source/package 路由与 release companion 兼容性，不据此晋级 readiness |
+| Answer taxonomy | 7 案例三档分类表已提交；API Tester trace/public-answer 的 4-row 零付费 dry-run 已完成 | 主线 A 与 B 的零付费准备已收口；paid identity 仍须用户另行授权 |
 
 机器权威入口：
 
@@ -72,11 +72,11 @@ results/skill-ir/i18n-helper-contribution-development-v2/gate-report.json
 能报告已测 scope，不能从历史 null 推导全流程 0 分钟。i18n、Law、Experimental Design、zh-readme 和
 zh-code-reviewer 的负结果继续保留，不能为填表改写。
 
-### P0：产品化主线仍未收口
+### P0：统一 artifact 入口已收口，完整北向产品仍未收口
 
-P2 已提供通用 external-skill import staging bundle，E1 standalone product library/CLI 已可运行，但 `src/index.ts`
-尚未串起面向用户的统一 `import -> optimize -> validate -> report` 路径。主线 C 的目标是先把 Env 之外的 API Tester
-接入同一 product chain，再统一收进顶层 CLI；不另造 runtime 或第二套优化逻辑。
+P2 已提供通用 external-skill import staging bundle；主线 C 已通过 `bin/skvm.js artifact` 把 Env 与 API Tester
+JSON/YAML 接入同一 verified-artifact product chain，并为发布包增加 `skvm-artifact` companion。尚未完成的是更远期的
+通用 `import -> optimize -> validate -> report` 自动闭环与 Optimizer Agent，而不是再给当前两条金路径另造 runtime。
 
 ### P0：跨条件主证据暂不作为独立主线
 
@@ -109,8 +109,8 @@ workdir、qualification、probe 和调试结果，另有 13 个名称上属于 s
 本阶段不按旧 Task 18 的案例堆叠顺序继续扩张。分类学主线 A 已完成整理，当前接力固定为：
 
 ```text
-主线 C：Env + API Tester 统一收进现有产品链与 SkVM 顶层 CLI（0 paid）
-  -> 主线 B：API Tester 第 1 档 trace + public-answer 协议与 dry-run（0 paid）
+主线 C：Env + API Tester 统一收进现有产品链与 SkVM 顶层 CLI（已完成，0 paid）
+  -> 主线 B：API Tester 第 1 档 trace + public-answer 协议与 dry-run（已完成，0 paid）
   -> B 的 paid run（需用户另行确认预算，当前未授权）
 ```
 
@@ -137,17 +137,31 @@ live release 和新的论文主张继续停线。
 **验证边界：** 本表是 evidence synthesis，不重评分、不新建 lock、不读取 held-out、不运行模型/API、不改变
 portfolio/readiness。若七案例证据之间有冲突，以 authority report 和冻结结果为准，并在表中保留 superseded 状态。
 
-### 主线 C：产品化收口（当前执行线）
+### 主线 C：产品化收口（已完成）
 
 **目标：** 复用现有 standalone verified-artifact product library/CLI，让 Env 与 API Tester 走通同一产品链，
-再把相同入口接入 SkVM 顶层 CLI；不创建第二套 runtime、不复制 scorer/optimizer 逻辑。顶层 `src/index.ts` 只负责
-动态路由、帮助和参数错误，skill-specific 行为必须留在 preset/adapter。
+再把相同入口接入 SkVM 顶层 CLI；不创建第二套 runtime、不复制 scorer/optimizer 逻辑。顶层 `bin/skvm.js` shim
+只负责动态路由和启动错误，skill-specific 行为必须留在 preset/adapter；`src/index.ts` 保持历史字节不变。
 
 **最小交付：** Env 的 A-optional preset 与 API Tester 的薄 adapter 都能调用
 `compile -> review-or-accept -> package -> run -> cost`；统一入口通过 help、未知 preset、路径 containment、
 非空输出目录和旧命令兼容测试；`coreBranchDelta=0`，当前阶段 `modelCalls=apiCalls=paidCalls=0`。
 
-### 主线 B：第 1 档 API Tester 的 trace 提炼（只做准备）
+**完成实现：**
+
+1. `src/cli/artifact.ts` 解析 preset、variant、quality、root/workdir/out 和完成时间，并对未知参数、路径逃逸、
+   输出目录冲突与非 `machine-checked` 模式 fail closed；
+2. `src/skill-ir/verified-artifact-presets.ts` 通过 Bun 子进程调用现有 Env Manager machine-checked product CLI，
+   并复用 API Tester JSON/YAML compiler、package validator、冻结 package digest parity 和 deterministic runtime；
+   API runtime 使用真实 Node 而不是编译后 companion 自身，Node/Bun 缺失均 fail closed；
+3. `bin/skvm.js` 仅负责动态路由；source checkout 运行 `src/cli/artifact.ts`，npm 安装运行编译后的
+   `bin/skvm-artifact` companion。`scripts/build-all-targets.sh` 将 companion 与主 binary 一并打包，
+   `install/postinstall.js` 对两者都做存在性和可执行校验；
+   standalone tarball 不经过 Node shim，须直接调用 companion，原生 `bin/skvm` 的命令集保持不变；
+4. Env、API Tester JSON/YAML、source/package 路由和旧命令兼容均有 focused test。实现不修改 `src/index.ts`、
+   core、DSL、scorer、artifact package 或历史 lock。
+
+### 主线 B：第 1 档 API Tester 的 trace 提炼（零付费 dry-run 已完成）
 
 **目标：** 只在公开产物可得的 API Tester 上，验证“执行 trace + OpenAPI/public answer”能否确定性提炼领域步骤，
 把人工从作者降为审核者。
@@ -156,9 +170,33 @@ portfolio/readiness。若七案例证据之间有冲突，以 authority report �
 人工计时/LOC 口径和失败分类。不得把 Env 或专家判断档的 mapping 直接移植成第一档正例，也不得读取 held-out
 或用后验模型输出扩写答案。
 
-**成功定义：** 在冻结 development fixture 上，提炼结果与公开答案/现有 API Tester artifact 通过 parity，
-且人工 authoring scope 与 review scope 分开测量；dry-run 必须包含 baseline-pass 与 mutation-fail。没有预算与
+**零付费成功定义：** 在冻结 development fixture 上，提炼结果与公开答案/现有 API Tester artifact 通过 parity，
+且人工 authoring scope 与 review scope 使用独立字段（未实测时保持 `null/not-measured`）；dry-run 必须包含
+baseline-pass 与 mutation-fail。没有预算与
 明确授权前，不检查 API key、不执行 original rows；若 parity 或成本证据不完整，冻结为负结果，不补跑筛正例。
+
+**完成实现：** `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts` 从两份 development task 的公开
+OpenAPI fixture 独立构造 public answer，生成 strict trace，按固定 normalization 规则分类
+`exact/equivalent/missing/extra/invalid/ambiguous`，并写出 4-row zero-activity dry-run report。报告中的
+baseline-pass 与 mutation-fail 均绑定 source/public-answer/trace digest，`modelCalls=apiCalls=paidCalls=0`，
+authoring/review 分钟保持 `null/not-measured`。协议文档见
+`docs/skill-ir/api-tester-trace-public-answer-protocol.md`。
+
+**未来付费上限（未授权）：** 新 identity 只允许档 1 API Tester，固定 2 task × 2 repetition = 4 original rows；
+首行 smoke 包含在这 4 行内，`paidCalls/modelCalls/apiCalls <= 4`，`retries=0`、无 reserve/replacement。smoke
+失败立即停止并保留失败行，不补跑、不换 route、不修改 public answer/checker/artifact。
+
+### 2026-09-05 C/B 收口验证
+
+- focused artifact CLI/preset/routing/trace tests：20/20 通过；Env fresh replay 与 API Tester JSON/YAML 均为
+  deterministic pass，零模型/API/付费调用；
+- source checkout 的真实 `node bin/skvm.js artifact` 已分别执行 Env、API Tester JSON 和 API Tester YAML，
+  三份 `cli-report.json` 均为 `status=passed`、`modelCalls=apiCalls=paidCalls=0`、`coreBranchDelta=0`；编译后的
+  companion 也已真实执行 Env 与 API Tester JSON 两条完整链路，不只覆盖二进制存在性；
+- B dry-run 两个 development task 各生成 baseline-pass + mutation-fail，共 4 logical rows；无模型正文、
+  gold/evaluator payload、absolute path、workdir 或 held-out；
+- 当前停止点：不执行 B paid run，不创建新的 qualification/matrix，不修改 portfolio/readiness，不把工程
+  入口或 trace parity 写成跨模型稳定性结论。
 
 ### Task 18.1 项目状态审计与文档收敛
 

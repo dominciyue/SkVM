@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-03
+**最后更新：** 2026-09-05
 
 ## 1. 北极星：以答案可得性组织 Skill IR / AOT
 
@@ -32,6 +32,17 @@ trace 提炼空间越大，人工判断越少。七案例表是整理后的观�
    能否提炼领域步骤，把人从作者降到审核者。第 3 档不硬做全自动。
 3. **主线 C：产品化收口。** 在 Env 之外，至少让第 1 档的 API Tester 走通现有 product 链，并把同一 core
    接进 SkVM 顶层 CLI；不维护第二套 runtime 或第二套优化逻辑。
+
+当前实现已完成这两条线的零付费工程闭环：`skvm artifact` 由 `bin/skvm.js` 动态分流到 source checkout
+的 `src/cli/artifact.ts` 或 npm 安装中的 `bin/skvm-artifact` companion；standalone tarball 须直接调用 companion，
+原生 `bin/skvm` 仍保持旧命令集。Env Manager 与 API Tester JSON/YAML
+均复用既有 verified-artifact product chain。companion 不内嵌冻结数据；API runtime 使用真实 Node，Env preset
+从 `--root` checkout 调用既有 Bun product CLI，解释器缺失时 fail closed。API Tester trace/public-answer 协议只从 development task 的
+公开 OpenAPI fixture 构造 canonical operation sequence，并以 strict digest-bound report 做
+`exact/equivalent/missing/extra/invalid/ambiguous` 判定。该实现不改变 `src/index.ts`、core、DSL、scorer、
+历史 lock/result、portfolio/readiness 或任何付费分母；它仍不构成跨模型稳定性或 full-automatic convergence 证据。
+未来若另获付费授权，新 identity 仅限档 1 API Tester，固定 2 task × 2 repetition = 4 original rows；首行
+smoke 包含在这 4 行内，`paidCalls/modelCalls/apiCalls <= 4`、`retries=0`、无 reserve/replacement，smoke 失败即停。
 
 ### 1.3 降级与停止规则
 

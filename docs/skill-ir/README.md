@@ -70,6 +70,13 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。** 分类轴分�
   Env Manager v3 当前冻结 static evidence 的真实复核为 `no-reproducible-residual`、0 repairs，因此没有生成
   dynamic Final IR，也没有改变其 fidelity-preserving 分类。
 - 研究脚本已经能完成各阶段实验；P2 现已补上独立的通用 `external-skill-import` library/CLI，用于把人工声明的 source/review/evidence closure 冻结成可迁移 staging bundle，再交给既有 verified-artifact product CLI。它不是独立 runtime，也不自动发现 Git source 或递归依赖。
+- 主线 C 已补齐 `skvm artifact` 顶层分流：Env Manager machine-checked 与 API Tester JSON/YAML preset 共用
+  `compile -> review-or-accept -> package -> run -> cost` 产品链；source checkout 使用 Bun entrypoint，npm 安装由
+  `bin/skvm.js` 分流到 `bin/skvm-artifact` companion；standalone tarball 应直接调用 companion，原生 `bin/skvm`
+  仍不识别 artifact。companion 不内嵌 benchmark 数据，`--root` 仍须指向包含冻结 fixture/lock/package
+  的 SkVM checkout。API Tester runtime 需要 Node；Env preset 还会从该 checkout 调用既有 Bun product CLI，二者
+  都允许用显式环境变量覆盖并在缺失时 fail closed。主线 B 已冻结 API Tester trace/public-answer v1，并完成 4-row 零付费
+  `baseline-pass`/`mutation-fail` dry-run；这些都是工程/协议证据，不改变 portfolio/readiness。
 - Stage M 的 Magpie identity 继续保持 fail-closed，仅作预注册合同；Stage N 已切换到 API Tester + Env Manager，
   只完成 Stage 0 与 6-row smoke，资格 failed、仅 GPT eligible，matrix 未创建。Stage N 现在只是分类轴的类内子证据，
   不能写成跨模型主表或“优化后的 LLM 更稳”。
@@ -223,17 +230,19 @@ AOT 优化与最低人工结论，最终统一收进 SkVM CLI。** 分类轴分�
 ## 当前下一步
 
 ```text
-主线 A：冻结七案例“标准答案可得性”分类与证据表（当前阶段，0 paid）
+主线 A：冻结七案例“标准答案可得性”分类与证据表（已收口，0 paid）
   -> 档位 1：公开产物可得（API Tester）
   -> 档位 2：输入结构可得（Env Manager、zh-readme、i18n-helper）
   -> 档位 3：专家判断可得（Law、Experimental Design、zh-code-reviewer）
   -> 只从冻结 registry/authority/report 派生人工 LOC、时间、自动化达成度和停止原因
   -> 不把历史 null 写成 0，不重评分、不读取 held-out、不运行模型/API
-主线 B：API Tester trace + public-answer 提炼（待另行授权）
-  -> 新 identity、trace schema、公开答案闭包、deterministic parity、人工 authoring/review 计时
-  -> parity 或成本证据不完整即冻结负结果，不补跑筛正例
-主线 C：Env + API Tester 统一收进 SkVM 顶层 CLI（B 完成后）
+主线 C：Env + API Tester 统一收进 SkVM 顶层 CLI（已完成，0 paid）
+  -> `skvm artifact --preset=env-manager|api-tester`，API Tester 需显式 `--variant=openapi-json|openapi-yaml`
   -> 复用现有 standalone product library/CLI，不创建第二套 runtime 或 scorer
+主线 B：API Tester trace + public-answer 提炼（零付费 dry-run 已完成）
+  -> `skill-ir-api-tester-trace-public-answer-development-001`
+  -> 4 rows（每个 development task 一条 baseline-pass + 一条 mutation-fail），不执行 original/paid rows
+下一判定点：B paid run（需用户另行确认预算；当前未授权）
 ```
 
 方法案例数量不固定，7 是当前分类表覆盖的冻结案例数，不代表未来 portfolio 只允许 7 个。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式
@@ -252,6 +261,7 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 | `optimization-and-artifacts.md` | 动态反馈、Final IR、artifact compiler 与 runtime。 |
 | `real-skill-pilots.md` | 真实来源、portfolio 角色、intake 与 pilot 生命周期。 |
 | `experiment-results.md` | 冻结证据总表、关键数值和结果路径。 |
+| `api-tester-trace-public-answer-protocol.md` | API Tester trace/public-answer schema、parity 枚举和零付费 dry-run。 |
 | `history.md` | 阶段演进、重要决策和旧内容恢复方法。 |
 
 `related-work.md` 已被并入 spec 的“研究定位”章节，不再单独维护。

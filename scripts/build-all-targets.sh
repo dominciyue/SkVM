@@ -48,6 +48,16 @@ for target in "${targets[@]}"; do
     --target="bun-${target}" \
     --outfile "${stage}/bin/skvm"
 
+  # Artifact CLI is a separate companion executable so the published package
+  # can run `skvm artifact` without shipping the source checkout or a second
+  # product runtime inside the main binary.
+  bun build src/cli/artifact.ts \
+    --compile \
+    --minify \
+    --banner='process.env.PI_PACKAGE_DIR ||= process.env.SKVM_INSTALL_ROOT || process.cwd();' \
+    --target="bun-${target}" \
+    --outfile "${stage}/bin/skvm-artifact"
+
   # Ship only the two agent-facing skills; hard-task-generator is
   # task-authoring tooling and not relevant to skvm CLI users.
   mkdir -p "${stage}/skills"

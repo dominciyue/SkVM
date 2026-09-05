@@ -218,6 +218,12 @@ try {
   }
   chmodSync(binaryPath, 0o755)
 
+  const artifactBinaryPath = path.join(binDir, "skvm-artifact")
+  if (!existsSync(artifactBinaryPath)) {
+    throw new Error(`artifact companion not found at ${artifactBinaryPath} after extraction`)
+  }
+  chmodSync(artifactBinaryPath, 0o755)
+
   console.log(`skvm postinstall: installed skvm v${version} for ${target}`)
 } catch (err) {
   console.error(`skvm postinstall: ${err.message}`)
