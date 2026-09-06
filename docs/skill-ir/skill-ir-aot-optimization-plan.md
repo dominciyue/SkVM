@@ -1866,6 +1866,27 @@ closure 固化为可搬移 staging bundle，再复用现有 verified-artifact pr
    结果与 digest 原样冻结。未来若获授权，跨模型 successor 只做每族 1 次 smoke，再做一次 27 original + 9 artifact 矩阵；GPT 可绑定
    Magpie 003，DeepSeek smoke 失败则不进入主表。真正稳定性主证据回到 Env 与 API Tester，Magpie 仅作附录。
 
+### 4.39 Q1 分类手册与 Q2 当前能力图
+
+**目标与边界：** 先把“规则是否充分”和“当前能力是否支持”变成运行前可复核合同，再决定是否做前瞻迁移。首个 family 是公开结构驱动的
+离线转换/报告生成。本阶段只做 Q1 方法、development 来源冻结和 Q2 现状盘点；0 model/API/paid、0 held-out，不选择 prospective，
+不执行 Q3/Q4，不改 core/DSL/artifact/scorer、旧 lock/result、portfolio/readiness。
+
+1. [x] RED：先用测试固定四状态、strict post-result 字段拒绝、依赖传播、独立 A/B 分母和 fail-closed profile；确认缺实现时测试失败；
+2. [x] GREEN：实现 `task-automation-classification.ts`，分开 verification/construction/execution/semantic choices；只有
+   `implemented + current-tested + supportsNewInputs=true` 才算当前能力支持，声明 prediction 必须与机器派生一致；
+3. [x] 冻结 12 development + 12 reserved prospective 的来源 schema。12 个开发包来自 5 个独立仓库，package identity/lineage 重复 0；
+   8 个本地包逐文件核验 34 个 SHA-256，4 个外部包绑定固定 commit 的 23 个 git-tree manifest 文件与 4 个 license digest；
+4. [x] 建立 21-capability/3-profile Q2 图：15 restricted operations、2 collection operations、API/Env historical composition、
+   verified-artifact runtime 与缺失 changelog composition；API/Env=`existing-slice-only`、Changelog=`unsupported`、new-input-ready=0/3；
+5. [x] 增加 capability source-ref 文件/符号校验，修正 stale Env/runtime symbol；操作存在、历史切片通过和新输入组合三层不混写；
+6. [x] 写 `classification-handbook-v1.md`，同步 README/current status/developer guide/spec/proposal，明确三层自动化、四字段/四状态、
+   precedence、正反例、unknown、抽样/去重、独立标注和三个 profile 最小构造路径；
+7. [x] 运行 focused/related broad、typecheck、doc links、repo scan 和 `git diff --check`；更新 communication/handoff/log，显式白名单提交并推送。
+
+**停止点：** 独立标注数据尚未创建，Q1 不报告一致率；prospective 仍为 0 selected，Q3 不启动。下一可审阅点是两位真实独立标注者冻结同一
+development denominator 后的裁决前一致率。若未来授权 Q3，再单独选择 12 个未见公开源包，并把分类分母与 3 profile × 4 new input 构造分母分开。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

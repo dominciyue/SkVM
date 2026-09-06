@@ -1,0 +1,489 @@
+{
+  "schemaVersion": "skill-ir-task-automation-source-list/v1",
+  "listId": "q1-development-sources-001",
+  "handbookVersion": "skill-ir-task-automation-classification/v1",
+  "sampling": {
+    "totalTarget": 24,
+    "developmentTarget": 12,
+    "prospectiveTarget": 12,
+    "minimumIndependentRepositories": 4,
+    "developmentVisibility": "read-before-freeze",
+    "prospectiveVisibility": "unselected-unseen",
+    "stratificationAxes": ["executable-resources", "explicit-specification", "state-dependency"],
+    "lineageDeduplication": "forks, translations, and copies share one lineage and cannot count independently"
+  },
+  "developmentSources": [
+    {
+      "slotId": "d01",
+      "sourcePackageId": "env-manager",
+      "lineageId": "env-manager-laolaoshiren-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "packageRoot": "skills/env-manager"
+      },
+      "license": {
+        "id": "MIT",
+        "authorityPath": "benchmarks/skill-ir/pilots/env-manager/source/LICENSE.upstream",
+        "sha256": "494baa32c21079f6ab4cb73815fa8b119045e22f0d8b5c2bd553c4a0905ac1b2"
+      },
+      "authority": {
+        "kind": "local-sha256-registry-ref",
+        "registryPath": "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        "registryRecordId": "env-manager",
+        "fileCount": 2,
+        "sourceManifestSha256": "f9676ae2bf231dad07aaa57a42c417db8a78d50977303765fee1f542ce53e551"
+      },
+      "structure": { "executableResources": false, "explicitSpecification": "partial", "stateDependency": "mixed" },
+      "responsibilities": [
+        { "id": "scan-and-compare", "summary": "Scan Env files and supported source references, redact values, and report defined/used differences." },
+        { "id": "validate-and-generate", "summary": "Validate declared types and security rules and generate example/schema/loading artifacts." },
+        { "id": "deployment-sync", "summary": "Synchronize monorepo, Docker, CI/CD, and secret-management configuration." }
+      ],
+      "selectedSlices": [{
+        "id": "public-static-env-report",
+        "summary": "Declared Env names and supported static references to deterministic difference and configuration reports.",
+        "responsibilityIds": ["scan-and-compare", "validate-and-generate"],
+        "excludedResponsibilityIds": ["deployment-sync"]
+      }],
+      "q2Role": "core-profile"
+    },
+    {
+      "slotId": "d02",
+      "sourcePackageId": "law-to-markdown",
+      "lineageId": "law-to-markdown-anbeime-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/anbeime/skill",
+        "commit": "ddad6073e07addfe3690dc3de978b2e73ca8cf02",
+        "packageRoot": "skills/legal-assistant-skills-main/law-to-markdown"
+      },
+      "license": {
+        "id": "Apache-2.0",
+        "authorityPath": "benchmarks/skill-ir/pilots/law-to-markdown/source/LICENSE.txt",
+        "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+      },
+      "authority": {
+        "kind": "local-sha256-registry-ref",
+        "registryPath": "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        "registryRecordId": "law-to-markdown",
+        "fileCount": 8,
+        "sourceManifestSha256": "d37d04641996ef21f9b5a415d3749eda7f898fa226950b9153ab4bd07dcccb05"
+      },
+      "structure": { "executableResources": true, "explicitSpecification": "explicit", "stateDependency": "mixed" },
+      "responsibilities": [
+        { "id": "format-ingestion", "summary": "Ingest TXT directly and PDF/DOCX through MinerU or an explicitly approved local fallback." },
+        { "id": "law-classification-formatting", "summary": "Choose or derive law/non-law status and apply the public hierarchy and whitespace rules." },
+        { "id": "fidelity-validation", "summary": "Check character-stream fidelity and structural requirements with bounded reruns." },
+        { "id": "delivery-reporting", "summary": "Emit the review report and, only for passing law text, the final Markdown deliverable." }
+      ],
+      "selectedSlices": [{
+        "id": "public-txt-structure-subset",
+        "summary": "Public TXT law/non-law subset with deterministic hierarchy, character fidelity, and deliverable rules.",
+        "responsibilityIds": ["law-classification-formatting", "fidelity-validation", "delivery-reporting"],
+        "excludedResponsibilityIds": ["format-ingestion"]
+      }],
+      "q2Role": "development-case"
+    },
+    {
+      "slotId": "d03",
+      "sourcePackageId": "experimental-design",
+      "lineageId": "experimental-design-kdense-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/K-Dense-AI/claude-scientific-skills",
+        "commit": "fc0b9f692459ea7d9e5a5c64948a5878e1bce274",
+        "packageRoot": "skills/experimental-design"
+      },
+      "license": {
+        "id": "MIT",
+        "authorityPath": "benchmarks/skill-ir/pilots/experimental-design/source/LICENSE.upstream.md",
+        "sha256": "5c793d8fe1c553d49c305f3c178ac360b6d32607bdf1bca06b10d3ba9881d78f"
+      },
+      "authority": {
+        "kind": "local-sha256-registry-ref",
+        "registryPath": "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        "registryRecordId": "experimental-design",
+        "fileCount": 8,
+        "sourceManifestSha256": "566d3af2da63f4e548d6c0dacd2e1206e0a62adee2d149f756a63fffa7a399b9"
+      },
+      "structure": { "executableResources": true, "explicitSpecification": "partial", "stateDependency": "local-only" },
+      "responsibilities": [
+        { "id": "design-selection", "summary": "Choose an experimental design from the research question, units, factors, and nuisance structure." },
+        { "id": "layout-generation", "summary": "Generate seeded randomization schedules and DOE layouts with bundled scripts." },
+        { "id": "design-risk-review", "summary": "Identify pseudoreplication, confounding, broken controls, aliasing, and other structural risks." }
+      ],
+      "selectedSlices": [{
+        "id": "public-allocation-graph",
+        "summary": "A public, already selected design family to seeded allocation graph and structural report.",
+        "responsibilityIds": ["layout-generation", "design-risk-review"],
+        "excludedResponsibilityIds": ["design-selection"]
+      }],
+      "q2Role": "development-case"
+    },
+    {
+      "slotId": "d04",
+      "sourcePackageId": "api-tester",
+      "lineageId": "api-tester-laolaoshiren-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "packageRoot": "skills/api-tester"
+      },
+      "license": {
+        "id": "MIT",
+        "authorityPath": "benchmarks/skill-ir/pilots/api-tester/source/LICENSE.upstream",
+        "sha256": "0137c0bf5ebe749bb97f8af36adbae05ed9bd19cc1f01ff30553173adb0544f7"
+      },
+      "authority": {
+        "kind": "local-sha256-registry-ref",
+        "registryPath": "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        "registryRecordId": "api-tester",
+        "fileCount": 2,
+        "sourceManifestSha256": "952b992a1b8c89f56dada3b9b9cf79864ba6aa28ca3865e6b8bbb5d462091dcd"
+      },
+      "structure": { "executableResources": false, "explicitSpecification": "explicit", "stateDependency": "mixed" },
+      "responsibilities": [
+        { "id": "api-discovery", "summary": "Use an existing OpenAPI specification or discover an undocumented API." },
+        { "id": "test-plan-generation", "summary": "Generate happy, error, boundary, and security test cases from a supported contract." },
+        { "id": "live-execution-repair", "summary": "Execute against a service, interpret failures, and repair tests or implementation guidance." },
+        { "id": "reporting", "summary": "Produce the test plan, runnable generator, and verification report." }
+      ],
+      "selectedSlices": [{
+        "id": "openapi-offline-plan",
+        "summary": "Supported OpenAPI JSON/YAML subset to deterministic offline test plan, generator, and report.",
+        "responsibilityIds": ["test-plan-generation", "reporting"],
+        "excludedResponsibilityIds": ["api-discovery", "live-execution-repair"]
+      }],
+      "q2Role": "core-profile"
+    },
+    {
+      "slotId": "d05",
+      "sourcePackageId": "zh-code-reviewer",
+      "lineageId": "zh-code-reviewer-laolaoshiren-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "packageRoot": "skills/zh-code-reviewer"
+      },
+      "license": {
+        "id": "MIT",
+        "authorityPath": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/LICENSE.upstream",
+        "sha256": "0137c0bf5ebe749bb97f8af36adbae05ed9bd19cc1f01ff30553173adb0544f7"
+      },
+      "authority": {
+        "kind": "local-sha256-registry-ref",
+        "registryPath": "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        "registryRecordId": "zh-code-reviewer",
+        "fileCount": 2,
+        "sourceManifestSha256": "aa6d3a28135455581a8361ef5075cf2837467114ea32059592eb06b5b680dd91"
+      },
+      "structure": { "executableResources": false, "explicitSpecification": "partial", "stateDependency": "local-only" },
+      "responsibilities": [
+        { "id": "source-review", "summary": "Inspect code for correctness, security, performance, and maintainability findings." },
+        { "id": "evidence-severity", "summary": "Ground findings in source locations and calibrate severity." },
+        { "id": "actionable-report", "summary": "Write a Chinese structured review with actionable repair guidance." }
+      ],
+      "selectedSlices": [{
+        "id": "supported-pattern-evidence",
+        "summary": "Finite public issue patterns with source-grounded evidence and severity semantics.",
+        "responsibilityIds": ["evidence-severity", "actionable-report"],
+        "excludedResponsibilityIds": ["source-review"]
+      }],
+      "q2Role": "boundary"
+    },
+    {
+      "slotId": "d06",
+      "sourcePackageId": "zh-readme",
+      "lineageId": "zh-readme-laolaoshiren-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "packageRoot": "skills/zh-readme"
+      },
+      "license": {
+        "id": "MIT",
+        "authorityPath": "benchmarks/skill-ir/pilots/zh-readme/source/LICENSE.upstream",
+        "sha256": "0137c0bf5ebe749bb97f8af36adbae05ed9bd19cc1f01ff30553173adb0544f7"
+      },
+      "authority": {
+        "kind": "local-sha256-registry-ref",
+        "registryPath": "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        "registryRecordId": "zh-readme",
+        "fileCount": 2,
+        "sourceManifestSha256": "11666b89c6babdcd1b7c99c3739b2044389d4313bcd2957f8ac5fa222faee96d"
+      },
+      "structure": { "executableResources": false, "explicitSpecification": "partial", "stateDependency": "local-only" },
+      "responsibilities": [
+        { "id": "repository-fact-extraction", "summary": "Extract repository-local commands, paths, links, metadata, and license facts." },
+        { "id": "readme-composition", "summary": "Compose a useful Chinese README with installation, usage, and project structure." },
+        { "id": "presentation-quality", "summary": "Choose explanation depth, narrative organization, and reader-facing emphasis." }
+      ],
+      "selectedSlices": [{
+        "id": "source-bound-repository-facts",
+        "summary": "Repository-grounded commands, local links, paths, and license facts in a bounded README structure.",
+        "responsibilityIds": ["repository-fact-extraction", "readme-composition"],
+        "excludedResponsibilityIds": ["presentation-quality"]
+      }],
+      "q2Role": "boundary"
+    },
+    {
+      "slotId": "d07",
+      "sourcePackageId": "i18n-helper",
+      "lineageId": "i18n-helper-laolaoshiren-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/laolaoshiren/claude-code-skills-zh",
+        "commit": "1e221579b0504082d25d5548b194399a7785f10f",
+        "packageRoot": "skills/i18n-helper"
+      },
+      "license": {
+        "id": "MIT",
+        "authorityPath": "benchmarks/skill-ir/pilots/i18n-helper/source/LICENSE.upstream",
+        "sha256": "0137c0bf5ebe749bb97f8af36adbae05ed9bd19cc1f01ff30553173adb0544f7"
+      },
+      "authority": {
+        "kind": "local-sha256-registry-ref",
+        "registryPath": "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        "registryRecordId": "i18n-helper",
+        "fileCount": 2,
+        "sourceManifestSha256": "530bc241434242a245e543f457fcb9cabc92db3215116d422d2901b81ce955cc"
+      },
+      "structure": { "executableResources": false, "explicitSpecification": "partial", "stateDependency": "local-only" },
+      "responsibilities": [
+        { "id": "source-string-discovery", "summary": "Identify user-facing source strings while excluding technical and non-translatable literals." },
+        { "id": "locale-generation", "summary": "Generate stable keys and synchronized locale resources." },
+        { "id": "source-rewrite", "summary": "Replace source literals with framework-specific translation calls while preserving interpolation." },
+        { "id": "integrity-report", "summary": "Validate key coverage, syntax, protected files, and report the transformation." }
+      ],
+      "selectedSlices": [{
+        "id": "react-i18next-public-subset",
+        "summary": "React+i18next public placeholder/plural subset to locale files, bounded source rewrites, and integrity report.",
+        "responsibilityIds": ["source-string-discovery", "locale-generation", "source-rewrite", "integrity-report"],
+        "excludedResponsibilityIds": []
+      }],
+      "q2Role": "development-case"
+    },
+    {
+      "slotId": "d08",
+      "sourcePackageId": "bids",
+      "lineageId": "bids-kdense-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/K-Dense-AI/claude-scientific-skills",
+        "commit": "fc0b9f692459ea7d9e5a5c64948a5878e1bce274",
+        "packageRoot": "skills/bids"
+      },
+      "license": {
+        "id": "CC-BY-4.0",
+        "authorityPath": "benchmarks/skill-ir/pilots/bids/source/LICENSE.repository.md",
+        "sha256": "09b02a3c9df3053c55531d503357a9c7cde275970e6c3ceaa1ddf5f0e90b40c1"
+      },
+      "authority": {
+        "kind": "local-sha256-registry-ref",
+        "registryPath": "benchmarks/skill-ir/corpus/corpora/pilot.json",
+        "registryRecordId": "bids",
+        "fileCount": 8,
+        "sourceManifestSha256": "149f7c605c7dabefc21dfff0ee28b6208b5a487a8e5bc5816ee202aeb08753be"
+      },
+      "structure": { "executableResources": true, "explicitSpecification": "partial", "stateDependency": "mixed" },
+      "responsibilities": [
+        { "id": "dataset-validation", "summary": "Validate BIDS structure, filenames, entities, sidecars, and required metadata." },
+        { "id": "schema-repair", "summary": "Repair source-grounded entity ordering, paths, metadata fields, and summaries." },
+        { "id": "source-conversion", "summary": "Map DICOM or other nonstandard source data into BIDS entities using external conversion tools and heuristics." },
+        { "id": "analysis-ecosystem", "summary": "Prepare and run PyBIDS, BIDS Apps, derivatives, and provenance workflows." }
+      ],
+      "selectedSlices": [{
+        "id": "public-schema-repair",
+        "summary": "Public BIDS schema-driven entity ordering, path repair, metadata checks, and summary output.",
+        "responsibilityIds": ["dataset-validation", "schema-repair"],
+        "excludedResponsibilityIds": ["source-conversion", "analysis-ecosystem"]
+      }],
+      "q2Role": "boundary"
+    },
+    {
+      "slotId": "d09",
+      "sourcePackageId": "changelog-automation",
+      "lineageId": "changelog-automation-wshobson-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/wshobson/agents",
+        "commit": "a30778f8c4e6b0a87567941b7cca4f534bf642b6",
+        "packageRoot": "plugins/documentation-generation/skills/changelog-automation"
+      },
+      "license": {
+        "id": "MIT",
+        "authorityPath": "LICENSE",
+        "sha256": "f89abb55d9f073f38f1703e4518f0613c788c6174be7f13b8dfe48a1c076c746"
+      },
+      "authority": {
+        "kind": "remote-git-tree-manifest",
+        "treeManifestSha256": "e89d872892d3947403f244264528cf5352eae80e936fb2bcaee879ede252474e",
+        "files": [
+          { "path": "references/details.md", "gitBlob": "1c792a8082bf78a1c51e7a317d09b177ad99cd11", "bytes": 10745 },
+          { "path": "SKILL.md", "gitBlob": "babb783123990bd403157bfd1de271d2224be833", "bytes": 3348 }
+        ]
+      },
+      "structure": { "executableResources": false, "explicitSpecification": "explicit", "stateDependency": "local-only" },
+      "responsibilities": [
+        { "id": "commit-convention", "summary": "Standardize and validate Conventional Commit messages and scopes." },
+        { "id": "changelog-generation", "summary": "Group a commit/release snapshot into Keep a Changelog style release notes." },
+        { "id": "release-workflow", "summary": "Automate hosted release notes, semantic versioning, and release pipelines." },
+        { "id": "editorial-summary", "summary": "Write highlights, upgrade guidance, known issues, and business-facing explanations." }
+      ],
+      "selectedSlices": [{
+        "id": "conventional-commit-snapshot",
+        "summary": "An explicit commit range and grouping policy to deterministic categorized changelog output.",
+        "responsibilityIds": ["commit-convention", "changelog-generation"],
+        "excludedResponsibilityIds": ["release-workflow", "editorial-summary"]
+      }],
+      "q2Role": "core-profile"
+    },
+    {
+      "slotId": "d10",
+      "sourcePackageId": "openapi-spec-generation",
+      "lineageId": "openapi-spec-generation-wshobson-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/wshobson/agents",
+        "commit": "a30778f8c4e6b0a87567941b7cca4f534bf642b6",
+        "packageRoot": "plugins/documentation-generation/skills/openapi-spec-generation"
+      },
+      "license": {
+        "id": "MIT",
+        "authorityPath": "LICENSE",
+        "sha256": "f89abb55d9f073f38f1703e4518f0613c788c6174be7f13b8dfe48a1c076c746"
+      },
+      "authority": {
+        "kind": "remote-git-tree-manifest",
+        "treeManifestSha256": "f7ceb4fdeb79877f5f5248d4123e5f83fab3bea9aafb04f203b4ba245f25456c",
+        "files": [
+          { "path": "references/code-first-and-tooling.md", "gitBlob": "fc3bb67545b50e6b461492c439c5ab2d3bfae85d", "bytes": 11762 },
+          { "path": "references/details.md", "gitBlob": "464a6052d285d8001cc82dac6760f211f7f68453", "bytes": 11937 },
+          { "path": "SKILL.md", "gitBlob": "6f86431cdd092ff5edfc8b70b2a0d30481428da8", "bytes": 2043 }
+        ]
+      },
+      "structure": { "executableResources": false, "explicitSpecification": "partial", "stateDependency": "mixed" },
+      "responsibilities": [
+        { "id": "api-design", "summary": "Choose resources, operations, schemas, security, and errors for a design-first API." },
+        { "id": "code-first-extraction", "summary": "Extract and maintain a specification from an existing implementation or annotations." },
+        { "id": "spec-validation", "summary": "Validate an existing OpenAPI 3.1 document and its reusable schema structure." },
+        { "id": "sdk-documentation", "summary": "Generate clients and documentation portals from the resulting contract." }
+      ],
+      "selectedSlices": [{
+        "id": "existing-spec-validation",
+        "summary": "Validate and normalize explicitly provided OpenAPI structure without inventing missing business policy.",
+        "responsibilityIds": ["spec-validation"],
+        "excludedResponsibilityIds": ["api-design", "code-first-extraction", "sdk-documentation"]
+      }],
+      "q2Role": "boundary"
+    },
+    {
+      "slotId": "d11",
+      "sourcePackageId": "anthropic-pdf",
+      "lineageId": "pdf-anthropic-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/anthropics/skills",
+        "commit": "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f",
+        "packageRoot": "skills/pdf"
+      },
+      "license": {
+        "id": "Proprietary-Anthropic-terms",
+        "authorityPath": "skills/pdf/LICENSE.txt",
+        "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa"
+      },
+      "authority": {
+        "kind": "remote-git-tree-manifest",
+        "treeManifestSha256": "d421b8c1d06913fe7da78d66efe3e58118667daa395f5edf0e96adc550f40fa3",
+        "files": [
+          { "path": "forms.md", "gitBlob": "6e7e1e0d9e6ae17215db3e130aea3c3c546487e6", "bytes": 11854 },
+          { "path": "LICENSE.txt", "gitBlob": "c55ab42224874608473643de0a85736b7fec0730", "bytes": 1467 },
+          { "path": "reference.md", "gitBlob": "41400bf4fc67f15fb062d43695ec92f078226023", "bytes": 16692 },
+          { "path": "scripts/check_bounding_boxes.py", "gitBlob": "2cc5e348f359b7aa7179e6a26772dacfdbbeba53", "bytes": 2774 },
+          { "path": "scripts/check_fillable_fields.py", "gitBlob": "36dfb9513e2f54e051820b58c3cdd1f09bc6ff37", "bytes": 268 },
+          { "path": "scripts/convert_pdf_to_images.py", "gitBlob": "7939cef56c1220dd9dd0d04ec9594b2fe089ee74", "bytes": 1008 },
+          { "path": "scripts/create_validation_image.py", "gitBlob": "10eadd8124b1f94f9b1a78708c2d947a3f6773e7", "bytes": 1258 },
+          { "path": "scripts/extract_form_field_info.py", "gitBlob": "64cd4703a4af80bf6abe16f4c3065d8abd55d173", "bytes": 4300 },
+          { "path": "scripts/extract_form_structure.py", "gitBlob": "f219e7d5b5e30616b2259abb924253afd0240aee", "bytes": 3945 },
+          { "path": "scripts/fill_fillable_fields.py", "gitBlob": "51c2600f3895723cac15ec3ffcd8a482e42f95d7", "bytes": 3819 },
+          { "path": "scripts/fill_pdf_form_with_annotations.py", "gitBlob": "b430069fd016cff11560d0f2b95c63074736e5e4", "bytes": 3235 },
+          { "path": "SKILL.md", "gitBlob": "d3e046a5ae107a6cb23cfb16c219837094ab35d3", "bytes": 8072 }
+        ]
+      },
+      "structure": { "executableResources": true, "explicitSpecification": "partial", "stateDependency": "local-only" },
+      "responsibilities": [
+        { "id": "pdf-reading", "summary": "Extract text, tables, metadata, and images, including OCR when needed." },
+        { "id": "pdf-transformation", "summary": "Merge, split, rotate, watermark, encrypt, decrypt, or create PDFs." },
+        { "id": "fillable-form-processing", "summary": "Extract fillable field metadata, validate field identifiers and values, fill, and verify." },
+        { "id": "nonfillable-form-placement", "summary": "Interpret visible form meaning and determine annotation coordinates for non-fillable forms." }
+      ],
+      "selectedSlices": [{
+        "id": "fillable-form-structure",
+        "summary": "Existing fillable field extraction and value validation once the user supplies the field-to-value semantic mapping.",
+        "responsibilityIds": ["fillable-form-processing"],
+        "excludedResponsibilityIds": ["pdf-reading", "pdf-transformation", "nonfillable-form-placement"]
+      }],
+      "q2Role": "boundary"
+    },
+    {
+      "slotId": "d12",
+      "sourcePackageId": "anthropic-webapp-testing",
+      "lineageId": "webapp-testing-anthropic-001",
+      "visibility": "development-read-before-freeze",
+      "identity": {
+        "repository": "https://github.com/anthropics/skills",
+        "commit": "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f",
+        "packageRoot": "skills/webapp-testing"
+      },
+      "license": {
+        "id": "Apache-2.0",
+        "authorityPath": "skills/webapp-testing/LICENSE.txt",
+        "sha256": "bc6b3af2f331cbc7fb0da1344efb2cbe5877a31498b4d70dbc7000f3405a1362"
+      },
+      "authority": {
+        "kind": "remote-git-tree-manifest",
+        "treeManifestSha256": "8a298c41e3562a0120d14a05c91fac9a63708e898e018651e1fb5f138be6a64f",
+        "files": [
+          { "path": "examples/console_logging.py", "gitBlob": "9329b5e232ed53d944bfe95e750070117d31b9ab", "bytes": 1027 },
+          { "path": "examples/element_discovery.py", "gitBlob": "917ba72f52421a1b324f93ae8e38af72010a87b9", "bytes": 1463 },
+          { "path": "examples/static_html_automation.py", "gitBlob": "90bbedcc08cdb345c74fb938ebad02c0baf56603", "bytes": 953 },
+          { "path": "LICENSE.txt", "gitBlob": "4f881c52d1f72f4cfb720e339e2d35c3058d01a9", "bytes": 11345 },
+          { "path": "scripts/with_server.py", "gitBlob": "431f2eba16b268b7f3e2ae4daae9db41c0289b6d", "bytes": 3693 },
+          { "path": "SKILL.md", "gitBlob": "4726215301db64a0cc4d41fc3219c61f37a30f4a", "bytes": 3913 }
+        ]
+      },
+      "structure": { "executableResources": true, "explicitSpecification": "partial", "stateDependency": "external-state" },
+      "responsibilities": [
+        { "id": "server-lifecycle", "summary": "Start one or more local services, wait for ports, run a command, and clean up." },
+        { "id": "ui-reconnaissance", "summary": "Inspect rendered DOM, screenshots, and logs to discover selectors and behavior." },
+        { "id": "ui-test-design", "summary": "Choose targets, actions, assertions, waits, and expected outcomes." },
+        { "id": "ui-execution-debug", "summary": "Run Playwright interactions and diagnose frontend failures." }
+      ],
+      "selectedSlices": [{
+        "id": "local-server-lifecycle",
+        "summary": "The bounded with_server lifecycle helper when server commands, ports, and the test command are already declared.",
+        "responsibilityIds": ["server-lifecycle"],
+        "excludedResponsibilityIds": ["ui-reconnaissance", "ui-test-design", "ui-execution-debug"]
+      }],
+      "q2Role": "boundary"
+    }
+  ],
+  "prospective": {
+    "status": "reserved-unselected",
+    "selectedCount": 0,
+    "entries": []
+  },
+  "excludedCandidates": [],
+  "audit": {
+    "modelCalls": 0,
+    "apiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "resultEvidenceAccesses": 0
+  }
+}

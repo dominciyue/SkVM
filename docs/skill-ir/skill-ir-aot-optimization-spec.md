@@ -1846,3 +1846,27 @@ tests/docs，不启动模型/API。runner 对该 identity 的 `qualification` �
 若未来仍要做跨模型，必须另建新 identity：每族 1 次 smoke，矩阵只执行一次 27 original + 9 artifact；GPT 若能绑定 Magpie 003
 则复用该 original，DeepSeek smoke 失败则不进入主表。稳定性主证据优先回到 Env 与 API Tester，Magpie 仅作附录；以上不构成本阶段
 授权，也不创建 successor identity。
+
+### 14.10 Q1/Q2：前瞻任务自动化分类与当前能力合同
+
+下一阶段把答案可得性的三档保留为回顾解释，但不再以完整 skill 或运行结果直接分类。v1 分类单位固定为公开 skill 中的一项
+hard requirement 或 workflow step；每项分别记录 verification basis、construction basis、execution conditions 和 remaining semantic
+choices，机器只导出四种状态：`rules-sufficient-capability-supported`、`rules-sufficient-capability-missing`、
+`partial-semantic-choice-required`、`insufficient-information`。信息不足优先于语义选择，语义选择优先于能力缺失；依赖图传播更严格
+的上游状态。实际运行失败必须保留原 prediction，另记失败归因，禁止 post-result relabeling。
+
+Q1 分类样本目标固定为 24 个去重公开 skill 源包：12 development + 12 prospective。development 已绑定 12 个源包、5 个独立仓库、
+0 package/lineage 重复；本地 authority 覆盖 8 包/34 文件，外部 commit tree manifest 覆盖 4 包/23 文件，并记录 4 个 license digest。
+prospective 必须在方法冻结后才选择，当前为 `reserved-unselected`、0 entries；已阅样本只算 development，既有 held-out 不进入该来源池。
+每个样本必须先记录完整职责，再记录研究 slice 和全部 excluded responsibilities。两位不同身份标注者在看不到结果和彼此标签的前提下
+标同一分母，先冻结并报告裁决前一致率，再保存分歧裁决；不得用两份 AI 输出伪装独立专家标注。
+
+Q2 首个 family 固定为 `public-structure-offline-transformation`。当前 capability profile 含 21 项：restricted plan 的 15 个 current-tested
+operation、collection plan 的 2 个 current-tested operation、API/Env 两个 historical composition、1 个 current-tested
+verified-artifact runtime 和 1 个缺失的 changelog composition。只有 `implemented + current-tested + supportsNewInputs=true` 才可支撑
+“规则充分且当前能力支持”。API Tester 与 Env Manager 当前均为 `existing-slice-only`，Changelog 为 `unsupported`，所以
+`new-input-ready=0/3`。operation 存在不等于语义组合已验证，历史 fixture 通过不等于支持新输入，通用 runtime 也不是 semantic constructor。
+
+本阶段只实现 strict schema、状态派生、来源/许可证与 capability source-ref 校验、机器清单和手册；`modelCalls=apiCalls=paidCalls=0`、
+`heldOutAccesses=0`、`coreBranchDelta=0`。它不授权独立标注执行、prospective 选择、Q3 的 3 profile × 4 new input 构造矩阵、Q4
+参与者实验、Stage M/N、core/DSL/artifact/scorer 扩展或 portfolio/readiness 更新。若后续 Q2 修改生成器或公开合同，Q4 必须使用新 identity。

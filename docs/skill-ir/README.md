@@ -3,15 +3,15 @@
 本目录是 SkVM Skill IR / AOT 优化研究的唯一权威文档入口。项目当前定位是：**以公开验证依据为组织原则，
 研究受限 skill 任务的确定性 AOT 转换与人工边界，并通过 SkVM 提供可复现的产物封装。**
 
-答案可得性的三档只保留为待验证的路由框架；分类对象是
-`(skill, task slice, public contract, environment)`，七个 pilot 是回顾性案例研究，不是已完成的分类学、
-互斥分档或前瞻预测证据。当前一页状态见 [`current-status.md`](current-status.md)，逐案校准见
+答案可得性的三档只保留为待验证的回顾路由。新的 v1 分类以 requirement/workflow step 为单位，分别记录验证依据、
+构造依据、执行条件和剩余语义选择，再导出四种可检验状态；不得以运行结果倒推标签。当前一页状态见
+[`current-status.md`](current-status.md)，分类规则与 Q1/Q2 机器清单见
+[`classification-handbook-v1.md`](classification-handbook-v1.md)，七案例回顾校准见
 [`answer-availability-taxonomy.md`](answer-availability-taxonomy.md)。
 
 研究可信度与通用 core 仍是硬约束：公开合同、确定性 scorer、development/held-out 隔离、完整分母和可追溯
-结果必须成立；同一 core 不按 skill id 写死分支。当前顺序是先纠正证据口径和校准回顾表，再重新设计人工编写
-vs 候选审核/修复的 B 对照，随后验证外部使用者能否从干净源码 checkout 复现两条金路径。任何新付费实验仍需
-用户再次单独授权。
+结果必须成立；同一 core 不按 skill id 写死分支。口径校准、B successor 设计和干净源码金路径均已完成；当前进入
+Q1 分类方法与 Q2 能力边界冻结。任何独立标注、prospective 选择、Q3 新输入矩阵或付费实验都仍需按各自阶段授权。
 
 优化成功先要求质量不劣、稳定性改善且回归受控；通过后再比较平均质量和重复调用的摊销 Token。
 显著正向单案例不能替代通用性，Token 节省也不能抵消质量回归。
@@ -83,6 +83,10 @@ vs 候选审核/修复的 B 对照，随后验证外部使用者能否从干净�
   冻结 `negative-smoke-frozen`，其余 3 行未执行且不补跑。报告中的三个 calls 字段都按已分发 agent task row
   计数为 1；同一行观测到 10 个 provider responses 和 15 个 tool calls，不能解释成一次底层模型 API 往返。
   authoring/review 的 0/0 只表示自动运行窗口内无人介入，不是降人工对照。这些证据不改变 portfolio/readiness。
+- Q1/Q2 已新增 strict machine contract：12 个 development 源包来自 5 个独立仓库，另 12 个 prospective 名额保持
+  `reserved-unselected`；来源核验覆盖 34 个本地文件与 23 个固定远端 manifest 文件。当前能力图含 21 项 capability、
+  API Tester/Env Manager/Changelog 三个 profile，`new-input-ready=0/3`。两位独立标注尚未开始，没有一致率或前瞻
+  成功率结果；本阶段 0 model/API/paid、0 held-out、core branch delta 0。
 - Stage M 的 Magpie identity 继续保持 fail-closed，仅作预注册合同；Stage N 已切换到 API Tester + Env Manager，
   只完成 Stage 0 与 6-row smoke，资格 failed、仅 GPT eligible，matrix 未创建。Stage N 现在只是分类轴的类内子证据，
   不能写成跨模型主表或“优化后的 LLM 更稳”。
@@ -247,6 +251,12 @@ P2：重设计 B 人工编写 vs 候选审核/修复对照（已完成设计；�
 P3：干净源码 checkout 复现 Env + API Tester 金路径（已完成，同机隔离验证）
   -> fresh detached worktree；两路 passed；0 model/API/paid；coreBranchDelta=0
   -> 独立外部操作者、独立安装与跨平台仍须另行验收
+Q1：分类手册与来源清单（机器合同已完成；独立标注未开始）
+  -> 12 development + 12 reserved prospective；5 个独立仓库；按 lineage 去重
+  -> requirement/step 四字段、四状态、依赖传播；运行后不改 prediction
+Q2：类别能力映射（现状盘点已完成；新输入构造未开始）
+  -> 21 capabilities；API/Env=existing-slice-only；Changelog=unsupported
+  -> operation existence 不等于 validated composition；new-input-ready=0/3
 ```
 
 方法案例数量不固定，7 是当前分类表覆盖的冻结案例数，不代表未来 portfolio 只允许 7 个。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式
@@ -259,6 +269,8 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 | `developer-guide.md` | 从零上手、命令、参数、实验生命周期、结果判读与当前开发接力点。 |
 | `current-status.md` | 一页式当前定位、三条主线、B/calls/minutes/break-even 口径和下一动作。 |
 | `answer-availability-taxonomy.md` | 待验证的答案可得性路由框架、七案例回顾性校准、结果类型与冻结证据索引。 |
+| `classification-handbook-v1.md` | Q1 requirement/step 分类规则、四状态、开发来源冻结、独立标注流程和 Q2 能力图。 |
+| `classification-and-automation-next-stage-proposal.md` | Q1--Q5 的设计依据、三层自动化边界、取样与前瞻迁移路线。 |
 | `project-reassessment-2026-09-06.md` | 触发本轮口径修正、分类校准与后续重排的项目复核报告。 |
 | `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |
@@ -277,7 +289,7 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 
 ## 阅读路径
 
-- 第一次了解：本文件 -> `current-status.md` -> `developer-guide.md` -> spec -> experiment results -> plan。
+- 第一次了解：本文件 -> `current-status.md` -> `classification-handbook-v1.md` -> `developer-guide.md` -> spec -> plan。
 - 第一次亲手开发或跑实验：`developer-guide.md` -> 对应组件文档 -> plan 的活跃 TDD。
 - 修改 IR：`ir-core.md` -> `src/skill-ir/` -> `src/profiler/`。
 - 修改评估：`evaluation-system.md` -> `src/benchmarks/skill-ir/` -> `src/bench/evaluators/`。
@@ -293,6 +305,7 @@ src/benchmarks/skill-ir/              benchmark contracts、runner、gate、arti
 src/bench/evaluators/                 确定性离线 scorer
 benchmarks/skill-ir/corpus/            registry、intake、portfolio、provenance
 benchmarks/skill-ir/pilots/            source closure、tasks、IR、package、lock
+benchmarks/skill-ir/classification/    Q1 来源清单、Q2 capability/profile 机器合同
 results/skill-ir/                      compact evidence 与本地原始执行产物
 .skvm/                                 本地配置、cache、log、source checkout，不提交
 ```
@@ -305,6 +318,8 @@ provenance 明确引用时才提交。不得因治理删除冻结结果或用户
 
 ```text
 Public SKILL.md + provenance
+  -> 完整职责 + requirement/workflow-step 分类
+  -> 公开验证/构造/执行依据 + capability profile 匹配
   -> public task/contract + scorer disclosure/canary audit
   -> no-skill | original baseline admission
   -> source-audited profile-empty base Skill IR
