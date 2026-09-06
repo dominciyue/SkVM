@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { cp, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -45,6 +45,41 @@ describe("artifact Node executable resolution", () => {
 });
 
 describe("verified artifact presets", () => {
+  test("runs ordinary API Tester production bindings through an independent checker", async () => {
+    for (const name of ["books", "orders"] as const) {
+      const root = await mkdtemp(join(tmpdir(), `skvm-api-production-preset-${name}-`));
+      try {
+        const fixture = join(process.cwd(), "src", "skill-ir", "fixtures", "api-tester-production", name);
+        const workDir = join(root, "workdir");
+        await cp(fixture, workDir, { recursive: true });
+        const result = await runArtifactPreset({
+          preset: "api-tester",
+          bindingPath: join(fixture, "binding.json"),
+          rootDir: process.cwd(),
+          workDir,
+          outDir: join(root, "output"),
+          completedAt: "2026-09-07T00:00:00.000Z",
+        });
+        expect(result).toMatchObject({
+          status: "passed",
+          preset: "api-tester",
+          binding: {
+            mode: "production",
+            bindingId: `${name}-api`,
+            inputFormat: name === "books" ? "json" : "yaml",
+          },
+          quality: { mode: "machine-checked", result: "pass" },
+          accounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0 },
+          coreBranchDelta: 0,
+        });
+        expect(result.variant).toBeUndefined();
+        expect(result.binding?.generatorSha256).not.toBe(result.binding?.checkerSha256);
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    }
+  });
+
   test("runs the frozen API Tester JSON artifact without model or API calls", async () => {
     const root = await mkdtemp(join(tmpdir(), "skvm-artifact-preset-"));
     try {

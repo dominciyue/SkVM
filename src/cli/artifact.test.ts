@@ -24,13 +24,13 @@ describe("top-level verified artifact CLI", () => {
     });
   });
 
-  test("requires an explicit API Tester variant and rejects path escapes", () => {
+  test("requires an explicit API Tester variant or binding and rejects path escapes", () => {
     expect(() => parseArtifactCliArguments([
       "--preset=api-tester",
       "--root=D:/repo",
       "--workdir=work/api",
       "--out=out/api",
-    ], "D:/fallback")).toThrow("--variant");
+    ], "D:/fallback")).toThrow("--variant or --binding");
 
     expect(() => parseArtifactCliArguments([
       "--preset=api-tester",
@@ -39,6 +39,41 @@ describe("top-level verified artifact CLI", () => {
       "--workdir=../outside",
       "--out=out/api",
     ], "D:/fallback")).toThrow(/contained|escapes/u);
+
+    expect(parseArtifactCliArguments([
+      "--preset=api-tester",
+      "--binding=config/api-binding.json",
+      "--root=D:/repo",
+      "--workdir=work/api",
+      "--out=out/api",
+      "--completed-at=2026-09-07T00:00:00.000Z",
+    ], "D:/fallback")).toEqual({
+      preset: "api-tester",
+      bindingPath: "D:/repo/config/api-binding.json",
+      quality: "machine-checked",
+      rootDir: "D:/repo",
+      workDir: "D:/repo/work/api",
+      outDir: "D:/repo/out/api",
+      completedAt: "2026-09-07T00:00:00.000Z",
+    });
+
+    expect(() => parseArtifactCliArguments([
+      "--preset=api-tester",
+      "--variant=openapi-json",
+      "--binding=config/api-binding.json",
+      "--root=D:/repo",
+      "--workdir=work/api",
+      "--out=out/api",
+      "--completed-at=2026-09-07T00:00:00.000Z",
+    ], "D:/fallback")).toThrow(/mutually exclusive/u);
+    expect(() => parseArtifactCliArguments([
+      "--preset=api-tester",
+      "--binding=../api-binding.json",
+      "--root=D:/repo",
+      "--workdir=work/api",
+      "--out=out/api",
+      "--completed-at=2026-09-07T00:00:00.000Z",
+    ], "D:/fallback")).toThrow(/contained/u);
   });
 
   test("rejects unknown options and non-empty output identity", () => {
@@ -60,8 +95,9 @@ describe("top-level verified artifact CLI", () => {
 
   test("exposes exactly the two current golden-path presets", () => {
     expect(Object.keys(ARTIFACT_PRESETS).sort()).toEqual(["api-tester", "env-manager"]);
-    expect(resolveArtifactPreset("api-tester", "openapi-json").variant).toBe("openapi-json");
-    expect(() => resolveArtifactPreset("api-tester", undefined)).toThrow("variant");
-    expect(resolveArtifactPreset("env-manager", undefined).variant).toBeUndefined();
+    expect(resolveArtifactPreset("api-tester", "openapi-json", undefined).variant).toBe("openapi-json");
+    expect(resolveArtifactPreset("api-tester", undefined, "binding.json").bindingPath).toBe("binding.json");
+    expect(() => resolveArtifactPreset("api-tester", undefined, undefined)).toThrow("variant or --binding");
+    expect(resolveArtifactPreset("env-manager", undefined, undefined).variant).toBeUndefined();
   });
 });

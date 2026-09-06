@@ -18,8 +18,9 @@ export type ApiTesterArtifactVariant = (typeof ARTIFACT_PRESETS)["api-tester"]["
 export type ArtifactQuality = "machine-checked";
 
 type ResolvedArtifactPreset =
-  | { preset: "env-manager"; variant?: undefined }
-  | { preset: "api-tester"; variant: ApiTesterArtifactVariant };
+  | { preset: "env-manager"; variant?: undefined; bindingPath?: undefined }
+  | { preset: "api-tester"; variant: ApiTesterArtifactVariant; bindingPath?: undefined }
+  | { preset: "api-tester"; variant?: undefined; bindingPath: string };
 
 export type ArtifactCliArguments = {
   quality: ArtifactQuality;
@@ -55,15 +56,26 @@ function contained(rootDir: string, value: string, label: string): string {
 export function resolveArtifactPreset(
   preset: string,
   variant: string | undefined,
+  bindingPath?: string,
 ): ResolvedArtifactPreset {
   if (preset !== "env-manager" && preset !== "api-tester") {
     throw new Error(`unknown artifact preset: ${preset}`);
   }
   if (preset === "env-manager") {
     if (variant !== undefined) throw new Error("Env Manager does not accept --variant");
+    if (bindingPath !== undefined) throw new Error("Env Manager does not accept --binding");
     return { preset };
   }
-  if (variant === undefined) throw new Error("API Tester requires --variant=openapi-json|openapi-yaml");
+  if (variant !== undefined && bindingPath !== undefined) {
+    throw new Error("API Tester --variant and --binding are mutually exclusive");
+  }
+  if (variant === undefined && bindingPath === undefined) {
+    throw new Error("API Tester requires --variant or --binding");
+  }
+  if (bindingPath !== undefined) {
+    if (!bindingPath.trim()) throw new Error("API Tester --binding must not be empty");
+    return { preset: "api-tester", bindingPath };
+  }
   if (!ARTIFACT_PRESETS["api-tester"].variants.includes(variant as ApiTesterArtifactVariant)) {
     throw new Error(`unknown API Tester artifact variant: ${variant}`);
   }
@@ -74,6 +86,7 @@ export function parseArtifactCliArguments(args: string[], cwd = process.cwd()): 
   const known = new Set([
     "--preset",
     "--variant",
+    "--binding",
     "--quality",
     "--root",
     "--workdir",
@@ -99,7 +112,9 @@ export function parseArtifactCliArguments(args: string[], cwd = process.cwd()): 
   const qualityValue = flagValue(args, "quality") ?? "machine-checked";
   if (qualityValue !== "machine-checked") throw new Error("artifact CLI currently supports --quality=machine-checked only");
   const quality: ArtifactQuality = qualityValue;
-  const resolved = resolveArtifactPreset(presetValue, flagValue(args, "variant"));
+  const bindingValue = flagValue(args, "binding");
+  const bindingPath = bindingValue === undefined ? undefined : portable(contained(rootDir, bindingValue, "binding"));
+  const resolved = resolveArtifactPreset(presetValue, flagValue(args, "variant"), bindingPath);
   const workDir = contained(rootDir, workdir, "workdir");
   const outDir = contained(rootDir, out, "out");
   if (workDir === outDir) throw new Error("--workdir and --out must be different directories");
@@ -113,9 +128,10 @@ export function parseArtifactCliArguments(args: string[], cwd = process.cwd()): 
     outDir: portable(outDir),
     completedAt,
   };
-  return resolved.preset === "api-tester"
-    ? { ...common, preset: resolved.preset, variant: resolved.variant }
-    : { ...common, preset: resolved.preset };
+  if (resolved.preset === "env-manager") return { ...common, preset: resolved.preset };
+  return resolved.bindingPath !== undefined
+    ? { ...common, preset: resolved.preset, bindingPath: resolved.bindingPath }
+    : { ...common, preset: resolved.preset, variant: resolved.variant };
 }
 
 export function artifactCliHelp(): string {
@@ -124,6 +140,7 @@ export function artifactCliHelp(): string {
 Usage:
   skvm artifact --preset=env-manager --root=<root> --workdir=<dir> --out=<dir> --completed-at=<ISO-8601>
   skvm artifact --preset=api-tester --variant=<openapi-json|openapi-yaml> --root=<root> --workdir=<dir> --out=<dir> --completed-at=<ISO-8601>
+  skvm artifact --preset=api-tester --binding=<binding.json> --root=<root> --workdir=<dir> --out=<dir> --completed-at=<ISO-8601>
 
 Presets:
   env-manager  ${ARTIFACT_PRESETS["env-manager"].description}

@@ -16,6 +16,9 @@ import {
 import { runValidatedArtifactPlan } from "../benchmarks/skill-ir/validated-artifact-runtime";
 import { parseSafeRelativePath } from "../benchmarks/skill-ir/artifact-package";
 import { sha256Bytes } from "../benchmarks/skill-ir/source-fixture";
+import {
+  runApiTesterProductionArtifact,
+} from "./api-tester-production-artifact";
 
 export const API_TESTER_ARTIFACT_LOCK_PATH =
   "benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json";
@@ -31,6 +34,17 @@ export const ArtifactPresetResultSchema = z.object({
   status: z.literal("passed"),
   preset: z.enum(["api-tester", "env-manager"]),
   variant: VariantSchema.optional(),
+  binding: z.object({
+    mode: z.literal("production"),
+    bindingId: z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u),
+    sourcePath: z.string().min(1),
+    sha256: z.string().regex(/^[0-9a-f]{64}$/u),
+    inputPath: z.string().min(1),
+    inputFormat: z.enum(["json", "yaml"]),
+    inputSha256: z.string().regex(/^[0-9a-f]{64}$/u),
+    generatorSha256: z.string().regex(/^[0-9a-f]{64}$/u),
+    checkerSha256: z.string().regex(/^[0-9a-f]{64}$/u),
+  }).strict().optional(),
   workflowId: z.string().min(1),
   stageOrder: z.tuple([
     z.literal("compile"),
@@ -75,7 +89,8 @@ export type ArtifactPresetOptions = {
   completedAt: string;
 } & (
   | { preset: "env-manager" }
-  | { preset: "api-tester"; variant: ApiTesterArtifactVariantId }
+  | { preset: "api-tester"; variant: ApiTesterArtifactVariantId; bindingPath?: never }
+  | { preset: "api-tester"; bindingPath: string; variant?: never }
 );
 
 export function resolveArtifactNodeExecutable(options: {
@@ -203,7 +218,9 @@ async function assertFrozenPackageParity(
   }
 }
 
-async function runApiTesterPreset(options: Extract<ArtifactPresetOptions, { preset: "api-tester" }>)
+async function runApiTesterFrozenPreset(
+  options: Extract<ArtifactPresetOptions, { preset: "api-tester"; variant: ApiTesterArtifactVariantId }>,
+)
   : Promise<ArtifactPresetResult> {
   const rootDir = resolve(options.rootDir);
   const outDir = resolve(options.outDir);
@@ -253,6 +270,62 @@ async function runApiTesterPreset(options: Extract<ArtifactPresetOptions, { pres
     coreBranchDelta: 0,
     outputPath: "cli-report.json",
     claimBoundary: "This top-level preset replays the frozen API Tester compiler, package, checker, and deterministic runtime on one public development fixture. It establishes a zero-model engineering path only; it does not establish a new research result, held-out behavior, or cross-model stability.",
+  });
+  await writeFile(join(outDir, "cli-report.json"), jsonText(report), "utf8");
+  return report;
+}
+
+async function runApiTesterProductionPreset(
+  options: Extract<ArtifactPresetOptions, { preset: "api-tester"; bindingPath: string }>,
+): Promise<ArtifactPresetResult> {
+  const rootDir = resolve(options.rootDir);
+  const outDir = resolve(options.outDir);
+  const result = await runApiTesterProductionArtifact({
+    rootDir,
+    bindingPath: options.bindingPath,
+    workDir: options.workDir,
+    outDir,
+    nodeExecutable: resolveArtifactNodeExecutable(),
+  });
+  const sourcePath = relative(rootDir, resolve(options.bindingPath)).replaceAll("\\", "/");
+  const report = ArtifactPresetResultSchema.parse({
+    schemaVersion: "skill-ir-artifact-cli-result/v1",
+    status: "passed",
+    preset: "api-tester",
+    workflowId: `api-tester-production-${result.binding.bindingId}`,
+    stageOrder: StageOrder,
+    stageStatus: {
+      compile: "ordinary-parameter-production-binding",
+      review: "independent-public-contract-checker",
+      package: "digest-bound-production-package",
+      run: `deterministic-complete:${result.binding.bindingId}`,
+      cost: "zero-model-token",
+    },
+    artifact: {
+      packagePath: result.package.path,
+      manifestSha256: result.package.manifestSha256,
+    },
+    quality: {
+      mode: "machine-checked",
+      result: "pass",
+      checkerPath: `${result.package.path}/${result.package.checker.path}`,
+      checkerSha256: result.package.checker.sha256,
+    },
+    binding: {
+      mode: "production",
+      bindingId: result.binding.bindingId,
+      sourcePath,
+      sha256: result.binding.sha256,
+      inputPath: result.binding.inputPath,
+      inputFormat: result.binding.inputFormat,
+      inputSha256: result.binding.inputSha256,
+      generatorSha256: result.package.generator.sha256,
+      checkerSha256: result.package.checker.sha256,
+    },
+    accounting: result.accounting,
+    coreBranchDelta: 0,
+    outputPath: "cli-report.json",
+    claimBoundary: "This development-only production binding accepts ordinary input/output parameters and passes an independent public-contract checker within the declared OpenAPI subset. It does not establish arbitrary OpenAPI, held-out, readiness, portfolio, cross-model, or optimized-LLM claims.",
   });
   await writeFile(join(outDir, "cli-report.json"), jsonText(report), "utf8");
   return report;
@@ -352,7 +425,8 @@ async function runEnvManagerPreset(options: Extract<ArtifactPresetOptions, { pre
 }
 
 export async function runArtifactPreset(options: ArtifactPresetOptions): Promise<ArtifactPresetResult> {
-  return options.preset === "api-tester"
-    ? runApiTesterPreset(options)
-    : runEnvManagerPreset(options);
+  if (options.preset === "env-manager") return runEnvManagerPreset(options);
+  return "bindingPath" in options && typeof options.bindingPath === "string"
+    ? runApiTesterProductionPreset(options)
+    : runApiTesterFrozenPreset(options);
 }
