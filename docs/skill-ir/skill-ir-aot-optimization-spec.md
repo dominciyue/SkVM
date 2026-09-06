@@ -1870,3 +1870,29 @@ verified-artifact runtime 和 1 个缺失的 changelog composition。只有 `imp
 本阶段只实现 strict schema、状态派生、来源/许可证与 capability source-ref 校验、机器清单和手册；`modelCalls=apiCalls=paidCalls=0`、
 `heldOutAccesses=0`、`coreBranchDelta=0`。它不授权独立标注执行、prospective 选择、Q3 的 3 profile × 4 new input 构造矩阵、Q4
 参与者实验、Stage M/N、core/DSL/artifact/scorer 扩展或 portfolio/readiness 更新。若后续 Q2 修改生成器或公开合同，Q4 必须使用新 identity。
+
+### 14.11 Q1 v2：development 标注发放合同
+
+v1 方法、source list 与 capability profile 作为历史冻结事实保留。正式 development 标注改用新方法身份
+`skill-ir-task-automation-classification/v2` 和 package identity `q1-development-annotation-package-002`。package 必须以精确
+SHA-256 绑定 v2 手册、v1 source list、v1 Q2 capability profile 与远端来源核验报告；任一字节变化都要求新 package identity。
+
+development denominator 固定为 12 source / 24 unit，并采用 `one-unit-per-selected-responsibility`：source list 中每个 selected
+responsibility 恰好出现一次，excluded responsibility 不进入分母。每个单位固定描述、source locator、slice boundary 与同源依赖边；
+A/B 空白表只预置完整单位键，身份、四组依据、语义选择、prediction 和提交时间必须保持空值。正式 submission 必须精确覆盖全部 24
+单位；共同漏项、未知/重复单位、包 digest 漂移、capability profile 漂移或越界 evidence locator 均 fail closed。
+
+`affectsRequirementIds` 的所有目标必须存在。目标不是本单位时，目标必须通过冻结的 `dependsOnUnitIds` 直接或间接依赖声明选择的单位；
+否则影响声明与传播图矛盾，整份提交拒绝。prediction 继续由既有四状态派生器重算，不能手写绕过四组依据。
+
+两份不同身份、不同 slot 的原始 submission 分别通过并冻结后，才可创建 `independent-complete` batch。裁决前统计固定为 overall、
+per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construction/execution/semantic-choice 四维分歧计数。
+`independent-complete` 禁止 adjudication；后续 `adjudicated` 版本必须覆盖全部且仅有 prediction 分歧，且不得改写原始 submission。
+
+8 个本地 development source view 逐字节验证 34 个文件。4 个远端 development source 不 vendoring 内容，而使用固定 commit 的
+只读 GitHub URL；冻结前通过 2 次 repository fetch 重算 23 个 package file blob/bytes 和 4 个 license SHA-256。repository fetch 单独
+记账，不改写 project `apiCalls=0`。Anthropic PDF 的专有条款继续限制再分发。
+
+该 v2 package 只建立 annotation readiness，不建立真实标签、一致率、分类效度、Q2 新输入构造或 Q3 前瞻结论。下一检查点是两位真实
+标注者分别提交完整 development 分母；prospective 继续 0 selected，Q3/Q4、held-out、core/DSL、artifact/scorer、portfolio/readiness
+继续关闭。

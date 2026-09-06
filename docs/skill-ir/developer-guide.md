@@ -62,10 +62,11 @@ optimized_skill/
 - 当前定位是以公开验证依据组织受限 skill 的确定性 AOT 与人工边界。三档降级为 provisional/mixed 路由，
   七案例是回顾性案例研究，不是已完成分类学。当前一页状态见 `docs/skill-ir/current-status.md`；旧 B
   identity 已按 stop-loss 冻结负结果；人工对照已完成 design-only 冻结，两条干净源码 checkout 金路径也已同机复现。
-- Q1 已把分类单位收紧到 requirement/workflow step，并冻结四字段、四状态和 12 个 development 源包；Q2 已形成
-  21 项 capability、API/Env/Changelog 三个 profile 的机器能力图。当前 `new-input-ready=0/3`，两位独立标注尚未开始，
-  12 个 prospective 源包仍是未选择、未查看的保留配额。规则、数据和操作步骤见
-  [`classification-handbook-v1.md`](classification-handbook-v1.md)。
+- Q1 已把分类单位收紧到 requirement/workflow step，并冻结 v2 四字段/四状态、12-source/24-unit 完整分母和
+  A/B 空白表；Q2 已形成 21 项 capability、API/Env/Changelog 三个 profile 的机器能力图。当前
+  `new-input-ready=0/3`，两位独立标注尚未开始，12 个 prospective 源包仍是未选择、未查看的保留配额。规则与
+  发放步骤见 [`classification-handbook-v2.md`](classification-handbook-v2.md) 和
+  [`q1-development-annotation-package-v2.md`](q1-development-annotation-package-v2.md)。
 - IR schema、parser、validator、profile annotation、静态 pass、lowering、真实 runner、scorer、gate 和
   paired analyzer 已具备；portfolio/readiness 仍按冻结 registry 解释，不能从本指南的命令示例推导晋级。
 - API Tester 的 source-audited schema-derived artifact 与 Env reviewed-AOT 的 efficiency evidence 仍是
@@ -104,11 +105,13 @@ optimized_skill/
 - 当前暂停的边界仍有效：不继续论文、新 skill、DSL、Stage N matrix、B 同 identity 重跑、Optimizer Agent、held-out 或
   readiness 晋级。C/B 只证明工程与协议闭环，不产生跨模型稳定性或“优化后的 LLM 更稳”结论。
 
-### 1.4 先按 v1 手册分类，再用回顾路由解释
+### 1.4 先按 v2 发放包分类，再用回顾路由解释
 
 开始一个新 pilot 前，先阅读 [`current-status.md`](current-status.md) 和
-[`classification-handbook-v1.md`](classification-handbook-v1.md)。实际标注单位是 requirement 或 workflow step，
-必须分别填写验证依据、构造依据、执行条件和剩余语义选择，再由机器导出四状态；不得以运行结果倒推标签。
+[`classification-handbook-v2.md`](classification-handbook-v2.md)。真实标注必须使用
+[`q1-development-annotation-package-v2.md`](q1-development-annotation-package-v2.md) 中绑定的 24 个单位与 A/B
+独立空白表，分别填写验证依据、构造依据、执行条件和剩余语义选择，再由机器导出四状态；不得增删单位、漂移
+capability snapshot 或以运行结果倒推标签。语义影响目标必须存在，并由依赖路径承接。
 [`answer-availability-taxonomy.md`](answer-availability-taxonomy.md) 保留七案例的回顾性路由解释，不替代新的前瞻分类合同：
 
 | 路由 | 典型 slice | 先做什么 | 可以声称什么 | 何时停止 |
@@ -131,8 +134,9 @@ readiness 也不会因为命令能运行就自动获得授权。
    人工编写 vs 候选审核/修复对照；task set 尚未创作，参与者未开始。
 4. **P3 可复现交付（已完成，同机）：** fresh detached worktree 中 Env 与 API Tester JSON 均通过；
    独立外部操作者、独立安装和跨平台仍未测。
-5. **Q1 分类方法（合同已完成，标注未开始）：** 12 个 development 源包已绑定，另 12 个 prospective 名额保持
-   `reserved-unselected`；先完成两位真人独立标注与裁决前一致率，不能制造两份 AI 标签充当独立标注。
+5. **Q1 分类准备（v2 发放包已完成，标注未开始）：** 12 个 development 源包已拆为 24 个冻结单位，A/B
+   空白表绑定相同 package digest；另 12 个 prospective 名额保持 `reserved-unselected`。下一步才是两位真人分别
+   提交并冻结，不能制造两份 AI 标签充当独立标注。
 6. **Q2 当前能力图（盘点已完成，构造未开始）：** 21 项 capability、3 个 profile、`new-input-ready=0/3`；
    API/Env 只到 `existing-slice-only`，Changelog 为 `unsupported`。这不授权 Q3 新输入矩阵。
 
@@ -146,7 +150,7 @@ readiness 也不会因为命令能运行就自动获得授权。
 |---|---|---|---|
 | 主线 C：两条源码金路径 | API/Env 共享底层 artifact 能力；提交 `3bd7618` 的 fresh detached worktree 已同机通过 Env/API JSON | 不把不同完整编排写成同一产品合同，不把依赖冻结 checkout 的 preset 写成任意 skill 独立安装或跨平台产品 | `src/cli/artifact.ts`、`src/skill-ir/verified-artifact-presets.ts`、`docs/skill-ir/clean-source-gold-path-reproduction.md` |
 | 主线 B：旧 operation projection | 只读公开 OpenAPI/spec 与 development task；schema、normalization、operation-sequence parity 和负结果已冻结 | 不把 projection 称为 HTTP execution trace；不以 exact 代替质量；不把 0/0 自动窗口分钟写成人工减少；同 identity 不重跑 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts`、`src/benchmarks/skill-ir/api-tester-trace-paid-run.ts`、`docs/skill-ir/api-tester-trace-public-answer-protocol.md` |
-| Q1/Q2：分类与能力边界 | 校验四状态、依赖传播、来源/许可证 digest 和 capability 源码引用；维护 development 样本与三 profile 缺口图 | 不选择 prospective、不伪造独立标注、不实现新 backend/DSL、不把 operation existence 写成新输入 composition | `src/benchmarks/skill-ir/task-automation-classification.ts`、`benchmarks/skill-ir/classification/`、`docs/skill-ir/classification-handbook-v1.md` |
+| Q1/Q2：分类与能力边界 | 校验 24-unit 完整分母、四组依据/四状态、语义影响依赖、来源/许可证 digest 和 capability snapshot；维护三 profile 缺口图 | 不选择 prospective、不伪造独立标注、不实现新 backend/DSL、不把 operation existence 写成新输入 composition | `src/benchmarks/skill-ir/task-automation-classification.ts`、`benchmarks/skill-ir/classification/`、`docs/skill-ir/classification-handbook-v2.md`、`docs/skill-ir/q1-development-annotation-package-v2.md` |
 
 这些线会复用部分现有产物和 deterministic runtime，但证据含义不同：C 是产品工程接入，B 是研究协议准备，Q1/Q2 是
 运行前分类与能力盘点。任何一条线都不能
@@ -184,11 +188,12 @@ git -c safe.directory=D:/skill优化/SkVM status --short --branch
 3. `D:\skill优化\project_communication.md`：你与开发者之间已经确认的决策；
 4. 运行上一步的 Git 状态核对；
 5. `docs/skill-ir/README.md`：权威入口和最新结论；
-6. `docs/skill-ir/classification-handbook-v1.md`：requirement/step 四状态分类、开发来源和 Q2 能力图；
-7. `docs/skill-ir/answer-availability-taxonomy.md`：七个 pilot 的回顾性答案可得性证据；
-8. `docs/skill-ir/skill-ir-aot-optimization-spec.md`：研究和证据契约；
-9. `docs/skill-ir/skill-ir-aot-optimization-plan.md`：当前任务和文件级 TDD；
-10. 将要修改的组件文档（例如 `external-skill-import.md` 或
+6. `docs/skill-ir/classification-handbook-v2.md`：requirement/step 四状态、完整分母、语义影响图和独立标注合同；
+7. `docs/skill-ir/q1-development-annotation-package-v2.md`：12-source/24-unit 发放包、空白表和验证步骤；
+8. `docs/skill-ir/answer-availability-taxonomy.md`：七个 pilot 的回顾性答案可得性证据；
+9. `docs/skill-ir/skill-ir-aot-optimization-spec.md`：研究和证据契约；
+10. `docs/skill-ir/skill-ir-aot-optimization-plan.md`：当前任务和文件级 TDD；
+11. 将要修改的组件文档（例如 `external-skill-import.md` 或
    `stage-n-cross-model-aot-stability-panel.md`）。
 
 若只是做文档同步，也至少读取 handoff、README、当前 plan 和目标文档；不要从旧聊天记忆直接实现。历史过程在
@@ -313,10 +318,10 @@ SkVM/
     artifact.ts                  `skvm artifact` dispatcher
   src/benchmarks/skill-ir/       matrix、runner、artifact、lock、gate、audit
     stage-n-cross-model-panel*.ts  Stage N plan/smoke 合同与 runner
-    task-automation-classification.ts  Q1/Q2 strict schema、四状态派生与 authority 校验
+    task-automation-classification.ts  Q1/Q2 v1 历史合同、v2 标注包/提交/统计与 authority 校验
   src/bench/evaluators/          确定性离线 scorer
   benchmarks/skill-ir/corpus/    corpus registry、intake、portfolio
-  benchmarks/skill-ir/classification/ Q1 开发来源清单与 Q2 当前能力图
+  benchmarks/skill-ir/classification/ Q1 来源清单、24-unit 发放包、A/B 空白表与 Q2 当前能力图
   benchmarks/skill-ir/pilots/    每个真实 skill 的冻结输入和产物
   benchmarks/skill-ir/panels/    跨模型 panel lock（含 Stage N）
   results/skill-ir/              实验结果与本地 raw workdir
@@ -690,9 +695,15 @@ results/skill-ir/stage-n-cross-model-aot-stability-001/smoke-qualification.json
 3. 运行第 10.8 节的 API Tester trace/public-answer dry-run；它只应产生固定 4 rows，并保持
    `modelCalls=apiCalls=paidCalls=0`。不要运行旧 artifact-development runner 的 qualification/execute，也不要
    读取 API key。
-4. 运行 `bun test ./src/benchmarks/skill-ir/task-automation-classification.test.ts`。它应验证四状态、依赖传播、
-   12+12 来源分母、5 个独立仓库、34 个本地文件、23 个远端 manifest 文件、21 项 capability、6 个源码文件中的
-   21 个定位，以及 `new-input-ready=0/3`；它不选择 prospective，也不运行模型。
+4. 运行：
+
+   ```powershell
+   bun test ./src/benchmarks/skill-ir/task-automation-classification.test.ts ./src/benchmarks/skill-ir/task-automation-annotation-package.test.ts
+   ```
+
+   它应验证 v1 历史合同、v2 语义影响依赖、
+   12+12 来源分母、12-source/24-unit 发放包、A/B 空白表、34 个本地文件、23 个远端 Git-object 核验文件、
+   21 项 capability 和 `new-input-ready=0/3`；它不选择 prospective，也不运行模型。
 
 若四项都满足，可以开始修改经过授权的文件。完成后回到第 5.5 节做文档链接、typecheck 和 `git diff --check`；
 任何新实验、模型调用、held-out 读取或 frozen lock 改动都不属于普通上手步骤，必须先创建/核对独立 identity。
@@ -1711,7 +1722,7 @@ not-eligible，不能据此修改 research authority。
 | 已完成但不晋级 | 顶层 npm/source shim、companion 构建和当前 checkout E2E 已通过；两 preset 共享底层能力但完整编排不同 | 不写成任意 skill 独立安装产品，不改 core/scorer/lock/readiness |
 | 已冻结负结果 | B operation projection 首行 exact，但独立 scorer 三项失败；旧 calls=1 是 dispatched row 单位，0/0 minutes 是无人介入窗口 | 不补跑、不换 route |
 | 已设计未执行 | B successor 已固定 8-row 平衡交叉、前瞻计时、同一 scorer 与拆分成本单位；task set=`not-authored` | 不招募/启动参与者、不生成效果结论；新执行需单独授权 |
-| Q1/Q2 合同完成 | 分类 schema/手册、12 个 development 源包和 21-capability/3-profile 能力图可确定性校验；`new-input-ready=0/3` | 安排两位独立标注者并在结果前冻结；Q3 prospective 选择与构造矩阵另立阶段 |
+| Q1/Q2 发放准备完成 | v2 手册、12-source/24-unit package、A/B 空白表、远端 Git-object 复核和 21-capability/3-profile 能力图可确定性校验；`new-input-ready=0/3` | 两位真人分别提交并保留原始文件；Q3 prospective 选择与构造矩阵另立阶段 |
 | 明确关闭 | 新 B 付费、Stage N matrix、Stage M 旧 identity、held-out、readiness/portfolio 晋级、新 skill、DSL | 等用户对新实验单独授权 |
 
 主线 C 的当前 checkout 与同机 fresh detached worktree 验收均已完成，但 API 与 Env 的完整编排不同；
@@ -1719,15 +1730,17 @@ not-eligible，不能据此修改 research authority。
 `coreBranchDelta=0`、旧命令兼容、路径安全和非空输出目录检查全部通过。主线 B 的最小验收也已完成：trace 和公开答案
 各自有 digest，parity 能区分 `exact/equivalent/missing/extra/invalid/ambiguous`，并且 baseline-pass 与
 mutation-fail 都能在零付费环境中重演；paid smoke 同时证明 operation parity 不等于计划质量。Q1/Q2 的机器合同也已
-就绪，但它只证明分类字段、来源 authority 和能力现状可复核，不证明分类预测有效。下一判定点是两位独立标注者在
-同一 development denominator 上冻结标签并计算裁决前一致率；不是补跑旧 B 四行、选择 prospective、执行 Q3 或启动付费。
+就绪；v2 又补齐 24-unit 完整分母、版本摘要和语义影响依赖，但这仍只证明标注准备可复核，不证明分类预测有效。
+下一判定点是两位独立标注者分别保存原始提交，再计算总体/分来源一致率、四状态混淆表和四证据维度分歧；不是补跑旧 B
+四行、选择 prospective、执行 Q3 或启动付费。
 
 ## 18. 继续阅读
 
 - 项目入口与最新状态：`docs/skill-ir/README.md`
 - 一页当前状态：`docs/skill-ir/current-status.md`
 - 七案例路由框架与回顾表：`docs/skill-ir/answer-availability-taxonomy.md`
-- requirement/step 分类手册、Q1 来源和 Q2 能力图：`docs/skill-ir/classification-handbook-v1.md`
+- requirement/step v2 分类手册：`docs/skill-ir/classification-handbook-v2.md`
+- 12-source/24-unit 发放包：`docs/skill-ir/q1-development-annotation-package-v2.md`
 - 研究目标和成功条件：`docs/skill-ir/skill-ir-aot-optimization-spec.md`
 - 当前文件级任务：`docs/skill-ir/skill-ir-aot-optimization-plan.md`
 - IR 实现：`docs/skill-ir/ir-core.md`

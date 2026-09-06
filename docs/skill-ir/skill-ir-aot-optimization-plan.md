@@ -1887,6 +1887,26 @@ closure 固化为可搬移 staging bundle，再复用现有 verified-artifact pr
 **停止点：** 独立标注数据尚未创建，Q1 不报告一致率；prospective 仍为 0 selected，Q3 不启动。下一可审阅点是两位真实独立标注者冻结同一
 development denominator 后的裁决前一致率。若未来授权 Q3，再单独选择 12 个未见公开源包，并把分类分母与 3 profile × 4 new input 构造分母分开。
 
+### 4.40 Q1 v2 development 标注发放包与合同补强
+
+**触发：** 对 `cad4926` 的独立复核确认 Q1/Q2 事实成立，但复现两个正式采集前缺口：A/B 共同漏掉同一单位或共同使用虚构单位仍可得到
+100% 一致率；`affectsRequirementIds` 可悬空或与 `dependsOn` 传播图矛盾。当前尚无真实标注，因此修订不使既有结果失效。
+
+**边界：** 保留 v1 历史，新建 v2 identity；不选择 prospective、不读取 held-out、不运行模型/API/付费或参与者 session，不进入 Q3/Q4，
+不改 core/DSL/artifact/scorer、旧 lock/result、portfolio/readiness 或 Q2 的 0/3 状态。
+
+1. [x] RED：合成测试复现悬空语义影响、缺依赖路径、共同漏项、虚构来源/单位和 package digest 漂移；确认新 v2 export 不存在时失败；
+2. [x] GREEN：增加 v2 package/form/submission/batch strict schema 与文件自读 verifier；submission 精确覆盖冻结分母，保留四组依据并复算 prediction；
+3. [x] 修复语义影响图：目标必须存在，本单位外目标必须通过依赖路径回到 choice-bearing unit；合法路径继续传播更严格状态；
+4. [x] 冻结 `q1-development-annotation-package-002`：12 source / 24 unit，每项 selected responsibility 恰好一个单位，绑定描述、locator、slice 和依赖；
+5. [x] 冻结 A/B 两份独立空白表，classification/identity/attestation/time 全为空；相同 24-key 分母绑定 package SHA-256；
+6. [x] 对 4 个已选 development 远端来源 fetch 2 个固定仓库 commit，重算 23 个包文件 blob/bytes 与 4 个 license SHA-256；只保存核验报告和 commit-pinned URL，不 vendoring 上游源码；
+7. [x] 固定裁决前 overall、per-source、4×4 state confusion matrix 与四证据维度分歧；保留两份原始 submission，裁决只覆盖 prediction 分歧；
+8. [x] 同步 handbook/component guide/README/current status/developer guide/spec/proposal/handoff/communication/log，运行 focused+broad、typecheck、doc links、repo scan、diff/secret checks，显式白名单 commit + push。
+
+**停止点：** v2 包通过机器验证后停在 annotation-ready。真实 A/B 标注、裁决和一致率仍未开始；下一检查点是两位真人分别完成并冻结原始
+submission。Q3 必须等待 development 方法与对应构造器/checker 另行稳定和冻结。
+
 ## 5. 时间估算
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

@@ -1,6 +1,6 @@
 # 下一阶段提案：可检验分类与受限 skill 自动构造
 
-日期：2026-09-06。提案基准：`skill-ir-aot@f6c057a`。状态：路线已获用户采用；Q1 机器合同与 Q2 当前能力盘点已实现，独立标注尚未开始。它仍不授权 prospective 选择、Q3/Q4、参与者 session、新付费、旧 held-out、Stage M/N 或发布。
+日期：2026-09-06。提案基准：`skill-ir-aot@f6c057a`。状态：路线已获用户采用；Q1 v2 development 标注发放包与 Q2 当前能力盘点已实现，独立标注尚未开始。它仍不授权 prospective 选择、Q3/Q4、参与者 session、新付费、旧 held-out、Stage M/N 或发布。
 
 ## 1. 推荐方向与三种选择
 
@@ -161,7 +161,7 @@ API 可比较直接生成器；Schemathesis 仅在双方共同支持的生成/�
 
 | 顺序 | 工作包 | 可审阅交付 | 进入下一包的条件 |
 |---|---|---|---|
-| Q1 | 分类手册与来源清单 | 逐 requirement 字段、抽样/去重规则、开发样本结构表、未覆盖职责 | 规则可以独立应用；未知和混合情况有明确处理 |
+| Q1 | 分类手册、来源清单与发放包 | 逐 requirement 字段、12-source/24-unit 完整分母、A/B 空白表、抽样/去重规则、未覆盖职责 | 包可直接发放并机器拒绝漏项/漂移；未知和混合情况有明确处理 |
 | Q2 | 类别能力映射与最小构造路径 | API/Env 能力边界；changelog 来源审计；复用现有 plan/runtime 的设计与实现 | 开发样本通过，支持范围明确，接入人工有账；不动旧 freeze |
 | Q3 | 冻结后的前瞻分类与迁移 | 12 个新的分类源包预测；另一个 12-task 构造矩阵；直接工具对照 | 报告覆盖率、成功/误接纳、拒绝与适配成本；失败不被修复结果覆盖 |
 | Q4 | B 人工投入小实验 | 现有 successor 下的任务/参与者/真实区间记录 | 参与者与任务准备完毕且单独授权；不要求有模型费用 |
@@ -182,8 +182,8 @@ API 可比较直接生成器；Schemathesis 仅在双方共同支持的生成/�
 
 ## 13. 实施状态与当前边界
 
-Q1/Q2 已按本提案实现为独立机器合同：分类单位是 requirement/workflow step，四组证据字段导出四状态；12 个 development 源包已按 commit、package root、license 与 manifest 冻结，另 12 个 prospective 名额保持未选择、未查看；API Tester、Env Manager、Changelog 的 21-capability 能力图与最小构造路径已落盘。权威实施说明见 [`classification-handbook-v1.md`](classification-handbook-v1.md)，机器数据见 `benchmarks/skill-ir/classification/`。
+Q1/Q2 已按本提案实现为独立机器合同：v2 分类单位是 requirement/workflow step，四组证据字段导出四状态；12 个 development 源包已按 commit、package root、license 与 manifest 冻结并拆为 24 个完整单位，A/B 空白表绑定同一 package digest；另 12 个 prospective 名额保持未选择、未查看。语义影响目标必须存在并由依赖路径承接，真实 submission 会复算 prediction。API Tester、Env Manager、Changelog 的 21-capability 能力图与最小构造路径已落盘。权威实施说明见 [`classification-handbook-v2.md`](classification-handbook-v2.md) 和 [`q1-development-annotation-package-v2.md`](q1-development-annotation-package-v2.md)，机器数据见 `benchmarks/skill-ir/classification/`。
 
-当前没有创建两位标注者的结果，也没有报告一致率、分类覆盖率或迁移成功率。三个 profile 的 `new-input-ready` 均为 false；API/Env 只支持历史切片，Changelog backend/checker/comparator 仍缺失。operation 存在、历史 fixture 通过和 runtime 可运行均不能替代新输入 composition 证据。
+当前只创建了两份全空的 A/B 发放表，没有真实标注者结果，也没有报告一致率、分类覆盖率或迁移成功率。未来裁决前统计已固定为总体、分来源、四状态混淆表和四证据维度分歧。三个 profile 的 `new-input-ready` 均为 false；API/Env 只支持历史切片，Changelog backend/checker/comparator 仍缺失。operation 存在、历史 fixture 通过和 runtime 可运行均不能替代新输入 composition 证据。
 
 本阶段没有运行效果实验、模型/API/付费调用、参与者 session、held-out 或历史矩阵，没有修改 core/DSL/artifact/scorer、旧 lock/result、portfolio 或 readiness。Q3 的 prospective 来源选择与 12-task 构造矩阵、Q4 的 B successor 人工实验均须另行授权；若 Q2 后续改变生成器或公开合同，Q4 必须使用新 identity。

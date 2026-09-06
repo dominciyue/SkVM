@@ -239,7 +239,11 @@ const SemanticChoiceSchema = z.object({
   timing: z.enum(["before-construction", "during-review", "runtime"]),
   affectsRequirementIds: z.array(SlugSchema).min(1),
   description: z.string().min(1).max(500),
-}).strict();
+}).strict().superRefine((choice, context) => {
+  if (new Set(choice.affectsRequirementIds).size !== choice.affectsRequirementIds.length) {
+    context.addIssue({ code: "custom", path: ["affectsRequirementIds"], message: "semantic impact targets must be unique" });
+  }
+});
 
 export const ClassificationRequirementSchema = z.object({
   requirementId: SlugSchema,
@@ -307,6 +311,29 @@ export function deriveRequirementStates(
   const capabilities = new Map(profile.capabilities.map((entry) => [entry.id, entry]));
   const visiting = new Set<string>();
   const derived = new Map<string, AutomationPrediction>();
+
+  const dependsTransitivelyOn = (targetId: string, upstreamId: string, seen = new Set<string>()): boolean => {
+    if (targetId === upstreamId) return true;
+    if (seen.has(targetId)) return false;
+    seen.add(targetId);
+    const target = byId.get(targetId);
+    if (!target) throw new Error(`unknown semantic impact target: ${targetId}`);
+    return target.dependsOn.some((dependencyId) => {
+      if (!byId.has(dependencyId)) throw new Error(`unknown requirement dependency: ${dependencyId}`);
+      return dependsTransitivelyOn(dependencyId, upstreamId, seen);
+    });
+  };
+
+  for (const requirement of requirements) {
+    for (const choice of requirement.remainingSemanticChoices) {
+      for (const targetId of choice.affectsRequirementIds) {
+        if (!byId.has(targetId)) throw new Error(`unknown semantic impact target: ${targetId}`);
+        if (!dependsTransitivelyOn(targetId, requirement.requirementId)) {
+          throw new Error(`semantic impact target ${targetId} has no dependency path from ${requirement.requirementId}`);
+        }
+      }
+    }
+  }
 
   const visit = (id: string): AutomationPrediction => {
     const existing = derived.get(id);
@@ -667,4 +694,767 @@ export async function verifyQ1SourceAuthorities(
     remoteManifestFilesBound,
     remoteLicenseDigestsRecorded,
   };
+}
+
+const FrozenDocumentBindingSchema = z.object({
+  path: SafeRelativePathSchema,
+  sha256: Sha256Schema,
+}).strict();
+
+const AnnotationPackageRefSchema = z.object({
+  packageId: SlugSchema,
+  path: SafeRelativePathSchema,
+  sha256: Sha256Schema,
+}).strict();
+
+const WorkspaceSourceViewSchema = z.object({
+  kind: z.literal("workspace-bound-files"),
+  files: z.array(z.object({
+    sourcePath: SafeRelativePathSchema,
+    workspacePath: SafeRelativePathSchema,
+    sha256: Sha256Schema,
+    bytes: z.number().int().positive(),
+  }).strict()).min(1),
+}).strict().superRefine((view, context) => {
+  for (const key of ["sourcePath", "workspacePath"] as const) {
+    const values = view.files.map((entry) => entry[key]);
+    if (new Set(values).size !== values.length) {
+      context.addIssue({ code: "custom", path: ["files"], message: `${key} values must be unique` });
+    }
+  }
+});
+
+const RemoteSourceViewSchema = z.object({
+  kind: z.literal("commit-pinned-readonly"),
+  repository: GithubRepositorySchema,
+  commit: GitObjectSchema,
+  packageRoot: SafeRelativePathSchema,
+  files: z.array(z.object({
+    sourcePath: SafeRelativePathSchema,
+    gitBlob: GitObjectSchema,
+    bytes: z.number().int().positive(),
+    browseUrl: z.string().url(),
+  }).strict()).min(1),
+  license: z.object({
+    authorityPath: SafeRelativePathSchema,
+    sha256: Sha256Schema,
+    browseUrl: z.string().url(),
+  }).strict(),
+  verifiedAt: IsoDateSchema,
+  verificationMethod: z.literal("git-object-id-and-size"),
+}).strict().superRefine((view, context) => {
+  const paths = view.files.map((entry) => entry.sourcePath);
+  if (new Set(paths).size !== paths.length) {
+    context.addIssue({ code: "custom", path: ["files"], message: "remote source paths must be unique" });
+  }
+  const expectedPrefix = `${view.repository}/blob/${view.commit}/${view.packageRoot}/`;
+  for (const [index, file] of view.files.entries()) {
+    if (file.browseUrl !== `${expectedPrefix}${file.sourcePath}`) {
+      context.addIssue({ code: "custom", path: ["files", index, "browseUrl"], message: "remote source URL must bind the exact repository commit and package root" });
+    }
+  }
+  if (view.license.browseUrl !== `${view.repository}/blob/${view.commit}/${view.license.authorityPath}`) {
+    context.addIssue({ code: "custom", path: ["license", "browseUrl"], message: "remote license URL must bind the exact repository commit" });
+  }
+});
+
+const AnnotationSourceViewSchema = z.object({
+  slotId: z.string().regex(/^d(?:0[1-9]|1[0-2])$/u),
+  sourcePackageId: SlugSchema,
+  sliceId: SlugSchema,
+  includedResponsibilityIds: z.array(SlugSchema).min(1),
+  excludedResponsibilityIds: z.array(SlugSchema),
+  access: z.union([WorkspaceSourceViewSchema, RemoteSourceViewSchema]),
+}).strict().superRefine((view, context) => {
+  const included = new Set(view.includedResponsibilityIds);
+  if (included.size !== view.includedResponsibilityIds.length) {
+    context.addIssue({ code: "custom", path: ["includedResponsibilityIds"], message: "included responsibilities must be unique" });
+  }
+  if (new Set(view.excludedResponsibilityIds).size !== view.excludedResponsibilityIds.length) {
+    context.addIssue({ code: "custom", path: ["excludedResponsibilityIds"], message: "excluded responsibilities must be unique" });
+  }
+  if (view.excludedResponsibilityIds.some((id) => included.has(id))) {
+    context.addIssue({ code: "custom", message: "included and excluded responsibilities must be disjoint" });
+  }
+});
+
+const AnnotationUnitSchema = z.object({
+  unitId: SlugSchema,
+  sourcePackageId: SlugSchema,
+  sliceId: SlugSchema,
+  responsibilityId: SlugSchema,
+  unitKind: z.enum(["hard-requirement", "workflow-step"]),
+  description: z.string().min(1).max(1000),
+  sourceLocators: z.array(z.object({
+    locator: z.string().min(1).max(500),
+    purpose: z.string().min(1).max(500),
+  }).strict()).min(1),
+  dependsOnUnitIds: z.array(SlugSchema),
+}).strict().superRefine((unit, context) => {
+  if (new Set(unit.dependsOnUnitIds).size !== unit.dependsOnUnitIds.length || unit.dependsOnUnitIds.includes(unit.unitId)) {
+    context.addIssue({ code: "custom", path: ["dependsOnUnitIds"], message: "unit dependencies must be unique and cannot reference self" });
+  }
+  const locators = unit.sourceLocators.map((entry) => entry.locator);
+  if (new Set(locators).size !== locators.length) {
+    context.addIssue({ code: "custom", path: ["sourceLocators"], message: "source locators must be unique" });
+  }
+});
+
+const RemoteVerificationBindingSchema = z.object({
+  reportId: SlugSchema,
+  path: SafeRelativePathSchema,
+  sha256: Sha256Schema,
+}).strict();
+
+export const DevelopmentAnnotationPackageV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-task-automation-development-annotation-package/v2"),
+  packageId: SlugSchema,
+  frozenAt: IsoDateSchema,
+  family: z.literal("public-structure-offline-transformation"),
+  bindings: z.object({
+    handbook: FrozenDocumentBindingSchema.extend({
+      methodId: z.literal("skill-ir-task-automation-classification/v2"),
+    }).strict(),
+    sourceList: FrozenDocumentBindingSchema.extend({
+      listId: SlugSchema,
+    }).strict(),
+    capabilityProfile: FrozenDocumentBindingSchema.extend({
+      profileId: SlugSchema,
+    }).strict(),
+    remoteVerification: z.union([RemoteVerificationBindingSchema, z.null()]),
+  }).strict(),
+  denominator: z.object({
+    unitizationPolicy: z.literal("one-unit-per-selected-responsibility"),
+    sourceCount: z.number().int().positive(),
+    unitCount: z.number().int().positive(),
+  }).strict(),
+  sourceViews: z.array(AnnotationSourceViewSchema).min(1),
+  units: z.array(AnnotationUnitSchema).min(1),
+  audit: z.object({
+    modelCalls: z.literal(0),
+    apiCalls: z.literal(0),
+    paidCalls: z.literal(0),
+    heldOutAccesses: z.literal(0),
+    resultEvidenceAccesses: z.literal(0),
+    prospectiveSourcesSelected: z.literal(0),
+  }).strict(),
+}).strict().superRefine((pkg, context) => {
+  const sourceIds = pkg.sourceViews.map((entry) => entry.sourcePackageId);
+  const slotIds = pkg.sourceViews.map((entry) => entry.slotId);
+  const unitIds = pkg.units.map((entry) => entry.unitId);
+  if (new Set(sourceIds).size !== sourceIds.length || new Set(slotIds).size !== slotIds.length) {
+    context.addIssue({ code: "custom", path: ["sourceViews"], message: "source and slot ids must be unique" });
+  }
+  if (new Set(unitIds).size !== unitIds.length) {
+    context.addIssue({ code: "custom", path: ["units"], message: "annotation unit ids must be unique" });
+  }
+  if (pkg.denominator.sourceCount !== pkg.sourceViews.length || pkg.denominator.unitCount !== pkg.units.length) {
+    context.addIssue({ code: "custom", path: ["denominator"], message: "declared denominator counts must equal the frozen source and unit lists" });
+  }
+  const viewBySource = new Map(pkg.sourceViews.map((entry) => [entry.sourcePackageId, entry]));
+  const unitById = new Map(pkg.units.map((entry) => [entry.unitId, entry]));
+  for (const [index, unit] of pkg.units.entries()) {
+    const view = viewBySource.get(unit.sourcePackageId);
+    if (!view || view.sliceId !== unit.sliceId) {
+      context.addIssue({ code: "custom", path: ["units", index], message: "annotation unit must reference a frozen source view and slice" });
+      continue;
+    }
+    if (!view.includedResponsibilityIds.includes(unit.responsibilityId)) {
+      context.addIssue({ code: "custom", path: ["units", index, "responsibilityId"], message: "annotation unit responsibility is outside the selected slice" });
+    }
+    const availablePaths = new Set(view.access.files.map((entry) => entry.sourcePath));
+    for (const locator of unit.sourceLocators) {
+      const sourcePath = locator.locator.split("#", 1)[0]!;
+      if (!availablePaths.has(sourcePath)) {
+        context.addIssue({ code: "custom", path: ["units", index, "sourceLocators"], message: `source locator is outside the frozen view: ${locator.locator}` });
+      }
+    }
+    for (const dependencyId of unit.dependsOnUnitIds) {
+      const dependency = unitById.get(dependencyId);
+      if (!dependency || dependency.sourcePackageId !== unit.sourcePackageId) {
+        context.addIssue({ code: "custom", path: ["units", index, "dependsOnUnitIds"], message: `unit dependency must exist in the same source: ${dependencyId}` });
+      }
+    }
+  }
+  for (const [index, view] of pkg.sourceViews.entries()) {
+    const covered = pkg.units
+      .filter((unit) => unit.sourcePackageId === view.sourcePackageId)
+      .map((unit) => unit.responsibilityId)
+      .sort();
+    const expected = [...view.includedResponsibilityIds].sort();
+    if (JSON.stringify(covered) !== JSON.stringify(expected)) {
+      context.addIssue({ code: "custom", path: ["sourceViews", index], message: "units must cover every selected responsibility exactly once" });
+    }
+  }
+  const remoteViews = pkg.sourceViews.filter((entry) => entry.access.kind === "commit-pinned-readonly");
+  if ((remoteViews.length > 0) !== (pkg.bindings.remoteVerification !== null)) {
+    context.addIssue({ code: "custom", path: ["bindings", "remoteVerification"], message: "remote verification binding is required exactly when remote views exist" });
+  }
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  const visit = (id: string) => {
+    if (visited.has(id)) return;
+    if (visiting.has(id)) {
+      context.addIssue({ code: "custom", path: ["units"], message: `annotation unit dependency cycle at ${id}` });
+      return;
+    }
+    visiting.add(id);
+    for (const dependencyId of unitById.get(id)?.dependsOnUnitIds ?? []) visit(dependencyId);
+    visiting.delete(id);
+    visited.add(id);
+  };
+  for (const id of unitIds) visit(id);
+});
+export type DevelopmentAnnotationPackageV2 = z.infer<typeof DevelopmentAnnotationPackageV2Schema>;
+
+const BlankAnnotationLabelV2Schema = z.object({
+  sourcePackageId: SlugSchema,
+  unitId: SlugSchema,
+  verificationBasis: z.null(),
+  constructionBasis: z.null(),
+  executionConditions: z.null(),
+  remainingSemanticChoices: z.null(),
+  prediction: z.null(),
+}).strict();
+
+export const BlankAnnotationFormV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-task-automation-annotation-form/v2"),
+  formId: SlugSchema,
+  annotationPackage: AnnotationPackageRefSchema,
+  slot: z.enum(["A", "B"]),
+  annotatorId: z.null(),
+  independenceAttested: z.null(),
+  sawPeerLabelsBeforeSubmission: z.null(),
+  resultEvidenceVisibleBeforeSubmission: z.null(),
+  submittedAt: z.null(),
+  labels: z.array(BlankAnnotationLabelV2Schema).min(1),
+}).strict();
+export type BlankAnnotationFormV2 = z.infer<typeof BlankAnnotationFormV2Schema>;
+
+const AnnotationLabelV2Schema = z.object({
+  sourcePackageId: SlugSchema,
+  unitId: SlugSchema,
+  verificationBasis: VerificationBasisSchema,
+  constructionBasis: ConstructionBasisSchema,
+  executionConditions: ExecutionConditionsSchema,
+  remainingSemanticChoices: z.array(SemanticChoiceSchema),
+  prediction: AutomationPredictionSchema,
+}).strict();
+
+export const AnnotationSubmissionV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-task-automation-annotation-submission/v2"),
+  submissionId: SlugSchema,
+  annotationPackage: AnnotationPackageRefSchema,
+  slot: z.enum(["A", "B"]),
+  annotatorId: SlugSchema,
+  independenceAttested: z.literal(true),
+  sawPeerLabelsBeforeSubmission: z.literal(false),
+  resultEvidenceVisibleBeforeSubmission: z.literal(false),
+  submittedAt: IsoDateSchema,
+  labels: z.array(AnnotationLabelV2Schema).min(1),
+}).strict().superRefine((submission, context) => {
+  const keys = submission.labels.map((entry) => `${entry.sourcePackageId}:${entry.unitId}`);
+  if (new Set(keys).size !== keys.length) {
+    context.addIssue({ code: "custom", path: ["labels"], message: "annotation submission unit keys must be unique" });
+  }
+});
+export type AnnotationSubmissionV2 = z.infer<typeof AnnotationSubmissionV2Schema>;
+
+const AdjudicationV2Schema = z.object({
+  sourcePackageId: SlugSchema,
+  unitId: SlugSchema,
+  finalPrediction: AutomationPredictionSchema,
+  rationale: z.string().min(1).max(1200),
+  adjudicatorId: SlugSchema,
+  adjudicatedAt: IsoDateSchema,
+}).strict();
+
+export const AnnotationBatchV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-task-automation-annotation-batch/v2"),
+  batchId: SlugSchema,
+  annotationPackage: AnnotationPackageRefSchema,
+  status: z.enum(["independent-complete", "adjudicated"]),
+  submissions: z.tuple([AnnotationSubmissionV2Schema, AnnotationSubmissionV2Schema]),
+  adjudications: z.array(AdjudicationV2Schema),
+  audit: z.object({
+    postResultRelabelingAllowed: z.literal(false),
+  }).strict(),
+}).strict().superRefine((batch, context) => {
+  const [left, right] = batch.submissions;
+  if (left.slot === right.slot || new Set([left.slot, right.slot]).size !== 2) {
+    context.addIssue({ code: "custom", path: ["submissions"], message: "independent submissions must contain slots A and B" });
+  }
+  if (left.annotatorId === right.annotatorId) {
+    context.addIssue({ code: "custom", path: ["submissions"], message: "independent annotators must have distinct identities" });
+  }
+  for (const [index, submission] of batch.submissions.entries()) {
+    if (JSON.stringify(submission.annotationPackage) !== JSON.stringify(batch.annotationPackage)) {
+      context.addIssue({ code: "custom", path: ["submissions", index, "annotationPackage"], message: "submission package binding must equal the batch binding" });
+    }
+  }
+  const adjudicationKeys = batch.adjudications.map((entry) => `${entry.sourcePackageId}:${entry.unitId}`);
+  if (new Set(adjudicationKeys).size !== adjudicationKeys.length) {
+    context.addIssue({ code: "custom", path: ["adjudications"], message: "adjudication keys must be unique" });
+  }
+  if (batch.status === "independent-complete" && batch.adjudications.length > 0) {
+    context.addIssue({ code: "custom", path: ["adjudications"], message: "adjudication cannot precede the independent-complete freeze" });
+  }
+});
+export type AnnotationBatchV2 = z.infer<typeof AnnotationBatchV2Schema>;
+
+export const RemoteSourceVerificationReportV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-task-automation-remote-source-verification/v2"),
+  reportId: SlugSchema,
+  verifiedAt: IsoDateSchema,
+  sources: z.array(z.object({
+    sourcePackageId: SlugSchema,
+    repository: GithubRepositorySchema,
+    commit: GitObjectSchema,
+    packageRoot: SafeRelativePathSchema,
+    commitResolved: z.literal(true),
+    files: z.array(z.object({
+      sourcePath: SafeRelativePathSchema,
+      expectedGitBlob: GitObjectSchema,
+      observedGitBlob: GitObjectSchema,
+      expectedBytes: z.number().int().positive(),
+      observedBytes: z.number().int().positive(),
+      matched: z.literal(true),
+    }).strict()).min(1),
+    license: z.object({
+      authorityPath: SafeRelativePathSchema,
+      expectedSha256: Sha256Schema,
+      observedSha256: Sha256Schema,
+      matched: z.literal(true),
+    }).strict(),
+    status: z.literal("passed"),
+  }).strict().superRefine((source, context) => {
+    for (const [index, file] of source.files.entries()) {
+      if (file.expectedGitBlob !== file.observedGitBlob || file.expectedBytes !== file.observedBytes) {
+        context.addIssue({ code: "custom", path: ["files", index], message: "remote file observation must equal the frozen expectation" });
+      }
+    }
+    if (source.license.expectedSha256 !== source.license.observedSha256) {
+      context.addIssue({ code: "custom", path: ["license"], message: "remote license observation must equal the frozen expectation" });
+    }
+  })).min(1),
+  overallStatus: z.literal("passed"),
+  audit: z.object({
+    modelCalls: z.literal(0),
+    apiCalls: z.literal(0),
+    paidCalls: z.literal(0),
+    heldOutAccesses: z.literal(0),
+    prospectiveSourcesSelected: z.literal(0),
+    networkRepositoryFetches: z.number().int().nonnegative(),
+  }).strict(),
+}).strict();
+export type RemoteSourceVerificationReportV2 = z.infer<typeof RemoteSourceVerificationReportV2Schema>;
+
+function annotationUnitKey(sourcePackageId: string, unitId: string): string {
+  return `${sourcePackageId}:${unitId}`;
+}
+
+function sortedPackageUnitKeys(pkg: DevelopmentAnnotationPackageV2): string[] {
+  return pkg.units.map((entry) => annotationUnitKey(entry.sourcePackageId, entry.unitId)).sort();
+}
+
+function assertPackageRef(
+  ref: z.infer<typeof AnnotationPackageRefSchema>,
+  pkg: DevelopmentAnnotationPackageV2,
+  packageSha256: string,
+): void {
+  if (ref.packageId !== pkg.packageId) throw new Error(`annotation package id mismatch: ${ref.packageId}`);
+  if (ref.sha256 !== packageSha256) throw new Error(`annotation package digest mismatch: ${ref.sha256}`);
+}
+
+function assertCompleteFrozenDenominator(
+  labels: Array<{ sourcePackageId: string; unitId: string }>,
+  pkg: DevelopmentAnnotationPackageV2,
+): void {
+  const actual = labels.map((entry) => annotationUnitKey(entry.sourcePackageId, entry.unitId)).sort();
+  const expected = sortedPackageUnitKeys(pkg);
+  if (new Set(actual).size !== actual.length || JSON.stringify(actual) !== JSON.stringify(expected)) {
+    const expectedSet = new Set(expected);
+    const actualSet = new Set(actual);
+    const missing = expected.filter((key) => !actualSet.has(key));
+    const unknown = actual.filter((key) => !expectedSet.has(key));
+    throw new Error(`annotation labels must cover the complete frozen denominator; missing=${missing.join(",")}; unknown annotation units=${unknown.join(",")}`);
+  }
+}
+
+export function validateBlankAnnotationFormV2(
+  rawForm: BlankAnnotationFormV2 | unknown,
+  rawPackage: DevelopmentAnnotationPackageV2 | unknown,
+  packageSha256: string,
+): { sourceCount: number; unitCount: number } {
+  const form = BlankAnnotationFormV2Schema.parse(rawForm);
+  const pkg = DevelopmentAnnotationPackageV2Schema.parse(rawPackage);
+  assertPackageRef(form.annotationPackage, pkg, packageSha256);
+  assertCompleteFrozenDenominator(form.labels, pkg);
+  return { sourceCount: pkg.sourceViews.length, unitCount: pkg.units.length };
+}
+
+function validateAnnotationEvidenceLocators(
+  label: z.infer<typeof AnnotationLabelV2Schema>,
+  unit: z.infer<typeof AnnotationUnitSchema>,
+): void {
+  const allowed = new Set(unit.sourceLocators.map((entry) => entry.locator));
+  const dimensions = [label.verificationBasis, label.constructionBasis];
+  for (const dimension of dimensions) {
+    for (const ref of dimension.evidenceRefs) {
+      if (ref.sourcePackageId !== label.sourcePackageId) {
+        throw new Error(`evidence source mismatch for ${label.unitId}: ${ref.sourcePackageId}`);
+      }
+      if (!allowed.has(ref.locator)) {
+        throw new Error(`evidence locator is outside the frozen unit view for ${label.unitId}: ${ref.locator}`);
+      }
+    }
+  }
+}
+
+export function validateAnnotationSubmissionV2(
+  rawSubmission: AnnotationSubmissionV2 | unknown,
+  rawPackage: DevelopmentAnnotationPackageV2 | unknown,
+  rawProfile: CapabilityProfile | unknown,
+  packageSha256: string,
+): { sourceCount: number; unitCount: number; predictionsValidated: number } {
+  const submission = AnnotationSubmissionV2Schema.parse(rawSubmission);
+  const pkg = DevelopmentAnnotationPackageV2Schema.parse(rawPackage);
+  const profile = CapabilityProfileSchema.parse(rawProfile);
+  assertPackageRef(submission.annotationPackage, pkg, packageSha256);
+  if (pkg.bindings.capabilityProfile.profileId !== profile.profileId) {
+    throw new Error(`capability profile id mismatch: ${profile.profileId}`);
+  }
+  assertCompleteFrozenDenominator(submission.labels, pkg);
+  const unitByKey = new Map(pkg.units.map((entry) => [annotationUnitKey(entry.sourcePackageId, entry.unitId), entry]));
+  const requirements = submission.labels.map((label) => {
+    const key = annotationUnitKey(label.sourcePackageId, label.unitId);
+    const unit = unitByKey.get(key);
+    if (!unit) throw new Error(`unknown annotation unit: ${key}`);
+    validateAnnotationEvidenceLocators(label, unit);
+    return ClassificationRequirementSchema.parse({
+      requirementId: unit.unitId,
+      unitKind: unit.unitKind,
+      description: unit.description,
+      dependsOn: unit.dependsOnUnitIds,
+      verificationBasis: label.verificationBasis,
+      constructionBasis: label.constructionBasis,
+      executionConditions: label.executionConditions,
+      remainingSemanticChoices: label.remainingSemanticChoices,
+      prediction: label.prediction,
+    });
+  });
+  deriveRequirementStates(requirements, profile);
+  return {
+    sourceCount: new Set(submission.labels.map((entry) => entry.sourcePackageId)).size,
+    unitCount: submission.labels.length,
+    predictionsValidated: requirements.length,
+  };
+}
+
+export function validateAnnotationBatchV2(
+  rawBatch: AnnotationBatchV2 | unknown,
+  rawPackage: DevelopmentAnnotationPackageV2 | unknown,
+  rawProfile: CapabilityProfile | unknown,
+  packageSha256: string,
+): { sourceCount: number; unitCount: number; submissionsValidated: number } {
+  const batch = AnnotationBatchV2Schema.parse(rawBatch);
+  const pkg = DevelopmentAnnotationPackageV2Schema.parse(rawPackage);
+  assertPackageRef(batch.annotationPackage, pkg, packageSha256);
+  for (const submission of batch.submissions) {
+    validateAnnotationSubmissionV2(submission, pkg, rawProfile, packageSha256);
+  }
+  const [left, right] = batch.submissions;
+  const rightByKey = new Map(right.labels.map((entry) => [annotationUnitKey(entry.sourcePackageId, entry.unitId), entry.prediction]));
+  const disagreementKeys = left.labels
+    .filter((entry) => rightByKey.get(annotationUnitKey(entry.sourcePackageId, entry.unitId)) !== entry.prediction)
+    .map((entry) => annotationUnitKey(entry.sourcePackageId, entry.unitId))
+    .sort();
+  const adjudicationKeys = batch.adjudications
+    .map((entry) => annotationUnitKey(entry.sourcePackageId, entry.unitId))
+    .sort();
+  if (batch.status === "adjudicated" && JSON.stringify(adjudicationKeys) !== JSON.stringify(disagreementKeys)) {
+    throw new Error("adjudications must cover every disagreement and only disagreement units");
+  }
+  return { sourceCount: pkg.sourceViews.length, unitCount: pkg.units.length, submissionsValidated: 2 };
+}
+
+const PredictionValues: AutomationPrediction[] = [
+  "rules-sufficient-capability-supported",
+  "rules-sufficient-capability-missing",
+  "partial-semantic-choice-required",
+  "insufficient-information",
+];
+
+export function summarizePreAdjudicationAgreementV2(
+  rawBatch: AnnotationBatchV2 | unknown,
+  rawPackage: DevelopmentAnnotationPackageV2 | unknown,
+  rawProfile: CapabilityProfile | unknown,
+  packageSha256: string,
+): {
+  overall: { compared: number; agreed: number; rate: number };
+  bySource: Array<{ sourcePackageId: string; compared: number; agreed: number; rate: number }>;
+  confusionMatrix: Record<AutomationPrediction, Record<AutomationPrediction, number>>;
+  evidenceDimensionDisagreements: {
+    verificationBasis: number;
+    constructionBasis: number;
+    executionConditions: number;
+    remainingSemanticChoices: number;
+  };
+} {
+  const batch = AnnotationBatchV2Schema.parse(rawBatch);
+  const pkg = DevelopmentAnnotationPackageV2Schema.parse(rawPackage);
+  validateAnnotationBatchV2(batch, pkg, rawProfile, packageSha256);
+  const [left, right] = batch.submissions;
+  const rightByKey = new Map(right.labels.map((entry) => [annotationUnitKey(entry.sourcePackageId, entry.unitId), entry]));
+  const confusionMatrix = Object.fromEntries(PredictionValues.map((leftPrediction) => [
+    leftPrediction,
+    Object.fromEntries(PredictionValues.map((rightPrediction) => [rightPrediction, 0])),
+  ])) as Record<AutomationPrediction, Record<AutomationPrediction, number>>;
+  const dimensions = {
+    verificationBasis: 0,
+    constructionBasis: 0,
+    executionConditions: 0,
+    remainingSemanticChoices: 0,
+  };
+  let agreed = 0;
+  for (const leftLabel of left.labels) {
+    const rightLabel = rightByKey.get(annotationUnitKey(leftLabel.sourcePackageId, leftLabel.unitId))!;
+    if (leftLabel.prediction === rightLabel.prediction) agreed += 1;
+    confusionMatrix[leftLabel.prediction][rightLabel.prediction] += 1;
+    for (const dimension of Object.keys(dimensions) as Array<keyof typeof dimensions>) {
+      if (JSON.stringify(leftLabel[dimension]) !== JSON.stringify(rightLabel[dimension])) dimensions[dimension] += 1;
+    }
+  }
+  const bySource = pkg.sourceViews.map((view) => {
+    const sourceLabels = left.labels.filter((entry) => entry.sourcePackageId === view.sourcePackageId);
+    const sourceAgreed = sourceLabels.filter((entry) =>
+      rightByKey.get(annotationUnitKey(entry.sourcePackageId, entry.unitId))!.prediction === entry.prediction).length;
+    return {
+      sourcePackageId: view.sourcePackageId,
+      compared: sourceLabels.length,
+      agreed: sourceAgreed,
+      rate: sourceAgreed / sourceLabels.length,
+    };
+  });
+  return {
+    overall: { compared: left.labels.length, agreed, rate: agreed / left.labels.length },
+    bySource,
+    confusionMatrix,
+    evidenceDimensionDisagreements: dimensions,
+  };
+}
+
+function sameSortedStrings(left: string[], right: string[]): boolean {
+  return JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
+}
+
+export function validateDevelopmentAnnotationPackageV2(
+  rawPackage: DevelopmentAnnotationPackageV2 | unknown,
+  rawSourceList: Q1SourceList | unknown,
+  rawProfile: CapabilityProfile | unknown,
+): { sourceCount: number; unitCount: number; localSourceViews: number; remoteSourceViews: number } {
+  const pkg = DevelopmentAnnotationPackageV2Schema.parse(rawPackage);
+  const sourceList = Q1SourceListSchema.parse(rawSourceList);
+  const profile = CapabilityProfileSchema.parse(rawProfile);
+  if (pkg.bindings.sourceList.listId !== sourceList.listId) throw new Error(`source list id mismatch: ${sourceList.listId}`);
+  if (pkg.bindings.capabilityProfile.profileId !== profile.profileId) throw new Error(`capability profile id mismatch: ${profile.profileId}`);
+  if (pkg.family !== profile.family) throw new Error(`annotation package family mismatch: ${profile.family}`);
+  const viewBySource = new Map(pkg.sourceViews.map((entry) => [entry.sourcePackageId, entry]));
+  if (pkg.sourceViews.length !== sourceList.developmentSources.length) {
+    throw new Error("annotation package must cover every development source");
+  }
+  for (const source of sourceList.developmentSources) {
+    const view = viewBySource.get(source.sourcePackageId);
+    if (!view) throw new Error(`missing development source view: ${source.sourcePackageId}`);
+    if (view.slotId !== source.slotId) throw new Error(`development source slot mismatch: ${source.sourcePackageId}`);
+    const slice = source.selectedSlices.find((entry) => entry.id === view.sliceId);
+    if (!slice) throw new Error(`unknown selected slice for ${source.sourcePackageId}: ${view.sliceId}`);
+    if (!sameSortedStrings(view.includedResponsibilityIds, slice.responsibilityIds)
+      || !sameSortedStrings(view.excludedResponsibilityIds, slice.excludedResponsibilityIds)) {
+      throw new Error(`slice responsibility boundary mismatch: ${source.sourcePackageId}`);
+    }
+    if (source.authority.kind === "remote-git-tree-manifest") {
+      if (view.access.kind !== "commit-pinned-readonly") throw new Error(`remote source view kind mismatch: ${source.sourcePackageId}`);
+      if (view.access.repository !== source.identity.repository
+        || view.access.commit !== source.identity.commit
+        || view.access.packageRoot !== source.identity.packageRoot) {
+        throw new Error(`remote source identity mismatch: ${source.sourcePackageId}`);
+      }
+      const expectedFiles = source.authority.files.map((entry) => `${entry.path}:${entry.gitBlob}:${entry.bytes}`).sort();
+      const actualFiles = view.access.files.map((entry) => `${entry.sourcePath}:${entry.gitBlob}:${entry.bytes}`).sort();
+      if (JSON.stringify(actualFiles) !== JSON.stringify(expectedFiles)) {
+        throw new Error(`remote source manifest mismatch: ${source.sourcePackageId}`);
+      }
+      if (view.access.license.authorityPath !== source.license.authorityPath
+        || view.access.license.sha256 !== source.license.sha256) {
+        throw new Error(`remote source license mismatch: ${source.sourcePackageId}`);
+      }
+    } else if (view.access.kind !== "workspace-bound-files") {
+      throw new Error(`local source view kind mismatch: ${source.sourcePackageId}`);
+    }
+  }
+  return {
+    sourceCount: pkg.sourceViews.length,
+    unitCount: pkg.units.length,
+    localSourceViews: pkg.sourceViews.filter((entry) => entry.access.kind === "workspace-bound-files").length,
+    remoteSourceViews: pkg.sourceViews.filter((entry) => entry.access.kind === "commit-pinned-readonly").length,
+  };
+}
+
+export async function verifyDevelopmentAnnotationPackageV2(
+  rootDir: string,
+  rawPackage: DevelopmentAnnotationPackageV2 | unknown,
+): Promise<{
+  sourceCount: number;
+  unitCount: number;
+  localFilesVerified: number;
+  remoteFilesVerifiedAtFreeze: number;
+  frozenDocumentDigestsVerified: number;
+}> {
+  const pkg = DevelopmentAnnotationPackageV2Schema.parse(rawPackage);
+  const readBoundFile = async (binding: { path: string; sha256: string }) => {
+    const bytes = await readFile(join(rootDir, binding.path));
+    if (sha256(bytes) !== binding.sha256) throw new Error(`frozen document digest mismatch: ${binding.path}`);
+    return bytes;
+  };
+  const [handbookBytes, sourceListBytes, profileBytes] = await Promise.all([
+    readBoundFile(pkg.bindings.handbook),
+    readBoundFile(pkg.bindings.sourceList),
+    readBoundFile(pkg.bindings.capabilityProfile),
+  ]);
+  if (!handbookBytes.toString("utf8").includes(pkg.bindings.handbook.methodId)) {
+    throw new Error(`handbook method id missing: ${pkg.bindings.handbook.methodId}`);
+  }
+  const sourceList = Q1SourceListSchema.parse(JSON.parse(sourceListBytes.toString("utf8")));
+  const profile = CapabilityProfileSchema.parse(JSON.parse(profileBytes.toString("utf8")));
+  validateDevelopmentAnnotationPackageV2(pkg, sourceList, profile);
+  await verifyQ1SourceAuthorities(rootDir, sourceList);
+
+  const viewBySource = new Map(pkg.sourceViews.map((entry) => [entry.sourcePackageId, entry]));
+  const registryCache = new Map<string, { skills?: unknown }>();
+  for (const source of sourceList.developmentSources) {
+    if (source.authority.kind !== "local-sha256-registry-ref") continue;
+    const authority = source.authority;
+    let registry = registryCache.get(authority.registryPath);
+    if (!registry) {
+      registry = JSON.parse(await readFile(join(rootDir, authority.registryPath), "utf8")) as { skills?: unknown };
+      registryCache.set(authority.registryPath, registry);
+    }
+    if (!Array.isArray(registry.skills)) throw new Error(`source registry has no skills array: ${authority.registryPath}`);
+    const record = registry.skills.find((entry) =>
+      entry && typeof entry === "object" && (entry as { id?: unknown }).id === authority.registryRecordId) as { sourceFiles?: unknown } | undefined;
+    if (!record || !Array.isArray(record.sourceFiles)) throw new Error(`source registry record mismatch for ${source.sourcePackageId}`);
+    const expectedFiles = record.sourceFiles.map((entry) => z.object({
+      path: SafeRelativePathSchema,
+      sha256: Sha256Schema,
+    }).strict().parse(entry));
+    const view = viewBySource.get(source.sourcePackageId);
+    if (!view || view.access.kind !== "workspace-bound-files") throw new Error(`local source view missing: ${source.sourcePackageId}`);
+    const actualFiles = view.access.files.map((entry) => `${entry.workspacePath}:${entry.sha256}`).sort();
+    const expectedBindings = expectedFiles.map((entry) => `${entry.path}:${entry.sha256}`).sort();
+    if (JSON.stringify(actualFiles) !== JSON.stringify(expectedBindings)) {
+      throw new Error(`local annotation source view must bind the complete registry manifest: ${source.sourcePackageId}`);
+    }
+    for (const file of view.access.files) {
+      const marker = "/source/";
+      const markerIndex = file.workspacePath.indexOf(marker);
+      if (markerIndex < 0 || file.sourcePath !== file.workspacePath.slice(markerIndex + marker.length)) {
+        throw new Error(`local annotation source path mismatch: ${source.sourcePackageId}:${file.sourcePath}`);
+      }
+    }
+  }
+
+  let localFilesVerified = 0;
+  for (const view of pkg.sourceViews) {
+    if (view.access.kind !== "workspace-bound-files") continue;
+    for (const file of view.access.files) {
+      const bytes = await readFile(join(rootDir, file.workspacePath));
+      if (bytes.byteLength !== file.bytes || sha256(bytes) !== file.sha256) {
+        throw new Error(`annotation source view drift: ${file.workspacePath}`);
+      }
+      localFilesVerified += 1;
+    }
+  }
+
+  let remoteFilesVerifiedAtFreeze = 0;
+  if (pkg.bindings.remoteVerification) {
+    const reportBytes = await readBoundFile(pkg.bindings.remoteVerification);
+    const report = RemoteSourceVerificationReportV2Schema.parse(JSON.parse(reportBytes.toString("utf8")));
+    if (report.reportId !== pkg.bindings.remoteVerification.reportId) {
+      throw new Error(`remote verification report id mismatch: ${report.reportId}`);
+    }
+    const reportBySource = new Map(report.sources.map((entry) => [entry.sourcePackageId, entry]));
+    const remoteViews = pkg.sourceViews.filter((entry): entry is typeof entry & { access: z.infer<typeof RemoteSourceViewSchema> } =>
+      entry.access.kind === "commit-pinned-readonly");
+    if (report.sources.length !== remoteViews.length) throw new Error("remote verification report source denominator mismatch");
+    for (const view of remoteViews) {
+      const observed = reportBySource.get(view.sourcePackageId);
+      if (!observed || observed.repository !== view.access.repository
+        || observed.commit !== view.access.commit || observed.packageRoot !== view.access.packageRoot) {
+        throw new Error(`remote verification source mismatch: ${view.sourcePackageId}`);
+      }
+      const expectedFiles = view.access.files.map((entry) => `${entry.sourcePath}:${entry.gitBlob}:${entry.bytes}`).sort();
+      const observedFiles = observed.files.map((entry) =>
+        `${entry.sourcePath}:${entry.observedGitBlob}:${entry.observedBytes}`).sort();
+      if (JSON.stringify(expectedFiles) !== JSON.stringify(observedFiles)) {
+        throw new Error(`remote verification file mismatch: ${view.sourcePackageId}`);
+      }
+      if (observed.license.authorityPath !== view.access.license.authorityPath
+        || observed.license.observedSha256 !== view.access.license.sha256) {
+        throw new Error(`remote verification license mismatch: ${view.sourcePackageId}`);
+      }
+      remoteFilesVerifiedAtFreeze += observed.files.length;
+    }
+  }
+  return {
+    sourceCount: pkg.sourceViews.length,
+    unitCount: pkg.units.length,
+    localFilesVerified,
+    remoteFilesVerifiedAtFreeze,
+    frozenDocumentDigestsVerified: pkg.bindings.remoteVerification ? 4 : 3,
+  };
+}
+
+async function readVerifiedAnnotationPackageRef(
+  rootDir: string,
+  ref: z.infer<typeof AnnotationPackageRefSchema>,
+): Promise<{ pkg: DevelopmentAnnotationPackageV2; packageSha256: string }> {
+  const packageBytes = await readFile(join(rootDir, ref.path));
+  const packageSha256 = sha256(packageBytes);
+  if (packageSha256 !== ref.sha256) throw new Error(`annotation package digest mismatch: ${ref.sha256}`);
+  const pkg = DevelopmentAnnotationPackageV2Schema.parse(JSON.parse(packageBytes.toString("utf8")));
+  if (pkg.packageId !== ref.packageId) throw new Error(`annotation package id mismatch: ${ref.packageId}`);
+  await verifyDevelopmentAnnotationPackageV2(rootDir, pkg);
+  return { pkg, packageSha256 };
+}
+
+export async function verifyBlankAnnotationFormV2(
+  rootDir: string,
+  rawForm: BlankAnnotationFormV2 | unknown,
+): Promise<{ sourceCount: number; unitCount: number }> {
+  const form = BlankAnnotationFormV2Schema.parse(rawForm);
+  const { pkg, packageSha256 } = await readVerifiedAnnotationPackageRef(rootDir, form.annotationPackage);
+  return validateBlankAnnotationFormV2(form, pkg, packageSha256);
+}
+
+export async function verifyAnnotationSubmissionV2(
+  rootDir: string,
+  rawSubmission: AnnotationSubmissionV2 | unknown,
+): Promise<{ sourceCount: number; unitCount: number; predictionsValidated: number }> {
+  const submission = AnnotationSubmissionV2Schema.parse(rawSubmission);
+  const { pkg, packageSha256 } = await readVerifiedAnnotationPackageRef(rootDir, submission.annotationPackage);
+  const profileBytes = await readFile(join(rootDir, pkg.bindings.capabilityProfile.path));
+  const profile = CapabilityProfileSchema.parse(JSON.parse(profileBytes.toString("utf8")));
+  return validateAnnotationSubmissionV2(submission, pkg, profile, packageSha256);
+}
+
+export async function verifyAnnotationBatchV2(
+  rootDir: string,
+  rawBatch: AnnotationBatchV2 | unknown,
+): Promise<ReturnType<typeof summarizePreAdjudicationAgreementV2>> {
+  const batch = AnnotationBatchV2Schema.parse(rawBatch);
+  const { pkg, packageSha256 } = await readVerifiedAnnotationPackageRef(rootDir, batch.annotationPackage);
+  const profileBytes = await readFile(join(rootDir, pkg.bindings.capabilityProfile.path));
+  const profile = CapabilityProfileSchema.parse(JSON.parse(profileBytes.toString("utf8")));
+  return summarizePreAdjudicationAgreementV2(batch, pkg, profile, packageSha256);
 }
