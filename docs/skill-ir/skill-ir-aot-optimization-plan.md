@@ -1,6 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-09-06
+**最后更新：** 2026-09-07
+
+**当前执行入口：第 4.41 节。** 真实 Q1 标注与 API production binding development 是当前两条接力线；随后依次冻结、前瞻迁移、第二 profile 复用和 Q4/Q5 收口。早期逐案例、跨模型及第 5 节时间表保留为历史，不能覆盖当前队列。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -1907,7 +1909,36 @@ development denominator 后的裁决前一致率。若未来授权 Q3，再单�
 **停止点：** v2 包通过机器验证后停在 annotation-ready。真实 A/B 标注、裁决和一致率仍未开始；下一检查点是两位真人分别完成并冻结原始
 submission。Q3 必须等待 development 方法与对应构造器/checker 另行稳定和冻结。
 
-## 5. 时间估算
+### 4.41 已确认的分类扩展与受限自动化执行路线
+
+**依据：** 用户 2026-09-07 确认；spec 第 14.12 节约束主张与分母。
+[规模分析](sample-scale-and-automation-scope-analysis-2026-09-07.md)提供代码及文献依据；本节是活跃顺序，不新增冻结合同或实验结果。
+
+| 顺序 | 工作与交付 | 验收及下一步 |
+|---|---|---|
+| 1A Q1 真实标注 | 两位真人在既有 v2 12-source/24-unit 包上分别提交；先冻结再统计与裁决 | 原始提交完整，报告 overall/per-source、混淆表与维度分歧；规则变化另开版本 |
+| 1B Q2 API 开发，可与 1A 并行 | 按既有 API production binding 设计/实施计划完成普通参数入口、明确支持/拒绝、独立 checker、development 报告 | 开发输入不需逐任务代码/映射/模板修复；旧冻结资产不变；两份 fixture 不是前瞻或跨 skill 证据 |
+| 2 方法与构造冻结 | 复核手册可独立应用、支持特性、checker、全部声明要求、未覆盖职责与平台/profile/skill/task 成本 | 形成可区分版本；不直接改 Q1 绑定 snapshot 或 readiness；冻结后才能准备未见评价 |
+| 3 Q3 初检及扩展研究 | 保留原 12 prospective 分类配额及 3×4 迁移初检设计；新增规模另立 identity | 资源目标：分类总量48–60来源/8–12原始仓库；主profile约20–30真实新输入+10–20边界；均非统计充分性保证，原分母不回写 |
+| 4 第二 profile 复用 | 检验已有前端/runtime/原语能复用多少；按缺口决定 Env/Changelog 的具体顺序 | 新 backend 开发与冻结构造器接入成功分列；主张共同家族须有未见 skill/组合验证，再决定第三 profile 或大扫描 |
+| 5 Q4/Q5 | 用独立任务与真实参与者测编写/审核修复；同步论文、支持矩阵、CLI、独立操作者复现 | 新生成器绑定新 Q4 identity；失败保留；Q4 未测不阻塞自动构造独立结论，Q5 不额外产生泛化证据 |
+
+近期交接清单：
+
+- [x] 确认适度扩样、优先构造能力及三层迁移的路线并同步权威文档；
+- [x] Q1 v2 发放包与空白表已存在；API 设计/文件级计划已提交（9d8371e/0b8cb69）；
+- [ ] Q1 两份真实原始 submission 与裁决前统计；
+- [ ] API development 实现、独立 checker、零模型报告与冻结资产非回归；
+- [ ] 稳定版本下预注册接纳、拒绝、覆盖、失败和分层人工指标；直接脚本/成熟工具获得相同公开信息与质量检查；
+- [ ] 新任务只换数据、未见 skill 接入、原语新组合分别验证；不把 JSON/YAML 双表示算独立 skill；
+- [ ] 扩展来源另立开发/未见评价身份与 lineage 去重，边界输入单报；
+- [ ] 第二 profile 的共同机制复核以及有证据的 Q4/Q5 收口。
+
+API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)、
+[实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)。本轮只同步文档，不执行该计划或选择 prospective。
+真实标注等待期间应推进已授权 API development，不继续堆叠无新构造能力的 schema/治理层，也不因想扩大语料而推迟现有试点。
+
+## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。
 

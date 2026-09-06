@@ -241,6 +241,8 @@ development 标注包也已冻结。真实独立标注尚未开始；prospective
 
 ## 当前下一步
 
+2026-09-07 已确认：真实 Q1 标注与 API production binding development 并行接力；随后稳定并冻结方法/构造器、前瞻迁移、第二 profile 复用，再完成 Q4/Q5。详细顺序以 [plan 第4.41节](skill-ir-aot-optimization-plan.md) 为准，主张边界以 [spec 第14.12节](skill-ir-aot-optimization-spec.md) 为准。
+
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
   -> B 旧 identity = negative-smoke-frozen；无活动付费任务
@@ -256,13 +258,14 @@ P3：干净源码 checkout 复现 Env + API Tester 金路径（已完成，同�
 Q1：分类手册与来源清单（v2 发放包已完成；独立标注未开始）
   -> 12 development + 12 reserved prospective；5 个独立仓库；按 lineage 去重
   -> 12-source/24-unit 完整分母、A/B 空白表、四字段/四状态、语义影响与依赖一致性
-Q2：类别能力映射（现状盘点已完成；新输入构造未开始）
+Q2：类别能力映射（现状盘点已完成；API production binding 设计/计划已落盘）
   -> 21 capabilities；API/Env=existing-slice-only；Changelog=unsupported
   -> operation existence 不等于 validated composition；new-input-ready=0/3
 ```
 
-方法案例数量不固定，7 是当前分类表覆盖的冻结案例数，不代表未来 portfolio 只允许 7 个。最终用户不需要逐 skill 手工分析；方法开发期允许人工审核声明式
-adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`coreBranchDelta` 和未自动化步骤。
+方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。
+
+优先执行[API开发设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)。新输入只换普通参数；新skill接入和原语新组合另测。人工adapter/contract、模板、规则和review均记录时间与改动；最终用户无需逐skill语义适配是待验证目标，不能写成当前事实。
 
 ## 权威文档
 
@@ -274,6 +277,7 @@ adapter/contract，但必须记录人工时间、LOC、artifact 复用率、`cor
 | `classification-handbook-v2.md` | Q1 v2 requirement/step 分类规则、完整分母绑定、语义影响图、独立标注流程和固定统计。 |
 | `q1-development-annotation-package-v2.md` | 12-source/24-unit 可发放包、A/B 空白表、远端固定内容视图和机器验证说明。 |
 | `classification-and-automation-next-stage-proposal.md` | Q1--Q5 的设计依据、三层自动化边界、取样与前瞻迁移路线。 |
+| `sample-scale-and-automation-scope-analysis-2026-09-07.md` | 已确认路线的代码/文献依据、扩样资源建议、完整职责与切片边界、Q1–Q5效果上限。 |
 | `project-reassessment-2026-09-06.md` | 触发本轮口径修正、分类校准与后续重排的项目复核报告。 |
 | `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |

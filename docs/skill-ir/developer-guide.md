@@ -137,8 +137,9 @@ readiness 也不会因为命令能运行就自动获得授权。
 5. **Q1 分类准备（v2 发放包已完成，标注未开始）：** 12 个 development 源包已拆为 24 个冻结单位，A/B
    空白表绑定相同 package digest；另 12 个 prospective 名额保持 `reserved-unselected`。下一步才是两位真人分别
    提交并冻结，不能制造两份 AI 标签充当独立标注。
-6. **Q2 当前能力图（盘点已完成，构造未开始）：** 21 项 capability、3 个 profile、`new-input-ready=0/3`；
-   API/Env 只到 `existing-slice-only`，Changelog 为 `unsupported`。这不授权 Q3 新输入矩阵。
+6. **Q2 构造开发（API设计/计划已落盘）：** 21 项 capability、3 个 profile、`new-input-ready=0/3`；
+   API/Env 的冻结snapshot仍为 `existing-slice-only`，Changelog 为 `unsupported`。按[API设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)推进已授权development，不把计划完成或两份开发fixture当作Q3/新skill接入证据。
+7. **后续路线：** 方法与构造器稳定后冻结，再做前瞻迁移和第二profile复用；真实Q1标注等待期间可推进API。扩样保留原12+12合同，另立identity；48–60来源/8–12原始仓库、主profile20–30真实输入+10–20边界是资源建议，不能替代统计设计。见[执行计划第4.41节](skill-ir-aot-optimization-plan.md)和[路线依据](sample-scale-and-automation-scope-analysis-2026-09-07.md)。
 
 顶层 `src/index.ts` 保持历史字节不变；面向用户的 `bin/skvm.js` 负责 `artifact` 动态路由，其他旧命令继续进入原有
 `src/index.ts`/compiled binary。主线 B 旧 paid identity 已在 smoke 失败后冻结，不能补跑；successor 目前只有设计权限，
@@ -150,10 +151,11 @@ readiness 也不会因为命令能运行就自动获得授权。
 |---|---|---|---|
 | 主线 C：两条源码金路径 | API/Env 共享底层 artifact 能力；提交 `3bd7618` 的 fresh detached worktree 已同机通过 Env/API JSON | 不把不同完整编排写成同一产品合同，不把依赖冻结 checkout 的 preset 写成任意 skill 独立安装或跨平台产品 | `src/cli/artifact.ts`、`src/skill-ir/verified-artifact-presets.ts`、`docs/skill-ir/clean-source-gold-path-reproduction.md` |
 | 主线 B：旧 operation projection | 只读公开 OpenAPI/spec 与 development task；schema、normalization、operation-sequence parity 和负结果已冻结 | 不把 projection 称为 HTTP execution trace；不以 exact 代替质量；不把 0/0 自动窗口分钟写成人工减少；同 identity 不重跑 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts`、`src/benchmarks/skill-ir/api-tester-trace-paid-run.ts`、`docs/skill-ir/api-tester-trace-public-answer-protocol.md` |
-| Q1/Q2：分类与能力边界 | 校验 24-unit 完整分母、四组依据/四状态、语义影响依赖、来源/许可证 digest 和 capability snapshot；维护三 profile 缺口图 | 不选择 prospective、不伪造独立标注、不实现新 backend/DSL、不把 operation existence 写成新输入 composition | `src/benchmarks/skill-ir/task-automation-classification.ts`、`benchmarks/skill-ir/classification/`、`docs/skill-ir/classification-handbook-v2.md`、`docs/skill-ir/q1-development-annotation-package-v2.md` |
+| Q1：分类与能力快照 | 校验24-unit分母与v2提交，保留原始标签；只读维护现状证据 | 不选择prospective、不伪造独立标注、不回写冻结capability/handbook/package | `src/benchmarks/skill-ir/task-automation-classification.ts`、`benchmarks/skill-ir/classification/`、`docs/skill-ir/classification-handbook-v2.md` |
+| Q2：API生产构造 | 按既有API设计/计划新增development生产binding、独立checker和入口 | 不改旧research compiler/scorer/lock/package，不扩DSL，不把新输入成功写成未知skill自动接入或更新readiness | `docs/superpowers/specs/2026-09-07-api-tester-production-binding-design.md`、`docs/superpowers/plans/2026-09-07-api-tester-production-binding.md` |
 
 这些线会复用部分现有产物和 deterministic runtime，但证据含义不同：C 是产品工程接入，B 是研究协议准备，Q1/Q2 是
-运行前分类与能力盘点。任何一条线都不能
+运行前分类、冻结能力盘点及独立版本的构造开发。任何一条线都不能
 自动修改 portfolio/readiness，也不能把“0 model token 的 artifact 热路径”改写成“优化后的 LLM 更稳定”。
 
 ## 2. 第一次进入项目
@@ -1733,6 +1735,8 @@ mutation-fail 都能在零付费环境中重演；paid smoke 同时证明 operat
 就绪；v2 又补齐 24-unit 完整分母、版本摘要和语义影响依赖，但这仍只证明标注准备可复核，不证明分类预测有效。
 下一判定点是两位独立标注者分别保存原始提交，再计算总体/分来源一致率、四状态混淆表和四证据维度分歧；不是补跑旧 B
 四行、选择 prospective、执行 Q3 或启动付费。
+
+并行工程接力是已授权的API production binding development；其支持合同、独立checker和开发报告按现有设计/计划验收。方法和构造稳定后才冻结并安排前瞻迁移、第二profile复用与独立操作者交付。活跃顺序见plan第4.41节，不能把这里的标注检查点误解为所有工程开发都必须等待真人结果。
 
 ## 18. 继续阅读
 
