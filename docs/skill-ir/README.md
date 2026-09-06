@@ -73,7 +73,7 @@ development 标注包也已冻结。真实独立标注尚未开始；prospective
   dynamic Final IR，也没有改变其 fidelity-preserving 分类。
 - 研究脚本已经能完成各阶段实验；P2 现已补上独立的通用 `external-skill-import` library/CLI，用于把人工声明的 source/review/evidence closure 冻结成可迁移 staging bundle，再交给既有 verified-artifact product CLI。它不是独立 runtime，也不自动发现 Git source 或递归依赖。
 - 主线 C 已补齐 `skvm artifact` 顶层分流：Env Manager machine-checked 与 API Tester JSON/YAML preset 共享
-  底层 artifact 能力，但完整编排不同——API preset 直接调用冻结 compiler/package/runtime，Env preset 调用既有
+  底层 artifact 能力，但完整编排不同——API `--variant` 直接调用冻结 compiler/package/runtime，Env preset 调用既有
   product runner。source checkout 使用 Bun entrypoint，npm 安装由
   `bin/skvm.js` 分流到 `bin/skvm-artifact` companion；standalone tarball 应直接调用 companion，原生 `bin/skvm`
   仍不识别 artifact。companion 不内嵌 benchmark 数据，`--root` 仍须指向包含冻结 fixture/lock/package
@@ -83,7 +83,10 @@ development 标注包也已冻结。真实独立标注尚未开始；prospective
   operation-sequence projection 为 `exact`，但 deterministic scorer 有三个质量 criterion 失败，因此按 stop-loss
   冻结 `negative-smoke-frozen`，其余 3 行未执行且不补跑。报告中的三个 calls 字段都按已分发 agent task row
   计数为 1；同一行观测到 10 个 provider responses 和 15 个 tool calls，不能解释成一次底层模型 API 往返。
-  authoring/review 的 0/0 只表示自动运行窗口内无人介入，不是降人工对照。这些证据不改变 portfolio/readiness。
+  authoring/review 的 0/0 只表示自动运行窗口内无人介入，不是降人工对照。API 又新增 `--binding` production 模式：
+  普通 input/output 参数驱动同一 generator 与独立 checker，在 JSON/YAML 两份公开 development 新输入上 2/2 通过，
+  `modelCalls=apiCalls=paidCalls=0`。该候选的支持范围、package 和 checker 边界见
+  [`api-tester-production-binding.md`](api-tester-production-binding.md)；这些证据不改变 portfolio/readiness。
 - Q1/Q2 已新增 v2 strict annotation contract：12 个 development 源包来自 5 个独立仓库，另 12 个 prospective 名额
   保持 `reserved-unselected`；24-unit 完整分母、A/B 空白表、四组依据、手册/来源/能力摘要和依赖图均已绑定。
   来源核验覆盖 34 个本地文件；4 个远端固定 commit 已通过 Git 对象复核 23 个包文件和 4 份 license。当前能力图含
@@ -258,14 +261,15 @@ P3：干净源码 checkout 复现 Env + API Tester 金路径（已完成，同�
 Q1：分类手册与来源清单（v2 发放包已完成；独立标注未开始）
   -> 12 development + 12 reserved prospective；5 个独立仓库；按 lineage 去重
   -> 12-source/24-unit 完整分母、A/B 空白表、四字段/四状态、语义影响与依赖一致性
-Q2：类别能力映射（现状盘点已完成；API production binding 设计/计划已落盘）
+Q2：类别能力映射（冻结盘点已完成；API production binding development 候选已实现）
   -> 21 capabilities；API/Env=existing-slice-only；Changelog=unsupported
   -> operation existence 不等于 validated composition；new-input-ready=0/3
+  -> snapshot 后 API 明确子集的两份公开新输入 2/2；0 model/API/paid；不回写 snapshot
 ```
 
 方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。
 
-优先执行[API开发设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)。新输入只换普通参数；新skill接入和原语新组合另测。人工adapter/contract、模板、规则和review均记录时间与改动；最终用户无需逐skill语义适配是待验证目标，不能写成当前事实。
+API development 已按[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成两输入零调用证据；下一检查点是对[组件边界](api-tester-production-binding.md)和冻结候选做独立复核。新skill接入和原语新组合另测。人工adapter/contract、模板、规则和review均记录时间与改动；最终用户无需逐skill语义适配仍是待验证目标，不能写成当前事实。
 
 ## 权威文档
 
@@ -280,6 +284,7 @@ Q2：类别能力映射（现状盘点已完成；API production binding 设计/
 | `sample-scale-and-automation-scope-analysis-2026-09-07.md` | 已确认路线的代码/文献依据、扩样资源建议、完整职责与切片边界、Q1–Q5效果上限。 |
 | `project-reassessment-2026-09-06.md` | 触发本轮口径修正、分类校准与后续重排的项目复核报告。 |
 | `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
+| `api-tester-production-binding.md` | API Tester 普通参数 production binding、支持/拒绝范围、package、独立 checker、CLI 与 development 证据。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |
 | `claim-evidence-table.md` | 当前可用于报告/论文的最窄主张、权威证据、覆盖范围和禁止外推。 |
 | `skill-ir-aot-optimization-spec.md` | 当前研究契约、claim、证据边界和成功条件。 |

@@ -1,7 +1,7 @@
 # API Tester 通用生产 Binding 设计
 
 **日期：** 2026-09-07  
-**状态：** 已按用户授权的推荐方向进入 development 实现  
+**状态：** development 实现与两输入零调用证据已完成，等待边界复核/冻结
 **identity：** `skill-ir-api-tester-production-binding-development-001`
 
 ## 1. 目标
@@ -119,6 +119,7 @@ artifact/
   package-manifest.json
   package-provenance.json
   binding.json
+  public-contract.json
   validation-policy.json
   artifacts/scripts/api-test-generate.mjs
   artifacts/checks/api-test-check.mjs
@@ -130,7 +131,7 @@ manifest 至少绑定：identity、binding/input digest、generator/checker dige
 
 1. 再验 binding/input digest；
 2. generator 写 plan 和 report；
-3. checker 从公开 OpenAPI 独立重建义务并验证 plan/report；
+3. checker 从控制器冻结的规范化公开合同独立验证 plan/report；
 4. 再验 protected input digest；
 5. 写 checker report 和统一 `cli-report.json`。
 
@@ -143,12 +144,14 @@ generator 与 checker 是不同 entrypoint、不同 bundle、不同 digest。che
 - 不导入 generator；
 - 不调用 generator 的 `planFor`；
 - 不读取 gold、task prompt、evaluator payload 或冻结 fixture registry；
-- 直接从 workdir 中的公开 OpenAPI 派生 operation/constraint/security/response 义务；
+- 从控制器由公开 OpenAPI 派生并冻结的 `public-contract.json` 读取 operation/constraint/security/response 义务；
 - 对 plan 做 operation coverage、schema-derived cases、security/response、case independence 检查；
 - 对 report 做 case count、verification status、binding/input digest grounding 检查；
 - 输出固定 machine-readable validation report。
 
-共享的是公开的 support-contract 版本和数据 schema，不共享生成结果。checker 不能退化为 package hash 或 exact output byte comparison。
+共享的是公开的 support-contract 版本、规范化 public contract 和数据 schema，不共享生成结果。控制器在执行前后另行复核
+原始 JSON/YAML 的 protected-input digest；checker 本身不是第二套 YAML/JSON parser，也不能退化为 package hash 或 exact
+output byte comparison。
 
 ## 9. Development 验证
 
@@ -164,7 +167,10 @@ generator 与 checker 是不同 entrypoint、不同 bundle、不同 digest。che
 - production 与旧 `--variant` CLI 分支互斥且旧分支测试继续通过；
 - `modelCalls=apiCalls=paidCalls=0`。
 
-这组 development 证据只把 API Tester profile 从“固定两条切片回放”推进到“明确子集内的通用 production binding 候选”。它不自动修改 Q2 capability snapshot 的 readiness；正式状态变更需在证据冻结后单独复核。
+这组 development 证据已由 `results/skill-ir/api-tester-production-binding-development-001/report.json` 冻结为两份公开
+JSON/YAML 新输入 2/2、`modelCalls=apiCalls=paidCalls=0`。它只把 API Tester profile 从“固定两条切片回放”推进到
+“明确子集内的通用 production binding 候选”，不自动修改 Q2 capability snapshot 的 readiness；正式状态变更需在
+候选边界复核和另行冻结后决定。
 
 ## 10. 失败处理与后续修改
 

@@ -1917,7 +1917,7 @@ submission。Q3 必须等待 development 方法与对应构造器/checker 另行
 | 顺序 | 工作与交付 | 验收及下一步 |
 |---|---|---|
 | 1A Q1 真实标注 | 两位真人在既有 v2 12-source/24-unit 包上分别提交；先冻结再统计与裁决 | 原始提交完整，报告 overall/per-source、混淆表与维度分歧；规则变化另开版本 |
-| 1B Q2 API 开发，可与 1A 并行 | 按既有 API production binding 设计/实施计划完成普通参数入口、明确支持/拒绝、独立 checker、development 报告 | 开发输入不需逐任务代码/映射/模板修复；旧冻结资产不变；两份 fixture 不是前瞻或跨 skill 证据 |
+| 1B Q2 API 开发，可与 1A 并行（已完成 development） | 普通参数入口、明确支持/拒绝、独立 checker 和两输入零调用报告已落盘 | 2/2 输入不需逐任务代码/映射/模板修复；旧冻结资产不变；两份 fixture 不是前瞻或跨 skill 证据；下一步进入 2 的复核/冻结 |
 | 2 方法与构造冻结 | 复核手册可独立应用、支持特性、checker、全部声明要求、未覆盖职责与平台/profile/skill/task 成本 | 形成可区分版本；不直接改 Q1 绑定 snapshot 或 readiness；冻结后才能准备未见评价 |
 | 3 Q3 初检及扩展研究 | 保留原 12 prospective 分类配额及 3×4 迁移初检设计；新增规模另立 identity | 资源目标：分类总量48–60来源/8–12原始仓库；主profile约20–30真实新输入+10–20边界；均非统计充分性保证，原分母不回写 |
 | 4 第二 profile 复用 | 检验已有前端/runtime/原语能复用多少；按缺口决定 Env/Changelog 的具体顺序 | 新 backend 开发与冻结构造器接入成功分列；主张共同家族须有未见 skill/组合验证，再决定第三 profile 或大扫描 |
@@ -1928,15 +1928,18 @@ submission。Q3 必须等待 development 方法与对应构造器/checker 另行
 - [x] 确认适度扩样、优先构造能力及三层迁移的路线并同步权威文档；
 - [x] Q1 v2 发放包与空白表已存在；API 设计/文件级计划已提交（9d8371e/0b8cb69）；
 - [ ] Q1 两份真实原始 submission 与裁决前统计；
-- [ ] API development 实现、独立 checker、零模型报告与冻结资产非回归；
+- [x] API development 实现、独立 checker、两份公开输入 2/2 零模型报告与冻结资产非回归；
 - [ ] 稳定版本下预注册接纳、拒绝、覆盖、失败和分层人工指标；直接脚本/成熟工具获得相同公开信息与质量检查；
 - [ ] 新任务只换数据、未见 skill 接入、原语新组合分别验证；不把 JSON/YAML 双表示算独立 skill；
 - [ ] 扩展来源另立开发/未见评价身份与 lineage 去重，边界输入单报；
 - [ ] 第二 profile 的共同机制复核以及有证据的 Q4/Q5 收口。
 
 API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)、
-[实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)。本轮只同步文档，不执行该计划或选择 prospective。
-真实标注等待期间应推进已授权 API development，不继续堆叠无新构造能力的 schema/治理层，也不因想扩大语料而推迟现有试点。
+[实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)、
+[组件文档](api-tester-production-binding.md)。development 报告位于
+`results/skill-ir/api-tester-production-binding-development-001/report.json`；两份公开输入 2/2、0 model/API/paid，
+不选择 prospective、不回写 snapshot。下一步是复核支持边界和冻结构造候选；真实标注仍等待真人提交，不继续堆叠
+无新构造能力的 schema/治理层，也不因想扩大语料而推迟现有试点。
 
 ## 5. 历史时间估算（不作为当前排期）
 

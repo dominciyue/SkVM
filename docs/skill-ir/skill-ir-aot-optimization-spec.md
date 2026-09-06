@@ -1914,12 +1914,16 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 
 工程主 profile 在 development 稳定后，可另立约 20–30 个独立真实新输入及 10–20 个边界输入的迁移研究。原 3 profile × 4 input 仍是初检设计，不能直接支撑低失败率。边界 mutation、同输入格式变体、同仓库相关样本和不同 profile 应分别计数；更强可靠性主张须按独立抽样、容许失败率和置信区间另定规模。扩样不得抢占尚未解决的构造前端开发，也不以大规模元数据扫描代替语义真值或任务执行。
 
-**工程优先项。** API 通用生产绑定的 development 设计及文件级计划已落盘，分别见
-[API 设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)和
-[API 实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)。按其既有范围新增生产合同、独立 checker 和入口；保留旧研究 compiler/scorer/lock/package。两份开发 fixture 仅建立 development 候选，不能计为未见 skill、替代后续迁移规模或直接改写 Q2 0/3 snapshot。
+**工程优先项。** API 通用生产 binding 已按 development [设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)
+和[实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成 additive 生产合同、独立 checker、入口和
+零调用报告；完整边界见[组件文档](api-tester-production-binding.md)。
+`results/skill-ir/api-tester-production-binding-development-001/report.json` 记录同一 generator/checker 在两份公开 JSON/YAML
+新输入上 2/2 通过，`modelCalls=apiCalls=paidCalls=0`；旧研究 compiler/scorer/lock/package 保持不变。两份 fixture
+仅建立明确 OpenAPI 子集内的 development 候选，不能计为未见 skill、prospective、替代后续迁移规模或直接改写 Q2
+0/3 snapshot。
 
 **Q2/Q3 验收。** 除构造通过，还须预先记录接纳预测，报告接纳覆盖、接纳后失败、具体拒绝原因、人工修复结果和分层成本；全拒绝不得呈现为自动化成功。checker 验证公开义务而非复制生成结果，保留 alternative-valid 与错误 mutation。加入直接脚本/成熟工具的同信息、同质量对照，测适配劳动、重复代码、配置错误或可追溯性。声称跨 skill/共同家族时，另需冻结导入器下的新 skill/组合试验；不是另造 Q6。
 
 **阶段结论上限。** Q1 交付方法、独立标签与分歧；Q2 交付有边界的构造实现；Q3 交付冻结后的预测用途与迁移/拒绝证据；Q4 只交付本参与者/本任务下真实人工效果，不声称一般人群或理论最低人工；Q5 交付论文、CLI、支持矩阵与独立操作者复现。跨平台需实际验证。全部工作包结束不保证结果为正，更不自动建立任意自然语言 skill 的完整自动编译。
 
-**当前边界。** 本次确认路线和文档同步，不执行新增样本选择、真实 session、Q3/Q4、模型/付费实验或 readiness 晋级。API development 沿既有已授权设计推进；真实标注需真实人员，不能用模型替代。方法与对应构造器/checker 稳定并冻结之后，才能按独立研究身份推进前瞻评价。历史停止条款不得误用于阻止已授权的 API development，也不得反向视为所有实验已获授权。
+**当前边界。** 本次完成 API development 实现与文档同步，不执行新增样本选择、真实 session、Q3/Q4、模型/付费实验或 readiness 晋级。真实标注需真实人员，不能用模型替代。API 候选仍需边界复核和方法/构造冻结；之后才能按独立研究身份推进前瞻评价。历史停止条款不得误用于阻止已授权的 API development，也不得反向视为所有实验已获授权。

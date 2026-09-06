@@ -190,6 +190,6 @@ API 可比较直接生成器；Schemathesis 仅在双方共同支持的生成/�
 
 Q1/Q2 已按本提案实现为独立机器合同：v2 分类单位是 requirement/workflow step，四组证据字段导出四状态；12 个 development 源包已按 commit、package root、license 与 manifest 冻结并拆为 24 个完整单位，A/B 空白表绑定同一 package digest；另 12 个 prospective 名额保持未选择、未查看。语义影响目标必须存在并由依赖路径承接，真实 submission 会复算 prediction。API Tester、Env Manager、Changelog 的 21-capability 能力图与最小构造路径已落盘。权威实施说明见 [`classification-handbook-v2.md`](classification-handbook-v2.md) 和 [`q1-development-annotation-package-v2.md`](q1-development-annotation-package-v2.md)，机器数据见 `benchmarks/skill-ir/classification/`。
 
-当前只创建了两份全空的 A/B 发放表，没有真实标注者结果，也没有报告一致率、分类覆盖率或迁移成功率。未来裁决前统计已固定为总体、分来源、四状态混淆表和四证据维度分歧。三个 profile 的 `new-input-ready` 均为 false；API/Env 只支持历史切片，Changelog backend/checker/comparator 仍缺失。operation 存在、历史 fixture 通过和 runtime 可运行均不能替代新输入 composition 证据。
+当前只创建了两份全空的 A/B 发放表，没有真实标注者结果，也没有报告一致率、分类覆盖率或迁移成功率。未来裁决前统计已固定为总体、分来源、四状态混淆表和四证据维度分歧。冻结 snapshot 中三个 profile 的 `new-input-ready` 均为 false；API/Env 为历史切片，Changelog backend/checker/comparator 仍缺失。snapshot 之后的 API additive production binding 已在明确 OpenAPI 子集内以两份公开 development 新输入 2/2 通过独立 checker、0 model/API/paid；这只是 development 候选，不回写 snapshot，也不是 prospective、跨 skill 或迁移成功率证据。operation 存在、历史 fixture 通过和 runtime 可运行仍不能替代对应范围的新输入 composition 证据。
 
 本阶段没有运行效果实验、模型/API/付费调用、参与者 session、held-out 或历史矩阵，没有修改 core/DSL/artifact/scorer、旧 lock/result、portfolio 或 readiness。Q3 的 prospective 来源选择与 12-task 构造矩阵、Q4 的 B successor 人工实验均须另行授权；若 Q2 后续改变生成器或公开合同，Q4 必须使用新 identity。

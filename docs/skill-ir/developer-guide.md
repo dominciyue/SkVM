@@ -137,8 +137,12 @@ readiness 也不会因为命令能运行就自动获得授权。
 5. **Q1 分类准备（v2 发放包已完成，标注未开始）：** 12 个 development 源包已拆为 24 个冻结单位，A/B
    空白表绑定相同 package digest；另 12 个 prospective 名额保持 `reserved-unselected`。下一步才是两位真人分别
    提交并冻结，不能制造两份 AI 标签充当独立标注。
-6. **Q2 构造开发（API设计/计划已落盘）：** 21 项 capability、3 个 profile、`new-input-ready=0/3`；
-   API/Env 的冻结snapshot仍为 `existing-slice-only`，Changelog 为 `unsupported`。按[API设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)推进已授权development，不把计划完成或两份开发fixture当作Q3/新skill接入证据。
+6. **Q2 构造开发（API development 候选已实现）：** 21 项 capability、3 个 profile、`new-input-ready=0/3`
+   是冻结 snapshot；API/Env 当时为 `existing-slice-only`，Changelog 为 `unsupported`。snapshot 之后按
+   [API设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与
+   [实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)新增普通参数 binding、明确支持/拒绝合同、
+   独立 checker，并在两份公开 development 新输入上 2/2、0 model/API/paid。它不回写 snapshot，也不是 Q3、
+   prospective 或新 skill 接入证据。
 7. **后续路线：** 方法与构造器稳定后冻结，再做前瞻迁移和第二profile复用；真实Q1标注等待期间可推进API。扩样保留原12+12合同，另立identity；48–60来源/8–12原始仓库、主profile20–30真实输入+10–20边界是资源建议，不能替代统计设计。见[执行计划第4.41节](skill-ir-aot-optimization-plan.md)和[路线依据](sample-scale-and-automation-scope-analysis-2026-09-07.md)。
 
 顶层 `src/index.ts` 保持历史字节不变；面向用户的 `bin/skvm.js` 负责 `artifact` 动态路由，其他旧命令继续进入原有
@@ -152,7 +156,7 @@ readiness 也不会因为命令能运行就自动获得授权。
 | 主线 C：两条源码金路径 | API/Env 共享底层 artifact 能力；提交 `3bd7618` 的 fresh detached worktree 已同机通过 Env/API JSON | 不把不同完整编排写成同一产品合同，不把依赖冻结 checkout 的 preset 写成任意 skill 独立安装或跨平台产品 | `src/cli/artifact.ts`、`src/skill-ir/verified-artifact-presets.ts`、`docs/skill-ir/clean-source-gold-path-reproduction.md` |
 | 主线 B：旧 operation projection | 只读公开 OpenAPI/spec 与 development task；schema、normalization、operation-sequence parity 和负结果已冻结 | 不把 projection 称为 HTTP execution trace；不以 exact 代替质量；不把 0/0 自动窗口分钟写成人工减少；同 identity 不重跑 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts`、`src/benchmarks/skill-ir/api-tester-trace-paid-run.ts`、`docs/skill-ir/api-tester-trace-public-answer-protocol.md` |
 | Q1：分类与能力快照 | 校验24-unit分母与v2提交，保留原始标签；只读维护现状证据 | 不选择prospective、不伪造独立标注、不回写冻结capability/handbook/package | `src/benchmarks/skill-ir/task-automation-classification.ts`、`benchmarks/skill-ir/classification/`、`docs/skill-ir/classification-handbook-v2.md` |
-| Q2：API生产构造 | 按既有API设计/计划新增development生产binding、独立checker和入口 | 不改旧research compiler/scorer/lock/package，不扩DSL，不把新输入成功写成未知skill自动接入或更新readiness | `docs/superpowers/specs/2026-09-07-api-tester-production-binding-design.md`、`docs/superpowers/plans/2026-09-07-api-tester-production-binding.md` |
+| Q2：API生产构造 | 维护已实现的 development production binding、支持/拒绝合同、独立 checker 和 2/2 零调用报告；下一步复核冻结边界 | 不改旧 research compiler/scorer/lock/package，不扩 DSL，不把两输入成功写成未知 skill 自动接入、prospective 或 readiness | `docs/skill-ir/api-tester-production-binding.md`、`src/skill-ir/api-tester-production-*.ts`、`results/skill-ir/api-tester-production-binding-development-001/report.json` |
 
 这些线会复用部分现有产物和 deterministic runtime，但证据含义不同：C 是产品工程接入，B 是研究协议准备，Q1/Q2 是
 运行前分类、冻结能力盘点及独立版本的构造开发。任何一条线都不能
@@ -314,7 +318,11 @@ SkVM/
   src/skill-ir/                  IR schema、parser、validator、passes、lowering
     external-skill-import.ts     P2 显式闭包导入 library
     external-skill-import-cli.ts P2 导入 CLI
-    verified-artifact-presets.ts Env/API Tester product preset adapter
+    api-tester-production-contract.ts   production binding/OpenAPI 子集与规范化 public contract
+    api-tester-production-programs.ts   独立 generator/checker source programs
+    api-tester-production-artifact.ts   production package compiler/validator/serial runner
+    api-tester-production-development.ts 两输入零调用 development 报告
+    verified-artifact-presets.ts Env/API Tester 历史 variant 与 production binding adapter
   src/profiler/                  trace 和 profile annotation
   src/cli/                       顶层 artifact CLI 参数解析与结果输出
     artifact.ts                  `skvm artifact` dispatcher
@@ -362,11 +370,12 @@ packages/                        编译后的 artifact package
 |---|---|---|---|
 | `bin/skvm.js` | npm/source 顶层 shim | `artifact` 动态分流到 source TypeScript 或 npm 安装的 `skvm-artifact` companion；其他命令保持旧路由 | 不负责产品逻辑；不因为入口可运行就推导研究晋级 |
 | `src/index.ts` | SkVM 通用 CLI 实现 | `profile`、`aot-compile`、`pipeline`、`run`、`bench`、`jit-optimize`、`proposals`、`clean-jit`、`logs`、`config` | 该文件保持历史字节不变；直接 `bun run src/index.ts artifact` 仍不是受支持入口 |
-| `src/cli/artifact.ts` | verified-artifact preset CLI | 解析 `--preset=env-manager|api-tester`、API Tester variant、路径安全和完成时间，输出 `cli-report.json` | 只支持 `machine-checked`，不读取 key、不 dispatch 模型 |
+| `src/cli/artifact.ts` | verified-artifact preset CLI | 解析 `--preset=env-manager|api-tester`、API Tester `--variant`/`--binding`、路径安全和完成时间，输出 `cli-report.json` | 只支持 `machine-checked`，不读取 key、不 dispatch 模型 |
 | `src/skill-ir/verified-artifact-cli.ts` | verified-artifact 产品链 CLI | 解释 workflow config，串起 `compile -> review-or-accept -> package -> run -> cost` | 它不是独立 runtime，也不会自动导入隐式依赖 |
 | `src/skill-ir/external-skill-import-cli.ts` | P2 staging bundle 导入器 | 按 recipe 复制显式 source/review/checker/evidence 闭包并生成 manifest | 不联网、不发现依赖、不执行模型或 product |
 | `src/benchmarks/skill-ir/verified-artifact-product-e1.ts` | Env Manager A-optional 产品 runner | 在新 workdir 上重建 machine-checked artifact，并复核历史 digest-bound 分母 | 不重跑历史 original，不改变 portfolio/readiness |
-| `src/skill-ir/verified-artifact-presets.ts` | Env/API Tester preset adapter | Env 通过既有 source product CLI 做 machine-checked replay；API Tester 做 JSON/YAML 编译、package parity、deterministic runtime | 复用历史 digest-bound evidence，不重跑 original、不改变 portfolio/readiness |
+| `src/skill-ir/verified-artifact-presets.ts` | Env/API Tester preset adapter | Env 通过既有 source product CLI 回放；API `--variant` 做冻结编译/parity/runtime；API `--binding` 做普通参数 production package 与独立检查 | development production 候选不等于 arbitrary OpenAPI、prospective 或 readiness |
+| `src/skill-ir/api-tester-production-*.ts` | API Tester production binding | 解析明确 OpenAPI 子集、冻结 normalized public contract、编译 exact-closure package、串行生成/独立检查并冻结两输入报告 | 不修改旧 research compiler/scorer/lock/package；checker 不是第二套 YAML/JSON parser |
 | `src/benchmarks/skill-ir/api-tester-artifact-development-run.ts` | API Tester 专用 development runner | 仍可用于既有 artifact development `plan`/qualification/execute 合同 | 不是 trace/public-answer 协议，也不能代替跨模型研究主表 |
 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts` | API Tester trace/public-answer 协议 | 公开 OpenAPI canonicalizer、strict trace、parity checker、零付费 dry-run | 不读取 raw/model text、gold、evaluator payload 或 held-out |
 | `src/benchmarks/skill-ir/stage-n-cross-model-panel-run.ts` | Stage N 预注册 panel runner | 读取 lock、生成 Stage 0 plan、审计既有 smoke | 当前 smoke 已失败、matrix 未创建；不要用它重跑或付费 |
@@ -572,7 +581,7 @@ node bin/skvm.js artifact `
   --completed-at=<ISO-8601>
 ```
 
-也可以直接调用 source entrypoint：
+也可以直接调用 source entrypoint。下面的 `--variant` 是历史冻结回放：
 
 ```powershell
 bun run ./src/cli/artifact.ts `
@@ -584,12 +593,39 @@ bun run ./src/cli/artifact.ts `
   --completed-at=<ISO-8601>
 ```
 
-`--preset=api-tester` 必须显式选择 `openapi-json` 或 `openapi-yaml`。两种 preset 都只运行 artifact
+新的 production binding 接受普通的 workdir-relative input/output 参数。binding 文件在 `--root` 内，原始 OpenAPI
+文件必须已位于新的 `--workdir`；`--out` 必须不存在或为空：
+
+```powershell
+$work = '.skvm/api-production-books'
+$out = '.skvm/api-production-books-out'
+New-Item -ItemType Directory -Force -Path $work | Out-Null
+Copy-Item -Recurse -Force ./src/skill-ir/fixtures/api-tester-production/books/* $work
+
+bun run ./src/cli/artifact.ts `
+  --preset=api-tester `
+  --binding=src/skill-ir/fixtures/api-tester-production/books/binding.json `
+  --root=. `
+  --workdir=$work `
+  --out=$out `
+  --completed-at=<ISO-8601>
+```
+
+这里不提供 task id、prompt、gold、逐任务模板或人工字段映射。成功后，workdir 中出现 binding 声明的 plan/report；
+out 中出现 `artifact/` exact-closure package、`validation-report.json` 和 `cli-report.json`。控制器从原始 JSON/YAML
+冻结规范化 `public-contract.json` 并在执行前后复核输入 digest；不同 source program 的 checker 消费该公开合同，
+不导入 generator，也不比较 exact gold plan。完整支持/拒绝范围见
+[`api-tester-production-binding.md`](api-tester-production-binding.md)。
+
+历史 API Tester 模式必须显式选择 `--variant=openapi-json|openapi-yaml`；production 模式必须显式提供
+`--binding=<binding.json>`，两者互斥。所有 preset 都只运行 artifact
 侧和 checker，不重跑历史 original；输出 `cli-report.json` 的 `accounting` 应保持
 `modelCalls=0`、`apiCalls=0`、`paidCalls=0`，并给出 `coreBranchDelta=0`。`--root` 下的 workdir/out
-必须是不同的、空的目录；路径逃逸、未知参数和非 `machine-checked` 模式会 fail closed。Env 既有配置位于
+必须是不同目录；所有 out 必须为空，历史 variant 的 workdir 必须为空，production workdir 则预先放入声明的输入且
+plan/report 尚不存在。路径逃逸、未知参数和非 `machine-checked` 模式会 fail closed。Env 既有配置位于
 `benchmarks/skill-ir/pilots/env-manager/verified-artifact-product-machine-checked.json`，API Tester
-package compiler 与冻结包位于 `benchmarks/skill-ir/pilots/api-tester/`。
+历史 package compiler 与冻结包位于 `benchmarks/skill-ir/pilots/api-tester/`；production binding 实现与公开 fixture
+位于 `src/skill-ir/api-tester-production-*.ts` 和 `src/skill-ir/fixtures/api-tester-production/`。
 
 旧的 API Tester artifact development runner 仍可用于既有 plan/qualification/execute 合同；它与统一 preset
 和 trace/public-answer 协议是不同层。需要研究 runner 时仍先只生成 plan，不执行模型：
@@ -691,9 +727,11 @@ results/skill-ir/stage-n-cross-model-aot-stability-001/smoke-qualification.json
 
 1. `node bin/skvm.js artifact --help` 成功，并同时运行一个旧命令的 help；这证明 artifact 分流可用且旧入口
    没有被吞掉。`src/index.ts` 仍保持历史字节不变，不应直接接收 `artifact`。
-2. 用第 5.7 节的顶层命令分别运行 Env Manager 与一个 API Tester variant。两次都应在全新的
-   workdir/out 下生成 `cli-report.json`，且 `status=passed`、`accounting.modelCalls/apiCalls/paidCalls` 全为 `0`、
-   `coreBranchDelta=0`。需要覆盖格式兼容时，再把 API Tester variant 切为另一种 JSON/YAML 格式。
+2. 用第 5.7 节的顶层命令运行 Env Manager、一个历史 API Tester variant 和一份 API Tester production binding。
+   三次都应在全新的 workdir/out 下生成 `cli-report.json`，且 `status=passed`、
+   `accounting.modelCalls/apiCalls/paidCalls` 全为 `0`、`coreBranchDelta=0`。production 输出还应包含
+   `validation-report.json`，并显示 generator/checker digest 不同。需要覆盖格式兼容时，再用另一份 JSON/YAML
+   fixture；不要把两种表示计成两个 skill。
 3. 运行第 10.8 节的 API Tester trace/public-answer dry-run；它只应产生固定 4 rows，并保持
    `modelCalls=apiCalls=paidCalls=0`。不要运行旧 artifact-development runner 的 qualification/execute，也不要
    读取 API key。
@@ -1725,6 +1763,7 @@ not-eligible，不能据此修改 research authority。
 | 已冻结负结果 | B operation projection 首行 exact，但独立 scorer 三项失败；旧 calls=1 是 dispatched row 单位，0/0 minutes 是无人介入窗口 | 不补跑、不换 route |
 | 已设计未执行 | B successor 已固定 8-row 平衡交叉、前瞻计时、同一 scorer 与拆分成本单位；task set=`not-authored` | 不招募/启动参与者、不生成效果结论；新执行需单独授权 |
 | Q1/Q2 发放准备完成 | v2 手册、12-source/24-unit package、A/B 空白表、远端 Git-object 复核和 21-capability/3-profile 能力图可确定性校验；`new-input-ready=0/3` | 两位真人分别提交并保留原始文件；Q3 prospective 选择与构造矩阵另立阶段 |
+| Q2 development 候选 | API production binding 已以普通 path/format/output 参数在两份公开 JSON/YAML 新输入上 2/2 通过独立 checker；0 model/API/paid | 冻结 snapshot 仍为 `new-input-ready=0/3`；先复核方法/支持边界，不直接进入 Q3、第二 profile 或 readiness |
 | 明确关闭 | 新 B 付费、Stage N matrix、Stage M 旧 identity、held-out、readiness/portfolio 晋级、新 skill、DSL | 等用户对新实验单独授权 |
 
 主线 C 的当前 checkout 与同机 fresh detached worktree 验收均已完成，但 API 与 Env 的完整编排不同；
@@ -1736,7 +1775,10 @@ mutation-fail 都能在零付费环境中重演；paid smoke 同时证明 operat
 下一判定点是两位独立标注者分别保存原始提交，再计算总体/分来源一致率、四状态混淆表和四证据维度分歧；不是补跑旧 B
 四行、选择 prospective、执行 Q3 或启动付费。
 
-并行工程接力是已授权的API production binding development；其支持合同、独立checker和开发报告按现有设计/计划验收。方法和构造稳定后才冻结并安排前瞻迁移、第二profile复用与独立操作者交付。活跃顺序见plan第4.41节，不能把这里的标注检查点误解为所有工程开发都必须等待真人结果。
+并行工程接力的 API production binding development 已完成实现与两输入零调用报告；准确合同见
+[`api-tester-production-binding.md`](api-tester-production-binding.md)。下一工程检查点是复核支持/拒绝边界并冻结候选，
+不是继续加 DSL、选择 prospective 或自行启动 Q3。Q1 仍等待两位真人提交；不能把标注检查点误解为所有工程开发都必须
+等待，也不能用工程 2/2 代替真实分类标注。
 
 ## 18. 继续阅读
 
@@ -1755,6 +1797,7 @@ mutation-fail 都能在零付费环境中重演；paid smoke 同时证明 operat
 - P2 external-skill import：`docs/skill-ir/external-skill-import.md`
 - Stage N 跨模型 smoke 合同与结果边界：`docs/skill-ir/stage-n-cross-model-aot-stability-panel.md`
 - API Tester trace/public-answer 协议与 dry-run：`docs/skill-ir/api-tester-trace-public-answer-protocol.md`
+- API Tester 通用 production binding：`docs/skill-ir/api-tester-production-binding.md`
 - API Tester 人工投入 successor 设计：`docs/skill-ir/api-tester-human-effort-successor.md`
 - 阶段历史：`docs/skill-ir/history.md`
 
