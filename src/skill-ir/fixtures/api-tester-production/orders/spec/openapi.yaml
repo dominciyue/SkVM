@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: Orders API
+  version: 1.0.0
+components:
+  securitySchemes:
+    ordersKey:
+      type: apiKey
+      in: header
+      name: X-Orders-Key
+paths:
+  /orders:
+    get:
+      security:
+        - ordersKey: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, shipped]
+      responses:
+        "200": { description: Orders }
+        "400": { description: Bad query }
+        "401": { description: Unauthorized }
+    post:
+      security:
+        - ordersKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customerEmail]
+              properties:
+                customerEmail:
+                  type: string
+                  format: email
+                amount:
+                  type: number
+                  minimum: 0.01
+                  maximum: 9999
+      responses:
+        "201": { description: Created }
+        "400": { description: Invalid order }
+        "401": { description: Unauthorized }

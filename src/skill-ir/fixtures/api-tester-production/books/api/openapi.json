@@ -1,0 +1,48 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Books API", "version": "1.0.0" },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer" }
+    }
+  },
+  "paths": {
+    "/books": {
+      "post": {
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": {
+                  "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+                  "edition": { "type": "integer", "minimum": 1, "maximum": 100 },
+                  "genre": { "type": "string", "enum": ["fiction", "reference"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created" },
+          "400": { "description": "Invalid book" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/books/{bookId}": {
+      "get": {
+        "parameters": [
+          { "in": "path", "name": "bookId", "required": true, "schema": { "type": "string", "minLength": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Book" },
+          "404": { "description": "Not found" }
+        }
+      }
+    }
+  }
+}
