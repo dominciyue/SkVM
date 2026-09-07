@@ -9,7 +9,9 @@
 
 本清单只使用 `skill-ir-api-tester-constructor-prospective-001` 首轮已经公开并冻结的四份真实输入。它们自首轮执行后均已暴露，只能作为 development 材料，不能再次计作 unseen input。输入字节、上游 commit、路径和许可证摘要继续以旧 lock 为准；旧 candidate、lock、runner 和 `first-run-report.json` 不修改。
 
-首轮 0/4 real admission 的三行 `$ref` 拒绝发生在 v1 的全局预检阶段，五行 `checkerStatus` 均为 `not-run`。因此它证明的是 v1 的第一拒绝面，不是 checker 失败，也没有展示 `$ref` 之后的全部阻塞。
+首轮 0/4 real admission 的三行 `$ref` 拒绝发生在 v1 的全局预检阶段；完整 4 real + 4 boundary 共八行的
+`checkerStatus` 均为 `not-run`。因此它证明的是 v1 的第一拒绝面，不是 checker 失败，也没有展示 `$ref` 之后的
+全部阻塞。
 
 ## 2. 只读结构结果
 
