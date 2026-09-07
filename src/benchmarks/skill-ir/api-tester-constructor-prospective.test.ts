@@ -138,4 +138,51 @@ describe("API Tester constructor prospective freeze", () => {
     expect(() => ApiTesterProspectiveFirstRunReportSchema.parse({ ...report, rows: report.rows.slice(1) }))
       .toThrow(/8|denominator/iu);
   });
+
+  test("accepts the committed immutable first-run negative result", async () => {
+    const report = ApiTesterProspectiveFirstRunReportSchema.parse(JSON.parse(await readFile(
+      join(rootDir, "results", "skill-ir", "api-tester-constructor-prospective-001", "first-run-report.json"),
+      "utf8",
+    )));
+    expect(report).toMatchObject({
+      status: "completed",
+      freeze: {
+        commit: "aa3a08819e220b5584ffd32cccea24884e50d2e7",
+        verifiedBeforeRun: true,
+      },
+      denominator: {
+        planned: 8,
+        attempted: 8,
+        accepted: 0,
+        rejected: 8,
+        checkerFailed: 0,
+        infrastructureFailed: 0,
+      },
+      predictionParity: { exact: 8, outcomeOnly: 0, mismatch: 0 },
+      costs: {
+        construction: { modelCalls: 0, apiCalls: 0, paidCalls: 0 },
+        humanModification: { totalMinutes: 0, historicalBackfill: false },
+      },
+      evidenceBoundary: {
+        completesOriginalQ1: false,
+        provesHumanAgreement: false,
+        provesClassificationAccuracy: false,
+        provesReliability: false,
+        provesHumanSavings: false,
+        changesReadiness: false,
+      },
+    });
+    expect(report.strata.realPublicInputs).toEqual({
+      accepted: 0,
+      rejected: 4,
+      checkerFailed: 0,
+      infrastructureFailed: 0,
+    });
+    expect(report.strata.syntheticBoundaryCases).toEqual({
+      accepted: 0,
+      rejected: 4,
+      checkerFailed: 0,
+      infrastructureFailed: 0,
+    });
+  });
 });

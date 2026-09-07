@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-07
 
-**当前已确认路线：** 第 14.13 节把工程迁移与原 Q1 真人一致性实验解耦：原 Q1 继续保持未完成，现有 AI revision-2 材料只形成 development routing；冻结 API Tester 构造候选和 4+4 前瞻小样后，才允许唯一首轮执行。第 14.12 节保留为原研究设计，早期跨模型、逐案例扩展与时间估算不构成当前执行队列。
+**当前已确认路线：** 第 14.13 节把工程迁移与原 Q1 真人一致性实验解耦：原 Q1 继续保持未完成，现有 AI revision-2 材料只形成 development routing。API Tester 4+4 唯一首轮已冻结为真实输入 0/4 accepted 的 bounded negative result；若继续，只能以新 candidate 与新未见输入处理实际缺口，再决定第二 profile。第 14.12 节保留为原研究设计，早期跨模型、逐案例扩展与时间估算不构成当前执行队列。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -1942,3 +1942,5 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 **冻结与成本。** 输入锁、候选 snapshot、预测和执行器必须先提交并推送到 `origin/skill-ir-aot`；runner 验证锁字节来自该远端祖先提交后才可运行，首轮报告只允许创建一次。AI analysis 记为 project runner 未测；construction 与 run/check 时间分开，模型/API/付费调用固定为 0；实际人工修改分钟独立记录。没有真人协议时不得声称人工节省、作者转审核者或一般可靠性。
 
 **后续边界。** 4+4 是构造器 development 的首个前瞻小样，不是原 3 profile × 4 input、20–30 真实输入规模、跨 profile 复用、可靠性、held-out 或 readiness 证据。失败必须作为负结果冻结；不能为出正例改候选、换 route、补行或复用同一输入。后续扩展只可针对实际缺口建立新候选身份和新未见输入，再决定第二 profile。
+
+**首轮冻结结果。** 推送冻结提交 `aa3a08819e220b5584ffd32cccea24884e50d2e7` 后，唯一执行完成 8/8：真实公开输入 accepted/rejected=`0/4`，合成边界 accepted/rejected=`0/4`，checker/infrastructure failure 均为 0；8 个实际拒绝码与执行前 prediction 全部 exact。真实输入中 Open-Meteo 命中 `UNSUPPORTED_SCHEMA`，另三份命中 `UNSUPPORTED_REFERENCE`。construction=122ms、run/check=0ms、actual human modification=0 observed minutes，model/API/paid=0，AI analysis=`not-measured`。该结果证明当前拒绝面可被前瞻观测，同时是 0/4 真实接纳的 bounded negative result；不能写成迁移成功、可靠性、人工节省或任意 OpenAPI 支持。

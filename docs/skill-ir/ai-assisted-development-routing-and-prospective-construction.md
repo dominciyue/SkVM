@@ -1,6 +1,6 @@
 # AI-assisted development routing and prospective construction
 
-Status: development protocol, 2026-09-07
+Status: immutable first run completed, 2026-09-07
 
 ## Purpose
 
@@ -60,6 +60,22 @@ Selection, byte digests, license digests, and predictions are frozen in the lock
 
 The report separates the two strata. Boundary behavior is implementation conformance; it cannot be used to inflate real-input admission.
 
+## Immutable first-run result
+
+The pushed freeze commit is `aa3a08819e220b5584ffd32cccea24884e50d2e7`. The runner verified that commit as an ancestor of `origin/skill-ir-aot`, matched the committed lock and candidate bytes, and rechecked all source, license, binding, and boundary digests before executing.
+
+The single allowed run completed all eight rows:
+
+| Stratum | Attempted | Accepted | Rejected | Checker failed | Infrastructure failed |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Real public input | 4 | 0 | 4 | 0 | 0 |
+| Synthetic boundary | 4 | 0 | 4 | 0 | 0 |
+| Total | 8 | 0 | 8 | 0 | 0 |
+
+All eight predictions matched the exact rejection code. Open-Meteo was rejected as `UNSUPPORTED_SCHEMA`; dpp, OpenWrt, and SignalK were rejected as `UNSUPPORTED_REFERENCE`. The four boundary cases matched `UNSUPPORTED_PARAMETER`, `UNSUPPORTED_SECURITY`, `UNSUPPORTED_REQUEST_BODY`, and `MISSING_REQUIRED_ERROR_RESPONSE` respectively.
+
+This is a bounded negative admission result: the frozen candidate admitted none of the four real public inputs. Exact rejection prediction and boundary conformance show that the declared rejection surface was observable; they do not turn rejection into migration success or establish reliability. The immutable report is `results/skill-ir/api-tester-constructor-prospective-001/first-run-report.json`.
+
 ## Cost accounting
 
 Costs are kept in separate fields:
@@ -69,11 +85,13 @@ Costs are kept in separate fields:
 - run/check: local deterministic execution duration;
 - actual human modification: prospective observed minutes and a note; zero means no human modification was observed, not that human work has been eliminated.
 
+The first run recorded 122 ms of construction, 0 ms of run/check after construction-time rejection, and 0 observed human-modification minutes. Model, API, and paid calls were all zero. AI analysis remains `not-measured`; the zero human-modification window is not a human-effort comparison.
+
 No human-savings claim is allowed without an actual human measurement protocol.
 
 ## Immutability and follow-up
 
-The first-run report is immutable evidence. A failure is frozen as a negative result. The current round does not permit candidate changes, route switching, replacement inputs, or follow-up retries.
+The first-run report is immutable evidence. Its 0/4 real-input admission is frozen as a negative result. The current round does not permit candidate changes, route switching, replacement inputs, or follow-up retries.
 
 Later expansion must respond to the observed gap with a new candidate identity, a new capability snapshot, and new unseen inputs. Reusing the same first-round inputs as a fresh prospective test is forbidden.
 

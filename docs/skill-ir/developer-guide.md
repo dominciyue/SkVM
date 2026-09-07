@@ -143,7 +143,7 @@ readiness 也不会因为命令能运行就自动获得授权。
    [实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)新增普通参数 binding、明确支持/拒绝合同、
    独立 checker，并在两份公开 development 新输入上 2/2、0 model/API/paid。它不回写 snapshot，也不是 Q3、
    prospective 或新 skill 接入证据。
-7. **当前工程路线：** 原 Q1 真人实验继续保持 incomplete，但不再阻塞 development。A/B revision-2 AI 材料只进入新 24-unit development routing identity；API candidate 与 4 real + 4 boundary lock 先提交推送，再运行唯一首轮。见[执行计划第4.42节](skill-ir-aot-optimization-plan.md)和[组件协议](ai-assisted-development-routing-and-prospective-construction.md)。
+7. **当前工程路线：** 原 Q1 真人实验继续保持 incomplete，但不再阻塞 development。A/B revision-2 AI 材料只进入新 24-unit development routing identity；API candidate 与 4 real + 4 boundary 已按“先推送冻结、后唯一执行”完成，结果为真实 accepted=0/4、边界 accepted=0/4、8/8 exact rejection。见[执行计划第4.42节](skill-ir-aot-optimization-plan.md)和[组件协议](ai-assisted-development-routing-and-prospective-construction.md)。
 
 顶层 `src/index.ts` 保持历史字节不变；面向用户的 `bin/skvm.js` 负责 `artifact` 动态路由，其他旧命令继续进入原有
 `src/index.ts`/compiled binary。主线 B 旧 paid identity 已在 smoke 失败后冻结，不能补跑；successor 目前只有设计权限，
@@ -157,7 +157,7 @@ readiness 也不会因为命令能运行就自动获得授权。
 | 主线 B：旧 operation projection | 只读公开 OpenAPI/spec 与 development task；schema、normalization、operation-sequence parity 和负结果已冻结 | 不把 projection 称为 HTTP execution trace；不以 exact 代替质量；不把 0/0 自动窗口分钟写成人工减少；同 identity 不重跑 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts`、`src/benchmarks/skill-ir/api-tester-trace-paid-run.ts`、`docs/skill-ir/api-tester-trace-public-answer-protocol.md` |
 | Q1：原真人分类实验 | 校验24-unit分母与v2提交，保留原始标签；以后有真人时仍可按原合同独立提交 | 不把 AI revision-2 草稿改名为真人 submission，不计算 agreement/accuracy，不回写 handbook/package | `src/benchmarks/skill-ir/task-automation-classification.ts`、`benchmarks/skill-ir/classification/`、`docs/skill-ir/classification-handbook-v2.md` |
 | AI development routing | 校验 24-unit AI 表的 package/draft/change digest、逐行 provenance 和 unknown；只用于工程 gap discovery | 不声称 human agreement、classification accuracy、Q1 completion 或 prospective validity | `src/benchmarks/skill-ir/ai-assisted-development-routing.ts`、`benchmarks/skill-ir/classification/ai-assisted-development-routing-v1.json` |
-| Q2：API生产构造与4+4首轮 | 维护 production binding；冻结 candidate source closure、4 real + 4 boundary 和 prediction；远端冻结提交后执行每行一次 | 不改旧Q2/research资产，不重试/换输入/为正例修候选，不把4+4写成可靠性、跨profile或readiness | `docs/skill-ir/ai-assisted-development-routing-and-prospective-construction.md`、`src/benchmarks/skill-ir/api-tester-constructor-prospective.ts` |
+| Q2：API生产构造与4+4首轮 | 首轮已 8/8 complete/exact rejection，真实输入0/4接纳；按报告复核 `$ref`/array 等实际缺口 | 同 identity 不重试/换输入/修候选；不把拒绝预测写成迁移成功或可靠性；新版本须新 identity/未见输入 | `docs/skill-ir/ai-assisted-development-routing-and-prospective-construction.md`、`results/skill-ir/api-tester-constructor-prospective-001/first-run-report.json` |
 
 这些线会复用部分现有产物和 deterministic runtime，但证据含义不同：C 是产品工程接入，B 是研究协议准备，Q1/Q2 是
 运行前分类、冻结能力盘点及独立版本的构造开发。任何一条线都不能
@@ -1765,7 +1765,7 @@ not-eligible，不能据此修改 research authority。
 | 已设计未执行 | B successor 已固定 8-row 平衡交叉、前瞻计时、同一 scorer 与拆分成本单位；task set=`not-authored` | 不招募/启动参与者、不生成效果结论；新执行需单独授权 |
 | 原 Q1 仍未完成 | v2 手册、12-source/24-unit package、A/B 空白表和 21-capability/3-profile 图保持可复核；`new-input-ready=0/3` | AI revision-2 不得代替真人 submission、agreement 或 accuracy；真人实验不再是工程 development 前置 |
 | AI development route | 24 个 unique unit 已绑定 A/B AI revision-2 草稿、change/provenance/unknown | 只供 gap discovery；不修改原 Q1/Q2 |
-| Q2 development 候选 | API production binding 两份 development 输入 2/2；candidate snapshot 与 4 real + 4 boundary prediction lock 已生成，当前 `not-run` | 先白名单提交并推送冻结点；随后只执行唯一 8 行，失败不修候选、不换输入、不补行 |
+| Q2 development 候选 | 提交 `aa3a088` 先冻结并推送；唯一 4+4 首轮为真实 0/4 accepted、边界 0/4 accepted、8/8 exact rejection，0 checker/infra failure | 本 identity 停止；若继续，以新 candidate/new inputs 处理 `$ref`/array，不重用本轮样本 |
 | 明确关闭 | 新 B 付费、Stage N matrix、Stage M 旧 identity、held-out、readiness/portfolio 晋级、新 skill、DSL | 等用户对新实验单独授权 |
 
 主线 C 的当前 checkout 与同机 fresh detached worktree 验收均已完成，但 API 与 Env 的完整编排不同；
@@ -1779,11 +1779,12 @@ mutation-fail 都能在零付费环境中重演；paid smoke 同时证明 operat
 API production binding 的 2/2 development 证据仍以
 [`api-tester-production-binding.md`](api-tester-production-binding.md)为准；新的
 [AI development routing 与前瞻构造协议](ai-assisted-development-routing-and-prospective-construction.md)把候选 closure、
-支持/拒绝和 4+4 prediction lock 绑定为独立身份。冻结提交必须先推送，之后才运行唯一首轮；首轮失败照录，不改候选、
-换 route 或补行。它不触碰原 Q1/Q2、held-out、第二 profile、portfolio/readiness，也不建立人工节省或可靠性结论。
+支持/拒绝和 4+4 prediction lock 绑定为独立身份。唯一首轮已在冻结提交推送后完成：真实输入 0/4 accepted，四个
+boundary 也都按预期拒绝，8 个 rejection code 全部 exact；这是一份 bounded negative admission result，不是迁移成功。
+它不触碰原 Q1/Q2、held-out、第二 profile、portfolio/readiness，也不建立人工节省或可靠性结论。
 
 验证冻结件时先运行两个 focused tests 和 typecheck；不要直接重写已存在的 JSON，因为 generator 使用 exclusive create。
-正式首轮只在冻结 commit 已推送后执行，并必须使用完整 SHA、外部 digest-verified cache 和绝对 Node 路径：
+下面命令是已完成首轮的复现说明，不得在同一 identity/output 上重跑。新 identity 的正式首轮仍只能在冻结 commit 已推送后执行，并必须使用完整 SHA、外部 digest-verified cache 和绝对 Node 路径：
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/ai-assisted-development-routing.test.ts ./src/benchmarks/skill-ir/api-tester-constructor-prospective.test.ts
@@ -1796,7 +1797,7 @@ bun ./src/benchmarks/skill-ir/api-tester-constructor-prospective-first-run.ts `
   --out=D:/skill优化/SkVM/results/skill-ir/api-tester-constructor-prospective-001/first-run-report.json
 ```
 
-runner 会先打印固定分母与 stop-loss，再验证远端祖先提交、lock/candidate/source closure、8 个 binding、4 个本地 boundary 和 4 份外部 source/license 字节。验证失败时停在结果文件创建之前，不能靠放宽 digest、修改候选或替换输入继续。
+runner 会先打印固定分母与 stop-loss，再验证远端祖先提交、lock/candidate/source closure、8 个 binding、4 个本地 boundary 和 4 份外部 source/license 字节。验证失败时停在结果文件创建之前，不能靠放宽 digest、修改候选或替换输入继续。本轮实际报告的 construction=122ms、run/check=0ms、actual human modification=0 observed minutes、model/API/paid=0；AI analysis 未测，0 分钟不等于已证明人工节省。
 
 ## 18. 继续阅读
 

@@ -244,7 +244,7 @@ development 标注包也已冻结。真实独立标注尚未开始；prospective
 
 ## 当前下一步
 
-2026-09-07 已确认：原 Q1 真人一致性实验继续保持未完成，但不再阻塞工程 development。现有 AI revision-2 材料只形成新身份的 24-unit development routing；API Tester 构造候选与 4 real + 4 boundary 首轮先冻结并推送，再做唯一前瞻执行。详细顺序以 [plan 第4.42节](skill-ir-aot-optimization-plan.md) 为准，主张边界以 [spec 第14.13节](skill-ir-aot-optimization-spec.md) 为准。
+2026-09-07 已完成新路线的首个闭环：原 Q1 真人一致性实验继续保持未完成，AI revision-2 只形成带 provenance 的 24-unit development routing；API Tester candidate 与 4 real + 4 boundary 在提交 `aa3a088` 先冻结并推送，唯一首轮随后完整执行。真实输入 0/4 accepted、边界 0/4 accepted，8/8 exact rejection prediction，0 checker/infra failure。详细口径以 [plan 第4.42节](skill-ir-aot-optimization-plan.md) 和 [spec 第14.13节](skill-ir-aot-optimization-spec.md) 为准。
 
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
@@ -265,15 +265,15 @@ Q2：类别能力映射（冻结盘点已完成；API production binding develop
   -> 21 capabilities；API/Env=existing-slice-only；Changelog=unsupported
   -> operation existence 不等于 validated composition；new-input-ready=0/3
   -> snapshot 后 API 明确子集的两份公开新输入 2/2；0 model/API/paid；不回写 snapshot
-Q2-D：AI-assisted development route 与 prospective constructor（冻结中）
+Q2-D：AI-assisted development route 与 prospective constructor（首轮已冻结）
   -> AI route=24 unique units，逐行 provenance/change/unknown；不是真人 Q1、agreement 或 accuracy
   -> candidate snapshot 绑定旧 Q2、support/rejection/generator/runtime/checker/source closure
-  -> prospective=4 real + 4 boundary，prediction-before-run，0 retry/replacement/fix；冻结提交推送前不执行
+  -> prospective=4 real + 4 boundary；8/8 rejected 且 exact，真实接纳=0/4；0 retry/replacement/fix
 ```
 
 方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。
 
-API development 已按[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成两输入零调用证据；新[AI development routing 与前瞻构造协议](ai-assisted-development-routing-and-prospective-construction.md)进一步冻结候选和 4+4 小样。当前 `resultState=not-run`；先提交并推送 lock/prediction/runner，再允许唯一执行。新 skill 接入、第二 profile 和原语新组合另测；最终用户无需逐 skill 语义适配、可靠性和人工节省仍是待验证目标。
+API development 已按[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成两输入零调用证据；新[AI development routing 与前瞻构造协议](ai-assisted-development-routing-and-prospective-construction.md)现已冻结首轮。8 个 prediction 全部 exact 只说明声明的拒绝面可预测；真实输入 0/4 accepted 是 bounded negative admission result。若继续，应以新 candidate identity 处理 `$ref`/array 等实际缺口并换用新未见输入；新 skill、第二 profile、可靠性和人工节省仍未建立。
 
 ## 权威文档
 

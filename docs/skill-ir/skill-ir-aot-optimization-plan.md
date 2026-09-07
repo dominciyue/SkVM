@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-07
 
-**当前执行入口：第 4.42 节。** 原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；现有 AI revision-2 材料只供新身份的 development routing。当前先冻结 API Tester 构造候选和 4+4 前瞻小样，推送冻结点后执行唯一首轮，再按实际缺口决定第二 profile。第 4.41 节保留为原研究设计，早期逐案例、跨模型及第 5 节时间表不能覆盖当前队列。
+**当前执行入口：第 4.42 节。** 原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；现有 AI revision-2 材料只供新身份的 development routing。API Tester 4+4 首轮已冻结为真实输入 0/4 accepted、8/8 exact rejection prediction；本 identity 停止。若继续，只能建立新 candidate 与新未见输入处理 `$ref`/array 等实际缺口，再决定第二 profile。第 4.41 节保留为原研究设计，早期逐案例、跨模型及第 5 节时间表不能覆盖当前队列。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -1950,11 +1950,13 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 3. [x] 冻结 `skill-ir-api-tester-constructor-candidate-001`，绑定旧 Q2 profile、当前 support/rejection、generator/runtime/checker/source closure，不修改旧 Q2；
 4. [x] 冻结 `skill-ir-api-tester-constructor-prospective-001` 的 4 real + 4 boundary 分母、license/content/binding digest 和 run-before-result prediction；
 5. [x] 实现 immutable first-run runner：远端祖先冻结提交校验、预算/stop-loss 输出、每行一次、0 retry/replacement/fix、全结果留分母、真实/边界和成本分报；
-6. [ ] 运行 focused/broad deterministic verification，显式白名单提交并推送冻结点；推送前不运行候选；
-7. [ ] 从 digest-verified offline cache 执行唯一 8 行，保存 immutable first-run report；失败照录，不修候选或补行；
-8. [ ] 用首轮实际结果同步 spec/plan/README/current status/developer guide/claim-evidence/handoff/communication/log，第二次白名单提交并推送。
+6. [x] 运行 focused/broad deterministic verification，32 个白名单文件提交为 `aa3a088` 并推送；执行前 `origin/skill-ir-aot...HEAD=0/0`；
+7. [x] 从 digest-verified offline cache 执行唯一 8 行，保存 immutable first-run report；8/8 rejected 且 exact prediction，不修候选或补行；
+8. [x] 用首轮实际结果同步 spec/plan/README/current status/developer guide/claim-evidence/handoff/communication/log，第二次白名单提交并推送。
 
-**当前停止点：** 第 6 项完成前 `resultState=not-run`。本轮 construction/run 是本地确定性执行，`modelCalls=apiCalls=paidCalls=0`；AI analysis 由 project runner 标为未测，实际人工修改单列。4+4 只识别当前候选的接纳/拒绝与 checker 行为，不证明可靠性、human savings、任意 OpenAPI、跨 skill/profile 或 readiness。
+**冻结结果：** 首轮 8/8 completed，真实公开输入 0 accepted/4 rejected，边界输入 0 accepted/4 rejected，0 checker/infrastructure failure；8 个 rejection code 与 prediction 全部 exact。construction=122ms、run/check=0ms、actual human modification=0 observed minutes，`modelCalls=apiCalls=paidCalls=0`，AI analysis=`not-measured`。这是当前候选 0/4 真实接纳的 bounded negative result，不证明可靠性、human savings、任意 OpenAPI、跨 skill/profile 或 readiness。
+
+**下一判定点：** 本 identity 停止。若继续 API profile，只能根据首轮实际缺口建立新 candidate identity，优先明确 `$ref` resolution 与 array schema 的支持/拒绝语义，并使用新的未见输入重新冻结；不能修好后复用本轮 4 个真实输入冒充第二次 prospective。第二 profile 仍在 API 缺口处理之后，需另行授权。
 
 ## 5. 历史时间估算（不作为当前排期）
 
