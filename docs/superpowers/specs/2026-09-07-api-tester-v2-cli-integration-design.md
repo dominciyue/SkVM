@@ -2,7 +2,7 @@
 
 **日期：** 2026-09-07
 
-**状态：** 用户已批准方向，implementation pending
+**状态：** 已实现并完成确定性验证；未进入 candidate/prospective
 
 ## 1. 目标与边界
 

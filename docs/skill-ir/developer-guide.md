@@ -145,7 +145,7 @@ readiness 也不会因为命令能运行就自动获得授权。
    prospective 或新 skill 接入证据。其后 successor v2 在不修改 v1 的前提下新增有限同文档 component `$ref`、
    primitive array 与 query `form` 编码，并让已暴露的 Open-Meteo 输入完成 parse → package → generate → checker；
    这仍是 development-only、非 unseen 的单输入证据。
-7. **当前工程路线：** 原 Q1 真人实验继续保持 incomplete，但不再阻塞 development。A/B revision-2 AI 材料只进入新 24-unit development routing identity；API candidate v1 与 4 real + 4 boundary 已按“先推送冻结、后唯一执行”完成，结果为真实 accepted=0/4、边界 accepted=0/4、8/8 exact rejection。v1 结果原样冻结；successor v2 只处理公开缺口并停止在一份已暴露 development 输入。见[执行计划第4.43节](skill-ir-aot-optimization-plan.md)、[缺口清单](api-tester-successor-gap-analysis.md)和[组件协议](api-tester-production-binding.md)。
+7. **当前工程路线：** 原 Q1 真人实验继续保持 incomplete，但不再阻塞 development。A/B revision-2 AI 材料只进入新 24-unit development routing identity；API candidate v1 与 4 real + 4 boundary 已按“先推送冻结、后唯一执行”完成，结果为真实 accepted=0/4、边界 accepted=0/4、8/8 exact rejection。v1 结果原样冻结；successor v2 只处理公开缺口并停止在一份已暴露 development 输入，现已通过 binding 内版本分发接入统一 CLI。见[执行计划第4.44节](skill-ir-aot-optimization-plan.md)、[缺口清单](api-tester-successor-gap-analysis.md)和[组件协议](api-tester-production-binding.md)。
 
 顶层 `src/index.ts` 保持历史字节不变；面向用户的 `bin/skvm.js` 负责 `artifact` 动态路由，其他旧命令继续进入原有
 `src/index.ts`/compiled binary。主线 B 旧 paid identity 已在 smoke 失败后冻结，不能补跑；人工投入 successor 仍只有设计
@@ -161,7 +161,7 @@ readiness 也不会因为命令能运行就自动获得授权。
 | Q1：原真人分类实验 | 校验24-unit分母与v2提交，保留原始标签；以后有真人时仍可按原合同独立提交 | 不把 AI revision-2 草稿改名为真人 submission，不计算 agreement/accuracy，不回写 handbook/package | `src/benchmarks/skill-ir/task-automation-classification.ts`、`benchmarks/skill-ir/classification/`、`docs/skill-ir/classification-handbook-v2.md` |
 | AI development routing | 校验 24-unit AI 表的 package/draft/change digest、逐行 provenance 和 unknown；只用于工程 gap discovery | 不声称 human agreement、classification accuracy、Q1 completion 或 prospective validity | `src/benchmarks/skill-ir/ai-assisted-development-routing.ts`、`benchmarks/skill-ir/classification/ai-assisted-development-routing-v1.json` |
 | Q2：API生产构造与4+4首轮 | 首轮已 8/8 complete/exact rejection，真实输入0/4接纳；按报告复核 `$ref`/array 等实际缺口 | 同 identity 不重试/换输入/修候选；不把拒绝预测写成迁移成功或可靠性；新版本须新 identity/未见输入 | `docs/skill-ir/ai-assisted-development-routing-and-prospective-construction.md`、`results/skill-ir/api-tester-constructor-prospective-001/first-run-report.json` |
-| Q2：API successor v2 development | 有限同文档 component `$ref`、query/body primitive array、两种 query form 编码；Open-Meteo 已暴露输入 1/1 parse-to-checker，0 model/API/paid | 不回写 v1 的 0/4；不是 unseen/prospective，不从单输入推出可靠性、人工节省、跨 profile 或 readiness；当前不接统一 CLI | `docs/skill-ir/api-tester-successor-gap-analysis.md`、`src/skill-ir/api-tester-production-*-v2.ts`、`results/skill-ir/api-tester-production-binding-successor-development-001/report.json` |
+| Q2：API successor v2 development | 有限同文档 component `$ref`、query/body primitive array、两种 query form 编码；Open-Meteo 已暴露输入 1/1 parse-to-checker，0 model/API/paid；统一 `--binding` 已按 schemaVersion 分发 v1/v2 | 不回写 v1 的 0/4；不是 unseen/prospective，不从单输入或 CLI 接入推出可靠性、人工节省、跨 profile 或 readiness | `docs/skill-ir/api-tester-successor-gap-analysis.md`、`src/skill-ir/api-tester-production-*-v2.ts`、`src/skill-ir/verified-artifact-presets.ts`、`results/skill-ir/api-tester-production-binding-successor-development-001/report.json` |
 
 这些线会复用部分现有产物和 deterministic runtime，但证据含义不同：C 是产品工程接入，B 是研究协议准备，Q1/Q2 是
 运行前分类、冻结能力盘点及独立版本的构造开发。任何一条线都不能
@@ -627,23 +627,43 @@ out 中出现 `artifact/` exact-closure package、`validation-report.json` 和 `
 不导入 generator，也不比较 exact gold plan。完整支持/拒绝范围见
 [`api-tester-production-binding.md`](api-tester-production-binding.md)。
 
-历史 API Tester 模式必须显式选择 `--variant=openapi-json|openapi-yaml`；production v1 模式必须显式提供
-`--binding=<binding.json>`，两者互斥。所有 preset 都只运行 artifact
+历史 API Tester 模式必须显式选择 `--variant=openapi-json|openapi-yaml`；production v1/v2 模式必须显式提供
+`--binding=<binding.json>`，由文件内 `schemaVersion` 选择对应 runner，未知、缺失或非字符串版本在输出创建前拒绝；
+`--binding` 与 `--variant` 互斥。所有 preset 都只运行 artifact
 侧和 checker，不重跑历史 original；输出 `cli-report.json` 的 `accounting` 应保持
 `modelCalls=0`、`apiCalls=0`、`paidCalls=0`，并给出 `coreBranchDelta=0`。`--root` 下的 workdir/out
 必须是不同目录；所有 out 必须为空，历史 variant 的 workdir 必须为空，production workdir 则预先放入声明的输入且
 plan/report 尚不存在。路径逃逸、未知参数和非 `machine-checked` 模式会 fail closed。Env 既有配置位于
 `benchmarks/skill-ir/pilots/env-manager/verified-artifact-product-machine-checked.json`，API Tester
-历史 package compiler 与冻结包位于 `benchmarks/skill-ir/pilots/api-tester/`；production v1 binding 实现与公开 fixture
-位于 `src/skill-ir/api-tester-production-*.ts` 和 `src/skill-ir/fixtures/api-tester-production/`。
+历史 package compiler 与冻结包位于 `benchmarks/skill-ir/pilots/api-tester/`；production v1/v2 binding 实现与公开 fixture
+位于 `src/skill-ir/api-tester-production-*.ts`、`src/skill-ir/fixtures/api-tester-production/` 和
+`src/skill-ir/fixtures/api-tester-production-v2/`。production `cli-report.json` 使用 result v2，并显式记录实际 binding
+schema 与 support contract；Env/历史 variant 仍为 result v1。
 
 #### 5.7.1 验证 API Tester successor v2（development-only）
 
-v2 是 additive successor，不是 `skvm artifact --binding` 的静默升级。它发布新的 binding、public-contract、program、
+v2 是 additive successor，不是 v1 parser 的静默升级。统一 `skvm artifact --binding` 只根据 binding 自带的
+`schemaVersion` 明确选择 v1 或 v2 runner。它发布新的 binding、public-contract、program、
 package 与 report schema，只扩大两个受控能力：实际消费位置中的同文档 `#/components/...` ref，以及 query/body
 primitive array。query array 只接受 `style=form`；`explode=true` 规范化为 repeated-value，`explode=false` 规范化为
 comma-separated。外部/悬空/循环/错误 kind/带 sibling 的 ref、path/header array、object/nested/composed item 和
 其他 serialization 仍在生成前稳定拒绝。
+
+普通 CLI 验收可使用仓库内 v2 合成 fixture：先将
+`src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/` 复制到新的 workdir，再执行：
+
+```powershell
+bun run ./src/cli/artifact.ts `
+  --preset=api-tester `
+  --binding=src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/binding.json `
+  --root=. `
+  --workdir=<fresh-workdir> `
+  --out=<fresh-output> `
+  --completed-at=<ISO-8601>
+```
+
+成功报告应是 `skill-ir-artifact-cli-result/v2`，binding 中应显示
+`skill-ir-api-tester-production-binding/v2` 与 `api-tester-openapi-subset-v2`，三项调用计数仍为 0。
 
 日常开发先运行合成 fixture 的确定性测试，不需要外部缓存：
 
@@ -769,13 +789,13 @@ results/skill-ir/stage-n-cross-model-aot-stability-001/smoke-qualification.json
 
 1. `node bin/skvm.js artifact --help` 成功，并同时运行一个旧命令的 help；这证明 artifact 分流可用且旧入口
    没有被吞掉。`src/index.ts` 仍保持历史字节不变，不应直接接收 `artifact`。
-2. 用第 5.7 节的顶层命令运行 Env Manager、一个历史 API Tester variant 和一份 API Tester production v1 binding。
-   三次都应在全新的 workdir/out 下生成 `cli-report.json`，且 `status=passed`、
+2. 用第 5.7 节的顶层命令运行 Env Manager、一个历史 API Tester variant，以及 production v1/v2 binding 各一份。
+   四次都应在全新的 workdir/out 下生成 `cli-report.json`，且 `status=passed`、
    `accounting.modelCalls/apiCalls/paidCalls` 全为 `0`、`coreBranchDelta=0`。production 输出还应包含
    `validation-report.json`，并显示 generator/checker digest 不同。需要覆盖格式兼容时，再用另一份 JSON/YAML
    fixture；不要把两种表示计成两个 skill。
 3. 若当前任务涉及 successor，再运行第 5.7.1 节的三个 v2 focused tests；普通上手不要求下载或重建已暴露的
-   Open-Meteo cache，也不把 v2 当作统一 CLI 已支持的模式。
+   Open-Meteo cache。CLI 的合成 v2 正例只验证工程路由，不增加真实迁移样本。
 4. 运行第 10.8 节的 API Tester trace/public-answer dry-run；它只应产生固定 4 rows，并保持
    `modelCalls=apiCalls=paidCalls=0`。不要运行旧 artifact-development runner 的 qualification/execute，也不要
    读取 API key。
@@ -1809,7 +1829,7 @@ not-eligible，不能据此修改 research authority。
 | 原 Q1 仍未完成 | v2 手册、12-source/24-unit package、A/B 空白表和 21-capability/3-profile 图保持可复核；`new-input-ready=0/3` | AI revision-2 不得代替真人 submission、agreement 或 accuracy；真人实验不再是工程 development 前置 |
 | AI development route | 24 个 unique unit 已绑定 A/B AI revision-2 草稿、change/provenance/unknown | 只供 gap discovery；不修改原 Q1/Q2 |
 | Q2 development 候选 | 提交 `aa3a088` 先冻结并推送；唯一 4+4 首轮为真实 0/4 accepted、边界 0/4 accepted、8/8 exact rejection，0 checker/infra failure | 本 identity 永久停止；缺口只由下行的新 v2 identity 处理，不重用本轮样本作 unseen |
-| Q2 successor v2 development | v1 三文件/lock/runner/report 原样保留；新 v2 合同支持有限 local component ref 与 primitive array，已暴露 Open-Meteo 1/1 parse-to-checker，0 model/API/paid | 保持 development-only；不把旧 0/4 改写成成功，不接统一 CLI，不扩样/第二 profile/Q4，不声称人工节省或 readiness |
+| Q2 successor v2 development | v1 三文件/lock/runner/report 原样保留；新 v2 合同支持有限 local component ref 与 primitive array，已暴露 Open-Meteo 1/1 parse-to-checker，0 model/API/paid；统一 CLI 已按 binding schemaVersion 分发 v1/v2 | 保持 development-only；不把旧 0/4 改写成成功，不扩样/第二 profile/Q4，不声称人工节省或 readiness |
 | 明确关闭 | 新 B 付费、Stage N matrix、Stage M 旧 identity、held-out、readiness/portfolio 晋级、新 skill、DSL | 等用户对新实验单独授权 |
 
 主线 C 的当前 checkout 与同机 fresh detached worktree 验收均已完成，但 API 与 Env 的完整编排不同；

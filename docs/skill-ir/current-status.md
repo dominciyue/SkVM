@@ -2,7 +2,7 @@
 
 当前定位：**以公开验证依据为组织原则，研究受限 skill 任务的确定性 AOT 转换与人工边界，并通过 SkVM 提供可复现的产物封装。** 三档答案可得性降级为回顾路由；当前 v2 方法按 requirement/workflow step 分别记录验证、构造、执行与剩余选择，再导出四状态。七案例仍是回顾性案例研究，不是前瞻预测证据。
 
-当前已确认路线：**原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；AI revision-2 只作为带 provenance 的 24-unit development route。API Tester 4+4 唯一首轮冻结为 0/4 真实接纳、4/4 边界拒绝；successor v2 已按完整 blocker 清单增加有限 local component ref 与 primitive array，并在已暴露 Open-Meteo 上完成 1/1 parse-to-checker。v1 负结果不改写，v2 也不构成新 prospective。** 权威约束见 spec 第 14.14 节、plan 第 4.43 节、[缺口清单](api-tester-successor-gap-analysis.md)和[组件说明](api-tester-production-binding.md)。
+当前已确认路线：**原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；AI revision-2 只作为带 provenance 的 24-unit development route。API Tester 4+4 唯一首轮冻结为 0/4 真实接纳、4/4 边界拒绝；successor v2 已按完整 blocker 清单增加有限 local component ref 与 primitive array，在已暴露 Open-Meteo 上完成 1/1 parse-to-checker，并由统一 CLI 按 binding 版本显式分发。v1 负结果不改写，v2 也不构成新 prospective。** 权威约束见 spec 第 14.15 节、plan 第 4.44 节、[缺口清单](api-tester-successor-gap-analysis.md)和[组件说明](api-tester-production-binding.md)。
 
 ## 三条主线
 
@@ -10,7 +10,7 @@
 |---|---|---|---|
 | A：分类与路由 | 七案例回顾表与 Q1 v2 发放包已冻结；新 AI development route 绑定 24 个 unit 的 revision-2 provenance/change/unknown | 两位真人独立标注、裁决前一致率、classification accuracy、原 Q1 completion | AI 表只服务工程 gap discovery；原 A/B 真人实验可另行完成，但不再作为当前构造开发前置 |
 | B：人工边界 | 旧 original 首行已冻结负结果；successor 的两臂、平衡交叉分母、前瞻区间计时、质量门和成本单位已机器化 | 4 个新 public development tasks、2 位独立实际参与者、真实 session 和人工减少结果 | 旧 identity 永久停止；successor 保持 `design-only-not-authorized`，任何真实参与者或付费执行需再次授权 |
-| C：工程交付 | Env/API 金路径可复现；API production v1 两份 development 输入 2/2；4+4 首轮 8/8 complete/exact rejection、真实 accepted=0/4；successor v2 的已暴露 Open-Meteo 1/1 parse-to-checker | 外部/循环 ref、完整 JSON Schema、任意 OpenAPI、新 unseen/prospective、独立操作者、跨 profile、可靠性、独立安装/跨平台 | v1 identity 永久停止；v2 停在 development，不接 CLI、不扩样；新 prospective 必须新 identity/新未见输入/单独授权 |
+| C：工程交付 | Env/API 金路径可复现；API production v1 两份 development 输入 2/2；4+4 首轮 8/8 complete/exact rejection、真实 accepted=0/4；successor v2 的已暴露 Open-Meteo 1/1 parse-to-checker；统一 CLI 可按 binding schemaVersion 运行 v1/v2 | 外部/循环 ref、完整 JSON Schema、任意 OpenAPI、新 unseen/prospective、独立操作者、跨 profile、可靠性、独立安装/跨平台 | v1 identity 永久停止；v2 停在 development，不扩样；新 prospective 必须新 identity/新未见输入/单独授权 |
 
 ## Q1/Q2 当前冻结点
 
@@ -39,7 +39,7 @@
 
 - Env 的 `break-even=1` 只属于现有 production model-token 口径：one-time 9358 tokens，相对 original 50502.5 tokens/run，首次复用覆盖一次性模型 token。它不包含历史研发、人工、货币价格或全部失败尝试，不是总经济回本。
 - API Tester 历史 4/4 是人工实现领域转换在冻结 development slice 上的质量正例。production v1 只在显式 OpenAPI 子集内以两个公开 development 输入 2/2 建立通用参数候选；successor v2 又在一个已暴露真实输入上建立有限 ref/array development 证据。三者都不是任意 OpenAPI、未知 skill 自动接入或前瞻泛化。
-- CLI 的 API `--variant` 直接运行冻结 compiler/package/runtime；API `--binding` 当前只运行 additive production v1 contract/package/独立 checker；successor v2 尚未接 CLI；Env preset 调用既有 product runner。它们共享部分底层能力，但完整编排、证据和支持范围不同。
+- CLI 的 API `--variant` 直接运行冻结 compiler/package/runtime；API `--binding` 从文件内 schemaVersion 显式选择 additive production v1/v2 contract/package/独立 checker，未知版本在输出创建前拒绝；Env preset 调用既有 product runner。它们共享部分底层能力，但完整编排、证据和支持范围不同。
 
 ## 当前顺序与边界
 
@@ -52,6 +52,7 @@
 5. 已完成：`aa3a088` 先推送候选/lock/prediction/runner，随后唯一执行 8 行；每行一次、0 retry/replacement/fix，所有 outcome 留分母。
 6. 已冻结：真实 0 accepted/4 rejected，boundary 0 accepted/4 rejected，8/8 exact rejection prediction；construction=122ms、run/check=0ms、human modification=0 observed minutes、model/API/paid=0、AI analysis 未测。
 7. 已完成：完整审计四份已暴露 real input；successor v2 只扩有限 local ref/primitive array，并用 Open-Meteo 完成一份零调用开发路径。该阶段不创建新实验分母。
-8. 当前停止：若继续 API prospective，必须新 candidate identity、新未见输入和独立授权；第二 profile、新 skill/组合、Q4/Q5 均另立身份。
+8. 已完成：routing builder tuple 类型修复且冻结 JSON/candidate digest 不变；统一 API binding CLI 已接入 v1/v2，production report 显式绑定实际 schema/support contract，历史 result v1 仍兼容。
+9. 当前停止：若继续 API prospective，必须新 candidate identity、新未见输入和独立授权；第二 profile、新 skill/组合、Q4/Q5 均另立身份。
 
 持续禁止：把 AI 草稿写成真人 Q1/一致率/准确率；复活 B 旧 identity；读取 held-out；启动 Stage M/N matrix；修改旧 lock/result/Q2；为正例改候选/scorer/artifact、换输入或补行；扩 DSL 或据此晋级 portfolio/readiness。

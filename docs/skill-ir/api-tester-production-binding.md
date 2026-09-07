@@ -7,8 +7,8 @@
 当前有两个彼此隔离的 development 身份：
 
 - v1：`skill-ir-api-tester-production-binding-development-001`，通过统一 CLI 接收 `--binding`；
-- successor v2：`skill-ir-api-tester-production-binding-successor-development-001`，只通过专用 development runner
-  验证有限同文档 component `$ref` 与 primitive array，尚未接入统一 CLI。
+- successor v2：`skill-ir-api-tester-production-binding-successor-development-001`，使用独立 v2 contract/package/runner，
+  同时已由统一 CLI 按 binding 自带的 `schemaVersion` 显式分发。
 
 二者都是 additive 产品候选，不修改旧的 API Tester research compiler、scorer、lock、冻结 package 或历史
 `--variant` 回放，也不改变 Q2 冻结 snapshot 的 `new-input-ready=0/3`。v2 也不覆盖或重新解释 v1 的冻结 4+4 结果。
@@ -34,7 +34,8 @@ bun run ./src/cli/artifact.ts `
 ```
 
 `--binding` 与历史 `--variant=openapi-json|openapi-yaml` 互斥。前者是本页描述的通用子集候选；后者仍是两份
-冻结 development fixture 的逐字节回放。
+冻结 development fixture 的逐字节回放。`--binding` 没有第二个版本 flag：CLI 从文件内读取
+`skill-ir-api-tester-production-binding/v1|v2`，未知、缺失或非字符串版本在创建输出前拒绝。
 
 执行前必须满足：
 
@@ -48,7 +49,8 @@ bun run ./src/cli/artifact.ts `
 
 ## 2. Binding schema
 
-CLI 当前接收的首版 schema 是 `skill-ir-api-tester-production-binding/v1`：
+CLI 同时接收冻结的 `skill-ir-api-tester-production-binding/v1` 和 additive
+`skill-ir-api-tester-production-binding/v2`，并按该字段选择对应 runner；不会用 v2 parser 静默替换 v1。首版外形如下：
 
 ```json
 {
@@ -70,6 +72,8 @@ CLI 当前接收的首版 schema 是 `skill-ir-api-tester-production-binding/v1`
 - `format` 仅允许 `json` 或 `yaml`，并必须与 `.json` 或 `.yaml`/`.yml` 扩展名一致。
 - 调用者只提供路径和格式，不提供 task id、prompt、gold plan、逐任务模板或人工字段映射。
 - binding、原始输入、generator、checker、package manifest 和运行输出均记录 SHA-256。
+- production binding 的 `cli-report.json` 使用 `skill-ir-artifact-cli-result/v2`，并同时记录实际 binding
+  `schemaVersion` 与 `supportContractId`；Env/历史 variant 仍输出 result v1，统一解析 schema 兼容两种报告。
 
 ## 3. 支持范围与稳定拒绝码
 
@@ -116,6 +120,18 @@ successor 使用 `skill-ir-api-tester-production-binding/v2`、`skill-ir-api-tes
   "input": { "path": "open-meteo/forecast.yml", "format": "yaml" },
   "outputs": { "plan": "generated/plan.json", "report": "generated/report.json" }
 }
+```
+
+将这份 v2 binding 与其声明的输入放入新的 workdir 后，运行方式与 v1 相同：
+
+```powershell
+bun run ./src/cli/artifact.ts `
+  --preset=api-tester `
+  --binding=src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/binding.json `
+  --root=. `
+  --workdir=<fresh-workdir-containing-openapi.yaml> `
+  --out=<fresh-empty-output> `
+  --completed-at=<ISO-8601>
 ```
 
 v2 的增量边界是：
@@ -186,7 +202,7 @@ parser。若将来需要证明 parser 本身的双实现一致性，应另设明
 
 - `artifact/package-manifest.json`：package exact closure 与全部 digest；
 - `validation-report.json`：checker 的 machine-readable pass/fail 与错误列表；
-- `cli-report.json`：统一五阶段状态、package/checker/binding/input digest 和零调用 accounting。
+- `cli-report.json`：统一五阶段状态、package/checker/binding/input digest、实际 binding/support 版本和零调用 accounting。
 
 v1 冻结 development 报告位于：
 
@@ -241,9 +257,10 @@ bun run typecheck
 ```
 
 测试覆盖 JSON/YAML、v1/v2 支持/拒绝合同、local-ref 安全、两种 query array encoding、array/item witness、package
-closure、输入漂移、symlink/路径安全、plan/report 篡改、CLI 分支互斥、历史 `--variant` 非回归、固定两输入 v1 报告和
-单输入 v2 零调用报告。外部 cache 不是普通 clean-checkout 的必要条件；没有它时 v2 合成 fixture 测试仍应运行，精确
-Open-Meteo reproduction test 会明确跳过而不是联网补取。
+closure、输入漂移、symlink/路径安全、plan/report 篡改、CLI 分支互斥、v1/v2 binding 分发、未知版本执行前拒绝、真实
+source CLI v2 进程、历史 `--variant` 非回归、固定两输入 v1 报告和单输入 v2 零调用报告。外部 cache 不是普通
+clean-checkout 的必要条件；没有它时 v2 合成 fixture 测试仍应运行，精确 Open-Meteo reproduction test 会明确跳过而
+不是联网补取。
 
 ## 8. 修改指引
 
@@ -252,5 +269,5 @@ Open-Meteo reproduction test 会明确跳过而不是联网补取。
 - checker 暴露 generator 缺陷时修复通用生成算法，不放松公开义务或改成 exact gold comparison。
 - package 增删文件时同步 exact closure、manifest schema、validator 和 tamper tests。
 - 修改入口时保留 `--binding`/`--variant` 互斥、路径 containment、旧 variant 回归和零 accounting。
-- v2 正式接入 CLI、替换 v1 或冻结新 prospective candidate 都必须另立授权；不能从 development runner 偷渡切换。
+- v2 已通过 binding 内版本字段接入统一 CLI；替换 v1、冻结新 prospective candidate 或扩大支持面仍必须另立授权。
 - 任何 prospective、Q3、readiness、跨模型或生产支持主张都需要新 identity 与单独授权；不能从本 development 报告推断。

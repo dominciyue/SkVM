@@ -293,7 +293,7 @@ API production v1 已按[设计](../superpowers/specs/2026-09-07-api-tester-prod
 | `sample-scale-and-automation-scope-analysis-2026-09-07.md` | 已确认路线的代码/文献依据、扩样资源建议、完整职责与切片边界、Q1–Q5效果上限。 |
 | `project-reassessment-2026-09-06.md` | 触发本轮口径修正、分类校准与后续重排的项目复核报告。 |
 | `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
-| `api-tester-production-binding.md` | API Tester production v1 与 successor v2 的版本边界、支持/拒绝范围、package、独立 checker、CLI 与 development 证据。 |
+| `api-tester-production-binding.md` | API Tester production v1/v2 的 binding 内 CLI 版本分发、支持/拒绝范围、package、独立 checker 与 development 证据。 |
 | `api-tester-successor-gap-analysis.md` | v1 0/4 后四份真实输入的完整 blocker 清单、v2 增量能力与不扩范围。 |
 | `ai-assisted-development-routing-and-prospective-construction.md` | AI revision-2 development route、API 构造候选、4+4 prediction lock、首轮不可变执行与主张/成本边界。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |

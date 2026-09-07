@@ -19,6 +19,17 @@ import { sha256Bytes } from "../benchmarks/skill-ir/source-fixture";
 import {
   runApiTesterProductionArtifact,
 } from "./api-tester-production-artifact";
+import {
+  runApiTesterProductionArtifactV2,
+} from "./api-tester-production-artifact-v2";
+import {
+  API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION,
+  API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID,
+} from "./api-tester-production-contract";
+import {
+  API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION_V2,
+  API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2,
+} from "./api-tester-production-contract-v2";
 
 export const API_TESTER_ARTIFACT_LOCK_PATH =
   "benchmarks/skill-ir/pilots/api-tester/api-tester-artifact-development-lock.json";
@@ -28,23 +39,35 @@ export const ENV_MANAGER_PRODUCT_RUNNER_PATH =
 
 const StageOrder = ["compile", "review-or-accept", "package", "run", "cost"] as const;
 const VariantSchema = z.enum(["openapi-json", "openapi-yaml"]);
+const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/u);
 
-export const ArtifactPresetResultSchema = z.object({
-  schemaVersion: z.literal("skill-ir-artifact-cli-result/v1"),
+const LegacyProductionBindingRefSchema = z.object({
+  mode: z.literal("production"),
+  bindingId: z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u),
+  sourcePath: z.string().min(1),
+  sha256: Sha256Schema,
+  inputPath: z.string().min(1),
+  inputFormat: z.enum(["json", "yaml"]),
+  inputSha256: Sha256Schema,
+  generatorSha256: Sha256Schema,
+  checkerSha256: Sha256Schema,
+}).strict();
+
+const VersionedProductionBindingRefSchema = z.discriminatedUnion("schemaVersion", [
+  LegacyProductionBindingRefSchema.extend({
+    schemaVersion: z.literal(API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION),
+    supportContractId: z.literal(API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID),
+  }).strict(),
+  LegacyProductionBindingRefSchema.extend({
+    schemaVersion: z.literal(API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION_V2),
+    supportContractId: z.literal(API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2),
+  }).strict(),
+]);
+
+const ArtifactPresetResultCommonShape = {
   status: z.literal("passed"),
   preset: z.enum(["api-tester", "env-manager"]),
   variant: VariantSchema.optional(),
-  binding: z.object({
-    mode: z.literal("production"),
-    bindingId: z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u),
-    sourcePath: z.string().min(1),
-    sha256: z.string().regex(/^[0-9a-f]{64}$/u),
-    inputPath: z.string().min(1),
-    inputFormat: z.enum(["json", "yaml"]),
-    inputSha256: z.string().regex(/^[0-9a-f]{64}$/u),
-    generatorSha256: z.string().regex(/^[0-9a-f]{64}$/u),
-    checkerSha256: z.string().regex(/^[0-9a-f]{64}$/u),
-  }).strict().optional(),
   workflowId: z.string().min(1),
   stageOrder: z.tuple([
     z.literal("compile"),
@@ -62,13 +85,13 @@ export const ArtifactPresetResultSchema = z.object({
   }).strict(),
   artifact: z.object({
     packagePath: z.string().min(1),
-    manifestSha256: z.string().regex(/^[0-9a-f]{64}$/u),
+    manifestSha256: Sha256Schema,
   }).strict(),
   quality: z.object({
     mode: z.literal("machine-checked"),
     result: z.literal("pass"),
     checkerPath: z.string().min(1),
-    checkerSha256: z.string().regex(/^[0-9a-f]{64}$/u),
+    checkerSha256: Sha256Schema,
   }).strict(),
   accounting: z.object({
     modelCalls: z.literal(0),
@@ -78,7 +101,26 @@ export const ArtifactPresetResultSchema = z.object({
   coreBranchDelta: z.literal(0),
   outputPath: z.literal("cli-report.json"),
   claimBoundary: z.string().min(1),
+};
+
+const ArtifactPresetResultV1Schema = z.object({
+  schemaVersion: z.literal("skill-ir-artifact-cli-result/v1"),
+  ...ArtifactPresetResultCommonShape,
+  binding: LegacyProductionBindingRefSchema.optional(),
 }).strict();
+
+const ArtifactPresetResultV2Schema = z.object({
+  schemaVersion: z.literal("skill-ir-artifact-cli-result/v2"),
+  ...ArtifactPresetResultCommonShape,
+  preset: z.literal("api-tester"),
+  variant: z.never().optional(),
+  binding: VersionedProductionBindingRefSchema,
+}).strict();
+
+export const ArtifactPresetResultSchema = z.discriminatedUnion("schemaVersion", [
+  ArtifactPresetResultV1Schema,
+  ArtifactPresetResultV2Schema,
+]);
 
 export type ArtifactPresetResult = z.infer<typeof ArtifactPresetResultSchema>;
 
@@ -92,6 +134,56 @@ export type ArtifactPresetOptions = {
   | { preset: "api-tester"; variant: ApiTesterArtifactVariantId; bindingPath?: never }
   | { preset: "api-tester"; bindingPath: string; variant?: never }
 );
+
+type ApiTesterProductionBindingRoute =
+  | {
+    schemaVersion: typeof API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION;
+    supportContractId: typeof API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID;
+    sha256: string;
+  }
+  | {
+    schemaVersion: typeof API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION_V2;
+    supportContractId: typeof API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2;
+    sha256: string;
+  };
+
+async function resolveApiTesterProductionBindingRoute(
+  bindingPath: string,
+): Promise<ApiTesterProductionBindingRoute> {
+  const resolvedPath = resolve(bindingPath);
+  const stat = await lstat(resolvedPath);
+  if (!stat.isFile() || stat.isSymbolicLink()) {
+    throw new Error(`API Tester production binding must be a regular file: ${bindingPath}`);
+  }
+  const bytes = await readFile(resolvedPath);
+  let raw: unknown;
+  try {
+    raw = JSON.parse(bytes.toString("utf8"));
+  } catch {
+    throw new Error(`API Tester production binding must be valid JSON: ${bindingPath}`);
+  }
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)
+    || typeof (raw as { schemaVersion?: unknown }).schemaVersion !== "string") {
+    throw new Error("API Tester production binding schemaVersion must be a string");
+  }
+  const schemaVersion = (raw as { schemaVersion: string }).schemaVersion;
+  const sha256 = sha256Bytes(bytes);
+  if (schemaVersion === API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION) {
+    return {
+      schemaVersion,
+      supportContractId: API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID,
+      sha256,
+    };
+  }
+  if (schemaVersion === API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION_V2) {
+    return {
+      schemaVersion,
+      supportContractId: API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2,
+      sha256,
+    };
+  }
+  throw new Error(`unsupported API Tester production binding schemaVersion: ${schemaVersion}`);
+}
 
 export function resolveArtifactNodeExecutable(options: {
   env?: Readonly<Record<string, string | undefined>>;
@@ -280,22 +372,29 @@ async function runApiTesterProductionPreset(
 ): Promise<ArtifactPresetResult> {
   const rootDir = resolve(options.rootDir);
   const outDir = resolve(options.outDir);
-  const result = await runApiTesterProductionArtifact({
+  const route = await resolveApiTesterProductionBindingRoute(options.bindingPath);
+  const runnerOptions = {
     rootDir,
     bindingPath: options.bindingPath,
     workDir: options.workDir,
     outDir,
     nodeExecutable: resolveArtifactNodeExecutable(),
-  });
+  };
+  const result = route.schemaVersion === API_TESTER_PRODUCTION_BINDING_SCHEMA_VERSION
+    ? await runApiTesterProductionArtifact(runnerOptions)
+    : await runApiTesterProductionArtifactV2(runnerOptions);
+  if (result.binding.sha256 !== route.sha256) {
+    throw new Error("API Tester production binding changed after version preflight");
+  }
   const sourcePath = relative(rootDir, resolve(options.bindingPath)).replaceAll("\\", "/");
   const report = ArtifactPresetResultSchema.parse({
-    schemaVersion: "skill-ir-artifact-cli-result/v1",
+    schemaVersion: "skill-ir-artifact-cli-result/v2",
     status: "passed",
     preset: "api-tester",
     workflowId: `api-tester-production-${result.binding.bindingId}`,
     stageOrder: StageOrder,
     stageStatus: {
-      compile: "ordinary-parameter-production-binding",
+      compile: `ordinary-parameter-production-binding:${route.schemaVersion}`,
       review: "independent-public-contract-checker",
       package: "digest-bound-production-package",
       run: `deterministic-complete:${result.binding.bindingId}`,
@@ -312,6 +411,8 @@ async function runApiTesterProductionPreset(
       checkerSha256: result.package.checker.sha256,
     },
     binding: {
+      schemaVersion: route.schemaVersion,
+      supportContractId: route.supportContractId,
       mode: "production",
       bindingId: result.binding.bindingId,
       sourcePath,
@@ -325,7 +426,7 @@ async function runApiTesterProductionPreset(
     accounting: result.accounting,
     coreBranchDelta: 0,
     outputPath: "cli-report.json",
-    claimBoundary: "This development-only production binding accepts ordinary input/output parameters and passes an independent public-contract checker within the declared OpenAPI subset. It does not establish arbitrary OpenAPI, held-out, readiness, portfolio, cross-model, or optimized-LLM claims.",
+    claimBoundary: `This development-only production binding selects ${route.supportContractId} from its declared schemaVersion and passes the corresponding independent public-contract checker. It does not establish arbitrary OpenAPI, held-out, readiness, portfolio, cross-model, or optimized-LLM claims.`,
   });
   await writeFile(join(outDir, "cli-report.json"), jsonText(report), "utf8");
   return report;

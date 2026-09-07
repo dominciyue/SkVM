@@ -285,8 +285,14 @@ export async function buildAiAssistedDevelopmentRouting(options: {
     if (!reviewStatusText.includes(marker)) throw new Error(`review-status provenance marker missing: ${marker}`);
   }
 
-  const labelMaps = drafts.map((draft) => new Map(draft.labels.map((label) => [label.unitId, label])));
-  const changeMaps = changes.map((record) => new Map(record.changes.map((change) => [change.unitId, change])));
+  const labelMaps = [
+    new Map(drafts[0].labels.map((label) => [label.unitId, label])),
+    new Map(drafts[1].labels.map((label) => [label.unitId, label])),
+  ] as const;
+  const changeMaps = [
+    new Map(changes[0].changes.map((change) => [change.unitId, change])),
+    new Map(changes[1].changes.map((change) => [change.unitId, change])),
+  ] as const;
   if (labelMaps.some((map) => map.size !== 24) || changeMaps.some((map) => map.size !== 24)) {
     throw new Error("AI draft label/change unit IDs must be unique");
   }

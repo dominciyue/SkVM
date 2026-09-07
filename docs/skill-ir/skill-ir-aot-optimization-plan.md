@@ -1978,12 +1978,12 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 [design](../superpowers/specs/2026-09-07-api-tester-v2-cli-integration-design.md) 和
 [implementation plan](../superpowers/plans/2026-09-07-api-tester-v2-cli-integration.md)。
 
-1. [ ] RED/GREEN 修复 routing builder 双元素 tuple 类型，令全仓 typecheck 通过并证明 routing JSON/candidate digest 不变；
-2. [ ] RED/GREEN 让 preset adapter 按 binding schemaVersion 严格分发 v1/v2，未知版本在执行前拒绝；
-3. [ ] 发布 production binding CLI result v2，显式记录 binding schema/support contract，同时兼容历史 result v1；
-4. [ ] 新增 source CLI v2 真实进程 E2E，并回归 v1 binding、两个 variant、Env 与路径/参数安全；
-5. [ ] 同步 component/onboarding/status/spec/plan/AGENTS/三份本地记录，运行 focused+broad/typecheck/docs/diff/secret；
-6. [ ] 白名单 commit + push 后停止；不冻结 candidate、不选样、不执行 prospective/模型/API/付费。
+1. [x] RED/GREEN 修复 routing builder 双元素 tuple 类型，令全仓 typecheck 通过并证明 routing JSON/candidate digest 不变；
+2. [x] RED/GREEN 让 preset adapter 按 binding schemaVersion 严格分发 v1/v2，未知版本在执行前拒绝；
+3. [x] 发布 production binding CLI result v2，显式记录 binding schema/support contract，同时兼容历史 result v1；
+4. [x] 新增 source CLI v2 真实进程 E2E，并回归 v1 binding、两个 variant、Env 与路径/参数安全；
+5. [x] 同步 component/onboarding/status/spec/plan/AGENTS/三份本地记录，运行 focused+broad/typecheck/docs/diff/secret；
+6. [x] 白名单 commit + push 后停止；不冻结 candidate、不选样、不执行 prospective/模型/API/付费。
 
 **下一判定点：** 本阶段全绿后，才可另行设计 v2 candidate closure 与按 local-ref/body-array/form-explode 分层的新未见
 输入。该未来阶段必须先冻结输入、预测和分母；本阶段不自动授权。

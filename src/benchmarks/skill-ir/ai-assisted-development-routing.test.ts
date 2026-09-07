@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { describe, expect, test } from "bun:test";
@@ -49,11 +50,24 @@ describe("AI-assisted development routing", () => {
 
   test("committed routing artifact is a byte-deterministic reproduction", async () => {
     const fresh = await buildAiAssistedDevelopmentRouting({ rootDir, workspaceRoot, annotationRoot });
-    const committed = AiAssistedDevelopmentRoutingSchema.parse(JSON.parse(await readFile(
-      join(rootDir, "benchmarks", "skill-ir", "classification", "ai-assisted-development-routing-v1.json"),
+    const committedPath = join(
+      rootDir,
+      "benchmarks",
+      "skill-ir",
+      "classification",
+      "ai-assisted-development-routing-v1.json",
+    );
+    const committedBytes = await readFile(committedPath);
+    const committed = AiAssistedDevelopmentRoutingSchema.parse(JSON.parse(committedBytes.toString("utf8")));
+    const candidate = JSON.parse(await readFile(
+      join(rootDir, "benchmarks", "skill-ir", "classification", "api-tester-constructor-candidate-v1.json"),
       "utf8",
-    )));
+    )) as { routingTable: { sha256: string } };
+    const committedSha256 = createHash("sha256").update(committedBytes).digest("hex");
     expect(fresh).toEqual(committed);
+    expect(Buffer.from(`${JSON.stringify(fresh, null, 2)}\n`, "utf8")).toEqual(committedBytes);
+    expect(committedSha256).toBe("124817bc4315cb69a3adfb864b89ebf770ff785783a7eb738237323d2410afc3");
+    expect(committedSha256).toBe(candidate.routingTable.sha256);
   });
 
   test("rejects duplicate units and any attempted human-agreement claim", async () => {

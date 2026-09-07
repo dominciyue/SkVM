@@ -146,6 +146,7 @@ Presets:
   env-manager  ${ARTIFACT_PRESETS["env-manager"].description}
   api-tester   ${ARTIFACT_PRESETS["api-tester"].description}
 
+For API Tester --binding, the binding schemaVersion selects production v1 or v2.
 The command is deterministic and does not inspect API keys or dispatch model calls.`;
 }
 

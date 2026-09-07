@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -53,6 +53,79 @@ describe("skvm executable routing", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("skvm artifact");
     expect(result.stderr).toBe("");
+  });
+
+  test("runs a v2 API Tester binding through the source CLI", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skvm-artifact-cli-v2-"));
+    try {
+      const fixture = join(
+        process.cwd(),
+        "src",
+        "skill-ir",
+        "fixtures",
+        "api-tester-production-v2",
+        "local-ref-arrays",
+      );
+      const workDir = join(root, "workdir");
+      await cp(fixture, workDir, { recursive: true });
+      const entrypoint = join(process.cwd(), "src", "cli", "artifact.ts");
+      const result = spawnSync(process.execPath, [
+        entrypoint,
+        "--preset=api-tester",
+        "--binding=workdir/binding.json",
+        `--root=${root}`,
+        "--workdir=workdir",
+        "--out=output",
+        "--completed-at=2026-09-07T00:00:00.000Z",
+      ], { encoding: "utf8" });
+      expect(result.status).toBe(0);
+      expect(result.stderr).toBe("");
+      const stdout = JSON.parse(result.stdout);
+      const report = JSON.parse(await readFile(join(root, "output", "cli-report.json"), "utf8"));
+      expect(stdout).toEqual(report);
+      expect(report).toMatchObject({
+        schemaVersion: "skill-ir-artifact-cli-result/v2",
+        status: "passed",
+        preset: "api-tester",
+        binding: {
+          schemaVersion: "skill-ir-api-tester-production-binding/v2",
+          supportContractId: "api-tester-openapi-subset-v2",
+          bindingId: "local-ref-arrays-api",
+        },
+        quality: { result: "pass" },
+        accounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0 },
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("rejects an unknown API Tester binding version through the source CLI", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skvm-artifact-cli-unknown-version-"));
+    try {
+      await writeFile(join(root, "binding.json"), `${JSON.stringify({
+        schemaVersion: "skill-ir-api-tester-production-binding/v999",
+        bindingId: "unknown-version-api",
+        input: { path: "openapi.yaml", format: "yaml" },
+        outputs: { plan: "generated/plan.json", report: "generated/report.md" },
+      }, null, 2)}\n`, "utf8");
+      const entrypoint = join(process.cwd(), "src", "cli", "artifact.ts");
+      const result = spawnSync(process.execPath, [
+        entrypoint,
+        "--preset=api-tester",
+        "--binding=binding.json",
+        `--root=${root}`,
+        "--workdir=workdir",
+        "--out=output",
+        "--completed-at=2026-09-07T00:00:00.000Z",
+      ], { encoding: "utf8" });
+      expect(result.status).toBe(1);
+      expect(result.stdout).toBe("");
+      expect(result.stderr).toContain("unsupported API Tester production binding schemaVersion");
+      await expect(access(join(root, "output"))).rejects.toThrow();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   test("bootstraps the packaged companion before bundled dependencies initialize", async () => {

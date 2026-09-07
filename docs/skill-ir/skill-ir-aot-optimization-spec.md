@@ -1974,3 +1974,8 @@ result v1 仍可被现有 schema loader 验证。
 **停止点。** 本阶段只证明已声明 v2 范围通过统一 CLI；Open-Meteo 的真实覆盖仍只有 form-comma，无 local ref/body
 array/form-explode 真实迁移证据。新 candidate、分层选样与 prospective 执行是完成本阶段之后的独立授权；当前不扩
 DPP/OpenWrt/SignalK 支持、不进入第二 profile/Q4/held-out/portfolio/readiness，不调用模型/API 或声称人工节省。
+
+**实现状态。** routing builder 已用双元素 tuple 恢复全仓 typecheck，canonical routing JSON 与 candidate-bound
+SHA-256 `124817bc4315cb69a3adfb864b89ebf770ff785783a7eb738237323d2410afc3` 不变。统一 `--binding` 已严格分发 v1/v2；
+production `cli-report.json` 使用 result v2 并写入实际 binding schema/support contract，Env 与历史 variant 继续使用
+result v1。source CLI 的 v2 正例和未知版本拒绝、v1 binding/variant 与 Env 回归均为零模型/API/付费验证。

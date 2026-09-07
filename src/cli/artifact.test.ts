@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   ARTIFACT_PRESETS,
+  artifactCliHelp,
   parseArtifactCliArguments,
   resolveArtifactPreset,
 } from "./artifact";
@@ -99,5 +100,6 @@ describe("top-level verified artifact CLI", () => {
     expect(resolveArtifactPreset("api-tester", undefined, "binding.json").bindingPath).toBe("binding.json");
     expect(() => resolveArtifactPreset("api-tester", undefined, undefined)).toThrow("variant or --binding");
     expect(resolveArtifactPreset("env-manager", undefined, undefined).variant).toBeUndefined();
+    expect(artifactCliHelp()).toContain("binding schemaVersion selects production v1 or v2");
   });
 });
