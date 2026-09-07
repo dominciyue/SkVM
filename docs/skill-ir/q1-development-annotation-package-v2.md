@@ -62,6 +62,8 @@ Remote source bytes are not vendored. Annotators must use the exact commit-pinne
 
 ## Annotation workflow
 
+For a Chinese field-by-field walkthrough, including the required form-to-submission schema conversion, see [真人填表操作说明](q1-human-annotation-walkthrough-v2.md). It adds no labels or changes to the frozen handbook/package.
+
 1. Give A and B the same repository commit, v2 handbook, annotation package, and their separate blank form. Do not expose peer labels or task execution results.
 2. Before work starts, verify both blank forms against the package. They must each contain all 24 keys and only null classification fields.
 3. Each annotator fills the four evidence dimensions and prediction for every unit, replaces the null metadata with their real identity, attestations, and timestamp, and saves a separate `annotation-submission/v2` file.
