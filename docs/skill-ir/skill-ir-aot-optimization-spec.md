@@ -1944,3 +1944,13 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 **后续边界。** 4+4 是构造器 development 的首个前瞻小样，不是原 3 profile × 4 input、20–30 真实输入规模、跨 profile 复用、可靠性、held-out 或 readiness 证据。失败必须作为负结果冻结；不能为出正例改候选、换 route、补行或复用同一输入。后续扩展只可针对实际缺口建立新候选身份和新未见输入，再决定第二 profile。
 
 **首轮冻结结果。** 推送冻结提交 `aa3a08819e220b5584ffd32cccea24884e50d2e7` 后，唯一执行完成 8/8：真实公开输入 accepted/rejected=`0/4`，合成边界 accepted/rejected=`0/4`，checker/infrastructure failure 均为 0；8 个实际拒绝码与执行前 prediction 全部 exact。真实输入中 Open-Meteo 命中 `UNSUPPORTED_SCHEMA`，另三份命中 `UNSUPPORTED_REFERENCE`。construction=122ms、run/check=0ms、actual human modification=0 observed minutes，model/API/paid=0，AI analysis=`not-measured`。该结果证明当前拒绝面可被前瞻观测，同时是 0/4 真实接纳的 bounded negative result；不能写成迁移成功、可靠性、人工节省或任意 OpenAPI 支持。
+
+### 14.14 API Tester constructor successor development
+
+2026-09-07 用户授权只沿 API constructor 的实际缺口继续，不扩样、不进入第二 profile/Q4/held-out/readiness。权威缺口清单见 [API Tester successor 缺口清单](api-tester-successor-gap-analysis.md)，设计与执行顺序见 [successor design](../superpowers/specs/2026-09-07-api-tester-successor-local-ref-array-design.md) 和 plan 第 4.43 节。
+
+**旧证据不改写。** `skill-ir-api-tester-constructor-prospective-001` 的 0/4 real admission 保持不可变；四份真实输入均在首轮后暴露，只能作为 development 材料。四个 real row 的 checker 均为 `not-run`，因此首轮不能表述为 0/4 checker pass 或 checker failure。
+
+**新版本边界。** successor 使用新的 v2 binding/public-contract/program/package/report schema、`api-tester-openapi-subset-v2` 和 implementation identity。v1 contract/program/artifact source closure 保持字节不变。v2 只增加受控同文档 component ref、query/body primitive array、明确的 form/explode encoding，以及真实 Open-Meteo 路径所需的 date/float；外部/悬空/循环/错误 kind/sibling ref、path/header/nested/object array、组合 schema、pattern、复杂 body 等继续拒绝。
+
+**development 验证。** 先用合成 fixture machine-check 新增合同与 mutation，再用已暴露且 digest-bound 的 Open-Meteo forecast 完成一次 parse → package → generate → independent checker。真实源字节不 vendoring，结果只保存 portable digest evidence。该结果无论正负都不形成新 prospective 分母；通过也只证明声明子集内移除 runtime 模型，不证明 human savings、一般可靠性、跨 profile 或 readiness。

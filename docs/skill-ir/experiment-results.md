@@ -29,6 +29,8 @@
 | API Tester baseline | 2 arms x 4 = 8 | no-skill 0/4, 0.2375；original 0/4, 0.4000；4 differing | Partial benefit；旧 original-success gate failed。 |
 | API Tester artifact development | 4 systems x 4 = 16 | artifact 4/4, 1.0；static 0/4, 0.3875；original 0/4, 0.225；no-skill 0/4, 0.15 | Development gate passed；只计 method evidence。 |
 | API Tester trace paid smoke | fixed 4 original rows；首行即 smoke | observed 1/4；generated-plan operation parity exact；quality-failure；1 dispatched agent row、10 provider responses、15 tool calls、65505 explicit tokens | `negative-smoke-frozen`；其余 3 行未执行，同 identity 不补跑。旧 calls 字段按 dispatched row 计数，不代表底层 API 往返；0/0 human minutes 只表示自动窗口无人介入。 |
+| API Tester constructor v1 4+4 | 4 real + 4 boundary | 8/8 complete 且 rejection prediction exact；real accepted 0/4、boundary accepted 0/4；0 model/API/paid | bounded negative admission；所有 real 行 `checkerStatus=not-run`，不是 checker 质量比较。 |
+| API Tester successor v2 development | 1 个已暴露 real input | Open-Meteo 1/1 parse-to-checker；1 operation、23 fields、5 primitive arrays；0 model/API/paid | 只证明声明 ref/array 子集；非 unseen/prospective，不改写 v1 0/4，不证明人工节省或可靠性。 |
 | Zh Code Reviewer calibration v1 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75；数值 gate passed | Measurement invalid：唯一差异来自私有 summary 类型 false reject；不开放 base IR。 |
 | Zh Code Reviewer calibration v2 | 2 systems x 4 = 8 | original 4/4, 1.0；no-skill 3/4, 0.75 | Measurement valid；开放 base IR/source audit。 |
 | Zh Code Reviewer static fidelity | 3 systems x 4 = 12 | no-skill 4/4；original 3/4, 0.8375；static 4/4, 1.0 | Gate passed；1 positive/3 equal/0 negative，只开放 residual audit。 |
@@ -201,6 +203,18 @@ bytes。Compile 人工与一次性 token 成本未测，因此不计算 break-ev
 这批结果证明公开 OpenAPI 语义可被固化为稳定 artifact，并排除了本轮强模型/Pi route 基础设施失败。
 它仍是 development task、单模型、clean/Windows 证据；旧 baseline `passed=false` 不变，held-out、跨模型、
 untouched replication 和 Token break-even 均未证明。
+
+2026-09-07 的 production v1 先以普通 binding 在 books JSON、orders YAML 两份公开 development 输入上 2/2；随后冻结的
+constructor v1 4-real + 4-boundary 首轮为 8/8 complete/exact rejection、真实接纳 0/4。四份真实行都在构造阶段
+拒绝，checker 没有运行。权威报告分别是
+`results/skill-ir/api-tester-production-binding-development-001/report.json` 与
+`results/skill-ir/api-tester-constructor-prospective-001/first-run-report.json`。
+
+同日 additive successor v2 保留 v1 全部冻结文件，新增有限同文档 component ref、query/body primitive array 和
+query form encoding。已暴露 Open-Meteo 输入完成 parse → normalize → package → generate → independent check，结果为
+1 operation、23 fields（5 arrays）、checker pass、0 model/API/paid。权威报告是
+`results/skill-ir/api-tester-production-binding-successor-development-001/report.json`。这不是新 prospective 分母；
+DPP、OpenWrt、SignalK 仍超出 v2 合同，且没有人工对照，所以不产生 reliability/human-savings/readiness 主张。
 
 ## 8. 当前 Portfolio 证据
 

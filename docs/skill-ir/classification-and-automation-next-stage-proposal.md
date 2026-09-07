@@ -2,7 +2,11 @@
 
 日期：2026-09-06。提案基准：`skill-ir-aot@f6c057a`。状态：路线已获用户采用；Q1 v2 development 标注发放包与 Q2 当前能力盘点已实现，独立标注尚未开始。它仍不授权 prospective 选择、Q3/Q4、参与者 session、新付费、旧 held-out、Stage M/N 或发布。
 
-2026-09-07 路线补充已确认并同步至 spec 第14.12节和 plan 第4.41节：真实Q1标注与API生产构造development并行，稳定冻结后前瞻迁移，再用第二profile检验复用。扩样用于检验适用范围，不能代替构造前端。详见[规模分析](sample-scale-and-automation-scope-analysis-2026-09-07.md)。下文24来源与3×4矩阵是保留的试点设计，不能理解为完整自动化或可靠性充分分母。
+2026-09-07 路线补充已确认并同步至 spec 第14.14节和 plan 第4.43节：真实Q1标注与API生产构造 development 并行；v1
+4+4 首轮负结果原样冻结，successor v2 只按完整 blocker 清单处理有限 local ref/primitive array，并停止在一份已暴露
+Open-Meteo development 路径。新的前瞻迁移和第二 profile 均未授权。扩样用于检验适用范围，不能代替构造前端。详见
+[规模分析](sample-scale-and-automation-scope-analysis-2026-09-07.md)和[successor 缺口清单](api-tester-successor-gap-analysis.md)。
+下文24来源与3×4矩阵是保留的试点设计，不能理解为完整自动化或可靠性充分分母。
 
 ## 1. 推荐方向与三种选择
 

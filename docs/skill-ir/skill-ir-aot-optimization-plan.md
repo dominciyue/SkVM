@@ -43,7 +43,7 @@ baseline-saturation 与 contract-scope-boundary；不得用结果倒推路由。
 |---|---|---|
 | IR core | i18n base IR 与执行韧性 successor 已通过机制验证 | v4 static 为可信质量回归，不开放 artifact |
 | Benchmark/evaluation | 合同、贡献识别、runner、scorer 已具备 | 避免再出现 public ABI 或 execution authority 漂移 |
-| API Tester | frozen slice artifact 4/4；B original smoke operation parity exact 但质量失败并冻结 | 旧 B 不重跑；successor 必须改为人工编写 vs 候选审核/修复的同质量对照 |
+| API Tester | frozen slice artifact 4/4；B original smoke 质量失败并冻结；constructor v1 real 0/4，successor v2 已暴露 Open-Meteo 1/1 parse-to-checker | 旧 B/v1 不重跑；人工 successor 仍需真人同质量对照；v2 停在 development，不外推 prospective/readiness |
 | Env Manager | reviewed-AOT 4/4 quality-equivalent；production model-token break-even=1 | 只作限定成本证据，不写成总经济回本或 full automatic |
 | Law | v3 public subset 可机械验证；baseline regression；旧 artifact evidence invalidated | 分开 slice 内机械合同与完整法律审核边界，不把 regression 当 R3 证据 |
 | Experimental Design | skill-unique graph oracle 可机械导出关键结构；baseline saturation | saturation 只表示无增益空间；更宽科学语义记为未覆盖 |
@@ -1957,6 +1957,20 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 **冻结结果：** 首轮 8/8 completed，真实公开输入 0 accepted/4 rejected，边界输入 0 accepted/4 rejected，0 checker/infrastructure failure；8 个 rejection code 与 prediction 全部 exact。construction=122ms、run/check=0ms、actual human modification=0 observed minutes，`modelCalls=apiCalls=paidCalls=0`，AI analysis=`not-measured`。这是当前候选 0/4 真实接纳的 bounded negative result，不证明可靠性、human savings、任意 OpenAPI、跨 skill/profile 或 readiness。
 
 **下一判定点：** 本 identity 停止。若继续 API profile，只能根据首轮实际缺口建立新 candidate identity，优先明确 `$ref` resolution 与 array schema 的支持/拒绝语义，并使用新的未见输入重新冻结；不能修好后复用本轮 4 个真实输入冒充第二次 prospective。第二 profile 仍在 API 缺口处理之后，需另行授权。
+
+### 4.43 API Tester successor：local ref、primitive array 与真实 development 路径
+
+**授权与范围：** 用户 2026-09-07 授权按首轮实际缺口继续 API constructor capability development。详细缺口见 [successor gap analysis](api-tester-successor-gap-analysis.md)，设计与文件级步骤见 [design](../superpowers/specs/2026-09-07-api-tester-successor-local-ref-array-design.md) 和 [implementation plan](../superpowers/plans/2026-09-07-api-tester-successor-local-ref-array.md)。
+
+1. [x] 只读展开旧四份已暴露输入的第一拒绝码之后结构；选择 Open-Meteo 为唯一真实 development 正例，DPP/OpenWrt/SignalK 不为出正例扩包；
+2. [x] 冻结 v2 支持/拒绝设计：受控同文档 component ref、query/body primitive array、form/explode encoding、date/float；旧 v1 source closure 不改；
+3. [x] TDD 实现 v2 parser、normalized contract 和 bounded value construction；合成覆盖 external/unresolved/cyclic/wrong-kind/sibling ref、数组与 serialization；
+4. [x] TDD 实现独立 v2 generator/checker，machine-check array encoding、array/item witness、operation/status/security 与 report grounding；
+5. [x] TDD 实现 v2 exact-closure artifact，验证 package/input/output/path/symlink/tamper 并串行运行 generator → checker；
+6. [x] 对旧 lock 已绑定的 Open-Meteo 字节完成一次 development parse → package → generate → checker，保存 compact digest report；
+7. [x] 同步组件/上手/状态/交接/沟通/日志，验证 v1 digest 非回归、focused+broad/typecheck/docs/diff/secret scan，白名单 commit + push。
+
+**停止点：** 本阶段完成 successor development 后停。不得直接冻结新 candidate/prospective input，不得把旧四输入再次标作 unseen，不进入第二 profile、Q4、held-out、portfolio 或 readiness；没有真人比较则没有 human savings 主张。
 
 ## 5. 历史时间估算（不作为当前排期）
 

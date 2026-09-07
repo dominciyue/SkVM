@@ -16,6 +16,7 @@
 | 现有正例唯一归因于 Skill IR，而非等价确定性脚本/成熟工具 | `not-established` | 当前两臂和 artifact reports | 已证明产物与产品路径，不足以识别独特方法增益 | 独特算法贡献；下一比较应加入直接脚本或 Schemathesis 类基线 |
 | 两份 AI revision-2 草稿可支持当前 development routing | `supported-as-development-routing` | `benchmarks/skill-ir/classification/ai-assisted-development-routing-v1.json`；`ai-assisted-development-routing-and-prospective-construction.md` | 同一 Q1 v2 package 的 24 个 selected responsibility units；逐行 provenance/change/unknown | 真人独立一致率、classification accuracy、original Q1 completion、prospective prediction validity |
 | API Tester 4+4 首轮刻画了当前候选的拒绝边界 | `supported-as-bounded-negative-result` | `results/skill-ir/api-tester-constructor-prospective-001/first-run-report.json`；冻结提交 `aa3a088` | 4 real + 4 boundary 全部完成；8/8 exact rejection prediction；真实输入 0/4 accepted，0 checker/infra failure，0 model/API/paid | 不得把拒绝预测写成迁移成功；不证明可靠性、任意 OpenAPI、人工节省、跨 profile 或 readiness |
+| API Tester successor v2 能在声明子集内处理有限 local ref/primitive array | `supported-as-exposed-development-case` | `results/skill-ir/api-tester-production-binding-successor-development-001/report.json`；`api-tester-successor-gap-analysis.md` | 已暴露 Open-Meteo 1/1 parse-to-checker；1 operation、23 fields、5 arrays、0 model/API/paid；独立 v2 checker | 不是 unseen/prospective；不改写 v1 0/4；不证明任意 OpenAPI、人工节省、可靠性、跨 profile、CLI readiness |
 
 ## 报告口径
 
@@ -23,5 +24,6 @@
 - 可以写：一台 Windows 主机从干净源码 worktree 复现了两条绑定 preset。
 - 必须同时披露：API/Env 完整编排不同，依赖 checkout 中冻结资源；Env break-even 只属于 production model-token 口径。
 - 可以写：AI routing 表是带 provenance 的 24-unit development 输入；API Tester 4+4 首轮完整保留了 0/4 真实接纳和 4/4 边界拒绝，8 个拒绝码与预测 exact。
-- 必须同时披露：原 Q1 仍未完成；AI 草稿不提供 human agreement/accuracy，4+4 首轮不是可靠性或扩样结论。
+- 可以写：successor v2 在一个已暴露 Open-Meteo development 输入上完成有限 ref/array 的 deterministic parse-to-checker。
+- 必须同时披露：原 Q1 仍未完成；AI 草稿不提供 human agreement/accuracy，4+4 首轮不是可靠性或扩样结论；v2 单输入不是新 prospective 分母，且 v1 行的 checker 从未运行。
 - 不可以写：优化后的 LLM 更稳定、人工已经减少、任意 skill 自动优化、独立安装或跨平台已验证。

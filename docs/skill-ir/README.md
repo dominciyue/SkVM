@@ -11,8 +11,9 @@
 [`answer-availability-taxonomy.md`](answer-availability-taxonomy.md)。
 
 研究可信度与通用 core 仍是硬约束：公开合同、确定性 scorer、development/held-out 隔离、完整分母和可追溯
-结果必须成立；同一 core 不按 skill id 写死分支。口径校准、B successor 设计和干净源码金路径均已完成；Q1 v2
-development 标注包也已冻结。真实独立标注尚未开始；prospective 选择、Q3 新输入矩阵或付费实验仍需按各自阶段授权。
+结果必须成立；同一 core 不按 skill id 写死分支。口径校准、B successor 设计、干净源码金路径和 API Tester
+constructor successor 的有限 development 闭环均已完成；Q1 v2 development 标注包也已冻结。真实独立标注尚未
+开始；新的 prospective 选择、Q3 新输入矩阵或付费实验仍需按各自阶段授权。
 
 优化成功先要求质量不劣、稳定性改善且回归受控；通过后再比较平均质量和重复调用的摊销 Token。
 显著正向单案例不能替代通用性，Token 节省也不能抵消质量回归。
@@ -244,7 +245,7 @@ development 标注包也已冻结。真实独立标注尚未开始；prospective
 
 ## 当前下一步
 
-2026-09-07 已完成新路线的首个闭环：原 Q1 真人一致性实验继续保持未完成，AI revision-2 只形成带 provenance 的 24-unit development routing；API Tester candidate 与 4 real + 4 boundary 在提交 `aa3a088` 先冻结并推送，唯一首轮随后完整执行。真实输入 0/4 accepted、边界 0/4 accepted，8/8 exact rejection prediction，0 checker/infra failure。详细口径以 [plan 第4.42节](skill-ir-aot-optimization-plan.md) 和 [spec 第14.13节](skill-ir-aot-optimization-spec.md) 为准。
+2026-09-07 已完成新路线的两个连续闭环：原 Q1 真人一致性实验继续保持未完成，AI revision-2 只形成带 provenance 的 24-unit development routing；API Tester candidate v1 与 4 real + 4 boundary 在提交 `aa3a088` 先冻结并推送，唯一首轮随后完整执行。真实输入 0/4 accepted、边界 0/4 accepted，8/8 exact rejection prediction，所有真实行 checker 都是 `not-run`。随后新 identity 的 successor v2 在不修改 v1 的前提下支持有限 local component ref 与 primitive array，并让已暴露 Open-Meteo 输入 1/1 完成 parse-to-checker。详细口径以 [plan 第4.43节](skill-ir-aot-optimization-plan.md) 和 [spec 第14.14节](skill-ir-aot-optimization-spec.md) 为准。
 
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
@@ -269,11 +270,15 @@ Q2-D：AI-assisted development route 与 prospective constructor（首轮已冻�
   -> AI route=24 unique units，逐行 provenance/change/unknown；不是真人 Q1、agreement 或 accuracy
   -> candidate snapshot 绑定旧 Q2、support/rejection/generator/runtime/checker/source closure
   -> prospective=4 real + 4 boundary；8/8 rejected 且 exact，真实接纳=0/4；0 retry/replacement/fix
+Q2-S：API constructor successor v2（development 收口，0 paid）
+  -> v1 candidate/lock/runner/report 原样冻结；旧四份 real 输入转为 development-only
+  -> 有限同文档 component ref + query/body primitive array + form encoding；独立 v2 checker
+  -> 已暴露 Open-Meteo 1/1 parse-to-checker；不是 unseen/prospective，不接 CLI、不改 readiness
 ```
 
 方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。
 
-API development 已按[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成两输入零调用证据；新[AI development routing 与前瞻构造协议](ai-assisted-development-routing-and-prospective-construction.md)现已冻结首轮。8 个 prediction 全部 exact 只说明声明的拒绝面可预测；真实输入 0/4 accepted 是 bounded negative admission result。若继续，应以新 candidate identity 处理 `$ref`/array 等实际缺口并换用新未见输入；新 skill、第二 profile、可靠性和人工节省仍未建立。
+API production v1 已按[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成两输入零调用证据；[AI development routing 与前瞻构造协议](ai-assisted-development-routing-and-prospective-construction.md)已冻结首轮。8 个 prediction 全部 exact 只说明声明的拒绝面可预测；真实输入 0/4 accepted 是 bounded negative admission result。按[完整缺口清单](api-tester-successor-gap-analysis.md)实现的 successor v2 已在已暴露 Open-Meteo 上通过独立 checker，但不是新的未见输入证据。若再继续 prospective，必须另立 candidate identity 并使用新未见输入；新 skill、第二 profile、可靠性和人工节省仍未建立。
 
 ## 权威文档
 
@@ -288,7 +293,8 @@ API development 已按[设计](../superpowers/specs/2026-09-07-api-tester-produc
 | `sample-scale-and-automation-scope-analysis-2026-09-07.md` | 已确认路线的代码/文献依据、扩样资源建议、完整职责与切片边界、Q1–Q5效果上限。 |
 | `project-reassessment-2026-09-06.md` | 触发本轮口径修正、分类校准与后续重排的项目复核报告。 |
 | `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
-| `api-tester-production-binding.md` | API Tester 普通参数 production binding、支持/拒绝范围、package、独立 checker、CLI 与 development 证据。 |
+| `api-tester-production-binding.md` | API Tester production v1 与 successor v2 的版本边界、支持/拒绝范围、package、独立 checker、CLI 与 development 证据。 |
+| `api-tester-successor-gap-analysis.md` | v1 0/4 后四份真实输入的完整 blocker 清单、v2 增量能力与不扩范围。 |
 | `ai-assisted-development-routing-and-prospective-construction.md` | AI revision-2 development route、API 构造候选、4+4 prediction lock、首轮不可变执行与主张/成本边界。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |
 | `claim-evidence-table.md` | 当前可用于报告/论文的最窄主张、权威证据、覆盖范围和禁止外推。 |
