@@ -1972,6 +1972,22 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 
 **停止点：** 本阶段完成 successor development 后停。不得直接冻结新 candidate/prospective input，不得把旧四输入再次标作 unseen，不进入第二 profile、Q4、held-out、portfolio 或 readiness；没有真人比较则没有 human savings 主张。
 
+### 4.44 API Tester v2 工程收口：类型修复、统一 CLI 与兼容验证
+
+**授权与范围：** 用户确认先关闭工程基线，不扩大 v2 OpenAPI 支持面。权威设计与文件级步骤见
+[design](../superpowers/specs/2026-09-07-api-tester-v2-cli-integration-design.md) 和
+[implementation plan](../superpowers/plans/2026-09-07-api-tester-v2-cli-integration.md)。
+
+1. [ ] RED/GREEN 修复 routing builder 双元素 tuple 类型，令全仓 typecheck 通过并证明 routing JSON/candidate digest 不变；
+2. [ ] RED/GREEN 让 preset adapter 按 binding schemaVersion 严格分发 v1/v2，未知版本在执行前拒绝；
+3. [ ] 发布 production binding CLI result v2，显式记录 binding schema/support contract，同时兼容历史 result v1；
+4. [ ] 新增 source CLI v2 真实进程 E2E，并回归 v1 binding、两个 variant、Env 与路径/参数安全；
+5. [ ] 同步 component/onboarding/status/spec/plan/AGENTS/三份本地记录，运行 focused+broad/typecheck/docs/diff/secret；
+6. [ ] 白名单 commit + push 后停止；不冻结 candidate、不选样、不执行 prospective/模型/API/付费。
+
+**下一判定点：** 本阶段全绿后，才可另行设计 v2 candidate closure 与按 local-ref/body-array/form-explode 分层的新未见
+输入。该未来阶段必须先冻结输入、预测和分母；本阶段不自动授权。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

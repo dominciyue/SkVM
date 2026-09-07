@@ -1954,3 +1954,23 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 **新版本边界。** successor 使用新的 v2 binding/public-contract/program/package/report schema、`api-tester-openapi-subset-v2` 和 implementation identity。v1 contract/program/artifact source closure 保持字节不变。v2 只增加受控同文档 component ref、query/body primitive array、明确的 form/explode encoding，以及真实 Open-Meteo 路径所需的 date/float；外部/悬空/循环/错误 kind/sibling ref、path/header/nested/object array、组合 schema、pattern、复杂 body 等继续拒绝。
 
 **development 验证。** 先用合成 fixture machine-check 新增合同与 mutation，再用已暴露且 digest-bound 的 Open-Meteo forecast 完成一次 parse → package → generate → independent checker。真实源字节不 vendoring，结果只保存 portable digest evidence。该结果无论正负都不形成新 prospective 分母；通过也只证明声明子集内移除 runtime 模型，不证明 human savings、一般可靠性、跨 profile 或 readiness。
+
+### 14.15 API Tester v2 工程收口：类型基线、统一 CLI 与版本兼容
+
+2026-09-07 用户复核确认 v2 development 结论成立，并授权在不扩大 OpenAPI 能力范围的前提下修复 typecheck、接入
+统一 `skvm artifact` 和补齐版本兼容验证。设计见
+[API Tester v2 CLI integration design](../superpowers/specs/2026-09-07-api-tester-v2-cli-integration-design.md)，执行顺序见
+plan 第 4.44 节。
+
+**类型基线。** AI development routing builder 不在 v1 candidate 的 source closure 中；其生成 routing JSON 才由
+candidate 绑定。允许只修复 tuple 类型表达，但必须证明 canonical routing bytes 与 SHA-256 不变，并保持 candidate、
+lock、first-run runner/report 和 v1 production 三源摘要不变。
+
+**统一入口。** API Tester production binding 继续只使用一个 `--binding` 参数。preset adapter 必须读取 binding
+`schemaVersion` 并只在 v1/v2 runner 之间显式分发；未知、缺失或无效版本在 package/run 前拒绝，不允许 silent fallback。
+Env 与历史 API variant 保持原路径。production CLI report 必须显式记录实际 binding schema 和 support contract；历史
+result v1 仍可被现有 schema loader 验证。
+
+**停止点。** 本阶段只证明已声明 v2 范围通过统一 CLI；Open-Meteo 的真实覆盖仍只有 form-comma，无 local ref/body
+array/form-explode 真实迁移证据。新 candidate、分层选样与 prospective 执行是完成本阶段之后的独立授权；当前不扩
+DPP/OpenWrt/SignalK 支持、不进入第二 profile/Q4/held-out/portfolio/readiness，不调用模型/API 或声称人工节省。
