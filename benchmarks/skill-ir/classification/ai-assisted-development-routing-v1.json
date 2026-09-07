@@ -1,0 +1,3180 @@
+{
+  "schemaVersion": "skill-ir-ai-assisted-development-routing/v1",
+  "identity": "skill-ir-ai-assisted-development-routing-001",
+  "frozenAt": "2026-09-07T08:00:00.000Z",
+  "sourcePackage": {
+    "packageId": "q1-development-annotation-package-002",
+    "path": "benchmarks/skill-ir/classification/q1-development-annotation-package-v2.json",
+    "sha256": "197fb89fca2567e3367c9443b6a077ed45d826c24aa69b0d0e395515a8469ee1"
+  },
+  "capabilityProfile": {
+    "profileId": "q2-current-capabilities-001",
+    "path": "benchmarks/skill-ir/classification/q2-current-capabilities-v1.json",
+    "sha256": "d62cfa556d435ce7dc091554dcaa6a8939e09eea7f818bf8530e58a8bdd2a216"
+  },
+  "reviewStatus": {
+    "path": "q1-ai-annotation-2026-09-07/review-status.md",
+    "sha256": "6656d2eec3fa1965f15f7cd133bc39905da04ddaa0dc00acddc238c382d250d2"
+  },
+  "sourceDrafts": [
+    {
+      "slot": "A",
+      "draftId": "q1-ai-a-20260907-revision-2",
+      "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+      "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+      "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+      "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad"
+    },
+    {
+      "slot": "B",
+      "draftId": "q1-ai-b-20260907-revision-2",
+      "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+      "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+      "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+      "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe"
+    }
+  ],
+  "provenance": {
+    "commonRepairer": "ai-main-repair-20260907",
+    "repairerSawBothDrafts": true,
+    "repairerSawProjectResultSummaries": true,
+    "rawTaskRunsReadDuringRepair": false,
+    "independentAnnotations": false,
+    "humanAnnotations": false
+  },
+  "denominator": {
+    "sourceDrafts": 2,
+    "uniqueUnits": 24,
+    "exactRevision2LabelMatches": 24
+  },
+  "predictionCounts": {
+    "rules-sufficient-capability-supported": 1,
+    "rules-sufficient-capability-missing": 11,
+    "partial-semantic-choice-required": 5,
+    "insufficient-information": 7
+  },
+  "rows": [
+    {
+      "unitId": "env-manager-scan-and-compare",
+      "sourcePackageId": "env-manager",
+      "sliceId": "public-static-env-report",
+      "responsibilityId": "scan-and-compare",
+      "unitKind": "workflow-step",
+      "description": "Scan declared Env files and supported static code references without exposing values, then derive defined, used, and statically unreferenced name sets.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#工作流程/1. 扫描项目",
+          "purpose": "Defines redacted Env-name scanning and static reference comparison."
+        },
+        {
+          "locator": "SKILL.md#修改边界",
+          "purpose": "Defines non-deletion and dynamic-reference caveats."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "env-manager-scan-and-compare",
+        "unitKind": "workflow-step",
+        "description": "Scan declared Env files and supported static code references without exposing values, then derive defined, used, and statically unreferenced name sets.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#工作流程/1. 扫描项目",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#修改边界",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#工作流程/1. 扫描项目",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#修改边界",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "parse-key-value-lines",
+            "regex-find-files",
+            "pluck",
+            "set-operation"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "satisfied",
+          "conditions": [
+            "声明可读文件列表、静态引用模式及输出路径；parse-key-value-lines、regex-find-files、pluck、set-operation 覆盖这一步的名称集合计算，受 Q2 文件/记录上限约束。"
+          ],
+          "requiredCapabilityIds": [
+            "parse-key-value-lines",
+            "regex-find-files",
+            "pluck",
+            "set-operation"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-supported"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions"
+          ],
+          "rationale": {
+            "verification": "核对声明文件中的变量名与受支持静态引用，并比较定义且使用、定义未静态引用、使用未定义三种集合；输出不应含真实值。",
+            "construction": "按公开 key=value 名称语法提取 Env 名称，用声明模式捕获静态引用、pluck 去重并做集合差；不由未引用推导删除。",
+            "execution": "声明可读文件列表、静态引用模式及输出路径；parse-key-value-lines、regex-find-files、pluck、set-operation 覆盖这一步的名称集合计算，受 Q2 文件/记录上限约束。",
+            "semanticBoundary": "本步只报告静态未引用候选。动态引用、部署状态与删除决定不在单位范围，不能暗中补成自动清理。"
+          },
+          "predictionChange": null
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions"
+          ],
+          "rationale": {
+            "verification": "核对声明文件中的变量名与受支持静态引用，并比较定义且使用、定义未静态引用、使用未定义三种集合；输出不应含真实值。",
+            "construction": "按公开 key=value 名称语法提取 Env 名称，用声明模式捕获静态引用、pluck 去重并做集合差；不由未引用推导删除。",
+            "execution": "声明可读文件列表、静态引用模式及输出路径；parse-key-value-lines、regex-find-files、pluck、set-operation 覆盖这一步的名称集合计算，受 Q2 文件/记录上限约束。",
+            "semanticBoundary": "本步只报告静态未引用候选。动态引用、部署状态与删除决定不在单位范围，不能暗中补成自动清理。"
+          },
+          "predictionChange": null
+        }
+      ]
+    },
+    {
+      "unitId": "env-manager-validate-and-generate",
+      "sourcePackageId": "env-manager",
+      "sliceId": "public-static-env-report",
+      "responsibilityId": "validate-and-generate",
+      "unitKind": "workflow-step",
+      "description": "Validate only the public bounded Env rules and generate redacted example, schema, and difference-report artifacts without production secret migration.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#工作流程/2. 校验分析",
+          "purpose": "Defines validation checks."
+        },
+        {
+          "locator": "SKILL.md#工作流程/3. 生成/修复",
+          "purpose": "Defines bounded generated artifacts."
+        },
+        {
+          "locator": "SKILL.md#安全检查清单",
+          "purpose": "Defines secret-handling requirements."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "env-manager-scan-and-compare"
+      ],
+      "classification": {
+        "requirementId": "env-manager-validate-and-generate",
+        "unitKind": "workflow-step",
+        "description": "Validate only the public bounded Env rules and generate redacted example, schema, and difference-report artifacts without production secret migration.",
+        "dependsOn": [
+          "env-manager-scan-and-compare"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#工作流程/2. 校验分析",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#工作流程/3. 生成/修复",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#安全检查清单",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#工作流程/2. 校验分析",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#工作流程/3. 生成/修复",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "env-manager",
+              "locator": "SKILL.md#安全检查清单",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-test",
+            "write-json",
+            "write-text-template",
+            "env-reviewed-composition"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要声明规则和输出路径；冻结 env-reviewed-composition 仅 historical-tested 且 supportsNewInputs=false，通用写文件操作不能证明完整校验/构造链已支持新输入。"
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-test",
+            "write-json",
+            "write-text-template",
+            "env-reviewed-composition"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "依据公开必填、URL、端口、布尔与 example 差异规则验收；模板与报告不得包含生产 Secret。",
+            "construction": "使用已声明的有限 Env 规则生成脱敏 example、schema 和差异报告；不从变量名猜类型，不添加生产迁移。",
+            "execution": "需要声明规则和输出路径；冻结 env-reviewed-composition 仅 historical-tested 且 supportsNewInputs=false，通用写文件操作不能证明完整校验/构造链已支持新输入。",
+            "semanticBoundary": "限定公开规则后没有额外部署或类型政策选择；若使用者要自动改写真实 .env，需要另算授权与政策，不能并入本切片。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "依据公开必填、URL、端口、布尔与 example 差异规则验收；模板与报告不得包含生产 Secret。",
+            "construction": "使用已声明的有限 Env 规则生成脱敏 example、schema 和差异报告；不从变量名猜类型，不添加生产迁移。",
+            "execution": "需要声明规则和输出路径；冻结 env-reviewed-composition 仅 historical-tested 且 supportsNewInputs=false，通用写文件操作不能证明完整校验/构造链已支持新输入。",
+            "semanticBoundary": "限定公开规则后没有额外部署或类型政策选择；若使用者要自动改写真实 .env，需要另算授权与政策，不能并入本切片。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "law-to-markdown-law-classification-formatting",
+      "sourcePackageId": "law-to-markdown",
+      "sliceId": "public-txt-structure-subset",
+      "responsibilityId": "law-classification-formatting",
+      "unitKind": "workflow-step",
+      "description": "For the public TXT slice, obtain or derive the law decision and apply the documented legal hierarchy and whitespace rules without altering the source character stream.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#处理规则",
+          "purpose": "Defines law decision, hierarchy, whitespace, and non-law behavior."
+        },
+        {
+          "locator": "SKILL.md#二阶段识别参数",
+          "purpose": "Defines the explicit law-decision modes."
+        },
+        {
+          "locator": "scripts/cn_law_normalizer.py#formatting-rules",
+          "purpose": "Provides the bounded normalizer implementation."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "law-to-markdown-law-classification-formatting",
+        "unitKind": "workflow-step",
+        "description": "For the public TXT slice, obtain or derive the law decision and apply the documented legal hierarchy and whitespace rules without altering the source character stream.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#处理规则",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#二阶段识别参数",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "semantic-choice-required",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#处理规则",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#二阶段识别参数",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "输入是公开 TXT，需固定 law-decision 模式及严格策略；Q2 没有归一化器调用与领域格式构造 binding，read-text/template 不替代逐行结构变换。"
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [
+          {
+            "choiceId": "law-to-markdown-law-classification-formatting-review-choice",
+            "provider": "reviewer",
+            "timing": "before-construction",
+            "affectsRequirementIds": [
+              "law-to-markdown-law-classification-formatting",
+              "law-to-markdown-fidelity-validation",
+              "law-to-markdown-delivery-reporting"
+            ],
+            "description": "确认待处理 TXT 的 law/non-law 判断，或明确接受 auto 硬规则及其误判边界；该决定影响格式化、保真结构门槛与最终交付。"
+          }
+        ],
+        "prediction": "partial-semantic-choice-required"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "可按标题层级、空白、拒绝/no-op 及字符流保真规则检查格式；这种验证不证明任意文书法律属性判定正确。",
+            "construction": "源文档先由调用模型判法律/非法律，也允许未传判定时走 auto 硬规则；之后才依法律名称/编/章/节/条的固定层级格式化。",
+            "execution": "输入是公开 TXT，需固定 law-decision 模式及严格策略；Q2 没有归一化器调用与领域格式构造 binding，read-text/template 不替代逐行结构变换。",
+            "semanticBoundary": "本单位包含 obtain or derive law decision，未明确只接受 auto 硬规则的语义边界。将法律属性判定与是否接受 auto 后备的政策交给审核者，不能静默把后备当通用法律识别。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "partial-semantic-choice-required"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices"
+          ],
+          "rationale": {
+            "verification": "可按标题层级、空白、拒绝/no-op 及字符流保真规则检查格式；这种验证不证明任意文书法律属性判定正确。",
+            "construction": "源文档先由调用模型判法律/非法律，也允许未传判定时走 auto 硬规则；之后才依法律名称/编/章/节/条的固定层级格式化。",
+            "execution": "输入是公开 TXT，需固定 law-decision 模式及严格策略；Q2 没有归一化器调用与领域格式构造 binding，read-text/template 不替代逐行结构变换。",
+            "semanticBoundary": "本单位包含 obtain or derive law decision，未明确只接受 auto 硬规则的语义边界。将法律属性判定与是否接受 auto 后备的政策交给审核者，不能静默把后备当通用法律识别。"
+          },
+          "predictionChange": null
+        }
+      ]
+    },
+    {
+      "unitId": "law-to-markdown-fidelity-validation",
+      "sourcePackageId": "law-to-markdown",
+      "sliceId": "public-txt-structure-subset",
+      "responsibilityId": "fidelity-validation",
+      "unitKind": "hard-requirement",
+      "description": "Check stage-two character-stream fidelity and documented structure rules, applying the frozen strict failure policy.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#处理规则/Stage3",
+          "purpose": "Defines character and structure gates."
+        },
+        {
+          "locator": "SKILL.md#三阶段参数",
+          "purpose": "Defines strictness and retry parameters."
+        },
+        {
+          "locator": "scripts/stage3_checker.py#main",
+          "purpose": "Implements the public checker."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "law-to-markdown-law-classification-formatting"
+      ],
+      "classification": {
+        "requirementId": "law-to-markdown-fidelity-validation",
+        "unitKind": "hard-requirement",
+        "description": "Check stage-two character-stream fidelity and documented structure rules, applying the frozen strict failure policy.",
+        "dependsOn": [
+          "law-to-markdown-law-classification-formatting"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#处理规则/Stage3",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#三阶段参数",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#处理规则/Stage3",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#三阶段参数",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-test"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需 stage1、stage2、法律判定与固定严格策略；Q2 未提供完整字符流归一化、结构 checker 及重试流程 binding，单个 regex-test 不等于整套检查。"
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-test"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "partial-semantic-choice-required"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "Stage3-A 去标题符号与空白后比较 stage2/stage1 字符流；Stage3-B 检查层级、条标题、非法律策略、空格与项/目换行。",
+            "construction": "源 checker/normalizer 提供字符规范化比较与结构检查步骤，按冻结 strict 失败策略阻断，不能改成只输出警告。",
+            "execution": "需 stage1、stage2、法律判定与固定严格策略；Q2 未提供完整字符流归一化、结构 checker 及重试流程 binding，单个 regex-test 不等于整套检查。",
+            "semanticBoundary": "本地检查没有新增法律判断，但受上游法律判定政策影响；prediction 必须继承其限制，不能因本地检查规则明确而升级。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "partial-semantic-choice-required"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "Stage3-A 去标题符号与空白后比较 stage2/stage1 字符流；Stage3-B 检查层级、条标题、非法律策略、空格与项/目换行。",
+            "construction": "源 checker/normalizer 提供字符规范化比较与结构检查步骤，按冻结 strict 失败策略阻断，不能改成只输出警告。",
+            "execution": "需 stage1、stage2、法律判定与固定严格策略；Q2 未提供完整字符流归一化、结构 checker 及重试流程 binding，单个 regex-test 不等于整套检查。",
+            "semanticBoundary": "本地检查没有新增法律判断，但受上游法律判定政策影响；prediction 必须继承其限制，不能因本地检查规则明确而升级。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "partial-semantic-choice-required"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "law-to-markdown-delivery-reporting",
+      "sourcePackageId": "law-to-markdown",
+      "sliceId": "public-txt-structure-subset",
+      "responsibilityId": "delivery-reporting",
+      "unitKind": "workflow-step",
+      "description": "Emit the audit report and only emit a final Markdown deliverable when the law-text checks pass under the documented artifact level.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#输出规则",
+          "purpose": "Defines report and final-deliverable conditions."
+        },
+        {
+          "locator": "scripts/law_to_markdown.py#artifact-output",
+          "purpose": "Implements output selection and paths."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "law-to-markdown-fidelity-validation"
+      ],
+      "classification": {
+        "requirementId": "law-to-markdown-delivery-reporting",
+        "unitKind": "workflow-step",
+        "description": "Emit the audit report and only emit a final Markdown deliverable when the law-text checks pass under the documented artifact level.",
+        "dependsOn": [
+          "law-to-markdown-fidelity-validation"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#输出规则",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "law-to-markdown",
+              "locator": "SKILL.md#输出规则",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "write-json",
+            "write-text-template",
+            "choose"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要上游检查状态、输入文件名与输出目录；写模板/JSON 只是输出部件，完整条件输出和 artifact-level 路径选择尚无冻结领域 binding 证明。"
+          ],
+          "requiredCapabilityIds": [
+            "write-json",
+            "write-text-template",
+            "choose"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "partial-semantic-choice-required"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按 artifact level 核对报告和最终文件是否存在；仅法律文本且审核通过才应交付最终 Markdown，失败过程文件不算成果。",
+            "construction": "按上游已给出的判定与 checker 状态选择报告/最终文件路径，采用 minimal、standard、debug 的保留规则。",
+            "execution": "需要上游检查状态、输入文件名与输出目录；写模板/JSON 只是输出部件，完整条件输出和 artifact-level 路径选择尚无冻结领域 binding 证明。",
+            "semanticBoundary": "不新作法律识别。是否允许最终交付直接依赖 fidelity-validation，必须继承其上游限制。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "partial-semantic-choice-required"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按 artifact level 核对报告和最终文件是否存在；仅法律文本且审核通过才应交付最终 Markdown，失败过程文件不算成果。",
+            "construction": "按上游已给出的判定与 checker 状态选择报告/最终文件路径，采用 minimal、standard、debug 的保留规则。",
+            "execution": "需要上游检查状态、输入文件名与输出目录；写模板/JSON 只是输出部件，完整条件输出和 artifact-level 路径选择尚无冻结领域 binding 证明。",
+            "semanticBoundary": "不新作法律识别。是否允许最终交付直接依赖 fidelity-validation，必须继承其上游限制。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "partial-semantic-choice-required"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "experimental-design-layout-generation",
+      "sourcePackageId": "experimental-design",
+      "sliceId": "public-allocation-graph",
+      "responsibilityId": "layout-generation",
+      "unitKind": "workflow-step",
+      "description": "Generate a reproducible seeded allocation schedule or DOE layout after the design family and ordinary parameters have already been declared.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#Generating the design",
+          "purpose": "Defines the reproducible layout workflow."
+        },
+        {
+          "locator": "scripts/randomization.py#public-functions",
+          "purpose": "Implements allocation schedules."
+        },
+        {
+          "locator": "scripts/doe_designs.py#public-functions",
+          "purpose": "Implements DOE matrices."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "experimental-design-layout-generation",
+        "unitKind": "workflow-step",
+        "description": "Generate a reproducible seeded allocation schedule or DOE layout after the design family and ordinary parameters have already been declared.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "experimental-design",
+              "locator": "SKILL.md#Generating the design",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "experimental-design",
+              "locator": "SKILL.md#Generating the design",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "write-json"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "设计家族、普通参数及 seed 已声明；Q2 没有随机分配或 DOE 矩阵构造/脚本执行能力，read-json/write-json 只能搬运数据。"
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "write-json"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按已给定设计家族、参数与 seed 检查分配数、区组/矩阵结构和可复现顺序，不验证设计家族是否科学适宜。",
+            "construction": "randomization.py 和 doe_designs.py 提供 seeded allocation/DOE 公共函数；调用已选函数和已给参数产生布局。",
+            "execution": "设计家族、普通参数及 seed 已声明；Q2 没有随机分配或 DOE 矩阵构造/脚本执行能力，read-json/write-json 只能搬运数据。",
+            "semanticBoundary": "单位明说 design family and ordinary parameters have already been declared。删除旧稿把设计选择重复算为剩余选择的条目；设计选择不在此单元。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按已给定设计家族、参数与 seed 检查分配数、区组/矩阵结构和可复现顺序，不验证设计家族是否科学适宜。",
+            "construction": "randomization.py 和 doe_designs.py 提供 seeded allocation/DOE 公共函数；调用已选函数和已给参数产生布局。",
+            "execution": "设计家族、普通参数及 seed 已声明；Q2 没有随机分配或 DOE 矩阵构造/脚本执行能力，read-json/write-json 只能搬运数据。",
+            "semanticBoundary": "单位明说 design family and ordinary parameters have already been declared。删除旧稿把设计选择重复算为剩余选择的条目；设计选择不在此单元。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "rules-sufficient-capability-missing"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "experimental-design-design-risk-review",
+      "sourcePackageId": "experimental-design",
+      "sliceId": "public-allocation-graph",
+      "responsibilityId": "design-risk-review",
+      "unitKind": "hard-requirement",
+      "description": "Review the declared allocation graph for documented structural risks such as pseudoreplication, confounding, broken randomization, controls, batch effects, or aliasing.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#The mistakes that ruin studies",
+          "purpose": "Enumerates structural failure modes."
+        },
+        {
+          "locator": "references/randomization_and_blocking.md#validation",
+          "purpose": "Provides randomization and blocking checks."
+        },
+        {
+          "locator": "references/design_types.md#pseudoreplication",
+          "purpose": "Defines unit-of-analysis risks."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "experimental-design-layout-generation"
+      ],
+      "classification": {
+        "requirementId": "experimental-design-design-risk-review",
+        "unitKind": "hard-requirement",
+        "description": "Review the declared allocation graph for documented structural risks such as pseudoreplication, confounding, broken randomization, controls, batch effects, or aliasing.",
+        "dependsOn": [
+          "experimental-design-layout-generation"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "experimental-design",
+              "locator": "SKILL.md#The mistakes that ruin studies",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "semantic-choice-required",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "experimental-design",
+              "locator": "SKILL.md#The mistakes that ruin studies",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-json"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需上游布局、分配图中的单位/批次身份与领域解释；Q2 未有图风险检查 binding，regex-test 无法代替图关系计算。"
+          ],
+          "requiredCapabilityIds": [
+            "read-json"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [
+          {
+            "choiceId": "experimental-design-design-risk-review-review-choice",
+            "provider": "domain-expert",
+            "timing": "during-review",
+            "affectsRequirementIds": [
+              "experimental-design-design-risk-review"
+            ],
+            "description": "核对声明分配图中的实验单位、重复与批次关系是否构成伪重复或混杂，并说明风险证据；不重新选择设计家族。"
+          }
+        ],
+        "prediction": "partial-semantic-choice-required"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices"
+          ],
+          "rationale": {
+            "verification": "公开文档列出伪重复、混杂、随机化、控制、批次和 aliasing 风险，可逐项对照声明的分配图；这些是风险审查依据，不是全科学效度保证。",
+            "construction": "将随机化单位、重复单位、处理和批次对应到风险规则，记录触发证据。原文示例并未把所有情境判定写成可直接执行的谓词。",
+            "execution": "需上游布局、分配图中的单位/批次身份与领域解释；Q2 未有图风险检查 binding，regex-test 无法代替图关系计算。",
+            "semanticBoundary": "领域专家在审核时确认单位独立性和混杂解释；仅检查已声明图，不扩展到重新选择研究设计或结论效度。"
+          },
+          "predictionChange": null
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices"
+          ],
+          "rationale": {
+            "verification": "公开文档列出伪重复、混杂、随机化、控制、批次和 aliasing 风险，可逐项对照声明的分配图；这些是风险审查依据，不是全科学效度保证。",
+            "construction": "将随机化单位、重复单位、处理和批次对应到风险规则，记录触发证据。原文示例并未把所有情境判定写成可直接执行的谓词。",
+            "execution": "需上游布局、分配图中的单位/批次身份与领域解释；Q2 未有图风险检查 binding，regex-test 无法代替图关系计算。",
+            "semanticBoundary": "领域专家在审核时确认单位独立性和混杂解释；仅检查已声明图，不扩展到重新选择研究设计或结论效度。"
+          },
+          "predictionChange": null
+        }
+      ]
+    },
+    {
+      "unitId": "api-tester-test-plan-generation",
+      "sourcePackageId": "api-tester",
+      "sliceId": "openapi-offline-plan",
+      "responsibilityId": "test-plan-generation",
+      "unitKind": "workflow-step",
+      "description": "From a supported existing OpenAPI contract, enumerate bounded happy, error, boundary, security, and data-generation cases without live service discovery.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#第 2 步：生成测试用例",
+          "purpose": "Defines case categories."
+        },
+        {
+          "locator": "SKILL.md#第 4 步：测试数据生成",
+          "purpose": "Defines bounded data generation."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "api-tester-test-plan-generation",
+        "unitKind": "workflow-step",
+        "description": "From a supported existing OpenAPI contract, enumerate bounded happy, error, boundary, security, and data-generation cases without live service discovery.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "api-tester",
+              "locator": "SKILL.md#第 2 步：生成测试用例",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "api-tester",
+              "locator": "SKILL.md#第 4 步：测试数据生成",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "api-tester",
+              "locator": "SKILL.md#第 2 步：生成测试用例",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "api-tester",
+              "locator": "SKILL.md#第 4 步：测试数据生成",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "api-openapi-subset-composition"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要受支持的合同及固定离线生成政策；冻结 api-openapi-subset-composition 为 historical-tested、supportsNewInputs=false，读取 JSON/Pointer 不等于新输入领域构造。"
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "api-openapi-subset-composition"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "executionConditions"
+          ],
+          "rationale": {
+            "verification": "对支持的既有合同核对 endpoint 与正常、边界、错误及声明安全/数据约束的用例覆盖；没有 live 服务结果可引用。",
+            "construction": "从声明 schema/状态码生成有限离线用例与 fixture；源文档列出多种生成方式，不能把示例状态码强加到每个接口。",
+            "execution": "需要受支持的合同及固定离线生成政策；冻结 api-openapi-subset-composition 为 historical-tested、supportsNewInputs=false，读取 JSON/Pointer 不等于新输入领域构造。",
+            "semanticBoundary": "只讨论已支持合同下的有限生成，不做 live discovery、自由技术栈选择或修复；当前后续开发结果不能回填冻结 Q2。"
+          },
+          "predictionChange": null
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "对支持的既有合同核对 endpoint 与正常、边界、错误及声明安全/数据约束的用例覆盖；没有 live 服务结果可引用。",
+            "construction": "从声明 schema/状态码生成有限离线用例与 fixture；源文档列出多种生成方式，不能把示例状态码强加到每个接口。",
+            "execution": "需要受支持的合同及固定离线生成政策；冻结 api-openapi-subset-composition 为 historical-tested、supportsNewInputs=false，读取 JSON/Pointer 不等于新输入领域构造。",
+            "semanticBoundary": "只讨论已支持合同下的有限生成，不做 live discovery、自由技术栈选择或修复；当前后续开发结果不能回填冻结 Q2。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "api-tester-reporting",
+      "sourcePackageId": "api-tester",
+      "sliceId": "openapi-offline-plan",
+      "responsibilityId": "reporting",
+      "unitKind": "workflow-step",
+      "description": "Render the offline test plan, runnable generator, and verification report for the supported contract while excluding live execution and repair.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#第 3 步：生成测试代码",
+          "purpose": "Defines runnable test output."
+        },
+        {
+          "locator": "SKILL.md#第 5 步：执行和复测",
+          "purpose": "Defines report-facing result organization while live execution remains excluded."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "api-tester-test-plan-generation"
+      ],
+      "classification": {
+        "requirementId": "api-tester-reporting",
+        "unitKind": "workflow-step",
+        "description": "Render the offline test plan, runnable generator, and verification report for the supported contract while excluding live execution and repair.",
+        "dependsOn": [
+          "api-tester-test-plan-generation"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "api-tester",
+              "locator": "SKILL.md#第 3 步：生成测试代码",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "api-tester",
+              "locator": "SKILL.md#第 5 步：执行和复测",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "api-tester",
+              "locator": "SKILL.md#第 3 步：生成测试代码",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "api-tester",
+              "locator": "SKILL.md#第 5 步：执行和复测",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "write-json",
+            "write-text-template",
+            "api-openapi-subset-composition"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需上游离线计划、代码/报告输出路径与模板；冻结 API composition 未验证新输入，write-text-template 只是已声明内容的渲染部件。"
+          ],
+          "requiredCapabilityIds": [
+            "write-json",
+            "write-text-template",
+            "api-openapi-subset-composition"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "离线计划和生成器应与上游合同及用例对应，报告清楚写未运行验证，不能把排除的 live 执行标为通过。",
+            "construction": "按技术栈输出测试代码和报告结构；真实失败修复属于源 skill 的完整流程，但本单元明确排除 live execution/repair。",
+            "execution": "需上游离线计划、代码/报告输出路径与模板；冻结 API composition 未验证新输入，write-text-template 只是已声明内容的渲染部件。",
+            "semanticBoundary": "没有新增业务决策可据此升级状态；上游 test-plan-generation 的能力缺失通过依赖图传给本单元。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "离线计划和生成器应与上游合同及用例对应，报告清楚写未运行验证，不能把排除的 live 执行标为通过。",
+            "construction": "按技术栈输出测试代码和报告结构；真实失败修复属于源 skill 的完整流程，但本单元明确排除 live execution/repair。",
+            "execution": "需上游离线计划、代码/报告输出路径与模板；冻结 API composition 未验证新输入，write-text-template 只是已声明内容的渲染部件。",
+            "semanticBoundary": "没有新增业务决策可据此升级状态；上游 test-plan-generation 的能力缺失通过依赖图传给本单元。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "zh-code-reviewer-evidence-severity",
+      "sourcePackageId": "zh-code-reviewer",
+      "sliceId": "supported-pattern-evidence",
+      "responsibilityId": "evidence-severity",
+      "unitKind": "hard-requirement",
+      "description": "For an already detected supported issue pattern, bind the finding to source evidence and assign severity under the public review rubric.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#工作流程",
+          "purpose": "Defines evidence verification and severity categorization."
+        },
+        {
+          "locator": "SKILL.md#注意事项",
+          "purpose": "Defines evidence and false-positive boundaries."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "zh-code-reviewer-evidence-severity",
+        "unitKind": "hard-requirement",
+        "description": "For an already detected supported issue pattern, bind the finding to source evidence and assign severity under the public review rubric.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "insufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "zh-code-reviewer",
+              "locator": "SKILL.md#工作流程",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "zh-code-reviewer",
+              "locator": "SKILL.md#注意事项",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": [
+            "冻结来源仅列审查维度与栏目，缺少 supported pattern 到 severity 的完整公开分级判据。"
+          ]
+        },
+        "constructionBasis": {
+          "status": "semantic-choice-required",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "zh-code-reviewer",
+              "locator": "SKILL.md#工作流程",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "zh-code-reviewer",
+              "locator": "SKILL.md#注意事项",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-test"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要已检测模式、源码位置与上下文；Q2 读文本可取证，未提供模式到严重性的领域映射或验证器。"
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-test"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [
+          {
+            "choiceId": "zh-code-reviewer-evidence-severity-review-choice",
+            "provider": "reviewer",
+            "timing": "during-review",
+            "affectsRequirementIds": [
+              "zh-code-reviewer-evidence-severity",
+              "zh-code-reviewer-actionable-report"
+            ],
+            "description": "依据已检测问题的源码上下文判断影响和严重等级；现有 source 没有完整模式到严重性映射，需记录判断依据。"
+          }
+        ],
+        "prediction": "insufficient-information"
+      },
+      "namedUnknowns": [
+        "冻结来源仅列审查维度与栏目，缺少 supported pattern 到 severity 的完整公开分级判据。"
+      ],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "可核对已有问题的文件与行号，但 source 只有质量维度和严重/建议栏目，未给出把 supported pattern 映射到严重性等级的完整阈值。",
+            "construction": "冻结单元已给 detected supported pattern；审核者仍需解释其上下文危害和严重性，不能重新运行开放式问题发现或凭 regex 自动打分。",
+            "execution": "需要已检测模式、源码位置与上下文；Q2 读文本可取证，未提供模式到严重性的领域映射或验证器。",
+            "semanticBoundary": "保留 reviewer 对严重性的决定，并明确当前公开分级判据不足；不能为了通过机械校验写成规则充分。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "insufficient-information"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "可核对已有问题的文件与行号，但 source 只有质量维度和严重/建议栏目，未给出把 supported pattern 映射到严重性等级的完整阈值。",
+            "construction": "冻结单元已给 detected supported pattern；审核者仍需解释其上下文危害和严重性，不能重新运行开放式问题发现或凭 regex 自动打分。",
+            "execution": "需要已检测模式、源码位置与上下文；Q2 读文本可取证，未提供模式到严重性的领域映射或验证器。",
+            "semanticBoundary": "保留 reviewer 对严重性的决定，并明确当前公开分级判据不足；不能为了通过机械校验写成规则充分。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "insufficient-information"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "zh-code-reviewer-actionable-report",
+      "sourcePackageId": "zh-code-reviewer",
+      "sliceId": "supported-pattern-evidence",
+      "responsibilityId": "actionable-report",
+      "unitKind": "workflow-step",
+      "description": "Format source-grounded supported findings into the required Chinese review sections with concrete repair guidance.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#输出格式",
+          "purpose": "Defines the structured review report."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "zh-code-reviewer-evidence-severity"
+      ],
+      "classification": {
+        "requirementId": "zh-code-reviewer-actionable-report",
+        "unitKind": "workflow-step",
+        "description": "Format source-grounded supported findings into the required Chinese review sections with concrete repair guidance.",
+        "dependsOn": [
+          "zh-code-reviewer-evidence-severity"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "zh-code-reviewer",
+              "locator": "SKILL.md#输出格式",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "semantic-choice-required",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "zh-code-reviewer",
+              "locator": "SKILL.md#输出格式",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要上游源码证据、分级及经过审核的建议；Q2 模板可渲染文字，但没有任意 finding 的安全修复指导构造器。"
+          ],
+          "requiredCapabilityIds": [
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [
+          {
+            "choiceId": "zh-code-reviewer-actionable-report-review-choice",
+            "provider": "reviewer",
+            "timing": "during-review",
+            "affectsRequirementIds": [
+              "zh-code-reviewer-actionable-report"
+            ],
+            "description": "为已证实的 supported finding 给出具体修复方案并核对是否保持原代码约束；模板本身不提供这个方案。"
+          }
+        ],
+        "prediction": "insufficient-information"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "报告格式要求文件:行号、问题描述与修复建议，另有总体评分/亮点/总结；结构存在可检查，不能由格式证明修复建议正确。",
+            "construction": "用已验证的 finding 填入中文栏目；具体修复指导仍要绑定代码和约束，模板中的省略号不是公开修复算法。",
+            "execution": "需要上游源码证据、分级及经过审核的建议；Q2 模板可渲染文字，但没有任意 finding 的安全修复指导构造器。",
+            "semanticBoundary": "审核者提供/核对具体修复建议。该单位也继承上游分级判据的信息不足，不能以本地模板充分抵消。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "insufficient-information"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "报告格式要求文件:行号、问题描述与修复建议，另有总体评分/亮点/总结；结构存在可检查，不能由格式证明修复建议正确。",
+            "construction": "用已验证的 finding 填入中文栏目；具体修复指导仍要绑定代码和约束，模板中的省略号不是公开修复算法。",
+            "execution": "需要上游源码证据、分级及经过审核的建议；Q2 模板可渲染文字，但没有任意 finding 的安全修复指导构造器。",
+            "semanticBoundary": "审核者提供/核对具体修复建议。该单位也继承上游分级判据的信息不足，不能以本地模板充分抵消。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "insufficient-information"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "zh-readme-repository-fact-extraction",
+      "sourcePackageId": "zh-readme",
+      "sliceId": "source-bound-repository-facts",
+      "responsibilityId": "repository-fact-extraction",
+      "unitKind": "workflow-step",
+      "description": "Extract commands, paths, local links, metadata, project structure, and license facts from declared repository sources without inventing facts.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#核心原则",
+          "purpose": "Defines source-grounding requirements."
+        },
+        {
+          "locator": "SKILL.md#工作流程",
+          "purpose": "Defines repository analysis steps."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "zh-readme-repository-fact-extraction",
+        "unitKind": "workflow-step",
+        "description": "Extract commands, paths, local links, metadata, project structure, and license facts from declared repository sources without inventing facts.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#核心原则",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#工作流程",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#核心原则",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#工作流程",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "read-json",
+            "json-pointer",
+            "regex-find-files"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要声明文件列表与可解析 manifest；Q2 有读取/JSON/regex 部件，但没有覆盖本单位全部格式和来源绑定规则的通用事实提取 composition。"
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "read-json",
+            "json-pointer",
+            "regex-find-files"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "事实可回指仓库命令、路径、入口、元数据和 License；信息不足应标待补充，不根据项目名臆造功能。",
+            "construction": "读取声明仓库清单和 manifest，逐项抽取真实命令、路径及许可事实并保留来源；不包含开放式价值提炼。",
+            "execution": "需要声明文件列表与可解析 manifest；Q2 有读取/JSON/regex 部件，但没有覆盖本单位全部格式和来源绑定规则的通用事实提取 composition。",
+            "semanticBoundary": "该有限切片不要求自行决定营销方向或目标用户。旧稿的泛化“领域语义/参数”不能作为剩余选择，缺的是实现闭包。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "事实可回指仓库命令、路径、入口、元数据和 License；信息不足应标待补充，不根据项目名臆造功能。",
+            "construction": "读取声明仓库清单和 manifest，逐项抽取真实命令、路径及许可事实并保留来源；不包含开放式价值提炼。",
+            "execution": "需要声明文件列表与可解析 manifest；Q2 有读取/JSON/regex 部件，但没有覆盖本单位全部格式和来源绑定规则的通用事实提取 composition。",
+            "semanticBoundary": "该有限切片不要求自行决定营销方向或目标用户。旧稿的泛化“领域语义/参数”不能作为剩余选择，缺的是实现闭包。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "rules-sufficient-capability-missing"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "zh-readme-readme-composition",
+      "sourcePackageId": "zh-readme",
+      "sliceId": "source-bound-repository-facts",
+      "responsibilityId": "readme-composition",
+      "unitKind": "workflow-step",
+      "description": "Place the extracted repository facts into the bounded Chinese README structure without making open-ended presentation-quality choices part of the selected slice.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#推荐结构",
+          "purpose": "Defines the bounded README sections."
+        },
+        {
+          "locator": "SKILL.md#输出要求",
+          "purpose": "Defines output constraints."
+        },
+        {
+          "locator": "SKILL.md#自检清单",
+          "purpose": "Defines factual and link checks."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "zh-readme-repository-fact-extraction"
+      ],
+      "classification": {
+        "requirementId": "zh-readme-readme-composition",
+        "unitKind": "workflow-step",
+        "description": "Place the extracted repository facts into the bounded Chinese README structure without making open-ended presentation-quality choices part of the selected slice.",
+        "dependsOn": [
+          "zh-readme-repository-fact-extraction"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#推荐结构",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#输出要求",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#自检清单",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#推荐结构",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#输出要求",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "zh-readme",
+              "locator": "SKILL.md#自检清单",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "satisfied",
+          "conditions": [
+            "需要已抽取事实、固定章节/模板与路径；write-text-template 支持有界模板渲染，本地操作可满足，但最终状态仍继承事实抽取能力缺失。"
+          ],
+          "requiredCapabilityIds": [
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按来源事实核对章节、命令、链接及 License，信息不足保留待补充；不能加入无证据的徽章、版本、用户案例。",
+            "construction": "将上游已抽取的事实放入推荐中文结构，遵守可复制命令和输出约束；本切片明确排除开放式 presentation-quality。",
+            "execution": "需要已抽取事实、固定章节/模板与路径；write-text-template 支持有界模板渲染，本地操作可满足，但最终状态仍继承事实抽取能力缺失。",
+            "semanticBoundary": "不把宣传文案质量或模板中并非必需的创作纳入此单位。若要作者编写新任务专用模板，须另计人工构造，不能据此宣称新 skill 自动接入。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按来源事实核对章节、命令、链接及 License，信息不足保留待补充；不能加入无证据的徽章、版本、用户案例。",
+            "construction": "将上游已抽取的事实放入推荐中文结构，遵守可复制命令和输出约束；本切片明确排除开放式 presentation-quality。",
+            "execution": "需要已抽取事实、固定章节/模板与路径；write-text-template 支持有界模板渲染，本地操作可满足，但最终状态仍继承事实抽取能力缺失。",
+            "semanticBoundary": "不把宣传文案质量或模板中并非必需的创作纳入此单位。若要作者编写新任务专用模板，须另计人工构造，不能据此宣称新 skill 自动接入。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "rules-sufficient-capability-missing"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "i18n-helper-source-string-discovery",
+      "sourcePackageId": "i18n-helper",
+      "sliceId": "react-i18next-public-subset",
+      "responsibilityId": "source-string-discovery",
+      "unitKind": "workflow-step",
+      "description": "Identify user-facing strings in the declared React+i18next subset while excluding documented technical and non-translatable literals.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#工作流程/1. 项目分析",
+          "purpose": "Defines framework and file discovery."
+        },
+        {
+          "locator": "SKILL.md#工作流程/2. 硬编码文本扫描",
+          "purpose": "Defines included and excluded strings."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "i18n-helper-source-string-discovery",
+        "unitKind": "workflow-step",
+        "description": "Identify user-facing strings in the declared React+i18next subset while excluding documented technical and non-translatable literals.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/1. 项目分析",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/2. 硬编码文本扫描",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "semantic-choice-required",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/1. 项目分析",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/2. 硬编码文本扫描",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-find-files"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要声明文件、框架与调用上下文；Q2 没有语法/调用点分类构造器，regex-find-files 只提供候选位置。"
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-find-files"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [
+          {
+            "choiceId": "i18n-helper-source-string-discovery-review-choice",
+            "provider": "reviewer",
+            "timing": "before-construction",
+            "affectsRequirementIds": [
+              "i18n-helper-source-string-discovery",
+              "i18n-helper-locale-generation",
+              "i18n-helper-source-rewrite",
+              "i18n-helper-integrity-report"
+            ],
+            "description": "确认歧义字符串是否为用户可见 UI/错误/通知，而不是 URL、import 或调试日志；保存选中/排除依据。"
+          }
+        ],
+        "prediction": "partial-semantic-choice-required"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "源规则排除变量名、URL、正则、import、调试日志，包含用户可见 UI/错误/通知；这些公开类别可用于审核候选。",
+            "construction": "先限定 React+i18next 文件，再找字符串候选，结合调用点决定用户可见性；仅有文件 regex 扫描不能替代语义筛选。",
+            "execution": "需要声明文件、框架与调用上下文；Q2 没有语法/调用点分类构造器，regex-find-files 只提供候选位置。",
+            "semanticBoundary": "审核者判定歧义候选是否真的呈现给用户；不是重新选择框架，该决定影响 locale、替换和完整性报告。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "partial-semantic-choice-required"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices"
+          ],
+          "rationale": {
+            "verification": "源规则排除变量名、URL、正则、import、调试日志，包含用户可见 UI/错误/通知；这些公开类别可用于审核候选。",
+            "construction": "先限定 React+i18next 文件，再找字符串候选，结合调用点决定用户可见性；仅有文件 regex 扫描不能替代语义筛选。",
+            "execution": "需要声明文件、框架与调用上下文；Q2 没有语法/调用点分类构造器，regex-find-files 只提供候选位置。",
+            "semanticBoundary": "审核者判定歧义候选是否真的呈现给用户；不是重新选择框架，该决定影响 locale、替换和完整性报告。"
+          },
+          "predictionChange": null
+        }
+      ]
+    },
+    {
+      "unitId": "i18n-helper-locale-generation",
+      "sourcePackageId": "i18n-helper",
+      "sliceId": "react-i18next-public-subset",
+      "responsibilityId": "locale-generation",
+      "unitKind": "workflow-step",
+      "description": "Generate stable keys and synchronized locale resources for the discovered public placeholder and plural subset.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#工作流程/3. 语言文件生成",
+          "purpose": "Defines stable keys, namespaces, interpolation, and plural forms."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "i18n-helper-source-string-discovery"
+      ],
+      "classification": {
+        "requirementId": "i18n-helper-locale-generation",
+        "unitKind": "workflow-step",
+        "description": "Generate stable keys and synchronized locale resources for the discovered public placeholder and plural subset.",
+        "dependsOn": [
+          "i18n-helper-source-string-discovery"
+        ],
+        "verificationBasis": {
+          "status": "insufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/3. 语言文件生成",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": [
+            "允许来源定位的语言生成段未定义稳定 key 冲突、namespace、plural 与跨语言同步的完整验收规则。"
+          ]
+        },
+        "constructionBasis": {
+          "status": "semantic-choice-required",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/3. 语言文件生成",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "write-json",
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要上游选定字符串、目标 locale 和语义映射；Q2 写 JSON 可序列化结果，未有 key 分配/翻译/plural 资源构造能力。"
+          ],
+          "requiredCapabilityIds": [
+            "write-json",
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [
+          {
+            "choiceId": "i18n-helper-locale-generation-review-choice",
+            "provider": "user",
+            "timing": "before-construction",
+            "affectsRequirementIds": [
+              "i18n-helper-locale-generation",
+              "i18n-helper-source-rewrite",
+              "i18n-helper-integrity-report"
+            ],
+            "description": "声明稳定 key/namespace 冲突政策、目标 locale 值与 plural 变体；公开格式示例不能唯一产生这些语义映射。"
+          }
+        ],
+        "prediction": "insufficient-information"
+      },
+      "namedUnknowns": [
+        "允许来源定位的语言生成段未定义稳定 key 冲突、namespace、plural 与跨语言同步的完整验收规则。"
+      ],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "允许定位的语言生成段只给 JSON/YAML/PO/Properties 格式；没有稳定 key 冲突、namespace、plural 分支与同步策略的完整公开判据。",
+            "construction": "React+i18next 输出 JSON 结构是明确的，但把原文映射到稳定 key、目标语言值和 plural 变体仍需显式政策与语义资源，不能把示例当全部规则。",
+            "execution": "需要上游选定字符串、目标 locale 和语义映射；Q2 写 JSON 可序列化结果，未有 key 分配/翻译/plural 资源构造能力。",
+            "semanticBoundary": "要求用户给出稳定 key/命名空间及目标语义资源的政策；当前只填入需要决定的事项，不伪造其答案。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "insufficient-information"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "允许定位的语言生成段只给 JSON/YAML/PO/Properties 格式；没有稳定 key 冲突、namespace、plural 分支与同步策略的完整公开判据。",
+            "construction": "React+i18next 输出 JSON 结构是明确的，但把原文映射到稳定 key、目标语言值和 plural 变体仍需显式政策与语义资源，不能把示例当全部规则。",
+            "execution": "需要上游选定字符串、目标 locale 和语义映射；Q2 写 JSON 可序列化结果，未有 key 分配/翻译/plural 资源构造能力。",
+            "semanticBoundary": "要求用户给出稳定 key/命名空间及目标语义资源的政策；当前只填入需要决定的事项，不伪造其答案。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "insufficient-information"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "i18n-helper-source-rewrite",
+      "sourcePackageId": "i18n-helper",
+      "sliceId": "react-i18next-public-subset",
+      "responsibilityId": "source-rewrite",
+      "unitKind": "workflow-step",
+      "description": "Replace selected source literals with documented React+i18next calls while preserving interpolation and plural semantics.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#工作流程/4. 代码替换",
+          "purpose": "Defines bounded source replacements."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "i18n-helper-locale-generation"
+      ],
+      "classification": {
+        "requirementId": "i18n-helper-source-rewrite",
+        "unitKind": "workflow-step",
+        "description": "Replace selected source literals with documented React+i18next calls while preserving interpolation and plural semantics.",
+        "dependsOn": [
+          "i18n-helper-locale-generation"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/4. 代码替换",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/4. 代码替换",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要源位置、已声明 key/placeholder 映射；Q2 模板写文件无法安全处理任意 React/TSX 语法、import 和 plural 表达式，缺少有界重写 binding。"
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "write-text-template"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "insufficient-information"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "原文要求替换成 i18n 调用，同时保持格式与变量插值；可按选中位置、key 映射及源表达式逐项核对。",
+            "construction": "示例给出 alert 文本到 t(key) 的替换；按上游已确定映射改写，不能新增翻译决定或把同字面量在所有上下文一起替换。",
+            "execution": "需要源位置、已声明 key/placeholder 映射；Q2 模板写文件无法安全处理任意 React/TSX 语法、import 和 plural 表达式，缺少有界重写 binding。",
+            "semanticBoundary": "本地步骤在映射给定后按规则替换，没有必要再造一个泛化语义选择；上游字符串与 locale 决策已沿依赖传播。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "insufficient-information"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "原文要求替换成 i18n 调用，同时保持格式与变量插值；可按选中位置、key 映射及源表达式逐项核对。",
+            "construction": "示例给出 alert 文本到 t(key) 的替换；按上游已确定映射改写，不能新增翻译决定或把同字面量在所有上下文一起替换。",
+            "execution": "需要源位置、已声明 key/placeholder 映射；Q2 模板写文件无法安全处理任意 React/TSX 语法、import 和 plural 表达式，缺少有界重写 binding。",
+            "semanticBoundary": "本地步骤在映射给定后按规则替换，没有必要再造一个泛化语义选择；上游字符串与 locale 决策已沿依赖传播。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "insufficient-information"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "i18n-helper-integrity-report",
+      "sourcePackageId": "i18n-helper",
+      "sliceId": "react-i18next-public-subset",
+      "responsibilityId": "integrity-report",
+      "unitKind": "hard-requirement",
+      "description": "Check locale-key coverage, unused or missing keys, placeholder consistency, protected files, and syntax, then emit the integrity report.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#工作流程/5. 完整性检查",
+          "purpose": "Defines integrity checks."
+        },
+        {
+          "locator": "SKILL.md#输出格式",
+          "purpose": "Defines report fields."
+        },
+        {
+          "locator": "SKILL.md#注意事项",
+          "purpose": "Defines protected content and consistency constraints."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "i18n-helper-locale-generation",
+        "i18n-helper-source-rewrite"
+      ],
+      "classification": {
+        "requirementId": "i18n-helper-integrity-report",
+        "unitKind": "hard-requirement",
+        "description": "Check locale-key coverage, unused or missing keys, placeholder consistency, protected files, and syntax, then emit the integrity report.",
+        "dependsOn": [
+          "i18n-helper-locale-generation",
+          "i18n-helper-source-rewrite"
+        ],
+        "verificationBasis": {
+          "status": "insufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/5. 完整性检查",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#输出格式",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#注意事项",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": [
+            "本单位要求的受保护文件范围、完整语法检查与 unused-key 判定合同未在允许来源中完整定义。"
+          ]
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#工作流程/5. 完整性检查",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#输出格式",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "i18n-helper",
+              "locator": "SKILL.md#注意事项",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "set-operation",
+            "write-json"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要各 locale、重写产物、保护文件清单和语法规则；Q2 集合/JSON 仅支持部分校验，完整 i18n 检查 binding 不在冻结能力表中。"
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "set-operation",
+            "write-json"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "insufficient-information"
+      },
+      "namedUnknowns": [
+        "本单位要求的受保护文件范围、完整语法检查与 unused-key 判定合同未在允许来源中完整定义。"
+      ],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "源明确 key 差异、缺失列表和完成百分比；注意事项给 placeholder 保留要求。但冻结单元还含 unused、受保护文件和语法检查，原文没有完整对应合同。",
+            "construction": "可做声明 key 集合差异和报告，尚不能由这个子集推出完整 syntax/protected-file 检查算法与所有计数边界。",
+            "execution": "需要各 locale、重写产物、保护文件清单和语法规则；Q2 集合/JSON 仅支持部分校验，完整 i18n 检查 binding 不在冻结能力表中。",
+            "semanticBoundary": "不新造翻译语义。上游 locale 的信息不足必须传播；明确缺少的保护/语法规则，而非将所有能力缺口放进 gaps。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "insufficient-information"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "源明确 key 差异、缺失列表和完成百分比；注意事项给 placeholder 保留要求。但冻结单元还含 unused、受保护文件和语法检查，原文没有完整对应合同。",
+            "construction": "可做声明 key 集合差异和报告，尚不能由这个子集推出完整 syntax/protected-file 检查算法与所有计数边界。",
+            "execution": "需要各 locale、重写产物、保护文件清单和语法规则；Q2 集合/JSON 仅支持部分校验，完整 i18n 检查 binding 不在冻结能力表中。",
+            "semanticBoundary": "不新造翻译语义。上游 locale 的信息不足必须传播；明确缺少的保护/语法规则，而非将所有能力缺口放进 gaps。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-missing",
+            "to": "insufficient-information"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "bids-dataset-validation",
+      "sourcePackageId": "bids",
+      "sliceId": "public-schema-repair",
+      "responsibilityId": "dataset-validation",
+      "unitKind": "hard-requirement",
+      "description": "Validate the declared dataset against the frozen public BIDS structure, entity, filename, sidecar, and required-metadata rules.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#Core Workflows/4. Validating BIDS Datasets",
+          "purpose": "Defines validator usage and failure handling."
+        },
+        {
+          "locator": "references/bids_schema.json#schema",
+          "purpose": "Provides machine-readable entity and filename rules."
+        },
+        {
+          "locator": "references/bids_specification.md#validation",
+          "purpose": "Provides the public specification summary."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "bids-dataset-validation",
+        "unitKind": "hard-requirement",
+        "description": "Validate the declared dataset against the frozen public BIDS structure, entity, filename, sidecar, and required-metadata rules.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "bids",
+              "locator": "SKILL.md#Core Workflows/4. Validating BIDS Datasets",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "bids",
+              "locator": "references/bids_specification.md#validation",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "bids",
+              "locator": "SKILL.md#Core Workflows/4. Validating BIDS Datasets",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "bids",
+              "locator": "references/bids_specification.md#validation",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "json-pointer"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需声明数据集清单、schema 版本与本地输入；Q2 没有 BIDS schema/数据集验证 backend，read-json/json-pointer 不实现整个 validator。"
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "json-pointer"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "对冻结 schema 的实体顺序、文件名、sidecar 和 required metadata 进行检查；根目录说明不能取代各 modality 的必需字段。",
+            "construction": "按公开 schema/validator 工作流读数据集结构和 JSON，报告违反规则的位置；不涉及 DICOM 转换或分析。",
+            "execution": "需声明数据集清单、schema 版本与本地输入；Q2 没有 BIDS schema/数据集验证 backend，read-json/json-pointer 不实现整个 validator。",
+            "semanticBoundary": "仅检查声明的规则不需要臆造缺失采集参数；缺字段应报告，不把验证器调用存在当 SkVM 已具备该能力。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions"
+          ],
+          "rationale": {
+            "verification": "对冻结 schema 的实体顺序、文件名、sidecar 和 required metadata 进行检查；根目录说明不能取代各 modality 的必需字段。",
+            "construction": "按公开 schema/validator 工作流读数据集结构和 JSON，报告违反规则的位置；不涉及 DICOM 转换或分析。",
+            "execution": "需声明数据集清单、schema 版本与本地输入；Q2 没有 BIDS schema/数据集验证 backend，read-json/json-pointer 不实现整个 validator。",
+            "semanticBoundary": "仅检查声明的规则不需要臆造缺失采集参数；缺字段应报告，不把验证器调用存在当 SkVM 已具备该能力。"
+          },
+          "predictionChange": null
+        }
+      ]
+    },
+    {
+      "unitId": "bids-schema-repair",
+      "sourcePackageId": "bids",
+      "sliceId": "public-schema-repair",
+      "responsibilityId": "schema-repair",
+      "unitKind": "workflow-step",
+      "description": "Repair only source-grounded entity ordering, paths, declared metadata fields, and summaries under the frozen schema; exclude DICOM conversion and analysis workflows.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#Core Workflows/5. BIDS Entities and File Naming",
+          "purpose": "Defines entity ordering and filename construction."
+        },
+        {
+          "locator": "SKILL.md#Metadata Sidecars",
+          "purpose": "Defines bounded sidecar rules."
+        },
+        {
+          "locator": "references/bids_schema.json#schema",
+          "purpose": "Provides machine-readable repair authority."
+        },
+        {
+          "locator": "references/metadata_fields.md#fields",
+          "purpose": "Defines metadata requirements."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "bids-dataset-validation"
+      ],
+      "classification": {
+        "requirementId": "bids-schema-repair",
+        "unitKind": "workflow-step",
+        "description": "Repair only source-grounded entity ordering, paths, declared metadata fields, and summaries under the frozen schema; exclude DICOM conversion and analysis workflows.",
+        "dependsOn": [
+          "bids-dataset-validation"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "bids",
+              "locator": "SKILL.md#Core Workflows/5. BIDS Entities and File Naming",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "bids",
+              "locator": "SKILL.md#Metadata Sidecars",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "bids",
+              "locator": "SKILL.md#Core Workflows/5. BIDS Entities and File Naming",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "bids",
+              "locator": "SKILL.md#Metadata Sidecars",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "write-json"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要验证报告、源事实和 schema；Q2 没有 BIDS 命名/路径/metadata 修复 binding，写 JSON 只能保存已经确定的结果。"
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "write-json"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按冻结 schema 核对实体顺序、路径与已声明 metadata 值，修复不得虚构采集参数、modality 或任务标签。",
+            "construction": "只对有来源的 entity/字段执行排序、路径和 JSON 修复；规则与值来源分开保留，无法从输入推出的字段应拒绝填造。",
+            "execution": "需要验证报告、源事实和 schema；Q2 没有 BIDS 命名/路径/metadata 修复 binding，写 JSON 只能保存已经确定的结果。",
+            "semanticBoundary": "所选单位限定 source-grounded declared metadata。旧稿的“还要用户选领域参数”不能把明确排除的任意缺失字段修复重新纳入；输入缺事实时拒绝该修复。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按冻结 schema 核对实体顺序、路径与已声明 metadata 值，修复不得虚构采集参数、modality 或任务标签。",
+            "construction": "只对有来源的 entity/字段执行排序、路径和 JSON 修复；规则与值来源分开保留，无法从输入推出的字段应拒绝填造。",
+            "execution": "需要验证报告、源事实和 schema；Q2 没有 BIDS 命名/路径/metadata 修复 binding，写 JSON 只能保存已经确定的结果。",
+            "semanticBoundary": "所选单位限定 source-grounded declared metadata。旧稿的“还要用户选领域参数”不能把明确排除的任意缺失字段修复重新纳入；输入缺事实时拒绝该修复。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "rules-sufficient-capability-missing"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "changelog-automation-commit-convention",
+      "sourcePackageId": "changelog-automation",
+      "sliceId": "conventional-commit-snapshot",
+      "responsibilityId": "commit-convention",
+      "unitKind": "hard-requirement",
+      "description": "Parse and validate the declared snapshot's Conventional Commit types, optional scopes, descriptions, bodies, footers, and breaking-change markers under an explicit policy.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#Commit Message Examples",
+          "purpose": "Shows the public commit convention."
+        },
+        {
+          "locator": "references/details.md#2. Conventional Commits",
+          "purpose": "Defines the detailed grammar and examples."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "changelog-automation-commit-convention",
+        "unitKind": "hard-requirement",
+        "description": "Parse and validate the declared snapshot's Conventional Commit types, optional scopes, descriptions, bodies, footers, and breaking-change markers under an explicit policy.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "changelog-automation",
+              "locator": "SKILL.md#Commit Message Examples",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "changelog-automation",
+              "locator": "references/details.md#2. Conventional Commits",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "changelog-automation",
+              "locator": "SKILL.md#Commit Message Examples",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "changelog-automation",
+              "locator": "references/details.md#2. Conventional Commits",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-test",
+            "changelog-conventional-commit-composition"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要快照和 explicit policy；冻结 changelog-conventional-commit-composition 是 missing，regex-test 一条模式不证明完整多段/多记录解析与分组链已实现。"
+          ],
+          "requiredCapabilityIds": [
+            "read-text",
+            "regex-test",
+            "changelog-conventional-commit-composition"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按 Conventional Commits 的 type、scope、description、可选 body/footer 和 breaking 标记检查明确 commit snapshot。",
+            "construction": "公开 grammar 给出 type[scope]: description 与可选段，type 表和 !/BREAKING CHANGE 标记提供解析依据；项目额外规则须显式给定。",
+            "execution": "需要快照和 explicit policy；冻结 changelog-conventional-commit-composition 是 missing，regex-test 一条模式不证明完整多段/多记录解析与分组链已实现。",
+            "semanticBoundary": "scope 白名单、版本和范围不得猜；单位已设 explicit policy，不能把其普通已给参数当成残留语义选择。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions"
+          ],
+          "rationale": {
+            "verification": "按 Conventional Commits 的 type、scope、description、可选 body/footer 和 breaking 标记检查明确 commit snapshot。",
+            "construction": "公开 grammar 给出 type[scope]: description 与可选段，type 表和 !/BREAKING CHANGE 标记提供解析依据；项目额外规则须显式给定。",
+            "execution": "需要快照和 explicit policy；冻结 changelog-conventional-commit-composition 是 missing，regex-test 一条模式不证明完整多段/多记录解析与分组链已实现。",
+            "semanticBoundary": "scope 白名单、版本和范围不得猜；单位已设 explicit policy，不能把其普通已给参数当成残留语义选择。"
+          },
+          "predictionChange": null
+        }
+      ]
+    },
+    {
+      "unitId": "changelog-automation-changelog-generation",
+      "sourcePackageId": "changelog-automation",
+      "sliceId": "conventional-commit-snapshot",
+      "responsibilityId": "changelog-generation",
+      "unitKind": "workflow-step",
+      "description": "Group the explicit commit snapshot into the frozen Keep a Changelog categories and deterministic release-note structure without editorial highlights or release publication.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#Core Concepts/Keep a Changelog Format",
+          "purpose": "Defines the changelog categories."
+        },
+        {
+          "locator": "references/details.md#Changelog examples",
+          "purpose": "Provides deterministic category examples."
+        },
+        {
+          "locator": "references/details.md#Method 5: git-cliff",
+          "purpose": "Provides an equal-information comparator pattern."
+        }
+      ],
+      "dependsOnUnitIds": [
+        "changelog-automation-commit-convention"
+      ],
+      "classification": {
+        "requirementId": "changelog-automation-changelog-generation",
+        "unitKind": "workflow-step",
+        "description": "Group the explicit commit snapshot into the frozen Keep a Changelog categories and deterministic release-note structure without editorial highlights or release publication.",
+        "dependsOn": [
+          "changelog-automation-commit-convention"
+        ],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "changelog-automation",
+              "locator": "references/details.md#Changelog examples",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "changelog-automation",
+              "locator": "references/details.md#Method 5: git-cliff",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "changelog-automation",
+              "locator": "references/details.md#Changelog examples",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "changelog-automation",
+              "locator": "references/details.md#Method 5: git-cliff",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "write-text-template",
+            "changelog-conventional-commit-composition"
+          ],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要上游已解析记录和明确范围/版本/分组政策；Q2 changelog backend/checker/comparator 缺失，模板原语不替代完整 production binding。"
+          ],
+          "requiredCapabilityIds": [
+            "write-text-template",
+            "changelog-conventional-commit-composition"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions"
+          ],
+          "rationale": {
+            "verification": "按明确快照和冻结类别/输出结构核对分组条目，范围外 commit、无来源 highlights 与发布动作不在结果中。",
+            "construction": "采用 source 类型映射、类别与 git-cliff 模板模式组织 release notes；版本/日期/排序作为已声明政策，不从当前日期或 Git 状态推测。",
+            "execution": "需要上游已解析记录和明确范围/版本/分组政策；Q2 changelog backend/checker/comparator 缺失，模板原语不替代完整 production binding。",
+            "semanticBoundary": "冻结单位明确排除 editorial highlights 和 release publication；移除旧稿泛化“选择领域政策”，但不声称能够自动选版本或创建发布。"
+          },
+          "predictionChange": null
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按明确快照和冻结类别/输出结构核对分组条目，范围外 commit、无来源 highlights 与发布动作不在结果中。",
+            "construction": "采用 source 类型映射、类别与 git-cliff 模板模式组织 release notes；版本/日期/排序作为已声明政策，不从当前日期或 Git 状态推测。",
+            "execution": "需要上游已解析记录和明确范围/版本/分组政策；Q2 changelog backend/checker/comparator 缺失，模板原语不替代完整 production binding。",
+            "semanticBoundary": "冻结单位明确排除 editorial highlights 和 release publication；移除旧稿泛化“选择领域政策”，但不声称能够自动选版本或创建发布。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "rules-sufficient-capability-missing"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "openapi-spec-generation-spec-validation",
+      "sourcePackageId": "openapi-spec-generation",
+      "sliceId": "existing-spec-validation",
+      "responsibilityId": "spec-validation",
+      "unitKind": "hard-requirement",
+      "description": "Validate and normalize an explicitly provided OpenAPI 3.1 document's declared structure and reusable references without inventing missing resources, security policy, errors, or implementation behavior.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#Core Concepts/OpenAPI 3.1 Structure",
+          "purpose": "Defines required top-level structure."
+        },
+        {
+          "locator": "SKILL.md#Best Practices",
+          "purpose": "Defines reusable schemas, errors, security, examples, and style checks."
+        },
+        {
+          "locator": "references/details.md#Templates",
+          "purpose": "Provides concrete OpenAPI templates for structural comparison."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "openapi-spec-generation-spec-validation",
+        "unitKind": "hard-requirement",
+        "description": "Validate and normalize an explicitly provided OpenAPI 3.1 document's declared structure and reusable references without inventing missing resources, security policy, errors, or implementation behavior.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "insufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "openapi-spec-generation",
+              "locator": "SKILL.md#Core Concepts/OpenAPI 3.1 Structure",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "openapi-spec-generation",
+              "locator": "SKILL.md#Best Practices",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": [
+            "冻结来源是结构示意与模板，未完整给出 OpenAPI 3.1/JSON Schema 验证及引用闭包规则。"
+          ]
+        },
+        "constructionBasis": {
+          "status": "insufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "openapi-spec-generation",
+              "locator": "SKILL.md#Core Concepts/OpenAPI 3.1 Structure",
+              "kind": "specification-clause"
+            },
+            {
+              "sourcePackageId": "openapi-spec-generation",
+              "locator": "SKILL.md#Best Practices",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "json-pointer"
+          ],
+          "gaps": [
+            "对现有 spec 的完整规范化变换及不支持结构的拒绝政策尚未由允许来源封闭定义。"
+          ]
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要明确 OpenAPI 文档、离线引用闭包与固定验证政策；Q2 的 API Tester 子集生成器不是通用 OpenAPI 3.1 validator，不应把其 ID 冒充本单位完整依赖。"
+          ],
+          "requiredCapabilityIds": [
+            "read-json",
+            "json-pointer"
+          ],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "insufficient-information"
+      },
+      "namedUnknowns": [
+        "冻结来源是结构示意与模板，未完整给出 OpenAPI 3.1/JSON Schema 验证及引用闭包规则。",
+        "对现有 spec 的完整规范化变换及不支持结构的拒绝政策尚未由允许来源封闭定义。"
+      ],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "源顶层示意和模板能核对部分结构及 $ref 使用，不能作为完整 OpenAPI 3.1/JSON Schema 合法性和所有引用解析规则的替代规范。",
+            "construction": "检查已给 spec 的声明字段、复用引用与格式，不从模板补接口、安全政策、错误或实现行为；完整规范化规则仍未封闭。",
+            "execution": "需要明确 OpenAPI 文档、离线引用闭包与固定验证政策；Q2 的 API Tester 子集生成器不是通用 OpenAPI 3.1 validator，不应把其 ID 冒充本单位完整依赖。",
+            "semanticBoundary": "不作 API 设计。保留公开验证/规范化合同不足这一问题；补外部规范须走新 package identity，不能直接扩大冻结来源闭包。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-missing",
+            "to": "insufficient-information"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "源顶层示意和模板能核对部分结构及 $ref 使用，不能作为完整 OpenAPI 3.1/JSON Schema 合法性和所有引用解析规则的替代规范。",
+            "construction": "检查已给 spec 的声明字段、复用引用与格式，不从模板补接口、安全政策、错误或实现行为；完整规范化规则仍未封闭。",
+            "execution": "需要明确 OpenAPI 文档、离线引用闭包与固定验证政策；Q2 的 API Tester 子集生成器不是通用 OpenAPI 3.1 validator，不应把其 ID 冒充本单位完整依赖。",
+            "semanticBoundary": "不作 API 设计。保留公开验证/规范化合同不足这一问题；补外部规范须走新 package identity，不能直接扩大冻结来源闭包。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-missing",
+            "to": "insufficient-information"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "anthropic-pdf-fillable-form-processing",
+      "sourcePackageId": "anthropic-pdf",
+      "sliceId": "fillable-form-structure",
+      "responsibilityId": "fillable-form-processing",
+      "unitKind": "workflow-step",
+      "description": "Extract existing fillable field metadata, validate supplied field identifiers and values, fill the form, and verify output after the user has supplied the semantic field-to-value mapping.",
+      "sourceLocators": [
+        {
+          "locator": "forms.md#Fillable fields",
+          "purpose": "Defines the fillable-form workflow and its semantic-input boundary."
+        },
+        {
+          "locator": "forms.md#Step 2: Validate Before Filling",
+          "purpose": "Defines pre-fill validation."
+        },
+        {
+          "locator": "forms.md#Step 3: Fill the Form",
+          "purpose": "Defines fill execution."
+        },
+        {
+          "locator": "forms.md#Step 4: Verify Output",
+          "purpose": "Defines post-fill verification."
+        },
+        {
+          "locator": "scripts/extract_form_field_info.py#main",
+          "purpose": "Extracts field metadata."
+        },
+        {
+          "locator": "scripts/fill_fillable_fields.py#main",
+          "purpose": "Fills declared field values."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "anthropic-pdf-fillable-form-processing",
+        "unitKind": "workflow-step",
+        "description": "Extract existing fillable field metadata, validate supplied field identifiers and values, fill the form, and verify output after the user has supplied the semantic field-to-value mapping.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "insufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "anthropic-pdf",
+              "locator": "forms.md#Fillable fields",
+              "kind": "specification-clause"
+            }
+          ],
+          "gaps": [
+            "fillable 分支定义了输入字段校验，但未完整给出冻结单位所需 post-fill 输出验收合同；Step 2/3/4 同名定位位于 non-fillable 分支。"
+          ]
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "anthropic-pdf",
+              "locator": "forms.md#Fillable fields",
+              "kind": "specification-clause"
+            }
+          ],
+          "requiredCapabilityIds": [],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需要可填写 PDF、既有字段映射与值、输出路径；Q2 没有 PDF 字段提取/填充/渲染或 Python helper binding，read-text 不能解析 PDF。"
+          ],
+          "requiredCapabilityIds": [],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "insufficient-information"
+      },
+      "namedUnknowns": [
+        "fillable 分支定义了输入字段校验，但未完整给出冻结单位所需 post-fill 输出验收合同；Step 2/3/4 同名定位位于 non-fillable 分支。"
+      ],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "脚本明确核对 field_id、page、checkbox/radio/choice 允许值；但 forms.md 的 Step 2/3/4 实际位于 non-fillable 分支，不能挪来证明本单位 fillable 的完整 post-fill 验收。",
+            "construction": "抽取既有字段元数据，接受已给 field-to-value 映射，再调用 fill_fillable_fields；填充前结构校验有代码，完整填充后视觉/字段验收尚缺明确合同。",
+            "execution": "需要可填写 PDF、既有字段映射与值、输出路径；Q2 没有 PDF 字段提取/填充/渲染或 Python helper binding，read-text 不能解析 PDF。",
+            "semanticBoundary": "单位明说用户已提供语义 field-to-value 映射，因此移除重复索要映射的 choice。输入已给不代表输出验收规则已完整，也不能移用 non-fillable 分支。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "insufficient-information"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "remainingSemanticChoices",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "脚本明确核对 field_id、page、checkbox/radio/choice 允许值；但 forms.md 的 Step 2/3/4 实际位于 non-fillable 分支，不能挪来证明本单位 fillable 的完整 post-fill 验收。",
+            "construction": "抽取既有字段元数据，接受已给 field-to-value 映射，再调用 fill_fillable_fields；填充前结构校验有代码，完整填充后视觉/字段验收尚缺明确合同。",
+            "execution": "需要可填写 PDF、既有字段映射与值、输出路径；Q2 没有 PDF 字段提取/填充/渲染或 Python helper binding，read-text 不能解析 PDF。",
+            "semanticBoundary": "单位明说用户已提供语义 field-to-value 映射，因此移除重复索要映射的 choice。输入已给不代表输出验收规则已完整，也不能移用 non-fillable 分支。"
+          },
+          "predictionChange": {
+            "from": "partial-semantic-choice-required",
+            "to": "insufficient-information"
+          }
+        }
+      ]
+    },
+    {
+      "unitId": "anthropic-webapp-testing-server-lifecycle",
+      "sourcePackageId": "anthropic-webapp-testing",
+      "sliceId": "local-server-lifecycle",
+      "responsibilityId": "server-lifecycle",
+      "unitKind": "workflow-step",
+      "description": "Start one or more already declared local server commands, wait for declared ports, run the declared test command, and clean up processes without selecting UI behavior or assertions.",
+      "sourceLocators": [
+        {
+          "locator": "SKILL.md#Example: Using with_server.py",
+          "purpose": "Defines single and multiple server invocation."
+        },
+        {
+          "locator": "SKILL.md#Best Practices",
+          "purpose": "Defines black-box helper usage."
+        },
+        {
+          "locator": "scripts/with_server.py#main",
+          "purpose": "Implements port waiting, command execution, and cleanup."
+        }
+      ],
+      "dependsOnUnitIds": [],
+      "classification": {
+        "requirementId": "anthropic-webapp-testing-server-lifecycle",
+        "unitKind": "workflow-step",
+        "description": "Start one or more already declared local server commands, wait for declared ports, run the declared test command, and clean up processes without selecting UI behavior or assertions.",
+        "dependsOn": [],
+        "verificationBasis": {
+          "status": "sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "anthropic-webapp-testing",
+              "locator": "scripts/with_server.py#main",
+              "kind": "script-contract"
+            }
+          ],
+          "gaps": []
+        },
+        "constructionBasis": {
+          "status": "rules-sufficient",
+          "evidenceRefs": [
+            {
+              "sourcePackageId": "anthropic-webapp-testing",
+              "locator": "scripts/with_server.py#main",
+              "kind": "script-contract"
+            }
+          ],
+          "requiredCapabilityIds": [],
+          "gaps": []
+        },
+        "executionConditions": {
+          "status": "capability-missing",
+          "conditions": [
+            "需明确 server commands、ports、test command 和 timeout；Q2 没有进程启动、socket 轮询与清理能力，文本读写不是本单位执行能力。"
+          ],
+          "requiredCapabilityIds": [],
+          "gaps": []
+        },
+        "remainingSemanticChoices": [],
+        "prediction": "rules-sufficient-capability-missing"
+      },
+      "namedUnknowns": [],
+      "sourceRevisions": [
+        {
+          "slot": "A",
+          "draftId": "q1-ai-a-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/a/revision-2/draft.json",
+          "draftSha256": "90c6380be9eeef83a7fd08e4d8234bdb7e6b923796e6034302f0cf3f7bd080a7",
+          "changePath": "q1-ai-annotation-2026-09-07/a/revision-2/changes.json",
+          "changeSha256": "29e7d075f6e17d985268ffaa3bc0e97e90f64ee319ce3142f79f5223106441ad",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions",
+            "prediction"
+          ],
+          "rationale": {
+            "verification": "按 helper 合同核对 server/port 数量、localhost 端口就绪、declared command 的返回码以及 finally 清理；端口可连接不等于业务健康。",
+            "construction": "with_server.py 顺序启动已给 server、轮询端口、执行已给命令，finally terminate，超时则 kill；不生成 UI 断言或选页面行为。",
+            "execution": "需明确 server commands、ports、test command 和 timeout；Q2 没有进程启动、socket 轮询与清理能力，文本读写不是本单位执行能力。",
+            "semanticBoundary": "命令和端口已声明，普通参数不是剩余语义选择；这里只分析脚本合同，本次不启动服务器或运行测试应用。"
+          },
+          "predictionChange": {
+            "from": "rules-sufficient-capability-supported",
+            "to": "rules-sufficient-capability-missing"
+          }
+        },
+        {
+          "slot": "B",
+          "draftId": "q1-ai-b-20260907-revision-2",
+          "draftPath": "q1-ai-annotation-2026-09-07/b/revision-2/draft.json",
+          "draftSha256": "60b64710cb6592865235b9f3c2be56c9ccd51ef29dd25befa6f95af6818ce6f0",
+          "changePath": "q1-ai-annotation-2026-09-07/b/revision-2/changes.json",
+          "changeSha256": "fcb86da1b58322a9c3bdb5e337a19f90a85f60202141699a39b3030d29e43dbe",
+          "changedFields": [
+            "verificationBasis",
+            "constructionBasis",
+            "executionConditions"
+          ],
+          "rationale": {
+            "verification": "按 helper 合同核对 server/port 数量、localhost 端口就绪、declared command 的返回码以及 finally 清理；端口可连接不等于业务健康。",
+            "construction": "with_server.py 顺序启动已给 server、轮询端口、执行已给命令，finally terminate，超时则 kill；不生成 UI 断言或选页面行为。",
+            "execution": "需明确 server commands、ports、test command 和 timeout；Q2 没有进程启动、socket 轮询与清理能力，文本读写不是本单位执行能力。",
+            "semanticBoundary": "命令和端口已声明，普通参数不是剩余语义选择；这里只分析脚本合同，本次不启动服务器或运行测试应用。"
+          },
+          "predictionChange": null
+        }
+      ]
+    }
+  ],
+  "evidenceBoundary": {
+    "developmentRoutingOnly": true,
+    "completesOriginalQ1": false,
+    "provesHumanAgreement": false,
+    "provesClassificationAccuracy": false,
+    "changesReadiness": false
+  },
+  "audit": {
+    "modelCalls": 0,
+    "apiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0
+  }
+}

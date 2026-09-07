@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-07
 
-**当前已确认路线：** 第 14.12 节约束后续 Q1–Q5：完成真实标注，同时优先 API production binding；构造稳定后再扩样与前瞻迁移，随后用第二个 profile 检验共同机制。早期跨模型、逐案例扩展与时间估算不构成当前执行队列。
+**当前已确认路线：** 第 14.13 节把工程迁移与原 Q1 真人一致性实验解耦：原 Q1 继续保持未完成，现有 AI revision-2 材料只形成 development routing；冻结 API Tester 构造候选和 4+4 前瞻小样后，才允许唯一首轮执行。第 14.12 节保留为原研究设计，早期跨模型、逐案例扩展与时间估算不构成当前执行队列。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -1927,3 +1927,18 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 **阶段结论上限。** Q1 交付方法、独立标签与分歧；Q2 交付有边界的构造实现；Q3 交付冻结后的预测用途与迁移/拒绝证据；Q4 只交付本参与者/本任务下真实人工效果，不声称一般人群或理论最低人工；Q5 交付论文、CLI、支持矩阵与独立操作者复现。跨平台需实际验证。全部工作包结束不保证结果为正，更不自动建立任意自然语言 skill 的完整自动编译。
 
 **当前边界。** 本次完成 API development 实现与文档同步，不执行新增样本选择、真实 session、Q3/Q4、模型/付费实验或 readiness 晋级。真实标注需真实人员，不能用模型替代。API 候选仍需边界复核和方法/构造冻结；之后才能按独立研究身份推进前瞻评价。历史停止条款不得误用于阻止已授权的 API development，也不得反向视为所有实验已获授权。
+
+### 14.13 AI development routing 与冻结构造器的前瞻小样
+
+2026-09-07 用户进一步确认：工程迁移不再等待两位真人补完原 Q1，但不得用 AI 修订稿冒充真人独立标注或宣布 Q1 通过。执行顺序见 plan 第 4.42 节，完整合同见
+[AI-assisted development routing 与 prospective construction](ai-assisted-development-routing-and-prospective-construction.md)。
+
+**身份与证据拆分。** `skill-ir-ai-assisted-development-routing-001` 只把保留不动的 A/B revision-2 AI 草稿合并为一张 24-unit development routing 表，并逐行绑定来源、修订记录和未知项。两份草稿由同一 AI 修复流程生成且存在跨草稿/结果可见性；即使 24/24 标签一致，也不提供 human inter-annotator agreement、classification accuracy 或 original Q1 completion 证据。原 A/B 空白表、真人协议、12-source/24-unit 分母和 Q1 状态均不修改。
+
+**候选冻结。** `skill-ir-api-tester-constructor-candidate-001` 绑定现有 production binding 的 capability、generator、deterministic runtime、checker 和 source closure，同时只读绑定旧 Q2 profile。旧 Q2 的 `new-input-ready=0/3` 保持原样。checker pass 只覆盖当前 normalized public contract；稳定拒绝码只表示该候选当前不接纳输入，不能推出任务原则上不可自动化。
+
+**首轮分母。** `skill-ir-api-tester-constructor-prospective-001` 在执行前固定 4 个真实公开 OpenAPI 输入和 4 个合成边界输入，共 8 行；真实输入绑定上游 commit、path、bytes、content/license digest，边界输入绑定仓库内字节。每行预存唯一 outcome/rejection prediction；`attemptsPerRow=1`、`retries=0`、`replacements=0`、`candidateFixes=0`，所有 accepted、rejected、checker-failed 或 infrastructure-failed 结果都留在分母。真实与边界层必须分报，不能用边界拒绝正确率抬高真实输入接纳率。
+
+**冻结与成本。** 输入锁、候选 snapshot、预测和执行器必须先提交并推送到 `origin/skill-ir-aot`；runner 验证锁字节来自该远端祖先提交后才可运行，首轮报告只允许创建一次。AI analysis 记为 project runner 未测；construction 与 run/check 时间分开，模型/API/付费调用固定为 0；实际人工修改分钟独立记录。没有真人协议时不得声称人工节省、作者转审核者或一般可靠性。
+
+**后续边界。** 4+4 是构造器 development 的首个前瞻小样，不是原 3 profile × 4 input、20–30 真实输入规模、跨 profile 复用、可靠性、held-out 或 readiness 证据。失败必须作为负结果冻结；不能为出正例改候选、换 route、补行或复用同一输入。后续扩展只可针对实际缺口建立新候选身份和新未见输入，再决定第二 profile。

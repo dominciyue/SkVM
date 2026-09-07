@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-07
 
-**当前执行入口：第 4.41 节。** 真实 Q1 标注与 API production binding development 是当前两条接力线；随后依次冻结、前瞻迁移、第二 profile 复用和 Q4/Q5 收口。早期逐案例、跨模型及第 5 节时间表保留为历史，不能覆盖当前队列。
+**当前执行入口：第 4.42 节。** 原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；现有 AI revision-2 材料只供新身份的 development routing。当前先冻结 API Tester 构造候选和 4+4 前瞻小样，推送冻结点后执行唯一首轮，再按实际缺口决定第二 profile。第 4.41 节保留为原研究设计，早期逐案例、跨模型及第 5 节时间表不能覆盖当前队列。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -1940,6 +1940,21 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 `results/skill-ir/api-tester-production-binding-development-001/report.json`；两份公开输入 2/2、0 model/API/paid，
 不选择 prospective、不回写 snapshot。下一步是复核支持边界和冻结构造候选；真实标注仍等待真人提交，不继续堆叠
 无新构造能力的 schema/治理层，也不因想扩大语料而推迟现有试点。
+
+### 4.42 AI development routing 与 API Tester 唯一 4+4 前瞻首轮
+
+**路线修订：** 第 4.41 节仍定义原 Q1 真人研究和远期扩样，但两位真人不再是工程迁移的前置条件。既有 AI revision-2 草稿只能进入新 development identity；原 Q1 保持 incomplete，不计算 agreement/accuracy，不回写 A/B 真人 submission。权威边界见 spec 第 14.13 节和[组件协议](ai-assisted-development-routing-and-prospective-construction.md)。
+
+1. [x] 新建协议、设计和文件级计划，明确 AI development route 与 original Q1 分离；
+2. [x] 保留 A/B revision-2 原件，生成 `skill-ir-ai-assisted-development-routing-001` 的 24-unique-unit 表，绑定 package/draft/change digest、逐行 provenance、修订理由和 unknown；
+3. [x] 冻结 `skill-ir-api-tester-constructor-candidate-001`，绑定旧 Q2 profile、当前 support/rejection、generator/runtime/checker/source closure，不修改旧 Q2；
+4. [x] 冻结 `skill-ir-api-tester-constructor-prospective-001` 的 4 real + 4 boundary 分母、license/content/binding digest 和 run-before-result prediction；
+5. [x] 实现 immutable first-run runner：远端祖先冻结提交校验、预算/stop-loss 输出、每行一次、0 retry/replacement/fix、全结果留分母、真实/边界和成本分报；
+6. [ ] 运行 focused/broad deterministic verification，显式白名单提交并推送冻结点；推送前不运行候选；
+7. [ ] 从 digest-verified offline cache 执行唯一 8 行，保存 immutable first-run report；失败照录，不修候选或补行；
+8. [ ] 用首轮实际结果同步 spec/plan/README/current status/developer guide/claim-evidence/handoff/communication/log，第二次白名单提交并推送。
+
+**当前停止点：** 第 6 项完成前 `resultState=not-run`。本轮 construction/run 是本地确定性执行，`modelCalls=apiCalls=paidCalls=0`；AI analysis 由 project runner 标为未测，实际人工修改单列。4+4 只识别当前候选的接纳/拒绝与 checker 行为，不证明可靠性、human savings、任意 OpenAPI、跨 skill/profile 或 readiness。
 
 ## 5. 历史时间估算（不作为当前排期）
 

@@ -244,7 +244,7 @@ development 标注包也已冻结。真实独立标注尚未开始；prospective
 
 ## 当前下一步
 
-2026-09-07 已确认：真实 Q1 标注与 API production binding development 并行接力；随后稳定并冻结方法/构造器、前瞻迁移、第二 profile 复用，再完成 Q4/Q5。详细顺序以 [plan 第4.41节](skill-ir-aot-optimization-plan.md) 为准，主张边界以 [spec 第14.12节](skill-ir-aot-optimization-spec.md) 为准。
+2026-09-07 已确认：原 Q1 真人一致性实验继续保持未完成，但不再阻塞工程 development。现有 AI revision-2 材料只形成新身份的 24-unit development routing；API Tester 构造候选与 4 real + 4 boundary 首轮先冻结并推送，再做唯一前瞻执行。详细顺序以 [plan 第4.42节](skill-ir-aot-optimization-plan.md) 为准，主张边界以 [spec 第14.13节](skill-ir-aot-optimization-spec.md) 为准。
 
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
@@ -265,11 +265,15 @@ Q2：类别能力映射（冻结盘点已完成；API production binding develop
   -> 21 capabilities；API/Env=existing-slice-only；Changelog=unsupported
   -> operation existence 不等于 validated composition；new-input-ready=0/3
   -> snapshot 后 API 明确子集的两份公开新输入 2/2；0 model/API/paid；不回写 snapshot
+Q2-D：AI-assisted development route 与 prospective constructor（冻结中）
+  -> AI route=24 unique units，逐行 provenance/change/unknown；不是真人 Q1、agreement 或 accuracy
+  -> candidate snapshot 绑定旧 Q2、support/rejection/generator/runtime/checker/source closure
+  -> prospective=4 real + 4 boundary，prediction-before-run，0 retry/replacement/fix；冻结提交推送前不执行
 ```
 
 方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。
 
-API development 已按[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成两输入零调用证据；下一检查点是对[组件边界](api-tester-production-binding.md)和冻结候选做独立复核。新skill接入和原语新组合另测。人工adapter/contract、模板、规则和review均记录时间与改动；最终用户无需逐skill语义适配仍是待验证目标，不能写成当前事实。
+API development 已按[设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)与[文件级计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成两输入零调用证据；新[AI development routing 与前瞻构造协议](ai-assisted-development-routing-and-prospective-construction.md)进一步冻结候选和 4+4 小样。当前 `resultState=not-run`；先提交并推送 lock/prediction/runner，再允许唯一执行。新 skill 接入、第二 profile 和原语新组合另测；最终用户无需逐 skill 语义适配、可靠性和人工节省仍是待验证目标。
 
 ## 权威文档
 
@@ -285,6 +289,7 @@ API development 已按[设计](../superpowers/specs/2026-09-07-api-tester-produc
 | `project-reassessment-2026-09-06.md` | 触发本轮口径修正、分类校准与后续重排的项目复核报告。 |
 | `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
 | `api-tester-production-binding.md` | API Tester 普通参数 production binding、支持/拒绝范围、package、独立 checker、CLI 与 development 证据。 |
+| `ai-assisted-development-routing-and-prospective-construction.md` | AI revision-2 development route、API 构造候选、4+4 prediction lock、首轮不可变执行与主张/成本边界。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |
 | `claim-evidence-table.md` | 当前可用于报告/论文的最窄主张、权威证据、覆盖范围和禁止外推。 |
 | `skill-ir-aot-optimization-spec.md` | 当前研究契约、claim、证据边界和成功条件。 |
