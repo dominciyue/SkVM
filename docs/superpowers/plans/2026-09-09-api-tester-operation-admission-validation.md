@@ -71,7 +71,7 @@ function verifyApiTesterProjectionDependencies(input: DependencyInput): Dependen
 - [x] Run the test; observed missing development module/report, then missing strict report verifier, before each GREEN implementation.
 - [x] Implement the runner: verify selection/002 evidence and source/license bytes; enumerate/analyze all operations; aggregate admitted operations per document; run existing v2 artifact pipeline; copy only derived artifact closure; independently verify coverage; write report with exclusive create.
 - [x] Execute against `D:/skill优化/.tmp-api-v2-feature-migration-20260908` and retain every rejection/revision record. Attempts 1 and 2 remain digest-bound beside the final result.
-- [x] Strict-parse the report, six inventories and five artifact closures. Final regression/docs/diff/frozen-digest checks and the explicit Task 1 commit are the current closeout action.
+- [x] Strict-parse the report, six inventories and five artifact closures; run regression/docs/diff/frozen-digest checks; commit Task 1 as `f92e8a1`.
 
 ### Task 4: Task 2 transformations and fault detection
 
