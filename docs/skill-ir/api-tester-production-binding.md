@@ -229,9 +229,11 @@ public contract、package manifest、generator、checker、plan、report 与 val
 
 ### 6.1 v2 特性定向迁移冻结
 
-新身份 `skill-ir-api-tester-v2-feature-migration-001` 已将实际统一 CLI 执行面、6 个独立公开仓库来源、4 个合成边界、
-10 份普通 v2 binding 与执行前预测冻结为 `resultState=not-run`。它不会改动本页的 v2 contract、parser、generator、checker
-或 package；所选输入在冻结提交推送前不得进入候选。唯一首轮、成本字段、失败保留与主张上限见
+输入集身份 `skill-ir-api-tester-v2-feature-migration-001` 已将实际统一 CLI 执行面、6 个独立公开仓库来源、4 个合成边界、
+10 份普通 v2 binding 与执行前预测冻结。001 的首次入口在第 0 行前因 Windows checkout/Git blob EOL 表示比较错误而停止，
+未读取所选输入或创建结果；失败记录与旧 lock 均保留。只修正 harness 的 panel
+`skill-ir-api-tester-v2-feature-migration-002` 复用同 candidate/input/prediction，当前 `resultState=not-run`。两者都不改动
+本页的 v2 contract、parser、generator、checker 或 package。唯一首轮、成本字段、失败保留与主张上限见
 [`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。
 
 ## 7. 验证

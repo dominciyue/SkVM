@@ -4,6 +4,7 @@ import {
   API_TESTER_V2_FEATURE_MIGRATION_CANDIDATE_PATH,
   API_TESTER_V2_FEATURE_MIGRATION_LOCK_PATH,
   API_TESTER_V2_FEATURE_MIGRATION_SELECTION_PATH,
+  ApiTesterV2FeatureMigrationCandidateSchema,
   ApiTesterV2FeatureMigrationSelectionSchema,
   buildApiTesterV2FeatureMigrationCandidate,
   buildApiTesterV2FeatureMigrationLock,
@@ -57,8 +58,10 @@ const candidate = await buildApiTesterV2FeatureMigrationCandidate({
   bunVersion: await version(bunExecutable),
   nodeVersion: await version(nodeExecutable),
 });
-await mkdir(dirname(candidateOut), { recursive: true });
-await writeFile(candidateOut, `${JSON.stringify(candidate, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
+const frozenCandidate = ApiTesterV2FeatureMigrationCandidateSchema.parse(JSON.parse(await readFile(candidateOut, "utf8")));
+if (JSON.stringify(candidate) !== JSON.stringify(frozenCandidate)) {
+  throw new Error("existing candidate snapshot no longer matches the actual execution surface or runtime");
+}
 const lock = await buildApiTesterV2FeatureMigrationLock({ rootDir, candidate, selection });
 await mkdir(dirname(lockOut), { recursive: true });
 await writeFile(lockOut, `${JSON.stringify(lock, null, 2)}\n`, { encoding: "utf8", flag: "wx" });

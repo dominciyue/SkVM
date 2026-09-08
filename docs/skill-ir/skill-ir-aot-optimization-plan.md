@@ -2013,6 +2013,12 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 不是随机总体样本，4 个 boundary 不计入真实接纳率；不声称任意 OpenAPI、human savings、optimized LLM、新 skill 自动接入、
 跨 profile、held-out、portfolio 或 readiness。
 
+**2026-09-08 preflight 更正。** 001 已推送，但首次入口调用在第 0 行前被 harness 拦截：candidate 的 Windows mixed-EOL
+checkout 摘要与 Git 规范化 LF blob 不同。没有 selected input bytes、row、模型/API/付费或结果文件；001 lock 不覆盖，失败以
+`preflight-failure.json` 冻结。候选、6+4、binding 和 prediction 全部复用且不得修改；仅修正 tracked-representation 检查的
+successor 使用 `skill-ir-api-tester-v2-feature-migration-002` 新 lock。第 5 项必须再次提交/推送 002 freeze 后，才可做唯一
+10 行首轮。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

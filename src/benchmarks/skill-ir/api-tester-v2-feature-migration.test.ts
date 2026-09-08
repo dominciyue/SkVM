@@ -4,25 +4,31 @@ import { join, resolve } from "node:path";
 import { describe, expect, test } from "bun:test";
 import {
   API_TESTER_V2_FEATURE_MIGRATION_IDENTITY,
+  API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY,
   API_TESTER_V2_MIGRATION_CANDIDATE_IDENTITY,
   ApiTesterV2FeatureMigrationCandidateSchema,
   ApiTesterV2FeatureMigrationFirstRunReportSchema,
   ApiTesterV2FeatureMigrationLockSchema,
+  ApiTesterV2FeatureMigrationPreflightFailureSchema,
   ApiTesterV2FeatureMigrationSelectionSchema,
   buildApiTesterV2FeatureMigrationCandidate,
   buildApiTesterV2FeatureMigrationFirstRunReport,
   inspectPublicOpenApiStructure,
+  gitTrackedFileMatchesCommit,
   verifyApiTesterV2FeatureMigrationInputs,
 } from "./api-tester-v2-feature-migration";
 
 const rootDir = process.cwd();
-const panelDir = join(rootDir, "benchmarks", "skill-ir", "pilots", "api-tester", "v2-feature-migration-001");
+const assetDir = join(rootDir, "benchmarks", "skill-ir", "pilots", "api-tester", "v2-feature-migration-001");
+const panelDir = join(rootDir, "benchmarks", "skill-ir", "pilots", "api-tester", "v2-feature-migration-002");
 
 describe("API Tester v2 feature migration freeze", () => {
   test("uses new candidate and panel identities", () => {
     expect(API_TESTER_V2_MIGRATION_CANDIDATE_IDENTITY)
       .toBe("skill-ir-api-tester-constructor-candidate-v2-001");
     expect(API_TESTER_V2_FEATURE_MIGRATION_IDENTITY)
+      .toBe("skill-ir-api-tester-v2-feature-migration-002");
+    expect(API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY)
       .toBe("skill-ir-api-tester-v2-feature-migration-001");
   });
 
@@ -94,9 +100,42 @@ describe("API Tester v2 feature migration freeze", () => {
     ]) expect(paths.has(required)).toBe(true);
   });
 
+  test("accepts Git-normalized source whose exact checkout bytes are candidate-bound", async () => {
+    const child = Bun.spawn(["git", "-c", `safe.directory=${rootDir.replaceAll("\\", "/")}`, "rev-parse", "HEAD"], {
+      cwd: rootDir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const [exitCode, stdout] = await Promise.all([child.exited, new Response(child.stdout).text()]);
+    expect(exitCode).toBe(0);
+    await expect(gitTrackedFileMatchesCommit({
+      rootDir,
+      commit: stdout.trim(),
+      path: "bin/skvm.js",
+    })).resolves.toBeUndefined();
+  });
+
+  test("freezes the predecessor as a machine-readable zero-row preflight failure", async () => {
+    const failure = ApiTesterV2FeatureMigrationPreflightFailureSchema.parse(JSON.parse(await readFile(
+      join(rootDir, "results", "skill-ir", "api-tester-v2-feature-migration-001", "preflight-failure.json"),
+      "utf8",
+    )));
+    expect(failure).toMatchObject({
+      experimentIdentity: API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY,
+      status: "blocked-before-row-execution",
+      activity: { rowsAttempted: 0, selectedInputBytesRead: 0, resultReportCreated: false },
+      disposition: {
+        candidateChanged: false,
+        inputSetChanged: false,
+        predictionsChanged: false,
+        successorExperimentIdentity: API_TESTER_V2_FEATURE_MIGRATION_IDENTITY,
+      },
+    });
+  });
+
   test("freezes six unique real sources in exact 2/2/2 strata plus four boundaries", async () => {
     const selection = ApiTesterV2FeatureMigrationSelectionSchema.parse(JSON.parse(await readFile(
-      join(panelDir, "source-selection.json"),
+      join(assetDir, "source-selection.json"),
       "utf8",
     )));
     const lock = ApiTesterV2FeatureMigrationLockSchema.parse(JSON.parse(await readFile(
@@ -112,12 +151,17 @@ describe("API Tester v2 feature migration freeze", () => {
     }, {})).toEqual({ "local-component-ref": 2, "body-primitive-array": 2, "query-form-explode": 2 });
     expect(lock.denominator).toEqual({ realPublicInputs: 6, syntheticBoundaryCases: 4, total: 10 });
     expect(lock.result).toEqual({
-      path: "results/skill-ir/api-tester-v2-feature-migration-001/first-run-report.json",
+      path: "results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json",
       writeMode: "exclusive-create-once",
     });
     expect(lock.rows).toHaveLength(10);
     expect(lock.rows.every((row) => row.prediction.basis.length > 0)).toBe(true);
     expect(lock.executionPolicy).toMatchObject({ attemptsPerRow: 1, retries: 0, replacements: 0, candidateFixes: 0 });
+    expect(lock.predecessorPreflight).toMatchObject({
+      experimentIdentity: API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY,
+      rowsAttempted: 0,
+      selectedInputBytesRead: 0,
+    });
     expect(() => ApiTesterV2FeatureMigrationLockSchema.parse({ ...lock, rows: lock.rows.slice(1) }))
       .toThrow(/10|denominator/iu);
   });

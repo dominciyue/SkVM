@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "skill-ir-api-tester-v2-feature-migration-preflight-failure/v1",
+  "identity": "skill-ir-api-tester-v2-feature-migration-001-preflight-failure-001",
+  "experimentIdentity": "skill-ir-api-tester-v2-feature-migration-001",
+  "status": "blocked-before-row-execution",
+  "attemptedAt": "2026-09-08T11:25:41.799Z",
+  "freeze": {
+    "commit": "8b59a6905c5b17448b82aafca558990fd8295023",
+    "remoteBranch": "origin/skill-ir-aot",
+    "candidateSha256": "d4a6f955d2fa4ad0f3e2bfeb3612622b8eb9f72134df390073645a063dad918e",
+    "lockSha256": "7f1cd39dec16dfe77b8140c39333d58163ab631c47e83e4c8ef5cfffa9b80282",
+    "selectionSha256": "0f955e7b029312ca42f0c25692c819f8232908a8bf327632cc83f94ead481905"
+  },
+  "failure": {
+    "code": "CHECKOUT_REPRESENTATION_COMPARISON_BUG",
+    "failedCheck": "candidate-execution-surface-git-blob-byte-equality",
+    "role": "top-level-shim",
+    "path": "bin/skvm.js",
+    "candidateWorkingTree": {
+      "bytes": 1300,
+      "sha256": "b131dc7efafe5a524e73492b89a483a0b93b39b8d4bf76e76e017bb14a46d1f3",
+      "lineEndings": "1-crlf-plus-28-lf"
+    },
+    "gitBlob": {
+      "bytes": 1299,
+      "sha256": "0e0bd06b21af3a81d43c4c96908986042a9dbeb11138c0ea15977a03f091c02c",
+      "lineEndings": "29-lf"
+    },
+    "gitFilteredRepresentation": {
+      "bytes": 1328,
+      "sha256": "ac97a0749fc585aaddcb2e6c1fd43302c6143de82b4469ed2b590e29b6b83ddd",
+      "lineEndings": "29-crlf"
+    },
+    "diagnosis": "The candidate correctly bound the exact mixed-EOL Windows checkout bytes, but the preflight compared that digest to the normalized LF Git blob. Git reports the tracked working representation unchanged at the freeze commit."
+  },
+  "activity": {
+    "rowsPlanned": 10,
+    "rowsAttempted": 0,
+    "selectedInputBytesRead": 0,
+    "resultReportCreated": false,
+    "modelCalls": 0,
+    "apiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0
+  },
+  "disposition": {
+    "candidateChanged": false,
+    "inputSetChanged": false,
+    "predictionsChanged": false,
+    "lockOverwritten": false,
+    "resultOverwritten": false,
+    "successorExperimentIdentity": "skill-ir-api-tester-v2-feature-migration-002"
+  },
+  "claimBoundary": "This is a frozen harness-preflight failure before any selected input reached the candidate. It is not a 10-row migration result and does not alter the frozen denominator, candidate, input selection, predictions, v1 evidence, portfolio, or readiness."
+}

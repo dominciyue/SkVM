@@ -1,25 +1,30 @@
 # API Tester v2 特性分层新输入迁移
 
-本文档说明 `skill-ir-api-tester-v2-feature-migration-001` 的冻结与唯一首轮执行合同。它验证同一份
+本文档说明固定输入集 `skill-ir-api-tester-v2-feature-migration-001` 与可执行 successor panel
+`skill-ir-api-tester-v2-feature-migration-002` 的冻结和唯一首轮执行合同。它验证同一份
 development-only v2 构造器能否通过统一产品 CLI 迁移到新的公开 OpenAPI 输入；它不扩展构造器能力，也不把定向样本解释成
 OpenAPI 生态接纳率。
 
 ## 1. 当前状态与身份
 
-当前状态是 `frozen-not-run`：候选、来源选择、10 份 binding、4 个合成边界、执行器、预测和分母已经形成
-`resultState=not-run` 的机器锁；所选输入尚未经过 v2 parser、artifact、preset 或 CLI。
+001 在远端冻结后的首次入口调用被 EOL preflight 于第 0 行前拦截，未读取所选输入、未创建首次报告。该失败已冻结为
+机器记录，旧 lock 和结果路径均未覆盖。候选、来源、10 份 binding、4 个边界和预测不变；只修正 Git 规范化表示检查的
+002 已形成新的 `resultState=not-run` 机器锁，所选输入仍未经过 v2 parser、artifact、preset 或 CLI。
 
 | 对象 | 身份或路径 |
 |---|---|
 | candidate | `skill-ir-api-tester-constructor-candidate-v2-001` |
-| panel | `skill-ir-api-tester-v2-feature-migration-001` |
+| fixed input set / failed preflight | `skill-ir-api-tester-v2-feature-migration-001` |
+| executable successor panel | `skill-ir-api-tester-v2-feature-migration-002` |
 | candidate snapshot | `benchmarks/skill-ir/classification/api-tester-constructor-candidate-v2.json` |
 | source selection | `benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/source-selection.json` |
-| experiment lock | `benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/experiment-lock.json` |
-| immutable result | `results/skill-ir/api-tester-v2-feature-migration-001/first-run-report.json` |
+| 001 immutable lock | `benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/experiment-lock.json` |
+| 001 preflight record | `results/skill-ir/api-tester-v2-feature-migration-001/preflight-failure.json` |
+| 002 experiment lock | `benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-002/experiment-lock.json` |
+| 002 immutable result | `results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json` |
 
-结果路径使用 exclusive create；一旦存在不得覆盖。首次结果失败也保留在原 10 行分母，修复只能另建 development 记录与
-新候选身份。
+结果路径使用 exclusive create；一旦存在不得覆盖。行执行后的失败保留在原 10 行分母；产品候选缺陷只能另建
+development 记录与新 candidate，执行 harness 的 preflight 缺陷则保留旧记录并另建 panel identity。
 
 ## 2. 候选冻结面
 
@@ -74,13 +79,13 @@ candidate fixes          0
 
 ## 5. 冻结与执行顺序
 
-先生成候选和 `not-run` lock：
+candidate 已由 001 冻结；002 freeze 复核 candidate 未漂并只生成新的 `not-run` lock：
 
 ```powershell
 bun run ./src/benchmarks/skill-ir/api-tester-v2-feature-migration-freeze-run.ts `
   --root=D:/skill优化/SkVM `
   --candidate-out=D:/skill优化/SkVM/benchmarks/skill-ir/classification/api-tester-constructor-candidate-v2.json `
-  --lock-out=D:/skill优化/SkVM/benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/experiment-lock.json `
+  --lock-out=D:/skill优化/SkVM/benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-002/experiment-lock.json `
   --bun=<absolute-bun-executable> `
   --node=<absolute-node-executable>
 ```
@@ -93,7 +98,7 @@ bun run ./src/benchmarks/skill-ir/api-tester-v2-feature-migration-first-run.ts `
   --root=D:/skill优化/SkVM `
   --cache-root=D:/skill优化/.tmp-api-v2-feature-migration-20260908 `
   --freeze-commit=<full-40-char-freeze-commit> `
-  --out=D:/skill优化/SkVM/results/skill-ir/api-tester-v2-feature-migration-001/first-run-report.json `
+  --out=D:/skill优化/SkVM/results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json `
   --bun=<absolute-bun-executable> `
   --node=<absolute-node-executable> `
   --completed-at=<ISO-8601>
@@ -101,6 +106,10 @@ bun run ./src/benchmarks/skill-ir/api-tester-v2-feature-migration-first-run.ts `
 
 入口在任何行前打印唯一的预算与 stop-loss 确认行。每一行都从 `node bin/skvm.js artifact --preset=api-tester
 --binding=...` 进入实际产品路径。运行器不读取 API key、不调用模型/API/网络，也不允许 retry、replacement 或 candidate fix。
+
+001 的根因是 candidate 正确绑定了 Windows 实际 mixed-EOL checkout 字节，而旧 preflight 又把该摘要直接与 Git 中规范化的
+LF blob 比较。002 仍逐字节检查实际 checkout 是否匹配 candidate，但用 Git tracked diff 证明该表示属于远端 freeze commit；
+它不会把所有文件强行规范化为 LF/CRLF，也不会放松 candidate digest。
 
 ## 6. 结果与成本字段
 

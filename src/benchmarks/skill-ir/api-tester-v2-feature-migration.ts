@@ -13,18 +13,24 @@ import {
 
 export const API_TESTER_V2_MIGRATION_CANDIDATE_IDENTITY =
   "skill-ir-api-tester-constructor-candidate-v2-001" as const;
-export const API_TESTER_V2_FEATURE_MIGRATION_IDENTITY =
+export const API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY =
   "skill-ir-api-tester-v2-feature-migration-001" as const;
-export const API_TESTER_V2_FEATURE_MIGRATION_PANEL_PATH =
+export const API_TESTER_V2_FEATURE_MIGRATION_IDENTITY =
+  "skill-ir-api-tester-v2-feature-migration-002" as const;
+export const API_TESTER_V2_FEATURE_MIGRATION_ASSET_PATH =
   "benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001" as const;
+export const API_TESTER_V2_FEATURE_MIGRATION_PANEL_PATH =
+  "benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-002" as const;
 export const API_TESTER_V2_FEATURE_MIGRATION_CANDIDATE_PATH =
   "benchmarks/skill-ir/classification/api-tester-constructor-candidate-v2.json" as const;
 export const API_TESTER_V2_FEATURE_MIGRATION_LOCK_PATH =
   `${API_TESTER_V2_FEATURE_MIGRATION_PANEL_PATH}/experiment-lock.json` as const;
 export const API_TESTER_V2_FEATURE_MIGRATION_SELECTION_PATH =
-  `${API_TESTER_V2_FEATURE_MIGRATION_PANEL_PATH}/source-selection.json` as const;
+  `${API_TESTER_V2_FEATURE_MIGRATION_ASSET_PATH}/source-selection.json` as const;
 export const API_TESTER_V2_FEATURE_MIGRATION_RESULT_PATH =
-  "results/skill-ir/api-tester-v2-feature-migration-001/first-run-report.json" as const;
+  "results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json" as const;
+export const API_TESTER_V2_FEATURE_MIGRATION_PREDECESSOR_FAILURE_PATH =
+  "results/skill-ir/api-tester-v2-feature-migration-001/preflight-failure.json" as const;
 
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const GitCommitSchema = z.string().regex(/^[a-f0-9]{40}$/u);
@@ -48,6 +54,50 @@ const RejectionCodeSchema = z.enum([
   "MISSING_REQUIRED_ERROR_RESPONSE",
   "MISSING_SECURITY_ERROR_RESPONSE",
 ]);
+
+export const ApiTesterV2FeatureMigrationPreflightFailureSchema = z.object({
+  schemaVersion: z.literal("skill-ir-api-tester-v2-feature-migration-preflight-failure/v1"),
+  identity: z.literal("skill-ir-api-tester-v2-feature-migration-001-preflight-failure-001"),
+  experimentIdentity: z.literal(API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY),
+  status: z.literal("blocked-before-row-execution"),
+  attemptedAt: z.string().datetime(),
+  freeze: z.object({
+    commit: z.literal("8b59a6905c5b17448b82aafca558990fd8295023"),
+    remoteBranch: z.literal("origin/skill-ir-aot"),
+    candidateSha256: Sha256Schema,
+    lockSha256: Sha256Schema,
+    selectionSha256: Sha256Schema,
+  }).strict(),
+  failure: z.object({
+    code: z.literal("CHECKOUT_REPRESENTATION_COMPARISON_BUG"),
+    failedCheck: z.literal("candidate-execution-surface-git-blob-byte-equality"),
+    role: z.literal("top-level-shim"),
+    path: z.literal("bin/skvm.js"),
+    candidateWorkingTree: z.object({ bytes: z.literal(1300), sha256: Sha256Schema, lineEndings: z.literal("1-crlf-plus-28-lf") }).strict(),
+    gitBlob: z.object({ bytes: z.literal(1299), sha256: Sha256Schema, lineEndings: z.literal("29-lf") }).strict(),
+    gitFilteredRepresentation: z.object({ bytes: z.literal(1328), sha256: Sha256Schema, lineEndings: z.literal("29-crlf") }).strict(),
+    diagnosis: z.string().min(1),
+  }).strict(),
+  activity: z.object({
+    rowsPlanned: z.literal(10),
+    rowsAttempted: z.literal(0),
+    selectedInputBytesRead: z.literal(0),
+    resultReportCreated: z.literal(false),
+    modelCalls: z.literal(0),
+    apiCalls: z.literal(0),
+    paidCalls: z.literal(0),
+    heldOutAccesses: z.literal(0),
+  }).strict(),
+  disposition: z.object({
+    candidateChanged: z.literal(false),
+    inputSetChanged: z.literal(false),
+    predictionsChanged: z.literal(false),
+    lockOverwritten: z.literal(false),
+    resultOverwritten: z.literal(false),
+    successorExperimentIdentity: z.literal(API_TESTER_V2_FEATURE_MIGRATION_IDENTITY),
+  }).strict(),
+  claimBoundary: z.string().min(1),
+}).strict();
 
 const PredictionSchema = z.object({
   expectedOutcome: z.enum(["accepted", "rejected"]),
@@ -118,7 +168,7 @@ const SelectedSourceSchema = z.object({
 
 export const ApiTesterV2FeatureMigrationSelectionSchema = z.object({
   schemaVersion: z.literal("skill-ir-api-tester-v2-feature-selection/v1"),
-  identity: z.literal(API_TESTER_V2_FEATURE_MIGRATION_IDENTITY),
+  identity: z.literal(API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY),
   selectedAt: z.string().datetime(),
   method: z.literal("public-structural-review-no-constructor-trial"),
   sampling: z.object({
@@ -409,17 +459,26 @@ const LockRowSchema = z.object({
 }).strict();
 
 export const ApiTesterV2FeatureMigrationLockSchema = z.object({
-  schemaVersion: z.literal("skill-ir-api-tester-v2-feature-migration-lock/v1"),
+  schemaVersion: z.literal("skill-ir-api-tester-v2-feature-migration-lock/v2"),
   identity: z.literal(API_TESTER_V2_FEATURE_MIGRATION_IDENTITY),
-  frozenAt: z.literal("2026-09-08T11:15:00.000Z"),
+  frozenAt: z.literal("2026-09-08T11:40:00.000Z"),
   candidate: z.object({
     identity: z.literal(API_TESTER_V2_MIGRATION_CANDIDATE_IDENTITY),
     path: z.literal(API_TESTER_V2_FEATURE_MIGRATION_CANDIDATE_PATH),
     sha256: Sha256Schema,
   }).strict(),
   selection: z.object({
+    identity: z.literal(API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY),
     path: z.literal(API_TESTER_V2_FEATURE_MIGRATION_SELECTION_PATH),
     sha256: Sha256Schema,
+  }).strict(),
+  predecessorPreflight: z.object({
+    experimentIdentity: z.literal(API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY),
+    freezeCommit: z.literal("8b59a6905c5b17448b82aafca558990fd8295023"),
+    reportPath: z.literal(API_TESTER_V2_FEATURE_MIGRATION_PREDECESSOR_FAILURE_PATH),
+    reportSha256: Sha256Schema,
+    rowsAttempted: z.literal(0),
+    selectedInputBytesRead: z.literal(0),
   }).strict(),
   executionHarness: z.array(z.object({ path: SafeRelativePathSchema, sha256: Sha256Schema }).strict()).length(3),
   selectionRule: z.object({
@@ -493,7 +552,7 @@ const HARNESS_PATHS = [
 ] as const;
 
 async function readBinding(rootDir: string, rowId: string) {
-  const path = `${API_TESTER_V2_FEATURE_MIGRATION_PANEL_PATH}/bindings/${rowId}.json`;
+  const path = `${API_TESTER_V2_FEATURE_MIGRATION_ASSET_PATH}/bindings/${rowId}.json`;
   const bytes = await readFile(contained(rootDir, path));
   return {
     path,
@@ -543,7 +602,7 @@ export async function buildApiTesterV2FeatureMigrationLock(options: {
     });
   }));
   const boundaryRows = await Promise.all(BOUNDARY_ROWS.map(async (source) => {
-    const path = `${API_TESTER_V2_FEATURE_MIGRATION_PANEL_PATH}/boundary/${source.file}`;
+    const path = `${API_TESTER_V2_FEATURE_MIGRATION_ASSET_PATH}/boundary/${source.file}`;
     const binding = await readBinding(rootDir, source.rowId);
     return LockRowSchema.parse({
       rowId: source.rowId,
@@ -574,16 +633,30 @@ export async function buildApiTesterV2FeatureMigrationLock(options: {
     path,
     sha256: sha256(await readFile(contained(rootDir, path))),
   })));
+  const predecessorFailureBytes = await readFile(contained(rootDir, API_TESTER_V2_FEATURE_MIGRATION_PREDECESSOR_FAILURE_PATH));
+  ApiTesterV2FeatureMigrationPreflightFailureSchema.parse(JSON.parse(predecessorFailureBytes.toString("utf8")));
   return ApiTesterV2FeatureMigrationLockSchema.parse({
-    schemaVersion: "skill-ir-api-tester-v2-feature-migration-lock/v1",
+    schemaVersion: "skill-ir-api-tester-v2-feature-migration-lock/v2",
     identity: API_TESTER_V2_FEATURE_MIGRATION_IDENTITY,
-    frozenAt: "2026-09-08T11:15:00.000Z",
+    frozenAt: "2026-09-08T11:40:00.000Z",
     candidate: {
       identity: candidate.identity,
       path: API_TESTER_V2_FEATURE_MIGRATION_CANDIDATE_PATH,
       sha256: sha256(candidateBytes),
     },
-    selection: { path: API_TESTER_V2_FEATURE_MIGRATION_SELECTION_PATH, sha256: sha256(selectionBytes) },
+    selection: {
+      identity: API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY,
+      path: API_TESTER_V2_FEATURE_MIGRATION_SELECTION_PATH,
+      sha256: sha256(selectionBytes),
+    },
+    predecessorPreflight: {
+      experimentIdentity: API_TESTER_V2_FEATURE_MIGRATION_INPUT_SET_IDENTITY,
+      freezeCommit: "8b59a6905c5b17448b82aafca558990fd8295023",
+      reportPath: API_TESTER_V2_FEATURE_MIGRATION_PREDECESSOR_FAILURE_PATH,
+      reportSha256: sha256(predecessorFailureBytes),
+      rowsAttempted: 0,
+      selectedInputBytesRead: 0,
+    },
     executionHarness,
     selectionRule: {
       method: "public-structural-review-no-constructor-trial",
@@ -907,6 +980,21 @@ async function git(rootDir: string, args: string[]): Promise<{ exitCode: number;
   return { exitCode, stdout, stderr };
 }
 
+export async function gitTrackedFileMatchesCommit(options: {
+  rootDir: string;
+  commit: string;
+  path: string;
+}): Promise<void> {
+  const rootDir = resolve(options.rootDir);
+  const commit = GitCommitSchema.parse(options.commit);
+  const path = SafeRelativePathSchema.parse(options.path);
+  const existence = await git(rootDir, ["cat-file", "-e", `${commit}:${path}`]);
+  if (existence.exitCode !== 0) throw new Error(`freeze commit does not contain ${path}`);
+  const comparison = await git(rootDir, ["diff", "--quiet", commit, "--", path]);
+  if (comparison.exitCode === 1) throw new Error(`tracked working representation differs from freeze commit: ${path}`);
+  if (comparison.exitCode !== 0) throw new Error(`unable to compare tracked file with freeze commit: ${path}`);
+}
+
 async function gitFileAtCommit(rootDir: string, commit: string, path: string): Promise<Uint8Array> {
   const child = Bun.spawn(["git", "-c", `safe.directory=${rootDir.replaceAll("\\", "/")}`, "show", `${commit}:${SafeRelativePathSchema.parse(path)}`], {
     cwd: rootDir,
@@ -955,7 +1043,7 @@ export async function verifyApiTesterV2FeatureMigrationFreeze(options: {
   for (const source of candidate.executionSurface) {
     const current = await readFile(contained(rootDir, source.path));
     if (current.byteLength !== source.bytes || sha256(current) !== source.sha256) throw new Error(`candidate execution surface drift: ${source.role}`);
-    if (sha256(await gitFileAtCommit(rootDir, freezeCommit, source.path)) !== source.sha256) throw new Error(`candidate execution surface not frozen: ${source.role}`);
+    await gitTrackedFileMatchesCommit({ rootDir, commit: freezeCommit, path: source.path });
   }
   const selectionBytes = await readFile(contained(rootDir, lock.selection.path));
   const selectionSha256 = sha256(selectionBytes);
@@ -964,6 +1052,12 @@ export async function verifyApiTesterV2FeatureMigrationFreeze(options: {
     throw new Error("source selection digest or freeze drift");
   }
   ApiTesterV2FeatureMigrationSelectionSchema.parse(JSON.parse(selectionBytes.toString("utf8")));
+  const predecessorFailureBytes = await readFile(contained(rootDir, lock.predecessorPreflight.reportPath));
+  if (sha256(predecessorFailureBytes) !== lock.predecessorPreflight.reportSha256
+    || sha256(await gitFileAtCommit(rootDir, freezeCommit, lock.predecessorPreflight.reportPath)) !== lock.predecessorPreflight.reportSha256) {
+    throw new Error("predecessor preflight record digest or freeze drift");
+  }
+  ApiTesterV2FeatureMigrationPreflightFailureSchema.parse(JSON.parse(predecessorFailureBytes.toString("utf8")));
   for (const harness of lock.executionHarness) {
     if (sha256(await readFile(contained(rootDir, harness.path))) !== harness.sha256
       || sha256(await gitFileAtCommit(rootDir, freezeCommit, harness.path)) !== harness.sha256) {

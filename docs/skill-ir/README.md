@@ -246,7 +246,7 @@ profile、Q4、held-out 或付费实验仍需另行授权。
 
 ## 当前下一步
 
-2026-09-08 已完成 API Tester v2 工程收口，并准备好新的 candidate 与 6 real + 4 boundary 特性定向迁移合同。真实来源来自 6 个独立公开仓库，local-ref/body-array/form-explode 各 2；candidate 绑定顶层统一 CLI 到 v2 checker 的实际执行面，10 行输入、binding、prediction 与一次性结果路径已固定。当前仍是 `resultState=not-run`，所选输入未进入 v2 候选。下一动作只有：推送冻结提交后执行唯一 10 行并保存失败。详细口径以 [plan 第4.45节](skill-ir-aot-optimization-plan.md)、[spec 第14.16节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-v2-feature-migration.md)为准。
+2026-09-08 已完成 API Tester v2 工程收口，并固定新的 candidate 与 6 real + 4 boundary 特性定向输入集。001 freeze 已推送，但首次入口在第 0 行前因 Windows checkout/Git blob EOL 表示比较错误而停止，0 selected input bytes/rows/model/API/paid，未创建首次报告；该失败已机器冻结，旧 lock 未覆盖。candidate、输入、binding 和 prediction 不变，只修 harness 的 002 已形成新 `not-run` lock。下一动作只有：推送 002 freeze 后执行唯一 10 行并保存失败。详细口径以 [plan 第4.45节](skill-ir-aot-optimization-plan.md)、[spec 第14.16节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-v2-feature-migration.md)为准。
 
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
@@ -275,8 +275,9 @@ Q2-S：API constructor successor v2（development 收口，0 paid）
   -> v1 candidate/lock/runner/report 原样冻结；旧四份 real 输入转为 development-only
   -> 有限同文档 component ref + query/body primitive array + form encoding；独立 v2 checker
   -> 已暴露 Open-Meteo 1/1 parse-to-checker；不是 unseen/prospective；统一 CLI 已按版本分发
-Q2-M：v2 特性定向迁移（已冻结，not-run）
+Q2-M：v2 特性定向迁移（001 preflight-failed；002 not-run）
   -> 6 个独立真实来源 + 4 个合成边界；primary strata=2/2/2；执行前预测与摘要锁定
+  -> 001 在第 0 行前 EOL preflight 失败；002 复用同 candidate/input/prediction，只修 harness
   -> 同一 unified-CLI candidate，每行一次、0 retry/replacement/fix；失败留分母
 ```
 

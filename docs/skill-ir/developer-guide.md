@@ -708,16 +708,21 @@ API Tester 复用现有 compiler/package validator/runtime；没有复制 scorer
 
 #### 5.7.2 复核 v2 的 6+4 新输入迁移冻结
 
-本阶段使用新的 `skill-ir-api-tester-constructor-candidate-v2-001` 和
-`skill-ir-api-tester-v2-feature-migration-001`，不复用 v1 4+4 identity。开始时只读下面三个文件：
+本阶段使用新的 `skill-ir-api-tester-constructor-candidate-v2-001`；输入集 identity 是
+`skill-ir-api-tester-v2-feature-migration-001`，修正执行 harness 的 panel identity 是
+`skill-ir-api-tester-v2-feature-migration-002`，二者都不复用 v1 4+4 identity。开始时只读：
 
 ```text
 benchmarks/skill-ir/classification/api-tester-constructor-candidate-v2.json
 benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/source-selection.json
 benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/experiment-lock.json
+results/skill-ir/api-tester-v2-feature-migration-001/preflight-failure.json
+benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-002/experiment-lock.json
 ```
 
-检查 `resultState=not-run`、真实/边界/总分母 `6/4/10`、真实 primary stratum `2/2/2`、每行
+001 在第 0 行前因 mixed-EOL checkout 与规范化 Git blob 的比较错误停止，未读取所选输入、未创建结果；旧 lock 和结果路径
+都没有覆盖。002 只修正 tracked representation 验证，candidate、6+4、binding 和 prediction 均不变。检查 002 的
+`resultState=not-run`、真实/边界/总分母 `6/4/10`、真实 primary stratum `2/2/2`、每行
 `attemptsPerRow=1` 和 `retries=replacements=candidateFixes=0`。focused contract 会核对外部 cache 的 input/license 摘要，
 但不会把这些输入送进 v2 parser 或 CLI：
 
@@ -726,7 +731,7 @@ bun test ./src/benchmarks/skill-ir/api-tester-v2-feature-migration.test.ts
 ```
 
 真实首跑不是普通 onboarding smoke。它只有一次，必须使用已经推到 `origin/skill-ir-aot` 的完整冻结 SHA，并写入锁定的
-`results/skill-ir/api-tester-v2-feature-migration-001/first-run-report.json`；报告存在后入口会拒绝覆盖。运行器会在第一行前打印
+`results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json`；报告存在后入口会拒绝覆盖。运行器会在第一行前打印
 预算和 stop-loss，逐行走 `node bin/skvm.js artifact --preset=api-tester --binding=...`，不读取 key，三项调用计数固定为 0。
 失败必须留在 10 行分母，不能换 route、换输入、补行或改候选。完整命令和选样表见
 [`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。

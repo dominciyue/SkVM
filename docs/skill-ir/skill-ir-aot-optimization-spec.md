@@ -2009,5 +2009,8 @@ onboarding、跨 profile、held-out、portfolio 或 readiness 结论。
 
 **冻结实现状态。** 新候选摘要、6 个公开来源的 commit/content/license 清单、4 个合成边界、10 份普通 v2 binding、
 10 行执行前预测、一次性结果路径和 `resultState=not-run` lock 已由 focused contract 验证；候选绑定 Bun `1.3.14` 与
-Node `v23.8.0`。当前阶段仍为未执行，所选输入没有进入 v2 parser/artifact/preset/CLI。完整运行与报告字段见
+Node `v23.8.0`。001 首次入口调用在第 0 行前因 preflight 错把 Windows mixed-EOL checkout 与规范化 LF Git blob 做字节
+等同比较而停止：rows/input bytes/model/API/paid 均为 0，结果未创建，失败已另存机器记录。候选、输入和预测不变；只修正
+Git tracked-representation 验证的 successor panel 使用新身份 `skill-ir-api-tester-v2-feature-migration-002` 和新 lock，当前仍为
+未执行。完整运行与报告字段见
 [`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。
