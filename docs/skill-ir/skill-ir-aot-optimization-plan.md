@@ -2002,11 +2002,11 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
    既有 fixture、held-out 或原 Q1 prospective 预留位；
 4. [x] TDD 实现 freeze/runner/report 合同；runner 只在远端祖先 freeze commit、lock/candidate/cache/fixture/binding 摘要全部
    通过后，逐行调用统一 `skvm artifact --binding` 一次；0 retry/replacement/fix，失败留分母；
-5. [ ] 先 focused/broad/typecheck/docs/diff/secret 验证，再白名单提交并推送冻结点；推送前不得在所选 real input 上运行
+5. [x] 先 focused/broad/typecheck/docs/diff/secret 验证，再白名单提交并推送冻结点；推送前不得在所选 real input 上运行
    v2 parser/artifact/preset/CLI；
-6. [ ] 从 digest-verified offline cache 唯一执行 10 行并写不可覆盖 first-run report；分开 real/boundary，记录 admission、
+6. [x] 从 digest-verified offline cache 唯一执行 10 行并写不可覆盖 first-run report；分开 real/boundary，记录 admission、
    rejection/checker/output、额外适配和可观察阶段成本；
-7. [ ] 单列用户报告的 467,220 development-agent tokens，runtime 零 token 不抵消开发成本；同步 component/spec/plan/status/
+7. [x] 单列用户报告的 467,220 development-agent tokens，runtime 零 token 不抵消开发成本；同步 component/spec/plan/status/
    onboarding/claim-evidence/handoff/communication/log，最终白名单 commit + push 后停止。
 
 **主张上限：** 只允许报告同一冻结构造器经同一统一 CLI 对特性定向新输入的 fixed-profile migration 结果。6 个真实输入
@@ -2016,8 +2016,14 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 **2026-09-08 preflight 更正。** 001 已推送，但首次入口调用在第 0 行前被 harness 拦截：candidate 的 Windows mixed-EOL
 checkout 摘要与 Git 规范化 LF blob 不同。没有 selected input bytes、row、模型/API/付费或结果文件；001 lock 不覆盖，失败以
 `preflight-failure.json` 冻结。候选、6+4、binding 和 prediction 全部复用且不得修改；仅修正 tracked-representation 检查的
-successor 使用 `skill-ir-api-tester-v2-feature-migration-002` 新 lock。第 5 项必须再次提交/推送 002 freeze 后，才可做唯一
+successor 使用 `skill-ir-api-tester-v2-feature-migration-002` 新 lock。002 已按第 5 项重新提交并推送，之后才执行唯一
 10 行首轮。
+
+**冻结结果。** 002 freeze `19af3e3fc7f99c8339748b5d167f0bd814f7bbf3` 推送后唯一执行 10/10 行；真实与边界
+accepted=`0/6`、`0/4`，总 rejected=`10`，checker/infrastructure failure=`0/0`，10 个 prediction 全部 exact。所有 checker
+均 `not-run`，因为完整文档在 normalized contract 构造期先命中其他既有拒绝边界。runtime model/API/paid=`0/0/0`，
+CLI end-to-end=`7990ms`；467,220 development tokens 另列。按预注册分支冻结“再次全部拒绝”的负结果并停止，不改包、
+不换输入、不补行、不进第二 profile。
 
 ## 5. 历史时间估算（不作为当前排期）
 

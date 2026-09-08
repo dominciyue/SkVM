@@ -2011,6 +2011,9 @@ onboarding、跨 profile、held-out、portfolio 或 readiness 结论。
 10 行执行前预测、一次性结果路径和 `resultState=not-run` lock 已由 focused contract 验证；候选绑定 Bun `1.3.14` 与
 Node `v23.8.0`。001 首次入口调用在第 0 行前因 preflight 错把 Windows mixed-EOL checkout 与规范化 LF Git blob 做字节
 等同比较而停止：rows/input bytes/model/API/paid 均为 0，结果未创建，失败已另存机器记录。候选、输入和预测不变；只修正
-Git tracked-representation 验证的 successor panel 使用新身份 `skill-ir-api-tester-v2-feature-migration-002` 和新 lock，当前仍为
-未执行。完整运行与报告字段见
+Git tracked-representation 验证的 successor panel 使用新身份 `skill-ir-api-tester-v2-feature-migration-002` 和新 lock。
+002 freeze `19af3e3fc7f99c8339748b5d167f0bd814f7bbf3` 推送后已完成唯一首轮：6 个真实输入与 4 个边界
+全部稳定拒绝，accepted=`0/10`、checker/infrastructure failure=`0/0`、prediction exact=`10/10`。所有行在 normalized
+contract 构造期停止，checker 全为 `not-run`；因此没有“仅替换数据即可生成并通过检查”的新迁移正证据。运行时
+model/API/paid=`0/0/0`，CLI end-to-end=`7990ms`，历史 development-agent tokens `467220` 继续单列。完整运行与报告字段见
 [`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。

@@ -9,7 +9,7 @@ OpenAPI 生态接纳率。
 
 001 在远端冻结后的首次入口调用被 EOL preflight 于第 0 行前拦截，未读取所选输入、未创建首次报告。该失败已冻结为
 机器记录，旧 lock 和结果路径均未覆盖。候选、来源、10 份 binding、4 个边界和预测不变；只修正 Git 规范化表示检查的
-002 已形成新的 `resultState=not-run` 机器锁，所选输入仍未经过 v2 parser、artifact、preset 或 CLI。
+002 随后按新远端冻结点完成唯一 10 行首轮；报告已不可覆盖，候选和本 identity 均停止。
 
 | 对象 | 身份或路径 |
 |---|---|
@@ -111,7 +111,29 @@ bun run ./src/benchmarks/skill-ir/api-tester-v2-feature-migration-first-run.ts `
 LF blob 比较。002 仍逐字节检查实际 checkout 是否匹配 candidate，但用 Git tracked diff 证明该表示属于远端 freeze commit；
 它不会把所有文件强行规范化为 LF/CRLF，也不会放松 candidate digest。
 
-## 6. 结果与成本字段
+## 6. 首轮结果与成本
+
+002 的冻结提交为 `19af3e3fc7f99c8339748b5d167f0bd814f7bbf3`。10/10 行均进入统一 CLI，结果如下：
+
+| 分层 | accepted | rejected | checker-failed | infrastructure-failed |
+|---|---:|---:|---:|---:|
+| 6 个真实公开输入 | 0 | 6 | 0 | 0 |
+| 4 个合成边界 | 0 | 4 | 0 | 0 |
+| 合计 | 0 | 10 | 0 | 0 |
+
+10 个实际拒绝码与执行前预测全部 exact。真实行依次命中
+`MISSING_REQUIRED_ERROR_RESPONSE`、`UNSUPPORTED_RESPONSE`、`UNSUPPORTED_REQUEST_BODY`、`UNSUPPORTED_SECURITY`、
+`UNSUPPORTED_SCHEMA`、`UNSUPPORTED_REQUEST_BODY`；4 个边界依次命中
+`UNSUPPORTED_REFERENCE`、`UNSUPPORTED_SCHEMA`、`UNSUPPORTED_PARAMETER`、`UNSUPPORTED_REQUEST_BODY`。
+
+所有行都在 normalized contract 构造阶段拒绝，checker 均为 `not-run`，没有 plan/report/package 质量证据。真实 primary
+stratum 的 local-ref/body-array/form-explode 各是 0 accepted / 2 rejected；这说明输入包含目标特性不等于整个 OpenAPI 文档
+都落在当前 bounded profile。按预注册决策，这是固定支持面再次全部拒绝的负结果；下一步若另获授权，应先判断 whole-document
+接纳范围与选样目标是否匹配，再决定通用缺口开发，不能把本轮样本改包洗成正例。
+
+报告摘要绑定 candidate=`d4a6f955...d918e`、lock=`5e5714ec...47d2`、selection=`0f955e7b...905`。运行时总计：input
+materialization 17 ms、CLI end-to-end 7,990 ms；因为所有行在 package milestone 前拒绝，construction/generation/checking
+均为 unavailable 10/10，而不是 0 成本完成。
 
 每行记录：
 
@@ -123,8 +145,8 @@ LF blob 比较。002 仍逐字节检查实际 checkout 是否匹配 candidate，
 - input materialization、construction、generation、checking、CLI end-to-end 和 evidence analysis 毫秒。
 
 阶段里程碑以 5 ms 轮询观察；无法拆分或同一轮观察到的阶段会保留 `null`/`coalescedMilestones`，不能伪造更精确时间。
-运行时 `modelCalls=apiCalls=paidCalls=0`。用户报告的 `467,220` development-agent tokens 作为一次性历史开发成本单列，
-不得用运行时零 token 抵消。
+运行时 `modelCalls=apiCalls=paidCalls=0`，不可变首轮 human modification 为 0 minutes；后者不是人类 authoring/review
+节省测量。用户报告的 `467,220` development-agent tokens 作为一次性历史开发成本单列，不得用运行时零 token 抵消。
 
 ## 7. 验证与修改边界
 

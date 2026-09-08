@@ -731,9 +731,12 @@ bun test ./src/benchmarks/skill-ir/api-tester-v2-feature-migration.test.ts
 ```
 
 真实首跑不是普通 onboarding smoke。它只有一次，必须使用已经推到 `origin/skill-ir-aot` 的完整冻结 SHA，并写入锁定的
-`results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json`；报告存在后入口会拒绝覆盖。运行器会在第一行前打印
+`results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json`；该报告现已存在，入口会拒绝覆盖，禁止把命令
+当作可重跑示例。已完成的运行器在第一行前打印
 预算和 stop-loss，逐行走 `node bin/skvm.js artifact --preset=api-tester --binding=...`，不读取 key，三项调用计数固定为 0。
-失败必须留在 10 行分母，不能换 route、换输入、补行或改候选。完整命令和选样表见
+冻结结果为真实 accepted/rejected=`0/6`、边界=`0/4`，10/10 prediction exact，0 checker/infrastructure failure；所有
+checker 都因构造期拒绝而 `not-run`。运行时 model/API/paid=`0/0/0`，CLI end-to-end=`7990ms`；467,220 历史 development
+tokens 单列。失败已留在 10 行分母，不能换 route、换输入、补行或改候选。完整命令和选样表见
 [`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。
 
 #### 5.7.3 从干净源码 checkout 复现

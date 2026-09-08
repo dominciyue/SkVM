@@ -246,7 +246,7 @@ profile、Q4、held-out 或付费实验仍需另行授权。
 
 ## 当前下一步
 
-2026-09-08 已完成 API Tester v2 工程收口，并固定新的 candidate 与 6 real + 4 boundary 特性定向输入集。001 freeze 已推送，但首次入口在第 0 行前因 Windows checkout/Git blob EOL 表示比较错误而停止，0 selected input bytes/rows/model/API/paid，未创建首次报告；该失败已机器冻结，旧 lock 未覆盖。candidate、输入、binding 和 prediction 不变，只修 harness 的 002 已形成新 `not-run` lock。下一动作只有：推送 002 freeze 后执行唯一 10 行并保存失败。详细口径以 [plan 第4.45节](skill-ir-aot-optimization-plan.md)、[spec 第14.16节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-v2-feature-migration.md)为准。
+2026-09-08 已完成 API Tester v2 工程收口，并执行新的 candidate 与 6 real + 4 boundary 特性定向输入集。001 freeze 推送后的首次入口在第 0 行前因 Windows checkout/Git blob EOL 表示比较错误而停止，0 selected input bytes/rows/model/API/paid，未创建首次报告；该失败已机器冻结，旧 lock 未覆盖。candidate、输入、binding 和 prediction 不变，只修 harness 的 002 在远端冻结后唯一执行：真实 accepted=0/6、边界 accepted=0/4，10/10 exact rejection，0 checker/infra failure。结果冻结为 fixed-profile whole-document admission 的负证据，不改包、不换输入、不补行。详细口径以 [plan 第4.45节](skill-ir-aot-optimization-plan.md)、[spec 第14.16节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-v2-feature-migration.md)为准。
 
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
@@ -275,10 +275,11 @@ Q2-S：API constructor successor v2（development 收口，0 paid）
   -> v1 candidate/lock/runner/report 原样冻结；旧四份 real 输入转为 development-only
   -> 有限同文档 component ref + query/body primitive array + form encoding；独立 v2 checker
   -> 已暴露 Open-Meteo 1/1 parse-to-checker；不是 unseen/prospective；统一 CLI 已按版本分发
-Q2-M：v2 特性定向迁移（001 preflight-failed；002 not-run）
+Q2-M：v2 特性定向迁移（001 preflight-failed；002 negative completed）
   -> 6 个独立真实来源 + 4 个合成边界；primary strata=2/2/2；执行前预测与摘要锁定
   -> 001 在第 0 行前 EOL preflight 失败；002 复用同 candidate/input/prediction，只修 harness
-  -> 同一 unified-CLI candidate，每行一次、0 retry/replacement/fix；失败留分母
+  -> 002 真实 0/6、边界 0/4 accepted；10/10 exact rejection；checker/infra failure=0/0
+  -> 同一 unified-CLI candidate，每行一次、0 retry/replacement/fix；失败留分母；本 identity 停止
 ```
 
 方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。
