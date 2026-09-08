@@ -2025,6 +2025,71 @@ accepted=`0/6`、`0/4`，总 rejected=`10`，checker/infrastructure failure=`0/0
 CLI end-to-end=`7990ms`；467,220 development tokens 另列。按预注册分支冻结“再次全部拒绝”的负结果并停止，不改包、
 不换输入、不补行、不进第二 profile。
 
+### 4.46 API Tester 操作级 development：准入、局部构造与可靠性复现
+
+**授权、顺序与共同边界：** 用户 2026-09-09 授权将下列任务一、任务二作为一个持续目标，严格按顺序在独立分支
+`api-tester-operation-admission-dev` 完成。任务一的提交和机器报告是任务二的唯一前置事实；任务二不得从聊天摘要假设正例。
+六份真实输入精确复用 4.45 已暴露的 6-real 字节与来源摘要，只作为 development；冻结 v1/v2 候选执行面、001/002
+输入/预测/锁/报告逐字节保持，原文档级 `0/6` 不变。全程不启动 prospective，不读取 held-out、Q1 reserved、第二 profile
+或 Q4，不修改 portfolio/readiness，不调用模型、远端 API 或付费服务，不声称人工节省或生态接纳率。详细设计见
+[操作级准入与验证设计](../superpowers/specs/2026-09-09-api-tester-operation-admission-validation-design.md)，文件级步骤见
+[实施计划](../superpowers/plans/2026-09-09-api-tester-operation-admission-validation.md)，运行与恢复状态见
+[执行状态](api-tester-operation-development-status.md)。
+
+#### 4.46.1 任务一：操作级准入与可验证局部产物
+
+1. [ ] 冻结 additive development identity `skill-ir-api-tester-operation-admission-development-001`，digest-bind 4.45
+   source selection、002 lock/report、六份 external-cache 输入与许可证；不得复制或改写冻结输入。
+2. [ ] 独立解析每份原始 JSON/YAML，枚举全部标准 HTTP operation；逐项记录 source SHA-256、JSON Pointer locator、method、
+   path、operationId/summary、路径/操作参数继承、request body/media、response status、effective security 与全部相关 `$ref`。
+   重复键、path-item `$ref`、不可解析 path item 或其它不能可靠建立全集的结构必须使该文档
+   `enumerationComplete=false` 并列出 unresolved locator，不能静默跳过。
+3. [ ] 实现通用操作投影与准入：按 OpenAPI override 规则合并 path/operation parameter，保留顶层/路径继承、components、
+   effective security、request/response 约束，再调用冻结 v2 public-contract builder 作实际接纳判定。诊断数组分别使用
+   `unsupported-syntax | semantics-not-preserved | missing-public-construction-evidence | implementation-failure`；保存全部可定位
+   缺口以及 v2 首个观察到的 rejection，后者显式标为非完整缺口集。
+4. [ ] 对同一文档内全部 accepted operation 生成一个依赖保持的聚合 development 输入，复用现有 v2 package、generator 与
+   independent checker；保存 package/contract/plan/report/validation digest 和 checker 结果。任何聚合失败都保留为
+   `implementation-failure`，不得删除困难 operation、放宽 checker 或补写逐来源分支。
+5. [ ] 独立 coverage verifier 必须从原始字节重新枚举 universe，并比较 analyzer、projection、normalized contract 与 artifact
+   endpoint；覆盖完整性与 artifact correctness 分开报告。TDD 覆盖遗漏、重复、参数/引用/安全依赖丢失、summary 漂移和错误接纳。
+6. [ ] 对六份真实文档统一执行并保存
+   `results/skill-ir/api-tester-operation-admission-development-001/report.json`。分别统计文档、原始 operation、accepted、
+   checker-pass operation 与 contract verification obligations；局部 operation 成功不转写为文档成功。保留所有失败与修订记录，
+   运行 focused/broad/typecheck/docs/diff/digest guard 后本地阶段提交。
+
+**任务一验收：** 六份文档各有完整 operation universe，或有明确且可定位的 enumeration incomplete 结论；analyzer 行数与
+独立 universe 守恒且无重复；每个 accepted operation 的 effective dependency 可证明保留，并出现在通过 checker 的聚合 artifact；
+每个 rejected/unresolved operation 至少有一个 locator-bound reason，同时首拒绝不冒充全部原因；代码无 repository、row id 或
+特定 path 成功分支；机器报告的 accounting 为 runtime model/API/paid=`0/0/0`，development-agent 消耗独立标为外部计量或
+`not-measured`。即使真实 accepted 仍为 0，也以完整负结果结束任务一，不扩大支持面凑正例。
+
+#### 4.46.2 任务二：变形、错误检出与干净环境复现
+
+1. [ ] 从任务一最终提交读取并 strict-parse 实际报告、实现合同、六份清单、准入/产物证据与 unresolved；先复核 digest closure。
+   若 enumeration/dependency preservation 有 correctness 缺陷，先以 RED regression 修复 additive development 模块并保留修复前证据；
+   无法修复则标记 blocked，并只完成不依赖该缺陷的验证，不发布可靠性结论。
+2. [ ] 由任务一报告自动选择：有真实 checker-pass operation 时执行真实正向分支；真实全负但清单/诊断完整时只验证清单与拒绝
+   稳定性，并用明确标注 synthetic positive 验 checker；不得把 synthetic 计入真实成功率。
+3. [ ] 为每种 metamorphic transform 先登记 applicability、expected relation 与 comparison fields，再生成 parent-digest-bound
+   derivative：对象键/路径/operation 顺序、仅格式/缩进/换行、保持同一数据模型时的 JSON/YAML 转换、无关说明、合同允许时新增
+   无关 unsupported operation，以及可证明等价的 local-ref/inline。字节摘要应变化；比较 operation universe、admission、
+   normalized semantics、dependency/coverage，不要求 report bytes 一致。不适用必须写原因。
+4. [ ] 注入 operation omission/duplication、parameter/ref/security dependency loss、summary drift、错误接纳和 artifact endpoint/
+   witness 破坏，逐项记录预期 detector layer、实际 stable code 与 detected=true；复用任务一已有证据，不重复建等价测试。
+5. [ ] 从任务一提交建立 clean checkout，使用锁定 `bun.lock` 与本地依赖缓存离线安装，读取同一 digest-bound external input cache，
+   从零运行任务一入口；比较 portable semantic report、coverage 与 artifact/checker digest。记录 OS/Bun/Node、命令、输入 manifest、
+   安装/运行状态，不把环境字段漂移当语义漂移。
+6. [ ] 保存 `results/skill-ir/api-tester-operation-validation-development-001/report.json` 和总报告
+   `results/skill-ir/api-tester-operation-development-001/report.json`，完成 focused、Task1 regression、typecheck、docs、clean
+   reproduction、secret/path/frozen-digest/diff checks，本地提交并更新 handoff/communication/conversation log。
+
+**任务二验收与总完成门：** 所有适用变形满足预登记关系、所有必需错误注入被预期层检出、clean checkout 离线复现与任务一的
+portable semantic digest 一致；不适用与阻塞均有机器理由。只有任务一、任务二的 strict report validator、回归与文档检查全部通过，
+且没有未解决 correctness blocker 时，才把总目标标记完成。派生输入不是独立真实样本，synthetic positive 不计真实成功率，局部
+operation pass 不等于完整文档、skill 或真实 API 行为通过。若需要人工决策，先更新执行状态的 commit/evidence/issues/nextAction，
+保存其余已完成工作后停在明确恢复命令；不得为时长重复运行、扩样或增加无关功能。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

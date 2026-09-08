@@ -2017,3 +2017,35 @@ Git tracked-representation 验证的 successor panel 使用新身份 `skill-ir-a
 contract 构造期停止，checker 全为 `not-run`；因此没有“仅替换数据即可生成并通过检查”的新迁移正证据。运行时
 model/API/paid=`0/0/0`，CLI end-to-end=`7990ms`，历史 development-agent tokens `467220` 继续单列。完整运行与报告字段见
 [`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。
+
+### 14.17 API Tester 操作级 development 证据合同
+
+2026-09-09 的后继 development 不改写 14.16 的 whole-document `0/6`。它只对相同六份、已暴露且 digest-bound 的真实
+OpenAPI 文档建立 operation universe，并判断单个 operation 能否在现有 `api-tester-openapi-subset-v2` 内保持依赖地投影、
+构造和检查。身份固定为 `skill-ir-api-tester-operation-admission-development-001`；后续可靠性身份固定为
+`skill-ir-api-tester-operation-validation-development-001`。二者仍是 development，不是新 prospective、held-out 或独立样本。
+
+**全集与独立覆盖。** 原始 operation universe 必须由独立 coverage parser 从原始字节建立；constructor/analyzer 提供的列表只能
+作为被检查对象。每项记录 method/path/locator、summary/operationId、参数继承、request/response、安全和引用依赖。任何可能隐藏
+operation 的重复键、path-item reference 或不可解析结构都使该文档 enumeration incomplete，并保留 unresolved；不得仅枚举“看起来
+可接纳”的 operation。coverage completeness 与 generated artifact correctness 是两条不同 gate。
+
+**保持语义的准入。** 单 operation projection 可删除其它 operation，但必须按公开 OpenAPI 规则保留或规范化目标 operation 的
+顶层与 path inheritance、parameter override、components reference 和 effective security，并完整保留目标 request/response 约束。
+实际 admission 仍由未修改的 v2 public-contract builder 判定；外围诊断必须收集全部可定位缺口并区分 unsupported syntax、无法
+证明保留的语义、缺少公开构造依据和实现失败。v2 首个 rejection 只是一条 observed failure，不是完整 gap list。
+
+**局部产物与主张。** 同一文档 accepted operation 可聚合为一个 projected development input，并复用现有 v2 generator/checker；
+accepted count 与 checker-pass operation count 分列。只有 independent universe 与 analyzer/projection/artifact operation set 完全守恒、
+依赖核验通过且 checker pass，局部 operation 才可记为 constructed-and-checked。文档中仍有任一 rejected/unresolved operation 时，
+不得把文档记为成功；原 14.16 的 0/6 亦保持原义。
+
+**可靠性与复现。** 第二身份必须 strict-read 第一身份实际 report 再自动选择真实正向或 all-negative 分支。变形只比较 operation
+universe、admission、normalized semantics、dependency/coverage 等预登记字段；输入字节摘要随表示改变属于预期。遗漏、重复、依赖/
+安全丢失、summary 漂移、错误接纳和 artifact 破坏须由预登记 detector 捕获。若真实全负，synthetic positive 只验证 checker，不进入
+真实比率。clean checkout 复现从任务一提交、锁定依赖和同一离线输入 manifest 开始；环境元数据与 portable semantic evidence 分账。
+
+**共同保护边界与成本。** 两阶段都不修改 v1/v2 product source、001/002 lock/input/prediction/report、portfolio 或 readiness；不读
+held-out/Q1 reserved，不启动第二 profile/Q4/prospective，不联网或调用模型/API/付费服务。项目 runtime model/API/paid 必须为 0；
+development-agent token 若宿主未提供精确计量则写 `not-measured`，不能由 runtime 0 抵消或追溯猜测。结果不得外推任意 OpenAPI、真实
+API 行为、人工节省、生态接纳率、新 skill、跨 profile 或 readiness。
