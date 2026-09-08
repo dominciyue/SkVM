@@ -1988,6 +1988,31 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 **下一判定点：** 本阶段全绿后，才可另行设计 v2 candidate closure 与按 local-ref/body-array/form-explode 分层的新未见
 输入。该未来阶段必须先冻结输入、预测和分母；本阶段不自动授权。
 
+### 4.45 API Tester v2 候选冻结与 6+4 特性分层迁移
+
+**授权与范围：** 用户 2026-09-08 独立复核 v2 CLI 收口后授权一次冻结、一次执行、一次报告。设计见
+[design](../superpowers/specs/2026-09-08-api-tester-v2-feature-migration-design.md)，文件级步骤见
+[implementation plan](../superpowers/plans/2026-09-08-api-tester-v2-feature-migration.md)。本阶段不扩大 v2 OpenAPI 支持面。
+
+1. [ ] 冻结 `skill-ir-api-tester-constructor-candidate-v2-001`，绑定顶层路由、统一 CLI/preset、v2 contract/program/artifact、
+   共享路径/摘要工具、dependency locks 和实际 Bun/Node 版本；明确这不是通用模块图证明；
+2. [ ] 只用公开结构审查选择 6 个独立仓库的新输入，primary strata 固定 local-ref/body-array/form-explode 各 2；保存完整
+   upstream/content/license digest、inclusion/exclusion evidence，禁止构造器试跑筛样；
+3. [ ] 冻结 4 个合成拒绝边界、10 份普通参数 binding、10 个执行前 prediction 和 6+4 denominator；不复用旧四输入、
+   既有 fixture、held-out 或原 Q1 prospective 预留位；
+4. [ ] TDD 实现 freeze/runner/report 合同；runner 只在远端祖先 freeze commit、lock/candidate/cache/fixture/binding 摘要全部
+   通过后，逐行调用统一 `skvm artifact --binding` 一次；0 retry/replacement/fix，失败留分母；
+5. [ ] 先 focused/broad/typecheck/docs/diff/secret 验证，再白名单提交并推送冻结点；推送前不得在所选 real input 上运行
+   v2 parser/artifact/preset/CLI；
+6. [ ] 从 digest-verified offline cache 唯一执行 10 行并写不可覆盖 first-run report；分开 real/boundary，记录 admission、
+   rejection/checker/output、额外适配和可观察阶段成本；
+7. [ ] 单列用户报告的 467,220 development-agent tokens，runtime 零 token 不抵消开发成本；同步 component/spec/plan/status/
+   onboarding/claim-evidence/handoff/communication/log，最终白名单 commit + push 后停止。
+
+**主张上限：** 只允许报告同一冻结构造器经同一统一 CLI 对特性定向新输入的 fixed-profile migration 结果。6 个真实输入
+不是随机总体样本，4 个 boundary 不计入真实接纳率；不声称任意 OpenAPI、human savings、optimized LLM、新 skill 自动接入、
+跨 profile、held-out、portfolio 或 readiness。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

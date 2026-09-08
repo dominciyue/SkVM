@@ -1979,3 +1979,30 @@ DPP/OpenWrt/SignalK 支持、不进入第二 profile/Q4/held-out/portfolio/readi
 SHA-256 `124817bc4315cb69a3adfb864b89ebf770ff785783a7eb738237323d2410afc3` 不变。统一 `--binding` 已严格分发 v1/v2；
 production `cli-report.json` 使用 result v2 并写入实际 binding schema/support contract，Env 与历史 variant 继续使用
 result v1。source CLI 的 v2 正例和未知版本拒绝、v1 binding/variant 与 Env 回归均为零模型/API/付费验证。
+
+### 14.16 API Tester v2 特性分层新输入迁移
+
+2026-09-08 用户在独立复核 v2 CLI 工程收口后，授权一次新的候选冻结和特性定向迁移首轮。设计见
+[API Tester v2 feature migration design](../superpowers/specs/2026-09-08-api-tester-v2-feature-migration-design.md)，执行顺序见
+plan 第 4.45 节。
+
+**候选身份。** `skill-ir-api-tester-constructor-candidate-v2-001` 必须绑定实际执行链：顶层 Node shim/route、统一
+artifact CLI、preset 分发、v2 contract、generator/checker、artifact runner、共享路径/摘要工具、`package.json` 与
+`bun.lock`，并记录实际 Bun/Node 版本。该显式执行面不声称是通用 JavaScript module graph 证明，也不修改 v2 支持面。
+
+**冻结分母。** `skill-ir-api-tester-v2-feature-migration-001` 固定 6 个新真实公开输入和 4 个合成边界输入。真实输入来自
+6 个独立仓库，primary stratum 精确为 local component ref 2、body primitive array 2、query form-explode 2；一个输入即使
+覆盖多项也只计一次。真实输入绑定 upstream commit/path/content/license digest；合成边界单独统计。选样只做公开结构审查，
+不得先跑 v2 parser/artifact/CLI 筛成功案例，不复用已暴露的 Open-Meteo、DPP、OpenWrt、SignalK、既有 fixture、held-out
+或原 Q1 prospective 预留位。
+
+**预测与唯一执行。** 候选、10 行输入/绑定/预测、runner 和 `resultState=not-run` lock 必须先提交并推送。runner 验证完整
+freeze SHA 是 `origin/skill-ir-aot` 祖先且所有工作字节与该提交一致后，才可每行通过统一 CLI 执行一次。
+`attemptsPerRow=1`、`retries=replacements=candidateFixes=0`；accepted、rejected、checker-failed、infrastructure-failed 全部留
+分母，首次报告不可覆盖。失败后不得换 route、补行或原地修候选。
+
+**成本与主张。** 每行记录接纳/拒绝与 checker/output 证据、是否需要额外代码/模板/规则/人工修改，以及可观察的构造、
+生成、检查和证据分析成本；计时分辨率或无法拆分项必须明示。model/API/paid 固定为 0。用户报告的 467,220
+development-agent tokens 作为一次性历史开发成本单列，runtime 0 token 不得抵消。该 6-real+4-boundary purposive panel 只检验
+固定 API profile 的新输入迁移，不能估计 OpenAPI 生态接纳率，也不建立任意 OpenAPI、人工节省、optimized LLM、new-skill
+onboarding、跨 profile、held-out、portfolio 或 readiness 结论。
