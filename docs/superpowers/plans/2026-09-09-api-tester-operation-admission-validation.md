@@ -48,9 +48,9 @@ function aggregateApiTesterOperations(document: unknown, keys: OperationKey[]): 
 
 **Files:** create `api-tester-operation-admission.test.ts`, `api-tester-operation-coverage.test.ts`; then create corresponding implementation files.
 
-- [ ] Write RED tests for multiple simultaneous findings, all four categories, first rejection marked incomplete, accepted projection exactly one operation, omission, duplicate, parameter/ref/security loss, summary drift and false acceptance.
-- [ ] Run both tests; expect missing modules.
-- [ ] Implement:
+- [x] Write RED tests for multiple simultaneous findings, all four categories, first rejection marked incomplete, accepted projection exactly one operation, omission, duplicate, parameter/ref/security loss, summary drift and false acceptance.
+- [x] Run both tests; observed the expected missing-module failures.
+- [x] Implement:
 
 ```ts
 type AdmissionFinding = { code: string; category: FindingCategory; locator: string; message: string };
@@ -60,8 +60,8 @@ function verifyApiTesterOperationCoverage(input: CoverageInput): CoverageReport;
 function verifyApiTesterProjectionDependencies(input: DependencyInput): DependencyReport;
 ```
 
-- [ ] Keep the coverage module independent from the admission analyzer and constructor-provided universe.
-- [ ] Run focused plus v2 parser tests; expect pass. Commit.
+- [x] Keep the coverage module independent from the admission analyzer and constructor-provided universe.
+- [x] Run focused plus v2 parser tests; 17 tests and 76 assertions passed; typecheck passed. Commit.
 
 ### Task 3: Task 1 six-document runner and report
 

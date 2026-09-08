@@ -12,7 +12,7 @@ whole-document 首拒绝展开为完整 operation universe、逐操作准入解�
 - 当前状态与恢复命令：[执行状态](api-tester-operation-development-status.md)。
 
 设计合同见 [design](../superpowers/specs/2026-09-09-api-tester-operation-admission-validation-design.md)，逐文件步骤见
-[implementation plan](../superpowers/plans/2026-09-09-api-tester-operation-admission-validation.md)。实现尚未开始；本节会在每个 TDD 阶段同步
+[implementation plan](../superpowers/plans/2026-09-09-api-tester-operation-admission-validation.md)。source、admission 与 coverage 层已经完成；本节会在每个 TDD 阶段同步
 公共类型、运行时顺序、报告字段、命令、验证与已知失败。
 
 ## 组件边界
@@ -39,6 +39,29 @@ obligation。path-item `$ref` 因可能隐藏 operation 使 enumeration incomple
 删除其它 operation 与非目标 top-level webhooks/callbacks。dependency flags 分列 parameter inheritance、security、reference closure 和
 request/response preservation。construction-obligation external/missing/invalid/cyclic/sibling ref 令 projection fail closed；仅 response
 payload ref 按既有 v2 合同记录为非构造义务。
+
+## Admission 与独立覆盖 API
+
+`src/skill-ir/api-tester-operation-admission.ts` 提供 `analyzeApiTesterOperation`。每个 operation 先单独投影，再由完整审计器记录所有可定位
+缺口，最后调用未修改的 `buildApiTesterProductionContractV2` 记录 v2 的首个拒绝。finding 分类为 `unsupported-syntax`、
+`semantics-not-preserved`、`missing-public-construction-evidence` 或 `implementation-failure`；首拒绝始终标记
+`completeGapSet: false`。只有投影完整、finding 为空、v2 返回恰好一个匹配 contract operation 时才是 accepted。非预期异常和无法闭合的
+枚举/依赖均是 unresolved；`verifyApiTesterOperationAdmissionConsistency` 阻止带 finding、首拒绝或空 normalized contract 的假接纳。
+
+`src/skill-ir/api-tester-operation-coverage.ts` 不导入 source/admission/constructor 清单。它用原始字节独立解析 operation universe，并由
+`verifyApiTesterOperationCoverage` 比较 analyzer 的完整键集、重复、locator/operationId/summary 漂移，以及 accepted 集在 projection、contract、
+artifact 四层的精确守恒。`verifyApiTesterProjectionDependencies` 独立比较 effective parameters、local reference targets、effective security、
+requestBody 和 responses；因此 coverage completeness 与 artifact correctness 分开报告。
+
+当前聚焦验证命令为：
+
+```powershell
+bun test ./src/skill-ir/api-tester-operation-admission.test.ts ./src/skill-ir/api-tester-operation-coverage.test.ts ./src/skill-ir/api-tester-operation-source.test.ts ./src/skill-ir/api-tester-production-contract-v2.test.ts
+bun run typecheck
+```
+
+最新结果：17 tests、76 assertions、0 failure，typecheck 通过。测试包含遗漏、重复、摘要漂移、依赖/安全丢失、多缺口、首拒绝不完整、
+unexpected implementation failure 与 false acceptance。
 
 ## 保护与失败方式
 
