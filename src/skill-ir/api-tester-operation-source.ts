@@ -395,7 +395,11 @@ function enumerateDocument(document: JsonRecord): ApiTesterOperationEnumeration 
     }
   }
   operations.sort((left, right) => compareText(left.path, right.path) || compareText(left.method, right.method));
-  return { complete: unresolved.length === 0, operations, unresolved };
+  const operationUniverseIncomplete = unresolved.some((issue) =>
+    issue.code === "INVALID_PATH_ITEM"
+      || issue.code === "INVALID_OPERATION"
+      || issue.code === "UNRESOLVED_PATH_ITEM_REFERENCE");
+  return { complete: !operationUniverseIncomplete, operations, unresolved };
 }
 
 function syntaxFailure(message: string): ParsedApiTesterOperationSource {

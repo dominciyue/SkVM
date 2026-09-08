@@ -12,8 +12,8 @@ whole-document 首拒绝展开为完整 operation universe、逐操作准入解�
 - 当前状态与恢复命令：[执行状态](api-tester-operation-development-status.md)。
 
 设计合同见 [design](../superpowers/specs/2026-09-09-api-tester-operation-admission-validation-design.md)，逐文件步骤见
-[implementation plan](../superpowers/plans/2026-09-09-api-tester-operation-admission-validation.md)。source、admission 与 coverage 层已经完成；本节会在每个 TDD 阶段同步
-公共类型、运行时顺序、报告字段、命令、验证与已知失败。
+[implementation plan](../superpowers/plans/2026-09-09-api-tester-operation-admission-validation.md)。Task 1 的 source、admission、coverage、
+runner、report 与 strict verifier 已完成；Task 2 可靠性验证继续在同一开发分支实施。
 
 ## 组件边界
 
@@ -53,15 +53,37 @@ payload ref 按既有 v2 合同记录为非构造义务。
 artifact 四层的精确守恒。`verifyApiTesterProjectionDependencies` 独立比较 effective parameters、local reference targets、effective security、
 requestBody 和 responses；因此 coverage completeness 与 artifact correctness 分开报告。
 
+## Task 1 runner、报告与严格核验
+
+`src/skill-ir/api-tester-operation-development.ts` 提供 `runApiTesterOperationDevelopment`、
+`verifyApiTesterOperationDevelopmentReport` 和 portable semantic digest。runner 先核对 development contract、selection、002 lock/report、
+两个失败 attempt 与 external cache 来源/许可证字节，再统一处理六份文档。每个 accepted 集合按来源生成一个 v2 artifact；strict verifier
+随后重新读取总报告、前置证据、六份 inventory、五个 package closure、plan/report/validation，并逐项核对 digest、operation 集与 checker
+状态。`--out` 必须指向不存在的新目录，避免覆写证据。
+
+离线运行入口（仅允许六份已暴露 cache；不得调用冻结 first-run runner）：
+
+```powershell
+bun ./src/skill-ir/api-tester-operation-development-run.ts --root=. --cache-root=D:/skill优化/.tmp-api-v2-feature-migration-20260908 --node=<node.exe> --out=<fresh-result>
+```
+
+最终机器报告在
+`results/skill-ir/api-tester-operation-admission-development-001/report.json`。六份文档共 `562` 个 operation，结果为
+`112 accepted / 449 rejected / 1 unresolved / 112 checked`，验证义务 `575/575`。OpenGrok、Meilisearch、Bangumi、DeepL、HFS 分别有
+`10/38/19/37/8` 个 accepted operation；Box 为 `0`。唯一 unresolved 是 Meilisearch `GET /tasks` 的原始 source 缺少
+`#/components/parameters/total`；因为参数继承无法证明，总 correctness 有意保持 fail。两次早期运行分别暴露 document-wide dependency
+block 与 overbroad unresolved classification，报告以 attempt-001/002 保留并由合同绑定。
+
 当前聚焦验证命令为：
 
 ```powershell
-bun test ./src/skill-ir/api-tester-operation-admission.test.ts ./src/skill-ir/api-tester-operation-coverage.test.ts ./src/skill-ir/api-tester-operation-source.test.ts ./src/skill-ir/api-tester-production-contract-v2.test.ts
+bun test ./src/skill-ir/api-tester-operation-development.test.ts ./src/skill-ir/api-tester-operation-development-run.test.ts ./src/skill-ir/api-tester-operation-admission.test.ts ./src/skill-ir/api-tester-operation-coverage.test.ts ./src/skill-ir/api-tester-operation-source.test.ts ./src/skill-ir/api-tester-production-contract-v2.test.ts ./src/skill-ir/api-tester-production-artifact-v2.test.ts
 bun run typecheck
 ```
 
-最新结果：17 tests、76 assertions、0 failure，typecheck 通过。测试包含遗漏、重复、摘要漂移、依赖/安全丢失、多缺口、首拒绝不完整、
-unexpected implementation failure 与 false acceptance。
+严格 verifier 的最后一个 TDD 回合为先观察缺少导出的 RED，再通过对已提交证据的独立重放转 GREEN。完整新鲜回归计数在阶段日志与执行
+状态中记录。测试包含遗漏、重复、摘要漂移、依赖/安全丢失、多缺口、首拒绝不完整、unexpected implementation failure、false
+acceptance、报告摘要漂移与 artifact closure 漂移。
 
 ## 保护与失败方式
 

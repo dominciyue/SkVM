@@ -146,6 +146,34 @@ paths:
     }));
   });
 
+  test("keeps the operation universe complete when only one operation dependency is unresolved", () => {
+    const parsed = parseApiTesterOperationSource(JSON.stringify({
+      openapi: "3.1.0",
+      info: { title: "dependency-local", version: "1" },
+      paths: {
+        "/healthy": { get: { responses: { "200": { description: "ok" } } } },
+        "/broken": {
+          get: {
+            parameters: [{ $ref: "#/components/parameters/Missing" }],
+            responses: { "200": { description: "ok" } },
+          },
+        },
+      },
+    }), "json");
+
+    expect(parsed.enumeration.complete).toBe(true);
+    expect(parsed.enumeration.operations.map((operation) => operation.key)).toEqual([
+      "GET /broken",
+      "GET /healthy",
+    ]);
+    expect(parsed.enumeration.unresolved).toContainEqual(expect.objectContaining({
+      code: "UNRESOLVED_PARAMETER_IDENTITY",
+      locator: "#/paths/~1broken/get/parameters/0",
+    }));
+    expect(projectApiTesterOperation(parsed.document, "GET /healthy").complete).toBe(true);
+    expect(projectApiTesterOperation(parsed.document, "GET /broken").complete).toBe(false);
+  });
+
   test("projects one or several operations while preserving effective semantics", () => {
     const parsed = parseApiTesterOperationSource(JSON.stringify(DOCUMENT), "json");
     const projected = projectApiTesterOperation(parsed.document, "GET /things/{id}");

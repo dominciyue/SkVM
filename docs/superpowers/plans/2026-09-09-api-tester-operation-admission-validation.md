@@ -67,11 +67,11 @@ function verifyApiTesterProjectionDependencies(input: DependencyInput): Dependen
 
 **Files:** create development contract JSON, `api-tester-operation-development.test.ts`, then development implementation/CLI and Task 1 result.
 
-- [ ] RED-test exact six-row identity/digests, no forbidden source ids, complete operation conservation, report schema, accepted/constructed/checker count inequalities, separate coverage/artifact gates, zero runtime calls, and no absolute cache paths.
-- [ ] Run the test; expect missing development module/report.
-- [ ] Implement the runner: verify selection/002 evidence and source/license bytes; enumerate/analyze all operations; aggregate admitted operations per document; run existing v2 artifact pipeline; copy only derived artifact closure; independently verify coverage; write report with exclusive create.
-- [ ] Execute against `D:/skill优化/.tmp-api-v2-feature-migration-20260908` and retain every rejection/revision record.
-- [ ] Strict-parse the report, run focused/v1/v2/CLI regression, typecheck/docs/diff/frozen-digest scans, update status/handoff/ledger/log, explicitly stage and commit Task 1.
+- [x] RED-test exact six-row identity/digests, no forbidden source ids, complete operation conservation, report schema, accepted/constructed/checker count inequalities, separate coverage/artifact gates, zero runtime calls, and no absolute cache paths.
+- [x] Run the test; observed missing development module/report, then missing strict report verifier, before each GREEN implementation.
+- [x] Implement the runner: verify selection/002 evidence and source/license bytes; enumerate/analyze all operations; aggregate admitted operations per document; run existing v2 artifact pipeline; copy only derived artifact closure; independently verify coverage; write report with exclusive create.
+- [x] Execute against `D:/skill优化/.tmp-api-v2-feature-migration-20260908` and retain every rejection/revision record. Attempts 1 and 2 remain digest-bound beside the final result.
+- [x] Strict-parse the report, six inventories and five artifact closures. Final regression/docs/diff/frozen-digest checks and the explicit Task 1 commit are the current closeout action.
 
 ### Task 4: Task 2 transformations and fault detection
 

@@ -2038,22 +2038,22 @@ CLI end-to-end=`7990ms`；467,220 development tokens 另列。按预注册分支
 
 #### 4.46.1 任务一：操作级准入与可验证局部产物
 
-1. [ ] 冻结 additive development identity `skill-ir-api-tester-operation-admission-development-001`，digest-bind 4.45
+1. [x] 冻结 additive development identity `skill-ir-api-tester-operation-admission-development-001`，digest-bind 4.45
    source selection、002 lock/report、六份 external-cache 输入与许可证；不得复制或改写冻结输入。
-2. [ ] 独立解析每份原始 JSON/YAML，枚举全部标准 HTTP operation；逐项记录 source SHA-256、JSON Pointer locator、method、
+2. [x] 独立解析每份原始 JSON/YAML，枚举全部标准 HTTP operation；逐项记录 source SHA-256、JSON Pointer locator、method、
    path、operationId/summary、路径/操作参数继承、request body/media、response status、effective security 与全部相关 `$ref`。
    重复键、path-item `$ref`、不可解析 path item 或其它不能可靠建立全集的结构必须使该文档
    `enumerationComplete=false` 并列出 unresolved locator，不能静默跳过。
-3. [ ] 实现通用操作投影与准入：按 OpenAPI override 规则合并 path/operation parameter，保留顶层/路径继承、components、
+3. [x] 实现通用操作投影与准入：按 OpenAPI override 规则合并 path/operation parameter，保留顶层/路径继承、components、
    effective security、request/response 约束，再调用冻结 v2 public-contract builder 作实际接纳判定。诊断数组分别使用
    `unsupported-syntax | semantics-not-preserved | missing-public-construction-evidence | implementation-failure`；保存全部可定位
    缺口以及 v2 首个观察到的 rejection，后者显式标为非完整缺口集。
-4. [ ] 对同一文档内全部 accepted operation 生成一个依赖保持的聚合 development 输入，复用现有 v2 package、generator 与
+4. [x] 对同一文档内全部 accepted operation 生成一个依赖保持的聚合 development 输入，复用现有 v2 package、generator 与
    independent checker；保存 package/contract/plan/report/validation digest 和 checker 结果。任何聚合失败都保留为
    `implementation-failure`，不得删除困难 operation、放宽 checker 或补写逐来源分支。
-5. [ ] 独立 coverage verifier 必须从原始字节重新枚举 universe，并比较 analyzer、projection、normalized contract 与 artifact
+5. [x] 独立 coverage verifier 必须从原始字节重新枚举 universe，并比较 analyzer、projection、normalized contract 与 artifact
    endpoint；覆盖完整性与 artifact correctness 分开报告。TDD 覆盖遗漏、重复、参数/引用/安全依赖丢失、summary 漂移和错误接纳。
-6. [ ] 对六份真实文档统一执行并保存
+6. [x] 对六份真实文档统一执行并保存
    `results/skill-ir/api-tester-operation-admission-development-001/report.json`。分别统计文档、原始 operation、accepted、
    checker-pass operation 与 contract verification obligations；局部 operation 成功不转写为文档成功。保留所有失败与修订记录，
    运行 focused/broad/typecheck/docs/diff/digest guard 后本地阶段提交。
@@ -2063,6 +2063,13 @@ CLI end-to-end=`7990ms`；467,220 development tokens 另列。按预注册分支
 每个 rejected/unresolved operation 至少有一个 locator-bound reason，同时首拒绝不冒充全部原因；代码无 repository、row id 或
 特定 path 成功分支；机器报告的 accounting 为 runtime model/API/paid=`0/0/0`，development-agent 消耗独立标为外部计量或
 `not-measured`。即使真实 accepted 仍为 0，也以完整负结果结束任务一，不扩大支持面凑正例。
+
+**任务一实际结果（2026-09-09）：** 六份文档的 operation universe 均完整，共 `562` 项；同一通用流程得到
+`112 accepted + 449 rejected + 1 unresolved`。五份文档的 `112` 个 accepted operation 全部进入聚合 artifact 并由未修改的 v2
+checker 通过，Box 的 `0/297` 不运行 artifact；验证义务覆盖 `575/575`。唯一 unresolved 是 Meilisearch `GET /tasks` 引用缺失的
+`#/components/parameters/total`，属于 digest-bound 原始文档的依赖缺口；因此 source coverage、admission consistency、artifact correctness
+分别为 pass，但总 correctness 保持 fail。两次实现修订前证据作为 attempt 001/002 保留，最终 portable semantic SHA-256 为
+`1a14ed36ebc185befcb4f3d2c03f95d89bd1e8a1a89da560a9c6eb35b89a1e87`。这不改变 whole-document `0/6`。
 
 #### 4.46.2 任务二：变形、错误检出与干净环境复现
 

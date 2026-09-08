@@ -2049,3 +2049,10 @@ universe、admission、normalized semantics、dependency/coverage 等预登记�
 held-out/Q1 reserved，不启动第二 profile/Q4/prospective，不联网或调用模型/API/付费服务。项目 runtime model/API/paid 必须为 0；
 development-agent token 若宿主未提供精确计量则写 `not-measured`，不能由 runtime 0 抵消或追溯猜测。结果不得外推任意 OpenAPI、真实
 API 行为、人工节省、生态接纳率、新 skill、跨 profile 或 readiness。
+
+**任务一冻结事实（2026-09-09）。** `skill-ir-api-tester-operation-admission-development-001` 对六份来源完整枚举 `562`
+个 operation，得到 `112 accepted + 449 rejected + 1 unresolved`；五个聚合 artifact 中 `112/112` 个 accepted operation 通过原 v2
+checker，合同内验证义务为 `575/575`。唯一 unresolved 为 Meilisearch `GET /tasks` 的缺失本地 parameter reference
+`#/components/parameters/total`，不得猜测参数身份或把它记为 accepted/rejected。故三个分项 gate 通过而总 correctness 为 fail，原文档级
+`0/6` 不变。最终报告、六份 inventory、五个 artifact closure 及两次修订前失败报告均由 development contract 绑定；portable semantic
+SHA-256 为 `1a14ed36ebc185befcb4f3d2c03f95d89bd1e8a1a89da560a9c6eb35b89a1e87`。

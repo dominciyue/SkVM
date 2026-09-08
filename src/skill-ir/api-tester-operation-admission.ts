@@ -40,6 +40,7 @@ export type ApiTesterOperationAdmission = {
   firstObservedRejection: ApiTesterOperationFirstObservedRejection | null;
   normalizedOperation: ApiTesterProductionContractV2["operations"][number] | null;
   projection: ApiTesterOperationProjection | null;
+  projectionSummary: Omit<ApiTesterOperationProjection, "document"> | null;
 };
 
 const SCALAR_TYPES = new Set(["string", "integer", "number", "boolean"]);
@@ -459,7 +460,7 @@ function auditOperation(
   for (const reference of source.references) {
     if (reference.constructionObligation && reference.resolution !== "resolved") {
       add("UNRESOLVED_CONSTRUCTION_REFERENCE", "semantics-not-preserved", reference.locator, `${reference.role} reference is ${reference.resolution}: ${reference.ref}`);
-      hasUnresolvedDependency = true;
+      if (["missing", "invalid", "cycle"].includes(reference.resolution)) hasUnresolvedDependency = true;
     }
   }
   const fields = auditParameters(document, located.operation.parameters, `${base}/parameters`, add);
@@ -498,7 +499,7 @@ export function analyzeApiTesterOperation(input: {
     if (!isRecord(input.document)) throw new Error("operation admission requires a parsed object document");
     if (isRecord(input.document.components)) Object.keys(input.document.components);
     projection = projectApiTesterOperation(input.document, input.operation.key);
-    unresolved = !projection.complete;
+    unresolved = projection.unresolved.length > 0;
     const original = operationAt(input.document, input.operation);
     if (Object.prototype.hasOwnProperty.call(original.pathItem, "$ref")) {
       collected.add(
@@ -550,13 +551,22 @@ export function analyzeApiTesterOperation(input: {
   }
   if (collected.values.length > 0) normalizedOperation = null;
   collected.values.sort((left, right) => compareText(left.locator, right.locator) || compareText(left.code, right.code));
+  const status = unresolved ? "unresolved"
+    : collected.values.length > 0 || firstObservedRejection ? "rejected" : "accepted";
+  const projectionSummary = projection ? {
+    complete: projection.complete,
+    operationKeys: projection.operationKeys,
+    unresolved: projection.unresolved,
+    dependencies: projection.dependencies,
+  } : null;
   return {
     operationKey: input.operation.key,
-    status: unresolved ? "unresolved" : collected.values.length > 0 || firstObservedRejection ? "rejected" : "accepted",
+    status,
     findings: collected.values,
     firstObservedRejection,
     normalizedOperation,
-    projection,
+    projection: status === "accepted" ? projection : null,
+    projectionSummary,
   };
 }
 

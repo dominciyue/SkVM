@@ -104,6 +104,11 @@ describe("API Tester operation admission", () => {
     });
 
     expect(admission.status).toBe("rejected");
+    expect(admission.projection).toBeNull();
+    expect(admission.projectionSummary).toMatchObject({
+      complete: true,
+      operationKeys: ["POST /items"],
+    });
     expect(admission.firstObservedRejection).toMatchObject({
       code: "UNSUPPORTED_OPENAPI_FEATURE",
       completeGapSet: false,
@@ -141,6 +146,44 @@ describe("API Tester operation admission", () => {
       category: "implementation-failure",
       message: expect.stringContaining("injected projection crash"),
     }));
+  });
+
+  test("rejects known external-reference semantics but leaves a missing parameter identity unresolved", () => {
+    const external = parseApiTesterOperationSource(JSON.stringify({
+      openapi: "3.1.0",
+      info: { title: "external", version: "1" },
+      paths: {
+        "/external": {
+          post: {
+            requestBody: {
+              content: { "application/json": { schema: { $ref: "https://example.test/body.json" } } },
+            },
+            responses: { "200": { description: "ok" } },
+          },
+        },
+      },
+    }), "json");
+    expect(analyzeApiTesterOperation({
+      document: external.document,
+      operation: external.enumeration.operations[0]!,
+    }).status).toBe("rejected");
+
+    const missing = parseApiTesterOperationSource(JSON.stringify({
+      openapi: "3.1.0",
+      info: { title: "missing", version: "1" },
+      paths: {
+        "/missing": {
+          get: {
+            parameters: [{ $ref: "#/components/parameters/Missing" }],
+            responses: { "200": { description: "ok" } },
+          },
+        },
+      },
+    }), "json");
+    expect(analyzeApiTesterOperation({
+      document: missing.document,
+      operation: missing.enumeration.operations[0]!,
+    }).status).toBe("unresolved");
   });
 
   test("rejects a false accepted row during report consistency validation", () => {
