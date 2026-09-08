@@ -227,6 +227,13 @@ public contract、package manifest、generator、checker、plan、report 与 val
 这只证明明确 OpenAPI 子集内的 development 构造候选。它不证明任意 OpenAPI、未知 skill 自动接入、跨模型稳定性、
 优化后的 LLM 更稳、独立安装/跨平台可用，也不直接修改 capability snapshot、portfolio 或 readiness。
 
+### 6.1 v2 特性定向迁移冻结
+
+新身份 `skill-ir-api-tester-v2-feature-migration-001` 已将实际统一 CLI 执行面、6 个独立公开仓库来源、4 个合成边界、
+10 份普通 v2 binding 与执行前预测冻结为 `resultState=not-run`。它不会改动本页的 v2 contract、parser、generator、checker
+或 package；所选输入在冻结提交推送前不得进入候选。唯一首轮、成本字段、失败保留与主张上限见
+[`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。
+
 ## 7. 验证
 
 ```powershell

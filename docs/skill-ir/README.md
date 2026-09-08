@@ -12,8 +12,9 @@
 
 研究可信度与通用 core 仍是硬约束：公开合同、确定性 scorer、development/held-out 隔离、完整分母和可追溯
 结果必须成立；同一 core 不按 skill id 写死分支。口径校准、B successor 设计、干净源码金路径和 API Tester
-constructor successor 的有限 development 闭环均已完成；Q1 v2 development 标注包也已冻结。真实独立标注尚未
-开始；新的 prospective 选择、Q3 新输入矩阵或付费实验仍需按各自阶段授权。
+constructor successor 的有限 development 闭环均已完成；Q1 v2 development 标注包也已冻结。API Tester v2 的
+6-real+4-boundary 特性定向迁移已完成选样和 `not-run` 冻结，下一步只执行这一次固定分母；真实独立标注、第二
+profile、Q4、held-out 或付费实验仍需另行授权。
 
 优化成功先要求质量不劣、稳定性改善且回归受控；通过后再比较平均质量和重复调用的摊销 Token。
 显著正向单案例不能替代通用性，Token 节省也不能抵消质量回归。
@@ -245,7 +246,7 @@ constructor successor 的有限 development 闭环均已完成；Q1 v2 developme
 
 ## 当前下一步
 
-2026-09-07 已完成新路线的两个连续闭环：原 Q1 真人一致性实验继续保持未完成，AI revision-2 只形成带 provenance 的 24-unit development routing；API Tester candidate v1 与 4 real + 4 boundary 在提交 `aa3a088` 先冻结并推送，唯一首轮随后完整执行。真实输入 0/4 accepted、边界 0/4 accepted，8/8 exact rejection prediction，所有真实行 checker 都是 `not-run`。随后新 identity 的 successor v2 在不修改 v1 的前提下支持有限 local component ref 与 primitive array，并让已暴露 Open-Meteo 输入 1/1 完成 parse-to-checker。详细口径以 [plan 第4.43节](skill-ir-aot-optimization-plan.md) 和 [spec 第14.14节](skill-ir-aot-optimization-spec.md) 为准。
+2026-09-08 已完成 API Tester v2 工程收口，并准备好新的 candidate 与 6 real + 4 boundary 特性定向迁移合同。真实来源来自 6 个独立公开仓库，local-ref/body-array/form-explode 各 2；candidate 绑定顶层统一 CLI 到 v2 checker 的实际执行面，10 行输入、binding、prediction 与一次性结果路径已固定。当前仍是 `resultState=not-run`，所选输入未进入 v2 候选。下一动作只有：推送冻结提交后执行唯一 10 行并保存失败。详细口径以 [plan 第4.45节](skill-ir-aot-optimization-plan.md)、[spec 第14.16节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-v2-feature-migration.md)为准。
 
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
@@ -273,7 +274,10 @@ Q2-D：AI-assisted development route 与 prospective constructor（首轮已冻�
 Q2-S：API constructor successor v2（development 收口，0 paid）
   -> v1 candidate/lock/runner/report 原样冻结；旧四份 real 输入转为 development-only
   -> 有限同文档 component ref + query/body primitive array + form encoding；独立 v2 checker
-  -> 已暴露 Open-Meteo 1/1 parse-to-checker；不是 unseen/prospective，不接 CLI、不改 readiness
+  -> 已暴露 Open-Meteo 1/1 parse-to-checker；不是 unseen/prospective；统一 CLI 已按版本分发
+Q2-M：v2 特性定向迁移（已冻结，not-run）
+  -> 6 个独立真实来源 + 4 个合成边界；primary strata=2/2/2；执行前预测与摘要锁定
+  -> 同一 unified-CLI candidate，每行一次、0 retry/replacement/fix；失败留分母
 ```
 
 方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。
@@ -295,6 +299,7 @@ API production v1 已按[设计](../superpowers/specs/2026-09-07-api-tester-prod
 | `api-tester-human-effort-successor.md` | B successor 的人工编写 vs 候选审核/修复设计、计时/质量/成本单位和执行前阻塞项。 |
 | `api-tester-production-binding.md` | API Tester production v1/v2 的 binding 内 CLI 版本分发、支持/拒绝范围、package、独立 checker 与 development 证据。 |
 | `api-tester-successor-gap-analysis.md` | v1 0/4 后四份真实输入的完整 blocker 清单、v2 增量能力与不扩范围。 |
+| `api-tester-v2-feature-migration.md` | v2 candidate、6+4 选样/预测/锁、唯一首轮执行、成本与主张边界。 |
 | `ai-assisted-development-routing-and-prospective-construction.md` | AI revision-2 development route、API 构造候选、4+4 prediction lock、首轮不可变执行与主张/成本边界。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |
 | `claim-evidence-table.md` | 当前可用于报告/论文的最窄主张、权威证据、覆盖范围和禁止外推。 |

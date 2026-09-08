@@ -1,8 +1,8 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-07
+**最后更新：** 2026-09-08
 
-**当前已确认路线：** 第 14.13 节把工程迁移与原 Q1 真人一致性实验解耦：原 Q1 继续保持未完成，现有 AI revision-2 材料只形成 development routing。API Tester 4+4 唯一首轮已冻结为真实输入 0/4 accepted 的 bounded negative result；若继续，只能以新 candidate 与新未见输入处理实际缺口，再决定第二 profile。第 14.12 节保留为原研究设计，早期跨模型、逐案例扩展与时间估算不构成当前执行队列。
+**当前已确认路线：** 第 14.16 节冻结 API Tester v2 的新 candidate 与 6-real+4-boundary 特性定向迁移。候选、来源、预测、分母和执行器必须先推到远端，随后只执行一次、失败留分母；该结果只回答固定 API profile 的新输入迁移，不扩 v2、不读取 held-out，也不改变原 Q1、旧 v1 结果、portfolio 或 readiness。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -2006,3 +2006,8 @@ freeze SHA 是 `origin/skill-ir-aot` 祖先且所有工作字节与该提交一�
 development-agent tokens 作为一次性历史开发成本单列，runtime 0 token 不得抵消。该 6-real+4-boundary purposive panel 只检验
 固定 API profile 的新输入迁移，不能估计 OpenAPI 生态接纳率，也不建立任意 OpenAPI、人工节省、optimized LLM、new-skill
 onboarding、跨 profile、held-out、portfolio 或 readiness 结论。
+
+**冻结实现状态。** 新候选摘要、6 个公开来源的 commit/content/license 清单、4 个合成边界、10 份普通 v2 binding、
+10 行执行前预测、一次性结果路径和 `resultState=not-run` lock 已由 focused contract 验证；候选绑定 Bun `1.3.14` 与
+Node `v23.8.0`。当前阶段仍为未执行，所选输入没有进入 v2 parser/artifact/preset/CLI。完整运行与报告字段见
+[`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。

@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-09-07
+**最后更新：** 2026-09-08
 
-**当前执行入口：第 4.42 节。** 原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；现有 AI revision-2 材料只供新身份的 development routing。API Tester 4+4 首轮已冻结为真实输入 0/4 accepted、8/8 exact rejection prediction；本 identity 停止。若继续，只能建立新 candidate 与新未见输入处理 `$ref`/array 等实际缺口，再决定第二 profile。第 4.41 节保留为原研究设计，早期逐案例、跨模型及第 5 节时间表不能覆盖当前队列。
+**当前执行入口：第 4.45 节。** API Tester v2 的统一 CLI 工程闭环已经独立复核；新的 candidate 与 6-real+4-boundary 特性定向迁移合同已准备为 `not-run`。当前只允许先推送冻结点，再通过同一候选和统一 CLI 唯一执行 10 行、保留全部失败并出一份报告；不扩 v2、不换输入、不补行，也不进入第二 profile、held-out、portfolio 或 readiness。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -1994,13 +1994,13 @@ API 开发入口：[设计](../superpowers/specs/2026-09-07-api-tester-productio
 [design](../superpowers/specs/2026-09-08-api-tester-v2-feature-migration-design.md)，文件级步骤见
 [implementation plan](../superpowers/plans/2026-09-08-api-tester-v2-feature-migration.md)。本阶段不扩大 v2 OpenAPI 支持面。
 
-1. [ ] 冻结 `skill-ir-api-tester-constructor-candidate-v2-001`，绑定顶层路由、统一 CLI/preset、v2 contract/program/artifact、
+1. [x] 冻结 `skill-ir-api-tester-constructor-candidate-v2-001`，绑定顶层路由、统一 CLI/preset、v2 contract/program/artifact、
    共享路径/摘要工具、dependency locks 和实际 Bun/Node 版本；明确这不是通用模块图证明；
-2. [ ] 只用公开结构审查选择 6 个独立仓库的新输入，primary strata 固定 local-ref/body-array/form-explode 各 2；保存完整
+2. [x] 只用公开结构审查选择 6 个独立仓库的新输入，primary strata 固定 local-ref/body-array/form-explode 各 2；保存完整
    upstream/content/license digest、inclusion/exclusion evidence，禁止构造器试跑筛样；
-3. [ ] 冻结 4 个合成拒绝边界、10 份普通参数 binding、10 个执行前 prediction 和 6+4 denominator；不复用旧四输入、
+3. [x] 冻结 4 个合成拒绝边界、10 份普通参数 binding、10 个执行前 prediction 和 6+4 denominator；不复用旧四输入、
    既有 fixture、held-out 或原 Q1 prospective 预留位；
-4. [ ] TDD 实现 freeze/runner/report 合同；runner 只在远端祖先 freeze commit、lock/candidate/cache/fixture/binding 摘要全部
+4. [x] TDD 实现 freeze/runner/report 合同；runner 只在远端祖先 freeze commit、lock/candidate/cache/fixture/binding 摘要全部
    通过后，逐行调用统一 `skvm artifact --binding` 一次；0 retry/replacement/fix，失败留分母；
 5. [ ] 先 focused/broad/typecheck/docs/diff/secret 验证，再白名单提交并推送冻结点；推送前不得在所选 real input 上运行
    v2 parser/artifact/preset/CLI；

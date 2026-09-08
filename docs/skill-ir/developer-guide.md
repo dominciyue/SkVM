@@ -385,7 +385,8 @@ packages/                        编译后的 artifact package
 | `src/benchmarks/skill-ir/verified-artifact-product-e1.ts` | Env Manager A-optional 产品 runner | 在新 workdir 上重建 machine-checked artifact，并复核历史 digest-bound 分母 | 不重跑历史 original，不改变 portfolio/readiness |
 | `src/skill-ir/verified-artifact-presets.ts` | Env/API Tester preset adapter | Env 通过既有 source product CLI 回放；API `--variant` 做冻结编译/parity/runtime；API `--binding` 做普通参数 production package 与独立检查 | development production 候选不等于 arbitrary OpenAPI、prospective 或 readiness |
 | `src/skill-ir/api-tester-production-*.ts` | API Tester production binding | 解析明确 OpenAPI 子集、冻结 normalized public contract、编译 exact-closure package、串行生成/独立检查并冻结两输入报告 | 不修改旧 research compiler/scorer/lock/package；checker 不是第二套 YAML/JSON parser |
-| `src/skill-ir/api-tester-production-*-v2.ts` | API Tester successor development | 版本化处理有限 local component ref、primitive array 与 query form encoding；用独立 checker 复核 array/item witness | 当前不接 `skvm artifact`；真实样本已暴露，不是 prospective/unseen；不替换 v1 冻结文件 |
+| `src/skill-ir/api-tester-production-*-v2.ts` | API Tester successor development | 版本化处理有限 local component ref、primitive array 与 query form encoding；用独立 checker 复核 array/item witness；统一 CLI 按 binding version 显式分发 | 已暴露 Open-Meteo 仍不是 prospective/unseen；不替换 v1 冻结文件 |
+| `src/benchmarks/skill-ir/api-tester-v2-feature-migration*.ts` | v2 特性定向迁移 freeze/runner/report | 摘要绑定实际 CLI 候选、6+4 分母与 prediction；只在远端 freeze commit 匹配后唯一执行 | 不扩 v2、不筛正例、不估计 OpenAPI 生态接纳率、不改 readiness |
 | `src/benchmarks/skill-ir/api-tester-artifact-development-run.ts` | API Tester 专用 development runner | 仍可用于既有 artifact development `plan`/qualification/execute 合同 | 不是 trace/public-answer 协议，也不能代替跨模型研究主表 |
 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts` | API Tester trace/public-answer 协议 | 公开 OpenAPI canonicalizer、strict trace、parity checker、零付费 dry-run | 不读取 raw/model text、gold、evaluator payload 或 held-out |
 | `src/benchmarks/skill-ir/stage-n-cross-model-panel-run.ts` | Stage N 预注册 panel runner | 读取 lock、生成 Stage 0 plan、审计既有 smoke | 当前 smoke 已失败、matrix 未创建；不要用它重跑或付费 |
@@ -705,7 +706,32 @@ API Tester 复用现有 compiler/package validator/runtime；没有复制 scorer
 `src/skill-ir/verified-artifact-product.ts`。编译后的 companion 已对 Env 与 API Tester 两条真实零付费路径做过
 端到端验证，不能把“companion 可启动”误当成“无需 checkout/runtime 依赖”。
 
-#### 5.7.2 从干净源码 checkout 复现
+#### 5.7.2 复核 v2 的 6+4 新输入迁移冻结
+
+本阶段使用新的 `skill-ir-api-tester-constructor-candidate-v2-001` 和
+`skill-ir-api-tester-v2-feature-migration-001`，不复用 v1 4+4 identity。开始时只读下面三个文件：
+
+```text
+benchmarks/skill-ir/classification/api-tester-constructor-candidate-v2.json
+benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/source-selection.json
+benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/experiment-lock.json
+```
+
+检查 `resultState=not-run`、真实/边界/总分母 `6/4/10`、真实 primary stratum `2/2/2`、每行
+`attemptsPerRow=1` 和 `retries=replacements=candidateFixes=0`。focused contract 会核对外部 cache 的 input/license 摘要，
+但不会把这些输入送进 v2 parser 或 CLI：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/api-tester-v2-feature-migration.test.ts
+```
+
+真实首跑不是普通 onboarding smoke。它只有一次，必须使用已经推到 `origin/skill-ir-aot` 的完整冻结 SHA，并写入锁定的
+`results/skill-ir/api-tester-v2-feature-migration-001/first-run-report.json`；报告存在后入口会拒绝覆盖。运行器会在第一行前打印
+预算和 stop-loss，逐行走 `node bin/skvm.js artifact --preset=api-tester --binding=...`，不读取 key，三项调用计数固定为 0。
+失败必须留在 10 行分母，不能换 route、换输入、补行或改候选。完整命令和选样表见
+[`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。
+
+#### 5.7.3 从干净源码 checkout 复现
 
 2026-09-06 的绑定验收使用提交 `3bd7618` 的新 detached worktree。先确认 `git status --short` 没有 tracked
 变化，再执行：
