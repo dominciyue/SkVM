@@ -29,9 +29,9 @@
 
 **Files:** create `api-tester-operation-source.test.ts` and, after RED, `api-tester-operation-source.ts`.
 
-- [ ] Write tests using JSON/YAML fixtures that require exact operation keys/locators, duplicate-key and path-item-ref unresolved results, effective path/operation parameter override, inherited/overridden security, request/response/ref inventory, and dependency-preserving projection.
-- [ ] Run `bun test ./src/skill-ir/api-tester-operation-source.test.ts`; expect module-not-found.
-- [ ] Implement strict parsing and these public types/functions:
+- [x] Write tests using JSON/YAML fixtures that require exact operation keys/locators, duplicate-key and path-item-ref unresolved results, effective path/operation parameter override, inherited/overridden security, request/response/ref inventory, and dependency-preserving projection.
+- [x] Run `bun test ./src/skill-ir/api-tester-operation-source.test.ts`; expect module-not-found.
+- [x] Implement strict parsing and these public types/functions:
 
 ```ts
 type OperationKey = `${Uppercase<HttpMethod>} ${string}`;
@@ -41,8 +41,8 @@ function projectApiTesterOperation(document: unknown, key: OperationKey): Operat
 function aggregateApiTesterOperations(document: unknown, keys: OperationKey[]): OperationProjection;
 ```
 
-- [ ] Run the focused test and existing v2 contract test; expect pass.
-- [ ] Commit the source/projection layer with its test and component-doc update.
+- [x] Run the focused test and existing v2 contract test; expect pass.
+- [x] Commit the source/projection layer with its test and component-doc update.
 
 ### Task 2: Admission findings and independent coverage
 
