@@ -2224,6 +2224,9 @@ typecheck 通过。实现提交为 `8a6ed12da5c16f1dca0f18e40e6c3152d9565a0b`；
 pre-source freeze 已由 execution commit `591765a01005acf94106c02030deedd454b9adb1` 物化为 `frozen-pending-push`，并绑定 Bun 1.3.14、
 Node v23.8.0、候选、协议、runner、6 synthetic 和完整 validation closure；只有 freeze 提交已推送且 remote-aware strict verification 通过后，
 才允许读取真实候选来源。
+freeze 提交为 `532c7c0dbbbf34f0e99aeed55779330e34fc30d0`。首次向 `origin` 推送被安全审查拒绝，因为尚缺对具体 GitHub 目的地发送整个分支的
+明确授权；remote-aware verifier 因该提交不在 `origin/api-tester-operation-unseen-prospective-001` 上而 fail closed。此阻塞不允许通过其它传输
+方式绕过，真实来源读取仍保持 0。
 
 ## 5. 历史时间估算（不作为当前排期）
 

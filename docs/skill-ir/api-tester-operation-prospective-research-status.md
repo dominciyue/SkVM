@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-pre-source-freeze-pending-push`
-- `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `591765a01005acf94106c02030deedd454b9adb1`
-- `currentCommit`: `task-2-pre-source-freeze-working-tree`
+- `currentStage`: `task-2-pre-source-freeze-push-blocked`
+- `stageStatus`: `blocked-awaiting-explicit-remote-push-authorization`
+- `lastCompletedCommit`: `532c7c0dbbbf34f0e99aeed55779330e34fc30d0`
+- `currentCommit`: `task-2-push-blocker-checkpoint-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -33,7 +33,9 @@
 - Task 2 正式 synthetic validation：`results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation/report.json`，SHA-256=`8fd612c8ff9c5fcd149f31b89ba35686e0c2a74dd99f3a59d146106d5009b8df`；6/6 rows 达到预期、其中 1 个预期 source-coverage fail 被正确识别，strict verifier=`verified`，prospective/model/API/paid/real-read 均为 0。
 - Task 2 synthetic evidence 提交：`591765a01005acf94106c02030deedd454b9adb1`。
 - Task 2 pre-source freeze：`benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze.json`，状态 `frozen-pending-push`，绑定 execution commit `591765a01005acf94106c02030deedd454b9adb1`、Bun 1.3.14、Node v23.8.0、候选/runner/protocol/6 synthetic/validation closure；source state 五项均为 0。
-- Task 2 当前 typecheck 通过；pre-source freeze 尚未提交或推送，也未访问真实来源。
+- Task 2 freeze 提交：`532c7c0dbbbf34f0e99aeed55779330e34fc30d0`；focused `11/11`、47 assertions 与 typecheck 通过。
+- 向 `git@github.com:dominciyue/SkVM.git` 推送 `api-tester-operation-unseen-prospective-001` 的尝试被安全审查拒绝，原因是当前授权未被视为明确允许向该外部目的地发送整个分支。没有采用替代或绕过方式。
+- remote-aware strict verification 按预期失败为 `commit is not present on origin/api-tester-operation-unseen-prospective-001`；这确认本地 freeze 已到远端门，不能进入 source discovery。当前仍未访问真实来源。
 
 ## 保留问题
 
@@ -44,8 +46,10 @@
 
 ## 下一条具体动作
 
+在用户明确授权把当前分支推送到 `git@github.com:dominciyue/SkVM.git` 后，执行：
+
 ```powershell
-git -c safe.directory=D:/skill优化/SkVM add benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze.json docs/superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md docs/skill-ir/api-tester-operation-prospective-research-status.md
+git -c safe.directory=D:/skill优化/SkVM push -u origin api-tester-operation-unseen-prospective-001
 ```
 
-白名单提交 pre-source freeze，随后 push 到 `origin/api-tester-operation-unseen-prospective-001` 并运行 remote-aware strict verification。远端核验通过前仍不得搜索或读取 unseen source。
+随后以 freeze commit 运行 remote-aware strict verification。远端核验通过前仍不得搜索或读取 unseen source。
