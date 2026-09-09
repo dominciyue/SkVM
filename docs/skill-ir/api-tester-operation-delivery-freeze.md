@@ -127,9 +127,12 @@ runtime implementation files, package/lock digests, Bun 1.3.14, Node v23.8.0,
 historical Task 1/Task 2/dependency-revision reports, and the immutable source
 validity and claim policies.
 
-Candidate verification also compares the main archive manifest's exact file
-set with the Git `HEAD` tree. This prevents a locally present but ignored file
-from making an unarchived candidate appear reproducible.
+Candidate verification compares the main archive manifest's exact file set and
+every declared SHA-256 with checkout-filtered Git `HEAD` bytes. It applies the
+same Git-byte binding to every candidate implementation, package/lock,
+validation, and historical-evidence reference. This prevents an ignored file
+or a digest-consistent dirty working tree from making an uncommitted candidate
+appear reproducible.
 
 ## Final clean evidence and report
 

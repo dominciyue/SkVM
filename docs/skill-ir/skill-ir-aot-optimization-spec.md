@@ -2123,4 +2123,5 @@ non-construction source-validity advisory。局部 artifact pass 不等于完整
 `3ebe60613bab0375047fcb51337d35b3c1830430`。新增 `clean-003` 完整 dependency-revision archive 的 run semantic 仍为
 `5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036`，三项修订 fault 3/3 检出。最终机器报告明确把旧 clean-002 记为
 `missing-unarchived-original`，historical archive completeness 因此为 fail，但当前 bounded implementation correctness 为 pass；候选仍是
-0 row、unselected、unpredicted、prospective unrun。
+0 row、unselected、unpredicted、prospective unrun。独立复核发现初版 Git archive closure 仅核对路径集合；冻结前修订为逐项比较 manifest/
+candidate 声明摘要与 checkout-filtered `HEAD` 字节，并新增能复现旧漏检的 dirty-working-tree 回归。

@@ -152,7 +152,9 @@ main report/archive、Task 1/Task 2/dependency revision 与 source/claim policy�
 `predictions=not-authored`、`prospectiveRuns=0`，没有 row 或 prediction。
 
 clean 首次预检在运行 source 前发现 main archive 的 10 个脚本受 ignore 规则影响、未进入候选提交；该失败保存为 `clean-attempt-001`，随后
-增加 Git-tree exact closure gate 与 byte-preserving attributes 后才重建 clean。最终新归档包括 99-file ordinary-input clean archive、59-file
+增加 Git-tree exact closure gate 与 byte-preserving attributes 后才重建 clean。最终独立复核又发现初版 gate 只比较路径集合；修订后的
+gate 会把每个 manifest/candidate digest 与 checkout-filtered Git `HEAD` 字节逐项比较，并以 dirty-but-digest-consistent 回归测试证明旧行为会
+漏检。最终新归档包括 99-file ordinary-input clean archive、59-file
 dependency revision `clean-003` archive 和 clean session manifest。`clean-003` 在 candidate detached checkout 中 strict verified，3/3 修订 fault
 检出，run semantic SHA-256 仍为 `5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036`。
 

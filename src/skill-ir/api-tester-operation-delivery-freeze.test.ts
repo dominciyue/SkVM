@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import {
@@ -11,6 +12,7 @@ import {
   compareApiTesterOperationDeliveryTotals,
   createApiTesterOperationArchiveManifest,
   verifyApiTesterOperationArchive,
+  verifyApiTesterOperationArchiveGitClosure,
   verifyApiTesterOperationCandidate,
 } from "./api-tester-operation-delivery-freeze";
 import { parseApiTesterOperationDeliveryValidationArgs } from "./api-tester-operation-delivery-freeze-run";
@@ -34,6 +36,11 @@ function operation(key: string, status: "accepted" | "rejected" | "unresolved" =
       normalizedOperation: status === "accepted" ? { method: "GET", path: key.slice(4) } : null,
     },
   };
+}
+
+function runGit(root: string, args: string[]): void {
+  const child = spawnSync("git", args, { cwd: root, encoding: "utf8" });
+  if (child.status !== 0) throw new Error(`test Git command failed: ${child.stderr.trim()}`);
 }
 
 describe("API Tester operation delivery validation and candidate freeze", () => {
@@ -181,6 +188,37 @@ describe("API Tester operation delivery validation and candidate freeze", () => 
     await writeFile(join(extra, "archive-manifest.json"), `${JSON.stringify(exact, null, 2)}\n`, "utf8");
     await writeFile(join(extra, "undeclared.txt"), "extra\n", "utf8");
     await expect(verifyApiTesterOperationArchive({ rootDir: extra })).rejects.toThrow(/closure mismatch/u);
+  });
+
+  test("archive Git closure rejects digest-consistent working bytes that differ from HEAD", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skvm-api-operation-git-archive-"));
+    temporaryDirectories.push(root);
+    const archive = join(root, "evidence");
+    await mkdir(archive);
+    await writeFile(join(archive, "a.json"), "{}\n", "utf8");
+    const original = await createApiTesterOperationArchiveManifest({ rootDir: archive, archiveId: "git-archive" });
+    await writeFile(join(archive, "archive-manifest.json"), `${JSON.stringify(original, null, 2)}\n`, "utf8");
+    runGit(root, ["init"]);
+    runGit(root, ["config", "user.email", "test@example.invalid"]);
+    runGit(root, ["config", "user.name", "Test"]);
+    runGit(root, ["config", "core.autocrlf", "false"]);
+    runGit(root, ["add", "evidence"]);
+    runGit(root, ["commit", "-m", "archive"]);
+    await expect(verifyApiTesterOperationArchiveGitClosure({
+      rootDir: root,
+      archiveRoot: archive,
+      gitExecutable: "git",
+    })).resolves.toMatchObject({ status: "verified", files: 2 });
+
+    await writeFile(join(archive, "a.json"), "{\"changed\":true}\n", "utf8");
+    const changed = await createApiTesterOperationArchiveManifest({ rootDir: archive, archiveId: "git-archive" });
+    await writeFile(join(archive, "archive-manifest.json"), `${JSON.stringify(changed, null, 2)}\n`, "utf8");
+    await expect(verifyApiTesterOperationArchive({ rootDir: archive })).resolves.toMatchObject({ status: "verified" });
+    await expect(verifyApiTesterOperationArchiveGitClosure({
+      rootDir: root,
+      archiveRoot: archive,
+      gitExecutable: "git",
+    })).rejects.toThrow(/Git digest mismatch/u);
   });
 
   test("validation report schema preserves the source blocker, advisories, and zero prospective boundary", () => {

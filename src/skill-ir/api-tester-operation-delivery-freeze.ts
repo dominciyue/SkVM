@@ -302,6 +302,33 @@ function pathWithin(parent: string, candidate: string): boolean {
   return local === "" || (local !== ".." && !local.startsWith(`..${sep}`) && !isAbsolute(local));
 }
 
+function gitCheckoutBytes(rootDir: string, gitExecutable: string, revision: string, path: string): Buffer {
+  const safePath = parseSafeRelativePath(portable(path));
+  const shown = spawnSync(gitExecutable, [
+    "-c", `safe.directory=${portable(resolve(rootDir))}`,
+    "cat-file", "--filters", `--path=${safePath}`, `${revision}:${safePath}`,
+  ], { cwd: rootDir, encoding: "buffer", maxBuffer: 32 * 1024 * 1024 });
+  if (shown.status !== 0 || !shown.stdout) {
+    throw new Error(`Git checkout bytes unavailable: ${safePath}: ${shown.stderr?.toString("utf8").trim() ?? "unknown"}`);
+  }
+  return shown.stdout;
+}
+
+async function verifyDigestRefsAgainstGit(options: {
+  rootDir: string;
+  gitExecutable: string;
+  refs: readonly { path: string; sha256: string }[];
+}): Promise<void> {
+  for (const reference of options.refs) {
+    const safePath = parseSafeRelativePath(reference.path);
+    const workingSha256 = sha256(await readFile(contained(options.rootDir, safePath, "Git-bound file")));
+    const gitSha256 = sha256(gitCheckoutBytes(options.rootDir, options.gitExecutable, "HEAD", safePath));
+    if (workingSha256 !== reference.sha256 || gitSha256 !== reference.sha256) {
+      throw new Error(`Git digest mismatch: ${safePath}`);
+    }
+  }
+}
+
 function contained(rootDir: string, candidate: string, label: string): string {
   if (isAbsolute(candidate)) throw new Error(`${label} must be a safe relative path`);
   const safe = parseSafeRelativePath(portable(candidate));
@@ -514,6 +541,20 @@ export async function verifyApiTesterOperationCandidate(options: {
     validation: { path: candidate.validation.report.path },
   });
   if (canonical(candidate) !== canonical(expected)) throw new Error("operation candidate closure mismatch");
+  await verifyDigestRefsAgainstGit({
+    rootDir,
+    gitExecutable: options.gitExecutable,
+    refs: [
+      ...candidate.implementation,
+      candidate.dependencies.package,
+      candidate.dependencies.lock,
+      candidate.validation.report,
+      candidate.validation.archiveManifest,
+      candidate.historicalEvidence.task1,
+      candidate.historicalEvidence.task2,
+      candidate.historicalEvidence.dependencyRevision,
+    ],
+  });
   const validationArchiveRoot = dirname(contained(rootDir, candidate.validation.report.path, "candidate validation report"));
   await verifyApiTesterOperationArchiveGitClosure({
     rootDir,
@@ -580,6 +621,7 @@ export async function verifyApiTesterOperationArchiveGitClosure(options: {
     throw new Error("archive Git root must remain below repository root");
   }
   const archiveRelative = parseSafeRelativePath(portable(relative(rootDir, archiveRoot)));
+  await verifyApiTesterOperationArchive({ rootDir: archiveRoot });
   const manifest = ApiTesterOperationArchiveManifestSchema.parse(JSON.parse(
     await readFile(join(archiveRoot, "archive-manifest.json"), "utf8"),
   ));
@@ -594,6 +636,12 @@ export async function verifyApiTesterOperationArchiveGitClosure(options: {
   if (canonical(actual) !== canonical(expected)) {
     throw new Error(`archive Git closure mismatch: expected=${expected.length} actual=${actual.length}`);
   }
+  const diff = spawnSync(options.gitExecutable, [
+    "-c", `safe.directory=${portable(rootDir)}`,
+    "diff", "--quiet", "--no-ext-diff", "HEAD", "--", archiveRelative,
+  ], { cwd: rootDir, encoding: "utf8" });
+  if (diff.status === 1) throw new Error(`archive Git digest mismatch: ${archiveRelative}`);
+  if (diff.status !== 0) throw new Error(`archive Git digest inspection failed: ${diff.stderr.trim()}`);
   return { status: "verified", files: expected.length };
 }
 
