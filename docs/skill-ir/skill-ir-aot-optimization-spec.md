@@ -2115,3 +2115,12 @@ identity 完整归档输入、license、普通入口输出、revision replay 和
 non-construction source-validity advisory。局部 artifact pass 不等于完整文档或真实 API 行为通过；原 whole-document `0/6`、readiness 与
 人工效果结论不变。只允许六份已暴露来源和 deterministic synthetic；不运行冻结 001/002、不读 held-out/Q1 reserve、不启 prospective/
 第二 profile/Q4、不联网或调用模型/API/付费、不扩 v2 支持面。两个缺口闭合后停止开发扩展，未见输入须以后单独预登记。
+
+**冻结实际结果（2026-09-09）。** 普通入口对同六来源得到 `562 = 112 accepted + 449 rejected + 1 unresolved`、112 checked、
+`575/575` obligations；main/clean portable semantic SHA-256 同为
+`137984f7aae7a1ff38a253afd98f965e463ef6686b4a79ff7a7ec6a86baf87ac`。clean preflight 首次发现 archive manifest 声明但 Git 忽略的
+10 个生成脚本，已保留失败并以 Git-tree closure gate、scoped binary byte archive 修复；最终 clean checkout 固定在
+`3ebe60613bab0375047fcb51337d35b3c1830430`。新增 `clean-003` 完整 dependency-revision archive 的 run semantic 仍为
+`5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036`，三项修订 fault 3/3 检出。最终机器报告明确把旧 clean-002 记为
+`missing-unarchived-original`，historical archive completeness 因此为 fail，但当前 bounded implementation correctness 为 pass；候选仍是
+0 row、unselected、unpredicted、prospective unrun。

@@ -2160,9 +2160,9 @@ clean 归档。旧六来源 runner、冻结 v1/v2 与 001/002、Task 1/Task 2/de
 步骤 2--4 的主归档位于 `results/skill-ir/api-tester-operation-delivery-freeze-development-001/main`：6 份文档共
 `562 = 112 accepted + 449 rejected + 1 unresolved`，112 个局部产物通过 checker，合同义务 `575/575`；严格复核 portable digest 为
 `137984f7aae7a1ff38a253afd98f965e463ef6686b4a79ff7a7ec6a86baf87ac`。`attempt-001..003` 原样保留实现失败与修订现场。
-5. [ ] 冻结 `skill-ir-api-tester-operation-candidate-001` 的实际入口、方法组件、v2 product、helpers、dependency lock 与 runtime。冻结状态为
+5. [x] 冻结 `skill-ir-api-tester-operation-candidate-001` 的实际入口、方法组件、v2 product、helpers、dependency lock 与 runtime。冻结状态为
    `inputSelection=not-started`、`predictions=not-authored`、`prospectiveRuns=0`，不得出现未见 row/prediction。
-6. [ ] 从候选提交创建 detached clean checkout，锁定离线安装，完整归档六输入/license、六次普通入口输出、strict verification 和新的
+6. [x] 从候选提交创建 detached clean checkout，锁定离线安装，完整归档六输入/license、六次普通入口输出、strict verification 和新的
    dependency-revision reproduction-only closure；新 evidence 绑定所有 digest、Git/runtime 与旧缺档说明。
 7. [ ] 完成 focused/`src/skill-ir`/typecheck/docs/frozen/path/secret/diff/独立审查，更新组件/状态/报告/三份外层记录并本地提交。随后停止
    development 扩展；未来 prospective 只提出单独预登记建议，不在本阶段选择、预测或运行。

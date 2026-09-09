@@ -77,7 +77,17 @@ export const ApiTesterOperationCandidateSchema = z.object({
     outputVerifier: z.literal("verifyApiTesterOperationInputOutput"),
   }).strict(),
   implementation: z.array(z.object({
-    role: z.enum(IMPLEMENTATION_FILES.map((file) => file.role)),
+    role: z.enum([
+      "ordinary-entry",
+      "ordinary-cli",
+      "source-enumeration-projection",
+      "operation-admission",
+      "independent-coverage-dependency",
+      "v2-support-contract",
+      "v2-generator-checker",
+      "v2-artifact-runner",
+      "safe-path-contract",
+    ]),
     path: SafeRelativePathSchema,
     sha256: Sha256Schema,
   }).strict()).length(IMPLEMENTATION_FILES.length),
@@ -394,7 +404,7 @@ export function compareApiTesterOperationDeliveryTotals(
     rejected: number;
     unresolved: number;
     checked: number;
-    obligations: { total: number; covered: number };
+    obligations: { total: number; covered: number; uncovered?: number; status?: string };
   },
   expected: {
     operations: number;
@@ -402,7 +412,7 @@ export function compareApiTesterOperationDeliveryTotals(
     rejected: number;
     unresolved: number;
     checkerPassed: number;
-    obligations: { total: number; covered: number };
+    obligations: { total: number; covered: number; uncovered?: number; status?: string };
   },
 ): boolean {
   return actual.operations === expected.operations

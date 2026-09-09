@@ -29,16 +29,18 @@ Result: `main` strictly verifies 6 documents, 562 operations, 112 accepted, 449 
 
 ## Task 4: Freeze the candidate execution chain
 
-- [ ] RED-test the candidate schema and builder for exact implementation/lock/runtime digests, unchanged v2 support id, immutable claim policies, and `inputSelection=not-started`, `predictions=not-authored`, `prospectiveRuns=0` with no rows/predictions.
-- [ ] Generate the candidate snapshot binding the entry, source/admission/projection, independent coverage/dependency verifier, v2 generator/checker/artifact, dependency lock, helpers, and Bun/Node versions.
-- [ ] Commit the implementation, tests, docs, and candidate locally. This exact commit becomes the clean reproduction commit.
+- [x] RED-test the candidate schema and builder for exact implementation/lock/runtime digests, unchanged v2 support id, immutable claim policies, and `inputSelection=not-started`, `predictions=not-authored`, `prospectiveRuns=0` with no rows/predictions.
+- [x] Generate the candidate snapshot binding the entry, source/admission/projection, independent coverage/dependency verifier, v2 generator/checker/artifact, dependency lock, helpers, and Bun/Node versions.
+- [x] Commit the implementation, tests, docs, and candidate locally. Exact clean reproduction commit: `3ebe60613bab0375047fcb51337d35b3c1830430`.
 
 ## Task 5: Archive new clean evidence
 
-- [ ] Create a short-path detached worktree at the candidate commit; use locked offline dependencies and record Git/Bun/Node/OS state.
-- [ ] In that checkout, construct a digest-bound archive package from the six exposed sources/licenses, run all six ordinary-input manifests, run strict verification, and recreate the dependency-revision reproduction-only report.
-- [ ] Copy the complete input/output/revision closure to `results/skill-ir/api-tester-operation-delivery-freeze-development-001`, preserving every file and digest. Record the absent historical `clean-002` path/digest as missing, not verified.
+- [x] Create a short-path detached worktree at the candidate commit; use locked offline dependencies and record Git/Bun/Node/OS state.
+- [x] In that checkout, construct a digest-bound archive package from the six exposed sources/licenses, run all six ordinary-input manifests, run strict verification, and recreate the dependency-revision reproduction-only report.
+- [x] Copy the complete input/output/revision closure to `results/skill-ir/api-tester-operation-delivery-freeze-development-001`, preserving every file and digest. Record the absent historical `clean-002` path/digest as missing, not verified.
 - [ ] Strictly verify the archive against candidate Git blobs, source-selection digests, candidate snapshot, semantic comparisons, exact closure, and zero model/API/paid accounting. Remove only the verified temporary worktree.
+
+The first detached preflight at `fa20a52` correctly failed before source execution because the archive manifest named 10 ignored v2 scripts absent from Git. `clean-attempt-001/failure.json` preserves it. The successor candidate commit records all declared bytes with scoped binary attributes and adds a Git-tree closure gate before clean reproduction.
 
 ## Task 6: Close out and stop extension
 

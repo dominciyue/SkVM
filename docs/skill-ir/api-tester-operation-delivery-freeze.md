@@ -90,6 +90,13 @@ strictly verified outputs that exposed obsolete aggregate field names. Each
 attempt has a machine-readable `failure.json`; none is silently discarded or
 counted as a passing archive.
 
+The first detached candidate preflight is separately retained at
+`clean-attempt-001`. It ran zero sources and found that the archive manifest
+declared ten v2 generator/checker scripts omitted by the repository ignore
+rule. The successor candidate verifier now compares the manifest file set with
+Git `HEAD`, and the evidence identity uses scoped binary attributes so source,
+license, and script bytes survive checkout without newline conversion.
+
 ## Verification and failure modes
 
 Focused tests cover manifest/path/digest/format binding, output exclusivity,
@@ -123,3 +130,28 @@ validity and claim policies.
 Candidate verification also compares the main archive manifest's exact file
 set with the Git `HEAD` tree. This prevents a locally present but ignored file
 from making an unarchived candidate appear reproducible.
+
+## Final clean evidence and report
+
+The exact clean reproduction commit is
+`3ebe60613bab0375047fcb51337d35b3c1830430`. A short-path detached checkout ran
+`bun install --frozen-lockfile --offline`, verified the candidate, reran all six
+ordinary-input manifests, and created the complete dependency-revision
+`clean-003` archive. The delivery clean archive has the same portable semantic
+SHA-256 as main (`137984f7...87ac`); dependency `clean-003` retains run semantic
+SHA-256 `5e296dbc...f036` and detects 3/3 repaired faults.
+
+The final machine report is
+`results/skill-ir/api-tester-operation-delivery-freeze-development-001/report.json`
+with portable semantic SHA-256
+`f423485bf08cbbe53908d82df5b0d09a8adab3b1072184e1736cae7dfe7f3177`.
+After committing the evidence closure, re-verify it with:
+
+```powershell
+bun ./src/skill-ir/api-tester-operation-delivery-report-run.ts `
+  --mode=verify --root=. --node=<node.exe> --git=<git.exe>
+```
+
+The report intentionally has `historicalArchiveCompleteness=fail` because the
+old clean-002 bytes remain missing. That historical evidence gap is not an
+implementation failure and is not hidden by the new main/clean archives.

@@ -1,0 +1,655 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "HFS 3",
+    "description": "Browser-facing HTTP API used by the HFS frontend and upload flows.",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "Front-end"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Date": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "expandedUsername": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "adminUrl": {
+            "type": "string"
+          },
+          "canChangePassword": {
+            "type": "boolean"
+          },
+          "requireChangePassword": {
+            "type": "boolean"
+          },
+          "exp": {
+            "$ref": "#/components/schemas/Date"
+          },
+          "accountExp": {
+            "$ref": "#/components/schemas/Date"
+          },
+          "redirect": {
+            "type": "string"
+          }
+        }
+      },
+      "SrpStep1": {
+        "type": "object",
+        "required": [
+          "salt",
+          "pubKey"
+        ],
+        "properties": {
+          "salt": {
+            "type": "string"
+          },
+          "pubKey": {
+            "type": "string"
+          }
+        }
+      },
+      "UploadResult": {
+        "type": "object",
+        "required": [
+          "uri"
+        ],
+        "properties": {
+          "uri": {
+            "type": "string"
+          }
+        }
+      },
+      "MultipartUploadResult": {
+        "type": "object",
+        "properties": {
+          "uris": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "FolderSize": {
+        "type": "object",
+        "required": [
+          "bytes",
+          "files",
+          "folders"
+        ],
+        "properties": {
+          "bytes": {
+            "type": "number"
+          },
+          "files": {
+            "type": "number"
+          },
+          "folders": {
+            "type": "number"
+          }
+        }
+      },
+      "UploadMeta": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "ip": {
+            "type": "string"
+          }
+        }
+      },
+      "FileDetails": {
+        "type": "object",
+        "properties": {
+          "upload": {
+            "$ref": "#/components/schemas/UploadMeta"
+          }
+        }
+      },
+      "FileDetailsResponse": {
+        "type": "object",
+        "required": [
+          "details"
+        ],
+        "properties": {
+          "details": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "boolean",
+                  "enum": [
+                    false
+                  ]
+                },
+                {
+                  "$ref": "#/components/schemas/FileDetails"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "MoveFilesResponse": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Account": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "belongs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ignore_limits": {
+            "type": "boolean"
+          },
+          "disable_password_change": {
+            "type": "boolean"
+          },
+          "admin": {
+            "type": "boolean"
+          },
+          "redirect": {
+            "type": "string"
+          },
+          "disabled": {
+            "type": "boolean"
+          },
+          "expire": {
+            "$ref": "#/components/schemas/Date"
+          },
+          "days_to_live": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "username"
+        ]
+      },
+      "folder_body": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "The file to upload.",
+            "format": "binary"
+          }
+        }
+      },
+      "inline_response_200": {
+        "type": "object",
+        "properties": {
+          "can_archive": {
+            "type": "boolean",
+            "description": "if you can download this folder as zip"
+          },
+          "can_upload": {
+            "type": "boolean",
+            "description": "if you can upload in this folder"
+          },
+          "can_delete": {
+            "type": "boolean",
+            "description": "if you can delete items in this folder"
+          },
+          "can_comment": {
+            "type": "boolean",
+            "description": "if you can coment items in this folder"
+          },
+          "list": {
+            "type": "array",
+            "description": "entries from this folder",
+            "items": {
+              "$ref": "#/components/schemas/DirEntry"
+            }
+          }
+        }
+      },
+      "DirEntry": {
+        "required": [
+          "n"
+        ],
+        "type": "object",
+        "properties": {
+          "n": {
+            "type": "string",
+            "description": "name of the entry. Can be a relative path in case you used `search`."
+          },
+          "c": {
+            "type": "string",
+            "description": "creation time",
+            "format": "date-time"
+          },
+          "m": {
+            "type": "string",
+            "description": "modification time",
+            "format": "date-time"
+          },
+          "s": {
+            "type": "number",
+            "description": "size, in bytes"
+          },
+          "p": {
+            "pattern": "[rR]?[lL]?d?",
+            "type": "string",
+            "description": "permissions, only when are different from the parent folder.\nMeaning of each character:\n- r: cannot be downloaded\n- R: can be downloaded only with other credentials\n- l: folder cannot be listed\n- L: folder can be listed only with other credetnials\n- d: can be deleted\n"
+          },
+          "comment": {
+            "type": "string",
+            "description": "assigned comment"
+          }
+        },
+        "description": "front-end list item format. Common properties are kept short to optimize space."
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "paths": {
+    "/~/api/get_account": {
+      "get": {
+        "summary": "get account",
+        "deprecated": false,
+        "description": "you can also call this with POST",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/~/api/get_accounts": {
+      "get": {
+        "summary": "list accounts",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Account"
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/~/api/get_admins": {
+      "get": {
+        "summary": "list admins",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "username"
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/~/api/get_config": {
+      "get": {
+        "summary": "get config",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "omit",
+            "in": "query",
+            "description": "to get all but the specified keys from the config",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "only",
+            "in": "query",
+            "description": "to get only specific keys from the config",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/~/api/get_file_list": {
+      "get": {
+        "summary": "List files",
+        "deprecated": false,
+        "description": "returns all files of a specified folder",
+        "tags": [
+          "Front-end"
+        ],
+        "parameters": [
+          {
+            "name": "admin",
+            "in": "query",
+            "description": "request the list with admin privileges.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "c",
+            "in": "query",
+            "description": "request separated `c` and `m` properties in entries. Pass any string to turn it on. By default only `m` is provided, and when missing it is copied from `c`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fileMask",
+            "in": "query",
+            "description": "filter files by name mask.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "max number of records to return",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "number of records to skip",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "onlyFiles",
+            "in": "query",
+            "description": "return only files.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "onlyFolders",
+            "in": "query",
+            "description": "return only folders.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "search for files with the specified pattern, also in subfolders.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "searchComment",
+            "in": "query",
+            "description": "search for files by comment, also in subfolders.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uri",
+            "in": "query",
+            "description": "path to the folder containing the files. Default is `/`",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "wild",
+            "in": "query",
+            "description": "set to `no` to use plain substring matching instead of wildcard matching.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "all files accordingly to the specified parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/~/api/get_folder_size_partial": {
+      "get": {
+        "summary": "Folder size progress",
+        "deprecated": false,
+        "description": "returns partial progress for an in-flight folder size computation",
+        "tags": [
+          "Front-end"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "current partial progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderSize"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "computation not found anymore"
+          }
+        },
+        "security": []
+      }
+    },
+    "/~/api/get_usernames": {
+      "get": {
+        "summary": "list usernames",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/~/api/refresh_session": {
+      "get": {
+        "summary": "Refresh session",
+        "deprecated": false,
+        "description": "returns the current browser session state",
+        "tags": [
+          "Front-end"
+        ],
+        "responses": {
+          "200": {
+            "description": "current session state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    }
+  }
+}
