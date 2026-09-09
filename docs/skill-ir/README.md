@@ -246,7 +246,7 @@ profile、Q4、held-out 或付费实验仍需另行授权。
 
 ## 当前下一步
 
-2026-09-08 已完成 API Tester v2 工程收口，并执行新的 candidate 与 6 real + 4 boundary 特性定向输入集。001 freeze 推送后的首次入口在第 0 行前因 Windows checkout/Git blob EOL 表示比较错误而停止，0 selected input bytes/rows/model/API/paid，未创建首次报告；该失败已机器冻结，旧 lock 未覆盖。candidate、输入、binding 和 prediction 不变，只修 harness 的 002 在远端冻结后唯一执行：真实 accepted=0/6、边界 accepted=0/4，10/10 exact rejection，0 checker/infra failure。结果冻结为 fixed-profile whole-document admission 的负证据，不改包、不换输入、不补行。详细口径以 [plan 第4.45节](skill-ir-aot-optimization-plan.md)、[spec 第14.16节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-v2-feature-migration.md)为准。
+2026-09-09 已完成 API Tester operation-level additive development。冻结 002 的 whole-document 0/6 不变；对相同六份已暴露文档完整枚举 562 operations，得到 112 accepted、449 rejected、1 source-bound unresolved，112/112 accepted operations 通过原 v2 checker。后续 36 个派生输入中 34 项适用且全通过、2 项明确不适用，9/9 faults detected，并从 Task 1 detached clean worktree 离线复现同一 portable semantics 与 artifact digests。总状态为 `completed-with-source-blocker`，不改变 readiness 或建立任意 OpenAPI/真实 API/人工节省主张。详细口径以 [plan 第4.46节](skill-ir-aot-optimization-plan.md)、[spec 第14.17节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-operation-admission.md)为准。
 
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
@@ -280,6 +280,9 @@ Q2-M：v2 特性定向迁移（001 preflight-failed；002 negative completed）
   -> 001 在第 0 行前 EOL preflight 失败；002 复用同 candidate/input/prediction，只修 harness
   -> 002 真实 0/6、边界 0/4 accepted；10/10 exact rejection；checker/infra failure=0/0
   -> 同一 unified-CLI candidate，每行一次、0 retry/replacement/fix；失败留分母；本 identity 停止
+Q2-O：operation-level 后继 development（completed-with-source-blocker）
+  -> 相同 6 real：562=112 accepted+449 rejected+1 unresolved；112/112 checker pass；原 document 0/6 不变
+  -> 36 derivatives：34 applicable/pass、2 typed N/A；9/9 faults；Task 1 clean offline reproduction exact
 ```
 
 方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。
@@ -302,6 +305,8 @@ API production v1 已按[设计](../superpowers/specs/2026-09-07-api-tester-prod
 | `api-tester-production-binding.md` | API Tester production v1/v2 的 binding 内 CLI 版本分发、支持/拒绝范围、package、独立 checker 与 development 证据。 |
 | `api-tester-successor-gap-analysis.md` | v1 0/4 后四份真实输入的完整 blocker 清单、v2 增量能力与不扩范围。 |
 | `api-tester-v2-feature-migration.md` | v2 candidate、6+4 选样/预测/锁、唯一首轮执行、成本与主张边界。 |
+| `api-tester-operation-admission.md` | 六份已暴露文档的 operation universe、准入/局部 artifact、变形/故障检出、clean reproduction 与 source blocker。 |
+| `api-tester-operation-development-final-report.md` | operation-level 两任务实际结果、机器证据哈希、离线复现入口、剩余 source blocker 与下一步建议。 |
 | `ai-assisted-development-routing-and-prospective-construction.md` | AI revision-2 development route、API 构造候选、4+4 prediction lock、首轮不可变执行与主张/成本边界。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |
 | `claim-evidence-table.md` | 当前可用于报告/论文的最窄主张、权威证据、覆盖范围和禁止外推。 |

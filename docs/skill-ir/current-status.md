@@ -1,8 +1,8 @@
-# Skill IR 当前状态（2026-09-08）
+# Skill IR 当前状态（2026-09-09）
 
 当前定位：**以公开验证依据为组织原则，研究受限 skill 任务的确定性 AOT 转换与人工边界，并通过 SkVM 提供可复现的产物封装。** 三档答案可得性降级为回顾路由；当前 v2 方法按 requirement/workflow step 分别记录验证、构造、执行与剩余选择，再导出四状态。七案例仍是回顾性案例研究，不是前瞻预测证据。
 
-当前已确认路线：**原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；AI revision-2 只作为带 provenance 的 24-unit development route。API Tester 4+4 唯一首轮冻结为 0/4 真实接纳、4/4 边界拒绝；successor v2 已按完整 blocker 清单增加有限 local component ref 与 primitive array，在已暴露 Open-Meteo 上完成 1/1 parse-to-checker，并由统一 CLI 按 binding 版本显式分发。新的 6-real+4-boundary 输入集也已收口：001 在第 0 行前冻结为 EOL preflight 失败，候选/输入/预测不变；002 唯一首轮为真实 0/6、边界 0/4 accepted，10/10 exact rejection。v1 负结果不改写。** 权威约束见 spec 第 14.16 节、plan 第 4.45 节、[迁移组件](api-tester-v2-feature-migration.md)和[production binding 组件](api-tester-production-binding.md)。
+当前已确认路线：**原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；AI revision-2 只作为带 provenance 的 24-unit development route。API Tester 002 whole-document 唯一首轮仍为真实 0/6、边界 0/4；后继 operation-level development 对同六份已暴露文档完整枚举 562 operations，112/112 accepted operations 通过原 v2 checker，449 rejected、1 source dependency unresolved。36 个派生输入关系为 34/34 applicable pass、2 typed N/A，9/9 faults detected，并在 detached Task 1 checkout 离线复现；总状态 `completed-with-source-blocker`。v1/v2 冻结负结果与 readiness 均不改写。** 权威约束见 spec 第 14.17 节、plan 第 4.46 节和[操作级组件](api-tester-operation-admission.md)。
 
 ## 三条主线
 
@@ -10,7 +10,7 @@
 |---|---|---|---|
 | A：分类与路由 | 七案例回顾表与 Q1 v2 发放包已冻结；新 AI development route 绑定 24 个 unit 的 revision-2 provenance/change/unknown | 两位真人独立标注、裁决前一致率、classification accuracy、原 Q1 completion | AI 表只服务工程 gap discovery；原 A/B 真人实验可另行完成，但不再作为当前构造开发前置 |
 | B：人工边界 | 旧 original 首行已冻结负结果；successor 的两臂、平衡交叉分母、前瞻区间计时、质量门和成本单位已机器化 | 4 个新 public development tasks、2 位独立实际参与者、真实 session 和人工减少结果 | 旧 identity 永久停止；successor 保持 `design-only-not-authorized`，任何真实参与者或付费执行需再次授权 |
-| C：工程交付 | Env/API 金路径可复现；API production v1 两份 development 输入 2/2；4+4 首轮真实 accepted=0/4；successor v2 的已暴露 Open-Meteo 1/1 parse-to-checker；001 第 0 行前 preflight failure 已机器冻结；002 真实 0/6、边界 0/4 accepted，10/10 exact rejection | local-ref/body-array/form-explode 的新真实 whole-document 接纳、外部/循环 ref、完整 JSON Schema、任意 OpenAPI、独立操作者、跨 profile、可靠性、独立安装/跨平台 | 本 identity 停止；若继续先判断 whole-document 支持范围与选样匹配，再以新授权决定通用缺口或第二 profile |
+| C：工程交付 | Env/API 金路径可复现；API production v1 两输入 2/2；002 whole-document real 0/6；operation-level 同六文档 562 项完整枚举、112/112 accepted checked；34/34 applicable metamorphic pass、9/9 faults、Task 1 clean offline exact | 缺失 Meilisearch parameter ref 的源语义、完整文档接纳、任意 OpenAPI、独立操作者、跨 profile/平台与真实 API 行为 | 本 operation identity 已按 source blocker 收口；后续若修 source 或扩大支持面必须新授权，不改 002/readiness |
 
 ## Q1/Q2 当前冻结点
 
@@ -27,6 +27,9 @@
 - v2 迁移输入集固定 6 个独立公开仓库（local-ref/body-array/form-explode 各 2）与 4 个合成边界；来源、license、binding、
   candidate execution surface 和 10 行 prediction 已摘要绑定。001 的 EOL harness preflight 是 0 行失败，不构成接纳结果；
   002 只修 tracked representation 检查，唯一首轮 10/10 rejected 且预测 exact；所有 checker `not-run`。
+- operation-level 后继只复用上述已暴露六份 source：6/6 universe complete，`562=112 accepted+449 rejected+1 unresolved`，五个聚合
+  artifact 的 112 项全过 checker。Task 2 的 36 derivatives 不是新真实分母，synthetic faults 不计真实成功；clean reproduction 只证明同机
+  Task 1 checkout/offline cache 可复现。唯一 source blocker 为 Meilisearch `GET /tasks` 缺失 `#/components/parameters/total`。
 - 权威入口：`classification-handbook-v2.md`、`q1-development-annotation-package-v2.md`、`ai-assisted-development-routing-and-prospective-construction.md`、`benchmarks/skill-ir/classification/` 与 `task-automation-classification.ts`。当前没有真人 A/B 一致率、classification accuracy、可靠性或人工节省结果。
 
 ## B 冻结结果的正确读法
@@ -59,5 +62,7 @@
 9. 已冻结：001 freeze commit `8b59a69` 已推送；首次入口在第 0 行前停止，0 input bytes/rows/model/API/paid，结果未创建，失败记录不覆盖旧 lock。
 10. 已冻结：002 freeze `19af3e3` 推送后唯一执行 10 行；真实 accepted/rejected=`0/6`、边界=`0/4`，10/10 prediction exact，0 checker/infra failure，runtime model/API/paid=0。
 11. 当前停止：本 identity 不重跑、不为正例改包、换输入或补行；若继续先解决 fixed profile 对完整真实文档的接纳缺口。第二 profile、新 skill/组合、Q4/Q5 均另立身份。
+12. 已完成：operation-level Task 1 全量清单、准入、112 项局部 artifact 与独立 source coverage；保留两次失败修订和 1 个 source blocker。
+13. 已完成：Task 2 34/34 applicable metamorphic relations、9/9 fault detection、detached clean offline reproduction；总报告不改 readiness。
 
 持续禁止：把 AI 草稿写成真人 Q1/一致率/准确率；复活 B 旧 identity；读取 held-out；启动 Stage M/N matrix；修改旧 lock/result/Q2；为正例改候选/scorer/artifact、换输入或补行；扩 DSL 或据此晋级 portfolio/readiness。

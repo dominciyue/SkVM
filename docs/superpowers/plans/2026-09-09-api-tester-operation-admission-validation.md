@@ -77,22 +77,23 @@ function verifyApiTesterProjectionDependencies(input: DependencyInput): Dependen
 
 **Files:** create `api-tester-operation-validation.test.ts`, then validation implementation/CLI.
 
-- [ ] RED-test branch selection from actual Task 1 counts; no caller override is allowed.
-- [ ] RED-test preregistration, changed byte digest and semantic comparison for key/path/operation reorder, formatting, JSON/YAML, description, added unsupported operation and local-ref/inline; require typed non-applicability.
-- [ ] RED-test omission/duplicate/dependency/security/summary/false-acceptance and checker endpoint/witness tampering with expected detector layer/code.
-- [ ] Run focused validation test; expect missing module.
-- [ ] Implement deterministic transformations and injections without source-id/path success branches; reuse Task 1 evidence when already sufficient.
-- [ ] Run focused tests and preserve any correctness repair as its own RED/GREEN revision record and commit.
+- [x] RED-test branch selection from actual Task 1 counts; no caller override is allowed.
+- [x] RED-test preregistration, changed byte digest and semantic comparison for key/path/operation reorder, formatting, JSON/YAML, description, added unsupported operation and local-ref/inline; require typed non-applicability.
+- [x] RED-test omission/duplicate/dependency/security/summary/false-acceptance and checker endpoint/witness tampering with expected detector layer/code.
+- [x] Run focused validation test; observed the missing module RED.
+- [x] Implement deterministic transformations and injections without source-id/path success branches; reuse Task 1 evidence when already sufficient.
+- [x] Run focused tests. Real object-order runs exposed fail-fast message key-order drift; a RED regression now compares stable rejection code plus full findings, and all six real rows pass.
+- [x] After independent read-only review, add RED tampering cases and bind transform state/comparison fields plus fault detector layer/code to the implementation registries.
 
 ### Task 5: Clean offline reproduction and combined closeout
 
 **Files:** update validation runner/report, combined report, docs/status/ledgers.
 
-- [ ] Strict-read the Task 1 commit/report and verify all evidence digests before validation.
-- [ ] Create a clean Git worktree at the Task 1 commit, run locked offline dependency installation, then run Task 1 CLI against the same digest-bound external cache into a fresh result.
-- [ ] Compare portable semantic digests, source coverage, admitted/constructed/checker counts, and artifact program/checker digests; record environment separately.
-- [ ] Write Task 2 and combined reports with exclusive creation; combined status can be complete only if both strict validators and all correctness gates pass.
-- [ ] Run fresh focused suites, relevant API/CLI broad tests, Skill IR current broad, typecheck, documentation links, secret/absolute-path/frozen-history scans and `git diff --check`.
+- [x] Strict-read the Task 1 commit/report and verify all evidence digests before validation.
+- [x] Create a clean Git worktree at the Task 1 commit, run locked offline dependency installation, then run Task 1 CLI against the same digest-bound external cache into a fresh result.
+- [x] Compare portable semantic digests, source coverage, admitted/constructed/checker counts, and artifact program/checker digests; record environment separately.
+- [x] Write Task 2 and combined reports with exclusive creation. Combined status is `completed-with-source-blocker`; bounded implementation evidence passes while source correctness remains blocked.
+- [x] Run fresh focused suites, relevant API/CLI broad tests, Skill IR current broad, typecheck, documentation links, secret/absolute-path/frozen-history scans and `git diff --check`.
 - [ ] Update component/spec/plan/status/README/current status/developer guide/claim evidence/handoff/communication/conversation log as applicable; explicitly stage only this stage and commit on `api-tester-operation-admission-dev`.
 
 ## Recovery command order

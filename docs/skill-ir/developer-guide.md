@@ -387,6 +387,7 @@ packages/                        编译后的 artifact package
 | `src/skill-ir/api-tester-production-*.ts` | API Tester production binding | 解析明确 OpenAPI 子集、冻结 normalized public contract、编译 exact-closure package、串行生成/独立检查并冻结两输入报告 | 不修改旧 research compiler/scorer/lock/package；checker 不是第二套 YAML/JSON parser |
 | `src/skill-ir/api-tester-production-*-v2.ts` | API Tester successor development | 版本化处理有限 local component ref、primitive array 与 query form encoding；用独立 checker 复核 array/item witness；统一 CLI 按 binding version 显式分发 | 已暴露 Open-Meteo 仍不是 prospective/unseen；不替换 v1 冻结文件 |
 | `src/benchmarks/skill-ir/api-tester-v2-feature-migration*.ts` | v2 特性定向迁移 freeze/runner/report | 摘要绑定实际 CLI 候选、6+4 分母与 prediction；只在远端 freeze commit 匹配后唯一执行 | 不扩 v2、不筛正例、不估计 OpenAPI 生态接纳率、不改 readiness |
+| `src/skill-ir/api-tester-operation-*.ts` | operation-level development 与可靠性验证 | 对同六份已暴露 source 建独立全集、逐 operation 准入/投影、聚合 artifact、变形/故障/clean 证据 | 只限 development；1 个 source dependency unresolved，不改变 whole-document 0/6 或 readiness |
 | `src/benchmarks/skill-ir/api-tester-artifact-development-run.ts` | API Tester 专用 development runner | 仍可用于既有 artifact development `plan`/qualification/execute 合同 | 不是 trace/public-answer 协议，也不能代替跨模型研究主表 |
 | `src/benchmarks/skill-ir/api-tester-trace-public-answer.ts` | API Tester trace/public-answer 协议 | 公开 OpenAPI canonicalizer、strict trace、parity checker、零付费 dry-run | 不读取 raw/model text、gold、evaluator payload 或 held-out |
 | `src/benchmarks/skill-ir/stage-n-cross-model-panel-run.ts` | Stage N 预注册 panel runner | 读取 lock、生成 Stage 0 plan、审计既有 smoke | 当前 smoke 已失败、matrix 未创建；不要用它重跑或付费 |
@@ -738,6 +739,23 @@ bun test ./src/benchmarks/skill-ir/api-tester-v2-feature-migration.test.ts
 checker 都因构造期拒绝而 `not-run`。运行时 model/API/paid=`0/0/0`，CLI end-to-end=`7990ms`；467,220 历史 development
 tokens 单列。失败已留在 10 行分母，不能换 route、换输入、补行或改候选。完整命令和选样表见
 [`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。
+
+#### 5.7.2.1 复核 operation-level 后继（development-only）
+
+Task 1/Task 2 的常规测试不需要外部 cache：
+
+```powershell
+bun test ./src/skill-ir/api-tester-operation-development.test.ts `
+  ./src/skill-ir/api-tester-operation-validation.test.ts `
+  ./src/skill-ir/api-tester-operation-validation-development.test.ts
+```
+
+完整重放必须使用 Task 1 提交 `f92e8a1f95a061af921fe476aa90016b2b627153` 的 detached worktree、`bun.lock` 和已经暴露的六份
+offline cache。先执行 `bun install --frozen-lockfile --offline`，再用
+`api-tester-operation-development-run.ts` 写一个新的 clean output，最后从当前开发分支执行
+`api-tester-operation-validation-run.ts --root=. --cache-root=<cache> --clean-root=<worktree> --node=<node> --git=git`。禁止传 branch override；
+runner 根据 Task 1 实际 `checked` 自动选择。权威结果与边界见
+[`api-tester-operation-admission.md`](api-tester-operation-admission.md)；不得运行已冻结的 v2 feature-migration first-run 入口。
 
 #### 5.7.3 从干净源码 checkout 复现
 

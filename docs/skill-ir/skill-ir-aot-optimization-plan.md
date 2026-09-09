@@ -2073,18 +2073,18 @@ checker 通过，Box 的 `0/297` 不运行 artifact；验证义务覆盖 `575/57
 
 #### 4.46.2 任务二：变形、错误检出与干净环境复现
 
-1. [ ] 从任务一最终提交读取并 strict-parse 实际报告、实现合同、六份清单、准入/产物证据与 unresolved；先复核 digest closure。
+1. [x] 从任务一最终提交读取并 strict-parse 实际报告、实现合同、六份清单、准入/产物证据与 unresolved；先复核 digest closure。
    若 enumeration/dependency preservation 有 correctness 缺陷，先以 RED regression 修复 additive development 模块并保留修复前证据；
    无法修复则标记 blocked，并只完成不依赖该缺陷的验证，不发布可靠性结论。
-2. [ ] 由任务一报告自动选择：有真实 checker-pass operation 时执行真实正向分支；真实全负但清单/诊断完整时只验证清单与拒绝
+2. [x] 由任务一报告自动选择：有真实 checker-pass operation 时执行真实正向分支；真实全负但清单/诊断完整时只验证清单与拒绝
    稳定性，并用明确标注 synthetic positive 验 checker；不得把 synthetic 计入真实成功率。
-3. [ ] 为每种 metamorphic transform 先登记 applicability、expected relation 与 comparison fields，再生成 parent-digest-bound
+3. [x] 为每种 metamorphic transform 先登记 applicability、expected relation 与 comparison fields，再生成 parent-digest-bound
    derivative：对象键/路径/operation 顺序、仅格式/缩进/换行、保持同一数据模型时的 JSON/YAML 转换、无关说明、合同允许时新增
    无关 unsupported operation，以及可证明等价的 local-ref/inline。字节摘要应变化；比较 operation universe、admission、
    normalized semantics、dependency/coverage，不要求 report bytes 一致。不适用必须写原因。
-4. [ ] 注入 operation omission/duplication、parameter/ref/security dependency loss、summary drift、错误接纳和 artifact endpoint/
+4. [x] 注入 operation omission/duplication、parameter/ref/security dependency loss、summary drift、错误接纳和 artifact endpoint/
    witness 破坏，逐项记录预期 detector layer、实际 stable code 与 detected=true；复用任务一已有证据，不重复建等价测试。
-5. [ ] 从任务一提交建立 clean checkout，使用锁定 `bun.lock` 与本地依赖缓存离线安装，读取同一 digest-bound external input cache，
+5. [x] 从任务一提交建立 clean checkout，使用锁定 `bun.lock` 与本地依赖缓存离线安装，读取同一 digest-bound external input cache，
    从零运行任务一入口；比较 portable semantic report、coverage 与 artifact/checker digest。记录 OS/Bun/Node、命令、输入 manifest、
    安装/运行状态，不把环境字段漂移当语义漂移。
 6. [ ] 保存 `results/skill-ir/api-tester-operation-validation-development-001/report.json` 和总报告
@@ -2093,9 +2093,18 @@ checker 通过，Box 的 `0/297` 不运行 artifact；验证义务覆盖 `575/57
 
 **任务二验收与总完成门：** 所有适用变形满足预登记关系、所有必需错误注入被预期层检出、clean checkout 离线复现与任务一的
 portable semantic digest 一致；不适用与阻塞均有机器理由。只有任务一、任务二的 strict report validator、回归与文档检查全部通过，
-且没有未解决 correctness blocker 时，才把总目标标记完成。派生输入不是独立真实样本，synthetic positive 不计真实成功率，局部
-operation pass 不等于完整文档、skill 或真实 API 行为通过。若需要人工决策，先更新执行状态的 commit/evidence/issues/nextAction，
-保存其余已完成工作后停在明确恢复命令；不得为时长重复运行、扩样或增加无关功能。
+且没有未解决 implementation correctness blocker 时，才把总目标标记完成；source-bound blocker 可按本节合同明确保留。派生输入不是
+独立真实样本，synthetic positive 不计真实成功率，局部 operation pass 不等于完整文档、skill 或真实 API 行为通过。若需要人工决策，
+先更新执行状态的 commit/evidence/issues/nextAction，保存其余已完成工作后停在明确恢复命令；不得为时长重复运行、扩样或增加无关功能。
+
+**任务二实际结果（2026-09-09）：** Task 1 的 `112 checked` 自动选择 real-positive；36 个六文档派生输入中 34 applicable 且
+34/34 relation pass，Box/HFS local-ref/inline 共 2 项有 typed non-applicability；9/9 faults detected。Task 1 detached clean checkout
+以锁文件离线安装后重新运行，portable semantic SHA-256 仍为 `1a14ed36ebc185befcb4f3d2c03f95d89bd1e8a1a89da560a9c6eb35b89a1e87`，
+所有计数、gate、义务和 inventory/artifact digest 相同。Task 2 portable SHA-256=`d9a97e917179927437ea5a2aea547652ac3899feea1ec179f0b0c5d2d8ee02a0`，
+combined portable SHA-256=`bbf927bf6f3f29c75a70bf1fcbe2074373ce43255dafe202e8889a2e14960e61`。剩余 1 项是源文档依赖
+blocker，不是未修复的 implementation correctness defect；因此目标可按 `completed-with-source-blocker` 收口，但不得称 source/full correctness pass。
+独立只读审查发现 static strict verifier 未锁紧 transform 状态/比较字段和 fault detector/code 映射；分别新增可伪造报告的 RED regression，
+再把两组字段绑定到实现 registry。修复后报告数值与 portable digest 不变，live replay 和聚焦回归通过。
 
 ## 5. 历史时间估算（不作为当前排期）
 

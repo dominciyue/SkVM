@@ -93,3 +93,39 @@ checker 或 source-specific 代码修复。
 
 本阶段 runtime 禁止 network/model/API/paid，保持 held-out/Q1 reserved/prospective/第二 profile/Q4/portfolio/readiness 关闭。真实局部通过
 不等于整份文档成功、任意 OpenAPI 支持或真实 API 行为验证。
+
+## Task 2 变形、故障检出与 clean reproduction
+
+`src/skill-ir/api-tester-operation-validation.ts` 预登记六类变换的 applicability、expected relation 和 comparison fields，并提供
+`evaluateApiTesterOperationTransform`。对象键/路径/operation 顺序、纯格式、JSON/YAML、无关 `info.description` 都要求完整 operation
+universe、准入状态、完整 findings、normalized semantics 和 coverage 保持；v2 fail-fast 首拒绝只比较稳定 code，不比较 unsupported-key
+文案中的非语义排列。新增 unsupported operation 要求既有 operation 不变且新增行显式 rejected。local-ref/inline 只在 accepted operation
+存在 pure resolved construction ref 时适用；Box 无 accepted operation、HFS accepted operation 无这类 ref，均明确记为 not-applicable。
+
+同模块的 fault runner 用独立 coverage、dependency verifier、admission consistency 和 v2 checker 检出 operation omission/duplicate、
+parameter/reference/security dependency loss、summary drift、false acceptance、artifact endpoint loss 和 boundary witness loss。detector fixture
+是确定性 synthetic，只检验 detector，不计真实成功。
+
+strict report verifier 还会把每个 case 的 comparison fields、applicability/status/reason/derived evidence 锁到 transform registry，并把九类
+fault 的 detector layer 与 stable code 锁到实现 registry。这样只改报告并重算 portable digest 不能冒充预登记关系或正确 detector。
+
+最终 Task 2/combined runner 位于 `src/skill-ir/api-tester-operation-validation-run.ts`。它禁止调用方覆盖结果分支，strict-read Task 1 提交与
+实际报告后自动选择 `real-positive`；对六文档运行 `6 × 6 = 36` 个派生关系，核对 detached Task 1 worktree 的锁定离线安装与新 Task 1
+输出，再 exclusive-create 两份报告。入口：
+
+```powershell
+bun ./src/skill-ir/api-tester-operation-validation-run.ts `
+  --root=. `
+  --cache-root=<digest-bound-offline-cache> `
+  --clean-root=<detached-task1-worktree> `
+  --node=<node.exe> `
+  --git=git
+```
+
+实际结果为 36 derivatives、34 applicable/pass、2 typed not-applicable、9/9 faults detected，clean reproduction 的 portable digest、totals、
+gates、obligations 和全部 inventory/artifact digests 与 Task 1 相同。Task 2 portable SHA-256 为
+`d9a97e917179927437ea5a2aea547652ac3899feea1ec179f0b0c5d2d8ee02a0`；combined portable SHA-256 为
+`bbf927bf6f3f29c75a70bf1fcbe2074373ce43255dafe202e8889a2e14960e61`。bounded reliability 和 implementation correctness 为 pass，
+source correctness 因同一个 Meilisearch 缺失 ref 明确为 blocked；总状态是 `completed-with-source-blocker`，不是全 OpenAPI correctness pass。
+
+面向复核者的两任务汇总、证据哈希、复现入口和后续建议见[总报告](api-tester-operation-development-final-report.md)。
