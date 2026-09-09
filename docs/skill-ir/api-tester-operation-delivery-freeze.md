@@ -103,3 +103,19 @@ The candidate may be frozen only with `inputSelection=not-started`,
 `predictions=not-authored`, `prospectiveRuns=0`, and empty row/prediction arrays.
 It does not authorize selecting, reading, predicting, or running unseen inputs,
 changing readiness, or claiming human savings.
+
+Create the candidate only after the main archive passes strict replay:
+
+```powershell
+bun ./src/skill-ir/api-tester-operation-candidate-freeze-run.ts `
+  --mode=create --root=. --node=<node.exe> `
+  --frozen-at=<ISO-timestamp>
+```
+
+Re-verify the committed candidate and its bound main validation archive with
+`--mode=verify` and no `--frozen-at`. The snapshot is stored at
+`benchmarks/skill-ir/classification/api-tester-operation-candidate-v1.json` and
+binds both the main validation report and its exact archive manifest, the nine
+runtime implementation files, package/lock digests, Bun 1.3.14, Node v23.8.0,
+historical Task 1/Task 2/dependency-revision reports, and the immutable source
+validity and claim policies.

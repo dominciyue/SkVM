@@ -84,7 +84,11 @@ export const ApiTesterOperationCandidateSchema = z.object({
     package: DigestRefSchema,
     lock: DigestRefSchema,
   }).strict(),
-  validation: DigestRefSchema,
+  validation: z.object({
+    report: DigestRefSchema,
+    archiveManifest: DigestRefSchema,
+    portableSemanticSha256: Sha256Schema,
+  }).strict(),
   historicalEvidence: z.object({
     task1: DigestRefSchema,
     task2: DigestRefSchema,
@@ -417,6 +421,11 @@ export async function buildApiTesterOperationCandidate(options: {
   validation: { path: string };
 }): Promise<ApiTesterOperationCandidate> {
   const rootDir = resolve(options.rootDir);
+  const validationReportPath = parseSafeRelativePath(options.validation.path);
+  const validationArchivePath = parseSafeRelativePath(portable(join(dirname(validationReportPath), "archive-manifest.json")));
+  const validationReport = ApiTesterOperationDeliveryValidationReportSchema.parse(JSON.parse(
+    await readFile(contained(rootDir, validationReportPath, "candidate validation report"), "utf8"),
+  ));
   const implementation = await Promise.all(IMPLEMENTATION_FILES.map(async (file) => ({
     ...file,
     sha256: sha256(await readFile(contained(rootDir, file.path, `candidate implementation ${file.path}`))),
@@ -438,7 +447,11 @@ export async function buildApiTesterOperationCandidate(options: {
       package: await readDigestRef(rootDir, "package.json"),
       lock: await readDigestRef(rootDir, "bun.lock"),
     },
-    validation: await readDigestRef(rootDir, options.validation.path),
+    validation: {
+      report: await readDigestRef(rootDir, validationReportPath),
+      archiveManifest: await readDigestRef(rootDir, validationArchivePath),
+      portableSemanticSha256: validationReport.portableSemanticSha256,
+    },
     historicalEvidence: {
       task1: await readDigestRef(rootDir, "results/skill-ir/api-tester-operation-admission-development-001/report.json"),
       task2: await readDigestRef(rootDir, "results/skill-ir/api-tester-operation-validation-development-001/report.json"),
@@ -464,6 +477,45 @@ export async function buildApiTesterOperationCandidate(options: {
       rowPredictions: [],
     },
   });
+}
+
+export async function verifyApiTesterOperationCandidate(options: {
+  rootDir: string;
+  candidatePath: string;
+  bunVersion: string;
+  nodeVersion: string;
+  nodeExecutable: string;
+}): Promise<{ status: "verified"; identity: typeof API_TESTER_OPERATION_CANDIDATE_IDENTITY; prospectiveRuns: 0; validationPortableSemanticSha256: string }> {
+  const rootDir = resolve(options.rootDir);
+  const candidate = ApiTesterOperationCandidateSchema.parse(JSON.parse(await readFile(
+    contained(rootDir, options.candidatePath, "operation candidate"),
+    "utf8",
+  )));
+  if (candidate.runtime.bun !== options.bunVersion || candidate.runtime.node !== options.nodeVersion) {
+    throw new Error("operation candidate runtime mismatch");
+  }
+  const expected = await buildApiTesterOperationCandidate({
+    rootDir,
+    frozenAt: candidate.frozenAt,
+    bunVersion: options.bunVersion,
+    nodeVersion: options.nodeVersion,
+    validation: { path: candidate.validation.report.path },
+  });
+  if (canonical(candidate) !== canonical(expected)) throw new Error("operation candidate closure mismatch");
+  const validation = await verifyApiTesterOperationDeliveryValidation({
+    rootDir,
+    archiveRoot: dirname(contained(rootDir, candidate.validation.report.path, "candidate validation report")),
+    nodeExecutable: options.nodeExecutable,
+  });
+  if (validation.portableSemanticSha256 !== candidate.validation.portableSemanticSha256) {
+    throw new Error("operation candidate validation semantic mismatch");
+  }
+  return {
+    status: "verified",
+    identity: candidate.identity,
+    prospectiveRuns: candidate.prospective.prospectiveRuns,
+    validationPortableSemanticSha256: candidate.validation.portableSemanticSha256,
+  };
 }
 
 export async function createApiTesterOperationArchiveManifest(options: {

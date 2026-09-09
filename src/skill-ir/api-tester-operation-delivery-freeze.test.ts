@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import {
   API_TESTER_OPERATION_CANDIDATE_IDENTITY,
   ApiTesterOperationCandidateSchema,
@@ -11,9 +11,11 @@ import {
   compareApiTesterOperationDeliveryTotals,
   createApiTesterOperationArchiveManifest,
   verifyApiTesterOperationArchive,
+  verifyApiTesterOperationCandidate,
 } from "./api-tester-operation-delivery-freeze";
 import { parseApiTesterOperationDeliveryValidationArgs } from "./api-tester-operation-delivery-freeze-run";
 import { parseApiTesterOperationDeliveryVerifyArgs } from "./api-tester-operation-delivery-verify-run";
+import { parseApiTesterOperationCandidateFreezeArgs } from "./api-tester-operation-candidate-freeze-run";
 
 const temporaryDirectories: string[] = [];
 
@@ -95,7 +97,7 @@ describe("API Tester operation delivery validation and candidate freeze", () => 
   });
 
   test("candidate binds the exact entry chain and has no selected or predicted rows", async () => {
-    const validationPath = "results/skill-ir/api-tester-operation-dependency-verification-revision-development-001/report.json";
+    const validationPath = "results/skill-ir/api-tester-operation-delivery-freeze-development-001/main/validation-report.json";
     const candidate = await buildApiTesterOperationCandidate({
       rootDir: process.cwd(),
       frozenAt: "2026-09-09T12:00:00.000Z",
@@ -112,6 +114,11 @@ describe("API Tester operation delivery validation and candidate freeze", () => 
         externalResponseReference: "retain-source-validity-advisory",
       },
       runtime: { bun: "1.3.14", node: "v23.8.0" },
+      validation: {
+        report: { path: validationPath },
+        archiveManifest: { path: "results/skill-ir/api-tester-operation-delivery-freeze-development-001/main/archive-manifest.json" },
+        portableSemanticSha256: "137984f7aae7a1ff38a253afd98f965e463ef6686b4a79ff7a7ec6a86baf87ac",
+      },
     });
     const paths = candidate.implementation.map((file) => file.path);
     expect(paths).toEqual(expect.arrayContaining([
@@ -129,6 +136,30 @@ describe("API Tester operation delivery validation and candidate freeze", () => 
       ...candidate,
       prospective: { ...candidate.prospective, inputSelection: "selected" },
     })).toThrow();
+
+    const candidateDirectory = await mkdtemp(join(process.cwd(), ".tmp-api-operation-candidate-"));
+    temporaryDirectories.push(candidateDirectory);
+    const candidatePath = join(candidateDirectory, "candidate.json");
+    await writeFile(candidatePath, `${JSON.stringify(candidate, null, 2)}\n`, "utf8");
+    await expect(verifyApiTesterOperationCandidate({
+      rootDir: process.cwd(),
+      candidatePath: relative(process.cwd(), candidatePath).replaceAll("\\", "/"),
+      bunVersion: Bun.version,
+      nodeVersion: "v23.8.0",
+      nodeExecutable: "C:/Program Files/nodejs/node.exe",
+    })).resolves.toMatchObject({ status: "verified", prospectiveRuns: 0 });
+  }, 30_000);
+
+  test("candidate freeze CLI separates create and verify modes", () => {
+    expect(parseApiTesterOperationCandidateFreezeArgs([
+      "--mode=create", "--root=repo", "--node=node", "--frozen-at=2026-09-09T12:00:00.000Z",
+    ])).toEqual({ mode: "create", rootDir: "repo", nodeExecutable: "node", frozenAt: "2026-09-09T12:00:00.000Z" });
+    expect(parseApiTesterOperationCandidateFreezeArgs([
+      "--mode=verify", "--root=repo", "--node=node",
+    ])).toEqual({ mode: "verify", rootDir: "repo", nodeExecutable: "node" });
+    expect(() => parseApiTesterOperationCandidateFreezeArgs([
+      "--mode=verify", "--root=repo", "--node=node", "--frozen-at=2026-09-09T12:00:00.000Z",
+    ])).toThrow(/frozen-at/u);
   });
 
   test("archive verifier binds every byte and rejects extra or changed files", async () => {
