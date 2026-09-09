@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-pre-source-freeze-push-blocked`
-- `stageStatus`: `blocked-awaiting-explicit-remote-push-authorization`
+- `currentStage`: `task-2-pre-source-freeze-archive-revision`
+- `stageStatus`: `in-progress`
 - `lastCompletedCommit`: `532c7c0dbbbf34f0e99aeed55779330e34fc30d0`
-- `currentCommit`: `task-2-push-blocker-checkpoint-working-tree`
+- `currentCommit`: `task-2-git-archive-gate-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -36,6 +36,9 @@
 - Task 2 freeze 提交：`532c7c0dbbbf34f0e99aeed55779330e34fc30d0`；focused `11/11`、47 assertions 与 typecheck 通过。
 - 向 `git@github.com:dominciyue/SkVM.git` 推送 `api-tester-operation-unseen-prospective-001` 的尝试被安全审查拒绝，原因是当前授权未被视为明确允许向该外部目的地发送整个分支。没有采用替代或绕过方式。
 - remote-aware strict verification 按预期失败为 `commit is not present on origin/api-tester-operation-unseen-prospective-001`；这确认本地 freeze 已到远端门，不能进入 source discovery。当前仍未访问真实来源。
+- 重新读取完整目标原文后确认用户已明确授权向用户 `origin` 的开发/实验分支推送；分支随后成功推送，未接触 `upstream`。
+- 推送后的 remote-aware verification 发现更深层的真实失败：validation output manifest 引用 6 个 generator/checker 脚本，但 `.gitignore` 的 `results/skill-ir/**/artifacts/` 规则使它们未进入 execution commit。失败以 `pre-source-freeze-attempt-001/failure.json` 保存；旧 freeze 保留且不得用于 source discovery。
+- 新 RED 首次因缺少 Git archive verifier export 得到 `0 pass / 1 fail / 1 error`。GREEN 新增 pre-write gate：精确比较 validation working closure 与 execution commit path set，并逐文件比较 checkout-filtered Git bytes；focused=`12/12`、48 assertions。尚需提交 6 个已有的 digest-bound ignored files 并创建 revision freeze。
 
 ## 保留问题
 
@@ -46,10 +49,10 @@
 
 ## 下一条具体动作
 
-在用户明确授权把当前分支推送到 `git@github.com:dominciyue/SkVM.git` 后，执行：
+精确提交 Git archive gate、失败证据及 6 个已由 validation manifest 绑定的生成文件；随后用该提交创建新的 `pre-source-freeze-revision-001.json`：
 
 ```powershell
-git -c safe.directory=D:/skill优化/SkVM push -u origin api-tester-operation-unseen-prospective-001
+git -c safe.directory=D:/skill优化/SkVM add -f -- results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation/rows/*/candidate-output/artifact/artifact/artifacts
 ```
 
-随后以 freeze commit 运行 remote-aware strict verification。远端核验通过前仍不得搜索或读取 unseen source。
+revision freeze 提交并推送后运行 remote-aware strict verification。通过前仍不得搜索或读取 unseen source。

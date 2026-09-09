@@ -15,6 +15,7 @@ import {
   runApiTesterOperationSyntheticValidation,
   verifyApiTesterOperationSyntheticValidation,
   verifyApiTesterOperationProspectiveExperimentLockGit,
+  verifyApiTesterOperationProspectivePreSourceFreezeGitArchive,
   verifyApiTesterOperationProspectivePreSourceFreezeLocal,
   verifyApiTesterOperationProspectivePreSourceFreezeGit,
   verifyApiTesterOperationProspectiveRunOutput,
@@ -155,11 +156,6 @@ async function main(): Promise<void> {
   }
   if (command.mode === "create-pre-source-freeze") {
     const validationBytes = await readFile(resolve(rootDir, command.syntheticValidationPath!));
-    await verifyApiTesterOperationSyntheticValidation({
-      rootDir,
-      outRoot: dirname(resolve(rootDir, command.syntheticValidationPath!)),
-      nodeExecutable: command.nodeExecutable,
-    });
     const freeze = await buildApiTesterOperationProspectivePreSourceFreeze({
       rootDir,
       executionCommit: command.executionCommit!,
@@ -170,6 +166,12 @@ async function main(): Promise<void> {
         path: command.syntheticValidationPath!,
         sha256: createHash("sha256").update(validationBytes).digest("hex"),
       },
+    });
+    await verifyApiTesterOperationProspectivePreSourceFreezeGitArchive({
+      rootDir,
+      freeze,
+      nodeExecutable: command.nodeExecutable,
+      gitExecutable: command.gitExecutable,
     });
     const output = resolve(rootDir, command.outputPath!);
     await mkdir(dirname(output), { recursive: true });

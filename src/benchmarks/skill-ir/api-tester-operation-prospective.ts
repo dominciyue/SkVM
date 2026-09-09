@@ -1362,6 +1362,53 @@ export async function verifyApiTesterOperationProspectivePreSourceFreezeLocal(op
   return { status: "verified", syntheticDocuments: 6, prospectiveRuns: 0 };
 }
 
+export async function verifyApiTesterOperationProspectivePreSourceFreezeGitArchive(options: {
+  rootDir: string;
+  freeze: ApiTesterOperationProspectivePreSourceFreeze | unknown;
+  nodeExecutable: string;
+  gitExecutable: string;
+}): Promise<{ status: "git-archive-verified"; executionCommit: string; validationFiles: number; prospectiveRuns: 0 }> {
+  const rootDir = resolve(options.rootDir);
+  const freeze = ApiTesterOperationProspectivePreSourceFreezeSchema.parse(options.freeze);
+  const identity = gitResult(rootDir, options.gitExecutable, ["rev-parse", "--verify", `${freeze.executionCommit}^{commit}`]);
+  if (identity.status !== 0 || identity.stdout.trim() !== freeze.executionCommit) {
+    throw new Error("pre-source execution commit identity is unavailable");
+  }
+  const refs = [
+    freeze.candidate,
+    ...freeze.implementation,
+    ...freeze.synthetics.flatMap((entry) => [
+      { path: entry.path, sha256: entry.sha256 },
+      { path: entry.manifestPath, sha256: entry.manifestSha256 },
+    ]),
+    freeze.syntheticValidation,
+  ];
+  for (const ref of refs) verifyGitRef(rootDir, options.gitExecutable, freeze.executionCommit, ref);
+
+  const validationRoot = dirname(contained(rootDir, freeze.syntheticValidation.path, "synthetic validation report"));
+  const validationRootPath = parseSafeRelativePath(portable(relative(rootDir, validationRoot)));
+  const validationFiles = await listRegularFiles(validationRoot);
+  const expectedRepositoryPaths = validationFiles.map((path) => `${validationRootPath}/${path}`);
+  const tree = gitResult(rootDir, options.gitExecutable, [
+    "ls-tree", "-r", "--name-only", freeze.executionCommit, "--", validationRootPath,
+  ]);
+  if (tree.status !== 0) throw new Error(`cannot enumerate Git validation closure: ${tree.stderr.trim() || "unknown"}`);
+  const committedRepositoryPaths = tree.stdout.split(/\r?\n/u).filter(Boolean).map(portable).sort(compareText);
+  if (canonical(committedRepositoryPaths) !== canonical(expectedRepositoryPaths)) {
+    const missing = expectedRepositoryPaths.filter((path) => !committedRepositoryPaths.includes(path));
+    const extra = committedRepositoryPaths.filter((path) => !expectedRepositoryPaths.includes(path));
+    throw new Error(`Git validation closure path set mismatch; missing=${missing.join(",") || "none"}; extra=${extra.join(",") || "none"}`);
+  }
+  for (const path of validationFiles) {
+    const repositoryPath = `${validationRootPath}/${path}`;
+    const workingDigest = sha256(await readFile(join(validationRoot, path)));
+    verifyGitRef(rootDir, options.gitExecutable, freeze.executionCommit, { path: repositoryPath, sha256: workingDigest });
+  }
+  const strict = await verifyApiTesterOperationSyntheticValidation({ rootDir, outRoot: validationRoot, nodeExecutable: options.nodeExecutable });
+  if (strict.syntheticDocuments !== 6 || strict.prospectiveRuns !== 0) throw new Error("synthetic validation strict result drift");
+  return { status: "git-archive-verified", executionCommit: freeze.executionCommit, validationFiles: validationFiles.length, prospectiveRuns: 0 };
+}
+
 export async function verifyApiTesterOperationProspectivePreSourceFreezeGit(options: {
   rootDir: string;
   freezePath: string;
@@ -1382,26 +1429,14 @@ export async function verifyApiTesterOperationProspectivePreSourceFreezeGit(opti
   }
   const ancestry = gitResult(rootDir, options.gitExecutable, ["merge-base", "--is-ancestor", freeze.executionCommit, options.freezeCommit]);
   if (ancestry.status !== 0) throw new Error("pre-source execution commit is not an ancestor of the freeze commit");
-  const refs = [
-    freeze.candidate,
-    ...freeze.implementation,
-    ...freeze.synthetics.flatMap((entry) => [
-      { path: entry.path, sha256: entry.sha256 },
-      { path: entry.manifestPath, sha256: entry.manifestSha256 },
-    ]),
-    freeze.syntheticValidation,
-  ];
-  for (const ref of refs) verifyGitRef(rootDir, options.gitExecutable, freeze.executionCommit, ref);
+  await verifyApiTesterOperationProspectivePreSourceFreezeGitArchive({
+    rootDir,
+    freeze,
+    nodeExecutable: options.nodeExecutable,
+    gitExecutable: options.gitExecutable,
+  });
   const validationRoot = dirname(contained(rootDir, freeze.syntheticValidation.path, "synthetic validation report"));
-  const strict = await verifyApiTesterOperationSyntheticValidation({ rootDir, outRoot: validationRoot, nodeExecutable: options.nodeExecutable });
-  if (strict.syntheticDocuments !== 6 || strict.prospectiveRuns !== 0) throw new Error("synthetic validation strict result drift");
   const validationReport = ApiTesterOperationSyntheticValidationReportSchema.parse(JSON.parse(await readFile(join(validationRoot, "report.json"), "utf8")));
-  const validationFiles = await listRegularFiles(validationRoot);
-  for (const path of validationFiles) {
-    const repositoryPath = portable(relative(rootDir, join(validationRoot, path)));
-    const workingDigest = sha256(await readFile(join(validationRoot, path)));
-    verifyGitRef(rootDir, options.gitExecutable, freeze.executionCommit, { path: repositoryPath, sha256: workingDigest });
-  }
   if (validationReport.accounting.prospectiveRuns !== 0) throw new Error("synthetic validation was miscounted as prospective");
   return { status: "remote-frozen", freezeCommit: options.freezeCommit, executionCommit: freeze.executionCommit, syntheticDocuments: 6, prospectiveRuns: 0 };
 }

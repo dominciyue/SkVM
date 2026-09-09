@@ -22,6 +22,7 @@ import {
   runApiTesterOperationSyntheticValidation,
   verifyApiTesterOperationProspectiveRunOutput,
   verifyApiTesterOperationSyntheticValidation,
+  verifyApiTesterOperationProspectivePreSourceFreezeGitArchive,
   verifyApiTesterOperationProspectivePreSourceFreezeLocal,
 } from "./api-tester-operation-prospective";
 import { parseApiTesterOperationProspectiveCommand } from "./api-tester-operation-prospective-run";
@@ -489,6 +490,19 @@ describe("API Tester operation prospective pre-source freeze", () => {
     drifted.implementation[0]!.sha256 = "0".repeat(64);
     await expect(verifyApiTesterOperationProspectivePreSourceFreezeLocal({ rootDir, freeze: drifted, bunVersion: Bun.version, nodeVersion: candidate.runtime.node }))
       .rejects.toThrow(/implementation|digest/iu);
+  });
+
+  test("rejects a pre-source freeze whose validation closure is absent from its execution commit", async () => {
+    const freeze = JSON.parse(await readFile(join(
+      rootDir,
+      "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze.json",
+    ), "utf8"));
+    await expect(verifyApiTesterOperationProspectivePreSourceFreezeGitArchive({
+      rootDir,
+      freeze,
+      nodeExecutable: Bun.which("node")!,
+      gitExecutable: "git",
+    })).rejects.toThrow(/validation closure.*missing/iu);
   });
 
   test("CLI separates pre-source freeze, verification, synthetic validation, lock, first run, and reproduction", () => {

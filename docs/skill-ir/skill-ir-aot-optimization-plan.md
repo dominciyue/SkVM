@@ -2227,6 +2227,10 @@ Node v23.8.0、候选、协议、runner、6 synthetic 和完整 validation closu
 freeze 提交为 `532c7c0dbbbf34f0e99aeed55779330e34fc30d0`。首次向 `origin` 推送被安全审查拒绝，因为尚缺对具体 GitHub 目的地发送整个分支的
 明确授权；remote-aware verifier 因该提交不在 `origin/api-tester-operation-unseen-prospective-001` 上而 fail closed。此阻塞不允许通过其它传输
 方式绕过，真实来源读取仍保持 0。
+完整目标原文随后确认已明确授权向用户 `origin` 推送，分支推送成功。第二次 remote-aware verification 发现初版 execution commit 遗漏 6 个
+受 `results/skill-ir/**/artifacts/` ignore 规则影响的 generator/checker 文件，而 output manifest 已绑定这些文件；因此初版 freeze 继续作为
+`archive-incomplete` 失败证据，不具备 source discovery 资格。修订先以 RED 固定该 false pre-write acceptance，再增加 working/Git exact path set
+与 checkout-filtered byte gate；只有新的 revision freeze 提交、推送并通过 remote-aware verification 才恢复 Task 2。
 
 ## 5. 历史时间估算（不作为当前排期）
 

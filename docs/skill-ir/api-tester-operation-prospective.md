@@ -43,6 +43,8 @@ runner 在第 0 行前核验候选闭包、pre-source freeze、selection/predict
 
 最终 `output-manifest.json` 绑定除自身外的完整输出闭包。strict verifier 独立读取 lock bytes、state、prefix、journal、candidate report/output manifest，重建 prepared/dispatched/invocation/exit/stdout 的预期语义，并在隔离目录重放普通 output verifier；即使同时重签外层 manifest，journal 语义篡改也失败。任何额外、缺失、摘要漂移、行顺序变化、lock 替换或候选摘要漂移都失败。
 
+`create-pre-source-freeze` 在写 freeze 之前要求 validation working closure 与 execution commit 的 Git tree 路径集合完全一致，并逐文件比较 checkout-filtered Git bytes。这样，output manifest 已绑定但被 `.gitignore` 排除的生成文件不能等到推送后才暴露。初版 `pre-source-freeze.json` 因 6 个 generator/checker 文件未进入其 execution commit 而失效，失败保存在 `results/skill-ir/api-tester-operation-prospective-001/pre-source-freeze-attempt-001/failure.json`；后续只能使用新的 revision freeze，旧文件不覆盖。
+
 ## CLI
 
 以下命令中的路径均相对 `--root`，输出为 write-once：
