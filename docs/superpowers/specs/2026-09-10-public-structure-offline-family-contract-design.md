@@ -97,6 +97,8 @@ Each criterion is tagged as one of:
 
 The machine validator rejects using a current engineering limit to define family membership, and rejects an unverified hypothesis presented as a satisfied necessary condition.
 
+The initial matrix has exactly nine criteria: the seven family-necessary IDs above, `current-capability-readiness` as the current engineering limit, and `cross-repository-generalization` as the explicitly unverified hypothesis.
+
 ## 5. Failure attribution
 
 Failure attribution is multi-valued and locator-backed:
