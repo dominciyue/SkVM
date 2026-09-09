@@ -2125,7 +2125,7 @@ Task 2 实现、机器报告、总报告和同步文档的本地提交为 `40b24
    与 obligation coverage；不得硬编码 `112` 或删除变化来维持旧结果。Meilisearch source blocker 单列保留。
 5. [ ] 在明确的新 revision commit 建立一次 detached clean checkout，使用 `bun install --frozen-lockfile --offline` 和同一 digest-bound cache
    运行新入口；比较 portable semantics、计数和 evidence digests，环境字段单列。
-6. [ ] 完成 focused/broad/typecheck/docs/digest/secret/path/diff 验证，更新 component/spec/plan/status/final report/claim history/handoff/
+6. [x] 完成 focused/broad/typecheck/docs/digest/secret/path/diff 验证，更新 component/spec/plan/status/final report/claim history/handoff/
    communication/conversation log 并本地提交。最终只判断是否具备冻结下一 operation candidate 的条件，不选择或执行 unseen 输入。
 
 **完成门：** 三项旧漏检均由 dependency verifier 在指定层检出，unchanged/shared/cyclic controls 通过；同六文档新结果与旧结果的每个比较
@@ -2140,6 +2140,7 @@ run semantic digest 全部相同；总状态 `passed-with-source-blocker`。这�
 candidate 的 development 条件，但不授权选择/读取/执行 unseen input，也不改变 readiness。
 独立审查触发了最后一项 TDD 修订：strict verifier 现在同时核对报告提交与被验证 checkout 的 live commit/detached 状态，防止移植报告后重算
 portable digest 冒充精确提交证据。
+机器结果与同步文档已本地提交为 `d140f2097b7fba7929068d8479bb66fbe5020d80`；未推送。
 
 ## 5. 历史时间估算（不作为当前排期）
 

@@ -41,8 +41,8 @@
 
 - [x] Update the component guide, spec, project plan, status file, final report/claim history where applicable, handoff, communication ledger, and conversation log. Correct the historical claim by addition: old reports remain immutable but no longer support an unqualified “no implementation defect” statement.
 - [x] Run fresh focused/broad tests, typecheck, documentation links, frozen-history digest checks, secret/absolute-path scans, and `git diff --check`.
-- [ ] Commit the new machine evidence and documentation locally. Do not push.
-- [ ] State whether the repaired evidence is sufficient to freeze a new operation candidate. Even if sufficient, only recommend a next design; do not select or execute unseen inputs.
+- [x] Commit the new machine evidence and documentation locally. Do not push. Evidence commit: `d140f2097b7fba7929068d8479bb66fbe5020d80`.
+- [x] State whether the repaired evidence is sufficient to freeze a new operation candidate. Even if sufficient, only recommend a next design; do not select or execute unseen inputs.
 
 ## Recovery order
 
