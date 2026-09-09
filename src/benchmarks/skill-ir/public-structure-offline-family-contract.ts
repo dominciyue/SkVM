@@ -494,6 +494,11 @@ const EXPECTED_CRITERION_ROLES = new Map<string, z.infer<typeof FamilyCriterionR
   ["current-capability-readiness", "current-engineering-limit"],
   ["cross-repository-generalization", "unverified-hypothesis"],
 ]);
+const NECESSARY_FAMILY_EVIDENCE_KINDS = new Set<z.infer<typeof FamilyEvidenceKindSchema>>([
+  "public-contract",
+  "source-contract",
+  "validation-report",
+]);
 
 export async function verifyPublicStructureOfflineFamilyArtifacts(options: {
   rootDir: string;
@@ -533,7 +538,11 @@ export async function verifyPublicStructureOfflineFamilyArtifacts(options: {
   const exampleIds = new Set(counterexamples.examples.map((entry) => entry.exampleId));
   for (const criterion of contract.criteria) {
     for (const evidenceId of criterion.evidenceIds) {
-      if (!evidenceById.has(evidenceId)) throw new Error(`criterion references unknown evidence: ${criterion.criterionId} -> ${evidenceId}`);
+      const evidence = evidenceById.get(evidenceId);
+      if (!evidence) throw new Error(`criterion references unknown evidence: ${criterion.criterionId} -> ${evidenceId}`);
+      if (criterion.role === "necessary-family-condition" && !NECESSARY_FAMILY_EVIDENCE_KINDS.has(evidence.kind)) {
+        throw new Error(`necessary family criterion uses disallowed evidence kind: ${criterion.criterionId} -> ${evidence.kind}`);
+      }
     }
     for (const exampleId of criterion.counterexampleIds) {
       if (!exampleIds.has(exampleId)) throw new Error(`criterion references unknown counterexample: ${criterion.criterionId} -> ${exampleId}`);
@@ -544,8 +553,6 @@ export async function verifyPublicStructureOfflineFamilyArtifacts(options: {
     for (const evidenceId of evidenceIds) {
       if (!evidenceById.has(evidenceId)) throw new Error(`counterexample references unknown evidence: ${example.exampleId} -> ${evidenceId}`);
     }
-    const derived = deriveFamilyResponsibilityAssessment(example.responsibility);
-    if (canonical(derived) !== canonical(example.expectedAssessment)) throw new Error(`counterexample derived assessment drift: ${example.exampleId}`);
   }
   const dataset = deriveFamilyDataset({
     schemaVersion: PUBLIC_STRUCTURE_OFFLINE_FAMILY_DATASET_SCHEMA_VERSION,
@@ -553,6 +560,13 @@ export async function verifyPublicStructureOfflineFamilyArtifacts(options: {
     skillScopes: counterexamples.skillScopes,
     responsibilities: counterexamples.examples.map((entry) => entry.responsibility),
   });
+  const assessmentByResponsibilityId = new Map(dataset.assessments.map((entry) => [entry.responsibilityId, entry]));
+  for (const example of counterexamples.examples) {
+    const derived = assessmentByResponsibilityId.get(example.responsibility.responsibilityId);
+    if (canonical(derived) !== canonical(example.expectedAssessment)) {
+      throw new Error(`counterexample dependency-propagated derived assessment drift: ${example.exampleId}`);
+    }
+  }
   return {
     status: "verified",
     criteria: 9,

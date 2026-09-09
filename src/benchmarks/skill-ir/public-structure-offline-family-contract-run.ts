@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, isAbsolute, resolve } from "node:path";
 import { z } from "zod";
 import { buildPublicStructureOfflineFamilyReport } from "./public-structure-offline-family-contract";
 
@@ -28,11 +28,19 @@ function take(values: Map<string, string>, key: string): string {
   return value;
 }
 
+function parseOutputPath(value: string): string {
+  const portable = value.replaceAll("\\", "/");
+  if (isAbsolute(value) || portable.startsWith("/") || portable.split("/").includes("..")) {
+    throw new Error("--out must be a repository-relative contained output path");
+  }
+  return value;
+}
+
 export function parsePublicStructureOfflineFamilyCommand(argv: string[]): PublicStructureOfflineFamilyCommand {
   const values = optionMap(argv);
   const command = {
     rootDir: take(values, "root"),
-    outputPath: take(values, "out"),
+    outputPath: parseOutputPath(take(values, "out")),
     completedAt: z.string().datetime().parse(take(values, "completed-at")),
   };
   if (values.size > 0) throw new Error(`unknown argument: --${values.keys().next().value}`);

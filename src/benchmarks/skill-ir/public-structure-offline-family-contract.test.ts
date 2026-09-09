@@ -247,10 +247,30 @@ describe("public-structure offline responsibility family", () => {
     await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: roleDrift, counterexamples }))
       .rejects.toThrow(/criterion.*role|engineering/iu);
 
+    const implementationDefinesFamily = structuredClone(contract);
+    implementationDefinesFamily.evidenceFiles.find((entry: { evidenceId: string }) => entry.evidenceId === "classification-handbook-v1").kind = "implementation";
+    await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: implementationDefinesFamily, counterexamples }))
+      .rejects.toThrow(/necessary.*evidence|evidence.*kind/iu);
+
     const candidateOutcomeEvidence = structuredClone(contract);
     candidateOutcomeEvidence.evidenceFiles[0].kind = "candidate-run-result";
     await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: candidateOutcomeEvidence, counterexamples }))
       .rejects.toThrow(/candidate-run-result|invalid enum|invalid_union/iu);
+  });
+
+  test("checks expected assessments after responsibility dependency propagation", async () => {
+    const contract = JSON.parse(await readFile(join(rootDir, contractPath), "utf8"));
+    const counterexamples = JSON.parse(await readFile(join(rootDir, counterexamplesPath), "utf8"));
+    const upstream = counterexamples.examples.find((entry: { exampleId: string }) => entry.exampleId === "pdf-semantic-mapping");
+    const downstream = counterexamples.examples.find((entry: { exampleId: string }) => entry.exampleId === "dependency-verifier-required");
+    downstream.responsibility.skillId = upstream.responsibility.skillId;
+    downstream.responsibility.dependsOnResponsibilityIds = [upstream.responsibility.responsibilityId];
+    downstream.expectedAssessment.skillId = upstream.responsibility.skillId;
+    counterexamples.skillScopes = counterexamples.skillScopes.filter((entry: { skillId: string }) => entry.skillId !== "api-tester-verification");
+    counterexamples.skillScopes.find((entry: { skillId: string }) => entry.skillId === upstream.responsibility.skillId)
+      .responsibilityIds.push(downstream.responsibility.responsibilityId);
+    await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract, counterexamples }))
+      .rejects.toThrow(/propagat|dataset.*assessment|derived assessment drift/iu);
   });
 
   test("builds a development report from bound files without prospective evidence", async () => {
@@ -284,5 +304,18 @@ describe("public-structure offline responsibility family", () => {
     });
     expect(() => parsePublicStructureOfflineFamilyCommand(["--source=unseen.yaml"]))
       .toThrow(/unknown|root|required/iu);
+  });
+
+  test("rejects report output paths that escape the repository root", () => {
+    expect(() => parsePublicStructureOfflineFamilyCommand([
+      "--root=repo",
+      "--out=../outside/report.json",
+      "--completed-at=2026-09-10T12:00:00.000Z",
+    ])).toThrow(/output|relative|contained|escape/iu);
+    expect(() => parsePublicStructureOfflineFamilyCommand([
+      "--root=repo",
+      "--out=D:/outside/report.json",
+      "--completed-at=2026-09-10T12:00:00.000Z",
+    ])).toThrow(/output|relative|contained|escape/iu);
   });
 });
