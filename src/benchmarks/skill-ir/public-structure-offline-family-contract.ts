@@ -578,3 +578,103 @@ export async function verifyPublicStructureOfflineFamilyFiles(options: {
   }
   return verifyPublicStructureOfflineFamilyArtifacts({ rootDir: options.rootDir, contract, counterexamples });
 }
+
+export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_CONTRACT_PATH = "benchmarks/skill-ir/classification/public-structure-offline-family-contract-v1.json" as const;
+export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_COUNTEREXAMPLES_PATH = "benchmarks/skill-ir/classification/public-structure-offline-family-counterexamples-v1.json" as const;
+export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_REPORT_SCHEMA_VERSION = "skill-ir-public-structure-offline-family-report/v1" as const;
+
+export const PublicStructureOfflineFamilyReportSchema = z.object({
+  schemaVersion: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_REPORT_SCHEMA_VERSION),
+  identity: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_IDENTITY),
+  familyId: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_ID),
+  status: z.literal("verified-development-contract"),
+  completedAt: z.string().datetime(),
+  inputs: z.object({
+    contract: z.object({ path: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_CONTRACT_PATH), sha256: Sha256Schema }).strict(),
+    counterexamples: z.object({ path: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_COUNTEREXAMPLES_PATH), sha256: Sha256Schema }).strict(),
+  }).strict(),
+  verification: z.object({
+    status: z.literal("verified"),
+    criteria: z.literal(9),
+    familyNecessaryCriteria: z.literal(7),
+    counterexamples: z.literal(7),
+    evidenceFiles: z.number().int().positive(),
+    skills: z.number().int().positive(),
+  }).strict(),
+  criteria: z.array(FamilyCriterionDefinitionSchema).length(9),
+  assessments: z.array(FamilyResponsibilityAssessmentSchema).length(7),
+  skills: z.array(FamilySkillAggregateSchema).min(1),
+  prospectiveEvidence: z.literal("pending-not-observed"),
+  accounting: z.object({
+    prospectiveResultsUsed: z.literal(0),
+    modelCalls: z.literal(0),
+    businessApiCalls: z.literal(0),
+    paidCalls: z.literal(0),
+    heldOutAccesses: z.literal(0),
+    q1ReservedAccesses: z.literal(0),
+    developmentAgentUsage: z.literal("host-external-not-measured-by-runner"),
+  }).strict(),
+  claimBoundary: z.string().min(1),
+  portableSemanticSha256: Sha256Schema,
+}).strict();
+
+export type PublicStructureOfflineFamilyReport = z.infer<typeof PublicStructureOfflineFamilyReportSchema>;
+
+export async function buildPublicStructureOfflineFamilyReport(options: {
+  rootDir: string;
+  completedAt: string;
+}): Promise<PublicStructureOfflineFamilyReport> {
+  const completedAt = z.string().datetime().parse(options.completedAt);
+  const contractBytes = await readFile(contained(options.rootDir, PUBLIC_STRUCTURE_OFFLINE_FAMILY_CONTRACT_PATH));
+  const counterexampleBytes = await readFile(contained(options.rootDir, PUBLIC_STRUCTURE_OFFLINE_FAMILY_COUNTEREXAMPLES_PATH));
+  const contract = PublicStructureOfflineFamilyContractFileSchema.parse(JSON.parse(contractBytes.toString("utf8")));
+  const counterexamples = PublicStructureOfflineFamilyCounterexamplesFileSchema.parse(JSON.parse(counterexampleBytes.toString("utf8")));
+  const verification = await verifyPublicStructureOfflineFamilyFiles({
+    rootDir: options.rootDir,
+    contractPath: PUBLIC_STRUCTURE_OFFLINE_FAMILY_CONTRACT_PATH,
+    counterexamplesPath: PUBLIC_STRUCTURE_OFFLINE_FAMILY_COUNTEREXAMPLES_PATH,
+  });
+  const dataset = deriveFamilyDataset({
+    schemaVersion: PUBLIC_STRUCTURE_OFFLINE_FAMILY_DATASET_SCHEMA_VERSION,
+    identity: PUBLIC_STRUCTURE_OFFLINE_FAMILY_IDENTITY,
+    skillScopes: counterexamples.skillScopes,
+    responsibilities: counterexamples.examples.map((entry) => entry.responsibility),
+  });
+  const semantic = {
+    schemaVersion: PUBLIC_STRUCTURE_OFFLINE_FAMILY_REPORT_SCHEMA_VERSION,
+    identity: PUBLIC_STRUCTURE_OFFLINE_FAMILY_IDENTITY,
+    familyId: PUBLIC_STRUCTURE_OFFLINE_FAMILY_ID,
+    status: "verified-development-contract" as const,
+    inputs: {
+      contract: { path: PUBLIC_STRUCTURE_OFFLINE_FAMILY_CONTRACT_PATH, sha256: sha256(contractBytes) },
+      counterexamples: { path: PUBLIC_STRUCTURE_OFFLINE_FAMILY_COUNTEREXAMPLES_PATH, sha256: sha256(counterexampleBytes) },
+    },
+    verification: {
+      status: verification.status,
+      criteria: verification.criteria,
+      familyNecessaryCriteria: verification.familyNecessaryCriteria,
+      counterexamples: verification.counterexamples,
+      evidenceFiles: verification.evidenceFiles,
+      skills: verification.skills,
+    },
+    criteria: contract.criteria,
+    assessments: dataset.assessments,
+    skills: dataset.skills,
+    prospectiveEvidence: contract.prospectiveEvidence,
+    accounting: {
+      prospectiveResultsUsed: 0 as const,
+      modelCalls: 0 as const,
+      businessApiCalls: 0 as const,
+      paidCalls: 0 as const,
+      heldOutAccesses: 0 as const,
+      q1ReservedAccesses: 0 as const,
+      developmentAgentUsage: "host-external-not-measured-by-runner" as const,
+    },
+    claimBoundary: contract.claimBoundary,
+  };
+  return PublicStructureOfflineFamilyReportSchema.parse({
+    ...semantic,
+    completedAt,
+    portableSemanticSha256: sha256(Buffer.from(canonical(semantic), "utf8")),
+  });
+}

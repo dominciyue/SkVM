@@ -3,11 +3,13 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   FAMILY_NECESSARY_CRITERION_IDS,
+  buildPublicStructureOfflineFamilyReport,
   deriveFamilyDataset,
   deriveFamilyResponsibilityAssessment,
   verifyPublicStructureOfflineFamilyArtifacts,
   verifyPublicStructureOfflineFamilyFiles,
 } from "./public-structure-offline-family-contract";
+import { parsePublicStructureOfflineFamilyCommand } from "./public-structure-offline-family-contract-run";
 
 const rootDir = process.cwd();
 const contractPath = "benchmarks/skill-ir/classification/public-structure-offline-family-contract-v1.json";
@@ -249,5 +251,38 @@ describe("public-structure offline responsibility family", () => {
     candidateOutcomeEvidence.evidenceFiles[0].kind = "candidate-run-result";
     await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: candidateOutcomeEvidence, counterexamples }))
       .rejects.toThrow(/candidate-run-result|invalid enum|invalid_union/iu);
+  });
+
+  test("builds a development report from bound files without prospective evidence", async () => {
+    await expect(buildPublicStructureOfflineFamilyReport({
+      rootDir,
+      completedAt: "2026-09-10T12:00:00.000Z",
+    })).resolves.toMatchObject({
+      identity: "skill-ir-public-structure-offline-family-contract-development-001",
+      status: "verified-development-contract",
+      verification: { criteria: 9, familyNecessaryCriteria: 7, counterexamples: 7 },
+      accounting: {
+        prospectiveResultsUsed: 0,
+        modelCalls: 0,
+        businessApiCalls: 0,
+        paidCalls: 0,
+        heldOutAccesses: 0,
+        q1ReservedAccesses: 0,
+      },
+    });
+  });
+
+  test("exposes only the fixed report CLI inputs", () => {
+    expect(parsePublicStructureOfflineFamilyCommand([
+      "--root=repo",
+      "--out=results/report.json",
+      "--completed-at=2026-09-10T12:00:00.000Z",
+    ])).toEqual({
+      rootDir: "repo",
+      outputPath: "results/report.json",
+      completedAt: "2026-09-10T12:00:00.000Z",
+    });
+    expect(() => parsePublicStructureOfflineFamilyCommand(["--source=unseen.yaml"]))
+      .toThrow(/unknown|root|required/iu);
   });
 });
