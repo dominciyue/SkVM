@@ -2218,7 +2218,9 @@ operation 资格、repo/lineage/source 去重、12-real+6-synthetic 分母、明
 子进程运行并归档 invocation/stdout/stderr/exit/terminal，120 秒 per-row timeout；state/prefix 在 terminal 后推进，strict verifier 独立复核 lock、
 18 行顺序和 exact output closure。独立审查提出 aggregate timeout 与 journal semantic 两项 finding，现已用累计预算 fail-closed 和
 prepared/dispatched/invocation/exit/stdout 重建闭合；同步重签外层 manifest 不能隐藏 journal 篡改。focused `11/11`、47 assertions 与
-typecheck 通过；此时 unseen source read/prediction/prospective run 仍为 0。
+typecheck 通过。实现提交为 `8a6ed12da5c16f1dca0f18e40e6c3152d9565a0b`；正式 synthetic validation archive 的 6/6 rows
+满足预期（包含 1 个预期 source-coverage fail），strict verifier 返回 `verified`，报告 SHA-256=
+`8fd612c8ff9c5fcd149f31b89ba35686e0c2a74dd99f3a59d146106d5009b8df`。此时 unseen source read/prediction/prospective run 仍为 0。
 
 ## 5. 历史时间估算（不作为当前排期）
 

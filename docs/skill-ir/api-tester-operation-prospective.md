@@ -26,6 +26,11 @@
 
 `synthetic-unresolved-path-item-ref` 的期望严格结果是 `source-coverage-fail`。这是遗漏检测器的预期正向证据，不可改写为候选成功或基础设施失败。
 
+正式 pre-source synthetic validation 归档位于
+`results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation/`。其 `report.json` SHA-256 为
+`8fd612c8ff9c5fcd149f31b89ba35686e0c2a74dd99f3a59d146106d5009b8df`；6/6 rows 达到各自预期，strict verifier 返回
+`verified`，并明确记录 `prospectiveRuns=0`、`realDocumentsRead=0`。
+
 ## 运行与证据
 
 实现入口：

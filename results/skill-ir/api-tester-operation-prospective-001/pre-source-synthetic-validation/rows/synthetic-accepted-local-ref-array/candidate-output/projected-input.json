@@ -1,0 +1,65 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Synthetic accepted local ref array",
+    "version": "1.0.0"
+  },
+  "components": {
+    "parameters": {
+      "Tags": {
+        "name": "tags",
+        "in": "query",
+        "required": true,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKey": []
+    }
+  ],
+  "paths": {
+    "/search": {
+      "get": {
+        "summary": "Search by tags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Tags"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search completed"
+          },
+          "400": {
+            "description": "Invalid tags"
+          },
+          "401": {
+            "description": "Missing API key"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    }
+  }
+}

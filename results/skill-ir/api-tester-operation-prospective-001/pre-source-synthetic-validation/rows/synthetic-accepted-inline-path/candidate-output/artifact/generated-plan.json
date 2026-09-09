@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "api-test-plan/v2",
+  "source": "public-openapi",
+  "framework": "node:test",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/items/{itemId}",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-0-get-items-itemid-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "itemId": "0"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-get-items-itemid-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {}
+          },
+          "expectedStatus": 404,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-get-items-itemid-field-0-1-minLength",
+          "category": "boundary",
+          "request": {
+            "path": {
+              "itemId": "x"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    }
+  ]
+}

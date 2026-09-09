@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "api-test-plan/v2",
+  "source": "public-openapi",
+  "framework": "node:test",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/search",
+      "arrayParameterEncodings": [
+        {
+          "location": "query",
+          "name": "tags",
+          "style": "form",
+          "explode": true,
+          "wireFormat": "repeated-value"
+        }
+      ],
+      "cases": [
+        {
+          "id": "op-0-get-search-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "tags": [
+                "0"
+              ]
+            },
+            "headers": {
+              "X-API-Key": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-get-search-field-0-0-required",
+          "category": "error",
+          "request": {
+            "query": {},
+            "headers": {
+              "X-API-Key": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 400,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-get-search-field-0-1-minItems",
+          "category": "boundary",
+          "request": {
+            "query": {
+              "tags": [
+                "0"
+              ]
+            },
+            "headers": {
+              "X-API-Key": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-get-search-unauthorized",
+          "category": "error",
+          "request": {
+            "query": {
+              "tags": [
+                "0"
+              ]
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    }
+  ]
+}

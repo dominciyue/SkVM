@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-input-inventory/v1",
+  "identity": "skill-ir-api-tester-operation-input-development-001",
+  "bindingId": "prospective-synthetic-rejected-oauth2",
+  "source": {
+    "format": "yaml",
+    "bytes": 500,
+    "sha256": "63cd12958070c00ae6765e4f26f07087aa737342d3b51944c21bd8f539711d56"
+  },
+  "enumeration": {
+    "complete": true,
+    "operations": [
+      {
+        "key": "GET /protected",
+        "method": "GET",
+        "path": "/protected",
+        "locator": "#/paths/~1protected/get",
+        "operationId": null,
+        "summary": "Read protected data",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "401"
+          ]
+        },
+        "security": {
+          "source": "global",
+          "schemeNames": [
+            "OAuth"
+          ]
+        },
+        "references": []
+      }
+    ],
+    "unresolved": []
+  },
+  "operations": [
+    {
+      "source": {
+        "key": "GET /protected",
+        "locator": "#/paths/~1protected/get",
+        "operationId": null,
+        "summary": "Read protected data",
+        "references": [],
+        "method": "GET",
+        "path": "/protected",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "401"
+          ]
+        },
+        "security": {
+          "source": "global",
+          "schemeNames": [
+            "OAuth"
+          ]
+        }
+      },
+      "admission": {
+        "operationKey": "GET /protected",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SECURITY_SCHEME",
+            "category": "semantics-not-preserved",
+            "locator": "#/components/securitySchemes/OAuth",
+            "message": "security scheme OAuth cannot be represented as a request header"
+          },
+          {
+            "code": "UNSUPPORTED_SECURITY_SCOPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1protected/get/security/0/OAuth",
+            "message": "security scopes are unsupported for OAuth"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SECURITY",
+          "message": "UNSUPPORTED_SECURITY: GET /protected security scopes are unsupported",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    }
+  ],
+  "admissionConsistency": {
+    "status": "pass",
+    "errors": []
+  },
+  "dependencyVerification": [],
+  "coverage": {
+    "status": "pass",
+    "errors": [],
+    "sourceOperationCount": 1,
+    "acceptedOperationCount": 0,
+    "checks": {
+      "sourceEnumerationComplete": true,
+      "analyzerExactCoverage": true,
+      "sourceMetadataMatch": true,
+      "projectionExactAcceptedCoverage": true,
+      "contractExactAcceptedCoverage": true,
+      "artifactExactAcceptedCoverage": true
+    },
+    "unresolved": []
+  },
+  "sourceIssues": {
+    "blocking": 0,
+    "advisories": 0,
+    "blockingOperations": [],
+    "advisoryOperations": []
+  },
+  "artifact": {
+    "status": "not-run",
+    "acceptedOperationCount": 0,
+    "checkedOperationCount": 0,
+    "root": null,
+    "runReport": null,
+    "packageManifest": null,
+    "projectedInput": null,
+    "generatedPlan": null,
+    "generatedReport": null,
+    "validationReport": null,
+    "error": null
+  }
+}

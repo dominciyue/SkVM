@@ -1,0 +1,255 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-input-inventory/v1",
+  "identity": "skill-ir-api-tester-operation-input-development-001",
+  "bindingId": "prospective-synthetic-partial-cookie-and-accepted",
+  "source": {
+    "format": "json",
+    "bytes": 799,
+    "sha256": "1dba1e134db9ceab21781c9b8d7b7fdfe8977ee1013b93b691859d354ccec58a"
+  },
+  "enumeration": {
+    "complete": true,
+    "operations": [
+      {
+        "key": "GET /health",
+        "method": "GET",
+        "path": "/health",
+        "locator": "#/paths/~1health/get",
+        "operationId": null,
+        "summary": "Health check",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      {
+        "key": "GET /session",
+        "method": "GET",
+        "path": "/session",
+        "locator": "#/paths/~1session/get",
+        "operationId": null,
+        "summary": "Read session",
+        "parameters": [
+          {
+            "locator": "#/paths/~1session/get/parameters/0",
+            "origin": "operation",
+            "name": "sessionId",
+            "location": "cookie",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "401"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      }
+    ],
+    "unresolved": []
+  },
+  "operations": [
+    {
+      "source": {
+        "key": "GET /health",
+        "locator": "#/paths/~1health/get",
+        "operationId": null,
+        "summary": "Health check",
+        "references": [],
+        "method": "GET",
+        "path": "/health",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        }
+      },
+      "admission": {
+        "operationKey": "GET /health",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/health",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "GET /session",
+        "locator": "#/paths/~1session/get",
+        "operationId": null,
+        "summary": "Read session",
+        "references": [],
+        "method": "GET",
+        "path": "/session",
+        "parameters": [
+          {
+            "locator": "#/paths/~1session/get/parameters/0",
+            "origin": "operation",
+            "name": "sessionId",
+            "location": "cookie",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "401"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        }
+      },
+      "admission": {
+        "operationKey": "GET /session",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_PARAMETER_LOCATION",
+            "category": "unsupported-syntax",
+            "locator": "#/paths/~1session/get/parameters/0/in",
+            "message": "unsupported parameter location cookie"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_PARAMETER",
+          "message": "UNSUPPORTED_PARAMETER: GET /session parameter 0 has unsupported name/location",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    }
+  ],
+  "admissionConsistency": {
+    "status": "pass",
+    "errors": []
+  },
+  "dependencyVerification": [
+    {
+      "operationKey": "GET /health",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    }
+  ],
+  "coverage": {
+    "status": "pass",
+    "errors": [],
+    "sourceOperationCount": 2,
+    "acceptedOperationCount": 1,
+    "checks": {
+      "sourceEnumerationComplete": true,
+      "analyzerExactCoverage": true,
+      "sourceMetadataMatch": true,
+      "projectionExactAcceptedCoverage": true,
+      "contractExactAcceptedCoverage": true,
+      "artifactExactAcceptedCoverage": true
+    },
+    "unresolved": []
+  },
+  "sourceIssues": {
+    "blocking": 0,
+    "advisories": 0,
+    "blockingOperations": [],
+    "advisoryOperations": []
+  },
+  "artifact": {
+    "status": "passed",
+    "acceptedOperationCount": 1,
+    "checkedOperationCount": 1,
+    "root": "artifact",
+    "runReport": {
+      "path": "artifact/run-report.json",
+      "sha256": "98da7a7b180214bed1f2873fcc467dc5bee573038325e19985f86a6f0b087a12"
+    },
+    "packageManifest": {
+      "path": "artifact/artifact/package-manifest.json",
+      "sha256": "8579f1e8df7872b39596021437d0536e61c2596335211be95c4590c42924b2a6"
+    },
+    "projectedInput": {
+      "path": "projected-input.json",
+      "sha256": "88eb1846c5d99070925a8ac62cd8ad6289668167d0700f371eafd7a19083052b"
+    },
+    "generatedPlan": {
+      "path": "artifact/generated-plan.json",
+      "sha256": "2171adc874e73bbdf7255084701635825e298376051443d8b3039196c105c1fd"
+    },
+    "generatedReport": {
+      "path": "artifact/generated-report.json",
+      "sha256": "5c92aa918d5bed084a0437541326dde287ef646d4097a637fa54f33758ae26ca"
+    },
+    "validationReport": {
+      "path": "artifact/validation-report.json",
+      "sha256": "79b145dd71e494650fe186939cbb3e76bbf802b4d126ba600847822ce310788a"
+    },
+    "error": null
+  }
+}
