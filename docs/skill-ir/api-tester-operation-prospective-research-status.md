@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-pre-source-freeze-archive-revision`
+- `currentStage`: `task-2-revision-freeze-pending-push`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `532c7c0dbbbf34f0e99aeed55779330e34fc30d0`
-- `currentCommit`: `task-2-git-archive-gate-working-tree`
+- `lastCompletedCommit`: `fb1068384177c00b11c836ce8d0f1b9fdecf59b6`
+- `currentCommit`: `task-2-revision-freeze-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -39,6 +39,8 @@
 - 重新读取完整目标原文后确认用户已明确授权向用户 `origin` 的开发/实验分支推送；分支随后成功推送，未接触 `upstream`。
 - 推送后的 remote-aware verification 发现更深层的真实失败：validation output manifest 引用 6 个 generator/checker 脚本，但 `.gitignore` 的 `results/skill-ir/**/artifacts/` 规则使它们未进入 execution commit。失败以 `pre-source-freeze-attempt-001/failure.json` 保存；旧 freeze 保留且不得用于 source discovery。
 - 新 RED 首次因缺少 Git archive verifier export 得到 `0 pass / 1 fail / 1 error`。GREEN 新增 pre-write gate：精确比较 validation working closure 与 execution commit path set，并逐文件比较 checkout-filtered Git bytes；focused=`12/12`、48 assertions。尚需提交 6 个已有的 digest-bound ignored files 并创建 revision freeze。
+- Git archive gate、6 个 manifest-bound 生成文件、初版失败证据和文档修订已提交为 `fb1068384177c00b11c836ce8d0f1b9fdecf59b6`；synthetic archive strict verifier 仍为 6/6 verified，typecheck 通过。
+- 新 freeze 为 `benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json`，SHA-256=`4f48859aac73f1d9ec6ea896ed4e1f3a0a06b33aaf1fb3bb517e476334cc07c2`，execution commit=`fb1068384177c00b11c836ce8d0f1b9fdecf59b6`；pre-write Git archive gate 已通过，source state 仍全零。
 
 ## 保留问题
 
@@ -49,10 +51,10 @@
 
 ## 下一条具体动作
 
-精确提交 Git archive gate、失败证据及 6 个已由 validation manifest 绑定的生成文件；随后用该提交创建新的 `pre-source-freeze-revision-001.json`：
+精确提交 revision freeze 和状态文档，推送当前分支后运行 remote-aware strict verification：
 
 ```powershell
-git -c safe.directory=D:/skill优化/SkVM add -f -- results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation/rows/*/candidate-output/artifact/artifact/artifacts
+git -c safe.directory=D:/skill优化/SkVM add -- benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json docs/skill-ir/api-tester-operation-prospective-research-status.md docs/superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md docs/skill-ir/skill-ir-aot-optimization-plan.md docs/skill-ir/api-tester-operation-prospective.md
 ```
 
 revision freeze 提交并推送后运行 remote-aware strict verification。通过前仍不得搜索或读取 unseen source。

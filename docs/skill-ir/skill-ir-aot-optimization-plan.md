@@ -2231,6 +2231,9 @@ freeze 提交为 `532c7c0dbbbf34f0e99aeed55779330e34fc30d0`。首次向 `origin`
 受 `results/skill-ir/**/artifacts/` ignore 规则影响的 generator/checker 文件，而 output manifest 已绑定这些文件；因此初版 freeze 继续作为
 `archive-incomplete` 失败证据，不具备 source discovery 资格。修订先以 RED 固定该 false pre-write acceptance，再增加 working/Git exact path set
 与 checkout-filtered byte gate；只有新的 revision freeze 提交、推送并通过 remote-aware verification 才恢复 Task 2。
+Git archive gate、6 个 manifest-bound 生成文件与失败证据已提交为 `fb1068384177c00b11c836ce8d0f1b9fdecf59b6`。新
+`pre-source-freeze-revision-001.json` 在写入前通过 exact Git closure gate，绑定该 execution commit，文件 SHA-256=
+`4f48859aac73f1d9ec6ea896ed4e1f3a0a06b33aaf1fb3bb517e476334cc07c2`；当前只待 freeze 自身提交、push 与 remote-aware verification。
 
 ## 5. 历史时间估算（不作为当前排期）
 

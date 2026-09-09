@@ -45,6 +45,8 @@ runner 在第 0 行前核验候选闭包、pre-source freeze、selection/predict
 
 `create-pre-source-freeze` 在写 freeze 之前要求 validation working closure 与 execution commit 的 Git tree 路径集合完全一致，并逐文件比较 checkout-filtered Git bytes。这样，output manifest 已绑定但被 `.gitignore` 排除的生成文件不能等到推送后才暴露。初版 `pre-source-freeze.json` 因 6 个 generator/checker 文件未进入其 execution commit 而失效，失败保存在 `results/skill-ir/api-tester-operation-prospective-001/pre-source-freeze-attempt-001/failure.json`；后续只能使用新的 revision freeze，旧文件不覆盖。
 
+有效修订文件为 `benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json`；它绑定包含完整 validation closure 和 Git archive gate 的 execution commit `fb1068384177c00b11c836ce8d0f1b9fdecf59b6`。在 revision freeze 自身提交、推送并通过 remote-aware verifier 之前，仍不得访问真实来源。
+
 ## CLI
 
 以下命令中的路径均相对 `--root`，输出为 write-once：
