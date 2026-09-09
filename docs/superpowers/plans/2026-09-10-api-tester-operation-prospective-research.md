@@ -23,7 +23,9 @@ Task 1 candidate closure
         -> Task 6 final synthesis and verification
 ```
 
-Task 4/5/7 都依赖 Task 3 的实际报告；Task 8 依赖 Task 7 的责任定义；Task 9 依赖 Task 8 的冻结选择；Task 10 依赖 Task 1/3/7 的共同 universe 与现有证据。Task 6 等待全部前项。
+Task 4/5 依赖 Task 3 的实际报告；Task 7 原计划也消费该报告，但在 Task 2 外部 push 门阻塞时依总目标例外，只用已暴露证据先完成并保持
+prospective evidence pending。Task 8 依赖 Task 7 的责任定义；Task 9 依赖 Task 8 的冻结选择；Task 10 依赖 Task 1/3/7 的共同 universe 与现有
+证据。Task 6 等待全部前项。
 
 ## Task 0：计划与恢复基线
 
@@ -104,10 +106,12 @@ Task 4/5/7 都依赖 Task 3 的实际报告；Task 8 依赖 Task 7 的责任定�
 
 ## Task 7：家族定义与责任矩阵
 
-- [ ] 从 Task 3 结果和现有公开能力建立家族 definition、examples/counterexamples、rejection taxonomy。
-- [ ] 分开 task/public evidence/current implementation；分开 verifiable/constructible。
-- [ ] 建立 criteria-source-implementation-verification 机器矩阵和 responsibility-to-skill aggregation。
-- [ ] consistency tests + component/spec/plan 更新；提交 Task 7。
+- [x] 按总目标的独立工作例外，只用现有公开能力和已暴露证据建立 family definition、examples/counterexamples、rejection taxonomy；Task 3
+  仍未发生且没有被假设为成功。
+- [x] 分开 task/public evidence/current implementation；分开 verifiable/constructible。
+- [x] 建立 criteria-source-implementation-verification 机器矩阵和 responsibility-to-skill aggregation。
+- [x] consistency tests + component/spec/plan 更新；实现/报告提交 `a29e2fcb3fec32dece67ff94fac3a98b81d50cce`，机器报告 SHA-256
+  `13c47ba2b96008b742d3ec2201a811b355102c18f0d029d500bdc59d0a00e621`。
 
 验收：家族标准可在不运行候选的情况下应用；每个判定有 locator/evidence；不把当前 API 子集等同于整个家族。
 

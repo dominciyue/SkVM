@@ -2194,7 +2194,7 @@ implementation correctness blocker。source blocker/advisory 可保守保留。�
    synthetic 与旧 development 分母分列。
 5. [ ] 从 Task 3 精确提交建立 detached clean checkout，锁定依赖并只用 committed archive 离线复现；比较语义、覆盖、artifact/checker
    digest，归档后再安全移除 worktree。
-7. [ ] 定义可证伪的 public-structure-driven offline conversion/reporting family、责任矩阵、正反例和拒绝 taxonomy，分开
+7. [x] 定义可证伪的 public-structure-driven offline conversion/reporting family、责任矩阵、正反例和拒绝 taxonomy，分开
    verifiable/constructible 与 family/current implementation。
 8. [ ] 先预注册后分析 40 个真实公开 skill、至少 8 个仓库；完整读取 SKILL 和直接链接资源，按 responsibility 保存证据 locator、
    依赖、分类、missing 与一致性报告，排除 Q1/held-out/pending prospective。
@@ -2234,6 +2234,12 @@ freeze 提交为 `532c7c0dbbbf34f0e99aeed55779330e34fc30d0`。首次向 `origin`
 Git archive gate、6 个 manifest-bound 生成文件与失败证据已提交为 `fb1068384177c00b11c836ce8d0f1b9fdecf59b6`。新
 `pre-source-freeze-revision-001.json` 在写入前通过 exact Git closure gate，绑定该 execution commit，文件 SHA-256=
 `4f48859aac73f1d9ec6ea896ed4e1f3a0a06b33aaf1fb3bb517e476334cc07c2`；当前只待 freeze 自身提交、push 与 remote-aware verification。
+
+Task 7 依据“前置实验阻塞时继续独立家族/语料/文档工作”的目标条款完成，但不假设 Task 3 结果。新增责任级正交合同、9-criterion 来源矩阵、
+7 个已暴露正反例、依赖传播与完整 skill aggregation、strict verifier、固定离线 CLI 和 write-once 机器报告。实际为 5/7 in-family、1/7
+out-of-family、1/7 unknown，4/7 constructible、2/7 current-supported；这些是选择的 retrospective examples，不是比例估计。机器报告 SHA-256=
+`13c47ba2b96008b742d3ec2201a811b355102c18f0d029d500bdc59d0a00e621`，实现/报告提交=`a29e2fcb3fec32dece67ff94fac3a98b81d50cce`；
+focused `10/10`、21 assertions 与 typecheck 通过。Task 2 仍待推送 revision freeze 并 remote-aware verify；unseen source/prediction/run 仍全零。
 
 ## 5. 历史时间估算（不作为当前排期）
 

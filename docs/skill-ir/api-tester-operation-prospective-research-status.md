@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-revision-freeze-pending-push`
+- `currentStage`: `task-2-revision-freeze-pending-push; task-7-independent-work-complete`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `fb1068384177c00b11c836ce8d0f1b9fdecf59b6`
-- `currentCommit`: `task-2-revision-freeze-working-tree`
+- `lastCompletedCommit`: `a29e2fcb3fec32dece67ff94fac3a98b81d50cce`
+- `currentCommit`: `task-7-checkpoint-ready`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -41,6 +41,10 @@
 - 新 RED 首次因缺少 Git archive verifier export 得到 `0 pass / 1 fail / 1 error`。GREEN 新增 pre-write gate：精确比较 validation working closure 与 execution commit path set，并逐文件比较 checkout-filtered Git bytes；focused=`12/12`、48 assertions。尚需提交 6 个已有的 digest-bound ignored files 并创建 revision freeze。
 - Git archive gate、6 个 manifest-bound 生成文件、初版失败证据和文档修订已提交为 `fb1068384177c00b11c836ce8d0f1b9fdecf59b6`；synthetic archive strict verifier 仍为 6/6 verified，typecheck 通过。
 - 新 freeze 为 `benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json`，SHA-256=`4f48859aac73f1d9ec6ea896ed4e1f3a0a06b33aaf1fb3bb517e476334cc07c2`，execution commit=`fb1068384177c00b11c836ce8d0f1b9fdecf59b6`；pre-write Git archive gate 已通过，source state 仍全零。
+- revision freeze 已提交为 `e4c006fe32a6321ce5e4696758d53024c160f6db`；第二次向 origin 推送被安全审查要求新的对话内明确授权，未绕过，故 remote-aware gate 仍未满足。
+- 按总目标“前置实验被阻塞时继续可独立家族定义/语料/文档”的条款完成 Task 7，未假设 Task 3 结果。新合同严格分离 family、公开证据、
+  verifiable/constructible 和 current support；9 criteria、9 evidence files、7 examples、6 skill aggregates 全部由摘要和 locator 现场核验。
+- Task 7 机器报告：`results/skill-ir/public-structure-offline-family-contract-development-001/report.json`，SHA-256=`13c47ba2b96008b742d3ec2201a811b355102c18f0d029d500bdc59d0a00e621`；实现/报告提交=`a29e2fcb3fec32dece67ff94fac3a98b81d50cce`；focused=`10/10`、21 assertions，typecheck 通过。
 
 ## 保留问题
 
@@ -51,10 +55,7 @@
 
 ## 下一条具体动作
 
-精确提交 revision freeze 和状态文档，推送当前分支后运行 remote-aware strict verification：
-
-```powershell
-git -c safe.directory=D:/skill优化/SkVM add -- benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json docs/skill-ir/api-tester-operation-prospective-research-status.md docs/superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md docs/skill-ir/skill-ir-aot-optimization-plan.md docs/skill-ir/api-tester-operation-prospective.md
-```
-
-revision freeze 提交并推送后运行 remote-aware strict verification。通过前仍不得搜索或读取 unseen source。
+为 Task 8 先建立并提交 scope/order/dedup/quota/unit/license/source-locator 预注册和机器 schema；预注册提交前不读取新的公开 skill 内容。随后可按
+总目标明确允许且不依赖 Task 2 的例外开展公开 skill 语料工作，但必须排除 pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
+明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得
+搜索或读取 prospective unseen OpenAPI source。

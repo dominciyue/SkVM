@@ -16,7 +16,7 @@
 - Create: `src/benchmarks/skill-ir/public-structure-offline-family-contract.ts`
 - Create: `src/benchmarks/skill-ir/public-structure-offline-family-contract.test.ts`
 
-- [ ] **Step 1: Write the failing test for orthogonal states**
+- [x] **Step 1: Write the failing test for orthogonal states**
 
 Create fixtures showing: (a) verifiable but not constructible because an external semantic choice is unbound; (b) constructible but currently unsupported because a capability is not new-input-ready; and (c) a source-blocked responsibility whose family criteria remain satisfied.
 
@@ -42,7 +42,7 @@ test("keeps family, evidence, source validity, and current support orthogonal", 
 });
 ```
 
-- [ ] **Step 2: Run the focused test and preserve the expected RED**
+- [x] **Step 2: Run the focused test and preserve the expected RED**
 
 Run:
 
@@ -52,7 +52,7 @@ bun test ./src/benchmarks/skill-ir/public-structure-offline-family-contract.test
 
 Expected: module-not-found failure before production code exists.
 
-- [ ] **Step 3: Implement strict schemas and deterministic derivation**
+- [x] **Step 3: Implement strict schemas and deterministic derivation**
 
 Define the seven fixed family criteria, evidence-basis states, semantic-choice states, capability states, failure attributions, and the raw responsibility input. Implement the following public signature:
 
@@ -83,11 +83,11 @@ const currentSupport = familyMembership === "out-of-family" ? "not-applicable"
 
 Reject candidate outcomes as evidence, require evidence IDs for satisfied/unsatisfied facts, and require named missing evidence for unknown facts.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [x] **Step 4: Run the focused test and verify GREEN**
 
 Expected: all Task 1 tests pass, including false inference from `candidatePassed=true`, an unbound semantic choice, and a missing capability.
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 ```powershell
 git add src/benchmarks/skill-ir/public-structure-offline-family-contract.ts src/benchmarks/skill-ir/public-structure-offline-family-contract.test.ts
@@ -100,7 +100,7 @@ git commit -m "feat(skill-ir): define offline responsibility family"
 - Modify: `src/benchmarks/skill-ir/public-structure-offline-family-contract.ts`
 - Modify: `src/benchmarks/skill-ir/public-structure-offline-family-contract.test.ts`
 
-- [ ] **Step 1: Write failing dependency and aggregation tests**
+- [x] **Step 1: Write failing dependency and aggregation tests**
 
 ```ts
 test("preserves the complete responsibility denominator in skill aggregation", () => {
@@ -117,11 +117,11 @@ test("fails closed on omitted responsibilities and dependency cycles", () => {
 });
 ```
 
-- [ ] **Step 2: Run RED and confirm the functions are absent**
+- [x] **Step 2: Run RED and confirm the functions are absent**
 
 Expected: the new dataset/aggregation functions are undefined or missing exports.
 
-- [ ] **Step 3: Implement graph validation, propagation, and aggregation**
+- [x] **Step 3: Implement graph validation, propagation, and aggregation**
 
 Expose:
 
@@ -135,11 +135,11 @@ export function aggregateFamilySkill(
 
 Require every responsibility to occur exactly once in its skill scope, dependencies to stay in the same skill, and the graph to be acyclic. Propagate `family-membership-unknown` and `out-of-family` to downstream responsibilities before aggregation. Emit `all | mixed | none | incomplete` and all requested counts/failure frequencies.
 
-- [ ] **Step 4: Run GREEN**
+- [x] **Step 4: Run GREEN**
 
 Expected: mixed skill preserves all three units; omission, duplicate ID, cross-skill dependency, and cycle all fail.
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 
 ```powershell
 git add src/benchmarks/skill-ir/public-structure-offline-family-contract.ts src/benchmarks/skill-ir/public-structure-offline-family-contract.test.ts
@@ -154,7 +154,7 @@ git commit -m "feat(skill-ir): aggregate responsibility family evidence"
 - Modify: `src/benchmarks/skill-ir/public-structure-offline-family-contract.ts`
 - Modify: `src/benchmarks/skill-ir/public-structure-offline-family-contract.test.ts`
 
-- [ ] **Step 1: Write failing actual-artifact tests**
+- [x] **Step 1: Write failing actual-artifact tests**
 
 ```ts
 test("verifies every actual criterion and counterexample source locator", async () => {
@@ -169,11 +169,11 @@ test("verifies every actual criterion and counterexample source locator", async 
 
 Add mutation tests for a broken source digest, missing marker, absent necessary criterion, engineering-limit criterion used in membership, and `candidate-run-result` evidence kind.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Expected: files/functions are missing.
 
-- [ ] **Step 3: Implement source-bound file verification**
+- [x] **Step 3: Implement source-bound file verification**
 
 Define exact `CriterionDefinitionSchema`, `EvidenceFileSchema`, `FamilyContractFileSchema`, and `FamilyCounterexampleFileSchema`. Verify that:
 
@@ -184,7 +184,7 @@ source.markers.every((marker) => sourceText.includes(marker));
 
 Require exactly the seven necessary criteria plus `current-capability-readiness` as `current-engineering-limit` and `cross-repository-generalization` as `unverified-hypothesis`. Necessary criteria may only use public-contract/source/validation evidence, never candidate outcomes.
 
-- [ ] **Step 4: Materialize the matrix and seven already-exposed examples**
+- [x] **Step 4: Materialize the matrix and seven already-exposed examples**
 
 Bind exact digests and stable symbol/text markers from:
 
@@ -197,7 +197,7 @@ Bind exact digests and stable symbol/text markers from:
 
 The seven examples are JSON key normalization, changelog capability missing, PDF semantic mapping, OpenAPI design-first information gap, Meilisearch missing reference, Bangumi response-reference advisory, and dependency-verifier mechanism boundary. Mark prospective evidence `pending-not-observed` and do not include it as a source.
 
-- [ ] **Step 5: Run GREEN and commit**
+- [x] **Step 5: Run GREEN and commit**
 
 Expected: actual files verify; all five tamper cases fail at their named layer.
 
@@ -220,7 +220,7 @@ git commit -m "test(skill-ir): bind responsibility family evidence"
 - Modify: `D:/skill优化/project_communication.md`
 - Modify: `D:/skill优化/conversation_log.md`
 
-- [ ] **Step 1: Write the failing CLI/report test**
+- [x] **Step 1: Write the failing CLI/report test**
 
 ```ts
 test("writes a write-once report derived from the bound files", async () => {
@@ -233,7 +233,7 @@ test("writes a write-once report derived from the bound files", async () => {
 });
 ```
 
-- [ ] **Step 2: Run RED, then implement the thin CLI and report builder**
+- [x] **Step 2: Run RED, then implement the thin CLI and report builder**
 
 CLI arguments are fixed and contain no source-selection option:
 
@@ -243,27 +243,27 @@ bun ./src/benchmarks/skill-ir/public-structure-offline-family-contract-run.ts --
 
 The report binds the two input files, source digests, derived example assessments, skill aggregation controls, verification totals, and zero prospective/model/API/paid/held-out/Q1 access.
 
-- [ ] **Step 3: Run GREEN and materialize the report write-once**
+- [x] **Step 3: Run GREEN and materialize the report write-once**
 
 Expected: report status `verified-development-contract`; seven examples; no prospective evidence used.
 
-- [ ] **Step 4: Write component and project documentation**
+- [x] **Step 4: Write component and project documentation**
 
 Document purpose, runtime, types/functions/CLI, family criteria, aggregation, failure modes, tests, source limitations, retrospective status, and modification notes. Update Task 7 status without marking Tasks 2--5 complete. Record that the revision freeze is locally complete but its second push is still externally blocked.
 
-- [ ] **Step 5: Run fresh verification**
+- [x] **Step 5: Run fresh verification**
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/public-structure-offline-family-contract.test.ts
 bun run typecheck
-python -m unittest check_skill_ir_doc_links_test.py
+python scripts/check_skill_ir_doc_links_test.py
 python scripts/check_skill_ir_doc_links.py --root .
 git diff --check
 ```
 
 Expected: focused/typecheck/docs all pass; frozen candidate/v2/old reports unchanged; no new prospective source or result path exists.
 
-- [ ] **Step 6: Exact-stage and commit the Task 7 checkpoint**
+- [x] **Step 6: Exact-stage and commit the Task 7 checkpoint**
 
 Stage only the files listed in Task 4 plus the Task 7 source/test/machine artifacts. Commit:
 

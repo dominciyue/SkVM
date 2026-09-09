@@ -2165,3 +2165,20 @@ operation-level、无独立 dependency verifier/full verifier、complete-respons
 `74338e73a4f6dae389c9d62ce84173c2d1672906` 上从 ordinary-input entry 解析出 11 个本地运行模块，unresolved import 为 0；相对候选 001
 唯一新增的运行依赖是既有 `source-fixture.ts` 和 `api-tester-production-contract.ts`。机器绑定以 `13c5d79` 冻结并经 live verify 通过；候选 001
 九项 implementation digest、v2 支持合同、operation 算法和 `prospectiveRuns=0` 均保持。
+
+### 14.21 Public-structure offline responsibility family development contract
+
+Task 7 采用[独立责任家族合同](public-structure-offline-family-contract.md)，以完整 responsibility 而不是 whole skill 或单一成功操作为分类单元。
+七项必要条件固定为公开可定位输入、明确输出责任、离线确定性变换、公开核验合同、可声明且有界的依赖全集、有界副作用和无未绑定语义决策；
+`current-capability-readiness` 只表示当前工程限制，`cross-repository-generalization` 明确是尚未验证的假设。family membership、verifiability、
+constructibility、source validity、dependency closure 与 current implementation support 必须分列，候选运行结果不能反向定义家族。
+
+机器实现要求每项确定结论绑定 evidence ID、每项 unknown 写出缺失证据；九个来源文件由 SHA-256 与文字/符号 locator 双重绑定。责任依赖必须同
+skill、无环且完整覆盖 scope；skill aggregate 只能是 `all | mixed | none | incomplete`，并保留全部责任和多值失败归因，禁止从局部通过推出整个
+skill 自动化。
+
+2026-09-10 的 retrospective development 报告核验 9 criteria、9 evidence files、7 examples、6 skill aggregates。7 个例中 5 个 in-family、
+1 个 out-of-family、1 个 unknown；4 个 constructible、2 个 current-supported。这只描述已暴露反例集，不是生态比例或 prospective 结果。
+Meilisearch 缺失本地引用仍阻塞对应构造，Bangumi 外部响应引用仍为 advisory；prospective/held-out/Q1/model/business-API/paid 使用全为 0。
+Task 2 revision freeze 的第二次 origin push 仍受外部门阻塞；本 Task 按总目标的独立工作例外完成，不追认 Task 3 已运行，也不放开未见 OpenAPI
+来源访问。
