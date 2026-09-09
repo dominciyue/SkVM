@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-dependency-verification-revision-contract/v1",
+  "identity": "skill-ir-api-tester-operation-dependency-verification-revision-development-001",
+  "createdAt": "2026-09-09T00:00:00.000Z",
+  "reviewBaseline": {
+    "commit": "d2e748868a3c5e88b49cb940d4cd495f7b4dcf68",
+    "task1Report": {
+      "path": "results/skill-ir/api-tester-operation-admission-development-001/report.json",
+      "sha256": "d2fbe27a27b5d7d94f8ab2aeb45c0fb23c610f0bd47d82cdd04ee4bd4c37b2c6",
+      "portableSemanticSha256": "1a14ed36ebc185befcb4f3d2c03f95d89bd1e8a1a89da560a9c6eb35b89a1e87"
+    }
+  },
+  "sourceSelection": {
+    "path": "benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/source-selection.json",
+    "sha256": "0f955e7b029312ca42f0c25692c819f8232908a8bf327632cc83f94ead481905"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "src/skill-ir/api-tester-operation-coverage.ts",
+        "sha256": "4f312dca18aca2bbc20d4f4717e7aa519c9202976451f8a3a993ec457f35f8df"
+      },
+      {
+        "path": "src/skill-ir/api-tester-operation-dependency-verification-revision.ts",
+        "sha256": "6905948d16dd10d2fda7fc5d2ff636da4bb79bca62097e7db0ca0d50cdafbe87"
+      },
+      {
+        "path": "src/skill-ir/api-tester-operation-dependency-verification-revision-run.ts",
+        "sha256": "886e45363a190b161750390958b43ff09b5402cc35d8e21d938410bc77b90ced"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "case": "unchanged-projection-control",
+      "kind": "control",
+      "baselineStatus": "pass",
+      "expectedRepairedStatus": "pass",
+      "expectedErrors": [],
+      "detectorLayer": "dependency-verifier"
+    },
+    {
+      "case": "response-component-schema-drift",
+      "kind": "fault",
+      "baselineStatus": "pass",
+      "expectedRepairedStatus": "fail",
+      "expectedErrors": [
+        "REFERENCE_DEPENDENCY_LOST",
+        "RESPONSE_DEPENDENCY_LOST"
+      ],
+      "detectorLayer": "dependency-verifier"
+    },
+    {
+      "case": "nested-parameter-schema-drift",
+      "kind": "fault",
+      "baselineStatus": "pass",
+      "expectedRepairedStatus": "fail",
+      "expectedErrors": [
+        "PARAMETER_DEPENDENCY_LOST",
+        "REFERENCE_DEPENDENCY_LOST"
+      ],
+      "detectorLayer": "dependency-verifier"
+    },
+    {
+      "case": "same-name-api-key-scheme-drift",
+      "kind": "fault",
+      "baselineStatus": "pass",
+      "expectedRepairedStatus": "fail",
+      "expectedErrors": [
+        "SECURITY_DEPENDENCY_LOST"
+      ],
+      "detectorLayer": "dependency-verifier"
+    }
+  ],
+  "output": {
+    "path": "results/skill-ir/api-tester-operation-dependency-verification-revision-development-001",
+    "replayDirectory": "replay",
+    "reportFile": "report.json",
+    "writeMode": "exclusive-create-once"
+  },
+  "policy": {
+    "realDocuments": 6,
+    "syntheticFaultsCountAsRealSuccess": false,
+    "prospectiveRuns": 0,
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0,
+    "secondProfiles": 0,
+    "q4Runs": 0,
+    "readinessChanges": 0,
+    "networkAllowed": false
+  },
+  "accounting": {
+    "runtimeModelCalls": 0,
+    "runtimeApiCalls": 0,
+    "runtimePaidCalls": 0,
+    "developmentAgentUsage": "host-external-not-measured-by-runner",
+    "developmentSeparateFromRuntime": true
+  }
+}

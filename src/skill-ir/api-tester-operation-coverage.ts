@@ -293,14 +293,175 @@ function effectiveParameterMap(document: JsonRecord, pathItem: JsonRecord, opera
   return map;
 }
 
-function collectRefTargets(value: unknown, result = new Set<string>()): Set<string> {
-  if (Array.isArray(value)) {
-    for (const entry of value) collectRefTargets(entry, result);
-  } else if (isRecord(value)) {
-    if (typeof value.$ref === "string") result.add(value.$ref);
-    for (const [key, entry] of Object.entries(value)) if (key !== "$ref") collectRefTargets(entry, result);
+type DependencyRole = "parameter" | "request" | "response" | "security";
+
+export type ApiTesterProjectionDependencyIssue = {
+  code:
+    | "REFERENCE_EXTERNAL"
+    | "REFERENCE_INVALID_POINTER"
+    | "REFERENCE_MISSING"
+    | "REFERENCE_NON_STRING"
+    | "SECURITY_REQUIREMENT_INVALID"
+    | "SECURITY_SCHEME_MISSING";
+  role: DependencyRole;
+  locator: string;
+  reference: string | null;
+  constructionObligation: boolean;
+};
+
+type DependencyRoot = {
+  role: DependencyRole;
+  locator: string;
+  value: unknown;
+  constructionObligation: boolean;
+};
+
+type DependencyGraph = {
+  nodes: Array<{
+    role: DependencyRole;
+    reference: string;
+    target: string;
+    constructionObligation: boolean;
+  }>;
+  issues: ApiTesterProjectionDependencyIssue[];
+};
+
+function localReferenceTarget(document: JsonRecord, reference: string): {
+  status: "resolved" | "external" | "invalid" | "missing";
+  value?: unknown;
+} {
+  if (!reference.startsWith("#/")) return { status: "external" };
+  const tokens = reference.slice(2).split("/").map(decodeToken);
+  if (tokens.some((token) => token === undefined)) return { status: "invalid" };
+  let value: unknown = document;
+  for (const token of tokens as string[]) {
+    if (!isRecord(value) || !Object.prototype.hasOwnProperty.call(value, token)) return { status: "missing" };
+    value = value[token];
   }
-  return result;
+  return { status: "resolved", value };
+}
+
+function dependencyGraph(document: JsonRecord, roots: DependencyRoot[]): DependencyGraph {
+  const nodes = new Map<string, DependencyGraph["nodes"][number]>();
+  const issues: ApiTesterProjectionDependencyIssue[] = [];
+  const visited = new Set<string>();
+  const walk = (value: unknown, root: DependencyRoot, locator: string): void => {
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => walk(entry, root, `${locator}/${index}`));
+      return;
+    }
+    if (!isRecord(value)) return;
+    if (Object.prototype.hasOwnProperty.call(value, "$ref")) {
+      const referenceLocator = `${locator}/$ref`;
+      if (typeof value.$ref !== "string") {
+        issues.push({
+          code: "REFERENCE_NON_STRING",
+          role: root.role,
+          locator: referenceLocator,
+          reference: null,
+          constructionObligation: root.constructionObligation,
+        });
+      } else {
+        const target = localReferenceTarget(document, value.$ref);
+        if (target.status === "resolved") {
+          const nodeKey = `${root.role}\u0000${value.$ref}`;
+          nodes.set(nodeKey, {
+            role: root.role,
+            reference: value.$ref,
+            target: canonical(target.value),
+            constructionObligation: root.constructionObligation,
+          });
+          if (!visited.has(nodeKey)) {
+            visited.add(nodeKey);
+            walk(target.value, root, value.$ref);
+          }
+        } else {
+          const code = target.status === "external"
+            ? "REFERENCE_EXTERNAL"
+            : target.status === "invalid" ? "REFERENCE_INVALID_POINTER" : "REFERENCE_MISSING";
+          issues.push({
+            code,
+            role: root.role,
+            locator: referenceLocator,
+            reference: value.$ref,
+            constructionObligation: root.constructionObligation,
+          });
+        }
+      }
+    }
+    for (const [key, entry] of Object.entries(value)) {
+      if (key !== "$ref") walk(entry, root, `${locator}/${pointerToken(key)}`);
+    }
+  };
+  roots.forEach((root) => walk(root.value, root, root.locator));
+  return {
+    nodes: [...nodes.values()].sort((left, right) =>
+      compareText(left.role, right.role) || compareText(left.reference, right.reference)),
+    issues: issues.sort((left, right) =>
+      compareText(left.role, right.role) || compareText(left.locator, right.locator) || compareText(left.code, right.code)),
+  };
+}
+
+function issueSignature(issue: ApiTesterProjectionDependencyIssue): string {
+  return canonical({
+    code: issue.code,
+    role: issue.role,
+    reference: issue.reference,
+    constructionObligation: issue.constructionObligation,
+  });
+}
+
+function roleGraphPreserved(source: DependencyGraph, projected: DependencyGraph, role: DependencyRole): boolean {
+  const sourceNodes = source.nodes.filter((node) => node.role === role);
+  const projectedNodes = projected.nodes.filter((node) => node.role === role);
+  const sourceIssues = source.issues.filter((issue) => issue.role === role).map(issueSignature).sort(compareText);
+  const projectedIssues = projected.issues.filter((issue) => issue.role === role).map(issueSignature).sort(compareText);
+  return canonical(sourceNodes) === canonical(projectedNodes)
+    && canonical(sourceIssues) === canonical(projectedIssues);
+}
+
+function effectiveSecurity(document: JsonRecord, operation: JsonRecord): unknown {
+  return Object.prototype.hasOwnProperty.call(operation, "security") ? operation.security : document.security;
+}
+
+function securityDependencies(document: JsonRecord, security: unknown): {
+  schemes: Record<string, string>;
+  roots: DependencyRoot[];
+  issues: ApiTesterProjectionDependencyIssue[];
+} {
+  const schemes: Record<string, string> = {};
+  const roots: DependencyRoot[] = [];
+  const issues: ApiTesterProjectionDependencyIssue[] = [];
+  if (security === undefined) return { schemes, roots, issues };
+  if (!Array.isArray(security) || security.some((requirement) => !isRecord(requirement))) {
+    issues.push({
+      code: "SECURITY_REQUIREMENT_INVALID",
+      role: "security",
+      locator: "#/security",
+      reference: null,
+      constructionObligation: true,
+    });
+    return { schemes, roots, issues };
+  }
+  const names = [...new Set(security.flatMap((requirement) => Object.keys(requirement as JsonRecord)))].sort(compareText);
+  const securitySchemes = isRecord(document.components) && isRecord(document.components.securitySchemes)
+    ? document.components.securitySchemes as JsonRecord : null;
+  for (const name of names) {
+    const locator = `#/components/securitySchemes/${pointerToken(name)}`;
+    if (!securitySchemes || !Object.prototype.hasOwnProperty.call(securitySchemes, name)) {
+      issues.push({
+        code: "SECURITY_SCHEME_MISSING",
+        role: "security",
+        locator,
+        reference: name,
+        constructionObligation: true,
+      });
+      continue;
+    }
+    schemes[name] = canonical(securitySchemes[name]);
+    roots.push({ role: "security", locator, value: securitySchemes[name], constructionObligation: true });
+  }
+  return { schemes, roots, issues };
 }
 
 export function verifyApiTesterProjectionDependencies(input: {
@@ -316,7 +477,17 @@ export function verifyApiTesterProjectionDependencies(input: {
     securityPreserved: boolean;
     requestPreserved: boolean;
     responsesPreserved: boolean;
+    projectionPreservation: boolean;
+    constructionObligations: boolean;
+    sourceValidity: boolean;
   };
+  dimensions: {
+    projectionPreservation: "pass" | "fail";
+    constructionObligations: "pass" | "fail";
+    sourceValidity: "pass" | "fail";
+  };
+  sourceIssues: ApiTesterProjectionDependencyIssue[];
+  projectedIssues: ApiTesterProjectionDependencyIssue[];
   errors: Array<
     | "OPERATION_LOST"
     | "PARAMETER_DEPENDENCY_LOST"
@@ -324,6 +495,7 @@ export function verifyApiTesterProjectionDependencies(input: {
     | "SECURITY_DEPENDENCY_LOST"
     | "REQUEST_DEPENDENCY_LOST"
     | "RESPONSE_DEPENDENCY_LOST"
+    | "SOURCE_DEPENDENCY_INVALID"
   >;
 } {
   if (!isRecord(input.sourceDocument) || !isRecord(input.projectedDocument)) {
@@ -336,8 +508,14 @@ export function verifyApiTesterProjectionDependencies(input: {
         securityPreserved: false,
         requestPreserved: false,
         responsesPreserved: false,
+        projectionPreservation: false,
+        constructionObligations: false,
+        sourceValidity: false,
       },
-      errors: ["OPERATION_LOST", "PARAMETER_DEPENDENCY_LOST", "REFERENCE_DEPENDENCY_LOST", "SECURITY_DEPENDENCY_LOST", "REQUEST_DEPENDENCY_LOST", "RESPONSE_DEPENDENCY_LOST"],
+      dimensions: { projectionPreservation: "fail", constructionObligations: "fail", sourceValidity: "fail" },
+      sourceIssues: [],
+      projectedIssues: [],
+      errors: ["OPERATION_LOST", "PARAMETER_DEPENDENCY_LOST", "REFERENCE_DEPENDENCY_LOST", "SECURITY_DEPENDENCY_LOST", "REQUEST_DEPENDENCY_LOST", "RESPONSE_DEPENDENCY_LOST", "SOURCE_DEPENDENCY_INVALID"],
     };
   }
   const source = operationAt(input.sourceDocument, input.operationKey);
@@ -347,37 +525,60 @@ export function verifyApiTesterProjectionDependencies(input: {
   const projectedParameters = projected && effectiveParameterMap(input.projectedDocument, projected.pathItem, projected.operation);
   const parametersPreserved = operationPresent && sourceParameters !== null && projectedParameters !== null
     && canonical(Object.fromEntries(sourceParameters)) === canonical(Object.fromEntries(projectedParameters));
-  const sourceSecurity = source
-    ? (Object.prototype.hasOwnProperty.call(source.operation, "security") ? source.operation.security : input.sourceDocument.security)
-    : undefined;
-  const projectedSecurity = projected
-    ? (Object.prototype.hasOwnProperty.call(projected.operation, "security") ? projected.operation.security : input.projectedDocument.security)
-    : undefined;
-  const securityPreserved = operationPresent && canonical(sourceSecurity) === canonical(projectedSecurity);
+  const sourceSecurity = source ? effectiveSecurity(input.sourceDocument, source.operation) : undefined;
+  const projectedSecurity = projected ? effectiveSecurity(input.projectedDocument, projected.operation) : undefined;
+  const sourceSecurityDependencies = securityDependencies(input.sourceDocument, sourceSecurity);
+  const projectedSecurityDependencies = securityDependencies(input.projectedDocument, projectedSecurity);
+  const sourceRoots: DependencyRoot[] = source ? [
+    { role: "parameter", locator: `${input.operationKey}/parameters`, value: [source.pathItem.parameters, source.operation.parameters], constructionObligation: true },
+    { role: "request", locator: `${input.operationKey}/requestBody`, value: source.operation.requestBody, constructionObligation: true },
+    { role: "response", locator: `${input.operationKey}/responses`, value: source.operation.responses, constructionObligation: false },
+    ...sourceSecurityDependencies.roots,
+  ] : [];
+  const projectedRoots: DependencyRoot[] = projected ? [
+    { role: "parameter", locator: `${input.operationKey}/parameters`, value: [projected.pathItem.parameters, projected.operation.parameters], constructionObligation: true },
+    { role: "request", locator: `${input.operationKey}/requestBody`, value: projected.operation.requestBody, constructionObligation: true },
+    { role: "response", locator: `${input.operationKey}/responses`, value: projected.operation.responses, constructionObligation: false },
+    ...projectedSecurityDependencies.roots,
+  ] : [];
+  const sourceGraph = dependencyGraph(input.sourceDocument, sourceRoots);
+  const projectedGraph = dependencyGraph(input.projectedDocument, projectedRoots);
+  sourceGraph.issues.push(...sourceSecurityDependencies.issues);
+  projectedGraph.issues.push(...projectedSecurityDependencies.issues);
+  const parameterGraphPreserved = roleGraphPreserved(sourceGraph, projectedGraph, "parameter");
+  const requestGraphPreserved = roleGraphPreserved(sourceGraph, projectedGraph, "request");
+  const responseGraphPreserved = roleGraphPreserved(sourceGraph, projectedGraph, "response");
+  const securityGraphPreserved = roleGraphPreserved(sourceGraph, projectedGraph, "security");
+  const parametersWithGraphPreserved = parametersPreserved && parameterGraphPreserved;
+  const securityPreserved = operationPresent
+    && canonical(sourceSecurity) === canonical(projectedSecurity)
+    && canonical(sourceSecurityDependencies.schemes) === canonical(projectedSecurityDependencies.schemes)
+    && securityGraphPreserved;
   const requestPreserved = operationPresent
-    && canonical(source?.operation.requestBody) === canonical(projected?.operation.requestBody);
+    && canonical(source?.operation.requestBody) === canonical(projected?.operation.requestBody)
+    && requestGraphPreserved;
   const responsesPreserved = operationPresent
-    && canonical(source?.operation.responses) === canonical(projected?.operation.responses);
-  const relevantRefs = source ? collectRefTargets([source.pathItem.parameters, source.operation.parameters, source.operation.requestBody]) : new Set<string>();
-  if (sourceSecurity !== undefined) {
-    const schemes = isRecord(input.sourceDocument.components) && isRecord(input.sourceDocument.components.securitySchemes)
-      ? input.sourceDocument.components.securitySchemes as JsonRecord : {};
-    const names = Array.isArray(sourceSecurity)
-      ? sourceSecurity.flatMap((entry) => isRecord(entry) ? Object.keys(entry) : []) : [];
-    for (const name of names) collectRefTargets(schemes[name], relevantRefs);
-  }
-  const referencesPreserved = [...relevantRefs].every((ref) => {
-    const before = resolveRef(input.sourceDocument as JsonRecord, ref);
-    const after = resolveRef(input.projectedDocument as JsonRecord, ref);
-    return before !== undefined && after !== undefined && canonical(before) === canonical(after);
-  });
+    && canonical(source?.operation.responses) === canonical(projected?.operation.responses)
+    && responseGraphPreserved;
+  const referencesPreserved = parameterGraphPreserved && requestGraphPreserved
+    && responseGraphPreserved && securityGraphPreserved;
+  const sourceIssues = sourceGraph.issues.sort((left, right) => compareText(left.locator, right.locator));
+  const projectedIssues = projectedGraph.issues.sort((left, right) => compareText(left.locator, right.locator));
+  const sourceValidity = sourceIssues.length === 0;
+  const constructionObligations = operationPresent && parametersWithGraphPreserved && requestPreserved && securityPreserved
+    && ![...sourceIssues, ...projectedIssues].some((issue) => issue.constructionObligation);
+  const projectionPreservation = operationPresent && parametersWithGraphPreserved && referencesPreserved
+    && securityPreserved && requestPreserved && responsesPreserved;
   const checks = {
     operationPresent,
-    parametersPreserved,
+    parametersPreserved: parametersWithGraphPreserved,
     referencesPreserved,
     securityPreserved,
     requestPreserved,
     responsesPreserved,
+    projectionPreservation,
+    constructionObligations,
+    sourceValidity,
   };
   const errors: Array<
     | "OPERATION_LOST"
@@ -386,12 +587,25 @@ export function verifyApiTesterProjectionDependencies(input: {
     | "SECURITY_DEPENDENCY_LOST"
     | "REQUEST_DEPENDENCY_LOST"
     | "RESPONSE_DEPENDENCY_LOST"
+    | "SOURCE_DEPENDENCY_INVALID"
   > = [];
   if (!operationPresent) errors.push("OPERATION_LOST");
-  if (!parametersPreserved) errors.push("PARAMETER_DEPENDENCY_LOST");
+  if (!parametersWithGraphPreserved) errors.push("PARAMETER_DEPENDENCY_LOST");
   if (!referencesPreserved) errors.push("REFERENCE_DEPENDENCY_LOST");
   if (!securityPreserved) errors.push("SECURITY_DEPENDENCY_LOST");
   if (!requestPreserved) errors.push("REQUEST_DEPENDENCY_LOST");
   if (!responsesPreserved) errors.push("RESPONSE_DEPENDENCY_LOST");
-  return { status: errors.length === 0 ? "pass" : "fail", checks, errors };
+  if (sourceIssues.some((issue) => issue.constructionObligation)) errors.push("SOURCE_DEPENDENCY_INVALID");
+  return {
+    status: projectionPreservation && constructionObligations ? "pass" : "fail",
+    checks,
+    dimensions: {
+      projectionPreservation: projectionPreservation ? "pass" : "fail",
+      constructionObligations: constructionObligations ? "pass" : "fail",
+      sourceValidity: sourceValidity ? "pass" : "fail",
+    },
+    sourceIssues,
+    projectedIssues,
+    errors,
+  };
 }

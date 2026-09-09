@@ -41,6 +41,58 @@ const SOURCE = {
   },
 };
 
+const TRANSITIVE_DEPENDENCY_SOURCE = {
+  openapi: "3.1.0",
+  info: { title: "transitive coverage", version: "1" },
+  security: [{ ApiKey: [] }],
+  components: {
+    parameters: {
+      Limit: {
+        name: "limit",
+        in: "query",
+        required: false,
+        schema: { $ref: "#/components/schemas/LimitValue" },
+      },
+    },
+    responses: {
+      ItemResponse: {
+        description: "ok",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ItemPayload" },
+          },
+        },
+      },
+    },
+    schemas: {
+      ItemPayload: { type: "string" },
+      LimitValue: { type: "integer", minimum: 1 },
+    },
+    securitySchemes: {
+      ApiKey: { type: "apiKey", in: "header", name: "X-API-Key" },
+    },
+  },
+  paths: {
+    "/items": {
+      get: {
+        operationId: "listItems",
+        parameters: [{ $ref: "#/components/parameters/Limit" }],
+        responses: {
+          "200": { $ref: "#/components/responses/ItemResponse" },
+          "400": { description: "bad" },
+          "401": { description: "unauthorized" },
+        },
+      },
+    },
+  },
+};
+
+function transitiveDependencyFixture() {
+  const parsed = parseApiTesterOperationSource(JSON.stringify(TRANSITIVE_DEPENDENCY_SOURCE), "json");
+  const projection = projectApiTesterOperation(parsed.document, "GET /items");
+  return { sourceDocument: parsed.document, projectedDocument: projection.document };
+}
+
 function rows() {
   return [
     {
@@ -166,5 +218,103 @@ describe("API Tester independent operation coverage", () => {
       operationKey: "GET /items",
       projectedDocument: missingSecurity,
     }).errors).toContain("SECURITY_DEPENDENCY_LOST");
+  });
+
+  test("passes an unchanged projection with transitive dependencies", () => {
+    expect(verifyApiTesterProjectionDependencies({
+      ...transitiveDependencyFixture(),
+      operationKey: "GET /items",
+    })).toMatchObject({
+      status: "pass",
+      dimensions: {
+        projectionPreservation: "pass",
+        constructionObligations: "pass",
+        sourceValidity: "pass",
+      },
+      errors: [],
+    });
+  });
+
+  test("detects response component schema drift through a transitive reference", () => {
+    const fixture = transitiveDependencyFixture();
+    const schemas = (fixture.projectedDocument.components as Record<string, unknown>).schemas as Record<string, Record<string, unknown>>;
+    schemas.ItemPayload!.type = "integer";
+    const report = verifyApiTesterProjectionDependencies({ ...fixture, operationKey: "GET /items" });
+    expect(report.status).toBe("fail");
+    expect(report.dimensions).toEqual({
+      projectionPreservation: "fail",
+      constructionObligations: "pass",
+      sourceValidity: "pass",
+    });
+    expect(report.errors).toEqual(expect.arrayContaining(["REFERENCE_DEPENDENCY_LOST", "RESPONSE_DEPENDENCY_LOST"]));
+  });
+
+  test("detects nested schema dependency drift inside a referenced parameter", () => {
+    const fixture = transitiveDependencyFixture();
+    const schemas = (fixture.projectedDocument.components as Record<string, unknown>).schemas as Record<string, Record<string, unknown>>;
+    schemas.LimitValue!.minimum = 99;
+    const report = verifyApiTesterProjectionDependencies({ ...fixture, operationKey: "GET /items" });
+    expect(report.status).toBe("fail");
+    expect(report.dimensions.constructionObligations).toBe("fail");
+    expect(report.errors).toEqual(expect.arrayContaining(["PARAMETER_DEPENDENCY_LOST", "REFERENCE_DEPENDENCY_LOST"]));
+  });
+
+  test("detects same-name effective apiKey security-scheme drift", () => {
+    const fixture = transitiveDependencyFixture();
+    const securitySchemes = (fixture.projectedDocument.components as Record<string, unknown>).securitySchemes as Record<string, Record<string, unknown>>;
+    securitySchemes.ApiKey!.name = "X-Other";
+    const report = verifyApiTesterProjectionDependencies({ ...fixture, operationKey: "GET /items" });
+    expect(report.status).toBe("fail");
+    expect(report.dimensions.constructionObligations).toBe("fail");
+    expect(report.errors).toContain("SECURITY_DEPENDENCY_LOST");
+  });
+
+  test("detects transitive drift through shared cyclic schema references without recursing forever", () => {
+    const source = structuredClone(TRANSITIVE_DEPENDENCY_SOURCE);
+    source.components.schemas.ItemPayload = {
+      type: "object",
+      properties: {
+        next: { $ref: "#/components/schemas/ItemPayload" },
+        limit: { $ref: "#/components/schemas/LimitValue" },
+      },
+    } as unknown as { type: string };
+    const parsed = parseApiTesterOperationSource(JSON.stringify(source), "json");
+    const projection = projectApiTesterOperation(parsed.document, "GET /items");
+    const schemas = (projection.document.components as Record<string, unknown>).schemas as Record<string, Record<string, unknown>>;
+    schemas.LimitValue!.maximum = 100;
+    const report = verifyApiTesterProjectionDependencies({
+      sourceDocument: parsed.document,
+      operationKey: "GET /items",
+      projectedDocument: projection.document,
+    });
+    expect(report.status).toBe("fail");
+    expect(report.errors).toEqual(expect.arrayContaining(["PARAMETER_DEPENDENCY_LOST", "RESPONSE_DEPENDENCY_LOST"]));
+  });
+
+  test("reports an unchanged missing response target as source-invalid but not a construction obligation", () => {
+    const source = structuredClone(TRANSITIVE_DEPENDENCY_SOURCE);
+    source.paths["/items"].get.responses["200"].$ref = "#/components/responses/Missing";
+    const parsed = parseApiTesterOperationSource(JSON.stringify(source), "json");
+    const projection = projectApiTesterOperation(parsed.document, "GET /items");
+    const report = verifyApiTesterProjectionDependencies({
+      sourceDocument: parsed.document,
+      operationKey: "GET /items",
+      projectedDocument: projection.document,
+    });
+    expect(report).toMatchObject({
+      status: "pass",
+      dimensions: {
+        projectionPreservation: "pass",
+        constructionObligations: "pass",
+        sourceValidity: "fail",
+      },
+      sourceIssues: [{
+        code: "REFERENCE_MISSING",
+        role: "response",
+        reference: "#/components/responses/Missing",
+        constructionObligation: false,
+      }],
+      errors: [],
+    });
   });
 });

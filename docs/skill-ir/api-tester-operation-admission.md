@@ -60,6 +60,28 @@ scheme 定义；因此旧 Task 2 的九类 fault 通过不能继续表述为完�
 [dependency revision plan](../superpowers/plans/2026-09-09-api-tester-operation-dependency-verification-revision.md)。旧报告不改写；新 identity
 以一项不变 control、三项已确认 false pass、同六来源重跑和新的 clean checkout 复现追加时间序列证据。
 
+修订后的 `verifyApiTesterProjectionDependencies` 从 source/projected operation 自行建立四类 root：effective parameter、request、response、
+effective security scheme。每个 local ref target 以 canonical raw value 形成图节点，target 内嵌 ref 继续扩展；`(role, pointer)` visited key
+使共享 target 与递归 cycle 有界。返回值在既有六个 preservation checks 之外增加：
+
+- `dimensions.projectionPreservation`：四类 roots 与 reachable target 是否保持；
+- `dimensions.constructionObligations`：parameter/request/security 的构造义务是否有效并保持；
+- `dimensions.sourceValidity`：所遇 reference/scheme 能否在 source 中有效定位；
+- `sourceIssues` / `projectedIssues`：带 role、locator、reference 和 construction-obligation flag 的独立问题。
+
+response payload ref 明确不计 v2 construction obligation：相同但缺失的 response target 可令 source validity fail 而 construction obligations
+保持 pass；一旦可解析 target 在 projection 中漂移，projection preservation、response 与 reference checks 必须 fail。新的运行入口为：
+
+```powershell
+bun ./src/skill-ir/api-tester-operation-dependency-verification-revision-run.ts `
+  --root=. --cache-root=<six-source-offline-cache> --node=<node.exe> --git=git --out=<fresh-result> `
+  [--clean-root=<detached-revision-checkout> --clean-report=<relative-clean-report>]
+```
+
+不提供 clean 参数时生成 reproduction-only report；最终 development checkout 运行同时读取 detached report，把 clean comparison 闭合到主报告。
+所有输出均要求新目录、write-once，并由 strict verifier 重新核对 implementation digests、旧 Task 1、fresh replay、六 inventories、artifact
+closure、三项 detector 和 source blocker。
+
 ## Task 1 runner、报告与严格核验
 
 `src/skill-ir/api-tester-operation-development.ts` 提供 `runApiTesterOperationDevelopment`、

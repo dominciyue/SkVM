@@ -10,25 +10,25 @@
 
 ## Task 1: Freeze the revision contract and RED evidence
 
-- [ ] Add the unchanged-projection control and three required mutation tests: response component type drift, nested parameter-schema constraint drift, and same-name apiKey header-name drift.
-- [ ] Run only the focused coverage test and retain evidence that all three mutations falsely pass at review baseline `d2e748868a3c5e88b49cb940d4cd495f7b4dcf68` while the control passes.
-- [ ] Add a shared/cyclic local-reference regression so closure traversal is bounded and transitive changes are observable.
-- [ ] Define the new identity, contract, output paths, exact old-report binding, fault registry, six-source boundary, zero-runtime-call accounting, and clean-reproduction fields.
+- [x] Add the unchanged-projection control and three required mutation tests: response component type drift, nested parameter-schema constraint drift, and same-name apiKey header-name drift.
+- [x] Run only the focused coverage test and retain evidence that all three mutations falsely pass at review baseline `d2e748868a3c5e88b49cb940d4cd495f7b4dcf68` while the control passes.
+- [x] Add a shared/cyclic local-reference regression so closure traversal is bounded and transitive changes are observable.
+- [x] Define the new identity, contract, output paths, exact old-report binding, fault registry, six-source boundary, zero-runtime-call accounting, and clean-reproduction fields.
 
 ## Task 2: Implement the minimal verifier repair
 
-- [ ] Derive operation roots independently from source/projected documents; do not consume analyzer or constructor inventories.
-- [ ] Compare effective parameters, request, responses, global/operation security requirements, named security-scheme definitions, and every reachable local-reference target.
-- [ ] Traverse shared/cyclic dependencies with visited graph nodes. Record missing/external/invalid targets instead of guessing them.
-- [ ] Separate projection preservation, construction obligations, and source validity in the report while retaining compatible coarse failure codes.
-- [ ] Run the focused tests to GREEN, followed by source/admission/development/validation regression and typecheck.
+- [x] Derive operation roots independently from source/projected documents; do not consume analyzer or constructor inventories.
+- [x] Compare effective parameters, request, responses, global/operation security requirements, named security-scheme definitions, and every reachable local-reference target.
+- [x] Traverse shared/cyclic dependencies with visited graph nodes. Record missing/external/invalid targets instead of guessing them.
+- [x] Separate projection preservation, construction obligations, and source validity in the report while retaining compatible coarse failure codes.
+- [x] Run the focused tests to GREEN, followed by source/admission/development/validation regression and typecheck.
 
 ## Task 3: Add the revision-development runner and strict verifier
 
-- [ ] RED-test contract/report schema, exact baseline/report bindings, the one-control/three-miss registry, repaired detector outcomes, dynamic old/fresh comparisons, source-blocker retention, accounting, and write-once output.
-- [ ] Implement a CLI that verifies the baseline report, reruns the same six digest-bound sources through the repaired development pipeline into `<result>/replay`, and writes a new revision report without touching old results.
-- [ ] Compare per-document operation keys/statuses/dependency results plus aggregate operation universe, admission, checker-pass counts, and obligation coverage. Derive expected values from the verified old report; never encode `112` as a required result.
-- [ ] Strictly re-read every new report/inventory/artifact and reject binding or portable-digest drift.
+- [x] RED-test contract/report schema, exact baseline/report bindings, the one-control/three-miss registry, repaired detector outcomes, dynamic old/fresh comparisons, source-blocker retention, accounting, and write-once output.
+- [x] Implement a CLI that verifies the baseline report, reruns the same six digest-bound sources through the repaired development pipeline into `<result>/replay`, and writes a new revision report without touching old results.
+- [x] Compare per-document operation keys/statuses/dependency results plus aggregate operation universe, admission, checker-pass counts, and obligation coverage. Derive expected values from the verified old report; never encode `112` as a required result.
+- [x] Strictly re-read every new report/inventory/artifact and reject binding or portable-digest drift.
 
 ## Task 4: Execute and reproduce the revision
 
