@@ -2142,6 +2142,31 @@ candidate 的 development 条件，但不授权选择/读取/执行 unseen input
 portable digest 冒充精确提交证据。
 机器结果与同步文档已本地提交为 `d140f2097b7fba7929068d8479bb66fbe5020d80`；未推送。
 
+### 4.48 API Tester 操作级普通输入交付与候选冻结
+
+**授权与边界：** 按[设计](../superpowers/specs/2026-09-09-api-tester-operation-delivery-freeze-design.md)和
+[执行计划](../superpowers/plans/2026-09-09-api-tester-operation-delivery-freeze.md)一次完成缺档补证、普通输入入口、同方法验证、候选冻结和
+clean 归档。旧六来源 runner、冻结 v1/v2 与 001/002、Task 1/Task 2/dependency-revision evidence、whole-document `0/6`、readiness 和人工
+效果结论全部只读。只使用六份已暴露来源与 synthetic fixture，运行时 model/API/paid 为 0。
+
+1. [x] 搜索旧 `clean-002` 路径和摘要；确认没有可恢复副本后，登记旧路径/SHA 为缺失原始归档，不覆盖旧主报告。
+2. [ ] TDD 新增 manifest-driven 普通输入模块/CLI：manifest 绑定 path/format/bytes/digest/output；无旧 selection/lock/report/row-count 依赖，
+   复用 source/admission/projection、独立 coverage/dependency 与 v2 generator/checker，保存 exact output closure。
+3. [ ] 建立严格 verifier，从原始输入独立重建 universe，核对准入元数据、accepted set、dependency dimensions、normalized contract、artifact
+   operation 和闭包 digest；验证 omission/duplicate/dependency/artifact/binding/closure tamper 均在指定层 fail closed。
+4. [ ] 用同一入口执行六份已暴露来源和必要 synthetic。动态比较现有 repaired evidence；保留 Meilisearch construction blocker 与 Bangumi
+   source-validity advisories，局部 pass 不写成 document/live API success。
+5. [ ] 冻结 `skill-ir-api-tester-operation-candidate-001` 的实际入口、方法组件、v2 product、helpers、dependency lock 与 runtime。冻结状态为
+   `inputSelection=not-started`、`predictions=not-authored`、`prospectiveRuns=0`，不得出现未见 row/prediction。
+6. [ ] 从候选提交创建 detached clean checkout，锁定离线安装，完整归档六输入/license、六次普通入口输出、strict verification 和新的
+   dependency-revision reproduction-only closure；新 evidence 绑定所有 digest、Git/runtime 与旧缺档说明。
+7. [ ] 完成 focused/`src/skill-ir`/typecheck/docs/frozen/path/secret/diff/独立审查，更新组件/状态/报告/三份外层记录并本地提交。随后停止
+   development 扩展；未来 prospective 只提出单独预登记建议，不在本阶段选择、预测或运行。
+
+**完成门：** 普通输入无需旧六行身份即可被同一流程完整分析；六个 exposed 输入与当前 repaired evidence 的 universe/admission/checker/
+obligation/dependency 语义一致；新 clean evidence 的完整 bytes 可由仓库内 strict verifier 重验；候选 closure 与 runtime/lock 全绑定；没有
+implementation correctness blocker。source blocker/advisory 可保守保留。旧缺失 clean 只能由新 identity 的追加证据补充，不能追认原件已归档。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

@@ -2094,3 +2094,24 @@ detached clean checkout 在 Windows x64、Bun 1.3.14、Node v23.8.0 下锁定离
 `5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036`；最终 report portable digest 为
 `206bdea5809c322fa01bf10ffe6af408abf0a081f9ed8813d0cdda1a347cc98c`。
 独立审查另发现 strict verifier 需要闭合 report revision 与被验证 checkout；最终实现已要求 live Git commit 与 detached 状态精确匹配。
+
+### 14.19 API Tester 操作级普通输入交付与候选冻结合同
+
+2026-09-09 的冻结准备阶段只补两个交付缺口：新增不依赖旧六行 selection/lock/result 的普通输入 operation 入口，并用新 identity
+完整归档可重新核验的 clean evidence。旧固定六来源 runner、旧 Task 1/Task 2/dependency-revision 报告及其摘要均不可修改；尤其旧主报告
+引用但已缺失的 `clean-002/report.json` 和 SHA-256 必须原样保留并记为 `missing-unarchived-original`，不得用新运行覆盖旧摘要或称其仍可现场核验。
+
+**普通输入合同。** 新入口只从 manifest 获取 caller binding id、safe-relative 输入路径、`json`/`yaml`、bytes/SHA-256 和写一次输出目录，
+并固定支持合同为 `api-tester-openapi-subset-v2`。入口组合已有 source/admission/projection、独立 raw-source coverage/dependency verifier 与
+v2 artifact/generator/checker；不得读取旧六行 identity、预期成功数或结果，也不得按来源、仓库、row/path 写成功分支。输出必须包含全 operation
+inventory、准入/依赖/coverage、可选聚合投影及 v2 artifact/checker closure，并由 strict verifier 从原始字节和 exact output closure 重新核验。
+
+**冻结与新 clean 证据。** 候选绑定实际入口与上述方法组件、路径/摘要工具、`package.json`、`bun.lock`、Bun/Node 版本和不变的 v2 支持/
+主张边界。候选冻结时必须明确 `inputSelection=not-started`、`predictions=not-authored`、`prospectiveRuns=0`，不得编造 row 或预测。随后从该
+明确提交建立 detached clean checkout，用锁定离线依赖与六份已暴露来源完成同一入口和 dependency-revision reproduction-only 重放；新 evidence
+identity 完整归档输入、license、普通入口输出、revision replay 和每个 digest，使后续无需临时 worktree 即可读取原始新证据。
+
+**保留结论。** Meilisearch 缺失 `#/components/parameters/total` 继续阻塞对应 operation 构造；Bangumi external response refs 继续是
+non-construction source-validity advisory。局部 artifact pass 不等于完整文档或真实 API 行为通过；原 whole-document `0/6`、readiness 与
+人工效果结论不变。只允许六份已暴露来源和 deterministic synthetic；不运行冻结 001/002、不读 held-out/Q1 reserve、不启 prospective/
+第二 profile/Q4、不联网或调用模型/API/付费、不扩 v2 支持面。两个缺口闭合后停止开发扩展，未见输入须以后单独预登记。
