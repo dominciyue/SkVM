@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   FAMILY_NECESSARY_CRITERION_IDS,
+  deriveFamilyDataset,
   deriveFamilyResponsibilityAssessment,
 } from "./public-structure-offline-family-contract";
 
@@ -84,6 +85,31 @@ function sourceBlockedFixture() {
   };
 }
 
+function outOfFamilyResponsibility(responsibilityId: string) {
+  const value = structuredClone(baseResponsibility());
+  value.responsibilityId = responsibilityId;
+  value.criterionAssessments[2] = {
+    criterionId: "offline-deterministic-transformation",
+    ...fact("unsatisfied"),
+  };
+  return value;
+}
+
+function mixedSkillFixture() {
+  const included = baseResponsibility();
+  const excludedA = outOfFamilyResponsibility("skill-a/live-service-state");
+  const excludedB = outOfFamilyResponsibility("skill-a/free-form-business-policy");
+  return {
+    schemaVersion: "skill-ir-public-structure-offline-family-dataset/v1" as const,
+    identity: "skill-ir-public-structure-offline-family-contract-development-001" as const,
+    skillScopes: [{
+      skillId: "skill-a",
+      responsibilityIds: [included.responsibilityId, excludedA.responsibilityId, excludedB.responsibilityId],
+    }],
+    responsibilities: [included, excludedA, excludedB],
+  };
+}
+
 describe("public-structure offline responsibility family", () => {
   test("keeps family, evidence, source validity, and current support orthogonal", () => {
     expect(deriveFamilyResponsibilityAssessment(verifiableOnlyFixture())).toMatchObject({
@@ -126,5 +152,50 @@ describe("public-structure offline responsibility family", () => {
     const unnamedUnknown = baseResponsibility();
     unnamedUnknown.verificationBasis = { status: "unknown", evidenceIds: [], missingEvidence: [] };
     expect(() => deriveFamilyResponsibilityAssessment(unnamedUnknown)).toThrow(/missing evidence|unknown/iu);
+  });
+
+  test("preserves the complete responsibility denominator in skill aggregation", () => {
+    const result = deriveFamilyDataset(mixedSkillFixture());
+    expect(result.skills).toHaveLength(1);
+    expect(result.skills[0]).toMatchObject({
+      skillId: "skill-a",
+      disposition: "mixed",
+      totals: {
+        responsibilities: 3,
+        inFamily: 1,
+        outOfFamily: 2,
+        unknown: 0,
+        verifiable: 3,
+        constructible: 3,
+        currentSupported: 1,
+      },
+    });
+  });
+
+  test("fails closed on omitted responsibilities and dependency cycles", () => {
+    const omitted = mixedSkillFixture();
+    omitted.skillScopes[0]!.responsibilityIds.pop();
+    expect(() => deriveFamilyDataset(omitted)).toThrow(/denominator|scope/iu);
+
+    const cyclic = mixedSkillFixture();
+    cyclic.responsibilities = cyclic.responsibilities.slice(0, 2);
+    cyclic.skillScopes[0]!.responsibilityIds = cyclic.responsibilities.map((entry) => entry.responsibilityId);
+    cyclic.responsibilities[0]!.dependsOnResponsibilityIds = [cyclic.responsibilities[1]!.responsibilityId];
+    cyclic.responsibilities[1]!.dependsOnResponsibilityIds = [cyclic.responsibilities[0]!.responsibilityId];
+    expect(() => deriveFamilyDataset(cyclic)).toThrow(/cycle/iu);
+  });
+
+  test("propagates an out-of-family dependency to a downstream responsibility", () => {
+    const dataset = mixedSkillFixture();
+    dataset.responsibilities = dataset.responsibilities.slice(0, 2);
+    dataset.skillScopes[0]!.responsibilityIds = dataset.responsibilities.map((entry) => entry.responsibilityId);
+    dataset.responsibilities[0]!.dependsOnResponsibilityIds = [dataset.responsibilities[1]!.responsibilityId];
+    const result = deriveFamilyDataset(dataset);
+    expect(result.assessments.find((entry) => entry.responsibilityId === "skill-a/normalize-json-keys")).toMatchObject({
+      familyMembership: "out-of-family",
+      currentSupport: "not-applicable",
+      failureAttributions: ["rule-insufficient"],
+    });
+    expect(result.skills[0]).toMatchObject({ disposition: "none", totals: { responsibilities: 2, outOfFamily: 2 } });
   });
 });
