@@ -2135,7 +2135,7 @@ candidate 声明摘要与 checkout-filtered `HEAD` 字节，并新增能复现�
 [执行状态](api-tester-operation-prospective-research-status.md)。Task 6 只在所有前项完成后总收口。
 
 **方法冻结。** `api-tester-openapi-subset-v2`、operation 枚举/准入/投影、v2 generator/checker 与候选 001 历史字节保持不变。
-Task 1 只用新 identity 修复候选运行依赖绑定：新增严格 production contract 和公共 source-fixture helper，使入口的传递生产依赖、
+Task 1 只用新 identity 修复候选运行依赖绑定：至少把既有 `api-tester-production-contract.ts` 和 `source-fixture.ts` 纳入新绑定，使入口的传递生产依赖、
 Git/working bytes、runtime、package/lock 与验证引用在任何输入执行前 fail closed。missing、extra、digest 或 entry drift 均须由 TDD 证明被拒；
 不能通过扩大支持面或修改候选 001 获得通过。
 

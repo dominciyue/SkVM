@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-0-planning`
+- `currentStage`: `task-1-candidate-runtime-binding`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentCommit`: `planning-working-tree`
+- `lastCompletedCommit`: `71b589f5a3d27e189284fda8029c9dfaa9774c6e`
+- `currentCommit`: `task-1-implementation-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -19,6 +19,8 @@
 - 交付冻结：`results/skill-ir/api-tester-operation-delivery-freeze-development-001/report.json`
 - 新阶段设计：`docs/superpowers/specs/2026-09-10-api-tester-operation-prospective-research-design.md`
 - 新阶段计划：`docs/superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md`
+- Task 1 RED：新候选 binding 模块缺失，`0 pass / 1 fail / 1 error`。
+- Task 1 GREEN：聚焦 `5/5`，operation/v2 相关回归 `48/48`，typecheck 通过。
 
 ## 保留问题
 
@@ -30,7 +32,7 @@
 ## 下一条具体动作
 
 ```powershell
-bun test ./src/skill-ir/api-tester-operation-candidate-freeze.test.ts
+git commit -m "feat(skill-ir): bind operation candidate runtime closure"
 ```
 
-执行该命令前先完成 Task 0 planning checkpoint 提交。随后完整读取 candidate freeze/verifier 与 ordinary input 的确切实现，按 TDD 为 Task 1 写第一个缺失生产依赖 RED。
+只白名单暂存 Task 1 实现、测试和同步文档。取得该精确 execution commit 后，用新 create CLI 生成 `api-tester-operation-candidate-binding-v1.json`，再以 verify 模式核对 Git/working bytes；此时仍不得读取 unseen source。

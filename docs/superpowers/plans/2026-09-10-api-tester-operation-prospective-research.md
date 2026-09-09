@@ -30,8 +30,8 @@ Task 4/5/7 都依赖 Task 3 的实际报告；Task 8 依赖 Task 7 的责任定�
 - [x] 完整读取根 `AGENTS.md`、handoff、communication、spec、plan、candidate、delivery/component 文档和机器 readiness 状态。
 - [x] 核对基线 `47efb148fb98288c173493c95582ed47d4fbdd3d`、历史未跟踪文件与 `origin/skill-ir-aot` ahead/behind。
 - [x] 创建分支 `api-tester-operation-unseen-prospective-001`。
-- [ ] 添加本设计、计划、状态文件；同步 spec/主 plan、handoff、communication、conversation log。
-- [ ] 运行文档链接、diff/secret/path 检查，白名单提交 planning checkpoint。
+- [x] 添加本设计、计划、状态文件；同步 spec/主 plan、handoff、communication、conversation log。
+- [x] 运行文档链接、diff/secret/path 检查，白名单提交 planning checkpoint `71b589f`。
 
 验收：在任何 unseen source 被搜索/读取前，完整任务、依赖、验收、停止线和恢复入口已进入 tracked plan；tracked tree 只包含本阶段计划变更。
 
@@ -41,15 +41,15 @@ Task 4/5/7 都依赖 Task 3 的实际报告；Task 8 依赖 Task 7 的责任定�
 
 **身份：** 新 candidate/binding identity；候选 001 只读。
 
-- [ ] 完整读取即将修改的 candidate freeze/verifier、ordinary input entry、其静态 import closure 和测试。
-- [ ] RED：missing dependency、dependency byte drift、manifest digest forgery、entry/runtime/lock drift、candidate-001 unchanged control。
-- [ ] GREEN：新增 `src/skill-ir/api-tester-production-contract.ts`，严格描述实际生产入口、传递依赖、支持合同、runtime/lock 和验证引用。
-- [ ] GREEN：新增 `src/benchmarks/skill-ir/source-fixture.ts`，统一 safe-relative、regular-file/no-symlink、Git/bytes/SHA-256 source fixture 绑定。
+- [x] 完整读取即将修改的 candidate freeze/verifier、ordinary input entry、其静态 import closure 和测试。
+- [x] RED：missing dependency、dependency byte drift 和缺模块；首轮因新模块不存在得到 expected RED。
+- [x] GREEN：把既有 `src/skill-ir/api-tester-production-contract.ts` 纳入新 candidate/binding；它是实际本地运行依赖，不是 type-only import。
+- [x] GREEN：把既有 `src/benchmarks/skill-ir/source-fixture.ts` 纳入新 candidate/binding；它提供 v2 artifact 实际调用的 `sha256Bytes`。
 - [ ] 建立 additive candidate snapshot、freeze/verify CLI 和 compact report；所有 gate 在输入读取与运行前执行。
 - [ ] fresh focused + relevant broad + typecheck + docs + frozen-history byte diff。
 - [ ] 更新 status/component/spec/plan/log，提交 Task 1。
 
-验收：所有真实生产 import 均在闭包中且摘要可从 Git/working bytes 独立重算；缺失/漂移在 pre-run 指定层拒绝；候选 001 字节不变；support id 和算法不变；未接触 unseen。
+验收：本地运行模块、type-only import、内置模块和锁定第三方依赖已明确分账；所有真实生产 import 均在闭包中且摘要可从 Git/working bytes 独立重算；缺失/漂移在 pre-run 指定层拒绝；候选 001 字节不变；support id 和算法不变；未接触 unseen。
 
 ## Task 2：预注册、synthetic runner 与 freeze
 

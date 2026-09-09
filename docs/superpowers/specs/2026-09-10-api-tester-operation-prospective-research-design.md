@@ -31,13 +31,13 @@
 
 候选 001 的 `implementation` 是人工枚举的文件集合，不能证明普通入口在运行时没有从列表外加载生产模块。新 identity 保留候选 001，只新增：
 
-- `src/skill-ir/api-tester-production-contract.ts`：定义候选生产闭包、入口、支持合同、运行时和验证引用的严格机器合同；
-- `src/benchmarks/skill-ir/source-fixture.ts`：把仓库/Git 字节、普通文件和归档输入的来源校验收敛为可复用、无来源特判的 fixture helper；
-- 一个 additive candidate/binding schema 与 verifier，从入口计算或验证传递生产依赖，并在任何输入读取/执行前拒绝 missing、extra、digest drift、runtime/lock drift 和 entry drift。
+- 把既有 `src/skill-ir/api-tester-production-contract.ts` 纳入候选生产闭包；它是 v2 contract 实际加载的本地运行模块，而不是 type-only dependency；
+- 把既有 `src/benchmarks/skill-ir/source-fixture.ts` 纳入候选生产闭包；v2 artifact 在运行时使用其 `sha256Bytes`；
+- 一个 additive candidate/binding schema 与 verifier，完整绑定入口的本地运行模块、锁定第三方依赖、内置模块边界、runtime 和外层实验 verifier，并在任何输入读取/执行前拒绝 missing、extra、digest drift、runtime/lock drift 和 entry drift。
 
 闭包只覆盖生产运行依赖；测试、文档、历史报告和开发 runner 不是候选运行依赖。动态 import、无法静态解析的加载或条件分支必须显式列为 unresolved 并阻止冻结，不能默认为已覆盖。
 
-TDD 的最低反例为：删除真实依赖、修改真实依赖、伪造摘要、遗漏新要求的两个模块，均在输入执行前失败；原字节候选控制组通过。Task 1 只在新候选 identity 上闭合，不改候选 001。
+TDD 的最低反例为：从新绑定中删除真实依赖、修改真实依赖、伪造摘要、遗漏上述两个已存在模块，均在输入执行前失败；未修改的新候选控制组通过。Task 1 只在新 candidate/binding identity 上闭合，不改候选 001 或生产算法文件。
 
 ## 4. Task 2：预注册和离线输入包
 
