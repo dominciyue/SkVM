@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "skill-ir-public-structure-offline-family-contract/v1",
+  "identity": "skill-ir-public-structure-offline-family-contract-development-001",
+  "familyId": "public-structure-driven-offline-conversion-reporting",
+  "status": "development-retrospective",
+  "criteria": [
+    {
+      "criterionId": "public-input-structure",
+      "role": "necessary-family-condition",
+      "question": "Is every semantically relevant input structure public and addressable without hidden state?",
+      "evidenceIds": ["classification-handbook-v1", "classification-handbook-v2"],
+      "counterexampleIds": ["json-key-normalization-positive", "openapi-design-policy-gap"]
+    },
+    {
+      "criterionId": "explicit-output-responsibility",
+      "role": "necessary-family-condition",
+      "question": "Are required output facts and permitted variations explicit?",
+      "evidenceIds": ["classification-handbook-v1"],
+      "counterexampleIds": ["json-key-normalization-positive", "pdf-semantic-mapping"]
+    },
+    {
+      "criterionId": "offline-deterministic-transformation",
+      "role": "necessary-family-condition",
+      "question": "Can construction be expressed as a finite deterministic composition over supplied inputs and explicit parameters?",
+      "evidenceIds": ["classification-handbook-v1", "restricted-plan-implementation"],
+      "counterexampleIds": ["json-key-normalization-positive", "pdf-semantic-mapping"]
+    },
+    {
+      "criterionId": "public-verification-contract",
+      "role": "necessary-family-condition",
+      "question": "Can conformance be checked from public inputs and rules without a hidden gold answer?",
+      "evidenceIds": ["classification-handbook-v1", "operation-coverage-implementation"],
+      "counterexampleIds": ["changelog-capability-missing", "openapi-design-policy-gap", "dependency-verifier-required"]
+    },
+    {
+      "criterionId": "declared-dependency-closure",
+      "role": "necessary-family-condition",
+      "question": "Are all required references, templates, tools, and state named and bounded?",
+      "evidenceIds": ["operation-coverage-implementation", "dependency-revision-report"],
+      "counterexampleIds": ["meilisearch-missing-local-ref", "bangumi-external-response-advisory", "dependency-verifier-required"]
+    },
+    {
+      "criterionId": "bounded-side-effects",
+      "role": "necessary-family-condition",
+      "question": "Are effects absent or limited to declared local outputs under a fixed resource policy?",
+      "evidenceIds": ["artifact-v2-implementation"],
+      "counterexampleIds": ["json-key-normalization-positive", "bangumi-external-response-advisory"]
+    },
+    {
+      "criterionId": "no-unbound-semantic-decision",
+      "role": "necessary-family-condition",
+      "question": "Are business, expert, and user choices absent or supplied as explicit input parameters?",
+      "evidenceIds": ["classification-handbook-v1"],
+      "counterexampleIds": ["pdf-semantic-mapping", "openapi-design-policy-gap"]
+    },
+    {
+      "criterionId": "current-capability-readiness",
+      "role": "current-engineering-limit",
+      "question": "Are all required capabilities implemented, current-tested, and declared to support new inputs?",
+      "evidenceIds": ["classification-implementation", "q2-capability-profile", "operation-admission-implementation"],
+      "counterexampleIds": ["changelog-capability-missing", "bangumi-external-response-advisory"]
+    },
+    {
+      "criterionId": "cross-repository-generalization",
+      "role": "unverified-hypothesis",
+      "question": "Does this responsibility-family definition remain useful across independently sourced repositories?",
+      "evidenceIds": ["classification-handbook-v2"],
+      "counterexampleIds": ["openapi-design-policy-gap", "dependency-verifier-required"]
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "evidenceId": "classification-handbook-v1",
+      "path": "docs/skill-ir/classification-handbook-v1.md",
+      "sha256": "593042109a58e285f2c854e25e2f19a40d06d61b6658040149ad6f7bef8d43a4",
+      "kind": "public-contract",
+      "markers": ["`verificationBasis`", "`constructionBasis`", "supportsNewInputs=false"]
+    },
+    {
+      "evidenceId": "classification-handbook-v2",
+      "path": "docs/skill-ir/classification-handbook-v2.md",
+      "sha256": "0af53d1298ce354b18cf85d884921dc231c5a8bcce34866ad466131d65b68472",
+      "kind": "public-contract",
+      "markers": ["one-unit-per-selected-responsibility", "prospective 名额继续保持未选择、未查看"]
+    },
+    {
+      "evidenceId": "classification-implementation",
+      "path": "src/benchmarks/skill-ir/task-automation-classification.ts",
+      "sha256": "3ed3a8bde00e3cb528b69b4ba26fa0572ebf8c711c9e8be46a7748bde4ec9719",
+      "kind": "implementation",
+      "markers": ["export function deriveRequirementStates(", "export async function verifyCapabilitySourceRefs("]
+    },
+    {
+      "evidenceId": "restricted-plan-implementation",
+      "path": "src/benchmarks/skill-ir/automatic-restricted-domain-plan.ts",
+      "sha256": "b78f6d7322efdc06b7c4e2309ad5be4d61974b3ebce6912b4f076381f689e7a5",
+      "kind": "implementation",
+      "markers": ["op: z.literal(\"write-json\")", "write-json field keys must be unique"]
+    },
+    {
+      "evidenceId": "q2-capability-profile",
+      "path": "benchmarks/skill-ir/classification/q2-current-capabilities-v1.json",
+      "sha256": "d62cfa556d435ce7dc091554dcaa6a8939e09eea7f818bf8530e58a8bdd2a216",
+      "kind": "capability-profile",
+      "markers": ["\"family\": \"public-structure-offline-transformation\"", "\"id\": \"sort-and-deduplicate-strings\""]
+    },
+    {
+      "evidenceId": "operation-admission-implementation",
+      "path": "src/skill-ir/api-tester-operation-admission.ts",
+      "sha256": "064d5d49363b33d0f63127a16876a298d407623c8cbf5edd5b85515a706a8dba",
+      "kind": "implementation",
+      "markers": ["export function analyzeApiTesterOperation(", "\"IMPLEMENTATION_FAILURE\""]
+    },
+    {
+      "evidenceId": "operation-coverage-implementation",
+      "path": "src/skill-ir/api-tester-operation-coverage.ts",
+      "sha256": "4f312dca18aca2bbc20d4f4717e7aa519c9202976451f8a3a993ec457f35f8df",
+      "kind": "implementation",
+      "markers": ["export function verifyApiTesterProjectionDependencies", "\"SOURCE_DEPENDENCY_INVALID\""]
+    },
+    {
+      "evidenceId": "artifact-v2-implementation",
+      "path": "src/skill-ir/api-tester-production-artifact-v2.ts",
+      "sha256": "146d04490aed1fb7af4f6b879252ae6ce1984cfef34d685bf4fafeaaa962e206",
+      "kind": "implementation",
+      "markers": ["export async function validateApiTesterProductionArtifactV2(", "network: z.literal(false)"]
+    },
+    {
+      "evidenceId": "dependency-revision-report",
+      "path": "results/skill-ir/api-tester-operation-dependency-verification-revision-development-001/report.json",
+      "sha256": "a61e19359d735880593f15c96c6d0789da3e37f0098e92b31544a51e2bd186e8",
+      "kind": "validation-report",
+      "markers": ["\"case\": \"response-component-schema-drift\"", "\"case\": \"nested-parameter-schema-drift\"", "\"case\": \"same-name-api-key-scheme-drift\""]
+    }
+  ],
+  "prospectiveEvidence": "pending-not-observed",
+  "accounting": {
+    "prospectiveResultsUsed": 0,
+    "modelCalls": 0,
+    "businessApiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0
+  },
+  "claimBoundary": "This retrospective development contract defines and checks a responsibility family against already exposed evidence. It does not estimate ecosystem prevalence, use a prospective result, prove new-skill onboarding, or change readiness."
+}

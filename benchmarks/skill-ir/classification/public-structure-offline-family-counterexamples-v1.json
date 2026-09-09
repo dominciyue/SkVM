@@ -1,0 +1,330 @@
+{
+  "schemaVersion": "skill-ir-public-structure-offline-family-counterexamples/v1",
+  "identity": "skill-ir-public-structure-offline-family-contract-development-001",
+  "familyId": "public-structure-driven-offline-conversion-reporting",
+  "contract": {
+    "path": "benchmarks/skill-ir/classification/public-structure-offline-family-contract-v1.json",
+    "sha256": "8db54bce8d40a4d91a1c4a702d0ff413121210ff2786d4fc37112cb461d07c86"
+  },
+  "prospectiveEvidence": "pending-not-observed",
+  "skillScopes": [
+    {
+      "skillId": "structured-normalization-skill",
+      "responsibilityIds": ["structured-normalization-skill/normalize-public-json-keys"]
+    },
+    {
+      "skillId": "changelog-skill",
+      "responsibilityIds": ["changelog-skill/render-public-commit-snapshot"]
+    },
+    {
+      "skillId": "pdf-form-skill",
+      "responsibilityIds": ["pdf-form-skill/map-natural-language-to-field-id"]
+    },
+    {
+      "skillId": "openapi-design-skill",
+      "responsibilityIds": ["openapi-design-skill/choose-business-api-policy"]
+    },
+    {
+      "skillId": "api-tester-source-boundaries",
+      "responsibilityIds": [
+        "api-tester-source-boundaries/meilisearch-missing-parameter-target",
+        "api-tester-source-boundaries/bangumi-external-response-targets"
+      ]
+    },
+    {
+      "skillId": "api-tester-verification",
+      "responsibilityIds": ["api-tester-verification/independently-verify-operation-dependencies"]
+    }
+  ],
+  "examples": [
+    {
+      "exampleId": "json-key-normalization-positive",
+      "kind": "positive",
+      "explanation": "Public JSON keys, normalization rules, output schema, bounded runtime, and a current-tested collection capability form a positive responsibility-level control.",
+      "evidenceIds": ["classification-handbook-v1", "restricted-plan-implementation", "q2-capability-profile", "artifact-v2-implementation"],
+      "responsibility": {
+        "responsibilityId": "structured-normalization-skill/normalize-public-json-keys",
+        "skillId": "structured-normalization-skill",
+        "description": "Enumerate, sort, deduplicate, and write public JSON object keys.",
+        "completeScope": true,
+        "dependsOnResponsibilityIds": [],
+        "criterionAssessments": [
+          { "criterionId": "public-input-structure", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "explicit-output-responsibility", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "offline-deterministic-transformation", "status": "satisfied", "evidenceIds": ["restricted-plan-implementation"], "missingEvidence": [] },
+          { "criterionId": "public-verification-contract", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "declared-dependency-closure", "status": "satisfied", "evidenceIds": ["restricted-plan-implementation"], "missingEvidence": [] },
+          { "criterionId": "bounded-side-effects", "status": "satisfied", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+          { "criterionId": "no-unbound-semantic-decision", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] }
+        ],
+        "verificationBasis": { "status": "sufficient", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "constructionBasis": { "status": "sufficient", "evidenceIds": ["classification-handbook-v1", "restricted-plan-implementation"], "missingEvidence": [] },
+        "dependencyClosure": { "status": "closed", "evidenceIds": ["restricted-plan-implementation"], "missingEvidence": [] },
+        "sourceValidity": { "status": "valid", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "remainingSemanticChoices": { "status": "none", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "executionLimit": { "status": "none", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+        "requiredCapabilities": [
+          { "capabilityId": "sort-and-deduplicate-strings", "implementation": "implemented", "validation": "current-tested", "supportsNewInputs": true, "evidenceIds": ["q2-capability-profile"] }
+        ]
+      },
+      "expectedAssessment": {
+        "responsibilityId": "structured-normalization-skill/normalize-public-json-keys",
+        "skillId": "structured-normalization-skill",
+        "familyMembership": "in-family",
+        "verifiability": "verifiable",
+        "constructibility": "constructible",
+        "sourceValidity": "valid",
+        "dependencyClosure": "closed",
+        "currentSupport": "supported",
+        "failureAttributions": []
+      }
+    },
+    {
+      "exampleId": "changelog-capability-missing",
+      "kind": "near-boundary",
+      "explanation": "Public Conventional Commit rules can make the responsibility constructible while the current snapshot-to-changelog backend and checker composition remain missing.",
+      "evidenceIds": ["classification-handbook-v1", "q2-capability-profile"],
+      "responsibility": {
+        "responsibilityId": "changelog-skill/render-public-commit-snapshot",
+        "skillId": "changelog-skill",
+        "description": "Render a changelog from a bounded public Conventional Commit snapshot.",
+        "completeScope": true,
+        "dependsOnResponsibilityIds": [],
+        "criterionAssessments": [
+          { "criterionId": "public-input-structure", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "explicit-output-responsibility", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "offline-deterministic-transformation", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "public-verification-contract", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "declared-dependency-closure", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "bounded-side-effects", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "no-unbound-semantic-decision", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] }
+        ],
+        "verificationBasis": { "status": "sufficient", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "constructionBasis": { "status": "sufficient", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "dependencyClosure": { "status": "closed", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "sourceValidity": { "status": "valid", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "remainingSemanticChoices": { "status": "none", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "executionLimit": { "status": "none", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "requiredCapabilities": [
+          { "capabilityId": "snapshot-to-changelog-composition", "implementation": "missing", "validation": "untested", "supportsNewInputs": false, "evidenceIds": ["q2-capability-profile"] }
+        ]
+      },
+      "expectedAssessment": {
+        "responsibilityId": "changelog-skill/render-public-commit-snapshot",
+        "skillId": "changelog-skill",
+        "familyMembership": "in-family",
+        "verifiability": "verifiable",
+        "constructibility": "constructible",
+        "sourceValidity": "valid",
+        "dependencyClosure": "closed",
+        "currentSupport": "missing",
+        "failureAttributions": ["capability-missing"]
+      }
+    },
+    {
+      "exampleId": "pdf-semantic-mapping",
+      "kind": "near-boundary",
+      "explanation": "Public form fields do not supply the user-intent-to-field mapping; the complete mapping responsibility requires an external semantic decision.",
+      "evidenceIds": ["classification-handbook-v1"],
+      "responsibility": {
+        "responsibilityId": "pdf-form-skill/map-natural-language-to-field-id",
+        "skillId": "pdf-form-skill",
+        "description": "Choose which public PDF field ID represents a natural-language user intent.",
+        "completeScope": true,
+        "dependsOnResponsibilityIds": [],
+        "criterionAssessments": [
+          { "criterionId": "public-input-structure", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "explicit-output-responsibility", "status": "unsatisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "offline-deterministic-transformation", "status": "unsatisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "public-verification-contract", "status": "unsatisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "declared-dependency-closure", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "bounded-side-effects", "status": "satisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "no-unbound-semantic-decision", "status": "unsatisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] }
+        ],
+        "verificationBasis": { "status": "insufficient", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "constructionBasis": { "status": "insufficient", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "dependencyClosure": { "status": "closed", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "sourceValidity": { "status": "valid", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "remainingSemanticChoices": { "status": "unbound", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "executionLimit": { "status": "none", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "requiredCapabilities": []
+      },
+      "expectedAssessment": {
+        "responsibilityId": "pdf-form-skill/map-natural-language-to-field-id",
+        "skillId": "pdf-form-skill",
+        "familyMembership": "out-of-family",
+        "verifiability": "not-verifiable",
+        "constructibility": "not-constructible",
+        "sourceValidity": "valid",
+        "dependencyClosure": "closed",
+        "currentSupport": "not-applicable",
+        "failureAttributions": ["rule-insufficient", "verification-evidence-missing", "construction-evidence-missing", "external-semantic-decision"]
+      }
+    },
+    {
+      "exampleId": "openapi-design-policy-gap",
+      "kind": "unverified",
+      "explanation": "An OpenAPI validator cannot supply missing business resources, authentication policy, or error semantics; missing policy is not a capability failure.",
+      "evidenceIds": ["classification-handbook-v1", "artifact-v2-implementation"],
+      "responsibility": {
+        "responsibilityId": "openapi-design-skill/choose-business-api-policy",
+        "skillId": "openapi-design-skill",
+        "description": "Choose resources, authentication policy, and error semantics for a new business API.",
+        "completeScope": true,
+        "dependsOnResponsibilityIds": [],
+        "criterionAssessments": [
+          { "criterionId": "public-input-structure", "status": "unsatisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "explicit-output-responsibility", "status": "unsatisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "offline-deterministic-transformation", "status": "unknown", "evidenceIds": [], "missingEvidence": ["No public business policy defines the transformation."] },
+          { "criterionId": "public-verification-contract", "status": "unsatisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+          { "criterionId": "declared-dependency-closure", "status": "unknown", "evidenceIds": [], "missingEvidence": ["The domain policy dependencies are not supplied."] },
+          { "criterionId": "bounded-side-effects", "status": "satisfied", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+          { "criterionId": "no-unbound-semantic-decision", "status": "unsatisfied", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] }
+        ],
+        "verificationBasis": { "status": "insufficient", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "constructionBasis": { "status": "insufficient", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "dependencyClosure": { "status": "unknown", "evidenceIds": [], "missingEvidence": ["Domain policy dependencies are unknown."] },
+        "sourceValidity": { "status": "valid", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "remainingSemanticChoices": { "status": "unbound", "evidenceIds": ["classification-handbook-v1"], "missingEvidence": [] },
+        "executionLimit": { "status": "none", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+        "requiredCapabilities": []
+      },
+      "expectedAssessment": {
+        "responsibilityId": "openapi-design-skill/choose-business-api-policy",
+        "skillId": "openapi-design-skill",
+        "familyMembership": "family-membership-unknown",
+        "verifiability": "not-verifiable",
+        "constructibility": "unknown",
+        "sourceValidity": "valid",
+        "dependencyClosure": "unknown",
+        "currentSupport": "not-assessable",
+        "failureAttributions": ["rule-insufficient", "verification-evidence-missing", "construction-evidence-missing", "external-semantic-decision"]
+      }
+    },
+    {
+      "exampleId": "meilisearch-missing-local-ref",
+      "kind": "near-boundary",
+      "explanation": "The operation family and rules remain defined, but a missing local parameter target opens the instance dependency closure and blocks construction without guessing.",
+      "evidenceIds": ["operation-admission-implementation", "operation-coverage-implementation", "dependency-revision-report"],
+      "responsibility": {
+        "responsibilityId": "api-tester-source-boundaries/meilisearch-missing-parameter-target",
+        "skillId": "api-tester-source-boundaries",
+        "description": "Construct the Meilisearch GET /tasks operation without inventing a missing parameter target.",
+        "completeScope": true,
+        "dependsOnResponsibilityIds": [],
+        "criterionAssessments": [
+          { "criterionId": "public-input-structure", "status": "satisfied", "evidenceIds": ["operation-admission-implementation"], "missingEvidence": [] },
+          { "criterionId": "explicit-output-responsibility", "status": "satisfied", "evidenceIds": ["operation-admission-implementation"], "missingEvidence": [] },
+          { "criterionId": "offline-deterministic-transformation", "status": "satisfied", "evidenceIds": ["operation-admission-implementation"], "missingEvidence": [] },
+          { "criterionId": "public-verification-contract", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "declared-dependency-closure", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "bounded-side-effects", "status": "satisfied", "evidenceIds": ["operation-admission-implementation"], "missingEvidence": [] },
+          { "criterionId": "no-unbound-semantic-decision", "status": "satisfied", "evidenceIds": ["operation-admission-implementation"], "missingEvidence": [] }
+        ],
+        "verificationBasis": { "status": "sufficient", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+        "constructionBasis": { "status": "sufficient", "evidenceIds": ["operation-admission-implementation"], "missingEvidence": [] },
+        "dependencyClosure": { "status": "open", "evidenceIds": ["dependency-revision-report"], "missingEvidence": [] },
+        "sourceValidity": { "status": "blocked", "evidenceIds": ["dependency-revision-report"], "missingEvidence": [] },
+        "remainingSemanticChoices": { "status": "none", "evidenceIds": ["operation-admission-implementation"], "missingEvidence": [] },
+        "executionLimit": { "status": "none", "evidenceIds": ["operation-admission-implementation"], "missingEvidence": [] },
+        "requiredCapabilities": []
+      },
+      "expectedAssessment": {
+        "responsibilityId": "api-tester-source-boundaries/meilisearch-missing-parameter-target",
+        "skillId": "api-tester-source-boundaries",
+        "familyMembership": "in-family",
+        "verifiability": "verifiable",
+        "constructibility": "not-constructible",
+        "sourceValidity": "blocked",
+        "dependencyClosure": "open",
+        "currentSupport": "not-assessable",
+        "failureAttributions": ["source-defect", "dependency-open"]
+      }
+    },
+    {
+      "exampleId": "bangumi-external-response-advisory",
+      "kind": "near-boundary",
+      "explanation": "External response references remain a source-validity advisory while the current v2 construction obligation excludes response payload construction.",
+      "evidenceIds": ["operation-coverage-implementation", "dependency-revision-report", "artifact-v2-implementation"],
+      "responsibility": {
+        "responsibilityId": "api-tester-source-boundaries/bangumi-external-response-targets",
+        "skillId": "api-tester-source-boundaries",
+        "description": "Construct the supported request plan while reporting unverified external response references.",
+        "completeScope": true,
+        "dependsOnResponsibilityIds": [],
+        "criterionAssessments": [
+          { "criterionId": "public-input-structure", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "explicit-output-responsibility", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "offline-deterministic-transformation", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "public-verification-contract", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "declared-dependency-closure", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "bounded-side-effects", "status": "satisfied", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+          { "criterionId": "no-unbound-semantic-decision", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] }
+        ],
+        "verificationBasis": { "status": "sufficient", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+        "constructionBasis": { "status": "sufficient", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+        "dependencyClosure": { "status": "closed", "evidenceIds": ["dependency-revision-report"], "missingEvidence": [] },
+        "sourceValidity": { "status": "advisory", "evidenceIds": ["dependency-revision-report"], "missingEvidence": [] },
+        "remainingSemanticChoices": { "status": "none", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+        "executionLimit": { "status": "none", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+        "requiredCapabilities": [
+          { "capabilityId": "api-operation-v2-composition", "implementation": "implemented", "validation": "current-tested", "supportsNewInputs": false, "evidenceIds": ["dependency-revision-report"] }
+        ]
+      },
+      "expectedAssessment": {
+        "responsibilityId": "api-tester-source-boundaries/bangumi-external-response-targets",
+        "skillId": "api-tester-source-boundaries",
+        "familyMembership": "in-family",
+        "verifiability": "verifiable",
+        "constructibility": "constructible",
+        "sourceValidity": "advisory",
+        "dependencyClosure": "closed",
+        "currentSupport": "missing",
+        "failureAttributions": ["capability-missing"]
+      }
+    },
+    {
+      "exampleId": "dependency-verifier-required",
+      "kind": "positive",
+      "explanation": "Operation projection is not a verified artifact until an independent checker closes parameter, request, response, security, and transitive reference dependencies.",
+      "evidenceIds": ["operation-coverage-implementation", "dependency-revision-report", "artifact-v2-implementation"],
+      "responsibility": {
+        "responsibilityId": "api-tester-verification/independently-verify-operation-dependencies",
+        "skillId": "api-tester-verification",
+        "description": "Independently verify dependency preservation and artifact closure for a projected operation.",
+        "completeScope": true,
+        "dependsOnResponsibilityIds": [],
+        "criterionAssessments": [
+          { "criterionId": "public-input-structure", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "explicit-output-responsibility", "status": "satisfied", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+          { "criterionId": "offline-deterministic-transformation", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "public-verification-contract", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "declared-dependency-closure", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+          { "criterionId": "bounded-side-effects", "status": "satisfied", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+          { "criterionId": "no-unbound-semantic-decision", "status": "satisfied", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] }
+        ],
+        "verificationBasis": { "status": "sufficient", "evidenceIds": ["operation-coverage-implementation", "dependency-revision-report"], "missingEvidence": [] },
+        "constructionBasis": { "status": "sufficient", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+        "dependencyClosure": { "status": "closed", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+        "sourceValidity": { "status": "valid", "evidenceIds": ["dependency-revision-report"], "missingEvidence": [] },
+        "remainingSemanticChoices": { "status": "none", "evidenceIds": ["operation-coverage-implementation"], "missingEvidence": [] },
+        "executionLimit": { "status": "none", "evidenceIds": ["artifact-v2-implementation"], "missingEvidence": [] },
+        "requiredCapabilities": [
+          { "capabilityId": "operation-dependency-verifier", "implementation": "implemented", "validation": "current-tested", "supportsNewInputs": true, "evidenceIds": ["operation-coverage-implementation", "dependency-revision-report"] }
+        ]
+      },
+      "expectedAssessment": {
+        "responsibilityId": "api-tester-verification/independently-verify-operation-dependencies",
+        "skillId": "api-tester-verification",
+        "familyMembership": "in-family",
+        "verifiability": "verifiable",
+        "constructibility": "constructible",
+        "sourceValidity": "valid",
+        "dependencyClosure": "closed",
+        "currentSupport": "supported",
+        "failureAttributions": []
+      }
+    }
+  ],
+  "claimBoundary": "These seven retrospective examples test criterion distinctions using already exposed project evidence. They are not a representative skill sample, do not use a prospective result, and do not establish new-skill automatic onboarding."
+}

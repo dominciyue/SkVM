@@ -1,9 +1,17 @@
 import { describe, expect, test } from "bun:test";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import {
   FAMILY_NECESSARY_CRITERION_IDS,
   deriveFamilyDataset,
   deriveFamilyResponsibilityAssessment,
+  verifyPublicStructureOfflineFamilyArtifacts,
+  verifyPublicStructureOfflineFamilyFiles,
 } from "./public-structure-offline-family-contract";
+
+const rootDir = process.cwd();
+const contractPath = "benchmarks/skill-ir/classification/public-structure-offline-family-contract-v1.json";
+const counterexamplesPath = "benchmarks/skill-ir/classification/public-structure-offline-family-counterexamples-v1.json";
 
 function fact(status: "satisfied" | "unsatisfied" | "unknown" = "satisfied") {
   return status === "unknown"
@@ -197,5 +205,49 @@ describe("public-structure offline responsibility family", () => {
       failureAttributions: ["rule-insufficient"],
     });
     expect(result.skills[0]).toMatchObject({ disposition: "none", totals: { responsibilities: 2, outOfFamily: 2 } });
+  });
+
+  test("verifies every actual criterion and counterexample source locator", async () => {
+    await expect(verifyPublicStructureOfflineFamilyFiles({
+      rootDir,
+      contractPath,
+      counterexamplesPath,
+    })).resolves.toMatchObject({
+      status: "verified",
+      criteria: 9,
+      familyNecessaryCriteria: 7,
+      counterexamples: 7,
+      prospectiveResultsUsed: 0,
+    });
+  });
+
+  test("rejects evidence and criterion tampering at the named layer", async () => {
+    const contract = JSON.parse(await readFile(join(rootDir, contractPath), "utf8"));
+    const counterexamples = JSON.parse(await readFile(join(rootDir, counterexamplesPath), "utf8"));
+
+    const digestDrift = structuredClone(contract);
+    digestDrift.evidenceFiles[0].sha256 = "0".repeat(64);
+    await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: digestDrift, counterexamples }))
+      .rejects.toThrow(/digest/iu);
+
+    const brokenMarker = structuredClone(contract);
+    brokenMarker.evidenceFiles[0].markers[0] = "marker-that-is-not-in-the-bound-file";
+    await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: brokenMarker, counterexamples }))
+      .rejects.toThrow(/marker|locator/iu);
+
+    const missingCriterion = structuredClone(contract);
+    missingCriterion.criteria = missingCriterion.criteria.slice(1);
+    await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: missingCriterion, counterexamples }))
+      .rejects.toThrow(/criterion.*coverage|missing/iu);
+
+    const roleDrift = structuredClone(contract);
+    roleDrift.criteria.find((entry: { criterionId: string }) => entry.criterionId === "current-capability-readiness").role = "necessary-family-condition";
+    await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: roleDrift, counterexamples }))
+      .rejects.toThrow(/criterion.*role|engineering/iu);
+
+    const candidateOutcomeEvidence = structuredClone(contract);
+    candidateOutcomeEvidence.evidenceFiles[0].kind = "candidate-run-result";
+    await expect(verifyPublicStructureOfflineFamilyArtifacts({ rootDir, contract: candidateOutcomeEvidence, counterexamples }))
+      .rejects.toThrow(/candidate-run-result|invalid enum|invalid_union/iu);
   });
 });

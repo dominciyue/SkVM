@@ -1,3 +1,6 @@
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { isAbsolute, relative, resolve } from "node:path";
 import { z } from "zod";
 
 export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_IDENTITY = "skill-ir-public-structure-offline-family-contract-development-001" as const;
@@ -360,4 +363,218 @@ export function deriveFamilyDataset(input: unknown): FamilyDatasetReport {
     assessments,
     skills,
   });
+}
+
+export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_CONTRACT_SCHEMA_VERSION = "skill-ir-public-structure-offline-family-contract/v1" as const;
+export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_COUNTEREXAMPLES_SCHEMA_VERSION = "skill-ir-public-structure-offline-family-counterexamples/v1" as const;
+export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_ID = "public-structure-driven-offline-conversion-reporting" as const;
+export const FAMILY_CRITERION_IDS = [
+  ...FAMILY_NECESSARY_CRITERION_IDS,
+  "current-capability-readiness",
+  "cross-repository-generalization",
+] as const;
+
+export const FamilyCriterionIdSchema = z.enum(FAMILY_CRITERION_IDS);
+export const FamilyCriterionRoleSchema = z.enum([
+  "necessary-family-condition",
+  "current-engineering-limit",
+  "unverified-hypothesis",
+]);
+export const FamilyEvidenceKindSchema = z.enum([
+  "public-contract",
+  "source-contract",
+  "implementation",
+  "validation-report",
+  "capability-profile",
+  "counterexample",
+]);
+
+const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/u);
+const RelativeFilePathSchema = z.string().min(1).superRefine((value, context) => {
+  const portable = value.replaceAll("\\", "/");
+  if (isAbsolute(value) || portable.startsWith("/") || portable.split("/").includes("..")) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "path must be repository-relative and contained" });
+  }
+});
+
+export const FamilyCriterionDefinitionSchema = z.object({
+  criterionId: FamilyCriterionIdSchema,
+  role: FamilyCriterionRoleSchema,
+  question: z.string().min(1),
+  evidenceIds: z.array(EvidenceIdSchema).min(1),
+  counterexampleIds: z.array(z.string().min(1)).min(1),
+}).strict();
+
+export const FamilyEvidenceFileSchema = z.object({
+  evidenceId: EvidenceIdSchema,
+  path: RelativeFilePathSchema,
+  sha256: Sha256Schema,
+  kind: FamilyEvidenceKindSchema,
+  markers: z.array(z.string().min(1)).min(1),
+}).strict();
+
+export const PublicStructureOfflineFamilyContractFileSchema = z.object({
+  schemaVersion: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_CONTRACT_SCHEMA_VERSION),
+  identity: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_IDENTITY),
+  familyId: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_ID),
+  status: z.literal("development-retrospective"),
+  criteria: z.array(FamilyCriterionDefinitionSchema).min(1),
+  evidenceFiles: z.array(FamilyEvidenceFileSchema).min(1),
+  prospectiveEvidence: z.literal("pending-not-observed"),
+  accounting: z.object({
+    prospectiveResultsUsed: z.literal(0),
+    modelCalls: z.literal(0),
+    businessApiCalls: z.literal(0),
+    paidCalls: z.literal(0),
+    heldOutAccesses: z.literal(0),
+    q1ReservedAccesses: z.literal(0),
+  }).strict(),
+  claimBoundary: z.string().min(1),
+}).strict();
+
+export const FamilyCounterexampleSchema = z.object({
+  exampleId: z.string().min(1),
+  kind: z.enum(["positive", "near-boundary", "unverified"]),
+  explanation: z.string().min(1),
+  evidenceIds: z.array(EvidenceIdSchema).min(1),
+  responsibility: FamilyResponsibilityInputSchema,
+  expectedAssessment: FamilyResponsibilityAssessmentSchema,
+}).strict();
+
+export const PublicStructureOfflineFamilyCounterexamplesFileSchema = z.object({
+  schemaVersion: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_COUNTEREXAMPLES_SCHEMA_VERSION),
+  identity: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_IDENTITY),
+  familyId: z.literal(PUBLIC_STRUCTURE_OFFLINE_FAMILY_ID),
+  contract: z.object({ path: RelativeFilePathSchema, sha256: Sha256Schema }).strict(),
+  prospectiveEvidence: z.literal("pending-not-observed"),
+  skillScopes: z.array(FamilySkillScopeSchema).min(1),
+  examples: z.array(FamilyCounterexampleSchema).length(7),
+  claimBoundary: z.string().min(1),
+}).strict();
+
+export type PublicStructureOfflineFamilyContractFile = z.infer<typeof PublicStructureOfflineFamilyContractFileSchema>;
+export type PublicStructureOfflineFamilyCounterexamplesFile = z.infer<typeof PublicStructureOfflineFamilyCounterexamplesFileSchema>;
+
+function sha256(bytes: Uint8Array): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${canonical(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function contained(rootDir: string, path: string): string {
+  const root = resolve(rootDir);
+  const target = resolve(root, path);
+  const back = relative(root, target);
+  if (back === "" || back.startsWith("..") || isAbsolute(back)) throw new Error(`evidence path escapes repository root: ${path}`);
+  return target;
+}
+
+function responsibilityEvidenceIds(responsibility: FamilyResponsibilityInput): string[] {
+  return [
+    ...responsibility.criterionAssessments.flatMap((entry) => entry.evidenceIds),
+    ...responsibility.verificationBasis.evidenceIds,
+    ...responsibility.constructionBasis.evidenceIds,
+    ...responsibility.dependencyClosure.evidenceIds,
+    ...responsibility.sourceValidity.evidenceIds,
+    ...responsibility.remainingSemanticChoices.evidenceIds,
+    ...responsibility.executionLimit.evidenceIds,
+    ...responsibility.requiredCapabilities.flatMap((entry) => entry.evidenceIds),
+  ];
+}
+
+const EXPECTED_CRITERION_ROLES = new Map<string, z.infer<typeof FamilyCriterionRoleSchema>>([
+  ...FAMILY_NECESSARY_CRITERION_IDS.map((criterionId) => [criterionId, "necessary-family-condition" as const] as const),
+  ["current-capability-readiness", "current-engineering-limit"],
+  ["cross-repository-generalization", "unverified-hypothesis"],
+]);
+
+export async function verifyPublicStructureOfflineFamilyArtifacts(options: {
+  rootDir: string;
+  contract: PublicStructureOfflineFamilyContractFile | unknown;
+  counterexamples: PublicStructureOfflineFamilyCounterexamplesFile | unknown;
+}): Promise<{
+  status: "verified";
+  criteria: 9;
+  familyNecessaryCriteria: 7;
+  counterexamples: 7;
+  evidenceFiles: number;
+  skills: number;
+  prospectiveResultsUsed: 0;
+}> {
+  const contract = PublicStructureOfflineFamilyContractFileSchema.parse(options.contract);
+  const counterexamples = PublicStructureOfflineFamilyCounterexamplesFileSchema.parse(options.counterexamples);
+  const actualCriterionIds = contract.criteria.map((entry) => entry.criterionId);
+  if (new Set(actualCriterionIds).size !== actualCriterionIds.length
+    || canonical([...actualCriterionIds].sort()) !== canonical([...FAMILY_CRITERION_IDS].sort())) {
+    throw new Error("family criterion coverage mismatch");
+  }
+  for (const criterion of contract.criteria) {
+    const expectedRole = EXPECTED_CRITERION_ROLES.get(criterion.criterionId);
+    if (criterion.role !== expectedRole) throw new Error(`family criterion role drift: ${criterion.criterionId}; expected ${expectedRole}`);
+  }
+  const evidenceById = new Map<string, z.infer<typeof FamilyEvidenceFileSchema>>();
+  for (const evidence of contract.evidenceFiles) {
+    if (evidenceById.has(evidence.evidenceId)) throw new Error(`duplicate evidence id: ${evidence.evidenceId}`);
+    evidenceById.set(evidence.evidenceId, evidence);
+    const bytes = await readFile(contained(options.rootDir, evidence.path));
+    if (sha256(bytes) !== evidence.sha256) throw new Error(`evidence digest mismatch: ${evidence.evidenceId}`);
+    const text = bytes.toString("utf8");
+    for (const marker of evidence.markers) {
+      if (!text.includes(marker)) throw new Error(`evidence marker or locator missing: ${evidence.evidenceId}`);
+    }
+  }
+  const exampleIds = new Set(counterexamples.examples.map((entry) => entry.exampleId));
+  for (const criterion of contract.criteria) {
+    for (const evidenceId of criterion.evidenceIds) {
+      if (!evidenceById.has(evidenceId)) throw new Error(`criterion references unknown evidence: ${criterion.criterionId} -> ${evidenceId}`);
+    }
+    for (const exampleId of criterion.counterexampleIds) {
+      if (!exampleIds.has(exampleId)) throw new Error(`criterion references unknown counterexample: ${criterion.criterionId} -> ${exampleId}`);
+    }
+  }
+  for (const example of counterexamples.examples) {
+    const evidenceIds = [...example.evidenceIds, ...responsibilityEvidenceIds(example.responsibility)];
+    for (const evidenceId of evidenceIds) {
+      if (!evidenceById.has(evidenceId)) throw new Error(`counterexample references unknown evidence: ${example.exampleId} -> ${evidenceId}`);
+    }
+    const derived = deriveFamilyResponsibilityAssessment(example.responsibility);
+    if (canonical(derived) !== canonical(example.expectedAssessment)) throw new Error(`counterexample derived assessment drift: ${example.exampleId}`);
+  }
+  const dataset = deriveFamilyDataset({
+    schemaVersion: PUBLIC_STRUCTURE_OFFLINE_FAMILY_DATASET_SCHEMA_VERSION,
+    identity: PUBLIC_STRUCTURE_OFFLINE_FAMILY_IDENTITY,
+    skillScopes: counterexamples.skillScopes,
+    responsibilities: counterexamples.examples.map((entry) => entry.responsibility),
+  });
+  return {
+    status: "verified",
+    criteria: 9,
+    familyNecessaryCriteria: 7,
+    counterexamples: 7,
+    evidenceFiles: evidenceById.size,
+    skills: dataset.skills.length,
+    prospectiveResultsUsed: 0,
+  };
+}
+
+export async function verifyPublicStructureOfflineFamilyFiles(options: {
+  rootDir: string;
+  contractPath: string;
+  counterexamplesPath: string;
+}): Promise<Awaited<ReturnType<typeof verifyPublicStructureOfflineFamilyArtifacts>>> {
+  const contractBytes = await readFile(contained(options.rootDir, options.contractPath));
+  const counterexampleBytes = await readFile(contained(options.rootDir, options.counterexamplesPath));
+  const contract = PublicStructureOfflineFamilyContractFileSchema.parse(JSON.parse(contractBytes.toString("utf8")));
+  const counterexamples = PublicStructureOfflineFamilyCounterexamplesFileSchema.parse(JSON.parse(counterexampleBytes.toString("utf8")));
+  if (counterexamples.contract.path !== options.contractPath || counterexamples.contract.sha256 !== sha256(contractBytes)) {
+    throw new Error("counterexample contract binding digest or path drift");
+  }
+  return verifyPublicStructureOfflineFamilyArtifacts({ rootDir: options.rootDir, contract, counterexamples });
 }
