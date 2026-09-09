@@ -1,0 +1,42 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Synthetic partial cookie and accepted",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Healthy"
+          }
+        }
+      }
+    },
+    "/session": {
+      "get": {
+        "summary": "Read session",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "cookie",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session"
+          },
+          "401": {
+            "description": "Missing session"
+          }
+        }
+      }
+    }
+  }
+}

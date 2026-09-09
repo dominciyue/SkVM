@@ -3,9 +3,9 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-preregistration-synthetic-only`
+- `currentStage`: `task-2-pre-source-implementation-checkpoint`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `ad13e467bcbb840d0b7627bc749bc2da95de467d`
+- `lastCompletedCommit`: `4b5cc11`
 - `currentCommit`: `task-2-preregistration-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
@@ -25,6 +25,11 @@
 - Task 1 机器绑定：`benchmarks/skill-ir/classification/api-tester-operation-candidate-binding-v1.json`，冻结提交 `13c5d79`。
 - Task 1 live verify：`verified`，11 个本地运行模块、2 个新增生产依赖、0 unresolved import、0 prospective run。
 - Task 1 fresh verification：focused `5/5`；operation/v2 `40/40`；`src/skill-ir` `189/189`、990 assertions；typecheck；docs `8/8`；3664-file link scan；frozen-history diff；`git diff --check` 全通过。
+- Task 2 初始 RED：prospective module 不存在，`0 pass / 1 fail / 1 error`；随后为 source shortfall、CLI strict verify、18 行调用/lock/output tamper 分别保留预期 RED。
+- Task 2 synthetic-only GREEN：协议固定 2 个 GitHub search query、12 real + 6 synthetic、12-repo/lineage/source 去重、许可/格式/100B–2MiB/1–2000 operation、0 retry/replacement/fix 和明确 shortfall。
+- Task 2 focused：`11/11`、47 assertions；18 行通过 ordinary CLI 子进程，逐行保存 invocation/stdout/stderr/exit/terminal，per-row=120000ms、aggregate=2160000ms；strict verifier 可检出 lock、candidate output，以及同步重签 manifest 后的 journal 语义漂移。
+- Task 2 独立审查最初发现 aggregate timeout 未实施、journal 只做自描述摘要两项风险；修订后分别由累计预算测试和协同重签 invocation tamper 测试闭合。
+- Task 2 当前 typecheck 通过；尚未创建 synthetic validation 正式归档、pre-source freeze 或访问真实来源。
 
 ## 保留问题
 
@@ -36,7 +41,7 @@
 ## 下一条具体动作
 
 ```powershell
-bun test ./src/benchmarks/skill-ir/api-tester-operation-prospective-freeze.test.ts
+git -c safe.directory=D:/skill优化/SkVM add src/benchmarks/skill-ir/api-tester-operation-prospective.ts src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts src/benchmarks/skill-ir/api-tester-operation-prospective-freeze.test.ts benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/synthetic benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/manifests docs/skill-ir/api-tester-operation-prospective.md docs/superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md docs/skill-ir/api-tester-operation-prospective-research-status.md
 ```
 
-先写不存在的 Task 2 protocol/selection/prediction/state-prefix-report/verifier 测试并观察 expected RED；实现和所有开发运行只使用 deterministic synthetic。freeze commit 推送到 origin 前仍不得搜索或读取 unseen source。
+白名单提交 synthetic-only implementation checkpoint；随后以该入口生成并严格复核正式 synthetic validation 归档。pre-source freeze commit 推送到 origin 前仍不得搜索或读取 unseen source。

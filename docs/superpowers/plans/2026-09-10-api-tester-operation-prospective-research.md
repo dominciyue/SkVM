@@ -57,9 +57,9 @@ Task 4/5/7 都依赖 Task 3 的实际报告；Task 8 依赖 Task 7 的责任定�
 
 **禁止：** freeze commit 推送前不得读取候选真实来源。
 
-- [ ] 先写 source protocol schema/test：search space、query、排序、license/format/size/operation limits、repo/lineage dedup、12-repo preference、shortfall policy、排除集合。
-- [ ] 写 `12 real + 6 synthetic` denominator、row order、resource/timeout、stop-loss、0 retry/replacement/fix 合同。
-- [ ] 只用 deterministic synthetic RED/GREEN first-run state/prefix、prediction、report、strict verifier、binding/coverage tamper。
+- [x] 先写 source protocol schema/test：search space、query、排序、license/format/size/operation limits、repo/lineage dedup、12-repo preference、shortfall policy、排除集合。
+- [x] 写 `12 real + 6 synthetic` denominator、row order、resource/timeout、stop-loss、0 retry/replacement/fix 合同。
+- [x] 只用 deterministic synthetic RED/GREEN first-run state/prefix、prediction、report、strict verifier、binding/coverage tamper。
 - [ ] 冻结 source discovery protocol、synthetic bytes、候选闭包、runner implementation 和 execution environment。
 - [ ] 运行 focused/broad/typecheck/docs/frozen/secret/path/diff；更新 status 和台账。
 - [ ] 白名单提交并 push Task 2 freeze 到 `origin/api-tester-operation-unseen-prospective-001`；记录远端同步状态。

@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: Synthetic rejected OAuth2
+  version: 1.0.0
+components:
+  securitySchemes:
+    OAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://example.invalid/token
+          scopes:
+            read: Read synthetic data
+security:
+  - OAuth:
+      - read
+paths:
+  /protected:
+    get:
+      summary: Read protected data
+      responses:
+        '200':
+          description: Protected data
+        '401':
+          description: Unauthorized

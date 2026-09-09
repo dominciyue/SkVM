@@ -2139,6 +2139,12 @@ Task 1 只用新 identity 修复候选运行依赖绑定：至少把既有 `api-
 Git/working bytes、runtime、package/lock 与验证引用在任何输入执行前 fail closed。missing、extra、digest 或 entry drift 均须由 TDD 证明被拒；
 不能通过扩大支持面或修改候选 001 获得通过。
 
+Task 2 的 synthetic-only 实现使用[组件合同](api-tester-operation-prospective.md)：pre-source protocol 固定公开 search 范围、确定性排序、
+license/format/size/operation limits、12-repository/lineage/source 去重、shortfall 与 12-real+6-synthetic 分母。runner 在每行 dispatch 后通过
+普通输入 CLI 的独立子进程执行，保存 invocation/stdout/stderr/exit/terminal，并以 120 秒上限、单次 dispatch、terminal 后连续 prefix 和 exact
+output closure fail closed。该实现及测试完成时仍为 0 unseen source read、0 prediction、0 prospective run；必须在正式 synthetic evidence 和
+pre-source freeze 推送 origin 后才能开始真实来源检索。
+
 **预注册与首轮。** Task 2 必须在读取候选真实来源前冻结并推送搜索空间、license/format/resource 规则、排序、repo/lineage 去重、
 排除集合、`12 real + 6 synthetic` 分母、预测和一次性 runner。选择不得消费 candidate outcome。Task 3 每行严格一次、0 retry/
 replacement/fix；失败保留在分母，candidate/evidence integrity 不成立时在第 0 行前停止。Task 4 只从机器结果派生统计，Task 5 从精确执行

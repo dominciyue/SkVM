@@ -2213,6 +2213,13 @@ Task 1 实际由实现提交 `74338e73a4f6dae389c9d62ce84173c2d1672906` 和机�
 verify 通过，候选 001 与方法文件未改，未见输入/预测/运行计数仍为 0。收口验证为 focused `5/5`、相关 operation/v2 `40/40`、
 `src/skill-ir` `189/189`（990 assertions）、typecheck、docs `8/8`、3664-file link scan、frozen byte diff 与 diff check 全通过。
 
+Task 2 的 pre-source implementation 已只用六份 deterministic synthetic 完成：协议固定两条公开 search query、确定性顺序、许可/格式/大小/
+operation 资格、repo/lineage/source 去重、12-real+6-synthetic 分母、明确 shortfall 和 0 retry/replacement/fix。一次性 runner 逐行经普通 CLI
+子进程运行并归档 invocation/stdout/stderr/exit/terminal，120 秒 per-row timeout；state/prefix 在 terminal 后推进，strict verifier 独立复核 lock、
+18 行顺序和 exact output closure。独立审查提出 aggregate timeout 与 journal semantic 两项 finding，现已用累计预算 fail-closed 和
+prepared/dispatched/invocation/exit/stdout 重建闭合；同步重签外层 manifest 不能隐藏 journal 篡改。focused `11/11`、47 assertions 与
+typecheck 通过；此时 unseen source read/prediction/prospective run 仍为 0。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。
