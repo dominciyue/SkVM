@@ -770,6 +770,19 @@ bun ./src/skill-ir/api-tester-operation-dependency-verification-revision-run.ts 
 runner 动态读取旧 Task 1 分母，不接受 112 override；最终报告应显示三项 repaired detector、五组 old/fresh comparison 与 clean
 reproduction 全部 pass。19 项 Bangumi source-validity advisory 来自 non-construction external response refs，不得删去或写成 v2 构造失败。
 
+普通输入不应再调用上面的固定六来源 runner。准备一个 `skill-ir-api-tester-operation-input-manifest/v1` JSON，写入 input 的
+safe-relative path、`json|yaml`、bytes/SHA-256，以及 previously-absent output path，然后运行：
+
+```powershell
+bun ./src/skill-ir/api-tester-operation-input-run.ts `
+  --root=<input-root> --manifest=<manifest.json> --node=<node.exe>
+```
+
+该入口不接受 `--cache-root`、旧 selection/lock/result 或成功数；输出 operation inventory、准入/依赖/coverage、可选聚合 v2 artifact 和
+exact closure manifest。`verifyApiTesterOperationInputOutput` 可重新读取原始输入和闭包严格核验。入口保持
+`api-tester-openapi-subset-v2` 不变；unsupported/unresolved/advisory 全部保留，局部 checker pass 不代表整份文档或真实 API 通过。
+候选冻结前的 clean 归档和缺失旧 clean-002 处置见组件文档；当前不应选择或预测 prospective row。
+
 #### 5.7.3 从干净源码 checkout 复现
 
 2026-09-06 的绑定验收使用提交 `3bd7618` 的新 detached worktree。先确认 `git status --short` 没有 tracked

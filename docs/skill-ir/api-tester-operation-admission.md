@@ -1,8 +1,8 @@
 # API Tester 操作级准入与验证
 
-本文档描述 2026-09-09 开始的 additive development 流水线。它只处理 v2 migration 已暴露的六份真实 OpenAPI 文档，目标是把
-whole-document 首拒绝展开为完整 operation universe、逐操作准入解释和可验证局部产物；随后验证表示变形、错误检出和 clean checkout
-离线复现。它不修改或重新解释冻结 001/002。
+本文档描述 2026-09-09 开始的 additive development 流水线。历史 Task 1/Task 2 只处理 v2 migration 已暴露的六份真实 OpenAPI 文档，
+把 whole-document 首拒绝展开为完整 operation universe、逐操作准入解释和可验证局部产物；后续 ordinary-input 入口把同一方法用于一份
+manifest-bound 普通输入。验证与冻结仍只使用六份已暴露来源和确定性 synthetic。它不修改或重新解释冻结 001/002。
 
 ## 身份与状态
 
@@ -10,6 +10,8 @@ whole-document 首拒绝展开为完整 operation universe、逐操作准入解�
 - Task 2：`skill-ir-api-tester-operation-validation-development-001`；
 - combined：`skill-ir-api-tester-operation-development-001`；
 - dependency-verification revision：`skill-ir-api-tester-operation-dependency-verification-revision-development-001`；
+- ordinary-input entry：`skill-ir-api-tester-operation-input-development-001`；
+- delivery/freeze evidence：`skill-ir-api-tester-operation-delivery-freeze-development-001`；
 - 当前状态与恢复命令：[执行状态](api-tester-operation-development-status.md)。
 
 设计合同见 [design](../superpowers/specs/2026-09-09-api-tester-operation-admission-validation-design.md)，逐文件步骤见
@@ -92,6 +94,34 @@ closure、三项 detector 和 source blocker。strict verifier 还调用 Git 读
 `5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036`；最终 portable SHA-256 为
 `206bdea5809c322fa01bf10ffe6af408abf0a081f9ed8813d0cdda1a347cc98c`。
 
+## 普通输入 entry 与 strict output verifier
+
+`src/skill-ir/api-tester-operation-input.ts` 是独立于固定六来源 development runner 的一文档入口。对应 CLI
+`src/skill-ir/api-tester-operation-input-run.ts` 只接受：
+
+```powershell
+bun ./src/skill-ir/api-tester-operation-input-run.ts `
+  --root=<input-root> --manifest=<manifest.json> --node=<node.exe>
+```
+
+manifest schema 为 `skill-ir-api-tester-operation-input-manifest/v1`，必须绑定 caller `bindingId`、不变的
+`api-tester-openapi-subset-v2`、safe-relative input path、`json|yaml`、bytes/SHA-256 和 previously-absent output path。
+入口不接收 cache、旧 selection/lock/report、row id 或预期成功数，也不导入固定六来源 runner。input/manifest/output 禁止路径重叠和
+symlink traversal，输出采用 exclusive-create-once。
+
+运行时先统一建立 source/admission 结果，再对 accepted operation 独立核对 dependency；满足 gate 时聚合投影并调用原 v2 artifact、generator
+和 checker。输出包含 `operation-inventory.json`、`report.json`、`output-manifest.json`，有 accepted artifact 时再包含
+`projected-input.json`、exact v2 package、generated plan/report、validation 和完整 v2 run report。报告分别给出 operation counts、checker-pass、
+obligation coverage、implementation/source correctness 和 document disposition。`partial` 不等于整份文档成功。
+
+`verifyApiTesterOperationInputOutput` 重新读取 manifest/input bytes 和 exact output closure；重做 live admission、独立 raw-source coverage、
+source-to-projection dependency、v2 package/contract/generated operation 守恒与 portable semantic digest。公共纯函数
+`verifyApiTesterOperationInputSemantics` 可在不信任 output report 的条件下检查 analyzer omission/duplicate、dependency loss 和 accepted-set
+artifact loss。修改 input、inventory、artifact 或增加未声明文件都会 fail closed。
+
+冻结设计见 [delivery freeze design](../superpowers/specs/2026-09-09-api-tester-operation-delivery-freeze-design.md)，执行步骤见
+[delivery freeze plan](../superpowers/plans/2026-09-09-api-tester-operation-delivery-freeze.md)。候选尚未冻结，尚未选择、预测或运行 prospective。
+
 ## Task 1 runner、报告与严格核验
 
 `src/skill-ir/api-tester-operation-development.ts` 提供 `runApiTesterOperationDevelopment`、
@@ -116,7 +146,7 @@ block 与 overbroad unresolved classification，报告以 attempt-001/002 保留
 当前聚焦验证命令为：
 
 ```powershell
-bun test ./src/skill-ir/api-tester-operation-development.test.ts ./src/skill-ir/api-tester-operation-development-run.test.ts ./src/skill-ir/api-tester-operation-admission.test.ts ./src/skill-ir/api-tester-operation-coverage.test.ts ./src/skill-ir/api-tester-operation-source.test.ts ./src/skill-ir/api-tester-production-contract-v2.test.ts ./src/skill-ir/api-tester-production-artifact-v2.test.ts
+bun test ./src/skill-ir/api-tester-operation-input.test.ts ./src/skill-ir/api-tester-operation-development.test.ts ./src/skill-ir/api-tester-operation-development-run.test.ts ./src/skill-ir/api-tester-operation-admission.test.ts ./src/skill-ir/api-tester-operation-coverage.test.ts ./src/skill-ir/api-tester-operation-source.test.ts ./src/skill-ir/api-tester-production-contract-v2.test.ts ./src/skill-ir/api-tester-production-artifact-v2.test.ts
 bun run typecheck
 ```
 

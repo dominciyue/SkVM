@@ -14,10 +14,10 @@
 
 ## Task 2: Build the ordinary-input entry with TDD
 
-- [ ] RED-test manifest parsing, digest/format/path binding, exclusive output, no fixed-six dependencies, accepted construction, mixed rejection/unresolved behavior, source-validity advisory retention, and complete operation inventory.
-- [ ] Implement `api-tester-operation-input.ts` and its CLI. Reuse the unchanged v2 support contract and existing operation/v2 components; do not add source-specific branches or import the fixed-six runner.
-- [ ] RED-test the strict verifier against analyzer omission/duplication, projection/dependency loss, missing artifact operation, input/report/contract replacement, and extra/tampered closure files; implement the minimum independent checks.
-- [ ] Run focused tests plus existing source/admission/development/validation/dependency regressions and typecheck.
+- [x] RED-test manifest parsing, digest/format/path binding, exclusive output, no fixed-six dependencies, accepted construction, mixed rejection/unresolved behavior, source-validity advisory retention, and complete operation inventory.
+- [x] Implement `api-tester-operation-input.ts` and its CLI. Reuse the unchanged v2 support contract and existing operation/v2 components; do not add source-specific branches or import the fixed-six runner.
+- [x] RED-test the strict verifier against analyzer omission/duplication, projection/dependency loss, missing artifact operation, input/report/contract replacement, and extra/tampered closure files; implement the minimum independent checks.
+- [x] Run focused tests plus existing source/admission/coverage/v2 artifact regression and typecheck. Broader historical operation validation remains in final verification.
 
 ## Task 3: Validate exposed and synthetic inputs
 
