@@ -53,6 +53,24 @@ function sha256(bytes: Uint8Array | string): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (typeof value === "object" && value !== null) {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${canonical(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "undefined";
+}
+
+function portableReportSha256(report: Record<string, unknown>): string {
+  const { completedAt: _completedAt, portableSemanticSha256: _digest, accounting, ...stable } = report;
+  const runtime = (accounting as { runtime: Record<string, unknown> }).runtime;
+  return sha256(canonical({
+    ...stable,
+    accounting: { ...(accounting as object), runtime: { ...runtime, wallClockMillis: 0 } },
+  }));
+}
+
 afterAll(async () => {
   await Promise.all(temporaryDirectories.map((directory) => rm(directory, { recursive: true, force: true })));
 });
@@ -102,6 +120,7 @@ describe("API Tester operation ordinary-input entry", () => {
         admissionConsistency: "pass",
         dependencyPreservation: "pass",
         artifactCorrectness: "pass",
+        analysisExecution: "pass",
         implementationCorrectness: "pass",
         sourceCorrectness: "blocked",
       },
@@ -147,6 +166,46 @@ describe("API Tester operation ordinary-input entry", () => {
       manifestPath: "manifest.json",
       nodeExecutable,
     })).resolves.toMatchObject({ status: "verified", operations: 4, accepted: 2, checked: 2 });
+  });
+
+  test("does not promote a deterministic external-reference rejection to an unresolved source blocker", async () => {
+    const fixture = await setup({
+      openapi: "3.1.0",
+      info: { title: "source issue boundary", version: "1" },
+      paths: {
+        "/external": {
+          post: {
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": { schema: { $ref: "./schemas.yaml#/Payload" } },
+                "application/x-www-form-urlencoded": { schema: { type: "string" } },
+              },
+            },
+            responses: { "200": { description: "ok" } },
+          },
+        },
+        "/missing": {
+          get: {
+            parameters: [{ $ref: "#/components/parameters/Missing" }],
+            responses: { "200": { description: "ok" } },
+          },
+        },
+      },
+    });
+    const report = await runApiTesterOperationInput({
+      rootDir: fixture.root,
+      manifestPath: "manifest.json",
+      nodeExecutable,
+    });
+
+    expect(report.totals).toMatchObject({ operations: 2, accepted: 0, rejected: 1, unresolved: 1 });
+    expect(report.sourceIssues).toEqual({
+      blocking: 1,
+      advisories: 0,
+      blockingOperations: ["GET /missing"],
+      advisoryOperations: [],
+    });
   });
 
   test("fails closed on manifest/input digest drift and an existing output directory", async () => {
@@ -239,5 +298,28 @@ describe("API Tester operation ordinary-input entry", () => {
     await writeFile(join(extra.root, "output/undeclared.txt"), "extra\n", "utf8");
     await expect(verifyApiTesterOperationInputOutput({ rootDir: extra.root, manifestPath: "manifest.json", nodeExecutable }))
       .rejects.toThrow(/closure mismatch/u);
+  });
+
+  test("strict verifier derives report facts instead of trusting a rehashed report", async () => {
+    const fixture = await setup();
+    await runApiTesterOperationInput({ rootDir: fixture.root, manifestPath: "manifest.json", nodeExecutable });
+    const reportPath = join(fixture.root, "output/report.json");
+    const manifestPath = join(fixture.root, "output/output-manifest.json");
+    const report = JSON.parse(await readFile(reportPath, "utf8"));
+    report.sourceIssues = { blocking: 0, advisories: 0, blockingOperations: [], advisoryOperations: [] };
+    report.gates.sourceCorrectness = "pass";
+    report.status = "completed";
+    report.portableSemanticSha256 = portableReportSha256(report);
+    const reportText = `${JSON.stringify(report, null, 2)}\n`;
+    await writeFile(reportPath, reportText, "utf8");
+    const outputManifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    outputManifest.files.find((file: { path: string }) => file.path === "report.json").sha256 = sha256(reportText);
+    await writeFile(manifestPath, `${JSON.stringify(outputManifest, null, 2)}\n`, "utf8");
+
+    await expect(verifyApiTesterOperationInputOutput({
+      rootDir: fixture.root,
+      manifestPath: "manifest.json",
+      nodeExecutable,
+    })).rejects.toThrow(/derived report facts drift/u);
   });
 });

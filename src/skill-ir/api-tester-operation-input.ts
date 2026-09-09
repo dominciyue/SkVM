@@ -87,6 +87,10 @@ const OperationRowSchema = z.object({
     locator: z.string().min(1),
     operationId: z.string().nullable(),
     summary: z.string().nullable(),
+    references: z.array(z.object({
+      resolution: z.enum(["resolved", "external", "missing", "invalid", "cycle", "sibling-semantics"]),
+      constructionObligation: z.boolean(),
+    }).passthrough()),
   }).passthrough(),
   admission: z.object({
     operationKey: z.string().min(1),
@@ -173,6 +177,7 @@ const GateSchema = z.object({
   admissionConsistency: z.enum(["pass", "fail"]),
   dependencyPreservation: z.enum(["pass", "fail"]),
   artifactCorrectness: z.enum(["pass", "fail"]),
+  analysisExecution: z.enum(["pass", "fail"]),
   implementationCorrectness: z.enum(["pass", "fail"]),
   sourceCorrectness: z.enum(["pass", "unverified", "blocked"]),
 }).strict();
@@ -247,7 +252,8 @@ export const ApiTesterOperationInputReportSchema = z.object({
   const implementationPass = report.gates.sourceCoverage === "pass"
     && report.gates.admissionConsistency === "pass"
     && report.gates.dependencyPreservation === "pass"
-    && report.gates.artifactCorrectness === "pass";
+    && report.gates.artifactCorrectness === "pass"
+    && report.gates.analysisExecution === "pass";
   if ((report.gates.implementationCorrectness === "pass") !== implementationPass) {
     context.addIssue({ code: "custom", path: ["gates", "implementationCorrectness"], message: "implementation gate drifted" });
   }
@@ -420,8 +426,12 @@ function sourceIssueSummary(
   rows: OperationRow[],
   dependencies: z.infer<typeof DependencyReportSchema>[],
 ): z.infer<typeof SourceIssueSummarySchema> {
-  const blockingOperations = rows.filter((row) => row.admission.findings.some((finding) =>
-    finding.code === "UNRESOLVED_CONSTRUCTION_REFERENCE" || finding.code === "UNRESOLVED_PATH_ITEM_REFERENCE"))
+  const blockingOperations = rows.filter((row) => row.admission.status === "unresolved" && (
+    row.source.references.some((reference) => reference.constructionObligation
+      && ["missing", "invalid", "cycle"].includes(reference.resolution))
+    || row.admission.findings.some((finding) =>
+      finding.code === "UNRESOLVED_PARAMETER_IDENTITY" || finding.code === "UNRESOLVED_PATH_ITEM_REFERENCE")
+  ))
     .map((row) => row.source.key).sort(compareText);
   const advisoryOperations = dependencies.filter((dependency) => dependency.dimensions.sourceValidity === "fail"
     && dependency.sourceIssues.some((issue) => !issue.constructionObligation))
@@ -658,13 +668,17 @@ export async function runApiTesterOperationInput(options: {
   const artifactCorrectness = accepted.length === 0
     ? artifact.status === "not-run"
     : artifact.status === "passed" && artifact.checkedOperationCount === accepted.length;
+  const analysisExecution = rows.every((row) =>
+    row.admission.findings.every((finding) => finding.category !== "implementation-failure"));
   const gates = GateSchema.parse({
     sourceCoverage: coverage.status,
     admissionConsistency: analysis.consistency.status,
     dependencyPreservation: dependencies.every((dependency) => dependency.status === "pass") ? "pass" : "fail",
     artifactCorrectness: artifactCorrectness ? "pass" : "fail",
+    analysisExecution: analysisExecution ? "pass" : "fail",
     implementationCorrectness: coverage.status === "pass" && analysis.consistency.status === "pass"
-      && dependencies.every((dependency) => dependency.status === "pass") && artifactCorrectness ? "pass" : "fail",
+      && dependencies.every((dependency) => dependency.status === "pass") && artifactCorrectness
+      && analysisExecution ? "pass" : "fail",
     sourceCorrectness: sources.blocking > 0 ? "blocked" : sources.advisories > 0 ? "unverified" : "pass",
   });
   const obligations = countCoveredObligations(accepted.length, checks);
@@ -820,6 +834,7 @@ export async function verifyApiTesterOperationInputOutput(options: {
   let projectedDocument: unknown | null = null;
   let contractKeys: string[] = [];
   let generatedKeys: string[] = [];
+  let artifactChecks: Record<string, boolean> = {};
   if (inventory.artifact.status === "passed") {
     if (!inventory.artifact.projectedInput || !inventory.artifact.runReport || !inventory.artifact.generatedPlan
       || !inventory.artifact.generatedReport || !inventory.artifact.validationReport || !inventory.artifact.packageManifest) {
@@ -833,6 +848,7 @@ export async function verifyApiTesterOperationInputOutput(options: {
     const run = ApiTesterProductionRunReportSchemaV2.parse(JSON.parse(
       await readFile(join(output.absolute, inventory.artifact.runReport.path), "utf8"),
     ));
+    artifactChecks = run.validation.checks;
     const generatedReportBytes = await readFile(join(output.absolute, inventory.artifact.generatedReport.path));
     const validationBytes = await readFile(join(output.absolute, inventory.artifact.validationReport.path));
     if (run.package.manifestSha256 !== inventory.artifact.packageManifest.sha256
@@ -854,6 +870,82 @@ export async function verifyApiTesterOperationInputOutput(options: {
   if (canonical(semantics.coverage) !== canonical(inventory.coverage)
     || canonical(semantics.dependencies) !== canonical(inventory.dependencyVerification)) {
     throw new Error("operation independent verification evidence drift");
+  }
+  const operations = expectedRows.length;
+  const accepted = expectedRows.filter((row) => row.admission.status === "accepted").length;
+  const rejected = expectedRows.filter((row) => row.admission.status === "rejected").length;
+  const unresolved = expectedRows.filter((row) => row.admission.status === "unresolved").length;
+  const artifactCorrectness = accepted === 0
+    ? inventory.artifact.status === "not-run"
+    : inventory.artifact.status === "passed" && inventory.artifact.acceptedOperationCount === accepted
+      && inventory.artifact.checkedOperationCount === accepted;
+  const analysisExecution = expectedRows.every((row) =>
+    row.admission.findings.every((finding) => finding.category !== "implementation-failure"));
+  const expectedSources = sourceIssueSummary(
+    expectedRows,
+    z.array(DependencyReportSchema).parse(semantics.dependencies),
+  );
+  const expectedGates = GateSchema.parse({
+    sourceCoverage: semantics.coverage.status,
+    admissionConsistency: analysis.consistency.status,
+    dependencyPreservation: semantics.dependencies.every((dependency) => dependency.status === "pass") ? "pass" : "fail",
+    artifactCorrectness: artifactCorrectness ? "pass" : "fail",
+    analysisExecution: analysisExecution ? "pass" : "fail",
+    implementationCorrectness: semantics.coverage.status === "pass" && analysis.consistency.status === "pass"
+      && semantics.dependencies.every((dependency) => dependency.status === "pass")
+      && artifactCorrectness && analysisExecution ? "pass" : "fail",
+    sourceCorrectness: expectedSources.blocking > 0 ? "blocked"
+      : expectedSources.advisories > 0 ? "unverified" : "pass",
+  });
+  const obligationCounts = countCoveredObligations(accepted, artifactChecks);
+  const expectedObligationCoverage = {
+    total: obligationCounts.total,
+    covered: obligationCounts.covered,
+    uncovered: obligationCounts.total - obligationCounts.covered,
+    status: obligationCounts.total === 0 ? "not-applicable" as const
+      : obligationCounts.total === obligationCounts.covered ? "pass" as const : "fail" as const,
+  };
+  const expectedDisposition = !analysis.enumeration.complete || unresolved > 0
+    ? operations === 0 ? "unresolved" as const : "partial" as const
+    : accepted === operations && operations > 0 && artifactCorrectness
+      ? "fully-accepted-within-local-contract" as const
+      : accepted === 0 ? "rejected" as const : "partial" as const;
+  const expectedStatus = expectedGates.implementationCorrectness === "fail" ? "failed" as const
+    : expectedSources.blocking > 0 ? "completed-with-source-blocker" as const
+      : expectedSources.advisories > 0 ? "completed-with-source-advisory" as const : "completed" as const;
+  const expectedFacts = {
+    status: expectedStatus,
+    totals: {
+      operations,
+      accepted,
+      rejected,
+      unresolved,
+      artifactCheckedPassedOperations: inventory.artifact.checkedOperationCount,
+    },
+    documentDisposition: expectedDisposition,
+    gates: expectedGates,
+    sourceIssues: expectedSources,
+    obligationCoverage: expectedObligationCoverage,
+    outputs: {
+      projectedInput: inventory.artifact.projectedInput,
+      artifactRoot: inventory.artifact.root,
+    },
+  };
+  const actualFacts = {
+    status: report.status,
+    totals: report.totals,
+    documentDisposition: report.documentDisposition,
+    gates: report.gates,
+    sourceIssues: report.sourceIssues,
+    obligationCoverage: report.obligationCoverage,
+    outputs: {
+      projectedInput: report.outputs.projectedInput,
+      artifactRoot: report.outputs.artifactRoot,
+    },
+  };
+  if (canonical(actualFacts) !== canonical(expectedFacts)
+    || canonical(inventory.sourceIssues) !== canonical(expectedSources)) {
+    throw new Error("operation derived report facts drift");
   }
   const { portableSemanticSha256: _digest, ...reportWithoutDigest } = report;
   if (portableReportDigest(reportWithoutDigest) !== report.portableSemanticSha256) {

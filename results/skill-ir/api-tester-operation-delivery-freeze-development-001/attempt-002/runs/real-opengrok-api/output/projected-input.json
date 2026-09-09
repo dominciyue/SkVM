@@ -1,0 +1,918 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OpenGrok RESTful API",
+    "description": "OpenGrok RESTful API documentation. Unless overridden on an operation, endpoints are accessible under `/api/v1`.\n\nProtected endpoints require an authentication bearer token configured in the web application and supplied via the\n`Authorization` HTTP header (`Authorization: Bearer <token>`). Bearer tokens are accepted over HTTPS connections;\nHTTP token use has to be explicitly enabled with the `allowInsecureTokens` configuration option and should be limited\nto trusted internal deployments.\n\nThe access to the `/annotation`, `/file`, `/history`, `/search` and `/suggest` endpoints is controlled with the\nauthorization framework and requires user authentication if set up.\n\nThe `/system/ping`, `/system/indextime`, `/suggest/config` and `/metrics` endpoints are public and do not require\nbearer token authentication.\n\nSome APIs are asynchronous. They return status code 202 (Accepted) and a `Location` header that contains the URL for\nthe status endpoint to check for the result of the API call. Once the status API returns a result other than 202, the\nclient should issue a DELETE request to this URL to clean up server resources.\n\nFor all entry points that modify web application configuration, the configuration has to be retrieved and stored on\ndisk (using the configuration-specific entry points) in order to be persistent, for example after application server\nrestart or web application redeploy.\n",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Annotation"
+    },
+    {
+      "name": "Configuration"
+    },
+    {
+      "name": "File"
+    },
+    {
+      "name": "History"
+    },
+    {
+      "name": "Directory listing"
+    },
+    {
+      "name": "System"
+    },
+    {
+      "name": "Messages"
+    },
+    {
+      "name": "Monitoring"
+    },
+    {
+      "name": "Groups"
+    },
+    {
+      "name": "Projects"
+    },
+    {
+      "name": "Repositories"
+    },
+    {
+      "name": "Search"
+    },
+    {
+      "name": "Suggester"
+    },
+    {
+      "name": "Status"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "token"
+      }
+    },
+    "parameters": {
+      "PathQuery": {
+        "name": "path",
+        "in": "query",
+        "description": "Path of file, relative to source root.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ConfigurationField": {
+        "name": "field",
+        "in": "path",
+        "description": "Configuration field name.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "MessageTag": {
+        "name": "tag",
+        "in": "query",
+        "description": "Message tag.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "GroupName": {
+        "name": "group",
+        "in": "path",
+        "description": "Group name.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ProjectName": {
+        "name": "project",
+        "in": "path",
+        "description": "Project name.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "PropertyName": {
+        "name": "propertyname",
+        "in": "path",
+        "description": "Property name.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Uuid": {
+        "name": "uuid",
+        "in": "path",
+        "description": "API request UUID.",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "responses": {
+      "AcceptedAsync": {
+        "description": "Request accepted for asynchronous processing.",
+        "headers": {
+          "Location": {
+            "description": "URL of the status endpoint to check for the result of the API call.",
+            "schema": {
+              "type": "string",
+              "format": "uri-reference"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "AnnotationEntry": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "FileDefinition": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "lineStart": {
+            "type": "integer"
+          },
+          "lineEnd": {
+            "type": "integer"
+          },
+          "line": {
+            "type": "integer"
+          },
+          "namespace": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "HistoryResponse": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryEntry"
+            }
+          },
+          "start": {
+            "type": "integer"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        }
+      },
+      "HistoryEntry": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "string"
+          },
+          "date": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "author": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "DirectoryEntry": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "numLines": {
+            "type": "integer",
+            "nullable": true
+          },
+          "loc": {
+            "type": "integer",
+            "nullable": true
+          },
+          "date": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "pathDescription": {
+            "type": "string"
+          },
+          "isDirectory": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        }
+      },
+      "MessageCreateRequest": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "messageLevel": {
+            "type": "string",
+            "enum": [
+              "success",
+              "info",
+              "warning",
+              "error"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "string",
+            "description": "Java `java.time.Duration` string."
+          }
+        },
+        "required": [
+          "tags",
+          "messageLevel",
+          "text"
+        ]
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "expired": {
+            "type": "boolean"
+          },
+          "created": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expiration": {
+            "type": "string"
+          },
+          "cssClass": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "PathDescription": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "description"
+        ]
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "integer"
+          },
+          "resultCount": {
+            "type": "integer"
+          },
+          "startDocument": {
+            "type": "integer"
+          },
+          "endDocument": {
+            "type": "integer"
+          },
+          "results": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SearchHit"
+              }
+            }
+          }
+        }
+      },
+      "SearchHit": {
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": "string"
+          },
+          "lineNumber": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          }
+        }
+      },
+      "SuggestResponse": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "integer"
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            }
+          },
+          "identifier": {
+            "type": "string"
+          },
+          "queryText": {
+            "type": "string"
+          },
+          "partialResult": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Suggestion": {
+        "type": "object",
+        "properties": {
+          "phrase": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      },
+      "SuggesterConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "maxResults": {
+            "type": "integer"
+          },
+          "minChars": {
+            "type": "integer"
+          },
+          "allowedProjects": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxProjects": {
+            "type": "integer"
+          },
+          "allowedFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowComplexQueries": {
+            "type": "boolean"
+          },
+          "allowMostPopular": {
+            "type": "boolean"
+          },
+          "showScores": {
+            "type": "boolean"
+          },
+          "showProjects": {
+            "type": "boolean"
+          },
+          "showTime": {
+            "type": "boolean"
+          },
+          "rebuildCronConfig": {
+            "type": "string"
+          },
+          "buildTerminationTime": {
+            "type": "integer"
+          },
+          "timeThreshold": {
+            "type": "integer"
+          }
+        }
+      },
+      "SuggesterRawPopularityData": {
+        "type": "object",
+        "properties": {
+          "project": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "increment": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project",
+          "field",
+          "token",
+          "increment"
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/file/content": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Get file content",
+        "description": "Honors the `Accept` header. If the value of the header is `text/plain` and there is a document in the index that\nhas the genre detected as plain text, the contents of the document will be returned. If the document is not found,\nHTTP error 404 will be returned. If the genre of the document is not plain text, HTTP error 406 will be returned.\nAlternatively, use `application/octet-stream` to bypass the document and genre check. The `Content-Type` header of\nthe reply will be set accordingly.\n",
+        "operationId": "getFileContent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PathQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File content.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "foo\nbar\n"
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found."
+          },
+          "406": {
+            "description": "Document genre is not plain text."
+          }
+        }
+      }
+    },
+    "/groups": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Return a list of all groups",
+        "operationId": "getGroups",
+        "responses": {
+          "200": {
+            "description": "List of groups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "foo",
+                  "bar"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics/prometheus": {
+      "get": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "Retrieve web application metrics in Prometheus format",
+        "operationId": "getPrometheusMetrics",
+        "servers": [
+          {
+            "url": "/"
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Prometheus metrics.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Return a list of all projects",
+        "operationId": "getProjects",
+        "responses": {
+          "200": {
+            "description": "List of projects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "foo",
+                  "bar"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/indexed": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Return a list of indexed projects",
+        "operationId": "getIndexedProjects",
+        "responses": {
+          "200": {
+            "description": "Indexed projects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "sc-2",
+                  "sc-1"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Return search results",
+        "description": "The `results` map preserves the order of the `sort` parameter (Lucene scoring order for `relevancy`).",
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "def",
+            "in": "query",
+            "description": "Definition field value to search for.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "full",
+            "in": "query",
+            "description": "Full search field value to search for.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hist",
+            "in": "query",
+            "description": "History field value to search for.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxhitsperfile",
+            "in": "query",
+            "description": "Maximum number of matching lines returned per file. `0` returns all matching lines.",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "maxresults",
+            "in": "query",
+            "description": "Maximum number of documents whose hits will be returned.",
+            "schema": {
+              "type": "integer",
+              "default": 1000
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "description": "File path field value to search for.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projects",
+            "in": "query",
+            "description": "Projects to search in.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort order for results.",
+            "schema": {
+              "type": "string",
+              "default": "relevancy",
+              "enum": [
+                "relevancy",
+                "fullpath",
+                "lastmodtime"
+              ]
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Start index from which to return results.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Symbol field value to search for.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Type of files to search for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                },
+                "example": {
+                  "time": 1229,
+                  "resultCount": 8,
+                  "startDocument": 0,
+                  "endDocument": 7,
+                  "results": {
+                    "/onnv/usr/src/lib/libnisdb/db_pickle.cc": [
+                      {
+                        "line": "pickle_file::<b>transfer</b>(pptr p, bool_t (*f) (XDR*, pptr))",
+                        "lineNumber": "106",
+                        "tag": "function in pickle_file"
+                      }
+                    ],
+                    "/onnv/usr/src/cmd/pools/poold/com/sun/solaris/service/pools/Resource.java": [
+                      {
+                        "line": "\tpublic void <b>transfer</b>(Resource donor, long qty) throws PoolsException",
+                        "lineNumber": "93",
+                        "tag": "method in Resource"
+                      },
+                      {
+                        "line": "\tpublic void <b>transfer</b>(Resource donor, List components)",
+                        "lineNumber": "110",
+                        "tag": "method in Resource"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/suggest/config": {
+      "get": {
+        "tags": [
+          "Suggester"
+        ],
+        "summary": "Return suggester configuration",
+        "operationId": "getSuggesterConfig",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Suggester configuration.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggesterConfig"
+                },
+                "example": {
+                  "enabled": true,
+                  "maxResults": 10,
+                  "minChars": 4,
+                  "allowedProjects": null,
+                  "maxProjects": 2147483647,
+                  "allowedFields": [
+                    "defs",
+                    "path",
+                    "hist",
+                    "refs",
+                    "type",
+                    "full"
+                  ],
+                  "allowComplexQueries": true,
+                  "allowMostPopular": true,
+                  "showScores": false,
+                  "showProjects": true,
+                  "showTime": false,
+                  "rebuildCronConfig": "0 0 * * *",
+                  "buildTerminationTime": 1800,
+                  "timeThreshold": 2000
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/indextime": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Retrieve last index time",
+        "description": "The time is in ISO 8601 format in UTC time zone.",
+        "operationId": "getLastIndexTime",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Last index time.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "example": "2021-02-15T16:39:16.409+00:00"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/ping": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Check if web app is deployed and alive",
+        "description": "This endpoint is used by the indexer when running with the `-U` option.",
+        "operationId": "ping",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Web application is alive."
+          }
+        }
+      }
+    },
+    "/system/version": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Get web application version as string",
+        "operationId": "getWebAppVersion",
+        "responses": {
+          "200": {
+            "description": "Web application version.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "1.9.0 (a5ac05426bc5029158fedffee1cd44abf033bb61)"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

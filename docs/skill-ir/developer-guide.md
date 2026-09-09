@@ -781,7 +781,8 @@ bun ./src/skill-ir/api-tester-operation-input-run.ts `
 该入口不接受 `--cache-root`、旧 selection/lock/result 或成功数；输出 operation inventory、准入/依赖/coverage、可选聚合 v2 artifact 和
 exact closure manifest。`verifyApiTesterOperationInputOutput` 可重新读取原始输入和闭包严格核验。入口保持
 `api-tester-openapi-subset-v2` 不变；unsupported/unresolved/advisory 全部保留，局部 checker pass 不代表整份文档或真实 API 通过。
-候选冻结前的 clean 归档和缺失旧 clean-002 处置见组件文档；当前不应选择或预测 prospective row。
+候选冻结前的 clean 归档和缺失旧 clean-002 处置见
+[operation delivery/freeze 组件文档](api-tester-operation-delivery-freeze.md)；当前不应选择或预测 prospective row。
 
 #### 5.7.3 从干净源码 checkout 复现
 

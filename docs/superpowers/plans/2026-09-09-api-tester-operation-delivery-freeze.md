@@ -21,9 +21,11 @@
 
 ## Task 3: Validate exposed and synthetic inputs
 
-- [ ] Build deterministic manifests for only the six already exposed source bytes and permitted synthetic fixtures. Derive expected counts from strict-read evidence rather than embedding them in the runner.
-- [ ] Run the new entry uniformly for all six sources. Verify Meilisearch's missing construction ref remains unresolved and Bangumi external response refs remain source-validity advisories.
-- [ ] Compare operation universe, admission, checker-pass, obligations, dependency dimensions, and coverage against the current repaired evidence. Retain every failure/advisory; do not promote partial success to document success.
+- [x] Build deterministic manifests for only the six already exposed source bytes and permitted synthetic fixtures. Derive expected counts from strict-read evidence rather than embedding them in the runner.
+- [x] Run the new entry uniformly for all six sources. Verify Meilisearch's missing construction ref remains unresolved and Bangumi external response refs remain source-validity advisories.
+- [x] Compare operation universe, admission, checker-pass, obligations, dependency dimensions, and coverage against the current repaired evidence. Retain every failure/advisory; do not promote partial success to document success.
+
+Result: `main` strictly verifies 6 documents, 562 operations, 112 accepted, 449 rejected, 1 unresolved, 112 checked, and 575/575 obligations. Attempts 001--003 preserve two pre-report implementation failures and the overbroad blocker-classification failure that prompted a focused TDD repair.
 
 ## Task 4: Freeze the candidate execution chain
 

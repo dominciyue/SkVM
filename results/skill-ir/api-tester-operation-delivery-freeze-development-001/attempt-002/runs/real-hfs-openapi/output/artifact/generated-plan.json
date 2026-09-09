@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "api-test-plan/v2",
+  "source": "public-openapi",
+  "framework": "node:test",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/~/api/get_account",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-0-get-api-get-account-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "username": "0"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/~/api/get_accounts",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-1-get-api-get-accounts-happy",
+          "category": "happy",
+          "request": {},
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/~/api/get_admins",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-2-get-api-get-admins-happy",
+          "category": "happy",
+          "request": {},
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/~/api/get_config",
+      "arrayParameterEncodings": [
+        {
+          "location": "query",
+          "name": "omit",
+          "style": "form",
+          "explode": true,
+          "wireFormat": "repeated-value"
+        },
+        {
+          "location": "query",
+          "name": "only",
+          "style": "form",
+          "explode": true,
+          "wireFormat": "repeated-value"
+        }
+      ],
+      "cases": [
+        {
+          "id": "op-3-get-api-get-config-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "omit": [
+                "0"
+              ],
+              "only": [
+                "0"
+              ]
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/~/api/get_file_list",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-4-get-api-get-file-list-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "admin": true,
+              "c": "0",
+              "fileMask": "0",
+              "limit": 1,
+              "offset": 1,
+              "onlyFiles": true,
+              "onlyFolders": true,
+              "search": "0",
+              "searchComment": "0",
+              "uri": "0",
+              "wild": "0"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/~/api/get_folder_size_partial",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-5-get-api-get-folder-size-partial-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "id": "0"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-5-get-api-get-folder-size-partial-field-0-0-required",
+          "category": "error",
+          "request": {
+            "query": {}
+          },
+          "expectedStatus": 404,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/~/api/get_usernames",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-6-get-api-get-usernames-happy",
+          "category": "happy",
+          "request": {},
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/~/api/refresh_session",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-7-get-api-refresh-session-happy",
+          "category": "happy",
+          "request": {},
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    }
+  ]
+}

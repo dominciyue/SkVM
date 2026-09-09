@@ -1,0 +1,5872 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-input-inventory/v1",
+  "identity": "skill-ir-api-tester-operation-input-development-001",
+  "bindingId": "real-opengrok-api",
+  "source": {
+    "format": "yaml",
+    "bytes": 45978,
+    "sha256": "2ac5843f19a4ebba556b5990ae4936000948b63e6b5e3539bdb81bc55351f502"
+  },
+  "enumeration": {
+    "complete": true,
+    "operations": [
+      {
+        "key": "GET /annotation",
+        "method": "GET",
+        "path": "/annotation",
+        "locator": "#/paths/~1annotation/get",
+        "operationId": "getAnnotation",
+        "summary": "Get annotation for a file",
+        "parameters": [
+          {
+            "locator": "#/paths/~1annotation/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/PathQuery",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1annotation/get/parameters/0/$ref",
+            "ref": "#/components/parameters/PathQuery",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PathQuery",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1annotation/get/responses/200/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/AnnotationEntry",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/AnnotationEntry",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "GET /configuration",
+        "method": "GET",
+        "path": "/configuration",
+        "locator": "#/paths/~1configuration/get",
+        "operationId": "getConfiguration",
+        "summary": "Return XML representation of configuration",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      {
+        "key": "PUT /configuration",
+        "method": "PUT",
+        "path": "/configuration",
+        "locator": "#/paths/~1configuration/put",
+        "operationId": "setConfiguration",
+        "summary": "Set configuration from XML representation",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/xml"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "201",
+            "202"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1configuration/put/responses/202/$ref",
+            "ref": "#/components/responses/AcceptedAsync",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/responses/AcceptedAsync",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "POST /configuration/authorization/reload",
+        "method": "POST",
+        "path": "/configuration/authorization/reload",
+        "locator": "#/paths/~1configuration~1authorization~1reload/post",
+        "operationId": "reloadAuthorizationFramework",
+        "summary": "Reload authorization framework",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": false,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "202",
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1configuration~1authorization~1reload/post/responses/202/$ref",
+            "ref": "#/components/responses/AcceptedAsync",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/responses/AcceptedAsync",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "GET /configuration/{field}",
+        "method": "GET",
+        "path": "/configuration/{field}",
+        "locator": "#/paths/~1configuration~1{field}/get",
+        "operationId": "getConfigurationField",
+        "summary": "Return a specific configuration field",
+        "parameters": [
+          {
+            "locator": "#/paths/~1configuration~1{field}/get/parameters/0",
+            "origin": "operation",
+            "name": "field",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ConfigurationField",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1configuration~1{field}/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ConfigurationField",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ConfigurationField",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "PUT /configuration/{field}",
+        "method": "PUT",
+        "path": "/configuration/{field}",
+        "locator": "#/paths/~1configuration~1{field}/put",
+        "operationId": "setConfigurationField",
+        "summary": "Set a specific configuration field",
+        "parameters": [
+          {
+            "locator": "#/paths/~1configuration~1{field}/put/parameters/0",
+            "origin": "operation",
+            "name": "field",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ConfigurationField",
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1configuration~1{field}/put/parameters/1",
+            "origin": "operation",
+            "name": "reindex",
+            "location": "query",
+            "required": false,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "202",
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1configuration~1{field}/put/parameters/0/$ref",
+            "ref": "#/components/parameters/ConfigurationField",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ConfigurationField",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1configuration~1{field}/put/responses/202/$ref",
+            "ref": "#/components/responses/AcceptedAsync",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/responses/AcceptedAsync",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "GET /file/content",
+        "method": "GET",
+        "path": "/file/content",
+        "locator": "#/paths/~1file~1content/get",
+        "operationId": "getFileContent",
+        "summary": "Get file content",
+        "parameters": [
+          {
+            "locator": "#/paths/~1file~1content/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/PathQuery",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "404",
+            "406"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1file~1content/get/parameters/0/$ref",
+            "ref": "#/components/parameters/PathQuery",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PathQuery",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /file/defs",
+        "method": "GET",
+        "path": "/file/defs",
+        "locator": "#/paths/~1file~1defs/get",
+        "operationId": "getFileDefinitions",
+        "summary": "Get file definitions",
+        "parameters": [
+          {
+            "locator": "#/paths/~1file~1defs/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/PathQuery",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1file~1defs/get/parameters/0/$ref",
+            "ref": "#/components/parameters/PathQuery",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PathQuery",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1file~1defs/get/responses/200/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/FileDefinition",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/FileDefinition",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "GET /file/genre",
+        "method": "GET",
+        "path": "/file/genre",
+        "locator": "#/paths/~1file~1genre/get",
+        "operationId": "getFileGenre",
+        "summary": "Get file genre",
+        "parameters": [
+          {
+            "locator": "#/paths/~1file~1genre/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/PathQuery",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1file~1genre/get/parameters/0/$ref",
+            "ref": "#/components/parameters/PathQuery",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PathQuery",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /groups",
+        "method": "GET",
+        "path": "/groups",
+        "locator": "#/paths/~1groups/get",
+        "operationId": "getGroups",
+        "summary": "Return a list of all groups",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      {
+        "key": "GET /groups/{group}/allprojects",
+        "method": "GET",
+        "path": "/groups/{group}/allprojects",
+        "locator": "#/paths/~1groups~1{group}~1allprojects/get",
+        "operationId": "getGroupProjects",
+        "summary": "Return list of all projects for a group",
+        "parameters": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1allprojects/get/parameters/0",
+            "origin": "operation",
+            "name": "group",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/GroupName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1allprojects/get/parameters/0/$ref",
+            "ref": "#/components/parameters/GroupName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/GroupName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "POST /groups/{group}/match",
+        "method": "POST",
+        "path": "/groups/{group}/match",
+        "locator": "#/paths/~1groups~1{group}~1match/post",
+        "operationId": "matchGroupPattern",
+        "summary": "Check if project name matches group pattern",
+        "parameters": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1match/post/parameters/0",
+            "origin": "operation",
+            "name": "group",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/GroupName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "204"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1match/post/parameters/0/$ref",
+            "ref": "#/components/parameters/GroupName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/GroupName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /groups/{group}/pattern",
+        "method": "GET",
+        "path": "/groups/{group}/pattern",
+        "locator": "#/paths/~1groups~1{group}~1pattern/get",
+        "operationId": "getGroupPattern",
+        "summary": "Return pattern for given group",
+        "parameters": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1pattern/get/parameters/0",
+            "origin": "operation",
+            "name": "group",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/GroupName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1pattern/get/parameters/0/$ref",
+            "ref": "#/components/parameters/GroupName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/GroupName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /history",
+        "method": "GET",
+        "path": "/history",
+        "locator": "#/paths/~1history/get",
+        "operationId": "getHistory",
+        "summary": "Get history entries",
+        "parameters": [
+          {
+            "locator": "#/paths/~1history/get/parameters/3",
+            "origin": "operation",
+            "name": "max",
+            "location": "query",
+            "required": false,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1history/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1history/get/parameters/2",
+            "origin": "operation",
+            "name": "start",
+            "location": "query",
+            "required": false,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1history/get/parameters/1",
+            "origin": "operation",
+            "name": "withFiles",
+            "location": "query",
+            "required": false,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1history/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/HistoryResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/HistoryResponse",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "GET /list",
+        "method": "GET",
+        "path": "/list",
+        "locator": "#/paths/~1list/get",
+        "operationId": "getDirectoryListing",
+        "summary": "Get directory entries",
+        "parameters": [
+          {
+            "locator": "#/paths/~1list/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1list/get/responses/200/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/DirectoryEntry",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/DirectoryEntry",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "DELETE /messages",
+        "method": "DELETE",
+        "path": "/messages",
+        "locator": "#/paths/~1messages/delete",
+        "operationId": "deleteMessages",
+        "summary": "Delete messages with specified tag",
+        "parameters": [
+          {
+            "locator": "#/paths/~1messages/delete/parameters/0",
+            "origin": "operation",
+            "name": "tag",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/MessageTag",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1messages/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/MessageTag",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/MessageTag",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /messages",
+        "method": "GET",
+        "path": "/messages",
+        "locator": "#/paths/~1messages/get",
+        "operationId": "getMessages",
+        "summary": "Return all messages with specified tag",
+        "parameters": [
+          {
+            "locator": "#/paths/~1messages/get/parameters/0",
+            "origin": "operation",
+            "name": "tag",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/MessageTag",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1messages/get/parameters/0/$ref",
+            "ref": "#/components/parameters/MessageTag",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/MessageTag",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1messages/get/responses/200/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/Message",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/Message",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "POST /messages",
+        "method": "POST",
+        "path": "/messages",
+        "locator": "#/paths/~1messages/post",
+        "operationId": "addMessage",
+        "summary": "Add message to the system",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "201"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1messages/post/requestBody/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/MessageCreateRequest",
+            "role": "request",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/MessageCreateRequest",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /metrics/prometheus",
+        "method": "GET",
+        "path": "/metrics/prometheus",
+        "locator": "#/paths/~1metrics~1prometheus/get",
+        "operationId": "getPrometheusMetrics",
+        "summary": "Retrieve web application metrics in Prometheus format",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      {
+        "key": "GET /projects",
+        "method": "GET",
+        "path": "/projects",
+        "locator": "#/paths/~1projects/get",
+        "operationId": "getProjects",
+        "summary": "Return a list of all projects",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      {
+        "key": "POST /projects",
+        "method": "POST",
+        "path": "/projects",
+        "locator": "#/paths/~1projects/post",
+        "operationId": "addProject",
+        "summary": "Add project",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "201"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      {
+        "key": "GET /projects/indexed",
+        "method": "GET",
+        "path": "/projects/indexed",
+        "locator": "#/paths/~1projects~1indexed/get",
+        "operationId": "getIndexedProjects",
+        "summary": "Return a list of indexed projects",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      {
+        "key": "DELETE /projects/{project}",
+        "method": "DELETE",
+        "path": "/projects/{project}",
+        "locator": "#/paths/~1projects~1{project}/delete",
+        "operationId": "deleteProject",
+        "summary": "Delete project",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}/delete/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "DELETE /projects/{project}/annotationcache",
+        "method": "DELETE",
+        "path": "/projects/{project}/annotationcache",
+        "locator": "#/paths/~1projects~1{project}~1annotationcache/delete",
+        "operationId": "deleteProjectAnnotationCache",
+        "summary": "Delete annotation cache for a project",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1annotationcache/delete/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1annotationcache/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "DELETE /projects/{project}/data",
+        "method": "DELETE",
+        "path": "/projects/{project}/data",
+        "locator": "#/paths/~1projects~1{project}~1data/delete",
+        "operationId": "deleteProjectData",
+        "summary": "Delete project index data",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1data/delete/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1data/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /projects/{project}/files",
+        "method": "GET",
+        "path": "/projects/{project}/files",
+        "locator": "#/paths/~1projects~1{project}~1files/get",
+        "operationId": "getProjectFiles",
+        "summary": "Get list of files tracked by the index database for given project",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1files/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1files/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "DELETE /projects/{project}/historycache",
+        "method": "DELETE",
+        "path": "/projects/{project}/historycache",
+        "locator": "#/paths/~1projects~1{project}~1historycache/delete",
+        "operationId": "deleteProjectHistoryCache",
+        "summary": "Delete history cache for a project",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1historycache/delete/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1historycache/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "PUT /projects/{project}/indexed",
+        "method": "PUT",
+        "path": "/projects/{project}/indexed",
+        "locator": "#/paths/~1projects~1{project}~1indexed/put",
+        "operationId": "markProjectIndexed",
+        "summary": "Mark project as indexed",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": false,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "202",
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/responses/202/$ref",
+            "ref": "#/components/responses/AcceptedAsync",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/responses/AcceptedAsync",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "GET /projects/{project}/property/{propertyname}",
+        "method": "GET",
+        "path": "/projects/{project}/property/{propertyname}",
+        "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get",
+        "operationId": "getProjectProperty",
+        "summary": "Return the property value",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/parameters/1",
+            "origin": "operation",
+            "name": "propertyname",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/PropertyName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/parameters/1/$ref",
+            "ref": "#/components/parameters/PropertyName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PropertyName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "PUT /projects/{project}/property/{propertyname}",
+        "method": "PUT",
+        "path": "/projects/{project}/property/{propertyname}",
+        "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put",
+        "operationId": "setProjectProperty",
+        "summary": "Set property value for the project",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/parameters/1",
+            "origin": "operation",
+            "name": "propertyname",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/PropertyName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/parameters/1/$ref",
+            "ref": "#/components/parameters/PropertyName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PropertyName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /projects/{project}/repositories",
+        "method": "GET",
+        "path": "/projects/{project}/repositories",
+        "locator": "#/paths/~1projects~1{project}~1repositories/get",
+        "operationId": "getProjectRepositories",
+        "summary": "Return a list of repositories for the specified project",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1repositories/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1repositories/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /projects/{project}/repositories/type",
+        "method": "GET",
+        "path": "/projects/{project}/repositories/type",
+        "locator": "#/paths/~1projects~1{project}~1repositories~1type/get",
+        "operationId": "getProjectRepositoryTypes",
+        "summary": "Return types of project repositories",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1repositories~1type/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1repositories~1type/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /repositories/property/{field}",
+        "method": "GET",
+        "path": "/repositories/property/{field}",
+        "locator": "#/paths/~1repositories~1property~1{field}/get",
+        "operationId": "getRepositoryProperty",
+        "summary": "Return the repository field value",
+        "parameters": [
+          {
+            "locator": "#/paths/~1repositories~1property~1{field}/get/parameters/0",
+            "origin": "operation",
+            "name": "field",
+            "location": "path",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1repositories~1property~1{field}/get/parameters/1",
+            "origin": "operation",
+            "name": "repository",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      {
+        "key": "GET /search",
+        "method": "GET",
+        "path": "/search",
+        "locator": "#/paths/~1search/get",
+        "operationId": "search",
+        "summary": "Return search results",
+        "parameters": [
+          {
+            "locator": "#/paths/~1search/get/parameters/1",
+            "origin": "operation",
+            "name": "def",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/0",
+            "origin": "operation",
+            "name": "full",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/4",
+            "origin": "operation",
+            "name": "hist",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/9",
+            "origin": "operation",
+            "name": "maxhitsperfile",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/7",
+            "origin": "operation",
+            "name": "maxresults",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/3",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/6",
+            "origin": "operation",
+            "name": "projects",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/10",
+            "origin": "operation",
+            "name": "sort",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/8",
+            "origin": "operation",
+            "name": "start",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/2",
+            "origin": "operation",
+            "name": "symbol",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/5",
+            "origin": "operation",
+            "name": "type",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1search/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/SearchResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/SearchResponse",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "DELETE /status/{uuid}",
+        "method": "DELETE",
+        "path": "/status/{uuid}",
+        "locator": "#/paths/~1status~1{uuid}/delete",
+        "operationId": "deleteApiRequestStatus",
+        "summary": "Delete state associated with API request tracking",
+        "parameters": [
+          {
+            "locator": "#/paths/~1status~1{uuid}/delete/parameters/0",
+            "origin": "operation",
+            "name": "uuid",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/Uuid",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1status~1{uuid}/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/Uuid",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/Uuid",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /status/{uuid}",
+        "method": "GET",
+        "path": "/status/{uuid}",
+        "locator": "#/paths/~1status~1{uuid}/get",
+        "operationId": "getApiRequestStatus",
+        "summary": "Check the state of an API request",
+        "parameters": [
+          {
+            "locator": "#/paths/~1status~1{uuid}/get/parameters/0",
+            "origin": "operation",
+            "name": "uuid",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/Uuid",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "202"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1status~1{uuid}/get/parameters/0/$ref",
+            "ref": "#/components/parameters/Uuid",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/Uuid",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /suggest",
+        "method": "GET",
+        "path": "/suggest",
+        "locator": "#/paths/~1suggest/get",
+        "operationId": "getSuggestions",
+        "summary": "Return suggestions",
+        "parameters": [
+          {
+            "locator": "#/paths/~1suggest/get/parameters/2",
+            "origin": "operation",
+            "name": "caret",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/4",
+            "origin": "operation",
+            "name": "defs",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/1",
+            "origin": "operation",
+            "name": "field",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/3",
+            "origin": "operation",
+            "name": "full",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/7",
+            "origin": "operation",
+            "name": "hist",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/6",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/0",
+            "origin": "operation",
+            "name": "projects",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/5",
+            "origin": "operation",
+            "name": "refs",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/8",
+            "origin": "operation",
+            "name": "type",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/SuggestResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/SuggestResponse",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "GET /suggest/config",
+        "method": "GET",
+        "path": "/suggest/config",
+        "locator": "#/paths/~1suggest~1config/get",
+        "operationId": "getSuggesterConfig",
+        "summary": "Return suggester configuration",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest~1config/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/SuggesterConfig",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/SuggesterConfig",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "POST /suggest/init/queries",
+        "method": "POST",
+        "path": "/suggest/init/queries",
+        "locator": "#/paths/~1suggest~1init~1queries/post",
+        "operationId": "initializeSuggesterPopularityFromQueries",
+        "summary": "Update popularity data based on queries",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      {
+        "key": "POST /suggest/init/raw",
+        "method": "POST",
+        "path": "/suggest/init/raw",
+        "locator": "#/paths/~1suggest~1init~1raw/post",
+        "operationId": "initializeSuggesterPopularityFromRawData",
+        "summary": "Update popularity data based on the provided data",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest~1init~1raw/post/requestBody/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/SuggesterRawPopularityData",
+            "role": "request",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/SuggesterRawPopularityData",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /suggest/popularity/{project}",
+        "method": "GET",
+        "path": "/suggest/popularity/{project}",
+        "locator": "#/paths/~1suggest~1popularity~1{project}/get",
+        "operationId": "getSuggesterPopularityData",
+        "summary": "Retrieve popularity data for project",
+        "parameters": [
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/4",
+            "origin": "operation",
+            "name": "all",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/1",
+            "origin": "operation",
+            "name": "field",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/2",
+            "origin": "operation",
+            "name": "page",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/3",
+            "origin": "operation",
+            "name": "pageSize",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "PUT /suggest/rebuild",
+        "method": "PUT",
+        "path": "/suggest/rebuild",
+        "locator": "#/paths/~1suggest~1rebuild/put",
+        "operationId": "rebuildSuggesterData",
+        "summary": "Rebuild suggester data for all projects",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      {
+        "key": "PUT /suggest/rebuild/{project}",
+        "method": "PUT",
+        "path": "/suggest/rebuild/{project}",
+        "locator": "#/paths/~1suggest~1rebuild~1{project}/put",
+        "operationId": "rebuildProjectSuggesterData",
+        "summary": "Rebuild suggester data for given project",
+        "parameters": [
+          {
+            "locator": "#/paths/~1suggest~1rebuild~1{project}/put/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest~1rebuild~1{project}/put/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "PUT /system/includes/reload",
+        "method": "PUT",
+        "path": "/system/includes/reload",
+        "locator": "#/paths/~1system~1includes~1reload/put",
+        "operationId": "reloadIncludes",
+        "summary": "Reload all include files for web application",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      {
+        "key": "GET /system/indextime",
+        "method": "GET",
+        "path": "/system/indextime",
+        "locator": "#/paths/~1system~1indextime/get",
+        "operationId": "getLastIndexTime",
+        "summary": "Retrieve last index time",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      {
+        "key": "POST /system/pathdesc",
+        "method": "POST",
+        "path": "/system/pathdesc",
+        "locator": "#/paths/~1system~1pathdesc/post",
+        "operationId": "updatePathDescriptions",
+        "summary": "Update path descriptions for web application",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1system~1pathdesc/post/requestBody/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/PathDescription",
+            "role": "request",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/PathDescription",
+            "constructionObligation": true
+          }
+        ]
+      },
+      {
+        "key": "GET /system/ping",
+        "method": "GET",
+        "path": "/system/ping",
+        "locator": "#/paths/~1system~1ping/get",
+        "operationId": "ping",
+        "summary": "Check if web app is deployed and alive",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      {
+        "key": "GET /system/version",
+        "method": "GET",
+        "path": "/system/version",
+        "locator": "#/paths/~1system~1version/get",
+        "operationId": "getWebAppVersion",
+        "summary": "Get web application version as string",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      }
+    ],
+    "unresolved": []
+  },
+  "operations": [
+    {
+      "source": {
+        "key": "GET /annotation",
+        "locator": "#/paths/~1annotation/get",
+        "operationId": "getAnnotation",
+        "summary": "Get annotation for a file",
+        "method": "GET",
+        "path": "/annotation",
+        "parameters": [
+          {
+            "locator": "#/paths/~1annotation/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/PathQuery",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1annotation/get/parameters/0/$ref",
+            "ref": "#/components/parameters/PathQuery",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PathQuery",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1annotation/get/responses/200/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/AnnotationEntry",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/AnnotationEntry",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /annotation",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1annotation/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /annotation cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /configuration",
+        "locator": "#/paths/~1configuration/get",
+        "operationId": "getConfiguration",
+        "summary": "Return XML representation of configuration",
+        "method": "GET",
+        "path": "/configuration",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /configuration",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration/get/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_SECURITY_ERROR_RESPONSE",
+          "message": "MISSING_SECURITY_ERROR_RESPONSE: GET /configuration has security but no 401/403 response",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "PUT /configuration",
+        "locator": "#/paths/~1configuration/put",
+        "operationId": "setConfiguration",
+        "summary": "Set configuration from XML representation",
+        "method": "PUT",
+        "path": "/configuration",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/xml"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "201",
+            "202"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1configuration/put/responses/202/$ref",
+            "ref": "#/components/responses/AcceptedAsync",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/responses/AcceptedAsync",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "PUT /configuration",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_JSON_REQUEST_MEDIA",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration/put/requestBody/content",
+            "message": "application/json request media is required"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_MEDIA_TYPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1configuration/put/requestBody/content/application~1xml",
+            "message": "unsupported request media type application/xml"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration/put/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: PUT /configuration supports application/json only",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "POST /configuration/authorization/reload",
+        "locator": "#/paths/~1configuration~1authorization~1reload/post",
+        "operationId": "reloadAuthorizationFramework",
+        "summary": "Reload authorization framework",
+        "method": "POST",
+        "path": "/configuration/authorization/reload",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": false,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "202",
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1configuration~1authorization~1reload/post/responses/202/$ref",
+            "ref": "#/components/responses/AcceptedAsync",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/responses/AcceptedAsync",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "POST /configuration/authorization/reload",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_JSON_REQUEST_MEDIA",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration~1authorization~1reload/post/requestBody/content",
+            "message": "application/json request media is required"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_MEDIA_TYPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1configuration~1authorization~1reload/post/requestBody/content/text~1plain",
+            "message": "unsupported request media type text/plain"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration~1authorization~1reload/post/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: POST /configuration/authorization/reload supports application/json only",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /configuration/{field}",
+        "locator": "#/paths/~1configuration~1{field}/get",
+        "operationId": "getConfigurationField",
+        "summary": "Return a specific configuration field",
+        "method": "GET",
+        "path": "/configuration/{field}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1configuration~1{field}/get/parameters/0",
+            "origin": "operation",
+            "name": "field",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ConfigurationField",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1configuration~1{field}/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ConfigurationField",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ConfigurationField",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /configuration/{field}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration~1{field}/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration~1{field}/get/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /configuration/{field} cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "PUT /configuration/{field}",
+        "locator": "#/paths/~1configuration~1{field}/put",
+        "operationId": "setConfigurationField",
+        "summary": "Set a specific configuration field",
+        "method": "PUT",
+        "path": "/configuration/{field}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1configuration~1{field}/put/parameters/0",
+            "origin": "operation",
+            "name": "field",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ConfigurationField",
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1configuration~1{field}/put/parameters/1",
+            "origin": "operation",
+            "name": "reindex",
+            "location": "query",
+            "required": false,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "202",
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1configuration~1{field}/put/parameters/0/$ref",
+            "ref": "#/components/parameters/ConfigurationField",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ConfigurationField",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1configuration~1{field}/put/responses/202/$ref",
+            "ref": "#/components/responses/AcceptedAsync",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/responses/AcceptedAsync",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "PUT /configuration/{field}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_JSON_REQUEST_MEDIA",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration~1{field}/put/requestBody/content",
+            "message": "application/json request media is required"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_MEDIA_TYPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1configuration~1{field}/put/requestBody/content/text~1plain",
+            "message": "unsupported request media type text/plain"
+          },
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration~1{field}/put/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1configuration~1{field}/put/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: PUT /configuration/{field} supports application/json only",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /file/content",
+        "locator": "#/paths/~1file~1content/get",
+        "operationId": "getFileContent",
+        "summary": "Get file content",
+        "method": "GET",
+        "path": "/file/content",
+        "parameters": [
+          {
+            "locator": "#/paths/~1file~1content/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/PathQuery",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "404",
+            "406"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1file~1content/get/parameters/0/$ref",
+            "ref": "#/components/parameters/PathQuery",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PathQuery",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /file/content",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/file/content",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [
+            404,
+            406
+          ],
+          "securityHeaders": [],
+          "fields": [
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "path",
+              "required": true,
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "GET /file/defs",
+        "locator": "#/paths/~1file~1defs/get",
+        "operationId": "getFileDefinitions",
+        "summary": "Get file definitions",
+        "method": "GET",
+        "path": "/file/defs",
+        "parameters": [
+          {
+            "locator": "#/paths/~1file~1defs/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/PathQuery",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1file~1defs/get/parameters/0/$ref",
+            "ref": "#/components/parameters/PathQuery",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PathQuery",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1file~1defs/get/responses/200/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/FileDefinition",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/FileDefinition",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /file/defs",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1file~1defs/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /file/defs cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /file/genre",
+        "locator": "#/paths/~1file~1genre/get",
+        "operationId": "getFileGenre",
+        "summary": "Get file genre",
+        "method": "GET",
+        "path": "/file/genre",
+        "parameters": [
+          {
+            "locator": "#/paths/~1file~1genre/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/PathQuery",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1file~1genre/get/parameters/0/$ref",
+            "ref": "#/components/parameters/PathQuery",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PathQuery",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /file/genre",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1file~1genre/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /file/genre cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /groups",
+        "locator": "#/paths/~1groups/get",
+        "operationId": "getGroups",
+        "summary": "Return a list of all groups",
+        "method": "GET",
+        "path": "/groups",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /groups",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/groups",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "GET /groups/{group}/allprojects",
+        "locator": "#/paths/~1groups~1{group}~1allprojects/get",
+        "operationId": "getGroupProjects",
+        "summary": "Return list of all projects for a group",
+        "method": "GET",
+        "path": "/groups/{group}/allprojects",
+        "parameters": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1allprojects/get/parameters/0",
+            "origin": "operation",
+            "name": "group",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/GroupName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1allprojects/get/parameters/0/$ref",
+            "ref": "#/components/parameters/GroupName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/GroupName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /groups/{group}/allprojects",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1groups~1{group}~1allprojects/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /groups/{group}/allprojects cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "POST /groups/{group}/match",
+        "locator": "#/paths/~1groups~1{group}~1match/post",
+        "operationId": "matchGroupPattern",
+        "summary": "Check if project name matches group pattern",
+        "method": "POST",
+        "path": "/groups/{group}/match",
+        "parameters": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1match/post/parameters/0",
+            "origin": "operation",
+            "name": "group",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/GroupName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "204"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1match/post/parameters/0/$ref",
+            "ref": "#/components/parameters/GroupName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/GroupName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "POST /groups/{group}/match",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_JSON_REQUEST_MEDIA",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1groups~1{group}~1match/post/requestBody/content",
+            "message": "application/json request media is required"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_MEDIA_TYPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1groups~1{group}~1match/post/requestBody/content/text~1plain",
+            "message": "unsupported request media type text/plain"
+          },
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1groups~1{group}~1match/post/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: POST /groups/{group}/match supports application/json only",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /groups/{group}/pattern",
+        "locator": "#/paths/~1groups~1{group}~1pattern/get",
+        "operationId": "getGroupPattern",
+        "summary": "Return pattern for given group",
+        "method": "GET",
+        "path": "/groups/{group}/pattern",
+        "parameters": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1pattern/get/parameters/0",
+            "origin": "operation",
+            "name": "group",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/GroupName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1groups~1{group}~1pattern/get/parameters/0/$ref",
+            "ref": "#/components/parameters/GroupName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/GroupName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /groups/{group}/pattern",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1groups~1{group}~1pattern/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /groups/{group}/pattern cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /history",
+        "locator": "#/paths/~1history/get",
+        "operationId": "getHistory",
+        "summary": "Get history entries",
+        "method": "GET",
+        "path": "/history",
+        "parameters": [
+          {
+            "locator": "#/paths/~1history/get/parameters/3",
+            "origin": "operation",
+            "name": "max",
+            "location": "query",
+            "required": false,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1history/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1history/get/parameters/2",
+            "origin": "operation",
+            "name": "start",
+            "location": "query",
+            "required": false,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1history/get/parameters/1",
+            "origin": "operation",
+            "name": "withFiles",
+            "location": "query",
+            "required": false,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1history/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/HistoryResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/HistoryResponse",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /history",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SCHEMA_FORMAT",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1history/get/parameters/0/schema/format",
+            "message": "unsupported format int32"
+          },
+          {
+            "code": "UNSUPPORTED_SCHEMA_FORMAT",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1history/get/parameters/2/schema/format",
+            "message": "unsupported format int32"
+          },
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1history/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SCHEMA",
+          "message": "UNSUPPORTED_SCHEMA: query:max uses unsupported format int32 for integer",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /list",
+        "locator": "#/paths/~1list/get",
+        "operationId": "getDirectoryListing",
+        "summary": "Get directory entries",
+        "method": "GET",
+        "path": "/list",
+        "parameters": [
+          {
+            "locator": "#/paths/~1list/get/parameters/0",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1list/get/responses/200/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/DirectoryEntry",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/DirectoryEntry",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /list",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1list/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /list cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "DELETE /messages",
+        "locator": "#/paths/~1messages/delete",
+        "operationId": "deleteMessages",
+        "summary": "Delete messages with specified tag",
+        "method": "DELETE",
+        "path": "/messages",
+        "parameters": [
+          {
+            "locator": "#/paths/~1messages/delete/parameters/0",
+            "origin": "operation",
+            "name": "tag",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/MessageTag",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1messages/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/MessageTag",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/MessageTag",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "DELETE /messages",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_JSON_REQUEST_MEDIA",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1messages/delete/requestBody/content",
+            "message": "application/json request media is required"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_MEDIA_TYPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1messages/delete/requestBody/content/text~1plain",
+            "message": "unsupported request media type text/plain"
+          },
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1messages/delete/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1messages/delete/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: DELETE /messages supports application/json only",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /messages",
+        "locator": "#/paths/~1messages/get",
+        "operationId": "getMessages",
+        "summary": "Return all messages with specified tag",
+        "method": "GET",
+        "path": "/messages",
+        "parameters": [
+          {
+            "locator": "#/paths/~1messages/get/parameters/0",
+            "origin": "operation",
+            "name": "tag",
+            "location": "query",
+            "required": true,
+            "reference": "#/components/parameters/MessageTag",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1messages/get/parameters/0/$ref",
+            "ref": "#/components/parameters/MessageTag",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/MessageTag",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1messages/get/responses/200/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/Message",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/Message",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /messages",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1messages/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /messages cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "POST /messages",
+        "locator": "#/paths/~1messages/post",
+        "operationId": "addMessage",
+        "summary": "Add message to the system",
+        "method": "POST",
+        "path": "/messages",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "201"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1messages/post/requestBody/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/MessageCreateRequest",
+            "role": "request",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/MessageCreateRequest",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "POST /messages",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1messages/post/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1messages/post/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: POST /messages cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /metrics/prometheus",
+        "locator": "#/paths/~1metrics~1prometheus/get",
+        "operationId": "getPrometheusMetrics",
+        "summary": "Retrieve web application metrics in Prometheus format",
+        "method": "GET",
+        "path": "/metrics/prometheus",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /metrics/prometheus",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/metrics/prometheus",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "GET /projects",
+        "locator": "#/paths/~1projects/get",
+        "operationId": "getProjects",
+        "summary": "Return a list of all projects",
+        "method": "GET",
+        "path": "/projects",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /projects",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/projects",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "POST /projects",
+        "locator": "#/paths/~1projects/post",
+        "operationId": "addProject",
+        "summary": "Add project",
+        "method": "POST",
+        "path": "/projects",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "201"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "POST /projects",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_JSON_REQUEST_MEDIA",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects/post/requestBody/content",
+            "message": "application/json request media is required"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_MEDIA_TYPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1projects/post/requestBody/content/text~1plain",
+            "message": "unsupported request media type text/plain"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects/post/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: POST /projects supports application/json only",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /projects/indexed",
+        "locator": "#/paths/~1projects~1indexed/get",
+        "operationId": "getIndexedProjects",
+        "summary": "Return a list of indexed projects",
+        "method": "GET",
+        "path": "/projects/indexed",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /projects/indexed",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/projects/indexed",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "DELETE /projects/{project}",
+        "locator": "#/paths/~1projects~1{project}/delete",
+        "operationId": "deleteProject",
+        "summary": "Delete project",
+        "method": "DELETE",
+        "path": "/projects/{project}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}/delete/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "DELETE /projects/{project}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}/delete/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}/delete/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: DELETE /projects/{project} cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "DELETE /projects/{project}/annotationcache",
+        "locator": "#/paths/~1projects~1{project}~1annotationcache/delete",
+        "operationId": "deleteProjectAnnotationCache",
+        "summary": "Delete annotation cache for a project",
+        "method": "DELETE",
+        "path": "/projects/{project}/annotationcache",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1annotationcache/delete/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1annotationcache/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "DELETE /projects/{project}/annotationcache",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1annotationcache/delete/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1annotationcache/delete/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: DELETE /projects/{project}/annotationcache cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "DELETE /projects/{project}/data",
+        "locator": "#/paths/~1projects~1{project}~1data/delete",
+        "operationId": "deleteProjectData",
+        "summary": "Delete project index data",
+        "method": "DELETE",
+        "path": "/projects/{project}/data",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1data/delete/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1data/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "DELETE /projects/{project}/data",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1data/delete/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1data/delete/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: DELETE /projects/{project}/data cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /projects/{project}/files",
+        "locator": "#/paths/~1projects~1{project}~1files/get",
+        "operationId": "getProjectFiles",
+        "summary": "Get list of files tracked by the index database for given project",
+        "method": "GET",
+        "path": "/projects/{project}/files",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1files/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1files/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /projects/{project}/files",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1files/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /projects/{project}/files cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "DELETE /projects/{project}/historycache",
+        "locator": "#/paths/~1projects~1{project}~1historycache/delete",
+        "operationId": "deleteProjectHistoryCache",
+        "summary": "Delete history cache for a project",
+        "method": "DELETE",
+        "path": "/projects/{project}/historycache",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1historycache/delete/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1historycache/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "DELETE /projects/{project}/historycache",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1historycache/delete/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1historycache/delete/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: DELETE /projects/{project}/historycache cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "PUT /projects/{project}/indexed",
+        "locator": "#/paths/~1projects~1{project}~1indexed/put",
+        "operationId": "markProjectIndexed",
+        "summary": "Mark project as indexed",
+        "method": "PUT",
+        "path": "/projects/{project}/indexed",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": false,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "202",
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/responses/202/$ref",
+            "ref": "#/components/responses/AcceptedAsync",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/responses/AcceptedAsync",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "PUT /projects/{project}/indexed",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_JSON_REQUEST_MEDIA",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/requestBody/content",
+            "message": "application/json request media is required"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_MEDIA_TYPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/requestBody/content/text~1plain",
+            "message": "unsupported request media type text/plain"
+          },
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1indexed/put/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: PUT /projects/{project}/indexed supports application/json only",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /projects/{project}/property/{propertyname}",
+        "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get",
+        "operationId": "getProjectProperty",
+        "summary": "Return the property value",
+        "method": "GET",
+        "path": "/projects/{project}/property/{propertyname}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/parameters/1",
+            "origin": "operation",
+            "name": "propertyname",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/PropertyName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/parameters/1/$ref",
+            "ref": "#/components/parameters/PropertyName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PropertyName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /projects/{project}/property/{propertyname}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /projects/{project}/property/{propertyname} cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "PUT /projects/{project}/property/{propertyname}",
+        "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put",
+        "operationId": "setProjectProperty",
+        "summary": "Set property value for the project",
+        "method": "PUT",
+        "path": "/projects/{project}/property/{propertyname}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/parameters/1",
+            "origin": "operation",
+            "name": "propertyname",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/PropertyName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "text/plain"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/parameters/1/$ref",
+            "ref": "#/components/parameters/PropertyName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/PropertyName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "PUT /projects/{project}/property/{propertyname}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_JSON_REQUEST_MEDIA",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/requestBody/content",
+            "message": "application/json request media is required"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_MEDIA_TYPE",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/requestBody/content/text~1plain",
+            "message": "unsupported request media type text/plain"
+          },
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1property~1{propertyname}/put/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: PUT /projects/{project}/property/{propertyname} supports application/json only",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /projects/{project}/repositories",
+        "locator": "#/paths/~1projects~1{project}~1repositories/get",
+        "operationId": "getProjectRepositories",
+        "summary": "Return a list of repositories for the specified project",
+        "method": "GET",
+        "path": "/projects/{project}/repositories",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1repositories/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1repositories/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /projects/{project}/repositories",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1repositories/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /projects/{project}/repositories cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /projects/{project}/repositories/type",
+        "locator": "#/paths/~1projects~1{project}~1repositories~1type/get",
+        "operationId": "getProjectRepositoryTypes",
+        "summary": "Return types of project repositories",
+        "method": "GET",
+        "path": "/projects/{project}/repositories/type",
+        "parameters": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1repositories~1type/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1projects~1{project}~1repositories~1type/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /projects/{project}/repositories/type",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1projects~1{project}~1repositories~1type/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /projects/{project}/repositories/type cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /repositories/property/{field}",
+        "locator": "#/paths/~1repositories~1property~1{field}/get",
+        "operationId": "getRepositoryProperty",
+        "summary": "Return the repository field value",
+        "method": "GET",
+        "path": "/repositories/property/{field}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1repositories~1property~1{field}/get/parameters/0",
+            "origin": "operation",
+            "name": "field",
+            "location": "path",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1repositories~1property~1{field}/get/parameters/1",
+            "origin": "operation",
+            "name": "repository",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /repositories/property/{field}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1repositories~1property~1{field}/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /repositories/property/{field} cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /search",
+        "locator": "#/paths/~1search/get",
+        "operationId": "search",
+        "summary": "Return search results",
+        "method": "GET",
+        "path": "/search",
+        "parameters": [
+          {
+            "locator": "#/paths/~1search/get/parameters/1",
+            "origin": "operation",
+            "name": "def",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/0",
+            "origin": "operation",
+            "name": "full",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/4",
+            "origin": "operation",
+            "name": "hist",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/9",
+            "origin": "operation",
+            "name": "maxhitsperfile",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/7",
+            "origin": "operation",
+            "name": "maxresults",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/3",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/6",
+            "origin": "operation",
+            "name": "projects",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/10",
+            "origin": "operation",
+            "name": "sort",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/8",
+            "origin": "operation",
+            "name": "start",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/2",
+            "origin": "operation",
+            "name": "symbol",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1search/get/parameters/5",
+            "origin": "operation",
+            "name": "type",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1search/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/SearchResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/SearchResponse",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /search",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/search",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": [
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "def",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "full",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "hist",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "maxhitsperfile",
+              "required": false,
+              "type": "integer"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "maxresults",
+              "required": false,
+              "type": "integer"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "path",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "projects",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "sort",
+              "required": false,
+              "type": "string",
+              "enumValues": [
+                "relevancy",
+                "fullpath",
+                "lastmodtime"
+              ]
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "start",
+              "required": false,
+              "type": "integer"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "symbol",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "kind": "scalar",
+              "location": "query",
+              "name": "type",
+              "required": false,
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "DELETE /status/{uuid}",
+        "locator": "#/paths/~1status~1{uuid}/delete",
+        "operationId": "deleteApiRequestStatus",
+        "summary": "Delete state associated with API request tracking",
+        "method": "DELETE",
+        "path": "/status/{uuid}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1status~1{uuid}/delete/parameters/0",
+            "origin": "operation",
+            "name": "uuid",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/Uuid",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1status~1{uuid}/delete/parameters/0/$ref",
+            "ref": "#/components/parameters/Uuid",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/Uuid",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "DELETE /status/{uuid}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SCHEMA_FORMAT",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1status~1{uuid}/delete/parameters/0/schema/format",
+            "message": "unsupported format uuid"
+          },
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1status~1{uuid}/delete/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SCHEMA",
+          "message": "UNSUPPORTED_SCHEMA: path:uuid uses unsupported format uuid for string",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /status/{uuid}",
+        "locator": "#/paths/~1status~1{uuid}/get",
+        "operationId": "getApiRequestStatus",
+        "summary": "Check the state of an API request",
+        "method": "GET",
+        "path": "/status/{uuid}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1status~1{uuid}/get/parameters/0",
+            "origin": "operation",
+            "name": "uuid",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/Uuid",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "202"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1status~1{uuid}/get/parameters/0/$ref",
+            "ref": "#/components/parameters/Uuid",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/Uuid",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /status/{uuid}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SCHEMA_FORMAT",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1status~1{uuid}/get/parameters/0/schema/format",
+            "message": "unsupported format uuid"
+          },
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1status~1{uuid}/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SCHEMA",
+          "message": "UNSUPPORTED_SCHEMA: path:uuid uses unsupported format uuid for string",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /suggest",
+        "locator": "#/paths/~1suggest/get",
+        "operationId": "getSuggestions",
+        "summary": "Return suggestions",
+        "method": "GET",
+        "path": "/suggest",
+        "parameters": [
+          {
+            "locator": "#/paths/~1suggest/get/parameters/2",
+            "origin": "operation",
+            "name": "caret",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/4",
+            "origin": "operation",
+            "name": "defs",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/1",
+            "origin": "operation",
+            "name": "field",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/3",
+            "origin": "operation",
+            "name": "full",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/7",
+            "origin": "operation",
+            "name": "hist",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/6",
+            "origin": "operation",
+            "name": "path",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/0",
+            "origin": "operation",
+            "name": "projects",
+            "location": "query",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/5",
+            "origin": "operation",
+            "name": "refs",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest/get/parameters/8",
+            "origin": "operation",
+            "name": "type",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/SuggestResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/SuggestResponse",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /suggest",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /suggest cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /suggest/config",
+        "locator": "#/paths/~1suggest~1config/get",
+        "operationId": "getSuggesterConfig",
+        "summary": "Return suggester configuration",
+        "method": "GET",
+        "path": "/suggest/config",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest~1config/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/SuggesterConfig",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/SuggesterConfig",
+            "constructionObligation": false
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /suggest/config",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/suggest/config",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "POST /suggest/init/queries",
+        "locator": "#/paths/~1suggest~1init~1queries/post",
+        "operationId": "initializeSuggesterPopularityFromQueries",
+        "summary": "Update popularity data based on queries",
+        "method": "POST",
+        "path": "/suggest/init/queries",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "POST /suggest/init/queries",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_REQUEST_OBJECT",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1init~1queries/post/requestBody/content/application~1json/schema",
+            "message": "request body requires an object schema with properties"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_SCHEMA_KEY",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1init~1queries/post/requestBody/content/application~1json/schema/items",
+            "message": "request object keyword items is unsupported"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1init~1queries/post/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: POST /suggest/init/queries requires an object schema with properties",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "POST /suggest/init/raw",
+        "locator": "#/paths/~1suggest~1init~1raw/post",
+        "operationId": "initializeSuggesterPopularityFromRawData",
+        "summary": "Update popularity data based on the provided data",
+        "method": "POST",
+        "path": "/suggest/init/raw",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest~1init~1raw/post/requestBody/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/SuggesterRawPopularityData",
+            "role": "request",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/SuggesterRawPopularityData",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "POST /suggest/init/raw",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_REQUEST_OBJECT",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1init~1raw/post/requestBody/content/application~1json/schema",
+            "message": "request body requires an object schema with properties"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_SCHEMA_KEY",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1init~1raw/post/requestBody/content/application~1json/schema/items",
+            "message": "request object keyword items is unsupported"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1init~1raw/post/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: POST /suggest/init/raw requires an object schema with properties",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /suggest/popularity/{project}",
+        "locator": "#/paths/~1suggest~1popularity~1{project}/get",
+        "operationId": "getSuggesterPopularityData",
+        "summary": "Retrieve popularity data for project",
+        "method": "GET",
+        "path": "/suggest/popularity/{project}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/4",
+            "origin": "operation",
+            "name": "all",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/1",
+            "origin": "operation",
+            "name": "field",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/2",
+            "origin": "operation",
+            "name": "page",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          },
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/3",
+            "origin": "operation",
+            "name": "pageSize",
+            "location": "query",
+            "required": null,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "GET /suggest/popularity/{project}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1popularity~1{project}/get/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: GET /suggest/popularity/{project} cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "PUT /suggest/rebuild",
+        "locator": "#/paths/~1suggest~1rebuild/put",
+        "operationId": "rebuildSuggesterData",
+        "summary": "Rebuild suggester data for all projects",
+        "method": "PUT",
+        "path": "/suggest/rebuild",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "PUT /suggest/rebuild",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1rebuild/put/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_SECURITY_ERROR_RESPONSE",
+          "message": "MISSING_SECURITY_ERROR_RESPONSE: PUT /suggest/rebuild has security but no 401/403 response",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "PUT /suggest/rebuild/{project}",
+        "locator": "#/paths/~1suggest~1rebuild~1{project}/put",
+        "operationId": "rebuildProjectSuggesterData",
+        "summary": "Rebuild suggester data for given project",
+        "method": "PUT",
+        "path": "/suggest/rebuild/{project}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1suggest~1rebuild~1{project}/put/parameters/0",
+            "origin": "operation",
+            "name": "project",
+            "location": "path",
+            "required": true,
+            "reference": "#/components/parameters/ProjectName",
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1suggest~1rebuild~1{project}/put/parameters/0/$ref",
+            "ref": "#/components/parameters/ProjectName",
+            "role": "operation-parameter",
+            "resolution": "resolved",
+            "targetLocator": "#/components/parameters/ProjectName",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "PUT /suggest/rebuild/{project}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1rebuild~1{project}/put/responses",
+            "message": "required inputs need an explicit 4xx/5xx failure response"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1suggest~1rebuild~1{project}/put/responses/@missing-security-error-response",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_REQUIRED_ERROR_RESPONSE",
+          "message": "MISSING_REQUIRED_ERROR_RESPONSE: PUT /suggest/rebuild/{project} cannot witness a required-field failure",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "PUT /system/includes/reload",
+        "locator": "#/paths/~1system~1includes~1reload/put",
+        "operationId": "reloadIncludes",
+        "summary": "Reload all include files for web application",
+        "method": "PUT",
+        "path": "/system/includes/reload",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "PUT /system/includes/reload",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1system~1includes~1reload/put/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "MISSING_SECURITY_ERROR_RESPONSE",
+          "message": "MISSING_SECURITY_ERROR_RESPONSE: PUT /system/includes/reload has security but no 401/403 response",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /system/indextime",
+        "locator": "#/paths/~1system~1indextime/get",
+        "operationId": "getLastIndexTime",
+        "summary": "Retrieve last index time",
+        "method": "GET",
+        "path": "/system/indextime",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /system/indextime",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/system/indextime",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "POST /system/pathdesc",
+        "locator": "#/paths/~1system~1pathdesc/post",
+        "operationId": "updatePathDescriptions",
+        "summary": "Update path descriptions for web application",
+        "method": "POST",
+        "path": "/system/pathdesc",
+        "parameters": [],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "204"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "bearerAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1system~1pathdesc/post/requestBody/content/application~1json/schema/items/$ref",
+            "ref": "#/components/schemas/PathDescription",
+            "role": "request",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/PathDescription",
+            "constructionObligation": true
+          }
+        ]
+      },
+      "admission": {
+        "operationKey": "POST /system/pathdesc",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_REQUEST_OBJECT",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1system~1pathdesc/post/requestBody/content/application~1json/schema",
+            "message": "request body requires an object schema with properties"
+          },
+          {
+            "code": "UNSUPPORTED_REQUEST_SCHEMA_KEY",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1system~1pathdesc/post/requestBody/content/application~1json/schema/items",
+            "message": "request object keyword items is unsupported"
+          },
+          {
+            "code": "MISSING_SECURITY_ERROR_RESPONSE",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1system~1pathdesc/post/responses",
+            "message": "secured operations need an explicit 401 or 403 response"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_REQUEST_BODY",
+          "message": "UNSUPPORTED_REQUEST_BODY: POST /system/pathdesc requires an object schema with properties",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /system/ping",
+        "locator": "#/paths/~1system~1ping/get",
+        "operationId": "ping",
+        "summary": "Check if web app is deployed and alive",
+        "method": "GET",
+        "path": "/system/ping",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /system/ping",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/system/ping",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    },
+    {
+      "source": {
+        "key": "GET /system/version",
+        "locator": "#/paths/~1system~1version/get",
+        "operationId": "getWebAppVersion",
+        "summary": "Get web application version as string",
+        "method": "GET",
+        "path": "/system/version",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "none",
+          "schemeNames": []
+        },
+        "references": []
+      },
+      "admission": {
+        "operationKey": "GET /system/version",
+        "status": "accepted",
+        "findings": [],
+        "firstObservedRejection": null,
+        "normalizedOperation": {
+          "method": "GET",
+          "path": "/system/version",
+          "successStatuses": [
+            200
+          ],
+          "errorStatuses": [],
+          "securityHeaders": [],
+          "fields": []
+        }
+      }
+    }
+  ],
+  "admissionConsistency": {
+    "status": "pass",
+    "errors": []
+  },
+  "dependencyVerification": [
+    {
+      "operationKey": "GET /file/content",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /groups",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /metrics/prometheus",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /projects",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /projects/indexed",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /search",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /suggest/config",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /system/indextime",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /system/ping",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    },
+    {
+      "operationKey": "GET /system/version",
+      "status": "pass",
+      "checks": {
+        "operationPresent": true,
+        "parametersPreserved": true,
+        "referencesPreserved": true,
+        "securityPreserved": true,
+        "requestPreserved": true,
+        "responsesPreserved": true,
+        "projectionPreservation": true,
+        "constructionObligations": true,
+        "sourceValidity": true
+      },
+      "dimensions": {
+        "projectionPreservation": "pass",
+        "constructionObligations": "pass",
+        "sourceValidity": "pass"
+      },
+      "sourceIssues": [],
+      "projectedIssues": [],
+      "errors": []
+    }
+  ],
+  "coverage": {
+    "status": "pass",
+    "errors": [],
+    "sourceOperationCount": 48,
+    "acceptedOperationCount": 10,
+    "checks": {
+      "sourceEnumerationComplete": true,
+      "analyzerExactCoverage": true,
+      "sourceMetadataMatch": true,
+      "projectionExactAcceptedCoverage": true,
+      "contractExactAcceptedCoverage": true,
+      "artifactExactAcceptedCoverage": true
+    },
+    "unresolved": []
+  },
+  "sourceIssues": {
+    "blocking": 0,
+    "advisories": 0,
+    "blockingOperations": [],
+    "advisoryOperations": []
+  },
+  "artifact": {
+    "status": "passed",
+    "acceptedOperationCount": 10,
+    "checkedOperationCount": 10,
+    "root": "artifact",
+    "runReport": {
+      "path": "artifact/run-report.json",
+      "sha256": "bebe0e80662dfe1728bfbe0b79a154aff5550886d47108aa75dab3af27878460"
+    },
+    "packageManifest": {
+      "path": "artifact/artifact/package-manifest.json",
+      "sha256": "880c8f7e798fa828525a486d3574bf3196bcb1016fceaddd5d6656bba5b0fe2c"
+    },
+    "projectedInput": {
+      "path": "projected-input.json",
+      "sha256": "a3b699b1590c370e67799766a14ba95c0c3df53fbf750de962be91b15bda9a13"
+    },
+    "generatedPlan": {
+      "path": "artifact/generated-plan.json",
+      "sha256": "ffdea78ecfb36e6360327c47df12a0f24601e1d6c7af45cbd5142dd5989f7ff5"
+    },
+    "generatedReport": {
+      "path": "artifact/generated-report.json",
+      "sha256": "d9c0c3d27c13432af44e4ad124ecb9119344beac34ee5145bcef8c5c2b86fc82"
+    },
+    "validationReport": {
+      "path": "artifact/validation-report.json",
+      "sha256": "4f2ff860d4e24d8da76c3fd1c4758078191f7be4668d0840c4592f0f4a3a49f2"
+    },
+    "error": null
+  }
+}

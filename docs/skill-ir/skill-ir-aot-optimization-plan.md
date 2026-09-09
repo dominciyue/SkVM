@@ -2150,12 +2150,16 @@ clean 归档。旧六来源 runner、冻结 v1/v2 与 001/002、Task 1/Task 2/de
 效果结论全部只读。只使用六份已暴露来源与 synthetic fixture，运行时 model/API/paid 为 0。
 
 1. [x] 搜索旧 `clean-002` 路径和摘要；确认没有可恢复副本后，登记旧路径/SHA 为缺失原始归档，不覆盖旧主报告。
-2. [ ] TDD 新增 manifest-driven 普通输入模块/CLI：manifest 绑定 path/format/bytes/digest/output；无旧 selection/lock/report/row-count 依赖，
+2. [x] TDD 新增 manifest-driven 普通输入模块/CLI：manifest 绑定 path/format/bytes/digest/output；无旧 selection/lock/report/row-count 依赖，
    复用 source/admission/projection、独立 coverage/dependency 与 v2 generator/checker，保存 exact output closure。
-3. [ ] 建立严格 verifier，从原始输入独立重建 universe，核对准入元数据、accepted set、dependency dimensions、normalized contract、artifact
+3. [x] 建立严格 verifier，从原始输入独立重建 universe，核对准入元数据、accepted set、dependency dimensions、normalized contract、artifact
    operation 和闭包 digest；验证 omission/duplicate/dependency/artifact/binding/closure tamper 均在指定层 fail closed。
-4. [ ] 用同一入口执行六份已暴露来源和必要 synthetic。动态比较现有 repaired evidence；保留 Meilisearch construction blocker 与 Bangumi
+4. [x] 用同一入口执行六份已暴露来源和必要 synthetic。动态比较现有 repaired evidence；保留 Meilisearch construction blocker 与 Bangumi
    source-validity advisories，局部 pass 不写成 document/live API success。
+
+步骤 2--4 的主归档位于 `results/skill-ir/api-tester-operation-delivery-freeze-development-001/main`：6 份文档共
+`562 = 112 accepted + 449 rejected + 1 unresolved`，112 个局部产物通过 checker，合同义务 `575/575`；严格复核 portable digest 为
+`137984f7aae7a1ff38a253afd98f965e463ef6686b4a79ff7a7ec6a86baf87ac`。`attempt-001..003` 原样保留实现失败与修订现场。
 5. [ ] 冻结 `skill-ir-api-tester-operation-candidate-001` 的实际入口、方法组件、v2 product、helpers、dependency lock 与 runtime。冻结状态为
    `inputSelection=not-started`、`predictions=not-authored`、`prospectiveRuns=0`，不得出现未见 row/prediction。
 6. [ ] 从候选提交创建 detached clean checkout，锁定离线安装，完整归档六输入/license、六次普通入口输出、strict verification 和新的
