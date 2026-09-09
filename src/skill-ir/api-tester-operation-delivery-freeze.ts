@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { copyFile, lstat, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { z } from "zod";
@@ -485,6 +486,7 @@ export async function verifyApiTesterOperationCandidate(options: {
   bunVersion: string;
   nodeVersion: string;
   nodeExecutable: string;
+  gitExecutable: string;
 }): Promise<{ status: "verified"; identity: typeof API_TESTER_OPERATION_CANDIDATE_IDENTITY; prospectiveRuns: 0; validationPortableSemanticSha256: string }> {
   const rootDir = resolve(options.rootDir);
   const candidate = ApiTesterOperationCandidateSchema.parse(JSON.parse(await readFile(
@@ -502,9 +504,15 @@ export async function verifyApiTesterOperationCandidate(options: {
     validation: { path: candidate.validation.report.path },
   });
   if (canonical(candidate) !== canonical(expected)) throw new Error("operation candidate closure mismatch");
+  const validationArchiveRoot = dirname(contained(rootDir, candidate.validation.report.path, "candidate validation report"));
+  await verifyApiTesterOperationArchiveGitClosure({
+    rootDir,
+    archiveRoot: validationArchiveRoot,
+    gitExecutable: options.gitExecutable,
+  });
   const validation = await verifyApiTesterOperationDeliveryValidation({
     rootDir,
-    archiveRoot: dirname(contained(rootDir, candidate.validation.report.path, "candidate validation report")),
+    archiveRoot: validationArchiveRoot,
     nodeExecutable: options.nodeExecutable,
   });
   if (validation.portableSemanticSha256 !== candidate.validation.portableSemanticSha256) {
@@ -549,6 +557,34 @@ export async function verifyApiTesterOperationArchive(options: {
     }
   }
   return { status: "verified", files: manifest.files.length, archiveId: manifest.archiveId };
+}
+
+export async function verifyApiTesterOperationArchiveGitClosure(options: {
+  rootDir: string;
+  archiveRoot: string;
+  gitExecutable: string;
+}): Promise<{ status: "verified"; files: number }> {
+  const rootDir = resolve(options.rootDir);
+  const archiveRoot = resolve(options.archiveRoot);
+  if (!pathWithin(rootDir, archiveRoot) || archiveRoot === rootDir) {
+    throw new Error("archive Git root must remain below repository root");
+  }
+  const archiveRelative = parseSafeRelativePath(portable(relative(rootDir, archiveRoot)));
+  const manifest = ApiTesterOperationArchiveManifestSchema.parse(JSON.parse(
+    await readFile(join(archiveRoot, "archive-manifest.json"), "utf8"),
+  ));
+  const expected = [...manifest.files.map((file) => `${archiveRelative}/${file.path}`), `${archiveRelative}/archive-manifest.json`]
+    .sort(compareText);
+  const git = spawnSync(options.gitExecutable, [
+    "-c", `safe.directory=${portable(rootDir)}`,
+    "ls-tree", "-r", "--name-only", "HEAD", "--", archiveRelative,
+  ], { cwd: rootDir, encoding: "utf8" });
+  if (git.status !== 0) throw new Error(`archive Git closure inspection failed: ${git.stderr.trim()}`);
+  const actual = git.stdout.split(/\r?\n/u).filter(Boolean).map(portable).sort(compareText);
+  if (canonical(actual) !== canonical(expected)) {
+    throw new Error(`archive Git closure mismatch: expected=${expected.length} actual=${actual.length}`);
+  }
+  return { status: "verified", files: expected.length };
 }
 
 function jsonText(value: unknown): string {

@@ -108,7 +108,7 @@ Create the candidate only after the main archive passes strict replay:
 
 ```powershell
 bun ./src/skill-ir/api-tester-operation-candidate-freeze-run.ts `
-  --mode=create --root=. --node=<node.exe> `
+  --mode=create --root=. --node=<node.exe> --git=<git.exe> `
   --frozen-at=<ISO-timestamp>
 ```
 
@@ -119,3 +119,7 @@ binds both the main validation report and its exact archive manifest, the nine
 runtime implementation files, package/lock digests, Bun 1.3.14, Node v23.8.0,
 historical Task 1/Task 2/dependency-revision reports, and the immutable source
 validity and claim policies.
+
+Candidate verification also compares the main archive manifest's exact file
+set with the Git `HEAD` tree. This prevents a locally present but ignored file
+from making an unarchived candidate appear reproducible.

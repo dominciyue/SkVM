@@ -147,18 +147,19 @@ describe("API Tester operation delivery validation and candidate freeze", () => 
       bunVersion: Bun.version,
       nodeVersion: "v23.8.0",
       nodeExecutable: "C:/Program Files/nodejs/node.exe",
+      gitExecutable: "git",
     })).resolves.toMatchObject({ status: "verified", prospectiveRuns: 0 });
   }, 30_000);
 
   test("candidate freeze CLI separates create and verify modes", () => {
     expect(parseApiTesterOperationCandidateFreezeArgs([
-      "--mode=create", "--root=repo", "--node=node", "--frozen-at=2026-09-09T12:00:00.000Z",
-    ])).toEqual({ mode: "create", rootDir: "repo", nodeExecutable: "node", frozenAt: "2026-09-09T12:00:00.000Z" });
+      "--mode=create", "--root=repo", "--node=node", "--git=git", "--frozen-at=2026-09-09T12:00:00.000Z",
+    ])).toEqual({ mode: "create", rootDir: "repo", nodeExecutable: "node", gitExecutable: "git", frozenAt: "2026-09-09T12:00:00.000Z" });
     expect(parseApiTesterOperationCandidateFreezeArgs([
-      "--mode=verify", "--root=repo", "--node=node",
-    ])).toEqual({ mode: "verify", rootDir: "repo", nodeExecutable: "node" });
+      "--mode=verify", "--root=repo", "--node=node", "--git=git",
+    ])).toEqual({ mode: "verify", rootDir: "repo", nodeExecutable: "node", gitExecutable: "git" });
     expect(() => parseApiTesterOperationCandidateFreezeArgs([
-      "--mode=verify", "--root=repo", "--node=node", "--frozen-at=2026-09-09T12:00:00.000Z",
+      "--mode=verify", "--root=repo", "--node=node", "--git=git", "--frozen-at=2026-09-09T12:00:00.000Z",
     ])).toThrow(/frozen-at/u);
   });
 

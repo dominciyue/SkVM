@@ -12,12 +12,13 @@ export type ApiTesterOperationCandidateFreezeArgs = {
   mode: "create" | "verify";
   rootDir: string;
   nodeExecutable: string;
+  gitExecutable: string;
   frozenAt?: string;
 };
 
 export function parseApiTesterOperationCandidateFreezeArgs(args: string[]): ApiTesterOperationCandidateFreezeArgs {
   const values = new Map<string, string>();
-  const allowed = new Set(["--mode", "--root", "--node", "--frozen-at"]);
+  const allowed = new Set(["--mode", "--root", "--node", "--git", "--frozen-at"]);
   for (const argument of args) {
     const separator = argument.indexOf("=");
     const key = separator < 0 ? argument : argument.slice(0, separator);
@@ -28,15 +29,16 @@ export function parseApiTesterOperationCandidateFreezeArgs(args: string[]): ApiT
   const mode = values.get("--mode");
   const rootDir = values.get("--root");
   const nodeExecutable = values.get("--node");
+  const gitExecutable = values.get("--git");
   const frozenAt = values.get("--frozen-at");
-  if ((mode !== "create" && mode !== "verify") || !rootDir || !nodeExecutable) {
-    throw new Error("usage: --mode=create|verify --root=<repo> --node=<node> [--frozen-at=<ISO-for-create>]");
+  if ((mode !== "create" && mode !== "verify") || !rootDir || !nodeExecutable || !gitExecutable) {
+    throw new Error("usage: --mode=create|verify --root=<repo> --node=<node> --git=<git> [--frozen-at=<ISO-for-create>]");
   }
   if (mode === "create" && (!frozenAt || Number.isNaN(Date.parse(frozenAt)))) {
     throw new Error("create mode requires an ISO --frozen-at");
   }
   if (mode === "verify" && frozenAt) throw new Error("verify mode forbids --frozen-at");
-  return { mode, rootDir, nodeExecutable, ...(frozenAt ? { frozenAt } : {}) };
+  return { mode, rootDir, nodeExecutable, gitExecutable, ...(frozenAt ? { frozenAt } : {}) };
 }
 
 async function readNodeVersion(nodeExecutable: string): Promise<string> {
@@ -80,6 +82,7 @@ if (import.meta.main) {
       bunVersion: Bun.version,
       nodeVersion,
       nodeExecutable: args.nodeExecutable,
+      gitExecutable: args.gitExecutable,
     });
     process.stdout.write(`${JSON.stringify(verified)}\n`);
   } catch (error) {
