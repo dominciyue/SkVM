@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-formal-synthetic-validation-checkpoint`
+- `currentStage`: `task-2-pre-source-freeze-pending-push`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `8a6ed12da5c16f1dca0f18e40e6c3152d9565a0b`
-- `currentCommit`: `task-2-synthetic-evidence-working-tree`
+- `lastCompletedCommit`: `591765a01005acf94106c02030deedd454b9adb1`
+- `currentCommit`: `task-2-pre-source-freeze-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -31,7 +31,9 @@
 - Task 2 独立审查最初发现 aggregate timeout 未实施、journal 只做自描述摘要两项风险；修订后分别由累计预算测试和协同重签 invocation tamper 测试闭合。
 - Task 2 synthetic-only 实现提交：`8a6ed12da5c16f1dca0f18e40e6c3152d9565a0b`。
 - Task 2 正式 synthetic validation：`results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation/report.json`，SHA-256=`8fd612c8ff9c5fcd149f31b89ba35686e0c2a74dd99f3a59d146106d5009b8df`；6/6 rows 达到预期、其中 1 个预期 source-coverage fail 被正确识别，strict verifier=`verified`，prospective/model/API/paid/real-read 均为 0。
-- Task 2 当前 typecheck 通过；尚未创建或推送 pre-source freeze，也未访问真实来源。
+- Task 2 synthetic evidence 提交：`591765a01005acf94106c02030deedd454b9adb1`。
+- Task 2 pre-source freeze：`benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze.json`，状态 `frozen-pending-push`，绑定 execution commit `591765a01005acf94106c02030deedd454b9adb1`、Bun 1.3.14、Node v23.8.0、候选/runner/protocol/6 synthetic/validation closure；source state 五项均为 0。
+- Task 2 当前 typecheck 通过；pre-source freeze 尚未提交或推送，也未访问真实来源。
 
 ## 保留问题
 
@@ -43,7 +45,7 @@
 ## 下一条具体动作
 
 ```powershell
-git -c safe.directory=D:/skill优化/SkVM add results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation docs/skill-ir/api-tester-operation-prospective.md docs/skill-ir/skill-ir-aot-optimization-plan.md docs/skill-ir/api-tester-operation-prospective-research-status.md
+git -c safe.directory=D:/skill优化/SkVM add benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze.json docs/superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md docs/skill-ir/api-tester-operation-prospective-research-status.md
 ```
 
-白名单提交正式 synthetic validation archive；随后从包含实现和归档的精确提交创建 pre-source freeze，提交并 push 到 origin。远端 freeze strict verification 通过前仍不得搜索或读取 unseen source。
+白名单提交 pre-source freeze，随后 push 到 `origin/api-tester-operation-unseen-prospective-001` 并运行 remote-aware strict verification。远端核验通过前仍不得搜索或读取 unseen source。

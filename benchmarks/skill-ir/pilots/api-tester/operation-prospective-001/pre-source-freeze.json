@@ -1,0 +1,310 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-prospective-pre-source-freeze/v1",
+  "identity": "skill-ir-api-tester-operation-prospective-001",
+  "status": "frozen-pending-push",
+  "frozenAt": "2026-09-09T20:29:01Z",
+  "branch": "api-tester-operation-unseen-prospective-001",
+  "remoteBranch": "origin/api-tester-operation-unseen-prospective-001",
+  "executionCommit": "591765a01005acf94106c02030deedd454b9adb1",
+  "supportContractId": "api-tester-openapi-subset-v2",
+  "candidate": {
+    "path": "benchmarks/skill-ir/classification/api-tester-operation-candidate-binding-v1.json",
+    "sha256": "9fc91113f90e811d419e689d03e32c1178a6e0c29fcdc636c6cb5a13fe25c211",
+    "identity": "skill-ir-api-tester-operation-candidate-binding-002",
+    "executionCommit": "74338e73a4f6dae389c9d62ce84173c2d1672906"
+  },
+  "protocol": {
+    "schemaVersion": "skill-ir-api-tester-operation-prospective-protocol/v1",
+    "identity": "skill-ir-api-tester-operation-prospective-001",
+    "researchQuestion": "Can the frozen operation-level method automatically admit, construct, and check in-contract operations in unseen public OpenAPI documents while completely reporting every other operation?",
+    "sourceDiscovery": {
+      "provider": "github-public-repository-search",
+      "api": "https://api.github.com/search/repositories",
+      "queries": [
+        {
+          "queryId": "github-topic-openapi-specification",
+          "query": "topic:openapi-specification archived:false fork:false",
+          "sort": "stars",
+          "order": "desc",
+          "perPage": 100,
+          "pages": [
+            1
+          ]
+        },
+        {
+          "queryId": "github-topic-openapi",
+          "query": "topic:openapi archived:false fork:false",
+          "sort": "stars",
+          "order": "desc",
+          "perPage": 100,
+          "pages": [
+            1
+          ]
+        }
+      ],
+      "order": "query-index-then-api-rank-then-repository-full-name-then-document-path",
+      "repositoryTreeRule": "At the captured default-branch commit, inspect the recursive Git tree and order matching OpenAPI filenames lexicographically.",
+      "documentPathPattern": "(^|/)(openapi|swagger)[-_.a-z0-9]*\\.(json|ya?ml)$",
+      "discoveryEvidence": "Archive normalized search responses, repository metadata, inspected tree candidates, and every inclusion/exclusion decision."
+    },
+    "eligibility": {
+      "publicRepository": true,
+      "forkAllowed": false,
+      "archivedAllowed": false,
+      "openapiMajorMinor": [
+        "3.0",
+        "3.1"
+      ],
+      "formats": [
+        "json",
+        "yaml"
+      ],
+      "minimumSourceBytes": 100,
+      "maximumSourceBytes": 2097152,
+      "minimumOperations": 1,
+      "maximumOperations": 2000,
+      "licenseSpdxAllowlist": [
+        "Apache-2.0",
+        "MIT",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "ISC",
+        "MPL-2.0",
+        "CC0-1.0",
+        "Unlicense",
+        "GPL-2.0",
+        "GPL-3.0",
+        "LGPL-2.1",
+        "LGPL-3.0",
+        "AGPL-3.0",
+        "CDDL-1.0"
+      ],
+      "licenseBytesRequired": true,
+      "candidateOutcomeUsedForSelection": false
+    },
+    "exclusions": {
+      "exposedRepositories": [
+        "open-meteo/open-meteo",
+        "dpp-admin/openapi",
+        "openwrt-iac/uapi",
+        "htool/signalk-polar-performance-plugin",
+        "oracle/opengrok",
+        "box/box-openapi",
+        "meilisearch/specifications",
+        "bangumi/server",
+        "DeepLcom/openapi",
+        "rejetto/hfs"
+      ],
+      "exactSourceDigestDuplicates": true,
+      "repositoryAndLineageDuplicates": true,
+      "heldOutAndQ1Reserved": "prohibited-without-reading-protected-registries",
+      "pendingProspective": true,
+      "mirrorsAndForksIndependent": false
+    },
+    "denominator": {
+      "realDocuments": 12,
+      "independentRepositoryTarget": 12,
+      "syntheticDocuments": 6,
+      "totalDocuments": 18,
+      "oneDocumentCountsOnce": true,
+      "syntheticIncludedInRealRates": false
+    },
+    "resourceLimits": {
+      "maximumSourceBytes": 2097152,
+      "maximumOperations": 2000,
+      "sourceDownloadTimeoutMs": 30000,
+      "sourceQualificationTimeoutMs": 5000,
+      "perDocumentRunTimeoutMs": 120000,
+      "totalFirstRunTimeoutMs": 2160000
+    },
+    "executionPolicy": {
+      "attemptsPerRow": 1,
+      "retries": 0,
+      "replacements": 0,
+      "candidateFixes": 0,
+      "runAllRows": true,
+      "retainAllOutcomesInDenominator": true,
+      "dispatchedWithoutTerminal": "fail-closed-no-redispatch"
+    },
+    "outcomeClasses": [
+      "fully-accepted-within-local-contract",
+      "partial",
+      "rejected",
+      "unresolved",
+      "construction-or-checker-failed",
+      "infrastructure-failed"
+    ],
+    "metrics": {
+      "documentCounts": true,
+      "operationCounts": true,
+      "admissionCounts": true,
+      "checkerPassedOperations": true,
+      "sourceAdvisoriesAndBlocking": true,
+      "constructionObligationCoverage": true,
+      "predictionComparison": true,
+      "durationAndSourceAcquisitionSeparate": true
+    },
+    "stopConditions": {
+      "preRowZero": [
+        "candidate-or-runner-binding-failure",
+        "input-license-manifest-or-prediction-closure-failure",
+        "non-clean-or-wrong-execution-commit",
+        "output-already-exists"
+      ],
+      "afterDispatch": "record-terminal-or-fail-closed; never retry, replace, or fix the candidate",
+      "sourceShortfall": "record the deterministic shortfall without relaxing eligibility or filling from excluded sources"
+    },
+    "evidence": {
+      "sourceBytes": true,
+      "licenseBytes": true,
+      "upstreamCommitPathAndUrl": true,
+      "sourceAndLicenseDigests": true,
+      "ordinaryInputManifest": true,
+      "discoveryAndExclusionLog": true,
+      "predictionBeforeCandidateTrial": true,
+      "stateJournalTerminalAndPrefix": true,
+      "exactOutputClosure": true
+    },
+    "claimBoundary": "This preregistered development panel describes one deterministic public-source selection and one immutable 12-real-plus-6-synthetic run. It does not estimate ecosystem admission, prove arbitrary OpenAPI support or live API behavior, establish human savings, consume Q1 or held-out sources, or change readiness.",
+    "audit": {
+      "heldOutAccesses": 0,
+      "q1ReservedAccesses": 0,
+      "modelCalls": 0,
+      "businessApiCalls": 0,
+      "paidCalls": 0,
+      "readinessChanges": 0
+    }
+  },
+  "implementation": [
+    {
+      "path": "src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts",
+      "sha256": "14b055d477643cb731f77b569c0b043ca4805c649fbe4c3ee144b97e2656612c"
+    },
+    {
+      "path": "src/benchmarks/skill-ir/api-tester-operation-prospective.ts",
+      "sha256": "a46ad8695915c7a4f6d68bdd2bc4372b89f78d664c0f6f9958b4cdb0c807a59a"
+    }
+  ],
+  "synthetics": [
+    {
+      "rowId": "synthetic-accepted-inline-path",
+      "path": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/synthetic/accepted-inline-path.json",
+      "manifestPath": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/manifests/synthetic-accepted-inline-path.json",
+      "purpose": "Positive control for one inline required path parameter with explicit success and error responses.",
+      "expectedStrictVerification": "pass",
+      "prediction": {
+        "expectedDocumentOutcome": "fully-accepted-within-local-contract",
+        "expectedAcceptedOperations": 1,
+        "basis": "All used syntax is inside the frozen v2 support contract.",
+        "authoredWithoutCandidateExecution": true
+      },
+      "bytes": 644,
+      "sha256": "6304b3ed7e56ef1326a575213f82a680eab86138e32f9dad0988640aaaaa3386",
+      "manifestSha256": "4619254c6b5cb3ebc2f6ea535d3b724a5b530d2696c9db8b6b16f2ddf008b32a"
+    },
+    {
+      "rowId": "synthetic-accepted-local-ref-array",
+      "path": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/synthetic/accepted-local-ref-array.yaml",
+      "manifestPath": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/manifests/synthetic-accepted-local-ref-array.json",
+      "purpose": "Positive control for local parameter reference, primitive query array encoding, and inherited API-key security.",
+      "expectedStrictVerification": "pass",
+      "prediction": {
+        "expectedDocumentOutcome": "fully-accepted-within-local-contract",
+        "expectedAcceptedOperations": 1,
+        "basis": "The dependency-preserving v2 subset explicitly supports these forms.",
+        "authoredWithoutCandidateExecution": true
+      },
+      "bytes": 715,
+      "sha256": "ec5d3e7becca6709cce1f1caa3c98227e8a395c03a107180f1147d313ee905ac",
+      "manifestSha256": "843ea741f28dba21eb428c5c5160c439de93d76ea75c9adc69785e13923523c8"
+    },
+    {
+      "rowId": "synthetic-partial-cookie-and-accepted",
+      "path": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/synthetic/partial-cookie-and-accepted.json",
+      "manifestPath": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/manifests/synthetic-partial-cookie-and-accepted.json",
+      "purpose": "Mixed document proving that an unsupported cookie operation does not hide an independent accepted operation.",
+      "expectedStrictVerification": "pass",
+      "prediction": {
+        "expectedDocumentOutcome": "partial",
+        "expectedAcceptedOperations": 1,
+        "basis": "The health operation is in contract while cookie parameters are not.",
+        "authoredWithoutCandidateExecution": true
+      },
+      "bytes": 799,
+      "sha256": "1dba1e134db9ceab21781c9b8d7b7fdfe8977ee1013b93b691859d354ccec58a",
+      "manifestSha256": "7f85a1f8f2a9d5b9aae9f9d8cd783c9194a3343f37fc4d7d31097bb7431528f0"
+    },
+    {
+      "rowId": "synthetic-rejected-oauth2",
+      "path": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/synthetic/rejected-oauth2.yaml",
+      "manifestPath": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/manifests/synthetic-rejected-oauth2.json",
+      "purpose": "All-rejected control for OAuth2 with non-empty scopes.",
+      "expectedStrictVerification": "pass",
+      "prediction": {
+        "expectedDocumentOutcome": "rejected",
+        "expectedAcceptedOperations": 0,
+        "basis": "OAuth2 is outside the frozen v2 security subset.",
+        "authoredWithoutCandidateExecution": true
+      },
+      "bytes": 500,
+      "sha256": "63cd12958070c00ae6765e4f26f07087aa737342d3b51944c21bd8f539711d56",
+      "manifestSha256": "351ae1feae11ee7dad882a3fd1cbcc10d7dbaf0d2b47ac5df87db2b1fe8a5557"
+    },
+    {
+      "rowId": "synthetic-unresolved-path-item-ref",
+      "path": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/synthetic/unresolved-path-item-ref.yaml",
+      "manifestPath": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/manifests/synthetic-unresolved-path-item-ref.json",
+      "purpose": "Enumeration-incomplete control for a path-item reference that may hide operations.",
+      "expectedStrictVerification": "source-coverage-fail",
+      "prediction": {
+        "expectedDocumentOutcome": "unresolved",
+        "expectedAcceptedOperations": 0,
+        "basis": "The source enumerator intentionally fails closed on path-item references.",
+        "authoredWithoutCandidateExecution": true
+      },
+      "bytes": 304,
+      "sha256": "22efc30b2872ce6eff330ae58671e5c71ac13120206f06a1580ebeace607cd39",
+      "manifestSha256": "2913b73dd2b223451b9c632fc0657e58407c1640aa54ba00938be59d45a7c5c2"
+    },
+    {
+      "rowId": "synthetic-unresolved-missing-parameter",
+      "path": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/synthetic/unresolved-missing-parameter.json",
+      "manifestPath": "benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/manifests/synthetic-unresolved-missing-parameter.json",
+      "purpose": "Source-blocker control for a missing required local parameter dependency.",
+      "expectedStrictVerification": "pass",
+      "prediction": {
+        "expectedDocumentOutcome": "unresolved",
+        "expectedAcceptedOperations": 0,
+        "basis": "The operation dependency cannot be closed from the supplied source bytes.",
+        "authoredWithoutCandidateExecution": true
+      },
+      "bytes": 552,
+      "sha256": "81ebf1f73ac3b764774410112c512e94cb6c98ef62e90da08de8572b7a3cc7a2",
+      "manifestSha256": "1478bed0834146908b5730b610d26a5c95cce2fc726acc84fa7814d06e33bf8c"
+    }
+  ],
+  "syntheticValidation": {
+    "path": "results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation/report.json",
+    "sha256": "8fd612c8ff9c5fcd149f31b89ba35686e0c2a74dd99f3a59d146106d5009b8df"
+  },
+  "runtime": {
+    "bun": "1.3.14",
+    "node": "v23.8.0"
+  },
+  "sourceState": {
+    "realSourcesSearched": 0,
+    "realSourcesRead": 0,
+    "selectedRealDocuments": 0,
+    "realPredictionsAuthored": 0,
+    "prospectiveRuns": 0
+  },
+  "accounting": {
+    "modelCalls": 0,
+    "businessApiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0,
+    "developmentAgentUsage": "host-external-not-measured-by-runner"
+  },
+  "claimBoundary": "This pre-source freeze binds the selection protocol, candidate, runner, six synthetic inputs, validation evidence, and runtime before any unseen real source is searched or read. It contains no real input, prediction, or prospective result."
+}

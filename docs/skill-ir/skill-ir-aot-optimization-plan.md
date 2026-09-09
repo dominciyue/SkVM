@@ -2221,6 +2221,9 @@ prepared/dispatched/invocation/exit/stdout 重建闭合；同步重签外层 man
 typecheck 通过。实现提交为 `8a6ed12da5c16f1dca0f18e40e6c3152d9565a0b`；正式 synthetic validation archive 的 6/6 rows
 满足预期（包含 1 个预期 source-coverage fail），strict verifier 返回 `verified`，报告 SHA-256=
 `8fd612c8ff9c5fcd149f31b89ba35686e0c2a74dd99f3a59d146106d5009b8df`。此时 unseen source read/prediction/prospective run 仍为 0。
+pre-source freeze 已由 execution commit `591765a01005acf94106c02030deedd454b9adb1` 物化为 `frozen-pending-push`，并绑定 Bun 1.3.14、
+Node v23.8.0、候选、协议、runner、6 synthetic 和完整 validation closure；只有 freeze 提交已推送且 remote-aware strict verification 通过后，
+才允许读取真实候选来源。
 
 ## 5. 历史时间估算（不作为当前排期）
 
