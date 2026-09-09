@@ -2164,8 +2164,13 @@ clean 归档。旧六来源 runner、冻结 v1/v2 与 001/002、Task 1/Task 2/de
    `inputSelection=not-started`、`predictions=not-authored`、`prospectiveRuns=0`，不得出现未见 row/prediction。
 6. [x] 从候选提交创建 detached clean checkout，锁定离线安装，完整归档六输入/license、六次普通入口输出、strict verification 和新的
    dependency-revision reproduction-only closure；新 evidence 绑定所有 digest、Git/runtime 与旧缺档说明。
-7. [ ] 完成 focused/`src/skill-ir`/typecheck/docs/frozen/path/secret/diff/独立审查，更新组件/状态/报告/三份外层记录并本地提交。随后停止
+7. [x] 完成 focused/`src/skill-ir`/typecheck/docs/frozen/path/secret/diff/独立审查，更新组件/状态/报告/三份外层记录并本地提交。随后停止
    development 扩展；未来 prospective 只提出单独预登记建议，不在本阶段选择、预测或运行。
+
+最终 evidence commit=`65216d878760f7fac3bd561fed9443a2f3b20d22`；独立审查发现并修复初版 Git closure 的 path-only 漏检，修订提交=
+`6512724f08223d536d9bbe12fd470e4a36effaa9`，二次独立审查无 finding。最终 `src/skill-ir` 为 189/189、990 assertions；typecheck、
+文档单测与 3657-file link scan、冻结历史、path/secret、diff 和 final-report strict verification 均通过。临时 detached worktree 在确认
+clean archive 99/99、dependency clean-003 59/59 路径和 SHA-256 与主检出完全一致后移除。
 
 **完成门：** 普通输入无需旧六行身份即可被同一流程完整分析；六个 exposed 输入与当前 repaired evidence 的 universe/admission/checker/
 obligation/dependency 语义一致；新 clean evidence 的完整 bytes 可由仓库内 strict verifier 重验；候选 closure 与 runtime/lock 全绑定；没有

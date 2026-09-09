@@ -169,3 +169,9 @@ Meilisearch missing total ref 为 blocked，historical archive completeness 因�
 
 可运行入口和 exact commands 见 [operation delivery/freeze 组件文档](api-tester-operation-delivery-freeze.md)。当前仅具备为新 prospective
 另行预登记做准备的条件；本阶段没有选择或读取未见输入，没有写预测，也没有运行 prospective。开发扩展在此停止。
+
+最终归档提交为 `65216d878760f7fac3bd561fed9443a2f3b20d22`，Git-byte 审查修复提交为
+`6512724f08223d536d9bbe12fd470e4a36effaa9`。修复前测试稳定复现 dirty-but-digest-consistent archive 会被 path-only gate 错放，修复后
+拒绝；二次独立审查没有遗留 finding。最终新鲜验证为 `src/skill-ir` 189/189、990 assertions，typecheck 通过，文档单测 8/8、3657 文件
+0 broken/legacy，冻结历史差异 0，final-report strict verify 返回同一 portable digest 和 `prospectiveRuns=0`。临时 detached worktree 在
+99-file/59-file 路径与 SHA-256 同主检出逐项一致后已移除，完整证据保留在上述 committed archives。

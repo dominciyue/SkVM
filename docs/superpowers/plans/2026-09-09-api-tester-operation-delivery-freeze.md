@@ -38,16 +38,18 @@ Result: `main` strictly verifies 6 documents, 562 operations, 112 accepted, 449 
 - [x] Create a short-path detached worktree at the candidate commit; use locked offline dependencies and record Git/Bun/Node/OS state.
 - [x] In that checkout, construct a digest-bound archive package from the six exposed sources/licenses, run all six ordinary-input manifests, run strict verification, and recreate the dependency-revision reproduction-only report.
 - [x] Copy the complete input/output/revision closure to `results/skill-ir/api-tester-operation-delivery-freeze-development-001`, preserving every file and digest. Record the absent historical `clean-002` path/digest as missing, not verified.
-- [ ] Strictly verify the archive against candidate Git blobs, source-selection digests, candidate snapshot, semantic comparisons, exact closure, and zero model/API/paid accounting. Remove only the verified temporary worktree.
+- [x] Strictly verify the archive against candidate Git blobs, source-selection digests, candidate snapshot, semantic comparisons, exact closure, and zero model/API/paid accounting. Remove only the verified temporary worktree.
 
 The first detached preflight at `fa20a52` correctly failed before source execution because the archive manifest named 10 ignored v2 scripts absent from Git. `clean-attempt-001/failure.json` preserves it. The successor candidate commit records all declared bytes with scoped binary attributes and adds a Git-tree closure gate before clean reproduction.
 
 ## Task 6: Close out and stop extension
 
-- [ ] Update the component guide, developer guide, spec, plan, status, final report/claim history where applicable, handoff, communication ledger, and conversation log.
-- [ ] Run fresh focused and `src/skill-ir` regression, typecheck, docs links, frozen-history diff guards, secret/absolute-path scans, `git diff --check`, and an independent read-only review.
-- [ ] Commit complete machine evidence and documentation locally; do not push. Mark the operation candidate frozen but still unselected, unpredicted, and never prospectively run.
-- [ ] Stop development extension. Recommend a later, separately preregistered unseen-input design only; do not select inputs or author row predictions here.
+- [x] Update the component guide, developer guide, spec, plan, status, final report/claim history where applicable, handoff, communication ledger, and conversation log.
+- [x] Run fresh focused and `src/skill-ir` regression, typecheck, docs links, frozen-history diff guards, secret/absolute-path scans, `git diff --check`, and an independent read-only review.
+- [x] Commit complete machine evidence and documentation locally; do not push. Mark the operation candidate frozen but still unselected, unpredicted, and never prospectively run.
+- [x] Stop development extension. Recommend a later, separately preregistered unseen-input design only; do not select inputs or author row predictions here.
+
+Final evidence commit is `65216d878760f7fac3bd561fed9443a2f3b20d22`; independent review then identified the path-only Git-closure weakness, which was fixed in `6512724f08223d536d9bbe12fd470e4a36effaa9` with a RED/GREEN dirty-working-tree test. A second independent review returned no findings. Final `src/skill-ir` regression is 189/189 with 990 assertions; typecheck, documentation tests/3657-file link scan, frozen-history guard, absolute-path scan, diff check, and strict final-report verification all pass. The verified detached worktree was removed after 99/99 and 59/59 path/digest parity checks against the committed archives.
 
 ## Recovery order
 

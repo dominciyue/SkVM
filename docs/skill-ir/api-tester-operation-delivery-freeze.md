@@ -158,3 +158,14 @@ bun ./src/skill-ir/api-tester-operation-delivery-report-run.ts `
 The report intentionally has `historicalArchiveCompleteness=fail` because the
 old clean-002 bytes remain missing. That historical evidence gap is not an
 implementation failure and is not hidden by the new main/clean archives.
+
+Final local evidence was committed as
+`65216d878760f7fac3bd561fed9443a2f3b20d22`. Independent review then exposed a
+path-only Git-closure weakness; `6512724f08223d536d9bbe12fd470e4a36effaa9`
+adds checkout-filtered byte binding and a regression that the former verifier
+missed. The second independent review found no remaining issue. Fresh closeout
+ran 189 Skill IR tests with 990 assertions, typecheck, documentation tests and a
+3657-file link scan, frozen-history/path/secret/diff guards, and the strict final
+report verifier. The detached clean worktree was removed only after all 99
+delivery files and 59 dependency-revision files matched the committed copies by
+relative path and SHA-256.
