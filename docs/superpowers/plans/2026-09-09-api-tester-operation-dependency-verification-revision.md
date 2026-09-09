@@ -28,19 +28,19 @@
 - [x] RED-test contract/report schema, exact baseline/report bindings, the one-control/three-miss registry, repaired detector outcomes, dynamic old/fresh comparisons, source-blocker retention, accounting, and write-once output.
 - [x] Implement a CLI that verifies the baseline report, reruns the same six digest-bound sources through the repaired development pipeline into `<result>/replay`, and writes a new revision report without touching old results.
 - [x] Compare per-document operation keys/statuses/dependency results plus aggregate operation universe, admission, checker-pass counts, and obligation coverage. Derive expected values from the verified old report; never encode `112` as a required result.
-- [x] Strictly re-read every new report/inventory/artifact and reject binding or portable-digest drift.
+- [x] Strictly re-read every new report/inventory/artifact, compare the report revision to the verified checkout's live Git commit/detached state, and reject binding or portable-digest drift.
 
 ## Task 4: Execute and reproduce the revision
 
-- [ ] Commit the design, tests, implementation, contract, and runnable entry on `api-tester-operation-admission-dev`; record the exact revision commit.
-- [ ] Run the new entry once in the development checkout with the existing six-source offline cache and a fresh result directory.
-- [ ] Read `superpowers:using-git-worktrees`, create an ignored detached clean checkout at that exact revision commit, install `bun.lock` with `--frozen-lockfile --offline`, and run the same revision entry into a fresh clean result.
-- [ ] Compare portable semantics, per-document comparisons, dependency outcomes, checker counts, obligations, and evidence digests; keep OS/Bun/Node/path/time fields separate.
+- [x] Commit the design, tests, implementation, contract, and runnable entry on `api-tester-operation-admission-dev`; exact revision commit is `a359c0c68862637153b98a7f7ae797de35e0564c`.
+- [x] Run the new entry once in the development checkout with the existing six-source offline cache and a fresh result directory.
+- [x] Read `superpowers:using-git-worktrees`, create an independent detached clean checkout at that exact revision commit, install `bun.lock` with `--frozen-lockfile --offline`, and run the same revision entry into a fresh clean result.
+- [x] Compare portable semantics, per-document comparisons, dependency outcomes, checker counts, obligations, and evidence digests; keep OS/Bun/Node/path/time fields separate.
 
 ## Task 5: Close out evidence and claims
 
-- [ ] Update the component guide, spec, project plan, status file, final report/claim history where applicable, handoff, communication ledger, and conversation log. Correct the historical claim by addition: old reports remain immutable but no longer support an unqualified “no implementation defect” statement.
-- [ ] Run fresh focused/broad tests, typecheck, documentation links, frozen-history digest checks, secret/absolute-path scans, and `git diff --check`.
+- [x] Update the component guide, spec, project plan, status file, final report/claim history where applicable, handoff, communication ledger, and conversation log. Correct the historical claim by addition: old reports remain immutable but no longer support an unqualified “no implementation defect” statement.
+- [x] Run fresh focused/broad tests, typecheck, documentation links, frozen-history digest checks, secret/absolute-path scans, and `git diff --check`.
 - [ ] Commit the new machine evidence and documentation locally. Do not push.
 - [ ] State whether the repaired evidence is sufficient to freeze a new operation candidate. Even if sufficient, only recommend a next design; do not select or execute unseen inputs.
 

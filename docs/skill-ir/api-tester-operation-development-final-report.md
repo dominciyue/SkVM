@@ -2,7 +2,7 @@
 
 日期：2026-09-09
 
-状态：`completed-with-source-blocker`
+状态：`passed-with-source-blocker-after-dependency-verifier-revision`
 
 分支：`api-tester-operation-admission-dev`
 
@@ -12,7 +12,8 @@
 输入/预测/锁/报告、whole-document `0/6` 与 readiness 均未修改；没有 prospective、held-out/Q1 reserved、第二 profile、Q4、
 模型、远端 API 或付费调用。
 
-Task 1 和 Task 2 的 bounded development 目标均已实现并验证。实现正确性和有限范围可靠性通过；原 Meilisearch 文档的一个
+Task 1 和 Task 2 的历史报告保持原样。后续审计发现旧 dependency verifier 的三类漏检，现已由独立 revision identity 修复并复现；
+修订后的实现正确性在当前 bounded development 范围通过。原 Meilisearch 文档的一个
 缺失 parameter reference 仍使 source correctness blocked。因此本结论不是完整文档接纳、任意 OpenAPI、真实 API 行为、人工节省、
 生态接纳率、跨 profile/平台或 readiness 证据。
 
@@ -100,7 +101,36 @@ bun ./src/skill-ir/api-tester-operation-validation-run.ts `
   `git diff --check` 均通过。
 - runtime model/API/paid=`0/0/0`；development-agent usage=`host-external-not-measured-by-runner`，两者没有混记。
 
-剩余问题只有上述 source-bound missing ref；它不是未修复的 implementation correctness defect。若要消除它，下一步应另行核实或修复
+## 6. 后续 dependency-verifier 修订与最终判断
+
+旧 Task 2 的 `9/9` fault 事实不改写，但其 fault set 没有覆盖 response component target、parameter target 内 nested ref target，以及同名
+security requirement 对应的 scheme body。review baseline `d2e748868a3c5e88b49cb940d4cd495f7b4dcf68` 对这三项均 false-pass；修订提交
+`a359c0c68862637153b98a7f7ae797de35e0564c` 以 TDD 将它们在 dependency-verifier 层 `3/3` 检出，同时 unchanged、shared/cyclic controls
+通过。独立只读审查随后发现 strict verifier 尚未把 report revision 与当前 checkout 绑定；新增 RED 用例后，`a359c0c` 同时要求 live Git
+commit 与 detached 状态完全匹配报告。旧报告继续是时间序列中的历史证据，不再单独支持“没有剩余 dependency-verifier defect”的主张。
+
+新机器报告：`results/skill-ir/api-tester-operation-dependency-verification-revision-development-001/report.json`
+
+- 文件 SHA-256：`a61e19359d735880593f15c96c6d0789da3e37f0098e92b31544a51e2bd186e8`；
+- portable semantic SHA-256：`206bdea5809c322fa01bf10ffe6af408abf0a081f9ed8813d0cdda1a347cc98c`；
+- run semantic SHA-256：`5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036`；
+- old/fresh aggregate checks：operation universe、admission、dependency、checker-pass、obligation coverage 全部为 true；
+- old/fresh totals：均为 562 operations、112 accepted、449 rejected、1 unresolved、112 checker-pass、575/575 obligations；
+- clean checkout：Windows x64、Bun 1.3.14、Node v23.8.0，`bun.lock` SHA-256
+  `b6814f09782eecf544fca3c7426a706afe8793c750064d67bdb7b937a91cadfb`，`--frozen-lockfile --offline` 安装和新入口通过。
+- 修订聚焦测试 `15/15`、45 assertions；`src/skill-ir` `171/171`、935 assertions；typecheck 通过。benchmark broad 为
+  `1183 pass / 6 skip / 63 fail`，63 项仍是交接中已登记的冻结 digest/registry/Windows compatibility 历史簇，本修订路径新增 failure 为 0，
+  因而不宣称仓库 broad 全绿。
+
+新维度显示 112 个 accepted operation 的 projection preservation 和 construction obligations 全部通过；19 个 Bangumi operation 因 standalone
+source 引用 32 次外部 response components 而 source-validity unverified。它们是 non-construction response dependencies，未被伪装成 v2
+构造义务；Meilisearch `GET /tasks` 缺失本地 parameter ref 仍是唯一 blocking source issue。
+
+结论：已具备冻结一个同 v2 支持合同、显式保留上述 source blocker 与 source-validity advisories 的新 operation candidate 的 development
+条件。冻结只应提交候选、合同、输入选择规则与执行前预测；本阶段没有选择、读取或执行 unseen input，也不改变 readiness。真正启动新
+prospective 仍需独立 identity、冻结分母和明确授权。
+
+若要消除 source blocker，下一步应另行核实或修复
 上游 Meilisearch 文档并建立新的 digest-bound identity，而不是猜测该参数、改写本阶段报告、放宽 checker 或重跑冻结 002。若要扩展支持面、
 进入新 prospective、跨 profile/平台或 readiness，均须另立授权与分母。
 

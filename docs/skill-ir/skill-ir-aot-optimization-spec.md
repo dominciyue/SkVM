@@ -2083,3 +2083,14 @@ checker-pass 与 obligation coverage，不得把 `112` 写成实现常量或通�
 锁定依赖离线复现新入口并比较 portable semantics。Meilisearch `GET /tasks` 缺失 `#/components/parameters/total` 继续作为独立 source blocker。
 保护边界与 14.17 相同：不改 v1/v2 产品面或冻结历史，不读 unseen/held-out/Q1 reserve，不启动 prospective/第二 profile/Q4，不联网、
 不改 readiness，不声称完整文档、真实 API、人工节省或生态接纳。
+
+**修订实际结果（2026-09-09）。** 实现提交 `a359c0c68862637153b98a7f7ae797de35e0564c` 先把三项反例固定为旧实现
+`3/3 false pass`，再由 repaired verifier 在 dependency layer `3/3` 检出；unchanged、shared 与 cyclic controls 通过。新 identity 对同六来源
+重跑后，operation universe、admission、legacy dependency outcome、checker-pass 与 obligation coverage 均逐文档等同旧报告，实际数值仍为
+`562 = 112 accepted + 449 rejected + 1 unresolved`、`112/112 checked`、`575/575`，但这些数值由 old/fresh report 动态比较而非写入实现。
+112 个 accepted operation 的 projection/construction dimensions 全过；其中 19 个 Bangumi operation 因 standalone source 中的 external response
+refs 记为 source-validity unverified，32 个 ref occurrence 均为非构造义务。Meilisearch missing parameter ref 继续是唯一 blocking source issue。
+detached clean checkout 在 Windows x64、Bun 1.3.14、Node v23.8.0 下锁定离线安装并得到相同 run semantic digest
+`5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036`；最终 report portable digest 为
+`206bdea5809c322fa01bf10ffe6af408abf0a081f9ed8813d0cdda1a347cc98c`。
+独立审查另发现 strict verifier 需要闭合 report revision 与被验证 checkout；最终实现已要求 live Git commit 与 detached 状态精确匹配。

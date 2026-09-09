@@ -1,0 +1,2000 @@
+{
+  "schemaVersion": "api-test-plan/v2",
+  "source": "public-openapi",
+  "framework": "node:test",
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/dumps",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-0-post-dumps-happy",
+          "category": "happy",
+          "request": {
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-post-dumps-unauthorized",
+          "category": "error",
+          "request": {
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/experimental-features",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-1-get-experimental-features-happy",
+          "category": "happy",
+          "request": {
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-1-get-experimental-features-unauthorized",
+          "category": "error",
+          "request": {
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-2-get-health-happy",
+          "category": "happy",
+          "request": {},
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-3-get-indexes-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "limit": 1,
+              "offset": 1
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-3-get-indexes-unauthorized",
+          "category": "error",
+          "request": {
+            "query": {
+              "limit": 1,
+              "offset": 1
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-4-delete-indexes-indexuid-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-4-delete-indexes-indexuid-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-4-delete-indexes-indexuid-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-5-get-indexes-indexuid-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-5-get-indexes-indexuid-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-5-get-indexes-indexuid-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/documents",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-6-delete-indexes-indexuid-documents-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-6-delete-indexes-indexuid-documents-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-6-delete-indexes-indexuid-documents-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-7-delete-indexes-indexuid-settings-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-7-delete-indexes-indexuid-settings-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-7-delete-indexes-indexuid-settings-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-8-get-indexes-indexuid-settings-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-8-get-indexes-indexuid-settings-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-8-get-indexes-indexuid-settings-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/displayed-attributes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-9-delete-indexes-indexuid-settings-displayed-attributes-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-9-delete-indexes-indexuid-settings-displayed-attributes-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-9-delete-indexes-indexuid-settings-displayed-attributes-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/displayed-attributes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-10-get-indexes-indexuid-settings-displayed-attributes-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-10-get-indexes-indexuid-settings-displayed-attributes-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-10-get-indexes-indexuid-settings-displayed-attributes-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/distinct-attribute",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-11-delete-indexes-indexuid-settings-distinct-attribute-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-11-delete-indexes-indexuid-settings-distinct-attribute-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-11-delete-indexes-indexuid-settings-distinct-attribute-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/distinct-attribute",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-12-get-indexes-indexuid-settings-distinct-attribute-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-12-get-indexes-indexuid-settings-distinct-attribute-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-12-get-indexes-indexuid-settings-distinct-attribute-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/faceting",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-13-delete-indexes-indexuid-settings-faceting-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-13-delete-indexes-indexuid-settings-faceting-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-13-delete-indexes-indexuid-settings-faceting-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/faceting",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-14-get-indexes-indexuid-settings-faceting-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-14-get-indexes-indexuid-settings-faceting-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-14-get-indexes-indexuid-settings-faceting-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/filterable-attributes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-15-delete-indexes-indexuid-settings-filterable-attributes-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-15-delete-indexes-indexuid-settings-filterable-attributes-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-15-delete-indexes-indexuid-settings-filterable-attributes-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/filterable-attributes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-16-get-indexes-indexuid-settings-filterable-attributes-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-16-get-indexes-indexuid-settings-filterable-attributes-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-16-get-indexes-indexuid-settings-filterable-attributes-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/pagination",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-17-delete-indexes-indexuid-settings-pagination-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-17-delete-indexes-indexuid-settings-pagination-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-17-delete-indexes-indexuid-settings-pagination-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/pagination",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-18-get-indexes-indexuid-settings-pagination-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-18-get-indexes-indexuid-settings-pagination-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-18-get-indexes-indexuid-settings-pagination-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/ranking-rules",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-19-delete-indexes-indexuid-settings-ranking-rules-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-19-delete-indexes-indexuid-settings-ranking-rules-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-19-delete-indexes-indexuid-settings-ranking-rules-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/ranking-rules",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-20-get-indexes-indexuid-settings-ranking-rules-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-20-get-indexes-indexuid-settings-ranking-rules-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-20-get-indexes-indexuid-settings-ranking-rules-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/searchable-attributes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-21-delete-indexes-indexuid-settings-searchable-attributes-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-21-delete-indexes-indexuid-settings-searchable-attributes-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-21-delete-indexes-indexuid-settings-searchable-attributes-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/searchable-attributes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-22-get-indexes-indexuid-settings-searchable-attributes-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-22-get-indexes-indexuid-settings-searchable-attributes-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-22-get-indexes-indexuid-settings-searchable-attributes-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/sortable-attributes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-23-delete-indexes-indexuid-settings-sortable-attributes-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-23-delete-indexes-indexuid-settings-sortable-attributes-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-23-delete-indexes-indexuid-settings-sortable-attributes-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/sortable-attributes",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-24-get-indexes-indexuid-settings-sortable-attributes-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-24-get-indexes-indexuid-settings-sortable-attributes-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-24-get-indexes-indexuid-settings-sortable-attributes-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/stop-words",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-25-delete-indexes-indexuid-settings-stop-words-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-25-delete-indexes-indexuid-settings-stop-words-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-25-delete-indexes-indexuid-settings-stop-words-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/stop-words",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-26-get-indexes-indexuid-settings-stop-words-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-26-get-indexes-indexuid-settings-stop-words-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-26-get-indexes-indexuid-settings-stop-words-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/synonyms",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-27-delete-indexes-indexuid-settings-synonyms-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-27-delete-indexes-indexuid-settings-synonyms-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-27-delete-indexes-indexuid-settings-synonyms-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/synonyms",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-28-get-indexes-indexuid-settings-synonyms-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-28-get-indexes-indexuid-settings-synonyms-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-28-get-indexes-indexuid-settings-synonyms-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/indexes/{indexUid}/settings/typo-tolerance",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-29-delete-indexes-indexuid-settings-typo-tolerance-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-29-delete-indexes-indexuid-settings-typo-tolerance-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-29-delete-indexes-indexuid-settings-typo-tolerance-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/settings/typo-tolerance",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-30-get-indexes-indexuid-settings-typo-tolerance-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-30-get-indexes-indexuid-settings-typo-tolerance-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-30-get-indexes-indexuid-settings-typo-tolerance-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/indexes/{indexUid}/stats",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-31-get-indexes-indexuid-stats-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-31-get-indexes-indexuid-stats-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-31-get-indexes-indexuid-stats-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "indexUid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/keys",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-32-get-keys-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "limit": 1,
+              "offset": 1
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-32-get-keys-unauthorized",
+          "category": "error",
+          "request": {
+            "query": {
+              "limit": 1,
+              "offset": 1
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/snapshots",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-33-post-snapshots-happy",
+          "category": "happy",
+          "request": {
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-33-post-snapshots-unauthorized",
+          "category": "error",
+          "request": {
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/stats",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-34-get-stats-happy",
+          "category": "happy",
+          "request": {
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-34-get-stats-unauthorized",
+          "category": "error",
+          "request": {
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/:taskUid",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-35-get-tasks-taskuid-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "taskUid": 1
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-35-get-tasks-taskuid-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-35-get-tasks-taskuid-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "taskUid": 1
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/cancel",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-36-post-tasks-cancel-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "afterEnqueuedAt": "0",
+              "afterFinishedAt": "0",
+              "afterStartedAt": "0",
+              "beforeEnqueuedAt": "0",
+              "beforeFinishedAt": "0",
+              "beforeStartedAt": "0",
+              "canceledBy": "0",
+              "indexUids": "0",
+              "statuses": "0",
+              "types": "0",
+              "uids": 1
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 202,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-36-post-tasks-cancel-unauthorized",
+          "category": "error",
+          "request": {
+            "query": {
+              "afterEnqueuedAt": "0",
+              "afterFinishedAt": "0",
+              "afterStartedAt": "0",
+              "beforeEnqueuedAt": "0",
+              "beforeFinishedAt": "0",
+              "beforeStartedAt": "0",
+              "canceledBy": "0",
+              "indexUids": "0",
+              "statuses": "0",
+              "types": "0",
+              "uids": 1
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/version",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-37-get-version-happy",
+          "category": "happy",
+          "request": {
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-37-get-version-unauthorized",
+          "category": "error",
+          "request": {
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    }
+  ]
+}

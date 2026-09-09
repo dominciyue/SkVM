@@ -2,7 +2,7 @@
 
 当前定位：**以公开验证依据为组织原则，研究受限 skill 任务的确定性 AOT 转换与人工边界，并通过 SkVM 提供可复现的产物封装。** 三档答案可得性降级为回顾路由；当前 v2 方法按 requirement/workflow step 分别记录验证、构造、执行与剩余选择，再导出四状态。七案例仍是回顾性案例研究，不是前瞻预测证据。
 
-当前已确认路线：**原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；AI revision-2 只作为带 provenance 的 24-unit development route。API Tester 002 whole-document 唯一首轮仍为真实 0/6、边界 0/4；后继 operation-level development 对同六份已暴露文档完整枚举 562 operations，112/112 accepted operations 通过原 v2 checker，449 rejected、1 source dependency unresolved。36 个派生输入关系为 34/34 applicable pass、2 typed N/A，9/9 faults detected，并在 detached Task 1 checkout 离线复现；总状态 `completed-with-source-blocker`。v1/v2 冻结负结果与 readiness 均不改写。** 权威约束见 spec 第 14.17 节、plan 第 4.46 节和[操作级组件](api-tester-operation-admission.md)。
+当前已确认路线：**原 Q1 真人一致性实验保持未完成，但不再阻塞工程 development；AI revision-2 只作为带 provenance 的 24-unit development route。API Tester 002 whole-document 唯一首轮仍为真实 0/6、边界 0/4。operation-level 后继的旧报告保持 562 operations、112/112 accepted checked、449 rejected、1 source unresolved；后续审计发现三项 dependency-verifier false pass，已由新 identity 3/3 修复检出，并在同六来源及 detached clean checkout 复现。112 项 projection/construction 全过；19 项 Bangumi external-response source validity 未验证。v1/v2 冻结负结果与 readiness 均不改写。** 权威约束见 spec 第 14.18 节、plan 第 4.47 节和[操作级组件](api-tester-operation-admission.md)。
 
 ## 三条主线
 
@@ -10,7 +10,7 @@
 |---|---|---|---|
 | A：分类与路由 | 七案例回顾表与 Q1 v2 发放包已冻结；新 AI development route 绑定 24 个 unit 的 revision-2 provenance/change/unknown | 两位真人独立标注、裁决前一致率、classification accuracy、原 Q1 completion | AI 表只服务工程 gap discovery；原 A/B 真人实验可另行完成，但不再作为当前构造开发前置 |
 | B：人工边界 | 旧 original 首行已冻结负结果；successor 的两臂、平衡交叉分母、前瞻区间计时、质量门和成本单位已机器化 | 4 个新 public development tasks、2 位独立实际参与者、真实 session 和人工减少结果 | 旧 identity 永久停止；successor 保持 `design-only-not-authorized`，任何真实参与者或付费执行需再次授权 |
-| C：工程交付 | Env/API 金路径可复现；API production v1 两输入 2/2；002 whole-document real 0/6；operation-level 同六文档 562 项完整枚举、112/112 accepted checked；34/34 applicable metamorphic pass、9/9 faults、Task 1 clean offline exact | 缺失 Meilisearch parameter ref 的源语义、完整文档接纳、任意 OpenAPI、独立操作者、跨 profile/平台与真实 API 行为 | 本 operation identity 已按 source blocker 收口；后续若修 source 或扩大支持面必须新授权，不改 002/readiness |
+| C：工程交付 | Env/API 金路径可复现；API production v1 两输入 2/2；002 whole-document real 0/6；operation-level 同六文档 562 项、112/112 accepted checked；三项旧 dependency miss 已 3/3 修复，old/fresh 与 clean revision pass | Meilisearch missing parameter ref、19 项 Bangumi external-response source validity、完整文档接纳、任意 OpenAPI、独立操作者、跨 profile/平台与真实 API 行为 | 可筹备冻结同合同的新 operation candidate；不得选择或执行 unseen input，不改 002/readiness |
 
 ## Q1/Q2 当前冻结点
 
@@ -30,6 +30,9 @@
 - operation-level 后继只复用上述已暴露六份 source：6/6 universe complete，`562=112 accepted+449 rejected+1 unresolved`，五个聚合
   artifact 的 112 项全过 checker。Task 2 的 36 derivatives 不是新真实分母，synthetic faults 不计真实成功；clean reproduction 只证明同机
   Task 1 checkout/offline cache 可复现。唯一 source blocker 为 Meilisearch `GET /tasks` 缺失 `#/components/parameters/total`。
+- 后续 dependency revision 保留旧证据并记录三项 baseline false pass；修复后 3/3 在预期 verifier 层检出，同六来源 universe/admission/
+  dependency/checker/obligations 和 detached clean run 全部一致。112 项 construction/projection pass；19 项 Bangumi operation 的 external
+  response refs 只记 source-validity advisory。该证据只满足候选冻结准备，不授权新 prospective 或 readiness 变化。
 - 权威入口：`classification-handbook-v2.md`、`q1-development-annotation-package-v2.md`、`ai-assisted-development-routing-and-prospective-construction.md`、`benchmarks/skill-ir/classification/` 与 `task-automation-classification.ts`。当前没有真人 A/B 一致率、classification accuracy、可靠性或人工节省结果。
 
 ## B 冻结结果的正确读法

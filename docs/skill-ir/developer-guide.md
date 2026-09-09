@@ -757,6 +757,19 @@ offline cache。先执行 `bun install --frozen-lockfile --offline`，再用
 runner 根据 Task 1 实际 `checked` 自动选择。权威结果与边界见
 [`api-tester-operation-admission.md`](api-tester-operation-admission.md)；不得运行已冻结的 v2 feature-migration first-run 入口。
 
+dependency-verifier revision 必须从提交 `a359c0c68862637153b98a7f7ae797de35e0564c` 重放。创建短路径 detached worktree，执行
+`bun install --frozen-lockfile --offline` 后，先写一个 reproduction-only 新目录，再以同一提交调用：
+
+```powershell
+bun ./src/skill-ir/api-tester-operation-dependency-verification-revision-run.ts `
+  --root=. --cache-root=<same-six-source-cache> --node=<node> --git=git `
+  --out=<fresh-main-result> --clean-root=<detached-worktree> `
+  --clean-report=<relative-reproduction-only-report>
+```
+
+runner 动态读取旧 Task 1 分母，不接受 112 override；最终报告应显示三项 repaired detector、五组 old/fresh comparison 与 clean
+reproduction 全部 pass。19 项 Bangumi source-validity advisory 来自 non-construction external response refs，不得删去或写成 v2 构造失败。
+
 #### 5.7.3 从干净源码 checkout 复现
 
 2026-09-06 的绑定验收使用提交 `3bd7618` 的新 detached worktree。先确认 `git status --short` 没有 tracked

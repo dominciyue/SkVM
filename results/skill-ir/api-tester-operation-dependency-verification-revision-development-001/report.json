@@ -1,0 +1,386 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-dependency-verification-revision-report/v1",
+  "identity": "skill-ir-api-tester-operation-dependency-verification-revision-development-001",
+  "status": "passed-with-source-blocker",
+  "completedAt": "2026-09-09T08:08:35.956Z",
+  "revision": {
+    "commit": "a359c0c68862637153b98a7f7ae797de35e0564c",
+    "detached": false,
+    "implementation": [
+      {
+        "path": "src/skill-ir/api-tester-operation-coverage.ts",
+        "sha256": "4f312dca18aca2bbc20d4f4717e7aa519c9202976451f8a3a993ec457f35f8df"
+      },
+      {
+        "path": "src/skill-ir/api-tester-operation-dependency-verification-revision.ts",
+        "sha256": "8b029a730ac3f9da5c6c21164b0eac3a1e72ae6e5d09fdf9d6b99853e0151cdc"
+      },
+      {
+        "path": "src/skill-ir/api-tester-operation-dependency-verification-revision-run.ts",
+        "sha256": "886e45363a190b161750390958b43ff09b5402cc35d8e21d938410bc77b90ced"
+      }
+    ]
+  },
+  "inputs": {
+    "contract": {
+      "path": "benchmarks/skill-ir/pilots/api-tester/operation-dependency-verification-revision-development-001/development-contract.json",
+      "sha256": "91ddef299f0e88cc19544a74b11f0ae70c14263d186e7360284cfc30c3231ca1"
+    },
+    "baselineTask1": {
+      "path": "results/skill-ir/api-tester-operation-admission-development-001/report.json",
+      "sha256": "d2fbe27a27b5d7d94f8ab2aeb45c0fb23c610f0bd47d82cdd04ee4bd4c37b2c6",
+      "portableSemanticSha256": "1a14ed36ebc185befcb4f3d2c03f95d89bd1e8a1a89da560a9c6eb35b89a1e87"
+    },
+    "sourceSelection": {
+      "path": "benchmarks/skill-ir/pilots/api-tester/v2-feature-migration-001/source-selection.json",
+      "sha256": "0f955e7b029312ca42f0c25692c819f8232908a8bf327632cc83f94ead481905"
+    }
+  },
+  "cases": {
+    "results": [
+      {
+        "case": "unchanged-projection-control",
+        "kind": "control",
+        "detectorLayer": "dependency-verifier",
+        "baselineStatus": "pass",
+        "baselineDisposition": "expected-control-pass",
+        "repairedStatus": "pass",
+        "repairedErrors": [],
+        "dimensions": {
+          "projectionPreservation": "pass",
+          "constructionObligations": "pass",
+          "sourceValidity": "pass"
+        },
+        "detected": true
+      },
+      {
+        "case": "response-component-schema-drift",
+        "kind": "fault",
+        "detectorLayer": "dependency-verifier",
+        "baselineStatus": "pass",
+        "baselineDisposition": "false-pass",
+        "repairedStatus": "fail",
+        "repairedErrors": [
+          "REFERENCE_DEPENDENCY_LOST",
+          "RESPONSE_DEPENDENCY_LOST"
+        ],
+        "dimensions": {
+          "projectionPreservation": "fail",
+          "constructionObligations": "pass",
+          "sourceValidity": "pass"
+        },
+        "detected": true
+      },
+      {
+        "case": "nested-parameter-schema-drift",
+        "kind": "fault",
+        "detectorLayer": "dependency-verifier",
+        "baselineStatus": "pass",
+        "baselineDisposition": "false-pass",
+        "repairedStatus": "fail",
+        "repairedErrors": [
+          "PARAMETER_DEPENDENCY_LOST",
+          "REFERENCE_DEPENDENCY_LOST"
+        ],
+        "dimensions": {
+          "projectionPreservation": "fail",
+          "constructionObligations": "fail",
+          "sourceValidity": "pass"
+        },
+        "detected": true
+      },
+      {
+        "case": "same-name-api-key-scheme-drift",
+        "kind": "fault",
+        "detectorLayer": "dependency-verifier",
+        "baselineStatus": "pass",
+        "baselineDisposition": "false-pass",
+        "repairedStatus": "fail",
+        "repairedErrors": [
+          "SECURITY_DEPENDENCY_LOST"
+        ],
+        "dimensions": {
+          "projectionPreservation": "fail",
+          "constructionObligations": "fail",
+          "sourceValidity": "pass"
+        },
+        "detected": true
+      }
+    ],
+    "totals": {
+      "controls": 1,
+      "baselineMisses": 3,
+      "faultsInjected": 3,
+      "repairedDetected": 3
+    }
+  },
+  "replay": {
+    "report": {
+      "path": "results/skill-ir/api-tester-operation-dependency-verification-revision-development-001/replay/report.json",
+      "sha256": "dbb36a32fd986df8accdc921b93764ff9d9601f58dfc3c7329b59082cf801fe5"
+    },
+    "portableSemanticSha256": "6b904d21a073483c2ede2a232671018206967c16821f8974f6cfb24a10d438f3"
+  },
+  "comparison": {
+    "status": "pass",
+    "totals": {
+      "baseline": {
+        "operations": 562,
+        "accepted": 112,
+        "rejected": 449,
+        "unresolved": 1,
+        "checkerPassed": 112,
+        "obligations": {
+          "total": 575,
+          "covered": 575,
+          "uncovered": 0,
+          "status": "pass"
+        }
+      },
+      "fresh": {
+        "operations": 562,
+        "accepted": 112,
+        "rejected": 449,
+        "unresolved": 1,
+        "checkerPassed": 112,
+        "obligations": {
+          "total": 575,
+          "covered": 575,
+          "uncovered": 0,
+          "status": "pass"
+        }
+      }
+    },
+    "aggregateChecks": {
+      "operationUniverse": true,
+      "admission": true,
+      "dependencies": true,
+      "checkerPass": true,
+      "obligationCoverage": true
+    },
+    "documents": [
+      {
+        "rowId": "real-opengrok-api",
+        "checks": {
+          "operationUniverse": true,
+          "admission": true,
+          "dependencies": true,
+          "checkerPass": true
+        },
+        "baseline": {
+          "operations": 48,
+          "accepted": 10,
+          "dependencyPassed": 10,
+          "checkerPassed": 10
+        },
+        "fresh": {
+          "operations": 48,
+          "accepted": 10,
+          "dependencyPassed": 10,
+          "checkerPassed": 10,
+          "dependencyDimensions": {
+            "evaluated": 10,
+            "projectionPreservationPassed": 10,
+            "constructionObligationsPassed": 10,
+            "sourceValidityPassed": 10
+          }
+        }
+      },
+      {
+        "rowId": "real-box-openapi",
+        "checks": {
+          "operationUniverse": true,
+          "admission": true,
+          "dependencies": true,
+          "checkerPass": true
+        },
+        "baseline": {
+          "operations": 297,
+          "accepted": 0,
+          "dependencyPassed": 0,
+          "checkerPassed": 0
+        },
+        "fresh": {
+          "operations": 297,
+          "accepted": 0,
+          "dependencyPassed": 0,
+          "checkerPassed": 0,
+          "dependencyDimensions": {
+            "evaluated": 0,
+            "projectionPreservationPassed": 0,
+            "constructionObligationsPassed": 0,
+            "sourceValidityPassed": 0
+          }
+        }
+      },
+      {
+        "rowId": "real-meilisearch-api",
+        "checks": {
+          "operationUniverse": true,
+          "admission": true,
+          "dependencies": true,
+          "checkerPass": true
+        },
+        "baseline": {
+          "operations": 73,
+          "accepted": 38,
+          "dependencyPassed": 38,
+          "checkerPassed": 38
+        },
+        "fresh": {
+          "operations": 73,
+          "accepted": 38,
+          "dependencyPassed": 38,
+          "checkerPassed": 38,
+          "dependencyDimensions": {
+            "evaluated": 38,
+            "projectionPreservationPassed": 38,
+            "constructionObligationsPassed": 38,
+            "sourceValidityPassed": 38
+          }
+        }
+      },
+      {
+        "rowId": "real-bangumi-api",
+        "checks": {
+          "operationUniverse": true,
+          "admission": true,
+          "dependencies": true,
+          "checkerPass": true
+        },
+        "baseline": {
+          "operations": 55,
+          "accepted": 19,
+          "dependencyPassed": 19,
+          "checkerPassed": 19
+        },
+        "fresh": {
+          "operations": 55,
+          "accepted": 19,
+          "dependencyPassed": 19,
+          "checkerPassed": 19,
+          "dependencyDimensions": {
+            "evaluated": 19,
+            "projectionPreservationPassed": 19,
+            "constructionObligationsPassed": 19,
+            "sourceValidityPassed": 0
+          }
+        }
+      },
+      {
+        "rowId": "real-deepl-openapi",
+        "checks": {
+          "operationUniverse": true,
+          "admission": true,
+          "dependencies": true,
+          "checkerPass": true
+        },
+        "baseline": {
+          "operations": 62,
+          "accepted": 37,
+          "dependencyPassed": 37,
+          "checkerPassed": 37
+        },
+        "fresh": {
+          "operations": 62,
+          "accepted": 37,
+          "dependencyPassed": 37,
+          "checkerPassed": 37,
+          "dependencyDimensions": {
+            "evaluated": 37,
+            "projectionPreservationPassed": 37,
+            "constructionObligationsPassed": 37,
+            "sourceValidityPassed": 37
+          }
+        }
+      },
+      {
+        "rowId": "real-hfs-openapi",
+        "checks": {
+          "operationUniverse": true,
+          "admission": true,
+          "dependencies": true,
+          "checkerPass": true
+        },
+        "baseline": {
+          "operations": 27,
+          "accepted": 8,
+          "dependencyPassed": 8,
+          "checkerPassed": 8
+        },
+        "fresh": {
+          "operations": 27,
+          "accepted": 8,
+          "dependencyPassed": 8,
+          "checkerPassed": 8,
+          "dependencyDimensions": {
+            "evaluated": 8,
+            "projectionPreservationPassed": 8,
+            "constructionObligationsPassed": 8,
+            "sourceValidityPassed": 8
+          }
+        }
+      }
+    ]
+  },
+  "sourceBlockers": [
+    {
+      "rowId": "real-meilisearch-api",
+      "operationKey": "GET /tasks",
+      "reference": "#/components/parameters/total",
+      "locator": "#/paths/~1tasks/get/parameters/0/$ref",
+      "resolution": "missing",
+      "constructionObligation": true,
+      "disposition": "source-blocker-not-guessed"
+    }
+  ],
+  "cleanReproduction": {
+    "status": "pass",
+    "commit": "a359c0c68862637153b98a7f7ae797de35e0564c",
+    "detached": true,
+    "report": {
+      "path": "results/skill-ir/api-tester-operation-dependency-verification-revision-clean-002/report.json",
+      "sha256": "c4399a8a1fa5249b9061728105f08c65cad5e97d20dd9f68c9d24631910573d6"
+    },
+    "runSemanticSha256": "5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036",
+    "comparison": {
+      "sameRevisionCommit": true,
+      "runSemanticDigestEqual": true,
+      "caseOutcomesEqual": true,
+      "sixDocumentComparisonEqual": true,
+      "freshTask1PortableDigestEqual": true
+    }
+  },
+  "gates": {
+    "faultDetection": "pass",
+    "sixDocumentImpact": "pass",
+    "cleanReproduction": "pass",
+    "implementationCorrectness": "pass",
+    "sourceCorrectness": "blocked"
+  },
+  "accounting": {
+    "runtime": {
+      "modelCalls": 0,
+      "apiCalls": 0,
+      "paidCalls": 0,
+      "wallClockMillis": 6585
+    },
+    "developmentAgentUsage": "host-external-not-measured-by-runner",
+    "separate": true
+  },
+  "protectedBoundary": {
+    "realDocuments": 6,
+    "frozenWholeDocumentRealAccepted": 0,
+    "changesFrozenOrPriorEvidence": false,
+    "prospectiveRuns": 0,
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0,
+    "secondProfiles": 0,
+    "q4Runs": 0,
+    "readinessChanges": 0,
+    "claimsHumanSavings": false,
+    "claimsEcosystemAdmission": false
+  },
+  "runSemanticSha256": "5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036",
+  "portableSemanticSha256": "206bdea5809c322fa01bf10ffe6af408abf0a081f9ed8813d0cdda1a347cc98c"
+}

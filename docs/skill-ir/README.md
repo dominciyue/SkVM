@@ -246,7 +246,7 @@ profile、Q4、held-out 或付费实验仍需另行授权。
 
 ## 当前下一步
 
-2026-09-09 已完成 API Tester operation-level additive development。冻结 002 的 whole-document 0/6 不变；对相同六份已暴露文档完整枚举 562 operations，得到 112 accepted、449 rejected、1 source-bound unresolved，112/112 accepted operations 通过原 v2 checker。后续 36 个派生输入中 34 项适用且全通过、2 项明确不适用，9/9 faults detected，并从 Task 1 detached clean worktree 离线复现同一 portable semantics 与 artifact digests。总状态为 `completed-with-source-blocker`，不改变 readiness 或建立任意 OpenAPI/真实 API/人工节省主张。详细口径以 [plan 第4.46节](skill-ir-aot-optimization-plan.md)、[spec 第14.17节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-operation-admission.md)为准。
+2026-09-09 已完成 API Tester operation-level additive development 及 dependency-verifier revision。冻结 002 的 whole-document 0/6 不变；同六份已暴露文档仍为 562 operations、112 accepted/checker-pass、449 rejected、1 source unresolved。旧 verifier 的三项 false pass 已由新 identity 3/3 修复检出；old/fresh universe、admission、dependency、checker、obligations 与 detached clean revision 全部一致。112 项 projection/construction pass；19 项 Bangumi external-response source validity 未验证。总状态为 `passed-with-source-blocker-after-dependency-verifier-revision`，不改变 readiness 或建立任意 OpenAPI/真实 API/人工节省主张。详细口径以 [plan 第4.47节](skill-ir-aot-optimization-plan.md)、[spec 第14.18节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-operation-admission.md)为准。
 
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
@@ -283,6 +283,8 @@ Q2-M：v2 特性定向迁移（001 preflight-failed；002 negative completed）
 Q2-O：operation-level 后继 development（completed-with-source-blocker）
   -> 相同 6 real：562=112 accepted+449 rejected+1 unresolved；112/112 checker pass；原 document 0/6 不变
   -> 36 derivatives：34 applicable/pass、2 typed N/A；9/9 faults；Task 1 clean offline reproduction exact
+  -> dependency revision：旧 3 false pass 已 3/3 修复；同六来源与 clean revision 五组 comparison pass
+  -> 112 projection/construction pass；19 Bangumi external-response source-validity advisory；可筹备候选冻结但未执行 unseen
 ```
 
 方法案例数量不固定，7 是回顾表分母。Q1 的12-source/24-unit只覆盖选中职责，不能称完整skill已自动化。保留原12+12来源合同；扩展研究另立identity，资源目标为总计48–60来源/8–12原始仓库，工程主profile约20–30真实新输入+10–20边界，均非统计充分性门槛。

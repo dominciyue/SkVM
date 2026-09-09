@@ -2131,6 +2131,16 @@ Task 2 实现、机器报告、总报告和同步文档的本地提交为 `40b24
 **完成门：** 三项旧漏检均由 dependency verifier 在指定层检出，unchanged/shared/cyclic controls 通过；同六文档新结果与旧结果的每个比较
 字段都有机器结论，任何差异均解释；clean reproduction pass；没有 implementation correctness blocker。source blocker 可以明确保留。
 
+**实际结果（2026-09-09）：** revision commit `a359c0c68862637153b98a7f7ae797de35e0564c` 完成 3 项 baseline miss 的
+RED→GREEN，另有 unchanged/shared/cyclic 与 source-validity 分账测试。新结果对同六文档的 universe/admission/dependency/checker/obligations
+五组 aggregate checks 全为 true，旧/新 totals 都是 562 operations、112 accepted、449 rejected、1 unresolved、112 checker-pass、575/575
+obligations。112 项 projection/construction 全过；19 项 Bangumi source-validity 因 32 个 external response-ref occurrence 未验证，但它们均不是
+v2 construction obligation。detached clean report 与主报告的 revision、case outcomes、six-document comparison、fresh Task 1 portable digest 和
+run semantic digest 全部相同；总状态 `passed-with-source-blocker`。这满足冻结一个同支持合同、明确保留 exclusions/advisories 的新 operation
+candidate 的 development 条件，但不授权选择/读取/执行 unseen input，也不改变 readiness。
+独立审查触发了最后一项 TDD 修订：strict verifier 现在同时核对报告提交与被验证 checkout 的 live commit/detached 状态，防止移植报告后重算
+portable digest 冒充精确提交证据。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

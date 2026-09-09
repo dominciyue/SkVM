@@ -80,7 +80,17 @@ bun ./src/skill-ir/api-tester-operation-dependency-verification-revision-run.ts 
 
 不提供 clean 参数时生成 reproduction-only report；最终 development checkout 运行同时读取 detached report，把 clean comparison 闭合到主报告。
 所有输出均要求新目录、write-once，并由 strict verifier 重新核对 implementation digests、旧 Task 1、fresh replay、六 inventories、artifact
-closure、三项 detector 和 source blocker。
+closure、三项 detector 和 source blocker。strict verifier 还调用 Git 读取被验证 checkout 的真实 commit/detached 状态，并要求它们与 report
+声明完全相等；因此报告不能仅靠复制和重算 portable digest 冒充另一提交的精确复现。
+
+实际修订提交为 `a359c0c68862637153b98a7f7ae797de35e0564c`。新报告
+`results/skill-ir/api-tester-operation-dependency-verification-revision-development-001/report.json` 记录：旧漏检 `3/3`、修复后正确检出
+`3/3`，unchanged control pass；同六来源的 universe/admission/dependency/checker/obligations 五项 aggregate comparison 全为 true。实际 totals
+仍为 562、112 accepted、449 rejected、1 unresolved、112 checked、575/575 obligations，但 runner 从报告导出这些分母，没有把 112 编入
+验收条件。112 项 accepted projection/construction 全过；Bangumi 的 19 项因 32 个 external response refs 记为 source-validity unverified，
+这些 refs 均是 non-construction response dependencies。detached clean reproduction 与主运行的 run semantic SHA-256 同为
+`5e296dbce15421298f0d5ba298b7de220ccc7ac712a8ecaa44996c7201e4f036`；最终 portable SHA-256 为
+`206bdea5809c322fa01bf10ffe6af408abf0a081f9ed8813d0cdda1a347cc98c`。
 
 ## Task 1 runner、报告与严格核验
 
