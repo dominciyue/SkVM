@@ -94,7 +94,7 @@ function verifyApiTesterProjectionDependencies(input: DependencyInput): Dependen
 - [x] Compare portable semantic digests, source coverage, admitted/constructed/checker counts, and artifact program/checker digests; record environment separately.
 - [x] Write Task 2 and combined reports with exclusive creation. Combined status is `completed-with-source-blocker`; bounded implementation evidence passes while source correctness remains blocked.
 - [x] Run fresh focused suites, relevant API/CLI broad tests, Skill IR current broad, typecheck, documentation links, secret/absolute-path/frozen-history scans and `git diff --check`.
-- [ ] Update component/spec/plan/status/README/current status/developer guide/claim evidence/handoff/communication/conversation log as applicable; explicitly stage only this stage and commit on `api-tester-operation-admission-dev`.
+- [x] Update component/spec/plan/status/README/current status/developer guide/claim evidence/handoff/communication/conversation log as applicable; explicitly stage only this stage and commit on `api-tester-operation-admission-dev`.
 
 ## Recovery command order
 

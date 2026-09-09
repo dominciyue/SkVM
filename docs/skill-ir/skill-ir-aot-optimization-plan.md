@@ -2087,7 +2087,7 @@ checker 通过，Box 的 `0/297` 不运行 artifact；验证义务覆盖 `575/57
 5. [x] 从任务一提交建立 clean checkout，使用锁定 `bun.lock` 与本地依赖缓存离线安装，读取同一 digest-bound external input cache，
    从零运行任务一入口；比较 portable semantic report、coverage 与 artifact/checker digest。记录 OS/Bun/Node、命令、输入 manifest、
    安装/运行状态，不把环境字段漂移当语义漂移。
-6. [ ] 保存 `results/skill-ir/api-tester-operation-validation-development-001/report.json` 和总报告
+6. [x] 保存 `results/skill-ir/api-tester-operation-validation-development-001/report.json` 和总报告
    `results/skill-ir/api-tester-operation-development-001/report.json`，完成 focused、Task1 regression、typecheck、docs、clean
    reproduction、secret/path/frozen-digest/diff checks，本地提交并更新 handoff/communication/conversation log。
 
@@ -2105,6 +2105,7 @@ combined portable SHA-256=`bbf927bf6f3f29c75a70bf1fcbe2074373ce43255dafe202e8889
 blocker，不是未修复的 implementation correctness defect；因此目标可按 `completed-with-source-blocker` 收口，但不得称 source/full correctness pass。
 独立只读审查发现 static strict verifier 未锁紧 transform 状态/比较字段和 fault detector/code 映射；分别新增可伪造报告的 RED regression，
 再把两组字段绑定到实现 registry。修复后报告数值与 portable digest 不变，live replay 和聚焦回归通过。
+Task 2 实现、机器报告、总报告和同步文档的本地提交为 `40b24c174983afe074438c8855d0094c7078ca8c`；未推送。
 
 ## 5. 历史时间估算（不作为当前排期）
 

@@ -45,6 +45,7 @@ Task 2 strict-read Task 1 实际提交、报告、六份 inventory 和五份 art
   inventory/artifact digests 与 Task 1 完全一致。
 - 独立只读审查发现 strict verifier 对 transform 状态/比较字段和 fault detector/code 映射约束不足；新增 RED 后已用实现注册表
   闭合并通过回归。真实报告及其结果未改变。
+- Task 2 实现与证据提交：`40b24c174983afe074438c8855d0094c7078ca8c`。
 
 Task 2 机器报告：`results/skill-ir/api-tester-operation-validation-development-001/report.json`
 
@@ -93,7 +94,7 @@ bun ./src/skill-ir/api-tester-operation-validation-run.ts `
 
 - API Tester operation + v1/v2 回归：`56/56`，278 assertions；独立审查修复后聚焦：`11/11`，67 assertions。
 - 当前 `src/skill-ir`：`160/160`，899 assertions；TypeScript typecheck 通过。
-- 文档检查器单测 `8/8`；3110 个 tracked 文件链接扫描为 0 broken/legacy。
+- 文档检查器单测 `8/8`；3120 个 tracked 文件链接扫描为 0 broken/legacy。
 - full live strict replay：36 derivatives、34/34 applicable pass、2 N/A、9/9 detected、clean reproduction pass。
 - frozen product/001/002 与 Task 1 evidence diff guard、结果绝对路径、secret-like assignment、source-specific success branch、
   `git diff --check` 均通过。
@@ -103,4 +104,4 @@ bun ./src/skill-ir/api-tester-operation-validation-run.ts `
 上游 Meilisearch 文档并建立新的 digest-bound identity，而不是猜测该参数、改写本阶段报告、放宽 checker 或重跑冻结 002。若要扩展支持面、
 进入新 prospective、跨 profile/平台或 readiness，均须另立授权与分母。
 
-Task 2 的本地提交 SHA 记录在[执行状态](api-tester-operation-development-status.md)。
+Task 2 的本地提交与恢复状态也记录在[执行状态](api-tester-operation-development-status.md)。
