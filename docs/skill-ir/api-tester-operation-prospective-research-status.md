@@ -3,13 +3,15 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-revision-freeze-pending-push; task-7-independent-work-complete`
+- `currentStage`: `task-2-revision-freeze-pending-push; task-8-pre-source-preregistration`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `4b7b7abf47417eef356c5d11c3fef96c1db5fc29`
-- `currentCommit`: `task-7-review-documentation-working-tree`
+- `lastCompletedCommit`: `d5249d7492cd8e232802c289af56d075a91168d6`
+- `currentCommit`: `task-8-design-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
+- `publicSkillMetadataRequests`: `0`
+- `publicSkillBodiesRead`: `0`
 - `runtimeAccounting`: `model=0, api=0, paid=0`
 - `developmentAgentUsage`: `host-external-not-measured-by-project-runner`
 
@@ -46,6 +48,8 @@
   verifiable/constructible 和 current support；9 criteria、9 evidence files、7 examples、6 skill aggregates 全部由摘要和 locator 现场核验。
 - Task 7 首份机器报告和 `revision-development-001` 均保留但已 superseded；独立复核失败记录为 `results/skill-ir/public-structure-offline-family-contract-review-001/failure.json`。
 - Task 7 最终机器报告：`results/skill-ir/public-structure-offline-family-contract-revision-development-002/report.json`，SHA-256=`d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee`，portable=`db5c27e2441a427b1a6ac3d53b809b45ad29ede81bc9747ddd696686fccc90c9`；复核修订提交=`4b7b7abf47417eef356c5d11c3fef96c1db5fc29`；focused=`12/12`、25 assertions，typecheck 通过。
+- Task 7 二次独立复核范围 `dc8eece..d5249d7` 无 Critical/Important/Minor，Ready=Yes。
+- Task 8 pre-source 设计：`docs/superpowers/specs/2026-09-10-public-skill-responsibility-corpus-design.md`；实施计划：`docs/superpowers/plans/2026-09-10-public-skill-responsibility-corpus.md`。在设计和 protocol/selector 提交前，new public skill body exposure 仍为 0。
 
 ## 保留问题
 
@@ -56,7 +60,8 @@
 
 ## 下一条具体动作
 
-为 Task 8 先建立并提交 scope/order/dedup/quota/unit/license/source-locator 预注册和机器 schema；预注册提交前不读取新的公开 skill 内容。随后可按
-总目标明确允许且不依赖 Task 2 的例外开展公开 skill 语料工作，但必须排除 pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
+先验证并提交 Task 8 design/implementation plan，然后以 TDD 建立 scope/order/dedup/quota/unit/license/source-locator protocol schema 和
+metadata-only selector；两者提交前不读取新的公开 skill 内容。随后可按总目标明确允许且不依赖 Task 2 的例外开展公开 skill 语料工作，但必须排除
+pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
 明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得
 搜索或读取 prospective unseen OpenAPI source。

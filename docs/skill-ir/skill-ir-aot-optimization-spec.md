@@ -2188,3 +2188,18 @@ expected assessment 在 dependency propagation 前比较。三项均先复现 fa
 write-once output 和 propagated-dataset comparison；修订前两份报告保留为 superseded，最终 `revision-development-002` 报告文件 SHA-256=
 `d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee`，portable semantic SHA-256=
 `db5c27e2441a427b1a6ac3d53b809b45ad29ede81bc9747ddd696686fccc90c9`。
+
+### 14.22 Public skill responsibility corpus development contract
+
+Task 8 采用[repository-first 语料设计](../superpowers/specs/2026-09-10-public-skill-responsibility-corpus-design.md)：先提交固定 GitHub repository
+search queries、两页/查询预算、license allowlist、Q1/pending-prospective/held-out 排除、metadata-only tree eligibility、每 repository 最多 5 项和
+round-robin 选择，再读取任何新 `SKILL.md` 正文。可执行 selection 必须恰为 40 个 tuple、至少 8 个非 fork/非 archive repository；不足时固定
+shortfall，禁止观察内容后改 query、配额、license 或补样。
+
+选择提交只绑定 repository/commit/path/blob/license/rank 和 `bodyExposures=0`。其后只归档 pinned commit 上的选中正文、许可和正文直接命名的
+repository-local scripts/references/templates/assets/examples；每 skill 限 100 文件、5 MiB，总体缺失/外链/submodule/symlink/budget overflow 均显式
+记 `resource-closure-incomplete`，不得借此删去困难责任。
+
+分析单位为 complete responsibility。独立 source-coverage denominator 要求每个 normative section 和 in-scope resource file 恰映射到责任或命名的
+non-responsibility 类别；分类复用 Task 7 的 family/evidence/support 正交合同，并补 structural kinds、依赖、工具、副作用、locator 与 missing evidence。
+40 个便利样本不得外推生态比例，静态 constructible 不等于 artifact success，development-agent 分析/复核不得冒充真人标注。

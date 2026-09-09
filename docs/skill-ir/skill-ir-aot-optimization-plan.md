@@ -2242,6 +2242,11 @@ false acceptance 已以 RED→GREEN 修复并保留失败记录；最终机器�
 portable=`db5c27e2441a427b1a6ac3d53b809b45ad29ede81bc9747ddd696686fccc90c9`，修订提交=`4b7b7abf47417eef356c5d11c3fef96c1db5fc29`；
 focused `12/12`、25 assertions 与 typecheck 通过。Task 2 仍待推送 revision freeze 并 remote-aware verify；unseen source/prediction/run 仍全零。
 
+Task 8 先按独立工作例外进入 pre-source preregistration。选定 repository-first / metadata-only / balanced round-robin 方案：4 个固定 GitHub
+repository queries，各最多 2 页；只允许公开非 fork/非 archive/非 disabled 且许可 allowlisted 的 repository；每 repo 最多 5 个 `SKILL.md`，
+目标恰 40 个且至少 8 repo。selection commit 前只可读 repository/license/tree metadata，不得取 skill blob；选择后也不按 family/current support
+替换。正文和直接资源 closure、完整 responsibility denominator、Task 7 正交分类、AI analysis/review 分账与 shortfall/unknown 规则见专项设计/计划。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。
