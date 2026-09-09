@@ -2237,9 +2237,10 @@ Git archive gate、6 个 manifest-bound 生成文件与失败证据已提交为 
 
 Task 7 依据“前置实验阻塞时继续独立家族/语料/文档工作”的目标条款完成，但不假设 Task 3 结果。新增责任级正交合同、9-criterion 来源矩阵、
 7 个已暴露正反例、依赖传播与完整 skill aggregation、strict verifier、固定离线 CLI 和 write-once 机器报告。实际为 5/7 in-family、1/7
-out-of-family、1/7 unknown，4/7 constructible、2/7 current-supported；这些是选择的 retrospective examples，不是比例估计。机器报告 SHA-256=
-`13c47ba2b96008b742d3ec2201a811b355102c18f0d029d500bdc59d0a00e621`，实现/报告提交=`a29e2fcb3fec32dece67ff94fac3a98b81d50cce`；
-focused `10/10`、21 assertions 与 typecheck 通过。Task 2 仍待推送 revision freeze 并 remote-aware verify；unseen source/prediction/run 仍全零。
+out-of-family、1/7 unknown，4/7 constructible、2/7 current-supported；这些是选择的 retrospective examples，不是比例估计。独立复核的 3 项
+false acceptance 已以 RED→GREEN 修复并保留失败记录；最终机器报告 SHA-256=`d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee`、
+portable=`db5c27e2441a427b1a6ac3d53b809b45ad29ede81bc9747ddd696686fccc90c9`，修订提交=`4b7b7abf47417eef356c5d11c3fef96c1db5fc29`；
+focused `12/12`、25 assertions 与 typecheck 通过。Task 2 仍待推送 revision freeze 并 remote-aware verify；unseen source/prediction/run 仍全零。
 
 ## 5. 历史时间估算（不作为当前排期）
 

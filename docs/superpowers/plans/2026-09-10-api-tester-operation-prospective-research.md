@@ -110,8 +110,9 @@ prospective evidence pending。Task 8 依赖 Task 7 的责任定义；Task 9 依
   仍未发生且没有被假设为成功。
 - [x] 分开 task/public evidence/current implementation；分开 verifiable/constructible。
 - [x] 建立 criteria-source-implementation-verification 机器矩阵和 responsibility-to-skill aggregation。
-- [x] consistency tests + component/spec/plan 更新；实现/报告提交 `a29e2fcb3fec32dece67ff94fac3a98b81d50cce`，机器报告 SHA-256
-  `13c47ba2b96008b742d3ec2201a811b355102c18f0d029d500bdc59d0a00e621`。
+- [x] consistency tests + component/spec/plan 更新；独立复核的 evidence-kind、output containment、dependency-propagated expected-assessment
+  三项 false acceptance 已修复并保留。最终修订提交 `4b7b7abf47417eef356c5d11c3fef96c1db5fc29`，机器报告 SHA-256
+  `d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee`。
 
 验收：家族标准可在不运行候选的情况下应用；每个判定有 locator/evidence；不把当前 API 子集等同于整个家族。
 

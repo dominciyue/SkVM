@@ -26,7 +26,7 @@ The bound inputs are:
 - [`public-structure-offline-family-contract-v1.json`](../../benchmarks/skill-ir/classification/public-structure-offline-family-contract-v1.json), containing the nine criteria and nine evidence-file bindings;
 - [`public-structure-offline-family-counterexamples-v1.json`](../../benchmarks/skill-ir/classification/public-structure-offline-family-counterexamples-v1.json), containing seven already exposed examples and their expected derived assessments.
 
-`verifyPublicStructureOfflineFamilyFiles` reads both files, verifies their mutual digest binding, re-reads all evidence sources, checks every marker and evidence reference, derives every assessment, and rejects any expected/derived drift. `buildPublicStructureOfflineFamilyReport` repeats that verification and emits the source-bound report at [`report.json`](../../results/skill-ir/public-structure-offline-family-contract-development-001/report.json).
+`verifyPublicStructureOfflineFamilyFiles` reads both files, verifies their mutual digest binding, re-reads all evidence sources, checks every marker and evidence reference, derives every dependency-propagated assessment, and rejects any expected/derived drift. `buildPublicStructureOfflineFamilyReport` repeats that verification. The current source-bound report is [`revision-development-002/report.json`](../../results/skill-ir/public-structure-offline-family-contract-revision-development-002/report.json).
 
 ## Public interface
 
@@ -43,7 +43,7 @@ Key exports are:
 The thin CLI accepts only a repository root, an exclusive output path, and an ISO completion time. It intentionally has no source-selection option:
 
 ```powershell
-bun ./src/benchmarks/skill-ir/public-structure-offline-family-contract-run.ts --root=. --out=results/skill-ir/public-structure-offline-family-contract-development-001/report.json --completed-at=2026-09-09T22:07:08.082Z
+bun ./src/benchmarks/skill-ir/public-structure-offline-family-contract-run.ts --root=. --out=results/skill-ir/public-structure-offline-family-contract-revision-development-002/report.json --completed-at=2026-09-09T22:47:48.004Z
 ```
 
 Output creation uses `wx`; an existing report is not overwritten.
@@ -60,7 +60,7 @@ Seven criteria are necessary family conditions:
 - `bounded-side-effects`;
 - `no-unbound-semantic-decision`.
 
-`current-capability-readiness` is a current engineering limit, not part of family membership. `cross-repository-generalization` is an unverified hypothesis, not a satisfied family condition. The verifier rejects role drift or omission of any of the nine criterion IDs.
+`current-capability-readiness` is a current engineering limit, not part of family membership. `cross-repository-generalization` is an unverified hypothesis, not a satisfied family condition. The verifier rejects role drift or omission of any of the nine criterion IDs. A necessary family condition may cite only `public-contract`, `source-contract`, or `validation-report` evidence; implementation and capability-profile evidence cannot define family membership.
 
 `declared-dependency-closure` asks whether the dependency universe is public, named, and bounded. A particular source may still have an open or invalid dependency instance. This is why the Meilisearch example can remain in-family while construction is blocked by a missing local parameter target.
 
@@ -97,8 +97,15 @@ Tests cover orthogonal states, evidence requirements, candidate-result exclusion
 - Any evidence byte or locator marker drift fails verification; update a binding only after reviewing the changed source claim.
 - Unknown facts require a named evidence gap. Determinate facts require at least one evidence ID.
 - Candidate outcomes are not an allowed evidence kind.
+- CLI output must be repository-relative and contained; absolute paths and parent traversal are rejected before any directory is created.
 - A responsibility cannot be split after classification to manufacture an easier denominator.
 - Adding or removing criteria requires a new schema/identity; do not silently repurpose an existing role.
 - New examples must preserve complete skill scope and dependency closure and must not import prospective, held-out, or Q1-reserved results without a separately authorized stage.
 
 This component supports Task 8's future preregistered corpus work. It does not by itself prove cross-repository generalization, new-skill onboarding, real API behavior, readiness, or human savings.
+
+## Preserved review evidence
+
+Independent review after the first checkpoint found three missing gates: necessary-criterion evidence kinds were not restricted, CLI output could escape the repository root, and expected example assessments were checked before dependency propagation. Each issue was reproduced by a failing test before repair. The machine failure record is [`failure.json`](../../results/skill-ir/public-structure-offline-family-contract-review-001/failure.json).
+
+The original report and `revision-development-001` remain archived and are marked superseded in that failure record. The current `revision-development-002` report has file SHA-256 `d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee` and portable semantic SHA-256 `db5c27e2441a427b1a6ac3d53b809b45ad29ede81bc9747ddd696686fccc90c9`.

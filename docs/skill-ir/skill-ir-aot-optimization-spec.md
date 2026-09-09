@@ -2182,3 +2182,9 @@ skill 自动化。
 Meilisearch 缺失本地引用仍阻塞对应构造，Bangumi 外部响应引用仍为 advisory；prospective/held-out/Q1/model/business-API/paid 使用全为 0。
 Task 2 revision freeze 的第二次 origin push 仍受外部门阻塞；本 Task 按总目标的独立工作例外完成，不追认 Task 3 已运行，也不放开未见 OpenAPI
 来源访问。
+
+独立复核随后发现三项 development gate 缺口：necessary-family criterion 未限制 evidence kind、CLI output 可逃逸 repository root、
+expected assessment 在 dependency propagation 前比较。三项均先复现 false acceptance，再修订为 family evidence kind allowlist、contained
+write-once output 和 propagated-dataset comparison；修订前两份报告保留为 superseded，最终 `revision-development-002` 报告文件 SHA-256=
+`d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee`，portable semantic SHA-256=
+`db5c27e2441a427b1a6ac3d53b809b45ad29ede81bc9747ddd696686fccc90c9`。

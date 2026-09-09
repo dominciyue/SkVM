@@ -272,3 +272,17 @@ git commit -m "feat(skill-ir): verify offline responsibility family"
 ```
 
 Do not push through an alternate route. After a user-authorized origin push succeeds, push both the revision freeze and Task 7 commits normally; remote-verify Task 2 before any unseen source access.
+
+### Task 5: Independent-review hardening
+
+**Files:**
+- Modify: contract module, test, CLI, criterion matrix, and counterexample binding
+- Create: `results/skill-ir/public-structure-offline-family-contract-review-001/failure.json`
+- Create: revision reports 001 and 002 without overwriting the first report
+
+- [x] Reproduce necessary-family evidence-kind false acceptance, output path escape, and pre-propagation expected-assessment comparison.
+- [x] Restrict necessary-family evidence to public/source/validation contracts; remove implementation evidence from necessary criteria.
+- [x] Reject absolute or parent-traversing CLI output paths before filesystem writes.
+- [x] Compare expected assessments with the dependency-propagated dataset.
+- [x] Preserve both superseded reports and the three RED results in a machine failure record.
+- [x] Run focused `12/12`, 25 assertions, typecheck, and commit `4b7b7abf47417eef356c5d11c3fef96c1db5fc29`.

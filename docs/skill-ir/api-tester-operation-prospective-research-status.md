@@ -5,8 +5,8 @@
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
 - `currentStage`: `task-2-revision-freeze-pending-push; task-7-independent-work-complete`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `a29e2fcb3fec32dece67ff94fac3a98b81d50cce`
-- `currentCommit`: `task-7-checkpoint-ready`
+- `lastCompletedCommit`: `4b7b7abf47417eef356c5d11c3fef96c1db5fc29`
+- `currentCommit`: `task-7-review-documentation-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -44,7 +44,8 @@
 - revision freeze 已提交为 `e4c006fe32a6321ce5e4696758d53024c160f6db`；第二次向 origin 推送被安全审查要求新的对话内明确授权，未绕过，故 remote-aware gate 仍未满足。
 - 按总目标“前置实验被阻塞时继续可独立家族定义/语料/文档”的条款完成 Task 7，未假设 Task 3 结果。新合同严格分离 family、公开证据、
   verifiable/constructible 和 current support；9 criteria、9 evidence files、7 examples、6 skill aggregates 全部由摘要和 locator 现场核验。
-- Task 7 机器报告：`results/skill-ir/public-structure-offline-family-contract-development-001/report.json`，SHA-256=`13c47ba2b96008b742d3ec2201a811b355102c18f0d029d500bdc59d0a00e621`；实现/报告提交=`a29e2fcb3fec32dece67ff94fac3a98b81d50cce`；focused=`10/10`、21 assertions，typecheck 通过。
+- Task 7 首份机器报告和 `revision-development-001` 均保留但已 superseded；独立复核失败记录为 `results/skill-ir/public-structure-offline-family-contract-review-001/failure.json`。
+- Task 7 最终机器报告：`results/skill-ir/public-structure-offline-family-contract-revision-development-002/report.json`，SHA-256=`d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee`，portable=`db5c27e2441a427b1a6ac3d53b809b45ad29ede81bc9747ddd696686fccc90c9`；复核修订提交=`4b7b7abf47417eef356c5d11c3fef96c1db5fc29`；focused=`12/12`、25 assertions，typecheck 通过。
 
 ## 保留问题
 
