@@ -547,6 +547,15 @@ async function currentRevision(rootDir: string, gitExecutable: string) {
   return { commit: CommitSchema.parse(head.stdout), detached: branch.exitCode !== 0 };
 }
 
+export function assertDependencyRevisionCheckoutBinding(
+  reportRevision: { commit: string; detached: boolean },
+  checkoutRevision: { commit: string; detached: boolean },
+): void {
+  if (reportRevision.commit !== checkoutRevision.commit || reportRevision.detached !== checkoutRevision.detached) {
+    throw new Error("dependency revision checkout binding drift");
+  }
+}
+
 function extractSourceBlockers(inventories: Awaited<ReturnType<typeof readReportAndInventories>>["inventories"]) {
   return inventories.flatMap(({ rowId, inventory }) => inventory.operations.flatMap((entry) => {
     if (!isRecord(entry.source) || !isRecord(entry.admission) || entry.admission.status !== "unresolved"
@@ -679,6 +688,7 @@ export async function runApiTesterOperationDependencyVerificationRevision(option
       rootDir: cleanRoot,
       reportPath: options.cleanReportPath,
       cacheRoot: options.cacheRoot,
+      gitExecutable: options.gitExecutable,
       allowMissingCleanReproduction: true,
     });
     const comparisonFields = {
@@ -760,6 +770,7 @@ export async function runApiTesterOperationDependencyVerificationRevision(option
 
 export async function verifyApiTesterOperationDependencyRevisionReport(options: {
   rootDir: string;
+  gitExecutable: string;
   reportPath?: string;
   cacheRoot?: string;
   cleanRoot?: string;
@@ -768,6 +779,8 @@ export async function verifyApiTesterOperationDependencyRevisionReport(options: 
   const rootDir = resolve(options.rootDir);
   const reportPath = options.reportPath ?? API_TESTER_OPERATION_DEPENDENCY_REVISION_REPORT_PATH;
   const { report } = await readRevisionReport(rootDir, reportPath);
+  const checkoutRevision = await currentRevision(rootDir, options.gitExecutable);
+  assertDependencyRevisionCheckoutBinding(report.revision, checkoutRevision);
   const contractBytes = await readDigestBound(rootDir, report.inputs.contract, "dependency revision contract");
   const contract = ApiTesterOperationDependencyRevisionContractSchema.parse(JSON.parse(contractBytes.toString("utf8")));
   if (report.inputs.contract.path !== API_TESTER_OPERATION_DEPENDENCY_REVISION_CONTRACT_PATH
@@ -822,6 +835,7 @@ export async function verifyApiTesterOperationDependencyRevisionReport(options: 
     }
     await verifyApiTesterOperationDependencyRevisionReport({
       rootDir: cleanRoot,
+      gitExecutable: options.gitExecutable,
       reportPath: report.cleanReproduction.report.path,
       ...(options.cacheRoot ? { cacheRoot: options.cacheRoot } : {}),
       allowMissingCleanReproduction: true,

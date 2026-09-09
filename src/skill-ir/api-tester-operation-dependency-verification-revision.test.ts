@@ -5,6 +5,7 @@ import {
   API_TESTER_OPERATION_DEPENDENCY_REVISION_CONTRACT_PATH,
   API_TESTER_OPERATION_DEPENDENCY_REVISION_IDENTITY,
   ApiTesterOperationDependencyRevisionContractSchema,
+  assertDependencyRevisionCheckoutBinding,
   compareApiTesterOperationDependencyRevisionResults,
   evaluateApiTesterOperationDependencyRevisionCases,
 } from "./api-tester-operation-dependency-verification-revision";
@@ -12,6 +13,21 @@ import {
 const OLD_REPORT_PATH = "results/skill-ir/api-tester-operation-admission-development-001/report.json";
 
 describe("API Tester operation dependency-verification revision", () => {
+  test("rejects a report whose claimed revision does not match the verified checkout", () => {
+    expect(() => assertDependencyRevisionCheckoutBinding(
+      { commit: "d4f065ffe42c434e9845d9163f75a038fc5f481a", detached: true },
+      { commit: "0000000000000000000000000000000000000000", detached: true },
+    )).toThrow("dependency revision checkout binding drift");
+    expect(() => assertDependencyRevisionCheckoutBinding(
+      { commit: "d4f065ffe42c434e9845d9163f75a038fc5f481a", detached: true },
+      { commit: "d4f065ffe42c434e9845d9163f75a038fc5f481a", detached: false },
+    )).toThrow("dependency revision checkout binding drift");
+    expect(() => assertDependencyRevisionCheckoutBinding(
+      { commit: "d4f065ffe42c434e9845d9163f75a038fc5f481a", detached: true },
+      { commit: "d4f065ffe42c434e9845d9163f75a038fc5f481a", detached: true },
+    )).not.toThrow();
+  });
+
   test("binds the review baseline, old report, exact cases, and protected boundary", async () => {
     const contract = ApiTesterOperationDependencyRevisionContractSchema.parse(JSON.parse(
       await readFile(API_TESTER_OPERATION_DEPENDENCY_REVISION_CONTRACT_PATH, "utf8"),
