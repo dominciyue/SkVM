@@ -39,6 +39,11 @@
 
 TDD 的最低反例为：从新绑定中删除真实依赖、修改真实依赖、伪造摘要、遗漏上述两个已存在模块，均在输入执行前失败；未修改的新候选控制组通过。Task 1 只在新 candidate/binding identity 上闭合，不改候选 001 或生产算法文件。
 
+**实际绑定结果（2026-09-10）。** 实现提交 `74338e73a4f6dae389c9d62ce84173c2d1672906` 的 AST 闭包得到 11 个本地运行模块、
+0 个 unresolved import；相对候选 001 新增的生产依赖恰为 `source-fixture.ts` 与 `api-tester-production-contract.ts`。机器绑定在
+`13c5d79` 冻结，随后 live verify 同时重算 execution-commit Git bytes 与 working bytes 通过。候选 001 的九项摘要和所有方法不变，prospective
+计数保持 0。
+
 ## 4. Task 2：预注册和离线输入包
 
 Task 2 在读取未见来源前冻结：

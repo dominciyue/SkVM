@@ -45,9 +45,9 @@ Task 4/5/7 都依赖 Task 3 的实际报告；Task 8 依赖 Task 7 的责任定�
 - [x] RED：missing dependency、dependency byte drift 和缺模块；首轮因新模块不存在得到 expected RED。
 - [x] GREEN：把既有 `src/skill-ir/api-tester-production-contract.ts` 纳入新 candidate/binding；它是实际本地运行依赖，不是 type-only import。
 - [x] GREEN：把既有 `src/benchmarks/skill-ir/source-fixture.ts` 纳入新 candidate/binding；它提供 v2 artifact 实际调用的 `sha256Bytes`。
-- [ ] 建立 additive candidate snapshot、freeze/verify CLI 和 compact report；所有 gate 在输入读取与运行前执行。
-- [ ] fresh focused + relevant broad + typecheck + docs + frozen-history byte diff。
-- [ ] 更新 status/component/spec/plan/log，提交 Task 1。
+- [x] 建立 additive candidate snapshot、freeze/verify CLI 和机器绑定报告；所有 gate 在输入读取与运行前执行。
+- [x] fresh focused + relevant broad + typecheck + docs + frozen-history byte diff。
+- [x] 更新 status/component/spec/plan/log，提交 Task 1 文档收口。
 
 验收：本地运行模块、type-only import、内置模块和锁定第三方依赖已明确分账；所有真实生产 import 均在闭包中且摘要可从 Git/working bytes 独立重算；缺失/漂移在 pre-run 指定层拒绝；候选 001 字节不变；support id 和算法不变；未接触 unseen。
 

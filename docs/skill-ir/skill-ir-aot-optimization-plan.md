@@ -2184,7 +2184,7 @@ implementation correctness blocker。source blocker/advisory 可保守保留。�
 [状态文件](api-tester-operation-prospective-research-status.md)必须先于 unseen source 访问提交。顺序固定为
 `1 → 2 → 3 → 4 → 5 → 7 → 8 → 9 → 10 → 6`。
 
-1. [ ] 新 identity 补齐候选生产依赖绑定，至少纳入既有 `api-tester-production-contract.ts` 与 `source-fixture.ts`；TDD 证明 missing/drift
+1. [x] 新 identity 补齐候选生产依赖绑定，至少纳入既有 `api-tester-production-contract.ts` 与 `source-fixture.ts`；TDD 证明 missing/drift
    pre-run rejection 和 unchanged candidate control。候选 001、v2 支持合同和 operation 算法不改。
 2. [ ] 在读取真实候选前冻结并 push 12-real+6-synthetic 的来源/许可证/格式/去重/排序/资源/排除协议、预测、state/prefix/report 和
    synthetic-only runner；push 后才按规则选择和归档真实 source bytes/license/upstream identity。
@@ -2207,6 +2207,11 @@ implementation correctness blocker。source blocker/advisory 可保守保留。�
 **共同验收：** runtime model/API/paid 为 0；development-agent 分账；whole-document `0/6`、readiness、Meilisearch blocker、Bangumi advisories
 和历史缺档不改。只有上述全部任务及 clean reproduction 完成、无 implementation correctness blocker、机器报告可从 committed evidence
 重算时才完成总目标。
+
+Task 1 实际由实现提交 `74338e73a4f6dae389c9d62ce84173c2d1672906` 和机器绑定提交 `13c5d79` 闭合：入口静态运行闭包为
+11 个本地模块，新增绑定恰为既有 `source-fixture.ts`、`api-tester-production-contract.ts`，unresolved import 为 0；live Git/working-byte
+verify 通过，候选 001 与方法文件未改，未见输入/预测/运行计数仍为 0。收口验证为 focused `5/5`、相关 operation/v2 `40/40`、
+`src/skill-ir` `189/189`（990 assertions）、typecheck、docs `8/8`、3664-file link scan、frozen byte diff 与 diff check 全通过。
 
 ## 5. 历史时间估算（不作为当前排期）
 

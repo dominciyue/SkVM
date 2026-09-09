@@ -2154,3 +2154,8 @@ operation-level、无独立 dependency verifier/full verifier、complete-respons
 `0/6`、Meilisearch blocker、Bangumi advisories 和旧 clean 缺档均保留。development-agent 使用与项目 runtime `model/API/paid=0/0/0`
 分账。只有全部任务、clean reproduction、fresh verification 和提交闭合且没有实现正确性 blocker 时，总目标才可完成；最终即使判断可筹备
 下一 prospective，也不自动选择或读取新样本。
+
+**Task 1 实际结果（2026-09-10）。** 新 binding identity 在 execution commit
+`74338e73a4f6dae389c9d62ce84173c2d1672906` 上从 ordinary-input entry 解析出 11 个本地运行模块，unresolved import 为 0；相对候选 001
+唯一新增的运行依赖是既有 `source-fixture.ts` 和 `api-tester-production-contract.ts`。机器绑定以 `13c5d79` 冻结并经 live verify 通过；候选 001
+九项 implementation digest、v2 支持合同、operation 算法和 `prospectiveRuns=0` 均保持。

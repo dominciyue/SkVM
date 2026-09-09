@@ -12,7 +12,9 @@ manifest-bound 普通输入。验证与冻结仍只使用六份已暴露来源�
 - dependency-verification revision：`skill-ir-api-tester-operation-dependency-verification-revision-development-001`；
 - ordinary-input entry：`skill-ir-api-tester-operation-input-development-001`；
 - delivery/freeze evidence：`skill-ir-api-tester-operation-delivery-freeze-development-001`；
+- prospective candidate runtime binding：`skill-ir-api-tester-operation-candidate-binding-002`；
 - 当前状态与恢复命令：[执行状态](api-tester-operation-development-status.md)。
+- 未见输入研究的当前状态与恢复命令：[prospective 执行状态](api-tester-operation-prospective-research-status.md)。
 
 设计合同见 [design](../superpowers/specs/2026-09-09-api-tester-operation-admission-validation-design.md)，逐文件步骤见
 [implementation plan](../superpowers/plans/2026-09-09-api-tester-operation-admission-validation.md)。Task 1 的 source、admission、coverage、
@@ -119,8 +121,38 @@ source-to-projection dependency、v2 package/contract/generated operation 守恒
 `verifyApiTesterOperationInputSemantics` 可在不信任 output report 的条件下检查 analyzer omission/duplicate、dependency loss 和 accepted-set
 artifact loss。修改 input、inventory、artifact 或增加未声明文件都会 fail closed。
 
-冻结设计见 [delivery freeze design](../superpowers/specs/2026-09-09-api-tester-operation-delivery-freeze-design.md)，执行步骤见
-[delivery freeze plan](../superpowers/plans/2026-09-09-api-tester-operation-delivery-freeze.md)。候选尚未冻结，尚未选择、预测或运行 prospective。
+## 未见输入候选的生产运行依赖绑定
+
+2026-09-10 的新未见输入阶段不修改候选 001，而是新增
+`src/benchmarks/skill-ir/api-tester-operation-candidate-binding.ts` 和对应 CLI
+`api-tester-operation-candidate-binding-run.ts`。绑定器从普通输入入口出发，用 TypeScript AST 递归解析相对静态 import/export，分别记录本地运行
+模块、type-only 本地模块、Node built-ins、由 `package.json`/`bun.lock` 锁定的第三方依赖以及无法解析的加载。动态或非相对运行加载、闭包中的
+missing/extra 文件、Git/working byte drift、entry/runtime/package/lock drift 和外层 prospective verifier drift 都会在读取输入前 fail closed。
+
+机器绑定位于
+`benchmarks/skill-ir/classification/api-tester-operation-candidate-binding-v1.json`。其 execution commit 为
+`74338e73a4f6dae389c9d62ce84173c2d1672906`，冻结提交为 `13c5d79`。审计得到 11 个本地运行模块；相对候选 001 唯一新增的两个运行依赖是既有
+`src/benchmarks/skill-ir/source-fixture.ts` 与 `src/skill-ir/api-tester-production-contract.ts`。`source-fixture.ts` 对
+`src/skill-ir/schema.ts` 的导入仅为 type-only，未伪装成运行闭包。Node built-ins 为 `node:crypto`、`node:fs/promises`、`node:os`、
+`node:path`；第三方集合为 `yaml`、`zod`；unresolved import 为 0。候选 001 的九项 implementation digest、支持合同与 operation 算法均未改变，
+绑定状态仍为 `inputSelection=not-started`、`predictions=not-authored`、`prospectiveRuns=0`。
+
+创建模式只用于新的 write-once 路径；已冻结文件的通常复核使用：
+
+```powershell
+bun ./src/benchmarks/skill-ir/api-tester-operation-candidate-binding-run.ts `
+  --mode=verify --root=. --node=<node.exe> --git=git
+```
+
+验证器从绑定的 execution commit 重读 checkout-filtered Git bytes，同时核对当前 working bytes，因此依赖文件被修改、摘要被伪造或闭包项被删除
+都会失败。该绑定只证明候选的本地静态生产依赖闭包和环境绑定完整，不证明输入上的准入率、整份文档成功或真实 API 行为。
+
+Task 1 收口时的 fresh verification 为：binding focused `5/5`、相关 operation/v2 `40/40`、`src/skill-ir` `189/189`
+（990 assertions）、typecheck 通过、文档单测 `8/8`、3664-file link scan 无 broken/legacy reference。基线到 Task 1 的候选 001、ordinary
+entry、source/admission/coverage 与 v2 contract/artifact 指定文件 byte diff 为空；`git diff --check` 通过。
+
+上一交付阶段的冻结设计见 [delivery freeze design](../superpowers/specs/2026-09-09-api-tester-operation-delivery-freeze-design.md)，执行步骤见
+[delivery freeze plan](../superpowers/plans/2026-09-09-api-tester-operation-delivery-freeze.md)。候选 001 与本节的新运行依赖绑定均已冻结；Task 2 的真实输入仍未选择，预测未写，prospective 未运行。
 
 ## Task 1 runner、报告与严格核验
 

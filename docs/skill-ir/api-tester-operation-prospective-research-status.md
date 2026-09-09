@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-1-candidate-runtime-binding`
-- `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `71b589f5a3d27e189284fda8029c9dfaa9774c6e`
-- `currentCommit`: `task-1-implementation-working-tree`
+- `currentStage`: `task-1-complete-pending-documentation-commit`
+- `stageStatus`: `verification-passed`
+- `lastCompletedCommit`: `13c5d792b6d1289b2418c3c5a051c047df6a5344`
+- `currentCommit`: `task-1-documentation-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -20,7 +20,11 @@
 - 新阶段设计：`docs/superpowers/specs/2026-09-10-api-tester-operation-prospective-research-design.md`
 - 新阶段计划：`docs/superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md`
 - Task 1 RED：新候选 binding 模块缺失，`0 pass / 1 fail / 1 error`。
-- Task 1 GREEN：聚焦 `5/5`，operation/v2 相关回归 `48/48`，typecheck 通过。
+- Task 1 GREEN：聚焦 `5/5`，相关 operation/v2 回归与 typecheck 通过。
+- Task 1 实现提交：`74338e73a4f6dae389c9d62ce84173c2d1672906`。
+- Task 1 机器绑定：`benchmarks/skill-ir/classification/api-tester-operation-candidate-binding-v1.json`，冻结提交 `13c5d79`。
+- Task 1 live verify：`verified`，11 个本地运行模块、2 个新增生产依赖、0 unresolved import、0 prospective run。
+- Task 1 fresh verification：focused `5/5`；operation/v2 `40/40`；`src/skill-ir` `189/189`、990 assertions；typecheck；docs `8/8`；3664-file link scan；frozen-history diff；`git diff --check` 全通过。
 
 ## 保留问题
 
@@ -32,7 +36,7 @@
 ## 下一条具体动作
 
 ```powershell
-git commit -m "feat(skill-ir): bind operation candidate runtime closure"
+git commit -m "docs(skill-ir): close candidate runtime binding task"
 ```
 
-只白名单暂存 Task 1 实现、测试和同步文档。取得该精确 execution commit 后，用新 create CLI 生成 `api-tester-operation-candidate-binding-v1.json`，再以 verify 模式核对 Git/working bytes；此时仍不得读取 unseen source。
+只白名单暂存本次六份 Task 1 同步文档并提交；随后把本状态切换到 Task 2 synthetic-only 预注册实现。Task 2 freeze commit 推送前仍不得搜索或读取 unseen source。
