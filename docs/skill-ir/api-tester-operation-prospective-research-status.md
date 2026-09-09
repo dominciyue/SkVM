@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-1-complete-pending-documentation-commit`
-- `stageStatus`: `verification-passed`
-- `lastCompletedCommit`: `13c5d792b6d1289b2418c3c5a051c047df6a5344`
-- `currentCommit`: `task-1-documentation-working-tree`
+- `currentStage`: `task-2-preregistration-synthetic-only`
+- `stageStatus`: `in-progress`
+- `lastCompletedCommit`: `ad13e467bcbb840d0b7627bc749bc2da95de467d`
+- `currentCommit`: `task-2-preregistration-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -36,7 +36,7 @@
 ## 下一条具体动作
 
 ```powershell
-git commit -m "docs(skill-ir): close candidate runtime binding task"
+bun test ./src/benchmarks/skill-ir/api-tester-operation-prospective-freeze.test.ts
 ```
 
-只白名单暂存本次六份 Task 1 同步文档并提交；随后把本状态切换到 Task 2 synthetic-only 预注册实现。Task 2 freeze commit 推送前仍不得搜索或读取 unseen source。
+先写不存在的 Task 2 protocol/selection/prediction/state-prefix-report/verifier 测试并观察 expected RED；实现和所有开发运行只使用 deterministic synthetic。freeze commit 推送到 origin 前仍不得搜索或读取 unseen source。
