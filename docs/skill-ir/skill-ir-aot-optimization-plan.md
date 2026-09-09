@@ -2107,6 +2107,30 @@ blocker，不是未修复的 implementation correctness defect；因此目标可
 再把两组字段绑定到实现 registry。修复后报告数值与 portable digest 不变，live replay 和聚焦回归通过。
 Task 2 实现、机器报告、总报告和同步文档的本地提交为 `40b24c174983afe074438c8855d0094c7078ca8c`；未推送。
 
+### 4.47 API Tester 操作级独立依赖核验修订
+
+**基线与边界：** review baseline 为 `d2e748868a3c5e88b49cb940d4cd495f7b4dcf68`，新 identity 为
+`skill-ir-api-tester-operation-dependency-verification-revision-development-001`。旧 Task 1/Task 2/combined 与 v1/v2、001/002 证据只读；
+仍只使用原六份已暴露来源和确定性 synthetic fault，不运行 prospective、held-out/Q1 reserve、第二 profile/Q4 或远端/模型/付费服务，
+不改 readiness。详细设计与文件级步骤见[修订设计](../superpowers/specs/2026-09-09-api-tester-operation-dependency-verification-revision-design.md)
+和[修订执行计划](../superpowers/plans/2026-09-09-api-tester-operation-dependency-verification-revision.md)。
+
+1. [ ] 先以 TDD 固化 unchanged projection control，并分别证明 response component `type: string -> integer`、nested parameter schema
+   `minimum: 1 -> 99`、same-name apiKey header `name` change 在旧 verifier 下错误通过；保留 RED 输出。
+2. [ ] 最小修复 verifier：独立建立 operation roots 与可达 local-reference graph，以 visited 处理 sharing/cycles；比较 effective security
+   scheme；把 projection preservation、construction obligations、source validity 分列。response payload 不计 v2 construction obligation，
+   但其 dependency drift 必须被检出；missing/invalid refs 不得猜测。
+3. [ ] 建立新 fault-detection validation contract/report/CLI，记录旧 false pass 与新 detector 的预期层/code/outcome。旧九-fault 报告不改写。
+4. [ ] 在新结果目录重跑相同六份来源，严格核验 old/fresh evidence，动态比较逐文档 operation universe、admission、dependency、checker-pass
+   与 obligation coverage；不得硬编码 `112` 或删除变化来维持旧结果。Meilisearch source blocker 单列保留。
+5. [ ] 在明确的新 revision commit 建立一次 detached clean checkout，使用 `bun install --frozen-lockfile --offline` 和同一 digest-bound cache
+   运行新入口；比较 portable semantics、计数和 evidence digests，环境字段单列。
+6. [ ] 完成 focused/broad/typecheck/docs/digest/secret/path/diff 验证，更新 component/spec/plan/status/final report/claim history/handoff/
+   communication/conversation log 并本地提交。最终只判断是否具备冻结下一 operation candidate 的条件，不选择或执行 unseen 输入。
+
+**完成门：** 三项旧漏检均由 dependency verifier 在指定层检出，unchanged/shared/cyclic controls 通过；同六文档新结果与旧结果的每个比较
+字段都有机器结论，任何差异均解释；clean reproduction pass；没有 implementation correctness blocker。source blocker 可以明确保留。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

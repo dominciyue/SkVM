@@ -2064,3 +2064,22 @@ independent checker 层检出，synthetic fixture 不进入真实成功率。det
 和同一 digest-bound cache 从零重跑，portable semantics、计数、gate、义务及 inventory/artifact digests 全部一致。Task 2 bounded reliability
 与 implementation correctness 为 pass；source correctness 因 Meilisearch 缺失 ref 保持 blocked，总状态为
 `completed-with-source-blocker`。该结果不支持完整文档、任意 OpenAPI、真实 API 行为、人工节省、生态接纳率、跨 profile 或 readiness 主张。
+
+### 14.18 API Tester 操作级独立依赖核验修订合同
+
+2026-09-09 对 14.17 的实现复核确认一项 development correctness 缺陷：旧 dependency verifier 只核对第一层 local `$ref`，遗漏
+response reference closure，也没有比较 effective security requirement 对应的 scheme 定义。故 response component schema、parameter target
+内部的 nested schema target、以及同名 apiKey scheme header name 发生漂移时可能错误通过。14.17 的 Task 1/Task 2/combined 报告保持不可变，
+但“无剩余 implementation defect”的主张必须由新 identity 的后续证据限定。
+
+新身份固定为 `skill-ir-api-tester-operation-dependency-verification-revision-development-001`。它必须先保存一项 unchanged projection
+control 与上述三项 baseline false pass，再用独立于 constructor inventory 的图遍历修复：从 effective parameters、request、responses 和
+effective security scheme 自行建立依赖根，递归记录所有可达 local pointer/target，以 visited 集处理共享与环，明确记录 missing/external/
+invalid，不得猜测引用目标。response payload 不增加 v2 construction obligation，但仍属于 projection-preservation 比较；报告必须分开
+projection preservation、construction obligations 与 source validity。
+
+修订结果必须在新目录用相同六份 digest-bound 已暴露来源重跑，动态读取旧报告并逐文档比较 operation universe、admission、dependency、
+checker-pass 与 obligation coverage，不得把 `112` 写成实现常量或通过条件。再从明确的新 development commit 建立一次 detached clean checkout，
+锁定依赖离线复现新入口并比较 portable semantics。Meilisearch `GET /tasks` 缺失 `#/components/parameters/total` 继续作为独立 source blocker。
+保护边界与 14.17 相同：不改 v1/v2 产品面或冻结历史，不读 unseen/held-out/Q1 reserve，不启动 prospective/第二 profile/Q4，不联网、
+不改 readiness，不声称完整文档、真实 API、人工节省或生态接纳。

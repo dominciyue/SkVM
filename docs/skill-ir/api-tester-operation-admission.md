@@ -9,6 +9,7 @@ whole-document 首拒绝展开为完整 operation universe、逐操作准入解�
 - Task 1：`skill-ir-api-tester-operation-admission-development-001`；
 - Task 2：`skill-ir-api-tester-operation-validation-development-001`；
 - combined：`skill-ir-api-tester-operation-development-001`；
+- dependency-verification revision：`skill-ir-api-tester-operation-dependency-verification-revision-development-001`；
 - 当前状态与恢复命令：[执行状态](api-tester-operation-development-status.md)。
 
 设计合同见 [design](../superpowers/specs/2026-09-09-api-tester-operation-admission-validation-design.md)，逐文件步骤见
@@ -52,6 +53,12 @@ payload ref 按既有 v2 合同记录为非构造义务。
 `verifyApiTesterOperationCoverage` 比较 analyzer 的完整键集、重复、locator/operationId/summary 漂移，以及 accepted 集在 projection、contract、
 artifact 四层的精确守恒。`verifyApiTesterProjectionDependencies` 独立比较 effective parameters、local reference targets、effective security、
 requestBody 和 responses；因此 coverage completeness 与 artifact correctness 分开报告。
+
+2026-09-09 的后续审计确认旧实现只比较第一层 `$ref` 目标、未把 response refs 纳入闭包，且 security 只比较 requirement 名而未比较
+scheme 定义；因此旧 Task 2 的九类 fault 通过不能继续表述为完整依赖核验无缺陷。修订设计与执行计划分别见
+[dependency revision design](../superpowers/specs/2026-09-09-api-tester-operation-dependency-verification-revision-design.md) 和
+[dependency revision plan](../superpowers/plans/2026-09-09-api-tester-operation-dependency-verification-revision.md)。旧报告不改写；新 identity
+以一项不变 control、三项已确认 false pass、同六来源重跑和新的 clean checkout 复现追加时间序列证据。
 
 ## Task 1 runner、报告与严格核验
 

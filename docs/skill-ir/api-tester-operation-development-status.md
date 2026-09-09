@@ -2,17 +2,17 @@
 
 - updatedAt: 2026-09-09
 - branch: `api-tester-operation-admission-dev`
-- currentPhase: `combined-goal-completed-with-source-blocker`
+- currentPhase: `dependency-verification-revision-design-and-red`
 - baselineCommit: `70a1d46`
 - planCommit: `58f5588`
-- latestStageCommit: `40b24c174983afe074438c8855d0094c7078ca8c`
+- latestStageCommit: `d2e748868a3c5e88b49cb940d4cd495f7b4dcf68`
 - task1Commit: `f92e8a1f95a061af921fe476aa90016b2b627153`
 - task2Commit: `40b24c174983afe074438c8855d0094c7078ca8c`
-- evidencePaths: Task 1 report plus `results/skill-ir/api-tester-operation-validation-development-001/report.json` and `results/skill-ir/api-tester-operation-development-001/report.json`; Task 2=36 derived, 34 applicable/pass, 2 not-applicable, 9/9 faults, clean reproduction pass; Task 2 portable `d9a97e917179927437ea5a2aea547652ac3899feea1ec179f0b0c5d2d8ee02a0`, combined portable `bbf927bf6f3f29c75a70bf1fcbe2074373ce43255dafe202e8889a2e14960e61`
-- unresolvedIssues: one source-bound Meilisearch `GET /tasks` missing reference `#/components/parameters/total`; explicitly excluded without semantic guess, no remaining implementation correctness defect; independent review findings on static verifier closure were fixed by RED regressions
-- nextAction: user review of the local development branch; any source-document repair or wider OpenAPI/prospective/readiness work requires a new identity and authorization
-- nextCommand: `git show --stat 40b24c174983afe074438c8855d0094c7078ca8c`
+- evidencePaths: immutable Task 1/Task 2/combined reports remain at their existing paths; new evidence will be written only under `results/skill-ir/api-tester-operation-dependency-verification-revision-development-001`
+- unresolvedIssues: implementation defect under repair: response transitive refs, nested refs inside parameter targets, and effective security-scheme bodies can currently drift without detection; source-bound Meilisearch `GET /tasks` missing `#/components/parameters/total` remains separate
+- nextAction: add the unchanged control and three required RED regressions, capture the false-pass evidence, then implement the cycle-safe independent dependency graph
+- nextCommand: `bun test ./src/skill-ir/api-tester-operation-coverage.test.ts`
 - protectedBoundary: do not run the frozen 001/002 first-run runner; do not access held-out/Q1 reserved or change readiness
 
-Recovery order: read this file, verify the branch and working tree, read the recorded implementation plan, then execute `nextCommand`. Task 1 and Task 2
-are complete as bounded development evidence; do not resume the frozen runners or silently treat the retained source blocker as resolved.
+Recovery order: read this file, verify the branch and working tree, read
+`docs/superpowers/plans/2026-09-09-api-tester-operation-dependency-verification-revision.md`, then execute `nextCommand`. The prior Task 1 and Task 2 artifacts are immutable historical evidence; the new identity must record their detector misses and must not silently treat either the implementation defect or retained source blocker as resolved.
