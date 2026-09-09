@@ -2125,3 +2125,32 @@ non-construction source-validity advisory。局部 artifact pass 不等于完整
 `missing-unarchived-original`，historical archive completeness 因此为 fail，但当前 bounded implementation correctness 为 pass；候选仍是
 0 row、unselected、unpredicted、prospective unrun。独立复核发现初版 Git archive closure 仅核对路径集合；冻结前修订为逐项比较 manifest/
 candidate 声明摘要与 checkout-filtered `HEAD` 字节，并新增能复现旧漏检的 dirty-working-tree 回归。
+
+### 14.20 API Tester 操作级未见输入、家族与机制研究合同
+
+**授权与顺序。** 2026-09-10 的新阶段以 `47efb148fb98288c173493c95582ed47d4fbdd3d` 为基线，在独立分支
+`api-tester-operation-unseen-prospective-001` 按 `1 → 2 → 3 → 4 → 5 → 7 → 8 → 9 → 10 → 6` 执行。详细设计、
+文件级计划与恢复状态分别见[研究设计](../superpowers/specs/2026-09-10-api-tester-operation-prospective-research-design.md)、
+[实施计划](../superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md)和
+[执行状态](api-tester-operation-prospective-research-status.md)。Task 6 只在所有前项完成后总收口。
+
+**方法冻结。** `api-tester-openapi-subset-v2`、operation 枚举/准入/投影、v2 generator/checker 与候选 001 历史字节保持不变。
+Task 1 只用新 identity 修复候选运行依赖绑定：新增严格 production contract 和公共 source-fixture helper，使入口的传递生产依赖、
+Git/working bytes、runtime、package/lock 与验证引用在任何输入执行前 fail closed。missing、extra、digest 或 entry drift 均须由 TDD 证明被拒；
+不能通过扩大支持面或修改候选 001 获得通过。
+
+**预注册与首轮。** Task 2 必须在读取候选真实来源前冻结并推送搜索空间、license/format/resource 规则、排序、repo/lineage 去重、
+排除集合、`12 real + 6 synthetic` 分母、预测和一次性 runner。选择不得消费 candidate outcome。Task 3 每行严格一次、0 retry/
+replacement/fix；失败保留在分母，candidate/evidence integrity 不成立时在第 0 行前停止。Task 4 只从机器结果派生统计，Task 5 从精确执行
+提交在 detached clean checkout 离线复现 archived input closure。
+
+**后续研究。** Task 7 定义可证伪的 `public-structure-driven offline conversion/reporting` responsibility family，分开 public evidence、
+current implementation、verifiable 与 constructible。Task 8 先预注册再完整审阅 40 个真实公开 skill、至少 8 个仓库及其直接链接资源；
+Task 9 从该冻结选择中取 3 个独立仓库的 API skill，只在已暴露普通输入上运行未修改入口。Task 10 仅在 exposed/synthetic 上比较 whole-doc/
+operation-level、无独立 dependency verifier/full verifier、complete-responsibilities/accepted-only，并限定混杂和分母。
+
+**共同边界。** 不读 Q1 reserved、held-out 或待定 prospective；不进入第二 profile/Q4，不修改 portfolio/readiness，不运行模型、业务 API、
+远端 API 或付费实验，不声称人工节省、生态接纳或真实 API 行为。公开来源只读检索/下载只用于 Task 2/8 的规则化来源冻结。历史 whole-document
+`0/6`、Meilisearch blocker、Bangumi advisories 和旧 clean 缺档均保留。development-agent 使用与项目 runtime `model/API/paid=0/0/0`
+分账。只有全部任务、clean reproduction、fresh verification 和提交闭合且没有实现正确性 blocker 时，总目标才可完成；最终即使判断可筹备
+下一 prospective，也不自动选择或读取新样本。

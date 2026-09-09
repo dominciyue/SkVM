@@ -2176,6 +2176,38 @@ clean archive 99/99、dependency clean-003 59/59 路径和 SHA-256 与主检出�
 obligation/dependency 语义一致；新 clean evidence 的完整 bytes 可由仓库内 strict verifier 重验；候选 closure 与 runtime/lock 全绑定；没有
 implementation correctness blocker。source blocker/advisory 可保守保留。旧缺失 clean 只能由新 identity 的追加证据补充，不能追认原件已归档。
 
+### 4.49 API Tester 操作级未见输入、家族与机制研究
+
+**基线与恢复：** 以 `47efb148fb98288c173493c95582ed47d4fbdd3d` 在
+`api-tester-operation-unseen-prospective-001` 分支执行。权威[设计](../superpowers/specs/2026-09-10-api-tester-operation-prospective-research-design.md)、
+[详细计划](../superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md)和
+[状态文件](api-tester-operation-prospective-research-status.md)必须先于 unseen source 访问提交。顺序固定为
+`1 → 2 → 3 → 4 → 5 → 7 → 8 → 9 → 10 → 6`。
+
+1. [ ] 新 identity 补齐候选生产依赖绑定，新增 `api-tester-production-contract.ts` 与 `source-fixture.ts`；TDD 证明 missing/drift
+   pre-run rejection 和 unchanged candidate control。候选 001、v2 支持合同和 operation 算法不改。
+2. [ ] 在读取真实候选前冻结并 push 12-real+6-synthetic 的来源/许可证/格式/去重/排序/资源/排除协议、预测、state/prefix/report 和
+   synthetic-only runner；push 后才按规则选择和归档真实 source bytes/license/upstream identity。
+3. [ ] 唯一执行 18 行 immutable first run；每行一次、0 retry/replacement/fix，所有 rejection/unresolved/checker/infrastructure failure
+   保留。candidate integrity 或 evidence coverage 失败即 fail closed。
+4. [ ] 从实际机器报告派生 document/operation/macro/rejection-cooccurrence/advisory/obligation/prediction/cost JSON、CSV 和中文分析；
+   synthetic 与旧 development 分母分列。
+5. [ ] 从 Task 3 精确提交建立 detached clean checkout，锁定依赖并只用 committed archive 离线复现；比较语义、覆盖、artifact/checker
+   digest，归档后再安全移除 worktree。
+7. [ ] 定义可证伪的 public-structure-driven offline conversion/reporting family、责任矩阵、正反例和拒绝 taxonomy，分开
+   verifiable/constructible 与 family/current implementation。
+8. [ ] 先预注册后分析 40 个真实公开 skill、至少 8 个仓库；完整读取 SKILL 和直接链接资源，按 responsibility 保存证据 locator、
+   依赖、分类、missing 与一致性报告，排除 Q1/held-out/pending prospective。
+9. [ ] 从 Task 8 冻结规则选择 3 个独立仓库 API skill，冻结全部相关责任；只对已暴露 API 输入运行未修改普通入口，保留完整负结果。
+10. [ ] 在 exposed/synthetic 上做 whole-doc/operation-level、no-independent-dependency/full、complete-responsibilities/accepted-only 三组
+   机制消融，复用证据并明确混杂，不运行历史 unique runner。
+6. [ ] 汇总 claims-evidence-limitations、中文总报告和复现手册；fresh focused/broad/typecheck/docs/frozen/secret/path/diff 与独立审查后，
+   白名单提交并 push 开发分支。只判断是否可筹备下一 prospective，不自动选样或执行。
+
+**共同验收：** runtime model/API/paid 为 0；development-agent 分账；whole-document `0/6`、readiness、Meilisearch blocker、Bangumi advisories
+和历史缺档不改。只有上述全部任务及 clean reproduction 完成、无 implementation correctness blocker、机器报告可从 committed evidence
+重算时才完成总目标。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。
