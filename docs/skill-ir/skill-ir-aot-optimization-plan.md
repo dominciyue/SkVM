@@ -2266,6 +2266,14 @@ portable=`f915abc6abd393ea78122feff5c93e6ea83ea68c18e99063e449cda61d337352`。�
 Task 2/8 失败与 Task 3/4/5/9 未运行均不插补。Task 6 本身可完成交付，但总目标完成门继续为 false。
 最终 fresh verification 为 focused `29/29`、`src/skill-ir` `189/189`、相关 benchmark `41/41`、typecheck、docs `8/8` 与 4133-file link scan 全通过；独立复核无 finding。detached clean checkout `5309bad3843be847f02b5d655c042853e2c9ac50` 离线安装后六层 verifier 全通过。
 
+### 4.50 截止日前交付路线（2026-09-10，当前）
+
+当前任务书为 [9 月 14 日前可演示成果与夜间任务书](../superpowers/plans/2026-09-10-deadline-delivery.md)。用户已明确允许认证 GitHub CLI、联网、远端 API 和付费，并要求取消多余 gate 与重复复核。N1–N8 尚未执行；本次只完成复核与任务规划。
+
+依次恢复可续传获取、交付普通用户演示、执行真实输入评测、分析约 20 个真实 skill 的职责、验证三项跨仓库职责映射、实现一项有界能力改进、可选小型模型对照、形成报告。目标数量不作为整批作废门槛；失败支线不阻塞独立工作。9 月 13 日晚停止扩张并完成报告素材。
+
+旧 4.49 和各 identity 的限制仅约束其历史证据；新工作允许缓存、认证与有界重试，不再为正常恢复反复申请授权。保留 checker 与首次结果，减少重复摘要链和多轮 clean-checkout 审计；传统 Q1/readiness 不因产品演示被改写。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

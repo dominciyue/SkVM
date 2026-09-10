@@ -2241,3 +2241,13 @@ Task 8 的 7-search rate-limit failure，明确没有 authoritative selection、
 
 当前 `eligibleToPrepareNewProspectiveProtocol=true` 只允许设计新的预注册 identity；`eligibleToExecuteNewProspective=false` 在 selection、
 prediction 和 lock 提交前阻止运行。任何认证/请求策略改变须固定新预算与失败规则；不得重试旧 identity、修改 v2 候选、扩大支持面制造正例或改变 readiness。
+
+### 14.25 截止日前交付与最小必要约束（2026-09-10，当前路线）
+
+用户要求 2026-09-14 前有可演示、可用于报告的成果，并明确授权认证 GitHub CLI、联网、远端 API 和付费。当前执行依据为 [截止日前交付任务书](../superpowers/plans/2026-09-10-deadline-delivery.md)，其 N1–N8 在制定时尚未启动。
+
+本轮将“公开结构化 API 合同中的有界职责→离线产物→独立核验”作为可交付范围，补充实际外部输入评测、真实 skill 职责样本与复用映射。输入资格和首跑方法在评测前记录；候选固定的外部评测、真正 prospective、暴露后的 development 改进必须区别报告。新增产品特性不得反向改写旧 v2/candidate 结果。
+
+历史获取失败继续保留，但不要求未来任务重复其匿名、零重试或整批固定数量限制。新流程可以认证、缓存、恢复既有 partial 源文件并有界重试，实际分母及暴露状态如实记录。来源获取失败不阻塞独立产品与报告工作。Git 版本、一次输入清单和现有必要绑定足以支撑本轮复现，不继续增加多层摘要、归档和重复审查；独立 checker 与必要语义验证继续保留。
+
+14.24 的 execute=false 和此前 identity-specific 限制描述历史阶段，不否定用户对本轮新工作的授权。Q1、历史 readiness、0/6、source blocker/advisory、clean-002 缺档及未测人工效果仍按原事实陈述；本轮交付不能声称完整分类学或整个 skill 全自动化。
