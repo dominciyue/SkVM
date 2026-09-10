@@ -39,6 +39,13 @@
 2. 用该明确提交做独立干净离线检出复现，公开固定依赖准备与输入摘要，比较语义结果；不调用历史001/002。
 3. 请求体JSON重复键是尚待验证的潜在checker歧义：先独立错误注入，确认后才修，保留原失败。不要用语法包装代替实际共性能力开发。
 
+### 最新检查点（2026-09-11 06:00前后）
+
+- d088f4e已提交源映射和三成员装配结果，0bee387提交clean计划。两个新worktree保留；有效检出为.worktrees/family-request-clean-lf-20260911@d088f4e，初始默认autocrlf差异已另存诊断，不清理。
+- 显式离线包D:/skill优化/SkVM-offline-packages/family-request-20260911/dependencies.tgz，36MB；18944文件逐字节核验。三成员36任务完整语义/独立核验/义务相同，15测试88断言，干净主typecheck pass。证据skill-family-request-clean-20260911完整归档，不只留汇总。
+- package.json原始混合换行与LF检出raw摘要不同，normalized/parsed相同；bun.lock及核心源码匹配。费用无新增，未声明零供应链风险。
+- 当前待提交：offline-dependencies工具/测试、clean证据与说明；随后执行上面的JSON重复键错误注入。无运行中进程，未达10h，目标active。
+
 ## 现场/限制
 
 - Bun C:/Users/14182/AppData/Roaming/npm/node_modules/bun/bin/bun.exe 1.3.14；Node C:/Program Files/nodejs/node.exe v23.8.0。
