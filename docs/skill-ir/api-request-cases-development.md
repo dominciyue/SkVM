@@ -195,3 +195,19 @@ fragment marker or unescaped whitespace. Test encoded-name goldens against indep
 tampered raw names, plus Unicode/reserved-value matrices. If confirmed, apply the existing
 URI atom parser to names as well as values; do not alter source support or encoder output.
 This is artifact integrity, not proof of actual HTTP cookie/query execution.
+
+### JSON body ambiguity correction
+
+Both field and assembled-request checkers previously accepted duplicate object names
+when JSON.parse retained a schema-valid last value. Two independent mutation tests
+observed false acceptance. Require JSON syntax/value equality plus the existing YAML
+parser's decoded-name uniqueness check. Nested and escaped duplicate names are rejected;
+ordinary indentation changes remain accepted. Constructor and source support are unchanged.
+[RFC8259 section4](https://www.rfc-editor.org/rfc/rfc8259.html#section-4) recommends unique
+names because receiver behavior otherwise varies; this is a bounded interoperability
+contract, not a claim that every duplicate-key JSON text is syntactically invalid.
+
+Evidence: results/skill-ir/skill-family-json-wire-development-20260911/. RED2fail;
+GREEN26tests/317assertions, main typecheck exit0. Fresh recheck of12 existing field
+and12 existing specimen reports passes, without regeneration or new samples. Earlier
+clean evidence remains bound to d088f4e, not retrospectively upgraded to this checker.

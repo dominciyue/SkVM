@@ -113,7 +113,8 @@ export function verifyApiRequestCases(sourceText: string, format: "json" | "yaml
           } else {
             try {
               if (!(field.name === "application/json" || /^application\/[A-Za-z0-9._-]+\+json$/u.test(field.name))
-                || canonical(JSON.parse(wire.wire)) !== canonical(value)) errors.add("BODY_WIRE_MISMATCH");
+                || canonical(JSON.parse(wire.wire)) !== canonical(value)
+                || parseDocument(wire.wire, { uniqueKeys: true }).errors.length !== 0) errors.add("BODY_WIRE_MISMATCH");
               else encodedCases++;
             } catch { errors.add("BODY_WIRE_MISMATCH"); }
           }

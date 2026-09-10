@@ -152,7 +152,8 @@ export function verifyApiRequestSpecimens(source: string, format: "json" | "yaml
           if (!object(actual) || actual.mediaType !== plan.media || typeof actual.text !== "string" || Buffer.byteLength(actual.text) > 262144
             || !(plan.media === "application/json" || /^application\/[A-Za-z0-9._-]+\+json$/u.test(plan.media!))
             || !object(media) || media.encoding !== undefined) throw new Error("body media");
-          if (stable(JSON.parse(actual.text)) !== stable(actual.value) || !checkSchemaValue(document, media.schema, actual.value).valid
+          if (stable(JSON.parse(actual.text)) !== stable(actual.value)
+            || parseDocument(actual.text, { uniqueKeys: true }).errors.length !== 0 || !checkSchemaValue(document, media.schema, actual.value).valid
             || !checkSchemaWitnessShape(document, media.schema, actual.value, plan.mode as "minimal" | "full")) throw new Error("body value/wire");
           headers.push({ name: "content-type", value: plan.media! });
         }

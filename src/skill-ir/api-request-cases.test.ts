@@ -2,6 +2,20 @@ import { test, expect } from "bun:test";
 import { buildApiRequestCases } from "./api-request-cases";
 import { verifyApiRequestCases } from "./api-request-cases-checker";
 
+test("JSON body wire rejects duplicate decoded names but permits formatting changes", () => {
+  const report = buildApiRequestCases(source, "json");
+  for (const text of ['{"child":null,"child":{"id":2}}', '{"child":{"id":0,"i\\u0064":2}}']) {
+    const bad = structuredClone(report);
+    const body = bad.operations[1]!.schemas.find((s) => s.location === "body")!;
+    const minimal = body.cases.cases.find((c) => c.kind === "valid-minimal")!;
+    body.wireCases.find((w) => w.caseId === minimal.id)!.wire = text;
+    expect(verifyApiRequestCases(source, "json", bad).errors).toContain("BODY_WIRE_MISMATCH");
+  }
+  for (const op of report.operations) for (const body of op.schemas.filter((s) => s.location === "body"))
+    for (const wire of body.wireCases) if (wire.status === "encoded") wire.wire = JSON.stringify(JSON.parse(wire.wire!), null, 2);
+  expect(verifyApiRequestCases(source, "json", report).status).toBe("pass");
+});
+
 const source = JSON.stringify({ openapi: "3.0.3", info: { title: "Synthetic contract", version: "1" },
   security: [{ token: [] }], components: { securitySchemes: { token: { type: "http", scheme: "bearer" } }, schemas: {
     Child: { type: "object", required: ["id"], properties: { id: { type: "integer", minimum: 2 }, name: { type: "string" } } },

@@ -107,3 +107,12 @@ obligations not-fully-verified; preserve requested native-format failure. TDD pr
 rejection precedes adapter implementation. Run original three reviewed development members
 on the same12 inputs; these are new capability measurements on exposed members, not D7
 first-run evidence. No new source-name branches or natural-language compiler claim.
+
+## JSON wire integrity revision
+
+The body checker rejects duplicate decoded object names, including escaped-name aliases,
+before accepting JSON value equivalence. JSON.parse alone silently retained the last value
+and two checker-layer synthetic RED tests demonstrated false acceptance. Formatting remains
+free; the builder and case inventory are unchanged. See the JSON ambiguity correction in
+api-request-cases-development.md and skill-family-json-wire-development-20260911 evidence.
+The12 already-generated specimen reports pass fresh verification; no full-skill claim.

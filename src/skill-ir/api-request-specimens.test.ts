@@ -2,6 +2,17 @@ import { test, expect } from "bun:test";
 import { buildApiRequestSpecimens } from "./api-request-specimens";
 import { verifyApiRequestSpecimens } from "./api-request-specimens-checker";
 
+test("specimen body rejects duplicate decoded JSON names without requiring canonical formatting", () => {
+  const source = JSON.stringify(document), base = buildApiRequestSpecimens(source, "json");
+  for (const text of ['{"name":"wrong","name":"item"}', '{"name":"wrong","na\\u006de":"item"}']) {
+    const report = structuredClone(base), c = report.operations[0]!.cases[0]!;
+    c.request!.body!.text = text;
+    expect(verifyApiRequestSpecimens(source, "json", report).errors).toContain(`SPECIMEN_REQUEST_MISMATCH: ${report.operations[0]!.key}: ${c.id}`);
+  }
+  for (const c of base.operations[0]!.cases) if (c.request?.body) c.request.body.text = JSON.stringify(c.request.body.value, null, 2);
+  expect(verifyApiRequestSpecimens(source, "json", base).status).toBe("pass");
+});
+
 const document = {
   openapi: "3.0.3", info: { title: "Synthetic assembly", version: "1" },
   servers: [{ url: "https://example.invalid/v1" }], security: [{ Token: [] }],
