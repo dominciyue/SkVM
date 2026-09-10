@@ -2,7 +2,7 @@
 
 ## Status and purpose
 
-`skill-ir-public-skill-responsibility-corpus-development-001` is a development-only convenience corpus for studying complete responsibilities in public agent skills. The current checkpoint contains the pre-metadata protocol, strict schemas, deterministic metadata discoverer/selector, independent raw-response verifier, and local CLIs. Final preflight review found no remaining Critical/Important/Minor issue and marked the first public metadata-only run ready. No real public metadata run or public skill body read has occurred under this identity at this checkpoint.
+`skill-ir-public-skill-responsibility-corpus-development-001` is a development-only convenience corpus for studying complete responsibilities in public agent skills. The current checkpoint contains the pre-metadata protocol, strict schemas, deterministic metadata discoverer/selector, independent raw-response verifier, and local CLIs. The single authorized public metadata-only attempt stopped after seven archived search responses because GitHub reported zero remaining search requests before the fixed eight-page sequence completed. The write-once failure is preserved at `results/skill-ir/public-skill-responsibility-corpus-selection-development-001/failure.json`; no `discovery.json`, `selection.json`, repository inspection, or public skill body read was produced.
 
 The corpus targets exactly 40 `SKILL.md` paths from at least eight public upstream repositories. It is not representative of the skill ecosystem, and later static responsibility classification will not establish artifact success, live API behavior, human agreement, savings, or readiness.
 
@@ -50,6 +50,8 @@ bun ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-discovery-run.t
 ```
 
 The CLI accepts no arbitrary URL, authentication option, or skill-body path. The licensed source archiver is intentionally not part of this checkpoint and must be implemented and tested before its first use. Selected `SKILL.md` bytes remain forbidden until the exact metadata selection has been committed.
+
+The failed real attempt is terminal for this identity: do not retry, add queries, replace the output directory, or treat the seven-page prefix as a selection universe. A later attempt would require a separately designed identity and a newly frozen execution policy; the existing raw prefix and failure report remain immutable evidence.
 
 ## Verification
 

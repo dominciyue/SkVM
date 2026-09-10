@@ -3,14 +3,14 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-revision-freeze-pending-push; task-8-authorized-public-metadata-run-ready-after-tree-mode-revision`
-- `stageStatus`: `in-progress; fixed-public-metadata-run-authorized`
+- `currentStage`: `task-2-revision-freeze-pending-push; task-8-public-metadata-attempt-failed-rate-limit; local-failure-audit-and-archive-contract-in-progress`
+- `stageStatus`: `blocked-on-fixed-metadata-discovery-result; continuing-independent-local-work`
 - `lastCompletedCommit`: `c6a49f2`
 - `currentCommit`: `c6a49f2`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
-- `publicSkillMetadataRequests`: `0`
+- `publicSkillMetadataRequests`: `7`
 - `publicSkillBodiesRead`: `0`
 - `runtimeAccounting`: `model=0, api=0, paid=0`
 - `developmentAgentUsage`: `host-external-not-measured-by-project-runner`
@@ -59,6 +59,7 @@
 - Task 8 implementation freeze=`a9a601ea7e8db8d861a5e4ffb647bf9f7d9e0e94`，checkpoint=`f1413f0310564d6f481b0ac0f6098f4c8ccfb68d`。首次 fixed GitHub metadata-only CLI 的提权请求被执行安全门拒绝：它把早先“项目运行链不调用远端 API”视为仍控制当前 Task 8，要求对最多 58 个匿名 GitHub REST metadata 请求给出新的对话内明确授权。进程未启动、目标目录不存在，metadata/body 仍为 `0/0`；未绕过。
 - 用户随后在当前对话明确授权远端 API、付费调用与真实公开 GitHub skill 查阅；该授权解除 Task 8 fixed public REST 执行的用户权限缺口。冻结 protocol 仍要求本阶段 model/business API/paid=`0`，因此许可扩大不会被解释为需要产生费用，也不会改变 query、前缀、配额或选择分母。平台安全审批仍须遵守。
 - 在重跑 metadata 前发现 `a9a601e` 的归一化 tree blob 清单丢弃 Git mode，无法在后续 source closure 中定位 symlink/submodule。先保留这一修订前事实，再以 `c6a49f2f1b6c80701ab04ee73406ab1ffa84ec08` 增加完整 tree entry inventory，并只让 `100644`/`100755` 进入 selectable blobs；raw verifier 独立重建两套清单。focused=`17/17`、54 assertions；与 archive 局部 TDD 合并运行为 `20/20`、67 assertions；typecheck 通过。真实 metadata/body 仍为 `0/0`。
+- 唯一一次 authorized fixed metadata CLI 已执行。GitHub 在第七个已归档 search response 后给出 remaining=0，流程以 `GitHub search rate limit exhausted before fixed metadata sequence completed` 退出。`failure.json` 记录 attempted=7、body/model/business API/paid/held-out/Q1/pending prospective 均为 0；15 个现场文件共 4,000,706 bytes，且 `discovery.json`/`selection.json` 均不存在。该 identity 不重试、不改 query、不从七页 prefix 选择。
 
 ## 保留问题
 
@@ -69,7 +70,7 @@
 
 ## 下一条具体动作
 
-从 `c6a49f2f1b6c80701ab04ee73406ab1ffa84ec08` 运行一次固定、最多 58 个 GitHub public REST metadata 请求，并立即运行独立 raw verifier。失败或 shortfall 原样保存，不改 protocol/output identity。Task 2 revision push 仍需单独明确允许向 `git@github.com:dominciyue/SkVM.git` 推送当前分支。
+先提交 Task 8 rate-limit 失败现场，再为失败 archive 增加独立的 exact-file/digest/rate-prefix audit；继续完成不假设真实 selection 的 source archive/closure TDD。Task 8 的 real corpus、Task 9、Task 10 和最终 Task 6 暂受本结果阻塞，不用重试或扩样规避。Task 2 revision push 仍需单独明确允许向 `git@github.com:dominciyue/SkVM.git` 推送当前分支。
 selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
 pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
 明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得

@@ -39,6 +39,8 @@ The selector consumes recorded GitHub search/default-branch/tree metadata only. 
 
 No selected `SKILL.md` blob request is permitted. If 40 eligible tuples from eight repositories are unavailable, write a shortfall report and stop without changing the protocol.
 
+Attempt 001 stopped after seven archived search responses because the GitHub search rate limit reached zero before the fixed sequence completed. Preserve that failure and do not retry or select from the partial prefix under this identity. Continue only local work that does not assume a selected real corpus.
+
 - [ ] **Step 4: Commit the exact selection identity before content exposure**
 
 The selection commit binds protocol, Q1 exclusion registry, discovery responses, repositories, commits, paths, blob OIDs/sizes, licenses, ranks, and zero body exposures.
