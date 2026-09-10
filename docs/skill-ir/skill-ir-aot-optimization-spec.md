@@ -1,8 +1,8 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-08
+**最后更新：** 2026-09-11
 
-**当前已确认路线：** 第 14.16 节冻结 API Tester v2 的新 candidate 与 6-real+4-boundary 特性定向迁移。候选、来源、预测、分母和执行器必须先推到远端，随后只执行一次、失败留分母；该结果只回答固定 API profile 的新输入迁移，不扩 v2、不读取 held-out，也不改变原 Q1、旧 v1 结果、portfolio 或 readiness。
+**当前已确认路线：** 第14.26节 skill family 深化与D1–D9任务书；实际证据见 [当前结果导航](skill-family-current-results.md)。新development共享职责能力与历史v1/v2候选分开，保留首次失败与完整分母。第14.16等历史合同不被改写；原0/6、Q1、held-out、portfolio/readiness不因局部产物通过改变。代理审核声明式映射不是自动自然语言编译，源例子核验不是实际API行为验证。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
