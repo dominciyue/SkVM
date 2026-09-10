@@ -72,7 +72,8 @@ function formatted(format: string, variant: number): unknown {
   return values[format];
 }
 
-export function constructSchemaWitness(document: unknown, raw: unknown, mode: "minimal" | "full" = "minimal"): SchemaWitness {
+function searchSchemaWitness(document: unknown, raw: unknown, mode: "minimal" | "full", collectAfter?: number): SchemaWitness & { candidates?: unknown[] } {
+  if (collectAfter !== undefined && (!Number.isInteger(collectAfter) || collectAfter < 0 || collectAfter > 64)) throw new Error("invalid witness variant start");
   const check = createSchemaChecker(document, raw);
   const readiness = check(undefined);
   if (readiness.status !== "checked") return { status: "unsupported", attempts: 0, reasons: readiness.errors.map((e) => e.message) };
@@ -177,15 +178,34 @@ export function constructSchemaWitness(document: unknown, raw: unknown, mode: "m
     throw new Error(`unsupported candidate type ${kind}`);
   }
   const reasons = new Set<string>();
-  for (let attempt = 0; attempt < 64; attempt++) {
+  const candidates: unknown[] = [], seenCandidates = new Set<string>();
+  let first: SchemaWitness | undefined;
+  for (let attempt = collectAfter ?? 0; attempt < 64; attempt++) {
     nodes = 0;
     try {
       const value = build(raw, attempt, 0);
       const result = check(value);
-      if (result.valid && checkSchemaWitnessShape(document, raw, value, mode)) return { status: "constructed", value, attempts: attempt + 1, reasons: [] };
+      if (result.valid && checkSchemaWitnessShape(document, raw, value, mode)) {
+        const found: SchemaWitness = { status: "constructed", value, attempts: attempt + 1, reasons: [] };
+        if (collectAfter === undefined) return found;
+        first ??= found;
+        const key = JSON.stringify(value);
+        if (!seenCandidates.has(key)) { candidates.push(value); seenCandidates.add(key); }
+        continue;
+      }
       if (result.valid) reasons.add("schema-valid candidate does not cover requested minimal/full shape");
       for (const error of result.errors) reasons.add(`${error.instancePath}: ${error.keyword}`);
     } catch (error) { reasons.add(String(error)); }
   }
-  return { status: "unresolved", attempts: 64, reasons: [...reasons] };
+  const result: SchemaWitness = first ?? { status: "unresolved", attempts: 64, reasons: [...reasons] };
+  return collectAfter === undefined ? result : { ...result, candidates };
+}
+
+export function constructSchemaWitness(document: unknown, raw: unknown, mode: "minimal" | "full" = "minimal"): SchemaWitness {
+  return searchSchemaWitness(document, raw, mode);
+}
+
+/** Remaining distinct full witnesses inside the same 64-variant search space. */
+export function constructSchemaWitnessCandidates(document: unknown, raw: unknown, mode: "minimal" | "full", startVariant: number): unknown[] {
+  return searchSchemaWitness(document, raw, mode, startVariant).candidates ?? [];
 }

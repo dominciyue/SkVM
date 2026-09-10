@@ -1,6 +1,7 @@
 import { test, expect } from "bun:test";
 import { constructSchemaCases } from "./api-schema-cases";
 import { verifySchemaCases } from "./api-schema-case-checker";
+import { constructSchemaWitness } from "./api-schema-witness";
 
 const schema = { type: "object", required: ["child"], additionalProperties: false, properties: {
   child: { type: "object", required: ["count", "code"], properties: {
@@ -15,6 +16,34 @@ test("schema cases retain every source obligation and verify nested negative con
   expect(report.cases.filter((c) => c.status === "covered").length).toBeGreaterThan(10);
   expect(report.cases.every((c) => c.expectedHttpStatus === null)).toBe(true);
   expect(verifySchemaCases({}, schema, report).status).toBe("pass");
+});
+
+test.each(["anyOf", "oneOf"])("later %s branches have source-confirmed negative cases without changing the first witness", (composition) => {
+  const document = { components: { schemas: {
+    Left: { type: "object", required: ["left"], properties: { left: { type: "array", items: { type: "string" } } } },
+    Right: { type: "object", required: ["right"], properties: { right: { type: "array", items: { type: "string" } } } },
+  } } };
+  const source = { type: "object", properties: { choice: { [composition]: [
+    { $ref: "#/components/schemas/Left" }, { $ref: "#/components/schemas/Right" },
+  ] } } };
+  const initial = constructSchemaWitness(document, source, "full"), report = constructSchemaCases(document, source);
+  expect(initial.status).toBe("constructed");
+  expect(report.cases.find((c) => c.kind === "valid-full")!.value).toEqual(initial.value);
+  const targets = report.cases.filter((c) => c.schemaPath.includes(`/${composition}/1/`) &&
+    (c.kind !== "wrong-type" || c.instancePath.length > 1));
+  expect(targets).toHaveLength(3);
+  expect(targets.map((c) => c.status)).toEqual(["covered", "covered", "covered"]);
+  expect(verifySchemaCases(document, source, report).status).toBe("pass");
+  const corrupt = structuredClone(report);
+  corrupt.cases.find((c) => c.id === targets[1]!.id)!.value = initial.value;
+  expect(verifySchemaCases(document, source, corrupt).errors).toContain("CASE_EXPECTATION_MISMATCH");
+});
+
+test("an always-valid anyOf competitor cannot become a claimed target violation", () => {
+  const source = { anyOf: [{}, { type: "object", required: ["right"], properties: { right: { type: "string" } } }] };
+  const report = constructSchemaCases({}, source);
+  expect(report.cases.filter((c) => c.schemaPath.includes("/anyOf/1/")).every((c) => c.status === "unresolved")).toBe(true);
+  expect(verifySchemaCases({}, source, report).status).toBe("pass");
 });
 
 test("case checker independently detects omitted obligation, false negative and source drift", () => {
