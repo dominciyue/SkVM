@@ -43,3 +43,13 @@ sample increment. Reproduce with a new report path:
 ```powershell
 bun scripts/skill-ir/api-request-body-metamorphic.ts --out=results/skill-ir/body-metamorphic-reproduction.json
 ```
+
+real-order/ retains12 additional derived inputs and full artifacts: all12 source-order
+relations pass, with zero changed operations under the declared semantic comparison.
+The original reports were not regenerated; recorded parent checks were reused and raw
+input/report binding and original operation coverage were checked. Derived artifacts
+were checked freshly. Explicitscript strict typecheck passes. Reproduce into a new path:
+
+```powershell
+bun scripts/skill-ir/api-request-body-real-order.ts --inputs=results/skill-ir/skill-family-deepening-20260911/api-inputs/inputs.json --prior=results/skill-ir/skill-family-body-negatives-development-20260911/first-run --out=results/skill-ir/body-real-order-reproduction
+```

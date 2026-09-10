@@ -11,6 +11,8 @@ const sha = (v: string) => createHash("sha256").update(v).digest("hex");
 const reverse = (v: any): any => Array.isArray(v) ? v.map(reverse) : v && typeof v === "object"
   ? Object.fromEntries(Object.keys(v).reverse().map((k) => [k, reverse(v[k])])) : v;
 
+export { semantics as bodyNegativeSemantics, reverse as reverseObjectKeys };
+
 function semantics(report: ApiRequestBodyNegatives, keys: string[]) {
   return report.operations.filter((o) => keys.includes(o.key)).map((o) => ({ key: o.key, cases: o.cases.map((c) => {
     const field = report.fields.operations.find((f) => f.key === o.key)!.schemas.find((f) => f.id === c.fieldId)!;

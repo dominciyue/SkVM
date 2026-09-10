@@ -93,3 +93,10 @@ source locator $ref hops and environment fields are not expected equal. Every de
 artifact independently passes source/field/baseline/negative checks. For inline reference
 equivalence, only this exact acyclic reference without siblings is applicable; no general
 reference equivalence claim. Keep parent/derived bytes, hashes and transform parameters.
+
+Real-order extension: derive one recursively reversed-object-key JSON input from each of
+the original12 parsed models (arrays untouched). Reuse a7cf0ce's archived parent checks,
+verify parent raw-source/report binding, and independently enumerate original operations.
+Run only derived construction/checking; compare the same semantic fields as above and
+retain changed-operation lists, full derived inputs/artifacts and hashes. No new source
+sample, no regenerated original baseline. A mismatch is investigated, not normalized away.

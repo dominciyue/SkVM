@@ -1,0 +1,643 @@
+{
+  "report": {
+    "schemaVersion": "api-request-body-negatives/v1",
+    "fields": {
+      "schemaVersion": "api-request-cases/v2",
+      "sourceSha256": "fbcf860742c05da3a3c41a548e0e35632dc52487d96af7f4ecc221917bdb1abf",
+      "sourceFormat": "json",
+      "enumerationComplete": true,
+      "enumerationIssues": [],
+      "operations": [
+        {
+          "key": "POST /v1/admin/visierSecureTicket",
+          "locator": "#/paths/~1v1~1admin~1visierSecureTicket/post",
+          "operationId": "Authentication_TicketAuthentication",
+          "summary": "Generate a legacy Visier secure ticket",
+          "projectedOperation": {
+            "deprecated": true,
+            "responses": {
+              "200": {
+                "content": {
+                  "text/plain": {
+                    "schema": {
+                      "$ref": "#/components/schemas/AuthenticationTicketAuthentication200Response"
+                    }
+                  },
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/AuthenticationTicketAuthenticationResponse"
+                    }
+                  }
+                },
+                "description": "Secure ticket response"
+              },
+              "default": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Status"
+                    }
+                  }
+                },
+                "description": "Default error response"
+              }
+            },
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/x-www-form-urlencoded": {
+                  "schema": {
+                    "$ref": "#/components/schemas/AuthenticationRequest"
+                  }
+                }
+              },
+              "description": "Secure ticket request body"
+            },
+            "description": "Generate a legacy Visier secure ticket",
+            "operationId": "Authentication_TicketAuthentication",
+            "summary": "Generate a legacy Visier secure ticket",
+            "tags": [
+              "Authentication"
+            ]
+          },
+          "schemas": [
+            {
+              "id": "body:application/x-www-form-urlencoded",
+              "location": "body",
+              "name": "application/x-www-form-urlencoded",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticationRequest"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "55e6f6a1fabf3e5a3b767942b6d898705b666b5e6d27808b992dda7bf6469635",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "password": "example",
+                      "username": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  },
+                  {
+                    "id": "#/$ref/properties/password/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "password"
+                    ],
+                    "schemaPath": "#/$ref/properties/password/type",
+                    "validationSchemaPath": "#/properties/password/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "password": null,
+                      "username": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/username/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "username"
+                    ],
+                    "schemaPath": "#/$ref/properties/username/type",
+                    "validationSchemaPath": "#/properties/username/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "password": "example",
+                      "username": null
+                    }
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                },
+                {
+                  "caseId": "#/$ref/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                },
+                {
+                  "caseId": "#/$ref/properties/password/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                },
+                {
+                  "caseId": "#/$ref/properties/username/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        },
+        {
+          "key": "POST /v1/admin/visierSecureToken",
+          "locator": "#/paths/~1v1~1admin~1visierSecureToken/post",
+          "operationId": "Authentication_ASIDTokenAuthentication",
+          "summary": "Generate a Visier authentication token",
+          "projectedOperation": {
+            "deprecated": true,
+            "responses": {
+              "200": {
+                "content": {
+                  "text/plain": {
+                    "schema": {
+                      "$ref": "#/components/schemas/AuthenticationAsidTokenAuthentication200Response"
+                    }
+                  },
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/AuthenticationAsidTokenAuthenticationResponse"
+                    }
+                  }
+                },
+                "description": "Authentication token response"
+              },
+              "default": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Status"
+                    }
+                  }
+                },
+                "description": "Default error response"
+              }
+            },
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/x-www-form-urlencoded": {
+                  "schema": {
+                    "$ref": "#/components/schemas/AuthenticationRequest"
+                  }
+                }
+              },
+              "description": "Authentication token request body"
+            },
+            "description": "Generate a Visier authentication token",
+            "operationId": "Authentication_ASIDTokenAuthentication",
+            "summary": "Generate a Visier authentication token",
+            "tags": [
+              "Authentication"
+            ]
+          },
+          "schemas": [
+            {
+              "id": "body:application/x-www-form-urlencoded",
+              "location": "body",
+              "name": "application/x-www-form-urlencoded",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticationRequest"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "55e6f6a1fabf3e5a3b767942b6d898705b666b5e6d27808b992dda7bf6469635",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "password": "example",
+                      "username": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  },
+                  {
+                    "id": "#/$ref/properties/password/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "password"
+                    ],
+                    "schemaPath": "#/$ref/properties/password/type",
+                    "validationSchemaPath": "#/properties/password/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "password": null,
+                      "username": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/username/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "username"
+                    ],
+                    "schemaPath": "#/$ref/properties/username/type",
+                    "validationSchemaPath": "#/properties/username/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "password": "example",
+                      "username": null
+                    }
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                },
+                {
+                  "caseId": "#/$ref/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                },
+                {
+                  "caseId": "#/$ref/properties/password/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                },
+                {
+                  "caseId": "#/$ref/properties/username/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "body media serialization unsupported"
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        }
+      ],
+      "accounting": {
+        "modelCalls": 0,
+        "paidCalls": 0
+      },
+      "wholeSkillCompleted": false
+    },
+    "specimens": {
+      "schemaVersion": "api-request-specimens/v1",
+      "sourceSha256": "fbcf860742c05da3a3c41a548e0e35632dc52487d96af7f4ecc221917bdb1abf",
+      "sourceFormat": "json",
+      "enumerationComplete": true,
+      "enumerationIssues": [],
+      "operations": [
+        {
+          "key": "POST /v1/admin/visierSecureTicket",
+          "security": [],
+          "servers": [
+            {
+              "variables": {
+                "vanity-name": {
+                  "default": "vanity"
+                }
+              },
+              "url": "https://{vanity-name}.api.visier.io"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",\"application/x-www-form-urlencoded\",null]",
+              "mode": "minimal",
+              "mediaType": "application/x-www-form-urlencoded",
+              "omit": null,
+              "status": "unresolved",
+              "reasons": [
+                "Error: body media assembly unsupported"
+              ],
+              "request": null,
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"body\"]",
+              "mode": "minimal",
+              "mediaType": "application/x-www-form-urlencoded",
+              "omit": "body",
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/v1/admin/visierSecureTicket",
+                "headers": [],
+                "parameters": [],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+              "mode": "full",
+              "mediaType": "application/x-www-form-urlencoded",
+              "omit": null,
+              "status": "unresolved",
+              "reasons": [
+                "Error: body media assembly unsupported"
+              ],
+              "request": null,
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        },
+        {
+          "key": "POST /v1/admin/visierSecureToken",
+          "security": [],
+          "servers": [
+            {
+              "variables": {
+                "vanity-name": {
+                  "default": "vanity"
+                }
+              },
+              "url": "https://{vanity-name}.api.visier.io"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",\"application/x-www-form-urlencoded\",null]",
+              "mode": "minimal",
+              "mediaType": "application/x-www-form-urlencoded",
+              "omit": null,
+              "status": "unresolved",
+              "reasons": [
+                "Error: body media assembly unsupported"
+              ],
+              "request": null,
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"body\"]",
+              "mode": "minimal",
+              "mediaType": "application/x-www-form-urlencoded",
+              "omit": "body",
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/v1/admin/visierSecureToken",
+                "headers": [],
+                "parameters": [],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+              "mode": "full",
+              "mediaType": "application/x-www-form-urlencoded",
+              "omit": null,
+              "status": "unresolved",
+              "reasons": [
+                "Error: body media assembly unsupported"
+              ],
+              "request": null,
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        }
+      ],
+      "wholeSkillCompleted": false
+    },
+    "wholeSkillCompleted": false,
+    "remainingObligations": [
+      "parameter-schema-negative-assembly",
+      "credentials-and-live-auth",
+      "origin-and-server-selection",
+      "response-status-and-business-oracle",
+      "native-output-format",
+      "single-fault-isolation"
+    ],
+    "operations": [
+      {
+        "key": "POST /v1/admin/visierSecureTicket",
+        "cases": [
+          {
+            "id": "[\"body:application/x-www-form-urlencoded\",\"#/$ref/type:wrong-type\"]",
+            "fieldId": "body:application/x-www-form-urlencoded",
+            "obligationId": "#/$ref/type:wrong-type",
+            "baselineId": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "full body request baseline unavailable"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/x-www-form-urlencoded\",\"#/$ref/properties/password/type:wrong-type\"]",
+            "fieldId": "body:application/x-www-form-urlencoded",
+            "obligationId": "#/$ref/properties/password/type:wrong-type",
+            "baselineId": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "full body request baseline unavailable"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/x-www-form-urlencoded\",\"#/$ref/properties/username/type:wrong-type\"]",
+            "fieldId": "body:application/x-www-form-urlencoded",
+            "obligationId": "#/$ref/properties/username/type:wrong-type",
+            "baselineId": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "full body request baseline unavailable"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          }
+        ]
+      },
+      {
+        "key": "POST /v1/admin/visierSecureToken",
+        "cases": [
+          {
+            "id": "[\"body:application/x-www-form-urlencoded\",\"#/$ref/type:wrong-type\"]",
+            "fieldId": "body:application/x-www-form-urlencoded",
+            "obligationId": "#/$ref/type:wrong-type",
+            "baselineId": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "full body request baseline unavailable"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/x-www-form-urlencoded\",\"#/$ref/properties/password/type:wrong-type\"]",
+            "fieldId": "body:application/x-www-form-urlencoded",
+            "obligationId": "#/$ref/properties/password/type:wrong-type",
+            "baselineId": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "full body request baseline unavailable"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/x-www-form-urlencoded\",\"#/$ref/properties/username/type:wrong-type\"]",
+            "fieldId": "body:application/x-www-form-urlencoded",
+            "obligationId": "#/$ref/properties/username/type:wrong-type",
+            "baselineId": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "full body request baseline unavailable"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          }
+        ]
+      }
+    ]
+  },
+  "verification": {
+    "status": "pass",
+    "errors": [],
+    "obligations": 6,
+    "constructed": 0,
+    "unresolved": 6
+  }
+}
