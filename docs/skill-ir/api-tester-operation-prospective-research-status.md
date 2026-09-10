@@ -3,8 +3,8 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-revision-freeze-pending-push; task-8-metadata-discoverer-freeze`
-- `stageStatus`: `in-progress`
+- `currentStage`: `task-2-revision-freeze-pending-push; task-8-public-metadata-run-awaiting-explicit-api-authorization`
+- `stageStatus`: `blocked-on-explicit-external-authorization`
 - `lastCompletedCommit`: `a9a601e`
 - `currentCommit`: `a9a601e`
 - `prospectiveInputsRead`: `0`
@@ -56,6 +56,7 @@
 - Task 8 metadata discoverer 已完成 synthetic TDD，待提交：固定八个 search + 前 25 repository 的 branch/tree 请求，归档原始 response 及 HTTP status/content-type/rate-limit metadata sidecar，独立重建核验，HTTP 失败写现场，CLI 不接受任意 URL。首轮只读审查的 API URL origin、失败归档静默丢失和 junction 逃逸均已有 RED/GREEN；后续审查的 redirect、响应头不可复核、事后 byte cap、协同 `incomplete_results=true` 错误接纳，以及非终结请求 rate-limit 时序空隙均已闭合。默认 transport 禁止 redirect、流式中止超过 64 MiB 的响应；当前 focused=`16/16`、50 assertions，typecheck 通过；真实 metadata/body request 仍为 `0/0`。
 - `failure.json` 在首个请求前以 `wx` 预留，失败时通过既有句柄写入并 `sync`；归档或成功清理出错均显式失败。路径层逐组件拒绝 symlink/junction，并在读写前核对 realpath。受控单进程之外的敌对并发 TOCTOU 不在当前承诺内，已作为明确限制记录。
 - Task 8 metadata discoverer 最终只读 preflight 无剩余 Critical/Important/Minor，Ready for first public metadata run=Yes。最终 focused=`16/16`、50 assertions，typecheck 通过；提交门前 public metadata/body request 仍为 `0/0`。
+- Task 8 implementation freeze=`a9a601ea7e8db8d861a5e4ffb647bf9f7d9e0e94`，checkpoint=`f1413f0310564d6f481b0ac0f6098f4c8ccfb68d`。首次 fixed GitHub metadata-only CLI 的提权请求被执行安全门拒绝：它把早先“项目运行链不调用远端 API”视为仍控制当前 Task 8，要求对最多 58 个匿名 GitHub REST metadata 请求给出新的对话内明确授权。进程未启动、目标目录不存在，metadata/body 仍为 `0/0`；未绕过。
 
 ## 保留问题
 
@@ -66,7 +67,7 @@
 
 ## 下一条具体动作
 
-从提交 `a9a601e` 运行固定的 58-request-or-less
+等待用户在对话中明确允许从 `a9a601e` 执行这一次最多 58 个匿名 GitHub REST metadata 请求；获准后原命令重跑，不改 protocol/output identity。未获准前不能绕道联网，Task 8/9/10/6 在此依赖点暂停。Task 2 revision push 仍需单独明确允许向 `git@github.com:dominciyue/SkVM.git` 推送当前分支。
 公开 metadata discovery。selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
 pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
 明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得
