@@ -47,7 +47,7 @@ The selection commit binds protocol, Q1 exclusion registry, discovery responses,
 
 ## Task 3: Licensed source archive and direct resource closure
 
-- [ ] Write archive/closure RED tests for missing bytes, digest drift, extra files, locator-only entries, path escape, symlink/submodule, budget overflow, and exposure-time ordering.
+- [x] Write archive/closure RED tests for missing bytes, digest drift, extra files, locator-only entries, path escape, symlink/submodule, budget overflow, exposure-time ordering, and selection/Git binding. The resulting contract remains synthetic-only because attempt 001 produced no selection.
 - [ ] Download only selected pinned blobs, license authority bytes, and direct resource closures; record every request/file/byte and first exposure time.
 - [ ] Preserve incomplete closures as issues; do not replace selected rows or delete hard responsibilities.
 - [ ] Commit the immutable source archive or locator-only records before classification.

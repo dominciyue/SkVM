@@ -55,6 +55,8 @@ The failed real attempt is terminal for this identity: do not retry, add queries
 
 `src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit.ts` independently audits this terminal prefix without trusting a discovery summary. It requires the exact fixed rate-limit reason, reconstructs the initial query/page sequence from the frozen protocol, parses every archived search body and HTTP sidecar, verifies repository API identities, requires the final archived response to have search remaining zero, checks attempted-request and zero-body accounting, rejects a completed eight-page sequence, and binds the exact failure-directory file set by byte length and SHA-256. Its report is write-once, and verification rebuilds the same facts from the archived files.
 
+`src/benchmarks/skill-ir/public-skill-responsibility-corpus-archive.ts` is the synthetic-only source-archive contract scaffold. Its closure planner reads only the selected `SKILL.md` text plus the already archived complete Git tree inventory, follows direct Markdown/backtick references and explicitly named sibling resource directories, never follows references found only inside resources, and returns every external, missing, escaping, symlink, submodule, per-file, file-count, or total-byte omission as an explicit issue. Its file verifier requires an executable 40-row/8-repository zero-exposure selection, verifies the selection bytes against both the working file and the named Git commit, checks the recorded commit time precedes first body exposure, matches every archive row and skill/license Git blob binding to selection, enforces locator-only and issue/status consistency, and independently rebuilds the exact archive file set, SHA-256, Git blob OID, and accounting. No source downloader is exposed at this checkpoint because attempt 001 produced no selection; the scaffold must not be used to read real bodies or fabricate a source archive.
+
 Create and then independently verify the failure audit offline:
 
 ```powershell
@@ -67,7 +69,7 @@ bun ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit-r
 Run the focused suite and type checker:
 
 ```powershell
-bun test ./src/benchmarks/skill-ir/public-skill-responsibility-corpus.test.ts ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit.test.ts
+bun test ./src/benchmarks/skill-ir/public-skill-responsibility-corpus.test.ts ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit.test.ts ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-archive.test.ts
 bun run typecheck
 ```
 
