@@ -53,16 +53,25 @@ The CLI accepts no arbitrary URL, authentication option, or skill-body path. The
 
 The failed real attempt is terminal for this identity: do not retry, add queries, replace the output directory, or treat the seven-page prefix as a selection universe. A later attempt would require a separately designed identity and a newly frozen execution policy; the existing raw prefix and failure report remain immutable evidence.
 
+`src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit.ts` independently audits this terminal prefix without trusting a discovery summary. It requires the exact fixed rate-limit reason, reconstructs the initial query/page sequence from the frozen protocol, parses every archived search body and HTTP sidecar, verifies repository API identities, requires the final archived response to have search remaining zero, checks attempted-request and zero-body accounting, rejects a completed eight-page sequence, and binds the exact failure-directory file set by byte length and SHA-256. Its report is write-once, and verification rebuilds the same facts from the archived files.
+
+Create and then independently verify the failure audit offline:
+
+```powershell
+bun ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit-run.ts --mode=create --root=. --output-dir=results/skill-ir/public-skill-responsibility-corpus-selection-development-001 --audit=results/skill-ir/public-skill-responsibility-corpus-selection-development-001/failure-audit.json
+bun ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit-run.ts --mode=verify --root=. --audit=results/skill-ir/public-skill-responsibility-corpus-selection-development-001/failure-audit.json
+```
+
 ## Verification
 
 Run the focused suite and type checker:
 
 ```powershell
-bun test ./src/benchmarks/skill-ir/public-skill-responsibility-corpus.test.ts
+bun test ./src/benchmarks/skill-ir/public-skill-responsibility-corpus.test.ts ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit.test.ts
 bun run typecheck
 ```
 
-The focused tests cover query/order drift, premature body exposure, outcome leakage, repository and path duplication, fork/license/Q1 exclusions, exact-blob lineage, complete Git mode retention with symlink/submodule exclusion from selectable blobs, raw discovery binding, fixed inspected-prefix behavior, zero-row shortfall, license absence/ambiguity, exact 58-request synthetic discovery, coordinated `incomplete_results` and rate-limit report/archive tampering, body and response-metadata tampering, redirect refusal, HTTP failure preservation under a competing failure-file creation, CLI surfaces, and junction/path escape before network access.
+The focused tests cover query/order drift, premature body exposure, outcome leakage, repository and path duplication, fork/license/Q1 exclusions, exact-blob lineage, complete Git mode retention with symlink/submodule exclusion from selectable blobs, raw discovery binding, fixed inspected-prefix behavior, zero-row shortfall, license absence/ambiguity, exact 58-request synthetic discovery, coordinated `incomplete_results` and rate-limit report/archive tampering, body and response-metadata tampering, redirect refusal, HTTP failure preservation under a competing failure-file creation, failure-prefix exact-file/digest drift, CLI surfaces, and junction/path escape before network access.
 
 ## Failure and modification rules
 
