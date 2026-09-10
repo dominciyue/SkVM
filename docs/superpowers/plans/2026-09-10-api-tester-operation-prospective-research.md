@@ -139,11 +139,11 @@ prospective evidence pending。Task 8 依赖 Task 7 的责任定义；Task 9 依
 ## Task 10：机制消融
 
 - [x] 预登记共同 operation/responsibility universe、三类对照、适用条件、比较字段和混杂；Task 3/8/9 unavailable 明确不填补，prospective failure 只作 availability gate。
-- [ ] whole-document vs operation-level：同一 exposed/synthetic operation universe。
-- [ ] no independent dependency verifier vs full verifier：按指定 faults/真实 advisories 比较检出。
-- [ ] complete responsibilities vs accepted-only：量化被隐藏的 unsupported/unresolved 责任。
-- [ ] 优先复用 Task 1/3/7/8 已有证据；必要时用独立 development control，不运行历史 unique runner。
-- [ ] 输出机器报告和中文结论；提交 Task 10。
+- [x] whole-document vs operation-level：同一 exposed operation universe；Task 3 synthetic/prospective evidence unavailable 不插补。
+- [x] no independent dependency verifier vs full verifier：按 Task 2 指定 synthetic faults 比较检出，真实 blocker/advisory 只作 context。
+- [x] complete responsibilities vs accepted-only：分别量化 operation 与 family 中被隐藏的 unsupported/unresolved 责任。
+- [x] 复用 Task 1/2/7 已有证据；使用独立 development control，不运行历史 unique runner。
+- [x] 输出机器报告和中文结论；提交 Task 10 为 `a1727b92928e1a32ce21b4bf21dc61bd80e3415e`。
 
 验收：每项效应与其 denominator/identity 对齐；检出率只代表设计 fault set；不将非随机、跨 identity 比较写成总体因果结论。
 
