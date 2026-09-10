@@ -23,6 +23,13 @@
 - 8份补充资源已按原提交Git blob核验并完整阅读；新sources-with-supplements.json保留原始issues。anhtester的test_data_generator仍需读取，不声称完整依赖闭包。
 - 下一动作：补齐该数据生成依赖的审阅，写4成员完整职责映射，核对22个冻结文件摘要，运行固定12输入首跑；保留失败后再修订。未提交r5、supplement脚本/测试/组件文档，不包含cache。
 
+## 最新推进（覆盖上一恢复点）
+
+- 77c97b7已提交推送r5及补充资源。4成员最终各12任务pass；3映射初始行数拒绝保留，另存修订。全部完整skill/native输出未完成；真实303操作/2941义务覆盖分母仍同一面板。
+- 数值合法输入反例确认并修复：无multipleOf的number不应被0.5网格限制。22测试211断言及typecheck pass；真实12旧/新产物重核pass，实际用例变化0。证据skill-family-numeric-witness-development-20260911，准备提交。
+- 下一具体动作：针对参数名的URI结构字符做独立逆向checker错误注入，确认未转义fragment/name是否误接纳；先RED，若确认仅修新checker，不改编码合同。
+- 没有运行中进程/付费请求。历史stop不生效，用户当前10h持续授权仍active，不宣称已执行10h。
+
 ## 先前动作（已完成，保留上下文）
 
 1. 确认56329主typecheck完成，归档oneOf源码摘要/结果并提交。

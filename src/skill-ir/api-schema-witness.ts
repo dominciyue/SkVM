@@ -150,6 +150,18 @@ export function constructSchemaWitness(document: unknown, raw: unknown, mode: "m
       const first = Math.ceil(minimum / step) + (schema.exclusiveMinimum && minimum % step === 0 ? 1 : 0);
       let candidate = Number(((first + variant) * step).toPrecision(15));
       if (candidate > maximum || (schema.exclusiveMaximum && candidate === maximum)) candidate = Number((first * step).toPrecision(15));
+      if (kind === "number" && schema.multipleOf === undefined) {
+        const lower = schema.minimum ?? -Infinity, upper = schema.maximum ?? Infinity;
+        const inRange = (value: number) => Number.isFinite(value) && Math.abs(value) <= Number.MAX_SAFE_INTEGER
+          && (schema.exclusiveMinimum ? value > lower : value >= lower)
+          && (schema.exclusiveMaximum ? value < upper : value <= upper);
+        if (!inRange(candidate)) {
+          // No multipleOf means there is no half-unit lattice in the source contract.
+          // Keep successful old candidates; finite endpoints/interior values are only hints.
+          const alternatives = [lower, upper, lower / 2 + upper / 2, lower + 0.5, upper - 0.5, 0].filter(inRange);
+          if (alternatives.length) candidate = alternatives[variant % alternatives.length]!;
+        }
+      }
       if (!Number.isFinite(candidate) || Math.abs(candidate) > Number.MAX_SAFE_INTEGER) throw new Error("numeric witness budget");
       return candidate;
     }

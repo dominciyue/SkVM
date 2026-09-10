@@ -169,3 +169,20 @@ This follows [JSON Schema composition semantics](https://json-schema.org/underst
 and [additional-property semantics](https://json-schema.org/understanding-json-schema/reference/object):
 exactly one branch must validate, and unnamed fields are not forbidden by default.
 The generic search is an implementation inference from those semantics, not a standard algorithm.
+
+### Bounded numeric witness check after D7 follow-up
+
+Risk: number candidates currently use a0.5 grid when multipleOf is absent. This can
+miss narrow valid intervals or non-grid singletons despite an independent known witness.
+Use deterministic dyadic intervals over positive/negative/zero centers with all endpoint
+inclusion combinations, plus decimal and singleton counterexamples. The independent
+Ajv checker first validates the known witness, then validates every constructed value.
+Impossible integer/multipleOf intervals must stay unresolved, not be widened.
+
+If RED confirms the grid limitation, preserve existing valid grid candidates and add a
+bounded endpoint/midpoint fallback only for numbers without multipleOf. Keep64attempts,
+safe finite numeric magnitude and the unchanged final source/shape oracle. This is a
+heuristic improvement, not complete arithmetic satisfiability or new source semantics.
+Semantics: [OpenAPI3.0.3](https://spec.openapis.org/oas/v3.0.3) and
+[JSON Schema numeric constraints](https://json-schema.org/understanding-json-schema/reference/numeric).
+The latter's current numeric exclusive-bound syntax is not substituted for OAS boolean bounds.
