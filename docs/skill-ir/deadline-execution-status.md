@@ -14,6 +14,7 @@
 - D8：5f518da已推送；有界内容编译缓存，25/25测试134断言、typecheck；12完整语义载荷相同，2405命中/109编译，Front-core 6184→2144ms单机观测。skill-family-cache-development-20260911/。
 - 追加正确性修复d07d00f：allOf负例旧checker只按keyword+instance错误接纳，RED保留；修复精确schemaPath及required字段身份。27/27测试140断言、typecheck；旧实际12报告重核pass、用例未改变。skill-family-constraint-identity-development-20260911/{revision.json,prior-recheck.json}。
 - 当前未提交构造增量：通用oneOf完整值区分候选，Adatree新增4 covered义务，总2941/3371；minimal仍unresolved，正向齐备操作数不增加，其他11输入用例无变化。skill-family-oneof-witness-development-20260911/。checker/source语义不放宽。
+- oneOf增量已提交推送eecdbe7；后续D7核心固定于此。r4查询仅1来源smellgamed3，全文已读，OpenAPI到离线构造绑定不明确，保留uncertain不强行跑成功。r5预定精确Generate test cases短语查询，尚未检索。
 
 ## 下一条具体动作
 
