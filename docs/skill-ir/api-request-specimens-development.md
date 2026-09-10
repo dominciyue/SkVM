@@ -41,6 +41,11 @@ multiple independently sourced duties need it and it has deterministic public or
 - Limits: at most128 parameter declarations,32 media types,512 cases per operation,8192
   target characters,262144 UTF-8 body bytes. Budget failures remain visible for planned cases.
   Dot-segment paths, unsafe names/values and unsupported media are not normalized away.
+- Correction after first run: a declared requestBody on methods outside POST/PUT/PATCH
+  leaves all of that operation's planned specimens unresolved, including body-absence
+  negatives. OAS3.0.3 does not provide the necessary method/body semantics. Preserve the
+  declaration and missing obligations rather than silently dropping it. This restriction
+  concerns assembled specimens, not the recoverable historical schema-only field reports.
 
 ## Independent checks and acceptance
 
@@ -81,3 +86,15 @@ Primary semantics: [OpenAPI3.0.3 parameter/request/security objects](https://spe
    actual limits/results in this component and unique state, commit and push current branch.
 
 User has authorized inline autonomous decisions. No subagent, approval pause or new UI is needed.
+
+## Actual evidence
+
+Initial implementation88b5c79 deliberately archives the pre-method-correction results.
+New method guards leave unsupported-method body operations unresolved in both constructor
+and independent checker.18 focused tests/286 assertions and main typecheck pass; explicit
+development script typecheck also passed. Current fixed12-input totals:303 operations,
+628 planned specimens,576 constructed,52 unresolved,24 constructed presence negatives,
+2 incomplete inventories due reference siblings.268 operations have all planned cases
+constructed; this is neither the prior per-schema metric nor whole skill/HTTP readiness.
+See results/skill-ir/skill-family-request-specimens-development-20260911/README.md for
+the first report, revision branch, fresh recheck and offline command.

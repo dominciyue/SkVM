@@ -16,3 +16,26 @@ Initial synthetic assembly/mutation and batch tests7/7,47 assertions; main and e
 script strict typecheck passed. Boundary RED detected malformed URI paths and duplicate
 declaration handling, both corrected before first real run. Module/runner missing-module
 RED observed before implementation. No network/model calls in runtime.
+
+## Method correction
+
+Initial implementation/report committed88b5c79 before repair. method-red.json records
+both constructor and independent checker failures; method-green.json records18 tests,
+286 assertions passing after repair, plus main typecheck exit0. Only Front-core and
+Visier-analytics needed regeneration; method-inputs.json binds byte-identical copies of
+the already exposed input files. method-revision-run/ contains their new evidence.
+method-recheck.json freshly checks all12 original inputs against applicable reports:
+the two old affected reports fail the corrected checker, all12 applicable results pass.
+
+Current applicable totals:303 operations,628 planned cases,576 constructed,52 unresolved,
+24 constructed required-presence negatives,2 incomplete inventories,268 operations with
+all planned cases constructed. Use method-revision-run for those2 inputs and first-run
+for the other10. These are report checks with explicit limits, not full document/API passes.
+
+Offline reproduction into a fresh directory:
+
+    bun scripts/skill-ir/api-request-specimens-development.ts --inputs=results/skill-ir/skill-family-deepening-20260911/api-inputs/inputs.json --out=results/skill-ir/local-request-specimens
+
+The current method reproduces corrected results, not the known-bad first-run totals.
+Recover88b5c79 to reproduce the initial implementation. Source/lock/runtime bindings are
+inside each run/report.json. No model/API runtime calls or native output claim.

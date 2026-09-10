@@ -113,6 +113,7 @@ export function verifyApiRequestSpecimens(source: string, format: "json" | "yaml
       if (c.status !== "constructed" || c.reasons.length || !object(c.request)) { errors.add("INVALID_SPECIMEN_CASE"); continue; }
       const request = c.request;
       try {
+        if (body && !["POST", "PUT", "PATCH"].includes(method)) throw new Error("unsupported method/body semantics");
         if (!dependency.checks.constructionObligations || request.method !== method || typeof request.target !== "string"
           || request.target.length > 8192 || !Array.isArray(request.parameters) || !Array.isArray(request.headers)) throw new Error("request envelope/dependencies");
         const included = fields.filter((p) => !(p.in === "header" && ["accept", "content-type", "authorization"].includes(p.name.toLowerCase()))

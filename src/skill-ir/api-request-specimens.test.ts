@@ -101,3 +101,25 @@ test("duplicate declarations and missing body dependencies retain incomplete cas
     expect(verifyApiRequestSpecimens(source, "json", report).status).toBe("pass");
   }
 });
+
+test("body declarations on unsupported HTTP methods remain unresolved, not silently discarded", () => {
+  for (const method of ["get", "head", "delete", "options", "trace"]) {
+    const doc = structuredClone(document) as any, item = doc.paths["/items/{id}"];
+    item[method] = item.post; delete item.post;
+    const source = JSON.stringify(doc), report = buildApiRequestSpecimens(source, "json");
+    expect(report.operations[0]!.cases).toHaveLength(4);
+    expect(report.operations[0]!.cases.every((c) => c.status === "unresolved" && c.reasons.some((r) => r.includes("method")))).toBe(true);
+    expect(verifyApiRequestSpecimens(source, "json", report).status).toBe("pass");
+  }
+});
+
+test("checker rejects a constructed POST specimen relabeled to DELETE even when the source binding is updated", () => {
+  const original = JSON.stringify(document), report = buildApiRequestSpecimens(original, "json");
+  const doc = structuredClone(document) as any, item = doc.paths["/items/{id}"];
+  item.delete = item.post; delete item.post;
+  const source = JSON.stringify(doc);
+  report.sourceSha256 = new Bun.CryptoHasher("sha256").update(source).digest("hex");
+  report.operations[0]!.key = "DELETE /items/{id}";
+  for (const c of report.operations[0]!.cases) if (c.request) c.request.method = "DELETE";
+  expect(verifyApiRequestSpecimens(source, "json", report).status).toBe("fail");
+});

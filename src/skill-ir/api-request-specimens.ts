@@ -58,6 +58,7 @@ function plans(parameters: Raw[], body: Raw | null): SpecimenCase[] {
 }
 
 function assemble(document: Raw, method: string, path: string, parameters: Raw[], body: Raw | null, plan: SpecimenCase): RequestSpecimen {
+  if (body && !["POST", "PUT", "PATCH"].includes(method)) throw new Error("request body method semantics unsupported");
   if (!path.startsWith("/") || /[?#\s]/u.test(path)) throw new Error("unsafe source path");
   const result: RequestSpecimen = { method, target: path, headers: [], parameters: [], body: null };
   const query: string[] = [], headerNames = new Set<string>(), boundPathNames = new Set<string>();
