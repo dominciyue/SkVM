@@ -5,8 +5,8 @@
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
 - `currentStage`: `task-2-revision-freeze-pending-push; task-8-metadata-discoverer-freeze`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `e6902a2`
-- `currentCommit`: `task-8-metadata-discoverer-working-tree`
+- `lastCompletedCommit`: `a9a601e`
+- `currentCommit`: `a9a601e`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -66,7 +66,7 @@
 
 ## 下一条具体动作
 
-精确提交已通过最终只读审查的 metadata discoverer、raw-response/metadata verifier 和固定 CLI；只有该提交完成后，才运行固定的 58-request-or-less
+从提交 `a9a601e` 运行固定的 58-request-or-less
 公开 metadata discovery。selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
 pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
 明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得
