@@ -12,6 +12,8 @@
 - D3 共享映射已完成首个真实成员运行：LambdaTest + 已暴露 nested/oneOf 输入为 1 operation/1 rejected/0 artifact，通过清单和依赖核验，不宣称正例。新增模块主 typecheck 通过；D3/D4 组合回归 7/7、22 assertions，含缺失资源。映射提取为代理审阅声明，不是自动自然语言编译。
 - D4 已按运行前列表取得 12 份真实 API 合同、6 个提供方、一个第三方聚合仓库，共 758887 bytes/16 GitHub 请求。数据为 api-inputs/；baseline-config.json 固定三个独立源成员×12 文档，保留不同原始义务/输出要求。新脚本显式 strict typecheck 通过。
 - 未解决：词法 resource planner 会把代码样例识别为路径；其 issues 是待核读线索，不能直接当作源无效。原 skill 要求的 pytest/Newman/Drift 等完整输出和在线/业务职责超过当前 v2。D4–D9 和追加开发未执行，无新成员首跑或类内效果结论。旧 deadline 计划的两个文档链接缺失保留，不为补链接制作已取消的演示/报告。
-- 下一动作：提交 D3 共享映射与 D4 固定输入/执行代码，运行 baseline-v2 的 36 个成员输入任务；从全部拒绝/义务缺口选择 D5 共性改进。D3/D5/D7 优先，不重复全历史审计。
+- 当前提交：e6fa621 已推送 origin。D4 baseline-v2 已执行 3×12 任务；每成员 303 操作、8 局部通过、295 拒绝、0 unresolved。唯一真实操作分母为 303，不是 909；完整原 skill 职责仍未完成。证据 baseline-v2/（待归档提交）。
+- D5 进行中：新增 api-request-cases/v1，与冻结 v2 分离；递归 schema witness、源义务负例、独立 Ajv 与操作/依赖核验。11 tests/43 assertions 通过；尚未完成实际请求编码、完整输出格式和全部真实输入验证，不宣称 D5 完成。
+- 下一动作：新模块 typecheck；保存 12 文档的新能力首次运行及失败，修复正确性问题后再接入跨成员映射。D6–D9 未执行。
 - 成本：项目模型/付费调用 0；公开 web 检索 2 批（4 查询）；认证 GitHub 请求 161；宿主开发代理成本未测，独立于项目运行链。
 - 历史停止总结：[约 16 小时工作总结与停止现场](work-stop-summary-2026-09-11.md)。停止后两次自动续行因缺少授权未执行，随后按三轮阈值标 blocked；最新明确授权已恢复 active。历史停止与失败不覆盖，不作为本轮执行禁令。

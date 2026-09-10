@@ -1,0 +1,1520 @@
+{
+  "schemaVersion": "api-skill-mapping-report/v1",
+  "mappingId": "pactflow",
+  "mappingSha256": "8fb3a2da7ff09d9f5f2fd6e8204257cf8a79c32100ecc213d620048122224c3c",
+  "analysisSha256": "938a4e7690f3f81f132284dfdffc6cd971f2513f00d3aa4e5f8e002e4afa2658",
+  "skillId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md",
+  "repository": "pactflow/pactflow-agent-skills",
+  "sourceCommit": "463f70a32daba156376dbe030bbf23097a6a1ecb",
+  "extraction": "agent-reviewed-declaration",
+  "automaticNaturalLanguageCompilation": false,
+  "selectedResponsibility": {
+    "id": "construct-request-cases",
+    "description": "Enumerate viable schema variants and construct valid/negative cases, optional/minimal payloads and discriminator cases.",
+    "lines": [
+      66,
+      78
+    ],
+    "obligations": [
+      "valid-request",
+      "schema-variants",
+      "minimal-and-full",
+      "pattern-witness",
+      "pattern-violation",
+      "discriminator",
+      "all-documented-statuses"
+    ]
+  },
+  "residualResponsibilities": [
+    {
+      "id": "parse-contract",
+      "description": "Locate endpoint, extract request/response schemas and recursively resolve dependencies.",
+      "lines": [
+        22,
+        64
+      ],
+      "obligations": [
+        "request-contract",
+        "response-contract",
+        "references"
+      ]
+    },
+    {
+      "id": "emit-drift",
+      "description": "Generate complete Drift operations and dataset YAML, correct targets, tags, auth exclusions and negative-schema flags.",
+      "lines": [
+        80,
+        92
+      ],
+      "obligations": [
+        "requested-output-format",
+        "dataset-bindings",
+        "auth-variants",
+        "negative-flags",
+        "response-assertions"
+      ]
+    },
+    {
+      "id": "report-coverage",
+      "description": "Explain status/variant counts, chosen combinations and intentionally excluded gaps.",
+      "lines": [
+        94,
+        102
+      ],
+      "obligations": [
+        "coverage-summary",
+        "gap-accounting"
+      ]
+    },
+    {
+      "id": "stateful-data-setup",
+      "description": "When variants depend on live state, arrange dataset or lifecycle hooks and cleanup.",
+      "lines": [
+        80,
+        92
+      ],
+      "obligations": [
+        "fixtures",
+        "crud-lifecycle",
+        "live-state"
+      ],
+      "resourceEvidence": "references/drift-mapping.md:430-489"
+    }
+  ],
+  "boundedTaskFamilyAssessment": {
+    "responsibilityId": "bounded-v2-request-case-subtask",
+    "skillId": "declarative-api-task",
+    "familyMembership": "in-family",
+    "verifiability": "verifiable",
+    "constructibility": "constructible",
+    "sourceValidity": "unknown",
+    "dependencyClosure": "closed",
+    "currentSupport": "not-assessable",
+    "failureAttributions": [
+      "capability-missing"
+    ]
+  },
+  "wholeSkillCompleted": false,
+  "originalOutputConformance": "not-implemented-by-v2",
+  "tasks": [
+    {
+      "taskId": "onepassword-connect",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:07.324Z",
+        "bindingId": "onepassword-connect",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/onepassword-connect-manifest.json",
+            "sha256": "dc09c40d43a55f803a3d2a9b4e03a30ed6db11c3c9d3ba1fd73c04a345c58197"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+            "format": "yaml",
+            "bytes": 39524,
+            "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "8231794d7ba6e7901572f9261443e4641de2226deec11c53a15d840833d68eba"
+          },
+          "projectedInput": {
+            "path": "projected-input.json",
+            "sha256": "d403e13da3816ed703acb5002e71c9fd42340905e49fdcde913e12d0a4008bc0"
+          },
+          "artifactRoot": "artifact",
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 15,
+          "accepted": 5,
+          "rejected": 10,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 5
+        },
+        "documentDisposition": "partial",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 28,
+          "covered": 28,
+          "uncovered": 0,
+          "status": "pass"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 140,
+            "sourceBytesRead": 39524
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "cc04386db83d05b56cd976eff3816e7416b9f5c04c88887fdaa8f4a32d6cac9f"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 144
+    },
+    {
+      "taskId": "onepassword-partnership",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:07.441Z",
+        "bindingId": "onepassword-partnership",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/onepassword-partnership-manifest.json",
+            "sha256": "abf3cf5f2c7ea8101ef4cc7c89bae87994487fb24821d5e31689f4128a12f399"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+            "format": "yaml",
+            "bytes": 20013,
+            "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "fff1646165311b0390eb36fe04ab1cd31faea8ae22aa95d6266812151b59b543"
+          },
+          "projectedInput": {
+            "path": "projected-input.json",
+            "sha256": "b6779fca2dd104d972a4cfb4cd5685b77f57bab39a777bae9185a8ed7565a547"
+          },
+          "artifactRoot": "artifact",
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 4,
+          "accepted": 2,
+          "rejected": 2,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 2
+        },
+        "documentDisposition": "partial",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 13,
+          "covered": 13,
+          "uncovered": 0,
+          "status": "pass"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 111,
+            "sourceBytesRead": 20013
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "26a47787631e83e58fbc7ea2e430f70a9f1674bf27440f238179cee16b3ba3e2"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 116
+    },
+    {
+      "taskId": "adatree-banking",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:07.521Z",
+        "bindingId": "adatree-banking",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/adatree-banking-manifest.json",
+            "sha256": "bf1aadacff680a758e4c5d6a3040ed840aea703a6ddd48720a16bcdfca22ebb7"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/adatree-banking.yaml",
+            "format": "yaml",
+            "bytes": 149947,
+            "sha256": "0fe91ff690f5231c7e4625bfa6c1e43870a19e77674d80280f4738c2249e280d"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "9dda76ca21f6da19c1d4fdb892dba9c7d12724eb069dc7c6e50428d09ff8d6c6"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 17,
+          "accepted": 0,
+          "rejected": 17,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 76,
+            "sourceBytesRead": 149947
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "d12264edc3f1a7ff7d9aef9e1439d01e1b65c1e853ea96ca72d5ce3775ec7e18"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 80
+    },
+    {
+      "taskId": "adatree-consent",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:07.554Z",
+        "bindingId": "adatree-consent",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/adatree-consent-manifest.json",
+            "sha256": "942d612750c6b7c414912bdb30461df58cddd88bcfba1f5a90149e61931c57c0"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/adatree-consent.yaml",
+            "format": "yaml",
+            "bytes": 45166,
+            "sha256": "640bfc97dbde440a0a441d368484907e37a0d2259d26f9a9ec8237346b899aad"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "3915ac0d244c5bfdc040b24988ed65e75aa1d724e8392de43fc6def7f16c19ff"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 10,
+          "accepted": 0,
+          "rejected": 10,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 28,
+            "sourceBytesRead": 45166
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "47554c198e6220bc6a4fe1d70088399194ea9fe3137a7c872f223efbb4743744"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 32
+    },
+    {
+      "taskId": "brex-budgets",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:07.579Z",
+        "bindingId": "brex-budgets",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/brex-budgets-manifest.json",
+            "sha256": "9e0d39e2ebaf8aaf079d84eb8bfa49b3bc1fcd22ba28e0a6b914bab92bf79661"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/brex-budgets.yaml",
+            "format": "yaml",
+            "bytes": 28802,
+            "sha256": "7dcf663458f9707e4f16c04cc2854f871e7214173c54fc3004e5996ff631cb6a"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "b6011e80b04aa6ee3d07db011dcd5d08052f1a627849e6b1b470b96d2b05f220"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 10,
+          "accepted": 0,
+          "rejected": 10,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 22,
+            "sourceBytesRead": 28802
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "cabf09841e50bb744cba657bcbb6e35e192afdc80743198e4c838e35a8d30a08"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 26
+    },
+    {
+      "taskId": "brex-expenses",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:07.604Z",
+        "bindingId": "brex-expenses",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/brex-expenses-manifest.json",
+            "sha256": "5d71bca93f607c2739f6b86304e1cdeb6482247234bdfb5c3b173fe6853a2837"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/brex-expenses.yaml",
+            "format": "yaml",
+            "bytes": 25596,
+            "sha256": "6011402644e31cc057eeb35da72413624d97b5abdbf4e5b48328e8ffb0c23ab9"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "3d8834d9a54f86c573aa6fd75bf1f93e233efeeac3c6553e6283fab29a21f869"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 5,
+          "accepted": 0,
+          "rejected": 5,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 20,
+            "sourceBytesRead": 25596
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "d95ba92a71ea9e29ce836306c522962072064b1bfd2be2a3289f10f20b3a91aa"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 23
+    },
+    {
+      "taskId": "front-channel",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:07.617Z",
+        "bindingId": "front-channel",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/front-channel-manifest.json",
+            "sha256": "25297b992515cbd629bd9a370bd334b167868d5be996462ca93cbe60ab1920a7"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/front-channel.yaml",
+            "format": "yaml",
+            "bytes": 8869,
+            "sha256": "b9ba7715e4fe69188829ab44e292dc1288ae758a76ecf456e2ebd0b917ce1af7"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "bc8f924df33fce0106ae4b89b1443facb512263e3b5b849b798bcc9ea2e8ab24"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 3,
+          "accepted": 0,
+          "rejected": 3,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 9,
+            "sourceBytesRead": 8869
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "fd8d979c7ed60f1b286b781ecaf9914c165a267890754e419cfeef3eba08f6c3"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 13
+    },
+    {
+      "taskId": "front-core",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:08.504Z",
+        "bindingId": "front-core",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/front-core-manifest.json",
+            "sha256": "f9a1b2aa81a05a629f2c4fe43be597a72c29a48cef61f86dc94b1bb533e97487"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/front-core.yaml",
+            "format": "yaml",
+            "bytes": 314544,
+            "sha256": "0fbe44b7ff43c5ea8fc7f66517552c3276013e41d62ae3e5c81e594653b1dc7c"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "86ecbf0c51f63f77136021a09053fc47fb0844b7fff1a9bdf9c1be95fd2adb34"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 211,
+          "accepted": 0,
+          "rejected": 211,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 883,
+            "sourceBytesRead": 314544
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "6bb54956a61bfa73203973d5880774ab119e6c9204849b05cf56db8dbd9943b8"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 889
+    },
+    {
+      "taskId": "visier-authentication",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:08.516Z",
+        "bindingId": "visier-authentication",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/visier-authentication-manifest.json",
+            "sha256": "01780f2821a2061115a40333bb0f862673cfac6cecca28b236ef53a2f91a76f8"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/visier-authentication.yaml",
+            "format": "yaml",
+            "bytes": 4952,
+            "sha256": "115510705751fb468010bbcb501bcd2432bdd2179ad157de2a96ea606a327e8b"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "964b255371af69948805141de669346fb7d9f0f1d12b3918d08dd238d75d567e"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 2,
+          "accepted": 0,
+          "rejected": 2,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 5,
+            "sourceBytesRead": 4952
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "86d1f1fc205b8ed8d22a7ee89fc94f6a84a204f4a0857e1c01b80d56ce4eb491"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 8
+    },
+    {
+      "taskId": "visier-analytics",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:08.533Z",
+        "bindingId": "visier-analytics",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/visier-analytics-manifest.json",
+            "sha256": "deb0e8a171fd9652aba3253ed7c5385652f96c028c08f8cb017335892d3fe63b"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/visier-analytics.yaml",
+            "format": "yaml",
+            "bytes": 19918,
+            "sha256": "9720f1eb51ecbe80186f23c0176dd555f8416411405fc447554998bb5f89852c"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "3686ff78b09870e59ff7b534ea6be988e1b6fef8734b42697c484f19b8abb68e"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 10,
+          "accepted": 0,
+          "rejected": 10,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 13,
+            "sourceBytesRead": 19918
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "64cd338c19c5807cdbc0f2e8d77cbb2cc2680858e1945c31d4a2d6b926f5c108"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 16
+    },
+    {
+      "taskId": "zapier-actions",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:08.546Z",
+        "bindingId": "zapier-actions",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/zapier-actions-manifest.json",
+            "sha256": "dea6463cd2b5972156649ecd0cbe601ca2081e5159b12df4647b7a5fb34d48fb"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/zapier-actions.yaml",
+            "format": "yaml",
+            "bytes": 8946,
+            "sha256": "c760d964ed1c7253f6aef628cd318f16ba7f591446044e53831d4d54e15ffff5"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "536d7b02edb672138d5170b83b08f57fc04d3dc3d2b50fa44011632d0ddfeef3"
+          },
+          "projectedInput": null,
+          "artifactRoot": null,
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 5,
+          "accepted": 0,
+          "rejected": 5,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 0
+        },
+        "documentDisposition": "rejected",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 0,
+          "covered": 0,
+          "uncovered": 0,
+          "status": "not-applicable"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 8,
+            "sourceBytesRead": 8946
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "90244e07afe6bfb896cf50efbcb45a2d4342d17a4eb2b162aa176febeacb6940"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 11
+    },
+    {
+      "taskId": "zapier-embed",
+      "operationReport": {
+        "schemaVersion": "skill-ir-api-tester-operation-input-report/v1",
+        "identity": "skill-ir-api-tester-operation-input-development-001",
+        "status": "completed",
+        "completedAt": "2026-09-10T18:49:08.696Z",
+        "bindingId": "zapier-embed",
+        "supportContractId": "api-tester-openapi-subset-v2",
+        "inputs": {
+          "manifest": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/baseline-v2/pactflow/zapier-embed-manifest.json",
+            "sha256": "6b3808f1f3dd323e2811946ac912802c0eee3848fa5a2604ea756334e83eed04"
+          },
+          "input": {
+            "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/zapier-embed.yaml",
+            "format": "yaml",
+            "bytes": 92610,
+            "sha256": "d9843d7faf20929e3fb5fdfdab8de6111a7a3d41f39e01c4197bb3b2a4c3e603"
+          }
+        },
+        "outputs": {
+          "inventory": {
+            "path": "operation-inventory.json",
+            "sha256": "d60f856485918e2f7012be8cae59fb503195b7af0148057cba2d08bc71b6433a"
+          },
+          "projectedInput": {
+            "path": "projected-input.json",
+            "sha256": "72690916cafaa7658cf325e899c312aaddde6a1449fe400f5e68c4be4752b91b"
+          },
+          "artifactRoot": "artifact",
+          "outputManifest": {
+            "path": "output-manifest.json"
+          }
+        },
+        "totals": {
+          "operations": 11,
+          "accepted": 1,
+          "rejected": 10,
+          "unresolved": 0,
+          "artifactCheckedPassedOperations": 1
+        },
+        "documentDisposition": "partial",
+        "gates": {
+          "sourceCoverage": "pass",
+          "admissionConsistency": "pass",
+          "dependencyPreservation": "pass",
+          "artifactCorrectness": "pass",
+          "analysisExecution": "pass",
+          "implementationCorrectness": "pass",
+          "sourceCorrectness": "pass"
+        },
+        "sourceIssues": {
+          "blocking": 0,
+          "advisories": 0,
+          "blockingOperations": [],
+          "advisoryOperations": []
+        },
+        "obligationCoverage": {
+          "total": 8,
+          "covered": 8,
+          "uncovered": 0,
+          "status": "pass"
+        },
+        "accounting": {
+          "runtime": {
+            "modelCalls": 0,
+            "apiCalls": 0,
+            "paidCalls": 0,
+            "wallClockMillis": 147,
+            "sourceBytesRead": 92610
+          },
+          "developmentAgentUsage": "host-external-not-measured-by-runner",
+          "separate": true
+        },
+        "protectedBoundary": {
+          "frozenWholeDocumentRealAccepted": 0,
+          "changesFrozenHistory": false,
+          "prospectiveRuns": 0,
+          "heldOutAccesses": 0,
+          "readinessChanges": 0,
+          "claimsHumanSavings": false,
+          "claimsLiveApiBehavior": false
+        },
+        "claimBoundary": "This development-only ordinary-input entry verifies local operation enumeration, bounded v2 construction, and independent offline checking. Local operation success does not establish whole-document success, live API behavior, arbitrary OpenAPI support, human savings, ecosystem admission, prospective performance, or readiness.",
+        "portableSemanticSha256": "ee439a0f17f77581f39ecc6422e688cd8a5c9947c116306fcdaaeaf803477ca4"
+      },
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 153
+    }
+  ],
+  "accounting": {
+    "projectModelCalls": 0,
+    "paidCalls": 0,
+    "mappingAuthor": "development-agent",
+    "humanMinutes": null
+  }
+}

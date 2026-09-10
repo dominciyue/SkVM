@@ -1,0 +1,611 @@
+{
+  "inputId": "zapier-actions",
+  "report": {
+    "schemaVersion": "api-request-cases/v1",
+    "sourceSha256": "c760d964ed1c7253f6aef628cd318f16ba7f591446044e53831d4d54e15ffff5",
+    "sourceFormat": "yaml",
+    "enumerationComplete": true,
+    "enumerationIssues": [],
+    "operations": [
+      {
+        "key": "GET /api/v1/check",
+        "locator": "#/paths/~1api~1v1~1check/get",
+        "operationId": "Check_authTestGet",
+        "summary": "Check",
+        "projectedOperation": {
+          "tags": [
+            "Check"
+          ],
+          "summary": "Check",
+          "operationId": "Check_authTestGet",
+          "security": [
+            {
+              "SessionAuth": []
+            },
+            {
+              "AccessPointApiKeyHeader": []
+            },
+            {
+              "AccessPointApiKeyQuery": []
+            },
+            {
+              "AccessPointOAuth": []
+            }
+          ],
+          "description": "Test that the API and auth are working.",
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        },
+        "schemas": [],
+        "sourceAdvisories": [],
+        "issues": [],
+        "remainingObligations": [
+          "http-status-trigger-evidence",
+          "parameter-presence-and-serialization",
+          "credentials-and-live-auth",
+          "response-validation",
+          "business-lifecycle",
+          "requested-output-format",
+          "prose-only-constraints"
+        ]
+      },
+      {
+        "key": "GET /api/v1/configuration-link",
+        "locator": "#/paths/~1api~1v1~1configuration-link/get",
+        "operationId": "Configuration_getConfigurationLink",
+        "summary": "Get Configuration Link",
+        "projectedOperation": {
+          "tags": [
+            "Configuration"
+          ],
+          "summary": "Get Configuration Link",
+          "operationId": "Configuration_getConfigurationLink",
+          "security": [
+            {
+              "SessionAuth": []
+            },
+            {
+              "AccessPointApiKeyHeader": []
+            },
+            {
+              "AccessPointApiKeyQuery": []
+            },
+            {
+              "AccessPointOAuth": []
+            }
+          ],
+          "description": "Provides a link to configure more actions. Alternatively, searching through apps and actions will provide more specific configuration links.",
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        },
+        "schemas": [],
+        "sourceAdvisories": [],
+        "issues": [],
+        "remainingObligations": [
+          "http-status-trigger-evidence",
+          "parameter-presence-and-serialization",
+          "credentials-and-live-auth",
+          "response-validation",
+          "business-lifecycle",
+          "requested-output-format",
+          "prose-only-constraints"
+        ]
+      },
+      {
+        "key": "GET /api/v1/execution-log/{execution_log_id}",
+        "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get",
+        "operationId": "Log_getExecutionLog",
+        "summary": "Get Execution Log Endpoint",
+        "projectedOperation": {
+          "tags": [
+            "Log"
+          ],
+          "summary": "Get Execution Log Endpoint",
+          "operationId": "Log_getExecutionLog",
+          "security": [
+            {
+              "SessionAuth": []
+            },
+            {
+              "AccessPointApiKeyHeader": []
+            },
+            {
+              "AccessPointApiKeyQuery": []
+            },
+            {
+              "AccessPointOAuth": []
+            }
+          ],
+          "description": "Get the execution log for a given execution log id.",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "execution_log_id",
+              "schema": {
+                "title": "Execution Log Id",
+                "type": "string",
+                "pattern": "^[A-Z0-9]{26}$",
+                "example": "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+              },
+              "required": true,
+              "example": "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ExecuteResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "schemas": [
+          {
+            "id": "path:execution_log_id",
+            "location": "path",
+            "name": "execution_log_id",
+            "required": true,
+            "schema": {
+              "title": "Execution Log Id",
+              "type": "string",
+              "pattern": "^[A-Z0-9]{26}$",
+              "example": "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+            },
+            "cases": {
+              "schemaVersion": "api-schema-cases/v1",
+              "schemaSha256": "c7b802be6363050bdfb7752dc713d49ace4172e05ea092cdc01e0df30425bfe7",
+              "sourceIssues": [],
+              "cases": [
+                {
+                  "id": "#:valid-minimal",
+                  "kind": "valid-minimal",
+                  "instancePath": [],
+                  "schemaPath": "#",
+                  "keyword": null,
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                },
+                {
+                  "id": "#:valid-full",
+                  "kind": "valid-full",
+                  "instancePath": [],
+                  "schemaPath": "#",
+                  "keyword": null,
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                },
+                {
+                  "id": "#/type:wrong-type",
+                  "kind": "wrong-type",
+                  "instancePath": [],
+                  "schemaPath": "#/type",
+                  "keyword": "type",
+                  "operand": "string",
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": null
+                },
+                {
+                  "id": "#/pattern:pattern",
+                  "kind": "pattern",
+                  "instancePath": [],
+                  "schemaPath": "#/pattern",
+                  "keyword": "pattern",
+                  "operand": {
+                    "value": "^[A-Z0-9]{26}$",
+                    "exclusive": false
+                  },
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": ""
+                }
+              ]
+            }
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "remainingObligations": [
+          "http-status-trigger-evidence",
+          "parameter-presence-and-serialization",
+          "credentials-and-live-auth",
+          "response-validation",
+          "business-lifecycle",
+          "requested-output-format",
+          "prose-only-constraints"
+        ]
+      },
+      {
+        "key": "GET /api/v1/exposed",
+        "locator": "#/paths/~1api~1v1~1exposed/get",
+        "operationId": "Action_listExposedActions",
+        "summary": "List Exposed Actions",
+        "projectedOperation": {
+          "tags": [
+            "Action"
+          ],
+          "summary": "List Exposed Actions",
+          "operationId": "Action_listExposedActions",
+          "security": [
+            {
+              "SessionAuth": []
+            },
+            {
+              "AccessPointApiKeyHeader": []
+            },
+            {
+              "AccessPointApiKeyQuery": []
+            },
+            {
+              "AccessPointOAuth": []
+            }
+          ],
+          "description": "List all the currently exposed actions for the given account.",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ExposedActionResponseSchema"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "schemas": [],
+        "sourceAdvisories": [],
+        "issues": [],
+        "remainingObligations": [
+          "http-status-trigger-evidence",
+          "parameter-presence-and-serialization",
+          "credentials-and-live-auth",
+          "response-validation",
+          "business-lifecycle",
+          "requested-output-format",
+          "prose-only-constraints"
+        ]
+      },
+      {
+        "key": "POST /api/v1/exposed/{exposed_app_action_id}/execute",
+        "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post",
+        "operationId": "Action_executeAppAction",
+        "summary": "Execute App Action Endpoint",
+        "projectedOperation": {
+          "tags": [
+            "Action"
+          ],
+          "summary": "Execute App Action Endpoint",
+          "operationId": "Action_executeAppAction",
+          "security": [
+            {
+              "SessionAuth": []
+            },
+            {
+              "AccessPointApiKeyHeader": []
+            },
+            {
+              "AccessPointApiKeyQuery": []
+            },
+            {
+              "AccessPointOAuth": []
+            }
+          ],
+          "description": "Give us a plain english description of exact action you want to do. There should be dynamically generated documentation for this endpoint for each action that is exposed.",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "exposed_app_action_id",
+              "schema": {
+                "title": "Exposed App Action Id",
+                "type": "string",
+                "pattern": "^[A-Z0-9]{26}$",
+                "example": "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+              },
+              "required": true,
+              "example": "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecuteRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ExecuteResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "schemas": [
+          {
+            "id": "path:exposed_app_action_id",
+            "location": "path",
+            "name": "exposed_app_action_id",
+            "required": true,
+            "schema": {
+              "title": "Exposed App Action Id",
+              "type": "string",
+              "pattern": "^[A-Z0-9]{26}$",
+              "example": "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+            },
+            "cases": {
+              "schemaVersion": "api-schema-cases/v1",
+              "schemaSha256": "8b26d041d2791ad28dca69ed82efcfbd6ade38e3898ca04d58ffe70d66629f87",
+              "sourceIssues": [],
+              "cases": [
+                {
+                  "id": "#:valid-minimal",
+                  "kind": "valid-minimal",
+                  "instancePath": [],
+                  "schemaPath": "#",
+                  "keyword": null,
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                },
+                {
+                  "id": "#:valid-full",
+                  "kind": "valid-full",
+                  "instancePath": [],
+                  "schemaPath": "#",
+                  "keyword": null,
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                },
+                {
+                  "id": "#/type:wrong-type",
+                  "kind": "wrong-type",
+                  "instancePath": [],
+                  "schemaPath": "#/type",
+                  "keyword": "type",
+                  "operand": "string",
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": null
+                },
+                {
+                  "id": "#/pattern:pattern",
+                  "kind": "pattern",
+                  "instancePath": [],
+                  "schemaPath": "#/pattern",
+                  "keyword": "pattern",
+                  "operand": {
+                    "value": "^[A-Z0-9]{26}$",
+                    "exclusive": false
+                  },
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": ""
+                }
+              ]
+            }
+          },
+          {
+            "id": "body:application/json",
+            "location": "body",
+            "name": "application/json",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ExecuteRequest"
+            },
+            "cases": {
+              "schemaVersion": "api-schema-cases/v1",
+              "schemaSha256": "4fff7acadcdbb8113aa67da5b680ac4567d181c7b82d3f789a8ad847ce86a624",
+              "sourceIssues": [],
+              "cases": [
+                {
+                  "id": "#:valid-minimal",
+                  "kind": "valid-minimal",
+                  "instancePath": [],
+                  "schemaPath": "#",
+                  "keyword": null,
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": {
+                    "instructions": "example"
+                  }
+                },
+                {
+                  "id": "#:valid-full",
+                  "kind": "valid-full",
+                  "instancePath": [],
+                  "schemaPath": "#",
+                  "keyword": null,
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": {
+                    "instructions": "example",
+                    "preview_only": true
+                  }
+                },
+                {
+                  "id": "#/$ref/type:wrong-type",
+                  "kind": "wrong-type",
+                  "instancePath": [],
+                  "schemaPath": "#/$ref/type",
+                  "keyword": "type",
+                  "operand": "object",
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": null
+                },
+                {
+                  "id": "#/$ref/required/instructions:missing-required",
+                  "kind": "missing-required",
+                  "instancePath": [],
+                  "schemaPath": "#/$ref/required/instructions",
+                  "keyword": "required",
+                  "operand": "instructions",
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": {
+                    "preview_only": true
+                  }
+                },
+                {
+                  "id": "#/$ref/properties/instructions/type:wrong-type",
+                  "kind": "wrong-type",
+                  "instancePath": [
+                    "instructions"
+                  ],
+                  "schemaPath": "#/$ref/properties/instructions/type",
+                  "keyword": "type",
+                  "operand": "string",
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": {
+                    "instructions": null,
+                    "preview_only": true
+                  }
+                },
+                {
+                  "id": "#/$ref/properties/preview_only/type:wrong-type",
+                  "kind": "wrong-type",
+                  "instancePath": [
+                    "preview_only"
+                  ],
+                  "schemaPath": "#/$ref/properties/preview_only/type",
+                  "keyword": "type",
+                  "operand": "boolean",
+                  "status": "covered",
+                  "reason": null,
+                  "expectedHttpStatus": null,
+                  "value": {
+                    "instructions": "example",
+                    "preview_only": null
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "remainingObligations": [
+          "http-status-trigger-evidence",
+          "parameter-presence-and-serialization",
+          "credentials-and-live-auth",
+          "response-validation",
+          "business-lifecycle",
+          "requested-output-format",
+          "prose-only-constraints"
+        ]
+      }
+    ],
+    "accounting": {
+      "modelCalls": 0,
+      "paidCalls": 0
+    },
+    "wholeSkillCompleted": false
+  },
+  "verification": {
+    "status": "pass",
+    "errors": [],
+    "sourceOperations": 5,
+    "schemaCasesCovered": 14,
+    "schemaObligations": 14,
+    "operationChecks": [
+      {
+        "key": "GET /api/v1/check",
+        "schemas": 0,
+        "covered": 0,
+        "obligations": 0,
+        "allSchemaWitnessesAvailable": false,
+        "sourceAdvisories": []
+      },
+      {
+        "key": "GET /api/v1/configuration-link",
+        "schemas": 0,
+        "covered": 0,
+        "obligations": 0,
+        "allSchemaWitnessesAvailable": false,
+        "sourceAdvisories": []
+      },
+      {
+        "key": "GET /api/v1/execution-log/{execution_log_id}",
+        "schemas": 1,
+        "covered": 4,
+        "obligations": 4,
+        "allSchemaWitnessesAvailable": true,
+        "sourceAdvisories": []
+      },
+      {
+        "key": "GET /api/v1/exposed",
+        "schemas": 0,
+        "covered": 0,
+        "obligations": 0,
+        "allSchemaWitnessesAvailable": false,
+        "sourceAdvisories": []
+      },
+      {
+        "key": "POST /api/v1/exposed/{exposed_app_action_id}/execute",
+        "schemas": 2,
+        "covered": 10,
+        "obligations": 10,
+        "allSchemaWitnessesAvailable": true,
+        "sourceAdvisories": []
+      }
+    ]
+  }
+}

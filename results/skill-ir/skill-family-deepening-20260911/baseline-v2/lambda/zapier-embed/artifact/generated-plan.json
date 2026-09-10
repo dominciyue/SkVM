@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "api-test-plan/v2",
+  "source": "public-openapi",
+  "framework": "node:test",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/zap-runs",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-0-get-zap-runs-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "from_date": "0",
+              "limit": 1,
+              "offset": 1,
+              "search": "0",
+              "statuses": "delayed",
+              "to_date": "0",
+              "zap_id": "0"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-get-zap-runs-field-3-0-maxLength",
+          "category": "boundary",
+          "request": {
+            "query": {
+              "from_date": "0",
+              "limit": 1,
+              "offset": 1,
+              "search": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+              "statuses": "delayed",
+              "to_date": "0",
+              "zap_id": "0"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-get-zap-runs-field-4-0-enum",
+          "category": "boundary",
+          "request": {
+            "query": {
+              "from_date": "0",
+              "limit": 1,
+              "offset": 1,
+              "search": "0",
+              "statuses": "delayed",
+              "to_date": "0",
+              "zap_id": "0"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,609 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-input-inventory/v1",
+  "identity": "skill-ir-api-tester-operation-input-development-001",
+  "bindingId": "zapier-actions",
+  "source": {
+    "format": "yaml",
+    "bytes": 8946,
+    "sha256": "c760d964ed1c7253f6aef628cd318f16ba7f591446044e53831d4d54e15ffff5"
+  },
+  "enumeration": {
+    "complete": true,
+    "operations": [
+      {
+        "key": "GET /api/v1/check",
+        "method": "GET",
+        "path": "/api/v1/check",
+        "locator": "#/paths/~1api~1v1~1check/get",
+        "operationId": "Check_authTestGet",
+        "summary": "Check",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        },
+        "references": []
+      },
+      {
+        "key": "GET /api/v1/configuration-link",
+        "method": "GET",
+        "path": "/api/v1/configuration-link",
+        "locator": "#/paths/~1api~1v1~1configuration-link/get",
+        "operationId": "Configuration_getConfigurationLink",
+        "summary": "Get Configuration Link",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        },
+        "references": []
+      },
+      {
+        "key": "GET /api/v1/execution-log/{execution_log_id}",
+        "method": "GET",
+        "path": "/api/v1/execution-log/{execution_log_id}",
+        "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get",
+        "operationId": "Log_getExecutionLog",
+        "summary": "Get Execution Log Endpoint",
+        "parameters": [
+          {
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/parameters/0",
+            "origin": "operation",
+            "name": "execution_log_id",
+            "location": "path",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "400"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ExecuteResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/ExecuteResponse",
+            "constructionObligation": false
+          },
+          {
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/responses/400/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ErrorResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/ErrorResponse",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "GET /api/v1/exposed",
+        "method": "GET",
+        "path": "/api/v1/exposed",
+        "locator": "#/paths/~1api~1v1~1exposed/get",
+        "operationId": "Action_listExposedActions",
+        "summary": "List Exposed Actions",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1api~1v1~1exposed/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ExposedActionResponseSchema",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/ExposedActionResponseSchema",
+            "constructionObligation": false
+          }
+        ]
+      },
+      {
+        "key": "POST /api/v1/exposed/{exposed_app_action_id}/execute",
+        "method": "POST",
+        "path": "/api/v1/exposed/{exposed_app_action_id}/execute",
+        "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post",
+        "operationId": "Action_executeAppAction",
+        "summary": "Execute App Action Endpoint",
+        "parameters": [
+          {
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/parameters/0",
+            "origin": "operation",
+            "name": "exposed_app_action_id",
+            "location": "path",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "400"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        },
+        "references": [
+          {
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/requestBody/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ExecuteRequest",
+            "role": "request",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/ExecuteRequest",
+            "constructionObligation": true
+          },
+          {
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ExecuteResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/ExecuteResponse",
+            "constructionObligation": false
+          },
+          {
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/responses/400/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ErrorResponse",
+            "role": "response",
+            "resolution": "resolved",
+            "targetLocator": "#/components/schemas/ErrorResponse",
+            "constructionObligation": false
+          }
+        ]
+      }
+    ],
+    "unresolved": []
+  },
+  "operations": [
+    {
+      "source": {
+        "key": "GET /api/v1/check",
+        "locator": "#/paths/~1api~1v1~1check/get",
+        "operationId": "Check_authTestGet",
+        "summary": "Check",
+        "references": [],
+        "method": "GET",
+        "path": "/api/v1/check",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        }
+      },
+      "admission": {
+        "operationKey": "GET /api/v1/check",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SECURITY_REQUIREMENT",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1api~1v1~1check/get/security",
+            "message": "exactly one security requirement is supported"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SECURITY",
+          "message": "UNSUPPORTED_SECURITY: GET /api/v1/check supports one explicit security requirement",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /api/v1/configuration-link",
+        "locator": "#/paths/~1api~1v1~1configuration-link/get",
+        "operationId": "Configuration_getConfigurationLink",
+        "summary": "Get Configuration Link",
+        "references": [],
+        "method": "GET",
+        "path": "/api/v1/configuration-link",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        }
+      },
+      "admission": {
+        "operationKey": "GET /api/v1/configuration-link",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SECURITY_REQUIREMENT",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1api~1v1~1configuration-link/get/security",
+            "message": "exactly one security requirement is supported"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SECURITY",
+          "message": "UNSUPPORTED_SECURITY: GET /api/v1/configuration-link supports one explicit security requirement",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /api/v1/execution-log/{execution_log_id}",
+        "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get",
+        "operationId": "Log_getExecutionLog",
+        "summary": "Get Execution Log Endpoint",
+        "references": [
+          {
+            "resolution": "resolved",
+            "constructionObligation": false,
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ExecuteResponse",
+            "role": "response",
+            "targetLocator": "#/components/schemas/ExecuteResponse"
+          },
+          {
+            "resolution": "resolved",
+            "constructionObligation": false,
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/responses/400/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ErrorResponse",
+            "role": "response",
+            "targetLocator": "#/components/schemas/ErrorResponse"
+          }
+        ],
+        "method": "GET",
+        "path": "/api/v1/execution-log/{execution_log_id}",
+        "parameters": [
+          {
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/parameters/0",
+            "origin": "operation",
+            "name": "execution_log_id",
+            "location": "path",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "400"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        }
+      },
+      "admission": {
+        "operationKey": "GET /api/v1/execution-log/{execution_log_id}",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SCHEMA_PATTERN",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/parameters/0/schema/pattern",
+            "message": "schema keyword pattern is outside the public construction contract"
+          },
+          {
+            "code": "UNSUPPORTED_SECURITY_REQUIREMENT",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/security",
+            "message": "exactly one security requirement is supported"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SCHEMA",
+          "message": "UNSUPPORTED_SCHEMA: path:execution_log_id uses unsupported schema keys: pattern",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "GET /api/v1/exposed",
+        "locator": "#/paths/~1api~1v1~1exposed/get",
+        "operationId": "Action_listExposedActions",
+        "summary": "List Exposed Actions",
+        "references": [
+          {
+            "resolution": "resolved",
+            "constructionObligation": false,
+            "locator": "#/paths/~1api~1v1~1exposed/get/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ExposedActionResponseSchema",
+            "role": "response",
+            "targetLocator": "#/components/schemas/ExposedActionResponseSchema"
+          }
+        ],
+        "method": "GET",
+        "path": "/api/v1/exposed",
+        "parameters": [],
+        "request": {
+          "present": false,
+          "required": null,
+          "mediaTypes": []
+        },
+        "responses": {
+          "statuses": [
+            "200"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        }
+      },
+      "admission": {
+        "operationKey": "GET /api/v1/exposed",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SECURITY_REQUIREMENT",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1api~1v1~1exposed/get/security",
+            "message": "exactly one security requirement is supported"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SECURITY",
+          "message": "UNSUPPORTED_SECURITY: GET /api/v1/exposed supports one explicit security requirement",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    },
+    {
+      "source": {
+        "key": "POST /api/v1/exposed/{exposed_app_action_id}/execute",
+        "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post",
+        "operationId": "Action_executeAppAction",
+        "summary": "Execute App Action Endpoint",
+        "references": [
+          {
+            "resolution": "resolved",
+            "constructionObligation": true,
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/requestBody/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ExecuteRequest",
+            "role": "request",
+            "targetLocator": "#/components/schemas/ExecuteRequest"
+          },
+          {
+            "resolution": "resolved",
+            "constructionObligation": false,
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/responses/200/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ExecuteResponse",
+            "role": "response",
+            "targetLocator": "#/components/schemas/ExecuteResponse"
+          },
+          {
+            "resolution": "resolved",
+            "constructionObligation": false,
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/responses/400/content/application~1json/schema/$ref",
+            "ref": "#/components/schemas/ErrorResponse",
+            "role": "response",
+            "targetLocator": "#/components/schemas/ErrorResponse"
+          }
+        ],
+        "method": "POST",
+        "path": "/api/v1/exposed/{exposed_app_action_id}/execute",
+        "parameters": [
+          {
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/parameters/0",
+            "origin": "operation",
+            "name": "exposed_app_action_id",
+            "location": "path",
+            "required": true,
+            "reference": null,
+            "overridesLocator": null
+          }
+        ],
+        "request": {
+          "present": true,
+          "required": true,
+          "mediaTypes": [
+            "application/json"
+          ]
+        },
+        "responses": {
+          "statuses": [
+            "200",
+            "400"
+          ]
+        },
+        "security": {
+          "source": "operation",
+          "schemeNames": [
+            "AccessPointApiKeyHeader",
+            "AccessPointApiKeyQuery",
+            "AccessPointOAuth",
+            "SessionAuth"
+          ]
+        }
+      },
+      "admission": {
+        "operationKey": "POST /api/v1/exposed/{exposed_app_action_id}/execute",
+        "status": "rejected",
+        "findings": [
+          {
+            "code": "UNSUPPORTED_SCHEMA_PATTERN",
+            "category": "missing-public-construction-evidence",
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/parameters/0/schema/pattern",
+            "message": "schema keyword pattern is outside the public construction contract"
+          },
+          {
+            "code": "UNSUPPORTED_SECURITY_REQUIREMENT",
+            "category": "semantics-not-preserved",
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/security",
+            "message": "exactly one security requirement is supported"
+          }
+        ],
+        "firstObservedRejection": {
+          "code": "UNSUPPORTED_SCHEMA",
+          "message": "UNSUPPORTED_SCHEMA: path:exposed_app_action_id uses unsupported schema keys: pattern",
+          "completeGapSet": false
+        },
+        "normalizedOperation": null
+      }
+    }
+  ],
+  "admissionConsistency": {
+    "status": "pass",
+    "errors": []
+  },
+  "dependencyVerification": [],
+  "coverage": {
+    "status": "pass",
+    "errors": [],
+    "sourceOperationCount": 5,
+    "acceptedOperationCount": 0,
+    "checks": {
+      "sourceEnumerationComplete": true,
+      "analyzerExactCoverage": true,
+      "sourceMetadataMatch": true,
+      "projectionExactAcceptedCoverage": true,
+      "contractExactAcceptedCoverage": true,
+      "artifactExactAcceptedCoverage": true
+    },
+    "unresolved": []
+  },
+  "sourceIssues": {
+    "blocking": 0,
+    "advisories": 0,
+    "blockingOperations": [],
+    "advisoryOperations": []
+  },
+  "artifact": {
+    "status": "not-run",
+    "acceptedOperationCount": 0,
+    "checkedOperationCount": 0,
+    "root": null,
+    "runReport": null,
+    "packageManifest": null,
+    "projectedInput": null,
+    "generatedPlan": null,
+    "generatedReport": null,
+    "validationReport": null,
+    "error": null
+  }
+}
