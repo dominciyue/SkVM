@@ -58,3 +58,28 @@ test("unmodeled keyword and dictionary obligations cannot claim complete enumera
     expect(report.sourceIssues.length).toBeGreaterThan(0);
   }
 });
+
+test("negative coverage cannot use an error from a different composition branch", () => {
+  const source = { type: "string", allOf: [{ minLength: 2 }, { minLength: 5 }] };
+  const report = constructSchemaCases({}, source);
+  const target = report.cases.find((c) => c.schemaPath === "#/allOf/0/minLength")!;
+  expect(target.status).toBe("covered");
+  target.value = "four"; // violates branch 1, not the claimed branch 0.
+  delete (target as any).validationSchemaPath; // legacy envelope cannot bypass exact source matching.
+  expect(verifySchemaCases({}, source, report).errors).toContain("CASE_EXPECTATION_MISMATCH");
+});
+
+test("required-field identity and referenced escaped schema locations are preserved", () => {
+  const source = { type: "object", required: ["left", "right"], properties: {
+    left: { type: "string" }, right: { type: "string" },
+    "a/b~c": { $ref: "#/components/schemas/Number" },
+  } };
+  const document = { components: { schemas: { Number: { type: "number", minimum: 3, exclusiveMinimum: true } } } };
+  const report = constructSchemaCases(document, source);
+  expect(verifySchemaCases(document, source, report).status).toBe("pass");
+  const constraint = report.cases.find((c) => c.kind === "minimum")!;
+  expect(constraint.validationSchemaPath).toBe("#/properties/a~1b~0c/exclusiveMinimum");
+  expect(constraint.status).toBe("covered");
+  report.cases.find((c) => c.kind === "missing-required" && c.operand === "left")!.value = { left: "present" };
+  expect(verifySchemaCases(document, source, report).errors).toContain("CASE_EXPECTATION_MISMATCH");
+});

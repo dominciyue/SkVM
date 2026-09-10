@@ -125,3 +125,23 @@ annotations and per-value checks remain fresh. See
 [cache design and evidence](api-schema-compile-cache-development.md). All twelve
 new-member semantic reports equal the archived pre-cache first run; full source duties
 remain incomplete.
+
+### Post-D7 correction: exact negative constraint identity
+
+An injected `allOf: [{minLength:2},{minLength:5}]` case with value `four`
+was incorrectly counted as violating the first branch: the old generator/checker
+matched only keyword and instance location. The observed RED returned no errors.
+Required properties in a shared required array had the analogous identity risk.
+
+Revision: independently enumerate the adapted validation schema path alongside the
+original source locator, preserving composition indices, escaped property names and
+reference inlining. Negative coverage now requires keyword + instancePath + exact
+schemaPath; required errors additionally match Ajv's missingProperty. Ajv error params
+are copied per invocation. No source predicate or expected HTTP status is relaxed.
+`validationSchemaPath` is additive v1 diagnostic metadata. Old artifacts may omit it:
+verification still computes the exact path from original input, never trusts the omission
+or an artifact-supplied target. A present mismatching field fails binding.
+
+First-run/D8 reports are retained as pre-correction evidence, not retrospectively
+overwritten. Recheck their actual cases under the corrected oracle before citing
+constraint-specific coverage. This is a correctness repair, not a new unseen test.

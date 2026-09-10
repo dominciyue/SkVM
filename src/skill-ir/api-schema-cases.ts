@@ -61,7 +61,9 @@ export function constructSchemaCases(document: unknown, schema: unknown): Schema
       const pointer = obligationInstancePointer(obligation.instancePath);
       for (const value of mutations(full.value, obligation)) {
         const result = check(value);
-        if (result.valid === false && result.errors.some((e) => e.keyword === obligation.keyword && e.instancePath === pointer)) {
+        if (result.valid === false && result.errors.some((e) => e.keyword === obligation.keyword && e.instancePath === pointer
+          && e.schemaPath === obligation.validationSchemaPath
+          && (obligation.kind !== "missing-required" || e.params.missingProperty === obligation.operand))) {
           row.status = "covered"; row.value = value; break;
         }
       }

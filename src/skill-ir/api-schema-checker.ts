@@ -29,7 +29,7 @@ function safePattern(pattern: unknown): boolean {
 }
 
 export type SchemaValueCheck = { status: "checked" | "unsupported" | "invalid-schema"; valid: boolean | null;
-  errors: Array<{ keyword: string; instancePath: string; schemaPath: string; message: string }>; annotationsNotValidated: string[] };
+  errors: Array<{ keyword: string; instancePath: string; schemaPath: string; message: string; params: Record<string, unknown> }>; annotationsNotValidated: string[] };
 
 /** Independent of all witness/case generation. Never receives the generator's normalized schema. */
 export function createSchemaChecker(document: unknown, schema: unknown): (value: unknown) => SchemaValueCheck {
@@ -123,12 +123,12 @@ export function createSchemaChecker(document: unknown, schema: unknown): (value:
     return (value) => {
       const valid = check(value) as boolean;
       return { status: "checked", valid, errors: (check.errors ?? []).map((e: ErrorObject) => ({ keyword: e.keyword,
-        instancePath: e.instancePath, schemaPath: e.schemaPath, message: e.message ?? "schema violation" })), annotationsNotValidated: [...notes].sort() };
+        instancePath: e.instancePath, schemaPath: e.schemaPath, message: e.message ?? "schema violation", params: structuredClone(e.params) })), annotationsNotValidated: [...notes].sort() };
     };
   } catch (error) {
     const message = String(error);
     return () => ({ status: message.includes("unsupported:") ? "unsupported" : "invalid-schema", valid: null,
-      errors: [{ keyword: "schema", instancePath: "", schemaPath: "#", message }], annotationsNotValidated: [...notes].sort() });
+      errors: [{ keyword: "schema", instancePath: "", schemaPath: "#", message, params: {} }], annotationsNotValidated: [...notes].sort() });
   }
 }
 

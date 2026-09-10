@@ -20,6 +20,9 @@ export function verifySchemaCases(document: unknown, schema: unknown, report: Sc
     const row = report.cases.find((c) => c.id === obligation.id);
     if (!row) continue;
     for (const key of ["kind", "instancePath", "schemaPath", "keyword", "operand"] as const) if (JSON.stringify(row[key]) !== JSON.stringify(obligation[key])) errors.add("OBLIGATION_BINDING_MISMATCH");
+    // Older v1 artifacts omit this additive diagnostic. The check below always uses
+    // the independently source-derived path, including when the artifact omits it.
+    if (row.validationSchemaPath !== undefined && row.validationSchemaPath !== obligation.validationSchemaPath) errors.add("OBLIGATION_BINDING_MISMATCH");
     if (row.expectedHttpStatus !== null) errors.add("UNPROVEN_HTTP_STATUS");
     if (row.status !== "covered") {
       if (!row.reason) errors.add("UNEXPLAINED_UNCOVERED_OBLIGATION");
@@ -29,7 +32,9 @@ export function verifySchemaCases(document: unknown, schema: unknown, report: Sc
     const result = check(row.value);
     const positive = obligation.kind.startsWith("valid-");
     const target = obligationInstancePointer(obligation.instancePath);
-    const correctlyRejected = result.errors.some((e) => e.keyword === obligation.keyword && e.instancePath === target);
+    const correctlyRejected = result.errors.some((e) => e.keyword === obligation.keyword && e.instancePath === target
+      && e.schemaPath === obligation.validationSchemaPath
+      && (obligation.kind !== "missing-required" || e.params.missingProperty === obligation.operand));
     const correctShape = !positive || checkSchemaWitnessShape(document, schema, row.value, obligation.kind === "valid-full" ? "full" : "minimal");
     if (result.status !== "checked" || !correctShape || (positive ? !result.valid : result.valid !== false || !correctlyRejected)) errors.add("CASE_EXPECTATION_MISMATCH");
   }
