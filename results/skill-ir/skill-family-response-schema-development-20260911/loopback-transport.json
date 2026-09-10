@@ -1,0 +1,1210 @@
+{
+  "exposure": "synthetic-loopback-development",
+  "source": "{\"openapi\":\"3.0.3\",\"info\":{\"title\":\"Synthetic loopback only\",\"version\":\"1\"},\"paths\":{\"/items/{id}\":{\"post\":{\"parameters\":[{\"in\":\"path\",\"name\":\"id\",\"required\":true,\"schema\":{\"type\":\"string\",\"enum\":[\"a/b\"]}},{\"in\":\"query\",\"name\":\"q\",\"required\":true,\"schema\":{\"type\":\"string\",\"enum\":[\"a&b\"]}},{\"in\":\"query\",\"name\":\"tags\",\"required\":true,\"style\":\"form\",\"explode\":true,\"schema\":{\"type\":\"array\",\"minItems\":2,\"maxItems\":2,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"enum\":[\"a,b\",\"x y\"]}}},{\"in\":\"header\",\"name\":\"X-Mode\",\"required\":true,\"schema\":{\"type\":\"string\",\"enum\":[\"fixed\"]}}],\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\",\"count\"],\"additionalProperties\":false,\"properties\":{\"name\":{\"type\":\"string\",\"enum\":[\"item\"]},\"count\":{\"type\":\"integer\",\"minimum\":2,\"maximum\":4}}}}}},\"responses\":{\"200\":{\"description\":\"Fixture valid body\",\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"ok\",\"id\"],\"additionalProperties\":false,\"properties\":{\"ok\":{\"type\":\"boolean\",\"enum\":[true]},\"id\":{\"type\":\"integer\",\"readOnly\":true}}}}}},\"409\":{\"description\":\"Explicit fixture rule\",\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"error\"],\"additionalProperties\":false,\"properties\":{\"error\":{\"type\":\"string\",\"enum\":[\"wire-mismatch\"]}}}}}},\"422\":{\"description\":\"Explicit fixture rule\",\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"error\"],\"additionalProperties\":false,\"properties\":{\"error\":{\"type\":\"string\",\"enum\":[\"invalid-body\"]}}}}}}}}}}}",
+  "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+  "constructionCheck": {
+    "status": "pass",
+    "errors": [],
+    "obligations": 9,
+    "constructed": 9,
+    "unresolved": 0
+  },
+  "unresolvedNegatives": [],
+  "rows": [
+    {
+      "id": "positive",
+      "kind": "positive",
+      "expectedStatus": 200,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": 2,
+            "name": "item"
+          },
+          "text": "{\"count\":2,\"name\":\"item\"}"
+        }
+      },
+      "actualStatus": 200,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":2,\"name\":\"item\"}",
+        "wireOkay": true,
+        "bodyOkay": true,
+        "status": 200
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "1d6dcc7ed08b9bece0aaf50d237d80a0cf9244afb7a76eebefd59ad3b856a4d5",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "200",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"ok\":true,\"id\":7}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/type:wrong-type\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": null,
+          "text": "null"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "null",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/required/name:missing-required\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": 2
+          },
+          "text": "{\"count\":2}"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":2}",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/required/count:missing-required\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "name": "item"
+          },
+          "text": "{\"name\":\"item\"}"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"name\":\"item\"}",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/additionalProperties:additionalProperties\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": 2,
+            "name": "item",
+            "__unexpected_property__": true
+          },
+          "text": "{\"count\":2,\"name\":\"item\",\"__unexpected_property__\":true}"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":2,\"name\":\"item\",\"__unexpected_property__\":true}",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/properties/name/type:wrong-type\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": 2,
+            "name": null
+          },
+          "text": "{\"count\":2,\"name\":null}"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":2,\"name\":null}",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/properties/name/enum:enum\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": 2,
+            "name": "__outside_enum__"
+          },
+          "text": "{\"count\":2,\"name\":\"__outside_enum__\"}"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":2,\"name\":\"__outside_enum__\"}",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/properties/count/type:wrong-type\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": null,
+            "name": "item"
+          },
+          "text": "{\"count\":null,\"name\":\"item\"}"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":null,\"name\":\"item\"}",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/properties/count/minimum:minimum\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": 1,
+            "name": "item"
+          },
+          "text": "{\"count\":1,\"name\":\"item\"}"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":1,\"name\":\"item\"}",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "[\"body:application/json\",\"#/properties/count/maximum:maximum\"]",
+      "kind": "body-negative",
+      "expectedStatus": 422,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a%26b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": 5,
+            "name": "item"
+          },
+          "text": "{\"count\":5,\"name\":\"item\"}"
+        }
+      },
+      "actualStatus": 422,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a&b"
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":5,\"name\":\"item\"}",
+        "wireOkay": true,
+        "bodyOkay": false,
+        "status": 422
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "7f4aaa5569c2f66c59fb67c430cbbbaffdb2e0bd3c0746f6bc0725d68da4e0b2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "422",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"invalid-body\"}"
+    },
+    {
+      "id": "corrupted-query",
+      "kind": "intentional-wire-corruption",
+      "expectedStatus": 409,
+      "request": {
+        "method": "POST",
+        "target": "/items/a%2Fb?q=a&b&tags=a%2Cb&tags=x%20y",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "x-mode",
+            "value": "fixed"
+          }
+        ],
+        "parameters": [
+          {
+            "id": "header:X-Mode",
+            "value": "fixed",
+            "wire": "fixed"
+          },
+          {
+            "id": "path:id",
+            "value": "a/b",
+            "wire": "a%2Fb"
+          },
+          {
+            "id": "query:q",
+            "value": "a&b",
+            "wire": "q=a%26b"
+          },
+          {
+            "id": "query:tags",
+            "value": [
+              "a,b",
+              "x y"
+            ],
+            "wire": "tags=a%2Cb&tags=x%20y"
+          }
+        ],
+        "body": {
+          "mediaType": "application/json",
+          "value": {
+            "count": 2,
+            "name": "item"
+          },
+          "text": "{\"count\":2,\"name\":\"item\"}"
+        }
+      },
+      "actualStatus": 409,
+      "status": "pass",
+      "received": {
+        "pathname": "/items/a%2Fb",
+        "query": [
+          [
+            "q",
+            "a"
+          ],
+          [
+            "b",
+            ""
+          ],
+          [
+            "tags",
+            "a,b"
+          ],
+          [
+            "tags",
+            "x y"
+          ]
+        ],
+        "mode": "fixed",
+        "bodyText": "{\"count\":2,\"name\":\"item\"}",
+        "wireOkay": false,
+        "bodyOkay": true,
+        "status": 409
+      },
+      "responseCheck": {
+        "sourceSha256": "d0fa5917db93f721a91a2ee5b1347e13d81ef09be7f0e77838cee8c41258df28",
+        "sourceFormat": "json",
+        "observationSha256": "52f560234108f8f0774727749e88315e5ad57a60115a697eb68a6671f666edf2",
+        "status": "checked",
+        "valid": true,
+        "responseKey": "409",
+        "mediaKey": "application/json",
+        "sourceEnumerationComplete": true,
+        "schemaCheck": {
+          "status": "checked",
+          "valid": true,
+          "errors": [],
+          "annotationsNotValidated": []
+        },
+        "errors": [],
+        "statusTriggerVerified": false,
+        "wholeSkillCompleted": false,
+        "remainingObligations": [
+          "response-headers",
+          "content-encoding",
+          "bodyless-responses",
+          "business-state-and-status-trigger",
+          "live-observation-provenance",
+          "credentials-and-auth",
+          "native-output-format"
+        ]
+      },
+      "responseBody": "{\"error\":\"wire-mismatch\"}"
+    }
+  ],
+  "loopbackHttpCalls": 11,
+  "remoteHttpCalls": 0,
+  "projectModelCalls": 0,
+  "paidCalls": 0,
+  "independentRealSamples": 0,
+  "statusBasis": "Independent hand-coded synthetic fixture, not inferred real API behavior",
+  "runtime": {
+    "bun": "1.3.14",
+    "nodeCompatibility": "v24.3.0"
+  },
+  "sourceBindings": [
+    {
+      "path": "scripts/skill-ir/api-loopback-transport.ts",
+      "sha256": "ed552efeee781bce0f07bf9b9f691a8bc9f6ed9c5551be82750b3096dbf53412"
+    },
+    {
+      "path": "src/skill-ir/api-request-body-negatives.ts",
+      "sha256": "dec73e9b38d5a022fcda5a618068702d378de9120ff4879934c52b6515588f71"
+    },
+    {
+      "path": "src/skill-ir/api-request-body-negatives-checker.ts",
+      "sha256": "01e86f767ee211f72a437a6d8aca68567b35e8ddf16a1d92240eff134fe634dc"
+    },
+    {
+      "path": "src/skill-ir/api-request-specimens.ts",
+      "sha256": "2a8092aa998ee4ba94551f8c123c06b8927e1dce0134853e0015cb1b3f57f1e0"
+    },
+    {
+      "path": "src/skill-ir/api-response-observation.ts",
+      "sha256": "1b7d415661d96f9be7086760821761e5b37d0382068e2001e6926c651b50bb7d"
+    },
+    {
+      "path": "src/skill-ir/api-schema-checker.ts",
+      "sha256": "366324aff9fd9bd7669e61f165cf4fbba85eb1b39be662f1d172b472b0363c26"
+    },
+    {
+      "path": "bun.lock",
+      "sha256": "1574eee04241e492f4ac3eca0d9e081701be0c4ac0da521bb03e6b408e10f306"
+    }
+  ]
+}
