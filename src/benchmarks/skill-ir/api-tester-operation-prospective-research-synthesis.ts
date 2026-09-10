@@ -29,6 +29,10 @@ export const API_TESTER_OPERATION_RESEARCH_SYNTHESIS_REPORT_SCHEMA_VERSION =
 
 const Sha1Schema = z.string().regex(/^[0-9a-f]{40}$/u);
 const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/u);
+const SYNTHESIS_IMPLEMENTATION_PATHS = [
+  "src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.ts",
+  "src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.test.ts",
+] as const;
 
 export const API_TESTER_OPERATION_RESEARCH_SYNTHESIS_EVIDENCE = [
   { id: "candidate-binding", path: "benchmarks/skill-ir/classification/api-tester-operation-candidate-binding-v1.json", sha256: "9fc91113f90e811d419e689d03e32c1178a6e0c29fcdc636c6cb5a13fe25c211", commit: "13c5d792b6d1289b2418c3c5a051c047df6a5344" },
@@ -74,6 +78,7 @@ export const ApiTesterOperationResearchSynthesisReportSchema = z.object({
   branch: z.literal("api-tester-operation-unseen-prospective-001"),
   baselineCommit: z.literal("47efb148fb98288c173493c95582ed47d4fbdd3d"),
   implementationCommit: Sha1Schema,
+  implementationFiles: z.array(z.object({ path: z.enum(SYNTHESIS_IMPLEMENTATION_PATHS), sha256: Sha256Schema }).strict()).length(SYNTHESIS_IMPLEMENTATION_PATHS.length),
   evidence: z.array(EvidenceBindingSchema).length(API_TESTER_OPERATION_RESEARCH_SYNTHESIS_EVIDENCE.length),
   tasks: z.array(TaskSchema).length(10),
   taskTotals: z.object({ total: z.literal(10), completed: z.number().int().nonnegative(), closedTerminalFailure: z.number().int().nonnegative(), notRunBlocked: z.number().int().nonnegative(), allCompletionGatesClosed: z.literal(false) }).strict(),
@@ -140,30 +145,56 @@ function sha256(bytes: Uint8Array | string): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+export type ApiTesterOperationResearchSynthesisCommittedBlobReader = (commit: string, path: string) => Promise<Uint8Array>;
+
+function gitBlobReader(rootDir: string, gitExecutable: string): ApiTesterOperationResearchSynthesisCommittedBlobReader {
+  return async (commit, path) => {
+    const child = Bun.spawn([
+      gitExecutable,
+      "-c",
+      `safe.directory=${rootDir.replaceAll("\\", "/")}`,
+      "show",
+      `${commit}:${path}`,
+    ], { cwd: rootDir, stdout: "pipe", stderr: "pipe" });
+    const [exitCode, stdout, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).arrayBuffer(),
+      new Response(child.stderr).text(),
+    ]);
+    if (exitCode !== 0) throw new Error(`committed evidence unavailable: ${commit}:${path}: ${stderr.trim()}`);
+    return new Uint8Array(stdout);
+  };
+}
+
 export function apiTesterOperationResearchSynthesisPortableSha256(report: Record<string, unknown>): string {
   const { completedAt: _completedAt, portableSemanticSha256: _portable, ...semantic } = report;
   return sha256(JSON.stringify(canonical(semantic)));
 }
 
-async function readEvidence<T>(rootDir: string, id: typeof API_TESTER_OPERATION_RESEARCH_SYNTHESIS_EVIDENCE[number]["id"], schema: z.ZodType<T>): Promise<T> {
+async function readEvidence<T>(rootDir: string, id: typeof API_TESTER_OPERATION_RESEARCH_SYNTHESIS_EVIDENCE[number]["id"], schema: z.ZodType<T>, readCommittedBlob: ApiTesterOperationResearchSynthesisCommittedBlobReader): Promise<T> {
   const binding = API_TESTER_OPERATION_RESEARCH_SYNTHESIS_EVIDENCE.find((entry) => entry.id === id)!;
   const bytes = await readFile(await resolveContainedExistingFile(rootDir, binding.path, `synthesis evidence ${id}`));
   if (sha256(bytes) !== binding.sha256) throw new Error(`synthesis evidence digest drift: ${id}`);
+  const committedBytes = await readCommittedBlob(binding.commit, binding.path);
+  if (sha256(committedBytes) !== binding.sha256) throw new Error(`synthesis committed evidence provenance drift: ${id}`);
   return schema.parse(JSON.parse(bytes.toString("utf8")));
 }
 
-async function deriveReport(options: { rootDir: string; completedAt: string; implementationCommit: string }): Promise<ApiTesterOperationResearchSynthesisReport> {
+async function deriveReport(options: { rootDir: string; completedAt: string; implementationCommit: string; readCommittedBlob: ApiTesterOperationResearchSynthesisCommittedBlobReader }): Promise<ApiTesterOperationResearchSynthesisReport> {
   const rootDir = resolve(options.rootDir);
   const implementationCommit = Sha1Schema.parse(options.implementationCommit);
-  const candidate = await readEvidence(rootDir, "candidate-binding", ApiTesterOperationCandidateBindingSchema);
-  const operation = await readEvidence(rootDir, "operation-development", ApiTesterOperationDevelopmentReportSchema);
-  const synthetic = await readEvidence(rootDir, "prospective-synthetic-validation", ApiTesterOperationSyntheticValidationReportSchema);
-  const freeze = await readEvidence(rootDir, "prospective-pre-source-freeze", ApiTesterOperationProspectivePreSourceFreezeSchema);
-  const sourceFailure = await readEvidence(rootDir, "prospective-source-failure", ApiTesterOperationSourceFailureAuditSchema);
-  const family = await readEvidence(rootDir, "family-report", PublicStructureOfflineFamilyReportSchema);
-  const corpusFailure = await readEvidence(rootDir, "public-skill-metadata-failure", PublicSkillMetadataFailureAuditSchema);
-  const mechanism = await readEvidence(rootDir, "mechanism-ablation", ApiTesterOperationMechanismAblationReportSchema);
-  const readiness = await readEvidence(rootDir, "readiness", AuthoritativeAutomationReadinessV7Schema);
+  const baselineAnchor = await options.readCommittedBlob("47efb148fb98288c173493c95582ed47d4fbdd3d", "package.json");
+  if (baselineAnchor.byteLength === 0) throw new Error("synthesis baseline commit provenance drift");
+  const implementationFiles = await Promise.all(SYNTHESIS_IMPLEMENTATION_PATHS.map(async (path) => ({ path, sha256: sha256(await options.readCommittedBlob(implementationCommit, path)) })));
+  const candidate = await readEvidence(rootDir, "candidate-binding", ApiTesterOperationCandidateBindingSchema, options.readCommittedBlob);
+  const operation = await readEvidence(rootDir, "operation-development", ApiTesterOperationDevelopmentReportSchema, options.readCommittedBlob);
+  const synthetic = await readEvidence(rootDir, "prospective-synthetic-validation", ApiTesterOperationSyntheticValidationReportSchema, options.readCommittedBlob);
+  const freeze = await readEvidence(rootDir, "prospective-pre-source-freeze", ApiTesterOperationProspectivePreSourceFreezeSchema, options.readCommittedBlob);
+  const sourceFailure = await readEvidence(rootDir, "prospective-source-failure", ApiTesterOperationSourceFailureAuditSchema, options.readCommittedBlob);
+  const family = await readEvidence(rootDir, "family-report", PublicStructureOfflineFamilyReportSchema, options.readCommittedBlob);
+  const corpusFailure = await readEvidence(rootDir, "public-skill-metadata-failure", PublicSkillMetadataFailureAuditSchema, options.readCommittedBlob);
+  const mechanism = await readEvidence(rootDir, "mechanism-ablation", ApiTesterOperationMechanismAblationReportSchema, options.readCommittedBlob);
+  const readiness = await readEvidence(rootDir, "readiness", AuthoritativeAutomationReadinessV7Schema, options.readCommittedBlob);
 
   if (candidate.productionDependencies.localRuntimeModules.length !== 11 || candidate.productionDependencies.unresolvedImports.length !== 0
     || candidate.addedRuntimeDependencies.length !== 2 || candidate.prospective.prospectiveRuns !== 0) throw new Error("candidate closure summary drift");
@@ -198,6 +229,7 @@ async function deriveReport(options: { rootDir: string; completedAt: string; imp
     branch: "api-tester-operation-unseen-prospective-001" as const,
     baselineCommit: "47efb148fb98288c173493c95582ed47d4fbdd3d" as const,
     implementationCommit,
+    implementationFiles,
     evidence: API_TESTER_OPERATION_RESEARCH_SYNTHESIS_EVIDENCE,
     tasks,
     taskTotals: { total: 10 as const, completed, closedTerminalFailure, notRunBlocked, allCompletionGatesClosed: false as const },
@@ -271,29 +303,29 @@ async function deriveReport(options: { rootDir: string; completedAt: string; imp
   return ApiTesterOperationResearchSynthesisReportSchema.parse(report);
 }
 
-export async function buildApiTesterOperationResearchSynthesis(options: { rootDir: string; outputPath: string; completedAt: string; implementationCommit: string }): Promise<ApiTesterOperationResearchSynthesisReport> {
+export async function buildApiTesterOperationResearchSynthesis(options: { rootDir: string; outputPath: string; completedAt: string; implementationCommit: string; gitExecutable?: string; readCommittedBlob?: ApiTesterOperationResearchSynthesisCommittedBlobReader }): Promise<ApiTesterOperationResearchSynthesisReport> {
   const rootDir = resolve(options.rootDir);
   const outputPath = normalizeRepositoryRelativePath(options.outputPath, "research synthesis output");
   if (outputPath !== API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH) throw new Error("research synthesis output identity drift");
-  const report = await deriveReport({ ...options, rootDir });
+  const report = await deriveReport({ ...options, rootDir, readCommittedBlob: options.readCommittedBlob ?? gitBlobReader(rootDir, options.gitExecutable ?? "git") });
   const target = join(rootDir, ...outputPath.split("/"));
   await mkdir(dirname(target), { recursive: true });
   await writeFile(await resolveContainedNewFile(rootDir, outputPath, "research synthesis output"), `${JSON.stringify(report, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
   return report;
 }
 
-export async function verifyApiTesterOperationResearchSynthesis(options: { rootDir: string; reportPath: string }) {
+export async function verifyApiTesterOperationResearchSynthesis(options: { rootDir: string; reportPath: string; gitExecutable?: string; readCommittedBlob?: ApiTesterOperationResearchSynthesisCommittedBlobReader }) {
   const rootDir = resolve(options.rootDir);
   const reportPath = normalizeRepositoryRelativePath(options.reportPath, "research synthesis report");
   if (reportPath !== API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH) throw new Error("research synthesis report identity drift");
   const report = ApiTesterOperationResearchSynthesisReportSchema.parse(JSON.parse(await readFile(await resolveContainedExistingFile(rootDir, reportPath, "research synthesis report"), "utf8")));
   if (apiTesterOperationResearchSynthesisPortableSha256(report) !== report.portableSemanticSha256) throw new Error("research synthesis portable semantic digest drift");
-  const derived = await deriveReport({ rootDir, completedAt: report.completedAt, implementationCommit: report.implementationCommit });
+  const derived = await deriveReport({ rootDir, completedAt: report.completedAt, implementationCommit: report.implementationCommit, readCommittedBlob: options.readCommittedBlob ?? gitBlobReader(rootDir, options.gitExecutable ?? "git") });
   if (JSON.stringify(derived) !== JSON.stringify(report)) throw new Error("research synthesis independently derived report drift");
   return { status: report.status, completed: report.taskTotals.completed, blockedOrFailed: report.taskTotals.closedTerminalFailure + report.taskTotals.notRunBlocked, eligibleToPrepare: report.nextDecision.eligibleToPrepareNewProspectiveProtocol, eligibleToExecute: report.nextDecision.eligibleToExecuteNewProspective };
 }
 
-export type ApiTesterOperationResearchSynthesisCommand = { mode: "create" | "verify"; rootDir: string; outputPath: typeof API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH; completedAt?: string; implementationCommit?: string };
+export type ApiTesterOperationResearchSynthesisCommand = { mode: "create" | "verify"; rootDir: string; outputPath: typeof API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH; gitExecutable: string; completedAt?: string; implementationCommit?: string };
 
 export function parseApiTesterOperationResearchSynthesisCommand(argv: string[]): ApiTesterOperationResearchSynthesisCommand {
   const values = new Map<string, string>();
@@ -310,17 +342,18 @@ export function parseApiTesterOperationResearchSynthesisCommand(argv: string[]):
   if (outputPath !== API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH) throw new Error(`--out must be ${API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH}`);
   const completedAtValue = take("completed-at", mode === "create");
   const implementationCommitValue = take("implementation-commit", mode === "create");
+  const gitExecutable = take("git")!;
   if (mode === "verify" && (completedAtValue !== undefined || implementationCommitValue !== undefined)) throw new Error("create-only synthesis argument supplied in verify mode");
   const completedAt = completedAtValue === undefined ? undefined : z.string().datetime().parse(completedAtValue);
   const implementationCommit = implementationCommitValue === undefined ? undefined : Sha1Schema.parse(implementationCommitValue);
   if (values.size > 0) throw new Error(`unknown argument: --${values.keys().next().value}`);
-  return { mode, rootDir, outputPath: API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH, completedAt, implementationCommit };
+  return { mode, rootDir, outputPath: API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH, gitExecutable, completedAt, implementationCommit };
 }
 
 if (import.meta.main) {
   const command = parseApiTesterOperationResearchSynthesisCommand(Bun.argv.slice(2));
   const result = command.mode === "create"
-    ? await buildApiTesterOperationResearchSynthesis({ rootDir: command.rootDir, outputPath: command.outputPath, completedAt: command.completedAt!, implementationCommit: command.implementationCommit! })
-    : await verifyApiTesterOperationResearchSynthesis({ rootDir: command.rootDir, reportPath: command.outputPath });
+    ? await buildApiTesterOperationResearchSynthesis({ rootDir: command.rootDir, outputPath: command.outputPath, completedAt: command.completedAt!, implementationCommit: command.implementationCommit!, gitExecutable: command.gitExecutable })
+    : await verifyApiTesterOperationResearchSynthesis({ rootDir: command.rootDir, reportPath: command.outputPath, gitExecutable: command.gitExecutable });
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }

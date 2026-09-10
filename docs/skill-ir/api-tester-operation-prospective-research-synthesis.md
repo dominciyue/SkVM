@@ -11,6 +11,7 @@
 实现位于 `src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.ts`。运行时会：
 
 - 从仓库内安全相对路径读取九份证据并核对固定 SHA-256；
+- 对每项 evidence 的固定 `commit:path` 读取 Git blob 并再次核对同一摘要，同时核实 baseline anchor 和 synthesis implementation commit 的两个源码 blob；
 - 使用各组件的权威 schema 解析证据；
 - 从记录重算 candidate closure、operation totals、prospective terminal 状态、family totals、public-skill terminal 状态、机制结果和 readiness；
 - 将十个任务分类为 `completed`、`closed-terminal-failure` 或 `not-run-blocked`；
@@ -30,13 +31,13 @@
 生成报告前，先将本组件实现提交，并把该提交传给 `--implementation-commit`：
 
 ```powershell
-bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.ts --mode=create --root=. --out=results/skill-ir/api-tester-operation-prospective-research-synthesis-development-001/report.json --completed-at=<ISO-8601 UTC> --implementation-commit=<40-hex implementation commit>
+bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.ts --mode=create --root=. --out=results/skill-ir/api-tester-operation-prospective-research-synthesis-development-001/report.json --completed-at=<ISO-8601 UTC> --implementation-commit=<40-hex implementation commit> --git=git
 ```
 
 对已归档报告只运行复核：
 
 ```powershell
-bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.ts --mode=verify --root=. --out=results/skill-ir/api-tester-operation-prospective-research-synthesis-development-001/report.json
+bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.ts --mode=verify --root=. --out=results/skill-ir/api-tester-operation-prospective-research-synthesis-development-001/report.json --git=git
 ```
 
 开发检查：
@@ -48,7 +49,7 @@ bun run typecheck
 
 ## 失败模式与边界
 
-- 任一输入缺失、摘要漂移或 schema 无效时停止，不生成部分总报告。
+- 任一输入缺失、工作树/Git blob 摘要漂移、声明提交无对应 path 或 schema 无效时停止，不生成部分总报告。
 - Task 2/8 的失败审计证明终止现场完整，但不等于 selection 或实验成功。
 - Task 3/4/5/9 没有权威输入时保持 `not-run-blocked`，不得填 0 结果冒充实际运行。
 - `eligibleToPrepareNewProspectiveProtocol=true` 只表示可以写新的预注册方案；`eligibleToExecuteNewProspective=false` 要求在真实选择、预测和 lock 完成前停止。

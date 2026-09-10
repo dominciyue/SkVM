@@ -13,6 +13,21 @@ import {
 
 const repositoryRoot = process.cwd();
 
+async function readCommittedBlob(commit: string, path: string): Promise<Uint8Array> {
+  const child = Bun.spawn(["git", "-c", `safe.directory=${repositoryRoot.replaceAll("\\", "/")}`, "show", `${commit}:${path}`], {
+    cwd: repositoryRoot,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const [exitCode, stdout, stderr] = await Promise.all([
+    child.exited,
+    new Response(child.stdout).arrayBuffer(),
+    new Response(child.stderr).text(),
+  ]);
+  if (exitCode !== 0) throw new Error(`test git blob read failed: ${stderr.trim()}`);
+  return new Uint8Array(stdout);
+}
+
 describe("API Tester operation prospective research synthesis", () => {
   test("derives the completed, terminal, and blocked task states from bound evidence", async () => {
     const rootDir = await mkdtemp(join(tmpdir(), "skvm-api-research-synthesis-"));
@@ -25,7 +40,8 @@ describe("API Tester operation prospective research synthesis", () => {
         rootDir,
         outputPath: API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH,
         completedAt: "2026-09-10T13:00:00.000Z",
-        implementationCommit: "a1727b92928e1a32ce21b4bf21dc61bd80e3415e",
+        implementationCommit: "23fc895d20a1a6f3dc89b055d1baab99368a1afd",
+        readCommittedBlob,
       });
       expect(report.taskTotals).toEqual({
         total: 10,
@@ -61,7 +77,16 @@ describe("API Tester operation prospective research synthesis", () => {
       await expect(verifyApiTesterOperationResearchSynthesis({
         rootDir,
         reportPath: API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH,
+        readCommittedBlob,
       })).resolves.toMatchObject({ status: "verified-incomplete-development-synthesis", completed: 4, blockedOrFailed: 6 });
+
+      await expect(verifyApiTesterOperationResearchSynthesis({
+        rootDir,
+        reportPath: API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH,
+        readCommittedBlob: async (commit, path) => path === API_TESTER_OPERATION_RESEARCH_SYNTHESIS_EVIDENCE[0].path
+          ? new Uint8Array([0])
+          : readCommittedBlob(commit, path),
+      })).rejects.toThrow(/committed|provenance|digest/iu);
 
       const reportPath = join(rootDir, API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH);
       const tampered = JSON.parse(await readFile(reportPath, "utf8"));
@@ -71,6 +96,7 @@ describe("API Tester operation prospective research synthesis", () => {
       await expect(verifyApiTesterOperationResearchSynthesis({
         rootDir,
         reportPath: API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH,
+        readCommittedBlob,
       })).rejects.toThrow(/derived|drift|task|semantic/iu);
     } finally {
       await rm(rootDir, { recursive: true, force: true });
@@ -80,13 +106,13 @@ describe("API Tester operation prospective research synthesis", () => {
   test("keeps the CLI on the fixed synthesis identity", () => {
     expect(parseApiTesterOperationResearchSynthesisCommand([
       "--mode=create", "--root=.", `--out=${API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH}`,
-      "--completed-at=2026-09-10T13:00:00.000Z", "--implementation-commit=a1727b92928e1a32ce21b4bf21dc61bd80e3415e",
-    ])).toMatchObject({ mode: "create", implementationCommit: "a1727b92928e1a32ce21b4bf21dc61bd80e3415e" });
+      "--completed-at=2026-09-10T13:00:00.000Z", "--implementation-commit=23fc895d20a1a6f3dc89b055d1baab99368a1afd", "--git=git",
+    ])).toMatchObject({ mode: "create", implementationCommit: "23fc895d20a1a6f3dc89b055d1baab99368a1afd", gitExecutable: "git" });
     expect(() => parseApiTesterOperationResearchSynthesisCommand([
       "--mode=verify", "--root=.", "--out=results/alternate.json",
     ])).toThrow(/--out must be/iu);
     expect(() => parseApiTesterOperationResearchSynthesisCommand([
-      "--mode=verify", "--root=.", `--out=${API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH}`, "--retry=true",
+      "--mode=verify", "--root=.", `--out=${API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH}`, "--git=git", "--retry=true",
     ])).toThrow(/unknown argument/iu);
   });
 });
