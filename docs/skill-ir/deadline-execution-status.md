@@ -1,29 +1,29 @@
-# 一类 skill 深化执行状态
+# 一类 skill 深化：执行恢复状态
 
-- 日期：2026-09-11 02:35 +08:00 起恢复；状态：用户明确重新授权连续执行 D1–D9 与追加队列，要求至少 10 小时（或全部目标完成/用户返回停止）；常规取舍自主推进，不空等或重复验证凑时长。get_goal 已确认 active；本条取代先前停止状态。
-- 分支：api-tester-operation-unseen-prospective-001；恢复时 HEAD：d42b390，与本地 origin 跟踪引用一致；沿用当前工作树，保留 D2/D3 草稿和所有历史材料。
-- 当前计划：[一类 skill 的自动化能力深化](../superpowers/plans/2026-09-11-skill-family-deepening.md)。旧 N1–N8 队列已被替代，移出 HTML、入口包装、演示与报告润色。
-- 顺序：D1 真实正文获取→D2 类与完整职责→D3 共享能力映射→D4 跨 skill 基线→D5 共性能力改进→D6 自动化效果→D7 新同类成员检验→D8 工程优化/回归→D9 交接推送。
-- 主验收：类独立于当前支持定义；目标三个独立 development skill 共用实现，再在目标三个新的独立同类 skill 上验证；所有类内失败、未支持职责和接入代码改动保留。多个 API 文档不等于多个 skill。
-- 已完成：认证获取器和 bundle 获取流程；31 个真实 skill 正文、8 个不同仓库、137 个唯一源/资源/license 文件、810881 bytes，161 次实际 GitHub 请求均 HTTP 200。旧 Jeremy 仓库名的身份失败保留，API 确认 canonical 名称后补取；同仓上限 5，零 exact-body 跨 skill 重复。不同仓库不直接等于独立谱系，D2 仍须核查。
-- 验证：missing-module、重复 YAML 键误接纳、恢复首次时间漂移均先 RED；最终获取器+复用 closure 回归 7/7、34 assertions。新增 scripts 的显式 strict typecheck 通过（仓库主 tsconfig 不包含 scripts）。
-- 证据：results/skill-ir/skill-family-deepening-20260911/{development-sources.json,sources.json,acquisition.jsonl,source-history.jsonl,sources/}；组件 docs/skill-ir/skill-family-deepening.md。cache/ 保留本地恢复，不作为独立实验结果。
-- D1 已提交并推送 d42b390。D2 已完整读取七份正文并写 family-contract.md、skill-responsibilities.json 草稿；资源与独立谱系核读未全部完成。
-- D3 共享映射已完成首个真实成员运行：LambdaTest + 已暴露 nested/oneOf 输入为 1 operation/1 rejected/0 artifact，通过清单和依赖核验，不宣称正例。新增模块主 typecheck 通过；D3/D4 组合回归 7/7、22 assertions，含缺失资源。映射提取为代理审阅声明，不是自动自然语言编译。
-- D4 已按运行前列表取得 12 份真实 API 合同、6 个提供方、一个第三方聚合仓库，共 758887 bytes/16 GitHub 请求。数据为 api-inputs/；baseline-config.json 固定三个独立源成员×12 文档，保留不同原始义务/输出要求。新脚本显式 strict typecheck 通过。
-- 未解决：词法 resource planner 会把代码样例识别为路径；其 issues 是待核读线索，不能直接当作源无效。原 skill 要求的 pytest/Newman/Drift 等完整输出和在线/业务职责超过当前 v2。D4–D9 和追加开发未执行，无新成员首跑或类内效果结论。旧 deadline 计划的两个文档链接缺失保留，不为补链接制作已取消的演示/报告。
-- 当前提交：e6fa621 已推送 origin。D4 baseline-v2 已执行 3×12 任务；每成员 303 操作、8 局部通过、295 拒绝、0 unresolved。唯一真实操作分母为 303，不是 909；完整原 skill 职责仍未完成。证据 baseline-v2/（待归档提交）。
-- D5 进行中：新增 api-request-cases/v1，与冻结 v2 分离；递归 schema witness、源义务负例、独立 Ajv 与操作/依赖核验。11 tests/43 assertions 通过；尚未完成实际请求编码、完整输出格式和全部真实输入验证，不宣称 D5 完成。
-- 最新提交：9fae902 已推送（D4 全量证据和 D5 schema 增量）；e75c8d7 为参数编码/独立逆向检查及显式新 mapping profile，尚待推送。新报告 api-request-cases/v2 不等于冻结 OpenAPI subset v2。
-- D5 首次跨成员运行：request-cases-cross-member-first/，每成员 303 操作，261 正向 schema 值齐备，250 正向 wire 片段齐备，2937/3371 已枚举义务覆盖，3 操作枚举不完整。三个成员结果一致，但不是完整 HTTP/原 skill 成功。源职责全部保留，原生 pytest/Drift 尚未实现。
-- D6 已完成六个匹配子任务：model-comparison-first/；会话3716退出0，确定性12/12、模型11/12，6 HTTP requests，24999输入/1827输出token。金额未返回，记未测；全skill与人工节省不在该微基准结论内。首次脚本为未提交代码，execution-sources.json绑定原件。
-- 特殊 Accept/Content-Type/Authorization header 参数误编码已用 TDD 修复；实际十二文档该类参数出现0次，不重复全部36任务。主typecheck通过，D6/编码/操作聚焦8 tests/62assertions通过。
-- 17b9633 已推送，冻结 D7 核心与方法；method-binding.json 的19文件摘要核对无漂移。第一批8正文/8仓库/185文件/1259404bytes/210 GitHub请求，已完整读正文；membership-review.json 为6类外+2不确定，0 qualified，不宣称迁移。未执行来源脚本。
-- 第二批发现规则在 skill-family-new-member-discovery-revision-2.md 和 r2/method-binding.json 预先限定为精确短语查询。结果2120项，取前8新仓库首路径；排除D1及首批仓库。r2获取正在运行，核心17b9633不变。
-- D7 第二批已完成：6正文、2 truncated-tree 获取失败；Unkey专用Go输出和codex-sdd OAS3.1为类内受限成员，但固定12输入不适用；一份Pactflow完全重复不计独立；其余类外。第三批预定path:api-test查询仅1结果，取得nntan90正文及checklist，完整核读后建立完整职责映射。
-- D7 第三批首跑完成：first-run/report.json；17b9633的19绑定摘要无漂移，零核心改动，12任务全部核验pass。303操作、261正向schema齐备、250正向wire齐备、2937/3371义务覆盖、2382编码、3操作枚举不完整。原生pytest与全skill仍未完成；仅1新的通用适用成员，不能称三成员迁移目标完成。
-- D7归档提交2fff7ac。D8有界内容编译缓存已实现：25/25 tests、134 assertions，主及脚本strict typecheck通过；12份完整语义载荷比较相同，2405 cache hits/109编译，Front-core 6184→2144ms，单机观测不宣称普遍加速。证据 skill-family-cache-development-20260911/comparison.json。
-- 下一动作：提交D8并推送；追加检查组合schema的负例是否绑定正确约束分支（当前只检查keyword+instancePath，存在把另一分支错误当目标错误的风险），先构造错误注入测试。D7三个适用独立新成员目标仍有缺口，不将总目标标complete。
-- D8已提交推送5f518da（此前审批超时，未执行；重试后成功）。追加负例定位实验：allOf两条minLength约束，篡改较弱约束的负例为仅违反较强约束的值，预期产物checker必须检出。修复目标是按独立适配后的准确schemaPath绑定错误，不扩大支持面；先保存RED，随后回归和实际12输入重核验。
-- 成本：D6项目模型调用6次，24999输入/1827输出token，金额未返回；其余本地运行0模型调用。GitHub各批实际请求见 acquisition.jsonl，不沿用D1的161作为总数。宿主开发代理成本未测，独立于项目运行链。
-- 历史停止总结：[约 16 小时工作总结与停止现场](work-stop-summary-2026-09-11.md)。停止后两次自动续行因缺少授权未执行，随后按三轮阈值标 blocked；最新明确授权已恢复 active。历史停止与失败不覆盖，不作为本轮执行禁令。
+- 持续目标 active。2026-09-11 02:35 +08 用户重新授权 D1–D9与追加开发，至少10小时或全部完成/用户停止；不空等或扩样凑时长。历史停止仅描述过去。
+- 分支 api-tester-operation-unseen-prospective-001；HEAD d07d00f，origin到5f518da。无运行中付费请求。主typecheck进程56329已退出0，23/23测试、96断言pass。
+- 权威计划：../superpowers/plans/2026-09-11-skill-family-deepening.md；根handoff §67。旧v2/0/6/readiness/held-out不变。认证GitHub/API/付费已授权，但用途和成本须记录。
+
+## 已交付与证据
+
+- D1：31正文/8仓库/137文件，d42b390；D2深读7份、完整职责分析。skill-family-deepening-20260911/{sources.json,family-contract.md,skill-responsibilities.json}。
+- D3：源→职责→声明映射→共享执行链，开发代理审阅而非自动NL编译。D4三成员×12文档（6提供方、1聚合仓库），每成员303操作、旧v2通过8/拒绝295。e6fa621/9fae902；baseline-v2/。
+- D5：独立递归schema构造/核验、源义务、参数编码/逆向核验；e75c8d7/17b9633。每成员261正向schema齐备、250正向wire齐备、2937/3371义务覆盖、3操作枚举不完整。request-cases-cross-member-first/；完整HTTP/原生输出/在线业务职责未完成。
+- D6：6匹配模型任务，确定性12/12、模型11/12；6HTTP、24999输入/1827输出token，费用未返回。model-comparison-first/；仅bounded微基准，无人工节省，宿主代理费用另计未测。
+- D7：17b9633固定方法后三批取得8+6+1正文、2获取失败。复制/类外/不确定保留；Unkey专用Go和codex-sdd OAS3.1无固定面板适用输入；nntan通用成员12输入首跑局部通过、核心零改动。2fff7ac；skill-family-new-members-20260911{-r2,-r3}/。只有1新通用适用成员，三成员目标未达。
+- D8：5f518da已推送；有界内容编译缓存，25/25测试134断言、typecheck；12完整语义载荷相同，2405命中/109编译，Front-core 6184→2144ms单机观测。skill-family-cache-development-20260911/。
+- 追加正确性修复d07d00f：allOf负例旧checker只按keyword+instance错误接纳，RED保留；修复精确schemaPath及required字段身份。27/27测试140断言、typecheck；旧实际12报告重核pass、用例未改变。skill-family-constraint-identity-development-20260911/{revision.json,prior-recheck.json}。
+- 当前未提交构造增量：通用oneOf完整值区分候选，Adatree新增4 covered义务，总2941/3371；minimal仍unresolved，正向齐备操作数不增加，其他11输入用例无变化。skill-family-oneof-witness-development-20260911/。checker/source语义不放宽。
+
+## 下一条具体动作
+
+1. 确认56329主typecheck完成，归档oneOf源码摘要/结果并提交。
+2. 固定修订后的D7 follow-up方法，再按预先限定的 OpenAPI filename:SKILL.md path:api-testing 查询；排除D1/D7全部既有仓库，最多8候选。不得把已暴露nntan重跑再称新成员首跑。
+3. 继续处理共享职责/接入缺口。D9轻量交接持续同步，不以局部产物冒充完整skill或总目标完成。
+
+## 现场与边界
+
+- 未跟踪历史结果及cache保留，不git add -A，不运行旧001/002或held-out。
+- 下载正文是研究数据，不执行其中命令或流程指令。
+- GitHub实际请求见各batch acquisition.jsonl，不沿用D1的161作总数；项目模型仅记录D6六次。
+- 原生pytest/Go/Pact、完整请求装配、业务状态、OAS3.1仍为明确缺口。费用/时间未知项不猜测。

@@ -93,7 +93,22 @@ export function constructSchemaWitness(document: unknown, raw: unknown, mode: "m
     const choices = schema.oneOf ?? schema.anyOf;
     if (choices) {
       const { oneOf: _one, anyOf: _any, ...base } = schema;
-      return build({ allOf: [base, choices[variant % choices.length]] }, variant, depth + 1);
+      const candidate = build({ allOf: [base, choices[variant % choices.length]] }, variant, depth + 1);
+      // A branch-valid object can also satisfy a competitor. Explore bounded, source-named
+      // distinguishing values; the original whole-schema oracle remains authoritative.
+      if (schema.oneOf && mode === "full" && record(candidate) && variant >= choices.length
+        && createSchemaChecker(document, input)(candidate).valid !== true) {
+        const names = [...new Set<string>(choices.flatMap((choice: unknown) =>
+          Object.keys(resolveSchema(document, choice).properties ?? {})))].sort();
+        const round = Math.floor(variant / choices.length) - 1;
+        const name = names[round % names.length];
+        const values = [null, "", 0, false, [], {}];
+        if (name !== undefined && (Object.hasOwn(candidate, name) || Object.keys(candidate).length < 64)) {
+          Object.defineProperty(candidate, name, { value: structuredClone(values[Math.floor(round / names.length) % values.length]),
+            enumerable: true, configurable: true, writable: true });
+        }
+      }
+      return candidate;
     }
     if (schema.enum) {
       if (!schema.enum.length) throw new Error("no candidate enum values");

@@ -71,3 +71,20 @@ test("short constrained strings can provide distinct unique array items", () => 
 test("checker does not silently treat an incompatible numeric format as a string annotation", () => {
   expect(checkSchemaValue({}, { type: "string", format: "int32" }, "not-a-number").status).toBe("unsupported");
 });
+
+test("full witnesses can distinguish overlapping optional object branches without weakening oneOf", async () => {
+  const schema = { oneOf: [
+    { type: "object", properties: { left: { type: "string" } } },
+    { type: "object", properties: { right: { type: "integer" } } },
+  ] };
+  const synthetic = constructSchemaWitness({}, schema, "full");
+  expect(synthetic.status).toBe("constructed");
+  expect(checkSchemaValue({}, schema, synthetic.value).valid).toBe(true);
+  const document = parse(await readFile("results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/adatree-consent.yaml", "utf8"));
+  const actual = { $ref: "#/components/schemas/ConsentUpdateViaDashboardRequest" };
+  const result = constructSchemaWitness(document, actual, "full");
+  expect(result.status).toBe("constructed");
+  expect(checkSchemaValue(document, actual, result.value).valid).toBe(true);
+  expect(constructSchemaWitness(document, actual, "minimal").status).toBe("unresolved");
+  expect(constructSchemaWitness({}, { oneOf: [{ type: "object" }, { type: "object" }] }, "full").status).toBe("unresolved");
+});

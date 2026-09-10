@@ -145,3 +145,27 @@ or an artifact-supplied target. A present mismatching field fails binding.
 First-run/D8 reports are retained as pre-correction evidence, not retrospectively
 overwritten. Recheck their actual cases under the corrected oracle before citing
 constraint-specific coverage. This is a correctness repair, not a new unseen test.
+
+### Next construction increment: overlapping oneOf objects
+
+Actual Adatree ConsentUpdateViaDashboardRequest combines two all-optional object
+branches without additionalProperties=false. Building only values valid for each
+selected branch also validates the other branch; old candidates therefore remain
+unresolved. This is not a proof that the source has no witness.
+
+Design: retain existing candidates first. For full mode only, within the existing
+64-attempt budget, consider a single property named by the competing branches and
+one of six fixed primitive/container sentinel values. This can falsify a competitor
+while preserving the chosen branch. Every result still passes the unchanged independent
+Ajv checker and full-shape checker on the original entire schema. Do not modify
+additionalProperties, invent status assertions or relax minimal-shape rules. Minimal
+may remain unresolved; no SAT-completeness claim. No repository/path branch.
+
+Implementation steps: add synthetic overlapping-object and actual Adatree RED tests;
+change only the choices candidate path in api-schema-witness.ts; run schema and operation
+regressions; run the fixed twelve inputs into a new development output and preserve
+every changed/unresolved obligation. Reject impossible identical branches as before.
+This follows [JSON Schema composition semantics](https://json-schema.org/understanding-json-schema/reference/combining)
+and [additional-property semantics](https://json-schema.org/understanding-json-schema/reference/object):
+exactly one branch must validate, and unnamed fields are not forbidden by default.
+The generic search is an implementation inference from those semantics, not a standard algorithm.
