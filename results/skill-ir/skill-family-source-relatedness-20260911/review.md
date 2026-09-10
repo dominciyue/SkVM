@@ -22,9 +22,13 @@ responsibility remain the strength of D7 evidence. Low overlap is not an authors
 Reproduce from repository root with Bun1.3.14:
 
 ```powershell
-bun test scripts/skill-ir/skill-family-source-relatedness.test.ts
+bun test ./scripts/skill-ir/skill-family-source-relatedness.test.ts
 bun scripts/skill-ir/skill-family-source-relatedness.ts --out=results/skill-ir/source-relatedness-rerun
 ```
 
 The output directory must be new. Existing six source indices are explicit inputs;
 nested resource SKILL files are not counted as new members. No downloaded code runs.
+
+Post-commit verification note: the command without `./` was interpreted as a filter and
+found no tests (exit1); the explicit relative file path above passed1test/8assertions.
+This was a command-discovery correction, not a test or implementation change.

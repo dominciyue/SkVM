@@ -34,3 +34,17 @@ package.json mixed-EOL raw difference remains explicitly recorded with normalize
 equality; no other raw mismatch is silently excused. Full clean report copies and hashes are
 retained under results/skill-ir/skill-family-request-clean-20260911/, alongside comparison,
 tests, dependency inventory and initial-EOL diagnostic. Both checkouts retained, no cleanup.
+
+## Follow-up: body negatives and response catalog
+
+The old clean report proves d088f4e only. Create a new LF detached checkout at be89a50
+for the added body-negative and response-source-example capabilities. Reuse the explicit
+dependency archive above after archive SHA and extracted-file manifest verification; do
+not install/download packages or use development node_modules/cache. Inputs are the same
+12 committed documents. Run the new body-negative and response-catalog batch entry points
+from that checkout with fresh local output directories, then compare complete per-document
+artifacts to the archived development reports, separating metadata/timing/code bindings.
+Run relevant deterministic tests and main plus script strict typechecks. No live API calls
+or loopback rerun is needed for this byte/semantic reproduction. Retain the clean reports,
+input/dependency/source hashes, command results and comparison, not just a success summary.
+Use a separate evidence identity skill-family-extended-clean-20260911; old evidence stays.
