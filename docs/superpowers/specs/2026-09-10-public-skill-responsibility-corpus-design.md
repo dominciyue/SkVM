@@ -63,7 +63,7 @@ Repository independence is counted by canonical upstream repository, not fork or
 
 ## 6. Selection lock, source archive, and exposure time
 
-The metadata-only selection output binds protocol digest, discovery response digests, repository full name and URL, default-branch commit, `SKILL.md` path, Git blob OID/size, license classification/authority, selection round, and selection rank. Commit this selection identity before requesting any selected skill blob.
+The metadata-only discovery preserves the complete recursive Git tree entry inventory, including modes needed to distinguish regular files, symlinks, and submodules; only regular `100644`/`100755` blobs are selectable. The selection output binds protocol digest, discovery response digests, repository full name and URL, default-branch commit, `SKILL.md` path, Git blob OID/size, license classification/authority, selection round, and selection rank. Commit this selection identity before requesting any selected skill blob.
 
 After that commit, download only the 40 selected `SKILL.md` files, their applicable license bytes, and their direct repository-local resource closure from the pinned commit. Record first body exposure time and raw SHA-256. Permissively licensed bytes may be archived under the corpus identity. Any source whose redistribution status becomes ambiguous after retrieval is kept only as digest, locator, and analysis; remove its copied implementation bytes before the corpus evidence commit and mark `locator-only`.
 

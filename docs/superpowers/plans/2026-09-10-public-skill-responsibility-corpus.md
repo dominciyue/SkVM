@@ -33,7 +33,7 @@ Tests must reject query/order drift, fork/archived/disabled repositories enterin
 
 - [x] **Step 2: Implement strict protocol/selection schemas and deterministic balanced selection**
 
-The selector consumes recorded GitHub search/default-branch/tree metadata only. It must enforce the frozen first-25 unique-repository inspection prefix and 58-request ceiling, and must not accept skill body bytes, family/current-support outcomes, or candidate results.
+The selector consumes recorded GitHub search/default-branch/tree metadata only. The discovery report retains the complete recursive-tree entry inventory and Git modes for later closure analysis, while selection can use only regular `100644`/`100755` blobs. It must enforce the frozen first-25 unique-repository inspection prefix and 58-request ceiling, and must not accept skill body bytes, family/current-support outcomes, or candidate results.
 
 - [ ] **Step 3: Run fixed public metadata discovery and save all inclusion/exclusion facts**
 

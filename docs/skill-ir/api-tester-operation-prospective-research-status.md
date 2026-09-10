@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-revision-freeze-pending-push; task-8-public-metadata-run-awaiting-explicit-api-authorization`
-- `stageStatus`: `blocked-on-explicit-external-authorization`
-- `lastCompletedCommit`: `a9a601e`
-- `currentCommit`: `a9a601e`
+- `currentStage`: `task-2-revision-freeze-pending-push; task-8-authorized-public-metadata-run-ready-after-tree-mode-revision`
+- `stageStatus`: `in-progress; fixed-public-metadata-run-authorized`
+- `lastCompletedCommit`: `c6a49f2`
+- `currentCommit`: `c6a49f2`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -57,6 +57,8 @@
 - `failure.json` 在首个请求前以 `wx` 预留，失败时通过既有句柄写入并 `sync`；归档或成功清理出错均显式失败。路径层逐组件拒绝 symlink/junction，并在读写前核对 realpath。受控单进程之外的敌对并发 TOCTOU 不在当前承诺内，已作为明确限制记录。
 - Task 8 metadata discoverer 最终只读 preflight 无剩余 Critical/Important/Minor，Ready for first public metadata run=Yes。最终 focused=`16/16`、50 assertions，typecheck 通过；提交门前 public metadata/body request 仍为 `0/0`。
 - Task 8 implementation freeze=`a9a601ea7e8db8d861a5e4ffb647bf9f7d9e0e94`，checkpoint=`f1413f0310564d6f481b0ac0f6098f4c8ccfb68d`。首次 fixed GitHub metadata-only CLI 的提权请求被执行安全门拒绝：它把早先“项目运行链不调用远端 API”视为仍控制当前 Task 8，要求对最多 58 个匿名 GitHub REST metadata 请求给出新的对话内明确授权。进程未启动、目标目录不存在，metadata/body 仍为 `0/0`；未绕过。
+- 用户随后在当前对话明确授权远端 API、付费调用与真实公开 GitHub skill 查阅；该授权解除 Task 8 fixed public REST 执行的用户权限缺口。冻结 protocol 仍要求本阶段 model/business API/paid=`0`，因此许可扩大不会被解释为需要产生费用，也不会改变 query、前缀、配额或选择分母。平台安全审批仍须遵守。
+- 在重跑 metadata 前发现 `a9a601e` 的归一化 tree blob 清单丢弃 Git mode，无法在后续 source closure 中定位 symlink/submodule。先保留这一修订前事实，再以 `c6a49f2f1b6c80701ab04ee73406ab1ffa84ec08` 增加完整 tree entry inventory，并只让 `100644`/`100755` 进入 selectable blobs；raw verifier 独立重建两套清单。focused=`17/17`、54 assertions；与 archive 局部 TDD 合并运行为 `20/20`、67 assertions；typecheck 通过。真实 metadata/body 仍为 `0/0`。
 
 ## 保留问题
 
@@ -67,8 +69,8 @@
 
 ## 下一条具体动作
 
-等待用户在对话中明确允许从 `a9a601e` 执行这一次最多 58 个匿名 GitHub REST metadata 请求；获准后原命令重跑，不改 protocol/output identity。未获准前不能绕道联网，Task 8/9/10/6 在此依赖点暂停。Task 2 revision push 仍需单独明确允许向 `git@github.com:dominciyue/SkVM.git` 推送当前分支。
-公开 metadata discovery。selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
+从 `c6a49f2f1b6c80701ab04ee73406ab1ffa84ec08` 运行一次固定、最多 58 个 GitHub public REST metadata 请求，并立即运行独立 raw verifier。失败或 shortfall 原样保存，不改 protocol/output identity。Task 2 revision push 仍需单独明确允许向 `git@github.com:dominciyue/SkVM.git` 推送当前分支。
+selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
 pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
 明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得
 搜索或读取 prospective unseen OpenAPI source。
