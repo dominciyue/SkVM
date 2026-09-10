@@ -124,6 +124,13 @@ function hex64(seed: string | Uint8Array): string {
 
 function repository(index: number): any {
   const fullName = `owner-${index}/repo-${index}`;
+  const skillBlobs = Array.from({ length: 5 }, (_, skillIndex) => ({
+    path: `skills/skill-${skillIndex + 1}/SKILL.md`,
+    oid: hex40(`${fullName}:skill:${skillIndex + 1}`),
+    size: 500 + skillIndex,
+    type: "blob",
+    mode: "100644",
+  }));
   return {
     fullName,
     htmlUrl: `https://github.com/${fullName}`,
@@ -162,12 +169,11 @@ function repository(index: number): any {
       retrievedAt: "2026-09-10T12:00:00.000Z",
       rateLimitRemaining: 49,
       rateLimitResetAt: "2026-09-10T13:00:00.000Z",
-      blobs: Array.from({ length: 5 }, (_, skillIndex) => ({
-        path: `skills/skill-${skillIndex + 1}/SKILL.md`,
-        oid: hex40(`${fullName}:skill:${skillIndex + 1}`),
-        size: 500 + skillIndex,
-        type: "blob",
-      })),
+      entries: [
+        { path: "LICENSE", oid: hex40(`${fullName}:license`), size: 1080, type: "blob", mode: "100644" },
+        ...skillBlobs,
+      ],
+      blobs: skillBlobs,
     },
   };
 }
@@ -321,6 +327,38 @@ describe("public skill responsibility corpus metadata selection", () => {
     ]));
   });
 
+  test("retains Git tree modes while excluding symlink and submodule entries from selectable blobs", () => {
+    const discovery = discoveryFixture();
+    const removed = discovery.repositories[0].tree.blobs.shift();
+    for (const [repositoryIndex, entry] of discovery.repositories.entries()) {
+      entry.tree.entries = [
+        ...entry.tree.blobs.map((blob: any) => ({ ...blob, mode: "100644" })),
+        ...(repositoryIndex === 0 ? [
+          { path: removed.path, oid: removed.oid, size: removed.size, type: "blob", mode: "120000" },
+          { path: "vendor/external", oid: hex40("submodule"), size: null, type: "commit", mode: "160000" },
+        ] : []),
+      ];
+    }
+    const selection = buildPublicSkillMetadataSelection({
+      protocol: baseProtocol(),
+      protocolSha256,
+      discovery,
+      discoveryPath,
+      discoverySha256,
+      q1Registry: emptyQ1Registry(),
+      selectedAt: "2026-09-10T12:30:00.000Z",
+    });
+    expect(selection.status).toBe("metadata-selection-shortfall");
+    expect(selection.totals.selectedSkills).toBe(39);
+    expect(selection.selected.some((row: any) => (
+      row.repositoryFullName === discovery.repositories[0].fullName && row.path === removed.path
+    ))).toBe(false);
+    expect(discovery.repositories[0].tree.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: removed.path, mode: "120000", type: "blob" }),
+      expect.objectContaining({ path: "vendor/external", mode: "160000", type: "commit" }),
+    ]));
+  });
+
   test("rejects duplicate repository records and duplicate skill paths", () => {
     const duplicateRepository = discoveryFixture();
     duplicateRepository.repositories.push(structuredClone(duplicateRepository.repositories[0]));
@@ -450,10 +488,11 @@ describe("public skill responsibility corpus metadata selection", () => {
             sha: hex40(`${fullName}:tree-root`),
             truncated: false,
             tree: [
-              { path: "LICENSE", type: "blob", sha: hex40(`${fullName}:license`), size: 1080 },
+              { path: "LICENSE", type: "blob", mode: "100644", sha: hex40(`${fullName}:license`), size: 1080 },
               ...Array.from({ length: 5 }, (_, skillIndex) => ({
                 path: `skills/skill-${skillIndex + 1}/SKILL.md`,
                 type: "blob",
+                mode: "100644",
                 sha: hex40(`${fullName}:skill:${skillIndex + 1}`),
                 size: 500 + skillIndex,
               })),

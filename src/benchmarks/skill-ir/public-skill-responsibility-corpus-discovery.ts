@@ -46,6 +46,7 @@ const GitHubBranchResponseSchema = z.object({
 const GitHubTreeEntrySchema = z.object({
   path: z.string().min(1),
   type: z.enum(["blob", "tree", "commit"]),
+  mode: z.enum(["040000", "100644", "100755", "120000", "160000"]),
   sha: Sha1Schema,
   size: z.number().int().nonnegative().optional(),
 }).passthrough();
@@ -215,7 +216,10 @@ function rawRepositorySlug(index: number, fullName: string): string {
   return `${String(index).padStart(2, "0")}-${portable}`;
 }
 
-function licenseFromTree(spdxId: string | null, blobs: Array<{ path: string; oid: string; size: number; type: "blob" }>):
+function licenseFromTree(
+  spdxId: string | null,
+  blobs: Array<{ path: string; oid: string; size: number; type: "blob"; mode: "100644" | "100755" }>,
+):
   PublicSkillCorpusDiscovery["repositories"][number]["license"] {
   if (!spdxId || spdxId === "NOASSERTION" || spdxId === "OTHER") {
     return { status: "missing-classification", spdxId: null, authorityPath: null, blobOid: null, size: null };
@@ -234,13 +238,30 @@ function licenseFromTree(spdxId: string | null, blobs: Array<{ path: string; oid
 function blobsFromTree(
   tree: z.infer<typeof GitHubTreeResponseSchema>,
   repositoryFullName: string,
-): Array<{ path: string; oid: string; size: number; type: "blob" }> {
+): Array<{ path: string; oid: string; size: number; type: "blob"; mode: "100644" | "100755" }> {
   if (tree.tree.some((entry) => entry.type === "blob" && entry.size === undefined)) {
     throw new Error(`GitHub tree contains a blob without size: ${repositoryFullName}`);
   }
   return tree.tree
-    .filter((entry): entry is typeof entry & { type: "blob"; size: number } => entry.type === "blob" && entry.size !== undefined)
-    .map((entry) => ({ path: entry.path, oid: entry.sha, size: entry.size, type: "blob" as const }));
+    .filter((entry): entry is typeof entry & { type: "blob"; mode: "100644" | "100755"; size: number } => (
+      entry.type === "blob"
+      && (entry.mode === "100644" || entry.mode === "100755")
+      && entry.size !== undefined
+    ))
+    .map((entry) => ({ path: entry.path, oid: entry.sha, size: entry.size, type: "blob" as const, mode: entry.mode }));
+}
+
+function entriesFromTree(tree: z.infer<typeof GitHubTreeResponseSchema>, repositoryFullName: string) {
+  if (tree.tree.some((entry) => entry.type === "blob" && entry.size === undefined)) {
+    throw new Error(`GitHub tree contains a blob without size: ${repositoryFullName}`);
+  }
+  return tree.tree.map((entry) => ({
+    path: entry.path,
+    oid: entry.sha,
+    size: entry.size ?? null,
+    type: entry.type,
+    mode: entry.mode,
+  }));
 }
 
 function metadataHeaders(protocol: PublicSkillCorpusProtocol): Record<string, string> {
@@ -364,6 +385,7 @@ async function discoverPublicSkillMetadataCore(
     const tree = GitHubTreeResponseSchema.parse(JSON.parse(new TextDecoder().decode(treeResponse.body)));
     const treeResponsePath = `${outputDir}/raw/repositories/${slug}/tree.json`;
     const treeArchive = await writeRaw(rootDir, treeResponsePath, treeResponse);
+    const entries = entriesFromTree(tree, source.item.full_name);
     const blobs = blobsFromTree(tree, source.item.full_name);
     repositories.push({
       fullName: source.item.full_name,
@@ -393,6 +415,7 @@ async function discoverPublicSkillMetadataCore(
         retrievedAt,
         ...treeRate,
         truncated: tree.truncated,
+        entries,
         blobs,
       },
     });
@@ -716,8 +739,10 @@ export async function verifyPublicSkillMetadataDiscoveryFiles(options: {
       throw new Error("archived GitHub core rate limit was exhausted before fixed repository prefix completed");
     }
     const tree = GitHubTreeResponseSchema.parse(JSON.parse(new TextDecoder().decode(treeBytes)));
+    const entries = entriesFromTree(tree, repository.fullName);
     const blobs = blobsFromTree(tree, repository.fullName);
     if (repository.tree.truncated !== tree.truncated) throw new Error("recursive tree truncation drift");
+    assertEquivalent(repository.tree.entries, entries, "recursive tree entries");
     assertEquivalent(repository.tree.blobs, blobs, "recursive tree blobs");
     assertEquivalent(repository.license, licenseFromTree(source.item.license?.spdx_id ?? null, blobs), "license authority");
   }

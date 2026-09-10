@@ -45,6 +45,7 @@ export const PublicSkillCorpusLicenseSpdxSchema = z.enum(PUBLIC_SKILL_CORPUS_LIC
 const Sha1Schema = z.string().regex(/^[0-9a-f]{40}$/u);
 const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/u);
 const RepositoryNameSchema = z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u);
+const RegularGitBlobModeSchema = z.enum(["100644", "100755"]);
 const RelativePathSchema = z.string().min(1).superRefine((value, context) => {
   try {
     normalizeRepositoryRelativePath(value, "path");
@@ -213,11 +214,19 @@ export const PublicSkillCorpusRepositorySchema = z.object({
     retrievedAt: z.string().datetime(),
     rateLimitRemaining: z.number().int().nonnegative(),
     rateLimitResetAt: z.string().datetime(),
+    entries: z.array(z.object({
+      path: RelativePathSchema,
+      oid: Sha1Schema,
+      size: z.number().int().nonnegative().nullable(),
+      type: z.enum(["blob", "tree", "commit"]),
+      mode: z.enum(["040000", "100644", "100755", "120000", "160000"]),
+    }).strict()),
     blobs: z.array(z.object({
       path: RelativePathSchema,
       oid: Sha1Schema,
       size: z.number().int().nonnegative(),
       type: z.literal("blob"),
+      mode: RegularGitBlobModeSchema,
     }).strict()),
   }).strict(),
 }).strict();
