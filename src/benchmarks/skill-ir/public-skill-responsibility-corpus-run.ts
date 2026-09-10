@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, relative, resolve } from "node:path";
+import { readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { z } from "zod";
 import {
   PUBLIC_SKILL_CORPUS_PROTOCOL_PATH,
@@ -9,6 +9,12 @@ import {
   buildPublicSkillMetadataSelection,
   verifyPublicSkillCorpusProtocolFiles,
 } from "./public-skill-responsibility-corpus";
+import { verifyPublicSkillMetadataDiscoveryFiles } from "./public-skill-responsibility-corpus-discovery";
+import {
+  normalizeRepositoryRelativePath,
+  resolveContainedExistingFile,
+  resolveContainedNewFile,
+} from "./public-skill-responsibility-corpus-paths";
 
 export type PublicSkillCorpusCommand =
   | {
@@ -44,11 +50,7 @@ function take(values: Map<string, string>, key: string): string {
 }
 
 function repositoryRelativePath(value: string, option: string): string {
-  const portable = value.replaceAll("\\", "/");
-  if (isAbsolute(value) || portable.startsWith("/") || portable.split("/").includes("..")) {
-    throw new Error(`--${option} must be a repository-relative contained path`);
-  }
-  return value;
+  return normalizeRepositoryRelativePath(value, `--${option}`);
 }
 
 function assertNoUnknown(values: Map<string, string>): void {
@@ -74,16 +76,6 @@ export function parsePublicSkillCorpusCommand(argv: string[]): PublicSkillCorpus
   return { mode, rootDir, protocolPath, discoveryPath, outputPath, selectedAt };
 }
 
-function contained(rootDir: string, path: string): string {
-  const root = resolve(rootDir);
-  const target = resolve(root, path);
-  const back = relative(root, target);
-  if (back === "" || back.startsWith("..") || isAbsolute(back)) {
-    throw new Error(`path escapes repository root: ${path}`);
-  }
-  return target;
-}
-
 function sha256(value: Uint8Array): string {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -94,11 +86,15 @@ export async function runPublicSkillCorpusCommand(command: PublicSkillCorpusComm
     return verifyPublicSkillCorpusProtocolFiles({ rootDir, protocolPath: command.protocolPath });
   }
 
-  const protocolBytes = await readFile(contained(rootDir, command.protocolPath));
+  const protocolFile = await resolveContainedExistingFile(rootDir, command.protocolPath, "public skill corpus protocol");
+  const protocolBytes = await readFile(protocolFile);
   const protocol = PublicSkillCorpusProtocolSchema.parse(JSON.parse(protocolBytes.toString("utf8")));
-  const discoveryBytes = await readFile(contained(rootDir, command.discoveryPath));
+  await verifyPublicSkillMetadataDiscoveryFiles({ rootDir, discoveryPath: command.discoveryPath });
+  const discoveryFile = await resolveContainedExistingFile(rootDir, command.discoveryPath, "metadata discovery report");
+  const discoveryBytes = await readFile(discoveryFile);
   const discovery = JSON.parse(discoveryBytes.toString("utf8"));
-  const q1Registry = JSON.parse(await readFile(contained(rootDir, protocol.exclusions.q1Registry.path), "utf8"));
+  const q1File = await resolveContainedExistingFile(rootDir, protocol.exclusions.q1Registry.path, "Q1 exclusion registry");
+  const q1Registry = JSON.parse(await readFile(q1File, "utf8"));
   const selection = buildPublicSkillMetadataSelection({
     protocol,
     protocolSha256: sha256(protocolBytes),
@@ -108,8 +104,7 @@ export async function runPublicSkillCorpusCommand(command: PublicSkillCorpusComm
     q1Registry,
     selectedAt: command.selectedAt,
   });
-  const outputPath = contained(rootDir, command.outputPath);
-  await mkdir(dirname(outputPath), { recursive: true });
+  const outputPath = await resolveContainedNewFile(rootDir, command.outputPath, "metadata selection report");
   await writeFile(outputPath, `${JSON.stringify(selection, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
   return selection;
 }

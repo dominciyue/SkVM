@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { isAbsolute, relative, resolve } from "node:path";
 import { z } from "zod";
+import {
+  normalizeRepositoryRelativePath,
+  resolveContainedExistingFile,
+} from "./public-skill-responsibility-corpus-paths";
 
 export const PUBLIC_SKILL_CORPUS_IDENTITY = "skill-ir-public-skill-responsibility-corpus-development-001" as const;
 export const PUBLIC_SKILL_CORPUS_PROTOCOL_PATH = "benchmarks/skill-ir/classification/public-skill-responsibility-corpus-protocol-v1.json" as const;
@@ -41,10 +44,11 @@ export const PublicSkillCorpusLicenseSpdxSchema = z.enum(PUBLIC_SKILL_CORPUS_LIC
 
 const Sha1Schema = z.string().regex(/^[0-9a-f]{40}$/u);
 const Sha256Schema = z.string().regex(/^[0-9a-f]{64}$/u);
-const RepositoryNameSchema = z.string().regex(/^[^/\s]+\/[^/\s]+$/u);
+const RepositoryNameSchema = z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u);
 const RelativePathSchema = z.string().min(1).superRefine((value, context) => {
-  const portable = value.replaceAll("\\", "/");
-  if (isAbsolute(value) || portable.startsWith("/") || portable.split("/").includes("..")) {
+  try {
+    normalizeRepositoryRelativePath(value, "path");
+  } catch {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "path must be repository-relative and contained" });
   }
 });
@@ -136,7 +140,11 @@ export const PublicSkillCorpusSearchPageSchema = z.object({
   query: z.string().min(1),
   page: z.number().int().min(1).max(2),
   requestUrl: z.string().url(),
+  responsePath: RelativePathSchema,
   responseSha256: Sha256Schema,
+  responseMetadataPath: RelativePathSchema,
+  responseMetadataSha256: Sha256Schema,
+  retrievedAt: z.string().datetime(),
   totalCount: z.number().int().nonnegative(),
   incompleteResults: z.boolean(),
   repositoryFullNames: z.array(RepositoryNameSchema),
@@ -179,10 +187,32 @@ export const PublicSkillCorpusRepositorySchema = z.object({
   disabled: z.boolean(),
   defaultBranch: z.string().min(1),
   headCommit: Sha1Schema,
+  searchSource: z.object({
+    queryPriority: z.number().int().min(1).max(4),
+    page: z.number().int().min(1).max(2),
+    rank: z.number().int().positive().max(100),
+  }).strict(),
+  branch: z.object({
+    requestUrl: z.string().url(),
+    responsePath: RelativePathSchema,
+    responseSha256: Sha256Schema,
+    responseMetadataPath: RelativePathSchema,
+    responseMetadataSha256: Sha256Schema,
+    retrievedAt: z.string().datetime(),
+    rateLimitRemaining: z.number().int().nonnegative(),
+    rateLimitResetAt: z.string().datetime(),
+  }).strict(),
   license: z.union([ResolvedRepositoryLicenseSchema, UnresolvedRepositoryLicenseSchema]),
   tree: z.object({
+    requestUrl: z.string().url(),
+    responsePath: RelativePathSchema,
     truncated: z.boolean(),
     responseSha256: Sha256Schema,
+    responseMetadataPath: RelativePathSchema,
+    responseMetadataSha256: Sha256Schema,
+    retrievedAt: z.string().datetime(),
+    rateLimitRemaining: z.number().int().nonnegative(),
+    rateLimitResetAt: z.string().datetime(),
     blobs: z.array(z.object({
       path: RelativePathSchema,
       oid: Sha1Schema,
@@ -199,10 +229,10 @@ export const PublicSkillCorpusDiscoverySchema = z.object({
   protocol: z.object({ path: z.literal(PUBLIC_SKILL_CORPUS_PROTOCOL_PATH), sha256: Sha256Schema }).strict(),
   retrievedAt: z.string().datetime(),
   searchPages: z.array(PublicSkillCorpusSearchPageSchema).length(8),
-  repositories: z.array(PublicSkillCorpusRepositorySchema).min(1),
+  repositories: z.array(PublicSkillCorpusRepositorySchema),
   accounting: z.object({
     metadataRequests: z.number().int().positive(),
-    repositoriesInspected: z.number().int().positive(),
+    repositoriesInspected: z.number().int().nonnegative(),
     skillBodyRequests: z.literal(0),
     skillBodyBytes: z.literal(0),
     modelCalls: z.literal(0),
@@ -278,8 +308,8 @@ export const PublicSkillCorpusSelectionSchema = z.object({
     selectedSkills: z.number().int().nonnegative().max(40),
     selectedRepositories: z.number().int().nonnegative(),
     provisionalLineages: z.number().int().nonnegative(),
-    searchUniverseRepositories: z.number().int().positive(),
-    inspectedRepositories: z.number().int().positive().max(25),
+    searchUniverseRepositories: z.number().int().nonnegative(),
+    inspectedRepositories: z.number().int().nonnegative().max(25),
     uninspectedRepositories: z.number().int().nonnegative(),
     targetSkills: z.literal(40),
     minimumRepositories: z.literal(8),
@@ -300,6 +330,7 @@ export const PublicSkillCorpusSelectionSchema = z.object({
 }).strict();
 
 export type PublicSkillCorpusSelection = z.infer<typeof PublicSkillCorpusSelectionSchema>;
+export type PublicSkillCorpusDiscovery = z.infer<typeof PublicSkillCorpusDiscoverySchema>;
 
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
@@ -312,14 +343,6 @@ function canonical(value: unknown): string {
 
 function sha256(value: Uint8Array | string): string {
   return createHash("sha256").update(value).digest("hex");
-}
-
-function contained(rootDir: string, path: string): string {
-  const root = resolve(rootDir);
-  const target = resolve(root, path);
-  const back = relative(root, target);
-  if (back === "" || back.startsWith("..") || isAbsolute(back)) throw new Error(`path escapes repository root: ${path}`);
-  return target;
 }
 
 function exactArray(actual: readonly unknown[], expected: readonly unknown[], label: string): void {
@@ -348,9 +371,11 @@ export async function verifyPublicSkillCorpusProtocolFiles(options: {
   publicSkillBodyRequests: 0;
 }> {
   if (options.protocolPath !== PUBLIC_SKILL_CORPUS_PROTOCOL_PATH) throw new Error("unexpected public skill corpus protocol path");
-  const protocol = PublicSkillCorpusProtocolSchema.parse(JSON.parse(await readFile(contained(options.rootDir, options.protocolPath), "utf8")));
+  const protocolFile = await resolveContainedExistingFile(options.rootDir, options.protocolPath, "public skill corpus protocol");
+  const protocol = PublicSkillCorpusProtocolSchema.parse(JSON.parse(await readFile(protocolFile, "utf8")));
   verifyProtocol(protocol);
-  const q1Bytes = await readFile(contained(options.rootDir, protocol.exclusions.q1Registry.path));
+  const q1File = await resolveContainedExistingFile(options.rootDir, protocol.exclusions.q1Registry.path, "Q1 exclusion registry");
+  const q1Bytes = await readFile(q1File);
   if (sha256(q1Bytes) !== protocol.exclusions.q1Registry.sha256) throw new Error("Q1 exclusion registry digest drift");
   Q1RegistrySchema.parse(JSON.parse(q1Bytes.toString("utf8")));
   return {

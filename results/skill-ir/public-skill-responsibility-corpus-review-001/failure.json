@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "skill-ir-public-skill-responsibility-corpus-review-failure/v1",
+  "identity": "skill-ir-public-skill-responsibility-corpus-development-001",
+  "status": "fixed-before-public-metadata-run-final-review-ready",
+  "reviewedAt": "2026-09-10T07:32:24.618Z",
+  "scope": "Task 8 metadata discoverer, response archive/verifier, selector integration, safe local paths, and fixed CLI",
+  "findings": [
+    {
+      "severity": "Important",
+      "code": "repository-api-url-origin-unbound",
+      "summary": "A repository search item URL was accepted as any syntactically valid URL and could redirect subsequent branch/tree metadata reads outside the fixed GitHub API origin.",
+      "redEvidence": "missing-export RED: 0 pass, 1 fail, 1 error",
+      "resolution": "Discoverer and independent verifier require the exact https://api.github.com/repos/{full_name} identity before branch/tree use."
+    },
+    {
+      "severity": "Important",
+      "code": "failure-archive-error-swallowed",
+      "summary": "A competing or failed failure.json write could be swallowed while only the original discovery error escaped.",
+      "redEvidence": "focused RED: competing failure file was not rejected; 13 pass, 2 fail, 41 assertions",
+      "resolution": "The output directory and failure.json handle are created exclusively before network access; failure data is written through the held handle and synchronized, and any archive error becomes an AggregateError."
+    },
+    {
+      "severity": "Important",
+      "code": "lexical-containment-junction-escape",
+      "summary": "Lexical resolve/relative checks allowed protocol reads and discovery writes through a Windows junction outside the repository root.",
+      "redEvidence": "focused RED: junction-backed protocol resolved and competing failure file remained unreserved; 13 pass, 2 fail, 41 assertions",
+      "resolution": "Shared path guards normalize repository-relative paths, reject symlink/junction components with lstat, check realpath containment, and exclusively create output paths before requests."
+    },
+    {
+      "severity": "Important",
+      "code": "http-redirect-unbound",
+      "summary": "The default fetch transport followed redirects even though only the initial request URL was identity-bound.",
+      "redEvidence": "missing-export RED for redirect and response-metadata tests: 0 pass, 1 fail, 1 error",
+      "resolution": "The public metadata transport is explicit and uses redirect=error."
+    },
+    {
+      "severity": "Important",
+      "code": "response-headers-not-replayable",
+      "summary": "Only response bodies were archived, so content type and rate-limit summary fields could not be independently reconstructed.",
+      "redEvidence": "missing-export RED for redirect and response-metadata tests: 0 pass, 1 fail, 1 error",
+      "resolution": "Every successful response now has a digest-bound metadata sidecar containing status, content-type, and exact rate-limit strings; the verifier rereads it and reconstructs summary fields."
+    },
+    {
+      "severity": "Minor",
+      "code": "response-cap-after-buffering",
+      "summary": "The 64 MiB guard was checked only after arrayBuffer had already consumed the response.",
+      "redEvidence": "read-only source review of the pre-fix transport",
+      "resolution": "The default transport now reads the response stream incrementally, cancels above 64 MiB, and retains the postcondition check for injected transports."
+    },
+    {
+      "severity": "Important",
+      "code": "independent-verifier-incomplete-search-accepted",
+      "summary": "The verifier compared the report and raw incomplete_results values but did not independently require the value to be false.",
+      "redEvidence": "coordinated report/body tamper RED: 15 pass, 1 fail, 47 assertions; verifier resolved instead of rejecting",
+      "resolution": "The independent verifier now directly rejects every archived search response with incomplete_results=true before reconstructing repository identities."
+    },
+    {
+      "severity": "Minor",
+      "code": "rate-limit-sequence-not-independently-replayed",
+      "summary": "The verifier rebound rate-limit fields but did not enforce that every nonterminal request left capacity for the next fixed request; the discoverer also omitted the final-search-to-branch and branch-to-tree boundaries.",
+      "redEvidence": "coordinated sidecar/report tamper RED: 15 pass, 1 fail, 48 assertions; verifier resolved with a nonterminal remaining value of zero",
+      "resolution": "Discoverer and verifier now enforce the full search-page to repository-branch to recursive-tree request sequence, permitting zero remaining only after the terminal request."
+    }
+  ],
+  "verification": {
+    "focused": "16 pass, 0 fail, 50 assertions",
+    "typecheck": "passed"
+  },
+  "knownLimitation": "The controlled single-process path contract rejects existing symlink/junction components but does not claim hostile concurrent TOCTOU resistance between checks and ordinary path opens.",
+  "finalReview": {
+    "scope": "post-fix fixed request sequence, independent replay, response metadata, failure archive, and path boundary",
+    "remainingFindings": 0,
+    "readyForFirstPublicMetadataRun": true
+  },
+  "accounting": {
+    "publicMetadataRequests": 0,
+    "publicSkillBodyRequests": 0,
+    "publicSkillBodyBytes": 0,
+    "prospectiveResultsUsed": 0,
+    "modelCalls": 0,
+    "businessApiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0
+  }
+}
