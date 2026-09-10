@@ -1,0 +1,46 @@
+{
+  "observationRed": {
+    "chunk_id": "dd943d",
+    "wall_time_seconds": 0.1166975,
+    "exit_code": 1,
+    "original_token_count": 91,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\api-response-observation.test.ts:\n\n# Unhandled error between tests\n-------------------------------\nerror: Cannot find module './api-response-observation' from 'D:\\skill优化\\SkVM\\src\\skill-ir\\api-response-observation.test.ts'\n-------------------------------\n\n\n 0 pass\n 1 fail\n 1 error\nRan 1 test across 1 file. [52.00ms]\n"
+  },
+  "observationGreen": {
+    "chunk_id": "d52abd",
+    "wall_time_seconds": 0.3963179,
+    "exit_code": 0,
+    "original_token_count": 371,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\api-response-observation.test.ts:\n(pass) observed response selects exact before range before default without guessing a status trigger [50.71ms]\n(pass) response observations separate source blockers, mismatches and malformed JSON [6.01ms]\n\nsrc\\skill-ir\\api-response-schema.test.ts:\n(pass) response and request directional properties have separate required and forbidden semantics [11.74ms]\n(pass) response direction flows through local references and nested object array properties [9.92ms]\n(pass) ambiguous response directional composition and malformed flags remain unsupported [4.97ms]\n\nsrc\\skill-ir\\api-schema-witness.test.ts:\n(pass) nested objects, arrays and local refs construct independently checked minimal and full values [7.70ms]\n(pass) composition witnesses satisfy all branches and impossible oneOf does not silently select its first branch [10.76ms]\n(pass) actual Brex nested blueprint and 1Password date-time contract produce checked values [42.43ms]\n(pass) checker preserves nullable enum, exclusive bounds, readOnly and unsupported semantics [11.95ms]\n(pass) short constrained strings can provide distinct unique array items [4.53ms]\n(pass) checker does not silently treat an incompatible numeric format as a string annotation [0.07ms]\n(pass) full witnesses can distinguish overlapping optional object branches without weakening oneOf [46.99ms]\n\n 12 pass\n 0 fail\n 68 expect() calls\nRan 12 tests across 3 files. [325.00ms]\n"
+  },
+  "catalogInitialRed": {
+    "chunk_id": "5662f2",
+    "wall_time_seconds": 0.1299866,
+    "exit_code": 1,
+    "original_token_count": 99,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nscripts\\skill-ir\\api-response-schema-development.test.ts:\n\n# Unhandled error between tests\n-------------------------------\nerror: Cannot find module './api-response-schema-development' from 'D:\\skill优化\\SkVM\\scripts\\skill-ir\\api-response-schema-development.test.ts'\n-------------------------------\n\n\n 0 pass\n 1 fail\n 1 error\nRan 1 test across 1 file. [48.00ms]\n"
+  },
+  "catalogInitialGreen": {
+    "chunk_id": "b9ddbd",
+    "wall_time_seconds": 0.2716052,
+    "exit_code": 0,
+    "original_token_count": 218,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nscripts\\skill-ir\\api-response-schema-development.test.ts:\n(pass) response catalog retains every declaration and distinguishes source examples from traffic [36.23ms]\n\nsrc\\skill-ir\\api-response-observation.test.ts:\n(pass) observed response selects exact before range before default without guessing a status trigger [25.22ms]\n(pass) response observations separate source blockers, mismatches and malformed JSON [4.99ms]\n\nsrc\\skill-ir\\api-response-schema.test.ts:\n(pass) response and request directional properties have separate required and forbidden semantics [10.58ms]\n(pass) response direction flows through local references and nested object array properties [8.78ms]\n(pass) ambiguous response directional composition and malformed flags remain unsupported [4.83ms]\n\n 6 pass\n 0 fail\n 44 expect() calls\nRan 6 tests across 3 files. [203.00ms]\n"
+  },
+  "catalogLocatorRed": {
+    "chunk_id": "59022c",
+    "wall_time_seconds": 0.2535501,
+    "exit_code": 1,
+    "original_token_count": 457,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nscripts\\skill-ir\\api-response-schema-development.test.ts:\n12 |   const report = analyzeResponseSchemas(source, \"json\");\n13 |   expect(report.operations).toHaveLength(2);\n14 |   expect(report.operations.flatMap((o) => o.responses)).toHaveLength(6);\n15 |   expect(report.totals.validExamples).toBe(3);\n16 |   expect(report.totals.invalidExamples).toBe(3);\n17 |   expect(report.totals.unresolvedExamples).toBe(4);\n                                                ^\nerror: expect(received).toBe(expected)\n\nExpected: 4\nReceived: 3\n\n      at <anonymous> (D:\\skill优化\\SkVM\\scripts\\skill-ir\\api-response-schema-development.test.ts:17:44)\n(fail) response catalog retains every declaration and distinguishes source examples from traffic [37.59ms]\n24 |   const source = JSON.stringify({ openapi: \"3.0.3\", info: { title: \"refs\", version: \"1\" }, components: {\n25 |     schemas: { Result: { type: \"integer\", minimum: 2, example: 3 } },\n26 |     responses: { Ok: { description: \"ok\", content: { \"application/json\": { schema: { $ref: \"#/components/schemas/Result\" } } } } },\n27 |   }, paths: { \"/items\": { get: { responses: { \"200\": { $ref: \"#/components/responses/Ok\" } } } } } });\n28 |   const report = analyzeResponseSchemas(source, \"json\"), response = report.operations[0]!.responses[0]!;\n29 |   expect((response as any).resolvedLocator).toBe(\"#/components/responses/Ok\");\n                                                 ^\nerror: expect(received).toBe(expected)\n\nExpected: \"#/components/responses/Ok\"\nReceived: undefined\n\n      at <anonymous> (D:\\skill优化\\SkVM\\scripts\\skill-ir\\api-response-schema-development.test.ts:29:45)\n(fail) referenced response and root-schema example locators point to actual source definitions [1.44ms]\n\n 0 pass\n 2 fail\n 6 expect() calls\nRan 2 tests across 1 file. [153.00ms]\n"
+  },
+  "catalogLocatorGreen": {
+    "chunk_id": "045085",
+    "wall_time_seconds": 0.2676971,
+    "exit_code": 0,
+    "original_token_count": 244,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nscripts\\skill-ir\\api-response-schema-development.test.ts:\n(pass) response catalog retains every declaration and distinguishes source examples from traffic [34.93ms]\n(pass) referenced response and root-schema example locators point to actual source definitions [1.27ms]\n\nsrc\\skill-ir\\api-response-observation.test.ts:\n(pass) observed response selects exact before range before default without guessing a status trigger [24.91ms]\n(pass) response observations separate source blockers, mismatches and malformed JSON [4.62ms]\n\nsrc\\skill-ir\\api-response-schema.test.ts:\n(pass) response and request directional properties have separate required and forbidden semantics [11.79ms]\n(pass) response direction flows through local references and nested object array properties [9.56ms]\n(pass) ambiguous response directional composition and malformed flags remain unsupported [5.04ms]\n\n 7 pass\n 0 fail\n 47 expect() calls\nRan 7 tests across 3 files. [208.00ms]\n"
+  },
+  "mainTypecheckExitCode": 0,
+  "strictScriptTypecheckExitCode": 0
+}

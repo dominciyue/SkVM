@@ -43,3 +43,57 @@ policy, not a claim that the standard's SHOULD is a universal MUST.
 No full response/HTTP/skill claim from schema mode alone. Response headers, status triggers,
 business state, auth and live behavior remain unimplemented. Previous clean evidence remains
 version-bound and does not cover this new API.
+
+## Explicit JSON response observation contract
+
+Next API accepts original source bytes/format plus an explicit operationKey, numeric
+statusCode, mediaType and JSON bodyText. It does not perform a request or infer status.
+Select response exact code before its uppercase range before default. Missing selection
+is a bounded contract mismatch; unresolved local/external refs or malformed declarations
+are unresolved, not a successful check. Resolve Response Object refs without validation
+siblings; local schema refs use the response-direction checker above.
+
+Require one unambiguous exact JSON/+json media declaration (case-normalized); media ranges
+remain unsupported when no exact declaration matches. Parameters in the supplied media
+identifier remain unsupported in this first contract; this is not raw Content-Type header
+parsing. Header conformance, content encoding and bodyless responses stay residual.
+JSON text must have unique decoded keys. Bound text to1MiB, depth64,10000value nodes,
+and reject nonfinite/unsafe-integer parsed numbers rather than round them into a false match.
+Ordinary finite decimals use the existing JavaScript/Ajv numeric model, not exact decimals.
+
+Return source/observation hashes, selected response/media, checked valid/invalid versus
+unresolved versus invalid observation, schema diagnostics and explicit residual duties.
+A schema-valid body is not proof that the status was triggered correctly or that the
+observation came from real traffic. TDD covers exact/range/default precedence, read/write
+direction, missing status/media, lost reference, duplicate JSON and observation drift.
+
+## Existing-source measurement
+
+Enumerate every original operation/declared response/media on the12 exposed documents.
+Keep malformed declarations, missing/external response references and non-JSON media as
+explicit rows/issues. Report schema-compilation capability independently of example results.
+Compilation with a null probe is not a constructed witness or a real response observation.
+
+Only use whole-body examples explicitly declared by MediaType.example/examples or the
+root resolved Schema.example. Do not assemble property examples into an invented response.
+Local Example Object references may resolve; externalValue stays unexecuted. Preserve
+simultaneous example/examples as source advisory rather than silently choosing one.
+Exact-code examples exercise operation/status/media selection; default/range examples
+only exercise response schema checking because no concrete observed status was supplied.
+Label every case source-declared-example, never live traffic; preserve invalid/unresolved
+examples and empty example lists. Response headers/links are recorded but not validated.
+
+TDD a synthetic document with exact/range/default examples, a broken response reference,
+an external example, a non-JSON medium and an operation without examples. Then execute
+all12 sources once with a bound index and new output directory, followed by focused
+regression/typecheck. No additional public samples, network calls or inferred statuses.
+
+Before real execution, two additional RED tests exposed non-JSON examples omitted from
+unexecuted counts and reference locators not pointing at definitions. Keep non-JSON examples
+as unresolved and track resolved Response/Schema/Example Object locations separately from
+the operation declaration locator. Seven focused tests/47assertions and strictscript
+typecheck pass after repair. Prior failures remain in the development evidence directory.
+
+```powershell
+bun scripts/skill-ir/api-response-schema-development.ts --inputs=results/skill-ir/skill-family-deepening-20260911/api-inputs/inputs.json --out=results/skill-ir/skill-family-response-schema-development-20260911/first-run
+```
