@@ -1,0 +1,59 @@
+openapi: "3.0.3"
+
+info:
+  title: "{Project Name} API Docs"
+  version: "1.0.0"
+  description: "{Short description of the system and its API}"
+
+servers:
+  - url: "http://localhost:3000"
+    description: "Local development server"
+
+tags:
+  - name: "{Tag Name}"
+    description: "{What this group of endpoints does}"
+  # Add one entry per api_tag used across all endpoints
+
+security:
+  - BearerAuth: [] # Global default — operations without auth override with security: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      $ref: "./components/securitySchemes/BearerAuth.yaml"
+
+  schemas:
+    ErrorResponse:
+      $ref: "./components/schemas/ErrorResponse.yaml"
+    # Add $ref entries here as new reusable schemas are created
+
+  responses:
+    BadRequest:
+      $ref: "./components/responses/BadRequest.yaml"
+    Unauthorized:
+      $ref: "./components/responses/Unauthorized.yaml"
+    Forbidden:
+      $ref: "./components/responses/Forbidden.yaml"
+    NotFound:
+      $ref: "./components/responses/NotFound.yaml"
+    Conflict:
+      $ref: "./components/responses/Conflict.yaml"
+    UnprocessableEntity:
+      $ref: "./components/responses/UnprocessableEntity.yaml"
+    TooManyRequests:
+      $ref: "./components/responses/TooManyRequests.yaml"
+    InternalServerError:
+      $ref: "./components/responses/InternalServerError.yaml"
+    # Add $ref entries here as new reusable responses are created
+
+  parameters: {}
+    # Add $ref entries here as new reusable parameters are created
+
+  requestBodies: {}
+    # Add $ref entries here as new reusable request bodies are created
+
+paths:
+  # Add one $ref entry per endpoint as path files are generated
+  # Example:
+  # /api/register:
+  #   $ref: "./paths/auth/register.yaml"

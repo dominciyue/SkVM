@@ -1,0 +1,204 @@
+package deploy
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"time"
+
+	unkey "github.com/unkeyed/sdks/api/go/v3"
+	"github.com/unkeyed/sdks/api/go/v3/models/components"
+	"github.com/unkeyed/unkey/pkg/buildinfo"
+	"github.com/unkeyed/unkey/pkg/git"
+	"github.com/unkeyed/unkey/pkg/logger"
+)
+
+// clientHeader is the X-Unkey-Client value the server reads to attribute
+// deployments to the CLI (vs the REST API). Keep the "unkey-cli/" prefix
+// stable — v2_deploy_create_deployment/handler.go matches on it.
+var clientHeader = "unkey-cli/" + buildinfo.Version
+
+// headerInjector wraps an HTTP client to add X-Unkey-Client on every
+// outgoing request. Used so the control plane can tag deployment rows with
+// trigger=cli without the caller having to pass an explicit field.
+type headerInjector struct {
+	inner http.Client
+}
+
+func (h *headerInjector) Do(req *http.Request) (*http.Response, error) {
+	req.Header.Set("X-Unkey-Client", clientHeader)
+	return h.inner.Do(req)
+}
+
+// DeploymentStatusEvent represents a status change event
+type DeploymentStatusEvent struct {
+	DeploymentID   string
+	PreviousStatus components.V2DeployGetDeploymentResponseDataStatus
+	CurrentStatus  components.V2DeployGetDeploymentResponseDataStatus
+	Deployment     *components.V2DeployGetDeploymentResponseData
+}
+
+// DeploymentStepEvent represents a step update event
+type DeploymentStepEvent struct {
+	DeploymentID string
+	Step         *components.V2DeployDeploymentStep
+	Status       components.V2DeployGetDeploymentResponseDataStatus
+}
+
+// ControlPlaneClient handles API operations with the control plane
+type ControlPlaneClient struct {
+	sdk  *unkey.Unkey
+	opts DeployOptions
+}
+
+// NewControlPlaneClient creates a new control plane client
+func NewControlPlaneClient(opts DeployOptions) *ControlPlaneClient {
+	sdkOpts := []unkey.SDKOption{
+		unkey.WithSecurity(opts.RootKey),
+		unkey.WithClient(&headerInjector{inner: http.Client{Timeout: 30 * time.Second}}),
+	}
+
+	// If not specified, SDK will use its default prod URL.
+	// This is needed for easier local testing.
+	if opts.APIBaseURL != "" {
+		sdkOpts = append(sdkOpts, unkey.WithServerURL(opts.APIBaseURL))
+	}
+
+	sdk := unkey.New(sdkOpts...)
+
+	return &ControlPlaneClient{
+		sdk:  sdk,
+		opts: opts,
+	}
+}
+
+// CreateDeployment creates a new deployment in the control plane using a pre-built docker image
+func (c *ControlPlaneClient) CreateDeployment(ctx context.Context, dockerImage string) (string, error) {
+	commitInfo := git.GetInfo()
+
+	var keyspaceID *string
+	if c.opts.KeyspaceID != "" {
+		keyspaceID = &c.opts.KeyspaceID
+	}
+
+	var gitCommit *components.V2DeployGitCommit
+	if commitInfo.CommitSHA != "" {
+		gitCommit = &components.V2DeployGitCommit{
+			CommitSha:       &commitInfo.CommitSHA,
+			CommitMessage:   &commitInfo.Message,
+			AuthorHandle:    &commitInfo.AuthorHandle,
+			AuthorAvatarURL: &commitInfo.AuthorAvatarURL,
+			Timestamp:       &commitInfo.CommitTimestamp,
+		}
+	}
+
+	reqBody := components.V2DeployCreateDeploymentRequestBody{
+		Project:         c.opts.Project,
+		App:             c.opts.App,
+		Branch:          c.opts.Branch,
+		EnvironmentSlug: c.opts.Environment,
+		DockerImage:     dockerImage,
+		KeyspaceID:      keyspaceID,
+		GitCommit:       gitCommit,
+	}
+
+	res, err := c.sdk.Internal.CreateDeployment(ctx, reqBody)
+	if err != nil {
+		return "", err
+	}
+
+	if res.V2DeployCreateDeploymentResponseBody == nil {
+		return "", fmt.Errorf("empty response from create deployment")
+	}
+
+	deploymentID := res.V2DeployCreateDeploymentResponseBody.Data.DeploymentID
+	if deploymentID == "" {
+		return "", fmt.Errorf("empty deployment ID returned from API")
+	}
+
+	return deploymentID, nil
+}
+
+// GetDeployment retrieves deployment information from the control plane
+func (c *ControlPlaneClient) GetDeployment(ctx context.Context, deploymentID string) (*components.V2DeployGetDeploymentResponseData, error) {
+	res, err := c.sdk.Internal.GetDeployment(ctx, components.V2DeployGetDeploymentRequestBody{
+		DeploymentID: deploymentID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if res.V2DeployGetDeploymentResponseBody == nil {
+		return nil, fmt.Errorf("empty response from get deployment")
+	}
+
+	return &res.V2DeployGetDeploymentResponseBody.Data, nil
+}
+
+// PollDeploymentStatus polls for deployment changes and calls event handlers
+func (c *ControlPlaneClient) PollDeploymentStatus(
+	ctx context.Context,
+	deploymentID string,
+	onStatusChange func(DeploymentStatusEvent) error,
+) error {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	timeout := time.NewTimer(300 * time.Second)
+	defer timeout.Stop()
+
+	// Track processed steps by creation time to avoid duplicates
+	lastStatus := components.V2DeployGetDeploymentResponseDataStatusUnspecified
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-timeout.C:
+			return fmt.Errorf("deployment timeout after 5 minutes")
+		case <-ticker.C:
+			deployment, err := c.GetDeployment(ctx, deploymentID)
+			if err != nil {
+				logger.Debug("Failed to get deployment status",
+					"error", err,
+					"deployment_id", deploymentID)
+				continue
+			}
+
+			currentStatus := deployment.GetStatus()
+
+			if currentStatus != lastStatus {
+				event := DeploymentStatusEvent{
+					DeploymentID:   deploymentID,
+					PreviousStatus: lastStatus,
+					CurrentStatus:  currentStatus,
+					Deployment:     deployment,
+				}
+
+				if err := onStatusChange(event); err != nil {
+					return err
+				}
+				lastStatus = currentStatus
+			}
+
+			// Check for completion
+			if currentStatus == components.V2DeployGetDeploymentResponseDataStatusReady {
+				return nil
+			}
+		}
+	}
+}
+
+// getFailureMessage extracts failure message from deployment
+func (c *ControlPlaneClient) getFailureMessage(deployment *components.V2DeployGetDeploymentResponseData) string {
+	if deployment.GetErrorMessage() != nil && *deployment.GetErrorMessage() != "" {
+		return *deployment.GetErrorMessage()
+	}
+
+	for _, step := range deployment.GetSteps() {
+		if step.GetErrorMessage() != nil && *step.GetErrorMessage() != "" {
+			return *step.GetErrorMessage()
+		}
+	}
+
+	return "Unknown deployment error"
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "skill-family-source-analysis/v1",
+  "sourceIndex": "sources.json",
+  "extraction": "main-development-agent-authored-after-source-reading",
+  "semanticConfirmation": "agent-reviewed; no independent human assessment",
+  "skills": [{
+    "skillId": "nntan90/qa-skill-suite:api-test/SKILL.md",
+    "bodyReadComplete": true,
+    "bodyLines": 1005,
+    "membership": "contains-candidate-class-responsibility",
+    "membershipEvidence": {"startLine":633,"endLine":650,"marker":"OpenAPI"},
+    "dependencyReview": "Complete body and acquired api-test-checklist.md read; four named framework guides and Postman template absent from acquired pinned tree. No source commands executed.",
+    "sourceCaveats": [
+      "Generic status, performance and security expectations are not authority for a particular API.",
+      "Missing native framework guides and template limit full output closure; email examples are lexical resource false positives, not missing files.",
+      "Source demands complete multi-section delivery. Bounded schema/wire cases alone do not meet that demand.",
+      "OpenAPI is an optional schema input; explicit request/response specs and task context remain requirements for full execution."
+    ],
+    "responsibilities": [
+      {"id":"parse-contract","description":"Analyze endpoint, method, request and response schemas, auth and test context.","lines":[63,124],"obligations":["all-operations","request-contract","response-contract","security","task-semantic-confirmation"]},
+      {"id":"construct-request-cases","description":"Construct contract-driven happy, missing-field, wrong-type, boundary, nullable, auth and business cases with positive and negative coverage.","lines":[126,147],"additionalLines":[[167,176],[191,199],[531,557],[633,709]],"obligations":["valid-request","minimal-and-full","missing-required","wrong-type","out-of-range","nullability","extra-fields","auth-variants","idor","injection","business-validation","pagination-filtering","all-documented-statuses"]},
+      {"id":"emit-test-code","description":"Deliver runnable selected-language tests, fixtures, parameterization and assertions; optional Postman output.","lines":[149,158],"additionalLines":[[201,261],[488,529]],"obligations":["requested-output-format","fixtures","parameterization","response-assertions","run-instructions"]},
+      {"id":"response-schema","description":"Validate every response field and OpenAPI schema with source-specific assertions.","lines":[160,176],"additionalLines":[[633,709]],"obligations":["response-schema","response-assertions","headers","schema-coverage"]},
+      {"id":"stateful-live-tests","description":"Exercise CRUD, authentication, database persistence, mobile clients and pagination against configured services.","lines":[263,486],"obligations":["crud-lifecycle","live-state","live-execution","database-validation","mobile","pagination-filtering"]},
+      {"id":"consumer-contracts","description":"Produce and verify consumer-driven Pact contracts and broker workflow when applicable.","lines":[563,631],"obligations":["pact-output","provider-verification","broker-integration"]},
+      {"id":"chaos-and-graphql","description":"Exercise fault injection, GraphQL queries, mutations, depth and authorization scenarios.","lines":[711,974],"obligations":["chaos","graphql","auth-variants","idor","live-execution"]},
+      {"id":"delivery-review","description":"Deliver all mandatory sections, coverage matrix, field checklist and summary; review security and performance expectations.","lines":[978,1004],"additionalLines":[[44,61],[108,187],[531,557]],"obligations":["coverage-summary","gap-accounting","all-required-sections","performance","secret-handling"]}
+    ],
+    "scopeLimit":"Complete identified source duties retained; only bounded request schema cases and wire fragments executed. Whole skill and native pytest/httpx delivery remain incomplete."
+  }]
+}

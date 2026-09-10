@@ -18,6 +18,10 @@
 - D5 首次跨成员运行：request-cases-cross-member-first/，每成员 303 操作，261 正向 schema 值齐备，250 正向 wire 片段齐备，2937/3371 已枚举义务覆盖，3 操作枚举不完整。三个成员结果一致，但不是完整 HTTP/原 skill 成功。源职责全部保留，原生 pytest/Drift 尚未实现。
 - D6 已完成六个匹配子任务：model-comparison-first/；会话3716退出0，确定性12/12、模型11/12，6 HTTP requests，24999输入/1827输出token。金额未返回，记未测；全skill与人工节省不在该微基准结论内。首次脚本为未提交代码，execution-sources.json绑定原件。
 - 特殊 Accept/Content-Type/Authorization header 参数误编码已用 TDD 修复；实际十二文档该类参数出现0次，不重复全部36任务。主typecheck通过，D6/编码/操作聚焦8 tests/62assertions通过。
-- 下一动作：提交归档 D5/D6 和 D7 method（skill-family-new-member-method.md），生成方法绑定后才获取新的候选正文；按返回顺序最多8新仓库寻求3独立类内成员。D7–D9 未执行；无运行中付费请求。
+- 17b9633 已推送，冻结 D7 核心与方法；method-binding.json 的19文件摘要核对无漂移。第一批8正文/8仓库/185文件/1259404bytes/210 GitHub请求，已完整读正文；membership-review.json 为6类外+2不确定，0 qualified，不宣称迁移。未执行来源脚本。
+- 第二批发现规则在 skill-family-new-member-discovery-revision-2.md 和 r2/method-binding.json 预先限定为精确短语查询。结果2120项，取前8新仓库首路径；排除D1及首批仓库。r2获取正在运行，核心17b9633不变。
+- D7 第二批已完成：6正文、2 truncated-tree 获取失败；Unkey专用Go输出和codex-sdd OAS3.1为类内受限成员，但固定12输入不适用；一份Pactflow完全重复不计独立；其余类外。第三批预定path:api-test查询仅1结果，取得nntan90正文及checklist，完整核读后建立完整职责映射。
+- D7 第三批首跑完成：first-run/report.json；17b9633的19绑定摘要无漂移，零核心改动，12任务全部核验pass。303操作、261正向schema齐备、250正向wire齐备、2937/3371义务覆盖、2382编码、3操作枚举不完整。原生pytest与全skill仍未完成；仅1新的通用适用成员，不能称三成员迁移目标完成。
+- 下一动作：归档D7首跑及完整发现失败，然后D8处理重复schema编译开销，TDD验证缓存隔离和结果不漂移，按相同输入测量。无运行中付费请求。
 - 成本：项目模型/付费调用 0；公开 web 检索 2 批（4 查询）；认证 GitHub 请求 161；宿主开发代理成本未测，独立于项目运行链。
 - 历史停止总结：[约 16 小时工作总结与停止现场](work-stop-summary-2026-09-11.md)。停止后两次自动续行因缺少授权未执行，随后按三轮阈值标 blocked；最新明确授权已恢复 active。历史停止与失败不覆盖，不作为本轮执行禁令。
