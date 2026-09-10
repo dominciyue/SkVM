@@ -2161,6 +2161,10 @@ operation-level、无独立 dependency verifier/full verifier、complete-respons
 分账。只有全部任务、clean reproduction、fresh verification 和提交闭合且没有实现正确性 blocker 时，总目标才可完成；最终即使判断可筹备
 下一 prospective，也不自动选择或读取新样本。
 
+用户随后明确扩大了远端 API、付费调用和真实公开 GitHub skill 的工作授权。此授权只适用于后续另行定义且在范围内的工作，不追溯改变已经预注册
+identity 的 query、请求预算、重试、分母、项目 runtime accounting 或终止结果；Task 2/8 已冻结的失败不得以授权扩大为理由补发。任何实际远端或
+付费使用仍须在相应协议和报告中单列，平台安全审批继续有效。本节原始 `model/API/paid=0/0/0` 仍是现有冻结 identity 的事实与验收值。
+
 **Task 1 实际结果（2026-09-10）。** 新 binding identity 在 execution commit
 `74338e73a4f6dae389c9d62ce84173c2d1672906` 上从 ordinary-input entry 解析出 11 个本地运行模块，unresolved import 为 0；相对候选 001
 唯一新增的运行依赖是既有 `source-fixture.ts` 和 `api-tester-production-contract.ts`。机器绑定以 `13c5d79` 冻结并经 live verify 通过；候选 001
@@ -2180,8 +2184,8 @@ skill 自动化。
 2026-09-10 的 retrospective development 报告核验 9 criteria、9 evidence files、7 examples、6 skill aggregates。7 个例中 5 个 in-family、
 1 个 out-of-family、1 个 unknown；4 个 constructible、2 个 current-supported。这只描述已暴露反例集，不是生态比例或 prospective 结果。
 Meilisearch 缺失本地引用仍阻塞对应构造，Bangumi 外部响应引用仍为 advisory；prospective/held-out/Q1/model/business-API/paid 使用全为 0。
-Task 2 revision freeze 的第二次 origin push 仍受外部门阻塞；本 Task 按总目标的独立工作例外完成，不追认 Task 3 已运行，也不放开未见 OpenAPI
-来源访问。
+Task 7 执行时 Task 2 revision freeze 的第二次 origin push 仍受外部门阻塞；该 freeze 后续已推送并 remote-aware verified，但唯一固定来源获取在
+HTTP 403 终止且没有 authoritative selection。本 Task 按总目标的独立工作例外完成，不追认 Task 3 已运行。
 
 独立复核随后发现三项 development gate 缺口：necessary-family criterion 未限制 evidence kind、CLI output 可逃逸 repository root、
 expected assessment 在 dependency propagation 前比较。三项均先复现 false acceptance，再修订为 family evidence kind allowlist、contained
@@ -2208,3 +2212,18 @@ repository-local scripts/references/templates/assets/examples；每 skill 限 10
 分析单位为 complete responsibility。独立 source-coverage denominator 要求每个 normative section 和 in-scope resource file 恰映射到责任或命名的
 non-responsibility 类别；分类复用 Task 7 的 family/evidence/support 正交合同，并补 structural kinds、依赖、工具、副作用、locator 与 missing evidence。
 40 个便利样本不得外推生态比例，静态 constructible 不等于 artifact success，development-agent 分析/复核不得冒充真人标注。
+
+### 14.23 API Tester 操作级机制消融实际结果
+
+Task 10 采用[预注册设计](../superpowers/specs/2026-09-10-api-tester-operation-mechanism-ablation-design.md)与
+[组件合同](api-tester-operation-mechanism-ablation.md)，只从有摘要绑定的 Task 1、Task 2、Task 7 既有报告重算。whole-document 对照在六份
+已暴露文档上仍为 `0/6`、覆盖 0 operation；operation-level treatment 保留并由 checker 通过 112/562 operations，余下 449 rejected、
+1 unresolved。该差值只说明固定文档内局部产物被保留，不是生态比例或因果估计。
+
+九个预先设计的合成故障在 full verifier 下均由指定层检出；移除 dependency verifier 且禁止层替代时，parameter/reference/security dependency
+loss 三项由 `3/3` 变为 `0/3`，其余六项仍由原指定层检出。complete denominator 显示 accepted-only 隐藏 450/562 operation
+responsibilities，`currentSupport=supported`-only 隐藏 5/7 family responsibilities。Task 3、Task 8、Task 9 的缺失证据没有进入分母或被插补。
+
+write-once 机器报告 SHA-256=`6cd63f4e265f66b7272ace596f8f680e6852d29593721b324a305c49ed4489fb`，portable semantic
+SHA-256=`5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0`；strict verify 从绑定输入逐项重算并拒绝报告协调重签。
+Meilisearch blocker、Bangumi advisory、文档级 `0/6` 与 readiness 均不变，本阶段新增 prospective/model/business API/paid 使用为 0。

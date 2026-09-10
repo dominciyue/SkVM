@@ -1,0 +1,279 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-mechanism-ablation-report/v1",
+  "identity": "skill-ir-api-tester-operation-mechanism-ablation-development-001",
+  "status": "verified-development-mechanism-ablation",
+  "completedAt": "2026-09-10T12:14:27.911Z",
+  "protocol": {
+    "path": "benchmarks/skill-ir/pilots/api-tester/operation-mechanism-ablation-development-001/protocol.json",
+    "sha256": "ca3780013f99be4011d515b3b09e9fd8419d7f3f6d9f763816ed05fb71f200df",
+    "parentCommit": "8b27b2b696bf0837a7b9a2b6485e94477fefaf19"
+  },
+  "inputs": {
+    "task1": {
+      "path": "results/skill-ir/api-tester-operation-admission-development-001/report.json",
+      "sha256": "d2fbe27a27b5d7d94f8ab2aeb45c0fb23c610f0bd47d82cdd04ee4bd4c37b2c6"
+    },
+    "task2Validation": {
+      "path": "results/skill-ir/api-tester-operation-validation-development-001/report.json",
+      "sha256": "7c49bf346d564fcfdaaa80ebc9ef6a8ea678cb2197411286b8e4093dac0d2bbd"
+    },
+    "task7Family": {
+      "path": "results/skill-ir/public-structure-offline-family-contract-revision-development-002/report.json",
+      "sha256": "d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee"
+    },
+    "prospectiveFailureGate": {
+      "path": "results/skill-ir/api-tester-operation-prospective-001/source-selection/failure-audit.json",
+      "sha256": "1c4152950e0609a9b38e0448cd00778b58972efd95c841b0b620ed0ec4ef7b69"
+    }
+  },
+  "evidenceAvailability": {
+    "task3ProspectiveFirstRun": "unavailable-source-acquisition-terminal-http-403",
+    "task8FortySkillCorpus": "unavailable-preregistered-search-rate-limit-terminal",
+    "task9ThreeApiSkillReuse": "unavailable-task8-selection-missing",
+    "unavailableEvidenceIncludedInEffectDenominator": false
+  },
+  "panels": {
+    "operationSegmentation": {
+      "universe": {
+        "documents": 6,
+        "operations": 562
+      },
+      "wholeDocument": {
+        "admittedDocuments": 0,
+        "operationsCovered": 0,
+        "admissionRule": "all-operations-accepted-and-enumeration-complete"
+      },
+      "operationLevel": {
+        "documentsWithAnyAccepted": 5,
+        "fullyAcceptedDocuments": 0,
+        "acceptedOperations": 112,
+        "checkerPassedOperations": 112,
+        "rejectedOperations": 449,
+        "unresolvedOperations": 1
+      },
+      "delta": {
+        "additionalCheckerPassedOperations": 112,
+        "fullyAcceptedDocumentDelta": 0
+      },
+      "relation": "pass",
+      "documents": [
+        {
+          "rowId": "real-opengrok-api",
+          "operations": 48,
+          "accepted": 10,
+          "rejected": 38,
+          "unresolved": 0,
+          "checkerPassed": 10,
+          "wholeDocumentAdmitted": false
+        },
+        {
+          "rowId": "real-box-openapi",
+          "operations": 297,
+          "accepted": 0,
+          "rejected": 297,
+          "unresolved": 0,
+          "checkerPassed": 0,
+          "wholeDocumentAdmitted": false
+        },
+        {
+          "rowId": "real-meilisearch-api",
+          "operations": 73,
+          "accepted": 38,
+          "rejected": 34,
+          "unresolved": 1,
+          "checkerPassed": 38,
+          "wholeDocumentAdmitted": false
+        },
+        {
+          "rowId": "real-bangumi-api",
+          "operations": 55,
+          "accepted": 19,
+          "rejected": 36,
+          "unresolved": 0,
+          "checkerPassed": 19,
+          "wholeDocumentAdmitted": false
+        },
+        {
+          "rowId": "real-deepl-openapi",
+          "operations": 62,
+          "accepted": 37,
+          "rejected": 25,
+          "unresolved": 0,
+          "checkerPassed": 37,
+          "wholeDocumentAdmitted": false
+        },
+        {
+          "rowId": "real-hfs-openapi",
+          "operations": 27,
+          "accepted": 8,
+          "rejected": 19,
+          "unresolved": 0,
+          "checkerPassed": 8,
+          "wholeDocumentAdmitted": false
+        }
+      ],
+      "interpretation": "Operation splitting exposes checker-verified local work inside documents that fail an all-operations admission gate; the fixed-document observation is not an ecosystem or randomized causal estimate."
+    },
+    "independentDependencyVerification": {
+      "universe": {
+        "injectedFaults": 9,
+        "dependencyTargetedFaults": 3
+      },
+      "fullVerifier": {
+        "correctLayerDetected": 9,
+        "missed": 0
+      },
+      "noDependencyVerifier": {
+        "correctLayerDetected": 6,
+        "missed": 3
+      },
+      "dependencyTargeted": {
+        "injected": 3,
+        "fullDetected": 3,
+        "controlDetected": 0,
+        "controlMissed": 3
+      },
+      "cases": [
+        {
+          "fault": "operation-omission",
+          "detectorLayer": "source-coverage",
+          "code": "ANALYZER_OPERATION_OMITTED",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": true
+        },
+        {
+          "fault": "operation-duplicate",
+          "detectorLayer": "source-coverage",
+          "code": "ANALYZER_OPERATION_DUPLICATE",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": true
+        },
+        {
+          "fault": "parameter-dependency-loss",
+          "detectorLayer": "dependency-verifier",
+          "code": "PARAMETER_DEPENDENCY_LOST",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": false
+        },
+        {
+          "fault": "reference-dependency-loss",
+          "detectorLayer": "dependency-verifier",
+          "code": "REFERENCE_DEPENDENCY_LOST",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": false
+        },
+        {
+          "fault": "security-dependency-loss",
+          "detectorLayer": "dependency-verifier",
+          "code": "SECURITY_DEPENDENCY_LOST",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": false
+        },
+        {
+          "fault": "summary-drift",
+          "detectorLayer": "source-coverage",
+          "code": "ANALYZER_SOURCE_METADATA_DRIFT",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": true
+        },
+        {
+          "fault": "false-acceptance",
+          "detectorLayer": "admission-consistency",
+          "code": "FALSE_ACCEPTANCE",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": true
+        },
+        {
+          "fault": "artifact-endpoint-loss",
+          "detectorLayer": "independent-checker",
+          "code": "OPERATION_COVERAGE_FAILED",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": true
+        },
+        {
+          "fault": "artifact-witness-loss",
+          "detectorLayer": "independent-checker",
+          "code": "SCHEMA_DERIVED_CASES_FAILED",
+          "fullDetected": true,
+          "noDependencyVerifierDetected": true
+        }
+      ],
+      "realBoundaryContext": [
+        {
+          "responsibilityId": "api-tester-source-boundaries/meilisearch-missing-parameter-target",
+          "sourceValidity": "blocked",
+          "dependencyClosure": "open",
+          "currentSupport": "not-assessable",
+          "effectRateRole": "context-only-not-scored"
+        },
+        {
+          "responsibilityId": "api-tester-source-boundaries/bangumi-external-response-targets",
+          "sourceValidity": "advisory",
+          "dependencyClosure": "closed",
+          "currentSupport": "missing",
+          "effectRateRole": "context-only-not-scored"
+        }
+      ],
+      "relation": "pass",
+      "interpretation": "Under the preregistered no-layer-substitution control, removing dependency verification hides exactly the parameter, reference, and security dependency-loss fixtures; the rate is limited to this designed fault set."
+    },
+    "completeResponsibilityDenominator": {
+      "operations": {
+        "complete": 562,
+        "visibleInAcceptedOnly": 112,
+        "hidden": 450,
+        "hiddenRejected": 449,
+        "hiddenUnresolved": 1,
+        "documentsWithHidden": 6,
+        "relation": "pass"
+      },
+      "family": {
+        "complete": 7,
+        "visibleInCurrentSupportedOnly": 2,
+        "hidden": 5,
+        "skills": 6,
+        "skillsWithHidden": 4,
+        "familyMembershipDistribution": {
+          "family-membership-unknown": 1,
+          "in-family": 5,
+          "out-of-family": 1
+        },
+        "verifiabilityDistribution": {
+          "not-verifiable": 2,
+          "verifiable": 5
+        },
+        "constructibilityDistribution": {
+          "constructible": 4,
+          "not-constructible": 2,
+          "unknown": 1
+        },
+        "currentSupportDistribution": {
+          "missing": 2,
+          "not-applicable": 1,
+          "not-assessable": 2,
+          "supported": 2
+        },
+        "relation": "pass"
+      },
+      "interpretation": "Accepted/current-supported-only views remove known rejected, unresolved, missing, not-applicable, and not-assessable responsibilities; the hidden count is a denominator effect, not measured human work."
+    }
+  },
+  "accounting": {
+    "prospectiveRuns": 0,
+    "newPublicSourceRequests": 0,
+    "modelCalls": 0,
+    "businessApiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0,
+    "developmentAgentUsage": "host-external-not-measured-by-project-runner"
+  },
+  "limitations": [
+    "deterministic-development-controls-not-randomized-causal-estimates",
+    "operation-statuses-within-documents-are-not-independent-samples",
+    "fault-detection-rate-applies-only-to-nine-designed-synthetic-faults",
+    "task3-task8-task9-evidence-unavailable-and-not-imputed",
+    "no-ecosystem-real-api-human-effort-or-readiness-claim"
+  ],
+  "portableSemanticSha256": "5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0"
+}

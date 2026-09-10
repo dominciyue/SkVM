@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-10-mechanism-ablation-preregistration; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
+- `currentStage`: `task-10-mechanism-ablation-verified; task-6-synthesis-next; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
 - `stageStatus`: `in-progress; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
-- `lastCompletedCommit`: `6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`
-- `currentCommit`: `6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`
+- `lastCompletedCommit`: `d20adf41156b6e949c8f55436a6188e1c57496ee`
+- `currentCommit`: `d20adf41156b6e949c8f55436a6188e1c57496ee (Task 10 implementation/report pending commit)`
 - `prospectiveInputsRead`: `70 raw source candidates; authoritative selected inputs=0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -70,7 +70,10 @@
 - Task 2 唯一 fixed acquisition 在 request 150 返回 GitHub HTTP 403（`zuplo/rate-my-openapi` branch；rate remaining=0）并终止：149 success；2 search、30 branch、29 tree、19 license、70 source；30 repositories。未重试、未换目录、未使用认证补发。
 - Task 2 failure audit=`results/skill-ir/api-tester-operation-prospective-001/source-selection/failure-audit.json`，SHA-256=`1c4152950e0609a9b38e0448cd00778b58972efd95c841b0b620ed0ec4ef7b69`；strict verify 返回 requests=150、partial bundles=10、authoritative selections=0、terminal=403。331 bound files/22,409,115 bytes；selection/acquisition/output-manifest 均不存在，prediction/candidate trial/prospective run=0。
 - Task 2 terminal archive + audit 实现/报告提交=`6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`；raw 上游文件的既有尾随空格由摘要保留，代码/文档的排除证据路径 diff check 为 clean。
-- Task 10 选择独立本地分支推进：机器预登记=`benchmarks/skill-ir/pilots/api-tester/operation-mechanism-ablation-development-001/protocol.json`，只绑定 Task 1 562 operations、Task 2 9 synthetic faults、Task 7 7 responsibilities；Task 2 prospective failure audit 仅作 unavailable-evidence gate。设计文档固定三类对照、逐 panel 分母、比较字段、预期关系和非因果边界，分析尚未执行。
+- Task 10 机器预登记=`benchmarks/skill-ir/pilots/api-tester/operation-mechanism-ablation-development-001/protocol.json`，提交=`d20adf41156b6e949c8f55436a6188e1c57496ee`；只绑定 Task 1 562 operations、Task 2 9 synthetic faults、Task 7 7 responsibilities，Task 2 prospective failure audit 仅作 unavailable-evidence gate。
+- Task 10 TDD 从 module missing 的预期 RED 进入 GREEN；分析器从绑定输入逐项重算，write-once 输出，strict verifier 可拒绝 coordinated report re-sign。focused=`2/2`、8 assertions，typecheck 通过。
+- Task 10 报告=`results/skill-ir/api-tester-operation-mechanism-ablation-development-001/report.json`，SHA-256=`6cd63f4e265f66b7272ace596f8f680e6852d29593721b324a305c49ed4489fb`，portable=`5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0`；verify 返回 operations=562、faults=9、responsibilities=7。
+- Task 10 实际：whole-document `0/6`/0 operations，operation-level accepted/checker-passed=112/562；full dependency fault detection=9/9、no-dependency control=6/9；accepted-only 隐藏 450 operations，current-supported-only 隐藏 5/7 family responsibilities。Task 3/8/9 缺失不插补，prospective/model/business API/paid/held-out/Q1 新增使用全为 0。
 
 ## 保留问题
 
@@ -81,5 +84,5 @@
 
 ## 下一条具体动作
 
-先提交 Task 10 protocol/design 预登记，再以 TDD 实现只读分析器与独立 verifier，生成三 panel 机器报告和中文结论；不重跑历史 unique runner，不产生新来源或模型调用。
-Task 3/4/5 与 Task 8/9 继续保持阻塞；只有另行预注册的新 identity 才能改变认证或来源获取策略，本目标不会修改冻结方法覆盖失败。
+完成 Task 10 fresh broader verification、文档/路径/secret/diff 检查并提交推送；随后进入 Task 6 总证据汇总与复现手册，明确区分已完成、失败归档和未执行分支。
+Task 3/4/5 与 Task 8/9 继续保持阻塞；扩大的远端/付费授权不追溯改变已冻结 identity，只有另行预注册的新 identity 才能改变认证或来源获取策略。

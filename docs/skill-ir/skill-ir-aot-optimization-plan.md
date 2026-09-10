@@ -2199,7 +2199,7 @@ implementation correctness blocker。source blocker/advisory 可保守保留。�
 8. [ ] 先预注册后分析 40 个真实公开 skill、至少 8 个仓库；完整读取 SKILL 和直接链接资源，按 responsibility 保存证据 locator、
    依赖、分类、missing 与一致性报告，排除 Q1/held-out/pending prospective。
 9. [ ] 从 Task 8 冻结规则选择 3 个独立仓库 API skill，冻结全部相关责任；只对已暴露 API 输入运行未修改普通入口，保留完整负结果。
-10. [ ] 在 exposed/synthetic 上做 whole-doc/operation-level、no-independent-dependency/full、complete-responsibilities/accepted-only 三组
+10. [x] 在 exposed/synthetic 上做 whole-doc/operation-level、no-independent-dependency/full、complete-responsibilities/accepted-only 三组
    机制消融，复用证据并明确混杂，不运行历史 unique runner。
 6. [ ] 汇总 claims-evidence-limitations、中文总报告和复现手册；fresh focused/broad/typecheck/docs/frozen/secret/path/diff 与独立审查后，
    白名单提交并 push 开发分支。只判断是否可筹备下一 prospective，不自动选样或执行。
@@ -2249,6 +2249,14 @@ repository queries，各最多 2 页；只允许公开非 fork/非 archive/非 d
 首次 metadata request 前已把匿名 REST 检查预算固定为搜索全集中的前 25 个唯一 repository：八个 search page 加每仓库 default-branch/tree 两次请求，
 最多 58 次。该前缀不足即 shortfall；后续 repository 不补入。license classification 来自 search response，authority 必须由唯一 root-level license/copying
 tree blob 证明，缺失或歧义直接排除。
+
+Task 10 由预注册提交 `d20adf41156b6e949c8f55436a6188e1c57496ee` 固定三组 panel 和输入摘要后执行。机器报告从 Task 1
+逐文档记录重算 `562 = 112 accepted/checker-passed + 449 rejected + 1 unresolved`：whole-document 仍为 `0/6`、覆盖 0 operations，
+operation-level 多保留 112 个已验证局部操作。Task 2 九个设计故障在 full verifier 下 `9/9` 正确层检出；移除 dependency verifier 后
+parameter/reference/security 三项漏检，control 为 `6/9`。complete denominator 相对 accepted/current-supported-only 分别揭示 450 个隐藏
+operation responsibilities 和 5/7 个隐藏 family responsibilities。报告文件 SHA-256=`6cd63f4e265f66b7272ace596f8f680e6852d29593721b324a305c49ed4489fb`，
+portable=`5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0`。Task 3/8/9 缺失被显式排除且不插补；没有
+prospective/model/business API/paid/held-out/Q1 使用，也不改变 `0/6`、readiness 或真实 source blocker/advisory。
 
 ## 5. 历史时间估算（不作为当前排期）
 
