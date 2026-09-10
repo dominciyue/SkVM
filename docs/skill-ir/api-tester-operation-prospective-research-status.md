@@ -3,10 +3,11 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-6-synthesis-verified-push-pending; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
-- `stageStatus`: `task-6-complete-locally; overall-goal-incomplete; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
-- `lastCompletedCommit`: `5309bad3843be847f02b5d655c042853e2c9ac50`
-- `currentCommit`: `5309bad3843be847f02b5d655c042853e2c9ac50 (Task 6 evidence committed; status checkpoint/push pending)`
+- `currentStage`: `task-6-synthesis-complete; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
+- `stageStatus`: `task-6-complete; overall-goal-incomplete; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
+- `lastCompletedCommit`: `bc88310d7d3ef70358e6e66461eba566aa208acb`
+- `currentCommit`: `bc88310d7d3ef70358e6e66461eba566aa208acb (Task 6 verified checkpoint; final bookkeeping commit follows)`
+- `lastRemoteVerifiedCommit`: `bc88310d7d3ef70358e6e66461eba566aa208acb`
 - `prospectiveInputsRead`: `70 raw source candidates; authoritative selected inputs=0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -91,5 +92,5 @@
 
 ## 下一条具体动作
 
-Task 6 代码、机器报告、中文总报告、无占位符复现手册和 clean checkout 已完成。下一动作仅为提交本状态检查点并 push 开发分支；不得把 overall goal 标为 complete。
+Task 6 代码、机器报告、中文总报告、无占位符复现手册、clean checkout 和开发分支 push 已完成。保留分支供复核；不得把 overall goal 标为 complete。
 Task 2/8 保持终止失败已闭合，Task 3/4/5/9 保持阻塞未运行；总目标不得标记 complete。下一轮只允许另行预注册协议，不自动选择、预测或执行。

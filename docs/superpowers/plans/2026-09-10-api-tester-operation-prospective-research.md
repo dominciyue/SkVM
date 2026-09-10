@@ -155,7 +155,7 @@ prospective evidence pending。Task 8 依赖 Task 7 的责任定义；Task 9 依
 - [x] 同步 spec/plan/component/status/README/handoff/communication/conversation log。
 - [x] fresh focused、`src/skill-ir`、相关 benchmark、typecheck、doc tests/link scan、frozen history、secret/path、`git diff --check`。
 - [x] 独立只读审查；对 finding 用 TDD 修复并重新验证。
-- [ ] 白名单 final commits，push 开发分支；确认不触碰 `main`/`upstream`。
+- [x] 白名单 final commits，push 开发分支；确认不触碰 `main`/`upstream`。
 - [ ] 只有所有完成门闭合后才将总目标标为 complete。
 
 验收：最终报告可从仓库内 committed evidence 重验；没有 implementation correctness blocker；所有保护边界和历史负结果保持；恢复状态指向完成提交和复现命令。
