@@ -103,3 +103,18 @@ JSON schemas.142 source-example occurrences:130 valid/3invalid/9unresolved, zero
 responses.1Password Partnership's three null ends_at examples conflict with its non-nullable
 string/date-time schema. Preserve the source mismatch; do not infer production API failure.
 Example occurrence counts are not distinct examples or independent real responses.
+
+## Shared source-duty connection
+
+The pure analyzer now lives in src/skill-ir/api-response-catalog.ts; its body was moved
+unchanged from the development script. CLI keeps the old exported function for compatibility
+and calls the same core. Add explicit api-response-source-examples/v1 to the existing mapping.
+An analyzed source with invalid examples is not an implementation exception: retain every
+invalid example while all original source obligations remain not-fully-verified. Incomplete
+operation enumeration does set a task error, with the partial catalog retained.
+
+Integration members: Lambda emit-test-code, Jeremy response-validation, Pactflow emit-drift.
+Use already exposed1Password Partnership (includes source inconsistencies) and Front core
+(response examples and references); six tasks, not another12-input baseline per member.
+Native pytest/Drift output, headers, business/state assertions and live execution remain
+unimplemented. A profile is a bounded analysis slice, not completion of those source duties.

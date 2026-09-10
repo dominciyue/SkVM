@@ -14,6 +14,7 @@ import { buildApiRequestSpecimens, type ApiRequestSpecimens } from "./api-reques
 import { verifyApiRequestSpecimens } from "./api-request-specimens-checker";
 import { buildApiRequestBodyNegatives, type ApiRequestBodyNegatives } from "./api-request-body-negatives";
 import { verifyApiRequestBodyNegatives } from "./api-request-body-negatives-checker";
+import { analyzeResponseSchemas } from "./api-response-catalog";
 
 const digest = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u);
@@ -25,7 +26,7 @@ const path = z.string().min(1).refine((value) => {
 export const ApiSkillMappingSchema = z.object({
   schemaVersion: z.literal("api-skill-mapping/v1"), mappingId: id,
   analysisPath: path, skillId: z.string().min(1), responsibilityId: id,
-  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1", "api-request-body-negatives/v1"]),
+  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1"]),
   requestedOutputFormat: z.string().min(1), extraction: z.literal("agent-reviewed-declaration"),
   tasks: z.array(z.object({ taskId: id, inputPath: path, format: z.enum(["json", "yaml"]), sha256: sha }).strict()).min(1),
 }).strict().superRefine((value, context) => {
@@ -102,6 +103,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     requestCasesReport: ApiRequestCasesReport | null; requestCasesVerification: ReturnType<typeof verifyApiRequestCases> | null;
     requestSpecimensReport: ApiRequestSpecimens | null; requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null;
     requestBodyNegativesReport: ApiRequestBodyNegatives | null; requestBodyNegativesVerification: ReturnType<typeof verifyApiRequestBodyNegatives> | null;
+    responseCatalog: ReturnType<typeof analyzeResponseSchemas> | null;
     sourceObligations: Array<{ id: string; status: "not-fully-verified" }>; elapsedMillis: number }> = [];
   const report = { schemaVersion: "api-skill-mapping-report/v1", mappingId: prepared.mapping.mappingId,
     mappingSha256: prepared.mappingSha256, analysisSha256: prepared.analysisSha256,
@@ -111,6 +113,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     boundedTaskFamilyAssessment: prepared.boundedTaskFamilyAssessment,
     wholeSkillCompleted: false, profile: prepared.mapping.profile,
     originalOutputConformance: prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? "not-implemented-by-v2"
+      : prepared.mapping.profile === "api-response-source-examples/v1" ? "not-implemented-by-response-analysis"
       : prepared.mapping.profile === "api-request-body-negatives/v1" ? "not-implemented-by-body-negatives"
       : prepared.mapping.profile === "api-request-specimens/v1" ? "not-implemented-by-request-specimens" : "not-implemented-by-request-cases", tasks,
     accounting: { projectModelCalls: 0, paidCalls: 0, mappingAuthor: "development-agent", humanMinutes: null } };
@@ -123,11 +126,15 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     let requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null = null;
     let requestBodyNegativesReport: ApiRequestBodyNegatives | null = null;
     let requestBodyNegativesVerification: ReturnType<typeof verifyApiRequestBodyNegatives> | null = null;
+    let responseCatalog: ReturnType<typeof analyzeResponseSchemas> | null = null;
     let error: string | null = null;
     try {
       const input = await readFile(await resolveContainedExistingFile(options.rootDir, task.inputPath, "task input"));
       if (digest(input) !== task.sha256) throw new Error("task input digest mismatch");
-      if (prepared.mapping.profile === "api-request-body-negatives/v1") {
+      if (prepared.mapping.profile === "api-response-source-examples/v1") {
+        responseCatalog = analyzeResponseSchemas(input.toString("utf8"), task.format);
+        if (!responseCatalog.enumerationComplete) error = "response source enumeration incomplete";
+      } else if (prepared.mapping.profile === "api-request-body-negatives/v1") {
         requestBodyNegativesReport = buildApiRequestBodyNegatives(input.toString("utf8"), task.format);
         requestBodyNegativesVerification = verifyApiRequestBodyNegatives(input.toString("utf8"), task.format, requestBodyNegativesReport);
         if (requestBodyNegativesVerification.status !== "pass") error = "request body negative independent verification failed";
@@ -151,7 +158,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
       }
     } catch (caught) { error = String(caught); }
     tasks.push({ taskId: task.taskId, operationReport, requestCasesReport, requestCasesVerification, requestSpecimensReport, requestSpecimensVerification,
-      requestBodyNegativesReport, requestBodyNegativesVerification, error,
+      requestBodyNegativesReport, requestBodyNegativesVerification, responseCatalog, error,
       sourceObligations: prepared.mapping.obligations.map((id) => ({ id, status: "not-fully-verified" })),
       elapsedMillis: Math.round(performance.now() - started) });
     await writeFile(resolve(output, "report.json"), JSON.stringify(report, null, 2) + "\n");

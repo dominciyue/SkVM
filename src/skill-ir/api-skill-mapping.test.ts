@@ -103,3 +103,14 @@ test("body negative capability remains source-bound and does not claim native ou
   expect(report.wholeSkillCompleted).toBe(false);
   expect(report.tasks[0]!.sourceObligations.every((o) => o.status === "not-fully-verified")).toBe(true);
 });
+
+test("response source analysis maps full duties without treating example mismatches as API failures", async () => {
+  const { root, mapping } = await setup();
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-response-source-examples/v1" }));
+  const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "responses", nodeExecutable: Bun.which("node")! });
+  expect(report.tasks[0]!.responseCatalog!.totals.operations).toBe(2);
+  expect(report.tasks[0]!.responseCatalog!.liveObservations).toBe(0);
+  expect(report.originalOutputConformance).toBe("not-implemented-by-response-analysis");
+  expect(report.wholeSkillCompleted).toBe(false);
+  expect(report.tasks[0]!.sourceObligations.every((o) => o.status === "not-fully-verified")).toBe(true);
+});
