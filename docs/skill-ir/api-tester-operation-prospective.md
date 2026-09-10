@@ -53,6 +53,10 @@ runner 在第 0 行前核验候选闭包、pre-source freeze、selection/predict
 
 HTTP 非 2xx 会在抛错前保存原始 response、metadata sidecar 和 write-once `failure.json`；失败报告绑定 pre-source freeze、所有已归档请求及 model/business API/paid/held-out/Q1/candidate-trial 分账。source shortfall 也会形成可严格核验的关闭归档，但规则保持不放宽，不能进入 18-row lock。
 
+正式来源 identity 的唯一 acquisition 已于 2026-09-10 执行，并在第 150 个请求终止：`zuplo/rate-my-openapi` branch metadata 返回 HTTP 403，sidecar 记录 GitHub rate limit remaining=0。此前 149 个请求成功，覆盖 2 search、30 branch、29 tree、19 license 与 70 source downloads；现场含 10 个临时 input bundle，但没有 `selection.json`、`acquisition.json` 或 `output-manifest.json`，所以正式选择、prediction denominator 与 candidate trial 均为 0。
+
+`api-tester-operation-prospective-source-failure-audit.ts` 对该现场执行纯离线核验：绑定 `failure.json` 与 150 组 raw/metadata、检查 frozen search prefix、GitHub URL identity、HTTP 状态/错误/限流终止、partial bundle 到成功 raw source/license 的摘要关联，以及不允许 success reports 的精确目录闭包。机器报告位于 `results/skill-ir/api-tester-operation-prospective-001/source-selection/failure-audit.json`，SHA-256=`1c4152950e0609a9b38e0448cd00778b58972efd95c841b0b620ed0ec4ef7b69`；331 个 bound files、22,409,115 bytes、10 partial bundles、0 authoritative selections。该结果禁止同 identity 重试、认证重发、替代目录或从部分现场补足 12 行，Task 3 因此不启动。
+
 ## CLI
 
 以下命令中的路径均相对 `--root`，输出为 write-once：
@@ -64,6 +68,7 @@ bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=cre
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=verify-pre-source-freeze --root=. --freeze=<freeze.json> --freeze-commit=<remote-commit> --node=<node> --git=git
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-run.ts --mode=acquire --root=. --freeze=benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json --freeze-commit=e4c006fe32a6321ce5e4696758d53024c160f6db --out=results/skill-ir/api-tester-operation-prospective-001/source-selection --selected-at=<ISO> --node=<node> --git=git
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-run.ts --mode=verify --root=. --freeze=benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json --freeze-commit=e4c006fe32a6321ce5e4696758d53024c160f6db --out=results/skill-ir/api-tester-operation-prospective-001/source-selection --node=<node> --git=git
+bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-failure-audit.ts --mode=verify --root=. --out=results/skill-ir/api-tester-operation-prospective-001/source-selection
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=create-lock --root=. --freeze=<freeze.json> --freeze-commit=<commit> --selection=<selection.json> --predictions=<predictions.json> --selection-commit=<commit> --out=<lock.json> --frozen-at=<ISO>
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=verify-lock --root=. --freeze=<freeze.json> --freeze-commit=<commit> --lock=<lock.json> --execution-commit=<remote-commit> --node=<node> --git=git
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=execute --root=. --freeze=<freeze.json> --freeze-commit=<commit> --lock=<lock.json> --execution-commit=<remote-commit> --out=<first-run-output> --started-at=<ISO> --node=<node> --git=git
@@ -76,6 +81,7 @@ bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=rep
 ```powershell
 bun test ./src/benchmarks/skill-ir/api-tester-operation-prospective-freeze.test.ts
 bun test ./src/benchmarks/skill-ir/api-tester-operation-prospective-source.test.ts ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-run.test.ts
+bun test ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-failure-audit.test.ts
 bun run typecheck
 ```
 
@@ -86,6 +92,7 @@ focused 测试包括缺失模块 RED、协议/去重/shortfall、重复 dispatch
 - pre-source freeze 未在指定 origin 分支上、工作字节与冻结提交不一致或运行时漂移：第 0 行前停止；
 - 来源固定输出已存在：拒绝第二次 acquisition；不通过改目录、查询或 URL 重试；
 - GitHub HTTP 失败或限流：保留 raw response、metadata 与 failure report，停止该 identity；
+- `failure-audit.json` 只证明终止现场完整可核验；partial bundles 明确不构成 selection，也不允许后续拿来补行；
 - selection 不足 12：保存 shortfall，不放宽规则、不补行、不创建可执行 lock；
 - prediction、source、license、manifest 或 lock 摘要不闭合：第 0 行前停止；
 - 行在候选层拒绝、unresolved、source advisory/blocking 或 checker fail：记录 terminal，保留分母并继续；

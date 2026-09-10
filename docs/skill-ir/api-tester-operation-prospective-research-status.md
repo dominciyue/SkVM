@@ -3,15 +3,17 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-source-acquisition-implementation-committed-pending-push; task-8-public-metadata-attempt-failed-rate-limit`
-- `stageStatus`: `in-progress; task-2-source-gate-open; task-8-real-corpus-blocked`
+- `currentStage`: `task-2-source-acquisition-terminal-http-403-audited; task-3-blocked-no-authoritative-selection; task-8-public-metadata-attempt-failed-rate-limit`
+- `stageStatus`: `in-progress; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
 - `lastCompletedCommit`: `2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`
 - `currentCommit`: `2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`
-- `prospectiveInputsRead`: `0`
+- `prospectiveInputsRead`: `70 raw source candidates; authoritative selected inputs=0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
 - `publicSkillMetadataRequests`: `7`
 - `publicSkillBodiesRead`: `0`
+- `publicProspectiveSourceRequests`: `150 (149 successful; 1 terminal HTTP 403)`
+- `partialProspectiveInputBundles`: `10 non-authoritative`
 - `runtimeAccounting`: `model=0, api=0, paid=0`
 - `developmentAgentUsage`: `host-external-not-measured-by-project-runner`
 
@@ -65,6 +67,8 @@
 - 当前分支已成功推送到用户 `origin`（`5c363d4..b3cb287`，未触碰 `upstream`）。revision freeze 的 remote-aware strict verifier 返回 `remote-frozen`：freeze commit=`e4c006fe32a6321ce5e4696758d53024c160f6db`、execution commit=`fb1068384177c00b11c836ce8d0f1b9fdecf59b6`、syntheticDocuments=6、prospectiveRuns=0。Task 2 的真实来源搜索门已解除。
 - Task 2 来源获取器与封闭 CLI 已完成 synthetic TDD，真实来源仍未读取。success fixture 选择 12 个独立仓库；strict verifier 从原始 search/branch/tree/raw 响应重放候选前缀和完整请求闭包，可检出 acquisition blob OID 协同重签与 exposed candidate 静默删项后全报告重签。HTTP 403 fixture 原样保留 terminal response/限流 sidecar/failure accounting；0-source fixture 形成 ruleRelaxed=false 的严格 shortfall archive。当前 focused=`4/4`、23 assertions，typecheck 通过。
 - Task 2 来源实现提交=`2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`。提交前 prospective/candidate-binding + 全 `src/skill-ir` 回归=`210/210`、1077 assertions；docs unit=`8/8`，doc link scan=3787 files、0 broken/legacy，`git diff --check` 与 secret/absolute-path scan 通过；固定 source-selection 输出不存在。
+- Task 2 唯一 fixed acquisition 在 request 150 返回 GitHub HTTP 403（`zuplo/rate-my-openapi` branch；rate remaining=0）并终止：149 success；2 search、30 branch、29 tree、19 license、70 source；30 repositories。未重试、未换目录、未使用认证补发。
+- Task 2 failure audit=`results/skill-ir/api-tester-operation-prospective-001/source-selection/failure-audit.json`，SHA-256=`1c4152950e0609a9b38e0448cd00778b58972efd95c841b0b620ed0ec4ef7b69`；strict verify 返回 requests=150、partial bundles=10、authoritative selections=0、terminal=403。331 bound files/22,409,115 bytes；selection/acquisition/output-manifest 均不存在，prediction/candidate trial/prospective run=0。
 
 ## 保留问题
 
@@ -75,5 +79,5 @@
 
 ## 下一条具体动作
 
-对白名单来源实现、测试与文档运行 broader verification，提交并推送该实现；确认固定 `source-selection` 输出不存在后，只执行一次 `api-tester-operation-prospective-source-run.ts --mode=acquire`。Task 8 的 real corpus、Task 9 和依赖该 corpus 的 Task 10/6 仍受已归档 rate-limit 结果阻塞，不用重试或扩样规避。
-Task 2 remote-aware strict verification 已通过；真实来源只能由冻结 protocol 的新入口选择并完整归档，不能由手工搜索结果替代，也不能在 candidate prediction 前试跑候选。
+提交 Task 2 原始 terminal archive、failure-audit 实现/测试/报告与状态；不重试该 source identity，不从 10 个 partial bundles 创建 selection/prediction/lock。随后核对总目标中不依赖 Task 2/3 或 Task 8 selection 的剩余本地工作；Task 3/4/5 以及 Task 8/9 对应分支保持明确阻塞。
+只有另行预注册的新 identity 才能改变认证或来源获取策略；本目标没有授权以修改冻结方法来覆盖本次失败。

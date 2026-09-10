@@ -66,8 +66,8 @@ prospective evidence pending。Task 8 依赖 Task 7 的责任定义；Task 9 依
 - [x] 运行 focused/broad/typecheck/docs/frozen/secret/path/diff；更新 status 和台账。
 - [x] 白名单提交并 push Task 2 freeze 到 `origin/api-tester-operation-unseen-prospective-001`；remote-aware strict verifier 已返回 `remote-frozen`，freeze=`e4c006fe`、execution=`fb106838`。
 - [x] 用 synthetic TDD 实现固定来源入口、write-once raw/source/license/input archive 与独立 replay verifier；覆盖 blob OID 协同重签、原始 search 候选静默删项、HTTP terminal 归档和不放宽 shortfall，真实来源读取仍为 0。
-- [ ] push 后才按协议搜索并选择真实来源，归档 raw/license/upstream commit/path/blob/digests；在 candidate trial 前完成 predictions。
-- [ ] 验证最终 input bundle/selection/prediction closure，另提交 pre-run input identity。
+- [x] push 后只执行一次固定来源 acquisition；实际在 request 150 因 GitHub HTTP 403/rate remaining=0 终止。离线 audit 绑定 150 responses、331 files/22,409,115 bytes、10 non-authoritative partial bundles；selection/prediction/candidate trial 均为 0，不重试、不替换。
+- [ ] 最终 input bundle/selection/prediction closure 与 pre-run input identity 因没有 authoritative selection 阻塞；Task 3 不启动。后续只有新预注册 identity 才能改变认证或来源获取方法，当前阶段不自行创建。
 
 验收：选择规则可机械重放且不消费候选结果；12 real ideally 12 repos，任何不足有预注册 shortfall outcome；6 synthetic 不计真实样本；每份 input/license/lineage 有 exact digest；candidate 尚未运行。
 
