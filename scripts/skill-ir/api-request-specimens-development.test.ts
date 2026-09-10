@@ -24,3 +24,22 @@ test("development specimen batch retains unavailable and digest-drift inputs bes
   expect(negatives.rows[0]!.constructed).toBe(0);
   expect(JSON.parse(await readFile(join(root, "negative-output/good.json"), "utf8")).report.schemaVersion).toBe("api-request-body-negatives/v1");
 });
+
+test("hash-bound malformed UTF-8 input is an explicit failure, not replacement-character source", async () => {
+  const root = await mkdtemp(join(tmpdir(), "skvm-specimen-utf8-"));
+  const text = JSON.stringify({ openapi: "3.0.3", info: { title: "Synthetic", version: "1" }, paths: { "/item": { get: { responses: { "200": { description: "ok" } } } } } });
+  const invalid = Buffer.from(text.replace("Synthetic", "Synthetix"));
+  invalid[invalid.indexOf("Synthetix")] = 0xff;
+  await writeFile(join(root, "bad.json"), invalid);
+  await writeFile(join(root, "good.json"), text);
+  await writeFile(join(root, "inputs.json"), JSON.stringify({ inputs: [
+    { inputId: "bad", status: "acquired", localPath: "bad.json", format: "json", sha256: createHash("sha256").update(invalid).digest("hex") },
+    { inputId: "good", status: "acquired", localPath: "good.json", format: "json", sha256: createHash("sha256").update(text).digest("hex") },
+  ] }));
+  for (const profile of ["specimens", "body-negatives"] as const) {
+    const report = await runSpecimenDevelopment({ rootDir: root, inputIndexPath: "inputs.json", outputPath: profile, executionRoot: process.cwd(), profile });
+    expect(report.rows.map((r) => r.status)).toEqual(["error", "pass"]);
+    expect(report.rows[0]!.error).toContain("UTF-8");
+    expect(JSON.parse(await readFile(join(root, profile, "report.json"), "utf8")).rows).toHaveLength(2);
+  }
+});

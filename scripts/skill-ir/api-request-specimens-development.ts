@@ -6,6 +6,7 @@ import { buildApiRequestSpecimens } from "../../src/skill-ir/api-request-specime
 import { verifyApiRequestSpecimens } from "../../src/skill-ir/api-request-specimens-checker";
 import { buildApiRequestBodyNegatives } from "../../src/skill-ir/api-request-body-negatives";
 import { verifyApiRequestBodyNegatives } from "../../src/skill-ir/api-request-body-negatives-checker";
+import { decodeDevelopmentUtf8 } from "../../src/skill-ir/development-utf8";
 import { normalizeRepositoryRelativePath, resolveContainedExistingFile, createContainedDirectory } from "../../src/benchmarks/skill-ir/public-skill-responsibility-corpus-paths";
 
 const digest = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
@@ -13,12 +14,12 @@ const boundFiles = ["src/skill-ir/api-request-specimens.ts", "src/skill-ir/api-r
   "src/skill-ir/api-tester-operation-source.ts", "src/skill-ir/api-tester-operation-coverage.ts",
   "src/skill-ir/api-schema-witness.ts", "src/skill-ir/api-schema-checker.ts", "src/skill-ir/api-parameter-wire.ts",
   "src/skill-ir/api-parameter-wire-checker.ts", "scripts/skill-ir/api-request-specimens-development.ts",
-  "docs/skill-ir/api-request-specimens-development.md", "package.json", "bun.lock"];
+  "docs/skill-ir/api-request-specimens-development.md", "src/skill-ir/development-utf8.ts", "package.json", "bun.lock"];
 
 export async function runSpecimenDevelopment(options: { rootDir: string; inputIndexPath: string; outputPath: string; executionRoot: string; profile?: "specimens" | "body-negatives" }) {
   if (options.profile !== undefined && !["specimens", "body-negatives"].includes(options.profile)) throw new Error("unknown development profile");
   const indexPath = await resolveContainedExistingFile(options.rootDir, options.inputIndexPath, "specimen input index");
-  const indexBytes = await readFile(indexPath), index = JSON.parse(indexBytes.toString());
+  const indexBytes = await readFile(indexPath), index = JSON.parse(decodeDevelopmentUtf8(indexBytes));
   if (!Array.isArray(index.inputs) || index.inputs.some((i: any) => !i || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/u.test(i.inputId))
     || new Set(index.inputs.map((i: any) => i.inputId)).size !== index.inputs.length) throw new Error("unique safe input identities required");
   const out = await createContainedDirectory(options.rootDir, options.outputPath, "specimen output");
@@ -44,9 +45,10 @@ export async function runSpecimenDevelopment(options: { rootDir: string; inputIn
       const sourcePath = relative(options.rootDir, resolve(dirname(indexPath), local)).replaceAll("\\", "/");
       const bytes = await readFile(await resolveContainedExistingFile(options.rootDir, sourcePath, "specimen source"));
       if (digest(bytes) !== row.sha256) throw new Error("input digest mismatch");
+      const source = decodeDevelopmentUtf8(bytes);
       if (options.profile === "body-negatives") {
-        const negatives = buildApiRequestBodyNegatives(bytes.toString(), row.format);
-        const verification = verifyApiRequestBodyNegatives(bytes.toString(), row.format, negatives);
+        const negatives = buildApiRequestBodyNegatives(source, row.format);
+        const verification = verifyApiRequestBodyNegatives(source, row.format, negatives);
         await writeFile(resolve(out, `${row.inputId}.json`), JSON.stringify({ inputId: row.inputId, report: negatives, verification }, null, 2) + "\n", { flag: "wx" });
         report.rows.push({ inputId: row.inputId, status: verification.status, operations: negatives.operations.length,
           planned: verification.obligations, constructed: verification.constructed, unresolved: verification.unresolved,
@@ -54,8 +56,8 @@ export async function runSpecimenDevelopment(options: { rootDir: string; inputIn
           operationsWithFieldIssues: negatives.fields.operations.filter((o) => o.issues.length > 0).length,
           errors: verification.errors, elapsedMs: performance.now() - started });
       } else {
-      const specimens = buildApiRequestSpecimens(bytes.toString(), row.format);
-      const verification = verifyApiRequestSpecimens(bytes.toString(), row.format, specimens);
+      const specimens = buildApiRequestSpecimens(source, row.format);
+      const verification = verifyApiRequestSpecimens(source, row.format, specimens);
       await writeFile(resolve(out, `${row.inputId}.json`), JSON.stringify({ inputId: row.inputId, report: specimens, verification }, null, 2) + "\n", { flag: "wx" });
       report.rows.push({ inputId: row.inputId, status: verification.status, operations: verification.sourceOperations, planned: verification.plannedCases,
         constructed: verification.constructedCases, unresolved: verification.unresolvedCases, presenceNegatives: verification.presenceNegativeCases,

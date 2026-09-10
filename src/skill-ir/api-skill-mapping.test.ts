@@ -40,6 +40,22 @@ test("mapping preserves unexecuted responsibilities and uses the real common con
   expect(result.tasks[0]!.sourceObligations.map((x) => x.status)).toEqual(["not-fully-verified", "not-fully-verified"]);
 });
 
+test.each(["api-request-cases/v2", "api-request-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1"])("%s mapping rejects malformed bound source bytes and retains sibling tasks", async (profile) => {
+  const { root, mapping } = await setup();
+  const bad = Buffer.from(await readFile(join(root, "input.json")));
+  bad[bad.indexOf("Bounded")] = 0xff;
+  await writeFile(join(root, "bad.json"), bad);
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile, tasks: [
+    { taskId: "bad-byte-source", inputPath: "bad.json", format: "json", sha256: createHash("sha256").update(bad).digest("hex") },
+    ...mapping.tasks,
+  ] }));
+  const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "output", nodeExecutable: Bun.which("node")! });
+  expect(report.tasks).toHaveLength(2);
+  expect(report.tasks[0]!.error).toContain("UTF-8");
+  expect(report.tasks[1]!.error).toBeNull();
+  expect(report.tasks[0]!.sourceObligations).toHaveLength(2);
+});
+
 test("source field binding, resource loss and source text drift are rejected before execution", async () => {
   const { root, mapping } = await setup();
   const bad = { ...mapping, obligations: ["valid-request"] };

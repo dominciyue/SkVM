@@ -89,10 +89,11 @@ Compiled-schema cache has bounded content keys and no result cache;12results wer
 
 ## Remaining work and protected conclusions
 
-Next bounded verification concerns input-byte decoding at the new development runners:
-test that a hash-bound malformed UTF-8 source is rejected, not silently replaced and
-analyzed as different text. Preserve every failed input row and valid-input behavior.
-This is an input-binding correctness check, not added schema support or a new sample round.
+Input-byte verification found and fixed silent malformed-UTF-8 replacement in the new
+batch runners and four source-duty profiles.19tests/94assertions and affected strict tsc
+pass;12exposed inputs decode identically and retain prior artifact source hashes, without
+regeneration. Evidence:skill-family-utf8-development-20260911/. This is not schema expansion
+or a new clean-run claim; be89a50 remains the last fully clean-reproduced implementation.
 
 Broader gaps: automatic duty extraction and its measured cost, native output validation,
 business/status authority, authenticated live execution, OAS3.1, stronger source genealogy

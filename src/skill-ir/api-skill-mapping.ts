@@ -15,6 +15,7 @@ import { verifyApiRequestSpecimens } from "./api-request-specimens-checker";
 import { buildApiRequestBodyNegatives, type ApiRequestBodyNegatives } from "./api-request-body-negatives";
 import { verifyApiRequestBodyNegatives } from "./api-request-body-negatives-checker";
 import { analyzeResponseSchemas } from "./api-response-catalog";
+import { decodeDevelopmentUtf8 } from "./development-utf8";
 
 const digest = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u);
@@ -131,20 +132,22 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     try {
       const input = await readFile(await resolveContainedExistingFile(options.rootDir, task.inputPath, "task input"));
       if (digest(input) !== task.sha256) throw new Error("task input digest mismatch");
+      // Historical v2 dispatch still receives its original raw-file manifest unchanged.
+      const source = prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? null : decodeDevelopmentUtf8(input);
       if (prepared.mapping.profile === "api-response-source-examples/v1") {
-        responseCatalog = analyzeResponseSchemas(input.toString("utf8"), task.format);
+        responseCatalog = analyzeResponseSchemas(source!, task.format);
         if (!responseCatalog.enumerationComplete) error = "response source enumeration incomplete";
       } else if (prepared.mapping.profile === "api-request-body-negatives/v1") {
-        requestBodyNegativesReport = buildApiRequestBodyNegatives(input.toString("utf8"), task.format);
-        requestBodyNegativesVerification = verifyApiRequestBodyNegatives(input.toString("utf8"), task.format, requestBodyNegativesReport);
+        requestBodyNegativesReport = buildApiRequestBodyNegatives(source!, task.format);
+        requestBodyNegativesVerification = verifyApiRequestBodyNegatives(source!, task.format, requestBodyNegativesReport);
         if (requestBodyNegativesVerification.status !== "pass") error = "request body negative independent verification failed";
       } else if (prepared.mapping.profile === "api-request-specimens/v1") {
-        requestSpecimensReport = buildApiRequestSpecimens(input.toString("utf8"), task.format);
-        requestSpecimensVerification = verifyApiRequestSpecimens(input.toString("utf8"), task.format, requestSpecimensReport);
+        requestSpecimensReport = buildApiRequestSpecimens(source!, task.format);
+        requestSpecimensVerification = verifyApiRequestSpecimens(source!, task.format, requestSpecimensReport);
         if (requestSpecimensVerification.status !== "pass") error = "request specimen independent verification failed";
       } else if (prepared.mapping.profile === "api-request-cases/v2") {
-        requestCasesReport = buildApiRequestCases(input.toString("utf8"), task.format);
-        requestCasesVerification = verifyApiRequestCases(input.toString("utf8"), task.format, requestCasesReport);
+        requestCasesReport = buildApiRequestCases(source!, task.format);
+        requestCasesVerification = verifyApiRequestCases(source!, task.format, requestCasesReport);
         if (requestCasesVerification.status !== "pass") error = "request case independent verification failed";
       } else {
       const manifestPath = `${options.outputPath}/${task.taskId}-manifest.json`;
