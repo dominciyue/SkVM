@@ -10,6 +10,8 @@ import { API_TESTER_OPERATION_INPUT_IDENTITY, API_TESTER_OPERATION_INPUT_MANIFES
 import { API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 } from "./api-tester-production-contract-v2";
 import { buildApiRequestCases, type ApiRequestCasesReport } from "./api-request-cases";
 import { verifyApiRequestCases } from "./api-request-cases-checker";
+import { buildApiRequestSpecimens, type ApiRequestSpecimens } from "./api-request-specimens";
+import { verifyApiRequestSpecimens } from "./api-request-specimens-checker";
 
 const digest = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u);
@@ -21,7 +23,7 @@ const path = z.string().min(1).refine((value) => {
 export const ApiSkillMappingSchema = z.object({
   schemaVersion: z.literal("api-skill-mapping/v1"), mappingId: id,
   analysisPath: path, skillId: z.string().min(1), responsibilityId: id,
-  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2"]),
+  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1"]),
   requestedOutputFormat: z.string().min(1), extraction: z.literal("agent-reviewed-declaration"),
   tasks: z.array(z.object({ taskId: id, inputPath: path, format: z.enum(["json", "yaml"]), sha256: sha }).strict()).min(1),
 }).strict().superRefine((value, context) => {
@@ -96,6 +98,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
   const output = await createContainedDirectory(options.rootDir, options.outputPath, "mapping output");
   const tasks: Array<{ taskId: string; operationReport: ApiTesterOperationInputReport | null; error: string | null;
     requestCasesReport: ApiRequestCasesReport | null; requestCasesVerification: ReturnType<typeof verifyApiRequestCases> | null;
+    requestSpecimensReport: ApiRequestSpecimens | null; requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null;
     sourceObligations: Array<{ id: string; status: "not-fully-verified" }>; elapsedMillis: number }> = [];
   const report = { schemaVersion: "api-skill-mapping-report/v1", mappingId: prepared.mapping.mappingId,
     mappingSha256: prepared.mappingSha256, analysisSha256: prepared.analysisSha256,
@@ -104,18 +107,25 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     selectedResponsibility: prepared.selectedResponsibility, residualResponsibilities: prepared.residualResponsibilities,
     boundedTaskFamilyAssessment: prepared.boundedTaskFamilyAssessment,
     wholeSkillCompleted: false, profile: prepared.mapping.profile,
-    originalOutputConformance: prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? "not-implemented-by-v2" : "not-implemented-by-request-cases", tasks,
+    originalOutputConformance: prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? "not-implemented-by-v2"
+      : prepared.mapping.profile === "api-request-specimens/v1" ? "not-implemented-by-request-specimens" : "not-implemented-by-request-cases", tasks,
     accounting: { projectModelCalls: 0, paidCalls: 0, mappingAuthor: "development-agent", humanMinutes: null } };
   for (const task of prepared.mapping.tasks) {
     const started = performance.now();
     let operationReport: ApiTesterOperationInputReport | null = null;
     let requestCasesReport: ApiRequestCasesReport | null = null;
     let requestCasesVerification: ReturnType<typeof verifyApiRequestCases> | null = null;
+    let requestSpecimensReport: ApiRequestSpecimens | null = null;
+    let requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null = null;
     let error: string | null = null;
     try {
       const input = await readFile(await resolveContainedExistingFile(options.rootDir, task.inputPath, "task input"));
       if (digest(input) !== task.sha256) throw new Error("task input digest mismatch");
-      if (prepared.mapping.profile === "api-request-cases/v2") {
+      if (prepared.mapping.profile === "api-request-specimens/v1") {
+        requestSpecimensReport = buildApiRequestSpecimens(input.toString("utf8"), task.format);
+        requestSpecimensVerification = verifyApiRequestSpecimens(input.toString("utf8"), task.format, requestSpecimensReport);
+        if (requestSpecimensVerification.status !== "pass") error = "request specimen independent verification failed";
+      } else if (prepared.mapping.profile === "api-request-cases/v2") {
         requestCasesReport = buildApiRequestCases(input.toString("utf8"), task.format);
         requestCasesVerification = verifyApiRequestCases(input.toString("utf8"), task.format, requestCasesReport);
         if (requestCasesVerification.status !== "pass") error = "request case independent verification failed";
@@ -130,7 +140,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
       operationReport = await runApiTesterOperationInput({ rootDir: options.rootDir, manifestPath, nodeExecutable: options.nodeExecutable });
       }
     } catch (caught) { error = String(caught); }
-    tasks.push({ taskId: task.taskId, operationReport, requestCasesReport, requestCasesVerification, error,
+    tasks.push({ taskId: task.taskId, operationReport, requestCasesReport, requestCasesVerification, requestSpecimensReport, requestSpecimensVerification, error,
       sourceObligations: prepared.mapping.obligations.map((id) => ({ id, status: "not-fully-verified" })),
       elapsedMillis: Math.round(performance.now() - started) });
     await writeFile(resolve(output, "report.json"), JSON.stringify(report, null, 2) + "\n");

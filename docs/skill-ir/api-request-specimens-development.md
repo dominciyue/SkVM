@@ -98,3 +98,12 @@ development script typecheck also passed. Current fixed12-input totals:303 opera
 constructed; this is neither the prior per-schema metric nor whole skill/HTTP readiness.
 See results/skill-ir/skill-family-request-specimens-development-20260911/README.md for
 the first report, revision branch, fresh recheck and offline command.
+
+## Source-duty integration
+
+Expose an explicit api-request-specimens/v1 option in the existing declaration mapping
+and shared baseline runner. Keep original v2/request-cases reports separate and all source
+obligations not-fully-verified; preserve requested native-format failure. TDD profile
+rejection precedes adapter implementation. Run original three reviewed development members
+on the same12 inputs; these are new capability measurements on exposed members, not D7
+first-run evidence. No new source-name branches or natural-language compiler claim.

@@ -79,3 +79,16 @@ test("new recursive capability is explicit and shares source-bound mapping witho
   expect(report.wholeSkillCompleted).toBe(false);
   expect(report.tasks[0]!.sourceObligations.every((o) => o.status === "not-fully-verified")).toBe(true);
 });
+
+test("assembled specimens use an explicit source-bound profile and retain unsupported whole-skill duties", async () => {
+  const { root, mapping } = await setup();
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-request-specimens/v1" }));
+  const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "specimens", nodeExecutable: Bun.which("node")! });
+  expect(report.tasks[0]!.operationReport).toBeNull();
+  expect(report.tasks[0]!.requestCasesReport).toBeNull();
+  expect(report.tasks[0]!.requestSpecimensVerification!.status).toBe("pass");
+  expect(report.tasks[0]!.requestSpecimensReport!.operations).toHaveLength(2);
+  expect(report.originalOutputConformance).toBe("not-implemented-by-request-specimens");
+  expect(report.wholeSkillCompleted).toBe(false);
+  expect(report.residualResponsibilities.map((r) => r.id)).toEqual(["lifecycle"]);
+});

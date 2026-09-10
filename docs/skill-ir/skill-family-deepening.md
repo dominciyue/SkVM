@@ -102,3 +102,12 @@ Use `request-cases-config.json` with the same baseline command and a new output 
 See [request capability](api-request-cases-development.md). Actual mapping extraction is
 still agent-reviewed, original skill duties remain not-fully-verified, and an encoded
 fragment is not a complete credentialed HTTP request or a live behavior test.
+
+## Assembled request specimens
+
+An additional explicit api-request-specimens/v1 mapping profile executes source-bound
+minimal/full and required-presence specimens via the same declaration and batch entry.
+Its task fields are requestSpecimensReport/requestSpecimensVerification, separate from
+v2 and per-field cases. Full source duties and native pytest/Drift output remain incomplete.
+See [assembly contract and evidence](api-request-specimens-development.md). The original
+three reviewed members are reused development exposures, not fresh D7 members.

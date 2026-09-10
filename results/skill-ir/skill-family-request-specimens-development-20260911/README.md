@@ -39,3 +39,9 @@ Offline reproduction into a fresh directory:
 The current method reproduces corrected results, not the known-bad first-run totals.
 Recover88b5c79 to reproduce the initial implementation. Source/lock/runtime bindings are
 inside each run/report.json. No model/API runtime calls or native output claim.
+
+The explicit declaration profile is integrated and measured in cross-member/: LambdaTest,
+Jeremy and Pactflow each12 tasks,303 operations,576/628 assembled specimens,52 unresolved,
+24 presence negatives. Different native output duties remain not implemented. This is a
+new development capability on old members, not a fresh D7 test or48/36 independent inputs.
+Mapping/profile regression7/7 with29 assertions; main and script typechecks pass.
