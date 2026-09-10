@@ -5,8 +5,8 @@
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
 - `currentStage`: `task-2-revision-freeze-pending-push; task-8-public-metadata-attempt-failed-rate-limit; local-failure-audit-and-archive-contract-in-progress`
 - `stageStatus`: `blocked-on-fixed-metadata-discovery-result; continuing-independent-local-work`
-- `lastCompletedCommit`: `c6a49f2`
-- `currentCommit`: `c6a49f2`
+- `lastCompletedCommit`: `48061fb`
+- `currentCommit`: `48061fb`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -60,6 +60,7 @@
 - 用户随后在当前对话明确授权远端 API、付费调用与真实公开 GitHub skill 查阅；该授权解除 Task 8 fixed public REST 执行的用户权限缺口。冻结 protocol 仍要求本阶段 model/business API/paid=`0`，因此许可扩大不会被解释为需要产生费用，也不会改变 query、前缀、配额或选择分母。平台安全审批仍须遵守。
 - 在重跑 metadata 前发现 `a9a601e` 的归一化 tree blob 清单丢弃 Git mode，无法在后续 source closure 中定位 symlink/submodule。先保留这一修订前事实，再以 `c6a49f2f1b6c80701ab04ee73406ab1ffa84ec08` 增加完整 tree entry inventory，并只让 `100644`/`100755` 进入 selectable blobs；raw verifier 独立重建两套清单。focused=`17/17`、54 assertions；与 archive 局部 TDD 合并运行为 `20/20`、67 assertions；typecheck 通过。真实 metadata/body 仍为 `0/0`。
 - 唯一一次 authorized fixed metadata CLI 已执行。GitHub 在第七个已归档 search response 后给出 remaining=0，流程以 `GitHub search rate limit exhausted before fixed metadata sequence completed` 退出。`failure.json` 记录 attempted=7、body/model/business API/paid/held-out/Q1/pending prospective 均为 0；15 个现场文件共 4,000,706 bytes，且 `discovery.json`/`selection.json` 均不存在。该 identity 不重试、不改 query、不从七页 prefix 选择。
+- failure audit 实现提交=`48061fb`；机器报告=`results/skill-ir/public-skill-responsibility-corpus-selection-development-001/failure-audit.json`，SHA-256=`62f32d12e93b95aabd6b18423aefbb05713b7f2b93406876426fdb04006ec3fc`。独立 verify 从 frozen protocol 重建 query/page 1..7、逐页 repository API identity 与 HTTP sidecar，确认 remaining=`6,5,4,3,2,1,0`、attempted=archived responses=7、exact archive=15 files/4,000,706 bytes、body=0；返回 `verified-metadata-failure-audit`。focused Task 8=`22/22`、74 assertions，typecheck 通过。
 
 ## 保留问题
 
@@ -70,7 +71,7 @@
 
 ## 下一条具体动作
 
-先提交 Task 8 rate-limit 失败现场，再为失败 archive 增加独立的 exact-file/digest/rate-prefix audit；继续完成不假设真实 selection 的 source archive/closure TDD。Task 8 的 real corpus、Task 9、Task 10 和最终 Task 6 暂受本结果阻塞，不用重试或扩样规避。Task 2 revision push 仍需单独明确允许向 `git@github.com:dominciyue/SkVM.git` 推送当前分支。
+提交 Task 8 failure audit 机器报告；继续完成不假设真实 selection 的 source archive/closure TDD，并记录由于没有 selection 而不可执行的真实正文分支。Task 8 的 real corpus、Task 9、Task 10 和最终 Task 6 暂受本结果阻塞，不用重试或扩样规避。Task 2 revision push 仍需单独明确允许向 `git@github.com:dominciyue/SkVM.git` 推送当前分支。
 selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
 pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
 明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得
