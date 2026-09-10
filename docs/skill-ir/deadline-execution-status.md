@@ -35,8 +35,8 @@
 
 ## 下一条具体动作
 
-1. 提交JSON重复键修复（RED2fail、GREEN26tests/317assertions、typecheck exit0、旧产物24/24重核pass）。
-2. 回到D5完整请求职责：评估把已有schema负例组合入装配样本的合同与独立核验设计，保留HTTP状态未知；不要用包装代替共性能力。
+1. JSON重复键修复已提交并推送3b26b3b（RED2fail、GREEN26tests/317assertions、typecheck exit0、旧产物24/24重核pass）。
+2. 当前追加设计docs/skill-ir/api-request-body-negatives-development.md：组合已核验full请求和body schema负例，独立复用source-bound核验；先TDD，HTTP状态未知，参数负例仍residual。
 3. D9总报告仍须据实际记录汇总残余能力、源成员首跑失败、模型成本缺测，不提前标为全部完成。
 
 ### 最新检查点（2026-09-11 06:00前后）

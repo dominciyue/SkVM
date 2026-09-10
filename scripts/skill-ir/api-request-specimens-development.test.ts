@@ -19,4 +19,8 @@ test("development specimen batch retains unavailable and digest-drift inputs bes
   expect(report.rows[0]!.constructed).toBe(2);
   expect(JSON.parse(await readFile(join(root, "output/report.json"), "utf8")).rows).toHaveLength(3);
   expect(report.projectModelCalls).toBe(0);
+  const negatives = await runSpecimenDevelopment({ rootDir: root, inputIndexPath: "inputs.json", outputPath: "negative-output", executionRoot: process.cwd(), profile: "body-negatives" });
+  expect(negatives.rows.map((r) => r.status)).toEqual(["pass", "error", "error"]);
+  expect(negatives.rows[0]!.constructed).toBe(0);
+  expect(JSON.parse(await readFile(join(root, "negative-output/good.json"), "utf8")).report.schemaVersion).toBe("api-request-body-negatives/v1");
 });
