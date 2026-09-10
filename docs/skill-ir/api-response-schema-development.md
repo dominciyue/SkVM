@@ -97,3 +97,9 @@ typecheck pass after repair. Prior failures remain in the development evidence d
 ```powershell
 bun scripts/skill-ir/api-response-schema-development.ts --inputs=results/skill-ir/skill-family-deepening-20260911/api-inputs/inputs.json --out=results/skill-ir/skill-family-response-schema-development-20260911/first-run
 ```
+
+Actual717f3a2 measurement:303 operations/567 response declarations/365 media/329 compiled
+JSON schemas.142 source-example occurrences:130 valid/3invalid/9unresolved, zero live
+responses.1Password Partnership's three null ends_at examples conflict with its non-nullable
+string/date-time schema. Preserve the source mismatch; do not infer production API failure.
+Example occurrence counts are not distinct examples or independent real responses.

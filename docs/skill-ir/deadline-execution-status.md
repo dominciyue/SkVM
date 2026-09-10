@@ -38,7 +38,7 @@
 1. JSON重复键修复已提交并推送3b26b3b（RED2fail、GREEN26tests/317assertions、typecheck exit0、旧产物24/24重核pass）。
 2. body负例核心a7cf0ce：303操作/1414义务/951构造/463unresolved，2body清单不完整；三源成员各2输入集成通过，完整12输入分母保留。证据skill-family-body-negatives-development-20260911；主及脚本typecheck通过，保存并提交当前结果。
 3. 六类合成变形已提交729d9c4。真实12输入对象键变形也全部通过，零操作语义改变；原基准未重新生成，real-order/保留全部派生输入/产物/摘要，脚本strict typecheck pass，待提交。
-4. 响应schema方向基础dc0015f已通过21tests/115assertions/typecheck；显式operation/status/media观测核验已实现，source例子清单RED发现非JSON漏计/引用定位问题并修复，7tests/47assertions及脚本strict pass。下一具体动作：提交当前版本，对原12输入执行一次response catalog/source-example测量；无真实流量，不猜default/range状态。
+4. 响应schema方向dc0015f、显式观测/清单717f3a2已提交。原12输入303操作/567响应/365媒体/329可编译schema，142源例子实例130valid/3invalid/9unresolved；3处ends_at=null与source非nullable schema不一致已核对原文，不改源。无真实流量。下一具体动作：提交证据，再把响应能力接到源职责映射（移动纯分析器至src，CLI复用），选两已暴露输入验证多成员，不重跑完整分母。
 5. D9总报告仍须据实际记录汇总残余能力、源成员首跑失败、模型成本缺测，不提前标为全部完成。
 
 ### 最新检查点（2026-09-11 06:00前后）
