@@ -1,7 +1,7 @@
 # 一类 skill 深化：唯一执行恢复状态
 
 - 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前07:30，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；最近实现be89a50，clean证据569620c；D9导航待提交。没有运行中进程/付费请求/监听端口。
+- 分支 api-tester-operation-unseen-prospective-001；HEAD24e47aa，最近实现3011413，origin597f4c4；clean证据569620c。没有运行中进程/付费请求/监听端口。
 - 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§73。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
 - 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
 
@@ -39,8 +39,10 @@
 2. be89a50现有54正文/1431pair关系核验：2flags都是原来已排除的已知派生；原分类/首跑不改，低重合不证明谱系独立。
 3. 569620c完整clean证据：.worktrees/family-extended-clean-20260911@be89a50，已核验离线依赖，24/24全文档产物相同，26原输出全归档；35tests/216assertions、主/脚本tsc通过。命令longpaths/测试名/tsc标志修正留记录，没有改candidate。
 4. D9当前结果导航skill-family-current-results.md已写，根plan/spec的旧当前入口已同步；提交推送并记录。
-5. 下一具体动作：TDD新development输入字节绑定——构造摘要正确但含非法UTF-8字节的合成JSON，确认每输入明确失败，不用替代字符分析另一份文本；保留合法兄弟输入和全部失败行。只改新runner，不改冻结parser/profile，不增加支持面。通过focused测试和typecheck后记录旧合法输入结果影响。
-6. 完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active，不因D9导航存在提前标全部完成。
+5. 1e51d61已完成UTF-8输入绑定修复：两类新batch和四个新映射profile都先TDD证明误接纳，后19tests/94assertions及strict affected tsc通过；原12文本/摘要完全相同，未再生成产物。旧v2 dispatch不变。
+6. 3011413/24e47aa分支负例改进已归档：971/1414（+20，443unresolved），字段2961/3371，原成功值/正向基线/source字段不变，完整12报告和6跨成员结果保留。25tests/245assertions及主tsc通过；修primitive-parent实际异常，不改独立checker。
+7. 下一具体动作：有限布尔对象域上手写allOf/anyOf/oneOf真值oracle，覆盖嵌套容器、分支排序和多个组合条件交集；比较source checker的有效性及合法full witness，不以生成器自身结果当答案。只用确定性合成输入，发现具体问题才改核心代码，不扩取真实样本。
+8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）
 
