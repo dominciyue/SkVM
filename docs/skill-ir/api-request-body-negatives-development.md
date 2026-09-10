@@ -76,3 +76,20 @@ already exposed development examples exercise nested constraints and composition
 new selection or independent effect estimate. Six mapping executions suffice for this
 integration; do not repeat the entire12-input panel for each member. First-run source
 reports above remain the full denominator for the new capability.
+
+## Representation metamorphisms
+
+Before running: use one explicitly synthetic OAS3.0 parent with inherited query parameter,
+local acyclic body schema reference, object/enum/integer/array constraints and a no-body
+operation. Derive six inputs: reverse object keys (not arrays), JSON whitespace/CRLF,
+JSON-to-YAML with unchanged data model, unrelated description text, inline the exact local
+body schema, and append an unrelated required text/plain operation. The last operation's
+body-negative rows must remain recorded/unresolved; existing operations remain unchanged.
+
+Compare operation keys and multisets of negative targets (field, kind, instance path,
+adapted validation path and operand), statuses, null HTTP expectations and normalized
+requests. JSON body text is compared by its unique-key decoded value; source fingerprint,
+source locator $ref hops and environment fields are not expected equal. Every derived
+artifact independently passes source/field/baseline/negative checks. For inline reference
+equivalence, only this exact acyclic reference without siblings is applicable; no general
+reference equivalence claim. Keep parent/derived bytes, hashes and transform parameters.

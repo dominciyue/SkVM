@@ -33,3 +33,13 @@ RED missingmodule and unsupportedmapping evidence retained. Core25tests151assert
 batch5tests46assertions; mapping12tests73assertions; main and explicitscript typecheck pass.
 No project model/API/paid calls; development-agent cost separately unmeasured.
 Previous d088f4e clean evidence is not a clean-run claim for this newer capability.
+
+Six synthetic representation transformations pass with26test assertions and strictscript
+typecheck. metamorphic.json retains parent/derived texts, hashes, source-code bindings,
+independent verification and normalized semantic digests. Original14negative obligations
+are unchanged; an appended unsupported operation adds2unresolved obligations. No real
+sample increment. Reproduce with a new report path:
+
+```powershell
+bun scripts/skill-ir/api-request-body-metamorphic.ts --out=results/skill-ir/body-metamorphic-reproduction.json
+```
