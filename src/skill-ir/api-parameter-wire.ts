@@ -8,6 +8,7 @@ export function encodeApiParameter(parameter: unknown, value: unknown): { status
     if (!parameter || typeof parameter !== "object" || Array.isArray(parameter)) throw new Error("parameter object required");
     const p = parameter as Raw;
     if (typeof p.name !== "string" || !p.name || !["path", "query", "header", "cookie"].includes(p.in)) throw new Error("parameter identity");
+    if (p.in === "header" && ["accept", "content-type", "authorization"].includes(p.name.toLowerCase())) throw new Error("OpenAPI ignores this header parameter; use media/security semantics");
     if (p.content !== undefined || p.allowReserved === true) throw new Error("content/allowReserved encoding");
     const style = p.style ?? (["query", "cookie"].includes(p.in) ? "form" : "simple");
     const explode = p.explode ?? style === "form";

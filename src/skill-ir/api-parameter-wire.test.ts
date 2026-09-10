@@ -28,3 +28,10 @@ test("unsupported or ambiguous parameter semantics never silently flatten", () =
     expect(verifyApiParameterWire(p, value, "whatever").status).toBe("unsupported");
   }
 });
+
+test("ignored OpenAPI header parameters are not emitted as validated wire obligations", () => {
+  for (const name of ["Accept", "content-type", "AUTHORIZATION"]) {
+    expect(encodeApiParameter({ name, in: "header" }, "example").status).toBe("unsupported");
+    expect(verifyApiParameterWire({ name, in: "header" }, "example", "example").status).toBe("unsupported");
+  }
+});

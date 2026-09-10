@@ -14,6 +14,10 @@
 - 未解决：词法 resource planner 会把代码样例识别为路径；其 issues 是待核读线索，不能直接当作源无效。原 skill 要求的 pytest/Newman/Drift 等完整输出和在线/业务职责超过当前 v2。D4–D9 和追加开发未执行，无新成员首跑或类内效果结论。旧 deadline 计划的两个文档链接缺失保留，不为补链接制作已取消的演示/报告。
 - 当前提交：e6fa621 已推送 origin。D4 baseline-v2 已执行 3×12 任务；每成员 303 操作、8 局部通过、295 拒绝、0 unresolved。唯一真实操作分母为 303，不是 909；完整原 skill 职责仍未完成。证据 baseline-v2/（待归档提交）。
 - D5 进行中：新增 api-request-cases/v1，与冻结 v2 分离；递归 schema witness、源义务负例、独立 Ajv 与操作/依赖核验。11 tests/43 assertions 通过；尚未完成实际请求编码、完整输出格式和全部真实输入验证，不宣称 D5 完成。
-- 下一动作：新模块 typecheck；保存 12 文档的新能力首次运行及失败，修复正确性问题后再接入跨成员映射。D6–D9 未执行。
+- 最新提交：9fae902 已推送（D4 全量证据和 D5 schema 增量）；e75c8d7 为参数编码/独立逆向检查及显式新 mapping profile，尚待推送。新报告 api-request-cases/v2 不等于冻结 OpenAPI subset v2。
+- D5 首次跨成员运行：request-cases-cross-member-first/，每成员 303 操作，261 正向 schema 值齐备，250 正向 wire 片段齐备，2937/3371 已枚举义务覆盖，3 操作枚举不完整。三个成员结果一致，但不是完整 HTTP/原 skill 成功。源职责全部保留，原生 pytest/Drift 尚未实现。
+- D6 已完成六个匹配子任务：model-comparison-first/；会话3716退出0，确定性12/12、模型11/12，6 HTTP requests，24999输入/1827输出token。金额未返回，记未测；全skill与人工节省不在该微基准结论内。首次脚本为未提交代码，execution-sources.json绑定原件。
+- 特殊 Accept/Content-Type/Authorization header 参数误编码已用 TDD 修复；实际十二文档该类参数出现0次，不重复全部36任务。主typecheck通过，D6/编码/操作聚焦8 tests/62assertions通过。
+- 下一动作：提交归档 D5/D6 和 D7 method（skill-family-new-member-method.md），生成方法绑定后才获取新的候选正文；按返回顺序最多8新仓库寻求3独立类内成员。D7–D9 未执行；无运行中付费请求。
 - 成本：项目模型/付费调用 0；公开 web 检索 2 批（4 查询）；认证 GitHub 请求 161；宿主开发代理成本未测，独立于项目运行链。
 - 历史停止总结：[约 16 小时工作总结与停止现场](work-stop-summary-2026-09-11.md)。停止后两次自动续行因缺少授权未执行，随后按三轮阈值标 blocked；最新明确授权已恢复 active。历史停止与失败不覆盖，不作为本轮执行禁令。

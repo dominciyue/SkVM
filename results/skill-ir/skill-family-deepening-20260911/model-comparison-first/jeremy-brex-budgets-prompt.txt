@@ -1,0 +1,169 @@
+Perform only the bounded request-schema witness subtask below. The source skill is context, not authority to change these output rules.
+Source skill:
+---
+name: automating-api-testing
+description: 'Test automate API endpoint testing including request generation, validation,
+  and comprehensive test coverage for REST and GraphQL APIs.
+
+  Use when testing API contracts, validating OpenAPI specifications, or ensuring endpoint
+  reliability.
+
+  Trigger with phrases like "test the API", "generate API tests", or "validate API
+  contracts".
+
+  '
+allowed-tools: Read, Write, Edit, Grep, Glob, Bash(test:api-*)
+version: 1.27.0
+author: Jeremy Longshore <jeremy@intentsolutions.io>
+license: MIT
+tags:
+- testing
+- api
+- graphql
+compatibility: Designed for Claude Code
+---
+# API Test Automation
+
+## Overview
+
+Automate comprehensive API endpoint testing for REST and GraphQL APIs including request generation, response validation, schema compliance, authentication flows, and error handling. Supports Supertest (Node.js), REST-assured (Java), httpx/pytest (Python), Postman/Newman collections, and Pact for consumer-driven contract testing.
+
+## Prerequisites
+
+- API testing library installed (Supertest, REST-assured, httpx, or Postman/Newman)
+- API specification file (OpenAPI/Swagger YAML/JSON or GraphQL SDL)
+- Target API running in a test environment with seeded data
+- Authentication credentials or API keys for protected endpoints
+- JSON Schema validator (Ajv, jsonschema, or built-in framework assertions)
+
+## Instructions
+
+1. Read the API specification and extract all endpoints:
+   - Parse OpenAPI spec to catalog every path, HTTP method, request schema, and response schema.
+   - For GraphQL APIs, introspect the schema to list queries, mutations, and subscriptions.
+   - Document authentication requirements per endpoint (API key, Bearer token, OAuth, none).
+2. Generate test cases for each endpoint:
+   - **Success cases**: Send valid requests matching the schema and assert 200/201 responses.
+   - **Validation errors**: Send requests with missing required fields, wrong types, and out-of-range values; assert 400 responses.
+   - **Authentication**: Test with valid, expired, and missing credentials; assert 200, 401, and 403 respectively.
+   - **Not found**: Request non-existent resources; assert 404 responses.
+   - **Idempotency**: Send the same PUT/DELETE request twice and verify consistent behavior.
+3. Validate response structure against schemas:
+   - Assert response Content-Type matches expected (application/json, etc.).
+   - Validate response body against the OpenAPI response schema using JSON Schema validation.
+   - Check response headers (Cache-Control, Rate-Limit headers, CORS headers).
+   - Verify pagination metadata (total count, page number, next/previous links).
+4. Test CRUD lifecycle for resource endpoints:
+   - Create a resource (POST) and capture the ID.
+   - Read it back (GET) and verify all fields match.
+   - Update it (PUT/PATCH) and verify changes persisted.
+   - Delete it (DELETE) and verify subsequent GET returns 404.
+5. Test error handling and edge cases:
+   - Send excessively large payloads and verify 413 or graceful rejection.
+   - Send requests with unsupported Content-Types and verify 415.
+   - Test rate limiting by sending rapid sequential requests.
+   - Verify error response format is consistent (standard error schema).
+6. For GraphQL APIs, test specifically:
+   - Valid queries return expected data shapes.
+   - Invalid queries return descriptive error messages.
+   - Query depth limiting prevents deeply nested abuse queries.
+   - Mutation input validation matches schema constraints.
+7. Generate a test coverage report mapping endpoints to test cases.
+
+## Output
+
+- API test files organized by resource in `tests/api/`
+- Request/response examples for API documentation
+- Schema compliance report for each endpoint
+- Endpoint coverage matrix showing tested vs. untested endpoints and methods
+- CI pipeline step running API tests against staging environment
+
+## Error Handling
+
+| Error | Cause | Solution |
+|-------|-------|---------|
+| Connection refused | API server not running or wrong base URL | Verify server is up with a health check before test suite starts; check `BASE_URL` config |
+| 401 on all requests | Authentication token expired or misconfigured | Refresh token in test setup; verify `Authorization` header format; check token scopes |
+| Schema validation fails unexpectedly | API response includes extra fields not in spec | Update OpenAPI spec to include new fields; use `additionalProperties: true` if expected |
+| Test data conflicts | Another test modified or deleted the resource | Use unique test data per test; create resources in `beforeEach`; avoid shared fixtures |
+| Rate limit hit during test run | Too many requests in quick succession | Add delays between requests or use authenticated sessions with higher limits; run tests serially |
+
+## Examples
+
+**Supertest REST API test suite:**
+
+```typescript
+import request from 'supertest';
+import { app } from '../src/app';
+
+describe('GET /api/products', () => {
+  it('returns a paginated product list', async () => {
+    const res = await request(app)
+      .get('/api/products?page=1&limit=10')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)  # HTTP 200 OK
+      .expect('Content-Type', /json/);
+
+    expect(res.body.data).toBeInstanceOf(Array);
+    expect(res.body.data.length).toBeLessThanOrEqual(10);
+    expect(res.body.meta).toMatchObject({ page: 1, limit: 10 });
+  });
+
+  it('returns 401 without authentication', async () => {  # HTTP 401 Unauthorized
+    await request(app).get('/api/products').expect(401);  # HTTP 401 Unauthorized
+  });
+});
+
+describe('POST /api/products', () => {
+  it('creates a product with valid data', async () => {
+    const res = await request(app)
+      .post('/api/products')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Widget', price: 9.99, category: 'tools' })
+      .expect(201);  # HTTP 201 Created
+
+    expect(res.body).toMatchObject({ name: 'Widget', price: 9.99 });
+    expect(res.body.id).toBeDefined();
+  });
+
+  it('returns 400 for missing required fields', async () => {  # HTTP 400 Bad Request
+    await request(app)
+      .post('/api/products')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Widget' }) // missing price
+      .expect(400);  # HTTP 400 Bad Request
+  });
+});
+```
+
+**GraphQL API test:**
+
+```typescript
+it('fetches user by ID', async () => {
+  const query = `query { user(id: "1") { id name email } }`;
+  const res = await request(app)
+    .post('/graphql')
+    .send({ query })
+    .expect(200);  # HTTP 200 OK
+
+  expect(res.body.data.user).toMatchObject({ id: '1', name: 'Alice' });
+  expect(res.body.errors).toBeUndefined();
+});
+```
+
+## Resources
+
+- Supertest: https://github.com/ladjs/supertest
+- REST-assured (Java): https://rest-assured.io/
+- httpx (Python): https://www.python-httpx.org/
+- Newman (Postman CLI):
+- OpenAPI specification: https://spec.openapis.org/oas/v3.1.0
+- Ajv JSON Schema validator: https://ajv.js.org/
+
+
+Task: construct two JSON values named minimal and full conforming to the OpenAPI 3.0 request schema.
+minimal includes required writable properties only (and minProperties/minItems if required); full includes every declared writable property recursively.
+Omit readOnly properties. Respect all referenced/nested/array/format/composition constraints. Do not invent HTTP status or credentials.
+Return a single JSON object {"minimal":<value>,"full":<value>} without Markdown. If no witness can be justified use {"unresolved":"reason"}.
+Operation: POST /v1/budget_programs
+Source data: {"operationKey":"POST /v1/budget_programs","schema":{"$ref":"#/components/schemas/CreateBudgetProgramRequest"},"document":{"openapi":"3.0.1","components":{"schemas":{"Budget":{"required":["budget_status","period_type","spend_type"],"type":"object","properties":{"description":{"description":"\nDescription of what the Budget is used for.\n","type":"string","nullable":true},"budget_id":{"description":"\nUnique ID for the Budget.\n","type":"string"},"account_id":{"description":"\nThe Brex account this Budget belongs to.\n","type":"string"},"creator_user_id":{"description":"\nThe ID of the user who originally created this budget.\n","type":"string","nullable":true},"name":{"description":"\nName for the Budget.\n","type":"string"},"parent_budget_id":{"description":"\nID of parent Budget.\n","type":"string","nullable":true},"owner_user_ids":{"description":"\nUser IDs of the owners of the Budget.\n","type":"array","items":{"type":"string"}},"member_user_ids":{"description":"\nUser IDs of the members of the Budget.\n","type":"array","items":{"type":"string"}},"period_type":{"$ref":"#/components/schemas/PeriodType"},"start_date":{"description":"\nThe UTC date when the Budget should start counting.\n","type":"string","format":"date","nullable":true},"end_date":{"description":"\nThe UTC date when the Budget should stop counting.\n","type":"string","format":"date","nullable":true},"limit":{"allOf":[{"$ref":"#/components/schemas/Money"},{"nullable":true}]},"budget_status":{"$ref":"#/components/schemas/BudgetStatus"},"limit_type":{"allOf":[{"$ref":"#/components/schemas/LimitType"},{"nullable":true}]},"spend_type":{"$ref":"#/components/schemas/SpendType"},"current_period_balance":{"allOf":[{"$ref":"#/components/schemas/BudgetPeriodBalance"},{"nullable":true}]}}},"BudgetBlueprint":{"description":"\nBlueprint for provisioning Budgets for a Budget Program.\n","required":["id","limit_type","period_type","spend_type"],"type":"object","properties":{"description":{"description":"\nDescription of what the Budget is used for.\n","type":"string","nullable":true},"id":{"type":"string"},"name":{"description":"\nName for the Budget.\n","type":"string"},"parent_budget_id":{"description":"\nID of parent Budget.\n","type":"string"},"owner_user_ids":{"description":"\nUser IDs of the owners of the Budget.\n","type":"array","items":{"type":"string"}},"period_type":{"$ref":"#/components/schemas/PeriodType"},"start_date":{"description":"\nThe UTC date when the Budget should start counting.\n","type":"string","format":"date","nullable":true},"end_date":{"description":"\nThe UTC date when the Budget should stop counting.\n","type":"string","format":"date","nullable":true},"limit":{"allOf":[{"$ref":"#/components/schemas/Money"},{"nullable":true}]},"limit_type":{"$ref":"#/components/schemas/LimitType"},"spend_type":{"$ref":"#/components/schemas/SpendType"}}},"BudgetPeriodBalance":{"description":"\nCurrent Budget period balance.\n","type":"object","properties":{"start_date":{"type":"string","format":"date","nullable":true},"end_date":{"type":"string","format":"date","nullable":true},"balance":{"allOf":[{"$ref":"#/components/schemas/Money"},{"nullable":true}]}}},"BudgetProgram":{"description":"\nBudget Program used to create budgets for eligible users.\n","required":["budget_blueprints","budget_program_status","created_at","id","name","updated_at"],"type":"object","properties":{"description":{"type":"string","nullable":true},"id":{"type":"string"},"name":{"type":"string"},"budget_blueprints":{"type":"array","items":{"$ref":"#/components/schemas/BudgetBlueprint"}},"existing_budget_ids":{"description":"\nIDs for existing budgets associated with this Budget Program.\n","type":"array","nullable":true,"items":{"type":"string"}},"employee_filter":{"$ref":"#/components/schemas/EmployeeFilter"},"budget_program_status":{"$ref":"#/components/schemas/BudgetProgramStatus"},"creator_user_id":{"type":"string","nullable":true},"created_at":{"type":"string","format":"date"},"updated_at":{"type":"string","format":"date"}}},"BudgetProgramStatus":{"type":"string","enum":["BUDGET_PROGRAM_STATUS_ACTIVE","BUDGET_PROGRAM_STATUS_INACTIVE","BUDGET_PROGRAM_STATUS_DELETED"]},"BudgetStatus":{"description":"\nStatus of the Budget e.g. APPROVED.\n","type":"string","enum":["APPROVED","EXPIRED","TERMINATED","DELETED"]},"BudgetLimitVisibilityType":{"description":"\nDetermines if budget members are allowed to view the budget limit.\n","type":"string","enum":["SHARED","PRIVATE"]},"CreateBudgetBlueprintRequest":{"description":"\nBlueprint for provisioning Budgets for a Budget Program.\n","required":["limit","limit_type","limit_visibility","period_type","spend_type"],"type":"object","properties":{"description":{"description":"\nDescription of what the Budget is used for.\n","type":"string"},"name":{"description":"\nName for the Budget.\n","type":"string"},"parent_budget_id":{"description":"\nID of parent Budget.\n","type":"string"},"owner_user_ids":{"description":"\nUser IDs of the owners of the Budget.\n","type":"array","nullable":true,"items":{"type":"string"}},"period_type":{"$ref":"#/components/schemas/PeriodType"},"start_date":{"description":"\nThe UTC date when the Budget should start counting.\n","type":"string","format":"date","nullable":true},"end_date":{"description":"\nThe UTC date when the Budget should stop counting.\n","type":"string","format":"date","nullable":true},"limit":{"$ref":"#/components/schemas/Money"},"limit_type":{"$ref":"#/components/schemas/LimitType"},"spend_type":{"$ref":"#/components/schemas/SpendType"},"limit_visibility":{"$ref":"#/components/schemas/BudgetLimitVisibilityType"}}},"CreateBudgetProgramRequest":{"description":"\nBudget Program used to create budgets for eligible users.\n","required":["budget_blueprints","name"],"type":"object","properties":{"description":{"type":"string","nullable":true},"existing_budget_ids":{"description":"\nIDs for existing budgets associated with this Budget Program.\n","type":"array","nullable":true,"items":{"type":"string"}},"budget_blueprints":{"type":"array","items":{"$ref":"#/components/schemas/CreateBudgetBlueprintRequest"}},"employee_filter":{"allOf":[{"$ref":"#/components/schemas/EmployeeFilter"},{"nullable":true}]},"name":{"type":"string"}}},"CreateBudgetRequest":{"required":["parent_budget_id","limit","limit_type","limit_visibility","period_type","spend_type"],"type":"object","properties":{"description":{"description":"\nDescription of what the Budget is used for.\n","type":"string"},"name":{"description":"\nName for the Budget.\n","type":"string"},"parent_budget_id":{"description":"\nID of parent Budget.\n","type":"string"},"owner_user_ids":{"description":"\nUser IDs of the owners of the Budget.\n","type":"array","nullable":true,"items":{"type":"string"}},"member_user_ids":{"description":"\nUser IDs of the members of the Budget.\n","type":"array","nullable":true,"items":{"type":"string"}},"period_type":{"$ref":"#/components/schemas/PeriodType"},"limit":{"$ref":"#/components/schemas/Money"},"limit_type":{"$ref":"#/components/schemas/LimitType"},"spend_type":{"$ref":"#/components/schemas/SpendType"},"start_date":{"description":"\nThe UTC date when the Budget should start counting.\n","type":"string","format":"date","nullable":true},"end_date":{"description":"\nThe UTC date when the Budget should stop counting.\n","type":"string","format":"date","nullable":true},"limit_visibility":{"$ref":"#/components/schemas/BudgetLimitVisibilityType"}}},"EmployeeFilter":{"description":"\nA filter used to determine if a user adheres to a Budget Program.\n","type":"object","properties":{"employment_status":{"allOf":[{"$ref":"#/components/schemas/EmploymentStatus"},{"nullable":true}]},"employment_type":{"allOf":[{"$ref":"#/components/schemas/EmploymentType"},{"nullable":true}]}}},"EmploymentStatus":{"description":"\nA filter used to determine if a user adheres to a Budget Program.\n","type":"string","enum":["EMPLOYMENT_STATUS_ACTIVE","EMPLOYMENT_STATUS_INACTIVE","EMPLOYMENT_STATUS_PENDING"]},"EmploymentType":{"description":"\nWhat kind of employment the employee has.\n","type":"string","enum":["EMPLOYMENT_TYPE_FULL_TIME","EMPLOYMENT_TYPE_PART_TIME","EMPLOYMENT_TYPE_CONTRACTOR","EMPLOYMENT_TYPE_INTERN","EMPLOYMENT_TYPE_FREELANCE"]},"LimitType":{"description":"\nWhether the Budget limit blocks spend.\n","type":"string","enum":["HARD","SOFT"]},"Money":{"description":"\nMoney fields can be signed or unsigned. Fields are signed (an unsigned value will be interpreted as positive). The amount of money will be represented in the smallest denomination\nof the currency indicated. For example, USD 7.00 will be represented in cents with an amount of 700.\n","type":"object","properties":{"amount":{"description":"The amount of money, in the smallest denomination of the currency indicated by currency. For example, when currency is USD, amount is in cents.","type":"integer","format":"int64"},"currency":{"description":"The type of currency, in ISO 4217 format. Default to USD if not specified","type":"string","nullable":true}}},"Page_BudgetProgram_":{"required":["items"],"type":"object","properties":{"next_cursor":{"type":"string","nullable":true},"items":{"type":"array","items":{"$ref":"#/components/schemas/BudgetProgram"}}}},"Page_Budget_":{"required":["items"],"type":"object","properties":{"next_cursor":{"type":"string","nullable":true},"items":{"type":"array","items":{"$ref":"#/components/schemas/Budget"}}}},"PeriodType":{"description":"\nPeriod type of the Budget e.g. MONTHLY.\n","type":"string","enum":["WEEKLY","MONTHLY","QUARTERLY","YEARLY","ONE_TIME"]},"SpendType":{"description":"\nWhether this Budget only can be spent from by cards provisioned by this Budget. \n","type":"string","enum":["BUDGET_PROVISIONED_CARDS_ONLY","NON_BUDGET_PROVISIONED_CARDS_ALLOWED"]},"UpdateBudgetBlueprintRequest":{"description":"\nBlueprint for provisioning Budgets for a Budget Program.\n","type":"object","properties":{"description":{"description":"\nDescription of what the Budget is used for.\n","type":"string","nullable":true},"id":{"description":"\nID of budget blueprint to update, omit if adding new budget blueprint to budget program.\n","type":"string","nullable":true},"name":{"description":"\nName for the Budget.\n","type":"string","nullable":true},"parent_budget_id":{"description":"\nID of parent Budget.\n","type":"string","nullable":true},"owner_user_ids":{"description":"\nUser IDs of the owners of the Budget.\n","type":"array","nullable":true,"items":{"type":"string"}},"period_type":{"allOf":[{"$ref":"#/components/schemas/PeriodType"},{"nullable":true}]},"start_date":{"description":"\nThe UTC date when the Budget should start counting.\n","type":"string","format":"date","nullable":true},"end_date":{"description":"\nThe UTC date when the Budget should stop counting.\n","type":"string","format":"date","nullable":true},"limit":{"allOf":[{"$ref":"#/components/schemas/Money"},{"nullable":true}]},"limit_type":{"allOf":[{"$ref":"#/components/schemas/LimitType"},{"nullable":true}]},"spend_type":{"allOf":[{"$ref":"#/components/schemas/SpendType"},{"nullable":true}]}}},"UpdateBudgetProgramRequest":{"description":"\nBudget Program used to create budgets for eligible users.\n","type":"object","properties":{"description":{"type":"string","nullable":true},"existing_budget_ids":{"description":"\nIDs for existing budgets associated with this Budget Program.\n","type":"array","nullable":true,"items":{"type":"string"}},"budget_blueprints":{"description":"\nThe Blueprints to update the budget program with. Blueprints without an ID are treated as new blueprints to be created.\nBlueprints that exist currently on the Budget Program, but are missing from the input, will be deleted.\n","type":"array","nullable":true,"items":{"$ref":"#/components/schemas/UpdateBudgetBlueprintRequest"}},"employee_filter":{"allOf":[{"$ref":"#/components/schemas/EmployeeFilter"},{"nullable":true}]},"name":{"type":"string","nullable":true}}},"UpdateBudgetRequest":{"type":"object","properties":{"description":{"description":"\nDescription of what the Budget is used for.\n","type":"string","nullable":true},"name":{"description":"\nName for the Budget.\n","type":"string","nullable":true},"owner_user_ids":{"description":"\nUser IDs of the owners of the Budget.\n","type":"array","nullable":true,"items":{"type":"string"}},"member_user_ids":{"description":"\nUser IDs of the members of the Budget.\n","type":"array","nullable":true,"items":{"type":"string"}},"limit":{"allOf":[{"$ref":"#/components/schemas/Money"},{"nullable":true}]},"limit_type":{"allOf":[{"$ref":"#/components/schemas/LimitType"},{"nullable":true}]},"spend_type":{"allOf":[{"$ref":"#/components/schemas/SpendType"},{"nullable":true}]},"start_date":{"description":"\nThe UTC date when the Budget should start counting.\n","type":"string","format":"date","nullable":true},"end_date":{"description":"\nThe UTC date when the Budget should stop counting.\n","type":"string","format":"date","nullable":true},"limit_visibility":{"allOf":[{"$ref":"#/components/schemas/BudgetLimitVisibilityType"},{"nullable":true}]}}}},"securitySchemes":{"OAuth2":{"description":"OAuth2 security scheme","type":"oauth2","flows":{"authorizationCode":{"authorizationUrl":"https://accounts-api.brex.com/oauth2/default/v1/authorize","tokenUrl":"https://accounts-api.brex.com/oauth2/default/v1/token","scopes":{"openid":"openid","offline_access":"offline access","budgets":"View and manage budgets data","budgets.readonly":"View budgets data"}}}}}}}}

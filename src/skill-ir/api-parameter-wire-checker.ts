@@ -5,6 +5,7 @@ export function verifyApiParameterWire(parameter: unknown, expected: unknown, wi
   const p = parameter as Record<string, any>;
   if (typeof p.name !== "string" || !p.name || !["query", "cookie", "path", "header"].includes(p.in)
     || p.content !== undefined || p.allowReserved === true) return unsupported("identity/content/reserved");
+  if (p.in === "header" && ["accept", "content-type", "authorization"].includes(p.name.toLowerCase())) return unsupported("ignored OpenAPI header parameter");
   const array = Array.isArray(expected), values = array ? expected : [expected];
   if (!values.length || values.length > 64 || values.some((v) => !["string", "boolean", "number"].includes(typeof v)
     || (typeof v === "number" && !Number.isFinite(v)))) return unsupported("primitive values required");
