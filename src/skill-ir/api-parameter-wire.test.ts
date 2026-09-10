@@ -35,3 +35,30 @@ test("ignored OpenAPI header parameters are not emitted as validated wire obliga
     expect(verifyApiParameterWire({ name, in: "header" }, "example", "example").status).toBe("unsupported");
   }
 });
+
+test("inverse checker rejects raw URI structure in encoded parameter names", () => {
+  for (const name of ["q#fragment", "q space", "q/path", "q?option", "q[part]"]) {
+    const parameter = { in: "query", name };
+    const encoded = encodeApiParameter(parameter, "value");
+    expect(encoded.status).toBe("encoded");
+    if (encoded.status !== "encoded") throw new Error(encoded.reason);
+    expect(verifyApiParameterWire(parameter, "value", encoded.wire).status).toBe("pass");
+    expect(verifyApiParameterWire(parameter, "value", `${name}=value`).status).toBe("fail");
+  }
+});
+
+test("bounded Unicode and reserved-atom matrix roundtrips without accepting altered values", () => {
+  const parameters = [
+    { in: "query", name: "q#name" }, { in: "cookie", name: "c[name]" },
+    { in: "path", name: "id" }, { in: "query", name: "q", explode: false },
+    { in: "query", name: "q", style: "pipeDelimited", explode: false },
+  ];
+  for (const parameter of parameters) for (const value of ["a/b", "a&b", "a=b", "a#b", "a%b", "中文", "😀", "", "a|b", "a,b"]) {
+    const expected = [value, "tail"];
+    const encoded = encodeApiParameter(parameter, expected);
+    expect(encoded.status).toBe("encoded");
+    if (encoded.status !== "encoded") throw new Error(encoded.reason);
+    expect(verifyApiParameterWire(parameter, expected, encoded.wire).status).toBe("pass");
+    expect(verifyApiParameterWire(parameter, [value, "changed"], encoded.wire).status).toBe("fail");
+  }
+});

@@ -30,6 +30,11 @@
 - 下一具体动作：针对参数名的URI结构字符做独立逆向checker错误注入，确认未转义fragment/name是否误接纳；先RED，若确认仅修新checker，不改编码合同。
 - 没有运行中进程/付费请求。历史stop不生效，用户当前10h持续授权仍active，不宣称已执行10h。
 
+### 再下一恢复点
+
+- 数值修复已提交019a53c（origin仍77c97b7）。wire参数名漏检已RED确认并修复一行checker，14/14测试240断言及typecheck通过；12实际旧产物只重核未重生成，全部pass。证据skill-family-wire-name-development-20260911，待提交。
+- 后续重点不继续小修凑数：研究跨成员共同缺口“字段片段→完整离线请求用例装配”。先读当前source/projection、明确参数 presence、media/security与checker独立性，再写小范围设计/验收。不能把请求装配称在线行为或原生完整skill完成。
+
 ## 先前动作（已完成，保留上下文）
 
 1. 确认56329主typecheck完成，归档oneOf源码摘要/结果并提交。

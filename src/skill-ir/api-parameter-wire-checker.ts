@@ -32,7 +32,7 @@ export function verifyApiParameterWire(parameter: unknown, expected: unknown, wi
     else {
       const pairs = wire.split("&").map((pair) => {
         const at = pair.indexOf("=");
-        if (at < 0 || decodeURIComponent(pair.slice(0, at)) !== p.name) throw new Error("parameter name mismatch");
+        if (at < 0 || decode(pair.slice(0, at)) !== p.name) throw new Error("parameter name mismatch");
         return pair.slice(at + 1);
       });
       if (form && explode && array) actual = pairs.map(decode);

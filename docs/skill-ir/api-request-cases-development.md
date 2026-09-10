@@ -186,3 +186,12 @@ heuristic improvement, not complete arithmetic satisfiability or new source sema
 Semantics: [OpenAPI3.0.3](https://spec.openapis.org/oas/v3.0.3) and
 [JSON Schema numeric constraints](https://json-schema.org/understanding-json-schema/reference/numeric).
 The latter's current numeric exclusive-bound syntax is not substituted for OAS boolean bounds.
+
+### Wire-name integrity check
+
+The source contract percent-encodes URI atoms including parameter names. An inverse
+checker that decodes a raw name without first checking atom syntax can accept a literal
+fragment marker or unescaped whitespace. Test encoded-name goldens against independently
+tampered raw names, plus Unicode/reserved-value matrices. If confirmed, apply the existing
+URI atom parser to names as well as values; do not alter source support or encoder output.
+This is artifact integrity, not proof of actual HTTP cookie/query execution.
