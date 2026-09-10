@@ -111,6 +111,14 @@ Task 8 的唯一元数据运行在第七个 GitHub search response 后配额归�
 
 建议只提交下一轮协议设计，不自动选样、读取、预测或执行。保持 v2 候选不变，不为制造正例扩大支持面；Meilisearch 的既有源缺陷不需要在新协议前先修。
 
+## 最终验证与复现
+
+- 聚焦七文件回归 `29/29`、88 assertions；完整 `src/skill-ir` 回归 `189/189`、990 assertions；相关 prospective/public-skill 基准 `41/41`、158 assertions。
+- typecheck、文档测试 `8/8`、4133-file link scan、冻结历史 diff、敏感信息/绝对路径扫描和 `git diff --check` 全部通过。
+- 一项历史交付报告测试在当前 Windows 主机稳定需要 41–56 秒；只把测试超时从 30 秒调至 60 秒，执行、归档和判定代码均未修改，随后完整回归通过。
+- 独立只读复核确认 committed provenance、无占位符 clean reproduction 和计划状态三项旧 finding 均闭合，未发现新的 correctness blocker。
+- 从机器报告最后修改提交 `5309bad3843be847f02b5d655c042853e2c9ac50` 建立 detached worktree；`bun install --frozen-lockfile --offline` 成功，六层 verifier 全部返回预期，worktree 无 tracked drift。该复现核验的是已提交证据与终止现场，不是不存在的 prospective first run。
+
 ## 权威入口
 
 - [机器总报告](../../results/skill-ir/api-tester-operation-prospective-research-synthesis-development-001/report.json)

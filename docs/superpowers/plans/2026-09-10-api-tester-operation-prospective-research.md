@@ -149,12 +149,12 @@ prospective evidence pending。Task 8 依赖 Task 7 的责任定义；Task 9 依
 
 ## Task 6：总收口
 
-- [ ] 建 claims-evidence-limitations 表、中文研究总报告、clean reproduction 手册和下一决策建议（working draft 已完成，待 final gate/commit）。
-- [ ] 分别汇总 Task 1/2/3/4/5/7/8/9/10 的实际结果、入口、提交、证据、remaining issues 和成本（working draft 已完成，待 final gate/commit）。
-- [ ] 判断具备“筹备新 prospective 协议”条件但不具备执行条件；只写下一轮设计建议，不选择/读取/运行新样本（机器报告已验证，待 final gate/commit）。
-- [ ] 同步 spec/plan/component/status/README/handoff/communication/conversation log（repo 文档 draft 已同步，root ledgers 待 final gate）。
-- [ ] fresh focused、`src/skill-ir`、相关 benchmark、typecheck、doc tests/link scan、frozen history、secret/path、`git diff --check`。
-- [ ] 独立只读审查；对 finding 用 TDD 修复并重新验证。
+- [x] 建 claims-evidence-limitations 表、中文研究总报告、clean reproduction 手册和下一决策建议。
+- [x] 分别汇总 Task 1/2/3/4/5/7/8/9/10 的实际结果、入口、提交、证据、remaining issues 和成本。
+- [x] 判断具备“筹备新 prospective 协议”条件但不具备执行条件；只写下一轮设计建议，不选择/读取/运行新样本。
+- [x] 同步 spec/plan/component/status/README/handoff/communication/conversation log。
+- [x] fresh focused、`src/skill-ir`、相关 benchmark、typecheck、doc tests/link scan、frozen history、secret/path、`git diff --check`。
+- [x] 独立只读审查；对 finding 用 TDD 修复并重新验证。
 - [ ] 白名单 final commits，push 开发分支；确认不触碰 `main`/`upstream`。
 - [ ] 只有所有完成门闭合后才将总目标标为 complete。
 

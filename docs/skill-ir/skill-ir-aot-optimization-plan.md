@@ -2264,6 +2264,7 @@ Task 6 synthesis implementation=`c0ce14f97426b51bc12e8329d882c8d733173c45`。固
 机器总报告为 `4 completed + 2 closed-terminal-failure + 4 not-run-blocked`，文件 SHA-256=`e599ae8f45fe21618c3f7d5c907ac7ebee25ac423d6fc2604dc53f354719c739`，
 portable=`f915abc6abd393ea78122feff5c93e6ea83ea68c18e99063e449cda61d337352`。独立审查前及 reproduction-command 修复前报告分别保留为 attempt-001/002。判断只允许筹备新的预注册协议，当前不可执行；
 Task 2/8 失败与 Task 3/4/5/9 未运行均不插补。Task 6 本身可完成交付，但总目标完成门继续为 false。
+最终 fresh verification 为 focused `29/29`、`src/skill-ir` `189/189`、相关 benchmark `41/41`、typecheck、docs `8/8` 与 4133-file link scan 全通过；独立复核无 finding。detached clean checkout `5309bad3843be847f02b5d655c042853e2c9ac50` 离线安装后六层 verifier 全通过。
 
 ## 5. 历史时间估算（不作为当前排期）
 

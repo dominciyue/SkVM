@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-6-synthesis-final-verification; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
-- `stageStatus`: `in-progress; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
-- `lastCompletedCommit`: `c0ce14f97426b51bc12e8329d882c8d733173c45`
-- `currentCommit`: `c0ce14f97426b51bc12e8329d882c8d733173c45 (Task 6 final report/docs pending evidence commit)`
+- `currentStage`: `task-6-synthesis-verified-push-pending; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
+- `stageStatus`: `task-6-complete-locally; overall-goal-incomplete; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
+- `lastCompletedCommit`: `5309bad3843be847f02b5d655c042853e2c9ac50`
+- `currentCommit`: `5309bad3843be847f02b5d655c042853e2c9ac50 (Task 6 evidence committed; status checkpoint/push pending)`
 - `prospectiveInputsRead`: `70 raw source candidates; authoritative selected inputs=0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -78,6 +78,9 @@
 - Task 6 synthesis implementation=`c0ce14f97426b51bc12e8329d882c8d733173c45`。初始 module-missing RED 后完成首版；独立审查指出 committed provenance、复现占位符和计划状态三项问题。修复前报告保留在 attempt-001；Git `commit:path` tamper 测试先 RED 后 GREEN。第二次报告又触发 reproduction command 缺 `--git=git` 的 `1/2` RED，修复后 focused=`2/2`、11 assertions；被 write-once 拒绝覆盖的报告原样保留在 attempt-002。
 - Task 6 最终机器总报告=`results/skill-ir/api-tester-operation-prospective-research-synthesis-development-001/report.json`，文件 SHA-256=`e599ae8f45fe21618c3f7d5c907ac7ebee25ac423d6fc2604dc53f354719c739`，portable=`f915abc6abd393ea78122feff5c93e6ea83ea68c18e99063e449cda61d337352`；实现及九份固定证据均核对工作树摘要和 Git blob，strict verify=`completed 4 / blocked-or-failed 6 / prepare true / execute false`。
 - Task 6 复现入口已实际核验：candidate runtime modules=11/added=2、synthetic=6/6、prospective failure requests=150/authoritative=0/terminal=403、public-skill metadata=7/body=0，以及 mechanism/synthesis strict verify 均返回预期。
+- Task 6 fresh 验证：focused=`29/29`、88 assertions；`src/skill-ir`=`189/189`、990 assertions；相关 prospective/public-skill benchmark=`41/41`、158 assertions；typecheck、docs=`8/8`、4133-file link scan、frozen-history/path/secret/diff checks 全通过。历史 delivery-report 测试只把 timeout 由 30 秒调至 60 秒以容纳本机 41–56 秒的完整校验，生产逻辑未改。
+- 独立只读复核无 finding，并确认 committed Git provenance、可执行无占位符复现手册和计划状态三项旧 finding 均闭合。
+- clean checkout：detached commit=`5309bad3843be847f02b5d655c042853e2c9ac50`，Bun=`1.3.14`、Node=`v23.8.0`，`bun install --frozen-lockfile --offline` 成功；六层 verifier 全通过且 worktree clean。没有 prospective first run 可复现。
 
 ## 保留问题
 
@@ -88,5 +91,5 @@
 
 ## 下一条具体动作
 
-完成 Task 6 fresh focused/broad/typecheck/docs/frozen/path/secret/diff 检查和第二次窄范围独立只读复核；随后提交机器报告、中文总报告和无需占位符的复现手册并 push。
+Task 6 代码、机器报告、中文总报告、无占位符复现手册和 clean checkout 已完成。下一动作仅为提交本状态检查点并 push 开发分支；不得把 overall goal 标为 complete。
 Task 2/8 保持终止失败已闭合，Task 3/4/5/9 保持阻塞未运行；总目标不得标记 complete。下一轮只允许另行预注册协议，不自动选择、预测或执行。
