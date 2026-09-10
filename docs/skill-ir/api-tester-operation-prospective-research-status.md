@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-revision-freeze-pending-push; task-8-protocol-selector-pre-metadata-freeze`
+- `currentStage`: `task-2-revision-freeze-pending-push; task-8-metadata-discoverer-tdd`
 - `stageStatus`: `in-progress`
-- `lastCompletedCommit`: `d5249d7492cd8e232802c289af56d075a91168d6`
-- `currentCommit`: `task-8-protocol-selector-pending-commit`
+- `lastCompletedCommit`: `e6902a2`
+- `currentCommit`: `task-8-metadata-discoverer-working-tree`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -52,6 +52,7 @@
 - Task 8 pre-source 设计：`docs/superpowers/specs/2026-09-10-public-skill-responsibility-corpus-design.md`；实施计划：`docs/superpowers/plans/2026-09-10-public-skill-responsibility-corpus.md`。在设计和 protocol/selector 提交前，new public skill body exposure 仍为 0。
 - Task 8 protocol/selector TDD：依次保存缺 module、discovery 原始文件绑定、固定 repository prefix、license missing/ambiguous 的 RED；当前聚焦 `9/9`、23 assertions，typecheck 和协议 CLI 均通过。协议在任何公开 metadata request 前固定 8 个 search page、前 25 个唯一 repository、每 repository 2 个追加请求、总上限 58；实际 metadata/body request 仍为 `0/0`。
 - Task 8 组件文档：`docs/skill-ir/public-skill-responsibility-corpus.md`，明确当前只含 pre-metadata protocol/selector/CLI，正文读取门仍关闭。
+- Task 8 pre-metadata protocol/selector 提交：`e6902a2`。提交时 public skill metadata/body request=`0/0`；这是 discoverer 真实联网前置，但不是 selection commit，仍不允许读取 `SKILL.md` blob。
 
 ## 保留问题
 
@@ -62,8 +63,8 @@
 
 ## 下一条具体动作
 
-精确提交 Task 8 protocol/schema/selector/CLI 与 pre-metadata 文档冻结点；随后先用注入式 HTTP fixture 为 metadata discoverer 建立 RED→GREEN，并在
-discoverer 提交之后才运行固定的 58-request-or-less 公开 metadata discovery。selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
+先用注入式 HTTP fixture 为 metadata discoverer 建立 RED→GREEN，并在 discoverer 提交之后才运行固定的 58-request-or-less 公开 metadata
+discovery。selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
 pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
 明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得
 搜索或读取 prospective unseen OpenAPI source。
