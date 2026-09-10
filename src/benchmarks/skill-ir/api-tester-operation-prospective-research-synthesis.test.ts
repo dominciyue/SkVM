@@ -74,6 +74,7 @@ describe("API Tester operation prospective research synthesis", () => {
         eligibleToPrepareNewProspectiveProtocol: true,
         eligibleToExecuteNewProspective: false,
       });
+      expect(report.reproduction.verifierCommands.at(-1)).toEndWith("--git=git");
       await expect(verifyApiTesterOperationResearchSynthesis({
         rootDir,
         reportPath: API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH,

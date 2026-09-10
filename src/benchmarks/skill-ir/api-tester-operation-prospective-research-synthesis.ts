@@ -262,7 +262,7 @@ async function deriveReport(options: { rootDir: string; completedAt: string; imp
         "bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-failure-audit.ts --mode=verify --root=. --out=results/skill-ir/api-tester-operation-prospective-001/source-selection",
         "bun ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-failure-audit-run.ts --mode=verify --root=. --audit=results/skill-ir/public-skill-responsibility-corpus-selection-development-001/failure-audit.json",
         "bun ./src/benchmarks/skill-ir/api-tester-operation-mechanism-ablation.ts --mode=verify --root=. --protocol=benchmarks/skill-ir/pilots/api-tester/operation-mechanism-ablation-development-001/protocol.json --out=results/skill-ir/api-tester-operation-mechanism-ablation-development-001/report.json",
-        `bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.ts --mode=verify --root=. --out=${API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH}`,
+        `bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-research-synthesis.ts --mode=verify --root=. --out=${API_TESTER_OPERATION_RESEARCH_SYNTHESIS_OUTPUT_PATH} --git=git`,
       ],
     },
     accounting: {
