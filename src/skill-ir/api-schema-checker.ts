@@ -32,10 +32,10 @@ export type SchemaValueCheck = { status: "checked" | "unsupported" | "invalid-sc
   errors: Array<{ keyword: string; instancePath: string; schemaPath: string; message: string; params: Record<string, unknown> }>; annotationsNotValidated: string[] };
 
 /** Independent of all witness/case generation. Never receives the generator's normalized schema. */
-export function createSchemaChecker(document: unknown, schema: unknown): (value: unknown) => SchemaValueCheck {
+function createDirectionalSchemaChecker(document: unknown, schema: unknown, direction: "request" | "response"): (value: unknown) => SchemaValueCheck {
   let nodes = 0;
   const notes = new Set<string>();
-  function adapt(raw: unknown, depth: number, refs: string[]): any {
+  function adapt(raw: unknown, depth: number, refs: string[], property = false, composition = false): any {
     if (++nodes > 4096 || depth > 24) throw new Error("unsupported: schema traversal budget");
     if (!object(raw)) throw new Error("unsupported: OpenAPI 3.0 schema must be an object");
     if ("$ref" in raw) {
@@ -48,7 +48,7 @@ export function createSchemaChecker(document: unknown, schema: unknown): (value:
         if (!object(target) || !Object.hasOwn(target, key)) throw new Error("unsupported: missing reference");
         target = target[key];
       }
-      return adapt(target, depth + 1, [...refs, raw.$ref]);
+      return adapt(target, depth + 1, [...refs, raw.$ref], property, composition);
     }
     const result: RecordValue = {};
     for (const [key, value] of Object.entries(raw)) {
@@ -60,14 +60,14 @@ export function createSchemaChecker(document: unknown, schema: unknown): (value:
         result[key] = structuredClone(value);
       } else if (["allOf", "anyOf", "oneOf"].includes(key)) {
         if (!Array.isArray(value) || !value.length || value.length > 64) throw new Error("unsupported: composition branches");
-        result[key] = value.map((part) => adapt(part, depth + 1, refs));
-      } else if (key === "not") result.not = adapt(value, depth + 1, refs);
-      else if (key === "items") result.items = adapt(value, depth + 1, refs);
-      else if (key === "additionalProperties") result.additionalProperties = typeof value === "boolean" ? value : adapt(value, depth + 1, refs);
+        result[key] = value.map((part) => adapt(part, depth + 1, refs, property, true));
+      } else if (key === "not") result.not = adapt(value, depth + 1, refs, property, true);
+      else if (key === "items") result.items = adapt(value, depth + 1, refs, false, composition);
+      else if (key === "additionalProperties") result.additionalProperties = typeof value === "boolean" ? value : adapt(value, depth + 1, refs, false, composition);
       else if (key === "properties") {
         if (!object(value)) throw new Error("unsupported: properties must be an object");
         result.properties = Object.fromEntries(Object.entries(value).map(([name, prop]) => {
-          const adapted = adapt(prop, depth + 1, refs);
+          const adapted = adapt(prop, depth + 1, refs, true, composition);
           // Read-only fields are forbidden in this request-generation contract, including via refs.
           return [name, adapted];
         }));
@@ -77,12 +77,17 @@ export function createSchemaChecker(document: unknown, schema: unknown): (value:
       } else if (!["nullable", "exclusiveMinimum", "exclusiveMaximum"].includes(key)) throw new Error(`unsupported: schema keyword ${key}`);
     }
     if (raw.readOnly !== undefined && typeof raw.readOnly !== "boolean") throw new Error("unsupported: invalid readOnly");
+    if (direction === "response") {
+      if (raw.writeOnly !== undefined && typeof raw.writeOnly !== "boolean") throw new Error("unsupported: invalid writeOnly");
+      if (raw.readOnly === true && raw.writeOnly === true) throw new Error("unsupported: contradictory directional flags");
+      if (property && composition && (raw.readOnly === true || raw.writeOnly === true)) throw new Error("unsupported: directional property under composition");
+    }
     if (raw.format !== undefined) {
       const numeric = ["int32", "int64", "float", "double"].includes(raw.format);
       const compatible = numeric ? (["int32", "int64"].includes(raw.format) ? raw.type === "integer" : ["number", "integer"].includes(raw.type)) : raw.type === "string";
       if (!compatible) throw new Error("unsupported: format/type combination");
     }
-    if (raw.readOnly === true) return false;
+    if ((direction === "request" && raw.readOnly === true) || (direction === "response" && property && raw.writeOnly === true)) return false;
     if (result.properties && result.required) result.required = result.required.filter((name: string) => result.properties[name] !== false);
     if (raw.nullable !== undefined && typeof raw.nullable !== "boolean") throw new Error("unsupported: invalid nullable");
     // A standalone nullable without a local type has no effect in OAS 3.0.
@@ -130,6 +135,16 @@ export function createSchemaChecker(document: unknown, schema: unknown): (value:
     return () => ({ status: message.includes("unsupported:") ? "unsupported" : "invalid-schema", valid: null,
       errors: [{ keyword: "schema", instancePath: "", schemaPath: "#", message, params: {} }], annotationsNotValidated: [...notes].sort() });
   }
+}
+
+/** Historical request-generation semantics remain the default API. */
+export function createSchemaChecker(document: unknown, schema: unknown): (value: unknown) => SchemaValueCheck {
+  return createDirectionalSchemaChecker(document, schema, "request");
+}
+
+/** Explicit bounded response direction; does not validate HTTP behavior or generate data. */
+export function createResponseSchemaChecker(document: unknown, schema: unknown): (value: unknown) => SchemaValueCheck {
+  return createDirectionalSchemaChecker(document, schema, "response");
 }
 
 export function checkSchemaValue(document: unknown, schema: unknown, value: unknown): SchemaValueCheck {
