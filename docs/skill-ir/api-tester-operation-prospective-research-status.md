@@ -3,7 +3,7 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-remote-frozen; task-2-real-source-discovery-implementation; task-8-public-metadata-attempt-failed-rate-limit`
+- `currentStage`: `task-2-source-acquisition-implementation-verified-pre-commit; task-8-public-metadata-attempt-failed-rate-limit`
 - `stageStatus`: `in-progress; task-2-source-gate-open; task-8-real-corpus-blocked`
 - `lastCompletedCommit`: `b3cb287`
 - `currentCommit`: `b3cb287`
@@ -63,6 +63,7 @@
 - failure audit 实现提交=`48061fb`；机器报告=`results/skill-ir/public-skill-responsibility-corpus-selection-development-001/failure-audit.json`，SHA-256=`62f32d12e93b95aabd6b18423aefbb05713b7f2b93406876426fdb04006ec3fc`。独立 verify 从 frozen protocol 重建 query/page 1..7、逐页 repository API identity 与 HTTP sidecar，确认 remaining=`6,5,4,3,2,1,0`、attempted=archived responses=7、exact archive=15 files/4,000,706 bytes、body=0；返回 `verified-metadata-failure-audit`。focused Task 8=`22/22`、74 assertions，typecheck 通过。
 - Task 8 source archive/closure 合成合同已完成首轮 TDD：direct-only 资源解析、显式 missing/external/path-escape/symlink/submodule/budget issues、locator-only、exact archive closure、SHA-256/Git blob OID、selection working/Git digest、selection commit time 和 40 行 skill/license tuple binding。archive focused=`3/3`、17 assertions，typecheck 通过；没有真实 selection，所以未实现或运行真实 body downloader，不能计作真实 archive 完成。
 - 当前分支已成功推送到用户 `origin`（`5c363d4..b3cb287`，未触碰 `upstream`）。revision freeze 的 remote-aware strict verifier 返回 `remote-frozen`：freeze commit=`e4c006fe32a6321ce5e4696758d53024c160f6db`、execution commit=`fb1068384177c00b11c836ce8d0f1b9fdecf59b6`、syntheticDocuments=6、prospectiveRuns=0。Task 2 的真实来源搜索门已解除。
+- Task 2 来源获取器与封闭 CLI 已完成 synthetic TDD，真实来源仍未读取。success fixture 选择 12 个独立仓库；strict verifier 从原始 search/branch/tree/raw 响应重放候选前缀和完整请求闭包，可检出 acquisition blob OID 协同重签与 exposed candidate 静默删项后全报告重签。HTTP 403 fixture 原样保留 terminal response/限流 sidecar/failure accounting；0-source fixture 形成 ruleRelaxed=false 的严格 shortfall archive。当前 focused=`4/4`、23 assertions，typecheck 通过。
 
 ## 保留问题
 
@@ -73,5 +74,5 @@
 
 ## 下一条具体动作
 
-按已冻结 Task 2 protocol，以 TDD 实现严格 GitHub source discovery/selection/archive 入口；实现与 synthetic verifier 提交后才执行真实搜索。Task 8 的 real corpus、Task 9 和依赖该 corpus 的 Task 10/6 仍受已归档 rate-limit 结果阻塞，不用重试或扩样规避。
+对白名单来源实现、测试与文档运行 broader verification，提交并推送该实现；确认固定 `source-selection` 输出不存在后，只执行一次 `api-tester-operation-prospective-source-run.ts --mode=acquire`。Task 8 的 real corpus、Task 9 和依赖该 corpus 的 Task 10/6 仍受已归档 rate-limit 结果阻塞，不用重试或扩样规避。
 Task 2 remote-aware strict verification 已通过；真实来源只能由冻结 protocol 的新入口选择并完整归档，不能由手工搜索结果替代，也不能在 candidate prediction 前试跑候选。

@@ -65,6 +65,7 @@ prospective evidence pending。Task 8 依赖 Task 7 的责任定义；Task 9 依
 - [x] 冻结 source discovery protocol、synthetic bytes、候选闭包、runner implementation 和 execution environment。初版 freeze 保留为 archive-incomplete 失败；revision 已在写入前证明 validation closure 与 execution commit 的 path/bytes 完全一致。
 - [x] 运行 focused/broad/typecheck/docs/frozen/secret/path/diff；更新 status 和台账。
 - [x] 白名单提交并 push Task 2 freeze 到 `origin/api-tester-operation-unseen-prospective-001`；remote-aware strict verifier 已返回 `remote-frozen`，freeze=`e4c006fe`、execution=`fb106838`。
+- [x] 用 synthetic TDD 实现固定来源入口、write-once raw/source/license/input archive 与独立 replay verifier；覆盖 blob OID 协同重签、原始 search 候选静默删项、HTTP terminal 归档和不放宽 shortfall，真实来源读取仍为 0。
 - [ ] push 后才按协议搜索并选择真实来源，归档 raw/license/upstream commit/path/blob/digests；在 candidate trial 前完成 predictions。
 - [ ] 验证最终 input bundle/selection/prediction closure，另提交 pre-run input identity。
 

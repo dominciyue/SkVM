@@ -37,6 +37,8 @@
 
 - `src/benchmarks/skill-ir/api-tester-operation-prospective.ts`：schema、资格判断、lock/state/report 构造、runner、strict verifier、Git freeze 与复现语义比较；
 - `src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts`：命令行入口；
+- `src/benchmarks/skill-ir/api-tester-operation-prospective-source.ts`：冻结 GitHub 查询的只读来源获取、候选选择、raw/source/license/input archive 和独立重放核验；
+- `src/benchmarks/skill-ir/api-tester-operation-prospective-source-run.ts`：固定 freeze 与固定 write-once 输出身份的来源命令；不接受自定义 query、URL、token、retry 或替代输出路径；
 - `src/benchmarks/skill-ir/api-tester-operation-prospective-freeze.test.ts`：协议、shortfall、单次 dispatch、18 行、tamper 与 synthetic TDD。
 
 runner 在第 0 行前核验候选闭包、pre-source freeze、selection/prediction/lock、18 份 source/manifest、12 份 license、Git 远端祖先、运行时和 tracked-clean 状态。每行先持久化 `prepared` 与 `dispatched`，再通过独立 Bun 子进程调用普通入口，并归档 invocation、stdout、stderr、exit、candidate output 和 terminal；子进程预算取 120 秒与剩余 2160 秒累计预算的较小值。单行超时/非零退出形成对应 terminal；累计预算在下一行 dispatch 前耗尽则把现场标为 fail-closed，剩余行不执行且禁止重发。state 与 prefix 只在 terminal 已写入后推进。
@@ -47,6 +49,10 @@ runner 在第 0 行前核验候选闭包、pre-source freeze、selection/predict
 
 有效修订文件为 `benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json`；它绑定包含完整 validation closure 和 Git archive gate 的 execution commit `fb1068384177c00b11c836ce8d0f1b9fdecf59b6`。该 freeze 已随开发分支推送到用户 `origin`，remote-aware verifier 对 freeze commit `e4c006fe32a6321ce5e4696758d53024c160f6db` 返回 `remote-frozen`，因此真实来源搜索门已解除；source selection、prediction、input lock 和 candidate first run 仍分别需要后续冻结。
 
+来源入口在任何联网请求前重新执行同一 local + origin-aware pre-source freeze gate。获取器只执行协议中的两次 repository search，并按冻结前缀读取必要的 branch、recursive tree、raw source 与根许可证；每个 HTTP response 与限流头 sidecar 均先归档。成功归档的 `output-manifest.json` 绑定除自身外的精确文件闭包；strict verifier 从两份原始 search response 独立重放已检查仓库前缀、pre-download 排除、document-path 顺序、资格判断、12-repository stop 和完整请求闭包，并核对 Git tree/blob OID、raw bytes、selected input/license/manifest。删除候选后协同重编号并重签全部报告，或篡改 acquisition 中 blob OID 后重签外层 manifest，均会失败。
+
+HTTP 非 2xx 会在抛错前保存原始 response、metadata sidecar 和 write-once `failure.json`；失败报告绑定 pre-source freeze、所有已归档请求及 model/business API/paid/held-out/Q1/candidate-trial 分账。source shortfall 也会形成可严格核验的关闭归档，但规则保持不放宽，不能进入 18-row lock。
+
 ## CLI
 
 以下命令中的路径均相对 `--root`，输出为 write-once：
@@ -56,6 +62,8 @@ bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=val
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=verify-synthetic --root=. --out=results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation --node=<node>
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=create-pre-source-freeze --root=. --out=benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze.json --execution-commit=<commit> --frozen-at=<ISO> --synthetic-validation=results/skill-ir/api-tester-operation-prospective-001/pre-source-synthetic-validation/report.json --node=<node> --git=git
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=verify-pre-source-freeze --root=. --freeze=<freeze.json> --freeze-commit=<remote-commit> --node=<node> --git=git
+bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-run.ts --mode=acquire --root=. --freeze=benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json --freeze-commit=e4c006fe32a6321ce5e4696758d53024c160f6db --out=results/skill-ir/api-tester-operation-prospective-001/source-selection --selected-at=<ISO> --node=<node> --git=git
+bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-run.ts --mode=verify --root=. --freeze=benchmarks/skill-ir/pilots/api-tester/operation-prospective-001/pre-source-freeze-revision-001.json --freeze-commit=e4c006fe32a6321ce5e4696758d53024c160f6db --out=results/skill-ir/api-tester-operation-prospective-001/source-selection --node=<node> --git=git
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=create-lock --root=. --freeze=<freeze.json> --freeze-commit=<commit> --selection=<selection.json> --predictions=<predictions.json> --selection-commit=<commit> --out=<lock.json> --frozen-at=<ISO>
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=verify-lock --root=. --freeze=<freeze.json> --freeze-commit=<commit> --lock=<lock.json> --execution-commit=<remote-commit> --node=<node> --git=git
 bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=execute --root=. --freeze=<freeze.json> --freeze-commit=<commit> --lock=<lock.json> --execution-commit=<remote-commit> --out=<first-run-output> --started-at=<ISO> --node=<node> --git=git
@@ -67,14 +75,17 @@ bun ./src/benchmarks/skill-ir/api-tester-operation-prospective-run.ts --mode=rep
 
 ```powershell
 bun test ./src/benchmarks/skill-ir/api-tester-operation-prospective-freeze.test.ts
+bun test ./src/benchmarks/skill-ir/api-tester-operation-prospective-source.test.ts ./src/benchmarks/skill-ir/api-tester-operation-prospective-source-run.test.ts
 bun run typecheck
 ```
 
-focused 测试包括缺失模块 RED、协议/去重/shortfall、重复 dispatch、累计运行时限、report 分母漂移、完整 18 行子进程运行、lock/output/journal 协同重签篡改、六 synthetic 普通入口和 source-coverage 预期失败。
+focused 测试包括缺失模块 RED、协议/去重/shortfall、重复 dispatch、累计运行时限、report 分母漂移、完整 18 行子进程运行、lock/output/journal 协同重签篡改、六 synthetic 普通入口、source-coverage 预期失败、来源 raw/blob binding 协同重签、搜索候选静默删项、HTTP terminal 归档和不放宽的 source shortfall。
 
 ## 失败模式与修改注意事项
 
 - pre-source freeze 未在指定 origin 分支上、工作字节与冻结提交不一致或运行时漂移：第 0 行前停止；
+- 来源固定输出已存在：拒绝第二次 acquisition；不通过改目录、查询或 URL 重试；
+- GitHub HTTP 失败或限流：保留 raw response、metadata 与 failure report，停止该 identity；
 - selection 不足 12：保存 shortfall，不放宽规则、不补行、不创建可执行 lock；
 - prediction、source、license、manifest 或 lock 摘要不闭合：第 0 行前停止；
 - 行在候选层拒绝、unresolved、source advisory/blocking 或 checker fail：记录 terminal，保留分母并继续；
