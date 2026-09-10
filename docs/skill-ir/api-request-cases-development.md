@@ -98,3 +98,24 @@ Current tests: 14 pass / 63 assertions. Missing-module, short unique strings, in
 formats, full/minimal substitution, malformed report envelopes and unmodeled obligation
 enumeration all had observed RED results before repair. Actual wire serialization and
 native output are still pending; D5 is not complete.
+
+### Next increment: wire parameter contract
+
+Add a bounded parameter encoder and independent inverse verifier. Initial support is
+primitive or primitive-array values: path/header simple, query/cookie form, query
+spaceDelimited/pipeDelimited arrays. Percent-encode URI atoms before adding structural
+delimiters; header atoms remain plain and reject control characters and ambiguous commas.
+Nested/object, content parameters, allowReserved=true, empty arrays and null remain
+explicit unsupported rather than guessing wire semantics. Query repeated keys follow
+form explode, not array CSV by default. The verifier must reject a changed delimiter,
+missing/duplicate item or changed value against the source parameter and expected value.
+This increment alone is not a complete HTTP request or authentication implementation.
+
+Wire-bearing reports use `api-request-cases/v2` (not the unrelated frozen OpenAPI subset v2).
+The prior schema-only v1 remains recoverable at commit 9fae902, including first-run evidence.
+`api-parameter-wire.ts` and its independent inverse checker are covered by normative-style
+goldens and value/delimiter/error injection tests. Per-schema wire cases bind every covered
+schema case, retain unsupported encodings, and leave complete parameter presence/auth/status
+duties residual. Report checker metrics separate schema values, enumerated obligations and
+wire fragments. Current focused suite is 23 tests / 122 assertions; explicit script strict
+typecheck passes with the repository's allowImportingTsExtensions convention.

@@ -3,13 +3,15 @@ import { parseApiTesterOperationSource, projectApiTesterOperation } from "./api-
 import { verifyApiTesterProjectionDependencies } from "./api-tester-operation-coverage";
 import { constructSchemaCases } from "./api-schema-cases";
 import type { SchemaCaseSet } from "./api-schema-obligations";
+import { encodeApiParameter } from "./api-parameter-wire";
 
 type Raw = Record<string, any>;
 const object = (v: unknown): v is Raw => !!v && typeof v === "object" && !Array.isArray(v);
-export type RequestSchemaCases = { id: string; location: string; name: string; required: boolean; schema: unknown; cases: SchemaCaseSet };
+export type WireCase = { caseId: string; status: "encoded" | "unsupported"; wire: string | null; reason: string | null };
+export type RequestSchemaCases = { id: string; location: string; name: string; required: boolean; schema: unknown; cases: SchemaCaseSet; wireCases: WireCase[] };
 export type ApiRequestCaseOperation = { key: string; locator: string; operationId: string | null; summary: string | null;
   projectedOperation: Raw | null; schemas: RequestSchemaCases[]; sourceAdvisories: unknown[]; remainingObligations: string[]; issues: string[] };
-export type ApiRequestCasesReport = { schemaVersion: "api-request-cases/v1"; sourceSha256: string; sourceFormat: "json" | "yaml";
+export type ApiRequestCasesReport = { schemaVersion: "api-request-cases/v2"; sourceSha256: string; sourceFormat: "json" | "yaml";
   enumerationComplete: boolean; enumerationIssues: unknown[]; operations: ApiRequestCaseOperation[];
   accounting: { modelCalls: 0; paidCalls: 0 }; wholeSkillCompleted: false };
 
@@ -33,7 +35,7 @@ export function buildApiRequestCases(sourceText: string, format: "json" | "yaml"
   const parsed = parseApiTesterOperationSource(sourceText, format);
   if (!parsed.document || !/^3\.0\./u.test(String(parsed.document.openapi))) throw new Error("request cases require a parseable OpenAPI 3.0.x source");
   const document = parsed.document;
-  const report: ApiRequestCasesReport = { schemaVersion: "api-request-cases/v1", sourceSha256: createHash("sha256").update(sourceText).digest("hex"),
+  const report: ApiRequestCasesReport = { schemaVersion: "api-request-cases/v2", sourceSha256: createHash("sha256").update(sourceText).digest("hex"),
     sourceFormat: format, enumerationComplete: parsed.enumeration.complete, enumerationIssues: parsed.enumeration.unresolved,
     operations: [], accounting: { modelCalls: 0, paidCalls: 0 }, wholeSkillCompleted: false };
   for (const operation of parsed.enumeration.operations) {
@@ -49,15 +51,24 @@ export function buildApiRequestCases(sourceText: string, format: "json" | "yaml"
       row.sourceAdvisories = dependencies.sourceIssues;
       row.issues.push(...projection.unresolved.map((i) => `${i.code}: ${i.locator}`));
       if (!dependencies.checks.projectionPreservation) row.issues.push(...dependencies.errors);
-      const add = (id: string, location: string, name: string, required: boolean, schema: unknown) => {
-        row.schemas.push({ id, location, name, required, schema, cases: constructSchemaCases(document, schema) });
+      const add = (id: string, location: string, name: string, required: boolean, schema: unknown, parameter?: Raw) => {
+        const cases = constructSchemaCases(document, schema);
+        const wireCases: WireCase[] = cases.cases.filter((c) => c.status === "covered").map((c) => {
+          const encoded = parameter ? encodeApiParameter(parameter, c.value)
+            : name === "application/json" || /^application\/[A-Za-z0-9._-]+\+json$/u.test(name)
+              ? { status: "encoded" as const, wire: JSON.stringify(c.value) }
+              : { status: "unsupported" as const, reason: "body media serialization unsupported" };
+          return { caseId: c.id, status: encoded.status, wire: encoded.status === "encoded" ? encoded.wire : null,
+            reason: encoded.status === "unsupported" ? encoded.reason : null };
+        });
+        row.schemas.push({ id, location, name, required, schema, cases, wireCases });
       };
       for (const raw of projected.parameters ?? []) {
         const parameter = dereference(document, raw);
         if (!object(parameter) || typeof parameter.in !== "string" || typeof parameter.name !== "string") throw new Error("unresolved parameter identity");
-        if (parameter.schema !== undefined) add(`${parameter.in}:${parameter.name}`, parameter.in, parameter.name, parameter.required === true, parameter.schema);
-        else if (object(parameter.content)) for (const [media, value] of Object.entries(parameter.content)) add(`${parameter.in}:${parameter.name}:${media}`, parameter.in, parameter.name, parameter.required === true, (value as Raw).schema);
-        else add(`${parameter.in}:${parameter.name}`, parameter.in, parameter.name, parameter.required === true, undefined);
+        if (parameter.schema !== undefined) add(`${parameter.in}:${parameter.name}`, parameter.in, parameter.name, parameter.required === true, parameter.schema, parameter);
+        else if (object(parameter.content)) for (const [media, value] of Object.entries(parameter.content)) add(`${parameter.in}:${parameter.name}:${media}`, parameter.in, parameter.name, parameter.required === true, (value as Raw).schema, parameter);
+        else add(`${parameter.in}:${parameter.name}`, parameter.in, parameter.name, parameter.required === true, undefined, parameter);
       }
       if (projected.requestBody !== undefined) {
         const body = dereference(document, projected.requestBody);

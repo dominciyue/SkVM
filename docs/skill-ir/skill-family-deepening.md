@@ -88,3 +88,17 @@ records implementation commit/runtime before execution and checkpoints after eac
 `runApiTesterOperationInput` retains its existing generator/checker time limits; mapping
 preparation failure and per-input execution failure are isolated and reported, not replaced.
 To reproduce, choose a different output path. Do not run historical prospective runners.
+
+## D5 recursive request capability
+
+The mapping and baseline accept explicit `profile: api-request-cases/v2` in addition to
+the unchanged `api-tester-openapi-subset-v2` default. The new route binds the same full
+source responsibility but executes recursive schema cases and independently checked
+parameter/JSON-body wire fragments. It does not return a v2 operationReport, does not
+reuse the v2 family-eligibility declaration and does not claim native-output completion.
+The baseline records new schema/wire/remaining-obligation metrics separately.
+
+Use `request-cases-config.json` with the same baseline command and a new output path.
+See [request capability](api-request-cases-development.md). Actual mapping extraction is
+still agent-reviewed, original skill duties remain not-fully-verified, and an encoded
+fragment is not a complete credentialed HTTP request or a live behavior test.

@@ -8,6 +8,8 @@ import { createContainedDirectory, normalizeRepositoryRelativePath, resolveConta
 import { API_TESTER_OPERATION_INPUT_IDENTITY, API_TESTER_OPERATION_INPUT_MANIFEST_SCHEMA_VERSION,
   runApiTesterOperationInput, type ApiTesterOperationInputReport } from "./api-tester-operation-input";
 import { API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 } from "./api-tester-production-contract-v2";
+import { buildApiRequestCases, type ApiRequestCasesReport } from "./api-request-cases";
+import { verifyApiRequestCases } from "./api-request-cases-checker";
 
 const digest = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u);
@@ -19,7 +21,7 @@ const path = z.string().min(1).refine((value) => {
 export const ApiSkillMappingSchema = z.object({
   schemaVersion: z.literal("api-skill-mapping/v1"), mappingId: id,
   analysisPath: path, skillId: z.string().min(1), responsibilityId: id,
-  obligations: z.array(z.string().min(1)).min(1), profile: z.literal(API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2),
+  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2"]),
   requestedOutputFormat: z.string().min(1), extraction: z.literal("agent-reviewed-declaration"),
   tasks: z.array(z.object({ taskId: id, inputPath: path, format: z.enum(["json", "yaml"]), sha256: sha }).strict()).min(1),
 }).strict().superRefine((value, context) => {
@@ -85,13 +87,15 @@ export async function prepareApiSkillMapping(rootDir: string, mappingPath: strin
     requiredCapabilities: [{ capabilityId: "api-tester-openapi-subset-v2", implementation: "implemented", validation: "historical-only", supportsNewInputs: true, evidenceIds: ["bounded-v2-public-contract"] }],
   });
   return { mapping, mappingSha256: digest(mappingBytes), analysisSha256: digest(analysisBytes), source, skill,
-    selectedResponsibility: selected, residualResponsibilities: review.responsibilities.filter((row) => row.id !== selected.id), boundedTaskFamilyAssessment };
+    selectedResponsibility: selected, residualResponsibilities: review.responsibilities.filter((row) => row.id !== selected.id),
+    boundedTaskFamilyAssessment: mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? boundedTaskFamilyAssessment : null };
 }
 
 export async function runApiSkillMapping(options: { rootDir: string; mappingPath: string; outputPath: string; nodeExecutable: string }) {
   const prepared = await prepareApiSkillMapping(options.rootDir, options.mappingPath);
   const output = await createContainedDirectory(options.rootDir, options.outputPath, "mapping output");
   const tasks: Array<{ taskId: string; operationReport: ApiTesterOperationInputReport | null; error: string | null;
+    requestCasesReport: ApiRequestCasesReport | null; requestCasesVerification: ReturnType<typeof verifyApiRequestCases> | null;
     sourceObligations: Array<{ id: string; status: "not-fully-verified" }>; elapsedMillis: number }> = [];
   const report = { schemaVersion: "api-skill-mapping-report/v1", mappingId: prepared.mapping.mappingId,
     mappingSha256: prepared.mappingSha256, analysisSha256: prepared.analysisSha256,
@@ -99,15 +103,23 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     extraction: prepared.mapping.extraction, automaticNaturalLanguageCompilation: false,
     selectedResponsibility: prepared.selectedResponsibility, residualResponsibilities: prepared.residualResponsibilities,
     boundedTaskFamilyAssessment: prepared.boundedTaskFamilyAssessment,
-    wholeSkillCompleted: false, originalOutputConformance: "not-implemented-by-v2", tasks,
+    wholeSkillCompleted: false, profile: prepared.mapping.profile,
+    originalOutputConformance: prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? "not-implemented-by-v2" : "not-implemented-by-request-cases", tasks,
     accounting: { projectModelCalls: 0, paidCalls: 0, mappingAuthor: "development-agent", humanMinutes: null } };
   for (const task of prepared.mapping.tasks) {
     const started = performance.now();
     let operationReport: ApiTesterOperationInputReport | null = null;
+    let requestCasesReport: ApiRequestCasesReport | null = null;
+    let requestCasesVerification: ReturnType<typeof verifyApiRequestCases> | null = null;
     let error: string | null = null;
     try {
       const input = await readFile(await resolveContainedExistingFile(options.rootDir, task.inputPath, "task input"));
       if (digest(input) !== task.sha256) throw new Error("task input digest mismatch");
+      if (prepared.mapping.profile === "api-request-cases/v2") {
+        requestCasesReport = buildApiRequestCases(input.toString("utf8"), task.format);
+        requestCasesVerification = verifyApiRequestCases(input.toString("utf8"), task.format, requestCasesReport);
+        if (requestCasesVerification.status !== "pass") error = "request case independent verification failed";
+      } else {
       const manifestPath = `${options.outputPath}/${task.taskId}-manifest.json`;
       await writeFile(resolve(options.rootDir, manifestPath), JSON.stringify({
         schemaVersion: API_TESTER_OPERATION_INPUT_MANIFEST_SCHEMA_VERSION, identity: API_TESTER_OPERATION_INPUT_IDENTITY,
@@ -116,8 +128,9 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
         output: { path: `${options.outputPath}/${task.taskId}`, writeMode: "exclusive-create-once" },
       }, null, 2) + "\n", { flag: "wx" });
       operationReport = await runApiTesterOperationInput({ rootDir: options.rootDir, manifestPath, nodeExecutable: options.nodeExecutable });
+      }
     } catch (caught) { error = String(caught); }
-    tasks.push({ taskId: task.taskId, operationReport, error,
+    tasks.push({ taskId: task.taskId, operationReport, requestCasesReport, requestCasesVerification, error,
       sourceObligations: prepared.mapping.obligations.map((id) => ({ id, status: "not-fully-verified" })),
       elapsedMillis: Math.round(performance.now() - started) });
     await writeFile(resolve(output, "report.json"), JSON.stringify(report, null, 2) + "\n");

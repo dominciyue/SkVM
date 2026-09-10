@@ -43,3 +43,16 @@ test("operation checker rejects malformed envelopes and erased residual responsi
   report.operations[0]!.remainingObligations = ["http-status-trigger-evidence"];
   expect(verifyApiRequestCases(source, "json", report).errors).toContain("RESIDUAL_OBLIGATION_LOST");
 });
+
+test("request schema cases include independently checked parameter and JSON body encoding", () => {
+  const report = buildApiRequestCases(source, "json");
+  const parameter = report.operations[0]!.schemas[0]!;
+  expect(parameter.wireCases.some((c) => c.status === "encoded")).toBe(true);
+  const body = report.operations[1]!.schemas.find((s) => s.location === "body")!;
+  expect(body.wireCases.some((c) => c.status === "encoded")).toBe(true);
+  const bad = structuredClone(report);
+  bad.operations[0]!.schemas[0]!.wireCases.find((c) => c.status === "encoded")!.wire = "corrupted";
+  expect(verifyApiRequestCases(source, "json", bad).errors).toContain("PARAMETER_WIRE_MISMATCH");
+  const missing = structuredClone(report); missing.operations[0]!.schemas[0]!.wireCases = [];
+  expect(verifyApiRequestCases(source, "json", missing).errors).toContain("WIRE_CASE_COVERAGE_MISMATCH");
+});

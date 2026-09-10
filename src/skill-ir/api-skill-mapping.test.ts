@@ -68,3 +68,14 @@ test("a missing declared resource cannot be treated as reviewed input", async ()
   await unlink(join(root, "skill/rules.md"));
   await expect(prepareApiSkillMapping(root, "mapping.json")).rejects.toThrow();
 });
+
+test("new recursive capability is explicit and shares source-bound mapping without relabeling v2", async () => {
+  const { root, mapping } = await setup();
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-request-cases/v2" }));
+  const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "recursive", nodeExecutable: Bun.which("node")! });
+  expect(report.tasks[0]!.operationReport).toBeNull();
+  expect(report.tasks[0]!.requestCasesVerification!.status).toBe("pass");
+  expect(report.tasks[0]!.requestCasesReport!.operations.length).toBe(2);
+  expect(report.wholeSkillCompleted).toBe(false);
+  expect(report.tasks[0]!.sourceObligations.every((o) => o.status === "not-fully-verified")).toBe(true);
+});

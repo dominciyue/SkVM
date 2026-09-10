@@ -3,6 +3,7 @@ import { parseDocument } from "yaml";
 import { independentlyEnumerateApiTesterOperations, verifyApiTesterProjectionDependencies } from "./api-tester-operation-coverage";
 import { verifySchemaCases } from "./api-schema-case-checker";
 import type { ApiRequestCasesReport } from "./api-request-cases";
+import { verifyApiParameterWire } from "./api-parameter-wire-checker";
 
 type Raw = Record<string, any>;
 const object = (v: unknown): v is Raw => !!v && typeof v === "object" && !Array.isArray(v);
@@ -14,10 +15,11 @@ export function verifyApiRequestCases(sourceText: string, format: "json" | "yaml
   const errors = new Set<string>();
   const universe = independentlyEnumerateApiTesterOperations(sourceText, format);
   let schemaCasesCovered = 0, schemaObligations = 0;
-  const operationChecks: Array<{ key: string; schemas: number; covered: number; obligations: number; allSchemaWitnessesAvailable: boolean; sourceAdvisories: unknown[] }> = [];
+  const operationChecks: Array<{ key: string; schemas: number; covered: number; obligations: number; allSchemaWitnessesAvailable: boolean;
+    schemaEnumerationComplete: boolean; encodedCases: number; wireCaseObligations: number; positiveWireCasesAvailable: boolean; sourceAdvisories: unknown[] }> = [];
   const result = () => ({ status: errors.size ? "fail" as const : "pass" as const, errors: [...errors].sort(),
     sourceOperations: universe.operations.length, schemaCasesCovered, schemaObligations, operationChecks });
-  if (!report || report.schemaVersion !== "api-request-cases/v1" || report.wholeSkillCompleted !== false
+  if (!report || report.schemaVersion !== "api-request-cases/v2" || report.wholeSkillCompleted !== false
     || !Array.isArray(report.enumerationIssues) || !Array.isArray(report.operations)
     || report.operations.some((o) => !o || typeof o.key !== "string" || !Array.isArray(o.schemas)
       || o.schemas.some((s) => !s || typeof s.id !== "string") || !Array.isArray(o.remainingObligations)
@@ -66,7 +68,7 @@ export function verifyApiRequestCases(sourceText: string, format: "json" | "yaml
     if (!dependencies.checks.projectionPreservation) for (const error of dependencies.errors) errors.add(error);
     if (canonical(row.sourceAdvisories) !== canonical(dependencies.sourceIssues)) errors.add("SOURCE_ADVISORY_MISMATCH");
     try {
-      const fields: Array<{ id: string; location: string; name: string; required: boolean; schema: any }> = [];
+      const fields: Array<{ id: string; location: string; name: string; required: boolean; schema: any; parameter?: Raw }> = [];
       const parameters = new Map<string, any>();
       for (const list of [item.parameters ?? [], operation.parameters ?? []]) for (const raw of list) {
         const p = resolve(raw);
@@ -74,8 +76,8 @@ export function verifyApiRequestCases(sourceText: string, format: "json" | "yaml
         parameters.set(`${p.in}:${p.name}`, p);
       }
       for (const [id, p] of parameters) {
-        if (p.schema !== undefined || !object(p.content)) fields.push({ id, location: p.in, name: p.name, required: p.required === true, schema: p.schema });
-        else for (const [media, spec] of Object.entries(p.content)) fields.push({ id: `${id}:${media}`, location: p.in, name: p.name, required: p.required === true, schema: (spec as Raw).schema });
+        if (p.schema !== undefined || !object(p.content)) fields.push({ id, location: p.in, name: p.name, required: p.required === true, schema: p.schema, parameter: p });
+        else for (const [media, spec] of Object.entries(p.content)) fields.push({ id: `${id}:${media}`, location: p.in, name: p.name, required: p.required === true, schema: (spec as Raw).schema, parameter: p });
       }
       if (operation.requestBody !== undefined) {
         const b = resolve(operation.requestBody);
@@ -85,17 +87,48 @@ export function verifyApiRequestCases(sourceText: string, format: "json" | "yaml
       const actual = row.schemas.map((s) => s.id);
       if (new Set(actual).size !== actual.length || canonical([...actual].sort()) !== canonical(fields.map((s) => s.id).sort())) errors.add("SCHEMA_FIELD_COVERAGE_MISMATCH");
       let covered = 0, obligations = 0, allSchemaWitnessesAvailable = fields.length > 0 && dependencies.checks.constructionObligations;
+      let schemaEnumerationComplete = true, encodedCases = 0, wireCaseObligations = 0, positiveWireCasesAvailable = fields.length > 0;
       for (const field of fields) {
         const actual = row.schemas.find((s) => s.id === field.id);
         if (!actual) { allSchemaWitnessesAvailable = false; continue; }
         for (const key of ["schema", "location", "name", "required"] as const) if (canonical(actual[key]) !== canonical(field[key])) errors.add("SOURCE_SCHEMA_BINDING_MISMATCH");
         const checked = verifySchemaCases(document, field.schema, actual.cases);
         for (const error of checked.errors) errors.add(error);
+        if (checked.errors.includes("INVALID_CASE_REPORT")) { allSchemaWitnessesAvailable = false; positiveWireCasesAvailable = false; continue; }
+        schemaEnumerationComplete &&= checked.sourceEnumerationComplete;
+        const expectedWireIds = actual.cases.cases.filter((c) => c.status === "covered").map((c) => c.id).sort();
+        wireCaseObligations += expectedWireIds.length;
+        if (!Array.isArray(actual.wireCases) || actual.wireCases.some((c) => !c || typeof c.caseId !== "string")
+          || canonical(actual.wireCases.map((c) => c.caseId).sort()) !== canonical(expectedWireIds)) errors.add("WIRE_CASE_COVERAGE_MISMATCH");
+        else for (const wire of actual.wireCases) {
+          if (wire.status === "unsupported") {
+            if (typeof wire.reason !== "string" || !wire.reason || wire.wire !== null) errors.add("UNEXPLAINED_WIRE_FAILURE");
+            continue;
+          }
+          if (wire.status !== "encoded" || typeof wire.wire !== "string") { errors.add("INVALID_WIRE_CASE"); continue; }
+          const value = actual.cases.cases.find((c) => c.id === wire.caseId)!.value;
+          if (field.parameter) {
+            if (verifyApiParameterWire(field.parameter, value, wire.wire).status !== "pass") errors.add("PARAMETER_WIRE_MISMATCH");
+            else encodedCases++;
+          } else {
+            try {
+              if (!(field.name === "application/json" || /^application\/[A-Za-z0-9._-]+\+json$/u.test(field.name))
+                || canonical(JSON.parse(wire.wire)) !== canonical(value)) errors.add("BODY_WIRE_MISMATCH");
+              else encodedCases++;
+            } catch { errors.add("BODY_WIRE_MISMATCH"); }
+          }
+        }
+        positiveWireCasesAvailable &&= ["valid-minimal", "valid-full"].every((kind) => {
+          const positive = actual.cases.cases.find((c) => c.kind === kind);
+          return positive?.status === "covered" && actual.wireCases?.some((w) => w.caseId === positive.id && w.status === "encoded") === true;
+        });
         covered += checked.covered; obligations += checked.obligations;
         allSchemaWitnessesAvailable &&= checked.status === "pass" && actual.cases.cases.filter((c) => c.kind.startsWith("valid-")).every((c) => c.status === "covered");
       }
       schemaCasesCovered += covered; schemaObligations += obligations;
-      operationChecks.push({ key: expected.key, schemas: fields.length, covered, obligations, allSchemaWitnessesAvailable, sourceAdvisories: dependencies.sourceIssues });
+      operationChecks.push({ key: expected.key, schemas: fields.length, covered, obligations, allSchemaWitnessesAvailable,
+        schemaEnumerationComplete, encodedCases, wireCaseObligations, positiveWireCasesAvailable: allSchemaWitnessesAvailable && positiveWireCasesAvailable,
+        sourceAdvisories: dependencies.sourceIssues });
     } catch (error) { if (!row.issues.length) errors.add("UNEXPLAINED_SCHEMA_EXTRACTION_FAILURE"); }
   }
   return result();
