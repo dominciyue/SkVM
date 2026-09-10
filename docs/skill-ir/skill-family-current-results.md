@@ -28,9 +28,9 @@ repository. Applying three skill mappings does not turn this into36independent d
 | Capability | Actual result | Important limit |
 |---|---|---|
 | Old v2 baseline | 8accepted /295rejected operations per member | Historical v2 unchanged |
-| Recursive fields and wire | 261positive-schema /250positive-wire operations;2941/3371obligations,2386encoded cases | 3schema inventories incomplete; not full requests |
+| Recursive fields and wire | 261positive-schema /250positive-wire operations;2961/3371obligations after branch revision | 3schema inventories incomplete; not full requests |
 | Complete relative request specimens | 576constructed /628planned,52unresolved,24presence negatives | 2inventories incomplete; origin/auth/status/native remain |
-| Body-schema negative requests | 951constructed /1414obligations,463unresolved | 2body inventories incomplete; no inferred HTTP status |
+| Body-schema negative requests | 971constructed /1414obligations,443unresolved | 2body inventories incomplete; no inferred HTTP status |
 | Response source catalog | 567response declarations,365media,329compiled JSON schemas | Source examples are not live responses |
 | Source response examples | 130valid /3invalid /9unresolved occurrences | Repeated examples are not independent samples |
 
@@ -43,6 +43,13 @@ Shared fixes include exact negative-constraint identity, bounded oneOf distingui
 witnesses (4additional real obligations), narrow numeric intervals, escaped wire parameter
 names, duplicate decoded JSON keys, and request/response directional schema separation.
 All preserved first failures precede corrections; later results never overwrite them.
+
+3011413 branch-sensitive negative revision adds20real negative requests (Adatree5/Front15)
+using only remaining candidates within the original64variant search, plus fixes a primitive
+parent mutation crash. Original successful cases and positive baseline specimens remain exact;
+all12reports and6source-duty integration tasks pass. Full results and original/integration-aware
+comparison scripts are retained in skill-family-branch-negatives-development-20260911/.
+This is later than the clean be89a50 run; those clean results are not attributed to3011413.
 
 ## New-member evidence and automation limits
 
