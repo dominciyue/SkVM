@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-source-acquisition-implementation-verified-pre-commit; task-8-public-metadata-attempt-failed-rate-limit`
+- `currentStage`: `task-2-source-acquisition-implementation-committed-pending-push; task-8-public-metadata-attempt-failed-rate-limit`
 - `stageStatus`: `in-progress; task-2-source-gate-open; task-8-real-corpus-blocked`
-- `lastCompletedCommit`: `b3cb287`
-- `currentCommit`: `b3cb287`
+- `lastCompletedCommit`: `2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`
+- `currentCommit`: `2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -64,6 +64,7 @@
 - Task 8 source archive/closure 合成合同已完成首轮 TDD：direct-only 资源解析、显式 missing/external/path-escape/symlink/submodule/budget issues、locator-only、exact archive closure、SHA-256/Git blob OID、selection working/Git digest、selection commit time 和 40 行 skill/license tuple binding。archive focused=`3/3`、17 assertions，typecheck 通过；没有真实 selection，所以未实现或运行真实 body downloader，不能计作真实 archive 完成。
 - 当前分支已成功推送到用户 `origin`（`5c363d4..b3cb287`，未触碰 `upstream`）。revision freeze 的 remote-aware strict verifier 返回 `remote-frozen`：freeze commit=`e4c006fe32a6321ce5e4696758d53024c160f6db`、execution commit=`fb1068384177c00b11c836ce8d0f1b9fdecf59b6`、syntheticDocuments=6、prospectiveRuns=0。Task 2 的真实来源搜索门已解除。
 - Task 2 来源获取器与封闭 CLI 已完成 synthetic TDD，真实来源仍未读取。success fixture 选择 12 个独立仓库；strict verifier 从原始 search/branch/tree/raw 响应重放候选前缀和完整请求闭包，可检出 acquisition blob OID 协同重签与 exposed candidate 静默删项后全报告重签。HTTP 403 fixture 原样保留 terminal response/限流 sidecar/failure accounting；0-source fixture 形成 ruleRelaxed=false 的严格 shortfall archive。当前 focused=`4/4`、23 assertions，typecheck 通过。
+- Task 2 来源实现提交=`2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`。提交前 prospective/candidate-binding + 全 `src/skill-ir` 回归=`210/210`、1077 assertions；docs unit=`8/8`，doc link scan=3787 files、0 broken/legacy，`git diff --check` 与 secret/absolute-path scan 通过；固定 source-selection 输出不存在。
 
 ## 保留问题
 
