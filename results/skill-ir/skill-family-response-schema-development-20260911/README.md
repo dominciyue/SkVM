@@ -35,3 +35,16 @@ node node_modules/typescript/bin/tsc --noEmit
 ```
 
 This is not a clean-environment reproduction claim for the new response capability.
+
+## Source-duty integration b003133
+
+The pure analyzer moved unchanged into src/skill-ir/api-response-catalog.ts;11focused
+tests50assertions and main/strictscript typecheck pass. Lambda emit-test-code, Jeremy
+response-validation and Pactflow emit-drift each execute the1Password/Front pair. All6
+catalogs equal the archived full-input catalogs exactly. Each member retains3 source
+example mismatches and every source duty not-fully-verified; native output is not implemented.
+integration-evidence.json records the comparison. These are not additional real samples.
+
+```powershell
+bun scripts/skill-ir/skill-family-baseline.ts --config=results/skill-ir/skill-family-response-schema-development-20260911/cross-member-config.json --out=results/skill-ir/response-member-reproduction
+```
