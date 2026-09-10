@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "skill-family-source-analysis/v1",
+  "sourceIndex": "sources.json",
+  "extraction": "main-development-agent-authored-after-source-reading",
+  "semanticConfirmation": "agent-reviewed; no independent human assessment",
+  "acquiredSkillCount": 31,
+  "reviewedBodyCount": 7,
+  "unreviewedAcquiredSkills": "all sourceIndex entries absent from skills; unclassified, not excluded",
+  "skills": [
+    {
+      "skillId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "bodyLines": 274,
+      "bodyReadComplete": true,
+      "dependencyReview": "framework-templates.md and openapi-parsing-guide.md fully read; external runtime libraries not executed",
+      "membership": "contains-candidate-class-responsibility",
+      "membershipEvidence": { "startLine": 63, "endLine": 70, "marker": "Extract from the input:" },
+      "sourceCaveats": ["Generic 400/422/401/403 guidance does not establish specific trigger semantics.", "Literal templates and their assertions are illustrative, not valid for arbitrary input APIs."],
+      "responsibilities": [
+        { "id": "parse-contract", "description": "Extract all endpoints, parameters, request/response constraints and auth; resolve ambiguity.", "lines": [33, 72], "obligations": ["all-operations", "inherited-parameters", "references", "security", "response-contract"] },
+        { "id": "construct-request-cases", "description": "Design valid/minimal/full, invalid, boundary, auth and conditional sequence cases for each endpoint.", "lines": [74, 107], "obligations": ["valid-request", "minimal-and-full", "missing-required", "wrong-type", "out-of-range", "enum-violation", "malformed-body", "strict-extra-fields", "auth-variants", "idempotency", "crud-lifecycle", "pagination-filtering"] },
+        { "id": "emit-test-code", "description": "Emit independent parameterized tests in selected framework with fixtures and status/body/header assertions.", "lines": [109, 189], "obligations": ["requested-output-format", "response-assertions", "fixtures", "parameterization"] },
+        { "id": "report-and-run-guidance", "description": "Summarize coverage, install/run instructions and gaps; each documented status and required field needs a test.", "lines": [121, 128], "additionalLines": [[231, 249]], "obligations": ["coverage-summary", "all-documented-statuses", "run-instructions", "gap-accounting"] },
+        { "id": "clarify-task", "description": "Resolve missing auth, errors, environment, side effects and framework preference.", "lines": [193, 201], "obligations": ["task-semantic-confirmation"] },
+        { "id": "optional-mock-load-pact", "description": "Generate mock, k6 load or Pact output when requested.", "lines": [205, 228], "obligations": ["mock-output", "load-output", "pact-output"] },
+        { "id": "documentation-followup", "description": "Provide execution-platform link and offer follow-up API documentation.", "lines": [254, 272], "obligations": ["interactive-followup"] }
+      ],
+      "scopeLimit": "All identified body duties retained; selected framework/task controls conditional duties. No whole-skill completion claim."
+    },
+    {
+      "skillId": "jeremylongshore/tons-of-skills-marketplace:plugins/testing/api-test-automation/skills/automating-api-testing/SKILL.md",
+      "bodyLines": 160,
+      "bodyReadComplete": true,
+      "dependencyReview": "no direct normative local resources; external framework/API documentation not yet evaluated",
+      "membership": "contains-candidate-class-responsibility",
+      "membershipEvidence": { "startLine": 39, "endLine": 48, "marker": "Generate test cases for each endpoint:" },
+      "sourceCaveats": ["Fixed default statuses need task-specific evidence.", "TypeScript code examples contain invalid Python-style comments.", "Live credentials and state are prerequisites for runtime verification, not offline witness generation."],
+      "responsibilities": [
+        { "id": "parse-contract", "description": "Catalog all REST endpoints, schema and auth; introspect GraphQL when applicable.", "lines": [29, 42], "obligations": ["all-operations", "request-contract", "response-contract", "security", "graphql-introspection"] },
+        { "id": "construct-request-cases", "description": "Construct per-endpoint valid, invalid-field, auth, not-found and idempotency cases.", "lines": [43, 48], "obligations": ["valid-request", "missing-required", "wrong-type", "out-of-range", "auth-variants", "not-found", "idempotency"] },
+        { "id": "response-validation", "description": "Check media type, body schema, headers and pagination metadata.", "lines": [49, 53], "obligations": ["response-assertions", "response-schema", "headers", "pagination"] },
+        { "id": "crud-lifecycle", "description": "Create/read/update/delete resources and verify persistence and deletion.", "lines": [54, 58], "obligations": ["crud-lifecycle", "live-state"] },
+        { "id": "edge-and-graphql", "description": "Exercise oversized/media/rate errors and GraphQL shapes, errors, depth and mutation validation.", "lines": [59, 68], "obligations": ["oversized-body", "unsupported-media", "rate-limit", "graphql"] },
+        { "id": "emit-and-report", "description": "Deliver resource-organized tests, request/response examples, compliance report, endpoint matrix and CI step.", "lines": [69, 77], "obligations": ["requested-output-format", "coverage-summary", "response-examples", "ci-step"] },
+        { "id": "runtime-diagnosis", "description": "Diagnose environment, token, schema, fixture and rate-limit failures.", "lines": [79, 87], "obligations": ["live-execution", "failure-attribution"] }
+      ],
+      "scopeLimit": "All identified body duties retained. Examples 89–149 and resources 152–160 support duties rather than new standalone obligations."
+    },
+    {
+      "skillId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md",
+      "bodyLines": 140,
+      "bodyReadComplete": true,
+      "dependencyReview": "schema-patterns.md and drift-mapping.md fully read; example-repos navigation not required until D4 selection",
+      "membership": "contains-candidate-class-responsibility",
+      "membershipEvidence": { "startLine": 55, "endLine": 92, "marker": "Generate Drift test cases" },
+      "sourceCaveats": ["State-driven response variants need fixtures/lifecycle setup.", "anyOf branch exclusivity and enum common-value choices are heuristics; independent source validation is required.", "Recursive/external reference gaps remain explicit."],
+      "responsibilities": [
+        { "id": "parse-contract", "description": "Locate endpoint, extract request/response schemas and recursively resolve dependencies.", "lines": [22, 64], "obligations": ["request-contract", "response-contract", "references"] },
+        { "id": "construct-request-cases", "description": "Enumerate viable schema variants and construct valid/negative cases, optional/minimal payloads and discriminator cases.", "lines": [66, 78], "obligations": ["valid-request", "schema-variants", "minimal-and-full", "pattern-witness", "pattern-violation", "discriminator", "all-documented-statuses"] },
+        { "id": "emit-drift", "description": "Generate complete Drift operations and dataset YAML, correct targets, tags, auth exclusions and negative-schema flags.", "lines": [80, 92], "obligations": ["requested-output-format", "dataset-bindings", "auth-variants", "negative-flags", "response-assertions"] },
+        { "id": "report-coverage", "description": "Explain status/variant counts, chosen combinations and intentionally excluded gaps.", "lines": [94, 102], "obligations": ["coverage-summary", "gap-accounting"] },
+        { "id": "stateful-data-setup", "description": "When variants depend on live state, arrange dataset or lifecycle hooks and cleanup.", "lines": [80, 92], "resourceEvidence": "references/drift-mapping.md:430-489", "obligations": ["fixtures", "crud-lifecycle", "live-state"] }
+      ],
+      "scopeLimit": "All identified body and two semantic reference duties retained; analysis and example-repo selection remain separate from execution."
+    },
+    {
+      "skillId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "bodyLines": 168,
+      "bodyReadComplete": true,
+      "dependencyReview": "all directly named resources acquired; detailed core method/triage/report resource review pending",
+      "membership": "contains-candidate-class-responsibility",
+      "membershipEvidence": { "startLine": 85, "endLine": 111, "marker": "从 OpenAPI 文档提取" },
+      "sourceCaveats": ["Cross-field business rules, pairwise downgrade and live fixtures exceed source-schema-only automation."],
+      "responsibilities": [
+        { "id": "parse-and-scope", "description": "Parse API or executable case schemas and clarify environments.", "lines": [13, 30], "additionalLines": [[85, 89]], "obligations": ["all-operations", "security", "task-semantic-confirmation"] },
+        { "id": "construct-request-cases", "description": "Build parameter/boundary/auth/idempotency/concurrency/error/data-consistency cases and explicitly tier combinations.", "lines": [91, 104], "obligations": ["valid-request", "missing-required", "wrong-type", "out-of-range", "auth-variants", "cross-field", "pairwise", "idempotency", "concurrency", "data-consistency"] },
+        { "id": "emit-scripts", "description": "Generate parameterized per-endpoint tests, triple assertions, safe fixture setup/cleanup and environment injection.", "lines": [32, 81], "additionalLines": [[106, 112]], "obligations": ["requested-output-format", "response-assertions", "fixtures", "parameterization"] },
+        { "id": "run-triage-deliver", "description": "Execute, attribute failures, provide evidence and consolidated statistics; optional instrumentation.", "lines": [114, 131], "obligations": ["live-execution", "failure-attribution", "coverage-summary", "report-template"] },
+        { "id": "schema-and-fuzzing", "description": "Validate response schemas, perform structural negative fuzzing and conditionally consumer contracts.", "lines": [133, 153], "obligations": ["response-schema", "negative-fuzzing", "pact-output"] },
+        { "id": "performance-handoff", "description": "Receive performance handoff and generate/run k6 tests when requested.", "lines": [13, 29], "obligations": ["load-output", "live-execution"] }
+      ],
+      "scopeLimit": "Extraction draft until core resource review; do not set machine completeScope=true for this entire skill."
+    },
+    {
+      "skillId": "LambdaTest/agent-skills:api-skill/postman/postman-openapi-converter/SKILL.md",
+      "bodyLines": 173,
+      "bodyReadComplete": true,
+      "dependencyReview": "body read; sibling collection schema conventions need review before full output conformance",
+      "membership": "contains-candidate-class-responsibility",
+      "membershipEvidence": { "startLine": 38, "endLine": 73, "marker": "One request item per operation" },
+      "sourceCaveats": ["Use-first/primary allOf/oneOf/anyOf rule cannot guarantee a valid witness; alternatives and conflicts must be recorded."],
+      "responsibilities": [
+        { "id": "parse-contract", "description": "Recognize version and map all operation metadata, parameters, bodies, responses and tags.", "lines": [28, 64], "obligations": ["all-operations", "metadata", "request-contract", "response-contract"] },
+        { "id": "construct-request-cases", "description": "Construct schema-based JSON example bodies and resolve references.", "lines": [68, 73], "obligations": ["valid-request", "references", "format-witness"] },
+        { "id": "emit-postman", "description": "Emit Postman v2.1 with inherited/overridden auth, tags and saved responses.", "lines": [77, 113], "obligations": ["requested-output-format", "security", "response-examples", "folder-grouping"] },
+        { "id": "environment-and-summary", "description": "Emit environment variables, import instructions and conversion/gap summary.", "lines": [117, 151], "obligations": ["environment-file", "coverage-summary", "gap-accounting", "run-instructions"] },
+        { "id": "documentation-followup", "description": "Offer conditional follow-up documentation.", "lines": [155, 171], "obligations": ["interactive-followup"] }
+      ],
+      "scopeLimit": "Same repository as Lambda test generator; not an independent development member."
+    },
+    {
+      "skillId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "bodyLines": 645,
+      "bodyReadComplete": true,
+      "dependencyReview": "self-contained examples; qaskills.sh origin metadata not an independently acquired lineage proof",
+      "membership": "candidate-class-membership-unknown",
+      "membershipEvidence": { "startLine": 13, "endLine": 21, "marker": "Test the contract, not the implementation" },
+      "sourceCaveats": ["REST contract is required conceptually, but no explicit OpenAPI ingestion procedure is stated.", "Illustrative fixed statuses/auth state are not universal public construction evidence."],
+      "responsibilities": [
+        { "id": "design-rest-tests", "description": "Design HTTP method/status/request/response/auth/error tests.", "lines": [13, 55], "obligations": ["valid-request", "auth-variants", "response-assertions", "error-cases"] },
+        { "id": "emit-and-run-tests", "description": "Implement language-specific clients, CRUD tests, fixture setup and cleanup.", "lines": [58, 584], "obligations": ["requested-output-format", "fixtures", "crud-lifecycle", "live-execution"] },
+        { "id": "schema-validation", "description": "Validate responses with JSON Schema including type, required, enum and constraints.", "lines": [586, 616], "obligations": ["response-schema"] },
+        { "id": "coverage-and-isolation", "description": "Cover pagination/filtering/headers/idempotency/edges, clean data and record assumptions.", "lines": [618, 644], "obligations": ["pagination-filtering", "headers", "idempotency", "fixtures", "gap-accounting"] }
+      ],
+      "scopeLimit": "Unknown public-input binding; retain in exploration denominator, not a confirmed OpenAPI-driven independent member."
+    },
+    {
+      "skillId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "bodyLines": 237,
+      "bodyReadComplete": true,
+      "dependencyReview": "test-case-discovery body acquired but not yet deeply read; other named security skill not fully acquired",
+      "membership": "candidate-class-membership-unknown",
+      "membershipEvidence": { "startLine": 19, "endLine": 25, "marker": "Read the controller, form request, and existing tests" },
+      "sourceCaveats": ["Primary authority includes controller/domain behavior, factories and database state, not OpenAPI alone.", "Unresolved mandatory abuse-case funnel must not be silently omitted."],
+      "responsibilities": [
+        { "id": "discover-and-design", "description": "Inspect implementation, use discovery funnel and cover happy/boundary/error/abuse categories.", "lines": [19, 25], "additionalLines": [[57, 129]], "obligations": ["implementation-analysis", "valid-request", "wrong-type", "auth-variants", "abuse-cases"] },
+        { "id": "response-contract", "description": "Assert meaningful response structure/types/values and pagination; diagnose mismatches.", "lines": [131, 169], "obligations": ["response-assertions", "response-schema", "pagination"] },
+        { "id": "mock-and-side-effects", "description": "Mock external services and test actual integration, database/events/jobs and concurrent access.", "lines": [171, 196], "additionalLines": [[223, 228]], "obligations": ["fixtures", "mock-output", "live-state", "concurrency"] },
+        { "id": "ui-and-output", "description": "Bridge to UI probe, output tests in project framework, verify tests and diagnose ambiguous expectations.", "lines": [198, 237], "obligations": ["ui-validation", "requested-output-format", "live-execution", "task-semantic-confirmation"] }
+      ],
+      "scopeLimit": "Extraction draft; code-only or database duties are counterexamples to assuming all API-named skills are offline schema construction members."
+    }
+  ]
+}

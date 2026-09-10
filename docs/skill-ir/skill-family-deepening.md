@@ -41,3 +41,50 @@ bun test ./scripts/skill-ir/deadline-acquire.test.ts ./scripts/skill-ir/skill-fa
 HTTP 5xx/transport faults retry twice with short backoff. Rate limits return a resume time; permission
 errors do not retry. A failed repository/resource does not remove acquired bodies. The target directory
 and source JSON are resumable; only one acquisition writer should use a directory at a time.
+
+## Declarative responsibility mapping (D3)
+
+The mapping binds an agent-reviewed responsibility analysis and its separately recorded source index.
+`loadSkill` supplies the original body; source hashes and line markers are checked before any run.
+The selected responsibility's full obligation list must equal the analysis; all other responsibilities
+remain in the output as residual work. A mapping contains no executable expressions or source-specific
+construction logic. Each task provides an input path, format and digest; the common v2 runner builds
+and checks its bounded artifact. Rejections, unresolved operations and source advisories remain intact.
+
+The existing family assessment is used for the explicitly bounded v2 task contract only. It is not
+an assertion that the original skill's broader responsibility is fully constructible or completed.
+Original obligations and requested output conformance remain separate from v2 obligation coverage.
+Until a source-required obligation has its own implementation/evidence, its completion is unverified.
+Source analysis is agent-authored and semantically reviewed, not automatic natural-language extraction.
+
+## D4 actual input baseline
+
+Use the real spec collection explicitly linked by Pactflow's example-repos resource:
+`konfig-sdks/openapi-examples@161ab49c45e45825ca3832945c59a3ba904321ba`.
+Select twelve documents before running the candidate: two APIs each from 1Password,
+Adatree, Brex, Front, Visier and Zapier. These are six provider identities in one
+third-party collection, not six independent repositories or verified current upstream versions.
+Selection is purposive diversity across secrets, banking, finance, communication, workforce
+analytics and automation, with manageable complete documents; no admission outcomes are used.
+The exact paths live in api-inputs/config.json. Preserve original bytes and pinned blob IDs;
+source schema/HTTP behavior is not trusted merely because acquisition succeeded.
+
+The input script only adapts the existing cached GitHub fetcher to declared document paths,
+keeps per-document failures and does not fetch external refs automatically. Reusing the old
+fixed prospective selector would import irrelevant zero-retry/whole-batch gates; copying
+files manually would lose reproducibility. Baseline maps all three members to the same
+twelve contract inputs for a matched comparison, preserving each member's different duties
+and format requirement. This is 36 skill-input tasks, not 36 independent API documents.
+Each source is applicable to the declared REST/OpenAPI request-case responsibility; live
+state, credentials and status-trigger choices remain gaps rather than implied evidence.
+
+```powershell
+bun scripts/skill-ir/api-input-acquire.ts --config=results/skill-ir/skill-family-deepening-20260911/api-inputs/config.json --out=results/skill-ir/skill-family-deepening-20260911/api-inputs
+bun scripts/skill-ir/skill-family-baseline.ts --config=results/skill-ir/skill-family-deepening-20260911/baseline-config.json --out=results/skill-ir/skill-family-deepening-20260911/baseline-v2
+```
+
+Acquisition resumes from cached byte responses. Baseline output must be a new path; it
+records implementation commit/runtime before execution and checkpoints after each member.
+`runApiTesterOperationInput` retains its existing generator/checker time limits; mapping
+preparation failure and per-input execution failure are isolated and reported, not replaced.
+To reproduce, choose a different output path. Do not run historical prospective runners.
