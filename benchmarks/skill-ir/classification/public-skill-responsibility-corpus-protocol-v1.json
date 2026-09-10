@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "skill-ir-public-skill-responsibility-corpus-protocol/v1",
+  "identity": "skill-ir-public-skill-responsibility-corpus-development-001",
+  "status": "frozen-before-public-skill-metadata",
+  "provider": {
+    "id": "github-public-rest-v3",
+    "baseUrl": "https://api.github.com",
+    "authentication": "none",
+    "apiVersion": "2022-11-28"
+  },
+  "repositorySearch": {
+    "sort": "stars",
+    "order": "desc",
+    "perPage": 100,
+    "pages": [1, 2],
+    "queries": [
+      "topic:agent-skills fork:false archived:false",
+      "topic:claude-skills fork:false archived:false",
+      "\"SKILL.md\" in:readme fork:false archived:false",
+      "\"agent skills\" in:name,description,readme fork:false archived:false"
+    ]
+  },
+  "repositoryInspection": {
+    "repositoryMetadataSource": "search-response",
+    "repositoryPrefixLimit": 25,
+    "perRepositoryRequests": ["default-branch", "recursive-tree"],
+    "maximumMetadataRequests": 58,
+    "licenseAuthorityRule": "single-root-license-or-copying-blob"
+  },
+  "eligibility": {
+    "requirePublic": true,
+    "rejectForks": true,
+    "rejectArchived": true,
+    "rejectDisabled": true,
+    "licenseSpdxAllowlist": [
+      "0BSD",
+      "Apache-2.0",
+      "BSD-2-Clause",
+      "BSD-3-Clause",
+      "CC-BY-4.0",
+      "CC0-1.0",
+      "ISC",
+      "MIT",
+      "MPL-2.0",
+      "Unlicense"
+    ],
+    "skillBasename": "SKILL.md",
+    "minSkillBytes": 100,
+    "maxSkillBytes": 524288,
+    "excludedPathSegments": [
+      ".git",
+      ".cache",
+      "node_modules",
+      "vendor",
+      "third_party",
+      "dist",
+      "build"
+    ],
+    "requireCompleteRecursiveTree": true
+  },
+  "selection": {
+    "targetSkills": 40,
+    "minimumRepositories": 8,
+    "maximumSkillsPerRepository": 5,
+    "rounds": [1, 2, 3, 4, 5],
+    "repositoryOrder": "query-priority-page-rank-full-name",
+    "pathOrder": "utf8-code-point",
+    "replacementPolicy": "none-after-metadata-selection"
+  },
+  "exclusions": {
+    "q1Registry": {
+      "path": "benchmarks/skill-ir/classification/q1-development-sources-v1.json",
+      "sha256": "07356d58f179f7a7edc60112da0000108ca7b232cdca093fe56bcfcfc1030183"
+    },
+    "q1ReservedAccess": "forbidden",
+    "heldOutAccess": "forbidden",
+    "pendingProspectiveAccess": "forbidden",
+    "pendingProspectiveSelectedSourcesAtFreeze": 0
+  },
+  "contentGate": {
+    "selectionMustBeCommittedBeforeBodyRead": true,
+    "bodyExposuresAtFreeze": 0,
+    "skillBodyRequestsAtFreeze": 0,
+    "skillBodyBytesAtFreeze": 0
+  },
+  "resourceClosure": {
+    "directlyNamedDirectories": ["scripts", "references", "templates", "assets", "examples"],
+    "maximumFilesPerSkill": 100,
+    "maximumBytesPerSkill": 5242880,
+    "maximumBytesPerResource": 1048576,
+    "followTransitiveResourceLinks": false
+  },
+  "accounting": {
+    "publicMetadataRequests": 0,
+    "publicSkillBodyRequests": 0,
+    "publicSkillBodyBytes": 0,
+    "prospectiveResultsUsed": 0,
+    "modelCalls": 0,
+    "businessApiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0,
+    "developmentAgentUsage": "host-external-not-measured-by-runner"
+  },
+  "claimBoundary": "Convenience corpus only; no ecosystem prevalence, human agreement, readiness, or artifact-success claim."
+}

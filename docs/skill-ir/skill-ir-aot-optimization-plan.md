@@ -2246,6 +2246,9 @@ Task 8 先按独立工作例外进入 pre-source preregistration。选定 reposi
 repository queries，各最多 2 页；只允许公开非 fork/非 archive/非 disabled 且许可 allowlisted 的 repository；每 repo 最多 5 个 `SKILL.md`，
 目标恰 40 个且至少 8 repo。selection commit 前只可读 repository/license/tree metadata，不得取 skill blob；选择后也不按 family/current support
 替换。正文和直接资源 closure、完整 responsibility denominator、Task 7 正交分类、AI analysis/review 分账与 shortfall/unknown 规则见专项设计/计划。
+首次 metadata request 前已把匿名 REST 检查预算固定为搜索全集中的前 25 个唯一 repository：八个 search page 加每仓库 default-branch/tree 两次请求，
+最多 58 次。该前缀不足即 shortfall；后续 repository 不补入。license classification 来自 search response，authority 必须由唯一 root-level license/copying
+tree blob 证明，缺失或歧义直接排除。
 
 ## 5. 历史时间估算（不作为当前排期）
 

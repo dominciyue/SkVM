@@ -27,13 +27,13 @@
 - Create: `benchmarks/skill-ir/classification/public-skill-responsibility-corpus-protocol-v1.json`
 - Create: discovery/selection reports under `results/skill-ir/public-skill-responsibility-corpus-selection-development-001/`
 
-- [ ] **Step 1: Write RED tests**
+- [x] **Step 1: Write RED tests**
 
-Tests must reject query/order drift, Q1 overlap, fork/archived/disabled repositories, unknown licenses, duplicate repositories/paths/blobs, repository cap breaches, fewer than eight repositories for an executable selection, body exposure before selection commit, and outcome-based replacement fields.
+Tests must reject query/order drift, fork/archived/disabled repositories entering selection, unknown licenses entering selection, duplicate repository records/path tuples, repository cap breaches, fewer than eight repositories for an executable selection, body exposure before selection commit, and outcome-based replacement fields. Exact duplicate blob OIDs remain frozen rows but must share a provisional lineage ID and cannot increase independent-content counts.
 
-- [ ] **Step 2: Implement strict protocol/selection schemas and deterministic balanced selection**
+- [x] **Step 2: Implement strict protocol/selection schemas and deterministic balanced selection**
 
-The selector consumes recorded GitHub repository/search/tree metadata only. It must not accept skill body bytes, family/current-support outcomes, or candidate results.
+The selector consumes recorded GitHub search/default-branch/tree metadata only. It must enforce the frozen first-25 unique-repository inspection prefix and 58-request ceiling, and must not accept skill body bytes, family/current-support outcomes, or candidate results.
 
 - [ ] **Step 3: Run fixed public metadata discovery and save all inclusion/exclusion facts**
 

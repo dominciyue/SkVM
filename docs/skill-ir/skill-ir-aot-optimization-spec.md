@@ -2196,6 +2196,11 @@ search queries、两页/查询预算、license allowlist、Q1/pending-prospectiv
 round-robin 选择，再读取任何新 `SKILL.md` 正文。可执行 selection 必须恰为 40 个 tuple、至少 8 个非 fork/非 archive repository；不足时固定
 shortfall，禁止观察内容后改 query、配额、license 或补样。
 
+匿名 REST 可复现预算在第一次公开元数据请求前进一步固定：完整保存 `4 queries × 2 pages` 的搜索身份全集，但只检查其既定顺序中前 25 个唯一
+repository。repository 当前属性与 license classification 取自搜索响应，每个检查对象仅追加 default-branch 与 recursive-tree 两次 metadata request，
+总上限 `8 + 25 × 2 = 58`。选择器必须证明 discovery repository 记录严格等于该前缀；后续搜索结果只计入 universe/uninspected，不能参与本 identity
+选择。license authority 只接受树中唯一的 root-level `LICENSE*`/`COPYING*` blob；missing 或 ambiguous 必须显式拒绝，不得猜路径。
+
 选择提交只绑定 repository/commit/path/blob/license/rank 和 `bodyExposures=0`。其后只归档 pinned commit 上的选中正文、许可和正文直接命名的
 repository-local scripts/references/templates/assets/examples；每 skill 限 100 文件、5 MiB，总体缺失/外链/submodule/symlink/budget overflow 均显式
 记 `resource-closure-incomplete`，不得借此删去困难责任。

@@ -39,7 +39,9 @@ Use the public GitHub REST API without authentication or mutation. Repository se
 
 Record query, page, rank, retrieval time, response headers relevant to rate limits, and every returned repository identity. Deduplicate repositories by lower-case GitHub `full_name`; the first query/page/rank occurrence is authoritative. Repository order is `(queryPriority, page, rank, fullName)`.
 
-For each repository in order, read metadata and the recursive Git tree at the default-branch head commit. This is metadata-only discovery: do not request the selected `SKILL.md` blob body yet. Candidate paths have a case-sensitive basename `SKILL.md`, Git object type `blob`, size 100 through 524288 bytes, and no path segment in `.git`, `.cache`, `node_modules`, `vendor`, `third_party`, `dist`, or `build`. Paths are ordered by UTF-8 code-point order.
+The eight search responses are the repository-metadata authority. Deduplicate their returned identities in frozen order, then inspect only the first 25 unique repositories. For each inspected repository, request exactly its default-branch metadata and recursive Git tree; the fixed maximum is therefore 58 public metadata requests (eight search pages plus two requests for each of 25 repositories). The limit was frozen before any public metadata request because inspecting every possible returned repository would exceed the anonymous REST budget and would not be reproducible. Repositories beyond this fixed prefix remain recorded in the search universe but cannot enter selection under this identity.
+
+This remains metadata-only discovery: do not request a selected `SKILL.md` blob body yet. Candidate paths have a case-sensitive basename `SKILL.md`, Git object type `blob`, size 100 through 524288 bytes, and no path segment in `.git`, `.cache`, `node_modules`, `vendor`, `third_party`, `dist`, or `build`. Paths are ordered by UTF-8 code-point order. License classification comes from the frozen search response; its authority is the single root-level tree blob whose case-insensitive basename starts with `LICENSE` or `COPYING`. Missing or ambiguous authority is an exclusion.
 
 ## 4. Repository and license eligibility
 
@@ -53,9 +55,9 @@ Repositories or package roots present in `benchmarks/skill-ir/classification/q1-
 
 ## 5. Balanced selection and shortfall
 
-After eligibility and exclusions, iterate selection rounds 1 through 5. In each round, visit repositories in frozen repository order and take that repository's next eligible path, if any, until 40 paths are selected. A repository contributes at most five skills. No result may be replaced based on body content, family assessment, constructibility, or current support.
+After eligibility and exclusions within the fixed 25-repository inspection prefix, iterate selection rounds 1 through 5. In each round, visit repositories in frozen repository order and take that repository's next eligible path, if any, until 40 paths are selected. A repository contributes at most five skills. No result may be replaced based on body content, family assessment, constructibility, or current support.
 
-The selection is executable only when it contains exactly 40 distinct repository/commit/path tuples from at least eight repositories. If the bounded search yields fewer, emit a write-once shortfall report with the actual counts and exclusion reasons. Do not add queries, pages, licenses, paths, or repositories after observing the shortfall under this identity.
+The selection is executable only when it contains exactly 40 distinct repository/commit/path tuples from at least eight repositories. If the fixed inspection prefix yields fewer, emit a write-once shortfall report with the actual counts, inspected/uninspected counts, and exclusion reasons. Do not add queries, pages, licenses, paths, or repositories after observing the shortfall under this identity.
 
 Repository independence is counted by canonical upstream repository, not fork or owner. Exact Git blob duplicates and exact normalized body duplicates receive a shared `lineageGroupId` after body retrieval and count once for independent-content summaries, but remain in the frozen 40-row denominator. A repository disclosed as a mirror, template copy, or derivative shares a lineage group with its evidenced source. If lineage cannot be resolved, record `lineage-unknown` and do not claim independent content.
 
