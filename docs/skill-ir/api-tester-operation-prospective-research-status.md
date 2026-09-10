@@ -5,8 +5,8 @@
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
 - `currentStage`: `task-2-source-acquisition-terminal-http-403-audited; task-3-blocked-no-authoritative-selection; task-8-public-metadata-attempt-failed-rate-limit`
 - `stageStatus`: `in-progress; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
-- `lastCompletedCommit`: `2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`
-- `currentCommit`: `2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`
+- `lastCompletedCommit`: `6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`
+- `currentCommit`: `6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`
 - `prospectiveInputsRead`: `70 raw source candidates; authoritative selected inputs=0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -69,6 +69,7 @@
 - Task 2 来源实现提交=`2bf716602c9ce5f066fe6586d4b0bebe7cef6d2d`。提交前 prospective/candidate-binding + 全 `src/skill-ir` 回归=`210/210`、1077 assertions；docs unit=`8/8`，doc link scan=3787 files、0 broken/legacy，`git diff --check` 与 secret/absolute-path scan 通过；固定 source-selection 输出不存在。
 - Task 2 唯一 fixed acquisition 在 request 150 返回 GitHub HTTP 403（`zuplo/rate-my-openapi` branch；rate remaining=0）并终止：149 success；2 search、30 branch、29 tree、19 license、70 source；30 repositories。未重试、未换目录、未使用认证补发。
 - Task 2 failure audit=`results/skill-ir/api-tester-operation-prospective-001/source-selection/failure-audit.json`，SHA-256=`1c4152950e0609a9b38e0448cd00778b58972efd95c841b0b620ed0ec4ef7b69`；strict verify 返回 requests=150、partial bundles=10、authoritative selections=0、terminal=403。331 bound files/22,409,115 bytes；selection/acquisition/output-manifest 均不存在，prediction/candidate trial/prospective run=0。
+- Task 2 terminal archive + audit 实现/报告提交=`6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`；raw 上游文件的既有尾随空格由摘要保留，代码/文档的排除证据路径 diff check 为 clean。
 
 ## 保留问题
 
