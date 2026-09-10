@@ -35,6 +35,12 @@
 - 数值修复已提交019a53c（origin仍77c97b7）。wire参数名漏检已RED确认并修复一行checker，14/14测试240断言及typecheck通过；12实际旧产物只重核未重生成，全部pass。证据skill-family-wire-name-development-20260911，待提交。
 - 后续重点不继续小修凑数：研究跨成员共同缺口“字段片段→完整离线请求用例装配”。先读当前source/projection、明确参数 presence、media/security与checker独立性，再写小范围设计/验收。不能把请求装配称在线行为或原生完整skill完成。
 
+### 请求装配正在开发
+
+- HEAD1e88252已推送；new api-request-specimens/v1、独立checker和开发入口已实现，7/7测试47断言，主与script typecheck通过。
+- first-run实际12/303/628planned/608constructed/20unresolved/26presence-negative/2清单不完整。第一运行暴露方法语义缺口：DELETE body被当普通POST body装配；依据OAS3.0.3须收紧本新组件，不删除源body换通过。已保存README明确初始结论不具备发布条件。
+- 下一条动作：保存初始代码/报告阶段提交，再为GET/DELETE等不支持方法的body写RED，保留原始首跑后修复新构造器与独立checker，定向重核受影响真实输入，不能把初始失败当通过。
+
 ## 先前动作（已完成，保留上下文）
 
 1. 确认56329主typecheck完成，归档oneOf源码摘要/结果并提交。
