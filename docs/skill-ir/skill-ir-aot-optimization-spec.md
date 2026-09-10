@@ -2226,4 +2226,5 @@ responsibilities，`currentSupport=supported`-only 隐藏 5/7 family responsibil
 
 write-once 机器报告 SHA-256=`6cd63f4e265f66b7272ace596f8f680e6852d29593721b324a305c49ed4489fb`，portable semantic
 SHA-256=`5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0`；strict verify 从绑定输入逐项重算并拒绝报告协调重签。
-Meilisearch blocker、Bangumi advisory、文档级 `0/6` 与 readiness 均不变，本阶段新增 prospective/model/business API/paid 使用为 0。
+实现与 evidence 提交=`a1727b92928e1a32ce21b4bf21dc61bd80e3415e`。Meilisearch blocker、Bangumi advisory、文档级 `0/6` 与
+readiness 均不变，本阶段新增 prospective/model/business API/paid 使用为 0。

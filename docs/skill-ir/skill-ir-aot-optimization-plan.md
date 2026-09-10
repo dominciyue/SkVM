@@ -2257,6 +2257,8 @@ parameter/reference/security 三项漏检，control 为 `6/9`。complete denomin
 operation responsibilities 和 5/7 个隐藏 family responsibilities。报告文件 SHA-256=`6cd63f4e265f66b7272ace596f8f680e6852d29593721b324a305c49ed4489fb`，
 portable=`5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0`。Task 3/8/9 缺失被显式排除且不插补；没有
 prospective/model/business API/paid/held-out/Q1 使用，也不改变 `0/6`、readiness 或真实 source blocker/advisory。
+实现、报告与中文结论提交=`a1727b92928e1a32ce21b4bf21dc61bd80e3415e`；fresh 组合回归=`25/25`、70 assertions，strict report
+verify、typecheck、docs `8/8`、4128-file link scan、diff/path/credential checks 均通过。
 
 ## 5. 历史时间估算（不作为当前排期）
 

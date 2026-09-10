@@ -5,8 +5,8 @@
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
 - `currentStage`: `task-10-mechanism-ablation-verified; task-6-synthesis-next; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
 - `stageStatus`: `in-progress; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
-- `lastCompletedCommit`: `d20adf41156b6e949c8f55436a6188e1c57496ee`
-- `currentCommit`: `d20adf41156b6e949c8f55436a6188e1c57496ee (Task 10 implementation/report pending commit)`
+- `lastCompletedCommit`: `a1727b92928e1a32ce21b4bf21dc61bd80e3415e`
+- `currentCommit`: `a1727b92928e1a32ce21b4bf21dc61bd80e3415e`
 - `prospectiveInputsRead`: `70 raw source candidates; authoritative selected inputs=0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -74,6 +74,7 @@
 - Task 10 TDD 从 module missing 的预期 RED 进入 GREEN；分析器从绑定输入逐项重算，write-once 输出，strict verifier 可拒绝 coordinated report re-sign。focused=`2/2`、8 assertions，typecheck 通过。
 - Task 10 报告=`results/skill-ir/api-tester-operation-mechanism-ablation-development-001/report.json`，SHA-256=`6cd63f4e265f66b7272ace596f8f680e6852d29593721b324a305c49ed4489fb`，portable=`5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0`；verify 返回 operations=562、faults=9、responsibilities=7。
 - Task 10 实际：whole-document `0/6`/0 operations，operation-level accepted/checker-passed=112/562；full dependency fault detection=9/9、no-dependency control=6/9；accepted-only 隐藏 450 operations，current-supported-only 隐藏 5/7 family responsibilities。Task 3/8/9 缺失不插补，prospective/model/business API/paid/held-out/Q1 新增使用全为 0。
+- Task 10 实现、机器证据和中文结论提交=`a1727b92928e1a32ce21b4bf21dc61bd80e3415e`；提交前组合回归=`25/25`、70 assertions，strict report verify、typecheck、docs `8/8`、4128-file link scan、diff/path/credential checks 全部通过。
 
 ## 保留问题
 
