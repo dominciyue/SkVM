@@ -1,0 +1,35 @@
+model:
+  name: user_classifier
+  version: "1.0.0"
+  owner: ml-platform-team
+  description: Binary user event classifier for production inference.
+
+schema:
+  input_features:
+    - name: feature_a
+      type: float
+      range: [0, 1000]
+    - name: feature_b
+      type: float
+      range: [-50, 50]
+    - name: feature_c
+      type: float
+      range: [0, 1]
+  output:
+    name: prediction
+    type: float
+    range: [0, 1]
+
+sla:
+  p95_latency_ms: 5000
+  availability: 99.9
+
+lineage:
+  feature_store: feast
+  training_data: gx-validated upstream events
+  registry: databricks-unity-catalog
+
+governance:
+  fairness_dp_threshold: 0.05
+  drift_psi_threshold: 0.2
+  model_card_required: true

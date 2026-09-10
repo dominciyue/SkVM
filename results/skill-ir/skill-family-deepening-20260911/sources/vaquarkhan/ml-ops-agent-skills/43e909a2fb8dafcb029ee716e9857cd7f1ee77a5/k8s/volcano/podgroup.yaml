@@ -1,0 +1,16 @@
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: PodGroup
+metadata:
+  name: pytorch-distributed-pg
+  namespace: mlops
+  labels:
+    app.kubernetes.io/name: pytorch-distributed-training
+    app.kubernetes.io/part-of: mlops-platform
+spec:
+  minMember: 4
+  queue: gpu-training-queue
+  priorityClassName: high-priority-gpu
+  minResources:
+    cpu: "16"
+    memory: "64Gi"
+    nvidia.com/gpu: "4"

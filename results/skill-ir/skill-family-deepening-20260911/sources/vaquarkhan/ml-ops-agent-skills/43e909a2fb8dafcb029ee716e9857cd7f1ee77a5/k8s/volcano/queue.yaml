@@ -1,0 +1,19 @@
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: Queue
+metadata:
+  name: gpu-training-queue
+  namespace: mlops
+  labels:
+    app.kubernetes.io/part-of: mlops-platform
+    app.kubernetes.io/component: volcano-scheduler
+spec:
+  weight: 1
+  capability:
+    cpu: "64"
+    memory: "256Gi"
+    nvidia.com/gpu: "8"
+  reclaimable: true
+  deserved:
+    cpu: "32"
+    memory: "128Gi"
+    nvidia.com/gpu: "4"

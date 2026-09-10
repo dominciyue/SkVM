@@ -1,0 +1,143 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: pytorch-distributed-training
+  namespace: mlops
+  labels:
+    app.kubernetes.io/name: pytorch-distributed-training
+    app.kubernetes.io/part-of: mlops-platform
+spec:
+  minAvailable: 4
+  schedulerName: volcano
+  queue: gpu-training-queue
+  plugins:
+    env: []
+    svc: []
+  policies:
+    - event: PodEvicted
+      action: RestartJob
+    - event: PodFailed
+      action: RestartJob
+  tasks:
+    - replicas: 1
+      name: master
+      policies:
+        - event: TaskCompleted
+          action: CompleteJob
+      template:
+        metadata:
+          labels:
+            app: pytorch-training
+            role: master
+            scheduling.volcano.sh/group-name: pytorch-distributed-pg
+        spec:
+          schedulerName: volcano
+          restartPolicy: OnFailure
+          containers:
+            - name: pytorch-master
+              image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+              command:
+                - python
+                - -m
+                - torch.distributed.run
+                - --nproc_per_node=1
+                - --nnodes=4
+                - --node_rank=0
+                - --master_addr=pytorch-master-0
+                - --master_port=29500
+                - /app/training/train.py
+              env:
+                - name: MLFLOW_TRACKING_URI
+                  value: "http://mlflow.mlops.svc.cluster.local:5000"
+                - name: DATABRICKS_UC_REGISTRY_URI
+                  value: "databricks-uc"
+                - name: FEAST_REPO_PATH
+                  value: "/app/feature_store/feature_repo"
+                - name: NCCL_DEBUG
+                  value: "INFO"
+              resources:
+                requests:
+                  cpu: "4"
+                  memory: "16Gi"
+                  nvidia.com/gpu: "1"
+                  nvidia.com/mig-1g.10gb: "1"
+                limits:
+                  cpu: "8"
+                  memory: "32Gi"
+                  nvidia.com/gpu: "1"
+                  nvidia.com/mig-1g.10gb: "1"
+              volumeMounts:
+                - name: training-code
+                  mountPath: /app
+                - name: shm
+                  mountPath: /dev/shm
+          volumes:
+            - name: training-code
+              configMap:
+                name: training-code-config
+            - name: shm
+              emptyDir:
+                medium: Memory
+                sizeLimit: 8Gi
+
+    - replicas: 3
+      name: worker
+      template:
+        metadata:
+          labels:
+            app: pytorch-training
+            role: worker
+            scheduling.volcano.sh/group-name: pytorch-distributed-pg
+        spec:
+          schedulerName: volcano
+          restartPolicy: OnFailure
+          containers:
+            - name: pytorch-worker
+              image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+              command:
+                - python
+                - -m
+                - torch.distributed.run
+                - --nproc_per_node=1
+                - --nnodes=4
+                - --node_rank=$(NODE_RANK)
+                - --master_addr=pytorch-master-0
+                - --master_port=29500
+                - /app/training/train.py
+              env:
+                - name: NODE_RANK
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['volcano.sh/task-index']
+                - name: MLFLOW_TRACKING_URI
+                  value: "http://mlflow.mlops.svc.cluster.local:5000"
+                - name: DATABRICKS_UC_REGISTRY_URI
+                  value: "databricks-uc"
+                - name: FEAST_REPO_PATH
+                  value: "/app/feature_store/feature_repo"
+                - name: NCCL_DEBUG
+                  value: "INFO"
+              resources:
+                requests:
+                  cpu: "4"
+                  memory: "16Gi"
+                  nvidia.com/gpu: "1"
+                  nvidia.com/mig-1g.10gb: "1"
+                limits:
+                  cpu: "8"
+                  memory: "32Gi"
+                  nvidia.com/gpu: "1"
+                  nvidia.com/mig-1g.10gb: "1"
+              volumeMounts:
+                - name: training-code
+                  mountPath: /app
+                - name: shm
+                  mountPath: /dev/shm
+          volumes:
+            - name: training-code
+              configMap:
+                name: training-code-config
+            - name: shm
+              emptyDir:
+                medium: Memory
+                sizeLimit: 8Gi

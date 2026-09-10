@@ -1,12 +1,15 @@
-# 截止日前持续执行状态
+# 一类 skill 深化执行状态
 
-- 日期：2026-09-11；状态：运行中，N1。
-- 分支：api-tester-operation-unseen-prospective-001；恢复基线：2a9bf76cb4f0c8082a726e2eab880c45965646a1。
-- 计划：[N1–N8 与补充队列](../superpowers/plans/2026-09-10-deadline-delivery.md)。顺序：N1 获取→N2 演示→N3 首跑→N4 职责→N5 复用→N6 改进→N7 对照→N8 报告→E1–E5。
-- 验收：实际来源/失败清单、普通 JSON/YAML 入口与 HTML、全部操作首跑、真实 skill 原文职责依据、复用边界、改进红绿与比较、可行模型对照、报告/复现/提交推送；补充语料、新输入比较、相关方法比较、导航与演示打磨。
-- 依赖：N3 依赖 N1 输入与 N2；N5 依赖 N4；N6 依据 N3；N7 不阻塞其它项；N8 汇总实际结果。网络故障时先继续独立本地项。
-- 已完成：核实目标 active；恢复授权；检查现有规划差异和普通入口已完成的历史记录。
-- 证据：本轮尚无新运行结果；历史综合报告保留。上轮聊天称普通入口未完成不准确，已以仓库文档纠正。
-- 未解决：N1–N8/E1–E5 待执行；工作树有大量历史未跟踪材料，保留且不纳入本轮提交。
-- 下一动作：提交现有规划；编写 scripts/skill-ir/deadline-acquire.test.ts，验证缓存、403 恢复、去重；实现新获取器并恢复旧 partial。
-- 费用：本轮项目付费调用 0；开发代理费用未测。用户取消付费金额/次数上限，按实际记录。
+- 日期：2026-09-11；状态：D1 完成（资源语义完整性留待 D2 核读），D2 执行中；匹配 D1–D9 与追加开发的目标为 active。
+- 分支：api-tester-operation-unseen-prospective-001；本次复核 HEAD：8174da605c561921791c3a16c9dae9e904b0e33b。
+- 当前计划：[一类 skill 的自动化能力深化](../superpowers/plans/2026-09-11-skill-family-deepening.md)。旧 N1–N8 队列已被替代，移出 HTML、入口包装、演示与报告润色。
+- 顺序：D1 真实正文获取→D2 类与完整职责→D3 共享能力映射→D4 跨 skill 基线→D5 共性能力改进→D6 自动化效果→D7 新同类成员检验→D8 工程优化/回归→D9 交接推送。
+- 主验收：类独立于当前支持定义；目标三个独立 development skill 共用实现，再在目标三个新的独立同类 skill 上验证；所有类内失败、未支持职责和接入代码改动保留。多个 API 文档不等于多个 skill。
+- 已完成：认证获取器和 bundle 获取流程；31 个真实 skill 正文、8 个不同仓库、137 个唯一源/资源/license 文件、810881 bytes，161 次实际 GitHub 请求均 HTTP 200。旧 Jeremy 仓库名的身份失败保留，API 确认 canonical 名称后补取；同仓上限 5，零 exact-body 跨 skill 重复。不同仓库不直接等于独立谱系，D2 仍须核查。
+- 验证：missing-module、重复 YAML 键误接纳、恢复首次时间漂移均先 RED；最终获取器+复用 closure 回归 7/7、34 assertions。新增 scripts 的显式 strict typecheck 通过（仓库主 tsconfig 不包含 scripts）。
+- 证据：results/skill-ir/skill-family-deepening-20260911/{development-sources.json,sources.json,acquisition.jsonl,source-history.jsonl,sources/}；组件 docs/skill-ir/skill-family-deepening.md。cache/ 保留本地恢复，不作为独立实验结果。
+- 下一动作：提交/推送 D1 功能与实际语料；继续 D2 深读 6–10 个相关正文及必要资源，形成 family-contract.md 和 skill-responsibilities.json，然后开发 D3 声明式映射。已读 LambdaTest api-to-testcase-generator 全文，fishzjp api-testing 全文，Pramod REST 正文尚需补齐截断区段。
+- 未解决：词法 resource planner 会把代码样例识别为路径；其 issues 是待核读线索，不能直接当作源无效。完整在线/业务职责明显超过离线构造，需完整分母记录。D3–D9 和追加开发未执行，无新成员首跑或类内效果结论。
+- 失败衔接：获取/模型支线故障时推进独立本地工作，不把一次失败或常规检查点当作整体停止理由。
+- 成本：项目模型/付费调用 0；公开 web 检索 2 批（4 查询）；认证 GitHub 请求 161；宿主开发代理成本未测，独立于项目运行链。
+- 历史：旧 N1 状态和规划激活提交可从 Git 查阅；既有实验及未跟踪材料保留。当前文档修订尚未提交或推送。
