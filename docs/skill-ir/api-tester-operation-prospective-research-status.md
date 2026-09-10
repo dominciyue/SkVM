@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-revision-freeze-pending-push; task-8-public-metadata-attempt-failed-rate-limit; local-failure-audit-and-archive-contract-in-progress`
-- `stageStatus`: `blocked-on-fixed-metadata-discovery-result; continuing-independent-local-work`
-- `lastCompletedCommit`: `48061fb`
-- `currentCommit`: `48061fb`
+- `currentStage`: `task-2-remote-frozen; task-2-real-source-discovery-implementation; task-8-public-metadata-attempt-failed-rate-limit`
+- `stageStatus`: `in-progress; task-2-source-gate-open; task-8-real-corpus-blocked`
+- `lastCompletedCommit`: `b3cb287`
+- `currentCommit`: `b3cb287`
 - `prospectiveInputsRead`: `0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -62,6 +62,7 @@
 - 唯一一次 authorized fixed metadata CLI 已执行。GitHub 在第七个已归档 search response 后给出 remaining=0，流程以 `GitHub search rate limit exhausted before fixed metadata sequence completed` 退出。`failure.json` 记录 attempted=7、body/model/business API/paid/held-out/Q1/pending prospective 均为 0；15 个现场文件共 4,000,706 bytes，且 `discovery.json`/`selection.json` 均不存在。该 identity 不重试、不改 query、不从七页 prefix 选择。
 - failure audit 实现提交=`48061fb`；机器报告=`results/skill-ir/public-skill-responsibility-corpus-selection-development-001/failure-audit.json`，SHA-256=`62f32d12e93b95aabd6b18423aefbb05713b7f2b93406876426fdb04006ec3fc`。独立 verify 从 frozen protocol 重建 query/page 1..7、逐页 repository API identity 与 HTTP sidecar，确认 remaining=`6,5,4,3,2,1,0`、attempted=archived responses=7、exact archive=15 files/4,000,706 bytes、body=0；返回 `verified-metadata-failure-audit`。focused Task 8=`22/22`、74 assertions，typecheck 通过。
 - Task 8 source archive/closure 合成合同已完成首轮 TDD：direct-only 资源解析、显式 missing/external/path-escape/symlink/submodule/budget issues、locator-only、exact archive closure、SHA-256/Git blob OID、selection working/Git digest、selection commit time 和 40 行 skill/license tuple binding。archive focused=`3/3`、17 assertions，typecheck 通过；没有真实 selection，所以未实现或运行真实 body downloader，不能计作真实 archive 完成。
+- 当前分支已成功推送到用户 `origin`（`5c363d4..b3cb287`，未触碰 `upstream`）。revision freeze 的 remote-aware strict verifier 返回 `remote-frozen`：freeze commit=`e4c006fe32a6321ce5e4696758d53024c160f6db`、execution commit=`fb1068384177c00b11c836ce8d0f1b9fdecf59b6`、syntheticDocuments=6、prospectiveRuns=0。Task 2 的真实来源搜索门已解除。
 
 ## 保留问题
 
@@ -72,8 +73,5 @@
 
 ## 下一条具体动作
 
-提交 Task 8 failure audit 机器报告；继续完成不假设真实 selection 的 source archive/closure TDD，并记录由于没有 selection 而不可执行的真实正文分支。Task 8 的 real corpus、Task 9、Task 10 和最终 Task 6 暂受本结果阻塞，不用重试或扩样规避。Task 2 revision push 仍需单独明确允许向 `git@github.com:dominciyue/SkVM.git` 推送当前分支。
-selection identity 提交前仍不得读取任何 `SKILL.md` blob；必须排除
-pending prospective、Q1 reserve 和 held-out。只有在用户于对话中再次
-明确允许向 `git@github.com:dominciyue/SkVM.git` 推送整个当前分支后，才执行 Task 2 push 并运行 remote-aware strict verification；通过前仍不得
-搜索或读取 prospective unseen OpenAPI source。
+按已冻结 Task 2 protocol，以 TDD 实现严格 GitHub source discovery/selection/archive 入口；实现与 synthetic verifier 提交后才执行真实搜索。Task 8 的 real corpus、Task 9 和依赖该 corpus 的 Task 10/6 仍受已归档 rate-limit 结果阻塞，不用重试或扩样规避。
+Task 2 remote-aware strict verification 已通过；真实来源只能由冻结 protocol 的新入口选择并完整归档，不能由手工搜索结果替代，也不能在 candidate prediction 前试跑候选。
