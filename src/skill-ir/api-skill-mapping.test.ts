@@ -92,3 +92,14 @@ test("assembled specimens use an explicit source-bound profile and retain unsupp
   expect(report.wholeSkillCompleted).toBe(false);
   expect(report.residualResponsibilities.map((r) => r.id)).toEqual(["lifecycle"]);
 });
+
+test("body negative capability remains source-bound and does not claim native output or full duties", async () => {
+  const { root, mapping } = await setup();
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-request-body-negatives/v1" }));
+  const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "negatives", nodeExecutable: Bun.which("node")! });
+  expect(report.tasks[0]!.requestBodyNegativesVerification!.status).toBe("pass");
+  expect(report.tasks[0]!.requestBodyNegativesReport!.operations).toHaveLength(2);
+  expect(report.originalOutputConformance).toBe("not-implemented-by-body-negatives");
+  expect(report.wholeSkillCompleted).toBe(false);
+  expect(report.tasks[0]!.sourceObligations.every((o) => o.status === "not-fully-verified")).toBe(true);
+});

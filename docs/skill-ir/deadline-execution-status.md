@@ -1,7 +1,7 @@
 # 一类 skill 深化：唯一执行恢复状态
 
 - 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前05:49，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；HEAD/origin2a8722d。JSON重复键修复和证据待阶段提交。没有运行中进程/付费请求。
+- 分支 api-tester-operation-unseen-prospective-001；HEADa7cf0ce，origin3b26b3b。body负例映射及实际证据待阶段提交。没有运行中进程/付费请求。
 - 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§68。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
 - 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
 
@@ -36,8 +36,9 @@
 ## 下一条具体动作
 
 1. JSON重复键修复已提交并推送3b26b3b（RED2fail、GREEN26tests/317assertions、typecheck exit0、旧产物24/24重核pass）。
-2. 当前追加设计docs/skill-ir/api-request-body-negatives-development.md：组合已核验full请求和body schema负例，独立复用source-bound核验；先TDD，HTTP状态未知，参数负例仍residual。
-3. D9总报告仍须据实际记录汇总残余能力、源成员首跑失败、模型成本缺测，不提前标为全部完成。
+2. body负例核心a7cf0ce：303操作/1414义务/951构造/463unresolved，2body清单不完整；三源成员各2输入集成通过，完整12输入分母保留。证据skill-family-body-negatives-development-20260911；主及脚本typecheck通过，保存并提交当前结果。
+3. 下一具体测试：新组合能力的表示变换核验（顺序/格式/说明/局部引用等价），比较源摘要之外的规范化义务与请求，不复用构造器清单作全集。
+4. D9总报告仍须据实际记录汇总残余能力、源成员首跑失败、模型成本缺测，不提前标为全部完成。
 
 ### 最新检查点（2026-09-11 06:00前后）
 

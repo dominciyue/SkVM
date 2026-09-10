@@ -61,3 +61,18 @@ bun scripts/skill-ir/api-request-specimens-development.ts --profile=body-negativ
 ```
 
 Always choose a new output directory. This exposed input panel is not prospective.
+
+## Actual first result and member integration
+
+At a7cf0ce the12 exposed inputs have303 operations,1414 enumerated body-negative
+obligations,951 constructed and463 unresolved.128 operations have body-negative cases;
+94 have at least one constructed case. Two body schema inventories remain incomplete.
+All12 integrity checks pass, not all obligations. Full-source/HTTP validity is unproven.
+
+Add api-request-body-negatives/v1 to the existing source-bound mapping. Preserve the
+full selected source responsibility, unrelated residual duties and native-format failure.
+Use original LambdaTest/Jeremy/Pactflow members on Brex budgets and Adatree consent: these
+already exposed development examples exercise nested constraints and composition, not a
+new selection or independent effect estimate. Six mapping executions suffice for this
+integration; do not repeat the entire12-input panel for each member. First-run source
+reports above remain the full denominator for the new capability.
