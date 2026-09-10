@@ -1,7 +1,13 @@
-import Ajv, { type ErrorObject } from "ajv";
+import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
 import addFormats from "ajv-formats";
 
 type RecordValue = Record<string, any>;
+const compiledSchemas = new Map<string, ValidateFunction>();
+let cacheHits = 0, schemaCompiles = 0;
+/** Process-local diagnostics; no validation outcomes or source material are exposed. */
+export function getSchemaCheckerCacheMetrics() {
+  return { hits: cacheHits, compiles: schemaCompiles, entries: compiledSchemas.size };
+}
 const object = (v: unknown): v is RecordValue => !!v && typeof v === "object" && !Array.isArray(v);
 const annotations = new Set(["title", "description", "default", "example", "examples", "deprecated", "externalDocs", "xml", "readOnly", "writeOnly"]);
 const ordinary = new Set(["type", "enum", "minimum", "maximum", "multipleOf", "minLength", "maxLength", "pattern", "format", "minItems", "maxItems", "uniqueItems", "minProperties", "maxProperties"]);
@@ -95,13 +101,28 @@ export function createSchemaChecker(document: unknown, schema: unknown): (value:
   }
   try {
     const normalized = adapt(schema, 0, []);
-    const ajv = new Ajv({ strictSchema: true, strictTypes: false, strictTuples: false, strictRequired: false, allErrors: true,
-      coerceTypes: false, useDefaults: false, removeAdditional: false, validateFormats: true, logger: false });
-    addFormats(ajv, { mode: "full", keywords: false });
-    const validate = ajv.compile(normalized);
+    // Adapt source anew before lookup: object identity cannot hide reference or constraint edits.
+    const key = JSON.stringify(normalized);
+    let validate = compiledSchemas.get(key);
+    if (validate) {
+      cacheHits++;
+      compiledSchemas.delete(key);
+      compiledSchemas.set(key, validate);
+    } else {
+      const ajv = new Ajv({ strictSchema: true, strictTypes: false, strictTuples: false, strictRequired: false, allErrors: true,
+        coerceTypes: false, useDefaults: false, removeAdditional: false, validateFormats: true, logger: false });
+      addFormats(ajv, { mode: "full", keywords: false });
+      validate = ajv.compile(normalized);
+      schemaCompiles++;
+      if (Buffer.byteLength(key, "utf8") <= 128 * 1024) {
+        compiledSchemas.set(key, validate);
+        if (compiledSchemas.size > 128) compiledSchemas.delete(compiledSchemas.keys().next().value!);
+      }
+    }
+    const check = validate;
     return (value) => {
-      const valid = validate(value) as boolean;
-      return { status: "checked", valid, errors: (validate.errors ?? []).map((e: ErrorObject) => ({ keyword: e.keyword,
+      const valid = check(value) as boolean;
+      return { status: "checked", valid, errors: (check.errors ?? []).map((e: ErrorObject) => ({ keyword: e.keyword,
         instancePath: e.instancePath, schemaPath: e.schemaPath, message: e.message ?? "schema violation" })), annotationsNotValidated: [...notes].sort() };
     };
   } catch (error) {

@@ -22,6 +22,7 @@
 - 第二批发现规则在 skill-family-new-member-discovery-revision-2.md 和 r2/method-binding.json 预先限定为精确短语查询。结果2120项，取前8新仓库首路径；排除D1及首批仓库。r2获取正在运行，核心17b9633不变。
 - D7 第二批已完成：6正文、2 truncated-tree 获取失败；Unkey专用Go输出和codex-sdd OAS3.1为类内受限成员，但固定12输入不适用；一份Pactflow完全重复不计独立；其余类外。第三批预定path:api-test查询仅1结果，取得nntan90正文及checklist，完整核读后建立完整职责映射。
 - D7 第三批首跑完成：first-run/report.json；17b9633的19绑定摘要无漂移，零核心改动，12任务全部核验pass。303操作、261正向schema齐备、250正向wire齐备、2937/3371义务覆盖、2382编码、3操作枚举不完整。原生pytest与全skill仍未完成；仅1新的通用适用成员，不能称三成员迁移目标完成。
-- 下一动作：归档D7首跑及完整发现失败，然后D8处理重复schema编译开销，TDD验证缓存隔离和结果不漂移，按相同输入测量。无运行中付费请求。
-- 成本：项目模型/付费调用 0；公开 web 检索 2 批（4 查询）；认证 GitHub 请求 161；宿主开发代理成本未测，独立于项目运行链。
+- D7归档提交2fff7ac。D8有界内容编译缓存已实现：25/25 tests、134 assertions，主及脚本strict typecheck通过；12份完整语义载荷比较相同，2405 cache hits/109编译，Front-core 6184→2144ms，单机观测不宣称普遍加速。证据 skill-family-cache-development-20260911/comparison.json。
+- 下一动作：提交D8并推送；追加检查组合schema的负例是否绑定正确约束分支（当前只检查keyword+instancePath，存在把另一分支错误当目标错误的风险），先构造错误注入测试。D7三个适用独立新成员目标仍有缺口，不将总目标标complete。
+- 成本：D6项目模型调用6次，24999输入/1827输出token，金额未返回；其余本地运行0模型调用。GitHub各批实际请求见 acquisition.jsonl，不沿用D1的161作为总数。宿主开发代理成本未测，独立于项目运行链。
 - 历史停止总结：[约 16 小时工作总结与停止现场](work-stop-summary-2026-09-11.md)。停止后两次自动续行因缺少授权未执行，随后按三轮阈值标 blocked；最新明确授权已恢复 active。历史停止与失败不覆盖，不作为本轮执行禁令。

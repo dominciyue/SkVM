@@ -119,3 +119,9 @@ schema case, retain unsupported encodings, and leave complete parameter presence
 duties residual. Report checker metrics separate schema values, enumerated obligations and
 wire fragments. Current focused suite is 23 tests / 122 assertions; explicit script strict
 typecheck passes with the repository's allowImportingTsExtensions convention.
+
+D8 adds bounded content-keyed compilation reuse only; original source adaptation,
+annotations and per-value checks remain fresh. See
+[cache design and evidence](api-schema-compile-cache-development.md). All twelve
+new-member semantic reports equal the archived pre-cache first run; full source duties
+remain incomplete.
