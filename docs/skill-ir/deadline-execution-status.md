@@ -16,7 +16,14 @@
 - 当前未提交构造增量：通用oneOf完整值区分候选，Adatree新增4 covered义务，总2941/3371；minimal仍unresolved，正向齐备操作数不增加，其他11输入用例无变化。skill-family-oneof-witness-development-20260911/。checker/source语义不放宽。
 - oneOf增量已提交推送eecdbe7；后续D7核心固定于此。r4查询仅1来源smellgamed3，全文已读，OpenAPI到离线构造绑定不明确，保留uncertain不强行跑成功。r5预定精确Generate test cases短语查询，尚未检索。
 
-## 下一条具体动作
+## 最新恢复点（2026-09-11 05:08 +08）
+
+- HEAD844ba13，origin eecdbe7；没有运行中的进程或付费请求。
+- r5已取得7份正文/1截断树失败，正文全部读完。4份通用复合职责候选；1类外、1FastAPI条件受限、1建议型不确定。membership-review.json已保存，未运行first-run。
+- 8份补充资源已按原提交Git blob核验并完整阅读；新sources-with-supplements.json保留原始issues。anhtester的test_data_generator仍需读取，不声称完整依赖闭包。
+- 下一动作：补齐该数据生成依赖的审阅，写4成员完整职责映射，核对22个冻结文件摘要，运行固定12输入首跑；保留失败后再修订。未提交r5、supplement脚本/测试/组件文档，不包含cache。
+
+## 先前动作（已完成，保留上下文）
 
 1. 确认56329主typecheck完成，归档oneOf源码摘要/结果并提交。
 2. 固定修订后的D7 follow-up方法，再按预先限定的 OpenAPI filename:SKILL.md path:api-testing 查询；排除D1/D7全部既有仓库，最多8候选。不得把已暴露nntan重跑再称新成员首跑。
