@@ -2260,6 +2260,11 @@ prospective/model/business API/paid/held-out/Q1 使用，也不改变 `0/6`、re
 实现、报告与中文结论提交=`a1727b92928e1a32ce21b4bf21dc61bd80e3415e`；fresh 组合回归=`25/25`、70 assertions，strict report
 verify、typecheck、docs `8/8`、4128-file link scan、diff/path/credential checks 均通过。
 
+Task 6 synthesis implementation=`c0ce14f97426b51bc12e8329d882c8d733173c45`。固定九份 path/SHA-256/commit 证据，对工作树和 Git blob 双重核验并重算十任务状态；
+机器总报告为 `4 completed + 2 closed-terminal-failure + 4 not-run-blocked`，文件 SHA-256=`e599ae8f45fe21618c3f7d5c907ac7ebee25ac423d6fc2604dc53f354719c739`，
+portable=`f915abc6abd393ea78122feff5c93e6ea83ea68c18e99063e449cda61d337352`。独立审查前及 reproduction-command 修复前报告分别保留为 attempt-001/002。判断只允许筹备新的预注册协议，当前不可执行；
+Task 2/8 失败与 Task 3/4/5/9 未运行均不插补。Task 6 本身可完成交付，但总目标完成门继续为 false。
+
 ## 5. 历史时间估算（不作为当前排期）
 
 以下是净工作时间，不包含模型网关不可用、导师评审等待或新增 benchmark measurement-invalid 后的重设计。

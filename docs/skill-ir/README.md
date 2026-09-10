@@ -248,6 +248,11 @@ profile、Q4、held-out 或付费实验仍需另行授权。
 
 2026-09-09 已完成 API Tester operation-level additive development 及 dependency-verifier revision。冻结 002 的 whole-document 0/6 不变；同六份已暴露文档仍为 562 operations、112 accepted/checker-pass、449 rejected、1 source unresolved。旧 verifier 的三项 false pass 已由新 identity 3/3 修复检出；old/fresh universe、admission、dependency、checker、obligations 与 detached clean revision 全部一致。112 项 projection/construction pass；19 项 Bangumi external-response source validity 未验证。总状态为 `passed-with-source-blocker-after-dependency-verifier-revision`，不改变 readiness 或建立任意 OpenAPI/真实 API/人工节省主张。详细口径以 [plan 第4.47节](skill-ir-aot-optimization-plan.md)、[spec 第14.18节](skill-ir-aot-optimization-spec.md)和[组件文档](api-tester-operation-admission.md)为准。
 
+2026-09-10 的后续 prospective/family/mechanism 阶段已形成[总报告](api-tester-operation-prospective-research-results.md)和
+[离线复现手册](api-tester-operation-prospective-reproduction.md)。候选闭包、责任家族、机制消融与总收口完成；prospective source 与
+40-skill metadata 两条冻结链分别终止，Task 3/4/5/9 未运行。机器状态为 4 completed、2 terminal failure、4 blocked，不是总体通过；
+当前只可筹备新协议，不可执行新 prospective，readiness 保持 false。
+
 ```text
 P0：同步 B/calls/minutes/break-even/产品边界（已完成，0 paid）
   -> B 旧 identity = negative-smoke-frozen；无活动付费任务
@@ -309,6 +314,9 @@ API production v1 已按[设计](../superpowers/specs/2026-09-07-api-tester-prod
 | `api-tester-v2-feature-migration.md` | v2 candidate、6+4 选样/预测/锁、唯一首轮执行、成本与主张边界。 |
 | `api-tester-operation-admission.md` | 六份已暴露文档的 operation universe、准入/局部 artifact、变形/故障检出、clean reproduction 与 source blocker。 |
 | `api-tester-operation-development-final-report.md` | operation-level 两任务实际结果、机器证据哈希、离线复现入口、剩余 source blocker 与下一步建议。 |
+| `api-tester-operation-prospective-research-results.md` | operation-level 后续未见输入、责任家族、公开 skill、机制消融与失败分支的中文总报告。 |
+| `api-tester-operation-prospective-reproduction.md` | 从干净提交离线复核候选闭包、合成归档、来源失败、机制报告和总机器报告的命令与失败解释。 |
+| `api-tester-operation-prospective-research-synthesis.md` | 九证据绑定、十任务状态守恒、claims/成本/下一决策的机器总收口组件。 |
 | `ai-assisted-development-routing-and-prospective-construction.md` | AI revision-2 development route、API 构造候选、4+4 prediction lock、首轮不可变执行与主张/成本边界。 |
 | `clean-source-gold-path-reproduction.md` | Env/API Tester 两条干净源码金路径、checkout 字节修复、命令、结果与失败边界。 |
 | `claim-evidence-table.md` | 当前可用于报告/论文的最窄主张、权威证据、覆盖范围和禁止外推。 |

@@ -2228,3 +2228,16 @@ write-once 机器报告 SHA-256=`6cd63f4e265f66b7272ace596f8f680e6852d29593721b3
 SHA-256=`5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0`；strict verify 从绑定输入逐项重算并拒绝报告协调重签。
 实现与 evidence 提交=`a1727b92928e1a32ce21b4bf21dc61bd80e3415e`。Meilisearch blocker、Bangumi advisory、文档级 `0/6` 与
 readiness 均不变，本阶段新增 prospective/model/business API/paid 使用为 0。
+
+### 14.24 API Tester 操作级未见输入研究总收口
+
+Task 6 采用[总收口组件](api-tester-operation-prospective-research-synthesis.md)固定九份 evidence 的 path、SHA-256 和 commit，并从权威 schema
+重算十项任务状态。实际为 4 completed（Task 1/7/10/6）、2 closed-terminal-failure（Task 2/8）和 4 not-run-blocked
+（Task 3/4/5/9）；`allCompletionGatesClosed=false`，因此研究总目标不得标为 complete。
+
+机器总报告 SHA-256=`e599ae8f45fe21618c3f7d5c907ac7ebee25ac423d6fc2604dc53f354719c739`，portable=
+`f915abc6abd393ea78122feff5c93e6ea83ea68c18e99063e449cda61d337352`，implementation=`c0ce14f97426b51bc12e8329d882c8d733173c45`。它对工作树及对应 Git `commit:path` blob 双重核验，并保留 Task 2 的 150-request HTTP 403 与
+Task 8 的 7-search rate-limit failure，明确没有 authoritative selection、prediction、lock、prospective row、40-skill corpus 或 three-skill run。
+
+当前 `eligibleToPrepareNewProspectiveProtocol=true` 只允许设计新的预注册 identity；`eligibleToExecuteNewProspective=false` 在 selection、
+prediction 和 lock 提交前阻止运行。任何认证/请求策略改变须固定新预算与失败规则；不得重试旧 identity、修改 v2 候选、扩大支持面制造正例或改变 readiness。

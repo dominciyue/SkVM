@@ -1,4 +1,4 @@
-# Skill IR 主张—证据表（2026-09-08）
+# Skill IR 主张—证据表（2026-09-10）
 
 本表只列当前可用于报告或论文的最窄主张。`supported` 表示证据覆盖表中限定 scope，不表示更强外推；
 `not-established` 不是失败洗白，而是缺少能识别该主张的比较或测量。
@@ -19,6 +19,10 @@
 | API Tester successor v2 能在声明子集内处理有限 local ref/primitive array | `supported-as-exposed-development-case` | `results/skill-ir/api-tester-production-binding-successor-development-001/report.json`；`api-tester-successor-gap-analysis.md` | 已暴露 Open-Meteo 1/1 parse-to-checker；1 operation、23 fields、5 arrays、0 model/API/paid；独立 v2 checker | 不是 unseen/prospective；不改写 v1 0/4；不证明任意 OpenAPI、人工节省、可靠性、跨 profile、CLI readiness |
 | API Tester v2 对特性定向新真实输入建立迁移正证据 | `contradicted-on-this-fixed-panel` | `results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json`；freeze `19af3e3` | 6 个独立真实输入全部在 normalized contract 构造期拒绝，accepted=0/6；4 个边界也全部拒绝；10/10 prediction exact，0 checker/infra failure | 定向样本不是生态接纳率；不能把拒绝预测准确写成迁移成功、任意 OpenAPI、人工节省、optimized LLM、新 skill onboarding 或 readiness |
 | API Tester operation-level 流水线能在同六份已暴露文档上保留全集、局部构造并检出已登记依赖破坏 | `supported-as-corrected-bounded-development-evidence-with-source-blocker` | 旧 Task 1/Task 2/combined reports；`results/skill-ir/api-tester-operation-dependency-verification-revision-development-001/report.json` | 旧 verifier 三项 false pass 已追加记录并 3/3 修复检出；同六来源仍为 562 operations、112/112 accepted checked、449 rejected、1 source unresolved、575/575 obligations；old/fresh 五组比较和 detached clean revision pass；19 项 external-response source-validity advisory | 旧 9-fault 报告不能单独证明闭包完整；不改 whole-document 0/6；synthetic 非真实成功；不证明 source/full correctness、任意 OpenAPI、真实 API、人工节省、生态接纳、跨 profile/平台或 readiness |
+| 新 12-real API Tester prospective 建立了未见输入性能 | `not-established` | `results/skill-ir/api-tester-operation-prospective-001/source-selection/failure-audit.json` | 唯一固定来源获取 150 个响应均归档，第 150 请求 HTTP 403；10 partial bundles、0 authoritative selection、0 row | 不能把 acquisition failure 当方法结果；没有 prediction/lock/first-run/clean reproduction |
+| 40-skill corpus 与三个独立仓库 API skill 建立了跨 skill 责任分布和复用证据 | `not-established` | `results/skill-ir/public-skill-responsibility-corpus-selection-development-001/failure-audit.json` | 7 个 GitHub search response、0 body、0 selection；Task 9 未运行 | 不估计生态覆盖；不把 metadata prefix 当 corpus；不补选三 skill |
+| 操作切分、独立 dependency verifier 和完整责任分母在固定 development 对照中产生预注册差异 | `supported-as-deterministic-mechanism-control` | `results/skill-ir/api-tester-operation-mechanism-ablation-development-001/report.json` | operation split 多保留 112 个 checker-pass；去 dependency layer 漏 3/9 指定 faults；accepted/current-supported-only 隐藏 450 operations/5 of 7 family responsibilities | 非随机化、分母不同；只限 562 exposed operations、9 designed faults、7 retrospective responsibilities |
+| 当前阶段已满足执行下一 prospective 或 readiness promotion | `not-established` | `results/skill-ir/api-tester-operation-prospective-research-synthesis-development-001/report.json`；readiness v7 | 可以筹备新的预注册协议；当前 authoritative selection/prediction/lock 均缺失，readiness=false | `eligible-to-prepare` 不等于 `eligible-to-execute`；不得自动选样、运行或修改 readiness |
 
 ## 报告口径
 

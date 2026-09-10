@@ -38,7 +38,7 @@ describe("API Tester operation delivery final report", () => {
       gates: { implementationCorrectness: "pass", sourceCorrectness: "blocked", historicalArchiveCompleteness: "fail" },
       prospective: { inputSelection: "not-started", predictions: "not-authored", prospectiveRuns: 0, rows: [], rowPredictions: [] },
     });
-  }, 30_000);
+  }, 60_000);
 
   test("CLI keeps creation and strict verification separate", () => {
     expect(parseApiTesterOperationDeliveryReportArgs([

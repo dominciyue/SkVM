@@ -3,10 +3,10 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-10-mechanism-ablation-verified; task-6-synthesis-next; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
+- `currentStage`: `task-6-synthesis-final-verification; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
 - `stageStatus`: `in-progress; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
-- `lastCompletedCommit`: `a1727b92928e1a32ce21b4bf21dc61bd80e3415e`
-- `currentCommit`: `a1727b92928e1a32ce21b4bf21dc61bd80e3415e`
+- `lastCompletedCommit`: `c0ce14f97426b51bc12e8329d882c8d733173c45`
+- `currentCommit`: `c0ce14f97426b51bc12e8329d882c8d733173c45 (Task 6 final report/docs pending evidence commit)`
 - `prospectiveInputsRead`: `70 raw source candidates; authoritative selected inputs=0`
 - `candidatePredictionsAuthored`: `0`
 - `prospectiveRowsExecuted`: `0`
@@ -75,6 +75,9 @@
 - Task 10 报告=`results/skill-ir/api-tester-operation-mechanism-ablation-development-001/report.json`，SHA-256=`6cd63f4e265f66b7272ace596f8f680e6852d29593721b324a305c49ed4489fb`，portable=`5180a1c7a823c926e97a1ae858fb3c535678b227fa1ce345a16aaefef0064fd0`；verify 返回 operations=562、faults=9、responsibilities=7。
 - Task 10 实际：whole-document `0/6`/0 operations，operation-level accepted/checker-passed=112/562；full dependency fault detection=9/9、no-dependency control=6/9；accepted-only 隐藏 450 operations，current-supported-only 隐藏 5/7 family responsibilities。Task 3/8/9 缺失不插补，prospective/model/business API/paid/held-out/Q1 新增使用全为 0。
 - Task 10 实现、机器证据和中文结论提交=`a1727b92928e1a32ce21b4bf21dc61bd80e3415e`；提交前组合回归=`25/25`、70 assertions，strict report verify、typecheck、docs `8/8`、4128-file link scan、diff/path/credential checks 全部通过。
+- Task 6 synthesis implementation=`c0ce14f97426b51bc12e8329d882c8d733173c45`。初始 module-missing RED 后完成首版；独立审查指出 committed provenance、复现占位符和计划状态三项问题。修复前报告保留在 attempt-001；Git `commit:path` tamper 测试先 RED 后 GREEN。第二次报告又触发 reproduction command 缺 `--git=git` 的 `1/2` RED，修复后 focused=`2/2`、11 assertions；被 write-once 拒绝覆盖的报告原样保留在 attempt-002。
+- Task 6 最终机器总报告=`results/skill-ir/api-tester-operation-prospective-research-synthesis-development-001/report.json`，文件 SHA-256=`e599ae8f45fe21618c3f7d5c907ac7ebee25ac423d6fc2604dc53f354719c739`，portable=`f915abc6abd393ea78122feff5c93e6ea83ea68c18e99063e449cda61d337352`；实现及九份固定证据均核对工作树摘要和 Git blob，strict verify=`completed 4 / blocked-or-failed 6 / prepare true / execute false`。
+- Task 6 复现入口已实际核验：candidate runtime modules=11/added=2、synthetic=6/6、prospective failure requests=150/authoritative=0/terminal=403、public-skill metadata=7/body=0，以及 mechanism/synthesis strict verify 均返回预期。
 
 ## 保留问题
 
@@ -85,5 +88,5 @@
 
 ## 下一条具体动作
 
-完成 Task 10 fresh broader verification、文档/路径/secret/diff 检查并提交推送；随后进入 Task 6 总证据汇总与复现手册，明确区分已完成、失败归档和未执行分支。
-Task 3/4/5 与 Task 8/9 继续保持阻塞；扩大的远端/付费授权不追溯改变已冻结 identity，只有另行预注册的新 identity 才能改变认证或来源获取策略。
+完成 Task 6 fresh focused/broad/typecheck/docs/frozen/path/secret/diff 检查和第二次窄范围独立只读复核；随后提交机器报告、中文总报告和无需占位符的复现手册并 push。
+Task 2/8 保持终止失败已闭合，Task 3/4/5/9 保持阻塞未运行；总目标不得标记 complete。下一轮只允许另行预注册协议，不自动选择、预测或执行。
