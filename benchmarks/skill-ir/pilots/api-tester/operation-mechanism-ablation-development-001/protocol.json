@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "skill-ir-api-tester-operation-mechanism-ablation-protocol/v1",
+  "identity": "skill-ir-api-tester-operation-mechanism-ablation-development-001",
+  "status": "preregistered-development-control",
+  "preregisteredAt": "2026-09-10T11:50:00.000Z",
+  "parentCommit": "8b27b2b696bf0837a7b9a2b6485e94477fefaf19",
+  "supportContractId": "api-tester-openapi-subset-v2",
+  "inputs": {
+    "task1": {
+      "path": "results/skill-ir/api-tester-operation-admission-development-001/report.json",
+      "sha256": "d2fbe27a27b5d7d94f8ab2aeb45c0fb23c610f0bd47d82cdd04ee4bd4c37b2c6"
+    },
+    "task2Validation": {
+      "path": "results/skill-ir/api-tester-operation-validation-development-001/report.json",
+      "sha256": "7c49bf346d564fcfdaaa80ebc9ef6a8ea678cb2197411286b8e4093dac0d2bbd"
+    },
+    "task7Family": {
+      "path": "results/skill-ir/public-structure-offline-family-contract-revision-development-002/report.json",
+      "sha256": "d2860261a1bbe0dae45c531d8c1b733ba177dbf23a97e5684473cda0562cc8ee"
+    },
+    "prospectiveFailureGate": {
+      "path": "results/skill-ir/api-tester-operation-prospective-001/source-selection/failure-audit.json",
+      "sha256": "1c4152950e0609a9b38e0448cd00778b58972efd95c841b0b620ed0ec4ef7b69",
+      "role": "availability-gate-only-not-an-effect-denominator"
+    }
+  },
+  "panels": [
+    {
+      "id": "operation-segmentation",
+      "control": "whole-document-all-operations-must-be-accepted",
+      "treatment": "operation-level-accepted-and-checker-passed",
+      "universe": "task1-six-exposed-documents-562-operations",
+      "comparisonFields": [
+        "documents",
+        "operations",
+        "fullyAdmittedDocuments",
+        "operationsInFullyAdmittedDocuments",
+        "acceptedOperations",
+        "checkerPassedOperations",
+        "rejectedOperations",
+        "unresolvedOperations"
+      ],
+      "expectedRelation": "operation-level-accepted-greater-than-or-equal-to-whole-document-covered-operations"
+    },
+    {
+      "id": "independent-dependency-verification",
+      "control": "dependency-verifier-layer-disabled-without-layer-substitution",
+      "treatment": "full-preregistered-detector-stack",
+      "universe": "task2-nine-deterministic-synthetic-faults",
+      "comparisonFields": [
+        "injected",
+        "correctLayerDetected",
+        "missed",
+        "dependencyTargetedInjected",
+        "dependencyTargetedDetected",
+        "dependencyTargetedMissed",
+        "fault",
+        "detectorLayer",
+        "code"
+      ],
+      "expectedRelation": "full-detects-all-actual-faults-control-misses-exactly-dependency-layer-faults"
+    },
+    {
+      "id": "complete-responsibility-denominator",
+      "control": "accepted-or-current-supported-only",
+      "treatment": "all-statuses-and-all-assessments",
+      "universes": [
+        "task1-562-operation-responsibilities",
+        "task7-seven-family-responsibilities"
+      ],
+      "comparisonFields": [
+        "complete",
+        "visibleInControl",
+        "hidden",
+        "hiddenRejected",
+        "hiddenUnresolved",
+        "containersWithHiddenResponsibilities",
+        "familyMembershipDistribution",
+        "verifiabilityDistribution",
+        "constructibilityDistribution",
+        "currentSupportDistribution"
+      ],
+      "expectedRelation": "complete-equals-visible-plus-hidden-for-each-universe"
+    }
+  ],
+  "realBoundaryContext": [
+    "meilisearch-missing-local-parameter-reference-remains-source-blocking",
+    "bangumi-external-response-reference-remains-source-validity-advisory"
+  ],
+  "unavailableEvidence": [
+    "task3-prospective-first-run",
+    "task8-forty-skill-corpus",
+    "task9-three-api-skill-reuse"
+  ],
+  "accounting": {
+    "prospectiveRuns": 0,
+    "newPublicSourceRequests": 0,
+    "modelCalls": 0,
+    "businessApiCalls": 0,
+    "paidCalls": 0,
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0,
+    "developmentAgentUsage": "host-external-not-measured-by-project-runner"
+  },
+  "claimBoundary": "These deterministic development controls explain the fixed exposed/synthetic evidence only. They are not randomized causal estimates, ecosystem rates, real API validation, human-effort measurements, or readiness evidence."
+}

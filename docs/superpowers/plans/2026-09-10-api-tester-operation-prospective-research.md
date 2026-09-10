@@ -138,7 +138,7 @@ prospective evidence pending。Task 8 依赖 Task 7 的责任定义；Task 9 依
 
 ## Task 10：机制消融
 
-- [ ] 预登记共同 operation/responsibility universe、三类对照、适用条件、比较字段和混杂。
+- [x] 预登记共同 operation/responsibility universe、三类对照、适用条件、比较字段和混杂；Task 3/8/9 unavailable 明确不填补，prospective failure 只作 availability gate。
 - [ ] whole-document vs operation-level：同一 exposed/synthetic operation universe。
 - [ ] no independent dependency verifier vs full verifier：按指定 faults/真实 advisories 比较检出。
 - [ ] complete responsibilities vs accepted-only：量化被隐藏的 unsupported/unresolved 责任。

@@ -3,7 +3,7 @@
 - `updatedAt`: 2026-09-10
 - `branch`: `api-tester-operation-unseen-prospective-001`
 - `baselineCommit`: `47efb148fb98288c173493c95582ed47d4fbdd3d`
-- `currentStage`: `task-2-source-acquisition-terminal-http-403-audited; task-3-blocked-no-authoritative-selection; task-8-public-metadata-attempt-failed-rate-limit`
+- `currentStage`: `task-10-mechanism-ablation-preregistration; task-2/task-3-source-branch-blocked; task-8/task-9-corpus-branch-blocked`
 - `stageStatus`: `in-progress; task-2/task-3-source-branch-blocked; task-8-real-corpus-blocked`
 - `lastCompletedCommit`: `6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`
 - `currentCommit`: `6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`
@@ -70,6 +70,7 @@
 - Task 2 唯一 fixed acquisition 在 request 150 返回 GitHub HTTP 403（`zuplo/rate-my-openapi` branch；rate remaining=0）并终止：149 success；2 search、30 branch、29 tree、19 license、70 source；30 repositories。未重试、未换目录、未使用认证补发。
 - Task 2 failure audit=`results/skill-ir/api-tester-operation-prospective-001/source-selection/failure-audit.json`，SHA-256=`1c4152950e0609a9b38e0448cd00778b58972efd95c841b0b620ed0ec4ef7b69`；strict verify 返回 requests=150、partial bundles=10、authoritative selections=0、terminal=403。331 bound files/22,409,115 bytes；selection/acquisition/output-manifest 均不存在，prediction/candidate trial/prospective run=0。
 - Task 2 terminal archive + audit 实现/报告提交=`6a37f540740c8cc858ae91ddb8b0e8b1cb499c9f`；raw 上游文件的既有尾随空格由摘要保留，代码/文档的排除证据路径 diff check 为 clean。
+- Task 10 选择独立本地分支推进：机器预登记=`benchmarks/skill-ir/pilots/api-tester/operation-mechanism-ablation-development-001/protocol.json`，只绑定 Task 1 562 operations、Task 2 9 synthetic faults、Task 7 7 responsibilities；Task 2 prospective failure audit 仅作 unavailable-evidence gate。设计文档固定三类对照、逐 panel 分母、比较字段、预期关系和非因果边界，分析尚未执行。
 
 ## 保留问题
 
@@ -80,5 +81,5 @@
 
 ## 下一条具体动作
 
-提交 Task 2 原始 terminal archive、failure-audit 实现/测试/报告与状态；不重试该 source identity，不从 10 个 partial bundles 创建 selection/prediction/lock。随后核对总目标中不依赖 Task 2/3 或 Task 8 selection 的剩余本地工作；Task 3/4/5 以及 Task 8/9 对应分支保持明确阻塞。
-只有另行预注册的新 identity 才能改变认证或来源获取策略；本目标没有授权以修改冻结方法来覆盖本次失败。
+先提交 Task 10 protocol/design 预登记，再以 TDD 实现只读分析器与独立 verifier，生成三 panel 机器报告和中文结论；不重跑历史 unique runner，不产生新来源或模型调用。
+Task 3/4/5 与 Task 8/9 继续保持阻塞；只有另行预注册的新 identity 才能改变认证或来源获取策略，本目标不会修改冻结方法覆盖失败。
