@@ -1,0 +1,27 @@
+name: kubernetes-gpu-mlops
+description: Kubernetes-native MLOps with Volcano gang scheduling, KServe serving, and Feast feature store.
+platform:
+  orchestration: kubernetes
+  scheduler: volcano
+  serving: kserve
+  inference_backend: vllm
+  kv_cache: lmcache
+  feature_store: feast
+  online_store: redis
+  offline_store: parquet
+  tracking: mlflow
+skills:
+  - distributed-gpu-training-and-scheduling
+  - feast-feature-store-engineering
+  - llm-serving-and-inference-optimization
+  - mlflow-model-registry-and-continuous-training
+manifests:
+  - k8s/volcano/queue.yaml
+  - k8s/volcano/podgroup.yaml
+  - k8s/volcano/training-job.yaml
+  - serving/kserve/inference-service.yaml
+environment_variables:
+  MLFLOW_TRACKING_URI: "http://mlflow.mlops.svc.cluster.local:5000"
+  DATABRICKS_UC_REGISTRY_URI: "databricks-uc"
+  FEAST_REPO_PATH: "feature_store/feature_repo"
+  REDIS_HOST: "lmcache-redis.mlops.svc.cluster.local"

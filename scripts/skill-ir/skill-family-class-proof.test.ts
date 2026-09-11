@@ -12,6 +12,11 @@ import {
   candidateMetadataFromSourceIndex,
   parseGithubSearchItems,
   runScreeningPolicy,
+  extractResponsibilities,
+  buildTaskInputBindings,
+  hydrateEligibilityRepositories,
+  selectDevelopmentMembers,
+  selectDevelopmentInputs,
   selectCandidateMetadata,
   runStatus,
   screenCandidate,
@@ -168,5 +173,101 @@ describe("skill-family class-proof status", () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
+  });
+
+  test("extracts source-located core and outside-class duties without accepting unlocated text", () => {
+    const rows = extractResponsibilities({
+      memberId: "owner/repo:skill",
+      sourcePath: "SKILL.md",
+      body: [
+        "Use an OpenAPI contract and enumerate every endpoint.",
+        "Generate valid request examples and test cases.",
+        "Authenticate against the live service and clean up fixtures.",
+        "One unmapped business rule may need human review.",
+      ].join("\n"),
+    });
+    expect(rows.some((row) => row.key === "all-operations" && row.sourceLocator === "SKILL.md:1" && row.plannedDisposition === "to-construct")).toBe(true);
+    expect(rows.some((row) => row.key === "valid-request" && row.sourceLocator === "SKILL.md:2" && row.plannedDisposition === "to-construct")).toBe(true);
+    expect(rows.some((row) => row.key === "live-execution" && row.plannedDisposition === "outside-class")).toBe(true);
+    expect(rows.every((row) => row.sourceLocator.includes("SKILL.md:") || row.sourceLocator.startsWith("body:"))).toBe(true);
+  });
+
+  test("binds only fixed development API inputs in the archived index order", () => {
+    const bindings = buildTaskInputBindings({
+      schemaVersion: "skill-family-api-inputs/v1",
+      exposure: "development",
+      repository: "owner/contracts",
+      commit: "c".repeat(40),
+      inputs: [
+        {
+          inputId: "zeta-first",
+          provider: "Demo Z",
+          sourcePath: "zeta/openapi.yaml",
+          sourceUrl: "https://example.invalid/zeta.yaml",
+          status: "acquired",
+          localPath: "sources/zeta.yaml",
+          format: "yaml",
+          byteLength: 3,
+          sha256: "a".repeat(64),
+          qualification: { eligible: true, reason: null },
+          error: null,
+        },
+        {
+          inputId: "alpha-second",
+          provider: "Demo A",
+          sourcePath: "alpha/openapi.json",
+          sourceUrl: "https://example.invalid/alpha.json",
+          status: "acquired",
+          localPath: "sources/alpha.json",
+          format: "json",
+          byteLength: 4,
+          sha256: "b".repeat(64),
+          qualification: { eligible: true, reason: null },
+          error: null,
+        },
+      ],
+    }, "results/skill-ir/skill-family-deepening-20260911/api-inputs");
+    expect(bindings.map((binding) => binding.inputId)).toEqual(["zeta-first", "alpha-second"]);
+    expect(bindings[0]).toEqual({
+      inputId: "zeta-first",
+      provider: "Demo Z",
+      sourcePath: "zeta/openapi.yaml",
+      localPath: "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/zeta.yaml",
+      format: "yaml",
+      bytes: 3,
+      sha256: "a".repeat(64),
+      exposure: "development",
+    });
+  });
+
+  test("selects one eligible development member per repository before construction", () => {
+    const selected = selectDevelopmentMembers([
+      { candidateId: "c2", skillId: "b/repo:two", repository: "b/repo", decision: "eligible" as const, applicableInputCount: 2 },
+      { candidateId: "c1", skillId: "a/repo:one", repository: "a/repo", decision: "eligible" as const, applicableInputCount: 2 },
+      { candidateId: "c3", skillId: "a/repo:three", repository: "a/repo", decision: "eligible" as const, applicableInputCount: 2 },
+      { candidateId: "c4", skillId: "c/repo:four", repository: "c/repo", decision: "excluded" as const, applicableInputCount: 2 },
+    ], 2);
+    expect(selected.map((row) => row.candidateId)).toEqual(["c1", "c2"]);
+  });
+
+  test("hydrates missing eligibility repositories only from the matching source ledger", () => {
+    const rows = hydrateEligibilityRepositories([
+      { candidateId: "c1", skillId: "a/repo:one", decision: "eligible" as const, applicableInputCount: 2 },
+    ], [
+      { candidateId: "c1", repository: "a/repo" },
+    ]);
+    expect(rows[0]?.repository).toBe("a/repo");
+    expect(() => hydrateEligibilityRepositories([
+      { candidateId: "missing", skillId: "x/repo:one", decision: "eligible" as const, applicableInputCount: 2 },
+    ], [])).toThrow(/repository evidence missing/u);
+  });
+
+  test("binds the first two fixed input-index entries without inspecting outcomes", () => {
+    const inputs = [
+      { inputId: "two", provider: "B", sourcePath: "two.yaml", localPath: "two", format: "yaml" as const, bytes: 2, sha256: "b".repeat(64), exposure: "development" as const },
+      { inputId: "one", provider: "A", sourcePath: "one.yaml", localPath: "one", format: "yaml" as const, bytes: 1, sha256: "a".repeat(64), exposure: "development" as const },
+      { inputId: "three", provider: "C", sourcePath: "three.yaml", localPath: "three", format: "yaml" as const, bytes: 3, sha256: "c".repeat(64), exposure: "development" as const },
+    ];
+    expect(selectDevelopmentInputs(inputs, 2).map((row) => row.inputId)).toEqual(["two", "one"]);
   });
 });

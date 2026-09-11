@@ -89,3 +89,30 @@ Before a release or handoff, run the relevant class-proof verifier and a clean,
 offline replay from the committed evidence directory. Never use the historical
 six-source runner as a substitute for this entry point, and never stage the
 unrelated untracked historical materials in the repository root.
+
+## Current execution checkpoint
+
+R0-R4 are complete for `skill-family-class-proof-002`. R1's pure preflight
+has 14 focused tests and performs no model, network, construction, or checker
+work. R2 froze a metadata-only pool of 293 candidates from 191 repositories
+before construction. R3 acquired 39 screened bodies, classified 12 as eligible
+across six repositories, retained 27 exclusions, and bound all 12 already
+exposed development OpenAPI inputs. Eight authenticated GitHub blob reads were
+recorded; model and paid calls remain zero.
+
+R4 selected one eligible member per repository before construction and bound
+the first two entries in the archived input index: `onepassword-connect` (15
+operations) and `onepassword-partnership` (4 operations). The resulting ledger
+contains six members, 12 input bindings, 16 source-located core obligations, 26
+outside-class duties, and 216 unresolved source-located duties. Unresolved rows
+remain in the denominator and are not treated as constructible outcomes. The
+first R4 attempt exposed a missing repository field in the already written R3
+eligibility rows; the repair hydrates that identity only from the independently
+persisted source ledger and rejects missing or conflicting bindings.
+
+Evidence is in `candidate-pool.json`, `screening-policy.json`,
+`screening-discovery.json`, `source-ledger.json`, `eligibility.json`,
+`responsibility-ledger.json`, `task-inputs.json`, and
+`development-ledger.json` below the result directory. The next action is R5:
+derive a gap matrix from actual development inputs and select only a shared,
+contract-internal gap with an independent oracle.

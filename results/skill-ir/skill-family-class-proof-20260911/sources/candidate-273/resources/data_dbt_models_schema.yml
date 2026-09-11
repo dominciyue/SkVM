@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: validated_events
+    description: >
+      Validated upstream event data contract enforcing schema and semantics
+      for downstream feature store and training consumption.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: user_id
+        description: Unique identifier for the user entity.
+        data_type: bigint
+        constraints:
+          - type: not_null
+          - type: unique
+        tests:
+          - not_null
+          - unique
+
+      - name: event_timestamp
+        description: UTC timestamp of the event occurrence.
+        data_type: timestamp
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+
+      - name: feature_a
+        description: Numeric feature A bounded to [0, 1000].
+        data_type: double
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000
+
+      - name: feature_b
+        description: Numeric feature B bounded to [-50, 50].
+        data_type: double
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: -50
+              max_value: 50
+
+      - name: feature_c
+        description: Normalized feature C in [0, 1].
+        data_type: double
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+      - name: label
+        description: Binary classification target.
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: ingested_at
+        description: Pipeline ingestion timestamp for lineage tracking.
+        data_type: timestamp
+        constraints:
+          - type: not_null
