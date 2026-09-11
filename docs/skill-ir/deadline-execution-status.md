@@ -108,3 +108,9 @@
 - 预注册最低正向条件：三个独立 primary、每名至少两个适用输入、核心义务覆盖不低于 90%、至少 2/3 首跑 accepted、accepted checker 100% 通过且无 repository-specific 分支。达不到时如实报告 `bounded-negative` 或 `insufficient-evidence`。
 - 允许认证 GitHub CLI、远端 API 和有目的的付费模型调用；缓存、有限退避和候选隔离使单个 403/429/无响应不终止队列。按 AGENTS 的最小必要约束执行，不做 HTML、展示包装或重复全量审计。
 - 恢复命令：`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`；实际分支与 HEAD 由 R0 在执行时重新记录。
+
+## 2026-09-11 项目分支统一与合并后验证
+
+- 研究路线的 `api-tester-operation-admission-dev`、`api-tester-operation-unseen-prospective-001` 和 `skill-family-minimum-delivery-001` 均已确认是 `skill-ir-aot` 的线性祖先；主分支通过 fast-forward 到 `7e38674`，并已推送 `origin/skill-ir-aot`，ahead/behind=`0/0`。
+- 三个专用本地分支已删除；远端存在的两个专用分支已删除，`api-tester-operation-admission-dev` 远端原已不存在。无关历史远端分支和 detached 证据 worktree 保留。
+- 合并后必要检查：`bun run typecheck` 通过，文档链接测试 `8/8` 通过，Skill IR 回归 `343` 个测试中 `342` 通过。唯一失败是旧 operation-delivery 报告测试在当前工作树重新生成候选时发现已冻结的 CRLF/旧依赖字节与后续依赖提交不一致；冻结候选和历史报告未改写，需单独维护修复。
