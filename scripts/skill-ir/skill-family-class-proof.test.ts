@@ -8,6 +8,7 @@ import {
   deriveTransferDecision,
   buildScreeningPolicy,
   buildCandidatePool,
+  mergeCandidatePools,
   candidateMetadataFromSourceIndex,
   parseGithubSearchItems,
   runScreeningPolicy,
@@ -129,6 +130,18 @@ describe("skill-family class-proof status", () => {
     });
     expect(rows.rows).toEqual([{ repository: "z/repo", path: "skills/a/SKILL.md", sha: "b".repeat(40), branch: "main", license: null, source: "github-search" }]);
     expect(rows.failures).toEqual([{ repository: "z/repo", path: "skills/b/SKILL.md", reason: "search-result-sha-missing" }]);
+  });
+
+  test("appends new metadata without rewriting the already frozen candidate prefix", () => {
+    const existing = buildCandidatePool([{ repository: "a/repo", path: "SKILL.md", sha: "a".repeat(40) }]);
+    const added = buildCandidatePool([
+      { repository: "a/repo", path: "SKILL.md", sha: "a".repeat(40) },
+      { repository: "b/repo", path: "SKILL.md", sha: "b".repeat(40) },
+    ]);
+    const merged = mergeCandidatePools(existing, added);
+    expect(merged.candidates.map((row) => row.candidateId)).toEqual(["candidate-001", "candidate-002"]);
+    expect(merged.candidates.map((row) => row.sha)).toEqual(["a".repeat(40), "b".repeat(40)]);
+    expect(merged.candidates.every((row) => row.bodyRead === false)).toBe(true);
   });
 
   test("freezes policy and metadata pool before any body construction", async () => {

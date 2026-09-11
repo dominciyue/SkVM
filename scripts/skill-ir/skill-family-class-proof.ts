@@ -200,6 +200,34 @@ export function buildCandidatePool(rows: Array<CandidateMetadata & { error?: str
   };
 }
 
+/** Append-only merge used when a later discovery pass supplies cached metadata. */
+export function mergeCandidatePools(
+  existing: ReturnType<typeof buildCandidatePool>,
+  incoming: ReturnType<typeof buildCandidatePool>,
+): ReturnType<typeof buildCandidatePool> {
+  const candidates = [...existing.candidates];
+  const seen = new Set(candidates.map((candidate) => candidate.sha));
+  for (const candidate of incoming.candidates) {
+    if (seen.has(candidate.sha)) continue;
+    seen.add(candidate.sha);
+    candidates.push({
+      ...candidate,
+      candidateId: `candidate-${String(candidates.length + 1).padStart(3, "0")}`,
+      bodyRead: false,
+      selection: "uninspected",
+    });
+  }
+  const failures = [...existing.failures];
+  const failureKeys = new Set(failures.map((failure) => `${failure.repository}\u0000${failure.path}\u0000${failure.reason}`));
+  for (const failure of incoming.failures) {
+    const key = `${failure.repository}\u0000${failure.path}\u0000${failure.reason}`;
+    if (failureKeys.has(key)) continue;
+    failureKeys.add(key);
+    failures.push(failure);
+  }
+  return { ...existing, candidates, failures };
+}
+
 export function buildScreeningPolicy() {
   return {
     schemaVersion: "skill-family-class-proof-screening-policy/v1",
@@ -241,6 +269,24 @@ async function persistStableJson(path: string, value: unknown): Promise<void> {
     if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
     const existing = await readFile(path, "utf8");
     if (existing !== text) throw new Error(`evidence drift at ${path}`);
+  }
+}
+
+async function persistAppendOnlyCandidatePool(path: string, candidatePool: ReturnType<typeof buildCandidatePool>): Promise<ReturnType<typeof buildCandidatePool>> {
+  try {
+    await writeFile(path, jsonText(candidatePool), { encoding: "utf8", flag: "wx" });
+    return candidatePool;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    const existing = JSON.parse(await readFile(path, "utf8")) as ReturnType<typeof buildCandidatePool>;
+    if (existing.bodyReadForConstruction !== 0 || existing.candidates.some((candidate) => candidate.bodyRead !== false)) {
+      throw new Error("candidate pool is no longer metadata-only");
+    }
+    const merged = mergeCandidatePools(existing, candidatePool);
+    const prefix = merged.candidates.slice(0, existing.candidates.length);
+    if (JSON.stringify(prefix) !== JSON.stringify(existing.candidates)) throw new Error("candidate pool prefix drift");
+    await writeFile(path, jsonText(merged), { encoding: "utf8" });
+    return merged;
   }
 }
 
@@ -307,8 +353,11 @@ export async function runScreeningPolicy(root: string, options: {
       }
     }
   }
-  const candidatePool = buildCandidatePool([...cachedRows, ...discovered, ...discoveryFailures], 64);
-  await persistStableJson(join(evidenceRoot, "candidate-pool.json"), candidatePool);
+  // Keep a generous metadata-only cap so the already exposed development
+  // corpus is not displaced by noisy search hits; body acquisition remains
+  // separately selected after this frozen prefix.
+  const generatedPool = buildCandidatePool([...cachedRows, ...discovered, ...discoveryFailures], 512);
+  const candidatePool = await persistAppendOnlyCandidatePool(join(evidenceRoot, "candidate-pool.json"), generatedPool);
   const discovery = {
     schemaVersion: "skill-family-class-proof-discovery/v1" as const,
     queries,
@@ -416,9 +465,18 @@ export async function runStatus(root: string): Promise<ClassProofStatus> {
 }
 
 export async function writeStatus(root: string, patch: Partial<ClassProofStatus>): Promise<ClassProofStatus> {
-  const current = await runStatus(root);
-  const next = validateStatus({ ...current, ...patch, updatedAt: new Date().toISOString() });
-  await writeFile(statusPath(resolve(root)), `${JSON.stringify(next, null, 2)}\n`, { encoding: "utf8" });
+  const absoluteRoot = resolve(root);
+  const current = await runStatus(absoluteRoot);
+  const next = validateStatus({
+    ...current,
+    ...patch,
+    branch: git(absoluteRoot, ["rev-parse", "--abbrev-ref", "HEAD"]),
+    head: git(absoluteRoot, ["rev-parse", "HEAD"]),
+    upstream: git(absoluteRoot, ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"]) || null,
+    trackedStatus: git(absoluteRoot, ["status", "--short", "--branch"]),
+    updatedAt: new Date().toISOString(),
+  });
+  await writeFile(statusPath(absoluteRoot), `${JSON.stringify(next, null, 2)}\n`, { encoding: "utf8" });
   return next;
 }
 
