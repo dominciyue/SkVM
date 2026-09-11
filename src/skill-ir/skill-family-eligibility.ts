@@ -86,13 +86,17 @@ function parseResource(resource: EligibilityResource): ParsedResource {
 }
 
 function collectRefs(value: unknown, refs: string[] = []): string[] {
+  const addExternalRef = (candidate: string, allowBare = false) => {
+    const path = candidate.split("#", 1)[0] ?? "";
+    if (path && (path.startsWith("./") || path.startsWith("../") || (allowBare && !path.startsWith("/")))) refs.push(path);
+  };
   if (typeof value === "string") {
-    if (value.startsWith("./") || value.startsWith("../")) refs.push(value.split("#", 1)[0]!);
+    addExternalRef(value);
   } else if (Array.isArray(value)) {
     for (const item of value) collectRefs(item, refs);
   } else if (isRecord(value)) {
     for (const [key, item] of Object.entries(value)) {
-      if (key === "$ref" && typeof item === "string") refs.push(item.split("#", 1)[0]!);
+      if (key === "$ref" && typeof item === "string") addExternalRef(item, true);
       else collectRefs(item, refs);
     }
   }
@@ -154,9 +158,9 @@ export function preflightSkillEligibility(input: unknown): EligibilityRecord {
   if (!body.trim()) addReason("body-missing");
 
   const contractMarker = /\b(?:openapi|swagger|json\s*api|api\s+contract|API\s+contract)\b/iu;
-  const outputMarker = /\b(?:offline|local|contract[- ]derived)\b[\s\S]{0,100}\b(?:request|test|fixture|specimen|case|artifact)\b/iu;
-  const generatedOutputMarker = /\b(?:generate|emit|produce|create)\b[\s\S]{0,100}\b(?:request\s+(?:examples?|specimens?)|test\s+cases?|fixtures?)\b/iu;
-  const coverageMarker = /\b(?:cover(?:age)?|each\s+(?:endpoint|operation)|every\s+(?:endpoint|operation)|minimal\s+and\s+full|valid\s+and\s+invalid)\b/iu;
+  const outputMarker = /\b(?:offline|local|contract[- ]derived)\b[\s\S]{0,100}\b(?:request|test|fixture|specimen|case|artifact)\b|\b(?:postman\s+collection|test\s+scripts?|api\s+test\s+scripts?|request\s+items?|contract\s+tests?)\b|(?:脚本|测试报告|测试用例|接口自动化测试|离线产物)/iu;
+  const generatedOutputMarker = /\b(?:generate|emit|produce|create|convert|write|build|design|plan|validate)\b[\s\S]{0,100}\b(?:request\s+(?:examples?|specimens?)|api\s+tests?|test\s+cases?|test\s+suites?|fixtures?|postman\s+collection|test\s+scripts?|request\s+items?|contract\s+tests?)\b|(?:生成|产出|输出)[^。\n]{0,40}(?:脚本|测试报告|测试用例|测试产物)/iu;
+  const coverageMarker = /\b(?:cover(?:age)?|each\s+(?:endpoint|operation|request)|every\s+(?:endpoint|operation|request)|all\s+(?:endpoints|operations|requests)|one\s+(?:request\s+item|test)\s+per\s+(?:operation|endpoint)|per\s+(?:endpoint|operation)|minimal\s+and\s+full|valid\s+and\s+invalid)\b|(?:逐接口|每个接口|每接口|每个端点|所有接口|所有端点|各接口|覆盖每)/iu;
   const liveMarker = /\b(?:live\s+(?:api|service|endpoint)|execute\s+requests?|real\s+credentials?|authentication\s+token|auth(?:enticate|entication))\b/iu;
 
   if (contractMarker.test(body)) evidence.push(evidenceForMarker(body, sourcePath, "input", contractMarker, "body:contract-marker", "public API contract input"));

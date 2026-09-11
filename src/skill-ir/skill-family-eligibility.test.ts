@@ -79,6 +79,38 @@ describe("skill-family eligibility preflight", () => {
     expect(result.exclusionReasons).not.toContain("offline-output-duty-missing");
   });
 
+  test("does not flag an internal JSON Pointer reference as an unresolved external resource", () => {
+    const result = preflightSkillEligibility(input({
+      resources: [openapi("  /pets:\n    get:\n      responses:\n        '200':\n          description: ok\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/Pet'\n  /dogs:\n    get:\n      responses:\n        '200': { description: ok }\n", "components:\n  schemas:\n    Pet:\n      type: object\n")],
+    }));
+    expect(result.exclusionReasons.some((reason) => reason.includes("resource-closure-unresolved:"))).toBe(false);
+  });
+
+  test("recognizes a Postman collection as an offline specimen and endpoint-wide coverage", () => {
+    const result = preflightSkillEligibility(input({
+      body: "Convert the OpenAPI document into an import-ready Postman Collection with one request item per operation.",
+    }));
+    expect(result.decision).toBe("eligible");
+    expect(result.evidence.some((row) => row.kind === "output")).toBe(true);
+    expect(result.evidence.some((row) => row.kind === "coverage")).toBe(true);
+  });
+
+  test("recognizes an explicitly declared Chinese script/report output duty", () => {
+    const result = preflightSkillEligibility(input({
+      body: "输入 OpenAPI 文档，逐接口生成接口自动化测试脚本与测试报告。",
+    }));
+    expect(result.decision).toBe("eligible");
+    expect(result.exclusionReasons).not.toContain("offline-output-duty-missing");
+    expect(result.exclusionReasons).not.toContain("coverage-duty-missing");
+  });
+
+  test("recognizes a declared API test suite output even when generation is phrased as writing tests", () => {
+    const result = preflightSkillEligibility(input({
+      body: "Use the OpenAPI contract to write API tests and test cases for every endpoint, including error paths.",
+    }));
+    expect(result.decision).toBe("eligible");
+  });
+
   test("marks an external reference closure as uncertain instead of guessing", () => {
     const result = preflightSkillEligibility(input({ resources: [openapi("  /pets:\n    get:\n      responses:\n        '200':\n          description: ok\n          content:\n            application/json:\n              schema:\n                $ref: './missing.yaml#/Pet'\n  /dogs:\n    get:\n      responses:\n        '200': { description: ok }\n")] }));
     expect(result.decision).toBe("uncertain");
