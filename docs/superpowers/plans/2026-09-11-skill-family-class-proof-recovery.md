@@ -244,12 +244,19 @@ export function preflightSkillEligibility(input: unknown): EligibilityRecord;
 
 **前置条件：** R6 至少有一个真实成功和一个真实拒绝，或有明确 shortfall。
 
-- [ ] 从真实成员的共性职责生成至少 12 个合成变形：缺 `$ref`、循环/共享引用、数组编码、required 缺失、错误 status/header、security dependency loss、body 类型冲突等。
-- [ ] 每个变形绑定预期检出层，不把合成 gold 当作真实 source evidence；构造器、dependency verifier 和 independent checker 的职责分开。
-- [ ] 加入至少 6 个合法边界输入，验证不因 key 顺序、大小写、十进制约束或 JSON/YAML 格式而无理由拒绝。
-- [ ] 运行 `bun test` 的 focused subset；记录 `detected/undetected/unsupported/unresolved`，不把测试数量写成总体成功率。
+- [x] 从真实成员的共性职责生成至少 12 个合成变形：缺 `$ref`、循环/共享引用、数组编码、required 缺失、错误 status/header、security dependency loss、body 类型冲突等。
+- [x] 每个变形绑定预期检出层，不把合成 gold 当作真实 source evidence；构造器、dependency verifier 和 independent checker 的职责分开。
+- [x] 加入至少 6 个合法边界输入，验证不因 key 顺序、大小写、十进制约束或 JSON/YAML 格式而无理由拒绝。
+- [x] 运行 `bun test` 的 focused subset；记录 `detected/undetected/unsupported/unresolved`，不把测试数量写成总体成功率。
 
 **验收：** 设计错误至少 90% 在预定层检出；合法边界的拒绝都有可定位原因；结果用于 capability evidence，不改变 primary selection。
+
+**R7 实际检查点（2026-09-12）：** 12 个 R6 真实输入产生 72 个派生案例，
+其中 60 个适用且全部通过，12 个局部引用变换因输入不含可证明的已解析
+局部引用而明确标记 `not-applicable`；无失败、unsupported 或 unresolved。另有 6
+个合成合法边界案例全部通过。预注册的 16 个错误注入全部在指定层检出，
+`detected=16, missed=0, notApplicable=0, unresolved=0`。证据为
+`results/skill-ir/skill-family-class-proof-20260911/{metamorphic-validation.json,fault-detection.json,r7-validation.json}`；派生输入和合成错误不增加真实样本分母。
 
 ### R8：方法锁和 primary selection（唯一保护门）
 

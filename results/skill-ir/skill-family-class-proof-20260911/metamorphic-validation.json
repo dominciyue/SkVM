@@ -1,0 +1,2670 @@
+{
+  "registrations": [
+    {
+      "type": "object-order",
+      "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+      "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal.",
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ]
+    },
+    {
+      "type": "formatting",
+      "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+      "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics.",
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ]
+    },
+    {
+      "type": "json-yaml",
+      "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+      "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal.",
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ]
+    },
+    {
+      "type": "irrelevant-description",
+      "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+      "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage.",
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ]
+    },
+    {
+      "type": "add-unsupported-operation",
+      "applicability": "The paths object can accept one collision-free validation path.",
+      "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection.",
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ]
+    },
+    {
+      "type": "local-ref-inline",
+      "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+      "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics.",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ]
+    }
+  ],
+  "realCases": [
+    {
+      "caseId": "onepassword-connect-object-order",
+      "inputId": "onepassword-connect",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "3d0d4645477600a371867474b169de5e55b4ac1ae619269e35dfcabe134cb755"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-formatting",
+      "inputId": "onepassword-connect",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "6167ca1af13f0f0f89edf52eaefd11a706b6c57b7c0ddac4324bc0b7e04b35fb"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-json-yaml",
+      "inputId": "onepassword-connect",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "50f3c4ad1c2bc2067a817191703248a0b400b009751e06740dbde28a94b47fc4"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-irrelevant-description",
+      "inputId": "onepassword-connect",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "c6d3f2f139c34c8c764f65507db63664190be8736f3de37956f7e9645a4976a4"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-add-unsupported-operation",
+      "inputId": "onepassword-connect",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "975108a0aa453322f8a9324422d98d75ea95f3f8b842259fe223005803ff0db2"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-local-ref-inline",
+      "inputId": "onepassword-connect",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-object-order",
+      "inputId": "onepassword-partnership",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "ba65bf84c255192ead804e07e89e397ff70f29c206cc08d2a54e06d4c96b958d"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-formatting",
+      "inputId": "onepassword-partnership",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "77c550b2e93240864b4276e4688a7f5f4665b1136da97a4c844f6ace24b76550"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-json-yaml",
+      "inputId": "onepassword-partnership",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "0f744ea296c06e3a77f2df071028cebbe929f7c6f730f257c4972d81cf6ee1b0"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-irrelevant-description",
+      "inputId": "onepassword-partnership",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "7c7d8dc91130f4c9c9eaf0f647e4ea0a3e69006fe14cc60c4b4ab45c363875aa"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-add-unsupported-operation",
+      "inputId": "onepassword-partnership",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "b9d2939bb4b73290bb381060902179b984f7a95ffeae647fb4258d89aa927919"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-local-ref-inline",
+      "inputId": "onepassword-partnership",
+      "memberId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-object-order",
+      "inputId": "onepassword-connect",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "3d0d4645477600a371867474b169de5e55b4ac1ae619269e35dfcabe134cb755"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-formatting",
+      "inputId": "onepassword-connect",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "6167ca1af13f0f0f89edf52eaefd11a706b6c57b7c0ddac4324bc0b7e04b35fb"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-json-yaml",
+      "inputId": "onepassword-connect",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "50f3c4ad1c2bc2067a817191703248a0b400b009751e06740dbde28a94b47fc4"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-irrelevant-description",
+      "inputId": "onepassword-connect",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "c6d3f2f139c34c8c764f65507db63664190be8736f3de37956f7e9645a4976a4"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-add-unsupported-operation",
+      "inputId": "onepassword-connect",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "975108a0aa453322f8a9324422d98d75ea95f3f8b842259fe223005803ff0db2"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-local-ref-inline",
+      "inputId": "onepassword-connect",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-object-order",
+      "inputId": "onepassword-partnership",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "ba65bf84c255192ead804e07e89e397ff70f29c206cc08d2a54e06d4c96b958d"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-formatting",
+      "inputId": "onepassword-partnership",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "77c550b2e93240864b4276e4688a7f5f4665b1136da97a4c844f6ace24b76550"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-json-yaml",
+      "inputId": "onepassword-partnership",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "0f744ea296c06e3a77f2df071028cebbe929f7c6f730f257c4972d81cf6ee1b0"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-irrelevant-description",
+      "inputId": "onepassword-partnership",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "7c7d8dc91130f4c9c9eaf0f647e4ea0a3e69006fe14cc60c4b4ab45c363875aa"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-add-unsupported-operation",
+      "inputId": "onepassword-partnership",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "b9d2939bb4b73290bb381060902179b984f7a95ffeae647fb4258d89aa927919"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-local-ref-inline",
+      "inputId": "onepassword-partnership",
+      "memberId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-object-order",
+      "inputId": "onepassword-connect",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "3d0d4645477600a371867474b169de5e55b4ac1ae619269e35dfcabe134cb755"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-formatting",
+      "inputId": "onepassword-connect",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "6167ca1af13f0f0f89edf52eaefd11a706b6c57b7c0ddac4324bc0b7e04b35fb"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-json-yaml",
+      "inputId": "onepassword-connect",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "50f3c4ad1c2bc2067a817191703248a0b400b009751e06740dbde28a94b47fc4"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-irrelevant-description",
+      "inputId": "onepassword-connect",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "c6d3f2f139c34c8c764f65507db63664190be8736f3de37956f7e9645a4976a4"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-add-unsupported-operation",
+      "inputId": "onepassword-connect",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "975108a0aa453322f8a9324422d98d75ea95f3f8b842259fe223005803ff0db2"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-local-ref-inline",
+      "inputId": "onepassword-connect",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-object-order",
+      "inputId": "onepassword-partnership",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "ba65bf84c255192ead804e07e89e397ff70f29c206cc08d2a54e06d4c96b958d"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-formatting",
+      "inputId": "onepassword-partnership",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "77c550b2e93240864b4276e4688a7f5f4665b1136da97a4c844f6ace24b76550"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-json-yaml",
+      "inputId": "onepassword-partnership",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "0f744ea296c06e3a77f2df071028cebbe929f7c6f730f257c4972d81cf6ee1b0"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-irrelevant-description",
+      "inputId": "onepassword-partnership",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "7c7d8dc91130f4c9c9eaf0f647e4ea0a3e69006fe14cc60c4b4ab45c363875aa"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-add-unsupported-operation",
+      "inputId": "onepassword-partnership",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "b9d2939bb4b73290bb381060902179b984f7a95ffeae647fb4258d89aa927919"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-local-ref-inline",
+      "inputId": "onepassword-partnership",
+      "memberId": "jeremylongshore/tons-of-skills-marketplace:plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-object-order",
+      "inputId": "onepassword-connect",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "3d0d4645477600a371867474b169de5e55b4ac1ae619269e35dfcabe134cb755"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-formatting",
+      "inputId": "onepassword-connect",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "6167ca1af13f0f0f89edf52eaefd11a706b6c57b7c0ddac4324bc0b7e04b35fb"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-json-yaml",
+      "inputId": "onepassword-connect",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "50f3c4ad1c2bc2067a817191703248a0b400b009751e06740dbde28a94b47fc4"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-irrelevant-description",
+      "inputId": "onepassword-connect",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "c6d3f2f139c34c8c764f65507db63664190be8736f3de37956f7e9645a4976a4"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-add-unsupported-operation",
+      "inputId": "onepassword-connect",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "975108a0aa453322f8a9324422d98d75ea95f3f8b842259fe223005803ff0db2"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-local-ref-inline",
+      "inputId": "onepassword-connect",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-object-order",
+      "inputId": "onepassword-partnership",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "ba65bf84c255192ead804e07e89e397ff70f29c206cc08d2a54e06d4c96b958d"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-formatting",
+      "inputId": "onepassword-partnership",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "77c550b2e93240864b4276e4688a7f5f4665b1136da97a4c844f6ace24b76550"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-json-yaml",
+      "inputId": "onepassword-partnership",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "0f744ea296c06e3a77f2df071028cebbe929f7c6f730f257c4972d81cf6ee1b0"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-irrelevant-description",
+      "inputId": "onepassword-partnership",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "7c7d8dc91130f4c9c9eaf0f647e4ea0a3e69006fe14cc60c4b4ab45c363875aa"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-add-unsupported-operation",
+      "inputId": "onepassword-partnership",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "b9d2939bb4b73290bb381060902179b984f7a95ffeae647fb4258d89aa927919"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-local-ref-inline",
+      "inputId": "onepassword-partnership",
+      "memberId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-object-order",
+      "inputId": "onepassword-connect",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "3d0d4645477600a371867474b169de5e55b4ac1ae619269e35dfcabe134cb755"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-formatting",
+      "inputId": "onepassword-connect",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "6167ca1af13f0f0f89edf52eaefd11a706b6c57b7c0ddac4324bc0b7e04b35fb"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-json-yaml",
+      "inputId": "onepassword-connect",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "50f3c4ad1c2bc2067a817191703248a0b400b009751e06740dbde28a94b47fc4"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-irrelevant-description",
+      "inputId": "onepassword-connect",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "c6d3f2f139c34c8c764f65507db63664190be8736f3de37956f7e9645a4976a4"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-add-unsupported-operation",
+      "inputId": "onepassword-connect",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "975108a0aa453322f8a9324422d98d75ea95f3f8b842259fe223005803ff0db2"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-local-ref-inline",
+      "inputId": "onepassword-connect",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-object-order",
+      "inputId": "onepassword-partnership",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "ba65bf84c255192ead804e07e89e397ff70f29c206cc08d2a54e06d4c96b958d"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-formatting",
+      "inputId": "onepassword-partnership",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "77c550b2e93240864b4276e4688a7f5f4665b1136da97a4c844f6ace24b76550"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-json-yaml",
+      "inputId": "onepassword-partnership",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "0f744ea296c06e3a77f2df071028cebbe929f7c6f730f257c4972d81cf6ee1b0"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-irrelevant-description",
+      "inputId": "onepassword-partnership",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "7c7d8dc91130f4c9c9eaf0f647e4ea0a3e69006fe14cc60c4b4ab45c363875aa"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-add-unsupported-operation",
+      "inputId": "onepassword-partnership",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "b9d2939bb4b73290bb381060902179b984f7a95ffeae647fb4258d89aa927919"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-local-ref-inline",
+      "inputId": "onepassword-partnership",
+      "memberId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-object-order",
+      "inputId": "onepassword-connect",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "3d0d4645477600a371867474b169de5e55b4ac1ae619269e35dfcabe134cb755"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-formatting",
+      "inputId": "onepassword-connect",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "6167ca1af13f0f0f89edf52eaefd11a706b6c57b7c0ddac4324bc0b7e04b35fb"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-json-yaml",
+      "inputId": "onepassword-connect",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "50f3c4ad1c2bc2067a817191703248a0b400b009751e06740dbde28a94b47fc4"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-irrelevant-description",
+      "inputId": "onepassword-connect",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "c6d3f2f139c34c8c764f65507db63664190be8736f3de37956f7e9645a4976a4"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-add-unsupported-operation",
+      "inputId": "onepassword-connect",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "975108a0aa453322f8a9324422d98d75ea95f3f8b842259fe223005803ff0db2"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-connect-local-ref-inline",
+      "inputId": "onepassword-connect",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "format": "yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-object-order",
+      "inputId": "onepassword-partnership",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "ba65bf84c255192ead804e07e89e397ff70f29c206cc08d2a54e06d4c96b958d"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-formatting",
+      "inputId": "onepassword-partnership",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "77c550b2e93240864b4276e4688a7f5f4665b1136da97a4c844f6ace24b76550"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-json-yaml",
+      "inputId": "onepassword-partnership",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "0f744ea296c06e3a77f2df071028cebbe929f7c6f730f257c4972d81cf6ee1b0"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-irrelevant-description",
+      "inputId": "onepassword-partnership",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "7c7d8dc91130f4c9c9eaf0f647e4ea0a3e69006fe14cc60c4b4ab45c363875aa"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-add-unsupported-operation",
+      "inputId": "onepassword-partnership",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "b9d2939bb4b73290bb381060902179b984f7a95ffeae647fb4258d89aa927919"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "onepassword-partnership-local-ref-inline",
+      "inputId": "onepassword-partnership",
+      "memberId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "origin": "real-development-input",
+      "parent": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "format": "yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "not-applicable",
+      "status": "not-applicable",
+      "reason": "no accepted operation has a pure resolved local reference eligible for expansion",
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": null,
+      "parameters": {},
+      "errors": []
+    }
+  ],
+  "syntheticBoundaryCases": [
+    {
+      "caseId": "synthetic-class-proof-boundary-object-order",
+      "inputId": "synthetic-class-proof-boundary",
+      "memberId": "synthetic-class-proof-boundary",
+      "origin": "synthetic-boundary",
+      "parent": {
+        "path": "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml",
+        "format": "yaml",
+        "sha256": "1822248ca30a18f1983c6871463295c17cf18bc14dfa000d5b17db4f15c6072a"
+      },
+      "transform": {
+        "type": "object-order",
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "cd83cf0cc7353c5e08e9e9454ead6c4f32d049a9ea9db633dfecdd59e2207756"
+      },
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "synthetic-class-proof-boundary-formatting",
+      "inputId": "synthetic-class-proof-boundary",
+      "memberId": "synthetic-class-proof-boundary",
+      "origin": "synthetic-boundary",
+      "parent": {
+        "path": "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml",
+        "format": "yaml",
+        "sha256": "1822248ca30a18f1983c6871463295c17cf18bc14dfa000d5b17db4f15c6072a"
+      },
+      "transform": {
+        "type": "formatting",
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "7b836a914b63a11fa31aee21ca86ee4376cc0f3f7a5a83f4a9755aadbfad1a4d"
+      },
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "synthetic-class-proof-boundary-json-yaml",
+      "inputId": "synthetic-class-proof-boundary",
+      "memberId": "synthetic-class-proof-boundary",
+      "origin": "synthetic-boundary",
+      "parent": {
+        "path": "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml",
+        "format": "yaml",
+        "sha256": "1822248ca30a18f1983c6871463295c17cf18bc14dfa000d5b17db4f15c6072a"
+      },
+      "transform": {
+        "type": "json-yaml",
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "json",
+        "sha256": "497fd9633ab9361e960d4db252d94d4cf4ca861068ecf985ec97cc051049cf57"
+      },
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "synthetic-class-proof-boundary-irrelevant-description",
+      "inputId": "synthetic-class-proof-boundary",
+      "memberId": "synthetic-class-proof-boundary",
+      "origin": "synthetic-boundary",
+      "parent": {
+        "path": "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml",
+        "format": "yaml",
+        "sha256": "1822248ca30a18f1983c6871463295c17cf18bc14dfa000d5b17db4f15c6072a"
+      },
+      "transform": {
+        "type": "irrelevant-description",
+        "applicability": "The OpenAPI root has an info object or one can be added without changing operation inputs.",
+        "expectedRelation": "Changing only info.description does not change the operation universe, admission, normalized semantics, or coverage."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "ded7dd3e6e67a061df55d910e243eed9d3b342bfae81470a153a45ca86c8ae5a"
+      },
+      "parameters": {
+        "field": "#/info/description"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "synthetic-class-proof-boundary-add-unsupported-operation",
+      "inputId": "synthetic-class-proof-boundary",
+      "memberId": "synthetic-class-proof-boundary",
+      "origin": "synthetic-boundary",
+      "parent": {
+        "path": "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml",
+        "format": "yaml",
+        "sha256": "1822248ca30a18f1983c6871463295c17cf18bc14dfa000d5b17db4f15c6072a"
+      },
+      "transform": {
+        "type": "add-unsupported-operation",
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "531d005be8ba5565259546c419759f54e91000603f84c90ccbf9fa873a364cf0"
+      },
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "synthetic-class-proof-boundary-local-ref-inline",
+      "inputId": "synthetic-class-proof-boundary",
+      "memberId": "synthetic-class-proof-boundary",
+      "origin": "synthetic-boundary",
+      "parent": {
+        "path": "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml",
+        "format": "yaml",
+        "sha256": "1822248ca30a18f1983c6871463295c17cf18bc14dfa000d5b17db4f15c6072a"
+      },
+      "transform": {
+        "type": "local-ref-inline",
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "applicability": "applicable",
+      "status": "pass",
+      "reason": null,
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "derived": {
+        "format": "yaml",
+        "sha256": "46f08bf7a387eba9353019a6cb1f5f060ed6023184cc929b06b10d0142aabafe"
+      },
+      "parameters": {
+        "operationKey": "GET /items",
+        "referenceLocator": "#/paths/~1items/get/parameters/0/$ref",
+        "targetLocator": "#/components/parameters/TagsFilter"
+      },
+      "errors": []
+    }
+  ],
+  "totals": {
+    "realInputs": 12,
+    "uniqueRealInputs": 2,
+    "derivedInputs": 72,
+    "applicable": 60,
+    "passed": 60,
+    "failed": 0,
+    "notApplicable": 12,
+    "unsupported": 0,
+    "unresolved": 0,
+    "independentRealSamplesAdded": 0,
+    "legalBoundaryCases": 6,
+    "legalBoundaryPassed": 6
+  }
+}

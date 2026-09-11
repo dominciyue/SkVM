@@ -14,6 +14,17 @@ import {
   runApiTesterOperationInput,
   verifyApiTesterOperationInputOutput,
 } from "../../src/skill-ir/api-tester-operation-input";
+import {
+  buildClassProofBoundaryCases,
+  buildClassProofMetamorphicCases,
+  CLASS_PROOF_FAULT_INJECTION_REGISTRY,
+  CLASS_PROOF_METAMORPHIC_TRANSFORM_REGISTRY,
+  runClassProofFaultDetection,
+  summarizeClassProofFaults,
+  type ClassProofFaultDetection,
+  type ClassProofMetamorphicCase,
+  type ClassProofValidationInput,
+} from "../../src/skill-ir/skill-family-class-proof-validation";
 
 export const CLASS_PROOF_IDENTITY = "skill-family-class-proof-002" as const;
 export const CLASS_PROOF_PLAN_REVISION = 1 as const;
@@ -1327,6 +1338,222 @@ export async function runDevelopmentRuns(root: string): Promise<{ report: Develo
   return { report, status };
 }
 
+export type ClassProofValidationReport = {
+  schemaVersion: "skill-family-class-proof-validation/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  completedAt: string;
+  inputs: {
+    developmentRuns: { path: string; sha256: string };
+    real: Array<{ inputId: string; memberId: string; path: string; format: "json" | "yaml"; bytes: number; sha256: string }>;
+    syntheticBoundary: { path: string; format: "json" | "yaml"; bytes: number; sha256: string };
+  };
+  metamorphic: {
+    registrations: typeof CLASS_PROOF_METAMORPHIC_TRANSFORM_REGISTRY;
+    realCases: ClassProofMetamorphicCase[];
+    syntheticBoundaryCases: ClassProofMetamorphicCase[];
+    totals: {
+      realInputs: number;
+      uniqueRealInputs: number;
+      derivedInputs: number;
+      applicable: number;
+      passed: number;
+      failed: number;
+      notApplicable: number;
+      unsupported: number;
+      unresolved: number;
+      independentRealSamplesAdded: 0;
+      legalBoundaryCases: number;
+      legalBoundaryPassed: number;
+    };
+  };
+  faultDetection: {
+    fixture: { path: string; sha256: string };
+    preregistered: typeof CLASS_PROOF_FAULT_INJECTION_REGISTRY;
+    cases: ClassProofFaultDetection[];
+    totals: ReturnType<typeof summarizeClassProofFaults>;
+    syntheticOnly: true;
+  };
+  gates: {
+    metamorphicRelations: "pass" | "fail";
+    legalBoundaries: "pass" | "fail";
+    faultDetection: "pass" | "fail";
+    implementationCorrectness: "pass" | "fail";
+  };
+  accounting: {
+    modelCalls: 0;
+    apiCalls: 0;
+    paidCalls: 0;
+    sourceBytesRead: number;
+    validationInvocations: number;
+    developmentAgentUsage: "host-external-not-measured-by-runner";
+    separate: true;
+  };
+  protectedBoundary: {
+    heldOutAccesses: 0;
+    q1ReservedAccesses: 0;
+    prospectiveRuns: 0;
+    readinessChanges: 0;
+    frozenHistoricalResultsChanged: false;
+  };
+  claimBoundary: string;
+};
+
+function validationCaseCounts(cases: ClassProofMetamorphicCase[]) {
+  return {
+    applicable: cases.filter((row) => row.applicability === "applicable").length,
+    passed: cases.filter((row) => row.status === "pass").length,
+    failed: cases.filter((row) => row.status === "fail").length,
+    notApplicable: cases.filter((row) => row.status === "not-applicable").length,
+    unsupported: cases.filter((row) => row.errors.some((error) => /unsupported/iu.test(error))).length,
+    unresolved: cases.filter((row) => row.status === "fail" && row.errors.some((error) => /unresolved|missing|invalid/iu.test(error))).length,
+  };
+}
+
+/** Run R7 against the exact R6 input bindings and a labelled synthetic fixture. */
+export async function runClassProofValidation(root: string): Promise<{ report: ClassProofValidationReport; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "r7-validation.json");
+  try {
+    const existing = JSON.parse(await readFile(reportPath, "utf8")) as ClassProofValidationReport;
+    const current = await runStatus(absoluteRoot);
+    const status = await writeStatus(absoluteRoot, { currentStep: current.currentStep, lastCompletedStep: current.lastCompletedStep });
+    return { report: existing, status };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  const developmentRunsPath = join(evidenceRoot, "development-runs.json");
+  const developmentRunsBytes = await readFile(developmentRunsPath);
+  const developmentRuns = JSON.parse(developmentRunsBytes.toString("utf8")) as { runs: Array<{
+    inputId: string;
+    memberId: string;
+    input: { path: string; format: "json" | "yaml"; bytes: number; sha256: string };
+  }> };
+  const validationInputs: ClassProofValidationInput[] = [];
+  let sourceBytesRead = developmentRunsBytes.byteLength;
+  for (const run of developmentRuns.runs) {
+    const sourceBytes = await readFile(resolve(absoluteRoot, run.input.path));
+    const digest = sha256Bytes(sourceBytes);
+    if (sourceBytes.byteLength !== run.input.bytes || digest !== run.input.sha256) {
+      throw new Error(`R7 input digest drift: ${run.inputId}`);
+    }
+    sourceBytesRead += sourceBytes.byteLength;
+    validationInputs.push({
+      inputId: run.inputId,
+      memberId: run.memberId,
+      sourcePath: run.input.path,
+      sourceText: sourceBytes.toString("utf8"),
+      format: run.input.format,
+      origin: "real-development-input",
+    });
+  }
+  const fixturePath = join(absoluteRoot, "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml");
+  const fixtureBytes = await readFile(fixturePath);
+  sourceBytesRead += fixtureBytes.byteLength;
+  const fixtureText = fixtureBytes.toString("utf8");
+  const realCases = buildClassProofMetamorphicCases(validationInputs);
+  const syntheticBoundaryCases = buildClassProofBoundaryCases(fixtureText, "yaml", "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml");
+  const realCounts = validationCaseCounts(realCases);
+  const boundaryCounts = validationCaseCounts(syntheticBoundaryCases);
+  const faultCases = (await runClassProofFaultDetection({
+    nodeExecutable: process.execPath,
+    fixtureRoot: join(absoluteRoot, "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays"),
+  })).map((row) => {
+    const { applicability: _applicability, detail, ...rest } = row;
+    return { ...rest, applicability: row.applicability, detail };
+  });
+  const faultTotals = summarizeClassProofFaults(faultCases);
+  const realUniqueInputs = new Set(validationInputs.map((input) => input.inputId)).size;
+  const metamorphic = {
+    registrations: CLASS_PROOF_METAMORPHIC_TRANSFORM_REGISTRY,
+    realCases,
+    syntheticBoundaryCases,
+    totals: {
+      realInputs: validationInputs.length,
+      uniqueRealInputs: realUniqueInputs,
+      derivedInputs: realCases.length,
+      applicable: realCounts.applicable,
+      passed: realCounts.passed,
+      failed: realCounts.failed,
+      notApplicable: realCounts.notApplicable,
+      unsupported: realCounts.unsupported,
+      unresolved: realCounts.unresolved,
+      independentRealSamplesAdded: 0 as const,
+      legalBoundaryCases: syntheticBoundaryCases.length,
+      legalBoundaryPassed: boundaryCounts.passed,
+    },
+  };
+  const report: ClassProofValidationReport = {
+    schemaVersion: "skill-family-class-proof-validation/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    completedAt: "2026-09-12T00:00:00.000Z",
+    inputs: {
+      developmentRuns: { path: `${CLASS_PROOF_RESULT_RELATIVE}/development-runs.json`, sha256: sha256Bytes(developmentRunsBytes) },
+      real: validationInputs.map((input) => ({
+        inputId: input.inputId,
+        memberId: input.memberId,
+        path: input.sourcePath,
+        format: input.format,
+        bytes: Buffer.byteLength(input.sourceText),
+        sha256: sha256Bytes(input.sourceText),
+      })),
+      syntheticBoundary: {
+        path: relative(absoluteRoot, fixturePath).replaceAll("\\", "/"),
+        format: "yaml",
+        bytes: fixtureBytes.byteLength,
+        sha256: sha256Bytes(fixtureBytes),
+      },
+    },
+    metamorphic,
+    faultDetection: {
+      fixture: { path: relative(absoluteRoot, fixturePath).replaceAll("\\", "/"), sha256: sha256Bytes(fixtureBytes) },
+      preregistered: CLASS_PROOF_FAULT_INJECTION_REGISTRY,
+      cases: faultCases,
+      totals: faultTotals,
+      syntheticOnly: true,
+    },
+    gates: {
+      metamorphicRelations: realCounts.failed === 0 ? "pass" : "fail",
+      legalBoundaries: boundaryCounts.failed === 0 && boundaryCounts.passed === syntheticBoundaryCases.length ? "pass" : "fail",
+      faultDetection: faultTotals.missed === 0 && faultTotals.unresolved === 0 ? "pass" : "fail",
+      implementationCorrectness: realCounts.failed === 0 && boundaryCounts.failed === 0
+        && faultTotals.missed === 0 && faultTotals.unresolved === 0 ? "pass" : "fail",
+    },
+    accounting: {
+      modelCalls: 0,
+      apiCalls: 0,
+      paidCalls: 0,
+      sourceBytesRead,
+      validationInvocations: realCases.length + syntheticBoundaryCases.length + faultCases.length,
+      developmentAgentUsage: "host-external-not-measured-by-runner",
+      separate: true,
+    },
+    protectedBoundary: {
+      heldOutAccesses: 0,
+      q1ReservedAccesses: 0,
+      prospectiveRuns: 0,
+      readinessChanges: 0,
+      frozenHistoricalResultsChanged: false,
+    },
+    claimBoundary: "R7 is development-only evidence for representation relations and a named synthetic fault set. Derived inputs are not independent real samples, synthetic faults do not count as real success, and local operation/checker passage does not establish whole-skill behavior, live API correctness, human savings, prospective validity, or readiness.",
+  };
+  await persistStableJson(join(evidenceRoot, "metamorphic-validation.json"), metamorphic);
+  await persistStableJson(join(evidenceRoot, "fault-detection.json"), report.faultDetection);
+  await persistStableJson(reportPath, report);
+  const current = await runStatus(absoluteRoot);
+  const status = await writeStatus(absoluteRoot, {
+    currentStep: current.currentStep,
+    lastCompletedStep: current.lastCompletedStep,
+    failureSummary: [...new Set([
+      ...current.failureSummary,
+      ...(report.gates.implementationCorrectness === "pass" ? [] : ["r7-validation-gate-failed"]),
+      `r7-faults:${faultTotals.detected}/${faultTotals.injected}`,
+      `r7-metamorphic:${realCounts.passed}/${realCases.length}`,
+    ])],
+  });
+  return { report, status };
+}
+
 export function buildScreeningPolicy() {
   return {
     schemaVersion: "skill-family-class-proof-screening-policy/v1",
@@ -1641,7 +1868,18 @@ if (import.meta.main) {
       gate: result.report.gate,
       categories: result.report.categories,
     }, null, 2));
+  } else if (step === "validation" || step === "metamorphic" || step === "fault-detection") {
+    const result = await runClassProofValidation(root);
+    console.log(JSON.stringify({
+      status: result.report.gates.implementationCorrectness === "pass" ? "validated" : "validation-failed",
+      identity: CLASS_PROOF_IDENTITY,
+      realInputs: result.report.metamorphic.totals.realInputs,
+      derivedInputs: result.report.metamorphic.totals.derivedInputs,
+      metamorphic: result.report.metamorphic.totals,
+      faults: result.report.faultDetection.totals,
+      gates: result.report.gates,
+    }, null, 2));
   } else {
-    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs");
+    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation");
   }
 }

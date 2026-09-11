@@ -140,3 +140,21 @@ The next action is R7: run pre-registered metamorphic and negative fault
 injections against independent coverage, dependency, artifact-checker, and
 binding layers. Preserve the clean development run directories and never
 rewrite their first-run summaries.
+
+R7 is complete. The validation entry point is
+`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=validation` and it
+reads only the digest-bound R6 input copies plus the labelled synthetic
+`local-ref-arrays` fixture. Twelve real development inputs produced 72 derived
+cases across the six registered transforms: 60 applicable cases passed, 12
+local-reference cases were explicitly `not-applicable`, and there were no
+failed, unsupported, or unresolved cases. The six legal synthetic boundary
+cases all passed and added no independent real samples.
+
+The independent fault harness registered 16 mutations and detected all 16 at
+their predeclared layers (source coverage, admission consistency, dependency
+verification, independent checker, or package binding); missed,
+not-applicable, and unresolved counts are all zero. Machine evidence is in
+`metamorphic-validation.json`, `fault-detection.json`, and `r7-validation.json`.
+The report keeps the synthetic fault set separate from real success and does
+not change the v2 contract, readiness, historical `0/6`, or prospective
+boundaries. The next action is R8 method lock and primary selection.

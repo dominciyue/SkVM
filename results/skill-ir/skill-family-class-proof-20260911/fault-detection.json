@@ -1,0 +1,258 @@
+{
+  "fixture": {
+    "path": "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml",
+    "sha256": "1822248ca30a18f1983c6871463295c17cf18bc14dfa000d5b17db4f15c6072a"
+  },
+  "preregistered": [
+    {
+      "fault": "operation-list-omission",
+      "detectorLayer": "source-coverage",
+      "expectedCode": "ANALYZER_OPERATION_OMITTED",
+      "applicability": "fixture has at least two independently enumerable operations",
+      "mutation": "remove one analyzer operation row while retaining the source bytes"
+    },
+    {
+      "fault": "operation-list-duplicate",
+      "detectorLayer": "source-coverage",
+      "expectedCode": "ANALYZER_OPERATION_DUPLICATE",
+      "applicability": "fixture has at least one independently enumerable operation",
+      "mutation": "append a duplicate analyzer operation row"
+    },
+    {
+      "fault": "artifact-operation-omission",
+      "detectorLayer": "independent-checker",
+      "expectedCode": "OPERATION_COVERAGE_FAILED",
+      "applicability": "production fixture generates at least two endpoints",
+      "mutation": "remove one generated endpoint from the plan"
+    },
+    {
+      "fault": "parameter-inheritance-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "PARAMETER_DEPENDENCY_LOST",
+      "applicability": "accepted operation has an effective parameter",
+      "mutation": "drop the projected operation/path parameter"
+    },
+    {
+      "fault": "reference-definition-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "REFERENCE_DEPENDENCY_LOST",
+      "applicability": "accepted projection contains a local reference",
+      "mutation": "remove the referenced component definition"
+    },
+    {
+      "fault": "security-requirement-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "SECURITY_DEPENDENCY_LOST",
+      "applicability": "fixture declares an operation or root security requirement",
+      "mutation": "replace the projected security requirement with an unresolved scheme"
+    },
+    {
+      "fault": "summary-metadata-drift",
+      "detectorLayer": "source-coverage",
+      "expectedCode": "ANALYZER_SOURCE_METADATA_DRIFT",
+      "applicability": "fixture has an operation summary or operationId",
+      "mutation": "change the analyzer summary without changing source bytes"
+    },
+    {
+      "fault": "admission-false-acceptance",
+      "detectorLayer": "admission-consistency",
+      "expectedCode": "FALSE_ACCEPTANCE",
+      "applicability": "fixture has an accepted operation",
+      "mutation": "force an accepted row with an implementation-failure finding"
+    },
+    {
+      "fault": "artifact-witness-loss",
+      "detectorLayer": "independent-checker",
+      "expectedCode": "SCHEMA_DERIVED_CASES_FAILED",
+      "applicability": "production fixture contains a boundary witness",
+      "mutation": "delete a generated boundary witness value"
+    },
+    {
+      "fault": "field-constraint-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "REFERENCE_DEPENDENCY_LOST",
+      "applicability": "projected schema has a preserved scalar constraint",
+      "mutation": "change minLength/minItems/minimum in the projected dependency"
+    },
+    {
+      "fault": "array-encoding-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "PARAMETER_DEPENDENCY_LOST",
+      "applicability": "accepted operation has a query array parameter",
+      "mutation": "change form/explode wire encoding in the projection"
+    },
+    {
+      "fault": "status-evidence-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "RESPONSE_DEPENDENCY_LOST",
+      "applicability": "accepted operation has at least two documented responses",
+      "mutation": "delete one documented response status from the projection"
+    },
+    {
+      "fault": "request-dependency-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "REQUEST_DEPENDENCY_LOST",
+      "applicability": "accepted operation has a request body",
+      "mutation": "remove the projected request body"
+    },
+    {
+      "fault": "input-binding-mismatch",
+      "detectorLayer": "package-binding",
+      "expectedCode": "INPUT_BINDING_MISMATCH",
+      "applicability": "ordinary-input output has a digest-bound source file",
+      "mutation": "replace source bytes after the manifest was written"
+    },
+    {
+      "fault": "contract-binding-mismatch",
+      "detectorLayer": "package-binding",
+      "expectedCode": "CONTRACT_BINDING_MISMATCH",
+      "applicability": "ordinary-input manifest and output closure exist",
+      "mutation": "change the manifest binding identity after construction"
+    },
+    {
+      "fault": "artifact-binding-mismatch",
+      "detectorLayer": "package-binding",
+      "expectedCode": "ARTIFACT_BINDING_MISMATCH",
+      "applicability": "ordinary-input report is present in the output closure",
+      "mutation": "change the report binding identity without changing the source"
+    }
+  ],
+  "cases": [
+    {
+      "fault": "operation-list-omission",
+      "detectorLayer": "source-coverage",
+      "expectedCode": "ANALYZER_OPERATION_OMITTED",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "ANALYZER_OPERATION_OMITTED:detected"
+    },
+    {
+      "fault": "operation-list-duplicate",
+      "detectorLayer": "source-coverage",
+      "expectedCode": "ANALYZER_OPERATION_DUPLICATE",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "ANALYZER_OPERATION_DUPLICATE:detected"
+    },
+    {
+      "fault": "artifact-operation-omission",
+      "detectorLayer": "independent-checker",
+      "expectedCode": "OPERATION_COVERAGE_FAILED",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "OPERATION_COVERAGE_FAILED:detected"
+    },
+    {
+      "fault": "parameter-inheritance-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "PARAMETER_DEPENDENCY_LOST",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "PARAMETER_DEPENDENCY_LOST:detected"
+    },
+    {
+      "fault": "reference-definition-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "REFERENCE_DEPENDENCY_LOST",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "REFERENCE_DEPENDENCY_LOST:detected"
+    },
+    {
+      "fault": "security-requirement-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "SECURITY_DEPENDENCY_LOST",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "SECURITY_DEPENDENCY_LOST:detected"
+    },
+    {
+      "fault": "summary-metadata-drift",
+      "detectorLayer": "source-coverage",
+      "expectedCode": "ANALYZER_SOURCE_METADATA_DRIFT",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "ANALYZER_SOURCE_METADATA_DRIFT:detected"
+    },
+    {
+      "fault": "admission-false-acceptance",
+      "detectorLayer": "admission-consistency",
+      "expectedCode": "FALSE_ACCEPTANCE",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "FALSE_ACCEPTANCE:detected"
+    },
+    {
+      "fault": "artifact-witness-loss",
+      "detectorLayer": "independent-checker",
+      "expectedCode": "SCHEMA_DERIVED_CASES_FAILED",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "SCHEMA_DERIVED_CASES_FAILED:detected"
+    },
+    {
+      "fault": "field-constraint-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "REFERENCE_DEPENDENCY_LOST",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "PARAMETER_DEPENDENCY_LOST,REFERENCE_DEPENDENCY_LOST"
+    },
+    {
+      "fault": "array-encoding-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "PARAMETER_DEPENDENCY_LOST",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "PARAMETER_DEPENDENCY_LOST,REFERENCE_DEPENDENCY_LOST"
+    },
+    {
+      "fault": "status-evidence-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "RESPONSE_DEPENDENCY_LOST",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "RESPONSE_DEPENDENCY_LOST"
+    },
+    {
+      "fault": "request-dependency-loss",
+      "detectorLayer": "dependency-verifier",
+      "expectedCode": "REQUEST_DEPENDENCY_LOST",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "REFERENCE_DEPENDENCY_LOST,REQUEST_DEPENDENCY_LOST"
+    },
+    {
+      "fault": "input-binding-mismatch",
+      "detectorLayer": "package-binding",
+      "expectedCode": "INPUT_BINDING_MISMATCH",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "operation input digest mismatch: input/openapi.yaml"
+    },
+    {
+      "fault": "contract-binding-mismatch",
+      "detectorLayer": "package-binding",
+      "expectedCode": "CONTRACT_BINDING_MISMATCH",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "operation input/output binding mismatch"
+    },
+    {
+      "fault": "artifact-binding-mismatch",
+      "detectorLayer": "package-binding",
+      "expectedCode": "ARTIFACT_BINDING_MISMATCH",
+      "detected": true,
+      "applicability": "applicable",
+      "detail": "operation input/output binding mismatch"
+    }
+  ],
+  "totals": {
+    "injected": 16,
+    "detected": 16,
+    "missed": 0,
+    "notApplicable": 0,
+    "unresolved": 0
+  },
+  "syntheticOnly": true
+}
