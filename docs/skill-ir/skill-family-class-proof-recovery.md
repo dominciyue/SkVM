@@ -66,6 +66,16 @@ verifies each committed E2 run with the checker, validates E5 totals, and calls
 `resume`; a clean result must report ten verified runs, zero failures, and no
 newly executed extension task.
 
+The post-archive clean result is committed at
+`results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay.json`.
+It was produced from detached commit
+`aa57d74910be5ab09e175d9cd507ed897d0b9e92` (`D:\cp-clean-ext-aa57d74`) with
+Bun `1.3.14`, Node `v24.3.0`, and the offline lockfile install. Its SHA-256 is
+`72f3adf8226ae7d91c6e9d43203fe958f6b568f45c1314b0a04e41f8690110e7`; the
+report says `pass`, `10/10` E2 runs, `18/18` E5 cases, and zero external
+model/API/paid calls. The external copy
+`D:\cp-clean-ext-report-aa57d74.json` is retained as the run output.
+
 ## Boundaries
 
 Meilisearch missing references remain construction blockers. Bangumi external

@@ -303,6 +303,17 @@ not meet the two-member revision threshold. Prospective preparation is
 and readiness decision have not been registered. The first aggregator bug is
 retained as `final-report-attempt-001.json`; the formal report is write-once.
 
+After commit `aa57d74910be5ab09e175d9cd507ed897d0b9e92` was archived, a
+detached clean checkout at `D:\cp-clean-ext-aa57d74` installed the lockfile
+offline and reran `--step=extension-clean-replay`. The committed report is
+`results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay.json`
+(SHA-256
+`72f3adf8226ae7d91c6e9d43203fe958f6b568f45c1314b0a04e41f8690110e7`). It
+independently verified all 10 E2 runs and all 18 E5 cases, skipped all six
+completed/not-applicable extension tasks, and recorded model/API/paid
+`0/0/0`. This is a clean evidence replay only; it does not promote the result
+to a whole-skill, live-API, or prospective claim.
+
 R9 is complete through
 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=primary-first-run`.
 The immutable report contains six rows for three repository-distinct primary

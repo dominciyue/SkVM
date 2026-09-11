@@ -415,7 +415,7 @@ checkout 的实际 HEAD；这不是静默改写。干净检出中的 focused sui
 - E3 `complete`：OpenAPI 3.0.3 Schema Object 与 JSON Schema Additional Properties 的官方页面均记录 HTTP 200、抓取字节数和摘要；结论为 `boundary-clarified-no-code-change`，不能由规范补造缺失的 `additionalProperties` 实例。报告：`extension-e3.json`。
 - E4 `complete`：状态快照显示 E1-E3 已复用，E4-E6 可按顺序恢复；报告：`extension-e4.json`。
 - E5 `complete`：18 个合成案例（6 capability × 3 representation），18 pass、0 fail、0 unresolved、0 duplicate、无缺失 capability；报告：`extension-e5.json`。合成增强的 header fixture 和所有派生输入不增加真实分母。
-- E6 `complete`：必需代码、计划、组件/结果/恢复文档、E1-E5 报告及保留的 E2 失败原件均存在且有摘要；报告：`extension-e6.json`。主工作树上的扩展离线复核另存为 `D:\extension-clean-replay-main.json`；正式 detached clean 证据使用 `--step=extension-clean-replay`。
+- E6 `complete`：必需代码、计划、组件/结果/恢复文档、E1-E5 报告及保留的 E2 失败原件均存在且有摘要；报告：`extension-e6.json`。主工作树上的扩展离线复核另存为 `D:\extension-clean-replay-main.json`；随后从提交 `aa57d74910be5ab09e175d9cd507ed897d0b9e92` 的 detached clean checkout `D:\cp-clean-ext-aa57d74` 完成正式复现，归档报告为 `results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay.json`（SHA-256 `72f3adf8226ae7d91c6e9d43203fe958f6b568f45c1314b0a04e41f8690110e7`）。该报告独立核验 10/10 E2 runs、18/18 E5 cases，并确认 `resume` 未执行新任务、model/API/paid 为 0/0/0。
 
 ## 9. 恢复命令与 Definition of Done
 

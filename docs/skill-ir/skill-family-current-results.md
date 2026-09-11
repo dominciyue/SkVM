@@ -296,3 +296,19 @@ The extension results do not change the historical document-level `0/6`, any
 readiness field, Q1/held-out isolation, or prospective eligibility. The current
 class result remains bounded development evidence, not a whole-skill or live
 API claim.
+
+### Extension clean replay
+
+The extension package was rechecked from detached commit
+`aa57d74910be5ab09e175d9cd507ed897d0b9e92` in `D:\cp-clean-ext-aa57d74` after
+the extension commit was archived. `bun install --frozen-lockfile --offline`
+installed the locked 236-package environment, and
+`--step=extension-clean-replay --out=D:\cp-clean-ext-report-aa57d74.json`
+returned `pass`: 10/10 E2 run roots verified, 18/18 E5 cases retained, and
+`resume` executed no task. The committed copy is
+`results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay.json`
+(2371 bytes, SHA-256
+`72f3adf8226ae7d91c6e9d43203fe958f6b568f45c1314b0a04e41f8690110e7`). The
+replay records Bun `1.3.14`, Node `v24.3.0`, detached checkout state, and
+external model/API/paid calls `0/0/0`; it adds no real sample and does not
+change the historical `0/6`, readiness, or prospective boundary.
