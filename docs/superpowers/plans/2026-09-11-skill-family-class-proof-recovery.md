@@ -275,7 +275,7 @@ export function preflightSkillEligibility(input: unknown): EligibilityRecord;
 `r8-input-binding-mismatch-attempt-001.json` 及对应 attempt 文件，且未运行构造。
 修复后的锁以 `development-ledger.json` 中所有六名 development member 一致的
 前两个绑定为唯一输入依据，并按 `inputId+format+bytes+sha256` 与任务快照交叉核对。
-最终 `method-lock.json` 绑定实现提交 `333e4be`，筛选 39、eligible 12，排除
+最终 `method-lock.json` 绑定实现提交 `df3b5d9`，筛选 39、eligible 12，排除
 development 后 6 个 input-qualified 候选、3 个 repository-distinct primary
 （`candidate-091/112/217`）和 2 个 reserve。锁文件记录
 `screeningBodyReadCount=39`、`primaryBodyReadCount=0`；随后

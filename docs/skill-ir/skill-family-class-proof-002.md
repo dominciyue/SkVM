@@ -173,9 +173,11 @@ R8 is complete. `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=lock`
 first exposed and preserved an input-order mismatch between the stale
 `task-inputs.json` snapshot and the R4/R6 development ledger; the failed attempt
 is recorded in `r8-input-binding-mismatch-attempt-001.json` and did not run
-construction. The repaired lock uses the first two bindings agreed by all six
+construction. A second pre-commit binding snapshot is retained in
+`r8-implementation-binding-mismatch-attempt-002.json`; it records the corrected
+selection before its implementation was committed. The repaired lock uses the first two bindings agreed by all six
 development members and cross-checks each task binding by `inputId`, format,
-bytes, and SHA-256. `method-lock.json` binds implementation commit `333e4be`,
+bytes, and SHA-256. `method-lock.json` binds implementation commit `df3b5d9`,
 39 screened bodies, 12 eligible candidates, three repository-distinct primary
 members (`candidate-091`, `candidate-112`, `candidate-217`), and two reserves.
 The lock records `screeningBodyReadCount=39` and
