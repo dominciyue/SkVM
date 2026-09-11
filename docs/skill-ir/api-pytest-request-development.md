@@ -93,3 +93,13 @@ Source-duty mapping profile `api-pytest-request-suite/v1` requires requestedOutp
 `pytest`, writes actual files and source verification, but explicitly reports runtime
 not evaluated. Runtime collection is measured by the separate batch, never inferred
 from successful file emission. Other profiles do not acquire new report fields.
+
+`scripts/skill-ir/api-pytest-loopback.ts` is the reproducible fixture harness used by
+the runtime unit test. It retains source, suite, Python, explicit oracle, each injected
+oracle, JUnit/stdout per run and actual received request bytes. Three positive tests,
+three no-oracle skips and15intentional faults (status/media/body/request binding/
+redirect, three cases each) have separate results. Error detection requires all three
+assertions at the named layer, not merely any process failure. Wrong rules are injected
+after valid-oracle verification deliberately; this is not a way to bypass authority
+in ordinary execution. Redirects are observed but not followed. Run with explicit
+`--out=<new-directory> --python=<python>`; all listening sockets close in finally.
