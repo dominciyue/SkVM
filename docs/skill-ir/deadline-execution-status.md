@@ -98,3 +98,12 @@
 - 新增 manifest side-effect-free 模块，CLI 与 runner 共用同一 validator；聚焦回归 `82/82`、`467` assertions，项目 `bun run typecheck` 通过，脚本 bundle/typecheck route 通过。全仓文档扫描仍只报告既有 deadline 缺档 4 项，不创建占位文档；改动文档本身无新增 broken link。
 - 恢复入口：在 `SkVM` 运行 `bun ./scripts/skill-ir/skill-family-minimum-delivery.ts --step=status`，再按组件文档的 `m5/m6` 或 clean reproduction 命令继续。当前结论仍限 development class slice；不改变旧 `0/6`、readiness、Q1、v1/v2 或 prospective 边界。
 - 最终交付提交 `0d754a2b5090ea1d5530f73676110c31541684cd` 已推送 `origin/skill-family-minimum-delivery-001`；从该提交的 detached clean checkout 复核 `status`/`m6` 通过，远端与本地 HEAD 一致。当前任务书在本 identity 下停止扩展。
+
+## 2026-09-11 类证明恢复任务书（planned-not-started）
+
+- 新 identity：`skill-family-class-proof-002`；计划：`docs/superpowers/plans/2026-09-11-skill-family-class-proof-recovery.md`；当前仅登记，没有读取新来源或启动模型/业务 API。
+- 首要修复是 model-free eligibility preflight。它在固定候选池上确认 API 合同、离线测试产物责任和至少两个适用输入；筛选行记为 `screened-reserve`，方法锁后才可记为 `primary-heldout`，避免再次得到 `0/0` 输入分母。
+- 主切片固定为 `openapi-contract-to-offline-request-specimen`，主队列 R0–R12，完成后可继续 E1–E6。机器状态拆为 `protocolReady`、`inputReady`、`capabilityReady`、`transferDecision`；旧 minimum-delivery 结果、D1-D9、Q1、readiness 和历史材料保持不变。
+- 预注册最低正向条件：三个独立 primary、每名至少两个适用输入、核心义务覆盖不低于 90%、至少 2/3 首跑 accepted、accepted checker 100% 通过且无 repository-specific 分支。达不到时如实报告 `bounded-negative` 或 `insufficient-evidence`。
+- 允许认证 GitHub CLI、远端 API 和有目的的付费模型调用；缓存、有限退避和候选隔离使单个 403/429/无响应不终止队列。按 AGENTS 的最小必要约束执行，不做 HTML、展示包装或重复全量审计。
+- 恢复命令：`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`；实际分支与 HEAD 由 R0 在执行时重新记录。

@@ -28,6 +28,20 @@ Resume from the stage manifest and component guide, not from a chat summary. Do 
 the reserve, start a new prospective, change readiness, or reinterpret unresolved duties
 as rejection or success without a new identity and authorization.
 
+## Next execution identity
+
+The next route is the new [class-proof and automation recovery plan](../superpowers/plans/2026-09-11-skill-family-class-proof-recovery.md),
+identity `skill-family-class-proof-002`. It is a new development identity and does not
+reopen the reported minimum-delivery stage. The first implementation task is a
+model-free eligibility preflight for the narrower class
+`openapi-contract-to-offline-request-specimen`; it requires a public OpenAPI 3.0.x
+contract, an explicit offline test/request output duty, and at least two derivable task
+inputs before a member can enter the primary denominator. Screening reads are kept
+separate from primary-heldout construction. The planned result fields are
+`protocolReady`, `inputReady`, `capabilityReady`, and `transferDecision`; no single
+readiness flag will stand in for them. The route prioritizes shared code and real source
+evidence, with no HTML or presentation work.
+
 ## What is shared
 
 The class is defined by source-declared contract-driven API request/test construction,

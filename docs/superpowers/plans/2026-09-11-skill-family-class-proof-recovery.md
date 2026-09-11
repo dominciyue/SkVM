@@ -1,0 +1,356 @@
+# Skill Family Class Proof and Automation Recovery Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 在一个预先声明、可构造的 skill 职责类上，建立真实成员资格和适用输入分母，修复共享构造/核验能力，并用独立成员证明“同一套自动化路径确实能迁移到这一类的部分成员”。
+
+**Architecture:** 以现有 `api-contract-driven-offline-test-construction` 家族为上位边界，新 identity 把主验收切片收窄为 `openapi-contract-to-offline-request-specimen`：从公开 OpenAPI 3.0.x 合同和明确覆盖要求生成离线 request/test specimens，再由独立 checker 验证。新增一个不调用模型的 eligibility preflight，先从固定候选池筛出真正有合同输入和测试产物责任的成员；随后沿用 `skill-family-obligation-ledger`、`skill-family-class-construction`、request/form/body/response checkers。任何成员特有的业务、认证、线上状态和原生运行器职责都留在分母中并显式标记，不通过专用分支隐藏。
+
+**Tech Stack:** Bun/TypeScript、现有 JSON/YAML contracts、Ajv/YAML、GitHub CLI (`gh`) 与 Git、现有模型客户端（仅用于有定位的职责草稿）、现有离线 clean-checkout 复现。无需 HTML、Web UI、演示包装或新的通用平台。
+
+---
+
+## 1. 为什么要开新 identity
+
+上一个 `skill-family-minimum-delivery-001` 已经证明协议可以运行，但其三名 selected member 的 applicable input 为 `0/0`，最终结论是 `insufficient-evidence`。`methodReady=true` 只说明账本、锁和 checker 流程可运行，不说明类能力成立；该报告和历史 D1-D9 均保持不可变。
+
+本计划的第一个工程问题是**资格错误**，而不是继续扩大样本。固定候选池后，先运行统一的预检：确认 source 明确声明 API 合同、测试/请求产物和至少两个可生成的任务输入；没有这些条件的成员保留为 excluded/uncertain，不能进入 primary 分母。预检只读源声明和直接合同资源，不读取构造结果，不调用模型，因此不会用成功结果反向选样。
+
+本计划允许真实 GitHub、认证 `gh`、远端 API 和付费模型调用。授权不改变历史 identity；每次外部调用必须记录用途、返回状态和实际 usage，服务未返回金额时写 `unknown`。常规工程修复只做一次 focused TDD 和一次必要重跑，不增加重复审计。
+
+交付窗口仍以 2026-09-14 前的可复核工程成果为优先级参考：先得到一个可运行的共享纵向切片，再扩大样本。时间到达时收口当前最好证据，不用新增格式、界面或重复审计来拖延；若任务队列提前完成且用户没有停止，再执行第 8 节的额外队列。
+
+## 2. 交付对象与主张边界
+
+### 2.1 固定的主验收类
+
+`openapi-contract-to-offline-request-specimen` 的成员必须同时满足以下四条：
+
+1. skill 正文或其直接资源明确把 OpenAPI/Swagger/JSON API contract 作为输入，并给出版本、路径或可定位的合同来源；
+2. skill 明确要求生成 request examples、test cases、fixture、contract-test data 或等价的离线测试产物；
+3. 至少有两个可从公开合同派生的 task input（两个操作、两个参数场景，或一个操作的两个覆盖场景）；
+4. 核心产物可以在不访问业务服务、不使用凭据的情况下由合同和覆盖要求决定，并能由独立 checker 检查。
+
+以下职责属于同一 skill 但不属于本切片：登录/密钥、真实服务状态、业务断言、探索式安全测试、任意自然语言报告和未定义的原生 runner。它们进入 `outside-class`、`source-blocked` 或 `unresolved`，不会被删除，也不会降低核心分母。
+
+### 2.2 结果等级
+
+机器报告必须同时给出四个状态，避免把协议状态当成能力状态：
+
+- `protocolReady`：manifest、角色、来源和账本格式可运行；
+- `inputReady`：至少三名 primary 候选各有两个适用输入；
+- `capabilityReady`：共享构造器和独立 checker 在开发集上达到合同阈值；
+- `transferDecision`：held-out 首跑的 `bounded-positive`、`bounded-negative`、`insufficient-evidence` 或 `blocked-before-evaluation`。
+
+主结果按下列预注册规则派生：
+
+- `bounded-positive`：至少 3 名 repository-distinct primary 成员、每名至少 2 个适用输入；核心义务覆盖率不低于 90%；至少 2/3 成员在**首次运行**产生非空 accepted artifacts；所有 accepted artifacts 的独立 checker 通过率为 100%；没有按仓库/skill ID 写的成功分支。
+- `strong-positive`：上述条件成立且 3/3 成员首次运行产生 accepted artifacts，核心义务覆盖率不低于 95%。
+- `bounded-negative`：三名成员均 input-qualified、方法锁和分母完整，但未达到 positive 阈值；首跑和一次共享修订都保留。
+- `insufficient-evidence`：候选池中不足三名 input-qualified，或核心分母无法闭合；这不是迁移失败，也不能改写为正向结果。
+- `blocked-before-evaluation`：来源锁、代码版本或外部服务使方法无法在任何 primary 输入前成立；保存已获得的工程证据。
+
+本 identity 禁止声称整个 skill、所有未来成员、真实 API 业务正确性、人工节省、跨模型稳定性或生产 readiness。局部正向结果的准确措辞是“该职责切片在若干独立成员上由共享 AOT 路径构造并通过独立核验”。
+
+## 3. 数据链、角色和保护边界
+
+每条结果都沿用以下链路：
+
+```text
+repository/commit/source path
+  -> skillId
+  -> eligibility record
+  -> responsibilityId / obligationId
+  -> taskContract / inputId
+  -> construction outcome
+  -> independent checker report
+```
+
+角色固定为 `development`、`screened-reserve`、`primary-heldout`、`primary-revision`。角色一旦进入构造不可改变；screening 不合格的候选不能在报告中改称 primary success。每个源只记录一个可复现 commit、path、license、读取状态和必要的 source locator；不添加重复的多层摘要。历史结果目录、Q1 reserve、旧 held-out、v1/v2 candidate 和 readiness 文件不修改。
+
+候选筛选发生在方法锁之后、构造之前：R2 先锁定 eligibility 规则，R3 可以按该规则读取候选正文和直接合同资源，但这些读取统一标记为 `screened-reserve`，不调用模型、不生成产物，也不参与方法修订。只有 R8 锁定 primary 名单后，行才可变为 `primary-heldout`；这样既能避免上一次的零输入选择，又不会把筛选信息偷偷当成迁移结果。
+
+新阶段使用：
+
+```text
+branch: skill-family-class-proof-002
+identity: skill-family-class-proof-002
+evidence: results/skill-ir/skill-family-class-proof-20260911/
+status: planned
+```
+
+开始执行时必须重新记录实际 HEAD、分支、origin tracking 和 tracked status；不能使用本文件写作时的旧 commit。工作分支可以从当前 HEAD 创建，完成后只推送用户 `origin`，不推 `upstream`，不自动合并基线。
+
+## 4. 文件责任
+
+先检查下列既有模块，能复用就不重复实现：
+
+- `src/skill-ir/skill-family-stage-manifest.ts`：状态、角色和基础路径校验；
+- `src/skill-ir/skill-family-obligation-ledger.ts`：义务和 disposition；
+- `src/skill-ir/skill-family-class-construction.ts`：共享 request/body 构造和 checker 组合；
+- `src/skill-ir/api-request-specimens.ts`、`src/skill-ir/api-request-form-specimens.ts`、`src/skill-ir/api-request-body-negatives.ts`：已有窄合同；
+- `src/benchmarks/skill-ir/public-structure-offline-family-contract.ts`：上位家族成员条件；
+- `scripts/skill-ir/skill-family-acquire.ts`、`scripts/skill-ir/skill-family-new-discovery.ts`：来源缓存和获取模式；
+- `scripts/skill-ir/skill-family-minimum-delivery.ts` 与 `src/skill-ir/skill-family-minimum-delivery-run.ts`：旧阶段只读参考，不覆盖其 identity。
+
+本阶段需要新增或修改的责任边界如下：
+
+- Create `src/skill-ir/skill-family-eligibility.ts`: 纯函数 `preflightSkillEligibility(input): EligibilityRecord`，只做固定规则筛选，不做构造、不调用网络/模型。
+- Create `src/skill-ir/skill-family-eligibility.test.ts`: 先写缺输入、只含 live duty、合同资源缺失、两个有效 task、边界/uncertain 五类 RED/green 测试。
+- Create `scripts/skill-ir/skill-family-class-proof.ts`: 可恢复 orchestrator，串联 preflight、development、lock、primary、revision、report 和 resume；通过子进程调用现有入口。
+- Create `scripts/skill-ir/skill-family-class-proof.test.ts`: 状态转移、失败隔离、首跑不可覆盖和 accounting 测试。
+- Create `benchmarks/skill-ir/classification/skill-family-class-proof-contract-v1.json`: 固定类判据、排除条件、阈值、输入格式和结果等级。
+- Create `results/skill-ir/skill-family-class-proof-20260911/`: manifest、source ledger、eligibility、responsibility/obligation ledger、first-run/revision、cost ledger、final report。
+- Modify `docs/skill-ir/skill-family-current-results.md` and `docs/skill-ir/skill-family-minimum-delivery.md`: 只增加新计划和新 identity 的导航，保留旧不足证据原文。
+- Create `docs/skill-ir/skill-family-class-proof-002.md`: 组件合同、命令、字段、失败含义和恢复方式。
+- Append one short checkpoint per meaningful stage to `D:\skill优化\conversation_log.md` and `D:\skill优化\project_handoff.md`。
+
+## 5. 状态机与连续运行规则
+
+```text
+planned
+  -> screening
+  -> development
+  -> capability-ready
+  -> method-locked
+  -> primary-running
+  -> revised-once | no-revision
+  -> reported
+
+screening -> screening-shortfall
+development -> method-not-ready
+capability-ready -> method-not-ready
+method-locked -> blocked-before-evaluation
+primary-running -> insufficient-evidence | bounded-negative | bounded-positive | strong-positive
+```
+
+`screening-shortfall` 和 `insufficient-evidence` 仍要继续执行所有不依赖缺失来源的开发、checker 和报告任务；不能因一次 403、429、模型无响应或单个坏源结束整晚任务。每次恢复先读本计划、`execution-status.json` 和最后一个完整结果目录，运行 `--step=status`/`--step=resume`，从首个未完成步骤继续。禁止重复已经有明确返回结果的付费请求；对瞬时网络错误最多做三次有退避重试，永久错误转入下一个候选。
+
+## 6. 连续工作队列
+
+每个任务都采用“前置条件 → 步骤 → 验收”格式。除受保护的 primary lock 外，不设置人工等待点；一个任务结束后立即进入下一个。时间只是资源分配参考，不用重复测试或空等来凑时长。
+
+### R0：记录新 identity 和可恢复基线
+
+**前置条件：** 当前工作树可读；历史未跟踪材料可能存在但不属于本计划。
+
+**文件：** `scripts/skill-ir/skill-family-class-proof.ts`、`results/skill-ir/skill-family-class-proof-20260911/execution-status.json`、`docs/skill-ir/skill-family-class-proof-002.md`。
+
+- [ ] 运行 `git status --short --branch`、`git rev-parse HEAD`、`git rev-parse --abbrev-ref --symbolic-full-name @{u}`，把实际值写入 status。
+- [ ] 从当前 HEAD 创建或继续 `skill-family-class-proof-002`，不修改 `main`、`upstream` 或历史结果。
+- [ ] 写一个最小 status 命令：`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`；不存在结果时返回 `planned`，不得创建模型/网络请求。
+- [ ] 为 status JSON 定义 `identity`、`planRevision=1`、`currentStep`、`lastCompletedStep`、`externalAccounting`、`protectedReads` 和 `failureSummary`。
+- [ ] 先提交 `chore(skill-ir): register class-proof recovery identity`，只暂存本任务文件、status 和组件说明。
+
+**验收：** status 可重复读取；旧 `skill-family-minimum-delivery-001` 报告的 bytes/字段没有变化；无外部调用。
+
+### R1：实现确定性的 eligibility preflight（首要修复）
+
+**前置条件：** R0 status 为 `screening`；不读取任何 primary body，不调用模型。
+
+**函数合同：**
+
+```ts
+type EligibilityRecord = {
+  skillId: string;
+  classId: "openapi-contract-to-offline-request-specimen";
+  decision: "eligible" | "excluded" | "uncertain";
+  evidence: Array<{ sourcePath: string; locator: string; kind: "input" | "output" | "coverage" | "resource"; quote: string }>;
+  applicableInputs: Array<{ inputId: string; sourcePath: string; operationCount: number; format: "json" | "yaml" }>;
+  exclusionReasons: string[];
+  bodyReadForScreening: boolean;
+  modelCalls: number;
+};
+export function preflightSkillEligibility(input: unknown): EligibilityRecord;
+```
+
+- [ ] 先在 `skill-family-eligibility.test.ts` 写失败测试：缺 API marker、缺产物责任、只有 live/auth duty、合同资源不可读、一个操作、两个有效操作、同一操作两个覆盖场景、资源外链不闭合、边界 uncertain。
+- [ ] 运行 `bun test ./src/skill-ir/skill-family-eligibility.test.ts`，确认 RED 原因是函数未实现或返回错误决策。
+- [ ] 实现固定规则：要求公开合同定位、产物责任定位、coverage 定位；扫描 direct resources 的 JSON/YAML OpenAPI 3.0.x；把每个可定位 operation/coverage 组合转为 input candidate；无模型、无网络副作用。
+- [ ] 对缺失、冲突或只依赖外部服务的来源返回 `excluded`/`uncertain`，保留 locator 和原因，不把它们计入 input-qualified。
+- [ ] 再运行同一 focused test，确认全绿，并运行 `node node_modules/typescript/bin/tsc --noEmit`。
+- [ ] 在 `scripts/skill-family-class-proof.test.ts` 加一条“预检拒绝时不产生 construction/model call”的测试。
+
+**验收：** eligibility 是可重复纯函数；对一个候选的输入结果不依赖 accepted outcome；`modelCalls=0`；所有排除原因可读。
+
+### R2：冻结窄类合同和候选池（先筛资格，再谈效果）
+
+**前置条件：** R1 focused tests 通过。
+
+**文件：** `benchmarks/skill-ir/classification/skill-family-class-proof-contract-v1.json`、`results/.../candidate-pool.json`、`results/.../screening-policy.json`。
+
+- [ ] 写入四条成员判据、四类排除条件、输入最小值 2、结果阈值、允许格式 `json/yaml`、版本 `OpenAPI 3.0.x` 和义务 disposition 枚举。
+- [ ] 固定候选池发现规则：使用认证 `gh api` 搜索 API/testing/openapi/contract-test 相关 skill；先保存 repository/path/branch/license metadata，再按确定性顺序去重；目标至少 15 个候选、至少 8 个独立 owner/repository。
+- [ ] 在读取正文前提交候选池和 screening-policy；候选池后续新增只进入 `uninspected`，不能改变本 identity 的顺序或阈值。
+- [ ] 记录 development candidates 至少 6 个、screened reserve 至少 6 个，确保一个坏源不会把分母缩成零；不以已有 accepted 结果选候选。
+- [ ] 运行 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=screening-policy`，输出 `policy-frozen` 和 `bodyReadForConstruction=0`。
+
+**验收：** 类边界独立于当前 constructor；候选、排序、排除和阈值在任何构造前可读取；历史失败 identity 不被重试或覆盖。
+
+### R3：认证获取和恢复真实 skill 正文/直接资源
+
+**前置条件：** R2 policy frozen；允许读取 development candidates，primary candidates 仍标记为 screening。
+
+- [ ] 使用 `gh api repos/{owner}/{repo}/git/trees/{commit}?recursive=1`、contents/raw 或 Git clone 取得固定 commit；每个请求保存 URL、status、时间、重试次数、路径和错误文本。
+- [ ] 采用三次瞬时重试、Retry-After/backoff、缓存和断点续取；403/429 时先读取 rate-limit 信息，再切换到已认证 Git/raw 方式或继续本地候选，不把此前 149 个成功响应作废。
+- [ ] 只下载 `SKILL.md` 及正文直接命名的合同、fixture、schema、template、script；单 skill 文件数 100、总大小 5 MiB，超限写 `resource-closure-incomplete`，不悄悄删除职责。
+- [ ] 运行 R1 preflight 于所有已取得候选；对每行写 `eligible/excluded/uncertain`、适用输入数和 source locator。预检阶段不调用模型、不生成 artifact。
+- [ ] 目标得到至少 6 个 development eligible 和至少 6 个 reserve/primary eligible；若不足，保存实际 shortfall 后转入 R4/R5 本地能力工作。
+
+**验收：** 成功源可从 commit/path 重读，失败源独立保留；筛选输入至少来自 4 个独立仓库；没有因单个 GitHub 错误终止队列。
+
+### R4：职责与输入分母（模型只做草稿，不做裁判）
+
+**前置条件：** 至少三名 development eligible，或 R3 已记录真实 shortfall。
+
+- [ ] 对至少 4 名 development 成员建立完整责任清单：核心合同输入、coverage、request specimen、negative/format、checker 依据，以及 outside-class duties。
+- [ ] 如自然语言难以结构化，每名最多一次模型草稿调用；prompt 只包含已取得正文/直接资源和任务格式，不包含 held-out、gold、运行结果或 secret；保存原始 response、token/费用返回和结构化校验结果。
+- [ ] 用确定性 locator 检查每项职责和 obligation；模型没有响应或定位无效时记 `unresolved`，不能自动批准映射。
+- [ ] 为每个 eligible 成员绑定至少两个 `inputId`，并把 operation count、格式、coverage requirement 和预期 checker 列入 ledger；无两个输入的成员退为 reserve/excluded，原因保留。
+- [ ] 运行 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=development-ledger`，输出按 member/duty/obligation/input 的分层分母。
+
+**验收：** 每个核心 obligation 在构造前已有 locator 和 planned disposition；输入不再出现 `0/0` 的隐性状态；model/source/paid accounting 分列。
+
+### R5：从真实失败中选共享能力改进
+
+**前置条件：** R4 ledger 至少有三个成员的可比较缺口；没有跨成员证据时只做 checker/diagnostic，不凭想象扩 DSL。
+
+- [ ] 生成 `gap-matrix.json`：每个缺口列出出现成员数、受影响输入、当前 status、是否属于类合同、现有模块和独立 oracle。
+- [ ] 优先选择至少两个独立成员同时出现的一个或两个缺口。候选顺序为：递归 `$ref`/组合 schema、query/body array/form 编码、response/header observation、负例 witness；认证和业务状态留在 outside-class。
+- [ ] 为每项缺口先写最小 RED：合法输入不应被拒绝、非法变形应被 checker 拒绝、缺少 source evidence 应保持 unresolved。
+- [ ] 实现共享模块或扩展现有模块，不读取 `skillId`、repository 或路径，不写答案表；构造器和 checker 使用不同的判定路径或标准库。
+- [ ] 运行 focused tests、相关历史样本重核和受影响三成员小批；只在出现实际语义改善时保存 before/after，避免全量重复审计。
+
+**验收：** 至少一个共享能力在两个独立成员上有适用实例或有明确 source-shortfall；合法输入误拒绝下降且 checker 仍能检出设计错误；旧历史报告字节不变。
+
+### R6：开发集纵向运行与 capability gate
+
+**前置条件：** R4 ledger 闭合；R5 的必要修复已提交。
+
+- [ ] 选择 4–6 个 development eligible 成员（至少 4 个独立 owner/repository），每名绑定两个输入；选择按预先排序，不看构造结果。
+- [ ] 对每个 input 运行现有 `buildClassConstruction`/对应 profile，一次构造、一次独立 checker；保存 invocation、stdout/stderr、artifact、checker、obligation outcome 和耗时。
+- [ ] 统计 `protocolReady`、`inputReady`、`capabilityReady`，并分开列出构造拒绝、source-blocked、outside-class、checker failure、infrastructure failure。
+- [ ] capability gate 只检查工程必要条件：每名输入至少有一个可解释 outcome；accepted artifacts 100% checker pass；无 repository-specific dispatch；核心 obligation coverage 目标不低于 90%。
+- [ ] 若 gate 失败，先保存首跑，最多做一次共享修订并重跑受影响输入；不能删掉困难义务、缩小 class 或把 development 改称 held-out。
+
+**验收：** `capabilityReady=true` 只有在开发集满足上述条件时才成立；否则状态为 `method-not-ready`，但 R7/R12 仍可完成工程和失败报告。
+
+### R7：边界、负例和不必要拒绝测试
+
+**前置条件：** R6 至少有一个真实成功和一个真实拒绝，或有明确 shortfall。
+
+- [ ] 从真实成员的共性职责生成至少 12 个合成变形：缺 `$ref`、循环/共享引用、数组编码、required 缺失、错误 status/header、security dependency loss、body 类型冲突等。
+- [ ] 每个变形绑定预期检出层，不把合成 gold 当作真实 source evidence；构造器、dependency verifier 和 independent checker 的职责分开。
+- [ ] 加入至少 6 个合法边界输入，验证不因 key 顺序、大小写、十进制约束或 JSON/YAML 格式而无理由拒绝。
+- [ ] 运行 `bun test` 的 focused subset；记录 `detected/undetected/unsupported/unresolved`，不把测试数量写成总体成功率。
+
+**验收：** 设计错误至少 90% 在预定层检出；合法边界的拒绝都有可定位原因；结果用于 capability evidence，不改变 primary selection。
+
+### R8：方法锁和 primary selection（唯一保护门）
+
+**前置条件：** R6 `capabilityReady=true`，或已明确转入 `insufficient-evidence`；R1–R7 的方法/contract 版本已提交。
+
+- [ ] 写入 `method-lock.json`：class contract commit、eligibility algorithm version、mapping schema、construction/checker profile、input generation rule、thresholds 和一次 revision policy。
+- [ ] 对 R3 中未参与 development 的候选运行同一 preflight；先得到至少 5 个 `eligible`，按固定顺序锁定 3 个 primary + 至少 2 个 reserve，且至少 3 个不同 owner/repository。
+- [ ] 在 lock 前只做 eligibility screening，不运行构造、不看 accepted count、不用模型生成答案；把 `screeningBodyReadCount` 与 `primaryBodyReadCount` 分列。
+- [ ] 将 primary source body、直接资源和任务输入在 lock 后一次性读取；若某个候选仍不满足两个输入，保留其 `ineligible-after-screening`，按锁定的 reserve replacement 规则替换，替换行仍留在分母和报告中。
+- [ ] 运行 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=lock`，必须返回 `method-locked` 或明确 `insufficient-evidence`，不能静默继续。
+
+**验收：** 方法锁先于 primary construction；至少三名 primary input-qualified 才开放 R9；没有把开发修订结果冒充首跑。
+
+### R9：primary 首次迁移运行
+
+**前置条件：** R8 `method-locked` 且三名 primary 各有两个输入。
+
+- [ ] 每个 primary member 严格一次首跑；不按仓库/skill ID 分支，不人工补产物，不自动重试同一输入。
+- [ ] 每行记录 extraction status、mapping status、construction status、checker status、obligation outcomes、artifact paths、elapsed time 和 external accounting。
+- [ ] 运行失败按 `source-blocked`、`unsupported-by-contract`、`constructor-error`、`checker-failure`、`infrastructure-failure` 分类；失败原件不覆盖。
+- [ ] 首跑完成后立即写 `primary-first-run.json` 和 status checkpoint，再决定是否进入 R10；不要用后续修订覆盖首跑。
+
+**验收：** 三名 primary 的真实首跑结果完整可读；accepted artifact 的 checker evidence 完整；任何零结果都有具体层和原因。
+
+### R10：一次共享修订（仅在首跑提供行动性证据时）
+
+**前置条件：** R9 存在至少两个成员出现的同一可修复缺口；若所有失败是 source-blocked 或输入不适用，直接写 `no-revision`。
+
+- [ ] 从首跑聚合缺口，确认缺口在 R8 预注册的 class contract 内；超出合同的特性保持 unsupported。
+- [ ] 保存 first-run 与修订前 RED；只修改共享代码/合同版本，禁止新增 repository-specific adapter。
+- [ ] 对同一 primary 输入各执行一次 `primary-revision`，报告 first/revision 并排；不删除失败行，不改 initial threshold。
+- [ ] 对修订影响的 development fixture 做 focused regression；不重新读取 Q1/旧 held-out，不重跑无关历史 identity。
+
+**验收：** 修订结果可解释且独立 checker 仍通过；若未达到阈值，决策仍为 `bounded-negative` 或 `insufficient-evidence`，不强行晋升。
+
+### R11：效果、自动化边界和成本测量
+
+**前置条件：** R9/R10 已有完整报告。
+
+- [ ] 计算四个分母：成员、核心 duties/obligations、适用 inputs、accepted artifacts；另列 source/model/paid/infrastructure calls。
+- [ ] 对每个成员记录接入改动：纯声明式 mapping、共享代码改动、必要人工语义审核、模型调用、构造时间和 checker 时间；没有实测的人工分钟写 `not-measured`。
+- [ ] 若可比，运行 6–12 个匹配任务比较 deterministic route 与原 skill/model route 的质量/覆盖/时间；否则只报告 AOT route，不编造效率结论。
+- [ ] 把 `protocolReady/inputReady/capabilityReady/transferDecision` 写入 final report，禁止使用单一 `readiness` 布尔值代替四者。
+
+**验收：** 报告能回答“这一类哪些成员、哪些职责、哪些输入被自动化，剩余人工在哪里”；0 token 或 accepted 数量本身不作为成功理由。
+
+### R12：轻量复现、文档同步和推送
+
+**前置条件：** R0–R11 的实际状态已写入 status；没有未解释的 tracked 修改。
+
+- [ ] 在短路径 detached checkout 复现新 identity 的 manifest、eligibility、method lock 和 final report；使用现有离线依赖包，避免重新请求网络/模型。
+- [ ] 运行一次 focused regression、一次 `bun run typecheck`、一次脚本 typecheck；文档链接只做一次增量扫描，不重复全仓历史审计。
+- [ ] 更新 `docs/skill-ir/skill-family-class-proof-002.md`、`skill-family-current-results.md`、`deadline-execution-status.md` 和 root handoff，明确成功/失败/未执行、恢复命令和剩余缺口。
+- [ ] 仅暂存本计划涉及的代码、测试、contracts、结果和文档，分功能提交并推送 `origin/skill-family-class-proof-002`；不要 `git add -A`，不要删除未跟踪历史材料。
+- [ ] 最终 status 命令为 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`，并把输出路径写入交接。
+
+**验收：** 新报告可由 clean checkout 重放；旧不足证据、旧 candidate/readiness/Q1 不变；远端分支与本地提交一致；最终主张严格使用结果等级。
+
+## 7. 外部调用和失败处理
+
+| 情况 | 处理 | 记录 |
+|---|---|---|
+| GitHub 403/429 | 读取 rate-limit/Retry-After，最多三次退避；切换已认证 Git/raw 或继续下一个候选 | URL、status、retry、cache、failure reason |
+| 单个仓库缺 SKILL/许可证/资源 | 保留 partial bundle，标记 `resource-closure-incomplete`，不从中构造正例 | source ledger 与 exclusion reason |
+| 模型无响应 | 不重复同一请求；保存 prompt/timeout/unknown usage，继续确定性任务 | model ledger |
+| 模型草稿定位无效 | 记 `unresolved`，不自动批准 mapping | draft + locator diagnostics |
+| 构造器拒绝 | 判断是否属于预注册合同；合同内是修复候选，合同外是 unsupported | first-run outcome |
+| checker 失败 | 保留 artifact 和 checker report；只修共享 checker/构造逻辑，不放宽 predicate | checker evidence |
+| 外部调用全部不可用 | 继续使用已归档 development/synthetic 数据完成 R1、R5、R7、R11、R12 | status=`external-shortfall` |
+
+不因失败立即停止连续队列；只有用户明确停止、受保护资料边界无法维持、或所有剩余任务都依赖不可获得的输入时才收口。不得用等待 rate-limit 恢复来占用整段运行时间。
+
+## 8. 主队列结束后的额外工作
+
+若 R12 已完成且用户没有发出停止指令，继续按以下顺序做有明确产物的工作：
+
+1. **E1 共性缺口第二轮：** 只处理 R9/R10 中至少两个独立成员重复出现的合同内缺口，新增 RED、实现、两个成员回归和独立 checker 证据。
+2. **E2 扩大类内样本：** 从 reserve 中再加入 5–10 个真正 eligible 的成员，保持同一 contract 和 preflight，输出成员/输入/义务矩阵；不把数量写成生态比例。
+3. **E3 官方实现和论文对照：** 阅读 OpenAPI/JSON Schema、Schemathesis、Dredd、Prism、Hypothesis 等一手文档或论文，只选择能对应当前 gap-matrix 的一个技术改进，形成代码或反例；不做泛泛综述。
+4. **E4 自动研究循环：** 把“发现 → 预检 → 提取 → 构造 → checker → 成本 → 决策”封装为可恢复命令；加一个新候选即可运行，不要求人工编辑成功答案。
+5. **E5 属性/差分测试：** 对已实现的 `$ref`、数组、form、decimal、header 和 negative witness 能力补跨格式/顺序/组合变形；只报告真实检出的故障。
+6. **E6 文档治理：** 将当前说明归并为一页结果导航、一页组件合同和一页恢复手册，旧实验按链接保留，不删除历史原件，不制作 HTML/PPT。
+
+每项额外工作开始前在 `execution-status.json` 追加问题、产物和验收字段；完成后立即提交并继续下一项。若一个额外任务没有实际 gap 或输入，不为了延长运行而虚构任务。
+
+## 9. 恢复命令与 Definition of Done
+
+恢复顺序固定为：
+
+```text
+cd /d D:\skill优化\SkVM
+git status --short --branch
+bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status
+bun ./scripts/skill-ir/skill-family-class-proof.ts --step=resume
+```
+
+`--step=resume` 必须读取 status 并执行从首个未完成 R/E 任务开始的连续队列；它不能重新发送已完成的模型/付费请求，也不能读取 protected reserve 以外的新来源而不先写 screening policy。
+
+本计划的工程 Definition of Done：
+
+- 新 identity、分支、manifest、候选池、eligibility、职责/输入分母和成本账本齐全；
+- 至少一个可复用共享构造/核验改进有真实跨成员证据，或有明确、可复现的 source shortfall；
+- primary 首跑与可选修订分离，所有 accepted artifacts 有独立 checker 证据；
+- `protocolReady`、`inputReady`、`capabilityReady` 和 `transferDecision` 四字段由机器报告派生；
+- clean checkout 能离线重放本阶段报告；
+- 代码、测试、组件文档、状态、handoff、conversation log 和 origin 分支同步；
+- 最终结论只使用 `strong-positive`、`bounded-positive`、`bounded-negative`、`insufficient-evidence` 或 `blocked-before-evaluation` 之一，并附具体分母与限制。
+
+完成 R0–R12 不自动等于“所有 skill 都能自动化”。真正可辩护的最小成果是：一个独立定义的类、一个不依赖成员名称的共享实现、至少一个跨成员可核验的正向切片，以及对失败边界和剩余人工职责的机器化说明。

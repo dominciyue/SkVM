@@ -123,3 +123,14 @@ executed. To resume, read this document, the task plan, the latest
 `deadline-execution-status.md` entry, and `stage-manifest.json`, then run the
 status command before touching any evidence. Do not replace first-run files or
 reinterpret unresolved obligations as rejection or success.
+
+## Successor route
+
+The reported identity is closed. A separate route is registered in
+[Skill Family Class Proof and Automation Recovery](../superpowers/plans/2026-09-11-skill-family-class-proof-recovery.md)
+under `skill-family-class-proof-002`. It first screens candidates with a deterministic,
+model-free eligibility preflight and narrows the measured slice to
+`openapi-contract-to-offline-request-specimen`. The successor may read and acquire new
+public sources, but it must keep screening, development, primary first-run, and any
+revision in separate records. This note does not change the `insufficient-evidence`
+decision or reopen this stage.

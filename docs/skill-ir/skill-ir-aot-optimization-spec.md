@@ -2261,3 +2261,13 @@ prediction 和 lock 提交前阻止运行。任何认证/请求策略改变须�
 工程主线是复用 loader、family contract、普通输入 runner 与独立 checker，打通有依据的职责映射并修复多个成员的共性能力缺口。目标至少三个独立 development skill 共用实现，再固定方法并取得目标至少三个未用于开发的同类 skill 作首次检验。数量是取证目标，不能保证成功；未完成相应证据不得声称对该类有效。有限样本也不构成对全部未来成员的普遍证明。
 
 用户取消付费金额/请求次数上限，但调用须有明确用途、保留实际成本与首稿。认证续取、缓存和有界重试继续允许；正常修复不增加多层冻结/哈希/审查。历史结果、Q1/readiness 与旧保护样本不因此改写。文档只同步理解实现与复现必要的信息。
+
+### 14.27 一类 skill 类证明恢复路线（2026-09-11，新 identity）
+
+上一阶段 `skill-family-minimum-delivery-001` 的 `insufficient-evidence` 结论保持不变：三名 selected member 的适用输入为 `0/0`。为解决“方法可运行但选到的成员没有目标职责”这一具体问题，后续使用[类证明与自动化恢复任务书](../superpowers/plans/2026-09-11-skill-family-class-proof-recovery.md)，identity=`skill-family-class-proof-002`，不在旧 identity 上补行或改写结果。
+
+新阶段把测量切片预先收窄为 `openapi-contract-to-offline-request-specimen`：公开 OpenAPI 3.0.x 合同 + 明确 coverage requirement → 离线 request/test specimen → 独立 checker。先锁定资格规则，再对候选正文和直接合同资源做无模型 screening；只有拥有至少两个可派生输入、明确产物责任且核心语义可离线确定的成员才进入 primary 分母。筛选、development、primary 首跑和一次共享修订各自保留，避免用 accepted outcome 反向选样。
+
+该路线只增加一个纯函数 eligibility preflight 和一个可恢复编排入口，优先复用现有 obligation ledger、class construction、request/form/body/response checker。结果必须分别报告 `protocolReady`、`inputReady`、`capabilityReady` 和 `transferDecision`。`bounded-positive` 的最低条件是三个独立 primary 成员各有两个适用输入、核心义务覆盖不低于 90%、至少 2/3 首跑产生 accepted artifacts 且 checker 100% 通过；不足三名 input-qualified 时只能报告 `insufficient-evidence`。无论结果如何，都不得声称整 skill、所有未来成员、真实业务 API、人工节省或 production readiness。
+
+本 identity 可使用认证 GitHub CLI、远端 API 和付费模型；历史 identity 的请求/预算限制不追溯改变。外部失败按候选隔离、缓存和有限退避处理，队列继续执行不依赖该来源的工程任务；实际调用、token、费用未知项单列。达到 2026-09-14 时优先冻结当前最好可复核证据，不以 HTML、展示层或重复审计替代类内工程结果。
