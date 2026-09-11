@@ -353,13 +353,33 @@ artifacts（21/21 独立 checker）；57 个 operation 中 36 rejected、0 unres
 
 **前置条件：** R0–R11 的实际状态已写入 status；没有未解释的 tracked 修改。
 
-- [ ] 在短路径 detached checkout 复现新 identity 的 manifest、eligibility、method lock 和 final report；使用现有离线依赖包，避免重新请求网络/模型。
-- [ ] 运行一次 focused regression、一次 `bun run typecheck`、一次脚本 typecheck；文档链接只做一次增量扫描，不重复全仓历史审计。
-- [ ] 更新 `docs/skill-ir/skill-family-class-proof-002.md`、`skill-family-current-results.md`、`deadline-execution-status.md` 和 root handoff，明确成功/失败/未执行、恢复命令和剩余缺口。
-- [ ] 仅暂存本计划涉及的代码、测试、contracts、结果和文档，分功能提交并推送 `origin/skill-ir-aot`；不要 `git add -A`，不要删除未跟踪历史材料。
-- [ ] 最终 status 命令为 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`，并把输出路径写入交接。
+- [x] 在短路径 detached checkout 复现新 identity 的 manifest、eligibility、method lock 和 final report；使用现有离线依赖包，避免重新请求网络/模型。
+- [x] 运行一次 focused regression、一次 `bun run typecheck`、一次脚本 typecheck；文档链接只做一次增量扫描，不重复全仓历史审计。
+- [x] 更新 `docs/skill-ir/skill-family-class-proof-002.md`、`skill-family-current-results.md`、`deadline-execution-status.md` 和 root handoff，明确成功/失败/未执行、恢复命令和剩余缺口。
+- [x] 仅暂存本计划涉及的代码、测试、contracts、结果和文档，分功能提交并推送 `origin/skill-ir-aot`；不要 `git add -A`，不要删除未跟踪历史材料。
+- [x] 最终 status 命令为 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`，并把输出路径写入交接。
 
 **验收：** 新报告可由 clean checkout 重放；旧不足证据、旧 candidate/readiness/Q1 不变；远端分支与本地提交一致；最终主张严格使用结果等级。
+
+**R12 实际检查点（2026-09-12）：** 首个 detached replay 在 `2877b77` 上如实失败，原因是
+`.gitignore` 排除了 12 个 primary run 的 generator/checker 程序；失败报告保留为
+`clean-replay-attempt-001.json`，没有放宽 verifier。随后只归档这 12 个已经生成的、摘要一致的
+程序文件，提交 `1663d4f`，并在 `D:\cp-clean-r12c`（Bun 1.3.14，离线安装 236 packages）上
+以 `3e33dfc` 完成正式重放。命令为：
+
+```text
+git clone --no-checkout <local-repository> D:\cp-clean-r12c
+git -C D:\cp-clean-r12c checkout --detach 3e33dfc
+bun install --frozen-lockfile --offline
+bun ./scripts/skill-ir/skill-family-class-proof.ts --step=clean-replay --out=D:\cp-clean-r12-report-003.json
+```
+
+正式报告复制为 `results/skill-ir/skill-family-class-proof-20260911/clean-replay.json`，证据文件
+19/19、run 6/6、57 operations、21 accepted、21 checked，`semantic.matchesFinalReport=true`，
+外部 model/API/paid 为 0/0/0。`statusBinding` 同时保留 status 文件生成时的声明 HEAD 与 detached
+checkout 的实际 HEAD；这不是静默改写。干净检出中的 focused suite 为 27/27（95 assertions），
+`bun run typecheck` 通过，class-proof 脚本自身显式诊断为 0；命令行依赖图仍会显示仓库其他历史
+模块的既有诊断，因此不把它们误称为本脚本失败。
 
 ## 7. 外部调用和失败处理
 

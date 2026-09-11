@@ -114,3 +114,9 @@
 - 研究路线的 `api-tester-operation-admission-dev`、`api-tester-operation-unseen-prospective-001` 和 `skill-family-minimum-delivery-001` 均已确认是 `skill-ir-aot` 的线性祖先；主分支通过 fast-forward 到 `7e38674`，并已推送 `origin/skill-ir-aot`，ahead/behind=`0/0`。
 - 三个专用本地分支已删除；远端存在的两个专用分支已删除，`api-tester-operation-admission-dev` 远端原已不存在。无关历史远端分支和 detached 证据 worktree 保留。
 - 合并后必要检查：`bun run typecheck` 通过，文档链接测试 `8/8` 通过，Skill IR 回归 `343` 个测试中 `342` 通过。唯一失败是旧 operation-delivery 报告测试在当前工作树重新生成候选时发现已冻结的 CRLF/旧依赖字节与后续依赖提交不一致；冻结候选和历史报告未改写，需单独维护修复。
+
+## 2026-09-12 Class-proof recovery R11-R12
+
+- R11 final report is bound to the class-proof method lock, primary selection, responsibility/development ledgers, validation, first-run, no-revision decision, and the historical API Tester `0/6` report. The bounded primary slice is 3 members, 6/6 inputs, 15 core obligations (14 constructed), 21/21 checker-checked accepted artifacts, and 57 operations (36 rejected, 0 unresolved); four gates are protocol/input/capability `true` and transfer `bounded-positive`.
+- R12 first clean replay at `2877b77` correctly failed because the committed output closure omitted twelve already-generated generator/checker programs. The failure remains archived; verifier predicates and v2 contract were not relaxed. After explicit archival (`1663d4f`), detached `D:\cp-clean-r12c` at `3e33dfc` replayed offline with 236 packages: 19/19 evidence files and 6/6 runs verified, with 57/21/21 operations/accepted/checked and semantic denominators matching.
+- Focused regression is `27/27` (95 assertions), repository typecheck passes, and class-proof-specific diagnostics are zero. External model/API/paid calls for replay are `0/0/0`; status binding records both declared and actual detached HEAD. Prospective preparation remains `not-ready`; old `0/6`, readiness, Q1 and held-out boundaries are unchanged.

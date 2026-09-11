@@ -42,6 +42,37 @@ separate from primary-heldout construction. The planned result fields are
 readiness flag will stand in for them. The route prioritizes shared code and real source
 evidence, with no HTML or presentation work.
 
+### Class-proof recovery checkpoint (R0-R12)
+
+The current development identity is `skill-family-class-proof-002`. Its
+write-once boundary report is
+`results/skill-ir/skill-family-class-proof-20260911/final-report.json`; the
+formal offline replay is
+`results/skill-ir/skill-family-class-proof-20260911/clean-replay.json`.
+The replay was produced from detached commit `3e33dfcf55980413dbab1e405ff4689cc73572f5`
+after an earlier, preserved closure failure at `2877b77`.
+
+The measured primary slice is 3 repository-distinct members, 6/6 complete
+applicable inputs, 15 core obligations with 14 constructed (0.9333), 21/21
+accepted artifacts independently checked, and 57 enumerated operations (36
+rejected, 0 unresolved). The machine gates are
+`protocolReady=true`, `inputReady=true`, `capabilityReady=true`, and
+`transferDecision=bounded-positive`. This is a bounded development result,
+not a whole-document or whole-skill result. Candidate-091's
+`strict-extra-fields` duty remains unconstructed because neither bound input
+contains an `additionalProperties` source instance; the one-member gap did not
+meet the registered revision threshold.
+
+The clean replay independently verified all six primary run roots and matched
+the final report's semantic denominators without model, network, or paid calls.
+The first replay failure remains available as
+`clean-replay-attempt-001.json`; archiving the twelve generated program files
+fixed output closure without changing the v2 contract or checker. Prospective
+preparation is still `not-ready`: no separate prospective identity, input lock,
+prediction plan, or readiness decision has been registered. Historical API
+Tester `0/6`, readiness, Q1, held-out, and all earlier D1-D9/minimum-delivery
+results remain unchanged.
+
 ## What is shared
 
 The class is defined by source-declared contract-driven API request/test construction,

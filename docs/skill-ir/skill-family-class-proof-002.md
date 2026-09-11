@@ -213,6 +213,31 @@ only one primary member, so the pre-registered shared-revision rule is not met.
 The next action is R10 `no-revision`; this result must not be promoted to
 `strong-positive` by broadening the contract or manufacturing an input feature.
 
+R12 clean replay is complete. The first replay attempt is retained as
+`clean-replay-attempt-001.json`: at commit `2877b77`, all six independent
+verifiers correctly rejected the checkout because the generated
+`artifacts/scripts/api-test-generate.mjs` and `artifacts/checks/api-test-check.mjs`
+files were missing from the committed output closure. The checker was not
+relaxed. Those twelve already-produced programs (six inputs times two) were
+archived explicitly in commit `1663d4f`, and the repaired clean checkout
+`D:\cp-clean-r12c` was detached at `3e33dfc`. With
+`bun install --frozen-lockfile --offline` (236 packages),
+`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=clean-replay
+--out=D:\cp-clean-r12-report-003.json` produced the formal
+`clean-replay.json`: 19/19 evidence files, 6/6 verified runs, 57 operations,
+21 accepted and 21 independently checked, with semantic denominators matching
+`final-report.json` and external model/API/paid calls `0/0/0`.
+
+The clean report deliberately records both the status-declared HEAD and the
+actual detached HEAD; the former predates the final archive/type fix and the
+latter is the replay commit. The clean checkout also passed the focused suite
+(27 tests/95 assertions), `bun run typecheck`, and a script-specific check with
+zero diagnostics for this class-proof file. A command-line typecheck that
+follows all imports still surfaces unrelated historical module diagnostics;
+those are reported separately and are not used to weaken the class-proof
+checker. R12 remains offline development evidence and does not alter the old
+`0/6`, readiness, Q1, held-out, or prospective boundaries.
+
 R10 is complete. `no-revision.json` independently rebuilds the R9 core-duty
 outcomes and records one observed `strict-extra-fields` gap for candidate 091.
 Because no second primary member has the same contract-internal gap, the
