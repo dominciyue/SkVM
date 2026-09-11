@@ -79,6 +79,78 @@ export type ScreeningResult = {
   constructionAttempted: boolean;
 };
 
+export type CandidateMetadata = {
+  repository: string;
+  path: string;
+  sha: string;
+  branch?: string;
+  license?: string | null;
+  source?: "github-search" | "cached-development" | "synthetic";
+};
+
+export type CandidatePoolRow = CandidateMetadata & {
+  candidateId: string;
+  bodyRead: false;
+  selection: "uninspected";
+};
+
+export function buildCandidatePool(rows: Array<CandidateMetadata & { error?: string }>) {
+  const failures: Array<{ repository: string; path: string; reason: string }> = [];
+  const usable = rows.filter((row) => {
+    if (row.error) {
+      failures.push({ repository: row.repository, path: row.path, reason: row.error });
+      return false;
+    }
+    return Boolean(row.repository && row.path && row.sha);
+  });
+  const candidates: CandidatePoolRow[] = selectCandidateMetadata(usable, 15).map((row, index) => ({
+    ...row,
+    candidateId: `candidate-${String(index + 1).padStart(3, "0")}`,
+    bodyRead: false,
+    selection: "uninspected",
+  }));
+  return {
+    schemaVersion: "skill-family-class-proof-candidate-pool/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    bodyReadForConstruction: 0,
+    candidates,
+    failures,
+  };
+}
+
+export function buildScreeningPolicy() {
+  return {
+    schemaVersion: "skill-family-class-proof-screening-policy/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    classId: "openapi-contract-to-offline-request-specimen" as const,
+    minApplicableInputsPerMember: 2,
+    allowedFormats: ["json", "yaml"] as const,
+    openapiVersion: "3.0.x" as const,
+    bodyReadForConstruction: 0,
+    outcomeDrivenReplacement: false,
+    candidateOrder: "repository,path,sha lexical after metadata filtering" as const,
+    developmentMinimum: 6,
+    screenedReserveMinimum: 6,
+  };
+}
+
+export function selectCandidateMetadata(rows: CandidateMetadata[], limit = 15): CandidateMetadata[] {
+  const sorted = [...rows].sort((a, b) =>
+    a.repository.toLowerCase().localeCompare(b.repository.toLowerCase())
+    || a.path.localeCompare(b.path)
+    || a.sha.localeCompare(b.sha));
+  const seen = new Set<string>();
+  const selected: CandidateMetadata[] = [];
+  for (const row of sorted) {
+    const key = row.sha;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    selected.push(row);
+    if (selected.length >= limit) break;
+  }
+  return selected;
+}
+
 export function screenCandidate(input: EligibilityInput, construct: () => unknown = () => undefined): ScreeningResult {
   const eligibility = preflightSkillEligibility(input);
   if (eligibility.decision !== "eligible") return { eligibility, constructionAttempted: false };

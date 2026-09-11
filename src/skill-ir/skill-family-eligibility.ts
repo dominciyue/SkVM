@@ -154,18 +154,22 @@ export function preflightSkillEligibility(input: unknown): EligibilityRecord {
   if (!body.trim()) addReason("body-missing");
 
   const contractMarker = /\b(?:openapi|swagger|json\s*api|api\s+contract|API\s+contract)\b/iu;
-  const outputMarker = /\b(?:offline|local|contract[- ]derived)\b[\s\S]{0,100}\b(?:request|test|fixture|specimen|case|artifact)\b/iu
-    || /\b(?:generate|emit|produce|create)\b[\s\S]{0,100}\b(?:request\s+(?:examples?|specimens?)|test\s+cases?|fixtures?)\b/iu;
+  const outputMarker = /\b(?:offline|local|contract[- ]derived)\b[\s\S]{0,100}\b(?:request|test|fixture|specimen|case|artifact)\b/iu;
+  const generatedOutputMarker = /\b(?:generate|emit|produce|create)\b[\s\S]{0,100}\b(?:request\s+(?:examples?|specimens?)|test\s+cases?|fixtures?)\b/iu;
   const coverageMarker = /\b(?:cover(?:age)?|each\s+(?:endpoint|operation)|every\s+(?:endpoint|operation)|minimal\s+and\s+full|valid\s+and\s+invalid)\b/iu;
   const liveMarker = /\b(?:live\s+(?:api|service|endpoint)|execute\s+requests?|real\s+credentials?|authentication\s+token|auth(?:enticate|entication))\b/iu;
 
   if (contractMarker.test(body)) evidence.push(evidenceForMarker(body, sourcePath, "input", contractMarker, "body:contract-marker", "public API contract input"));
   else addReason("public-contract-marker-missing");
-  if (outputMarker.test(body)) evidence.push(evidenceForMarker(body, sourcePath, "output", outputMarker, "body:offline-output-duty", "offline request/test output duty"));
+  const hasOutputDuty = outputMarker.test(body) || generatedOutputMarker.test(body);
+  if (hasOutputDuty) {
+    const marker = outputMarker.test(body) ? outputMarker : generatedOutputMarker;
+    evidence.push(evidenceForMarker(body, sourcePath, "output", marker, "body:offline-output-duty", "offline request/test output duty"));
+  }
   else addReason("offline-output-duty-missing");
   if (coverageMarker.test(body)) evidence.push(evidenceForMarker(body, sourcePath, "coverage", coverageMarker, "body:coverage-duty", "coverage requirement"));
   else addReason("coverage-duty-missing");
-  if (liveMarker.test(body) && !outputMarker.test(body)) addReason("offline-determinacy-missing");
+  if (liveMarker.test(body) && !hasOutputDuty) addReason("offline-determinacy-missing");
 
   const parsed: ParsedResource[] = [];
   const resourcePaths = new Set<string>();

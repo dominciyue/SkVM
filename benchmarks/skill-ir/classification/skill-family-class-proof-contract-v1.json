@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "skill-family-class-proof-contract/v1",
+  "identity": "skill-family-class-proof-002",
+  "classId": "openapi-contract-to-offline-request-specimen",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "criterionId": "public-contract-input",
+      "required": true,
+      "description": "The skill or a directly named resource identifies an OpenAPI, Swagger, or JSON API contract with a locator and supported 3.0.x version."
+    },
+    {
+      "criterionId": "offline-output-duty",
+      "required": true,
+      "description": "The skill explicitly requires request examples, test cases, fixtures, or equivalent offline specimens."
+    },
+    {
+      "criterionId": "coverage-duty",
+      "required": true,
+      "description": "The skill requires coverage over operations, parameters, or valid/invalid scenarios."
+    },
+    {
+      "criterionId": "independent-check",
+      "required": true,
+      "description": "The core specimen semantics are determined by the contract and coverage declaration and can be checked without credentials or a live service."
+    }
+  ],
+  "exclusionConditions": [
+    "public-contract-marker-missing",
+    "offline-output-duty-missing",
+    "coverage-duty-missing",
+    "offline-determinacy-missing",
+    "unsupported-openapi-version",
+    "minimum-inputs-not-met",
+    "operation-inventory-empty"
+  ],
+  "uncertaintyConditions": [
+    "resource-unreadable",
+    "resource-parse-failed",
+    "resource-closure-unresolved",
+    "resource-structure-incomplete"
+  ],
+  "inputAdmissibility": {
+    "formats": ["json", "yaml"],
+    "openapiVersion": "3.0.x",
+    "minimumApplicableInputsPerMember": 2,
+    "inputIdentity": "sourcePath#METHOD path[:scenario]",
+    "publicContractRequired": true
+  },
+  "dispositions": [
+    "constructed",
+    "rejected-with-reason",
+    "unresolved",
+    "outside-class",
+    "source-blocked"
+  ],
+  "thresholds": {
+    "primaryMembers": 3,
+    "minInputsPerMember": 2,
+    "minCoreObligationCoverage": 0.9,
+    "minFirstRunAcceptedMembers": 2,
+    "acceptedCheckerPassRate": 1
+  },
+  "resultLevels": [
+    "strong-positive",
+    "bounded-positive",
+    "bounded-negative",
+    "insufficient-evidence",
+    "blocked-before-evaluation"
+  ],
+  "sampling": {
+    "candidateMinimum": 15,
+    "independentRepositoryMinimum": 8,
+    "developmentCandidateMinimum": 6,
+    "screenedReserveMinimum": 6,
+    "selectionOrder": "repository then path lexical order after metadata eligibility",
+    "outcomeDrivenReplacement": false
+  },
+  "protectedBoundary": {
+    "historicalResultsReadOnly": true,
+    "q1ReservedAccesses": 0,
+    "heldOutAccessesBeforeMethodLock": 0,
+    "prospectiveRuns": 0,
+    "readinessChanges": 0,
+    "liveBusinessApiCalls": 0
+  },
+  "claimBoundary": "This identity can establish only a bounded offline request/test specimen slice. It does not establish whole-skill completion, live API correctness, human savings, ecosystem adoption, cross-model stability, or production readiness."
+}

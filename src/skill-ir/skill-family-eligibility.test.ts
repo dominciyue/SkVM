@@ -70,6 +70,15 @@ describe("skill-family eligibility preflight", () => {
     expect(result.exclusionReasons.join(" ")).toContain("minimum-inputs");
   });
 
+  test("accepts an explicit generated request-example duty without an offline keyword", () => {
+    const result = preflightSkillEligibility(input({
+      body: "Use an OpenAPI contract to generate request examples and test cases for every operation.",
+      resources: [openapi("  /health:\n    get:\n      responses:\n        '200': { description: ok }\n  /users:\n    post:\n      requestBody:\n        content:\n          application/json:\n            schema: { type: object }\n      responses:\n        '201': { description: created }\n")],
+    }));
+    expect(result.decision).toBe("eligible");
+    expect(result.exclusionReasons).not.toContain("offline-output-duty-missing");
+  });
+
   test("marks an external reference closure as uncertain instead of guessing", () => {
     const result = preflightSkillEligibility(input({ resources: [openapi("  /pets:\n    get:\n      responses:\n        '200':\n          description: ok\n          content:\n            application/json:\n              schema:\n                $ref: './missing.yaml#/Pet'\n  /dogs:\n    get:\n      responses:\n        '200': { description: ok }\n")] }));
     expect(result.decision).toBe("uncertain");

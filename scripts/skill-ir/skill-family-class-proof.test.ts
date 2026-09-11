@@ -6,6 +6,9 @@ import {
   CLASS_PROOF_IDENTITY,
   CLASS_PROOF_RESULT_RELATIVE,
   deriveTransferDecision,
+  buildScreeningPolicy,
+  buildCandidatePool,
+  selectCandidateMetadata,
   runStatus,
   screenCandidate,
   transitionStatus,
@@ -56,5 +59,40 @@ describe("skill-family class-proof status", () => {
     expect(deriveTransferDecision({ primaryMembers: 3, inputQualifiedMembers: 3, minInputsPerMember: 2, coreCoverage: 0.95, firstRunAcceptedMembers: 3, checkerPassRate: 1 })).toBe("strong-positive");
     expect(deriveTransferDecision({ primaryMembers: 2, inputQualifiedMembers: 2, minInputsPerMember: 2, coreCoverage: 1, firstRunAcceptedMembers: 2, checkerPassRate: 1 })).toBe("insufficient-evidence");
     expect(deriveTransferDecision({ primaryMembers: 3, inputQualifiedMembers: 3, minInputsPerMember: 2, coreCoverage: 0.4, firstRunAcceptedMembers: 1, checkerPassRate: 0.5 })).toBe("bounded-negative");
+  });
+
+  test("freezes screening policy independently of construction outcomes", () => {
+    const policy = buildScreeningPolicy();
+    expect(policy.classId).toBe("openapi-contract-to-offline-request-specimen");
+    expect(policy.minApplicableInputsPerMember).toBe(2);
+    expect(policy.bodyReadForConstruction).toBe(0);
+    expect(policy.outcomeDrivenReplacement).toBe(false);
+  });
+
+  test("selects metadata deterministically and removes repository/blob duplicates", () => {
+    const selected = selectCandidateMetadata([
+      { repository: "z/repo", path: "b/SKILL.md", sha: "2" },
+      { repository: "a/repo", path: "z/SKILL.md", sha: "1" },
+      { repository: "a/repo", path: "a/SKILL.md", sha: "1" },
+      { repository: "b/repo", path: "a/SKILL.md", sha: "2" },
+    ], 10);
+    expect(selected.map((row) => `${row.repository}:${row.path}`)).toEqual([
+      "a/repo:a/SKILL.md",
+      "b/repo:a/SKILL.md",
+    ]);
+  });
+
+  test("candidate pool retains metadata failures without exposing body bytes", () => {
+    const pool = buildCandidatePool([
+      { repository: "owner/repo", path: "skills/api/SKILL.md", sha: "a", license: "MIT" },
+      { repository: "owner/repo", path: "skills/api/SKILL.md", sha: "a", license: "MIT", error: "rate limited" },
+      { repository: "other/repo", path: "SKILL.md", sha: "b", license: null, error: "missing license" },
+    ]);
+    expect(pool.candidates).toHaveLength(1);
+    expect(pool.candidates.every((row) => row.bodyRead)).toBe(false);
+    expect(pool.failures).toEqual([
+      { repository: "owner/repo", path: "skills/api/SKILL.md", reason: "rate limited" },
+      { repository: "other/repo", path: "SKILL.md", reason: "missing license" },
+    ]);
   });
 });
