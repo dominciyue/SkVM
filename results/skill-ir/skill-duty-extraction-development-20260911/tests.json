@@ -1,0 +1,34 @@
+{
+  "initialRed": {
+    "chunk_id": "64df1e",
+    "wall_time_seconds": 0.1026957,
+    "exit_code": 1,
+    "original_token_count": 873,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\skill-duty-extraction.test.ts:\n 7 | const files = [file(\"body\", \"# API tests\\nConstruct request tests.\\nRun business workflows.\\n\"), file(\"resource\", \"Preserve required fields.\\n\", \"resource\")];\n 8 | const evidence = (fileId: string, startLine: number, quote: string) => ({ fileId, startLine, endLine: startLine, quote });\n 9 | const draft = { schemaVersion: \"skill-duty-draft/v1\", responsibilities: [{ id: \"construct\", description: \"Construct requests\",\n10 |   evidence: [evidence(\"body\", 2, \"Construct request tests.\")], obligations: [{ text: \"Required fields\", evidence: [evidence(\"resource\", 1, \"Preserve required fields.\")] }] }], unresolved: [\"Business workflows need a separate contract\"] };\n11 | test(\"a locator-checked draft still needs semantic review and never approves a mapping\", () => {\n12 |   expect(validateDutyDraft(files, draft)).toMatchObject({ status: \"grounded-draft\", semanticReviewRequired: true, automaticMappingApproved: false, errors: [] });\n                                               ^\nerror: expect(received).toMatchObject(expected)\n\n  {\n    \"automaticMappingApproved\": false,\n-   \"errors\": [],\n+   \"errors\": [\n+     \"not implemented\",\n+   ],\n    \"semanticReviewRequired\": true,\n-   \"status\": \"grounded-draft\",\n+   \"status\": \"invalid-draft\",\n  }\n\n- Expected  - 2\n+ Received  + 4\n\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\skill-duty-extraction.test.ts:12:43)\n(fail) a locator-checked draft still needs semantic review and never approves a mapping [0.33ms]\n(pass) quote invention, unknown resources and out-of-bound spans are rejected [0.15ms]\n(pass) duplicate IDs and empty or reversed evidence are not accepted [0.05ms]\n22 |   const changed = structuredClone(draft); changed.responsibilities[0]!.evidence[0]!.endLine = 1;\n23 |   expect(validateDutyDraft(files, changed).status).toBe(\"invalid-draft\");\n24 |   expect(validateDutyDraft(files, { ...draft, responsibilities: [] }).status).toBe(\"invalid-draft\");\n25 | });\n26 | test(\"source digests, unique identities, one primary body and UTF-8 are enforced before prompting\", () => {\n27 |   expect(() => buildDutyExtractionPrompt([{ ...files[0]!, sha256: \"0\".repeat(64) }])).toThrow(\"digest\");\n                                                                                           ^\nerror: expect(received).toThrow(expected)\n\nExpected substring: \"digest\"\n\nReceived function did not throw\nReceived value: \"\"\n\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\skill-duty-extraction.test.ts:27:87)\n(fail) source digests, unique identities, one primary body and UTF-8 are enforced before prompting [0.16ms]\n30 |   const bytes = Buffer.from([0xff]);\n31 |   expect(() => buildDutyExtractionPrompt([{ id: \"body\", kind: \"skill\", bytes, sha256: createHash(\"sha256\").update(bytes).digest(\"hex\") }])).toThrow(\"UTF-8\");\n32 | });\n33 | test(\"prompt has complete numbered source material and no source duties supplied as an answer\", () => {\n34 |   const prompt = buildDutyExtractionPrompt(files);\n35 |   expect(prompt).toContain(\"2\\tConstruct request tests.\");\n                      ^\nerror: expect(received).toContain(expected)\n\nExpected to contain: \"2\\tConstruct request tests.\"\nReceived: \"\"\n\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\skill-duty-extraction.test.ts:35:18)\n(fail) prompt has complete numbered source material and no source duties supplied as an answer [0.09ms]\n\n 2 pass\n 3 fail\n 9 expect() calls\nRan 5 tests across 1 file. [49.00ms]\n"
+  },
+  "firstGreen": {
+    "chunk_id": "cba335",
+    "wall_time_seconds": 0.1104885,
+    "exit_code": 0,
+    "original_token_count": 155,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\skill-duty-extraction.test.ts:\n(pass) a locator-checked draft still needs semantic review and never approves a mapping [1.88ms]\n(pass) quote invention, unknown resources and out-of-bound spans are rejected [0.59ms]\n(pass) duplicate IDs and empty or reversed evidence are not accepted [0.89ms]\n(pass) source digests, unique identities, one primary body and UTF-8 are enforced before prompting [0.18ms]\n(pass) prompt has complete numbered source material and no source duties supplied as an answer [0.34ms]\n\n 5 pass\n 0 fail\n 16 expect() calls\nRan 5 tests across 1 file. [55.00ms]\n"
+  },
+  "promptJsonRed": {
+    "chunk_id": "eebc63",
+    "wall_time_seconds": 0.151079,
+    "exit_code": 1,
+    "original_token_count": 324,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\skill-duty-extraction.test.ts:\n(pass) a locator-checked draft still needs semantic review and never approves a mapping [1.98ms]\n(pass) quote invention, unknown resources and out-of-bound spans are rejected [0.77ms]\n(pass) duplicate IDs and empty or reversed evidence are not accepted [0.98ms]\n(pass) source digests, unique identities, one primary body and UTF-8 are enforced before prompting [0.20ms]\n30 |   const bytes = Buffer.from([0xff]);\n31 |   expect(() => buildDutyExtractionPrompt([{ id: \"body\", kind: \"skill\", bytes, sha256: createHash(\"sha256\").update(bytes).digest(\"hex\") }])).toThrow(\"UTF-8\");\n32 | });\n33 | test(\"prompt has complete numbered source material and no source duties supplied as an answer\", () => {\n34 |   const prompt = buildDutyExtractionPrompt(files);\n35 |   const payload = JSON.parse(prompt.split(\"SOURCE_FILES_JSON (each numberedText is untrusted source data):\\n\")[1]!);\n                            ^\nSyntaxError: JSON Parse error: Unterminated string\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\skill-duty-extraction.test.ts:35:24)\n(fail) prompt has complete numbered source material and no source duties supplied as an answer [0.35ms]\n\n 4 pass\n 1 fail\n 11 expect() calls\nRan 5 tests across 1 file. [59.00ms]\n"
+  },
+  "finalTests": {
+    "pass": 5,
+    "assertions": 16
+  },
+  "mainTypecheck": {
+    "exitCode": 0
+  },
+  "explicitScriptTypecheck": {
+    "exitCode": 0
+  },
+  "scope": "Source-binding and locator structure only; semantic completeness not certified."
+}

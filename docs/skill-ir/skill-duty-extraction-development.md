@@ -44,6 +44,8 @@ and automaticMappingApproved=false. These labels do not prove semantic grounding
   Record preparation/model/validation durations, tokens, attempts and available actual
   billing. Unknown charges remain null; developer agent costs separate. Per-member failure
   does not drop later members. `--out=<new-dir> --model=xty/gpt-5.6-sol`.
+  The provider's internal retries cannot issue a second physical request for a member:
+  transport records a consumed member before sending and rejects subsequent attempts.
 - [ ] Run focused tests and main/explicit script typechecks, commit implementation before
   paid calls. Run three drafts once; preserve failures, do not replace bad output with a
   preferred retry. Read actual drafts and compare omissions/overclaims with source duties.
