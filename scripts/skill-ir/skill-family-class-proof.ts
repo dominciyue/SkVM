@@ -2644,11 +2644,11 @@ export type ClassProofFinalReport = {
 type FinalEvidence<T> = { path: string; sha256: string; bytes: Buffer; value: T };
 
 /** Read and identity-check an already committed evidence file for R11. */
-async function readFinalEvidence<T>(absoluteRoot: string, relativePath: string, schemaVersion: string): Promise<FinalEvidence<T>> {
+async function readFinalEvidence<T>(absoluteRoot: string, relativePath: string, schemaVersion: string, expectedIdentity: string = CLASS_PROOF_IDENTITY): Promise<FinalEvidence<T>> {
   const path = join(absoluteRoot, relativePath);
   const bytes = await readFile(path);
   const value = JSON.parse(bytes.toString("utf8")) as { identity?: unknown; schemaVersion?: unknown } & T;
-  if (value.identity !== CLASS_PROOF_IDENTITY || value.schemaVersion !== schemaVersion) {
+  if (value.identity !== expectedIdentity || value.schemaVersion !== schemaVersion) {
     throw new Error(`final evidence identity/schema mismatch: ${relativePath}`);
   }
   return { path: relativePath, sha256: sha256Bytes(bytes), bytes, value: value as T };
@@ -2693,7 +2693,7 @@ export async function runFinalReport(root: string): Promise<{ report: ClassProof
   const historical = await readFinalEvidence<{
     denominator?: { accepted?: number; attempted?: number; planned?: number };
     strata?: { realPublicInputs?: { accepted?: number; rejected?: number } };
-  }>(absoluteRoot, "results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json", "skill-ir-api-tester-v2-feature-migration-first-run-report/v1");
+  }>(absoluteRoot, "results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json", "skill-ir-api-tester-v2-feature-migration-first-run-report/v1", "skill-ir-api-tester-v2-feature-migration-002");
 
   if (primaryFirstRun.value.methodLock.sha256 !== methodLock.sha256 || primaryFirstRun.value.selection.sha256 !== primarySelection.sha256) {
     throw new Error("R11 primary evidence is not bound to the current lock/selection");
