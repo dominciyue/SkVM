@@ -23,6 +23,7 @@ import {
   selectPrimaryMembers,
   buildMethodLock,
   summarizePrimaryFirstRuns,
+  deriveRevisionDecision,
   selectCandidateMetadata,
   runStatus,
   screenCandidate,
@@ -479,5 +480,23 @@ describe("skill-family class-proof status", () => {
     expect(summary.duplicateRuns).toBe(1);
     expect(summary.protocolReady).toBe(false);
     expect(summary.inputReady).toBe(false);
+  });
+
+  test("requires a shared revision only for the same contract gap across two members", () => {
+    expect(deriveRevisionDecision({
+      gaps: [{ gapId: "strict-extra-fields", memberId: "m1", classContract: true, status: "unresolved" }],
+    }).decision).toBe("no-revision");
+    expect(deriveRevisionDecision({
+      gaps: [
+        { gapId: "format-url", memberId: "m1", classContract: true, status: "failed" },
+        { gapId: "format-url", memberId: "m2", classContract: true, status: "unresolved" },
+      ],
+    }).decision).toBe("revision-required");
+    expect(deriveRevisionDecision({
+      gaps: [
+        { gapId: "source-locator", memberId: "m1", classContract: false, status: "source-blocked" },
+        { gapId: "source-locator", memberId: "m2", classContract: false, status: "source-blocked" },
+      ],
+    }).decision).toBe("no-revision");
   });
 });

@@ -1596,6 +1596,41 @@ export function summarizePrimaryFirstRuns(input: {
   };
 }
 
+export type RevisionGapInput = {
+  gapId: string;
+  memberId: string;
+  classContract: boolean;
+  status: "failed" | "unresolved" | "source-blocked" | "advisory";
+};
+
+/** Decide whether R10 has a pre-registered, shared, contract-internal gap. */
+export function deriveRevisionDecision(input: {
+  gaps: RevisionGapInput[];
+  minMembers?: number;
+}): {
+  decision: "revision-required" | "no-revision";
+  commonGaps: Array<{ gapId: string; memberIds: string[]; occurrenceCount: number; classContract: boolean; actionable: boolean }>;
+  reason: string;
+} {
+  const minimum = Math.max(2, Math.floor(input.minMembers ?? 2));
+  const groups = new Map<string, RevisionGapInput[]>();
+  for (const gap of input.gaps) groups.set(gap.gapId, [...(groups.get(gap.gapId) ?? []), gap]);
+  const commonGaps = [...groups.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([gapId, rows]) => {
+    const memberIds = [...new Set(rows.map((row) => row.memberId))].sort();
+    const classContract = rows.every((row) => row.classContract);
+    const actionable = classContract && memberIds.length >= minimum && rows.every((row) => row.status === "failed" || row.status === "unresolved");
+    return { gapId, memberIds, occurrenceCount: rows.length, classContract, actionable };
+  });
+  const actionable = commonGaps.filter((gap) => gap.actionable);
+  return {
+    decision: actionable.length ? "revision-required" : "no-revision",
+    commonGaps,
+    reason: actionable.length
+      ? "a shared contract-internal gap occurs across the minimum independent members"
+      : "no shared contract-internal actionable gap occurs across the minimum independent members",
+  };
+}
+
 function classifyConstructionGap(kind: string, reason: string): { gapId: string; module: string; oracle: string } {
   if (/format\s+url/iu.test(reason)) return {
     gapId: "format-url-witness",
@@ -2377,6 +2412,108 @@ export async function runPrimaryFirstRun(root: string): Promise<{ report: Primar
   return { report, status: nextStatus };
 }
 
+export type PrimaryRevisionReport = {
+  schemaVersion: "skill-family-class-proof-primary-revision/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  decision: "no-revision" | "revision-required";
+  firstRun: { path: string; sha256: string };
+  observedGaps: Array<{ gapId: string; memberId: string; candidateId: string; inputIds: string[]; classContract: boolean; status: RevisionGapInput["status"]; obligationId: string; reason: string }>;
+  commonGaps: Array<{ gapId: string; memberIds: string[]; occurrenceCount: number; classContract: boolean; actionable: boolean }>;
+  revision: { attempted: false; reason: string } | { attempted: true; status: "pending" };
+  accounting: { modelCalls: 0; apiCalls: 0; paidCalls: 0; runtimeCalls: 0 };
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0; frozenHistoricalResultsChanged: false };
+  claimBoundary: string;
+};
+
+/** Rebuild R10 gap observations from the immutable R9 rows, never from selection outcomes. */
+export async function runPrimaryRevisionDecision(root: string): Promise<{ report: PrimaryRevisionReport; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "no-revision.json");
+  const existing = await readJsonIfPresent<PrimaryRevisionReport>(reportPath);
+  if (existing) {
+    const current = await runStatus(absoluteRoot);
+    return { report: existing, status: await writeStatus(absoluteRoot, { currentStep: current.currentStep, lastCompletedStep: current.lastCompletedStep }) };
+  }
+  const firstRunPath = join(evidenceRoot, "primary-first-run.json");
+  const firstRunBytes = await readFile(firstRunPath);
+  const firstRun = JSON.parse(firstRunBytes.toString("utf8")) as PrimaryFirstRunReport;
+  if (firstRun.identity !== CLASS_PROOF_IDENTITY || firstRun.summary.protocolReady !== true) throw new Error("R10 requires a complete R9 first-run report");
+  const selection = JSON.parse(await readFile(join(evidenceRoot, "primary-selection.json"), "utf8")) as PrimarySelectionReport;
+  const responsibilityLedger = JSON.parse(await readFile(join(evidenceRoot, "responsibility-ledger.json"), "utf8")) as {
+    rows: Array<{ candidateId: string; skillId: string; duties: ExtractedResponsibility[] }>;
+  };
+  const dutyByCandidate = new Map(responsibilityLedger.rows.map((row) => [row.candidateId, row]));
+  const observedGaps: PrimaryRevisionReport["observedGaps"] = [];
+  for (const primary of selection.primary) {
+    const duties = dutyByCandidate.get(primary.candidateId)?.duties ?? [];
+    const memberRecords = firstRun.records.filter((record) => record.candidateId === primary.candidateId);
+    for (const duty of duties.filter((row) => row.plannedDisposition === "to-construct")) {
+      const outcomes = memberRecords.map((record) => ({
+        inputId: record.inputId,
+        outcome: record.construction.obligations.outcomes.find((outcome) => outcome.obligationId === duty.obligationId),
+      })).filter((row): row is { inputId: string; outcome: { obligationId: string; outcome: "constructed" | "rejected-with-reason" | "unresolved"; reason: string | null } } => Boolean(row.outcome));
+      if (outcomes.some((row) => row.outcome.outcome === "constructed")) continue;
+      if (!outcomes.length) {
+        observedGaps.push({
+          gapId: duty.key ?? "unmapped-" + duty.obligationId,
+          memberId: primary.memberId,
+          candidateId: primary.candidateId,
+          inputIds: memberRecords.map((record) => record.inputId).sort(),
+          classContract: false,
+          status: "source-blocked",
+          obligationId: duty.obligationId,
+          reason: "no outcome row was produced for the core duty",
+        });
+        continue;
+      }
+      const failed = outcomes.find((row) => row.outcome.outcome === "rejected-with-reason");
+      const representative = failed ?? outcomes[0]!;
+      const classContract = duty.evidence === "operation-enumeration" || duty.evidence === "specimen-case"
+        || duty.evidence === "negative-case" || duty.evidence === "reference-resolution" || duty.evidence === "security-extraction";
+      observedGaps.push({
+        gapId: duty.key ?? "unmapped-" + duty.obligationId,
+        memberId: primary.memberId,
+        candidateId: primary.candidateId,
+        inputIds: outcomes.map((row) => row.inputId).sort(),
+        classContract,
+        status: representative.outcome.outcome === "rejected-with-reason" ? "failed" : "unresolved",
+        obligationId: duty.obligationId,
+        reason: representative.outcome.reason ?? "bound inputs lack a source instance for this duty",
+      });
+    }
+  }
+  const decision = deriveRevisionDecision({ gaps: observedGaps.map((gap) => ({ gapId: gap.gapId, memberId: gap.memberId, classContract: gap.classContract, status: gap.status })) });
+  const report: PrimaryRevisionReport = {
+    schemaVersion: "skill-family-class-proof-primary-revision/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    decision: decision.decision,
+    firstRun: { path: CLASS_PROOF_RESULT_RELATIVE + "/primary-first-run.json", sha256: sha256Bytes(firstRunBytes) },
+    observedGaps,
+    commonGaps: decision.commonGaps,
+    revision: decision.decision === "no-revision"
+      ? { attempted: false, reason: decision.reason }
+      : { attempted: true, status: "pending" },
+    accounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0, runtimeCalls: 0 },
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0, frozenHistoricalResultsChanged: false },
+    claimBoundary: "R10 considers only repeated, pre-registered contract-internal gaps in the immutable R9 primary first run. A no-revision result does not expand support, repair source evidence, or establish whole-skill or live API behavior.",
+  };
+  await persistStableJson(reportPath, report);
+  const current = await runStatus(absoluteRoot);
+  const status = decision.decision === "no-revision"
+    ? await writeStatus(absoluteRoot, {
+      currentStep: transitionStatus(current.currentStep, "no-revision"),
+      lastCompletedStep: "no-revision",
+      failureSummary: [...new Set([...current.failureSummary, "r10-no-revision"])],
+    })
+    : await writeStatus(absoluteRoot, {
+      currentStep: current.currentStep,
+      lastCompletedStep: current.lastCompletedStep,
+      failureSummary: [...new Set([...current.failureSummary, "r10-revision-required"])],
+    });
+  return { report, status };
+}
+
 export type ClassProofValidationReport = {
   schemaVersion: "skill-family-class-proof-validation/v1";
   identity: typeof CLASS_PROOF_IDENTITY;
@@ -2945,7 +3082,16 @@ if (import.meta.main) {
       gates: result.report.gates,
       categories: result.report.summary.categories,
     }, null, 2));
+  } else if (step === "revision" || step === "no-revision") {
+    const result = await runPrimaryRevisionDecision(root);
+    console.log(JSON.stringify({
+      status: result.report.decision,
+      identity: CLASS_PROOF_IDENTITY,
+      observedGaps: result.report.observedGaps.length,
+      commonGaps: result.report.commonGaps,
+      revision: result.report.revision,
+    }, null, 2));
   } else {
-    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run");
+    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run|no-revision");
   }
 }

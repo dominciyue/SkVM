@@ -312,12 +312,19 @@ attempt-002 未把已经验证的 `inputValid` 写入聚合行。两份失败报
 
 **前置条件：** R9 存在至少两个成员出现的同一可修复缺口；若所有失败是 source-blocked 或输入不适用，直接写 `no-revision`。
 
-- [ ] 从首跑聚合缺口，确认缺口在 R8 预注册的 class contract 内；超出合同的特性保持 unsupported。
-- [ ] 保存 first-run 与修订前 RED；只修改共享代码/合同版本，禁止新增 repository-specific adapter。
-- [ ] 对同一 primary 输入各执行一次 `primary-revision`，报告 first/revision 并排；不删除失败行，不改 initial threshold。
-- [ ] 对修订影响的 development fixture 做 focused regression；不重新读取 Q1/旧 held-out，不重跑无关历史 identity。
+- [x] 从首跑聚合缺口，确认缺口在 R8 预注册的 class contract 内；超出合同的特性保持 unsupported。
+- [x] 保存 first-run 与修订前 RED；只修改共享代码/合同版本，禁止新增 repository-specific adapter（本次无共同缺口，未修改共享实现）。
+- [x] 对同一 primary 输入各执行一次 `primary-revision`，报告 first/revision 并排；不删除失败行，不改 initial threshold（不适用：决策为 `no-revision`）。
+- [x] 对修订影响的 development fixture 做 focused regression；不重新读取 Q1/旧 held-out，不重跑无关历史 identity（无修订，R10 判定测试已通过）。
 
 **验收：** 修订结果可解释且独立 checker 仍通过；若未达到阈值，决策仍为 `bounded-negative` 或 `insufficient-evidence`，不强行晋升。
+
+**R10 实际检查点（2026-09-12）：** 从不可变 R9 首跑逐项重建核心义务
+outcome，观察到 1 个 `strict-extra-fields` 缺口，属于预注册合同但只出现于
+`candidate-091`。两个固定输入都缺少 `additionalProperties` 源实例；没有第二个
+独立成员重复，因此共同缺口判定为 `actionable=false`，写入
+`no-revision.json`，revision 未执行。R9 首跑、两次编排失败及摘要仍保留，
+没有修改构造器、checker、v2 合同或初始阈值。
 
 ### R11：效果、自动化边界和成本测量
 
