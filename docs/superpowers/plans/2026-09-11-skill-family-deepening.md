@@ -205,6 +205,12 @@ header/cookie编码经过httpx后是否保留。新增独立手写本机wire fix
 要求服务端直接观察原始target/header/body并独立判断；测试不猜真实状态、不扩合同。
 验收为明确正向请求与指定wire破坏检出、缺依据skip、每次输出/请求可归档；无真实API。
 
+5d405b9/dbd94bc实际wire fixture2pass/8skip：cookie仅字段编码，不支持装配，
+保留5拒绝；3minimal数组形状缺口保留，2合成请求实际传输通过。没有扩合同。
+2f7066a decimal修复：505整数分单位对照发现22误拒绝，精确BigInt整除后0分歧；
+负小数单点候选也修复，31tests/3778assertions、主tsc通过，12旧来源0multipleOf，
+不重跑无影响panel。下一D9同步当前验收与恢复导航，不改旧首跑/clean声明。
+
 ## 7. 完成判据
 
 ### 2026-09-11 实际检查点

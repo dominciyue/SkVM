@@ -1,7 +1,7 @@
 # 一类 skill 深化：唯一执行恢复状态
 
-- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前10:45，约8.2h，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；HEAD/origin dbd94bc，decimal修复本次待提交。当前无运行进程、付费请求或监听端口。
+- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前10:42，约8.1h，未达10h，不空等/重复扩样凑时长。
+- 分支 api-tester-operation-unseen-prospective-001；HEAD/origin2f7066a，decimal修复已推送。当前无运行进程、付费请求或监听端口。
 - 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§73。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
 - 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
 
