@@ -77,3 +77,12 @@
 - Bun C:/Users/14182/AppData/Roaming/npm/node_modules/bun/bin/bun.exe 1.3.14；Node C:/Program Files/nodejs/node.exe v23.8.0。
 - 原始未跟踪历史结果/cache保留，不git add -A。所有当前长进程已结束。
 - 原生pytest/Go/Pact、完整认证HTTP执行、业务状态、OAS3.1和自动语义提取仍未覆盖；不声称整个skill/生态/人工效果。
+
+## 88. 2026-09-11 最小交付下一阶段任务书
+
+- D1-D9 已按有界 source-mapped development slice 收口；本条只登记后续路线，不表示新实验已启动。
+- 下一执行计划为 `docs/superpowers/plans/2026-09-11-skill-family-minimum-delivery.md`。
+- 目标是补齐类级最小证据：三名通过谱系审查的 development 成员、完整的 class-scoped 职责分母、方法冻结后的三名 repository-distinct held-out 成员，以及独立 checker 结果。
+- 先锁类合同和方法，再读取 held-out 正文；首跑失败与后续共享修订必须分目录保存。不得把旧 D7 修订结果当作 held-out 首跑，也不得重写历史 `0/6`、Q1、readiness、001/002 或 D1-D9 证据。
+- 计划允许有目的的 GitHub、模型和付费调用，但每次都要登记用途和实际返回成本；没有返回的计费写 `unknown`。不做 HTML、用户入口、演示包装或重复全历史审计。
+- 当前阶段状态：`planned-not-started`。执行时先重读本状态、任务书和实际 Git 分支，不假定本记录中的旧 HEAD 仍然有效。

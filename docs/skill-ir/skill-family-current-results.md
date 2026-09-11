@@ -3,6 +3,16 @@
 Checkpoint2026-09-11 11:40 +08. Development only; continuous goal remains active.
 This page supersedes stale current-status prose, not historical evidence or contracts.
 
+## Next planned stage
+
+D1-D9 is closed as a bounded source-mapped development slice. The next execution route is
+[skill-family-minimum-delivery.md](../superpowers/plans/2026-09-11-skill-family-minimum-delivery.md).
+It is a plan only; no held-out body, new selection, or new prospective run has started.
+The route must first lock the class contract, then build a closed class-scoped denominator,
+then evaluate three repository-distinct held-out members. It must preserve first-run
+failures and must not promote this page's existing development rows into class-level
+generalization.
+
 ## What is shared
 
 The class is defined by source-declared contract-driven API request/test construction,
