@@ -66,3 +66,17 @@ These are offline source-example checks only, not live observations or4API succe
 Artifacts and exact command entrypoints are under
 `results/skill-ir/skill-family-response-headers-development-20260911/`.
 Shared-duty mapping integration remains the next task, not claimed complete by this core.
+
+## Next shared mapping step
+
+Use a distinct `api-response-header-observations/v1` profile in the existing mapping
+schema/runner. Each task must bind a separate observation JSON file by path and SHA,
+alongside its existing source binding. Other profiles reject these new fields rather
+than ignoring them. The runner performs strict UTF-8 decoding, independently checks
+each supplied observation against the original source, and retains every failed/unresolved
+observation. It does not generate expected responses. Old report shapes remain unchanged.
+Test digest replacement and missing observation binding first. Demonstrate Lambda
+emit-test-code and Jeremy response-validation on both exposed1Password inputs using
+the already archived source-example observations, clearly labeled non-live. Preserve
+all selected and residual source obligations. Do not add this profile to the generic
+input-only baseline generator until an observation-binding input contract is provided.
