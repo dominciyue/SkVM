@@ -2239,10 +2239,12 @@ async function runOnePrimaryFirstRun(
       unresolvedDutyCount,
       error: unresolvedDutyCount ? "unresolved source duties retained in denominator" : null,
     };
-    const artifactPaths = report?.artifact.status === "passed"
+    const artifactPassed = Boolean(report && report.outputs.artifactRoot && report.gates.artifactCorrectness === "pass"
+      && report.totals.artifactCheckedPassedOperations === report.totals.accepted);
+    const artifactPaths = artifactPassed
       ? ["output/report.json", "output/operation-inventory.json", "output/output-manifest.json", "output/artifact"]
       : [];
-    const artifactStatus = report?.artifact.status === "passed" ? "passed" as const : report ? "failed" as const : "not-run" as const;
+    const artifactStatus = artifactPassed ? "passed" as const : report ? "failed" as const : "not-run" as const;
     const record: PrimaryFirstRunRecord = {
       candidateId: primary.candidateId,
       memberId: primary.memberId,
