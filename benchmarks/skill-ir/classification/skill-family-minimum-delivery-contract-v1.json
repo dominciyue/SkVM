@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "skill-family-minimum-delivery-contract/v1",
+  "identity": "skill-family-minimum-delivery-contract-001",
+  "classId": "api-contract-driven-offline-test-construction",
+  "planRevision": 2,
+  "status": "candidate-pre-freeze",
+  "criteria": [
+    {
+      "criterionId": "public-api-contract-input",
+      "question": "Does the skill take a public API contract as the primary input for constructing request or test artifacts?"
+    },
+    {
+      "criterionId": "explicit-coverage-requirements",
+      "question": "Does the skill state explicit coverage or case-construction requirements over that contract?"
+    },
+    {
+      "criterionId": "offline-request-or-test-artifacts",
+      "question": "Does the skill require constructing offline request or test artifacts rather than only live execution?"
+    },
+    {
+      "criterionId": "independent-check-possible",
+      "question": "Can those artifacts be checked from the public contract without a hidden gold answer or live service oracle?"
+    }
+  ],
+  "negatives": [
+    {
+      "exampleId": "implementation-source-api-testing",
+      "kind": "out-of-class",
+      "skillId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+      "reason": "Primary authority is controller, domain behavior, factories and database state, not a public API contract."
+    },
+    {
+      "exampleId": "unbound-rest-without-public-contract",
+      "kind": "out-of-class",
+      "skillId": "PramodDutta/qaskills:packs/qa-essentials/skills/api-testing-rest/SKILL.md",
+      "reason": "REST contract testing is required conceptually, but no public OpenAPI or equivalent ingestion procedure is stated."
+    }
+  ],
+  "unsupportedInFamily": [
+    {
+      "exampleId": "native-framework-emission",
+      "kind": "in-family-currently-unsupported",
+      "obligationKey": "requested-output-format",
+      "reason": "Native pytest, Postman, Drift or CI emission is inside the class slice but is not implemented by the frozen profile; originalOutputConformance remains not-implemented."
+    }
+  ],
+  "dispositionSchema": ["constructed", "rejected-with-reason", "unresolved", "outside-class", "source-blocked"],
+  "inputAdmissibility": {
+    "minApplicableInputsPerMember": 2,
+    "formats": ["json", "yaml"],
+    "openapi": "3.0.x",
+    "mustBePublicContract": true
+  },
+  "profile": {
+    "id": "skill-family-class-construction/v1",
+    "originalOutputConformance": "not-implemented",
+    "boundedV2Label": "bounded-subtask-not-family-wide-support"
+  },
+  "checkers": [
+    { "checkerId": "api-request-specimens-checker", "checkerVersion": "api-request-specimens/v1" },
+    { "checkerId": "api-request-body-negatives-checker", "checkerVersion": "api-request-body-negatives/v1" }
+  ],
+  "claimBoundary": "This contract defines a class-scoped offline request/test construction slice. It does not claim whole-skill automation, live API correctness, business-state authority, human-minute savings, or support for native output formats."
+}

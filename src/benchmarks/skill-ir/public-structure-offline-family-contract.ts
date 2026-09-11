@@ -368,6 +368,10 @@ export function deriveFamilyDataset(input: unknown): FamilyDatasetReport {
 export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_CONTRACT_SCHEMA_VERSION = "skill-ir-public-structure-offline-family-contract/v1" as const;
 export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_COUNTEREXAMPLES_SCHEMA_VERSION = "skill-ir-public-structure-offline-family-counterexamples/v1" as const;
 export const PUBLIC_STRUCTURE_OFFLINE_FAMILY_ID = "public-structure-driven-offline-conversion-reporting" as const;
+// The class evaluated by skill-family-minimum-delivery is
+// `api-contract-driven-offline-test-construction` and lives in
+// `src/skill-ir/skill-family-minimum-delivery-contract.ts`. It reuses
+// loaders/checkers; it does not reuse this family's identity or claim boundary.
 export const FAMILY_CRITERION_IDS = [
   ...FAMILY_NECESSARY_CRITERION_IDS,
   "current-capability-readiness",

@@ -306,6 +306,11 @@ describe("public-structure offline responsibility family", () => {
       .toThrow(/unknown|root|required/iu);
   });
 
+  test("the minimum-delivery class is not the public-structure offline family", async () => {
+    const { MINIMUM_DELIVERY_CLASS_ID } = await import("../../skill-ir/skill-family-minimum-delivery-contract");
+    expect(MINIMUM_DELIVERY_CLASS_ID).not.toBe("public-structure-driven-offline-conversion-reporting");
+  });
+
   test("rejects report output paths that escape the repository root", () => {
     expect(() => parsePublicStructureOfflineFamilyCommand([
       "--root=repo",

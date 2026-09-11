@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "skill-family-minimum-delivery-freeze-gate/v1",
+  "status": "insufficient-evidence",
+  "planRevision": 2,
+  "gates": {
+    "A": {
+      "pass": true,
+      "locked": {
+        "classId": "api-contract-driven-offline-test-construction",
+        "dispositionSchema": [
+          "constructed",
+          "rejected-with-reason",
+          "unresolved",
+          "outside-class",
+          "source-blocked"
+        ],
+        "profile": {
+          "id": "skill-family-class-construction/v1",
+          "originalOutputConformance": "not-implemented",
+          "boundedV2Label": "bounded-subtask-not-family-wide-support"
+        },
+        "inputAdmissibility": {
+          "minApplicableInputsPerMember": 2,
+          "formats": [
+            "json",
+            "yaml"
+          ],
+          "openapi": "3.0.x",
+          "mustBePublicContract": true
+        },
+        "checkers": [
+          {
+            "checkerId": "api-request-specimens-checker",
+            "checkerVersion": "api-request-specimens/v1"
+          },
+          {
+            "checkerId": "api-request-body-negatives-checker",
+            "checkerVersion": "api-request-body-negatives/v1"
+          }
+        ]
+      }
+    },
+    "B": {
+      "pass": true,
+      "p0": true,
+      "p1": true
+    },
+    "C": {
+      "pass": false,
+      "candidateCount": 0,
+      "bodyReadCount": 0
+    },
+    "D": {
+      "pass": true,
+      "accounting": {
+        "sourceApiCalls": 0,
+        "modelCalls": 0,
+        "paidCalls": 0,
+        "knownInputTokens": 0,
+        "knownOutputTokens": 0,
+        "billing": "unknown",
+        "developmentAgentCost": "unmeasured"
+      }
+    }
+  },
+  "searchLog": [
+    {
+      "query": "OpenAPI test filename:SKILL.md",
+      "status": "failed",
+      "error": "TypeError: search is not a function. (In 'search(query)', 'search' is undefined)"
+    },
+    {
+      "query": "swagger test filename:SKILL.md",
+      "status": "failed",
+      "error": "TypeError: search is not a function. (In 'search(query)', 'search' is undefined)"
+    },
+    {
+      "query": "OpenAPI \"Generate test cases\" filename:SKILL.md",
+      "status": "failed",
+      "error": "TypeError: search is not a function. (In 'search(query)', 'search' is undefined)"
+    }
+  ],
+  "excludedRepositoryCount": 35,
+  "residualLimitations": [
+    "format url witnesses remain rejected-with-reason on bound OpenAPI inputs",
+    "native output conformance remains not-implemented"
+  ]
+}
