@@ -221,6 +221,28 @@ pre-registered shared-revision threshold is not met. The report therefore has
 or contract change was performed. The next action is R11 final denominators and
 boundary report.
 
+R11 is complete through
+`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=final-report`.
+`final-report.json` binds the method lock, primary selection, responsibility and
+development ledgers, R7 validation, R9 first-run, R10 decision, and the historical
+API Tester `0/6` report by SHA-256. Its primary denominators are 3 members, 6
+complete applicable inputs, 15 core obligations (14 constructed, 93.33%), 21
+accepted artifacts (21 independently checked), and 57 enumerated operations
+(36 rejected, 0 unresolved). The four gates remain
+`protocolReady=true`, `inputReady=true`, `capabilityReady=true`, and
+`transferDecision=bounded-positive`.
+
+The report records source/model/paid accounting as 17/0/0 and 12 local
+primary-run calls. Per-member mapping is source-declared and ledger-bound to the
+shared constructor; semantic review remains required and is not automated.
+Construction/checker sub-times and human minutes are explicitly
+`not-measured`; no matched original-skill/model comparison was run. The only
+unconstructed core duty is candidate 091's `strict-extra-fields`, and it does
+not meet the two-member revision threshold. Prospective preparation is
+`not-ready` because a separate identity, input-selection lock, prediction plan,
+and readiness decision have not been registered. The first aggregator bug is
+retained as `final-report-attempt-001.json`; the formal report is write-once.
+
 R9 is complete through
 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=primary-first-run`.
 The immutable report contains six rows for three repository-distinct primary

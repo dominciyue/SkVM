@@ -330,12 +330,24 @@ outcome，观察到 1 个 `strict-extra-fields` 缺口，属于预注册合同�
 
 **前置条件：** R9/R10 已有完整报告。
 
-- [ ] 计算四个分母：成员、核心 duties/obligations、适用 inputs、accepted artifacts；另列 source/model/paid/infrastructure calls。
-- [ ] 对每个成员记录接入改动：纯声明式 mapping、共享代码改动、必要人工语义审核、模型调用、构造时间和 checker 时间；没有实测的人工分钟写 `not-measured`。
-- [ ] 若可比，运行 6–12 个匹配任务比较 deterministic route 与原 skill/model route 的质量/覆盖/时间；否则只报告 AOT route，不编造效率结论。
-- [ ] 把 `protocolReady/inputReady/capabilityReady/transferDecision` 写入 final report，禁止使用单一 `readiness` 布尔值代替四者。
+- [x] 计算四个分母：成员、核心 duties/obligations、适用 inputs、accepted artifacts；另列 source/model/paid/infrastructure calls。
+- [x] 对每个成员记录接入改动：纯声明式 mapping、共享代码改动、必要人工语义审核、模型调用、构造时间和 checker 时间；没有实测的人工分钟写 `not-measured`。
+- [x] 若可比，运行 6–12 个匹配任务比较 deterministic route 与原 skill/model route 的质量/覆盖/时间；否则只报告 AOT route，不编造效率结论（当前不具可比 baseline，明确记录未运行）。
+- [x] 把 `protocolReady/inputReady/capabilityReady/transferDecision` 写入 final report，禁止使用单一 `readiness` 布尔值代替四者。
 
 **验收：** 报告能回答“这一类哪些成员、哪些职责、哪些输入被自动化，剩余人工在哪里”；0 token 或 accepted 数量本身不作为成功理由。
+
+**R11 实际检查点（2026-09-12）：** 新增 `--step=final-report`，从已提交的
+R7/R8/R9/R10 证据重建边界报告并做文件摘要绑定。primary 分母为 3 名成员、6
+个完整适用 input、15 个核心义务（14 constructed，93.33%）、21 accepted
+artifacts（21/21 独立 checker）；57 个 operation 中 36 rejected、0 unresolved。
+四门为 `protocolReady=true`、`inputReady=true`、`capabilityReady=true`、
+`transferDecision=bounded-positive`。唯一未构造义务仍是 candidate-091 的
+`strict-extra-fields`，仅一名成员出现，R10 仍为 `no-revision`。source/model/paid
+账本为 17/0/0，primary 本地 runtime calls=12；人工分钟和构造/checker 分项耗时
+均为 `not-measured`，未运行不可比的原 skill/model 对照。prospective 准备判定为
+`not-ready`，缺少独立 identity、输入选择锁、预测计划和 readiness 决策。首次
+聚合器错误保留为 `final-report-attempt-001.json`，未覆盖修订后的正式报告。
 
 ### R12：轻量复现、文档同步和推送
 
