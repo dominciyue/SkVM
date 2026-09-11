@@ -97,3 +97,4 @@
 - 两次失败保留为 `clean-reproduction/clean-attempt-001.json` 与 `clean-attempt-002.json`：一次是长路径/行尾导致的 tracked dirty checkout，一次是 CRLF contract digest 与 committed LF digest 漂移。旧 decision/candidate 原字节归档为 `decision-pre-clean-001.json` 与 `report-candidate-pre-clean-001.json`，未覆盖失败证据。
 - 新增 manifest side-effect-free 模块，CLI 与 runner 共用同一 validator；聚焦回归 `82/82`、`467` assertions，项目 `bun run typecheck` 通过，脚本 bundle/typecheck route 通过。全仓文档扫描仍只报告既有 deadline 缺档 4 项，不创建占位文档；改动文档本身无新增 broken link。
 - 恢复入口：在 `SkVM` 运行 `bun ./scripts/skill-ir/skill-family-minimum-delivery.ts --step=status`，再按组件文档的 `m5/m6` 或 clean reproduction 命令继续。当前结论仍限 development class slice；不改变旧 `0/6`、readiness、Q1、v1/v2 或 prospective 边界。
+- 最终交付提交 `0d754a2b5090ea1d5530f73676110c31541684cd` 已推送 `origin/skill-family-minimum-delivery-001`；从该提交的 detached clean checkout 复核 `status`/`m6` 通过，远端与本地 HEAD 一致。当前任务书在本 identity 下停止扩展。
