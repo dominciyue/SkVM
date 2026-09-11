@@ -187,6 +187,11 @@ form请求体：新增独立api-request-form-specimens/v1，不改旧JSON profil
 实施，独立逆向checker、源覆盖和三成员复用验证后归档。空对象/数组编码仍unresolved。
 恢复入口为deadline-execution-status.md；不靠追加无关任务或重复运行凑时间。
 
+c78fd85/a434186 form阶段实际新增2full样本至578/628，旧12JSON报告不变，6原成员
+集成全同。后续共享职责为原生pytest执行，依据Lambda/Jeremy已读正文，而非Pactflow
+原生格式；计划详见api-pytest-request-development.md。先绑定/覆盖TDD、合成本机
+真实Python执行，再原12文档仅生成/收集并报告缺oracle跳过；不猜真实状态或认证。
+
 ## 7. 完成判据
 
 ### 2026-09-11 实际检查点

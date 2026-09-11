@@ -43,7 +43,8 @@
 6. 3011413/24e47aa分支负例改进已归档：971/1414（+20，443unresolved），字段2961/3371，原成功值/正向基线/source字段不变，完整12报告和6跨成员结果保留。25tests/245assertions及主tsc通过；修primitive-parent实际异常，不改独立checker。
 7. e12c587/44a8329完成有限oracle：3016比较无checker分歧，5种合成构造修复；31tests/3788assertions及tsc通过，原12产物字节不变。证据skill-family-composition-development-20260911。
 9. c78fd85独立form profile完成：578/628（+2full Visier）、50unresolved，旧JSON12报告完全相同；原三成员×2输入6集成产物全同。36tests/262assertions与主/脚本tsc通过，证据skill-family-form-development-20260911。最新clean仍be89a50。
-10. 下一具体动作：审读真实源的原生pytest输出职责与已有本机fixture，设计可运行原生产物及独立格式/执行核验的窄development合同；不直接宣称完整skill实现，不调整旧profile或状态依据。
+10. 原生pytest核心完成待提交：源绑定suite/独立verifier、固定httpx Python runtime、显式fixture oracle checker；22tests/172assertions与main tsc通过。第一次Response context manager失败和生成原件保留；当前48本机HTTP，无远端/模型/付费。组件api-pytest-request-development.md。
+11. 下一具体动作：提交核心后加入显式pytest源职责profile（仅Lambda emit-test-code/Jeremy emit-and-report，不强算Pactflow），新batch原12文档生成与真实Python收集，报告SKIP/HTTP分开；无真实oracle，不计真实API通过。然后补最新clean与Python依赖证据。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）
