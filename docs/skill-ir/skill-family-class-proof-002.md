@@ -314,6 +314,14 @@ completed/not-applicable extension tasks, and recorded model/API/paid
 `0/0/0`. This is a clean evidence replay only; it does not promote the result
 to a whole-skill, live-API, or prospective claim.
 
+The status-bound commit `9d95faa742978579ccd0ae24b68c990d1b1ba69e` was then
+replayed from `D:\cp-clean-ext-9d95faa`; the supplemental report is archived
+as `results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay-final.json`
+(SHA-256
+`f7c284a0a52d6411ac5f9dc62ce85265b6f4925ab354c34980cfdfa32f34bea4`). It
+again verifies 10/10 E2 runs and 18/18 E5 cases with no newly executed task.
+The earlier `extension-clean-replay.json` remains immutable.
+
 R9 is complete through
 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=primary-first-run`.
 The immutable report contains six rows for three repository-distinct primary

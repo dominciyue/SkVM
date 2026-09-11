@@ -312,3 +312,13 @@ returned `pass`: 10/10 E2 run roots verified, 18/18 E5 cases retained, and
 replay records Bun `1.3.14`, Node `v24.3.0`, detached checkout state, and
 external model/API/paid calls `0/0/0`; it adds no real sample and does not
 change the historical `0/6`, readiness, or prospective boundary.
+
+The final status-bound commit `9d95faa742978579ccd0ae24b68c990d1b1ba69e`
+was independently replayed from `D:\cp-clean-ext-9d95faa` with the same
+offline environment. Its supplemental output is retained as
+`D:\cp-clean-ext-report-9d95faa.json` and committed as
+`results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay-final.json`
+(2371 bytes, SHA-256
+`f7c284a0a52d6411ac5f9dc62ce85265b6f4925ab354c34980cfdfa32f34bea4`).
+The result is again `pass`, with 10/10 E2 runs, 18/18 E5 cases, and no new
+resume execution. The earlier canonical archive remains unchanged.

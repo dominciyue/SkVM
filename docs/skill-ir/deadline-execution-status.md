@@ -134,3 +134,9 @@
 - Extension commit `aa57d74910be5ab09e175d9cd507ed897d0b9e92` was pushed to `origin/skill-ir-aot`. A new detached checkout at `D:\cp-clean-ext-aa57d74` installed Bun `1.3.14` dependencies offline (236 packages) and ran `--step=extension-clean-replay`.
 - The replay passed: 10/10 E2 run roots were independently verified, E5 was 18/18, `resume` executed no task, and model/API/paid calls were `0/0/0`. The external run output remains at `D:\cp-clean-ext-report-aa57d74.json`; the committed archive is `results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay.json`, 2371 bytes, SHA-256 `72f3adf8226ae7d91c6e9d43203fe958f6b568f45c1314b0a04e41f8690110e7`.
 - This is an offline development evidence replay only. It adds no real sample and does not alter the historical `0/6`, readiness, Q1/held-out, v1/v2, or prospective boundaries. The next action is to update the final status binding to the archive commit and run the final verification set.
+
+## 2026-09-12 Class-proof extension final-HEAD replay
+
+- Status-binding commit `9d95faa742978579ccd0ae24b68c990d1b1ba69e` was replayed in detached checkout `D:\cp-clean-ext-9d95faa` after the archive/status commits. Offline dependency installation again used 236 packages under Bun `1.3.14`.
+- Supplemental output `D:\cp-clean-ext-report-9d95faa.json` passed with 10/10 E2 run verifications, 18/18 E5 cases, zero resume executions, and model/API/paid `0/0/0`. It is archived as `results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay-final.json` (2371 bytes, SHA-256 `f7c284a0a52d6411ac5f9dc62ce85265b6f4925ab354c34980cfdfa32f34bea4`); the prior canonical archive is unchanged.
+- Final verification remains limited to committed development evidence. No new sample, protected read, prospective run, readiness change, or automatic external audit service was invoked.

@@ -76,6 +76,14 @@ report says `pass`, `10/10` E2 runs, `18/18` E5 cases, and zero external
 model/API/paid calls. The external copy
 `D:\cp-clean-ext-report-aa57d74.json` is retained as the run output.
 
+The final status-bound commit `9d95faa742978579ccd0ae24b68c990d1b1ba69e`
+was replayed separately from `D:\cp-clean-ext-9d95faa`. Its supplemental
+report is `results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay-final.json`
+(SHA-256
+`f7c284a0a52d6411ac5f9dc62ce85265b6f4925ab354c34980cfdfa32f34bea4`), while
+the raw output remains at `D:\cp-clean-ext-report-9d95faa.json`. It also
+returned `pass` with 10/10 E2 runs, 18/18 E5 cases, and zero external calls.
+
 ## Boundaries
 
 Meilisearch missing references remain construction blockers. Bangumi external

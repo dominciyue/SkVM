@@ -416,6 +416,7 @@ checkout 的实际 HEAD；这不是静默改写。干净检出中的 focused sui
 - E4 `complete`：状态快照显示 E1-E3 已复用，E4-E6 可按顺序恢复；报告：`extension-e4.json`。
 - E5 `complete`：18 个合成案例（6 capability × 3 representation），18 pass、0 fail、0 unresolved、0 duplicate、无缺失 capability；报告：`extension-e5.json`。合成增强的 header fixture 和所有派生输入不增加真实分母。
 - E6 `complete`：必需代码、计划、组件/结果/恢复文档、E1-E5 报告及保留的 E2 失败原件均存在且有摘要；报告：`extension-e6.json`。主工作树上的扩展离线复核另存为 `D:\extension-clean-replay-main.json`；随后从提交 `aa57d74910be5ab09e175d9cd507ed897d0b9e92` 的 detached clean checkout `D:\cp-clean-ext-aa57d74` 完成正式复现，归档报告为 `results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay.json`（SHA-256 `72f3adf8226ae7d91c6e9d43203fe958f6b568f45c1314b0a04e41f8690110e7`）。该报告独立核验 10/10 E2 runs、18/18 E5 cases，并确认 `resume` 未执行新任务、model/API/paid 为 0/0/0。
+- 随后的状态绑定提交 `9d95faa742978579ccd0ae24b68c990d1b1ba69e` 也在 `D:\cp-clean-ext-9d95faa` 完成 detached clean replay；补充报告归档为 `results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay-final.json`（SHA-256 `f7c284a0a52d6411ac5f9dc62ce85265b6f4925ab354c34980cfdfa32f34bea4`），结果同为 10/10 E2、18/18 E5、resume 零执行、model/API/paid=0/0/0。前一份 canonical clean 报告未覆盖。
 
 ## 9. 恢复命令与 Definition of Done
 
