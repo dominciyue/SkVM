@@ -7,7 +7,7 @@ import { createContainedDirectory, resolveContainedExistingFile } from "../../sr
 type Member = { mappingId: string; skillId: string; responsibilityId: string; requestedOutputFormat: string };
 type BaselineArguments = { analysis: { skills: Array<{ skillId: string; responsibilities: Array<{ id: string; obligations: string[] }> }> };
   inputs: { inputs: Array<{ inputId: string; status: string; localPath?: string | null; format?: string | null; sha256?: string | null; error?: string | null }> };
-  member: Member; analysisPath: string; inputRoot: string; profile?: "api-tester-openapi-subset-v2" | "api-request-cases/v2" | "api-request-specimens/v1" | "api-request-form-specimens/v1" | "api-request-body-negatives/v1" | "api-response-source-examples/v1" };
+  member: Member; analysisPath: string; inputRoot: string; profile?: "api-tester-openapi-subset-v2" | "api-request-cases/v2" | "api-request-specimens/v1" | "api-request-form-specimens/v1" | "api-request-body-negatives/v1" | "api-response-source-examples/v1" | "api-pytest-request-suite/v1" };
 
 export function createBaselineMapping(options: BaselineArguments) {
   const reviews = options.analysis.skills.filter((s) => s.skillId === options.member.skillId);
@@ -53,7 +53,8 @@ export async function runSkillFamilyBaseline(options: { rootDir: string; configP
       row.taskTotals = result.tasks.map((t) => ({ taskId: t.taskId, error: t.error, totals: t.operationReport?.totals,
         gates: t.operationReport?.gates, obligationCoverage: t.operationReport?.obligationCoverage,
         requestCases: t.requestCasesVerification, requestSpecimens: t.requestSpecimensVerification,
-        requestBodyNegatives: t.requestBodyNegativesVerification, responseCatalog: t.responseCatalog?.totals, elapsedMillis: t.elapsedMillis }));
+        requestBodyNegatives: t.requestBodyNegativesVerification, responseCatalog: t.responseCatalog?.totals,
+        ...(t.pytestSuiteVerification ? { pytestSuite: t.pytestSuiteVerification } : {}), elapsedMillis: t.elapsedMillis }));
     } catch (error) { row.error = String(error); }
     await writeFile(resolve(output, "report.json"), JSON.stringify(report, null, 2) + "\n");
     console.log(JSON.stringify({ member: member.mappingId, error: row.error, tasks: row.taskTotals.length }));

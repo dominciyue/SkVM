@@ -81,3 +81,15 @@ in skill-family-pytest-development-20260911/runtime-first-failure/ (old port no 
 Duplicate suite keys and empty universes also have preserved REDs before correction.
 22tests/172assertions plus main typecheck pass;48local HTTP calls through core regression,
 0remote/model/paid. Panel/native source-duty integration has not yet run at this checkpoint.
+
+Native batch: `bun scripts/skill-ir/api-pytest-development.ts --inputs=<bound-index>
+--out=<new-directory> --python=<explicit-python>`. It clears any oracle environment
+variable, disables pytest plugin auto-loading and parent conftest discovery, and uses
+isolated Python. JUnit counts must equal independently bound case counts; all tests
+must be skipped with no oracle. Subprocess errors and per-input binding failures remain
+rows, not a successful partial batch. Exact suites, Python, JUnit and stdout are retained.
+
+Source-duty mapping profile `api-pytest-request-suite/v1` requires requestedOutputFormat
+`pytest`, writes actual files and source verification, but explicitly reports runtime
+not evaluated. Runtime collection is measured by the separate batch, never inferred
+from successful file emission. Other profiles do not acquire new report fields.

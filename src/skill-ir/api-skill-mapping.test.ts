@@ -131,3 +131,18 @@ test("response source analysis maps full duties without treating example mismatc
   expect(report.wholeSkillCompleted).toBe(false);
   expect(report.tasks[0]!.sourceObligations.every((o) => o.status === "not-fully-verified")).toBe(true);
 });
+
+test("pytest profile emits bound native files without claiming runtime or full source duties", async () => {
+  const { root, mapping } = await setup();
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-pytest-request-suite/v1" }));
+  const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "native", nodeExecutable: Bun.which("node")! });
+  expect(report.tasks[0]!.error).toBeNull();
+  expect(report.tasks[0]!.pytestSuiteVerification?.status).toBe("pass");
+  expect(await readFile(join(root, "native/example-one/test_api_requests.py"), "utf8")).toContain("@pytest.mark.parametrize");
+  expect(report.originalOutputConformance).toBe("pytest-profile-runtime-not-evaluated");
+  expect(report.wholeSkillCompleted).toBe(false);
+  expect(report.tasks[0]!.sourceObligations.every((o) => o.status === "not-fully-verified")).toBe(true);
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-pytest-request-suite/v1", requestedOutputFormat: "drift-yaml" }));
+  const wrong = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "wrong-native", nodeExecutable: Bun.which("node")! });
+  expect(wrong.tasks[0]!.error).toContain("pytest output format required");
+});

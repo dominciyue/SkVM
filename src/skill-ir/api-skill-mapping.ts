@@ -16,6 +16,8 @@ import { buildApiRequestBodyNegatives, type ApiRequestBodyNegatives } from "./ap
 import { verifyApiRequestBodyNegatives } from "./api-request-body-negatives-checker";
 import { analyzeResponseSchemas } from "./api-response-catalog";
 import { decodeDevelopmentUtf8 } from "./development-utf8";
+import { buildApiPytestSuite } from "./api-pytest-suite";
+import { verifyApiPytestSuite } from "./api-pytest-suite-checker";
 
 const digest = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u);
@@ -27,7 +29,7 @@ const path = z.string().min(1).refine((value) => {
 export const ApiSkillMappingSchema = z.object({
   schemaVersion: z.literal("api-skill-mapping/v1"), mappingId: id,
   analysisPath: path, skillId: z.string().min(1), responsibilityId: id,
-  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1", "api-request-form-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1"]),
+  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1", "api-request-form-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1", "api-pytest-request-suite/v1"]),
   requestedOutputFormat: z.string().min(1), extraction: z.literal("agent-reviewed-declaration"),
   tasks: z.array(z.object({ taskId: id, inputPath: path, format: z.enum(["json", "yaml"]), sha256: sha }).strict()).min(1),
 }).strict().superRefine((value, context) => {
@@ -105,6 +107,8 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     requestSpecimensReport: ApiRequestSpecimens | ApiFormRequestSpecimens | null; requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null;
     requestBodyNegativesReport: ApiRequestBodyNegatives | null; requestBodyNegativesVerification: ReturnType<typeof verifyApiRequestBodyNegatives> | null;
     responseCatalog: ReturnType<typeof analyzeResponseSchemas> | null;
+    pytestSuiteVerification?: Awaited<ReturnType<typeof verifyApiPytestSuite>> | null;
+    pytestSuiteFiles?: { suitePath: string; testPythonPath: string; suiteSha256: string; testPythonSha256: string } | null;
     sourceObligations: Array<{ id: string; status: "not-fully-verified" }>; elapsedMillis: number }> = [];
   const report = { schemaVersion: "api-skill-mapping-report/v1", mappingId: prepared.mapping.mappingId,
     mappingSha256: prepared.mappingSha256, analysisSha256: prepared.analysisSha256,
@@ -114,6 +118,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     boundedTaskFamilyAssessment: prepared.boundedTaskFamilyAssessment,
     wholeSkillCompleted: false, profile: prepared.mapping.profile,
     originalOutputConformance: prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? "not-implemented-by-v2"
+      : prepared.mapping.profile === "api-pytest-request-suite/v1" ? "pytest-profile-runtime-not-evaluated"
       : prepared.mapping.profile === "api-response-source-examples/v1" ? "not-implemented-by-response-analysis"
       : prepared.mapping.profile === "api-request-body-negatives/v1" ? "not-implemented-by-body-negatives"
       : ["api-request-specimens/v1", "api-request-form-specimens/v1"].includes(prepared.mapping.profile) ? "not-implemented-by-request-specimens" : "not-implemented-by-request-cases", tasks,
@@ -128,13 +133,25 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     let requestBodyNegativesReport: ApiRequestBodyNegatives | null = null;
     let requestBodyNegativesVerification: ReturnType<typeof verifyApiRequestBodyNegatives> | null = null;
     let responseCatalog: ReturnType<typeof analyzeResponseSchemas> | null = null;
+    let pytestSuiteVerification: Awaited<ReturnType<typeof verifyApiPytestSuite>> | null = null;
+    let pytestSuiteFiles: { suitePath: string; testPythonPath: string; suiteSha256: string; testPythonSha256: string } | null = null;
     let error: string | null = null;
     try {
       const input = await readFile(await resolveContainedExistingFile(options.rootDir, task.inputPath, "task input"));
       if (digest(input) !== task.sha256) throw new Error("task input digest mismatch");
       // Historical v2 dispatch still receives its original raw-file manifest unchanged.
       const source = prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? null : decodeDevelopmentUtf8(input);
-      if (prepared.mapping.profile === "api-response-source-examples/v1") {
+      if (prepared.mapping.profile === "api-pytest-request-suite/v1") {
+        if (prepared.mapping.requestedOutputFormat !== "pytest") throw new Error("pytest output format required");
+        const artifact = await buildApiPytestSuite(source!, task.format);
+        pytestSuiteVerification = await verifyApiPytestSuite(source!, task.format, artifact);
+        if (pytestSuiteVerification.status !== "pass") throw new Error("pytest independent verification failed");
+        const directory = await createContainedDirectory(options.rootDir, `${options.outputPath}/${task.taskId}`, "pytest mapping output");
+        await writeFile(resolve(directory, "suite.json"), artifact.suiteJson, { flag: "wx" });
+        await writeFile(resolve(directory, "test_api_requests.py"), artifact.testPython, { flag: "wx" });
+        pytestSuiteFiles = { suitePath: `${options.outputPath}/${task.taskId}/suite.json`, testPythonPath: `${options.outputPath}/${task.taskId}/test_api_requests.py`,
+          suiteSha256: digest(artifact.suiteJson), testPythonSha256: digest(artifact.testPython) };
+      } else if (prepared.mapping.profile === "api-response-source-examples/v1") {
         responseCatalog = analyzeResponseSchemas(source!, task.format);
         if (!responseCatalog.enumerationComplete) error = "response source enumeration incomplete";
       } else if (prepared.mapping.profile === "api-request-body-negatives/v1") {
@@ -163,6 +180,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     } catch (caught) { error = String(caught); }
     tasks.push({ taskId: task.taskId, operationReport, requestCasesReport, requestCasesVerification, requestSpecimensReport, requestSpecimensVerification,
       requestBodyNegativesReport, requestBodyNegativesVerification, responseCatalog, error,
+      ...(prepared.mapping.profile === "api-pytest-request-suite/v1" ? { pytestSuiteVerification, pytestSuiteFiles } : {}),
       sourceObligations: prepared.mapping.obligations.map((id) => ({ id, status: "not-fully-verified" })),
       elapsedMillis: Math.round(performance.now() - started) });
     await writeFile(resolve(output, "report.json"), JSON.stringify(report, null, 2) + "\n");
