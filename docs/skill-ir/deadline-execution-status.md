@@ -55,6 +55,7 @@
 19. e9d6dde独立LF clean增量完成：Node依赖18944文件前后核验，header两完整报告语义同，decimal505报告字节同；35tests/186断言+numeric6/150、主/脚本tsc通过，tracked clean。clean-e9d6dde-r1完整10原输出归档，初始collector把Bun兼容版本写成Node版本的元数据错误保留并修，未重跑candidate。0HTTP/模型/付费新增。
 20. de40836 clean已推送，Git index20原输出字节核验通过。header关系核验6/6成立（键/观测顺序、格式、JSON/YAML、case/prose、本地ref、不支持兄弟操作），三字面期望字段独立核对，新增兄弟自身unresolved也报告。6tests/36断言、主/脚本tsc通过；初始缺模块与fixture语法失败、target-only早期报告保留。核心0改动，无新增真实样本；错误检出复用已有core/mapping测试，不编新总体检出率。
 21. 下一具体动作：提交上述关系证据后，对当前D1–D9逐项验收核对并压缩恢复入口的陈旧“下一步”；重点区分D7固定方法首尝试/元数据修订后、D6未测一次性提取成本、已实现原生格式与未验证业务职责。只在发现实际证据缺口时继续技术工作，不空跑或为10h扩样。目标active。
+22. 当前D6实际缺口：旧提取成本未测不可追补。按skill-duty-extraction-development.md新增三已暴露原成员的前瞻性职责草稿提取测量，完整正文/资源、原文定位、独立结构核验与单列语义复核。先TDD并提交实现，再每成员一次模型调用；不自动批准mapping、不重跑原基准、不把开发样本叫unseen。当前下一动作为写validator/prompt失败测试。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）
