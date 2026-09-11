@@ -18,6 +18,8 @@
 
 本计划允许真实 GitHub、认证 `gh`、远端 API 和付费模型调用。授权不改变历史 identity；每次外部调用必须记录用途、返回状态和实际 usage，服务未返回金额时写 `unknown`。常规工程修复只做一次 focused TDD 和一次必要重跑，不增加重复审计。
 
+作为持续目标执行时，R0–R12 之间不等待常规确认，也不因单项失败主动结束；每项完成后直接进入下项。R12 写出 `reported` 只表示主结果已落盘：只要用户没有发出停止指令，执行器必须继续第 8 节的 E1–E6，并在状态中使用 `extension-running`，不能把主队列完成误判为整个目标完成。
+
 交付窗口仍以 2026-09-14 前的可复核工程成果为优先级参考：先得到一个可运行的共享纵向切片，再扩大样本。时间到达时收口当前最好证据，不用新增格式、界面或重复审计来拖延；若任务队列提前完成且用户没有停止，再执行第 8 节的额外队列。
 
 ## 2. 交付对象与主张边界
@@ -122,9 +124,10 @@ development -> method-not-ready
 capability-ready -> method-not-ready
 method-locked -> blocked-before-evaluation
 primary-running -> insufficient-evidence | bounded-negative | bounded-positive | strong-positive
+reported -> extension-running
 ```
 
-`screening-shortfall` 和 `insufficient-evidence` 仍要继续执行所有不依赖缺失来源的开发、checker 和报告任务；不能因一次 403、429、模型无响应或单个坏源结束整晚任务。每次恢复先读本计划、`execution-status.json` 和最后一个完整结果目录，运行 `--step=status`/`--step=resume`，从首个未完成步骤继续。禁止重复已经有明确返回结果的付费请求；对瞬时网络错误最多做三次有退避重试，永久错误转入下一个候选。
+`screening-shortfall` 和 `insufficient-evidence` 仍要继续执行所有不依赖缺失来源的开发、checker 和报告任务；不能因一次 403、429、模型无响应或单个坏源结束整晚任务。每次恢复先读本计划、`execution-status.json` 和最后一个完整结果目录，运行 `--step=status`/`--step=resume`，从首个未完成步骤继续。禁止重复已经有明确返回结果的付费请求；对瞬时网络错误最多做三次有退避重试，永久错误转入下一个候选。`reported` 之后的 `--step=resume` 必须从 E1 开始，而不是返回终止状态。
 
 ## 6. 连续工作队列
 
@@ -341,7 +344,7 @@ bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status
 bun ./scripts/skill-ir/skill-family-class-proof.ts --step=resume
 ```
 
-`--step=resume` 必须读取 status 并执行从首个未完成 R/E 任务开始的连续队列；它不能重新发送已完成的模型/付费请求，也不能读取 protected reserve 以外的新来源而不先写 screening policy。
+`--step=resume` 必须读取 status 并执行从首个未完成 R/E 任务开始的连续队列；它不能重新发送已完成的模型/付费请求，也不能读取 protected reserve 以外的新来源而不先写 screening policy。只有用户明确停止，或 R0–R12 与 E1–E6 均已实际完成且没有新的证据驱动任务时，执行器才可以结束目标；“报告已写出”本身不是停止条件。
 
 本计划的工程 Definition of Done：
 
