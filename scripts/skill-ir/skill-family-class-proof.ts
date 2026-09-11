@@ -1442,6 +1442,7 @@ export type PrimaryFirstRunRecord = {
   repository: string;
   inputId: string;
   input: { path: string; format: "json" | "yaml"; bytes: number; sha256: string };
+  inputValid: boolean;
   source: { bodyPath: string; commit: string | null; gitBlobSha: string; bytes: number; sha256: string };
   extraction: {
     status: "pass" | "failed";
@@ -2082,6 +2083,7 @@ function primaryRecordFromError(input: {
     repository: input.repository,
     inputId: input.inputId,
     input: input.input,
+    inputValid: false,
     source: input.source,
     extraction,
     mapping,
@@ -2251,6 +2253,7 @@ async function runOnePrimaryFirstRun(
       repository: primary.repository,
       inputId: binding.inputId,
       input,
+      inputValid: true,
       source,
       extraction,
       mapping,
