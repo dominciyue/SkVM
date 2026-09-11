@@ -52,3 +52,17 @@ Checked declaration constraints do not prove these protocol/business properties.
 Reference: [OAS3.0.3 Header Object and response headers](https://spec.openapis.org/oas/v3.0.3#header-object).
 This is bounded additional development within the shared response assertion duty, with
 no new skill/API acquisition, network experiment or paid request.
+
+## Current core result
+
+Separate `checkApiResponseHeaders` implemented. TDD caught source-name collision inventory
+loss: both colliding declarations now remain unresolved rows instead of disappearing.
+10response-layer tests/65assertions pass; a strict nullability issue in two test lookups
+was corrected and the main typecheck passes. Old body observation module is untouched.
+
+Four source string examples produce3grouped observations/4checked header values across
+the2documents; the other10documents remain explicitly no-declared-response-headers.
+These are offline source-example checks only, not live observations or4API successes.
+Artifacts and exact command entrypoints are under
+`results/skill-ir/skill-family-response-headers-development-20260911/`.
+Shared-duty mapping integration remains the next task, not claimed complete by this core.

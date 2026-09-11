@@ -1,0 +1,56 @@
+{
+  "syntaxDiagnostic": {
+    "chunk_id": "d15eb3",
+    "wall_time_seconds": 0.0936317,
+    "exit_code": 1,
+    "original_token_count": 92,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\api-response-headers.test.ts:\n\n# Unhandled error between tests\n-------------------------------\n10 | } } } };\n            ^\nerror: Expected \"}\" but found \";\"\n    at D:\\skill优化\\SkVM\\src\\skill-ir\\api-response-headers.test.ts:10:8\n-------------------------------\n\n\n 0 pass\n 1 fail\n 1 error\nRan 1 test across 1 file. [48.00ms]\n"
+  },
+  "behaviorRed": {
+    "chunk_id": "83c058",
+    "wall_time_seconds": 0.0999326,
+    "exit_code": 1,
+    "original_token_count": 900,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\api-response-headers.test.ts:\n 9 |   } }, \"2XX\": { description: \"range\", headers: { \"X-Range\": { schema: { type: \"string\" } } } },\n10 | } } } } };\n11 | const observation = { operationKey: \"GET /x\", statusCode: 200, headers: [{ name: \"x-count\", value: \"3\" }, { name: \"X-Tags\", value: \"a,b\" }, { name: \"Server\", value: \"fixture\" }] };\n12 | test(\"header observation preserves every source declaration and distinguishes optional absence\", () => {\n13 |   const result = checkApiResponseHeaders(JSON.stringify(doc), \"json\", observation);\n14 |   expect(result.status).toBe(\"checked\"); expect(result.valid).toBe(true);\n                             ^\nerror: expect(received).toBe(expected)\n\nExpected: \"checked\"\nReceived: \"unresolved\"\n\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\api-response-headers.test.ts:14:25)\n(fail) header observation preserves every source declaration and distinguishes optional absence [0.29ms]\n20 | });\n21 | test(\"required absence, malformed scalar, field constraint and array loss fail at declared field\", () => {\n22 |   for (const headers of [[], [{ name: \"x-count\", value: \"-1\" }], [{ name: \"x-count\", value: \"3x\" }],\n23 |     [{ name: \"x-count\", value: \"3\" }, { name: \"X-Tags\", value: \"a\" }]]) {\n24 |     const r = checkApiResponseHeaders(JSON.stringify(doc), \"json\", { ...observation, headers });\n25 |     expect(r.status).toBe(\"checked\"); expect(r.valid).toBe(false);\n                          ^\nerror: expect(received).toBe(expected)\n\nExpected: \"checked\"\nReceived: \"unresolved\"\n\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\api-response-headers.test.ts:25:22)\n(fail) required absence, malformed scalar, field constraint and array loss fail at declared field [0.15ms]\n25 |     expect(r.status).toBe(\"checked\"); expect(r.valid).toBe(false);\n26 |   }\n27 | });\n28 | test(\"duplicate observed/source names and unsupported header semantics cannot silently pass\", () => {\n29 |   const duplicate = checkApiResponseHeaders(JSON.stringify(doc), \"json\", { ...observation, headers: [...observation.headers, { name: \"X-COUNT\", value: \"3\" }] });\n30 |   expect(duplicate.status).toBe(\"invalid-observation\");\n                                ^\nerror: expect(received).toBe(expected)\n\nExpected: \"invalid-observation\"\nReceived: \"unresolved\"\n\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\api-response-headers.test.ts:30:28)\n(fail) duplicate observed/source names and unsupported header semantics cannot silently pass [0.13ms]\n38 | test(\"local response/header/schema references are checked; missing reference stays unresolved\", () => {\n39 |   const changed: any = structuredClone(doc);\n40 |   changed.components = { responses: { R: changed.paths[\"/x\"].get.responses[\"200\"] }, headers: { C: { required: true, schema: { $ref: \"#/components/schemas/N\" } } }, schemas: { N: { type: \"integer\", minimum: 0 } } };\n41 |   changed.paths[\"/x\"].get.responses[\"200\"] = { $ref: \"#/components/responses/R\" };\n42 |   changed.components.responses.R.headers[\"X-Count\"] = { $ref: \"#/components/headers/C\" };\n43 |   expect(checkApiResponseHeaders(JSON.stringify(changed), \"json\", observation).valid).toBe(true);\n                                                                                           ^\nerror: expect(received).toBe(expected)\n\nExpected: true\nReceived: null\n\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\api-response-headers.test.ts:43:87)\n(fail) local response/header/schema references are checked; missing reference stays unresolved [0.19ms]\n\n 0 pass\n 4 fail\n 4 expect() calls\nRan 4 tests across 1 file. [50.00ms]\n"
+  },
+  "initialGreen": {
+    "chunk_id": "5215ab",
+    "wall_time_seconds": 0.2799028,
+    "exit_code": 0,
+    "original_token_count": 205,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\api-response-headers.test.ts:\n(pass) header observation preserves every source declaration and distinguishes optional absence [44.88ms]\n(pass) required absence, malformed scalar, field constraint and array loss fail at declared field [4.18ms]\n(pass) duplicate observed/source names and unsupported header semantics cannot silently pass [1.57ms]\n(pass) local response/header/schema references are checked; missing reference stays unresolved [2.23ms]\n\nsrc\\skill-ir\\api-response-observation.test.ts:\n(pass) observed response selects exact before range before default without guessing a status trigger [23.91ms]\n(pass) response observations separate source blockers, mismatches and malformed JSON [4.76ms]\n\n 6 pass\n 0 fail\n 43 expect() calls\nRan 6 tests across 2 files. [198.00ms]\n"
+  },
+  "coverageRed": {
+    "chunk_id": "767c58",
+    "wall_time_seconds": 0.2277623,
+    "exit_code": 1,
+    "original_token_count": 368,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\api-response-headers.test.ts:\n(pass) header observation preserves every source declaration and distinguishes optional absence [43.15ms]\n(pass) required absence, malformed scalar, field constraint and array loss fail at declared field [4.22ms]\n29 |   const duplicate = checkApiResponseHeaders(JSON.stringify(doc), \"json\", { ...observation, headers: [...observation.headers, { name: \"X-COUNT\", value: \"3\" }] });\n30 |   expect(duplicate.status).toBe(\"invalid-observation\");\n31 |   const changed: any = structuredClone(doc); changed.paths[\"/x\"].get.responses[\"200\"].headers[\"x-count\"] = { schema: { type: \"string\" } };\n32 |   const duplicateSource = checkApiResponseHeaders(JSON.stringify(changed), \"json\", observation);\n33 |   expect(duplicateSource.status).toBe(\"unresolved\");\n34 |   expect(duplicateSource.headers).toHaveLength(5);\n                                       ^\nerror: expect(received).toHaveLength(expected)\n\nExpected length: 5\nReceived length: 0\n\n      at <anonymous> (D:\\skill优化\\SkVM\\src\\skill-ir\\api-response-headers.test.ts:34:35)\n(fail) duplicate observed/source names and unsupported header semantics cannot silently pass [1.21ms]\n(pass) source collisions retain both rows and malformed raw observations never get coerced [7.75ms]\n(pass) local response/header/schema references are checked; missing reference stays unresolved [2.28ms]\n\n 4 pass\n 1 fail\n 26 expect() calls\nRan 5 tests across 1 file. [166.00ms]\n"
+  },
+  "finalResponseRegression": {
+    "chunk_id": "b8921a",
+    "wall_time_seconds": 10.0027694,
+    "session_id": 47205,
+    "original_token_count": 318,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\skill-ir\\api-response-headers.test.ts:\n(pass) header observation preserves every source declaration and distinguishes optional absence [44.56ms]\n(pass) required absence, malformed scalar, field constraint and array loss fail at declared field [4.11ms]\n(pass) duplicate observed/source names and unsupported header semantics cannot silently pass [1.71ms]\n(pass) source collisions retain both rows and malformed raw observations never get coerced [6.93ms]\n(pass) local response/header/schema references are checked; missing reference stays unresolved [2.16ms]\n\nsrc\\skill-ir\\api-response-observation.test.ts:\n(pass) observed response selects exact before range before default without guessing a status trigger [20.93ms]\n(pass) response observations separate source blockers, mismatches and malformed JSON [3.49ms]\n\nsrc\\skill-ir\\api-response-schema.test.ts:\n(pass) response and request directional properties have separate required and forbidden semantics [10.92ms]\n(pass) response direction flows through local references and nested object array properties [5.01ms]\n(pass) ambiguous response directional composition and malformed flags remain unsupported [4.37ms]\n\n 10 pass\n 0 fail\n 65 expect() calls\nRan 10 tests across 3 files. [221.00ms]\n"
+  },
+  "firstTypecheck": {
+    "exitCode": 1,
+    "errors": [
+      "api-response-headers.test.ts(16,10) TS2532",
+      "api-response-headers.test.ts(17,10) TS2532"
+    ]
+  },
+  "correctedMainTypecheckExitCode": 0,
+  "examplesAndScriptTypecheck": {
+    "chunk_id": "fdb122",
+    "wall_time_seconds": 1.0089257,
+    "exit_code": 0,
+    "original_token_count": 29,
+    "output": "{\"documents\":12,\"withHeaders\":2,\"declaredHeaders\":4,\"observations\":3,\"validObservations\":3,\"checkedHeaderValues\":4}\n"
+  },
+  "projectModelCalls": 0,
+  "remoteApiCalls": 0,
+  "paidCalls": 0,
+  "developerAgentCost": "unmeasured-separate"
+}
