@@ -105,6 +105,15 @@ no real coverage gain or panel rerun is claimed. Evidence:skill-family-decimal-d
   not whole-skill speedup. Contract extraction/onboarding agent effort and developer-agent
   charges are unmeasured, separate from0-model-call deterministic artifact execution.
 
+D6 derived accounting now resides in`skill-family-deepening-20260911/automation-measurement.json`.
+It reads the actual r5 first/repair records: each member declares7responsibilities, with
+13/12/10/20selected obligation labels respectively. Recorded12-input execution totals are
+3080/2409/2367/3139ms (different runs, not comparative speed claims). Structural diff finds
+three bodyLines corrections plus an explanatory revision field; first failures remain.
+The6model tasks comprise only2unique API operations under3skill contexts, not6independent
+operation samples. Historical extraction time/tokens and billing were not recorded and
+cannot be reconstructed from configuration size. No new model call was made for accounting.
+
 ## Reproduction and evidence entry points
 
 All result directories below are under `results/skill-ir/`:
