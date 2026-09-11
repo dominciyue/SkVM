@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import { AcquisitionError, createAcquirer, type Request } from "./deadline-acquire";
 import { preflightSkillEligibility, type EligibilityInput, type EligibilityRecord } from "../../src/skill-ir/skill-family-eligibility";
@@ -2976,7 +2976,12 @@ export async function runCleanReplay(root: string, outputPath?: string): Promise
     claimBoundary: "R12 is an offline replay of committed development evidence. It does not add real samples, select or read prospective/held-out inputs, establish live API behavior, or alter readiness or historical 0/6 results.",
   };
   const target = resolve(absoluteRoot, outputPath ?? `${CLASS_PROOF_RESULT_RELATIVE}/clean-replay.json`);
-  await mkdir(dirname(target), { recursive: true });
+  try {
+    await stat(dirname(target));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    await mkdir(dirname(target), { recursive: true });
+  }
   await persistStableJson(target, report);
   return report;
 }
@@ -3372,7 +3377,7 @@ export function screenCandidate(input: EligibilityInput, construct: () => unknow
 
 function git(root: string, args: string[]): string {
   try {
-    return execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
+    return execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
     return "";
   }
