@@ -19,6 +19,8 @@ import {
   deriveDevelopmentGate,
   selectDevelopmentMembers,
   selectDevelopmentInputs,
+  selectPrimaryMembers,
+  buildMethodLock,
   selectCandidateMetadata,
   runStatus,
   screenCandidate,
@@ -355,5 +357,41 @@ describe("skill-family class-proof status", () => {
       repositoryDispatchDetected: false,
       infrastructureFailures: 0,
     })).toMatchObject({ protocolReady: true, inputReady: false, capabilityReady: false });
+  });
+
+  test("selects repository-distinct primary and reserve members without outcome data", () => {
+    const rows = [
+      { candidateId: "c4", skillId: "z/skill", repository: "z/repo", decision: "eligible" as const, applicableInputCount: 2, skillPath: "z/SKILL.md" },
+      { candidateId: "c3", skillId: "a/late", repository: "a/repo", decision: "eligible" as const, applicableInputCount: 2, skillPath: "z/SKILL.md", accepted: 0 },
+      { candidateId: "c2", skillId: "a/early", repository: "a/repo", decision: "eligible" as const, applicableInputCount: 2, skillPath: "a/SKILL.md", accepted: 99 },
+      { candidateId: "c1", skillId: "b/skill", repository: "b/repo", decision: "eligible" as const, applicableInputCount: 2, skillPath: "b/SKILL.md" },
+      { candidateId: "c5", skillId: "c/skill", repository: "c/repo", decision: "eligible" as const, applicableInputCount: 1, skillPath: "c/SKILL.md" },
+      { candidateId: "dev", skillId: "d/dev", repository: "d/repo", decision: "eligible" as const, applicableInputCount: 2, skillPath: "dev/SKILL.md" },
+    ];
+    const plan = selectPrimaryMembers(rows, new Set(["dev"]), { primaryCount: 3, reserveCount: 2 });
+    expect(plan.primary.map((row) => row.candidateId)).toEqual(["c2", "c1", "c4"]);
+    expect(plan.primary.map((row) => row.repository)).toEqual(["a/repo", "b/repo", "z/repo"]);
+    expect(plan.reserve.map((row) => row.candidateId)).toEqual(["c3"]);
+    expect(plan.ineligibleAfterScreening.map((row) => row.candidateId)).toEqual(["c5"]);
+    expect(plan.outcomeDataUsed).toBe(false);
+  });
+
+  test("builds an immutable method lock with separate screening and primary reads", () => {
+    const lock = buildMethodLock({
+      implementationCommit: "a".repeat(40),
+      classContractCommit: "b".repeat(40),
+      classContractSha256: "c".repeat(64),
+      screenedCandidateCount: 39,
+      eligibleCandidateCount: 12,
+      developmentCandidateIds: ["candidate-060"],
+      primary: [{ candidateId: "candidate-091", repository: "owner/repo", skillPath: "skills/api/SKILL.md", sha: "d".repeat(40), applicableInputCount: 2 }],
+      reserve: [{ candidateId: "candidate-092", repository: "other/repo", skillPath: "SKILL.md", sha: "e".repeat(40), applicableInputCount: 2 }],
+      screeningBodyReadCount: 39,
+    });
+    expect(lock.lockBeforePrimaryRead).toBe(true);
+    expect(lock.readAccounting).toEqual({ screeningBodyReadCount: 39, primaryBodyReadCount: 0 });
+    expect(lock.thresholds.minPrimaryMembers).toBe(3);
+    expect(lock.revisionPolicy.maxSharedRevisions).toBe(1);
+    expect(lock.primary[0]?.candidateId).toBe("candidate-091");
   });
 });

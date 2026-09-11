@@ -13,6 +13,7 @@ Run from the `SkVM` checkout:
 
 ```powershell
 bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status
+bun ./scripts/skill-ir/skill-family-class-proof.ts --step=lock
 bun ./scripts/skill-ir/skill-family-class-proof.ts --step=resume
 ```
 
@@ -21,6 +22,15 @@ The command stores all new evidence below
 `execution-status.json`; it is the recovery source of truth for the next
 unfinished R/E step. Each step is idempotent at the identity level and does not
 rewrite an existing first-run report.
+
+`--step=lock` reads only the already persisted R3 eligibility/source metadata
+to choose repository-distinct primary and reserve rows. It writes
+`method-lock.json` before reading any primary bytes or invoking construction,
+then digest-checks and copies the selected source bodies, direct resources, and
+the two fixed input bindings into the identity directory. The completed role
+assignment is recorded separately in `primary-selection.json`, including
+screening and post-lock read counts. No accepted count or construction outcome
+is an input to this selection.
 
 ## Contract and data flow
 

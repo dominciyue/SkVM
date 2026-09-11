@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import { AcquisitionError, createAcquirer, type Request } from "./deadline-acquire";
 import { preflightSkillEligibility, type EligibilityInput, type EligibilityRecord } from "../../src/skill-ir/skill-family-eligibility";
@@ -371,6 +371,472 @@ export function selectDevelopmentMembers(rows: EligibilitySummaryRow[], limit = 
 /** Bind inputs in the original archived index order; construction outcomes are not consulted. */
 export function selectDevelopmentInputs(inputs: TaskInputBinding[], count = 2): TaskInputBinding[] {
   return inputs.slice(0, Math.max(0, count));
+}
+
+export type PrimarySelectionCandidate = {
+  candidateId: string;
+  skillId: string;
+  repository: string;
+  skillPath: string;
+  sha: string;
+  decision: EligibilityRecord["decision"];
+  applicableInputCount: number;
+};
+
+export type PrimarySelectionPlan = {
+  primary: PrimarySelectionCandidate[];
+  reserve: PrimarySelectionCandidate[];
+  ineligibleAfterScreening: Array<PrimarySelectionCandidate & { reason: string }>;
+  notSelected: Array<PrimarySelectionCandidate & { reason: string }>;
+  developmentExcluded: PrimarySelectionCandidate[];
+  candidateOrder: "repository,path,candidateId lexical after eligibility and development exclusion";
+  eligibleAfterDevelopment: number;
+  inputQualifiedAfterDevelopment: number;
+  repositoryDistinct: number;
+  outcomeDataUsed: false;
+  ready: boolean;
+  reason: string | null;
+};
+
+/**
+ * Select primary/reserve metadata without consuming construction outcomes.
+ * The same repository/path ordering is used for every class-proof identity.
+ */
+export function selectPrimaryMembers(
+  rows: PrimarySelectionCandidate[],
+  developmentCandidateIds: ReadonlySet<string>,
+  options: { primaryCount?: number; reserveCount?: number } = {},
+): PrimarySelectionPlan {
+  const primaryCount = Math.max(0, Math.floor(options.primaryCount ?? 3));
+  const reserveCount = Math.max(0, Math.floor(options.reserveCount ?? 2));
+  const seenCandidates = new Set<string>();
+  for (const row of rows) {
+    if (!row.candidateId || !row.repository || !row.skillPath) throw new Error("primary selection metadata is incomplete");
+    if (seenCandidates.has(row.candidateId)) throw new Error(`duplicate primary selection candidate: ${row.candidateId}`);
+    seenCandidates.add(row.candidateId);
+  }
+  const developmentExcluded = rows.filter((row) => developmentCandidateIds.has(row.candidateId));
+  const eligible = rows
+    .filter((row) => row.decision === "eligible" && !developmentCandidateIds.has(row.candidateId))
+    .sort((left, right) => left.repository.toLowerCase().localeCompare(right.repository.toLowerCase())
+      || left.skillPath.localeCompare(right.skillPath)
+      || left.candidateId.localeCompare(right.candidateId));
+  const ineligibleAfterScreening = eligible
+    .filter((row) => row.applicableInputCount < 2)
+    .map((row) => ({ ...row, reason: "minimum-two-applicable-inputs-not-met-after-screening" }));
+  const qualified = eligible.filter((row) => row.applicableInputCount >= 2);
+  const repositoryDistinct = new Set(qualified.map((row) => row.repository.toLowerCase())).size;
+  const primary: PrimarySelectionCandidate[] = [];
+  const usedRepositories = new Set<string>();
+  for (const row of qualified) {
+    if (primary.length >= primaryCount) break;
+    const repository = row.repository.toLowerCase();
+    if (usedRepositories.has(repository)) continue;
+    usedRepositories.add(repository);
+    primary.push(row);
+  }
+  const primaryIds = new Set(primary.map((row) => row.candidateId));
+  const remaining = qualified.filter((row) => !primaryIds.has(row.candidateId));
+  const reserve = remaining.slice(0, reserveCount);
+  const notSelected = remaining.slice(reserve.length).map((row) => ({ ...row, reason: "reserve-capacity-exhausted" }));
+  const ready = primary.length >= primaryCount && reserve.length >= reserveCount && new Set(primary.map((row) => row.repository.toLowerCase())).size >= 3;
+  const reason = ready ? null
+    : primary.length < primaryCount ? "fewer-than-three-repository-distinct-input-qualified-primary-candidates"
+      : reserve.length < reserveCount ? "fewer-than-two-input-qualified-reserve-candidates"
+        : "primary-repository-distinctness-below-three";
+  return {
+    primary,
+    reserve,
+    ineligibleAfterScreening,
+    notSelected,
+    developmentExcluded,
+    candidateOrder: "repository,path,candidateId lexical after eligibility and development exclusion",
+    eligibleAfterDevelopment: eligible.length,
+    inputQualifiedAfterDevelopment: qualified.length,
+    repositoryDistinct,
+    outcomeDataUsed: false,
+    ready,
+    reason,
+  };
+}
+
+export type MethodLockCandidate = Pick<PrimarySelectionCandidate, "candidateId" | "repository" | "skillPath" | "sha" | "applicableInputCount">;
+
+export type ClassProofMethodLock = {
+  schemaVersion: "skill-family-class-proof-method-lock/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  lockedAt: "2026-09-12T00:00:00.000Z";
+  lockPoint: "before-primary-body-read-and-construction";
+  lockBeforePrimaryRead: true;
+  implementationCommit: string;
+  classContract: { commit: string; sha256: string; path: string };
+  eligibility: { algorithm: "skill-family-eligibility/v1"; decision: "eligible"; minimumApplicableInputs: 2; outcomeDataUsed: false };
+  mappingSchema: "skill-family-obligation-ledger/v1";
+  constructionProfile: typeof CLASS_CONSTRUCTION_PROFILE;
+  checkerProfile: "api-tester-operation-input-independent-coverage-and-dependency-checker";
+  inputGenerationRule: "first two entries in the archived development input index; digest-bound and fixed before construction";
+  thresholds: { minPrimaryMembers: 3; minInputsPerMember: 2; minCoreObligationCoverage: 0.9; minFirstRunAcceptedMembers: 2; acceptedCheckerPassRate: 1 };
+  revisionPolicy: { maxSharedRevisions: 1; selectFromCommonContractGapsOnly: true; firstRunImmutable: true };
+  candidateOrder: PrimarySelectionPlan["candidateOrder"];
+  candidateCounts: { screened: number; eligible: number; eligibleAfterDevelopment: number; inputQualifiedAfterDevelopment: number; repositoryDistinct: number };
+  developmentCandidateIds: string[];
+  primary: MethodLockCandidate[];
+  reserve: MethodLockCandidate[];
+  readAccounting: { screeningBodyReadCount: number; primaryBodyReadCount: 0 };
+  outcomeDataUsed: false;
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+};
+
+export function buildMethodLock(input: {
+  implementationCommit: string;
+  classContractCommit: string;
+  classContractSha256: string;
+  screenedCandidateCount: number;
+  eligibleCandidateCount: number;
+  developmentCandidateIds: string[];
+  primary: MethodLockCandidate[];
+  reserve: MethodLockCandidate[];
+  screeningBodyReadCount: number;
+  candidateOrder?: PrimarySelectionPlan["candidateOrder"];
+  eligibleAfterDevelopment?: number;
+  inputQualifiedAfterDevelopment?: number;
+  repositoryDistinct?: number;
+}): ClassProofMethodLock {
+  return {
+    schemaVersion: "skill-family-class-proof-method-lock/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    lockedAt: "2026-09-12T00:00:00.000Z",
+    lockPoint: "before-primary-body-read-and-construction",
+    lockBeforePrimaryRead: true,
+    implementationCommit: input.implementationCommit,
+    classContract: {
+      commit: input.classContractCommit,
+      sha256: input.classContractSha256,
+      path: "benchmarks/skill-ir/classification/skill-family-class-proof-contract-v1.json",
+    },
+    eligibility: { algorithm: "skill-family-eligibility/v1", decision: "eligible", minimumApplicableInputs: 2, outcomeDataUsed: false },
+    mappingSchema: "skill-family-obligation-ledger/v1",
+    constructionProfile: CLASS_CONSTRUCTION_PROFILE,
+    checkerProfile: "api-tester-operation-input-independent-coverage-and-dependency-checker",
+    inputGenerationRule: "first two entries in the archived development input index; digest-bound and fixed before construction",
+    thresholds: { minPrimaryMembers: 3, minInputsPerMember: 2, minCoreObligationCoverage: 0.9, minFirstRunAcceptedMembers: 2, acceptedCheckerPassRate: 1 },
+    revisionPolicy: { maxSharedRevisions: 1, selectFromCommonContractGapsOnly: true, firstRunImmutable: true },
+    candidateOrder: input.candidateOrder ?? "repository,path,candidateId lexical after eligibility and development exclusion",
+    candidateCounts: {
+      screened: input.screenedCandidateCount,
+      eligible: input.eligibleCandidateCount,
+      eligibleAfterDevelopment: input.eligibleAfterDevelopment ?? input.eligibleCandidateCount,
+      inputQualifiedAfterDevelopment: input.inputQualifiedAfterDevelopment ?? input.primary.length,
+      repositoryDistinct: input.repositoryDistinct ?? new Set(input.primary.map((row) => row.repository.toLowerCase())).size,
+    },
+    developmentCandidateIds: [...input.developmentCandidateIds],
+    primary: input.primary.map(({ candidateId, repository, skillPath, sha, applicableInputCount }) => ({ candidateId, repository, skillPath, sha, applicableInputCount })),
+    reserve: input.reserve.map(({ candidateId, repository, skillPath, sha, applicableInputCount }) => ({ candidateId, repository, skillPath, sha, applicableInputCount })),
+    readAccounting: { screeningBodyReadCount: input.screeningBodyReadCount, primaryBodyReadCount: 0 },
+    outcomeDataUsed: false,
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+  };
+}
+
+export type PrimaryMaterializedRow = {
+  candidateId: string;
+  memberId: string;
+  repository: string;
+  role: "primary-heldout";
+  source: {
+    commit: string | null;
+    skillPath: string;
+    screenedBodyPath: string;
+    bodyPath: string;
+    gitBlobSha: string;
+    sha256: string;
+    bytes: number;
+  };
+  directResources: Array<{ sourcePath: string; screenedPath: string; path: string; sha256: string; bytes: number }>;
+  inputBindings: Array<{ inputId: string; provider: string; sourcePath: string; screenedPath: string; path: string; format: "json" | "yaml"; bytes: number; sha256: string }>;
+};
+
+export type PrimarySelectionReport = {
+  schemaVersion: "skill-family-class-proof-primary-selection/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  methodLock: { path: string; sha256: string };
+  status: "materialized" | "insufficient-evidence" | "blocked-before-evaluation";
+  candidateOrder: PrimarySelectionPlan["candidateOrder"];
+  primary: PrimaryMaterializedRow[];
+  reserve: Array<MethodLockCandidate & { role: "screened-reserve" }>;
+  ineligibleAfterScreening: Array<PrimarySelectionCandidate & { reason: string }>;
+  notSelected: Array<PrimarySelectionCandidate & { reason: string }>;
+  developmentExcluded: PrimarySelectionCandidate[];
+  readAccounting: { screeningBodyReadCount: number; primaryBodyReadCount: number; primaryResourceReadCount: number; primaryInputReadCount: number };
+  outcomeDataUsed: false;
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+  reason: string | null;
+};
+
+type MethodLockRunResult = { lock: ClassProofMethodLock; selection: PrimarySelectionReport; status: ClassProofStatus };
+
+function asMethodLockCandidate(row: PrimarySelectionCandidate): MethodLockCandidate {
+  return {
+    candidateId: row.candidateId,
+    repository: row.repository,
+    skillPath: row.skillPath,
+    sha: row.sha,
+    applicableInputCount: row.applicableInputCount,
+  };
+}
+
+async function readJsonIfPresent<T>(path: string): Promise<T | null> {
+  try {
+    return JSON.parse(await readFile(path, "utf8")) as T;
+  } catch (error) {
+    if (isMissing(error)) return null;
+    throw error;
+  }
+}
+
+async function copyBoundBytes(input: {
+  sourcePath: string;
+  targetPath: string;
+  bytes: number;
+  sha256: string;
+}): Promise<Buffer> {
+  const source = await readFile(input.sourcePath);
+  if (source.byteLength !== input.bytes || sha256Bytes(source) !== input.sha256) {
+    throw new Error(`primary source digest mismatch: ${input.sourcePath}`);
+  }
+  await mkdir(dirname(input.targetPath), { recursive: true });
+  try {
+    await writeFile(input.targetPath, source, { flag: "wx" });
+  } catch (error) {
+    if (!isMissing(error) && (error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    const existing = await readFile(input.targetPath);
+    if (!existing.equals(source)) throw new Error(`primary target drift: ${input.targetPath}`);
+  }
+  return source;
+}
+
+async function materializePrimarySelection(input: {
+  absoluteRoot: string;
+  evidenceRoot: string;
+  lock: ClassProofMethodLock;
+  sourceRows: AcquiredSourceRow[];
+  taskBindings: TaskInputBinding[];
+  plan: PrimarySelectionPlan;
+}): Promise<PrimarySelectionReport> {
+  const sourceByCandidate = new Map(input.sourceRows.map((row) => [row.candidateId, row]));
+  const selectedInputBindings = selectDevelopmentInputs(input.taskBindings, 2);
+  const primaryRows: PrimaryMaterializedRow[] = [];
+  let primaryBodyReadCount = 0;
+  let primaryResourceReadCount = 0;
+  let primaryInputReadCount = 0;
+  for (const selected of input.plan.primary) {
+    const source = sourceByCandidate.get(selected.candidateId);
+    if (!source || !source.bodyPath || !source.bodySha256 || !source.bodyBytes) {
+      throw new Error(`primary source body binding missing: ${selected.candidateId}`);
+    }
+    if (source.skillPath !== selected.skillPath || source.sha !== selected.sha) {
+      throw new Error(`primary metadata binding mismatch: ${selected.candidateId}`);
+    }
+    const screenedBodyPath = `${CLASS_PROOF_RESULT_RELATIVE}/${source.bodyPath}`;
+    const screenedBodyAbsolute = join(input.evidenceRoot, source.bodyPath);
+    const targetBodyRelative = `primary-sources/${safeEvidenceSegment(selected.candidateId)}/SKILL.md`;
+    const targetBodyAbsolute = join(input.evidenceRoot, targetBodyRelative);
+    const body = await copyBoundBytes({ sourcePath: screenedBodyAbsolute, targetPath: targetBodyAbsolute, bytes: source.bodyBytes, sha256: source.bodySha256 });
+    if (gitBlobOid(body) !== selected.sha) throw new Error(`primary git blob binding mismatch: ${selected.candidateId}`);
+    primaryBodyReadCount += 1;
+    const resources: PrimaryMaterializedRow["directResources"] = [];
+    for (const resource of source.directResources) {
+      const resourceSource = join(input.evidenceRoot, resource.localPath);
+      const resourceTargetRelative = `primary-sources/${safeEvidenceSegment(selected.candidateId)}/resources/${safeEvidenceSegment(resource.sourcePath.replace(/[\\/]/gu, "_"))}`;
+      await copyBoundBytes({
+        sourcePath: resourceSource,
+        targetPath: join(input.evidenceRoot, resourceTargetRelative),
+        bytes: resource.bytes,
+        sha256: resource.sha256,
+      });
+      resources.push({
+        sourcePath: resource.sourcePath,
+        screenedPath: `${CLASS_PROOF_RESULT_RELATIVE}/${resource.localPath}`,
+        path: `${CLASS_PROOF_RESULT_RELATIVE}/${resourceTargetRelative}`,
+        sha256: resource.sha256,
+        bytes: resource.bytes,
+      });
+      primaryResourceReadCount += 1;
+    }
+    const bindings: PrimaryMaterializedRow["inputBindings"] = [];
+    for (const binding of selectedInputBindings) {
+      const inputSource = resolve(input.absoluteRoot, binding.localPath);
+      const extension = binding.format === "json" ? "json" : "yaml";
+      const targetRelative = `primary-inputs/${safeEvidenceSegment(selected.candidateId)}/${safeEvidenceSegment(binding.inputId)}/input/openapi.${extension}`;
+      await copyBoundBytes({ sourcePath: inputSource, targetPath: join(input.evidenceRoot, targetRelative), bytes: binding.bytes, sha256: binding.sha256 });
+      bindings.push({
+        inputId: binding.inputId,
+        provider: binding.provider,
+        sourcePath: binding.sourcePath,
+        screenedPath: binding.localPath,
+        path: `${CLASS_PROOF_RESULT_RELATIVE}/${targetRelative}`,
+        format: binding.format,
+        bytes: binding.bytes,
+        sha256: binding.sha256,
+      });
+      primaryInputReadCount += 1;
+    }
+    primaryRows.push({
+      candidateId: selected.candidateId,
+      memberId: source.skillId,
+      repository: source.repository,
+      role: "primary-heldout",
+      source: {
+        commit: source.commit,
+        skillPath: source.skillPath,
+        screenedBodyPath,
+        bodyPath: `${CLASS_PROOF_RESULT_RELATIVE}/${targetBodyRelative}`,
+        gitBlobSha: selected.sha,
+        sha256: source.bodySha256,
+        bytes: source.bodyBytes,
+      },
+      directResources: resources,
+      inputBindings: bindings,
+    });
+  }
+  return {
+    schemaVersion: "skill-family-class-proof-primary-selection/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    methodLock: { path: `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, sha256: sha256Bytes(jsonText(input.lock)) },
+    status: "materialized",
+    candidateOrder: input.plan.candidateOrder,
+    primary: primaryRows,
+    reserve: input.plan.reserve.map((row) => ({ ...asMethodLockCandidate(row), role: "screened-reserve" as const })),
+    ineligibleAfterScreening: input.plan.ineligibleAfterScreening,
+    notSelected: input.plan.notSelected,
+    developmentExcluded: input.plan.developmentExcluded,
+    readAccounting: {
+      screeningBodyReadCount: input.sourceRows.filter((row) => row.bodyReadForScreening).length,
+      primaryBodyReadCount,
+      primaryResourceReadCount,
+      primaryInputReadCount,
+    },
+    outcomeDataUsed: false,
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+    reason: null,
+  };
+}
+
+/** Freeze R8 selection before reading primary bodies or running construction. */
+export async function runMethodLock(root: string): Promise<MethodLockRunResult> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const lockPath = join(evidenceRoot, "method-lock.json");
+  const selectionPath = join(evidenceRoot, "primary-selection.json");
+  const existingLock = await readJsonIfPresent<ClassProofMethodLock>(lockPath);
+  if (existingLock) {
+    if (existingLock.identity !== CLASS_PROOF_IDENTITY || existingLock.lockPoint !== "before-primary-body-read-and-construction") {
+      throw new Error("method lock identity or lock point mismatch");
+    }
+    const existingSelection = await readJsonIfPresent<PrimarySelectionReport>(selectionPath);
+    if (existingSelection) {
+      const current = await runStatus(absoluteRoot);
+      return { lock: existingLock, selection: existingSelection, status: await writeStatus(absoluteRoot, { currentStep: current.currentStep, lastCompletedStep: current.lastCompletedStep }) };
+    }
+  }
+  const r7 = await readJsonIfPresent<{ gates?: { implementationCorrectness?: string } }>(join(evidenceRoot, "r7-validation.json"));
+  if (!r7 || r7.gates?.implementationCorrectness !== "pass") throw new Error("R7 validation gate is not complete");
+  const sourceLedger = JSON.parse(await readFile(join(evidenceRoot, "source-ledger.json"), "utf8")) as { rows: AcquiredSourceRow[] };
+  const eligibility = JSON.parse(await readFile(join(evidenceRoot, "eligibility.json"), "utf8")) as { rows: Array<UnhydratedEligibilitySummaryRow>; totals: { candidates: number; eligible: number } };
+  const developmentLedger = JSON.parse(await readFile(join(evidenceRoot, "development-ledger.json"), "utf8")) as { members: Array<{ candidateId: string }> };
+  const archivedTask = JSON.parse(await readFile(join(evidenceRoot, "task-inputs.json"), "utf8")) as { inputs: TaskInputBinding[] };
+  const taskBindings = archivedTask.inputs;
+  if (taskBindings.length < 2) throw new Error("archived task-input index has fewer than two bindings");
+  const sourceByCandidate = new Map(sourceLedger.rows.map((row) => [row.candidateId, row]));
+  const hydrated = hydrateEligibilityRepositories(eligibility.rows, sourceLedger.rows);
+  const candidateRows: PrimarySelectionCandidate[] = hydrated.map((row) => {
+    const source = sourceByCandidate.get(row.candidateId);
+    if (!source) throw new Error(`source ledger row missing for ${row.candidateId}`);
+    return {
+      candidateId: row.candidateId,
+      skillId: row.skillId,
+      repository: row.repository,
+      skillPath: source.skillPath,
+      sha: source.sha,
+      decision: row.decision,
+      applicableInputCount: row.applicableInputCount,
+    };
+  });
+  const developmentCandidateIds = new Set(developmentLedger.members.map((member) => member.candidateId));
+  const plan = selectPrimaryMembers(candidateRows, developmentCandidateIds, { primaryCount: 3, reserveCount: 2 });
+  const contractRelative = "benchmarks/skill-ir/classification/skill-family-class-proof-contract-v1.json";
+  const contractBytes = await readFile(join(absoluteRoot, contractRelative));
+  const contract = JSON.parse(contractBytes.toString("utf8")) as { identity?: string; classId?: string };
+  if (contract.identity !== CLASS_PROOF_IDENTITY || contract.classId !== "openapi-contract-to-offline-request-specimen") throw new Error("class contract identity mismatch");
+  const implementationCommit = git(absoluteRoot, ["rev-parse", "HEAD"]);
+  const classContractCommit = git(absoluteRoot, ["log", "-1", "--format=%H", "--", contractRelative]) || implementationCommit;
+  const lock = existingLock ?? buildMethodLock({
+    implementationCommit,
+    classContractCommit,
+    classContractSha256: sha256Bytes(contractBytes),
+    screenedCandidateCount: sourceLedger.rows.filter((row) => row.bodyReadForScreening).length,
+    eligibleCandidateCount: eligibility.totals.eligible,
+    developmentCandidateIds: [...developmentCandidateIds],
+    primary: plan.primary.map(asMethodLockCandidate),
+    reserve: plan.reserve.map(asMethodLockCandidate),
+    screeningBodyReadCount: sourceLedger.rows.filter((row) => row.bodyReadForScreening).length,
+    candidateOrder: plan.candidateOrder,
+    eligibleAfterDevelopment: plan.eligibleAfterDevelopment,
+    inputQualifiedAfterDevelopment: plan.inputQualifiedAfterDevelopment,
+    repositoryDistinct: plan.repositoryDistinct,
+  });
+  if (!existingLock) await persistStableJson(lockPath, lock);
+  if (!plan.ready) {
+    const selection: PrimarySelectionReport = {
+      schemaVersion: "skill-family-class-proof-primary-selection/v1",
+      identity: CLASS_PROOF_IDENTITY,
+      methodLock: { path: `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, sha256: sha256Bytes(jsonText(lock)) },
+      status: "insufficient-evidence",
+      candidateOrder: plan.candidateOrder,
+      primary: [],
+      reserve: plan.reserve.map((row) => ({ ...asMethodLockCandidate(row), role: "screened-reserve" as const })),
+      ineligibleAfterScreening: plan.ineligibleAfterScreening,
+      notSelected: plan.notSelected,
+      developmentExcluded: plan.developmentExcluded,
+      readAccounting: { screeningBodyReadCount: sourceLedger.rows.filter((row) => row.bodyReadForScreening).length, primaryBodyReadCount: 0, primaryResourceReadCount: 0, primaryInputReadCount: 0 },
+      outcomeDataUsed: false,
+      protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+      reason: plan.reason,
+    };
+    await persistStableJson(selectionPath, selection);
+    const current = await runStatus(absoluteRoot);
+    const status = await writeStatus(absoluteRoot, { currentStep: transitionStatus(current.currentStep, "method-not-ready"), lastCompletedStep: "method-not-ready", failureSummary: [...new Set([...current.failureSummary, `r8-${plan.reason ?? "insufficient-evidence"}`])] });
+    return { lock, selection, status };
+  }
+  try {
+    const selection = await materializePrimarySelection({ absoluteRoot, evidenceRoot, lock, sourceRows: sourceLedger.rows, taskBindings, plan });
+    await persistStableJson(selectionPath, selection);
+    const current = await runStatus(absoluteRoot);
+    const status = await writeStatus(absoluteRoot, { currentStep: transitionStatus(current.currentStep, "method-locked"), lastCompletedStep: "method-locked", failureSummary: [...new Set([...current.failureSummary, "r8-method-locked", `r8-primary:${selection.primary.length}`, `r8-reserve:${selection.reserve.length}`])] });
+    return { lock, selection, status };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    await persistStableJson(join(evidenceRoot, "method-lock-failure.json"), { schemaVersion: "skill-family-class-proof-method-lock-failure/v1", identity: CLASS_PROOF_IDENTITY, reason: detail, lockPath: `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 } });
+    const current = await runStatus(absoluteRoot);
+    const status = await writeStatus(absoluteRoot, { currentStep: transitionStatus(current.currentStep, "blocked-before-evaluation"), lastCompletedStep: "blocked-before-evaluation", failureSummary: [...new Set([...current.failureSummary, `r8-blocked:${detail}`])] });
+    const selection: PrimarySelectionReport = {
+      schemaVersion: "skill-family-class-proof-primary-selection/v1",
+      identity: CLASS_PROOF_IDENTITY,
+      methodLock: { path: `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, sha256: sha256Bytes(jsonText(lock)) },
+      status: "blocked-before-evaluation",
+      candidateOrder: plan.candidateOrder,
+      primary: [],
+      reserve: plan.reserve.map((row) => ({ ...asMethodLockCandidate(row), role: "screened-reserve" as const })),
+      ineligibleAfterScreening: plan.ineligibleAfterScreening,
+      notSelected: plan.notSelected,
+      developmentExcluded: plan.developmentExcluded,
+      readAccounting: { screeningBodyReadCount: sourceLedger.rows.filter((row) => row.bodyReadForScreening).length, primaryBodyReadCount: 0, primaryResourceReadCount: 0, primaryInputReadCount: 0 },
+      outcomeDataUsed: false,
+      protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+      reason: detail,
+    };
+    return { lock, selection, status };
+  }
 }
 
 export type GapObservation = {
@@ -1879,7 +2345,19 @@ if (import.meta.main) {
       faults: result.report.faultDetection.totals,
       gates: result.report.gates,
     }, null, 2));
+  } else if (step === "lock") {
+    const result = await runMethodLock(root);
+    console.log(JSON.stringify({
+      status: result.selection.status === "materialized" ? "method-locked" : result.selection.status,
+      identity: CLASS_PROOF_IDENTITY,
+      implementationCommit: result.lock.implementationCommit,
+      primary: result.selection.primary.map((row) => ({ candidateId: row.candidateId, repository: row.repository, inputs: row.inputBindings.length })),
+      reserve: result.selection.reserve.map((row) => ({ candidateId: row.candidateId, repository: row.repository })),
+      readAccounting: result.selection.readAccounting,
+      outcomeDataUsed: result.selection.outcomeDataUsed,
+      reason: result.selection.reason,
+    }, null, 2));
   } else {
-    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation");
+    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock");
   }
 }
