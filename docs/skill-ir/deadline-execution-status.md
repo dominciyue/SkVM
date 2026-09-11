@@ -86,3 +86,14 @@
 - 首跑失败与后续共享修订必须分目录保存。校准或 shadow 未通过时状态为 `method-not-ready`，不进入 held-out；不得把旧 D7 修订结果当作 held-out 首跑，也不得重写历史 `0/6`、Q1、readiness、001/002 或 D1-D9 证据。
 - 计划允许有目的的 GitHub、模型和付费调用，但每次都要登记用途和实际返回成本；没有返回的计费写 `unknown`。不做 HTML、用户入口、演示包装或重复全历史审计。
 - 当前阶段状态：`planned-not-started`。执行时先重读本状态、任务书和实际 Git 分支，不假定本记录中的旧 HEAD 仍然有效。
+
+## 2026-09-11 最小交付 M0-M6 实际检查点
+
+- 本阶段已从 `fcfcca5c6f3af26e47b2721b236019476a245eb3` 继续，修复 manifest 验证器与 runner 的顶层 await 循环并保留枚举诊断 RED；修复提交为 `b29500ca36f36936b8f6cdc44e14e81a3dfe33f2`。
+- M0/M1、P0 calibration、P1 shadow、G freeze gate、M2/M3/M4/M5/M6 均有机器证据。manifest 当前为 `reported`，`bodyReadCount=3`，冻结方法在读取三名 held-out 正文后没有再改变。
+- 最终机器报告：`results/skill-ir/skill-family-minimum-delivery-20260911/report.json`；决策为 `insufficient-evidence`。三名 selected 成员独立性通过，但 43 duties/98 obligations 中 0 名成员完成 class scope，95 unresolved、3 outside-class，0 input-qualified、0 accepted artifact；原始负结果不被包装成成功。
+- 账本：source API `13`、model `3`、paid `3`，已知 input/output tokens `6165/15305`，billing `unknown`，development-agent cost `unmeasured`。reserve 未读，未启动新的 prospective 或历史 runner。
+- 干净复现从 `96e41beacaacfbc7eb91819f9c17e5a699a06397` 的短路径 detached checkout 完成；Bun `1.3.14`，`bun install --frozen-lockfile --offline` 安装 236 packages，semantic snapshot 与 evidence/checker bindings 一致，外部调用 `0/0/0`。报告在 `clean-reproduction/report.json`，摘要由最终报告绑定。
+- 两次失败保留为 `clean-reproduction/clean-attempt-001.json` 与 `clean-attempt-002.json`：一次是长路径/行尾导致的 tracked dirty checkout，一次是 CRLF contract digest 与 committed LF digest 漂移。旧 decision/candidate 原字节归档为 `decision-pre-clean-001.json` 与 `report-candidate-pre-clean-001.json`，未覆盖失败证据。
+- 新增 manifest side-effect-free 模块，CLI 与 runner 共用同一 validator；聚焦回归 `82/82`、`467` assertions，项目 `bun run typecheck` 通过，脚本 bundle/typecheck route 通过。全仓文档扫描仍只报告既有 deadline 缺档 4 项，不创建占位文档；改动文档本身无新增 broken link。
+- 恢复入口：在 `SkVM` 运行 `bun ./scripts/skill-ir/skill-family-minimum-delivery.ts --step=status`，再按组件文档的 `m5/m6` 或 clean reproduction 命令继续。当前结论仍限 development class slice；不改变旧 `0/6`、readiness、Q1、v1/v2 或 prospective 边界。

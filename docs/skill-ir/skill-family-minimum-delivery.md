@@ -1,89 +1,125 @@
 # Skill Family Minimum Delivery Stage
 
-Status: `planned-not-started`.
+Status: `reported` (development-only, 2026-09-11).
 
-This document describes the stage runner and evidence contract planned in
-[the implementation plan](../superpowers/plans/2026-09-11-skill-family-minimum-delivery.md).
-It does not claim that calibration, shadow, freeze-gate, or held-out execution has run.
+This component evaluates the class-scoped responsibility slice
+`api-contract-driven-offline-test-construction`. It composes the existing source
+loader, duty ledger, operation-input constructor, v2 generator/checker, and
+independent coverage checks. It does not claim whole-skill automation, live API
+correctness, business-state authority, native-output completion, human savings,
+or future-member generalization.
 
-## Purpose
+## Frozen Identity
 
-The stage evaluates the class-scoped responsibility slice
-`api-contract-driven-offline-test-construction`. It composes the existing skill loader,
-source-grounded mapping, operation-input constructors, production bindings, and
-independent checkers. Whole-skill behavior, live API correctness, business state, and
-human-effort savings remain outside this component.
+- Stage: `skill-family-minimum-delivery-001`, plan revision `2`.
+- Branch: `skill-family-minimum-delivery-001`.
+- Implementation commit bound by the manifest: `b29500ca36f36936b8f6cdc44e14e81a3dfe33f2`.
+- Final clean reproduction commit: `96e41beacaacfbc7eb91819f9c17e5a699a06397`.
+- The historical D1-D9, v1/v2, Q1, readiness, 0/6, and 001/002 records are unchanged.
 
-## Evidence Roles
+## Evidence Roles and Contract
 
 Every manifest row has one immutable role:
 
-- `calibration-only`: exposed development material used to test extraction, semantic review,
-  obligation accounting, and checker plumbing;
-- `development-shadow`: exposed development material run through the candidate method before
-  the freeze gate; a repair is kept in a separate revision;
-- `primary-heldout`: a repository-distinct member selected after the freeze gate; its first
-  run is the primary transfer result;
-- `primary-revision`: one optional shared revision after the primary first run.
+- `calibration-only`: exposed development material used to test extraction,
+  semantic review, accounting, and checker plumbing;
+- `development-shadow`: exposed development material run through the candidate
+  method before the freeze gate;
+- `primary-heldout`: a repository-distinct member selected after the gate;
+- `primary-revision`: one separately reported shared revision, when required.
 
-Rows cannot change roles after construction. A repaired development row is never relabeled
-as held-out.
+Before construction, each class-scoped obligation is classified as exactly one of
+`constructed`, `rejected-with-reason`, `unresolved`, `outside-class`, or
+`source-blocked`. `accepted` is an artifact outcome only, and requires an
+independent passing checker report. A member marked complete for the class scope
+is not thereby complete as a whole skill.
 
-## Obligation Contract
+## Actual Result
 
-Before construction, every class-scoped duty and obligation has exactly one disposition:
+The machine report is
+`results/skill-ir/skill-family-minimum-delivery-20260911/report.json` and the
+reproduction report is under its `clean-reproduction/` directory. The final
+decision is `insufficient-evidence` because none of the three selected held-out
+members had an applicable input and all 98 held-out obligations were not fully
+classified. The method itself was ready and frozen before those bodies were read.
 
-`constructed`, `rejected-with-reason`, `unresolved`, `outside-class`, or `source-blocked`.
+| Measure | Result |
+|---|---:|
+| selected held-out members | 3 |
+| repository/owner independence | eligible; distinct repositories and owners; no forks |
+| class-scoped duties / obligations | 43 / 98 |
+| complete held-out members | 0 |
+| obligation dispositions | 0 constructed, 0 rejected, 95 unresolved, 3 outside-class, 0 source-blocked |
+| input-qualified members / applicable inputs | 0 / 0 |
+| accepted artifacts | 0 |
+| independent checker coverage | 1 (vacuous because no artifact was accepted) |
+| method/freeze status | `true` / `method-frozen` |
+| external accounting | 13 source API calls, 3 model calls, 3 paid calls; 6,165 known input and 15,305 known output tokens; billing unknown |
 
-`accepted` describes an artifact, not an obligation. An accepted artifact is valid only when
-an independent checker result is present. Profile-specific values such as
-`not-fully-verified` or `not-implemented-by-profile` remain unresolved evidence and cannot
-be counted as accepted.
+The result is a complete negative/insufficient denominator record, not a failed
+attempt to manufacture a positive. Julia has 8 unresolved obligations, the
+ffsshhttiikk OpenAPI member has 56 unresolved plus 1 outside-class obligation, and
+Jellyfin has 31 unresolved plus 2 outside-class obligations. The selected reserve
+was not read. The original source blocker and source-validity advisories remain
+in their first-run records.
 
-## Planned Runtime Flow
+## Reproduction
 
-The planned runner will move through these states:
-
-`planned -> calibrating -> shadow -> gate-ready -> method-frozen -> heldout-running -> revised-once | no-revision -> reported`.
-
-Calibration and shadow failures move to `method-not-ready`; acquisition or infrastructure
-failures before a fair run move to `blocked-before-evaluation`; an insufficient input or
-source denominator moves to `insufficient-evidence`.
-
-The runner will record, per member and per input:
-
-- source identity and locator status;
-- duty and obligation dispositions before artifact counts;
-- construction and checker results;
-- first-run versus revision status;
-- source/API/model/paid calls, known tokens, unknown billing, and unmeasured agent cost;
-- repository-specific adaptation and reproduction commit.
-
-## Planned Inputs and Outputs
-
-The implementation plan reserves these paths under one stage directory:
+From a short-path detached checkout of the final reproduction commit, with Git
+line-ending conversion disabled:
 
 ```text
-results/skill-ir/skill-family-minimum-delivery-20260911/
-  stage-manifest.json
-  calibration/
-  shadow-first-run/
-  shadow-revision-1/
-  freeze-gate.json
-  heldout-selection.json
-  heldout-first-run/
-  revision-1/
-  report.json
+git -c core.longpaths=true -c core.autocrlf=false worktree add --detach D:/fmc96e41be 96e41be
+cd /d D:/fmc96e41be
+bun install --frozen-lockfile --offline
+bun ./scripts/skill-ir/skill-family-minimum-delivery.ts --step=reproduce --out=results/skill-ir/skill-family-minimum-delivery-20260911/clean-reproduction/report.json
 ```
 
-The runner must fail closed for duplicate IDs, missing source locators, unclassified
-obligations, accepted rows without checker evidence, role changes, and repository-specific
-dispatch. It must never derive a denominator from accepted rows alone.
+The clean run used Bun `1.3.14` and reported Node compatibility `24.3.0`; it
+returned `passed`, matched semantic snapshot
+`12bd1c705a9d9da9f9ae3200029c787fedc9d51dc948779314871114df1ff362`, verified
+all evidence and checker bindings, and made zero source/model/paid calls. The
+main tree then ran `--step=m6`, which produced the final report.
 
-## Verification and Limits
+Two non-authoritative attempts are retained instead of overwritten:
 
-Implementation will use focused deterministic tests first, then the project typecheck,
-documentation checks, and one clean-checkout reproduction. Historical results and untracked
-experiment materials are not rewritten. A positive result is bounded to the documented
-responsibility slice; a complete calibration/shadow result with `method-not-ready` is a valid
-intermediate delivery and does not imply that the class is impossible to automate.
+- `clean-attempt-001.json`: the host checkout hit long-path checkout failure and
+  nine line-ending-modified historical files;
+- `clean-attempt-002.json`: the candidate had captured a CRLF working-tree digest
+  for the contract while the clean checkout had committed LF bytes.
+
+The contract was restored to its committed LF bytes, the old decision and
+candidate were archived as `decision-pre-clean-001.json` and
+`report-candidate-pre-clean-001.json`, and the formal decision/candidate were
+regenerated. This preserves both failures and prevents a re-runnable command from
+being mistaken for an archived original report.
+
+## Commands and Verification
+
+The development entry point is:
+
+```text
+bun ./scripts/skill-ir/skill-family-minimum-delivery.ts --step=status
+bun ./scripts/skill-ir/skill-family-minimum-delivery.ts --step=m5
+bun ./scripts/skill-ir/skill-family-minimum-delivery.ts --step=m6
+```
+
+`--step=m5` computes the decision from the independently read source, selection,
+fetch, duty, and checker evidence. `--step=m6` verifies or writes the candidate,
+requires a passed clean reproduction, and binds its report digest. The manifest
+validator is side-effect free and is shared by the CLI and runner; this avoids a
+top-level-await self-import deadlock.
+
+Focused deterministic tests, the repository typecheck, the explicit script
+typecheck, and the documentation link checks are recorded in the stage
+verification artifact and final handoff. No historical runner was re-run.
+
+## Limits and Recovery
+
+The evidence remains `development`. It does not alter readiness, the original
+document-level `0/6`, or any prospective denominator. No new prospective or
+held-out input was selected after this stage, and no downloaded skill command was
+executed. To resume, read this document, the task plan, the latest
+`deadline-execution-status.md` entry, and `stage-manifest.json`, then run the
+status command before touching any evidence. Do not replace first-run files or
+reinterpret unresolved obligations as rejection or success.

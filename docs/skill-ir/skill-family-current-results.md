@@ -1,17 +1,32 @@
 # Skill family development: current evidence and navigation
 
-Checkpoint2026-09-11 11:40 +08. Development only; continuous goal remains active.
-This page supersedes stale current-status prose, not historical evidence or contracts.
+Checkpoint 2026-09-11 21:35 +08. Development only; the minimum-delivery stage is now
+reported on `skill-family-minimum-delivery-001`. This page supersedes stale current-
+status prose, not historical evidence or contracts.
 
-## Next planned stage
+## Current Minimum Delivery
 
-D1-D9 is closed as a bounded source-mapped development slice. The next execution route is
-[skill-family-minimum-delivery.md](../superpowers/plans/2026-09-11-skill-family-minimum-delivery.md),
-revision 2. It is a plan only; no held-out body, new selection, or new prospective run has
-started. The route must first build a closed class-scoped denominator, run calibration and a
-development shadow, pass the explicit freeze gate, and only then evaluate three
-repository-distinct held-out members. It must preserve first-run failures and must not
-promote this page's existing development rows into class-level generalization.
+D1-D9 remains a bounded source-mapped development slice. The revision-2 minimum-delivery
+route in [the task plan](../superpowers/plans/2026-09-11-skill-family-minimum-delivery.md)
+has completed M0-M6 and is recorded as `reported` in
+`results/skill-ir/skill-family-minimum-delivery-20260911/report.json`.
+
+The method passed calibration, development shadow, and the freeze gate before the three
+held-out bodies were read. The held-out result is deliberately
+`insufficient-evidence`: selected members were repository-distinct, but all three had
+zero applicable inputs and their 98-obligation class denominator was not complete. No
+accepted held-out artifact exists; the 1.0 checker coverage value is vacuous. The report
+therefore does not claim a positive or a bounded success rate.
+
+The final clean reproduction uses detached commit `96e41beacaacfbc7eb91819f9c17e5a699a06397`,
+Bun `1.3.14`, and `bun install --frozen-lockfile --offline`. It verifies the candidate's
+semantic snapshot and evidence/checker bindings with zero external calls. The two failed
+pre-reproduction attempts are retained as `clean-attempt-001.json` and
+`clean-attempt-002.json`; the pre-clean candidate and decision are also archived.
+
+Resume from the stage manifest and component guide, not from a chat summary. Do not read
+the reserve, start a new prospective, change readiness, or reinterpret unresolved duties
+as rejection or success without a new identity and authorization.
 
 ## What is shared
 
