@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { mkdtemp, writeFile, readFile } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
@@ -20,4 +20,5 @@ test("native batch executes Python but keeps absent oracle as skipped and isolat
   expect(report.rows[0]!.verification?.constructedCases).toBe(2);
   expect(report.remoteHttpCalls).toBe(0);
   expect(JSON.parse(await readFile(join(root, "output/report.json"), "utf8")).rows).toHaveLength(3);
+  expect(await readdir(join(root, "output/valid"))).not.toContain("__pycache__");
 }, 30000);

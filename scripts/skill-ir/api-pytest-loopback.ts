@@ -42,7 +42,7 @@ export async function runNativePytestLoopback(options: { outputDirectory: string
     const before = observations.length;
     let result: { exitCode: number | string | null; stdout: string; stderr: string };
     try {
-      const output = await exec(options.pythonExecutable, ["-I", "-m", "pytest", "-q", "-p", "no:cacheprovider", `--confcutdir=${out}`, `--junitxml=${kind}.xml`, "test_api_requests.py"],
+      const output = await exec(options.pythonExecutable, ["-I", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", `--confcutdir=${out}`, `--junitxml=${kind}.xml`, "test_api_requests.py"],
         { cwd: out, env, windowsHide: true, encoding: "utf8", timeout: 30000, maxBuffer: 16777216 });
       result = { ...output, exitCode: 0 };
     } catch (error) { const e = error as any; result = { exitCode: e.code ?? null, stdout: String(e.stdout ?? ""), stderr: String(e.stderr ?? e.message) }; }

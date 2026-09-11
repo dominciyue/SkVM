@@ -103,3 +103,8 @@ assertions at the named layer, not merely any process failure. Wrong rules are i
 after valid-oracle verification deliberately; this is not a way to bypass authority
 in ordinary execution. Redirects are observed but not followed. Run with explicit
 `--out=<new-directory> --python=<python>`; all listening sockets close in finally.
+
+Archive correction: use `-I -B` explicitly; `-I` ignores the Python environment bytecode
+flag. TDD no-cache check now passes. JUnit XML in this development archive uses `-text`
+to preserve original failure-log CRLF bytes. Generated pyc files are not tracked or
+dependencies; original output/first failure data and earlier commits remain preserved.

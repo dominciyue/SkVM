@@ -49,3 +49,15 @@ historical values, not running services; rerun the harness to obtain a new fixtu
 `verify-archive.ts <new-report.json>` rechecks the fixed archive paths. A new clean
 checkout/dependency archive for these revisions is the next step; old clean evidence
 is still valid only for be89a50, not automatically for the native/form revisions.
+
+## Archive correction after529b848
+
+Python isolation ignored PYTHONDONTWRITEBYTECODE. A failing no-cache regression
+proved this; the batch and fixture now explicitly pass `-B`.13pyc caches accidentally
+staged in529b848 were removed from the current index only; local copies and history
+remain. They are not reproduction inputs. No actual source/evidence was deleted.
+The repository's text rule normalized five error XML logs on initial commit; their
+original working bytes remained intact and have been restored into Git with a narrowly
+scoped `-text` rule. All19JUnit files now match original working-byte SHA values;
+`archive-byte-repair.json` records each digest. No semantic result changed or old commit
+was rewritten. New clean reproduction will use the corrected bytecode flag.

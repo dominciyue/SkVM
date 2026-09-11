@@ -51,7 +51,7 @@ export async function runApiPytestDevelopment(options: { rootDir: string; execut
       await writeFile(resolve(directory, "test_api_requests.py"), artifact.testPython, { flag: "wx" });
       let python: PythonResult;
       try {
-        const result = await exec(options.pythonExecutable, ["-I", "-m", "pytest", "-q", "-p", "no:cacheprovider", `--confcutdir=${directory}`, "--junitxml=pytest.junit.xml", "test_api_requests.py"],
+        const result = await exec(options.pythonExecutable, ["-I", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", `--confcutdir=${directory}`, "--junitxml=pytest.junit.xml", "test_api_requests.py"],
           { cwd: directory, env: environment, windowsHide: true, encoding: "utf8", timeout: 60000, maxBuffer: 16777216 });
         python = { exitCode: 0, ...result, counts: null };
       } catch (error) {
