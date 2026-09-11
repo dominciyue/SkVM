@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { preflightSkillEligibility, type EligibilityInput, type EligibilityRecord } from "../../src/skill-ir/skill-family-eligibility";
 
 export const CLASS_PROOF_IDENTITY = "skill-family-class-proof-002" as const;
 export const CLASS_PROOF_PLAN_REVISION = 1 as const;
@@ -36,6 +37,54 @@ export type ClassProofStatus = {
   failureSummary: string[];
   updatedAt: string;
 };
+
+const STEP_ORDER: Record<ClassProofStep, number> = {
+  planned: 0,
+  screening: 1,
+  "screening-shortfall": 2,
+  development: 3,
+  "capability-ready": 4,
+  "method-locked": 5,
+  "primary-running": 6,
+  "revised-once": 7,
+  "no-revision": 7,
+  reported: 8,
+  "extension-running": 9,
+  "method-not-ready": 9,
+  "blocked-before-evaluation": 9,
+};
+
+export function transitionStatus(current: ClassProofStep, next: ClassProofStep): ClassProofStep {
+  if (!(current in STEP_ORDER) || !(next in STEP_ORDER)) throw new Error("unknown class-proof state");
+  if (STEP_ORDER[next] < STEP_ORDER[current]) throw new Error(`backward class-proof transition: ${current} -> ${next}`);
+  return next;
+}
+
+export function deriveTransferDecision(input: {
+  primaryMembers: number;
+  inputQualifiedMembers: number;
+  minInputsPerMember: number;
+  coreCoverage: number;
+  firstRunAcceptedMembers: number;
+  checkerPassRate: number;
+}): "strong-positive" | "bounded-positive" | "bounded-negative" | "insufficient-evidence" {
+  if (input.inputQualifiedMembers < 3 || input.primaryMembers < 3 || input.minInputsPerMember < 2) return "insufficient-evidence";
+  if (input.coreCoverage >= 0.95 && input.firstRunAcceptedMembers >= 3 && input.checkerPassRate === 1) return "strong-positive";
+  if (input.coreCoverage >= 0.9 && input.firstRunAcceptedMembers >= 2 && input.checkerPassRate === 1) return "bounded-positive";
+  return "bounded-negative";
+}
+
+export type ScreeningResult = {
+  eligibility: EligibilityRecord;
+  constructionAttempted: boolean;
+};
+
+export function screenCandidate(input: EligibilityInput, construct: () => unknown = () => undefined): ScreeningResult {
+  const eligibility = preflightSkillEligibility(input);
+  if (eligibility.decision !== "eligible") return { eligibility, constructionAttempted: false };
+  construct();
+  return { eligibility, constructionAttempted: true };
+}
 
 function git(root: string, args: string[]): string {
   try {
