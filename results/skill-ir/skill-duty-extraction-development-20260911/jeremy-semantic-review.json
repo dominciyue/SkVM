@@ -1,0 +1,45 @@
+{
+  "exposure": "development-agent-semantic-review-not-human-agreement",
+  "member": "jeremy",
+  "draftLocation": "first-run/report.json rows[member=jeremy].validation.draft",
+  "sourceSha256": "b883c6d2aa3fc5215525e6d295e990f3a6d195bae773227a78c71e17d0a7b3ea",
+  "reviewBasis": "Main agent read all 16 duty descriptions and 53 obligations, all unresolved entries, and the original 160-line source body. Locator verification independently returned no errors.",
+  "reference": "../skill-family-deepening-20260911/skill-responsibilities.json",
+  "referenceIsGold": false,
+  "broadReferenceDutyMatches": [
+    { "reference": "parse-contract", "draft": ["prepare-api-testing-prerequisites", "discover-api-surface"] },
+    { "reference": "construct-request-cases", "draft": ["generate-endpoint-test-cases"] },
+    { "reference": "response-validation", "draft": ["validate-response-contracts"] },
+    { "reference": "crud-lifecycle", "draft": ["test-crud-lifecycle"] },
+    { "reference": "edge-and-graphql", "draft": ["test-error-and-edge-cases", "test-graphql-behavior"] },
+    { "reference": "emit-and-report", "draft": ["produce-coverage-report", "organize-api-test-artifacts", "integrate-api-tests-with-ci", "support-declared-testing-integrations"] },
+    { "reference": "runtime-diagnosis", "draft": ["handle-connection-failures", "manage-authentication-state", "isolate-test-data-state", "control-rate-limit-effects", "handle-schema-drift"] }
+  ],
+  "findings": [
+    {
+      "id": "unresolved-auth-status-conflict",
+      "severity": "blocks-automatic-task-contract",
+      "sourceLines": [[46, 46], [110, 111]],
+      "detail": "The prose maps missing credentials to 403, while its example expects 401 without authentication. The draft faithfully repeats the prose but does not flag this conflict in unresolved. Exact quotations cannot resolve the correct task-specific status. No status authority is inferred or source modified."
+    },
+    {
+      "id": "host-and-tool-metadata-not-in-draft",
+      "severity": "operational-scope-gap",
+      "sourceLines": [[13, 13], [21, 21]],
+      "detail": "Allowed-tool metadata and Claude Code compatibility are present in the supplied primary file but absent from duties/unresolved. They must be retained as source execution assumptions if this draft is later adapted into an executable skill contract; the older seven-duty reference is not an exhaustive gold oracle for metadata."
+    },
+    {
+      "id": "source-change-guidance-is-not-repair-authority",
+      "severity": "interpretation-boundary",
+      "sourceLines": [[85, 85]],
+      "detail": "The draft accurately extracts conditional guidance to update a schema or allow expected extra fields. This is source-described behavior, not authorization to weaken our checker or alter frozen API contracts. It remains a semantic decision requiring task authority."
+    }
+  ],
+  "recognizedUnresolved": ["Newman resource entry has no URL", "CI environment details missing", "Framework selection not specified"],
+  "verdict": "useful-locator-checked-draft-with-unresolved-semantic-and-operational-gaps",
+  "completeScopeCertified": false,
+  "automaticMappingApproved": false,
+  "humanMinutes": null,
+  "developerAgentCostUsd": null,
+  "additionalModelCalls": 0
+}

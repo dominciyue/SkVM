@@ -60,3 +60,33 @@ tests make no model calls. Inspect persisted attempts before resuming interrupte
 an incomplete request is unknown, never silently repeated. Original D6 and D7 reports are
 unchanged. New draft omission is a measured extraction limitation, not automatic evidence
 that the reference classification or source itself is wrong.
+
+## Actual first measurement
+
+Execution0900958:3physical attempts,1HTTP response and2no-response failures. Lambda and
+Pactflow failed after approximately242seconds each; original transport diagnostics and
+single-attempt stop remain in attempts.jsonl/report.json. Remote completion and charging
+for those requests are unknown. Jeremy returned in178749ms:16duties/53obligations,
+all quotes/locators valid,2790input/5297output tokens. Provider returned no actual billing.
+No output was retried or repaired; the response and full prompt are archived unchanged.
+
+Agent semantic review maps the seven earlier broad duties to the draft, but this is not
+human agreement or a gold completeness score. It identifies missing authentication-status
+conflict (source prose403 versus example401), omitted host/tool metadata and a boundary
+around source guidance to change schemas. The draft is useful, not an automatically
+approved task contract. Old source classifications and benchmark results remain unchanged.
+
+Before execution, initial safety review denied the transfer. Eight public source files
+were verified via unauthenticated GitHub reads with exact matching SHA; the same command
+was re-reviewed and allowed. public-source-proof.json records those8reads, not new samples.
+Developer agent charges remain separate/unmeasured. summary.json independently rechecks
+source/prompt/response bindings and reports known usage, not a fabricated all-call total.
+
+Offline revalidation (no model calls):
+
+```powershell
+bun results/skill-ir/skill-duty-extraction-development-20260911/summarize.ts --out=results/skill-ir/duty-extraction-recheck.json
+```
+
+The remote runner command in the plan is not an offline reproduction command. Do not
+rerun it just to obtain a successful draft; use first-run evidence for this measurement.

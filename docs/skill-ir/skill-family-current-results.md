@@ -1,6 +1,6 @@
 # Skill family development: current evidence and navigation
 
-Checkpoint2026-09-11 10:42 +08. Development only; continuous goal remains active.
+Checkpoint2026-09-11 11:40 +08. Development only; continuous goal remains active.
 This page supersedes stale current-status prose, not historical evidence or contracts.
 
 ## What is shared
@@ -35,6 +35,7 @@ repository. Applying three skill mappings does not turn this into36independent d
 | Response source catalog | 567response declarations,365media,329compiled JSON schemas | Source examples are not live responses |
 | Source response examples | 130valid /3invalid /9unresolved occurrences | Repeated examples are not independent samples |
 | Native pytest collection | 630collected /630skipped;578constructed request data | 628planned cases +2incomplete-operation placeholders;0real HTTP/0API passes |
+| Response header source examples | 3observations /4checked fields in2documents | Source examples, not live responses; protocol/body semantics remain |
 
 The three response mismatches are source-example null `ends_at` versus nonnullable string
 schemas in1Password Partnership, not demonstrated production API failures. Unsupported
@@ -88,6 +89,13 @@ keyword/source attribution. A negative decimal endpoint candidate issue was also
 31tests/3778assertions and main tsc pass;12exposed documents have zero multipleOf keys, so
 no real coverage gain or panel rerun is claimed. Evidence:skill-family-decimal-development-20260911/.
 
+Header observations use a separate source-bound checker and mapping profile, preserving
+all declaration rows and unresolved collisions. Two source duties ×2existing inputs yield
+four identical core results. e9d6dde incremental clean reproduced both complete mapping
+reports and the byte-identical505decimal report; de40836 archives all10outputs. This is
+an incremental proof, not a replacement for883c85e full clean. c8180f4 adds6/6bounded
+representation relations with explicit unsupported-sibling output; no production change.
+
 ## New-member evidence and automation limits
 
 - Initial frozen17b9633 round: only nntan was a new generally applicable member; target3
@@ -113,6 +121,18 @@ three bodyLines corrections plus an explanatory revision field; first failures r
 The6model tasks comprise only2unique API operations under3skill contexts, not6independent
 operation samples. Historical extraction time/tokens and billing were not recorded and
 cannot be reconstructed from configuration size. No new model call was made for accounting.
+
+New D6 extraction measurement completed at0900958: three already exposed members,
+complete archived source/resources, one physical model attempt each, original-text locator
+validation and separate semantic review. It does not retrospectively measure earlier agent
+work or automatically approve mappings. Initial transfer review was rejected; eight exact
+files were then verified anonymously public on GitHub, and the same command was approved
+on that additional evidence. Actual3requests:1returned draft,2no-response failures, no
+physical retries. Jeremy16duties/53obligations have valid locators; semantic review still
+finds an unflagged auth-status conflict and omitted host/tool assumptions. Known2790input/
+5297output tokens are not the complete3-call usage; actual billing unavailable. This is
+new measured extraction evidence, not historical agent-cost reconstruction. Full review,
+raw response, failed attempts and offline summary remain archived.
 
 ## Reproduction and evidence entry points
 
@@ -142,6 +162,10 @@ All result directories below are under `results/skill-ir/`:
   oracle, generated code, actual requests and JUnit. Component:api-pytest-wire-loopback-development.md.
 - `skill-family-decimal-development-20260911/`: all505before/after checks, raw source
   constraint scan and repair tests. Component:api-schema-decimal-development.md.
+- `skill-family-response-headers-development-20260911/`: core/source examples, shared
+  mappings, incremental clean raw outputs and bounded relation inputs/results.
+- `skill-duty-extraction-development-20260911/`: new D6 source-publicness evidence,
+  prompt/validator tests and completed three-member draft measurement including failures.
 
 Compiled-schema cache has bounded content keys and no result cache;12results were unchanged,
 2405hits/109compiles observed, with Front single-run6184→2144ms. No general timing guarantee.
