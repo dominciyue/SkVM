@@ -211,6 +211,22 @@ header/cookie编码经过httpx后是否保留。新增独立手写本机wire fix
 负小数单点候选也修复，31tests/3778assertions、主tsc通过，12旧来源0multipleOf，
 不重跑无影响panel。下一D9同步当前验收与恢复导航，不改旧首跑/clean声明。
 
+### 响应header追加：执行中的窄合同
+
+依据两源明确响应header职责及12文档4实际声明，按
+`docs/skill-ir/api-response-headers-development.md`执行；不用来源专用分支。
+主代理inline执行，不派子代理，不等常规审批。文件责任：
+
+- [ ] 新建`src/skill-ir/api-response-headers.ts`：`checkApiResponseHeaders(source, format, observation)`；独立选择响应、枚举全部header并校验typed值。
+- [ ] 新建`src/skill-ir/api-response-headers.test.ts`：先实现返回unresolved的stub，测试期望checked/valid及全部声明行并观察RED；再实现解析与检查。
+- [ ] `bun test ./src/skill-ir/api-response-headers.test.ts ./src/skill-ir/api-response-observation.test.ts`，要求新边界通过且旧入口不变。
+- [ ] 已有`results/skill-ir/skill-family-response-headers-development-20260911/inventory.ts`保留12来源4声明范围；新增同目录源例子执行记录，不计live观察。
+- [ ] `node node_modules/typescript/bin/tsc --noEmit`；按源职责核对结果、文档/状态同步、仅显式文件commit并push origin。
+
+行为验收：case-insensitive匹配、重复拒绝、optional缺失分列、required缺失失败、
+本地refs及schema约束保持、unsupported不冒充valid、Content-Type忽略单列。
+旧body checker/原报告/v2不修改；Content-Length协议意义等仍是残余义务。
+
 ## 7. 完成判据
 
 ### 2026-09-11 实际检查点
