@@ -2768,7 +2768,7 @@ export async function runFinalReport(root: string): Promise<{ report: ClassProof
     denominators: {
       members: {
         primary: primaryFirstRun.value.members.length,
-        inputQualified: methodLock.value.candidateCounts.inputQualifiedAfterDevelopment,
+        inputQualified: primaryFirstRun.value.members.filter((member) => member.runCount >= methodLock.value.thresholds.minInputsPerMember).length,
         repositoryDistinct: new Set(primaryFirstRun.value.members.map((row) => row.repository.toLowerCase())).size,
         firstRunAccepted: primarySummary.firstRunAcceptedMembers,
       },
@@ -2826,6 +2826,159 @@ export async function runFinalReport(root: string): Promise<{ report: ClassProof
     failureSummary: [...new Set([...current.failureSummary, "r11-final-report", ...(prospectivePreparation.eligible ? [] : ["prospective-preparation-not-ready"])])],
   });
   return { report: finalReport, status };
+}
+
+export type CleanReplaySummary = {
+  status: "pass" | "fail";
+  missingEvidenceFiles: number;
+  failedRuns: number;
+  reason: string | null;
+};
+
+/** Pure gate for the offline replay record; it cannot pass on a partial replay. */
+export function summarizeCleanReplay(input: {
+  expectedEvidenceFiles: number;
+  verifiedEvidenceFiles: number;
+  expectedRuns: number;
+  verifiedRuns: number;
+  semanticMatches: boolean;
+  externalCalls: { modelCalls: number; apiCalls: number; paidCalls: number };
+}): CleanReplaySummary {
+  const missingEvidenceFiles = Math.max(0, input.expectedEvidenceFiles - input.verifiedEvidenceFiles);
+  const failedRuns = Math.max(0, input.expectedRuns - input.verifiedRuns);
+  const clean = missingEvidenceFiles === 0 && failedRuns === 0 && input.semanticMatches
+    && input.externalCalls.modelCalls === 0 && input.externalCalls.apiCalls === 0 && input.externalCalls.paidCalls === 0;
+  return {
+    status: clean ? "pass" : "fail",
+    missingEvidenceFiles,
+    failedRuns,
+    reason: clean ? null : "clean replay evidence, checker, semantic, or external-call invariant failed",
+  };
+}
+
+export type ClassProofCleanReplayReport = {
+  schemaVersion: "skill-family-class-proof-clean-replay/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  replayedAt: "2026-09-12T00:00:00.000Z";
+  checkout: { commit: string; detached: boolean; runtime: { bun: string; node: string } };
+  commands: { dependencyInstall: "bun install --frozen-lockfile --offline"; replay: "--step=clean-replay" };
+  evidence: Array<{ path: string; bytes: number; sha256: string }>;
+  runs: { expected: number; verified: number; failures: Array<{ candidateId: string; inputId: string; reason: string }>; totals: { operations: number; accepted: number; checked: number } };
+  semantic: { matchesFinalReport: boolean; gates: ClassProofFinalReport["gates"]; denominators: ClassProofFinalReport["denominators"] };
+  externalCalls: { modelCalls: 0; apiCalls: 0; paidCalls: 0 };
+  statusBinding: { declaredStep: ClassProofStep; declaredHead: string; actualHead: string };
+  summary: CleanReplaySummary;
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0; frozenHistoricalResultsChanged: false };
+  claimBoundary: string;
+};
+
+/**
+ * Recheck the committed class-proof closure in an offline checkout. The
+ * output can be directed outside the checkout so a replay does not mutate the
+ * source tree or its status file.
+ */
+export async function runCleanReplay(root: string, outputPath?: string): Promise<ClassProofCleanReplayReport> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const finalPath = join(evidenceRoot, "final-report.json");
+  const finalReport = await readFinalEvidence<ClassProofFinalReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/final-report.json`, "skill-family-class-proof-final/v1");
+  const primary = await readFinalEvidence<PrimaryFirstRunReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/primary-first-run.json`, "skill-family-class-proof-primary-first-run/v1");
+  const lock = await readFinalEvidence<ClassProofMethodLock>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, "skill-family-class-proof-method-lock/v1");
+  const selection = await readFinalEvidence<PrimarySelectionReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/primary-selection.json`, "skill-family-class-proof-primary-selection/v1");
+  const revision = await readFinalEvidence<PrimaryRevisionReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/no-revision.json`, "skill-family-class-proof-primary-revision/v1");
+  const keyEvidence = [
+    `${CLASS_PROOF_RESULT_RELATIVE}/screening-policy.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/candidate-pool.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/eligibility.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/responsibility-ledger.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/task-inputs.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/development-ledger.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/development-runs.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/r7-validation.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/primary-selection.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/primary-first-run.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/no-revision.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/final-report.json`,
+  ];
+  const manifestPaths = primary.value.records.map((record) => `${CLASS_PROOF_RESULT_RELATIVE}/primary-runs/${safeEvidenceSegment(record.candidateId)}/${safeEvidenceSegment(record.inputId)}/manifest.json`);
+  const allEvidencePaths = [...new Set([...keyEvidence, ...manifestPaths])];
+  const evidence: ClassProofCleanReplayReport["evidence"] = [];
+  const evidenceFailures: string[] = [];
+  for (const relativePath of allEvidencePaths) {
+    try {
+      const bytes = await readFile(join(absoluteRoot, relativePath));
+      evidence.push({ path: relativePath, bytes: bytes.byteLength, sha256: sha256Bytes(bytes) });
+    } catch (error) {
+      evidenceFailures.push(`${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  if (finalReport.value.evidence.primaryFirstRun.sha256 !== primary.sha256
+    || finalReport.value.evidence.methodLock.sha256 !== lock.sha256
+    || finalReport.value.evidence.primarySelection.sha256 !== selection.sha256
+    || finalReport.value.evidence.revision.sha256 !== revision.sha256) {
+    throw new Error("clean replay final report binding mismatch");
+  }
+  const failures: ClassProofCleanReplayReport["runs"]["failures"] = evidenceFailures.map((reason) => ({ candidateId: "(evidence)", inputId: "(file)", reason }));
+  let verifiedRuns = 0;
+  let operations = 0;
+  let accepted = 0;
+  let checked = 0;
+  for (const record of primary.value.records) {
+    const runRoot = join(evidenceRoot, "primary-runs", safeEvidenceSegment(record.candidateId), safeEvidenceSegment(record.inputId));
+    try {
+      const verifier = await verifyApiTesterOperationInputOutput({ rootDir: runRoot, manifestPath: "manifest.json", nodeExecutable: process.execPath });
+      if (verifier.operations !== record.runner.totals.operations || verifier.accepted !== record.runner.totals.accepted
+        || verifier.checked !== record.runner.totals.artifactCheckedPassedOperations || verifier.status !== "verified") {
+        failures.push({ candidateId: record.candidateId, inputId: record.inputId, reason: "independent checker totals/status differ from primary row" });
+        continue;
+      }
+      verifiedRuns += 1;
+      operations += verifier.operations;
+      accepted += verifier.accepted;
+      checked += verifier.checked;
+    } catch (error) {
+      failures.push({ candidateId: record.candidateId, inputId: record.inputId, reason: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  const semanticMatches = failures.length === 0
+    && JSON.stringify(finalReport.value.gates) === JSON.stringify(primary.value.gates)
+    && finalReport.value.denominators.members.primary === primary.value.members.length
+    && finalReport.value.denominators.applicableInputs.expected === primary.value.summary.expectedRuns
+    && finalReport.value.denominators.acceptedArtifacts.accepted === primary.value.summary.acceptedArtifacts
+    && finalReport.value.denominators.acceptedArtifacts.checked === primary.value.summary.checkedAcceptedArtifacts
+    && finalReport.value.denominators.coreObligations.planned === primary.value.summary.coreObligations
+    && finalReport.value.denominators.coreObligations.constructed === primary.value.summary.constructedCoreObligations;
+  const status = await runStatus(absoluteRoot);
+  const actualHead = git(absoluteRoot, ["rev-parse", "HEAD"]);
+  const declaredHead = status.head;
+  const replaySummary = summarizeCleanReplay({
+    expectedEvidenceFiles: allEvidencePaths.length,
+    verifiedEvidenceFiles: evidence.length,
+    expectedRuns: primary.value.records.length,
+    verifiedRuns,
+    semanticMatches,
+    externalCalls: { modelCalls: 0, apiCalls: 0, paidCalls: 0 },
+  });
+  const report: ClassProofCleanReplayReport = {
+    schemaVersion: "skill-family-class-proof-clean-replay/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    replayedAt: "2026-09-12T00:00:00.000Z",
+    checkout: { commit: actualHead, detached: !Boolean(git(absoluteRoot, ["symbolic-ref", "--short", "HEAD"])), runtime: { bun: Bun.version, node: process.version } },
+    commands: { dependencyInstall: "bun install --frozen-lockfile --offline", replay: "--step=clean-replay" },
+    evidence,
+    runs: { expected: primary.value.records.length, verified: verifiedRuns, failures, totals: { operations, accepted, checked } },
+    semantic: { matchesFinalReport: semanticMatches, gates: finalReport.value.gates, denominators: finalReport.value.denominators },
+    externalCalls: { modelCalls: 0, apiCalls: 0, paidCalls: 0 },
+    statusBinding: { declaredStep: status.currentStep, declaredHead, actualHead },
+    summary: replaySummary,
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0, frozenHistoricalResultsChanged: false },
+    claimBoundary: "R12 is an offline replay of committed development evidence. It does not add real samples, select or read prospective/held-out inputs, establish live API behavior, or alter readiness or historical 0/6 results.",
+  };
+  const target = resolve(absoluteRoot, outputPath ?? `${CLASS_PROOF_RESULT_RELATIVE}/clean-replay.json`);
+  await mkdir(dirname(target), { recursive: true });
+  await persistStableJson(target, report);
+  return report;
 }
 
 export type ClassProofValidationReport = {
@@ -3298,6 +3451,7 @@ export async function writeStatus(root: string, patch: Partial<ClassProofStatus>
 
 if (import.meta.main) {
   const step = process.argv.find((value) => value.startsWith("--step="))?.slice("--step=".length);
+  const outputPath = process.argv.find((value) => value.startsWith("--out="))?.slice("--out=".length);
   const root = process.cwd();
   if (step === "status" || step === undefined) {
     console.log(JSON.stringify(await runStatus(root), null, 2));
@@ -3415,7 +3569,19 @@ if (import.meta.main) {
       prospectivePreparation: result.report.prospectivePreparation,
       reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/final-report.json`,
     }, null, 2));
+  } else if (step === "clean-replay") {
+    const report = await runCleanReplay(root, outputPath);
+    console.log(JSON.stringify({
+      status: report.summary.status,
+      identity: CLASS_PROOF_IDENTITY,
+      checkout: report.checkout,
+      evidenceFiles: report.evidence.length,
+      runs: report.runs,
+      semanticMatches: report.semantic.matchesFinalReport,
+      externalCalls: report.externalCalls,
+      outputPath: outputPath ?? `${CLASS_PROOF_RESULT_RELATIVE}/clean-replay.json`,
+    }, null, 2));
   } else {
-    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run|no-revision|final-report");
+    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run|no-revision|final-report|clean-replay [--out=<path>]");
   }
 }

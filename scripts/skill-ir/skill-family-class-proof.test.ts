@@ -25,6 +25,7 @@ import {
   summarizePrimaryFirstRuns,
   deriveRevisionDecision,
   deriveProspectivePreparation,
+  summarizeCleanReplay,
   selectCandidateMetadata,
   runStatus,
   screenCandidate,
@@ -544,5 +545,29 @@ describe("skill-family class-proof status", () => {
       "method-not-locked",
       "transfer-decision-not-positive",
     ]);
+  });
+
+  test("summarizes clean replay only when every bound file and run verifies", () => {
+    expect(summarizeCleanReplay({
+      expectedEvidenceFiles: 10,
+      verifiedEvidenceFiles: 10,
+      expectedRuns: 6,
+      verifiedRuns: 6,
+      semanticMatches: true,
+      externalCalls: { modelCalls: 0, apiCalls: 0, paidCalls: 0 },
+    })).toEqual({ status: "pass", missingEvidenceFiles: 0, failedRuns: 0, reason: null });
+    expect(summarizeCleanReplay({
+      expectedEvidenceFiles: 10,
+      verifiedEvidenceFiles: 9,
+      expectedRuns: 6,
+      verifiedRuns: 5,
+      semanticMatches: false,
+      externalCalls: { modelCalls: 0, apiCalls: 1, paidCalls: 0 },
+    })).toEqual({
+      status: "fail",
+      missingEvidenceFiles: 1,
+      failedRuns: 1,
+      reason: "clean replay evidence, checker, semantic, or external-call invariant failed",
+    });
   });
 });
