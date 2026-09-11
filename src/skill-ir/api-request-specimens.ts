@@ -3,6 +3,7 @@ import { parseApiTesterOperationSource, projectApiTesterOperation } from "./api-
 import { verifyApiTesterProjectionDependencies } from "./api-tester-operation-coverage";
 import { constructSchemaWitness } from "./api-schema-witness";
 import { encodeApiParameter } from "./api-parameter-wire";
+import { encodeApiFormBody } from "./api-form-wire";
 
 type Raw = Record<string, any>;
 const record = (v: unknown): v is Raw => !!v && typeof v === "object" && !Array.isArray(v);
@@ -19,6 +20,7 @@ export type SpecimenOperation = { key: string; security: unknown; servers: unkno
   issues: string[]; caseInventoryComplete: boolean; cases: SpecimenCase[]; runtimeRequirements: string[] };
 export type ApiRequestSpecimens = { schemaVersion: "api-request-specimens/v1"; sourceSha256: string; sourceFormat: "json" | "yaml";
   enumerationComplete: boolean; enumerationIssues: unknown[]; operations: SpecimenOperation[]; wholeSkillCompleted: false };
+export type ApiFormRequestSpecimens = Omit<ApiRequestSpecimens, "schemaVersion"> & { schemaVersion: "api-request-form-specimens/v1" };
 
 function dereference(document: Raw, input: unknown): Raw {
   let value = input;
@@ -57,7 +59,7 @@ function plans(parameters: Raw[], body: Raw | null): SpecimenCase[] {
   return result;
 }
 
-function assemble(document: Raw, method: string, path: string, parameters: Raw[], body: Raw | null, plan: SpecimenCase): RequestSpecimen {
+function assemble(document: Raw, method: string, path: string, parameters: Raw[], body: Raw | null, plan: SpecimenCase, allowForm: boolean): RequestSpecimen {
   if (body && !["POST", "PUT", "PATCH"].includes(method)) throw new Error("request body method semantics unsupported");
   if (!path.startsWith("/") || /[?#\s]/u.test(path)) throw new Error("unsafe source path");
   const result: RequestSpecimen = { method, target: path, headers: [], parameters: [], body: null };
@@ -93,12 +95,13 @@ function assemble(document: Raw, method: string, path: string, parameters: Raw[]
   if (query.length) result.target += `?${query.join("&")}`;
   if (result.target.length > 8192) throw new Error("request target budget");
   if (plan.mediaType !== null && plan.omit !== "body") {
-    if (!body || !(plan.mediaType === "application/json" || /^application\/[A-Za-z0-9._-]+\+json$/u.test(plan.mediaType))) throw new Error("body media assembly unsupported");
+    const form = allowForm && plan.mediaType === "application/x-www-form-urlencoded";
+    if (!body || !(form || plan.mediaType === "application/json" || /^application\/[A-Za-z0-9._-]+\+json$/u.test(plan.mediaType))) throw new Error("body media assembly unsupported");
     const media = body.content[plan.mediaType];
     if (!record(media) || media.encoding !== undefined) throw new Error("body encoding unsupported");
     const witness = constructSchemaWitness(document, media.schema, plan.mode);
     if (witness.status !== "constructed") throw new Error(`body: ${witness.status}: ${witness.reasons.join("; ")}`);
-    const text = JSON.stringify(witness.value);
+    const text = form ? encodeApiFormBody(witness.value) : JSON.stringify(witness.value);
     if (Buffer.byteLength(text) > 262144) throw new Error("request body budget");
     result.body = { mediaType: plan.mediaType, value: witness.value, text };
     result.headers.push({ name: "content-type", value: plan.mediaType });
@@ -108,9 +111,17 @@ function assemble(document: Raw, method: string, path: string, parameters: Raw[]
 }
 
 export function buildApiRequestSpecimens(source: string, format: "json" | "yaml"): ApiRequestSpecimens {
+  return buildSpecimens(source, format, false) as ApiRequestSpecimens;
+}
+
+export function buildApiFormRequestSpecimens(source: string, format: "json" | "yaml"): ApiFormRequestSpecimens {
+  return buildSpecimens(source, format, true) as ApiFormRequestSpecimens;
+}
+
+function buildSpecimens(source: string, format: "json" | "yaml", allowForm: boolean): ApiRequestSpecimens | ApiFormRequestSpecimens {
   const parsed = parseApiTesterOperationSource(source, format), document = parsed.document;
   if (!document || !/^3\.0\./u.test(String(document.openapi))) throw new Error("specimens require OpenAPI3.0 source");
-  const report: ApiRequestSpecimens = { schemaVersion: "api-request-specimens/v1", sourceSha256: createHash("sha256").update(source).digest("hex"),
+  const report: ApiRequestSpecimens | ApiFormRequestSpecimens = { schemaVersion: allowForm ? "api-request-form-specimens/v1" : "api-request-specimens/v1", sourceSha256: createHash("sha256").update(source).digest("hex"),
     sourceFormat: format, enumerationComplete: parsed.enumeration.complete, enumerationIssues: parsed.enumeration.unresolved, operations: [], wholeSkillCompleted: false };
   for (const operation of parsed.enumeration.operations) {
     const pathItem = (document.paths as Raw)[operation.path], original = pathItem[operation.method.toLowerCase()];
@@ -133,7 +144,7 @@ export function buildApiRequestSpecimens(source: string, format: "json" | "yaml"
       for (const plan of row.cases) {
         try {
           if (projection.unresolved.length || !deps.checks.constructionObligations || !deps.checks.projectionPreservation) throw new Error("source construction dependencies unresolved");
-          plan.request = assemble(document, operation.method.toUpperCase(), operation.path, parameters, body, plan);
+          plan.request = assemble(document, operation.method.toUpperCase(), operation.path, parameters, body, plan, allowForm);
           plan.status = "constructed";
         } catch (error) { plan.reasons.push(String(error)); }
       }

@@ -2,8 +2,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve, dirname, relative } from "node:path";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { buildApiRequestSpecimens } from "../../src/skill-ir/api-request-specimens";
-import { verifyApiRequestSpecimens } from "../../src/skill-ir/api-request-specimens-checker";
+import { buildApiRequestSpecimens, buildApiFormRequestSpecimens } from "../../src/skill-ir/api-request-specimens";
+import { verifyApiRequestSpecimens, verifyApiFormRequestSpecimens } from "../../src/skill-ir/api-request-specimens-checker";
 import { buildApiRequestBodyNegatives } from "../../src/skill-ir/api-request-body-negatives";
 import { verifyApiRequestBodyNegatives } from "../../src/skill-ir/api-request-body-negatives-checker";
 import { decodeDevelopmentUtf8 } from "../../src/skill-ir/development-utf8";
@@ -11,13 +11,14 @@ import { normalizeRepositoryRelativePath, resolveContainedExistingFile, createCo
 
 const digest = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
 const boundFiles = ["src/skill-ir/api-request-specimens.ts", "src/skill-ir/api-request-specimens-checker.ts",
+  "src/skill-ir/api-form-wire.ts", "src/skill-ir/api-form-wire-checker.ts",
   "src/skill-ir/api-tester-operation-source.ts", "src/skill-ir/api-tester-operation-coverage.ts",
   "src/skill-ir/api-schema-witness.ts", "src/skill-ir/api-schema-checker.ts", "src/skill-ir/api-parameter-wire.ts",
   "src/skill-ir/api-parameter-wire-checker.ts", "scripts/skill-ir/api-request-specimens-development.ts",
   "docs/skill-ir/api-request-specimens-development.md", "src/skill-ir/development-utf8.ts", "package.json", "bun.lock"];
 
-export async function runSpecimenDevelopment(options: { rootDir: string; inputIndexPath: string; outputPath: string; executionRoot: string; profile?: "specimens" | "body-negatives" }) {
-  if (options.profile !== undefined && !["specimens", "body-negatives"].includes(options.profile)) throw new Error("unknown development profile");
+export async function runSpecimenDevelopment(options: { rootDir: string; inputIndexPath: string; outputPath: string; executionRoot: string; profile?: "specimens" | "form-specimens" | "body-negatives" }) {
+  if (options.profile !== undefined && !["specimens", "form-specimens", "body-negatives"].includes(options.profile)) throw new Error("unknown development profile");
   const indexPath = await resolveContainedExistingFile(options.rootDir, options.inputIndexPath, "specimen input index");
   const indexBytes = await readFile(indexPath), index = JSON.parse(decodeDevelopmentUtf8(indexBytes));
   if (!Array.isArray(index.inputs) || index.inputs.some((i: any) => !i || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/u.test(i.inputId))
@@ -27,7 +28,9 @@ export async function runSpecimenDevelopment(options: { rootDir: string; inputIn
     { cwd: options.executionRoot, encoding: "utf8", windowsHide: true }).trim();
   const report = { exposure: "development", profile: options.profile ?? "specimens", executionCommit: git, inputIndexSha256: digest(indexBytes), startedAt: new Date().toISOString(),
     runtime: { bun: Bun.version, node: execFileSync(Bun.which("node") ?? "node", ["--version"], { encoding: "utf8", windowsHide: true }).trim(), platform: process.platform, architecture: process.arch },
-    sourceBindings: await Promise.all([...boundFiles, ...(options.profile === "body-negatives" ? [
+    sourceBindings: await Promise.all([...boundFiles, ...(options.profile === "form-specimens" ? [
+      "docs/skill-ir/api-request-form-specimens-development.md",
+    ] : []), ...(options.profile === "body-negatives" ? [
       "src/skill-ir/api-request-body-negatives.ts", "src/skill-ir/api-request-body-negatives-checker.ts",
       "src/skill-ir/api-request-cases.ts", "src/skill-ir/api-request-cases-checker.ts", "src/skill-ir/api-schema-cases.ts",
       "src/skill-ir/api-schema-case-checker.ts", "src/skill-ir/api-schema-obligations.ts", "docs/skill-ir/api-request-body-negatives-development.md",
@@ -56,8 +59,9 @@ export async function runSpecimenDevelopment(options: { rootDir: string; inputIn
           operationsWithFieldIssues: negatives.fields.operations.filter((o) => o.issues.length > 0).length,
           errors: verification.errors, elapsedMs: performance.now() - started });
       } else {
-      const specimens = buildApiRequestSpecimens(source, row.format);
-      const verification = verifyApiRequestSpecimens(source, row.format, specimens);
+      const form = options.profile === "form-specimens";
+      const specimens = (form ? buildApiFormRequestSpecimens : buildApiRequestSpecimens)(source, row.format);
+      const verification = (form ? verifyApiFormRequestSpecimens : verifyApiRequestSpecimens)(source, row.format, specimens);
       await writeFile(resolve(out, `${row.inputId}.json`), JSON.stringify({ inputId: row.inputId, report: specimens, verification }, null, 2) + "\n", { flag: "wx" });
       report.rows.push({ inputId: row.inputId, status: verification.status, operations: verification.sourceOperations, planned: verification.plannedCases,
         constructed: verification.constructedCases, unresolved: verification.unresolvedCases, presenceNegatives: verification.presenceNegativeCases,
@@ -76,7 +80,7 @@ if (import.meta.main) {
   const inputIndexPath = process.argv.find((v) => v.startsWith("--inputs="))?.slice(9);
   const outputPath = process.argv.find((v) => v.startsWith("--out="))?.slice(6);
   const profile = process.argv.find((v) => v.startsWith("--profile="))?.slice(10);
-  if (profile !== undefined && !["specimens", "body-negatives"].includes(profile)) throw new Error("unknown development profile");
+  if (profile !== undefined && !["specimens", "form-specimens", "body-negatives"].includes(profile)) throw new Error("unknown development profile");
   if (!inputIndexPath || !outputPath) throw new Error("--inputs=<bound-index.json> --out=<new-directory>");
-  await runSpecimenDevelopment({ rootDir: process.cwd(), executionRoot: process.cwd(), inputIndexPath, outputPath, profile: profile as "specimens" | "body-negatives" | undefined });
+  await runSpecimenDevelopment({ rootDir: process.cwd(), executionRoot: process.cwd(), inputIndexPath, outputPath, profile: profile as "specimens" | "form-specimens" | "body-negatives" | undefined });
 }

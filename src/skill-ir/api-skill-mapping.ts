@@ -10,8 +10,8 @@ import { API_TESTER_OPERATION_INPUT_IDENTITY, API_TESTER_OPERATION_INPUT_MANIFES
 import { API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 } from "./api-tester-production-contract-v2";
 import { buildApiRequestCases, type ApiRequestCasesReport } from "./api-request-cases";
 import { verifyApiRequestCases } from "./api-request-cases-checker";
-import { buildApiRequestSpecimens, type ApiRequestSpecimens } from "./api-request-specimens";
-import { verifyApiRequestSpecimens } from "./api-request-specimens-checker";
+import { buildApiRequestSpecimens, buildApiFormRequestSpecimens, type ApiRequestSpecimens, type ApiFormRequestSpecimens } from "./api-request-specimens";
+import { verifyApiRequestSpecimens, verifyApiFormRequestSpecimens } from "./api-request-specimens-checker";
 import { buildApiRequestBodyNegatives, type ApiRequestBodyNegatives } from "./api-request-body-negatives";
 import { verifyApiRequestBodyNegatives } from "./api-request-body-negatives-checker";
 import { analyzeResponseSchemas } from "./api-response-catalog";
@@ -27,7 +27,7 @@ const path = z.string().min(1).refine((value) => {
 export const ApiSkillMappingSchema = z.object({
   schemaVersion: z.literal("api-skill-mapping/v1"), mappingId: id,
   analysisPath: path, skillId: z.string().min(1), responsibilityId: id,
-  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1"]),
+  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1", "api-request-form-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1"]),
   requestedOutputFormat: z.string().min(1), extraction: z.literal("agent-reviewed-declaration"),
   tasks: z.array(z.object({ taskId: id, inputPath: path, format: z.enum(["json", "yaml"]), sha256: sha }).strict()).min(1),
 }).strict().superRefine((value, context) => {
@@ -102,7 +102,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
   const output = await createContainedDirectory(options.rootDir, options.outputPath, "mapping output");
   const tasks: Array<{ taskId: string; operationReport: ApiTesterOperationInputReport | null; error: string | null;
     requestCasesReport: ApiRequestCasesReport | null; requestCasesVerification: ReturnType<typeof verifyApiRequestCases> | null;
-    requestSpecimensReport: ApiRequestSpecimens | null; requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null;
+    requestSpecimensReport: ApiRequestSpecimens | ApiFormRequestSpecimens | null; requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null;
     requestBodyNegativesReport: ApiRequestBodyNegatives | null; requestBodyNegativesVerification: ReturnType<typeof verifyApiRequestBodyNegatives> | null;
     responseCatalog: ReturnType<typeof analyzeResponseSchemas> | null;
     sourceObligations: Array<{ id: string; status: "not-fully-verified" }>; elapsedMillis: number }> = [];
@@ -116,14 +116,14 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     originalOutputConformance: prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? "not-implemented-by-v2"
       : prepared.mapping.profile === "api-response-source-examples/v1" ? "not-implemented-by-response-analysis"
       : prepared.mapping.profile === "api-request-body-negatives/v1" ? "not-implemented-by-body-negatives"
-      : prepared.mapping.profile === "api-request-specimens/v1" ? "not-implemented-by-request-specimens" : "not-implemented-by-request-cases", tasks,
+      : ["api-request-specimens/v1", "api-request-form-specimens/v1"].includes(prepared.mapping.profile) ? "not-implemented-by-request-specimens" : "not-implemented-by-request-cases", tasks,
     accounting: { projectModelCalls: 0, paidCalls: 0, mappingAuthor: "development-agent", humanMinutes: null } };
   for (const task of prepared.mapping.tasks) {
     const started = performance.now();
     let operationReport: ApiTesterOperationInputReport | null = null;
     let requestCasesReport: ApiRequestCasesReport | null = null;
     let requestCasesVerification: ReturnType<typeof verifyApiRequestCases> | null = null;
-    let requestSpecimensReport: ApiRequestSpecimens | null = null;
+    let requestSpecimensReport: ApiRequestSpecimens | ApiFormRequestSpecimens | null = null;
     let requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null = null;
     let requestBodyNegativesReport: ApiRequestBodyNegatives | null = null;
     let requestBodyNegativesVerification: ReturnType<typeof verifyApiRequestBodyNegatives> | null = null;
@@ -141,9 +141,10 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
         requestBodyNegativesReport = buildApiRequestBodyNegatives(source!, task.format);
         requestBodyNegativesVerification = verifyApiRequestBodyNegatives(source!, task.format, requestBodyNegativesReport);
         if (requestBodyNegativesVerification.status !== "pass") error = "request body negative independent verification failed";
-      } else if (prepared.mapping.profile === "api-request-specimens/v1") {
-        requestSpecimensReport = buildApiRequestSpecimens(source!, task.format);
-        requestSpecimensVerification = verifyApiRequestSpecimens(source!, task.format, requestSpecimensReport);
+      } else if (["api-request-specimens/v1", "api-request-form-specimens/v1"].includes(prepared.mapping.profile)) {
+        const form = prepared.mapping.profile === "api-request-form-specimens/v1";
+        requestSpecimensReport = (form ? buildApiFormRequestSpecimens : buildApiRequestSpecimens)(source!, task.format);
+        requestSpecimensVerification = (form ? verifyApiFormRequestSpecimens : verifyApiRequestSpecimens)(source!, task.format, requestSpecimensReport);
         if (requestSpecimensVerification.status !== "pass") error = "request specimen independent verification failed";
       } else if (prepared.mapping.profile === "api-request-cases/v2") {
         requestCasesReport = buildApiRequestCases(source!, task.format);

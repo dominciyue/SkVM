@@ -36,7 +36,7 @@ test("hash-bound malformed UTF-8 input is an explicit failure, not replacement-c
     { inputId: "bad", status: "acquired", localPath: "bad.json", format: "json", sha256: createHash("sha256").update(invalid).digest("hex") },
     { inputId: "good", status: "acquired", localPath: "good.json", format: "json", sha256: createHash("sha256").update(text).digest("hex") },
   ] }));
-  for (const profile of ["specimens", "body-negatives"] as const) {
+  for (const profile of ["specimens", "form-specimens", "body-negatives"] as const) {
     const report = await runSpecimenDevelopment({ rootDir: root, inputIndexPath: "inputs.json", outputPath: profile, executionRoot: process.cwd(), profile });
     expect(report.rows.map((r) => r.status)).toEqual(["error", "pass"]);
     expect(report.rows[0]!.error).toContain("UTF-8");

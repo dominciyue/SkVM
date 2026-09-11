@@ -3,6 +3,7 @@ import { parseDocument } from "yaml";
 import { independentlyEnumerateApiTesterOperations, verifyApiTesterProjectionDependencies } from "./api-tester-operation-coverage";
 import { checkSchemaValue, checkSchemaWitnessShape } from "./api-schema-checker";
 import { verifyApiParameterWire } from "./api-parameter-wire-checker";
+import { verifyApiFormBodyWire } from "./api-form-wire-checker";
 
 type Raw = Record<string, any>;
 const object = (v: unknown): v is Raw => !!v && typeof v === "object" && !Array.isArray(v);
@@ -11,11 +12,19 @@ const stable = (v: any): string => Array.isArray(v) ? `[${v.map(stable).join(","
 
 /** Original source is the inventory/oracle. No assembler, projection or plan helper import. */
 export function verifyApiRequestSpecimens(source: string, format: "json" | "yaml", report: unknown) {
+  return verifySpecimens(source, format, report, false);
+}
+
+export function verifyApiFormRequestSpecimens(source: string, format: "json" | "yaml", report: unknown) {
+  return verifySpecimens(source, format, report, true);
+}
+
+function verifySpecimens(source: string, format: "json" | "yaml", report: unknown, allowForm: boolean) {
   const errors = new Set<string>(), universe = independentlyEnumerateApiTesterOperations(source, format);
   let plannedCases = 0, constructedCases = 0, unresolvedCases = 0, presenceNegativeCases = 0;
   const finish = () => ({ status: errors.size ? "fail" as const : "pass" as const, errors: [...errors].sort(),
     sourceOperations: universe.operations.length, plannedCases, constructedCases, unresolvedCases, presenceNegativeCases });
-  if (!object(report) || report.schemaVersion !== "api-request-specimens/v1" || report.wholeSkillCompleted !== false
+  if (!object(report) || report.schemaVersion !== (allowForm ? "api-request-form-specimens/v1" : "api-request-specimens/v1") || report.wholeSkillCompleted !== false
     || !Array.isArray(report.operations) || !Array.isArray(report.enumerationIssues)
     || report.operations.some((r: any) => !object(r) || typeof r.key !== "string" || !Array.isArray(r.cases)
       || !Array.isArray(r.issues) || !Array.isArray(r.runtimeRequirements) || !Array.isArray(r.sourceAdvisories))) {
@@ -149,11 +158,13 @@ export function verifyApiRequestSpecimens(source: string, format: "json" | "yaml
         if (!bodyPresent) { if (request.body !== null) throw new Error("unexpected request body"); }
         else {
           const media = body!.content[plan.media!], actual = request.body;
+          const form = allowForm && plan.media === "application/x-www-form-urlencoded";
           if (!object(actual) || actual.mediaType !== plan.media || typeof actual.text !== "string" || Buffer.byteLength(actual.text) > 262144
-            || !(plan.media === "application/json" || /^application\/[A-Za-z0-9._-]+\+json$/u.test(plan.media!))
+            || !(form || plan.media === "application/json" || /^application\/[A-Za-z0-9._-]+\+json$/u.test(plan.media!))
             || !object(media) || media.encoding !== undefined) throw new Error("body media");
-          if (stable(JSON.parse(actual.text)) !== stable(actual.value)
-            || parseDocument(actual.text, { uniqueKeys: true }).errors.length !== 0 || !checkSchemaValue(document, media.schema, actual.value).valid
+          const wireValid = form ? verifyApiFormBodyWire(actual.value, actual.text)
+            : stable(JSON.parse(actual.text)) === stable(actual.value) && parseDocument(actual.text, { uniqueKeys: true }).errors.length === 0;
+          if (!wireValid || !checkSchemaValue(document, media.schema, actual.value).valid
             || !checkSchemaWitnessShape(document, media.schema, actual.value, plan.mode as "minimal" | "full")) throw new Error("body value/wire");
           headers.push({ name: "content-type", value: plan.media! });
         }

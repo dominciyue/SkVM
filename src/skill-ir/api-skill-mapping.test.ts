@@ -40,7 +40,7 @@ test("mapping preserves unexecuted responsibilities and uses the real common con
   expect(result.tasks[0]!.sourceObligations.map((x) => x.status)).toEqual(["not-fully-verified", "not-fully-verified"]);
 });
 
-test.each(["api-request-cases/v2", "api-request-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1"])("%s mapping rejects malformed bound source bytes and retains sibling tasks", async (profile) => {
+test.each(["api-request-cases/v2", "api-request-specimens/v1", "api-request-form-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1"])("%s mapping rejects malformed bound source bytes and retains sibling tasks", async (profile) => {
   const { root, mapping } = await setup();
   const bad = Buffer.from(await readFile(join(root, "input.json")));
   bad[bad.indexOf("Bounded")] = 0xff;
@@ -96,14 +96,15 @@ test("new recursive capability is explicit and shares source-bound mapping witho
   expect(report.tasks[0]!.sourceObligations.every((o) => o.status === "not-fully-verified")).toBe(true);
 });
 
-test("assembled specimens use an explicit source-bound profile and retain unsupported whole-skill duties", async () => {
+test.each(["api-request-specimens/v1", "api-request-form-specimens/v1"])("%s specimens use an explicit source-bound profile and retain unsupported whole-skill duties", async (profile) => {
   const { root, mapping } = await setup();
-  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-request-specimens/v1" }));
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile }));
   const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "specimens", nodeExecutable: Bun.which("node")! });
   expect(report.tasks[0]!.operationReport).toBeNull();
   expect(report.tasks[0]!.requestCasesReport).toBeNull();
   expect(report.tasks[0]!.requestSpecimensVerification!.status).toBe("pass");
   expect(report.tasks[0]!.requestSpecimensReport!.operations).toHaveLength(2);
+  expect(report.tasks[0]!.requestSpecimensReport!.schemaVersion).toBe(profile);
   expect(report.originalOutputConformance).toBe("not-implemented-by-request-specimens");
   expect(report.wholeSkillCompleted).toBe(false);
   expect(report.residualResponsibilities.map((r) => r.id)).toEqual(["lifecycle"]);

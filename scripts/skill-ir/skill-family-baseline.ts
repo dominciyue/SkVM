@@ -7,7 +7,7 @@ import { createContainedDirectory, resolveContainedExistingFile } from "../../sr
 type Member = { mappingId: string; skillId: string; responsibilityId: string; requestedOutputFormat: string };
 type BaselineArguments = { analysis: { skills: Array<{ skillId: string; responsibilities: Array<{ id: string; obligations: string[] }> }> };
   inputs: { inputs: Array<{ inputId: string; status: string; localPath?: string | null; format?: string | null; sha256?: string | null; error?: string | null }> };
-  member: Member; analysisPath: string; inputRoot: string; profile?: "api-tester-openapi-subset-v2" | "api-request-cases/v2" | "api-request-specimens/v1" | "api-request-body-negatives/v1" | "api-response-source-examples/v1" };
+  member: Member; analysisPath: string; inputRoot: string; profile?: "api-tester-openapi-subset-v2" | "api-request-cases/v2" | "api-request-specimens/v1" | "api-request-form-specimens/v1" | "api-request-body-negatives/v1" | "api-response-source-examples/v1" };
 
 export function createBaselineMapping(options: BaselineArguments) {
   const reviews = options.analysis.skills.filter((s) => s.skillId === options.member.skillId);

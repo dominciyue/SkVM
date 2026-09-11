@@ -116,3 +116,8 @@ and two checker-layer synthetic RED tests demonstrated false acceptance. Formatt
 free; the builder and case inventory are unchanged. See the JSON ambiguity correction in
 api-request-cases-development.md and skill-family-json-wire-development-20260911 evidence.
 The12 already-generated specimen reports pass fresh verification; no full-skill claim.
+# Separate form development profile
+
+`api-request-form-specimens/v1` shares assembly and independent source checking,
+but explicitly adds bounded string-object form bodies. The JSON-only version in
+this document is unchanged. See [form contract](api-request-form-specimens-development.md).

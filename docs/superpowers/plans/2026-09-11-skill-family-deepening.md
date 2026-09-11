@@ -178,6 +178,15 @@
 - 应用/网络中断后先核对现存进程与结果，从唯一状态记录的下一步恢复；避免重复付费请求，不能把异常中断后的未知结果默认为未执行。
 - 不用 sleep、重复审计、重复生成报告来凑一夜时长。无法保证外部应用持续运行；实际执行时间与成果如实报告。
 
+## 6.1 当前追加开发（2026-09-11 08:15）
+
+组合约束交集修复e12c587/44a8329：3016有限真值比较无checker分歧，修复5个
+合成full witness构造模式；12真实body产物字节不变。下一实际缺口是Visier两个
+form请求体：新增独立api-request-form-specimens/v1，不改旧JSON profile或冻结v2。
+按组件文档api-request-form-specimens-development.md的窄字符串对象合同与TDD顺序
+实施，独立逆向checker、源覆盖和三成员复用验证后归档。空对象/数组编码仍unresolved。
+恢复入口为deadline-execution-status.md；不靠追加无关任务或重复运行凑时间。
+
 ## 7. 完成判据
 
 ### 2026-09-11 实际检查点
