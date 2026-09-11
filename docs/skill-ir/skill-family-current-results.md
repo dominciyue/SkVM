@@ -172,6 +172,10 @@ All result directories below are under `results/skill-ir/`:
 - `skill-family-fishzjp-closure-20260911/`: subsequently acquires and fully reviews those
   four fixed-commit references (4GET/4HTTP200), with seven applicability findings. Whole
   QA workflow closure remains unclaimed; blocked execution cannot erase required duties.
+- `skill-family-final-audit-20260911/`: final D1-D9 machine audit and current-branch
+  verification (99 tests/4355 assertions, main and script typechecks); all stage statuses
+  are `complete-bounded`, with clean-version boundaries and residual whole-skill duties
+  explicit. No additional queue is started after D9.
 
 Compiled-schema cache has bounded content keys and no result cache;12results were unchanged,
 2405hits/109compiles observed, with Front single-run6184→2144ms. No general timing guarantee.
