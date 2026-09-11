@@ -108,3 +108,13 @@ Archive correction: use `-I -B` explicitly; `-I` ignores the Python environment 
 flag. TDD no-cache check now passes. JUnit XML in this development archive uses `-text`
 to preserve original failure-log CRLF bytes. Generated pyc files are not tracked or
 dependencies; original output/first failure data and earlier commits remain preserved.
+# Python process diagnostics revision
+
+The current clean run exposed lossy Windows console encoding for Chinese paths.
+A deterministic Chinese-directory batch test failed before the fix. All Python child
+commands now use explicit `-X utf8 -I -B`; do not rely on PYTHONUTF8 under isolated mode.
+Two focused tests/16 assertions and strict affected TypeScript checks pass, including
+all seven independent fixture executions with intact Chinese paths. No generated suite
+or reviewed Python runtime changed; no full real panel rerun was needed. RED/GREEN
+is preserved in `skill-family-pytest-development-20260911/utf8-process-revision.json`.
+The previous clean proof remains pinned to883c85e, not silently advanced to this revision.

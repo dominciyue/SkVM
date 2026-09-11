@@ -13,7 +13,7 @@ const response = (status: number) => ({ description: "Explicit hand-written fixt
 } } } });
 
 export async function runNativePytestLoopback(options: { outputDirectory: string; pythonExecutable: string }) {
-  const runtimeResult = await exec(options.pythonExecutable, ["-I", "-c", 'import sys,json,importlib.metadata as m; print(json.dumps({"python":sys.version,"pytest":m.version("pytest"),"httpx":m.version("httpx")}))'], { windowsHide: true, encoding: "utf8", timeout: 10000 });
+  const runtimeResult = await exec(options.pythonExecutable, ["-X", "utf8", "-I", "-B", "-c", 'import sys,json,importlib.metadata as m; print(json.dumps({"python":sys.version,"pytest":m.version("pytest"),"httpx":m.version("httpx")}))'], { windowsHide: true, encoding: "utf8", timeout: 10000 });
   const source = JSON.stringify({ openapi: "3.0.3", info: { title: "Independent native fixture", version: "1" }, paths: {
     "/items/{id}": { post: {
       parameters: [{ in: "path", name: "id", required: true, schema: { type: "string", enum: ["a/b"] } }],
@@ -42,7 +42,7 @@ export async function runNativePytestLoopback(options: { outputDirectory: string
     const before = observations.length;
     let result: { exitCode: number | string | null; stdout: string; stderr: string };
     try {
-      const output = await exec(options.pythonExecutable, ["-I", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", `--confcutdir=${out}`, `--junitxml=${kind}.xml`, "test_api_requests.py"],
+      const output = await exec(options.pythonExecutable, ["-X", "utf8", "-I", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", `--confcutdir=${out}`, `--junitxml=${kind}.xml`, "test_api_requests.py"],
         { cwd: out, env, windowsHide: true, encoding: "utf8", timeout: 30000, maxBuffer: 16777216 });
       result = { ...output, exitCode: 0 };
     } catch (error) { const e = error as any; result = { exitCode: e.code ?? null, stdout: String(e.stdout ?? ""), stderr: String(e.stderr ?? e.message) }; }

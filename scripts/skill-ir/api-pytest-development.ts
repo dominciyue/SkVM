@@ -21,7 +21,7 @@ export async function runApiPytestDevelopment(options: { rootDir: string; execut
   const out = await createContainedDirectory(options.rootDir, options.outputPath, "pytest output");
   const environment: NodeJS.ProcessEnv = { ...process.env, PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1", PYTHONDONTWRITEBYTECODE: "1" };
   delete environment.SKVM_PYTEST_ORACLE;
-  const runtime = await exec(options.pythonExecutable, ["-I", "-c", 'import sys,json,importlib.metadata as m; print(json.dumps({"python":sys.version,"pytest":m.version("pytest"),"httpx":m.version("httpx")}))'], { windowsHide: true, encoding: "utf8", timeout: 10000 });
+  const runtime = await exec(options.pythonExecutable, ["-X", "utf8", "-I", "-B", "-c", 'import sys,json,importlib.metadata as m; print(json.dumps({"python":sys.version,"pytest":m.version("pytest"),"httpx":m.version("httpx")}))'], { windowsHide: true, encoding: "utf8", timeout: 10000 });
   const boundFiles = ["src/skill-ir/api-pytest-suite.ts", "src/skill-ir/api-pytest-suite-checker.ts", "src/skill-ir/api-pytest-runtime.py",
     "src/skill-ir/api-request-specimens.ts", "src/skill-ir/api-request-specimens-checker.ts", "src/skill-ir/api-form-wire.ts", "src/skill-ir/api-form-wire-checker.ts",
     "src/skill-ir/api-tester-operation-source.ts", "src/skill-ir/api-tester-operation-coverage.ts", "src/skill-ir/api-schema-witness.ts", "src/skill-ir/api-schema-checker.ts",
@@ -51,14 +51,14 @@ export async function runApiPytestDevelopment(options: { rootDir: string; execut
       await writeFile(resolve(directory, "test_api_requests.py"), artifact.testPython, { flag: "wx" });
       let python: PythonResult;
       try {
-        const result = await exec(options.pythonExecutable, ["-I", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", `--confcutdir=${directory}`, "--junitxml=pytest.junit.xml", "test_api_requests.py"],
+        const result = await exec(options.pythonExecutable, ["-X", "utf8", "-I", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", `--confcutdir=${directory}`, "--junitxml=pytest.junit.xml", "test_api_requests.py"],
           { cwd: directory, env: environment, windowsHide: true, encoding: "utf8", timeout: 60000, maxBuffer: 16777216 });
         python = { exitCode: 0, ...result, counts: null };
       } catch (error) {
         const e = error as any; python = { exitCode: e.code ?? null, stdout: String(e.stdout ?? ""), stderr: String(e.stderr ?? e.message), counts: null };
       }
       try {
-        const counts = await exec(options.pythonExecutable, ["-I", "-c", junitCounts, resolve(directory, "pytest.junit.xml")], { windowsHide: true, encoding: "utf8", timeout: 10000 });
+        const counts = await exec(options.pythonExecutable, ["-X", "utf8", "-I", "-B", "-c", junitCounts, resolve(directory, "pytest.junit.xml")], { windowsHide: true, encoding: "utf8", timeout: 10000 });
         python.counts = JSON.parse(counts.stdout);
       } catch (error) { python.stderr += `\nJUNIT_PARSE_FAILED: ${String(error)}`; }
       await writeFile(resolve(directory, "python.json"), JSON.stringify(python, null, 2) + "\n", { flag: "wx" });

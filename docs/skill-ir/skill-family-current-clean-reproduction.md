@@ -103,6 +103,7 @@ Run commands (Bun1.3.14, Node23.8.0, Python3.12.13; explicit dependency archives
 
 ```powershell
 # In independent LF checkout at the exact candidate; INPUT is the existing bound index.
+bun scripts/skill-ir/api-request-cases-development.ts --inputs=<INPUT> --out=<NEW_BODY_DIR> --profile=body-negatives
 bun scripts/skill-ir/api-request-specimens-development.ts --inputs=<INPUT> --out=<NEW_FORM_DIR> --profile=form-specimens
 bun scripts/skill-ir/api-response-schema-development.ts --inputs=<INPUT> --out=<NEW_RESPONSE_DIR>
 bun scripts/skill-ir/api-pytest-development.ts --inputs=<INPUT> --out=<NEW_NATIVE_DIR> --python=<VENV_PYTHON>

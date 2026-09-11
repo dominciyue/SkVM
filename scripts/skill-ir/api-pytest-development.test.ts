@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { runApiPytestDevelopment } from "./api-pytest-development";
 
 test("native batch executes Python but keeps absent oracle as skipped and isolates bad source bindings", async () => {
-  const root = await mkdtemp(join(tmpdir(), "skvm-pytest-batch-"));
+  const root = await mkdtemp(join(tmpdir(), "skvm-pytest-batch-中文-"));
   const text = JSON.stringify({ openapi: "3.0.3", info: { title: "Synthetic", version: "1" }, paths: { "/health": { get: { responses: { "200": { description: "unknown fixture" } } } } } });
   await writeFile(join(root, "source.json"), text);
   await writeFile(join(root, "inputs.json"), JSON.stringify({ inputs: [
@@ -21,4 +21,6 @@ test("native batch executes Python but keeps absent oracle as skipped and isolat
   expect(report.remoteHttpCalls).toBe(0);
   expect(JSON.parse(await readFile(join(root, "output/report.json"), "utf8")).rows).toHaveLength(3);
   expect(await readdir(join(root, "output/valid"))).not.toContain("__pycache__");
+  expect(report.rows[0]!.python!.stdout).toContain("中文");
+  expect(report.rows[0]!.python!.stdout).not.toContain("\uFFFD");
 }, 30000);
