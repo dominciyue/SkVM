@@ -1975,7 +1975,13 @@ async function runOneDevelopmentInput(
   }
   const runner: DevelopmentRunRecord["runner"] = report ? {
     status: report.status,
-    totals: report.totals,
+    totals: {
+      operations: report.totals.operations,
+      accepted: report.totals.accepted,
+      rejected: report.totals.rejected,
+      unresolved: report.totals.unresolved,
+      artifactCheckedPassedOperations: report.totals.artifactCheckedPassedOperations,
+    },
     gates: report.gates,
     sourceIssues: report.sourceIssues,
     reportPath: "output/report.json",
@@ -2291,7 +2297,13 @@ async function runOnePrimaryFirstRun(
     }
     const runner: DevelopmentRunRecord["runner"] = report ? {
       status: report.status,
-      totals: report.totals,
+      totals: {
+        operations: report.totals.operations,
+        accepted: report.totals.accepted,
+        rejected: report.totals.rejected,
+        unresolved: report.totals.unresolved,
+        artifactCheckedPassedOperations: report.totals.artifactCheckedPassedOperations,
+      },
       gates: report.gates,
       sourceIssues: report.sourceIssues,
       reportPath: runRelative + "/output/report.json",
@@ -2442,7 +2454,15 @@ export async function runPrimaryFirstRun(root: string): Promise<{ report: Primar
     members,
     summary,
     gates: { protocolReady: summary.protocolReady, inputReady: summary.inputReady, capabilityReady: summary.capabilityReady, transferDecision: summary.transferDecision },
-    accounting: { ...summary.accounting, sourceBytesRead, developmentAgentUsage: "host-external-not-measured-by-runner", separate: true },
+    accounting: {
+      modelCalls: 0,
+      apiCalls: 0,
+      paidCalls: 0,
+      runtimeCalls: summary.accounting.runtimeCalls,
+      sourceBytesRead,
+      developmentAgentUsage: "host-external-not-measured-by-runner",
+      separate: true,
+    },
     protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0, frozenHistoricalResultsChanged: false },
     claimBoundary: "R9 is development-only first-run evidence for three locked primary members and two already exposed inputs each. Accepted local operation artifacts and independent checker passage do not establish whole-skill behavior, live API correctness, arbitrary OpenAPI support, human savings, ecosystem admission, prospective validity, or readiness.",
   };
@@ -2783,6 +2803,7 @@ export async function runFinalReport(root: string): Promise<{ report: ClassProof
     },
     members: primaryFirstRun.value.members.map((member) => ({
       ...member,
+      inputRuns: member.runCount,
       integration: {
         mapping: "source-declared-and-ledger-bound" as const,
         sharedImplementation: "src/skill-ir/skill-family-class-construction.ts + api-tester-operation-input",
@@ -3330,7 +3351,11 @@ export async function runScreeningPolicy(root: string, options: {
   // Keep a generous metadata-only cap so the already exposed development
   // corpus is not displaced by noisy search hits; body acquisition remains
   // separately selected after this frozen prefix.
-  const generatedPool = buildCandidatePool([...cachedRows, ...discovered, ...discoveryFailures], 512);
+  const generatedPool = buildCandidatePool([
+    ...cachedRows,
+    ...discovered,
+    ...discoveryFailures.map((failure) => ({ ...failure, sha: "", error: failure.reason })),
+  ], 512);
   const candidatePool = await persistAppendOnlyCandidatePool(join(evidenceRoot, "candidate-pool.json"), generatedPool);
   const discovery = {
     schemaVersion: "skill-family-class-proof-discovery/v1" as const,
