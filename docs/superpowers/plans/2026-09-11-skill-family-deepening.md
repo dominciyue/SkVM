@@ -217,15 +217,20 @@ header/cookie编码经过httpx后是否保留。新增独立手写本机wire fix
 `docs/skill-ir/api-response-headers-development.md`执行；不用来源专用分支。
 主代理inline执行，不派子代理，不等常规审批。文件责任：
 
-- [ ] 新建`src/skill-ir/api-response-headers.ts`：`checkApiResponseHeaders(source, format, observation)`；独立选择响应、枚举全部header并校验typed值。
-- [ ] 新建`src/skill-ir/api-response-headers.test.ts`：先实现返回unresolved的stub，测试期望checked/valid及全部声明行并观察RED；再实现解析与检查。
-- [ ] `bun test ./src/skill-ir/api-response-headers.test.ts ./src/skill-ir/api-response-observation.test.ts`，要求新边界通过且旧入口不变。
-- [ ] 已有`results/skill-ir/skill-family-response-headers-development-20260911/inventory.ts`保留12来源4声明范围；新增同目录源例子执行记录，不计live观察。
+- [x] 新建`src/skill-ir/api-response-headers.ts`：`checkApiResponseHeaders(source, format, observation)`；独立选择响应、枚举全部header并校验typed值。
+- [x] 新建`src/skill-ir/api-response-headers.test.ts`：先测试观察RED；再实现解析与检查，修复冲突源名称丢失清单。
+- [x] `bun test ./src/skill-ir/api-response-headers.test.ts ./src/skill-ir/api-response-observation.test.ts`，新边界通过且旧入口不变。
+- [x] 已有`results/skill-ir/skill-family-response-headers-development-20260911/inventory.ts`保留12来源4声明范围；同目录源例子执行记录已归档，不计live观察。
 - [ ] `node node_modules/typescript/bin/tsc --noEmit`；按源职责核对结果、文档/状态同步、仅显式文件commit并push origin。
 
 行为验收：case-insensitive匹配、重复拒绝、optional缺失分列、required缺失失败、
 本地refs及schema约束保持、unsupported不冒充valid、Content-Type忽略单列。
 旧body checker/原报告/v2不修改；Content-Length协议意义等仍是残余义务。
+
+header mapping独立profile已接入，源+观测双摘要绑定，旧profile拒绝新字段。
+2成员×2输入4实际运行与原core逐结果相同；28tests/154断言、主/脚本typecheck通过。
+下一做当前增量的独立离线复现：固定本阶段提交，在新clean检出复用已归档Node依赖，
+运行header mapping与decimal有界oracle，完整归档新输出并核对语义；不重跑无影响12panel。
 
 ## 7. 完成判据
 

@@ -65,9 +65,10 @@ the2documents; the other10documents remain explicitly no-declared-response-heade
 These are offline source-example checks only, not live observations or4API successes.
 Artifacts and exact command entrypoints are under
 `results/skill-ir/skill-family-response-headers-development-20260911/`.
-Shared-duty mapping integration remains the next task, not claimed complete by this core.
+Shared-duty mapping integration is now implemented separately below; the core evidence
+above remains the original run.
 
-## Next shared mapping step
+## Shared mapping interface and result
 
 Use a distinct `api-response-header-observations/v1` profile in the existing mapping
 schema/runner. Each task must bind a separate observation JSON file by path and SHA,
@@ -80,3 +81,31 @@ emit-test-code and Jeremy response-validation on both exposed1Password inputs us
 the already archived source-example observations, clearly labeled non-live. Preserve
 all selected and residual source obligations. Do not add this profile to the generic
 input-only baseline generator until an observation-binding input contract is provided.
+
+Implemented task fields: `observationPath` and `observationSha256`, both required only
+for this profile. The JSON envelope has exactly `schemaVersion` (this profile ID),
+`provenance` (`source-example`, `synthetic`, or `externally-supplied-unverified`) and
+`observations` (1–1000 raw observation values). Every value gets a checker result,
+including invalid ones. File/encoding/envelope failure is a task error; a checked
+constraint mismatch or unresolved observation is retained in `responseHeaderObservations.checks`,
+not converted to an infrastructure error or dropped. Provenance is a supplied label;
+`liveProvenanceVerified` is always false. Source and observation byte digests are separate.
+Old profiles do not receive the new optional report column.
+
+`mappings-first/` archives two member mappings, four observation bindings, both complete
+reports and comparison.json: four runs on two unique documents exactly reproduce the
+original core checks. Selected obligations and residual duties remain unfulfilled;
+native output format is not implemented by this checking profile. 28 tests/154 assertions,
+main typecheck and explicit script typecheck passed. mapping-validation.json preserves
+the first two failing binding tests and final regression output.
+
+Offline reproduction from repository root, with Bun1.3.14 and Node23.8.0 plus fixed
+dependencies described in [current clean reproduction](skill-family-current-clean-reproduction.md):
+
+```powershell
+bun results/skill-ir/skill-family-response-headers-development-20260911/run-mappings.ts --out=results/skill-ir/header-mapping-reproduction '--node=C:/Program Files/nodejs/node.exe'
+```
+
+Use a new output directory. The script reads only archived exposed source material and
+source examples; it does not acquire data or make HTTP/model calls. Existing clean
+archives bind older commits and do not automatically attest this integration.

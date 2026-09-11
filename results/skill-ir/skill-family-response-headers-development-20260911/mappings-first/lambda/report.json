@@ -1,0 +1,328 @@
+{
+  "schemaVersion": "api-skill-mapping-report/v1",
+  "mappingId": "lambda-header-observations",
+  "mappingSha256": "8cadd96b9ac62247f2a88859b21b2ee192e4b344995437f3b5af15186c87c245",
+  "analysisSha256": "938a4e7690f3f81f132284dfdffc6cd971f2513f00d3aa4e5f8e002e4afa2658",
+  "skillId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+  "repository": "LambdaTest/agent-skills",
+  "sourceCommit": "0491a3a29aa18558d2c3c64ff09367adb976c56f",
+  "extraction": "agent-reviewed-declaration",
+  "automaticNaturalLanguageCompilation": false,
+  "selectedResponsibility": {
+    "id": "emit-test-code",
+    "description": "Emit independent parameterized tests in selected framework with fixtures and status/body/header assertions.",
+    "lines": [
+      109,
+      189
+    ],
+    "obligations": [
+      "requested-output-format",
+      "response-assertions",
+      "fixtures",
+      "parameterization"
+    ]
+  },
+  "residualResponsibilities": [
+    {
+      "id": "parse-contract",
+      "description": "Extract all endpoints, parameters, request/response constraints and auth; resolve ambiguity.",
+      "lines": [
+        33,
+        72
+      ],
+      "obligations": [
+        "all-operations",
+        "inherited-parameters",
+        "references",
+        "security",
+        "response-contract"
+      ]
+    },
+    {
+      "id": "construct-request-cases",
+      "description": "Design valid/minimal/full, invalid, boundary, auth and conditional sequence cases for each endpoint.",
+      "lines": [
+        74,
+        107
+      ],
+      "obligations": [
+        "valid-request",
+        "minimal-and-full",
+        "missing-required",
+        "wrong-type",
+        "out-of-range",
+        "enum-violation",
+        "malformed-body",
+        "strict-extra-fields",
+        "auth-variants",
+        "idempotency",
+        "crud-lifecycle",
+        "pagination-filtering"
+      ]
+    },
+    {
+      "id": "report-and-run-guidance",
+      "description": "Summarize coverage, install/run instructions and gaps; each documented status and required field needs a test.",
+      "lines": [
+        121,
+        128
+      ],
+      "obligations": [
+        "coverage-summary",
+        "all-documented-statuses",
+        "run-instructions",
+        "gap-accounting"
+      ],
+      "additionalLines": [
+        [
+          231,
+          249
+        ]
+      ]
+    },
+    {
+      "id": "clarify-task",
+      "description": "Resolve missing auth, errors, environment, side effects and framework preference.",
+      "lines": [
+        193,
+        201
+      ],
+      "obligations": [
+        "task-semantic-confirmation"
+      ]
+    },
+    {
+      "id": "optional-mock-load-pact",
+      "description": "Generate mock, k6 load or Pact output when requested.",
+      "lines": [
+        205,
+        228
+      ],
+      "obligations": [
+        "mock-output",
+        "load-output",
+        "pact-output"
+      ]
+    },
+    {
+      "id": "documentation-followup",
+      "description": "Provide execution-platform link and offer follow-up API documentation.",
+      "lines": [
+        254,
+        272
+      ],
+      "obligations": [
+        "interactive-followup"
+      ]
+    }
+  ],
+  "boundedTaskFamilyAssessment": null,
+  "wholeSkillCompleted": false,
+  "profile": "api-response-header-observations/v1",
+  "originalOutputConformance": "not-implemented-by-header-observations",
+  "tasks": [
+    {
+      "taskId": "onepassword-connect",
+      "operationReport": null,
+      "requestCasesReport": null,
+      "requestCasesVerification": null,
+      "requestSpecimensReport": null,
+      "requestSpecimensVerification": null,
+      "requestBodyNegativesReport": null,
+      "requestBodyNegativesVerification": null,
+      "responseCatalog": null,
+      "error": null,
+      "responseHeaderObservations": {
+        "observationPath": "results/skill-ir/skill-family-response-headers-development-20260911/mappings-first/bindings/lambda-onepassword-connect.json",
+        "observationSha256": "219d37a833b4d25844f29b383f541b89f97289215ddf85bf383f5dee882822e3",
+        "provenance": "source-example",
+        "liveProvenanceVerified": false,
+        "checks": [
+          {
+            "sourceSha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d",
+            "sourceFormat": "yaml",
+            "observationSha256": "4f89429610abeb49d69029dbbabaa0fa0031474c9dee681a073cd783a3ab444f",
+            "status": "checked",
+            "valid": true,
+            "responseKey": "200",
+            "sourceEnumerationComplete": true,
+            "headers": [
+              {
+                "name": "Content-Range",
+                "locator": "GET /activity/responses/200/headers/Content-Range",
+                "status": "checked",
+                "valid": true,
+                "errors": [],
+                "value": "1-50/1134",
+                "schemaCheck": {
+                  "status": "checked",
+                  "valid": true,
+                  "errors": [],
+                  "annotationsNotValidated": []
+                }
+              }
+            ],
+            "unclaimedObservedHeaders": [],
+            "errors": [],
+            "wholeResponseVerified": false,
+            "remainingObligations": [
+              "body-and-media",
+              "protocol-header-semantics-and-framing",
+              "repeated-header-combination",
+              "business-status-trigger",
+              "live-observation-provenance"
+            ]
+          },
+          {
+            "sourceSha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d",
+            "sourceFormat": "yaml",
+            "observationSha256": "04438d1ad9d8d33ef7396ed48d25f646980050c658b132344667a60d58d75cff",
+            "status": "checked",
+            "valid": true,
+            "responseKey": "200",
+            "sourceEnumerationComplete": true,
+            "headers": [
+              {
+                "name": "Content-Disposition",
+                "locator": "GET /vaults/{vaultUuid}/items/{itemUuid}/files/{fileUuid}/content/responses/200/headers/Content-Disposition",
+                "status": "checked",
+                "valid": true,
+                "errors": [],
+                "value": "attachment; filename=\"privkey.pem\"",
+                "schemaCheck": {
+                  "status": "checked",
+                  "valid": true,
+                  "errors": [],
+                  "annotationsNotValidated": []
+                }
+              },
+              {
+                "name": "Content-Length",
+                "locator": "GET /vaults/{vaultUuid}/items/{itemUuid}/files/{fileUuid}/content/responses/200/headers/Content-Length",
+                "status": "checked",
+                "valid": true,
+                "errors": [],
+                "value": "6432",
+                "schemaCheck": {
+                  "status": "checked",
+                  "valid": true,
+                  "errors": [],
+                  "annotationsNotValidated": []
+                }
+              }
+            ],
+            "unclaimedObservedHeaders": [],
+            "errors": [],
+            "wholeResponseVerified": false,
+            "remainingObligations": [
+              "body-and-media",
+              "protocol-header-semantics-and-framing",
+              "repeated-header-combination",
+              "business-status-trigger",
+              "live-observation-provenance"
+            ]
+          }
+        ]
+      },
+      "sourceObligations": [
+        {
+          "id": "requested-output-format",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "response-assertions",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "fixtures",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "parameterization",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 78
+    },
+    {
+      "taskId": "onepassword-partnership",
+      "operationReport": null,
+      "requestCasesReport": null,
+      "requestCasesVerification": null,
+      "requestSpecimensReport": null,
+      "requestSpecimensVerification": null,
+      "requestBodyNegativesReport": null,
+      "requestBodyNegativesVerification": null,
+      "responseCatalog": null,
+      "error": null,
+      "responseHeaderObservations": {
+        "observationPath": "results/skill-ir/skill-family-response-headers-development-20260911/mappings-first/bindings/lambda-onepassword-partnership.json",
+        "observationSha256": "6b77438717cde26f787695d9327574223b520e8ba24c867ef32247854a8a5c53",
+        "provenance": "source-example",
+        "liveProvenanceVerified": false,
+        "checks": [
+          {
+            "sourceSha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d",
+            "sourceFormat": "yaml",
+            "observationSha256": "8a95c4438c23a7f00af22606ec12806bd86c9a65177bd1252ef3a2369ecc27a3",
+            "status": "checked",
+            "valid": true,
+            "responseKey": "201",
+            "sourceEnumerationComplete": true,
+            "headers": [
+              {
+                "name": "location",
+                "locator": "POST /api/v1/partners/accounts/responses/201/headers/location",
+                "status": "checked",
+                "valid": true,
+                "errors": [],
+                "value": "/api/v1/partners/accounts/aabee51b-0be2-4a0c-aa39-5bbcbb903d1b",
+                "schemaCheck": {
+                  "status": "checked",
+                  "valid": true,
+                  "errors": [],
+                  "annotationsNotValidated": []
+                }
+              }
+            ],
+            "unclaimedObservedHeaders": [],
+            "errors": [],
+            "wholeResponseVerified": false,
+            "remainingObligations": [
+              "body-and-media",
+              "protocol-header-semantics-and-framing",
+              "repeated-header-combination",
+              "business-status-trigger",
+              "live-observation-provenance"
+            ]
+          }
+        ]
+      },
+      "sourceObligations": [
+        {
+          "id": "requested-output-format",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "response-assertions",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "fixtures",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "parameterization",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 11
+    }
+  ],
+  "accounting": {
+    "projectModelCalls": 0,
+    "paidCalls": 0,
+    "mappingAuthor": "development-agent",
+    "humanMinutes": null
+  }
+}

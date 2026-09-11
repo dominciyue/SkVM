@@ -51,7 +51,8 @@
 15. 下一具体动作：提交推送decimal修复后，按D9整理当前技术恢复导航与逐任务验收缺口（非历史重写），核对新增复现命令/证据链接；优先发现残余正确性问题，不为时长增加功能或来源。
 16. D6原始证据复核已派生automation-measurement.json：4成员各7职责，13/12/10/20义务；12输入执行3080/2409/2367/3139ms，0项目模型调用。修复差异为3行数元数据+revision说明；模型6任务只有2独立操作/3源上下文。历史提取耗时/token及费用未测仍null，不能据配置字段数推人工节省。下一核对真实panel响应header缺口与源职责依据，只有确有跨成员义务/实例才设计后续能力。
 17. 9295358 D6派生测量已提交。8a0917e设计+4d62376响应header独立checker已推送：两源明确header职责，12文档4声明/2文档；3源例子观测、4字段checked。10tests/65assertions与主/脚本tsc通过。TDD源名称冲突时丢清单已修，保留冲突行；optional缺失/Content-Type忽略/unknown值和refs问题分列。旧body checker不改，0live/模型/付费。
-18. 下一具体动作：将header观测接入同一声明式source-duty mapping。新独立profile api-response-header-observations/v1，任务显式提供观测文件路径+摘要（不猜值/状态），旧profile任务禁止该字段以免静默忽略。TDD错误摘要/遗漏绑定和新报告列；用Lambda emit-test-code及Jeremy response-validation两成员×两个已暴露1Password输入核验同核复用。完整职责与协议语义仍残余；不把source例子叫真实响应。
+18. header mapping已实现：新独立profile api-response-header-observations/v1，源+观测路径/摘要分开绑定，旧profile拒绝新增字段且旧报告列不变。28tests/154断言、主/脚本tsc通过；Lambda emit-test-code与Jeremy response-validation两成员×两个旧1Password输入4报告与原core相同。mappings-first/完整归档，0live/模型/付费新增。
+19. 下一具体动作：提交当前mapping增量后，在独立LF clean检出复用已归档Node离线包，复现header mapping与decimal有界oracle，完整归档结果/依赖核验/命令。最新旧clean仍883c85e，不自动继承；不重跑无影响12panel或为了时间扩样。持续目标active。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）

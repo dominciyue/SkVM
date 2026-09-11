@@ -18,6 +18,7 @@ import { analyzeResponseSchemas } from "./api-response-catalog";
 import { decodeDevelopmentUtf8 } from "./development-utf8";
 import { buildApiPytestSuite } from "./api-pytest-suite";
 import { verifyApiPytestSuite } from "./api-pytest-suite-checker";
+import { checkApiResponseHeaders } from "./api-response-headers";
 
 const digest = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,63}$/u);
@@ -29,13 +30,28 @@ const path = z.string().min(1).refine((value) => {
 export const ApiSkillMappingSchema = z.object({
   schemaVersion: z.literal("api-skill-mapping/v1"), mappingId: id,
   analysisPath: path, skillId: z.string().min(1), responsibilityId: id,
-  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1", "api-request-form-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1", "api-pytest-request-suite/v1"]),
+  obligations: z.array(z.string().min(1)).min(1), profile: z.enum([API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2, "api-request-cases/v2", "api-request-specimens/v1", "api-request-form-specimens/v1", "api-request-body-negatives/v1", "api-response-source-examples/v1", "api-pytest-request-suite/v1", "api-response-header-observations/v1"]),
   requestedOutputFormat: z.string().min(1), extraction: z.literal("agent-reviewed-declaration"),
-  tasks: z.array(z.object({ taskId: id, inputPath: path, format: z.enum(["json", "yaml"]), sha256: sha }).strict()).min(1),
+  tasks: z.array(z.object({ taskId: id, inputPath: path, format: z.enum(["json", "yaml"]), sha256: sha,
+    observationPath: path.optional(), observationSha256: sha.optional() }).strict()).min(1),
 }).strict().superRefine((value, context) => {
   if (new Set(value.tasks.map((task) => task.taskId)).size !== value.tasks.length) context.addIssue({ code: "custom", message: "duplicate task identity" });
   if (new Set(value.obligations).size !== value.obligations.length) context.addIssue({ code: "custom", message: "duplicate obligation" });
+  for (const task of value.tasks) {
+    if (value.profile === "api-response-header-observations/v1") {
+      if (!task.observationPath || !task.observationSha256) context.addIssue({ code: "custom", message: "header observations require path and digest" });
+    } else if (task.observationPath !== undefined || task.observationSha256 !== undefined) {
+      context.addIssue({ code: "custom", message: "observation binding is only supported by header observations profile" });
+    }
+  }
 });
+
+const HeaderObservationsSchema = z.object({ schemaVersion: z.literal("api-response-header-observations/v1"),
+  provenance: z.enum(["source-example", "synthetic", "externally-supplied-unverified"]),
+  observations: z.array(z.unknown()).min(1).max(1000) }).strict();
+type HeaderObservationsResult = { observationPath: string; observationSha256: string;
+  provenance: z.infer<typeof HeaderObservationsSchema>["provenance"];
+  liveProvenanceVerified: false; checks: ReturnType<typeof checkApiResponseHeaders>[] };
 
 const ResponsibilitySchema = z.object({ id, description: z.string().min(1), lines: z.tuple([z.number().int().positive(), z.number().int().positive()]), obligations: z.array(z.string()).min(1) }).passthrough();
 const ReviewSchema = z.object({ skillId: z.string(), bodyReadComplete: z.boolean(), bodyLines: z.number().int().positive(),
@@ -107,6 +123,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     requestSpecimensReport: ApiRequestSpecimens | ApiFormRequestSpecimens | null; requestSpecimensVerification: ReturnType<typeof verifyApiRequestSpecimens> | null;
     requestBodyNegativesReport: ApiRequestBodyNegatives | null; requestBodyNegativesVerification: ReturnType<typeof verifyApiRequestBodyNegatives> | null;
     responseCatalog: ReturnType<typeof analyzeResponseSchemas> | null;
+    responseHeaderObservations?: HeaderObservationsResult | null;
     pytestSuiteVerification?: Awaited<ReturnType<typeof verifyApiPytestSuite>> | null;
     pytestSuiteFiles?: { suitePath: string; testPythonPath: string; suiteSha256: string; testPythonSha256: string } | null;
     sourceObligations: Array<{ id: string; status: "not-fully-verified" }>; elapsedMillis: number }> = [];
@@ -120,6 +137,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     originalOutputConformance: prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? "not-implemented-by-v2"
       : prepared.mapping.profile === "api-pytest-request-suite/v1" ? "pytest-profile-runtime-not-evaluated"
       : prepared.mapping.profile === "api-response-source-examples/v1" ? "not-implemented-by-response-analysis"
+      : prepared.mapping.profile === "api-response-header-observations/v1" ? "not-implemented-by-header-observations"
       : prepared.mapping.profile === "api-request-body-negatives/v1" ? "not-implemented-by-body-negatives"
       : ["api-request-specimens/v1", "api-request-form-specimens/v1"].includes(prepared.mapping.profile) ? "not-implemented-by-request-specimens" : "not-implemented-by-request-cases", tasks,
     accounting: { projectModelCalls: 0, paidCalls: 0, mappingAuthor: "development-agent", humanMinutes: null } };
@@ -133,6 +151,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     let requestBodyNegativesReport: ApiRequestBodyNegatives | null = null;
     let requestBodyNegativesVerification: ReturnType<typeof verifyApiRequestBodyNegatives> | null = null;
     let responseCatalog: ReturnType<typeof analyzeResponseSchemas> | null = null;
+    let responseHeaderObservations: HeaderObservationsResult | null = null;
     let pytestSuiteVerification: Awaited<ReturnType<typeof verifyApiPytestSuite>> | null = null;
     let pytestSuiteFiles: { suitePath: string; testPythonPath: string; suiteSha256: string; testPythonSha256: string } | null = null;
     let error: string | null = null;
@@ -141,7 +160,14 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
       if (digest(input) !== task.sha256) throw new Error("task input digest mismatch");
       // Historical v2 dispatch still receives its original raw-file manifest unchanged.
       const source = prepared.mapping.profile === API_TESTER_PRODUCTION_SUPPORT_CONTRACT_ID_V2 ? null : decodeDevelopmentUtf8(input);
-      if (prepared.mapping.profile === "api-pytest-request-suite/v1") {
+      if (prepared.mapping.profile === "api-response-header-observations/v1") {
+        const bytes = await readFile(await resolveContainedExistingFile(options.rootDir, task.observationPath!, "header observations"));
+        if (digest(bytes) !== task.observationSha256) throw new Error("observation digest mismatch");
+        const envelope = HeaderObservationsSchema.parse(JSON.parse(decodeDevelopmentUtf8(bytes)));
+        responseHeaderObservations = { observationPath: task.observationPath!, observationSha256: digest(bytes),
+          provenance: envelope.provenance, liveProvenanceVerified: false,
+          checks: envelope.observations.map((observation) => checkApiResponseHeaders(source!, task.format, observation)) };
+      } else if (prepared.mapping.profile === "api-pytest-request-suite/v1") {
         if (prepared.mapping.requestedOutputFormat !== "pytest") throw new Error("pytest output format required");
         const artifact = await buildApiPytestSuite(source!, task.format);
         pytestSuiteVerification = await verifyApiPytestSuite(source!, task.format, artifact);
@@ -181,6 +207,7 @@ export async function runApiSkillMapping(options: { rootDir: string; mappingPath
     tasks.push({ taskId: task.taskId, operationReport, requestCasesReport, requestCasesVerification, requestSpecimensReport, requestSpecimensVerification,
       requestBodyNegativesReport, requestBodyNegativesVerification, responseCatalog, error,
       ...(prepared.mapping.profile === "api-pytest-request-suite/v1" ? { pytestSuiteVerification, pytestSuiteFiles } : {}),
+      ...(prepared.mapping.profile === "api-response-header-observations/v1" ? { responseHeaderObservations } : {}),
       sourceObligations: prepared.mapping.obligations.map((id) => ({ id, status: "not-fully-verified" })),
       elapsedMillis: Math.round(performance.now() - started) });
     await writeFile(resolve(output, "report.json"), JSON.stringify(report, null, 2) + "\n");

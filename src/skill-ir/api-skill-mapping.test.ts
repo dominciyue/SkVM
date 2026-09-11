@@ -3,9 +3,62 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { prepareApiSkillMapping, runApiSkillMapping } from "./api-skill-mapping";
+import { ApiSkillMappingSchema, prepareApiSkillMapping, runApiSkillMapping } from "./api-skill-mapping";
 
 const sha = (body: string) => createHash("sha256").update(body).digest("hex");
+test("header mapping requires separate observation binding only for its explicit profile", async () => {
+  const { mapping } = await setup();
+  const task = { ...mapping.tasks[0]!, observationPath: "observations.json", observationSha256: "a".repeat(64) };
+  expect(ApiSkillMappingSchema.safeParse({ ...mapping, profile: "api-response-header-observations/v1", tasks: [task] }).success).toBe(true);
+  expect(ApiSkillMappingSchema.safeParse({ ...mapping, profile: "api-response-header-observations/v1" }).success).toBe(false);
+  expect(ApiSkillMappingSchema.safeParse({ ...mapping, tasks: [task] }).success).toBe(false);
+  expect(ApiSkillMappingSchema.safeParse({ ...mapping, profile: "api-response-header-observations/v1", tasks: [{ ...task, observationPath: "../escape.json" }] }).success).toBe(false);
+});
+
+test("header mapping retains invalid observations and rejects byte drift without dropping sibling tasks", async () => {
+  const { root, mapping } = await setup();
+  const observations = JSON.stringify({ schemaVersion: "api-response-header-observations/v1", provenance: "source-example",
+    observations: [{ operationKey: "GET /ok", statusCode: 200, headers: [] }, { operationKey: "GET /ok", statusCode: 99, headers: [] }] });
+  await writeFile(join(root, "observations.json"), observations);
+  const invalid = Buffer.from([0xff]);
+  await writeFile(join(root, "invalid.json"), invalid);
+  const task = { ...mapping.tasks[0]!, observationPath: "observations.json", observationSha256: sha(observations) };
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-response-header-observations/v1", tasks: [
+    { ...task, taskId: "drift", observationSha256: "0".repeat(64) },
+    { ...task, taskId: "encoding", observationPath: "invalid.json", observationSha256: createHash("sha256").update(invalid).digest("hex") }, task,
+  ] }));
+  const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "headers", nodeExecutable: Bun.which("node")! });
+  expect(report.tasks).toHaveLength(3);
+  expect(report.tasks[0]!.error).toContain("observation digest mismatch");
+  expect(report.tasks[1]!.error).toContain("UTF-8");
+  expect(report.tasks[2]!.error).toBeNull();
+  const result = report.tasks[2]!.responseHeaderObservations!;
+  expect(result.checks.map((row) => row.status)).toEqual(["checked", "invalid-observation"]);
+  expect(result.provenance).toBe("source-example");
+  expect(result.observationSha256).toBe(sha(observations));
+  expect(report.tasks.every((t) => t.sourceObligations.every((o) => o.status === "not-fully-verified"))).toBe(true);
+  expect(report.wholeSkillCompleted).toBe(false);
+  expect(report.originalOutputConformance).toBe("not-implemented-by-header-observations");
+});
+
+test("header mapping preserves source binding and does not claim unverified observation provenance", async () => {
+  const { root, mapping } = await setup();
+  const observationBytes = JSON.stringify({ schemaVersion: "api-response-header-observations/v1", provenance: "externally-supplied-unverified",
+    observations: [{ operationKey: "GET /ok", statusCode: 200, headers: [] }] });
+  await writeFile(join(root, "observations.json"), observationBytes);
+  const task = { ...mapping.tasks[0]!, observationPath: "observations.json", observationSha256: sha(observationBytes) };
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-response-header-observations/v1", tasks: [
+    { ...task, taskId: "source-drift", sha256: "0".repeat(64) }, task,
+  ] }));
+  const report = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "bound", nodeExecutable: Bun.which("node")! });
+  expect(report.tasks[0]!.error).toContain("task input digest mismatch");
+  expect(report.tasks[0]!.responseHeaderObservations).toBeNull();
+  expect(report.tasks[1]!.responseHeaderObservations!.liveProvenanceVerified).toBe(false);
+  expect(report.tasks[1]!.responseHeaderObservations!.checks[0]!.sourceSha256).toBe(task.sha256);
+  await writeFile(join(root, "mapping.json"), JSON.stringify({ ...mapping, profile: "api-request-cases/v2" }));
+  const old = await runApiSkillMapping({ rootDir: root, mappingPath: "mapping.json", outputPath: "old-shape", nodeExecutable: Bun.which("node")! });
+  expect(Object.hasOwn(old.tasks[0]!, "responseHeaderObservations")).toBe(false);
+});
 async function setup(name = "Synthetic API skill") {
   const root = await mkdtemp(join(tmpdir(), "api-skill-mapping-"));
   await mkdir(join(root, "skill"));
