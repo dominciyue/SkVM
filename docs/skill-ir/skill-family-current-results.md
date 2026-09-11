@@ -6,12 +6,12 @@ This page supersedes stale current-status prose, not historical evidence or cont
 ## Next planned stage
 
 D1-D9 is closed as a bounded source-mapped development slice. The next execution route is
-[skill-family-minimum-delivery.md](../superpowers/plans/2026-09-11-skill-family-minimum-delivery.md).
-It is a plan only; no held-out body, new selection, or new prospective run has started.
-The route must first lock the class contract, then build a closed class-scoped denominator,
-then evaluate three repository-distinct held-out members. It must preserve first-run
-failures and must not promote this page's existing development rows into class-level
-generalization.
+[skill-family-minimum-delivery.md](../superpowers/plans/2026-09-11-skill-family-minimum-delivery.md),
+revision 2. It is a plan only; no held-out body, new selection, or new prospective run has
+started. The route must first build a closed class-scoped denominator, run calibration and a
+development shadow, pass the explicit freeze gate, and only then evaluate three
+repository-distinct held-out members. It must preserve first-run failures and must not
+promote this page's existing development rows into class-level generalization.
 
 ## What is shared
 
