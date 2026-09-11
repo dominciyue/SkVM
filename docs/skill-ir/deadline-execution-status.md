@@ -60,6 +60,7 @@
 24. 提取实际完成：3物理请求，Jeremy1份定位通过（16职责/53义务，2790in/5297out，178749ms）；Lambda/Pactflow约242秒无响应失败，不重试，服务端完成/用量/费用未知。Jeremy主代理全文/全部草稿语义复核发现认证状态冲突未标明、host/tool元数据遗漏；不自动批准mapping。summary.ts离线重核source/prompt/response绑定通过，summary.json单列已知token非完整总量。下一保存stage提交及根handoff，再核对D2仍为draft的fishzjp直接资源是否构成尚未关闭的类职责缺口；不再追加相同模型重试。
 25. fishzjp主正文+11直接资源+2已归档间接资源全文复核完成；skill-family-fishzjp-review-20260911/report.json保留9发现、3原missing-resource误报分类、4尚未归档间接规范。离线14原件SHA/定位及脚本tsc通过。原analysis不改；completeScope=false，httpx不冒充源requests格式。下一具体动作：只查该固定提交的coverage/test-type-matrix/state-machine/case-format四引用，另identity保存结果后审阅，不扩样、不执行源脚本。
 26. b58f926已推送。四个固定commit间接规范4GET均200，原字节和7项主代理语义发现保存在skill-family-fishzjp-closure-20260911；4源绑定核对通过。源策略明确mode适用、禁止跨轴双计数、环境不足保留blocked而不删义务。四引用已闭合，但整个QA框架仍有策略validator/信号scanner/兄弟workflow，不虚称全闭合，也不为读更多文件递归扩张。下一实际动作：对D1–D9与追加队列作逐项当前证据审计，优先找真正未满足项；已有源职责审阅不再重复。
+27. 616a56a已推送。已启动skill-family-requirement-audit.md，直接核读权威263行任务书及r5 method/outcome/membership/revision。七原/新成员仓库元数据7GH请求全部成功，当前均非fork、不同owner，raw+SHA保留skill-family-origin-metadata-20260911；不等同完整谱系证明。下一按audit剩余五项核对具体历史绑定、共享代码、完整分母/效果与fresh回归，不再重复来源审阅。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）
