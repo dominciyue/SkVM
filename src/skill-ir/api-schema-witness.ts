@@ -81,15 +81,31 @@ function searchSchemaWitness(document: unknown, raw: unknown, mode: "minimal" | 
   function build(input: unknown, variant: number, depth: number): unknown {
     if (++nodes > 4096 || depth > 24) throw new Error("witness traversal budget");
     let schema = resolveSchema(document, input);
-    if (schema.allOf) {
-      const { allOf, ...base } = schema;
-      const expand = (s: unknown): Schema[] => {
-        const r = resolveSchema(document, s);
-        if (!r.allOf) return [r];
-        const { allOf: branches, ...other } = r;
-        return [other, ...branches.flatMap(expand)];
+    const expand = (s: unknown): Schema[] => {
+      const r = resolveSchema(document, s);
+      if (!r.allOf) return [r];
+      const { allOf: branches, ...other } = r;
+      return [other, ...branches.flatMap(expand)];
+    };
+    const parts = expand(schema);
+    const groups = parts.reduce((count, part) => count + Number(!!part.anyOf) + Number(!!part.oneOf), 0);
+    if (groups > 1) {
+      let choiceIndex = variant;
+      const joint = (raw: unknown, level: number): Schema[] => {
+        if (++nodes > 4096 || level > 24) throw new Error("joint composition budget");
+        const { allOf, anyOf, oneOf, ...base } = resolveSchema(document, raw);
+        const selected = [base];
+        for (const part of allOf ?? []) selected.push(...joint(part, level + 1));
+        for (const options of [oneOf, anyOf]) if (options) {
+          const index = choiceIndex % options.length;
+          choiceIndex = Math.floor(choiceIndex / options.length);
+          selected.push(...joint(options[index], level + 1));
+        }
+        return selected;
       };
-      schema = combine([base, ...allOf.flatMap(expand)]);
+      schema = combine(parts.flatMap((part) => joint(part, depth + 1)));
+    } else if (schema.allOf) {
+      schema = combine(parts);
     }
     const choices = schema.oneOf ?? schema.anyOf;
     if (choices) {
