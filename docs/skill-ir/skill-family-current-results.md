@@ -51,6 +51,11 @@ all12reports and6source-duty integration tasks pass. Full results and original/i
 comparison scripts are retained in skill-family-branch-negatives-development-20260911/.
 This is later than the clean be89a50 run; those clean results are not attributed to3011413.
 
+e12c587 finite-oracle follow-up:3016source-checker comparisons,0mismatches; a candidate merge
+gap for intersected anyOf/oneOf groups was fixed. Five known synthetic construction patterns
+and31tests/3788assertions pass. Recomputed12real artifacts are byte-identical to3011413,
+so no further real coverage gain is claimed. Evidence:skill-family-composition-development-20260911/.
+
 ## New-member evidence and automation limits
 
 - Initial frozen17b9633 round: only nntan was a new generally applicable member; target3
