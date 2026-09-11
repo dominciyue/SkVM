@@ -29,13 +29,24 @@ components:
 
 test("construction reports independent checker status and source case availability", () => {
   const built = buildClassConstruction(document, "yaml");
-  expect(built.specimenVerification.status).toBe("pass");
-  expect(built.negativeVerification.status).toBe("pass");
+  expect(built.specimenVerification?.status).toBe("pass");
+  expect(built.negativeVerification?.status).toBe("pass");
   expect(built.checkerPassed).toBe(true);
   expect(built.availability["valid-full"]!.constructed).toBeGreaterThan(0);
   expect(built.availability["enum"]!.constructed).toBeGreaterThan(0);
   expect(built.availability["additionalProperties"]!.constructed).toBeGreaterThan(0);
   expect(built.availability["uniqueItems"]).toBeUndefined();
+});
+
+test("enumeration issues preserve source error code, locator, and message", () => {
+  const built = buildClassConstruction(JSON.stringify({
+    openapi: "3.0.3",
+    info: { title: "t", version: "1" },
+    paths: { "/broken": 7 },
+  }), "json");
+  expect(built.enumeration.issues).toContain(
+    "INVALID_PATH_ITEM at #/paths/~1broken: invalid path item /broken",
+  );
 });
 
 test("obligations without a source instance stay unresolved rather than rejected", () => {

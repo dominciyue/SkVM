@@ -40,6 +40,17 @@ const bump = (availability: CaseAvailability, kind: string, constructed: boolean
 
 const negativeKind = (obligationId: string) => obligationId.slice(obligationId.lastIndexOf(":") + 1);
 
+function formatEnumerationIssue(issue: unknown): string {
+  if (typeof issue === "string") return issue;
+  if (issue && typeof issue === "object") {
+    const row = issue as Record<string, unknown>;
+    if (typeof row.code === "string" && typeof row.locator === "string" && typeof row.message === "string") {
+      return `${row.code} at ${row.locator}: ${row.message}`;
+    }
+  }
+  return JSON.stringify(issue) ?? String(issue);
+}
+
 export function buildClassConstruction(source: string, format: "json" | "yaml"): ClassConstruction {
   const result: ClassConstruction = { profile: CLASS_CONSTRUCTION_PROFILE, specimens: null, negatives: null, specimenVerification: null,
     negativeVerification: null, checkerPassed: false, checkerFailures: [], enumeration: { complete: false, operations: 0, issues: [] }, availability: {} };
@@ -55,7 +66,11 @@ export function buildClassConstruction(source: string, format: "json" | "yaml"):
   if (result.specimenVerification.status !== "pass") result.checkerFailures.push(`independent specimen checker: ${result.specimenVerification.status}`);
   if (result.negativeVerification.status !== "pass") result.checkerFailures.push(`independent body negative checker: ${result.negativeVerification.status}`);
   result.checkerPassed = result.checkerFailures.length === 0;
-  result.enumeration = { complete: result.specimens.enumerationComplete, operations: result.specimens.operations.length, issues: [...result.specimens.enumerationIssues] };
+  result.enumeration = {
+    complete: result.specimens.enumerationComplete,
+    operations: result.specimens.operations.length,
+    issues: result.specimens.enumerationIssues.map(formatEnumerationIssue),
+  };
   for (const operation of result.specimens.operations) {
     for (const issue of operation.issues) if (!result.enumeration.issues.includes(issue)) result.enumeration.issues.push(issue);
     for (const advisory of operation.sourceAdvisories as Array<{ code?: string; reference?: string; locator?: string }>) {

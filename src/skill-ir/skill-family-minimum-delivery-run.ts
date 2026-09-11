@@ -4,8 +4,9 @@ import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { CLASS_CONSTRUCTION_CHECKERS, buildClassConstruction, deriveObligationOutcomes, mergeInputOutcomes } from "./skill-family-class-construction";
 import { CALIBRATION_FIXTURE_IDS, adjudicateSemanticFixture } from "./skill-family-calibration-fixtures";
-import { buildObligationLedger, resolveObligationLedger, type LedgerObligationInput } from "./skill-family-obligation-ledger";
+import { buildObligationLedger, resolveObligationLedger, type LedgerObligationInput, type ObligationLedger } from "./skill-family-obligation-ledger";
 import { classScopeIsComplete, validateDevelopmentPanel, validateMinimumDeliveryContract } from "./skill-family-minimum-delivery-contract";
+import { validateManifest } from "./skill-family-stage-manifest";
 import { decodeDevelopmentUtf8 } from "./development-utf8";
 import { normalizeRepositoryRelativePath, resolveContainedExistingFile } from "../benchmarks/skill-ir/public-skill-responsibility-corpus-paths";
 import { buildDutyExtractionPrompt, validateDutyDraft, type DutySourceFile } from "./skill-duty-extraction";
@@ -54,17 +55,18 @@ async function exists(root: string, path: string) {
 }
 
 function git(root: string, args: string[]) {
-  return execFileSync("git", ["-c", `safe.directory=${root.replaceAll("\\", "/")}`, ...args], { cwd: root, encoding: "utf8", windowsHide: true }).trim();
+  return execFileSync("git", ["-c", `safe.directory=${root.replaceAll("\\", "/")}`, ...args], {
+    cwd: root, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
 }
 
 export function gitState(root: string) {
   const branch = git(root, ["rev-parse", "--abbrev-ref", "HEAD"]);
   const head = git(root, ["rev-parse", "HEAD"]);
-  let upstream: string | null = null;
-  try { upstream = git(root, ["rev-parse", "--abbrev-ref", "@{upstream}"]); } catch { upstream = null; }
-  const porcelain = git(root, ["status", "--porcelain"]);
-  const tracked = porcelain.split(/\r?\n/u).filter((line) => line && !line.startsWith("??"));
-  return { branch, head, upstream, trackedWorktreeStatus: tracked.length ? "dirty" : "clean", untrackedFilesPresent: porcelain.includes("??") };
+  const upstreamName = branch === "HEAD" ? "" : git(root, ["for-each-ref", "--format=%(upstream:short)", `refs/heads/${branch}`]);
+  const tracked = git(root, ["status", "--porcelain", "--untracked-files=no"]);
+  const untracked = git(root, ["ls-files", "--others", "--exclude-standard", "--directory"]);
+  return { branch, head, upstream: upstreamName || null, trackedWorktreeStatus: tracked ? "dirty" : "clean", untrackedFilesPresent: Boolean(untracked) };
 }
 
 function skillFile(source: any) {
@@ -149,7 +151,13 @@ function compactConstruction(built: ReturnType<typeof buildClassConstruction>) {
   };
 }
 
-export async function runMemberInputs(root: string, member: Awaited<ReturnType<typeof buildDevelopmentPanel>>["members"][number], outDir: string) {
+type RunnableMember = {
+  memberId: string;
+  ledger: ObligationLedger;
+  inputs: Array<{ inputId: string; path: string; format: "json" | "yaml"; sha256: string }>;
+};
+
+export async function runMemberInputs(root: string, member: RunnableMember, outDir: string) {
   const inputRows = [];
   for (const input of member.inputs) {
     const bytes = await readFile(await resolveContainedExistingFile(root, input.path, "task input"));
@@ -778,8 +786,7 @@ export function finalizeStageManifest(base: any, input: any) {
   };
 }
 
-async function developmentManifestRows(root: string, role: "calibration-only" | "development-shadow", prefix: string, reportPath: string) {
-  const assembled = await buildDevelopmentPanel(root);
+async function developmentManifestRows(root: string, assembled: Awaited<ReturnType<typeof buildDevelopmentPanel>>, role: "calibration-only" | "development-shadow", prefix: string, reportPath: string) {
   const report = await readJson(root, reportPath, `${role} report`);
   const members = [], evidenceRoles = [], obligations = [], artifacts = [];
   for (const member of assembled.members) {
@@ -819,8 +826,9 @@ export async function syncStageManifest(root: string, status: "no-revision" | "r
   const plannedPath = `${STAGE_DIR}/stage-manifest-planned.json`;
   const base = await readJson(root, manifestPath, "stage manifest");
   if (!await exists(root, plannedPath)) await writeNew(root, plannedPath, base);
-  const calibration = await developmentManifestRows(root, "calibration-only", "calibration", `${STAGE_DIR}/calibration/report.json`);
-  const shadow = await developmentManifestRows(root, "development-shadow", "shadow", `${STAGE_DIR}/shadow-first-run/report.json`);
+  const assembled = await buildDevelopmentPanel(root);
+  const calibration = await developmentManifestRows(root, assembled, "calibration-only", "calibration", `${STAGE_DIR}/calibration/report.json`);
+  const shadow = await developmentManifestRows(root, assembled, "development-shadow", "shadow", `${STAGE_DIR}/shadow-first-run/report.json`);
   const fetch = await readJson(root, `${STAGE_DIR}/heldout-fetch.json`, "held-out fetch");
   const first = await readJson(root, `${STAGE_DIR}/heldout-first-run/report.json`, "held-out first run");
   const revision = await readJson(root, `${STAGE_DIR}/revision-1/report.json`, "held-out revision");
@@ -829,7 +837,7 @@ export async function syncStageManifest(root: string, status: "no-revision" | "r
     const source = fetch.members.find((row: any) => row.candidateId === member.candidateId);
     if (!source) throw new Error(`held-out source missing: ${member.candidateId}`);
     const executionMemberId = `heldout:${member.memberId}`;
-    const artifactInputs = [...new Set((member.artifacts ?? []).map((row: any) => String(row.inputId)))];
+    const artifactInputs = [...new Set<string>((member.artifacts ?? []).map((row: any): string => String(row.inputId)))];
     const inputs = artifactInputs.map((inputId) => {
       const known = INPUTS.find((row) => inputId.endsWith(row.stem));
       if (!known) throw new Error(`held-out input binding missing: ${inputId}`);
@@ -873,7 +881,6 @@ export async function syncStageManifest(root: string, status: "no-revision" | "r
     artifacts: [...calibration.artifacts, ...shadow.artifacts, ...heldout.artifacts],
     accounting: aggregateAccounting({ p0, p1, gate, fetch, first }), evidenceIndex,
   });
-  const { validateManifest } = await import("../../scripts/skill-ir/skill-family-minimum-delivery");
   validateManifest(manifest);
   await writeFile(resolve(root, manifestPath), json(manifest));
   return manifest;
@@ -1158,7 +1165,6 @@ export async function reproduceStageReport(root: string, sourceReportPath = REPO
   if (!bindingsEqual(candidate.checkerBindings, computed.checkerBindings)) throw new Error("candidate checker bindings do not reproduce");
   if (candidate.decision !== computed.core.decision) throw new Error(`stage report decision drift: ${candidate.decision} vs ${computed.core.decision}`);
   const manifest = await readJson(root, `${STAGE_DIR}/stage-manifest.json`, "stage manifest");
-  const { validateManifest } = await import("../../scripts/skill-ir/skill-family-minimum-delivery");
   validateManifest(manifest);
   if (!(["no-revision", "revised-once", "reported"].includes(manifest.status)) || manifest.bodyReadCount !== computed.input.fetch.bodyReadCount) throw new Error("stage manifest is not bound to completed body reads");
   const state = gitState(root);

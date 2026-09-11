@@ -66,3 +66,9 @@ test("allows repeated normalized obligation keys when source obligation IDs rema
   m.obligations.push({ ...m.obligations[0], obligationId: "o2" });
   expect(validateManifest(m).ok).toBe(true);
 });
+
+test("runner imports manifest validation from a side-effect-free module", async () => {
+  const runner = await Bun.file(new URL("../../src/skill-ir/skill-family-minimum-delivery-run.ts", import.meta.url)).text();
+  expect(runner).not.toContain("../../scripts/skill-ir/skill-family-minimum-delivery");
+  expect(runner).toContain('from "./skill-family-stage-manifest"');
+});
