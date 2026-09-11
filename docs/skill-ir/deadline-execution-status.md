@@ -1,8 +1,8 @@
 # 一类 skill 深化：唯一执行恢复状态
 
-- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前11:40前后，约9.1h，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；HEAD/origin0900958，职责提取实现已推送。提取session5042已明确exit0结束，无后台请求；不要重新发送失败成员。
-- 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§81。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
+- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前12:05前后，约9.5h，未达10h，不空等/重复扩样凑时长。
+- 分支 api-tester-operation-unseen-prospective-001；上一HEAD/origin afe657f，完整职责提取结果已推送。提取session5042已明确exit0结束，无后台请求；不要重新发送失败成员。当前阶段为fishzjp14文件全文语义复核。
+- 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§82及后续追加。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
 - 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
 
 ## 已交付主线
@@ -58,6 +58,7 @@
 22. 当前D6实际缺口：旧提取成本未测不可追补。按skill-duty-extraction-development.md新增三已暴露原成员的前瞻性职责草稿提取测量，完整正文/资源、原文定位、独立结构核验与单列语义复核。先TDD并提交实现，再每成员一次模型调用；不自动批准mapping、不重跑原基准、不把开发样本叫unseen。当前下一动作为写validator/prompt失败测试。
 23. 76235c7设计+0900958实现/测试已推送：5tests/16断言、主/脚本tsc通过；提示词JSON序列化错误有RED修复。最初外发审核拒绝；只读匿名核对8个GitHub原件，HTTP200且全部摘要同后，相同命令重新审核获准。public-source-proof.json记录8次来源复核请求，未增加独立来源。first-run已启动Lambda请求，后续Jeremy/Pactflow各一次物理请求；不能沿用旧0付费调用结论。下一等待同一session5042结果，阅读完整实际草稿并单列结构/语义遗漏与新测量费用。
 24. 提取实际完成：3物理请求，Jeremy1份定位通过（16职责/53义务，2790in/5297out，178749ms）；Lambda/Pactflow约242秒无响应失败，不重试，服务端完成/用量/费用未知。Jeremy主代理全文/全部草稿语义复核发现认证状态冲突未标明、host/tool元数据遗漏；不自动批准mapping。summary.ts离线重核source/prompt/response绑定通过，summary.json单列已知token非完整总量。下一保存stage提交及根handoff，再核对D2仍为draft的fishzjp直接资源是否构成尚未关闭的类职责缺口；不再追加相同模型重试。
+25. fishzjp主正文+11直接资源+2已归档间接资源全文复核完成；skill-family-fishzjp-review-20260911/report.json保留9发现、3原missing-resource误报分类、4尚未归档间接规范。离线14原件SHA/定位及脚本tsc通过。原analysis不改；completeScope=false，httpx不冒充源requests格式。下一具体动作：只查该固定提交的coverage/test-type-matrix/state-machine/case-format四引用，另identity保存结果后审阅，不扩样、不执行源脚本。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）
