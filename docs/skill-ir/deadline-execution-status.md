@@ -1,7 +1,7 @@
 # 一类 skill 深化：唯一执行恢复状态
 
 - 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前11:15前后，约8.7h，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；HEAD/origine9d6dde，header mapping已推送。当前无运行进程、付费请求或监听端口。
+- 分支 api-tester-operation-unseen-prospective-001；HEAD/originde40836，header mapping与完整clean证据已推送。当前无运行进程、付费请求或监听端口。
 - 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§81。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
 - 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
 
@@ -53,7 +53,8 @@
 17. 9295358 D6派生测量已提交。8a0917e设计+4d62376响应header独立checker已推送：两源明确header职责，12文档4声明/2文档；3源例子观测、4字段checked。10tests/65assertions与主/脚本tsc通过。TDD源名称冲突时丢清单已修，保留冲突行；optional缺失/Content-Type忽略/unknown值和refs问题分列。旧body checker不改，0live/模型/付费。
 18. header mapping已实现：新独立profile api-response-header-observations/v1，源+观测路径/摘要分开绑定，旧profile拒绝新增字段且旧报告列不变。28tests/154断言、主/脚本tsc通过；Lambda emit-test-code与Jeremy response-validation两成员×两个旧1Password输入4报告与原core相同。mappings-first/完整归档，0live/模型/付费新增。
 19. e9d6dde独立LF clean增量完成：Node依赖18944文件前后核验，header两完整报告语义同，decimal505报告字节同；35tests/186断言+numeric6/150、主/脚本tsc通过，tracked clean。clean-e9d6dde-r1完整10原输出归档，初始collector把Bun兼容版本写成Node版本的元数据错误保留并修，未重跑candidate。0HTTP/模型/付费新增。
-20. 下一具体动作：提交clean增量证据后，核对header新合同的表示不变性与错误检出边界（case/reorder、local ref、数组和required保留），复用旧body/coverage证据、不重复完整panel。先列具体适用关系与风险，再TDD；只修有证据的新模块问题。持续目标active，未达10h。
+20. de40836 clean已推送，Git index20原输出字节核验通过。header关系核验6/6成立（键/观测顺序、格式、JSON/YAML、case/prose、本地ref、不支持兄弟操作），三字面期望字段独立核对，新增兄弟自身unresolved也报告。6tests/36断言、主/脚本tsc通过；初始缺模块与fixture语法失败、target-only早期报告保留。核心0改动，无新增真实样本；错误检出复用已有core/mapping测试，不编新总体检出率。
+21. 下一具体动作：提交上述关系证据后，对当前D1–D9逐项验收核对并压缩恢复入口的陈旧“下一步”；重点区分D7固定方法首尝试/元数据修订后、D6未测一次性提取成本、已实现原生格式与未验证业务职责。只在发现实际证据缺口时继续技术工作，不空跑或为10h扩样。目标active。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）

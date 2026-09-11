@@ -126,3 +126,33 @@ digest; no candidate rerun. `clean-validation.json` preserves commands/results a
 correction. `archive-clean.ts --checkout=<checkout> --out=<new archive> --node=<node>`
 collects only these declared incremental outputs. It does not supersede the older full
 883c85e clean proof or claim a complete new full-panel reproduction.
+
+## Next bounded relation audit
+
+For a synthetic supported primitive/array header contract, compare normalized per-name
+status/value/constraint outcomes (not byte digests or source locators) after object/header
+order reversal, header-name casing changes, formatting, description-only changes and
+acyclic local response/header/schema reference expansion. Preconditions: unique names,
+same data model and no validation-bearing ref siblings. Unknown unsupported sibling
+operations may change global source completeness but must not silently delete target rows.
+Each derived source retains parent SHA and transform parameters. This audit adds no
+independent real sample and reuses the existing source-binding tests for source replacement.
+
+Fault expectations are explicit: missing required observed field, invalid primitive wire,
+array item/length constraint mismatch and changed status are discovered by header checker;
+duplicate observed names by observation validation; missing schema references by source
+resolution. Source replacement is detected by mapping digest binding, not by asking a
+checker to reject a legitimately different source. Existing RED evidence for source
+collisions and binding drift is reused, not rerun for a larger advertised fault count.
+
+Executed:6/6 bounded relations hold, with three explicit literal expected target fields.
+`relations-complete/report.json` retains parent source, every derived source and SHA,
+parameters, full results and the added unsupported sibling's unresolved declaration.
+`relations-first/` lacked that separate sibling check and is retained; no core changes.
+6 tests/36 assertions plus main/explicit script typecheck pass. Initial missing-module
+RED and fixture syntax failures are archived in relations-validation.json. This is a
+small designed relation set, not a general invariance or reliability proof.
+
+```powershell
+bun scripts/skill-ir/api-response-header-relations.ts --out=results/skill-ir/header-relations-reproduction
+```

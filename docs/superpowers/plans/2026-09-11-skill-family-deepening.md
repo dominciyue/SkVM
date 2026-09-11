@@ -232,6 +232,10 @@ header mapping独立profile已接入，源+观测双摘要绑定，旧profile拒
 下一做当前增量的独立离线复现：固定本阶段提交，在新clean检出复用已归档Node依赖，
 运行header mapping与decimal有界oracle，完整归档新输出并核对语义；不重跑无影响12panel。
 
+实际：e9d6dde增量clean全部通过，de40836完整归档10输出与collector修订记录；
+header两报告语义同、decimal505字节同。随后6/6有界表示关系通过，新增不支持兄弟
+自身unresolved也保留，核心0改动。下一按D9核对当前逐项验收与恢复入口，不为时长扩样。
+
 ## 7. 完成判据
 
 ### 2026-09-11 实际检查点
