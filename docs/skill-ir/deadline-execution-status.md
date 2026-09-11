@@ -1,8 +1,8 @@
 # 一类 skill 深化：唯一执行恢复状态
 
-- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前11:00前，约8.4h，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；HEAD/origin4d62376，D6派生测量和header core已推送。当前无运行进程、付费请求或监听端口。
-- 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§73。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
+- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前11:15前后，约8.7h，未达10h，不空等/重复扩样凑时长。
+- 分支 api-tester-operation-unseen-prospective-001；HEAD/origine9d6dde，header mapping已推送。当前无运行进程、付费请求或监听端口。
+- 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§81。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
 - 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
 
 ## 已交付主线
@@ -52,7 +52,8 @@
 16. D6原始证据复核已派生automation-measurement.json：4成员各7职责，13/12/10/20义务；12输入执行3080/2409/2367/3139ms，0项目模型调用。修复差异为3行数元数据+revision说明；模型6任务只有2独立操作/3源上下文。历史提取耗时/token及费用未测仍null，不能据配置字段数推人工节省。下一核对真实panel响应header缺口与源职责依据，只有确有跨成员义务/实例才设计后续能力。
 17. 9295358 D6派生测量已提交。8a0917e设计+4d62376响应header独立checker已推送：两源明确header职责，12文档4声明/2文档；3源例子观测、4字段checked。10tests/65assertions与主/脚本tsc通过。TDD源名称冲突时丢清单已修，保留冲突行；optional缺失/Content-Type忽略/unknown值和refs问题分列。旧body checker不改，0live/模型/付费。
 18. header mapping已实现：新独立profile api-response-header-observations/v1，源+观测路径/摘要分开绑定，旧profile拒绝新增字段且旧报告列不变。28tests/154断言、主/脚本tsc通过；Lambda emit-test-code与Jeremy response-validation两成员×两个旧1Password输入4报告与原core相同。mappings-first/完整归档，0live/模型/付费新增。
-19. 下一具体动作：提交当前mapping增量后，在独立LF clean检出复用已归档Node离线包，复现header mapping与decimal有界oracle，完整归档结果/依赖核验/命令。最新旧clean仍883c85e，不自动继承；不重跑无影响12panel或为了时间扩样。持续目标active。
+19. e9d6dde独立LF clean增量完成：Node依赖18944文件前后核验，header两完整报告语义同，decimal505报告字节同；35tests/186断言+numeric6/150、主/脚本tsc通过，tracked clean。clean-e9d6dde-r1完整10原输出归档，初始collector把Bun兼容版本写成Node版本的元数据错误保留并修，未重跑candidate。0HTTP/模型/付费新增。
+20. 下一具体动作：提交clean增量证据后，核对header新合同的表示不变性与错误检出边界（case/reorder、local ref、数组和required保留），复用旧body/coverage证据、不重复完整panel。先列具体适用关系与风险，再TDD；只修有证据的新模块问题。持续目标active，未达10h。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）

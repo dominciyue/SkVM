@@ -109,3 +109,20 @@ bun results/skill-ir/skill-family-response-headers-development-20260911/run-mapp
 Use a new output directory. The script reads only archived exposed source material and
 source examples; it does not acquire data or make HTTP/model calls. Existing clean
 archives bind older commits and do not automatically attest this integration.
+
+## Incremental clean proof
+
+Candidate e9d6dde was reproduced in a separate LF checkout using the existing offline
+Node dependency archive (18944 files verified before/after). The two full mapping reports
+match after removing only elapsed time, bound observation path and the resulting mapping
+digest. The 505-case decimal report is byte-identical to its committed reference. No
+original panel was rerun. Clean tests:35/186 assertions plus numeric6/150 assertions;
+main and affected-script typechecks pass, tracked checkout unchanged.
+
+`clean-e9d6dde-r1/` contains all10 raw output files and archive.json. The first
+`clean-e9d6dde/` is retained: its collector mislabeled Bun's Node compatibility version
+as external Node. The r1 metadata separates these and binds actual Node23.8.0 by executable
+digest; no candidate rerun. `clean-validation.json` preserves commands/results and the
+correction. `archive-clean.ts --checkout=<checkout> --out=<new archive> --node=<node>`
+collects only these declared incremental outputs. It does not supersede the older full
+883c85e clean proof or claim a complete new full-panel reproduction.
