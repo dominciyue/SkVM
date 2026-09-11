@@ -399,14 +399,23 @@ checkout 的实际 HEAD；这不是静默改写。干净检出中的 focused sui
 
 若 R12 已完成且用户没有发出停止指令，继续按以下顺序做有明确产物的工作：
 
-1. **E1 共性缺口第二轮：** 只处理 R9/R10 中至少两个独立成员重复出现的合同内缺口，新增 RED、实现、两个成员回归和独立 checker 证据。
-2. **E2 扩大类内样本：** 从 reserve 中再加入 5–10 个真正 eligible 的成员，保持同一 contract 和 preflight，输出成员/输入/义务矩阵；不把数量写成生态比例。
-3. **E3 官方实现和论文对照：** 阅读 OpenAPI/JSON Schema、Schemathesis、Dredd、Prism、Hypothesis 等一手文档或论文，只选择能对应当前 gap-matrix 的一个技术改进，形成代码或反例；不做泛泛综述。
-4. **E4 自动研究循环：** 把“发现 → 预检 → 提取 → 构造 → checker → 成本 → 决策”封装为可恢复命令；加一个新候选即可运行，不要求人工编辑成功答案。
-5. **E5 属性/差分测试：** 对已实现的 `$ref`、数组、form、decimal、header 和 negative witness 能力补跨格式/顺序/组合变形；只报告真实检出的故障。
-6. **E6 文档治理：** 将当前说明归并为一页结果导航、一页组件合同和一页恢复手册，旧实验按链接保留，不删除历史原件，不制作 HTML/PPT。
+1. **E1 共性缺口第二轮（已完成）：** 只处理 R9/R10 中至少两个独立成员重复出现的合同内缺口，新增 RED、实现、两个成员回归和独立 checker 证据。
+2. **E2 扩大类内样本（已完成）：** 从已暴露的 screened eligible 池中排除 primary 后选择 5 个仓库去重成员，保持同一 contract 和 preflight，输出成员/输入/义务矩阵；这些成员已在 development 池中暴露，不计作新的独立真实样本，也不写成生态比例。
+3. **E3 官方实现和论文对照（已完成）：** 只阅读与当前 `strict-extra-fields` gap 直接相关的 OpenAPI 3.0.3 与 JSON Schema 一手规范，形成边界澄清；没有依据时不改代码、不猜实例。
+4. **E4 自动研究循环（已完成）：** `--step=resume` 读取状态并复用已完成报告；遇到 blocked 前置项停止，不重复外部工作。
+5. **E5 属性/差分测试（已完成）：** 对 `$ref`、数组、form、decimal、header 和 negative witness 运行三种标记表示（canonical/reversed/combined），保存父/派生摘要和注册比较字段；只报告实际结果。
+6. **E6 文档治理（已完成）：** 结果导航、组件合同和恢复手册已同步，旧实验和首次失败原件按路径保留，不制作 HTML/PPT。
 
 每项额外工作开始前在 `execution-status.json` 追加问题、产物和验收字段；完成后立即提交并继续下一项。若一个额外任务没有实际 gap 或输入，不为了延长运行而虚构任务。
+
+### E1-E6 实际证据（2026-09-12）
+
+- E1 `not-applicable`：`no-revision.json` 中唯一 `strict-extra-fields` gap 只属于 candidate-091，`occurrenceCount=1` 且 `actionable=false`；没有启动修订。报告：`results/skill-ir/skill-family-class-proof-20260911/extension-e1.json`。
+- E2 `complete`：5 个已筛选 eligible、仓库去重成员 × 2 个锁定输入 = 10 runs；95 operations、35 accepted、35 checked、15/15 core obligations、10/10 verifier，三道 development gate 全为 true。首次错误选择器把 excluded candidate-001..005 当作 eligible，已完整保留为 `extension-e2-attempt-001.json` 与 `extension-runs/e2-attempt-001/`；修复后运行目录为 `extension-runs/e2-revision-001/`。
+- E3 `complete`：OpenAPI 3.0.3 Schema Object 与 JSON Schema Additional Properties 的官方页面均记录 HTTP 200、抓取字节数和摘要；结论为 `boundary-clarified-no-code-change`，不能由规范补造缺失的 `additionalProperties` 实例。报告：`extension-e3.json`。
+- E4 `complete`：状态快照显示 E1-E3 已复用，E4-E6 可按顺序恢复；报告：`extension-e4.json`。
+- E5 `complete`：18 个合成案例（6 capability × 3 representation），18 pass、0 fail、0 unresolved、0 duplicate、无缺失 capability；报告：`extension-e5.json`。合成增强的 header fixture 和所有派生输入不增加真实分母。
+- E6 `complete`：必需代码、计划、组件/结果/恢复文档、E1-E5 报告及保留的 E2 失败原件均存在且有摘要；报告：`extension-e6.json`。主工作树上的扩展离线复核另存为 `D:\extension-clean-replay-main.json`；正式 detached clean 证据使用 `--step=extension-clean-replay`。
 
 ## 9. 恢复命令与 Definition of Done
 
@@ -430,7 +439,7 @@ bun ./scripts/skill-ir/skill-family-class-proof.ts --step=resume
 - 至少一个可复用共享构造/核验改进有真实跨成员证据，或有明确、可复现的 source shortfall；
 - primary 首跑与可选修订分离，所有 accepted artifacts 有独立 checker 证据；
 - `protocolReady`、`inputReady`、`capabilityReady` 和 `transferDecision` 四字段由机器报告派生；
-- clean checkout 能离线重放本阶段报告；
+- clean checkout 能离线重放本阶段报告和扩展运行包（`--step=clean-replay`、`--step=extension-clean-replay`）；
 - 代码、测试、组件文档、状态、handoff、conversation log 和 origin 分支同步；
 - 最终结论只使用 `strong-positive`、`bounded-positive`、`bounded-negative`、`insufficient-evidence` 或 `blocked-before-evaluation` 之一，并附具体分母与限制。
 

@@ -1,0 +1,714 @@
+{
+  "schemaVersion": "skill-family-class-proof-extension-e5/v1",
+  "identity": "skill-family-class-proof-002",
+  "baseFixture": {
+    "path": "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml",
+    "bytes": 1410,
+    "sha256": "1822248ca30a18f1983c6871463295c17cf18bc14dfa000d5b17db4f15c6072a"
+  },
+  "syntheticDerivation": {
+    "addedSecurityScheme": "#/components/securitySchemes/ApiKey",
+    "addedOperationSecurity": "#/paths/~1items/get/security",
+    "reason": "the checked-in fixture has refs, arrays, form/explode, and float fields but no header security; the augmentation is synthetic and excluded from real-input denominators"
+  },
+  "variants": [
+    {
+      "variantId": "canonical-yaml",
+      "ordering": "canonical",
+      "parent": {
+        "path": "synthetic/e5-canonical.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      }
+    },
+    {
+      "variantId": "reversed-yaml",
+      "ordering": "reversed",
+      "parent": {
+        "path": "synthetic/e5-reversed.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      }
+    },
+    {
+      "variantId": "combined-json",
+      "ordering": "combined",
+      "parent": {
+        "path": "synthetic/e5-combined.json",
+        "format": "json",
+        "bytes": 2457,
+        "sha256": "c95e10979bf2dcca1f5a6f004416d30fa3b1fe5d96022fccef13685150a421e1"
+      }
+    }
+  ],
+  "capabilityProjection": {
+    "$ref": "local-ref-inline",
+    "arrays": "object-order",
+    "form": "formatting",
+    "decimal": "json-yaml",
+    "header": "object-order",
+    "negative-witness": "add-unsupported-operation"
+  },
+  "cases": [
+    {
+      "caseId": "e5-canonical-yaml-refref",
+      "variantId": "canonical-yaml",
+      "capability": "$ref",
+      "format": "yaml",
+      "ordering": "canonical",
+      "status": "pass",
+      "transformType": "local-ref-inline",
+      "transform": {
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "parent": {
+        "path": "synthetic/e5-canonical.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "635df845676bdc59fb3cc482269774b75a8dd9fef225775678942ecafaf6f7fe"
+      },
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "operationKey": "POST /items",
+        "referenceLocator": "#/paths/~1items/post/requestBody/$ref",
+        "targetLocator": "#/components/requestBodies/NewItemBody"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-canonical-yaml-arrays",
+      "variantId": "canonical-yaml",
+      "capability": "arrays",
+      "format": "yaml",
+      "ordering": "canonical",
+      "status": "pass",
+      "transformType": "object-order",
+      "transform": {
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-canonical.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-canonical-yaml-form",
+      "variantId": "canonical-yaml",
+      "capability": "form",
+      "format": "yaml",
+      "ordering": "canonical",
+      "status": "pass",
+      "transformType": "formatting",
+      "transform": {
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "parent": {
+        "path": "synthetic/e5-canonical.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "140bc2aa9b5f87014196a4f72577baf93c221de9f396af9fa588de8dd74a3028"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-canonical-yaml-decimal",
+      "variantId": "canonical-yaml",
+      "capability": "decimal",
+      "format": "yaml",
+      "ordering": "canonical",
+      "status": "pass",
+      "transformType": "json-yaml",
+      "transform": {
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-canonical.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      },
+      "derived": {
+        "format": "json",
+        "sha256": "9aa2e0e80e98df21584ee306db15f552c22ef6db41b1699619c10d6de2f1dc21"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-canonical-yaml-header",
+      "variantId": "canonical-yaml",
+      "capability": "header",
+      "format": "yaml",
+      "ordering": "canonical",
+      "status": "pass",
+      "transformType": "object-order",
+      "transform": {
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-canonical.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-canonical-yaml-negative_witness",
+      "variantId": "canonical-yaml",
+      "capability": "negative-witness",
+      "format": "yaml",
+      "ordering": "canonical",
+      "status": "pass",
+      "transformType": "add-unsupported-operation",
+      "transform": {
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "parent": {
+        "path": "synthetic/e5-canonical.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "f53252f02b253937b1f29f012949ce83e8ddeecd3242dd4ee8e4638b5613862b"
+      },
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-reversed-yaml-refref",
+      "variantId": "reversed-yaml",
+      "capability": "$ref",
+      "format": "yaml",
+      "ordering": "reversed",
+      "status": "pass",
+      "transformType": "local-ref-inline",
+      "transform": {
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "parent": {
+        "path": "synthetic/e5-reversed.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "e633724298783872878dfb59797562b48a41074056783ca17c856bf9e6bedeee"
+      },
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "operationKey": "POST /items",
+        "referenceLocator": "#/paths/~1items/post/requestBody/$ref",
+        "targetLocator": "#/components/requestBodies/NewItemBody"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-reversed-yaml-arrays",
+      "variantId": "reversed-yaml",
+      "capability": "arrays",
+      "format": "yaml",
+      "ordering": "reversed",
+      "status": "pass",
+      "transformType": "object-order",
+      "transform": {
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-reversed.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-reversed-yaml-form",
+      "variantId": "reversed-yaml",
+      "capability": "form",
+      "format": "yaml",
+      "ordering": "reversed",
+      "status": "pass",
+      "transformType": "formatting",
+      "transform": {
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "parent": {
+        "path": "synthetic/e5-reversed.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "e679560855b3f56f1126afc0e7e3ed3e36fb82d7c0804cd7b46e25298c4256cb"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "lf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-reversed-yaml-decimal",
+      "variantId": "reversed-yaml",
+      "capability": "decimal",
+      "format": "yaml",
+      "ordering": "reversed",
+      "status": "pass",
+      "transformType": "json-yaml",
+      "transform": {
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-reversed.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "derived": {
+        "format": "json",
+        "sha256": "c95e10979bf2dcca1f5a6f004416d30fa3b1fe5d96022fccef13685150a421e1"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "from": "yaml",
+        "to": "json"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-reversed-yaml-header",
+      "variantId": "reversed-yaml",
+      "capability": "header",
+      "format": "yaml",
+      "ordering": "reversed",
+      "status": "pass",
+      "transformType": "object-order",
+      "transform": {
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-reversed.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "709578891a10c79078304696bff2d08829b3fffb82587a9eff263888996309e7"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-reversed-yaml-negative_witness",
+      "variantId": "reversed-yaml",
+      "capability": "negative-witness",
+      "format": "yaml",
+      "ordering": "reversed",
+      "status": "pass",
+      "transformType": "add-unsupported-operation",
+      "transform": {
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "parent": {
+        "path": "synthetic/e5-reversed.yaml",
+        "format": "yaml",
+        "bytes": 1603,
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "e20cc18cd5417028330b3786743bf9a3b431b5a3894017a395907d0f9deb95f3"
+      },
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-combined-json-refref",
+      "variantId": "combined-json",
+      "capability": "$ref",
+      "format": "json",
+      "ordering": "combined",
+      "status": "pass",
+      "transformType": "local-ref-inline",
+      "transform": {
+        "applicability": "At least one accepted operation has a pure, resolved, local construction reference.",
+        "expectedRelation": "Inlining the resolved value preserves that operation's admission and normalized public-contract semantics."
+      },
+      "parent": {
+        "path": "synthetic/e5-combined.json",
+        "format": "json",
+        "bytes": 2457,
+        "sha256": "c95e10979bf2dcca1f5a6f004416d30fa3b1fe5d96022fccef13685150a421e1"
+      },
+      "derived": {
+        "format": "json",
+        "sha256": "d81c88b17e568540be9f4ac74b5b4e407150cbe3ba0b0d1d481a6f13e8508eb1"
+      },
+      "comparisonFields": [
+        "operationKeys",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "operationKey": "POST /items",
+        "referenceLocator": "#/paths/~1items/post/requestBody/$ref",
+        "targetLocator": "#/components/requestBodies/NewItemBody"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-combined-json-arrays",
+      "variantId": "combined-json",
+      "capability": "arrays",
+      "format": "json",
+      "ordering": "combined",
+      "status": "pass",
+      "transformType": "object-order",
+      "transform": {
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-combined.json",
+        "format": "json",
+        "bytes": 2457,
+        "sha256": "c95e10979bf2dcca1f5a6f004416d30fa3b1fe5d96022fccef13685150a421e1"
+      },
+      "derived": {
+        "format": "json",
+        "sha256": "9aa2e0e80e98df21584ee306db15f552c22ef6db41b1699619c10d6de2f1dc21"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-combined-json-form",
+      "variantId": "combined-json",
+      "capability": "form",
+      "format": "json",
+      "ordering": "combined",
+      "status": "pass",
+      "transformType": "formatting",
+      "transform": {
+        "applicability": "Source parses as JSON or YAML without duplicate-key or syntax failure.",
+        "expectedRelation": "Indentation, line endings, and insignificant whitespace change bytes but not operation semantics."
+      },
+      "parent": {
+        "path": "synthetic/e5-combined.json",
+        "format": "json",
+        "bytes": 2457,
+        "sha256": "c95e10979bf2dcca1f5a6f004416d30fa3b1fe5d96022fccef13685150a421e1"
+      },
+      "derived": {
+        "format": "json",
+        "sha256": "9c466326bcdea0b1746dd48122261afed4d43f14e27fa7e3c207d6ba860e646c"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "indent": 4,
+        "lineEnding": "crlf"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-combined-json-decimal",
+      "variantId": "combined-json",
+      "capability": "decimal",
+      "format": "json",
+      "ordering": "combined",
+      "status": "pass",
+      "transformType": "json-yaml",
+      "transform": {
+        "applicability": "The parsed source data model can be serialized losslessly as JSON and YAML without aliases or non-JSON scalar values.",
+        "expectedRelation": "JSON/YAML representation may change while the data model, admission, and normalized operation semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-combined.json",
+        "format": "json",
+        "bytes": 2457,
+        "sha256": "c95e10979bf2dcca1f5a6f004416d30fa3b1fe5d96022fccef13685150a421e1"
+      },
+      "derived": {
+        "format": "yaml",
+        "sha256": "b3991a42f5137b28264c9891334b3e69f67b995cf526a146b7f4a078e04216d9"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "from": "json",
+        "to": "yaml"
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-combined-json-header",
+      "variantId": "combined-json",
+      "capability": "header",
+      "format": "json",
+      "ordering": "combined",
+      "status": "pass",
+      "transformType": "object-order",
+      "transform": {
+        "applicability": "Parsed OpenAPI data model has at least one object key; arrays retain their order.",
+        "expectedRelation": "Object, path, and operation insertion order may change while the operation universe and normalized semantics remain equal."
+      },
+      "parent": {
+        "path": "synthetic/e5-combined.json",
+        "format": "json",
+        "bytes": 2457,
+        "sha256": "c95e10979bf2dcca1f5a6f004416d30fa3b1fe5d96022fccef13685150a421e1"
+      },
+      "derived": {
+        "format": "json",
+        "sha256": "9aa2e0e80e98df21584ee306db15f552c22ef6db41b1699619c10d6de2f1dc21"
+      },
+      "comparisonFields": [
+        "operationUniverse",
+        "admission",
+        "normalizedSemantics",
+        "coverage"
+      ],
+      "parameters": {
+        "ordering": "reverse-recursive-object-keys",
+        "arraysReordered": false
+      },
+      "errors": []
+    },
+    {
+      "caseId": "e5-combined-json-negative_witness",
+      "variantId": "combined-json",
+      "capability": "negative-witness",
+      "format": "json",
+      "ordering": "combined",
+      "status": "pass",
+      "transformType": "add-unsupported-operation",
+      "transform": {
+        "applicability": "The paths object can accept one collision-free validation path.",
+        "expectedRelation": "Existing operations remain unchanged and a newly added unsupported operation is retained as an explicit rejection."
+      },
+      "parent": {
+        "path": "synthetic/e5-combined.json",
+        "format": "json",
+        "bytes": 2457,
+        "sha256": "c95e10979bf2dcca1f5a6f004416d30fa3b1fe5d96022fccef13685150a421e1"
+      },
+      "derived": {
+        "format": "json",
+        "sha256": "01af87d94da92c812567e1c2377f8cf669b28b66c8aeafdbbbac47880dd96df6"
+      },
+      "comparisonFields": [
+        "existingOperationUniverse",
+        "existingAdmission",
+        "existingNormalizedSemantics",
+        "coverage",
+        "addedRejection"
+      ],
+      "parameters": {
+        "addedPath": "/__skvm_validation_unsupported__",
+        "method": "POST"
+      },
+      "errors": []
+    }
+  ],
+  "totals": {
+    "registeredCapabilities": [
+      "$ref",
+      "arrays",
+      "form",
+      "decimal",
+      "header",
+      "negative-witness"
+    ],
+    "cases": 18,
+    "passed": 18,
+    "failed": 0,
+    "notApplicable": 0,
+    "unresolved": 0,
+    "duplicateCases": 0,
+    "missingCapabilities": []
+  },
+  "reusedEvidence": [
+    {
+      "path": "results/skill-ir/skill-family-class-proof-20260911/r7-validation.json",
+      "sha256": "e6d2082be1f6d9f8c3daa3f1ae1ae20185d82234cb9c74f560fc691c439514f8"
+    },
+    {
+      "path": "results/skill-ir/skill-family-class-proof-20260911/fault-detection.json",
+      "sha256": "43a38d868670787b31595c6c1ccd54e6bed76aee40804c92126b6f708b192fd2"
+    }
+  ],
+  "accounting": {
+    "modelCalls": 0,
+    "apiCalls": 0,
+    "paidCalls": 0,
+    "validationInvocations": 18
+  },
+  "protectedBoundary": {
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0,
+    "prospectiveRuns": 0,
+    "readinessChanges": 0
+  },
+  "claimBoundary": "E5 is synthetic property evidence for the six registered capability projections. It does not add an independent real sample, establish whole-skill or live API behavior, or change the v2 support contract."
+}

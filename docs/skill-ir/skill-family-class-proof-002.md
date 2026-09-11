@@ -100,6 +100,41 @@ offline replay from the committed evidence directory. Never use the historical
 six-source runner as a substitute for this entry point, and never stage the
 unrelated untracked historical materials in the repository root.
 
+## Extension queue (E1-E6)
+
+The post-R12 queue is persisted in `execution-status.json` under `extensions`.
+Each task has a question, acceptance list, status, artifact paths, and notes.
+`--step=resume` skips `complete`/`not-applicable` tasks, resumes the first
+unfinished task, and stops at `blocked`; it does not resend completed source or
+model requests.
+
+E1 reads the immutable R10 gap report. In this batch it is `not-applicable`
+because `strict-extra-fields` occurs in only one member. E2 selects five
+already exposed eligible members outside the primary IDs, one per repository,
+and runs the unchanged constructor/checker on the two locked inputs. The first
+E2 selector bug (excluded rows were not filtered by eligibility) is preserved as
+`extension-e2-attempt-001.json`; the corrected evidence is in
+`extension-e2.json` and `extension-runs/e2-revision-001/`.
+
+E3 records official OpenAPI 3.0.3 and JSON Schema references for the observed
+`additionalProperties` boundary and makes no contract change. E4 is the
+idempotent queue check. E5 evaluates six capability projections over canonical,
+reversed, and combined synthetic representations; all 18 cases pass in the
+current report, but they are not independent real inputs. E6 verifies the
+documentation and evidence navigation.
+
+For a clean checkout, run:
+
+```powershell
+bun install --frozen-lockfile --offline
+bun ./scripts/skill-ir/skill-family-class-proof.ts --step=extension-clean-replay --out=<offline-extension-report.json>
+```
+
+This rechecks all ten E2 run packages with the independent verifier, validates
+E5 totals, and requires `resume` to execute zero new tasks. The extension queue
+remains development-only: historical API Tester `0/6`, readiness, Q1/held-out
+isolation, and prospective selection are unchanged.
+
 ## Current execution checkpoint
 
 R0-R4 are complete for `skill-family-class-proof-002`. R1's pure preflight

@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { AcquisitionError, createAcquirer, type Request } from "./deadline-acquire";
 import { preflightSkillEligibility, type EligibilityInput, type EligibilityRecord } from "../../src/skill-ir/skill-family-eligibility";
 import { buildObligationLedger, normalizeObligationTerm, OBLIGATION_TERM_LEXICON, type LedgerObligationInput } from "../../src/skill-ir/skill-family-obligation-ledger";
@@ -25,6 +26,18 @@ import {
   type ClassProofMetamorphicCase,
   type ClassProofValidationInput,
 } from "../../src/skill-ir/skill-family-class-proof-validation";
+import {
+  deriveE1Decision,
+  deriveExtensionE5Summary,
+  deriveNextExtensionTask,
+  EXTENSION_E5_CAPABILITIES,
+  EXTENSION_TASK_ORDER,
+  selectExtensionMembers,
+  type ExtensionE5Case,
+  type ExtensionTaskId,
+  type ExtensionTaskStatus,
+} from "../../src/skill-ir/skill-family-class-proof-extension";
+import { evaluateApiTesterOperationTransform, type ApiTesterOperationTransformType } from "../../src/skill-ir/api-tester-operation-validation";
 
 export const CLASS_PROOF_IDENTITY = "skill-family-class-proof-002" as const;
 export const CLASS_PROOF_PLAN_REVISION = 1 as const;
@@ -43,6 +56,7 @@ export type ClassProofStep =
   | "no-revision"
   | "reported"
   | "extension-running"
+  | "extension-complete"
   | "method-not-ready"
   | "blocked-before-evaluation";
 
@@ -58,8 +72,40 @@ export type ClassProofStatus = {
   externalAccounting: { modelCalls: number; apiCalls: number; paidCalls: number };
   protectedReads: { heldOut: number; q1Reserved: number; historicalResultsChanged: boolean };
   failureSummary: string[];
+  extensions?: Record<ExtensionTaskId, ExtensionStatusRecord>;
   updatedAt: string;
 };
+
+export type ExtensionStatusRecord = {
+  status: ExtensionTaskStatus;
+  question: string;
+  artifacts: string[];
+  acceptance: string[];
+  startedAt: string | null;
+  completedAt: string | null;
+  notes: string[];
+};
+
+const EXTENSION_QUESTIONS: Record<ExtensionTaskId, string> = {
+  E1: "Does R9/R10 contain a repeated actionable contract-internal gap across independent members?",
+  E2: "Can a bounded reserve panel run through the same contract and independent checker?",
+  E3: "Does an authoritative external specification clarify an observed class-proof boundary?",
+  E4: "Can the discovery-to-decision queue resume without repeating completed external work?",
+  E5: "Do implemented reference, array, form, decimal, header, and negative-witness relations hold across labelled representations?",
+  E6: "Are the result navigation, component contract, and recovery instructions synchronized?",
+};
+
+function initialExtensionStatuses(): Record<ExtensionTaskId, ExtensionStatusRecord> {
+  return Object.fromEntries(EXTENSION_TASK_ORDER.map((task) => [task, {
+    status: "pending" as const,
+    question: EXTENSION_QUESTIONS[task],
+    artifacts: [],
+    acceptance: [],
+    startedAt: null,
+    completedAt: null,
+    notes: [],
+  }])) as Record<ExtensionTaskId, ExtensionStatusRecord>;
+}
 
 const STEP_ORDER: Record<ClassProofStep, number> = {
   planned: 0,
@@ -73,6 +119,7 @@ const STEP_ORDER: Record<ClassProofStep, number> = {
   "no-revision": 7,
   reported: 8,
   "extension-running": 9,
+  "extension-complete": 10,
   "method-not-ready": 8,
   "blocked-before-evaluation": 8,
 };
@@ -1897,13 +1944,14 @@ async function runOneDevelopmentInput(
   evidenceRoot: string,
   member: { candidateId: string; memberId: string; repository: string; duties: ExtractedResponsibility[] },
   binding: { inputId: string; path: string; format: "json" | "yaml"; bytes: number; sha256: string },
+  runNamespace = "development-runs",
 ): Promise<DevelopmentRunRecord> {
   const started = Date.now();
   const sourceBytes = await readFile(resolve(absoluteRoot, binding.path));
   if (sourceBytes.byteLength !== binding.bytes || sha256Bytes(sourceBytes) !== binding.sha256) throw new Error(`development input digest mismatch: ${binding.inputId}`);
   const construction = buildClassConstruction(sourceBytes.toString("utf8"), binding.format);
   const obligations = deriveObligationOutcomes(obligationLedgerFromRows(member.memberId, member.duties), construction);
-  const runRelative = `development-runs/${safeEvidenceSegment(member.candidateId)}/${safeEvidenceSegment(binding.inputId)}`;
+  const runRelative = `${runNamespace}/${safeEvidenceSegment(member.candidateId)}/${safeEvidenceSegment(binding.inputId)}`;
   const runRoot = join(evidenceRoot, runRelative);
   await mkdir(join(runRoot, "input"), { recursive: true });
   const inputRelative = `input/openapi.${binding.format === "json" ? "json" : "yaml"}`;
@@ -3429,6 +3477,7 @@ function initialStatus(root: string): ClassProofStatus {
     externalAccounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0 },
     protectedReads: { heldOut: 0, q1Reserved: 0, historicalResultsChanged: false },
     failureSummary: [],
+    extensions: initialExtensionStatuses(),
     updatedAt: new Date().toISOString(),
   };
 }
@@ -3445,7 +3494,7 @@ function validateStatus(value: unknown): ClassProofStatus {
   if (!row.externalAccounting || !row.protectedReads || !Array.isArray(row.failureSummary)) {
     throw new Error("class-proof status accounting is invalid");
   }
-  return row as ClassProofStatus;
+  return { ...row, extensions: row.extensions ?? initialExtensionStatuses() } as ClassProofStatus;
 }
 
 export async function runStatus(root: string): Promise<ClassProofStatus> {
@@ -3477,6 +3526,790 @@ export async function writeStatus(root: string, patch: Partial<ClassProofStatus>
   });
   await writeFile(statusPath(absoluteRoot), `${JSON.stringify(next, null, 2)}\n`, { encoding: "utf8" });
   return next;
+}
+
+async function updateExtensionStatus(
+  root: string,
+  task: ExtensionTaskId,
+  patch: Partial<ExtensionStatusRecord>,
+  statusPatch: Partial<ClassProofStatus> = {},
+): Promise<ClassProofStatus> {
+  const current = await runStatus(root);
+  const extensions = current.extensions ?? initialExtensionStatuses();
+  const nextRecord: ExtensionStatusRecord = { ...extensions[task], ...patch };
+  return writeStatus(root, {
+    ...statusPatch,
+    extensions: { ...extensions, [task]: nextRecord },
+  });
+}
+
+type ExtensionEvidenceRef = { path: string; sha256: string; bytes: number };
+
+async function extensionEvidenceRef(root: string, relativePath: string): Promise<ExtensionEvidenceRef> {
+  const bytes = await readFile(join(resolve(root), relativePath));
+  return { path: relativePath, sha256: sha256Bytes(bytes), bytes: bytes.byteLength };
+}
+
+async function beginExtensionTask(root: string, task: ExtensionTaskId, acceptance: string[]): Promise<ClassProofStatus> {
+  const current = await runStatus(root);
+  const nextStep = current.currentStep === "extension-complete"
+    ? current.currentStep
+    : transitionStatus(current.currentStep, "extension-running");
+  return updateExtensionStatus(root, task, {
+    status: "running",
+    question: EXTENSION_QUESTIONS[task],
+    acceptance: [...acceptance],
+    startedAt: new Date().toISOString(),
+    completedAt: null,
+    notes: [],
+  }, { currentStep: nextStep, lastCompletedStep: "extension-running" });
+}
+
+async function completeExtensionTask(
+  root: string,
+  task: ExtensionTaskId,
+  status: "complete" | "not-applicable" | "blocked",
+  artifacts: string[],
+  notes: string[],
+  failureSummary: string[] = [],
+): Promise<ClassProofStatus> {
+  const current = await runStatus(root);
+  const extensions = current.extensions ?? initialExtensionStatuses();
+  const nextExtensions = {
+    ...extensions,
+    [task]: {
+      ...extensions[task],
+      status,
+      artifacts: [...artifacts],
+      notes: [...notes],
+      completedAt: new Date().toISOString(),
+    },
+  } as Record<ExtensionTaskId, ExtensionStatusRecord>;
+  const nextTask = deriveNextExtensionTask(Object.fromEntries(
+    EXTENSION_TASK_ORDER.map((id) => [id, nextExtensions[id].status]),
+  ) as Record<ExtensionTaskId, ExtensionTaskStatus>);
+  const nextStep: ClassProofStep = nextTask === null ? "extension-complete" : "extension-running";
+  return writeStatus(root, {
+    currentStep: transitionStatus(current.currentStep, nextStep),
+    lastCompletedStep: nextStep,
+    extensions: nextExtensions,
+    failureSummary: [...new Set([...current.failureSummary, ...failureSummary])],
+  });
+}
+
+export type ExtensionE1Report = {
+  schemaVersion: "skill-family-class-proof-extension-e1/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  source: ExtensionEvidenceRef;
+  decision: ReturnType<typeof deriveE1Decision>;
+  implementationAttempted: false;
+  syntheticCases: 0;
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+  claimBoundary: string;
+};
+
+/** Inspect the actual R10 report and record whether E1 has an applicable repair. */
+export async function runExtensionE1(root: string): Promise<{ report: ExtensionE1Report; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "extension-e1.json");
+  const existing = await readJsonIfPresent<ExtensionE1Report>(reportPath);
+  if (existing) {
+    const current = await runStatus(absoluteRoot);
+    const state = current.extensions?.E1.status;
+    const status = state === "pending" || state === "running"
+      ? await completeExtensionTask(absoluteRoot, "E1", existing.decision.status === "ready" ? "blocked" : "not-applicable", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e1.json`], [existing.decision.reason], existing.decision.status === "ready" ? ["e1-repair-required-before-e2"] : ["e1-no-shared-contract-gap"])
+      : current;
+    return { report: existing, status };
+  }
+  await beginExtensionTask(absoluteRoot, "E1", [
+    "R10 commonGaps is read and digest-bound",
+    "a repair is proposed only for the same actionable class gap in >=2 members",
+    "single-member and source gaps remain not-applicable",
+  ]);
+  const sourcePath = `${CLASS_PROOF_RESULT_RELATIVE}/no-revision.json`;
+  const source = await extensionEvidenceRef(absoluteRoot, sourcePath);
+  const value = JSON.parse(await readFile(join(absoluteRoot, sourcePath), "utf8")) as PrimaryRevisionReport;
+  if (value.identity !== CLASS_PROOF_IDENTITY || value.schemaVersion !== "skill-family-class-proof-primary-revision/v1") {
+    throw new Error("E1 R10 evidence identity mismatch");
+  }
+  const decision = deriveE1Decision({
+    commonGaps: value.commonGaps.map((gap) => ({
+      gapId: gap.gapId,
+      memberIds: gap.memberIds,
+      occurrenceCount: gap.occurrenceCount,
+      classContract: gap.classContract,
+      actionable: gap.actionable,
+    })),
+  });
+  const report: ExtensionE1Report = {
+    schemaVersion: "skill-family-class-proof-extension-e1/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    source,
+    decision,
+    implementationAttempted: false,
+    syntheticCases: 0,
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+    claimBoundary: "E1 is a decision over the immutable R10 gap report. A not-applicable result does not imply that unsupported duties are solved or that a contract revision is justified.",
+  };
+  await persistStableJson(reportPath, report);
+  const status = await completeExtensionTask(absoluteRoot, "E1", decision.status === "ready" ? "blocked" : "not-applicable", [
+    `${CLASS_PROOF_RESULT_RELATIVE}/extension-e1.json`,
+  ], [decision.reason], decision.status === "ready" ? ["e1-repair-required-before-e2"] : ["e1-no-shared-contract-gap"]);
+  return { report, status };
+}
+
+export type ExtensionE2Report = {
+  schemaVersion: "skill-family-class-proof-extension-e2/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  sources: { eligibility: ExtensionEvidenceRef; sourceLedger: ExtensionEvidenceRef; primarySelection: ExtensionEvidenceRef };
+  priorInvalidatedAttempts: Array<{ report: ExtensionEvidenceRef; runDirectory: string; reason: string }>;
+  inputBindings: Array<{ inputId: string; path: string; format: "json" | "yaml"; bytes: number; sha256: string }>;
+  selection: Array<{ candidateId: string; memberId: string; repository: string; bodyPath: string; bodyBytes: number; bodySha256: string; inputIds: string[] }>;
+  members: Array<{ candidateId: string; memberId: string; repository: string; duties: number; coreObligations: number; constructedCoreObligations: number; unresolvedCoreObligations: number; coreCoverage: number; runs: string[] }>;
+  runs: DevelopmentRunRecord[];
+  totals: { members: number; repositoryDistinct: number; inputBindings: number; operations: number; accepted: number; checked: number; coreObligations: number; constructedCoreObligations: number; unresolvedCoreObligations: number; verifierFailures: number };
+  gate: ReturnType<typeof deriveDevelopmentGate> & { repositoryDispatchDetected: boolean; infrastructureFailures: number };
+  accounting: { modelCalls: 0; apiCalls: 0; paidCalls: 0; runtimeCalls: number; sourceBytesRead: number };
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+  claimBoundary: string;
+};
+
+/** Run a bounded five-member reserve panel through the unchanged development route. */
+export async function runExtensionE2(root: string): Promise<{ report: ExtensionE2Report; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "extension-e2.json");
+  const existing = await readJsonIfPresent<ExtensionE2Report>(reportPath);
+  if (existing) {
+    const current = await runStatus(absoluteRoot);
+    const state = current.extensions?.E2.status;
+    const complete = existing.selection.length === 5 && existing.runs.length === 10
+      && existing.totals.verifierFailures === 0 && existing.gate.protocolReady && existing.gate.inputReady && existing.gate.capabilityReady;
+    const status = state === "pending" || state === "running"
+      ? await completeExtensionTask(absoluteRoot, "E2", complete ? "complete" : "blocked", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e2.json`, ...existing.runs.map((run) => run.manifestPath)], [complete ? "five repository-distinct eligible members completed two checked inputs" : "persisted E2 report does not satisfy the panel gate"], complete ? [] : ["e2-panel-incomplete"])
+      : current;
+    return { report: existing, status };
+  }
+  await beginExtensionTask(absoluteRoot, "E2", [
+    "select only already screened eligible bodies with >=2 applicable inputs",
+    "choose one member per repository without accepted/outcome data",
+    "run the unchanged constructor and independent checker for two fixed inputs",
+  ]);
+  const eligibilityPath = `${CLASS_PROOF_RESULT_RELATIVE}/eligibility.json`;
+  const sourceLedgerPath = `${CLASS_PROOF_RESULT_RELATIVE}/source-ledger.json`;
+  const primarySelectionPath = `${CLASS_PROOF_RESULT_RELATIVE}/primary-selection.json`;
+  const [eligibilityBytes, sourceLedgerBytes, primarySelectionBytes] = await Promise.all([
+    readFile(join(absoluteRoot, eligibilityPath)),
+    readFile(join(absoluteRoot, sourceLedgerPath)),
+    readFile(join(absoluteRoot, primarySelectionPath)),
+  ]);
+  const eligibility = JSON.parse(eligibilityBytes.toString("utf8")) as { identity: string; rows: Array<{ candidateId: string; skillId: string; decision: EligibilityRecord["decision"]; applicableInputCount: number }> };
+  const sourceLedger = JSON.parse(sourceLedgerBytes.toString("utf8")) as { identity: string; rows: Array<{ candidateId: string; skillId: string; repository: string; bodyPath: string | null; bodySha256: string | null; bodyBytes: number; commit: string | null; responsibilities: ExtractedResponsibility[] }> };
+  const primarySelection = JSON.parse(primarySelectionBytes.toString("utf8")) as PrimarySelectionReport;
+  if (eligibility.identity !== CLASS_PROOF_IDENTITY || sourceLedger.identity !== CLASS_PROOF_IDENTITY || primarySelection.identity !== CLASS_PROOF_IDENTITY) throw new Error("E2 evidence identity mismatch");
+  const sourceByCandidate = new Map(sourceLedger.rows.map((row) => [row.candidateId, row]));
+  const hydrated = hydrateEligibilityRepositories(
+    eligibility.rows.map((row) => ({ ...row })),
+    sourceLedger.rows.map((row) => ({ candidateId: row.candidateId, repository: row.repository })),
+  );
+  const eligibleRows = hydrated.map((row) => {
+    const source = sourceByCandidate.get(row.candidateId);
+    return {
+      candidateId: row.candidateId,
+      memberId: row.skillId,
+      repository: row.repository,
+      eligibility: row.decision,
+      applicableInputCount: row.applicableInputCount,
+      bodyAvailable: Boolean(source?.bodyPath && source.bodySha256 && source.bodyBytes > 0),
+    };
+  });
+  const primaryIds = primarySelection.primary.map((row) => row.candidateId);
+  const selected = selectExtensionMembers({ eligibleRows, excludedCandidateIds: primaryIds, targetCount: 5 });
+  const inputBindings = primarySelection.primary[0]?.inputBindings.map((binding) => ({
+    inputId: binding.inputId,
+    path: binding.screenedPath,
+    format: binding.format,
+    bytes: binding.bytes,
+    sha256: binding.sha256,
+  })) ?? [];
+  if (inputBindings.length < 2) throw new Error("E2 canonical input selection has fewer than two bindings");
+  const selectionRows: ExtensionE2Report["selection"] = [];
+  const records: DevelopmentRunRecord[] = [];
+  let sourceBytesRead = 0;
+  for (const candidate of selected) {
+    const source = sourceByCandidate.get(candidate.candidateId);
+    if (!source?.bodyPath || !source.bodySha256) continue;
+    const body = await readFile(join(evidenceRoot, source.bodyPath));
+    if (body.byteLength !== source.bodyBytes || sha256Bytes(body) !== source.bodySha256) throw new Error(`E2 source digest mismatch: ${candidate.candidateId}`);
+    sourceBytesRead += body.byteLength;
+    const member = { candidateId: candidate.candidateId, memberId: candidate.memberId, repository: candidate.repository, duties: source.responsibilities };
+    const memberRuns: DevelopmentRunRecord[] = [];
+    for (const binding of inputBindings) {
+      const run = await runOneDevelopmentInput(absoluteRoot, evidenceRoot, member, binding, "extension-runs/e2-revision-001");
+      memberRuns.push(run);
+      records.push(run);
+    }
+    selectionRows.push({ candidateId: candidate.candidateId, memberId: candidate.memberId, repository: candidate.repository, bodyPath: source.bodyPath, bodyBytes: source.bodyBytes, bodySha256: source.bodySha256, inputIds: memberRuns.map((run) => run.inputId) });
+  }
+  records.sort((left, right) => left.memberId.localeCompare(right.memberId) || left.inputId.localeCompare(right.inputId));
+  const members = selected.map((candidate) => {
+    const source = sourceByCandidate.get(candidate.candidateId)!;
+    const runs = records.filter((run) => run.candidateId === candidate.candidateId);
+    const coreIds = new Set(source.responsibilities.filter((duty) => duty.plannedDisposition === "to-construct").map((duty) => duty.obligationId));
+    const merged = mergeInputOutcomes(runs.map((run) => ({ inputId: run.inputId, outcomes: run.construction.obligations.outcomes })));
+    const constructed = merged.filter((outcome) => coreIds.has(outcome.obligationId) && outcome.outcome === "constructed").length;
+    const unresolved = merged.filter((outcome) => coreIds.has(outcome.obligationId) && outcome.outcome !== "constructed").length;
+    return { candidateId: candidate.candidateId, memberId: candidate.memberId, repository: candidate.repository, duties: source.responsibilities.length, coreObligations: coreIds.size, constructedCoreObligations: constructed, unresolvedCoreObligations: unresolved, coreCoverage: coreIds.size ? constructed / coreIds.size : 0, runs: runs.map((run) => run.manifestPath) };
+  });
+  const operations = records.reduce((sum, run) => sum + run.runner.totals.operations, 0);
+  const accepted = records.reduce((sum, run) => sum + run.runner.totals.accepted, 0);
+  const checked = records.reduce((sum, run) => sum + run.runner.totals.artifactCheckedPassedOperations, 0);
+  const coreObligations = members.reduce((sum, member) => sum + member.coreObligations, 0);
+  const constructedCoreObligations = members.reduce((sum, member) => sum + member.constructedCoreObligations, 0);
+  const unresolvedCoreObligations = members.reduce((sum, member) => sum + member.unresolvedCoreObligations, 0);
+  const infrastructureFailures = records.filter((run) => run.failureClass === "infrastructure-failure").length;
+  const source = await readFile(join(absoluteRoot, "src/skill-ir/skill-family-class-construction.ts"), "utf8");
+  const repositoryDispatchDetected = /candidate\.(?:repository|skillId)|skillId\s*===|repository\s*===/u.test(source);
+  const gateBase = deriveDevelopmentGate({
+    memberCount: members.length,
+    inputBindings: records.length,
+    expectedInputsPerMember: 2,
+    explainedInputs: records.filter((run) => run.runner.verifier.status === "verified").length,
+    acceptedArtifacts: accepted,
+    checkedAcceptedArtifacts: checked,
+    coreObligations,
+    constructedCoreObligations,
+    repositoryDispatchDetected,
+    infrastructureFailures,
+  });
+  const report: ExtensionE2Report = {
+    schemaVersion: "skill-family-class-proof-extension-e2/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    sources: { eligibility: { path: eligibilityPath, sha256: sha256Bytes(eligibilityBytes), bytes: eligibilityBytes.byteLength }, sourceLedger: { path: sourceLedgerPath, sha256: sha256Bytes(sourceLedgerBytes), bytes: sourceLedgerBytes.byteLength }, primarySelection: { path: primarySelectionPath, sha256: sha256Bytes(primarySelectionBytes), bytes: primarySelectionBytes.byteLength } },
+    priorInvalidatedAttempts: [
+      {
+        report: await extensionEvidenceRef(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/extension-e2-attempt-001.json`),
+        runDirectory: `${CLASS_PROOF_RESULT_RELATIVE}/extension-runs/e2-attempt-001`,
+        reason: "eligibility decision was not filtered before repository-distinct selection; candidate-001 through candidate-005 were ineligible",
+      },
+    ],
+    inputBindings,
+    selection: selectionRows,
+    members,
+    runs: records,
+    totals: { members: members.length, repositoryDistinct: new Set(members.map((member) => member.repository.toLowerCase())).size, inputBindings: records.length, operations, accepted, checked, coreObligations, constructedCoreObligations, unresolvedCoreObligations, verifierFailures: records.filter((run) => run.runner.verifier.status !== "verified").length },
+    gate: { ...gateBase, repositoryDispatchDetected, infrastructureFailures },
+    accounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0, runtimeCalls: records.length * 2, sourceBytesRead },
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+    claimBoundary: "E2 is a bounded development reserve panel using already exposed source bodies and the two locked development inputs. It does not amend the primary selection, add independent real samples, or establish whole-skill/live API behavior.",
+  };
+  await persistStableJson(reportPath, report);
+  const complete = selected.length === 5 && records.length === 10 && report.totals.verifierFailures === 0
+    && report.gate.protocolReady && report.gate.inputReady && report.gate.capabilityReady;
+  const status = await completeExtensionTask(absoluteRoot, "E2", complete ? "complete" : "blocked", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e2.json`, ...records.map((run) => run.manifestPath)], [complete ? "five repository-distinct eligible members completed two checked inputs" : `selected=${selected.length}, runs=${records.length}, verifierFailures=${report.totals.verifierFailures}`], complete ? [] : ["e2-panel-incomplete"]);
+  return { report, status };
+}
+
+type ExtensionExternalReference = {
+  id: string;
+  url: string;
+  section: string;
+  accessedAt: "2026-09-12";
+  retrieval: { statusCode: 200; bytes: number; contentSha256: string };
+};
+
+export type ExtensionE3Report = {
+  schemaVersion: "skill-family-class-proof-extension-e3/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  observedGap: { gapId: "strict-extra-fields"; sourcePath: string; sourceSha256: string; reason: string };
+  references: ExtensionExternalReference[];
+  findings: Array<{ referenceId: string; statement: string; implication: string }>;
+  decision: "boundary-clarified-no-code-change";
+  repairAttempted: false;
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+  claimBoundary: string;
+};
+
+/** Record only authoritative specification facts relevant to the observed gap. */
+export async function runExtensionE3(root: string): Promise<{ report: ExtensionE3Report; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "extension-e3.json");
+  const existing = await readJsonIfPresent<ExtensionE3Report>(reportPath);
+  if (existing) {
+    const current = await runStatus(absoluteRoot);
+    const state = current.extensions?.E3.status;
+    const status = state === "pending" || state === "running"
+      ? await completeExtensionTask(absoluteRoot, "E3", "complete", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e3.json`], [existing.decision])
+      : current;
+    return { report: existing, status };
+  }
+  await beginExtensionTask(absoluteRoot, "E3", [
+    "bind the observed R10 strict-extra-fields gap by digest",
+    "use primary specification sources and record retrieval metadata",
+    "do not infer a missing instance or change the v2 contract",
+  ]);
+  const gapSourcePath = `${CLASS_PROOF_RESULT_RELATIVE}/no-revision.json`;
+  const gapSource = await extensionEvidenceRef(absoluteRoot, gapSourcePath);
+  const references: ExtensionExternalReference[] = [
+    {
+      id: "openapi-3.0.3-schema-object",
+      url: "https://spec.openapis.org/oas/v3.0.3.html#schema-object",
+      section: "Schema Object",
+      accessedAt: "2026-09-12",
+      retrieval: { statusCode: 200, bytes: 400215, contentSha256: "aa44ce99fca57ea67e9943ab70305565dcf0ce97a516a56ff5bf758a19e7b4de" },
+    },
+    {
+      id: "json-schema-additional-properties",
+      url: "https://json-schema.org/understanding-json-schema/reference/object",
+      section: "Additional Properties",
+      accessedAt: "2026-09-12",
+      retrieval: { statusCode: 200, bytes: 709710, contentSha256: "799cba0d4f03754b9988958a802845864316ab14fe7f7710402faaf35575f657" },
+    },
+  ];
+  const report: ExtensionE3Report = {
+    schemaVersion: "skill-family-class-proof-extension-e3/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    observedGap: {
+      gapId: "strict-extra-fields",
+      sourcePath: gapSource.path,
+      sourceSha256: gapSource.sha256,
+      reason: "R10 reports no source instance for additionalProperties in either bound input",
+    },
+    references,
+    findings: [
+      {
+        referenceId: "openapi-3.0.3-schema-object",
+        statement: "OpenAPI 3.0.3 permits additionalProperties to be a boolean or Schema Object and states that it defaults to true.",
+        implication: "The specification confirms that strict rejection requires an explicit false or schema constraint; it does not supply a concrete witness value for this source gap.",
+      },
+      {
+        referenceId: "json-schema-additional-properties",
+        statement: "The JSON Schema object reference describes additionalProperties as the control for properties not named by properties and documents the default permissive behavior.",
+        implication: "This is corroborating semantics, not a license to synthesize a value or alter the OpenAPI v2 construction contract.",
+      },
+    ],
+    decision: "boundary-clarified-no-code-change",
+    repairAttempted: false,
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+    claimBoundary: "E3 records an authoritative boundary clarification for the one-member strict-extra-fields gap. It does not repair source evidence, change support, establish live API behavior, or make a prospective/readiness claim.",
+  };
+  await persistStableJson(reportPath, report);
+  const status = await completeExtensionTask(absoluteRoot, "E3", "complete", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e3.json`], [report.decision]);
+  return { report, status };
+}
+
+export type ExtensionE4Report = {
+  schemaVersion: "skill-family-class-proof-extension-e4/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  before: Record<ExtensionTaskId, ExtensionTaskStatus>;
+  queue: { order: readonly ExtensionTaskId[]; nextBefore: ExtensionTaskId | null; completedReused: ExtensionTaskId[]; requeued: ExtensionTaskId[] };
+  decision: "resumable" | "blocked";
+  reason: string;
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+  claimBoundary: string;
+};
+
+function extensionStatusMap(status: ClassProofStatus): Record<ExtensionTaskId, ExtensionTaskStatus> {
+  const extensions = status.extensions ?? initialExtensionStatuses();
+  return Object.fromEntries(EXTENSION_TASK_ORDER.map((task) => [task, extensions[task].status])) as Record<ExtensionTaskId, ExtensionTaskStatus>;
+}
+
+/** Verify the queue can resume idempotently without repeating completed work. */
+export async function runExtensionE4(root: string): Promise<{ report: ExtensionE4Report; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "extension-e4.json");
+  const existing = await readJsonIfPresent<ExtensionE4Report>(reportPath);
+  if (existing) {
+    const current = await runStatus(absoluteRoot);
+    const state = current.extensions?.E4.status;
+    const status = state === "pending" || state === "running"
+      ? await completeExtensionTask(absoluteRoot, "E4", existing.decision === "resumable" ? "complete" : "blocked", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e4.json`], [existing.reason], existing.decision === "resumable" ? [] : ["e4-prerequisite-blocked"])
+      : current;
+    return { report: existing, status };
+  }
+  const beforeStatus = await runStatus(absoluteRoot);
+  const before = extensionStatusMap(beforeStatus);
+  await beginExtensionTask(absoluteRoot, "E4", [
+    "read extension status before deciding the next task",
+    "reuse completed reports and never resend completed external work",
+    "stop on a blocked prerequisite instead of silently skipping it",
+  ]);
+  const completedReused = EXTENSION_TASK_ORDER.filter((task) => before[task] === "complete" || before[task] === "not-applicable");
+  const requeued = EXTENSION_TASK_ORDER.filter((task) => before[task] === "pending" || before[task] === "running");
+  const blocked = EXTENSION_TASK_ORDER.find((task) => before[task] === "blocked");
+  const prerequisiteBlocked = ["E1", "E2", "E3"].some((task) => before[task as ExtensionTaskId] === "blocked");
+  const report: ExtensionE4Report = {
+    schemaVersion: "skill-family-class-proof-extension-e4/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    before,
+    queue: {
+      order: EXTENSION_TASK_ORDER,
+      nextBefore: deriveNextExtensionTask(before),
+      completedReused,
+      requeued,
+    },
+    decision: blocked || prerequisiteBlocked ? "blocked" : "resumable",
+    reason: blocked ? `blocked prerequisite: ${blocked}` : prerequisiteBlocked ? "a prerequisite extension task is blocked" : "pending/running tasks can resume in declared order",
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+    claimBoundary: "E4 is a queue/idempotency check. It does not prove construction correctness and does not authorize new sources or prospective runs.",
+  };
+  await persistStableJson(reportPath, report);
+  const status = await completeExtensionTask(absoluteRoot, "E4", report.decision === "resumable" ? "complete" : "blocked", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e4.json`], [report.reason], report.decision === "blocked" ? ["e4-prerequisite-blocked"] : []);
+  return { report, status };
+}
+
+type ExtensionE5Variant = {
+  variantId: string;
+  ordering: "canonical" | "reversed" | "combined";
+  parent: { path: string; format: "json" | "yaml"; bytes: number; sha256: string };
+};
+
+type ExtensionE5CaseRecord = ExtensionE5Case & {
+  caseId: string;
+  variantId: string;
+  transformType: ApiTesterOperationTransformType;
+  transform: { applicability: string; expectedRelation: string };
+  parent: { path: string; format: "json" | "yaml"; bytes: number; sha256: string };
+  derived: { format: "json" | "yaml"; sha256: string } | null;
+  comparisonFields: string[];
+  parameters: Record<string, string | number | boolean>;
+  errors: string[];
+};
+
+export type ExtensionE5Report = {
+  schemaVersion: "skill-family-class-proof-extension-e5/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  baseFixture: { path: string; bytes: number; sha256: string };
+  syntheticDerivation: { addedSecurityScheme: string; addedOperationSecurity: string; reason: string };
+  variants: ExtensionE5Variant[];
+  capabilityProjection: Record<typeof EXTENSION_E5_CAPABILITIES[number], ApiTesterOperationTransformType>;
+  cases: ExtensionE5CaseRecord[];
+  totals: ReturnType<typeof deriveExtensionE5Summary>;
+  reusedEvidence: Array<{ path: string; sha256: string }>;
+  accounting: { modelCalls: 0; apiCalls: 0; paidCalls: 0; validationInvocations: number };
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+  claimBoundary: string;
+};
+
+function reverseExtensionObject(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(reverseExtensionObject);
+  if (!value || typeof value !== "object") return value;
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(Object.keys(record).reverse().map((key) => [key, reverseExtensionObject(record[key])]));
+}
+
+const EXTENSION_E5_PROJECTION: Record<typeof EXTENSION_E5_CAPABILITIES[number], ApiTesterOperationTransformType> = {
+  "$ref": "local-ref-inline",
+  arrays: "object-order",
+  form: "formatting",
+  decimal: "json-yaml",
+  header: "object-order",
+  "negative-witness": "add-unsupported-operation",
+};
+
+/** Exercise the six registered capabilities on labelled, synthetic representations. */
+export async function runExtensionE5(root: string): Promise<{ report: ExtensionE5Report; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "extension-e5.json");
+  const existing = await readJsonIfPresent<ExtensionE5Report>(reportPath);
+  if (existing) {
+    const current = await runStatus(absoluteRoot);
+    const state = current.extensions?.E5.status;
+    const complete = existing.totals.missingCapabilities.length === 0 && existing.totals.failed === 0
+      && existing.totals.unresolved === 0 && existing.totals.duplicateCases === 0;
+    const status = state === "pending" || state === "running"
+      ? await completeExtensionTask(absoluteRoot, "E5", complete ? "complete" : "blocked", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e5.json`, ...existing.reusedEvidence.map((row) => row.path)], [complete ? "all six synthetic capability projections passed across three representations" : "persisted E5 report does not satisfy the property gate"], complete ? [] : ["e5-property-gate-failed"])
+      : current;
+    return { report: existing, status };
+  }
+  await beginExtensionTask(absoluteRoot, "E5", [
+    "run all six registered capability projections",
+    "compare operation universe, admission, normalized semantics, and coverage as registered",
+    "retain parent/derived byte digests and label all inputs synthetic",
+  ]);
+  const fixturePath = join(absoluteRoot, "src/skill-ir/fixtures/api-tester-production-v2/local-ref-arrays/openapi.yaml");
+  const baseBytes = await readFile(fixturePath);
+  const baseDocument = parseYaml(baseBytes.toString("utf8")) as Record<string, unknown>;
+  const components = (baseDocument.components && typeof baseDocument.components === "object" ? baseDocument.components : {}) as Record<string, unknown>;
+  components.securitySchemes = { ApiKey: { type: "apiKey", in: "header", name: "X-API-Key" } };
+  baseDocument.components = components;
+  const paths = baseDocument.paths as Record<string, unknown>;
+  const items = paths["/items"] as Record<string, unknown>;
+  const get = items.get as Record<string, unknown>;
+  get.security = [{ ApiKey: [] }];
+  const syntheticDocumentText = stringifyYaml(baseDocument, { lineWidth: 0 });
+  const reversedText = stringifyYaml(reverseExtensionObject(baseDocument), { lineWidth: 0 });
+  const combinedText = `${JSON.stringify(reverseExtensionObject(baseDocument), null, 2)}\n`;
+  const variantInputs: Array<ExtensionE5Variant & { sourceText: string }> = [
+    { variantId: "canonical-yaml", ordering: "canonical", parent: { path: "synthetic/e5-canonical.yaml", format: "yaml", bytes: Buffer.byteLength(syntheticDocumentText), sha256: sha256Bytes(syntheticDocumentText) }, sourceText: syntheticDocumentText },
+    { variantId: "reversed-yaml", ordering: "reversed", parent: { path: "synthetic/e5-reversed.yaml", format: "yaml", bytes: Buffer.byteLength(reversedText), sha256: sha256Bytes(reversedText) }, sourceText: reversedText },
+    { variantId: "combined-json", ordering: "combined", parent: { path: "synthetic/e5-combined.json", format: "json", bytes: Buffer.byteLength(combinedText), sha256: sha256Bytes(combinedText) }, sourceText: combinedText },
+  ];
+  const cases: ExtensionE5CaseRecord[] = [];
+  for (const variant of variantInputs) {
+    for (const capability of EXTENSION_E5_CAPABILITIES) {
+      const transformType = EXTENSION_E5_PROJECTION[capability];
+      const registration = CLASS_PROOF_METAMORPHIC_TRANSFORM_REGISTRY.find((row) => row.type === transformType)!;
+      const result = evaluateApiTesterOperationTransform({ sourceText: variant.sourceText, format: variant.parent.format, type: transformType });
+      cases.push({
+        caseId: `e5-${variant.variantId}-${capability.replaceAll("$", "ref").replaceAll("-", "_")}`,
+        variantId: variant.variantId,
+        capability,
+        format: variant.parent.format,
+        ordering: variant.ordering,
+        status: result.status,
+        transformType,
+        transform: { applicability: registration.applicability, expectedRelation: registration.expectedRelation },
+        parent: variant.parent,
+        derived: result.derivedSha256 && result.derivedFormat ? { format: result.derivedFormat, sha256: result.derivedSha256 } : null,
+        comparisonFields: result.comparisonFields,
+        parameters: result.parameters,
+        errors: result.errors,
+      });
+    }
+  }
+  const validationEvidence = await Promise.all([
+    extensionEvidenceRef(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/r7-validation.json`),
+    extensionEvidenceRef(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/fault-detection.json`),
+  ]);
+  const totals = deriveExtensionE5Summary(cases);
+  const report: ExtensionE5Report = {
+    schemaVersion: "skill-family-class-proof-extension-e5/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    baseFixture: { path: relative(absoluteRoot, fixturePath).replaceAll("\\", "/"), bytes: baseBytes.byteLength, sha256: sha256Bytes(baseBytes) },
+    syntheticDerivation: { addedSecurityScheme: "#/components/securitySchemes/ApiKey", addedOperationSecurity: "#/paths/~1items/get/security", reason: "the checked-in fixture has refs, arrays, form/explode, and float fields but no header security; the augmentation is synthetic and excluded from real-input denominators" },
+    variants: variantInputs.map(({ sourceText: _sourceText, ...variant }) => variant),
+    capabilityProjection: EXTENSION_E5_PROJECTION,
+    cases,
+    totals,
+    reusedEvidence: validationEvidence.map(({ path, sha256 }) => ({ path, sha256 })),
+    accounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0, validationInvocations: cases.length },
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+    claimBoundary: "E5 is synthetic property evidence for the six registered capability projections. It does not add an independent real sample, establish whole-skill or live API behavior, or change the v2 support contract.",
+  };
+  await persistStableJson(reportPath, report);
+  const complete = totals.missingCapabilities.length === 0 && totals.failed === 0 && totals.unresolved === 0 && totals.duplicateCases === 0;
+  const status = await completeExtensionTask(absoluteRoot, "E5", complete ? "complete" : "blocked", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e5.json`, ...validationEvidence.map((row) => row.path)], [complete ? "all six synthetic capability projections passed across three representations" : `failed=${totals.failed}, unresolved=${totals.unresolved}, missing=${totals.missingCapabilities.join(",")}`], complete ? [] : ["e5-property-gate-failed"]);
+  return { report, status };
+}
+
+export type ExtensionE6Report = {
+  schemaVersion: "skill-family-class-proof-extension-e6/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  requiredFiles: Array<{ path: string; bytes: number; sha256: string }>;
+  requiredReports: Array<{ path: string; bytes: number; sha256: string }>;
+  checks: { filesPresent: boolean; reportsPresent: boolean; statusContract: boolean; resumeDocumented: boolean; missing: string[] };
+  decision: "synchronized" | "blocked";
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+  claimBoundary: string;
+};
+
+/** Verify the durable navigation and recovery contract after all extensions. */
+export async function runExtensionE6(root: string): Promise<{ report: ExtensionE6Report; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "extension-e6.json");
+  const existing = await readJsonIfPresent<ExtensionE6Report>(reportPath);
+  if (existing) {
+    const current = await runStatus(absoluteRoot);
+    const state = current.extensions?.E6.status;
+    const status = state === "pending" || state === "running"
+      ? await completeExtensionTask(absoluteRoot, "E6", existing.decision === "synchronized" ? "complete" : "blocked", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e6.json`, ...existing.requiredFiles.map((row) => row.path), ...existing.requiredReports.map((row) => row.path)], [existing.decision], existing.decision === "synchronized" ? [] : ["e6-synchronization-incomplete"])
+      : current;
+    return { report: existing, status };
+  }
+  await beginExtensionTask(absoluteRoot, "E6", [
+    "verify one-page component, results, and recovery navigation",
+    "verify all E1-E5 reports and the preserved invalid E2 attempt are present",
+    "record the final development-only boundary and prospective prerequisites",
+  ]);
+  const requiredFilePaths = [
+    "scripts/skill-ir/skill-family-class-proof.ts",
+    "src/skill-ir/skill-family-class-proof-extension.ts",
+    "docs/superpowers/plans/2026-09-11-skill-family-class-proof-recovery.md",
+    "docs/skill-ir/skill-family-class-proof-002.md",
+    "docs/skill-ir/skill-family-current-results.md",
+    "docs/skill-ir/skill-family-class-proof-recovery.md",
+    "docs/skill-ir/deadline-execution-status.md",
+  ];
+  const requiredReportPaths = [
+    `${CLASS_PROOF_RESULT_RELATIVE}/execution-status.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/final-report.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/clean-replay.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/extension-e1.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/extension-e2.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/extension-e2-attempt-001.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/extension-e3.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/extension-e4.json`,
+    `${CLASS_PROOF_RESULT_RELATIVE}/extension-e5.json`,
+  ];
+  const missing: string[] = [];
+  const readRefs = async (paths: string[]) => {
+    const refs: Array<{ path: string; bytes: number; sha256: string }> = [];
+    for (const path of paths) {
+      try {
+        const bytes = await readFile(join(absoluteRoot, path));
+        refs.push({ path, bytes: bytes.byteLength, sha256: sha256Bytes(bytes) });
+      } catch (error) {
+        if (isMissing(error)) missing.push(path);
+        else throw error;
+      }
+    }
+    return refs;
+  };
+  const requiredFiles = await readRefs(requiredFilePaths);
+  const requiredReports = await readRefs(requiredReportPaths);
+  const status = await runStatus(absoluteRoot);
+  const statusContract = EXTENSION_TASK_ORDER.every((task) => status.extensions?.[task].question && Array.isArray(status.extensions?.[task].acceptance));
+  const recoveryDoc = requiredFiles.find((row) => row.path === "docs/skill-ir/skill-family-class-proof-recovery.md");
+  const recoveryText = recoveryDoc ? await readFile(join(absoluteRoot, recoveryDoc.path), "utf8") : "";
+  const resumeDocumented = recoveryText.includes("--step=resume") && recoveryText.includes("extension-e1.json") && recoveryText.includes("clean-replay");
+  const checks = { filesPresent: requiredFiles.length === requiredFilePaths.length, reportsPresent: requiredReports.length === requiredReportPaths.length, statusContract, resumeDocumented, missing };
+  const report: ExtensionE6Report = {
+    schemaVersion: "skill-family-class-proof-extension-e6/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    requiredFiles,
+    requiredReports,
+    checks,
+    decision: checks.filesPresent && checks.reportsPresent && checks.statusContract && checks.resumeDocumented ? "synchronized" : "blocked",
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+    claimBoundary: "E6 verifies documentation and evidence navigation only. The class-proof result remains development-only; historical 0/6, readiness, prospective selection, and whole-skill/live API claims are unchanged.",
+  };
+  await persistStableJson(reportPath, report);
+  const complete = report.decision === "synchronized";
+  const nextStatus = await completeExtensionTask(absoluteRoot, "E6", complete ? "complete" : "blocked", [`${CLASS_PROOF_RESULT_RELATIVE}/extension-e6.json`, ...requiredFiles.map((row) => row.path), ...requiredReports.map((row) => row.path)], [report.decision], complete ? [] : ["e6-synchronization-incomplete"]);
+  return { report, status: nextStatus };
+}
+
+export type ExtensionResumeResult = {
+  identity: typeof CLASS_PROOF_IDENTITY;
+  executed: ExtensionTaskId[];
+  skipped: ExtensionTaskId[];
+  blocked: ExtensionTaskId | null;
+  status: ClassProofStatus;
+};
+
+/** Run the first unfinished extension task and continue in order. */
+export async function runExtensionResume(root: string): Promise<ExtensionResumeResult> {
+  const absoluteRoot = resolve(root);
+  const executed: ExtensionTaskId[] = [];
+  const skipped: ExtensionTaskId[] = [];
+  let blocked: ExtensionTaskId | null = null;
+  for (const task of EXTENSION_TASK_ORDER) {
+    const current = await runStatus(absoluteRoot);
+    const state = current.extensions?.[task].status ?? "pending";
+    if (state === "complete" || state === "not-applicable") {
+      skipped.push(task);
+      continue;
+    }
+    if (state === "blocked") {
+      blocked = task;
+      break;
+    }
+    if (task === "E1") await runExtensionE1(absoluteRoot);
+    else if (task === "E2") await runExtensionE2(absoluteRoot);
+    else if (task === "E3") await runExtensionE3(absoluteRoot);
+    else if (task === "E4") await runExtensionE4(absoluteRoot);
+    else if (task === "E5") await runExtensionE5(absoluteRoot);
+    else if (task === "E6") await runExtensionE6(absoluteRoot);
+    executed.push(task);
+  }
+  return { identity: CLASS_PROOF_IDENTITY, executed, skipped, blocked, status: await runStatus(absoluteRoot) };
+}
+
+export type ExtensionCleanReplayReport = {
+  schemaVersion: "skill-family-class-proof-extension-clean-replay/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  checkout: { commit: string; detached: boolean; runtime: { bun: string; node: string } };
+  evidence: Array<{ path: string; bytes: number; sha256: string }>;
+  runs: { expected: number; verified: number; failures: Array<{ path: string; reason: string }> };
+  extensionTotals: { e2Members: number; e2Operations: number; e2Accepted: number; e2Checked: number; e5Cases: number; e5Passed: number };
+  resume: { executed: ExtensionTaskId[]; skipped: ExtensionTaskId[]; blocked: ExtensionTaskId | null };
+  externalCalls: { modelCalls: 0; apiCalls: 0; paidCalls: 0 };
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+  summary: "pass" | "fail";
+  claimBoundary: string;
+};
+
+/** Recheck extension reports and every E2 run in a detached offline checkout. */
+export async function runExtensionCleanReplay(root: string, outputPath?: string): Promise<ExtensionCleanReplayReport> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPaths = [
+    "extension-e1.json",
+    "extension-e2.json",
+    "extension-e3.json",
+    "extension-e4.json",
+    "extension-e5.json",
+    "extension-e6.json",
+  ].map((name) => `${CLASS_PROOF_RESULT_RELATIVE}/${name}`);
+  const evidence: Array<{ path: string; bytes: number; sha256: string }> = [];
+  const failures: Array<{ path: string; reason: string }> = [];
+  const readReport = async <T>(path: string): Promise<T | null> => {
+    try {
+      const bytes = await readFile(join(absoluteRoot, path));
+      evidence.push({ path, bytes: bytes.byteLength, sha256: sha256Bytes(bytes) });
+      return JSON.parse(bytes.toString("utf8")) as T;
+    } catch (error) {
+      failures.push({ path, reason: error instanceof Error ? error.message : String(error) });
+      return null;
+    }
+  };
+  const e1 = await readReport<ExtensionE1Report>(reportPaths[0]);
+  const e2 = await readReport<ExtensionE2Report>(reportPaths[1]);
+  const e3 = await readReport<ExtensionE3Report>(reportPaths[2]);
+  const e4 = await readReport<ExtensionE4Report>(reportPaths[3]);
+  const e5 = await readReport<ExtensionE5Report>(reportPaths[4]);
+  const e6 = await readReport<ExtensionE6Report>(reportPaths[5]);
+  const reports = [e1, e2, e3, e4, e5, e6];
+  if (reports.some((report) => !report || report.identity !== CLASS_PROOF_IDENTITY)) failures.push({ path: "extension-reports", reason: "one or more report identities are missing or mismatched" });
+  let verifiedRuns = 0;
+  if (e2) {
+    for (const run of e2.runs) {
+      const runRoot = join(evidenceRoot, run.manifestPath.replace(/[/\\]manifest\.json$/u, ""));
+      try {
+        const verifier = await verifyApiTesterOperationInputOutput({ rootDir: runRoot, manifestPath: "manifest.json", nodeExecutable: process.execPath });
+        if (verifier.operations !== run.runner.totals.operations || verifier.accepted !== run.runner.totals.accepted || verifier.checked !== run.runner.totals.artifactCheckedPassedOperations || verifier.status !== "verified") {
+          throw new Error("independent verifier totals/status differ from E2 run record");
+        }
+        verifiedRuns += 1;
+      } catch (error) {
+        failures.push({ path: run.manifestPath, reason: error instanceof Error ? error.message : String(error) });
+      }
+    }
+  }
+  const resume = await runExtensionResume(absoluteRoot);
+  const extensionTotals = {
+    e2Members: e2?.totals.members ?? 0,
+    e2Operations: e2?.totals.operations ?? 0,
+    e2Accepted: e2?.totals.accepted ?? 0,
+    e2Checked: e2?.totals.checked ?? 0,
+    e5Cases: e5?.totals.cases ?? 0,
+    e5Passed: e5?.totals.passed ?? 0,
+  };
+  if (e5 && (e5.totals.failed !== 0 || e5.totals.unresolved !== 0 || e5.totals.missingCapabilities.length !== 0)) failures.push({ path: reportPaths[4], reason: "E5 property totals are not complete" });
+  if (resume.blocked || resume.executed.length !== 0) failures.push({ path: `${CLASS_PROOF_RESULT_RELATIVE}/execution-status.json`, reason: "resume did not reuse all completed extension tasks" });
+  const actualHead = git(absoluteRoot, ["rev-parse", "HEAD"]);
+  const report: ExtensionCleanReplayReport = {
+    schemaVersion: "skill-family-class-proof-extension-clean-replay/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    checkout: { commit: actualHead, detached: !Boolean(git(absoluteRoot, ["symbolic-ref", "--short", "HEAD"])), runtime: { bun: Bun.version, node: process.version } },
+    evidence,
+    runs: { expected: e2?.runs.length ?? 0, verified: verifiedRuns, failures },
+    extensionTotals,
+    resume: { executed: resume.executed, skipped: resume.skipped, blocked: resume.blocked },
+    externalCalls: { modelCalls: 0, apiCalls: 0, paidCalls: 0 },
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+    summary: failures.length === 0 && verifiedRuns === (e2?.runs.length ?? 0) ? "pass" : "fail",
+    claimBoundary: "This is an offline recheck of committed extension evidence. It adds no real samples, performs no external calls, and does not establish whole-skill/live API behavior or prospective readiness.",
+  };
+  const target = resolve(absoluteRoot, outputPath ?? `${CLASS_PROOF_RESULT_RELATIVE}/extension-clean-replay.json`);
+  await persistStableJson(target, report);
+  return report;
 }
 
 if (import.meta.main) {
@@ -3599,6 +4432,81 @@ if (import.meta.main) {
       prospectivePreparation: result.report.prospectivePreparation,
       reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/final-report.json`,
     }, null, 2));
+  } else if (step === "extension-e1" || step === "e1") {
+    const result = await runExtensionE1(root);
+    console.log(JSON.stringify({
+      status: result.report.decision.status,
+      identity: CLASS_PROOF_IDENTITY,
+      decision: result.report.decision,
+      reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/extension-e1.json`,
+    }, null, 2));
+  } else if (step === "extension-e2" || step === "e2") {
+    const result = await runExtensionE2(root);
+    console.log(JSON.stringify({
+      status: result.status.extensions?.E2.status,
+      identity: CLASS_PROOF_IDENTITY,
+      selection: result.report.selection.map((row) => ({ candidateId: row.candidateId, repository: row.repository })),
+      totals: result.report.totals,
+      gate: result.report.gate,
+      reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/extension-e2.json`,
+    }, null, 2));
+  } else if (step === "extension-e3" || step === "e3") {
+    const result = await runExtensionE3(root);
+    console.log(JSON.stringify({
+      status: result.status.extensions?.E3.status,
+      identity: CLASS_PROOF_IDENTITY,
+      decision: result.report.decision,
+      references: result.report.references.map((reference) => ({ id: reference.id, url: reference.url, section: reference.section })),
+      reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/extension-e3.json`,
+    }, null, 2));
+  } else if (step === "extension-e4" || step === "e4") {
+    const result = await runExtensionE4(root);
+    console.log(JSON.stringify({
+      status: result.status.extensions?.E4.status,
+      identity: CLASS_PROOF_IDENTITY,
+      decision: result.report.decision,
+      queue: result.report.queue,
+      reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/extension-e4.json`,
+    }, null, 2));
+  } else if (step === "extension-e5" || step === "e5") {
+    const result = await runExtensionE5(root);
+    console.log(JSON.stringify({
+      status: result.status.extensions?.E5.status,
+      identity: CLASS_PROOF_IDENTITY,
+      totals: result.report.totals,
+      reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/extension-e5.json`,
+    }, null, 2));
+  } else if (step === "extension-e6" || step === "e6") {
+    const result = await runExtensionE6(root);
+    console.log(JSON.stringify({
+      status: result.status.extensions?.E6.status,
+      identity: CLASS_PROOF_IDENTITY,
+      decision: result.report.decision,
+      checks: result.report.checks,
+      reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/extension-e6.json`,
+    }, null, 2));
+  } else if (step === "resume") {
+    const result = await runExtensionResume(root);
+    console.log(JSON.stringify({
+      status: result.status.currentStep,
+      identity: CLASS_PROOF_IDENTITY,
+      executed: result.executed,
+      skipped: result.skipped,
+      blocked: result.blocked,
+      extensions: result.status.extensions,
+    }, null, 2));
+  } else if (step === "extension-clean-replay") {
+    const report = await runExtensionCleanReplay(root, outputPath);
+    console.log(JSON.stringify({
+      status: report.summary,
+      identity: CLASS_PROOF_IDENTITY,
+      checkout: report.checkout,
+      runs: report.runs,
+      extensionTotals: report.extensionTotals,
+      resume: report.resume,
+      externalCalls: report.externalCalls,
+      outputPath: outputPath ?? `${CLASS_PROOF_RESULT_RELATIVE}/extension-clean-replay.json`,
+    }, null, 2));
   } else if (step === "clean-replay") {
     const report = await runCleanReplay(root, outputPath);
     console.log(JSON.stringify({
@@ -3612,6 +4520,6 @@ if (import.meta.main) {
       outputPath: outputPath ?? `${CLASS_PROOF_RESULT_RELATIVE}/clean-replay.json`,
     }, null, 2));
   } else {
-    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run|no-revision|final-report|clean-replay [--out=<path>]");
+    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run|no-revision|final-report|extension-e1|extension-e2|extension-e3|extension-e4|extension-e5|extension-e6|resume|extension-clean-replay|clean-replay [--out=<path>]");
   }
 }

@@ -263,3 +263,36 @@ business/status authority, authenticated live execution, OAS3.1, stronger source
 and independently scoped new-member evaluations. No conclusion about all future skills,
 human savings, real API correctness or ecosystem adoption. Original0/6, readiness, Q1 and
 frozen histories are unchanged. Current work does not automatically launch prospective.
+
+## Class-proof extension queue (E1-E6)
+
+The post-R12 development queue is now `extension-complete` in
+`results/skill-ir/skill-family-class-proof-20260911/execution-status.json`.
+The recovery entry point is
+`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=resume`; a second
+run returned `executed=[]`, `blocked=null`, and skipped all six completed or
+not-applicable tasks.
+
+E1 is `not-applicable`: the actual R10 report has one
+`strict-extra-fields` observation in one member only, so no shared repair was
+attempted. E2 is a bounded panel of five already exposed eligible,
+repository-distinct non-primary members across the two locked inputs: 10 runs,
+95 operations, 35 accepted, 35 independently checked, and 15/15 core
+obligations. The first E2 selector error admitted excluded candidate-001..005;
+it is retained as `extension-e2-attempt-001.json` with its complete run
+directory, and the corrected run is `extension-runs/e2-revision-001/`. These
+are development replays, not five new independent real samples.
+
+E3's official-spec boundary report is `extension-e3.json`: OpenAPI 3.0.3 and
+JSON Schema support the conclusion that `additionalProperties` semantics must
+be explicit or witnessed; neither supplies the missing source instance. E4's
+idempotency report is `extension-e4.json`. E5 records 18/18 pass across six
+labelled capability projections and canonical/reversed/combined synthetic
+representations; derived inputs do not increase real denominators. E6's
+synchronization report is `extension-e6.json`, and the extension-specific clean
+replay command is `--step=extension-clean-replay`.
+
+The extension results do not change the historical document-level `0/6`, any
+readiness field, Q1/held-out isolation, or prospective eligibility. The current
+class result remains bounded development evidence, not a whole-skill or live
+API claim.

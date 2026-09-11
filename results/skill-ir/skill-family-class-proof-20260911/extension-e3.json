@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "skill-family-class-proof-extension-e3/v1",
+  "identity": "skill-family-class-proof-002",
+  "observedGap": {
+    "gapId": "strict-extra-fields",
+    "sourcePath": "results/skill-ir/skill-family-class-proof-20260911/no-revision.json",
+    "sourceSha256": "19f2739158a67b449beac9e35e24e622cec7a4558349bacb85cc994ecb29c02d",
+    "reason": "R10 reports no source instance for additionalProperties in either bound input"
+  },
+  "references": [
+    {
+      "id": "openapi-3.0.3-schema-object",
+      "url": "https://spec.openapis.org/oas/v3.0.3.html#schema-object",
+      "section": "Schema Object",
+      "accessedAt": "2026-09-12",
+      "retrieval": {
+        "statusCode": 200,
+        "bytes": 400215,
+        "contentSha256": "aa44ce99fca57ea67e9943ab70305565dcf0ce97a516a56ff5bf758a19e7b4de"
+      }
+    },
+    {
+      "id": "json-schema-additional-properties",
+      "url": "https://json-schema.org/understanding-json-schema/reference/object",
+      "section": "Additional Properties",
+      "accessedAt": "2026-09-12",
+      "retrieval": {
+        "statusCode": 200,
+        "bytes": 709710,
+        "contentSha256": "799cba0d4f03754b9988958a802845864316ab14fe7f7710402faaf35575f657"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "referenceId": "openapi-3.0.3-schema-object",
+      "statement": "OpenAPI 3.0.3 permits additionalProperties to be a boolean or Schema Object and states that it defaults to true.",
+      "implication": "The specification confirms that strict rejection requires an explicit false or schema constraint; it does not supply a concrete witness value for this source gap."
+    },
+    {
+      "referenceId": "json-schema-additional-properties",
+      "statement": "The JSON Schema object reference describes additionalProperties as the control for properties not named by properties and documents the default permissive behavior.",
+      "implication": "This is corroborating semantics, not a license to synthesize a value or alter the OpenAPI v2 construction contract."
+    }
+  ],
+  "decision": "boundary-clarified-no-code-change",
+  "repairAttempted": false,
+  "protectedBoundary": {
+    "heldOutAccesses": 0,
+    "q1ReservedAccesses": 0,
+    "prospectiveRuns": 0,
+    "readinessChanges": 0
+  },
+  "claimBoundary": "E3 records an authoritative boundary clarification for the one-member strict-extra-fields gap. It does not repair source evidence, change support, establish live API behavior, or make a prospective/readiness claim."
+}
