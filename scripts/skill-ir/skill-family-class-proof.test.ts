@@ -24,6 +24,7 @@ import {
   buildMethodLock,
   summarizePrimaryFirstRuns,
   deriveRevisionDecision,
+  deriveProspectivePreparation,
   selectCandidateMetadata,
   runStatus,
   screenCandidate,
@@ -498,5 +499,50 @@ describe("skill-family class-proof status", () => {
         { gapId: "source-locator", memberId: "m2", classContract: false, status: "source-blocked" },
       ],
     }).decision).toBe("no-revision");
+  });
+
+  test("keeps prospective preparation separate from the four development gates", () => {
+    const result = deriveProspectivePreparation({
+      protocolReady: true,
+      inputReady: true,
+      capabilityReady: true,
+      transferDecision: "bounded-positive",
+      methodLocked: true,
+      prospectiveIdentityLocked: false,
+      inputSelectionPreRegistered: false,
+      predictionPlanPreRegistered: false,
+      readinessDecisionRecorded: false,
+      unseenInputsAccessed: false,
+    });
+    expect(result.eligible).toBe(false);
+    expect(result.decision).toBe("not-ready");
+    expect(result.missingConditions).toEqual([
+      "prospective-identity-not-locked",
+      "prospective-input-selection-not-pre-registered",
+      "prospective-prediction-plan-not-pre-registered",
+      "prospective-readiness-decision-not-recorded",
+    ]);
+  });
+
+  test("never permits prospective preparation when a development gate is incomplete", () => {
+    const result = deriveProspectivePreparation({
+      protocolReady: false,
+      inputReady: true,
+      capabilityReady: false,
+      transferDecision: "insufficient-evidence",
+      methodLocked: false,
+      prospectiveIdentityLocked: true,
+      inputSelectionPreRegistered: true,
+      predictionPlanPreRegistered: true,
+      readinessDecisionRecorded: true,
+      unseenInputsAccessed: false,
+    });
+    expect(result.eligible).toBe(false);
+    expect(result.missingConditions).toEqual([
+      "development-protocol-not-ready",
+      "development-capability-not-ready",
+      "method-not-locked",
+      "transfer-decision-not-positive",
+    ]);
   });
 });

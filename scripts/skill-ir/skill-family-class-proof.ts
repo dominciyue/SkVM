@@ -1631,6 +1631,54 @@ export function deriveRevisionDecision(input: {
   };
 }
 
+export type ProspectivePreparationResult = {
+  eligible: boolean;
+  decision: "design-only-ready" | "not-ready";
+  missingConditions: string[];
+  recommendation: string;
+};
+
+/**
+ * Keep a development transfer result separate from permission to prepare a
+ * future prospective identity. This is deliberately pure so the boundary is
+ * exercised by tests before any report or input is read.
+ */
+export function deriveProspectivePreparation(input: {
+  protocolReady: boolean;
+  inputReady: boolean;
+  capabilityReady: boolean;
+  transferDecision: ReturnType<typeof deriveTransferDecision>;
+  methodLocked: boolean;
+  prospectiveIdentityLocked: boolean;
+  inputSelectionPreRegistered: boolean;
+  predictionPlanPreRegistered: boolean;
+  readinessDecisionRecorded: boolean;
+  unseenInputsAccessed: boolean;
+}): ProspectivePreparationResult {
+  const missingConditions: string[] = [];
+  if (!input.protocolReady) missingConditions.push("development-protocol-not-ready");
+  if (!input.inputReady) missingConditions.push("development-input-not-ready");
+  if (!input.capabilityReady) missingConditions.push("development-capability-not-ready");
+  if (!input.methodLocked) missingConditions.push("method-not-locked");
+  if (input.transferDecision !== "strong-positive" && input.transferDecision !== "bounded-positive") {
+    missingConditions.push("transfer-decision-not-positive");
+  }
+  if (!input.prospectiveIdentityLocked) missingConditions.push("prospective-identity-not-locked");
+  if (!input.inputSelectionPreRegistered) missingConditions.push("prospective-input-selection-not-pre-registered");
+  if (!input.predictionPlanPreRegistered) missingConditions.push("prospective-prediction-plan-not-pre-registered");
+  if (!input.readinessDecisionRecorded) missingConditions.push("prospective-readiness-decision-not-recorded");
+  if (input.unseenInputsAccessed) missingConditions.push("protected-unseen-input-accessed");
+  const eligible = missingConditions.length === 0;
+  return {
+    eligible,
+    decision: eligible ? "design-only-ready" : "not-ready",
+    missingConditions,
+    recommendation: eligible
+      ? "Prepare a separately locked prospective design only; do not select, read, or run an unseen input in this identity."
+      : "Keep this identity development-only and resolve the listed conditions in a separately authorized prospective identity.",
+  };
+}
+
 function classifyConstructionGap(kind: string, reason: string): { gapId: string; module: string; oracle: string } {
   if (/format\s+url/iu.test(reason)) return {
     gapId: "format-url-witness",
@@ -2514,6 +2562,268 @@ export async function runPrimaryRevisionDecision(root: string): Promise<{ report
   return { report, status };
 }
 
+export type ClassProofFinalReport = {
+  schemaVersion: "skill-family-class-proof-final/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  generatedAt: "2026-09-12T00:00:00.000Z";
+  implementationCommit: string;
+  evidence: {
+    methodLock: { path: string; sha256: string; implementationCommit: string };
+    primarySelection: { path: string; sha256: string };
+    developmentLedger: { path: string; sha256: string };
+    developmentRuns: { path: string; sha256: string };
+    validation: { path: string; sha256: string };
+    primaryFirstRun: { path: string; sha256: string };
+    revision: { path: string; sha256: string };
+    historicalDocumentResult: { path: string; sha256: string; accepted: number; total: number };
+  };
+  gates: {
+    protocolReady: boolean;
+    inputReady: boolean;
+    capabilityReady: boolean;
+    transferDecision: ReturnType<typeof deriveTransferDecision>;
+  };
+  denominators: {
+    members: { primary: number; inputQualified: number; repositoryDistinct: number; firstRunAccepted: number };
+    coreObligations: { planned: number; constructed: number; coverage: number };
+    applicableInputs: { expected: number; complete: number; missing: number; duplicate: number; unexpected: number };
+    acceptedArtifacts: { accepted: number; checked: number; checkerPassRate: number };
+    operations: { enumerated: number; rejected: number; unresolved: number };
+  };
+  members: Array<{
+    candidateId: string;
+    memberId: string;
+    repository: string;
+    inputRuns: number;
+    acceptedArtifacts: number;
+    checkerPassedRuns: number;
+    coreObligations: number;
+    constructedCoreObligations: number;
+    coreCoverage: number;
+    integration: {
+      mapping: "source-declared-and-ledger-bound";
+      sharedImplementation: string;
+      humanSemanticReview: "required-and-not-automated";
+      modelCalls: 0;
+      constructionTime: "not-measured";
+      checkerTime: "not-measured";
+    };
+  }>;
+  residual: {
+    unresolvedSourceDuties: number;
+    outsideClassDuties: number;
+    unconstructedCoreDuties: Array<{ candidateId: string; memberId: string; obligationId: string; key: string | null; reason: string }>;
+    revisionDecision: PrimaryRevisionReport["decision"];
+    sourceAdvisories: string[];
+  };
+  comparisons: {
+    performed: false;
+    deterministicRoute: { status: "reported"; runs: number; reason: string };
+    originalSkillOrModelRoute: { status: "not-run"; reason: string };
+  };
+  accounting: {
+    source: { apiCalls: number; purpose: string };
+    modelCalls: number;
+    paidCalls: number;
+    infrastructure: { runtimeCalls: number; failures: number };
+    developmentAgentUsage: "host-external-not-measured-by-runner";
+    humanMinutes: "not-measured";
+    separate: true;
+  };
+  prospectivePreparation: ProspectivePreparationResult;
+  protectedBoundary: {
+    heldOutAccesses: 0;
+    q1ReservedAccesses: 0;
+    prospectiveRuns: 0;
+    readinessChanges: 0;
+    frozenHistoricalResultsChanged: false;
+  };
+  claimBoundary: string;
+};
+
+type FinalEvidence<T> = { path: string; sha256: string; bytes: Buffer; value: T };
+
+/** Read and identity-check an already committed evidence file for R11. */
+async function readFinalEvidence<T>(absoluteRoot: string, relativePath: string, schemaVersion: string): Promise<FinalEvidence<T>> {
+  const path = join(absoluteRoot, relativePath);
+  const bytes = await readFile(path);
+  const value = JSON.parse(bytes.toString("utf8")) as { identity?: unknown; schemaVersion?: unknown } & T;
+  if (value.identity !== CLASS_PROOF_IDENTITY || value.schemaVersion !== schemaVersion) {
+    throw new Error(`final evidence identity/schema mismatch: ${relativePath}`);
+  }
+  return { path: relativePath, sha256: sha256Bytes(bytes), bytes, value: value as T };
+}
+
+/**
+ * Aggregate the immutable development and primary reports without changing
+ * any constructor/checker contract. The report is intentionally write-once.
+ */
+export async function runFinalReport(root: string): Promise<{ report: ClassProofFinalReport; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  await mkdir(evidenceRoot, { recursive: true });
+  const reportPath = join(evidenceRoot, "final-report.json");
+  const existing = await readJsonIfPresent<ClassProofFinalReport>(reportPath);
+  if (existing) {
+    if (existing.identity !== CLASS_PROOF_IDENTITY || existing.schemaVersion !== "skill-family-class-proof-final/v1") {
+      throw new Error("final report identity mismatch");
+    }
+    const current = await runStatus(absoluteRoot);
+    return { report: existing, status: await writeStatus(absoluteRoot, { currentStep: current.currentStep, lastCompletedStep: current.lastCompletedStep }) };
+  }
+  const current = await runStatus(absoluteRoot);
+  if (current.currentStep !== "no-revision" && current.currentStep !== "revised-once" && current.currentStep !== "reported") {
+    throw new Error("R11 requires a completed R10 report, got " + current.currentStep);
+  }
+
+  const methodLock = await readFinalEvidence<ClassProofMethodLock>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, "skill-family-class-proof-method-lock/v1");
+  const primarySelection = await readFinalEvidence<PrimarySelectionReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/primary-selection.json`, "skill-family-class-proof-primary-selection/v1");
+  const developmentLedger = await readFinalEvidence<{
+    members: Array<{ candidateId: string; memberId: string; repository: string; duties: ExtractedResponsibility[] }>;
+    totals: { unresolvedObligations: number; outsideClassDuties: number; inputQualifiedMembers: number; repositoryDistinct: number };
+  }>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/development-ledger.json`, "skill-family-class-proof-development-ledger/v1");
+  const developmentRuns = await readFinalEvidence<{
+    runs: Array<{ runner: { totals: { operations: number; rejected: number; unresolved: number } } }>;
+    accounting: { runtimeCalls: number };
+    categories: Record<string, number>;
+  }>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/development-runs.json`, "skill-family-class-proof-development-runs/v1");
+  const validation = await readFinalEvidence<ClassProofValidationReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/r7-validation.json`, "skill-family-class-proof-validation/v1");
+  const primaryFirstRun = await readFinalEvidence<PrimaryFirstRunReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/primary-first-run.json`, "skill-family-class-proof-primary-first-run/v1");
+  const revision = await readFinalEvidence<PrimaryRevisionReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/no-revision.json`, "skill-family-class-proof-primary-revision/v1");
+  const historical = await readFinalEvidence<{
+    denominator?: { accepted?: number; attempted?: number; planned?: number };
+    strata?: { realPublicInputs?: { accepted?: number; rejected?: number } };
+  }>(absoluteRoot, "results/skill-ir/api-tester-v2-feature-migration-002/first-run-report.json", "skill-ir-api-tester-v2-feature-migration-first-run-report/v1");
+
+  if (primaryFirstRun.value.methodLock.sha256 !== methodLock.sha256 || primaryFirstRun.value.selection.sha256 !== primarySelection.sha256) {
+    throw new Error("R11 primary evidence is not bound to the current lock/selection");
+  }
+  if (revision.value.firstRun.sha256 !== primaryFirstRun.sha256) throw new Error("R11 revision report is not bound to the primary first run");
+  if (primarySelection.value.status !== "materialized" || methodLock.value.primary.length !== 3) throw new Error("R11 primary selection denominator mismatch");
+  if (!primaryFirstRun.value.summary.protocolReady) throw new Error("R11 requires a complete primary first-run protocol");
+
+  const primarySummary = primaryFirstRun.value.summary;
+  const primaryCandidates = new Map(primarySelection.value.primary.map((row) => [row.candidateId, row]));
+  const dutyRows = new Map(developmentLedger.value.members.map((row) => [row.candidateId, row]));
+  const unconstructedCoreDuties: ClassProofFinalReport["residual"]["unconstructedCoreDuties"] = [];
+  for (const primary of primarySelection.value.primary) {
+    const duties = (dutyRows.get(primary.candidateId)?.duties ?? []).filter((duty) => duty.plannedDisposition === "to-construct");
+    for (const duty of duties) {
+      const outcomes = primaryFirstRun.value.records
+        .filter((record) => record.candidateId === primary.candidateId)
+        .flatMap((record) => record.construction.obligations.outcomes)
+        .filter((outcome) => outcome.obligationId === duty.obligationId);
+      if (!outcomes.some((outcome) => outcome.outcome === "constructed")) {
+        unconstructedCoreDuties.push({
+          candidateId: primary.candidateId,
+          memberId: primary.memberId,
+          obligationId: duty.obligationId,
+          key: duty.key ?? null,
+          reason: outcomes.find((outcome) => outcome.reason)?.reason ?? "no constructed outcome across bound inputs",
+        });
+      }
+    }
+  }
+  const sourceAdvisories = primaryFirstRun.value.records.flatMap((record) => {
+    const issues = record.runner.sourceIssues;
+    return Object.entries(issues).filter(([, value]) => value !== null && value !== false && value !== 0 && value !== "")
+      .map(([key]) => `${record.inputId}:${key}`);
+  }).sort();
+  const prospectivePreparation = deriveProspectivePreparation({
+    protocolReady: primaryFirstRun.value.gates.protocolReady,
+    inputReady: primaryFirstRun.value.gates.inputReady,
+    capabilityReady: primaryFirstRun.value.gates.capabilityReady,
+    transferDecision: primaryFirstRun.value.gates.transferDecision,
+    methodLocked: true,
+    prospectiveIdentityLocked: false,
+    inputSelectionPreRegistered: false,
+    predictionPlanPreRegistered: false,
+    readinessDecisionRecorded: false,
+    unseenInputsAccessed: false,
+  });
+  const historicalAccepted = historical.value.strata?.realPublicInputs?.accepted ?? historical.value.denominator?.accepted ?? 0;
+  const historicalTotal = historical.value.strata?.realPublicInputs
+    ? (historical.value.strata.realPublicInputs.accepted ?? 0) + (historical.value.strata.realPublicInputs.rejected ?? 0)
+    : historical.value.denominator?.attempted ?? historical.value.denominator?.planned ?? 0;
+  const finalReport: ClassProofFinalReport = {
+    schemaVersion: "skill-family-class-proof-final/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    generatedAt: "2026-09-12T00:00:00.000Z",
+    implementationCommit: git(absoluteRoot, ["rev-parse", "HEAD"]),
+    evidence: {
+      methodLock: { path: methodLock.path, sha256: methodLock.sha256, implementationCommit: methodLock.value.implementationCommit },
+      primarySelection: { path: primarySelection.path, sha256: primarySelection.sha256 },
+      developmentLedger: { path: developmentLedger.path, sha256: developmentLedger.sha256 },
+      developmentRuns: { path: developmentRuns.path, sha256: developmentRuns.sha256 },
+      validation: { path: validation.path, sha256: validation.sha256 },
+      primaryFirstRun: { path: primaryFirstRun.path, sha256: primaryFirstRun.sha256 },
+      revision: { path: revision.path, sha256: revision.sha256 },
+      historicalDocumentResult: { path: historical.path, sha256: historical.sha256, accepted: historicalAccepted, total: historicalTotal },
+    },
+    gates: { ...primaryFirstRun.value.gates },
+    denominators: {
+      members: {
+        primary: primaryFirstRun.value.members.length,
+        inputQualified: methodLock.value.candidateCounts.inputQualifiedAfterDevelopment,
+        repositoryDistinct: new Set(primaryFirstRun.value.members.map((row) => row.repository.toLowerCase())).size,
+        firstRunAccepted: primarySummary.firstRunAcceptedMembers,
+      },
+      coreObligations: { planned: primarySummary.coreObligations, constructed: primarySummary.constructedCoreObligations, coverage: primarySummary.coreCoverage },
+      applicableInputs: { expected: primarySummary.expectedRuns, complete: primarySummary.completeRuns, missing: primarySummary.missingRuns, duplicate: primarySummary.duplicateRuns, unexpected: primarySummary.unexpectedRuns },
+      acceptedArtifacts: { accepted: primarySummary.acceptedArtifacts, checked: primarySummary.checkedAcceptedArtifacts, checkerPassRate: primarySummary.checkerPassRate },
+      operations: {
+        enumerated: primarySummary.operations,
+        rejected: primaryFirstRun.value.records.reduce((sum, row) => sum + row.runner.totals.rejected, 0),
+        unresolved: primaryFirstRun.value.records.reduce((sum, row) => sum + row.runner.totals.unresolved, 0),
+      },
+    },
+    members: primaryFirstRun.value.members.map((member) => ({
+      ...member,
+      integration: {
+        mapping: "source-declared-and-ledger-bound" as const,
+        sharedImplementation: "src/skill-ir/skill-family-class-construction.ts + api-tester-operation-input",
+        humanSemanticReview: "required-and-not-automated" as const,
+        modelCalls: 0 as const,
+        constructionTime: "not-measured" as const,
+        checkerTime: "not-measured" as const,
+      },
+    })),
+    residual: {
+      unresolvedSourceDuties: developmentLedger.value.totals.unresolvedObligations,
+      outsideClassDuties: developmentLedger.value.totals.outsideClassDuties,
+      unconstructedCoreDuties,
+      revisionDecision: revision.value.decision,
+      sourceAdvisories,
+    },
+    comparisons: {
+      performed: false,
+      deterministicRoute: { status: "reported", runs: primarySummary.expectedRuns, reason: "R11 aggregates the immutable deterministic primary route; no matched original/model route was authorized or run." },
+      originalSkillOrModelRoute: { status: "not-run", reason: "No comparable original-skill/model baseline was available without changing the development boundary." },
+    },
+    accounting: {
+      source: { apiCalls: current.externalAccounting.apiCalls, purpose: "metadata screening and authenticated source acquisition recorded by R2/R3" },
+      modelCalls: current.externalAccounting.modelCalls,
+      paidCalls: current.externalAccounting.paidCalls,
+      infrastructure: { runtimeCalls: primarySummary.accounting.runtimeCalls, failures: primarySummary.categories["infrastructure-failure"] },
+      developmentAgentUsage: "host-external-not-measured-by-runner",
+      humanMinutes: "not-measured",
+      separate: true,
+    },
+    prospectivePreparation,
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0, frozenHistoricalResultsChanged: false },
+    claimBoundary: "R11 is a development-only class report. It preserves the historical API Tester document-level 0/6 and does not establish whole-skill behavior, live API correctness, arbitrary OpenAPI support, human savings, ecosystem acceptance, prospective validity, or readiness.",
+  };
+  // Ensure the local map was actually used to bind every reported primary.
+  if (primaryFirstRun.value.members.some((member) => !primaryCandidates.has(member.candidateId))) throw new Error("R11 member binding mismatch");
+  await persistStableJson(reportPath, finalReport);
+  const status = await writeStatus(absoluteRoot, {
+    currentStep: transitionStatus(current.currentStep, "reported"),
+    lastCompletedStep: "reported",
+    failureSummary: [...new Set([...current.failureSummary, "r11-final-report", ...(prospectivePreparation.eligible ? [] : ["prospective-preparation-not-ready"])])],
+  });
+  return { report: finalReport, status };
+}
+
 export type ClassProofValidationReport = {
   schemaVersion: "skill-family-class-proof-validation/v1";
   identity: typeof CLASS_PROOF_IDENTITY;
@@ -3091,7 +3401,17 @@ if (import.meta.main) {
       commonGaps: result.report.commonGaps,
       revision: result.report.revision,
     }, null, 2));
+  } else if (step === "final-report" || step === "report") {
+    const result = await runFinalReport(root);
+    console.log(JSON.stringify({
+      status: "reported",
+      identity: CLASS_PROOF_IDENTITY,
+      gates: result.report.gates,
+      denominators: result.report.denominators,
+      prospectivePreparation: result.report.prospectivePreparation,
+      reportPath: `${CLASS_PROOF_RESULT_RELATIVE}/final-report.json`,
+    }, null, 2));
   } else {
-    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run|no-revision");
+    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run|no-revision|final-report");
   }
 }
