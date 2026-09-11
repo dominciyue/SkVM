@@ -42,3 +42,19 @@ This is a deliberately narrower executable contract, not the whole standards sur
 
 Project runtime model/remote/paid calls: zero for this work; developer-agent usage is
 separate and unmeasured. Latest clean evidence remains bound to be89a50, not this change.
+
+## Runtime and observed verification
+
+Public APIs: `buildApiFormRequestSpecimens` in api-request-specimens.ts and
+`verifyApiFormRequestSpecimens` in api-request-specimens-checker.ts. Independent
+`verifyApiFormBodyWire` does not import the encoder; both reject unsupported shapes.
+Use the bound batch with `--profile=form-specimens`, or source-duty mapping profile
+`api-request-form-specimens/v1`. Mapping reports retain requestSpecimensReport and
+requestSpecimensVerification fields, explicit version and uncompleted native duties.
+
+c78fd85 actual fixed-panel outcome:578/628,50unresolved,2incomplete inventories;
+2full Visier form specimens added,0old JSON report changes across12documents.
+Three original members ×2inputs produce six exact shared reports.36tests/262assertions
+and main/script typecheck pass. Full evidence, REDs and runnable commands:
+`results/skill-ir/skill-family-form-development-20260911/README.md`.
+These are source-valid offline request specimens, not authenticated API validation.

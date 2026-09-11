@@ -1,0 +1,716 @@
+{
+  "schemaVersion": "api-skill-mapping-report/v1",
+  "mappingId": "pactflow",
+  "mappingSha256": "aec23ea137b5359c1b0738798be7e4ed8ecb93e74ded2205ae069a61c5b87638",
+  "analysisSha256": "938a4e7690f3f81f132284dfdffc6cd971f2513f00d3aa4e5f8e002e4afa2658",
+  "skillId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md",
+  "repository": "pactflow/pactflow-agent-skills",
+  "sourceCommit": "463f70a32daba156376dbe030bbf23097a6a1ecb",
+  "extraction": "agent-reviewed-declaration",
+  "automaticNaturalLanguageCompilation": false,
+  "selectedResponsibility": {
+    "id": "construct-request-cases",
+    "description": "Enumerate viable schema variants and construct valid/negative cases, optional/minimal payloads and discriminator cases.",
+    "lines": [
+      66,
+      78
+    ],
+    "obligations": [
+      "valid-request",
+      "schema-variants",
+      "minimal-and-full",
+      "pattern-witness",
+      "pattern-violation",
+      "discriminator",
+      "all-documented-statuses"
+    ]
+  },
+  "residualResponsibilities": [
+    {
+      "id": "parse-contract",
+      "description": "Locate endpoint, extract request/response schemas and recursively resolve dependencies.",
+      "lines": [
+        22,
+        64
+      ],
+      "obligations": [
+        "request-contract",
+        "response-contract",
+        "references"
+      ]
+    },
+    {
+      "id": "emit-drift",
+      "description": "Generate complete Drift operations and dataset YAML, correct targets, tags, auth exclusions and negative-schema flags.",
+      "lines": [
+        80,
+        92
+      ],
+      "obligations": [
+        "requested-output-format",
+        "dataset-bindings",
+        "auth-variants",
+        "negative-flags",
+        "response-assertions"
+      ]
+    },
+    {
+      "id": "report-coverage",
+      "description": "Explain status/variant counts, chosen combinations and intentionally excluded gaps.",
+      "lines": [
+        94,
+        102
+      ],
+      "obligations": [
+        "coverage-summary",
+        "gap-accounting"
+      ]
+    },
+    {
+      "id": "stateful-data-setup",
+      "description": "When variants depend on live state, arrange dataset or lifecycle hooks and cleanup.",
+      "lines": [
+        80,
+        92
+      ],
+      "obligations": [
+        "fixtures",
+        "crud-lifecycle",
+        "live-state"
+      ],
+      "resourceEvidence": "references/drift-mapping.md:430-489"
+    }
+  ],
+  "boundedTaskFamilyAssessment": null,
+  "wholeSkillCompleted": false,
+  "profile": "api-request-form-specimens/v1",
+  "originalOutputConformance": "not-implemented-by-request-specimens",
+  "tasks": [
+    {
+      "taskId": "visier-authentication",
+      "operationReport": null,
+      "requestCasesReport": null,
+      "requestCasesVerification": null,
+      "requestSpecimensReport": {
+        "schemaVersion": "api-request-form-specimens/v1",
+        "sourceSha256": "115510705751fb468010bbcb501bcd2432bdd2179ad157de2a96ea606a327e8b",
+        "sourceFormat": "yaml",
+        "enumerationComplete": true,
+        "enumerationIssues": [],
+        "operations": [
+          {
+            "key": "POST /v1/admin/visierSecureTicket",
+            "security": [],
+            "servers": [
+              {
+                "url": "https://{vanity-name}.api.visier.io",
+                "variables": {
+                  "vanity-name": {
+                    "default": "vanity"
+                  }
+                }
+              }
+            ],
+            "sourceAdvisories": [],
+            "issues": [],
+            "caseInventoryComplete": true,
+            "cases": [
+              {
+                "id": "[\"minimal\",\"application/x-www-form-urlencoded\",null]",
+                "mode": "minimal",
+                "mediaType": "application/x-www-form-urlencoded",
+                "omit": null,
+                "status": "unresolved",
+                "reasons": [
+                  "Error: form field count unsupported"
+                ],
+                "request": null,
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"body\"]",
+                "mode": "minimal",
+                "mediaType": "application/x-www-form-urlencoded",
+                "omit": "body",
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "POST",
+                  "target": "/v1/admin/visierSecureTicket",
+                  "headers": [],
+                  "parameters": [],
+                  "body": null
+                },
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+                "mode": "full",
+                "mediaType": "application/x-www-form-urlencoded",
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "POST",
+                  "target": "/v1/admin/visierSecureTicket",
+                  "headers": [
+                    {
+                      "name": "content-type",
+                      "value": "application/x-www-form-urlencoded"
+                    }
+                  ],
+                  "parameters": [],
+                  "body": {
+                    "mediaType": "application/x-www-form-urlencoded",
+                    "value": {
+                      "password": "example",
+                      "username": "example"
+                    },
+                    "text": "password=example&username=example"
+                  }
+                },
+                "expectedHttpStatus": null
+              }
+            ],
+            "runtimeRequirements": [
+              "origin-and-server-selection",
+              "credentials-and-live-auth",
+              "response-status-and-business-oracle",
+              "schema-negative-case-assembly",
+              "missing-path-parameter-testing",
+              "native-output-format"
+            ]
+          },
+          {
+            "key": "POST /v1/admin/visierSecureToken",
+            "security": [],
+            "servers": [
+              {
+                "url": "https://{vanity-name}.api.visier.io",
+                "variables": {
+                  "vanity-name": {
+                    "default": "vanity"
+                  }
+                }
+              }
+            ],
+            "sourceAdvisories": [],
+            "issues": [],
+            "caseInventoryComplete": true,
+            "cases": [
+              {
+                "id": "[\"minimal\",\"application/x-www-form-urlencoded\",null]",
+                "mode": "minimal",
+                "mediaType": "application/x-www-form-urlencoded",
+                "omit": null,
+                "status": "unresolved",
+                "reasons": [
+                  "Error: form field count unsupported"
+                ],
+                "request": null,
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"body\"]",
+                "mode": "minimal",
+                "mediaType": "application/x-www-form-urlencoded",
+                "omit": "body",
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "POST",
+                  "target": "/v1/admin/visierSecureToken",
+                  "headers": [],
+                  "parameters": [],
+                  "body": null
+                },
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+                "mode": "full",
+                "mediaType": "application/x-www-form-urlencoded",
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "POST",
+                  "target": "/v1/admin/visierSecureToken",
+                  "headers": [
+                    {
+                      "name": "content-type",
+                      "value": "application/x-www-form-urlencoded"
+                    }
+                  ],
+                  "parameters": [],
+                  "body": {
+                    "mediaType": "application/x-www-form-urlencoded",
+                    "value": {
+                      "password": "example",
+                      "username": "example"
+                    },
+                    "text": "password=example&username=example"
+                  }
+                },
+                "expectedHttpStatus": null
+              }
+            ],
+            "runtimeRequirements": [
+              "origin-and-server-selection",
+              "credentials-and-live-auth",
+              "response-status-and-business-oracle",
+              "schema-negative-case-assembly",
+              "missing-path-parameter-testing",
+              "native-output-format"
+            ]
+          }
+        ],
+        "wholeSkillCompleted": false
+      },
+      "requestSpecimensVerification": {
+        "status": "pass",
+        "errors": [],
+        "sourceOperations": 2,
+        "plannedCases": 6,
+        "constructedCases": 4,
+        "unresolvedCases": 2,
+        "presenceNegativeCases": 2
+      },
+      "requestBodyNegativesReport": null,
+      "requestBodyNegativesVerification": null,
+      "responseCatalog": null,
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 7
+    },
+    {
+      "taskId": "onepassword-partnership",
+      "operationReport": null,
+      "requestCasesReport": null,
+      "requestCasesVerification": null,
+      "requestSpecimensReport": {
+        "schemaVersion": "api-request-form-specimens/v1",
+        "sourceSha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d",
+        "sourceFormat": "yaml",
+        "enumerationComplete": true,
+        "enumerationIssues": [],
+        "operations": [
+          {
+            "key": "POST /api/v1/partners/accounts",
+            "security": [
+              {
+                "bearerAuth": []
+              }
+            ],
+            "servers": [
+              {
+                "url": "https://billing.b5test.eu"
+              },
+              {
+                "url": "https://billing.1password.com"
+              }
+            ],
+            "sourceAdvisories": [],
+            "issues": [],
+            "caseInventoryComplete": true,
+            "cases": [
+              {
+                "id": "[\"minimal\",\"application/json\",null]",
+                "mode": "minimal",
+                "mediaType": "application/json",
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "POST",
+                  "target": "/api/v1/partners/accounts",
+                  "headers": [
+                    {
+                      "name": "content-type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "parameters": [],
+                  "body": {
+                    "mediaType": "application/json",
+                    "value": {
+                      "account_type": "example",
+                      "customer_account_uid": "example",
+                      "domain": "example"
+                    },
+                    "text": "{\"account_type\":\"example\",\"customer_account_uid\":\"example\",\"domain\":\"example\"}"
+                  }
+                },
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"minimal\",\"application/json\",\"body\"]",
+                "mode": "minimal",
+                "mediaType": "application/json",
+                "omit": "body",
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "POST",
+                  "target": "/api/v1/partners/accounts",
+                  "headers": [],
+                  "parameters": [],
+                  "body": null
+                },
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"full\",\"application/json\",null]",
+                "mode": "full",
+                "mediaType": "application/json",
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "POST",
+                  "target": "/api/v1/partners/accounts",
+                  "headers": [
+                    {
+                      "name": "content-type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "parameters": [],
+                  "body": {
+                    "mediaType": "application/json",
+                    "value": {
+                      "account_type": "example",
+                      "customer_account_uid": "example",
+                      "domain": "example",
+                      "ends_at": "2000-01-01T00:00:00Z"
+                    },
+                    "text": "{\"account_type\":\"example\",\"customer_account_uid\":\"example\",\"domain\":\"example\",\"ends_at\":\"2000-01-01T00:00:00Z\"}"
+                  }
+                },
+                "expectedHttpStatus": null
+              }
+            ],
+            "runtimeRequirements": [
+              "origin-and-server-selection",
+              "credentials-and-live-auth",
+              "response-status-and-business-oracle",
+              "schema-negative-case-assembly",
+              "missing-path-parameter-testing",
+              "native-output-format"
+            ]
+          },
+          {
+            "key": "DELETE /api/v1/partners/accounts/{customer_account_uid}",
+            "security": [
+              {
+                "bearerAuth": []
+              }
+            ],
+            "servers": [
+              {
+                "url": "https://billing.b5test.eu"
+              },
+              {
+                "url": "https://billing.1password.com"
+              }
+            ],
+            "sourceAdvisories": [],
+            "issues": [],
+            "caseInventoryComplete": true,
+            "cases": [
+              {
+                "id": "[\"minimal\",null,null]",
+                "mode": "minimal",
+                "mediaType": null,
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "DELETE",
+                  "target": "/api/v1/partners/accounts/example",
+                  "headers": [],
+                  "parameters": [
+                    {
+                      "id": "path:customer_account_uid",
+                      "value": "example",
+                      "wire": "example"
+                    }
+                  ],
+                  "body": null
+                },
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"full\",null,null]",
+                "mode": "full",
+                "mediaType": null,
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "DELETE",
+                  "target": "/api/v1/partners/accounts/example",
+                  "headers": [],
+                  "parameters": [
+                    {
+                      "id": "path:customer_account_uid",
+                      "value": "example",
+                      "wire": "example"
+                    }
+                  ],
+                  "body": null
+                },
+                "expectedHttpStatus": null
+              }
+            ],
+            "runtimeRequirements": [
+              "origin-and-server-selection",
+              "credentials-and-live-auth",
+              "response-status-and-business-oracle",
+              "schema-negative-case-assembly",
+              "missing-path-parameter-testing",
+              "native-output-format"
+            ]
+          },
+          {
+            "key": "GET /api/v1/partners/accounts/{customer_account_uid}",
+            "security": [
+              {
+                "bearerAuth": []
+              }
+            ],
+            "servers": [
+              {
+                "url": "https://billing.b5test.eu"
+              },
+              {
+                "url": "https://billing.1password.com"
+              }
+            ],
+            "sourceAdvisories": [],
+            "issues": [],
+            "caseInventoryComplete": true,
+            "cases": [
+              {
+                "id": "[\"minimal\",null,null]",
+                "mode": "minimal",
+                "mediaType": null,
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "GET",
+                  "target": "/api/v1/partners/accounts/example",
+                  "headers": [],
+                  "parameters": [
+                    {
+                      "id": "path:customer_account_uid",
+                      "value": "example",
+                      "wire": "example"
+                    }
+                  ],
+                  "body": null
+                },
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"full\",null,null]",
+                "mode": "full",
+                "mediaType": null,
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "GET",
+                  "target": "/api/v1/partners/accounts/example",
+                  "headers": [],
+                  "parameters": [
+                    {
+                      "id": "path:customer_account_uid",
+                      "value": "example",
+                      "wire": "example"
+                    }
+                  ],
+                  "body": null
+                },
+                "expectedHttpStatus": null
+              }
+            ],
+            "runtimeRequirements": [
+              "origin-and-server-selection",
+              "credentials-and-live-auth",
+              "response-status-and-business-oracle",
+              "schema-negative-case-assembly",
+              "missing-path-parameter-testing",
+              "native-output-format"
+            ]
+          },
+          {
+            "key": "PATCH /api/v1/partners/accounts/{customer_account_uid}",
+            "security": [
+              {
+                "bearerAuth": []
+              }
+            ],
+            "servers": [
+              {
+                "url": "https://billing.b5test.eu"
+              },
+              {
+                "url": "https://billing.1password.com"
+              }
+            ],
+            "sourceAdvisories": [],
+            "issues": [],
+            "caseInventoryComplete": true,
+            "cases": [
+              {
+                "id": "[\"minimal\",null,null]",
+                "mode": "minimal",
+                "mediaType": null,
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "PATCH",
+                  "target": "/api/v1/partners/accounts/example",
+                  "headers": [],
+                  "parameters": [
+                    {
+                      "id": "path:customer_account_uid",
+                      "value": "example",
+                      "wire": "example"
+                    }
+                  ],
+                  "body": null
+                },
+                "expectedHttpStatus": null
+              },
+              {
+                "id": "[\"full\",\"application/json\",null]",
+                "mode": "full",
+                "mediaType": "application/json",
+                "omit": null,
+                "status": "constructed",
+                "reasons": [],
+                "request": {
+                  "method": "PATCH",
+                  "target": "/api/v1/partners/accounts/example",
+                  "headers": [
+                    {
+                      "name": "content-type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "parameters": [
+                    {
+                      "id": "path:customer_account_uid",
+                      "value": "example",
+                      "wire": "example"
+                    }
+                  ],
+                  "body": {
+                    "mediaType": "application/json",
+                    "value": {
+                      "ends_at": "2000-01-01T00:00:00Z"
+                    },
+                    "text": "{\"ends_at\":\"2000-01-01T00:00:00Z\"}"
+                  }
+                },
+                "expectedHttpStatus": null
+              }
+            ],
+            "runtimeRequirements": [
+              "origin-and-server-selection",
+              "credentials-and-live-auth",
+              "response-status-and-business-oracle",
+              "schema-negative-case-assembly",
+              "missing-path-parameter-testing",
+              "native-output-format"
+            ]
+          }
+        ],
+        "wholeSkillCompleted": false
+      },
+      "requestSpecimensVerification": {
+        "status": "pass",
+        "errors": [],
+        "sourceOperations": 4,
+        "plannedCases": 9,
+        "constructedCases": 9,
+        "unresolvedCases": 0,
+        "presenceNegativeCases": 1
+      },
+      "requestBodyNegativesReport": null,
+      "requestBodyNegativesVerification": null,
+      "responseCatalog": null,
+      "error": null,
+      "sourceObligations": [
+        {
+          "id": "valid-request",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "schema-variants",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "minimal-and-full",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-witness",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "pattern-violation",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "discriminator",
+          "status": "not-fully-verified"
+        },
+        {
+          "id": "all-documented-statuses",
+          "status": "not-fully-verified"
+        }
+      ],
+      "elapsedMillis": 22
+    }
+  ],
+  "accounting": {
+    "projectModelCalls": 0,
+    "paidCalls": 0,
+    "mappingAuthor": "development-agent",
+    "humanMinutes": null
+  }
+}

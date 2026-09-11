@@ -1,6 +1,6 @@
 # Skill family development: current evidence and navigation
 
-Checkpoint2026-09-11 07:30 +08. Development only; continuous goal remains active.
+Checkpoint2026-09-11 08:30 +08. Development only; continuous goal remains active.
 This page supersedes stale current-status prose, not historical evidence or contracts.
 
 ## What is shared
@@ -30,6 +30,7 @@ repository. Applying three skill mappings does not turn this into36independent d
 | Old v2 baseline | 8accepted /295rejected operations per member | Historical v2 unchanged |
 | Recursive fields and wire | 261positive-schema /250positive-wire operations;2961/3371obligations after branch revision | 3schema inventories incomplete; not full requests |
 | Complete relative request specimens | 576constructed /628planned,52unresolved,24presence negatives | 2inventories incomplete; origin/auth/status/native remain |
+| Separate form-enabled specimen profile | 578constructed /628planned,50unresolved | +2full form bodies; empty minimal bodies unresolved; old JSON profile unchanged |
 | Body-schema negative requests | 971constructed /1414obligations,443unresolved | 2body inventories incomplete; no inferred HTTP status |
 | Response source catalog | 567response declarations,365media,329compiled JSON schemas | Source examples are not live responses |
 | Source response examples | 130valid /3invalid /9unresolved occurrences | Repeated examples are not independent samples |
@@ -55,6 +56,11 @@ e12c587 finite-oracle follow-up:3016source-checker comparisons,0mismatches; a ca
 gap for intersected anyOf/oneOf groups was fixed. Five known synthetic construction patterns
 and31tests/3788assertions pass. Recomputed12real artifacts are byte-identical to3011413,
 so no further real coverage gain is claimed. Evidence:skill-family-composition-development-20260911/.
+
+c78fd85 separate form profile adds two real full request specimens with independent
+inverse decoding, keeping all12old JSON artifacts exact. Three original members ×2inputs
+produce six identical shared outputs;36tests/262assertions and main/script tsc pass.
+Evidence and commands:skill-family-form-development-20260911/README.md.
 
 ## New-member evidence and automation limits
 
