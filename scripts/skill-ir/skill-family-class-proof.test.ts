@@ -22,6 +22,7 @@ import {
   selectPrimaryInputBindings,
   selectPrimaryMembers,
   buildMethodLock,
+  summarizePrimaryFirstRuns,
   selectCandidateMetadata,
   runStatus,
   screenCandidate,
@@ -416,5 +417,67 @@ describe("skill-family class-proof status", () => {
       "onepassword-connect", "onepassword-partnership",
     ]);
     expect(() => selectPrimaryInputBindings(taskBindings, [members[0]!, { inputBindings: [members[0]!.inputBindings[1]!, members[0]!.inputBindings[0]!] }])).toThrow(/input binding order mismatch/u);
+  });
+
+  test("summarizes primary first-run denominators without hiding missing or duplicate rows", () => {
+    const base = (memberId: string, inputId: string, accepted: number, checked: number, outcome: "constructed" | "unresolved") => ({
+      memberId,
+      inputId,
+      inputValid: true,
+      runner: {
+        status: "completed" as const,
+        totals: { operations: 2, accepted, rejected: 2 - accepted, unresolved: 0, artifactCheckedPassedOperations: checked },
+        verifier: { status: "verified" as const, operations: 2, accepted, checked },
+      },
+      construction: { obligations: { outcomes: [{ obligationId: `${memberId}:core`, outcome, reason: null }] } },
+      failureClass: "none" as const,
+    });
+    const summary = summarizePrimaryFirstRuns({
+      records: [
+        base("m1", "i1", 1, 1, "constructed"),
+        base("m1", "i2", 0, 0, "unresolved"),
+        base("m2", "i1", 1, 1, "unresolved"),
+      ],
+      expectedMemberIds: ["m1", "m2"],
+      expectedInputIds: ["i1", "i2"],
+      coreObligationIdsByMember: { m1: ["m1:core"], m2: ["m2:core"] },
+    });
+    expect(summary.expectedRuns).toBe(4);
+    expect(summary.actualRuns).toBe(3);
+    expect(summary.missingRuns).toBe(1);
+    expect(summary.duplicateRuns).toBe(0);
+    expect(summary.acceptedArtifacts).toBe(2);
+    expect(summary.checkedAcceptedArtifacts).toBe(2);
+    expect(summary.checkerPassRate).toBe(1);
+    expect(summary.firstRunAcceptedMembers).toBe(2);
+    expect(summary.coreObligations).toBe(2);
+    expect(summary.constructedCoreObligations).toBe(1);
+    expect(summary.coreCoverage).toBe(0.5);
+    expect(summary.protocolReady).toBe(false);
+    expect(summary.capabilityReady).toBe(false);
+  });
+
+  test("does not count a duplicate primary first-run row as coverage", () => {
+    const row = {
+      memberId: "m1",
+      inputId: "i1",
+      inputValid: true,
+      runner: {
+        status: "completed" as const,
+        totals: { operations: 1, accepted: 1, rejected: 0, unresolved: 0, artifactCheckedPassedOperations: 1 },
+        verifier: { status: "verified" as const, operations: 1, accepted: 1, checked: 1 },
+      },
+      construction: { obligations: { outcomes: [{ obligationId: "m1:core", outcome: "constructed" as const, reason: null }] } },
+      failureClass: "none" as const,
+    };
+    const summary = summarizePrimaryFirstRuns({
+      records: [row, row],
+      expectedMemberIds: ["m1"],
+      expectedInputIds: ["i1"],
+      coreObligationIdsByMember: { m1: ["m1:core"] },
+    });
+    expect(summary.duplicateRuns).toBe(1);
+    expect(summary.protocolReady).toBe(false);
+    expect(summary.inputReady).toBe(false);
   });
 });

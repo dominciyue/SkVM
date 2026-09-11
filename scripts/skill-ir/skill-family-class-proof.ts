@@ -1434,6 +1434,167 @@ type DevelopmentRunsReport = {
   protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
 };
 
+export type PrimaryFirstRunFailureClass = DevelopmentRunRecord["failureClass"];
+
+export type PrimaryFirstRunRecord = {
+  candidateId: string;
+  memberId: string;
+  repository: string;
+  inputId: string;
+  input: { path: string; format: "json" | "yaml"; bytes: number; sha256: string };
+  source: { bodyPath: string; commit: string | null; gitBlobSha: string; bytes: number; sha256: string };
+  extraction: {
+    status: "pass" | "failed";
+    dutyCount: number;
+    coreDutyCount: number;
+    unresolvedDutyCount: number;
+    sourceDigestVerified: boolean;
+    error: string | null;
+  };
+  mapping: {
+    status: "complete" | "partial" | "failed";
+    plannedDutyCount: number;
+    mappedDutyCount: number;
+    unresolvedDutyCount: number;
+    error: string | null;
+  };
+  construction: DevelopmentRunRecord["construction"] & { status: "passed" | "failed" | "not-run" };
+  runner: DevelopmentRunRecord["runner"];
+  artifact: { status: "passed" | "failed" | "not-run"; paths: string[] };
+  failureClass: PrimaryFirstRunFailureClass;
+  externalAccounting: { modelCalls: 0; apiCalls: 0; paidCalls: 0; runtimeCalls: number };
+  elapsedMillis: number;
+};
+
+type PrimaryFirstRunSummaryRecord = {
+  memberId: string;
+  inputId: string;
+  inputValid: boolean;
+  runner: Pick<DevelopmentRunRecord["runner"], "status" | "totals" | "verifier">;
+  construction: { obligations: { outcomes: Array<{ obligationId: string; outcome: "constructed" | "rejected-with-reason" | "unresolved"; reason: string | null }> } };
+  failureClass: PrimaryFirstRunFailureClass;
+  externalAccounting?: { modelCalls: number; apiCalls: number; paidCalls: number; runtimeCalls: number };
+};
+
+export type PrimaryFirstRunSummary = {
+  expectedRuns: number;
+  actualRuns: number;
+  completeRuns: number;
+  missingRuns: number;
+  duplicateRuns: number;
+  unexpectedRuns: number;
+  operations: number;
+  acceptedArtifacts: number;
+  checkedAcceptedArtifacts: number;
+  checkerPassRate: number;
+  firstRunAcceptedMembers: number;
+  coreObligations: number;
+  constructedCoreObligations: number;
+  coreCoverage: number;
+  categories: Record<PrimaryFirstRunFailureClass, number>;
+  protocolReady: boolean;
+  inputReady: boolean;
+  capabilityReady: boolean;
+  transferDecision: ReturnType<typeof deriveTransferDecision>;
+  accounting: { modelCalls: number; apiCalls: number; paidCalls: number; runtimeCalls: number };
+};
+
+/**
+ * Derive first-run denominators from independently bound rows. Duplicate or
+ * unexpected bindings are excluded from coverage; incomplete execution cannot
+ * produce a positive transfer decision.
+ */
+export function summarizePrimaryFirstRuns(input: {
+  records: PrimaryFirstRunSummaryRecord[];
+  expectedMemberIds: string[];
+  expectedInputIds: string[];
+  coreObligationIdsByMember: Record<string, string[]>;
+}): PrimaryFirstRunSummary {
+  const expectedKeys = new Set(input.expectedMemberIds.flatMap((memberId) => input.expectedInputIds.map((inputId) => `${memberId}\u0000${inputId}`)));
+  const counts = new Map<string, number>();
+  for (const record of input.records) counts.set(`${record.memberId}\u0000${record.inputId}`, (counts.get(`${record.memberId}\u0000${record.inputId}`) ?? 0) + 1);
+  const duplicateRuns = [...counts.values()].reduce((sum, count) => sum + Math.max(0, count - 1), 0);
+  const missingRuns = [...expectedKeys].filter((key) => !counts.has(key)).length;
+  const unexpectedRuns = [...counts.keys()].filter((key) => !expectedKeys.has(key)).length;
+  const validRows = input.records.filter((record) => {
+    const key = `${record.memberId}\u0000${record.inputId}`;
+    return expectedKeys.has(key) && counts.get(key) === 1;
+  });
+  const completeRows = validRows.filter((record) => record.inputValid && record.runner.verifier.status === "verified" && record.runner.status !== "not-run");
+  const operations = validRows.reduce((sum, record) => sum + record.runner.totals.operations, 0);
+  const acceptedArtifacts = validRows.reduce((sum, record) => sum + record.runner.totals.accepted, 0);
+  const checkedAcceptedArtifacts = validRows.reduce((sum, record) => sum + record.runner.totals.artifactCheckedPassedOperations, 0);
+  const checkerPassRate = acceptedArtifacts > 0 ? checkedAcceptedArtifacts / acceptedArtifacts : 0;
+  const firstRunAcceptedMembers = input.expectedMemberIds.filter((memberId) => validRows.some((record) => record.memberId === memberId
+    && record.runner.totals.accepted > 0 && record.runner.verifier.status === "verified")).length;
+  const coreIdsByMember = new Map(Object.entries(input.coreObligationIdsByMember).map(([memberId, ids]) => [memberId, new Set(ids)]));
+  const coreObligations = input.expectedMemberIds.reduce((sum, memberId) => sum + (coreIdsByMember.get(memberId)?.size ?? 0), 0);
+  let constructedCoreObligations = 0;
+  for (const memberId of input.expectedMemberIds) {
+    const coreIds = coreIdsByMember.get(memberId) ?? new Set<string>();
+    const outcomes = new Map<string, "constructed" | "rejected-with-reason" | "unresolved">();
+    for (const record of validRows.filter((row) => row.memberId === memberId)) {
+      for (const outcome of record.construction.obligations.outcomes) {
+        const previous = outcomes.get(outcome.obligationId);
+        if (!previous || (previous === "unresolved" && outcome.outcome !== "unresolved")) outcomes.set(outcome.obligationId, outcome.outcome);
+      }
+    }
+    for (const obligationId of coreIds) if (outcomes.get(obligationId) === "constructed") constructedCoreObligations += 1;
+  }
+  const coreCoverage = coreObligations > 0 ? constructedCoreObligations / coreObligations : 0;
+  const categories: Record<PrimaryFirstRunFailureClass, number> = {
+    none: 0,
+    "source-blocked": 0,
+    "unsupported-by-contract": 0,
+    "constructor-error": 0,
+    "checker-failure": 0,
+    "infrastructure-failure": 0,
+  };
+  for (const record of input.records) categories[record.failureClass] += 1;
+  const protocolReady = input.records.length === expectedKeys.size && missingRuns === 0 && duplicateRuns === 0
+    && unexpectedRuns === 0 && validRows.length === expectedKeys.size && completeRows.length === expectedKeys.size;
+  const inputReady = protocolReady && validRows.every((record) => record.inputValid);
+  const capabilityReady = protocolReady && acceptedArtifacts > 0 && checkerPassRate === 1 && coreCoverage >= 0.9;
+  const transferDecision = protocolReady
+    ? deriveTransferDecision({
+      primaryMembers: input.expectedMemberIds.length,
+      inputQualifiedMembers: input.expectedMemberIds.length,
+      minInputsPerMember: input.expectedInputIds.length,
+      coreCoverage,
+      firstRunAcceptedMembers,
+      checkerPassRate,
+    })
+    : "insufficient-evidence";
+  const accounting = input.records.reduce((sum, record) => ({
+    modelCalls: sum.modelCalls + (record.externalAccounting?.modelCalls ?? 0),
+    apiCalls: sum.apiCalls + (record.externalAccounting?.apiCalls ?? 0),
+    paidCalls: sum.paidCalls + (record.externalAccounting?.paidCalls ?? 0),
+    runtimeCalls: sum.runtimeCalls + (record.externalAccounting?.runtimeCalls ?? 0),
+  }), { modelCalls: 0, apiCalls: 0, paidCalls: 0, runtimeCalls: 0 });
+  return {
+    expectedRuns: expectedKeys.size,
+    actualRuns: input.records.length,
+    completeRuns: completeRows.length,
+    missingRuns,
+    duplicateRuns,
+    unexpectedRuns,
+    operations,
+    acceptedArtifacts,
+    checkedAcceptedArtifacts,
+    checkerPassRate,
+    firstRunAcceptedMembers,
+    coreObligations,
+    constructedCoreObligations,
+    coreCoverage,
+    categories,
+    protocolReady,
+    inputReady,
+    capabilityReady,
+    transferDecision,
+    accounting,
+  };
+}
+
 function classifyConstructionGap(kind: string, reason: string): { gapId: string; module: string; oracle: string } {
   if (/format\s+url/iu.test(reason)) return {
     gapId: "format-url-witness",
@@ -1848,6 +2009,367 @@ export async function runDevelopmentRuns(root: string): Promise<{ report: Develo
     ])],
   });
   return { report, status };
+}
+
+export type PrimaryFirstRunReport = {
+  schemaVersion: "skill-family-class-proof-primary-first-run/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  methodLock: { path: string; sha256: string; implementationCommit: string };
+  selection: { path: string; sha256: string };
+  inputSelection: { source: "development-ledger.json"; inputIds: string[] };
+  records: PrimaryFirstRunRecord[];
+  members: Array<{ candidateId: string; memberId: string; repository: string; runCount: number; acceptedArtifacts: number; checkerPassedRuns: number; coreObligations: number; constructedCoreObligations: number; coreCoverage: number }>;
+  summary: PrimaryFirstRunSummary;
+  gates: { protocolReady: boolean; inputReady: boolean; capabilityReady: boolean; transferDecision: ReturnType<typeof deriveTransferDecision> };
+  accounting: { modelCalls: 0; apiCalls: 0; paidCalls: 0; runtimeCalls: number; sourceBytesRead: number; developmentAgentUsage: "host-external-not-measured-by-runner"; separate: true };
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0; frozenHistoricalResultsChanged: false };
+  claimBoundary: string;
+};
+
+function primaryConstructionEmpty(): DevelopmentRunRecord["construction"] {
+  return {
+    checkerPassed: false,
+    checkerFailures: ["primary construction did not produce a result"],
+    enumeration: { complete: false, operations: 0, issues: [] },
+    availability: {},
+    obligations: { outcomes: [], memberCaseCount: 0, accepted: false, constructedKinds: [] },
+  };
+}
+
+function primaryRunnerEmpty(): DevelopmentRunRecord["runner"] {
+  return {
+    status: "not-run",
+    totals: { operations: 0, accepted: 0, rejected: 0, unresolved: 0, artifactCheckedPassedOperations: 0 },
+    gates: {},
+    sourceIssues: {},
+    reportPath: null,
+    verifier: { status: "failed", operations: 0, accepted: 0, checked: 0 },
+  };
+}
+
+function primaryRecordFromError(input: {
+  candidateId: string;
+  memberId: string;
+  repository: string;
+  inputId: string;
+  input: PrimaryFirstRunRecord["input"];
+  source: PrimaryFirstRunRecord["source"];
+  duties: ExtractedResponsibility[];
+  error: string;
+  elapsedMillis: number;
+}): PrimaryFirstRunRecord {
+  const unresolvedDutyCount = input.duties.filter((duty) => duty.plannedDisposition === "unresolved").length;
+  const extraction = {
+    status: "failed" as const,
+    dutyCount: input.duties.length,
+    coreDutyCount: input.duties.filter((duty) => duty.plannedDisposition === "to-construct").length,
+    unresolvedDutyCount,
+    sourceDigestVerified: false,
+    error: input.error,
+  };
+  const mapping = {
+    status: "failed" as const,
+    plannedDutyCount: extraction.coreDutyCount,
+    mappedDutyCount: Math.max(0, input.duties.length - unresolvedDutyCount),
+    unresolvedDutyCount,
+    error: input.error,
+  };
+  const construction = primaryConstructionEmpty();
+  const runner = primaryRunnerEmpty();
+  return {
+    candidateId: input.candidateId,
+    memberId: input.memberId,
+    repository: input.repository,
+    inputId: input.inputId,
+    input: input.input,
+    source: input.source,
+    extraction,
+    mapping,
+    construction: { ...construction, status: "not-run" },
+    runner,
+    artifact: { status: "not-run", paths: [] },
+    failureClass: "infrastructure-failure",
+    externalAccounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0, runtimeCalls: 0 },
+    elapsedMillis: input.elapsedMillis,
+  };
+}
+
+async function runOnePrimaryFirstRun(
+  absoluteRoot: string,
+  evidenceRoot: string,
+  primary: PrimaryMaterializedRow,
+  duties: ExtractedResponsibility[],
+  binding: PrimaryMaterializedRow["inputBindings"][number],
+): Promise<PrimaryFirstRunRecord> {
+  const started = Date.now();
+  const runRelative = "primary-runs/" + safeEvidenceSegment(primary.candidateId) + "/" + safeEvidenceSegment(binding.inputId);
+  const runRoot = join(evidenceRoot, runRelative);
+  const inputExtension = binding.format === "json" ? "json" : "yaml";
+  const inputRelative = "input/openapi." + inputExtension;
+  const source = {
+    bodyPath: primary.source.bodyPath,
+    commit: primary.source.commit,
+    gitBlobSha: primary.source.gitBlobSha,
+    bytes: primary.source.bytes,
+    sha256: primary.source.sha256,
+  } as const;
+  const input = { path: binding.path, format: binding.format, bytes: binding.bytes, sha256: binding.sha256 } as const;
+  try {
+    await mkdir(join(runRoot, "input"), { recursive: true });
+    const bodyBytes = await readFile(resolve(absoluteRoot, primary.source.bodyPath));
+    if (bodyBytes.byteLength !== primary.source.bytes || sha256Bytes(bodyBytes) !== primary.source.sha256 || gitBlobOid(bodyBytes) !== primary.source.gitBlobSha) {
+      throw new Error("primary source body digest or blob binding mismatch: " + primary.candidateId);
+    }
+    const inputBytes = await readFile(resolve(absoluteRoot, binding.path));
+    if (inputBytes.byteLength !== binding.bytes || sha256Bytes(inputBytes) !== binding.sha256) throw new Error("primary input digest mismatch: " + binding.inputId);
+    const inputTarget = join(runRoot, inputRelative);
+    try {
+      await writeFile(inputTarget, inputBytes, { flag: "wx" });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      if (!(await readFile(inputTarget)).equals(inputBytes)) throw new Error("primary run input drift: " + binding.inputId);
+    }
+    const bindingId = ("class-proof-primary-" + safeEvidenceSegment(primary.candidateId) + "-" + safeEvidenceSegment(binding.inputId)).toLowerCase();
+    const manifest = {
+      schemaVersion: "skill-ir-api-tester-operation-input-manifest/v1",
+      identity: "skill-ir-api-tester-operation-input-development-001",
+      bindingId,
+      supportContractId: "api-tester-openapi-subset-v2",
+      input: { path: inputRelative, format: binding.format, bytes: inputBytes.byteLength, sha256: sha256Bytes(inputBytes) },
+      output: { path: "output", writeMode: "exclusive-create-once" },
+    } as const;
+    const manifestPath = join(runRoot, "manifest.json");
+    try {
+      const existingManifest = JSON.parse(await readFile(manifestPath, "utf8"));
+      if (JSON.stringify(existingManifest) !== JSON.stringify(manifest)) throw new Error("primary manifest drift: " + binding.inputId);
+    } catch (error) {
+      if (!isMissing(error)) throw error;
+      await writeFile(manifestPath, jsonText(manifest), { encoding: "utf8", flag: "wx" });
+    }
+    const invocationPath = join(runRoot, "invocation.json");
+    let invocationExisted = false;
+    try {
+      const existingInvocation = JSON.parse(await readFile(invocationPath, "utf8")) as { stage?: string; attempt?: number };
+      invocationExisted = true;
+      if (existingInvocation.stage !== "primary-first-run" || existingInvocation.attempt !== 1) throw new Error("primary invocation binding drift: " + binding.inputId);
+    } catch (error) {
+      if (!isMissing(error)) throw error;
+      await writeFile(invocationPath, jsonText({
+        schemaVersion: "skill-family-class-proof-primary-invocation/v1",
+        stage: "primary-first-run",
+        attempt: 1,
+        candidateId: primary.candidateId,
+        memberId: primary.memberId,
+        inputId: binding.inputId,
+        runner: "runApiTesterOperationInput -> verifyApiTesterOperationInputOutput",
+        nodeExecutable: process.execPath,
+        runtime: { bun: Bun.version, node: process.version },
+        manifestPath: "manifest.json",
+        retryPolicy: "no automatic retry for the same primary input",
+        completedAt: "2026-09-12T00:00:00.000Z",
+        protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+      }), { encoding: "utf8", flag: "wx" });
+    }
+    const constructionResult = buildClassConstruction(inputBytes.toString("utf8"), binding.format);
+    const obligations = deriveObligationOutcomes(obligationLedgerFromRows(primary.memberId, duties), constructionResult);
+    let report: ReturnType<typeof ApiTesterOperationInputReportSchema.parse> | null = null;
+    let runnerError: string | null = null;
+    const reportPath = join(runRoot, "output/report.json");
+    try {
+      report = ApiTesterOperationInputReportSchema.parse(JSON.parse(await readFile(reportPath, "utf8")));
+    } catch (error) {
+      if (!isMissing(error)) runnerError = String(error);
+    }
+    if (!report && !runnerError && !invocationExisted) {
+      try {
+        report = ApiTesterOperationInputReportSchema.parse(await runApiTesterOperationInput({
+          rootDir: runRoot,
+          manifestPath: "manifest.json",
+          nodeExecutable: process.execPath,
+          completedAt: "2026-09-12T00:00:00.000Z",
+        }));
+      } catch (error) {
+        runnerError = error instanceof Error ? error.message : String(error);
+        await persistStableJson(join(runRoot, "runner-error.json"), {
+          schemaVersion: "skill-family-class-proof-primary-run-error/v1",
+          error: runnerError,
+        });
+      }
+    }
+    let verifier: DevelopmentRunRecord["runner"]["verifier"] = { status: "failed", operations: 0, accepted: 0, checked: 0 };
+    if (report) {
+      try {
+        verifier = await verifyApiTesterOperationInputOutput({ rootDir: runRoot, manifestPath: "manifest.json", nodeExecutable: process.execPath });
+      } catch (error) {
+        verifier = { ...verifier, error: error instanceof Error ? error.message : String(error) };
+      }
+    }
+    const runner: DevelopmentRunRecord["runner"] = report ? {
+      status: report.status,
+      totals: report.totals,
+      gates: report.gates,
+      sourceIssues: report.sourceIssues,
+      reportPath: runRelative + "/output/report.json",
+      verifier,
+    } : {
+      ...primaryRunnerEmpty(),
+      status: runnerError ? "failed" : "not-run",
+    };
+    const construction = {
+      checkerPassed: constructionResult.checkerPassed,
+      checkerFailures: constructionResult.checkerFailures,
+      enumeration: constructionResult.enumeration,
+      availability: constructionResult.availability,
+      obligations,
+      status: constructionResult.checkerPassed ? "passed" as const : "failed" as const,
+    };
+    const unresolvedDutyCount = duties.filter((duty) => duty.plannedDisposition === "unresolved").length;
+    const extraction = {
+      status: "pass" as const,
+      dutyCount: duties.length,
+      coreDutyCount: duties.filter((duty) => duty.plannedDisposition === "to-construct").length,
+      unresolvedDutyCount,
+      sourceDigestVerified: true,
+      error: null,
+    };
+    const mapping = {
+      status: unresolvedDutyCount === 0 ? "complete" as const : "partial" as const,
+      plannedDutyCount: extraction.coreDutyCount,
+      mappedDutyCount: duties.length - unresolvedDutyCount,
+      unresolvedDutyCount,
+      error: unresolvedDutyCount ? "unresolved source duties retained in denominator" : null,
+    };
+    const artifactPaths = report?.artifact.status === "passed"
+      ? ["output/report.json", "output/operation-inventory.json", "output/output-manifest.json", "output/artifact"]
+      : [];
+    const artifactStatus = report?.artifact.status === "passed" ? "passed" as const : report ? "failed" as const : "not-run" as const;
+    const record: PrimaryFirstRunRecord = {
+      candidateId: primary.candidateId,
+      memberId: primary.memberId,
+      repository: primary.repository,
+      inputId: binding.inputId,
+      input,
+      source,
+      extraction,
+      mapping,
+      construction,
+      runner,
+      artifact: { status: artifactStatus, paths: artifactPaths },
+      failureClass: classifyDevelopmentRunFailure({ construction, runnerError, runnerReport: runner }),
+      externalAccounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0, runtimeCalls: report ? 2 : runnerError ? 1 : 0 },
+      elapsedMillis: Math.max(0, Date.now() - started),
+    };
+    await persistStableJson(join(runRoot, "run-summary.json"), record);
+    return record;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    const record = primaryRecordFromError({
+      candidateId: primary.candidateId,
+      memberId: primary.memberId,
+      repository: primary.repository,
+      inputId: binding.inputId,
+      input,
+      source,
+      duties,
+      error: detail,
+      elapsedMillis: Math.max(0, Date.now() - started),
+    });
+    await mkdir(runRoot, { recursive: true });
+    await persistStableJson(join(runRoot, "run-summary.json"), record);
+    return record;
+  }
+}
+
+/** Execute exactly one immutable first-run row for every selected primary/input binding. */
+export async function runPrimaryFirstRun(root: string): Promise<{ report: PrimaryFirstRunReport; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "primary-first-run.json");
+  const existing = await readJsonIfPresent<PrimaryFirstRunReport>(reportPath);
+  if (existing) {
+    if (existing.identity !== CLASS_PROOF_IDENTITY || existing.schemaVersion !== "skill-family-class-proof-primary-first-run/v1") throw new Error("primary first-run report identity mismatch");
+    const current = await runStatus(absoluteRoot);
+    return { report: existing, status: await writeStatus(absoluteRoot, { currentStep: current.currentStep, lastCompletedStep: current.lastCompletedStep }) };
+  }
+  const lockPath = join(evidenceRoot, "method-lock.json");
+  const selectionPath = join(evidenceRoot, "primary-selection.json");
+  const lock = JSON.parse(await readFile(lockPath, "utf8")) as ClassProofMethodLock;
+  const selection = JSON.parse(await readFile(selectionPath, "utf8")) as PrimarySelectionReport;
+  if (lock.identity !== CLASS_PROOF_IDENTITY || lock.lockPoint !== "before-primary-body-read-and-construction" || lock.revisionPolicy.firstRunImmutable !== true) throw new Error("primary first-run method lock is invalid");
+  if (selection.identity !== CLASS_PROOF_IDENTITY || selection.status !== "materialized" || selection.primary.length !== 3) throw new Error("primary selection is not ready for first run");
+  if (JSON.stringify(lock.inputSelection.inputIds) !== JSON.stringify(selection.inputSelection.inputIds)) throw new Error("primary input selection drift");
+  const current = await runStatus(absoluteRoot);
+  if (current.currentStep !== "method-locked" && current.currentStep !== "primary-running") throw new Error("primary first-run requires method-locked status, got " + current.currentStep);
+  const responsibilityLedger = JSON.parse(await readFile(join(evidenceRoot, "responsibility-ledger.json"), "utf8")) as {
+    rows: Array<{ candidateId: string; skillId: string; duties: ExtractedResponsibility[] }>;
+  };
+  const dutyByCandidate = new Map(responsibilityLedger.rows.map((row) => [row.candidateId, row]));
+  const records: PrimaryFirstRunRecord[] = [];
+  let sourceBytesRead = 0;
+  for (const primary of selection.primary) {
+    const dutyRow = dutyByCandidate.get(primary.candidateId);
+    const duties = dutyRow?.duties ?? [];
+    if (dutyRow && dutyRow.skillId !== primary.memberId) throw new Error("primary responsibility binding mismatch: " + primary.candidateId);
+    for (const binding of primary.inputBindings) {
+      const record = await runOnePrimaryFirstRun(absoluteRoot, evidenceRoot, primary, duties, binding);
+      records.push(record);
+      sourceBytesRead += record.input.bytes + record.source.bytes;
+    }
+  }
+  records.sort((left, right) => left.memberId.localeCompare(right.memberId) || left.inputId.localeCompare(right.inputId));
+  const coreObligationIdsByMember: Record<string, string[]> = {};
+  for (const primary of selection.primary) {
+    const duties = dutyByCandidate.get(primary.candidateId)?.duties ?? [];
+    coreObligationIdsByMember[primary.memberId] = duties.filter((duty) => duty.plannedDisposition === "to-construct").map((duty) => duty.obligationId);
+  }
+  const summary = summarizePrimaryFirstRuns({
+    records,
+    expectedMemberIds: selection.primary.map((row) => row.memberId),
+    expectedInputIds: selection.inputSelection.inputIds,
+    coreObligationIdsByMember,
+  });
+  const members = selection.primary.map((primary) => {
+    const memberRecords = records.filter((record) => record.memberId === primary.memberId);
+    const coreIds = new Set(coreObligationIdsByMember[primary.memberId] ?? []);
+    const constructedCoreObligations = new Set(memberRecords.flatMap((record) => record.construction.obligations.outcomes.filter((outcome) => coreIds.has(outcome.obligationId) && outcome.outcome === "constructed").map((outcome) => outcome.obligationId))).size;
+    return {
+      candidateId: primary.candidateId,
+      memberId: primary.memberId,
+      repository: primary.repository,
+      runCount: memberRecords.length,
+      acceptedArtifacts: memberRecords.reduce((sum, record) => sum + record.runner.totals.accepted, 0),
+      checkerPassedRuns: memberRecords.filter((record) => record.runner.verifier.status === "verified").length,
+      coreObligations: coreIds.size,
+      constructedCoreObligations,
+      coreCoverage: coreIds.size ? constructedCoreObligations / coreIds.size : 0,
+    };
+  });
+  const report: PrimaryFirstRunReport = {
+    schemaVersion: "skill-family-class-proof-primary-first-run/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    methodLock: { path: CLASS_PROOF_RESULT_RELATIVE + "/method-lock.json", sha256: sha256Bytes(await readFile(lockPath)), implementationCommit: lock.implementationCommit },
+    selection: { path: CLASS_PROOF_RESULT_RELATIVE + "/primary-selection.json", sha256: sha256Bytes(await readFile(selectionPath)) },
+    inputSelection: { source: "development-ledger.json", inputIds: [...selection.inputSelection.inputIds] },
+    records,
+    members,
+    summary,
+    gates: { protocolReady: summary.protocolReady, inputReady: summary.inputReady, capabilityReady: summary.capabilityReady, transferDecision: summary.transferDecision },
+    accounting: { ...summary.accounting, sourceBytesRead, developmentAgentUsage: "host-external-not-measured-by-runner", separate: true },
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0, frozenHistoricalResultsChanged: false },
+    claimBoundary: "R9 is development-only first-run evidence for three locked primary members and two already exposed inputs each. Accepted local operation artifacts and independent checker passage do not establish whole-skill behavior, live API correctness, arbitrary OpenAPI support, human savings, ecosystem admission, prospective validity, or readiness.",
+  };
+  await persistStableJson(reportPath, report);
+  const nextStatus = await writeStatus(absoluteRoot, {
+    currentStep: transitionStatus(current.currentStep, "primary-running"),
+    lastCompletedStep: "primary-running",
+    failureSummary: [...new Set([
+      ...current.failureSummary,
+      "r9-primary-first-run:" + records.length + "/" + summary.expectedRuns,
+      ...(summary.protocolReady ? [] : ["r9-primary-first-run-incomplete"]),
+      ...(summary.checkerPassRate === 1 ? [] : ["r9-primary-checker-rate-below-one"]),
+    ])],
+  });
+  return { report, status: nextStatus };
 }
 
 export type ClassProofValidationReport = {
@@ -2403,7 +2925,22 @@ if (import.meta.main) {
       outcomeDataUsed: result.selection.outcomeDataUsed,
       reason: result.selection.reason,
     }, null, 2));
+  } else if (step === "primary-first-run" || step === "primary") {
+    const result = await runPrimaryFirstRun(root);
+    console.log(JSON.stringify({
+      status: result.report.gates.capabilityReady ? "primary-capability-ready" : "primary-first-run-recorded",
+      identity: CLASS_PROOF_IDENTITY,
+      records: result.report.records.length,
+      expectedRuns: result.report.summary.expectedRuns,
+      operations: result.report.summary.operations,
+      accepted: result.report.summary.acceptedArtifacts,
+      checked: result.report.summary.checkedAcceptedArtifacts,
+      coreCoverage: result.report.summary.coreCoverage,
+      firstRunAcceptedMembers: result.report.summary.firstRunAcceptedMembers,
+      gates: result.report.gates,
+      categories: result.report.summary.categories,
+    }, null, 2));
   } else {
-    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock");
+    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs|validation|lock|primary-first-run");
   }
 }
