@@ -192,6 +192,11 @@ c78fd85/a434186 form阶段实际新增2full样本至578/628，旧12JSON报告不
 原生格式；计划详见api-pytest-request-development.md。先绑定/覆盖TDD、合成本机
 真实Python执行，再原12文档仅生成/收集并报告缺oracle跳过；不猜真实状态或认证。
 
+原生pytest实测ff01f99/9931b2f已完成：12输入630收集全skip、4源职责产物全同，
+合成fixture15/15错误指定层检出，不计真实API通过。3109c3b修复隔离Python缓存
+及JUnit原始字节归档。下一按skill-family-current-clean-reproduction.md建立小范围
+Python依赖离线包与最新独立LF检出复现，复用原Node包，不覆写旧clean或凑时间。
+
 ## 7. 完成判据
 
 ### 2026-09-11 实际检查点
