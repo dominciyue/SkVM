@@ -1,6 +1,6 @@
 # Skill family development: current evidence and navigation
 
-Checkpoint2026-09-11 08:30 +08. Development only; continuous goal remains active.
+Checkpoint2026-09-11 09:30 +08. Development only; continuous goal remains active.
 This page supersedes stale current-status prose, not historical evidence or contracts.
 
 ## What is shared
@@ -34,6 +34,7 @@ repository. Applying three skill mappings does not turn this into36independent d
 | Body-schema negative requests | 971constructed /1414obligations,443unresolved | 2body inventories incomplete; no inferred HTTP status |
 | Response source catalog | 567response declarations,365media,329compiled JSON schemas | Source examples are not live responses |
 | Source response examples | 130valid /3invalid /9unresolved occurrences | Repeated examples are not independent samples |
+| Native pytest collection | 630collected /630skipped;578constructed request data | 628planned cases +2incomplete-operation placeholders;0real HTTP/0API passes |
 
 The three response mismatches are source-example null `ends_at` versus nonnullable string
 schemas in1Password Partnership, not demonstrated production API failures. Unsupported
@@ -61,6 +62,14 @@ c78fd85 separate form profile adds two real full request specimens with independ
 inverse decoding, keeping all12old JSON artifacts exact. Three original members ×2inputs
 produce six identical shared outputs;36tests/262assertions and main/script tsc pass.
 Evidence and commands:skill-family-form-development-20260911/README.md.
+
+c2f10b3/ff01f99 native pytest produces actual source-bound files; two pytest-compatible
+source duties (Lambda/Jeremy) ×2inputs share exact emitted bytes.9931b2f hand-written
+loopback fixture demonstrates3positive native tests and15/15designed errors detected at
+named layers,15local calls, no redirects followed. No real source oracle is invented;
+the12real suites all skip. Complete first failures/artifacts and commands are under
+skill-family-pytest-development-20260911/. This is partial native capability, not full
+API workflow or original-output obligation completion.
 
 ## New-member evidence and automation limits
 

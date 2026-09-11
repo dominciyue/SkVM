@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="0.226" timestamp="2026-09-11T09:27:23.260433+08:00" hostname="Dominic"><testcase classname="test_api_requests" name="test_source_request_against_explicit_fixture[[&quot;POST /items/{id}&quot;,&quot;[\\&quot;minimal\\&quot;,\\&quot;application/json\\&quot;,null]&quot;]]" time="0.012"><failure message="AssertionError: STATUS_MISMATCH&#10;assert 200 == 201&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">row = {'caseId': '["minimal","application/json",null]', 'id': '["POST /items/{id}","[\\"minimal\\",\\"application/json\\",null]"]', 'operationKey': 'POST /items/{id}', 'reasons': [], ...}
+
+    @pytest.mark.parametrize("row", SUITE["rows"], ids=lambda row: row["id"])
+    def test_source_request_against_explicit_fixture(row):
+        if row["status"] != "constructed":
+            pytest.skip("SOURCE_UNRESOLVED: " + "; ".join(row["reasons"]))
+        if row["security"]:
+            pytest.skip("CREDENTIALS_UNSUPPORTED")
+        oracle_path = os.environ.get("SKVM_PYTEST_ORACLE")
+        if not oracle_path:
+            pytest.skip("EXPLICIT_LOOPBACK_ORACLE_REQUIRED")
+        oracle = strict_json(Path(oracle_path).read_text(encoding="utf-8"))
+        assert oracle["schemaVersion"] == "api-pytest-loopback-oracle/v1", "ORACLE_VERSION_MISMATCH"
+        assert oracle["suiteSha256"] == SUITE_SHA256, "ORACLE_SUITE_BINDING_MISMATCH"
+        assert re.fullmatch(r"[0-9a-f]{64}", oracle["fixtureSha256"]), "FIXTURE_IDENTITY_REQUIRED"
+        origin = oracle["origin"]
+        matched = re.fullmatch(r"http://127\.0\.0\.1:([1-9][0-9]{0,4})", origin)
+        assert matched and int(matched.group(1)) &lt;= 65535, "LOOPBACK_ORIGIN_REQUIRED"
+        assert len({case["id"] for case in oracle["cases"]}) == len(oracle["cases"]), "DUPLICATE_ORACLE_CASE"
+        selected = [case for case in oracle["cases"] if case["id"] == row["id"]]
+        if not selected:
+            pytest.skip("CASE_ORACLE_REQUIRED")
+        expected = selected[0]
+        assert expected["requestSha256"] == hashlib.sha256(row["requestJson"].encode("utf-8")).hexdigest(), "ORACLE_REQUEST_BINDING_MISMATCH"
+        response_rule = expected["response"]
+        assert type(response_rule["statusCode"]) is int and 100 &lt;= response_rule["statusCode"] &lt;= 599, "EXPLICIT_STATUS_REQUIRED"
+        assert isinstance(response_rule["mediaType"], str) and isinstance(response_rule["bodyText"], str), "EXPLICIT_RESPONSE_REQUIRED"
+        request = strict_json(row["requestJson"])
+        target = request["target"]
+        assert target.startswith("/") and not target.startswith("//"), "RELATIVE_TARGET_REQUIRED"
+        body = request["body"]["text"].encode("utf-8") if request["body"] else b""
+        headers = [(header["name"], header["value"]) for header in request["headers"]]
+        with httpx.Client(trust_env=False, follow_redirects=False, timeout=5.0) as client:
+            prepared = client.build_request(request["method"], origin + target, headers=headers, content=body)
+            assert prepared.url.raw_path == target.encode("ascii"), "PREPARED_TARGET_MISMATCH"
+            assert prepared.content == body, "PREPARED_BODY_MISMATCH"
+            response = client.send(prepared, stream=True)
+            try:
+&gt;               assert response.status_code == response_rule["statusCode"], "STATUS_MISMATCH"
+E               AssertionError: STATUS_MISMATCH
+E               assert 200 == 201
+E                +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+test_api_requests.py:70: AssertionError</failure></testcase><testcase classname="test_api_requests" name="test_source_request_against_explicit_fixture[[&quot;POST /items/{id}&quot;,&quot;[\\&quot;minimal\\&quot;,\\&quot;application/json\\&quot;,\\&quot;body\\&quot;]&quot;]]" time="0.018"><failure message="AssertionError: STATUS_MISMATCH&#10;assert 422 == 201&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">row = {'caseId': '["minimal","application/json","body"]', 'id': '["POST /items/{id}","[\\"minimal\\",\\"application/json\\",\\"body\\"]"]', 'operationKey': 'POST /items/{id}', 'reasons': [], ...}
+
+    @pytest.mark.parametrize("row", SUITE["rows"], ids=lambda row: row["id"])
+    def test_source_request_against_explicit_fixture(row):
+        if row["status"] != "constructed":
+            pytest.skip("SOURCE_UNRESOLVED: " + "; ".join(row["reasons"]))
+        if row["security"]:
+            pytest.skip("CREDENTIALS_UNSUPPORTED")
+        oracle_path = os.environ.get("SKVM_PYTEST_ORACLE")
+        if not oracle_path:
+            pytest.skip("EXPLICIT_LOOPBACK_ORACLE_REQUIRED")
+        oracle = strict_json(Path(oracle_path).read_text(encoding="utf-8"))
+        assert oracle["schemaVersion"] == "api-pytest-loopback-oracle/v1", "ORACLE_VERSION_MISMATCH"
+        assert oracle["suiteSha256"] == SUITE_SHA256, "ORACLE_SUITE_BINDING_MISMATCH"
+        assert re.fullmatch(r"[0-9a-f]{64}", oracle["fixtureSha256"]), "FIXTURE_IDENTITY_REQUIRED"
+        origin = oracle["origin"]
+        matched = re.fullmatch(r"http://127\.0\.0\.1:([1-9][0-9]{0,4})", origin)
+        assert matched and int(matched.group(1)) &lt;= 65535, "LOOPBACK_ORIGIN_REQUIRED"
+        assert len({case["id"] for case in oracle["cases"]}) == len(oracle["cases"]), "DUPLICATE_ORACLE_CASE"
+        selected = [case for case in oracle["cases"] if case["id"] == row["id"]]
+        if not selected:
+            pytest.skip("CASE_ORACLE_REQUIRED")
+        expected = selected[0]
+        assert expected["requestSha256"] == hashlib.sha256(row["requestJson"].encode("utf-8")).hexdigest(), "ORACLE_REQUEST_BINDING_MISMATCH"
+        response_rule = expected["response"]
+        assert type(response_rule["statusCode"]) is int and 100 &lt;= response_rule["statusCode"] &lt;= 599, "EXPLICIT_STATUS_REQUIRED"
+        assert isinstance(response_rule["mediaType"], str) and isinstance(response_rule["bodyText"], str), "EXPLICIT_RESPONSE_REQUIRED"
+        request = strict_json(row["requestJson"])
+        target = request["target"]
+        assert target.startswith("/") and not target.startswith("//"), "RELATIVE_TARGET_REQUIRED"
+        body = request["body"]["text"].encode("utf-8") if request["body"] else b""
+        headers = [(header["name"], header["value"]) for header in request["headers"]]
+        with httpx.Client(trust_env=False, follow_redirects=False, timeout=5.0) as client:
+            prepared = client.build_request(request["method"], origin + target, headers=headers, content=body)
+            assert prepared.url.raw_path == target.encode("ascii"), "PREPARED_TARGET_MISMATCH"
+            assert prepared.content == body, "PREPARED_BODY_MISMATCH"
+            response = client.send(prepared, stream=True)
+            try:
+&gt;               assert response.status_code == response_rule["statusCode"], "STATUS_MISMATCH"
+E               AssertionError: STATUS_MISMATCH
+E               assert 422 == 201
+E                +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+test_api_requests.py:70: AssertionError</failure></testcase><testcase classname="test_api_requests" name="test_source_request_against_explicit_fixture[[&quot;POST /items/{id}&quot;,&quot;[\\&quot;full\\&quot;,\\&quot;application/json\\&quot;,null]&quot;]]" time="0.008"><failure message="AssertionError: STATUS_MISMATCH&#10;assert 200 == 201&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">row = {'caseId': '["full","application/json",null]', 'id': '["POST /items/{id}","[\\"full\\",\\"application/json\\",null]"]', 'operationKey': 'POST /items/{id}', 'reasons': [], ...}
+
+    @pytest.mark.parametrize("row", SUITE["rows"], ids=lambda row: row["id"])
+    def test_source_request_against_explicit_fixture(row):
+        if row["status"] != "constructed":
+            pytest.skip("SOURCE_UNRESOLVED: " + "; ".join(row["reasons"]))
+        if row["security"]:
+            pytest.skip("CREDENTIALS_UNSUPPORTED")
+        oracle_path = os.environ.get("SKVM_PYTEST_ORACLE")
+        if not oracle_path:
+            pytest.skip("EXPLICIT_LOOPBACK_ORACLE_REQUIRED")
+        oracle = strict_json(Path(oracle_path).read_text(encoding="utf-8"))
+        assert oracle["schemaVersion"] == "api-pytest-loopback-oracle/v1", "ORACLE_VERSION_MISMATCH"
+        assert oracle["suiteSha256"] == SUITE_SHA256, "ORACLE_SUITE_BINDING_MISMATCH"
+        assert re.fullmatch(r"[0-9a-f]{64}", oracle["fixtureSha256"]), "FIXTURE_IDENTITY_REQUIRED"
+        origin = oracle["origin"]
+        matched = re.fullmatch(r"http://127\.0\.0\.1:([1-9][0-9]{0,4})", origin)
+        assert matched and int(matched.group(1)) &lt;= 65535, "LOOPBACK_ORIGIN_REQUIRED"
+        assert len({case["id"] for case in oracle["cases"]}) == len(oracle["cases"]), "DUPLICATE_ORACLE_CASE"
+        selected = [case for case in oracle["cases"] if case["id"] == row["id"]]
+        if not selected:
+            pytest.skip("CASE_ORACLE_REQUIRED")
+        expected = selected[0]
+        assert expected["requestSha256"] == hashlib.sha256(row["requestJson"].encode("utf-8")).hexdigest(), "ORACLE_REQUEST_BINDING_MISMATCH"
+        response_rule = expected["response"]
+        assert type(response_rule["statusCode"]) is int and 100 &lt;= response_rule["statusCode"] &lt;= 599, "EXPLICIT_STATUS_REQUIRED"
+        assert isinstance(response_rule["mediaType"], str) and isinstance(response_rule["bodyText"], str), "EXPLICIT_RESPONSE_REQUIRED"
+        request = strict_json(row["requestJson"])
+        target = request["target"]
+        assert target.startswith("/") and not target.startswith("//"), "RELATIVE_TARGET_REQUIRED"
+        body = request["body"]["text"].encode("utf-8") if request["body"] else b""
+        headers = [(header["name"], header["value"]) for header in request["headers"]]
+        with httpx.Client(trust_env=False, follow_redirects=False, timeout=5.0) as client:
+            prepared = client.build_request(request["method"], origin + target, headers=headers, content=body)
+            assert prepared.url.raw_path == target.encode("ascii"), "PREPARED_TARGET_MISMATCH"
+            assert prepared.content == body, "PREPARED_BODY_MISMATCH"
+            response = client.send(prepared, stream=True)
+            try:
+&gt;               assert response.status_code == response_rule["statusCode"], "STATUS_MISMATCH"
+E               AssertionError: STATUS_MISMATCH
+E               assert 200 == 201
+E                +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+test_api_requests.py:70: AssertionError</failure></testcase></testsuite></testsuites>
