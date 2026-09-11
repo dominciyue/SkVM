@@ -373,6 +373,44 @@ export function selectDevelopmentInputs(inputs: TaskInputBinding[], count = 2): 
   return inputs.slice(0, Math.max(0, count));
 }
 
+type DevelopmentInputReference = {
+  inputId: string;
+  format: "json" | "yaml";
+  bytes: number;
+  sha256: string;
+  path?: string;
+};
+
+/**
+ * Resolve the primary input set from the already agreed development ledger.
+ * This prevents a stale or differently ordered task-input snapshot from
+ * silently changing the R4/R6 input contract.
+ */
+export function selectPrimaryInputBindings(
+  taskBindings: TaskInputBinding[],
+  developmentMembers: Array<{ inputBindings: DevelopmentInputReference[] }>,
+  count = 2,
+): TaskInputBinding[] {
+  if (!developmentMembers.length) throw new Error("development ledger has no input bindings");
+  const expected = developmentMembers[0]!.inputBindings.slice(0, Math.max(0, count));
+  if (expected.length < count) throw new Error("development ledger has fewer than the required primary inputs");
+  const signature = (row: DevelopmentInputReference) => `${row.inputId}\u0000${row.format}\u0000${row.bytes}\u0000${row.sha256}`;
+  for (const member of developmentMembers.slice(1)) {
+    const actual = member.inputBindings.slice(0, expected.length);
+    if (actual.length !== expected.length || actual.some((row, index) => signature(row) !== signature(expected[index]!))) {
+      throw new Error("input binding order mismatch across development members");
+    }
+  }
+  const selected = expected.map((reference) => {
+    const matches = taskBindings.filter((binding) => binding.inputId === reference.inputId
+      && binding.format === reference.format && binding.bytes === reference.bytes && binding.sha256 === reference.sha256);
+    if (matches.length !== 1) throw new Error(`primary task input binding mismatch: ${reference.inputId}`);
+    return matches[0]!;
+  });
+  if (new Set(selected.map((binding) => binding.inputId)).size !== selected.length) throw new Error("duplicate primary input binding");
+  return selected;
+}
+
 export type PrimarySelectionCandidate = {
   candidateId: string;
   skillId: string;
@@ -474,7 +512,8 @@ export type ClassProofMethodLock = {
   mappingSchema: "skill-family-obligation-ledger/v1";
   constructionProfile: typeof CLASS_CONSTRUCTION_PROFILE;
   checkerProfile: "api-tester-operation-input-independent-coverage-and-dependency-checker";
-  inputGenerationRule: "first two entries in the archived development input index; digest-bound and fixed before construction";
+  inputGenerationRule: "development-ledger fixed first two archived input-index entries; digest-bound and fixed before construction";
+  inputSelection: { source: "development-ledger.json"; inputIds: string[]; memberAgreement: true };
   thresholds: { minPrimaryMembers: 3; minInputsPerMember: 2; minCoreObligationCoverage: 0.9; minFirstRunAcceptedMembers: 2; acceptedCheckerPassRate: 1 };
   revisionPolicy: { maxSharedRevisions: 1; selectFromCommonContractGapsOnly: true; firstRunImmutable: true };
   candidateOrder: PrimarySelectionPlan["candidateOrder"];
@@ -497,6 +536,7 @@ export function buildMethodLock(input: {
   primary: MethodLockCandidate[];
   reserve: MethodLockCandidate[];
   screeningBodyReadCount: number;
+  inputIds?: string[];
   candidateOrder?: PrimarySelectionPlan["candidateOrder"];
   eligibleAfterDevelopment?: number;
   inputQualifiedAfterDevelopment?: number;
@@ -518,7 +558,8 @@ export function buildMethodLock(input: {
     mappingSchema: "skill-family-obligation-ledger/v1",
     constructionProfile: CLASS_CONSTRUCTION_PROFILE,
     checkerProfile: "api-tester-operation-input-independent-coverage-and-dependency-checker",
-    inputGenerationRule: "first two entries in the archived development input index; digest-bound and fixed before construction",
+    inputGenerationRule: "development-ledger fixed first two archived input-index entries; digest-bound and fixed before construction",
+    inputSelection: { source: "development-ledger.json", inputIds: [...(input.inputIds ?? [])], memberAgreement: true },
     thresholds: { minPrimaryMembers: 3, minInputsPerMember: 2, minCoreObligationCoverage: 0.9, minFirstRunAcceptedMembers: 2, acceptedCheckerPassRate: 1 },
     revisionPolicy: { maxSharedRevisions: 1, selectFromCommonContractGapsOnly: true, firstRunImmutable: true },
     candidateOrder: input.candidateOrder ?? "repository,path,candidateId lexical after eligibility and development exclusion",
@@ -560,6 +601,7 @@ export type PrimarySelectionReport = {
   schemaVersion: "skill-family-class-proof-primary-selection/v1";
   identity: typeof CLASS_PROOF_IDENTITY;
   methodLock: { path: string; sha256: string };
+  inputSelection: { source: "development-ledger.json"; inputIds: string[] };
   status: "materialized" | "insufficient-evidence" | "blocked-before-evaluation";
   candidateOrder: PrimarySelectionPlan["candidateOrder"];
   primary: PrimaryMaterializedRow[];
@@ -703,6 +745,7 @@ async function materializePrimarySelection(input: {
     schemaVersion: "skill-family-class-proof-primary-selection/v1",
     identity: CLASS_PROOF_IDENTITY,
     methodLock: { path: `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, sha256: sha256Bytes(jsonText(input.lock)) },
+    inputSelection: { source: "development-ledger.json", inputIds: input.taskBindings.map((binding) => binding.inputId) },
     status: "materialized",
     candidateOrder: input.plan.candidateOrder,
     primary: primaryRows,
@@ -743,9 +786,9 @@ export async function runMethodLock(root: string): Promise<MethodLockRunResult> 
   if (!r7 || r7.gates?.implementationCorrectness !== "pass") throw new Error("R7 validation gate is not complete");
   const sourceLedger = JSON.parse(await readFile(join(evidenceRoot, "source-ledger.json"), "utf8")) as { rows: AcquiredSourceRow[] };
   const eligibility = JSON.parse(await readFile(join(evidenceRoot, "eligibility.json"), "utf8")) as { rows: Array<UnhydratedEligibilitySummaryRow>; totals: { candidates: number; eligible: number } };
-  const developmentLedger = JSON.parse(await readFile(join(evidenceRoot, "development-ledger.json"), "utf8")) as { members: Array<{ candidateId: string }> };
+  const developmentLedger = JSON.parse(await readFile(join(evidenceRoot, "development-ledger.json"), "utf8")) as { members: Array<{ candidateId: string; inputBindings: DevelopmentInputReference[] }> };
   const archivedTask = JSON.parse(await readFile(join(evidenceRoot, "task-inputs.json"), "utf8")) as { inputs: TaskInputBinding[] };
-  const taskBindings = archivedTask.inputs;
+  const taskBindings = selectPrimaryInputBindings(archivedTask.inputs, developmentLedger.members);
   if (taskBindings.length < 2) throw new Error("archived task-input index has fewer than two bindings");
   const sourceByCandidate = new Map(sourceLedger.rows.map((row) => [row.candidateId, row]));
   const hydrated = hydrateEligibilityRepositories(eligibility.rows, sourceLedger.rows);
@@ -784,6 +827,7 @@ export async function runMethodLock(root: string): Promise<MethodLockRunResult> 
     eligibleAfterDevelopment: plan.eligibleAfterDevelopment,
     inputQualifiedAfterDevelopment: plan.inputQualifiedAfterDevelopment,
     repositoryDistinct: plan.repositoryDistinct,
+    inputIds: taskBindings.map((binding) => binding.inputId),
   });
   if (!existingLock) await persistStableJson(lockPath, lock);
   if (!plan.ready) {
@@ -791,6 +835,7 @@ export async function runMethodLock(root: string): Promise<MethodLockRunResult> 
       schemaVersion: "skill-family-class-proof-primary-selection/v1",
       identity: CLASS_PROOF_IDENTITY,
       methodLock: { path: `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, sha256: sha256Bytes(jsonText(lock)) },
+      inputSelection: { source: "development-ledger.json", inputIds: taskBindings.map((binding) => binding.inputId) },
       status: "insufficient-evidence",
       candidateOrder: plan.candidateOrder,
       primary: [],
@@ -823,6 +868,7 @@ export async function runMethodLock(root: string): Promise<MethodLockRunResult> 
       schemaVersion: "skill-family-class-proof-primary-selection/v1",
       identity: CLASS_PROOF_IDENTITY,
       methodLock: { path: `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, sha256: sha256Bytes(jsonText(lock)) },
+      inputSelection: { source: "development-ledger.json", inputIds: taskBindings.map((binding) => binding.inputId) },
       status: "blocked-before-evaluation",
       candidateOrder: plan.candidateOrder,
       primary: [],

@@ -19,6 +19,7 @@ import {
   deriveDevelopmentGate,
   selectDevelopmentMembers,
   selectDevelopmentInputs,
+  selectPrimaryInputBindings,
   selectPrimaryMembers,
   buildMethodLock,
   selectCandidateMetadata,
@@ -393,5 +394,27 @@ describe("skill-family class-proof status", () => {
     expect(lock.thresholds.minPrimaryMembers).toBe(3);
     expect(lock.revisionPolicy.maxSharedRevisions).toBe(1);
     expect(lock.primary[0]?.candidateId).toBe("candidate-091");
+  });
+
+  test("anchors primary inputs to the agreed development ledger order", () => {
+    const taskBindings = [
+      { inputId: "adatree", provider: "A", sourcePath: "a.yaml", localPath: "a.yaml", format: "yaml" as const, bytes: 1, sha256: "a".repeat(64), exposure: "development" as const },
+      { inputId: "onepassword-connect", provider: "1Password", sourcePath: "one.yaml", localPath: "one.yaml", format: "yaml" as const, bytes: 2, sha256: "b".repeat(64), exposure: "development" as const },
+      { inputId: "onepassword-partnership", provider: "1Password", sourcePath: "two.yaml", localPath: "two.yaml", format: "yaml" as const, bytes: 3, sha256: "c".repeat(64), exposure: "development" as const },
+    ];
+    const members = [
+      { inputBindings: [
+        { inputId: "onepassword-connect", format: "yaml" as const, bytes: 2, sha256: "b".repeat(64), path: "one.yaml" },
+        { inputId: "onepassword-partnership", format: "yaml" as const, bytes: 3, sha256: "c".repeat(64), path: "two.yaml" },
+      ] },
+      { inputBindings: [
+        { inputId: "onepassword-connect", format: "yaml" as const, bytes: 2, sha256: "b".repeat(64), path: "one.yaml" },
+        { inputId: "onepassword-partnership", format: "yaml" as const, bytes: 3, sha256: "c".repeat(64), path: "two.yaml" },
+      ] },
+    ];
+    expect(selectPrimaryInputBindings(taskBindings, members).map((row) => row.inputId)).toEqual([
+      "onepassword-connect", "onepassword-partnership",
+    ]);
+    expect(() => selectPrimaryInputBindings(taskBindings, [members[0]!, { inputBindings: [members[0]!.inputBindings[1]!, members[0]!.inputBindings[0]!] }])).toThrow(/input binding order mismatch/u);
   });
 });

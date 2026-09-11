@@ -168,3 +168,20 @@ not-applicable, and unresolved counts are all zero. Machine evidence is in
 The report keeps the synthetic fault set separate from real success and does
 not change the v2 contract, readiness, historical `0/6`, or prospective
 boundaries. The next action is R8 method lock and primary selection.
+
+R8 is complete. `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=lock`
+first exposed and preserved an input-order mismatch between the stale
+`task-inputs.json` snapshot and the R4/R6 development ledger; the failed attempt
+is recorded in `r8-input-binding-mismatch-attempt-001.json` and did not run
+construction. The repaired lock uses the first two bindings agreed by all six
+development members and cross-checks each task binding by `inputId`, format,
+bytes, and SHA-256. `method-lock.json` binds implementation commit `333e4be`,
+39 screened bodies, 12 eligible candidates, three repository-distinct primary
+members (`candidate-091`, `candidate-112`, `candidate-217`), and two reserves.
+The lock records `screeningBodyReadCount=39` and
+`primaryBodyReadCount=0`; only after it was persisted were three primary bodies,
+five direct resources, and six fixed inputs copied and digest-checked. The
+separate `primary-selection.json` shows each primary bound to
+`onepassword-connect` and `onepassword-partnership`, with
+`outcomeDataUsed=false`. No primary construction or prospective run has begun;
+the next action is R9 first-run construction.

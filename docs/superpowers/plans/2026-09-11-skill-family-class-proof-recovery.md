@@ -262,13 +262,26 @@ export function preflightSkillEligibility(input: unknown): EligibilityRecord;
 
 **前置条件：** R6 `capabilityReady=true`，或已明确转入 `insufficient-evidence`；R1–R7 的方法/contract 版本已提交。
 
-- [ ] 写入 `method-lock.json`：class contract commit、eligibility algorithm version、mapping schema、construction/checker profile、input generation rule、thresholds 和一次 revision policy。
-- [ ] 对 R3 中未参与 development 的候选运行同一 preflight；先得到至少 5 个 `eligible`，按固定顺序锁定 3 个 primary + 至少 2 个 reserve，且至少 3 个不同 owner/repository。
-- [ ] 在 lock 前只做 eligibility screening，不运行构造、不看 accepted count、不用模型生成答案；把 `screeningBodyReadCount` 与 `primaryBodyReadCount` 分列。
-- [ ] 将 primary source body、直接资源和任务输入在 lock 后一次性读取；若某个候选仍不满足两个输入，保留其 `ineligible-after-screening`，按锁定的 reserve replacement 规则替换，替换行仍留在分母和报告中。
-- [ ] 运行 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=lock`，必须返回 `method-locked` 或明确 `insufficient-evidence`，不能静默继续。
+- [x] 写入 `method-lock.json`：class contract commit、eligibility algorithm version、mapping schema、construction/checker profile、input generation rule、thresholds 和一次 revision policy。
+- [x] 对 R3 中未参与 development 的候选运行同一 preflight；先得到至少 5 个 `eligible`，按固定顺序锁定 3 个 primary + 至少 2 个 reserve，且至少 3 个不同 owner/repository。
+- [x] 在 lock 前只做 eligibility screening，不运行构造、不看 accepted count、不用模型生成答案；把 `screeningBodyReadCount` 与 `primaryBodyReadCount` 分列。
+- [x] 将 primary source body、直接资源和任务输入在 lock 后一次性读取；若某个候选仍不满足两个输入，保留其 `ineligible-after-screening`，按锁定的 reserve replacement 规则替换，替换行仍留在分母和报告中。
+- [x] 运行 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=lock`，必须返回 `method-locked` 或明确 `insufficient-evidence`，不能静默继续。
 
 **验收：** 方法锁先于 primary construction；至少三名 primary input-qualified 才开放 R9；没有把开发修订结果冒充首跑。
+
+**R8 实际检查点（2026-09-12）：** 初次运行发现归档 `task-inputs.json`
+排序与 R4/R6 development ledger 不一致，产生的错误输入绑定已保留为
+`r8-input-binding-mismatch-attempt-001.json` 及对应 attempt 文件，且未运行构造。
+修复后的锁以 `development-ledger.json` 中所有六名 development member 一致的
+前两个绑定为唯一输入依据，并按 `inputId+format+bytes+sha256` 与任务快照交叉核对。
+最终 `method-lock.json` 绑定实现提交 `333e4be`，筛选 39、eligible 12，排除
+development 后 6 个 input-qualified 候选、3 个 repository-distinct primary
+（`candidate-091/112/217`）和 2 个 reserve。锁文件记录
+`screeningBodyReadCount=39`、`primaryBodyReadCount=0`；随后
+`primary-selection.json` 记录锁后读取 3 个正文、5 个直接资源和 6 个输入，
+三名 primary 均绑定 `onepassword-connect` 与 `onepassword-partnership`。没有使用
+accepted/outcome 数据，未启动 primary 构造或 prospective。
 
 ### R9：primary 首次迁移运行
 
