@@ -75,13 +75,15 @@ repository/commit/source path
 新阶段使用：
 
 ```text
-branch: skill-family-class-proof-002
+branch: skill-ir-aot
 identity: skill-family-class-proof-002
 evidence: results/skill-ir/skill-family-class-proof-20260911/
 status: planned
 ```
 
-开始执行时必须重新记录实际 HEAD、分支、origin tracking 和 tracked status；不能使用本文件写作时的旧 commit。工作分支可以从当前 HEAD 创建，完成后只推送用户 `origin`，不推 `upstream`，不自动合并基线。
+开始执行时必须重新记录实际 HEAD、分支、origin tracking 和 tracked status；不能使用本文件写作时的旧 commit。执行直接发生在 `skill-ir-aot`，完成后只推送用户 `origin/skill-ir-aot`，不推 `upstream`，不切换到其他开发分支。
+
+本项目采用单一开发分支策略：所有后续实现、修复、验证和文档提交直接在 `skill-ir-aot` 上进行，并推送 `origin/skill-ir-aot`。`identity` 只用于证据批次隔离，不创建同名或临时 Git 分支；历史分支的提交在整合后不再继续使用。
 
 ## 4. 文件责任
 
@@ -140,7 +142,7 @@ reported -> extension-running
 **文件：** `scripts/skill-ir/skill-family-class-proof.ts`、`results/skill-ir/skill-family-class-proof-20260911/execution-status.json`、`docs/skill-ir/skill-family-class-proof-002.md`。
 
 - [ ] 运行 `git status --short --branch`、`git rev-parse HEAD`、`git rev-parse --abbrev-ref --symbolic-full-name @{u}`，把实际值写入 status。
-- [ ] 从当前 HEAD 创建或继续 `skill-family-class-proof-002`，不修改 `main`、`upstream` 或历史结果。
+- [ ] 确认当前分支为 `skill-ir-aot`；不创建新的 Git 分支，不修改 `main`、`upstream` 或历史结果。
 - [ ] 写一个最小 status 命令：`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`；不存在结果时返回 `planned`，不得创建模型/网络请求。
 - [ ] 为 status JSON 定义 `identity`、`planRevision=1`、`currentStep`、`lastCompletedStep`、`externalAccounting`、`protectedReads` 和 `failureSummary`。
 - [ ] 先提交 `chore(skill-ir): register class-proof recovery identity`，只暂存本任务文件、status 和组件说明。
@@ -301,7 +303,7 @@ export function preflightSkillEligibility(input: unknown): EligibilityRecord;
 - [ ] 在短路径 detached checkout 复现新 identity 的 manifest、eligibility、method lock 和 final report；使用现有离线依赖包，避免重新请求网络/模型。
 - [ ] 运行一次 focused regression、一次 `bun run typecheck`、一次脚本 typecheck；文档链接只做一次增量扫描，不重复全仓历史审计。
 - [ ] 更新 `docs/skill-ir/skill-family-class-proof-002.md`、`skill-family-current-results.md`、`deadline-execution-status.md` 和 root handoff，明确成功/失败/未执行、恢复命令和剩余缺口。
-- [ ] 仅暂存本计划涉及的代码、测试、contracts、结果和文档，分功能提交并推送 `origin/skill-family-class-proof-002`；不要 `git add -A`，不要删除未跟踪历史材料。
+- [ ] 仅暂存本计划涉及的代码、测试、contracts、结果和文档，分功能提交并推送 `origin/skill-ir-aot`；不要 `git add -A`，不要删除未跟踪历史材料。
 - [ ] 最终 status 命令为 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`，并把输出路径写入交接。
 
 **验收：** 新报告可由 clean checkout 重放；旧不足证据、旧 candidate/readiness/Q1 不变；远端分支与本地提交一致；最终主张严格使用结果等级。
@@ -339,12 +341,15 @@ export function preflightSkillEligibility(input: unknown): EligibilityRecord;
 
 ```text
 cd /d D:\skill优化\SkVM
+git switch skill-ir-aot
 git status --short --branch
 bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status
 bun ./scripts/skill-ir/skill-family-class-proof.ts --step=resume
 ```
 
 `--step=resume` 必须读取 status 并执行从首个未完成 R/E 任务开始的连续队列；它不能重新发送已完成的模型/付费请求，也不能读取 protected reserve 以外的新来源而不先写 screening policy。只有用户明确停止，或 R0–R12 与 E1–E6 均已实际完成且没有新的证据驱动任务时，执行器才可以结束目标；“报告已写出”本身不是停止条件。
+
+恢复、提交和推送均固定发生在 `skill-ir-aot`；不得因 identity 名称重新创建 feature branch。
 
 本计划的工程 Definition of Done：
 
