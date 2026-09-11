@@ -2571,6 +2571,7 @@ export type ClassProofFinalReport = {
     methodLock: { path: string; sha256: string; implementationCommit: string };
     primarySelection: { path: string; sha256: string };
     developmentLedger: { path: string; sha256: string };
+    responsibilityLedger: { path: string; sha256: string };
     developmentRuns: { path: string; sha256: string };
     validation: { path: string; sha256: string };
     primaryFirstRun: { path: string; sha256: string };
@@ -2679,9 +2680,11 @@ export async function runFinalReport(root: string): Promise<{ report: ClassProof
   const methodLock = await readFinalEvidence<ClassProofMethodLock>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/method-lock.json`, "skill-family-class-proof-method-lock/v1");
   const primarySelection = await readFinalEvidence<PrimarySelectionReport>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/primary-selection.json`, "skill-family-class-proof-primary-selection/v1");
   const developmentLedger = await readFinalEvidence<{
-    members: Array<{ candidateId: string; memberId: string; repository: string; duties: ExtractedResponsibility[] }>;
     totals: { unresolvedObligations: number; outsideClassDuties: number; inputQualifiedMembers: number; repositoryDistinct: number };
   }>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/development-ledger.json`, "skill-family-class-proof-development-ledger/v1");
+  const responsibilityLedger = await readFinalEvidence<{
+    rows: Array<{ candidateId: string; skillId: string; duties: ExtractedResponsibility[] }>;
+  }>(absoluteRoot, `${CLASS_PROOF_RESULT_RELATIVE}/responsibility-ledger.json`, "skill-family-class-proof-responsibility-ledger/v1");
   const developmentRuns = await readFinalEvidence<{
     runs: Array<{ runner: { totals: { operations: number; rejected: number; unresolved: number } } }>;
     accounting: { runtimeCalls: number };
@@ -2704,7 +2707,7 @@ export async function runFinalReport(root: string): Promise<{ report: ClassProof
 
   const primarySummary = primaryFirstRun.value.summary;
   const primaryCandidates = new Map(primarySelection.value.primary.map((row) => [row.candidateId, row]));
-  const dutyRows = new Map(developmentLedger.value.members.map((row) => [row.candidateId, row]));
+  const dutyRows = new Map(responsibilityLedger.value.rows.map((row) => [row.candidateId, row]));
   const unconstructedCoreDuties: ClassProofFinalReport["residual"]["unconstructedCoreDuties"] = [];
   for (const primary of primarySelection.value.primary) {
     const duties = (dutyRows.get(primary.candidateId)?.duties ?? []).filter((duty) => duty.plannedDisposition === "to-construct");
@@ -2724,11 +2727,11 @@ export async function runFinalReport(root: string): Promise<{ report: ClassProof
       }
     }
   }
-  const sourceAdvisories = primaryFirstRun.value.records.flatMap((record) => {
+  const sourceAdvisories = [...new Set(primaryFirstRun.value.records.flatMap((record) => {
     const issues = record.runner.sourceIssues;
     return Object.entries(issues).filter(([, value]) => value !== null && value !== false && value !== 0 && value !== "")
       .map(([key]) => `${record.inputId}:${key}`);
-  }).sort();
+  }))].sort();
   const prospectivePreparation = deriveProspectivePreparation({
     protocolReady: primaryFirstRun.value.gates.protocolReady,
     inputReady: primaryFirstRun.value.gates.inputReady,
@@ -2754,6 +2757,7 @@ export async function runFinalReport(root: string): Promise<{ report: ClassProof
       methodLock: { path: methodLock.path, sha256: methodLock.sha256, implementationCommit: methodLock.value.implementationCommit },
       primarySelection: { path: primarySelection.path, sha256: primarySelection.sha256 },
       developmentLedger: { path: developmentLedger.path, sha256: developmentLedger.sha256 },
+      responsibilityLedger: { path: responsibilityLedger.path, sha256: responsibilityLedger.sha256 },
       developmentRuns: { path: developmentRuns.path, sha256: developmentRuns.sha256 },
       validation: { path: validation.path, sha256: validation.sha256 },
       primaryFirstRun: { path: primaryFirstRun.path, sha256: primaryFirstRun.sha256 },
