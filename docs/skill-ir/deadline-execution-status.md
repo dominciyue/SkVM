@@ -1,7 +1,7 @@
 # 一类 skill 深化：唯一执行恢复状态
 
-- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前09:30，约7h，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；HEAD9931b2f，origin a434186，native证据待本次提交；clean证据569620c。没有运行中进程/付费请求/监听端口。
+- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前10:10，约7.6h，未达10h，不空等/重复扩样凑时长。
+- 分支 api-tester-operation-unseen-prospective-001；HEAD883c85e，origin529b848，本次最新clean证据待提交。所有clean进程已结束，无付费请求/监听端口。
 - 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§73。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
 - 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
 
@@ -45,7 +45,8 @@
 9. c78fd85独立form profile完成：578/628（+2full Visier）、50unresolved，旧JSON12报告完全相同；原三成员×2输入6集成产物全同。36tests/262assertions与主/脚本tsc通过，证据skill-family-form-development-20260911。最新clean仍be89a50。
 10. 原生pytest c2f10b3/ff01f99：源绑定suite/独立verifier、固定httpx runtime、显式fixture oracle；22tests/172assertions及主tsc，映射/batch17tests/80assertions及explicit tsc通过。首次Response context manager失败原件保留。12文档630collected/630skipped（628计划+2不完整占位）、0真实HTTP；4Lambda/Jeremy源职责产物与panel字节相同。
 11. 9931b2f独立本机fixture完整归档：3positive、3no-oracle skip、15/15设计错误在指定层检出，15次本机HTTP、重定向不跟随。native阶段累计93本机调用（含测试/失败/归档），0远端/模型/付费。证据skill-family-pytest-development-20260911。
-12. 下一具体动作：建立仅pytest/httpx必要分发包的固定版本与摘要离线包（不打包整个Anaconda），用新独立LF checkout复现本轮JSON/form/negative/response/native结果。复用已验证Node离线包；明确Python外部运行时，保留新clean全部输出与环境差异，不覆写旧clean。
+12. 3109c3b修-B防pyc和旧native XML归档字节，883c85e固定13Python依赖356文件离线包。最新独立clean@883c85e四profile完成，36文档+24native文件字节同，630收集全skip，fixture15/15检出；24tests/3697assertions、6Python测试、主/脚本tsc通过。完整112输出在skill-family-current-clean-20260911/clean-archive-r1；初次collector字段错误现场保留。native累计123本机HTTP，0真实API新增。
+13. 下一具体动作：提交/推送完整clean档案并核对Git字节，再修复实际观察到的Python Windows stdout编码损失（显式-X utf8、确定性中文诊断TDD）；不改产物语义或重跑整panel。所有clean长进程已结束。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）

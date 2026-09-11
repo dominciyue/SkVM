@@ -1,0 +1,3282 @@
+{
+  "inputId": "brex-expenses",
+  "report": {
+    "schemaVersion": "api-request-body-negatives/v1",
+    "fields": {
+      "schemaVersion": "api-request-cases/v2",
+      "sourceSha256": "6011402644e31cc057eeb35da72413624d97b5abdbf4e5b48328e8ffb0c23ab9",
+      "sourceFormat": "yaml",
+      "enumerationComplete": true,
+      "enumerationIssues": [],
+      "operations": [
+        {
+          "key": "GET /v1/expenses/card",
+          "locator": "#/paths/~1v1~1expenses~1card/get",
+          "operationId": "CardExpenses_list",
+          "summary": "List expenses",
+          "projectedOperation": {
+            "tags": [
+              "Card Expenses"
+            ],
+            "summary": "List expenses",
+            "operationId": "CardExpenses_list",
+            "security": [
+              {
+                "OAuth2": [
+                  "expenses.card.readonly",
+                  "expenses.card"
+                ]
+              }
+            ],
+            "description": "List expenses under the same account. Admin and bookkeeper have access to any expense, and regular users can only access their own.",
+            "parameters": [
+              {
+                "name": "budget_id[]",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "description": "\nThe cursor to use for pagination. This is the `next_cursor` value returned from the previous response.\n",
+                "name": "cursor",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              {
+                "description": "Get additional details for the expense, e.g. merchant mcc code, by passing in `expand[]=merchant`. Query parameters include `location`, `department`, `merchant`, `receipts.download_uris`, `user`, `budget` and `payment`.",
+                "name": "expand[]",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "merchant",
+                  "location"
+                ]
+              },
+              {
+                "name": "limit",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "nullable": true
+                }
+              },
+              {
+                "description": "Load custom fields for the expenses.",
+                "name": "load_custom_fields",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "boolean",
+                  "nullable": true,
+                  "default": false
+                }
+              },
+              {
+                "description": "Get itemized expenses belong to provided parent expenses ID(s).",
+                "name": "parent_expense_id[]",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "name": "payment_status[]",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "$ref": "#/components/schemas/ExpensePaymentStatus"
+                  }
+                }
+              },
+              {
+                "description": "\nShows only expenses with a `purchased_at` on or before this date-time. This parameter is the date-time notation as defined by [RFC 3339, section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6), e.g. 2022-11-12T23:59:59.999\n",
+                "name": "purchased_at_end",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                },
+                "example": "2023-01-10T23:59:59.999"
+              },
+              {
+                "description": "\nShows only expenses with a `purchased_at` on or after this date-time. This parameter is the date-time notation as defined by [RFC 3339, section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6), e.g. 2022-11-12T23:59:59.999\n",
+                "name": "purchased_at_start",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                },
+                "example": "2023-01-01T23:59:59.999"
+              },
+              {
+                "name": "status[]",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "$ref": "#/components/schemas/ExpenseStatus"
+                  }
+                }
+              },
+              {
+                "description": "Get expenses belong to provided user(s).",
+                "name": "user_id[]",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "listExpenses 200 response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Page_ExpandableExpense_"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request"
+              },
+              "401": {
+                "description": "Unauthorized"
+              },
+              "403": {
+                "description": "Forbidden"
+              }
+            }
+          },
+          "schemas": [
+            {
+              "id": "query:budget_id[]",
+              "location": "query",
+              "name": "budget_id[]",
+              "required": false,
+              "schema": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "428e2c86fb9feed15658910fc61c0e70f20db0377a015409b0f2b4a027b5968a",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": []
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "example"
+                    ]
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/items/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/type",
+                    "validationSchemaPath": "#/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      null
+                    ]
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "budget_id%5B%5D=example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "query:cursor",
+              "location": "query",
+              "name": "cursor",
+              "required": false,
+              "schema": {
+                "type": "string",
+                "nullable": true
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "7015ab8c8e3eeb709dde5ebdb0782c620b83379802843f3f5320f3bccbaee074",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "cursor=example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "cursor=example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "query:expand[]",
+              "location": "query",
+              "name": "expand[]",
+              "required": false,
+              "schema": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "428e2c86fb9feed15658910fc61c0e70f20db0377a015409b0f2b4a027b5968a",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": []
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "example"
+                    ]
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/items/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/type",
+                    "validationSchemaPath": "#/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      null
+                    ]
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "expand%5B%5D=example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "query:limit",
+              "location": "query",
+              "name": "limit",
+              "required": false,
+              "schema": {
+                "type": "integer",
+                "format": "int32",
+                "nullable": true
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "4606cc7411212b388c623c6044104022c85b6c79765271d3923e180f4751905a",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": 0
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": 0
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "integer",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/format:format",
+                    "kind": "format",
+                    "instancePath": [],
+                    "schemaPath": "#/format",
+                    "validationSchemaPath": "#/format",
+                    "keyword": "format",
+                    "operand": {
+                      "value": "int32",
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": 1e+30
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "limit=0",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "limit=0",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/format:format",
+                  "status": "encoded",
+                  "wire": "limit=1e%2B30",
+                  "reason": null
+                }
+              ]
+            },
+            {
+              "id": "query:load_custom_fields",
+              "location": "query",
+              "name": "load_custom_fields",
+              "required": false,
+              "schema": {
+                "type": "boolean",
+                "nullable": true,
+                "default": false
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "c179a0b19f77a1ea9e4d3fcb43a92565c4e18434388067aadab49d3032cb6053",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": true
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": true
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "boolean",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "load_custom_fields=true",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "load_custom_fields=true",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "query:parent_expense_id[]",
+              "location": "query",
+              "name": "parent_expense_id[]",
+              "required": false,
+              "schema": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "428e2c86fb9feed15658910fc61c0e70f20db0377a015409b0f2b4a027b5968a",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": []
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "example"
+                    ]
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/items/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/type",
+                    "validationSchemaPath": "#/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      null
+                    ]
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "parent_expense_id%5B%5D=example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "query:payment_status[]",
+              "location": "query",
+              "name": "payment_status[]",
+              "required": false,
+              "schema": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "$ref": "#/components/schemas/ExpensePaymentStatus"
+                }
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "8cf854520fe277a113ed69f6eeba9bec04e038d8306ba0e6a366e5f8e5a5e8f6",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": []
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "NOT_STARTED"
+                    ]
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/items/$ref/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/$ref/type",
+                    "validationSchemaPath": "#/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      null
+                    ]
+                  },
+                  {
+                    "id": "#/items/$ref/enum:enum",
+                    "kind": "enum",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/$ref/enum",
+                    "validationSchemaPath": "#/items/enum",
+                    "keyword": "enum",
+                    "operand": {
+                      "value": [
+                        "NOT_STARTED",
+                        "PROCESSING",
+                        "CANCELED",
+                        "DECLINED",
+                        "CLEARED",
+                        "REFUNDING",
+                        "REFUNDED",
+                        "CASH_ADVANCE",
+                        "CREDITED",
+                        "AWAITING_PAYMENT",
+                        "SCHEDULED"
+                      ],
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "__outside_enum__"
+                    ]
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "payment_status%5B%5D=NOT_STARTED",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/$ref/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/$ref/enum:enum",
+                  "status": "encoded",
+                  "wire": "payment_status%5B%5D=__outside_enum__",
+                  "reason": null
+                }
+              ]
+            },
+            {
+              "id": "query:purchased_at_end",
+              "location": "query",
+              "name": "purchased_at_end",
+              "required": false,
+              "schema": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "f8e930c176fd0043977ece170c27ce0c7e76149d75e2044dfa459e8344b09ded",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "2000-01-01T00:00:00Z"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "2000-01-01T00:00:00Z"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/format:format",
+                    "kind": "format",
+                    "instancePath": [],
+                    "schemaPath": "#/format",
+                    "validationSchemaPath": "#/format",
+                    "keyword": "format",
+                    "operand": {
+                      "value": "date-time",
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "not-a-format"
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "purchased_at_end=2000-01-01T00%3A00%3A00Z",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "purchased_at_end=2000-01-01T00%3A00%3A00Z",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/format:format",
+                  "status": "encoded",
+                  "wire": "purchased_at_end=not-a-format",
+                  "reason": null
+                }
+              ]
+            },
+            {
+              "id": "query:purchased_at_start",
+              "location": "query",
+              "name": "purchased_at_start",
+              "required": false,
+              "schema": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "f8e930c176fd0043977ece170c27ce0c7e76149d75e2044dfa459e8344b09ded",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "2000-01-01T00:00:00Z"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "2000-01-01T00:00:00Z"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/format:format",
+                    "kind": "format",
+                    "instancePath": [],
+                    "schemaPath": "#/format",
+                    "validationSchemaPath": "#/format",
+                    "keyword": "format",
+                    "operand": {
+                      "value": "date-time",
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "not-a-format"
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "purchased_at_start=2000-01-01T00%3A00%3A00Z",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "purchased_at_start=2000-01-01T00%3A00%3A00Z",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/format:format",
+                  "status": "encoded",
+                  "wire": "purchased_at_start=not-a-format",
+                  "reason": null
+                }
+              ]
+            },
+            {
+              "id": "query:status[]",
+              "location": "query",
+              "name": "status[]",
+              "required": false,
+              "schema": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "$ref": "#/components/schemas/ExpenseStatus"
+                }
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "a4f0b757dbad2033cf3185fdb79530343807164265aefe004f46f67069957806",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": []
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "DRAFT"
+                    ]
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/items/$ref/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/$ref/type",
+                    "validationSchemaPath": "#/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      null
+                    ]
+                  },
+                  {
+                    "id": "#/items/$ref/enum:enum",
+                    "kind": "enum",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/$ref/enum",
+                    "validationSchemaPath": "#/items/enum",
+                    "keyword": "enum",
+                    "operand": {
+                      "value": [
+                        "DRAFT",
+                        "SUBMITTED",
+                        "APPROVED",
+                        "OUT_OF_POLICY",
+                        "VOID",
+                        "CANCELED",
+                        "SPLIT",
+                        "SETTLED"
+                      ],
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "__outside_enum__"
+                    ]
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "status%5B%5D=DRAFT",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/$ref/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/$ref/enum:enum",
+                  "status": "encoded",
+                  "wire": "status%5B%5D=__outside_enum__",
+                  "reason": null
+                }
+              ]
+            },
+            {
+              "id": "query:user_id[]",
+              "location": "query",
+              "name": "user_id[]",
+              "required": false,
+              "schema": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "428e2c86fb9feed15658910fc61c0e70f20db0377a015409b0f2b4a027b5968a",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": []
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "example"
+                    ]
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/items/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/type",
+                    "validationSchemaPath": "#/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      null
+                    ]
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "user_id%5B%5D=example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        },
+        {
+          "key": "POST /v1/expenses/card/receipt_match",
+          "locator": "#/paths/~1v1~1expenses~1card~1receipt_match/post",
+          "operationId": "ReceiptMatch_createNewReceiptMatch",
+          "summary": "Create a new receipt match",
+          "projectedOperation": {
+            "tags": [
+              "Receipt Match"
+            ],
+            "summary": "Create a new receipt match",
+            "operationId": "ReceiptMatch_createNewReceiptMatch",
+            "description": "\nThe `uri` will be a pre-signed S3 URL allowing you to upload the receipt securely. This URL can only be used for a `PUT` operation and expires 30 minutes after its creation. Once your upload is complete, we will try to match the receipt with existing expenses.\n\nRefer to these [docs](https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html) on how to upload to this pre-signed S3 URL. We highly recommend using one of AWS SDKs if they're available for your language to upload these files.\n",
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ReceiptMatchRequest"
+                  }
+                }
+              },
+              "required": true
+            },
+            "responses": {
+              "200": {
+                "description": "receiptMatch 200 response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/CreateAsyncFileUploadResponse"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request"
+              },
+              "401": {
+                "description": "Unauthorized"
+              }
+            },
+            "security": [
+              {
+                "OAuth2": []
+              }
+            ]
+          },
+          "schemas": [
+            {
+              "id": "body:application/json",
+              "location": "body",
+              "name": "application/json",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/schemas/ReceiptMatchRequest"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "c26c4667d60d398ccd1f33cd7ef91900dea19a4f7b62f0fc14e7b2f6f56287ff",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "receipt_name": "example"
+                    }
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "receipt_name": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  },
+                  {
+                    "id": "#/$ref/required/receipt_name:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/required/receipt_name",
+                    "validationSchemaPath": "#/required",
+                    "keyword": "required",
+                    "operand": "receipt_name",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/$ref/properties/receipt_name/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "receipt_name"
+                    ],
+                    "schemaPath": "#/$ref/properties/receipt_name/type",
+                    "validationSchemaPath": "#/properties/receipt_name/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "receipt_name": null
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/receipt_name/required/true:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [
+                      "receipt_name"
+                    ],
+                    "schemaPath": "#/$ref/properties/receipt_name/required/true",
+                    "validationSchemaPath": "#/properties/receipt_name/required",
+                    "keyword": "required",
+                    "operand": "true",
+                    "status": "unresolved",
+                    "reason": "no independently confirmed target violation within bounded candidates",
+                    "expectedHttpStatus": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "{\"receipt_name\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "{\"receipt_name\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "null",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/required/receipt_name:missing-required",
+                  "status": "encoded",
+                  "wire": "{}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/receipt_name/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"receipt_name\":null}",
+                  "reason": null
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        },
+        {
+          "key": "GET /v1/expenses/card/{expense_id}",
+          "locator": "#/paths/~1v1~1expenses~1card~1{expense_id}/get",
+          "operationId": "CardExpenses_getById",
+          "summary": "Get an expense",
+          "projectedOperation": {
+            "tags": [
+              "Card Expenses"
+            ],
+            "summary": "Get an expense",
+            "operationId": "CardExpenses_getById",
+            "security": [
+              {
+                "OAuth2": [
+                  "expenses.card.readonly",
+                  "expenses.card"
+                ]
+              }
+            ],
+            "description": "Get an expense by its ID.",
+            "parameters": [
+              {
+                "name": "expense_id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              {
+                "description": "Get additional details for the expense, e.g. merchant mcc code, by passing in `expand[]=merchant`. Query parameters include `location`, `department`, `merchant`, `receipts.download_uris`, `user`, `budget` and `payment`.",
+                "name": "expand[]",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "merchant",
+                  "location"
+                ]
+              },
+              {
+                "description": "Load custom fields for the expense.",
+                "name": "load_custom_fields",
+                "in": "query",
+                "required": false,
+                "schema": {
+                  "type": "boolean",
+                  "nullable": true,
+                  "default": false
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "getExpense 200 response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ExpandableExpense"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request"
+              },
+              "401": {
+                "description": "Unauthorized"
+              },
+              "403": {
+                "description": "Forbidden"
+              },
+              "404": {
+                "description": "Not Found"
+              }
+            }
+          },
+          "schemas": [
+            {
+              "id": "path:expense_id",
+              "location": "path",
+              "name": "expense_id",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "2f12bc2c44648b2a7ed359ecf2662c345f467e8749423f983a4a1ddc6fd9926b",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "query:expand[]",
+              "location": "query",
+              "name": "expand[]",
+              "required": false,
+              "schema": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "428e2c86fb9feed15658910fc61c0e70f20db0377a015409b0f2b4a027b5968a",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": []
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      "example"
+                    ]
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/items/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      0
+                    ],
+                    "schemaPath": "#/items/type",
+                    "validationSchemaPath": "#/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": [
+                      null
+                    ]
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "expand%5B%5D=example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                },
+                {
+                  "caseId": "#/items/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "query:load_custom_fields",
+              "location": "query",
+              "name": "load_custom_fields",
+              "required": false,
+              "schema": {
+                "type": "boolean",
+                "nullable": true,
+                "default": false
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "c179a0b19f77a1ea9e4d3fcb43a92565c4e18434388067aadab49d3032cb6053",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": true
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": true
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "boolean",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "load_custom_fields=true",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "load_custom_fields=true",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        },
+        {
+          "key": "PUT /v1/expenses/card/{expense_id}",
+          "locator": "#/paths/~1v1~1expenses~1card~1{expense_id}/put",
+          "operationId": "CardExpenses_updateExpense",
+          "summary": "Update an expense",
+          "projectedOperation": {
+            "tags": [
+              "Card Expenses"
+            ],
+            "summary": "Update an expense",
+            "operationId": "CardExpenses_updateExpense",
+            "security": [
+              {
+                "OAuth2": [
+                  "expenses.card"
+                ]
+              }
+            ],
+            "description": "Update an expense. Admin and bookkeeper have access to any expense, and regular users can only access their own.",
+            "parameters": [
+              {
+                "name": "expense_id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            ],
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UpdateExpenseRequest"
+                  }
+                }
+              },
+              "required": true
+            },
+            "responses": {
+              "200": {
+                "description": "updateExpense 200 response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Expense"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request"
+              },
+              "401": {
+                "description": "Unauthorized"
+              },
+              "403": {
+                "description": "Forbidden"
+              },
+              "404": {
+                "description": "Not Found"
+              }
+            }
+          },
+          "schemas": [
+            {
+              "id": "path:expense_id",
+              "location": "path",
+              "name": "expense_id",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "2f12bc2c44648b2a7ed359ecf2662c345f467e8749423f983a4a1ddc6fd9926b",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "body:application/json",
+              "location": "body",
+              "name": "application/json",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/schemas/UpdateExpenseRequest"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "ec79bb0cbb4cffef99f0b02d30089353795add6d9ead28f2fdc2ae196ecd2f19",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "memo": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  },
+                  {
+                    "id": "#/$ref/properties/memo/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "memo"
+                    ],
+                    "schemaPath": "#/$ref/properties/memo/type",
+                    "validationSchemaPath": "#/properties/memo/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "memo": {}
+                    }
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "{}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "{\"memo\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "null",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/memo/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"memo\":{}}",
+                  "reason": null
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        },
+        {
+          "key": "POST /v1/expenses/card/{expense_id}/receipt_upload",
+          "locator": "#/paths/~1v1~1expenses~1card~1{expense_id}~1receipt_upload/post",
+          "operationId": "ReceiptUpload_createNewReceipt",
+          "summary": "Create a new receipt upload",
+          "projectedOperation": {
+            "tags": [
+              "Receipt Upload"
+            ],
+            "summary": "Create a new receipt upload",
+            "operationId": "ReceiptUpload_createNewReceipt",
+            "description": "\nThe `uri` will be a pre-signed S3 URL allowing you to upload the receipt securely. This URL can only be used for a `PUT` operation and expires 30 minutes after its creation. Once your upload is complete, we will try to match the receipt with existing expenses.\n\nRefer to these [docs](https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html) on how to upload to this pre-signed S3 URL. We highly recommend using one of AWS SDKs if they're available for your language to upload these files.\n",
+            "parameters": [
+              {
+                "name": "expense_id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            ],
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ReceiptUploadRequest"
+                  }
+                }
+              },
+              "required": true
+            },
+            "responses": {
+              "200": {
+                "description": "receiptUpload 200 response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/CreateAsyncFileUploadResponse"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request"
+              },
+              "401": {
+                "description": "Unauthorized"
+              },
+              "403": {
+                "description": "Forbidden"
+              },
+              "404": {
+                "description": "Not Found"
+              }
+            },
+            "security": [
+              {
+                "OAuth2": []
+              }
+            ]
+          },
+          "schemas": [
+            {
+              "id": "path:expense_id",
+              "location": "path",
+              "name": "expense_id",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "2f12bc2c44648b2a7ed359ecf2662c345f467e8749423f983a4a1ddc6fd9926b",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "body:application/json",
+              "location": "body",
+              "name": "application/json",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/schemas/ReceiptUploadRequest"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "b572d7dc130de5e048e24967f1e0dcfab02da66e62ad7d91941385482014253d",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "receipt_name": "example"
+                    }
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "receipt_name": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  },
+                  {
+                    "id": "#/$ref/required/receipt_name:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/required/receipt_name",
+                    "validationSchemaPath": "#/required",
+                    "keyword": "required",
+                    "operand": "receipt_name",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#/$ref/properties/receipt_name/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "receipt_name"
+                    ],
+                    "schemaPath": "#/$ref/properties/receipt_name/type",
+                    "validationSchemaPath": "#/properties/receipt_name/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "receipt_name": null
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/receipt_name/required/true:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [
+                      "receipt_name"
+                    ],
+                    "schemaPath": "#/$ref/properties/receipt_name/required/true",
+                    "validationSchemaPath": "#/properties/receipt_name/required",
+                    "keyword": "required",
+                    "operand": "true",
+                    "status": "unresolved",
+                    "reason": "no independently confirmed target violation within bounded candidates",
+                    "expectedHttpStatus": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "{\"receipt_name\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "{\"receipt_name\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "null",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/required/receipt_name:missing-required",
+                  "status": "encoded",
+                  "wire": "{}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/receipt_name/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"receipt_name\":null}",
+                  "reason": null
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        }
+      ],
+      "accounting": {
+        "modelCalls": 0,
+        "paidCalls": 0
+      },
+      "wholeSkillCompleted": false
+    },
+    "specimens": {
+      "schemaVersion": "api-request-specimens/v1",
+      "sourceSha256": "6011402644e31cc057eeb35da72413624d97b5abdbf4e5b48328e8ffb0c23ab9",
+      "sourceFormat": "yaml",
+      "enumerationComplete": true,
+      "enumerationIssues": [],
+      "operations": [
+        {
+          "key": "GET /v1/expenses/card",
+          "security": [
+            {
+              "OAuth2": [
+                "expenses.card.readonly",
+                "expenses.card"
+              ]
+            }
+          ],
+          "servers": [
+            {
+              "description": "Production",
+              "url": "https://platform.brexapis.com"
+            },
+            {
+              "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+              "url": "https://platform.staging.brexapps.com"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",null,null]",
+              "mode": "minimal",
+              "mediaType": null,
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "GET",
+                "target": "/v1/expenses/card",
+                "headers": [],
+                "parameters": [],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",null,null]",
+              "mode": "full",
+              "mediaType": null,
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "GET",
+                "target": "/v1/expenses/card?budget_id%5B%5D=example&cursor=example&expand%5B%5D=example&limit=0&load_custom_fields=true&parent_expense_id%5B%5D=example&payment_status%5B%5D=NOT_STARTED&purchased_at_end=2000-01-01T00%3A00%3A00Z&purchased_at_start=2000-01-01T00%3A00%3A00Z&status%5B%5D=DRAFT&user_id%5B%5D=example",
+                "headers": [],
+                "parameters": [
+                  {
+                    "id": "query:budget_id[]",
+                    "value": [
+                      "example"
+                    ],
+                    "wire": "budget_id%5B%5D=example"
+                  },
+                  {
+                    "id": "query:cursor",
+                    "value": "example",
+                    "wire": "cursor=example"
+                  },
+                  {
+                    "id": "query:expand[]",
+                    "value": [
+                      "example"
+                    ],
+                    "wire": "expand%5B%5D=example"
+                  },
+                  {
+                    "id": "query:limit",
+                    "value": 0,
+                    "wire": "limit=0"
+                  },
+                  {
+                    "id": "query:load_custom_fields",
+                    "value": true,
+                    "wire": "load_custom_fields=true"
+                  },
+                  {
+                    "id": "query:parent_expense_id[]",
+                    "value": [
+                      "example"
+                    ],
+                    "wire": "parent_expense_id%5B%5D=example"
+                  },
+                  {
+                    "id": "query:payment_status[]",
+                    "value": [
+                      "NOT_STARTED"
+                    ],
+                    "wire": "payment_status%5B%5D=NOT_STARTED"
+                  },
+                  {
+                    "id": "query:purchased_at_end",
+                    "value": "2000-01-01T00:00:00Z",
+                    "wire": "purchased_at_end=2000-01-01T00%3A00%3A00Z"
+                  },
+                  {
+                    "id": "query:purchased_at_start",
+                    "value": "2000-01-01T00:00:00Z",
+                    "wire": "purchased_at_start=2000-01-01T00%3A00%3A00Z"
+                  },
+                  {
+                    "id": "query:status[]",
+                    "value": [
+                      "DRAFT"
+                    ],
+                    "wire": "status%5B%5D=DRAFT"
+                  },
+                  {
+                    "id": "query:user_id[]",
+                    "value": [
+                      "example"
+                    ],
+                    "wire": "user_id%5B%5D=example"
+                  }
+                ],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        },
+        {
+          "key": "POST /v1/expenses/card/receipt_match",
+          "security": [
+            {
+              "OAuth2": []
+            }
+          ],
+          "servers": [
+            {
+              "description": "Production",
+              "url": "https://platform.brexapis.com"
+            },
+            {
+              "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+              "url": "https://platform.staging.brexapps.com"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",\"application/json\",null]",
+              "mode": "minimal",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/v1/expenses/card/receipt_match",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {
+                    "receipt_name": "example"
+                  },
+                  "text": "{\"receipt_name\":\"example\"}"
+                }
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"minimal\",\"application/json\",\"body\"]",
+              "mode": "minimal",
+              "mediaType": "application/json",
+              "omit": "body",
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/v1/expenses/card/receipt_match",
+                "headers": [],
+                "parameters": [],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",\"application/json\",null]",
+              "mode": "full",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/v1/expenses/card/receipt_match",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {
+                    "receipt_name": "example"
+                  },
+                  "text": "{\"receipt_name\":\"example\"}"
+                }
+              },
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        },
+        {
+          "key": "GET /v1/expenses/card/{expense_id}",
+          "security": [
+            {
+              "OAuth2": [
+                "expenses.card.readonly",
+                "expenses.card"
+              ]
+            }
+          ],
+          "servers": [
+            {
+              "description": "Production",
+              "url": "https://platform.brexapis.com"
+            },
+            {
+              "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+              "url": "https://platform.staging.brexapps.com"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",null,null]",
+              "mode": "minimal",
+              "mediaType": null,
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "GET",
+                "target": "/v1/expenses/card/example",
+                "headers": [],
+                "parameters": [
+                  {
+                    "id": "path:expense_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",null,null]",
+              "mode": "full",
+              "mediaType": null,
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "GET",
+                "target": "/v1/expenses/card/example?expand%5B%5D=example&load_custom_fields=true",
+                "headers": [],
+                "parameters": [
+                  {
+                    "id": "path:expense_id",
+                    "value": "example",
+                    "wire": "example"
+                  },
+                  {
+                    "id": "query:expand[]",
+                    "value": [
+                      "example"
+                    ],
+                    "wire": "expand%5B%5D=example"
+                  },
+                  {
+                    "id": "query:load_custom_fields",
+                    "value": true,
+                    "wire": "load_custom_fields=true"
+                  }
+                ],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        },
+        {
+          "key": "PUT /v1/expenses/card/{expense_id}",
+          "security": [
+            {
+              "OAuth2": [
+                "expenses.card"
+              ]
+            }
+          ],
+          "servers": [
+            {
+              "description": "Production",
+              "url": "https://platform.brexapis.com"
+            },
+            {
+              "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+              "url": "https://platform.staging.brexapps.com"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",\"application/json\",null]",
+              "mode": "minimal",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "PUT",
+                "target": "/v1/expenses/card/example",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [
+                  {
+                    "id": "path:expense_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {},
+                  "text": "{}"
+                }
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"minimal\",\"application/json\",\"body\"]",
+              "mode": "minimal",
+              "mediaType": "application/json",
+              "omit": "body",
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "PUT",
+                "target": "/v1/expenses/card/example",
+                "headers": [],
+                "parameters": [
+                  {
+                    "id": "path:expense_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",\"application/json\",null]",
+              "mode": "full",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "PUT",
+                "target": "/v1/expenses/card/example",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [
+                  {
+                    "id": "path:expense_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {
+                    "memo": "example"
+                  },
+                  "text": "{\"memo\":\"example\"}"
+                }
+              },
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        },
+        {
+          "key": "POST /v1/expenses/card/{expense_id}/receipt_upload",
+          "security": [
+            {
+              "OAuth2": []
+            }
+          ],
+          "servers": [
+            {
+              "description": "Production",
+              "url": "https://platform.brexapis.com"
+            },
+            {
+              "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+              "url": "https://platform.staging.brexapps.com"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",\"application/json\",null]",
+              "mode": "minimal",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/v1/expenses/card/example/receipt_upload",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [
+                  {
+                    "id": "path:expense_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {
+                    "receipt_name": "example"
+                  },
+                  "text": "{\"receipt_name\":\"example\"}"
+                }
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"minimal\",\"application/json\",\"body\"]",
+              "mode": "minimal",
+              "mediaType": "application/json",
+              "omit": "body",
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/v1/expenses/card/example/receipt_upload",
+                "headers": [],
+                "parameters": [
+                  {
+                    "id": "path:expense_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",\"application/json\",null]",
+              "mode": "full",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/v1/expenses/card/example/receipt_upload",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [
+                  {
+                    "id": "path:expense_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {
+                    "receipt_name": "example"
+                  },
+                  "text": "{\"receipt_name\":\"example\"}"
+                }
+              },
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        }
+      ],
+      "wholeSkillCompleted": false
+    },
+    "wholeSkillCompleted": false,
+    "remainingObligations": [
+      "parameter-schema-negative-assembly",
+      "credentials-and-live-auth",
+      "origin-and-server-selection",
+      "response-status-and-business-oracle",
+      "native-output-format",
+      "single-fault-isolation"
+    ],
+    "operations": [
+      {
+        "key": "GET /v1/expenses/card",
+        "cases": []
+      },
+      {
+        "key": "POST /v1/expenses/card/receipt_match",
+        "cases": [
+          {
+            "id": "[\"body:application/json\",\"#/$ref/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/receipt_match",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [],
+              "body": {
+                "mediaType": "application/json",
+                "value": null,
+                "text": "null"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/required/receipt_name:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/required/receipt_name:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/receipt_match",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [],
+              "body": {
+                "mediaType": "application/json",
+                "value": {},
+                "text": "{}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/receipt_name/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/receipt_name/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/receipt_match",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "receipt_name": null
+                },
+                "text": "{\"receipt_name\":null}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/receipt_name/required/true:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/receipt_name/required/true:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "field witness unresolved: no independently confirmed target violation within bounded candidates"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          }
+        ]
+      },
+      {
+        "key": "GET /v1/expenses/card/{expense_id}",
+        "cases": []
+      },
+      {
+        "key": "PUT /v1/expenses/card/{expense_id}",
+        "cases": [
+          {
+            "id": "[\"body:application/json\",\"#/$ref/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/expenses/card/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": null,
+                "text": "null"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/memo/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/memo/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/expenses/card/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "memo": {}
+                },
+                "text": "{\"memo\":{}}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ]
+      },
+      {
+        "key": "POST /v1/expenses/card/{expense_id}/receipt_upload",
+        "cases": [
+          {
+            "id": "[\"body:application/json\",\"#/$ref/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/example/receipt_upload",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": null,
+                "text": "null"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/required/receipt_name:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/required/receipt_name:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/example/receipt_upload",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {},
+                "text": "{}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/receipt_name/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/receipt_name/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/example/receipt_upload",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "receipt_name": null
+                },
+                "text": "{\"receipt_name\":null}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/receipt_name/required/true:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/receipt_name/required/true:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "field witness unresolved: no independently confirmed target violation within bounded candidates"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          }
+        ]
+      }
+    ]
+  },
+  "verification": {
+    "status": "pass",
+    "errors": [],
+    "obligations": 10,
+    "constructed": 8,
+    "unresolved": 2
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "api-pytest-request-suite/v1",
+  "exposure": "development",
+  "sourceSha256": "572b0073cd907bde14b59916c51afe0d3e13ece19bddda4cdcc26f8e34f9653f",
+  "sourceFormat": "json",
+  "specimens": {
+    "schemaVersion": "api-request-form-specimens/v1",
+    "sourceSha256": "572b0073cd907bde14b59916c51afe0d3e13ece19bddda4cdcc26f8e34f9653f",
+    "sourceFormat": "json",
+    "enumerationComplete": true,
+    "enumerationIssues": [],
+    "operations": [
+      {
+        "key": "POST /items/{id}",
+        "security": [],
+        "servers": [
+          {
+            "url": "/"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/json\",null]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/items/a%2Fb",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "a/b",
+                  "wire": "a%2Fb"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "name": "a&中文"
+                },
+                "text": "{\"name\":\"a&中文\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "body",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/items/a%2Fb",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "a/b",
+                  "wire": "a%2Fb"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/json\",null]",
+            "mode": "full",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/items/a%2Fb",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "a/b",
+                  "wire": "a%2Fb"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "name": "a&中文"
+                },
+                "text": "{\"name\":\"a&中文\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      }
+    ],
+    "wholeSkillCompleted": false
+  },
+  "rows": [
+    {
+      "id": "[\"POST /items/{id}\",\"[\\\"minimal\\\",\\\"application/json\\\",null]\"]",
+      "operationKey": "POST /items/{id}",
+      "caseId": "[\"minimal\",\"application/json\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/items/a%2Fb\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json\"}],\"parameters\":[{\"id\":\"path:id\",\"value\":\"a/b\",\"wire\":\"a%2Fb\"}],\"body\":{\"mediaType\":\"application/json\",\"value\":{\"name\":\"a&中文\"},\"text\":\"{\\\"name\\\":\\\"a&中文\\\"}\"}}"
+    },
+    {
+      "id": "[\"POST /items/{id}\",\"[\\\"minimal\\\",\\\"application/json\\\",\\\"body\\\"]\"]",
+      "operationKey": "POST /items/{id}",
+      "caseId": "[\"minimal\",\"application/json\",\"body\"]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/items/a%2Fb\",\"headers\":[],\"parameters\":[{\"id\":\"path:id\",\"value\":\"a/b\",\"wire\":\"a%2Fb\"}],\"body\":null}"
+    },
+    {
+      "id": "[\"POST /items/{id}\",\"[\\\"full\\\",\\\"application/json\\\",null]\"]",
+      "operationKey": "POST /items/{id}",
+      "caseId": "[\"full\",\"application/json\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/items/a%2Fb\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json\"}],\"parameters\":[{\"id\":\"path:id\",\"value\":\"a/b\",\"wire\":\"a%2Fb\"}],\"body\":{\"mediaType\":\"application/json\",\"value\":{\"name\":\"a&中文\"},\"text\":\"{\\\"name\\\":\\\"a&中文\\\"}\"}}"
+    }
+  ],
+  "wholeSkillCompleted": false,
+  "runtimeRequirements": [
+    "explicit-loopback-oracle",
+    "credentials-unsupported",
+    "real-api-behavior-unverified",
+    "full-native-duty-incomplete"
+  ]
+}

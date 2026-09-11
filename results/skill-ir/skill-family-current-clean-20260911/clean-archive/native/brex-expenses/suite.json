@@ -1,0 +1,775 @@
+{
+  "schemaVersion": "api-pytest-request-suite/v1",
+  "exposure": "development",
+  "sourceSha256": "6011402644e31cc057eeb35da72413624d97b5abdbf4e5b48328e8ffb0c23ab9",
+  "sourceFormat": "yaml",
+  "specimens": {
+    "schemaVersion": "api-request-form-specimens/v1",
+    "sourceSha256": "6011402644e31cc057eeb35da72413624d97b5abdbf4e5b48328e8ffb0c23ab9",
+    "sourceFormat": "yaml",
+    "enumerationComplete": true,
+    "enumerationIssues": [],
+    "operations": [
+      {
+        "key": "GET /v1/expenses/card",
+        "security": [
+          {
+            "OAuth2": [
+              "expenses.card.readonly",
+              "expenses.card"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",null,null]",
+            "mode": "minimal",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/expenses/card",
+              "headers": [],
+              "parameters": [],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",null,null]",
+            "mode": "full",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/expenses/card?budget_id%5B%5D=example&cursor=example&expand%5B%5D=example&limit=0&load_custom_fields=true&parent_expense_id%5B%5D=example&payment_status%5B%5D=NOT_STARTED&purchased_at_end=2000-01-01T00%3A00%3A00Z&purchased_at_start=2000-01-01T00%3A00%3A00Z&status%5B%5D=DRAFT&user_id%5B%5D=example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "query:budget_id[]",
+                  "value": [
+                    "example"
+                  ],
+                  "wire": "budget_id%5B%5D=example"
+                },
+                {
+                  "id": "query:cursor",
+                  "value": "example",
+                  "wire": "cursor=example"
+                },
+                {
+                  "id": "query:expand[]",
+                  "value": [
+                    "example"
+                  ],
+                  "wire": "expand%5B%5D=example"
+                },
+                {
+                  "id": "query:limit",
+                  "value": 0,
+                  "wire": "limit=0"
+                },
+                {
+                  "id": "query:load_custom_fields",
+                  "value": true,
+                  "wire": "load_custom_fields=true"
+                },
+                {
+                  "id": "query:parent_expense_id[]",
+                  "value": [
+                    "example"
+                  ],
+                  "wire": "parent_expense_id%5B%5D=example"
+                },
+                {
+                  "id": "query:payment_status[]",
+                  "value": [
+                    "NOT_STARTED"
+                  ],
+                  "wire": "payment_status%5B%5D=NOT_STARTED"
+                },
+                {
+                  "id": "query:purchased_at_end",
+                  "value": "2000-01-01T00:00:00Z",
+                  "wire": "purchased_at_end=2000-01-01T00%3A00%3A00Z"
+                },
+                {
+                  "id": "query:purchased_at_start",
+                  "value": "2000-01-01T00:00:00Z",
+                  "wire": "purchased_at_start=2000-01-01T00%3A00%3A00Z"
+                },
+                {
+                  "id": "query:status[]",
+                  "value": [
+                    "DRAFT"
+                  ],
+                  "wire": "status%5B%5D=DRAFT"
+                },
+                {
+                  "id": "query:user_id[]",
+                  "value": [
+                    "example"
+                  ],
+                  "wire": "user_id%5B%5D=example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "POST /v1/expenses/card/receipt_match",
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/json\",null]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/receipt_match",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "receipt_name": "example"
+                },
+                "text": "{\"receipt_name\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "body",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/receipt_match",
+              "headers": [],
+              "parameters": [],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/json\",null]",
+            "mode": "full",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/receipt_match",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "receipt_name": "example"
+                },
+                "text": "{\"receipt_name\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "GET /v1/expenses/card/{expense_id}",
+        "security": [
+          {
+            "OAuth2": [
+              "expenses.card.readonly",
+              "expenses.card"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",null,null]",
+            "mode": "minimal",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/expenses/card/example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",null,null]",
+            "mode": "full",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/expenses/card/example?expand%5B%5D=example&load_custom_fields=true",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                },
+                {
+                  "id": "query:expand[]",
+                  "value": [
+                    "example"
+                  ],
+                  "wire": "expand%5B%5D=example"
+                },
+                {
+                  "id": "query:load_custom_fields",
+                  "value": true,
+                  "wire": "load_custom_fields=true"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "PUT /v1/expenses/card/{expense_id}",
+        "security": [
+          {
+            "OAuth2": [
+              "expenses.card"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/json\",null]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/expenses/card/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {},
+                "text": "{}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "body",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/expenses/card/example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/json\",null]",
+            "mode": "full",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/expenses/card/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "memo": "example"
+                },
+                "text": "{\"memo\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "POST /v1/expenses/card/{expense_id}/receipt_upload",
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/json\",null]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/example/receipt_upload",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "receipt_name": "example"
+                },
+                "text": "{\"receipt_name\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "body",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/example/receipt_upload",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/json\",null]",
+            "mode": "full",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/expenses/card/example/receipt_upload",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:expense_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "receipt_name": "example"
+                },
+                "text": "{\"receipt_name\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      }
+    ],
+    "wholeSkillCompleted": false
+  },
+  "rows": [
+    {
+      "id": "[\"GET /v1/expenses/card\",\"[\\\"minimal\\\",null,null]\"]",
+      "operationKey": "GET /v1/expenses/card",
+      "caseId": "[\"minimal\",null,null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": [
+            "expenses.card.readonly",
+            "expenses.card"
+          ]
+        }
+      ],
+      "requestJson": "{\"method\":\"GET\",\"target\":\"/v1/expenses/card\",\"headers\":[],\"parameters\":[],\"body\":null}"
+    },
+    {
+      "id": "[\"GET /v1/expenses/card\",\"[\\\"full\\\",null,null]\"]",
+      "operationKey": "GET /v1/expenses/card",
+      "caseId": "[\"full\",null,null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": [
+            "expenses.card.readonly",
+            "expenses.card"
+          ]
+        }
+      ],
+      "requestJson": "{\"method\":\"GET\",\"target\":\"/v1/expenses/card?budget_id%5B%5D=example&cursor=example&expand%5B%5D=example&limit=0&load_custom_fields=true&parent_expense_id%5B%5D=example&payment_status%5B%5D=NOT_STARTED&purchased_at_end=2000-01-01T00%3A00%3A00Z&purchased_at_start=2000-01-01T00%3A00%3A00Z&status%5B%5D=DRAFT&user_id%5B%5D=example\",\"headers\":[],\"parameters\":[{\"id\":\"query:budget_id[]\",\"value\":[\"example\"],\"wire\":\"budget_id%5B%5D=example\"},{\"id\":\"query:cursor\",\"value\":\"example\",\"wire\":\"cursor=example\"},{\"id\":\"query:expand[]\",\"value\":[\"example\"],\"wire\":\"expand%5B%5D=example\"},{\"id\":\"query:limit\",\"value\":0,\"wire\":\"limit=0\"},{\"id\":\"query:load_custom_fields\",\"value\":true,\"wire\":\"load_custom_fields=true\"},{\"id\":\"query:parent_expense_id[]\",\"value\":[\"example\"],\"wire\":\"parent_expense_id%5B%5D=example\"},{\"id\":\"query:payment_status[]\",\"value\":[\"NOT_STARTED\"],\"wire\":\"payment_status%5B%5D=NOT_STARTED\"},{\"id\":\"query:purchased_at_end\",\"value\":\"2000-01-01T00:00:00Z\",\"wire\":\"purchased_at_end=2000-01-01T00%3A00%3A00Z\"},{\"id\":\"query:purchased_at_start\",\"value\":\"2000-01-01T00:00:00Z\",\"wire\":\"purchased_at_start=2000-01-01T00%3A00%3A00Z\"},{\"id\":\"query:status[]\",\"value\":[\"DRAFT\"],\"wire\":\"status%5B%5D=DRAFT\"},{\"id\":\"query:user_id[]\",\"value\":[\"example\"],\"wire\":\"user_id%5B%5D=example\"}],\"body\":null}"
+    },
+    {
+      "id": "[\"POST /v1/expenses/card/receipt_match\",\"[\\\"minimal\\\",\\\"application/json\\\",null]\"]",
+      "operationKey": "POST /v1/expenses/card/receipt_match",
+      "caseId": "[\"minimal\",\"application/json\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": []
+        }
+      ],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/v1/expenses/card/receipt_match\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json\"}],\"parameters\":[],\"body\":{\"mediaType\":\"application/json\",\"value\":{\"receipt_name\":\"example\"},\"text\":\"{\\\"receipt_name\\\":\\\"example\\\"}\"}}"
+    },
+    {
+      "id": "[\"POST /v1/expenses/card/receipt_match\",\"[\\\"minimal\\\",\\\"application/json\\\",\\\"body\\\"]\"]",
+      "operationKey": "POST /v1/expenses/card/receipt_match",
+      "caseId": "[\"minimal\",\"application/json\",\"body\"]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": []
+        }
+      ],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/v1/expenses/card/receipt_match\",\"headers\":[],\"parameters\":[],\"body\":null}"
+    },
+    {
+      "id": "[\"POST /v1/expenses/card/receipt_match\",\"[\\\"full\\\",\\\"application/json\\\",null]\"]",
+      "operationKey": "POST /v1/expenses/card/receipt_match",
+      "caseId": "[\"full\",\"application/json\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": []
+        }
+      ],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/v1/expenses/card/receipt_match\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json\"}],\"parameters\":[],\"body\":{\"mediaType\":\"application/json\",\"value\":{\"receipt_name\":\"example\"},\"text\":\"{\\\"receipt_name\\\":\\\"example\\\"}\"}}"
+    },
+    {
+      "id": "[\"GET /v1/expenses/card/{expense_id}\",\"[\\\"minimal\\\",null,null]\"]",
+      "operationKey": "GET /v1/expenses/card/{expense_id}",
+      "caseId": "[\"minimal\",null,null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": [
+            "expenses.card.readonly",
+            "expenses.card"
+          ]
+        }
+      ],
+      "requestJson": "{\"method\":\"GET\",\"target\":\"/v1/expenses/card/example\",\"headers\":[],\"parameters\":[{\"id\":\"path:expense_id\",\"value\":\"example\",\"wire\":\"example\"}],\"body\":null}"
+    },
+    {
+      "id": "[\"GET /v1/expenses/card/{expense_id}\",\"[\\\"full\\\",null,null]\"]",
+      "operationKey": "GET /v1/expenses/card/{expense_id}",
+      "caseId": "[\"full\",null,null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": [
+            "expenses.card.readonly",
+            "expenses.card"
+          ]
+        }
+      ],
+      "requestJson": "{\"method\":\"GET\",\"target\":\"/v1/expenses/card/example?expand%5B%5D=example&load_custom_fields=true\",\"headers\":[],\"parameters\":[{\"id\":\"path:expense_id\",\"value\":\"example\",\"wire\":\"example\"},{\"id\":\"query:expand[]\",\"value\":[\"example\"],\"wire\":\"expand%5B%5D=example\"},{\"id\":\"query:load_custom_fields\",\"value\":true,\"wire\":\"load_custom_fields=true\"}],\"body\":null}"
+    },
+    {
+      "id": "[\"PUT /v1/expenses/card/{expense_id}\",\"[\\\"minimal\\\",\\\"application/json\\\",null]\"]",
+      "operationKey": "PUT /v1/expenses/card/{expense_id}",
+      "caseId": "[\"minimal\",\"application/json\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": [
+            "expenses.card"
+          ]
+        }
+      ],
+      "requestJson": "{\"method\":\"PUT\",\"target\":\"/v1/expenses/card/example\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json\"}],\"parameters\":[{\"id\":\"path:expense_id\",\"value\":\"example\",\"wire\":\"example\"}],\"body\":{\"mediaType\":\"application/json\",\"value\":{},\"text\":\"{}\"}}"
+    },
+    {
+      "id": "[\"PUT /v1/expenses/card/{expense_id}\",\"[\\\"minimal\\\",\\\"application/json\\\",\\\"body\\\"]\"]",
+      "operationKey": "PUT /v1/expenses/card/{expense_id}",
+      "caseId": "[\"minimal\",\"application/json\",\"body\"]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": [
+            "expenses.card"
+          ]
+        }
+      ],
+      "requestJson": "{\"method\":\"PUT\",\"target\":\"/v1/expenses/card/example\",\"headers\":[],\"parameters\":[{\"id\":\"path:expense_id\",\"value\":\"example\",\"wire\":\"example\"}],\"body\":null}"
+    },
+    {
+      "id": "[\"PUT /v1/expenses/card/{expense_id}\",\"[\\\"full\\\",\\\"application/json\\\",null]\"]",
+      "operationKey": "PUT /v1/expenses/card/{expense_id}",
+      "caseId": "[\"full\",\"application/json\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": [
+            "expenses.card"
+          ]
+        }
+      ],
+      "requestJson": "{\"method\":\"PUT\",\"target\":\"/v1/expenses/card/example\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json\"}],\"parameters\":[{\"id\":\"path:expense_id\",\"value\":\"example\",\"wire\":\"example\"}],\"body\":{\"mediaType\":\"application/json\",\"value\":{\"memo\":\"example\"},\"text\":\"{\\\"memo\\\":\\\"example\\\"}\"}}"
+    },
+    {
+      "id": "[\"POST /v1/expenses/card/{expense_id}/receipt_upload\",\"[\\\"minimal\\\",\\\"application/json\\\",null]\"]",
+      "operationKey": "POST /v1/expenses/card/{expense_id}/receipt_upload",
+      "caseId": "[\"minimal\",\"application/json\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": []
+        }
+      ],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/v1/expenses/card/example/receipt_upload\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json\"}],\"parameters\":[{\"id\":\"path:expense_id\",\"value\":\"example\",\"wire\":\"example\"}],\"body\":{\"mediaType\":\"application/json\",\"value\":{\"receipt_name\":\"example\"},\"text\":\"{\\\"receipt_name\\\":\\\"example\\\"}\"}}"
+    },
+    {
+      "id": "[\"POST /v1/expenses/card/{expense_id}/receipt_upload\",\"[\\\"minimal\\\",\\\"application/json\\\",\\\"body\\\"]\"]",
+      "operationKey": "POST /v1/expenses/card/{expense_id}/receipt_upload",
+      "caseId": "[\"minimal\",\"application/json\",\"body\"]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": []
+        }
+      ],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/v1/expenses/card/example/receipt_upload\",\"headers\":[],\"parameters\":[{\"id\":\"path:expense_id\",\"value\":\"example\",\"wire\":\"example\"}],\"body\":null}"
+    },
+    {
+      "id": "[\"POST /v1/expenses/card/{expense_id}/receipt_upload\",\"[\\\"full\\\",\\\"application/json\\\",null]\"]",
+      "operationKey": "POST /v1/expenses/card/{expense_id}/receipt_upload",
+      "caseId": "[\"full\",\"application/json\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [
+        {
+          "OAuth2": []
+        }
+      ],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/v1/expenses/card/example/receipt_upload\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json\"}],\"parameters\":[{\"id\":\"path:expense_id\",\"value\":\"example\",\"wire\":\"example\"}],\"body\":{\"mediaType\":\"application/json\",\"value\":{\"receipt_name\":\"example\"},\"text\":\"{\\\"receipt_name\\\":\\\"example\\\"}\"}}"
+    }
+  ],
+  "wholeSkillCompleted": false,
+  "runtimeRequirements": [
+    "explicit-loopback-oracle",
+    "credentials-unsupported",
+    "real-api-behavior-unverified",
+    "full-native-duty-incomplete"
+  ]
+}

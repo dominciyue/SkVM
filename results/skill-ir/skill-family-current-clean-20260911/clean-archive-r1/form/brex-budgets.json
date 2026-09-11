@@ -1,0 +1,1266 @@
+{
+  "inputId": "brex-budgets",
+  "report": {
+    "schemaVersion": "api-request-form-specimens/v1",
+    "sourceSha256": "7dcf663458f9707e4f16c04cc2854f871e7214173c54fc3004e5996ff631cb6a",
+    "sourceFormat": "yaml",
+    "enumerationComplete": true,
+    "enumerationIssues": [],
+    "operations": [
+      {
+        "key": "GET /v1/budget_programs",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets.readonly",
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",null,null]",
+            "mode": "minimal",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/budget_programs",
+              "headers": [],
+              "parameters": [],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",null,null]",
+            "mode": "full",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/budget_programs?cursor=example&limit=0",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "query:cursor",
+                  "value": "example",
+                  "wire": "cursor=example"
+                },
+                {
+                  "id": "query:limit",
+                  "value": 0,
+                  "wire": "limit=0"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "POST /v1/budget_programs",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/json\",null]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budget_programs",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "budget_blueprints": [],
+                  "name": "example"
+                },
+                "text": "{\"budget_blueprints\":[],\"name\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"header:Idempotency-Key\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "header:Idempotency-Key",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budget_programs",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "budget_blueprints": [],
+                  "name": "example"
+                },
+                "text": "{\"budget_blueprints\":[],\"name\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "body",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budget_programs",
+              "headers": [
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/json\",null]",
+            "mode": "full",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budget_programs",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "budget_blueprints": [
+                    {
+                      "description": "example",
+                      "end_date": "2000-01-01",
+                      "limit": {
+                        "amount": 0,
+                        "currency": "example"
+                      },
+                      "limit_type": "HARD",
+                      "limit_visibility": "SHARED",
+                      "name": "example",
+                      "owner_user_ids": [
+                        "example"
+                      ],
+                      "parent_budget_id": "example",
+                      "period_type": "WEEKLY",
+                      "spend_type": "BUDGET_PROVISIONED_CARDS_ONLY",
+                      "start_date": "2000-01-01"
+                    }
+                  ],
+                  "description": "example",
+                  "employee_filter": {
+                    "employment_status": "EMPLOYMENT_STATUS_ACTIVE",
+                    "employment_type": "EMPLOYMENT_TYPE_FULL_TIME"
+                  },
+                  "existing_budget_ids": [
+                    "example"
+                  ],
+                  "name": "example"
+                },
+                "text": "{\"budget_blueprints\":[{\"description\":\"example\",\"end_date\":\"2000-01-01\",\"limit\":{\"amount\":0,\"currency\":\"example\"},\"limit_type\":\"HARD\",\"limit_visibility\":\"SHARED\",\"name\":\"example\",\"owner_user_ids\":[\"example\"],\"parent_budget_id\":\"example\",\"period_type\":\"WEEKLY\",\"spend_type\":\"BUDGET_PROVISIONED_CARDS_ONLY\",\"start_date\":\"2000-01-01\"}],\"description\":\"example\",\"employee_filter\":{\"employment_status\":\"EMPLOYMENT_STATUS_ACTIVE\",\"employment_type\":\"EMPLOYMENT_TYPE_FULL_TIME\"},\"existing_budget_ids\":[\"example\"],\"name\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "DELETE /v1/budget_programs/{id}",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",null,null]",
+            "mode": "minimal",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "DELETE",
+              "target": "/v1/budget_programs/example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",null,null]",
+            "mode": "full",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "DELETE",
+              "target": "/v1/budget_programs/example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "GET /v1/budget_programs/{id}",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets.readonly",
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",null,null]",
+            "mode": "minimal",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/budget_programs/example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",null,null]",
+            "mode": "full",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/budget_programs/example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "PUT /v1/budget_programs/{id}",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/json\",null]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/budget_programs/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                },
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {},
+                "text": "{}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"header:Idempotency-Key\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "header:Idempotency-Key",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/budget_programs/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {},
+                "text": "{}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "body",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/budget_programs/example",
+              "headers": [
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                },
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/json\",null]",
+            "mode": "full",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/budget_programs/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                },
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "budget_blueprints": [
+                    {
+                      "description": "example",
+                      "end_date": "2000-01-01",
+                      "id": "example",
+                      "limit": {
+                        "amount": 0,
+                        "currency": "example"
+                      },
+                      "limit_type": "HARD",
+                      "name": "example",
+                      "owner_user_ids": [
+                        "example"
+                      ],
+                      "parent_budget_id": "example",
+                      "period_type": "WEEKLY",
+                      "spend_type": "BUDGET_PROVISIONED_CARDS_ONLY",
+                      "start_date": "2000-01-01"
+                    }
+                  ],
+                  "description": "example",
+                  "employee_filter": {
+                    "employment_status": "EMPLOYMENT_STATUS_ACTIVE",
+                    "employment_type": "EMPLOYMENT_TYPE_FULL_TIME"
+                  },
+                  "existing_budget_ids": [
+                    "example"
+                  ],
+                  "name": "example"
+                },
+                "text": "{\"budget_blueprints\":[{\"description\":\"example\",\"end_date\":\"2000-01-01\",\"id\":\"example\",\"limit\":{\"amount\":0,\"currency\":\"example\"},\"limit_type\":\"HARD\",\"name\":\"example\",\"owner_user_ids\":[\"example\"],\"parent_budget_id\":\"example\",\"period_type\":\"WEEKLY\",\"spend_type\":\"BUDGET_PROVISIONED_CARDS_ONLY\",\"start_date\":\"2000-01-01\"}],\"description\":\"example\",\"employee_filter\":{\"employment_status\":\"EMPLOYMENT_STATUS_ACTIVE\",\"employment_type\":\"EMPLOYMENT_TYPE_FULL_TIME\"},\"existing_budget_ids\":[\"example\"],\"name\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "GET /v1/budgets",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets.readonly",
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",null,null]",
+            "mode": "minimal",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/budgets",
+              "headers": [],
+              "parameters": [],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",null,null]",
+            "mode": "full",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/budgets?cursor=example&limit=0",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "query:cursor",
+                  "value": "example",
+                  "wire": "cursor=example"
+                },
+                {
+                  "id": "query:limit",
+                  "value": 0,
+                  "wire": "limit=0"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "POST /v1/budgets",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/json\",null]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budgets",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "limit": {},
+                  "limit_type": "HARD",
+                  "limit_visibility": "SHARED",
+                  "parent_budget_id": "example",
+                  "period_type": "WEEKLY",
+                  "spend_type": "BUDGET_PROVISIONED_CARDS_ONLY"
+                },
+                "text": "{\"limit\":{},\"limit_type\":\"HARD\",\"limit_visibility\":\"SHARED\",\"parent_budget_id\":\"example\",\"period_type\":\"WEEKLY\",\"spend_type\":\"BUDGET_PROVISIONED_CARDS_ONLY\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"header:Idempotency-Key\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "header:Idempotency-Key",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budgets",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "limit": {},
+                  "limit_type": "HARD",
+                  "limit_visibility": "SHARED",
+                  "parent_budget_id": "example",
+                  "period_type": "WEEKLY",
+                  "spend_type": "BUDGET_PROVISIONED_CARDS_ONLY"
+                },
+                "text": "{\"limit\":{},\"limit_type\":\"HARD\",\"limit_visibility\":\"SHARED\",\"parent_budget_id\":\"example\",\"period_type\":\"WEEKLY\",\"spend_type\":\"BUDGET_PROVISIONED_CARDS_ONLY\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "body",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budgets",
+              "headers": [
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/json\",null]",
+            "mode": "full",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budgets",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "description": "example",
+                  "end_date": "2000-01-01",
+                  "limit": {
+                    "amount": 0,
+                    "currency": "example"
+                  },
+                  "limit_type": "HARD",
+                  "limit_visibility": "SHARED",
+                  "member_user_ids": [
+                    "example"
+                  ],
+                  "name": "example",
+                  "owner_user_ids": [
+                    "example"
+                  ],
+                  "parent_budget_id": "example",
+                  "period_type": "WEEKLY",
+                  "spend_type": "BUDGET_PROVISIONED_CARDS_ONLY",
+                  "start_date": "2000-01-01"
+                },
+                "text": "{\"description\":\"example\",\"end_date\":\"2000-01-01\",\"limit\":{\"amount\":0,\"currency\":\"example\"},\"limit_type\":\"HARD\",\"limit_visibility\":\"SHARED\",\"member_user_ids\":[\"example\"],\"name\":\"example\",\"owner_user_ids\":[\"example\"],\"parent_budget_id\":\"example\",\"period_type\":\"WEEKLY\",\"spend_type\":\"BUDGET_PROVISIONED_CARDS_ONLY\",\"start_date\":\"2000-01-01\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "GET /v1/budgets/{id}",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets.readonly",
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",null,null]",
+            "mode": "minimal",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/budgets/example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",null,null]",
+            "mode": "full",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "GET",
+              "target": "/v1/budgets/example",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "PUT /v1/budgets/{id}",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/json\",null]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/budgets/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                },
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {},
+                "text": "{}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"header:Idempotency-Key\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "header:Idempotency-Key",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/budgets/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {},
+                "text": "{}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/json\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/json",
+            "omit": "body",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/budgets/example",
+              "headers": [
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                },
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/json\",null]",
+            "mode": "full",
+            "mediaType": "application/json",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PUT",
+              "target": "/v1/budgets/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "idempotency-key",
+                  "value": "example"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:Idempotency-Key",
+                  "value": "example",
+                  "wire": "example"
+                },
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "description": "example",
+                  "end_date": "2000-01-01",
+                  "limit": {
+                    "amount": 0,
+                    "currency": "example"
+                  },
+                  "limit_type": "HARD",
+                  "limit_visibility": "SHARED",
+                  "member_user_ids": [
+                    "example"
+                  ],
+                  "name": "example",
+                  "owner_user_ids": [
+                    "example"
+                  ],
+                  "spend_type": "BUDGET_PROVISIONED_CARDS_ONLY",
+                  "start_date": "2000-01-01"
+                },
+                "text": "{\"description\":\"example\",\"end_date\":\"2000-01-01\",\"limit\":{\"amount\":0,\"currency\":\"example\"},\"limit_type\":\"HARD\",\"limit_visibility\":\"SHARED\",\"member_user_ids\":[\"example\"],\"name\":\"example\",\"owner_user_ids\":[\"example\"],\"spend_type\":\"BUDGET_PROVISIONED_CARDS_ONLY\",\"start_date\":\"2000-01-01\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "POST /v1/budgets/{id}/archive",
+        "security": [
+          {
+            "OAuth2": [
+              "budgets"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "description": "Production",
+            "url": "https://platform.brexapis.com"
+          },
+          {
+            "description": "Staging (Note: This is not a sandbox. It will not work with customer tokens.)",
+            "url": "https://platform.staging.brexapps.com"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",null,null]",
+            "mode": "minimal",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budgets/example/archive",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",null,null]",
+            "mode": "full",
+            "mediaType": null,
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/v1/budgets/example/archive",
+              "headers": [],
+              "parameters": [
+                {
+                  "id": "path:id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": null
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      }
+    ],
+    "wholeSkillCompleted": false
+  },
+  "verification": {
+    "status": "pass",
+    "errors": [],
+    "sourceOperations": 10,
+    "plannedCases": 28,
+    "constructedCases": 28,
+    "unresolvedCases": 0,
+    "presenceNegativeCases": 8
+  }
+}

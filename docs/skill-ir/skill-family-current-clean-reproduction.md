@@ -75,3 +75,45 @@ interpreter. No activation script or global package installation is needed. See
 [dependency requirements](https://packaging.pypa.io/en/stable/requirements.html) and
 [venv isolation](https://docs.python.org/3/library/venv.html). Extraction checks all payloads
 before writing, creates only new files, and never calls tar.extractall or executes launchers.
+
+## Actual clean result (10:10 +08)
+
+Candidate `883c85eb7c95057692ba1958613f8f76e4fd2c09` ran in the independent LF
+`.worktrees/family-current-clean-20260911` checkout. Both dependency file sets verified
+before and after execution; Python used the new no-pip venv, with no base site-packages.
+All36 body/response/form per-document artifacts and24 native suite/code files are byte
+identical to their respective latest committed references. Native per-document counts
+and synthetic fixture semantics also match. No real API requests were made.
+
+The complete112-file archive is
+`results/skill-ir/skill-family-current-clean-20260911/clean-archive-r1/`;
+`archive.json` binds inputs, candidate, dependencies, copied bytes and60 comparisons.
+The first collection directory is retained: collection initially used `results` instead
+of the native report's `rows` key. This was an evidence collector error, not a candidate
+execution error; correcting it did not rerun candidates or overwrite initial outputs.
+Use `archive-run.ts --checkout=<candidate-checkout> --out=<new-directory>` to collect.
+
+Clean regression:24tests/3697assertions, main and four affected script typechecks pass;
+six Python dependency tests pass. Standalone fixture15/15 designed faults detected with
+15 local HTTP calls; the regression fixture made another15. Native-stage cumulative local
+calls now123, real panel calls0. Skipped630 native cases are NOT API passes. Body971/1414,
+form578/628, source response examples130valid/3invalid/9unresolved remain unchanged.
+
+Run commands (Bun1.3.14, Node23.8.0, Python3.12.13; explicit dependency archives above):
+
+```powershell
+# In independent LF checkout at the exact candidate; INPUT is the existing bound index.
+bun scripts/skill-ir/api-request-specimens-development.ts --inputs=<INPUT> --out=<NEW_FORM_DIR> --profile=form-specimens
+bun scripts/skill-ir/api-response-schema-development.ts --inputs=<INPUT> --out=<NEW_RESPONSE_DIR>
+bun scripts/skill-ir/api-pytest-development.ts --inputs=<INPUT> --out=<NEW_NATIVE_DIR> --python=<VENV_PYTHON>
+bun scripts/skill-ir/api-pytest-loopback.ts --out=<NEW_FIXTURE_DIR> --python=<VENV_PYTHON>
+node node_modules/typescript/bin/tsc --noEmit
+git -c core.longpaths=true status --porcelain --untracked-files=no
+```
+
+Exact process outputs and preparation commands are in `commands-and-validation.json`.
+Windows status without core.longpaths can falsely report deep tracked paths as deleted;
+the explicit longpaths check is clean. Do not change tracked files to fix that diagnostic.
+Python's default Windows stdout encoding rendered Chinese directory names lossily in
+captured progress text; structured JSON bindings, files and XML remain authoritative.
+This diagnostic limitation is retained and warrants a narrow future UTF-8 process fix.

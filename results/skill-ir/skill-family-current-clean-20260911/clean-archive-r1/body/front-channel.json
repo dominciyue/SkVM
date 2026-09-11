@@ -1,0 +1,4587 @@
+{
+  "inputId": "front-channel",
+  "report": {
+    "schemaVersion": "api-request-body-negatives/v1",
+    "fields": {
+      "schemaVersion": "api-request-cases/v2",
+      "sourceSha256": "b9ba7715e4fe69188829ab44e292dc1288ae758a76ecf456e2ebd0b917ce1af7",
+      "sourceFormat": "yaml",
+      "enumerationComplete": true,
+      "enumerationIssues": [],
+      "operations": [
+        {
+          "key": "PATCH /channels/{channel_id}",
+          "locator": "#/paths/~1channels~1{channel_id}/patch",
+          "operationId": "Channels_updateChannel",
+          "summary": "Update Channel",
+          "projectedOperation": {
+            "tags": [
+              "Channels"
+            ],
+            "summary": "Update Channel",
+            "operationId": "Channels_updateChannel",
+            "description": "Update a channel.",
+            "parameters": [
+              {
+                "description": "The Channel ID. Alternatively, you can supply the channel address as a [resource alias](https://dev.frontapp.com/docs/resource-aliases-1).",
+                "in": "path",
+                "name": "channel_id",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "default": "cha_123"
+                }
+              }
+            ],
+            "requestBody": {
+              "description": "Channel details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UpdateChannel"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "204": {
+                "description": "No content"
+              }
+            },
+            "security": [
+              {
+                "http": []
+              }
+            ]
+          },
+          "schemas": [
+            {
+              "id": "path:channel_id",
+              "location": "path",
+              "name": "channel_id",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "default": "cha_123"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "e82f3df317a79a788a2ed03cd72043d11162341aa782f544ed9547569bad7ce6",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "body:application/json",
+              "location": "body",
+              "name": "application/json",
+              "required": false,
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChannel"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "04fc8fe8138ac4e1be153ff0f9e0f94dac6b9acb4a314c04882c8be48f51c6ae",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {}
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "status": "offline"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/status/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "status"
+                    ],
+                    "schemaPath": "#/$ref/properties/status/type",
+                    "validationSchemaPath": "#/properties/status/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "status": null
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/status/enum:enum",
+                    "kind": "enum",
+                    "instancePath": [
+                      "status"
+                    ],
+                    "schemaPath": "#/$ref/properties/status/enum",
+                    "validationSchemaPath": "#/properties/status/enum",
+                    "keyword": "enum",
+                    "operand": {
+                      "value": [
+                        "offline",
+                        "ok"
+                      ],
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "status": "__outside_enum__"
+                    }
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "{}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "{\"status\":\"offline\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/status/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"status\":null}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/status/enum:enum",
+                  "status": "encoded",
+                  "wire": "{\"status\":\"__outside_enum__\"}",
+                  "reason": null
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        },
+        {
+          "key": "POST /channels/{channel_id}/inbound_messages",
+          "locator": "#/paths/~1channels~1{channel_id}~1inbound_messages/post",
+          "operationId": "Messages_importReceivedMessage",
+          "summary": "Sync inbound message",
+          "projectedOperation": {
+            "tags": [
+              "Messages"
+            ],
+            "summary": "Sync inbound message",
+            "operationId": "Messages_importReceivedMessage",
+            "description": "Import a message that was received by the channel.",
+            "parameters": [
+              {
+                "description": "The channel ID. Alternatively, you can supply the channel address as a [resource alias](https://dev.frontapp.com/docs/resource-aliases-1).",
+                "in": "path",
+                "name": "channel_id",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "default": "cha_123"
+                }
+              }
+            ],
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InboundMessage"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "202": {
+                "$ref": "#/components/responses/acceptedMessage"
+              }
+            },
+            "security": [
+              {
+                "http": []
+              }
+            ]
+          },
+          "schemas": [
+            {
+              "id": "path:channel_id",
+              "location": "path",
+              "name": "channel_id",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "default": "cha_123"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "e82f3df317a79a788a2ed03cd72043d11162341aa782f544ed9547569bad7ce6",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "body:application/json",
+              "location": "body",
+              "name": "application/json",
+              "required": false,
+              "schema": {
+                "$ref": "#/components/schemas/InboundMessage"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "be6f4ac954c61dc4d0c5ab5b60bf73f5418fcc128cd4b7a830a160d561181884",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "body": "example",
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example"
+                      }
+                    }
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/required/sender:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/required/sender",
+                    "validationSchemaPath": "#/required",
+                    "keyword": "required",
+                    "operand": "sender",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/required/body:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/required/body",
+                    "validationSchemaPath": "#/required",
+                    "keyword": "required",
+                    "operand": "body",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/required/metadata:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/required/metadata",
+                    "validationSchemaPath": "#/required",
+                    "keyword": "required",
+                    "operand": "metadata",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/sender/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "sender"
+                    ],
+                    "schemaPath": "#/$ref/properties/sender/type",
+                    "validationSchemaPath": "#/properties/sender/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": null,
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/sender/required/handle:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [
+                      "sender"
+                    ],
+                    "schemaPath": "#/$ref/properties/sender/required/handle",
+                    "validationSchemaPath": "#/properties/sender/required",
+                    "keyword": "required",
+                    "operand": "handle",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/sender/properties/name/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "sender",
+                      "name"
+                    ],
+                    "schemaPath": "#/$ref/properties/sender/properties/name/type",
+                    "validationSchemaPath": "#/properties/sender/properties/name/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": null
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/sender/properties/handle/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "sender",
+                      "handle"
+                    ],
+                    "schemaPath": "#/$ref/properties/sender/properties/handle/type",
+                    "validationSchemaPath": "#/properties/sender/properties/handle/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": null,
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/subject/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "subject"
+                    ],
+                    "schemaPath": "#/$ref/properties/subject/type",
+                    "validationSchemaPath": "#/properties/subject/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": null
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/body/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "body"
+                    ],
+                    "schemaPath": "#/$ref/properties/body/type",
+                    "validationSchemaPath": "#/properties/body/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": null,
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "metadata"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/type",
+                    "validationSchemaPath": "#/properties/metadata/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": null,
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/required/external_id:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [
+                      "metadata"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/required/external_id",
+                    "validationSchemaPath": "#/properties/metadata/required",
+                    "keyword": "required",
+                    "operand": "external_id",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/required/external_conversation_id:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [
+                      "metadata"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/required/external_conversation_id",
+                    "validationSchemaPath": "#/properties/metadata/required",
+                    "keyword": "required",
+                    "operand": "external_conversation_id",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/properties/external_id/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "metadata",
+                      "external_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/properties/external_id/type",
+                    "validationSchemaPath": "#/properties/metadata/properties/external_id/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": null
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/properties/external_id/maxLength:maxLength",
+                    "kind": "maxLength",
+                    "instancePath": [
+                      "metadata",
+                      "external_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/properties/external_id/maxLength",
+                    "validationSchemaPath": "#/properties/metadata/properties/external_id/maxLength",
+                    "keyword": "maxLength",
+                    "operand": {
+                      "value": 200,
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/properties/external_conversation_id/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "metadata",
+                      "external_conversation_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/properties/external_conversation_id/type",
+                    "validationSchemaPath": "#/properties/metadata/properties/external_conversation_id/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": null,
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/properties/external_conversation_id/maxLength:maxLength",
+                    "kind": "maxLength",
+                    "instancePath": [
+                      "metadata",
+                      "external_conversation_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/properties/external_conversation_id/maxLength",
+                    "validationSchemaPath": "#/properties/metadata/properties/external_conversation_id/maxLength",
+                    "keyword": "maxLength",
+                    "operand": {
+                      "value": 200,
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/delivered_at/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "delivered_at"
+                    ],
+                    "schemaPath": "#/$ref/properties/delivered_at/type",
+                    "validationSchemaPath": "#/properties/delivered_at/type",
+                    "keyword": "type",
+                    "operand": "integer",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "body": "example",
+                      "delivered_at": null,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/attachments/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "attachments"
+                    ],
+                    "schemaPath": "#/$ref/properties/attachments/type",
+                    "validationSchemaPath": "#/properties/attachments/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": null,
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/attachments/items/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "attachments",
+                      0
+                    ],
+                    "schemaPath": "#/$ref/properties/attachments/items/type",
+                    "validationSchemaPath": "#/properties/attachments/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        null
+                      ],
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender": {
+                        "handle": "example",
+                        "name": "example"
+                      },
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/attachments/items/format:format",
+                    "kind": "format",
+                    "instancePath": [
+                      "attachments",
+                      0
+                    ],
+                    "schemaPath": "#/$ref/properties/attachments/items/format",
+                    "validationSchemaPath": "#/properties/attachments/items/format",
+                    "keyword": "format",
+                    "operand": {
+                      "value": "binary",
+                      "exclusive": false
+                    },
+                    "status": "unresolved",
+                    "reason": "no independently confirmed target violation within bounded candidates",
+                    "expectedHttpStatus": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "{\"body\":\"example\",\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\"}}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/required/sender:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/required/body:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/required/metadata:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/sender/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":null,\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/sender/required/handle:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/sender/properties/name/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":null},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/sender/properties/handle/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":null,\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/subject/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":null}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/body/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":null,\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":null,\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/required/external_id:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/required/external_conversation_id:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/properties/external_id/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":null},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/properties/external_id/maxLength:maxLength",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/properties/external_conversation_id/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":null,\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/properties/external_conversation_id/maxLength:maxLength",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/delivered_at/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":null,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/attachments/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":null,\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/attachments/items/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[null],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}",
+                  "reason": null
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        },
+        {
+          "key": "POST /channels/{channel_id}/outbound_messages",
+          "locator": "#/paths/~1channels~1{channel_id}~1outbound_messages/post",
+          "operationId": "Messages_importSyncedMessage",
+          "summary": "Sync outbound message",
+          "projectedOperation": {
+            "tags": [
+              "Messages"
+            ],
+            "summary": "Sync outbound message",
+            "operationId": "Messages_importSyncedMessage",
+            "description": "Import a message that was sent from the channel.",
+            "parameters": [
+              {
+                "description": "The channel ID. Alternatively, you can supply the channel address as a [resource alias](https://dev.frontapp.com/docs/resource-aliases-1).",
+                "in": "path",
+                "name": "channel_id",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "default": "cha_123"
+                }
+              }
+            ],
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/OutboundMessage"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "202": {
+                "$ref": "#/components/responses/acceptedMessage"
+              }
+            },
+            "security": [
+              {
+                "http": []
+              }
+            ]
+          },
+          "schemas": [
+            {
+              "id": "path:channel_id",
+              "location": "path",
+              "name": "channel_id",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "default": "cha_123"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "e82f3df317a79a788a2ed03cd72043d11162341aa782f544ed9547569bad7ce6",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": "example"
+                  },
+                  {
+                    "id": "#/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [],
+                    "schemaPath": "#/type",
+                    "validationSchemaPath": "#/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "example",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/type:wrong-type",
+                  "status": "unsupported",
+                  "wire": null,
+                  "reason": "Error: non-primitive/empty/oversize value"
+                }
+              ]
+            },
+            {
+              "id": "body:application/json",
+              "location": "body",
+              "name": "application/json",
+              "required": false,
+              "schema": {
+                "$ref": "#/components/schemas/OutboundMessage"
+              },
+              "cases": {
+                "schemaVersion": "api-schema-cases/v1",
+                "schemaSha256": "242e38b35144bc3a398a221c74366caa36751119a9b7f07a7568f8a375fc2da7",
+                "sourceIssues": [],
+                "cases": [
+                  {
+                    "id": "#:valid-minimal",
+                    "kind": "valid-minimal",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "body": "example",
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "to": []
+                    }
+                  },
+                  {
+                    "id": "#:valid-full",
+                    "kind": "valid-full",
+                    "instancePath": [],
+                    "schemaPath": "#",
+                    "validationSchemaPath": "#",
+                    "keyword": null,
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/required/to:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/required/to",
+                    "validationSchemaPath": "#/required",
+                    "keyword": "required",
+                    "operand": "to",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example"
+                    }
+                  },
+                  {
+                    "id": "#/$ref/required/body:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/required/body",
+                    "validationSchemaPath": "#/required",
+                    "keyword": "required",
+                    "operand": "body",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/required/metadata:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [],
+                    "schemaPath": "#/$ref/required/metadata",
+                    "validationSchemaPath": "#/required",
+                    "keyword": "required",
+                    "operand": "metadata",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/sender_name/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "sender_name"
+                    ],
+                    "schemaPath": "#/$ref/properties/sender_name/type",
+                    "validationSchemaPath": "#/properties/sender_name/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": null,
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/to/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "to"
+                    ],
+                    "schemaPath": "#/$ref/properties/to/type",
+                    "validationSchemaPath": "#/properties/to/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": null
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/to/items/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "to",
+                      0
+                    ],
+                    "schemaPath": "#/$ref/properties/to/items/type",
+                    "validationSchemaPath": "#/properties/to/items/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        null
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/to/items/required/handle:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [
+                      "to",
+                      0
+                    ],
+                    "schemaPath": "#/$ref/properties/to/items/required/handle",
+                    "validationSchemaPath": "#/properties/to/items/required",
+                    "keyword": "required",
+                    "operand": "handle",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/to/items/properties/name/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "to",
+                      0,
+                      "name"
+                    ],
+                    "schemaPath": "#/$ref/properties/to/items/properties/name/type",
+                    "validationSchemaPath": "#/properties/to/items/properties/name/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": null
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/to/items/properties/handle/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "to",
+                      0,
+                      "handle"
+                    ],
+                    "schemaPath": "#/$ref/properties/to/items/properties/handle/type",
+                    "validationSchemaPath": "#/properties/to/items/properties/handle/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": null,
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/subject/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "subject"
+                    ],
+                    "schemaPath": "#/$ref/properties/subject/type",
+                    "validationSchemaPath": "#/properties/subject/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": null,
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/author_id/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "author_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/author_id/type",
+                    "validationSchemaPath": "#/properties/author_id/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": null,
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/body/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "body"
+                    ],
+                    "schemaPath": "#/$ref/properties/body/type",
+                    "validationSchemaPath": "#/properties/body/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": null,
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "metadata"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/type",
+                    "validationSchemaPath": "#/properties/metadata/type",
+                    "keyword": "type",
+                    "operand": "object",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": null,
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/required/external_id:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [
+                      "metadata"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/required/external_id",
+                    "validationSchemaPath": "#/properties/metadata/required",
+                    "keyword": "required",
+                    "operand": "external_id",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/required/external_conversation_id:missing-required",
+                    "kind": "missing-required",
+                    "instancePath": [
+                      "metadata"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/required/external_conversation_id",
+                    "validationSchemaPath": "#/properties/metadata/required",
+                    "keyword": "required",
+                    "operand": "external_conversation_id",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/properties/external_id/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "metadata",
+                      "external_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/properties/external_id/type",
+                    "validationSchemaPath": "#/properties/metadata/properties/external_id/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": null
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/properties/external_id/maxLength:maxLength",
+                    "kind": "maxLength",
+                    "instancePath": [
+                      "metadata",
+                      "external_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/properties/external_id/maxLength",
+                    "validationSchemaPath": "#/properties/metadata/properties/external_id/maxLength",
+                    "keyword": "maxLength",
+                    "operand": {
+                      "value": 200,
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/properties/external_conversation_id/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "metadata",
+                      "external_conversation_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/properties/external_conversation_id/type",
+                    "validationSchemaPath": "#/properties/metadata/properties/external_conversation_id/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": null,
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/metadata/properties/external_conversation_id/maxLength:maxLength",
+                    "kind": "maxLength",
+                    "instancePath": [
+                      "metadata",
+                      "external_conversation_id"
+                    ],
+                    "schemaPath": "#/$ref/properties/metadata/properties/external_conversation_id/maxLength",
+                    "validationSchemaPath": "#/properties/metadata/properties/external_conversation_id/maxLength",
+                    "keyword": "maxLength",
+                    "operand": {
+                      "value": 200,
+                      "exclusive": false
+                    },
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/delivered_at/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "delivered_at"
+                    ],
+                    "schemaPath": "#/$ref/properties/delivered_at/type",
+                    "validationSchemaPath": "#/properties/delivered_at/type",
+                    "keyword": "type",
+                    "operand": "integer",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        "example0"
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": null,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/attachments/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "attachments"
+                    ],
+                    "schemaPath": "#/$ref/properties/attachments/type",
+                    "validationSchemaPath": "#/properties/attachments/type",
+                    "keyword": "type",
+                    "operand": "array",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": null,
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/attachments/items/type:wrong-type",
+                    "kind": "wrong-type",
+                    "instancePath": [
+                      "attachments",
+                      0
+                    ],
+                    "schemaPath": "#/$ref/properties/attachments/items/type",
+                    "validationSchemaPath": "#/properties/attachments/items/type",
+                    "keyword": "type",
+                    "operand": "string",
+                    "status": "covered",
+                    "reason": null,
+                    "expectedHttpStatus": null,
+                    "value": {
+                      "attachments": [
+                        null
+                      ],
+                      "author_id": "example",
+                      "body": "example",
+                      "delivered_at": 0,
+                      "metadata": {
+                        "external_conversation_id": "example",
+                        "external_id": "example"
+                      },
+                      "sender_name": "example",
+                      "subject": "example",
+                      "to": [
+                        {
+                          "handle": "example",
+                          "name": "example"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "#/$ref/properties/attachments/items/format:format",
+                    "kind": "format",
+                    "instancePath": [
+                      "attachments",
+                      0
+                    ],
+                    "schemaPath": "#/$ref/properties/attachments/items/format",
+                    "validationSchemaPath": "#/properties/attachments/items/format",
+                    "keyword": "format",
+                    "operand": {
+                      "value": "binary",
+                      "exclusive": false
+                    },
+                    "status": "unresolved",
+                    "reason": "no independently confirmed target violation within bounded candidates",
+                    "expectedHttpStatus": null
+                  }
+                ]
+              },
+              "wireCases": [
+                {
+                  "caseId": "#:valid-minimal",
+                  "status": "encoded",
+                  "wire": "{\"body\":\"example\",\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"to\":[]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#:valid-full",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/required/to:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\"}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/required/body:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/required/metadata:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/sender_name/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":null,\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/to/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":null}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/to/items/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[null]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/to/items/required/handle:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/to/items/properties/name/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":null}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/to/items/properties/handle/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":null,\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/subject/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":null,\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/author_id/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":null,\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/body/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":null,\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":null,\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/required/external_id:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/required/external_conversation_id:missing-required",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/properties/external_id/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":null},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/properties/external_id/maxLength:maxLength",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/properties/external_conversation_id/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":null,\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/metadata/properties/external_conversation_id/maxLength:maxLength",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/delivered_at/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":null,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/attachments/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":null,\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                },
+                {
+                  "caseId": "#/$ref/properties/attachments/items/type:wrong-type",
+                  "status": "encoded",
+                  "wire": "{\"attachments\":[null],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}",
+                  "reason": null
+                }
+              ]
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "remainingObligations": [
+            "http-status-trigger-evidence",
+            "parameter-presence-and-serialization",
+            "credentials-and-live-auth",
+            "response-validation",
+            "business-lifecycle",
+            "requested-output-format",
+            "prose-only-constraints"
+          ]
+        }
+      ],
+      "accounting": {
+        "modelCalls": 0,
+        "paidCalls": 0
+      },
+      "wholeSkillCompleted": false
+    },
+    "specimens": {
+      "schemaVersion": "api-request-specimens/v1",
+      "sourceSha256": "b9ba7715e4fe69188829ab44e292dc1288ae758a76ecf456e2ebd0b917ce1af7",
+      "sourceFormat": "yaml",
+      "enumerationComplete": true,
+      "enumerationIssues": [],
+      "operations": [
+        {
+          "key": "PATCH /channels/{channel_id}",
+          "security": [
+            {
+              "http": []
+            }
+          ],
+          "servers": [
+            {
+              "url": "https://api2.frontapp.com"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",null,null]",
+              "mode": "minimal",
+              "mediaType": null,
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "PATCH",
+                "target": "/channels/example",
+                "headers": [],
+                "parameters": [
+                  {
+                    "id": "path:channel_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",\"application/json\",null]",
+              "mode": "full",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "PATCH",
+                "target": "/channels/example",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [
+                  {
+                    "id": "path:channel_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {
+                    "status": "offline"
+                  },
+                  "text": "{\"status\":\"offline\"}"
+                }
+              },
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        },
+        {
+          "key": "POST /channels/{channel_id}/inbound_messages",
+          "security": [
+            {
+              "http": []
+            }
+          ],
+          "servers": [
+            {
+              "url": "https://api2.frontapp.com"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",null,null]",
+              "mode": "minimal",
+              "mediaType": null,
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/channels/example/inbound_messages",
+                "headers": [],
+                "parameters": [
+                  {
+                    "id": "path:channel_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",\"application/json\",null]",
+              "mode": "full",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/channels/example/inbound_messages",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [
+                  {
+                    "id": "path:channel_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {
+                    "attachments": [
+                      "example0"
+                    ],
+                    "body": "example",
+                    "delivered_at": 0,
+                    "metadata": {
+                      "external_conversation_id": "example",
+                      "external_id": "example"
+                    },
+                    "sender": {
+                      "handle": "example",
+                      "name": "example"
+                    },
+                    "subject": "example"
+                  },
+                  "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+                }
+              },
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        },
+        {
+          "key": "POST /channels/{channel_id}/outbound_messages",
+          "security": [
+            {
+              "http": []
+            }
+          ],
+          "servers": [
+            {
+              "url": "https://api2.frontapp.com"
+            }
+          ],
+          "sourceAdvisories": [],
+          "issues": [],
+          "caseInventoryComplete": true,
+          "cases": [
+            {
+              "id": "[\"minimal\",null,null]",
+              "mode": "minimal",
+              "mediaType": null,
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/channels/example/outbound_messages",
+                "headers": [],
+                "parameters": [
+                  {
+                    "id": "path:channel_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": null
+              },
+              "expectedHttpStatus": null
+            },
+            {
+              "id": "[\"full\",\"application/json\",null]",
+              "mode": "full",
+              "mediaType": "application/json",
+              "omit": null,
+              "status": "constructed",
+              "reasons": [],
+              "request": {
+                "method": "POST",
+                "target": "/channels/example/outbound_messages",
+                "headers": [
+                  {
+                    "name": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "parameters": [
+                  {
+                    "id": "path:channel_id",
+                    "value": "example",
+                    "wire": "example"
+                  }
+                ],
+                "body": {
+                  "mediaType": "application/json",
+                  "value": {
+                    "attachments": [
+                      "example0"
+                    ],
+                    "author_id": "example",
+                    "body": "example",
+                    "delivered_at": 0,
+                    "metadata": {
+                      "external_conversation_id": "example",
+                      "external_id": "example"
+                    },
+                    "sender_name": "example",
+                    "subject": "example",
+                    "to": [
+                      {
+                        "handle": "example",
+                        "name": "example"
+                      }
+                    ]
+                  },
+                  "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+                }
+              },
+              "expectedHttpStatus": null
+            }
+          ],
+          "runtimeRequirements": [
+            "origin-and-server-selection",
+            "credentials-and-live-auth",
+            "response-status-and-business-oracle",
+            "schema-negative-case-assembly",
+            "missing-path-parameter-testing",
+            "native-output-format"
+          ]
+        }
+      ],
+      "wholeSkillCompleted": false
+    },
+    "wholeSkillCompleted": false,
+    "remainingObligations": [
+      "parameter-schema-negative-assembly",
+      "credentials-and-live-auth",
+      "origin-and-server-selection",
+      "response-status-and-business-oracle",
+      "native-output-format",
+      "single-fault-isolation"
+    ],
+    "operations": [
+      {
+        "key": "PATCH /channels/{channel_id}",
+        "cases": [
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/status/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/status/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PATCH",
+              "target": "/channels/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "status": null
+                },
+                "text": "{\"status\":null}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/status/enum:enum\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/status/enum:enum",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "PATCH",
+              "target": "/channels/example",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "status": "__outside_enum__"
+                },
+                "text": "{\"status\":\"__outside_enum__\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ]
+      },
+      {
+        "key": "POST /channels/{channel_id}/inbound_messages",
+        "cases": [
+          {
+            "id": "[\"body:application/json\",\"#/$ref/required/sender:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/required/sender:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/required/body:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/required/body:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/required/metadata:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/required/metadata:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/sender/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/sender/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": null,
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":null,\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/sender/required/handle:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/sender/required/handle:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/sender/properties/name/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/sender/properties/name/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": null
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":null},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/sender/properties/handle/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/sender/properties/handle/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": null,
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":null,\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/subject/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/subject/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": null
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":null}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/body/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/body/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": null,
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":null,\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": null,
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":null,\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/required/external_id:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/required/external_id:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/required/external_conversation_id:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/required/external_conversation_id:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/properties/external_id/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/properties/external_id/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": null
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":null},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/properties/external_id/maxLength:maxLength\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/properties/external_id/maxLength:maxLength",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/properties/external_conversation_id/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/properties/external_conversation_id/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": null,
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":null,\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/properties/external_conversation_id/maxLength:maxLength\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/properties/external_conversation_id/maxLength:maxLength",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/delivered_at/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/delivered_at/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "body": "example",
+                  "delivered_at": null,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"body\":\"example\",\"delivered_at\":null,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/attachments/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/attachments/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": null,
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":null,\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/attachments/items/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/attachments/items/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/inbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    null
+                  ],
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender": {
+                    "handle": "example",
+                    "name": "example"
+                  },
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[null],\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender\":{\"handle\":\"example\",\"name\":\"example\"},\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/attachments/items/format:format\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/attachments/items/format:format",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "field witness unresolved: no independently confirmed target violation within bounded candidates"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          }
+        ]
+      },
+      {
+        "key": "POST /channels/{channel_id}/outbound_messages",
+        "cases": [
+          {
+            "id": "[\"body:application/json\",\"#/$ref/required/to:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/required/to:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example"
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\"}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/required/body:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/required/body:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/required/metadata:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/required/metadata:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/sender_name/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/sender_name/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": null,
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":null,\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/to/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/to/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": null
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":null}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/to/items/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/to/items/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    null
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[null]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/to/items/required/handle:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/to/items/required/handle:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/to/items/properties/name/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/to/items/properties/name/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": null
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":null}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/to/items/properties/handle/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/to/items/properties/handle/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": null,
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":null,\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/subject/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/subject/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": null,
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":null,\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/author_id/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/author_id/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": null,
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":null,\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/body/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/body/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": null,
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":null,\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": null,
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":null,\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/required/external_id:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/required/external_id:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/required/external_conversation_id:missing-required\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/required/external_conversation_id:missing-required",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/properties/external_id/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/properties/external_id/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": null
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":null},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/properties/external_id/maxLength:maxLength\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/properties/external_id/maxLength:maxLength",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/properties/external_conversation_id/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/properties/external_conversation_id/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": null,
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":null,\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/metadata/properties/external_conversation_id/maxLength:maxLength\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/metadata/properties/external_conversation_id/maxLength:maxLength",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/delivered_at/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/delivered_at/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    "example0"
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": null,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[\"example0\"],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":null,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/attachments/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/attachments/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": null,
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":null,\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/attachments/items/type:wrong-type\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/attachments/items/type:wrong-type",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/channels/example/outbound_messages",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "path:channel_id",
+                  "value": "example",
+                  "wire": "example"
+                }
+              ],
+              "body": {
+                "mediaType": "application/json",
+                "value": {
+                  "attachments": [
+                    null
+                  ],
+                  "author_id": "example",
+                  "body": "example",
+                  "delivered_at": 0,
+                  "metadata": {
+                    "external_conversation_id": "example",
+                    "external_id": "example"
+                  },
+                  "sender_name": "example",
+                  "subject": "example",
+                  "to": [
+                    {
+                      "handle": "example",
+                      "name": "example"
+                    }
+                  ]
+                },
+                "text": "{\"attachments\":[null],\"author_id\":\"example\",\"body\":\"example\",\"delivered_at\":0,\"metadata\":{\"external_conversation_id\":\"example\",\"external_id\":\"example\"},\"sender_name\":\"example\",\"subject\":\"example\",\"to\":[{\"handle\":\"example\",\"name\":\"example\"}]}"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"body:application/json\",\"#/$ref/properties/attachments/items/format:format\"]",
+            "fieldId": "body:application/json",
+            "obligationId": "#/$ref/properties/attachments/items/format:format",
+            "baselineId": "[\"full\",\"application/json\",null]",
+            "status": "unresolved",
+            "reasons": [
+              "field witness unresolved: no independently confirmed target violation within bounded candidates"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          }
+        ]
+      }
+    ]
+  },
+  "verification": {
+    "status": "pass",
+    "errors": [],
+    "obligations": 45,
+    "constructed": 43,
+    "unresolved": 2
+  }
+}
