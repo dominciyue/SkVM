@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "api-test-plan/v2",
+  "source": "public-openapi",
+  "framework": "node:test",
+  "endpoints": [
+    {
+      "method": "DELETE",
+      "path": "/api/v1/partners/accounts/{customer_account_uid}",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-0-delete-api-v1-partners-accounts-customer-account-uid-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "customer_account_uid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 204,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-delete-api-v1-partners-accounts-customer-account-uid-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 403,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-delete-api-v1-partners-accounts-customer-account-uid-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "customer_account_uid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 403,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/partners/accounts/{customer_account_uid}",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-1-get-api-v1-partners-accounts-customer-account-uid-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "customer_account_uid": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-1-get-api-v1-partners-accounts-customer-account-uid-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 403,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-1-get-api-v1-partners-accounts-customer-account-uid-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "customer_account_uid": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 403,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    }
+  ]
+}

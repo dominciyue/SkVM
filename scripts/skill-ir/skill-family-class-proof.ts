@@ -7,7 +7,13 @@ import { preflightSkillEligibility, type EligibilityInput, type EligibilityRecor
 import { buildObligationLedger, normalizeObligationTerm, OBLIGATION_TERM_LEXICON, type LedgerObligationInput } from "../../src/skill-ir/skill-family-obligation-ledger";
 import { gitBlobOid } from "../../src/benchmarks/skill-ir/public-skill-responsibility-corpus-archive";
 import { parseApiTesterOperationSource } from "../../src/skill-ir/api-tester-operation-source";
-import { CLASS_CONSTRUCTION_PROFILE } from "../../src/skill-ir/skill-family-class-construction";
+import { buildClassConstruction, CLASS_CONSTRUCTION_PROFILE } from "../../src/skill-ir/skill-family-class-construction";
+import { deriveObligationOutcomes, mergeInputOutcomes } from "../../src/skill-ir/skill-family-class-construction";
+import {
+  ApiTesterOperationInputReportSchema,
+  runApiTesterOperationInput,
+  verifyApiTesterOperationInputOutput,
+} from "../../src/skill-ir/api-tester-operation-input";
 
 export const CLASS_PROOF_IDENTITY = "skill-family-class-proof-002" as const;
 export const CLASS_PROOF_PLAN_REVISION = 1 as const;
@@ -56,8 +62,8 @@ const STEP_ORDER: Record<ClassProofStep, number> = {
   "no-revision": 7,
   reported: 8,
   "extension-running": 9,
-  "method-not-ready": 9,
-  "blocked-before-evaluation": 9,
+  "method-not-ready": 8,
+  "blocked-before-evaluation": 8,
 };
 
 export function transitionStatus(current: ClassProofStep, next: ClassProofStep): ClassProofStep {
@@ -354,6 +360,156 @@ export function selectDevelopmentMembers(rows: EligibilitySummaryRow[], limit = 
 /** Bind inputs in the original archived index order; construction outcomes are not consulted. */
 export function selectDevelopmentInputs(inputs: TaskInputBinding[], count = 2): TaskInputBinding[] {
   return inputs.slice(0, Math.max(0, count));
+}
+
+export type GapObservation = {
+  gapId: string;
+  memberId: string;
+  repository: string;
+  inputId: string;
+  layer: "source" | "construction" | "checker" | "dependency";
+  status: "unresolved" | "source-blocked" | "failed" | "advisory";
+  classContract: boolean;
+  module: string;
+  independentOracle: string;
+  reason: string;
+};
+
+export type GapMatrixReport = {
+  schemaVersion: "skill-family-class-proof-gap-matrix/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  observations: GapObservation[];
+  gaps: Array<{
+    gapId: string;
+    occurrenceMembers: number;
+    memberIds: string[];
+    affectedInputs: string[];
+    currentStatus: GapObservation["status"];
+    classContract: boolean;
+    existingModules: string[];
+    independentOracles: string[];
+    reasons: string[];
+  }>;
+  repairs: Array<{
+    gapId: string;
+    status: "repaired" | "retained";
+    classContract: boolean;
+    before: Record<string, unknown>;
+    after: Record<string, unknown>;
+    implementation: string[];
+    regressionTests: string[];
+  }>;
+  constructionSnapshots?: Array<{
+    inputId: string;
+    checkerPassed: boolean;
+    enumeration: { complete: boolean; operations: number; issues: string[] };
+    availability: Record<string, { constructed: number; unresolved: number; reasons: string[] }>;
+  }>;
+  baseline?: Array<Record<string, unknown>>;
+  totals: { observations: number; gapKinds: number; contractInternal: number; sourceShortfall: number };
+};
+
+export type GapRepairEvidence = GapMatrixReport["repairs"][number];
+
+export type DevelopmentGateInput = {
+  memberCount: number;
+  inputBindings: number;
+  expectedInputsPerMember: number;
+  explainedInputs: number;
+  acceptedArtifacts: number;
+  checkedAcceptedArtifacts: number;
+  coreObligations: number;
+  constructedCoreObligations: number;
+  repositoryDispatchDetected: boolean;
+  infrastructureFailures: number;
+};
+
+export function deriveDevelopmentGate(input: DevelopmentGateInput) {
+  const coreCoverage = input.coreObligations > 0 ? input.constructedCoreObligations / input.coreObligations : 0;
+  const protocolReady = input.infrastructureFailures === 0
+    && input.acceptedArtifacts === input.checkedAcceptedArtifacts;
+  const inputReady = input.memberCount > 0
+    && input.expectedInputsPerMember >= 2
+    && input.inputBindings >= input.memberCount * input.expectedInputsPerMember
+    && input.explainedInputs === input.inputBindings;
+  const capabilityReady = protocolReady && inputReady && !input.repositoryDispatchDetected && coreCoverage >= 0.9;
+  const reasons: string[] = [];
+  if (!protocolReady) reasons.push("protocol-or-artifact-check-failure");
+  if (!inputReady) reasons.push("input-denominator-incomplete");
+  if (input.repositoryDispatchDetected) reasons.push("repository-specific-dispatch-detected");
+  if (coreCoverage < 0.9) reasons.push("core-obligation-coverage-below-90-percent");
+  return { protocolReady, inputReady, capabilityReady, coreCoverage, reasons };
+}
+
+const GAP_STATUS_RANK: Record<GapObservation["status"], number> = {
+  advisory: 1,
+  unresolved: 2,
+  "source-blocked": 3,
+  failed: 4,
+};
+
+/** Aggregate independently observed failures without collapsing member/input denominators. */
+export function buildGapMatrix(observations: GapObservation[], repairs: GapRepairEvidence[] = []): GapMatrixReport {
+  const groups = new Map<string, {
+    observations: GapObservation[];
+    memberIds: Set<string>;
+    affectedInputs: Set<string>;
+    modules: Set<string>;
+    oracles: Set<string>;
+    reasons: Set<string>;
+    status: GapObservation["status"];
+    classContract: boolean;
+  }>();
+  const unique = new Map<string, GapObservation>();
+  for (const observation of observations) {
+    for (const field of [observation.gapId, observation.memberId, observation.repository, observation.inputId,
+      observation.module, observation.independentOracle, observation.reason]) {
+      if (!field.trim()) throw new Error("gap observation fields must be non-empty");
+    }
+    const observationKey = [observation.gapId, observation.memberId, observation.inputId, observation.layer, observation.reason].join("\u0000");
+    if (unique.has(observationKey)) continue;
+    unique.set(observationKey, observation);
+    const group = groups.get(observation.gapId) ?? {
+      observations: [], memberIds: new Set<string>(), affectedInputs: new Set<string>(), modules: new Set<string>(),
+      oracles: new Set<string>(), reasons: new Set<string>(), status: observation.status, classContract: observation.classContract,
+    };
+    group.observations.push(observation);
+    group.memberIds.add(observation.memberId);
+    group.affectedInputs.add(observation.inputId);
+    group.modules.add(observation.module);
+    group.oracles.add(observation.independentOracle);
+    group.reasons.add(observation.reason);
+    if (GAP_STATUS_RANK[observation.status] > GAP_STATUS_RANK[group.status]) group.status = observation.status;
+    group.classContract = group.classContract && observation.classContract;
+    groups.set(observation.gapId, group);
+  }
+  const normalizedObservations = [...unique.values()].sort((a, b) => a.gapId.localeCompare(b.gapId)
+    || a.memberId.localeCompare(b.memberId) || a.inputId.localeCompare(b.inputId) || a.reason.localeCompare(b.reason));
+  const gaps = [...groups.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([gapId, group]) => ({
+    gapId,
+    occurrenceMembers: group.memberIds.size,
+    memberIds: [...group.memberIds].sort(),
+    affectedInputs: [...group.affectedInputs].sort(),
+    currentStatus: group.status,
+    classContract: group.classContract,
+    existingModules: [...group.modules].sort(),
+    independentOracles: [...group.oracles].sort(),
+    reasons: [...group.reasons].sort(),
+  }));
+  return {
+    schemaVersion: "skill-family-class-proof-gap-matrix/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    observations: normalizedObservations,
+    gaps,
+    repairs: [...repairs].sort((left, right) => left.gapId.localeCompare(right.gapId)),
+    constructionSnapshots: [],
+    totals: {
+      observations: normalizedObservations.length,
+      gapKinds: gaps.length,
+      contractInternal: gaps.filter((gap) => gap.classContract).length,
+      sourceShortfall: gaps.filter((gap) => !gap.classContract).length,
+    },
+  };
 }
 
 type AcquiredSourceRow = {
@@ -713,6 +869,464 @@ export async function runDevelopmentLedger(root: string): Promise<DevelopmentLed
   return { ledger, status };
 }
 
+type GapMatrixRunResult = { report: GapMatrixReport; status: ClassProofStatus };
+
+type DevelopmentRunRecord = {
+  candidateId: string;
+  memberId: string;
+  repository: string;
+  inputId: string;
+  input: { path: string; format: "json" | "yaml"; bytes: number; sha256: string };
+  manifestPath: string;
+  outputPath: string;
+  construction: {
+    checkerPassed: boolean;
+    checkerFailures: string[];
+    enumeration: { complete: boolean; operations: number; issues: string[] };
+    availability: Record<string, { constructed: number; unresolved: number; reasons: string[] }>;
+    obligations: ReturnType<typeof deriveObligationOutcomes>;
+  };
+  runner: {
+    status: "completed" | "completed-with-source-advisory" | "completed-with-source-blocker" | "failed" | "not-run";
+    totals: { operations: number; accepted: number; rejected: number; unresolved: number; artifactCheckedPassedOperations: number };
+    gates: Record<string, string>;
+    sourceIssues: Record<string, unknown>;
+    reportPath: string | null;
+    verifier: { status: "verified" | "failed"; operations: number; accepted: number; checked: number; portableSemanticSha256?: string; error?: string };
+  };
+  failureClass: "none" | "source-blocked" | "unsupported-by-contract" | "constructor-error" | "checker-failure" | "infrastructure-failure";
+  elapsedMillis: number;
+};
+
+type DevelopmentRunsReport = {
+  schemaVersion: "skill-family-class-proof-development-runs/v1";
+  identity: typeof CLASS_PROOF_IDENTITY;
+  constructionProfile: typeof CLASS_CONSTRUCTION_PROFILE;
+  inputSelectionRule: string;
+  members: Array<{ candidateId: string; memberId: string; repository: string; runs: DevelopmentRunRecord[]; mergedObligations: ReturnType<typeof mergeInputOutcomes>; coreCoverage: number }>;
+  runs: DevelopmentRunRecord[];
+  gate: ReturnType<typeof deriveDevelopmentGate> & { repositoryDispatchDetected: boolean; infrastructureFailures: number };
+  categories: Record<DevelopmentRunRecord["failureClass"], number>;
+  accounting: { modelCalls: 0; apiCalls: 0; paidCalls: 0; runtimeCalls: number };
+  protectedBoundary: { heldOutAccesses: 0; q1ReservedAccesses: 0; prospectiveRuns: 0; readinessChanges: 0 };
+};
+
+function classifyConstructionGap(kind: string, reason: string): { gapId: string; module: string; oracle: string } {
+  if (/format\s+url/iu.test(reason)) return {
+    gapId: "format-url-witness",
+    module: "src/skill-ir/api-schema-witness.ts",
+    oracle: "src/skill-ir/api-schema-checker.ts:createDirectionalSchemaChecker",
+  };
+  if (/reference|\$ref/iu.test(reason)) return {
+    gapId: "reference-resolution",
+    module: "src/skill-ir/api-schema-witness.ts",
+    oracle: "src/skill-ir/api-schema-checker.ts:createDirectionalSchemaChecker",
+  };
+  if (/array|encoding|form/iu.test(reason)) return {
+    gapId: "array-or-form-encoding",
+    module: "src/skill-ir/api-parameter-wire.ts",
+    oracle: "src/skill-ir/api-request-specimens-checker.ts:verifySpecimens",
+  };
+  return {
+    gapId: `construction-${kind}`,
+    module: "src/skill-ir/skill-family-class-construction.ts",
+    oracle: "src/skill-ir/api-request-specimens-checker.ts:verifySpecimens",
+  };
+}
+
+async function readHistoricalUrlBaseline(root: string): Promise<Array<Record<string, unknown>>> {
+  const paths = [
+    "results/skill-ir/skill-family-minimum-delivery-20260911/calibration/jeremy-automating-api-testing/jeremy-automating-api-testing__onepassword-connect.json",
+    "results/skill-ir/skill-family-minimum-delivery-20260911/calibration/lambda-api-to-testcase/lambda-api-to-testcase__onepassword-connect.json",
+    "results/skill-ir/skill-family-minimum-delivery-20260911/calibration/pactflow-openapi-parser/pactflow-openapi-parser__onepassword-connect.json",
+  ];
+  const rows: Array<Record<string, unknown>> = [];
+  for (const path of paths) {
+    try {
+      const report = JSON.parse(await readFile(join(root, path), "utf8")) as {
+        memberId?: string;
+        inputId?: string;
+        availability?: Record<string, { constructed: number; unresolved: number; reasons: string[] }>;
+      };
+      const availability = report.availability ?? {};
+      const formatRows = Object.entries(availability).filter(([, value]) => value.reasons.some((reason) => /format\s+url/iu.test(reason)));
+      rows.push({
+        path,
+        memberId: report.memberId ?? null,
+        inputId: report.inputId ?? null,
+        formatRows: formatRows.map(([kind, value]) => ({ kind, constructed: value.constructed, unresolved: value.unresolved, reasons: value.reasons })),
+        unresolvedCases: formatRows.reduce((sum, [, value]) => sum + value.unresolved, 0),
+      });
+    } catch (error) {
+      rows.push({ path, error: String(error) });
+    }
+  }
+  return rows;
+}
+
+/** Record actual shared construction gaps and a before/after repair without selecting primary inputs. */
+export async function runGapMatrix(root: string): Promise<GapMatrixRunResult> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const ledger = JSON.parse(await readFile(join(evidenceRoot, "development-ledger.json"), "utf8")) as {
+    members: Array<{
+      memberId: string;
+      repository: string;
+      inputBindings: Array<{ inputId: string; path: string; format: "json" | "yaml" }>;
+      duties: ExtractedResponsibility[];
+    }>;
+  };
+  const observations: GapObservation[] = [];
+  type ConstructionSnapshot = NonNullable<GapMatrixReport["constructionSnapshots"]>[number];
+  const snapshots = new Map<string, ConstructionSnapshot>();
+  for (const member of ledger.members) {
+    for (const binding of member.inputBindings) {
+      const source = await readFile(resolve(absoluteRoot, binding.path));
+      const construction = buildClassConstruction(source.toString("utf8"), binding.format);
+      if (!snapshots.has(binding.inputId)) snapshots.set(binding.inputId, {
+        inputId: binding.inputId,
+        checkerPassed: construction.checkerPassed,
+        enumeration: construction.enumeration,
+        availability: construction.availability,
+      });
+      if (!construction.checkerPassed) observations.push({
+        gapId: "construction-checker-failure",
+        memberId: member.memberId,
+        repository: member.repository,
+        inputId: binding.inputId,
+        layer: "checker",
+        status: "failed",
+        classContract: true,
+        module: "src/skill-ir/skill-family-class-construction.ts",
+        independentOracle: "api-request-specimens-checker.ts + api-request-body-negatives-checker.ts",
+        reason: construction.checkerFailures.join("; ") || "class construction checker failed",
+      });
+      if (!construction.enumeration.complete) observations.push({
+        gapId: "operation-enumeration-incomplete",
+        memberId: member.memberId,
+        repository: member.repository,
+        inputId: binding.inputId,
+        layer: "dependency",
+        status: "failed",
+        classContract: true,
+        module: "src/skill-ir/api-tester-operation-source.ts",
+        independentOracle: "src/skill-ir/api-tester-operation-coverage.ts:independentlyEnumerateApiTesterOperations",
+        reason: construction.enumeration.issues.join("; ") || "operation enumeration incomplete",
+      });
+      for (const [kind, availability] of Object.entries(construction.availability)) {
+        if (availability.unresolved <= 0) continue;
+        const reason = availability.reasons[0] ?? "no constructed case for declared kind";
+        const representative = classifyConstructionGap(kind, reason);
+        observations.push({
+          gapId: representative.gapId,
+          memberId: member.memberId,
+          repository: member.repository,
+          inputId: binding.inputId,
+          layer: "construction",
+          status: "unresolved",
+          classContract: true,
+          module: representative.module,
+          independentOracle: representative.oracle,
+          reason: `${kind}: ${reason}`,
+        });
+      }
+      const unresolvedDuties = member.duties.filter((duty) => duty.plannedDisposition === "unresolved" || duty.plannedDisposition === "source-blocked");
+      if (unresolvedDuties.length) observations.push({
+        gapId: "unresolved-source-duty",
+        memberId: member.memberId,
+        repository: member.repository,
+        inputId: binding.inputId,
+        layer: "source",
+        status: "source-blocked",
+        classContract: false,
+        module: "scripts/skill-ir/skill-family-class-proof.ts:extractResponsibilities",
+        independentOracle: "source-locator and obligation-ledger validator",
+        reason: `${unresolvedDuties.length} source duty rows have no normalized class locator`,
+      });
+    }
+  }
+  const baseline = await readHistoricalUrlBaseline(absoluteRoot);
+  const connect = snapshots.get("onepassword-connect");
+  const baselineUnresolved = baseline.reduce((sum, row) => sum + Number(row.unresolvedCases ?? 0), 0);
+  const currentUnresolved = connect ? Object.values(connect.availability).reduce((sum, row) => sum + row.unresolved, 0) : null;
+  const repairs: GapRepairEvidence[] = [{
+    gapId: "format-url-witness",
+    status: currentUnresolved === 0 ? "repaired" : "retained",
+    classContract: true,
+    before: {
+      evidencePaths: baseline.map((row) => row.path),
+      observedMembers: baseline.filter((row) => !row.error).length,
+      unresolvedCasesAcrossBaselineReports: baselineUnresolved,
+      reason: "offline witness generator rejected the source's format: url",
+    },
+    after: {
+      inputId: "onepassword-connect",
+      unresolvedCases: currentUnresolved,
+      checkerPassed: connect?.checkerPassed ?? false,
+      validFullUnresolved: connect?.availability["valid-full"]?.unresolved ?? null,
+    },
+    implementation: [
+      "src/skill-ir/api-schema-witness.ts: deterministic URL witness",
+      "src/skill-ir/api-schema-checker.ts: standard URL parser validation",
+    ],
+    regressionTests: [
+      "src/skill-ir/api-schema-witness.test.ts: OpenAPI url format",
+      "src/skill-ir/skill-family-class-construction.test.ts",
+    ],
+  }];
+  const report = buildGapMatrix(observations, repairs);
+  report.constructionSnapshots = [...snapshots.values()].sort((left, right) => left.inputId.localeCompare(right.inputId));
+  report.baseline = baseline;
+  await persistStableJson(join(evidenceRoot, "gap-matrix.json"), report);
+  const current = await runStatus(absoluteRoot);
+  const status = await writeStatus(absoluteRoot, {
+    currentStep: transitionStatus(current.currentStep, "development"),
+    lastCompletedStep: "development",
+    failureSummary: [...new Set([
+      ...current.failureSummary,
+      "r5-gap-matrix-recorded",
+      ...(report.totals.contractInternal ? [] : ["r5-contract-internal-gap-shortfall"]),
+    ])],
+  });
+  return { report, status };
+}
+
+function isMissing(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException).code === "ENOENT";
+}
+
+function classifyDevelopmentRunFailure(input: {
+  construction: DevelopmentRunRecord["construction"];
+  runnerError: string | null;
+  runnerReport: DevelopmentRunRecord["runner"];
+}): DevelopmentRunRecord["failureClass"] {
+  if (input.construction.checkerFailures.length) return "checker-failure";
+  if (input.runnerError) {
+    if (/unsupported|rejected|unresolved/iu.test(input.runnerError)) return "unsupported-by-contract";
+    return "infrastructure-failure";
+  }
+  if (input.runnerReport.verifier.status !== "verified") return "infrastructure-failure";
+  if (input.runnerReport.sourceIssues && Number(input.runnerReport.sourceIssues.blocking ?? 0) > 0) return "source-blocked";
+  if (input.runnerReport.status === "failed") return "constructor-error";
+  if (input.runnerReport.totals.accepted === 0) return "unsupported-by-contract";
+  return "none";
+}
+
+function obligationLedgerFromRows(memberId: string, rows: ExtractedResponsibility[]) {
+  return {
+    schemaVersion: "skill-family-obligation-ledger/v1" as const,
+    classId: "api-contract-driven-offline-test-construction" as const,
+    memberId,
+    rows,
+    rowCount: rows.length,
+    plannedConstructionCount: rows.filter((row) => row.plannedDisposition === "to-construct").length,
+    denominatorSha256: sha256Bytes(JSON.stringify(rows)),
+  };
+}
+
+async function runOneDevelopmentInput(
+  absoluteRoot: string,
+  evidenceRoot: string,
+  member: { candidateId: string; memberId: string; repository: string; duties: ExtractedResponsibility[] },
+  binding: { inputId: string; path: string; format: "json" | "yaml"; bytes: number; sha256: string },
+): Promise<DevelopmentRunRecord> {
+  const started = Date.now();
+  const sourceBytes = await readFile(resolve(absoluteRoot, binding.path));
+  if (sourceBytes.byteLength !== binding.bytes || sha256Bytes(sourceBytes) !== binding.sha256) throw new Error(`development input digest mismatch: ${binding.inputId}`);
+  const construction = buildClassConstruction(sourceBytes.toString("utf8"), binding.format);
+  const obligations = deriveObligationOutcomes(obligationLedgerFromRows(member.memberId, member.duties), construction);
+  const runRelative = `development-runs/${safeEvidenceSegment(member.candidateId)}/${safeEvidenceSegment(binding.inputId)}`;
+  const runRoot = join(evidenceRoot, runRelative);
+  await mkdir(join(runRoot, "input"), { recursive: true });
+  const inputRelative = `input/openapi.${binding.format === "json" ? "json" : "yaml"}`;
+  const inputTarget = join(runRoot, inputRelative);
+  try {
+    const existing = await readFile(inputTarget);
+    if (!existing.equals(sourceBytes)) throw new Error(`development run input drift: ${binding.inputId}`);
+  } catch (error) {
+    if (!isMissing(error)) throw error;
+    await writeFile(inputTarget, sourceBytes, { flag: "wx" });
+  }
+  const bindingId = `class-proof-${safeEvidenceSegment(member.candidateId)}-${safeEvidenceSegment(binding.inputId)}`.toLowerCase();
+  const manifest = {
+    schemaVersion: "skill-ir-api-tester-operation-input-manifest/v1",
+    identity: "skill-ir-api-tester-operation-input-development-001",
+    bindingId,
+    supportContractId: "api-tester-openapi-subset-v2",
+    input: { path: inputRelative, format: binding.format, bytes: sourceBytes.byteLength, sha256: sha256Bytes(sourceBytes) },
+    output: { path: "output", writeMode: "exclusive-create-once" },
+  } as const;
+  const manifestPath = join(runRoot, "manifest.json");
+  try {
+    const existing = JSON.parse(await readFile(manifestPath, "utf8"));
+    if (JSON.stringify(existing) !== JSON.stringify(manifest)) throw new Error(`development manifest drift: ${binding.inputId}`);
+  } catch (error) {
+    if (!isMissing(error)) throw error;
+    await writeFile(manifestPath, jsonText(manifest), { flag: "wx", encoding: "utf8" });
+  }
+  await persistStableJson(join(runRoot, "invocation.json"), {
+    schemaVersion: "skill-family-class-proof-development-invocation/v1",
+    memberId: member.memberId,
+    candidateId: member.candidateId,
+    inputId: binding.inputId,
+    runner: "runApiTesterOperationInput -> verifyApiTesterOperationInputOutput",
+    nodeExecutable: process.execPath,
+    runtime: { bun: Bun.version, node: process.version },
+    manifestPath: "manifest.json",
+    completedAt: "2026-09-12T00:00:00.000Z",
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+  });
+  let report: ReturnType<typeof ApiTesterOperationInputReportSchema.parse> | null = null;
+  let runnerError: string | null = null;
+  const reportPath = join(runRoot, "output/report.json");
+  try {
+    report = ApiTesterOperationInputReportSchema.parse(JSON.parse(await readFile(reportPath, "utf8")));
+  } catch (error) {
+    if (!isMissing(error)) runnerError = String(error);
+  }
+  if (!report && !runnerError) {
+    try {
+      report = ApiTesterOperationInputReportSchema.parse(await runApiTesterOperationInput({
+        rootDir: runRoot,
+        manifestPath: "manifest.json",
+        nodeExecutable: process.execPath,
+        completedAt: "2026-09-12T00:00:00.000Z",
+      }));
+    } catch (error) {
+      runnerError = error instanceof Error ? error.message : String(error);
+      await persistStableJson(join(runRoot, "runner-error.json"), { error: runnerError });
+    }
+  }
+  let verifier: DevelopmentRunRecord["runner"]["verifier"] = { status: "failed", operations: 0, accepted: 0, checked: 0 };
+  if (report) {
+    try {
+      verifier = await verifyApiTesterOperationInputOutput({ rootDir: runRoot, manifestPath: "manifest.json", nodeExecutable: process.execPath });
+    } catch (error) {
+      verifier = { ...verifier, error: error instanceof Error ? error.message : String(error) };
+    }
+  }
+  const runner: DevelopmentRunRecord["runner"] = report ? {
+    status: report.status,
+    totals: report.totals,
+    gates: report.gates,
+    sourceIssues: report.sourceIssues,
+    reportPath: "output/report.json",
+    verifier,
+  } : {
+    status: "not-run",
+    totals: { operations: 0, accepted: 0, rejected: 0, unresolved: 0, artifactCheckedPassedOperations: 0 },
+    gates: {},
+    sourceIssues: {},
+    reportPath: null,
+    verifier,
+  };
+  const record: DevelopmentRunRecord = {
+    candidateId: member.candidateId,
+    memberId: member.memberId,
+    repository: member.repository,
+    inputId: binding.inputId,
+    input: { path: binding.path, format: binding.format, bytes: sourceBytes.byteLength, sha256: sha256Bytes(sourceBytes) },
+    manifestPath: `${runRelative}/manifest.json`,
+    outputPath: `${runRelative}/output`,
+    construction: {
+      checkerPassed: construction.checkerPassed,
+      checkerFailures: construction.checkerFailures,
+      enumeration: construction.enumeration,
+      availability: construction.availability,
+      obligations,
+    },
+    runner,
+    failureClass: classifyDevelopmentRunFailure({ construction: {
+      checkerPassed: construction.checkerPassed,
+      checkerFailures: construction.checkerFailures,
+      enumeration: construction.enumeration,
+      availability: construction.availability,
+      obligations,
+    }, runnerError, runnerReport: runner }),
+    elapsedMillis: Math.max(0, Date.now() - started),
+  };
+  await persistStableJson(join(runRoot, "run-summary.json"), record);
+  return record;
+}
+
+/** Execute the fixed development slice once per member/input and derive the capability gate. */
+export async function runDevelopmentRuns(root: string): Promise<{ report: DevelopmentRunsReport; status: ClassProofStatus }> {
+  const absoluteRoot = resolve(root);
+  const evidenceRoot = join(absoluteRoot, CLASS_PROOF_RESULT_RELATIVE);
+  const reportPath = join(evidenceRoot, "development-runs.json");
+  try {
+    const existing = JSON.parse(await readFile(reportPath, "utf8")) as DevelopmentRunsReport;
+    const current = await runStatus(absoluteRoot);
+    const status = await writeStatus(absoluteRoot, { currentStep: current.currentStep, lastCompletedStep: current.lastCompletedStep });
+    return { report: existing, status };
+  } catch (error) {
+    if (!isMissing(error)) throw error;
+  }
+  const ledger = JSON.parse(await readFile(join(evidenceRoot, "development-ledger.json"), "utf8")) as {
+    members: Array<{ candidateId: string; memberId: string; repository: string; duties: ExtractedResponsibility[]; inputBindings: Array<{ inputId: string; path: string; format: "json" | "yaml"; bytes: number; sha256: string }> }>;
+  };
+  const records: DevelopmentRunRecord[] = [];
+  for (const member of ledger.members) {
+    for (const binding of member.inputBindings) {
+      records.push(await runOneDevelopmentInput(absoluteRoot, evidenceRoot, member, binding));
+    }
+  }
+  records.sort((left, right) => left.memberId.localeCompare(right.memberId) || left.inputId.localeCompare(right.inputId));
+  const members = ledger.members.map((member) => {
+    const runs = records.filter((record) => record.candidateId === member.candidateId);
+    const mergedObligations = mergeInputOutcomes(runs.map((run) => ({ inputId: run.inputId, outcomes: run.construction.obligations.outcomes })));
+    const core = member.duties.filter((duty) => duty.plannedDisposition === "to-construct").length;
+    const constructed = mergedObligations.filter((outcome) => outcome.outcome === "constructed").length;
+    return { candidateId: member.candidateId, memberId: member.memberId, repository: member.repository, runs, mergedObligations, coreCoverage: core > 0 ? constructed / core : 0 };
+  });
+  const source = await readFile(join(absoluteRoot, "src/skill-ir/skill-family-class-construction.ts"), "utf8");
+  const repositoryDispatchDetected = /candidate\.(?:repository|skillId)|skillId\s*===|repository\s*===/u.test(source);
+  const acceptedArtifacts = records.reduce((sum, record) => sum + record.runner.totals.accepted, 0);
+  const checkedAcceptedArtifacts = records.reduce((sum, record) => sum + record.runner.totals.artifactCheckedPassedOperations, 0);
+  const coreObligations = ledger.members.reduce((sum, member) => sum + member.duties.filter((duty) => duty.plannedDisposition === "to-construct").length, 0);
+  const constructedCoreObligations = members.reduce((sum, member) => sum + member.mergedObligations.filter((outcome) => outcome.outcome === "constructed").length, 0);
+  const infrastructureFailures = records.filter((record) => record.failureClass === "infrastructure-failure").length;
+  const gate = deriveDevelopmentGate({
+    memberCount: members.length,
+    inputBindings: records.length,
+    expectedInputsPerMember: 2,
+    explainedInputs: records.filter((record) => record.runner.verifier.status === "verified").length,
+    acceptedArtifacts,
+    checkedAcceptedArtifacts,
+    coreObligations,
+    constructedCoreObligations,
+    repositoryDispatchDetected,
+    infrastructureFailures,
+  });
+  const categories = { none: 0, "source-blocked": 0, "unsupported-by-contract": 0, "constructor-error": 0, "checker-failure": 0, "infrastructure-failure": 0 } as Record<DevelopmentRunRecord["failureClass"], number>;
+  for (const record of records) categories[record.failureClass] += 1;
+  const report: DevelopmentRunsReport = {
+    schemaVersion: "skill-family-class-proof-development-runs/v1",
+    identity: CLASS_PROOF_IDENTITY,
+    constructionProfile: CLASS_CONSTRUCTION_PROFILE,
+    inputSelectionRule: "development-ledger fixed first two archived input-index entries; no outcome replacement",
+    members,
+    runs: records,
+    gate: { ...gate, repositoryDispatchDetected, infrastructureFailures },
+    categories,
+    accounting: { modelCalls: 0, apiCalls: 0, paidCalls: 0, runtimeCalls: records.length * 2 },
+    protectedBoundary: { heldOutAccesses: 0, q1ReservedAccesses: 0, prospectiveRuns: 0, readinessChanges: 0 },
+  };
+  await persistStableJson(reportPath, report);
+  const current = await runStatus(absoluteRoot);
+  const next = gate.capabilityReady ? "capability-ready" : "method-not-ready";
+  const status = await writeStatus(absoluteRoot, {
+    currentStep: transitionStatus(current.currentStep, next),
+    lastCompletedStep: next,
+    failureSummary: [...new Set([
+      ...current.failureSummary,
+      ...(gate.capabilityReady ? [] : ["development-capability-gate-failed"]),
+      ...Object.entries(categories).filter(([key, value]) => key !== "none" && value > 0).map(([key, value]) => `development-${key}:${value}`),
+    ])],
+  });
+  return { report, status };
+}
+
 export function buildScreeningPolicy() {
   return {
     schemaVersion: "skill-family-class-proof-screening-policy/v1",
@@ -1003,7 +1617,31 @@ if (import.meta.main) {
       coreObligations: result.ledger.totals.coreObligations,
       outsideClassDuties: result.ledger.totals.outsideClassDuties,
     }, null, 2));
+  } else if (step === "gap-matrix") {
+    const result = await runGapMatrix(root);
+    console.log(JSON.stringify({
+      status: "gap-matrix-recorded",
+      identity: CLASS_PROOF_IDENTITY,
+      observations: result.report.totals.observations,
+      gapKinds: result.report.totals.gapKinds,
+      contractInternal: result.report.totals.contractInternal,
+      sourceShortfall: result.report.totals.sourceShortfall,
+      repairs: result.report.repairs.map((repair) => ({ gapId: repair.gapId, status: repair.status })),
+    }, null, 2));
+  } else if (step === "development-runs") {
+    const result = await runDevelopmentRuns(root);
+    console.log(JSON.stringify({
+      status: result.report.gate.capabilityReady ? "capability-ready" : "method-not-ready",
+      identity: CLASS_PROOF_IDENTITY,
+      members: result.report.members.length,
+      inputs: result.report.runs.length,
+      operations: result.report.runs.reduce((sum, run) => sum + run.runner.totals.operations, 0),
+      accepted: result.report.runs.reduce((sum, run) => sum + run.runner.totals.accepted, 0),
+      checked: result.report.runs.reduce((sum, run) => sum + run.runner.totals.artifactCheckedPassedOperations, 0),
+      gate: result.report.gate,
+      categories: result.report.categories,
+    }, null, 2));
   } else {
-    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger");
+    throw new Error("usage: bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status|screening-policy|screening-acquisition|development-ledger|gap-matrix|development-runs");
   }
 }

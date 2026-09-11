@@ -67,7 +67,7 @@ function formatted(format: string, variant: number): unknown {
   const day = String(1 + variant % 28).padStart(2, "0");
   const values: Record<string, unknown> = { date: `2000-01-${day}`, "date-time": `2000-01-${day}T00:00:00Z`, time: "00:00:00Z",
     email: `case${variant}@example.com`, hostname: "example.com", ipv4: `192.0.2.${1 + variant % 200}`, ipv6: "2001:db8::1",
-    uri: `https://example.com/case/${variant}`, uuid: `00000000-0000-4000-8000-${String(variant).padStart(12, "0")}`,
+    uri: `https://example.com/case/${variant}`, url: `https://example.com/case/${variant}`, uuid: `00000000-0000-4000-8000-${String(variant).padStart(12, "0")}`,
     byte: Buffer.from(`case${variant}`).toString("base64"), password: `example${variant}`, binary: `example${variant}` };
   return values[format];
 }

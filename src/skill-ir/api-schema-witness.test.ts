@@ -72,6 +72,15 @@ test("checker does not silently treat an incompatible numeric format as a string
   expect(checkSchemaValue({}, { type: "string", format: "int32" }, "not-a-number").status).toBe("unsupported");
 });
 
+test("constructs and independently checks the OpenAPI url format used by class-proof inputs", () => {
+  const schema = { type: "string", format: "url" };
+  const result = constructSchemaWitness({}, schema, "full");
+  expect(result.status).toBe("constructed");
+  expect(typeof result.value).toBe("string");
+  expect(checkSchemaValue({}, schema, result.value).valid).toBe(true);
+  expect(checkSchemaValue({}, schema, "not a url").valid).toBe(false);
+});
+
 test("full witnesses can distinguish overlapping optional object branches without weakening oneOf", async () => {
   const schema = { oneOf: [
     { type: "object", properties: { left: { type: "string" } } },

@@ -116,3 +116,27 @@ Evidence is in `candidate-pool.json`, `screening-policy.json`,
 `development-ledger.json` below the result directory. The next action is R5:
 derive a gap matrix from actual development inputs and select only a shared,
 contract-internal gap with an independent oracle.
+
+R5 and R6 are now recorded. The gap matrix has 12 source-duty observations
+(six members across two inputs) and one retained source shortfall. A prior
+three-member calibration supplied the before snapshot for `format:url`: 414
+unresolved witness cases were observed. The shared offline witness/checker now
+constructs and validates that format; the current `onepassword-connect`
+snapshot has zero unresolved cases. This is a bounded offline extension and
+does not add `url` to the production v2 scalar contract, which remains
+unchanged.
+
+R6 runs use `development-runs/<candidate>/<input>/` with an exclusive manifest
+and copied, digest-bound input. Each run invokes
+`runApiTesterOperationInput` once and then
+`verifyApiTesterOperationInputOutput` independently. The machine gate reports
+12/12 verified input runs, 114 enumerated operations, 42 accepted and 42
+checker-checked operations, 100% core-obligation coverage, and no
+infrastructure, source, constructor, or checker failures. The gate is therefore
+`protocolReady=true`, `inputReady=true`, and `capabilityReady=true` for this
+development slice only. It is not a primary or prospective result.
+
+The next action is R7: run pre-registered metamorphic and negative fault
+injections against independent coverage, dependency, artifact-checker, and
+binding layers. Preserve the clean development run directories and never
+rewrite their first-run summaries.

@@ -15,6 +15,8 @@ import {
   extractResponsibilities,
   buildTaskInputBindings,
   hydrateEligibilityRepositories,
+  buildGapMatrix,
+  deriveDevelopmentGate,
   selectDevelopmentMembers,
   selectDevelopmentInputs,
   selectCandidateMetadata,
@@ -269,5 +271,89 @@ describe("skill-family class-proof status", () => {
       { inputId: "three", provider: "C", sourcePath: "three.yaml", localPath: "three", format: "yaml" as const, bytes: 3, sha256: "c".repeat(64), exposure: "development" as const },
     ];
     expect(selectDevelopmentInputs(inputs, 2).map((row) => row.inputId)).toEqual(["two", "one"]);
+  });
+
+  test("aggregates gap observations by class gap without letting one member hide another", () => {
+    const report = buildGapMatrix([
+      {
+        gapId: "format-url-witness",
+        memberId: "owner/a:skill",
+        repository: "owner/a",
+        inputId: "input-one",
+        layer: "construction",
+        status: "unresolved",
+        classContract: true,
+        module: "src/skill-ir/api-schema-witness.ts",
+        independentOracle: "src/skill-ir/api-schema-checker.ts",
+        reason: "unsupported: format url",
+      },
+      {
+        gapId: "format-url-witness",
+        memberId: "owner/b:skill",
+        repository: "owner/b",
+        inputId: "input-one",
+        layer: "construction",
+        status: "unresolved",
+        classContract: true,
+        module: "src/skill-ir/api-schema-witness.ts",
+        independentOracle: "src/skill-ir/api-schema-checker.ts",
+        reason: "unsupported: format url",
+      },
+      {
+        gapId: "source-reference",
+        memberId: "owner/a:skill",
+        repository: "owner/a",
+        inputId: "input-two",
+        layer: "source",
+        status: "source-blocked",
+        classContract: false,
+        module: "scripts/skill-ir/skill-family-class-proof.ts",
+        independentOracle: "source locator validator",
+        reason: "external reference is not archived",
+      },
+    ]);
+    expect(report.gaps).toHaveLength(2);
+    expect(report.gaps[0]).toMatchObject({ gapId: "format-url-witness", occurrenceMembers: 2, affectedInputs: ["input-one"], classContract: true });
+    expect(report.gaps[0]?.existingModules).toEqual(["src/skill-ir/api-schema-witness.ts"]);
+    expect(report.gaps[1]).toMatchObject({ gapId: "source-reference", occurrenceMembers: 1, classContract: false });
+  });
+
+  test("derives the development capability gate from independent denominators", () => {
+    expect(deriveDevelopmentGate({
+      memberCount: 3,
+      inputBindings: 6,
+      expectedInputsPerMember: 2,
+      explainedInputs: 6,
+      acceptedArtifacts: 4,
+      checkedAcceptedArtifacts: 4,
+      coreObligations: 20,
+      constructedCoreObligations: 19,
+      repositoryDispatchDetected: false,
+      infrastructureFailures: 0,
+    })).toMatchObject({ protocolReady: true, inputReady: true, capabilityReady: true });
+    expect(deriveDevelopmentGate({
+      memberCount: 3,
+      inputBindings: 6,
+      expectedInputsPerMember: 2,
+      explainedInputs: 6,
+      acceptedArtifacts: 6,
+      checkedAcceptedArtifacts: 6,
+      coreObligations: 20,
+      constructedCoreObligations: 10,
+      repositoryDispatchDetected: false,
+      infrastructureFailures: 0,
+    })).toMatchObject({ protocolReady: true, inputReady: true, capabilityReady: false });
+    expect(deriveDevelopmentGate({
+      memberCount: 3,
+      inputBindings: 6,
+      expectedInputsPerMember: 2,
+      explainedInputs: 5,
+      acceptedArtifacts: 6,
+      checkedAcceptedArtifacts: 6,
+      coreObligations: 20,
+      constructedCoreObligations: 20,
+      repositoryDispatchDetected: false,
+      infrastructureFailures: 0,
+    })).toMatchObject({ protocolReady: true, inputReady: false, capabilityReady: false });
   });
 });

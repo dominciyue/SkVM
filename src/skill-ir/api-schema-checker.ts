@@ -11,7 +11,7 @@ export function getSchemaCheckerCacheMetrics() {
 const object = (v: unknown): v is RecordValue => !!v && typeof v === "object" && !Array.isArray(v);
 const annotations = new Set(["title", "description", "default", "example", "examples", "deprecated", "externalDocs", "xml", "readOnly", "writeOnly"]);
 const ordinary = new Set(["type", "enum", "minimum", "maximum", "multipleOf", "minLength", "maxLength", "pattern", "format", "minItems", "maxItems", "uniqueItems", "minProperties", "maxProperties"]);
-const formats = new Set(["date", "date-time", "time", "email", "hostname", "ipv4", "ipv6", "uri", "uuid", "byte", "int32", "int64", "float", "double", "password", "binary"]);
+const formats = new Set(["date", "date-time", "time", "email", "hostname", "ipv4", "ipv6", "uri", "url", "uuid", "byte", "int32", "int64", "float", "double", "password", "binary"]);
 
 // Independent exact decimal divisibility over the already parsed finite JS data model.
 // No epsilon: 0.30000000000000004 must not be accepted as a multiple of 0.1.
@@ -138,6 +138,12 @@ function createDirectionalSchemaChecker(document: unknown, schema: unknown, dire
       ajv.addKeyword({ keyword: "multipleOf", type: "number", schemaType: "number", errors: false,
         metaSchema: { type: "number", exclusiveMinimum: 0 }, compile: compileDecimalMultipleOf });
       addFormats(ajv, { mode: "full", keywords: false });
+      ajv.addFormat("url", {
+        type: "string",
+        validate: (value: string) => {
+          try { new URL(value); return true; } catch { return false; }
+        },
+      });
       validate = ajv.compile(normalized);
       schemaCompiles++;
       if (Buffer.byteLength(key, "utf8") <= 128 * 1024) {
