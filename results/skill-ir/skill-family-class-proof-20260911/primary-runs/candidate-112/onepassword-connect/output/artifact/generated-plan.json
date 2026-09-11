@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "api-test-plan/v2",
+  "source": "public-openapi",
+  "framework": "node:test",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/activity",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-0-get-activity-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "limit": 1,
+              "offset": 1
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-get-activity-unauthorized",
+          "category": "error",
+          "request": {
+            "query": {
+              "limit": 1,
+              "offset": 1
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-1-get-health-happy",
+          "category": "happy",
+          "request": {},
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/heartbeat",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-2-get-heartbeat-happy",
+          "category": "happy",
+          "request": {},
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/metrics",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-3-get-metrics-happy",
+          "category": "happy",
+          "request": {},
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/vaults",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-4-get-vaults-happy",
+          "category": "happy",
+          "request": {
+            "query": {
+              "filter": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-4-get-vaults-unauthorized",
+          "category": "error",
+          "request": {
+            "query": {
+              "filter": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    }
+  ]
+}

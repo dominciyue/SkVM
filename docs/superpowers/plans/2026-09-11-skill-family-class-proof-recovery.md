@@ -287,12 +287,26 @@ accepted/outcome 数据，未启动 primary 构造或 prospective。
 
 **前置条件：** R8 `method-locked` 且三名 primary 各有两个输入。
 
-- [ ] 每个 primary member 严格一次首跑；不按仓库/skill ID 分支，不人工补产物，不自动重试同一输入。
-- [ ] 每行记录 extraction status、mapping status、construction status、checker status、obligation outcomes、artifact paths、elapsed time 和 external accounting。
-- [ ] 运行失败按 `source-blocked`、`unsupported-by-contract`、`constructor-error`、`checker-failure`、`infrastructure-failure` 分类；失败原件不覆盖。
-- [ ] 首跑完成后立即写 `primary-first-run.json` 和 status checkpoint，再决定是否进入 R10；不要用后续修订覆盖首跑。
+- [x] 每个 primary member 严格一次首跑；不按仓库/skill ID 分支，不人工补产物，不自动重试同一输入。
+- [x] 每行记录 extraction status、mapping status、construction status、checker status、obligation outcomes、artifact paths、elapsed time 和 external accounting。
+- [x] 运行失败按 `source-blocked`、`unsupported-by-contract`、`constructor-error`、`checker-failure`、`infrastructure-failure` 分类；失败原件不覆盖。
+- [x] 首跑完成后立即写 `primary-first-run.json` 和 status checkpoint，再决定是否进入 R10；不要用后续修订覆盖首跑。
 
 **验收：** 三名 primary 的真实首跑结果完整可读；accepted artifact 的 checker evidence 完整；任何零结果都有具体层和原因。
+
+**R9 实际检查点（2026-09-12）：** 三名 primary 的两个锁定输入均完成
+一次首跑，共 6/6 独立 verifier 通过。57 个原始操作中 21 个在冻结 v2
+合同内 accepted，21 个 artifact operation 全部由 checker 通过；3/3 成员
+首次运行产生非空产物。15 个核心义务中 14 个构造完成，coverage=93.33%，
+因此四字段为 `protocolReady=true`、`inputReady=true`、
+`capabilityReady=true`、`transferDecision=bounded-positive`。唯一未覆盖核心
+义务是 `candidate-091` 的 `strict-extra-fields/additionalProperties`，两个固定
+输入均无该源实例；它没有跨两个独立成员重复，不能触发 R10 共享修订。
+
+编排层先后暴露两个问题：attempt-001 错读不存在的顶层 `artifact` 字段，
+attempt-002 未把已经验证的 `inputValid` 写入聚合行。两份失败报告及完整运行
+目录均按 attempt 名保留；`r9-first-run-binding.json` 绑定各自提交和摘要。
+修复没有改变 class construction profile、v2 支持合同、primary 或输入选择。
 
 ### R10：一次共享修订（仅在首跑提供行动性证据时）
 

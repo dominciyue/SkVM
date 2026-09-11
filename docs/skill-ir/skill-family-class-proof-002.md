@@ -187,3 +187,28 @@ separate `primary-selection.json` shows each primary bound to
 `onepassword-connect` and `onepassword-partnership`, with
 `outcomeDataUsed=false`. No primary construction or prospective run has begun;
 the next action is R9 first-run construction.
+
+R9 is complete through
+`bun ./scripts/skill-ir/skill-family-class-proof.ts --step=primary-first-run`.
+The immutable report contains six rows for three repository-distinct primary
+members and the two locked inputs. All six independent verifiers passed. Across
+the rows, 57 source operations were enumerated, 21 operations were accepted
+within the unchanged v2 contract, and all 21 generated operations passed the
+artifact checker. All three members produced a non-empty accepted artifact.
+Fourteen of 15 source-located core obligations were constructed, for 93.33%
+coverage, so the machine result is `protocolReady=true`, `inputReady=true`,
+`capabilityReady=true`, and `transferDecision=bounded-positive`.
+
+The first two orchestration attempts are preserved rather than overwritten.
+Attempt 1 read an invalid top-level artifact field after the underlying runners
+had emitted output; attempt 2 omitted `inputValid` from otherwise verified
+aggregate rows. `r9-first-run-binding.json` binds both failed reports and the
+canonical third report to their implementation commits and SHA-256 values.
+Neither repair changed the constructor, checker, support contract, selected
+members, or inputs.
+
+The sole unconstructed core duty is candidate 091's strict-extra-fields duty:
+both fixed inputs lack an `additionalProperties` source instance. It occurs in
+only one primary member, so the pre-registered shared-revision rule is not met.
+The next action is R10 `no-revision`; this result must not be promoted to
+`strong-positive` by broadening the contract or manufacturing an input feature.
