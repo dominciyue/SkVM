@@ -197,6 +197,14 @@ c78fd85/a434186 form阶段实际新增2full样本至578/628，旧12JSON报告不
 及JUnit原始字节归档。下一按skill-family-current-clean-reproduction.md建立小范围
 Python依赖离线包与最新独立LF检出复现，复用原Node包，不覆写旧clean或凑时间。
 
+883c85e clean已完成，d3ffbbb完整归档112输出，36文档+24native代码文件字节同，
+24tests/3697assertions、6Python测试、主/脚本tsc通过。553e428修复观察到的
+Windows Python中文诊断损失，2tests/16assertions；不改套件/产物语义。
+下一具体现实风险：原生HTTP只用JSON fixture验证，尚未实测已有form、数组query、
+header/cookie编码经过httpx后是否保留。新增独立手写本机wire fixture，合成输入，
+要求服务端直接观察原始target/header/body并独立判断；测试不猜真实状态、不扩合同。
+验收为明确正向请求与指定wire破坏检出、缺依据skip、每次输出/请求可归档；无真实API。
+
 ## 7. 完成判据
 
 ### 2026-09-11 实际检查点

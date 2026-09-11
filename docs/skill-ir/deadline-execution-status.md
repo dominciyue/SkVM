@@ -46,7 +46,7 @@
 10. 原生pytest c2f10b3/ff01f99：源绑定suite/独立verifier、固定httpx runtime、显式fixture oracle；22tests/172assertions及主tsc，映射/batch17tests/80assertions及explicit tsc通过。首次Response context manager失败原件保留。12文档630collected/630skipped（628计划+2不完整占位）、0真实HTTP；4Lambda/Jeremy源职责产物与panel字节相同。
 11. 9931b2f独立本机fixture完整归档：3positive、3no-oracle skip、15/15设计错误在指定层检出，15次本机HTTP、重定向不跟随。native阶段累计93本机调用（含测试/失败/归档），0远端/模型/付费。证据skill-family-pytest-development-20260911。
 12. 3109c3b修-B防pyc和旧native XML归档字节，883c85e固定13Python依赖356文件离线包。最新独立clean@883c85e四profile完成，36文档+24native文件字节同，630收集全skip，fixture15/15检出；24tests/3697assertions、6Python测试、主/脚本tsc通过。完整112输出在skill-family-current-clean-20260911/clean-archive-r1；初次collector字段错误现场保留。native累计123本机HTTP，0真实API新增。
-13. 下一具体动作：提交/推送完整clean档案并核对Git字节，再修复实际观察到的Python Windows stdout编码损失（显式-X utf8、确定性中文诊断TDD）；不改产物语义或重跑整panel。所有clean长进程已结束。
+13. d3ffbbb最新clean已推送，112归档Git字节精确；553e428中文诊断修复2tests/16assertions通过，native累计138本机HTTP。下一具体动作：新增独立本机form/数组query/header/cookie wire fixture，验证现有装配语义经过httpx后保留，服务端独立判定并记录指定层失败。只合成，不扩大合同/重复真实panel。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）

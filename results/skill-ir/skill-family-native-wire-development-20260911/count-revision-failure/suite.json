@@ -1,0 +1,363 @@
+{
+  "schemaVersion": "api-pytest-request-suite/v1",
+  "exposure": "development",
+  "sourceSha256": "d4eb5dec70ffed28b03192436b5222353743488e30a66278cfcc37a9b229513b",
+  "sourceFormat": "json",
+  "specimens": {
+    "schemaVersion": "api-request-form-specimens/v1",
+    "sourceSha256": "d4eb5dec70ffed28b03192436b5222353743488e30a66278cfcc37a9b229513b",
+    "sourceFormat": "json",
+    "enumerationComplete": true,
+    "enumerationIssues": [],
+    "operations": [
+      {
+        "key": "POST /cookie-unsupported/{id}",
+        "security": [],
+        "servers": [
+          {
+            "url": "/"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/x-www-form-urlencoded\",null]",
+            "mode": "minimal",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": null,
+            "status": "unresolved",
+            "reasons": [
+              "Error: cookie assembly unsupported"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"header:X-Trace\"]",
+            "mode": "minimal",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": "header:X-Trace",
+            "status": "unresolved",
+            "reasons": [
+              "Error: cookie assembly unsupported"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"query:q#name\"]",
+            "mode": "minimal",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": "query:q#name",
+            "status": "unresolved",
+            "reasons": [
+              "Error: cookie assembly unsupported"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": "body",
+            "status": "unresolved",
+            "reasons": [
+              "Error: cookie assembly unsupported"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+            "mode": "full",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": null,
+            "status": "unresolved",
+            "reasons": [
+              "Error: cookie assembly unsupported"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      },
+      {
+        "key": "POST /forms/{id}",
+        "security": [],
+        "servers": [
+          {
+            "url": "/"
+          }
+        ],
+        "sourceAdvisories": [],
+        "issues": [],
+        "caseInventoryComplete": true,
+        "cases": [
+          {
+            "id": "[\"minimal\",\"application/x-www-form-urlencoded\",null]",
+            "mode": "minimal",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": null,
+            "status": "unresolved",
+            "reasons": [
+              "Error: query:q#name: unresolved: schema-valid candidate does not cover requested minimal/full shape"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"header:X-Trace\"]",
+            "mode": "minimal",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": "header:X-Trace",
+            "status": "unresolved",
+            "reasons": [
+              "Error: query:q#name: unresolved: schema-valid candidate does not cover requested minimal/full shape"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"query:q#name\"]",
+            "mode": "minimal",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": "query:q#name",
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/forms/a%2Fb",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/x-www-form-urlencoded"
+                },
+                {
+                  "name": "x-trace",
+                  "value": "trace-1"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:X-Trace",
+                  "value": "trace-1",
+                  "wire": "trace-1"
+                },
+                {
+                  "id": "path:id",
+                  "value": "a/b",
+                  "wire": "a%2Fb"
+                }
+              ],
+              "body": {
+                "mediaType": "application/x-www-form-urlencoded",
+                "value": {
+                  "label": "a&中文 +"
+                },
+                "text": "label=a%26%E4%B8%AD%E6%96%87+%2B"
+              }
+            },
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"minimal\",\"application/x-www-form-urlencoded\",\"body\"]",
+            "mode": "minimal",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": "body",
+            "status": "unresolved",
+            "reasons": [
+              "Error: query:q#name: unresolved: schema-valid candidate does not cover requested minimal/full shape"
+            ],
+            "request": null,
+            "expectedHttpStatus": null
+          },
+          {
+            "id": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+            "mode": "full",
+            "mediaType": "application/x-www-form-urlencoded",
+            "omit": null,
+            "status": "constructed",
+            "reasons": [],
+            "request": {
+              "method": "POST",
+              "target": "/forms/a%2Fb?q%23name=a%26b&q%23name=c%2Cd",
+              "headers": [
+                {
+                  "name": "content-type",
+                  "value": "application/x-www-form-urlencoded"
+                },
+                {
+                  "name": "x-trace",
+                  "value": "trace-1"
+                }
+              ],
+              "parameters": [
+                {
+                  "id": "header:X-Trace",
+                  "value": "trace-1",
+                  "wire": "trace-1"
+                },
+                {
+                  "id": "path:id",
+                  "value": "a/b",
+                  "wire": "a%2Fb"
+                },
+                {
+                  "id": "query:q#name",
+                  "value": [
+                    "a&b",
+                    "c,d"
+                  ],
+                  "wire": "q%23name=a%26b&q%23name=c%2Cd"
+                }
+              ],
+              "body": {
+                "mediaType": "application/x-www-form-urlencoded",
+                "value": {
+                  "label": "a&中文 +"
+                },
+                "text": "label=a%26%E4%B8%AD%E6%96%87+%2B"
+              }
+            },
+            "expectedHttpStatus": null
+          }
+        ],
+        "runtimeRequirements": [
+          "origin-and-server-selection",
+          "credentials-and-live-auth",
+          "response-status-and-business-oracle",
+          "schema-negative-case-assembly",
+          "missing-path-parameter-testing",
+          "native-output-format"
+        ]
+      }
+    ],
+    "wholeSkillCompleted": false
+  },
+  "rows": [
+    {
+      "id": "[\"POST /cookie-unsupported/{id}\",\"[\\\"minimal\\\",\\\"application/x-www-form-urlencoded\\\",null]\"]",
+      "operationKey": "POST /cookie-unsupported/{id}",
+      "caseId": "[\"minimal\",\"application/x-www-form-urlencoded\",null]",
+      "status": "unresolved",
+      "reasons": [
+        "Error: cookie assembly unsupported"
+      ],
+      "security": [],
+      "requestJson": null
+    },
+    {
+      "id": "[\"POST /cookie-unsupported/{id}\",\"[\\\"minimal\\\",\\\"application/x-www-form-urlencoded\\\",\\\"header:X-Trace\\\"]\"]",
+      "operationKey": "POST /cookie-unsupported/{id}",
+      "caseId": "[\"minimal\",\"application/x-www-form-urlencoded\",\"header:X-Trace\"]",
+      "status": "unresolved",
+      "reasons": [
+        "Error: cookie assembly unsupported"
+      ],
+      "security": [],
+      "requestJson": null
+    },
+    {
+      "id": "[\"POST /cookie-unsupported/{id}\",\"[\\\"minimal\\\",\\\"application/x-www-form-urlencoded\\\",\\\"query:q#name\\\"]\"]",
+      "operationKey": "POST /cookie-unsupported/{id}",
+      "caseId": "[\"minimal\",\"application/x-www-form-urlencoded\",\"query:q#name\"]",
+      "status": "unresolved",
+      "reasons": [
+        "Error: cookie assembly unsupported"
+      ],
+      "security": [],
+      "requestJson": null
+    },
+    {
+      "id": "[\"POST /cookie-unsupported/{id}\",\"[\\\"minimal\\\",\\\"application/x-www-form-urlencoded\\\",\\\"body\\\"]\"]",
+      "operationKey": "POST /cookie-unsupported/{id}",
+      "caseId": "[\"minimal\",\"application/x-www-form-urlencoded\",\"body\"]",
+      "status": "unresolved",
+      "reasons": [
+        "Error: cookie assembly unsupported"
+      ],
+      "security": [],
+      "requestJson": null
+    },
+    {
+      "id": "[\"POST /cookie-unsupported/{id}\",\"[\\\"full\\\",\\\"application/x-www-form-urlencoded\\\",null]\"]",
+      "operationKey": "POST /cookie-unsupported/{id}",
+      "caseId": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+      "status": "unresolved",
+      "reasons": [
+        "Error: cookie assembly unsupported"
+      ],
+      "security": [],
+      "requestJson": null
+    },
+    {
+      "id": "[\"POST /forms/{id}\",\"[\\\"minimal\\\",\\\"application/x-www-form-urlencoded\\\",null]\"]",
+      "operationKey": "POST /forms/{id}",
+      "caseId": "[\"minimal\",\"application/x-www-form-urlencoded\",null]",
+      "status": "unresolved",
+      "reasons": [
+        "Error: query:q#name: unresolved: schema-valid candidate does not cover requested minimal/full shape"
+      ],
+      "security": [],
+      "requestJson": null
+    },
+    {
+      "id": "[\"POST /forms/{id}\",\"[\\\"minimal\\\",\\\"application/x-www-form-urlencoded\\\",\\\"header:X-Trace\\\"]\"]",
+      "operationKey": "POST /forms/{id}",
+      "caseId": "[\"minimal\",\"application/x-www-form-urlencoded\",\"header:X-Trace\"]",
+      "status": "unresolved",
+      "reasons": [
+        "Error: query:q#name: unresolved: schema-valid candidate does not cover requested minimal/full shape"
+      ],
+      "security": [],
+      "requestJson": null
+    },
+    {
+      "id": "[\"POST /forms/{id}\",\"[\\\"minimal\\\",\\\"application/x-www-form-urlencoded\\\",\\\"query:q#name\\\"]\"]",
+      "operationKey": "POST /forms/{id}",
+      "caseId": "[\"minimal\",\"application/x-www-form-urlencoded\",\"query:q#name\"]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/forms/a%2Fb\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/x-www-form-urlencoded\"},{\"name\":\"x-trace\",\"value\":\"trace-1\"}],\"parameters\":[{\"id\":\"header:X-Trace\",\"value\":\"trace-1\",\"wire\":\"trace-1\"},{\"id\":\"path:id\",\"value\":\"a/b\",\"wire\":\"a%2Fb\"}],\"body\":{\"mediaType\":\"application/x-www-form-urlencoded\",\"value\":{\"label\":\"a&中文 +\"},\"text\":\"label=a%26%E4%B8%AD%E6%96%87+%2B\"}}"
+    },
+    {
+      "id": "[\"POST /forms/{id}\",\"[\\\"minimal\\\",\\\"application/x-www-form-urlencoded\\\",\\\"body\\\"]\"]",
+      "operationKey": "POST /forms/{id}",
+      "caseId": "[\"minimal\",\"application/x-www-form-urlencoded\",\"body\"]",
+      "status": "unresolved",
+      "reasons": [
+        "Error: query:q#name: unresolved: schema-valid candidate does not cover requested minimal/full shape"
+      ],
+      "security": [],
+      "requestJson": null
+    },
+    {
+      "id": "[\"POST /forms/{id}\",\"[\\\"full\\\",\\\"application/x-www-form-urlencoded\\\",null]\"]",
+      "operationKey": "POST /forms/{id}",
+      "caseId": "[\"full\",\"application/x-www-form-urlencoded\",null]",
+      "status": "constructed",
+      "reasons": [],
+      "security": [],
+      "requestJson": "{\"method\":\"POST\",\"target\":\"/forms/a%2Fb?q%23name=a%26b&q%23name=c%2Cd\",\"headers\":[{\"name\":\"content-type\",\"value\":\"application/x-www-form-urlencoded\"},{\"name\":\"x-trace\",\"value\":\"trace-1\"}],\"parameters\":[{\"id\":\"header:X-Trace\",\"value\":\"trace-1\",\"wire\":\"trace-1\"},{\"id\":\"path:id\",\"value\":\"a/b\",\"wire\":\"a%2Fb\"},{\"id\":\"query:q#name\",\"value\":[\"a&b\",\"c,d\"],\"wire\":\"q%23name=a%26b&q%23name=c%2Cd\"}],\"body\":{\"mediaType\":\"application/x-www-form-urlencoded\",\"value\":{\"label\":\"a&中文 +\"},\"text\":\"label=a%26%E4%B8%AD%E6%96%87+%2B\"}}"
+    }
+  ],
+  "wholeSkillCompleted": false,
+  "runtimeRequirements": [
+    "explicit-loopback-oracle",
+    "credentials-unsupported",
+    "real-api-behavior-unverified",
+    "full-native-duty-incomplete"
+  ]
+}
