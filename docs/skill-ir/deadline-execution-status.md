@@ -1,7 +1,7 @@
 # 一类 skill 深化：唯一执行恢复状态
 
-- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前10:10，约7.6h，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；HEAD883c85e，origin529b848，本次最新clean证据待提交。所有clean进程已结束，无付费请求/监听端口。
+- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前10:45，约8.2h，未达10h，不空等/重复扩样凑时长。
+- 分支 api-tester-operation-unseen-prospective-001；HEAD/origin dbd94bc，decimal修复本次待提交。当前无运行进程、付费请求或监听端口。
 - 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§73。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
 - 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
 
@@ -47,6 +47,8 @@
 11. 9931b2f独立本机fixture完整归档：3positive、3no-oracle skip、15/15设计错误在指定层检出，15次本机HTTP、重定向不跟随。native阶段累计93本机调用（含测试/失败/归档），0远端/模型/付费。证据skill-family-pytest-development-20260911。
 12. 3109c3b修-B防pyc和旧native XML归档字节，883c85e固定13Python依赖356文件离线包。最新独立clean@883c85e四profile完成，36文档+24native文件字节同，630收集全skip，fixture15/15检出；24tests/3697assertions、6Python测试、主/脚本tsc通过。完整112输出在skill-family-current-clean-20260911/clean-archive-r1；初次collector字段错误现场保留。native累计123本机HTTP，0真实API新增。
 13. d3ffbbb最新clean已推送，112归档Git字节精确；553e428中文诊断修复2tests/16assertions通过。5d405b9 native wire fixture已实现并完整归档：2pass/8skip，cookie5unresolved、minimal数组形状3unresolved均保留，真实httpx验证form/query/header。1test/9assertions、主/脚本tsc通过，native累计144本机HTTP。下一具体动作：检查native传输边界（尤其header字符限制）的独立合成拒绝行为；如出现实际异常，先明确现有合同再修新模块。当前10:30，约8h，尚未10h，无后台进程。
+14. header现有编码明确拒绝非ASCII/控制字符，无需猜测修复。随后505整数分单位oracle发现multipleOf22误拒绝；精确BigInt十进制整除修复后0不一致。负-0.3单点候选也有RED并修复；31tests/3778assertions、主tsc通过。12旧文档递归摘要核对扫描0multipleOf，因此不重跑无影响panel。完整before/after与RED在skill-family-decimal-development-20260911。
+15. 下一具体动作：提交推送decimal修复后，按D9整理当前技术恢复导航与逐任务验收缺口（非历史重写），核对新增复现命令/证据链接；优先发现残余正确性问题，不为时长增加功能或来源。
 8. 文档检查实际2旧计划产物引用缺失（deadline-demo.md/deadline-research-report.md），无新链接问题；诊断在branch-negative run-evidence.json。不创建占位假交付。完整skill/native/自动职责抽取和实际代理费用仍未测或未完成；持续目标active。
 
 ### 最新检查点（2026-09-11 06:00前后）

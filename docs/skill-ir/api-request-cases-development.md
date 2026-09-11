@@ -211,3 +211,13 @@ Evidence: results/skill-ir/skill-family-json-wire-development-20260911/. RED2fai
 GREEN26tests/317assertions, main typecheck exit0. Fresh recheck of12 existing field
 and12 existing specimen reports passes, without regeneration or new samples. Earlier
 clean evidence remains bound to d088f4e, not retrospectively upgraded to this checker.
+
+### Decimal multipleOf repair
+
+An independent505-case integer-cents oracle exposed22false rejections in binary division.
+The development checker now uses exact decimal BigInt divisibility for already parsed
+finite numbers, without epsilon. Other Ajv predicates and original v2 are unchanged;
+source keyword/instance/schema path attribution is retained. See
+[decimal contract, representation limit and evidence](api-schema-decimal-development.md).
+All12exposed documents were digest-checked and scanned: zero multipleOf keys, so no
+real-panel gain or new success is claimed and no identical panel rerun was performed.

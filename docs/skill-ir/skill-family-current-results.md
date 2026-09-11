@@ -1,6 +1,6 @@
 # Skill family development: current evidence and navigation
 
-Checkpoint2026-09-11 09:30 +08. Development only; continuous goal remains active.
+Checkpoint2026-09-11 10:45 +08. Development only; continuous goal remains active.
 This page supersedes stale current-status prose, not historical evidence or contracts.
 
 ## What is shared
@@ -71,6 +71,23 @@ the12real suites all skip. Complete first failures/artifacts and commands are un
 skill-family-pytest-development-20260911/. This is partial native capability, not full
 API workflow or original-output obligation completion.
 
+Current clean `883c85e` evidence archived at`d3ffbbb`: independent LF checkout, fixed
+Node18944files and isolated Python13distributions/356files verified before/after;112outputs
+fully archived.36body/response/form documents and24native code/data files exactly match
+their prior references.24tests/3697assertions,6Python tests and main/script typechecks pass.
+First collector field-name failure is retained separately; archive-r1 is authoritative.
+
+553e428 fixes lossy Windows Python stdout with explicit UTF-8;5d405b9/dbd94bc retain an
+independent native wire fixture:2synthetic passes/8skips, with5cookie assembly refusals and
+3minimal array-shape refusals. It verifies actual form/query/path/header reception, not
+cookie support. Native-stage total144localHTTP through that archive;0real API calls.
+
+Independent decimal oracle found22false rejections among505integer-cents comparisons.
+Exact parsed-decimal BigInt divisibility repairs them without epsilon, preserving nested
+keyword/source attribution. A negative decimal endpoint candidate issue was also repaired.
+31tests/3778assertions and main tsc pass;12exposed documents have zero multipleOf keys, so
+no real coverage gain or panel rerun is claimed. Evidence:skill-family-decimal-development-20260911/.
+
 ## New-member evidence and automation limits
 
 - Initial frozen17b9633 round: only nntan was a new generally applicable member; target3
@@ -110,6 +127,12 @@ All result directories below are under `results/skill-ir/`:
 - `skill-family-extended-clean-20260911/`: be89a50 clean24full-artifact comparisons,
   all26actual output files archived;35tests/216assertions, main/script tsc passed.
   Explicit retained offline archive and reproduction commands are in its README.
+- `skill-family-current-clean-20260911/`: latest full clean at883c85e,112output files,
+  exact-byte comparisons and dependency manifests. Component:skill-family-current-clean-reproduction.md.
+- `skill-family-native-wire-development-20260911/`: initial assumption failures, source,
+  oracle, generated code, actual requests and JUnit. Component:api-pytest-wire-loopback-development.md.
+- `skill-family-decimal-development-20260911/`: all505before/after checks, raw source
+  constraint scan and repair tests. Component:api-schema-decimal-development.md.
 
 Compiled-schema cache has bounded content keys and no result cache;12results were unchanged,
 2405hits/109compiles observed, with Front single-run6184→2144ms. No general timing guarantee.
@@ -120,7 +143,7 @@ Input-byte verification found and fixed silent malformed-UTF-8 replacement in th
 batch runners and four source-duty profiles.19tests/94assertions and affected strict tsc
 pass;12exposed inputs decode identically and retain prior artifact source hashes, without
 regeneration. Evidence:skill-family-utf8-development-20260911/. This is not schema expansion
-or a new clean-run claim; be89a50 remains the last fully clean-reproduced implementation.
+or a new clean-run claim;883c85e is the latest fully clean-reproduced implementation.
 
 Broader gaps: automatic duty extraction and its measured cost, native output validation,
 business/status authority, authenticated live execution, OAS3.1, stronger source genealogy

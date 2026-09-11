@@ -167,6 +167,12 @@ function searchSchemaWitness(document: unknown, raw: unknown, mode: "minimal" | 
       const first = Math.ceil(minimum / step) + (schema.exclusiveMinimum && minimum % step === 0 ? 1 : 0);
       let candidate = Number(((first + variant) * step).toPrecision(15));
       if (candidate > maximum || (schema.exclusiveMaximum && candidate === maximum)) candidate = Number((first * step).toPrecision(15));
+      if (schema.multipleOf !== undefined && !schema.exclusiveMinimum && Number.isFinite(minimum)
+        && (candidate > maximum || (schema.exclusiveMaximum && candidate === maximum))) {
+        // Binary ceil can skip a negative decimal endpoint. It is only a candidate:
+        // the independent whole-source checker still enforces exact divisibility.
+        candidate = minimum;
+      }
       if (kind === "number" && schema.multipleOf === undefined) {
         const lower = schema.minimum ?? -Infinity, upper = schema.maximum ?? Infinity;
         const inRange = (value: number) => Number.isFinite(value) && Math.abs(value) <= Number.MAX_SAFE_INTEGER

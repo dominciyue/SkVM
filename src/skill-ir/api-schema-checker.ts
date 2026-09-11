@@ -13,6 +13,24 @@ const annotations = new Set(["title", "description", "default", "example", "exam
 const ordinary = new Set(["type", "enum", "minimum", "maximum", "multipleOf", "minLength", "maxLength", "pattern", "format", "minItems", "maxItems", "uniqueItems", "minProperties", "maxProperties"]);
 const formats = new Set(["date", "date-time", "time", "email", "hostname", "ipv4", "ipv6", "uri", "uuid", "byte", "int32", "int64", "float", "double", "password", "binary"]);
 
+// Independent exact decimal divisibility over the already parsed finite JS data model.
+// No epsilon: 0.30000000000000004 must not be accepted as a multiple of 0.1.
+function decimalParts(value: number): [bigint, number] {
+  const [mantissa, exponent = "0"] = String(value).toLowerCase().split("e");
+  const fractionDigits = mantissa!.includes(".") ? mantissa!.length - mantissa!.indexOf(".") - 1 : 0;
+  return [BigInt(mantissa!.replace(".", "")), Number(exponent) - fractionDigits];
+}
+function compileDecimalMultipleOf(divisor: number) {
+  if (!Number.isFinite(divisor) || divisor <= 0) throw new Error("invalid multipleOf divisor");
+  const [coefficient, exponent] = decimalParts(divisor);
+  return (value: number) => {
+    if (!Number.isFinite(value)) return false;
+    const [dataCoefficient, dataExponent] = decimalParts(value), shift = dataExponent - exponent;
+    return shift >= 0 ? (dataCoefficient * 10n ** BigInt(shift)) % coefficient === 0n
+      : dataCoefficient % (coefficient * 10n ** BigInt(-shift)) === 0n;
+  };
+}
+
 /** Deliberately bounded regex language; validation itself is performed by Ajv/ECMAScript. */
 function safePattern(pattern: unknown): boolean {
   if (typeof pattern !== "string" || pattern.length > 128) return false;
@@ -116,6 +134,9 @@ function createDirectionalSchemaChecker(document: unknown, schema: unknown, dire
     } else {
       const ajv = new Ajv({ strictSchema: true, strictTypes: false, strictTuples: false, strictRequired: false, allErrors: true,
         coerceTypes: false, useDefaults: false, removeAdditional: false, validateFormats: true, logger: false });
+      ajv.removeKeyword("multipleOf");
+      ajv.addKeyword({ keyword: "multipleOf", type: "number", schemaType: "number", errors: false,
+        metaSchema: { type: "number", exclusiveMinimum: 0 }, compile: compileDecimalMultipleOf });
       addFormats(ajv, { mode: "full", keywords: false });
       validate = ajv.compile(normalized);
       schemaCompiles++;
