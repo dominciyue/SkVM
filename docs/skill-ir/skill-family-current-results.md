@@ -169,6 +169,9 @@ All result directories below are under `results/skill-ir/`:
 - `skill-family-fishzjp-review-20260911/`:14-source full semantic review,9 findings,
   three acquisition-reference dispositions and four open normative dependencies. Exact
   source bindings/locators checked offline; not full-skill or unseen-member success.
+- `skill-family-fishzjp-closure-20260911/`: subsequently acquires and fully reviews those
+  four fixed-commit references (4GET/4HTTP200), with seven applicability findings. Whole
+  QA workflow closure remains unclaimed; blocked execution cannot erase required duties.
 
 Compiled-schema cache has bounded content keys and no result cache;12results were unchanged,
 2405hits/109compiles observed, with Front single-run6184→2144ms. No general timing guarantee.

@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "skill-resource-closure-review/v1",
+  "exposure": "development",
+  "acquisitionSha256": "24ff306f6e6a1e3c326dc45e64957d0c7e85db69a15199be85e517e63818b888",
+  "parentReviewSha256": "ecd8437629fd8c9a3c333fa1a2945cf640dc243479d8f87d6cc74ad909448e04",
+  "reviewer": "main-development-agent",
+  "fullReadFiles": 4,
+  "method": "Full main-agent reading; this script checks source bytes and captures locators, not semantic truth.",
+  "findings": [
+    {
+      "id": "consumer-specific-coverage",
+      "finding": "Do not apply all19 dimensions mechanically: writing and independent review differ; source-code review is conditional on available code. Type inclusion authority is the type matrix.",
+      "evidence": [
+        {
+          "file": "coverage.md",
+          "startLine": 7,
+          "endLine": 18,
+          "quote": "> 类型性维度（11 / 13–16 / 18 / 19）的**纳排与深度决策已上收**至 `test-type-matrix.md`（test-strategy 产出 type_scope）——本文件的类型性维度仅作用例设计提示，不是范围决策来源。\n>\n> **执行强度按消费方分流**（防\"全部检查项\"被误读为 19 维机械全检）：\n> - **编写流程**（`test-case-writing`）：核心维度**部分内联**为其阶段三交付核对——维度核对仅三项硬核对（主流程 / 时间双侧 / 负向底数）；其余核心维度不设编写流程内强制核对（设计期靠方法选择覆盖，本文件仅为按需参考），由独立审查全检兜底；阶段四仅固定抽查 5 项（主流程复查 / 单一职责 / FAQ 非目标 / 二阶交叉 / 跨模块重复），不从本清单取点；\n> - **独立审查**（`test-case-review`）：核心 7 维逐项全检 + 横切可执行性，扩展维度按下方「维度选取速查」按项目类型选取；\n> - 任何场景都不做扩展维度的机械全检。\n\n---\n\n## 核心维度（7 个）\n\n> 1-6 所有项目必检；**7 代码审查发现**为代码模式必检（无代码仓库则跳过该维度）。"
+        },
+        {
+          "file": "coverage.md",
+          "startLine": 168,
+          "endLine": 177,
+          "quote": "## 维度选取速查\n\n| 项目类型 | 核心维度 | 额外必选维度 |\n|---------|---------|------------|\n| Web 应用（前后端） | 1-7 | 8, 9, 10, 13, 14 |\n| 纯 API 服务 | 1-7 | 8, 10, 11, 13 |\n| 移动端应用 | 1-7 | 10, 14, 16 |\n| 多端项目 | 1-7 | 按端分别选取 + 跨端一致性检查 |\n\n> 编号说明：1-7 为核心维度，其中 **7 代码审查发现**为代码模式必检（无代码仓库跳过）。所有项目类型在有代码仓库时均必选维度 7。"
+        }
+      ]
+    },
+    {
+      "id": "separate-strategy-authority",
+      "finding": "Ten-axis strategy is upstream input, not inferred from an OpenAPI schema. No-code exclusion explicitly lowers confidence. Full conformance of type_scope requires the referenced validator, not this prose alone.",
+      "evidence": [
+        {
+          "file": "test-type-matrix.md",
+          "startLine": 3,
+          "endLine": 3,
+          "quote": "> 类型域测试决策的**唯一真相源**：test-strategy 全轴扫描时**按组加载**本文件对应小节，产出 type_scope；test-case-writing 消费 type_scope 时按第 12 节映射产出。决策原则（全轴必答 / include 挂信号 / exclude 挂理由 / depth 与 execution 分离 / 单一真相 / 弱模型优先）与工作流落地见 test-strategy 的 SKILL.md；type_scope 的 Schema 结构与 V1–V5 校验规则以 `../core/scripts/validate_schema.py` 的 docstring 与实现为权威定义。"
+        },
+        {
+          "file": "test-type-matrix.md",
+          "startLine": 17,
+          "endLine": 23,
+          "quote": "1. **G 级扫描**（有代码仓库时，一次运行三组共用）：`python3 ../core/scripts/scan_signals.py <仓库路径>`（路径相对 test-strategy 的 SKILL.md 所在目录）→ 每轴 G 级信号（文件:行）+ 预填表。**预填仅基于 G 级；exclude 永不预填**（防橡皮图章）\n2. **逐轴决策**（受限选择，不自由生成）：需求信号（需求模型 / PRD）→ G 级信号核对 → **S 级信号照单复核**（本轴代码信号清单中标〔S〕的项，逐项读代码确认）→ decision（include / exclude / handoff）→ depth（full / standard / light）\n3. **exclude 门槛**：需求 + G 级 + S 级三路全灭才可 exclude；scanned 必须落盘 **G 级脚本输出 + S 级复核结论双清单**（V3 校验）——S 级未复核不得 exclude，否则脚本盲区被制度化为漏测\n4. **组内交付核对**：本组全轴有决策再进下一组；十轴完成 → 第 13 节深度校准 + 预算排序\n5. **无代码仓库**：跳过 G / S 级，仅需求信号决策；exclude 理由注明\"无代码仓库，需求信号未命中\"（决策可信度降级，报告标注）\n\n**轴空间封闭**：类型域就是这十轴，不自行新增。可用性 / UX 主观体验、渗透测试、SAST / 依赖扫描、产品可维护性、功能安全（safety）**不设轴**——可用性与 UX 的判定主观性强，走探索测试与人工评审；渗透测试依赖专业人工与授权环境，右移到安全专项；SAST / 依赖扫描是开发侧 CI 工具，在本矩阵中只作轴 2 / 轴 10 的**信号来源**而非独立轴；产品可维护性与功能安全超出测试范畴。新增轴 = 矩阵升版本。"
+        }
+      ]
+    },
+    {
+      "id": "no-double-count",
+      "finding": "Permission and security, concurrency and performance, functional negatives and contract differences retain separate decisions without double-counting the same cases. Shared execution can supply evidence to distinct duties.",
+      "evidence": [
+        {
+          "file": "test-type-matrix.md",
+          "startLine": 25,
+          "endLine": 31,
+          "quote": "## 2. 域间裁决（重叠必裁决）\n\n| 重叠 | 裁决 |\n|---|---|\n| 功能域 permission × 轴 2 业务安全 | permission 管授权功能正确性（有权限的人行为对不对，越权用例归它产）；业务安全管未授权视角防御（不该拿的拿不拿得到、敏感数据漏不漏、注入面、认证会话）。permission 轴 depth ≥ standard 是轴 2 的**内部纳入信号**；同一批越权用例不得两轴双计数 |\n| 轴 4 并发一致性 × 轴 1 性能效率 | 正确性 bug（超卖 / 重复 / 丢更新）归轴 4；容量 / 延迟归轴 1。同一次并发执行可同时给两轴供 E3 证据（执行复用，决策分离） |\n| 功能域 exception/boundary × 轴 10 契约与集成 | 功能域为主：异常 / 边界场景下的业务行为正确性（系统自身处理逻辑对不对）归功能域用例产出；轴 10 为辅：只产契约差异项（对外接口的错误码 / 响应结构 / 超时语义与契约不符的部分）。同一接口的同一路径不得两处双计数 |"
+        }
+      ]
+    },
+    {
+      "id": "environment-does-not-erase-duty",
+      "finding": "Unavailable environment/data/tools changes execution_status to blocked, not the required depth. Native collection/skips cannot discharge execution obligations.",
+      "evidence": [
+        {
+          "file": "test-type-matrix.md",
+          "startLine": 154,
+          "endLine": 165,
+          "quote": "| 规则 | 触发条件 | 动作 |\n|---|---|---|\n| R1 风险升档 | 该轴覆盖的场景挂 Critical 风险 → full；High → 至少 standard | 升档，rationale 挂风险编号 |\n| R2 双源信号 | 同轴命中 ≥2 类独立信号（需求级 + 代码级） | 升一档 |\n| R3 历史缺陷 | 该轴维度历史 Bug ≥3 或出过线上事故 | 升一档 |\n| R4 无信号降档 | 需求 + G 级 + S 级扫描全灭（硬默认轴无此出口） | 可降至 exclude；G + S 双清单落盘 |\n| R5 成本门 | 执行前提（环境 / 数据 / 工具）不可得 | **执行降级不决策降级**：depth 保持，execution_status 记 blocked + todo 向谁索取 |\n| R6 预算约束 | full 轴数 > 3（两域合并计） | 按风险排序裁剪至 ≤3，记录排序依据。被裁剪的 Critical 轴触发**预算裁决检查点**（用户可扩预算，扩预算时 depth_budget 记 budget_review） |\n\n### 停止准则\n\n每轴的**档位语义就是停止准则**（§3–§12 各轴写死的动作清单勾完即停）；策略落盘时生成足够性声明：逐轴列档位动作清单与完成状态。禁止\"再测测看\"式开放式深挖——想加深必须升档并说明触发了哪条 R 规则。"
+        }
+      ]
+    },
+    {
+      "id": "schema-not-full-integration",
+      "finding": "Standard integration specifies mock AND real execution; full specifies consumer contracts plus dependency faults. Existing schema/example checks alone do not satisfy either.",
+      "evidence": [
+        {
+          "file": "test-type-matrix.md",
+          "startLine": 128,
+          "endLine": 146,
+          "quote": "### 轴 10 契约与集成\n\n- **需求信号**：第三方依赖清单；对外 API 的消费方；微服务边界；webhook\n- **代码信号**：外部 HTTP / gRPC 调用；消息契约；OpenAPI 定义变更；回调处理\n- **默认档**：软默认——有外部依赖 → standard；无 → exclude（记录扫描结果）\n- **档位语义**：full = 消费者驱动契约（Pact 式）+ 依赖故障矩阵（超时 / 错误码 / 格式变化 / 限流）；standard = 关键依赖 mock 与真实双跑 + 异常分支用例；light = 调用面清单 + 错误处理审查\n- **执行归属**：agent（schema 一致性 / 负向 fuzzing 按 api-testing「契约与 schema 一致性」节）；契约测试框架（Pact 式多消费者场景）执行为移交候选\n- **成本因子**：mock / 沙箱可用性\n- **消费方式**：用例型——standard 及以上产 type: functional 用例加标签 [集成]；契约执行物进执行策略裁决\n\n### 消费方式映射总表（test-case-writing 消费 type_scope 时执行）\n\n| 消费方式 | 适用（standard 及以上；例外档位见格内标注） | 产出 |\n|---|---|---|\n| 用例型 | 轴 2（type: security，标签 `[安全]`）、轴 3（reliability）、轴 4（concurrency）、轴 5（compatibility）；轴 8 / 9 / 10（type: functional + 标签） | 手动用例进 markmap，type / 标签见左 |\n| 脚本型 | 轴 1（压测模型 + 执行物）、轴 6（axe 扫描任务与违规清单，**任意档位**）、轴 7（截图基线） | 不产手动用例，产执行物进执行策略裁决 |\n| 审查型 | 各轴 light 档 | 扫描 / 审查清单条目（Cx 通道），不进用例正文 |\n\n> exclude 轴不产出；handoff 轴只产移交包。depth=light 的轴 2 / 3 / 4 / 5 也按审查型走 Cx 通道。"
+        }
+      ]
+    },
+    {
+      "id": "state-machine-needs-authority",
+      "finding": "Each edge needs source authority and guards, then illegal/concurrent/reverse-edge cases. Do not invent state machines for stateless validation/query/conversion.",
+      "evidence": [
+        {
+          "file": "methods/state-machine.md",
+          "startLine": 7,
+          "endLine": 17,
+          "quote": "从需求/技术方案/代码中提取核心状态机，逐项确认：\n\n```text\n状态集：{待领取、标注中、已提交、已通过、已驳回、已过期}\n事件集：{领取、提交、通过、驳回、超时}\n转换边：状态A --事件--> 状态B（逐条列出，含守卫条件）\n```\n\n- 每条边必须有依据（文档章节或 `文件:行`，按 `../evidence.md` 标注）\n- 代码模式下从代码的状态字段与分支提取**实际**状态机，与文档状态机对照——缺失的边、多出的边都是发现（文档偏离 / 死代码）\n- 状态机图以文字清单落盘（`状态A --事件--> 状态B` 一行一条），不要求画图"
+        },
+        {
+          "file": "methods/state-machine.md",
+          "startLine": 28,
+          "endLine": 41,
+          "quote": "## 3. 每条边一个用例 + 三类必补场景\n\n- 一阶主干：**每条状态边至少一条用例**（`A --事件--> B`：处于 A、触发事件、断言到 B 且伴随现象正确）\n- **非法转换**：此状态下触发不允许的事件 → 断言拒绝且状态不变\n- **并发/竞态**：两个操作同时作用于同一对象（如管理员驳回的同时标注员提交）→ 断言状态一致、无中间态泄漏\n- **逆向边**：有回退/撤销语义的边（已提交 → 驳回 → 重新编辑）单独成用例，重点验证回退后数据是否保留/重置\n\n## 4. 横切关注点独立模块\n\n权限（谁能触发哪些事件）、通知（哪些边触发消息）、数据一致性（状态变更时关联数据级联）作为独立模块补充，不混入状态模块。\n\n## 5. 何时不用状态机组织\n\n无明显状态流转的功能（纯输入校验、查询、数据转换）按 `boundary.md` / `data-driven.md` 组织，不要硬造状态机。"
+        }
+      ]
+    },
+    {
+      "id": "case-format-is-mode-specific",
+      "finding": "Human case-writing/review format has unique TC IDs, reader-facing steps and separate code evidence appendix; it is not an unconditional formatting requirement for a generated Python module.",
+      "evidence": [
+        {
+          "file": "case-format.md",
+          "startLine": 3,
+          "endLine": 3,
+          "quote": "> 框架级用例格式硬约束全集（`test-case-writing` 编写、`test-case-review` 修订、`bug-analysis` 建议新增用例时统一遵守），编写与定稿自检时**逐条执行本文件**，不是可选参考。从零拼装用例文件的起点模板（含详细格式范例）由 test-case-writing skill 的 templates 目录提供。"
+        },
+        {
+          "file": "case-format.md",
+          "startLine": 29,
+          "endLine": 34,
+          "quote": "## 3. 用例编号（硬性，供交叉引用）\n\n- 每条用例唯一编号 `TC-{模块号}-{序号}`（如 `TC-02-03` = 模块 2 第 3 条），写在名称前：`- **TC-02-03 {用例名称}** [P1]`\n- 模块号对应正文一级模块编号（`## 2.` 模块的用例为 TC-02-xx）\n- P0 冒烟用例在名称后追加冒烟序号标注（如 `（SMOKE-1）`），便于快速抽取冒烟集\n- 附录交叉引用（代码证据清单、风险点 Dn 覆盖用例、改动文件映射）与增量更新的变更标记，一律引用 TC 编号"
+        },
+        {
+          "file": "case-format.md",
+          "startLine": 65,
+          "endLine": 72,
+          "quote": "## 5. 步骤与判定细则\n\n- **前置条件去冗余**：同一子模块下多数用例共享的前置（如\"已登录管理员\"\"已创建项目X\"），在该子模块标题下方用引用块统一声明一次（`> 前置：...`）；单条用例的「前置条件」行只写该条额外需要的条件，没有额外前置时可省略该行\n- **嵌入具体数据**：操作步骤里用具体的测试数据（真实编号、字段名、字段值），不要写占位符 `{xxx}`，让测试能直接照着执行或整包发给开发\n- **页面可达性**：每个被测页面/入口在文件中首次出现时，写清从哪里到达（如「后台 → 营销中台 → 券工场 → 活动列表」）。入口在输入源中未说明时，不得只写「打开 XX 页」蒙混——列入澄清问题，并在导读区环境表标注「TODO：入口待确认」\n- **异步行为必含判定时限**：预期结果含「自动变为 / 稍后更新 / 异步生效」时，必须写明等待多久不发生即判失败（如「到达结束时间后 5 分钟内自动变为已结束，超过 5 分钟未变判失败」）。时限无依据时按输入源指标推算或列入澄清问题，不得留白让执行者自定\n- **断言范围不超出验证强度**：用例名称的断言不得大于步骤实际能证明的范围——两个样本证不了「全局唯一」，名称应改为「不同活动的编号互不相同」；确需全局断言时改为协作用例（请开发查库确认约束）\n- **一条用例只测一个点**：预期结果明确唯一，不写\"或 A 或 B\"——应拆分为两条"
+        },
+        {
+          "file": "case-format.md",
+          "startLine": 102,
+          "endLine": 119,
+          "quote": "## 9. 附录区规范（代码模式必含，与正文 `---` 物理隔离）\n\n代码模式的用例文件，除功能用例外，必须含以下产出——**全部放在文件末尾的附录区**，附录顶部标注\"开发技术核查清单（非测试执行项）\"。Cx/Dn 记录的 evidence 字段格式见 `evidence.md`，Dn 评级见 `risk-model.md`：\n\n- **附录：缺陷记录 Cx**：编号（C1、C2…）+ 现象描述 + `文件:行` 证据 + 证据等级（E0–E4）+ 置信度 + 处置（主线验证 / 专项验证 / 待实测确认 / 已证伪 / 后端范围）\n- **附录：高风险点 D1-Dn**：编号 + 风险描述 + 等级（Critical/High/Medium/Low，Impact × Likelihood 评分）+ `文件:行` 证据 + 覆盖用例编号 + 通过判据\n- **附录：代码证据清单**（可选）：用例编号 ↔ `文件:行` 对照，供开发溯源（Schema 的 `code_refs` 由此抽取）\n- **附录：文档偏离对照**：表格列「设计点 / 文档描述 / 实际实现 / 偏离类型」\n- **附录：改动文件映射**：表格列「改动文件 / 影响模块 / 回归用例 / 分类（🆕 新建 · ✏️ 修改 · 🗑️ 删除 · 💀 死代码——与阶段一「改动盘点」四类一致，`regression-testing` 沿用同一枚举）」\n- **附录：可测试性说明**（任意模式，存在带标注用例时）：按 TC 编号逐条列出，替代方案落到可行动\n\n> 这些代码级内容是给**开发/评审**核查用的，测试工程师不执行、也不应被其干扰。Cx/Dn 中映射的\"覆盖用例\"指向正文中的业务语言用例。**正文与附录物理隔离是本规范的核心要求**——不要把 Cx/Dn/`文件:行` 当作正文的一个模块穿插在功能用例之间。\n\n> 纯文档模式（无代码）不产出以上内容，降级时已提示用户准确性受限。\n\n## 10. 审查记录与变更报告格式\n\n审查记录（追加在文件末尾，附录之后）。**适用范围**：本节模板供 `test-case-writing` 写时自审（阶段四）使用；`test-case-review` 独立审查的审查记录以其 SKILL.md 模板为唯一来源（含基准可信度 / 缺失 / 冗余 / 错误 / 高风险未覆盖字段，标题带「test-case-review {日期}」落款以便与写时自审节区分）。两节各自追加、不互相覆写："
+        }
+      ]
+    }
+  ],
+  "closure": {
+    "previousFourReferences": "acquired-and-reviewed",
+    "globalTransitiveClosureComplete": false,
+    "remaining": [
+      {
+        "reference": "skills/core/scripts/validate_schema.py",
+        "role": "Authoritative type_scope schema/V1-V5 checks",
+        "status": "not-acquired-this-stage",
+        "applicableWhen": "Claiming upstream strategy/schema validation",
+        "evidence": {
+          "file": "test-type-matrix.md",
+          "startLine": 3,
+          "endLine": 3,
+          "quote": "> 类型域测试决策的**唯一真相源**：test-strategy 全轴扫描时**按组加载**本文件对应小节，产出 type_scope；test-case-writing 消费 type_scope 时按第 12 节映射产出。决策原则（全轴必答 / include 挂信号 / exclude 挂理由 / depth 与 execution 分离 / 单一真相 / 弱模型优先）与工作流落地见 test-strategy 的 SKILL.md；type_scope 的 Schema 结构与 V1–V5 校验规则以 `../core/scripts/validate_schema.py` 的 docstring 与实现为权威定义。"
+        }
+      },
+      {
+        "reference": "skills/core/scripts/scan_signals.py",
+        "role": "Code-mode G signal extraction",
+        "status": "not-acquired-this-stage",
+        "applicableWhen": "Code-backed test strategy; not source-only OpenAPI construction",
+        "evidence": {
+          "file": "test-type-matrix.md",
+          "startLine": 17,
+          "endLine": 21,
+          "quote": "1. **G 级扫描**（有代码仓库时，一次运行三组共用）：`python3 ../core/scripts/scan_signals.py <仓库路径>`（路径相对 test-strategy 的 SKILL.md 所在目录）→ 每轴 G 级信号（文件:行）+ 预填表。**预填仅基于 G 级；exclude 永不预填**（防橡皮图章）\n2. **逐轴决策**（受限选择，不自由生成）：需求信号（需求模型 / PRD）→ G 级信号核对 → **S 级信号照单复核**（本轴代码信号清单中标〔S〕的项，逐项读代码确认）→ decision（include / exclude / handoff）→ depth（full / standard / light）\n3. **exclude 门槛**：需求 + G 级 + S 级三路全灭才可 exclude；scanned 必须落盘 **G 级脚本输出 + S 级复核结论双清单**（V3 校验）——S 级未复核不得 exclude，否则脚本盲区被制度化为漏测\n4. **组内交付核对**：本组全轴有决策再进下一组；十轴完成 → 第 13 节深度校准 + 预算排序\n5. **无代码仓库**：跳过 G / S 级，仅需求信号决策；exclude 理由注明\"无代码仓库，需求信号未命中\"（决策可信度降级，报告标注）"
+        }
+      },
+      {
+        "reference": "test-strategy/test-case-writing/test-case-review sibling skills and templates",
+        "role": "Upstream strategy and human case workflows",
+        "status": "outside-current-bounded-review",
+        "applicableWhen": "Executing those workflows, not merely classifying API skill membership"
+      }
+    ]
+  },
+  "decision": "Keep composite membership; classify obligations by input mode and authority without dropping unresolved duties. No whole-skill approval, no new transfer evaluation, no source-specific success branch.",
+  "completeScope": false,
+  "automaticMappingApproved": false,
+  "accounting": {
+    "publicResourceRequests": 4,
+    "newPrimaryBodies": 0,
+    "modelCalls": 0,
+    "businessApiCalls": 0,
+    "developerAgentCost": null
+  }
+}
