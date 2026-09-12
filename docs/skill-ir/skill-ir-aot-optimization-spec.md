@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-13
 
-**当前已确认路线：** 第 14.29 节与 [真实 trace 驱动任务书 revision 2，U0–U7](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，状态 `active`。用户先实际运行 skill，再用任意 agent 来源的真实记录驱动模型优化；复用 JIT-optimize/proposal、JIT-boost 和 Skill IR 后端，输出保留剩余职责的新 skill 包，验证 agent 实际消费与成本变化。旧 API-only U0–U5 未执行，由本修订替代；历史 N0–N15、0/6、Q1/held-out 与冻结结果不改写。
+**当前已确认路线：** 第 14.29 节与 [真实 trace 驱动任务书 revision 2，U0–U7](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，状态 `active`（U0–U6 completed，U7 verification/delivery）。用户先实际运行 skill，再用任意 agent 来源的真实记录驱动模型优化；复用 JIT-optimize/proposal、JIT-boost 和 Skill IR 后端，输出保留剩余职责的新 skill 包，验证 agent 实际消费与成本变化。旧 API-only U0–U5 未执行，由本修订替代；历史 N0–N15、0/6、Q1/held-out 与冻结结果不改写。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -2292,10 +2292,10 @@ TaskContract 明确 operation、覆盖义务、输出与 observation；Construct
 
 ### 14.29 真实 trace 驱动的部分固化与 skill 包交付（2026-09-13，revision 2）
 
-执行细则见 [修订任务书](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，仅计划登记。输入是已运行过的 skill 文件夹、真实 trace 及可获得的任务/环境资源；不按 agent 品牌限制，但实际格式支持、解析覆盖与缺失字段必须如实说明。所有有依据的固化、脚本复用、文档和恢复优化均可处理，不要求最大热点或固定节省比例。
+执行细则见 [修订任务书](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)。输入是已运行过的 skill 文件夹、真实 trace 及可获得的任务/环境资源；不按 agent 品牌限制，但实际格式支持、解析覆盖与缺失字段必须如实说明。所有有依据的固化、脚本复用、文档和恢复优化均可处理，不要求最大热点或固定节省比例。本轮已完成 Pi run-summary、bare-agent runtime-event、既有 conversation 与 Pi consumption report 的结构适配；摘要不会被冒充为完整 conversation，费用缺失保持 unknown。
 
 主工程已有 JIT-optimize 日志优化入口、Evidence 和 proposal，不再新建替代优化器。复用 Skill IR、API/Env 构造及 checker，把新 skill 的确定性步骤交给程序，其余职责由 agent 继续。JIT-boost 全 run 提前结束逻辑不能直接用于局部替换。按需求与能力匹配并保留必要依赖；合法空对象、非字符串等按实际格式规则扩展，未支持部分保留，不伪造成功。
 
-交付为可被 agent 实际加载和消费的优化 skill 包，不只是请求包或新文档。固化规则必须适用于变化输入；原 skill 未接管的限制和流程保留。最低一个完整真实闭环，目标三个匹配 skill、两个仓库、共享能力在两个成员复用。实际效果同 agent/model/任务/环境比较，未知 usage/费用不填零，优化、执行、评估和开发代理成本分列，不以文件变短或零 runtime 模型调用推导收益。
+交付为可被 agent 实际加载和消费的优化 skill 包，不只是请求包或新文档。固化规则必须适用于变化输入；原 skill 未接管的限制和流程保留。本轮 development 已匹配 3 skill / 3 repo：两个成员共享同一摘要绑定 helper 并各在原输入、变化输入由真实 Pi agent 调用；第三个成员仅有一条合格 trace，保留 no-change。四组成对 checker 质量为 original 4/4、optimized 4/4；耗时与输出 token 下降，但输入、cache-read 与 total observed token 上升，结论为 mixed，USD unknown。该结果不外推为总体成本、人工节省、跨模型或 held-out 效果。
 
 保留原始记录、脱敏派生、摘要、合成 parser fixture 与模型推断的区别；一次 trace 不是所有分支的证明。复用已有测试和 checker，不增加多层摘要、审计或 clean 循环。历史受保护证据不变；文档治理归并导航，不改变本节方法决定。

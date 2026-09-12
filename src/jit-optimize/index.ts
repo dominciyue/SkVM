@@ -114,6 +114,13 @@ export type {
   TraceGuidedSkillPackage,
   TraceGuidedSkillPackageManifest,
 } from "./solidification.ts"
+export { analyzeSkillConsumption } from "./consumption.ts"
+export type { SkillConsumptionAnalysis } from "./consumption.ts"
+export { analyzeMatchedConsumptionPairs } from "./effect.ts"
+export type {
+  ConsumptionRunForComparison,
+  MatchedConsumptionPair,
+} from "./effect.ts"
 export {
   createWorkspace,
   serializeContext,

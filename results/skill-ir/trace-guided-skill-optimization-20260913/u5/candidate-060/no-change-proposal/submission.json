@@ -1,0 +1,63 @@
+{
+  "rootCause": "The only clean evidence is a fully passing run, and it does not expose an underlying gap in the skill: the agent grounded its work in the endpoint specification and public contract, produced broad schema-derived cases, ran the independent checker successfully, avoided a live API call, and stated the remaining integration duties. The bounded binding/checker artifact format was specific to the task harness, so encoding it into this general API-testing skill would be unsupported overfitting rather than a skill-level correction.",
+  "reasoning": "Evidence Index 0 has runStatus=ok and score 1.000. The successful workflow aligns with the existing procedure: inspect the contract, enumerate happy/boundary/error/auth cases, assert meaningful response behavior, and verify the result. The trace contains only one run, so it cannot establish a repeated transformation suitable for automation; duplicated trace entries reuse the same source locators and are not evidence of repeated agent work. Pre-edit checklist: (a) Generality: no proposed change can be justified for another plausible API-testing task from this evidence; binding-v2 plan/report generation is fixture-specific, while ordinary controller, OpenAPI, and mocked-service test tasks are already covered. (b) Rewrite-in-place: no existing section is shown to be vague or causally defective, so there is nothing to rewrite. (c) Budget: zero skill-file line changes. (d) No-trade-off: the sole PASSING task, candidate-060-source-run-001, could plausibly be made less efficient by adding harness-specific artifact rules or a deterministic helper requirement; retaining the current skill cannot lower its demonstrated 1.000 score. Runtime choices such as framework conventions, available credentials, server state, and unsupported schema handling appropriately remain agent duties.",
+  "confidence": 0.97,
+  "changedFiles": [],
+  "changes": [],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The existing inspect-enumerate-assert-verify ordering was sufficient for the agent to derive correct offline API cases and pass every checker check.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must still interpret the concrete endpoint or specification and resolve task-specific artifact requirements from authoritative project resources."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The binding paths, output names, contract identifiers, and input digest were task-harness parameters rather than stable parameters missing from the general skill.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "not-applicable",
+      "residualDuty": "When a task supplies a binding or checker, the agent must read and honor those supplied values rather than assume defaults."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "A single successful run provides no repeated cross-run transformation warranting a bundled generator; duplicate log records share source locators and do not prove duplicate execution.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "not-applicable"
+    },
+    {
+      "category": "verification",
+      "summary": "The skill already requires running tests and diagnosing failures; the agent ran the independent checker once and obtained a complete pass without blind retries.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must select and run the authoritative project- or task-provided verification command and report its actual result."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The run correctly remained offline and used symbolic credentials, while distinguishing contract-derived results from environment-dependent integration behavior.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "Live API behavior, credentials, network availability, and server state require later verification in an authorized environment."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "The final response explicitly retained live behavior, credentials, server state, and unsupported schema features instead of claiming the offline checker proved them.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent or user must perform authorized live integration checks and decide how to handle schema features outside the supported contract subset."
+    }
+  ],
+  "noChanges": true
+}

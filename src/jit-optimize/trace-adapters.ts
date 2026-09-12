@@ -1,6 +1,8 @@
 import path from "node:path"
 import { stat } from "node:fs/promises"
 import { DurableRuntimeTraceEventSchema } from "../core/durable-runtime-trace.ts"
+import { piEventsToRunRecord, type PiEvent, type PiUserMessage } from "../core/pi-runtime.ts"
+import { RunStatusSchema } from "../core/types.ts"
 import type {
   ConversationLogEntry,
   EvidenceCriterion,
@@ -122,6 +124,17 @@ function isSimpleReport(value: JsonObject): boolean {
     return false
   }
   return true
+}
+
+function isTraceGuidedConsumptionReport(value: JsonObject): boolean {
+  return value.schemaVersion === "skill-ir-trace-guided-agent-consumption/v1"
+    && typeof value.identity === "string"
+    && typeof value.condition === "string"
+    && objectValue(value.source) !== undefined
+    && objectValue(value.runtime) !== undefined
+    && objectValue(value.targetAgent) !== undefined
+    && objectValue(value.verification) !== undefined
+    && objectValue(value.trace) !== undefined
 }
 
 function resolveLocator(sourcePath: string, locator: unknown): string | undefined {
@@ -471,6 +484,149 @@ function adaptSimpleReport(
   }
 }
 
+function userText(message: PiUserMessage): string | undefined {
+  if (typeof message.content === "string") return message.content
+  const text = message.content.filter((item) => item.type === "text").map((item) => item.text).join("")
+  return text || undefined
+}
+
+async function adaptTraceGuidedConsumptionReport(
+  sourcePath: string,
+  inputSha256: string,
+  report: JsonObject,
+): Promise<AdaptedTraceFile> {
+  const format = "skill-ir-trace-guided-agent-consumption/v1"
+  const representation = "conversation-trace" as const
+  const diagnostics: TraceDiagnostic[] = []
+  const trace = objectValue(report.trace)!
+  const tracePath = resolveLocator(sourcePath, trace.path)
+  if (!tracePath || !await exists(tracePath)) {
+    diagnostics.push(diagnostic("trace-file-unavailable", "Consumption report raw trace is missing or unreadable", "json:trace", "error"))
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+  const rawTrace = await Bun.file(tracePath).text()
+  const expectedTraceSha256 = stringValue(trace.sha256)
+  if (expectedTraceSha256 && digest(rawTrace) !== expectedTraceSha256) {
+    diagnostics.push(diagnostic("trace-digest-mismatch", "Consumption report raw trace digest does not match", "json:trace.sha256", "error"))
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+  let events: PiEvent[]
+  try {
+    const value = JSON.parse(rawTrace)
+    if (!Array.isArray(value)) throw new Error("raw trace is not an event array")
+    events = value as PiEvent[]
+  } catch (error) {
+    diagnostics.push(diagnostic("trace-parse-failed", error instanceof Error ? error.message : String(error), "json:trace", "error"))
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+  const runtime = objectValue(report.runtime)!
+  const targetAgent = objectValue(report.targetAgent)!
+  const sourceValue = objectValue(report.source)!
+  const verification = objectValue(report.verification)!
+  const parsedRunStatus = RunStatusSchema.safeParse(targetAgent.runStatus)
+  if (!parsedRunStatus.success) {
+    diagnostics.push(diagnostic("run-status-invalid", "Consumption report has an unsupported target-agent run status", "json:targetAgent.runStatus", "error"))
+  }
+  const runDir = resolveLocator(sourcePath, runtime.runDir)
+  const workDirPath = runDir ? path.join(runDir, "work") : undefined
+  const skillDir = resolveLocator(sourcePath, sourceValue.skillDir)
+  const runRecord = piEventsToRunRecord(events).finish({
+    workDir: workDirPath ?? path.dirname(sourcePath),
+    durationMs: finiteNumber(targetAgent.durationMs) ?? 0,
+    runStatus: parsedRunStatus.success ? parsedRunStatus.data : "parse-failed",
+  })
+  const taskPrompt = events
+    .filter((event): event is Extract<PiEvent, { type: "message_end" }> => event.type === "message_end")
+    .map((event) => event.message)
+    .filter((message): message is PiUserMessage => message.role === "user")
+    .map(userText)
+    .find((text) => text !== undefined)
+  const conversationLog: ConversationLogEntry[] = []
+  if (taskPrompt) conversationLog.push({ type: "request", ts: "unknown", text: taskPrompt, sourceLocator: "raw-trace:user" })
+  for (const step of runRecord.steps) {
+    if (step.text) {
+      conversationLog.push({
+        type: "response",
+        ts: Number.isFinite(step.timestamp) ? new Date(step.timestamp).toISOString() : "unknown",
+        text: step.text,
+        sourceLocator: "raw-trace:assistant",
+      })
+    }
+    for (const call of step.toolCalls) {
+      conversationLog.push({
+        type: "tool",
+        ts: Number.isFinite(step.timestamp) ? new Date(step.timestamp).toISOString() : "unknown",
+        name: call.name,
+        input: call.input,
+        output: call.output,
+        exitCode: call.exitCode,
+        sourceLocator: `raw-trace:tool-call:${call.id}`,
+      })
+    }
+  }
+  const qualityPassed = typeof verification.qualityPassed === "boolean"
+    ? verification.qualityPassed
+    : undefined
+  const criteria = qualityPassed === undefined ? undefined : [{
+    id: "independent-api-checker",
+    name: "independent-api-checker",
+    method: "custom" as const,
+    description: "Bound v2 public-contract checker result from the consumption report",
+    weight: 1,
+    score: qualityPassed ? 1 : 0,
+    passed: qualityPassed,
+    ...(!qualityPassed ? { details: JSON.stringify(verification.checkerReport ?? null) } : {}),
+  }]
+  const tokens = objectValue(targetAgent.tokens)
+  const usageAvailable = targetAgent.usageAvailable === true && tokens !== undefined
+  const usage = usageAvailable ? {
+    inputTokens: finiteNumber(tokens.input),
+    outputTokens: finiteNumber(tokens.output),
+    cacheReadTokens: finiteNumber(tokens.cacheRead),
+    cacheWriteTokens: finiteNumber(tokens.cacheWrite),
+    source: "consumption-report-target-agent",
+  } : undefined
+  const unknownFields: string[] = []
+  if (!taskPrompt) unknownFields.push("taskPrompt")
+  if (!usage) unknownFields.push("usage")
+  if (typeof targetAgent.actualCostUsd !== "number") unknownFields.push("usage.costUsd")
+  const source = makeSource({
+    format,
+    representation,
+    sourcePath,
+    inputSha256,
+    recordLocator: "json+raw-trace",
+    taskIdSource: "source",
+    diagnostics,
+    values: {
+      sourceAgent: stringValue(runtime.driver),
+      adapter: stringValue(runtime.driver),
+      model: stringValue(runtime.model),
+      system: stringValue(report.condition),
+      skillPath: skillDir ? path.join(skillDir, "SKILL.md") : undefined,
+      workDirPath,
+      runStatus: stringValue(targetAgent.runStatus),
+      durationMs: finiteNumber(targetAgent.durationMs),
+      usage,
+      unknownFields,
+    },
+  })
+  return {
+    format,
+    representation,
+    inputSha256,
+    records: [{
+      taskId: stringValue(report.condition) ?? stringValue(report.identity)!,
+      taskPrompt,
+      conversationLog,
+      criteria,
+      workDirPath,
+      source,
+    }],
+    diagnostics,
+  }
+}
+
 /** Identify and adapt one external trace file without guessing absent facts. */
 export async function adaptTraceFile(filePath: string): Promise<AdaptedTraceFile> {
   const sourcePath = path.resolve(filePath)
@@ -485,6 +641,9 @@ export async function adaptTraceFile(filePath: string): Promise<AdaptedTraceFile
   if (values.some(isNativeConversation)) return adaptNativeConversation(sourcePath, inputSha256, rows)
 
   const whole = objectValue(parseJson(raw))
+  if (whole && isTraceGuidedConsumptionReport(whole)) {
+    return adaptTraceGuidedConsumptionReport(sourcePath, inputSha256, whole)
+  }
   if (whole && isSimpleReport(whole)) return adaptSimpleReport(sourcePath, inputSha256, whole)
 
   return {

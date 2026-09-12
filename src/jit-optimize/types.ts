@@ -45,6 +45,8 @@ export interface TraceDiagnostic {
 export interface TraceUsage {
   inputTokens?: number
   outputTokens?: number
+  cacheReadTokens?: number
+  cacheWriteTokens?: number
   costUsd?: number
   source: string
 }
@@ -101,6 +103,8 @@ export const TraceEvidenceSourceSchema = z.object({
   usage: z.object({
     inputTokens: z.number().nonnegative().optional(),
     outputTokens: z.number().nonnegative().optional(),
+    cacheReadTokens: z.number().nonnegative().optional(),
+    cacheWriteTokens: z.number().nonnegative().optional(),
     costUsd: z.number().nonnegative().optional(),
     source: z.string(),
   }).optional(),

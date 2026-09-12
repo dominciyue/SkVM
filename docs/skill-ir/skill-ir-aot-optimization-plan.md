@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 路线：U0–U7
-- 状态：`active`（U0 completed，U1 in-progress）
+- 状态：`active`（U0–U6 completed，U7 in-progress）
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[2026-09-13-api-task-usable-delivery.md](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)
 
@@ -18,13 +18,13 @@ agent 的新消费任务中保持或改善质量，同时给出真实一次性�
 | 阶段 | 当前状态 | 交付与验收 |
 |---|---|---|
 | U0 输入冻结 | completed | 已确认 JIT optimize 基线 45 pass / 0 fail，并绑定两份仓库内真实运行材料 |
-| U1 Evidence | in-progress | 为 Pi run-summary 与 bare-agent runtime-event trace 建立 adapter；缺失与未知显式记录 |
-| U2 模型优化 | planned-not-started | 优化模型读取完整 closure，输出逐项 proposal；覆盖所有有证据支持的机会 |
-| U3 有界固化 | planned-not-started | 只固化稳定、可验证部分；保留剩余职责和适用边界，可复用现有 IR/API/checker |
-| U4 新 skill 包 | planned-not-started | 生成独立、可安装、可验证的新包；provenance 绑定输入、proposal 和接受决定 |
-| U5 Agent 消费 | planned-not-started | 新 agent 在未写入答案的新任务中真实加载并使用新包，保存完整 trace |
-| U6 成对评估 | planned-not-started | 同一任务口径比较原包与新包的质量、失败、token、调用和人工分钟 |
-| U7 收口 | planned-not-started | 只声明证据支持的结论，链接结果，记录限制与下一轮可执行入口 |
+| U1 Evidence | completed | Pi run-summary、bare-agent runtime-event、既有 conversation 与本轮 Pi consumption report adapter 均保留缺失和未知 |
+| U2 模型优化 | completed | 优化模型读取真实 evidence；保留首次错误分类与 `NUL` 失败，修订 proposal 覆盖六类机会 |
+| U3 有界固化 | completed | 两个包复用未放宽的 API Tester v2 helper/checker，保留剩余职责与不适用 fallback |
+| U4 新 skill 包 | completed | 真实 agent 在普通目录读取包、调用 helper 并通过独立 checker；首次路径错误完整保留 |
+| U5 Agent 消费 | completed | 3 skill / 3 repo 完成匹配；同一 helper 用于两个成员，第三个成员为有依据 no-change |
+| U6 成对评估 | completed | 两个成员 × 原/变化输入共 4 对；质量 4/4 对 4/4，效果 mixed，USD unknown |
+| U7 收口 | in-progress | 运行一次合并测试/typecheck/文档检查，核对暂存归属，提交并推送 origin |
 
 ## 复用边界
 
@@ -49,6 +49,6 @@ agent 的新消费任务中保持或改善质量，同时给出真实一次性�
 
 ## 下一动作
 
-完成 U1 adapter 的 RED/GREEN 与 loader 集成，再按任务书推进 U2。机器恢复状态见
-`results/skill-ir/trace-guided-skill-optimization-20260913/status.json`。阶段状态变化时同步更新本页和
-`current-status.md`；方法变化由开发线程先更新最新任务书/spec，治理线程只合并导航与最新字节。
+执行一次 U7 合并验证，归档必要且脱敏的 proposal/trace/result closure，精确暂存本线程文件后提交并推送。
+机器恢复状态见 `results/skill-ir/trace-guided-skill-optimization-20260913/status.json`。治理线程已经完成导航收敛；
+本线程只同步唯一实时入口、方法文档与结果索引，不恢复已合并的历史说明。

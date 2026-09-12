@@ -160,9 +160,14 @@ curl -s -w "\nHTTP Status: %{http_code}\n" \
 
 When a task supplies an ordinary-input binding with schema version
 `skill-ir-api-tester-production-binding/v2` and its OpenAPI document is within
-`api-tester-openapi-subset-v2`, run:
+`api-tester-openapi-subset-v2`, resolve the helper path
+relative to this SKILL.md and run:
 
-`bun scripts/api-task-solidify.js --binding <binding.json> --workdir <task-workdir> --out-dir <new-empty-output-dir> --node <node-executable>`
+`bun <skill-directory>/scripts/api-task-solidify.js --binding <binding.json> --workdir <task-workdir> --out-dir <new-empty-output-dir> --node <node-executable>`
+
+The output directory must not be inside the task work directory (or contain
+it); use an empty sibling directory such as `../solidification-output`. The
+binding-declared plan and report are still written into the task work directory.
 
 The helper constructs the requested plan and report, then runs a separate
 public-contract checker. Read its JSON result and the generated report. Do not

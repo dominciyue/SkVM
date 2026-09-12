@@ -1,0 +1,160 @@
+{
+  "rootCause": "The skill assumes a conventional live-test workflow and presents fixed example paths, tools, status codes, and framework templates without first requiring the agent to treat a task-supplied interface and resource policy as authoritative. Consequently, contract-driven offline artifact tasks leave key behavior implicit—how to parameterize paths, derive cases only from schema evidence, preserve protected inputs and exact output sets, ensure deterministic generation, and distinguish static generator verification from live API execution—so agents must reconstruct those rules independently on every run.",
+  "reasoning": "All 16 runs have run status ok, so the unassessed traces are usable workflow evidence rather than infrastructure failures. Across both the YAML users task (Evidence 0-5,12,13) and JSON inventory task (Evidence 6-11,14,15), agents repeatedly had to infer the same contract-first process: read api-test-interface.json, implement its parameterized CLI, derive schema-constrained cases, avoid network/package installation, preserve protected inputs, generate only declared outputs, replay deterministically, and report live execution as not-run. The baseline skill covers generic discovery, three categories, test frameworks, and truthful non-execution, but its discovery commands use npx, its examples hard-code paths/statuses, and it does not explain contract precedence, deterministic artifact generation, exact-output/protected-input checks, or static-versus-live verification. This makes the root cause instructional rather than tied to either fixture. Pre-edit checklist: (a) Generality—besides the users evidence, the inventory task benefits directly; the same rules also apply to any future OpenAPI contract that requests a CLI, plan, report, protected inputs, or offline execution. (b) Rewrite-in-place—the existing discovery, case-generation, code-generation, and verification steps were tightened in place rather than adding an overlapping appendix; no still-applicable rule was deleted. (c) Budget—the edit is a net -7 lines, well under the approximately 50-line budget. (d) No-trade-off—PER_TASK_SUMMARY.md contains no PASSING tasks, and the edits preserve both live framework tests and curl generation while making task-provided contracts conditional and authoritative, so scope is not narrowed. The evidence has no quality scores, so no failure label is invented; the optimization targets repeated visible workflow work and ambiguity only.",
+  "confidence": 0.88,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "第 1-3 步与第 5 步",
+      "description": "Rewrote the existing workflow to prioritize supplied contracts and parameters, derive deterministic schema-evidenced cases, honor resource/output policies, and verify offline artifacts without conflating them with live API execution.",
+      "generality": "The inventory OpenAPI JSON task benefits independently of the users OpenAPI YAML task, and the same workflow applies to future contract-driven API generators regardless of endpoint names or formats.",
+      "linesDelta": -7
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The skill did not state that a supplied interface/resource/output contract overrides generic examples, nor clearly separate static artifact verification from live API verification.",
+      "evidenceIds": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still interpret the concrete contract's field semantics and select checks supported by the available API evidence."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Both tasks supplied different OpenAPI paths while the original skill and templates used fixed example paths and values.",
+      "evidenceIds": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must read actual input/output paths and CLI arguments from each prompt or interface."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Every model-driven run independently rebuilt the same OpenAPI-to-deterministic-plan transformation, but bundling a universal generator would exceed the evidence and risk narrowing support for arbitrary project test frameworks.",
+      "evidenceIds": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must implement the requested generator or test code for the specific contract and supported OpenAPI features."
+    },
+    {
+      "category": "verification",
+      "summary": "Runs repeatedly performed contract-shape checks, deterministic replay, protected-input checks, exact-output checks, and truthful offline reporting that the original verification step did not enumerate.",
+      "evidenceIds": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must execute the permitted commands, inspect their real results, and never report a check as passed without evidence."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The tasks prohibited network and installation while the original discovery guidance recommended npx commands without conditioning them on resource policy.",
+      "evidenceIds": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must inspect the current environment and use only already available runtimes and dependencies allowed by the task."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Credentials, server state, semantic conflict fixtures, and unsupported schema features cannot be resolved by static instructions and must remain explicit runtime limitations.",
+      "evidenceIds": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must use placeholders, document prerequisites and unsupported features, and mark live execution not-run when no authorized server interaction occurs."
+    }
+  ],
+  "noChanges": false
+}

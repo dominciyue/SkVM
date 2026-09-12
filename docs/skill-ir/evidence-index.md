@@ -7,8 +7,9 @@ result 流水。状态为 `not-established` 时表示现有比较不能识别该
 
 | 主张 | 状态与最窄范围 | 权威结果 | 禁止外推 |
 |---|---|---|---|
-| U0 已冻结可用基线与两份真实运行材料 | active route / repository-contained traces | `results/skill-ir/trace-guided-skill-optimization-20260913/status.json` | U1–U7 完成、新包质量或节省 |
-| 真实 trace 已产生完成闭环 | not-established；U1 进行中 | 同上 | 不得把 adapter RED 或历史 artifact 当新闭环 |
+| 真实 trace 已产生可复核闭环 | supported-as-selected-development-route；3 skill / 3 repo，2 package + 1 evidence-backed no-change | `results/skill-ir/trace-guided-skill-optimization-20260913/status.json` | 随机代表性、held-out、live API、任意 skill |
+| 新包在匹配任务保持 checker 质量 | supported-on-four-selected-pairs；original 4/4、optimized 4/4 | `results/skill-ir/trace-guided-skill-optimization-20260913/u6/effect-report-all.json` | 跨模型、跨职责、真实 API 行为 |
+| 新包减少总体成本 | not-established；duration/output 降，input/cache/observed total 升，USD unknown | 同上 | 不得声称成本或人工节省 |
 
 ## 已支持的窄主张
 

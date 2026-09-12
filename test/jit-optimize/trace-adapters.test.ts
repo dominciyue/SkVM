@@ -157,6 +157,77 @@ describe("adaptTraceFile", () => {
       sourceLocator: "line:4",
     })
   })
+
+  test("loads a trace-guided agent report as a full Pi conversation with bound quality", async () => {
+    const dir = await tempDir()
+    const workDir = path.join(dir, "run", "work")
+    const skillDir = path.join(dir, "skill")
+    const evidenceDir = path.join(dir, "evidence")
+    await Promise.all([
+      mkdir(workDir, { recursive: true }),
+      mkdir(skillDir, { recursive: true }),
+      mkdir(evidenceDir, { recursive: true }),
+    ])
+    await writeFile(path.join(skillDir, "SKILL.md"), "# API\n")
+    const rawTrace = JSON.stringify([
+      { type: "message_end", message: { role: "user", content: [{ type: "text", text: "build a checked API plan" }], timestamp: 1 } },
+      { type: "message_end", message: {
+        role: "assistant",
+        content: [{ type: "text", text: "done" }],
+        api: "openai-completions",
+        provider: "openai",
+        model: "model",
+        usage: {
+          input: 10,
+          output: 2,
+          cacheRead: 30,
+          cacheWrite: 0,
+          totalTokens: 42,
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+        },
+        stopReason: "stop",
+        timestamp: 2,
+      } },
+    ])
+    const tracePath = path.join(evidenceDir, "raw-trace.json")
+    const reportPath = path.join(evidenceDir, "report.json")
+    await writeFile(tracePath, rawTrace)
+    await writeFile(reportPath, JSON.stringify({
+      schemaVersion: "skill-ir-trace-guided-agent-consumption/v1",
+      identity: "candidate-source-run",
+      status: "passed",
+      condition: "candidate-source-run",
+      source: { skillDir, skillSha256: "a".repeat(64), bindingSha256: "b".repeat(64), inputSha256: "c".repeat(64) },
+      runtime: { runDir: path.dirname(workDir), model: "provider/model", driver: "pi", bunVersion: "1.3.14", nodeVersion: "v24.3.0" },
+      targetAgent: {
+        exitCode: 0,
+        runStatus: "ok",
+        durationMs: 123,
+        usageAvailable: true,
+        tokens: { input: 10, output: 2, cacheRead: 30, cacheWrite: 0 },
+        reportedCostUsd: 0,
+        actualCostUsd: "unknown-provider-pricing",
+        finalText: "done",
+      },
+      verification: { qualityPassed: true, checkerReport: { status: "pass" } },
+      trace: { path: "raw-trace.json", sha256: new Bun.CryptoHasher("sha256").update(rawTrace).digest("hex"), eventCount: 2 },
+    }))
+
+    const adapted = await adaptTraceFile(reportPath)
+
+    expect(adapted.format).toBe("skill-ir-trace-guided-agent-consumption/v1")
+    expect(adapted.representation).toBe("conversation-trace")
+    expect(adapted.records[0]!.taskPrompt).toBe("build a checked API plan")
+    expect(adapted.records[0]!.criteria?.[0]).toMatchObject({ score: 1, passed: true })
+    expect(adapted.records[0]!.source).toMatchObject({
+      sourceAgent: "pi",
+      model: "provider/model",
+      runStatus: "ok",
+      workDirPath: workDir,
+      usage: { inputTokens: 10, outputTokens: 2, cacheReadTokens: 30 },
+    })
+    expect(adapted.diagnostics).toEqual([])
+  })
 })
 
 describe("loadEvidencesFromLogs adapter integration", () => {

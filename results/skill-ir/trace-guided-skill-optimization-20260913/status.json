@@ -1,12 +1,12 @@
 {
   "schemaVersion": "skill-ir-trace-guided-optimization-status/v1",
   "identity": "trace-guided-skill-optimization-20260913",
-  "phase": "U4-real-agent-consumption",
+  "phase": "U7-verification-and-delivery",
   "state": "active",
   "branch": "skill-ir-aot",
   "startingCommit": "9a16dfa",
   "publishedBaseCommit": "4e3471d",
-  "stageCommits": [],
+  "stageCommits": ["9fc30d7"],
   "taskOrder": ["U0", "U1", "U2", "U3", "U4", "U5", "U6", "U7"],
   "dependencies": [
     "existing jit-optimize log source and proposal workspace",
@@ -52,15 +52,46 @@
     },
     "u3Package": {
       "path": "results/skill-ir/trace-guided-skill-optimization-20260913/u3/api-tester-package",
-      "manifestSha256": "6107be4f2351e0c03ea7be1a8538b2b1766d97d929d4718b24ec6cd43b6c1eff",
+      "manifestSha256": "14a6277a4c5f2b07f5cf922dfc80d4d4c15e419299c2bf1e639fb479d27e790b",
       "repositoryRealDevelopmentInputStatus": "passed",
       "report": "results/skill-ir/trace-guided-skill-optimization-20260913/u3/report.json"
-    }
+    },
+    "u4AgentConsumption": {
+      "status": "completed-with-preserved-first-failure",
+      "firstAttemptReport": "results/skill-ir/trace-guided-skill-optimization-20260913/u4/new-original-input-001/report.json",
+      "correctedPackageConsumptionReport": "results/skill-ir/trace-guided-skill-optimization-20260913/u6/new/original-input-001/report.json",
+      "agentReadSkill": true,
+      "helperInvokedAndPassed": true,
+      "independentCheckerPassed": true,
+      "report": "results/skill-ir/trace-guided-skill-optimization-20260913/u4/report.json"
+    },
+    "u5Reuse": {
+      "selectedSkillCount": 3,
+      "repositoryCount": 3,
+      "packagedSkillCount": 2,
+      "sharedHelperPackageCount": 2,
+      "noChangeSkillCount": 1,
+      "report": "results/skill-ir/trace-guided-skill-optimization-20260913/u5/report.json"
+    },
+    "u6MatchedEffect": {
+      "pairCount": 4,
+      "originalQualityPassed": 4,
+      "optimizedQualityPassed": 4,
+      "effect": "mixed",
+      "durationChangeRatio": -0.5679249907265116,
+      "outputTokenChangeRatio": -0.7565818502720988,
+      "inputTokenChangeRatio": 0.6285732680916817,
+      "cacheReadTokenChangeRatio": 0.7374631268436578,
+      "totalObservedTokenChangeRatio": 0.6059387475595186,
+      "costUsd": "unknown-provider-pricing",
+      "report": "results/skill-ir/trace-guided-skill-optimization-20260913/u6/report.json"
+    },
+    "traceArchives": "results/skill-ir/trace-guided-skill-optimization-20260913/trace-archives.json"
   },
   "costs": {
     "projectRuntime": {
-      "optimizerModelCalls": 2,
-      "targetAgentCalls": 0,
+      "optimizerModelCalls": 5,
+      "targetAgentCalls": 10,
       "evaluatorCalls": 0,
       "reportedCostUsd": 0,
       "actualCostUsd": "unknown-provider-pricing"
@@ -68,12 +99,13 @@
     "developmentAgent": "tracked by Codex host, not charged to project runtime"
   },
   "openIssues": [
-    "real raw-run summaries omit full turn-by-turn conversations and may omit usage",
-    "durable runtime event trace omits task text, result content and usage",
-    "the new package has not yet been consumed by a real target agent",
-    "matched original/new effect is not yet measured",
+    "the primary historical raw-run summaries omit full turn-by-turn conversations and may omit usage",
+    "the durable runtime event trace omits task text, result content and usage",
+    "the first target-agent evidence-runner failure remains preserved; the corrected package and evidence path passed",
+    "candidate-060 has only one qualifying trace, so its evidence-backed result is no-change and no package",
+    "matched results are mixed: elapsed time and output tokens fell, while input, cache-read and total observed tokens rose",
     "actual provider cost is unknown because the configured pricing table reports zero"
   ],
-  "nextAction": "Run a Pi-backed target agent in a clean ordinary work directory with the packaged SKILL.md, require actual helper invocation plus residual-work completion, archive its raw trace and checker evidence, then execute matched original/new pairs.",
-  "recoveryCommand": "bun test ./test/jit-optimize/solidification.test.ts ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/optimizer-prompt.test.ts"
+  "nextAction": "Run the single U7 combined verification set, synchronize live documentation and ledgers, inspect exact staging ownership, commit, and push origin/skill-ir-aot.",
+  "recoveryCommand": "bun test ./test/cli/jit-optimize.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/task-source-criteria.test.ts ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/infra-blocked-submission.test.ts ./test/jit-optimize/solidification.test.ts ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/effect.test.ts"
 }

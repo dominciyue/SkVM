@@ -105,6 +105,8 @@ describe("trace-guided API Tester package", () => {
     const skill = await Bun.file(join(packageDir, "SKILL.md")).text()
     expect(skill).toContain("api-tester-openapi-subset-v2")
     expect(skill).toContain("scripts/api-task-solidify.js")
+    expect(skill).toContain("relative to this SKILL.md")
+    expect(skill).toContain("must not be inside the task work directory")
     expect(skill).toContain("continue the residual workflow")
 
     await writeFile(join(packageDir, "unexpected.txt"), "not declared\n")

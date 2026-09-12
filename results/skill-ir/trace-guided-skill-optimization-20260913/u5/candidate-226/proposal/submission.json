@@ -1,0 +1,80 @@
+{
+  "rootCause": "The skill's core principles describe generic live REST test suites but do not define how to prioritize task-supplied bindings, machine-readable contracts, offline constraints, and independent checkers, so agents must reconstruct the bounded contract-to-artifact workflow from each prompt and checker rather than from the skill.",
+  "reasoning": "Evidence 0 and 1 are both clean, passing runs, so there is no failing criterion to patch. They nevertheless expose the same general contract gap: in two different API domains and input formats, the agents independently inferred that supplied contracts override the skill's generic examples, manually transformed operation/field constraints into happy, boundary, error, and authentication cases, avoided live calls, ran the checker, and preserved residual duties. The selected fix codifies that successful reusable workflow by tightening the existing Core Principles in place rather than adding an overlapping section. Pre-edit checklist: (a) Generality: the same rules benefit another plausible task involving a payments OpenAPI document with a binding and offline checker, not only either users or inventory evidence task. (b) Rewrite-in-place: the ambiguity is in Core Principles, so those five principles were rewritten in place; no separate workflow appendix was added and no applicable capability was removed. (c) Budget: the edit has a net line delta of 0 and stays far below the roughly 50-line budget. (d) No-trade-off: the PASSING tasks are candidate-226-source-run-001 and candidate-226-source-run-variation-001. The change cannot plausibly lower either score because it explicitly instructs future agents to follow the exact behaviors that earned both independent-api-checker scores of 1.00: authoritative-contract grounding, documented-operation coverage, schema-derived cases, offline safety, checker execution, and residual-duty disclosure. Scope remains broad because ordinary live API testing is still supported when the task permits it.",
+  "confidence": 0.9,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "Core Principles",
+      "description": "Rewrote the existing principles to prioritize authoritative task contracts, derive systematic constraint cases, honor bounded execution, and verify before completion, reducing reliance on prompt-specific inference.",
+      "generality": "A different task that supplies a payments OpenAPI contract, output binding, and offline validator would use the same contract-priority, case-derivation, and verification workflow.",
+      "linesDelta": 0
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The generic principles did not state the precedence of supplied contracts and checkers over illustrative API examples; both passing agents had to infer it.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still interpret the specific authoritative resources and resolve any task-specific conflicts at runtime."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Both runs derived artifacts from different bindings, paths, formats, operations, headers, and constraints, showing that these values must remain task-supplied rather than example-derived.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must read the actual binding and contract values and preserve their declared paths and formats."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Both agents repeated the same transformation from contract operations and scalar constraints into happy, boundary, invalid, required-field, and authentication cases.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must generate concrete valid and invalid values appropriate to each documented type and constraint."
+    },
+    {
+      "category": "verification",
+      "summary": "Both successful runs used the supplied independent checker and reported its passing result; this reusable completion gate was absent from the core principles.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must execute the task-provided command, inspect failures, and rerun after corrections."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Both tasks prohibited live network execution and provided local Node-based verification, while the skill's examples assume reachable servers and installed client frameworks.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must respect the current environment's network policy, available runtime, dependencies, and immutable files."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Both final responses correctly retained live API behavior, credentials, server state, and unsupported schema features as unverified duties.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "retained",
+      "residualDuty": "These items cannot be discharged by an offline contract-only run and must remain explicitly identified until tested in an authorized environment."
+    }
+  ],
+  "noChanges": false
+}
