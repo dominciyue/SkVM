@@ -390,11 +390,13 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 **N13 revision-002 现场：** code=`b2f09d95cdeac0232c9cbdef879e6eb2bc5017cc` 后外部工具实际触达 loopback 9 次，41 files/3,416,515 bytes、报告 SHA-256=`406af8a0bf3f045b64c51c71dcf955f076bcaa6c9b07377220b6d02e17f83442` 均保留。JSON baseline 生成一个 operation case，但 JSON 空白不同于 N5 的 exact-wire predicate，返回未声明 409；form baseline 因 Schemathesis schema-generation error 未生成 operation case。三个 fault 单元因此都没有命中有效 predicate，faultApplied=0，实际均不适用。当前汇总器错误地同时计 `correctlyDetected=3` 与 `notApplicable=3`，产生 `missed=-3`；这是分母正确性缺陷，不能接受。revision-003 只从 revision-002 原始绑定重分类：fault 未实际注入不得记命中，计数必须非负且满足 total=detected+missed+notApplicable；不重跑工具。
 
-- [ ] 首选 Schemathesis，固定实际安装版本、相同合同、同 loopback fixture、请求预算和 timeout；从实际 --help 确认选项，不套用旧文档命令。
-- [ ] 比较生成时间、唯一有效 case、操作/约束覆盖、指定 fault 检出、可复现产物和失败定位。随机 fuzz 与确定性 witness 不做未经控制的总量速度比较。
-- [ ] 最小有用差异：source duty → selected obligation → artifact → checker 的可追溯性、同 source 不同 task 输出差异、无需模型的重放和可解释 partial output；这些须实测，不能仅列功能名。
-- [ ] 不把“从 OpenAPI 生成测试”声称为新发明。Dredd OAS3 文档为 experimental；安装失败 30 分钟内落 not-runnable，不把它设门。
-- [ ] 若没有额外效果，写工程整合贡献；工具通过不替代本项目 checker，也不宣称优于所有测试工具。
+**N13 revision-003 终态：** code=`7eee8b8bee751f5b782bb1f4933704ad87c3892f`；从上述 41 份不可变原始绑定重新解析 Schemathesis failure type，未再次执行工具或发送请求。`comparison/revision-003/schemathesis-report.json` SHA-256=`8577eb21e0cc98900cca483fc5767f44e4dd66a81b33f31eb9aca8d16f1f8c71`。严格结果为 baseline 0/2 pass、3 baseline requests、0 exact-fixture-valid requests；3 个 fault 场景均 `faultApplied=0`，所以 detected=0、missed=0、notApplicable=3，分母守恒。两次 strict verify 均通过且三份输出摘要不变，累计 native loopback 保持 13（N5 4 + revision-002 9）。N13=`completed-with-limitation`，限制仅为 external baseline failures；外部 fault 检出能力在本合同下未获评估。
+
+- [x] 首选 Schemathesis，固定实际安装版本、相同合同、同 loopback fixture、请求预算和 timeout；从实际 --help 确认选项，不套用旧文档命令。
+- [x] 比较生成时间、唯一有效 case、操作/约束覆盖、指定 fault 检出、可复现产物和失败定位。随机 fuzz 与确定性 witness 不做未经控制的总量速度比较。
+- [x] 最小有用差异：source duty → selected obligation → artifact → checker 的可追溯性、同 source 不同 task 输出差异、无需模型的重放和可解释 partial output；这些须实测，不能仅列功能名。
+- [x] 不把“从 OpenAPI 生成测试”声称为新发明。Dredd OAS3 文档为 experimental；安装失败 30 分钟内落 not-runnable，不把它设门。
+- [x] 若没有额外效果，写工程整合贡献；工具通过不替代本项目 checker，也不宣称优于所有测试工具。
 
 验收：至少一个可运行外部对照或明确失败记录；依研究进展不影响工程交付。
 

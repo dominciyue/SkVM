@@ -1,0 +1,657 @@
+{
+  "schemaVersion": "skill-family-current-v2-n13-tool-baseline/v1",
+  "identity": "skill-family-current-v2-source-repair-001",
+  "exposure": "synthetic-development-comparison",
+  "codeCommit": "7eee8b8bee751f5b782bb1f4933704ad87c3892f",
+  "executedAt": "2026-09-12T14:30:00.000Z",
+  "tool": {
+    "name": "Schemathesis",
+    "requiredVersion": "4.27.0",
+    "actualVersion": "4.27.0",
+    "executableName": "schemathesis.exe",
+    "pythonVersion": "3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]",
+    "versionBinding": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/tool/version.txt",
+      "sha256": "67842bd4b7d3f515ae5ab61c320754add77ffae696830fa63b62333e231ec784",
+      "bytes": 30
+    },
+    "helpBinding": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/tool/run-help.txt",
+      "sha256": "33ffb11e746982c6261a3cfa7add8e9caa62d13356c346e81c55f31f3b3ceacf",
+      "bytes": 10204
+    },
+    "dependencyFreezeBinding": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/tool/dependency-freeze.txt",
+      "sha256": "e30f9056b14fa7fcbbff238cf6d10057a233db90afb8a5f2655f011fb3cb935f",
+      "bytes": 544
+    },
+    "requiredHelpOptionsPresent": true
+  },
+  "contract": {
+    "fixtureIds": [
+      "json-reference",
+      "form-wire"
+    ],
+    "sourceSha256": {
+      "json-reference": "ea2dfe81ded878cf9aa4cfa6d51bd24d5f7e47e606c9d707d165b80f9581b81b",
+      "form-wire": "ccad5c315e8fb3c7a9d000c3c60b31a4ef9ba81b2d667860b856aa5815caa3d5"
+    },
+    "phase": "fuzzing",
+    "mode": "positive",
+    "maxExamplesPerOperation": 2,
+    "workers": 1,
+    "requestTimeoutSeconds": 5,
+    "maxTimeSeconds": 30,
+    "requestRetries": 0,
+    "seed": 20260912,
+    "deterministic": true,
+    "uniqueInputs": true,
+    "database": "none",
+    "checks": [
+      "not_a_server_error",
+      "status_code_conformance",
+      "content_type_conformance",
+      "response_headers_conformance",
+      "response_schema_conformance",
+      "negative_data_rejection",
+      "positive_data_acceptance"
+    ]
+  },
+  "skvmBaseline": {
+    "sourceReport": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/integration/consumer-report.json",
+      "commit": "b2f09d95cdeac0232c9cbdef879e6eb2bc5017cc",
+      "sha256": "a2990694bba9d84cbcccdd071f34cf5629cf6c7e9332cf16052faa5c95c269b2",
+      "bytes": 20368
+    },
+    "fixtures": [
+      {
+        "fixtureId": "json-reference",
+        "sourceSha256": "ea2dfe81ded878cf9aa4cfa6d51bd24d5f7e47e606c9d707d165b80f9581b81b",
+        "requestCount": 2,
+        "uniqueWireRequests": 1,
+        "executed": 2,
+        "passed": 2,
+        "durationMs": null
+      },
+      {
+        "fixtureId": "form-wire",
+        "sourceSha256": "ccad5c315e8fb3c7a9d000c3c60b31a4ef9ba81b2d667860b856aa5815caa3d5",
+        "requestCount": 2,
+        "uniqueWireRequests": 1,
+        "executed": 2,
+        "passed": 2,
+        "durationMs": null
+      }
+    ],
+    "timingNote": "The archived SkVM consumer does not expose a directly comparable end-to-end wall clock; no speed ranking is made."
+  },
+  "runs": [
+    {
+      "scenarioId": "baseline-json-reference",
+      "fixtureId": "json-reference",
+      "faultId": null,
+      "expectedCheck": null,
+      "commandTemplate": [
+        "run",
+        "<source.json>",
+        "--url=<loopback-origin>",
+        "--workers=1",
+        "--max-time=30",
+        "--phases=fuzzing",
+        "--checks=not_a_server_error,status_code_conformance,content_type_conformance,response_headers_conformance,response_schema_conformance,negative_data_rejection,positive_data_acceptance",
+        "--request-timeout=5",
+        "--request-retries=0",
+        "--mode=positive",
+        "--max-examples=2",
+        "--seed=20260912",
+        "--generation-deterministic",
+        "--generation-unique-inputs",
+        "--no-color",
+        "--report=json,har,ndjson",
+        "--report-dir=<report-directory>",
+        "--report-json-path=<report-directory>\\report.json",
+        "--report-har-path=<report-directory>\\report.har",
+        "--report-ndjson-path=<report-directory>\\report.ndjson",
+        "--report-preserve-bytes"
+      ],
+      "durationMs": 30920.275,
+      "exitCode": 1,
+      "timedOut": false,
+      "requestBudget": 2,
+      "requestCount": 2,
+      "uniqueWireRequests": 2,
+      "validFixtureRequests": 0,
+      "operationHit": true,
+      "budgetExceeded": false,
+      "faultAppliedCount": 0,
+      "failureChecks": [
+        "content_type_conformance",
+        "negative_data_rejection",
+        "not_a_server_error",
+        "positive_data_acceptance",
+        "response_headers_conformance",
+        "response_schema_conformance",
+        "status_code_conformance"
+      ],
+      "expectedCheckDetected": null,
+      "observations": [
+        {
+          "method": "GET",
+          "target": "/schemathesis-probe%5C%1B%01",
+          "contentType": "",
+          "traceHeader": "",
+          "body": "",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        },
+        {
+          "method": "POST",
+          "target": "/items/item-1?view=full",
+          "contentType": "application/json",
+          "traceHeader": "",
+          "body": "{\"name\": \"ok\"}",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        }
+      ],
+      "rawBindings": [
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-json-reference/source.json",
+          "sha256": "ea2dfe81ded878cf9aa4cfa6d51bd24d5f7e47e606c9d707d165b80f9581b81b",
+          "bytes": 913
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-json-reference/stdout.txt",
+          "sha256": "18435b290b9e31d92687e6ac7e9b70e50c14633bde852a232cdae2d7900794b9",
+          "bytes": 2554
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-json-reference/stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-json-reference/observations.json",
+          "sha256": "c98d1c22fdd804ff670c898fc0a160aa3d1fec81a99f0ffe95a38eb04884464d",
+          "bytes": 487
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-json-reference/reports/report.json",
+          "sha256": "a7eaffc0472c567eb4f95a98dbd2f4769df6090a5c96e25aacab7425de37d449",
+          "bytes": 2938
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-json-reference/reports/report.har",
+          "sha256": "8be2781289a8f3dca0829e874570bed9144949352e93165968176f884aaf4b94",
+          "bytes": 1703
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-json-reference/reports/report.ndjson",
+          "sha256": "4c8232deaad33564c4a12170f3d677ea87705c21c1de09aed73041e9ea1d6fb3",
+          "bytes": 633839
+        }
+      ]
+    },
+    {
+      "scenarioId": "baseline-form-wire",
+      "fixtureId": "form-wire",
+      "faultId": null,
+      "expectedCheck": null,
+      "commandTemplate": [
+        "run",
+        "<source.json>",
+        "--url=<loopback-origin>",
+        "--workers=1",
+        "--max-time=30",
+        "--phases=fuzzing",
+        "--checks=not_a_server_error,status_code_conformance,content_type_conformance,response_headers_conformance,response_schema_conformance,negative_data_rejection,positive_data_acceptance",
+        "--request-timeout=5",
+        "--request-retries=0",
+        "--mode=positive",
+        "--max-examples=2",
+        "--seed=20260912",
+        "--generation-deterministic",
+        "--generation-unique-inputs",
+        "--no-color",
+        "--report=json,har,ndjson",
+        "--report-dir=<report-directory>",
+        "--report-json-path=<report-directory>\\report.json",
+        "--report-har-path=<report-directory>\\report.har",
+        "--report-ndjson-path=<report-directory>\\report.ndjson",
+        "--report-preserve-bytes"
+      ],
+      "durationMs": 30956.475,
+      "exitCode": 1,
+      "timedOut": false,
+      "requestBudget": 2,
+      "requestCount": 1,
+      "uniqueWireRequests": 1,
+      "validFixtureRequests": 0,
+      "operationHit": true,
+      "budgetExceeded": false,
+      "faultAppliedCount": 0,
+      "failureChecks": [],
+      "expectedCheckDetected": null,
+      "observations": [
+        {
+          "method": "GET",
+          "target": "/schemathesis-probe%5C%1B%01",
+          "contentType": "",
+          "traceHeader": "",
+          "body": "",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        }
+      ],
+      "rawBindings": [
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-form-wire/source.json",
+          "sha256": "ccad5c315e8fb3c7a9d000c3c60b31a4ef9ba81b2d667860b856aa5815caa3d5",
+          "bytes": 859
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-form-wire/stdout.txt",
+          "sha256": "776f6ba8793f0c5e2de5de651251d56c8708ce60c61ee251190de36990a3ee9c",
+          "bytes": 2663
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-form-wire/stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-form-wire/observations.json",
+          "sha256": "edab8de917c5f612b6640382710588d0d94059fe82beb6f157b2e4af610785a2",
+          "bytes": 230
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-form-wire/reports/report.json",
+          "sha256": "28e3c3c38f86ab1a921a17900d5f65b1b115b43fcb52315bcb20c91eab73a137",
+          "bytes": 2765
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-form-wire/reports/report.har",
+          "sha256": "8d8b394971e9c68ce1fb6249aeb60498aa6061a40f5eeb886c212b4a30c0d93d",
+          "bytes": 259
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/baseline-form-wire/reports/report.ndjson",
+          "sha256": "488f2683a3dd81c0613235c61482896b8a38a4755337ff221347af3751279f30",
+          "bytes": 894282
+        }
+      ]
+    },
+    {
+      "scenarioId": "fault-undocumented-status",
+      "fixtureId": "json-reference",
+      "faultId": "undocumented-status",
+      "expectedCheck": "status_code_conformance",
+      "commandTemplate": [
+        "run",
+        "<source.json>",
+        "--url=<loopback-origin>",
+        "--workers=1",
+        "--max-time=30",
+        "--phases=fuzzing",
+        "--checks=not_a_server_error,status_code_conformance,content_type_conformance,response_headers_conformance,response_schema_conformance,negative_data_rejection,positive_data_acceptance",
+        "--request-timeout=5",
+        "--request-retries=0",
+        "--mode=positive",
+        "--max-examples=2",
+        "--seed=20260912",
+        "--generation-deterministic",
+        "--generation-unique-inputs",
+        "--no-color",
+        "--report=json,har,ndjson",
+        "--report-dir=<report-directory>",
+        "--report-json-path=<report-directory>\\report.json",
+        "--report-har-path=<report-directory>\\report.har",
+        "--report-ndjson-path=<report-directory>\\report.ndjson",
+        "--report-preserve-bytes"
+      ],
+      "durationMs": 30990.227,
+      "exitCode": 1,
+      "timedOut": false,
+      "requestBudget": 2,
+      "requestCount": 2,
+      "uniqueWireRequests": 2,
+      "validFixtureRequests": 0,
+      "operationHit": true,
+      "budgetExceeded": false,
+      "faultAppliedCount": 0,
+      "failureChecks": [
+        "content_type_conformance",
+        "negative_data_rejection",
+        "not_a_server_error",
+        "positive_data_acceptance",
+        "response_headers_conformance",
+        "response_schema_conformance",
+        "status_code_conformance"
+      ],
+      "expectedCheckDetected": false,
+      "observations": [
+        {
+          "method": "GET",
+          "target": "/schemathesis-probe%5C%1B%01",
+          "contentType": "",
+          "traceHeader": "",
+          "body": "",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        },
+        {
+          "method": "POST",
+          "target": "/items/item-1?view=full",
+          "contentType": "application/json",
+          "traceHeader": "",
+          "body": "{\"name\": \"ok\"}",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        }
+      ],
+      "rawBindings": [
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-undocumented-status/source.json",
+          "sha256": "ea2dfe81ded878cf9aa4cfa6d51bd24d5f7e47e606c9d707d165b80f9581b81b",
+          "bytes": 913
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-undocumented-status/stdout.txt",
+          "sha256": "6245cb16426141ef0aaca3b1d57d01dbd557914c87a723ddc5d9da6be88e942c",
+          "bytes": 2560
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-undocumented-status/stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-undocumented-status/observations.json",
+          "sha256": "c98d1c22fdd804ff670c898fc0a160aa3d1fec81a99f0ffe95a38eb04884464d",
+          "bytes": 487
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-undocumented-status/reports/report.json",
+          "sha256": "2da9c587bd1839aab3efcdfaf01c3e6ba359d8920e40e1d2d24bbe90ce8cae94",
+          "bytes": 2947
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-undocumented-status/reports/report.har",
+          "sha256": "8b2e054e4d99a3a2e828b871fa283680afaae58a30053c096a596aa40cd0e01b",
+          "bytes": 1701
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-undocumented-status/reports/report.ndjson",
+          "sha256": "b7c6acf075a175902ad6a33ee29bb6f47fa82184862ec1dabfcf9318419f59cd",
+          "bytes": 584105
+        }
+      ]
+    },
+    {
+      "scenarioId": "fault-missing-response-header",
+      "fixtureId": "json-reference",
+      "faultId": "missing-response-header",
+      "expectedCheck": "response_headers_conformance",
+      "commandTemplate": [
+        "run",
+        "<source.json>",
+        "--url=<loopback-origin>",
+        "--workers=1",
+        "--max-time=30",
+        "--phases=fuzzing",
+        "--checks=not_a_server_error,status_code_conformance,content_type_conformance,response_headers_conformance,response_schema_conformance,negative_data_rejection,positive_data_acceptance",
+        "--request-timeout=5",
+        "--request-retries=0",
+        "--mode=positive",
+        "--max-examples=2",
+        "--seed=20260912",
+        "--generation-deterministic",
+        "--generation-unique-inputs",
+        "--no-color",
+        "--report=json,har,ndjson",
+        "--report-dir=<report-directory>",
+        "--report-json-path=<report-directory>\\report.json",
+        "--report-har-path=<report-directory>\\report.har",
+        "--report-ndjson-path=<report-directory>\\report.ndjson",
+        "--report-preserve-bytes"
+      ],
+      "durationMs": 31013.965,
+      "exitCode": 1,
+      "timedOut": false,
+      "requestBudget": 2,
+      "requestCount": 2,
+      "uniqueWireRequests": 2,
+      "validFixtureRequests": 0,
+      "operationHit": true,
+      "budgetExceeded": false,
+      "faultAppliedCount": 0,
+      "failureChecks": [
+        "content_type_conformance",
+        "negative_data_rejection",
+        "not_a_server_error",
+        "positive_data_acceptance",
+        "response_headers_conformance",
+        "response_schema_conformance",
+        "status_code_conformance"
+      ],
+      "expectedCheckDetected": false,
+      "observations": [
+        {
+          "method": "GET",
+          "target": "/schemathesis-probe%5C%1B%01",
+          "contentType": "",
+          "traceHeader": "",
+          "body": "",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        },
+        {
+          "method": "POST",
+          "target": "/items/item-1?view=full",
+          "contentType": "application/json",
+          "traceHeader": "",
+          "body": "{\"name\": \"ok\"}",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        }
+      ],
+      "rawBindings": [
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-missing-response-header/source.json",
+          "sha256": "ea2dfe81ded878cf9aa4cfa6d51bd24d5f7e47e606c9d707d165b80f9581b81b",
+          "bytes": 913
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-missing-response-header/stdout.txt",
+          "sha256": "8a1c768757f9ab89a82f4dc0c415d39d21e75eeaaa1d8befe08d4626c661839a",
+          "bytes": 2653
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-missing-response-header/stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-missing-response-header/observations.json",
+          "sha256": "c98d1c22fdd804ff670c898fc0a160aa3d1fec81a99f0ffe95a38eb04884464d",
+          "bytes": 487
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-missing-response-header/reports/report.json",
+          "sha256": "78e00e2db02c5e350c3dd24f49d37682861185d47ec2514c4fc96bc8cd724e4d",
+          "bytes": 2968
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-missing-response-header/reports/report.har",
+          "sha256": "2f901d4fde29ac0407b0706a8f0d2cd86d3e2d37121e1156f510d2f80971ff04",
+          "bytes": 1703
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-missing-response-header/reports/report.ndjson",
+          "sha256": "361bb52887d7da3c6375f52ee59e597337cfce92a00f2ed9d54541df89aa51eb",
+          "bytes": 610886
+        }
+      ]
+    },
+    {
+      "scenarioId": "fault-invalid-response-body",
+      "fixtureId": "json-reference",
+      "faultId": "invalid-response-body",
+      "expectedCheck": "response_schema_conformance",
+      "commandTemplate": [
+        "run",
+        "<source.json>",
+        "--url=<loopback-origin>",
+        "--workers=1",
+        "--max-time=30",
+        "--phases=fuzzing",
+        "--checks=not_a_server_error,status_code_conformance,content_type_conformance,response_headers_conformance,response_schema_conformance,negative_data_rejection,positive_data_acceptance",
+        "--request-timeout=5",
+        "--request-retries=0",
+        "--mode=positive",
+        "--max-examples=2",
+        "--seed=20260912",
+        "--generation-deterministic",
+        "--generation-unique-inputs",
+        "--no-color",
+        "--report=json,har,ndjson",
+        "--report-dir=<report-directory>",
+        "--report-json-path=<report-directory>\\report.json",
+        "--report-har-path=<report-directory>\\report.har",
+        "--report-ndjson-path=<report-directory>\\report.ndjson",
+        "--report-preserve-bytes"
+      ],
+      "durationMs": 30957.736,
+      "exitCode": 1,
+      "timedOut": false,
+      "requestBudget": 2,
+      "requestCount": 2,
+      "uniqueWireRequests": 2,
+      "validFixtureRequests": 0,
+      "operationHit": true,
+      "budgetExceeded": false,
+      "faultAppliedCount": 0,
+      "failureChecks": [
+        "content_type_conformance",
+        "negative_data_rejection",
+        "not_a_server_error",
+        "positive_data_acceptance",
+        "response_headers_conformance",
+        "response_schema_conformance",
+        "status_code_conformance"
+      ],
+      "expectedCheckDetected": false,
+      "observations": [
+        {
+          "method": "GET",
+          "target": "/schemathesis-probe%5C%1B%01",
+          "contentType": "",
+          "traceHeader": "",
+          "body": "",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        },
+        {
+          "method": "POST",
+          "target": "/items/item-1?view=full",
+          "contentType": "application/json",
+          "traceHeader": "",
+          "body": "{\"name\": \"ok\"}",
+          "fixturePredicateValid": false,
+          "responseStatus": 409,
+          "faultApplied": false
+        }
+      ],
+      "rawBindings": [
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-invalid-response-body/source.json",
+          "sha256": "ea2dfe81ded878cf9aa4cfa6d51bd24d5f7e47e606c9d707d165b80f9581b81b",
+          "bytes": 913
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-invalid-response-body/stdout.txt",
+          "sha256": "0a530a225fbcacdc19a191a85fb6a193a6d9e9eafaa01533620c4f9f5db9b12e",
+          "bytes": 2647
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-invalid-response-body/stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-invalid-response-body/observations.json",
+          "sha256": "c98d1c22fdd804ff670c898fc0a160aa3d1fec81a99f0ffe95a38eb04884464d",
+          "bytes": 487
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-invalid-response-body/reports/report.json",
+          "sha256": "7595e859e4f988c46b4ea21b74fb5dd66aab21fc3a2f1691783c798192e0a2dd",
+          "bytes": 2957
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-invalid-response-body/reports/report.har",
+          "sha256": "d61c4167284926929589543f16f4fa4ecb82563d7045dbb547f0b2dd43a4b7c1",
+          "bytes": 1701
+        },
+        {
+          "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/raw/fault-invalid-response-body/reports/report.ndjson",
+          "sha256": "d49b1d2e1619ff4b4d984337130b7e41622604a393d083beed4a2c5191e7cd4c",
+          "bytes": 609945
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "baselineRuns": 2,
+    "baselinePassed": 0,
+    "baselineRequests": 3,
+    "baselineUniqueWireRequests": 3,
+    "baselineValidFixtureRequests": 0,
+    "faultInjections": 3,
+    "correctlyDetectedFaults": 0,
+    "missedFaults": 0,
+    "notApplicableFaults": 3,
+    "actualLoopbackHttpCalls": 9
+  },
+  "accounting": {
+    "sourceApiCalls": 0,
+    "businessApiCalls": 0,
+    "modelCalls": 0,
+    "paidCalls": 0,
+    "loopbackHttpCalls": 9,
+    "dependencyDownloadRequests": "not-measured"
+  },
+  "claimLimits": [
+    "The external comparison uses deterministic synthetic loopback fixtures, not a live API.",
+    "Schemathesis response checks do not replace or increase SkVM checker results.",
+    "SkVM task traceability is an integration contribution, not a claim that schema-derived API testing is novel.",
+    "Run timing is not used for an uncontrolled throughput comparison.",
+    "Revision-003 reclassifies revision-002 raw bytes; it did not re-execute Schemathesis or issue additional loopback requests.",
+    "All three named response-fault scenarios were not applicable because no request satisfied the exact N5 fixture predicate."
+  ],
+  "reclassification": {
+    "classificationRevision": "fault-denominator-v2",
+    "sourceReportBinding": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/schemathesis-report.json",
+      "sha256": "406af8a0bf3f045b64c51c71dcf955f076bcaa6c9b07377220b6d02e17f83442",
+      "bytes": 3828
+    },
+    "sourceToolBaselineBinding": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/comparison/revision-002/tool-baseline.json",
+      "sha256": "f44a1848e30c6c62c5167da273272bd891c21d13e6542e6112b13afb4503c488",
+      "bytes": 25291
+    },
+    "evaluatedAt": "2026-09-12T13:33:28.880Z",
+    "externalToolReexecuted": false,
+    "additionalLoopbackHttpCalls": 0
+  }
+}

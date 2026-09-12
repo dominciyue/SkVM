@@ -65,6 +65,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n9-gate --e
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13 --schemathesis=<path-to-4.27.0-executable> --evaluated-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13-revision --schemathesis=<path-to-4.27.0-executable> --evaluated-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13-revision-002 --schemathesis=<path-to-4.27.0-executable> --evaluated-at=<ISO>
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13-reclassify --evaluated-at=<ISO>
 ~~~
 
 当前 `status`/`resume` 均定位运行中的 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。`--step=n10-lock` 在锁已存在时只重核摘要，不覆盖。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
@@ -159,6 +160,8 @@ N13 外部对照复用 N5 两个合成源和同一手写 loopback predicate。Sc
 revision-001=`44246c37...` 又暴露 Windows GBK/Rich `✅` 输出异常，仍为 0 request；原件独立保留。revision-002 仅为 Schemathesis 子进程设置 UTF-8 I/O 环境，防止控制台渲染在执行前中止，不改变生成、检查或服务器行为。
 
 revision-002=`406af8a0...` 已实际运行 9 个 loopback 请求，但发现汇总分母 bug：三个 fault 都未实际施加，却被同时计为 detected 与 notApplicable，导致 missed=-3。JSON case 因空白序列化未满足 exact-wire predicate；form operation 为外部 schema-generation error。下一修订只重分类既有原始报告，不重复执行；faultApplied=0 必须只进入 notApplicable。
+
+revision-003=`8577eb21e0cc98900cca483fc5767f44e4dd66a81b33f31eb9aca8d16f1f8c71` 由 code `7eee8b8bee751f5b782bb1f4933704ad87c3892f` 从 revision-002 的摘要绑定和原始 JSON/NDJSON 重分类，未调用外部工具、additional loopback=0。结果为 external baseline 0/2、baseline requests=3、valid fixture requests=0；三个 fault 全部 notApplicable，detected=0、missed=0，计数非负且分母守恒。严格验证器会拒绝 detected 与 faultApplied=0 并存以及任何分母不守恒；两次重核和 write-once 摘要检查通过。N13 以 `completed-with-limitation` 终结，不能从未实际施加的故障推断 Schemathesis 检出能力。
 
 N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。N0 的聚焦测试命令为：
 
