@@ -3,7 +3,7 @@
 > **For agentic workers:** Use superpowers:executing-plans to execute this plan. Main agent owns design, edits and final checks; narrowly scoped read-only probes follow AGENTS.md. Track the checkboxes and actual evidence, not elapsed hours.
 
 **Revision:** 2 — 2026-09-12，替代 3c37f7f 中的 revision 1；旧版在 Git 中保留。
-**Status:** planned-not-started。本轮仅审查、公开资料查询和文档修订，不表示 N0–N15 已执行。
+**Status:** active。N0 已于 2026-09-12 完成实际基线、持久状态和最小恢复入口；当前可运行任务为 N1。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
 **Goal:** 在 2026-09-14 00:00（Asia/Shanghai）前优先交付一个有实际消费闭环的 API 合同任务自动化引擎：明确需求 + 普通 OpenAPI 输入 → 可检查请求/测试包 → 原生执行与故障检出，并分别评价新需求与新输入迁移。
 **Architecture:** 保留旧 production v2；优先连接现有 api-skill-mapping、schema witness、request/form/negative、response checker 与 pytest 模块。新增薄的任务合同/计划层和统一调用接口；历史来源修复独立限时处理。标准化任务输入与输出，不重造 OpenAPI，不把自然语言提取自动视为可信。
 **Tech Stack:** Bun、TypeScript、Zod/AJV、现有 Python/pytest runtime、JSON/YAML、Git/gh；Schemathesis 为首选外部对照，Dredd 非必选。
@@ -195,14 +195,16 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 ### N0：恢复与最小基线（P0，约 20 分钟）
 
-- [ ] 读取当前规则、计划/状态和 Git 状态；记录实际 baseCommit、环境。运行一次既有 class-proof status。
-- [ ] 创建 execution-status.json、stage-manifest.json；新结果根为 skill-family-current-v2-source-repair-001。身份仅隔离证据，不等于新分支。
-- [ ] 创建最小 status/resume 编排入口及状态恢复测试；后续任务逐项接入，不在 N0 预先实现全部研究流程。
-- [ ] 状态分开工程/研究，记录每任务 dependencies、status、evidence、nextAction；维护任务可 completed-with-limitation，不能阻止 ready 的主任务。
-- [ ] 历史 0/6、Q1、held-out reserve、旧 candidate 和报告只读；不做全盘扫描或全量 benchmark。
-- [ ] 记录本审查公开网页曝光（见分析文档），正文或关键内容已可见者进入 development-exposed，不能进 body-unseen 主样本。
+- [x] 读取当前规则、计划/状态和 Git 状态；记录实际 baseCommit、环境。运行一次既有 class-proof status。
+- [x] 创建 execution-status.json、stage-manifest.json；新结果根为 skill-family-current-v2-source-repair-001。身份仅隔离证据，不等于新分支。
+- [x] 创建最小 status/resume 编排入口及状态恢复测试；后续任务逐项接入，不在 N0 预先实现全部研究流程。
+- [x] 状态分开工程/研究，记录每任务 dependencies、status、evidence、nextAction；维护任务可 completed-with-limitation，不能阻止 ready 的主任务。
+- [x] 历史 0/6、Q1、held-out reserve、旧 candidate 和报告只读；不做全盘扫描或全量 benchmark。
+- [x] 记录本审查公开网页曝光（见分析文档），正文或关键内容已可见者进入 development-exposed，不能进 body-unseen 主样本。
 
 验收：恢复入口可定位首项未完成的可运行任务。缺少旧 clean-002 是已知事实，不是 N0 新失败。
+
+**N0 实际结果：** baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`，Bun=`1.3.14`，Node=`v23.8.0`；既有 class-proof status 入口 exit 0。新 `status`/`resume` 均从持久 JSON 只读恢复并定位 N1；聚焦测试 `5/5`、18 assertions，脚本定向 typecheck 通过。未读取 held-out/Q1 reserve，未启动 prospective，外部 source/business/model/paid 调用均为 0。
 
 ### N1：需求语料与独立输入来源（P0，最多 2 小时）
 

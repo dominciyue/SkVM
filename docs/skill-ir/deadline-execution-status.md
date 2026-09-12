@@ -1,9 +1,12 @@
-# 一类 skill 深化：唯一执行恢复状态
+# API 合同任务引擎：唯一执行恢复状态
 
-- 持续目标 active。用户2026-09-11 02:35 +08重新授权D1–D9与相关追加开发；至少10h或目标全部完成/用户停止。当前12:05前后，约9.5h，未达10h，不空等/重复扩样凑时长。
-- 分支 api-tester-operation-unseen-prospective-001；上一HEAD/origin afe657f，完整职责提取结果已推送。提取session5042已明确exit0结束，无后台请求；不要重新发送失败成员。当前阶段为fishzjp14文件全文语义复核。
-- 权威计划 docs/superpowers/plans/2026-09-11-skill-family-deepening.md；root handoff§82及后续追加。网络/API/付费已授权但按实际用途计费；旧v2/0/6/readiness/held-out不变。
-- 历史停止只描述过去，最新指令要求继续。下载SKILL/脚本只作研究数据，从未按其命令执行。
+- 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2。
+- N0 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`，Bun 1.3.14、Node v23.8.0；旧 class-proof status 与新 status/resume 均 exit 0，新入口定位 N1。
+- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；下一动作是优先复用已归档正文建立 N1 三份 corpus ledger，再做有目的的补充获取。
+- 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
+- 网络/API/付费已授权并按实际用途分账；N0 实际 source/business/model/paid 调用为 `0/0/0/0`。平台安全控制未关闭，确定性证据核验仍生效。
+
+以下 D 系列与旧 class-proof 内容均为历史检查点，不是当前恢复入口。
 
 ## 已交付主线
 

@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：design-only / planned-not-started，2026-09-12。** 本文描述 revision 2 要实现的组件，不宣称新入口已存在。已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)。
+**状态：active，N0 completed / N1 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -46,11 +46,26 @@ taskComplete 表示全部适用必需义务已满足并按要求导出；executi
 
 source closure 以 URI/pointer 图解析，response ref 是否必需由 task 决定。合法递归可以解析成功而有限 witness 构造未解决。profile/version 不支持时返回明确原因，不把 OAS3.1 当 OAS3.0。
 
+## 状态与恢复入口
+
+N0 新增 `scripts/skill-ir/skill-family-current-v2-prospective.ts`。它严格读取 `stage-manifest.json` 与 `execution-status.json`，核对任务集合、依赖无环、完成顺序、证据相对路径和保护计数，再派生工程、研究、维护三条状态。`status` 不写文件；`resume` 只返回首个可运行任务及其验收/证据目标，后续阶段再逐项接入处理函数，因此不会从 N0 偷跑获取或 prospective。
+
+~~~powershell
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=resume
+~~~
+
+当前两条命令都定位 N1。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。
 
-N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。没有实施前不运行不存在的命令。
+N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。N0 的聚焦测试命令为：
 
-当前可用恢复诊断：bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status。
-计划中的新命令为 bun ./bin/skvm.js artifact task --task=task.json --out=out；N8 必须实测并把这里更新成最终实际命令。实施尚未开始，不能将此设计示例计作成功样本。
+~~~powershell
+bun test ./scripts/skill-ir/skill-family-current-v2-prospective.test.ts
+bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
+~~~
+
+历史恢复诊断仍为 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`；它属于旧 identity，不代替上述当前状态。计划中的普通任务命令为 `bun ./bin/skvm.js artifact task --task=task.json --out=out`；N8 必须实测并把这里更新成最终实际命令。在 N8 完成前不能将设计示例计作成功样本。
