@@ -323,9 +323,9 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：development/input-lock.json、task-contracts/、first-run.json、revision-001.json。
 
-- [ ] 在看输出前固定 6 份真实原始 API 合同、3 个 provider；至少 3 个成员需求映射，允许一份 API 比较不同需求，但 unique input 只计一次。
-- [ ] 为每份 source × task 构造前登记 operation/requirement 分母、预期支持与剩余 oracle；不能删去 unsupported 行。
-- [ ] 先 baseline 再当前任务引擎：分别测 taskComplete、必需义务覆盖、checker、native consumption、时间、重复构建时间/缓存和修改量。
+- [x] 在看输出前固定 6 份真实原始 API 合同、3 个 provider；至少 3 个成员需求映射，允许一份 API 比较不同需求，但 unique input 只计一次。
+- [x] 为每份 source × task 构造前登记 operation/requirement 分母、预期支持与剩余 oracle；不能删去 unsupported 行。
+- [x] 先 baseline 再当前任务引擎：分别测 taskComplete、必需义务覆盖、checker、native consumption、时间、重复构建时间/缓存和修改量。
 - [ ] 单次有据共享修订允许正常 TDD 多步开发；保留第一批运行结果。修订后同分母重算，不用修订次数限制拒绝修复明确 bug。
 - [ ] 至少两个真实需求变化测试通过，以及三个 provider 有 taskComplete 的非空任务，才准备 R；不满足先修工程或标 method-not-ready。
 
@@ -336,6 +336,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 **N10 baseline 检查点：** 锁提交 `26b4566f575b886f8104d7c209b7f03a7cdbeed6` 推送后，source-only baseline 已独占写入并通过结构核验。固定 18 个必需 obligation 中 13 个存在未绑定 construction potential；因为基线无 TaskContract dispatch、requirement binding、package checker 与 task-selected native consumer，checked-bound/taskComplete/package-check/native 均为 0。首次/重复构建语义相同且无 cache。baseline 原件须先提交推送；current first-run 仍未运行，N10 继续 running。
 
 **N10 first-run 恢复检查点：** engine commit `76ce3e40ce0f819d444e4a0fae911cd0095a56e1` 推送后，9/9 task 及 repeat build 已运行并各自 write-once 保存。聚合阶段因实现误读不存在的 `completion.counts` 而失败，`first-run.json` 未产生；原 row/package 摘要与错误绑定在 `first-run-aggregation-failure-001.json`。修复只读取正确的 `completion.required`，从摘要绑定 package 恢复聚合字段，不覆盖 row、不重跑 task。总报告形成前 N10 状态和 method gate 仍未知。
+
+**N10 first-run 实际检查点：** 无重跑聚合修复提交 `4a1f492a8d620a79646188fb1edb47ac72fdada9` 推送后，从九个原 package 恢复并严格核验 `development/first-run.json`（SHA-256=`5590552d6de8fb1e9bc8cbdf8e3eb7304887cc0e7727655e780e1ba35531a63b`）。固定分母为 6 inputs/3 providers/47 operations/9 tasks/18 required obligations；4 tasks complete，8 required checked-exported、10 unresolved，9/9 packages pass，三个 provider 均有非空完整任务。预期匹配 7/9、需求变化 1/2；两项 Visier Authentication 行暴露 form minimal 与 constraint-negative 缺口，因此门为 `method-not-ready`。首轮先独立提交，随后只允许在同一锁与分母上另写 revision-001。
 
 ### N11：两阶段 prospective 预登记（P0，信息顺序修正）
 

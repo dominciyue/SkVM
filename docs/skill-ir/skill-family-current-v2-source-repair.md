@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active，N0–N3、N5、N8 completed / N10 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active，N0–N3、N5、N8 completed / N10 running，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -120,7 +120,9 @@ bun ./bin/skvm.js artifact task --binding=run-binding.json
 
 基线在固定 18 个必需 task obligation 中只报告 13 个 source construction potential；由于没有 requirement binding、task package checker 或 task-selected consumer，checked-bound=`0`、taskComplete=`0/9`、native=`0`。潜在构造不能计为任务成功；Visier 表单负例与其他未覆盖项只作为首轮待观察缺口，不在 current first-run 前修改实现。
 
-Current first-run 的九个 task 与九次预登记 repeat build 已在 engine commit `76ce3e40ce0f819d444e4a0fae911cd0095a56e1` 执行并逐行 exclusive 保存；总报告尚未形成。汇总器随后因把 artifact 合同的 `completion.required` 误写为 `completion.counts` 而抛错。`first-run-aggregation-failure-001.json` 绑定九个原始 row 和 package 摘要；修复新增字段路径单测，从原 package 派生缺失汇总字段，不重写 row、不重跑 task。该恢复完成前不能解释方法门。
+Current first-run 的九个 task 与九次预登记 repeat build 已在 engine commit `76ce3e40ce0f819d444e4a0fae911cd0095a56e1` 执行并逐行 exclusive 保存。汇总器曾因把 artifact 合同的 `completion.required` 误写为 `completion.counts` 而抛错；`first-run-aggregation-failure-001.json` 保留该现场。修复提交 `4a1f492a8d620a79646188fb1edb47ac72fdada9` 只从摘要绑定的原 package 恢复汇总字段，没有重写 row 或重跑 task。
+
+恢复后的 `development/first-run.json`（SHA-256=`5590552d6de8fb1e9bc8cbdf8e3eb7304887cc0e7727655e780e1ba35531a63b`，112,047 bytes）通过严格核验：6 inputs、3 providers、47 operations、9 tasks、18 required obligations；9/9 package checks 通过，8 项 required obligation 为 checked-exported，10 项 unresolved，4/9 tasks complete，三个 provider 均至少一个非空完整任务。两项预期结果不匹配，两个预登记需求变化关系只通过一个，因此门为 `method-not-ready`。不匹配均来自 Visier Authentication：空 form minimal 报 `form field count unsupported`，constraint-negative 没有构造出源约束。首轮原件先归档提交；随后只对该共享正确性/能力边界做根因分析和 TDD 修订，同分母另写 `revision-001.json`。
 
 ## 实施与验证
 

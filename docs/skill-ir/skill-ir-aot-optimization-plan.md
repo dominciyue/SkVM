@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-12
 
-**当前执行入口：第 9 节。** [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，当前 active：N0–N3、N5、N8 已完成，N10 running。N10 锁和 baseline 已推送；9 个 current task row/bundle 已在推送后的 engine commit 执行，但总报告因完成计数字段读取 bug 未生成。当前先提交故障现场与修复，再从原 package 汇总且不重跑 task；随后才判断 revision/method gate。历史维护独立限时。恢复见 [唯一执行状态](deadline-execution-status.md)，依据见 spec 第 14.28 节。D1–D9 等旧路线保持历史记录。
+**当前执行入口：第 9 节。** [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，当前 active：N0–N3、N5、N8 已完成，N10 running。N10 锁、baseline、first-run engine 与无重跑聚合修复均已推送；恢复后的首轮报告严格核验通过，但 4/9 taskComplete、两项 Visier 预期不符、需求变化只通过 1/2，故 `method-not-ready`。当前先提交不可变首轮报告，再诊断 form minimal/constraint-negative 共享缺口并在同一分母写 revision-001。历史维护独立限时。恢复见 [唯一执行状态](deadline-execution-status.md)，依据见 spec 第 14.28 节。D1–D9 等旧路线保持历史记录。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
