@@ -331,6 +331,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 验收：按第 3.1 E 条件报告可用程度，不靠“生成一个 case”通过。N10 完成后才进入 N9 冻结。
 
+**N10 锁定检查点：** `development/input-lock.json` 已在构造前固定 1Password、Visier、Zapier 各两份已暴露原始合同，共 47 个完整枚举操作、9 份 task 合同和 4 个 repository-distinct 映射来源。六项预期完整任务跨三个 provider；两项凭据阻塞及一项更广义 pytest fuzzing 未决任务保留在分母。两组同输入/同操作 requirement 变化已预登记。锁生成/独立核验聚焦测试 `2/2`、11 assertions，通过完整 typecheck；baseline/current 尚未运行，不能据此勾选 N10 或声称门已通过。
+
 ### N11：两阶段 prospective 预登记（P0，信息顺序修正）
 
 文件：prospective/protocol.json、selection-lock.json、discovery.json、predictions.json。

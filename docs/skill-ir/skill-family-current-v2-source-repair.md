@@ -58,9 +58,10 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n2
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n3
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n5 --python=D:\anaconda\python.exe
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n8
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-lock --locked-at=<ISO>
 ~~~
 
-当前 `status`/`resume` 均定位 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+当前 `status`/`resume` 均定位运行中的 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。`--step=n10-lock` 在锁已存在时只重核摘要，不覆盖。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
 
 ## N1 语料账本
 
@@ -107,6 +108,14 @@ bun ./bin/skvm.js artifact task --binding=run-binding.json
 
 `integration/engine-report.json` 在仓库外临时目录运行四个任务和 bundle replay；requirement、operation、output 均改变实际内容，文档 CLI 实测通过，旧 production v2 回归 10/10、37 assertions。通用三个实现文件不含已知来源名分支；本阶段 model/remote/paid/native call 均为 0。
 
+## N10 development 面板锁
+
+`skill-family-current-v2-n10.ts` 在运行构造前从 N1 exposure ledger 选择已暴露的 1Password、Visier、Zapier 各两份原始合同。选择只使用来源字节的静态 operation/security/reference 信息：每个 provider 至少有一个匿名操作，同时保留 1Password Partnership 与 Zapier Actions 的凭据阻塞对照；没有读取 task engine 输出。六份锁定副本共 47 个源操作，独立枚举器重建 key/locator/operationId/summary 全集。
+
+`development/input-lock.json` 绑定两份权威账本、六份原始来源及副本摘要、九份 task 合同、逐 task operation/requirement 分母、预期 taskComplete 和 residual oracle。任务覆盖 event4u、LambdaTest、Pactflow 与 fishzjp 四个 repository-distinct 映射；Visier Authentication 与 Zapier Embed 各有一组同输入同操作、不同真实职责要求的预登记比较。六项预期完整任务覆盖三个 provider；Bearer/OAuth 与更广义 pytest fuzzing 行预期不完整并保留在固定分母。
+
+锁的生成和独立核验不运行 constructor、baseline 或 native consumer。文件使用 exclusive create；task/source 字节变化、操作全集变化、权威账本漂移、task 分母漂移和静态正例与凭据/引用矛盾都会 fail closed。当前下一步是在锁提交推送后依次保存 source-only baseline、当前 engine first-run；发现共享正确性缺陷时另写 `revision-001.json`，不得覆盖首轮。
+
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。
@@ -120,6 +129,7 @@ bun test ./src/skill-ir/api-task-contract.test.ts ./src/skill-ir/api-task-plan.t
 bun test ./src/skill-ir/api-tester-source-closure.test.ts ./src/skill-ir/skill-family-current-v2-n3.test.ts
 bun test ./src/skill-ir/api-task-artifact.test.ts ./src/skill-ir/skill-family-current-v2-n5.test.ts
 bun test ./src/skill-ir/api-task-run.test.ts ./src/cli/api-task.test.ts ./src/skill-ir/skill-family-current-v2-n8.test.ts
+bun test ./src/skill-ir/skill-family-current-v2-n10.test.ts
 bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 ~~~
 

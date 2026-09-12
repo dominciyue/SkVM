@@ -6,6 +6,11 @@ import { writeN2GapMatrixFromRepository } from "../../src/skill-ir/skill-family-
 import { writeN3SourceClosureReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n3";
 import { writeN5ConsumerReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n5";
 import { writeN8EngineReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n8";
+import {
+  materializeN10DevelopmentPanel,
+  verifyN10DevelopmentPanel,
+  type N10DevelopmentLock,
+} from "../../src/skill-ir/skill-family-current-v2-n10";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -733,6 +738,58 @@ export async function runN8EngineStage(root: string) {
   };
 }
 
+export async function runN10LockStage(root: string, lockedAt = new Date().toISOString()) {
+  const state = await readStageState(root);
+  const current = selectNextRunnableTask(state.manifest, state.status);
+  if (current !== "N10" && state.status.tasks.N10.status !== "running") {
+    fail(`N10 lock cannot run while current task is ${current ?? "none"}`);
+  }
+  const developmentRelative = `${CURRENT_V2_RESULT_RELATIVE}/development`;
+  const developmentDirectory = join(root, developmentRelative);
+  const lockPath = join(developmentDirectory, "input-lock.json");
+  let lock: N10DevelopmentLock;
+  let lockSha256: string;
+  try {
+    const bytes = await readFile(lockPath);
+    lock = JSON.parse(bytes.toString("utf8")) as N10DevelopmentLock;
+    lockSha256 = createHash("sha256").update(bytes).digest("hex");
+  } catch {
+    const result = await materializeN10DevelopmentPanel({ repositoryRoot: root, developmentDirectory, lockedAt });
+    lock = result.lock;
+    lockSha256 = result.sha256;
+  }
+  const verification = await verifyN10DevelopmentPanel({ repositoryRoot: root, developmentDirectory });
+  if (verification.status !== "pass") fail(`N10 input lock verification failed: ${verification.errors.join("; ")}`);
+
+  const now = new Date().toISOString();
+  const status = structuredClone(state.status);
+  status.tasks.N10 = {
+    status: "running",
+    commit: null,
+    evidence: [
+      `${developmentRelative}/input-lock.json`,
+      ...lock.sources.map((row) => `${developmentRelative}/${row.lockedCopy.path}`),
+      ...lock.tasks.map((row) => `${developmentRelative}/${row.taskPath}`),
+    ],
+    issues: [],
+    startedAt: status.tasks.N10.startedAt ?? now,
+    completedAt: null,
+  };
+  status.currentStage = "N10";
+  status.updatedAt = now;
+  status.nextAction = "N10 locked: commit and push the fixed panel before running the source-only baseline or rich task engine";
+  validateStageState(state.manifest, status);
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N10" as const,
+    outcome: "lock-created-and-verified" as const,
+    file: { path: `${developmentRelative}/input-lock.json`, sha256: lockSha256 },
+    summary: lock.summary,
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -744,5 +801,8 @@ if (import.meta.main) {
     const python = process.argv.find((argument) => argument.startsWith("--python="))?.slice("--python=".length) ?? "python";
     console.log(JSON.stringify(await runN5ConsumerStage(process.cwd(), python), null, 2));
   } else if (step === "n8") console.log(JSON.stringify(await runN8EngineStage(process.cwd()), null, 2));
-  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8 [--python=<executable>]");
+  else if (step === "n10-lock") {
+    const lockedAt = process.argv.find((argument) => argument.startsWith("--locked-at="))?.slice("--locked-at=".length);
+    console.log(JSON.stringify(await runN10LockStage(process.cwd(), lockedAt), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock [--python=<executable>] [--locked-at=<ISO>]");
 }

@@ -1,0 +1,3975 @@
+{
+  "schemaVersion": "skill-family-current-v2-n10-input-lock/v1",
+  "identity": "skill-family-current-v2-source-repair-001",
+  "exposure": "development",
+  "lockedAt": "2026-09-12T11:42:00.000Z",
+  "supportProfile": "development-rich-task/v1",
+  "authority": {
+    "exposureLedger": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/corpus/exposure-ledger.json",
+      "sha256": "e8fea6b17a164ca4ef4c14a6a5d65a9bee03143961ef2877a3399b17b13f2490"
+    },
+    "dutyMatrix": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/corpus/duty-matrix.json",
+      "sha256": "41af597f5c86f0787bab81b19d5d57bf44cd175ee461bb36447b60a2320b6517"
+    },
+    "selectionPolicy": "Before construction, select the two already-exposed contracts for each of 1Password, Visier, and Zapier. This statically supplies three providers, preserves credential-blocked controls, and supplies at least one anonymous operation per provider without inspecting constructor output.",
+    "outputsObservedBeforeLock": false
+  },
+  "summary": {
+    "uniqueInputs": 6,
+    "providers": 3,
+    "operationDenominator": 47,
+    "taskContracts": 9,
+    "mappingRepositories": 4,
+    "expectedCompleteTasks": 6,
+    "expectedCompleteProviders": 3
+  },
+  "sources": [
+    {
+      "inputId": "onepassword-connect",
+      "provider": "1Password",
+      "openapiVersion": "3.0.2",
+      "apiVersion": "1.5.7",
+      "provenance": {
+        "sourceRepository": "konfig-sdks/openapi-examples",
+        "sourceCommit": "161ab49c45e45825ca3832945c59a3ba904321ba",
+        "sourcePath": "1-password/connect/openapi.yaml",
+        "mirrorUrl": "https://github.com/konfig-sdks/openapi-examples/blob/161ab49c45e45825ca3832945c59a3ba904321ba/1-password/connect/openapi.yaml",
+        "originalUpstreamUrl": null,
+        "upstreamIdentityStatus": "not-recorded-in-prior-ledger",
+        "isAggregatorMirror": true
+      },
+      "original": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-connect.yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d",
+        "bytes": 39524,
+        "format": "yaml"
+      },
+      "lockedCopy": {
+        "path": "task-contracts/source-onepassword-connect.yaml",
+        "sha256": "5b35c45795db9c60d4f92d1282195a170ed1d7b59e16bb5831fde83b7557117d",
+        "bytes": 39524
+      },
+      "enumeration": {
+        "complete": true,
+        "operationCount": 15,
+        "unresolved": [],
+        "operations": [
+          {
+            "key": "GET /activity",
+            "locator": "#/paths/~1activity/get",
+            "operationId": "Activity_getApiRequests",
+            "summary": "Retrieve a list of API Requests that have been made.",
+            "parameters": [
+              {
+                "locator": "#/paths/~1activity/get/parameters/0",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1activity/get/parameters/1",
+                "origin": "operation",
+                "name": "offset",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1activity/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ActivityGetApiRequestsResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ActivityGetApiRequestsResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1activity/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /health",
+            "locator": "#/paths/~1health/get",
+            "operationId": "Health_serverStateCheck",
+            "summary": "Get state of the server and its dependencies.",
+            "parameters": [],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1health/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/HealthServerStateCheckResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/HealthServerStateCheckResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /heartbeat",
+            "locator": "#/paths/~1heartbeat/get",
+            "operationId": "Health_checkLiveness",
+            "summary": "Ping the server for liveness",
+            "parameters": [],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1heartbeat/get/responses/200/content/text~1plain/schema/$ref",
+                "ref": "#/components/schemas/HealthCheckLivenessResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/HealthCheckLivenessResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /metrics",
+            "locator": "#/paths/~1metrics/get",
+            "operationId": "Metrics_queryServerMetrics",
+            "summary": "Query server for exposed Prometheus metrics",
+            "parameters": [],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1metrics/get/responses/200/content/text~1plain/schema/$ref",
+                "ref": "#/components/schemas/MetricsQueryServerMetricsResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/MetricsQueryServerMetricsResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /vaults",
+            "locator": "#/paths/~1vaults/get",
+            "operationId": "Vaults_listAll",
+            "summary": "Get all Vaults",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults/get/parameters/0",
+                "origin": "operation",
+                "name": "filter",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/VaultsListAllResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/VaultsListAllResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /vaults/{vaultUuid}",
+            "locator": "#/paths/~1vaults~1{vaultUuid}/get",
+            "operationId": "Vaults_getDetails",
+            "summary": "Get Vault details and metadata",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}/get/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "403",
+                "404"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Vault",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Vault",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}/get/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}/get/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /vaults/{vaultUuid}/items",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items/get",
+            "operationId": "Items_getAll",
+            "summary": "Get all items for inside a Vault",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/get/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/get/parameters/1",
+                "origin": "operation",
+                "name": "filter",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "404"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ItemsGetAllResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ItemsGetAllResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/get/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /vaults/{vaultUuid}/items",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items/post",
+            "operationId": "Items_createNewItem",
+            "summary": "Create a new Item",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/post/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "400",
+                "401",
+                "403",
+                "404"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/post/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/FullItem",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/FullItem",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/post/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/FullItem",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/FullItem",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/post/responses/400/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/post/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/post/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items/post/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "DELETE /vaults/{vaultUuid}/items/{itemUuid}",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/delete",
+            "operationId": "Items_deleteItemById",
+            "summary": "Delete an Item",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/delete/parameters/1",
+                "origin": "operation",
+                "name": "itemUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/delete/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "204",
+                "401",
+                "403",
+                "404"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/delete/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/delete/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/delete/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /vaults/{vaultUuid}/items/{itemUuid}",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/get",
+            "operationId": "Items_getDetailsById",
+            "summary": "Get the details of an Item",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/get/parameters/1",
+                "origin": "operation",
+                "name": "itemUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/get/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "403",
+                "404"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/FullItem",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/FullItem",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/get/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/get/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "PATCH /vaults/{vaultUuid}/items/{itemUuid}",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/patch",
+            "operationId": "Items_updateSubsetAttributes",
+            "summary": "Update a subset of Item attributes",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/patch/parameters/1",
+                "origin": "operation",
+                "name": "itemUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/patch/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "403",
+                "404"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/patch/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Patch",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Patch",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/patch/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/FullItem",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/FullItem",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/patch/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/patch/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/patch/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "PUT /vaults/{vaultUuid}/items/{itemUuid}",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put",
+            "operationId": "Items_updateItemDetails",
+            "summary": "Update an Item",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put/parameters/1",
+                "origin": "operation",
+                "name": "itemUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "400",
+                "401",
+                "403",
+                "404"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/FullItem",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/FullItem",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/FullItem",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/FullItem",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put/responses/400/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}/put/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /vaults/{vaultUuid}/items/{itemUuid}/files",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files/get",
+            "operationId": "Files_getAllFilesInsideItem",
+            "summary": "Get all the files inside an Item",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files/get/parameters/1",
+                "origin": "operation",
+                "name": "itemUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files/get/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files/get/parameters/2",
+                "origin": "operation",
+                "name": "inline_files",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "404",
+                "413"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/FilesGetAllFilesInsideItemResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/FilesGetAllFilesInsideItemResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files/get/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files/get/responses/413/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /vaults/{vaultUuid}/items/{itemUuid}/files/{fileUuid}",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get",
+            "operationId": "Files_getFileDetails",
+            "summary": "Get the details of a File",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/parameters/2",
+                "origin": "operation",
+                "name": "fileUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/parameters/1",
+                "origin": "operation",
+                "name": "itemUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/parameters/0",
+                "origin": "operation",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/parameters/3",
+                "origin": "operation",
+                "name": "inline_files",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "403",
+                "404",
+                "413"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/File",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/File",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}/get/responses/413/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /vaults/{vaultUuid}/items/{itemUuid}/files/{fileUuid}/content",
+            "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}~1content/get",
+            "operationId": "Files_getContent",
+            "summary": "Get the content of a File",
+            "parameters": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}~1content/parameters/2",
+                "origin": "path",
+                "name": "fileUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}~1content/parameters/1",
+                "origin": "path",
+                "name": "itemUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}~1content/parameters/0",
+                "origin": "path",
+                "name": "vaultUuid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "404"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "ConnectToken"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}~1content/get/responses/200/content/application~1octet-stream/schema/$ref",
+                "ref": "#/components/schemas/FilesGetContentResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/FilesGetContentResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}~1content/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1vaults~1{vaultUuid}~1items~1{itemUuid}~1files~1{fileUuid}~1content/get/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "inputId": "onepassword-partnership",
+      "provider": "1Password",
+      "openapiVersion": "3.0.0",
+      "apiVersion": "2.0.0",
+      "provenance": {
+        "sourceRepository": "konfig-sdks/openapi-examples",
+        "sourceCommit": "161ab49c45e45825ca3832945c59a3ba904321ba",
+        "sourcePath": "1-password/partnership/openapi.yaml",
+        "mirrorUrl": "https://github.com/konfig-sdks/openapi-examples/blob/161ab49c45e45825ca3832945c59a3ba904321ba/1-password/partnership/openapi.yaml",
+        "originalUpstreamUrl": null,
+        "upstreamIdentityStatus": "not-recorded-in-prior-ledger",
+        "isAggregatorMirror": true
+      },
+      "original": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/onepassword-partnership.yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d",
+        "bytes": 20013,
+        "format": "yaml"
+      },
+      "lockedCopy": {
+        "path": "task-contracts/source-onepassword-partnership.yaml",
+        "sha256": "aa5c0aa69ca162033555de60d21e7abec92cc3ac59bbca3eaee0d002669a1e2d",
+        "bytes": 20013
+      },
+      "enumeration": {
+        "complete": true,
+        "operationCount": 4,
+        "unresolved": [],
+        "operations": [
+          {
+            "key": "POST /api/v1/partners/accounts",
+            "locator": "#/paths/~1api~1v1~1partners~1accounts/post",
+            "operationId": "Account_beginProvisioningProcess",
+            "summary": null,
+            "parameters": [],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "201",
+                "400",
+                "403",
+                "404",
+                "500"
+              ]
+            },
+            "security": {
+              "source": "global",
+              "schemeNames": [
+                "bearerAuth"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts/post/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/CreatePartnerAccountRequest",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/CreatePartnerAccountRequest",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts/post/responses/201/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Account",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Account",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts/post/responses/400/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts/post/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts/post/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts/post/responses/500/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "DELETE /api/v1/partners/accounts/{customer_account_uid}",
+            "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/delete",
+            "operationId": "Account_removeFromPartnership",
+            "summary": null,
+            "parameters": [
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/delete/parameters/0",
+                "origin": "operation",
+                "name": "customer_account_uid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "204",
+                "403",
+                "404",
+                "500"
+              ]
+            },
+            "security": {
+              "source": "global",
+              "schemeNames": [
+                "bearerAuth"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/delete/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/delete/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/delete/responses/500/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /api/v1/partners/accounts/{customer_account_uid}",
+            "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/get",
+            "operationId": "Account_getByUid",
+            "summary": null,
+            "parameters": [
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/get/parameters/0",
+                "origin": "operation",
+                "name": "customer_account_uid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "403",
+                "404",
+                "410",
+                "500"
+              ]
+            },
+            "security": {
+              "source": "global",
+              "schemeNames": [
+                "bearerAuth"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Account",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Account",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/get/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/get/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/get/responses/410/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/get/responses/500/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "PATCH /api/v1/partners/accounts/{customer_account_uid}",
+            "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/patch",
+            "operationId": "Account_updateEndsAtByUid",
+            "summary": null,
+            "parameters": [
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/patch/parameters/0",
+                "origin": "operation",
+                "name": "customer_account_uid",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "400",
+                "403",
+                "404",
+                "500"
+              ]
+            },
+            "security": {
+              "source": "global",
+              "schemeNames": [
+                "bearerAuth"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/patch/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/UpdatePartnerAccountRequest",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/UpdatePartnerAccountRequest",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/patch/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Account",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Account",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/patch/responses/400/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/patch/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/patch/responses/404/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1partners~1accounts~1{customer_account_uid}/patch/responses/500/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Error",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Error",
+                "constructionObligation": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "inputId": "visier-authentication",
+      "provider": "Visier",
+      "openapiVersion": "3.0.3",
+      "apiVersion": "22222222.99201.1256",
+      "provenance": {
+        "sourceRepository": "konfig-sdks/openapi-examples",
+        "sourceCommit": "161ab49c45e45825ca3832945c59a3ba904321ba",
+        "sourcePath": "visier/authentication/openapi.yaml",
+        "mirrorUrl": "https://github.com/konfig-sdks/openapi-examples/blob/161ab49c45e45825ca3832945c59a3ba904321ba/visier/authentication/openapi.yaml",
+        "originalUpstreamUrl": null,
+        "upstreamIdentityStatus": "not-recorded-in-prior-ledger",
+        "isAggregatorMirror": true
+      },
+      "original": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/visier-authentication.yaml",
+        "sha256": "115510705751fb468010bbcb501bcd2432bdd2179ad157de2a96ea606a327e8b",
+        "bytes": 4952,
+        "format": "yaml"
+      },
+      "lockedCopy": {
+        "path": "task-contracts/source-visier-authentication.yaml",
+        "sha256": "115510705751fb468010bbcb501bcd2432bdd2179ad157de2a96ea606a327e8b",
+        "bytes": 4952
+      },
+      "enumeration": {
+        "complete": true,
+        "operationCount": 2,
+        "unresolved": [],
+        "operations": [
+          {
+            "key": "POST /v1/admin/visierSecureTicket",
+            "locator": "#/paths/~1v1~1admin~1visierSecureTicket/post",
+            "operationId": "Authentication_TicketAuthentication",
+            "summary": "Generate a legacy Visier secure ticket",
+            "parameters": [],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/x-www-form-urlencoded"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1~1admin~1visierSecureTicket/post/requestBody/content/application~1x-www-form-urlencoded/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationRequest",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationRequest",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1~1admin~1visierSecureTicket/post/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationTicketAuthenticationResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationTicketAuthenticationResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1~1admin~1visierSecureTicket/post/responses/200/content/text~1plain/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationTicketAuthentication200Response",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationTicketAuthentication200Response",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1~1admin~1visierSecureTicket/post/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /v1/admin/visierSecureToken",
+            "locator": "#/paths/~1v1~1admin~1visierSecureToken/post",
+            "operationId": "Authentication_ASIDTokenAuthentication",
+            "summary": "Generate a Visier authentication token",
+            "parameters": [],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/x-www-form-urlencoded"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1~1admin~1visierSecureToken/post/requestBody/content/application~1x-www-form-urlencoded/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationRequest",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationRequest",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1~1admin~1visierSecureToken/post/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationAsidTokenAuthenticationResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationAsidTokenAuthenticationResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1~1admin~1visierSecureToken/post/responses/200/content/text~1plain/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationAsidTokenAuthentication200Response",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationAsidTokenAuthentication200Response",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1~1admin~1visierSecureToken/post/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "inputId": "visier-analytics",
+      "provider": "Visier",
+      "openapiVersion": "3.0.3",
+      "apiVersion": "22222222.99201.1256",
+      "provenance": {
+        "sourceRepository": "konfig-sdks/openapi-examples",
+        "sourceCommit": "161ab49c45e45825ca3832945c59a3ba904321ba",
+        "sourcePath": "visier/consolidated-analytics/openapi.yaml",
+        "mirrorUrl": "https://github.com/konfig-sdks/openapi-examples/blob/161ab49c45e45825ca3832945c59a3ba904321ba/visier/consolidated-analytics/openapi.yaml",
+        "originalUpstreamUrl": null,
+        "upstreamIdentityStatus": "not-recorded-in-prior-ledger",
+        "isAggregatorMirror": true
+      },
+      "original": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/visier-analytics.yaml",
+        "sha256": "9720f1eb51ecbe80186f23c0176dd555f8416411405fc447554998bb5f89852c",
+        "bytes": 19918,
+        "format": "yaml"
+      },
+      "lockedCopy": {
+        "path": "task-contracts/source-visier-analytics.yaml",
+        "sha256": "9720f1eb51ecbe80186f23c0176dd555f8416411405fc447554998bb5f89852c",
+        "bytes": 19918
+      },
+      "enumeration": {
+        "complete": true,
+        "operationCount": 10,
+        "unresolved": [],
+        "operations": [
+          {
+            "key": "GET /v1alpha/admin/consolidated-analytics/tenants",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/get",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_ListTenants",
+            "summary": "Retrieve a list of all consolidated analytics tenants",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/get/parameters/0",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/get/parameters/1",
+                "origin": "operation",
+                "name": "start",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPITenantListResponseDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPITenantListResponseDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/get/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /v1alpha/admin/consolidated-analytics/tenants",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/post",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_CreateTenant",
+            "summary": "Create a consolidated analytics tenant",
+            "parameters": [],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/post/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPITenantCreateRequestDTO",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPITenantCreateRequestDTO",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/post/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPITenantCreateRequestDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPITenantCreateRequestDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants/post/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "DELETE /v1alpha/admin/consolidated-analytics/tenants/:tenantId/excluded-sources",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/delete",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_RemoveExcludedSources",
+            "summary": "Remove excluded sources from a consolidated analytics tenants",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/delete/parameters/0",
+                "origin": "operation",
+                "name": "tenantId",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/delete/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExcludedSourcesBody",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExcludedSourcesBody",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/delete/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPIExcludedSourcesListDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPIExcludedSourcesListDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/delete/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /v1alpha/admin/consolidated-analytics/tenants/:tenantId/excluded-sources",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/get",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_ListExcludedSources",
+            "summary": "Retrieve a consolidated analytics tenant's excluded sources",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/get/parameters/0",
+                "origin": "operation",
+                "name": "tenantId",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPIExcludedSourcesListDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPIExcludedSourcesListDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/get/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "PATCH /v1alpha/admin/consolidated-analytics/tenants/:tenantId/excluded-sources",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/patch",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_AddExcludedSources",
+            "summary": "Add excluded sources to a consolidated analytics tenant",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/patch/parameters/0",
+                "origin": "operation",
+                "name": "tenantId",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/patch/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExcludedSourcesBody",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExcludedSourcesBody",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/patch/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPIExcludedSourcesListDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPIExcludedSourcesListDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/patch/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "PUT /v1alpha/admin/consolidated-analytics/tenants/:tenantId/excluded-sources",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/put",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_SetExcludedSources",
+            "summary": "Set a consolidated analytics tenant's excluded sources",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/put/parameters/0",
+                "origin": "operation",
+                "name": "tenantId",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/put/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExcludedSourcesBody",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExcludedSourcesBody",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/put/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPIExcludedSourcesListDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPIExcludedSourcesListDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1excluded-sources/put/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "DELETE /v1alpha/admin/consolidated-analytics/tenants/:tenantId/source-tenants",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/delete",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_RemoveSourceTenants",
+            "summary": "Remove source tenants from a consolidated analytics tenants",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/delete/parameters/1",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/delete/parameters/0",
+                "origin": "operation",
+                "name": "tenantId",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/delete/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/TenantCodeBody",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/TenantCodeBody",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/delete/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPISourceTenantListDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPISourceTenantListDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/delete/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /v1alpha/admin/consolidated-analytics/tenants/:tenantId/source-tenants",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/get",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_ListSourceTenants",
+            "summary": "Retrieve a consolidated analytics tenant's source tenants",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/get/parameters/1",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/get/parameters/2",
+                "origin": "operation",
+                "name": "start",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/get/parameters/0",
+                "origin": "operation",
+                "name": "tenantId",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPISourceTenantListDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPISourceTenantListDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/get/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "PATCH /v1alpha/admin/consolidated-analytics/tenants/:tenantId/source-tenants",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/patch",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_AddSourceTenants",
+            "summary": "Add source tenants to a consolidated analytics tenant",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/patch/parameters/1",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/patch/parameters/0",
+                "origin": "operation",
+                "name": "tenantId",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/patch/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/TenantCodeBody",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/TenantCodeBody",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/patch/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPISourceTenantListDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPISourceTenantListDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/patch/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "PUT /v1alpha/admin/consolidated-analytics/tenants/:tenantId/source-tenants",
+            "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/put",
+            "operationId": "ConsolidatedAnalyticsV1Alpha_SetSourceTenants",
+            "summary": "Set a consolidated analytics tenant's source tenants",
+            "parameters": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/put/parameters/1",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/put/parameters/0",
+                "origin": "operation",
+                "name": "tenantId",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/put/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/TenantCodeBody",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/TenantCodeBody",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/put/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ConsolidatedAnalyticsAPISourceTenantListDTO",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ConsolidatedAnalyticsAPISourceTenantListDTO",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1v1alpha~1admin~1consolidated-analytics~1tenants~1:tenantId~1source-tenants/put/responses/default/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/Status",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/Status",
+                "constructionObligation": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "inputId": "zapier-actions",
+      "provider": "Zapier",
+      "openapiVersion": "3.0.2",
+      "apiVersion": "1.0.0",
+      "provenance": {
+        "sourceRepository": "konfig-sdks/openapi-examples",
+        "sourceCommit": "161ab49c45e45825ca3832945c59a3ba904321ba",
+        "sourcePath": "zapier/ai-actions/openapi.yaml",
+        "mirrorUrl": "https://github.com/konfig-sdks/openapi-examples/blob/161ab49c45e45825ca3832945c59a3ba904321ba/zapier/ai-actions/openapi.yaml",
+        "originalUpstreamUrl": null,
+        "upstreamIdentityStatus": "not-recorded-in-prior-ledger",
+        "isAggregatorMirror": true
+      },
+      "original": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/zapier-actions.yaml",
+        "sha256": "c760d964ed1c7253f6aef628cd318f16ba7f591446044e53831d4d54e15ffff5",
+        "bytes": 8946,
+        "format": "yaml"
+      },
+      "lockedCopy": {
+        "path": "task-contracts/source-zapier-actions.yaml",
+        "sha256": "c760d964ed1c7253f6aef628cd318f16ba7f591446044e53831d4d54e15ffff5",
+        "bytes": 8946
+      },
+      "enumeration": {
+        "complete": true,
+        "operationCount": 5,
+        "unresolved": [],
+        "operations": [
+          {
+            "key": "GET /api/v1/check",
+            "locator": "#/paths/~1api~1v1~1check/get",
+            "operationId": "Check_authTestGet",
+            "summary": "Check",
+            "parameters": [],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "AccessPointApiKeyHeader",
+                "AccessPointApiKeyQuery",
+                "AccessPointOAuth",
+                "SessionAuth"
+              ]
+            },
+            "references": []
+          },
+          {
+            "key": "GET /api/v1/configuration-link",
+            "locator": "#/paths/~1api~1v1~1configuration-link/get",
+            "operationId": "Configuration_getConfigurationLink",
+            "summary": "Get Configuration Link",
+            "parameters": [],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "AccessPointApiKeyHeader",
+                "AccessPointApiKeyQuery",
+                "AccessPointOAuth",
+                "SessionAuth"
+              ]
+            },
+            "references": []
+          },
+          {
+            "key": "GET /api/v1/execution-log/{execution_log_id}",
+            "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get",
+            "operationId": "Log_getExecutionLog",
+            "summary": "Get Execution Log Endpoint",
+            "parameters": [
+              {
+                "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/parameters/0",
+                "origin": "operation",
+                "name": "execution_log_id",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "400"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "AccessPointApiKeyHeader",
+                "AccessPointApiKeyQuery",
+                "AccessPointOAuth",
+                "SessionAuth"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExecuteResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExecuteResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1execution-log~1{execution_log_id}/get/responses/400/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /api/v1/exposed",
+            "locator": "#/paths/~1api~1v1~1exposed/get",
+            "operationId": "Action_listExposedActions",
+            "summary": "List Exposed Actions",
+            "parameters": [],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "AccessPointApiKeyHeader",
+                "AccessPointApiKeyQuery",
+                "AccessPointOAuth",
+                "SessionAuth"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1api~1v1~1exposed/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExposedActionResponseSchema",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExposedActionResponseSchema",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /api/v1/exposed/{exposed_app_action_id}/execute",
+            "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post",
+            "operationId": "Action_executeAppAction",
+            "summary": "Execute App Action Endpoint",
+            "parameters": [
+              {
+                "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/parameters/0",
+                "origin": "operation",
+                "name": "exposed_app_action_id",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "400"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "AccessPointApiKeyHeader",
+                "AccessPointApiKeyQuery",
+                "AccessPointOAuth",
+                "SessionAuth"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/requestBody/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExecuteRequest",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExecuteRequest",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExecuteResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExecuteResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1api~1v1~1exposed~1{exposed_app_action_id}~1execute/post/responses/400/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ErrorResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ErrorResponse",
+                "constructionObligation": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "inputId": "zapier-embed",
+      "provider": "Zapier",
+      "openapiVersion": "3.0.3",
+      "apiVersion": "1.0.0",
+      "provenance": {
+        "sourceRepository": "konfig-sdks/openapi-examples",
+        "sourceCommit": "161ab49c45e45825ca3832945c59a3ba904321ba",
+        "sourcePath": "zapier/embed/openapi.yaml",
+        "mirrorUrl": "https://github.com/konfig-sdks/openapi-examples/blob/161ab49c45e45825ca3832945c59a3ba904321ba/zapier/embed/openapi.yaml",
+        "originalUpstreamUrl": null,
+        "upstreamIdentityStatus": "not-recorded-in-prior-ledger",
+        "isAggregatorMirror": true
+      },
+      "original": {
+        "path": "results/skill-ir/skill-family-deepening-20260911/api-inputs/sources/zapier-embed.yaml",
+        "sha256": "d9843d7faf20929e3fb5fdfdab8de6111a7a3d41f39e01c4197bb3b2a4c3e603",
+        "bytes": 92610,
+        "format": "yaml"
+      },
+      "lockedCopy": {
+        "path": "task-contracts/source-zapier-embed.yaml",
+        "sha256": "d9843d7faf20929e3fb5fdfdab8de6111a7a3d41f39e01c4197bb3b2a4c3e603",
+        "bytes": 92610
+      },
+      "enumeration": {
+        "complete": true,
+        "operationCount": 11,
+        "unresolved": [],
+        "operations": [
+          {
+            "key": "GET /actions",
+            "locator": "#/paths/~1actions/get",
+            "operationId": "Actions_listAvailableActions",
+            "summary": "Get Actions",
+            "parameters": [
+              {
+                "locator": "#/paths/~1actions/get/parameters/1",
+                "origin": "operation",
+                "name": "action_type",
+                "location": "query",
+                "required": true,
+                "reference": "#/components/parameters/action_type",
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1actions/get/parameters/0",
+                "origin": "operation",
+                "name": "app",
+                "location": "query",
+                "required": true,
+                "reference": "#/components/parameters/app",
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "404",
+                "406",
+                "415",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1actions/get/parameters/0/$ref",
+                "ref": "#/components/parameters/app",
+                "role": "operation-parameter",
+                "resolution": "resolved",
+                "targetLocator": "#/components/parameters/app",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1actions/get/parameters/1/$ref",
+                "ref": "#/components/parameters/action_type",
+                "role": "operation-parameter",
+                "resolution": "resolved",
+                "targetLocator": "#/components/parameters/action_type",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1actions/get/responses/200/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ActionsListAvailableActionsResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ActionsListAvailableActionsResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions/get/responses/404/$ref",
+                "ref": "#/components/responses/FourOhFourError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhFourError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions/get/responses/406/$ref",
+                "ref": "#/components/responses/FourOhSixError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhSixError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions/get/responses/415/$ref",
+                "ref": "#/components/responses/FourFifteenError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourFifteenError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions/get/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /actions/{action}/inputs",
+            "locator": "#/paths/~1actions~1{action}~1inputs/post",
+            "operationId": "Actions_getInputFields",
+            "summary": "Get Input Fields",
+            "parameters": [
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs/parameters/0",
+                "origin": "path",
+                "name": "action",
+                "location": "path",
+                "required": true,
+                "reference": "#/components/parameters/action",
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "404",
+                "406",
+                "415",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs/parameters/0/$ref",
+                "ref": "#/components/parameters/action",
+                "role": "path-parameter",
+                "resolution": "resolved",
+                "targetLocator": "#/components/parameters/action",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs/post/requestBody/$ref",
+                "ref": "#/components/requestBodies/Inputs",
+                "role": "request",
+                "resolution": "sibling-semantics",
+                "targetLocator": "#/components/requestBodies/Inputs",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs/post/responses/200/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ActionsGetInputFieldsResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ActionsGetInputFieldsResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs/post/responses/404/$ref",
+                "ref": "#/components/responses/FourOhFourError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhFourError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs/post/responses/406/$ref",
+                "ref": "#/components/responses/FourOhSixError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhSixError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs/post/responses/415/$ref",
+                "ref": "#/components/responses/FourFifteenError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourFifteenError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs/post/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /actions/{action}/inputs/{input}/choices",
+            "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/post",
+            "operationId": "Actions_getChoices",
+            "summary": "Get Choices",
+            "parameters": [
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/parameters/0",
+                "origin": "path",
+                "name": "action",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/parameters/1",
+                "origin": "path",
+                "name": "input",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/post/parameters/0",
+                "origin": "operation",
+                "name": "page",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": [
+                "application/vnd.api+json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "404",
+                "406",
+                "415",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/post/requestBody/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ActionsGetChoicesRequest",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ActionsGetChoicesRequest",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/post/responses/200/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ActionsGetChoicesResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ActionsGetChoicesResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/post/responses/404/$ref",
+                "ref": "#/components/responses/FourOhFourError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhFourError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/post/responses/406/$ref",
+                "ref": "#/components/responses/FourOhSixError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhSixError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/post/responses/415/$ref",
+                "ref": "#/components/responses/FourFifteenError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourFifteenError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1inputs~1{input}~1choices/post/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /actions/{action}/outputs",
+            "locator": "#/paths/~1actions~1{action}~1outputs/post",
+            "operationId": "Actions_getOutputFields",
+            "summary": "Get Output Fields",
+            "parameters": [
+              {
+                "locator": "#/paths/~1actions~1{action}~1outputs/parameters/0",
+                "origin": "path",
+                "name": "action",
+                "location": "path",
+                "required": true,
+                "reference": "#/components/parameters/action",
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "404",
+                "406",
+                "415",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1actions~1{action}~1outputs/parameters/0/$ref",
+                "ref": "#/components/parameters/action",
+                "role": "path-parameter",
+                "resolution": "resolved",
+                "targetLocator": "#/components/parameters/action",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1outputs/post/requestBody/$ref",
+                "ref": "#/components/requestBodies/Outputs",
+                "role": "request",
+                "resolution": "sibling-semantics",
+                "targetLocator": "#/components/requestBodies/Outputs",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1outputs/post/responses/200/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ActionsGetOutputFieldsResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ActionsGetOutputFieldsResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1outputs/post/responses/404/$ref",
+                "ref": "#/components/responses/FourOhFourError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhFourError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1outputs/post/responses/406/$ref",
+                "ref": "#/components/responses/FourOhSixError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhSixError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1outputs/post/responses/415/$ref",
+                "ref": "#/components/responses/FourFifteenError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourFifteenError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1outputs/post/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /actions/{action}/test",
+            "locator": "#/paths/~1actions~1{action}~1test/post",
+            "operationId": "Actions_testActionExecution",
+            "summary": "Test an action (step)",
+            "parameters": [
+              {
+                "locator": "#/paths/~1actions~1{action}~1test/parameters/0",
+                "origin": "path",
+                "name": "action",
+                "location": "path",
+                "required": true,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": [
+                "application/vnd.api+json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "404",
+                "406"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1actions~1{action}~1test/post/requestBody/$ref",
+                "ref": "#/components/requestBodies/TestAction",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/requestBodies/TestAction",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1test/post/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ActionsTestActionExecutionResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ActionsTestActionExecutionResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1test/post/responses/200/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ActionsTestActionExecution200Response",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ActionsTestActionExecution200Response",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1test/post/responses/404/$ref",
+                "ref": "#/components/responses/FourOhFourError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhFourError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1actions~1{action}~1test/post/responses/406/$ref",
+                "ref": "#/components/responses/FourOhSixError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhSixError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /apps",
+            "locator": "#/paths/~1apps/get",
+            "operationId": "Apps_listPopular",
+            "summary": "Get Apps",
+            "parameters": [
+              {
+                "locator": "#/paths/~1apps/get/parameters/2",
+                "origin": "operation",
+                "name": "category",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1apps/get/parameters/4",
+                "origin": "operation",
+                "name": "ids",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1apps/get/parameters/0",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1apps/get/parameters/1",
+                "origin": "operation",
+                "name": "offset",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1apps/get/parameters/3",
+                "origin": "operation",
+                "name": "query",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "operation",
+              "schemeNames": [
+                "OAuth2"
+              ]
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1apps/get/responses/200/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/AppsListPopularResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AppsListPopularResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1apps/get/responses/401/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/AppsListPopular401Response",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AppsListPopular401Response",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1apps/get/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /authentications",
+            "locator": "#/paths/~1authentications/get",
+            "operationId": "Authentications_getAvailable",
+            "summary": "Get Authentications",
+            "parameters": [
+              {
+                "locator": "#/paths/~1authentications/get/parameters/0",
+                "origin": "operation",
+                "name": "app",
+                "location": "query",
+                "required": true,
+                "reference": "#/components/parameters/app",
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1authentications/get/parameters/1",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": false,
+                "reference": "#/components/parameters/limit",
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1authentications/get/parameters/2",
+                "origin": "operation",
+                "name": "offset",
+                "location": "query",
+                "required": false,
+                "reference": "#/components/parameters/offset",
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "404",
+                "406",
+                "415",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1authentications/get/parameters/0/$ref",
+                "ref": "#/components/parameters/app",
+                "role": "operation-parameter",
+                "resolution": "resolved",
+                "targetLocator": "#/components/parameters/app",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1authentications/get/parameters/1/$ref",
+                "ref": "#/components/parameters/limit",
+                "role": "operation-parameter",
+                "resolution": "resolved",
+                "targetLocator": "#/components/parameters/limit",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1authentications/get/parameters/2/$ref",
+                "ref": "#/components/parameters/offset",
+                "role": "operation-parameter",
+                "resolution": "resolved",
+                "targetLocator": "#/components/parameters/offset",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1authentications/get/responses/200/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationsGetAvailableResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationsGetAvailableResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1authentications/get/responses/404/$ref",
+                "ref": "#/components/responses/FourOhFourError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhFourError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1authentications/get/responses/406/$ref",
+                "ref": "#/components/responses/FourOhSixError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhSixError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1authentications/get/responses/415/$ref",
+                "ref": "#/components/responses/FourFifteenError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourFifteenError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1authentications/get/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /authentications",
+            "locator": "#/paths/~1authentications/post",
+            "operationId": "Authentications_createNewAuthentication",
+            "summary": "Create Authentication",
+            "parameters": [],
+            "request": {
+              "present": true,
+              "required": true,
+              "mediaTypes": [
+                "application/vnd.api+json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "201",
+                "406",
+                "415",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1authentications/post/requestBody/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationsCreateNewAuthenticationRequest",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationsCreateNewAuthenticationRequest",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1authentications/post/responses/201/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/AuthenticationsCreateNewAuthenticationResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/AuthenticationsCreateNewAuthenticationResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1authentications/post/responses/406/$ref",
+                "ref": "#/components/responses/FourOhSixError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourOhSixError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1authentications/post/responses/415/$ref",
+                "ref": "#/components/responses/FourFifteenError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/FourFifteenError",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1authentications/post/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /zap-runs",
+            "locator": "#/paths/~1zap-runs/get",
+            "operationId": "Experimental_getZapRuns",
+            "summary": "Get Zap Runs",
+            "parameters": [
+              {
+                "locator": "#/paths/~1zap-runs/get/parameters/0",
+                "origin": "operation",
+                "name": "from_date",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zap-runs/get/parameters/3",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zap-runs/get/parameters/4",
+                "origin": "operation",
+                "name": "offset",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zap-runs/get/parameters/5",
+                "origin": "operation",
+                "name": "search",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zap-runs/get/parameters/6",
+                "origin": "operation",
+                "name": "statuses",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zap-runs/get/parameters/1",
+                "origin": "operation",
+                "name": "to_date",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zap-runs/get/parameters/2",
+                "origin": "operation",
+                "name": "zap_id",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "403"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1zap-runs/get/responses/200/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExperimentalGetZapRunsResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExperimentalGetZapRunsResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1zap-runs/get/responses/401/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExperimentalGetZapRuns401Response",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExperimentalGetZapRuns401Response",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1zap-runs/get/responses/403/content/application~1json/schema/$ref",
+                "ref": "#/components/schemas/ExperimentalGetZapRuns403Response",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ExperimentalGetZapRuns403Response",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "GET /zaps",
+            "locator": "#/paths/~1zaps/get",
+            "operationId": "Zaps_getFilteredZaps",
+            "summary": "Get Zaps",
+            "parameters": [
+              {
+                "locator": "#/paths/~1zaps/get/parameters/3",
+                "origin": "operation",
+                "name": "expand",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zaps/get/parameters/2",
+                "origin": "operation",
+                "name": "inputs",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zaps/get/parameters/0",
+                "origin": "operation",
+                "name": "limit",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              },
+              {
+                "locator": "#/paths/~1zaps/get/parameters/1",
+                "origin": "operation",
+                "name": "offset",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": false,
+              "required": null,
+              "mediaTypes": []
+            },
+            "responses": {
+              "statuses": [
+                "200",
+                "401",
+                "403",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1zaps/get/responses/200/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ZapsGetFilteredZapsResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ZapsGetFilteredZapsResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1zaps/get/responses/401/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ZapsGetFilteredZaps401Response",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ZapsGetFilteredZaps401Response",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1zaps/get/responses/403/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ZapsGetFilteredZaps403Response",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ZapsGetFilteredZaps403Response",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1zaps/get/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          },
+          {
+            "key": "POST /zaps",
+            "locator": "#/paths/~1zaps/post",
+            "operationId": "Zaps_createZap",
+            "summary": "Create a Zap",
+            "parameters": [
+              {
+                "locator": "#/paths/~1zaps/post/parameters/0",
+                "origin": "operation",
+                "name": "expand",
+                "location": "query",
+                "required": null,
+                "reference": null,
+                "overridesLocator": null
+              }
+            ],
+            "request": {
+              "present": true,
+              "required": null,
+              "mediaTypes": [
+                "application/vnd.api+json"
+              ]
+            },
+            "responses": {
+              "statuses": [
+                "201",
+                "default"
+              ]
+            },
+            "security": {
+              "source": "none",
+              "schemeNames": []
+            },
+            "references": [
+              {
+                "locator": "#/paths/~1zaps/post/requestBody/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ZapsCreateZapRequest",
+                "role": "request",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ZapsCreateZapRequest",
+                "constructionObligation": true
+              },
+              {
+                "locator": "#/paths/~1zaps/post/responses/201/content/application~1vnd.api+json/schema/$ref",
+                "ref": "#/components/schemas/ZapsCreateZapResponse",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/schemas/ZapsCreateZapResponse",
+                "constructionObligation": false
+              },
+              {
+                "locator": "#/paths/~1zaps/post/responses/default/$ref",
+                "ref": "#/components/responses/DefaultError",
+                "role": "response",
+                "resolution": "resolved",
+                "targetLocator": "#/components/responses/DefaultError",
+                "constructionObligation": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "taskId": "n10-connect-event4u-minimal",
+      "taskPath": "task-contracts/n10-connect-event4u-minimal.json",
+      "taskSha256": "61201f430861d7d23b1ec44329e6e9a6641980304327844c7ac71604079a4461",
+      "sourceInputId": "onepassword-connect",
+      "mapping": {
+        "candidateId": "candidate-060",
+        "repository": "event4u-app/agent-config",
+        "skillId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "event4u-app/agent-config:src/skills/api-testing/SKILL.md:duty-010-valid-request"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "GET /health"
+        ],
+        "requirements": [
+          {
+            "id": "valid-minimal",
+            "kind": "valid-minimal",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "src/skills/api-testing/SKILL.md:59"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": true,
+        "residualOracle": [],
+        "basis": "anonymous operation with no request dependencies; valid-minimal is mapped by the reviewed duty"
+      }
+    },
+    {
+      "taskId": "n10-partnership-lambda-rich",
+      "taskPath": "task-contracts/n10-partnership-lambda-rich.json",
+      "taskSha256": "d100784dc46b1e50438aaea4fa1dce5d1e1c0ea114140d1f81063222b05f61fb",
+      "sourceInputId": "onepassword-partnership",
+      "mapping": {
+        "candidateId": "candidate-111",
+        "repository": "LambdaTest/agent-skills",
+        "skillId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-010-valid-request",
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-018-missing-required",
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-019-out-of-range"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "POST /api/v1/partners/accounts"
+        ],
+        "requirements": [
+          {
+            "id": "valid-full",
+            "kind": "valid-full",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:28"
+          },
+          {
+            "id": "missing-required",
+            "kind": "required-omission",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:84"
+          },
+          {
+            "id": "out-of-range",
+            "kind": "constraint-negative",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:86"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": false,
+        "residualOracle": [
+          "credentials-and-live-auth-not-supplied"
+        ],
+        "basis": "source requires bearerAuth and the locked task supplies no credential material"
+      }
+    },
+    {
+      "taskId": "n10-visier-auth-event4u",
+      "taskPath": "task-contracts/n10-visier-auth-event4u.json",
+      "taskSha256": "1c38f37cd31155f499ebbc7efac3f6a406cfcca7b901c0fe7aadbf8d4622e2fa",
+      "sourceInputId": "visier-authentication",
+      "mapping": {
+        "candidateId": "candidate-060",
+        "repository": "event4u-app/agent-config",
+        "skillId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "event4u-app/agent-config:src/skills/api-testing/SKILL.md:duty-010-valid-request",
+          "event4u-app/agent-config:src/skills/api-testing/SKILL.md:duty-017-wrong-type"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "POST /v1/admin/visierSecureTicket"
+        ],
+        "requirements": [
+          {
+            "id": "valid-minimal",
+            "kind": "valid-minimal",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "src/skills/api-testing/SKILL.md:59"
+          },
+          {
+            "id": "wrong-type",
+            "kind": "constraint-negative",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "src/skills/api-testing/SKILL.md:192"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": true,
+        "residualOracle": [],
+        "basis": "anonymous required form body exercises the mapped happy-path and wrong-type duties"
+      }
+    },
+    {
+      "taskId": "n10-visier-auth-lambda-rich",
+      "taskPath": "task-contracts/n10-visier-auth-lambda-rich.json",
+      "taskSha256": "b34de52b2a0e00ee37f4773e6b90d55a587b1234f4d847aed61bc2cc620e9222",
+      "sourceInputId": "visier-authentication",
+      "mapping": {
+        "candidateId": "candidate-111",
+        "repository": "LambdaTest/agent-skills",
+        "skillId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-010-valid-request",
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-018-missing-required",
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-019-out-of-range"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "POST /v1/admin/visierSecureTicket"
+        ],
+        "requirements": [
+          {
+            "id": "valid-full",
+            "kind": "valid-full",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:28"
+          },
+          {
+            "id": "missing-required",
+            "kind": "required-omission",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:84"
+          },
+          {
+            "id": "out-of-range",
+            "kind": "constraint-negative",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:86"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": true,
+        "residualOracle": [],
+        "basis": "anonymous required form body provides full, omission, and schema-negative targets"
+      }
+    },
+    {
+      "taskId": "n10-visier-analytics-pactflow",
+      "taskPath": "task-contracts/n10-visier-analytics-pactflow.json",
+      "taskSha256": "af3f3dd63e9a64cd6dfde8468c0412abf7a3f89ac5ce78ddbfb1f0edeb84866f",
+      "sourceInputId": "visier-analytics",
+      "mapping": {
+        "candidateId": "candidate-217",
+        "repository": "pactflow/pactflow-agent-skills",
+        "skillId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md:duty-012-valid-request"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "POST /v1alpha/admin/consolidated-analytics/tenants"
+        ],
+        "requirements": [
+          {
+            "id": "valid-request",
+            "kind": "valid-minimal",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md:77"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": true,
+        "residualOracle": [],
+        "basis": "anonymous JSON request with locally closed references exercises the reviewed valid-request duty"
+      }
+    },
+    {
+      "taskId": "n10-zapier-actions-event4u",
+      "taskPath": "task-contracts/n10-zapier-actions-event4u.json",
+      "taskSha256": "2c43d5353e59e3ea2dabcad1e99b6f46e8642117bc5e3a06d1eb38bcc2b0e050",
+      "sourceInputId": "zapier-actions",
+      "mapping": {
+        "candidateId": "candidate-060",
+        "repository": "event4u-app/agent-config",
+        "skillId": "event4u-app/agent-config:src/skills/api-testing/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "event4u-app/agent-config:src/skills/api-testing/SKILL.md:duty-010-valid-request",
+          "event4u-app/agent-config:src/skills/api-testing/SKILL.md:duty-017-wrong-type"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "POST /api/v1/exposed/{exposed_app_action_id}/execute"
+        ],
+        "requirements": [
+          {
+            "id": "valid-minimal",
+            "kind": "valid-minimal",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "src/skills/api-testing/SKILL.md:59"
+          },
+          {
+            "id": "wrong-type",
+            "kind": "constraint-negative",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "src/skills/api-testing/SKILL.md:192"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": false,
+        "residualOracle": [
+          "credentials-and-live-auth-not-supplied"
+        ],
+        "basis": "source requires one of four authentication schemes and the locked task supplies no credential material"
+      }
+    },
+    {
+      "taskId": "n10-zapier-embed-pactflow",
+      "taskPath": "task-contracts/n10-zapier-embed-pactflow.json",
+      "taskSha256": "7fa69904a9e53fcf27929f65e1e8bfc043333d235941e290254fc8fc55ae09b3",
+      "sourceInputId": "zapier-embed",
+      "mapping": {
+        "candidateId": "candidate-217",
+        "repository": "pactflow/pactflow-agent-skills",
+        "skillId": "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "pactflow/pactflow-agent-skills:plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md:duty-012-valid-request"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "POST /authentications"
+        ],
+        "requirements": [
+          {
+            "id": "valid-request",
+            "kind": "valid-minimal",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md:77"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": true,
+        "residualOracle": [],
+        "basis": "anonymous required JSON-compatible body exercises the reviewed valid-request duty"
+      }
+    },
+    {
+      "taskId": "n10-zapier-embed-lambda-rich",
+      "taskPath": "task-contracts/n10-zapier-embed-lambda-rich.json",
+      "taskSha256": "640a1dbec439982727dbff0d047a20df76a78d16cd7f253ca8d655d07af81ae9",
+      "sourceInputId": "zapier-embed",
+      "mapping": {
+        "candidateId": "candidate-111",
+        "repository": "LambdaTest/agent-skills",
+        "skillId": "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-010-valid-request",
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-018-missing-required",
+          "LambdaTest/agent-skills:api-skill/api-to-testcase-generator/SKILL.md:duty-019-out-of-range"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "POST /authentications"
+        ],
+        "requirements": [
+          {
+            "id": "valid-full",
+            "kind": "valid-full",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:28"
+          },
+          {
+            "id": "missing-required",
+            "kind": "required-omission",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:84"
+          },
+          {
+            "id": "out-of-range",
+            "kind": "constraint-negative",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "api-skill/api-to-testcase-generator/SKILL.md:86"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": true,
+        "residualOracle": [],
+        "basis": "anonymous required JSON-compatible body provides full, omission, and schema-negative targets"
+      }
+    },
+    {
+      "taskId": "n10-zapier-embed-fishzjp-pytest",
+      "taskPath": "task-contracts/n10-zapier-embed-fishzjp-pytest.json",
+      "taskSha256": "8e28db8d9df87263d323251c9d17bee70b5df5cd11705e25392b35da674615e3",
+      "sourceInputId": "zapier-embed",
+      "mapping": {
+        "candidateId": "candidate-066",
+        "repository": "fishzjp/qa-skills",
+        "skillId": "fishzjp/qa-skills:skills/api-testing/SKILL.md",
+        "origin": "agent-reviewed-existing-ledger",
+        "mappedDutyObligationIds": [
+          "fishzjp/qa-skills:skills/api-testing/SKILL.md:duty-027-negative-fuzzing"
+        ],
+        "residualDutyScopePreserved": true
+      },
+      "denominator": {
+        "operationKeys": [
+          "POST /authentications"
+        ],
+        "requirements": [
+          {
+            "id": "negative-fuzzing",
+            "kind": "constraint-negative",
+            "required": true,
+            "scope": "each-selected-operation",
+            "sourceLocator": "skills/api-testing/SKILL.md:142"
+          }
+        ],
+        "requiredObligationsKnownBeforePlanning": false
+      },
+      "expected": {
+        "taskComplete": false,
+        "residualOracle": [
+          "reviewed-duty-is-broader-than-constraint-negative",
+          "constraint-negative-not-in-pytest-runtime"
+        ],
+        "basis": "the source duty requests structural fuzzing and pytest output; the narrower mapping remains explicitly unresolved"
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "visier-auth-requirement-change",
+      "leftTaskId": "n10-visier-auth-event4u",
+      "rightTaskId": "n10-visier-auth-lambda-rich",
+      "sameInputAndOperation": true,
+      "changedFields": [
+        "requirements"
+      ],
+      "expectedRelation": "different-plan-and-artifact"
+    },
+    {
+      "id": "zapier-embed-requirement-change",
+      "leftTaskId": "n10-zapier-embed-pactflow",
+      "rightTaskId": "n10-zapier-embed-lambda-rich",
+      "sameInputAndOperation": true,
+      "changedFields": [
+        "requirements"
+      ],
+      "expectedRelation": "different-plan-and-artifact"
+    }
+  ],
+  "accounting": {
+    "sourceApiCalls": 0,
+    "businessApiCalls": 0,
+    "modelCalls": 0,
+    "paidCalls": 0
+  },
+  "claimLimits": [
+    "the panel is development-exposed and is not prospective evidence",
+    "task-selected completion is not whole-document or live API completion",
+    "credential-blocked and unresolved mappings remain in the fixed denominator",
+    "the historical document-level 0/6 result and readiness are unchanged"
+  ]
+}
