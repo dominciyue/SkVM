@@ -204,7 +204,7 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 验收：恢复入口可定位首项未完成的可运行任务。缺少旧 clean-002 是已知事实，不是 N0 新失败。
 
-**N0 实际结果：** baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`，Bun=`1.3.14`，Node=`v23.8.0`；既有 class-proof status 入口 exit 0。新 `status`/`resume` 均从持久 JSON 只读恢复并定位 N1；聚焦测试 `5/5`、18 assertions，脚本定向 typecheck 通过。未读取 held-out/Q1 reserve，未启动 prospective，外部 source/business/model/paid 调用均为 0。
+**N0 实际结果：** baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`，实现/首份证据提交=`de92e7ef3c8693ea40147f67f94c576b61d252e2`，Bun=`1.3.14`，Node=`v23.8.0`；既有 class-proof status 入口 exit 0。新 `status`/`resume` 均从持久 JSON 只读恢复并定位 N1；聚焦测试 `5/5`、18 assertions，脚本定向 typecheck 通过。未读取 held-out/Q1 reserve，未启动 prospective，外部 source/business/model/paid 调用均为 0。
 
 ### N1：需求语料与独立输入来源（P0，最多 2 小时）
 
