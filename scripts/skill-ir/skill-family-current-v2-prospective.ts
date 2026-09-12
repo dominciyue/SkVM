@@ -21,6 +21,11 @@ import {
   writeN10RevisionDecision,
   type N10RevisionReport,
 } from "../../src/skill-ir/skill-family-current-v2-n10-revision";
+import {
+  verifyCurrentV2ReadinessReport,
+  writeCurrentV2ReadinessReport,
+  type CurrentV2ReadinessReport,
+} from "../../src/skill-ir/skill-family-current-v2-readiness";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -1043,6 +1048,56 @@ export async function runN10RevisionStage(root: string, evaluatedAt = new Date()
   };
 }
 
+export async function runN7ReadinessStage(root: string, evaluatedAt = new Date().toISOString()) {
+  const state = await readStageState(root);
+  const reportRelative = `${CURRENT_V2_RESULT_RELATIVE}/readiness/report.json`;
+  if (state.status.tasks.N7.status === "completed") {
+    const bytes = await readFile(join(root, reportRelative));
+    const report = JSON.parse(bytes.toString("utf8")) as CurrentV2ReadinessReport;
+    const verification = await verifyCurrentV2ReadinessReport({ repositoryRoot: root, report });
+    if (verification.status !== "pass") fail(`N7 readiness verification failed: ${verification.errors.join("; ")}`);
+    return {
+      taskId: "N7" as const,
+      outcome: "verified-existing" as const,
+      file: { path: reportRelative, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+      verification,
+      view: state.view,
+    };
+  }
+  if (selectNextRunnableTask(state.manifest, state.status) !== "N7") fail("N7 is not the current runnable stage");
+  const revisionBinding = await requirePushedImmutableFile(root, `${CURRENT_V2_RESULT_RELATIVE}/development/revision-001.json`);
+  const built = await writeCurrentV2ReadinessReport({
+    repositoryRoot: root,
+    codeCommit: revisionBinding.head,
+    evaluatedAt,
+  });
+  const verification = await verifyCurrentV2ReadinessReport({ repositoryRoot: root, report: built.report });
+  if (verification.status !== "pass") fail(`N7 readiness verification failed: ${verification.errors.join("; ")}`);
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N7", {
+    completedAt,
+    evidence: [
+      built.file.path,
+      "src/skill-ir/skill-family-current-v2-readiness.ts",
+      "src/skill-ir/skill-family-current-v2-readiness.test.ts",
+    ],
+    nextAction: "N9: record candidate freeze as not executed because the N10 capability/method gate is not ready",
+    commit: revisionBinding.head,
+  });
+  status.commits.codeCommit = revisionBinding.head;
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N7" as const,
+    outcome: "completed" as const,
+    file: built.file,
+    decision: built.report.decision,
+    dimensions: built.report.dimensions,
+    summary: built.report.summary,
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -1066,5 +1121,8 @@ if (import.meta.main) {
   } else if (step === "n10-revision") {
     const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
     console.log(JSON.stringify(await runN10RevisionStage(process.cwd(), evaluatedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
+  } else if (step === "n7") {
+    const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
+    console.log(JSON.stringify(await runN7ReadinessStage(process.cwd(), evaluatedAt), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7 [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
 }

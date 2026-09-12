@@ -60,6 +60,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n5 --python
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n8
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-lock --locked-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-revision --evaluated-at=<ISO>
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n7 --evaluated-at=<ISO>
 ~~~
 
 当前 `status`/`resume` 均定位运行中的 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。`--step=n10-lock` 在锁已存在时只重核摘要，不覆盖。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
@@ -128,6 +129,12 @@ Current first-run 的九个 task 与九次预登记 repeat build 已在 engine c
 根因决策入口将独立写 `development/revision-001.json`。它先严格重核 lock/baseline/first-run，再从锁定 source 与 task 重建 form specimens、body-negative fields/wires 和未完成 obligation；同时绑定 `api-request-form-specimens-development.md`、`api-request-body-negatives-development.md` 及对应实现文件摘要。只有当每个 expected-positive mismatch 都能由已声明的非空 form 或 JSON-only negative 边界解释、分母与首轮完全相同且没有合同内 implementation failure 时，才允许输出 `no-safe-shared-revision`。该结论不把失败变为通过，只把 N10 以 limitation 终结；任何无法归类的缺口都使 verifier 失败并要求继续修复。
 
 实际 `development/revision-001.json`（SHA-256=`a00ceb59d729e8f0c3a058b2f478501124af7724d34dbeaa7276916fc0c0d381`，9,310 bytes）在代码提交 `6bc7e1b4eb30524989bfcba9613caa1fad5cfebb` 推送后生成并通过重算。三项 root cause 分别是一项 empty-form minimal 与两项 form constraint-negative，全部归类为 declared support-contract boundary；implementation changes 为空，首轮分母、结果与 `method-not-ready` 门完全不变。N10=`completed-with-limitation`，研究候选不具资格；下一阶段 N7 只派生非循环 readiness，不改变历史 readiness。
+
+## N7 task/source-scoped readiness
+
+新的 `skill-family-current-v2-readiness/v1` 只为本 identity 派生状态，不修改旧 portfolio readiness。每个维度统一为 `ready | not-ready | not-assessed`，附稳定 reason code 和 digest-bound evidence。method 只回答合同、计划、source closure、checker、native fault path 与普通入口是否可运行；capability 单独读取 N10 实际门。每个 task 的 source、input 与 capability 分开，单个凭据/媒体/映射阻塞不传播给其他 task。
+
+protocolReady 只依赖代码候选、抽样规则、评测规则和失败政策是否已锁，不要求未见正文已读；prospectiveReady 再要求授权、选定 source/input 足够、post-acquisition prediction 已锁且无 protected violation，不要求 transfer 结果或首跑报告。transfer 在零 prospective run 时必须是 not-assessed；reproducible 只依据当前普通入口、bundle replay 和原生 fixture，clean checkout 留给 N14。报告绑定 N7 code commit 中的执行状态快照，避免可变 status 自引用。
 
 ## 实施与验证
 
