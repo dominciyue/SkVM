@@ -433,11 +433,13 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 **执行设计：** 以已推送且首次包含 N14 全部证据的 `evidenceCommit=53a0601aba430b89f5e5f58d0dec54fb79a3f9d7` 为不可变输入快照；N15 实现先作为独立 `deliveryCodeCommit` 推送。最终 builder 从该 evidence commit 的 Git blob 读取 N1/N2/N3/N5/N8/N10/N7/research-gate/N13/N4/N6/N14 与 pre-N15 status，逐文件绑定 SHA-256/bytes，而不是读取聊天总结或 N15 后可变 status。runner 在写报告前执行 current-v2 relevant focused tests、full typecheck、doc-link unit/full check、`git diff --check`、tracked-clean 和 HEAD/origin 对齐，原始命令输出写入 `delivery-verification.json`；严格 verifier 重读该文件与 exact-commit evidence 后重算 `final-report.json`。工程和研究必须分字段：普通 task+OpenAPI 入口、N8/N5/N14 已可用，但 N10 capability gate 仍因真实需求变化仅 1/2、4/9 taskComplete、10/18 unresolved 而 not-ready，所以最终只能是 `completed-with-engineering-shortfall`，不能因 clean replay 通过提升；N9/N11/N12 保持 not-executed、candidate=null、transfer not-assessed、prospective preparation not-ready。N15 task 以 limitation 终结并可令整体任务书 completed；这表示交付记录完成，不表示工程目标全达成或研究负例。
 
-- [ ] 用一页结果说明回答：输入是什么、哪类任务完整实现、普通调用命令、真实 task/unique source/provider 分母、执行/skip、失败与改进、成本和人工边界。
-- [ ] engineeringDelivery 与 researchOutcome 分字段；阶段记录完整但 E 未达标时只能 completed-with-engineering-shortfall。
-- [ ] 更新组件、状态页、spec/plan 当前入口及根交接/通信/日志，保留历史链接不复制多套逐行报告。
-- [ ] 一次 relevant focused tests + typecheck + docs links + diff review，按白名单提交并推送 origin/skill-ir-aot；不清历史未跟踪材料。
-- [ ] 完成后按剩余时间做高价值 follow-up：修一个阻碍普通使用的 bug、补一个跨 provider 回归、明确错误消息。不无限增加候选/冻结/审计轮次。到用户叫停或截止交付窗口立即保留状态。
+**实际终态：** delivery code=`ec4d6a1800ff26d8db9d84b896efa667abf90d34`，evidence commit=`53a0601aba430b89f5e5f58d0dec54fb79a3f9d7`。`delivery-verification.json` SHA-256=`1272771b5b0446da37e46d1bddfebcae92e443305be34bf25b90140ec52f03b4`，focused 83 pass/0 fail/294 assertions，typecheck/docs/diff/clean/push gate 均通过；`final-report.json` SHA-256=`e07e3c85861a24450bdc2e4d188ee75c9dbf0f427af73ab1eb7ccd2252a4d5d8`，两次 strict rerun 均为 verified-existing 且摘要不变。最终 decision=`completed-with-engineering-shortfall`：9/9 package checks，但 4/9 taskComplete、8/18 required checked-exported、10 unresolved、需求变化关系 1/2。research not-executed、candidate=null、transfer not-assessed、prospective=0。
+
+- [x] 用一页结果说明回答：输入是什么、哪类任务完整实现、普通调用命令、真实 task/unique source/provider 分母、执行/skip、失败与改进、成本和人工边界。
+- [x] engineeringDelivery 与 researchOutcome 分字段；阶段记录完整但 E 未达标时只能 completed-with-engineering-shortfall。
+- [x] 更新组件、状态页、spec/plan 当前入口及根交接/通信/日志，保留历史链接不复制多套逐行报告。
+- [x] 一次 relevant focused tests + typecheck + docs links + diff review，按白名单提交并推送 origin/skill-ir-aot；不清历史未跟踪材料。
+- [x] 依用户收敛指令停止追加任务；不为时长或勾选数扩大候选、支持合同、冻结或审计轮次。
 
 验收：用户可拿一个 task.json 和 OpenAPI 文件得到有用产物；研究结论如实报告，执行目标完成与否依据 E/R 实际结果，不依据勾选数或墙钟时长。
 
@@ -464,13 +466,14 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 Set-Location 'D:\skill优化\SkVM'
 git switch skill-ir-aot
 git status --short --branch
-bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n15
 ~~~
 
-N0 创建的新编排器应支持下列命令；创建前不得宣称它们可运行：
+N0 创建的编排器已支持下列命令：
 ~~~powershell
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=resume
 ~~~
 
-resume 按第 3.2 节依赖与截止时间执行，复用已完成获取和验证，失败局限于依赖任务。N0–N15 的授权执行应由后续明确执行/持续目标承接，本次文档审查没有启动它们。
+resume 按第 3.2 节依赖执行并复用已完成获取和验证；当前 N0–N15 均已终结，resume 不再执行任务。任何新 prospective 必须另立预注册身份、选择/评价协议和逐行预测，本任务书不自动启动它。

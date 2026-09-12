@@ -39,6 +39,25 @@ A completed result can be strictly reverified with the same command. The files a
 - `results/skill-ir/skill-family-current-v2-source-repair-001/delivery-verification.json`
 - `results/skill-ir/skill-family-current-v2-source-repair-001/final-report.json`
 
+## Actual result
+
+The pushed delivery code is `ec4d6a1800ff26d8db9d84b896efa667abf90d34`; the immutable evidence commit is
+`53a0601aba430b89f5e5f58d0dec54fb79a3f9d7`. The verification report is 15,864 bytes with SHA-256
+`1272771b5b0446da37e46d1bddfebcae92e443305be34bf25b90140ec52f03b4`; the final report is 11,578
+bytes with SHA-256 `e07e3c85861a24450bdc2e4d188ee75c9dbf0f427af73ab1eb7ccd2252a4d5d8`. Two independent
+`--step=n15` reruns strictly recomputed the report and preserved the digest.
+
+The final decision is `completed-with-engineering-shortfall`. The fixed development panel contains 6 inputs, 3
+providers, 47 operations, and 9 tasks: 9 package checks pass, 4 tasks are complete, and 18 required obligations split
+into 8 checked/exported plus 10 unresolved. Native consumption is 9 attempted, 4 executed/passed, 5 skipped, and 0
+failed/errors. The delivery verification records 83 focused tests, 294 assertions, full typecheck, zero broken or
+legacy documentation references, a clean tracked tree, and HEAD/origin alignment.
+
+Research remains `not-executed`: candidate is null, transfer is not assessed, and prospective runs are zero. Project
+runtime accounting is source/business/model/paid=`2/0/0/0` plus 17 native loopback calls; development-agent cost and
+monetary cost were not measured. Meilisearch's missing total reference, the Bangumi live-source advisory, and the
+historical clean-002 archive gap remain explicit limitations.
+
 ## Decision and failure behavior
 
 The actual evidence requires `completed-with-engineering-shortfall`: the ordinary deterministic entry, package checker,

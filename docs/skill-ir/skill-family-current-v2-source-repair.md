@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active；N0–N8 与 N14 的已调度工程/维护项完成，N4/N6/N10/N13 带 limitation，N9/N11/N12 未执行，当前 N15，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：revision-2 交付已完成，最终为 `completed-with-engineering-shortfall`，2026-09-12。** N4/N6/N10/N13/N15 带 limitation，N9/N11/N12 未执行，其余阶段完成。已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态和最终报告在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -183,6 +183,12 @@ attempt 1 在 code `54506625f7888df73db347c54f2e7dc82d785e47` 的内部重放通
 
 attempt 2 绑定 code `b10cdce035890a0134e929f1f9fb23c33325a202`，最终报告 SHA-256=`dedb77ccea579556d10e5ad0805ec261406462670bd5b094275e38478e411a57`。N8 4/4、N10 9/9 packages（4 taskComplete；18 required=8 checked-exported+10 unresolved）、N5 direct native attempted/executed/passed/failed/errors/skipped=`9/4/4/0/0/5`；detached focused tests 35 pass/104 assertions，typecheck pass。两次主 checkout strict verify 摘要不变。该结果只证明 engineering clean replay，researchCandidate=null，不是 prospective 或 live API 结论。
 
+## N15 final delivery
+
+N15 实现提交 `ec4d6a1800ff26d8db9d84b896efa667abf90d34` 先推送，再从 evidence commit `53a0601aba430b89f5e5f58d0dec54fb79a3f9d7` 的 Git blobs 重算所有分母。`delivery-verification.json` SHA-256=`1272771b5b0446da37e46d1bddfebcae92e443305be34bf25b90140ec52f03b4`；focused tests 83 pass/0 fail/294 assertions，full typecheck、doc links、diff、tracked clean 与 HEAD/origin gate 均通过。`final-report.json` SHA-256=`e07e3c85861a24450bdc2e4d188ee75c9dbf0f427af73ab1eb7ccd2252a4d5d8`，两次严格重核稳定。
+
+工程结果为 `usable-with-shortfall`：普通 `task.json` + OpenAPI 3.0.x JSON/YAML 入口可运行，固定面板 6 inputs/3 providers/47 operations/9 tasks，9/9 package checks、4/9 taskComplete、8/18 required checked-exported、10 unresolved；native attempted/executed/passed/skipped=`9/4/4/5`。研究链仍为 not-executed、candidate=null、transfer not-assessed、prospective runs=0。详见 [最终交付说明](skill-family-current-v2-final-delivery.md)。
+
 N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。N0 的聚焦测试命令为：
 
 ~~~powershell
@@ -193,7 +199,7 @@ bun test ./src/skill-ir/api-tester-source-closure.test.ts ./src/skill-ir/skill-f
 bun test ./src/skill-ir/api-task-artifact.test.ts ./src/skill-ir/skill-family-current-v2-n5.test.ts
 bun test ./src/skill-ir/api-task-run.test.ts ./src/cli/api-task.test.ts ./src/skill-ir/skill-family-current-v2-n8.test.ts
 bun test ./src/skill-ir/skill-family-current-v2-n10.test.ts
-bun test ./src/skill-ir/skill-family-current-v2-n14.test.ts ./scripts/skill-ir/skill-family-current-v2-prospective.test.ts
+bun test ./src/skill-ir/skill-family-current-v2-n14.test.ts ./src/skill-ir/skill-family-current-v2-n15.test.ts ./scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 ~~~
 

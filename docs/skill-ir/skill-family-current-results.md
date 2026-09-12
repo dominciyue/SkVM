@@ -4,6 +4,26 @@ Checkpoint 2026-09-11 21:35 +08. Development only; the minimum-delivery stage is
 reported on `skill-family-minimum-delivery-001`. This page supersedes stale current-
 status prose, not historical evidence or contracts.
 
+## Current revision-2 API contract task delivery (2026-09-12)
+
+The active revision-2 route is now terminal. Its machine report is
+`results/skill-ir/skill-family-current-v2-source-repair-001/final-report.json`,
+SHA-256 `e07e3c85861a24450bdc2e4d188ee75c9dbf0f427af73ab1eb7ccd2252a4d5d8`.
+The outcome is `completed-with-engineering-shortfall`, not a full engineering
+pass: the ordinary TaskContract/OpenAPI entry and detached replay work, but the
+fixed panel has 4/9 complete tasks, 8/18 required obligations checked/exported,
+10 unresolved, and only 1/2 demand-change relations passing. All 9 packages
+pass their package checks; native consumption records 9 attempted, 4 executed
+and passed, 5 skipped, and no failures or errors.
+
+The bound delivery verification (`1272771b...`) records 83 focused tests, 294
+assertions, full typecheck and documentation checks, clean tracked state, and a
+pushed code commit. Two strict recomputations preserve the final digest.
+Research N9/N11/N12 remains not executed: candidate is null, transfer is not
+assessed, and prospective runs are zero. This result does not change historical
+document-level 0/6, Q1/held-out isolation, readiness, or live API validity.
+Resume and usage details are in [the final delivery guide](skill-family-current-v2-final-delivery.md).
+
 ## Current Minimum Delivery
 
 D1-D9 remains a bounded source-mapped development slice. The revision-2 minimum-delivery
