@@ -16,6 +16,7 @@ import {
   type CurrentV2N6ArchiveSearchReport,
 } from "../../src/skill-ir/skill-family-current-v2-n6";
 import {
+  preserveCurrentV2N14UnverifiedReport,
   runCurrentV2N14CleanReplay,
   verifyCurrentV2N14CleanReplay,
   type CurrentV2N14CleanReplayReport,
@@ -1741,11 +1742,34 @@ export async function runN14CleanReplayStage(root: string, options?: {
   }
   let report: CurrentV2N14CleanReplayReport;
   let files: Array<{ path: string; sha256: string; bytes: number }>;
+  const carriedEvidence = [...state.status.tasks.N14.evidence];
   if (existing) {
-    report = JSON.parse(new TextDecoder().decode(existing)) as CurrentV2N14CleanReplayReport;
-    files = [report.provenance.attempt, report.provenance.insideReport, report.provenance.archiveManifest,
-      { path: reportRelative, sha256: createHash("sha256").update(existing).digest("hex"), bytes: existing.byteLength }];
-  } else {
+    const candidate = JSON.parse(new TextDecoder().decode(existing)) as CurrentV2N14CleanReplayReport;
+    const candidateVerification = await verifyCurrentV2N14CleanReplay({ repositoryRoot: root, report: candidate });
+    if (candidateVerification.status === "pass" && candidate.engineeringCodeCommit === pushed.head
+      && candidate.researchCandidate === null) {
+      report = candidate;
+      files = [report.provenance.attempt, report.provenance.insideReport, report.provenance.archiveManifest,
+        { path: reportRelative, sha256: createHash("sha256").update(existing).digest("hex"), bytes: existing.byteLength }];
+    } else {
+      const nextAttempt = options?.attempt ?? 1;
+      if (nextAttempt <= candidate.attempt) {
+        fail(`N14 report failed strict verification; preserve it and retry with --attempt=${candidate.attempt + 1}`);
+      }
+      const verificationErrors = [...candidateVerification.errors,
+        ...(candidate.engineeringCodeCommit === pushed.head ? [] : ["N14_ENGINEERING_CODE_COMMIT_SUPERSEDED"])];
+      const preserved = await preserveCurrentV2N14UnverifiedReport({
+        repositoryRoot: root,
+        report: candidate,
+        verificationErrors,
+        observedAt: options?.completedAt,
+      });
+      carriedEvidence.push(candidate.provenance.attempt.path, candidate.provenance.insideReport.path,
+        candidate.provenance.archiveManifest.path, preserved.report.path, preserved.failure.path);
+      existing = null;
+    }
+  }
+  if (!existing) {
     const required = {
       checkoutRoot: options?.checkoutRoot,
       outputRoot: options?.outputRoot,
@@ -1769,7 +1793,7 @@ export async function runN14CleanReplayStage(root: string, options?: {
       status.tasks.N14 = {
         status: "running",
         commit: pushed.head,
-        evidence: [...new Set([...status.tasks.N14.evidence, ...built.files.map((file) => file.path)])],
+        evidence: [...new Set([...carriedEvidence, ...built.files.map((file) => file.path)])],
         issues: built.issues,
         startedAt: status.tasks.N14.startedAt ?? now,
         completedAt: null,
@@ -1790,11 +1814,30 @@ export async function runN14CleanReplayStage(root: string, options?: {
     fail("N14 report does not bind the current pushed engineering code or invented a research candidate");
   }
   const verification = await verifyCurrentV2N14CleanReplay({ repositoryRoot: root, report });
-  if (verification.status !== "pass") fail(`N14 verification failed: ${verification.errors.join("; ")}`);
+  if (verification.status !== "pass") {
+    const now = new Date().toISOString();
+    const status = structuredClone(state.status);
+    status.tasks.N14 = {
+      status: "running",
+      commit: pushed.head,
+      evidence: [...new Set([...carriedEvidence, ...files.map((file) => file.path)])],
+      issues: verification.errors,
+      startedAt: status.tasks.N14.startedAt ?? now,
+      completedAt: null,
+    };
+    status.currentStage = "N14";
+    status.updatedAt = now;
+    status.nextAction = `N14: preserve attempt ${report.attempt} strict-verification failure and retry under a new code commit/attempt`;
+    status.commits.codeCommit = pushed.head;
+    validateStageState(state.manifest, status);
+    await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+    return { taskId: "N14" as const, outcome: "failed-attempt-preserved" as const,
+      files, issues: verification.errors, view: deriveStageView(state.manifest, status) };
+  }
   const completedAt = new Date().toISOString();
   const status = completeTask(state.manifest, state.status, "N14", {
     completedAt,
-    evidence: [...new Set([...state.status.tasks.N14.evidence, ...files.map((file) => file.path),
+    evidence: [...new Set([...carriedEvidence, ...files.map((file) => file.path),
       "src/skill-ir/skill-family-current-v2-n14.ts", "src/skill-ir/skill-family-current-v2-n14.test.ts",
       "scripts/skill-ir/skill-family-current-v2-clean-replay.ts",
       "docs/skill-ir/skill-family-current-v2-clean-replay.md"])],

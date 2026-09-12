@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { copyFile, lstat, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import { arch, platform, release } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { runApiTask } from "./api-task-run";
@@ -415,6 +415,15 @@ function containsPath(ancestor: string, candidate: string) {
 
 export function areCurrentV2N14ExternalPathsDisjoint(left: string, right: string) {
   return !containsPath(left, right) && !containsPath(right, left);
+}
+
+export function currentV2N14WorktreeAddArguments(checkoutRoot: string, codeCommit: string) {
+  return [
+    "-c", "core.autocrlf=false",
+    "-c", "core.eol=lf",
+    "-c", "core.longpaths=true",
+    "worktree", "add", "--detach", checkoutRoot, codeCommit,
+  ];
 }
 
 async function exists(path: string) {
@@ -858,7 +867,7 @@ export async function runCurrentV2N14CleanReplay(options: {
     if (await exists(options.checkoutRoot)) throw new Error("N14 checkout path already exists");
     if (await exists(options.outputRoot)) throw new Error("N14 output path already exists");
     const checkoutAdd = await command({ id: "worktree-add", executable: "git",
-      arguments: ["worktree", "add", "--detach", options.checkoutRoot, options.codeCommit], cwd: options.repositoryRoot });
+      arguments: currentV2N14WorktreeAddArguments(options.checkoutRoot, options.codeCommit), cwd: options.repositoryRoot });
     commands.push(checkoutAdd);
     requirePassed(checkoutAdd);
     await mkdir(options.outputRoot, { recursive: false });
@@ -878,6 +887,16 @@ export async function runCurrentV2N14CleanReplay(options: {
     commands.push(cleanBefore);
     requirePassed(cleanBefore);
     if (cleanBefore.stdout.trim() !== "") throw new Error("N14 checkout is dirty before setup");
+
+    for (const path of [N5_REPORT, N8_REPORT, N10_LOCK, N10_FIRST_RUN, PYTHON_MANIFEST, "bun.lock"]) {
+      const [checkoutBytes, committedBytes] = await Promise.all([
+        readFile(join(options.checkoutRoot, path)).then((value) => new Uint8Array(value)),
+        gitFileBytes(options.repositoryRoot, options.codeCommit, path),
+      ]);
+      if (sha(checkoutBytes) !== sha(committedBytes) || checkoutBytes.byteLength !== committedBytes.byteLength) {
+        throw new Error(`N14 checkout bytes differ from the bound commit: ${path}`);
+      }
+    }
 
     const manifestBytes = new Uint8Array(await readFile(join(options.checkoutRoot, PYTHON_MANIFEST)));
     const pythonManifest = JSON.parse(new TextDecoder().decode(manifestBytes)) as Record<string, any>;
@@ -1052,6 +1071,73 @@ export async function runCurrentV2N14CleanReplay(options: {
       issues: [failure.error],
     };
   }
+}
+
+export async function preserveCurrentV2N14UnverifiedReport(options: {
+  repositoryRoot: string;
+  report: CurrentV2N14CleanReplayReport;
+  verificationErrors: string[];
+  observedAt?: string;
+}) {
+  if (!Number.isInteger(options.report.attempt) || options.report.attempt < 1
+    || options.verificationErrors.length < 1 || options.verificationErrors.some((error) => !error)) {
+    throw new Error("N14 unverified report preservation input is invalid");
+  }
+  const attemptName = String(options.report.attempt).padStart(3, "0");
+  const sourceRelative = `${RESULT_ROOT}/clean-replay/report.json`;
+  const sourcePath = join(options.repositoryRoot, sourceRelative);
+  const sourceBytes = new Uint8Array(await readFile(sourcePath));
+  const sourceSha256 = sha(sourceBytes);
+  const archiveRelative = `${RESULT_ROOT}/clean-replay/unverified-report-attempt-${attemptName}.json`;
+  const archivePath = join(options.repositoryRoot, archiveRelative);
+  if (await exists(archivePath)) {
+    const archivedBytes = new Uint8Array(await readFile(archivePath));
+    if (sha(archivedBytes) !== sourceSha256 || archivedBytes.byteLength !== sourceBytes.byteLength) {
+      throw new Error("N14 existing unverified report archive differs from report.json");
+    }
+  } else {
+    await copyFile(sourcePath, archivePath, 1);
+  }
+  const archivedBytes = new Uint8Array(await readFile(archivePath));
+  if (sha(archivedBytes) !== sourceSha256 || archivedBytes.byteLength !== sourceBytes.byteLength) {
+    throw new Error("N14 unverified report archive changed bytes");
+  }
+  const failureRelative = `${RESULT_ROOT}/clean-replay/verification-failure-attempt-${attemptName}.json`;
+  const failurePath = join(options.repositoryRoot, failureRelative);
+  let failureBytes: Uint8Array;
+  if (await exists(failurePath)) {
+    failureBytes = new Uint8Array(await readFile(failurePath));
+    const failure = JSON.parse(new TextDecoder().decode(failureBytes)) as Record<string, any>;
+    if (failure.report?.sha256 !== sourceSha256 || failure.report?.bytes !== sourceBytes.byteLength
+      || stable(failure.verificationErrors) !== stable([...options.verificationErrors].sort())) {
+      throw new Error("N14 existing verification failure record differs from observed failure");
+    }
+  } else {
+    const failure = {
+      schemaVersion: "skill-family-current-v2-n14-verification-failure/v1",
+      identity: IDENTITY,
+      exposure: "development-clean-replay",
+      attempt: options.report.attempt,
+      engineeringCodeCommit: options.report.engineeringCodeCommit,
+      observedAt: options.observedAt ?? new Date().toISOString(),
+      failedLayer: "strict-package-binding-verifier",
+      report: { originalPath: sourceRelative, archivedPath: archiveRelative,
+        sha256: sourceSha256, bytes: sourceBytes.byteLength },
+      verificationErrors: [...options.verificationErrors].sort(),
+      decision: "failed",
+      claimLimits: [
+        "The internal replay reported passed, but N14 did not pass because independent strict verification failed.",
+        "This record preserves the failure and does not authorize treating attempt 1 as clean-replay evidence.",
+      ],
+    };
+    failureBytes = new TextEncoder().encode(`${JSON.stringify(failure, null, 2)}\n`);
+    await writeExclusive(failurePath, failureBytes);
+  }
+  await unlink(sourcePath);
+  return {
+    report: { path: archiveRelative, sha256: sourceSha256, bytes: sourceBytes.byteLength },
+    failure: { path: failureRelative, sha256: sha(failureBytes), bytes: failureBytes.byteLength },
+  };
 }
 
 async function gitFileBytes(repositoryRoot: string, commit: string, path: string) {

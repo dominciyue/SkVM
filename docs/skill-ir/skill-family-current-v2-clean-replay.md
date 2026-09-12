@@ -18,8 +18,9 @@ remain zero. Native loopback HTTP calls are counted separately.
 archive verifier. `scripts/skill-ir/skill-family-current-v2-clean-replay.ts` is the internal entry used by the detached
 checkout. `runN14CleanReplayStage` in the current-v2 stage runner is the resumable outer entry.
 
-The outer entry requires `HEAD` to equal `origin/skill-ir-aot`, creates a new detached worktree outside the repository,
-and verifies its exact HEAD, detached state, and tracked cleanliness. Checkout and output roots must be separate trees.
+The outer entry requires `HEAD` to equal `origin/skill-ir-aot`, creates a new detached worktree outside the repository
+with `core.autocrlf=false`, `core.eol=lf`, and long paths enabled, and verifies its exact HEAD, detached state, tracked
+cleanliness, and byte equality for every committed baseline. Checkout and output roots must be separate trees.
 It then runs `bun install --frozen-lockfile --offline`, creates a no-pip virtual environment, extracts the fixed Python
 dependency archive, and verifies every extracted file against the committed manifest.
 
@@ -84,6 +85,14 @@ An attempt file is never overwritten. If preparation, replay, comparison, tests,
 stage remains N14 and records the original command transcript and error. A repair must use a new attempt number and
 new external paths; earlier failed evidence remains listed in execution state. The final report cannot be created by
 relaxing an oracle, treating a skipped test as a pass, omitting an unresolved reason, or supplying a research commit.
+
+Attempt 1 at engineering commit `54506625f7888df73db347c54f2e7dc82d785e47` reached an internally passing replay
+but failed the independent package-binding verifier with `N14_BASELINE_BINDING_MISMATCH:bun.lock`. The detached
+Windows checkout had converted the committed LF lock bytes (SHA-256 `1574eee04241e492f4ac3eca0d9e081701be0c4ac0da521bb03e6b408e10f306`)
+to CRLF bytes (SHA-256 `2a2b45f7ea2015023be7ff1ceb22e5cf91a51888cb6f12a752d5b80c1681d803`). The
+attempt, internal report, complete generated archive, unverified final-report bytes, and strict-verifier failure record
+are retained. The revision changes only detached-checkout byte canonicalization and adds a pre-execution Git-blob
+comparison; it does not relax any semantic or package oracle.
 
 A passing report means only that the fixed development implementation and evidence reproduce from the bound commit
 with the declared offline dependencies. It does not validate live API behavior, the whole API Tester skill, a full

@@ -4,6 +4,7 @@ import {
   areCurrentV2N14ExternalPathsDisjoint,
   buildCurrentV2N14CleanReplayReport,
   compareCurrentV2N14TaskRows,
+  currentV2N14WorktreeAddArguments,
   summarizeCurrentV2N14NativeConsumer,
 } from "./skill-family-current-v2-n14";
 
@@ -126,4 +127,14 @@ test("N14 requires checkout and output roots to be separate external trees", () 
   expect(areCurrentV2N14ExternalPathsDisjoint(checkout, checkout)).toBeFalse();
   expect(areCurrentV2N14ExternalPathsDisjoint(checkout, resolve(checkout, "evidence"))).toBeFalse();
   expect(areCurrentV2N14ExternalPathsDisjoint(resolve(output, "nested"), output)).toBeFalse();
+});
+
+test("N14 forces canonical checkout bytes when creating the detached worktree", () => {
+  const checkout = resolve("C:/n14/checkout");
+  expect(currentV2N14WorktreeAddArguments(checkout, COMMIT)).toEqual([
+    "-c", "core.autocrlf=false",
+    "-c", "core.eol=lf",
+    "-c", "core.longpaths=true",
+    "worktree", "add", "--detach", checkout, COMMIT,
+  ]);
 });
