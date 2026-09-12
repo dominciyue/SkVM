@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 路线：U0–U7
-- 状态：`active`（U0–U6 completed，U7 in-progress）
+- 状态：`completed`（U0–U7）
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[2026-09-13-api-task-usable-delivery.md](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)
 
@@ -24,7 +24,7 @@ agent 的新消费任务中保持或改善质量，同时给出真实一次性�
 | U4 新 skill 包 | completed | 真实 agent 在普通目录读取包、调用 helper 并通过独立 checker；首次路径错误完整保留 |
 | U5 Agent 消费 | completed | 3 skill / 3 repo 完成匹配；同一 helper 用于两个成员，第三个成员为有依据 no-change |
 | U6 成对评估 | completed | 两个成员 × 原/变化输入共 4 对；质量 4/4 对 4/4，效果 mixed，USD unknown |
-| U7 收口 | in-progress | 运行一次合并测试/typecheck/文档检查，核对暂存归属，提交并推送 origin |
+| U7 收口 | completed | 81 tests、typecheck、2 package closure、文档与 10 trace archive bindings 通过；精确提交并推送 origin |
 
 ## 复用边界
 
@@ -49,6 +49,5 @@ agent 的新消费任务中保持或改善质量，同时给出真实一次性�
 
 ## 下一动作
 
-执行一次 U7 合并验证，归档必要且脱敏的 proposal/trace/result closure，精确暂存本线程文件后提交并推送。
-机器恢复状态见 `results/skill-ir/trace-guided-skill-optimization-20260913/status.json`。治理线程已经完成导航收敛；
-本线程只同步唯一实时入口、方法文档与结果索引，不恢复已合并的历史说明。
+U0–U7 已完成。用户复核入口是 `results/skill-ir/trace-guided-skill-optimization-20260913/final-report.json` 与两个
+development package。下一轮 prospective/held-out 若获准，必须使用独立预登记 identity；本轮不自动选择或运行。

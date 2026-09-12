@@ -3,7 +3,7 @@
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
 - 当前路线：U0–U7，“真实 trace → 模型优化 → 新 skill 包 → agent 消费”
-- 执行状态：`active`（U0–U6 已完成，U7 验证与交付进行中）
+- 执行状态：`completed`（U0–U7 已完成；待用户复核 development 交付）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -48,7 +48,7 @@ trace 优化闭环已完成。最窄证据入口见[证据索引](evidence-index
 5. U4 生成新包并让 agent 在普通目录真实消费（已完成，保留首次失败）。
 6. U5 在同类职责上验证复用范围（已完成：3 skill / 3 repo，2 package + 1 no-change）。
 7. U6 做成对质量与成本比较（已完成：4 对，质量持平，效果 mixed，USD unknown）。
-8. U7 汇总结论、限制和下一轮入口（进行中）。
+8. U7 汇总结论、限制和下一轮入口（已完成：81 tests、typecheck、2 package、文档与证据绑定均通过）。
 
 任务级细节见[当前计划](skill-ir-aot-optimization-plan.md)与[日期化任务书](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)。
 
@@ -115,7 +115,7 @@ python scripts/check_skill_ir_doc_links.py
 
 ## 5. 当前限制
 
-- U0–U6 已有机器证据，U7 验证与推送尚未完成；当前闭环只支持本轮 development 范围。
+- U0–U7 已完成并形成机器 closure；当前闭环只支持本轮 development 范围。
 - 模型 proposal 不自动获得正确性；必须由明确 checker 或人工接受边界约束。
 - 固化只能覆盖证据支持的稳定部分，未自动化职责必须随新 skill 包保留。
 - 第三个 skill 只有一条合格 trace，no-change 是正确结果，不能为凑包数强制固化；三份 skill 不是随机总体样本。

@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-13
 
-**当前已确认路线：** 第 14.29 节与 [真实 trace 驱动任务书 revision 2，U0–U7](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，状态 `active`（U0–U6 completed，U7 verification/delivery）。用户先实际运行 skill，再用任意 agent 来源的真实记录驱动模型优化；复用 JIT-optimize/proposal、JIT-boost 和 Skill IR 后端，输出保留剩余职责的新 skill 包，验证 agent 实际消费与成本变化。旧 API-only U0–U5 未执行，由本修订替代；历史 N0–N15、0/6、Q1/held-out 与冻结结果不改写。
+**当前已确认路线：** 第 14.29 节与 [真实 trace 驱动任务书 revision 2，U0–U7](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，状态 `completed`。用户先实际运行 skill，再用任意 agent 来源的真实记录驱动模型优化；复用 JIT-optimize/proposal、JIT-boost 和 Skill IR 后端，输出保留剩余职责的新 skill 包，验证 agent 实际消费与成本变化。旧 API-only U0–U5 未执行，由本修订替代；历史 N0–N15、0/6、Q1/held-out 与冻结结果不改写。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 

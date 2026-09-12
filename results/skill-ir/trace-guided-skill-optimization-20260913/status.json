@@ -1,12 +1,12 @@
 {
   "schemaVersion": "skill-ir-trace-guided-optimization-status/v1",
   "identity": "trace-guided-skill-optimization-20260913",
-  "phase": "U7-verification-and-delivery",
-  "state": "active",
+  "phase": "U7-completed",
+  "state": "completed",
   "branch": "skill-ir-aot",
   "startingCommit": "9a16dfa",
   "publishedBaseCommit": "4e3471d",
-  "stageCommits": ["9fc30d7"],
+  "stageCommits": ["9fc30d7", "c3ce5457b46c45092169a603256eb6730e4cedbe"],
   "taskOrder": ["U0", "U1", "U2", "U3", "U4", "U5", "U6", "U7"],
   "dependencies": [
     "existing jit-optimize log source and proposal workspace",
@@ -86,7 +86,18 @@
       "costUsd": "unknown-provider-pricing",
       "report": "results/skill-ir/trace-guided-skill-optimization-20260913/u6/report.json"
     },
-    "traceArchives": "results/skill-ir/trace-guided-skill-optimization-20260913/trace-archives.json"
+    "traceArchives": "results/skill-ir/trace-guided-skill-optimization-20260913/trace-archives.json",
+    "u7Verification": {
+      "affectedTests": "81 pass, 0 fail, 231 assertions",
+      "typecheck": "passed",
+      "packageClosures": "2/2 passed",
+      "documentationTests": "12/12 passed",
+      "documentationScan": "0 broken, 0 legacy, 0 governance errors, 4 soft warnings",
+      "traceArchiveBindings": "10/10 passed",
+      "effectReportReproduction": "passed",
+      "report": "results/skill-ir/trace-guided-skill-optimization-20260913/u7/verification.json"
+    },
+    "finalReport": "results/skill-ir/trace-guided-skill-optimization-20260913/final-report.json"
   },
   "costs": {
     "projectRuntime": {
@@ -106,6 +117,6 @@
     "matched results are mixed: elapsed time and output tokens fell, while input, cache-read and total observed tokens rose",
     "actual provider cost is unknown because the configured pricing table reports zero"
   ],
-  "nextAction": "Run the single U7 combined verification set, synchronize live documentation and ledgers, inspect exact staging ownership, commit, and push origin/skill-ir-aot.",
+  "nextAction": "User review of the development packages and mixed-effect report; do not start prospective or held-out work under this identity.",
   "recoveryCommand": "bun test ./test/cli/jit-optimize.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/task-source-criteria.test.ts ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/infra-blocked-submission.test.ts ./test/jit-optimize/solidification.test.ts ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/effect.test.ts"
 }

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "skill-ir-trace-guided-u7-verification/v1",
+  "identity": "trace-guided-skill-optimization-20260913-u7",
+  "status": "passed",
+  "codeCommit": "c3ce5457b46c45092169a603256eb6730e4cedbe",
+  "checks": {
+    "affectedTests": {
+      "command": "bun test ./test/cli/jit-optimize.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/task-source-criteria.test.ts ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/infra-blocked-submission.test.ts ./test/jit-optimize/solidification.test.ts ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/effect.test.ts",
+      "passed": 81,
+      "failed": 0,
+      "assertions": 231
+    },
+    "typecheck": {
+      "command": "bun run typecheck",
+      "exitCode": 0
+    },
+    "packageClosure": {
+      "command": "bun scripts/skill-ir/trace-guided-api-tester-package.ts verify --package <package-directory>",
+      "passed": 2,
+      "failed": 0
+    },
+    "documentationTests": {
+      "command": "python scripts/check_skill_ir_doc_links_test.py",
+      "passed": 12,
+      "failed": 0
+    },
+    "documentationScan": {
+      "command": "python scripts/check_skill_ir_doc_links.py",
+      "scannedFiles": 7520,
+      "brokenReferences": 0,
+      "legacyReferences": 0,
+      "governanceErrors": 0,
+      "softWarnings": 4
+    },
+    "traceArchiveBindings": {
+      "passed": 10,
+      "failed": 0,
+      "properties": ["working archive SHA-256", "committed blob SHA-256", "expanded raw trace SHA-256"]
+    },
+    "effectReportReproduction": {
+      "status": "passed",
+      "sha256": "5b0f53881e9983d7eb0823d4c44e42778df7bb52266bf0a9cfd0742ed73aae62"
+    },
+    "stagingOwnership": {
+      "status": "passed",
+      "preservedUnrelatedTrackedPath": "src/skill-ir/skill-family-minimum-delivery-run.ts",
+      "preservedUnrelatedUntrackedPath": "docs/skill-ir/1.md",
+      "expandedRawTracesCommitted": 0,
+      "compressedTraceArchivesCommitted": 10
+    }
+  },
+  "diagnosticHistory": [
+    "The first U7 typecheck caught obsolete exitCode/timedOut fields passed to RunRecordBuilder.finish. The adapter and runner now pass RunStatus-shaped evidence; targeted tests 9/9 and the fresh full verification passed.",
+    "The first archive verifier invocation passed ArrayBuffer directly to createHash and failed before evaluating evidence. Converting to Uint8Array yielded 10/10 archive/index/Git/raw bindings.",
+    "The initial combined shell wrapper was rejected by local command policy before any check ran; the checks were split into read-only commands and completed."
+  ],
+  "claimBoundary": "This verification is for the development trace-guided delivery on the recorded Windows/Bun/Node route. Soft documentation line warnings are advisory. It does not establish held-out transfer, live API behavior, USD savings or human savings."
+}
