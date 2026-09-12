@@ -1,7 +1,16 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseApiTaskContract, type ApiTaskContract } from "./api-task-contract";
+import { buildApiTaskPlan } from "./api-task-plan";
+import { verifyApiTaskPlan } from "./api-task-plan-checker";
+import { buildApiFormRequestSpecimens } from "./api-request-specimens";
+import { verifyApiFormRequestSpecimens } from "./api-request-specimens-checker";
+import { buildApiRequestBodyNegatives } from "./api-request-body-negatives";
+import { verifyApiRequestBodyNegatives } from "./api-request-body-negatives-checker";
+import { buildApiPytestSuite } from "./api-pytest-suite";
+import { verifyApiPytestSuite } from "./api-pytest-suite-checker";
 import { independentlyEnumerateApiTesterOperations } from "./api-tester-operation-coverage";
 import { parseApiTesterOperationSource } from "./api-tester-operation-source";
 
@@ -539,5 +548,272 @@ export async function verifyN10DevelopmentPanel(options: {
   if (recalculated.uniqueInputs !== 6 || recalculated.providers !== 3 || recalculated.mappingRepositories < 3) {
     errors.add("LOCK_MINIMUM_PANEL_NOT_MET");
   }
+  return { status: errors.size === 0 ? "pass" : "fail", errors: [...errors].sort() };
+}
+
+type BaselineComponents = {
+  specimens: ReturnType<typeof buildApiFormRequestSpecimens>;
+  negatives: ReturnType<typeof buildApiRequestBodyNegatives>;
+  pytest: Awaited<ReturnType<typeof buildApiPytestSuite>> | null;
+  checks: {
+    specimens: ReturnType<typeof verifyApiFormRequestSpecimens>;
+    negatives: ReturnType<typeof verifyApiRequestBodyNegatives>;
+    pytest: Awaited<ReturnType<typeof verifyApiPytestSuite>> | null;
+  };
+};
+
+async function baselineComponents(sourceText: string, format: "json" | "yaml", includePytest: boolean): Promise<BaselineComponents> {
+  const specimens = buildApiFormRequestSpecimens(sourceText, format);
+  const negatives = buildApiRequestBodyNegatives(sourceText, format);
+  const pytest = includePytest ? await buildApiPytestSuite(sourceText, format) : null;
+  return {
+    specimens,
+    negatives,
+    pytest,
+    checks: {
+      specimens: verifyApiFormRequestSpecimens(sourceText, format, specimens),
+      negatives: verifyApiRequestBodyNegatives(sourceText, format, negatives),
+      pytest: pytest ? await verifyApiPytestSuite(sourceText, format, pytest) : null,
+    },
+  };
+}
+
+function sourceRequiresCredentials(security: unknown): boolean {
+  if (!Array.isArray(security)) return true;
+  return security.length > 0 && !security.some((entry) => entry && typeof entry === "object"
+    && !Array.isArray(entry) && Object.keys(entry).length === 0);
+}
+
+function baselinePotential(obligation: any, components: BaselineComponents) {
+  if (obligation.applicability === "unresolved-mapping") {
+    return { obligationId: obligation.obligationId, status: "unresolved-mapping", evidenceIds: [] as string[] };
+  }
+  if (obligation.applicability !== "applicable") {
+    return { obligationId: obligation.obligationId, status: obligation.applicability, evidenceIds: [] as string[] };
+  }
+  const operation = components.specimens.operations.find((row) => row.key === obligation.operationKey);
+  const credentials = sourceRequiresCredentials(operation?.security);
+  if (["valid-minimal", "valid-full", "required-omission"].includes(obligation.requirementKind)) {
+    const mode = obligation.requirementKind === "valid-full" ? "full" : "minimal";
+    const omit = obligation.requirementKind === "required-omission" ? obligation.target.id : null;
+    const candidate = operation?.cases.find((row) => row.mode === mode && row.omit === omit);
+    if (!candidate || candidate.status !== "constructed") {
+      return { obligationId: obligation.obligationId, status: "source-specimen-unavailable", evidenceIds: candidate ? [candidate.id] : [] };
+    }
+    return {
+      obligationId: obligation.obligationId,
+      status: credentials ? "constructed-but-credential-unbound" : "constructed-but-task-unbound",
+      evidenceIds: [candidate.id],
+    };
+  }
+  if (obligation.requirementKind === "constraint-negative") {
+    const cases = components.negatives.operations.find((row) => row.key === obligation.operationKey)?.cases
+      .filter((row) => row.fieldId === obligation.target.id) ?? [];
+    if (!cases.length || cases.some((row) => row.status !== "constructed")) {
+      return { obligationId: obligation.obligationId, status: "source-negative-unavailable", evidenceIds: cases.map((row) => row.id) };
+    }
+    return {
+      obligationId: obligation.obligationId,
+      status: credentials ? "constructed-but-credential-unbound" : "constructed-but-task-unbound",
+      evidenceIds: cases.map((row) => row.id),
+    };
+  }
+  return { obligationId: obligation.obligationId, status: "source-observation-unavailable", evidenceIds: [] as string[] };
+}
+
+export type N10BaselineReport = {
+  schemaVersion: "skill-family-current-v2-n10-baseline/v1";
+  identity: typeof IDENTITY;
+  exposure: "development";
+  executedAt: string;
+  lock: { path: "input-lock.json"; sha256: string; commit: string };
+  definition: Record<string, unknown>;
+  summary: Record<string, number>;
+  sources: Array<Record<string, any>>;
+  tasks: Array<Record<string, any>>;
+  accounting: { sourceApiCalls: 0; businessApiCalls: 0; modelCalls: 0; paidCalls: 0; nativeLoopbackHttpCalls: 0 };
+  claimLimits: string[];
+};
+
+export async function writeN10BaselineFromDevelopmentPanel(options: {
+  repositoryRoot: string;
+  developmentDirectory: string;
+  lockCommit: string;
+  executedAt: string;
+}): Promise<{ report: N10BaselineReport; file: { path: string; sha256: string; bytes: number } }> {
+  const panelCheck = await verifyN10DevelopmentPanel(options);
+  if (panelCheck.status !== "pass") throw new Error(`N10 panel is not verified: ${panelCheck.errors.join("; ")}`);
+  const lockBytes = await readFile(join(options.developmentDirectory, "input-lock.json"));
+  const lock = JSON.parse(lockBytes.toString("utf8")) as N10DevelopmentLock;
+  if (!/^[0-9a-f]{40}$/u.test(options.lockCommit)) throw new Error("N10 baseline lock commit must be a full Git SHA");
+
+  const sourceRuntime = new Map<string, BaselineComponents>();
+  const sources: N10BaselineReport["sources"] = [];
+  for (const source of lock.sources) {
+    const sourceText = await readFile(join(options.developmentDirectory, source.lockedCopy.path), "utf8");
+    const includePytest = lock.tasks.some((task) => task.sourceInputId === source.inputId
+      && JSON.parse(readFileSync(join(options.developmentDirectory, task.taskPath), "utf8")).output === "pytest");
+    const firstStarted = performance.now();
+    const first = await baselineComponents(sourceText, source.original.format, includePytest);
+    const firstDurationMs = Number((performance.now() - firstStarted).toFixed(3));
+    const repeatStarted = performance.now();
+    const repeat = await baselineComponents(sourceText, source.original.format, includePytest);
+    const repeatDurationMs = Number((performance.now() - repeatStarted).toFixed(3));
+    const firstDigest = sha(stable({ specimens: first.specimens, negatives: first.negatives, pytest: first.pytest }));
+    const repeatDigest = sha(stable({ specimens: repeat.specimens, negatives: repeat.negatives, pytest: repeat.pytest }));
+    const checks = [first.checks.specimens.status, first.checks.negatives.status,
+      ...(first.checks.pytest ? [first.checks.pytest.status] : [])];
+    sourceRuntime.set(source.inputId, first);
+    sources.push({
+      inputId: source.inputId,
+      provider: source.provider,
+      inputSha256: source.lockedCopy.sha256,
+      operationDenominator: source.enumeration.operationCount,
+      operations: first.specimens.operations.map((operation) => ({
+        operationKey: operation.key,
+        caseInventoryComplete: operation.caseInventoryComplete,
+        cases: operation.cases.length,
+        constructedCases: operation.cases.filter((row) => row.status === "constructed").length,
+        unresolvedCases: operation.cases.filter((row) => row.status === "unresolved").length,
+        credentialsRequired: sourceRequiresCredentials(operation.security),
+        issues: operation.issues,
+      })),
+      bodyNegativeCases: first.negatives.operations.reduce((total, operation) => total + operation.cases.length, 0),
+      pytestCompiled: first.pytest !== null,
+      componentChecks: checks.every((status) => status === "pass") ? "pass" : "fail",
+      checkDetails: first.checks,
+      firstBuild: { durationMs: firstDurationMs, semanticDigest: firstDigest },
+      repeat: {
+        durationMs: repeatDurationMs,
+        cacheDeclared: false,
+        cacheHit: false,
+        semanticDigest: repeatDigest,
+        semanticDigestMatches: repeatDigest === firstDigest,
+      },
+      modificationCount: 0,
+    });
+  }
+
+  const tasks: N10BaselineReport["tasks"] = [];
+  for (const row of lock.tasks) {
+    const task = parseApiTaskContract(JSON.parse(await readFile(join(options.developmentDirectory, row.taskPath), "utf8")));
+    const source = lock.sources.find((entry) => entry.inputId === row.sourceInputId)!;
+    const sourceText = await readFile(join(options.developmentDirectory, source.lockedCopy.path), "utf8");
+    const plan = buildApiTaskPlan(task, sourceText, { supportedOutputs: ["pytest", "request-json"], sourceRepository: source.provenance.sourceRepository });
+    const planCheck = verifyApiTaskPlan(task, sourceText, plan, { supportedOutputs: ["pytest", "request-json"] });
+    if (planCheck.status !== "pass") throw new Error(`N10 baseline denominator plan failed: ${row.taskId}: ${planCheck.errors.join("; ")}`);
+    const potential = plan.obligations.map((obligation) => baselinePotential(obligation, sourceRuntime.get(row.sourceInputId)!));
+    const requiredIds = new Set(plan.obligations.filter((obligation) => obligation.required).map((obligation) => obligation.obligationId));
+    const potentiallyConstructed = potential.filter((item) => requiredIds.has(item.obligationId)
+      && item.status.startsWith("constructed-but-")).length;
+    tasks.push({
+      taskId: row.taskId,
+      sourceInputId: row.sourceInputId,
+      provider: source.provider,
+      mappingRepository: row.mapping.repository,
+      outputRequested: task.output,
+      operationKeys: plan.operationKeys,
+      requiredObligationDenominator: requiredIds.size,
+      potentiallyConstructedRequiredObligations: potentiallyConstructed,
+      checkedBoundRequiredObligations: 0,
+      potential,
+      planUsedForEvaluationOnly: { status: planCheck.status, semanticPlanSha256: plan.semanticPlanSha256 },
+      packageCheck: "not-available",
+      nativeConsumption: { status: "not-executed", executed: 0 },
+      taskComplete: false,
+      modificationCount: 0,
+    });
+  }
+  const report: N10BaselineReport = {
+    schemaVersion: "skill-family-current-v2-n10-baseline/v1",
+    identity: IDENTITY,
+    exposure: "development",
+    executedAt: options.executedAt,
+    lock: { path: "input-lock.json", sha256: sha(lockBytes), commit: options.lockCommit },
+    definition: {
+      name: "source-only-shared-components",
+      constructionInputs: ["OpenAPI source bytes"],
+      components: ["api-request-form-specimens", "api-request-body-negatives", "api-pytest-suite"],
+      evaluationOnly: "the locked TaskContract planner derives denominators but does not influence baseline construction",
+      absentCapabilities: ["TaskContract dispatch", "requirement-to-artifact binding", "task package checker", "task-selected native consumption"],
+    },
+    summary: {
+      uniqueInputs: sources.length,
+      operationDenominator: sources.reduce((total, source) => total + source.operationDenominator, 0),
+      taskContracts: tasks.length,
+      requiredObligationDenominator: tasks.reduce((total, task) => total + task.requiredObligationDenominator, 0),
+      sourceConstructiblePotential: tasks.reduce((total, task) => total + task.potentiallyConstructedRequiredObligations, 0),
+      checkedBoundRequiredObligations: 0,
+      taskComplete: 0,
+      taskPackageChecks: 0,
+      nativeExecuted: 0,
+      modifications: 0,
+    },
+    sources,
+    tasks,
+    accounting: { sourceApiCalls: 0, businessApiCalls: 0, modelCalls: 0, paidCalls: 0, nativeLoopbackHttpCalls: 0 },
+    claimLimits: [
+      "source construction potential is not checked TaskContract obligation coverage",
+      "the source-only baseline cannot report a completed task or native consumption",
+      "timings are one-machine observations and no cache exists in this baseline",
+      "this development-exposed panel is not prospective or live API evidence",
+    ],
+  };
+  const text = `${JSON.stringify(report, null, 2)}\n`;
+  const relativePath = "baseline.json";
+  await writeFile(join(options.developmentDirectory, relativePath), text, { flag: "wx" });
+  return { report, file: { path: relativePath, sha256: sha(text), bytes: Buffer.byteLength(text) } };
+}
+
+export async function verifyN10Baseline(options: {
+  repositoryRoot: string;
+  developmentDirectory: string;
+}): Promise<{ status: "pass" | "fail"; errors: string[] }> {
+  const errors = new Set<string>();
+  const panel = await verifyN10DevelopmentPanel(options);
+  for (const error of panel.errors) errors.add(`PANEL:${error}`);
+  let lock: N10DevelopmentLock, report: N10BaselineReport;
+  try {
+    lock = JSON.parse(await readFile(join(options.developmentDirectory, "input-lock.json"), "utf8"));
+    report = JSON.parse(await readFile(join(options.developmentDirectory, "baseline.json"), "utf8"));
+  } catch {
+    return { status: "fail", errors: ["BASELINE_OR_LOCK_UNREADABLE"] };
+  }
+  const lockBytes = await readFile(join(options.developmentDirectory, "input-lock.json"));
+  if (report.schemaVersion !== "skill-family-current-v2-n10-baseline/v1" || report.identity !== IDENTITY
+    || report.exposure !== "development") errors.add("BASELINE_HEADER_INVALID");
+  if (report.lock.sha256 !== sha(lockBytes) || !/^[0-9a-f]{40}$/u.test(report.lock.commit)) errors.add("BASELINE_LOCK_BINDING_INVALID");
+  if (stable(report.sources.map((row) => row.inputId).sort()) !== stable(lock.sources.map((row) => row.inputId).sort())) {
+    errors.add("BASELINE_SOURCE_SET_MISMATCH");
+  }
+  if (stable(report.tasks.map((row) => row.taskId).sort()) !== stable(lock.tasks.map((row) => row.taskId).sort())) {
+    errors.add("BASELINE_TASK_SET_MISMATCH");
+  }
+  for (const source of report.sources) {
+    if (source.componentChecks !== "pass") errors.add(`BASELINE_COMPONENT_CHECK_FAILED:${source.inputId}`);
+    if (source.repeat.cacheDeclared !== false || source.repeat.cacheHit !== false
+      || source.repeat.semanticDigestMatches !== true) errors.add(`BASELINE_REPEAT_INVALID:${source.inputId}`);
+    if (source.operations.length !== source.operationDenominator) errors.add(`BASELINE_OPERATION_DENOMINATOR_MISMATCH:${source.inputId}`);
+  }
+  for (const task of report.tasks) {
+    if (task.taskComplete !== false || task.checkedBoundRequiredObligations !== 0
+      || task.packageCheck !== "not-available" || task.nativeConsumption.executed !== 0) {
+      errors.add(`BASELINE_FALSE_COMPLETION:${task.taskId}`);
+    }
+  }
+  const summary = {
+    uniqueInputs: report.sources.length,
+    operationDenominator: report.sources.reduce((total, source) => total + source.operationDenominator, 0),
+    taskContracts: report.tasks.length,
+    requiredObligationDenominator: report.tasks.reduce((total, task) => total + task.requiredObligationDenominator, 0),
+    sourceConstructiblePotential: report.tasks.reduce((total, task) => total + task.potentiallyConstructedRequiredObligations, 0),
+    checkedBoundRequiredObligations: report.tasks.reduce((total, task) => total + task.checkedBoundRequiredObligations, 0),
+    taskComplete: report.tasks.filter((task) => task.taskComplete === true).length,
+    taskPackageChecks: report.tasks.filter((task) => task.packageCheck === "pass").length,
+    nativeExecuted: report.tasks.reduce((total, task) => total + task.nativeConsumption.executed, 0),
+    modifications: report.tasks.reduce((total, task) => total + task.modificationCount, 0),
+  };
+  if (stable(summary) !== stable(report.summary)) errors.add("BASELINE_SUMMARY_MISMATCH");
+  if (Object.values(report.accounting).some((value) => value !== 0)) errors.add("BASELINE_ACCOUNTING_NONZERO");
   return { status: errors.size === 0 ? "pass" : "fail", errors: [...errors].sort() };
 }

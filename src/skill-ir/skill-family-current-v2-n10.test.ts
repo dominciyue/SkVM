@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   materializeN10DevelopmentPanel,
+  writeN10BaselineFromDevelopmentPanel,
+  verifyN10Baseline,
   verifyN10DevelopmentPanel,
 } from "./skill-family-current-v2-n10";
 
@@ -78,6 +80,42 @@ describe("current-v2 N10 development panel lock", () => {
       });
       expect(verification.status).toBe("fail");
       expect(verification.errors).toContain(`TASK_SHA256_MISMATCH:${result.lock.tasks[0]!.taskId}`);
+    } finally {
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("records a source-only baseline without treating unbound specimens as completed tasks", async () => {
+    const temporaryRoot = await mkdtemp(join(tmpdir(), "skvm-n10-baseline-"));
+    try {
+      const developmentDirectory = join(temporaryRoot, "development");
+      await materializeN10DevelopmentPanel({
+        repositoryRoot: process.cwd(),
+        developmentDirectory,
+        lockedAt: "2026-09-12T11:30:00.000Z",
+      });
+      const built = await writeN10BaselineFromDevelopmentPanel({
+        repositoryRoot: process.cwd(),
+        developmentDirectory,
+        lockCommit: "0000000000000000000000000000000000000000",
+        executedAt: "2026-09-12T12:00:00.000Z",
+      });
+
+      expect(built.report.summary).toMatchObject({
+        uniqueInputs: 6,
+        operationDenominator: 47,
+        taskContracts: 9,
+        taskComplete: 0,
+        taskPackageChecks: 0,
+        nativeExecuted: 0,
+      });
+      expect(built.report.sources.every((row) => row.componentChecks === "pass"
+        && row.repeat.semanticDigestMatches)).toBe(true);
+      expect(built.report.tasks.every((row) => row.taskComplete === false
+        && row.checkedBoundRequiredObligations === 0
+        && row.packageCheck === "not-available")).toBe(true);
+      expect(await verifyN10Baseline({ repositoryRoot: process.cwd(), developmentDirectory }))
+        .toEqual({ status: "pass", errors: [] });
     } finally {
       await rm(temporaryRoot, { recursive: true, force: true });
     }

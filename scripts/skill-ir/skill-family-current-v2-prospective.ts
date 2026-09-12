@@ -8,7 +8,9 @@ import { writeN5ConsumerReportFromRepository } from "../../src/skill-ir/skill-fa
 import { writeN8EngineReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n8";
 import {
   materializeN10DevelopmentPanel,
+  verifyN10Baseline,
   verifyN10DevelopmentPanel,
+  writeN10BaselineFromDevelopmentPanel,
   type N10DevelopmentLock,
 } from "../../src/skill-ir/skill-family-current-v2-n10";
 
@@ -790,6 +792,85 @@ export async function runN10LockStage(root: string, lockedAt = new Date().toISOS
   };
 }
 
+async function gitBytes(root: string, arguments_: string[]): Promise<Uint8Array> {
+  const process = Bun.spawn(["git", ...arguments_], { cwd: root, stdout: "pipe", stderr: "pipe" });
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(process.stdout).arrayBuffer(),
+    new Response(process.stderr).text(),
+    process.exited,
+  ]);
+  if (exitCode !== 0) fail(`git ${arguments_.join(" ")} failed: ${stderr.trim()}`);
+  return new Uint8Array(stdout);
+}
+
+async function requirePushedN10Lock(root: string): Promise<string> {
+  const head = new TextDecoder().decode(await gitBytes(root, ["rev-parse", "HEAD"])).trim();
+  const upstream = new TextDecoder().decode(await gitBytes(root, ["rev-parse", "origin/skill-ir-aot"])).trim();
+  if (head !== upstream) fail(`N10 lock commit is not aligned with origin/skill-ir-aot: HEAD=${head}, origin=${upstream}`);
+  const relativePath = `${CURRENT_V2_RESULT_RELATIVE}/development/input-lock.json`;
+  const lockCommit = new TextDecoder().decode(await gitBytes(root, [
+    "log", "--diff-filter=A", "--format=%H", "-1", "--", relativePath,
+  ])).trim();
+  if (!/^[0-9a-f]{40}$/u.test(lockCommit)) fail("N10 lock creation commit was not found in pushed history");
+  const [worktree, committed] = await Promise.all([
+    readFile(join(root, relativePath)),
+    gitBytes(root, ["show", `${lockCommit}:${relativePath}`]),
+  ]);
+  if (createHash("sha256").update(worktree).digest("hex")
+    !== createHash("sha256").update(committed).digest("hex")) {
+    fail("N10 worktree lock bytes do not match the pushed commit");
+  }
+  return lockCommit;
+}
+
+export async function runN10BaselineStage(root: string, executedAt = new Date().toISOString()) {
+  const state = await readStageState(root);
+  if (selectNextRunnableTask(state.manifest, state.status) !== "N10" || state.status.tasks.N10.status !== "running") {
+    fail("N10 baseline requires the running N10 stage");
+  }
+  const developmentRelative = `${CURRENT_V2_RESULT_RELATIVE}/development`;
+  const developmentDirectory = join(root, developmentRelative);
+  const lockCommit = await requirePushedN10Lock(root);
+  let built: Awaited<ReturnType<typeof writeN10BaselineFromDevelopmentPanel>> | null = null;
+  try {
+    await readFile(join(developmentDirectory, "baseline.json"));
+  } catch {
+    built = await writeN10BaselineFromDevelopmentPanel({
+      repositoryRoot: root,
+      developmentDirectory,
+      lockCommit,
+      executedAt,
+    });
+  }
+  const verification = await verifyN10Baseline({ repositoryRoot: root, developmentDirectory });
+  if (verification.status !== "pass") fail(`N10 baseline verification failed: ${verification.errors.join("; ")}`);
+  const baselineBytes = await readFile(join(developmentDirectory, "baseline.json"));
+  const report = JSON.parse(baselineBytes.toString("utf8"));
+  const now = new Date().toISOString();
+  const status = structuredClone(state.status);
+  status.tasks.N10.commit = lockCommit;
+  status.tasks.N10.evidence = [...new Set([
+    ...status.tasks.N10.evidence,
+    `${developmentRelative}/baseline.json`,
+  ])];
+  status.updatedAt = now;
+  status.nextAction = "N10 baseline archived: commit and push baseline before running the rich task engine first-run";
+  validateStageState(state.manifest, status);
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N10" as const,
+    outcome: built ? "baseline-created-and-verified" as const : "baseline-verified-existing" as const,
+    file: {
+      path: `${developmentRelative}/baseline.json`,
+      sha256: createHash("sha256").update(baselineBytes).digest("hex"),
+      bytes: baselineBytes.byteLength,
+    },
+    summary: report.summary,
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -804,5 +885,8 @@ if (import.meta.main) {
   else if (step === "n10-lock") {
     const lockedAt = process.argv.find((argument) => argument.startsWith("--locked-at="))?.slice("--locked-at=".length);
     console.log(JSON.stringify(await runN10LockStage(process.cwd(), lockedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock [--python=<executable>] [--locked-at=<ISO>]");
+  } else if (step === "n10-baseline") {
+    const executedAt = process.argv.find((argument) => argument.startsWith("--executed-at="))?.slice("--executed-at=".length);
+    console.log(JSON.stringify(await runN10BaselineStage(process.cwd(), executedAt), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>]");
 }
