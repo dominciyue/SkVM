@@ -152,6 +152,8 @@ protocolReady 只依赖代码候选、抽样规则、评测规则和失败政策
 
 N13 外部对照复用 N5 两个合成源和同一手写 loopback predicate。Schemathesis 固定 4.27.0、positive fuzzing、每 operation 最多 2 examples、单 worker、5 秒请求 timeout、30 秒总 timeout、零 retry 与 deterministic seed 20260912；JSON response status/header/body 三项独立故障分别要求由对应外部 check 检出。外部响应检查与本项目 TaskContract traceability 分开报告，不互相增加通过数。
 
+首次正式运行保留为不可变失败现场：`comparison/schemathesis-report.json`=`669404a6...`，五个单元均因同时传入互斥的 deterministic 与 database 选项在发请求前退出，实际 loopback=0。该结果只证明 harness 参数冲突，不能评价 Schemathesis。修复只删除冗余 `--generation-database=none`，revision-001 另目录运行，其余输入、预算、seed、timeout、checks 和 fixture 不变。
+
 N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。N0 的聚焦测试命令为：
 
 ~~~powershell

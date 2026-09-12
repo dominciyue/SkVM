@@ -384,6 +384,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 工具版本与参数必须来自运行环境的 `--version`/`run --help`，连同 Python 与完整 dependency freeze 摘要归档。Schemathesis 不接收 TaskContract，因此 source-duty→requirement→artifact→checker、同 source 不同 task 输出和 partial reason 定位标为本项目独立实测维度，不给外部工具伪造对应能力；外部工具的响应检查也不反写 SkVM checker 分数。
 
+**N13 首次运行现场：** code=`199e38121a22279e1ab2d8a4c905dfa0777b7128`；初始 `schemathesis-report.json` SHA-256=`669404a634f44f148904aaba7e4efc59e44da828562e7edb8d5be43ed0451bd3`。五个单元都在 CLI preflight 以同一错误退出：4.27.0 的 `--generation-deterministic` 已隐含禁用 database，不能再同时传 `--generation-database=none`。实际请求 0，三个 fault 全部 not-applicable；结构 verifier pass 不等于外部对照可运行。须先提交该 26-file/39,348-byte 失败现场，再以 revision-001 删除唯一冲突参数、保持其余合同不变并重新运行；不得覆盖本报告或把零请求写成工具能力负例。
+
 - [ ] 首选 Schemathesis，固定实际安装版本、相同合同、同 loopback fixture、请求预算和 timeout；从实际 --help 确认选项，不套用旧文档命令。
 - [ ] 比较生成时间、唯一有效 case、操作/约束覆盖、指定 fault 检出、可复现产物和失败定位。随机 fuzz 与确定性 witness 不做未经控制的总量速度比较。
 - [ ] 最小有用差异：source duty → selected obligation → artifact → checker 的可追溯性、同 source 不同 task 输出差异、无需模型的重放和可解释 partial output；这些须实测，不能仅列功能名。
