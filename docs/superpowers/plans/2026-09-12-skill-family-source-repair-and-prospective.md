@@ -1,507 +1,417 @@
 # Skill Family Source Repair And Prospective Transfer Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** Use superpowers:executing-plans to execute this plan. Main agent owns design, edits and final checks; narrowly scoped read-only probes follow AGENTS.md. Track the checkboxes and actual evidence, not elapsed hours.
 
-**Goal:** 在一个独立定义、具有公开结构化 oracle 的 skill 类上，修复来源闭包和当前候选的可复现性，验证共享构造/核验方法能迁移到新的同类成员，并给出可审计的自动化边界。
+**Revision:** 2 — 2026-09-12，替代 3c37f7f 中的 revision 1；旧版在 Git 中保留。
+**Status:** planned-not-started。本轮仅审查、公开资料查询和文档修订，不表示 N0–N15 已执行。
+**Goal:** 在 2026-09-14 00:00（Asia/Shanghai）前优先交付一个有实际消费闭环的 API 合同任务自动化引擎：明确需求 + 普通 OpenAPI 输入 → 可检查请求/测试包 → 原生执行与故障检出，并分别评价新需求与新输入迁移。
+**Architecture:** 保留旧 production v2；优先连接现有 api-skill-mapping、schema witness、request/form/negative、response checker 与 pytest 模块。新增薄的任务合同/计划层和统一调用接口；历史来源修复独立限时处理。标准化任务输入与输出，不重造 OpenAPI，不把自然语言提取自动视为可信。
+**Tech Stack:** Bun、TypeScript、Zod/AJV、现有 Python/pytest runtime、JSON/YAML、Git/gh；Schemathesis 为首选外部对照，Dredd 非必选。
 
-**Architecture:** 采用两条并行但分开的证据链。`source chain` 负责原始文档、局部/外部引用、版本和归档的真实性；`transfer chain` 负责 skill 类成员、职责、输入、构造产物和独立 checker 的迁移效果。历史候选、历史报告和旧 `0/6` 只读；新的当前候选从 `skill-ir-aot` 重新绑定。source 修复只有在有权威来源时才会进入构造，无法证明时记录 `source-blocked`，不猜测补丁。
+## 1. 审查结论与选择
 
-**Tech Stack:** Bun 1.3.x、TypeScript、现有 SkVM skill loader、YAML/JSON、AJV、GitHub CLI (`gh`)、Git、OpenAPI 3.x/JSON Schema 规范；Schemathesis 和 Dredd 只作为外部方法对照，不作为本项目的 oracle。
+### 1.1 保留什么、改变什么
 
----
+保留职责切片、完整分母、独立 checker 和历史证据。改变“先清历史问题再堆新成员”的依赖关系：
 
-## 1. 当前判断与任务边界
+1. 第一交付是任务合同驱动的实际产物；旧 source blocker 只影响依赖它的任务。
+2. skill 成员数、需求差异、独立 API 输入数分别报告。不同成员重复两份同提供方输入，不能算六份独立输入。
+3. 生成、检查、消费三个层次各有结果；原生测试全部 skip 不能通过工程验收。
+4. 先锁抽样与方法，读取允许的新输入后再登记具体预测，最后执行；不能要求未读正文时知道 responsibilityId。
+5. prospective 首跑完成后修订属于 development follow-up，不能并入未见首跑成功率。
+6. N6 找档不阻塞 N7–N15。元数据/报告提交不触发重复 clean replay，更不追逐自引用的“最终 HEAD”。
 
-### 1.1 推荐验证的 skill 类
+审查依据见 [本轮代码与外部资料分析](../../skill-ir/skill-family-plan-review-20260912.md)。
 
-本计划的默认类为：
+### 1.2 这一类是否足够多
 
-> **以公开 API 合同为输入，按照明确覆盖要求构造可独立核验的离线请求/测试产物的 skill。**
+当前只能断言“多个真实项目存在相关职责”，不能断言生态规模大或占比高。
+已有 acquisition=31、deep-read=7 不等于 31 个合格 API 成员。LambdaTest、Jeremy、Pactflow 提供已暴露职责案例，但任务也包含 live 状态、原生框架或复杂 response 等尚未完成部分。
 
-它满足当前工程的三个必要条件：
+N1 目标取证 12–20 份正文、至少 6 个 repository origins；成员资格按正文与资源判断，保留不属于类及类内不支持者。便利搜索样本不能用于估计生态比例。去重记录 owner、fork、相同内容和复制线索；repository-distinct 不写成已证明完整谱系独立。
 
-- 输入有结构化公开合同（OpenAPI/JSON Schema），可以定位 operation、parameter、request、response、security 和引用关系；
-- 输出可以在不访问真实业务状态的条件下由 checker 核验；
-- 当前项目已经有 operation enumeration、v2 generator、wire/schema checker、职责分母和跨成员 development 结果。
+API 类仍是截止日前主路线。Env/config、静态审查各取少量对照，解释 oracle 与状态依赖差别，不用主观 0–3 分选举临时切换整个工程后端。可得性不足时缩小主张，继续完成可用引擎。
 
-现有证据只支持“职责切片”，不能直接支持整个 skill 或所有未来成员：
+### 1.3 统一类与实现 profile
 
-| 证据 | 当前事实 | 允许的解释 |
-|---|---|---|
-| API Tester operation development | 562 operations，112 accepted，112 checker-pass，575/575 obligations | 已暴露 API 合同切片可被统一枚举和核验 |
-| class-proof R9 | 3 个 primary、6 个输入、21 个 accepted/checked artifact、核心义务 14/15 | development bounded-positive，不是 unseen 泛化 |
-| class-proof E2 | 5 个已暴露非 primary 成员、10 个输入、35 个 accepted/checked | 共享路径可复用的追加 development 证据 |
-| Meilisearch | 一个本地 parameter `$ref` 缺失 | source correctness 仍 blocked，不能猜参数 |
-| Bangumi | 19 个 operation 有 32 个外部 response refs | source-validity advisory，不能自动变成构造义务 |
-| clean-002 | 原件及预期摘要未找到 | 历史归档缺口，不得伪造恢复 |
+上位类：**结构化合同驱动的离线验证任务**。本轮实现 profile：**OpenAPI 3.0.x 合同驱动的请求/测试任务**，沿用研究切片名 openapi-contract-to-offline-request-specimen。
 
-### 1.2 类选择的可失败分支
+类成员资格与当前支持独立。成员须有明确合同输入槽、离线产物责任和可定位要求；只要求“审核 API”“检查安全”不能自动升级为完整构造责任。复合 skill 按职责归类。
 
-N1 必须先比较三个候选类，不能因为已有 API Tester 代码就把类边界倒推出来：
+OpenAPI 3.1/3.2、独立 JSON Schema、Postman、GraphQL 是未来适配口，不在本轮默认支持面。必须保留 dialect，拒绝静默当作 OAS3.0。JSON Schema 本身不提供 HTTP method/path/status；扩展输入适配器必须补足 task contract，不能改文件后缀冒充兼容。
 
-1. `openapi-contract-to-offline-request-specimen`（默认候选）。
-2. `schema-or-config-to-normalized-environment-artifact`（Env Manager 相邻类）。
-3. `static-structure-review-or-translation`（代码审查、法律/文案类，作为弱 oracle 反例）。
+“标准”是 SkVM 的版本化任务/产物互操作合同，不声称行业标准或完整 skill 分类学。
 
-按以下五项各 0–3 分评分：公开 oracle 强度、独立成员数量、适用输入可得性、跨成员共性、实时状态依赖惩罚（最后一项反向计分）。总分最高且至少有 3 个真实独立成员的类进入 N2；若没有类达到该条件，保留实际分数并选择得分最高者做 `insufficient-evidence` 路线，不伪造正向结果。默认 API 类仍是首选，因为它已有可运行的共享构造和独立 checker。
+## 2. 方法合同：需求必须进入生成计划
 
-### 1.3 外部方法与规范依据
+### 2.1 三个不同角色
 
-N1 要记录以下一手资料的访问时间、HTTP 状态和用途：
+- SKILL.md + 直接资源：说明需要做什么；可由人或模型提出映射，保留原文定位与不确定项。
+- OpenAPI + 本地依赖包 + 可选 observations：提供待处理数据与可执行约束。
+- TaskContract → ConstructionPlan → ArtifactBundle：定义实际选择、覆盖、输出、校验和消费方式。
 
-- [OpenAPI Specification 3.1.0](https://spec.openapis.org/oas/v3.1.0)：Operation、Responses、Reference、Security 等结构的规范边界。
-- [JSON Schema 2020-12 Core](https://json-schema.org/draft/2020-12/json-schema-core)：`$ref`、schema evaluation 和验证语义的规范边界。
-- [Schemathesis 文档](https://schemathesis.readthedocs.io/en/stable/)：公开说明其从 OpenAPI/GraphQL 生成 property-based API tests；只用于比较输入生成和 oracle 分层。
-- [Dredd 文档](https://dredd.org/en/latest/)：公开说明其以 API description 驱动测试；只用于比较契约测试的边界。
+固定 backend 允许缓存同一输入的候选池，但必须按 task contract 选取、检查并导出产物。只改变成员名称/最终计数不算需求适配。
 
-这些资料证明“结构化 API 合同可驱动测试”是已有工程路线；这是对本类可行性的外部支撑，不是本项目迁移成功的证据。N13 才运行实际对照。
+最小公共接口设计（N2/N8 实现；以下不是已经存在的 API）：
 
-## 2. 研究单位、主张等级与不可变边界
-
-### 2.1 单位定义
-
-所有新结果都使用以下链路，禁止把不同层级混成一个分母：
-
-```text
-repository/commit/SKILL.md
-  -> skillId
-  -> responsibilityId
-  -> taskContract
-  -> inputId
-  -> operationId
-  -> artifact/checker result
-```
-
-- `skill`：一个真实仓库中的一份 skill 正文及直接资源。
-- `responsibility`：正文声明的可识别职责，包含原文定位和不确定项。
-- `task input`：该职责真正使用的一个公开 API 合同/配置输入。
-- `operation`：输入合同中的可枚举成员；它增加 operation 分母，不增加 skill 分母。
-- `artifact`：由共享构造器生成、由独立 checker 验证的离线产物。
-
-每行必须分别记录 `membership`、`sourceClosure`、`inputApplicability`、`construction`、`checker` 和 `claimRole`。`accepted` 只表示 artifact outcome，不表示 skill 或成员已经被接纳。
-
-### 2.2 结果等级
-
-最终机器报告只能使用以下值之一：
-
-- `strong-positive`：至少 5 个独立 unseen 成员、每个至少 2 个适用输入、核心义务覆盖至少 95%，首跑 accepted 至少 4/5，独立 checker 100%。
-- `bounded-positive`：至少 3 个独立 unseen 成员、每个至少 2 个适用输入、核心义务覆盖至少 90%，首跑 accepted 至少 2/3，accepted checker 100%。
-- `bounded-negative`：输入适用且方法执行，但预注册条件未达到。
-- `insufficient-evidence`：来源、成员资格或适用输入不足，无法进行有效迁移判断。
-- `blocked-before-evaluation`：在读取受保护正文前，方法或边界合同已失效。
-
-任何等级都不能推出 live API correctness、所有未来 skill、人工节省或生态接纳率。
-
-### 2.3 不可变边界
-
-- 历史 API Tester `0/6`、旧 v1/v2、Q1、readiness 旧字段、历史 candidate、旧 prospective 报告和旧 clean-002 预期摘要只读。
-- 不修改 `3ebe606...` 的 candidate 文件或其摘要；当前候选使用新 identity。
-- 失败首跑、错误选择、source blocker 和模型无响应按独立目录保存，不能用修订结果覆盖。
-- 只在必要的证据边界记录文件/提交摘要；不为每个中间对象制造重复哈希报告。
-
-## 3. 状态机与连续执行规则
-
-新 identity 固定为：
-
-```text
-skill-family-current-v2-source-repair-001
-```
-
-证据根目录固定为：
-
-```text
-results/skill-ir/skill-family-current-v2-source-repair-001/
-```
-
-状态转换：
-
-```text
-planned
-  -> corpus-ready
-  -> class-selected
-  -> source-audited
-  -> method-updated
-  -> candidate-current
-  -> development-ready
-  -> prospective-locked
-  -> prospective-running
-  -> reported
-```
-
-可恢复失败状态：`external-shortfall`、`source-blocked`、`method-not-ready`、`insufficient-evidence`、`blocked-before-evaluation`。状态文件必须记录 `currentStep`、每项 `status`、输入/输出路径、实际调用账本和下一恢复步骤。
-
-连续执行约定：
-
-- 正常阶段不等待用户确认；每项完成后立即进入第一个未完成项。
-- 网络失败只暂停当前请求，使用认证 `gh`、缓存和有界退避继续其他候选；不因单个 403 清空已取得数据。
-- 用户已授权网络、远端 API 和付费调用，不设置人为金额上限；但每次调用必须有具体用途并记录返回的 token/费用，计费不可得写 `unknown`。
-- 只有 protected boundary、历史证据写入、source 修复是否权威和 prospective 预测锁属于必要门；不增加重复 approval、重复模型调用或全量复核。
-- N15 完成后若用户没有停止，按“追加队列”继续做有证据的新工作，而不是因为勾选完任务就自动结束。
-
-## 4. 文件职责图
-
-现有实现优先复用：
-
-- `src/skill-ir/api-tester-operation-source.ts`：operation enumeration、local `$ref` 和参数/security 语义。
-- `src/skill-ir/api-tester-operation-input.ts`：普通输入 runner、source issue、义务覆盖和独立输出验证。
-- `src/skill-ir/api-tester-production-contract-v2.ts`、`src/skill-ir/api-tester-production-programs-v2.ts`：v2 构造/检查合同。
-- `src/skill-ir/api-tester-operation-delivery-report.ts`：历史交付报告及 clean/archive 状态。
-- `src/benchmarks/skill-ir/public-structure-offline-family-contract.ts`：类成员、职责和 current-support 分离。
-- `scripts/skill-ir/skill-family-class-proof.ts`：现有 development ledger、method lock、primary run 和 clean replay。
-
-本计划需要时创建或修改：
-
-- `src/skill-ir/api-tester-source-closure.ts`：统一 local/external reference closure 结果，不生成 artifact。
-- `src/skill-ir/api-tester-source-closure.test.ts`：缺失、外部、循环、相对路径、response/security 引用 fixtures。
-- `src/skill-ir/api-tester-source-repair.ts`：权威来源查找、修复记录和 derived-source provenance。
-- `src/skill-ir/api-tester-source-repair.test.ts`：权威修复、无法证明、错误补丁拒绝。
-- `src/skill-ir/skill-family-readiness.ts`：多维 readiness 派生器及旧字段兼容读取。
-- `src/skill-ir/skill-family-readiness.test.ts`：当前历史快照、partial source、prospective 未锁定等状态测试。
-- `scripts/skill-ir/skill-family-current-v2-prospective.ts`：新 identity 的 status、source-audit、candidate、lock、run、report、clean-replay 入口。
-- `scripts/skill-ir/skill-family-current-v2-prospective.test.ts`：状态恢复、一次修订、边界拒绝和报告绑定测试。
-- `docs/skill-ir/skill-family-current-v2-source-repair.md`：组件合同、命令和失败语义。
-- `results/skill-ir/skill-family-current-v2-source-repair-001/`：只存本 identity 的 manifest、ledger、报告和失败现场。
-
-若 N3/N7 的现有实现已经满足合同，任务应写 `no-code-change` 证据，不为制造提交而复制模块。
-
-## 5. 主执行队列 N0–N15
-
-### N0：恢复、分支和基线绑定
-
-**前置条件：** 无；历史输入只读，但允许创建本 identity 的状态文件。
-
-**文件：** 创建 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`、`stage-manifest.json`。
-
-- [ ] 切换到唯一开发分支并记录实际提交，不创建 feature branch：
-
-```text
-git switch skill-ir-aot
-git status --short --branch
-git rev-parse HEAD
-git rev-parse origin/skill-ir-aot
-```
-
-- [ ] 读取 `project_handoff.md`、`project_communication.md`、`docs/skill-ir/deadline-execution-status.md` 和本计划；把当前 HEAD、Bun/Node、tracked 状态写入 manifest。
-- [ ] 运行现有只读状态命令：
-
-```text
-bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status
-```
-
-- [ ] 在 manifest 中登记历史只读路径：旧 `0/6`、旧 candidate、clean-002 expected digest、Meilisearch/Bangumi source records、Q1/held-out/prospective。
-
-**验收：** 分支是 `skill-ir-aot` 且与 origin 对齐；tracked 工作树没有未说明改动；历史证据路径可读；状态文件显示 `currentStep=N1`。不把未跟踪历史材料加入暂存区。
-
-### N1：外部 skill 语料与候选类可行性
-
-**前置条件：** N0。
-
-**文件：** 创建 `corpus/source-ledger.json`、`corpus/class-feasibility.json`、`corpus/external-method-notes.md`。
-
-- [ ] 用认证 `gh` 获取候选 skill 元数据和正文。优先使用 `gh api` 的仓库 contents/git tree 接口，记录 URL、仓库 owner、commit、HTTP 状态、正文路径和读取字节；搜索失败时切换到已认证 raw/API，不丢弃已成功响应。
-- [ ] 目标发现 24 个候选条目、至少 12 份完整正文、至少 6 个独立 owner/repository；另外至少保留 5 个 repository-distinct 的 metadata-only 候选，正文直到 N11 锁定后才读取。实际数量不足时保留已取得分母和失败原因，不用空行凑数；不足 5 个未读候选时在 `class-feasibility.json` 写 `prospective-pool-shortfall`，N11 走不可执行分支。
-- [ ] 对每份正文记录 `development`/`prospective-pool`/`excluded` 角色。N1 读取的正文不能随后冒充 unseen。
-- [ ] 对第 1.3 节四个外部资料记录 HTTP 状态、抓取日期和用于哪一条合同；不能只记录搜索结果标题。
-- [ ] 按第 1.2 节五项评分比较三个候选类，写出选择理由、至少一个正例、一个反例和一个“属于类但当前不支持”的例子。
-
-**验收：** `class-feasibility.json` 能在不读取 artifact outcome 的情况下给出类选择；每个成员有原文定位；至少有 3 个真实独立成员或明确 `external-shortfall`；不把 API 文档本身计作 skill。
-
-### N2：现有方法基线和缺口矩阵
-
-**前置条件：** N1 已选类。
-
-**文件：** 创建 `baseline/current-evidence-snapshot.json`、`baseline/gap-matrix.json`。
-
-- [ ] 只读加载现有 development 结果，核对 baseline 数字：562 operations、112 accepted、449 rejected、1 unresolved、112 checker-pass、575/575 obligations；若当前文件数字不同，记录漂移而不改历史。
-- [ ] 读取 class-proof R9/E2 结果，按成员/职责/输入重新列分母，区分 `source-blocked`、`unsupported-by-contract`、`unresolved`、`outside-class` 和 checker failure。
-- [ ] 对每个缺口记录：出现成员数、是否跨两个独立成员、是否属于预注册类合同、是否能由公开源定位、预期修改文件。
-- [ ] 运行一次现有 `status` 和必要的 parser-only 命令；不启动新的 unseen/prospective。
-
-**验收：** 缺口矩阵能指向共享代码或 source record；没有用 accepted 数量筛选缺口；旧报告和旧 readiness 字节未改变。
-
-### N3：实现统一 source-closure 解析与独立检查
-
-**前置条件：** N2 中至少有一个可复现的 source/reference 缺口。
-
-**文件：** `src/skill-ir/api-tester-source-closure.ts`、`src/skill-ir/api-tester-source-closure.test.ts`，必要时修改 `api-tester-operation-source.ts` 以复用结果。
-
-- [ ] 先写失败测试，覆盖以下 fixture：缺失 local parameter、可解析 local response、外部 response ref、相对 URL、循环 `$ref`、`$ref` sibling semantics、嵌套 request schema、security scheme body。
-- [ ] 固定最小接口：
-
-```ts
-type SourceClosureStatus = "valid" | "resolved-external" | "advisory" | "source-blocked";
-type SourceClosureResult = {
-  status: SourceClosureStatus;
-  references: Array<{
-    locator: string;
-    ref: string;
-    role: "parameter" | "request" | "response" | "security";
-    resolution: "local" | "external" | "missing" | "cycle" | "invalid";
-    targetLocator: string | null;
-    constructionObligation: boolean;
+~~~ts
+type ObligationKind =
+  | "valid-minimal" | "valid-full" | "required-omission"
+  | "constraint-negative" | "response-conformance";
+type TaskContract = {
+  schemaVersion: "skvm-api-task/v1";
+  taskId: string;
+  profile: "oas30-offline-test/v1";
+  input: { path: string; format: "json" | "yaml"; dialect: "oas3.0" };
+  dependencyManifest: string | null;
+  operationKeys: string[] | "all";
+  requirements: Array<{
+    id: string;
+    kind: ObligationKind;
+    required: boolean;
+    scope: "each-selected-operation";
+    sourceLocator: string;
   }>;
-  unresolved: string[];
-  external: string[];
+  output: "request-json" | "pytest";
+  observations: { path: string; provenance: "supplied" | "fixture" } | null;
+  execution:
+    | { mode: "offline-validation" }
+    | { mode: "loopback"; oraclePath: string };
+  mapping: {
+    origin: "user-declared" | "agent-reviewed" | "human-reviewed";
+    sourceSkill: string | null;
+    unresolvedRequirementIds: string[];
+  };
 };
-```
+~~~
 
-- [ ] 使用现有 YAML parser 和 URL resolution；外部内容通过注入的 fetch/cache 接口读取，测试不得访问网络。缓存键包含 URL 和 pinned source identity，不能按 skill 名称返回答案。
-- [ ] 实现后运行新增测试，确认 response-only external ref 不被加入 construction obligations，缺失 request/parameter ref 仍阻塞对应 operation。
-- [ ] 运行受影响的 `api-tester-operation-source.test.ts` 和 `api-tester-operation-input.test.ts`，不放宽旧 checker。
+path 相对于 task 文件；参数/HTTP 值保持数据，不拼进可执行 Python 源码。
+公共 JSON Schema 严格校验，不能静默丢弃未知 requirement、输出格式或必需字段。每个 requirementId → operationKey → caseId → source pointer → checker → exported row 可追踪。既有 mapping/v1 作为只读适配输入，不改历史格式。
 
-**验收：** 每个 reference 有 resolution 和 construction 标记；历史 9 类 fault 的既有清单仍通过：`operation-omission`、`operation-duplicate`、`parameter-dependency-loss`、`reference-dependency-loss`、`security-dependency-loss`、`summary-drift`、`false-acceptance`、`artifact-endpoint-loss`、`artifact-witness-loss`。清单与预期 detector code 绑定于 `results/skill-ir/api-tester-operation-validation-development-001/report.json` 的 `faultDetection.cases`，实现回归覆盖 `src/skill-ir/api-tester-operation-coverage.test.ts`、`src/skill-ir/api-tester-operation-admission.test.ts`、`src/skill-ir/api-request-body-negatives.test.ts` 和对应独立 checker tests；source closure 和 artifact construction 是两个独立结果。
+execution.mode 默认为不发 HTTP 的 offline-validation，必须显式写入合同；loopback 必须绑定独立 oraclePath。复用已有 api-pytest-oracle 语义，缺失 oracle 不能伪造 expected status。packageComplete 与 executionComplete 分开，导出成功并不意味着实际运行。全部未执行不能满足第 3 节 E 的消费验收。
 
-### N4：Meilisearch `total` 引用的权威修复判定
+通用输入模式接受用户明确 TaskContract，不要求提供研究 identity、分析 ledger 或历史结果目录。skill 模式额外提供需求映射，模型参与只属于导入阶段；结构检查通过不能证明自然语言解释正确。证据不足保留 review-needed，不能默认选 easy profile。
 
-**前置条件：** N3；不得先写猜测补丁。
+### 2.2 需求作用测试与完整性
 
-**文件：** 创建 `source-repair/meilisearch-resolution.json`、必要的新的 source bundle；不修改旧 `real-meilisearch-api` 文件和旧 report。
+至少三种有源码依据的不同任务：只要 minimal、要求 full + omission/negative、要求原生 pytest 或响应观测。相同 API 输入必须产生可解释的计划/导出差异，修改 output 不能只修改报告标签。
 
-- [ ] 从旧 source ledger 找到确切仓库、路径、版本和获取 URL；用认证 `gh api` 获取该仓库的 commit、blame、tag/release 和相邻历史版本。
-- [ ] 对 `#/paths/~1tasks/get/parameters/0` 和 `#/components/parameters/total` 做三方核对：原始文档、同一仓库的发布/源码定义、官方或维护者修订记录。
-- [ ] 若找到权威修订：保存新 source bundle、commit、原始与修订差异、解析器结果；把状态写为 `authoritative-recovered`，只对受影响 operation 建立新输入并重新跑 operation admission。
-- [ ] 若找不到权威修订：写 `source-blocked-unresolved`，列出已检查的版本和证据；不把 `total` 猜成某个参数，不生成“修复后 accepted”结果。
-- [ ] 新旧结果并排保存，旧 `unresolved=1` 和旧 portable digest 不变。
+关键测试：
+- 重命名 skillId/repository，任务内容相同时计划语义不变。
+- 同一 source，把 minimal 改为 full + required omission，新增义务与对应 case 可追踪。
+- 删除一个必需 requirement/case、替换 operation/ref target、改变 wire 值，独立 validator/checker 必须报错。
+- 请求未实现的 native 格式，返回 unsupported-output；不能用 JSON 当完成。
+- 单个操作有一个 case 成功而其他必需义务缺失，taskComplete=false。
+- required 约束没有实际输入实例，不计成功；保留 non-applicable/insufficient-input，选择规则决定是否允许 reserve，不能凭空生造实例。
 
-**验收：** 结果只能是 `authoritative-recovered` 或 `source-blocked-unresolved`；两者都有来源定位和解析输出；没有 derived patch 被误称为上游正确性。
+每个 task 必需义务全集在构造前枚举。只有该 task 的全部适用必需义务经 checker 通过并按要求导出，才能 taskComplete=true。任何未解决的必需要求使其不完整。类内但当前不支持的要求保留在全量分母中。
 
-### N5：Bangumi 外部 response 引用闭包
+### 2.3 分开四层 oracle
 
-**前置条件：** N3；N4 可以并行但不得互相覆盖 source bundle。
+1. 来源：版本/引用能够解析，不等于源文档符合真实服务。
+2. 请求：值与 wire 符合声明约束；负例违反指定约束，不自动推出服务必然返回 400/401/422。
+3. 响应：已提供 observation 是否符合声明的 status/media/body/header。没有 observation 时可导出条件校验器，但 observedExecution=not-run。
+4. 行为：状态转换、权限、业务语义和 status trigger 需要额外明确 oracle；本轮只在独立 loopback fixture 有该依据时测试。
 
-**文件：** 创建 `source-repair/bangumi-external-closure.json`、外部依赖缓存目录和必要的 source manifest。
+response ref 在 request-only 任务中可以是 advisory；在 response-conformance 任务中就是必需依赖。相同 ref 的严重性依任务义务派生，不能永久写 constructionObligation=false。
 
-- [ ] 从 19 个受影响 operation 的 reference list 读取 32 个外部 response refs；按 pinned URL/commit 获取外部 component，记录 HTTP 状态、内容类型、相对路径解析和版本。
-- [ ] 对每个 ref 运行 N3 closure checker，分类为 `resolved-external`、`advisory-unverified`、`source-blocked` 或 `invalid`。
-- [ ] 只有 request/parameter/security 构造依赖才进入 construction denominator；response-only ref 继续作为 source-validity 记录。
-- [ ] 若所有 ref 可解析，建立新的 source closure bundle 并只重跑 19 个 operation 的 source validation；若仍有不可得 ref，保留 advisory，不降低 checker 标准。
+### 2.4 引用和 schema 语义
 
-**验收：** 32 个引用逐项有状态；19 个 operation 的 advisory 数量有前后对照；没有把外部 response 成功解析写成 live API correctness。
+N3 图节点用 document URI + JSON pointer，边记录依赖任务/操作/角色。
+解析循环不等于缺失、不等于源无效：允许记录 recursive-resolved；构造无法在预算内找到有限 witness 时记 unresolved-budget，不声称无解。外部目标获取失败、pointer 缺失、dialect 不支持分别计数。
 
-### N6：clean-002 历史归档恢复或终止判定
+OAS3.0 Reference Object、OAS3.1 Schema $ref sibling/$id/$anchor 语义不能混用。采用版本分发与明确不支持结果；禁止全量展开循环图。网络获取在 acquisition 阶段缓存，离线编译/重放只用显式依赖清单，限制文件根目录、URL scheme、redirect、字节数与遍历预算。
 
-**前置条件：** N2；不得删除任何现有 worktree 或未跟踪材料。
+现有 api-schema-witness/api-schema-checker 已有受限 object/array/allOf/anyOf/oneOf/nullable 和有限搜索；先用实际 fixture 点验，不能因为旧 production v2 只支持 primitive，就重造全部能力或给新接口贴“完整 JSON Schema”标签。
 
-**文件：** 创建 `archive-recovery/clean-002-search.json`；若找到则创建 `clean-002-recovered.json`，否则创建 `clean-002-unrecoverable.json`；必要时修改 `api-tester-operation-delivery-report.ts` 的兼容读取和测试。
+## 3. 截止日交付、排期和失败路线
 
-- [ ] 只读搜索本地路径、所有 worktree、reflog、远端 refs、unreachable Git objects 和已归档压缩包：
+### 3.1 两项交付分别判定
 
-```text
-git reflog --all --date=iso
-git fsck --full --no-reflogs --unreachable
-git log --all --name-status -- results/skill-ir/api-tester-operation-dependency-verification-revision-clean-002/report.json
-git branch -a --contains <candidate-commit>
-```
+**工程最小交付 E（必须争取）：**
 
-- [ ] 用旧报告记载的路径和 expected SHA-256 做精确字节比较；发现同名但摘要不同的文件必须标为 `not-the-original`。
-- [ ] 若找到精确原件，保存发现位置、对象类型、提交和字节比较为 `recovered-exact`；若找不到，保存完整搜索范围和终止时间为 `historically-unrecoverable`。
-- [ ] 对 verifier 增加两个测试：历史原件缺失仍返回 `missing-unarchived-original`；当前新 clean archive 可以独立报告 `current-reproducible`，但不能覆盖旧字段。
+- 一个普通 TaskContract 输入入口，至少 request-json 和现有 pytest 后端可消费；无需研究目录才能工作。
+- 至少 3 个已核读、repository-distinct skill 职责能映射到同一合同；至少两种真实需求差异实际改变计划与产物。
+- 固定批次至少 6 份不同原始 API 合同、至少 3 个实际 API 提供方。聚合仓库不是提供方；复制、格式转换和同源修订不增加输入数。
+- 批次至少来自三个提供方的任务各产生非空完整产物；全量 operation/requirement 拒绝、未支持、未解决同时输出。另报受支持子集完成率，不伪装全类完成率。
+- 至少两个语义不同的独立 loopback fixture 真正运行 native tests；8 类预先设计的错误由指定层检出，正常对照通过。具体数量由 N5 计划锁定，不能都 skip。
+- 打包后的产物在干净目录由 Python/pytest 直接消费并输出 JUnit；仅 CLI 能输出“pass”不够。纯离线场景同时提供不需要网络/服务的请求与 observation 校验。
+- 构造/重放路径无模型调用；导入映射、下载、代理开发和原生 HTTP 调用分开计量。没有实际真人测量则人效不作结论。
 
-**验收：** 旧 expected digest 永远保留；不创建伪造 clean-002；当前工作可以在新 clean archive 上继续，不再被不可恢复的历史文件阻塞。
+**研究交付 R（独立，可失败）：**
 
-### N7：多维 readiness 派生器
+- 新输入验证与新 skill 需求迁移分开锁定、执行、计数。
+- 新成员目标 3 个 repository-distinct、每成员两个适用任务，且主批次合计至少 6 份独立原始合同、3 个提供方；两份相同文档复制给三人只算 2 unique inputs。
+- bounded-positive 最低要求：3 个有据可判定成员、至少 2/3 成员的两个任务均 taskComplete；全部 accepted artifact 的 checker 通过；固定全量必需义务 coverage ≥90%。未支持/未解决留分母。5 成员样本仍然只叫有界验证，不用 strong-positive 暗示普适性。
+- 来源不足为 insufficient-evidence；有适用任务但未达标为 bounded-negative；未运行另记 not-executed。原始 first-run 与后续修订永不合并。
 
-**前置条件：** N2、N4–N6 的 source/archive 状态至少有初步结果。
+E 与 R 不捆绑。R 失败不阻塞工程、对照和交付；E 未达标不能只凭归档完整宣称“最小交付完成”。
 
-**文件：** `src/skill-ir/skill-family-readiness.ts`、`src/skill-ir/skill-family-readiness.test.ts`。
+### 3.2 工作顺序与时间盒
 
-- [ ] 先写失败测试，固定以下类型和派生规则：
+建议净执行量约 18–26 小时，按实际进展调整，不等待凑时长。
 
-```ts
-type ReadinessSnapshot = {
-  methodReady: boolean;
-  sourceReady: "ready" | "partial" | "blocked";
-  inputReady: boolean;
-  capabilityReady: boolean;
-  transferReady: boolean;
-  reproducible: boolean;
-  prospectiveReady: boolean;
-  claimLevel: "development-only" | "prospective-ready" | "reported";
-};
-```
+| 优先级 | 任务 | 预算与落点 |
+|---|---|---|
+| P0 | N0 → N1 → N2 | 2–3 小时；确认需求与合同，不扩写分类大全 |
+| P0 | N3 → N5 → N8 → N10 | 9–12 小时；最先得到普通输入 → 包 → 原生执行 |
+| P0 | N7 → N9 → N11 → N12 | 4–6 小时；锁定方法，再取新输入/成员首跑 |
+| P1 | N13 | 1–2 小时；同 fixture/约束外部对照，与 R 是否成功无关 |
+| P0 | N14 → N15 | 1–2 小时；一次代码候选 clean replay 和交付 |
+| 支线 | N4 与 N6 | 合计最多 75 分钟；记录结果即可，不阻塞主线 |
 
-- [ ] `methodReady` 只由合同/映射/checker/accounting 完整性决定；`sourceReady` 由 N3–N5 的闭包决定；`inputReady` 由至少两个真实适用输入决定；`transferReady` 只能在新成员首跑后派生；`reproducible` 只表示当前报告可 clean replay；`prospectiveReady` 只有在 `methodReady=true`、`sourceReady=ready|partial`、有至少 3 个锁定 primary 和每个至少 2 个输入、selection/prediction lock 已写入且 protected-boundary 计数为零时才为 true。
-- [ ] 提供旧报告的只读适配器，不重写旧 `readiness` 字段。当前预期快照至少应能表达“method true、source partial/blocked、input false（新 prospective 未锁）、transfer false、历史 clean 可复现”。
-- [ ] 对缺少某层证据、source blocker、旧 clean-002 缺失和未写 prediction 的情形分别写断言。
+N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不依赖 N4；N7 不依赖 N4/N6；N13 可在 N10 后运行。
+依赖图固定为 N0→N1→N2；N3/N7←N2；N4←N3、N6←N2；N5←N2/N3；N8←N2/N3/N5；N10←N8；N9←N7/N10；N11←N9；N12←N11；N13←N10；N14←N9 与 N11/N12 的完成或明确未执行记录；N15←主任务终态及 N4/N6 的限时结论。N10 未达方法门时 N9/N11/N12 明确 not-executed，N14 用单列 engineeringCodeCommit 复现已有 E 产物，不能因此伪造 research candidate。
+2026-09-13 18:00 检查 E 的闭环；22:00 后不再启动新特性/新来源批次，只修当前破坏性问题并运行 N14/N15，力争 14 日零点前交付。
+若实际启动太晚，跳过扩样和可选能力，记录 deferred；不能用缩减分母假装已达 E/R。
 
-**验收：** 一个 boolean 不再遮蔽 source/input/transfer 差异；旧报告解析结果和新派生快照同时可读；`prospectiveReady=false` 时有明确的 `insufficient-evidence` 或 `blocked-before-evaluation` 落点。
+## 4. 文件职责与兼容策略
 
-### N8：按跨成员缺口更新共享方法
+优先复用实际已有文件：
+- src/skill-ir/api-skill-mapping.ts：loader、来源映射、多个真实 profile 分发。
+- src/skill-ir/skill-family-class-construction.ts：历史 class-proof 构造和 outcome，保持旧入口/历史行为。
+- src/skill-ir/api-schema-witness.ts、api-schema-checker.ts：已有组合 schema 与独立约束检查。
+- src/skill-ir/api-request-specimens.ts、api-request-body-negatives.ts 及各 checker；api-parameter-wire.ts、api-form-wire.ts。
+- src/skill-ir/api-response-observation.ts、api-response-headers.ts：响应 observation 和 header 检查。
+- src/skill-ir/api-pytest-suite.ts、api-pytest-suite-checker.ts、api-pytest-runtime.py、api-pytest-oracle.ts。
+- scripts/skill-ir/api-pytest-loopback.ts、api-pytest-wire-loopback.ts：已有独立 native loopback 验证。
+- src/skill-ir/api-tester-operation-source.ts、api-tester-operation-coverage.ts：枚举和投影依赖。
+- src/cli/artifact.ts：已有用户入口，增薄分发，不做 UI。
 
-**前置条件：** N2 gap matrix；至少一个缺口在两个独立成员出现，或 N3/N5 明确证明已有代码无需改动。
+计划新建（不存在时才创建，不复制已满足职责的模块）：
+- src/skill-ir/api-task-contract.ts 与 .test.ts：严格任务 schema、源定位及 mapping/v1 适配。
+- src/skill-ir/api-task-plan.ts 与 .test.ts：按任务产生义务/操作/case 计划。
+- src/skill-ir/api-task-run.ts 与 .test.ts：普通输入编排、包与结构化错误。
+- src/skill-ir/api-tester-source-closure.ts 与 .test.ts：任务相关引用图，带缓存注入。
+- src/skill-ir/skill-family-readiness.ts 与 .test.ts：新报告状态派生；不改旧布尔值。
+- scripts/skill-ir/skill-family-current-v2-prospective.ts 与 .test.ts：小型可恢复编排，禁止再复制巨大 class-proof 脚本。
+- docs/skill-ir/skill-family-current-v2-source-repair.md：实现后组件说明与实际复现命令。
+- results/skill-ir/skill-family-current-v2-source-repair-001/：本轮证据根，以下路径均相对这里。
 
-**文件：** 由 gap matrix 决定，优先 `api-tester-operation-source.ts`、`api-tester-production-contract-v2.ts`、对应 checker 和测试；不新建按仓库命名的 adapter。
+新 TaskContract/version 与历史 production v2 分开。v2 只是兼容 backend，不强迫 rich schema 通过旧 primitive binding。
+新 profile 用 oas30-offline-test/v1；不要修改旧锁来换通过。直接在 skill-ir-aot 开发/提交/推送 origin，不新开 feature branch。
 
-- [ ] 先为实际缺口写 RED 测试和最小 source fixture；测试至少包含一个合法输入、一个边界输入和一个被 checker 拒绝的错误输入。
-- [ ] 只实现跨成员共性能力，优先顺序为：外部引用闭包、嵌套/组合 schema witness、request/response/header/security 绑定、form/wire encoding。具体顺序以 N2 的出现次数排序，不提前承诺所有特性。
-- [ ] 如果语义仍在现有 v2 合同内，只更新实现和测试；只有支持范围发生兼容性变化时才登记 `v2.1`，并在组件文档写迁移规则。
-- [ ] checker 使用独立解析/约束判断；不得直接复用 generator 的取值函数作为唯一 oracle。加入 omission、duplicate、ref-target、security-body、constraint-loss fault tests。
-- [ ] 在至少两个不同成员的相同输入类型上运行前后对照，记录新增 coverage、无必要拒绝、checker failures、运行时间和代码改动量。
+## 5. 主队列 N0–N15
 
-**验收：** 至少两个独立成员得到真实适用实例，或有明确的 `no-code-change` 证据；不存在 repository-specific success branch；未修改旧结果。
+### N0：恢复与最小基线（P0，约 20 分钟）
 
-### N9：冻结当前 v2 候选与输入包
+- [ ] 读取当前规则、计划/状态和 Git 状态；记录实际 baseCommit、环境。运行一次既有 class-proof status。
+- [ ] 创建 execution-status.json、stage-manifest.json；新结果根为 skill-family-current-v2-source-repair-001。身份仅隔离证据，不等于新分支。
+- [ ] 创建最小 status/resume 编排入口及状态恢复测试；后续任务逐项接入，不在 N0 预先实现全部研究流程。
+- [ ] 状态分开工程/研究，记录每任务 dependencies、status、evidence、nextAction；维护任务可 completed-with-limitation，不能阻止 ready 的主任务。
+- [ ] 历史 0/6、Q1、held-out reserve、旧 candidate 和报告只读；不做全盘扫描或全量 benchmark。
+- [ ] 记录本审查公开网页曝光（见分析文档），正文或关键内容已可见者进入 development-exposed，不能进 body-unseen 主样本。
 
-**前置条件：** N7 `methodReady=true`；N4/N5 已给出 source 状态；N8 已提交或明确无代码变化。
+验收：恢复入口可定位首项未完成的可运行任务。缺少旧 clean-002 是已知事实，不是 N0 新失败。
 
-**文件：** 创建 `candidate/current-v2-candidate.json`、`candidate/source-selection.json`、`candidate/input-manifest.json`、`candidate/method-lock.json`。
+### N1：需求语料与独立输入来源（P0，最多 2 小时）
 
-- [ ] 以当前 `skill-ir-aot` HEAD 重新绑定候选；候选快照必须包含验证入口本身、package/lock、构造器、checker、source closure、readiness 派生器和组件文档，避免旧候选“入口晚加入”的问题。
-- [ ] 文件摘要只用于候选边界和 clean replay；中间派生数据使用 `path + byte length + semantic summary`，不重复生成多份等价 hash 报告。
-- [ ] 先锁定输入选择规则，再读取 development 正文；至少 3 个独立仓库成员、每个至少 2 个适用输入，另列 reserve。不得按 accepted 数量选择。
-- [ ] 写出逐行预测格式：成员资格、source closure、input applicability、预期 obligation disposition、预期 artifact/checker outcome 和失败类别。预测写入后才允许 construction。
+文件：corpus/source-ledger.json、corpus/duty-matrix.json、corpus/exposure-ledger.json。
 
-**验收：** 新 candidate 是当前提交自包含的；旧 candidate、旧输入和旧 prediction 字节无改动；`method-lock.json` 明确记录代码版本、合同版本、选择算法、一次修订政策和停止条件。
+- [ ] 优先复用已归档完整正文，再补 authenticated gh tree/contents/raw 获取；目标 12–20 正文、6 origins，完整记录实际 acquisition failures、缺依赖与许可证限制。许可证未知标 redistribution-review-needed，不自动等同技术输入不适用。
+- [ ] 每条职责记录原文、direct resource、输入槽、输出格式、覆盖要求、外部状态、类内不支持项；至少一个正例、一个反例、一个“属于类但当前不支持”。
+- [ ] 给 API 输入登记实际 provider、原始上游 URL、版本、是否 aggregator 镜像、是否已暴露。广泛接收用户给定合同的职责可绑定外部公共合同，显式写 shared-public-input，不冒充 skill 随附样例。
+- [ ] 目标另保留 5 个 metadata-only 候选，最低有 3 个可进入新成员面板；两个 reserve 是便利条件，不是人工增设执行门。不能为数量把搜索片段当完整正文。
+- [ ] Env/config 与静态审查仅作小型职责对照；公开文献说明需求存在，便利语料不估总体比例。
 
-### N10：更新后 development calibration 与 shadow
+验收：3 个已核实职责可用于 N2；若不足，工程仍可用 user-declared task 开发，但 skill-family 结论为 insufficient-evidence。
 
-**前置条件：** N9；只使用已暴露 development 成员，不读取新 protected 正文。
+### N2：任务合同与完整义务计划（P0）
 
-**文件：** 创建 `development/first-run.json`、`development/revision.json`、`development/coverage-matrix.json`。
+文件：api-task-contract、api-task-plan 及测试；baseline/gap-matrix.json。
 
-- [ ] 选择至少 3 个已有真实成员，每个运行两个锁定输入；同时跑旧 v2 baseline（若输入适用）和当前共享路径，分开记录，不把 baseline 当新样本。
-- [ ] 每行记录 extraction/mapping/source/construction/checker、义务覆盖、耗时、model/API/paid 调用和人工修改；未测人工分钟写 `not-measured`。
-- [ ] 若同一合同缺口在至少两个成员出现，只允许一次共享修订；保存首跑和修订原件，修订不能改变初始分母。
-- [ ] 运行 N7 readiness 派生器，确认 `capabilityReady` 与 `sourceReady` 不被 accepted 数量单独触发。
+- [ ] 按第 2 节写 schema 与 api-skill-mapping/v1 只读适配；每项 requirement 有 locator、scope、required 和输出要求，未知语义保留 unresolved。
+- [ ] 原 skill 不认识的必需要求仍在 source duty ledger 中保留原文和 unresolved 原因；提取出一个窄 slice 必须标注 parentScope/residualDuties，不能把 Drift/pytest 等原生输出要求静默改为 JSON。合同不合法与有效但当前不支持分开。
+- [ ] 加入第 2.2 节的六类 RED 测试，然后实现最小计划层并转绿。
+- [ ] 任务完成判定使用每个选定操作上的全部必需要求，不能沿用历史 deriveObligationOutcomes 的“有一个 constructed 就 accepted”作为新任务完成标准。
+- [ ] gap matrix 区分已实现未接入、正确性 bug、新增能力、外部 oracle 缺失；检查 api-schema-witness 和 pytest 模块，优先接通已有功能。
 
-**验收：** 至少 2/3 development 成员有非空、checker-pass 的适用产物，或机器报告明确为 `method-not-ready`/`insufficient-evidence`；所有失败都有层级原因。
+验收：同一 API 的两个不同 TaskContract 产生不同且可解释的计划；成员名称变化不改变计划。固定完整分母在构造前可列出。
 
-### N11：冻结新的 unseen prospective preparation
+### N3：任务相关 source closure（P0，最小够用实现）
 
-**前置条件：** N10 通过方法门；source/input/method lock 完整。
+文件：api-tester-source-closure 及测试；复用 operation-source/coverage。
 
-**文件：** 创建 `prospective/selection-lock.json`、`prospective/predictions.json`、`prospective/protocol.json`。
+- [ ] RED fixtures：missing local、有效外部 request/response、相对 URI、重复共享依赖、合法递归、非法循环展开、错误 pointer、OAS dialect/sibling 差异。
+- [ ] 返回 per-reference resolution、dependentRequirements、affectedOperations、acquisitionStatus、witnessStatus；source validity 与 witness constructibility 分离。
+- [ ] 外部依赖先取入 pinned manifest，再本地解析；被引用数据永不作为执行指令。资源限制固定并返回 resource-limit 原因。
+- [ ] request-only 下 unresolved response 可 advisory；response-conformance 下相同 ref 阻塞相应义务。未受影响操作继续。
+- [ ] 保留 origin URI 与 pointer；打包时不要因 flatten 丢失相对基址。复用 dependency fault 测试，不造第二套同义 checksum 管线。
 
-- [ ] 只用 metadata screening 选择新的、未在 N1/N2/N10 暴露过的 repository-distinct 成员；至少 3 个 primary、至少 2 个 reserve。筛选阶段不看 accepted/outcome，不写构造答案。
-- [ ] 锁定成员、输入发现顺序、适用性判定、预测字段、一次 revision policy、停止条件和 accounting schema；锁后才读取 primary 正文和直接资源。
-- [ ] 预测文件必须逐行绑定 `skillId/responsibilityId/inputId`，包含预期 source status 和 obligation disposition；无法定位的项写 `unresolved`，不自动批准。
-- [ ] 通过 readiness 派生器计算 `prospectiveReady`。若来源不足、输入不足或类边界失效，写 `insufficient-evidence` 并停止在 execution 前，不擅自换样本；随后跳过 N12/N13 的执行，生成 `prospective/not-executed-report.json`（包含缺失条件、已读计数、零 run 计数和恢复步骤），再进入 N14 的“未执行 clean/archive”分支和 N15 交接，不把队列留在半完成状态。
+验收：删掉真实依赖能报对应 requirement，合法递归可记录解析成功但构造 unresolved；不会全局通过或全局拒绝。
 
-**验收：** selection/prediction lock 的时间和代码版本早于任何 primary construction；`protectedBoundary` 显示没有运行记录；旧 Q1/held-out/readiness 不变。若候选池少于 3 个 primary 或 5 个未读候选，`prospectiveReady=false`，但 N11 仍以 `insufficient-evidence` 完成并交接。
+### N4：历史 source 修复（支线，最多 45 分钟）
 
-### N12：运行新的 prospective 成员
+文件：source-repair/meilisearch-resolution.json、bangumi-external-closure.json。
 
-**前置条件：** N11 `prospectiveReady=true`。
+- [ ] Meilisearch 只查旧记录对应上游版本/发布/维护者修订。明确权威新版本则新 source identity；找不到写 source-blocked-unresolved。
+- [ ] Bangumi 32 个 ref 记录获取/解析/依赖角色；最多一个缓存获取批次和一次合理重试，19 operation 的源状态可 partial。成功解析不等于 live API 正确。
+- [ ] 不改旧报告，不建立专用生产 patcher。若有原始权威文档直接使用它，人工拼接仅可标 derived development source。
+- [ ] 已知未修 source 只阻塞依赖任务，不阻止独立输入、N5/N7 或 prospective 锁定。
 
-**文件：** 创建 `prospective/first-run.json`、每行独立的 run directory、`prospective/final-report.json`。
+验收：两项各有可解释终态与未完成范围；无需“全部历史问题解决”。
 
-- [ ] 按锁定顺序运行每个 primary 的两个适用输入，一次首跑；不按成员名称写分支，不人工补 artifact，不静默替换输入。
-- [ ] 允许有目的的模型/远端 API/付费调用；保存 prompt、响应状态、token、费用或 `unknown`。相同请求使用缓存，不重复试到成功再只报成功。
-- [ ] 失败分类固定为 `source-blocked`、`unsupported-by-contract`、`input-not-applicable`、`constructor-error`、`checker-failure`、`infrastructure-failure`；一行失败不覆盖其他行。
-- [ ] 首跑后只允许一次预注册的共享修订；若没有两个成员共享的合同内缺口，写 `no-revision`，不为达标强行修代码。
+### N5：真实产物消费与独立故障闭环（P0）
 
-**验收：** 机器报告同时给出成员、职责、输入、operation、accepted artifact、checker、成本和失败分母；按 N2.2 判定结果等级；不写“迁移成功”除非满足预注册条件。
+文件：复用 api-pytest-suite/runtime/oracle、response-observation/header；integration/consumer-report.json。
 
-### N13：外部方法对照（离线或 mock）
+- [ ] 先跑已有 native loopback 与 wire 测试确认能用；错误才修，不再从零做 exporter。
+- [ ] 把 N2 的计划连到 request-json 和 pytest 后端；输出完整 suite data、Python runtime、依赖说明、任务与来源绑定。需要 response profile 时使用现有 observation checker。
+- [ ] 以两份独立编写且有明确语义的 loopback fixture 消费导出包。fixture 不调用 generator 的 witness 函数生成“期望答案”；fixture 身份和验证范围标明 synthetic。
+- [ ] 锁定 8 类 fault：遗漏必需 case、错误 operation、错误 ref 目标、query/form wire 破坏、请求约束破坏、response body 错误、response header 错误、无依据伪造 status assertion。前五由计划/静态/序列化检查，后面由 observation/runtime 或 oracle 边界检查检出。
+- [ ] 对照正常 fixture 通过；证明至少一个实际收到的 HTTP request 和 response 被 native runtime 验证，JUnit 中 executed/pass/fail/skip 分列。业务缺 oracle 可 skip，但不能计 completed。
+- [ ] 对普通 API 只给条件 response 检查，不猜 expected status。缺行为 oracle 必须以 observation/fixture 输入补足，不能为了避免 skip 写猜测。
 
-**前置条件：** N12 有至少一个适用输入；不能访问真实业务状态时使用本地 mock/server。
+验收：package 可在研究 runner 外执行；上述 fault 各由预定层检出；两种正常 fixture 有非零执行且通过。已有测试证明同一性质时直接复用结果。
 
-**文件：** 创建 `comparison/schemathesis-dredd-baseline.json`、`comparison/method-comparison.md`。
+### N6：历史归档缺口判定（支线，最多 30 分钟）
 
-- [ ] 在同一 OpenAPI 输入上运行 Schemathesis 或 Dredd 的离线/模拟模式，记录版本、命令、输入和输出；工具不可用时保存明确的 `not-runnable` 原因，不把文献描述当运行结果。
-- [ ] 比较维度限定为 operation discovery、输入生成、约束覆盖、失败定位和输出可核验性；不比较真实业务成功率。
-- [ ] 记录本项目共享方法需要的 skill-specific mapping 与外部工具的差异，明确哪些能力来自本项目 checker。
+文件：archive-recovery/clean-002-search.json。
 
-**验收：** 对照结果与本项目结果分开，不能用外部工具通过替代本项目 checker；形成一项方法边界说明或可复现差异。
+- [ ] 限定搜索旧精确路径、已知 worktree、Git 路径历史及已知归档；有线索才查相应 unreachable object。禁止整盘/所有远端无限枚举。
+- [ ] 找到 expected digest 原件记 recovered-exact；否则记 not-recovered-within-search-scope，并列搜索范围。有限搜索不能证明永远不可恢复，删除原版 historically-unrecoverable 绝对断言。
+- [ ] 新 current clean 是独立证据，历史缺档继续显示；不为这条旧记录修改历史 verifier。
 
-### N14：当前候选 clean replay 与归档
+验收：一次结果即可关闭该维护任务，后续除有新线索不再搜索。
 
-**前置条件：** N9–N13 已完成，或 N11 已产生 `not-executed-report.json`；tracked 改动无未说明项。
+### N7：非循环 readiness（P0，可在 N2 后实现）
 
-**文件：** 创建 `clean-replay/manifest.json`、`clean-replay/report.json` 和必要的复现手册。
+文件：skill-family-readiness 及测试。
 
-- [ ] 从最终提交建立短路径 detached checkout，离线安装固定依赖；若 N11 为 `insufficient-evidence`，只复现 N0–N11 的状态/合同文件，不运行不存在的 prospective rows：
+- [ ] 每个维度使用 ready/not-ready/not-assessed 加 reasons/evidence，避免未测试等同失败。
+- [ ] method：合同、计划、映射不确定性处理、checker 和错误路径可运行；capability：N10 实际 development evidence。
+- [ ] source/input 按 task/report scope 派生；无关历史 Meilisearch 不能使所有任务 false。
+- [ ] protocolReady：代码候选、抽样规则、评测与失败政策已锁；允许开始授权的正文/输入发现。
+- [ ] prospectiveReady：protocolReady + 选定任务 input/source 足够 + post-acquisition/pre-run 预测已锁；不要求 transfer 成功或结果报告已存在。
+- [ ] transfer 只在首跑后派生；reproducible 只依据当前代码/包的 replay。authorized-unseen-read 与 protected-read-violation 分开，合法读取不要求计数为零。
 
-```text
-git clone --no-checkout <local-repository> <clean-root>
-git -C <clean-root> checkout --detach <final-commit>
-bun install --frozen-lockfile --offline
-bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=clean-replay --out=<clean-report>
-```
+验收：测试“未读正文可 protocolReady”“有读取无运行可 prospectiveReady”“一个 blocked task 不拖垮其他任务”“尚未 transfer 为 not-assessed”；旧 readiness 只读。
 
-- [ ] 验证候选入口、source closure、selection/prediction lock、run totals、readiness snapshot 和 final report 的语义摘要；Windows checkout 明确记录 `core.autocrlf`，不把行尾差异误判成实现漂移。未执行分支验证 `not-executed-report.json` 的零 run 和 protected counters，而不是伪造 clean run。
-- [ ] 保留首次 clean 失败及原因；只修复有证据的归档闭包问题，不能放宽 checker 或删除失败记录。
+### N8：共享引擎整合与必要修复（P0）
 
-**验收：** 当前 identity 能在 clean checkout 中重放；历史 clean-002 缺档仍单独显示；clean replay 不增加真实样本、不访问 Q1/held-out、不改变 readiness。
+文件：api-task-run 及测试；薄接 src/cli/artifact.ts；必要时新 api-task-plan helpers。
 
-### N15：最终交接、提交与连续追加队列
+- [ ] 实现 TaskContract → plan → source closure → construct → independent check → bundle → consumer 的统一调用；不依赖旧 selection/identity/成功数量。
+- [ ] 接已有 form、组合 schema、负例、response 和 pytest profile。正确性 bug、计数漏项、输出误标即使一个实例也必须修。
+- [ ] “两个成员出现”只用于新特性优先级，不是 bug 修复许可。新增特性优先有两个独立需求实例且预计两小时内完成者；超时保留明确 unsupported。
+- [ ] 新增能力用新 support profile 记录，不静默改旧 production v2。保持旧函数签名/默认行为；新任务从新入口调度。
+- [ ] AOT 合同只保证编译后的核验/重放无模型；自然语言导入成本与审核来源单列。
+- [ ] 提供拟定用户命令（本轮实施后必须实测）：bun ./bin/skvm.js artifact task --task=task.json --out=out。已有 CLI 分发不适合时先提供等价 api-task-run.ts --task --out，并在 N15 记录唯一可用入口，不新造 UI。
 
-**前置条件：** N0–N14 状态均有机器记录。
+验收：无研究数据目录的临时目录能跑；requirement/operation/output 的变化影响实际内容；模型未调用；没有硬编码仓库成功分支。
 
-**文件：** 更新 `docs/skill-ir/skill-family-current-v2-source-repair.md`、`docs/skill-ir/deadline-execution-status.md`、`project_handoff.md`、`project_communication.md`、`conversation_log.md`。
+### N9：代码候选锁（P0，必须在 N10 修订结束后）
 
-- [ ] 写一页结果导航，先给类定义、独立 skill 数、输入/义务/accepted/checker 分母，再给 source blocker、归档状态、readiness 维度和剩余人工。
-- [ ] 写恢复命令和每项实际状态；明确 `verified`、`bounded-positive`、`source-blocked`、`historically-unrecoverable` 的含义。
-- [ ] 只暂存本计划涉及的文件，按功能提交并推送 `origin/skill-ir-aot`；不执行 `git add -A`，不删除历史未跟踪材料。
-- [ ] 执行一次必要验证：相关 focused tests、`bun run typecheck`、文档链接测试、`git diff --check`、当前/远端 HEAD 对齐。不要重复全仓历史审计。
-- [ ] 若用户没有停止，继续以下有明确产物的追加队列：
-  - A1：从 N12 共性失败实现第二轮共享修订，并用全新 development 输入验证；
-  - A2：补充 10–20 个不同 owner 的 skill 正文和反例，更新类边界而不修改既有分母；
-  - A3：对 native pytest/JUnit、OpenAPI 3.1、外部 response 和 form/wire 能力各选一个有输入的缺口做属性测试；
-  - A4：在可获得真人时做小规模 authoring/review 分钟对照；不可获得时保持 `not-measured`，不让模型模拟真人结论。
+文件：candidate/code-lock.json、candidate/support-matrix.json。
 
-**验收：** 当前分支推送、状态可恢复、报告可 clean replay；最终主张只使用 N2.2 的等级之一。N15 完成不等于“所有 skill 自动化”，但必须能回答“这一类哪些成员/职责/输入已经自动化、哪些仍需要人工、失败为何发生”。
+- [ ] N10 calibration 通过后锁当前 codeCommit，包含入口、runtime.py、checker、依赖和任务 schema；revision 1 “先冻结再 calibration 改方法”顺序作废。
+- [ ] 用一次清单绑定必要文件。Git blob bytes 作为源码归档依据，下载源保留 raw bytes；运行时若必须按 EOL 物化，应在 candidate 自带重建步骤中声明并测试。
+- [ ] 候选不包含引用自身提交 SHA 的可变文件。记录 codeCommit 与之后 evidenceCommit；验证谓词/依赖/运行文件改变才需要新候选或重放。
+- [ ] v2 legacy 与 rich-task backend 的支持分别列明，不用单个 v2 标签混称。
 
-## 6. 七个遗留问题的处理结果合同
+验收：候选提交确有执行/验证入口，依赖 closure 完整；冻结后到首跑结束核心方法不变。
 
-| 问题 | 本计划的处理 | 可接受终态 | 禁止的表述 |
-|---|---|---|---|
-| source correctness | N3 统一闭包 + N4/N5 权威来源核验 | `pass`、`partial` 或 `blocked`，逐引用有证据 | “checker 通过所以 source 正确” |
-| Meilisearch 缺失引用 | N4 查上游历史/发布定义，找到才建立新 source identity | `authoritative-recovered` 或 `source-blocked-unresolved` | 猜 `total` 的名字、位置或语义 |
-| Bangumi advisory | N5 逐项解析外部 response refs，分离 response advisory 与 construction obligation | 32 refs 有状态，19 operations 有前后对照 | 把 advisory 清零写成 live API 正确 |
-| clean-002 缺档 | N6 搜索对象和归档，找不到就终止为不可恢复并新建 current clean | `recovered-exact` 或 `historically-unrecoverable` | 复制新 clean 冒充旧原件 |
-| 旧 `0/6` | N2/N15 建立 bridge baseline；旧报告只读 | 历史 baseline + 新 identity 的独立结果 | 改写成新方法成功或失败 |
-| readiness | N7 拆成 method/source/input/capability/transfer/reproducible | 每个维度可独立派生 | 用一个 boolean 覆盖所有层 |
-| prospective boundary | N9–N12 新 identity、先锁选择和预测、再读取和运行 | `prospective-ready` 后有真实首跑，或 execution 前 `insufficient-evidence` | 复用旧输入、先看答案再写预测 |
+### N10：固定 development 面板与改进（P0，在 N9 前）
 
-## 7. 失败、重试、成本与安全策略
+文件：development/input-lock.json、task-contracts/、first-run.json、revision-001.json。
 
-### 7.1 网络和 GitHub
+- [ ] 在看输出前固定 6 份真实原始 API 合同、3 个 provider；至少 3 个成员需求映射，允许一份 API 比较不同需求，但 unique input 只计一次。
+- [ ] 为每份 source × task 构造前登记 operation/requirement 分母、预期支持与剩余 oracle；不能删去 unsupported 行。
+- [ ] 先 baseline 再当前任务引擎：分别测 taskComplete、必需义务覆盖、checker、native consumption、时间、重复构建时间/缓存和修改量。
+- [ ] 单次有据共享修订允许正常 TDD 多步开发；保留第一批运行结果。修订后同分母重算，不用修订次数限制拒绝修复明确 bug。
+- [ ] 至少两个真实需求变化测试通过，以及三个 provider 有 taskComplete 的非空任务，才准备 R；不满足先修工程或标 method-not-ready。
 
-- `403/429`：读取 rate limit/Retry-After，使用认证 `gh api` 或 raw commit URL；对同一请求最多一次有界退避，随后继续下一个候选。
-- 仓库没有 `SKILL.md`、许可证或直接资源：保留 partial bundle，标 `resource-closure-incomplete`，不从中构造正例。
-- GitHub search quota 耗尽：使用已取得仓库的 tree/contents、issue/release/history 做深读；不要把 search response 计作 skill body。
+验收：按第 3.1 E 条件报告可用程度，不靠“生成一个 case”通过。N10 完成后才进入 N9 冻结。
 
-### 7.2 模型、远端 API 和付费
+### N11：两阶段 prospective 预登记（P0，信息顺序修正）
 
-- 无响应或 billing 不返回：保存请求和状态，usage=`unknown`，继续确定性任务；不重复同一 prompt 直到出现好结果。
-- 付费调用无硬性人工金额上限，但每次必须对应 N1 类判定、N3/N4 source 归因、N10 对照或 N12 预测/构造；结果账本分开记录 `modelCalls/apiCalls/paidCalls`。
-- 不把开发代理 token 计入项目运行成本；若宿主不提供，写 `unmeasured`。
+文件：prospective/protocol.json、selection-lock.json、discovery.json、predictions.json。
 
-### 7.3 代码和 checker
+- [ ] T0：N9 后先锁代码、资格定义、候选顺序、来源查找顺序、最大筛选数量（默认 12）、替补理由、固定评测指标。metadata-only 信息只能给先验预测，不写虚构 requirementId。
+- [ ] 候选使用稳定顺序；新成员 repository 与 API provider 分别去重。被本次公开审查看到正文/关键内容的条目只作 development；uncertain exposure 不称 body-unseen。
+- [ ] T1：在已锁 protocol 下读取 primary 正文/依赖与 API 文档，记录 exposure，按冻结映射方法产生任务。只因无类职责/无声明输入/获取失败按规则替补，所有 screened 分母保留；不能因 constructor 拒绝/预计低通过率换人。
+- [ ] T2：解析并冻结具体 taskId/requirementId/inputId、完整原始输入、适用性与预测；此时可知道正文，但未运行 generator/checker outcome。模型辅助提取需保留 prompt/result 和 agent-reviewed 来源，不称完全自动语义编译。
+- [ ] T3：prospectiveReady 由 N7 在 T2 后决定。3 成员×2任务与输入多样性不足时新成员 R 可 insufficient-evidence；独立的新 API 输入面板仍可执行，称 new-input validation，不假冒 skill transfer。
+- [ ] 若方法或映射因 T1 新正文而修订，整批记录 development-exposed；不能继续称原冻结方法的未见验证。
 
-- 构造器失败：先判断是否合同内；合同外写 `unsupported-by-contract`，合同内才进入 N8 shared repair。
-- checker 失败：保留 artifact 和 checker report，只允许一次有证据的共享修订；不能删除失败行或放宽 predicate。
-- TypeScript 或 broad benchmark 出现历史兼容簇：按文件/测试隔离，修复本计划新代码，不把既有失败伪装成全仓绿色。
+验收：T0 < 首次允许读取，T2 < 首次 construction。没有“读不到正文→无法预测→不能读正文”的循环。
 
-### 7.4 最小必要边界
+### N12：首跑与完整失败分母（P0）
 
-只保留四类门：受保护输入隔离、历史证据不可覆盖、权威 source 修复判定、prospective 预测先锁。普通本地改动、确定性测试和可逆文档更新不增加人工 approval 或重复审计。
+文件：prospective/first-run/、first-run-report.json、follow-up-development/。
 
-## 8. Definition of Done
+- [ ] 使用 N9 方法和 T2 锁按顺序跑一次；分别报告 new-requirement、new-input、两者皆新，不把相同 API 重复运行算独立输入。
+- [ ] 按 operation/requirement/case 保存构造、静态检查、消费结果；成员完成要求两个适用 task 的必需项都完成。
+- [ ] 网络恢复不改变样本身份。基础设施失败最多一次原身份重试并保留首试；算法/检查失败保留为首跑失败，不 reroll。
+- [ ] 首跑全部关闭后可开发一次共享修订，在 follow-up-development 中跑原失败案例作回归。它不提高 first-run 分数；需要再次称 prospective 时另锁后续新批次。
+- [ ] 报告第一性结果：完整/不完整任务、每类失败数及成本。结果不足也继续 N13/N14/N15，不能让报表缺档代替实测。
 
-本计划达到最小交付的必要条件是：
+验收：按第 3.1 R 判定 bounded-positive/bounded-negative/insufficient-evidence；not-executed 有具体原因，且不冒充 E 已交付。
 
-- 一个独立于实现名称定义的 skill 类，有真实正例、反例和当前不支持成员；
-- 至少 3 个独立 development skill 共用同一声明式映射和共享构造/checker，且至少一个能力由两个成员的真实输入支持；
-- source closure 对 local/external/cyclic/missing refs 有独立结果，Meilisearch 与 Bangumi 的状态逐项可解释；
-- 当前候选包含自己的验证入口，能在 clean checkout 复现；旧 clean-002 的恢复/不可恢复结论与当前 clean 分开；
-- readiness 至少拆成 method/source/input/capability/transfer/reproducible；
-- readiness 同时派生 `prospectiveReady`，并能解释其为 false 的具体缺失条件；
-- 新 prospective 的 selection、prediction、first-run、revision、成本和失败分母齐全，或在 execution 前明确 `insufficient-evidence`；
-- 结果报告可以按 `skill → responsibility → input → operation → artifact/checker` 回溯；
-- 代码、测试、组件文档、状态、交接和 `origin/skill-ir-aot` 同步。
+### N13：外部方法与额外价值（P1，在 N10 后即可）
 
-即使满足上述条件，最终主张仍限于“有来源依据、可独立核验的该类职责切片”。只有在 N12 的预注册阈值实际达到时，才能写 `bounded-positive`；否则如实保留负结果或证据不足。
+文件：comparison/tool-baseline.json、comparison/added-value.md。
 
-## 9. 恢复命令
+- [ ] 首选 Schemathesis，固定实际安装版本、相同合同、同 loopback fixture、请求预算和 timeout；从实际 --help 确认选项，不套用旧文档命令。
+- [ ] 比较生成时间、唯一有效 case、操作/约束覆盖、指定 fault 检出、可复现产物和失败定位。随机 fuzz 与确定性 witness 不做未经控制的总量速度比较。
+- [ ] 最小有用差异：source duty → selected obligation → artifact → checker 的可追溯性、同 source 不同 task 输出差异、无需模型的重放和可解释 partial output；这些须实测，不能仅列功能名。
+- [ ] 不把“从 OpenAPI 生成测试”声称为新发明。Dredd OAS3 文档为 experimental；安装失败 30 分钟内落 not-runnable，不把它设门。
+- [ ] 若没有额外效果，写工程整合贡献；工具通过不替代本项目 checker，也不宣称优于所有测试工具。
 
-```text
-cd /d D:\skill优化\SkVM
+验收：至少一个可运行外部对照或明确失败记录；依研究进展不影响工程交付。
+
+### N14：一次代码候选 clean replay（P0）
+
+文件：clean-replay/report.json、复现命令（组件文档）。
+
+- [ ] 从 N9 实际 codeCommit 建短路径 detached 检出，固定依赖，重放一组完整包与当前批次；结果与失败语义保持。
+- [ ] 外部消费从包目录直接跑 Python/pytest；不允许仅调研究 verifier 返回汇总 pass。对账 attempted/executed/failed/skipped。
+- [ ] 首次失败留原件，针对实际归档/运行缺口修复一次并按变更说明是否新 code candidate；禁止放宽 oracle。
+- [ ] 后续 evidence/文档提交只核对 diff 和必要文件，不再为新 HEAD 新建 checkout。源码入口、运行依赖或 checker 变化才触发重放。
+- [ ] 若 R 未执行，仍重放 E 的真实产物，不能只重放零运行状态文件充当交付。
+
+验收：E 的产物可实际重建/消费，记录 codeCommit、包与依赖；不恢复或覆盖旧 clean-002。
+
+### N15：可用成果与恢复交付（P0）
+
+- [ ] 用一页结果说明回答：输入是什么、哪类任务完整实现、普通调用命令、真实 task/unique source/provider 分母、执行/skip、失败与改进、成本和人工边界。
+- [ ] engineeringDelivery 与 researchOutcome 分字段；阶段记录完整但 E 未达标时只能 completed-with-engineering-shortfall。
+- [ ] 更新组件、状态页、spec/plan 当前入口及根交接/通信/日志，保留历史链接不复制多套逐行报告。
+- [ ] 一次 relevant focused tests + typecheck + docs links + diff review，按白名单提交并推送 origin/skill-ir-aot；不清历史未跟踪材料。
+- [ ] 完成后按剩余时间做高价值 follow-up：修一个阻碍普通使用的 bug、补一个跨 provider 回归、明确错误消息。不无限增加候选/冻结/审计轮次。到用户叫停或截止交付窗口立即保留状态。
+
+验收：用户可拿一个 task.json 和 OpenAPI 文件得到有用产物；研究结论如实报告，执行目标完成与否依据 E/R 实际结果，不依据勾选数或墙钟时长。
+
+## 6. 保留的历史限制与新阶段终态
+
+| 历史项 | 本轮处置 | 是否全局阻塞 |
+|---|---|---|
+| Meilisearch missing total ref | 新源有权威证据才采用，否则对应任务 blocked | 否 |
+| Bangumi response refs | request-only advisory；response task 为按需依赖 | 否 |
+| clean-002 缺档 | 精确找回或限定搜索范围未找回 | 否 |
+| 旧文档 0/6 | 原文档级 baseline；不能与新 operation 分母混算 | 否 |
+| 旧 readiness/Q1 | 只读；新状态按任务与证据派生 | 否 |
+| 旧候选 CRLF/入口晚引入 | 新 code candidate 自包含；Git blob/物化规则明确 | 否 |
+| protected held-out/prospective | 历史 reserve 继续隔离，新批次按 T0–T3 合同读取 | 是，仅对应受保护操作 |
+
+## 7. 成本、验证与恢复
+
+网络与付费已获用户授权，无人为金额上限；请求必须有目的并留实际 usage，未知计费写 unknown。认证、缓存、Retry-After 和原身份有界重试可用；无响应保留，禁止只留成功。source requests、模型请求、付费请求、native loopback HTTP、真实业务 API、开发代理成本分别记录。
+
+普通 bug 修复用 RED → 最小改动 → GREEN → 相关回归。不得为了让日期达标掩盖 checksum/source/checker failure；也不把等价校验叠加为新门。新 compile/runtime 若不访问模型，方可报告该阶段 0 model calls；source 获取不叫“0 API”。
+
+运行时下一步：
+~~~powershell
+Set-Location 'D:\skill优化\SkVM'
 git switch skill-ir-aot
 git status --short --branch
+bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status
+~~~
+
+N0 创建的新编排器应支持下列命令；创建前不得宣称它们可运行：
+~~~powershell
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=resume
-```
+~~~
 
-`--step=resume` 必须读取本 identity 的 `execution-status.json`，从第一个未完成 N 项继续；已完成的网络/模型请求、历史报告和 protected input 不得重复读取。若新脚本尚未创建，先执行 N0–N2 的离线准备并把缺少入口记录为 `not-started`，不能假装 resume 已运行。
+resume 按第 3.2 节依赖与截止时间执行，复用已完成获取和验证，失败局限于依赖任务。N0–N15 的授权执行应由后续明确执行/持续目标承接，本次文档审查没有启动它们。

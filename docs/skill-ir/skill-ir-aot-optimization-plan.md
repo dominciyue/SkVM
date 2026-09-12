@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-09-11
+**最后更新：** 2026-09-12
 
-**当前执行入口：第 4.51 节。** 执行 D1–D9 skill family 深化与相关追加开发；实际结果见 [当前证据导航](skill-family-current-results.md)，中断恢复见 [唯一执行状态](deadline-execution-status.md)。历史4.45等 identity 的限定保留在对应历史范围，不代表当前只允许筹备；冻结v2、原0/6、held-out及readiness不改变。
+**当前执行入口：第 9 节。** [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，当前 planned-not-started。先闭合普通任务合同与原生消费，再验证新需求/新输入；历史维护独立限时。恢复见 [唯一执行状态](deadline-execution-status.md)，依据见 spec 第 14.28 节。D1–D9 等旧路线保持历史记录。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -2346,3 +2346,13 @@ git diff --check
 
 全量 suite 若命中历史 lock digest 漂移，必须单列为 frozen-history compatibility，不得修改旧 lock 来换绿；
 本阶段 focused test 与当前 HEAD integration regression 必须全绿。
+
+## 9. 当前截止前执行路线（2026-09-12，revision 2）
+
+执行 [N0–N15 修订任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，在 skill-ir-aot 开发，批次 identity 仅隔离证据。N0–N15 本轮未启动；旧版 3c37f7f 已由 revision 2 替代。
+
+优先级：N0/N1/N2 建需求与任务合同；N3/N5/N8/N10 连接现有 schema/request/form/response/pytest 实现并完成真实消费；N7/N9/N11/N12 派生 readiness、冻结代码后测试新输入与新成员；N13 外部对照在 N10 后即可运行；N14/N15 一次 clean 与交付。N4/N6 历史 source/归档维护合计最多 75 分钟，不在主依赖链。
+
+E 工程验收和 R 研究结论分开；不得只凭维护任务完成或零运行报告判最小交付达成。R 的首跑不能被后续修订提高；same-source 不重复计 unique input。先锁抽样/方法，再读合法新正文，再写具体预测，再执行。两个 reserve 为目标而非额外门。
+
+截止前重点交付有来源要求的 TaskContract、按要求变化的产物、真实原生执行和失败说明。正确性 bug 即使一个实例也修；新能力按跨成员需求和成本排序，复用已实现模块。2026-09-13 22:00 后停止新特性/来源批次，优先 N14/N15；不保证研究必定正向。状态绑定只记 codeCommit/evidenceCommit，不为每个文档提交重复归档。

@@ -151,13 +151,14 @@
 
 ## 2026-09-12 API Tester retry review closeout
 
-- The retry review was recorded on `skill-ir-aot`; the status-page synchronization commit is `075881d` and must be used as the current documentation HEAD.
+- The historical retry review was recorded in documentation commit `075881d`; the actual current HEAD must be read from Git rather than copied from this historical snapshot.
 - The branch remains aligned with `origin/skill-ir-aot`; no tracked implementation or frozen evidence changed. The next work item is preparation of a new current-v2 prospective identity, with selection and prediction locked before any unseen access.
 
 ## 2026-09-12 Current-v2 source repair and prospective plan
 
-- New execution plan: `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md`.
-- Plan status: `planned-not-started`; no new source body, unseen member, Q1/held-out input, candidate, prediction, or prospective run has been read or created by registering this plan.
-- Default class under test: `openapi-contract-to-offline-request-specimen`. The plan first compares this class with the Env/config and static-review alternatives, then requires an evidence-backed choice before implementation.
-- The queue N0-N15 addresses source closure, authoritative Meilisearch resolution, Bangumi external references, clean-002 recovery, multidimensional readiness, current-v2 candidate binding, development calibration, unseen prospective execution, clean replay and handoff. A failed source or input preflight produces a complete `insufficient-evidence` handoff instead of leaving the queue half-finished.
-- Execution remains on `skill-ir-aot`; the historical API Tester retry, old `0/6`, readiness fields, Q1/held-out and prospective records stay read-only.
+- Active plan: [source repair/prospective revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md); rationale: [plan review](skill-family-plan-review-20260912.md). Base reviewed at 3c37f7f; branch is skill-ir-aot.
+- State remains planned-not-started: no N0–N15 execution, candidate/prediction/selection or protected local reserve read. Public web research exposed the sources listed in the review; those cannot be called body-unseen.
+- Main scope: TaskContract → requirement-driven plan → existing shared construction/checkers → consumable request/pytest package. Engineering delivery and new-requirement/new-input outcomes are separate.
+- Schedule: N0/N1/N2, then N3/N5/N8/N10, then N7/N9/N11/N12; N13 can follow N10. N4/N6 are time-limited maintenance, not prerequisites. N14 performs one code-candidate clean replay and N15 delivers actual outcomes.
+- Protocol order: lock method/selection rules, acquire authorized bodies/inputs, lock concrete predictions, execute. Calibration precedes freeze. Required response refs are task-dependent; recursive resolution is not construction success.
+- Historical 0/6, old readiness/Q1/held-out and frozen records remain as recorded. Read current HEAD from Git at recovery; metadata-only commits do not trigger another clean replay.

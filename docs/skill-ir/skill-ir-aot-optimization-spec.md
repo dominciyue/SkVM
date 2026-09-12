@@ -1,8 +1,8 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-11
+**最后更新：** 2026-09-12
 
-**当前已确认路线：** 第14.26节 skill family 深化与D1–D9任务书；实际证据见 [当前结果导航](skill-family-current-results.md)。新development共享职责能力与历史v1/v2候选分开，保留首次失败与完整分母。第14.16等历史合同不被改写；原0/6、Q1、held-out、portfolio/readiness不因局部产物通过改变。代理审核声明式映射不是自动自然语言编译，源例子核验不是实际API行为验证。
+**当前已确认路线：** 第 14.28 节与 [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)。优先 TaskContract → 计划 → 现有共享构造/checker → 原生消费闭环，工程可用与新需求/新输入迁移分别验收。当前仅规划，N0–N15 未启动。D1–D9 与第 14.27 节为已归档阶段；历史 0/6、Q1、held-out、readiness 和冻结结果保持原事实。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -2271,3 +2271,15 @@ prediction 和 lock 提交前阻止运行。任何认证/请求策略改变须�
 该路线只增加一个纯函数 eligibility preflight 和一个可恢复编排入口，优先复用现有 obligation ledger、class construction、request/form/body/response checker。结果必须分别报告 `protocolReady`、`inputReady`、`capabilityReady` 和 `transferDecision`。`bounded-positive` 的最低条件是三个独立 primary 成员各有两个适用输入、核心义务覆盖不低于 90%、至少 2/3 首跑产生 accepted artifacts 且 checker 100% 通过；不足三名 input-qualified 时只能报告 `insufficient-evidence`。无论结果如何，都不得声称整 skill、所有未来成员、真实业务 API、人工节省或 production readiness。
 
 本 identity 可使用认证 GitHub CLI、远端 API 和付费模型；历史 identity 的请求/预算限制不追溯改变。外部失败按候选隔离、缓存和有限退避处理，队列继续执行不依赖该来源的工程任务；实际调用、token、费用未知项单列。达到 2026-09-14 时优先冻结当前最好可复核证据，不以 HTML、展示层或重复审计替代类内工程结果。
+
+### 14.28 合同任务引擎与实际消费（2026-09-12，revision 2）
+
+用户要求在 9 月 14 日前优先获得真正可用的同类 skill 自动化能力。经 [代码与公开资料审查](skill-family-plan-review-20260912.md)，新阶段采用 [修订任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)。上位类为结构化合同驱动的离线验证任务，本轮实现限 OpenAPI 3.0.x profile，不声称任意 JSON Schema、完整 skill 或所有未来成员自动化。
+
+TaskContract 明确 operation、覆盖义务、输出与 observation；ConstructionPlan 必须在构造前枚举完整分母，实际驱动已有 mapping/schema/request/form/negative/response/pytest 能力。taskComplete 要求全部适用必需项通过并正确导出；存在一个成功 artifact 不等于任务完成。原生 package 在研究 runner 外消费，executed/pass/fail/skip 分列，全部 skip 不满足工程验收。
+
+工程交付 E 与研究结果 R 独立。E 目标包括三个已核读职责来源、差异需求驱动、六份真实原始 API 合同/三个实际 provider、每个 provider 有非空完整任务、两个独立 native fixture 与预先设计的故障检出及一次 clean replay。R 单独度量新成员需求和新 API 输入；同文档跨成员复用只增加配对数。R 失败不阻断 E，但不能以完整归档代替 E 达标。
+
+冻结在 development calibration 修订完成后。先锁方法与抽样规则，再允许新正文/输入发现，再锁逐行具体预测，最后运行；新信息导致的方法修订降为 development follow-up。readiness 按任务/来源范围派生，区分 not-assessed 与失败，不以未知 transfer 或无关历史 blocker 阻止合法发现。response 依赖按任务决定是否必需；可解析递归不等于可构造有限 witness。
+
+历史 source 修复和 clean-002 检索限时处理，不阻塞无关输入。限定搜索未发现不等于证明永远无法恢复。代码候选与后续证据提交分开；仅文档/证据变更不重复 clean。2026-09-13 22:00 后优先修复和交付，不再开新特性/来源批次。本轮公开检索曝光仅为 development，记录于审查文档；没有执行 N0–N15 或读取本地保护 reserve。
