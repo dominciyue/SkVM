@@ -323,6 +323,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 **N9 失败门处理设计：** N10 method gate 已为 not-ready，N7 capability/protocol/prospective 也为 not-ready，因此禁止创建 candidate/code-lock、prospective protocol/source lock、具体预测或首跑。以 `prospective/not-executed-report.json` 绑定 N10 revision、N7 readiness 与代码提交，核对上述研究产物在提交中不存在，并一次把 N9/N11/N12 标为 not-executed；不把缺少候选伪装成 locked protocol。随后继续与研究资格无关的 N13、N4、N6 和 N14 engineering replay。
 
+**N9/N11/N12 实际终态：** 门控 code=`e6150a67ecf0f6a6a0f496739039153fcb1ff66b`；`prospective/not-executed-report.json` SHA-256=`77c612cd67460005f694e813d3418fdc3f6208905cd24a9f0bd5465f8a5da177`，严格重算及 write-once 重核均通过。N9/N11/N12 分别因 method gate、候选未冻结、协议与预测未锁而 `not-executed`；七个候选/研究产物均不存在，held-out/Q1/prospective 计数仍为 0。当前进入 N13，不把未运行写成 bounded-negative 或 transfer 结果。
+
 ### N10：固定 development 面板与改进（P0，在 N9 前）
 
 文件：development/input-lock.json、task-contracts/、first-run.json、revision-001.json。
@@ -371,6 +373,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 - [ ] 报告第一性结果：完整/不完整任务、每类失败数及成本。结果不足也继续 N13/N14/N15，不能让报表缺档代替实测。
 
 验收：按第 3.1 R 判定 bounded-positive/bounded-negative/insufficient-evidence；not-executed 有具体原因，且不冒充 E 已交付。
+
+实际结果见 N9/N11/N12 联合终态：本节未运行，无 prospective 样本、预测或首跑产物。
 
 ### N13：外部方法与额外价值（P1，在 N10 后即可）
 

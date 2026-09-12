@@ -141,7 +141,9 @@ protocolReady 只依赖代码候选、抽样规则、评测规则和失败政策
 
 ## N9/N11/N12 research gate
 
-当 N10 gate 未通过时，研究链不能靠空候选继续。`prospective/not-executed-report.json` 将绑定提交中的 N10 revision、N7 readiness 与执行状态，明确核对 candidate lock、prospective protocol/source lock、predictions 和 first-run 均不存在；报告不包含逐行预测或新样本身份。验证通过后 N9/N11/N12 同时记为 not-executed，并保留各自原因。该状态允许 N14 按 terminal 依赖只复现 engineering code，不把 clean replay 称为 research candidate。
+当 N10 gate 未通过时，研究链不能靠空候选继续。`prospective/not-executed-report.json` 绑定提交中的 N10 revision、N7 readiness 与执行状态，明确核对 candidate lock、prospective protocol/source lock、predictions 和 first-run 均不存在；报告不包含逐行预测或新样本身份。
+
+实际 code commit=`e6150a67ecf0f6a6a0f496739039153fcb1ff66b`；write-once 报告 SHA-256=`77c612cd67460005f694e813d3418fdc3f6208905cd24a9f0bd5465f8a5da177`、3,894 bytes，严格重算通过，换时间戳重跑只核验原件且摘要不变。N9=`not-executed:n10-method-gate-not-ready`，N11=`not-executed:candidate-freeze-not-executed`，N12=`not-executed:protocol-and-predictions-not-locked`。所有七个禁止研究产物在绑定提交中均不存在，protected 计数仍为零。该状态允许 N14 按 terminal 依赖只复现 engineering code，不把 clean replay 称为 research candidate；当前恢复阶段为 N13。
 
 ## 实施与验证
 
