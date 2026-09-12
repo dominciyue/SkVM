@@ -116,6 +116,10 @@ bun ./bin/skvm.js artifact task --binding=run-binding.json
 
 锁的生成和独立核验不运行 constructor、baseline 或 native consumer。文件使用 exclusive create；task/source 字节变化、操作全集变化、权威账本漂移、task 分母漂移和静态正例与凭据/引用矛盾都会 fail closed。当前下一步是在锁提交推送后依次保存 source-only baseline、当前 engine first-run；发现共享正确性缺陷时另写 `revision-001.json`，不得覆盖首轮。
 
+锁提交 `26b4566f575b886f8104d7c209b7f03a7cdbeed6` 推送后，`--step=n10-baseline` 运行 source-only 共享组件并写入 exclusive `development/baseline.json`（SHA-256=`db064d8a8bdc1eab6b0f4a9a6ed4f1f16f51d92fc430316d4e1c819a0dfc9d34`，37,888 bytes）。六份来源的 specimen/body-negative checker 全通过，Zapier Embed 额外编译并核验 pytest suite；首次/重复构建语义摘要逐来源相同，未声明或命中 cache。
+
+基线在固定 18 个必需 task obligation 中只报告 13 个 source construction potential；由于没有 requirement binding、task package checker 或 task-selected consumer，checked-bound=`0`、taskComplete=`0/9`、native=`0`。潜在构造不能计为任务成功；Visier 表单负例与其他未覆盖项只作为首轮待观察缺口，不在 current first-run 前修改实现。
+
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。
