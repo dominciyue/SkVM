@@ -155,6 +155,8 @@ N13 外部对照复用 N5 两个合成源和同一手写 loopback predicate。Sc
 
 首次正式运行保留为不可变失败现场：`comparison/schemathesis-report.json`=`669404a6...`，五个单元均因同时传入互斥的 deterministic 与 database 选项在发请求前退出，实际 loopback=0。该结果只证明 harness 参数冲突，不能评价 Schemathesis。修复只删除冗余 `--generation-database=none`，revision-001 另目录运行，其余输入、预算、seed、timeout、checks 和 fixture 不变。
 
+revision-001=`44246c37...` 又暴露 Windows GBK/Rich `✅` 输出异常，仍为 0 request；原件独立保留。revision-002 仅为 Schemathesis 子进程设置 UTF-8 I/O 环境，防止控制台渲染在执行前中止，不改变生成、检查或服务器行为。
+
 N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。N0 的聚焦测试命令为：
 
 ~~~powershell
