@@ -15,6 +15,12 @@ import {
   writeN10FirstRunFromDevelopmentPanel,
   type N10DevelopmentLock,
 } from "../../src/skill-ir/skill-family-current-v2-n10";
+import {
+  buildN10RevisionDecision,
+  verifyN10RevisionDecision,
+  writeN10RevisionDecision,
+  type N10RevisionReport,
+} from "../../src/skill-ir/skill-family-current-v2-n10-revision";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -958,6 +964,85 @@ export async function runN10FirstRunStage(root: string, executedAt = new Date().
   };
 }
 
+export async function runN10RevisionStage(root: string, evaluatedAt = new Date().toISOString()) {
+  const state = await readStageState(root);
+  const developmentRelative = `${CURRENT_V2_RESULT_RELATIVE}/development`;
+  const developmentDirectory = join(root, developmentRelative);
+  const revisionRelative = `${developmentRelative}/revision-001.json`;
+  if (!["running", "completed", "completed-with-limitation"].includes(state.status.tasks.N10.status)) {
+    fail(`N10 revision cannot run while N10 is ${state.status.tasks.N10.status}`);
+  }
+  const firstRunBinding = await requirePushedImmutableFile(root, `${developmentRelative}/first-run.json`);
+  let report: N10RevisionReport;
+  let built: Awaited<ReturnType<typeof writeN10RevisionDecision>> | null = null;
+  try {
+    report = JSON.parse(await readFile(join(root, revisionRelative), "utf8")) as N10RevisionReport;
+    const mergeBase = new TextDecoder().decode(await gitBytes(root, [
+      "merge-base", report.revisionCodeCommit, firstRunBinding.head,
+    ])).trim();
+    if (mergeBase !== report.revisionCodeCommit) fail("persisted N10 revision code commit is not an ancestor of pushed HEAD");
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("invalid current-v2 stage: persisted N10")) throw error;
+    const analysis = await buildN10RevisionDecision({
+      repositoryRoot: root,
+      developmentDirectory,
+      revisionCodeCommit: firstRunBinding.head,
+      evaluatedAt,
+    });
+    if (analysis.decision === "shared-revision-required") {
+      fail("N10 revision analysis found an unclassified shared implementation defect; repair it before writing revision-001");
+    }
+    built = await writeN10RevisionDecision({
+      repositoryRoot: root,
+      developmentDirectory,
+      revisionCodeCommit: firstRunBinding.head,
+      evaluatedAt,
+    });
+    report = built.report;
+  }
+  const verification = await verifyN10RevisionDecision({ repositoryRoot: root, developmentDirectory, report });
+  if (verification.status !== "pass") fail(`N10 revision verification failed: ${verification.errors.join("; ")}`);
+
+  if (["completed", "completed-with-limitation"].includes(state.status.tasks.N10.status)) {
+    const bytes = await readFile(join(root, revisionRelative));
+    return {
+      taskId: "N10" as const,
+      outcome: "revision-verified-existing" as const,
+      file: { path: revisionRelative, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+      decision: report.decision,
+      verification,
+      view: state.view,
+    };
+  }
+
+  const completedAt = new Date().toISOString();
+  const limitation = report.decision === "no-safe-shared-revision";
+  const status = completeTask(state.manifest, state.status, "N10", {
+    completedAt,
+    evidence: [...new Set([...state.status.tasks.N10.evidence, revisionRelative])],
+    nextAction: "N7: derive non-circular readiness from task/source scope; research candidate work remains ineligible while the N10 method gate is not ready",
+    outcome: limitation ? "completed-with-limitation" : "completed",
+    issues: limitation ? [
+      "N10 method gate remains method-not-ready: only one of two demand-change relations passed",
+      "Visier form minimal and constraint-negative obligations are outside the bound nonempty-form and JSON-body-negative contracts; no unresolved row was promoted",
+    ] : [],
+    commit: report.revisionCodeCommit,
+  });
+  status.commits.codeCommit = report.revisionCodeCommit;
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  const bytes = await readFile(join(root, revisionRelative));
+  return {
+    taskId: "N10" as const,
+    outcome: limitation ? "completed-with-limitation" as const : "completed" as const,
+    file: { path: revisionRelative, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+    decision: report.decision,
+    rootCauses: report.rootCauses,
+    verification,
+    view: deriveStageView(state.manifest, status),
+    created: built !== null,
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -978,5 +1063,8 @@ if (import.meta.main) {
   } else if (step === "n10-first-run") {
     const executedAt = process.argv.find((argument) => argument.startsWith("--executed-at="))?.slice("--executed-at=".length);
     console.log(JSON.stringify(await runN10FirstRunStage(process.cwd(), executedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>]");
+  } else if (step === "n10-revision") {
+    const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
+    console.log(JSON.stringify(await runN10RevisionStage(process.cwd(), evaluatedAt), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
 }

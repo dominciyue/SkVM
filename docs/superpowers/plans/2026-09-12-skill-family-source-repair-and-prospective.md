@@ -339,6 +339,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 **N10 first-run 实际检查点：** 无重跑聚合修复提交 `4a1f492a8d620a79646188fb1edb47ac72fdada9` 推送后，从九个原 package 恢复并严格核验 `development/first-run.json`（SHA-256=`5590552d6de8fb1e9bc8cbdf8e3eb7304887cc0e7727655e780e1ba35531a63b`）。固定分母为 6 inputs/3 providers/47 operations/9 tasks/18 required obligations；4 tasks complete，8 required checked-exported、10 unresolved，9/9 packages pass，三个 provider 均有非空完整任务。预期匹配 7/9、需求变化 1/2；两项 Visier Authentication 行暴露 form minimal 与 constraint-negative 缺口，因此门为 `method-not-ready`。首轮先独立提交，随后只允许在同一锁与分母上另写 revision-001。
 
+**N10 revision-001 设计：** 根因复现表明两个缺口均是已声明合同边界而非随机实现失败：`api-request-form-specimens/v1` 只接纳非空扁平字符串对象，而 source-valid minimal witness 为 `{}`；`api-request-body-negatives/v1` 只构造 JSON body，且 Visier 的 form 类型负例在文本序列化后无法证明仍违反源 schema。不得为满足预期而放宽 checker、把 `null` 猜成表单类型错误或改变锁。新增机器决策报告须绑定 input-lock/baseline/first-run、两份组件合同及实现摘要，从原 source/task 重新构造失败证据；若所有不匹配均落在这些显式边界，记录 `no-safe-shared-revision`、保持同分母 `method-not-ready`，并将 N10 标为 `completed-with-limitation`。若重算发现合同内实现错误则 fail closed，不能用本结论跳过修复。
+
 ### N11：两阶段 prospective 预登记（P0，信息顺序修正）
 
 文件：prospective/protocol.json、selection-lock.json、discovery.json、predictions.json。

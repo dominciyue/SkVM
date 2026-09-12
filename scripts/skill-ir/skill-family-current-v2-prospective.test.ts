@@ -10,6 +10,7 @@ import {
   completeTask,
   deriveStageView,
   readStageState,
+  runN10RevisionStage,
   selectNextRunnableTask,
   validateStageState,
 } from "./skill-family-current-v2-prospective";
@@ -35,6 +36,10 @@ function fixtures() {
 }
 
 describe("current-v2 stage orchestration", () => {
+  test("exposes the N10 revision decision as a first-class resumable stage", () => {
+    expect(runN10RevisionStage).toBeFunction();
+  });
+
   test("records the complete N0-N15 graph and resumes at N1 after N0", () => {
     const { manifest, status } = fixtures();
     expect(manifest.identity).toBe(CURRENT_V2_IDENTITY);

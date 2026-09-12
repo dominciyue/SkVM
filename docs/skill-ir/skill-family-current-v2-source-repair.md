@@ -59,6 +59,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n3
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n5 --python=D:\anaconda\python.exe
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n8
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-lock --locked-at=<ISO>
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-revision --evaluated-at=<ISO>
 ~~~
 
 当前 `status`/`resume` 均定位运行中的 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。`--step=n10-lock` 在锁已存在时只重核摘要，不覆盖。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
@@ -123,6 +124,8 @@ bun ./bin/skvm.js artifact task --binding=run-binding.json
 Current first-run 的九个 task 与九次预登记 repeat build 已在 engine commit `76ce3e40ce0f819d444e4a0fae911cd0095a56e1` 执行并逐行 exclusive 保存。汇总器曾因把 artifact 合同的 `completion.required` 误写为 `completion.counts` 而抛错；`first-run-aggregation-failure-001.json` 保留该现场。修复提交 `4a1f492a8d620a79646188fb1edb47ac72fdada9` 只从摘要绑定的原 package 恢复汇总字段，没有重写 row 或重跑 task。
 
 恢复后的 `development/first-run.json`（SHA-256=`5590552d6de8fb1e9bc8cbdf8e3eb7304887cc0e7727655e780e1ba35531a63b`，112,047 bytes）通过严格核验：6 inputs、3 providers、47 operations、9 tasks、18 required obligations；9/9 package checks 通过，8 项 required obligation 为 checked-exported，10 项 unresolved，4/9 tasks complete，三个 provider 均至少一个非空完整任务。两项预期结果不匹配，两个预登记需求变化关系只通过一个，因此门为 `method-not-ready`。不匹配均来自 Visier Authentication：空 form minimal 报 `form field count unsupported`，constraint-negative 没有构造出源约束。首轮原件先归档提交；随后只对该共享正确性/能力边界做根因分析和 TDD 修订，同分母另写 `revision-001.json`。
+
+根因决策入口将独立写 `development/revision-001.json`。它先严格重核 lock/baseline/first-run，再从锁定 source 与 task 重建 form specimens、body-negative fields/wires 和未完成 obligation；同时绑定 `api-request-form-specimens-development.md`、`api-request-body-negatives-development.md` 及对应实现文件摘要。只有当每个 expected-positive mismatch 都能由已声明的非空 form 或 JSON-only negative 边界解释、分母与首轮完全相同且没有合同内 implementation failure 时，才允许输出 `no-safe-shared-revision`。该结论不把失败变为通过，只把 N10 以 limitation 终结；任何无法归类的缺口都使 verifier 失败并要求继续修复。
 
 ## 实施与验证
 
