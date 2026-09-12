@@ -2,6 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import { writeN1CorpusFromRepository } from "../../src/skill-ir/skill-family-current-v2-corpus";
 import { writeN2GapMatrixFromRepository } from "../../src/skill-ir/skill-family-current-v2-n2";
+import { writeN3SourceClosureReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n3";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -606,11 +607,46 @@ export async function runN2TaskContractStage(root: string) {
   };
 }
 
+export async function runN3SourceClosureStage(root: string) {
+  const state = await readStageState(root);
+  const current = selectNextRunnableTask(state.manifest, state.status);
+  if (current !== "N3" && state.status.tasks.N3.status !== "completed") {
+    fail(`N3 cannot run while current task is ${current ?? "none"}`);
+  }
+  const built = await writeN3SourceClosureReportFromRepository(root);
+  if (built.report.decision !== "passed") fail("N3 source closure evidence did not satisfy its registered relations");
+  if (state.status.tasks.N3.status === "completed") {
+    return { taskId: "N3" as const, outcome: "verified-existing" as const, file: built.file, view: state.view };
+  }
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N3", {
+    completedAt,
+    evidence: [
+      built.file.path,
+      "src/skill-ir/api-tester-source-closure.ts",
+      "src/skill-ir/api-tester-source-closure.test.ts",
+      "src/skill-ir/skill-family-current-v2-n3.ts",
+      "src/skill-ir/skill-family-current-v2-n3.test.ts",
+    ],
+    nextAction: "N5: connect TaskContract plans to request-json and pytest packages, run two independent loopback consumers, and verify eight fault layers",
+  });
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N3" as const,
+    outcome: "completed" as const,
+    file: built.file,
+    realSummary: built.report.realSummary,
+    syntheticSummary: built.report.syntheticSummary,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
   else if (step === "resume") console.log(JSON.stringify(await resumeStage(process.cwd()), null, 2));
   else if (step === "n1") console.log(JSON.stringify(await runN1CorpusStage(process.cwd()), null, 2));
   else if (step === "n2") console.log(JSON.stringify(await runN2TaskContractStage(process.cwd()), null, 2));
-  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2");
+  else if (step === "n3") console.log(JSON.stringify(await runN3SourceClosureStage(process.cwd()), null, 2));
+  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3");
 }
