@@ -12,6 +12,7 @@ import {
   readStageState,
   runN7ReadinessStage,
   runN10RevisionStage,
+  runResearchGateStage,
   selectNextRunnableTask,
   validateStageState,
 } from "./skill-family-current-v2-prospective";
@@ -43,6 +44,10 @@ describe("current-v2 stage orchestration", () => {
 
   test("exposes N7 task-scoped readiness without mutating historical readiness", () => {
     expect(runN7ReadinessStage).toBeFunction();
+  });
+
+  test("exposes a research gate that can terminate N9, N11, and N12 without execution", () => {
+    expect(runResearchGateStage).toBeFunction();
   });
 
   test("records the complete N0-N15 graph and resumes at N1 after N0", () => {

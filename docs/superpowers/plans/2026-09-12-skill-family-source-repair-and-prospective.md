@@ -321,6 +321,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 验收：候选提交确有执行/验证入口，依赖 closure 完整；冻结后到首跑结束核心方法不变。
 
+**N9 失败门处理设计：** N10 method gate 已为 not-ready，N7 capability/protocol/prospective 也为 not-ready，因此禁止创建 candidate/code-lock、prospective protocol/source lock、具体预测或首跑。以 `prospective/not-executed-report.json` 绑定 N10 revision、N7 readiness 与代码提交，核对上述研究产物在提交中不存在，并一次把 N9/N11/N12 标为 not-executed；不把缺少候选伪装成 locked protocol。随后继续与研究资格无关的 N13、N4、N6 和 N14 engineering replay。
+
 ### N10：固定 development 面板与改进（P0，在 N9 前）
 
 文件：development/input-lock.json、task-contracts/、first-run.json、revision-001.json。

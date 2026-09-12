@@ -57,9 +57,11 @@ test("readiness is non-circular across protocol, acquisition, task failures, and
 
 test("current N7 report keeps method, capability, protocol, transfer, and replay evidence separate", async () => {
   const repositoryRoot = resolve(import.meta.dir, "../..");
-  const process = Bun.spawn(["git", "rev-parse", "HEAD"], { cwd: repositoryRoot, stdout: "pipe", stderr: "pipe" });
-  const codeCommit = (await new Response(process.stdout).text()).trim();
-  expect(await process.exited).toBe(0);
+  const archived = await Bun.file(resolve(
+    repositoryRoot,
+    "results/skill-ir/skill-family-current-v2-source-repair-001/readiness/report.json",
+  )).json();
+  const codeCommit = archived.codeCommit as string;
   const report = await buildCurrentV2ReadinessReport({
     repositoryRoot,
     codeCommit,

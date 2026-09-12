@@ -26,6 +26,11 @@ import {
   writeCurrentV2ReadinessReport,
   type CurrentV2ReadinessReport,
 } from "../../src/skill-ir/skill-family-current-v2-readiness";
+import {
+  verifyCurrentV2ResearchNotExecutedReport,
+  writeCurrentV2ResearchNotExecutedReport,
+  type CurrentV2ResearchNotExecutedReport,
+} from "../../src/skill-ir/skill-family-current-v2-research-gate";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -1098,6 +1103,62 @@ export async function runN7ReadinessStage(root: string, evaluatedAt = new Date()
   };
 }
 
+export async function runResearchGateStage(root: string, evaluatedAt = new Date().toISOString()) {
+  const state = await readStageState(root);
+  const reportRelative = `${CURRENT_V2_RESULT_RELATIVE}/prospective/not-executed-report.json`;
+  const researchTaskIds = ["N9", "N11", "N12"] as const;
+  if (researchTaskIds.every((taskId) => state.status.tasks[taskId].status === "not-executed")) {
+    const bytes = await readFile(join(root, reportRelative));
+    const report = JSON.parse(bytes.toString("utf8")) as CurrentV2ResearchNotExecutedReport;
+    const verification = await verifyCurrentV2ResearchNotExecutedReport({ repositoryRoot: root, report });
+    if (verification.status !== "pass") fail(`research gate verification failed: ${verification.errors.join("; ")}`);
+    return {
+      taskId: "N9/N11/N12" as const,
+      outcome: "verified-existing" as const,
+      file: { path: reportRelative, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+      verification,
+      view: state.view,
+    };
+  }
+  if (selectNextRunnableTask(state.manifest, state.status) !== "N9") fail("research gate requires N9 as the current runnable task");
+  const readinessBinding = await requirePushedImmutableFile(root, `${CURRENT_V2_RESULT_RELATIVE}/readiness/report.json`);
+  const built = await writeCurrentV2ResearchNotExecutedReport({
+    repositoryRoot: root,
+    codeCommit: readinessBinding.head,
+    evaluatedAt,
+  });
+  const verification = await verifyCurrentV2ResearchNotExecutedReport({ repositoryRoot: root, report: built.report });
+  if (verification.status !== "pass") fail(`research gate verification failed: ${verification.errors.join("; ")}`);
+  const completedAt = new Date().toISOString();
+  const status = structuredClone(state.status);
+  for (const row of built.report.tasks) {
+    status.tasks[row.taskId] = {
+      status: "not-executed",
+      commit: readinessBinding.head,
+      evidence: [built.file.path],
+      issues: [row.reason],
+      startedAt: null,
+      completedAt,
+    };
+  }
+  status.updatedAt = completedAt;
+  status.nextAction = "N13: run the bounded external Schemathesis comparison on development/synthetic inputs without changing SkVM evidence";
+  status.commits.codeCommit = readinessBinding.head;
+  status.currentStage = selectNextRunnableTask(state.manifest, status);
+  status.overallStatus = "active";
+  validateStageState(state.manifest, status);
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N9/N11/N12" as const,
+    outcome: "not-executed" as const,
+    file: built.file,
+    decision: built.report.decision,
+    tasks: built.report.tasks,
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -1124,5 +1185,8 @@ if (import.meta.main) {
   } else if (step === "n7") {
     const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
     console.log(JSON.stringify(await runN7ReadinessStage(process.cwd(), evaluatedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7 [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
+  } else if (step === "n9-gate") {
+    const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
+    console.log(JSON.stringify(await runResearchGateStage(process.cwd(), evaluatedAt), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
 }

@@ -61,6 +61,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n8
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-lock --locked-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-revision --evaluated-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n7 --evaluated-at=<ISO>
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n9-gate --evaluated-at=<ISO>
 ~~~
 
 当前 `status`/`resume` 均定位运行中的 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。`--step=n10-lock` 在锁已存在时只重核摘要，不覆盖。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
@@ -137,6 +138,10 @@ Current first-run 的九个 task 与九次预登记 repeat build 已在 engine c
 protocolReady 只依赖代码候选、抽样规则、评测规则和失败政策是否已锁，不要求未见正文已读；prospectiveReady 再要求授权、选定 source/input 足够、post-acquisition prediction 已锁且无 protected violation，不要求 transfer 结果或首跑报告。transfer 在零 prospective run 时必须是 not-assessed；reproducible 只依据当前普通入口、bundle replay 和原生 fixture，clean checkout 留给 N14。报告绑定 N7 code commit 中的执行状态快照，避免可变 status 自引用。
 
 实际 `readiness/report.json`（SHA-256=`80dc732c33350764dc0db590eb7aa534d628b9ddceff968d168f1c9af8d381`，14,851 bytes）严格重算通过。method/sourceInput/reproducible/authorizedUnseenRead/protectedIsolation=`ready`；capability/protocol/prospective=`not-ready`；transfer=`not-assessed`。九个固定 task 的 source/input 均 ready，capability 为 4 ready、5 not-ready。总决策 `engineering-ready-research-not-ready`；它不改历史 readiness，也不授权绕过 N9/N11 锁序。
+
+## N9/N11/N12 research gate
+
+当 N10 gate 未通过时，研究链不能靠空候选继续。`prospective/not-executed-report.json` 将绑定提交中的 N10 revision、N7 readiness 与执行状态，明确核对 candidate lock、prospective protocol/source lock、predictions 和 first-run 均不存在；报告不包含逐行预测或新样本身份。验证通过后 N9/N11/N12 同时记为 not-executed，并保留各自原因。该状态允许 N14 按 terminal 依赖只复现 engineering code，不把 clean replay 称为 research candidate。
 
 ## 实施与验证
 
