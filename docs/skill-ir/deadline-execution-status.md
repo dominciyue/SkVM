@@ -1,8 +1,8 @@
 # API 合同任务引擎：唯一执行恢复状态
 
 - 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2。
-- N0/N1 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1 实现/证据=`bfbc4c885efaa11ae27aaddd380dbb75cf59fe50`。12 正文/6 origins/42 resources、498 duties、5 个 metadata-only 候选及 12 API 文档/6 providers 已绑定。
-- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；下一动作是 N2 TaskContract 与构造前完整 obligation plan，输出 `baseline/gap-matrix.json`。
+- N0–N2 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c885efaa11ae27aaddd380dbb75cf59fe50`，N2=`9ae5f59f4003daea5d32fd09e6701bf084eb8e35`。职责/输入账本与严格 TaskContract/完整 plan/checker 已绑定。
+- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；下一动作是 N3 task-relevant source closure，输出逐 reference/requirement/operation 影响的 `source-closure/report.json`。
 - 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
 - 网络/API/付费已授权并按实际用途分账；N0 实际 source/business/model/paid 调用为 `0/0/0/0`。平台安全控制未关闭，确定性证据核验仍生效。
 
@@ -172,3 +172,10 @@
 - Actual denominator: 12 complete skill bodies, 6 repository origins, 42 direct resources, and 498 duties (38 constructible, 79 in-class unsupported, 46 outside-class, 335 unmapped/unresolved). Four repository-distinct mappings remain candidates for N2; no whole-skill conclusion is made.
 - API input identity is 12 documents / 6 providers / 1 aggregator mirror. Original upstream URLs were absent from the prior ledger and remain explicitly unknown. Five repository-distinct metadata-only candidates retain `bodyRead=false`.
 - Focused N0+N1 regression is 10/10 with 34 assertions; full typecheck passes. Acquisition, protected reads, prospective runs, source/business/model/paid/native calls remain zero for this stage. Resume at N2 with the current-v2 status command.
+
+## 2026-09-12 Current-v2 N2 TaskContract checkpoint
+
+- N2 payload is `9ae5f59f4003daea5d32fd09e6701bf084eb8e35`; machine gap matrix SHA-256 is `f8d6b4ca9d92ce6b836bc49b2d8c63124cf177897e7bdf536809a4e48f30cafe`.
+- Strict task parsing, public JSON Schema, read-only legacy mapping adaptation, pre-construction obligation planning, independent source/task enumeration and all-required completion evaluation are implemented. Unknown fields fail; valid-but-unavailable output and insufficient inputs remain explicit.
+- Three source-grounded demonstrations on the same exposed 1Password operation produce distinct plans. The broad fishzjp pytest/fuzzing mapping remains unresolved rather than being narrowed silently. Renaming member/repository provenance leaves semantic plan identity unchanged.
+- Focused N2 set is 17/17 tests and 69 assertions; repository typecheck passes. Construction/native execution has not run, and protected/external call counts remain zero. Resume at N3.

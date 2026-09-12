@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active，N0/N1 completed / N2 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active，N0/N1/N2 completed / N3 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -54,15 +54,24 @@ N0 新增 `scripts/skill-ir/skill-family-current-v2-prospective.ts`。它严格�
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=resume
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n1
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n2
 ~~~
 
-当前 `status`/`resume` 均定位 N2；再次运行 `--step=n1` 只重核已归档字节和已有输出，不回退状态或覆盖不同证据。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+当前 `status`/`resume` 均定位 N3；再次运行已完成的 `--step=n1`/`--step=n2` 只重核输入和已有输出，不回退状态或覆盖不同证据。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
 
 ## N1 语料账本
 
 `src/skill-ir/skill-family-current-v2-corpus.ts` 从已提交 class-proof/source-input 归档读取正文、直接资源、职责清单、metadata-only 候选和 API 文档。它不靠仓库名改变成功语义；逐项核对长度/SHA-256、职责 locator、旧计数、来源数、metadata 暴露状态和 API 解析结果。输出位于 `corpus/{source-ledger,duty-matrix,exposure-ledger}.json`。
 
 本批次为 12 份正文、6 个仓库来源、42 个直接资源、498 项职责；4 个 N2 映射候选来自 4 个仓库并保留 residual scope。12 份 API 合同覆盖 6 个 provider，但均是同一 aggregator repository 的镜像；原始 upstream URL 没有旧证据，因此保持 null/unresolved。5 个 metadata-only 候选没有读取正文。该账本是有目的的 development corpus，不是随机生态样本，也不支持谱系独立率、whole-skill 或人工节省结论。
+
+## N2 TaskContract 与计划层
+
+`api-task-contract.ts` 提供严格 Zod parser、公开 JSON Schema 和 `api-skill-mapping/v1` 只读适配器。路径只能相对 task 文件；profile 固定 OAS 3.0；requirement id、operation key 和 unresolved binding 去重并闭合；未知字段拒绝。适配器要求显式声明原 obligation 的 requirement 语义，必须保留完整映射集合、parentScope 和 residual duties，不从仓库/profile 名猜测。
+
+`api-task-plan.ts` 在构造前把每个选中 operation × requirement 展成可定位 obligation。required omission 按真实必需参数/body 展开；constraint negative 按真实 request schema slot 展开；没有实例时记录 `insufficient-input`；未决自然语言映射记录 `unresolved-mapping`；response 没有 observation 也保持不足。`evaluateApiTaskCompletion` 要求所有适用必需 obligation 均为 `checked-exported`，单个成功不能完成任务。`api-task-plan-checker.ts` 从原 TaskContract 与 OpenAPI 重新枚举全集，不把 builder 的列表当真值。
+
+N2 证据 `baseline/gap-matrix.json` 在同一已暴露 API 操作上绑定三种来源职责，证明 requirement/output 改变语义而来源名称不改变；第三个 pytest/fuzzing 任务的广义 fuzzing 仍 unresolved。当前只证明计划和分母，不证明构造、package 或 native execution；这些明确留给 N5/N8。
 
 ## 实施与验证
 
@@ -73,6 +82,7 @@ N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证�
 ~~~powershell
 bun test ./scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 bun test ./src/skill-ir/skill-family-current-v2-corpus.test.ts
+bun test ./src/skill-ir/api-task-contract.test.ts ./src/skill-ir/api-task-plan.test.ts ./src/skill-ir/skill-family-current-v2-n2.test.ts
 bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 ~~~
 

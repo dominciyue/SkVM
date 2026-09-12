@@ -3,7 +3,7 @@
 > **For agentic workers:** Use superpowers:executing-plans to execute this plan. Main agent owns design, edits and final checks; narrowly scoped read-only probes follow AGENTS.md. Track the checkboxes and actual evidence, not elapsed hours.
 
 **Revision:** 2 — 2026-09-12，替代 3c37f7f 中的 revision 1；旧版在 Git 中保留。
-**Status:** active。N0/N1 已于 2026-09-12 完成；当前可运行任务为 N2。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
+**Status:** active。N0/N1/N2 已于 2026-09-12 完成；当前可运行任务为 N3。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
 **Goal:** 在 2026-09-14 00:00（Asia/Shanghai）前优先交付一个有实际消费闭环的 API 合同任务自动化引擎：明确需求 + 普通 OpenAPI 输入 → 可检查请求/测试包 → 原生执行与故障检出，并分别评价新需求与新输入迁移。
 **Architecture:** 保留旧 production v2；优先连接现有 api-skill-mapping、schema witness、request/form/negative、response checker 与 pytest 模块。新增薄的任务合同/计划层和统一调用接口；历史来源修复独立限时处理。标准化任务输入与输出，不重造 OpenAPI，不把自然语言提取自动视为可信。
 **Tech Stack:** Bun、TypeScript、Zod/AJV、现有 Python/pytest runtime、JSON/YAML、Git/gh；Schemathesis 为首选外部对照，Dredd 非必选。
@@ -224,13 +224,15 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：api-task-contract、api-task-plan 及测试；baseline/gap-matrix.json。
 
-- [ ] 按第 2 节写 schema 与 api-skill-mapping/v1 只读适配；每项 requirement 有 locator、scope、required 和输出要求，未知语义保留 unresolved。
-- [ ] 原 skill 不认识的必需要求仍在 source duty ledger 中保留原文和 unresolved 原因；提取出一个窄 slice 必须标注 parentScope/residualDuties，不能把 Drift/pytest 等原生输出要求静默改为 JSON。合同不合法与有效但当前不支持分开。
-- [ ] 加入第 2.2 节的六类 RED 测试，然后实现最小计划层并转绿。
-- [ ] 任务完成判定使用每个选定操作上的全部必需要求，不能沿用历史 deriveObligationOutcomes 的“有一个 constructed 就 accepted”作为新任务完成标准。
-- [ ] gap matrix 区分已实现未接入、正确性 bug、新增能力、外部 oracle 缺失；检查 api-schema-witness 和 pytest 模块，优先接通已有功能。
+- [x] 按第 2 节写 schema 与 api-skill-mapping/v1 只读适配；每项 requirement 有 locator、scope、required 和输出要求，未知语义保留 unresolved。
+- [x] 原 skill 不认识的必需要求仍在 source duty ledger 中保留原文和 unresolved 原因；提取出一个窄 slice 必须标注 parentScope/residualDuties，不能把 Drift/pytest 等原生输出要求静默改为 JSON。合同不合法与有效但当前不支持分开。
+- [x] 加入第 2.2 节的六类 RED 测试，然后实现最小计划层并转绿。
+- [x] 任务完成判定使用每个选定操作上的全部必需要求，不能沿用历史 deriveObligationOutcomes 的“有一个 constructed 就 accepted”作为新任务完成标准。
+- [x] gap matrix 区分已实现未接入、正确性 bug、新增能力、外部 oracle 缺失；检查 api-schema-witness 和 pytest 模块，优先接通已有功能。
 
 验收：同一 API 的两个不同 TaskContract 产生不同且可解释的计划；成员名称变化不改变计划。固定完整分母在构造前可列出。
+
+**N2 实际结果：** 实现/证据提交=`9ae5f59f4003daea5d32fd09e6701bf084eb8e35`；`baseline/gap-matrix.json` SHA-256=`f8d6b4ca9d92ce6b836bc49b2d8c63124cf177897e7bdf536809a4e48f30cafe`。新增严格 `skvm-api-task/v1` parser/JSON Schema、只读 legacy mapping adapter、构造前 plan、独立 source/task-backed checker 与完整 completion evaluator。使用同一已暴露 `onepassword-connect` 操作生成三个不同来源职责计划：event4u minimal+wrong-type=`3` 个必需义务、LambdaTest full+omission+boundary=`4`、fishzjp pytest+fuzzing=`2`；第三项宽泛 fuzzing 映射保持 `unresolved-mapping`，未当作正例。需求改变与 output 改变均改变 semantic plan digest；只改 skill/repository provenance 不改变语义。独立 checker 三项全通过，所有计划仍为 `constructionStatus=not-run`/`taskComplete=false`。gap 为 implemented-not-connected=`6`、correctness-bug=`0`、new-capability=`4`、external-oracle-missing=`2`。N2 聚焦集合 `17/17`、69 assertions，项目 `bun run typecheck` exit 0；外部与保护计数仍为 0。
 
 ### N3：任务相关 source closure（P0，最小够用实现）
 

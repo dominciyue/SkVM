@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-12
 
-**当前已确认路线：** 第 14.28 节与 [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)。优先 TaskContract → 计划 → 现有共享构造/checker → 原生消费闭环，工程可用与新需求/新输入迁移分别验收。N0/N1 已完成实际基线、恢复入口与职责/输入账本，当前任务为 N2。D1–D9 与第 14.27 节为已归档阶段；历史 0/6、Q1、held-out、readiness 和冻结结果保持原事实。
+**当前已确认路线：** 第 14.28 节与 [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)。优先 TaskContract → 计划 → 现有共享构造/checker → 原生消费闭环，工程可用与新需求/新输入迁移分别验收。N0–N2 已完成实际基线、职责/输入账本与构造前完整计划，当前任务为 N3。D1–D9 与第 14.27 节为已归档阶段；历史 0/6、Q1、held-out、readiness 和冻结结果保持原事实。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -2282,4 +2282,4 @@ TaskContract 明确 operation、覆盖义务、输出与 observation；Construct
 
 冻结在 development calibration 修订完成后。先锁方法与抽样规则，再允许新正文/输入发现，再锁逐行具体预测，最后运行；新信息导致的方法修订降为 development follow-up。readiness 按任务/来源范围派生，区分 not-assessed 与失败，不以未知 transfer 或无关历史 blocker 阻止合法发现。response 依赖按任务决定是否必需；可解析递归不等于可构造有限 witness。
 
-历史 source 修复和 clean-002 检索限时处理，不阻塞无关输入。限定搜索未发现不等于证明永远无法恢复。代码候选与后续证据提交分开；仅文档/证据变更不重复 clean。2026-09-13 22:00 后优先修复和交付，不再开新特性/来源批次。本轮公开检索曝光仅为 development，记录于审查文档。N0 已建立独立状态图并完成本地基线；N1 固定 12 正文/6 repository origins/498 duties 与 12 API 文档/6 providers 的 development 账本，aggregator 与 provider 分列，未知原始 upstream 不猜测。held-out/Q1 reserve read 与 prospective run 仍为 0，当前进入 N2。
+历史 source 修复和 clean-002 检索限时处理，不阻塞无关输入。限定搜索未发现不等于证明永远无法恢复。代码候选与后续证据提交分开；仅文档/证据变更不重复 clean。2026-09-13 22:00 后优先修复和交付，不再开新特性/来源批次。本轮公开检索曝光仅为 development，记录于审查文档。N0 已建立独立状态图；N1 固定 12 正文/6 repository origins/498 duties 与 12 API 文档/6 providers 的账本；N2 实现严格任务 schema、只读映射适配、构造前 obligation plan、独立全集 checker 和 completion evaluator。有效但当前不可接入的 pytest/fuzzing 映射保持 unresolved，计划成功不冒充 package 或执行成功。held-out/Q1 reserve read 与 prospective run 仍为 0，当前进入 N3。
