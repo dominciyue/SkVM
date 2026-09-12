@@ -238,7 +238,6 @@ export function createCurrentV2SchemathesisArguments(options: {
     "--seed=20260912",
     "--generation-deterministic",
     "--generation-unique-inputs",
-    "--generation-database=none",
     "--no-color",
     "--report=json,har,ndjson",
     `--report-dir=${options.reportDirectory}`,
@@ -691,9 +690,11 @@ export async function writeCurrentV2N13Comparison(options: {
   codeCommit: string;
   executedAt: string;
   schemathesisExecutable: string;
+  relativeOutputDirectory?: string;
 }): Promise<{ report: CurrentV2N13Report; files: Binding[] }> {
   if (!/^[0-9a-f]{40}$/u.test(options.codeCommit)) throw new Error("N13 code commit is invalid");
-  const comparisonRoot = join(options.repositoryRoot, RESULT_ROOT, "comparison");
+  const comparisonRoot = join(options.repositoryRoot,
+    options.relativeOutputDirectory ?? `${RESULT_ROOT}/comparison`);
   await mkdir(comparisonRoot, { recursive: true });
   const tool = await createToolBaseline({ ...options, comparisonRoot, executable: options.schemathesisExecutable });
   const toolPath = join(comparisonRoot, "tool-baseline.json");

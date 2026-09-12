@@ -12,6 +12,7 @@ import {
   readStageState,
   runN7ReadinessStage,
   runN13ComparisonStage,
+  runN13RevisionStage,
   runN10RevisionStage,
   runResearchGateStage,
   selectNextRunnableTask,
@@ -53,6 +54,10 @@ describe("current-v2 stage orchestration", () => {
 
   test("exposes the bounded N13 Schemathesis comparison as a resumable stage", () => {
     expect(runN13ComparisonStage).toBeFunction();
+  });
+
+  test("exposes a separate N13 revision path that cannot overwrite the initial failure", () => {
+    expect(runN13RevisionStage).toBeFunction();
   });
 
   test("records the complete N0-N15 graph and resumes at N1 after N0", () => {

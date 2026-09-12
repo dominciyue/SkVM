@@ -63,6 +63,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-revisio
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n7 --evaluated-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n9-gate --evaluated-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13 --schemathesis=<path-to-4.27.0-executable> --evaluated-at=<ISO>
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13-revision --schemathesis=<path-to-4.27.0-executable> --evaluated-at=<ISO>
 ~~~
 
 当前 `status`/`resume` 均定位运行中的 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。`--step=n10-lock` 在锁已存在时只重核摘要，不覆盖。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。

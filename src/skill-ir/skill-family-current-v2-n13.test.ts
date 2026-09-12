@@ -28,7 +28,7 @@ test("N13 fixes the actual external-tool budget while reusing the exact N5 fixtu
   expect(arguments_).toContain("--seed=20260912");
   expect(arguments_).toContain("--generation-deterministic");
   expect(arguments_).toContain("--generation-unique-inputs");
-  expect(arguments_).toContain("--generation-database=none");
+  expect(arguments_).not.toContain("--generation-database=none");
   expect(arguments_).toContain("--workers=1");
   expect(arguments_).toContain("--mode=positive");
   expect(arguments_).toContain("--phases=fuzzing");
