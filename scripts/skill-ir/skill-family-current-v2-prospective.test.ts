@@ -7,6 +7,7 @@ import {
   CURRENT_V2_RESULT_RELATIVE,
   buildInitialExecutionStatus,
   buildStageManifest,
+  completeTask,
   deriveStageView,
   readStageState,
   selectNextRunnableTask,
@@ -72,6 +73,25 @@ describe("current-v2 stage orchestration", () => {
     status.tasks.N4.issues = ["source-blocked-unresolved"];
     expect(selectNextRunnableTask(manifest, status)).toBe("N5");
     expect(deriveStageView(manifest, status).blockingIssues).not.toContain("source-blocked-unresolved");
+  });
+
+  test("completes the current task without changing protected counters", () => {
+    const { manifest, status } = fixtures();
+    const next = completeTask(manifest, status, "N1", {
+      completedAt: "2026-09-12T01:00:00.000Z",
+      evidence: [
+        `${CURRENT_V2_RESULT_RELATIVE}/corpus/source-ledger.json`,
+        `${CURRENT_V2_RESULT_RELATIVE}/corpus/duty-matrix.json`,
+        `${CURRENT_V2_RESULT_RELATIVE}/corpus/exposure-ledger.json`,
+      ],
+      nextAction: "N2: build the TaskContract and complete obligation plan",
+    });
+    expect(next.tasks.N1.status).toBe("completed");
+    expect(next.tasks.N1.completedAt).toBe("2026-09-12T01:00:00.000Z");
+    expect(next.currentStage).toBe("N2");
+    expect(next.protectedState).toEqual(status.protectedState);
+    expect(status.tasks.N1.status).toBe("pending");
+    expect(selectNextRunnableTask(manifest, next)).toBe("N2");
   });
 
   test("rejects impossible completion order and unsafe evidence paths", () => {

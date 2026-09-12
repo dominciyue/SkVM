@@ -1,5 +1,6 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
+import { writeN1CorpusFromRepository } from "../../src/skill-ir/skill-family-current-v2-corpus";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -434,6 +435,44 @@ export function selectNextRunnableTask(manifest: StageManifest, status: Executio
   return selectNextRunnableTaskUnchecked(manifest, status);
 }
 
+export function completeTask(
+  manifest: StageManifest,
+  status: ExecutionStatus,
+  taskId: TaskId,
+  input: {
+    completedAt: string;
+    evidence: string[];
+    nextAction: string;
+    outcome?: "completed" | "completed-with-limitation";
+    issues?: string[];
+    commit?: string | null;
+  },
+): ExecutionStatus {
+  validateStageState(manifest, status);
+  const runnable = selectNextRunnableTaskUnchecked(manifest, status);
+  if (runnable !== taskId) fail(`${taskId} is not the current runnable task (${runnable ?? "none"})`);
+  const outcome = input.outcome ?? "completed";
+  const issues = [...(input.issues ?? [])];
+  if (outcome === "completed-with-limitation" && issues.length === 0) fail(`${taskId} completed-with-limitation requires an issue`);
+  const next = structuredClone(status);
+  next.tasks[taskId] = {
+    status: outcome,
+    commit: input.commit ?? null,
+    evidence: [...input.evidence],
+    issues,
+    startedAt: status.tasks[taskId].startedAt ?? input.completedAt,
+    completedAt: input.completedAt,
+  };
+  next.updatedAt = input.completedAt;
+  next.nextAction = input.nextAction;
+  next.currentStage = selectNextRunnableTaskUnchecked(manifest, next);
+  next.overallStatus = manifest.tasks.every((task) => TERMINAL.has(next.tasks[task.id].status))
+    ? "completed"
+    : next.currentStage === null ? "blocked" : "active";
+  validateStageState(manifest, next);
+  return next;
+}
+
 export function deriveStageView(manifest: StageManifest, status: ExecutionStatus) {
   validateStageState(manifest, status);
   const currentTask = selectNextRunnableTaskUnchecked(manifest, status);
@@ -492,9 +531,44 @@ export async function resumeStage(root: string) {
   };
 }
 
+export async function runN1CorpusStage(root: string) {
+  const state = await readStageState(root);
+  const current = selectNextRunnableTask(state.manifest, state.status);
+  if (current !== "N1" && state.status.tasks.N1.status !== "completed") {
+    fail(`N1 cannot run while current task is ${current ?? "none"}`);
+  }
+  const corpus = await writeN1CorpusFromRepository(root);
+  if (state.status.tasks.N1.status === "completed") {
+    return { taskId: "N1" as const, outcome: "verified-existing" as const, files: corpus.files, view: state.view };
+  }
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N1", {
+    completedAt,
+    evidence: [
+      ...corpus.files.map(({ path }) => path),
+      "src/skill-ir/skill-family-current-v2-corpus.ts",
+      "src/skill-ir/skill-family-current-v2-corpus.test.ts",
+    ],
+    nextAction: "N2: implement the TaskContract compiler and complete obligation plan, then generate baseline/gap-matrix.json",
+  });
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N1" as const,
+    outcome: "completed" as const,
+    files: corpus.files,
+    summaries: {
+      source: corpus.result.sourceLedger.summary,
+      duties: corpus.result.dutyMatrix.summary,
+      apiInputs: corpus.result.exposureLedger.apiInputs.summary,
+    },
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
   else if (step === "resume") console.log(JSON.stringify(await resumeStage(process.cwd()), null, 2));
-  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume");
+  else if (step === "n1") console.log(JSON.stringify(await runN1CorpusStage(process.cwd()), null, 2));
+  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1");
 }
