@@ -34,6 +34,7 @@ import {
 import {
   verifyCurrentV2N13Comparison,
   writeCurrentV2N13Comparison,
+  writeCurrentV2N13Reclassification,
   type CurrentV2N13Report,
 } from "../../src/skill-ir/skill-family-current-v2-n13";
 
@@ -1432,6 +1433,103 @@ export async function runN13Revision2Stage(
   };
 }
 
+export async function runN13ReclassificationStage(
+  root: string,
+  evaluatedAt = new Date().toISOString(),
+) {
+  const state = await readStageState(root);
+  const sourceRelative = `${CURRENT_V2_RESULT_RELATIVE}/comparison/revision-002/schemathesis-report.json`;
+  const revisionDirectory = `${CURRENT_V2_RESULT_RELATIVE}/comparison/revision-003`;
+  const revisionRelative = `${revisionDirectory}/schemathesis-report.json`;
+  if (state.status.tasks.N13.evidence.includes(revisionRelative)) {
+    const bytes = await readFile(join(root, revisionRelative));
+    const report = JSON.parse(bytes.toString("utf8")) as CurrentV2N13Report;
+    const verification = await verifyCurrentV2N13Comparison({ repositoryRoot: root, report });
+    if (verification.status !== "pass") fail(`N13 revision-003 verification failed: ${verification.errors.join("; ")}`);
+    return {
+      taskId: "N13" as const,
+      outcome: "revision-003-verified-existing" as const,
+      file: { path: revisionRelative, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+      decision: report.decision,
+      summary: report.summary,
+      additionalLoopbackHttpCalls: 0,
+      verification,
+      view: state.view,
+    };
+  }
+  if (state.status.tasks.N13.status !== "completed-with-limitation"
+    || !state.status.tasks.N13.evidence.includes(sourceRelative)) {
+    fail("N13 revision-003 requires the archived revision-002 evidence");
+  }
+  const pushed = await requirePushedImmutableFile(root, sourceRelative);
+  const sourceBytes = await readFile(join(root, sourceRelative));
+  const sourceSha256 = createHash("sha256").update(sourceBytes).digest("hex");
+  const sourceReport = JSON.parse(sourceBytes.toString("utf8")) as CurrentV2N13Report;
+  const sourceVerification = await verifyCurrentV2N13Comparison({ repositoryRoot: root, report: sourceReport });
+  if (sourceSha256 !== "406af8a0bf3f045b64c51c71dcf955f076bcaa6c9b07377220b6d02e17f83442"
+    || JSON.stringify(sourceVerification.errors) !== JSON.stringify([
+      "N13_FAULT_DENOMINATOR_INVALID",
+      "N13_SUMMARY_MISMATCH",
+    ])
+    || sourceReport.summary.actualLoopbackHttpCalls !== 9) {
+    fail("N13 revision-002 does not match the preserved fault-denominator defect");
+  }
+  let report: CurrentV2N13Report;
+  let files: Array<{ path: string; sha256: string; bytes: number }>;
+  try {
+    const bytes = await readFile(join(root, revisionRelative));
+    report = JSON.parse(bytes.toString("utf8")) as CurrentV2N13Report;
+    if (report.codeCommit !== pushed.head) fail("N13 revision-003 does not bind the current pushed code commit");
+    files = await Promise.all([
+      revisionRelative,
+      `${revisionDirectory}/tool-baseline.json`,
+      `${revisionDirectory}/added-value.md`,
+    ].map(async (path) => {
+      const fileBytes = await readFile(join(root, path));
+      return { path, sha256: createHash("sha256").update(fileBytes).digest("hex"), bytes: fileBytes.byteLength };
+    }));
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("invalid current-v2 stage: N13 revision-003")) throw error;
+    const built = await writeCurrentV2N13Reclassification({
+      repositoryRoot: root,
+      codeCommit: pushed.head,
+      evaluatedAt,
+      sourceReportPath: sourceRelative,
+      relativeOutputDirectory: revisionDirectory,
+    });
+    report = built.report;
+    files = built.files;
+  }
+  const verification = await verifyCurrentV2N13Comparison({ repositoryRoot: root, report });
+  if (verification.status !== "pass") fail(`N13 revision-003 verification failed: ${verification.errors.join("; ")}`);
+  const completedAt = new Date().toISOString();
+  const status = structuredClone(state.status);
+  status.tasks.N13 = {
+    status: report.decision,
+    commit: report.codeCommit,
+    evidence: [...new Set([...status.tasks.N13.evidence, ...files.map((file) => file.path)])],
+    issues: report.issues,
+    startedAt: status.tasks.N13.startedAt,
+    completedAt,
+  };
+  status.updatedAt = completedAt;
+  status.nextAction = "N4: run the time-boxed Meilisearch and Bangumi source maintenance without broadening the construction contract";
+  status.commits.codeCommit = report.codeCommit;
+  validateStageState(state.manifest, status);
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N13" as const,
+    outcome: report.decision,
+    files,
+    summary: report.summary,
+    issues: report.issues,
+    sourceDefect: { path: sourceRelative, sha256: sourceSha256, errors: sourceVerification.errors },
+    additionalLoopbackHttpCalls: 0,
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -1473,5 +1571,8 @@ if (import.meta.main) {
     const executable = process.argv.find((argument) => argument.startsWith("--schemathesis="))?.slice("--schemathesis=".length) ?? "schemathesis";
     const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
     console.log(JSON.stringify(await runN13Revision2Stage(process.cwd(), executable, evaluatedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002 [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
+  } else if (step === "n13-reclassify") {
+    const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
+    console.log(JSON.stringify(await runN13ReclassificationStage(process.cwd(), evaluatedAt), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
 }

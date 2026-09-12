@@ -20,6 +20,18 @@ const CHECKS = [
   "negative_data_rejection",
   "positive_data_acceptance",
 ] as const;
+const FAILURE_TYPE_TO_CHECK: Record<string, CheckName> = {
+  ServerError: "not_a_server_error",
+  UndefinedStatusCode: "status_code_conformance",
+  MissingHeaders: "response_headers_conformance",
+  JsonSchemaError: "response_schema_conformance",
+  MalformedJson: "response_schema_conformance",
+  MissingContentType: "content_type_conformance",
+  MalformedMediaType: "content_type_conformance",
+  UndefinedContentType: "content_type_conformance",
+  AcceptedNegativeData: "negative_data_rejection",
+  RejectedPositiveData: "positive_data_acceptance",
+};
 type CheckName = typeof CHECKS[number];
 type FaultId = "undocumented-status" | "missing-response-header" | "invalid-response-body";
 type Binding = { path: string; sha256: string; bytes: number; commit?: string };
@@ -149,6 +161,14 @@ export type CurrentV2N13ToolBaseline = {
     loopbackHttpCalls: number;
     dependencyDownloadRequests: "not-measured";
   };
+  reclassification?: {
+    classificationRevision: "fault-denominator-v2";
+    sourceReportBinding: Binding;
+    sourceToolBaselineBinding: Binding;
+    evaluatedAt: string;
+    externalToolReexecuted: false;
+    additionalLoopbackHttpCalls: 0;
+  };
   claimLimits: string[];
 };
 
@@ -252,19 +272,21 @@ export function collectSchemathesisFailureChecks(value: unknown): CheckName[] {
   const found = new Set<CheckName>();
   const allowed = new Set<string>(CHECKS);
   const walk = (entry: unknown, failureContext: boolean) => {
-    if (typeof entry === "string") {
-      if (failureContext && allowed.has(entry)) found.add(entry as CheckName);
-      return;
-    }
+    if (typeof entry === "string") return;
     if (Array.isArray(entry)) {
       for (const child of entry) walk(child, failureContext);
       return;
     }
     if (!object(entry)) return;
+    const mapped = FAILURE_TYPE_TO_CHECK[String(entry.type ?? "")];
+    if (mapped) found.add(mapped);
     const status = String(entry.status ?? entry.outcome ?? "").toLowerCase();
     const objectFailure = failureContext || status.includes("fail") || status.includes("error");
     for (const [key, child] of Object.entries(entry)) {
-      walk(child, objectFailure || /fail|error|violation/u.test(key.toLowerCase()));
+      if (objectFailure && /^(check|check_name|id|name)$/u.test(key) && typeof child === "string" && allowed.has(child)) {
+        found.add(child as CheckName);
+      }
+      walk(child, objectFailure || /^(failures?|errors?|violations?)$/u.test(key.toLowerCase()));
     }
   };
   walk(value, false);
@@ -491,6 +513,7 @@ async function runExternalScenario(options: {
     traceHeader: row.traceHeader,
     body: row.body,
   }))));
+  const faultAppliedCount = observations.filter((row) => row.faultApplied).length;
   return {
     scenarioId: options.scenarioId,
     fixtureId: options.fixture.id,
@@ -508,10 +531,10 @@ async function runExternalScenario(options: {
     validFixtureRequests: observations.filter((row) => row.fixturePredicateValid).length,
     operationHit: observations.length > 0,
     budgetExceeded: observations.length > 2,
-    faultAppliedCount: observations.filter((row) => row.faultApplied).length,
+    faultAppliedCount,
     failureChecks,
     expectedCheckDetected: options.expectedCheck === null ? null
-      : processResult.exitCode !== 0 && failureChecks.includes(options.expectedCheck),
+      : faultAppliedCount > 0 && processResult.exitCode !== 0 && failureChecks.includes(options.expectedCheck),
     observations,
     rawBindings: await Promise.all(existingRaw.map((path) => bindingForFile(options.repositoryRoot, path))),
   };
@@ -546,11 +569,11 @@ Schemathesis already provides OpenAPI-derived property-based testing and respons
 `;
 }
 
-function summarizeRuns(runs: SchemathesisRun[]): CurrentV2N13ToolBaseline["summary"] {
+export function summarizeCurrentV2SchemathesisRuns(runs: SchemathesisRun[]): CurrentV2N13ToolBaseline["summary"] {
   const baseline = runs.filter((row) => row.faultId === null);
   const faults = runs.filter((row) => row.faultId !== null);
   const notApplicableFaults = faults.filter((row) => row.faultAppliedCount === 0).length;
-  const correctlyDetectedFaults = faults.filter((row) => row.expectedCheckDetected === true).length;
+  const correctlyDetectedFaults = faults.filter((row) => row.faultAppliedCount > 0 && row.expectedCheckDetected === true).length;
   return {
     baselineRuns: baseline.length,
     baselinePassed: baseline.filter((row) => row.exitCode === 0 && !row.timedOut && !row.budgetExceeded).length,
@@ -563,6 +586,39 @@ function summarizeRuns(runs: SchemathesisRun[]): CurrentV2N13ToolBaseline["summa
     notApplicableFaults,
     actualLoopbackHttpCalls: runs.reduce((sum, row) => sum + row.requestCount, 0),
   };
+}
+
+async function reclassifySchemathesisRuns(
+  repositoryRoot: string,
+  runs: SchemathesisRun[],
+): Promise<SchemathesisRun[]> {
+  return Promise.all(runs.map(async (run) => {
+    for (const binding of run.rawBindings) {
+      const bytes = new Uint8Array(await readFile(join(repositoryRoot, binding.path)));
+      if (sha(bytes) !== binding.sha256 || bytes.byteLength !== binding.bytes) {
+        throw new Error(`N13 reclassification raw binding mismatch: ${binding.path}`);
+      }
+    }
+    const reportPaths = run.rawBindings
+      .map((binding) => binding.path)
+      .filter((path) => /\/reports\/report\.(?:json|ndjson)$/u.test(portable(path)))
+      .map((path) => join(repositoryRoot, path));
+    const failureChecks = await readReportsForChecks(reportPaths);
+    return {
+      ...run,
+      failureChecks,
+      expectedCheckDetected: run.expectedCheck === null ? null
+        : run.faultAppliedCount > 0 && run.exitCode !== 0 && failureChecks.includes(run.expectedCheck),
+    };
+  }));
+}
+
+function comparisonIssues(summary: CurrentV2N13ToolBaseline["summary"]): string[] {
+  return [
+    ...(summary.baselinePassed < summary.baselineRuns ? ["external-baseline-has-failures"] : []),
+    ...(summary.correctlyDetectedFaults < summary.faultInjections - summary.notApplicableFaults
+      ? ["external-tool-missed-assigned-faults"] : []),
+  ];
 }
 
 async function createToolBaseline(options: {
@@ -624,7 +680,7 @@ async function createToolBaseline(options: {
     passed: fixture.junit.passed,
     durationMs: null,
   }));
-  const summary = summarizeRuns(runs);
+  const summary = summarizeCurrentV2SchemathesisRuns(runs);
   return {
     schemaVersion: "skill-family-current-v2-n13-tool-baseline/v1",
     identity: IDENTITY,
@@ -690,7 +746,18 @@ function validateToolBaseline(tool: CurrentV2N13ToolBaseline): string[] {
     || tool.contract.maxTimeSeconds !== 30 || tool.contract.requestRetries !== 0 || tool.contract.seed !== 20260912
     || tool.contract.phase !== "fuzzing" || tool.contract.mode !== "positive") errors.push("N13_COMPARISON_CONTRACT_MISMATCH");
   if (tool.runs.length !== 5 || tool.runs.some((run) => run.budgetExceeded)) errors.push("N13_RUN_DENOMINATOR_MISMATCH");
-  if (stable(tool.summary) !== stable(summarizeRuns(tool.runs))) errors.push("N13_SUMMARY_MISMATCH");
+  if (stable(tool.summary) !== stable(summarizeCurrentV2SchemathesisRuns(tool.runs))) errors.push("N13_SUMMARY_MISMATCH");
+  const denominator = tool.summary.correctlyDetectedFaults + tool.summary.missedFaults + tool.summary.notApplicableFaults;
+  if ([tool.summary.correctlyDetectedFaults, tool.summary.missedFaults, tool.summary.notApplicableFaults]
+    .some((value) => !Number.isInteger(value) || value < 0)
+    || denominator !== tool.summary.faultInjections
+    || tool.runs.some((run) => run.expectedCheckDetected === true && run.faultAppliedCount === 0)) {
+    errors.push("N13_FAULT_DENOMINATOR_INVALID");
+  }
+  if (tool.reclassification && (tool.reclassification.classificationRevision !== "fault-denominator-v2"
+    || tool.reclassification.externalToolReexecuted !== false
+    || tool.reclassification.additionalLoopbackHttpCalls !== 0
+    || !tool.reclassification.evaluatedAt)) errors.push("N13_RECLASSIFICATION_METADATA_INVALID");
   return errors;
 }
 
@@ -712,11 +779,7 @@ export async function writeCurrentV2N13Comparison(options: {
   const addedValueText = renderAddedValue(tool, addedValueEvidence);
   const addedValuePath = join(comparisonRoot, "added-value.md");
   await writeExclusive(addedValuePath, addedValueText);
-  const issues = [
-    ...(tool.summary.baselinePassed < tool.summary.baselineRuns ? ["external-baseline-has-failures"] : []),
-    ...(tool.summary.correctlyDetectedFaults < tool.summary.faultInjections - tool.summary.notApplicableFaults
-      ? ["external-tool-missed-assigned-faults"] : []),
-  ];
+  const issues = comparisonIssues(tool.summary);
   const report: CurrentV2N13Report = {
     schemaVersion: "skill-family-current-v2-n13-comparison/v1",
     identity: IDENTITY,
@@ -742,6 +805,85 @@ export async function writeCurrentV2N13Comparison(options: {
   };
 }
 
+export async function writeCurrentV2N13Reclassification(options: {
+  repositoryRoot: string;
+  codeCommit: string;
+  evaluatedAt: string;
+  sourceReportPath: string;
+  relativeOutputDirectory: string;
+}): Promise<{ report: CurrentV2N13Report; tool: CurrentV2N13ToolBaseline; files: Binding[] }> {
+  if (!/^[0-9a-f]{40}$/u.test(options.codeCommit)) throw new Error("N13 reclassification code commit is invalid");
+  const sourceReportAbsolute = join(options.repositoryRoot, options.sourceReportPath);
+  const sourceReport = JSON.parse(await readFile(sourceReportAbsolute, "utf8")) as CurrentV2N13Report;
+  const sourceVerification = await verifyCurrentV2N13Comparison({ repositoryRoot: options.repositoryRoot, report: sourceReport });
+  const expectedSourceErrors = ["N13_FAULT_DENOMINATOR_INVALID", "N13_SUMMARY_MISMATCH"];
+  if (stable(sourceVerification.errors) !== stable(expectedSourceErrors)) {
+    throw new Error(`N13 reclassification requires the preserved revision-002 defect: ${sourceVerification.errors.join(",")}`);
+  }
+  const sourceToolAbsolute = join(options.repositoryRoot, sourceReport.toolBaselineBinding.path);
+  const sourceToolBytes = new Uint8Array(await readFile(sourceToolAbsolute));
+  if (sha(sourceToolBytes) !== sourceReport.toolBaselineBinding.sha256
+    || sourceToolBytes.byteLength !== sourceReport.toolBaselineBinding.bytes) {
+    throw new Error("N13 reclassification source tool binding mismatch");
+  }
+  const sourceTool = JSON.parse(new TextDecoder().decode(sourceToolBytes)) as CurrentV2N13ToolBaseline;
+  const runs = await reclassifySchemathesisRuns(options.repositoryRoot, sourceTool.runs);
+  const summary = summarizeCurrentV2SchemathesisRuns(runs);
+  const sourceReportBinding = await bindingForFile(options.repositoryRoot, sourceReportAbsolute);
+  const tool: CurrentV2N13ToolBaseline = {
+    ...sourceTool,
+    codeCommit: options.codeCommit,
+    runs,
+    summary,
+    accounting: { ...sourceTool.accounting, loopbackHttpCalls: summary.actualLoopbackHttpCalls },
+    reclassification: {
+      classificationRevision: "fault-denominator-v2",
+      sourceReportBinding,
+      sourceToolBaselineBinding: { ...sourceReport.toolBaselineBinding },
+      evaluatedAt: options.evaluatedAt,
+      externalToolReexecuted: false,
+      additionalLoopbackHttpCalls: 0,
+    },
+    claimLimits: [...new Set([
+      ...sourceTool.claimLimits,
+      "Revision-003 reclassifies revision-002 raw bytes; it did not re-execute Schemathesis or issue additional loopback requests.",
+      "All three named response-fault scenarios were not applicable because no request satisfied the exact N5 fixture predicate.",
+    ])],
+  };
+  const comparisonRoot = join(options.repositoryRoot, options.relativeOutputDirectory);
+  await mkdir(comparisonRoot, { recursive: true });
+  const toolPath = join(comparisonRoot, "tool-baseline.json");
+  await writeExclusive(toolPath, `${JSON.stringify(tool, null, 2)}\n`);
+  const addedValueEvidence = await deriveCurrentV2AddedValueEvidence(options.repositoryRoot, options.codeCommit);
+  const addedValuePath = join(comparisonRoot, "added-value.md");
+  await writeExclusive(addedValuePath, renderAddedValue(tool, addedValueEvidence));
+  const issues = comparisonIssues(summary);
+  const report: CurrentV2N13Report = {
+    schemaVersion: "skill-family-current-v2-n13-comparison/v1",
+    identity: IDENTITY,
+    exposure: "development",
+    evaluatedAt: options.evaluatedAt,
+    codeCommit: options.codeCommit,
+    inputBindings: await Promise.all(INPUT_PATHS.map((path) => committedBinding(options.repositoryRoot, options.codeCommit, path))),
+    toolBaselineBinding: await bindingForFile(options.repositoryRoot, toolPath),
+    addedValueBinding: await bindingForFile(options.repositoryRoot, addedValuePath),
+    addedValueEvidence,
+    summary,
+    decision: issues.length === 0 ? "completed" : "completed-with-limitation",
+    issues,
+    nextTask: "N4",
+    accounting: tool.accounting,
+    claimLimits: tool.claimLimits,
+  };
+  const reportPath = join(comparisonRoot, "schemathesis-report.json");
+  await writeExclusive(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+  return {
+    report,
+    tool,
+    files: await Promise.all([reportPath, toolPath, addedValuePath].map((path) => bindingForFile(options.repositoryRoot, path))),
+  };
+}
+
 export async function verifyCurrentV2N13Comparison(options: {
   repositoryRoot: string;
   report?: CurrentV2N13Report;
@@ -762,8 +904,12 @@ export async function verifyCurrentV2N13Comparison(options: {
     if (sha(bytes) !== report.toolBaselineBinding.sha256 || bytes.byteLength !== report.toolBaselineBinding.bytes) errors.add("N13_TOOL_BINDING_MISMATCH");
     tool = JSON.parse(new TextDecoder().decode(bytes));
     for (const error of validateToolBaseline(tool!)) errors.add(error);
+    const reclassificationBindings = tool!.reclassification
+      ? [tool!.reclassification.sourceReportBinding, tool!.reclassification.sourceToolBaselineBinding]
+      : [];
     for (const binding of tool!.runs.flatMap((run) => run.rawBindings).concat([
       tool!.tool.versionBinding, tool!.tool.helpBinding, tool!.tool.dependencyFreezeBinding,
+      ...reclassificationBindings,
     ])) {
       const raw = new Uint8Array(await readFile(join(options.repositoryRoot, binding.path)));
       if (sha(raw) !== binding.sha256 || raw.byteLength !== binding.bytes) errors.add("N13_RAW_BINDING_MISMATCH");
@@ -782,11 +928,7 @@ export async function verifyCurrentV2N13Comparison(options: {
       if (sha(actualText) !== report.addedValueBinding.sha256 || Buffer.byteLength(actualText) !== report.addedValueBinding.bytes
         || actualText !== expectedText) errors.add("N13_ADDED_VALUE_BINDING_MISMATCH");
       if (stable(report.summary) !== stable(tool.summary) || stable(report.accounting) !== stable(tool.accounting)) errors.add("N13_REPORT_SUMMARY_MISMATCH");
-      const expectedIssues = [
-        ...(tool.summary.baselinePassed < tool.summary.baselineRuns ? ["external-baseline-has-failures"] : []),
-        ...(tool.summary.correctlyDetectedFaults < tool.summary.faultInjections - tool.summary.notApplicableFaults
-          ? ["external-tool-missed-assigned-faults"] : []),
-      ];
+      const expectedIssues = comparisonIssues(tool.summary);
       if (stable(report.issues) !== stable(expectedIssues)
         || report.decision !== (expectedIssues.length === 0 ? "completed" : "completed-with-limitation")) {
         errors.add("N13_DECISION_MISMATCH");

@@ -14,6 +14,7 @@ import {
   runN13ComparisonStage,
   runN13RevisionStage,
   runN13Revision2Stage,
+  runN13ReclassificationStage,
   runN10RevisionStage,
   runResearchGateStage,
   selectNextRunnableTask,
@@ -63,6 +64,10 @@ describe("current-v2 stage orchestration", () => {
 
   test("exposes a second N13 revision only after the archived Windows encoding failure", () => {
     expect(runN13Revision2Stage).toBeFunction();
+  });
+
+  test("exposes a third N13 revision that only reclassifies archived raw evidence", () => {
+    expect(runN13ReclassificationStage).toBeFunction();
   });
 
   test("records the complete N0-N15 graph and resumes at N1 after N0", () => {
