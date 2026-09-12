@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import { writeN1CorpusFromRepository } from "../../src/skill-ir/skill-family-current-v2-corpus";
+import { writeN2GapMatrixFromRepository } from "../../src/skill-ir/skill-family-current-v2-n2";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -565,10 +566,51 @@ export async function runN1CorpusStage(root: string) {
   };
 }
 
+export async function runN2TaskContractStage(root: string) {
+  const state = await readStageState(root);
+  const current = selectNextRunnableTask(state.manifest, state.status);
+  if (current !== "N2" && state.status.tasks.N2.status !== "completed") {
+    fail(`N2 cannot run while current task is ${current ?? "none"}`);
+  }
+  const built = await writeN2GapMatrixFromRepository(root);
+  if (state.status.tasks.N2.status === "completed") {
+    return { taskId: "N2" as const, outcome: "verified-existing" as const, file: built.file, view: state.view };
+  }
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N2", {
+    completedAt,
+    evidence: [
+      built.file.path,
+      "src/skill-ir/api-task-contract.ts",
+      "src/skill-ir/api-task-contract.test.ts",
+      "src/skill-ir/api-task-plan.ts",
+      "src/skill-ir/api-task-plan-checker.ts",
+      "src/skill-ir/api-task-plan.test.ts",
+      "src/skill-ir/skill-family-current-v2-n2.ts",
+      "src/skill-ir/skill-family-current-v2-n2.test.ts",
+    ],
+    nextAction: "N3: implement task-relevant source closure with per-reference requirement and operation impact reporting",
+  });
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N2" as const,
+    outcome: "completed" as const,
+    file: built.file,
+    summary: {
+      demonstrations: built.report.demonstrations.length,
+      mappingSources: built.report.mappingReview.sourceSkills,
+      relations: built.report.relations,
+      gaps: built.report.gaps.summary,
+    },
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
   else if (step === "resume") console.log(JSON.stringify(await resumeStage(process.cwd()), null, 2));
   else if (step === "n1") console.log(JSON.stringify(await runN1CorpusStage(process.cwd()), null, 2));
-  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1");
+  else if (step === "n2") console.log(JSON.stringify(await runN2TaskContractStage(process.cwd()), null, 2));
+  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2");
 }
