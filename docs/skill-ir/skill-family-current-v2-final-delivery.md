@@ -53,6 +53,11 @@ into 8 checked/exported plus 10 unresolved. Native consumption is 9 attempted, 4
 failed/errors. The delivery verification records 83 focused tests, 294 assertions, full typecheck, zero broken or
 legacy documentation references, a clean tracked tree, and HEAD/origin alignment.
 
+After the verification file itself was committed, the repository-wide link check initially found the two withdrawn
+historical targets quoted inside that immutable command transcript. The report was not rewritten. Those two exact
+source-target pairs were added to the retired-reference manifest, so the final scan reports zero broken/legacy links
+and eight explicit retired pairs (six historical pairs plus two transcript self-archive pairs).
+
 Research remains `not-executed`: candidate is null, transfer is not assessed, and prospective runs are zero. Project
 runtime accounting is source/business/model/paid=`2/0/0/0` plus 17 native loopback calls; development-agent cost and
 monetary cost were not measured. Meilisearch's missing total reference, the Bangumi live-source advisory, and the
