@@ -140,3 +140,11 @@
 - Status-binding commit `9d95faa742978579ccd0ae24b68c990d1b1ba69e` was replayed in detached checkout `D:\cp-clean-ext-9d95faa` after the archive/status commits. Offline dependency installation again used 236 packages under Bun `1.3.14`.
 - Supplemental output `D:\cp-clean-ext-report-9d95faa.json` passed with 10/10 E2 run verifications, 18/18 E5 cases, zero resume executions, and model/API/paid `0/0/0`. It is archived as `results/skill-ir/skill-family-class-proof-20260911/extension-clean-replay-final.json` (2371 bytes, SHA-256 `f7c284a0a52d6411ac5f9dc62ce85265b6f4925ab354c34980cfdfa32f34bea4`); the prior canonical archive is unchanged.
 - Final verification remains limited to committed development evidence. No new sample, protected read, prospective run, readiness change, or automatic external audit service was invoked.
+
+## 2026-09-12 API Tester delivery verification retry
+
+- The historical delivery verifier was rerun from a later verifier host at commit `65216d878760f7fac3bd561fed9443a2f3b20d22`, with candidate binding `3ebe60613bab0375047fcb51337d35b3c1830430`.
+- The default LF materialization retained the expected `package.json` blob mismatch. Under process-local `core.autocrlf=true`, with the archived CRLF dependency bytes materialized, the same verifier returned `verified`; `prospectiveRuns=0` and portable semantic digest remained `f423485bf08cbbe53908d82df5b0d09a8adab3b1072184e1736cae7dfe7f3177`.
+- This additive retry proves that the historical evidence closure can be reconstructed under the recorded host and line-ending conditions. It does not prove that candidate `3ebe606...` can run the verifier from its own commit (the verifier was added later), and it does not change source correctness, the missing clean-002 archive, Meilisearch/Bangumi advisories, readiness, the historical `0/6`, or any prospective boundary.
+- Evidence: `results/skill-ir/api-tester-operation-delivery-freeze-retry-20260912.json` and `docs/skill-ir/api-tester-operation-delivery-verification-retry.md`, committed at `0c264900100ca96d5a37c672d0f03af2b6965692`.
+- Next action: prepare a new prospective identity bound to the current `skill-ir-aot` v2 implementation and dependency closure. Freeze its input-selection, prediction, and stop rules before any unseen read or execution; do not mutate the old candidate or reuse its inputs.
