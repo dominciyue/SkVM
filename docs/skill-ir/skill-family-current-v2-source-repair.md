@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**下一开发计划（2026-09-13）：** [U0–U5 先可用交付](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，仅已登记。将复用本组件接口修复空 form/负例消费并提供完整普通例子；旧合同和下述已交付行为目前未改变。研究冻结和历史归档维护不是这轮工程前提。
+**下一开发计划（2026-09-13）：** [真实 trace 驱动优化包 revision 2，U0–U7](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，仅已登记。本组件作为 JIT-optimize 优化包可调用的确定性后端，按实际需求修复 form/负例等缺口；旧合同和已交付行为未变。接口资料若由治理线程归并，保留到新组件入口的导航。
 
 **状态：revision-2 交付已完成，最终为 `completed-with-engineering-shortfall`，2026-09-12。** N4/N6/N10/N13/N15 带 limitation，N9/N11/N12 未执行，其余阶段完成。已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态和最终报告在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 

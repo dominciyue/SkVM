@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-13
 
-**当前执行入口：第 10 节。** [先可用交付任务书 U0–U5](../superpowers/plans/2026-09-13-api-task-usable-delivery.md) 已登记，`planned-not-started`。优先修复当前已知缺口、交付完整普通输入例子和原生消费，再测复用成本；不先扩样、冻结或修历史归档。第 9 节 N0–N15 已终结，4/9 taskComplete、8/18 required checked-exported 和研究未执行均保持原事实。当前入口见 [唯一执行状态](deadline-execution-status.md)，上轮证据见 [最终交付](skill-family-current-v2-final-delivery.md)。
+**当前执行入口：第 10 节。** [真实 trace 驱动任务书 revision 2，U0–U7](../superpowers/plans/2026-09-13-api-task-usable-delivery.md) 已登记，`planned-not-started`。从真实运行记录出发，复用 JIT-optimize 和 Skill IR 后端生成优化 skill 包并测 agent 效果；取代未执行的 API-only U0–U5。第 9 节与旧结果保持历史事实，文档导航归并由治理线程负责。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -2359,10 +2359,10 @@ E 工程验收和 R 研究结论分开；不得只凭维护任务完成或零运
 
 截止前重点交付有来源要求的 TaskContract、按要求变化的产物、真实原生执行和失败说明。正确性 bug 即使一个实例也修；新能力按跨成员需求和成本排序，复用已实现模块。2026-09-13 22:00 后停止新特性/来源批次，优先 N14/N15；不保证研究必定正向。状态绑定只记 codeCommit/evidenceCommit，不为每个文档提交重复归档。
 
-## 10. 当前执行路线：先可用交付 U0–U5（2026-09-13）
+## 10. 当前执行路线：真实 trace 优化包 U0–U7（2026-09-13，revision 2）
 
-[完整任务书](../superpowers/plans/2026-09-13-api-task-usable-delivery.md) 已登记为 planned-not-started，直接在 skill-ir-aot 工作。上一轮 4/9 taskComplete、8/18 必要义务完成是修复基线，不启动旧研究链。
+[完整任务书](../superpowers/plans/2026-09-13-api-task-usable-delivery.md) 已登记为 planned-not-started，直接在 skill-ir-aot 工作。接纳不同 agent 的真实 trace，缺失事实保持未知；复用既有 JIT-optimize/proposal、JIT-boost、Skill IR 构造与 checker，不启动旧研究链。
 
-顺序为 U0 读取原九任务基线；U1 修合法空 form；U2 补保真负例及定义明确的 pytest 消费；U3 随仓库交付完整普通例子与操作说明；U4 测生成后复用成本，付费对照可选；U5 一次必要验证、同口径 before/after、更新现有文档并提交推送 origin。详细文件、失败测试、命令和时间处理均在任务书，避免两份实现清单漂移。
+顺序为 U0 接通既有日志优化与真实基线；U1 多来源 trace 适配；U2 所有有依据的优化机会；U3 局部固化与剩余流程；U4 新 skill 包实际消费；U5 类内复用；U6 agent 配对效果和修订；U7 有限验证交付。先一个真实闭环再扩展，API 空 form 等按需求修复，不是全局前置步骤。详细文件和验收仅维护在任务书。
 
-预计有效工程工作约 5–8 小时，不凑时长。9 月 13 日 22:00 后不再开新特性；晚于该时间启动则按任务书缩为明确修复、可用例子和交付。新能力允许修改当前开发接口，保持旧默认兼容，不先建研究 candidate/lock，也不修 clean-002 或等待未知样本。最低验收与改进指标分开，不以报告齐全代替软件可用，不以零 runtime token 推算未测节省率。
+按两日窗口推进，前约 16 小时争取首个闭环，9 月 14 日 18:00 后不新增能力方向。所有可检验改进均可接受，不要求最大热点或强制节省比例；不以阶段计数、文档缩短代替真实效果。历史证据与其他线程改动保留，必要测试后提交用户 origin 分支，不重复审计凑时长。
