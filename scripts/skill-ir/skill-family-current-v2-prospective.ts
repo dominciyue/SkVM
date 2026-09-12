@@ -5,6 +5,7 @@ import { writeN1CorpusFromRepository } from "../../src/skill-ir/skill-family-cur
 import { writeN2GapMatrixFromRepository } from "../../src/skill-ir/skill-family-current-v2-n2";
 import { writeN3SourceClosureReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n3";
 import { writeN5ConsumerReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n5";
+import { writeN8EngineReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n8";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -686,6 +687,52 @@ export async function runN5ConsumerStage(root: string, pythonExecutable = "pytho
   };
 }
 
+export async function runN8EngineStage(root: string) {
+  const state = await readStageState(root);
+  const current = selectNextRunnableTask(state.manifest, state.status);
+  if (current !== "N8" && state.status.tasks.N8.status !== "completed") {
+    fail(`N8 cannot run while current task is ${current ?? "none"}`);
+  }
+  if (state.status.tasks.N8.status === "completed") {
+    const path = `${CURRENT_V2_RESULT_RELATIVE}/integration/engine-report.json`;
+    const bytes = await readFile(join(root, path));
+    const report = JSON.parse(bytes.toString("utf8"));
+    if (report.schemaVersion !== "skill-family-current-v2-n8-engine/v1" || report.decision !== "passed") {
+      fail("persisted N8 engine report is invalid");
+    }
+    return { taskId: "N8" as const, outcome: "verified-existing" as const,
+      file: { path, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength }, view: state.view };
+  }
+  const built = await writeN8EngineReportFromRepository(root);
+  if (built.report.decision !== "passed") fail("N8 engine evidence did not satisfy its registered relations");
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N8", {
+    completedAt,
+    evidence: [
+      built.file.path,
+      "src/skill-ir/api-task-run.ts",
+      "src/skill-ir/api-task-run.test.ts",
+      "src/skill-ir/api-task-artifact.ts",
+      "src/skill-ir/api-task-artifact-checker.ts",
+      "src/cli/api-task.ts",
+      "src/cli/api-task.test.ts",
+      "src/cli/artifact.ts",
+      "src/skill-ir/skill-family-current-v2-n8.ts",
+      "src/skill-ir/skill-family-current-v2-n8.test.ts",
+    ],
+    nextAction: "N10: lock the six-contract/three-provider development panel, run baseline then current engine on fixed denominators, and compute the method gate",
+  });
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N8" as const,
+    outcome: "completed" as const,
+    file: built.file,
+    relations: built.report.relations,
+    cases: built.report.cases.map((row) => ({ id: row.id, backend: row.actualBackend, taskComplete: row.taskComplete })),
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -696,5 +743,6 @@ if (import.meta.main) {
   else if (step === "n5") {
     const python = process.argv.find((argument) => argument.startsWith("--python="))?.slice("--python=".length) ?? "python";
     console.log(JSON.stringify(await runN5ConsumerStage(process.cwd(), python), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5 [--python=<executable>]");
+  } else if (step === "n8") console.log(JSON.stringify(await runN8EngineStage(process.cwd()), null, 2));
+  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8 [--python=<executable>]");
 }

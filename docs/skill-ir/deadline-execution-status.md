@@ -1,8 +1,8 @@
 # API 合同任务引擎：唯一执行恢复状态
 
 - 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2。
-- N0–N3、N5 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b7`，N5=`0658306bfa5f85b188887572c19d1593509fe371`。职责/输入、完整计划、task-scoped source closure 与原生消费闭环已绑定。
-- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；主线下一动作是 N8 普通 TaskContract 统一入口、bundle 和 consumer 编排。
+- N0–N3、N5、N8 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b7`，N5=`0658306`；N8 payload 待本阶段提交绑定。职责/输入、完整计划、task-scoped source closure、原生消费闭环与普通入口已形成机器证据。
+- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；主线下一动作是 N10 固定六合同/三 provider development 面板与 method gate。
 - 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
 - 网络/API/付费已授权并按实际用途分账；本 identity 当前 source/business/model/paid=`0/0/0/0`，native loopback HTTP=`4`。平台安全控制未关闭，确定性证据核验仍生效。
 
@@ -193,3 +193,10 @@
 - TaskContract now binds plan, source closure, request/form specimens, JSON body negatives, conditional response checks and either request-json or the complete existing pytest suite/runtime. An independent checker reconstructs the obligation universe and all bindings from the original task/source.
 - Two synthetic but semantically distinct consumers each passed two selected native rows. Aggregate JUnit is 4 passed, 0 failed/errors, 5 skipped, with four hand-checked loopback exchanges. Eight preregistered faults were detected at their assigned layers with zero miss.
 - Pytest constraint-negative rows, path omission, parameter-negative assembly and absent business oracle remain explicit unresolved boundaries. Focused N5 regression is 53/53 with 281 assertions; final subset 11/11 with 50 assertions; full typecheck passes. Resume at N8; protected reads/runs remain zero.
+
+## 2026-09-12 Current-v2 N8 ordinary-entry checkpoint
+
+- `integration/engine-report.json` SHA-256=`9c754195d030831fb6b80611408fa276eba5fd056d8a9b24a688d7c7bea1f3c4` (7,596 bytes), decision passed. Four tasks ran in an OS temp directory outside the repository; requirement, operation and output changes all altered checked artifacts/backends, and the emitted digest binding replayed with identical semantic bindings.
+- The documented `bun ./bin/skvm.js artifact task --task=task.json --out=out` command and strict `--binding=run-binding.json` route are implemented. Output bundles retain original bytes, complete package/checker results and a replay binding. The support profile is `development-rich-task/v1`; legacy production v1/v2 routing is unchanged.
+- Required source security without credentials now leaves request obligations unresolved. A loopback oracle must cover all task-selected pytest rows before execution; covering only an unselected row is rejected before output creation. No guessed status or model import is added.
+- Broad N8 regression passed 78/78 with 378 assertions; legacy production v2 sub-regression passed 10/10 with 37 assertions. Full typecheck is rerun after final test type fixes before commit. Resume at N10; protected reads/runs remain zero.

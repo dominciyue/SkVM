@@ -55,6 +55,12 @@ function negativeCasesFor(obligation: ApiTaskPlanObligation, negatives: any): an
     .sort((left: any, right: any) => left.id.localeCompare(right.id));
 }
 
+function credentialsRequired(operationKey: string, specimens: any): boolean {
+  const security = specimens.operations.find((row: any) => row.key === operationKey)?.security;
+  if (!Array.isArray(security)) return true;
+  return security.length > 0 && !security.some((requirement: unknown) => record(requirement) && Object.keys(requirement).length === 0);
+}
+
 function requestRow(obligation: ApiTaskPlanObligation, sourceKind: ApiTaskArtifactRequest["sourceKind"], candidate: any): ApiTaskArtifactRequest {
   return {
     id: JSON.stringify([obligation.obligationId, sourceKind, candidate.id]),
@@ -121,7 +127,11 @@ function deriveExpected(input: {
         const row = pytestRows.find((entry: any) => entry.operationKey === obligation.operationKey && entry.caseId === candidate.id);
         if (row) result.artifactIds.push(row.id);
       }
-      if (candidate.status === "constructed" && result.artifactIds.length) result.status = "checked-exported";
+      if (candidate.status === "constructed" && result.artifactIds.length
+        && !credentialsRequired(obligation.operationKey, artifact.evidence.specimens)) result.status = "checked-exported";
+      else if (candidate.status === "constructed" && result.artifactIds.length) {
+        result.reason = "credentials and live authentication are not constructed by the existing backend";
+      }
       else result.reason = candidate.reasons.join("; ") || "selected request case is not exported";
       continue;
     }
@@ -138,7 +148,11 @@ function deriveExpected(input: {
         requests.push(row);
         result.artifactIds.push(row.id);
       }
-      if (cases.length && cases.every((row) => row.status === "constructed")) result.status = "checked-exported";
+      if (cases.length && cases.every((row) => row.status === "constructed")
+        && !credentialsRequired(obligation.operationKey, artifact.evidence.specimens)) result.status = "checked-exported";
+      else if (cases.length && cases.every((row) => row.status === "constructed")) {
+        result.reason = "credentials and live authentication are not constructed by the existing backend";
+      }
       else result.reason = cases.length
         ? `${cases.filter((row) => row.status === "constructed").length}/${cases.length} source constraints constructed`
         : "parameter constraint-negative assembly is outside the existing backend contract";

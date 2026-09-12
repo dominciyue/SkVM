@@ -154,4 +154,23 @@ describe("API TaskContract artifact package", () => {
     wrongSuite.backend.artifact.suiteJson = wrongSuite.backend.artifact.suiteJson.replace("item-1", "item-2");
     expect((await verifyApiTaskArtifact({ ...pytestInput, artifact: wrongSuite })).errors.some((error) => error.startsWith("PYTEST:"))).toBe(true);
   });
+
+  test("does not call an unauthenticated specimen complete when source security requires credentials", async () => {
+    const secureDocument = JSON.parse(SOURCE);
+    secureDocument.components = { securitySchemes: { bearer: { type: "http", scheme: "bearer" } } };
+    secureDocument.security = [{ bearer: [] }];
+    const sourceText = JSON.stringify(secureDocument);
+    const secureTask: any = contract("request-json");
+    secureTask.taskId = "artifact-secure";
+    secureTask.requirements = [secureTask.requirements[0]!];
+    secureTask.observations = null;
+    const input = { ...options(secureTask), sourceText, observations: [] };
+    const artifact = await buildApiTaskArtifact(input);
+    expect((await verifyApiTaskArtifact({ ...input, artifact })).status).toBe("pass");
+    expect(artifact.obligationResults[0]).toMatchObject({
+      status: "unresolved",
+      reason: "credentials and live authentication are not constructed by the existing backend",
+    });
+    expect(artifact.completion.taskComplete).toBe(false);
+  });
 });

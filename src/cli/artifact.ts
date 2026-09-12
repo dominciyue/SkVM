@@ -1,6 +1,6 @@
 import { isAbsolute, relative, resolve } from "node:path";
 import { z } from "zod";
-import { runArtifactPreset, type ArtifactPresetResult } from "../skill-ir/verified-artifact-presets";
+import { runArtifactPreset } from "../skill-ir/verified-artifact-presets";
 
 export const ARTIFACT_PRESETS = {
   "env-manager": {
@@ -138,6 +138,8 @@ export function artifactCliHelp(): string {
   return `skvm artifact — run a verified artifact preset without model calls
 
 Usage:
+  skvm artifact task --task=<task.json> --out=<new-directory> [--python=<executable>]
+  skvm artifact task --binding=<run-binding.json> [--python=<executable>]
   skvm artifact --preset=env-manager --root=<root> --workdir=<dir> --out=<dir> --completed-at=<ISO-8601>
   skvm artifact --preset=api-tester --variant=<openapi-json|openapi-yaml> --root=<root> --workdir=<dir> --out=<dir> --completed-at=<ISO-8601>
   skvm artifact --preset=api-tester --binding=<binding.json> --root=<root> --workdir=<dir> --out=<dir> --completed-at=<ISO-8601>
@@ -147,10 +149,15 @@ Presets:
   api-tester   ${ARTIFACT_PRESETS["api-tester"].description}
 
 For API Tester --binding, the binding schemaVersion selects production v1 or v2.
-The command is deterministic and does not inspect API keys or dispatch model calls.`;
+The task command uses the development-rich-task/v1 contract; production API Tester v1/v2 presets are unchanged.
+Compiled validation and replay do not inspect API keys or dispatch model calls.`;
 }
 
-export async function runArtifactCli(args: string[], cwd = process.cwd()): Promise<ArtifactPresetResult | undefined> {
+export async function runArtifactCli(args: string[], cwd = process.cwd()) {
+  if (args[0] === "task") {
+    const { runApiTaskCli } = await import("./api-task");
+    return runApiTaskCli(args.slice(1), cwd);
+  }
   if (args.includes("--help") || args.includes("-h") || args.length === 0) {
     process.stdout.write(`${artifactCliHelp()}\n`);
     return undefined;

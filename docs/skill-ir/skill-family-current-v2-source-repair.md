@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active，N0–N3、N5 completed / N8 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active，N0–N3、N5、N8 completed / N10 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -57,9 +57,10 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n1
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n2
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n3
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n5 --python=D:\anaconda\python.exe
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n8
 ~~~
 
-当前 `status`/`resume` 均定位 N8；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5` 会重核输入和已有输出，不回退状态。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+当前 `status`/`resume` 均定位 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
 
 ## N1 语料账本
 
@@ -91,6 +92,21 @@ N3 报告重放三份真实 development 计划和 8 个确定性合成 case。�
 
 N5 机器报告为 `integration/consumer-report.json`。JSON/local-reference fixture 与 form/query/header fixture 各由手写 predicate 提供独立预期，各有 2 passed native case；其余无 oracle 行分别记 2 和 3 skipped。总计 4 次 loopback HTTP、0 remote/model/paid call。遗漏义务、错误 operation、错误 ref 目标、form wire、constraint witness、response body、response header 与伪造 status 共 8/8 在预登记层检出，0 漏检。该有限合成集合不支持真实 API、whole-skill 或总体检出率结论。
 
+## N8 普通输入执行入口
+
+`api-task-run.ts` 从普通 task.json 或 strict `skvm-api-task-run-binding/v1` 读取任务、OpenAPI、可选依赖 manifest、observations 和 loopback oracle，在创建输出目录前核对路径/格式与 SHA-256。随后统一调用 plan → source closure → construct → independent package check → bundle；request-json 直接导出，pytest 在 offline 模式只封装，在 loopback 模式先核对 oracle 对 task-selected rows 的完整绑定再执行。输出包含原始输入副本、可重放 `input-binding.json`、task package、checker、backend、run report 与逐文件摘要。
+
+实际用户入口为：
+
+~~~powershell
+bun ./bin/skvm.js artifact task --task=task.json --out=out
+bun ./bin/skvm.js artifact task --binding=run-binding.json
+~~~
+
+新入口明确标为 `development-rich-task/v1`，不改变既有 `--preset=api-tester --binding=...` production v1/v2。编译/check/replay 不调用模型；自然语言 skill→task 导入仍是独立 agent-reviewed 阶段。N8 修复两项新链正确性问题：安全要求需要凭据时不把未认证 specimen 标为完成；oracle 只覆盖未选 suite row 时在运行前拒绝，不能让 task-selected row 静默 skip。
+
+`integration/engine-report.json` 在仓库外临时目录运行四个任务和 bundle replay；requirement、operation、output 均改变实际内容，文档 CLI 实测通过，旧 production v2 回归 10/10、37 assertions。通用三个实现文件不含已知来源名分支；本阶段 model/remote/paid/native call 均为 0。
+
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。
@@ -103,7 +119,8 @@ bun test ./src/skill-ir/skill-family-current-v2-corpus.test.ts
 bun test ./src/skill-ir/api-task-contract.test.ts ./src/skill-ir/api-task-plan.test.ts ./src/skill-ir/skill-family-current-v2-n2.test.ts
 bun test ./src/skill-ir/api-tester-source-closure.test.ts ./src/skill-ir/skill-family-current-v2-n3.test.ts
 bun test ./src/skill-ir/api-task-artifact.test.ts ./src/skill-ir/skill-family-current-v2-n5.test.ts
+bun test ./src/skill-ir/api-task-run.test.ts ./src/cli/api-task.test.ts ./src/skill-ir/skill-family-current-v2-n8.test.ts
 bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 ~~~
 
-历史恢复诊断仍为 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`；它属于旧 identity，不代替上述当前状态。计划中的普通任务命令为 `bun ./bin/skvm.js artifact task --task=task.json --out=out`；N8 必须实测并把这里更新成最终实际命令。在 N8 完成前不能将设计示例计作成功样本。
+历史恢复诊断仍为 `bun ./scripts/skill-ir/skill-family-class-proof.ts --step=status`；它属于旧 identity，不代替上述当前状态。上述普通任务命令已在 N8 通过 source checkout shim 实测；合成 CLI case 只证明工程入口，不计作真实或 prospective 样本。

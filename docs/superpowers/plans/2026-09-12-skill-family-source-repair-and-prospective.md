@@ -3,7 +3,7 @@
 > **For agentic workers:** Use superpowers:executing-plans to execute this plan. Main agent owns design, edits and final checks; narrowly scoped read-only probes follow AGENTS.md. Track the checkboxes and actual evidence, not elapsed hours.
 
 **Revision:** 2 — 2026-09-12，替代 3c37f7f 中的 revision 1；旧版在 Git 中保留。
-**Status:** active。N0–N3、N5 已于 2026-09-12 完成；当前主线可运行任务为 N8。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
+**Status:** active。N0–N3、N5、N8 已于 2026-09-12 完成；当前主线可运行任务为 N10。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
 **Goal:** 在 2026-09-14 00:00（Asia/Shanghai）前优先交付一个有实际消费闭环的 API 合同任务自动化引擎：明确需求 + 普通 OpenAPI 输入 → 可检查请求/测试包 → 原生执行与故障检出，并分别评价新需求与新输入迁移。
 **Architecture:** 保留旧 production v2；优先连接现有 api-skill-mapping、schema witness、request/form/negative、response checker 与 pytest 模块。新增薄的任务合同/计划层和统一调用接口；历史来源修复独立限时处理。标准化任务输入与输出，不重造 OpenAPI，不把自然语言提取自动视为可信。
 **Tech Stack:** Bun、TypeScript、Zod/AJV、现有 Python/pytest runtime、JSON/YAML、Git/gh；Schemathesis 为首选外部对照，Dredd 非必选。
@@ -299,14 +299,14 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：api-task-run 及测试；薄接 src/cli/artifact.ts；必要时新 api-task-plan helpers。
 
-- [ ] 实现 TaskContract → plan → source closure → construct → independent check → bundle → consumer 的统一调用；不依赖旧 selection/identity/成功数量。
-- [ ] 接已有 form、组合 schema、负例、response 和 pytest profile。正确性 bug、计数漏项、输出误标即使一个实例也必须修。
-- [ ] “两个成员出现”只用于新特性优先级，不是 bug 修复许可。新增特性优先有两个独立需求实例且预计两小时内完成者；超时保留明确 unsupported。
-- [ ] 新增能力用新 support profile 记录，不静默改旧 production v2。保持旧函数签名/默认行为；新任务从新入口调度。
-- [ ] AOT 合同只保证编译后的核验/重放无模型；自然语言导入成本与审核来源单列。
-- [ ] 提供拟定用户命令（本轮实施后必须实测）：bun ./bin/skvm.js artifact task --task=task.json --out=out。已有 CLI 分发不适合时先提供等价 api-task-run.ts --task --out，并在 N15 记录唯一可用入口，不新造 UI。
+- [x] 实现 TaskContract → plan → source closure → construct → independent check → bundle → consumer 的统一调用；不依赖旧 selection/identity/成功数量。
+- [x] 接已有 form、组合 schema、负例、response 和 pytest profile。正确性 bug、计数漏项、输出误标即使一个实例也必须修。
+- [x] “两个成员出现”只用于新特性优先级，不是 bug 修复许可。新增特性优先有两个独立需求实例且预计两小时内完成者；超时保留明确 unsupported。
+- [x] 新增能力用新 support profile 记录，不静默改旧 production v2。保持旧函数签名/默认行为；新任务从新入口调度。
+- [x] AOT 合同只保证编译后的核验/重放无模型；自然语言导入成本与审核来源单列。
+- [x] 提供拟定用户命令（本轮实施后必须实测）：bun ./bin/skvm.js artifact task --task=task.json --out=out。已有 CLI 分发不适合时先提供等价 api-task-run.ts --task --out，并在 N15 记录唯一可用入口，不新造 UI。
 
-验收：无研究数据目录的临时目录能跑；requirement/operation/output 的变化影响实际内容；模型未调用；没有硬编码仓库成功分支。
+验收：已满足。`integration/engine-report.json` 在仓库外 OS 临时目录运行四个 task，requirement、operation、output 三类变化均改变实际 plan/package/backend；输出自带可重放 digest binding。文档命令与 binding 命令均实测，旧 production v2 回归 10/10；通用入口无已知来源名成功分支，模型/remote/paid 调用均为 0。另修复 required security 误报完成和 oracle 未覆盖 task-selected row 仍运行的问题。
 
 ### N9：代码候选锁（P0，必须在 N10 修订结束后）
 
