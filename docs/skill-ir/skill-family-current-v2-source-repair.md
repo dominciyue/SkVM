@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active，N0–N3、N5、N8 completed / N10 completed-with-limitation / N7 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active；N0–N8 的已调度工程/维护项完成，N4/N6/N10/N13 带 limitation，N9/N11/N12 未执行，当前 N14，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -58,6 +58,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n2
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n3
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n4 --legacy-cache-root=<absolute-path> --exploratory-source-api-calls=<count>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n5 --python=D:\anaconda\python.exe
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n6
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n8
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-lock --locked-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-revision --evaluated-at=<ISO>
@@ -69,7 +70,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13-revisio
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13-reclassify --evaluated-at=<ISO>
 ~~~
 
-当前 `status`/`resume` 定位 N6；再次运行已完成阶段会重核已有输出，不回退状态，也不重复发网络请求或累计成本。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+当前 `status`/`resume` 定位 N14；再次运行已完成阶段会重核已有输出，不回退状态，也不重复发网络请求或累计成本。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
 
 ## N1 语料账本
 
@@ -98,6 +99,12 @@ N3 报告重放三份真实 development 计划和 8 个确定性合成 case。�
 `skill-family-current-v2-n4.ts` 从旧 experiment lock 和 dependency-verification inventory 重建固定问题分母，再用一次 GitHub GraphQL 内容批次取得维护者 metadata 与 Bangumi 固定提交的完整组件目录。传入的旧 external cache 先按锁定 SHA/bytes 检查，并连同对应许可证复制到 write-once evidence cache；四份原始 CRLF 文本通过精确路径 `-text/!eol` 属性保存原字节，避免 Git clean filter 改变摘要。正式批次失败才允许同查询重试一次。strict verifier 从提交中的 lock/inventory、归档源字节和原始 GraphQL snapshot 重算两个报告，任何绑定、查询、32-reference 分母或递归闭包漂移均失败。
 
 正式 code=`81f4a35ae8259aabd1880f76c8b6b1030ddff0b6`。Meilisearch 维护者仓库已归档，default head 仍等于旧锁提交、release 为空；`GET /tasks` 缺失 `#/components/parameters/total` 因而继续 `source-blocked-unresolved`，报告 SHA-256=`1706d1f9fa06fd47ee0b708ca911035098bae6a17ae4e3018325726650ff8dd8`。Bangumi 32 个历史 `REFERENCE_EXTERNAL` issue 覆盖 19 个 accepted operation，全部为 response-only/non-construction；一次批次取得 4 个根资源及 User 的两项嵌套依赖，共 6 个资源、0 unresolved，报告 SHA-256=`fd8fc90fe7541319c88718151becde5e9faa3a2b1f2b51b5c4a82fd5fd7966c8`。它是新 development closure identity，不回写旧 advisories，也不证明 live API 或整文档正确。探索 metadata 1 次、正式获取 1 次、retry 0，source/business/model/paid=`2/0/0/0`。
+
+## N6 限定历史归档检索
+
+`skill-family-current-v2-n6.ts` 固定旧 clean-002 相对路径和 expected SHA-256，从 Git 的 worktree 清单建立有限根目录，只检查每个根下的精确路径；随后运行 exact-path history 和 path-limited named-object 查询，并核对 8 份已知 delivery/clean/retry 归档。只有查询返回明确 commit/object 时才逐对象读取；无线索不运行整库 unreachable-object 枚举。原始命令、输出、退出码、候选摘要和明确未执行的扩大范围均写入 write-once transcript，strict verifier 从 transcript 与已知归档字节重算报告。
+
+code=`9532e9a04fd0feed2317d66dc65bf61f9108b9b1` 的唯一搜索检查 21 个已知 worktree，精确文件 0；Git history/named object 均 0；8 份已知归档中 3 份提到旧路径和摘要，但没有任何文件字节匹配 expected SHA-256。报告 `archive-recovery/clean-002-search.json` SHA-256=`14094e41d837e667ec96d5da99b9338879a92fb49bd2510ef9ab100bd34e70b9`，决策为 `not-recovered-within-search-scope`。两次严格重核通过且 transcript/report 摘要不变。旧缺档仍是 unresolved；这不是永久不可恢复断言，clean-003 也没有被改写成旧原件。
 
 ## N5 TaskContract 产物与原生消费
 

@@ -54,6 +54,13 @@ The stage writes:
 - `results/skill-ir/skill-family-current-v2-source-repair-001/archive-recovery/recovered-clean-002-report.json`
   only when exact bytes are found
 
+The one authorized search from code commit `9532e9a04fd0feed2317d66dc65bf61f9108b9b1` checked 21 known worktree
+roots, 0 exact-path history commits, 0 exact named objects, and 8/8 present known archives. Three archives mention
+the historical path and digest, but none has matching bytes. The decision is therefore
+`not-recovered-within-search-scope`; the report SHA-256 is
+`14094e41d837e667ec96d5da99b9338879a92fb49bd2510ef9ab100bd34e70b9`. Two strict re-verifications passed and
+left both the transcript and report hashes unchanged.
+
 Focused verification:
 
 ```powershell

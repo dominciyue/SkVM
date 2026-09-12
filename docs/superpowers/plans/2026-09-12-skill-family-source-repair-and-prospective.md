@@ -285,9 +285,11 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 及既有 expected SHA-256 `c4399a8a1fa5249b9061728105f08c65cad5e97d20dd9f68c9d24631910573d6`。
 一次 runner 调用先从 `git worktree list --porcelain` 建立有限 worktree 集，并仅检查各根目录下该精确相对路径；随后对当前仓库的全部本地可达 refs 运行精确路径 history/object-name 查询，并核对 delivery freeze、retry 与 clean-003 等已知归档路径。每一项搜索保存命令、范围、退出码及候选文件摘要，report verifier 从已归档 transcript 与候选 bytes 独立重算结论。只有精确路径/history 返回具体 commit 或 object 线索时，才允许按该线索检查相应 unreachable object；无线索时明确记为 not-applicable，禁止扩大到整盘、任意文件名或所有远端。命中 expected digest 才能记 `recovered-exact`；否则记 `not-recovered-within-search-scope`，保留旧缺档和 digest，不改历史 verifier，也不把有限未命中写成永久不可恢复。
 
-- [ ] 限定搜索旧精确路径、已知 worktree、Git 路径历史及已知归档；有线索才查相应 unreachable object。禁止整盘/所有远端无限枚举。
-- [ ] 找到 expected digest 原件记 recovered-exact；否则记 not-recovered-within-search-scope，并列搜索范围。有限搜索不能证明永远不可恢复，删除原版 historically-unrecoverable 绝对断言。
-- [ ] 新 current clean 是独立证据，历史缺档继续显示；不为这条旧记录修改历史 verifier。
+- [x] 限定搜索旧精确路径、已知 worktree、Git 路径历史及已知归档；有线索才查相应 unreachable object。禁止整盘/所有远端无限枚举。
+- [x] 找到 expected digest 原件记 recovered-exact；否则记 not-recovered-within-search-scope，并列搜索范围。有限搜索不能证明永远不可恢复，删除原版 historically-unrecoverable 绝对断言。
+- [x] 新 current clean 是独立证据，历史缺档继续显示；不为这条旧记录修改历史 verifier。
+
+**N6 实际终态：** code=`9532e9a04fd0feed2317d66dc65bf61f9108b9b1` 推送后执行一次限定搜索。21 个 `git worktree list` 根目录的精确旧路径均不存在；本地全部可达 refs 的 exact-path history 与 named-object 查询均为 0，因此 unreachable-object 检查按合同记为无线索不适用，没有运行广泛 `fsck`。固定 8 份已知归档全部存在，其中 3 份仅提到旧路径和 expected digest，0 份字节摘要匹配。`archive-recovery/clean-002-search.json` SHA-256=`14094e41d837e667ec96d5da99b9338879a92fb49bd2510ef9ab100bd34e70b9`，结论=`not-recovered-within-search-scope`；两次 strict verify 与 transcript/report write-once 摘要重核通过。N6=`completed-with-limitation`，旧缺档继续显示，clean-003 仍是独立证据，进入 N14 engineering replay。
 
 验收：一次结果即可关闭该维护任务，后续除有新线索不再搜索。
 
