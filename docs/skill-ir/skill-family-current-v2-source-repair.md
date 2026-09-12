@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active，N0–N3 completed / N5 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active，N0–N3、N5 completed / N8 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -56,9 +56,10 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=resume
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n1
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n2
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n3
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n5 --python=D:\anaconda\python.exe
 ~~~
 
-当前 `status`/`resume` 均定位 N5；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3` 只重核输入和已有输出，不回退状态或覆盖不同证据。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+当前 `status`/`resume` 均定位 N8；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5` 会重核输入和已有输出，不回退状态。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
 
 ## N1 语料账本
 
@@ -82,6 +83,14 @@ request-only 对未解析 response ref 记 advisory；response-conformance 对�
 
 N3 报告重放三份真实 development 计划和 8 个确定性合成 case。真实结果只证明已暴露字节的任务相关引用闭包，不证明 aggregator 原始上游、实时 API 或 schema witness 构造成功。
 
+## N5 TaskContract 产物与原生消费
+
+`api-task-artifact.ts` 把已核验 plan、task-scoped source closure、form-capable request specimens、JSON body negatives、可选 response observations 与用户要求的后端封装为 `skvm-api-task-artifact/v1`。request-json 后端逐 obligation 绑定请求；pytest 后端保留完整源 suite、固定 Python runtime 及 task-selected row id。当前既有 pytest runtime 尚不消费 constraint-negative row，因此该组合保持 unresolved，不借辅助 JSON 产物冒充 pytest 已执行。缺 path omission、参数负例、业务 oracle 或来源依赖时同样逐 obligation 保留原因。
+
+`api-task-artifact-checker.ts` 从原 task 与 OpenAPI 重建计划分母和 source closure，调用现有独立 specimen/body-negative/pytest checker，再核对 response evidence、task selection、completion 和包内摘要。它不会把 emitter 的 outcome 列表当全集。普通响应只接受显式 observation；loopback runtime 只接受绑定 suite/fixture/request 的 oracle，不推测 HTTP 状态。
+
+N5 机器报告为 `integration/consumer-report.json`。JSON/local-reference fixture 与 form/query/header fixture 各由手写 predicate 提供独立预期，各有 2 passed native case；其余无 oracle 行分别记 2 和 3 skipped。总计 4 次 loopback HTTP、0 remote/model/paid call。遗漏义务、错误 operation、错误 ref 目标、form wire、constraint witness、response body、response header 与伪造 status 共 8/8 在预登记层检出，0 漏检。该有限合成集合不支持真实 API、whole-skill 或总体检出率结论。
+
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。
@@ -93,6 +102,7 @@ bun test ./scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 bun test ./src/skill-ir/skill-family-current-v2-corpus.test.ts
 bun test ./src/skill-ir/api-task-contract.test.ts ./src/skill-ir/api-task-plan.test.ts ./src/skill-ir/skill-family-current-v2-n2.test.ts
 bun test ./src/skill-ir/api-tester-source-closure.test.ts ./src/skill-ir/skill-family-current-v2-n3.test.ts
+bun test ./src/skill-ir/api-task-artifact.test.ts ./src/skill-ir/skill-family-current-v2-n5.test.ts
 bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 ~~~
 

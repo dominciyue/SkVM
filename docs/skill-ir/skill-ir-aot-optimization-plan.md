@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-12
 
-**当前执行入口：第 9 节。** [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，当前 active：N0–N3 已完成，N5 是主线下一项。先闭合普通任务合同与原生消费，再验证新需求/新输入；历史维护独立限时。恢复见 [唯一执行状态](deadline-execution-status.md)，依据见 spec 第 14.28 节。D1–D9 等旧路线保持历史记录。
+**当前执行入口：第 9 节。** [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，当前 active：N0–N3、N5 已完成，N8 是主线下一项。先闭合普通任务合同与统一入口，再验证新需求/新输入；历史维护独立限时。恢复见 [唯一执行状态](deadline-execution-status.md)，依据见 spec 第 14.28 节。D1–D9 等旧路线保持历史记录。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -2349,7 +2349,7 @@ git diff --check
 
 ## 9. 当前截止前执行路线（2026-09-12，revision 2）
 
-执行 [N0–N15 修订任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，在 skill-ir-aot 开发，批次 identity 仅隔离证据。N0–N3 已完成实际基线、固定 development corpus、构造前 TaskContract/plan 与 task-relevant source closure，当前进入 N5；旧版 3c37f7f 已由 revision 2 替代。
+执行 [N0–N15 修订任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，在 skill-ir-aot 开发，批次 identity 仅隔离证据。N0–N3、N5 已完成实际基线、固定 development corpus、构造前 TaskContract/plan、task-relevant source closure、request-json/pytest 产物接线、两种 native consumer 与 8 类指定层故障检出，当前进入 N8；旧版 3c37f7f 已由 revision 2 替代。
 
 优先级：N0/N1/N2 建需求与任务合同；N3/N5/N8/N10 连接现有 schema/request/form/response/pytest 实现并完成真实消费；N7/N9/N11/N12 派生 readiness、冻结代码后测试新输入与新成员；N13 外部对照在 N10 后即可运行；N14/N15 一次 clean 与交付。N4/N6 历史 source/归档维护合计最多 75 分钟，不在主依赖链。
 

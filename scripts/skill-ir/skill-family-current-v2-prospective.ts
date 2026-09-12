@@ -1,8 +1,10 @@
+import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import { writeN1CorpusFromRepository } from "../../src/skill-ir/skill-family-current-v2-corpus";
 import { writeN2GapMatrixFromRepository } from "../../src/skill-ir/skill-family-current-v2-n2";
 import { writeN3SourceClosureReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n3";
+import { writeN5ConsumerReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n5";
 
 export const CURRENT_V2_IDENTITY = "skill-family-current-v2-source-repair-001" as const;
 export const CURRENT_V2_RESULT_RELATIVE = "results/skill-ir/skill-family-current-v2-source-repair-001" as const;
@@ -641,6 +643,49 @@ export async function runN3SourceClosureStage(root: string) {
   };
 }
 
+export async function runN5ConsumerStage(root: string, pythonExecutable = "python") {
+  const state = await readStageState(root);
+  const current = selectNextRunnableTask(state.manifest, state.status);
+  if (current !== "N5" && state.status.tasks.N5.status !== "completed") {
+    fail(`N5 cannot run while current task is ${current ?? "none"}`);
+  }
+  if (state.status.tasks.N5.status === "completed") {
+    const path = `${CURRENT_V2_RESULT_RELATIVE}/integration/consumer-report.json`;
+    const bytes = await readFile(join(root, path));
+    const report = JSON.parse(bytes.toString("utf8"));
+    if (report.schemaVersion !== "skill-family-current-v2-n5-consumer/v1" || report.decision !== "passed") {
+      fail("persisted N5 consumer report is invalid");
+    }
+    return { taskId: "N5" as const, outcome: "verified-existing" as const,
+      file: { path, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength }, view: state.view };
+  }
+  const built = await writeN5ConsumerReportFromRepository(root, pythonExecutable);
+  if (built.report.decision !== "passed") fail("N5 consumer evidence did not satisfy its registered relations");
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N5", {
+    completedAt,
+    evidence: [
+      built.file.path,
+      "src/skill-ir/api-task-artifact.ts",
+      "src/skill-ir/api-task-artifact-checker.ts",
+      "src/skill-ir/api-task-artifact.test.ts",
+      "src/skill-ir/skill-family-current-v2-n5.ts",
+      "src/skill-ir/skill-family-current-v2-n5.test.ts",
+    ],
+    nextAction: "N8: integrate TaskContract, source closure, construction, independent checking, bundle, and consumer behind the ordinary API task entry",
+  });
+  status.accounting.nativeLoopbackHttpCalls += built.report.accounting.loopbackHttpCalls;
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N5" as const,
+    outcome: "completed" as const,
+    file: built.file,
+    fixtures: built.report.fixtures.map((row) => ({ id: row.fixtureId, junit: row.junit, status: row.status })),
+    faultInjection: built.report.faultInjection.summary,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -648,5 +693,8 @@ if (import.meta.main) {
   else if (step === "n1") console.log(JSON.stringify(await runN1CorpusStage(process.cwd()), null, 2));
   else if (step === "n2") console.log(JSON.stringify(await runN2TaskContractStage(process.cwd()), null, 2));
   else if (step === "n3") console.log(JSON.stringify(await runN3SourceClosureStage(process.cwd()), null, 2));
-  else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3");
+  else if (step === "n5") {
+    const python = process.argv.find((argument) => argument.startsWith("--python="))?.slice("--python=".length) ?? "python";
+    console.log(JSON.stringify(await runN5ConsumerStage(process.cwd(), python), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5 [--python=<executable>]");
 }

@@ -3,7 +3,7 @@
 > **For agentic workers:** Use superpowers:executing-plans to execute this plan. Main agent owns design, edits and final checks; narrowly scoped read-only probes follow AGENTS.md. Track the checkboxes and actual evidence, not elapsed hours.
 
 **Revision:** 2 — 2026-09-12，替代 3c37f7f 中的 revision 1；旧版在 Git 中保留。
-**Status:** active。N0–N3 已于 2026-09-12 完成；当前主线可运行任务为 N5。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
+**Status:** active。N0–N3、N5 已于 2026-09-12 完成；当前主线可运行任务为 N8。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
 **Goal:** 在 2026-09-14 00:00（Asia/Shanghai）前优先交付一个有实际消费闭环的 API 合同任务自动化引擎：明确需求 + 普通 OpenAPI 输入 → 可检查请求/测试包 → 原生执行与故障检出，并分别评价新需求与新输入迁移。
 **Architecture:** 保留旧 production v2；优先连接现有 api-skill-mapping、schema witness、request/form/negative、response checker 与 pytest 模块。新增薄的任务合同/计划层和统一调用接口；历史来源修复独立限时处理。标准化任务输入与输出，不重造 OpenAPI，不把自然语言提取自动视为可信。
 **Tech Stack:** Bun、TypeScript、Zod/AJV、现有 Python/pytest runtime、JSON/YAML、Git/gh；Schemathesis 为首选外部对照，Dredd 非必选。
@@ -263,14 +263,14 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：复用 api-pytest-suite/runtime/oracle、response-observation/header；integration/consumer-report.json。
 
-- [ ] 先跑已有 native loopback 与 wire 测试确认能用；错误才修，不再从零做 exporter。
-- [ ] 把 N2 的计划连到 request-json 和 pytest 后端；输出完整 suite data、Python runtime、依赖说明、任务与来源绑定。需要 response profile 时使用现有 observation checker。
-- [ ] 以两份独立编写且有明确语义的 loopback fixture 消费导出包。fixture 不调用 generator 的 witness 函数生成“期望答案”；fixture 身份和验证范围标明 synthetic。
-- [ ] 锁定 8 类 fault：遗漏必需 case、错误 operation、错误 ref 目标、query/form wire 破坏、请求约束破坏、response body 错误、response header 错误、无依据伪造 status assertion。前五由计划/静态/序列化检查，后面由 observation/runtime 或 oracle 边界检查检出。
-- [ ] 对照正常 fixture 通过；证明至少一个实际收到的 HTTP request 和 response 被 native runtime 验证，JUnit 中 executed/pass/fail/skip 分列。业务缺 oracle 可 skip，但不能计 completed。
-- [ ] 对普通 API 只给条件 response 检查，不猜 expected status。缺行为 oracle 必须以 observation/fixture 输入补足，不能为了避免 skip 写猜测。
+- [x] 先跑已有 native loopback 与 wire 测试确认能用；错误才修，不再从零做 exporter。
+- [x] 把 N2 的计划连到 request-json 和 pytest 后端；输出完整 suite data、Python runtime、依赖说明、任务与来源绑定。需要 response profile 时使用现有 observation checker。
+- [x] 以两份独立编写且有明确语义的 loopback fixture 消费导出包。fixture 不调用 generator 的 witness 函数生成“期望答案”；fixture 身份和验证范围标明 synthetic。
+- [x] 锁定 8 类 fault：遗漏必需 case、错误 operation、错误 ref 目标、query/form wire 破坏、请求约束破坏、response body 错误、response header 错误、无依据伪造 status assertion。前五由计划/静态/序列化检查，后面由 observation/runtime 或 oracle 边界检查检出。
+- [x] 对照正常 fixture 通过；证明至少一个实际收到的 HTTP request 和 response 被 native runtime 验证，JUnit 中 executed/pass/fail/skip 分列。业务缺 oracle 可 skip，但不能计 completed。
+- [x] 对普通 API 只给条件 response 检查，不猜 expected status。缺行为 oracle 必须以 observation/fixture 输入补足，不能为了避免 skip 写猜测。
 
-验收：package 可在研究 runner 外执行；上述 fault 各由预定层检出；两种正常 fixture 有非零执行且通过。已有测试证明同一性质时直接复用结果。
+验收：已满足。`integration/consumer-report.json` 记录 JSON/reference 与 form/query/header 两种 fixture 各执行 2 个 native case 并通过，JUnit 分列为 4 passed、0 failed、0 errors、5 skipped；4 次 loopback HTTP 均由手写 predicate 验证。8/8 预登记 fault 在指定层检出，0 漏检。该结果只适用于合成 fixture，不代表真实 API 或 whole-skill 可靠性。
 
 ### N6：历史归档缺口判定（支线，最多 30 分钟）
 
