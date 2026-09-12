@@ -1,10 +1,10 @@
 # API 合同任务引擎：唯一执行恢复状态
 
 - 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2。
-- N0–N3 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b796d0afe2c0348a014a5439b1184100c61`。职责/输入、完整计划和 task-scoped source closure 已绑定。
-- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；主线下一动作是 N5 request-json/pytest package 接入、两个独立 loopback consumer 和八类 fault 的指定层检出。
+- N0–N3、N5 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b7`，N5=`0658306bfa5f85b188887572c19d1593509fe371`。职责/输入、完整计划、task-scoped source closure 与原生消费闭环已绑定。
+- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；主线下一动作是 N8 普通 TaskContract 统一入口、bundle 和 consumer 编排。
 - 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
-- 网络/API/付费已授权并按实际用途分账；N0 实际 source/business/model/paid 调用为 `0/0/0/0`。平台安全控制未关闭，确定性证据核验仍生效。
+- 网络/API/付费已授权并按实际用途分账；本 identity 当前 source/business/model/paid=`0/0/0/0`，native loopback HTTP=`4`。平台安全控制未关闭，确定性证据核验仍生效。
 
 以下 D 系列与旧 class-proof 内容均为历史检查点，不是当前恢复入口。
 
@@ -186,3 +186,10 @@
 - Three real N2 tasks pass source closure with 12 reference occurrences. Eight deterministic cases / thirteen relations cover missing local and unaffected operations, pinned external roles, nested relative URI bases, shared-resource deduplication, structural recursion versus pure reference cycles, task-dependent response severity, pointer/sibling distinctions and OAS dialect rejection.
 - External resources are digest-bound data under fixed byte/node/depth budgets and are never executed. Source validity, witness constructibility, live service behavior and original-upstream validity remain separate.
 - Focused current-v2 set is 26/26 tests with 90 assertions; full typecheck passes. External/protected counters remain zero. Resume at N5.
+
+## 2026-09-12 Current-v2 N5 native-consumer checkpoint
+
+- N5 payload is `0658306bfa5f85b188887572c19d1593509fe371`; `integration/consumer-report.json` SHA-256 is `a2990694bba9d84cbcccdd071f34cf5629cf6c7e9332cf16052faa5c95c269b2` (20,368 bytes).
+- TaskContract now binds plan, source closure, request/form specimens, JSON body negatives, conditional response checks and either request-json or the complete existing pytest suite/runtime. An independent checker reconstructs the obligation universe and all bindings from the original task/source.
+- Two synthetic but semantically distinct consumers each passed two selected native rows. Aggregate JUnit is 4 passed, 0 failed/errors, 5 skipped, with four hand-checked loopback exchanges. Eight preregistered faults were detected at their assigned layers with zero miss.
+- Pytest constraint-negative rows, path omission, parameter-negative assembly and absent business oracle remain explicit unresolved boundaries. Focused N5 regression is 53/53 with 281 assertions; final subset 11/11 with 50 assertions; full typecheck passes. Resume at N8; protected reads/runs remain zero.
