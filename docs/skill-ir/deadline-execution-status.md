@@ -1,8 +1,8 @@
 # API 合同任务引擎：唯一执行恢复状态
 
 - 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2。
-- N0–N2 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c885efaa11ae27aaddd380dbb75cf59fe50`，N2=`9ae5f59f4003daea5d32fd09e6701bf084eb8e35`。职责/输入账本与严格 TaskContract/完整 plan/checker 已绑定。
-- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；下一动作是 N3 task-relevant source closure，输出逐 reference/requirement/operation 影响的 `source-closure/report.json`。
+- N0–N3 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b796d0afe2c0348a014a5439b1184100c61`。职责/输入、完整计划和 task-scoped source closure 已绑定。
+- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；主线下一动作是 N5 request-json/pytest package 接入、两个独立 loopback consumer 和八类 fault 的指定层检出。
 - 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
 - 网络/API/付费已授权并按实际用途分账；N0 实际 source/business/model/paid 调用为 `0/0/0/0`。平台安全控制未关闭，确定性证据核验仍生效。
 
@@ -179,3 +179,10 @@
 - Strict task parsing, public JSON Schema, read-only legacy mapping adaptation, pre-construction obligation planning, independent source/task enumeration and all-required completion evaluation are implemented. Unknown fields fail; valid-but-unavailable output and insufficient inputs remain explicit.
 - Three source-grounded demonstrations on the same exposed 1Password operation produce distinct plans. The broad fishzjp pytest/fuzzing mapping remains unresolved rather than being narrowed silently. Renaming member/repository provenance leaves semantic plan identity unchanged.
 - Focused N2 set is 17/17 tests and 69 assertions; repository typecheck passes. Construction/native execution has not run, and protected/external call counts remain zero. Resume at N3.
+
+## 2026-09-12 Current-v2 N3 source-closure checkpoint
+
+- N3 payload is `70f36b796d0afe2c0348a014a5439b1184100c61`; report SHA-256 is `c5d6eb08a24393653129c6a2b4cac7afcf964f710ae27125c2798fc384a1feb6` (81,655 bytes).
+- Three real N2 tasks pass source closure with 12 reference occurrences. Eight deterministic cases / thirteen relations cover missing local and unaffected operations, pinned external roles, nested relative URI bases, shared-resource deduplication, structural recursion versus pure reference cycles, task-dependent response severity, pointer/sibling distinctions and OAS dialect rejection.
+- External resources are digest-bound data under fixed byte/node/depth budgets and are never executed. Source validity, witness constructibility, live service behavior and original-upstream validity remain separate.
+- Focused current-v2 set is 26/26 tests with 90 assertions; full typecheck passes. External/protected counters remain zero. Resume at N5.

@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active，N0/N1/N2 completed / N3 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active，N0–N3 completed / N5 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -55,9 +55,10 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=resume
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n1
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n2
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n3
 ~~~
 
-当前 `status`/`resume` 均定位 N3；再次运行已完成的 `--step=n1`/`--step=n2` 只重核输入和已有输出，不回退状态或覆盖不同证据。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+当前 `status`/`resume` 均定位 N5；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3` 只重核输入和已有输出，不回退状态或覆盖不同证据。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
 
 ## N1 语料账本
 
@@ -73,6 +74,14 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n2
 
 N2 证据 `baseline/gap-matrix.json` 在同一已暴露 API 操作上绑定三种来源职责，证明 requirement/output 改变语义而来源名称不改变；第三个 pytest/fuzzing 任务的广义 fuzzing 仍 unresolved。当前只证明计划和分母，不证明构造、package 或 native execution；这些明确留给 N5/N8。
 
+## N3 task-relevant source closure
+
+`api-tester-source-closure.ts` 使用 TaskContract 决定引用角色与严重性，并从原 OpenAPI operation 重新遍历 request、response 和 security roots。外部文件必须先进入 `skvm-api-dependency-manifest/v1`，以 canonical URI、相对本地路径、格式和 SHA-256 绑定；运行期只解析已提供字节，不联网、不执行内容。每个 occurrence 保留 origin URI/locator、原 `$ref`、target URI/pointer、acquisition/source/witness 状态、dependent requirement 和 affected operation。
+
+request-only 对未解析 response ref 记 advisory；response-conformance 对同一 ref 阻塞。结构递归可以是 `recursive-resolved`，同时有限 witness 为 `unresolved-recursion-budget`；纯 Reference Object 环、缺 pointer、缺 manifest resource、OAS3.0 sibling 和不支持 dialect 分别报告。operation×requirement 状态独立，因此单个坏引用不会全局抹掉未受影响操作。资源、深度和 occurrence 预算固定；达到上限返回 resource-limit，而不是继续展开。
+
+N3 报告重放三份真实 development 计划和 8 个确定性合成 case。真实结果只证明已暴露字节的任务相关引用闭包，不证明 aggregator 原始上游、实时 API 或 schema witness 构造成功。
+
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。
@@ -83,6 +92,7 @@ N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证�
 bun test ./scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 bun test ./src/skill-ir/skill-family-current-v2-corpus.test.ts
 bun test ./src/skill-ir/api-task-contract.test.ts ./src/skill-ir/api-task-plan.test.ts ./src/skill-ir/skill-family-current-v2-n2.test.ts
+bun test ./src/skill-ir/api-tester-source-closure.test.ts ./src/skill-ir/skill-family-current-v2-n3.test.ts
 bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 ~~~
 

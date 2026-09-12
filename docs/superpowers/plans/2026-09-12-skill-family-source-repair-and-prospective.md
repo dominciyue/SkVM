@@ -3,7 +3,7 @@
 > **For agentic workers:** Use superpowers:executing-plans to execute this plan. Main agent owns design, edits and final checks; narrowly scoped read-only probes follow AGENTS.md. Track the checkboxes and actual evidence, not elapsed hours.
 
 **Revision:** 2 — 2026-09-12，替代 3c37f7f 中的 revision 1；旧版在 Git 中保留。
-**Status:** active。N0/N1/N2 已于 2026-09-12 完成；当前可运行任务为 N3。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
+**Status:** active。N0–N3 已于 2026-09-12 完成；当前主线可运行任务为 N5。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
 **Goal:** 在 2026-09-14 00:00（Asia/Shanghai）前优先交付一个有实际消费闭环的 API 合同任务自动化引擎：明确需求 + 普通 OpenAPI 输入 → 可检查请求/测试包 → 原生执行与故障检出，并分别评价新需求与新输入迁移。
 **Architecture:** 保留旧 production v2；优先连接现有 api-skill-mapping、schema witness、request/form/negative、response checker 与 pytest 模块。新增薄的任务合同/计划层和统一调用接口；历史来源修复独立限时处理。标准化任务输入与输出，不重造 OpenAPI，不把自然语言提取自动视为可信。
 **Tech Stack:** Bun、TypeScript、Zod/AJV、现有 Python/pytest runtime、JSON/YAML、Git/gh；Schemathesis 为首选外部对照，Dredd 非必选。
@@ -238,13 +238,15 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：api-tester-source-closure 及测试；复用 operation-source/coverage。
 
-- [ ] RED fixtures：missing local、有效外部 request/response、相对 URI、重复共享依赖、合法递归、非法循环展开、错误 pointer、OAS dialect/sibling 差异。
-- [ ] 返回 per-reference resolution、dependentRequirements、affectedOperations、acquisitionStatus、witnessStatus；source validity 与 witness constructibility 分离。
-- [ ] 外部依赖先取入 pinned manifest，再本地解析；被引用数据永不作为执行指令。资源限制固定并返回 resource-limit 原因。
-- [ ] request-only 下 unresolved response 可 advisory；response-conformance 下相同 ref 阻塞相应义务。未受影响操作继续。
-- [ ] 保留 origin URI 与 pointer；打包时不要因 flatten 丢失相对基址。复用 dependency fault 测试，不造第二套同义 checksum 管线。
+- [x] RED fixtures：missing local、有效外部 request/response、相对 URI、重复共享依赖、合法递归、非法循环展开、错误 pointer、OAS dialect/sibling 差异。
+- [x] 返回 per-reference resolution、dependentRequirements、affectedOperations、acquisitionStatus、witnessStatus；source validity 与 witness constructibility 分离。
+- [x] 外部依赖先取入 pinned manifest，再本地解析；被引用数据永不作为执行指令。资源限制固定并返回 resource-limit 原因。
+- [x] request-only 下 unresolved response 可 advisory；response-conformance 下相同 ref 阻塞相应义务。未受影响操作继续。
+- [x] 保留 origin URI 与 pointer；打包时不要因 flatten 丢失相对基址。复用 dependency fault 测试，不造第二套同义 checksum 管线。
 
 验收：删掉真实依赖能报对应 requirement，合法递归可记录解析成功但构造 unresolved；不会全局通过或全局拒绝。
+
+**N3 实际结果：** 实现/证据提交=`70f36b796d0afe2c0348a014a5439b1184100c61`；`source-closure/report.json` SHA-256=`c5d6eb08a24393653129c6a2b4cac7afcf964f710ae27125c2798fc384a1feb6`，81,655 bytes。新增严格 digest-bound dependency manifest 和 task-scoped URI/pointer 图；只接受明示 http/https identity，限制 64 resources、单件 8 MiB、总 32 MiB、10,000 traversal nodes、4,096 reference occurrences、depth 128。三份 N2 真实计划均 source closure passed，合计 12 个本地引用 occurrence。8 个合成 case/13 条预注册关系全部通过：外部 request/response、包含文档相对基址、共享依赖单次装载、结构递归 source resolved 但 witness unresolved、纯 ref 环阻塞、错误 pointer 与 OAS3.0 sibling 分因、OAS3.1 profile 拒绝、response severity 随 task 改变；混合输入中 broken operation 被阻塞而 healthy operation 保持 source-ready。相关聚焦集合 `26/26`、90 assertions，完整 typecheck 通过；未联网获取或执行引用内容。
 
 ### N4：历史 source 修复（支线，最多 45 分钟）
 
