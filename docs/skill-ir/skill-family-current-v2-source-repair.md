@@ -120,6 +120,8 @@ bun ./bin/skvm.js artifact task --binding=run-binding.json
 
 基线在固定 18 个必需 task obligation 中只报告 13 个 source construction potential；由于没有 requirement binding、task package checker 或 task-selected consumer，checked-bound=`0`、taskComplete=`0/9`、native=`0`。潜在构造不能计为任务成功；Visier 表单负例与其他未覆盖项只作为首轮待观察缺口，不在 current first-run 前修改实现。
 
+Current first-run 的九个 task 与九次预登记 repeat build 已在 engine commit `76ce3e40ce0f819d444e4a0fae911cd0095a56e1` 执行并逐行 exclusive 保存；总报告尚未形成。汇总器随后因把 artifact 合同的 `completion.required` 误写为 `completion.counts` 而抛错。`first-run-aggregation-failure-001.json` 绑定九个原始 row 和 package 摘要；修复新增字段路径单测，从原 package 派生缺失汇总字段，不重写 row、不重跑 task。该恢复完成前不能解释方法门。
+
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。

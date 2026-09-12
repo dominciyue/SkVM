@@ -335,6 +335,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 **N10 baseline 检查点：** 锁提交 `26b4566f575b886f8104d7c209b7f03a7cdbeed6` 推送后，source-only baseline 已独占写入并通过结构核验。固定 18 个必需 obligation 中 13 个存在未绑定 construction potential；因为基线无 TaskContract dispatch、requirement binding、package checker 与 task-selected native consumer，checked-bound/taskComplete/package-check/native 均为 0。首次/重复构建语义相同且无 cache。baseline 原件须先提交推送；current first-run 仍未运行，N10 继续 running。
 
+**N10 first-run 恢复检查点：** engine commit `76ce3e40ce0f819d444e4a0fae911cd0095a56e1` 推送后，9/9 task 及 repeat build 已运行并各自 write-once 保存。聚合阶段因实现误读不存在的 `completion.counts` 而失败，`first-run.json` 未产生；原 row/package 摘要与错误绑定在 `first-run-aggregation-failure-001.json`。修复只读取正确的 `completion.required`，从摘要绑定 package 恢复聚合字段，不覆盖 row、不重跑 task。总报告形成前 N10 状态和 method gate 仍未知。
+
 ### N11：两阶段 prospective 预登记（P0，信息顺序修正）
 
 文件：prospective/protocol.json、selection-lock.json、discovery.json、predictions.json。

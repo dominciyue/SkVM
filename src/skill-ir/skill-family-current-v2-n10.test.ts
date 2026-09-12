@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   materializeN10DevelopmentPanel,
+  readN10RequiredCompletionCounts,
   summarizeN10FirstRunRows,
   writeN10BaselineFromDevelopmentPanel,
   verifyN10Baseline,
@@ -150,5 +151,13 @@ describe("current-v2 N10 development panel lock", () => {
       unresolvedRequiredObligations: 1,
       comparisonsPassed: 2,
     });
+  });
+
+  test("reads required completion counts from the artifact contract rather than a nonexistent counts field", () => {
+    const required = { total: 3, checkedExported: 2, failed: 0, unresolved: 1, insufficientInput: 0, missing: 0 };
+    expect(readN10RequiredCompletionCounts({ completion: { required, counts: { total: 999 } } })).toEqual(required);
+    expect(() => readN10RequiredCompletionCounts({ completion: { counts: required } })).toThrow(
+      "task package lacks completion.required counts",
+    );
   });
 });

@@ -901,6 +901,17 @@ export async function runN10FirstRunStage(root: string, executedAt = new Date().
   const developmentDirectory = join(root, developmentRelative);
   const lockCommit = await requirePushedN10Lock(root);
   const baselineBinding = await requirePushedImmutableFile(root, `${developmentRelative}/baseline.json`);
+  let engineCodeCommit = baselineBinding.head;
+  try {
+    const firstLockedTask = JSON.parse(await readFile(join(developmentDirectory, "input-lock.json"), "utf8")).tasks[0];
+    const existingRow = JSON.parse(await readFile(join(developmentDirectory, "first-run-rows", `${firstLockedTask.taskId}.json`), "utf8"));
+    if (!/^[0-9a-f]{40}$/u.test(existingRow.engineCodeCommit)) fail("persisted N10 first-run row has an invalid engine commit");
+    const mergeBase = new TextDecoder().decode(await gitBytes(root, ["merge-base", existingRow.engineCodeCommit, baselineBinding.head])).trim();
+    if (mergeBase !== existingRow.engineCodeCommit) fail("persisted N10 first-run engine commit is not an ancestor of pushed HEAD");
+    engineCodeCommit = existingRow.engineCodeCommit;
+  } catch (error) {
+    if (error instanceof Error && (error.message.startsWith("persisted N10") || error.message.startsWith("git merge-base"))) throw error;
+  }
   let built: Awaited<ReturnType<typeof writeN10FirstRunFromDevelopmentPanel>> | null = null;
   try {
     await readFile(join(developmentDirectory, "first-run.json"));
@@ -910,7 +921,7 @@ export async function runN10FirstRunStage(root: string, executedAt = new Date().
       developmentDirectory,
       lockCommit,
       baselineCommit: baselineBinding.creationCommit,
-      engineCodeCommit: baselineBinding.head,
+      engineCodeCommit,
       executedAt,
     });
   }

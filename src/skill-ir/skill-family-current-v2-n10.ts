@@ -881,6 +881,15 @@ function emptyRequiredCounts() {
   return { total: 0, checkedExported: 0, failed: 0, unresolved: 0, insufficientInput: 0, missing: 0 };
 }
 
+export function readN10RequiredCompletionCounts(artifact: unknown): N10FirstRunSummaryRow["required"] {
+  const required = (artifact as any)?.completion?.required;
+  const keys = Object.keys(emptyRequiredCounts());
+  if (!required || keys.some((key) => !Number.isInteger(required[key]) || required[key] < 0)) {
+    throw new Error("task package lacks completion.required counts");
+  }
+  return Object.fromEntries(keys.map((key) => [key, required[key]])) as N10FirstRunSummaryRow["required"];
+}
+
 async function hashBundleFiles(outputDirectory: string): Promise<{ status: "pass" | "fail"; errors: string[]; manifestSha256: string | null }> {
   const errors: string[] = [];
   try {
@@ -977,7 +986,7 @@ async function executeN10TaskFirstRun(input: {
       repeat,
       semanticPlanSha256: artifact.plan.semanticPlanSha256,
       backendSha256: artifact.bindings.backendSha256,
-      required: artifact.completion.counts,
+      required: readN10RequiredCompletionCounts(artifact),
       obligationResults: artifact.obligationResults,
       sourceClosureSummary: artifact.sourceClosure.summary,
       nativeExecuted,
@@ -1007,6 +1016,29 @@ async function executeN10TaskFirstRun(input: {
       error: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+async function normalizePersistedFirstRunRow(row: Record<string, any>, developmentDirectory: string) {
+  if (row.required !== undefined) return row;
+  if (row.runStatus !== "completed" || typeof row.firstBuild?.outputPath !== "string") {
+    return { ...row, required: emptyRequiredCounts(), aggregationRecovery: "missing counts defaulted only for a non-completed row" };
+  }
+  const packageBytes = await readFile(join(developmentDirectory, row.firstBuild.outputPath, "task-package.json"));
+  if (sha(packageBytes) !== row.firstBuild.taskPackageSha256) {
+    throw new Error(`N10 persisted package changed during aggregation recovery: ${row.taskId}`);
+  }
+  const artifact = JSON.parse(packageBytes.toString("utf8"));
+  let required: N10FirstRunSummaryRow["required"];
+  try {
+    required = readN10RequiredCompletionCounts(artifact);
+  } catch {
+    throw new Error(`N10 persisted package lacks required completion counts: ${row.taskId}`);
+  }
+  return {
+    ...row,
+    required,
+    aggregationRecovery: "derived completion.required from the digest-bound original task package; task was not rerun",
+  };
 }
 
 function firstRunComparison(lockRelation: Record<string, any>, rows: Array<Record<string, any>>) {
@@ -1080,7 +1112,8 @@ export async function writeN10FirstRunFromDevelopmentPanel(options: {
       await writeFile(rowPath, `${JSON.stringify(row, null, 2)}\n`, { flag: "wx" });
     }
     const rowBytes = await readFile(rowPath);
-    taskRows.push({ rowFile: `first-run-rows/${lockTask.taskId}.json`, rowSha256: sha(rowBytes), ...row });
+    const normalized = await normalizePersistedFirstRunRow(row, options.developmentDirectory);
+    taskRows.push({ rowFile: `first-run-rows/${lockTask.taskId}.json`, rowSha256: sha(rowBytes), ...normalized });
   }
 
   const sourceCoverage: N10FirstRunReport["sourceCoverage"] = [];
@@ -1237,7 +1270,7 @@ export async function verifyN10FirstRun(options: {
   for (const row of report.tasks) {
     try {
       const bytes = await readFile(join(options.developmentDirectory, row.rowFile));
-      const standalone = JSON.parse(bytes.toString("utf8"));
+      const standalone = await normalizePersistedFirstRunRow(JSON.parse(bytes.toString("utf8")), options.developmentDirectory);
       const embedded = structuredClone(row);
       delete embedded.rowFile;
       delete embedded.rowSha256;
