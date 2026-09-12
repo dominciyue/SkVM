@@ -1,8 +1,8 @@
 # API 合同任务引擎：唯一执行恢复状态
 
-- 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2。
+- 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2；N7 next。
 - N0–N3、N5、N8 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b7`，N5=`0658306`，N8=`45ac21fdbf3442e9bd626bea6e63f74a8a5ff447`。职责/输入、完整计划、task-scoped source closure、原生消费闭环与普通入口已绑定。
-- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；N10 running。锁=`26b4566f`、baseline=`aa933e0b`、first-run engine=`76ce3e40` 与无重跑聚合修复=`4a1f492` 均已先推送。恢复后的不可变 `first-run.json` 严格核验通过：4/9 taskComplete、8/18 required checked-exported、9/9 package checks、3/3 provider 有完整任务；2 个 Visier 预期不符且需求变化仅 1/2 通过，故 `method-not-ready`。下一动作是先提交首轮报告，再诊断 form minimal/negative 共享缺口并另写同分母 revision-001；禁止覆盖或重跑首轮。
+- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`。N10=`completed-with-limitation`：不可变首轮为 4/9 taskComplete、8/18 required checked-exported、9/9 package checks、3/3 provider 有完整任务，但需求变化仅 1/2，故 `method-not-ready`。`revision-001.json`=`a00ceb59...` 从原 source/task 重算三项 Visier 缺口，全部属于非空 form v1 / JSON-only negative 显式边界；没有实现改动或结果提升。下一动作 N7 非循环 readiness；N9/N11/N12 不得在该门下执行。
 - 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
 - 网络/API/付费已授权并按实际用途分账；本 identity 当前 source/business/model/paid=`0/0/0/0`，native loopback HTTP=`4`。平台安全控制未关闭，确定性证据核验仍生效。
 

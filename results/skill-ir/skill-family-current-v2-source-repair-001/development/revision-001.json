@@ -1,0 +1,228 @@
+{
+  "schemaVersion": "skill-family-current-v2-n10-revision/v1",
+  "identity": "skill-family-current-v2-source-repair-001",
+  "exposure": "development",
+  "evaluatedAt": "2026-09-12T12:30:00.000Z",
+  "revisionCodeCommit": "6bc7e1b4eb30524989bfcba9613caa1fad5cfebb",
+  "bindings": {
+    "inputLock": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/development/input-lock.json",
+      "sha256": "d1cde377ffdb4376fce3821b11a0f38ce6a2cdc10fd3a28d48b7699740691bc5",
+      "bytes": 161514
+    },
+    "baseline": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/development/baseline.json",
+      "sha256": "db064d8a8bdc1eab6b0f4a9a6ed4f1f16f51d92fc430316d4e1c819a0dfc9d34",
+      "bytes": 37888
+    },
+    "firstRun": {
+      "path": "results/skill-ir/skill-family-current-v2-source-repair-001/development/first-run.json",
+      "sha256": "5590552d6de8fb1e9bc8cbdf8e3eb7304887cc0e7727655e780e1ba35531a63b",
+      "bytes": 112047
+    },
+    "componentContracts": [
+      {
+        "path": "docs/skill-ir/api-request-form-specimens-development.md",
+        "sha256": "0901b4f9b963c0b9d6823d052a051759830a53e00a56761de3c4c1dbbb383189",
+        "bytes": 3749
+      },
+      {
+        "path": "src/skill-ir/api-form-wire.ts",
+        "sha256": "43b8b424681e3d7657c572ac2e7ba8d5b36e266e098dc916fae85c2cf9abd487",
+        "bytes": 1027
+      },
+      {
+        "path": "src/skill-ir/api-form-wire-checker.ts",
+        "sha256": "2e424a721ffe5ca1dabb54a59b51b6a443eaeb1d98b6c565b6b38867d32f5dbf",
+        "bytes": 1717
+      },
+      {
+        "path": "src/skill-ir/api-request-specimens.ts",
+        "sha256": "d66d233a7faf7cc00d7edd87db3bbbdf528cd618231952887d0194f4f2287c7d",
+        "bytes": 11561
+      },
+      {
+        "path": "docs/skill-ir/api-request-body-negatives-development.md",
+        "sha256": "2427854f9c2054b7cf8259c97b2c0a1e125464e721fa34c2258e93cfbe560fb2",
+        "bytes": 6973
+      },
+      {
+        "path": "src/skill-ir/api-request-body-negatives.ts",
+        "sha256": "dec73e9b38d5a022fcda5a618068702d378de9120ff4879934c52b6515588f71",
+        "bytes": 3138
+      },
+      {
+        "path": "src/skill-ir/api-request-body-negatives-checker.ts",
+        "sha256": "01e86f767ee211f72a437a6d8aca68567b35e8ddf16a1d92240eff134fe634dc",
+        "bytes": 4979
+      },
+      {
+        "path": "src/skill-ir/api-request-cases.ts",
+        "sha256": "1b32db6be78b3c80d61bb73718a3ff4e50f2f55ee771cd3f7b6376921c83f4af",
+        "bytes": 6208
+      }
+    ]
+  },
+  "denominator": {
+    "uniqueInputs": 6,
+    "providers": 3,
+    "operationDenominator": 47,
+    "taskContracts": 9,
+    "taskComplete": 4,
+    "completeProviders": 3,
+    "expectedOutcomeMatches": 7,
+    "expectedOutcomeMismatches": 2,
+    "packageChecksPassed": 9,
+    "packageChecksFailedOrMissing": 0,
+    "requiredObligationDenominator": 18,
+    "checkedExportedRequiredObligations": 8,
+    "failedRequiredObligations": 0,
+    "unresolvedRequiredObligations": 10,
+    "insufficientInputRequiredObligations": 0,
+    "missingRequiredObligations": 0,
+    "nativeExecuted": 0,
+    "modifications": 0,
+    "comparisons": 2,
+    "comparisonsPassed": 1
+  },
+  "mismatchTasks": [
+    {
+      "taskId": "n10-visier-auth-event4u",
+      "sourceInputId": "visier-authentication",
+      "expectedTaskComplete": true,
+      "actualTaskComplete": false,
+      "expectationBasis": "anonymous required form body exercises the mapped happy-path and wrong-type duties",
+      "unresolvedRequiredObligationIds": [
+        "[\"valid-minimal\",\"POST /v1/admin/visierSecureTicket\",\"operation\",\"operation\"]",
+        "[\"wrong-type\",\"POST /v1/admin/visierSecureTicket\",\"schema-input\",\"body:application/x-www-form-urlencoded\"]"
+      ]
+    },
+    {
+      "taskId": "n10-visier-auth-lambda-rich",
+      "sourceInputId": "visier-authentication",
+      "expectedTaskComplete": true,
+      "actualTaskComplete": false,
+      "expectationBasis": "anonymous required form body provides full, omission, and schema-negative targets",
+      "unresolvedRequiredObligationIds": [
+        "[\"out-of-range\",\"POST /v1/admin/visierSecureTicket\",\"schema-input\",\"body:application/x-www-form-urlencoded\"]"
+      ]
+    }
+  ],
+  "rootCauses": [
+    {
+      "taskId": "n10-visier-auth-event4u",
+      "operationKey": "POST /v1/admin/visierSecureTicket",
+      "obligationId": "[\"valid-minimal\",\"POST /v1/admin/visierSecureTicket\",\"operation\",\"operation\"]",
+      "requirementId": "valid-minimal",
+      "requirementKind": "valid-minimal",
+      "mediaType": "application/x-www-form-urlencoded",
+      "observedStatus": "unresolved",
+      "observedReason": "Error: form field count unsupported",
+      "minimalWitness": {},
+      "formSpecimenCaseStatus": "unresolved",
+      "sourceNegativeCount": 3,
+      "encodedSourceNegativeCount": 0,
+      "bodyNegativeConstructedCount": 0,
+      "bodyNegativeReasons": [
+        "full body request baseline unavailable"
+      ],
+      "classification": "declared-support-contract-boundary",
+      "boundaryIds": [
+        "api-request-form-specimens/v1:nonempty-flat-string-object"
+      ],
+      "semanticRisk": "Accepting an empty form would change the deliberately nonempty v1 form profile."
+    },
+    {
+      "taskId": "n10-visier-auth-event4u",
+      "operationKey": "POST /v1/admin/visierSecureTicket",
+      "obligationId": "[\"wrong-type\",\"POST /v1/admin/visierSecureTicket\",\"schema-input\",\"body:application/x-www-form-urlencoded\"]",
+      "requirementId": "wrong-type",
+      "requirementKind": "constraint-negative",
+      "mediaType": "application/x-www-form-urlencoded",
+      "observedStatus": "unresolved",
+      "observedReason": "0/3 source constraints constructed",
+      "minimalWitness": {},
+      "formSpecimenCaseStatus": "unresolved",
+      "sourceNegativeCount": 3,
+      "encodedSourceNegativeCount": 0,
+      "bodyNegativeConstructedCount": 0,
+      "bodyNegativeReasons": [
+        "full body request baseline unavailable"
+      ],
+      "classification": "declared-support-contract-boundary",
+      "boundaryIds": [
+        "api-request-body-negatives/v1:json-body-only"
+      ],
+      "semanticRisk": "Coercing non-string schema-negative values into form text would not prove that the decoded request still violates the source schema."
+    },
+    {
+      "taskId": "n10-visier-auth-lambda-rich",
+      "operationKey": "POST /v1/admin/visierSecureTicket",
+      "obligationId": "[\"out-of-range\",\"POST /v1/admin/visierSecureTicket\",\"schema-input\",\"body:application/x-www-form-urlencoded\"]",
+      "requirementId": "out-of-range",
+      "requirementKind": "constraint-negative",
+      "mediaType": "application/x-www-form-urlencoded",
+      "observedStatus": "unresolved",
+      "observedReason": "0/3 source constraints constructed",
+      "minimalWitness": {},
+      "formSpecimenCaseStatus": "unresolved",
+      "sourceNegativeCount": 3,
+      "encodedSourceNegativeCount": 0,
+      "bodyNegativeConstructedCount": 0,
+      "bodyNegativeReasons": [
+        "full body request baseline unavailable"
+      ],
+      "classification": "declared-support-contract-boundary",
+      "boundaryIds": [
+        "api-request-body-negatives/v1:json-body-only"
+      ],
+      "semanticRisk": "Coercing non-string schema-negative values into form text would not prove that the decoded request still violates the source schema."
+    }
+  ],
+  "implementationChanges": [],
+  "rejectedOptions": [
+    {
+      "option": "accept-empty-form-in-api-request-form-specimens-v1",
+      "reason": "The versioned profile explicitly rejects empty objects; changing it would expand the preserved support contract."
+    },
+    {
+      "option": "coerce-form-schema-negative-values-to-strings",
+      "reason": "String coercion discards the source type violation and cannot be accepted as a checked source constraint."
+    }
+  ],
+  "decision": "no-safe-shared-revision",
+  "firstRunMethodGate": {
+    "conditions": {
+      "fixedPanelIntegrity": true,
+      "everyTaskRowRetained": true,
+      "everyPackageChecked": true,
+      "expectedOutcomesMatch": false,
+      "twoRealDemandChangesPass": false,
+      "threeProvidersHaveCompleteTasks": true,
+      "repeatedBuildsSemanticallyMatch": true,
+      "nativeFixtureEvidencePasses": true,
+      "eightAssignedFaultsDetected": true,
+      "noProjectModelCalls": true
+    },
+    "decision": "method-not-ready"
+  },
+  "downstream": {
+    "engineeringCalibrationStatus": "completed-with-limitation",
+    "researchCandidateEligible": false,
+    "nextAction": "Complete N10 with limitation, continue independent engineering work, and record N9/N11/N12 as not executed."
+  },
+  "accounting": {
+    "sourceApiCalls": 0,
+    "businessApiCalls": 0,
+    "modelCalls": 0,
+    "paidCalls": 0,
+    "nativeLoopbackHttpCalls": 0
+  },
+  "claimLimits": [
+    "The decision applies only to the fixed development panel and the bound support contracts.",
+    "A contract boundary is not proof that broader form construction is impossible.",
+    "No unresolved obligation is converted to success and the immutable first-run score is unchanged.",
+    "Local specimens do not validate live Visier API behavior.",
+    "Historical document-level 0/6, readiness, held-out, Q1 and prospective facts remain unchanged."
+  ]
+}

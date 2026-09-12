@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active，N0–N3、N5、N8 completed / N10 running，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active，N0–N3、N5、N8 completed / N10 completed-with-limitation / N7 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -126,6 +126,8 @@ Current first-run 的九个 task 与九次预登记 repeat build 已在 engine c
 恢复后的 `development/first-run.json`（SHA-256=`5590552d6de8fb1e9bc8cbdf8e3eb7304887cc0e7727655e780e1ba35531a63b`，112,047 bytes）通过严格核验：6 inputs、3 providers、47 operations、9 tasks、18 required obligations；9/9 package checks 通过，8 项 required obligation 为 checked-exported，10 项 unresolved，4/9 tasks complete，三个 provider 均至少一个非空完整任务。两项预期结果不匹配，两个预登记需求变化关系只通过一个，因此门为 `method-not-ready`。不匹配均来自 Visier Authentication：空 form minimal 报 `form field count unsupported`，constraint-negative 没有构造出源约束。首轮原件先归档提交；随后只对该共享正确性/能力边界做根因分析和 TDD 修订，同分母另写 `revision-001.json`。
 
 根因决策入口将独立写 `development/revision-001.json`。它先严格重核 lock/baseline/first-run，再从锁定 source 与 task 重建 form specimens、body-negative fields/wires 和未完成 obligation；同时绑定 `api-request-form-specimens-development.md`、`api-request-body-negatives-development.md` 及对应实现文件摘要。只有当每个 expected-positive mismatch 都能由已声明的非空 form 或 JSON-only negative 边界解释、分母与首轮完全相同且没有合同内 implementation failure 时，才允许输出 `no-safe-shared-revision`。该结论不把失败变为通过，只把 N10 以 limitation 终结；任何无法归类的缺口都使 verifier 失败并要求继续修复。
+
+实际 `development/revision-001.json`（SHA-256=`a00ceb59d729e8f0c3a058b2f478501124af7724d34dbeaa7276916fc0c0d381`，9,310 bytes）在代码提交 `6bc7e1b4eb30524989bfcba9613caa1fad5cfebb` 推送后生成并通过重算。三项 root cause 分别是一项 empty-form minimal 与两项 form constraint-negative，全部归类为 declared support-contract boundary；implementation changes 为空，首轮分母、结果与 `method-not-ready` 门完全不变。N10=`completed-with-limitation`，研究候选不具资格；下一阶段 N7 只派生非循环 readiness，不改变历史 readiness。
 
 ## 实施与验证
 

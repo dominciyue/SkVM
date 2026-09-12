@@ -3,7 +3,7 @@
 > **For agentic workers:** Use superpowers:executing-plans to execute this plan. Main agent owns design, edits and final checks; narrowly scoped read-only probes follow AGENTS.md. Track the checkboxes and actual evidence, not elapsed hours.
 
 **Revision:** 2 — 2026-09-12，替代 3c37f7f 中的 revision 1；旧版在 Git 中保留。
-**Status:** active。N0–N3、N5、N8 已于 2026-09-12 完成；当前主线可运行任务为 N10。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
+**Status:** active。N0–N3、N5、N8 已完成，N10 已以 limitation 终结；当前主线可运行任务为 N7。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
 **Goal:** 在 2026-09-14 00:00（Asia/Shanghai）前优先交付一个有实际消费闭环的 API 合同任务自动化引擎：明确需求 + 普通 OpenAPI 输入 → 可检查请求/测试包 → 原生执行与故障检出，并分别评价新需求与新输入迁移。
 **Architecture:** 保留旧 production v2；优先连接现有 api-skill-mapping、schema witness、request/form/negative、response checker 与 pytest 模块。新增薄的任务合同/计划层和统一调用接口；历史来源修复独立限时处理。标准化任务输入与输出，不重造 OpenAPI，不把自然语言提取自动视为可信。
 **Tech Stack:** Bun、TypeScript、Zod/AJV、现有 Python/pytest runtime、JSON/YAML、Git/gh；Schemathesis 为首选外部对照，Dredd 非必选。
@@ -326,8 +326,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 - [x] 在看输出前固定 6 份真实原始 API 合同、3 个 provider；至少 3 个成员需求映射，允许一份 API 比较不同需求，但 unique input 只计一次。
 - [x] 为每份 source × task 构造前登记 operation/requirement 分母、预期支持与剩余 oracle；不能删去 unsupported 行。
 - [x] 先 baseline 再当前任务引擎：分别测 taskComplete、必需义务覆盖、checker、native consumption、时间、重复构建时间/缓存和修改量。
-- [ ] 单次有据共享修订允许正常 TDD 多步开发；保留第一批运行结果。修订后同分母重算，不用修订次数限制拒绝修复明确 bug。
-- [ ] 至少两个真实需求变化测试通过，以及三个 provider 有 taskComplete 的非空任务，才准备 R；不满足先修工程或标 method-not-ready。
+- [x] 单次有据共享修订允许正常 TDD 多步开发；保留第一批运行结果。实际根因均为显式合同边界，故以绑定报告记录 no-safe-shared-revision，没有为分数扩大合同。
+- [x] 至少两个真实需求变化测试通过，以及三个 provider 有 taskComplete 的非空任务，才准备 R；实际只有 1/2 需求变化通过，已标 `method-not-ready`，不准备 R。
 
 验收：按第 3.1 E 条件报告可用程度，不靠“生成一个 case”通过。N10 完成后才进入 N9 冻结。
 
@@ -340,6 +340,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 **N10 first-run 实际检查点：** 无重跑聚合修复提交 `4a1f492a8d620a79646188fb1edb47ac72fdada9` 推送后，从九个原 package 恢复并严格核验 `development/first-run.json`（SHA-256=`5590552d6de8fb1e9bc8cbdf8e3eb7304887cc0e7727655e780e1ba35531a63b`）。固定分母为 6 inputs/3 providers/47 operations/9 tasks/18 required obligations；4 tasks complete，8 required checked-exported、10 unresolved，9/9 packages pass，三个 provider 均有非空完整任务。预期匹配 7/9、需求变化 1/2；两项 Visier Authentication 行暴露 form minimal 与 constraint-negative 缺口，因此门为 `method-not-ready`。首轮先独立提交，随后只允许在同一锁与分母上另写 revision-001。
 
 **N10 revision-001 设计：** 根因复现表明两个缺口均是已声明合同边界而非随机实现失败：`api-request-form-specimens/v1` 只接纳非空扁平字符串对象，而 source-valid minimal witness 为 `{}`；`api-request-body-negatives/v1` 只构造 JSON body，且 Visier 的 form 类型负例在文本序列化后无法证明仍违反源 schema。不得为满足预期而放宽 checker、把 `null` 猜成表单类型错误或改变锁。新增机器决策报告须绑定 input-lock/baseline/first-run、两份组件合同及实现摘要，从原 source/task 重新构造失败证据；若所有不匹配均落在这些显式边界，记录 `no-safe-shared-revision`、保持同分母 `method-not-ready`，并将 N10 标为 `completed-with-limitation`。若重算发现合同内实现错误则 fail closed，不能用本结论跳过修复。
+
+**N10 终态：** revision decision code=`6bc7e1b4eb30524989bfcba9613caa1fad5cfebb`；write-once `development/revision-001.json` SHA-256=`a00ceb59d729e8f0c3a058b2f478501124af7724d34dbeaa7276916fc0c0d381`。严格重算确认三项未完成义务均为上述绑定边界，implementationChanges=`[]`，首轮门仍为 `method-not-ready`。N10=`completed-with-limitation`；下一项 N7，研究候选链不得启动。
 
 ### N11：两阶段 prospective 预登记（P0，信息顺序修正）
 
