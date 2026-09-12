@@ -19,7 +19,7 @@ function stable(value: unknown): string {
   return JSON.stringify(value) ?? "undefined";
 }
 
-type FixtureRequestObservation = {
+export type CurrentV2FixtureRequestObservation = {
   method: string;
   target: string;
   headers: Record<string, string>;
@@ -28,13 +28,13 @@ type FixtureRequestObservation = {
   statusCode: number;
 };
 
-type FixtureDefinition = {
+export type CurrentV2LoopbackFixture = {
   id: "json-reference" | "form-wire";
   source: string;
   task: Record<string, any>;
   observations: ApiTaskArtifactObservation[];
   expectedCases: Record<string, { statusCode: number; mediaType: string; bodyText: string }>;
-  respond(request: Request): Promise<{ observation: FixtureRequestObservation; response: Response }>;
+  respond(request: Request): Promise<{ observation: CurrentV2FixtureRequestObservation; response: Response }>;
 };
 
 function responseSchema(property: string, value: string) {
@@ -66,7 +66,7 @@ function task(input: {
   };
 }
 
-function fixtures(): FixtureDefinition[] {
+export function currentV2LoopbackFixtures(): CurrentV2LoopbackFixture[] {
   const jsonSource = JSON.stringify({
     openapi: "3.0.3",
     info: { title: "Independent JSON reference fixture", version: "1" },
@@ -100,7 +100,7 @@ function fixtures(): FixtureDefinition[] {
     },
   });
   const jsonBody = JSON.stringify({ status: "ok" });
-  const jsonFixture: FixtureDefinition = {
+  const jsonFixture: CurrentV2LoopbackFixture = {
     id: "json-reference",
     source: jsonSource,
     task: task({
@@ -178,7 +178,7 @@ function fixtures(): FixtureDefinition[] {
     },
   });
   const formBody = JSON.stringify({ kind: "accepted" });
-  const formFixture: FixtureDefinition = {
+  const formFixture: CurrentV2LoopbackFixture = {
     id: "form-wire",
     source: formSource,
     task: task({
@@ -263,7 +263,7 @@ async function runPytest(options: { pythonExecutable: string; directory: string;
   }
 }
 
-async function runFixture(definition: FixtureDefinition, options: { outputDirectory: string; pythonExecutable: string }) {
+async function runFixture(definition: CurrentV2LoopbackFixture, options: { outputDirectory: string; pythonExecutable: string }) {
   const directory = join(options.outputDirectory, definition.id);
   await mkdir(directory, { recursive: true });
   const rootUri = `https://fixtures.invalid/${definition.id}/openapi.json`;
@@ -286,7 +286,7 @@ async function runFixture(definition: FixtureDefinition, options: { outputDirect
   const suite = JSON.parse(artifact.backend.artifact.suiteJson);
   const selectedRows = artifact.backend.selectedRowIds.map((id) => suite.rows.find((row: any) => row.id === id));
   if (selectedRows.some((row) => !row || row.status !== "constructed")) throw new Error(`${definition.id}: selected pytest row unavailable`);
-  const requestObservations: FixtureRequestObservation[] = [];
+  const requestObservations: CurrentV2FixtureRequestObservation[] = [];
   const server = Bun.serve({
     hostname: "127.0.0.1",
     port: 0,
@@ -375,7 +375,7 @@ function requestJsonTask(value: Record<string, any>, id: string) {
   return task;
 }
 
-async function verifyFaults(definitions: FixtureDefinition[]) {
+async function verifyFaults(definitions: CurrentV2LoopbackFixture[]) {
   const jsonDefinition = definitions[0]!;
   const formDefinition = definitions[1]!;
   const jsonTask = requestJsonTask(jsonDefinition.task, "n5-json-faults");
@@ -454,7 +454,7 @@ export async function runN5ConsumerEvidence(options: { outputDirectory: string; 
   const runtimeOutput = await execute(options.pythonExecutable, ["-X", "utf8", "-I", "-B", "-c",
     'import sys,json,importlib.metadata as m; print(json.dumps({"python":sys.version,"pytest":m.version("pytest"),"httpx":m.version("httpx")}))'],
   { windowsHide: true, encoding: "utf8", timeout: 10_000 });
-  const definitions = fixtures();
+  const definitions = currentV2LoopbackFixtures();
   const fixtureRuns = [];
   for (const definition of definitions) fixtureRuns.push(await runFixture(definition, options));
   const faultInjection = await verifyFaults(definitions);

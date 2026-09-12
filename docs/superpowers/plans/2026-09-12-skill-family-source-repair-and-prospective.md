@@ -380,6 +380,10 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：comparison/tool-baseline.json、comparison/added-value.md。
 
+**执行前比较合同：** 复用 N5 的 `json-reference` 与 `form-wire` 两个合成源及同一手写 loopback predicate，源摘要分别为 `ea2dfe81...`、`ccad5c31...`。SkVM 已归档基线每个 fixture 恰有 2 个 task-selected 请求；Schemathesis 因此固定为每 operation 最多 2 examples、单 worker、positive fuzzing、5 秒请求 timeout、30 秒总 timeout、零 retry、seed=`20260912`、deterministic/unique-inputs/no database。正常情形比较两个 fixture；故障注入只在 JSON fixture 上独立改变响应状态、必需响应 header 或响应 body，各自预期由 `status_code_conformance`、`response_headers_conformance`、`response_schema_conformance` 检出。比较字段为实际请求数、唯一 wire request、命中 operation、有效 predicate 请求、运行时间、外部报告/重放材料、故障是否由指定 check 检出；随机 fuzz 总吞吐不与确定性 witness 速度排名。
+
+工具版本与参数必须来自运行环境的 `--version`/`run --help`，连同 Python 与完整 dependency freeze 摘要归档。Schemathesis 不接收 TaskContract，因此 source-duty→requirement→artifact→checker、同 source 不同 task 输出和 partial reason 定位标为本项目独立实测维度，不给外部工具伪造对应能力；外部工具的响应检查也不反写 SkVM checker 分数。
+
 - [ ] 首选 Schemathesis，固定实际安装版本、相同合同、同 loopback fixture、请求预算和 timeout；从实际 --help 确认选项，不套用旧文档命令。
 - [ ] 比较生成时间、唯一有效 case、操作/约束覆盖、指定 fault 检出、可复现产物和失败定位。随机 fuzz 与确定性 witness 不做未经控制的总量速度比较。
 - [ ] 最小有用差异：source duty → selected obligation → artifact → checker 的可追溯性、同 source 不同 task 输出差异、无需模型的重放和可解释 partial output；这些须实测，不能仅列功能名。

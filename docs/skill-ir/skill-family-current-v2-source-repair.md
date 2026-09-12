@@ -62,6 +62,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-lock --
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-revision --evaluated-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n7 --evaluated-at=<ISO>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n9-gate --evaluated-at=<ISO>
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13 --schemathesis=<path-to-4.27.0-executable> --evaluated-at=<ISO>
 ~~~
 
 当前 `status`/`resume` 均定位运行中的 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。`--step=n10-lock` 在锁已存在时只重核摘要，不覆盖。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
@@ -148,6 +149,8 @@ protocolReady 只依赖代码候选、抽样规则、评测规则和失败政策
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。
+
+N13 外部对照复用 N5 两个合成源和同一手写 loopback predicate。Schemathesis 固定 4.27.0、positive fuzzing、每 operation 最多 2 examples、单 worker、5 秒请求 timeout、30 秒总 timeout、零 retry 与 deterministic seed 20260912；JSON response status/header/body 三项独立故障分别要求由对应外部 check 检出。外部响应检查与本项目 TaskContract traceability 分开报告，不互相增加通过数。
 
 N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。N0 的聚焦测试命令为：
 

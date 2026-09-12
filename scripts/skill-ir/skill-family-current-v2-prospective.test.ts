@@ -11,6 +11,7 @@ import {
   deriveStageView,
   readStageState,
   runN7ReadinessStage,
+  runN13ComparisonStage,
   runN10RevisionStage,
   runResearchGateStage,
   selectNextRunnableTask,
@@ -48,6 +49,10 @@ describe("current-v2 stage orchestration", () => {
 
   test("exposes a research gate that can terminate N9, N11, and N12 without execution", () => {
     expect(runResearchGateStage).toBeFunction();
+  });
+
+  test("exposes the bounded N13 Schemathesis comparison as a resumable stage", () => {
+    expect(runN13ComparisonStage).toBeFunction();
   });
 
   test("records the complete N0-N15 graph and resumes at N1 after N0", () => {
