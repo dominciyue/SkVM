@@ -252,6 +252,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：source-repair/meilisearch-resolution.json、bangumi-external-closure.json。
 
+**执行设计：** 旧 migration lock、六源报告和 blocker/advisory 原样保留。一次 GitHub GraphQL 内容批次同时绑定 Meilisearch 仓库归档/default-head/release 状态与 Bangumi 固定提交 `openapi/components` 目录；只有该批次失败才允许一次同查询重试。Meilisearch 仅在 default head 或维护者 release 出现不同的权威 source revision 时建立新 identity，否则保持 `source-blocked-unresolved`。Bangumi 从旧 dependency-verification inventory 独立取得 19 个 accepted operation 的 32 个 `REFERENCE_EXTERNAL` source issue，以 locator/role/reference 为固定分母，再从同提交组件目录逐项解析并递归检查引用；原始 GraphQL 响应 write-once 归档。解析成功只形成新的 development closure identity，不反写旧 sourceValidity、构造通过数或 live API 结论。探索期一次只读 metadata 调用与正式内容批次分开计入 source API accounting。
+
 - [ ] Meilisearch 只查旧记录对应上游版本/发布/维护者修订。明确权威新版本则新 source identity；找不到写 source-blocked-unresolved。
 - [ ] Bangumi 32 个 ref 记录获取/解析/依赖角色；最多一个缓存获取批次和一次合理重试，19 operation 的源状态可 partial。成功解析不等于 live API 正确。
 - [ ] 不改旧报告，不建立专用生产 patcher。若有原始权威文档直接使用它，人工拼接仅可标 derived development source。

@@ -4,6 +4,12 @@ import { isAbsolute, join } from "node:path";
 import { writeN1CorpusFromRepository } from "../../src/skill-ir/skill-family-current-v2-corpus";
 import { writeN2GapMatrixFromRepository } from "../../src/skill-ir/skill-family-current-v2-n2";
 import { writeN3SourceClosureReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n3";
+import {
+  verifyCurrentV2N4Maintenance,
+  writeCurrentV2N4Maintenance,
+  type CurrentV2N4BangumiReport,
+  type CurrentV2N4MeilisearchReport,
+} from "../../src/skill-ir/skill-family-current-v2-n4";
 import { writeN5ConsumerReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n5";
 import { writeN8EngineReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n8";
 import {
@@ -1530,6 +1536,80 @@ export async function runN13ReclassificationStage(
   };
 }
 
+export async function runN4SourceMaintenanceStage(
+  root: string,
+  legacyCacheRoot: string,
+  observedAt = new Date().toISOString(),
+  exploratoryMetadataCalls = 0,
+) {
+  const state = await readStageState(root);
+  const meiliRelative = `${CURRENT_V2_RESULT_RELATIVE}/source-repair/meilisearch-resolution.json`;
+  const bangumiRelative = `${CURRENT_V2_RESULT_RELATIVE}/source-repair/bangumi-external-closure.json`;
+  if (["completed", "completed-with-limitation"].includes(state.status.tasks.N4.status)) {
+    const [meiliBytes, bangumiBytes] = await Promise.all([
+      readFile(join(root, meiliRelative)), readFile(join(root, bangumiRelative)),
+    ]);
+    const meilisearchReport = JSON.parse(meiliBytes.toString("utf8")) as CurrentV2N4MeilisearchReport;
+    const bangumiReport = JSON.parse(bangumiBytes.toString("utf8")) as CurrentV2N4BangumiReport;
+    const verification = await verifyCurrentV2N4Maintenance({ repositoryRoot: root, meilisearchReport, bangumiReport });
+    if (verification.status !== "pass") fail(`N4 verification failed: ${verification.errors.join("; ")}`);
+    return {
+      taskId: "N4" as const,
+      outcome: "verified-existing" as const,
+      reports: [
+        { path: meiliRelative, sha256: createHash("sha256").update(meiliBytes).digest("hex"), bytes: meiliBytes.byteLength },
+        { path: bangumiRelative, sha256: createHash("sha256").update(bangumiBytes).digest("hex"), bytes: bangumiBytes.byteLength },
+      ],
+      verification,
+      view: state.view,
+    };
+  }
+  if (selectNextRunnableTask(state.manifest, state.status) !== "N4") fail("N4 is not the current runnable stage");
+  if (!legacyCacheRoot || !isAbsolute(legacyCacheRoot)) fail("N4 requires an absolute legacy cache root");
+  if (!Number.isInteger(exploratoryMetadataCalls) || exploratoryMetadataCalls < 0) fail("N4 exploratory source API count is invalid");
+  const pushed = await requirePushedImmutableFile(root,
+    `${CURRENT_V2_RESULT_RELATIVE}/comparison/revision-003/schemathesis-report.json`);
+  const built = await writeCurrentV2N4Maintenance({
+    repositoryRoot: root,
+    codeCommit: pushed.head,
+    observedAt,
+    legacyCacheRoot,
+    exploratoryMetadataCalls,
+  });
+  const verification = await verifyCurrentV2N4Maintenance({
+    repositoryRoot: root,
+    meilisearchReport: built.meilisearch,
+    bangumiReport: built.bangumi,
+  });
+  if (verification.status !== "pass") fail(`N4 verification failed: ${verification.errors.join("; ")}`);
+  const issues = [
+    ...(built.meilisearch.resolution.decision === "source-blocked-unresolved" ? ["meilisearch-source-blocked-unresolved"] : []),
+    ...(built.bangumi.resolution.decision === "partial-source-validity" ? ["bangumi-partial-source-validity"] : []),
+  ];
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N4", {
+    completedAt,
+    evidence: [...built.files.map((file) => file.path),
+      "src/skill-ir/skill-family-current-v2-n4.ts", "src/skill-ir/skill-family-current-v2-n4.test.ts"],
+    nextAction: "N6: perform the bounded search for the historical clean-002 archive",
+    outcome: issues.length === 0 ? "completed" : "completed-with-limitation",
+    issues,
+    commit: pushed.head,
+  });
+  status.accounting.sourceApiCalls += built.accounting.sourceApiCalls;
+  status.commits.codeCommit = pushed.head;
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N4" as const,
+    outcome: status.tasks.N4.status,
+    files: built.files,
+    meilisearch: built.meilisearch.resolution,
+    bangumi: { summary: built.bangumi.summary, resolution: built.bangumi.resolution },
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -1537,6 +1617,13 @@ if (import.meta.main) {
   else if (step === "n1") console.log(JSON.stringify(await runN1CorpusStage(process.cwd()), null, 2));
   else if (step === "n2") console.log(JSON.stringify(await runN2TaskContractStage(process.cwd()), null, 2));
   else if (step === "n3") console.log(JSON.stringify(await runN3SourceClosureStage(process.cwd()), null, 2));
+  else if (step === "n4") {
+    const cacheRoot = process.argv.find((argument) => argument.startsWith("--legacy-cache-root="))?.slice("--legacy-cache-root=".length);
+    const observedAt = process.argv.find((argument) => argument.startsWith("--observed-at="))?.slice("--observed-at=".length);
+    const exploratoryCalls = Number(process.argv.find((argument) => argument.startsWith("--exploratory-source-api-calls="))
+      ?.slice("--exploratory-source-api-calls=".length) ?? "0");
+    console.log(JSON.stringify(await runN4SourceMaintenanceStage(process.cwd(), cacheRoot ?? "", observedAt, exploratoryCalls), null, 2));
+  }
   else if (step === "n5") {
     const python = process.argv.find((argument) => argument.startsWith("--python="))?.slice("--python=".length) ?? "python";
     console.log(JSON.stringify(await runN5ConsumerStage(process.cwd(), python), null, 2));
@@ -1574,5 +1661,5 @@ if (import.meta.main) {
   } else if (step === "n13-reclassify") {
     const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
     console.log(JSON.stringify(await runN13ReclassificationStage(process.cwd(), evaluatedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n4|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify [--legacy-cache-root=<absolute-path>] [--exploratory-source-api-calls=<count>] [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>] [--observed-at=<ISO>]");
 }
