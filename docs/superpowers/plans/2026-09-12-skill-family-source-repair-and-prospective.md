@@ -286,14 +286,16 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：skill-family-readiness 及测试。
 
-- [ ] 每个维度使用 ready/not-ready/not-assessed 加 reasons/evidence，避免未测试等同失败。
-- [ ] method：合同、计划、映射不确定性处理、checker 和错误路径可运行；capability：N10 实际 development evidence。
-- [ ] source/input 按 task/report scope 派生；无关历史 Meilisearch 不能使所有任务 false。
-- [ ] protocolReady：代码候选、抽样规则、评测与失败政策已锁；允许开始授权的正文/输入发现。
-- [ ] prospectiveReady：protocolReady + 选定任务 input/source 足够 + post-acquisition/pre-run 预测已锁；不要求 transfer 成功或结果报告已存在。
-- [ ] transfer 只在首跑后派生；reproducible 只依据当前代码/包的 replay。authorized-unseen-read 与 protected-read-violation 分开，合法读取不要求计数为零。
+- [x] 每个维度使用 ready/not-ready/not-assessed 加 reasons/evidence，避免未测试等同失败。
+- [x] method：合同、计划、映射不确定性处理、checker 和错误路径可运行；capability：N10 实际 development evidence。
+- [x] source/input 按 task/report scope 派生；无关历史 Meilisearch 不能使所有任务 false。
+- [x] protocolReady：代码候选、抽样规则、评测与失败政策已锁；允许开始授权的正文/输入发现。
+- [x] prospectiveReady：protocolReady + 选定任务 input/source 足够 + post-acquisition/pre-run 预测已锁；不要求 transfer 成功或结果报告已存在。
+- [x] transfer 只在首跑后派生；reproducible 只依据当前代码/包的 replay。authorized-unseen-read 与 protected-read-violation 分开，合法读取不要求计数为零。
 
 验收：测试“未读正文可 protocolReady”“有读取无运行可 prospectiveReady”“一个 blocked task 不拖垮其他任务”“尚未 transfer 为 not-assessed”；旧 readiness 只读。
+
+**N7 实际结果：** code=`3cb91c52087ec9b1732a2f9099cfed6210f2b358`；`readiness/report.json` SHA-256=`80dc732c33350764dc0db590eb7aa534d628b9ddceff968d168f1c9af8d381`。method/sourceInput/reproducible/authorized/protectedIsolation 为 ready；capability/protocol/prospective 为 not-ready；transfer 为 not-assessed。9/9 task source 与 input ready，4 capability ready、5 not-ready；单项失败未传播。结论=`engineering-ready-research-not-ready`，旧 readiness 未修改。
 
 ### N8：共享引擎整合与必要修复（P0）
 

@@ -136,6 +136,8 @@ Current first-run 的九个 task 与九次预登记 repeat build 已在 engine c
 
 protocolReady 只依赖代码候选、抽样规则、评测规则和失败政策是否已锁，不要求未见正文已读；prospectiveReady 再要求授权、选定 source/input 足够、post-acquisition prediction 已锁且无 protected violation，不要求 transfer 结果或首跑报告。transfer 在零 prospective run 时必须是 not-assessed；reproducible 只依据当前普通入口、bundle replay 和原生 fixture，clean checkout 留给 N14。报告绑定 N7 code commit 中的执行状态快照，避免可变 status 自引用。
 
+实际 `readiness/report.json`（SHA-256=`80dc732c33350764dc0db590eb7aa534d628b9ddceff968d168f1c9af8d381`，14,851 bytes）严格重算通过。method/sourceInput/reproducible/authorizedUnseenRead/protectedIsolation=`ready`；capability/protocol/prospective=`not-ready`；transfer=`not-assessed`。九个固定 task 的 source/input 均 ready，capability 为 4 ready、5 not-ready。总决策 `engineering-ready-research-not-ready`；它不改历史 readiness，也不授权绕过 N9/N11 锁序。
+
 ## 实施与验证
 
 复用 api-skill-mapping、api-schema-witness/checker、request/form/body-negative、response-observation/header 和 api-pytest-*。新增 api-task-contract/plan/run 的职责分别为任务 schema、构造前义务计划、普通输入编排；旧 API Tester v2 保持兼容。

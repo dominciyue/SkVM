@@ -1,8 +1,9 @@
 # API 合同任务引擎：唯一执行恢复状态
 
-- 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2；N7 next。
+- 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2；N9 next（须记录 not-executed）。
 - N0–N3、N5、N8 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b7`，N5=`0658306`，N8=`45ac21fdbf3442e9bd626bea6e63f74a8a5ff447`。职责/输入、完整计划、task-scoped source closure、原生消费闭环与普通入口已绑定。
 - 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`。N10=`completed-with-limitation`：不可变首轮为 4/9 taskComplete、8/18 required checked-exported、9/9 package checks、3/3 provider 有完整任务，但需求变化仅 1/2，故 `method-not-ready`。`revision-001.json`=`a00ceb59...` 从原 source/task 重算三项 Visier 缺口，全部属于非空 form v1 / JSON-only negative 显式边界；没有实现改动或结果提升。下一动作 N7 非循环 readiness；N9/N11/N12 不得在该门下执行。
+- N7=`completed`：`readiness/report.json`=`80dc732c...`，decision=`engineering-ready-research-not-ready`。method/sourceInput/reproducible ready，capability/protocol/prospective not-ready，transfer not-assessed；9 source/input ready，4 task capability ready、5 not-ready。旧 readiness 未修改。下一动作 N9 只写不执行记录，不能冻结研究候选。
 - 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
 - 网络/API/付费已授权并按实际用途分账；本 identity 当前 source/business/model/paid=`0/0/0/0`，native loopback HTTP=`4`。平台安全控制未关闭，确定性证据核验仍生效。
 
