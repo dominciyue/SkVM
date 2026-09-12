@@ -97,3 +97,13 @@ comparison; it does not relax any semantic or package oracle.
 A passing report means only that the fixed development implementation and evidence reproduce from the bound commit
 with the declared offline dependencies. It does not validate live API behavior, the whole API Tester skill, a full
 source document, a prospective sample, human agreement, or human-effort savings.
+
+## Actual N14 result
+
+Attempt 2 used engineering commit `b10cdce035890a0134e929f1f9fb23c33325a202` and passed. The final report is
+3,569 bytes with SHA-256 `dedb77ccea579556d10e5ad0805ec261406462670bd5b094275e38478e411a57`;
+the archive contains 95 files/4,119,563 bytes. N8 reproduced 4/4 cases plus its bundle binding. N10 reproduced all
+9 packages and their failure semantics: 4 tasks complete, 18 required obligations, 8 checked/exported, and 10
+unresolved. Direct native consumption conserved JUnit denominators at 9 attempted, 4 executed/passed, 0 failed/error,
+5 skipped, and 4 loopback HTTP calls. The detached checkout ran 35 focused tests with 104 assertions and a passing
+typecheck. Two subsequent strict verifications passed and left the final report digest unchanged.

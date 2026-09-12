@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-12
 
-**当前执行入口：第 9 节。** [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，当前 active：N0–N3、N5、N7、N8 已完成，N4/N6/N10/N13=`completed-with-limitation`；N9/N11/N12 已有严格绑定的 `not-executed` 终态，当前 N14。N7 结论为 engineering-ready-research-not-ready：方法与当前重放 ready，但 N10 capability、protocol、prospective not-ready，transfer not assessed。未创建 candidate/protocol/predictions/prospective first-run；限定归档检索已关闭，继续 clean engineering replay。恢复见 [唯一执行状态](deadline-execution-status.md)，依据见 spec 第 14.28 节。D1–D9 等旧路线保持历史记录。
+**当前执行入口：第 9 节。** [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，当前 active：N0–N3、N5、N7、N8、N14 已完成，N4/N6/N10/N13=`completed-with-limitation`；N9/N11/N12 已有严格绑定的 `not-executed` 终态，当前 N15。N7 结论为 engineering-ready-research-not-ready：方法与当前重放 ready，但 N10 capability、protocol、prospective not-ready，transfer not assessed。未创建 candidate/protocol/predictions/prospective first-run；限定归档检索已关闭，N14 detached engineering replay 已通过，进入结果交付。恢复见 [唯一执行状态](deadline-execution-status.md)，依据见 spec 第 14.28 节。D1–D9 等旧路线保持历史记录。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -2351,7 +2351,7 @@ git diff --check
 
 执行 [N0–N15 修订任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，在 skill-ir-aot 开发，批次 identity 仅隔离证据。N0–N3、N5、N8 已完成实际基线、固定 development corpus、构造前 TaskContract/plan、task-relevant source closure、request-json/pytest 产物接线、两种 native consumer、8 类指定层故障检出和普通输入 CLI/binding；当前进入 N10 固定面板，旧版 3c37f7f 已由 revision 2 替代。
 
-N10 在固定 6 inputs/3 providers/47 operations/9 tasks 上以 capability limitation 终结，N7 因此为 research-not-ready，N9/N11/N12 严格记为 not-executed。N13 已完成合成 Schemathesis 对照：实际 9 个外部工具 loopback 请求均未命中 exact-wire fixture，revision-003 从原始绑定纠正分母为 detected/missed/notApplicable=0/0/3，不重跑且不重复记账。N4 以单次内容批次完成：Meilisearch 无新权威 revision、保持 blocker；Bangumi 32/32 历史 response issue 在新 development closure 中解析，旧 advisory 不变。N6 检查 21 个已知 worktree、精确 Git path history/object 和 8 份已知归档，未命中 expected digest，限定结论为 `not-recovered-within-search-scope`；当前进入 N14 engineering clean replay。外部 fault 检出能力不因不适用场景被声称为通过或失败。
+N10 在固定 6 inputs/3 providers/47 operations/9 tasks 上以 capability limitation 终结，N7 因此为 research-not-ready，N9/N11/N12 严格记为 not-executed。N13 已完成合成 Schemathesis 对照：实际 9 个外部工具 loopback 请求均未命中 exact-wire fixture，revision-003 从原始绑定纠正分母为 detected/missed/notApplicable=0/0/3，不重跑且不重复记账。N4 以单次内容批次完成：Meilisearch 无新权威 revision、保持 blocker；Bangumi 32/32 历史 response issue 在新 development closure 中解析，旧 advisory 不变。N6 检查 21 个已知 worktree、精确 Git path history/object 和 8 份已知归档，未命中 expected digest，限定结论为 `not-recovered-within-search-scope`。N14 attempt 1 的 CRLF lock mismatch 被严格 verifier 检出并保留，revision attempt 2 在 code `b10cdce` 上通过 95-file detached replay；当前进入 N15。外部 fault 检出能力不因不适用场景被声称为通过或失败。
 
 优先级：N0/N1/N2 建需求与任务合同；N3/N5/N8/N10 连接现有 schema/request/form/response/pytest 实现并完成真实消费；N7/N9/N11/N12 派生 readiness、冻结代码后测试新输入与新成员；N13 外部对照在 N10 后即可运行；N14/N15 一次 clean 与交付。N4/N6 历史 source/归档维护合计最多 75 分钟，不在主依赖链。
 

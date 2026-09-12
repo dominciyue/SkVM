@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "skvm-api-task/v1",
+  "taskId": "n5-json-reference",
+  "profile": "oas30-offline-test/v1",
+  "input": {
+    "path": "openapi.json",
+    "format": "json",
+    "dialect": "oas3.0"
+  },
+  "dependencyManifest": null,
+  "operationKeys": "all",
+  "requirements": [
+    {
+      "id": "minimal",
+      "kind": "valid-minimal",
+      "sourceLocator": "fixture:json/minimal",
+      "required": true,
+      "scope": "each-selected-operation"
+    },
+    {
+      "id": "full",
+      "kind": "valid-full",
+      "sourceLocator": "fixture:json/full",
+      "required": true,
+      "scope": "each-selected-operation"
+    },
+    {
+      "id": "response",
+      "kind": "response-conformance",
+      "sourceLocator": "fixture:json/response",
+      "required": true,
+      "scope": "each-selected-operation"
+    }
+  ],
+  "output": "pytest",
+  "observations": {
+    "path": "observation.json",
+    "provenance": "fixture"
+  },
+  "execution": {
+    "mode": "loopback",
+    "oraclePath": "oracle.json"
+  },
+  "mapping": {
+    "origin": "user-declared",
+    "sourceSkill": null,
+    "unresolvedRequirementIds": []
+  }
+}

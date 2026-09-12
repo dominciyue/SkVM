@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active；N0–N8 的已调度工程/维护项完成，N4/N6/N10/N13 带 limitation，N9/N11/N12 未执行，当前 N14，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active；N0–N8 与 N14 的已调度工程/维护项完成，N4/N6/N10/N13 带 limitation，N9/N11/N12 未执行，当前 N15，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -177,6 +177,12 @@ revision-002=`406af8a0...` 已实际运行 9 个 loopback 请求，但发现汇�
 
 revision-003=`8577eb21e0cc98900cca483fc5767f44e4dd66a81b33f31eb9aca8d16f1f8c71` 由 code `7eee8b8bee751f5b782bb1f4933704ad87c3892f` 从 revision-002 的摘要绑定和原始 JSON/NDJSON 重分类，未调用外部工具、additional loopback=0。结果为 external baseline 0/2、baseline requests=3、valid fixture requests=0；三个 fault 全部 notApplicable，detected=0、missed=0，计数非负且分母守恒。严格验证器会拒绝 detected 与 faultApplied=0 并存以及任何分母不守恒；两次重核和 write-once 摘要检查通过。N13 以 `completed-with-limitation` 终结，不能从未实际施加的故障推断 Schemathesis 检出能力。
 
+## N14 detached engineering replay
+
+attempt 1 在 code `54506625f7888df73db347c54f2e7dc82d785e47` 的内部重放通过，但严格包绑定核验器检出 Windows worktree 的 `bun.lock` CRLF 字节不等于提交 blob，故没有计为通过。完整 attempt、inside report、95-file archive、unverified report 原字节和 verifier failure 均保留。修订只强制 canonical checkout bytes 并在运行前比较六项 baseline 与提交 blob，不改 TaskContract、support profile、checker 或 oracle。
+
+attempt 2 绑定 code `b10cdce035890a0134e929f1f9fb23c33325a202`，最终报告 SHA-256=`dedb77ccea579556d10e5ad0805ec261406462670bd5b094275e38478e411a57`。N8 4/4、N10 9/9 packages（4 taskComplete；18 required=8 checked-exported+10 unresolved）、N5 direct native attempted/executed/passed/failed/errors/skipped=`9/4/4/0/0/5`；detached focused tests 35 pass/104 assertions，typecheck pass。两次主 checkout strict verify 摘要不变。该结果只证明 engineering clean replay，researchCandidate=null，不是 prospective 或 live API 结论。
+
 N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。N0 的聚焦测试命令为：
 
 ~~~powershell
@@ -187,6 +193,7 @@ bun test ./src/skill-ir/api-tester-source-closure.test.ts ./src/skill-ir/skill-f
 bun test ./src/skill-ir/api-task-artifact.test.ts ./src/skill-ir/skill-family-current-v2-n5.test.ts
 bun test ./src/skill-ir/api-task-run.test.ts ./src/cli/api-task.test.ts ./src/skill-ir/skill-family-current-v2-n8.test.ts
 bun test ./src/skill-ir/skill-family-current-v2-n10.test.ts
+bun test ./src/skill-ir/skill-family-current-v2-n14.test.ts ./scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 ~~~
 

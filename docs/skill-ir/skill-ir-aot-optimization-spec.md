@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-12
 
-**当前已确认路线：** 第 14.28 节与 [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)。优先 TaskContract → 计划 → 现有共享构造/checker → 原生消费闭环，工程可用与新需求/新输入迁移分别验收。N0–N3、N5、N7、N8 已完成；N4、N6、N10 与 N13 以 limitation 终结。N7 派生为 engineering-ready-research-not-ready；N9/N11/N12 因不具方法/候选/协议资格已严格绑定为 not-executed，当前进入 N14 engineering clean replay。D1–D9 与第 14.27 节为已归档阶段；历史 0/6、Q1、held-out、readiness 和冻结结果保持原事实。
+**当前已确认路线：** 第 14.28 节与 [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)。优先 TaskContract → 计划 → 现有共享构造/checker → 原生消费闭环，工程可用与新需求/新输入迁移分别验收。N0–N3、N5、N7、N8、N14 已完成；N4、N6、N10 与 N13 以 limitation 终结。N7 派生为 engineering-ready-research-not-ready；N9/N11/N12 因不具方法/候选/协议资格已严格绑定为 not-executed，当前进入 N15 交付。D1–D9 与第 14.27 节为已归档阶段；历史 0/6、Q1、held-out、readiness 和冻结结果保持原事实。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -2274,7 +2274,9 @@ prediction 和 lock 提交前阻止运行。任何认证/请求策略改变须�
 
 ### 14.28 合同任务引擎与实际消费（2026-09-12，revision 2）
 
-当前维护终态补充：N6 在 code `9532e9a04fd0feed2317d66dc65bf61f9108b9b1` 上执行一次限定检索，检查 21 个已知 worktree、精确 Git path history/named objects 与 8 份固定归档；没有任何候选字节命中历史 expected SHA-256。机器结论只能是 `not-recovered-within-search-scope`，旧 clean-002 缺档继续保留，clean-003 不替代原件。两次 strict verify 与 write-once 摘要核对通过；下一阶段是 N14 engineering clean replay，不启动研究候选链。
+当前维护终态补充：N6 在 code `9532e9a04fd0feed2317d66dc65bf61f9108b9b1` 上执行一次限定检索，检查 21 个已知 worktree、精确 Git path history/named objects 与 8 份固定归档；没有任何候选字节命中历史 expected SHA-256。机器结论只能是 `not-recovered-within-search-scope`，旧 clean-002 缺档继续保留，clean-003 不替代原件。两次 strict verify 与 write-once 摘要核对通过；该维护项未启动研究候选链。
+
+N14 已在 revision code `b10cdce035890a0134e929f1f9fb23c33325a202` 完成 detached engineering replay。attempt 1 因 Windows CRLF 改写 `bun.lock` 被严格绑定核验器拒绝，原件全部保留；修订只固定 checkout 字节并增加 checkout/blob 预比较，attempt 2 通过。最终报告 SHA-256=`dedb77ccea579556d10e5ad0805ec261406462670bd5b094275e38478e411a57`，归档 95 files/4,119,563 bytes；N8 4/4、N10 9/9 package checks、N5 native attempted/executed/passed/skipped=`9/4/4/5`，失败/错误为 0。两次 strict verify 摘要不变，researchCandidate=null，进入 N15 交付。
 
 用户要求在 9 月 14 日前优先获得真正可用的同类 skill 自动化能力。经 [代码与公开资料审查](skill-family-plan-review-20260912.md)，新阶段采用 [修订任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)。上位类为结构化合同驱动的离线验证任务，本轮实现限 OpenAPI 3.0.x profile，不声称任意 JSON Schema、完整 skill 或所有未来成员自动化。
 

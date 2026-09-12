@@ -419,11 +419,13 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 **首次失败与修订：** attempt 1（code `54506625f7888df73db347c54f2e7dc82d785e47`）的内部重放、消费、测试与 typecheck 均完成，但外部严格 verifier 正确检出 `bun.lock` 的 checkout 字节 SHA-256=`2a2b45f7ea2015023be7ff1ceb22e5cf91a51888cb6f12a752d5b80c1681d803` 不等于提交 blob SHA-256=`1574eee04241e492f4ac3eca0d9e081701be0c4ac0da521bb03e6b408e10f306`，故 N14 未通过。根因是 Windows worktree 的 CRLF checkout 转换。修订强制 `core.autocrlf=false`、`core.eol=lf`，并在准备阶段逐一比较六项 baseline 的 checkout/commit blob 字节；attempt 1 的完整产物、原 unverified report 字节及 verifier failure 另名留存，attempt 2 使用新路径与新 code commit，oracle 与支持合同不变。
 
-- [ ] 从 N9 实际 codeCommit 建短路径 detached 检出，固定依赖，重放一组完整包与当前批次；结果与失败语义保持。
-- [ ] 外部消费从包目录直接跑 Python/pytest；不允许仅调研究 verifier 返回汇总 pass。对账 attempted/executed/failed/skipped。
-- [ ] 首次失败留原件，针对实际归档/运行缺口修复一次并按变更说明是否新 code candidate；禁止放宽 oracle。
-- [ ] 后续 evidence/文档提交只核对 diff 和必要文件，不再为新 HEAD 新建 checkout。源码入口、运行依赖或 checker 变化才触发重放。
-- [ ] 若 R 未执行，仍重放 E 的真实产物，不能只重放零运行状态文件充当交付。
+**实际终态：** revision code=`b10cdce035890a0134e929f1f9fb23c33325a202`，attempt 2 final report SHA-256=`dedb77ccea579556d10e5ad0805ec261406462670bd5b094275e38478e411a57`。95 files/4,119,563 bytes 全量归档；N8=4/4 且 bundle replay 一致，N10=9 tasks/9 package checks/4 taskComplete/18 required（8 checked-exported、10 unresolved）且逐任务失败语义一致，N5 直接消费 attempted/executed/passed/failed/errors/skipped=`9/4/4/0/0/5`、loopback=4。detached 内 focused tests=35 pass/0 fail/104 assertions，typecheck=0。两次主 checkout strict verify 通过且 final/attempt 摘要不变；N14=`completed`，累计 native loopback=17，researchCandidate 仍为 null。
+
+- [x] 从实际 engineering codeCommit 建短路径 detached 检出，固定依赖，重放一组完整包与当前批次；结果与失败语义保持（R 未执行，因此没有 N9 research codeCommit）。
+- [x] 外部消费从包目录直接跑 Python/pytest；不允许仅调研究 verifier 返回汇总 pass。对账 attempted/executed/failed/skipped。
+- [x] 首次失败留原件，针对实际归档/运行缺口修复一次并按变更说明是否新 code candidate；禁止放宽 oracle。
+- [x] 后续 evidence/文档提交只核对 diff 和必要文件，不再为新 HEAD 新建 checkout。源码入口、运行依赖或 checker 变化才触发重放。
+- [x] 若 R 未执行，仍重放 E 的真实产物，不能只重放零运行状态文件充当交付。
 
 验收：E 的产物可实际重建/消费，记录 codeCommit、包与依赖；不恢复或覆盖旧 clean-002。
 
