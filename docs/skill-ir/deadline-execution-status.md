@@ -1,13 +1,14 @@
 # API 合同任务引擎：唯一执行恢复状态
 
-- 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2；N9/N11/N12 已记录 not-executed，N13 以 limitation 终结，N4 next。
+- 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2；N9/N11/N12 已记录 not-executed，N4/N10/N13 以 limitation 终结，N6 next。
 - N0–N3、N5、N8 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b7`，N5=`0658306`，N8=`45ac21fdbf3442e9bd626bea6e63f74a8a5ff447`。职责/输入、完整计划、task-scoped source closure、原生消费闭环与普通入口已绑定。
 - 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`。N10=`completed-with-limitation`：不可变首轮为 4/9 taskComplete、8/18 required checked-exported、9/9 package checks、3/3 provider 有完整任务，但需求变化仅 1/2，故 `method-not-ready`。`revision-001.json`=`a00ceb59...` 从原 source/task 重算三项 Visier 缺口，全部属于非空 form v1 / JSON-only negative 显式边界；没有实现改动或结果提升。下一动作 N7 非循环 readiness；N9/N11/N12 不得在该门下执行。
 - N7=`completed`：`readiness/report.json`=`80dc732c...`，decision=`engineering-ready-research-not-ready`。method/sourceInput/reproducible ready，capability/protocol/prospective not-ready，transfer not-assessed；9 source/input ready，4 task capability ready、5 not-ready。旧 readiness 未修改。
 - N9/N11/N12=`not-executed`：`prospective/not-executed-report.json`=`77c612cd...`，严格重算和 write-once 重核通过；绑定提交中 candidate lock、protocol/source lock、predictions、prospective first-run 均不存在，protected 计数为 0。
 - N13=`completed-with-limitation`：revision-002 原始运行发出 9 个 loopback 请求，但 0 个满足 exact-wire predicate；旧汇总错误产生 missed=-3。code `7eee8b8` 的 revision-003 只重分类既有绑定，报告=`8577eb21...`，baseline 0/2、requests=3、fault detected/missed/notApplicable=0/0/3；两次 strict verify 通过、摘要不变、additional loopback=0。外部 fault 检出能力未评估。下一动作 N4。
+- N4=`completed-with-limitation`：code=`81f4a35`；正式 GraphQL 内容批次 1 次、retry 0。Meilisearch 报告=`1706d1f9...`，上游 archived/default head 未变化/release 为空，missing total ref 保持 blocker。Bangumi 报告=`fd8fc90f...`，32/32 历史 response-only issue、19/19 operation、6-resource closure 全解析，作为新 development identity；旧 advisory/live API 结论不变。两次 strict verify 与摘要重核通过。下一动作 N6。
 - 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
-- 网络/API/付费已授权并按实际用途分账；本 identity 当前 source/business/model/paid=`0/0/0/0`，native loopback HTTP=`13`。平台安全控制未关闭，确定性证据核验仍生效。
+- 网络/API/付费已授权并按实际用途分账；本 identity 当前 source/business/model/paid=`2/0/0/0`，native loopback HTTP=`13`。平台安全控制未关闭，确定性证据核验仍生效。
 
 以下 D 系列与旧 class-proof 内容均为历史检查点，不是当前恢复入口。
 

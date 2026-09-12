@@ -56,6 +56,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=resume
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n1
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n2
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n3
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n4 --legacy-cache-root=<absolute-path> --exploratory-source-api-calls=<count>
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n5 --python=D:\anaconda\python.exe
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n8
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n10-lock --locked-at=<ISO>
@@ -68,7 +69,7 @@ bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13-revisio
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n13-reclassify --evaluated-at=<ISO>
 ~~~
 
-当前 `status`/`resume` 均定位运行中的 N10；再次运行已完成的 `--step=n1`/`--step=n2`/`--step=n3`/`--step=n5`/`--step=n8` 会重核输入和已有输出，不回退状态。`--step=n10-lock` 在锁已存在时只重核摘要，不覆盖。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+当前 `status`/`resume` 定位 N6；再次运行已完成阶段会重核已有输出，不回退状态，也不重复发网络请求或累计成本。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
 
 ## N1 语料账本
 
@@ -91,6 +92,12 @@ N2 证据 `baseline/gap-matrix.json` 在同一已暴露 API 操作上绑定三�
 request-only 对未解析 response ref 记 advisory；response-conformance 对同一 ref 阻塞。结构递归可以是 `recursive-resolved`，同时有限 witness 为 `unresolved-recursion-budget`；纯 Reference Object 环、缺 pointer、缺 manifest resource、OAS3.0 sibling 和不支持 dialect 分别报告。operation×requirement 状态独立，因此单个坏引用不会全局抹掉未受影响操作。资源、深度和 occurrence 预算固定；达到上限返回 resource-limit，而不是继续展开。
 
 N3 报告重放三份真实 development 计划和 8 个确定性合成 case。真实结果只证明已暴露字节的任务相关引用闭包，不证明 aggregator 原始上游、实时 API 或 schema witness 构造成功。
+
+## N4 限时历史 source 维护
+
+`skill-family-current-v2-n4.ts` 从旧 experiment lock 和 dependency-verification inventory 重建固定问题分母，再用一次 GitHub GraphQL 内容批次取得维护者 metadata 与 Bangumi 固定提交的完整组件目录。传入的旧 external cache 先按锁定 SHA/bytes 检查，并连同对应许可证复制到 write-once evidence cache；四份原始 CRLF 文本通过精确路径 `-text/!eol` 属性保存原字节，避免 Git clean filter 改变摘要。正式批次失败才允许同查询重试一次。strict verifier 从提交中的 lock/inventory、归档源字节和原始 GraphQL snapshot 重算两个报告，任何绑定、查询、32-reference 分母或递归闭包漂移均失败。
+
+正式 code=`81f4a35ae8259aabd1880f76c8b6b1030ddff0b6`。Meilisearch 维护者仓库已归档，default head 仍等于旧锁提交、release 为空；`GET /tasks` 缺失 `#/components/parameters/total` 因而继续 `source-blocked-unresolved`，报告 SHA-256=`1706d1f9fa06fd47ee0b708ca911035098bae6a17ae4e3018325726650ff8dd8`。Bangumi 32 个历史 `REFERENCE_EXTERNAL` issue 覆盖 19 个 accepted operation，全部为 response-only/non-construction；一次批次取得 4 个根资源及 User 的两项嵌套依赖，共 6 个资源、0 unresolved，报告 SHA-256=`fd8fc90fe7541319c88718151becde5e9faa3a2b1f2b51b5c4a82fd5fd7966c8`。它是新 development closure identity，不回写旧 advisories，也不证明 live API 或整文档正确。探索 metadata 1 次、正式获取 1 次、retry 0，source/business/model/paid=`2/0/0/0`。
 
 ## N5 TaskContract 产物与原生消费
 

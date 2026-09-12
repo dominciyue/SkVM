@@ -1,0 +1,281 @@
+{
+  "schemaVersion": "skill-family-current-v2-n4-github-acquisition/v1",
+  "query": "query {\n  meili: repository(owner: \"meilisearch\", name: \"specifications\") {\n    isArchived\n    defaultBranchRef { name target { ... on Commit { oid committedDate } } }\n    releases(first: 10, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { tagName publishedAt url } }\n  }\n  bangumi: repository(owner: \"bangumi\", name: \"server\") {\n    isArchived\n    defaultBranchRef { name target { ... on Commit { oid committedDate } } }\n    components: object(expression: \"60fdc32daf1d717f8446bad75fd2c3dc44805642:openapi/components\") {\n      ... on Tree { entries { name type oid object { ... on Blob { byteSize isBinary text } } } }\n    }\n  }\n  rateLimit { cost remaining resetAt }\n}",
+  "querySha256": "2e891c7922ede4c150b433346f84673df86eee21b35236de41915272aff879a1",
+  "observedAt": "2026-09-12T13:56:13.853Z",
+  "attempts": [
+    {
+      "attempt": 1,
+      "exitCode": 0,
+      "stdoutSha256": "76d0f06eddc7501221fffbb2a92d38be9e63b05911d244251431c790fd5e46e6",
+      "stdoutBytes": 21809,
+      "stderr": ""
+    }
+  ],
+  "snapshot": {
+    "data": {
+      "meili": {
+        "isArchived": true,
+        "defaultBranchRef": {
+          "name": "main",
+          "target": {
+            "oid": "103221abb2458326ea89f32d5b904ba018c4f30e",
+            "committedDate": "2024-03-21T14:33:50Z"
+          }
+        },
+        "releases": {
+          "nodes": []
+        }
+      },
+      "bangumi": {
+        "isArchived": false,
+        "defaultBranchRef": {
+          "name": "master",
+          "target": {
+            "oid": "60fdc32daf1d717f8446bad75fd2c3dc44805642",
+            "committedDate": "2026-09-02T22:36:51Z"
+          }
+        },
+        "components": {
+          "entries": [
+            {
+              "name": "avatar.yaml",
+              "type": "blob",
+              "oid": "8054e2a823f368f750371939781e763c1de926fe",
+              "object": {
+                "byteSize": 488,
+                "isBinary": false,
+                "text": "example:\n  \"large\": \"https://lain.bgm.tv/pic/user/l/000/00/00/1.jpg?r=1391790456\"\n  \"medium\": \"https://lain.bgm.tv/pic/user/m/000/00/00/1.jpg?r=1391790456\"\n  \"small\": \"https://lain.bgm.tv/pic/user/s/000/00/00/1.jpg?r=1391790456\"\ntitle: Avatar\nrequired:\n  - large\n  - medium\n  - small\ntype: object\nproperties:\n  large:\n    title: Large\n    type: string\n    format: url\n  medium:\n    title: Medium\n    type: string\n    format: url\n  small:\n    title: Small\n    type: string\n    format: url\n"
+              }
+            },
+            {
+              "name": "creator.yaml",
+              "type": "blob",
+              "oid": "f908e1e33c54bc6bd9f80cee4a91393414532d9a",
+              "object": {
+                "byteSize": 223,
+                "isBinary": false,
+                "text": "title: Creator\nrequired:\n  - username\n  - nickname\ntype: object\nproperties:\n  username:\n    title: Username\n    type: string\n  nickname:\n    title: Nickname\n    type: string\ndescription: 意义同<a href=\"#model-Me\">Me</a>\n"
+              }
+            },
+            {
+              "name": "episode.yaml",
+              "type": "blob",
+              "oid": "575d2a76447457db94bd8a65f1aa9c78caec3223",
+              "object": {
+                "byteSize": 1262,
+                "isBinary": false,
+                "text": "title: Episode\nrequired:\n  - id\n  - type\n  - name\n  - name_cn\n  - sort\n  - airdate\n  - comment\n  - duration\n  - desc\n  - disc\ntype: object\nproperties:\n  id:\n    title: ID\n    type: integer\n  type:\n    title: Type\n    type: integer\n    description: \"`0` 本篇，`1` SP，`2` OP，`3` ED\"\n  name:\n    title: Name\n    type: string\n  name_cn:\n    title: Name Cn\n    type: string\n  sort:\n    title: Sort\n    type: number\n    description: 同类条目的排序和集数\n  ep:\n    title: Ep\n    type: number\n    description: 条目内的集数, 从`1`开始。非本篇剧集的此字段无意义\n  airdate:\n    title: Airdate\n    type: string\n  comment:\n    title: Comment\n    type: integer\n  duration:\n    title: Duration\n    description: 维基人填写的原始时长\n    type: string\n  desc:\n    title: Desc\n    type: string\n    description: 简介\n  disc:\n    title: Disc\n    type: integer\n    description: 音乐曲目的碟片数\n  \"duration_seconds\":\n    description: 服务器解析的时长，无法解析时为 `0`\n    type: integer\n\nexample:\n  \"airdate\": \"\"\n  \"comment\": 0\n  \"desc\": \"\"\n  \"disc\": 0\n  \"duration\": \"\"\n  \"ep\": 6\n  \"id\": 8\n  \"name\": \"蒼と白の境界線\"\n  \"name_cn\": \"\"\n  \"sort\": 6\n  \"subject_id\": 15\n  \"type\": 0\n  \"duration_seconds\": 1440\n"
+              }
+            },
+            {
+              "name": "episode_collection_type.yaml",
+              "type": "blob",
+              "oid": "51d0c3358c884330b222f7d691588299c51e7d9c",
+              "object": {
+                "byteSize": 344,
+                "isBinary": false,
+                "text": "title: EpisodeCollectionType\nexample: 2\nenum:\n  - 0\n  - 1\n  - 2\n  - 3\ntype: integer\ndescription: |-\n  - `0`: 未收藏\n  - `1`: 想看\n  - `2`: 看过\n  - `3`: 抛弃\nx-ms-enum:\n  name: EpisodeCollectionType\n  modelAsString: false\n  values:\n    - None\n    - Wish\n    - Done\n    - Dropped\nx-enum-varNames:\n  - None\n  - Wish\n  - Done\n  - Dropped\n"
+              }
+            },
+            {
+              "name": "error_detail.yaml",
+              "type": "blob",
+              "oid": "52127c41a63864949ec801f99e14866c02cc1123",
+              "object": {
+                "byteSize": 444,
+                "isBinary": false,
+                "text": "title: ErrorDetail\nrequired:\n  - title\n  - description\ntype: object\nproperties:\n  title:\n    title: Title\n    type: string\n  description:\n    title: Description\n    type: string\n  details:\n    title: Detail\n    oneOf:\n      - type: string\n      - type: object\n        properties:\n          \"error\":\n            type: string\n            description: error message\n          \"path\":\n            type: string\n            description: request path\n"
+              }
+            },
+            {
+              "name": "get-user-episodes-collection.yaml",
+              "type": "blob",
+              "oid": "cc8e580f22f215af37391a1bfe6dfbe18504fc48",
+              "object": {
+                "byteSize": 333,
+                "isBinary": false,
+                "text": "additionalProperties: true\nproperties:\n  episode:\n    $ref: \"./episode.yaml\"\n  type:\n    $ref: \"./episode_collection_type.yaml\"\n  updated_at:\n    type: integer\n    description: A int64 unix timestamp, `0` as unknown or un-recorded.\n    example:\n      - 0\n      - 1700000000\nrequired:\n  - episode\n  - type\n  - updated_at\ntype: object\n"
+              }
+            },
+            {
+              "name": "page.yaml",
+              "type": "blob",
+              "oid": "867a9108efd2116ccb64c4bf7bd121139a9ba618",
+              "object": {
+                "byteSize": 200,
+                "isBinary": false,
+                "text": "type: object\nrequired:\n  - total\n  - limit\n  - offset\nproperties:\n  total:\n    title: Total\n    type: integer\n  limit:\n    title: Limit\n    type: integer\n  offset:\n    title: Offset\n    type: integer\n"
+              }
+            },
+            {
+              "name": "private_message.yaml",
+              "type": "blob",
+              "oid": "fce5b0a68b550b19a68e48eaca2a39652ea8d6f9",
+              "object": {
+                "byteSize": 727,
+                "isBinary": false,
+                "text": "title: PrivateMessage\ntype: object\nrequired:\n  - created_at\n  - title\n  - content\n  - id\n  - new\nproperties:\n  created_at:\n    title: Created At\n    type: string\n    format: date-time\n  related_message:\n    title: Related Message\n    description: 发起会话的那条私信\n    $ref: \"./private_message.yaml\"\n  sender:\n    title: Sender\n    description: 发信人\n    $ref: \"./user.yaml\"\n  receiver:\n    title: Receiver\n    description: 收信人\n    $ref: \"./user.yaml\"\n  title:\n    title: Title\n    description: 标题\n    type: string\n  content:\n    title: Content\n    description: 内容\n    type: string\n  id:\n    title: ID\n    type: integer\n    minimum: 1\n  new:\n    title: New\n    type: boolean\n    description: 未读\n"
+              }
+            },
+            {
+              "name": "subject_cat_anime.yaml",
+              "type": "blob",
+              "oid": "42ca9c2328037049b76dfbabf078dca9612552d4",
+              "object": {
+                "byteSize": 390,
+                "isBinary": false,
+                "text": "title: SubjectAnimeCategory\nexample: 1\nenum:\n  - 0\n  - 1\n  - 2\n  - 3\n  - 5\ntype: integer\ndescription: |-\n  动画类型\n  - `0` 为 其他\n  - `1` 为 TV\n  - `2` 为 OVA\n  - `3` 为 Movie\n  - `5` 为 WEB\nx-ms-enum:\n  name: SubjectAnimeCategory\n  modelAsString: false\n  values:\n    - Other\n    - TV\n    - OVA\n    - Movie\n    - WEB\nx-enum-varnames:\n  - Other\n  - TV\n  - OVA\n  - Movie\n  - WEB\n"
+              }
+            },
+            {
+              "name": "subject_cat_book.yaml",
+              "type": "blob",
+              "oid": "0c5cb8bd7a5a422588417be2cc10759d81eeafc8",
+              "object": {
+                "byteSize": 401,
+                "isBinary": false,
+                "text": "title: SubjectBookCategory\nexample: 1001\nenum:\n  - 0\n  - 1001\n  - 1002\n  - 1003\ntype: integer\ndescription: |-\n  书籍类型\n  - `0` 为 其他\n  - `1001` 为 漫画\n  - `1002` 为 小说\n  - `1003` 为 画集\nx-ms-enum:\n  name: SubjectBookCategory\n  modelAsString: false\n  values:\n    - Other\n    - Comic\n    - Novel\n    - Illustration\nx-enum-varnames:\n  - Other\n  - Comic\n  - Novel\n  - Illustration\n"
+              }
+            },
+            {
+              "name": "subject_cat_game.yaml",
+              "type": "blob",
+              "oid": "ec1eeaafa2e77afe45a7bda913e828759d925a76",
+              "object": {
+                "byteSize": 451,
+                "isBinary": false,
+                "text": "title: SubjectGameCategory\nexample: 4001\nenum:\n  - 0\n  - 4001\n  - 4003\n  - 4002\n  - 4005\ntype: integer\ndescription: |-\n  游戏类型\n  - `0` 为 其他\n  - `4001` 为 游戏\n  - `4002` 为 软件\n  - `4003` 为 扩展包\n  - `4005` 为 桌游\nx-ms-enum:\n  name: SubjectGameCategory\n  modelAsString: false\n  values:\n    - Other\n    - Games\n    - Software\n    - DLC\n    - Tabletop\nx-enum-varnames:\n  - Other\n  - Games\n  - Software\n  - DLC\n  - Tabletop\n"
+              }
+            },
+            {
+              "name": "subject_cat_real.yaml",
+              "type": "blob",
+              "oid": "317d4291b593a0a2f6f4f3636b1acb2d7012ee69",
+              "object": {
+                "byteSize": 559,
+                "isBinary": false,
+                "text": "title: SubjectRealCategory\nexample: 6\nenum:\n  - 0\n  - 1\n  - 2\n  - 3\n  - 6001\n  - 6002\n  - 6003\n  - 6004\ntype: integer\ndescription: |-\n  电影类型\n  - `0` 为 其他\n  - `1` 为 日剧\n  - `2` 为 欧美剧\n  - `3` 为 华语剧\n  - `6001` 为 电视剧\n  - `6002` 为 电影\n  - `6003` 为 演出\n  - `6004` 为 综艺\nx-ms-enum:\n  name: SubjectRealCategory\n  modelAsString: false\n  values:\n    - Other\n    - JP\n    - EN\n    - CN\n    - TV\n    - Movie\n    - Live\n    - Show\nx-enum-varnames:\n  - Other\n  - JP\n  - EN\n  - CN\n  - TV\n  - Movie\n  - Live\n  - Show\n"
+              }
+            },
+            {
+              "name": "subject_collection_type.yaml",
+              "type": "blob",
+              "oid": "48f8879569db58ff94bb5900171a3a08f7f8bcb2",
+              "object": {
+                "byteSize": 375,
+                "isBinary": false,
+                "text": "title: CollectionType\nexample: 3\nenum:\n  - 1\n  - 2\n  - 3\n  - 4\n  - 5\ntype: integer\ndescription: |-\n  - `1`: 想看\n  - `2`: 看过\n  - `3`: 在看\n  - `4`: 搁置\n  - `5`: 抛弃\nx-ms-enum:\n  name: CollectionType\n  modelAsString: false\n  values:\n    - Wish\n    - Done\n    - Doing\n    - OnHold\n    - Dropped\nx-enum-varnames:\n  - Wish\n  - Done\n  - Doing\n  - OnHold\n  - Dropped\n"
+              }
+            },
+            {
+              "name": "subject_image.yaml",
+              "type": "blob",
+              "oid": "18b03c7a5fa42f2ca45a3c9c6d305f6192a770bb",
+              "object": {
+                "byteSize": 317,
+                "isBinary": false,
+                "text": "title: Images\nrequired:\n  - large\n  - common\n  - medium\n  - small\n  - grid\ntype: object\nproperties:\n  large:\n    title: Large\n    type: string\n  common:\n    title: Common\n    type: string\n  medium:\n    title: Medium\n    type: string\n  small:\n    title: Small\n    type: string\n  grid:\n    title: Grid\n    type: string\n"
+              }
+            },
+            {
+              "name": "subject_tags.yaml",
+              "type": "blob",
+              "oid": "28c645d9dd5651b32aa7c01e0eb8931d5ce3d0c3",
+              "object": {
+                "byteSize": 412,
+                "isBinary": false,
+                "text": "title: Tags\ntype: array\nitems:\n  title: Tag\n  required:\n    - name\n    - count\n    - total_count\n  type: object\n  properties:\n    name:\n      title: Name\n      type: string\n    count:\n      title: Count\n      description: 使用此标签标记本条目的用户数\n      type: integer\n    total_count:\n      title: Total Count\n      description: 此标签在所有条目中的使用总次数\n      type: integer\n"
+              }
+            },
+            {
+              "name": "subject_type.yaml",
+              "type": "blob",
+              "oid": "a6b6b38ab070bf9b344a5ec045f639de68d37ff9",
+              "object": {
+                "byteSize": 408,
+                "isBinary": false,
+                "text": "title: SubjectType\nexample: 2\nenum:\n  - 1\n  - 2\n  - 3\n  - 4\n  - 6\ntype: integer\ndescription: |-\n  条目类型\n  - `1` 为 书籍\n  - `2` 为 动画\n  - `3` 为 音乐\n  - `4` 为 游戏\n  - `6` 为 三次元\n\n  没有 `5`\nx-ms-enum:\n  name: SubjectType\n  modelAsString: false\n  values:\n    - Book\n    - Anime\n    - Music\n    - Game\n    - Real\nx-enum-varnames:\n  - Book\n  - Anime\n  - Music\n  - Game\n  - Real\n"
+              }
+            },
+            {
+              "name": "subject_v0.yaml",
+              "type": "blob",
+              "oid": "d6ce9392ddefc2ecdc89e8de043df58f1b993190",
+              "object": {
+                "byteSize": 2676,
+                "isBinary": false,
+                "text": "title: Subject\nrequired:\n  - id\n  - type\n  - name\n  - name_cn\n  - summary\n  - nsfw\n  - locked\n  - platform\n  - meta_tags\n  - volumes\n  - eps\n  - series\n  - total_episodes\n  - rating\n  - images\n  - collection\n  - tags\ntype: object\nproperties:\n  id:\n    title: ID\n    type: integer\n  type:\n    title: Type\n    type: integer\n    allOf:\n      - \"$ref\": \"./subject_type.yaml\"\n  name:\n    title: Name\n    type: string\n  name_cn:\n    title: Name Cn\n    type: string\n  summary:\n    title: Summary\n    type: string\n  series:\n    title: Series\n    type: boolean\n    description: 是否为书籍系列的主条目\n  nsfw:\n    title: Nsfw\n    type: boolean\n  locked:\n    title: Locked\n    type: boolean\n  date:\n    title: Date\n    type: string\n    description: air date in `YYYY-MM-DD` format\n  platform:\n    title: Platform\n    type: string\n    description: TV, Web, 欧美剧, DLC...\n  images:\n    $ref: \"./subject_image.yaml\"\n  infobox:\n    $ref: \"./wiki_v0.yaml\"\n  volumes:\n    title: Volumes\n    type: integer\n    description: 书籍条目的册数，由旧服务端从wiki中解析\n  eps:\n    title: Eps\n    type: integer\n    description: 由旧服务端从wiki中解析，对于书籍条目为`话数`\n  total_episodes:\n    title: Total Episodes\n    type: integer\n    description: 数据库中的章节数量\n  rating:\n    title: Rating\n    required:\n      - rank\n      - total\n      - count\n      - score\n    type: object\n    properties:\n      rank:\n        title: Rank\n        type: integer\n      total:\n        title: Total\n        type: integer\n      count:\n        title: Count\n        type: object\n        properties:\n          \"1\":\n            type: integer\n          \"2\":\n            type: integer\n          \"3\":\n            type: integer\n          \"4\":\n            type: integer\n          \"5\":\n            type: integer\n          \"6\":\n            type: integer\n          \"7\":\n            type: integer\n          \"8\":\n            type: integer\n          \"9\":\n            type: integer\n          \"10\":\n            type: integer\n      score:\n        title: Score\n        type: number\n\n  collection:\n    title: Collection\n    required:\n      - wish\n      - collect\n      - doing\n      - on_hold\n      - dropped\n    type: object\n    properties:\n      wish:\n        title: Wish\n        type: integer\n      collect:\n        title: Collect\n        type: integer\n      doing:\n        title: Doing\n        type: integer\n      on_hold:\n        title: On Hold\n        type: integer\n      dropped:\n        title: Dropped\n        type: integer\n  meta_tags:\n    description: 由维基人维护的 tag\n    type: array\n    items:\n      type: string\n  tags:\n    $ref: \"./subject_tags.yaml\"\n"
+              }
+            },
+            {
+              "name": "subject_v0_slim.yaml",
+              "type": "blob",
+              "oid": "048929646deb674e05e25175a4d6eb18e48ca847",
+              "object": {
+                "byteSize": 1185,
+                "isBinary": false,
+                "text": "title: SlimSubject\nrequired:\n  - images\n  - name\n  - name_cn\n  - short_summary\n  - tags\n  - score\n  - type\n  - id\n  - eps\n  - volumes\n  - collection_total\n  - rank\ntype: object\nproperties:\n  id:\n    title: ID\n    type: integer\n  type:\n    title: Type\n    type: integer\n    allOf:\n      - \"$ref\": \"./subject_type.yaml\"\n  name:\n    title: Name\n    type: string\n  name_cn:\n    title: Name Cn\n    type: string\n  short_summary:\n    title: Summary\n    type: string\n    description: 截短后的条目描述。\n  date:\n    title: Date\n    type: string\n    description: air date in `YYYY-MM-DD` format\n  images:\n    $ref: \"./subject_image.yaml\"\n  volumes:\n    title: Volumes\n    type: integer\n    description: 书籍条目的册数，由旧服务端从wiki中解析\n  eps:\n    title: Eps\n    type: integer\n    description: 由旧服务端从wiki中解析，对于书籍条目为`话数`\n  collection_total:\n    description: 收藏人数\n    title: Total\n    type: integer\n  score:\n    description: 分数\n    title: Score\n    type: number\n  rank:\n    description: 排名\n    title: Rank\n    type: integer\n\n  tags:\n    description: 前 10 个 tag\n    allOf:\n      - $ref: \"./subject_tags.yaml\"\n"
+              }
+            },
+            {
+              "name": "user.yaml",
+              "type": "blob",
+              "oid": "21091881672e75ba2713bcac71923cd6d537cd0f",
+              "object": {
+                "byteSize": 1060,
+                "isBinary": false,
+                "text": "example:\n  \"avatar\":\n    \"large\": \"https://lain.bgm.tv/pic/user/l/000/00/00/1.jpg?r=1391790456\"\n    \"medium\": \"https://lain.bgm.tv/pic/user/m/000/00/00/1.jpg?r=1391790456\"\n    \"small\": \"https://lain.bgm.tv/pic/user/s/000/00/00/1.jpg?r=1391790456\"\n  \"sign\": \"Awesome!\"\n  \"username\": \"sai\"\n  \"nickname\": \"Sai🖖\"\n  \"id\": 1\n  \"user_group\": 1\ntitle: User\ndescription: |\n  实际的返回值可能包括文档未声明的 `url` 字段，此字段主要用于开发者从 api 响应直接转跳到网页。\n  客户端开发者请不用依赖于此特性，此字段的值随时可能会改变。\nrequired:\n  - id\n  - username\n  - nickname\n  - user_group\n  - avatar\n  - sign\ntype: object\nproperties:\n  id:\n    title: ID\n    type: integer\n  username:\n    title: Username\n    type: string\n    description: 唯一用户名，初始与 UID 相同，可修改一次\n  nickname:\n    title: Nickname\n    type: string\n  user_group:\n    \"$ref\": \"./user_group.yaml\"\n  avatar:\n    \"$ref\": \"./avatar.yaml\"\n  sign:\n    title: Sign\n    description: 个人签名\n    type: string\n"
+              }
+            },
+            {
+              "name": "user_group.yaml",
+              "type": "blob",
+              "oid": "e21bceeae0a4a246c28659f87792213665a3f47e",
+              "object": {
+                "byteSize": 673,
+                "isBinary": false,
+                "text": "title: UserGroup\nenum:\n  - 1\n  - 2\n  - 3\n  - 4\n  - 5\n  - 8\n  - 9\n  - 10\n  - 11\ntype: integer\ndescription: >-\n  用户组\n  - 1 = 管理员\n  - 2 = Bangumi 管理猿\n  - 3 = 天窗管理猿\n  - 4 = 禁言用户\n  - 5 = 禁止访问用户\n  - 8 = 人物管理猿\n  - 9 = 维基条目管理猿\n  - 10 = 用户\n  - 11 = 维基人\nx-ms-enum:\n  name: UserGroup\n  modelAsString: false\n  values:\n    - Admin\n    - BangumiAdmin\n    - DoujinAdmin\n    - MutedUser\n    - BlockedUser\n    - PersonAdmin\n    - WikiAdmin\n    - User\n    - WikiUser\nx-enum-varnames:\n  - Admin\n  - BangumiAdmin\n  - DoujinAdmin\n  - MutedUser\n  - BlockedUser\n  - PersonAdmin\n  - WikiAdmin\n  - User\n  - WikiUser\n"
+              }
+            },
+            {
+              "name": "user_subject_collection.yaml",
+              "type": "blob",
+              "oid": "b0829e2a3202c5c1f8e5adbd018fca98165cadb5",
+              "object": {
+                "byteSize": 1147,
+                "isBinary": false,
+                "text": "title: UserSubjectCollection\nrequired:\n  - subject_id\n  - subject_type\n  - rate\n  - type\n  - tags\n  - ep_status\n  - vol_status\n  - updated_at\n  - private\ntype: object\nproperties:\n  subject_id:\n    title: Subject ID\n    type: integer\n    example: 8\n  subject_type:\n    \"$ref\": \"./subject_type.yaml\"\n  rate:\n    example: 4\n    title: Rate\n    type: integer\n  type:\n    $ref: \"./subject_collection_type.yaml\"\n  comment:\n    title: Comment\n    type: string\n    example: \"看看\"\n  tags:\n    title: Tags\n    type: array\n    example: [柯南, 万年小学生, 推理, 青山刚昌, TV]\n    items:\n      type: string\n  ep_status:\n    title: Ep Status\n    type: integer\n    example: 5\n  vol_status:\n    title: Vol Status\n    type: integer\n    example: 0\n  updated_at:\n    example: \"2022-06-19T18:44:13.6140127+08:00\"\n    description: \"本时间并不代表条目的收藏时间。修改评分，评价，章节观看状态等收藏信息时未更新此时间是一个 bug。请不要依赖此特性\"\n    title: Updated At\n    type: string\n    format: date-time\n  private:\n    title: Private\n    type: boolean\n  subject:\n    $ref: \"./subject_v0_slim.yaml\"\n"
+              }
+            },
+            {
+              "name": "user_subject_collection_modify_payload.yaml",
+              "type": "blob",
+              "oid": "03f4e271c4810982fb33d9c8e446dfb7f87b7afc",
+              "object": {
+                "byteSize": 960,
+                "isBinary": false,
+                "text": "title: UserSubjectCollectionModifyPayload\ntype: object\ndescription: 所有的字段均可选\nproperties:\n  type:\n    description: 修改条目收藏类型\n    allOf:\n      - $ref: \"./subject_collection_type.yaml\"\n\n  rate:\n    description: 评分，`0` 表示删除评分\n    type: integer\n    maximum: 10\n    minimum: 0\n    exclusiveMaximum: false\n    exclusiveMinimum: false\n\n  ep_status:\n    description: \"只能用于修改书籍条目进度\"\n    type: integer\n    minimum: 0\n    exclusiveMinimum: false\n\n  vol_status:\n    description: \"只能用于修改书籍条目进度\"\n    type: integer\n    minimum: 0\n    exclusiveMinimum: false\n\n  comment:\n    description: \"评价\"\n    type: string\n\n  private:\n    description: \"仅自己可见\"\n    type: boolean\n\n  tags:\n    title: 标签\n    description: 不传或者 `null` 都会被忽略，传 `[]` 则会删除所有 tag。\n    type: array\n    items:\n      type: string\n      description: 不能包含空格\n"
+              }
+            },
+            {
+              "name": "wiki_v0.yaml",
+              "type": "blob",
+              "oid": "d5acf0ecbe2756bb89b957846ad57db02fe3e4f3",
+              "object": {
+                "byteSize": 1698,
+                "isBinary": false,
+                "text": "title: Infobox\ntype: array\nitems:\n  title: Item\n  required:\n    - key\n    - value\n  type: object\n  properties:\n    key:\n      title: Key\n      type: string\n    value:\n      title: Value\n      type: object\n      anyOf:\n        - type: string\n        - type: array\n          items:\n            anyOf:\n              - title: KV\n                required:\n                  - k\n                  - v\n                type: object\n                properties:\n                  k:\n                    title: K\n                    type: string\n                  v:\n                    title: V\n                    type: string\n              - title: V\n                required:\n                  - v\n                type: object\n                properties:\n                  v:\n                    title: V\n                    type: string\nexample:\n  [\n    { \"key\": \"简体中文名\", \"value\": \"鲁路修·兰佩路基\" },\n    {\n      \"key\": \"别名\",\n      \"value\":\n        [\n          { \"v\": \"L.L.\" },\n          { \"v\": \"勒鲁什\" },\n          { \"v\": \"鲁鲁修\" },\n          { \"v\": \"ゼロ\" },\n          { \"v\": \"Zero\" },\n          { \"k\": \"英文名\", \"v\": \"Lelouch Lamperouge\" },\n          { \"k\": \"第二中文名\", \"v\": \"鲁路修·冯·布里塔尼亚\" },\n          { \"k\": \"英文名二\", \"v\": \"Lelouch Vie Britannia\" },\n          { \"k\": \"日文名\", \"v\": \"ルルーシュ・ヴィ・ブリタニア\" },\n        ],\n    },\n    { \"key\": \"性别\", \"value\": \"男\" },\n    { \"key\": \"生日\", \"value\": \"12月5日\" },\n    { \"key\": \"血型\", \"value\": \"A型\" },\n    { \"key\": \"身高\", \"value\": \"178cm→181cm\" },\n    { \"key\": \"体重\", \"value\": \"54kg\" },\n    { \"key\": \"引用来源\", \"value\": \"Wikipedia\" },\n  ]\n"
+              }
+            }
+          ]
+        }
+      },
+      "rateLimit": {
+        "cost": 1,
+        "remaining": 4998,
+        "resetAt": "2026-09-12T14:41:52Z"
+      }
+    }
+  }
+}

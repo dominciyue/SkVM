@@ -254,10 +254,12 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 **执行设计：** 旧 migration lock、六源报告和 blocker/advisory 原样保留。一次 GitHub GraphQL 内容批次同时绑定 Meilisearch 仓库归档/default-head/release 状态与 Bangumi 固定提交 `openapi/components` 目录；只有该批次失败才允许一次同查询重试。Meilisearch 仅在 default head 或维护者 release 出现不同的权威 source revision 时建立新 identity，否则保持 `source-blocked-unresolved`。Bangumi 从旧 dependency-verification inventory 独立取得 19 个 accepted operation 的 32 个 `REFERENCE_EXTERNAL` source issue，以 locator/role/reference 为固定分母，再从同提交组件目录逐项解析并递归检查引用；原始 GraphQL 响应 write-once 归档。解析成功只形成新的 development closure identity，不反写旧 sourceValidity、构造通过数或 live API 结论。探索期一次只读 metadata 调用与正式内容批次分开计入 source API accounting。
 
-- [ ] Meilisearch 只查旧记录对应上游版本/发布/维护者修订。明确权威新版本则新 source identity；找不到写 source-blocked-unresolved。
-- [ ] Bangumi 32 个 ref 记录获取/解析/依赖角色；最多一个缓存获取批次和一次合理重试，19 operation 的源状态可 partial。成功解析不等于 live API 正确。
-- [ ] 不改旧报告，不建立专用生产 patcher。若有原始权威文档直接使用它，人工拼接仅可标 derived development source。
-- [ ] 已知未修 source 只阻塞依赖任务，不阻止独立输入、N5/N7 或 prospective 锁定。
+- [x] Meilisearch 只查旧记录对应上游版本/发布/维护者修订。明确权威新版本则新 source identity；找不到写 source-blocked-unresolved。
+- [x] Bangumi 32 个 ref 记录获取/解析/依赖角色；最多一个缓存获取批次和一次合理重试，19 operation 的源状态可 partial。成功解析不等于 live API 正确。
+- [x] 不改旧报告，不建立专用生产 patcher。若有原始权威文档直接使用它，人工拼接仅可标 derived development source。
+- [x] 已知未修 source 只阻塞依赖任务，不阻止独立输入、N5/N7 或 prospective 锁定。
+
+**N4 实际终态：** code=`81f4a35ae8259aabd1880f76c8b6b1030ddff0b6` 在正式获取前推送。一次 GraphQL 内容批次成功、retry=0；加上设计期一次只读 metadata 探索，source API accounting=2。Meilisearch 报告 SHA-256=`1706d1f9fa06fd47ee0b708ca911035098bae6a17ae4e3018325726650ff8dd8`：维护者仓库 archived、default head 仍为锁定 `103221ab...`、release=0，`GET /tasks` 的 `#/components/parameters/total` 仍 `source-blocked-unresolved`。Bangumi 报告 SHA-256=`fd8fc90fe7541319c88718151becde5e9faa3a2b1f2b51b5c4a82fd5fd7966c8`：历史 32/32 response-only ref issue、19/19 operation 均 acquired/parsed，4 个根资源递归为 6 个资源且 0 unresolved，记为新 `bangumi-external-closure-60fd...` development identity；不改变旧 advisory 或证明 live API。两次 strict verify 和 write-once 摘要检查通过。N4=`completed-with-limitation` 仅因 Meilisearch 未修，进入 N6。
 
 验收：两项各有可解释终态与未完成范围；无需“全部历史问题解决”。
 
