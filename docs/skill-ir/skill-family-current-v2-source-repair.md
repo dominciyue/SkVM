@@ -1,6 +1,6 @@
 # API 合同任务引擎：接口设计与执行入口
 
-**状态：active，N0 completed / N1 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
+**状态：active，N0/N1 completed / N2 next，2026-09-12。** 已有 request/schema/response/pytest 能力见 [审查依据](skill-family-plan-review-20260912.md)；实际执行按 [N0–N15 任务书](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md)，机器状态在 `results/skill-ir/skill-family-current-v2-source-repair-001/`。
 
 ## 目标和接口
 
@@ -48,14 +48,21 @@ source closure 以 URI/pointer 图解析，response ref 是否必需由 task 决
 
 ## 状态与恢复入口
 
-N0 新增 `scripts/skill-ir/skill-family-current-v2-prospective.ts`。它严格读取 `stage-manifest.json` 与 `execution-status.json`，核对任务集合、依赖无环、完成顺序、证据相对路径和保护计数，再派生工程、研究、维护三条状态。`status` 不写文件；`resume` 只返回首个可运行任务及其验收/证据目标，后续阶段再逐项接入处理函数，因此不会从 N0 偷跑获取或 prospective。
+N0 新增 `scripts/skill-ir/skill-family-current-v2-prospective.ts`。它严格读取 `stage-manifest.json` 与 `execution-status.json`，核对任务集合、依赖无环、完成顺序、证据相对路径和保护计数，再派生工程、研究、维护三条状态。`status` 不写文件；`resume` 只返回首个可运行任务及其验收/证据目标。N1 已接入 `--step=n1`：先用同一构建器重核归档输入摘要，再以 write-once-or-byte-identical 方式写三份 corpus 账本，最后才推进持久状态；部分写入不会被误记为阶段完成。
 
 ~~~powershell
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status
 bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=resume
+bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=n1
 ~~~
 
-当前两条命令都定位 N1。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+当前 `status`/`resume` 均定位 N2；再次运行 `--step=n1` 只重核已归档字节和已有输出，不回退状态或覆盖不同证据。持久状态同时记录实际 base commit、Bun/Node、公开曝光、历史 `0/6`、held-out/Q1/prospective 计数、成本分栏、未解决事项和下一动作。`completed-with-limitation` 的维护任务不会阻止依赖已满足的工程任务；不可能的完成顺序、绝对证据路径和依赖环 fail closed。
+
+## N1 语料账本
+
+`src/skill-ir/skill-family-current-v2-corpus.ts` 从已提交 class-proof/source-input 归档读取正文、直接资源、职责清单、metadata-only 候选和 API 文档。它不靠仓库名改变成功语义；逐项核对长度/SHA-256、职责 locator、旧计数、来源数、metadata 暴露状态和 API 解析结果。输出位于 `corpus/{source-ledger,duty-matrix,exposure-ledger}.json`。
+
+本批次为 12 份正文、6 个仓库来源、42 个直接资源、498 项职责；4 个 N2 映射候选来自 4 个仓库并保留 residual scope。12 份 API 合同覆盖 6 个 provider，但均是同一 aggregator repository 的镜像；原始 upstream URL 没有旧证据，因此保持 null/unresolved。5 个 metadata-only 候选没有读取正文。该账本是有目的的 development corpus，不是随机生态样本，也不支持谱系独立率、whole-skill 或人工节省结论。
 
 ## 实施与验证
 
@@ -65,6 +72,7 @@ N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证�
 
 ~~~powershell
 bun test ./scripts/skill-ir/skill-family-current-v2-prospective.test.ts
+bun test ./src/skill-ir/skill-family-current-v2-corpus.test.ts
 bunx tsc --noEmit --pretty false --module preserve --moduleResolution bundler --target es2022 --types bun scripts/skill-ir/skill-family-current-v2-prospective.ts scripts/skill-ir/skill-family-current-v2-prospective.test.ts
 ~~~
 

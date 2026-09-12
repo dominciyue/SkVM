@@ -3,7 +3,7 @@
 > **For agentic workers:** Use superpowers:executing-plans to execute this plan. Main agent owns design, edits and final checks; narrowly scoped read-only probes follow AGENTS.md. Track the checkboxes and actual evidence, not elapsed hours.
 
 **Revision:** 2 — 2026-09-12，替代 3c37f7f 中的 revision 1；旧版在 Git 中保留。
-**Status:** active。N0 已于 2026-09-12 完成实际基线、持久状态和最小恢复入口；当前可运行任务为 N1。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
+**Status:** active。N0/N1 已于 2026-09-12 完成；当前可运行任务为 N2。后续状态以 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json` 为准。
 **Goal:** 在 2026-09-14 00:00（Asia/Shanghai）前优先交付一个有实际消费闭环的 API 合同任务自动化引擎：明确需求 + 普通 OpenAPI 输入 → 可检查请求/测试包 → 原生执行与故障检出，并分别评价新需求与新输入迁移。
 **Architecture:** 保留旧 production v2；优先连接现有 api-skill-mapping、schema witness、request/form/negative、response checker 与 pytest 模块。新增薄的任务合同/计划层和统一调用接口；历史来源修复独立限时处理。标准化任务输入与输出，不重造 OpenAPI，不把自然语言提取自动视为可信。
 **Tech Stack:** Bun、TypeScript、Zod/AJV、现有 Python/pytest runtime、JSON/YAML、Git/gh；Schemathesis 为首选外部对照，Dredd 非必选。
@@ -210,13 +210,15 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：corpus/source-ledger.json、corpus/duty-matrix.json、corpus/exposure-ledger.json。
 
-- [ ] 优先复用已归档完整正文，再补 authenticated gh tree/contents/raw 获取；目标 12–20 正文、6 origins，完整记录实际 acquisition failures、缺依赖与许可证限制。许可证未知标 redistribution-review-needed，不自动等同技术输入不适用。
-- [ ] 每条职责记录原文、direct resource、输入槽、输出格式、覆盖要求、外部状态、类内不支持项；至少一个正例、一个反例、一个“属于类但当前不支持”。
-- [ ] 给 API 输入登记实际 provider、原始上游 URL、版本、是否 aggregator 镜像、是否已暴露。广泛接收用户给定合同的职责可绑定外部公共合同，显式写 shared-public-input，不冒充 skill 随附样例。
-- [ ] 目标另保留 5 个 metadata-only 候选，最低有 3 个可进入新成员面板；两个 reserve 是便利条件，不是人工增设执行门。不能为数量把搜索片段当完整正文。
-- [ ] Env/config 与静态审查仅作小型职责对照；公开文献说明需求存在，便利语料不估总体比例。
+- [x] 优先复用已归档完整正文，再补 authenticated gh tree/contents/raw 获取；目标 12–20 正文、6 origins，完整记录实际 acquisition failures、缺依赖与许可证限制。许可证未知标 redistribution-review-needed，不自动等同技术输入不适用。
+- [x] 每条职责记录原文、direct resource、输入槽、输出格式、覆盖要求、外部状态、类内不支持项；至少一个正例、一个反例、一个“属于类但当前不支持”。
+- [x] 给 API 输入登记实际 provider、原始上游 URL、版本、是否 aggregator 镜像、是否已暴露。广泛接收用户给定合同的职责可绑定外部公共合同，显式写 shared-public-input，不冒充 skill 随附样例。
+- [x] 目标另保留 5 个 metadata-only 候选，最低有 3 个可进入新成员面板；两个 reserve 是便利条件，不是人工增设执行门。不能为数量把搜索片段当完整正文。
+- [x] Env/config 与静态审查仅作小型职责对照；公开文献说明需求存在，便利语料不估总体比例。
 
 验收：3 个已核实职责可用于 N2；若不足，工程仍可用 user-declared task 开发，但 skill-family 结论为 insufficient-evidence。
+
+**N1 实际结果：** 实现/证据提交=`bfbc4c885efaa11ae27aaddd380dbb75cf59fe50`。从已提交 development 归档逐字节复核并固定 12 份完整正文、6 个 repository origins、42 个 direct resources；保留 498 项完整职责分母，其中 constructible=`38`、in-class unsupported=`79`、outside-class=`46`、unmapped/unresolved=`335`，4 个来自不同仓库的 N2 映射候选均绑定原 obligationId，未把窄 slice 写成 whole-skill。另保留 5 个 repository-distinct metadata-only 候选且 `bodyRead=false`。API 账本复核 12 份已暴露合同、6 个实际 provider；它们均来自同一 aggregator mirror，旧账本没有原始上游 URL，因此显式记为 `not-recorded-in-prior-ledger`，不猜测补齐。未发起 acquisition、held-out/Q1/prospective 或外部 source/business/model/paid 调用。RED/GREEN 后 N0+N1 聚焦回归 `10/10`、34 assertions，完整 `bun run typecheck` exit 0。
 
 ### N2：任务合同与完整义务计划（P0）
 

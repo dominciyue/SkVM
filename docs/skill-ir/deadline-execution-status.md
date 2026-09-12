@@ -1,8 +1,8 @@
 # API 合同任务引擎：唯一执行恢复状态
 
 - 当前持续目标 active，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2。
-- N0 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`，Bun 1.3.14、Node v23.8.0；旧 class-proof status 与新 status/resume 均 exit 0，新入口定位 N1。
-- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；下一动作是优先复用已归档正文建立 N1 三份 corpus ledger，再做有目的的补充获取。
+- N0/N1 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1 实现/证据=`bfbc4c885efaa11ae27aaddd380dbb75cf59fe50`。12 正文/6 origins/42 resources、498 duties、5 个 metadata-only 候选及 12 API 文档/6 providers 已绑定。
+- 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`；下一动作是 N2 TaskContract 与构造前完整 obligation plan，输出 `baseline/gap-matrix.json`。
 - 工程/研究/维护分轨；历史 `0/6`、readiness、Q1/held-out、旧候选/报告不变。clean-002 缺档、Meilisearch blocker、Bangumi advisory 已登记但不全局阻塞。
 - 网络/API/付费已授权并按实际用途分账；N0 实际 source/business/model/paid 调用为 `0/0/0/0`。平台安全控制未关闭，确定性证据核验仍生效。
 
@@ -165,3 +165,10 @@
 - Schedule: N0/N1/N2, then N3/N5/N8/N10, then N7/N9/N11/N12; N13 can follow N10. N4/N6 are time-limited maintenance, not prerequisites. N14 performs one code-candidate clean replay and N15 delivers actual outcomes.
 - Protocol order: lock method/selection rules, acquire authorized bodies/inputs, lock concrete predictions, execute. Calibration precedes freeze. Required response refs are task-dependent; recursive resolution is not construction success.
 - Historical 0/6, old readiness/Q1/held-out and frozen records remain as recorded. Read current HEAD from Git at recovery; metadata-only commits do not trigger another clean replay.
+
+## 2026-09-12 Current-v2 N1 corpus checkpoint
+
+- N1 payload is committed as `bfbc4c885efaa11ae27aaddd380dbb75cf59fe50`. Its three machine ledgers reuse committed development archives and verify every body/resource/API-input byte before emitting deterministic output.
+- Actual denominator: 12 complete skill bodies, 6 repository origins, 42 direct resources, and 498 duties (38 constructible, 79 in-class unsupported, 46 outside-class, 335 unmapped/unresolved). Four repository-distinct mappings remain candidates for N2; no whole-skill conclusion is made.
+- API input identity is 12 documents / 6 providers / 1 aggregator mirror. Original upstream URLs were absent from the prior ledger and remain explicitly unknown. Five repository-distinct metadata-only candidates retain `bodyRead=false`.
+- Focused N0+N1 regression is 10/10 with 34 assertions; full typecheck passes. Acquisition, protected reads, prospective runs, source/business/model/paid/native calls remain zero for this stage. Resume at N2 with the current-v2 status command.
