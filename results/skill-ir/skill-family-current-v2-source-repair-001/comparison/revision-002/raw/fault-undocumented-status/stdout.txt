@@ -1,0 +1,67 @@
+Schemathesis v4.27.0
+━━━━━━━━━━━━━━━━━━━━
+
+
+ ✅  Loaded specification from                                                 
+ D:\skill优化\SkVM\results\skill-ir\skill-family-current-v2-source-repair-001\ 
+ comparison\revision-002\raw\fault-undocumented-status\source.json (in 0.12s)  
+
+     Base URL:         http://127.0.0.1:55592                                  
+     Specification:    Open API 3.0.3                                          
+     Operations:       1 selected / 1 total                                    
+
+
+ ✅  API capabilities:                                                         
+
+     Supports NULL byte in headers:                            ✘               
+     Accepts backslash and control characters in URL paths:    ✓               
+
+ ❌  Fuzzing (in 29.67s)                                                       
+                                                                               
+     ❌ 1 failed                                                               
+
+=================================== FAILURES ===================================
+_______________________________ POST /items/{id} _______________________________
+1. Test Case ID: a0O2WY
+
+- Undocumented HTTP status code
+
+    Received: 409
+    Documented: 200
+
+[409] Conflict:
+
+    `{"status":"invalid"}`
+
+Reproduce with:
+
+    curl -X POST -H 'Content-Type: application/json' -d '{"name": "ok"}' 'http://127.0.0.1:55592/items/item-1?view=full'
+    
+    st replay a0O2WY
+
+=================================== SUMMARY ====================================
+
+API Operations:
+  Selected: 1/1
+  Tested: 1
+
+Test Phases:
+  ⏭  Examples (disabled)
+  ⏭  Coverage (disabled)
+  ❌ Fuzzing
+  ⏭  Stateful (disabled)
+
+Failures:
+  ❌ Undocumented HTTP status code: 1
+
+Test cases:
+  1 generated, 1 found 1 unique failures
+
+Reports:
+  - HAR: D:\skill优化\SkVM\results\skill-ir\skill-family-current-v2-source-repair-001\comparison\revision-002\raw\fault-undocumented-status\reports\report.har
+  - NDJSON: D:\skill优化\SkVM\results\skill-ir\skill-family-current-v2-source-repair-001\comparison\revision-002\raw\fault-undocumented-status\reports\report.ndjson
+  - JSON: D:\skill优化\SkVM\results\skill-ir\skill-family-current-v2-source-repair-001\comparison\revision-002\raw\fault-undocumented-status\reports\report.json
+
+Seed: not used in the deterministic mode
+
+============================= 1 failure in 30.04s ==============================

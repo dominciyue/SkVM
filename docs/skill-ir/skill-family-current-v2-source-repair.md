@@ -158,6 +158,8 @@ N13 外部对照复用 N5 两个合成源和同一手写 loopback predicate。Sc
 
 revision-001=`44246c37...` 又暴露 Windows GBK/Rich `✅` 输出异常，仍为 0 request；原件独立保留。revision-002 仅为 Schemathesis 子进程设置 UTF-8 I/O 环境，防止控制台渲染在执行前中止，不改变生成、检查或服务器行为。
 
+revision-002=`406af8a0...` 已实际运行 9 个 loopback 请求，但发现汇总分母 bug：三个 fault 都未实际施加，却被同时计为 detected 与 notApplicable，导致 missed=-3。JSON case 因空白序列化未满足 exact-wire predicate；form operation 为外部 schema-generation error。下一修订只重分类既有原始报告，不重复执行；faultApplied=0 必须只进入 notApplicable。
+
 N2 验证需求变化驱动内容、仓库名变化不驱动内容；N5 验证包在研究 runner 外实际消费和八类故障检出；N10 固定多 provider 输入；N14 验证一次代码候选 clean replay。N0 的聚焦测试命令为：
 
 ~~~powershell

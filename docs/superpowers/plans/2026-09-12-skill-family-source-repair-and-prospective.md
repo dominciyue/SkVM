@@ -388,6 +388,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 **N13 revision-001 现场：** code=`4dd0622e87b9be157771db02a23a88b898081cd0` 已删除冲突参数，但 4.27.0 在中文 Windows/管道输出下使用 GBK，Rich 输出 `✅` 时抛 `UnicodeEncodeError`，仍在首个请求前中止。报告 SHA-256=`44246c378e8982a670a085180c7b034815612d6f397d8687ee897ebb668d4b68`；41 files/110,046 bytes 保留。这是第二个独立 harness 环境缺口；revision-002 只固定子进程 `PYTHONUTF8=1` 与 `PYTHONIOENCODING=utf-8`，不改对照合同或源。若仍不能触达 loopback，再区分源兼容与工具运行失败。
 
+**N13 revision-002 现场：** code=`b2f09d95cdeac0232c9cbdef879e6eb2bc5017cc` 后外部工具实际触达 loopback 9 次，41 files/3,416,515 bytes、报告 SHA-256=`406af8a0bf3f045b64c51c71dcf955f076bcaa6c9b07377220b6d02e17f83442` 均保留。JSON baseline 生成一个 operation case，但 JSON 空白不同于 N5 的 exact-wire predicate，返回未声明 409；form baseline 因 Schemathesis schema-generation error 未生成 operation case。三个 fault 单元因此都没有命中有效 predicate，faultApplied=0，实际均不适用。当前汇总器错误地同时计 `correctlyDetected=3` 与 `notApplicable=3`，产生 `missed=-3`；这是分母正确性缺陷，不能接受。revision-003 只从 revision-002 原始绑定重分类：fault 未实际注入不得记命中，计数必须非负且满足 total=detected+missed+notApplicable；不重跑工具。
+
 - [ ] 首选 Schemathesis，固定实际安装版本、相同合同、同 loopback fixture、请求预算和 timeout；从实际 --help 确认选项，不套用旧文档命令。
 - [ ] 比较生成时间、唯一有效 case、操作/约束覆盖、指定 fault 检出、可复现产物和失败定位。随机 fuzz 与确定性 witness 不做未经控制的总量速度比较。
 - [ ] 最小有用差异：source duty → selected obligation → artifact → checker 的可追溯性、同 source 不同 task 输出差异、无需模型的重放和可解释 partial output；这些须实测，不能仅列功能名。
