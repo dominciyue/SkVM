@@ -1,5 +1,16 @@
 # API 合同任务引擎：唯一执行恢复状态
 
+## 当前下一步：U0–U5 先可用交付（2026-09-13）
+
+- 权威任务书：[API 合同任务先可用交付](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，`planned-not-started`。本次只复核与登记计划，没有启动新的持续目标或实施 U0–U5。
+- 分支仍为 `skill-ir-aot`。复核基线 `8cbc2b7` 与 origin tracking ref 对齐；新鲜 CLI/task/form/body-negative 测试 13/13、117 assertions 通过。
+- 主队列：U0 原九任务基线 → U1 合法空 form → U2 可保真负例/原生消费 → U3 完整普通使用例子 → U4 复用成本 → U5 一次必要验证、提交推送。旧版本兼容不禁止扩展当前开发能力；不运行新 prospective，不重做历史审计。
+- 可用与改进分开报告：完整例子能用、native 实际执行、两个 provider/两个现有职责映射共享路径；原九任务同口径 before/after 保留，不强求 9/9 或未经测量的 token 节省率。细则见任务书、spec 14.29、plan 10。
+
+## 已关闭的 N0–N15 检查点
+
+以下机器状态及“下一动作”属于上轮历史过程，不再是 U0–U5 的恢复指令。
+
 - 当前持续目标已完成交付，identity=`skill-family-current-v2-source-repair-001`，分支=`skill-ir-aot`，权威计划为 `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md` revision 2；N0–N15 均已终结，最终 decision=`completed-with-engineering-shortfall`。
 - N0–N3、N5、N8 已完成：baseCommit=`edd5a94198ee8b66d30f823de30895b72b97e920`；N1=`bfbc4c8`，N2=`9ae5f59`，N3=`70f36b7`，N5=`0658306`，N8=`45ac21fdbf3442e9bd626bea6e63f74a8a5ff447`。职责/输入、完整计划、task-scoped source closure、原生消费闭环与普通入口已绑定。
 - 唯一机器恢复状态为 `results/skill-ir/skill-family-current-v2-source-repair-001/execution-status.json`。N10=`completed-with-limitation`：不可变首轮为 4/9 taskComplete、8/18 required checked-exported、9/9 package checks、3/3 provider 有完整任务，但需求变化仅 1/2，故 `method-not-ready`。`revision-001.json`=`a00ceb59...` 从原 source/task 重算三项 Visier 缺口，全部属于非空 form v1 / JSON-only negative 显式边界；没有实现改动或结果提升。下一动作 N7 非循环 readiness；N9/N11/N12 不得在该门下执行。

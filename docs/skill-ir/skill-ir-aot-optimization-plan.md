@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-**最后更新：** 2026-09-12
+**最后更新：** 2026-09-13
 
-**当前执行入口：第 9 节。** [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md) 已完成交付，最终为 `completed-with-engineering-shortfall`。N0–N15 均已终结：N4/N6/N10/N13/N15=`completed-with-limitation`，N9/N11/N12=`not-executed`，其余完成。N7 结论仍为 engineering-ready-research-not-ready；未创建 candidate/protocol/predictions/prospective first-run。普通任务入口、原生消费和 detached replay 可用，但固定 N10 capability 仅 4/9 taskComplete、8/18 required checked-exported、需求变化关系 1/2，不能提升为方法 ready。恢复与最终证据见 [唯一执行状态](deadline-execution-status.md) 和 [最终交付](skill-family-current-v2-final-delivery.md)，依据见 spec 第 14.28 节。D1–D9 等旧路线保持历史记录。
+**当前执行入口：第 10 节。** [先可用交付任务书 U0–U5](../superpowers/plans/2026-09-13-api-task-usable-delivery.md) 已登记，`planned-not-started`。优先修复当前已知缺口、交付完整普通输入例子和原生消费，再测复用成本；不先扩样、冻结或修历史归档。第 9 节 N0–N15 已终结，4/9 taskComplete、8/18 required checked-exported 和研究未执行均保持原事实。当前入口见 [唯一执行状态](deadline-execution-status.md)，上轮证据见 [最终交付](skill-family-current-v2-final-delivery.md)。
 
 本文件只记录当前状态、关键阻塞、活跃开发任务和预计节奏。已完成过程见 `history.md` 与 Git history；
 研究边界见 `skill-ir-aot-optimization-spec.md`；冻结数值见 `experiment-results.md`。
@@ -2358,3 +2358,11 @@ N10 在固定 6 inputs/3 providers/47 operations/9 tasks 上以 capability limit
 E 工程验收和 R 研究结论分开；不得只凭维护任务完成或零运行报告判最小交付达成。R 的首跑不能被后续修订提高；same-source 不重复计 unique input。先锁抽样/方法，再读合法新正文，再写具体预测，再执行。两个 reserve 为目标而非额外门。
 
 截止前重点交付有来源要求的 TaskContract、按要求变化的产物、真实原生执行和失败说明。正确性 bug 即使一个实例也修；新能力按跨成员需求和成本排序，复用已实现模块。2026-09-13 22:00 后停止新特性/来源批次，优先 N14/N15；不保证研究必定正向。状态绑定只记 codeCommit/evidenceCommit，不为每个文档提交重复归档。
+
+## 10. 当前执行路线：先可用交付 U0–U5（2026-09-13）
+
+[完整任务书](../superpowers/plans/2026-09-13-api-task-usable-delivery.md) 已登记为 planned-not-started，直接在 skill-ir-aot 工作。上一轮 4/9 taskComplete、8/18 必要义务完成是修复基线，不启动旧研究链。
+
+顺序为 U0 读取原九任务基线；U1 修合法空 form；U2 补保真负例及定义明确的 pytest 消费；U3 随仓库交付完整普通例子与操作说明；U4 测生成后复用成本，付费对照可选；U5 一次必要验证、同口径 before/after、更新现有文档并提交推送 origin。详细文件、失败测试、命令和时间处理均在任务书，避免两份实现清单漂移。
+
+预计有效工程工作约 5–8 小时，不凑时长。9 月 13 日 22:00 后不再开新特性；晚于该时间启动则按任务书缩为明确修复、可用例子和交付。新能力允许修改当前开发接口，保持旧默认兼容，不先建研究 candidate/lock，也不修 clean-002 或等待未知样本。最低验收与改进指标分开，不以报告齐全代替软件可用，不以零 runtime token 推算未测节省率。

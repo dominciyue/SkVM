@@ -1,8 +1,8 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-12
+**最后更新：** 2026-09-13
 
-**当前已确认路线：** 第 14.28 节与 [source repair/prospective 任务书 revision 2](../superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md) 已完成交付记录，最终判定为 `completed-with-engineering-shortfall`。优先 TaskContract → 计划 → 现有共享构造/checker → 原生消费闭环，工程可用与新需求/新输入迁移分别验收。N0–N15 均已达到各自终态：N4、N6、N10、N13、N15 带 limitation，N9/N11/N12 严格为 not-executed；没有 candidate、protocol、predictions 或 prospective run。D1–D9 与第 14.27 节为已归档阶段；历史 0/6、Q1、held-out、readiness 和冻结结果保持原事实。
+**当前已确认路线：** 第 14.29 节与 [先可用交付任务书 U0–U5](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，状态 `planned-not-started`。先修合法空 form、可保真负例和原生消费，交付完整普通例子，再测复用成本；不以新 prospective 或历史归档维护作为工程前置条件。第 14.28 节 N0–N15 已结束，结果仍是 `completed-with-engineering-shortfall`、4/9 taskComplete、8/18 必要义务完成；历史 0/6、Q1、held-out、readiness 和冻结结果不改写。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -2289,3 +2289,13 @@ TaskContract 明确 operation、覆盖义务、输出与 observation；Construct
 冻结在 development calibration 修订完成后。先锁方法与抽样规则，再允许新正文/输入发现，再锁逐行具体预测，最后运行；新信息导致的方法修订降为 development follow-up。readiness 按任务/来源范围派生，区分 not-assessed 与失败，不以未知 transfer 或无关历史 blocker 阻止合法发现。response 依赖按任务决定是否必需；可解析递归不等于可构造有限 witness。
 
 历史 source 修复和 clean-002 检索限时处理，不阻塞无关输入。限定搜索未发现不等于证明永远无法恢复。代码候选与后续证据提交分开；仅文档/证据变更不重复 clean。2026-09-13 22:00 后优先修复和交付，不再开新特性/来源批次。本轮公开检索曝光仅为 development，记录于审查文档。N0–N2 建立状态、语料与完整计划；N3 以 digest-bound manifest 完成 task-scoped source closure，按 operation/requirement 分开 blocking、advisory、source resolution 与 witness constructibility，结构递归不误报源无效，未受影响操作继续。N5 将计划接到 request-json/pytest 后端并新增独立 package checker；两份合成 loopback fixture 共执行 4 个 native case，8/8 预登记 fault 在指定层检出。N8 提供 `development-rich-task/v1` 普通入口与 strict run binding；任务包自带输入字节和 digest replay binding，计划/闭包/构造/check/bundle/conditional consumer 在一个调用内闭合。required security 没有凭据时保持 unresolved，loopback oracle 必须覆盖 task-selected row；两项修复不改变 production v2。pytest 的 constraint-negative runtime row 仍明确 unresolved；业务状态只接受 supplied observation/oracle，不推测。有效但当前不可接入的 pytest/fuzzing 映射保持 unresolved。N10 已在任何 baseline/current 构造前固定 6 个 development-exposed 原始合同、3 个 provider、47 个操作全集、9 个 task 与 4 个映射仓库；首轮为 4/9 taskComplete、8/18 required checked-exported、9/9 package checks，三个 provider 均有非空完整任务，但需求变化仅 1/2。revision-001 绑定并重算三项 Visier 未完成义务，确认现有非空 form v1 与 JSON-only negative 无法语义保真满足它们；不扩大合同、不提升结果，N10 以 limitation 终结并阻止研究候选链。N13 的 Schemathesis 4.27.0 对照在两次 harness 修复后实际发出 9 个 loopback 请求，但未生成任何满足 N5 exact-wire predicate 的请求；revision-003 只重分类不可变原始证据，得到 baseline 0/2、fault detected/missed/notApplicable=0/0/3，并新增分母守恒门。未实际施加的故障不计检出，外部能力保持未评估；累计 native loopback=13。N4 的单次内容批次确认 archived Meilisearch 默认 head 仍为锁定提交且无 release，因此缺失 total ref 继续阻塞；Bangumi 32/32 历史 response-only issue 在同提交的 6-resource closure 中解析完成，另立 development identity，不改旧 advisory/live 结论。source API 累计=2，retry=0。held-out/Q1 reserve read 与 prospective run 仍为 0。
+
+### 14.29 先可用的 API 合同任务交付（2026-09-13）
+
+执行细则见 [U0–U5 任务书](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，当前仅计划登记。类边界保持“结构化 API 合同驱动的离线请求与测试产物构造职责”，本轮实现 OpenAPI 3.0.x；不要求整个 skill 自动化后才交付受支持职责。至少两个既有职责映射与两个 provider 的适用任务复用同一链路，不能按仓库名称写成功分支。
+
+先修合法空 form、可保真的负例和实际原生消费，并提供完整普通输入例子。现有非空 form/JSON-only negative 是旧合同的限制，不禁止新开发接口通过显式选项或必要版本扩展；旧默认及历史证据不变。工程开发不需要新 prospective、冻结锁或历史档案修复。逐任务来源/需求/分母保持清楚，认证模板、生成检查和真实执行分别说明。
+
+验收优先用户能生成并使用 request-json/pytest 包、原生至少一个 case 实际执行、原四个完整任务无回退；旧九任务新结果单独保存，目标至少解决一个已知必要义务，不保证全九任务完成。usable 与 improved 分开报告；付费对照和性能提升不是可用交付的前置条件。复用与重建同任务测耗时和模型调用，有质量匹配的模型对照才计算相应 token 节省率，开发代理成本单列，不推算未测人工节省。
+
+最小检查为受影响模块测试、类型检查、变更文档与实际使用命令。复用已有 checker，不增加重复摘要、审计验证器或 clean 循环。历史 readiness/0/6、Q1/held-out、旧首跑保持原事实；N0–N15 终结不代表本轮已实施。
