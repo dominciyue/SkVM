@@ -153,3 +153,11 @@
 
 - The retry review was recorded on `skill-ir-aot`; the status-page synchronization commit is `075881d` and must be used as the current documentation HEAD.
 - The branch remains aligned with `origin/skill-ir-aot`; no tracked implementation or frozen evidence changed. The next work item is preparation of a new current-v2 prospective identity, with selection and prediction locked before any unseen access.
+
+## 2026-09-12 Current-v2 source repair and prospective plan
+
+- New execution plan: `docs/superpowers/plans/2026-09-12-skill-family-source-repair-and-prospective.md`.
+- Plan status: `planned-not-started`; no new source body, unseen member, Q1/held-out input, candidate, prediction, or prospective run has been read or created by registering this plan.
+- Default class under test: `openapi-contract-to-offline-request-specimen`. The plan first compares this class with the Env/config and static-review alternatives, then requires an evidence-backed choice before implementation.
+- The queue N0-N15 addresses source closure, authoritative Meilisearch resolution, Bangumi external references, clean-002 recovery, multidimensional readiness, current-v2 candidate binding, development calibration, unseen prospective execution, clean replay and handoff. A failed source or input preflight produces a complete `insufficient-evidence` handoff instead of leaving the queue half-finished.
+- Execution remains on `skill-ir-aot`; the historical API Tester retry, old `0/6`, readiness fields, Q1/held-out and prospective records stay read-only.
