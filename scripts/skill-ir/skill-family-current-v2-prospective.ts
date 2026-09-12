@@ -21,6 +21,13 @@ import {
   verifyCurrentV2N14CleanReplay,
   type CurrentV2N14CleanReplayReport,
 } from "../../src/skill-ir/skill-family-current-v2-n14";
+import {
+  CURRENT_V2_N15_FINAL_PATH,
+  CURRENT_V2_N15_VERIFICATION_PATH,
+  verifyCurrentV2N15Delivery,
+  writeCurrentV2N15Delivery,
+  type CurrentV2N15FinalReport,
+} from "../../src/skill-ir/skill-family-current-v2-n15";
 import { writeN5ConsumerReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n5";
 import { writeN8EngineReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n8";
 import {
@@ -1859,6 +1866,96 @@ export async function runN14CleanReplayStage(root: string, options?: {
   };
 }
 
+export async function runN15DeliveryStage(root: string, generatedAt?: string) {
+  const state = await readStageState(root);
+  if (state.status.tasks.N15.status === "completed" || state.status.tasks.N15.status === "completed-with-limitation") {
+    const bytes = await readFile(join(root, CURRENT_V2_N15_FINAL_PATH));
+    const report = JSON.parse(bytes.toString("utf8")) as CurrentV2N15FinalReport;
+    const verification = await verifyCurrentV2N15Delivery({ repositoryRoot: root, report });
+    if (verification.status !== "pass") fail(`N15 verification failed: ${verification.errors.join("; ")}`);
+    return {
+      taskId: "N15" as const,
+      outcome: "verified-existing" as const,
+      file: { path: CURRENT_V2_N15_FINAL_PATH,
+        sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+      decision: report.decision,
+      verification,
+      view: state.view,
+    };
+  }
+  if (selectNextRunnableTask(state.manifest, state.status) !== "N15") fail("N15 is not the current runnable stage");
+  const pushed = await requirePushedImmutableFile(root,
+    `${CURRENT_V2_RESULT_RELATIVE}/clean-replay/report.json`);
+  let report: CurrentV2N15FinalReport | null = null;
+  let files: Array<{ path: string; sha256: string; bytes: number }> = [];
+  try {
+    const [reportBytes, verificationBytes] = await Promise.all([
+      readFile(join(root, CURRENT_V2_N15_FINAL_PATH)),
+      readFile(join(root, CURRENT_V2_N15_VERIFICATION_PATH)),
+    ]);
+    report = JSON.parse(reportBytes.toString("utf8")) as CurrentV2N15FinalReport;
+    files = [
+      { path: CURRENT_V2_N15_VERIFICATION_PATH,
+        sha256: createHash("sha256").update(verificationBytes).digest("hex"), bytes: verificationBytes.byteLength },
+      { path: CURRENT_V2_N15_FINAL_PATH,
+        sha256: createHash("sha256").update(reportBytes).digest("hex"), bytes: reportBytes.byteLength },
+    ];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  if (!report) {
+    const built = await writeCurrentV2N15Delivery({
+      repositoryRoot: root,
+      deliveryCodeCommit: pushed.head,
+      evidenceCommit: pushed.creationCommit,
+      generatedAt,
+    });
+    if (built.outcome === "failed") {
+      const now = new Date().toISOString();
+      const status = structuredClone(state.status);
+      status.tasks.N15 = { status: "running", commit: pushed.head,
+        evidence: [CURRENT_V2_N15_VERIFICATION_PATH], issues: built.verification.issues,
+        startedAt: status.tasks.N15.startedAt ?? now, completedAt: null };
+      status.currentStage = "N15";
+      status.updatedAt = now;
+      status.nextAction = "N15: preserve failed delivery verification and repair without changing evidence conclusions";
+      status.commits.codeCommit = pushed.head;
+      status.commits.evidenceCommit = pushed.creationCommit;
+      validateStageState(state.manifest, status);
+      await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+      return { taskId: "N15" as const, outcome: "failed-verification-preserved" as const,
+        issues: built.verification.issues, view: deriveStageView(state.manifest, status) };
+    }
+    report = built.report;
+    files = built.files;
+  }
+  if (report.deliveryCodeCommit !== pushed.head || report.evidenceCommit !== pushed.creationCommit
+    || report.decision !== "completed-with-engineering-shortfall") {
+    fail("N15 report commit binding or engineering decision is invalid");
+  }
+  const verification = await verifyCurrentV2N15Delivery({ repositoryRoot: root, report });
+  if (verification.status !== "pass") fail(`N15 verification failed: ${verification.errors.join("; ")}`);
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N15", {
+    completedAt,
+    evidence: [...files.map((file) => file.path),
+      "src/skill-ir/skill-family-current-v2-n15.ts", "src/skill-ir/skill-family-current-v2-n15.test.ts",
+      "docs/skill-ir/skill-family-current-v2-final-delivery.md"],
+    nextAction: "Revision-2 delivery complete with engineering shortfall; review final-report.json before any separately preregistered prospective stage",
+    outcome: "completed-with-limitation",
+    issues: [
+      "engineering-shortfall:n10-method-gate-not-ready",
+      "research-not-executed:no-candidate-protocol-or-predictions",
+    ],
+    commit: pushed.head,
+  });
+  status.commits.codeCommit = pushed.head;
+  status.commits.evidenceCommit = pushed.creationCommit;
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return { taskId: "N15" as const, outcome: "completed-with-engineering-shortfall" as const,
+    files, decision: report.decision, verification, view: deriveStageView(state.manifest, status) };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -1887,6 +1984,10 @@ if (import.meta.main) {
     console.log(JSON.stringify(await runN14CleanReplayStage(process.cwd(), {
       checkoutRoot, outputRoot, pythonBaseExecutable, pythonArchive, attempt, completedAt,
     }), null, 2));
+  }
+  else if (step === "n15") {
+    const generatedAt = process.argv.find((argument) => argument.startsWith("--generated-at="))?.slice("--generated-at=".length);
+    console.log(JSON.stringify(await runN15DeliveryStage(process.cwd(), generatedAt), null, 2));
   }
   else if (step === "n5") {
     const python = process.argv.find((argument) => argument.startsWith("--python="))?.slice("--python=".length) ?? "python";
@@ -1925,5 +2026,5 @@ if (import.meta.main) {
   } else if (step === "n13-reclassify") {
     const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
     console.log(JSON.stringify(await runN13ReclassificationStage(process.cwd(), evaluatedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n4|n5|n6|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify|n14 [--legacy-cache-root=<absolute-path>] [--exploratory-source-api-calls=<count>] [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>] [--observed-at=<ISO>] [--searched-at=<ISO>] [--checkout=<absolute-path>] [--output=<absolute-path>] [--python-base=<absolute-path>] [--python-archive=<absolute-path>] [--attempt=<number>] [--completed-at=<ISO>]");
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n4|n5|n6|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify|n14|n15 [--legacy-cache-root=<absolute-path>] [--exploratory-source-api-calls=<count>] [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>] [--observed-at=<ISO>] [--searched-at=<ISO>] [--checkout=<absolute-path>] [--output=<absolute-path>] [--python-base=<absolute-path>] [--python-archive=<absolute-path>] [--attempt=<number>] [--completed-at=<ISO>] [--generated-at=<ISO>]");
 }

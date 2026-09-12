@@ -12,6 +12,7 @@ import {
   readStageState,
   runN6ArchiveRecoveryStage,
   runN14CleanReplayStage,
+  runN15DeliveryStage,
   runN7ReadinessStage,
   runN13ComparisonStage,
   runN13RevisionStage,
@@ -83,6 +84,10 @@ describe("current-v2 stage orchestration", () => {
 
   test("exposes N14 detached engineering replay without requiring a research candidate", () => {
     expect(runN14CleanReplayStage).toBeFunction();
+  });
+
+  test("exposes N15 engineering/research-separated final delivery", () => {
+    expect(runN15DeliveryStage).toBeFunction();
   });
 
   test("records the complete N0-N15 graph and resumes at N1 after N0", () => {

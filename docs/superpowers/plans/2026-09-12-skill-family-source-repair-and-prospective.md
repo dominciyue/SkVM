@@ -431,6 +431,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 ### N15：可用成果与恢复交付（P0）
 
+**执行设计：** 以已推送且首次包含 N14 全部证据的 `evidenceCommit=53a0601aba430b89f5e5f58d0dec54fb79a3f9d7` 为不可变输入快照；N15 实现先作为独立 `deliveryCodeCommit` 推送。最终 builder 从该 evidence commit 的 Git blob 读取 N1/N2/N3/N5/N8/N10/N7/research-gate/N13/N4/N6/N14 与 pre-N15 status，逐文件绑定 SHA-256/bytes，而不是读取聊天总结或 N15 后可变 status。runner 在写报告前执行 current-v2 relevant focused tests、full typecheck、doc-link unit/full check、`git diff --check`、tracked-clean 和 HEAD/origin 对齐，原始命令输出写入 `delivery-verification.json`；严格 verifier 重读该文件与 exact-commit evidence 后重算 `final-report.json`。工程和研究必须分字段：普通 task+OpenAPI 入口、N8/N5/N14 已可用，但 N10 capability gate 仍因真实需求变化仅 1/2、4/9 taskComplete、10/18 unresolved 而 not-ready，所以最终只能是 `completed-with-engineering-shortfall`，不能因 clean replay 通过提升；N9/N11/N12 保持 not-executed、candidate=null、transfer not-assessed、prospective preparation not-ready。N15 task 以 limitation 终结并可令整体任务书 completed；这表示交付记录完成，不表示工程目标全达成或研究负例。
+
 - [ ] 用一页结果说明回答：输入是什么、哪类任务完整实现、普通调用命令、真实 task/unique source/provider 分母、执行/skip、失败与改进、成本和人工边界。
 - [ ] engineeringDelivery 与 researchOutcome 分字段；阶段记录完整但 E 未达标时只能 completed-with-engineering-shortfall。
 - [ ] 更新组件、状态页、spec/plan 当前入口及根交接/通信/日志，保留历史链接不复制多套逐行报告。

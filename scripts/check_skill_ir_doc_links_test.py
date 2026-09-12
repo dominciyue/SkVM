@@ -138,6 +138,35 @@ class SkillIrDocLinkCheckTest(unittest.TestCase):
             self.root / "scripts" / "skill_ir_legacy_doc_paths.txt",
         )
 
+    def test_records_only_exact_retired_source_target_pairs_without_hiding_other_breakage(self):
+        self.write(
+            "docs/skill-ir/historical.md",
+            "Planned outputs: `docs/skill-ir/withdrawn.md` and `docs/skill-ir/still-missing.md`.\n",
+        )
+        self.write(
+            "docs/skill-ir/current.md",
+            "This current file still points to `docs/skill-ir/withdrawn.md`.\n",
+        )
+
+        result = check_references(
+            self.root,
+            ["docs/skill-ir/historical.md", "docs/skill-ir/current.md"],
+            set(),
+            retired_pairs={("docs/skill-ir/historical.md", "docs/skill-ir/withdrawn.md")},
+        )
+
+        self.assertEqual(
+            result["retiredReferences"],
+            [{"source": "docs/skill-ir/historical.md", "target": "docs/skill-ir/withdrawn.md"}],
+        )
+        self.assertEqual(
+            {(item["source"], item["target"]) for item in result["brokenReferences"]},
+            {
+                ("docs/skill-ir/current.md", "docs/skill-ir/withdrawn.md"),
+                ("docs/skill-ir/historical.md", "docs/skill-ir/still-missing.md"),
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
