@@ -26,11 +26,11 @@ Add tests that exercise a pure `check_governance` function. Required assertions:
 def test_governance_rejects_missing_or_overlapping_materials(self):
     manifest = {
         "currentDocuments": [{"path": "docs/skill-ir/current-status.md", "softMaxLines": 200}],
-        "versionedMaterials": ["docs/skill-ir/handbook.md"],
+        "versionedMaterials": ["docs/skill-ir/classification-handbook-v2.md"],
     }
-    result = check_governance(self.root, manifest, {"docs/skill-ir/handbook.md"})
+    result = check_governance(self.root, manifest, {"docs/skill-ir/classification-handbook-v2.md"})
     self.assertIn("missing current document: docs/skill-ir/current-status.md", result["errors"])
-    self.assertIn("versioned material is marked legacy: docs/skill-ir/handbook.md", result["errors"])
+    self.assertIn("versioned material is marked legacy: docs/skill-ir/classification-handbook-v2.md", result["errors"])
 
 def test_governance_reports_count_and_line_limits_as_warnings(self):
     self.write("docs/skill-ir/current-status.md", "line\n" * 3)
@@ -165,7 +165,7 @@ Put `current-status.md` first. Link the repository-wide `../architecture.md`, `.
 
 - [ ] **Step 3: Rewrite current status as the sole live status page**
 
-Use the seven-section structure from the design. The current snapshot must say revision 2 U0–U7 is `planned-not-started`, summarize the trace→model optimization→new package→agent use chain, list existing JIT/Skill IR backends, and state what has not yet been demonstrated. Do not make the date or status a checker constant.
+Use the seven-section structure from the design. Reflect the development thread's latest machine status: revision 2 U0–U7 is active, U0 is completed and U1 is in progress. Summarize the trace→model optimization→new package→agent use chain, list existing JIT/Skill IR backends, and state what has not yet been demonstrated. Do not make the date or status a checker constant.
 
 - [ ] **Step 4: Rewrite the current plan**
 
@@ -260,7 +260,9 @@ Use `apply_patch` deletions only after Tasks 1–4 and Steps 1–4 are green. Le
 
 - [ ] **Step 6: Repair active links once**
 
-Update surviving docs, active taskbooks, and ordinary source navigation. Historical taskbooks may be listed as legacy sources rather than rewritten. Add retired-reference pairs only for immutable tracked evidence that literally embeds a removed target.
+Update surviving docs, active taskbooks, and ordinary source navigation. Historical taskbooks may be listed as `historicalSources` rather than
+rewritten or marked as deleted legacy paths. References embedded under `results/skill-ir/` are reported as retired evidence automatically;
+use exact retired-reference pairs for other immutable tracked evidence.
 
 ### Task 6: Verify, log, commit, and publish the governance stage
 
@@ -296,7 +298,7 @@ Confirm versioned material hashes are unchanged from HEAD, `docs/skill-ir/1.md` 
 
 - [ ] **Step 4: Update root records concisely**
 
-Handoff: current-status path, current HEAD, U0–U7 planned-not-started, and recovery command. Communication: durable authority/ownership decision only. Conversation log: date, files, decisions, verification, risks. Do not copy the implementation narrative.
+Handoff: current-status path, current HEAD, latest U0–U7 machine state, and recovery command. Communication: durable authority/ownership decision only. Conversation log: date, files, decisions, verification, risks. Do not copy the implementation narrative.
 
 - [ ] **Step 5: Stage explicit paths and inspect the staged diff**
 

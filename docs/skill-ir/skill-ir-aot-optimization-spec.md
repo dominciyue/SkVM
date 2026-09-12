@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-13
 
-**当前已确认路线：** 第 14.29 节与 [真实 trace 驱动任务书 revision 2，U0–U7](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，状态 `planned-not-started`。用户先实际运行 skill，再用任意 agent 来源的真实记录驱动模型优化；复用 JIT-optimize/proposal、JIT-boost 和 Skill IR 后端，输出保留剩余职责的新 skill 包，验证 agent 实际消费与成本变化。旧 API-only U0–U5 未执行，由本修订替代；历史 N0–N15、0/6、Q1/held-out 与冻结结果不改写。
+**当前已确认路线：** 第 14.29 节与 [真实 trace 驱动任务书 revision 2，U0–U7](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)，状态 `active`。用户先实际运行 skill，再用任意 agent 来源的真实记录驱动模型优化；复用 JIT-optimize/proposal、JIT-boost 和 Skill IR 后端，输出保留剩余职责的新 skill 包，验证 agent 实际消费与成本变化。旧 API-only U0–U5 未执行，由本修订替代；历史 N0–N15、0/6、Q1/held-out 与冻结结果不改写。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -25,7 +25,7 @@
 
 三路由不要求互斥；同一切片可以是 R1 验证 + R2 构造，或因部分 requirement 落入 R3 而标为 mixed。
 七案例只作为回顾性案例研究，不能证明路由互斥、单调性或对新任务的预测力。逐案证据见
-`docs/skill-ir/answer-availability-taxonomy.md`。
+`docs/skill-ir/classification-and-routing.md`。
 
 ### 1.2 三条长期工作线
 
@@ -1902,7 +1902,7 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 ### 14.12 已确认路线：适度扩展分类、做深受限家族、验证接入复用
 
 2026-09-07 用户确认将样本规模与自动化分析落实为后续开发方向。依据见
-[分析与研究出处](sample-scale-and-automation-scope-analysis-2026-09-07.md)，执行顺序见 plan 第 4.41 节。
+[当前分类与研究边界](classification-and-routing.md)，执行顺序见 plan 的历史版本。
 
 **目标合同。** 首个家族限定为公开规范明确给出构造规则的离线转换、检查与报告任务。支持范围必须在评价前声明输入规范版本、特性、规则来源、输出要求与副作用；JSON/YAML 只是载体。supported/missing 是相对于冻结能力版本的状态，不能用运行成功集合倒定义类别。范围内新任务只提供公开数据与普通参数，任务专用代码、语义规则、模板修改、人工映射和候选修复均须单列，不能藏入配置后称全自动。
 
@@ -1916,7 +1916,7 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 
 **工程优先项。** API 通用生产 binding 已按 development [设计](../superpowers/specs/2026-09-07-api-tester-production-binding-design.md)
 和[实施计划](../superpowers/plans/2026-09-07-api-tester-production-binding.md)完成 additive 生产合同、独立 checker、入口和
-零调用报告；完整边界见[组件文档](api-tester-production-binding.md)。
+零调用报告；完整边界见[API Task Engine](api-task-engine.md)。
 `results/skill-ir/api-tester-production-binding-development-001/report.json` 记录同一 generator/checker 在两份公开 JSON/YAML
 新输入上 2/2 通过，`modelCalls=apiCalls=paidCalls=0`；旧研究 compiler/scorer/lock/package 保持不变。两份 fixture
 仅建立明确 OpenAPI 子集内的 development 候选，不能计为未见 skill、prospective、替代后续迁移规模或直接改写 Q2
@@ -1931,7 +1931,7 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 ### 14.13 AI development routing 与冻结构造器的前瞻小样
 
 2026-09-07 用户进一步确认：工程迁移不再等待两位真人补完原 Q1，但不得用 AI 修订稿冒充真人独立标注或宣布 Q1 通过。执行顺序见 plan 第 4.42 节，完整合同见
-[AI-assisted development routing 与 prospective construction](ai-assisted-development-routing-and-prospective-construction.md)。
+[分类与路由](classification-and-routing.md)。
 
 **身份与证据拆分。** `skill-ir-ai-assisted-development-routing-001` 只把保留不动的 A/B revision-2 AI 草稿合并为一张 24-unit development routing 表，并逐行绑定来源、修订记录和未知项。两份草稿由同一 AI 修复流程生成且存在跨草稿/结果可见性；即使 24/24 标签一致，也不提供 human inter-annotator agreement、classification accuracy 或 original Q1 completion 证据。原 A/B 空白表、真人协议、12-source/24-unit 分母和 Q1 状态均不修改。
 
@@ -1947,7 +1947,7 @@ per-source、A×B 方向的 4×4 状态混淆表，以及 verification/construct
 
 ### 14.14 API Tester constructor successor development
 
-2026-09-07 用户授权只沿 API constructor 的实际缺口继续，不扩样、不进入第二 profile/Q4/held-out/readiness。权威缺口清单见 [API Tester successor 缺口清单](api-tester-successor-gap-analysis.md)，设计与执行顺序见 [successor design](../superpowers/specs/2026-09-07-api-tester-successor-local-ref-array-design.md) 和 plan 第 4.43 节。
+2026-09-07 用户授权只沿 API constructor 的实际缺口继续，不扩样、不进入第二 profile/Q4/held-out/readiness。权威缺口与支持边界已并入 [API Task Engine](api-task-engine.md)，历史设计与执行顺序见 [successor design](../superpowers/specs/2026-09-07-api-tester-successor-local-ref-array-design.md)。
 
 **旧证据不改写。** `skill-ir-api-tester-constructor-prospective-001` 的 0/4 real admission 保持不可变；四份真实输入均在首轮后暴露，只能作为 development 材料。四个 real row 的 checker 均为 `not-run`，因此首轮不能表述为 0/4 checker pass 或 checker failure。
 
@@ -2016,7 +2016,7 @@ Git tracked-representation 验证的 successor panel 使用新身份 `skill-ir-a
 全部稳定拒绝，accepted=`0/10`、checker/infrastructure failure=`0/0`、prediction exact=`10/10`。所有行在 normalized
 contract 构造期停止，checker 全为 `not-run`；因此没有“仅替换数据即可生成并通过检查”的新迁移正证据。运行时
 model/API/paid=`0/0/0`，CLI end-to-end=`7990ms`，历史 development-agent tokens `467220` 继续单列。完整运行与报告字段见
-[`api-tester-v2-feature-migration.md`](api-tester-v2-feature-migration.md)。
+[`evidence-index.md`](evidence-index.md)。
 
 ### 14.17 API Tester 操作级 development 证据合同
 
@@ -2132,14 +2132,14 @@ candidate 声明摘要与 checkout-filtered `HEAD` 字节，并新增能复现�
 `api-tester-operation-unseen-prospective-001` 按 `1 → 2 → 3 → 4 → 5 → 7 → 8 → 9 → 10 → 6` 执行。详细设计、
 文件级计划与恢复状态分别见[研究设计](../superpowers/specs/2026-09-10-api-tester-operation-prospective-research-design.md)、
 [实施计划](../superpowers/plans/2026-09-10-api-tester-operation-prospective-research.md)和
-[执行状态](api-tester-operation-prospective-research-status.md)。Task 6 只在所有前项完成后总收口。
+[历史与证据索引](evidence-index.md)。Task 6 只在所有前项完成后总收口。
 
 **方法冻结。** `api-tester-openapi-subset-v2`、operation 枚举/准入/投影、v2 generator/checker 与候选 001 历史字节保持不变。
 Task 1 只用新 identity 修复候选运行依赖绑定：至少把既有 `api-tester-production-contract.ts` 和 `source-fixture.ts` 纳入新绑定，使入口的传递生产依赖、
 Git/working bytes、runtime、package/lock 与验证引用在任何输入执行前 fail closed。missing、extra、digest 或 entry drift 均须由 TDD 证明被拒；
 不能通过扩大支持面或修改候选 001 获得通过。
 
-Task 2 的 synthetic-only 实现使用[组件合同](api-tester-operation-prospective.md)：pre-source protocol 固定公开 search 范围、确定性排序、
+Task 2 的 synthetic-only 实现边界已并入[分类与路由](classification-and-routing.md)：pre-source protocol 固定公开 search 范围、确定性排序、
 license/format/size/operation limits、12-repository/lineage/source 去重、shortfall 与 12-real+6-synthetic 分母。runner 在每行 dispatch 后通过
 普通输入 CLI 的独立子进程执行，保存 invocation/stdout/stderr/exit/terminal，并以 120 秒上限、单次 dispatch、terminal 后连续 prefix 和 exact
 output closure fail closed。该实现及测试完成时仍为 0 unseen source read、0 prediction、0 prospective run；必须在正式 synthetic evidence 和
@@ -2172,7 +2172,7 @@ identity 的 query、请求预算、重试、分母、项目 runtime accounting 
 
 ### 14.21 Public-structure offline responsibility family development contract
 
-Task 7 采用[独立责任家族合同](public-structure-offline-family-contract.md)，以完整 responsibility 而不是 whole skill 或单一成功操作为分类单元。
+Task 7 采用[分类与路由中的独立责任家族合同](classification-and-routing.md)，以完整 responsibility 而不是 whole skill 或单一成功操作为分类单元。
 七项必要条件固定为公开可定位输入、明确输出责任、离线确定性变换、公开核验合同、可声明且有界的依赖全集、有界副作用和无未绑定语义决策；
 `current-capability-readiness` 只表示当前工程限制，`cross-repository-generalization` 明确是尚未验证的假设。family membership、verifiability、
 constructibility、source validity、dependency closure 与 current implementation support 必须分列，候选运行结果不能反向定义家族。
@@ -2216,7 +2216,7 @@ non-responsibility 类别；分类复用 Task 7 的 family/evidence/support 正�
 ### 14.23 API Tester 操作级机制消融实际结果
 
 Task 10 采用[预注册设计](../superpowers/specs/2026-09-10-api-tester-operation-mechanism-ablation-design.md)与
-[组件合同](api-tester-operation-mechanism-ablation.md)，只从有摘要绑定的 Task 1、Task 2、Task 7 既有报告重算。whole-document 对照在六份
+[API Task Engine](api-task-engine.md)，只从有摘要绑定的 Task 1、Task 2、Task 7 既有报告重算。whole-document 对照在六份
 已暴露文档上仍为 `0/6`、覆盖 0 operation；operation-level treatment 保留并由 checker 通过 112/562 operations，余下 449 rejected、
 1 unresolved。该差值只说明固定文档内局部产物被保留，不是生态比例或因果估计。
 
@@ -2231,7 +2231,7 @@ readiness 均不变，本阶段新增 prospective/model/business API/paid 使用
 
 ### 14.24 API Tester 操作级未见输入研究总收口
 
-Task 6 采用[总收口组件](api-tester-operation-prospective-research-synthesis.md)固定九份 evidence 的 path、SHA-256 和 commit，并从权威 schema
+Task 6 采用[证据索引](evidence-index.md)定位九份 evidence 的 path、SHA-256 和 commit，并从权威 schema
 重算十项任务状态。实际为 4 completed（Task 1/7/10/6）、2 closed-terminal-failure（Task 2/8）和 4 not-run-blocked
 （Task 3/4/5/9）；`allCompletionGatesClosed=false`，因此研究总目标不得标为 complete。
 

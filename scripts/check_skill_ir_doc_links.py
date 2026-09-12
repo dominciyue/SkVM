@@ -12,6 +12,7 @@ MARKDOWN_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 DOC_NAMESPACES = ("docs/skill-ir/", "docs/superpowers/")
 DEFAULT_IGNORED_SOURCES = {"scripts/check_skill_ir_doc_links_test.py"}
 DEFAULT_RETIRED_REFERENCES = "scripts/skill_ir_retired_doc_references.json"
+DEFAULT_GOVERNANCE_MANIFEST = "scripts/skill_ir_doc_governance.json"
 
 
 def normalize_target(source: str, raw_target: str) -> str | None:
@@ -63,6 +64,9 @@ def check_references(
             if source == "docs/skill-ir/history.md" and target in legacy_paths:
                 continue
             item = {"source": source, "target": target}
+            if source.startswith("results/skill-ir/") and target in legacy_paths:
+                retired.append(item)
+                continue
             if not (root / target).is_file() and (source, target) in allowed_retired:
                 retired.append(item)
                 continue
@@ -78,6 +82,45 @@ def check_references(
         "legacyReferences": legacy,
         "retiredReferences": retired,
     }
+
+
+def check_governance(root: Path, manifest: dict, legacy_paths: set[str]) -> dict:
+    errors: list[str] = []
+    warnings: list[str] = []
+    current_rows = manifest.get("currentDocuments", [])
+    versioned = manifest.get("versionedMaterials", [])
+    current = [row["path"] for row in current_rows]
+
+    for path in current:
+        if not (root / path).is_file():
+            errors.append(f"missing current document: {path}")
+    for path in versioned:
+        if not (root / path).is_file():
+            errors.append(f"missing versioned material: {path}")
+        if path in legacy_paths:
+            errors.append(f"versioned material is marked legacy: {path}")
+
+    for path in sorted(set(current) & set(versioned)):
+        errors.append(f"current documents and versioned materials overlap: {path}")
+
+    bounds = manifest.get("recommendedCurrentDocumentRange", {})
+    minimum = bounds.get("min", 0)
+    maximum = bounds.get("max", 10**9)
+    if not minimum <= len(current) <= maximum:
+        warnings.append(f"current document count outside recommendation: {len(current)}")
+
+    for row in current_rows:
+        path = root / row["path"]
+        if not path.is_file():
+            continue
+        line_count = len(path.read_text(encoding="utf-8").splitlines())
+        soft_max = row["softMaxLines"]
+        if line_count > soft_max:
+            warnings.append(
+                f"soft line limit exceeded: {row['path']} ({line_count} > {soft_max})"
+            )
+
+    return {"errors": errors, "warnings": warnings}
 
 
 def git_tracked_paths(root: Path) -> list[str]:
@@ -127,16 +170,25 @@ def resolve_retired_reference_path(root: Path, raw_path: str | None) -> Path | N
     return default_path if default_path.is_file() else None
 
 
+def resolve_governance_manifest_path(root: Path, raw_path: str | None) -> Path | None:
+    if raw_path:
+        return Path(raw_path).resolve()
+    default_path = root / DEFAULT_GOVERNANCE_MANIFEST
+    return default_path if default_path.is_file() else None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check tracked Skill IR documentation references.")
     parser.add_argument("--root", default=".", help="Repository root.")
     parser.add_argument("--legacy-paths", help="UTF-8 file containing one absorbed documentation path per line.")
     parser.add_argument("--retired-references", help="JSON manifest of exact historical source/withdrawn-target pairs.")
+    parser.add_argument("--governance-manifest", help="JSON manifest of current documents and versioned materials.")
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
     legacy_path = resolve_legacy_path(root, args.legacy_paths)
     retired_path = resolve_retired_reference_path(root, args.retired_references)
+    governance_path = resolve_governance_manifest_path(root, args.governance_manifest)
     ignored_sources = set(DEFAULT_IGNORED_SOURCES)
     if legacy_path is not None:
         try:
@@ -148,15 +200,30 @@ def main() -> int:
             ignored_sources.add(retired_path.relative_to(root).as_posix())
         except ValueError:
             pass
+    governance_manifest: dict | None = None
+    if governance_path is not None:
+        governance_manifest = json.loads(governance_path.read_text(encoding="utf-8"))
+        ignored_sources.update(governance_manifest.get("versionedMaterials", []))
+        ignored_sources.update(governance_manifest.get("historicalSources", []))
+    legacy_paths = read_legacy_paths(legacy_path)
     result = check_references(
         root,
         git_tracked_paths(root),
-        read_legacy_paths(legacy_path),
+        legacy_paths,
         ignored_sources,
         read_retired_pairs(retired_path),
     )
+    governance = {"errors": [], "warnings": []}
+    if governance_manifest is not None:
+        governance = check_governance(
+            root,
+            governance_manifest,
+            legacy_paths,
+        )
+    result["governanceErrors"] = governance["errors"]
+    result["governanceWarnings"] = governance["warnings"]
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 1 if result["brokenReferences"] or result["legacyReferences"] else 0
+    return 1 if result["brokenReferences"] or result["legacyReferences"] or result["governanceErrors"] else 0
 
 
 if __name__ == "__main__":

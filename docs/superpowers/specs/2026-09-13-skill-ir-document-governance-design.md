@@ -11,7 +11,8 @@
 版本化材料。当前路线是 revision 2 的 U0–U7：真实 trace → 模型优化 → 新 skill 包 → agent 实际消费。
 治理同时解决三个问题：
 
-1. `current-status.md` 成为唯一当前入口，准确反映 2026-09-13 的 U0–U7 路线与 `planned-not-started` 快照；
+1. `current-status.md` 成为唯一当前入口，准确反映 2026-09-13 的 U0–U7 路线；治理开始后的开发线程已启动该路线，
+   因而当前快照更新为 U0 completed、U1 active，而不是保留过期的 `planned-not-started`；
 2. 上手、当前计划、研究方法、组件说明、历史与机器证据各归其位；
 3. 停止把同一执行流水复制进 README、spec、plan、developer guide、status、handoff 和 conversation log。
 
@@ -274,9 +275,11 @@ git diff --check
 - `current-status.md` 具有规定的七段结构，且所链活跃 plan/taskbook 存在；不把日期、路线名或阶段状态写死为测试常量；
 - developer guide 不再含旧“当前接力点”、Stage M/N 执行流水；
 - plan 不再含 N0–N15 的逐步执行日志；
-- spec 不再含逐提交/逐 attempt 流水；
+- spec 只在开发线程没有并发方法修改时压缩逐提交/逐 attempt 流水；并发期间先停止新增复制、迁移导航并输出软行数提醒，
+  不用治理线程的旧副本覆盖最新方法；
 - spec 保留 tracked 内容仍引用的必要章节号/锚点；evidence index 不把章节号重定义为 claim ID；
-- 所有删除的普通历史说明已列入 legacy 清单，所有程序读取的版本化材料仍在原路径；
+- 所有删除的普通历史说明已列入 legacy 清单，所有程序读取的版本化材料仍在原路径；日期化历史 taskbook/spec
+  作为 `historicalSources` 跳过导航检查，但仍可被运行源码读取；
 - 未跟踪 `docs/skill-ir/1.md` 未修改、未暂存。
 
 下列只输出提醒，不导致失败：当前阅读入口是否超过 12–18 份、单篇是否超过软上限、历史正文是否引用或引用了

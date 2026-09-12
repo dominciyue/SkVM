@@ -1,160 +1,81 @@
-# Skill IR 研究历史
+# Skill IR 历史与恢复索引
 
-本文只保存决策级演进，不复制旧 spec、plan 或实验全文。历史原文通过 Git 恢复：
-
-```powershell
-git log -- docs/skill-ir
-git show <commit>:docs/skill-ir/<file>
-```
-
-## 1. 阶段演进
-
-### 2026-07-04 至 07-06：定位与 IR 基础
-
-- 将项目定位为 SkVM 内部的 Skill IR / AOT pass，而非独立替代 SkVM。
-- 建立 schema、parser、validator、trace/profile annotation、静态 pass 与 lowering。
-- 工程北向目标从“更好的 prompt”明确为 provenance-bound executable artifact package。
-
-### 2026-07-07 至 07-10：Synthetic Task 11
-
-- 建立 matrix、real-agent runner、scoring、paired analyzer、context slices 和 result persistence。
-- 接入真实 OpenAI-compatible provider，完成多模型/上下文 smoke。
-- Synthetic skill 后来降为 `calibration-low`，不再承担主 claim。
-
-### 2026-07-13 至 07-16：真实 Corpus、Final IR 与 Artifact
-
-- 从公开仓库冻结真实 skill source closure 与许可证。
-- Env-manager 完成 pre-IR、base IR、static、dual-source feedback、Final IR 与 executable/semantic artifact。
-- Runtime 固定为 preflight -> generate -> validate -> at most one repair -> revalidate -> scorer。
-- 结构 validator pass 但 scorer fail，促成公开语义 evidence 与 scorer-authority 隔离。
-
-### 2026-07-21 至 07-22：强模型诊断与确定性 Repair
-
-- GPT-4.1 诊断证明模型能力影响基础产物质量，但不能解决 classification/schema 核心残差。
-- V4 把公开 schema residual 固化为 deterministic repair，3 个完整 pair 0.90 -> 1.00。
-- 一条 Bun infrastructure 留在冻结分母，development gate 失败；停止为结果堆 runtime 版本。
-
-### 2026-07-23 至 07-24：Law 纵切与 Held-out
-
-- Law artifact 以 script/template/checker 的 L3 形态在 development 达到 4/4、mean 0.925。
-- 唯一 held-out 在 manual boundary 回归，2/4、mean 0.725，package 不晋升。
-- 该负结果明确了“开发集正向”与“跨 task 稳定”不能混写。
-
-### 2026-07-25 至 07-31：Experimental Design Benchmark v2 与 Stable Pi
-
-- Wave A v1 contract audit 暴露私有 enum、唯一算法、唯一措辞与 materialization 缺失。
-- Experimental Design v2 形成公开语义合同、alternative-valid、reverse-evidence、held-out isolation 和
-  production materialization，达到 42/42 + 36/36。
-- 多轮 runtime diagnosis 最终收敛到 direct Node Pi package + short path；不再继续堆 transport 版本。
-- 普通、harder 与 skill-unique baseline 都饱和，按预注册停止规则关闭。
-
-### 2026-07-31 至 08-01：API Tester 与 Portfolio 方法
-
-- API Tester 建立 OpenAPI oracle、五项 deterministic scorer、18/18 contract audit、36/36 materialization。
-- 唯一 baseline 8/8、0 infra、4 differing；original 有局部改善但两个 task 都不成功，旧 gate failed。
-- 决定采用 prospective partial-benefit re-entry：API Tester 转 method-development，另选 untouched skill。
-- 方法案例至少 6 个起步但不设固定终止数，以 portfolio readiness 决定何时冻结方法。
-- 用户侧目标固定为自动 optimizer；人工只审核声明式适配和低置信度边界。
-
-### 2026-08-01 至 08-03：方法组合、公共 Assembly 与资源命名空间
-
-- 建立 machine-readable method portfolio/readiness；方法案例至少 6 个起步，是否进入 replication 由能力
-  gate 决定。
-- API Tester 经 prospective re-entry 生成 schema-derived artifact，冻结 development 为 4/4、mean 1.0，
-  成为第一个 optimized development-passed phenotype。
-- 对 6 个真实案例审计 skill bundle，区分 exposure、collision 与 output-reference；建立 namespaced resource
-  package、完整性验证和双案例 canary。
-- Namespaced 四臂真实矩阵 16/16、0 infra，但 optimized 1/4、mean 0.5625、2 regressions；结果冻结为机制已
-  接入但质量 gate failed。
-- 抽取技能无关公共 assembly，在 API Tester 与 Experimental Design 两种 phenotype 上完成 byte parity；领域
-  compiler/checker 仍由公开合同负责。
-
-### 2026-08-09：真实输出反向审计与 Public Output ABI
-
-- Law、i18n 与 reviewer 的真实模型输出连续暴露 scorer 私有字段类型、数组顺序和执行可观测性问题，证明预制
-  canary 通过仍不等于 measurement-valid。
-- 建立 `public-output-abi/v1/v2`、scorer dependency closure 和 post-run authority audit；旧结果不重分，修复
-  使用新 identity。
-- Law v3 恢复 measurement-valid，但 baseline 回归；reviewer v2 恢复 measurement-valid 并完成 static fidelity；
-  zh-readme v1/v2 保持 measurement-invalid。
-- i18n v3 最终恢复 8/8 execution observable 与 8/8 ABI pass，但旧任务 no-skill/original 同时满分，冻结为
-  baseline saturation。
-
-### 2026-08-10：Skill Contribution Identifiability 与 i18n Successor
-
-- 新增通用 `skill-contribution-identifiability/v1`，把 benchmark contract 合法与 skill 增量可识别分开；静态
-  audit 不用真实分数倒推资格。
-- 旧 Experimental Design v2 和 i18n v3 被判为 benchmark-underidentified；Experimental Design skill-unique
-  贡献面合格，但历史强模型结果仍是 capability saturation。
-- i18n contribution-v1 移除 answer-bearing recipe 后完成真实运行，却暴露未公开 placeholder/plural 语义；
-  5/8 false reject，冻结 measurement-invalid。
-- contribution-v2 公开 `{name}`、`{{name}}` 与 i18next v4 plural family，唯一 8-row paired baseline 为
-  0 infra、4/4 differing、3 positive，original/no-skill mean 0.925/0.525。该结果只开放 base IR audit，
-  未形成静态、artifact、held-out 或 Token 优化结论。
-
-### 2026-08-12：i18n Source-audited Base IR
-
-- contribution-v2 的 profile-empty base IR 只绑定 exact skill source、development prompt、public contract 与
-  report semantics；逐节点 audit 排除 evaluator、held-out、runtime output 与 profile feedback。
-- IR/lowering 保留用户可见文本扫描、稳定 key、插值/复数、已有翻译、protected input 与声明输出边界；后验
-  `nul` 文件名未进入静态语义。
-- Corpus 晋升 `runnable`，只开放 `no-skill | original | ir-static` development；artifact、held-out、优化与
-  Token claim 仍关闭。
-
-### 2026-08-12：i18n Static Development Infrastructure Failure
-
-- 首个 static identity 复用通用 runner，冻结 12 rows/4 triplets、Pi/Windows/clean 与 `retries=0`；resource、
-  route qualification 均通过。
-- 正式分母完整，但 1 个 static timeout 和同一 task/run-index 横跨三臂的 3 个 zero-usage `parse-failed`
-  使 gate failed；同锁不补跑、不调 scorer/gate。
-- 有效 pair 的 1 positive、1 equal、0 regression 不覆盖 infrastructure gate；artifact、held-out 与优化 claim
-  继续关闭，portfolio 新增 `execution-observability` blocker。
-
-## 2. 关键冻结决策
-
-1. No-skill 是主 baseline，不能只比较 original 与 IR。
-2. Original 使用 exact source closure，不能只给路径或摘要。
-3. Development/held-out 文件与身份隔离；held-out 不回流。
-4. Deterministic scorer 是成功权威；runtime validator 只负责运行期可行动检查。
-5. 动态 overlay 使用 original lineage + ir-static residual 双源，禁止 evaluator gold。
-6. Final IR 是带 provenance 的编译候选；`ir-pgo` 只消费通过 gate 的 held-out。
-7. Token 是质量门槛通过后的双目标之一，必须包含一次性成本和 break-even。
-8. 通用 core 禁止 skill-id branch；适配差异进入 declarative contract/adapter/artifact。
-9. 旧 gate failure 不事后改判；新方向使用新 policy/identity。
-10. 有效负结果进入论文正文。
-11. 自动构造阶段先量化声明式 projection/query 天花板；当剩余主要是 domain-runtime 时停止扩查询语法，直接攻语义运行时。
-
-## 3. 文档治理
-
-早期每个 task/design/experiment 都建立独立 Markdown，导致入口漂移。第一次治理建立了权威入口，但把大量
-阶段全文直接合并进 spec/plan/evaluation/results，仍然过重。
-
-2026-08-01 第二次治理采用内容重建：
-
-- README 只做入口与当前状态；
-- spec 只保留当前研究契约；
-- plan 只保留当前 ledger 与活跃 TDD；
-- evaluation/optimization/IR/pilots 各管一个组件边界；
-- results 只保留冻结 evidence ledger；
-- related work 并入 spec；
-- 历史全文不复制，使用 Git 恢复。
-
-## 4. 恢复旧设计
-
-常用入口：
+本页不是当前状态。当前路线只看 [current-status.md](current-status.md)。历史精确正文用：
 
 ```powershell
-git log --oneline --all -- docs/skill-ir
-git show <commit>:docs/skill-ir/skill-ir-aot-optimization-spec.md
-git show <commit>:docs/skill-ir/skill-ir-aot-optimization-plan.md
+git show <commit>:<old-path>
+git log -- <old-path>
 ```
 
-冻结代码和结果仍保持原路径。旧实现细节应从对应 commit、lock、test 和 result 中核验，不能用历史文字
-覆盖当前合同。
+表中的 commit 是治理前最后包含该文件内容的提交。`—` 表示没有单一、明确的机器结果；正文仍可从 Git 恢复。
 
-## 5. 使用边界
+## 已退出说明文档
 
-- 本文不参与运行时 digest 或实验 gate。
-- 当前开发以 README、spec、plan 和对应组件文档为准。
-- 若历史描述与冻结 lock/result 冲突，以机器可读证据为准，并在 evidence ledger 更正。
-- 新阶段完成后只追加决策摘要，不粘贴实施计划或命令日志。
+| 旧路径 | 最后 commit | 主题 / 合并去向 | 对应 results（若有） |
+|---|---:|---|---|
+| `docs/skill-ir/ai-assisted-development-routing-and-prospective-construction.md` | `d414410` | AI routing 与 prospective 构造；并入分类/API/证据索引 | `results/skill-ir/api-tester-constructor-prospective-001/` |
+| `docs/skill-ir/answer-availability-taxonomy.md` | `9e93131` | 旧三档 taxonomy；并入分类与路由 | — |
+| `docs/skill-ir/api-loopback-transport-verification.md` | `9521a68` | loopback transport；并入 API engine | — |
+| `docs/skill-ir/api-pytest-request-development.md` | `553e428` | native pytest/httpx；并入 API engine | `results/skill-ir/skill-family-pytest-development-20260911/` |
+| `docs/skill-ir/api-pytest-wire-loopback-development.md` | `5d405b9` | pytest wire loopback；并入 API engine | `results/skill-ir/skill-family-pytest-development-20260911/` |
+| `docs/skill-ir/api-request-cases-development.md` | `2f7066a` | 请求 case 构造；并入 API engine | `results/skill-ir/skill-family-request-specimens-development-20260911/` |
+| `docs/skill-ir/api-response-headers-development.md` | `c8180f4` | response headers；并入 API engine | — |
+| `docs/skill-ir/api-response-schema-development.md` | `b003133` | response schema；并入 API engine | — |
+| `docs/skill-ir/api-schema-branch-negative-development.md` | `3011413` | branch negative；并入 API engine | `results/skill-ir/skill-family-branch-negatives-development-20260911/` |
+| `docs/skill-ir/api-schema-compile-cache-development.md` | `5f518da` | schema compile cache；并入 API engine | — |
+| `docs/skill-ir/api-schema-composition-property-verification.md` | `e12c587` | composition property；并入 API engine | — |
+| `docs/skill-ir/api-schema-decimal-development.md` | `2f7066a` | decimal multipleOf；并入 API engine | `results/skill-ir/skill-family-json-wire-development-20260911/` |
+| `docs/skill-ir/api-tester-human-effort-successor.md` | `9e93131` | 人工投入 successor 合同；并入 API engine | — |
+| `docs/skill-ir/api-tester-operation-admission.md` | `ad13e46` | operation admission；并入 API engine | — |
+| `docs/skill-ir/api-tester-operation-delivery-freeze.md` | `47efb14` | operation delivery freeze；并入证据索引 | — |
+| `docs/skill-ir/api-tester-operation-delivery-verification-retry.md` | `0c26490` | delivery verification retry 历史 | — |
+| `docs/skill-ir/api-tester-operation-development-final-report.md` | `47efb14` | operation final report；结果保留 | — |
+| `docs/skill-ir/api-tester-operation-development-status.md` | `47efb14` | operation 状态快照 | — |
+| `docs/skill-ir/api-tester-operation-mechanism-ablation-results.md` | `a1727b9` | mechanism ablation 结果 | `results/skill-ir/api-tester-operation-mechanism-ablation-development-001/` |
+| `docs/skill-ir/api-tester-operation-mechanism-ablation.md` | `a1727b9` | mechanism ablation 方法；并入评价 | 同上 |
+| `docs/skill-ir/api-tester-operation-prospective-reproduction.md` | `5309bad` | prospective reproduction | — |
+| `docs/skill-ir/api-tester-operation-prospective-research-results.md` | `bc88310` | prospective research 结果 | — |
+| `docs/skill-ir/api-tester-operation-prospective-research-status.md` | `2a9bf76` | prospective 状态快照 | — |
+| `docs/skill-ir/api-tester-operation-prospective-research-synthesis.md` | `a54a111` | prospective 综合结论 | — |
+| `docs/skill-ir/api-tester-operation-prospective.md` | `6a37f54` | prospective 计划 | — |
+| `docs/skill-ir/api-tester-production-binding.md` | `70a1d46` | production binding v1/v2；并入 API engine | `results/skill-ir/api-tester-production-binding-development-001/` |
+| `docs/skill-ir/api-tester-successor-gap-analysis.md` | `2612fb7` | v2 gap；并入 API engine | `results/skill-ir/api-tester-production-binding-successor-development-001/` |
+| `docs/skill-ir/api-tester-trace-public-answer-protocol.md` | `9e93131` | public-answer/trace claim 边界；并入 API engine | `results/skill-ir/api-tester-trace-public-answer-paid-development-001/` |
+| `docs/skill-ir/api-tester-v2-feature-migration.md` | `70a1d46` | v2 migration；并入证据索引 | `results/skill-ir/api-tester-v2-feature-migration-002/` |
+| `docs/skill-ir/claim-evidence-table.md` | `5309bad` | 主张表；由 evidence-index 取代 | — |
+| `docs/skill-ir/clean-source-gold-path-reproduction.md` | `f6c057a` | clean source reproduction；并入证据索引 | `results/skill-ir/clean-source-gold-path-reproduction-2026-09-06/` |
+| `docs/skill-ir/development-input-decoding.md` | `1e51d61` | UTF-8/input decoding；并入 IR/API | — |
+| `docs/skill-ir/experiment-results.md` | `d140f20` | 旧汇总结果；由 results + evidence-index 取代 | `results/skill-ir/` |
+| `docs/skill-ir/external-skill-import-plan.md` | `7d4f358` | importer 实施计划；并入 external-skill-import | — |
+| `docs/skill-ir/multi-model-stage-m-panel.md` | `0e66539` | Stage M panel；并入证据索引 | — |
+| `docs/skill-ir/project-reassessment-2026-09-06.md` | `f6c057a` | 9 月 6 日重评快照 | — |
+| `docs/skill-ir/public-skill-responsibility-corpus.md` | `b3cb287` | public corpus 合同；并入分类与路由 | `results/skill-ir/public-skill-responsibility-corpus-selection-development-001/` |
+| `docs/skill-ir/public-structure-offline-family-contract.md` | `d5249d7` | family contract；并入分类与路由 | `results/skill-ir/public-structure-offline-family-contract-revision-development-002/` |
+| `docs/skill-ir/q1-development-annotation-package-v2.md` | `2f0b968` | Q1 v2 发放说明；并入分类与路由 | — |
+| `docs/skill-ir/q1-human-annotation-walkthrough-v2.md` | `2f0b968` | Q1 walkthrough 历史 | — |
+| `docs/skill-ir/sample-scale-and-automation-scope-analysis-2026-09-07.md` | `c380b55` | 样本规模分析快照 | — |
+| `docs/skill-ir/skill-duty-extraction-development.md` | `afe657f` | source-grounded duty extraction；并入分类与路由 | `results/skill-ir/skill-duty-extraction-development-20260911/` |
+| `docs/skill-ir/skill-family-clean-reproduction.md` | `df58faa` | family clean reproduction | — |
+| `docs/skill-ir/skill-family-current-clean-reproduction.md` | `5d405b9` | current family clean reproduction | `results/skill-ir/skill-family-current-clean-20260911/` |
+| `docs/skill-ir/skill-family-current-v2-source-repair.md` | `9a16dfa` | N15 source repair；结果保留 | `results/skill-ir/skill-family-current-v2-source-repair-001/` |
+| `docs/skill-ir/skill-family-deepening.md` | `d088f4e` | family deepening 历史 | `results/skill-ir/skill-family-deepening-20260911/` |
+| `docs/skill-ir/skill-family-heldout-evaluation.md` | `fcfcca5` | held-out evaluator；并入分类与路由 | — |
+| `docs/skill-ir/skill-family-minimum-delivery.md` | `2c1c59a` | minimum delivery 合同；并入分类/证据 | `results/skill-ir/skill-family-minimum-delivery-20260911/` |
+| `docs/skill-ir/skill-family-model-comparison.md` | `17b9633` | model comparison 历史 | — |
+| `docs/skill-ir/skill-family-new-member-discovery-revision-2.md` | `2fff7ac` | discovery r2 记录 | `results/skill-ir/skill-family-new-members-20260911-r2/` |
+| `docs/skill-ir/skill-family-new-member-discovery-revision-3.md` | `2fff7ac` | discovery r3 记录 | `results/skill-ir/skill-family-new-members-20260911-r3/` |
+| `docs/skill-ir/skill-family-new-member-followup-discovery-2.md` | `844ba13` | follow-up discovery 记录 | `results/skill-ir/skill-family-new-members-20260911-r5/` |
+| `docs/skill-ir/skill-family-new-member-followup-method.md` | `eecdbe7` | follow-up method；并入分类 | 同上 |
+| `docs/skill-ir/skill-family-new-member-method.md` | `17b9633` | new-member method；并入分类 | `results/skill-ir/skill-family-new-members-20260911/` |
+| `docs/skill-ir/skill-family-requirement-audit.md` | `1ffc199` | requirement audit；并入分类 | — |
+| `docs/skill-ir/skill-family-source-relatedness.md` | `be89a50` | source relatedness；并入分类 | — |
+| `docs/skill-ir/skill-family-supplement-resources.md` | `77c97b7` | supplement resources；并入分类 | — |
+| `docs/skill-ir/stage-n-cross-model-aot-stability-panel.md` | `920a87e` | Stage N stability panel；并入证据索引 | — |
+| `docs/skill-ir/work-stop-summary-2026-09-11.md` | `e6fa621` | 9 月 11 日停止点快照 | — |
+
+## 仍保留但不是当前入口
+
+被校验器、冻结 JSON 或脚本读取的 Markdown 原件继续留在原路径。它们由
+[governance manifest](../../scripts/skill_ir_doc_governance.json)列出，不进入上表，也不能因“历史”标签而改字节。
+
+日期化 taskbook/spec 保留在 `docs/superpowers/`，是决策与执行记录，不与当前状态页竞争。

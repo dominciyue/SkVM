@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from check_skill_ir_doc_links import check_references, resolve_legacy_path
+from check_skill_ir_doc_links import check_governance, check_references, resolve_legacy_path
 
 
 class SkillIrDocLinkCheckTest(unittest.TestCase):
@@ -165,6 +165,87 @@ class SkillIrDocLinkCheckTest(unittest.TestCase):
                 ("docs/skill-ir/current.md", "docs/skill-ir/withdrawn.md"),
                 ("docs/skill-ir/historical.md", "docs/skill-ir/still-missing.md"),
             },
+        )
+
+    def test_treats_immutable_result_references_to_absorbed_docs_as_retired(self):
+        self.write(
+            "results/skill-ir/run/report.json",
+            '{"methodDoc":"docs/skill-ir/old-method.md"}\n',
+        )
+
+        result = check_references(
+            self.root,
+            ["results/skill-ir/run/report.json"],
+            {"docs/skill-ir/old-method.md"},
+        )
+
+        self.assertEqual(result["brokenReferences"], [])
+        self.assertEqual(result["legacyReferences"], [])
+        self.assertEqual(
+            result["retiredReferences"],
+            [
+                {
+                    "source": "results/skill-ir/run/report.json",
+                    "target": "docs/skill-ir/old-method.md",
+                }
+            ],
+        )
+
+    def test_governance_rejects_missing_or_overlapping_materials(self):
+        self.write("docs/skill-ir/shared.md", "# Shared\n")
+        manifest = {
+            "currentDocuments": [
+                {"path": "docs/skill-ir/current-status.md", "softMaxLines": 200},
+                {"path": "docs/skill-ir/shared.md", "softMaxLines": 200},
+            ],
+            "versionedMaterials": [
+                "docs/skill-ir/handbook.md",
+                "docs/skill-ir/shared.md",
+            ],
+        }
+
+        result = check_governance(
+            self.root,
+            manifest,
+            {"docs/skill-ir/handbook.md"},
+        )
+
+        self.assertIn(
+            "missing current document: docs/skill-ir/current-status.md",
+            result["errors"],
+        )
+        self.assertIn(
+            "missing versioned material: docs/skill-ir/handbook.md",
+            result["errors"],
+        )
+        self.assertIn(
+            "versioned material is marked legacy: docs/skill-ir/handbook.md",
+            result["errors"],
+        )
+        self.assertIn(
+            "current documents and versioned materials overlap: docs/skill-ir/shared.md",
+            result["errors"],
+        )
+
+    def test_governance_reports_count_and_line_limits_as_warnings(self):
+        self.write("docs/skill-ir/current-status.md", "one\ntwo\nthree\n")
+        manifest = {
+            "recommendedCurrentDocumentRange": {"min": 2, "max": 2},
+            "currentDocuments": [
+                {"path": "docs/skill-ir/current-status.md", "softMaxLines": 2},
+            ],
+            "versionedMaterials": [],
+        }
+
+        result = check_governance(self.root, manifest, set())
+
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(
+            result["warnings"],
+            [
+                "current document count outside recommendation: 1",
+                "soft line limit exceeded: docs/skill-ir/current-status.md (3 > 2)",
+            ],
         )
 
 
