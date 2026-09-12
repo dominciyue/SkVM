@@ -10,7 +10,9 @@ import {
   materializeN10DevelopmentPanel,
   verifyN10Baseline,
   verifyN10DevelopmentPanel,
+  verifyN10FirstRun,
   writeN10BaselineFromDevelopmentPanel,
+  writeN10FirstRunFromDevelopmentPanel,
   type N10DevelopmentLock,
 } from "../../src/skill-ir/skill-family-current-v2-n10";
 
@@ -823,6 +825,25 @@ async function requirePushedN10Lock(root: string): Promise<string> {
   return lockCommit;
 }
 
+async function requirePushedImmutableFile(root: string, relativePath: string): Promise<{ head: string; creationCommit: string }> {
+  const head = new TextDecoder().decode(await gitBytes(root, ["rev-parse", "HEAD"])).trim();
+  const upstream = new TextDecoder().decode(await gitBytes(root, ["rev-parse", "origin/skill-ir-aot"])).trim();
+  if (head !== upstream) fail(`pushed evidence prerequisite is not aligned: HEAD=${head}, origin=${upstream}`);
+  const creationCommit = new TextDecoder().decode(await gitBytes(root, [
+    "log", "--diff-filter=A", "--format=%H", "-1", "--", relativePath,
+  ])).trim();
+  if (!/^[0-9a-f]{40}$/u.test(creationCommit)) fail(`creation commit was not found for ${relativePath}`);
+  const [worktree, committed] = await Promise.all([
+    readFile(join(root, relativePath)),
+    gitBytes(root, ["show", `${creationCommit}:${relativePath}`]),
+  ]);
+  if (createHash("sha256").update(worktree).digest("hex")
+    !== createHash("sha256").update(committed).digest("hex")) {
+    fail(`worktree bytes changed after the immutable evidence commit: ${relativePath}`);
+  }
+  return { head, creationCommit };
+}
+
 export async function runN10BaselineStage(root: string, executedAt = new Date().toISOString()) {
   const state = await readStageState(root);
   if (selectNextRunnableTask(state.manifest, state.status) !== "N10" || state.status.tasks.N10.status !== "running") {
@@ -871,6 +892,61 @@ export async function runN10BaselineStage(root: string, executedAt = new Date().
   };
 }
 
+export async function runN10FirstRunStage(root: string, executedAt = new Date().toISOString()) {
+  const state = await readStageState(root);
+  if (selectNextRunnableTask(state.manifest, state.status) !== "N10" || state.status.tasks.N10.status !== "running") {
+    fail("N10 first run requires the running N10 stage");
+  }
+  const developmentRelative = `${CURRENT_V2_RESULT_RELATIVE}/development`;
+  const developmentDirectory = join(root, developmentRelative);
+  const lockCommit = await requirePushedN10Lock(root);
+  const baselineBinding = await requirePushedImmutableFile(root, `${developmentRelative}/baseline.json`);
+  let built: Awaited<ReturnType<typeof writeN10FirstRunFromDevelopmentPanel>> | null = null;
+  try {
+    await readFile(join(developmentDirectory, "first-run.json"));
+  } catch {
+    built = await writeN10FirstRunFromDevelopmentPanel({
+      repositoryRoot: root,
+      developmentDirectory,
+      lockCommit,
+      baselineCommit: baselineBinding.creationCommit,
+      engineCodeCommit: baselineBinding.head,
+      executedAt,
+    });
+  }
+  const verification = await verifyN10FirstRun({ repositoryRoot: root, developmentDirectory });
+  if (verification.status !== "pass") fail(`N10 first-run verification failed: ${verification.errors.join("; ")}`);
+  const firstRunBytes = await readFile(join(developmentDirectory, "first-run.json"));
+  const report = JSON.parse(firstRunBytes.toString("utf8"));
+  const now = new Date().toISOString();
+  const status = structuredClone(state.status);
+  status.tasks.N10.commit = report.bindings.engineCodeCommit;
+  status.tasks.N10.evidence = [...new Set([
+    ...status.tasks.N10.evidence,
+    `${developmentRelative}/first-run.json`,
+    ...report.tasks.map((row: any) => `${developmentRelative}/${row.rowFile}`),
+  ])];
+  status.updatedAt = now;
+  status.nextAction = report.methodGate.decision === "passed"
+    ? "N10 first-run archived: commit and push it, audit residuals, then record revision-001/no-revision and complete the method gate"
+    : "N10 first-run archived unchanged: commit and push it, diagnose shared defects, then repair and write revision-001 on the same denominator";
+  validateStageState(state.manifest, status);
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N10" as const,
+    outcome: built ? "first-run-created-and-verified" as const : "first-run-verified-existing" as const,
+    file: {
+      path: `${developmentRelative}/first-run.json`,
+      sha256: createHash("sha256").update(firstRunBytes).digest("hex"),
+      bytes: firstRunBytes.byteLength,
+    },
+    summary: report.summary,
+    methodGate: report.methodGate,
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -888,5 +964,8 @@ if (import.meta.main) {
   } else if (step === "n10-baseline") {
     const executedAt = process.argv.find((argument) => argument.startsWith("--executed-at="))?.slice("--executed-at=".length);
     console.log(JSON.stringify(await runN10BaselineStage(process.cwd(), executedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>]");
+  } else if (step === "n10-first-run") {
+    const executedAt = process.argv.find((argument) => argument.startsWith("--executed-at="))?.slice("--executed-at=".length);
+    console.log(JSON.stringify(await runN10FirstRunStage(process.cwd(), executedAt), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run [--python=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>]");
 }

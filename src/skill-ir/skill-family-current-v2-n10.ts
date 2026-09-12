@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { parseApiTaskContract, type ApiTaskContract } from "./api-task-contract";
 import { buildApiTaskPlan } from "./api-task-plan";
 import { verifyApiTaskPlan } from "./api-task-plan-checker";
@@ -11,6 +12,8 @@ import { buildApiRequestBodyNegatives } from "./api-request-body-negatives";
 import { verifyApiRequestBodyNegatives } from "./api-request-body-negatives-checker";
 import { buildApiPytestSuite } from "./api-pytest-suite";
 import { verifyApiPytestSuite } from "./api-pytest-suite-checker";
+import { runApiTask } from "./api-task-run";
+import { analyzeApiTesterOperation, verifyApiTesterOperationAdmissionConsistency } from "./api-tester-operation-admission";
 import { independentlyEnumerateApiTesterOperations } from "./api-tester-operation-coverage";
 import { parseApiTesterOperationSource } from "./api-tester-operation-source";
 
@@ -815,5 +818,464 @@ export async function verifyN10Baseline(options: {
   };
   if (stable(summary) !== stable(report.summary)) errors.add("BASELINE_SUMMARY_MISMATCH");
   if (Object.values(report.accounting).some((value) => value !== 0)) errors.add("BASELINE_ACCOUNTING_NONZERO");
+  return { status: errors.size === 0 ? "pass" : "fail", errors: [...errors].sort() };
+}
+
+export type N10FirstRunSummaryRow = {
+  taskId: string;
+  provider: string;
+  taskComplete: boolean;
+  expectedTaskComplete: boolean;
+  packageCheck: "pass" | "fail" | "not-produced";
+  required: {
+    total: number;
+    checkedExported: number;
+    failed: number;
+    unresolved: number;
+    insufficientInput: number;
+    missing: number;
+  };
+  nativeExecuted: number;
+  modificationCount: number;
+};
+
+export function summarizeN10FirstRunRows(input: {
+  uniqueInputs: number;
+  providers: number;
+  operationDenominator: number;
+  comparisonTotal: number;
+  comparisonPassed: number;
+  rows: N10FirstRunSummaryRow[];
+}) {
+  const sum = (key: keyof N10FirstRunSummaryRow["required"]) =>
+    input.rows.reduce((total, row) => total + row.required[key], 0);
+  return {
+    uniqueInputs: input.uniqueInputs,
+    providers: input.providers,
+    operationDenominator: input.operationDenominator,
+    taskContracts: input.rows.length,
+    taskComplete: input.rows.filter((row) => row.taskComplete).length,
+    completeProviders: new Set(input.rows.filter((row) => row.taskComplete).map((row) => row.provider)).size,
+    expectedOutcomeMatches: input.rows.filter((row) => row.taskComplete === row.expectedTaskComplete).length,
+    expectedOutcomeMismatches: input.rows.filter((row) => row.taskComplete !== row.expectedTaskComplete).length,
+    packageChecksPassed: input.rows.filter((row) => row.packageCheck === "pass").length,
+    packageChecksFailedOrMissing: input.rows.filter((row) => row.packageCheck !== "pass").length,
+    requiredObligationDenominator: sum("total"),
+    checkedExportedRequiredObligations: sum("checkedExported"),
+    failedRequiredObligations: sum("failed"),
+    unresolvedRequiredObligations: sum("unresolved"),
+    insufficientInputRequiredObligations: sum("insufficientInput"),
+    missingRequiredObligations: sum("missing"),
+    nativeExecuted: input.rows.reduce((total, row) => total + row.nativeExecuted, 0),
+    modifications: input.rows.reduce((total, row) => total + row.modificationCount, 0),
+    comparisons: input.comparisonTotal,
+    comparisonsPassed: input.comparisonPassed,
+  };
+}
+
+function portable(value: string): string {
+  return value.replaceAll("\\", "/");
+}
+
+function emptyRequiredCounts() {
+  return { total: 0, checkedExported: 0, failed: 0, unresolved: 0, insufficientInput: 0, missing: 0 };
+}
+
+async function hashBundleFiles(outputDirectory: string): Promise<{ status: "pass" | "fail"; errors: string[]; manifestSha256: string | null }> {
+  const errors: string[] = [];
+  try {
+    const manifestBytes = await readFile(join(outputDirectory, "bundle-manifest.json"));
+    const manifest = JSON.parse(manifestBytes.toString("utf8"));
+    if (manifest.schemaVersion !== "skvm-api-task-bundle-manifest/v1" || !Array.isArray(manifest.files)) {
+      return { status: "fail", errors: ["BUNDLE_MANIFEST_INVALID"], manifestSha256: sha(manifestBytes) };
+    }
+    for (const file of manifest.files) {
+      try {
+        const bytes = await readFile(join(outputDirectory, file.path));
+        if (sha(bytes) !== file.sha256 || bytes.byteLength !== file.bytes) errors.push(`BUNDLE_FILE_MISMATCH:${file.path}`);
+      } catch {
+        errors.push(`BUNDLE_FILE_MISSING:${file.path}`);
+      }
+    }
+    return { status: errors.length ? "fail" : "pass", errors, manifestSha256: sha(manifestBytes) };
+  } catch {
+    return { status: "fail", errors: ["BUNDLE_MANIFEST_UNREADABLE"], manifestSha256: null };
+  }
+}
+
+async function executeN10TaskFirstRun(input: {
+  developmentDirectory: string;
+  lockTask: Record<string, any>;
+  lockSource: Record<string, any>;
+  engineCodeCommit: string;
+}) {
+  const taskPath = join(input.developmentDirectory, input.lockTask.taskPath);
+  const outputRelative = `first-run-artifacts/${input.lockTask.taskId}`;
+  const outputDirectory = join(input.developmentDirectory, outputRelative);
+  const taskBytes = await readFile(taskPath);
+  const rowBase = {
+    schemaVersion: "skill-family-current-v2-n10-task-first-run/v1" as const,
+    identity: IDENTITY,
+    exposure: "development" as const,
+    taskId: input.lockTask.taskId,
+    sourceInputId: input.lockTask.sourceInputId,
+    provider: input.lockSource.provider,
+    mappingRepository: input.lockTask.mapping.repository,
+    taskSha256: sha(taskBytes),
+    sourceSha256: input.lockSource.lockedCopy.sha256,
+    engineCodeCommit: input.engineCodeCommit,
+    expectedTaskComplete: input.lockTask.expected.taskComplete,
+    expectedResidualOracle: input.lockTask.expected.residualOracle,
+    modificationCount: 0,
+  };
+  const firstStarted = performance.now();
+  try {
+    const run = await runApiTask({ taskPath, outputDirectory });
+    const firstDurationMs = Number((performance.now() - firstStarted).toFixed(3));
+    const packageBytes = await readFile(join(outputDirectory, "task-package.json"));
+    const artifact = JSON.parse(packageBytes.toString("utf8"));
+    const bundleCheck = await hashBundleFiles(outputDirectory);
+    const repeatRoot = await mkdtemp(join(tmpdir(), `skvm-n10-repeat-${input.lockTask.taskId}-`));
+    let repeat: Record<string, any>;
+    try {
+      const repeatStarted = performance.now();
+      const repeatRun = await runApiTask({ taskPath, outputDirectory: join(repeatRoot, "out") });
+      const repeatDurationMs = Number((performance.now() - repeatStarted).toFixed(3));
+      const repeatPackage = await readFile(join(repeatRoot, "out", "task-package.json"));
+      repeat = {
+        status: repeatRun.status,
+        durationMs: repeatDurationMs,
+        cacheDeclared: false,
+        cacheHit: false,
+        taskPackageSha256: sha(repeatPackage),
+        semanticPackageMatches: sha(repeatPackage) === sha(packageBytes),
+      };
+    } catch (error) {
+      repeat = {
+        status: "failed",
+        durationMs: null,
+        cacheDeclared: false,
+        cacheHit: false,
+        taskPackageSha256: null,
+        semanticPackageMatches: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    } finally {
+      await rm(repeatRoot, { recursive: true, force: true });
+    }
+    const nativeExecuted = Number((run.consumer as any)?.junit?.executed ?? 0);
+    return {
+      ...rowBase,
+      runStatus: run.status,
+      taskComplete: run.taskComplete,
+      expectationMatches: run.taskComplete === input.lockTask.expected.taskComplete,
+      packageCheck: run.packageCheck.status as "pass" | "fail",
+      bundleCheck,
+      backend: run.backend,
+      consumer: run.consumer,
+      firstBuild: { durationMs: firstDurationMs, outputPath: outputRelative, taskPackageSha256: sha(packageBytes) },
+      repeat,
+      semanticPlanSha256: artifact.plan.semanticPlanSha256,
+      backendSha256: artifact.bindings.backendSha256,
+      required: artifact.completion.counts,
+      obligationResults: artifact.obligationResults,
+      sourceClosureSummary: artifact.sourceClosure.summary,
+      nativeExecuted,
+      accounting: run.accounting,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      ...rowBase,
+      runStatus: "engine-error",
+      taskComplete: false,
+      expectationMatches: false === input.lockTask.expected.taskComplete,
+      packageCheck: "not-produced" as const,
+      bundleCheck: { status: "fail", errors: ["BUNDLE_NOT_PRODUCED"], manifestSha256: null },
+      backend: null,
+      consumer: { status: "not-executed", reason: "engine error before a verified package was emitted" },
+      firstBuild: { durationMs: Number((performance.now() - firstStarted).toFixed(3)), outputPath: null, taskPackageSha256: null },
+      repeat: { status: "not-run-after-first-error", durationMs: null, cacheDeclared: false, cacheHit: false,
+        taskPackageSha256: null, semanticPackageMatches: null },
+      semanticPlanSha256: null,
+      backendSha256: null,
+      required: emptyRequiredCounts(),
+      obligationResults: [],
+      sourceClosureSummary: null,
+      nativeExecuted: 0,
+      accounting: { loopbackHttpCalls: 0, remoteHttpCalls: 0, projectModelCalls: 0, paidCalls: 0 },
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+function firstRunComparison(lockRelation: Record<string, any>, rows: Array<Record<string, any>>) {
+  const left = rows.find((row) => row.taskId === lockRelation.leftTaskId);
+  const right = rows.find((row) => row.taskId === lockRelation.rightTaskId);
+  const planDifferent = !!left?.semanticPlanSha256 && !!right?.semanticPlanSha256
+    && left.semanticPlanSha256 !== right.semanticPlanSha256;
+  const artifactDifferent = !!left?.firstBuild.taskPackageSha256 && !!right?.firstBuild.taskPackageSha256
+    && left.firstBuild.taskPackageSha256 !== right.firstBuild.taskPackageSha256;
+  const bothTaskComplete = left?.taskComplete === true && right?.taskComplete === true;
+  return {
+    ...lockRelation,
+    actual: { planDifferent, artifactDifferent, bothTaskComplete },
+    passed: planDifferent && artifactDifferent && bothTaskComplete,
+  };
+}
+
+export type N10FirstRunReport = {
+  schemaVersion: "skill-family-current-v2-n10-first-run/v1";
+  identity: typeof IDENTITY;
+  exposure: "development";
+  executedAt: string;
+  bindings: Record<string, any>;
+  summary: ReturnType<typeof summarizeN10FirstRunRows>;
+  tasks: Array<Record<string, any>>;
+  comparisons: Array<Record<string, any>>;
+  sourceCoverage: Array<Record<string, any>>;
+  legacyV2AdmissionSummary: Record<string, number>;
+  reusedN5Evidence: Record<string, any>;
+  methodGate: { conditions: Record<string, boolean>; decision: "passed" | "method-not-ready" };
+  accounting: { sourceApiCalls: number; businessApiCalls: number; modelCalls: number; paidCalls: number; nativeLoopbackHttpCalls: number };
+  claimLimits: string[];
+};
+
+export async function writeN10FirstRunFromDevelopmentPanel(options: {
+  repositoryRoot: string;
+  developmentDirectory: string;
+  lockCommit: string;
+  baselineCommit: string;
+  engineCodeCommit: string;
+  executedAt: string;
+}): Promise<{ report: N10FirstRunReport; file: { path: string; sha256: string; bytes: number } }> {
+  const [panelCheck, baselineCheck] = await Promise.all([
+    verifyN10DevelopmentPanel(options),
+    verifyN10Baseline(options),
+  ]);
+  if (panelCheck.status !== "pass" || baselineCheck.status !== "pass") {
+    throw new Error(`N10 first run prerequisites failed: ${[...panelCheck.errors, ...baselineCheck.errors].join("; ")}`);
+  }
+  for (const commit of [options.lockCommit, options.baselineCommit, options.engineCodeCommit]) {
+    if (!/^[0-9a-f]{40}$/u.test(commit)) throw new Error("N10 first-run commit binding must be a full Git SHA");
+  }
+  const lockBytes = await readFile(join(options.developmentDirectory, "input-lock.json"));
+  const baselineBytes = await readFile(join(options.developmentDirectory, "baseline.json"));
+  const lock = JSON.parse(lockBytes.toString("utf8")) as N10DevelopmentLock;
+  const rowsDirectory = join(options.developmentDirectory, "first-run-rows");
+  await mkdir(rowsDirectory, { recursive: true });
+  const taskRows: Array<Record<string, any>> = [];
+  for (const lockTask of lock.tasks) {
+    const rowPath = join(rowsDirectory, `${lockTask.taskId}.json`);
+    let row: Record<string, any>;
+    try {
+      row = JSON.parse(await readFile(rowPath, "utf8"));
+      if (row.taskSha256 !== lockTask.taskSha256 || row.engineCodeCommit !== options.engineCodeCommit) {
+        throw new Error(`N10 persisted first-run row binding mismatch: ${lockTask.taskId}`);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("N10 persisted")) throw error;
+      const lockSource = lock.sources.find((source) => source.inputId === lockTask.sourceInputId)!;
+      row = await executeN10TaskFirstRun({ developmentDirectory: options.developmentDirectory, lockTask, lockSource, engineCodeCommit: options.engineCodeCommit });
+      await writeFile(rowPath, `${JSON.stringify(row, null, 2)}\n`, { flag: "wx" });
+    }
+    const rowBytes = await readFile(rowPath);
+    taskRows.push({ rowFile: `first-run-rows/${lockTask.taskId}.json`, rowSha256: sha(rowBytes), ...row });
+  }
+
+  const sourceCoverage: N10FirstRunReport["sourceCoverage"] = [];
+  const legacyCounts = { accepted: 0, rejected: 0, unresolved: 0 };
+  for (const source of lock.sources) {
+    const sourceText = await readFile(join(options.developmentDirectory, source.lockedCopy.path), "utf8");
+    const parsed = parseApiTesterOperationSource(sourceText, source.original.format);
+    if (!parsed.document || !parsed.enumeration.complete) throw new Error(`N10 first-run source enumeration failed: ${source.inputId}`);
+    const admissions = parsed.enumeration.operations.map((operation) => analyzeApiTesterOperation({ document: parsed.document!, operation }));
+    const consistency = verifyApiTesterOperationAdmissionConsistency(admissions);
+    if (consistency.status !== "pass") throw new Error(`N10 legacy admission consistency failed: ${source.inputId}: ${consistency.errors.join("; ")}`);
+    for (const admission of admissions) legacyCounts[admission.status] += 1;
+    const taskSelection = lock.tasks.filter((task) => task.sourceInputId === source.inputId);
+    sourceCoverage.push({
+      inputId: source.inputId,
+      provider: source.provider,
+      operationDenominator: source.enumeration.operationCount,
+      enumerationComplete: true,
+      legacyV2AdmissionCheck: consistency,
+      operations: source.enumeration.operations.map((operation: any) => {
+        const selectedTasks = taskSelection.filter((task) => task.denominator.operationKeys.includes(operation.key));
+        return {
+          operationKey: operation.key,
+          locator: operation.locator,
+          selectedTaskIds: selectedTasks.map((task) => task.taskId),
+          richTaskStatus: selectedTasks.length ? selectedTasks.map((task) => {
+            const result = taskRows.find((row) => row.taskId === task.taskId)!;
+            return { taskId: task.taskId, taskComplete: result.taskComplete, runStatus: result.runStatus };
+          }) : [{ status: "not-assessed-by-locked-task" }],
+          legacyV2Admission: (() => {
+            const result = admissions.find((admission) => admission.operationKey === operation.key)!;
+            return { status: result.status, findings: result.findings, firstObservedRejection: result.firstObservedRejection };
+          })(),
+        };
+      }),
+    });
+  }
+
+  const comparisons = lock.comparisons.map((relation) => firstRunComparison(relation, taskRows));
+  const summaryRows: N10FirstRunSummaryRow[] = taskRows.map((row) => ({
+    taskId: row.taskId,
+    provider: row.provider,
+    taskComplete: row.taskComplete,
+    expectedTaskComplete: row.expectedTaskComplete,
+    packageCheck: row.packageCheck,
+    required: row.required,
+    nativeExecuted: row.nativeExecuted,
+    modificationCount: row.modificationCount,
+  }));
+  const summary = summarizeN10FirstRunRows({
+    uniqueInputs: lock.summary.uniqueInputs,
+    providers: lock.summary.providers,
+    operationDenominator: lock.summary.operationDenominator,
+    comparisonTotal: comparisons.length,
+    comparisonPassed: comparisons.filter((relation) => relation.passed).length,
+    rows: summaryRows,
+  });
+  const n5Relative = `results/skill-ir/${IDENTITY}/integration/consumer-report.json`;
+  const n5Bytes = await readFile(join(options.repositoryRoot, n5Relative));
+  const n5 = JSON.parse(n5Bytes.toString("utf8"));
+  const reusedN5Evidence = {
+    path: n5Relative,
+    sha256: sha(n5Bytes),
+    decision: n5.decision,
+    nativeLoopbackHttpCalls: n5.accounting.loopbackHttpCalls,
+    nativeExecuted: n5.fixtures.reduce((total: number, fixture: any) => total + fixture.junit.executed, 0),
+    nativePassed: n5.fixtures.reduce((total: number, fixture: any) => total + fixture.junit.passed, 0),
+    faults: n5.faultInjection.summary,
+    reusedWithoutRerun: true,
+  };
+  const accounting = taskRows.reduce<N10FirstRunReport["accounting"]>((total, row) => ({
+    sourceApiCalls: total.sourceApiCalls,
+    businessApiCalls: total.businessApiCalls + Number(row.accounting.remoteHttpCalls ?? 0),
+    modelCalls: total.modelCalls + Number(row.accounting.projectModelCalls ?? 0),
+    paidCalls: total.paidCalls + Number(row.accounting.paidCalls ?? 0),
+    nativeLoopbackHttpCalls: total.nativeLoopbackHttpCalls + Number(row.accounting.loopbackHttpCalls ?? 0),
+  }), { sourceApiCalls: 0, businessApiCalls: 0, modelCalls: 0, paidCalls: 0, nativeLoopbackHttpCalls: 0 });
+  const conditions = {
+    fixedPanelIntegrity: panelCheck.status === "pass" && baselineCheck.status === "pass",
+    everyTaskRowRetained: taskRows.length === lock.tasks.length,
+    everyPackageChecked: summary.packageChecksPassed === lock.tasks.length,
+    expectedOutcomesMatch: summary.expectedOutcomeMismatches === 0,
+    twoRealDemandChangesPass: summary.comparisonsPassed >= 2,
+    threeProvidersHaveCompleteTasks: summary.completeProviders >= 3,
+    repeatedBuildsSemanticallyMatch: taskRows.every((row) => row.repeat.semanticPackageMatches === true),
+    nativeFixtureEvidencePasses: reusedN5Evidence.decision === "passed" && reusedN5Evidence.nativeExecuted >= 4,
+    eightAssignedFaultsDetected: reusedN5Evidence.faults.injected === 8
+      && reusedN5Evidence.faults.correctlyDetected === 8 && reusedN5Evidence.faults.missed === 0,
+    noProjectModelCalls: accounting.modelCalls === 0,
+  };
+  const methodGate = {
+    conditions,
+    decision: Object.values(conditions).every(Boolean) ? "passed" as const : "method-not-ready" as const,
+  };
+  const report: N10FirstRunReport = {
+    schemaVersion: "skill-family-current-v2-n10-first-run/v1",
+    identity: IDENTITY,
+    exposure: "development",
+    executedAt: options.executedAt,
+    bindings: {
+      inputLock: { path: "input-lock.json", sha256: sha(lockBytes), commit: options.lockCommit },
+      baseline: { path: "baseline.json", sha256: sha(baselineBytes), commit: options.baselineCommit },
+      engineCodeCommit: options.engineCodeCommit,
+      supportProfile: "development-rich-task/v1",
+    },
+    summary,
+    tasks: taskRows,
+    comparisons,
+    sourceCoverage,
+    legacyV2AdmissionSummary: legacyCounts,
+    reusedN5Evidence,
+    methodGate,
+    accounting,
+    claimLimits: [
+      "real-input tasks are development-exposed and are not prospective evidence",
+      "task-selected completion is not whole-document or live API behavior completion",
+      "legacy production-v2 admission is a separate full-operation comparison and does not define rich-task success",
+      "N5 native fixtures and fault detections are reused evidence and are not real API calls",
+      "one-machine first/repeat timings do not establish a general performance claim",
+      "historical document-level 0/6 and readiness remain unchanged",
+    ],
+  };
+  const text = `${JSON.stringify(report, null, 2)}\n`;
+  const relativePath = "first-run.json";
+  await writeFile(join(options.developmentDirectory, relativePath), text, { flag: "wx" });
+  return { report, file: { path: relativePath, sha256: sha(text), bytes: Buffer.byteLength(text) } };
+}
+
+export async function verifyN10FirstRun(options: {
+  repositoryRoot: string;
+  developmentDirectory: string;
+}): Promise<{ status: "pass" | "fail"; errors: string[] }> {
+  const errors = new Set<string>();
+  const [panel, baseline] = await Promise.all([verifyN10DevelopmentPanel(options), verifyN10Baseline(options)]);
+  for (const error of panel.errors) errors.add(`PANEL:${error}`);
+  for (const error of baseline.errors) errors.add(`BASELINE:${error}`);
+  let lock: N10DevelopmentLock, report: N10FirstRunReport;
+  try {
+    lock = JSON.parse(await readFile(join(options.developmentDirectory, "input-lock.json"), "utf8"));
+    report = JSON.parse(await readFile(join(options.developmentDirectory, "first-run.json"), "utf8"));
+  } catch {
+    return { status: "fail", errors: ["FIRST_RUN_OR_LOCK_UNREADABLE"] };
+  }
+  const lockBytes = await readFile(join(options.developmentDirectory, "input-lock.json"));
+  const baselineBytes = await readFile(join(options.developmentDirectory, "baseline.json"));
+  if (report.schemaVersion !== "skill-family-current-v2-n10-first-run/v1" || report.identity !== IDENTITY
+    || report.exposure !== "development") errors.add("FIRST_RUN_HEADER_INVALID");
+  if (report.bindings.inputLock.sha256 !== sha(lockBytes) || report.bindings.baseline.sha256 !== sha(baselineBytes)) {
+    errors.add("FIRST_RUN_INPUT_BINDING_MISMATCH");
+  }
+  if (stable(report.tasks.map((row) => row.taskId).sort()) !== stable(lock.tasks.map((row) => row.taskId).sort())) {
+    errors.add("FIRST_RUN_TASK_SET_MISMATCH");
+  }
+  for (const row of report.tasks) {
+    try {
+      const bytes = await readFile(join(options.developmentDirectory, row.rowFile));
+      const standalone = JSON.parse(bytes.toString("utf8"));
+      const embedded = structuredClone(row);
+      delete embedded.rowFile;
+      delete embedded.rowSha256;
+      if (sha(bytes) !== row.rowSha256 || stable(standalone) !== stable(embedded)) errors.add(`FIRST_RUN_ROW_MISMATCH:${row.taskId}`);
+      if (row.runStatus === "completed") {
+        const bundle = await hashBundleFiles(join(options.developmentDirectory, row.firstBuild.outputPath));
+        if (bundle.status !== "pass" || bundle.manifestSha256 !== row.bundleCheck.manifestSha256) {
+          errors.add(`FIRST_RUN_BUNDLE_MISMATCH:${row.taskId}`);
+        }
+      }
+    } catch {
+      errors.add(`FIRST_RUN_ROW_UNREADABLE:${row.taskId}`);
+    }
+  }
+  const operationCount = report.sourceCoverage.reduce((total, source) => total + source.operations.length, 0);
+  if (operationCount !== lock.summary.operationDenominator
+    || report.sourceCoverage.some((source) => source.operations.length !== source.operationDenominator)) {
+    errors.add("FIRST_RUN_OPERATION_COVERAGE_MISMATCH");
+  }
+  const comparisons = lock.comparisons.map((relation) => firstRunComparison(relation, report.tasks));
+  if (stable(comparisons) !== stable(report.comparisons)) errors.add("FIRST_RUN_COMPARISON_MISMATCH");
+  const summaryRows: N10FirstRunSummaryRow[] = report.tasks.map((row) => ({
+    taskId: row.taskId, provider: row.provider, taskComplete: row.taskComplete,
+    expectedTaskComplete: row.expectedTaskComplete, packageCheck: row.packageCheck,
+    required: row.required, nativeExecuted: row.nativeExecuted, modificationCount: row.modificationCount,
+  }));
+  const summary = summarizeN10FirstRunRows({
+    uniqueInputs: lock.summary.uniqueInputs,
+    providers: lock.summary.providers,
+    operationDenominator: lock.summary.operationDenominator,
+    comparisonTotal: comparisons.length,
+    comparisonPassed: comparisons.filter((relation) => relation.passed).length,
+    rows: summaryRows,
+  });
+  if (stable(summary) !== stable(report.summary)) errors.add("FIRST_RUN_SUMMARY_MISMATCH");
+  const conditions = report.methodGate.conditions;
+  const expectedDecision = Object.values(conditions).every(Boolean) ? "passed" : "method-not-ready";
+  if (report.methodGate.decision !== expectedDecision) errors.add("FIRST_RUN_METHOD_GATE_MISMATCH");
+  if (Object.values(report.accounting).some((value) => value !== 0)) errors.add("FIRST_RUN_ACCOUNTING_NONZERO");
   return { status: errors.size === 0 ? "pass" : "fail", errors: [...errors].sort() };
 }

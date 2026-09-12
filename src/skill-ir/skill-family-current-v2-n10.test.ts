@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   materializeN10DevelopmentPanel,
+  summarizeN10FirstRunRows,
   writeN10BaselineFromDevelopmentPanel,
   verifyN10Baseline,
   verifyN10DevelopmentPanel,
@@ -119,5 +120,35 @@ describe("current-v2 N10 development panel lock", () => {
     } finally {
       await rm(temporaryRoot, { recursive: true, force: true });
     }
+  });
+
+  test("summarizes every current first-run outcome without dropping expected negative rows", () => {
+    const summary = summarizeN10FirstRunRows({
+      uniqueInputs: 6,
+      providers: 3,
+      operationDenominator: 47,
+      comparisonTotal: 2,
+      comparisonPassed: 2,
+      rows: [
+        { taskId: "positive-a", provider: "A", taskComplete: true, expectedTaskComplete: true,
+          packageCheck: "pass", required: { total: 2, checkedExported: 2, failed: 0, unresolved: 0, insufficientInput: 0, missing: 0 }, nativeExecuted: 0, modificationCount: 0 },
+        { taskId: "negative-b", provider: "B", taskComplete: false, expectedTaskComplete: false,
+          packageCheck: "pass", required: { total: 2, checkedExported: 1, failed: 0, unresolved: 1, insufficientInput: 0, missing: 0 }, nativeExecuted: 0, modificationCount: 0 },
+        { taskId: "positive-c", provider: "C", taskComplete: true, expectedTaskComplete: true,
+          packageCheck: "pass", required: { total: 1, checkedExported: 1, failed: 0, unresolved: 0, insufficientInput: 0, missing: 0 }, nativeExecuted: 0, modificationCount: 0 },
+      ],
+    });
+    expect(summary).toMatchObject({
+      taskContracts: 3,
+      taskComplete: 2,
+      completeProviders: 2,
+      expectedOutcomeMatches: 3,
+      expectedOutcomeMismatches: 0,
+      packageChecksPassed: 3,
+      requiredObligationDenominator: 5,
+      checkedExportedRequiredObligations: 4,
+      unresolvedRequiredObligations: 1,
+      comparisonsPassed: 2,
+    });
   });
 });
