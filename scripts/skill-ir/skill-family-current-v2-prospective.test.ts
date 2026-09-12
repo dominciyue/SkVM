@@ -10,6 +10,7 @@ import {
   completeTask,
   deriveStageView,
   readStageState,
+  runN6ArchiveRecoveryStage,
   runN7ReadinessStage,
   runN13ComparisonStage,
   runN13RevisionStage,
@@ -73,6 +74,10 @@ describe("current-v2 stage orchestration", () => {
 
   test("exposes bounded N4 source maintenance without mutating old evidence", () => {
     expect(runN4SourceMaintenanceStage).toBeFunction();
+  });
+
+  test("exposes the one-shot bounded N6 archive search as a resumable stage", () => {
+    expect(runN6ArchiveRecoveryStage).toBeFunction();
   });
 
   test("records the complete N0-N15 graph and resumes at N1 after N0", () => {

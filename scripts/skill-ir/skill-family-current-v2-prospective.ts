@@ -10,6 +10,11 @@ import {
   type CurrentV2N4BangumiReport,
   type CurrentV2N4MeilisearchReport,
 } from "../../src/skill-ir/skill-family-current-v2-n4";
+import {
+  verifyCurrentV2N6ArchiveSearch,
+  writeCurrentV2N6ArchiveSearch,
+  type CurrentV2N6ArchiveSearchReport,
+} from "../../src/skill-ir/skill-family-current-v2-n6";
 import { writeN5ConsumerReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n5";
 import { writeN8EngineReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n8";
 import {
@@ -1610,6 +1615,89 @@ export async function runN4SourceMaintenanceStage(
   };
 }
 
+export async function runN6ArchiveRecoveryStage(
+  root: string,
+  searchedAt = new Date().toISOString(),
+) {
+  const state = await readStageState(root);
+  const reportRelative = `${CURRENT_V2_RESULT_RELATIVE}/archive-recovery/clean-002-search.json`;
+  if (["completed", "completed-with-limitation"].includes(state.status.tasks.N6.status)) {
+    const bytes = await readFile(join(root, reportRelative));
+    const report = JSON.parse(bytes.toString("utf8")) as CurrentV2N6ArchiveSearchReport;
+    const verification = await verifyCurrentV2N6ArchiveSearch({ repositoryRoot: root, report });
+    if (verification.status !== "pass") fail(`N6 verification failed: ${verification.errors.join("; ")}`);
+    return {
+      taskId: "N6" as const,
+      outcome: "verified-existing" as const,
+      file: { path: reportRelative, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+      result: report.result,
+      verification,
+      view: state.view,
+    };
+  }
+  if (selectNextRunnableTask(state.manifest, state.status) !== "N6") fail("N6 is not the current runnable stage");
+  const pushed = await requirePushedImmutableFile(root,
+    `${CURRENT_V2_RESULT_RELATIVE}/source-repair/meilisearch-resolution.json`);
+  let report: CurrentV2N6ArchiveSearchReport;
+  let files: Array<{ path: string; sha256: string; bytes: number }>;
+  let existingBytes: Uint8Array | null = null;
+  try {
+    existingBytes = new Uint8Array(await readFile(join(root, reportRelative)));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  if (existingBytes) {
+    report = JSON.parse(new TextDecoder().decode(existingBytes)) as CurrentV2N6ArchiveSearchReport;
+    if (report.codeCommit !== pushed.head) fail("N6 existing report does not bind the current pushed code commit");
+    const evidencePaths = [
+      report.provenance.searchTranscript.path,
+      ...(report.result.recoveredCandidate?.archivedCopy ? [report.result.recoveredCandidate.archivedCopy.path] : []),
+      reportRelative,
+    ];
+    files = await Promise.all(evidencePaths.map(async (path) => {
+      const bytes = new Uint8Array(await readFile(join(root, path)));
+      return { path, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength };
+    }));
+  } else {
+    const built = await writeCurrentV2N6ArchiveSearch({
+      repositoryRoot: root,
+      codeCommit: pushed.head,
+      searchedAt,
+    });
+    report = built.report;
+    files = built.files;
+  }
+  const verification = await verifyCurrentV2N6ArchiveSearch({ repositoryRoot: root, report });
+  if (verification.status !== "pass") fail(`N6 verification failed: ${verification.errors.join("; ")}`);
+  const recovered = report.result.decision === "recovered-exact";
+  const issue = "historical-clean-002-not-recovered-within-bounded-scope";
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N6", {
+    completedAt,
+    evidence: [...files.map((file) => file.path),
+      "src/skill-ir/skill-family-current-v2-n6.ts", "src/skill-ir/skill-family-current-v2-n6.test.ts",
+      "docs/skill-ir/skill-family-current-v2-archive-recovery.md"],
+    nextAction: "N14: replay the engineering delivery from a detached clean checkout without creating a research candidate",
+    outcome: recovered ? "completed" : "completed-with-limitation",
+    issues: recovered ? [] : [issue],
+    commit: pushed.head,
+  });
+  status.unresolvedIssues = recovered
+    ? status.unresolvedIssues.filter((entry) => entry !== "historical-clean-002-archive-missing")
+    : status.unresolvedIssues;
+  status.commits.codeCommit = pushed.head;
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N6" as const,
+    outcome: status.tasks.N6.status,
+    files,
+    result: report.result,
+    scope: report.scope,
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -1623,6 +1711,10 @@ if (import.meta.main) {
     const exploratoryCalls = Number(process.argv.find((argument) => argument.startsWith("--exploratory-source-api-calls="))
       ?.slice("--exploratory-source-api-calls=".length) ?? "0");
     console.log(JSON.stringify(await runN4SourceMaintenanceStage(process.cwd(), cacheRoot ?? "", observedAt, exploratoryCalls), null, 2));
+  }
+  else if (step === "n6") {
+    const searchedAt = process.argv.find((argument) => argument.startsWith("--searched-at="))?.slice("--searched-at=".length);
+    console.log(JSON.stringify(await runN6ArchiveRecoveryStage(process.cwd(), searchedAt), null, 2));
   }
   else if (step === "n5") {
     const python = process.argv.find((argument) => argument.startsWith("--python="))?.slice("--python=".length) ?? "python";
@@ -1661,5 +1753,5 @@ if (import.meta.main) {
   } else if (step === "n13-reclassify") {
     const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
     console.log(JSON.stringify(await runN13ReclassificationStage(process.cwd(), evaluatedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n4|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify [--legacy-cache-root=<absolute-path>] [--exploratory-source-api-calls=<count>] [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>] [--observed-at=<ISO>]");
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n4|n5|n6|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify [--legacy-cache-root=<absolute-path>] [--exploratory-source-api-calls=<count>] [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>] [--observed-at=<ISO>] [--searched-at=<ISO>]");
 }
