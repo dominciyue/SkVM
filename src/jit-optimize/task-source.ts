@@ -30,7 +30,8 @@ import { hydrateEvalPayloads } from "../bench/evaluators/index.ts"
 import { customEvaluators } from "../framework/types.ts"
 import type { CostSlice, Evidence, EvidenceCriterion, TaskSource } from "./types.ts"
 import { EvidenceCriterionSchema, emptyCostSlice, addCostSlice } from "./types.ts"
-import { parseConvLogFile } from "./evidence.ts"
+import { snapshotWorkDir } from "./evidence.ts"
+import { adaptTraceFile } from "./trace-adapters.ts"
 import { removeWorkspace } from "./workspace.ts"
 import { createLogger } from "../core/logger.ts"
 import { copySkillDir } from "../core/fs-utils.ts"
@@ -165,28 +166,36 @@ export async function loadEvidencesFromLogs(source: TaskSource): Promise<Evidenc
   const seen = new Map<string, number>()
   for (const inp of source.logs) {
     try {
-      const parsed = await parseConvLogFile(inp.path)
-      let criteria: EvidenceCriterion[] | undefined = parsed.criteria
+      const adapted = await adaptTraceFile(inp.path)
+      let suppliedCriteria: EvidenceCriterion[] | undefined
       if (inp.criteriaPath) {
         try {
           const raw = JSON.parse(await readFile(inp.criteriaPath, "utf-8"))
           const arr = Array.isArray(raw) ? raw : [raw]
-          criteria = arr.map((x) => EvidenceCriterionSchema.parse(x))
+          suppliedCriteria = arr.map((x) => EvidenceCriterionSchema.parse(x))
         } catch (err) {
           log.warn(`Failed to load criteria file ${inp.criteriaPath}: ${err}`)
         }
       }
-      const base = path.basename(inp.path).replace(/\.(jsonl?|log|txt)$/i, "")
-      const count = (seen.get(base) ?? 0) + 1
-      seen.set(base, count)
-      const taskId = count === 1 ? base : `${base}#${count}`
-      out.push({
-        taskId,
-        conversationLog: parsed.conversationLog,
-        taskPrompt: parsed.taskPrompt ?? "(task prompt not found in log)",
-        criteria,
-        // workDirSnapshot, runMeta are unavailable for log-only sources
-      })
+      for (const item of adapted.diagnostics) {
+        log.warn(`Trace ${inp.path} ${item.locator} [${item.code}]: ${item.message}`)
+      }
+      for (const record of adapted.records) {
+        let taskId = record.taskId
+        if (record.source.taskIdSource === "file-basename") {
+          const count = (seen.get(taskId) ?? 0) + 1
+          seen.set(taskId, count)
+          if (count > 1) taskId = `${taskId}#${count}`
+        }
+        out.push({
+          taskId,
+          conversationLog: record.conversationLog,
+          taskPrompt: record.taskPrompt ?? "(task prompt unavailable in source trace)",
+          criteria: suppliedCriteria ?? record.criteria,
+          workDirSnapshot: record.workDirPath ? await snapshotWorkDir(record.workDirPath) : undefined,
+          trace: record.source,
+        })
+      }
     } catch (err) {
       log.warn(`Failed to load execution log ${inp.path}: ${err}`)
     }

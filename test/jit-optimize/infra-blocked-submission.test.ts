@@ -108,4 +108,26 @@ describe("normalizeSubmission", () => {
     expect(n.infraBlocked).toBeUndefined()
     expect(n.changedFiles).toEqual(["SKILL.md"])
   })
+
+  test("retains structured opportunity coverage for edit and no-change decisions", () => {
+    const opportunity = {
+      category: "repeated-transformation" as const,
+      summary: "The same schema traversal was reimplemented in every run",
+      evidenceIds: ["0", "1"],
+      disposition: "implemented" as const,
+      residualDuty: "The agent still chooses which response facts need assertions",
+    }
+    const edited = normalizeSubmission({
+      rootCause: "x",
+      reasoning: "y",
+      confidence: 0.8,
+      changedFiles: ["scripts/project.mjs"],
+      changes: [{ file: "scripts/project.mjs", description: "share traversal", generality: "other OpenAPI tasks" }],
+      opportunities: [opportunity],
+    })
+    const unchanged = normalizeSubmission({ noChanges: true, opportunities: [opportunity] })
+
+    expect(edited.opportunities).toEqual([opportunity])
+    expect(unchanged.opportunities).toEqual([opportunity])
+  })
 })

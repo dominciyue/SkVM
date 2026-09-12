@@ -1,0 +1,50 @@
+openapi: 3.0.3
+info:
+  title: User API
+  version: 1.0.0
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+paths:
+  /users:
+    post:
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 40
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [reader, editor]
+      responses:
+        "201": { description: Created }
+        "400": { description: Invalid JSON }
+        "401": { description: Unauthorized }
+        "422": { description: Validation error }
+  /users/{userId}:
+    get:
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, minLength: 1 }
+      responses:
+        "200": { description: User }
+        "401": { description: Unauthorized }
+        "404": { description: Not found }

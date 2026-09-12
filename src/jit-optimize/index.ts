@@ -102,6 +102,18 @@ export {
   buildEvidenceFromRun,
 } from "./evidence.ts"
 export type { ParsedConvLogFile } from "./evidence.ts"
+export { adaptTraceFile } from "./trace-adapters.ts"
+export type { AdaptedTraceFile, AdaptedTraceRecord } from "./trace-adapters.ts"
+export {
+  buildTraceGuidedApiTesterPackage,
+  verifyTraceGuidedSkillPackage,
+  TraceGuidedSkillPackageManifestSchema,
+  TRACE_GUIDED_SKILL_PACKAGE_SCHEMA_VERSION,
+} from "./solidification.ts"
+export type {
+  TraceGuidedSkillPackage,
+  TraceGuidedSkillPackageManifest,
+} from "./solidification.ts"
 export {
   createWorkspace,
   serializeContext,

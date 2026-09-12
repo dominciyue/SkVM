@@ -64,4 +64,35 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("Evidence Indices")
     expect(p).toContain("blockedEvidenceIds")
   })
+
+  test("requires analysis of passing and unassessed evidence, not only failures", () => {
+    const p = buildOptimizerPrompt(4, 0)
+    expect(p).toContain("UNASSESSED")
+    expect(p).toContain("Passing evidence can still support an optimization")
+    expect(p).toContain("A missing score is not an infrastructure failure")
+  })
+
+  test("enumerates every structured opportunity and residual-duty category", () => {
+    const p = buildOptimizerPrompt(4, 0)
+    for (const category of [
+      "instruction-clarity",
+      "input-parameterization",
+      "repeated-transformation",
+      "verification",
+      "environment-dependency",
+      "residual-duty",
+    ]) {
+      expect(p).toContain(category)
+    }
+    expect(p).toContain("opportunities")
+    expect(p).toContain("evidenceIds")
+  })
+
+  test("requires portable command output and an exact declared file set", () => {
+    const p = buildOptimizerPrompt(4, 0)
+    expect(p).toContain("/dev/null")
+    expect(p).toContain("Do not create `NUL`")
+    expect(p).toContain("changedFiles")
+    expect(p).toContain("every file you create or edit")
+  })
 })

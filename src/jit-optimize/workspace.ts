@@ -142,7 +142,7 @@ interface TaskGroupRun {
   score: number | null
 }
 
-type TaskStatus = "FAILING" | "MARGINAL" | "PASSING" | "TAINTED"
+type TaskStatus = "FAILING" | "MARGINAL" | "PASSING" | "UNASSESSED" | "TAINTED"
 
 interface TaskGroup {
   taskId: string
@@ -196,15 +196,26 @@ export async function serializeContext(
             linesDelta: -1,
           },
         ],
+        opportunities: [
+          {
+            category: "instruction-clarity",
+            summary: "Evidence-backed opportunity this edit addresses.",
+            evidenceIds: ["0"],
+            disposition: "implemented",
+            residualDuty: "What the agent must still decide or execute at runtime.",
+          },
+        ],
       },
       _shape_2_no_changes: {
         noChanges: true,
         rootCause: "The failure is specific to the task fixture under tasks/task-foo/; the skill correctly instructs the agent and no generalizable fix exists.",
+        opportunities: [],
       },
       _shape_3_infra_blocked: {
         infraBlocked: true,
         blockedEvidenceIds: ["0", "1"],
         blockedReason: "Both runs have runStatus=timeout with tokens=0 and durationMs matching task.timeoutMs — the agent subprocess was killed before producing any LLM output. The 'Evidence Index' column in PER_TASK_SUMMARY.md identifies these runs (0 and 1). No skill-level diagnosis is possible.",
+        opportunities: [],
       },
     }, null, 2),
   )
@@ -320,7 +331,7 @@ function groupEvidencesByTask(evidences: Evidence[]): TaskGroup[] {
         safeId: allocateSafeId(safeTaskSlug(ev.taskId), claimedSafeIds),
         runs: [],
         mean: null,
-        status: "TAINTED",
+        status: "UNASSESSED",
         worstCriterion: null,
       }
       byId.set(ev.taskId, group)
@@ -332,7 +343,8 @@ function groupEvidencesByTask(evidences: Evidence[]): TaskGroup[] {
     // tainted — compute the run's score via the canonical
     // `scoreFromCriteria` helper (which re-walks criteria, but only once
     // per run now instead of the previous three-pass structure).
-    let hasInfra = false
+    let hasInfra = (ev.runMeta?.runStatus !== undefined && ev.runMeta.runStatus !== "ok")
+      || (ev.trace?.runStatus !== undefined && ev.trace.runStatus !== "ok")
     const criteria = ev.criteria ?? []
     for (const c of criteria) {
       if (c.infraError !== undefined) {
@@ -367,6 +379,10 @@ function groupEvidencesByTask(evidences: Evidence[]): TaskGroup[] {
           : group.mean < STATUS_THRESHOLD_FAILING
             ? "FAILING"
             : "MARGINAL"
+    } else if (group.runs.length > 0 && group.runs.every((run) => run.infraTainted)) {
+      group.status = "TAINTED"
+    } else {
+      group.status = "UNASSESSED"
     }
     const worst = worstByGroup.get(group.taskId)
     group.worstCriterion = worst === undefined
@@ -392,6 +408,7 @@ function renderPerTaskSummary(groups: TaskGroup[]): string {
   parts.push("- **FAILING** (mean < 0.5) — you're here to fix these.")
   parts.push("- **MARGINAL** (0.5 ≤ mean < 0.9) — fixable, but watch for regressions.")
   parts.push("- **PASSING** (mean ≥ 0.9) — leave them alone. Your edit must NOT lower these.")
+  parts.push("- **UNASSESSED** — usable trace/artifact evidence without a score. Analyze it, but do not invent quality labels. A missing score is not an infrastructure failure.")
   parts.push("- **TAINTED** — all runs were infra-broken; no usable score. See the Abstain section of your instructions.")
   parts.push("")
 
@@ -458,6 +475,7 @@ function serializeEvidenceJson(ev: Evidence): object {
     taskPrompt: ev.taskPrompt,
     criteria: ev.criteria ?? null,
     runMeta: ev.runMeta ?? null,
+    trace: ev.trace ?? null,
     conversationLogEntries: ev.conversationLog.length,
     workDirFileCount: ev.workDirSnapshot?.files.size ?? 0,
     conversationLog: ev.conversationLog,
@@ -563,6 +581,30 @@ function renderEvidenceMarkdown(
       } else {
         parts.push(`  stderr: ${ae.stderr.slice(0, 500)}`)
       }
+    }
+    parts.push("")
+  }
+
+  if (ev.trace) {
+    parts.push(`## External Trace Binding`)
+    parts.push("")
+    parts.push(`- format: ${ev.trace.format}`)
+    parts.push(`- representation: ${ev.trace.representation}`)
+    parts.push(`- source: ${ev.trace.sourcePath}`)
+    parts.push(`- SHA-256: ${ev.trace.inputSha256}`)
+    parts.push(`- record: ${ev.trace.recordLocator}`)
+    if (ev.trace.sourceAgent) parts.push(`- source agent: ${ev.trace.sourceAgent}`)
+    if (ev.trace.adapter) parts.push(`- adapter: ${ev.trace.adapter}${ev.trace.adapterVersion ? ` ${ev.trace.adapterVersion}` : ""}`)
+    if (ev.trace.model) parts.push(`- model: ${ev.trace.model}`)
+    if (ev.trace.system) parts.push(`- system: ${ev.trace.system}`)
+    if (ev.trace.runStatus) parts.push(`- run status: ${ev.trace.runStatus}`)
+    if (ev.trace.durationMs !== undefined) parts.push(`- duration: ${ev.trace.durationMs}ms`)
+    if (ev.trace.usage) {
+      parts.push(`- observed usage: input=${ev.trace.usage.inputTokens ?? "unknown"}, output=${ev.trace.usage.outputTokens ?? "unknown"}, costUsd=${ev.trace.usage.costUsd ?? "unknown"} (${ev.trace.usage.source})`)
+    }
+    parts.push(`- unknown fields: ${ev.trace.unknownFields.length > 0 ? ev.trace.unknownFields.join(", ") : "none"}`)
+    for (const item of ev.trace.diagnostics) {
+      parts.push(`- ${item.severity} ${item.code} at ${item.locator}: ${item.message}`)
     }
     parts.push("")
   }
@@ -679,6 +721,7 @@ function buildReadme(groups: TaskGroup[], historyCount: number): string {
   const failing = groups.filter((g) => g.status === "FAILING").length
   const marginal = groups.filter((g) => g.status === "MARGINAL").length
   const passing = groups.filter((g) => g.status === "PASSING").length
+  const unassessed = groups.filter((g) => g.status === "UNASSESSED").length
   const tainted = groups.filter((g) => g.status === "TAINTED").length
 
   const dirListing = groups
@@ -697,7 +740,7 @@ of this skill.
 - \`.optimize/PER_TASK_SUMMARY.md\` — **READ THIS FIRST.** One row per task
   with status (FAILING / MARGINAL / PASSING / TAINTED), mean score, and
   where to find its evidence. This is the landscape you're working against.
-  Counts right now: ${failing} FAILING, ${marginal} MARGINAL, ${passing} PASSING, ${tainted} TAINTED across ${taskCount} task(s) / ${runCount} run(s).
+  Counts right now: ${failing} FAILING, ${marginal} MARGINAL, ${passing} PASSING, ${unassessed} UNASSESSED, ${tainted} TAINTED across ${taskCount} task(s) / ${runCount} run(s).
 - \`.optimize/tasks/<safeTaskId>/\` — per-task directories. Each contains:
   - \`summary.md\` — the task's aggregate status and a per-run breakdown.
   - \`run-N.md\` — the full evidence for run N (conversation, criteria,
@@ -713,12 +756,12 @@ ${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous 
 
 ## What to do
 
-1. Read \`PER_TASK_SUMMARY.md\`. Identify the FAILING and MARGINAL tasks —
-   those are what you're here to fix — and the PASSING tasks — those are
-   what you must **not** make worse.
+1. Read \`PER_TASK_SUMMARY.md\`. Identify FAILING/MARGINAL defects, UNASSESSED
+   trace facts, and PASSING evidence. Passing work must not regress, but it may
+   still reveal repeated transformations or avoidable verification work.
 2. Read the relevant \`tasks/<safeTaskId>/summary.md\` and \`run-N.md\` files
-   in that order: failing first, marginal next, passing last (you read the
-   passing ones only to understand what you must not break, not to fix them).
+   in that order: failing first, marginal next, unassessed next, passing last.
+   Read each External Trace Binding before deciding what the record can prove.
 3. Read the relevant parts of this skill folder (SKILL.md is the entry point).
 4. Edit files in this workspace to fix the root cause.
 5. When done, write \`.optimize/submission.json\` with your structured summary

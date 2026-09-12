@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "skill-ir-trace-guided-optimization-status/v1",
+  "identity": "trace-guided-skill-optimization-20260913",
+  "phase": "U4-real-agent-consumption",
+  "state": "active",
+  "branch": "skill-ir-aot",
+  "startingCommit": "9a16dfa",
+  "publishedBaseCommit": "4e3471d",
+  "stageCommits": [],
+  "taskOrder": ["U0", "U1", "U2", "U3", "U4", "U5", "U6", "U7"],
+  "dependencies": [
+    "existing jit-optimize log source and proposal workspace",
+    "existing JIT-boost and Skill IR/API/Env helpers",
+    "repository-contained real agent traces",
+    "configured local headless-agent/provider route for paid optimizer and paired runs"
+  ],
+  "acceptance": {
+    "minimumClosedLoop": "one real trace -> new skill package -> actual agent consumption",
+    "targetBreadth": "three matching skills across at least two repositories, when actual evidence permits",
+    "comparison": "matched original/new agent, model, task and environment with unknown usage preserved",
+    "delivery": "focused tests, typecheck, docs, explicit commit and push to origin/skill-ir-aot"
+  },
+  "evidence": {
+    "u0Baseline": {
+      "command": "bun test ./test/cli/jit-optimize.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/task-source-criteria.test.ts",
+      "result": "45 pass, 0 fail"
+    },
+    "primaryRealRunSummary": {
+      "path": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/raw-runs.jsonl",
+      "sha256": "e77a879b72e4e6adf1e876d95e3624f7131d4db7e65bf5c586b9d616a40dfbd6",
+      "adapter": "pi",
+      "representation": "run-summary"
+    },
+    "secondaryRuntimeTrace": {
+      "path": "results/skill-ir/experimental-design-v2-durable-runtime-trace-route-2026-07-29/raw-runtime-trace.jsonl",
+      "sha256": "6c535cc4cf5f0c2bab1d392a982cb44b33fb25b008b719d7df1a76d5765250cb",
+      "adapter": "bare-agent",
+      "representation": "runtime-event-trace"
+    },
+    "u0Report": "results/skill-ir/trace-guided-skill-optimization-20260913/u0/report.json",
+    "u1TraceAdapter": {
+      "testResult": "23 pass, 0 fail",
+      "rawRunRecords": 16,
+      "durableRuntimeRecords": 1,
+      "unknownUsagePreserved": true
+    },
+    "u2Proposal": {
+      "path": ".skvm/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/source/20260912T180859860Z",
+      "bestRound": 1,
+      "structuredOpportunityCategories": 6,
+      "undeclaredNulPreservedAndExcluded": true
+    },
+    "u3Package": {
+      "path": "results/skill-ir/trace-guided-skill-optimization-20260913/u3/api-tester-package",
+      "manifestSha256": "6107be4f2351e0c03ea7be1a8538b2b1766d97d929d4718b24ec6cd43b6c1eff",
+      "repositoryRealDevelopmentInputStatus": "passed",
+      "report": "results/skill-ir/trace-guided-skill-optimization-20260913/u3/report.json"
+    }
+  },
+  "costs": {
+    "projectRuntime": {
+      "optimizerModelCalls": 2,
+      "targetAgentCalls": 0,
+      "evaluatorCalls": 0,
+      "reportedCostUsd": 0,
+      "actualCostUsd": "unknown-provider-pricing"
+    },
+    "developmentAgent": "tracked by Codex host, not charged to project runtime"
+  },
+  "openIssues": [
+    "real raw-run summaries omit full turn-by-turn conversations and may omit usage",
+    "durable runtime event trace omits task text, result content and usage",
+    "the new package has not yet been consumed by a real target agent",
+    "matched original/new effect is not yet measured",
+    "actual provider cost is unknown because the configured pricing table reports zero"
+  ],
+  "nextAction": "Run a Pi-backed target agent in a clean ordinary work directory with the packaged SKILL.md, require actual helper invocation plus residual-work completion, archive its raw trace and checker evidence, then execute matched original/new pairs.",
+  "recoveryCommand": "bun test ./test/jit-optimize/solidification.test.ts ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/optimizer-prompt.test.ts"
+}

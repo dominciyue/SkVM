@@ -16,6 +16,7 @@ import type {
   Evidence,
 } from "./types.ts"
 import { createLogger } from "../core/logger.ts"
+import { adaptTraceFile } from "./trace-adapters.ts"
 
 const log = createLogger("jit-optimize-evidence")
 
@@ -228,108 +229,17 @@ export interface ParsedConvLogFile {
  *  - Simple JSON report: { task, outcome, issues, skill_feedback }
  */
 export async function parseConvLogFile(filePath: string): Promise<ParsedConvLogFile> {
-  let raw = await Bun.file(filePath).text()
-  raw = stripBom(raw).trim()
-  raw = stripMarkdownFences(raw)
-
-  const lines = raw.split("\n").map((l) => l.trim()).filter((l) => l.length > 0)
-  if (lines.length > 0) {
-    const first = tryJson(lines[0]!)
-    if (first && typeof first === "object" && "type" in first) {
-      const entries: ConversationLogEntry[] = []
-      let taskPrompt: string | undefined
-      for (const line of lines) {
-        const p = tryJson(line)
-        if (p && typeof p === "object" && "type" in p) {
-          entries.push(p as ConversationLogEntry)
-          if (!taskPrompt && (p as ConversationLogEntry).type === "request") {
-            const txt = (p as { text?: unknown }).text
-            if (typeof txt === "string") taskPrompt = txt
-          }
-        }
-      }
-      return { conversationLog: entries, taskPrompt }
-    }
+  const adapted = await adaptTraceFile(filePath)
+  for (const item of adapted.diagnostics) {
+    log.warn(`parseConvLogFile ${item.locator} [${item.code}]: ${item.message}`)
   }
-
-  const parsed = tryJson(raw)
-  if (parsed && typeof parsed === "object") {
-    return simpleReportToParsed(parsed as SimpleReport)
+  if (adapted.records.length > 1) {
+    log.warn(`parseConvLogFile: ${filePath} contains ${adapted.records.length} records; returning the first for legacy callers`)
   }
-
-  log.warn(`parseConvLogFile: unrecognized format in ${filePath}`)
-  return { conversationLog: [] }
-}
-
-interface SimpleReport {
-  task?: string
-  outcome?: string
-  issues?: string[] | string
-  skill_feedback?: string
-}
-
-function simpleReportToParsed(report: SimpleReport): ParsedConvLogFile {
-  const entries: ConversationLogEntry[] = []
-  const ts = new Date().toISOString()
-  const taskPrompt = typeof report.task === "string" ? report.task : undefined
-
-  if (taskPrompt) {
-    entries.push({ type: "request", ts, text: taskPrompt })
-  }
-
-  const feedbackParts: string[] = []
-  if (report.outcome) feedbackParts.push(`Outcome: ${report.outcome}`)
-  if (report.issues) {
-    const issues = Array.isArray(report.issues) ? report.issues : [report.issues]
-    if (issues.length > 0) feedbackParts.push(`Issues:\n${issues.map((i) => `- ${i}`).join("\n")}`)
-  }
-  if (report.skill_feedback) feedbackParts.push(`Skill feedback:\n${report.skill_feedback}`)
-  if (feedbackParts.length > 0) {
-    entries.push({ type: "response", ts, text: feedbackParts.join("\n\n") })
-  }
-
-  const outcome = typeof report.outcome === "string" ? report.outcome.toLowerCase() : undefined
-  let criteria: EvidenceCriterion[] | undefined
-  if (outcome === "fail" || outcome === "partial") {
-    const issueList = Array.isArray(report.issues) ? report.issues : report.issues ? [report.issues] : []
-    const details = [
-      ...issueList.map((i) => `- ${i}`),
-      report.skill_feedback ? `Feedback: ${report.skill_feedback}` : "",
-    ].filter(Boolean).join("\n")
-    const score = outcome === "partial" ? 0.5 : 0
-    criteria = [{
-      id: "agent-reported",
-      name: "agent-reported",
-      method: "custom",
-      weight: 1,
-      score,
-      passed: false,
-      details: details || `outcome=${outcome}`,
-    }]
-  }
-
-  return { conversationLog: entries, taskPrompt, criteria }
-}
-
-function stripBom(s: string): string {
-  return s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s
-}
-
-function stripMarkdownFences(s: string): string {
-  const m = s.match(/^```(?:json|jsonl)?\s*\n([\s\S]*?)\n```\s*$/i)
-  return m ? m[1]!.trim() : s
-}
-
-function tryJson(s: string): unknown {
-  try {
-    return JSON.parse(s)
-  } catch {
-    try {
-      return JSON.parse(s.replace(/,(\s*[}\]])/g, "$1"))
-    } catch {
-      return null
-    }
-  }
+  const first = adapted.records[0]
+  return first
+    ? { conversationLog: first.conversationLog, taskPrompt: first.taskPrompt, criteria: first.criteria }
+    : { conversationLog: [] }
 }
 
 // ---------------------------------------------------------------------------

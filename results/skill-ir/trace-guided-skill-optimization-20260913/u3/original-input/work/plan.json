@@ -1,0 +1,245 @@
+{
+  "schemaVersion": "api-test-plan/v2",
+  "source": "public-openapi",
+  "framework": "node:test",
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/users",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-0-post-users-happy",
+          "category": "happy",
+          "request": {
+            "body": {
+              "email": "0@b.co",
+              "name": "xx0",
+              "role": "reader"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 201,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-post-users-field-0-0-required",
+          "category": "error",
+          "request": {
+            "body": {
+              "name": "xx0",
+              "role": "reader"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 400,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-post-users-field-0-1-format",
+          "category": "boundary",
+          "request": {
+            "body": {
+              "email": "0@b.co",
+              "name": "xx0",
+              "role": "reader"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 201,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-post-users-field-1-0-required",
+          "category": "error",
+          "request": {
+            "body": {
+              "email": "0@b.co",
+              "role": "reader"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 400,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-post-users-field-1-1-minLength",
+          "category": "boundary",
+          "request": {
+            "body": {
+              "email": "0@b.co",
+              "name": "xxx",
+              "role": "reader"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 201,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-post-users-field-1-2-maxLength",
+          "category": "boundary",
+          "request": {
+            "body": {
+              "email": "0@b.co",
+              "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+              "role": "reader"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 201,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-post-users-field-2-0-enum",
+          "category": "boundary",
+          "request": {
+            "body": {
+              "email": "0@b.co",
+              "name": "xx0",
+              "role": "reader"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 201,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-0-post-users-unauthorized",
+          "category": "error",
+          "request": {
+            "body": {
+              "email": "0@b.co",
+              "name": "xx0",
+              "role": "reader"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/users/{userId}",
+      "arrayParameterEncodings": [],
+      "cases": [
+        {
+          "id": "op-1-get-users-userid-happy",
+          "category": "happy",
+          "request": {
+            "path": {
+              "userId": "0"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-1-get-users-userid-field-0-0-required",
+          "category": "error",
+          "request": {
+            "path": {},
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-1-get-users-userid-field-0-1-minLength",
+          "category": "boundary",
+          "request": {
+            "path": {
+              "userId": "x"
+            },
+            "headers": {
+              "Authorization": "${API_TEST_TOKEN}"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        },
+        {
+          "id": "op-1-get-users-userid-unauthorized",
+          "category": "error",
+          "request": {
+            "path": {
+              "userId": "0"
+            },
+            "headers": {}
+          },
+          "expectedStatus": 401,
+          "assertions": [
+            "status"
+          ],
+          "independent": true,
+          "timeoutMs": 5000
+        }
+      ]
+    }
+  ]
+}

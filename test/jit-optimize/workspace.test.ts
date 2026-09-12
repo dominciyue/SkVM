@@ -272,6 +272,21 @@ describe("PER_TASK_SUMMARY.md — status bucketing", () => {
     }
   })
 
+  test("clean trace evidence without criteria is UNASSESSED rather than TAINTED", async () => {
+    const evidence = ev("trace-only", "inspect trace", [])
+    evidence.criteria = undefined
+    evidence.runMeta = undefined
+    const dir = await setupOptimizeDir([evidence])
+    try {
+      const summary = await readFile(path.join(dir, "PER_TASK_SUMMARY.md"), "utf8")
+      expect(summary).toContain("| UNASSESSED | `trace-only`")
+      expect(summary).toContain("A missing score is not an infrastructure failure")
+      expect(summary).not.toContain("| TAINTED  | `trace-only`")
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
   test("rows are sorted by mean score ascending (failures at the top)", async () => {
     const dir = await setupOptimizeDir([
       ev("task-ok", "ok", [crit({ score: 0.95 })]),

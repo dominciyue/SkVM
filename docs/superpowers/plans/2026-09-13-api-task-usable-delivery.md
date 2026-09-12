@@ -8,7 +8,7 @@
 
 **Tech Stack：** TypeScript/Bun、现有 provider/headless-agent/adapters、JIT-optimize/proposals、Skill IR/API/Env 后端，按产物需要使用 Python。
 
-**状态：** revision 2，planned-not-started，2026-09-13。沿用本文件路径，替代未执行的 API-only U0–U5；当前主队列为 U0–U7。登记计划不代表启动实现或持续目标。旧版可从 Git 提交 4ae2518 恢复。
+**状态：** revision 2，active，2026-09-13。沿用本文件路径，替代未执行的 API-only U0–U5；当前主队列为 U0–U7。2026-09-13 已从仓库真实状态启动持续实现，恢复入口见 `results/skill-ir/trace-guided-skill-optimization-20260913/status.json`。旧版可从 Git 提交 4ae2518 恢复。
 
 ## 1. 用户已经确定的方向
 
@@ -71,10 +71,10 @@
 
 **复用：** docs/architecture.md、docs/usage.md、docs/jit-boost.md；src/cli/jit-optimize.ts；src/jit-optimize/index.ts、task-source.ts、workspace.ts；src/core/headless-agent/。
 
-- [ ] 从用户已有运行或已归档 development 记录取得 skill/trace/任务资源。没有可用记录时，使用授权 agent 正常执行一个公开任务采集真实日志，注明开发者采集，不能称为用户实测。
-- [ ] 确认任务目标、skill 版本和已知环境，记录缺项；不读取账户密钥或批量扫描私人会话来凑样本。
-- [ ] 用现有 jitOptimize(config) 或 CLI 的 log 路线产生 proposal，核对实际编辑的 skill 副本。复用本机配置的 provider，不猜模型账户，不先新建命令。
-- [ ] 整理原流程、可观察事实、候选机会和剩余职责。成功或失败 trace 都可用；没有最大热点也继续，错误行为不能固化成正确答案。
+- [x] 从用户已有运行或已归档 development 记录取得 skill/trace/任务资源。没有可用记录时，使用授权 agent 正常执行一个公开任务采集真实日志，注明开发者采集，不能称为用户实测。
+- [x] 确认任务目标、skill 版本和已知环境，记录缺项；不读取账户密钥或批量扫描私人会话来凑样本。
+- [x] 用现有 jitOptimize(config) 或 CLI 的 log 路线产生 proposal，核对实际编辑的 skill 副本。复用本机配置的 provider，不猜模型账户，不先新建命令。
+- [x] 整理原流程、可观察事实、候选机会和剩余职责。成功或失败 trace 都可用；没有最大热点也继续，错误行为不能固化成正确答案。
 
 运行：bun test ./test/cli/jit-optimize.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/task-source-criteria.test.ts。只修与本次接入直接相关的基础故障。
 
@@ -82,11 +82,11 @@
 
 **修改：** src/jit-optimize/evidence.ts、types.ts、task-source.ts；必要时新增 trace-adapters.ts 与 test/jit-optimize/trace-adapters.test.ts，复用 src/adapters/ 的事件映射。
 
-- [ ] 先做测试：现有 conversation JSONL、新来源的实际导出结构、正常事件夹坏行、缺失 usage/返回、未知事件、摘要与工具 trace 区分。
-- [ ] 接入统一 Evidence，保留原始定位和可恢复事实。对旧 parser 的静默空结果、宽泛 type 判定与 SimpleReport 误识别增加诊断。
-- [ ] 首批争取两个真实 agent 来源格式；未取得第二种就明确限制，不能把同一次运行换两种编码算两个 agent。合成记录仅测试 parser。
-- [ ] 未知格式可模型辅助对齐，结果回源；无法可靠解析的部分返回诊断，不按 agent 品牌拒绝，也不伪造轨迹。
-- [ ] 缺 criterion/usage 允许生成候选，但不能自动给质量满分或用 0 计算收益。
+- [x] 先做测试：现有 conversation JSONL、新来源的实际导出结构、正常事件夹坏行、缺失 usage/返回、未知事件、摘要与工具 trace 区分。
+- [x] 接入统一 Evidence，保留原始定位和可恢复事实。对旧 parser 的静默空结果、宽泛 type 判定与 SimpleReport 误识别增加诊断。
+- [x] 首批争取两个真实 agent 来源格式；未取得第二种就明确限制，不能把同一次运行换两种编码算两个 agent。合成记录仅测试 parser。
+- [x] 未知格式可模型辅助对齐，结果回源；无法可靠解析的部分返回诊断，不按 agent 品牌拒绝，也不伪造轨迹。
+- [x] 缺 criterion/usage 允许生成候选，但不能自动给质量满分或用 0 计算收益。
 
 最低行为：只有调用、没有返回和 usage 的日志，保留调用事实；结果和 usage 为 unknown。执行新增 adapter 测试及 U0 相关输入测试。
 
@@ -94,11 +94,11 @@
 
 **修改：** src/jit-optimize/optimizer.ts、workspace.ts、types.ts；test/jit-optimize/optimizer-prompt.test.ts。需要独立结构时新增小型 opportunities.ts，复用已有职责提取和 IR。
 
-- [ ] 扩展目前主要修复失败的优化目标：PASSING 任务同样可以减少重复步骤、成本和文档负担。保留质量要求，不使用“没有失败就没有优化机会”。
-- [ ] 候选至少区分复用已有脚本、固化步骤、整理说明、修复重复错误、保留原流程；记录对应 skill 要求、trace 事件、依赖、参数和预期改变。不强求每一步都有精确 token 归因。
-- [ ] 同时考虑多个独立机会；原 agent 已调用的脚本不能被重新计作新增固化。优先已有后端，再考虑规则明确的小型新程序。
-- [ ] 文档改进和程序固化分别记账；一次 trace 未经过的限制/异常分支仍从原 skill 保留。
-- [ ] 测试成功但重复的任务能提出候选，无依据业务判断保持原流程，缺字段不能通过修改必需要求/评分规则掩盖。
+- [x] 扩展目前主要修复失败的优化目标：PASSING 任务同样可以减少重复步骤、成本和文档负担。保留质量要求，不使用“没有失败就没有优化机会”。
+- [x] 候选至少区分复用已有脚本、固化步骤、整理说明、修复重复错误、保留原流程；记录对应 skill 要求、trace 事件、依赖、参数和预期改变。不强求每一步都有精确 token 归因。
+- [x] 同时考虑多个独立机会；原 agent 已调用的脚本不能被重新计作新增固化。优先已有后端，再考虑规则明确的小型新程序。
+- [x] 文档改进和程序固化分别记账；一次 trace 未经过的限制/异常分支仍从原 skill 保留。
+- [x] 测试成功但重复的任务能提出候选，无依据业务判断保持原流程，缺字段不能通过修改必需要求/评分规则掩盖。
 
 运行：bun test ./test/jit-optimize/optimizer-prompt.test.ts。补充候选行为/职责保留测试，不仅增加逐字提示词断言。
 
@@ -106,12 +106,12 @@
 
 **复用：** src/jit-boost/candidates.ts、Skill IR API/Env 公共函数、原 skill 自带脚本和 JIT-optimize 工作区。必要时新增薄的 src/jit-optimize/solidification.ts 与测试；不改冻结 benchmark runner。
 
-- [ ] 将可匹配职责接到已有函数/脚本。规则明确且现有后端不覆盖的简单步骤可以由模型生成小程序，必须验证输入输出；不现场发明完整领域编译器。
-- [ ] 将输入路径、业务参数和资源依赖参数化，不硬编码第一次答案或秘密，不无条件冻结动态环境。
-- [ ] 多步骤任务由新 SKILL.md 调用脚本并继续剩余工作。现有 boost 的全 run short-circuit 仅用于确实覆盖整个任务的情形，不能局部提速后提前结束。
-- [ ] 按需构造、局部检查。无关字段或响应缺口不牵连独立产物；错误产物隔离，未完成义务继续保留。
-- [ ] API 空 form、数字/布尔编码、负例/native 按实际需求修复并由共享能力承接；无响应依据不猜业务状态。旧默认兼容不禁止新开发能力。
-- [ ] 验证原输入、一个变化输入和一个不适用情形：方法能参数化，不适用时能回到原流程，而非制造假成功。
+- [x] 将可匹配职责接到已有函数/脚本。规则明确且现有后端不覆盖的简单步骤可以由模型生成小程序，必须验证输入输出；不现场发明完整领域编译器。
+- [x] 将输入路径、业务参数和资源依赖参数化，不硬编码第一次答案或秘密，不无条件冻结动态环境。
+- [x] 多步骤任务由新 SKILL.md 调用脚本并继续剩余工作。现有 boost 的全 run short-circuit 仅用于确实覆盖整个任务的情形，不能局部提速后提前结束。
+- [x] 按需构造、局部检查。无关字段或响应缺口不牵连独立产物；错误产物隔离，未完成义务继续保留。
+- [x] API 空 form、数字/布尔编码、负例/native 按实际需求修复并由共享能力承接；无响应依据不猜业务状态。旧默认兼容不禁止新开发能力。
+- [x] 验证原输入、一个变化输入和一个不适用情形：方法能参数化，不适用时能回到原流程，而非制造假成功。
 
 根据改动运行 API task/后端、Env 或新脚本测试；纯文档变更不重跑所有后端。
 

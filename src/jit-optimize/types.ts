@@ -29,6 +29,85 @@ export const ConversationLogEntrySchema = z
   })
   .passthrough()
 
+export type TraceRepresentation =
+  | "conversation-trace"
+  | "run-summary"
+  | "runtime-event-trace"
+  | "simple-report"
+
+export interface TraceDiagnostic {
+  code: string
+  severity: "warning" | "error"
+  message: string
+  locator: string
+}
+
+export interface TraceUsage {
+  inputTokens?: number
+  outputTokens?: number
+  costUsd?: number
+  source: string
+}
+
+/** Source binding retained when an external execution trace becomes Evidence. */
+export interface TraceEvidenceSource {
+  format: string
+  representation: TraceRepresentation
+  sourcePath: string
+  inputSha256: string
+  recordLocator: string
+  taskIdSource: "source" | "file-basename"
+  sourceAgent?: string
+  adapter?: string
+  adapterVersion?: string
+  model?: string
+  system?: string
+  taskPath?: string
+  skillPath?: string
+  workDirPath?: string
+  runIndex?: number
+  runStatus?: string
+  durationMs?: number
+  usage?: TraceUsage
+  unknownFields: string[]
+  diagnostics: TraceDiagnostic[]
+}
+
+export const TraceDiagnosticSchema = z.object({
+  code: z.string(),
+  severity: z.enum(["warning", "error"]),
+  message: z.string(),
+  locator: z.string(),
+})
+
+export const TraceEvidenceSourceSchema = z.object({
+  format: z.string(),
+  representation: z.enum(["conversation-trace", "run-summary", "runtime-event-trace", "simple-report"]),
+  sourcePath: z.string(),
+  inputSha256: z.string(),
+  recordLocator: z.string(),
+  taskIdSource: z.enum(["source", "file-basename"]),
+  sourceAgent: z.string().optional(),
+  adapter: z.string().optional(),
+  adapterVersion: z.string().optional(),
+  model: z.string().optional(),
+  system: z.string().optional(),
+  taskPath: z.string().optional(),
+  skillPath: z.string().optional(),
+  workDirPath: z.string().optional(),
+  runIndex: z.number().int().optional(),
+  runStatus: z.string().optional(),
+  durationMs: z.number().nonnegative().optional(),
+  usage: z.object({
+    inputTokens: z.number().nonnegative().optional(),
+    outputTokens: z.number().nonnegative().optional(),
+    costUsd: z.number().nonnegative().optional(),
+    source: z.string(),
+  }).optional(),
+  unknownFields: z.array(z.string()),
+  diagnostics: z.array(TraceDiagnosticSchema),
+})
+
 // ---------------------------------------------------------------------------
 // Work directory snapshot
 // ---------------------------------------------------------------------------
@@ -206,6 +285,8 @@ export interface Evidence {
   workDirSnapshot?: WorkDirSnapshot
   /** Agent run metadata (tokens, duration, errors) */
   runMeta?: RunMeta
+  /** Exact external trace binding and its known/unknown representation limits. */
+  trace?: TraceEvidenceSource
 }
 
 /**
@@ -220,6 +301,7 @@ export const EvidenceSidecarSchema = z.object({
   taskPrompt: z.string(),
   criteria: z.array(EvidenceCriterionSchema).optional(),
   runMeta: RunMetaSchema.optional(),
+  trace: TraceEvidenceSourceSchema.optional(),
 })
 
 export type EvidenceSidecar = z.infer<typeof EvidenceSidecarSchema>
@@ -354,6 +436,8 @@ export interface OptimizeSubmission {
   changedFiles: string[]
   /** Structured per-file change summary */
   changes?: OptimizationChange[]
+  /** Evidence-backed opportunity audit, including retained residual duties. */
+  opportunities?: OptimizationOpportunity[]
   /**
    * Positive statement about the skill: "I read the evidence, diagnosed no
    * skill defect, and recommend no edit." Mutually exclusive with
@@ -384,12 +468,44 @@ export interface OptimizeSubmission {
   blockedReason?: string
 }
 
+export type OptimizationOpportunityCategory =
+  | "instruction-clarity"
+  | "input-parameterization"
+  | "repeated-transformation"
+  | "verification"
+  | "environment-dependency"
+  | "residual-duty"
+
+export interface OptimizationOpportunity {
+  category: OptimizationOpportunityCategory
+  summary: string
+  evidenceIds: string[]
+  disposition: "implemented" | "retained" | "not-applicable"
+  residualDuty?: string
+}
+
+export const OptimizationOpportunitySchema = z.object({
+  category: z.enum([
+    "instruction-clarity",
+    "input-parameterization",
+    "repeated-transformation",
+    "verification",
+    "environment-dependency",
+    "residual-duty",
+  ]),
+  summary: z.string(),
+  evidenceIds: z.array(z.string()),
+  disposition: z.enum(["implemented", "retained", "not-applicable"]),
+  residualDuty: z.string().optional(),
+})
+
 export const OptimizeSubmissionSchema = z.object({
   rootCause: z.string().optional(),
   reasoning: z.string().optional(),
   confidence: z.number().optional(),
   changedFiles: z.array(z.string()).optional(),
   changes: z.array(OptimizationChangeSchema).optional(),
+  opportunities: z.array(OptimizationOpportunitySchema).optional(),
   noChanges: z.boolean().optional(),
   infraBlocked: z.boolean().optional(),
   blockedEvidenceIds: z.array(z.string()).optional(),

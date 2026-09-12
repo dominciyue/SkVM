@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "skill-ir-trace-guided-u0-report/v1",
+  "identity": "trace-guided-skill-optimization-20260913-u0",
+  "status": "completed-with-preserved-revision",
+  "sourceSkill": {
+    "path": "benchmarks/skill-ir/pilots/api-tester/source",
+    "skillSha256": "b3447ad9e341154e65d8872d5a2ae046a740979897e1921d0bdc23b70c12060a"
+  },
+  "trace": {
+    "path": "results/skill-ir/api-tester-schema-derived-artifact-development-v1/raw-runs.jsonl",
+    "sha256": "e77a879b72e4e6adf1e876d95e3624f7131d4db7e65bf5c586b9d616a40dfbd6",
+    "representation": "run-summary",
+    "recordCount": 16,
+    "limitation": "The source preserves task, final-output, workdir, status, duration and some usage facts, but is not a full turn-by-turn conversation trace."
+  },
+  "baseline": {
+    "command": "bun test ./test/cli/jit-optimize.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/task-source-criteria.test.ts",
+    "result": "45 pass, 0 fail"
+  },
+  "attempts": [
+    {
+      "proposal": ".skvm/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/source/20260912T180338014Z",
+      "metaSha256": "3faae63b4baa905c6521861897685cf2fe779225483a6fe06df0ffc0a3c8dcd3",
+      "result": "no-change-invalid-infra-classification",
+      "preservedFailure": "All scoreless run-summary evidence was classified as infrastructure-blocked even though all source rows reported runStatus=ok.",
+      "optimizerUsage": { "input": 19507, "output": 2073, "cacheRead": 68096, "cacheWrite": 0 },
+      "reportedCostUsd": 0,
+      "actualCostUsd": "unknown-provider-pricing"
+    },
+    {
+      "proposal": ".skvm/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/source/20260912T180859860Z",
+      "metaSha256": "e7ea1d3f93fe55374f68b1e89db393d553cdfb4010abc6540dadaefe62b88640",
+      "submissionSha256": "e7094939d184cb379393d398c97e511277f91a8ded7deaeacecbdc3886134b01",
+      "result": "best-round-1-log-only",
+      "optimizerUsage": { "input": 50566, "output": 6752, "cacheRead": 294912, "cacheWrite": 0 },
+      "reportedCostUsd": 0,
+      "actualCostUsd": "unknown-provider-pricing",
+      "preservedIssue": "The optimizer used POSIX shell redirection to NUL, producing an undeclared round-only file. The optimized SKILL.md remained declared and useful; package construction records and excludes NUL, and the optimizer prompt now forbids this non-portable pattern."
+    }
+  ],
+  "accounting": {
+    "optimizerModelCalls": 2,
+    "targetAgentCalls": 0,
+    "evaluatorCalls": 0,
+    "knownProjectRuntimeCostUsd": null,
+    "developmentAgent": "tracked separately by the Codex host"
+  },
+  "claimBoundary": "This development evidence establishes a real trace-to-proposal path and a preserved revision. It does not establish target-agent benefit, held-out behavior, readiness, human savings or real API behavior."
+}

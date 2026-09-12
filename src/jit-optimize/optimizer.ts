@@ -189,6 +189,7 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
       confidence: raw.confidence ?? 0,
       changedFiles: [],
       changes: [],
+      opportunities: raw.opportunities ?? [],
       noChanges: false,
       infraBlocked: true,
       blockedEvidenceIds: raw.blockedEvidenceIds ?? [],
@@ -202,6 +203,7 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
       confidence: raw.confidence ?? 1,
       changedFiles: [],
       changes: [],
+      opportunities: raw.opportunities ?? [],
       noChanges: true,
     }
   }
@@ -211,6 +213,7 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
     confidence: raw.confidence ?? 0,
     changedFiles: raw.changedFiles ?? [],
     changes: raw.changes ?? [],
+    opportunities: raw.opportunities ?? [],
     noChanges: false,
   }
 }
@@ -222,6 +225,7 @@ function emptySubmission(reason: string): OptimizeSubmission {
     confidence: 0,
     changedFiles: [],
     changes: [],
+    opportunities: [],
     noChanges: false,
   }
 }
@@ -248,14 +252,15 @@ submission mechanism for content changes.
 ## Context Files
 
 Read \`.optimize/PER_TASK_SUMMARY.md\` FIRST. It lists every task in round 0,
-bucketed as FAILING / MARGINAL / PASSING / TAINTED, with each task's mean
+bucketed as FAILING / MARGINAL / PASSING / UNASSESSED / TAINTED, with each task's mean
 score and where to find its evidence. This is the landscape you're working
 against and the anchor for the No-trade-off rule below.
 
 Then read \`.optimize/README.md\` — it explains the full layout. In short:
 
-- \`.optimize/PER_TASK_SUMMARY.md\` — per-task status table. The PASSING
-  rows are tasks you must NOT make worse.
+- \`.optimize/PER_TASK_SUMMARY.md\` — per-task status table. PASSING rows are
+  usable evidence and must not regress; UNASSESSED rows have trace/artifact
+  evidence but no quality score. A missing score is not an infrastructure failure.
 - \`.optimize/tasks/<safeTaskId>/summary.md\` — one task's aggregate status
   and per-run breakdown. There are ${evidenceCount} total run(s) grouped
   under these directories.
@@ -270,19 +275,30 @@ ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous op
 
 ## Method
 
-1. Read \`PER_TASK_SUMMARY.md\` to get the per-task landscape. Identify the
-   FAILING and MARGINAL tasks (those are what you're here to fix) and the
-   PASSING tasks (those are what you must not make worse).
+1. Read \`PER_TASK_SUMMARY.md\` to get the per-task landscape. Analyze every
+   usable status: FAILING/MARGINAL for defects, UNASSESSED for visible workflow
+   facts without a quality label, and PASSING for reusable quality, efficiency,
+   verification and clarity opportunities that must not regress.
 2. Read the relevant task directories under \`.optimize/tasks/\` —
-   **failing/marginal first, passing last**. You read the passing tasks'
-   evidence only to understand what you must not break, not to fix them.
+   **failing/marginal first, unassessed next, passing last**. Passing evidence
+   can still support an optimization when repeated work or a general contract
+   gap is visible; it is not limited to regression protection.
    For each failing task, look at every run-N.md it has: if a task failed
    on the same criterion across multiple runs, that is a skill defect; if
    it failed differently each time, the failure is task-or-infra-specific
    and is probably NOT a skill defect.
 3. ${historyCount > 0 ? "Read history.md. Do not repeat diagnoses that previous rounds tried and failed to improve. If previous rounds clarified something and it didn't help, the problem is elsewhere — look harder." : "Read the skill files you need to understand (SKILL.md is the entry point)."}
-4. Identify the root cause of the failures. State it as an underlying gap in
-   the skill's instructions, not as a list of changes. Good root causes are
+4. Inventory every evidence-backed opportunity before choosing edits. Use
+   these exact categories in the submission: \`instruction-clarity\`,
+   \`input-parameterization\`, \`repeated-transformation\`, \`verification\`,
+   \`environment-dependency\`, and \`residual-duty\`. For each category, cite
+   the Evidence Indices, decide implemented/retained/not-applicable, and state
+   any residual agent duty. Do not treat an absent score or absent criterion as
+   a failure. Passing evidence can still support an optimization; repeated
+   transformations and avoidable verification work are positive evidence.
+
+   Then identify the root cause of the selected opportunity. State it as an underlying gap in
+   the skill's instructions or bundle, not as a list of changes. Good root causes are
    specific and causal ("the skill tells the agent to do X but never explains
    what Y means, so the agent guesses wrong when Y comes up"), not vague
    ("the instructions could be clearer").
@@ -357,10 +373,16 @@ Write \`.optimize/submission.json\` with these fields (see
     a change, remove that change and reconsider the root cause.
   - \`linesDelta\` (optional): net line delta for this change
     (\`linesAdded - linesRemoved\`). Used for concise-diff auditing.
+- \`opportunities\` (array, required for the evidence audit even when no edit is
+  made): one item per applicable category, shaped as
+  \`{"category","summary","evidenceIds","disposition","residualDuty"?}\`.
+  \`disposition\` is \`implemented\`, \`retained\`, or \`not-applicable\`. Do not mark
+  a residual duty implemented merely because the skill documents it.
 
 If you determine the skill needs no changes — the evidence shows the skill is
-fine and any failure is due to the task, fixture, or model — write only
-\`{"noChanges": true}\` to submission.json and do NOT edit any files. This is a
+fine and every observed opportunity is already handled or must remain a
+residual duty — write \`{"noChanges": true, "opportunities": [...]}\` to
+submission.json and do NOT edit any files. This is a
 legitimate outcome, not a failure: the Pre-Edit Checklist in step 4(a) is
 designed to surface task-specific failures that should NOT be patched into
 the skill.
@@ -375,6 +397,10 @@ unparseable output. The evaluator was NOT run against the work directory for
 these runs — any criteria you see are stubs carrying \`infraError\`, not real
 evaluations. Don't try to diagnose a skill defect from a run whose agent
 never actually got to work.
+
+A missing score, missing criteria, or \`UNASSESSED\` status alone is not an
+infrastructure failure. External trace bindings may carry \`run status: ok\`
+without evaluator scores; analyze their visible task, output and workdir facts.
 
 If at least one run has \`runStatus !== 'ok'\` AND the remaining clean
 evidence (if any) is insufficient to support a skill-level root cause, write:
@@ -424,6 +450,11 @@ Rules for \`infraBlocked\`:
   show they contradict your fix.
 - **Diagnose before prescribing**: know the root cause before you write any
   edits. A fix without a clear diagnosis is a guess.
+- **Portable shell output**: when discarding command output from a POSIX shell,
+  redirect to \`/dev/null\`. Do not create \`NUL\`; on non-Windows shells that is
+  an ordinary file and would become an undeclared artifact. You must list
+  every file you create or edit in \`changedFiles\` and leave no scratch files
+  behind.
 - **Do not delete evidence**: the \`.optimize/\` directory is read-only to you
   conceptually. Do not remove or modify files under it.
 
