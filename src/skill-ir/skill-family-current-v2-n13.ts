@@ -363,6 +363,21 @@ function processEnv(): Record<string, string | undefined> {
   return Object.fromEntries(Object.entries(process.env));
 }
 
+export function createCurrentV2SchemathesisEnvironment(
+  base: Record<string, string | undefined> = processEnv(),
+): Record<string, string | undefined> {
+  return {
+    ...base,
+    HTTP_PROXY: "http://127.0.0.1:1",
+    HTTPS_PROXY: "http://127.0.0.1:1",
+    ALL_PROXY: "http://127.0.0.1:1",
+    NO_PROXY: "127.0.0.1,localhost",
+    PYTHONDONTWRITEBYTECODE: "1",
+    PYTHONUTF8: "1",
+    PYTHONIOENCODING: "utf-8",
+  };
+}
+
 async function mutateResponse(response: Response, fault: FaultId | null, apply: boolean): Promise<Response> {
   if (!fault || !apply) return response;
   const headers = new Headers(response.headers);
@@ -434,13 +449,7 @@ async function runExternalScenario(options: {
       arguments: arguments_,
       cwd: options.repositoryRoot,
       timeoutMs: 45_000,
-      environment: {
-        HTTP_PROXY: "http://127.0.0.1:1",
-        HTTPS_PROXY: "http://127.0.0.1:1",
-        ALL_PROXY: "http://127.0.0.1:1",
-        NO_PROXY: "127.0.0.1,localhost",
-        PYTHONDONTWRITEBYTECODE: "1",
-      },
+      environment: createCurrentV2SchemathesisEnvironment(),
     });
   } finally {
     await server.stop(true);

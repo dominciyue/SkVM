@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { currentV2LoopbackFixtures } from "./skill-family-current-v2-n5";
 import {
   collectSchemathesisFailureChecks,
+  createCurrentV2SchemathesisEnvironment,
   createCurrentV2SchemathesisArguments,
   deriveCurrentV2AddedValueEvidence,
 } from "./skill-family-current-v2-n13";
@@ -46,6 +47,14 @@ test("N13 attributes a fault only to the named Schemathesis check", () => {
     "status_code_conformance",
   ]);
   expect(collectSchemathesisFailureChecks({ error: "some unrelated crash" })).toEqual([]);
+});
+
+test("N13 forces UTF-8 for Schemathesis subprocess output on Windows", () => {
+  const environment = createCurrentV2SchemathesisEnvironment({ PATH: "fixture-path" });
+  expect(environment.PATH).toBe("fixture-path");
+  expect(environment.PYTHONUTF8).toBe("1");
+  expect(environment.PYTHONIOENCODING).toBe("utf-8");
+  expect(environment.NO_PROXY).toBe("127.0.0.1,localhost");
 });
 
 test("N13 derives traceability and task-conditioned deltas from archived evidence", async () => {

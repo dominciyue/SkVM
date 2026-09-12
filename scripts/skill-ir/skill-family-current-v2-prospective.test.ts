@@ -13,6 +13,7 @@ import {
   runN7ReadinessStage,
   runN13ComparisonStage,
   runN13RevisionStage,
+  runN13Revision2Stage,
   runN10RevisionStage,
   runResearchGateStage,
   selectNextRunnableTask,
@@ -58,6 +59,10 @@ describe("current-v2 stage orchestration", () => {
 
   test("exposes a separate N13 revision path that cannot overwrite the initial failure", () => {
     expect(runN13RevisionStage).toBeFunction();
+  });
+
+  test("exposes a second N13 revision only after the archived Windows encoding failure", () => {
+    expect(runN13Revision2Stage).toBeFunction();
   });
 
   test("records the complete N0-N15 graph and resumes at N1 after N0", () => {

@@ -1172,7 +1172,8 @@ export async function runN13ComparisonStage(
   const state = await readStageState(root);
   const reportRelative = `${CURRENT_V2_RESULT_RELATIVE}/comparison/schemathesis-report.json`;
   if (["completed", "completed-with-limitation"].includes(state.status.tasks.N13.status)) {
-    const latestReport = state.status.tasks.N13.evidence.find((path) => path.endsWith("comparison/revision-001/schemathesis-report.json"))
+    const latestReport = [...state.status.tasks.N13.evidence].reverse()
+      .find((path) => /comparison\/revision-[0-9]+\/schemathesis-report\.json$/u.test(path))
       ?? reportRelative;
     const bytes = await readFile(join(root, latestReport));
     const report = JSON.parse(bytes.toString("utf8")) as CurrentV2N13Report;
@@ -1337,6 +1338,100 @@ export async function runN13RevisionStage(
   };
 }
 
+export async function runN13Revision2Stage(
+  root: string,
+  schemathesisExecutable = "schemathesis",
+  evaluatedAt = new Date().toISOString(),
+) {
+  const state = await readStageState(root);
+  const previousRelative = `${CURRENT_V2_RESULT_RELATIVE}/comparison/revision-001/schemathesis-report.json`;
+  const revisionDirectory = `${CURRENT_V2_RESULT_RELATIVE}/comparison/revision-002`;
+  const revisionRelative = `${revisionDirectory}/schemathesis-report.json`;
+  if (state.status.tasks.N13.evidence.includes(revisionRelative)) {
+    const bytes = await readFile(join(root, revisionRelative));
+    const report = JSON.parse(bytes.toString("utf8")) as CurrentV2N13Report;
+    const verification = await verifyCurrentV2N13Comparison({ repositoryRoot: root, report });
+    if (verification.status !== "pass") fail(`N13 revision-002 verification failed: ${verification.errors.join("; ")}`);
+    return {
+      taskId: "N13" as const,
+      outcome: "revision-002-verified-existing" as const,
+      file: { path: revisionRelative, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+      decision: report.decision,
+      summary: report.summary,
+      verification,
+      view: state.view,
+    };
+  }
+  if (state.status.tasks.N13.status !== "completed-with-limitation"
+    || !state.status.tasks.N13.evidence.includes(previousRelative)) {
+    fail("N13 revision-002 requires the archived revision-001 limitation");
+  }
+  const pushed = await requirePushedImmutableFile(root, previousRelative);
+  const previousBytes = await readFile(join(root, previousRelative));
+  const previousReport = JSON.parse(previousBytes.toString("utf8")) as CurrentV2N13Report;
+  const previousVerification = await verifyCurrentV2N13Comparison({ repositoryRoot: root, report: previousReport });
+  const encodingFailure = await readFile(join(root,
+    `${CURRENT_V2_RESULT_RELATIVE}/comparison/revision-001/raw/baseline-json-reference/stdout.txt`), "utf8");
+  if (previousVerification.status !== "pass" || previousReport.summary.actualLoopbackHttpCalls !== 0
+    || !encodingFailure.includes("UnicodeEncodeError: 'gbk' codec can't encode character")) {
+    fail("N13 revision-001 does not match the preserved Windows encoding failure");
+  }
+  let report: CurrentV2N13Report;
+  let files: Array<{ path: string; sha256: string; bytes: number }>;
+  try {
+    const bytes = await readFile(join(root, revisionRelative));
+    report = JSON.parse(bytes.toString("utf8")) as CurrentV2N13Report;
+    if (report.codeCommit !== pushed.head) fail("N13 revision-002 does not bind the current pushed code commit");
+    files = await Promise.all([
+      revisionRelative,
+      `${revisionDirectory}/tool-baseline.json`,
+      `${revisionDirectory}/added-value.md`,
+    ].map(async (path) => {
+      const fileBytes = await readFile(join(root, path));
+      return { path, sha256: createHash("sha256").update(fileBytes).digest("hex"), bytes: fileBytes.byteLength };
+    }));
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("invalid current-v2 stage: N13 revision-002")) throw error;
+    const built = await writeCurrentV2N13Comparison({
+      repositoryRoot: root,
+      codeCommit: pushed.head,
+      executedAt: evaluatedAt,
+      schemathesisExecutable,
+      relativeOutputDirectory: revisionDirectory,
+    });
+    report = built.report;
+    files = built.files;
+  }
+  const verification = await verifyCurrentV2N13Comparison({ repositoryRoot: root, report });
+  if (verification.status !== "pass") fail(`N13 revision-002 verification failed: ${verification.errors.join("; ")}`);
+  const completedAt = new Date().toISOString();
+  const status = structuredClone(state.status);
+  status.tasks.N13 = {
+    status: report.decision,
+    commit: report.codeCommit,
+    evidence: [...new Set([...status.tasks.N13.evidence, ...files.map((file) => file.path)])],
+    issues: report.issues,
+    startedAt: status.tasks.N13.startedAt,
+    completedAt,
+  };
+  status.updatedAt = completedAt;
+  status.nextAction = "N4: run the time-boxed Meilisearch and Bangumi source maintenance without broadening the construction contract";
+  status.commits.codeCommit = report.codeCommit;
+  status.accounting.nativeLoopbackHttpCalls += report.accounting.loopbackHttpCalls;
+  validateStageState(state.manifest, status);
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N13" as const,
+    outcome: report.decision,
+    files,
+    summary: report.summary,
+    issues: report.issues,
+    previousFailure: { path: previousRelative, sha256: createHash("sha256").update(previousBytes).digest("hex") },
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -1374,5 +1469,9 @@ if (import.meta.main) {
     const executable = process.argv.find((argument) => argument.startsWith("--schemathesis="))?.slice("--schemathesis=".length) ?? "schemathesis";
     const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
     console.log(JSON.stringify(await runN13RevisionStage(process.cwd(), executable, evaluatedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
+  } else if (step === "n13-revision-002") {
+    const executable = process.argv.find((argument) => argument.startsWith("--schemathesis="))?.slice("--schemathesis=".length) ?? "schemathesis";
+    const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
+    console.log(JSON.stringify(await runN13Revision2Stage(process.cwd(), executable, evaluatedAt), null, 2));
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n5|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002 [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>]");
 }
