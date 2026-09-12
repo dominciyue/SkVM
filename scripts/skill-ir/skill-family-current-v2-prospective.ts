@@ -15,6 +15,11 @@ import {
   writeCurrentV2N6ArchiveSearch,
   type CurrentV2N6ArchiveSearchReport,
 } from "../../src/skill-ir/skill-family-current-v2-n6";
+import {
+  runCurrentV2N14CleanReplay,
+  verifyCurrentV2N14CleanReplay,
+  type CurrentV2N14CleanReplayReport,
+} from "../../src/skill-ir/skill-family-current-v2-n14";
 import { writeN5ConsumerReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n5";
 import { writeN8EngineReportFromRepository } from "../../src/skill-ir/skill-family-current-v2-n8";
 import {
@@ -1698,6 +1703,119 @@ export async function runN6ArchiveRecoveryStage(
   };
 }
 
+export async function runN14CleanReplayStage(root: string, options?: {
+  checkoutRoot?: string;
+  outputRoot?: string;
+  pythonBaseExecutable?: string;
+  pythonArchive?: string;
+  attempt?: number;
+  completedAt?: string;
+}) {
+  const state = await readStageState(root);
+  const reportRelative = `${CURRENT_V2_RESULT_RELATIVE}/clean-replay/report.json`;
+  if (state.status.tasks.N14.status === "completed") {
+    const bytes = await readFile(join(root, reportRelative));
+    const report = JSON.parse(bytes.toString("utf8")) as CurrentV2N14CleanReplayReport;
+    const verification = await verifyCurrentV2N14CleanReplay({ repositoryRoot: root, report });
+    if (verification.status !== "pass") fail(`N14 verification failed: ${verification.errors.join("; ")}`);
+    return {
+      taskId: "N14" as const,
+      outcome: "verified-existing" as const,
+      file: { path: reportRelative, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.byteLength },
+      replay: report.replay,
+      verification,
+      view: state.view,
+    };
+  }
+  if (selectNextRunnableTask(state.manifest, state.status) !== "N14") fail("N14 is not the current runnable stage");
+  if (["N9", "N11", "N12"].some((task) => state.status.tasks[task as "N9" | "N11" | "N12"].status !== "not-executed")) {
+    fail("N14 engineering fallback requires the actual not-executed research chain");
+  }
+  const pushed = await requirePushedImmutableFile(root,
+    `${CURRENT_V2_RESULT_RELATIVE}/archive-recovery/clean-002-search.json`);
+  let existing: Uint8Array | null = null;
+  try {
+    existing = new Uint8Array(await readFile(join(root, reportRelative)));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  let report: CurrentV2N14CleanReplayReport;
+  let files: Array<{ path: string; sha256: string; bytes: number }>;
+  if (existing) {
+    report = JSON.parse(new TextDecoder().decode(existing)) as CurrentV2N14CleanReplayReport;
+    files = [report.provenance.attempt, report.provenance.insideReport, report.provenance.archiveManifest,
+      { path: reportRelative, sha256: createHash("sha256").update(existing).digest("hex"), bytes: existing.byteLength }];
+  } else {
+    const required = {
+      checkoutRoot: options?.checkoutRoot,
+      outputRoot: options?.outputRoot,
+      pythonBaseExecutable: options?.pythonBaseExecutable,
+      pythonArchive: options?.pythonArchive,
+    };
+    if (Object.values(required).some((value) => !value)) fail("N14 requires checkout, output, Python base, and Python archive paths");
+    const built = await runCurrentV2N14CleanReplay({
+      repositoryRoot: root,
+      codeCommit: pushed.head,
+      checkoutRoot: required.checkoutRoot!,
+      outputRoot: required.outputRoot!,
+      pythonBaseExecutable: required.pythonBaseExecutable!,
+      pythonArchive: required.pythonArchive!,
+      attempt: options?.attempt ?? 1,
+      completedAt: options?.completedAt,
+    });
+    if (built.outcome === "failed") {
+      const now = new Date().toISOString();
+      const status = structuredClone(state.status);
+      status.tasks.N14 = {
+        status: "running",
+        commit: pushed.head,
+        evidence: [...new Set([...status.tasks.N14.evidence, ...built.files.map((file) => file.path)])],
+        issues: built.issues,
+        startedAt: status.tasks.N14.startedAt ?? now,
+        completedAt: null,
+      };
+      status.currentStage = "N14";
+      status.updatedAt = now;
+      status.nextAction = `N14: preserve attempt ${options?.attempt ?? 1} and repair the recorded clean-replay failure without relaxing semantics`;
+      status.commits.codeCommit = pushed.head;
+      validateStageState(state.manifest, status);
+      await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+      return { taskId: "N14" as const, outcome: "failed-attempt-preserved" as const,
+        files: built.files, issues: built.issues, view: deriveStageView(state.manifest, status) };
+    }
+    report = built.report;
+    files = built.files;
+  }
+  if (report.engineeringCodeCommit !== pushed.head || report.researchCandidate !== null) {
+    fail("N14 report does not bind the current pushed engineering code or invented a research candidate");
+  }
+  const verification = await verifyCurrentV2N14CleanReplay({ repositoryRoot: root, report });
+  if (verification.status !== "pass") fail(`N14 verification failed: ${verification.errors.join("; ")}`);
+  const completedAt = new Date().toISOString();
+  const status = completeTask(state.manifest, state.status, "N14", {
+    completedAt,
+    evidence: [...new Set([...state.status.tasks.N14.evidence, ...files.map((file) => file.path),
+      "src/skill-ir/skill-family-current-v2-n14.ts", "src/skill-ir/skill-family-current-v2-n14.test.ts",
+      "scripts/skill-ir/skill-family-current-v2-clean-replay.ts",
+      "docs/skill-ir/skill-family-current-v2-clean-replay.md"])],
+    nextAction: "N15: produce the final engineering/research-separated report and fresh delivery verification",
+    outcome: "completed",
+    commit: pushed.head,
+  });
+  status.accounting.nativeLoopbackHttpCalls += report.accounting.nativeLoopbackHttpCalls;
+  status.commits.codeCommit = pushed.head;
+  await writeFile(join(root, CURRENT_V2_RESULT_RELATIVE, "execution-status.json"), `${JSON.stringify(status, null, 2)}\n`);
+  return {
+    taskId: "N14" as const,
+    outcome: "completed" as const,
+    files,
+    replay: report.replay,
+    archive: report.provenance.archiveManifest,
+    verification,
+    view: deriveStageView(state.manifest, status),
+  };
+}
+
 if (import.meta.main) {
   const step = process.argv.find((argument) => argument.startsWith("--step="))?.slice("--step=".length);
   if (step === "status") console.log(JSON.stringify((await readStageState(process.cwd())).view, null, 2));
@@ -1715,6 +1833,17 @@ if (import.meta.main) {
   else if (step === "n6") {
     const searchedAt = process.argv.find((argument) => argument.startsWith("--searched-at="))?.slice("--searched-at=".length);
     console.log(JSON.stringify(await runN6ArchiveRecoveryStage(process.cwd(), searchedAt), null, 2));
+  }
+  else if (step === "n14") {
+    const checkoutRoot = process.argv.find((argument) => argument.startsWith("--checkout="))?.slice("--checkout=".length);
+    const outputRoot = process.argv.find((argument) => argument.startsWith("--output="))?.slice("--output=".length);
+    const pythonBaseExecutable = process.argv.find((argument) => argument.startsWith("--python-base="))?.slice("--python-base=".length);
+    const pythonArchive = process.argv.find((argument) => argument.startsWith("--python-archive="))?.slice("--python-archive=".length);
+    const attempt = Number(process.argv.find((argument) => argument.startsWith("--attempt="))?.slice("--attempt=".length) ?? "1");
+    const completedAt = process.argv.find((argument) => argument.startsWith("--completed-at="))?.slice("--completed-at=".length);
+    console.log(JSON.stringify(await runN14CleanReplayStage(process.cwd(), {
+      checkoutRoot, outputRoot, pythonBaseExecutable, pythonArchive, attempt, completedAt,
+    }), null, 2));
   }
   else if (step === "n5") {
     const python = process.argv.find((argument) => argument.startsWith("--python="))?.slice("--python=".length) ?? "python";
@@ -1753,5 +1882,5 @@ if (import.meta.main) {
   } else if (step === "n13-reclassify") {
     const evaluatedAt = process.argv.find((argument) => argument.startsWith("--evaluated-at="))?.slice("--evaluated-at=".length);
     console.log(JSON.stringify(await runN13ReclassificationStage(process.cwd(), evaluatedAt), null, 2));
-  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n4|n5|n6|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify [--legacy-cache-root=<absolute-path>] [--exploratory-source-api-calls=<count>] [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>] [--observed-at=<ISO>] [--searched-at=<ISO>]");
+  } else throw new Error("usage: bun ./scripts/skill-ir/skill-family-current-v2-prospective.ts --step=status|resume|n1|n2|n3|n4|n5|n6|n8|n10-lock|n10-baseline|n10-first-run|n10-revision|n7|n9-gate|n13|n13-revision|n13-revision-002|n13-reclassify|n14 [--legacy-cache-root=<absolute-path>] [--exploratory-source-api-calls=<count>] [--python=<executable>] [--schemathesis=<executable>] [--locked-at=<ISO>] [--executed-at=<ISO>] [--evaluated-at=<ISO>] [--observed-at=<ISO>] [--searched-at=<ISO>] [--checkout=<absolute-path>] [--output=<absolute-path>] [--python-base=<absolute-path>] [--python-archive=<absolute-path>] [--attempt=<number>] [--completed-at=<ISO>]");
 }

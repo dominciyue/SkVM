@@ -415,6 +415,8 @@ N 编号保留但 resume 按依赖图调度，不是严格数值顺序。N5 不�
 
 文件：clean-replay/report.json、复现命令（组件文档）。
 
+**执行设计：** N9/N11/N12 的实际终态为 not-executed，因此本阶段不生成或假称 research candidate；以包含 N14 replay 入口且已推送的实际 `engineeringCodeCommit` 为 detached checkout 目标，并在报告中令 `researchCandidate=null`。在仓库外未占用的短路径建立一次 detached worktree，先核对 HEAD/detached/clean，再执行 `bun install --frozen-lockfile --offline`；Python 使用已归档 SHA-256=`4337563df85d7ae9a6669aaf757b87e594189f077883bd03f5ecbd0b8dcac1de` 的 13-distribution/356-file 离线依赖包和提交中的 manifest，在仓库外 no-pip venv 解包并逐文件核验。clean 内部重建 N8 四个普通入口包及 bundle replay、同一 N10 lock 的 9 个 current task 包，并分别与提交中的 N8/N10 语义绑定和完整/失败分母比较；另从 N5 生成的实际包目录直接运行两组 Python/pytest loopback consumer，对账 attempted/executed/passed/failed/errors/skipped 和本机 HTTP。随后在 detached checkout 运行聚焦测试与 typecheck。所有命令、stdout/stderr、依赖/输入摘要和外部路径字段写入首次 attempt；成功时由主 checkout 以新 identity 归档 final report，首次失败不得覆盖。不得运行历史 001/002 runner，不读取受保护输入，不把工程 replay 解释为 prospective 或 transfer。
+
 - [ ] 从 N9 实际 codeCommit 建短路径 detached 检出，固定依赖，重放一组完整包与当前批次；结果与失败语义保持。
 - [ ] 外部消费从包目录直接跑 Python/pytest；不允许仅调研究 verifier 返回汇总 pass。对账 attempted/executed/failed/skipped。
 - [ ] 首次失败留原件，针对实际归档/运行缺口修复一次并按变更说明是否新 code candidate；禁止放宽 oracle。
