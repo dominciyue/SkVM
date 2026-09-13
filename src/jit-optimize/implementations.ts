@@ -34,12 +34,15 @@ export interface DomainImplementationBackend {
 
 export interface SelectOptimizationImplementationOptions {
   skillDir: string
+  /** Original source snapshot; when supplied, generate-script must actually add or change its entry. */
+  baselineSkillDir?: string
   action: OptimizationAction
   domainBackends?: readonly DomainImplementationBackend[]
 }
 
 export interface SelectOptimizationImplementationsOptions {
   skillDir: string
+  baselineSkillDir?: string
   actions: readonly OptimizationAction[]
   domainBackends?: readonly DomainImplementationBackend[]
 }
@@ -92,10 +95,21 @@ async function isFile(filePath: string): Promise<boolean> {
   }
 }
 
+async function sameFile(left: string, right: string): Promise<boolean> {
+  if (!await isFile(left) || !await isFile(right)) return false
+  const [leftBytes, rightBytes] = await Promise.all([
+    Bun.file(left).arrayBuffer(),
+    Bun.file(right).arrayBuffer(),
+  ])
+  if (leftBytes.byteLength !== rightBytes.byteLength) return false
+  return new Uint8Array(leftBytes).every((value, index) => value === new Uint8Array(rightBytes)[index])
+}
+
 async function selectFileAction(
   skillDir: string,
   action: OptimizationAction,
   candidates: readonly string[],
+  baselineSkillDir?: string,
 ): Promise<ImplementationSelection> {
   const common = baseResult(action)
   const entry = executableRef(candidates)
@@ -115,6 +129,17 @@ async function selectFileAction(
   if (!await isFile(resolved.absolute)) {
     return { ...common, status: "failed", entry: resolved.relative, reason: `Declared entry does not exist: ${resolved.relative}` }
   }
+  if (action.kind === "generate-script" && baselineSkillDir) {
+    const baseline = containedPath(baselineSkillDir, resolved.relative)
+    if (baseline && await sameFile(resolved.absolute, baseline.absolute)) {
+      return {
+        ...common,
+        status: "failed",
+        entry: resolved.relative,
+        reason: `Generated-program entry is unchanged from the source skill: ${resolved.relative}`,
+      }
+    }
+  }
   return {
     ...common,
     status: "selected",
@@ -131,10 +156,10 @@ export async function selectOptimizationImplementation(
   const common = baseResult(action)
   if (action.kind === "restructure-docs") return { ...common, status: "selected" }
   if (action.kind === "reuse-script") {
-    return selectFileAction(skillDir, action, action.sourceRefs)
+    return selectFileAction(skillDir, action, action.sourceRefs, options.baselineSkillDir)
   }
   if (action.kind === "generate-script") {
-    return selectFileAction(skillDir, action, action.changedPaths)
+    return selectFileAction(skillDir, action, action.changedPaths, options.baselineSkillDir)
   }
 
   for (const backend of options.domainBackends ?? []) {
@@ -184,6 +209,7 @@ export async function selectOptimizationImplementations(
   for (const action of options.actions) {
     results.push(await selectOptimizationImplementation({
       skillDir: options.skillDir,
+      baselineSkillDir: options.baselineSkillDir,
       action,
       domainBackends: options.domainBackends,
     }))

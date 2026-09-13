@@ -195,6 +195,18 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("original pre-run inputs")
   })
 
+  test("routes executable work through the engine-built implementation context and bounded applicability cases", () => {
+    const p = buildOptimizerPrompt(2, 0)
+    expect(p).toContain(".optimize/IMPLEMENTATION_CONTEXT.json")
+    expect(p).toContain("source interfaces")
+    expect(p).toContain("normalized input locators")
+    expect(p).toContain("observed format shapes")
+    expect(p).toContain("available checks")
+    expect(p).toContain("`applicability`")
+    expect(p).toContain("`expectedAbsentFiles`")
+    expect(p).toContain("before writing outputs")
+  })
+
   test("preserves closed-world artifact fields and inapplicable semantics", () => {
     const p = buildOptimizerPrompt(1, 0)
     expect(p).toContain("closed set")

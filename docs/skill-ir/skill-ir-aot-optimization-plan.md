@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：H0–H14 + R1–R7，自动采集真实运行的 skill 优化生产链
-- 状态：`active-R4`；H0–H12、R1–R3 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
+- 状态：`active-R5`；H0–H12、R1–R4 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3
 - 方法依据：spec 14.31
@@ -42,8 +42,8 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 | R1 自动采集 | completed | 本次 run/skill/task/trace 唯一关联；输入/skill 资源隔离，异常与不完整状态准确 |
 | R2 自然任务入口 | completed | 正常运行一次后自动优化，无需 task.json/logs/locator；阶段恢复不重跑 source |
 | R3 无人工评分文件 | completed | 重新执行 task/source 文件断言；旧 pass 与未评分 reference 不再冒充候选正确性，缺失案例局部保留 |
-| R4 生成过程改进 | active | 动作落到程序，输入映射由框架处理，避免无信息反复抽样，并完成 V3/V5 |
-| R5 可用与恢复 | pending | 新包易调用、原成果保留、失败有具体下一动作 |
+| R4 生成过程改进 | completed | `IMPLEMENTATION_CONTEXT` 组织入口/输入/格式/参数/检查；动作真实兑现；V3 绑定失效和 V5 能力边界通过 |
+| R5 可用与恢复 | active | 新包易调用、原成果保留、失败有具体下一动作；完成 V6 原子发布与不重放 |
 | R6 多结构实用 | pending | 两种结构同入口真实尝试，至少一条原/变化任务完整通过 |
 | R7 整体验收 | pending | 无人工接线命令、故障与恢复测试、准确支持矩阵 |
 

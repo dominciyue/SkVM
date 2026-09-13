@@ -1138,6 +1138,7 @@ async function runLogOnly(
         round: 1,
         skillDir: candidateWorkspace,
         sourceSkillDir: skillDir,
+        baselineSkillDir: skillDir,
         actions: candidateSubmission.actions ?? [],
         evidences: preEvidences,
       })
@@ -1161,6 +1162,9 @@ async function runLogOnly(
     let repairCostUsd: number | null = null
     let repairTokens: TokenUsage | undefined
     let repairResult: Awaited<ReturnType<typeof runOptimizer>> | undefined
+    let repairChangedPaths: string[] = []
+    let repairRevalidatedActionIds: string[] = []
+    let repairReusedActionIds: string[] = []
     try {
       repairResult = await runOptimizer(
         {
@@ -1184,6 +1188,7 @@ async function runLogOnly(
       optimizerCost += repairResult.cost
       repairCostUsd = repairResult.cost
       repairTokens = repairResult.tokens
+      repairChangedPaths = [...repairResult.actualChangedFiles].sort()
       const unexpectedPaths = repairResult.actualChangedFiles.filter((item) => !allowedRepairPaths.has(item))
       if (unexpectedPaths.length > 0) {
         repairOutcome = "scope-violation"
@@ -1195,11 +1200,21 @@ async function runLogOnly(
           round: 1,
           skillDir: candidateWorkspace,
           sourceSkillDir: skillDir,
+          baselineSkillDir: skillDir,
           actions: candidateSubmission.actions ?? [],
           evidences: preEvidences,
           executeActionIds: repairActionIds,
+          changedPathsSincePrior: repairResult.actualChangedFiles,
           priorReport: initialLifecycle.report,
         })
+        repairRevalidatedActionIds = validationLifecycle.report.actions
+          .filter((item) => item.validationSource === "executed")
+          .map((item) => item.actionId)
+          .sort()
+        repairReusedActionIds = validationLifecycle.report.actions
+          .filter((item) => item.validationSource === "reused-initial-observation")
+          .map((item) => item.actionId)
+          .sort()
         repairOutcome = validationLifecycle.summary.rejectedActionIds.length === 0 ? "passed" : "rolled-back"
       }
     } catch (error) {
@@ -1228,9 +1243,11 @@ async function runLogOnly(
         round: 1,
         skillDir: candidateWorkspace,
         sourceSkillDir: skillDir,
+        baselineSkillDir: skillDir,
         actions: survivingActions,
         evidences: preEvidences,
         executeActionIds: [],
+        changedPathsSincePrior: rollbackPaths,
         priorReport: failedLifecycle.report,
       })
       candidateSubmission = { ...candidateSubmission, actions: survivingActions }
@@ -1248,6 +1265,9 @@ async function runLogOnly(
       attempted: true,
       attemptCount: 1,
       actionIds: repairActionIds,
+      changedPaths: repairChangedPaths,
+      revalidatedActionIds: repairRevalidatedActionIds,
+      reusedActionIds: repairReusedActionIds,
       feedback: repairFeedback,
       optimizerRecordPath: repairRecordRelative,
       initialReportPath: "round-1-validation/initial-report.json",

@@ -61,6 +61,28 @@ export interface ProgramValidationCaseEvidence {
   independentCriterionIds: string[]
   executedAssertionIds: string[]
   assertionAuthorities: Array<"task-requirement" | "source-derived" | "self-check">
+  applicability: "supported" | "not-applicable"
+  inputDigests: Record<string, string>
+  expectedAbsentFiles: string[]
+}
+
+export interface OptimizationCapabilityBoundary {
+  selectionMeaning: "entry-found-only"
+  supportedCaseIds: string[]
+  notApplicableCaseIds: string[]
+  inputVariationAffectsOutput: boolean
+  parameterVariationAffectsOutput: boolean
+  rejectedBeforeWriteCaseIds: string[]
+  unverifiedInputs: string[]
+  unverifiedPreconditions: string[]
+  residualAgentDuty: string
+}
+
+export interface OptimizationValidationBinding {
+  sha256: string
+  dependencyAnalysis: "complete-static" | "conservative"
+  candidateFiles: Array<{ path: string; sha256: string }>
+  evidenceSha256: string
 }
 
 export interface DerivedProgramValidationPlan {
@@ -95,6 +117,8 @@ export interface OptimizationActionValidationRecord {
   selfCheckCaseIds: string[]
   programStatus: OptimizationProgramValidationResult["status"] | "not-run"
   program?: OptimizationProgramValidationResult
+  capabilityBoundary?: OptimizationCapabilityBoundary
+  validationBinding?: OptimizationValidationBinding
   validationSource?: "executed" | "reused-initial-observation"
 }
 
@@ -117,6 +141,9 @@ export interface OptimizationValidationLifecycleReport {
     attempted: true
     attemptCount: 1
     actionIds: string[]
+    changedPaths: string[]
+    revalidatedActionIds: string[]
+    reusedActionIds: string[]
     feedback: Array<{
       actionId: string
       failureKind: string
@@ -144,10 +171,14 @@ export interface RunOptimizationValidationLifecycleOptions {
   skillDir: string
   /** Original, pre-edit skill root used only for source-owned checks. */
   sourceSkillDir?: string
+  /** Original, pre-edit skill root used to prove generate-script realization. */
+  baselineSkillDir?: string
   actions: readonly OptimizationAction[]
   evidences: readonly Evidence[]
   /** Re-run only these actions and reuse explicit observations for the rest. */
   executeActionIds?: readonly string[]
+  /** Actual candidate paths changed since priorReport; unknown dependencies fail closed. */
+  changedPathsSincePrior?: readonly string[]
   priorReport?: OptimizationValidationLifecycleReport
 }
 
@@ -158,6 +189,21 @@ export interface RunOptimizationValidationLifecycleResult {
 
 function sha256(value: string): string {
   return new Bun.CryptoHasher("sha256").update(value).digest("hex")
+}
+
+function sha256Bytes(value: Uint8Array): string {
+  return new Bun.CryptoHasher("sha256").update(value).digest("hex")
+}
+
+function canonicalJson(value: unknown): string {
+  const normalize = (item: unknown): unknown => {
+    if (Array.isArray(item)) return item.map(normalize)
+    if (typeof item !== "object" || item === null) return item
+    return Object.fromEntries(Object.entries(item as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right, "en"))
+      .map(([key, nested]) => [key, normalize(nested)]))
+  }
+  return JSON.stringify(normalize(value))
 }
 
 function safeSegment(value: string, fallback: string): string {
@@ -227,6 +273,152 @@ function contained(root: string, relative: string): string | undefined {
     return undefined
   }
   return absolute
+}
+
+const LOCAL_DEPENDENCY_EXTENSIONS = ["", ".js", ".mjs", ".cjs", ".ts", ".json", ".py"]
+const PROGRAM_TEXT_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".py", ".sh", ".ps1"])
+
+async function readableCandidateFile(root: string, relative: string): Promise<{ path: string; bytes: Uint8Array } | undefined> {
+  const portable = portableRelative(relative)
+  if (!portable) return undefined
+  const absolute = contained(root, portable)
+  if (!absolute) return undefined
+  try {
+    return { path: portable, bytes: new Uint8Array(await readFile(absolute)) }
+  } catch {
+    return undefined
+  }
+}
+
+async function resolveLiteralDependency(
+  root: string,
+  fromPath: string,
+  literal: string,
+): Promise<{ path: string; bytes: Uint8Array } | undefined> {
+  const clean = literal.replace(/[?#].*$/u, "")
+  if (!clean || clean.startsWith("node:") || clean.startsWith("bun:") || /^[A-Za-z][A-Za-z0-9+.-]*:/u.test(clean)) {
+    return undefined
+  }
+  if (!clean.startsWith(".") && !path.posix.extname(clean)) return undefined
+  const bases = clean.startsWith(".")
+    ? [path.posix.join(path.posix.dirname(fromPath), clean)]
+    : [path.posix.join(path.posix.dirname(fromPath), clean), clean]
+  for (const base of bases) {
+    for (const extension of LOCAL_DEPENDENCY_EXTENSIONS) {
+      const found = await readableCandidateFile(root, `${base}${extension}`)
+      if (found) return found
+    }
+  }
+  return undefined
+}
+
+async function programDependencyBinding(options: {
+  skillDir: string
+  action: OptimizationAction
+  implementation: ImplementationSelection
+}): Promise<{ dependencyAnalysis: OptimizationValidationBinding["dependencyAnalysis"]; files: Array<{ path: string; sha256: string }> }> {
+  const queued = new Map<string, Uint8Array>()
+  const enqueue = async (relative: string): Promise<void> => {
+    const found = await readableCandidateFile(options.skillDir, relative)
+    if (found && !queued.has(found.path)) queued.set(found.path, found.bytes)
+  }
+  if (options.implementation.entry) await enqueue(options.implementation.entry)
+  for (const candidate of [
+    ...options.action.inputs,
+    ...options.action.sourceRefs.map((item) => item.split("#", 1)[0]!),
+  ]) {
+    await enqueue(candidate)
+  }
+
+  let dependencyAnalysis: OptimizationValidationBinding["dependencyAnalysis"] = options.implementation.entry
+    && ["node", "python"].includes(options.implementation.runtime ?? "")
+    ? "complete-static"
+    : "conservative"
+  const visited = new Set<string>()
+  while (true) {
+    const current = [...queued.entries()].find(([filePath]) => !visited.has(filePath))
+    if (!current) break
+    const [filePath, bytes] = current
+    visited.add(filePath)
+    if (!PROGRAM_TEXT_EXTENSIONS.has(path.posix.extname(filePath).toLowerCase())) continue
+    const source = new TextDecoder("utf-8").decode(bytes)
+    const literals = [...source.matchAll(/(["'`])([^"'`\r\n]+)\1/gu)].map((match) => match[2]!)
+    const resolvedOnLine = new Set<string>()
+    for (const literal of literals) {
+      const resolved = await resolveLiteralDependency(options.skillDir, filePath, literal)
+      if (!resolved) continue
+      resolvedOnLine.add(literal)
+      if (!queued.has(resolved.path)) queued.set(resolved.path, resolved.bytes)
+    }
+    for (const match of source.matchAll(/\b(?:readFile|readFileSync|open|require|import)\s*\(([^\r\n;]*)/gu)) {
+      const expression = match[1] ?? ""
+      const hasResolvedLiteral = [...resolvedOnLine].some((literal) => expression.includes(literal))
+      const usesRuntimeInput = /\b(?:args|argv|input|filePath|pathArg)\b/u.test(expression)
+      const usesBuiltIn = /["'](?:node|bun):/u.test(expression)
+      if (!hasResolvedLiteral && !usesBuiltIn && !usesRuntimeInput) dependencyAnalysis = "conservative"
+    }
+  }
+  return {
+    dependencyAnalysis,
+    files: [...queued.entries()]
+      .map(([filePath, bytes]) => ({ path: filePath, sha256: sha256Bytes(bytes) }))
+      .sort((left, right) => left.path.localeCompare(right.path, "en")),
+  }
+}
+
+async function evidenceBinding(action: OptimizationAction, evidences: readonly Evidence[]): Promise<string> {
+  const selected: unknown[] = []
+  for (const evidenceId of action.evidenceIds) {
+    if (!/^\d+$/u.test(evidenceId)) continue
+    const evidence = evidences[Number(evidenceId)]
+    if (!evidence) continue
+    let taskSha256: string | null = null
+    if (evidence.trace?.taskPath) {
+      try {
+        const taskPath = path.isAbsolute(evidence.trace.taskPath)
+          ? evidence.trace.taskPath
+          : path.resolve(path.dirname(evidence.trace.sourcePath), evidence.trace.taskPath)
+        taskSha256 = sha256Bytes(new Uint8Array(await readFile(taskPath)))
+      } catch {
+        taskSha256 = null
+      }
+    }
+    selected.push({
+      evidenceId,
+      taskId: evidence.taskId,
+      taskPrompt: evidence.taskPrompt,
+      criteria: evidence.criteria ?? [],
+      trace: evidence.trace ?? null,
+      taskSha256,
+      workDirSnapshot: [...(evidence.workDirSnapshot?.files ?? new Map<string, string>())]
+        .map(([filePath, content]) => ({ path: filePath.replaceAll("\\", "/"), sha256: sha256(content) }))
+        .sort((left, right) => left.path.localeCompare(right.path, "en")),
+    })
+  }
+  return sha256(canonicalJson(selected))
+}
+
+async function deriveValidationBinding(options: {
+  skillDir: string
+  action: OptimizationAction
+  implementation: ImplementationSelection
+  evidences: readonly Evidence[]
+}): Promise<OptimizationValidationBinding> {
+  const dependencies = await programDependencyBinding(options)
+  const evidenceSha256 = await evidenceBinding(options.action, options.evidences)
+  const material = {
+    action: options.action,
+    implementation: options.implementation,
+    dependencyAnalysis: dependencies.dependencyAnalysis,
+    candidateFiles: dependencies.files,
+    evidenceSha256,
+  }
+  return {
+    sha256: sha256(canonicalJson(material)),
+    dependencyAnalysis: dependencies.dependencyAnalysis,
+    candidateFiles: dependencies.files,
+    evidenceSha256,
+  }
 }
 
 async function taskFixtures(evidence: Evidence): Promise<Record<string, string> | undefined> {
@@ -599,6 +791,19 @@ async function materializeCase(options: {
     })
     return undefined
   }
+  const expectedAbsentFiles: string[] = []
+  for (const absentPath of suggestion.expectedAbsentFiles ?? []) {
+    const relative = portableRelative(absentPath)
+    if (!relative) {
+      options.diagnostics.push({
+        code: "validation-reference-path-invalid",
+        caseId: suggestion.id,
+        message: `Expected-absent path is not a contained relative path: ${absentPath}`,
+      })
+      return undefined
+    }
+    expectedAbsentFiles.push(relative)
+  }
   const taskAssertions = await taskAssertionBindings(suggestion, options.evidence, options.diagnostics)
   const sourceAssertions = await sourceAssertionBindings({
     sourceSkillDir: options.sourceSkillDir,
@@ -624,6 +829,7 @@ async function materializeCase(options: {
       ...(suggestion.stdoutIncludes ? { stdoutIncludes: [...suggestion.stdoutIncludes] } : {}),
       ...(suggestion.stderrIncludes ? { stderrIncludes: [...suggestion.stderrIncludes] } : {}),
       ...(expectedFiles.length > 0 ? { expectedFiles } : {}),
+      ...(expectedAbsentFiles.length > 0 ? { expectedAbsentFiles } : {}),
       ...(Object.keys(expectedFileSha256).length > 0 ? { expectedFileSha256 } : {}),
       ...(assertions.length > 0 ? { assertions } : {}),
     },
@@ -639,7 +845,75 @@ async function materializeCase(options: {
       independentCriterionIds: taskAssertions.map((item) => item.id),
       executedAssertionIds: assertions.map((item) => item.id),
       assertionAuthorities: assertions.map((item) => item.authority),
+      applicability: suggestion.applicability ?? "supported",
+      inputDigests: Object.fromEntries(inputs.map((item) => [item.relative, sha256(item.content)])),
+      expectedAbsentFiles,
     },
+  }
+}
+
+function stableRecord(value: Record<string, string>): string {
+  return JSON.stringify(Object.fromEntries(Object.entries(value).sort(([left], [right]) => left.localeCompare(right, "en"))))
+}
+
+function normalizedCaseArgs(
+  validationCase: ProgramValidationCase,
+  evidence: ProgramValidationCaseEvidence,
+): string {
+  const paths = Object.keys(evidence.inputDigests).sort((left, right) => right.length - left.length)
+  return JSON.stringify(validationCase.args.map((arg) => {
+    let normalized = arg
+    for (const [index, inputPath] of paths.entries()) {
+      normalized = normalized.replaceAll(inputPath, `<input:${index}>`)
+    }
+    return normalized
+  }))
+}
+
+function outputSignature(run: OptimizationProgramValidationResult["cases"][number]): string {
+  return stableRecord(Object.fromEntries(run.outputFiles.map((file) => [file.path, file.sha256])))
+}
+
+function deriveCapabilityBoundary(
+  action: OptimizationAction,
+  plan: DerivedProgramValidationPlan,
+  program: OptimizationProgramValidationResult,
+): OptimizationCapabilityBoundary {
+  const planCaseById = new Map(plan.cases.map((item) => [item.id, item]))
+  const evidenceById = new Map(plan.caseEvidence.map((item) => [item.id, item]))
+  const runById = new Map(program.cases.map((item) => [item.id, item]))
+  const supported = plan.caseEvidence.filter((item) => item.applicability === "supported")
+  const notApplicable = plan.caseEvidence.filter((item) => item.applicability === "not-applicable")
+  let inputVariationAffectsOutput = false
+  let parameterVariationAffectsOutput = false
+  for (let leftIndex = 0; leftIndex < supported.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < supported.length; rightIndex += 1) {
+      const leftEvidence = supported[leftIndex]!
+      const rightEvidence = supported[rightIndex]!
+      const leftCase = planCaseById.get(leftEvidence.id)
+      const rightCase = planCaseById.get(rightEvidence.id)
+      const leftRun = runById.get(leftEvidence.id)
+      const rightRun = runById.get(rightEvidence.id)
+      if (!leftCase || !rightCase || leftRun?.status !== "passed" || rightRun?.status !== "passed") continue
+      const inputsSame = stableRecord(leftEvidence.inputDigests) === stableRecord(rightEvidence.inputDigests)
+      const argsSame = normalizedCaseArgs(leftCase, leftEvidence) === normalizedCaseArgs(rightCase, rightEvidence)
+      const outputsDiffer = outputSignature(leftRun) !== outputSignature(rightRun)
+      if (!inputsSame && argsSame && outputsDiffer) inputVariationAffectsOutput = true
+      if (inputsSame && !argsSame && outputsDiffer) parameterVariationAffectsOutput = true
+    }
+  }
+  return {
+    selectionMeaning: "entry-found-only",
+    supportedCaseIds: supported.map((item) => item.id),
+    notApplicableCaseIds: notApplicable.map((item) => item.id),
+    inputVariationAffectsOutput,
+    parameterVariationAffectsOutput,
+    rejectedBeforeWriteCaseIds: notApplicable
+      .filter((item) => item.expectedAbsentFiles.length > 0 && runById.get(item.id)?.status === "passed")
+      .map((item) => item.id),
+    unverifiedInputs: [...action.inputs],
+    unverifiedPreconditions: [...action.preconditions],
+    residualAgentDuty: "Declared inputs and preconditions outside the executed cases remain unverified and must be handled by the agent.",
   }
 }
 
@@ -751,6 +1025,7 @@ export async function runOptimizationValidationLifecycle(
   await mkdir(validationRoot, { recursive: true })
   const implementations = await selectOptimizationImplementations({
     skillDir: options.skillDir,
+    baselineSkillDir: options.baselineSkillDir,
     actions: options.actions,
   })
   const byActionId = new Map(implementations.map((item) => [item.actionId, item]))
@@ -765,8 +1040,24 @@ export async function runOptimizationValidationLifecycle(
 
   for (const action of options.actions) {
     const implementation = byActionId.get(action.id)!
-    if (executeActionIds && !executeActionIds.has(action.id)) {
-      const priorRecord = options.priorReport?.actions.find((item) => item.actionId === action.id)
+    const validationBinding = await deriveValidationBinding({
+      skillDir: options.skillDir,
+      action,
+      implementation,
+      evidences: options.evidences,
+    })
+    const priorRecord = options.priorReport?.actions.find((item) => item.actionId === action.id)
+    const changedPathsKnown = options.changedPathsSincePrior !== undefined
+    const dependencyReuseSafe = options.changedPathsSincePrior?.length === 0
+      || validationBinding.dependencyAnalysis === "complete-static"
+    const bindingMatches = priorRecord?.validationBinding?.sha256 === validationBinding.sha256
+    if (
+      executeActionIds
+      && !executeActionIds.has(action.id)
+      && changedPathsKnown
+      && dependencyReuseSafe
+      && bindingMatches
+    ) {
       if (priorRecord && options.priorReport?.resolution.retainedActionIds.includes(action.id)) {
         observations.push({ actionId: action.id, status: "passed", diagnostics: [] })
       } else if (priorRecord && options.priorReport?.resolution.unvalidatedActionIds.includes(action.id)) {
@@ -791,6 +1082,7 @@ export async function runOptimizationValidationLifecycle(
           selfCheckCaseIds: [],
           programStatus: "not-run" as const,
         }),
+        validationBinding,
         validationSource: "reused-initial-observation",
       })
       continue
@@ -818,6 +1110,7 @@ export async function runOptimizationValidationLifecycle(
         independentCaseIds: [],
         selfCheckCaseIds: [],
         programStatus: "not-run",
+        validationBinding,
         validationSource: "executed",
       })
       continue
@@ -841,6 +1134,7 @@ export async function runOptimizationValidationLifecycle(
         independentCaseIds: [],
         selfCheckCaseIds: [],
         programStatus: "not-run",
+        validationBinding,
         validationSource: "executed",
       })
       continue
@@ -868,6 +1162,7 @@ export async function runOptimizationValidationLifecycle(
         independentCaseIds: plan.independentCaseIds,
         selfCheckCaseIds: plan.selfCheckCaseIds,
         programStatus: "not-run",
+        validationBinding,
         validationSource: "executed",
       })
       continue
@@ -920,6 +1215,8 @@ export async function runOptimizationValidationLifecycle(
       selfCheckCaseIds: plan.selfCheckCaseIds,
       programStatus: program.status,
       program,
+      capabilityBoundary: deriveCapabilityBoundary(action, plan, program),
+      validationBinding,
       validationSource: "executed",
     })
   }

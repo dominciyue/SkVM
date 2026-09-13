@@ -173,6 +173,22 @@ interface TaskFixtureProjection {
   }
 }
 
+interface ImplementationFormatObservation {
+  kind: "json" | "csv" | "yaml" | "text" | "binary-or-unknown"
+  rootType?: "object" | "array" | "string" | "number" | "boolean" | "null"
+  topLevelKeys?: string[]
+  columns?: string[]
+  valid?: boolean
+}
+
+interface ImplementationContextFile {
+  path: string
+  locator: string
+  bytes: number
+  sha256: string
+  format: ImplementationFormatObservation
+}
+
 /**
  * Grouped view of a single evidence for layout purposes. `globalIndex` is the
  * stable 0..N-1 integer the optimizer still uses in `blockedEvidenceIds` —
@@ -467,6 +483,161 @@ async function materializeTaskFixtures(taskDir: string, localIndex: number, task
   )
 }
 
+function observedFormat(filePath: string, content: Uint8Array | string): ImplementationFormatObservation {
+  const extension = path.extname(filePath).toLowerCase()
+  const text = typeof content === "string" ? content : new TextDecoder("utf-8").decode(content)
+  if (extension === ".json") {
+    try {
+      const parsed: unknown = JSON.parse(text)
+      const rootType = parsed === null
+        ? "null"
+        : Array.isArray(parsed)
+          ? "array"
+          : typeof parsed as ImplementationFormatObservation["rootType"]
+      return {
+        kind: "json",
+        rootType,
+        ...(typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+          ? { topLevelKeys: Object.keys(parsed).sort((left, right) => left.localeCompare(right, "en")) }
+          : {}),
+        valid: true,
+      }
+    } catch {
+      return { kind: "json", valid: false }
+    }
+  }
+  if (extension === ".csv") {
+    const header = text.split(/\r?\n/u).find((line) => line.trim().length > 0) ?? ""
+    const columns = header.includes(",") && !header.includes('"')
+      ? header.split(",").map((item) => item.trim()).filter(Boolean)
+      : []
+    return { kind: "csv", ...(columns.length > 0 ? { columns } : {}) }
+  }
+  if ([".yaml", ".yml"].includes(extension)) return { kind: "yaml" }
+  if ([".md", ".txt", ".tsv", ".xml", ".html", ".js", ".mjs", ".cjs", ".ts", ".py", ".sh", ".ps1"].includes(extension)) {
+    return { kind: "text" }
+  }
+  return { kind: "binary-or-unknown" }
+}
+
+function sourceRuntime(filePath: string): "python" | "node" | "shell" | "powershell" | undefined {
+  switch (path.extname(filePath).toLowerCase()) {
+    case ".py": return "python"
+    case ".js":
+    case ".mjs":
+    case ".cjs":
+    case ".ts": return "node"
+    case ".sh": return "shell"
+    case ".ps1": return "powershell"
+    default: return undefined
+  }
+}
+
+async function buildImplementationContext(
+  skillDir: string | undefined,
+  groups: TaskGroup[],
+): Promise<object> {
+  let skillText = ""
+  if (skillDir) {
+    try {
+      skillText = await readFile(path.join(skillDir, "SKILL.md"), "utf8")
+    } catch {
+      // The complete resource index already reports what is present.
+    }
+  }
+  const sourceInterfaces: Array<{
+    path: string
+    runtime: "python" | "node" | "shell" | "powershell"
+    bytes: number
+    sha256: string
+    parameterTokens: string[]
+    referencedBySkill: boolean
+  }> = []
+  if (skillDir) {
+    for (const resource of await indexSkillResources(skillDir)) {
+      const runtime = sourceRuntime(resource.path)
+      if (!runtime) continue
+      let source = ""
+      if (resource.bytes <= 64 * 1024) {
+        try {
+          source = await readFile(path.join(skillDir, ...resource.path.split("/")), "utf8")
+        } catch {
+          // Keep the interface indexed without guessing its parameters.
+        }
+      }
+      sourceInterfaces.push({
+        path: resource.path,
+        runtime,
+        bytes: resource.bytes,
+        sha256: resource.sha256,
+        parameterTokens: [...new Set(source.match(/--[A-Za-z][A-Za-z0-9-]*/gu) ?? [])].sort((left, right) => left.localeCompare(right, "en")),
+        referencedBySkill: skillText.includes(resource.path),
+      })
+    }
+  }
+
+  const evidence = []
+  for (const group of groups) {
+    for (const run of group.runs) {
+      const fixtureManifestPath = `.optimize/tasks/${group.safeId}/run-${run.localIndex}-task-fixtures-manifest.json`
+      let inputStatus: "materialized" | "empty" | "unresolved" | "unavailable" = "unavailable"
+      let inputFiles: ImplementationContextFile[] = []
+      const taskPath = run.evidence.trace?.taskPath
+      if (taskPath) {
+        const boundTaskPath = path.isAbsolute(taskPath)
+          ? taskPath
+          : path.resolve(path.dirname(run.evidence.trace!.sourcePath), taskPath)
+        const collected = await collectTaskFixtures(boundTaskPath)
+        inputStatus = collected.projection.status
+        inputFiles = collected.files.map((file) => ({
+          path: file.path,
+          locator: `.optimize/tasks/${group.safeId}/run-${run.localIndex}-task-fixtures/${file.path}`,
+          bytes: file.bytes,
+          sha256: file.sha256,
+          format: observedFormat(file.path, file.content),
+        }))
+      }
+      const observedOutputs = [...(run.evidence.workDirSnapshot?.files ?? new Map<string, string>())]
+        .map(([filePath, content]) => {
+          const portable = filePath.replaceAll("\\", "/")
+          const bytes = new TextEncoder().encode(content)
+          return {
+            path: portable,
+            locator: `.optimize/tasks/${group.safeId}/run-${run.localIndex}-workdir/${portable}`,
+            bytes: bytes.byteLength,
+            sha256: sha256Bytes(bytes),
+            format: observedFormat(portable, content),
+          }
+        })
+        .sort((left, right) => left.path.localeCompare(right.path, "en"))
+      evidence.push({
+        evidenceIndex: run.globalIndex,
+        taskId: group.taskId,
+        inputs: {
+          status: inputStatus,
+          manifestPath: fixtureManifestPath,
+          files: inputFiles,
+        },
+        observedOutputs,
+        checks: (run.evidence.criteria ?? []).map((criterion) => ({
+          id: criterion.id,
+          method: criterion.method,
+          passed: criterion.passed,
+          score: criterion.score,
+          sourceRef: `evidence:${run.globalIndex}#criteria/${criterion.id}`,
+          ...(criterion.description ? { description: criterion.description } : {}),
+        })),
+      })
+    }
+  }
+  return {
+    schemaVersion: "jit-optimize-implementation-context/v1",
+    note: "This is a navigation and observed-shape index, not proof that every declared input or precondition is supported. Use exact locators and retain untested conditions as residual duties.",
+    sourceInterfaces,
+    evidence,
+  }
+}
+
 /** Write evidence + history + a README into {workspace}/.optimize/ */
 export async function serializeContext(
   optimizeDir: string,
@@ -490,6 +661,10 @@ export async function serializeContext(
   await Bun.write(
     path.join(optimizeDir, "CONSTRAINT_SOURCES.json"),
     JSON.stringify(renderConstraintSources(evidences, hasSkillResourceIndex), null, 2),
+  )
+  await Bun.write(
+    path.join(optimizeDir, "IMPLEMENTATION_CONTEXT.json"),
+    JSON.stringify(await buildImplementationContext(opts.skillDir, groups), null, 2),
   )
 
   // README: navigation guide
@@ -564,6 +739,7 @@ export async function serializeContext(
                   inputFiles: ["path/from/task-fixtures"],
                   args: ["--input", "path/from/task-fixtures", "--out", "result.json"],
                   expectedFiles: [{ path: "result.json", referencePath: "path/in/observed-workdir" }],
+                  applicability: "supported",
                   basis: "reference-output",
                   sourceRefs: ["evidence:0#criteria/<criterion-id>"],
                 },
@@ -1288,6 +1464,7 @@ of this skill.
   Directories for this session:
 ${dirListing}
 ${hasSkillResourceIndex ? "- `.optimize/SKILL_RESOURCE_INDEX.md` — complete configured skill-file navigation plus explicit trace-to-skill bindings. Read relevant resources before deciding an unobserved rule is removable.\n" : ""}- \`.optimize/CONSTRAINT_SOURCES.json\` — structured provenance buckets for permanent skill rules, current task conditions, observed environment facts, and unknown scope. Do not promote a task or environment value to a skill-wide rule.
+- \`.optimize/IMPLEMENTATION_CONTEXT.json\` — engine-built source interfaces, normalized input/output locators, observed format shapes, and available checks for executable work. It is an index, not a claim that untested parameters are supported.
 ${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous optimization round(s)** with their diagnoses, changes, and whether they improved the score. READ THIS before proposing changes — do not repeat diagnoses that did not work.\n` : ""}- \`.optimize/submission.template.json\` — the output format you must follow.
 
 ## What to do

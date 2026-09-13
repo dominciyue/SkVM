@@ -29,7 +29,11 @@ afterEach(async () => {
   await Promise.all(proposalDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })))
 })
 
-async function repairScenario(options: { sharedFailureGroup: boolean; repairSucceeds: boolean }) {
+async function repairScenario(options: {
+  sharedFailureGroup: boolean
+  repairSucceeds: boolean
+  sharedRuntimeDependency?: boolean
+}) {
   const skillDir = await tempDir("production-repair-skill-")
   const taskDir = await tempDir("production-repair-task-")
   const evidenceWorkDir = await tempDir("production-repair-evidence-")
@@ -37,6 +41,9 @@ async function repairScenario(options: { sharedFailureGroup: boolean; repairSucc
   const packageDir = path.join(await tempDir("production-repair-package-parent-"), "package")
   const baselineSkill = "# Multi converter\n\nUse the applicable bounded conversion and retain remaining judgment.\n"
   await writeFile(path.join(skillDir, "SKILL.md"), baselineSkill)
+  if (options.sharedRuntimeDependency) {
+    await writeFile(path.join(skillDir, "rules.json"), `${JSON.stringify({ a: "BASE-A", b: "BASE-B" })}\n`)
+  }
   const taskPath = path.join(taskDir, "task.json")
   await writeFile(taskPath, JSON.stringify({
     id: "multi-convert",
@@ -77,12 +84,14 @@ async function repairScenario(options: { sharedFailureGroup: boolean; repairSucc
     evidenceIds: ["0"],
     sourceRefs: ["SKILL.md", `evidence:0#reference/${id}.json`],
     dependsOn: [],
-    inputs: [`inputs/${id}.json`],
+    inputs: options.sharedRuntimeDependency ? [`inputs/${id}.json`, "rules.json"] : [`inputs/${id}.json`],
     outputs: [`out/${id}.json`],
     preconditions: ["Node.js is available"],
-    changedPaths: options.sharedFailureGroup && id !== "c"
-      ? ["SKILL.md", `scripts/${id}.mjs`]
-      : [`scripts/${id}.mjs`],
+    changedPaths: options.sharedRuntimeDependency && id === "a"
+      ? ["rules.json", `scripts/${id}.mjs`]
+      : options.sharedFailureGroup && id !== "c"
+        ? ["SKILL.md", `scripts/${id}.mjs`]
+        : [`scripts/${id}.mjs`],
     residualDuties: [],
     verification: ["reference output digest"],
     validation: {
@@ -104,6 +113,7 @@ async function repairScenario(options: { sharedFailureGroup: boolean; repairSucc
     confidence: 0.9,
     changedFiles: [
       ...(options.sharedFailureGroup ? ["SKILL.md"] : []),
+      ...(options.sharedRuntimeDependency ? ["rules.json"] : []),
       ...ids.map((id) => `scripts/${id}.mjs`),
     ],
     changes: ids.map((id) => ({
@@ -120,6 +130,14 @@ const args = process.argv.slice(2); const out = args[args.indexOf("--out") + 1];
 await mkdir(path.dirname(out), { recursive: true });
 await writeFile(out, ${JSON.stringify(`${JSON.stringify({ value })}\n`)});
 `
+  const sourceFromRules = (id: string) => `
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+const args = process.argv.slice(2); const out = args[args.indexOf("--out") + 1];
+const rules = JSON.parse(await readFile(new URL("../rules.json", import.meta.url), "utf8"));
+await mkdir(path.dirname(out), { recursive: true });
+await writeFile(out, JSON.stringify({ value: rules[${JSON.stringify(id)}] }) + "\\n");
+`
   let calls = 0
   const repairFeedback: unknown[] = []
   optimizerHandler = async (input, config) => {
@@ -128,18 +146,34 @@ await writeFile(out, ${JSON.stringify(`${JSON.stringify({ value })}\n`)});
     await cp(input.skillDir, workspaceDir, { recursive: true })
     await mkdir(path.join(workspaceDir, "scripts"), { recursive: true })
     if (calls === 1) {
-      await writeFile(path.join(workspaceDir, "scripts", "a.mjs"), source("a", "WRONG"))
-      await writeFile(path.join(workspaceDir, "scripts", "b.mjs"), source("b", "B"))
+      await writeFile(
+        path.join(workspaceDir, "scripts", "a.mjs"),
+        options.sharedRuntimeDependency ? sourceFromRules("a") : source("a", "WRONG"),
+      )
+      await writeFile(
+        path.join(workspaceDir, "scripts", "b.mjs"),
+        options.sharedRuntimeDependency ? sourceFromRules("b") : source("b", "B"),
+      )
+      if (options.sharedRuntimeDependency) {
+        await writeFile(path.join(workspaceDir, "rules.json"), `${JSON.stringify({ a: "WRONG", b: "B" })}\n`)
+      }
       if (options.sharedFailureGroup) {
         await writeFile(path.join(workspaceDir, "scripts", "c.mjs"), source("c", "C"))
         await writeFile(path.join(workspaceDir, "SKILL.md"), "# Candidate routing shared by a and b\n")
       }
     } else {
       repairFeedback.push((input as OptimizeInput & { repairFeedback?: unknown }).repairFeedback)
-      await writeFile(
-        path.join(workspaceDir, "scripts", "a.mjs"),
-        source("a", options.repairSucceeds ? "A" : "STILL-WRONG"),
-      )
+      if (options.sharedRuntimeDependency) {
+        await writeFile(
+          path.join(workspaceDir, "rules.json"),
+          `${JSON.stringify({ a: options.repairSucceeds ? "A" : "STILL-WRONG", b: "B" })}\n`,
+        )
+      } else {
+        await writeFile(
+          path.join(workspaceDir, "scripts", "a.mjs"),
+          source("a", options.repairSucceeds ? "A" : "STILL-WRONG"),
+        )
+      }
     }
     const value = submission()
     if (config.recordDir) {
@@ -150,7 +184,9 @@ await writeFile(out, ${JSON.stringify(`${JSON.stringify({ value })}\n`)});
       changed: true,
       workspaceDir,
       submission: value,
-      actualChangedFiles: calls === 1 ? value.changedFiles : ["scripts/a.mjs"],
+      actualChangedFiles: calls === 1
+        ? value.changedFiles
+        : [options.sharedRuntimeDependency ? "rules.json" : "scripts/a.mjs"],
       cost: calls,
       tokens: { input: calls, output: calls, cacheRead: 0, cacheWrite: 0 },
     }
@@ -347,7 +383,13 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
     expect(scenario.calls).toBe(2)
     expect(scenario.result.bestRound).toBe(1)
     expect(scenario.result.validation?.status).toBe("passed")
-    expect(scenario.report.repair).toEqual(expect.objectContaining({ attempted: true, attemptCount: 1 }))
+    expect(scenario.report.repair).toEqual(expect.objectContaining({
+      attempted: true,
+      attemptCount: 1,
+      changedPaths: ["scripts/a.mjs"],
+      revalidatedActionIds: ["a"],
+      reusedActionIds: ["b"],
+    }))
     expect(scenario.report.repair.feedback).toEqual([
       expect.objectContaining({ actionId: "a", relevantFiles: ["scripts/a.mjs"] }),
     ])
@@ -360,6 +402,28 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
       .toContain("digest mismatch")
     expect(await readFile(path.join(scenario.packageDir, "scripts", "a.mjs"), "utf8")).toContain("\\\"A\\\"")
     expect(await readFile(path.join(scenario.packageDir, "scripts", "b.mjs"), "utf8")).toContain("\\\"B\\\"")
+  })
+
+  test("revalidates a passed sibling when repair changes a resource its program actually reads", async () => {
+    const scenario = await repairScenario({
+      sharedFailureGroup: false,
+      repairSucceeds: true,
+      sharedRuntimeDependency: true,
+    })
+
+    expect(scenario.calls).toBe(2)
+    expect(scenario.result.validation?.status).toBe("passed")
+    expect(scenario.report.execution).toEqual(expect.objectContaining({
+      programRuns: 2,
+      reusedActionObservations: 0,
+    }))
+    expect(scenario.report.repair).toEqual(expect.objectContaining({
+      changedPaths: ["rules.json"],
+      revalidatedActionIds: ["a", "b"],
+      reusedActionIds: [],
+    }))
+    expect(scenario.report.actions.find((item: { actionId: string }) => item.actionId === "b"))
+      .toEqual(expect.objectContaining({ validationSource: "executed", programStatus: "passed" }))
   })
 
   test("rolls back a still-failing shared group while retaining an independent passed action", async () => {

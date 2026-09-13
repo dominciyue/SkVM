@@ -303,6 +303,10 @@ Then read \`.optimize/README.md\` — it explains the full layout. In short:
   permanent skill rules, current-task values or restrictions, observed
   environment facts, and unknown scope. A task or environment condition is
   not a skill-wide rule.
+- \`.optimize/IMPLEMENTATION_CONTEXT.json\` — engine-built source interfaces,
+  normalized input locators, observed format shapes, and available checks.
+  Read this before implementing an executable opportunity; it is an index of
+  observed facts, not proof that every declared parameter is supported.
 ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous optimization round(s) with their root causes and whether they improved scores. READ THIS BEFORE PROPOSING CHANGES.` : ""}
 ${repairMode ? `- \`.optimize/REPAIR_FEEDBACK.json\` — one bounded repair request. Edit only its listed relevant files, preserve validation inputs/expectations, and do not revisit independent passed actions.` : ""}
 
@@ -325,6 +329,11 @@ ${repairMode ? `This is the single repair attempt for an already-validated candi
    Additional runs may strengthen a diagnosis, but they are not a prerequisite
    when source rules, visible inputs/outputs and an independent check already
    support the proposed boundary.
+   For executable work, read \`.optimize/IMPLEMENTATION_CONTEXT.json\` before
+   searching individual files. Start from its source interfaces, normalized
+   input locators, observed format shapes, parameter tokens and available checks;
+   follow the linked source when the index is insufficient instead of guessing a
+   research-directory mapping.
 3. ${historyCount > 0 ? "Read history.md. Do not repeat diagnoses that previous rounds tried and failed to improve. If previous rounds clarified something and it didn't help, the problem is elsewhere — look harder." : "Read the skill files you need to understand (SKILL.md is the entry point)."}
 4. Inventory every evidence-backed opportunity before choosing edits. Use
    these exact categories in the submission: \`instruction-clarity\`,
@@ -470,6 +479,11 @@ Write \`.optimize/submission.json\` with these fields (see
   If the original source skill already contains \`.skvm-validation.json\`, its
   source-owned file checks may also apply; do not add or edit that authority merely
   to validate your own candidate. Missing or unsupported checks remain unassessed.
+  A case may set \`applicability\` to \`supported\` or \`not-applicable\`.
+  For a source-supported inapplicable boundary, set the expected non-success
+  status/output and list \`expectedAbsentFiles\` so the engine verifies rejection
+  before writing outputs. Exercise changed values and parameters when the evidence
+  permits; selecting an entry never proves all declared inputs or preconditions.
   Do not invent task files, expected bytes, credentials, runtimes, or arguments.
   Use
   \`reuse-script\`, \`domain-backend\`, \`generate-script\`, or

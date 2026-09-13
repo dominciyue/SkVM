@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import {
@@ -377,6 +377,273 @@ describe("deriveProgramValidationPlan", () => {
     expect(plan.status).toBe("not-applicable")
     expect(plan.diagnostics).toContainEqual(expect.objectContaining({ code: "validation-suggestion-missing" }))
   })
+})
+
+describe("runOptimizationValidationLifecycle — parameter capability boundary", () => {
+  async function capabilityScenario(writeBeforeReject: boolean) {
+    const proposalDir = await tempDir("validation-capability-proposal-")
+    const skillDir = await tempDir("validation-capability-skill-")
+    const evidenceRoot = await tempDir("validation-capability-evidence-")
+    await mkdir(path.join(skillDir, "scripts"), { recursive: true })
+    await writeFile(path.join(skillDir, "SKILL.md"), "# CSV selector\n\nOnly flat CSV with required `name` and `code` columns is supported.\n")
+    await writeFile(path.join(skillDir, "scripts", "select.mjs"), `
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+const args = process.argv.slice(2);
+const input = args[args.indexOf("--input") + 1];
+const output = args[args.indexOf("--out") + 1];
+const field = args[args.indexOf("--field") + 1];
+const reject = async () => {
+  ${writeBeforeReject ? "await mkdir(path.dirname(output), { recursive: true }); await writeFile(output, 'partial\\n');" : ""}
+  console.error("not-applicable: expected flat CSV with name and code columns");
+  process.exit(2);
+};
+const raw = await readFile(input, "utf8");
+if (raw.trimStart().startsWith("{") || !raw.includes(",")) await reject();
+const [header, row] = raw.trim().split(/\\r?\\n/);
+const columns = header.split(",");
+if (!columns.includes("name") || !columns.includes("code") || !row) await reject();
+const values = row.split(",");
+if (!columns.includes(field)) await reject();
+await mkdir(path.dirname(output), { recursive: true });
+await writeFile(output, values[columns.indexOf(field)] + "\\n");
+`)
+    const taskPath = path.join(evidenceRoot, "task.json")
+    await writeFile(taskPath, JSON.stringify({
+      id: "csv-boundary",
+      fixtures: {
+        "inputs/base.csv": "name,code\nAlpha,A1\n",
+        "inputs/changed.csv": "name,code\nBeta,B2\n",
+        "inputs/missing.csv": "name\nAlpha\n",
+        "inputs/nested.json": "{\"row\":{\"name\":\"Alpha\",\"code\":\"A1\"}}\n",
+        "inputs/wrong-format.txt": "name;code\nAlpha;A1\n",
+      },
+      eval: [
+        { id: "base-name", method: "file-check", path: "out/value.txt", mode: "exact", expected: "Alpha\n" },
+        { id: "changed-name", method: "file-check", path: "out/value.txt", mode: "exact", expected: "Beta\n" },
+        { id: "base-code", method: "file-check", path: "out/value.txt", mode: "exact", expected: "A1\n" },
+      ],
+    }))
+    const evidence: Evidence = {
+      taskId: "csv-boundary",
+      taskPrompt: "Select a supported CSV field and reject unsupported structures before writing output.",
+      conversationLog: [],
+      criteria: ["base-name", "changed-name", "base-code"].map((id) => ({
+        id,
+        method: "file-check" as const,
+        weight: 1 / 3,
+        score: 1,
+        passed: true,
+      })),
+      workDirSnapshot: { files: new Map() },
+      trace: {
+        format: "test-trace",
+        representation: "run-summary",
+        sourcePath: path.join(evidenceRoot, "trace.jsonl"),
+        inputSha256: "b".repeat(64),
+        recordLocator: "line:1",
+        taskIdSource: "source",
+        taskPath,
+        unknownFields: [],
+        diagnostics: [],
+      },
+    }
+    const positive = (
+      id: string,
+      inputFile: string,
+      field: string,
+      criterionId: string,
+    ) => ({
+      id,
+      evidenceId: "0",
+      inputSource: "task-fixtures" as const,
+      inputFiles: [inputFile],
+      args: ["--input", inputFile, "--field", field, "--out", "out/value.txt"],
+      expectedFiles: [{ path: "out/value.txt" }],
+      applicability: "supported" as const,
+      basis: "task-contract" as const,
+      sourceRefs: [`evidence:0#criteria/${criterionId}`],
+    })
+    const negative = (id: string, inputFile: string) => ({
+      id,
+      evidenceId: "0",
+      inputSource: "task-fixtures" as const,
+      inputFiles: [inputFile],
+      args: ["--input", inputFile, "--field", "name", "--out", "out/value.txt"],
+      expectedExitCode: 2,
+      stderrIncludes: ["not-applicable"],
+      expectedAbsentFiles: ["out/value.txt"],
+      applicability: "not-applicable" as const,
+      basis: "self-check" as const,
+      sourceRefs: ["SKILL.md#csv-boundary"],
+    })
+    const action = {
+      id: "csv-selector",
+      kind: "generate-script",
+      evidenceIds: ["0"],
+      sourceRefs: ["SKILL.md#csv-boundary"],
+      dependsOn: [],
+      inputs: ["flat CSV with required name and code columns", "--field name|code"],
+      outputs: ["selected UTF-8 value"],
+      preconditions: ["input format and nested structures outside the observed cases remain agent-checked"],
+      changedPaths: ["scripts/select.mjs"],
+      residualDuties: ["The agent decides whether unobserved CSV dialects are applicable."],
+      verification: ["Run supported variations and pre-write rejection cases."],
+      validation: {
+        cases: [
+          positive("base", "inputs/base.csv", "name", "base-name"),
+          positive("changed-input", "inputs/changed.csv", "name", "changed-name"),
+          positive("changed-parameter", "inputs/base.csv", "code", "base-code"),
+          negative("missing-column", "inputs/missing.csv"),
+          negative("nested-structure", "inputs/nested.json"),
+          negative("wrong-format", "inputs/wrong-format.txt"),
+        ],
+      },
+    } as unknown as OptimizationAction
+
+    return runOptimizationValidationLifecycle({
+      proposalDir,
+      round: 1,
+      skillDir,
+      sourceSkillDir: skillDir,
+      actions: [action],
+      evidences: [evidence],
+    })
+  }
+
+  test("records observed input/parameter variation and rejects unsupported shapes before writes", async () => {
+    const result = await capabilityScenario(false)
+
+    expect(result.summary.status).toBe("passed")
+    expect(result.report.actions[0]?.capabilityBoundary).toEqual({
+      selectionMeaning: "entry-found-only",
+      supportedCaseIds: ["base", "changed-input", "changed-parameter"],
+      notApplicableCaseIds: ["missing-column", "nested-structure", "wrong-format"],
+      inputVariationAffectsOutput: true,
+      parameterVariationAffectsOutput: true,
+      rejectedBeforeWriteCaseIds: ["missing-column", "nested-structure", "wrong-format"],
+      unverifiedInputs: ["flat CSV with required name and code columns", "--field name|code"],
+      unverifiedPreconditions: ["input format and nested structures outside the observed cases remain agent-checked"],
+      residualAgentDuty: "Declared inputs and preconditions outside the executed cases remain unverified and must be handled by the agent.",
+    })
+  })
+
+  test("fails a not-applicable case that writes a partial output before rejection", async () => {
+    const result = await capabilityScenario(true)
+
+    expect(result.summary.status).toBe("failed")
+    expect(result.report.actions[0]?.program?.cases.find((item) => item.id === "missing-column"))
+      .toEqual(expect.objectContaining({
+        status: "failed",
+        diagnostics: ["file must remain absent for not-applicable handling: out/value.txt"],
+      }))
+  })
+})
+
+describe("runOptimizationValidationLifecycle — prior observation binding", () => {
+  test.each(["entry", "parameters", "task-resource", "assertion"] as const)(
+    "re-executes a prior pass when its %s binding changes",
+    async (changedBinding) => {
+      const proposalDir = await tempDir(`validation-binding-${changedBinding}-proposal-`)
+      const skillDir = await tempDir(`validation-binding-${changedBinding}-skill-`)
+      const evidenceRoot = await tempDir(`validation-binding-${changedBinding}-evidence-`)
+      await mkdir(path.join(skillDir, "scripts"), { recursive: true })
+      const entryPath = path.join(skillDir, "scripts", "emit.mjs")
+      const entrySource = `
+import { mkdir, writeFile } from "node:fs/promises";
+await mkdir("out", { recursive: true });
+await writeFile("out/result.txt", "ALPHA\\n");
+`
+      await writeFile(entryPath, entrySource)
+      const taskPath = path.join(evidenceRoot, "task.json")
+      const task = (fixture: string, expected: string) => ({
+        id: "binding-task",
+        fixtures: { "input.txt": fixture },
+        eval: [{ id: "result", method: "file-check", path: "out/result.txt", mode: "exact", expected }],
+      })
+      await writeFile(taskPath, JSON.stringify(task("first\n", "ALPHA\n")))
+      const evidence: Evidence = {
+        taskId: "binding-task",
+        taskPrompt: "Emit the bound result.",
+        conversationLog: [],
+        criteria: [{ id: "result", method: "file-check", weight: 1, score: 1, passed: true }],
+        workDirSnapshot: { files: new Map() },
+        trace: {
+          format: "test-trace",
+          representation: "run-summary",
+          sourcePath: path.join(evidenceRoot, "trace.jsonl"),
+          inputSha256: "c".repeat(64),
+          recordLocator: "line:1",
+          taskIdSource: "source",
+          taskPath,
+          unknownFields: [],
+          diagnostics: [],
+        },
+      }
+      const action = (args: string[]): OptimizationAction => ({
+        id: "bound",
+        kind: "generate-script",
+        evidenceIds: ["0"],
+        sourceRefs: ["SKILL.md"],
+        dependsOn: [],
+        inputs: ["input.txt"],
+        outputs: ["out/result.txt"],
+        preconditions: [],
+        changedPaths: ["scripts/emit.mjs"],
+        residualDuties: [],
+        verification: [],
+        validation: { cases: [{
+          id: "observed",
+          evidenceId: "0",
+          inputSource: "task-fixtures",
+          inputFiles: ["input.txt"],
+          args,
+          expectedFiles: [{ path: "out/result.txt" }],
+          basis: "task-contract",
+          sourceRefs: ["evidence:0#criteria/result"],
+        }] },
+      })
+      const initialAction = action([])
+      const initial = await runOptimizationValidationLifecycle({
+        proposalDir,
+        round: 1,
+        skillDir,
+        actions: [initialAction],
+        evidences: [evidence],
+      })
+      expect(initial.summary.status).toBe("passed")
+
+      let currentAction = initialAction
+      const changedPaths: string[] = []
+      if (changedBinding === "entry") {
+        await writeFile(entryPath, `${entrySource}\n// revised entry\n`)
+        changedPaths.push("scripts/emit.mjs")
+      } else if (changedBinding === "parameters") {
+        currentAction = action(["--mode", "bounded"])
+      } else if (changedBinding === "task-resource") {
+        await writeFile(taskPath, JSON.stringify(task("second\n", "ALPHA\n")))
+      } else {
+        await writeFile(taskPath, JSON.stringify(task("first\n", "DIFFERENT\n")))
+      }
+
+      const revised = await runOptimizationValidationLifecycle({
+        proposalDir,
+        round: 1,
+        skillDir,
+        actions: [currentAction],
+        evidences: [evidence],
+        executeActionIds: [],
+        changedPathsSincePrior: changedPaths,
+        priorReport: initial.report,
+      })
+
+      expect(revised.report.execution).toEqual(expect.objectContaining({
+        programRuns: 1,
+        reusedActionObservations: 0,
+      }))
+      expect(revised.report.actions[0]?.validationSource).toBe("executed")
+    },
+  )
 })
 
 describe("runOptimizationValidationLifecycle", () => {

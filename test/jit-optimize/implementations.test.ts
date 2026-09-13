@@ -114,6 +114,50 @@ describe("selectOptimizationImplementation", () => {
     expect(selected).toMatchObject({ status: "selected", entry: "scripts/generated.mjs", runtime: "node" })
   })
 
+  test("does not count an unchanged pre-existing program as a realized generate action", async () => {
+    const baseline = await skillDir("generated-baseline-")
+    const candidate = await skillDir("generated-candidate-")
+    for (const dir of [baseline, candidate]) {
+      await mkdir(path.join(dir, "scripts"))
+      await writeFile(path.join(dir, "scripts", "generated.mjs"), "console.log('existing')\n")
+    }
+    const generated = action("generated-existing", {
+      kind: "generate-script",
+      sourceRefs: [],
+      changedPaths: ["SKILL.md", "scripts/generated.mjs"],
+    })
+
+    const result = await selectOptimizationImplementation({
+      skillDir: candidate,
+      baselineSkillDir: baseline,
+      action: generated,
+    } as Parameters<typeof selectOptimizationImplementation>[0] & { baselineSkillDir: string })
+
+    expect(result).toMatchObject({
+      status: "failed",
+      entry: "scripts/generated.mjs",
+      reason: "Generated-program entry is unchanged from the source skill: scripts/generated.mjs",
+    })
+  })
+
+  test("records a reuse action without an executable source as not realized", async () => {
+    const dir = await skillDir("missing-reuse-entry-")
+    const result = await selectOptimizationImplementation({
+      skillDir: dir,
+      action: action("missing-reuse", {
+        kind: "reuse-script",
+        sourceRefs: ["SKILL.md#workflow", "references/example.json"],
+        changedPaths: ["SKILL.md"],
+      }),
+    })
+
+    expect(result).toMatchObject({
+      status: "not-applicable",
+      actionId: "missing-reuse",
+      reason: "No executable source reference was declared for reuse.",
+    })
+  })
+
   test("continues selecting independent actions after one is not applicable", async () => {
     const dir = await skillDir("mixed-actions-")
     await mkdir(path.join(dir, "scripts"))

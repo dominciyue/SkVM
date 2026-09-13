@@ -22,7 +22,9 @@ export interface ProgramValidationExpectation {
 export interface ProgramValidationCase extends ProgramValidationExpectation {
   id: string
   cwd: string
+  applicability?: "supported" | "not-applicable"
   expectedFiles?: string[]
+  expectedAbsentFiles?: string[]
   /** Engine-derived reference digests; optimizer suggestions cannot supply these directly. */
   expectedFileSha256?: Record<string, string>
   /** Engine-resolved assertions from an authority outside the candidate program. */
@@ -133,6 +135,15 @@ async function regularFile(filePath: string): Promise<boolean> {
   }
 }
 
+async function pathExists(filePath: string): Promise<boolean> {
+  try {
+    await stat(filePath)
+    return true
+  } catch {
+    return false
+  }
+}
+
 function runtimeCommand(implementation: ImplementationSelection, entry: string): string[] | undefined {
   switch (implementation.runtime) {
     case "node": return [Bun.which("node") ?? process.execPath, entry]
@@ -158,7 +169,7 @@ async function runValidation(
   id: string,
   commandBase: string[],
   cwd: string,
-  expectation: ProgramValidationExpectation & { expectedFiles?: string[] },
+  expectation: ProgramValidationExpectation & { expectedFiles?: string[]; expectedAbsentFiles?: string[] },
   timeoutMs: number,
 ): Promise<ProgramRunValidation> {
   const command = [...commandBase, ...expectation.args]
@@ -249,6 +260,13 @@ async function runValidation(
     }
     else {
       diagnostics.push(`expected output file is missing or outside cwd: ${outputPath}`)
+      failureKind ??= "result-mismatch"
+    }
+  }
+  for (const absentPath of expectation.expectedAbsentFiles ?? []) {
+    const absolute = resolveContained(cwd, absentPath)
+    if (!absolute || await pathExists(absolute)) {
+      diagnostics.push(`file must remain absent for not-applicable handling: ${absentPath}`)
       failureKind ??= "result-mismatch"
     }
   }

@@ -510,6 +510,96 @@ describe("workdir snapshot placement", () => {
   })
 })
 
+describe("serializeContext — implementation context", () => {
+  test("organizes runnable source interfaces, shaped inputs, observed outputs, and checks without locator guessing", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "workspace-implementation-context-"))
+    const optimizeDir = path.join(root, "optimize")
+    const skillDir = path.join(root, "skill")
+    const taskDir = path.join(root, "task")
+    try {
+      await mkdir(path.join(skillDir, "scripts"), { recursive: true })
+      await mkdir(taskDir, { recursive: true })
+      await writeFile(path.join(skillDir, "SKILL.md"), "# Table tool\n\nUse `scripts/table.py --input FILE --out FILE`.\n")
+      await writeFile(
+        path.join(skillDir, "scripts", "table.py"),
+        "# usage: table.py --input FILE --out FILE\nprint('ok')\n",
+      )
+      const taskPath = path.join(taskDir, "task.json")
+      await writeFile(taskPath, JSON.stringify({
+        id: "table-task",
+        fixtures: { "inputs/rows.csv": "name,code\nAlpha,A1\n" },
+      }))
+      const evidence: Evidence = {
+        taskId: "table-task",
+        taskPrompt: "Read the CSV and produce a JSON summary.",
+        conversationLog: [],
+        criteria: [{
+          id: "summary-schema",
+          method: "file-check",
+          description: "Summary follows the required object schema.",
+          weight: 1,
+          score: 1,
+          passed: true,
+        }],
+        workDirSnapshot: { files: new Map([
+          ["out/summary.json", "{\"name\":\"Alpha\",\"code\":\"A1\"}\n"],
+        ]) },
+        trace: {
+          format: "test-trace",
+          representation: "run-summary",
+          sourcePath: path.join(root, "trace.jsonl"),
+          inputSha256: "a".repeat(64),
+          recordLocator: "line:1",
+          taskIdSource: "source",
+          taskPath,
+          unknownFields: [],
+          diagnostics: [],
+        },
+      }
+
+      await serializeContext(optimizeDir, [evidence], [], { skillDir })
+
+      const context = JSON.parse(await readFile(path.join(optimizeDir, "IMPLEMENTATION_CONTEXT.json"), "utf8"))
+      expect(context).toMatchObject({
+        schemaVersion: "jit-optimize-implementation-context/v1",
+        sourceInterfaces: [{
+          path: "scripts/table.py",
+          runtime: "python",
+          parameterTokens: ["--input", "--out"],
+          referencedBySkill: true,
+        }],
+        evidence: [{
+          evidenceIndex: 0,
+          taskId: "table-task",
+          inputs: {
+            status: "materialized",
+            files: [{
+              path: "inputs/rows.csv",
+              locator: ".optimize/tasks/table-task/run-0-task-fixtures/inputs/rows.csv",
+              format: { kind: "csv", columns: ["name", "code"] },
+            }],
+          },
+          observedOutputs: [{
+            path: "out/summary.json",
+            locator: ".optimize/tasks/table-task/run-0-workdir/out/summary.json",
+            format: { kind: "json", rootType: "object", topLevelKeys: ["code", "name"] },
+          }],
+          checks: [{
+            id: "summary-schema",
+            method: "file-check",
+            passed: true,
+            sourceRef: "evidence:0#criteria/summary-schema",
+          }],
+        }],
+      })
+      expect(await readFile(path.join(optimizeDir, "README.md"), "utf8"))
+        .toContain(".optimize/IMPLEMENTATION_CONTEXT.json")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+})
+
 describe("source skill resource navigation", () => {
   test("indexes the complete configured skill so rules not exercised by the trace stay readable", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "workspace-resource-index-"))

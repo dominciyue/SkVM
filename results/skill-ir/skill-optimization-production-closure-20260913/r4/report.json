@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "skill-ir-production-closure-r4-report/v1",
+  "identity": "skill-optimization-production-closure-20260913-r4",
+  "exposure": "development",
+  "status": "completed",
+  "baselineCommit": "dfc37a3",
+  "sourceDiagnosis": {
+    "source": "preserved H8 optimizer attempts",
+    "attempts": 9,
+    "outcomes": {
+      "documentationOnly": [1, 2, 3, 5, 7, 9],
+      "justifiedNoChange": [6],
+      "providerFailureBeforePersistedResponse": [4],
+      "generatedProgram": [8]
+    },
+    "concreteFriction": "The optimizer workspace exposed evidence and editable files but did not provide one organized interface joining executable source entrypoints, normalized task inputs, observed data shapes, parameters, outputs and available checks. Earlier prompts also made bounded parameterized programs appear insufficient unless they replaced the whole skill.",
+    "supportingObservation": "Attempt 8 generated a program only after the prompt explicitly stated that one successful evidence-backed run can justify a parameterized program/checker, that a bounded format need not replace the whole skill, and that direct inputs, outputs and checks should be used.",
+    "boundary": "Attempt 6 remains a valid no-change. The diagnosis does not imply that every documentation-only result should have generated a program."
+  },
+  "implementation": {
+    "implementationContext": ".optimize/IMPLEMENTATION_CONTEXT.json",
+    "implementationContextSchema": "jit-optimize-implementation-context/v1",
+    "organizedFields": [
+      "existing executable source interfaces",
+      "normalized task input locators and digests",
+      "observed JSON, CSV, YAML or text shapes",
+      "workdir output locators and shapes",
+      "available criteria and checks",
+      "discovered command-line parameter tokens"
+    ],
+    "actionRealization": {
+      "generateScriptRequiresNewOrChangedEntry": true,
+      "reuseScriptRequiresExecutableSource": true,
+      "documentationChangeCannotRealizeProgramAction": true,
+      "noMechanicalOpportunityMayRemainNoChange": true
+    },
+    "repairPolicy": {
+      "maximumInformativeRepairs": 1,
+      "noInformationResampling": false,
+      "changedPathsRecorded": true,
+      "revalidatedAndReusedActionsRecorded": true
+    }
+  },
+  "candidateBehaviorMatrix": [
+    {
+      "outcome": "first-generation-success",
+      "fixture": "production-closure normal loop",
+      "result": "passed",
+      "repairRuns": 0,
+      "humanIntervention": 0
+    },
+    {
+      "outcome": "one-repair-success",
+      "fixture": "independent repair actions",
+      "result": "passed",
+      "repairRuns": 1,
+      "preservedObservation": "independent action B"
+    },
+    {
+      "outcome": "no-change",
+      "fixture": "optimization handoff terminal no-change",
+      "result": "returned without another optimizer or source run"
+    },
+    {
+      "outcome": "still-failed",
+      "fixture": "failed shared-file dependency group",
+      "result": "one repair then dependency-group rollback",
+      "preservedObservation": "independent action C"
+    },
+    {
+      "outcome": "manual-intervention",
+      "fixture": "deterministic R4 scenarios",
+      "result": "not required",
+      "count": 0,
+      "claimBoundary": "This is not evidence of human-effort savings or future intervention probability."
+    }
+  ],
+  "v3ObservationInvalidation": {
+    "sharedRuntimeDependencyCase": {
+      "programs": ["A", "B"],
+      "sharedDependency": "../rules.json",
+      "repairTrigger": "A failed and the allowed repair changed rules.json",
+      "expected": "B's old passed observation is invalidated and B is reexecuted",
+      "actual": "passed"
+    },
+    "bindingMutationCases": [
+      "entry file",
+      "program parameters",
+      "task resource",
+      "candidate-time assertion"
+    ],
+    "bindingMutationCasesReexecuted": 4,
+    "dependencyMode": "complete-static when bounded local reads are known; conservative revalidation otherwise"
+  },
+  "v5CapabilityBoundary": {
+    "selectionMeaning": "entry-found-only",
+    "supportedCases": 3,
+    "notApplicableCases": 3,
+    "supportedCoverage": [
+      "required flat CSV name/code columns",
+      "input value variation changes output",
+      "--field parameter variation changes output"
+    ],
+    "notApplicableCoverage": [
+      "missing required column",
+      "nested JSON instead of the supported flat CSV model",
+      "wrong delimiter"
+    ],
+    "rejectedBeforeWriteCases": 3,
+    "partialWriteFaultDetected": true,
+    "residualDuty": "Unknown or unverified input conditions remain with the agent/original workflow and are not counted as automated success.",
+    "claimBoundary": "These are deterministic synthetic capability cases, not independent real-skill successes or a real-input success rate."
+  },
+  "verification": {
+    "focusedCore": {
+      "command": "bun test ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/package-validation.test.ts",
+      "passed": 56,
+      "failed": 0,
+      "assertions": 192
+    },
+    "repairAndInvalidation": {
+      "command": "bun test ./test/jit-optimize/production-closure.test.ts",
+      "passed": 4,
+      "failed": 0,
+      "assertions": 32
+    },
+    "optimizerPrompt": {
+      "command": "bun test ./test/jit-optimize/optimizer-prompt.test.ts",
+      "passed": 24,
+      "failed": 0,
+      "assertions": 95
+    },
+    "broaderRelated": {
+      "command": "bun test ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/package.test.ts ./test/run/optimization-handoff.test.ts",
+      "passed": 79,
+      "failed": 0,
+      "assertions": 285
+    },
+    "typecheck": "passed",
+    "diffCheck": "passed"
+  },
+  "runtimeAccounting": {
+    "sourceAgentRuns": 0,
+    "optimizerAgentRuns": 0,
+    "remoteApiCalls": 0,
+    "paidCalls": 0,
+    "actualProjectCostUsd": null,
+    "note": "R4 used deterministic local fixtures. Developer-agent use remains separate from project runtime accounting."
+  },
+  "claimBoundary": "R4 proves bounded shared implementation-context generation, action realization checks, dependency-aware observation invalidation and explicit tested capability boundaries. It does not retroactively promote H8 documentation-only attempts, force valid no-change skills to generate programs, prove all declared inputs are supported, establish a real-skill success rate, or establish human savings, readiness or prospective reliability."
+}

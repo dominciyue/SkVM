@@ -387,6 +387,10 @@ export interface OptimizationValidationCaseSuggestion extends OptimizationValida
   inputSource: "task-fixtures" | "workdir-snapshot"
   inputFiles: string[]
   expectedFiles?: OptimizationValidationExpectedFileSuggestion[]
+  /** Whether the case exercises the admitted boundary or a clean pre-write rejection. */
+  applicability?: "supported" | "not-applicable"
+  /** Files that must not exist after a not-applicable case. */
+  expectedAbsentFiles?: string[]
   basis: OptimizationValidationBasis
   sourceRefs: string[]
 }
@@ -414,6 +418,8 @@ export const OptimizationValidationCaseSuggestionSchema = OptimizationValidation
   inputSource: z.enum(["task-fixtures", "workdir-snapshot"]),
   inputFiles: z.array(z.string().min(1)),
   expectedFiles: z.array(OptimizationValidationExpectedFileSuggestionSchema).optional(),
+  applicability: z.enum(["supported", "not-applicable"]).optional(),
+  expectedAbsentFiles: z.array(z.string().min(1)).optional(),
   basis: z.enum(["reference-output", "task-contract", "self-check"]),
   sourceRefs: z.array(z.string()),
 })
