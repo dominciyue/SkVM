@@ -1,5 +1,6 @@
 import path from "node:path"
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import { EvalCriterionSchema, type EvalCriterion } from "../core/types.ts"
 import type { ImplementationSelection } from "./implementations.ts"
 import { selectOptimizationImplementations } from "./implementations.ts"
 import {
@@ -38,6 +39,12 @@ export interface ProgramValidationPlanDiagnostic {
     | "validation-reference-path-invalid"
     | "validation-reference-missing"
     | "validation-reference-required"
+    | "validation-task-criterion-missing"
+    | "validation-task-criterion-unsupported"
+    | "validation-task-criterion-path-invalid"
+    | "validation-source-checks-invalid"
+    | "validation-source-reference-invalid"
+    | "validation-source-reference-missing"
   message: string
   caseId?: string
 }
@@ -48,8 +55,12 @@ export interface ProgramValidationCaseEvidence {
   basis: OptimizationValidationBasis
   sourceRefs: string[]
   referenceDigests: Record<string, string>
-  /** Existing external evaluator criteria that label this exact evidence case. */
+  /** Prior passing criteria that establish the observed reference as task-valid. */
+  referenceAuthorityCriterionIds: string[]
+  /** Bound task criteria that were re-executed against this candidate case. */
   independentCriterionIds: string[]
+  executedAssertionIds: string[]
+  assertionAuthorities: Array<"task-requirement" | "source-derived" | "self-check">
 }
 
 export interface DerivedProgramValidationPlan {
@@ -70,6 +81,8 @@ export interface DeriveProgramValidationPlanOptions {
   evidences: readonly Evidence[]
   /** Dedicated, disposable root controlled by the caller. */
   validationRoot: string
+  /** Original, pre-edit skill root used only for source-owned checks. */
+  sourceSkillDir?: string
 }
 
 export interface OptimizationActionValidationRecord {
@@ -129,6 +142,8 @@ export interface RunOptimizationValidationLifecycleOptions {
   proposalDir: string
   round: number
   skillDir: string
+  /** Original, pre-edit skill root used only for source-owned checks. */
+  sourceSkillDir?: string
   actions: readonly OptimizationAction[]
   evidences: readonly Evidence[]
   /** Re-run only these actions and reuse explicit observations for the rest. */
@@ -274,23 +289,200 @@ function evidenceAt(
   return evidence
 }
 
-function independentCriterionBindings(
+function taskCriterionId(criterion: EvalCriterion): string {
+  return criterion.id ?? `${criterion.method}/${criterion.name ?? "criterion"}`
+}
+
+function passedCriterionBindings(
   suggestion: OptimizationValidationCaseSuggestion,
   evidence: Evidence,
 ): string[] {
-  if (suggestion.basis !== "task-contract") return []
   const prefix = `evidence:${suggestion.evidenceId}#criteria/`
-  const declared = new Set(
-    suggestion.sourceRefs
-      .filter((sourceRef) => sourceRef.startsWith(prefix))
-      .map((sourceRef) => sourceRef.slice(prefix.length))
-      .filter((criterionId) => criterionId.length > 0),
-  )
-  if (declared.size === 0) return []
+  const declared = new Set(suggestion.sourceRefs
+    .filter((sourceRef) => sourceRef.startsWith(prefix))
+    .map((sourceRef) => sourceRef.slice(prefix.length))
+    .filter(Boolean))
   const criteria = new Map((evidence.criteria ?? []).map((criterion) => [criterion.id, criterion]))
   return [...declared]
     .filter((criterionId) => criteria.get(criterionId)?.passed === true)
     .sort((left, right) => left.localeCompare(right, "en"))
+}
+
+async function taskAssertionBindings(
+  suggestion: OptimizationValidationCaseSuggestion,
+  evidence: Evidence,
+  diagnostics: ProgramValidationPlanDiagnostic[],
+): Promise<NonNullable<ProgramValidationCase["assertions"]>> {
+  if (suggestion.basis !== "task-contract") return []
+  const prefix = `evidence:${suggestion.evidenceId}#criteria/`
+  const requested = [...new Set(suggestion.sourceRefs
+    .filter((sourceRef) => sourceRef.startsWith(prefix))
+    .map((sourceRef) => sourceRef.slice(prefix.length))
+    .filter(Boolean))]
+  if (requested.length === 0) return []
+  const taskPath = evidence.trace?.taskPath
+  let rawCriteria: unknown[] = []
+  if (taskPath) {
+    try {
+      const raw = JSON.parse(await readFile(taskPath, "utf8")) as { eval?: unknown }
+      if (Array.isArray(raw.eval)) rawCriteria = raw.eval
+    } catch {
+      // A located missing criterion below is more useful than a parse exception.
+    }
+  }
+  const criteria = new Map<string, EvalCriterion>()
+  for (const raw of rawCriteria) {
+    const parsed = EvalCriterionSchema.safeParse(raw)
+    if (parsed.success) criteria.set(taskCriterionId(parsed.data), parsed.data)
+  }
+  const assertions: NonNullable<ProgramValidationCase["assertions"]> = []
+  for (const criterionId of requested) {
+    const criterion = criteria.get(criterionId)
+    if (!criterion) {
+      diagnostics.push({
+        code: "validation-task-criterion-missing",
+        caseId: suggestion.id,
+        message: `Task criterion ${criterionId} is not readable from the bound task source. A prior pass label is not an executable assertion.`,
+      })
+      continue
+    }
+    if (criterion.method !== "file-check" || criterion.glob) {
+      diagnostics.push({
+        code: "validation-task-criterion-unsupported",
+        caseId: suggestion.id,
+        message: `Task criterion ${criterionId} uses ${criterion.method}${criterion.method === "file-check" && criterion.glob ? " with glob" : ""}; bounded automatic validation currently executes contained file-check criteria only.`,
+      })
+      continue
+    }
+    const relative = portableRelative(criterion.path)
+    if (!relative) {
+      diagnostics.push({
+        code: "validation-task-criterion-path-invalid",
+        caseId: suggestion.id,
+        message: `Task criterion ${criterionId} checks a path outside the validation case: ${criterion.path}`,
+      })
+      continue
+    }
+    assertions.push({
+      id: criterionId,
+      authority: "task-requirement",
+      sourceRef: `${prefix}${criterionId}`,
+      criterion: { ...criterion, path: relative },
+    })
+  }
+  return assertions
+}
+
+async function sourceAssertionBindings(options: {
+  sourceSkillDir?: string
+  expectedFiles: readonly string[]
+  caseId: string
+  diagnostics: ProgramValidationPlanDiagnostic[]
+}): Promise<NonNullable<ProgramValidationCase["assertions"]>> {
+  if (!options.sourceSkillDir || options.expectedFiles.length === 0) return []
+  const manifestPath = path.join(options.sourceSkillDir, ".skvm-validation.json")
+  if (!await Bun.file(manifestPath).exists()) return []
+  let raw: unknown
+  try {
+    raw = JSON.parse(await readFile(manifestPath, "utf8"))
+  } catch (error) {
+    options.diagnostics.push({
+      code: "validation-source-checks-invalid",
+      caseId: options.caseId,
+      message: `Source validation manifest is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
+    })
+    return []
+  }
+  if (
+    typeof raw !== "object" || raw === null || Array.isArray(raw)
+    || (raw as { schemaVersion?: unknown }).schemaVersion !== "skvm-skill-validation/v1"
+    || !Array.isArray((raw as { fileChecks?: unknown }).fileChecks)
+  ) {
+    options.diagnostics.push({
+      code: "validation-source-checks-invalid",
+      caseId: options.caseId,
+      message: "Source validation manifest must use skvm-skill-validation/v1 with a fileChecks array.",
+    })
+    return []
+  }
+  const expected = new Set(options.expectedFiles)
+  const assertions: NonNullable<ProgramValidationCase["assertions"]> = []
+  const seenIds = new Set<string>()
+  for (const item of (raw as { fileChecks: unknown[] }).fileChecks) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      options.diagnostics.push({
+        code: "validation-source-checks-invalid",
+        caseId: options.caseId,
+        message: "Every source file check must be an object.",
+      })
+      continue
+    }
+    const check = item as Record<string, unknown>
+    if (
+      typeof check.id !== "string" || check.id.length === 0
+      || typeof check.path !== "string"
+      || !["exact", "contains", "regex", "json-schema"].includes(String(check.mode))
+      || typeof check.expected !== "string"
+      || typeof check.sourceRef !== "string" || check.sourceRef.length === 0
+    ) {
+      options.diagnostics.push({
+        code: "validation-source-checks-invalid",
+        caseId: options.caseId,
+        message: "A source file check requires id, contained path, supported mode, expected text and sourceRef.",
+      })
+      continue
+    }
+    if (seenIds.has(check.id)) {
+      options.diagnostics.push({
+        code: "validation-source-checks-invalid",
+        caseId: options.caseId,
+        message: `Source file check id is duplicated: ${check.id}`,
+      })
+      continue
+    }
+    seenIds.add(check.id)
+    const relative = portableRelative(check.path)
+    if (!relative) {
+      options.diagnostics.push({
+        code: "validation-source-checks-invalid",
+        caseId: options.caseId,
+        message: `Source file check ${check.id} has a path outside the validation case: ${check.path}`,
+      })
+      continue
+    }
+    if (!expected.has(relative)) continue
+    const referenceRelative = portableRelative(check.sourceRef.split("#", 1)[0]!)
+    if (!referenceRelative) {
+      options.diagnostics.push({
+        code: "validation-source-reference-invalid",
+        caseId: options.caseId,
+        message: `Source check ${check.id} has an invalid sourceRef: ${check.sourceRef}`,
+      })
+      continue
+    }
+    const referencePath = contained(options.sourceSkillDir, referenceRelative)
+    if (!referencePath || !await Bun.file(referencePath).exists()) {
+      options.diagnostics.push({
+        code: "validation-source-reference-missing",
+        caseId: options.caseId,
+        message: `Source check ${check.id} references a missing source file: ${referenceRelative}`,
+      })
+      continue
+    }
+    assertions.push({
+      id: check.id,
+      authority: "source-derived",
+      sourceRef: check.sourceRef,
+      criterion: {
+        id: check.id,
+        method: "file-check",
+        path: relative,
+        mode: check.mode as "exact" | "contains" | "regex" | "json-schema",
+        expected: check.expected,
+      },
+    })
+  }
+  return assertions
 }
 
 async function materializeCase(options: {
@@ -298,6 +490,7 @@ async function materializeCase(options: {
   suggestion: OptimizationValidationCaseSuggestion
   evidence: Evidence
   validationRoot: string
+  sourceSkillDir?: string
   index: number
   diagnostics: ProgramValidationPlanDiagnostic[]
 }): Promise<{ validationCase: ProgramValidationCase; evidence: ProgramValidationCaseEvidence } | undefined> {
@@ -406,6 +599,14 @@ async function materializeCase(options: {
     })
     return undefined
   }
+  const taskAssertions = await taskAssertionBindings(suggestion, options.evidence, options.diagnostics)
+  const sourceAssertions = await sourceAssertionBindings({
+    sourceSkillDir: options.sourceSkillDir,
+    expectedFiles,
+    caseId: suggestion.id,
+    diagnostics: options.diagnostics,
+  })
+  const assertions = [...taskAssertions, ...sourceAssertions]
 
   await rm(caseDir, { recursive: true, force: true })
   await mkdir(caseDir, { recursive: true })
@@ -424,6 +625,7 @@ async function materializeCase(options: {
       ...(suggestion.stderrIncludes ? { stderrIncludes: [...suggestion.stderrIncludes] } : {}),
       ...(expectedFiles.length > 0 ? { expectedFiles } : {}),
       ...(Object.keys(expectedFileSha256).length > 0 ? { expectedFileSha256 } : {}),
+      ...(assertions.length > 0 ? { assertions } : {}),
     },
     evidence: {
       id: suggestion.id,
@@ -431,7 +633,12 @@ async function materializeCase(options: {
       basis: suggestion.basis,
       sourceRefs: [...suggestion.sourceRefs],
       referenceDigests: expectedFileSha256,
-      independentCriterionIds: independentCriterionBindings(suggestion, options.evidence),
+      referenceAuthorityCriterionIds: suggestion.basis === "reference-output"
+        ? passedCriterionBindings(suggestion, options.evidence)
+        : [],
+      independentCriterionIds: taskAssertions.map((item) => item.id),
+      executedAssertionIds: assertions.map((item) => item.id),
+      assertionAuthorities: assertions.map((item) => item.authority),
     },
   }
 }
@@ -502,6 +709,7 @@ export async function deriveProgramValidationPlan(
       suggestion: item,
       evidence,
       validationRoot: options.validationRoot,
+      sourceSkillDir: options.sourceSkillDir,
       index,
       diagnostics,
     })
@@ -511,9 +719,11 @@ export async function deriveProgramValidationPlan(
   }
   const independentCaseIds = caseEvidence
     .filter((item) => (
-      item.basis === "reference-output" && Object.keys(item.referenceDigests).length > 0
+      item.basis === "reference-output"
+      && Object.keys(item.referenceDigests).length > 0
+      && item.referenceAuthorityCriterionIds.length > 0
     ) || (
-      item.basis === "task-contract" && item.independentCriterionIds.length > 0
+      item.basis === "task-contract" && item.assertionAuthorities.some((authority) => authority !== "self-check")
     ))
     .map((item) => item.id)
   const selfCheckCaseIds = caseEvidence
@@ -641,8 +851,9 @@ export async function runOptimizationValidationLifecycle(
       implementation,
       evidences: options.evidences,
       validationRoot,
+      sourceSkillDir: options.sourceSkillDir,
     })
-    if (plan.status !== "ready") {
+    if (plan.cases.length === 0) {
       observations.push({
         actionId: action.id,
         status: "not-run",
@@ -683,7 +894,7 @@ export async function runOptimizationValidationLifecycle(
         ...(program.failureKind ? { failureKind: program.failureKind } : {}),
         diagnostics,
       })
-    } else if (program.status === "passed" && plan.independentCaseIds.length > 0) {
+    } else if (program.status === "passed" && plan.status === "ready" && plan.independentCaseIds.length > 0) {
       observations.push({ actionId: action.id, status: "passed", diagnostics })
     } else {
       observations.push({
@@ -692,8 +903,10 @@ export async function runOptimizationValidationLifecycle(
         diagnostics: [
           ...diagnostics,
           plan.independentCaseIds.length === 0
-            ? "Only self-check or externally-unbound task-contract cases ran; no reference-output or passing evaluator criterion established task behavior."
-            : "No applicable task-behavior case completed.",
+            ? "Only self-check, unscored fidelity-reference, or externally-unbound cases ran; no current task/source assertion established task behavior."
+            : plan.status !== "ready"
+              ? "Some task-behavior cases ran, but unresolved case obligations remain and the full declared action scope is unassessed."
+              : "No applicable task-behavior case completed.",
         ],
       })
     }

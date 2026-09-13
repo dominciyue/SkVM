@@ -1,5 +1,7 @@
 import path from "node:path"
 import { stat } from "node:fs/promises"
+import { emptyTokenUsage, type EvalCriterion } from "../core/types.ts"
+import { evaluate } from "../framework/evaluator.ts"
 import type { ImplementationSelection } from "./implementations.ts"
 import type { OptimizationAction } from "./types.ts"
 
@@ -23,6 +25,24 @@ export interface ProgramValidationCase extends ProgramValidationExpectation {
   expectedFiles?: string[]
   /** Engine-derived reference digests; optimizer suggestions cannot supply these directly. */
   expectedFileSha256?: Record<string, string>
+  /** Engine-resolved assertions from an authority outside the candidate program. */
+  assertions?: ProgramValidationAssertion[]
+}
+
+export interface ProgramValidationAssertion {
+  id: string
+  authority: "task-requirement" | "source-derived" | "self-check"
+  sourceRef: string
+  criterion: Extract<EvalCriterion, { method: "file-check" }>
+}
+
+export interface ProgramAssertionValidation {
+  id: string
+  authority: ProgramValidationAssertion["authority"]
+  sourceRef: string
+  status: "passed" | "failed"
+  score: number
+  details: string
 }
 
 export interface ProgramOutputFileEvidence {
@@ -40,6 +60,7 @@ export interface ProgramRunValidation {
   stdout: string
   stderr: string
   outputFiles: ProgramOutputFileEvidence[]
+  assertions: ProgramAssertionValidation[]
   diagnostics: string[]
   failureKind?: ProgramValidationFailureKind
 }
@@ -154,6 +175,7 @@ async function runValidation(
       stdout: "",
       stderr: "",
       outputFiles: [],
+      assertions: [],
       diagnostics: [`process start failed: ${error instanceof Error ? error.message : String(error)}`],
       failureKind: "environment-not-reconstructable",
     }
@@ -179,6 +201,7 @@ async function runValidation(
       stdout: "",
       stderr: "",
       outputFiles: [],
+      assertions: [],
       diagnostics: ["process output was not exposed as readable streams"],
       failureKind: "environment-not-reconstructable",
     }
@@ -229,6 +252,51 @@ async function runValidation(
       failureKind ??= "result-mismatch"
     }
   }
+  const assertions: ProgramAssertionValidation[] = []
+  for (const assertion of "assertions" in expectation
+    ? ((expectation as ProgramValidationCase).assertions ?? [])
+    : []) {
+    const assertionPath = assertion.criterion.glob ? undefined : resolveContained(cwd, assertion.criterion.path)
+    if (!assertionPath) {
+      const details = assertion.criterion.glob
+        ? "glob-based task assertions are not supported by bounded program validation"
+        : `assertion path is outside the validation case: ${assertion.criterion.path}`
+      assertions.push({
+        id: assertion.id,
+        authority: assertion.authority,
+        sourceRef: assertion.sourceRef,
+        status: "failed",
+        score: 0,
+        details,
+      })
+      diagnostics.push(`assertion ${assertion.id} failed: ${details}`)
+      failureKind ??= "result-mismatch"
+      continue
+    }
+    const evaluated = await evaluate(assertion.criterion, {
+      text: stdout,
+      steps: [],
+      tokens: emptyTokenUsage(),
+      cost: 0,
+      durationMs: 0,
+      llmDurationMs: 0,
+      workDir: cwd,
+      runStatus: "ok",
+      usageAvailable: false,
+    })
+    assertions.push({
+      id: assertion.id,
+      authority: assertion.authority,
+      sourceRef: assertion.sourceRef,
+      status: evaluated.pass ? "passed" : "failed",
+      score: evaluated.score,
+      details: evaluated.details,
+    })
+    if (!evaluated.pass) {
+      diagnostics.push(`assertion ${assertion.id} failed: ${evaluated.details}`)
+      failureKind ??= "result-mismatch"
+    }
+  }
   return {
     id,
     status: diagnostics.length === 0 ? "passed" : "failed",
@@ -238,6 +306,7 @@ async function runValidation(
     stdout,
     stderr,
     outputFiles,
+    assertions,
     diagnostics,
     ...(failureKind ? { failureKind } : {}),
   }

@@ -311,20 +311,38 @@ async function evaluateFileCheck(
 }
 
 function validateJsonSchema(data: unknown, schema: Record<string, unknown>): boolean {
-  if (schema.type === "object" && typeof data === "object" && data !== null) {
-    const required = schema.required as string[] | undefined
-    if (required) {
-      for (const key of required) {
-        if (!(key in data)) return false
+  if ("const" in schema && !Object.is(data, schema.const)) return false
+  if (Array.isArray(schema.enum) && !schema.enum.some((item) => Object.is(data, item))) return false
+  if (Array.isArray(schema.type)) {
+    return schema.type.some((type) => validateJsonSchema(data, { ...schema, type }))
+  }
+  if (schema.type === "object") {
+    if (typeof data !== "object" || data === null || Array.isArray(data)) return false
+    const value = data as Record<string, unknown>
+    const required = Array.isArray(schema.required)
+      ? schema.required.filter((item): item is string => typeof item === "string")
+      : []
+    if (required.some((key) => !(key in value))) return false
+    if (typeof schema.properties === "object" && schema.properties !== null && !Array.isArray(schema.properties)) {
+      for (const [key, child] of Object.entries(schema.properties as Record<string, unknown>)) {
+        if (!(key in value)) continue
+        if (typeof child !== "object" || child === null || Array.isArray(child)) return false
+        if (!validateJsonSchema(value[key], child as Record<string, unknown>)) return false
       }
     }
     return true
   }
-  if (schema.type === "array" && Array.isArray(data)) return true
-  if (schema.type === "string" && typeof data === "string") return true
-  if (schema.type === "number" && typeof data === "number") return true
-  if (schema.type === "boolean" && typeof data === "boolean") return true
-  return false
+  if (schema.type === "array") {
+    if (!Array.isArray(data)) return false
+    if (typeof schema.items !== "object" || schema.items === null || Array.isArray(schema.items)) return true
+    return data.every((item) => validateJsonSchema(item, schema.items as Record<string, unknown>))
+  }
+  if (schema.type === "string") return typeof data === "string"
+  if (schema.type === "number") return typeof data === "number" && Number.isFinite(data)
+  if (schema.type === "integer") return typeof data === "number" && Number.isInteger(data)
+  if (schema.type === "boolean") return typeof data === "boolean"
+  if (schema.type === "null") return data === null
+  return schema.type === undefined
 }
 
 // ---------------------------------------------------------------------------

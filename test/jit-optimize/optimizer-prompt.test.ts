@@ -130,6 +130,13 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("arbitrary declared input paths")
   })
 
+  test("requires current semantic assertions instead of a historical pass label", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("historical passed criterion is not itself a current assertion")
+    expect(p).toContain(".skvm-validation.json")
+    expect(p).toContain("original source skill")
+  })
+
   test("keeps professional judgment as a residual duty instead of pretending to solidify it", () => {
     const p = buildOptimizerPrompt(1, 0)
     expect(p).toContain("professional judgment")

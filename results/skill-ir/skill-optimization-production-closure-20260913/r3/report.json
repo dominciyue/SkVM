@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "skill-ir-production-closure-r3-report/v1",
+  "identity": "skill-optimization-production-closure-20260913-r3",
+  "exposure": "development",
+  "status": "completed",
+  "baselineCommit": "1e069f8",
+  "implementation": {
+    "candidateAssertionsExecuted": true,
+    "taskAssertionMethods": ["file-check"],
+    "sourceValidationManifest": ".skvm-validation.json",
+    "sourceValidationSchema": "skvm-skill-validation/v1",
+    "sourceAssertionMethods": ["file-check"],
+    "sourceManifestReadFromOriginalSkill": true,
+    "historicalPassUsedAsCurrentVerdict": false,
+    "unscoredReferenceUsedAsCorrectAnswer": false,
+    "readyCasesRunWhenSiblingMissing": true,
+    "missingCasesRemovedFromDenominator": false,
+    "unsupportedAssertionMethods": ["script", "glob-file-check", "custom", "llm-judge"]
+  },
+  "redCases": [
+    { "id": "v1-empty-exit-zero", "before": "false-pass", "after": "detected-by-task-assertion" },
+    { "id": "v1-same-name-wrong-output", "before": "false-pass", "after": "detected-by-task-assertion" },
+    { "id": "v1-stdout-ok-only", "before": "false-pass", "after": "detected-by-task-assertion" },
+    { "id": "v4-ready-plus-missing", "before": "whole-action-not-run", "after": "ready-run-missing-unassessed" },
+    { "id": "unscored-reference", "before": "counted-independent", "after": "fidelity-only" },
+    { "id": "source-json-wrong-type", "before": "no-source-check-route", "after": "detected-by-source-derived-assertion" }
+  ],
+  "comparisonSemantics": {
+    "referenceOutput": "byte-sha256",
+    "exactFileCheck": "task-evaluator-exact-trimmed-text",
+    "jsonSchema": "parsed-object-order-insensitive-with-required-recursive-types-const-enum"
+  },
+  "verification": {
+    "prescribedCommand": "bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/package.test.ts",
+    "prescribedTestsPassed": 21,
+    "prescribedTestsFailed": 0,
+    "prescribedAssertions": 124,
+    "optimizerPromptTestsPassed": 23,
+    "jsonComparatorTestsPassed": 3,
+    "typecheck": "passed",
+    "diffCheck": "passed"
+  },
+  "runtimeAccounting": {
+    "sourceAgentRuns": 0,
+    "optimizerAgentRuns": 0,
+    "remoteApiCalls": 0,
+    "paidCalls": 0,
+    "note": "R3 used deterministic local fixtures. Actual natural-entry model runs remain R6/R7 evidence."
+  },
+  "claimBoundary": "R3 proves bounded local assertion execution, provenance labeling, false-pass rejection and case-local scheduling. It does not make unsupported graders safe, validate professional content, retroactively change frozen H8/H9 reports, prove a real natural-entry package, or establish prospective reliability or savings."
+}

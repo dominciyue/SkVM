@@ -2324,13 +2324,15 @@ action-local validation、普通 source/优化包自然消费、Pi 分层计数�
 未打包该文件，随后提示合同通过 TDD 明确排除。既有 API solidifier 与 v2 artifact 回归通过；历史候选冻结的额外测试仍会在当前
 Windows LF 工作文件与 `core.autocrlf` filter 的 CRLF checkout bytes 不同时拒绝 `package.json`，本轮不修改旧冻结链或摘要。
 
-### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-R3）
+### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-R4）
 
 **代码审查修订，revision 3（2026-09-14，active-R1）：** H0–H12 已完成，继续已有 R 队列。审查真实运行了一个仅 `process.exit(0)` 的程序：task-contract case 引用旧 passed criterion 且无输出断言，lifecycle 仍返回 passed/retained、independentCaseRuns=1、outputFiles=[]。这说明来源绑定不能替代对新输出执行语义断言；R3 必须修复，缺断言只支持执行状态或窄存在性主张，不强制整个 skill 停止优化。旧 H8/H9 另有独立变化输入与故障检查，保留原结果，不因框架漏洞猜测全部程序错误。
 
 **R1 实际实现（2026-09-14，completed）：** 普通 run 现在可在任务开始前建立唯一 `OptimizationSession`，以抗碰撞 run id 显式绑定 skill/task/workdir/adapter/model、source snapshots、conversation、durable trace、执行前输入 manifest 与 `RunResult`，并区分 ready、partial、failed、interrupted。用户/task 输入在 skill 部署前取证；skill 资源以 `.skvm/skills/<skill-id>` 为规范位置，旧根目录别名只在无冲突时生成。同名资源不覆盖用户输入，原地改写仍能由执行前摘要和 read 事件定位原字节。恢复使用新 session 目录，不清空用户 workdir，也不读取失败候选作为下一次 source。R1 聚焦回归 23/23、106 assertions 与 typecheck 通过；R2 负责把该底座接入自然任务 CLI 和已有 optimizer/package 链。
 
 **R2 实际实现（2026-09-14，completed）：** 普通 `run` 现接受互斥的 bench `--task` 或自然 `--prompt`；自然任务在唯一 session 内物化。`--optimize` 首版只对可完整捕获的 bare-agent 开放，optimizer model 默认沿用 source model，也可显式覆盖；源 task 仅执行一次。source 完成后先冻结自绑定、digest-bound `optimization-evidence.json`，再作为现有 execution-log optimizer 输入，避免主 session 的阶段更新改变原证据摘要。主 manifest 记录 optimizer-running、proposal-ready、package-exporting、completed/no-change/failed；terminal 不重调模型，proposal-ready 只恢复导出，外部阶段完成未知则 fail closed。session adapter 核对 skill closure 与 task/conversation/durable/result/input 摘要，派生 optimizer evidence 时遮蔽可识别 secret 且不把 post-run workdir 当 source snapshot；伪造的非 bare-agent capture 在锁和模型调用前拒绝。优化失败仍返回 source 成果。R2 关联回归 73/73、310 assertions 与 typecheck 通过；真实无手工付费链留给 R6/R7，不把模拟调用计为运行结果。
+
+**R3 实际实现（2026-09-14，completed）：** `task-contract` 不再因 evidence 中旧 criterion 为 passed 而自动 independent；框架从 bound task 重新解析 contained `file-check`，在候选程序运行后执行 exact/contains/regex/json-schema 断言，并在 report 记录 id、authority、sourceRef、score/details。原 skill 可选择携带 `.skvm-validation.json`（schema `skvm-skill-validation/v1`）中的 source-owned file checks；lifecycle 始终从原始 `sourceSkillDir` 读取，不接受候选自写 authority。script/glob/custom/LLM 规则当前保持 unresolved，不执行互联网 skill 的任意命令。observed output digest 只证明字节保真；只有其引用的旧输出本来有 passed authority，或本次 task/source assertion 实际通过，才计独立案例。单动作部分案例缺资源时，ready 案例仍实际执行、缺失案例保留 diagnostic，完整动作保持 unvalidated；其他独立动作照常解析与执行。V1 空程序、错误同名文件、仅 stdout `ok` 都被当前语义断言拒绝；source-derived JSON checker 同时用错误类型负例证明检出。JSON schema 的对象键序不影响结果，递归类型、const/enum 内容仍严格。任务书回归 21/21、124 assertions，prompt 23/23，JSON comparator 3/3，typecheck 通过；无项目模型/API/付费调用。
 
 R3 同时区分原输出保真、来源派生规则、程序自检与实际独立语义检查。一个独立案例缺资源不应阻止同动作其余 ready case 执行，但缺失必需案例也不能从分母删除或把完整声明范围提升为通过。比较器遵循任务语义，不为消除字节漂移而一律忽略空白、数组顺序或数据类型。
 

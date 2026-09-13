@@ -46,6 +46,13 @@ async function repairScenario(options: { sharedFailureGroup: boolean; repairSucc
       "inputs/b.json": "{\"value\":\"b\"}\n",
       "inputs/c.json": "{\"value\":\"c\"}\n",
     },
+    eval: ["a", "b", "c"].map((id) => ({
+      id: `output-${id}`,
+      method: "file-check",
+      path: `out/${id}.json`,
+      mode: "exact",
+      expected: `${JSON.stringify({ value: id.toUpperCase() })}\n`,
+    })),
   }))
   await mkdir(path.join(evidenceWorkDir, "reference"), { recursive: true })
   for (const id of ["a", "b", "c"]) {
@@ -86,8 +93,8 @@ async function repairScenario(options: { sharedFailureGroup: boolean; repairSucc
         inputFiles: [`inputs/${id}.json`],
         args: ["--out", `out/${id}.json`],
         expectedFiles: [{ path: `out/${id}.json`, referencePath: `reference/${id}.json` }],
-        basis: "reference-output" as const,
-        sourceRefs: [`evidence:0#reference/${id}.json`],
+        basis: "task-contract" as const,
+        sourceRefs: [`evidence:0#criteria/output-${id}`, `evidence:0#reference/${id}.json`],
       }],
     },
   }))
@@ -187,6 +194,13 @@ describe("execution-log production validation closure", () => {
       id: "uppercase-json",
       prompt: "Convert input.json into uppercase output JSON.",
       fixtures: { "inputs/input.json": "{\"value\":\"alpha\"}\n" },
+      eval: [{
+        id: "output-contract",
+        method: "file-check",
+        path: "out/result.json",
+        mode: "exact",
+        expected: "{\"value\":\"ALPHA\"}\n",
+      }],
     }))
     await mkdir(path.join(evidenceWorkDir, "reference"), { recursive: true })
     await writeFile(path.join(evidenceWorkDir, "reference", "result.json"), "{\"value\":\"ALPHA\"}\n")
@@ -258,8 +272,8 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
               inputFiles: ["inputs/input.json"],
               args: ["--input", "inputs/input.json", "--out", "out/result.json"],
               expectedFiles: [{ path: "out/result.json", referencePath: "reference/result.json" }],
-              basis: "reference-output",
-              sourceRefs: ["evidence:0#workdir/reference/result.json"],
+              basis: "task-contract",
+              sourceRefs: ["evidence:0#criteria/output-contract", "evidence:0#workdir/reference/result.json"],
             }],
           },
         }],

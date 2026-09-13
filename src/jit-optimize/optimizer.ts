@@ -465,6 +465,11 @@ Write \`.optimize/submission.json\` with these fields (see
   reference bytes, and \`self-check\` for program-local checks. Always cite
   \`sourceRefs\`. A \`self-check\` does not establish task correctness; do not use
   a generated program's own assertion as the only basis for a validated recommendation.
+  A historical passed criterion is not itself a current assertion: the engine
+  will re-run a contained deterministic task check against the candidate output.
+  If the original source skill already contains \`.skvm-validation.json\`, its
+  source-owned file checks may also apply; do not add or edit that authority merely
+  to validate your own candidate. Missing or unsupported checks remain unassessed.
   Do not invent task files, expected bytes, credentials, runtimes, or arguments.
   Use
   \`reuse-script\`, \`domain-backend\`, \`generate-script\`, or

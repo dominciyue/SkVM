@@ -150,6 +150,37 @@ describe("file-check eval", () => {
     )
     expect(result.pass).toBe(false)
   })
+
+  test("json-schema ignores object key order but rejects a declared property type mismatch", async () => {
+    const schema = JSON.stringify({
+      type: "object",
+      required: ["name", "age"],
+      properties: {
+        name: { type: "string", const: "Alice" },
+        age: { type: "number" },
+      },
+    })
+    await Bun.write(path.join(workDir, "data.json"), JSON.stringify({ age: 30, name: "Alice" }))
+    const reordered = await evaluate(
+      { method: "file-check", path: "data.json", mode: "json-schema", expected: schema },
+      { ...baseResult, workDir },
+    )
+    expect(reordered.pass).toBe(true)
+
+    await Bun.write(path.join(workDir, "data.json"), JSON.stringify({ age: "30", name: "Alice" }))
+    const wrongType = await evaluate(
+      { method: "file-check", path: "data.json", mode: "json-schema", expected: schema },
+      { ...baseResult, workDir },
+    )
+    expect(wrongType.pass).toBe(false)
+
+    await Bun.write(path.join(workDir, "data.json"), JSON.stringify({ age: 30, name: "Bob" }))
+    const wrongContent = await evaluate(
+      { method: "file-check", path: "data.json", mode: "json-schema", expected: schema },
+      { ...baseResult, workDir },
+    )
+    expect(wrongContent.pass).toBe(false)
+  })
 })
 
 describe("llm-judge eval", () => {

@@ -418,22 +418,24 @@ bun test ./test/cli/run-optimize.test.ts ./test/cli/run.test.ts ./test/run/optim
 
 **修改：** validation-lifecycle、types、optimizer，复用当前检查执行框架；测试现有 production-closure/validation-lifecycle。
 
-- [ ] 写红例：普通 run 无 `criteria`，但原 skill 附带明确规则或可执行测试，系统可发现并执行相应检查；不能因为 baseline criterion 没有 `passed=true` 就永久拒绝改进路径。
-- [ ] 验证依据优先使用用户任务已有要求、source 自带测试/程序、格式规范与可实际执行的规则。由框架解析/执行后新增检查记录，不能由优化模型把旧 failed/null 改成 passed。
-- [ ] 原输出只证明一次观察或保真对照，不自动当正确答案。可比较确定性投影、键集合、格式或不变量；某案例的摘要相同不能证明变化输入正确。
-- [ ] 模型从原文派生的检查标为 source-derived，模型自写自检标为 self-check；另一个模型打分也仍是模型评价。它们可以指导改进，但不伪装成人工标准答案或确定性独立证明。
-- [ ] 无法判断的专业内容交给 agent，优化有依据的机械部分；有用文档改进不因没有可执行程序而算程序失败，也不通过虚假 dependsOn 提升状态。增加受影响规则/自然任务的检查说明，保持程序检查与文档行为范围分开。
-- [ ] 执行 source 自带命令前确认本次路径与副作用；不能把互联网 skill 中任意命令当可信 grader 执行。使用现有可重建目录，无需新安全平台或反复确认。
-- [ ] **V1 红例先行：** 按本节已复现的 empty.mjs 建立 lifecycle/正常入口回归；再增加“写出同名错误文件”和“只打印 ok”的反例。来源引用、exit 0、输出存在均不得冒充实际语义检查；只有任务原要求本来就是存在性时才按该窄范围通过。
-- [ ] 将可执行断言与被检查的新输出明确关联，实际调用既有 checker/规则比较器，记录检查了什么；模型只声明 sourceRef 不能提升级别。对 checker 型固化程序至少用一个有依据的错误输入确认可检出，而不是仅在正常输入上返回 ok。
-- [ ] **V4 局部检查：** 同动作两个独立案例中，一个资源可用、一个缺失，前者实际执行并记录，后者保留 missing/未评估。必要案例未完成时不推荐完整声明范围；若无法分离副作用或输入依赖才整组暂缓。测试包括独立其他动作继续运行，禁止删除缺失案例后变全绿。
-- [ ] 字节参照与语义参照分列，依据任务要求选现有比较器。增加 JSON 合法键顺序变化与内容/类型错误的区分回归；没有依据时保留精确比较，不能为修复行尾误报顺便放宽真实内容要求。
+- [x] 写红例：普通 run 无 `criteria`，但原 skill 附带明确规则或可执行测试，系统可发现并执行相应检查；不能因为 baseline criterion 没有 `passed=true` 就永久拒绝改进路径。
+- [x] 验证依据优先使用用户任务已有要求、source 自带测试/程序、格式规范与可实际执行的规则。由框架解析/执行后新增检查记录，不能由优化模型把旧 failed/null 改成 passed。
+- [x] 原输出只证明一次观察或保真对照，不自动当正确答案。可比较确定性投影、键集合、格式或不变量；某案例的摘要相同不能证明变化输入正确。
+- [x] 模型从原文派生的检查标为 source-derived，模型自写自检标为 self-check；另一个模型打分也仍是模型评价。它们可以指导改进，但不伪装成人工标准答案或确定性独立证明。
+- [x] 无法判断的专业内容交给 agent，优化有依据的机械部分；有用文档改进不因没有可执行程序而算程序失败，也不通过虚假 dependsOn 提升状态。增加受影响规则/自然任务的检查说明，保持程序检查与文档行为范围分开。
+- [x] 执行 source 自带命令前确认本次路径与副作用；不能把互联网 skill 中任意命令当可信 grader 执行。使用现有可重建目录，无需新安全平台或反复确认。
+- [x] **V1 红例先行：** 按本节已复现的 empty.mjs 建立 lifecycle/正常入口回归；再增加“写出同名错误文件”和“只打印 ok”的反例。来源引用、exit 0、输出存在均不得冒充实际语义检查；只有任务原要求本来就是存在性时才按该窄范围通过。
+- [x] 将可执行断言与被检查的新输出明确关联，实际调用既有 checker/规则比较器，记录检查了什么；模型只声明 sourceRef 不能提升级别。对 checker 型固化程序至少用一个有依据的错误输入确认可检出，而不是仅在正常输入上返回 ok。
+- [x] **V4 局部检查：** 同动作两个独立案例中，一个资源可用、一个缺失，前者实际执行并记录，后者保留 missing/未评估。必要案例未完成时不推荐完整声明范围；若无法分离副作用或输入依赖才整组暂缓。测试包括独立其他动作继续运行，禁止删除缺失案例后变全绿。
+- [x] 字节参照与语义参照分列，依据任务要求选现有比较器。增加 JSON 合法键顺序变化与内容/类型错误的区分回归；没有依据时保留精确比较，不能为修复行尾误报顺便放宽真实内容要求。
 
 ```powershell
 bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/package.test.ts
 ```
 
 **验收：** 至少一个普通无评分文件的运行能自动取得有依据的局部检查并继续优化；无独立依据的剩余内容仍明确未评估，不让用户编制 criterion 或猜答案。
+
+**实际结果：** lifecycle 不再用旧 `passed` 标签代替候选断言。`task-contract` 会从绑定 task 重新解析并执行 contained `file-check`；原 skill 可用只读 `.skvm-validation.json` 提供 exact/contains/regex/json-schema 文件规则，运行时只读取原始 source 根而非候选副本。每条实际断言记录 id、authority、sourceRef、score 与 details；script/glob/custom/LLM 等当前未纳入的来源保持 unresolved。空程序、同名错误文件和仅打印 `ok` 均被正确拒绝；无历史 criteria 的正确候选可由当前 task/source 规则通过，source JSON 类型错误也被检出。未评分的 observed bytes 只记保真参照，必须另有已通过的原 reference authority 或本次 task/source assertion 才能成为独立正确性。V4 同动作 ready case 实际执行、missing case 保留未评估，动作不提升完整范围，独立动作继续并可保留。JSON schema 比较忽略对象键序但检查递归属性类型以及 const/enum 内容。任务书规定三文件回归 21/21、124 assertions；prompt 23/23、JSON comparator 3/3、typecheck 通过。证据见 `results/skill-ir/skill-optimization-production-closure-20260913/r3/report.json`。
 
 ## R4 — 减少生成过程摩擦，避免多次尝试才偶然出程序
 

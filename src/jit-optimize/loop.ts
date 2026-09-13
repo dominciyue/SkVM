@@ -1137,6 +1137,7 @@ async function runLogOnly(
         proposalDir: proposal.dir,
         round: 1,
         skillDir: candidateWorkspace,
+        sourceSkillDir: skillDir,
         actions: candidateSubmission.actions ?? [],
         evidences: preEvidences,
       })
@@ -1193,6 +1194,7 @@ async function runLogOnly(
           proposalDir: proposal.dir,
           round: 1,
           skillDir: candidateWorkspace,
+          sourceSkillDir: skillDir,
           actions: candidateSubmission.actions ?? [],
           evidences: preEvidences,
           executeActionIds: repairActionIds,
@@ -1225,6 +1227,7 @@ async function runLogOnly(
         proposalDir: proposal.dir,
         round: 1,
         skillDir: candidateWorkspace,
+        sourceSkillDir: skillDir,
         actions: survivingActions,
         evidences: preEvidences,
         executeActionIds: [],

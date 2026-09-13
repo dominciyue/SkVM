@@ -42,12 +42,14 @@ async function evidenceWithFixture(options: {
   input: string
   referencePath: string
   reference: string
+  eval?: unknown[]
 }): Promise<Evidence> {
   const root = await tempDir("validation-lifecycle-evidence-")
   const taskPath = path.join(root, "task.json")
   await writeFile(taskPath, JSON.stringify({
     id: options.taskId,
     fixtures: { [options.inputPath]: options.input },
+    eval: options.eval ?? [],
   }))
   return {
     taskId: options.taskId,
@@ -166,6 +168,13 @@ describe("deriveProgramValidationPlan", () => {
       input: "{}\n",
       referencePath: "src/locales/en-US.json",
       reference: "{\"home\":{\"welcome\":\"Welcome\"}}\n",
+      eval: [{
+        id: "locale-integrity",
+        method: "file-check",
+        path: "checker-result.json",
+        mode: "json-schema",
+        expected: JSON.stringify({ type: "object", required: ["status"] }),
+      }],
     })
     evidence.criteria![0]!.id = "locale-integrity"
     evidence.workDirSnapshot = { files: new Map([
@@ -258,10 +267,51 @@ describe("deriveProgramValidationPlan", () => {
       validationRoot,
     })
 
-    expect(plan.status).toBe("ready")
+    expect(plan.status).toBe("unresolved")
     expect(plan.independentCaseIds).toEqual([])
     expect(plan.selfCheckCaseIds).toEqual(["unbound"])
     expect(plan.caseEvidence[0]!.independentCriterionIds).toEqual([])
+    expect(plan.diagnostics).toContainEqual(expect.objectContaining({ code: "validation-task-criterion-missing" }))
+  })
+
+  test("treats an unscored observed output as a fidelity reference rather than a correct answer", async () => {
+    const validationRoot = await tempDir("validation-lifecycle-unscored-reference-")
+    const evidence = await evidenceWithFixture({
+      taskId: "unscored-reference",
+      inputPath: "input.txt",
+      input: "input\n",
+      referencePath: "observed.txt",
+      reference: "one observed answer\n",
+    })
+    evidence.criteria = undefined
+    const action = {
+      id: "reference-only",
+      kind: "generate-script",
+      evidenceIds: ["0"], sourceRefs: [], dependsOn: [], inputs: [], outputs: ["result.txt"], preconditions: [],
+      changedPaths: ["convert.mjs"], residualDuties: [], verification: [],
+      validation: { cases: [{
+        id: "observed",
+        evidenceId: "0",
+        inputSource: "task-fixtures",
+        inputFiles: ["input.txt"],
+        args: [],
+        expectedFiles: [{ path: "result.txt", referencePath: "observed.txt" }],
+        basis: "reference-output",
+        sourceRefs: [],
+      }] },
+    } as OptimizationAction
+
+    const plan = await deriveProgramValidationPlan({
+      action,
+      implementation: implementation(action.id),
+      evidences: [evidence],
+      validationRoot,
+    })
+
+    expect(plan.status).toBe("ready")
+    expect(plan.caseEvidence[0]?.referenceDigests).not.toEqual({})
+    expect(plan.independentCaseIds).toEqual([])
+    expect(plan.selfCheckCaseIds).toEqual(["observed"])
   })
 
   test("keeps a missing evidence resource unresolved for this action", async () => {
@@ -330,6 +380,245 @@ describe("deriveProgramValidationPlan", () => {
 })
 
 describe("runOptimizationValidationLifecycle", () => {
+  test("executes current task assertions instead of accepting exit zero, a same-name wrong file, or printed ok", async () => {
+    const variants = [
+      { name: "empty", source: "process.exit(0)\n", accepted: false },
+      {
+        name: "wrong-file",
+        source: "require('node:fs').writeFileSync('result.json', '{\\\"value\\\":\\\"wrong\\\"}\\n')\n",
+        accepted: false,
+      },
+      { name: "printed-ok", source: "console.log('ok')\n", accepted: false },
+      {
+        name: "correct",
+        source: "require('node:fs').writeFileSync('result.json', '{\\\"value\\\":\\\"expected\\\"}\\n')\n",
+        accepted: true,
+      },
+    ]
+
+    for (const variant of variants) {
+      const proposalDir = await tempDir(`validation-semantic-${variant.name}-proposal-`)
+      const skillDir = await tempDir(`validation-semantic-${variant.name}-skill-`)
+      await writeFile(path.join(skillDir, "SKILL.md"), "# Output builder\n")
+      await writeFile(path.join(skillDir, "build.cjs"), variant.source)
+      const evidence = await evidenceWithFixture({
+        taskId: `semantic-${variant.name}`,
+        inputPath: "input.txt",
+        input: "source\n",
+        referencePath: "prior-result.json",
+        reference: "{\"value\":\"expected\"}\n",
+        eval: [{
+          id: "output-content",
+          method: "file-check",
+          path: "result.json",
+          mode: "exact",
+          expected: "{\"value\":\"expected\"}\n",
+        }],
+      })
+      // The old observation must not be the authority for the new program.
+      // The passing variant also proves a task assertion can be discovered
+      // and executed even when the automatic run carried no score projection.
+      evidence.criteria = variant.accepted ? undefined : [{
+        id: "output-content",
+        method: "file-check",
+        description: "Historical output-content observation",
+        weight: 1,
+        score: 1,
+        passed: true,
+      }]
+      const action = {
+        id: "build-output",
+        kind: "generate-script",
+        evidenceIds: ["0"], sourceRefs: ["SKILL.md"], dependsOn: [], inputs: [], outputs: ["result.json"], preconditions: [],
+        changedPaths: ["build.cjs"], residualDuties: [], verification: [],
+        validation: { cases: [{
+          id: "current-output",
+          evidenceId: "0",
+          inputSource: "task-fixtures",
+          inputFiles: ["input.txt"],
+          args: [],
+          expectedFiles: [{ path: "result.json" }],
+          basis: "task-contract",
+          sourceRefs: ["evidence:0#criteria/output-content"],
+        }] },
+      } as OptimizationAction
+
+      const result = await runOptimizationValidationLifecycle({
+        proposalDir,
+        round: 1,
+        skillDir,
+        actions: [action],
+        evidences: [evidence],
+      })
+      const actionRecord = result.report.actions[0]!
+      expect(actionRecord.program?.cases[0]?.assertions).toEqual([
+        expect.objectContaining({
+          id: "output-content",
+          authority: "task-requirement",
+          status: variant.accepted ? "passed" : "failed",
+        }),
+      ])
+      expect(result.summary.retainedActionIds).toEqual(variant.accepted ? ["build-output"] : [])
+      expect(result.summary.rejectedActionIds).toEqual(variant.accepted ? [] : ["build-output"])
+    }
+  })
+
+  test("discovers a source-owned deterministic check when an ordinary run has no criteria", async () => {
+    const proposalDir = await tempDir("validation-source-check-proposal-")
+    const sourceSkillDir = await tempDir("validation-source-check-original-")
+    const skillDir = await tempDir("validation-source-check-candidate-")
+    const skillText = "# Structured output\n\nThe result must contain a string `name` and numeric `count`.\n"
+    await writeFile(path.join(sourceSkillDir, "SKILL.md"), skillText)
+    await writeFile(path.join(sourceSkillDir, ".skvm-validation.json"), JSON.stringify({
+      schemaVersion: "skvm-skill-validation/v1",
+      fileChecks: [{
+        id: "structured-result",
+        path: "result.json",
+        mode: "json-schema",
+        expected: JSON.stringify({
+          type: "object",
+          required: ["name", "count"],
+          properties: { name: { type: "string" }, count: { type: "number" } },
+        }),
+        sourceRef: "SKILL.md#structured-output",
+      }],
+    }))
+    await writeFile(path.join(skillDir, "SKILL.md"), skillText)
+    await writeFile(
+      path.join(skillDir, "build.cjs"),
+      "require('node:fs').writeFileSync('result.json', JSON.stringify({count: 2, name: 'items'}))\n",
+    )
+    const evidence = await evidenceWithFixture({
+      taskId: "natural-no-score",
+      inputPath: "request.txt",
+      input: "build it\n",
+      referencePath: "old.txt",
+      reference: "unassessed\n",
+    })
+    evidence.criteria = undefined
+    const action = {
+      id: "structured-builder",
+      kind: "generate-script",
+      evidenceIds: ["0"], sourceRefs: ["SKILL.md#structured-output"], dependsOn: [], inputs: [], outputs: ["result.json"], preconditions: [],
+      changedPaths: ["build.cjs"], residualDuties: ["Professional content remains agent-reviewed."], verification: [],
+      validation: { cases: [{
+        id: "source-rule",
+        evidenceId: "0",
+        inputSource: "task-fixtures",
+        inputFiles: ["request.txt"],
+        args: [],
+        expectedFiles: [{ path: "result.json" }],
+        basis: "task-contract",
+        sourceRefs: ["SKILL.md#structured-output"],
+      }] },
+    } as OptimizationAction
+
+    const result = await runOptimizationValidationLifecycle({
+      proposalDir,
+      round: 1,
+      sourceSkillDir,
+      skillDir,
+      actions: [action],
+      evidences: [evidence],
+    })
+
+    expect(result.summary.retainedActionIds).toEqual(["structured-builder"])
+    expect(result.report.actions[0]?.program?.cases[0]?.assertions).toEqual([
+      expect.objectContaining({
+        id: "structured-result",
+        authority: "source-derived",
+        status: "passed",
+        sourceRef: "SKILL.md#structured-output",
+      }),
+    ])
+
+    await writeFile(
+      path.join(skillDir, "build.cjs"),
+      "require('node:fs').writeFileSync('result.json', JSON.stringify({count: '2', name: 'items'}))\n",
+    )
+    const rejected = await runOptimizationValidationLifecycle({
+      proposalDir: await tempDir("validation-source-check-rejected-proposal-"),
+      round: 1,
+      sourceSkillDir,
+      skillDir,
+      actions: [action],
+      evidences: [evidence],
+    })
+    expect(rejected.summary.rejectedActionIds).toEqual(["structured-builder"])
+    expect(rejected.report.actions[0]?.program?.cases[0]?.assertions[0]).toMatchObject({
+      id: "structured-result",
+      authority: "source-derived",
+      status: "failed",
+    })
+  })
+
+  test("runs ready cases and independent actions while preserving a missing case as unassessed", async () => {
+    const proposalDir = await tempDir("validation-local-cases-proposal-")
+    const skillDir = await tempDir("validation-local-cases-skill-")
+    await writeFile(path.join(skillDir, "SKILL.md"), "# Local cases\n")
+    const copier = `
+const fs = require("node:fs");
+const [input, output] = process.argv.slice(2);
+fs.writeFileSync(output, fs.readFileSync(input));
+`
+    await writeFile(path.join(skillDir, "partial.cjs"), copier)
+    await writeFile(path.join(skillDir, "independent.cjs"), copier)
+    const ready = await evidenceWithFixture({
+      taskId: "ready",
+      inputPath: "ready.txt",
+      input: "ready\n",
+      referencePath: "prior.txt",
+      reference: "ready\n",
+      eval: [{ id: "exact-output", method: "file-check", path: "result.txt", mode: "exact", expected: "ready\n" }],
+    })
+    ready.criteria = undefined
+    const partial = {
+      id: "partial",
+      kind: "generate-script",
+      evidenceIds: ["0"], sourceRefs: ["SKILL.md"], dependsOn: [], inputs: [], outputs: ["result.txt"], preconditions: [],
+      changedPaths: ["partial.cjs"], residualDuties: [], verification: [],
+      validation: { cases: [
+        {
+          id: "ready-case", evidenceId: "0", inputSource: "task-fixtures", inputFiles: ["ready.txt"],
+          args: ["ready.txt", "result.txt"], expectedFiles: [{ path: "result.txt" }], basis: "task-contract",
+          sourceRefs: ["evidence:0#criteria/exact-output"],
+        },
+        {
+          id: "missing-case", evidenceId: "0", inputSource: "task-fixtures", inputFiles: ["missing.txt"],
+          args: ["missing.txt", "result.txt"], expectedFiles: [{ path: "result.txt" }], basis: "task-contract",
+          sourceRefs: ["evidence:0#criteria/exact-output"],
+        },
+      ] },
+    } as OptimizationAction
+    const independent = {
+      ...partial,
+      id: "independent",
+      changedPaths: ["independent.cjs"],
+      validation: { cases: [{
+        ...partial.validation!.cases[0]!,
+        id: "independent-ready",
+      }] },
+    } as OptimizationAction
+
+    const result = await runOptimizationValidationLifecycle({
+      proposalDir,
+      round: 1,
+      skillDir,
+      actions: [partial, independent],
+      evidences: [ready],
+    })
+
+    expect(result.report.execution.caseRuns).toBe(2)
+    expect(result.report.actions.find((item) => item.actionId === "partial")).toMatchObject({
+      planStatus: "unresolved",
+      programStatus: "passed",
+      planDiagnostics: [expect.objectContaining({ code: "validation-input-missing", caseId: "missing-case" })],
+    })
+    expect(result.summary.retainedActionIds).toEqual(["independent"])
+    expect(result.summary.unvalidatedActionIds).toEqual(["partial"])
+    expect(result.summary.rejectedActionIds).toEqual([])
+  })
+
   test("retains a selected documentation route only through its independently validated dependency", async () => {
     const proposalDir = await tempDir("validation-lifecycle-proposal-")
     const skillDir = await tempDir("validation-lifecycle-skill-")
@@ -339,6 +628,7 @@ import { readFile } from "node:fs/promises";
 const args = process.argv.slice(2);
 if (args.includes("--help")) { console.log("Usage: check <path>"); process.exit(0); }
 const value = JSON.parse(await readFile(args[0], "utf8"));
+await import("node:fs/promises").then(({ writeFile }) => writeFile("result.json", JSON.stringify(value) + "\\n"));
 process.stdout.write(JSON.stringify(value) + "\\n");
 `)
     const evidence = await evidenceWithFixture({
@@ -347,6 +637,13 @@ process.stdout.write(JSON.stringify(value) + "\\n");
       input: "{\"value\":\"alpha\"}\n",
       referencePath: "reference.json",
       reference: "{\"value\":\"alpha\"}\n",
+      eval: [{
+        id: "reference-output",
+        method: "file-check",
+        path: "result.json",
+        mode: "exact",
+        expected: "{\"value\":\"alpha\"}\n",
+      }],
     })
     const checker = {
       id: "checker",
@@ -361,7 +658,7 @@ process.stdout.write(JSON.stringify(value) + "\\n");
           inputSource: "task-fixtures",
           inputFiles: ["input.json"],
           args: ["input.json"],
-          expectedFiles: [],
+          expectedFiles: [{ path: "result.json" }],
           stdoutIncludes: ["alpha"],
           basis: "task-contract",
           sourceRefs: ["evidence:0#criteria/reference-output"],
