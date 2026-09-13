@@ -1,0 +1,66 @@
+{
+  "rootCause": "No skill-level defect is exposed by the available evidence: the sole clean run achieved a perfect score and produced the required audit artifacts, preserved protected inputs, redacted secret values, and classified statically unreferenced variables as uncertain rather than safe to delete. The remaining differences between the task contract and the skill text are task-specific restrictions or interface details, so promoting them into permanent instructions would be unsupported and could narrow the skill.",
+  "reasoning": "Evidence 0 is runStatus=ok and PASSING with mean 1.000 across environment analysis, artifact consistency, and artifact integrity. The observed workflow demonstrates that the existing skill already supports scanning environment definitions and source references, distinguishing defined/used from unused and missing variables, generating an example and schema, redacting secrets, and preserving the safety boundary against automatic .env modification. There are no FAILING, MARGINAL, or UNASSESSED tasks to diagnose. Generality test: although clearer contract-first wording could help other audits, this run provides no independent evidence that the current instructions fail without it, and the exact interface filename and frozen-workdir restrictions are task-scoped. Rewrite-in-place test: no vague section requires correction because no defect was observed; therefore no overlapping rule is being appended. Coherent scope: the smallest complete implementation is no edit. No-trade-off test: the only PASSING task is env-manager-v3:skvm:windows:clean:env-manager-scorer-authority-node-dev-001; an unnecessary wording or executable change could alter the already successful artifact workflow, while retaining the current skill cannot regress it. Residual professional judgment remains with the agent for framework-specific loading, dynamic references, deployment/CI usage, and whether suggested remediation is appropriate.",
+  "confidence": 0.91,
+  "changedFiles": [],
+  "changes": [],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The existing workflow and safety boundaries were sufficient for the observed audit and no clarity defect is demonstrated.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must interpret any task-provided public contract and context-specific restrictions without treating them as permanent skill rules."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The skill describes generic environment-file and source-reference inputs; the evidence does not justify adding task-specific parameters.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must discover the applicable project files, supported reference forms, and any task-provided contract at runtime."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Only one run is available and it shows a successful one-off generation, not a repeated transformation that warrants a bundled executable.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "not-applicable",
+      "residualDuty": "The agent may automate repeated scans when the project and contract justify it, while preserving the skill's broad fallback workflow."
+    },
+    {
+      "category": "verification",
+      "summary": "The successful run independently reported checks for artifact validity, protected-input preservation, redaction, and uncertainty classification; no missing generic verification rule is evidenced.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must perform and report checks appropriate to the actual workspace and contract rather than relying only on self-asserted completion."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The observed Windows/pi/model environment is execution metadata, not a demonstrated skill defect or portable requirement.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "not-applicable",
+      "residualDuty": "The agent must adapt commands and parsing to the available runtime without assuming network access, package installation, or a particular shell unless the task states otherwise."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Context-dependent security and configuration judgments are correctly left to the agent; the passing run confirms the resulting boundary was usable.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for checking dynamic, CI, deployment, container, monorepo, and framework-specific access paths before recommending deletion or exposure changes."
+    }
+  ],
+  "actions": [],
+  "actionDiagnostics": [],
+  "noChanges": true
+}
