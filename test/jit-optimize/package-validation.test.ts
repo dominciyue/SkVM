@@ -104,6 +104,7 @@ try {
 
     expect(result.status).toBe("failed")
     expect(result.failureKind).toBe("entry-unclear")
+    expect(result.nextAction).toContain("entry")
     expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "entry-outside-package" }))
   })
 
@@ -134,7 +135,32 @@ console.log("completed without expected marker");
       cases: [{ id: "result", cwd: workDir, args: [], stdoutIncludes: ["required-result-marker"] }],
     })
     expect(missingParameter.failureKind).toBe("parameter-missing")
+    expect(missingParameter.nextAction).toContain("required input or parameter")
     expect(resultMismatch.failureKind).toBe("result-mismatch")
+    expect(resultMismatch.nextAction).toContain("expected result")
+  })
+
+  test("gives a dependency-specific next action without installing globally", async () => {
+    const packageDir = await tempDir("package-validation-dependency-")
+    const workDir = await tempDir("package-validation-dependency-work-")
+    await mkdir(path.join(packageDir, "scripts"))
+    await writeFile(path.join(packageDir, "scripts", "dependency.mjs"), `import "skvm-package-that-does-not-exist";\n`)
+    const result = await validateOptimizationProgram({
+      packageDir,
+      implementation: {
+        actionId: "dependency",
+        kind: "generate-script",
+        status: "selected",
+        entry: "scripts/dependency.mjs",
+        runtime: "node",
+        inputs: [], outputs: [], preconditions: [], residualDuties: [], verification: [],
+      },
+      cases: [{ id: "dependency", cwd: workDir, args: [], expectedExitCode: 0 }],
+    })
+
+    expect(result.failureKind).toBe("environment-not-reconstructable")
+    expect(result.nextAction).toContain("isolated environment")
+    expect(result.nextAction).not.toContain("global")
   })
 
   test("rejects output bytes that differ from an engine-derived reference digest", async () => {

@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import path from "node:path"
 import os from "node:os"
-import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises"
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises"
 import {
   buildOptimizedSkillPackage,
   OPTIMIZED_SKILL_PACKAGE_MANIFEST,
   OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION,
+  OPTIMIZED_SKILL_PACKAGE_USER_GUIDE,
+  publishOptimizedSkillPackageAtomically,
+  readOptimizedSkillPackageUserSummary,
   verifyOptimizedSkillPackage,
 } from "../../src/jit-optimize/package.ts"
 
@@ -149,6 +152,33 @@ function action(id: string, kind: "reuse-script" | "generate-script" | "restruct
 }
 
 describe("buildOptimizedSkillPackage", () => {
+  test("does not expose a half-written package when staging fails", async () => {
+    const root = await tempRoot()
+    const packageDir = path.join(root, "atomic-package")
+
+    await expect(publishOptimizedSkillPackageAtomically(packageDir, async (stagingDir) => {
+      await put(stagingDir, "SKILL.md", "# Half written\n")
+      throw new Error("injected mid-export failure")
+    })).rejects.toThrow("injected mid-export failure")
+
+    await expect(stat(packageDir)).rejects.toThrow()
+    expect((await readdir(root)).filter((name) => name.includes("skvm-export"))).toEqual([])
+  })
+
+  test("does not touch a non-empty user target while preparing atomic export", async () => {
+    const root = await tempRoot()
+    const packageDir = path.join(root, "existing-package")
+    await put(packageDir, "user.txt", "preserve\n")
+    let populateCalls = 0
+
+    await expect(publishOptimizedSkillPackageAtomically(packageDir, async () => {
+      populateCalls++
+    })).rejects.toThrow("Package output directory must be empty")
+
+    expect(populateCalls).toBe(0)
+    expect(await readFile(path.join(packageDir, "user.txt"), "utf8")).toBe("preserve\n")
+  })
+
   test("exports an actual docs-only snapshot with moves/deletions and preserves licenses plus hidden resources", async () => {
     const source = {
       "SKILL.md": "# Original\n",
@@ -247,6 +277,51 @@ describe("buildOptimizedSkillPackage", () => {
       expect(verified.manifest.runtime.dependencyFiles).toEqual(scenario.name === "reuse" ? ["requirements.txt"] : [])
       expect(verified.manifest.files.some((file) => file.path.includes("api-task"))).toBe(false)
     }
+  })
+
+  test("ships a concise user guide and structured callable-step summary", async () => {
+    const generated = action("render", "generate-script", {
+      changedPaths: ["bin/render.mjs"],
+      inputs: ["input CSV selected by the task"],
+      outputs: ["result.json"],
+      preconditions: ["CSV has name and code columns"],
+      residualDuties: ["review unsupported input shapes"],
+    })
+    const { proposalDir, packageDir } = await makeProposal({
+      original: { "SKILL.md": "# Original\n" },
+      round: {
+        "SKILL.md": "# Optimized\nRun bin/render.mjs for supported CSV input.\n",
+        "bin/render.mjs": "console.log('render')\n",
+      },
+      actions: [generated],
+      finalActions: [generated],
+      validation: {
+        status: "passed",
+        retainedActionIds: ["render"],
+        unvalidatedActionIds: [],
+        rejectedActionIds: [],
+        programRuns: 1,
+        caseRuns: 1,
+        independentCaseRuns: 1,
+      },
+    })
+
+    await buildOptimizedSkillPackage({ proposalDir, packageDir })
+    const summary = await readOptimizedSkillPackageUserSummary(packageDir)
+    const guide = await readFile(path.join(packageDir, OPTIMIZED_SKILL_PACKAGE_USER_GUIDE), "utf8")
+
+    expect(summary.deliveryStatus).toBe("validated-recommendation")
+    expect(summary.useCommand).toContain("skvm run --prompt")
+    expect(summary.steps).toEqual([expect.objectContaining({
+      actionId: "render",
+      command: "node bin/render.mjs",
+      inputs: ["input CSV selected by the task"],
+      outputs: ["result.json"],
+    })])
+    expect(summary.residualDuties).toEqual(["review unsupported input shapes"])
+    expect(guide).toContain("## Use this package")
+    expect(guide).toContain("node bin/render.mjs")
+    expect(guide).toContain("review unsupported input shapes")
   })
 
   test("excludes Python cache artifacts from proposal snapshots while rejecting them inside an exported package", async () => {

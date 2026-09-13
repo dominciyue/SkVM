@@ -1,5 +1,5 @@
 import path from "node:path"
-import { copyFile, lstat, mkdir, readFile, readdir } from "node:fs/promises"
+import { copyFile, lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, rmdir } from "node:fs/promises"
 import { z } from "zod"
 import { ProposalHistoryFileSchema, ProposalMetaSchema } from "../proposals/storage.ts"
 import { selectOptimizationImplementations } from "./implementations.ts"
@@ -15,6 +15,7 @@ export const LEGACY_OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION = "skvm-optimized-ski
 export const OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION = "skvm-optimized-skill-package/v2" as const
 export const OPTIMIZED_SKILL_PACKAGE_MANIFEST = "optimization-manifest.json" as const
 export const OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT = "optimization-validation-report.json" as const
+export const OPTIMIZED_SKILL_PACKAGE_USER_GUIDE = "OPTIMIZATION-USAGE.md" as const
 
 const FileRefSchema = z.object({
   path: z.string().min(1),
@@ -150,6 +151,28 @@ export interface VerifiedOptimizedSkillPackage {
   manifest: OptimizedSkillPackageManifest
 }
 
+export interface OptimizedSkillPackageUserStep {
+  actionId: string
+  kind: ImplementationSelection["kind"]
+  status: ImplementationSelection["status"]
+  command?: string
+  inputs: string[]
+  outputs: string[]
+  preconditions: string[]
+  residualDuties: string[]
+  reason?: string
+}
+
+export interface OptimizedSkillPackageUserSummary {
+  deliveryStatus: "validated-recommendation" | "draft" | "legacy"
+  behaviorStatus: "passed" | "partial" | "failed" | "not-run"
+  useCommand: string
+  guidePath?: string
+  steps: OptimizedSkillPackageUserStep[]
+  residualDuties: string[]
+  fallback: string
+}
+
 interface SourceFile {
   path: string
   absolute: string
@@ -258,15 +281,149 @@ function hasChanges(diff: OptimizedSkillPackageManifest["actualDiff"]): boolean 
   return diff.added.length + diff.modified.length + diff.deleted.length + diff.moved.length > 0
 }
 
-async function prepareOutput(packageDir: string): Promise<void> {
+async function inspectOutput(packageDir: string): Promise<"missing" | "empty"> {
+  if (path.resolve(packageDir) === path.parse(path.resolve(packageDir)).root) {
+    throw new Error("Package output cannot be a filesystem root")
+  }
   try {
     const outputStat = await lstat(packageDir)
     if (!outputStat.isDirectory() || outputStat.isSymbolicLink()) throw new Error("Package output must be a non-symlink directory")
     if ((await readdir(packageDir)).length > 0) throw new Error("Package output directory must be empty")
+    return "empty"
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
-    await mkdir(packageDir, { recursive: true })
+    return "missing"
   }
+}
+
+/** Build and verify a package in a uniquely owned sibling, then publish it with one rename. */
+export async function publishOptimizedSkillPackageAtomically(
+  packageDir: string,
+  populate: (stagingDir: string) => Promise<void>,
+): Promise<void> {
+  const destination = path.resolve(packageDir)
+  const parent = path.dirname(destination)
+  const initialState = await inspectOutput(destination)
+  await mkdir(parent, { recursive: true })
+  const safeName = path.basename(destination).replace(/[^A-Za-z0-9._-]+/gu, "-") || "package"
+  const stagingDir = await mkdtemp(path.join(parent, `.${safeName}.skvm-export-`))
+  if (!isWithin(parent, stagingDir) || stagingDir === parent) {
+    throw new Error("Atomic package staging directory escaped its parent")
+  }
+  let published = false
+  try {
+    await populate(stagingDir)
+    if (initialState === "empty") {
+      const currentState = await inspectOutput(destination)
+      if (currentState !== "empty") throw new Error("Package output changed while export was running")
+      await rmdir(destination)
+    }
+    await rename(stagingDir, destination)
+    published = true
+  } finally {
+    if (!published) await rm(stagingDir, { recursive: true, force: true })
+  }
+}
+
+function shellPath(filePath: string): string {
+  return /\s/u.test(filePath) ? JSON.stringify(filePath) : filePath
+}
+
+function implementationCommand(item: ImplementationSelection): string | undefined {
+  if (item.status !== "selected" || !item.entry || !item.runtime) return undefined
+  const entry = shellPath(item.entry)
+  switch (item.runtime) {
+    case "python": return `python -B ${entry}`
+    case "node": return `node ${entry}`
+    case "shell": return `sh ${entry}`
+    case "powershell": return `pwsh -File ${entry}`
+    case "unknown": return entry
+  }
+}
+
+function userSummary(
+  packageDir: string,
+  options: {
+    implementations: readonly ImplementationSelection[]
+    deliveryStatus: OptimizedSkillPackageUserSummary["deliveryStatus"]
+    behaviorStatus: OptimizedSkillPackageUserSummary["behaviorStatus"]
+    hasGuide: boolean
+  },
+): OptimizedSkillPackageUserSummary {
+  const steps = options.implementations.map((item) => ({
+    actionId: item.actionId,
+    kind: item.kind,
+    status: item.status,
+    ...(implementationCommand(item) ? { command: implementationCommand(item) } : {}),
+    inputs: [...item.inputs],
+    outputs: [...item.outputs],
+    preconditions: [...item.preconditions],
+    residualDuties: [...item.residualDuties],
+    ...(item.reason ? { reason: item.reason } : {}),
+  }))
+  return {
+    deliveryStatus: options.deliveryStatus,
+    behaviorStatus: options.behaviorStatus,
+    useCommand: `skvm run --prompt "<task>" --skill ${shellPath(packageDir)} --workdir "<project-dir>" --model "<provider/model>"`,
+    ...(options.hasGuide ? { guidePath: path.join(packageDir, OPTIMIZED_SKILL_PACKAGE_USER_GUIDE) } : {}),
+    steps,
+    residualDuties: [...new Set(steps.flatMap((item) => item.residualDuties))],
+    fallback: "If an optimized step is not applicable or fails, keep the original task result and continue with the package's SKILL.md agent workflow; do not count the fallback as automated success.",
+  }
+}
+
+function renderUserGuide(summary: OptimizedSkillPackageUserSummary): string {
+  const lines = [
+    "# Optimized skill usage",
+    "",
+    `Delivery: \`${summary.deliveryStatus}\`; bounded behavior: \`${summary.behaviorStatus}\`.`,
+    "",
+    "## Use this package",
+    "",
+    "Use the package as an ordinary skill:",
+    "",
+    `\`${summary.useCommand}\``,
+    "",
+    "The original task result remains in its original work directory. This package is a separate development candidate.",
+    "",
+    "## Optimized steps",
+    "",
+  ]
+  if (summary.steps.length === 0) lines.push("No executable step was selected; follow `SKILL.md`.")
+  for (const step of summary.steps) {
+    lines.push(`- \`${step.actionId}\` (${step.kind}, ${step.status})${step.command ? `: \`${step.command}\`` : ""}`)
+    if (step.inputs.length > 0) lines.push(`  - inputs/parameter sources: ${step.inputs.join("; ")}`)
+    if (step.outputs.length > 0) lines.push(`  - outputs: ${step.outputs.join("; ")}`)
+    if (step.preconditions.length > 0) lines.push(`  - preconditions: ${step.preconditions.join("; ")}`)
+    if (step.reason) lines.push(`  - status detail: ${step.reason}`)
+  }
+  lines.push("", "## Remaining agent work", "")
+  if (summary.residualDuties.length === 0) lines.push("No residual duty was declared for the selected steps.")
+  else for (const duty of summary.residualDuties) lines.push(`- ${duty}`)
+  lines.push("", "## Failure and fallback", "", summary.fallback, "")
+  lines.push("Exit code 2 means the helper is not applicable to that input. Exit code 1 means a required input, dependency, binding, or program condition failed and should be fixed before retrying the helper.", "")
+  return `${lines.join("\n")}\n`
+}
+
+/** Verify a published package and return only the information needed for ordinary use. */
+export async function readOptimizedSkillPackageUserSummary(
+  packageDir: string,
+): Promise<OptimizedSkillPackageUserSummary> {
+  const verified = await verifyOptimizedSkillPackage(packageDir)
+  if (verified.manifest.schemaVersion === OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION) {
+    return userSummary(verified.packageDir, {
+      implementations: verified.manifest.implementations,
+      deliveryStatus: verified.manifest.validation.deliveryStatus,
+      behaviorStatus: verified.manifest.validation.behaviorStatus,
+      hasGuide: true,
+    })
+  }
+  return userSummary(verified.packageDir, {
+    implementations: verified.manifest.implementations,
+    deliveryStatus: "legacy",
+    behaviorStatus: verified.manifest.validation.behaviorStatus,
+    hasGuide: false,
+  })
 }
 
 interface SelectedRoundState {
@@ -407,33 +564,15 @@ export async function buildOptimizedSkillPackage(options: BuildOptimizedSkillPac
   if (selected.some((file) => file.path === OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT)) {
     throw new Error(`Selected snapshot already contains reserved package metadata: ${OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT}`)
   }
+  if (selected.some((file) => file.path === OPTIMIZED_SKILL_PACKAGE_USER_GUIDE)) {
+    throw new Error(`Selected snapshot already contains reserved package metadata: ${OPTIMIZED_SKILL_PACKAGE_USER_GUIDE}`)
+  }
   const actualDiff = computeDiff(original, selected)
   if (!hasChanges(actualDiff)) return { status: "no-change", sourceProposalDir: proposalDir, validation: "not-run" }
   const selectedRound = await readSelectedRoundState(proposalDir, meta.bestRound, selectedDir)
-  await prepareOutput(packageDir)
-  for (const file of selected) {
-    const target = resolveContained(packageDir, file.path)
-    await mkdir(path.dirname(target), { recursive: true })
-    await copyFile(file.absolute, target)
-  }
-  const files = selected.map(({ path, bytes, sha256 }) => ({ path, bytes, sha256 }))
-  let reportRef: z.infer<typeof FileRefSchema> | undefined
-  if (selectedRound.validation) {
-    const reportBytes = selectedRound.validation.reportBytes
-    await Bun.write(path.join(packageDir, OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT), reportBytes)
-    reportRef = {
-      path: OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT,
-      bytes: reportBytes.byteLength,
-      sha256: sha256(reportBytes),
-    }
-    files.push(reportRef)
-    files.sort((left, right) => left.path.localeCompare(right.path))
-  }
   const runtimes = [...new Set(selectedRound.implementations
     .filter((item) => item.status === "selected" && item.runtime)
     .map((item) => item.runtime!))].sort()
-  const dependencyFiles = files.map((file) => file.path)
-    .filter((name) => DEPENDENCY_FILES.has(path.posix.basename(name))).sort()
   const summary = selectedRound.validation?.summary
   const deliveryStatus = summary?.status === "passed"
     && summary.independentCaseRuns > 0
@@ -441,39 +580,74 @@ export async function buildOptimizedSkillPackage(options: BuildOptimizedSkillPac
     && summary.rejectedActionIds.length === 0
       ? "validated-recommendation"
       : "draft"
-  const manifest = CurrentOptimizedSkillPackageManifestSchema.parse({
-    schemaVersion: OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION,
-    identity: `${meta.skillName}:${path.basename(proposalDir)}:round-${meta.bestRound}`,
-    exposure: "development",
-    proposal: {
-      dirName: path.basename(proposalDir),
-      bestRound: meta.bestRound,
-      meta: { path: "meta.json", bytes: metaBytes.byteLength, sha256: sha256(metaBytes) },
-      ...(selectedRound.submission ? { submission: selectedRound.submission } : {}),
-    },
-    snapshots: { originalClosureSha256: closureSha256(original), selectedClosureSha256: closureSha256(selected) },
-    actualDiff,
-    files,
-    implementations: selectedRound.implementations,
-    runtime: { runtimes, dependencyFiles },
-    validation: {
-      status: "passed",
-      scope: "package-file-closure",
+  await publishOptimizedSkillPackageAtomically(packageDir, async (stagingDir) => {
+    for (const file of selected) {
+      const target = resolveContained(stagingDir, file.path)
+      await mkdir(path.dirname(target), { recursive: true })
+      await copyFile(file.absolute, target)
+    }
+    const files = selected.map(({ path, bytes, sha256 }) => ({ path, bytes, sha256 }))
+    let reportRef: z.infer<typeof FileRefSchema> | undefined
+    if (selectedRound.validation) {
+      const reportBytes = selectedRound.validation.reportBytes
+      await Bun.write(path.join(stagingDir, OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT), reportBytes)
+      reportRef = {
+        path: OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT,
+        bytes: reportBytes.byteLength,
+        sha256: sha256(reportBytes),
+      }
+      files.push(reportRef)
+    }
+    const guideSummary = userSummary("<package-path>", {
+      implementations: selectedRound.implementations,
       behaviorStatus: summary?.status ?? "not-run",
-      behaviorScope: "action-local-program-cases",
       deliveryStatus,
-      ...(reportRef ? { report: reportRef } : {}),
-      retainedActionIds: summary?.retainedActionIds ?? [],
-      unvalidatedActionIds: summary?.unvalidatedActionIds ?? [],
-      rejectedActionIds: summary?.rejectedActionIds ?? [],
-      programRuns: summary?.programRuns ?? 0,
-      caseRuns: summary?.caseRuns ?? 0,
-      independentCaseRuns: summary?.independentCaseRuns ?? 0,
-    },
-    claimBoundary: "Development package export. Package file closure passed. Behavior status covers only the listed action-local program cases; whole-skill correctness, source-task replay, agent consumption and optimization effect require separate evidence.",
+      hasGuide: true,
+    })
+    const guideBytes = new TextEncoder().encode(renderUserGuide(guideSummary))
+    await Bun.write(path.join(stagingDir, OPTIMIZED_SKILL_PACKAGE_USER_GUIDE), guideBytes)
+    files.push({
+      path: OPTIMIZED_SKILL_PACKAGE_USER_GUIDE,
+      bytes: guideBytes.byteLength,
+      sha256: sha256(guideBytes),
+    })
+    files.sort((left, right) => left.path.localeCompare(right.path))
+    const dependencyFiles = files.map((file) => file.path)
+      .filter((name) => DEPENDENCY_FILES.has(path.posix.basename(name))).sort()
+    const manifest = CurrentOptimizedSkillPackageManifestSchema.parse({
+      schemaVersion: OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION,
+      identity: `${meta.skillName}:${path.basename(proposalDir)}:round-${meta.bestRound}`,
+      exposure: "development",
+      proposal: {
+        dirName: path.basename(proposalDir),
+        bestRound: meta.bestRound,
+        meta: { path: "meta.json", bytes: metaBytes.byteLength, sha256: sha256(metaBytes) },
+        ...(selectedRound.submission ? { submission: selectedRound.submission } : {}),
+      },
+      snapshots: { originalClosureSha256: closureSha256(original), selectedClosureSha256: closureSha256(selected) },
+      actualDiff,
+      files,
+      implementations: selectedRound.implementations,
+      runtime: { runtimes, dependencyFiles },
+      validation: {
+        status: "passed",
+        scope: "package-file-closure",
+        behaviorStatus: summary?.status ?? "not-run",
+        behaviorScope: "action-local-program-cases",
+        deliveryStatus,
+        ...(reportRef ? { report: reportRef } : {}),
+        retainedActionIds: summary?.retainedActionIds ?? [],
+        unvalidatedActionIds: summary?.unvalidatedActionIds ?? [],
+        rejectedActionIds: summary?.rejectedActionIds ?? [],
+        programRuns: summary?.programRuns ?? 0,
+        caseRuns: summary?.caseRuns ?? 0,
+        independentCaseRuns: summary?.independentCaseRuns ?? 0,
+      },
+      claimBoundary: "Development package export. Package file closure passed. Behavior status covers only the listed action-local program cases; whole-skill correctness, source-task replay, agent consumption and optimization effect require separate evidence.",
+    })
+    await Bun.write(path.join(stagingDir, OPTIMIZED_SKILL_PACKAGE_MANIFEST), `${JSON.stringify(manifest, null, 2)}\n`)
+    await verifyOptimizedSkillPackage(stagingDir)
   })
-  await Bun.write(path.join(packageDir, OPTIMIZED_SKILL_PACKAGE_MANIFEST), `${JSON.stringify(manifest, null, 2)}\n`)
-  await verifyOptimizedSkillPackage(packageDir)
   return { status: "exported", packageDir, sourceProposalDir: proposalDir, validation: "passed" }
 }
 

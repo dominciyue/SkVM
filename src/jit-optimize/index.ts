@@ -139,6 +139,8 @@ export type {
 } from "./validation-lifecycle.ts"
 export {
   buildOptimizedSkillPackage,
+  publishOptimizedSkillPackageAtomically,
+  readOptimizedSkillPackageUserSummary,
   verifyOptimizedSkillPackage,
   OptimizedSkillPackageManifestSchema,
   CurrentOptimizedSkillPackageManifestSchema,
@@ -147,6 +149,7 @@ export {
   LEGACY_OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION,
   OPTIMIZED_SKILL_PACKAGE_MANIFEST,
   OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT,
+  OPTIMIZED_SKILL_PACKAGE_USER_GUIDE,
 } from "./package.ts"
 export type {
   BuildOptimizedSkillPackageOptions,
@@ -154,6 +157,8 @@ export type {
   CurrentOptimizedSkillPackageManifest,
   OptimizedSkillPackageManifest,
   VerifiedOptimizedSkillPackage,
+  OptimizedSkillPackageUserStep,
+  OptimizedSkillPackageUserSummary,
 } from "./package.ts"
 
 export { runOptimizer } from "./optimizer.ts"

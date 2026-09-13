@@ -23,7 +23,9 @@ describe("run natural task and optimization flags", () => {
     ])
     if (config.help) throw new Error("unexpected help")
     expect(validateRunConfig(config)).toEqual({
+      mode: "source",
       taskSource: { kind: "prompt", prompt: "Inspect this directory" },
+      model: "x/source",
       optimizerModel: "x/source",
     })
   })
@@ -31,7 +33,28 @@ describe("run natural task and optimization flags", () => {
   test("keeps the legacy task source when optimize is absent", () => {
     const config = RUN_FLAGS.parse(["--task=./task.json", "--model=x/source"])
     if (config.help) throw new Error("unexpected help")
-    expect(validateRunConfig(config)).toEqual({ taskSource: { kind: "task", path: "./task.json" } })
+    expect(validateRunConfig(config)).toEqual({
+      mode: "source",
+      taskSource: { kind: "task", path: "./task.json" },
+      model: "x/source",
+    })
+  })
+
+  test("accepts package-stage recovery from a session without a new source task or model", () => {
+    const config = RUN_FLAGS.parse([
+      "--resume-optimization=./session/optimization-session.json",
+      "--package-out=./recovered-package",
+    ])
+    if (config.help) throw new Error("unexpected help")
+    expect(validateRunConfig(config)).toEqual({
+      mode: "resume",
+      manifestPath: "./session/optimization-session.json",
+      packageDir: "./recovered-package",
+    })
+    expectUsage(
+      RUN_FLAGS.parse(["--resume-optimization=./session.json", "--prompt=run again", "--model=x/source"]),
+      "run: --resume-optimization cannot be combined with --task, --prompt, --skill, or --optimize",
+    )
   })
 
   test("rejects absent, empty, or conflicting task sources before execution", () => {

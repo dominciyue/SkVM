@@ -65,6 +65,7 @@ export interface ProgramRunValidation {
   assertions: ProgramAssertionValidation[]
   diagnostics: string[]
   failureKind?: ProgramValidationFailureKind
+  nextAction?: string
 }
 
 export interface OptimizationProgramValidationResult {
@@ -75,6 +76,7 @@ export interface OptimizationProgramValidationResult {
   cases: ProgramRunValidation[]
   diagnostics: Array<{ code: string; message: string }>
   failureKind?: ProgramValidationFailureKind
+  nextAction?: string
 }
 
 export interface ActionValidationObservation {
@@ -82,6 +84,7 @@ export interface ActionValidationObservation {
   status: "passed" | "failed" | "not-applicable" | "not-run"
   failureKind?: ProgramValidationFailureKind
   diagnostics: string[]
+  nextAction?: string
 }
 
 export interface ActionValidationFeedback {
@@ -89,6 +92,7 @@ export interface ActionValidationFeedback {
   failureKind: ProgramValidationFailureKind | "not-applicable" | "dependency-rejected" | "shared-change-group-rejected"
   diagnostics: string[]
   relevantFiles: string[]
+  nextAction?: string
 }
 
 export interface ActionValidationResolution {
@@ -154,6 +158,25 @@ function runtimeCommand(implementation: ImplementationSelection, entry: string):
   }
 }
 
+function nextActionForFailure(kind: ProgramValidationFailureKind): string {
+  switch (kind) {
+    case "parameter-missing":
+      return "Provide the required input or parameter named by the diagnostic, then rerun only this isolated validation case."
+    case "environment-not-reconstructable":
+      return "Prepare the declared runtime or dependency in a package-local or other isolated environment, then rerun this validation case."
+    case "entry-unclear":
+      return "Fix the declared executable entry so it resolves to a regular file inside the package, then revalidate the package."
+    case "result-mismatch":
+      return "Inspect the produced files and semantic assertion details, fix the expected result mismatch, and rerun this validation case."
+    case "script-execution-error":
+      return "Inspect the captured command, exit code and stderr, fix the candidate program, and rerun this validation case."
+  }
+}
+
+function looksLikeMissingDependency(stderr: string): boolean {
+  return /(?:ERR_MODULE_NOT_FOUND|Cannot find (?:package|module)|ModuleNotFoundError|ImportError|No module named|command not found)/iu.test(stderr)
+}
+
 async function digestFile(root: string, relativePath: string): Promise<ProgramOutputFileEvidence | undefined> {
   const absolute = resolveContained(root, relativePath)
   if (!absolute || !await regularFile(absolute)) return undefined
@@ -189,6 +212,7 @@ async function runValidation(
       assertions: [],
       diagnostics: [`process start failed: ${error instanceof Error ? error.message : String(error)}`],
       failureKind: "environment-not-reconstructable",
+      nextAction: nextActionForFailure("environment-not-reconstructable"),
     }
   }
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -215,6 +239,7 @@ async function runValidation(
       assertions: [],
       diagnostics: ["process output was not exposed as readable streams"],
       failureKind: "environment-not-reconstructable",
+      nextAction: nextActionForFailure("environment-not-reconstructable"),
     }
   }
   const [stdout, stderr] = await Promise.all([
@@ -231,7 +256,9 @@ async function runValidation(
     diagnostics.push(`expected exit ${expectedExitCode}, received ${exitCode}`)
     failureKind = /(?:usage:|required (?:argument|option)|argument .* required|missing (?:argument|parameter))/i.test(stderr)
       ? "parameter-missing"
-      : "script-execution-error"
+      : looksLikeMissingDependency(stderr)
+        ? "environment-not-reconstructable"
+        : "script-execution-error"
   }
   for (const fragment of expectation.stdoutIncludes ?? []) {
     if (!stdout.includes(fragment)) {
@@ -327,6 +354,7 @@ async function runValidation(
     assertions,
     diagnostics,
     ...(failureKind ? { failureKind } : {}),
+    ...(failureKind ? { nextAction: nextActionForFailure(failureKind) } : {}),
   }
 }
 
@@ -342,6 +370,7 @@ export async function validateOptimizationProgram(
       cases: [],
       diagnostics: [{ code: "implementation-not-executable", message: implementation.reason ?? "No selected executable entry." }],
       failureKind: "entry-unclear",
+      nextAction: nextActionForFailure("entry-unclear"),
     }
   }
   const entry = resolveContained(options.packageDir, implementation.entry)
@@ -353,6 +382,7 @@ export async function validateOptimizationProgram(
       cases: [],
       diagnostics: [{ code: "entry-outside-package", message: `Entry escapes package root: ${implementation.entry}` }],
       failureKind: "entry-unclear",
+      nextAction: nextActionForFailure("entry-unclear"),
     }
   }
   if (!await regularFile(entry)) {
@@ -363,6 +393,7 @@ export async function validateOptimizationProgram(
       cases: [],
       diagnostics: [{ code: "entry-missing", message: `Entry does not exist: ${implementation.entry}` }],
       failureKind: "entry-unclear",
+      nextAction: nextActionForFailure("entry-unclear"),
     }
   }
   const commandBase = runtimeCommand(implementation, entry)
@@ -374,6 +405,7 @@ export async function validateOptimizationProgram(
       cases: [],
       diagnostics: [{ code: "runtime-unsupported", message: `Unsupported or unknown runtime: ${implementation.runtime ?? "unknown"}` }],
       failureKind: "environment-not-reconstructable",
+      nextAction: nextActionForFailure("environment-not-reconstructable"),
     }
   }
   const timeoutMs = options.timeoutMs ?? 120_000
@@ -394,6 +426,7 @@ export async function validateOptimizationProgram(
         cases,
         diagnostics: [],
         ...(help.failureKind ? { failureKind: help.failureKind } : {}),
+        ...(help.nextAction ? { nextAction: help.nextAction } : {}),
       }
     }
     return {
@@ -410,6 +443,7 @@ export async function validateOptimizationProgram(
   }
   const passed = (help?.status ?? "passed") === "passed" && cases.every((item) => item.status === "passed")
   const failureKind = [help, ...cases].find((item) => item?.failureKind)?.failureKind
+  const nextAction = [help, ...cases].find((item) => item?.nextAction)?.nextAction
   return {
     status: passed ? "passed" : "failed",
     actionId: implementation.actionId,
@@ -418,6 +452,7 @@ export async function validateOptimizationProgram(
     cases,
     diagnostics: [],
     ...(failureKind ? { failureKind } : {}),
+    ...(nextAction ? { nextAction } : {}),
   }
 }
 
@@ -473,6 +508,7 @@ export function resolveActionValidation(options: ResolveActionValidationOptions)
       failureKind: observed.status === "not-applicable" ? "not-applicable" : (observed.failureKind ?? "result-mismatch"),
       diagnostics: [...observed.diagnostics],
       relevantFiles: [...action.changedPaths].sort(),
+      ...(observed.nextAction ? { nextAction: observed.nextAction } : {}),
     })
   }
 

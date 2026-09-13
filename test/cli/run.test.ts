@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { RUN_FLAGS, runRun } from "../../src/cli/run.ts"
+import { RUN_FLAGS, runRun, validateRunConfig } from "../../src/cli/run.ts"
 import { UsageError } from "../../src/cli/flags.ts"
 import { ALL_ADAPTERS } from "../../src/adapters/registry.ts"
 import { CLI_DEFAULTS } from "../../src/core/ui-defaults.ts"
@@ -35,6 +35,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       optimize: false,
       "optimizer-model": undefined,
       "package-out": undefined,
+      "resume-optimization": undefined,
     })
   })
 
@@ -69,6 +70,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       optimize: false,
       "optimizer-model": undefined,
       "package-out": undefined,
+      "resume-optimization": undefined,
     })
   })
 
@@ -76,9 +78,16 @@ describe("RUN_FLAGS.parse — typed config", () => {
     expect(RUN_FLAGS.parse(["--help"])).toEqual({ help: true })
   })
 
-  test("model remains parser-required while task source is a cross-flag rule", () => {
-    expect(parseError([]).message).toBe("run: --model is required")
-    expect(parseError(["--task=/tmp/task.json"]).message).toBe("run: --model is required")
+  test("model remains required for source execution but not for session recovery", () => {
+    const missingEverything = RUN_FLAGS.parse([])
+    const missingModel = RUN_FLAGS.parse(["--task=/tmp/task.json"])
+    if (missingEverything.help || missingModel.help) throw new Error("unexpected help")
+    expect(() => validateRunConfig(missingEverything)).toThrow("exactly one of --task or --prompt is required")
+    expect(() => validateRunConfig(missingModel)).toThrow("run: --model is required")
+    expect(RUN_FLAGS.parse(["--resume-optimization=/tmp/session.json"])).toEqual(expect.objectContaining({
+      model: undefined,
+      "resume-optimization": "/tmp/session.json",
+    }))
   })
 
   test("--adapter is an enum over the adapter registry", () => {
@@ -137,31 +146,33 @@ Usage:
   skvm run --prompt=<natural-language-task> --model=<id> [options]
   skvm run --task=<path/to/task.json> --skill=<path/to/SKILL.md> --model=<id> [options]
   skvm run --prompt=<task> --skill=<path> --model=<id> --optimize [options]
+  skvm run --resume-optimization=<session-manifest> [--package-out=<path>]
 
 Options:
-  --task=<path>                        Path to a task JSON file (bench task schema)
-  --prompt=<text>                      Natural-language task; mutually exclusive with --task
-  --model=<id>                         Model identifier, <provider>/<model-id> (required)
-  --skill=<path>                       Optional path to a SKILL.md file
-  --skill-mode=<mode>                  inject | discover (default: inject).
-                                       Requires --skill. inject: skill text is concatenated
-                                       into the system prompt. discover: skill is written
-                                       to .claude/skills/<name>/ and discovered via its
-                                       SKILL.md description.
-  --adapter=<name>                     Agent adapter: ${ALL_ADAPTERS.join(" | ")} (default: ${CLI_DEFAULTS.adapter})
-  --workdir=<path>                     Use this directory instead of a temp work directory
-  --initial-workdir-manifest=<path>    Write a pre-agent workdir manifest outside the work directory
-  --execution-observation=<path>       Write a value-free execution observation JSON sidecar
-  --timeout-ms=<n>                     Override the per-task agent execution timeout (ms).
-                                       This caps how long the target adapter spends solving
-                                       one task. Falls back to task.json's \`timeoutMs\`,
-                                       then to the built-in default (${TIMEOUT_DEFAULTS.taskExec}).
-  --idle-timeout-ms=<n>                Optional inactivity deadline for progress-aware adapters (ms).
-  --max-steps=<n>                      Override max steps for the adapter
-  --adapter-config=<m>                 native | managed (default: from skvm.config.json, else managed)
-  --optimize                           After this source run, optimize the selected skill from its captured trace
-  --optimizer-model=<id>               Optimizer model; defaults to --model when --optimize is set
-  --package-out=<path>                 Optimized skill package directory; default is inside the run session
+  --task=<path>                               Path to a task JSON file (bench task schema)
+  --prompt=<text>                             Natural-language task; mutually exclusive with --task
+  --model=<id>                                Model identifier, <provider>/<model-id>
+  --skill=<path>                              Optional path to a SKILL.md file
+  --skill-mode=<mode>                         inject | discover (default: inject).
+                                              Requires --skill. inject: skill text is concatenated
+                                              into the system prompt. discover: skill is written
+                                              to .claude/skills/<name>/ and discovered via its
+                                              SKILL.md description.
+  --adapter=<name>                            Agent adapter: ${ALL_ADAPTERS.join(" | ")} (default: ${CLI_DEFAULTS.adapter})
+  --workdir=<path>                            Use this directory instead of a temp work directory
+  --initial-workdir-manifest=<path>           Write a pre-agent workdir manifest outside the work directory
+  --execution-observation=<path>              Write a value-free execution observation JSON sidecar
+  --timeout-ms=<n>                            Override the per-task agent execution timeout (ms).
+                                              This caps how long the target adapter spends solving
+                                              one task. Falls back to task.json's \`timeoutMs\`,
+                                              then to the built-in default (${TIMEOUT_DEFAULTS.taskExec}).
+  --idle-timeout-ms=<n>                       Optional inactivity deadline for progress-aware adapters (ms).
+  --max-steps=<n>                             Override max steps for the adapter
+  --adapter-config=<m>                        native | managed (default: from skvm.config.json, else managed)
+  --optimize                                  After this source run, optimize the selected skill from its captured trace
+  --optimizer-model=<id>                      Optimizer model; defaults to --model when --optimize is set
+  --package-out=<path>                        Optimized skill package directory; default is inside the run session
+  --resume-optimization=<session-manifest>    Resume a safe package-export stage without rerunning the source task or optimizer
 
 Notes:
   - Without --optimize this command only executes; it does not score.

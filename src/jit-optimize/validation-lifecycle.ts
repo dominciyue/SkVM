@@ -1188,6 +1188,7 @@ export async function runOptimizationValidationLifecycle(
         status: "failed",
         ...(program.failureKind ? { failureKind: program.failureKind } : {}),
         diagnostics,
+        ...(program.nextAction ? { nextAction: program.nextAction } : {}),
       })
     } else if (program.status === "passed" && plan.status === "ready" && plan.independentCaseIds.length > 0) {
       observations.push({ actionId: action.id, status: "passed", diagnostics })

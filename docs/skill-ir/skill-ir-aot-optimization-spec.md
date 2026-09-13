@@ -2324,7 +2324,7 @@ action-local validation、普通 source/优化包自然消费、Pi 分层计数�
 未打包该文件，随后提示合同通过 TDD 明确排除。既有 API solidifier 与 v2 artifact 回归通过；历史候选冻结的额外测试仍会在当前
 Windows LF 工作文件与 `core.autocrlf` filter 的 CRLF checkout bytes 不同时拒绝 `package.json`，本轮不修改旧冻结链或摘要。
 
-### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-R5）
+### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-R6）
 
 **代码审查修订，revision 3（2026-09-14，active-R1）：** H0–H12 已完成，继续已有 R 队列。审查真实运行了一个仅 `process.exit(0)` 的程序：task-contract case 引用旧 passed criterion 且无输出断言，lifecycle 仍返回 passed/retained、independentCaseRuns=1、outputFiles=[]。这说明来源绑定不能替代对新输出执行语义断言；R3 必须修复，缺断言只支持执行状态或窄存在性主张，不强制整个 skill 停止优化。旧 H8/H9 另有独立变化输入与故障检查，保留原结果，不因框架漏洞猜测全部程序错误。
 
@@ -2347,6 +2347,8 @@ R3 同时区分原输出保真、来源派生规则、程序自检与实际独�
 R4 改进动作兑现和模型可读接口，减少 H8 多次尝试暴露的映射/生成摩擦；保留 no-change 合理性，不强迫所有 skill 出脚本，不无限抽样。R6/R7 要求默认入口的两种结构真实尝试，其中至少一条原/变化任务完整通过；从普通命令完成自动采集、优化、包使用和异常恢复，不以历史手动日志实验替代。工程覆盖、任务质量与效果继续分别评价；没有支持 80%–90% 的测量时不得声称这种成功概率。
 
 **R4 实际结果（2026-09-14）：** H8 的 9 次保留尝试中，6 次仅改文档、1 次合理 no-change、1 次在响应保存前 403、1 次在明确有界参数程序可由一次有依据的成功支撑后生成程序。共享 workspace 现写出模型可读的 `IMPLEMENTATION_CONTEXT.json`，把既有可执行入口、参数、规范化输入与摘要、观察格式、输出和当前检查集中呈现；generate/reuse 声明必须由新增/变化程序或真实 source 入口兑现，文档改动不再冒充程序实现。修复复验绑定候选文件、完整 evidence 和静态可见本地读取；真实 diff 改到共享资源、入口、参数、task 资源或断言时使旧 passed 失效，依赖不完备时有限保守复验。能力报告保持 selected=`entry-found-only`，列出已测支持、不适用、输入/参数变化是否影响输出、是否写入前拒绝及未验证条件。3 个支持与 3 个不适用合成案例、部分写入反例和首次成功/一次修复/no-change/仍失败路径通过；这些不构成真实 skill 成功率、人工节省或 prospective 结论。证据为 `results/skill-ir/skill-optimization-production-closure-20260913/r4/report.json`，当前进入 R5 的默认使用与 V6 原子发布。
+
+**R5 实际结果（2026-09-14）：** 新包只在同目标的唯一 sibling staging 目录中构造，完整 closure/validation binding 通过后以一次 rename 发布；中途注入失败清除本次 staging、目标不可见，预存非空用户目录拒绝且保持原字节。每个 v2 新包新增受 closure 约束的 `OPTIMIZATION-USAGE.md`，普通 CLI 直接显示包命令、delivery/behavior 级别、已优化步骤、程序命令基线、输入/参数来源、输出、preconditions、残余 agent 工作、原任务结果和 fallback。缺参数、依赖环境、入口、程序执行、结果不匹配分开给具体下一动作；不写用户全局依赖。新增 `skvm run --resume-optimization=<session>` 仅恢复已知且已原子清理的 package failure，实际测试为 source=0、optimizer=0、package attempts=2；完成未知的 optimizer/package 状态继续拒绝自动重放。程序部分写入和包中途写入反例均不产生可用包，draft 候选仍可按真实级别交付。证据为 `results/skill-ir/skill-optimization-production-closure-20260913/r5/report.json`；当前进入 R6 真实两结构尝试。
 
 本轮依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1 的 H0–H14，主线达标后有条件执行 Y1–Y2。H0 已完成实际调用链定位与单次基线，H1 已绑定四类真实用例，H2 已实现有来源的条件范围并保持旧 action 兼容；H3 已修复 pending 的依赖/共享文件传播和 help-only 误提升；H4 已把 action 建议转换为真实资源与参考输出绑定的执行计划；H5 已接入正常 log loop 并持久化实际执行、检查和选轮状态；H6 复用同一 optimizer 完成最多一次的局部修复，只复验受影响动作，并在失败时按依赖/共享文件闭包恢复 baseline，同时保留独立已验证动作；H7 使 v2 包归档并重验最终选中 snapshot 的行为报告，以 draft/validated-recommendation 区分验证缺口，同时保持 v1 只读兼容；H8 完成新程序生成与自然消费，H9 完成现成程序复用，H10 完成变化条件、局部降级和资源诊断，H11 完成常规入口交接策略、general-skill gzip trace 接入及同任务行为配对，当前 active-H12。恢复状态见 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。14.30 历史交付和 mixed 结果保留。
 

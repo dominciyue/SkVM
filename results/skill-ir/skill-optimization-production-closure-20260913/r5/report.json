@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "skill-ir-production-closure-r5-report/v1",
+  "identity": "skill-optimization-production-closure-20260913-r5",
+  "exposure": "development",
+  "status": "completed",
+  "baselineCommit": "51e866b",
+  "userDelivery": {
+    "packageGuide": "OPTIMIZATION-USAGE.md",
+    "ordinaryUseCommandIncluded": true,
+    "showsDeliveryAndBehaviorStatus": true,
+    "showsOptimizedSteps": true,
+    "showsProgramCommandBase": true,
+    "showsInputAndParameterSources": true,
+    "showsOutputsAndPreconditions": true,
+    "showsResidualAgentDuties": true,
+    "showsOriginalResultPreserved": true,
+    "fallbackToOriginalWorkflow": true,
+    "detailedTraceRequiredForOrdinaryUse": false,
+    "draftCandidateAllowedWhenAccuratelyLabeled": true
+  },
+  "failureGuidance": [
+    {
+      "kind": "parameter-missing",
+      "nextAction": "provide the required input or parameter and rerun only the isolated case"
+    },
+    {
+      "kind": "environment-not-reconstructable",
+      "nextAction": "prepare the declared runtime/dependency in a package-local or isolated environment"
+    },
+    {
+      "kind": "entry-unclear",
+      "nextAction": "fix the contained regular-file entry and revalidate"
+    },
+    {
+      "kind": "script-execution-error",
+      "nextAction": "inspect command, exit and stderr, then repair and rerun the case"
+    },
+    {
+      "kind": "result-mismatch",
+      "nextAction": "inspect produced files/assertions, fix the mismatch and rerun the case"
+    }
+  ],
+  "recovery": {
+    "command": "skvm run --resume-optimization=<session-manifest> [--package-out=<path>]",
+    "sourceTaskReplayed": false,
+    "optimizerReplayedForKnownPackageFailure": false,
+    "knownPackageFailureRetryable": true,
+    "optimizerFailureAutomaticallyRetried": false,
+    "unknownOptimizerCompletionAutomaticallyRetried": false,
+    "unknownPackageCompletionAutomaticallyRetried": false,
+    "originalTaskResultPreserved": true
+  },
+  "v6AtomicPublication": {
+    "constructionLocation": "unique sibling staging directory",
+    "verificationBeforePublication": true,
+    "publicationOperation": "single directory rename",
+    "nonEmptyUserTargetPreserved": true,
+    "failedStagingRemoved": true,
+    "partialTargetVisibleAfterInjectedFailure": false,
+    "programPartialWrite": {
+      "evidence": "R4 validation-lifecycle not-applicable partial-write injection",
+      "detected": true,
+      "publishedAsUsablePackage": false
+    },
+    "midExportInjection": {
+      "detected": true,
+      "publishedTargetExists": false,
+      "ownedStagingRemains": false
+    },
+    "knownFailureRecovery": {
+      "packageAttempts": 2,
+      "sourceRuns": 0,
+      "optimizerRuns": 0,
+      "finalStatus": "completed"
+    }
+  },
+  "existingBehaviorRetained": {
+    "legalEmptyInput": "covered by package-validation empty case",
+    "optionalInputMissing": "covered by preserved H10 omitted-optional case",
+    "notApplicableIsAutomationSuccess": false,
+    "originalSkillModified": false,
+    "globalDependencyInstallation": false
+  },
+  "verification": {
+    "focusedCommand": "bun test ./test/cli/run.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/package.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/run/optimization-handoff.test.ts",
+    "testsPassed": 64,
+    "testsFailed": 0,
+    "assertions": 253,
+    "typecheck": "passed",
+    "documentationTests": "12/12 passed",
+    "documentationLinks": "8359 files scanned; 0 broken, legacy, or governance errors; 4 pre-existing soft line warnings",
+    "diffCheck": "passed"
+  },
+  "runtimeAccounting": {
+    "sourceAgentRuns": 0,
+    "optimizerAgentRuns": 0,
+    "remoteApiCalls": 0,
+    "paidCalls": 0,
+    "actualProjectCostUsd": null,
+    "note": "R5 used deterministic local fixtures. Developer-agent use remains separate from project runtime accounting."
+  },
+  "claimBoundary": "R5 proves local atomic package construction/publication, accurate development-level user guidance, failure-specific next actions and safe recovery of a known package failure without source or optimizer replay. It does not establish that unknown external side effects are safe to repeat, convert draft packages into validated recommendations, prove whole-skill correctness, or establish real-task effectiveness, human savings, readiness or prospective reliability."
+}

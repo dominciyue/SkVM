@@ -110,11 +110,24 @@ export async function runCapturedOptimization(
   if (initialState === "optimizer-running" || initialState === "package-exporting") {
     throw new Error(`Cannot resume ${initialState}: previous phase completion is unknown; inspect this session before retrying`)
   }
-  if (initialOptimization?.status === "failed") {
-    throw new Error(`Cannot automatically resume failed ${initialOptimization.phase} phase: ${initialOptimization.error}`)
-  }
-
   let resumed = initialState === "proposal-ready"
+  if (initialOptimization?.status === "failed") {
+    if (initialOptimization.phase !== "package"
+      || !initialOptimization.optimizerModel
+      || !initialOptimization.proposalId
+      || !initialOptimization.proposalDir) {
+      throw new Error(`Cannot automatically resume failed ${initialOptimization.phase} phase: ${initialOptimization.error}`)
+    }
+    manifest = await transitionOptimizationSession(manifestPath, ["failed"], {
+      status: "proposal-ready",
+      optimizerModel: initialOptimization.optimizerModel,
+      proposalId: initialOptimization.proposalId,
+      proposalDir: initialOptimization.proposalDir,
+      ...(initialOptimization.evidenceManifestPath ? { evidenceManifestPath: initialOptimization.evidenceManifestPath } : {}),
+      ...(initialOptimization.evidenceSha256 ? { evidenceSha256: initialOptimization.evidenceSha256 } : {}),
+    })
+    resumed = true
+  }
   if (initialState === "pending") {
     const skillName = manifest.binding.skillId ?? path.basename(path.dirname(manifest.artifacts.skillSnapshot.path))
     const locked = await deps.acquireLock(manifest.binding.adapter, manifest.binding.model, skillName)

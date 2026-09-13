@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdir, mkdtemp, rm } from "node:fs/promises"
+import { mkdir, mkdtemp, rm, stat } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { emptyTokenUsage, type AgentAdapter, type RunResult } from "../../src/core/types.ts"
@@ -17,6 +17,7 @@ import {
 import { loadEvidencesFromLogs } from "../../src/jit-optimize/task-source.ts"
 import type { TaskSource } from "../../src/jit-optimize/types.ts"
 import { writeInitialWorkdirManifest } from "../../src/core/workdir-manifest.ts"
+import { publishOptimizedSkillPackageAtomically } from "../../src/jit-optimize/package.ts"
 
 const roots: string[] = []
 
@@ -194,6 +195,38 @@ describe("captured optimization handoff", () => {
     expect(calls).toBe(0)
   })
 
+  test("refuses to replay a package export whose completion is unknown", async () => {
+    const item = await fixture("uncertain-package")
+    const proposalDir = path.join(item.root, "proposal")
+    const packageDir = path.join(item.root, "package")
+    await transitionOptimizationSession(item.session.manifestPath, ["pending"], {
+      status: "proposal-ready",
+      optimizerModel: "x/optimizer",
+      proposalId: "uncertain-package",
+      proposalDir,
+    })
+    await transitionOptimizationSession(item.session.manifestPath, ["proposal-ready"], {
+      status: "package-exporting",
+      optimizerModel: "x/optimizer",
+      proposalId: "uncertain-package",
+      proposalDir,
+      packageDir,
+    })
+    let packageCalls = 0
+    await expect(runCapturedOptimization({
+      manifestPath: item.session.manifestPath,
+      optimizerModel: "x/optimizer",
+      dependencies: {
+        async jitOptimize() { throw new Error("must not run") },
+        async buildPackage() { packageCalls++; throw new Error("must not run") },
+        async verifyPackage() { throw new Error("must not run") },
+        async acquireLock() { return true },
+        async releaseLock() {},
+      },
+    })).rejects.toThrow("completion is unknown")
+    expect(packageCalls).toBe(0)
+  })
+
   test("resumes a persisted proposal at package export without another optimizer call", async () => {
     const item = await fixture("proposal-resume")
     const evidencePath = path.join(path.dirname(item.session.manifestPath), "optimization-evidence.json")
@@ -228,6 +261,63 @@ describe("captured optimization handoff", () => {
     expect(result).toMatchObject({ status: "completed", resumed: true, proposalId: "proposal-ready" })
     expect(optimizerCalls).toBe(0)
     expect(packageCalls).toBe(1)
+  })
+
+  test("retries a known atomic package failure without replaying the source or optimizer", async () => {
+    const item = await fixture("package-retry")
+    const evidencePath = path.join(path.dirname(item.session.manifestPath), "optimization-evidence.json")
+    await Bun.write(evidencePath, "frozen\n")
+    const evidenceSha256 = new Bun.CryptoHasher("sha256").update("frozen\n").digest("hex")
+    const proposalDir = path.join(item.root, "proposal-ready")
+    const packageDir = path.join(item.root, "published")
+    await transitionOptimizationSession(item.session.manifestPath, ["pending"], {
+      status: "proposal-ready",
+      optimizerModel: "x/optimizer",
+      proposalId: "package-retry",
+      proposalDir,
+      evidenceManifestPath: evidencePath,
+      evidenceSha256,
+    })
+    let optimizerCalls = 0
+    let packageCalls = 0
+    const dependencies = {
+      async jitOptimize() { optimizerCalls++; throw new Error("must not run") },
+      async buildPackage() {
+        packageCalls++
+        await publishOptimizedSkillPackageAtomically(packageDir, async (stagingDir) => {
+          await Bun.write(path.join(stagingDir, "SKILL.md"), "# staged\n")
+          if (packageCalls === 1) throw new Error("injected package failure")
+          await Bun.write(path.join(stagingDir, "optimization-manifest.json"), "{}\n")
+        })
+        return { status: "exported" as const, packageDir, sourceProposalDir: proposalDir, validation: "passed" as const }
+      },
+      async verifyPackage() { return {} as never },
+      async acquireLock() { return true },
+      async releaseLock() {},
+    }
+
+    await expect(runCapturedOptimization({
+      manifestPath: item.session.manifestPath,
+      optimizerModel: "x/optimizer",
+      packageDir,
+      dependencies,
+    })).rejects.toThrow("injected package failure")
+    await expect(stat(packageDir)).rejects.toThrow()
+    expect((await readOptimizationSession(item.session.manifestPath)).optimization).toMatchObject({
+      status: "failed",
+      phase: "package",
+      proposalId: "package-retry",
+    })
+
+    const recovered = await runCapturedOptimization({
+      manifestPath: item.session.manifestPath,
+      optimizerModel: "x/optimizer",
+      packageDir,
+      dependencies,
+    })
+    expect(recovered).toMatchObject({ status: "completed", resumed: true, packageDir })
+    expect(optimizerCalls).toBe(0)
+    expect(packageCalls).toBe(2)
   })
 
   test("records no-change and optimizer failure as distinct terminal states", async () => {

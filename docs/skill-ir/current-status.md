@@ -3,7 +3,7 @@
 - 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
 - 当前路线：H0–H14 + R1–R7，“正常运行一次 → 自动采集 trace → 程序实施与验证 → 新 skill 包 → 自然消费”
-- 执行状态：`active-R5`（H0–H12、R1–R4 已完成；G0–G14 历史整体效果仍为 mixed）
+- 执行状态：`active-R6`（H0–H12、R1–R5 已完成；G0–G14 历史整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -51,9 +51,9 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 本轮继续共享实现，依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3、spec 14.31：
 
-当前 machine status 已进入 R5。R1 的唯一 run/capture/输入隔离保持；R2 已把互斥 `--prompt`/`--task` 与 `--optimize` 接入普通 run。R3 修复 V1/V4：候选必须重新执行当前 task 或原 source 的文件断言，旧 pass、exit 0、输出存在和未评分 observed bytes 均不能单独提升级别；可执行与缺失案例局部调度，缺口不从分母删除。R4 修复 V3/V5：生成上下文自动组织入口、输入格式、参数与检查；修复后按真实文件/evidence binding 失效旧观察；selected 明确仅为找到入口，并附实际测试范围、不适用写入前拒绝与 agent 残余职责。V6 继续由 R5 处理；H8/H9 的独立变化检查不因此被抹除。
+当前 machine status 已进入 R6。R1 的唯一 run/capture/输入隔离保持；R2 已把互斥 `--prompt`/`--task` 与 `--optimize` 接入普通 run。R3 修复 V1/V4，R4 修复 V3/V5。R5 修复 V6：包在同级唯一临时目录构造和验证后一次 rename 发布，中途失败不暴露半成品；已知 package 失败可从 session 仅恢复导出，完成状态不明仍不重放。包内指南与 CLI 显示常用命令、参数来源、能力/推荐状态、残余 agent 工作、原结果和具体下一动作。H8/H9 的独立变化检查不因此被抹除。
 
-运行中追加决定：H0–H12 与 R1–R4 成果保留，当前继续 R5–R7，再进入 H13/适用 Y/H14。默认入口已经能接收 skill、自然任务、目录与模型，并自动捕获/关联 trace、调用现有优化器及导出；无需用户提供 logs、locator 或评分文件。普通无评分输入可复用原 skill 的 `.skvm-validation.json` 有界文件规则，未知/专业部分仍由 agent 承担。尚未完成的是半成品隔离、默认可用性和两结构真实消费，因此仍不能关闭总目标。
+运行中追加决定：H0–H12 与 R1–R5 成果保留，当前继续 R6–R7，再进入 H13/适用 Y/H14。默认入口已经能接收 skill、自然任务、目录与模型，并自动捕获/关联 trace、调用现有优化器及原子导出；无需用户提供 logs、locator 或评分文件。普通无评分输入可复用原 skill 的 `.skvm-validation.json` 有界文件规则，未知/专业部分仍由 agent 承担。尚未完成的是两结构真实消费和整体验收，因此仍不能关闭总目标。
 
 1. H0–H2：接续基线，使用已有语料定位问题，区分 skill 规则、任务条件和环境事实。
 2. H3–H7：修复待验证依赖传播，将实际程序验证、一次局部修复/回退及最终 snapshot 导出接入正常 CLI/log 路径。
@@ -88,6 +88,8 @@ R2 新增普通 `run --prompt ... --optimize` 路径；optimizer model 默认复
 R3 新增候选输出断言层：绑定 task 中 contained file-check 会在候选案例后重新执行，原 source 的 `.skvm-validation.json` 可提供不可由候选改写的 source-derived 文件检查。报告分列 reference digest、reference authority、执行断言和 self-check；无评分原输出仅为 fidelity reference。V1 的 empty/wrong-file/printed-ok 全部检出，V4 的 ready/missing 案例局部运行且缺失动作保持未评估；JSON schema 键序等价而类型/const 不等价。规定回归 21/21、124 assertions，当前进入 R4 V3/V5。
 
 R4 从 H8 保留记录定位到共享摩擦：workspace 没有把源码入口、规范化输入、观察格式、参数、输出和检查组织成单一模型接口，且早期提示使有界参数程序看起来必须替代整个 skill。新增 `IMPLEMENTATION_CONTEXT.json` 与动作兑现检查；合理 no-change 保持不变。修复复用现按真实 diff、静态候选依赖与 evidence binding 决定，入口/参数/task/assertion/shared-resource 变化均会重验。V5 的 3 个支持 + 3 个不适用合成案例验证输入和参数真正影响输出，不适用在写入前拒绝，未知继续交 agent；部分写入反例检出。核心 56/56、修复传播 4/4、prompt 24/24、相关回归 79/79 与 typecheck 通过，当前进入 R5 V6 与默认包可用性。
+
+R5 将 package exporter 支为 staging-build/verify + 单次 rename 发布；中途注入失败后目标不存在且 staging 清理，非空用户目标不动。每个新包附 `OPTIMIZATION-USAGE.md`，普通 CLI 展示使用命令、优化步骤、参数/输入、残余职责、draft/validated 状态与原任务结果。五类程序失败得到面向动作的修复建议。`--resume-optimization` 只允许安全恢复已知 package 失败，测试证明 0 次 source/optimizer 重放；完成未知的 optimizer/package 状态仍拒绝。相关回归 64/64、253 assertions、typecheck 与文档检查通过，当前进入 R6 两种结构的自动捕获→优化→包消费。
 
 任务摘要见[当前计划](skill-ir-aot-optimization-plan.md)。G0–G14 历史结果继续保留在
 `results/skill-ir/general-skill-optimization-20260913/final-report.json` 与同目录 `g14-verification.json`；旧结果不回写。

@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：H0–H14 + R1–R7，自动采集真实运行的 skill 优化生产链
-- 状态：`active-R5`；H0–H12、R1–R4 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
+- 状态：`active-R6`；H0–H12、R1–R5 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3
 - 方法依据：spec 14.31
@@ -43,8 +43,8 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 | R2 自然任务入口 | completed | 正常运行一次后自动优化，无需 task.json/logs/locator；阶段恢复不重跑 source |
 | R3 无人工评分文件 | completed | 重新执行 task/source 文件断言；旧 pass 与未评分 reference 不再冒充候选正确性，缺失案例局部保留 |
 | R4 生成过程改进 | completed | `IMPLEMENTATION_CONTEXT` 组织入口/输入/格式/参数/检查；动作真实兑现；V3 绑定失效和 V5 能力边界通过 |
-| R5 可用与恢复 | active | 新包易调用、原成果保留、失败有具体下一动作；完成 V6 原子发布与不重放 |
-| R6 多结构实用 | pending | 两种结构同入口真实尝试，至少一条原/变化任务完整通过 |
+| R5 可用与恢复 | completed | 原子 staging/verify/publish、包内使用指南、失败下一动作与 package-only session 恢复；V6 通过 |
+| R6 多结构实用 | active | 两种结构同入口真实尝试，至少一条原/变化任务完整通过 |
 | R7 整体验收 | pending | 无人工接线命令、故障与恢复测试、准确支持矩阵 |
 
 revision 3 在现有阶段补充 V1–V6：R1 保护同名资源/执行前输入；R3 实际执行输出断言并局部处理缺失案例；R4 处理修复后观察失效与参数适用边界；R5 避免半成品和重复副作用；R7 运行相应反例。V1 已临时实测空程序被旧 criterion 引用误提升，必须修复，不能只降低文档措辞。其余按代码定位写有针对性的回归，不新增大队列或审计协议。
