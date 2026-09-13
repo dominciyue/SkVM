@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 Pi/headless-agent/provider、proposal storage、已有领域 checker；复用原 skill 所需的 Python/Node 等运行时。只在现有模块不能清晰承担职责时增加小模块。
 
-**状态：** revision 1，`active-H9`，2026-09-13。H0–H8 已完成；机器恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。G0–G14 历史效果维持 mixed。
+**状态：** revision 1，`active-H10`，2026-09-13。H0–H9 已完成；机器恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。G0–G14 历史效果维持 mixed。
 
 **队列：** H0–H14 主队列；Y1–Y2 为主链达标后有条件执行的有限深化。按约 12–20 小时开发范围组织，不保证固定时长，不以等待、重复测试、审计或无限补样填满夜间。
 
@@ -252,12 +252,14 @@ bun test ./test/jit-optimize/package.test.ts ./test/cli/jit-optimize.test.ts ./t
 
 **材料：** Law/Experimental 或 H1 对应多资源 skill；实现修改回到共享模块。
 
-- [ ] 从真实单 trace 识别现成程序的能力/参数，避免重复生成同类代码。自然调用依赖新包的清晰指引，不在外部任务提示中泄露入口。
-- [ ] 验证需要的 scripts/references/依赖能够随包工作，改变调用目录或输入路径不依赖研究结果路径。
-- [ ] 若现成程序已有良好指引且无改进空间，保留 no-change，并明确只是复用路径覆盖；不得把原技能本身的优秀表现算优化收益。
-- [ ] 检查原始规则、任务特例和残余判断；Experimental 的变更结果仍由独立规则检查，程序退出零不代表实验设计正确。
+- [x] 从真实单 trace 识别现成程序的能力/参数，避免重复生成同类代码。自然调用依赖新包的清晰指引，不在外部任务提示中泄露入口。
+- [x] 验证需要的 scripts/references/依赖能够随包工作，改变调用目录或输入路径不依赖研究结果路径。
+- [x] 若现成程序已有良好指引且无改进空间，保留 no-change，并明确只是复用路径覆盖；不得把原技能本身的优秀表现算优化收益。
+- [x] 检查原始规则、任务特例和残余判断；Experimental 的变更结果仍由独立规则检查，程序退出零不代表实验设计正确。
 
 **验收：** 同一生产链支持不同资源结构的实际尝试，至少一条已有脚本动作完成真实执行与准确状态；是否有新增收益单列。
+
+**实际结果：** 精确绑定 Law To Markdown development `line:3` 后确认源任务真实得分为 `0.7`、不是成功；外部 evaluator 要求整条法条作为五级标题，与源 skill “仅第 X 条为标题”的规则冲突，故不为追分改写程序。一次普通 CLI 优化选择已有 `scripts/law_to_markdown.py`，将 TXT 路径指引改为显式执行并把 PDF/DOCX 可选依赖改为按需导入；动作局部原输入 1/1 通过并导出 v2 包。首次包错误包含验证生成的 `__pycache__`，保留失败包后以红例修复共享 diff/export 缓存过滤及 Windows 路径归一化；修订包只含两项真实改动。未回灌的改名/变文/异 cwd 输入由独立规则 12/12 通过，普通 Pi agent 未获入口提示即实际 read/help/exec、复核两份产物并写残余审计，输入和包不变。该结果证明复用链和行为路由，不证明原 0.7 任务已修复或有配对质量/成本收益；完整证据见 `results/skill-ir/skill-optimization-production-closure-20260913/h9/report.json`。
 
 ## H10 — 变化条件、局部降级与资源诊断
 

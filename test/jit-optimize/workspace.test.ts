@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
-import { serializeContext } from "../../src/jit-optimize/workspace.ts"
+import { computeDiff, serializeContext } from "../../src/jit-optimize/workspace.ts"
 import type { Evidence, EvidenceCriterion } from "../../src/jit-optimize/types.ts"
 
 function crit(opts: {
@@ -61,6 +61,31 @@ async function pathExists(p: string): Promise<boolean> {
     return false
   }
 }
+
+describe("computeDiff — portable optimizer changes", () => {
+  test("emits forward-slash paths and ignores runtime cache artifacts", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "workspace-diff-portable-"))
+    const original = path.join(root, "original")
+    const workspace = path.join(root, "workspace")
+    try {
+      await mkdir(path.join(original, "scripts", "__pycache__"), { recursive: true })
+      await mkdir(path.join(workspace, "scripts", "__pycache__"), { recursive: true })
+      await writeFile(path.join(original, "scripts", "run.py"), "print('old')\n")
+      await writeFile(path.join(workspace, "scripts", "run.py"), "print('new')\n")
+      await writeFile(path.join(original, "scripts", "__pycache__", "run.pyc"), "old cache\n")
+      await writeFile(path.join(workspace, "scripts", "__pycache__", "run.pyc"), "new cache\n")
+      await writeFile(path.join(workspace, "scripts", "__pycache__", "helper.pyc"), "new cache\n")
+
+      expect(await computeDiff(workspace, original)).toEqual({
+        added: [],
+        modified: ["scripts/run.py"],
+        removed: [],
+      })
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+})
 
 describe("serializeContext — task-first layout", () => {
   test("groups multiple runs of the same task under tasks/<safeId>/", async () => {

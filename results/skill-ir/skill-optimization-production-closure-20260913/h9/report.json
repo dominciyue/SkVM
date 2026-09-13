@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h9/v1",
+  "identity": "skill-optimization-production-closure-20260913-h9-law-reuse",
+  "exposure": "development",
+  "status": "completed",
+  "stage": "H9",
+  "result": {
+    "productionChainAttempted": true,
+    "existingProgramActionExecuted": true,
+    "packageExported": true,
+    "independentVariationPassed": true,
+    "naturalConsumptionPassed": true,
+    "newOptimizationBenefit": "behavioral-routing-evidence",
+    "qualityEffect": "unpaired-unknown"
+  },
+  "authority": {
+    "skill": {
+      "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "bytes": 4418,
+      "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0"
+    },
+    "trace": {
+      "path": "results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/raw-runs.jsonl",
+      "bytes": 57302,
+      "sha256": "8a9d3103b54d6a12291948e0de0acbb963f23254af729d6998f35a23955201b8",
+      "recordLocator": "line:3"
+    },
+    "score": {
+      "path": "results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/scored-results.jsonl",
+      "bytes": 28404,
+      "sha256": "553d8adf4bc13042ce184e329e52750e2d0e5aeaa23c70f4a9f0f425c4d85e68",
+      "recordLocator": "line:3",
+      "success": false,
+      "score": 0.7000000000000001,
+      "passedCriteria": 4,
+      "failedCriteria": 2
+    },
+    "criteriaProjection": {
+      "path": "criteria-law-line-3.json",
+      "bytes": 1333,
+      "sha256": "79f2b726eab8b1002b901ce72b74c63846cb67edd76ed1a6dbd231e3d699d1f8",
+      "bindingPath": "criteria-law-line-3-binding.json",
+      "bindingSha256": "a04ba9ef1c2951fc8e820d2388cc502fdcb110d36a0854ad07902fa5f2d66b1f"
+    }
+  },
+  "sourceEvaluatorConflict": {
+    "present": true,
+    "sourceRule": "Article headings contain only 第X条, except a bracketed article label may remain on the same heading line.",
+    "externalCriterionBehavior": "The bound evaluator expects the entire article sentence on the level-five heading line.",
+    "decision": "Preserve the source rule and record the external-contract conflict as a residual duty; do not change the program merely to chase the failed criterion.",
+    "effectOnClaims": "The optimizer's local program case does not replay or pass the complete scored source task."
+  },
+  "optimizer": {
+    "ordinaryCliRuns": 1,
+    "proposal": {
+      "path": "proposal-attempt-001",
+      "identity": "source:20260913T142032117Z:round-1",
+      "metaSha256": "10aac437afc412e6fb873234aabfda0f41318bdad132135d3edb3ec4bd5ba2c8",
+      "submissionSha256": "d9fbc47c0ae00ccc78693823ee94e0b38198ba4c0d28b1e0c0b0ce7f9a575da2",
+      "rawStdoutArchive": {
+        "path": "proposal-attempt-001/round-1-optimizer/stdout.log.tar.gz",
+        "bytes": 674070,
+        "sha256": "bf0436254fcceb784a8ccd0eb11739b3bae1f3555882fcf0fb916eeb62acb9de",
+        "member": "stdout.log"
+      }
+    },
+    "model": "xty/gpt-5.6-sol",
+    "action": {
+      "id": "make-txt-pipeline-routinely-runnable",
+      "kind": "reuse-script",
+      "entry": "scripts/law_to_markdown.py",
+      "runtime": "python",
+      "programRuns": 1,
+      "independentCaseRuns": 1,
+      "localStatus": "passed"
+    },
+    "changes": [
+      "Route ordinary TXT tasks through the existing program and pass the caller's classification explicitly.",
+      "Load python-docx/pdfplumber only inside the explicitly approved DOCX/PDF fallback path."
+    ],
+    "tokens": {
+      "input": 68716,
+      "output": 14404,
+      "cacheRead": 718336,
+      "cacheWrite": 0
+    },
+    "reportedCostUsd": 0,
+    "actualCostUsd": null,
+    "actualCostMissingReason": "The provider route reported zero and no route-specific price binding or invoice was supplied."
+  },
+  "pipelineCorrections": [
+    {
+      "issue": "Optimizer diff paths used host separators on Windows, so a correct declared scripts/law_to_markdown.py path mismatched scripts\\law_to_markdown.py.",
+      "fix": "Emit portable forward-slash paths from workspace diffing.",
+      "test": "computeDiff — portable optimizer changes"
+    },
+    {
+      "issue": "Python validation bytecode caches entered the selected snapshot diff and the first exported package.",
+      "fix": "Exclude runtime cache artifacts from proposal diffing and package snapshot export while keeping exported-package verification strict against later injected extras.",
+      "test": "excludes Python cache artifacts from proposal snapshots while rejecting them inside an exported package"
+    }
+  ],
+  "packages": {
+    "originalFailureEvidence": {
+      "path": "package-attempt-001",
+      "manifestSha256": "af5e3913fe49ce6e5c6ba18dad3c457008f5d53e9d75112c2f714ed320c11df6",
+      "status": "rejected-for-delivery",
+      "reason": "It contains validation-created __pycache__ files. It is retained unchanged as pre-fix evidence."
+    },
+    "selectedRevision": {
+      "path": "package-attempt-001-revision-001",
+      "manifestSha256": "e2849af59f725fef30c9809d21f2f0c76191784e23daebe867eb8aad18d7881e",
+      "schemaVersion": "skvm-optimized-skill-package/v2",
+      "deliveryStatus": "validated-recommendation",
+      "selectedClosureSha256": "411b6838be82e3cc0cbf8cdd055ab6ade626920ad55d9b35dee708e11b493626",
+      "actualDiff": {
+        "added": [],
+        "modified": ["SKILL.md", "scripts/law_to_markdown.py"],
+        "deleted": [],
+        "moved": []
+      }
+    }
+  },
+  "independentVariation": {
+    "firstReport": {
+      "path": "variation-report.json",
+      "sha256": "f5e7601ff32fc6b389a52a713aef6963672f4bf6e7b6ca4f64df15fd80b99612",
+      "status": "failed",
+      "cause": "The external verifier compared LF literals against correct CRLF output bytes."
+    },
+    "revision": {
+      "path": "variation-report-revision-001.json",
+      "sha256": "f70855e76512d05c474e94bd3bfb4a1699bc5b6748d83acc0329abdbba364d74",
+      "status": "passed",
+      "checksPassed": 12,
+      "checksTotal": 12,
+      "inputWasShownToOptimizer": false,
+      "changes": ["caller working directory", "input name", "legal text", "output directory"],
+      "semanticNormalization": "Only CRLF/LF representation was normalized before structural comparison."
+    }
+  },
+  "naturalConsumption": {
+    "report": {
+      "path": "natural-consumption-run-001/report.json",
+      "bytes": 6117,
+      "sha256": "a4c509c11521f6e9452fcc5419f130d121e55f6b009a37fcbbbdcb1c3d32f65a",
+      "status": "passed"
+    },
+    "evidenceIndex": "natural-consumption-evidence.json",
+    "skillRead": true,
+    "helperInvoked": true,
+    "helperSucceeded": true,
+    "fallbackUsed": false,
+    "residualWorkCompleted": true,
+    "packagePreserved": true,
+    "protectedInputPreserved": true,
+    "runtime": {
+      "model": "xty/gpt-5.6-sol",
+      "runCount": 1,
+      "modelResponseCount": 10,
+      "toolCallCount": 11,
+      "durationMs": 48636,
+      "tokens": {
+        "input": 13101,
+        "output": 1234,
+        "cacheRead": 33152,
+        "cacheWrite": 0
+      },
+      "reportedCostUsd": 0,
+      "actualCostUsd": null
+    },
+    "entrypointLeakInTask": false
+  },
+  "verification": [
+    {
+      "command": "bun test test/jit-optimize/workspace.test.ts --test-name-pattern='portable optimizer changes'",
+      "result": "1 passed, 0 failed after an expected red failure"
+    },
+    {
+      "command": "bun test test/jit-optimize/package.test.ts",
+      "result": "7 passed, 0 failed after an expected red failure"
+    },
+    {
+      "command": "bun results/skill-ir/skill-optimization-production-closure-20260913/h9/run-law-variations.ts",
+      "result": "12/12 independent checks passed after preserving the CRLF-sensitive failed report"
+    },
+    {
+      "command": "bun results/skill-ir/skill-optimization-production-closure-20260913/h9/run-natural-consumption.ts",
+      "result": "passed; real read/help/execute/review/residual-audit sequence"
+    },
+    {
+      "command": "bun test test/jit-optimize/workspace.test.ts test/jit-optimize/package.test.ts test/jit-optimize/general-skill-development.test.ts",
+      "result": "33 passed, 131 assertions, 0 failed"
+    },
+    {
+      "command": "bun run typecheck && python scripts/check_skill_ir_doc_links_test.py && git diff --check",
+      "result": "passed; documentation tests 12/12"
+    }
+  ],
+  "claimBoundary": "H9 proves one ordinary log-driven reuse-script action, portable action-local behavior, and one natural development consumption. It does not prove the original 0.7 source task has been fixed, whole-skill or legal quality, optimized-versus-original cost savings, readiness, prospective performance, or human savings.",
+  "nextStage": "H10: exercise condition changes, empty/optional/required-resource degradation, and accurate partial/failure diagnostics without changing source semantics."
+}

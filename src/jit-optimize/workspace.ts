@@ -57,6 +57,13 @@ function safeTaskSlug(taskId: string): string {
 // ---------------------------------------------------------------------------
 
 const BUNDLE_EXCLUDED = new Set(["LICENSE.txt", "_meta.json"])
+const DIFF_TRANSIENT_DIRECTORIES = new Set([
+  "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache",
+  ".ruff_cache",
+  "node_modules",
+])
 
 /**
  * Walk a directory recursively and yield (relativePath, absolutePath) for every
@@ -72,11 +79,13 @@ async function* walkFiles(root: string, base: string = root): AsyncGenerator<{ r
   for (const entry of entries) {
     if (entry.name.startsWith(".")) continue
     if (BUNDLE_EXCLUDED.has(entry.name)) continue
+    if (entry.isDirectory() && DIFF_TRANSIENT_DIRECTORIES.has(entry.name)) continue
+    if (entry.isFile() && (entry.name.endsWith(".pyc") || entry.name.endsWith(".pyo"))) continue
     const full = path.join(base, entry.name)
     if (entry.isDirectory()) {
       yield* walkFiles(root, full)
     } else if (entry.isFile()) {
-      yield { rel: path.relative(root, full), abs: full }
+      yield { rel: path.relative(root, full).split(path.sep).join("/"), abs: full }
     }
   }
 }

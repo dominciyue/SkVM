@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h9-natural-evidence/v1",
+  "exposure": "development",
+  "status": "passed",
+  "source": {
+    "path": "natural-consumption-run-001/agent-events.json.gz",
+    "format": "gzip-compressed Pi event array",
+    "bytes": 27261,
+    "sha256": "5c7a5f4304c8839694c985ec3a17104a39d6d6825b2d0844165ad7eb2fc29166",
+    "rawBytes": 1353965,
+    "rawSha256": "c223f45adcb339d75c71f78238eeb33faa07651f2611e7442cb7033028bcf4eb"
+  },
+  "observedSequence": [
+    {
+      "layer": "skill-read",
+      "toolCallId": "call_ZHo8Tc3BRuWbe5QY6lrDaFEP",
+      "tool": "read",
+      "path": "skill/SKILL.md",
+      "isError": false
+    },
+    {
+      "layer": "help",
+      "toolCallId": "call_hVWfasTXO3Ciw93IxO1kDB2N",
+      "tool": "bash",
+      "command": "python -B skill/scripts/law_to_markdown.py --help",
+      "isError": false
+    },
+    {
+      "layer": "program",
+      "toolCallId": "call_w36wBeq3Feofnaxp7Uz90a65",
+      "tool": "bash",
+      "command": "python -B skill/scripts/law_to_markdown.py incoming/renamed-statute.txt --out-dir outputs --law-decision law --artifact-level minimal",
+      "isError": false,
+      "resultIncludes": [
+        "Stage3: attempt=0 A=PASS B=PASS overall=PASS",
+        "Result: APPROVED"
+      ]
+    },
+    {
+      "layer": "output-review",
+      "toolCallIds": [
+        "call_B3Mc24Tgj4zh8jKgEPV0nOrY",
+        "call_OY1NafABEwoX4EcQ1VcMKoJE"
+      ],
+      "paths": [
+        "outputs/renamed-statute/renamed-statute+审核报告.md",
+        "outputs/renamed-statute/renamed-statute+最终成果.md"
+      ],
+      "allSucceeded": true
+    },
+    {
+      "layer": "residual-duty",
+      "writeToolCallId": "call_Ff7AUNwJYZy5icTm34HSHUxa",
+      "readBackToolCallId": "call_jG8G8pOqugoKvpfdJYB8EzTg",
+      "path": "completion-audit.json",
+      "sha256": "32ae02dd16dc58d2ddc30472282bbaca44f64bf81fda6a465bee8b83dbe0451f",
+      "value": {
+        "classification": "law",
+        "commandSucceeded": true,
+        "reviewApproved": true,
+        "deliverableInspected": true,
+        "inputPreserved": true
+      }
+    }
+  ],
+  "promptLeakCheck": {
+    "internalEntrypointNamedInTask": false,
+    "programDiscoveredFromSkillPackage": true
+  },
+  "claimBoundary": "This is a compact index into the immutable event archive, not a replacement for it. It proves one natural development consumption sequence only."
+}

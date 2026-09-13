@@ -157,6 +157,18 @@ interface SourceFile {
   sha256: string
 }
 
+const PROPOSAL_TRANSIENT_DIRECTORIES = new Set([
+  "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache",
+  ".ruff_cache",
+  "node_modules",
+])
+
+interface ListSourceFilesOptions {
+  excludeProposalTransients?: boolean
+}
+
 function sha256(bytes: Uint8Array | string): string {
   return new Bun.CryptoHasher("sha256").update(bytes).digest("hex")
 }
@@ -179,7 +191,7 @@ function resolveContained(root: string, relativePath: string): string {
   return absolute
 }
 
-async function listSourceFiles(root: string): Promise<SourceFile[]> {
+async function listSourceFiles(root: string, options: ListSourceFilesOptions = {}): Promise<SourceFile[]> {
   const absoluteRoot = path.resolve(root)
   const rootStat = await lstat(absoluteRoot)
   if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) {
@@ -194,6 +206,9 @@ async function listSourceFiles(root: string): Promise<SourceFile[]> {
       const relative = prefix ? `${prefix}/${entry.name}` : entry.name
       const absolute = resolveContained(absoluteRoot, relative)
       if (entry.isSymbolicLink()) throw new Error(`Symlinks are not portable package inputs: ${relative}`)
+      if (options.excludeProposalTransients && entry.isDirectory() && PROPOSAL_TRANSIENT_DIRECTORIES.has(entry.name)) continue
+      if (options.excludeProposalTransients && entry.isFile()
+        && (entry.name === ".DS_Store" || entry.name.endsWith(".pyc") || entry.name.endsWith(".pyo"))) continue
       if (entry.isDirectory()) {
         await walk(absolute, relative)
         continue
@@ -381,7 +396,10 @@ export async function buildOptimizedSkillPackage(options: BuildOptimizedSkillPac
   if (meta.status === "infra-blocked") throw new Error("Infra-blocked proposals cannot be exported as optimized packages")
   const originalDir = path.join(proposalDir, "original")
   const selectedDir = path.join(proposalDir, `round-${meta.bestRound}`)
-  const [original, selected] = await Promise.all([listSourceFiles(originalDir), listSourceFiles(selectedDir)])
+  const [original, selected] = await Promise.all([
+    listSourceFiles(originalDir, { excludeProposalTransients: true }),
+    listSourceFiles(selectedDir, { excludeProposalTransients: true }),
+  ])
   if (!selected.some((file) => file.path === "SKILL.md")) throw new Error("Selected proposal snapshot has no SKILL.md")
   if (selected.some((file) => file.path === OPTIMIZED_SKILL_PACKAGE_MANIFEST)) {
     throw new Error(`Selected snapshot already contains reserved package metadata: ${OPTIMIZED_SKILL_PACKAGE_MANIFEST}`)

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "skvm-optimized-skill-package/v2",
+  "identity": "source:20260913T142032117Z:round-1",
+  "exposure": "development",
+  "proposal": {
+    "dirName": "20260913T142032117Z",
+    "bestRound": 1,
+    "meta": {
+      "path": "meta.json",
+      "bytes": 553,
+      "sha256": "10aac437afc412e6fb873234aabfda0f41318bdad132135d3edb3ec4bd5ba2c8"
+    },
+    "submission": {
+      "path": "round-1-optimizer/submission.json",
+      "bytes": 11364,
+      "sha256": "d9fbc47c0ae00ccc78693823ee94e0b38198ba4c0d28b1e0c0b0ce7f9a575da2"
+    }
+  },
+  "snapshots": {
+    "originalClosureSha256": "9e3bba529bc8748ee797f6c9a3e5e3183f6db1af547a41ebe413ba279e96054f",
+    "selectedClosureSha256": "3b01b7d6a21231e04f31b8d071c55410596a5e6b8590e83a9cb65100254e16e7"
+  },
+  "actualDiff": {
+    "added": [
+      "scripts/__pycache__/stage3_checker.cpython-312.pyc"
+    ],
+    "modified": [
+      "SKILL.md",
+      "scripts/__pycache__/cn_law_normalizer.cpython-312.pyc",
+      "scripts/law_to_markdown.py"
+    ],
+    "deleted": [],
+    "moved": []
+  },
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 40,
+      "sha256": "e2a5eb44cf2c61a7c54100dc0aceb5b3151f662bf2bdaee4ed9166bc55293867"
+    },
+    {
+      "path": "agents/openai.yaml",
+      "bytes": 181,
+      "sha256": "ef9b3a8dbe86fcd642e1e91928fd91c9f67c0d515c29b9abd20812b79ef52ef7"
+    },
+    {
+      "path": "optimization-validation-report.json",
+      "bytes": 7913,
+      "sha256": "9970b6206edd08db0efa78e35d7e73d5fa955c413613309bb09a1e5ed5a36815"
+    },
+    {
+      "path": "scripts/__pycache__/cn_law_normalizer.cpython-312.pyc",
+      "bytes": 9788,
+      "sha256": "8703edc6586b8b8480dc346ba348767de2618f3556e3056a99a93e2feb233205"
+    },
+    {
+      "path": "scripts/__pycache__/stage3_checker.cpython-312.pyc",
+      "bytes": 16899,
+      "sha256": "e70b926b8c1b70244132a6ddcf99f6d0865046d74a0133e8bbc46ab66ff44b13"
+    },
+    {
+      "path": "scripts/cn_law_normalizer.py",
+      "bytes": 10090,
+      "sha256": "89150d769de67a3e682de9675f64f863f4238fd66a8c128ec50751c471ce056a"
+    },
+    {
+      "path": "scripts/law_to_markdown.py",
+      "bytes": 32618,
+      "sha256": "6d01f49a55b513f29c3f7a9046b5d67b07a4faab7cf1206bccb8cde08d0f337b"
+    },
+    {
+      "path": "scripts/requirements.txt",
+      "bytes": 40,
+      "sha256": "e0452219dc7859b40a49032864673d9f10f8b1e8f149237d2530fcaed1c7b337"
+    },
+    {
+      "path": "scripts/stage3_checker.py",
+      "bytes": 15912,
+      "sha256": "865345bddfaa469f5f4082f81ab1cfe91ab8911353b244860b632e2dab007605"
+    },
+    {
+      "path": "SKILL.md",
+      "bytes": 5001,
+      "sha256": "d73fc3a7bce5f2b7b1da16f7c8483e60d11ba7a4a115bc83629dd9195eea60ce"
+    }
+  ],
+  "implementations": [
+    {
+      "actionId": "make-txt-pipeline-routinely-runnable",
+      "kind": "reuse-script",
+      "status": "selected",
+      "entry": "scripts/law_to_markdown.py",
+      "runtime": "python",
+      "inputs": [
+        "local .txt input path supplied by the task",
+        "caller classification: law, non-law, or auto",
+        "optional output directory and artifact level"
+      ],
+      "outputs": [
+        "review report under the selected output directory",
+        "final deliverable only when the pipeline approves it",
+        "structured console stage/check completion summary"
+      ],
+      "preconditions": [
+        "Python can execute the bundled script",
+        "the input is a local .txt file for the dependency-free path"
+      ],
+      "residualDuties": [
+        "classify the document and pass the decision",
+        "supply task-scoped output arguments",
+        "inspect generated results and do not claim approval after a failed command",
+        "resolve explicit external hierarchy requirements not established by the skill source"
+      ],
+      "verification": [
+        "run `python scripts/law_to_markdown.py --help` without optional fallback packages",
+        "compile law_to_markdown.py, cn_law_normalizer.py, and stage3_checker.py",
+        "run the materialized TXT fixture with law decision and minimal artifacts",
+        "confirm Stage3 A/B PASS, exactly two minimal output files, report approval, and unchanged input"
+      ]
+    }
+  ],
+  "runtime": {
+    "runtimes": [
+      "python"
+    ],
+    "dependencyFiles": [
+      "scripts/requirements.txt"
+    ]
+  },
+  "claimBoundary": "Development package export. Package file closure passed. Behavior status covers only the listed action-local program cases; whole-skill correctness, source-task replay, agent consumption and optimization effect require separate evidence.",
+  "validation": {
+    "status": "passed",
+    "scope": "package-file-closure",
+    "behaviorStatus": "passed",
+    "behaviorScope": "action-local-program-cases",
+    "deliveryStatus": "validated-recommendation",
+    "report": {
+      "path": "optimization-validation-report.json",
+      "bytes": 7913,
+      "sha256": "9970b6206edd08db0efa78e35d7e73d5fa955c413613309bb09a1e5ed5a36815"
+    },
+    "retainedActionIds": [
+      "make-txt-pipeline-routinely-runnable"
+    ],
+    "unvalidatedActionIds": [],
+    "rejectedActionIds": [],
+    "programRuns": 1,
+    "caseRuns": 1,
+    "independentCaseRuns": 1
+  }
+}

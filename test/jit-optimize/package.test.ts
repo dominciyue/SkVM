@@ -249,6 +249,33 @@ describe("buildOptimizedSkillPackage", () => {
     }
   })
 
+  test("excludes Python cache artifacts from proposal snapshots while rejecting them inside an exported package", async () => {
+    const { proposalDir, packageDir } = await makeProposal({
+      original: {
+        "SKILL.md": "# Original\n",
+        "scripts/run.py": "print('stable')\n",
+        "scripts/__pycache__/run.cpython-312.pyc": "original cache\n",
+      },
+      round: {
+        "SKILL.md": "# Optimized\n",
+        "scripts/run.py": "print('stable')\n",
+        "scripts/__pycache__/run.cpython-312.pyc": "validation-mutated cache\n",
+        "scripts/__pycache__/helper.cpython-312.pyc": "validation-created cache\n",
+      },
+      actions: [action("docs", "restructure-docs", { changedPaths: ["SKILL.md"] })],
+    })
+
+    await buildOptimizedSkillPackage({ proposalDir, packageDir })
+    const verified = await verifyOptimizedSkillPackage(packageDir)
+
+    expect(verified.manifest.actualDiff).toEqual({ added: [], modified: ["SKILL.md"], deleted: [], moved: [] })
+    expect(verified.manifest.files.some((file) => file.path.includes("__pycache__") || file.path.endsWith(".pyc"))).toBe(false)
+    expect(await Bun.file(path.join(packageDir, "scripts", "__pycache__", "run.cpython-312.pyc")).exists()).toBe(false)
+
+    await put(packageDir, "scripts/__pycache__/injected.cpython-312.pyc", "unexpected cache\n")
+    await expect(verifyOptimizedSkillPackage(packageDir)).rejects.toThrow("Package file closure mismatch")
+  })
+
   test("binds final-snapshot validation and final actions instead of a stale optimizer submission", async () => {
     const kept = action("kept-program", "generate-script", { changedPaths: ["bin/kept.mjs"] })
     const rolledBack = action("rolled-back-program", "generate-script", { changedPaths: ["bin/removed.mjs"] })

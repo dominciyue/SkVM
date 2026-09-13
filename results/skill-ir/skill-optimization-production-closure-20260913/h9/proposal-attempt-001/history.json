@@ -1,0 +1,248 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-09-13T14:25:10.041Z",
+      "round": 1,
+      "rootCause": "The skill's documented normal path for TXT files was ambiguous about actually invoking the bundled pipeline, while the bundled entry point imported optional DOCX/PDF fallback libraries at startup. In a clean environment this made the authoritative normalizer and Stage3 checker unavailable for TXT work, so the agent manually reproduced their output and asserted approval; that bypassed executable verification and allowed the evaluator-visible heading-policy mismatch to coexist with a report claiming success.",
+      "reasoning": "Evidence 0 is a clean run (runStatus=ok), so it supports diagnosis. The run protected the input, preserved the source character stream, split enumerated items, and created the required artifacts, but failed both the external heading-policy criterion and the approval-outcome criterion. The workdir report says Stage3-B passed even though no process evidence shows the bundled checker ran, and the current bundled CLI could not even display --help in this clean workspace because top-level imports raised ModuleNotFoundError for docx. This explains why the agent hand-authored artifacts instead of using the parameterized pipeline. The fix routes TXT work explicitly through the bundled script, requires model document classification to be passed via --law-decision rather than merely narrated, and makes optional fallback imports lazy so routine TXT conversion and --help work without unrelated packages. Generality test: another plausible TXT statute containing parts, sections, article labels, or multiple enumerated items benefits from the same deterministic normalizer/checker path; a clean offline environment lacking PDF/DOCX fallback dependencies also benefits. Rewrite-in-place test: the existing TXT rule, Stage2 classifier rule, and command examples were tightened in place rather than duplicated in a new tutorial. Coherent-scope test: only the routing documentation and two dependency imports changed; the existing formatter/checker remains the source of formatting policy and no capability was removed. No-trade-off test: PER_TASK_SUMMARY.md contains no PASSING tasks, so there is no passing-score regression risk; the observed marginal task's already-passing input protection, source accounting, item layout, and artifact behavior are preserved by the existing script and were revalidated on its materialized fixture. Verification: `python scripts/law_to_markdown.py --help` succeeds without optional packages; all three Python files compile; and the fixture run with `--law-decision law --artifact-level minimal` produces only the two minimal artifacts, reports approval/deliverability, preserves the source stream, and passes the bundled Stage3 checks. The exact external hierarchy expectation is not exposed beyond the criterion label, so no heading levels were guessed or changed; interpretation of any external contract that differs from the skill remains an agent duty.",
+      "changes": [
+        {
+          "file": "SKILL.md",
+          "section": "处理规则 / 常用命令",
+          "description": "Tighten the existing TXT workflow and examples so agents invoke the bundled verified pipeline, pass their law/non-law decision explicitly, and only claim approval from generated artifacts.",
+          "generality": "Any other TXT statute conversion, such as a document containing 编、节、条标 or several 项/目, benefits from deterministic formatting and approval checks instead of manual reproduction.",
+          "linesDelta": 1
+        }
+      ],
+      "changedFiles": [
+        "scripts\\__pycache__\\stage3_checker.cpython-312.pyc",
+        "scripts\\law_to_markdown.py",
+        "scripts\\__pycache__\\cn_law_normalizer.cpython-312.pyc",
+        "SKILL.md"
+      ],
+      "actions": [
+        {
+          "id": "make-txt-pipeline-routinely-runnable",
+          "kind": "reuse-script",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#处理规则",
+            "SKILL.md#二阶段识别参数",
+            "SKILL.md#三阶段参数",
+            "SKILL.md#输出规则",
+            "scripts/law_to_markdown.py",
+            "scripts/cn_law_normalizer.py",
+            "scripts/stage3_checker.py",
+            ".optimize/tasks/law-to-markdown-skvm-windows-clean-law-to-markdown-statute-dev-001/run-0.md#Evaluation-Criteria"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "local .txt input path supplied by the task",
+            "caller classification: law, non-law, or auto",
+            "optional output directory and artifact level"
+          ],
+          "outputs": [
+            "review report under the selected output directory",
+            "final deliverable only when the pipeline approves it",
+            "structured console stage/check completion summary"
+          ],
+          "preconditions": [
+            "Python can execute the bundled script",
+            "the input is a local .txt file for the dependency-free path"
+          ],
+          "constraints": [
+            {
+              "description": "TXT is converted through Stage2 formatting and default Stage3 verification, preserving the non-whitespace character stream.",
+              "scope": "skill",
+              "sourceRef": "SKILL.md#处理规则"
+            },
+            {
+              "description": "The observed task forbids modifying the input, networking, or installing packages and requests minimal artifacts in a specified directory.",
+              "scope": "task",
+              "sourceRef": ".optimize/tasks/law-to-markdown-skvm-windows-clean-law-to-markdown-statute-dev-001/run-0.json#taskPrompt"
+            },
+            {
+              "description": "Optional python-docx and pdfplumber packages are absent in the optimization environment.",
+              "scope": "environment",
+              "sourceRef": "verification:python scripts/law_to_markdown.py --help before edit"
+            }
+          ],
+          "validation": {
+            "help": {
+              "args": [
+                "--help"
+              ],
+              "stdoutIncludes": [
+                "--law-decision",
+                "--artifact-level"
+              ]
+            },
+            "cases": [
+              {
+                "args": [
+                  "document.txt",
+                  "--law-decision",
+                  "law",
+                  "--artifact-level",
+                  "minimal"
+                ],
+                "id": "observed-statute-txt",
+                "evidenceId": "0",
+                "inputSource": "task-fixtures",
+                "inputFiles": [
+                  "document.txt"
+                ],
+                "expectedFiles": [
+                  {
+                    "path": "markdown/document/document+审核报告.md"
+                  },
+                  {
+                    "path": "markdown/document/document+最终成果.md"
+                  }
+                ],
+                "basis": "task-contract",
+                "sourceRefs": [
+                  "evidence:0#criteria/law-protected-input",
+                  "evidence:0#criteria/law-required-artifacts",
+                  "evidence:0#criteria/law-source-accounting",
+                  "evidence:0#criteria/law-format-layout",
+                  "SKILL.md#处理规则",
+                  "SKILL.md#输出规则"
+                ]
+              }
+            ]
+          },
+          "changedPaths": [
+            "SKILL.md",
+            "scripts/law_to_markdown.py"
+          ],
+          "residualDuties": [
+            "classify the document and pass the decision",
+            "supply task-scoped output arguments",
+            "inspect generated results and do not claim approval after a failed command",
+            "resolve explicit external hierarchy requirements not established by the skill source"
+          ],
+          "verification": [
+            "run `python scripts/law_to_markdown.py --help` without optional fallback packages",
+            "compile law_to_markdown.py, cn_law_normalizer.py, and stage3_checker.py",
+            "run the materialized TXT fixture with law decision and minimal artifacts",
+            "confirm Stage3 A/B PASS, exactly two minimal output files, report approval, and unchanged input"
+          ]
+        }
+      ],
+      "actionDiagnostics": [],
+      "validation": {
+        "status": "passed",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [
+          "make-txt-pipeline-routinely-runnable"
+        ],
+        "unvalidatedActionIds": [],
+        "rejectedActionIds": [],
+        "programRuns": 1,
+        "caseRuns": 1,
+        "independentCaseRuns": 1
+      },
+      "confidence": 0.86,
+      "trainScore": null,
+      "testScore": null,
+      "improved": null
+    }
+  ],
+  "bestRound": 1,
+  "bestRoundReason": "optimized version passed local program validation (log-only source; source task not replayed)",
+  "rounds": [
+    {
+      "round": 0,
+      "isBaseline": true,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": null,
+      "historyEntry": null
+    },
+    {
+      "round": 1,
+      "isBaseline": false,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": {
+        "tokens": {
+          "input": 68716,
+          "output": 14404,
+          "cacheRead": 718336,
+          "cacheWrite": 0
+        },
+        "costUsd": 0
+      },
+      "historyEntry": null,
+      "validation": {
+        "status": "passed",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [
+          "make-txt-pipeline-routinely-runnable"
+        ],
+        "unvalidatedActionIds": [],
+        "rejectedActionIds": [],
+        "programRuns": 1,
+        "caseRuns": 1,
+        "independentCaseRuns": 1
+      }
+    }
+  ]
+}

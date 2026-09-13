@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 路线：H0–H14，单次 trace 驱动的 skill 优化生产链
-- 状态：`active-H9`；H0–H8 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
+- 状态：`active-H10`；H0–H9 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1
 - 方法依据：spec 14.31
@@ -28,8 +28,8 @@
 | H6 修复与回退 | completed | 一次自动局部修复只复验受影响动作；失败的依赖/共享文件组回退，独立通过保留；39/39 tests |
 | H7 包与入口 | completed | v2 包归档最终验证报告并区分 draft/recommendation；v1 只读兼容；CLI 精确披露；41/41 tests |
 | H8 新程序实用 | completed | I18n 普通优化链生成 Python checker；原 trace 1/1、未回灌变化输入 4/4；普通 agent 实际调用并完成残余报告 |
-| H9 现成程序复用 | active | 另一资源结构的真实程序执行与同流程尝试 |
-| H10 条件变化与降级 | pending | 合法空/可选缺失可处理，必需缺失只影响相关步骤 |
+| H9 现成程序复用 | completed | Law 真实 0.7 trace 产生 reuse-script；修订包、12/12 变化检查和自然 read/exec/复核通过 |
+| H10 条件变化与降级 | active | 合法空/可选缺失可处理，必需缺失只影响相关步骤 |
 | H11 实际使用开销 | pending | 针对 trace 修生成/交接策略，质量与全部指标并列 |
 | H12 过程复用 | pending | 后加入 development 结构实际尝试，无名称特判 |
 | H13 工程使用 | pending | 研究 runner 外的正常入口、可搬运包与真实命令 |

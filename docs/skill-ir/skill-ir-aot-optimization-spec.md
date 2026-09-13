@@ -2324,11 +2324,13 @@ action-local validation、普通 source/优化包自然消费、Pi 分层计数�
 未打包该文件，随后提示合同通过 TDD 明确排除。既有 API solidifier 与 v2 artifact 回归通过；历史候选冻结的额外测试仍会在当前
 Windows LF 工作文件与 `core.autocrlf` filter 的 CRLF checkout bytes 不同时拒绝 `package.json`，本轮不修改旧冻结链或摘要。
 
-### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-H9）
+### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-H10）
 
 本轮依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1 的 H0–H14，主线达标后有条件执行 Y1–Y2。H0 已完成实际调用链定位与单次基线，H1 已绑定四类真实用例，H2 已实现有来源的条件范围并保持旧 action 兼容；H3 已修复 pending 的依赖/共享文件传播和 help-only 误提升；H4 已把 action 建议转换为真实资源与参考摘要绑定的执行计划；H5 已接入正常 log loop 并持久化实际执行、检查和选轮状态；H6 复用同一 optimizer 完成最多一次的局部修复，只复验受影响动作，并在失败时按依赖/共享文件闭包恢复 baseline，同时保留独立已验证动作；H7 使 v2 包归档并重验最终选中 snapshot 的行为报告，以 draft/validated-recommendation 区分验证缺口，同时保持 v1 只读兼容；H8 从一条已暴露 I18n trace 由普通优化器生成 nested-JSON key/placeholder checker，经原 trace、未回灌变化输入和普通 agent 实际消费验证，当前 active-H9。恢复状态见 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。14.30 历史交付和 mixed 结果保留。
 
 H8 的正向提升不依赖模型自写测试：task-contract case 只有在 exact sourceRef 指向已供应且 `passed=true` 的外部 criterion 时才算 independent；optimizer workspace 的投影路径必须可映射回同一 evidence 的声明 source，失败则 unresolved。独立说明改写仍未验证，只有选中且声明依赖的路由说明可随依赖闭包保留。最终程序在新的路径、键、值和 locale 标签上通过，缺键、占位符改名和非法叶三项故障均由预定结构字段及退出码检出。自然消费的原始事件证明 skill read、helper exec、残余报告和包/输入不变；共享 analyzer 对 exit-zero JSON `ok=true` 的漏判经红例修复，`ok=false` 仍不计成功。结果路径为 `results/skill-ir/skill-optimization-production-closure-20260913/h8/report.json`，效果未配对所以保持 unknown。
+
+H9 将同一正常链用于另一种多脚本 Law 资源结构。权威 scorer 的 exact `line:3` 为 `0.7/failed`；其中外部“整条法条作为标题”行为与源 skill “仅第 X 条为标题”的规则冲突，因此只保留为 task-contract residual，不允许优化器猜测改写。普通优化器选择既有 converter 的 `reuse-script` 动作，实际执行一条原输入案例并导出 v2 包；模型修改只澄清 TXT 程序路由并把 PDF/DOCX 可选依赖延迟到相应 fallback，不复制已有程序。验证过程中产生的 `__pycache__` 曾污染首包：提案 diff 与 exporter 现在过滤 Python/Node 等运行缓存并输出 `/` 分隔的 portable path，package verifier 则继续把任何包内额外缓存当闭包错误。修订包在未回灌变化输入上通过独立 12/12 规则，普通 agent 也在无入口泄露提示下 read/help/exec、读取审核与成果并写残余审计。该行为只证明复用和可搬运 TXT 局部路径；原 task 质量、PDF/DOCX fallback、配对效果与法律判断仍未建立。证据为 `results/skill-ir/skill-optimization-production-closure-20260913/h9/report.json`。
 
 一次宽搜索意外显示过 i18n heldout 文件中的匹配行；其内容未用于生成、变体或结论，也未选择/运行/修改，但该 heldout 对本线程不再可声称 pristine unseen。后续 H9–H14 不使用该来源，且任何未来 prospective 预登记必须排除或显式处理这次暴露。
 
