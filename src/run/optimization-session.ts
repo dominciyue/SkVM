@@ -5,6 +5,7 @@ import { LOGS_DIR } from "../core/config.ts"
 import { DurableRuntimeTrace } from "../core/durable-runtime-trace.ts"
 import { ConversationLog } from "../core/conversation-logger.ts"
 import type { RunResult } from "../core/types.ts"
+import { InitialWorkdirManifestSchema } from "../core/workdir-manifest.ts"
 import type { LoadedRunTask, LoadedSkill } from "./index.ts"
 
 const ArtifactStatusSchema = z.enum(["pending", "complete", "partial", "failed"])
@@ -20,6 +21,68 @@ const CaptureItemSchema = z.object({
   error: z.string().optional(),
 }).strict()
 
+export const OptimizationSessionStateSchema = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("not-requested") }).strict(),
+  z.object({ status: z.literal("pending") }).strict(),
+  z.object({
+    status: z.literal("optimizer-running"),
+    optimizerModel: z.string(),
+    startedAt: z.string(),
+    evidenceManifestPath: z.string().optional(),
+    evidenceSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  }).strict(),
+  z.object({
+    status: z.literal("proposal-ready"),
+    optimizerModel: z.string(),
+    proposalId: z.string(),
+    proposalDir: z.string(),
+    evidenceManifestPath: z.string().optional(),
+    evidenceSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  }).strict(),
+  z.object({
+    status: z.literal("package-exporting"),
+    optimizerModel: z.string(),
+    proposalId: z.string(),
+    proposalDir: z.string(),
+    packageDir: z.string(),
+    evidenceManifestPath: z.string().optional(),
+    evidenceSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  }).strict(),
+  z.object({
+    status: z.literal("completed"),
+    optimizerModel: z.string(),
+    proposalId: z.string(),
+    proposalDir: z.string(),
+    packageDir: z.string(),
+    completedAt: z.string(),
+    evidenceManifestPath: z.string().optional(),
+    evidenceSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  }).strict(),
+  z.object({
+    status: z.literal("no-change"),
+    optimizerModel: z.string(),
+    proposalId: z.string(),
+    proposalDir: z.string(),
+    completedAt: z.string(),
+    evidenceManifestPath: z.string().optional(),
+    evidenceSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  }).strict(),
+  z.object({
+    status: z.literal("failed"),
+    phase: z.enum(["optimizer", "package", "capture"]),
+    error: z.string(),
+    optimizerModel: z.string().optional(),
+    proposalId: z.string().optional(),
+    proposalDir: z.string().optional(),
+    packageDir: z.string().optional(),
+    evidenceManifestPath: z.string().optional(),
+    evidenceSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+    failedAt: z.string(),
+  }).strict(),
+])
+
+export type OptimizationSessionState = z.infer<typeof OptimizationSessionStateSchema>
+
 export const OptimizationSessionManifestSchema = z.object({
   schemaVersion: z.literal("skvm-run-optimization-session/v1"),
   runId: z.string(),
@@ -27,6 +90,7 @@ export const OptimizationSessionManifestSchema = z.object({
   updatedAt: z.string(),
   binding: z.object({
     taskId: z.string(),
+    skillId: z.string().optional(),
     selectedSkillPath: z.string(),
     selectedTaskPath: z.string(),
     workDir: z.string(),
@@ -55,11 +119,13 @@ export const OptimizationSessionManifestSchema = z.object({
     conversation: CaptureItemSchema,
     durable: CaptureItemSchema,
     runResult: CaptureItemSchema,
+    sourceInputs: CaptureItemSchema.optional(),
   }).strict(),
   handoff: z.object({
     status: z.enum(["pending", "ready", "blocked"]),
     reason: z.string().optional(),
   }).strict(),
+  optimization: OptimizationSessionStateSchema.optional(),
 }).strict()
 
 export type OptimizationSessionManifest = z.infer<typeof OptimizationSessionManifestSchema>
@@ -72,6 +138,7 @@ export interface StartOptimizationSessionOptions {
   workDir: string
   adapter: string
   model: string
+  optimizationRequested?: boolean
 }
 
 export type OptimizationSessionFailureKind = "provider-error" | "interrupted" | "capture-error"
@@ -239,6 +306,7 @@ export class OptimizationSession {
       updatedAt: startedAt,
       binding: {
         taskId: options.task.id,
+        skillId: options.skill.skillId,
         selectedSkillPath: options.skill.skillPath,
         selectedTaskPath: options.task.taskPath,
         workDir: path.resolve(options.workDir),
@@ -262,8 +330,10 @@ export class OptimizationSession {
         conversation: { status: "pending" },
         durable: { status: "pending", finalized: false },
         runResult: { status: "pending" },
+        ...(options.optimizationRequested ? { sourceInputs: { status: "pending" as const } } : {}),
       },
       handoff: { status: "pending" },
+      optimization: options.optimizationRequested ? { status: "pending" } : { status: "not-requested" },
     }
     try {
       await atomicJson(manifestPath, manifest)
@@ -279,13 +349,30 @@ export class OptimizationSession {
     const conversation = await inspectConversation(this.conversationTracePath)
     const durable = await inspectDurable(this.durableTracePath)
     const runResult = { status: "complete" as const }
-    const captureStatus = overallCapture([conversation, durable, runResult])
+    let sourceInputs: z.infer<typeof CaptureItemSchema> | undefined
+    if (this.manifest.optimization?.status !== "not-requested") {
+      try {
+        InitialWorkdirManifestSchema.parse(JSON.parse(await Bun.file(this.initialWorkdirManifestPath).text()))
+        sourceInputs = { status: "complete" }
+      } catch (error) {
+        sourceInputs = { status: "failed", error: `initial source-input manifest is missing or unreadable: ${error instanceof Error ? error.message : String(error)}` }
+      }
+    }
+    const captureStatus = overallCapture([conversation, durable, runResult, ...(sourceInputs ? [sourceInputs] : [])])
     const sourceCompleted = result.runStatus === "ok"
     const reason = !sourceCompleted
       ? `source run ended with ${result.runStatus}`
       : captureStatus !== "complete"
-        ? `automatic optimization requires a complete conversation and durable trace; conversation=${conversation.status}, durable=${durable.status}`
+        ? `automatic optimization requires complete source inputs, conversation and durable trace; sourceInputs=${sourceInputs?.status ?? "not-required"}, conversation=${conversation.status}, durable=${durable.status}`
         : undefined
+    const optimization = reason && this.manifest.optimization?.status === "pending"
+      ? {
+          status: "failed" as const,
+          phase: "capture" as const,
+          error: reason,
+          failedAt: new Date().toISOString(),
+        }
+      : this.manifest.optimization
     this.manifest = {
       ...this.manifest,
       updatedAt: new Date().toISOString(),
@@ -308,8 +395,9 @@ export class OptimizationSession {
             failureKind: result.runStatus === "timeout" ? "timeout" : "adapter-error",
             ...(result.statusDetail ? { error: result.statusDetail } : {}),
           },
-      capture: { status: captureStatus, conversation, durable, runResult },
+      capture: { status: captureStatus, conversation, durable, runResult, ...(sourceInputs ? { sourceInputs } : {}) },
       handoff: reason ? { status: "blocked", reason } : { status: "ready" },
+      ...(optimization ? { optimization } : {}),
     }
     await atomicJson(this.manifestPath, this.manifest)
     return this.manifest
@@ -320,6 +408,17 @@ export class OptimizationSession {
     const conversation = await inspectConversation(this.conversationTracePath)
     const durable = await inspectDurable(this.durableTracePath)
     const runResult = { status: "failed" as const, error: "source run did not return a RunResult" }
+    const sourceInputs = this.manifest.optimization?.status !== "not-requested"
+      ? { status: "failed" as const, error: "source run did not complete input capture" }
+      : undefined
+    const optimization = this.manifest.optimization?.status === "pending"
+      ? {
+          status: "failed" as const,
+          phase: "capture" as const,
+          error: `${kind}: ${message}`,
+          failedAt: new Date().toISOString(),
+        }
+      : this.manifest.optimization
     this.manifest = {
       ...this.manifest,
       updatedAt: new Date().toISOString(),
@@ -335,8 +434,15 @@ export class OptimizationSession {
         failureKind: kind,
         error: message,
       },
-      capture: { status: overallCapture([conversation, durable, runResult]), conversation, durable, runResult },
+      capture: {
+        status: overallCapture([conversation, durable, runResult, ...(sourceInputs ? [sourceInputs] : [])]),
+        conversation,
+        durable,
+        runResult,
+        ...(sourceInputs ? { sourceInputs } : {}),
+      },
       handoff: { status: "blocked", reason: `${kind}: ${message}` },
+      ...(optimization ? { optimization } : {}),
     }
     await atomicJson(this.manifestPath, this.manifest)
     return this.manifest
@@ -346,4 +452,53 @@ export class OptimizationSession {
 export async function readOptimizationSession(manifestPath: string): Promise<OptimizationSessionManifest> {
   const parsed = JSON.parse(await Bun.file(path.resolve(manifestPath)).text())
   return OptimizationSessionManifestSchema.parse(parsed)
+}
+
+export async function transitionOptimizationSession(
+  manifestPath: string,
+  expectedStatuses: readonly OptimizationSessionState["status"][],
+  next: OptimizationSessionState,
+): Promise<OptimizationSessionManifest> {
+  const resolved = path.resolve(manifestPath)
+  const current = await readOptimizationSession(resolved)
+  const status = current.optimization?.status ?? "not-requested"
+  if (!expectedStatuses.includes(status)) {
+    throw new Error(`Optimization session transition expected ${expectedStatuses.join("|")}, got ${status}`)
+  }
+  const updated: OptimizationSessionManifest = {
+    ...current,
+    updatedAt: new Date().toISOString(),
+    optimization: OptimizationSessionStateSchema.parse(next),
+  }
+  await atomicJson(resolved, updated)
+  return updated
+}
+
+export async function freezeOptimizationEvidenceManifest(manifestPath: string): Promise<{
+  path: string
+  sha256: string
+}> {
+  const sourcePath = path.resolve(manifestPath)
+  const destination = path.join(path.dirname(sourcePath), "optimization-evidence.json")
+  if (await fileExists(destination)) {
+    const frozen = await readOptimizationSession(destination)
+    const current = await readOptimizationSession(sourcePath)
+    if (frozen.runId !== current.runId || path.resolve(frozen.artifacts.manifest.path) !== destination) {
+      throw new Error("Existing optimization evidence manifest does not belong to this run")
+    }
+    return { path: destination, sha256: (await reference(destination)).sha256! }
+  }
+  const current = await readOptimizationSession(sourcePath)
+  if (current.handoff.status !== "ready") {
+    throw new Error(`Cannot freeze optimizer evidence while handoff is ${current.handoff.status}`)
+  }
+  const frozen: OptimizationSessionManifest = {
+    ...current,
+    artifacts: {
+      ...current.artifacts,
+      manifest: { path: destination },
+    },
+  }
+  await atomicJson(destination, frozen)
+  return { path: destination, sha256: (await reference(destination)).sha256! }
 }

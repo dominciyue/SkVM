@@ -466,4 +466,95 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     expect(evidence[0]!.taskId).toBe("document:second")
     expect(evidence[0]!.trace?.recordLocator).toBe("line:2")
   })
+
+  test("adapts one digest-bound optimization session and redacts recognizable secrets", async () => {
+    const dir = await tempDir()
+    const taskPath = path.join(dir, "task", "task.json")
+    const skillPath = path.join(dir, "skill", "SKILL.md")
+    const conversationPath = path.join(dir, "conversation.jsonl")
+    const durablePath = path.join(dir, "runtime-trace.jsonl")
+    const resultPath = path.join(dir, "run-result.json")
+    const initialPath = path.join(dir, "initial-workdir-manifest.json")
+    const manifestPath = path.join(dir, "optimization-session.json")
+    await mkdir(path.dirname(taskPath), { recursive: true })
+    await mkdir(path.dirname(skillPath), { recursive: true })
+    const taskText = `${JSON.stringify({ id: "natural-secret", prompt: "Inspect API_KEY=source-secret", eval: [] })}\n`
+    const skillText = "---\nname: session-skill\ndescription: session\n---\nInspect.\n"
+    const conversationText = `${JSON.stringify({ type: "response", ts: "now", text: "Bearer runtime-secret" })}\n`
+    const durableText = `${JSON.stringify({ schemaVersion: "skill-ir-durable-runtime-trace-event/v1", event: "finalize", sequence: 1, timestamp: "now", runIndex: 0, status: "completed" })}\n`
+    const resultText = `${JSON.stringify({
+      text: "token=final-secret",
+      steps: [{ role: "tool", timestamp: 1, toolCalls: [{ id: "1", name: "read_file", input: { path: "input.txt" }, output: "password=tool-secret" }] }],
+      tokens: { input: 5, output: 2, cacheRead: 0, cacheWrite: 0 },
+      cost: 0,
+      durationMs: 4,
+      llmDurationMs: 3,
+      workDir: path.join(dir, "work"),
+      runStatus: "ok",
+      usageAvailable: true,
+    })}\n`
+    const initialText = `${JSON.stringify({ schemaVersion: "skvm-initial-workdir-manifest/v1", workDir: path.join(dir, "work"), entries: [] })}\n`
+    await Promise.all([
+      Bun.write(taskPath, taskText),
+      Bun.write(skillPath, skillText),
+      Bun.write(conversationPath, conversationText),
+      Bun.write(durablePath, durableText),
+      Bun.write(resultPath, resultText),
+      Bun.write(initialPath, initialText),
+    ])
+    const sha = (value: string) => new Bun.CryptoHasher("sha256").update(value).digest("hex")
+    const skillClosureSha = sha(`SKILL.md\0${sha(skillText)}`)
+    await Bun.write(manifestPath, `${JSON.stringify({
+      schemaVersion: "skvm-run-optimization-session/v1",
+      runId: "run-secret",
+      startedAt: "2026-09-14T00:00:00.000Z",
+      updatedAt: "2026-09-14T00:00:01.000Z",
+      binding: {
+        taskId: "natural-secret",
+        selectedSkillPath: path.join(dir, "source-skill", "SKILL.md"),
+        selectedTaskPath: taskPath,
+        workDir: path.join(dir, "work"),
+        adapter: "bare-agent",
+        model: "x/source",
+        skillSha256: skillClosureSha,
+        promptSha256: sha("Inspect API_KEY=source-secret"),
+      },
+      artifacts: {
+        manifest: { path: manifestPath },
+        skillSnapshot: { path: skillPath, sha256: skillClosureSha },
+        taskSnapshot: { path: taskPath, sha256: sha(taskText), bytes: Buffer.byteLength(taskText) },
+        conversationTrace: { path: conversationPath, sha256: sha(conversationText), bytes: Buffer.byteLength(conversationText) },
+        durableTrace: { path: durablePath, sha256: sha(durableText), bytes: Buffer.byteLength(durableText) },
+        runResult: { path: resultPath, sha256: sha(resultText), bytes: Buffer.byteLength(resultText) },
+        initialWorkdirManifest: { path: initialPath, sha256: sha(initialText), bytes: Buffer.byteLength(initialText) },
+      },
+      sourceRun: { status: "completed", runStatus: "ok" },
+      capture: {
+        status: "complete",
+        conversation: { status: "complete" },
+        durable: { status: "complete", finalized: true },
+        runResult: { status: "complete" },
+      },
+      handoff: { status: "ready" },
+      optimization: { status: "pending" },
+    }, null, 2)}\n`)
+
+    const adapted = await adaptTraceFile(manifestPath)
+    const serialized = JSON.stringify(adapted)
+    expect(adapted.format).toBe("skvm-run-optimization-session/v1")
+    expect(adapted.records).toHaveLength(1)
+    expect(adapted.records[0]!.source.recordLocator).toBe("run:run-secret")
+    expect(adapted.records[0]!.source).toMatchObject({ adapter: "bare-agent", model: "x/source", runStatus: "ok" })
+    expect(adapted.records[0]!.source.usage).toMatchObject({ inputTokens: 5, outputTokens: 2 })
+    expect(serialized).not.toContain("source-secret")
+    expect(serialized).not.toContain("runtime-secret")
+    expect(serialized).not.toContain("final-secret")
+    expect(serialized).not.toContain("tool-secret")
+    expect(await Bun.file(conversationPath).text()).toContain("runtime-secret")
+
+    await Bun.write(conversationPath, `${conversationText} `)
+    const tampered = await adaptTraceFile(manifestPath)
+    expect(tampered.records).toEqual([])
+    expect(tampered.diagnostics.some((item) => item.code === "session-artifact-digest-mismatch")).toBe(true)
+  })
 })

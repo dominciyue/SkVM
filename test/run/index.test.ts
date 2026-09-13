@@ -84,6 +84,8 @@ describe("executeRun", () => {
     await Bun.write(path.join(skillDir, "SKILL.md"), "---\nname: collision\ndescription: collision\n---\nUse config.json.\n")
     await Bun.write(path.join(skillDir, "config.json"), "{\"origin\":\"skill\"}\n")
     await Bun.write(path.join(workDir, "config.json"), "{\"origin\":\"user\"}\n")
+    await mkdir(path.join(workDir, ".skvm", "skills", "stale"), { recursive: true })
+    await Bun.write(path.join(workDir, ".skvm", "skills", "stale", "old.txt"), "old framework state\n")
     const task = await loadRunTask(path.join(taskDir, "task.json"))
     const skill = await loadRunSkill(skillDir)
     let sawSeparatedSources = false
@@ -133,9 +135,10 @@ describe("executeRun", () => {
       workDir,
       reference: result.initialWorkdirManifest!,
     })
-    expect(initial.entries.find((entry) => entry.path === "config.json")?.sha256).toBe(
-      new Bun.CryptoHasher("sha256").update("{\"origin\":\"user\"}\n").digest("hex"),
-    )
+    const sourceEntry = initial.entries.find((entry) => entry.path === "config.json")
+    expect(sourceEntry?.type).toBe("file")
+    if (sourceEntry?.type !== "file") throw new Error("config.json was not captured as a file")
+    expect(sourceEntry.sha256).toBe(new Bun.CryptoHasher("sha256").update("{\"origin\":\"user\"}\n").digest("hex"))
     expect(initial.entries.some((entry) => entry.path.includes(".skvm"))).toBe(false)
     expect(result.runResult.steps[0]?.toolCalls?.[0]?.output).toBe("{\"origin\":\"user\"}\n")
     expect(await Bun.file(path.join(workDir, "config.json")).text()).toBe("{\"origin\":\"agent-output\"}\n")

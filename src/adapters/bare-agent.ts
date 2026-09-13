@@ -9,6 +9,7 @@ import { AGENT_TOOLS, createAgentToolExecutor } from "../core/agent-tools.ts"
 import { estimateCost } from "../core/cost.ts"
 import { createLogger } from "../core/logger.ts"
 import { ConversationSession, type ConversationLog } from "../core/conversation-logger.ts"
+import type { DurableRuntimeTrace } from "../core/durable-runtime-trace.ts"
 import { LoggingProvider } from "../core/logging-provider.ts"
 import { TASK_FILE_DEFAULTS } from "../core/ui-defaults.ts"
 
@@ -149,6 +150,7 @@ export class BareAgentAdapter implements AgentAdapter {
     skill?: SkillBundle
     taskId?: string
     convLog?: ConversationLog
+    runtimeTrace?: DurableRuntimeTrace
     timeoutMs?: number
   }): Promise<RunResult> {
     const startMs = performance.now()

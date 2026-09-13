@@ -72,10 +72,14 @@ function comparePaths(left: WorkdirManifestEntry, right: WorkdirManifestEntry): 
   return left.path.localeCompare(right.path, "en")
 }
 
-export async function snapshotWorkdir(workDir: string): Promise<WorkdirManifestEntry[]> {
+export async function snapshotWorkdir(
+  workDir: string,
+  options?: { excludedPrefixes?: string[] },
+): Promise<WorkdirManifestEntry[]> {
   const root = await realpath(path.resolve(workDir))
   if (!(await lstat(root)).isDirectory()) throw new Error("workdir must be a directory")
   const entries: WorkdirManifestEntry[] = []
+  const excludedPrefixes = (options?.excludedPrefixes ?? []).map((value) => SafeRelativePathSchema.parse(value))
 
   const visit = async (directory: string, prefix: string): Promise<void> => {
     const children = await readdir(directory, { withFileTypes: true })
@@ -83,6 +87,9 @@ export async function snapshotWorkdir(workDir: string): Promise<WorkdirManifestE
     for (const child of children) {
       const absolute = path.join(directory, child.name)
       const relativePath = prefix ? `${prefix}/${child.name}` : child.name
+      if (excludedPrefixes.some((excluded) => relativePath === excluded || relativePath.startsWith(`${excluded}/`))) {
+        continue
+      }
       if (!isContained(root, absolute)) throw new UnsafeWorkdirEntryError(`unsafe workdir entry: ${relativePath}`)
       const stat = await lstat(absolute)
       if (stat.isSymbolicLink()) throw new UnsafeWorkdirEntryError(`unsafe workdir entry: ${relativePath}`)
@@ -114,11 +121,12 @@ async function assertExternalManifestPath(workDir: string, manifestPath: string)
 export async function writeInitialWorkdirManifest(input: {
   workDir: string
   manifestPath: string
+  excludedPrefixes?: string[]
 }): Promise<InitialWorkdirManifestReference> {
   const manifestPath = await assertExternalManifestPath(input.workDir, input.manifestPath)
   const manifest = InitialWorkdirManifestSchema.parse({
     schemaVersion: "skvm-initial-workdir-manifest/v1",
-    entries: await snapshotWorkdir(input.workDir),
+    entries: await snapshotWorkdir(input.workDir, { excludedPrefixes: input.excludedPrefixes }),
   })
   const bytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`, "utf8")
   await writeFile(manifestPath, bytes)

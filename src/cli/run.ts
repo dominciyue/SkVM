@@ -4,9 +4,7 @@
  *
  * Flags are declared once via `defineFlags` (#49); help is generated from the
  * declarations and `runRun` takes the typed config, so the parse path and
- * cross-flag rules are unit-testable without spawning the CLI. The one rule
- * the layer cannot express — `--skill-mode` requires `--skill` — lives here
- * and throws `UsageError`.
+ * cross-flag rules are unit-testable without spawning the CLI.
  */
 
 import { defineFlags, UsageError, type ConfigOf } from "./flags.ts"
@@ -28,9 +26,13 @@ export const RUN_FLAGS = defineFlags(
   {
     task: {
       kind: "string",
-      required: true,
       placeholder: "<path>",
       help: "Path to a task JSON file (bench task schema)",
+    },
+    prompt: {
+      kind: "string",
+      placeholder: "<text>",
+      help: "Natural-language task; mutually exclusive with --task",
     },
     model: {
       kind: "string",
@@ -92,14 +94,31 @@ export const RUN_FLAGS = defineFlags(
       placeholder: "<m>",
       help: "native | managed (default: from skvm.config.json, else managed)",
     },
+    optimize: {
+      kind: "bool",
+      help: "After this source run, optimize the selected skill from its captured trace",
+    },
+    "optimizer-model": {
+      kind: "string",
+      placeholder: "<id>",
+      help: "Optimizer model; defaults to --model when --optimize is set",
+    },
+    "package-out": {
+      kind: "string",
+      placeholder: "<path>",
+      help: "Optimized skill package directory; default is inside the run session",
+    },
   },
   {
     usage: [
       "skvm run --task=<path/to/task.json> --model=<id> [options]",
+      "skvm run --prompt=<natural-language-task> --model=<id> [options]",
       "skvm run --task=<path/to/task.json> --skill=<path/to/SKILL.md> --model=<id> [options]",
+      "skvm run --prompt=<task> --skill=<path> --model=<id> --optimize [options]",
     ],
     epilogue: `Notes:
-  - This command executes only. It does not run evaluation or scoring.
+  - Without --optimize this command only executes; it does not score.
+  - --optimize currently uses bare-agent run-scoped capture and the existing JIT optimizer.
   - Task files use the bench task.json shape, but eval is optional here.
   - Any files under the task's fixtures/ directory are copied into the workDir before execution.`,
   },
@@ -107,13 +126,51 @@ export const RUN_FLAGS = defineFlags(
 
 export type RunConfig = ConfigOf<typeof RUN_FLAGS>
 
-export async function runRun(config: RunConfig): Promise<void> {
-  const skillMode = config["skill-mode"]
-  if (skillMode && !config.skill) {
+export type ValidatedRunConfig = {
+  taskSource: { kind: "task"; path: string } | { kind: "prompt"; prompt: string }
+  optimizerModel?: string
+}
+
+export function validateRunConfig(config: RunConfig): ValidatedRunConfig {
+  const hasTask = config.task !== undefined
+  const hasPrompt = config.prompt !== undefined
+  if (hasTask && hasPrompt) {
+    throw new UsageError("run: --task and --prompt are mutually exclusive", RUN_FLAGS.help)
+  }
+  if (!hasTask && !hasPrompt) {
+    throw new UsageError("run: exactly one of --task or --prompt is required", RUN_FLAGS.help)
+  }
+  if (config.prompt !== undefined && !config.prompt.trim()) {
+    throw new UsageError("run: --prompt must contain non-whitespace text", RUN_FLAGS.help)
+  }
+  if (config["skill-mode"] && !config.skill) {
     throw new UsageError("run: --skill-mode requires --skill to also be specified", RUN_FLAGS.help)
   }
+  if (config.optimize && !config.skill) {
+    throw new UsageError("run: --optimize requires --skill", RUN_FLAGS.help)
+  }
+  if (config.optimize && config.adapter !== "bare-agent") {
+    throw new UsageError(`run: --optimize currently supports adapter bare-agent; got ${config.adapter}`, RUN_FLAGS.help)
+  }
+  if (!config.optimize && config["optimizer-model"] !== undefined) {
+    throw new UsageError("run: --optimizer-model requires --optimize", RUN_FLAGS.help)
+  }
+  if (!config.optimize && config["package-out"] !== undefined) {
+    throw new UsageError("run: --package-out requires --optimize", RUN_FLAGS.help)
+  }
+  return {
+    taskSource: config.task !== undefined
+      ? { kind: "task", path: config.task }
+      : { kind: "prompt", prompt: config.prompt!.trim() },
+    ...(config.optimize ? { optimizerModel: config["optimizer-model"] ?? config.model } : {}),
+  }
+}
 
-  const { task: taskPath, skill: skillPath, model, adapter: harness } = config
+export async function runRun(config: RunConfig): Promise<void> {
+  const validated = validateRunConfig(config)
+  const skillMode = config["skill-mode"]
+
+  const { skill: skillPath, model, adapter: harness } = config
 
   {
     const { printBanner, describeModelRoute, describeAdapter, shortenPath } = await import("../core/banner.ts")
@@ -121,7 +178,7 @@ export async function runRun(config: RunConfig): Promise<void> {
     const bannerLines: [string, string][] = [
       ["Adapter", describeAdapter(harness)],
       ["Model", describeModelRoute(model)],
-      ["Task", taskPath],
+      ["Task", validated.taskSource.kind === "task" ? validated.taskSource.path : "natural prompt"],
     ]
     if (skillPath) bannerLines.push(["Skill", skillPath])
     if (config.workdir) bannerLines.push(["WorkDir", shortenPath(config.workdir)])
@@ -131,16 +188,46 @@ export async function runRun(config: RunConfig): Promise<void> {
 
   // Provider-specific API key is checked lazily by createProviderForModel().
 
-  const { executeRun, loadRunSkill, loadRunTask } = await import("../run/index.ts")
+  const { executeRun, loadRunSkill, loadRunTask, materializeNaturalRunTask, naturalRunTaskId } = await import("../run/index.ts")
 
   let task
   let skill
   try {
-    task = await loadRunTask(taskPath)
     skill = skillPath ? await loadRunSkill(skillPath) : undefined
+    task = validated.taskSource.kind === "task"
+      ? await loadRunTask(validated.taskSource.path)
+      : undefined
   } catch (err) {
     console.error(String(err))
     process.exit(1)
+  }
+
+  const taskId = task?.id ?? naturalRunTaskId(validated.taskSource.kind === "prompt" ? validated.taskSource.prompt : "")
+
+  const { RunSession, shortModel: shortModelName } = await import("../core/run-session.ts")
+  const { getRuntimeLogDir, getTmpDir } = await import("../core/config.ts")
+  const runtimeLogDir = getRuntimeLogDir(harness, model, taskId)
+  const runSession = await RunSession.start({
+    type: "run",
+    tag: `${harness}-${shortModelName(model)}-${taskId}`,
+    logDir: runtimeLogDir,
+    models: config.optimize ? [model, validated.optimizerModel!] : [model],
+    harness,
+    ...(skillPath ? { skill: skillPath } : {}),
+  })
+  if (!task) {
+    try {
+      const pathModule = await import("node:path")
+      task = await materializeNaturalRunTask({
+        prompt: validated.taskSource.kind === "prompt" ? validated.taskSource.prompt : "",
+        taskPath: pathModule.join(runtimeLogDir, runSession.id, "source-task", "task.json"),
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      await runSession.fail(message)
+      console.error(message)
+      process.exit(1)
+    }
   }
 
   const adapterModeRun = resolveAdapterConfigMode(config["adapter-config"])
@@ -160,29 +247,64 @@ export async function runRun(config: RunConfig): Promise<void> {
 
   const adapter = createAdapter(harness)
 
-  const { RunSession, shortModel: shortModelName } = await import("../core/run-session.ts")
-  const { getRuntimeLogDir } = await import("../core/config.ts")
-  const runSession = await RunSession.start({
-    type: "run",
-    tag: `${harness}-${shortModelName(model)}-${task.id}`,
-    logDir: getRuntimeLogDir(harness, model, task.id),
-    models: [model],
-    harness,
-  })
-
   const runSp = createSpinner(`Running task ${task.id}...`)
 
   try {
-    const result = await executeRun({
-      task,
-      skill,
-      adapter,
-      adapterConfig,
-      skillMode,
-      workDir: config.workdir,
-      keepWorkDir: true,
-      initialWorkdirManifestPath: config["initial-workdir-manifest"],
-    })
+    let result
+    let optimization:
+      | Awaited<ReturnType<typeof import("../run/optimization-handoff.ts")["executeRunAndOptimize"]>>["optimization"]
+      | undefined
+    let optimizationManifestPath: string | undefined
+    if (config.optimize) {
+      const pathModule = await import("node:path")
+      const { mkdir, mkdtemp } = await import("node:fs/promises")
+      const workDir = config.workdir
+        ? pathModule.resolve(config.workdir)
+        : await mkdtemp(pathModule.join(getTmpDir(), `skvm-run-${task.id}-`))
+      await mkdir(workDir, { recursive: true })
+      const { OptimizationSession } = await import("../run/optimization-session.ts")
+      const capture = await OptimizationSession.start({
+        runId: runSession.id,
+        rootDir: runtimeLogDir,
+        skill: skill!,
+        task,
+        workDir,
+        adapter: harness,
+        model,
+        optimizationRequested: true,
+      })
+      optimizationManifestPath = capture.manifestPath
+      const { executeRunAndOptimize } = await import("../run/optimization-handoff.ts")
+      const combined = await executeRunAndOptimize({
+        session: capture,
+        task,
+        skill: skill!,
+        adapter,
+        adapterConfig,
+        workDir,
+        skillMode,
+        optimizerModel: validated.optimizerModel!,
+        packageDir: config["package-out"],
+      })
+      result = combined.source
+      optimization = combined.optimization
+      if (config["initial-workdir-manifest"]) {
+        const { copyFile, mkdir: makeDir } = await import("node:fs/promises")
+        await makeDir(pathModule.dirname(pathModule.resolve(config["initial-workdir-manifest"])), { recursive: true })
+        await copyFile(capture.initialWorkdirManifestPath, pathModule.resolve(config["initial-workdir-manifest"]))
+      }
+    } else {
+      result = await executeRun({
+        task,
+        skill,
+        adapter,
+        adapterConfig,
+        skillMode,
+        workDir: config.workdir,
+        keepWorkDir: true,
+        initialWorkdirManifestPath: config["initial-workdir-manifest"],
+      })
+    }
     if (config["execution-observation"]) {
       if (!result.runResult.executionObservation) {
         throw new Error(`Adapter ${harness} did not provide execution observation`)
@@ -230,7 +352,24 @@ export async function runRun(config: RunConfig): Promise<void> {
     if (result.runResult.text) {
       console.log(`\nFinal output:\n${result.runResult.text}`)
     }
-    await runSession.complete(`${task.id}, ${(result.runResult.durationMs / 1000).toFixed(1)}s`)
+    if (optimization) {
+      console.log(`\n=== Optimization Handoff ===`)
+      console.log(`Session: ${optimizationManifestPath}`)
+      if (optimization.status === "completed" || optimization.status === "no-change") {
+        console.log(`Status: ${optimization.status}`)
+        console.log(`Proposal: ${optimization.proposalDir}`)
+        console.log(`Package: ${optimization.packageDir ?? "not exported (no change)"}`)
+      } else {
+        console.log(c.yellow(`Status: ${optimization.status}`))
+        console.log(`  ${"error" in optimization ? optimization.error : "unexpected optimization state"}`)
+      }
+    }
+    if (optimization && "error" in optimization) {
+      await runSession.fail(`source completed; optimization ${optimization.status}: ${optimization.error}`)
+      process.exitCode = 1
+    } else {
+      await runSession.complete(`${task.id}, ${(result.runResult.durationMs / 1000).toFixed(1)}s`)
+    }
   } catch (err) {
     runSp.fail(`Task ${task.id} failed`)
     await runSession.fail(err instanceof Error ? err.message : String(err))

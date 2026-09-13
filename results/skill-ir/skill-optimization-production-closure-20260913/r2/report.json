@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "skill-ir-production-closure-r2-report/v1",
+  "identity": "skill-optimization-production-closure-20260913-r2",
+  "exposure": "development",
+  "status": "completed",
+  "baselineCommit": "303a055",
+  "entry": "skvm run --skill=<path> --prompt=<task> --workdir=<dir> --model=<provider/model> --optimize",
+  "implementation": {
+    "naturalTaskMaterialized": true,
+    "sourceRunsPerInvocation": 1,
+    "optimizer": "existing-jit-optimize-execution-log",
+    "immutableEvidenceManifest": "optimization-evidence.json",
+    "automaticCaptureAdapters": ["bare-agent"],
+    "manualLogsRequired": false,
+    "manualRecordLocatorRequired": false,
+    "manualCriteriaRequired": false,
+    "defaultOptimizerModel": "source-model",
+    "defaultPackageLocation": "run-session/optimized-skill",
+    "recoveryStates": [
+      "pending",
+      "optimizer-running",
+      "proposal-ready",
+      "package-exporting",
+      "completed",
+      "no-change",
+      "failed"
+    ]
+  },
+  "binding": {
+    "artifactDigestsChecked": [
+      "skill-closure",
+      "task-snapshot",
+      "conversation-trace",
+      "durable-trace",
+      "run-result",
+      "initial-workdir-manifest"
+    ],
+    "postRunWorkdirUsedAsSourceSnapshot": false,
+    "recognizableSecretsRedactedInOptimizerEvidence": true,
+    "localTraceRewritten": false
+  },
+  "failureBehavior": {
+    "sourceResultPreservedWhenOptimizationFails": true,
+    "terminalResultReplaysOptimizer": false,
+    "proposalReadyReplaysOptimizer": false,
+    "unknownInFlightPhaseAutomaticallyReplayed": false,
+    "captureWithoutInitialInputsAccepted": false,
+    "unsupportedCapturedAdapterAccepted": false
+  },
+  "verification": {
+    "command": "bun test ./test/cli/run-optimize.test.ts ./test/cli/run.test.ts ./test/run/optimization-session.test.ts ./test/jit-optimize/trace-adapters.test.ts ./test/run/optimization-handoff.test.ts ./test/run/index.test.ts ./src/run/index.test.ts ./src/core/workdir-manifest.test.ts ./src/core/durable-runtime-trace.test.ts ./test/core/run-session.test.ts ./test/jit-optimize/task-source.test.ts ./test/jit-optimize/package.test.ts",
+    "testsPassed": 73,
+    "testsFailed": 0,
+    "assertions": 310,
+    "typecheck": "passed",
+    "diffCheck": "passed"
+  },
+  "runtimeAccounting": {
+    "sourceAgentRuns": 0,
+    "optimizerAgentRuns": 0,
+    "remoteApiCalls": 0,
+    "paidCalls": 0,
+    "note": "R2 implementation validation used deterministic local fixtures and injected test engines. Real ordinary-entry runs are required by R6/R7."
+  },
+  "claimBoundary": "R2 proves the local entry, binding, redaction and recovery plumbing. It does not yet prove semantic correctness without criteria, a usable changed package on a real natural task, cross-structure success, prospective performance, stable cost, or human savings."
+}

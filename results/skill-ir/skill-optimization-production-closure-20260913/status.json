@@ -2,11 +2,11 @@
   "schemaVersion": "skill-ir-skill-optimization-production-closure-status/v1",
   "identity": "skill-optimization-production-closure-20260913",
   "exposure": "development",
-  "updatedAt": "2026-09-14T16:28:00+08:00",
+  "updatedAt": "2026-09-14T16:58:00+08:00",
   "branch": "skill-ir-aot",
   "headAtStart": "3f6ee4a454f85ec7f75b29fee8a49f12b57d9e67",
   "originAtStart": "3f6ee4a454f85ec7f75b29fee8a49f12b57d9e67",
-  "currentStage": "R2",
+  "currentStage": "R3",
   "deliveryStatus": "active",
   "stages": {
     "H0": "completed",
@@ -23,8 +23,8 @@
     "H11": "completed",
     "H12": "completed",
     "R1": "completed",
-    "R2": "active",
-    "R3": "pending",
+    "R2": "completed",
+    "R3": "active",
     "R4": "pending",
     "R5": "pending",
     "R6": "pending",
@@ -34,8 +34,8 @@
     "Y1": "pending-conditional",
     "Y2": "pending-conditional"
   },
-  "lastSuccessfulAction": "R1 TDD completed the run-scoped capture and V2/V6 isolation: user/task inputs are manifested before namespaced skill deployment, collisions never overwrite user bytes, actual read evidence retains pre-mutation bytes, and each recovery uses a fresh session that cannot consume a failed candidate output.",
-  "nextAction": "Execute R2 with TDD: add mutually exclusive natural --prompt and legacy --task inputs plus --optimize on skvm run, materialize a minimal internal task, run the source once, feed this session manifest to existing jitOptimize, persist run-to-proposal-to-package recovery state, and preserve the old run and expert log paths.",
+  "lastSuccessfulAction": "R2 TDD added mutually exclusive natural --prompt and legacy --task inputs plus --optimize on skvm run, a minimal internal task, one-shot source execution, a frozen digest-bound session evidence adapter, existing jitOptimize/package handoff, secret redaction, and phase-aware recovery without replaying an uncertain external call.",
+  "nextAction": "Execute R3 with the V1/V4 red cases: make new program outputs pass only through executed semantic assertions, let independent ready cases run while missing cases remain unassessed, and discover bounded source/task checks for ordinary runs without user-authored criteria.",
   "currentCommand": null,
   "failures": [
     "H8 optimizer attempts 1-3, 5, 7 and 9 produced only documentation changes; attempt 6 was no-change; all are archived.",
@@ -75,7 +75,11 @@
     "results/skill-ir/skill-optimization-production-closure-20260913/h11/pair-analysis.json",
     "results/skill-ir/skill-optimization-production-closure-20260913/h11/report.json",
     "results/skill-ir/skill-optimization-production-closure-20260913/h12/report.json",
+    "results/skill-ir/skill-optimization-production-closure-20260913/r2/report.json",
     "src/run/optimization-session.ts",
+    "src/run/optimization-handoff.ts",
+    "test/cli/run-optimize.test.ts",
+    "test/run/optimization-handoff.test.ts",
     "test/run/optimization-session.test.ts",
     "test/jit-optimize/constraint-scope.test.ts",
     "test/jit-optimize/validation-lifecycle.test.ts",
@@ -119,8 +123,8 @@
       "results/skill-ir/skill-optimization-production-closure-20260913/h11/report.json",
       "results/skill-ir/skill-optimization-production-closure-20260913/h12/report.json"
     ],
-    "command": "Write and run the R2 red tests in test/cli/run-optimize.test.ts and existing run/CLI suites, then implement the narrow natural-task and automatic handoff path by calling the existing jitOptimize engine rather than creating another optimizer.",
-    "note": "R1 is complete with 23/23 focused tests, 106 assertions and typecheck passing. Revision 3 R2-R7 remain mandatory before H13/H14. R3 must also reproduce and fix the independently observed empty-program false pass where a historical passed criterion is cited without executing any output assertion."
+    "command": "Write and run the R3 V1/V4 red cases in validation-lifecycle and production-closure tests, then repair the semantic-assertion and case-local scheduling rules without weakening comparators or deleting missing obligations.",
+    "note": "R1 and R2 are complete. R2's related suite passed 73/73 tests with 310 assertions plus typecheck. Revision 3 R3-R7 remain mandatory before H13/H14; R3 must reproduce and fix the observed empty-program false pass where a historical passed criterion is cited without executing any output assertion."
   },
-  "claimBoundary": "Development only. H8 proves one bounded generated checker, H9 proves one existing-program reuse path, H11 proves one preregistered common-path behavior pair with no quality regression, and H12 records one justified different-structure no-change boundary. These do not prove whole-skill correctness, repair of the original Law 0.7 task, stable cost/latency, readiness, prospective performance or human savings. Revision 2 R1-R7 remain active engineering work."
+  "claimBoundary": "Development only. H8 proves one bounded generated checker, H9 proves one existing-program reuse path, H11 proves one preregistered common-path behavior pair with no quality regression, H12 records one justified different-structure no-change boundary, and R1-R2 prove local capture/handoff plumbing. These do not prove whole-skill correctness, repair of the original Law 0.7 task, a real natural-entry package result, stable cost/latency, readiness, prospective performance or human savings. Revision 3 R3-R7 remain active engineering work."
 }

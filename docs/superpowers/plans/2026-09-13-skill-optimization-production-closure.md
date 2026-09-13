@@ -393,12 +393,12 @@ bun test ./test/run/optimization-session.test.ts ./test/run/index.test.ts ./src/
 
 **修改：** CLI run、run/index、optimization-session、task-source/trace-adapters；复用 jitOptimize。
 
-- [ ] 测试自然语言 `--prompt` 与旧 `--task` 两种任务来源互斥，接受现有 skill loader 支持的文件/目录。自然任务由框架物化最小内部 task，不要求用户写 JSON。
-- [ ] 新增明确的运行并优化选项，运行结束后自动使用 R1 的本次记录进入现有 log 优化。原任务只执行一次；后续局部验证/试用是独立执行，不回填到 source run。
-- [ ] 用户未显式指定输出目录时，在既有缓存/产物布局中分配独立目录并显示；配置可得时不追问 model，缺模型时给一条具体配置提示，不读出密钥。
-- [ ] 保存 run→proposal→package 引用，让同一次操作从已完成阶段恢复。未知调用是否完成时先查本次记录，不能无条件重新调用模型或重跑用户任务。
-- [ ] 不带新选项的旧 `skvm run` 仍仅运行；旧 `jit-optimize --logs` 保持专家兼容。缺 skill、空 prompt、错误目录在模型调用前给可理解的报错。
-- [ ] 最小交付命令形态如下；这是本轮待实现接口，验证后才可写成现有用法。`--workdir`/`--model`/`--skill` 已有，`--prompt`/`--optimize` 为新增；如命名冲突由执行者一次调整并同步文档。
+- [x] 测试自然语言 `--prompt` 与旧 `--task` 两种任务来源互斥，接受现有 skill loader 支持的文件/目录。自然任务由框架物化最小内部 task，不要求用户写 JSON。
+- [x] 新增明确的运行并优化选项，运行结束后自动使用 R1 的本次记录进入现有 log 优化。原任务只执行一次；后续局部验证/试用是独立执行，不回填到 source run。
+- [x] 用户未显式指定输出目录时，在既有缓存/产物布局中分配独立目录并显示；配置可得时不追问 model，缺模型时给一条具体配置提示，不读出密钥。
+- [x] 保存 run→proposal→package 引用，让同一次操作从已完成阶段恢复。未知调用是否完成时先查本次记录，不能无条件重新调用模型或重跑用户任务。
+- [x] 不带新选项的旧 `skvm run` 仍仅运行；旧 `jit-optimize --logs` 保持专家兼容。缺 skill、空 prompt、错误目录在模型调用前给可理解的报错。
+- [x] 最小交付命令形态如下；该接口已由 R2 实现并通过本地集成回归，R7 仍须保存一次真实路径/模型运行。`--workdir`/`--model`/`--skill` 为既有参数，`--prompt`/`--optimize` 为本阶段新增。
 
 ```powershell
 skvm run --skill=./my-skill --prompt="检查本目录的语言文件并给出缺失项" --workdir=./my-project --model=provider/model --optimize
@@ -411,6 +411,8 @@ bun test ./test/cli/run-optimize.test.ts ./test/cli/run.test.ts ./test/run/optim
 ```
 
 **验收：** 从正常任务运行自动进入优化、导出和结果提示，无用户手工搬运 trace；不新建与现有优化器并行的算法链。
+
+**实际结果：** `skvm run` 现支持互斥的 `--task`/`--prompt`；自然提示会在 run session 内物化最小 task。`--optimize` 要求已选 skill，首版明确限定 bare-agent capture，`--optimizer-model` 默认复用 source `--model`，`--package-out` 缺省为 session 内独立目录。源任务由 `executeRunAndOptimize` 只调用一次，成功后冻结 digest-bound `optimization-evidence.json`，以它作为现有 `jitOptimize` 的 execution-log 输入；主 session 另行记录 pending、optimizer-running、proposal-ready、package-exporting、completed/no-change/failed。completed 直接返回，proposal-ready 只恢复导出，外部调用完成未知时拒绝盲目重发。session adapter 核对 task/skill closure、conversation、durable trace、RunResult 和执行前 manifest；发送给优化模型的提示、对话、工具结果与最终文本会遮蔽可识别 secret，post-run workdir 不被误快照为 source input，非 bare-agent 的伪造 capture 也会在锁和模型调用前拒绝。源结果在优化失败时仍返回。R2 关联回归 73/73、310 assertions、typecheck 与 diff check 通过；实际付费自然链按 R6/R7 执行，本阶段没有把模拟调用计入项目运行。
 
 ## R3 — 没有人工评分协议也能进行有依据的优化
 

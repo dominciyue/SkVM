@@ -162,6 +162,25 @@ describe("optimization run session binding", () => {
     expect(await Bun.file(session.runResultPath).exists()).toBe(true)
   })
 
+  test("an optimization-requested run cannot hand off without the pre-run source-input manifest", async () => {
+    const item = await fixture("missing-input-manifest")
+    const run = await RunSession.start({ type: "run", tag: "missing-input-manifest", logDir: item.sessionsRoot })
+    const session = await OptimizationSession.start({
+      runId: run.id, rootDir: item.sessionsRoot, skill: item.skill, task: item.task,
+      workDir: item.workDir, adapter: "bare-agent", model: "test/model", optimizationRequested: true,
+    })
+    await Bun.write(session.conversationTracePath, `${JSON.stringify({ type: "response", ts: "now", text: "done" })}\n`)
+    session.runtimeTrace.finalize(0, "completed")
+
+    const completed = await session.complete(successfulResult(item.workDir))
+
+    expect(completed.capture.sourceInputs?.status).toBe("failed")
+    expect(completed.capture.status).toBe("partial")
+    expect(completed.handoff).toMatchObject({ status: "blocked" })
+    expect(completed.handoff.reason).toContain("sourceInputs=failed")
+    expect(completed.optimization).toMatchObject({ status: "failed", phase: "capture" })
+  })
+
   test("provider failure and interruption are terminal, retained, and never ready for optimization", async () => {
     const item = await fixture("failed")
     const providerRun = await RunSession.start({ type: "run", tag: "provider", logDir: item.sessionsRoot })

@@ -1,9 +1,10 @@
 import path from "node:path"
-import { stat } from "node:fs/promises"
+import { readdir, stat } from "node:fs/promises"
 import { gunzipSync } from "node:zlib"
 import { DurableRuntimeTraceEventSchema } from "../core/durable-runtime-trace.ts"
 import { piEventsToRunRecord, type PiEvent, type PiUserMessage } from "../core/pi-runtime.ts"
-import { RunStatusSchema } from "../core/types.ts"
+import { RunResultSchema, RunStatusSchema } from "../core/types.ts"
+import { OptimizationSessionManifestSchema } from "../run/optimization-session.ts"
 import type {
   ConversationLogEntry,
   EvidenceCriterion,
@@ -147,6 +148,10 @@ function isGeneralSkillDevelopmentReport(value: JsonObject): boolean {
     && objectValue(value.verification) !== undefined
 }
 
+function isOptimizationSessionReport(value: JsonObject): boolean {
+  return value.schemaVersion === "skvm-run-optimization-session/v1"
+}
+
 function resolveLocator(sourcePath: string, locator: unknown): string | undefined {
   if (typeof locator !== "string" || locator.trim().length === 0) return undefined
   return path.isAbsolute(locator) ? path.normalize(locator) : path.resolve(path.dirname(sourcePath), locator)
@@ -167,6 +172,175 @@ async function readTaskPrompt(taskPath: string): Promise<string | undefined> {
     return stringValue(parsed?.prompt)
   } catch {
     return undefined
+  }
+}
+
+function redactString(value: string): string {
+  return value
+    .replace(/\bBearer\s+[A-Za-z0-9._~+\/-]+=*/gi, "Bearer [REDACTED]")
+    .replace(/\bsk-[A-Za-z0-9_-]{6,}\b/g, "[REDACTED]")
+    .replace(/\b(api[_-]?key|access[_-]?token|token|password|secret)\s*([:=])\s*([^\s,;]+)/gi, "$1$2[REDACTED]")
+}
+
+function redactValue(value: unknown): unknown {
+  if (typeof value === "string") return redactString(value)
+  if (Array.isArray(value)) return value.map(redactValue)
+  const object = objectValue(value)
+  if (!object) return value
+  return Object.fromEntries(Object.entries(object).map(([key, item]) => [key, redactValue(item)]))
+}
+
+function isWithin(root: string, candidate: string): boolean {
+  const relative = path.relative(root, candidate)
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative))
+}
+
+async function skillSnapshotDigest(skillDir: string): Promise<string> {
+  const files: string[] = []
+  async function visit(dir: string): Promise<void> {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const absolute = path.join(dir, entry.name)
+      if (entry.isDirectory()) await visit(absolute)
+      else if (entry.isFile()) files.push(path.relative(skillDir, absolute).split(path.sep).join("/"))
+    }
+  }
+  await visit(skillDir)
+  const parts: string[] = []
+  for (const relative of files.sort()) {
+    parts.push(`${relative}\0${digest(await Bun.file(path.join(skillDir, ...relative.split("/"))).bytes())}`)
+  }
+  return digest(parts.join("\n"))
+}
+
+async function adaptOptimizationSession(
+  sourcePath: string,
+  inputSha256: string,
+  report: JsonObject,
+): Promise<AdaptedTraceFile> {
+  const format = "skvm-run-optimization-session/v1"
+  const representation = "conversation-trace" as const
+  const diagnostics: TraceDiagnostic[] = []
+  let manifest
+  try {
+    manifest = OptimizationSessionManifestSchema.parse(report)
+  } catch (error) {
+    return {
+      format,
+      representation,
+      inputSha256,
+      records: [],
+      diagnostics: [diagnostic("invalid-session-manifest", `Session manifest is invalid: ${error}`, "json", "error")],
+    }
+  }
+  const sessionDir = path.dirname(sourcePath)
+  if (path.resolve(manifest.artifacts.manifest.path) !== sourcePath) {
+    diagnostics.push(diagnostic("session-manifest-binding-mismatch", "Manifest self path does not match the supplied file", "json:artifacts.manifest.path", "error"))
+  }
+  const directArtifacts = [
+    ["taskSnapshot", manifest.artifacts.taskSnapshot],
+    ["conversationTrace", manifest.artifacts.conversationTrace],
+    ["durableTrace", manifest.artifacts.durableTrace],
+    ["runResult", manifest.artifacts.runResult],
+    ["initialWorkdirManifest", manifest.artifacts.initialWorkdirManifest],
+  ] as const
+  for (const [name, reference] of directArtifacts) {
+    const artifactPath = path.resolve(reference.path)
+    if (!isWithin(sessionDir, artifactPath)) {
+      diagnostics.push(diagnostic("session-artifact-outside-root", `${name} is outside the session directory`, `json:artifacts.${name}.path`, "error"))
+      continue
+    }
+    if (!reference.sha256 || !await exists(artifactPath)) {
+      diagnostics.push(diagnostic("session-artifact-incomplete", `${name} is missing or has no completed digest`, `json:artifacts.${name}`, "error"))
+      continue
+    }
+    const bytes = await Bun.file(artifactPath).bytes()
+    if (digest(bytes) !== reference.sha256 || (reference.bytes !== undefined && bytes.byteLength !== reference.bytes)) {
+      diagnostics.push(diagnostic("session-artifact-digest-mismatch", `${name} does not match its completed digest/size`, `json:artifacts.${name}`, "error"))
+    }
+  }
+  const skillPath = path.resolve(manifest.artifacts.skillSnapshot.path)
+  if (!isWithin(sessionDir, skillPath) || !await exists(skillPath)) {
+    diagnostics.push(diagnostic("session-artifact-incomplete", "skillSnapshot is missing or outside the session directory", "json:artifacts.skillSnapshot", "error"))
+  } else {
+    const actualSkillDigest = await skillSnapshotDigest(path.dirname(skillPath))
+    if (actualSkillDigest !== manifest.artifacts.skillSnapshot.sha256 || actualSkillDigest !== manifest.binding.skillSha256) {
+      diagnostics.push(diagnostic("session-artifact-digest-mismatch", "skillSnapshot closure does not match its binding", "json:artifacts.skillSnapshot", "error"))
+    }
+  }
+  if (manifest.sourceRun.status !== "completed" || manifest.sourceRun.runStatus !== "ok" || manifest.capture.status !== "complete" || manifest.handoff.status !== "ready") {
+    diagnostics.push(diagnostic("session-handoff-not-ready", "Only a completed ok source run with complete capture can become optimizer evidence", "json:handoff", "error"))
+  }
+  if (diagnostics.some((item) => item.severity === "error")) {
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+
+  const task = objectValue(JSON.parse(await Bun.file(manifest.artifacts.taskSnapshot.path).text()))
+  const taskPrompt = stringValue(task?.prompt)
+  if (!taskPrompt || digest(taskPrompt) !== manifest.binding.promptSha256) {
+    diagnostics.push(diagnostic("session-prompt-binding-mismatch", "Task prompt is missing or does not match the session binding", "json:binding.promptSha256", "error"))
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+  const runResult = RunResultSchema.parse(JSON.parse(await Bun.file(manifest.artifacts.runResult.path).text()))
+  const rawConversation = parseLines(await Bun.file(manifest.artifacts.conversationTrace.path).text())
+    .flatMap((row) => row.value && isNativeConversation(row.value) ? [row.value as ConversationLogEntry] : [])
+  const stepConversation: ConversationLogEntry[] = runResult.steps.map((step) => ({
+    type: step.role === "assistant" ? "response" : "tool",
+    ts: Number.isFinite(step.timestamp) ? new Date(step.timestamp).toISOString() : "unknown",
+    ...(step.text === undefined ? {} : { text: step.text }),
+    ...(step.toolCalls.length === 0 ? {} : { toolCalls: step.toolCalls }),
+    sourceLocator: "run-result:steps",
+  }))
+  const conversationLog = redactValue([
+    { type: "request", ts: manifest.startedAt, text: taskPrompt, sourceLocator: "task-snapshot:prompt" },
+    ...rawConversation,
+    ...stepConversation,
+    { type: "response", ts: manifest.updatedAt, text: runResult.text, sourceLocator: "run-result:text" },
+  ]) as ConversationLogEntry[]
+  const unknownFields: string[] = []
+  const usage = runResult.usageAvailable === false ? undefined : {
+    inputTokens: runResult.tokens.input,
+    outputTokens: runResult.tokens.output,
+    cacheReadTokens: runResult.tokens.cacheRead,
+    cacheWriteTokens: runResult.tokens.cacheWrite,
+    source: "run-result",
+  }
+  if (!usage) unknownFields.push("usage")
+  unknownFields.push("usage.costUsd", "criteria")
+  const source = makeSource({
+    format,
+    representation,
+    sourcePath,
+    inputSha256,
+    recordLocator: `run:${manifest.runId}`,
+    taskIdSource: "source",
+    diagnostics,
+    values: {
+      sourceAgent: manifest.binding.adapter,
+      adapter: manifest.binding.adapter,
+      model: manifest.binding.model,
+      system: "source-run",
+      taskPath: manifest.artifacts.taskSnapshot.path,
+      skillPath: manifest.artifacts.skillSnapshot.path,
+      workDirPath: manifest.binding.workDir,
+      runStatus: runResult.runStatus,
+      durationMs: runResult.durationMs,
+      usage,
+      unknownFields,
+    },
+  })
+  return {
+    format,
+    representation,
+    inputSha256,
+    records: [{
+      taskId: manifest.binding.taskId,
+      taskPrompt: redactString(taskPrompt),
+      conversationLog,
+      // Deliberately omit workDirPath here: task-source would otherwise
+      // snapshot the post-run directory and present outputs as source inputs.
+      source,
+    }],
+    diagnostics,
   }
 }
 
@@ -816,6 +990,9 @@ export async function adaptTraceFile(filePath: string): Promise<AdaptedTraceFile
   if (values.some(isNativeConversation)) return adaptNativeConversation(sourcePath, inputSha256, rows)
 
   const whole = objectValue(parseJson(raw))
+  if (whole && isOptimizationSessionReport(whole)) {
+    return adaptOptimizationSession(sourcePath, inputSha256, whole)
+  }
   if (whole && isTraceGuidedConsumptionReport(whole)) {
     return adaptTraceGuidedConsumptionReport(sourcePath, inputSha256, whole)
   }

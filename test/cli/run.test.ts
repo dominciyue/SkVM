@@ -20,6 +20,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
     expect(RUN_FLAGS.parse(["--task=/tmp/task.json", "--model=x/y"])).toEqual({
       help: false,
       task: "/tmp/task.json",
+      prompt: undefined,
       model: "x/y",
       skill: undefined,
       "skill-mode": undefined,
@@ -31,6 +32,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "idle-timeout-ms": undefined,
       "max-steps": undefined,
       "adapter-config": undefined,
+      optimize: false,
+      "optimizer-model": undefined,
+      "package-out": undefined,
     })
   })
 
@@ -50,6 +54,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
     ])).toEqual({
       help: false,
       task: "/tmp/task.json",
+      prompt: undefined,
       model: "anthropic/claude-sonnet-4.6",
       skill: "/tmp/SKILL.md",
       "skill-mode": "discover",
@@ -61,6 +66,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "idle-timeout-ms": 30000,
       "max-steps": 12,
       "adapter-config": "managed",
+      optimize: false,
+      "optimizer-model": undefined,
+      "package-out": undefined,
     })
   })
 
@@ -68,8 +76,8 @@ describe("RUN_FLAGS.parse — typed config", () => {
     expect(RUN_FLAGS.parse(["--help"])).toEqual({ help: true })
   })
 
-  test("required flags use the layer's unified wording (--task first, then --model)", () => {
-    expect(parseError([]).message).toBe("run: --task is required")
+  test("model remains parser-required while task source is a cross-flag rule", () => {
+    expect(parseError([]).message).toBe("run: --model is required")
     expect(parseError(["--task=/tmp/task.json"]).message).toBe("run: --model is required")
   })
 
@@ -126,10 +134,13 @@ describe("RUN_FLAGS.help — generated help text", () => {
 
 Usage:
   skvm run --task=<path/to/task.json> --model=<id> [options]
+  skvm run --prompt=<natural-language-task> --model=<id> [options]
   skvm run --task=<path/to/task.json> --skill=<path/to/SKILL.md> --model=<id> [options]
+  skvm run --prompt=<task> --skill=<path> --model=<id> --optimize [options]
 
 Options:
-  --task=<path>                        Path to a task JSON file (bench task schema) (required)
+  --task=<path>                        Path to a task JSON file (bench task schema)
+  --prompt=<text>                      Natural-language task; mutually exclusive with --task
   --model=<id>                         Model identifier, <provider>/<model-id> (required)
   --skill=<path>                       Optional path to a SKILL.md file
   --skill-mode=<mode>                  inject | discover (default: inject).
@@ -148,9 +159,13 @@ Options:
   --idle-timeout-ms=<n>                Optional inactivity deadline for progress-aware adapters (ms).
   --max-steps=<n>                      Override max steps for the adapter
   --adapter-config=<m>                 native | managed (default: from skvm.config.json, else managed)
+  --optimize                           After this source run, optimize the selected skill from its captured trace
+  --optimizer-model=<id>               Optimizer model; defaults to --model when --optimize is set
+  --package-out=<path>                 Optimized skill package directory; default is inside the run session
 
 Notes:
-  - This command executes only. It does not run evaluation or scoring.
+  - Without --optimize this command only executes; it does not score.
+  - --optimize currently uses bare-agent run-scoped capture and the existing JIT optimizer.
   - Task files use the bench task.json shape, but eval is optional here.
   - Any files under the task's fixtures/ directory are copied into the workDir before execution.`,
     )

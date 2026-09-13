@@ -98,6 +98,29 @@ export async function loadRunSkill(skillPath: string): Promise<LoadedSkill> {
   return await loadSkillFromPath(skillPath)
 }
 
+export async function materializeNaturalRunTask(options: {
+  prompt: string
+  taskPath: string
+}): Promise<LoadedRunTask> {
+  const prompt = options.prompt.trim()
+  if (!prompt) throw new Error("Natural run prompt must contain non-whitespace text")
+  const taskPath = path.resolve(options.taskPath)
+  await mkdir(path.dirname(taskPath), { recursive: true })
+  await writeFile(taskPath, `${JSON.stringify({
+    id: naturalRunTaskId(prompt),
+    prompt,
+    eval: [],
+  }, null, 2)}\n`, "utf8")
+  return loadRunTask(taskPath)
+}
+
+export function naturalRunTaskId(prompt: string): string {
+  const normalized = prompt.trim()
+  if (!normalized) throw new Error("Natural run prompt must contain non-whitespace text")
+  const promptSha = new Bun.CryptoHasher("sha256").update(normalized).digest("hex")
+  return `natural-${promptSha.slice(0, 12)}`
+}
+
 export async function prepareRunWorkspace(
   opts: PrepareRunWorkspaceOptions,
 ): Promise<InitialWorkdirManifestReference | undefined> {
@@ -105,7 +128,11 @@ export async function prepareRunWorkspace(
   await mkdir(workDir, { recursive: true })
   await copyTaskFixtures(opts.task, workDir)
   const initialWorkdirManifest = opts.initialWorkdirManifestPath
-    ? await writeInitialWorkdirManifest({ workDir, manifestPath: opts.initialWorkdirManifestPath })
+    ? await writeInitialWorkdirManifest({
+        workDir,
+        manifestPath: opts.initialWorkdirManifestPath,
+        excludedPrefixes: [".skvm"],
+      })
     : undefined
   // The pre-run source manifest deliberately precedes skill deployment. It
   // describes the user's/task's input bytes, not framework-owned resources.
@@ -205,6 +232,7 @@ function buildRunSkillBundle(
 
 async function deploySkillBundle(skill: LoadedSkill, workDir: string): Promise<void> {
   const canonicalDir = path.join(workDir, ...skillResourceRelativeDir(skill).split("/"))
+  await rm(canonicalDir, { recursive: true, force: true })
   await mkdir(canonicalDir, { recursive: true })
   await copyFile(skill.skillPath, path.join(canonicalDir, "SKILL.md"))
   for (const relative of skill.bundleFiles) {
