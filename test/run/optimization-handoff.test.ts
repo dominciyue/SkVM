@@ -18,6 +18,7 @@ import {
 import { loadEvidencesFromLogs } from "../../src/jit-optimize/task-source.ts"
 import type { TaskSource } from "../../src/jit-optimize/types.ts"
 import { snapshotWorkdir, writeInitialWorkdirManifest } from "../../src/core/workdir-manifest.ts"
+import { writePreRunInputSnapshot } from "../../src/run/pre-run-input-snapshot.ts"
 import { publishOptimizedSkillPackageAtomically } from "../../src/jit-optimize/package.ts"
 import { registerCustomEvaluator, customEvaluators } from "../../src/framework/types.ts"
 
@@ -53,6 +54,11 @@ async function fixture(name: string) {
   })
   await Bun.write(session.conversationTracePath, `${JSON.stringify({ type: "response", ts: "now", text: "done" })}\n`)
   session.runtimeTrace.finalize(0, "completed")
+  await writePreRunInputSnapshot({
+    workDir,
+    manifestPath: session.preRunInputSnapshotPath,
+    excludedPrefixes: [".skvm"],
+  })
   await writeInitialWorkdirManifest({ workDir, manifestPath: session.initialWorkdirManifestPath })
   const result: RunResult = {
     text: "done",

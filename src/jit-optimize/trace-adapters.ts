@@ -9,10 +9,12 @@ import {
   ObservedWorkdirSnapshotSchema,
   OptimizationSessionManifestSchema,
 } from "../run/optimization-session.ts"
+import { readPreRunInputSnapshot } from "../run/pre-run-input-snapshot.ts"
 import { buildEvidenceCriteria } from "./evidence-criteria.ts"
 import type {
   ConversationLogEntry,
   EvidenceCriterion,
+  EvidenceInputResources,
   TraceDiagnostic,
   TraceEvidenceSource,
   TraceRepresentation,
@@ -25,6 +27,7 @@ export interface AdaptedTraceRecord {
   criteria?: EvidenceCriterion[]
   workDirPath?: string
   workDirSnapshot?: { files: Map<string, string> }
+  inputResources?: EvidenceInputResources
   source: TraceEvidenceSource
 }
 
@@ -252,6 +255,9 @@ async function adaptOptimizationSession(
   if (manifest.artifacts.observedWorkdirSnapshot) {
     directArtifacts.push(["observedWorkdirSnapshot", manifest.artifacts.observedWorkdirSnapshot])
   }
+  if (manifest.artifacts.preRunInputSnapshot) {
+    directArtifacts.push(["preRunInputSnapshot", manifest.artifacts.preRunInputSnapshot])
+  }
   if (manifest.artifacts.sourceEvaluation) {
     directArtifacts.push(["sourceEvaluation", manifest.artifacts.sourceEvaluation])
   }
@@ -281,6 +287,45 @@ async function adaptOptimizationSession(
   }
   if (manifest.sourceRun.status !== "completed" || manifest.sourceRun.runStatus !== "ok" || manifest.capture.status !== "complete" || manifest.handoff.status !== "ready") {
     diagnostics.push(diagnostic("session-handoff-not-ready", "Only a completed ok source run with complete capture can become optimizer evidence", "json:handoff", "error"))
+  }
+  if (manifest.artifacts.preRunInputSnapshot && manifest.capture.sourceInputs?.status !== "complete") {
+    diagnostics.push(diagnostic(
+      "session-handoff-not-ready",
+      "A declared pre-run input snapshot requires a complete sourceInputs capture before it can become optimizer evidence",
+      "json:capture.sourceInputs",
+      "error",
+    ))
+  }
+  let inputResources: EvidenceInputResources | undefined
+  if (manifest.artifacts.preRunInputSnapshot) {
+    try {
+      const reference = manifest.artifacts.preRunInputSnapshot
+      if (!reference.sha256 || reference.bytes === undefined) {
+        throw new Error("pre-run input snapshot has no completed digest/size")
+      }
+      await readPreRunInputSnapshot({
+        path: reference.path,
+        sha256: reference.sha256,
+        bytes: reference.bytes,
+      })
+      inputResources = {
+        preRun: {
+          source: "pre-run-input-snapshot",
+          reference: {
+            path: reference.path,
+            sha256: reference.sha256,
+            bytes: reference.bytes,
+          },
+        },
+      }
+    } catch (error) {
+      diagnostics.push(diagnostic(
+        "session-pre-run-input-invalid",
+        `Pre-run input snapshot is invalid: ${error instanceof Error ? error.message : String(error)}`,
+        "json:artifacts.preRunInputSnapshot",
+        "error",
+      ))
+    }
   }
   if (diagnostics.some((item) => item.severity === "error")) {
     return { format, representation, inputSha256, records: [], diagnostics }
@@ -350,6 +395,7 @@ async function adaptOptimizationSession(
   } else {
     unknownFields.push("observedOutputs")
   }
+  if (!inputResources) unknownFields.push("inputResources.preRun")
   const usage = runResult.usageAvailable === false ? undefined : {
     inputTokens: runResult.tokens.input,
     outputTokens: runResult.tokens.output,
@@ -391,6 +437,7 @@ async function adaptOptimizationSession(
       conversationLog,
       ...(criteria ? { criteria } : {}),
       ...(workDirSnapshot ? { workDirSnapshot } : {}),
+      ...(inputResources ? { inputResources } : {}),
       source,
     }],
     diagnostics,

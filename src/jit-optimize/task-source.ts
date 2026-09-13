@@ -216,6 +216,7 @@ export async function loadEvidencesFromLogs(source: TaskSource): Promise<Evidenc
           criteria: suppliedCriteria ?? record.criteria,
           workDirSnapshot: record.workDirSnapshot
             ?? (record.workDirPath ? await snapshotWorkDir(record.workDirPath) : undefined),
+          ...(record.inputResources ? { inputResources: record.inputResources } : {}),
           trace: record.source,
         })
       }

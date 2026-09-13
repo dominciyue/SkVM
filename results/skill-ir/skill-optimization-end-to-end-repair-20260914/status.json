@@ -2,17 +2,17 @@
   "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-status/v1",
   "identity": "skill-optimization-end-to-end-repair-20260914",
   "exposure": "development",
-  "updatedAt": "2026-09-14T06:44:00+08:00",
+  "updatedAt": "2026-09-14T22:56:00+08:00",
   "branch": "skill-ir-aot",
   "headAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
   "originAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
-  "currentStage": "C2",
+  "currentStage": "C3",
   "deliveryStatus": "in-progress",
   "stages": {
     "C0": "completed",
     "C1": "completed",
-    "C2": "in-progress",
-    "C3": "planned",
+    "C2": "completed",
+    "C3": "in-progress",
     "C4": "planned",
     "C5": "planned",
     "C6": "planned",
@@ -21,13 +21,16 @@
     "C9": "planned",
     "C10": "planned"
   },
-  "lastSuccessfulAction": "Completed C1 with two observed red cases, a bounded pre-run byte snapshot outside the user workdir, digest-bound session capture, explicit omissions, 14/14 focused tests with 68 assertions and passing typecheck.",
-  "nextAction": "Read the exact Evidence adapter/resource/workspace/validation representations, then add a failing pass-through test proving saved pre-run bytes materialize after the live workdir changes or disappears.",
+  "lastSuccessfulAction": "Completed C2 with three observed propagation red cases, digest-bound pre-run resources flowing through adapter, Evidence, workspace, and validation, 90/90 focused tests with 358 assertions, and passing typecheck.",
+  "nextAction": "Read implementations.ts, action-plan.ts, optimizer.ts, and their tests; add a failing C3 case proving an existing Python script with an optional import can be repaired by a generic local action without domain-backend routing.",
   "currentCommand": null,
   "attemptDirectories": [],
   "failures": [
     "C1 red integration: sourceBytesVisibleBeforeRun was false because executeRun ignored the requested content snapshot path (1 pass, 1 fail).",
-    "C1 red capture gate: a digest-only initial manifest was incorrectly accepted as complete source inputs (8 pass, 1 fail)."
+    "C1 red capture gate: a digest-only initial manifest was incorrectly accepted as complete source inputs (8 pass, 1 fail).",
+    "C2 red adapter case: a digest-bound pre-run snapshot was not propagated into Evidence.inputResources (expected failure before implementation).",
+    "C2 red workspace case: Evidence had no independent pre-run input projection or byte-preserving context locator (expected failure before implementation).",
+    "C2 red validation case: saved binary pre-run input had no explicit materialization source and remained unresolved (expected failure before implementation)."
   ],
   "verification": {
     "C0": {
@@ -42,6 +45,19 @@
       "failed": 0,
       "assertions": 68,
       "typecheck": "passed"
+    },
+    "C2": {
+      "command": "bun test ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/record.test.ts ./test/jit-optimize/optimizer-prompt.test.ts",
+      "passed": 90,
+      "failed": 0,
+      "assertions": 358,
+      "typecheck": "passed",
+      "regression": {
+        "command": "bun test ./test/run/optimization-handoff.test.ts",
+        "passed": 11,
+        "failed": 0,
+        "assertions": 47
+      }
     }
   },
   "evidencePaths": [
@@ -49,7 +65,11 @@
     "docs/skill-ir/skill-ir-aot-optimization-spec.md#1432-original-input-action-repair-and-same-new-package-production-closure",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/diagnosis.json",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c1/verification.json",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c2/verification.json",
     "src/run/pre-run-input-snapshot.ts",
+    "src/jit-optimize/trace-adapters.ts",
+    "src/jit-optimize/workspace.ts",
+    "src/jit-optimize/validation-lifecycle.ts",
     "results/skill-ir/skill-optimization-production-closure-20260913/r6/"
   ],
   "accounting": {
@@ -79,5 +99,5 @@
     ],
     "command": "Resume from nextAction and currentStage; do not substitute historical H8/H9/R7 packages for this identity's required same-new-package chain."
   },
-  "claimBoundary": "Development only. C1 proves bounded pre-run byte capture and binding but not yet downstream materialization or a new-program package. No behavior improvement, cost benefit, prospective readiness, held-out performance or human savings is claimed."
+  "claimBoundary": "Development only. C2 proves byte-preserving pre-run input propagation into Evidence, workspace and local validation for the designed cases. It does not establish a generated program, package export, natural consumption, behavior improvement, cost benefit, prospective readiness, held-out performance or human savings."
 }

@@ -474,6 +474,10 @@ Write \`.optimize/submission.json\` with these fields (see
   reference bytes, and \`self-check\` for program-local checks. Always cite
   \`sourceRefs\`. A \`self-check\` does not establish task correctness; do not use
   a generated program's own assertion as the only basis for a validated recommendation.
+  When the evidence exposes a digest-bound pre-run input snapshot, use
+  \`inputSource\` \`pre-run-input-snapshot\` and the exact locator under
+  \`.optimize/tasks/<safeTaskId>/run-N-pre-run-inputs/\`. This namespace is
+  distinct from trace-bound task fixtures and observed post-run workdir files.
   A historical passed criterion is not itself a current assertion: the engine
   will re-run a contained deterministic task check against the candidate output.
   If the original source skill already contains \`.skvm-validation.json\`, its

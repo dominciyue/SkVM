@@ -598,6 +598,82 @@ describe("serializeContext — implementation context", () => {
       await rm(root, { recursive: true, force: true })
     }
   })
+
+  test("projects digest-bound pre-run bytes separately from stale task fixtures", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "workspace-pre-run-inputs-"))
+    const optimizeDir = path.join(root, "optimize")
+    const taskDir = path.join(root, "task")
+    const snapshotDir = path.join(root, "source-inputs")
+    try {
+      await mkdir(taskDir, { recursive: true })
+      await mkdir(path.join(snapshotDir, "files"), { recursive: true })
+      const taskPath = path.join(taskDir, "task.json")
+      await writeFile(taskPath, JSON.stringify({
+        id: "same-name-input",
+        fixtures: { "input.bin": "stale-task-fixture" },
+      }))
+      const inputBytes = Uint8Array.from([0xff, 0x00, 0x01])
+      const inputSha = new Bun.CryptoHasher("sha256").update(inputBytes).digest("hex")
+      const snapshotText = `${JSON.stringify({
+        schemaVersion: "skvm-pre-run-input-snapshot/v1",
+        limits: { maxFileBytes: 64 * 1024, maxTotalBytes: 512 * 1024 },
+        entries: [{
+          path: "input.bin",
+          type: "file",
+          status: "captured",
+          sha256: inputSha,
+          bytes: inputBytes.byteLength,
+          contentPath: "files/input.bin",
+          mediaType: "binary",
+        }],
+      }, null, 2)}\n`
+      const snapshotPath = path.join(snapshotDir, "manifest.json")
+      await Bun.write(path.join(snapshotDir, "files", "input.bin"), inputBytes)
+      await Bun.write(snapshotPath, snapshotText)
+      const evidence = ev("same-name-input", "consume the original input", []) as any
+      evidence.trace = {
+        format: "test-trace",
+        representation: "run-summary",
+        sourcePath: path.join(root, "trace.jsonl"),
+        inputSha256: "a".repeat(64),
+        recordLocator: "line:1",
+        taskIdSource: "source",
+        taskPath,
+        unknownFields: [],
+        diagnostics: [],
+      }
+      evidence.inputResources = {
+        preRun: {
+          source: "pre-run-input-snapshot",
+          reference: {
+            path: snapshotPath,
+            sha256: new Bun.CryptoHasher("sha256").update(snapshotText).digest("hex"),
+            bytes: Buffer.byteLength(snapshotText),
+          },
+        },
+      }
+
+      await serializeContext(optimizeDir, [evidence], [])
+
+      const context = JSON.parse(await readFile(path.join(optimizeDir, "IMPLEMENTATION_CONTEXT.json"), "utf8"))
+      expect(context.evidence[0].preRunInputs).toMatchObject({
+        status: "materialized",
+        files: [{
+          path: "input.bin",
+          locator: ".optimize/tasks/same-name-input/run-0-pre-run-inputs/input.bin",
+          bytes: 3,
+          sha256: inputSha,
+          mediaType: "binary",
+        }],
+      })
+      expect(await Bun.file(path.join(optimizeDir, "tasks", "same-name-input", "run-0-pre-run-inputs", "input.bin")).bytes())
+        .toEqual(inputBytes)
+      expect(await readFile(path.join(optimizeDir, "tasks", "same-name-input", "run-0-task-fixtures", "input.bin"), "utf8"))
+        .toBe("stale-task-fixture")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
 })
 
 describe("source skill resource navigation", () => {

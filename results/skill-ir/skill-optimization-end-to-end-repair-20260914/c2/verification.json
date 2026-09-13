@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-c2-verification/v1",
+  "identity": "skill-optimization-end-to-end-repair-20260914",
+  "stage": "C2",
+  "status": "passed",
+  "createdAt": "2026-09-14T22:53:00+08:00",
+  "redEvidence": [
+    {
+      "case": "session adapter to Evidence",
+      "command": "bun test ./test/jit-optimize/trace-adapters.test.ts",
+      "observed": "The new digest-bound session fixture produced a record but no inputResources.preRun reference.",
+      "failureClass": "missing-adapter-propagation"
+    },
+    {
+      "case": "Evidence to workspace",
+      "command": "bun test ./test/jit-optimize/workspace.test.ts",
+      "observed": "IMPLEMENTATION_CONTEXT had no preRunInputs projection and no independent pre-run byte directory.",
+      "failureClass": "missing-workspace-projection"
+    },
+    {
+      "case": "Evidence to validation",
+      "command": "bun test ./test/jit-optimize/validation-lifecycle.test.ts",
+      "observed": "A pre-run binary case remained unresolved because the input-source enum and materializer had no saved-byte path.",
+      "failureClass": "missing-validation-source"
+    }
+  ],
+  "implementation": {
+    "evidenceField": "Evidence.inputResources.preRun",
+    "referenceKind": "skvm-pre-run-input-snapshot/v1",
+    "sharedReader": "readPreRunInputSnapshotContents",
+    "workspaceNamespace": ".optimize/tasks/<safeTaskId>/run-N-pre-run-inputs/",
+    "validationInputSource": "pre-run-input-snapshot",
+    "binaryRepresentation": "Uint8Array",
+    "staleFixturePolicy": "fail-closed when a task-fixture path differs from or is omitted in the captured pre-run state"
+  },
+  "verification": {
+    "command": "bun test ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/record.test.ts ./test/jit-optimize/optimizer-prompt.test.ts",
+    "passed": 90,
+    "failed": 0,
+    "assertions": 358,
+    "typecheck": {
+      "command": "bun run typecheck",
+      "status": "passed"
+    },
+    "handoffRegression": {
+      "command": "bun test ./test/run/optimization-handoff.test.ts",
+      "passed": 11,
+      "failed": 0,
+      "assertions": 47,
+      "note": "The fixture now writes the same digest-bound pre-run snapshot required by the production handoff gate."
+    }
+  },
+  "coverage": [
+    "digest-bound adapter reference and tamper rejection",
+    "sidecar persistence of optional input resource reference",
+    "separate task-fixture/pre-run/workdir namespaces",
+    "binary byte-preserving workspace and validation materialization",
+    "live workdir deletion does not change validation input",
+    "same-name stale task-fixture rejection",
+    "old traces without the optional field remain readable",
+    "optimizer prompt names the new source and locator"
+  ],
+  "costAccounting": {
+    "projectModelCalls": 0,
+    "remoteApiCalls": 0,
+    "paidCalls": 0,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "claimBoundary": "Development implementation evidence only. C2 proves byte-preserving propagation into Evidence, workspace and local validation for the designed cases. It does not establish a generated program, package export, natural consumption, behavior improvement, human savings, prospective readiness, held-out performance or real API correctness."
+}

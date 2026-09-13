@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C1 已完成，C2 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
+**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C2 已完成，C3 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -96,14 +96,16 @@
 
 ## C2 — 输入真正进入 Evidence、模型与验证器
 
+> C2 implementation is complete: pre-run input resources now flow through adapter, Evidence, workspace, and validation; C3 is the active stage.
+
 **修改与测试：** `types.ts`、`trace-adapters.ts`、`workspace.ts`、`validation-lifecycle.ts`；对应现有测试。
 
-- [ ] 写穿透红例：C1 的自然目录输入经过 session adapter、Evidence、workspace 后，在 `IMPLEMENTATION_CONTEXT` 中显示为可物化输入；验证器能在独立目录运行参数化程序消费相同原始字节，不依赖仍存在的用户目录。
-- [ ] 使用兼容的可选输入资源引用表示新增内容；task-fixtures、pre-run 内容、observed workdir 输出明确分源。解析入口集中在既有资源解析职责，不在模型提示、validator、exporter 各实现一次。
-- [ ] 原始 task-fixtures 如与 pre-run 同名但内容不同，按真实运行前最终物化状态选择输入并保留来源；禁止静默优先采用过时 fixture。输入/输出同名也必须可区分。
-- [ ] 模型得到明确的可用相对 locator、参数来源和格式；不能只是新增日志路径让模型猜，也不把二进制硬塞入字符串 JSON。旧 trace 无新字段继续可读，对依赖缺内容的动作保留 missing-input。
-- [ ] 改变用户现场文件或删除原 workdir 后，独立验证仍使用保存的输入；必要遗漏只影响该动作。写局部未齐但其他案例执行的测试。
-- [ ] 红绿通过后提交。不要自动为旧 session 回填无法恢复的原始内容。
+- [x] 写穿透红例：C1 的自然目录输入经过 session adapter、Evidence、workspace 后，在 `IMPLEMENTATION_CONTEXT` 中显示为可物化输入；验证器能在独立目录运行参数化程序消费相同原始字节，不依赖仍存在的用户目录。
+- [x] 使用兼容的可选输入资源引用表示新增内容；task-fixtures、pre-run 内容、observed workdir 输出明确分源。解析入口集中在 `readPreRunInputSnapshotContents`，不在模型提示、validator、exporter 各实现一次。
+- [x] 原始 task-fixtures 如与 pre-run 同名但内容不同，按真实运行前最终物化状态选择输入并保留来源；validation 对过时或被省略的 task-fixture 绑定 fail closed，要求显式使用 pre-run 来源。输入/输出同名保持不同 namespace。
+- [x] 模型得到 `.optimize/tasks/<safeTaskId>/run-N-pre-run-inputs/` 相对 locator、摘要、字节数、media type、格式和 omission；二进制保持 `Uint8Array`，旧 trace 无新字段继续可读，对缺内容动作保留 unresolved/missing-input。
+- [x] 改变或删除用户现场文件后，独立验证仍使用保存的输入；快照损坏、内容摘要漂移和写投影失败均局部 fail closed，不伪装为空输入。
+- [x] 红绿通过后提交。旧 session 不回填无法恢复的原始内容。
 
 **验证：** `bun test ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/validation-lifecycle.test.ts`。
 

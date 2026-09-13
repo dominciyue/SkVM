@@ -9,8 +9,9 @@ import path from "node:path"
 import { mkdir, mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises"
 import { copySkillDir } from "../core/fs-utils.ts"
 import { getTmpDir } from "../core/config.ts"
+import { readPreRunInputSnapshotContents } from "../run/pre-run-input-snapshot.ts"
 import { scoreFromCriteria } from "./evidence.ts"
-import type { Evidence, EvidenceCriterion, HistoryEntry } from "./types.ts"
+import type { Evidence, EvidenceCriterion, EvidenceInputResources, HistoryEntry } from "./types.ts"
 
 /**
  * Per-task status thresholds. A task mean at or above `PASSING` is
@@ -171,6 +172,28 @@ interface TaskFixtureProjection {
     maxFileBytes: number
     maxTotalBytes: number
   }
+}
+
+interface PreRunInputProjectionFile {
+  path: string
+  bytes: number
+  sha256: string
+  mediaType: "text" | "binary"
+}
+
+interface PreRunInputProjection {
+  schemaVersion: "jit-optimize-pre-run-inputs/v1"
+  status: "materialized" | "empty" | "partial" | "unavailable" | "unresolved"
+  reference: { path: string; sha256: string; bytes: number } | null
+  files: PreRunInputProjectionFile[]
+  omissions: Array<{
+    path: string
+    type: "file" | "symbolic-link" | "other"
+    reason: "file-too-large" | "total-cap-exceeded" | "unreadable" | "unsupported"
+    bytes?: number
+  }>
+  limits?: { maxFileBytes: number; maxTotalBytes: number }
+  diagnostic?: { code: string; message: string }
 }
 
 interface ImplementationFormatObservation {
@@ -483,6 +506,89 @@ async function materializeTaskFixtures(taskDir: string, localIndex: number, task
   )
 }
 
+async function materializePreRunInputs(
+  taskDir: string,
+  localIndex: number,
+  resource: EvidenceInputResources["preRun"] | undefined,
+): Promise<PreRunInputProjection> {
+  const inputDir = path.join(taskDir, `run-${localIndex}-pre-run-inputs`)
+  const manifestPath = path.join(taskDir, `run-${localIndex}-pre-run-inputs-manifest.json`)
+  const reference = resource?.reference ?? null
+  let projection: PreRunInputProjection
+  if (!resource) {
+    projection = {
+      schemaVersion: "jit-optimize-pre-run-inputs/v1",
+      status: "unavailable",
+      reference,
+      files: [],
+      omissions: [],
+    }
+  } else {
+    try {
+      const loaded = await readPreRunInputSnapshotContents(resource.reference)
+      const omissions = loaded.snapshot.entries
+        .filter((entry) => entry.status === "omitted")
+        .map((entry) => ({
+          path: entry.path,
+          type: entry.type,
+          reason: entry.reason,
+          ...(entry.bytes === undefined ? {} : { bytes: entry.bytes }),
+        }))
+      const files = loaded.files.map(({ content: _content, ...file }) => file)
+      const status: PreRunInputProjection["status"] = files.length === 0
+        ? omissions.length === 0 ? "empty" : "unresolved"
+        : omissions.length > 0 ? "partial" : "materialized"
+      try {
+        await rm(inputDir, { recursive: true, force: true })
+        for (const file of loaded.files) {
+          const destination = path.join(inputDir, ...file.path.split("/"))
+          await mkdir(path.dirname(destination), { recursive: true })
+          await Bun.write(destination, file.content)
+        }
+      } catch (error) {
+        await rm(inputDir, { recursive: true, force: true })
+        projection = {
+          schemaVersion: "jit-optimize-pre-run-inputs/v1",
+          status: "unresolved",
+          reference,
+          files: [],
+          omissions,
+          limits: loaded.snapshot.limits,
+          diagnostic: {
+            code: "pre-run-input-projection-write-failed",
+            message: `Could not write the complete pre-run input projection: ${String(error)}`,
+          },
+        }
+        await Bun.write(manifestPath, JSON.stringify(projection, null, 2))
+        return projection
+      }
+      projection = {
+        schemaVersion: "jit-optimize-pre-run-inputs/v1",
+        status,
+        reference,
+        files,
+        omissions,
+        limits: loaded.snapshot.limits,
+      }
+    } catch (error) {
+      await rm(inputDir, { recursive: true, force: true })
+      projection = {
+        schemaVersion: "jit-optimize-pre-run-inputs/v1",
+        status: "unresolved",
+        reference,
+        files: [],
+        omissions: [],
+        diagnostic: {
+          code: "pre-run-input-snapshot-invalid",
+          message: `Could not read the digest-bound pre-run input snapshot: ${String(error)}`,
+        },
+      }
+    }
+  }
+  await Bun.write(manifestPath, JSON.stringify(projection, null, 2))
+  return projection
+}
+
 function observedFormat(filePath: string, content: Uint8Array | string): ImplementationFormatObservation {
   const extension = path.extname(filePath).toLowerCase()
   const text = typeof content === "string" ? content : new TextDecoder("utf-8").decode(content)
@@ -536,6 +642,7 @@ function sourceRuntime(filePath: string): "python" | "node" | "shell" | "powersh
 async function buildImplementationContext(
   skillDir: string | undefined,
   groups: TaskGroup[],
+  optimizeDir: string,
 ): Promise<object> {
   let skillText = ""
   if (skillDir) {
@@ -597,6 +704,45 @@ async function buildImplementationContext(
           format: observedFormat(file.path, file.content),
         }))
       }
+      const taskDir = path.join(optimizeDir, "tasks", group.safeId)
+      await mkdir(taskDir, { recursive: true })
+      const preRunProjection = await materializePreRunInputs(
+        taskDir,
+        run.localIndex,
+        run.evidence.inputResources?.preRun,
+      )
+      const preRunInputFiles = await Promise.all(preRunProjection.files.map(async (file) => {
+        const projectedPath = path.join(taskDir, `run-${run.localIndex}-pre-run-inputs`, ...file.path.split("/"))
+        let content = new Uint8Array()
+        try {
+          content = new Uint8Array(await Bun.file(projectedPath).arrayBuffer())
+        } catch {
+          // The projection manifest remains authoritative about the missing
+          // file; keep a conservative format marker instead of guessing.
+        }
+        return {
+          path: file.path,
+          locator: `.optimize/tasks/${group.safeId}/run-${run.localIndex}-pre-run-inputs/${file.path}`,
+          bytes: file.bytes,
+          sha256: file.sha256,
+          mediaType: file.mediaType,
+          format: file.mediaType === "binary"
+            ? { kind: "binary-or-unknown" as const }
+            : observedFormat(file.path, content),
+        }
+      }))
+      const preRunInputs = {
+        source: "pre-run-input-snapshot",
+        status: preRunProjection.status,
+        manifestPath: `.optimize/tasks/${group.safeId}/run-${run.localIndex}-pre-run-inputs-manifest.json`,
+        ...(preRunProjection.reference
+          ? { reference: { sha256: preRunProjection.reference.sha256, bytes: preRunProjection.reference.bytes } }
+          : {}),
+        ...(preRunProjection.limits ? { limits: preRunProjection.limits } : {}),
+        files: preRunInputFiles,
+        omissions: preRunProjection.omissions,
+        ...(preRunProjection.diagnostic ? { diagnostic: preRunProjection.diagnostic } : {}),
+      }
       const observedOutputs = [...(run.evidence.workDirSnapshot?.files ?? new Map<string, string>())]
         .map(([filePath, content]) => {
           const portable = filePath.replaceAll("\\", "/")
@@ -618,6 +764,7 @@ async function buildImplementationContext(
           manifestPath: fixtureManifestPath,
           files: inputFiles,
         },
+        preRunInputs,
         observedOutputs,
         checks: (run.evidence.criteria ?? []).map((criterion) => ({
           id: criterion.id,
@@ -664,7 +811,7 @@ export async function serializeContext(
   )
   await Bun.write(
     path.join(optimizeDir, "IMPLEMENTATION_CONTEXT.json"),
-    JSON.stringify(await buildImplementationContext(opts.skillDir, groups), null, 2),
+    JSON.stringify(await buildImplementationContext(opts.skillDir, groups, optimizeDir), null, 2),
   )
 
   // README: navigation guide
@@ -1147,6 +1294,7 @@ function serializeEvidenceJson(ev: Evidence): object {
     taskPrompt: ev.taskPrompt,
     criteria: ev.criteria ?? null,
     runMeta: ev.runMeta ?? null,
+    inputResources: ev.inputResources ?? null,
     trace: ev.trace ?? null,
     conversationLogEntries: ev.conversationLog.length,
     workDirFileCount: ev.workDirSnapshot?.files.size ?? 0,
@@ -1290,6 +1438,19 @@ function renderEvidenceMarkdown(
     parts.push(`- files, when manifest status is \`materialized\`: \`${fixturePath}/\``)
     parts.push(`- meaning: original pre-run inputs bound by the trace taskPath; these are not evaluator expectations or files produced by the observed run.`)
     parts.push(`- completeness: treat status \`unresolved\` as a hard evidence gap. Do not infer or recreate skipped inputs.`)
+    parts.push("")
+  }
+
+  if (ev.inputResources?.preRun) {
+    const inputPath = `.optimize/tasks/${group.safeId}/run-${run.localIndex}-pre-run-inputs`
+    const manifestPath = `${inputPath}-manifest.json`
+    parts.push(`## Original Pre-Run Inputs`)
+    parts.push("")
+    parts.push(`- source: digest-bound \`skvm-pre-run-input-snapshot/v1\``)
+    parts.push(`- manifest: \`${manifestPath}\``)
+    parts.push(`- captured files, when available: \`${inputPath}/\``)
+    parts.push(`- meaning: bytes captured before the source agent or adapter could mutate the live workdir; this namespace is distinct from task fixtures and observed outputs.`)
+    parts.push(`- incomplete or omitted entries remain listed in the manifest and must not be guessed or replaced with current workdir bytes.`)
     parts.push("")
   }
 
@@ -1460,6 +1621,11 @@ of this skill.
     \`run-N-task-fixtures-manifest.json\` binds their hashes and completeness;
     these files are not evaluator expectations or observed outputs.
   - \`run-N-workdir/\` — files the agent left in its work directory (if recorded).
+
+  - \`run-N-pre-run-inputs/\` — digest-bound bytes captured from the real
+    workdir before the source run. The adjacent
+    \`run-N-pre-run-inputs-manifest.json\` records captured and omitted entries;
+    this namespace is distinct from task fixtures and observed outputs.
 
   Directories for this session:
 ${dirListing}

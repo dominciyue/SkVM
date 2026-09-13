@@ -475,6 +475,7 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     const durablePath = path.join(dir, "runtime-trace.jsonl")
     const resultPath = path.join(dir, "run-result.json")
     const initialPath = path.join(dir, "initial-workdir-manifest.json")
+    const inputSnapshotPath = path.join(dir, "source-inputs", "manifest.json")
     const observedPath = path.join(dir, "observed-workdir-snapshot.json")
     const evaluationPath = path.join(dir, "source-evaluation.json")
     const manifestPath = path.join(dir, "optimization-session.json")
@@ -497,6 +498,21 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     })}\n`
     const initialText = `${JSON.stringify({ schemaVersion: "skvm-initial-workdir-manifest/v1", workDir: path.join(dir, "work"), entries: [] })}\n`
     const outputSecret = "token=output-secret"
+    const inputBytes = Uint8Array.from([0xff, 0x00, 0x01])
+    const inputSha = new Bun.CryptoHasher("sha256").update(inputBytes).digest("hex")
+    const inputManifest = `${JSON.stringify({
+      schemaVersion: "skvm-pre-run-input-snapshot/v1",
+      limits: { maxFileBytes: 64 * 1024, maxTotalBytes: 512 * 1024 },
+      entries: [{
+        path: "input.bin",
+        type: "file",
+        status: "captured",
+        sha256: inputSha,
+        bytes: inputBytes.byteLength,
+        contentPath: "files/input.bin",
+        mediaType: "binary",
+      }],
+    }, null, 2)}\n`
     const observedText = `${JSON.stringify({
       schemaVersion: "skvm-observed-workdir-snapshot/v1",
       files: [{
@@ -526,6 +542,8 @@ describe("loadEvidencesFromLogs adapter integration", () => {
       Bun.write(durablePath, durableText),
       Bun.write(resultPath, resultText),
       Bun.write(initialPath, initialText),
+      Bun.write(path.join(dir, "source-inputs", "files", "input.bin"), inputBytes),
+      Bun.write(inputSnapshotPath, inputManifest),
       Bun.write(observedPath, observedText),
       Bun.write(evaluationPath, evaluationText),
     ])
@@ -554,6 +572,7 @@ describe("loadEvidencesFromLogs adapter integration", () => {
         durableTrace: { path: durablePath, sha256: sha(durableText), bytes: Buffer.byteLength(durableText) },
         runResult: { path: resultPath, sha256: sha(resultText), bytes: Buffer.byteLength(resultText) },
         initialWorkdirManifest: { path: initialPath, sha256: sha(initialText), bytes: Buffer.byteLength(initialText) },
+        preRunInputSnapshot: { path: inputSnapshotPath, sha256: sha(inputManifest), bytes: Buffer.byteLength(inputManifest) },
         observedWorkdirSnapshot: { path: observedPath, sha256: sha(observedText), bytes: Buffer.byteLength(observedText) },
         sourceEvaluation: { path: evaluationPath, sha256: sha(evaluationText), bytes: Buffer.byteLength(evaluationText) },
       },
@@ -563,6 +582,7 @@ describe("loadEvidencesFromLogs adapter integration", () => {
         conversation: { status: "complete" },
         durable: { status: "complete", finalized: true },
         runResult: { status: "complete" },
+        sourceInputs: { status: "complete" },
         observedOutputs: { status: "complete" },
         sourceEvaluation: { status: "complete" },
       },
@@ -579,6 +599,14 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     expect(adapted.records[0]!.source.usage).toMatchObject({ inputTokens: 5, outputTokens: 2 })
     expect(adapted.records[0]!.workDirSnapshot?.files.get("artifact.txt")).toContain("REDACTED")
     expect(adapted.records[0]!.criteria).toMatchObject([{ id: "artifact", passed: true, score: 1 }])
+    expect(adapted.records[0]!).toMatchObject({
+      inputResources: {
+        preRun: {
+          source: "pre-run-input-snapshot",
+          reference: { path: inputSnapshotPath, sha256: sha(inputManifest), bytes: Buffer.byteLength(inputManifest) },
+        },
+      },
+    })
     expect(serialized).not.toContain("source-secret")
     expect(serialized).not.toContain("runtime-secret")
     expect(serialized).not.toContain("final-secret")
@@ -590,5 +618,11 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     const tampered = await adaptTraceFile(manifestPath)
     expect(tampered.records).toEqual([])
     expect(tampered.diagnostics.some((item) => item.code === "session-artifact-digest-mismatch")).toBe(true)
+
+    await Bun.write(conversationPath, conversationText)
+    await Bun.write(path.join(dir, "source-inputs", "files", "input.bin"), Uint8Array.from([0xfe, 0x00, 0x01]))
+    const tamperedInput = await adaptTraceFile(manifestPath)
+    expect(tamperedInput.records).toEqual([])
+    expect(tamperedInput.diagnostics.some((item) => item.code === "session-pre-run-input-invalid")).toBe(true)
   })
 })

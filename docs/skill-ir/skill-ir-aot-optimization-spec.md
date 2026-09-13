@@ -2386,11 +2386,11 @@ H 路线优先将现有组件接入真实日志优化路径：动作实施后执
 
 ## 14.32 原始输入、动作修复与同一新包的生产闭环
 
-2026-09-14 二次复核及执行合同，状态 active。执行依据为[新任务书 C0–C10](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)。C0–C1 已完成：运行前用户文件现有界保存为 session 外部内容快照并与旧摘要 manifest 分开绑定；C2 正在把同一份副本接入 Evidence/workspace/验证器，本节不提前声明后续能力已实现。
+2026-09-14 二次复核及执行合同，状态 active。执行依据为[新任务书 C0–C10](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)。C0–C2 已完成：运行前用户文件现有界保存为 session 外部内容快照并与旧摘要 manifest 分开绑定；同一份副本现通过 Evidence 的 `inputResources.preRun` 进入 workspace 和验证器，旧 trace 继续兼容。C3 进入现成脚本本地动作路线，本节不提前声明后续能力已实现。
 
 14.31 的历史基础设施和局部程序结果有效，但不能拼接为默认生产闭环成功：R6 当前候选最终 no-change 后消费历史 H8/H9 包，R7 从已优化 H9 包得到零程序动作的文档候选。新路线要求同一个原始 skill 的本次 capture、proposal、最终 snapshot、导出包和自然消费保持连续；旧包仅作回归对照。
 
-**输入合同：** 用户提供自然任务和已有工作目录，系统在执行前有界保存相关原始内容，并传给 Evidence、workspace 和验证器。路径/摘要清单不替代内容；task fixtures、pre-run 内容和 observed outputs 分源，输入被改写/删除后仍可重放保存的原始版本。binary、大小限制与不可读项如实局部遗漏，不写成空输入或拒绝整个 skill。旧日志缺少可恢复内容时不伪造原始输入。
+**输入合同：** 用户提供自然任务和已有工作目录，系统在执行前有界保存相关原始内容，并通过 `inputResources.preRun` 传给 Evidence、workspace 和验证器。路径/摘要清单不替代内容；task fixtures、pre-run 内容和 observed outputs 分源，输入被改写/删除后仍可重放保存的原始版本。workspace 使用 `.optimize/tasks/<safeTaskId>/run-N-pre-run-inputs/` 独立 namespace，validation 以 `pre-run-input-snapshot` 显式选择来源；同名且字节漂移的 task-fixture 绑定 fail closed。binary、大小限制与不可读项如实局部遗漏，不写成空输入或拒绝整个 skill。旧日志缺少可恢复内容时不伪造原始输入。
 
 **本地程序合同：** 现成脚本可通过通用本地路径复用并改进，优先沿用 reuse-script 加实际 changedPaths；无需为每个 skill 注册 domain backend。新增程序、既有程序修改和文档改进分别报告。动作字段错误、缺资源、程序运行错误、输出错误分开；仅文字验证建议或入口存在不构成行为通过。
 

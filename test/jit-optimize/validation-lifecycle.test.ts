@@ -79,6 +79,197 @@ async function evidenceWithFixture(options: {
 }
 
 describe("deriveProgramValidationPlan", () => {
+  test("materializes the saved pre-run bytes after the live workdir is gone", async () => {
+    const validationRoot = await tempDir("validation-lifecycle-pre-run-inputs-")
+    const root = await tempDir("validation-lifecycle-pre-run-source-")
+    const taskPath = path.join(root, "task.json")
+    const liveWorkDir = path.join(root, "live-workdir")
+    const snapshotDir = path.join(root, "source-inputs")
+    await mkdir(path.join(snapshotDir, "files"), { recursive: true })
+    await mkdir(liveWorkDir, { recursive: true })
+    await writeFile(taskPath, JSON.stringify({
+      id: "pre-run-input",
+      fixtures: { "input.bin": "stale-task-fixture" },
+    }))
+    await writeFile(path.join(liveWorkDir, "input.bin"), "mutated-live-workdir")
+    const inputBytes = Uint8Array.from([0xff, 0x00, 0x01])
+    const inputSha = new Bun.CryptoHasher("sha256").update(inputBytes).digest("hex")
+    const snapshotText = `${JSON.stringify({
+      schemaVersion: "skvm-pre-run-input-snapshot/v1",
+      limits: { maxFileBytes: 64 * 1024, maxTotalBytes: 512 * 1024 },
+      entries: [{
+        path: "input.bin",
+        type: "file",
+        status: "captured",
+        sha256: inputSha,
+        bytes: inputBytes.byteLength,
+        contentPath: "files/input.bin",
+        mediaType: "binary",
+      }],
+    }, null, 2)}\n`
+    const snapshotPath = path.join(snapshotDir, "manifest.json")
+    await Bun.write(path.join(snapshotDir, "files", "input.bin"), inputBytes)
+    await Bun.write(snapshotPath, snapshotText)
+    await rm(liveWorkDir, { recursive: true, force: true })
+
+    const evidence = {
+      taskId: "pre-run-input",
+      taskPrompt: "consume the original input",
+      conversationLog: [],
+      trace: {
+        format: "test-trace",
+        representation: "run-summary",
+        sourcePath: path.join(root, "trace.jsonl"),
+        inputSha256: "a".repeat(64),
+        recordLocator: "line:1",
+        taskIdSource: "source",
+        taskPath,
+        workDirPath: liveWorkDir,
+        unknownFields: [],
+        diagnostics: [],
+      },
+      inputResources: {
+        preRun: {
+          source: "pre-run-input-snapshot",
+          reference: {
+            path: snapshotPath,
+            sha256: new Bun.CryptoHasher("sha256").update(snapshotText).digest("hex"),
+            bytes: Buffer.byteLength(snapshotText),
+          },
+        },
+      },
+    } as any
+    const action = {
+      id: "consume-pre-run-input",
+      kind: "generate-script",
+      evidenceIds: ["0"],
+      sourceRefs: ["SKILL.md#input"],
+      dependsOn: [],
+      inputs: ["original input"],
+      outputs: ["result"],
+      preconditions: [],
+      changedPaths: ["scripts/convert.mjs"],
+      residualDuties: [],
+      verification: [],
+      validation: {
+        cases: [{
+          id: "saved-input",
+          evidenceId: "0",
+          inputSource: "pre-run-input-snapshot",
+          inputFiles: [".optimize/tasks/pre-run-input/run-0-pre-run-inputs/input.bin"],
+          args: ["--input", ".optimize/tasks/pre-run-input/run-0-pre-run-inputs/input.bin"],
+          expectedFiles: [],
+          basis: "self-check",
+          sourceRefs: ["evidence:0#input/input.bin"],
+        }],
+      },
+    } as unknown as OptimizationAction
+
+    const plan = await deriveProgramValidationPlan({
+      action,
+      implementation: implementation(action.id),
+      evidences: [evidence],
+      validationRoot,
+    })
+
+    expect(plan.status).toBe("ready")
+    expect(plan.diagnostics).toEqual([])
+    expect(plan.cases[0]!.args).toEqual(["--input", "input.bin"])
+    expect(await Bun.file(path.join(plan.cases[0]!.cwd, "input.bin")).bytes()).toEqual(inputBytes)
+    expect(plan.caseEvidence[0]!.inputDigests).toEqual({ "input.bin": inputSha })
+  })
+
+  test("rejects a stale task-fixture binding when the captured pre-run bytes differ", async () => {
+    const validationRoot = await tempDir("validation-lifecycle-stale-fixture-")
+    const root = await tempDir("validation-lifecycle-stale-source-")
+    const taskPath = path.join(root, "task.json")
+    const snapshotDir = path.join(root, "source-inputs")
+    await mkdir(path.join(snapshotDir, "files"), { recursive: true })
+    await writeFile(taskPath, JSON.stringify({ id: "stale", fixtures: { "input.txt": "declared-old" } }))
+    const currentBytes = new TextEncoder().encode("captured-new")
+    const currentSha = new Bun.CryptoHasher("sha256").update(currentBytes).digest("hex")
+    const snapshotText = `${JSON.stringify({
+      schemaVersion: "skvm-pre-run-input-snapshot/v1",
+      limits: { maxFileBytes: 64 * 1024, maxTotalBytes: 512 * 1024 },
+      entries: [{
+        path: "input.txt",
+        type: "file",
+        status: "captured",
+        sha256: currentSha,
+        bytes: currentBytes.byteLength,
+        contentPath: "files/input.txt",
+        mediaType: "text",
+      }],
+    }, null, 2)}\n`
+    const snapshotPath = path.join(snapshotDir, "manifest.json")
+    await Bun.write(path.join(snapshotDir, "files", "input.txt"), currentBytes)
+    await Bun.write(snapshotPath, snapshotText)
+    const evidence = {
+      taskId: "stale",
+      taskPrompt: "use the input",
+      conversationLog: [],
+      trace: {
+        format: "test-trace",
+        representation: "run-summary",
+        sourcePath: path.join(root, "trace.jsonl"),
+        inputSha256: "a".repeat(64),
+        recordLocator: "line:1",
+        taskIdSource: "source",
+        taskPath,
+        unknownFields: [],
+        diagnostics: [],
+      },
+      inputResources: {
+        preRun: {
+          source: "pre-run-input-snapshot",
+          reference: {
+            path: snapshotPath,
+            sha256: new Bun.CryptoHasher("sha256").update(snapshotText).digest("hex"),
+            bytes: Buffer.byteLength(snapshotText),
+          },
+        },
+      },
+    } as any
+    const action = {
+      id: "stale-fixture-action",
+      kind: "generate-script",
+      evidenceIds: ["0"],
+      sourceRefs: [],
+      dependsOn: [],
+      inputs: [],
+      outputs: [],
+      preconditions: [],
+      changedPaths: ["scripts/convert.mjs"],
+      residualDuties: [],
+      verification: [],
+      validation: {
+        cases: [{
+          id: "stale-case",
+          evidenceId: "0",
+          inputSource: "task-fixtures",
+          inputFiles: ["input.txt"],
+          args: ["input.txt"],
+          basis: "self-check",
+          sourceRefs: [],
+        }],
+      },
+    } as unknown as OptimizationAction
+
+    const plan = await deriveProgramValidationPlan({
+      action,
+      implementation: implementation(action.id),
+      evidences: [evidence],
+      validationRoot,
+    })
+
+    expect(plan.status).toBe("unresolved")
+    expect(plan.cases).toEqual([])
+    expect(plan.diagnostics).toContainEqual(expect.objectContaining({
+      code: "validation-input-source-stale",
+      caseId: "stale-case",
+    }))
+  })
+
   test("materializes real task resources and follows changed input paths with reference-bound checks", async () => {
     const validationRoot = await tempDir("validation-lifecycle-root-")
     const evidences = [

@@ -1,6 +1,7 @@
 import path from "node:path"
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { EvalCriterionSchema, type EvalCriterion } from "../core/types.ts"
+import { readPreRunInputSnapshotContents } from "../run/pre-run-input-snapshot.ts"
 import type { ImplementationSelection } from "./implementations.ts"
 import { selectOptimizationImplementations } from "./implementations.ts"
 import {
@@ -34,8 +35,10 @@ export interface ProgramValidationPlanDiagnostic {
     | "validation-evidence-not-declared"
     | "validation-input-path-invalid"
     | "validation-input-source-mismatch"
+    | "validation-input-source-stale"
     | "validation-input-missing"
     | "validation-task-source-unavailable"
+    | "validation-pre-run-source-unavailable"
     | "validation-reference-path-invalid"
     | "validation-reference-missing"
     | "validation-reference-required"
@@ -187,7 +190,7 @@ export interface RunOptimizationValidationLifecycleResult {
   summary: OptimizationRoundValidationSummary
 }
 
-function sha256(value: string): string {
+function sha256(value: string | Uint8Array): string {
   return new Bun.CryptoHasher("sha256").update(value).digest("hex")
 }
 
@@ -233,11 +236,13 @@ function sourceRelativeEvidenceLocator(
   expectedSource: ValidationInputSource,
 ): { relative?: string; diagnostic?: ProgramValidationPlanDiagnostic } {
   const portable = value.replaceAll("\\", "/")
-  const projected = /^\.optimize\/tasks\/[^/]+\/run-\d+-(task-fixtures|workdir)\/(.+)$/u.exec(portable)
+  const projected = /^\.optimize\/tasks\/[^/]+\/run-\d+-(task-fixtures|pre-run-inputs|workdir)\/(.+)$/u.exec(portable)
   if (!projected) return { relative: portableRelative(portable) }
   const projectedSource: ValidationInputSource = projected[1] === "task-fixtures"
     ? "task-fixtures"
-    : "workdir-snapshot"
+    : projected[1] === "pre-run-inputs"
+      ? "pre-run-input-snapshot"
+      : "workdir-snapshot"
   if (projectedSource !== expectedSource) {
     return {
       diagnostic: {
@@ -434,6 +439,23 @@ async function taskFixtures(evidence: Evidence): Promise<Record<string, string> 
     return fixtures
   } catch {
     return undefined
+  }
+}
+
+interface PreRunInputLookup {
+  files: Map<string, Uint8Array>
+  omitted: Set<string>
+}
+
+async function preRunInputs(evidence: Evidence): Promise<PreRunInputLookup | undefined> {
+  const resource = evidence.inputResources?.preRun
+  if (!resource) return undefined
+  const loaded = await readPreRunInputSnapshotContents(resource.reference)
+  return {
+    files: new Map(loaded.files.map((file) => [file.path, file.content] as const)),
+    omitted: new Set(loaded.snapshot.entries
+      .filter((entry) => entry.status === "omitted")
+      .map((entry) => entry.path)),
   }
 }
 
@@ -710,7 +732,60 @@ async function materializeCase(options: {
     return undefined
   }
 
-  const inputs: Array<{ relative: string; content: string }> = []
+  let savedPreRunInputs: PreRunInputLookup | undefined
+  if (suggestion.inputSource === "pre-run-input-snapshot") {
+    if (!options.evidence.inputResources?.preRun) {
+      options.diagnostics.push({
+        code: "validation-pre-run-source-unavailable",
+        caseId: suggestion.id,
+        message: `Evidence ${suggestion.evidenceId} has no digest-bound pre-run input snapshot.`,
+      })
+      return undefined
+    }
+    try {
+      savedPreRunInputs = await preRunInputs(options.evidence)
+    } catch (error) {
+      options.diagnostics.push({
+        code: "validation-pre-run-source-unavailable",
+        caseId: suggestion.id,
+        message: `Evidence ${suggestion.evidenceId} pre-run input snapshot is unreadable: ${String(error)}`,
+      })
+      return undefined
+    }
+  }
+
+  if (suggestion.inputSource === "task-fixtures" && options.evidence.inputResources?.preRun) {
+    try {
+      const saved = await preRunInputs(options.evidence)
+      const requested = suggestion.inputFiles
+        .map((inputPath) => sourceRelativeEvidenceLocator(inputPath, suggestion.inputSource).relative)
+        .filter((relative): relative is string => relative !== undefined)
+      const stale = requested.filter((relative) => {
+        if (saved?.omitted.has(relative)) return true
+        const current = saved?.files.get(relative)
+        const declared = fixtures?.[relative]
+        if (!current || declared === undefined) return false
+        return sha256Bytes(current) !== sha256(declared)
+      })
+      if (stale.length > 0) {
+        options.diagnostics.push({
+          code: "validation-input-source-stale",
+          caseId: suggestion.id,
+          message: `Task-fixture inputs are stale or omitted for the captured pre-run state: ${stale.join(", ")}. Use inputSource pre-run-input-snapshot instead of silently validating against the declared fixture.` ,
+        })
+        return undefined
+      }
+    } catch (error) {
+      options.diagnostics.push({
+        code: "validation-pre-run-source-unavailable",
+        caseId: suggestion.id,
+        message: `Could not compare task fixtures with the captured pre-run input snapshot: ${String(error)}`,
+      })
+      return undefined
+    }
+  }
+
+  const inputs: Array<{ relative: string; content: Uint8Array }> = []
   const argumentRewrites = new Map<string, string>()
   for (const inputPath of suggestion.inputFiles) {
     const located = sourceRelativeEvidenceLocator(inputPath, suggestion.inputSource)
@@ -730,9 +805,14 @@ async function materializeCase(options: {
     if (inputPath.replaceAll("\\", "/") !== relative) {
       argumentRewrites.set(inputPath, relative)
     }
-    const content = suggestion.inputSource === "task-fixtures"
+    const textContent = suggestion.inputSource === "task-fixtures"
       ? fixtures?.[relative]
-      : snapshotContent(options.evidence, relative)
+      : suggestion.inputSource === "workdir-snapshot"
+        ? snapshotContent(options.evidence, relative)
+        : undefined
+    const content = suggestion.inputSource === "pre-run-input-snapshot"
+      ? savedPreRunInputs?.files.get(relative)
+      : textContent === undefined ? undefined : new TextEncoder().encode(textContent)
     if (content === undefined) {
       options.diagnostics.push({
         code: "validation-input-missing",
@@ -846,7 +926,7 @@ async function materializeCase(options: {
       executedAssertionIds: assertions.map((item) => item.id),
       assertionAuthorities: assertions.map((item) => item.authority),
       applicability: suggestion.applicability ?? "supported",
-      inputDigests: Object.fromEntries(inputs.map((item) => [item.relative, sha256(item.content)])),
+      inputDigests: Object.fromEntries(inputs.map((item) => [item.relative, sha256Bytes(item.content)])),
       expectedAbsentFiles,
     },
   }

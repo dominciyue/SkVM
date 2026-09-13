@@ -50,6 +50,7 @@ export async function writeEvidenceSidecar(dir: string, evidence: Evidence): Pro
     taskPrompt: evidence.taskPrompt,
     criteria: evidence.criteria,
     runMeta: evidence.runMeta,
+    inputResources: evidence.inputResources,
   }
   await Bun.write(path.join(dir, EVIDENCE_FILE), JSON.stringify(sidecar, null, 2))
 
@@ -103,6 +104,7 @@ export async function readEvidenceRecord(dir: string): Promise<Evidence> {
   }
   if (sidecar.criteria) evidence.criteria = sidecar.criteria
   if (sidecar.runMeta) evidence.runMeta = sidecar.runMeta
+  if (sidecar.inputResources) evidence.inputResources = sidecar.inputResources
   if (workDirSnapshot) evidence.workDirSnapshot = workDirSnapshot
   return evidence
 }

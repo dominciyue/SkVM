@@ -53,6 +53,22 @@ export const PreRunInputSnapshotSchema = z.object({
 export type PreRunInputSnapshot = z.infer<typeof PreRunInputSnapshotSchema>
 export type PreRunInputSnapshotReference = { path: string; sha256: string; bytes: number }
 
+/** A captured file with its verified original bytes. */
+export interface PreRunInputSnapshotFile {
+  path: string
+  sha256: string
+  bytes: number
+  contentPath: string
+  mediaType: "text" | "binary"
+  content: Uint8Array
+}
+
+/** A digest-checked snapshot manifest plus the captured file bytes it names. */
+export interface PreRunInputSnapshotContents {
+  snapshot: PreRunInputSnapshot
+  files: PreRunInputSnapshotFile[]
+}
+
 const DEFAULT_MAX_FILE_BYTES = 64 * 1024
 const DEFAULT_MAX_TOTAL_BYTES = 512 * 1024
 
@@ -221,4 +237,32 @@ export async function readPreRunInputSnapshot(reference: PreRunInputSnapshotRefe
     }
   }
   return snapshot
+}
+
+/**
+ * Read a pre-run snapshot and return only its captured files. The manifest and
+ * every content file are verified by the same digest/containment checks as
+ * {@link readPreRunInputSnapshot}; omitted entries remain represented in the
+ * returned `snapshot` and are never converted into empty files.
+ */
+export async function readPreRunInputSnapshotContents(
+  reference: PreRunInputSnapshotReference,
+): Promise<PreRunInputSnapshotContents> {
+  const snapshot = await readPreRunInputSnapshot(reference)
+  const root = path.dirname(path.resolve(reference.path))
+  const files: PreRunInputSnapshotFile[] = []
+  for (const entry of snapshot.entries) {
+    if (entry.status !== "captured") continue
+    const candidate = path.resolve(root, ...entry.contentPath.split("/"))
+    const content = new Uint8Array(await readFile(candidate))
+    files.push({
+      path: entry.path,
+      sha256: entry.sha256,
+      bytes: entry.bytes,
+      contentPath: entry.contentPath,
+      mediaType: entry.mediaType,
+      content,
+    })
+  }
+  return { snapshot, files }
 }

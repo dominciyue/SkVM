@@ -11,6 +11,7 @@ import { addTokenUsage, TokenUsageSchema, RunStatusSchema } from "../core/types.
 import type { LLMProvider } from "../providers/types.ts"
 import type { AgentAdapter } from "../core/types.ts"
 import type { AdapterName } from "../adapters/registry.ts"
+import type { PreRunInputSnapshotReference } from "../run/pre-run-input-snapshot.ts"
 
 // ---------------------------------------------------------------------------
 // Conversation log entry (from ConversationLog JSONL)
@@ -111,6 +112,27 @@ export const TraceEvidenceSourceSchema = z.object({
   unknownFields: z.array(z.string()),
   diagnostics: z.array(TraceDiagnosticSchema),
 })
+
+/** A digest-bound source resource kept outside the user's live workdir. */
+export interface EvidenceInputResources {
+  preRun?: {
+    source: "pre-run-input-snapshot"
+    reference: PreRunInputSnapshotReference
+  }
+}
+
+const PreRunInputSnapshotReferenceSchema = z.object({
+  path: z.string(),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  bytes: z.number().int().nonnegative(),
+}).strict()
+
+export const EvidenceInputResourcesSchema = z.object({
+  preRun: z.object({
+    source: z.literal("pre-run-input-snapshot"),
+    reference: PreRunInputSnapshotReferenceSchema,
+  }).strict().optional(),
+}).strict()
 
 // ---------------------------------------------------------------------------
 // Work directory snapshot
@@ -287,6 +309,8 @@ export interface Evidence {
   criteria?: EvidenceCriterion[]
   /** Snapshot of agent's work directory (present when task was executed) */
   workDirSnapshot?: WorkDirSnapshot
+  /** Digest-bound original inputs captured before the source run mutated the workdir. */
+  inputResources?: EvidenceInputResources
   /** Agent run metadata (tokens, duration, errors) */
   runMeta?: RunMeta
   /** Exact external trace binding and its known/unknown representation limits. */
@@ -305,6 +329,7 @@ export const EvidenceSidecarSchema = z.object({
   taskPrompt: z.string(),
   criteria: z.array(EvidenceCriterionSchema).optional(),
   runMeta: RunMetaSchema.optional(),
+  inputResources: EvidenceInputResourcesSchema.optional(),
   trace: TraceEvidenceSourceSchema.optional(),
 })
 
@@ -384,7 +409,7 @@ export interface OptimizationValidationCaseSuggestion extends OptimizationValida
   id: string
   /** Stringified optimizer evidence index, matching action.evidenceIds. */
   evidenceId: string
-  inputSource: "task-fixtures" | "workdir-snapshot"
+  inputSource: "task-fixtures" | "pre-run-input-snapshot" | "workdir-snapshot"
   inputFiles: string[]
   expectedFiles?: OptimizationValidationExpectedFileSuggestion[]
   /** Whether the case exercises the admitted boundary or a clean pre-write rejection. */
@@ -415,7 +440,7 @@ const OptimizationValidationExpectedFileSuggestionSchema = z.object({
 export const OptimizationValidationCaseSuggestionSchema = OptimizationValidationExpectationSuggestionSchema.extend({
   id: z.string().min(1),
   evidenceId: z.string().min(1),
-  inputSource: z.enum(["task-fixtures", "workdir-snapshot"]),
+  inputSource: z.enum(["task-fixtures", "pre-run-input-snapshot", "workdir-snapshot"]),
   inputFiles: z.array(z.string().min(1)),
   expectedFiles: z.array(OptimizationValidationExpectedFileSuggestionSchema).optional(),
   applicability: z.enum(["supported", "not-applicable"]).optional(),

@@ -115,7 +115,9 @@ H13 将该包一次复制到全新的普通系统临时目录，在复制处用�
 
 H14 首次合并测试保留 4 个失败，随后只修复一个生产 portable-key 问题与三个跨平台/调度测试假设。`readEvidenceRecord` 对 recursive Dirent 的 Bun/Node parent 字段兼容，并把嵌套 workdir snapshot key 统一为 `/`；这使 Windows 写入的 `sub/answer.json` 按原键往返。detach 测试比较解析后的绝对根，共享 pool 测试不再假定 train/test 的入池顺序但继续检查全局并发上限。针对性 18/18、最终合并 347/347、typecheck 和文档治理通过。机器验证为 `results/skill-ir/skill-optimization-production-closure-20260913/h14/verification.json`，总报告为同 identity 的 `final-report.json`；最终工程 complete、行为 partial、效果 unknown。
 
-C 路线 C1 补上自然任务的运行前内容层。`prepareRunWorkspace` 在 task fixture 物化后、skill namespace 与 adapter setup 前调用 `writePreRunInputSnapshot`；快照位于 session 所有、workdir 外的 `source-inputs/`，而旧 `skvm-initial-workdir-manifest/v1` 继续只负责 delta。`skvm-pre-run-input-snapshot/v1` 对普通文件保存摘要、字节数、text/binary 表示类别和原始字节路径；单文件 64 KiB、总计 512 KiB，并把超限、总量耗尽、不可读和不支持项逐项记为 omission。空文件是合法的零字节 capture，omission 不伪装为空内容也不阻止其他文件。session 完成和 evidence freeze 都绑定同一 manifest/内容副本；C2 才负责让 Evidence、workspace 与验证器实际消费这些 locator。
+C 路线 C1 补上自然任务的运行前内容层。`prepareRunWorkspace` 在 task fixture 物化后、skill namespace 与 adapter setup 前调用 `writePreRunInputSnapshot`；快照位于 session 所有、workdir 外的 `source-inputs/`，而旧 `skvm-initial-workdir-manifest/v1` 继续只负责 delta。`skvm-pre-run-input-snapshot/v1` 对普通文件保存摘要、字节数、text/binary 表示类别和原始字节路径；单文件 64 KiB、总计 512 KiB，并把超限、总量耗尽、不可读和不支持项逐项记为 omission。空文件是合法的零字节 capture，omission 不伪装为空内容也不阻止其他文件。session 完成和 evidence freeze 都绑定同一 manifest/内容副本。
+
+C2 将这份引用接入 Evidence 的 `inputResources.preRun`，由 adapter 校验 manifest/内容绑定，workspace 独立投影到 `.optimize/tasks/<safeTaskId>/run-N-pre-run-inputs/`，并在 `IMPLEMENTATION_CONTEXT.json` 中列出相对 locator、摘要、media type、格式和 omission。validation 新增 `pre-run-input-snapshot` 来源，以原始 `Uint8Array` 物化独立 case；task-fixture 与 pre-run 同名且字节漂移时 fail closed，要求显式选择真实运行前来源。旧 trace 没有该字段仍可读，不会事后回填不可恢复的输入。
 
 ### 3.0.3 通用包导出、自然消费与效果边界
 

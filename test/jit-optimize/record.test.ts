@@ -59,6 +59,7 @@ describe("writeEvidenceRecord / readEvidenceRecord", () => {
       expect(read.conversationLog).toEqual(original.conversationLog)
       expect(read.criteria).toEqual(original.criteria)
       expect(read.runMeta).toEqual(original.runMeta)
+      expect(read.inputResources).toEqual(original.inputResources)
       expect(read.workDirSnapshot).toBeDefined()
       expect(read.workDirSnapshot!.files.get("result.txt")).toBe("42")
       expect(read.workDirSnapshot!.files.get("sub/answer.json")).toBe(`{"v":1}`)
@@ -108,6 +109,28 @@ describe("writeEvidenceRecord / readEvidenceRecord", () => {
       expect(read.criteria).toBeUndefined()
       expect(read.runMeta).toBeUndefined()
       expect(read.workDirSnapshot).toBeUndefined()
+    })
+  })
+
+  test("persists the digest-bound pre-run input resource reference", async () => {
+    await withTempDir(async (dir) => {
+      const ev = sampleEvidence({
+        inputResources: {
+          preRun: {
+            source: "pre-run-input-snapshot",
+            reference: {
+              path: path.join(dir, "source-inputs", "manifest.json"),
+              sha256: "a".repeat(64),
+              bytes: 123,
+            },
+          },
+        },
+      })
+      await writeEvidenceRecord(dir, ev)
+      const read = await readEvidenceRecord(dir)
+      expect(read.inputResources).toEqual(ev.inputResources)
+      const sidecar = await Bun.file(path.join(dir, "evidence.json")).json()
+      expect(sidecar.inputResources.preRun.source).toBe("pre-run-input-snapshot")
     })
   })
 })
