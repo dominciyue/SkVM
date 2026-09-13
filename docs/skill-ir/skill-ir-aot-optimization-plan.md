@@ -1,21 +1,35 @@
 # Skill IR AOT 当前执行计划
 
 - 更新日期：2026-09-14
-- 路线：H0–H14 + R1–R7，自动采集真实运行的 skill 优化生产链
-- 状态：`completed-development`；H0–H14、R1–R7 已完成，Y1 不适用、Y2 复用实际证据完成；总报告为 `results/skill-ir/skill-optimization-production-closure-20260913/final-report.json`
+- 路线：C0–C10，原始输入内容、本地程序动作、元数据修复与同一新包消费
+- 状态：`planned-not-started`；新任务书已登记，未创建新运行状态或启动开发执行
 - 唯一实时状态：[current-status.md](current-status.md)
-- 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3
-- 方法依据：spec 14.31
+- 详细任务书：[单次真实运行到新程序包](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1
+- 方法依据：spec 14.32
 
-本页只维护当前待执行任务。G0–G14 已完成，历史机器结果见 `results/skill-ir/general-skill-optimization-20260913/final-report.json`，整体效果 mixed。U/G 与早期受保护结果不改写。
+本页以 C 队列为当前计划，下方 H/R 内容为保留的历史阶段摘要。二次复核确认默认新程序生产闭环仍为 partial：R6 新尝试 no-change 后消费旧 H8/H9 包，R7 从旧 H9 包得到文档候选；历史报告原样保留，不再将这些分段结果拼接成新闭环成功。
 
-## 目标与缺口
+## 当前待执行队列
+
+| 阶段 | 状态 | 下一交付 |
+| --- | --- | --- |
+| C0 | planned | 命名失败诊断和最小基线；启动时创建本轮 status |
+| C1–C2 | planned | 自然任务执行前内容保存，并接入 Evidence/workspace/验证器 |
+| C3–C4 | planned | 本地脚本修改、动作声明诊断、修复元数据采纳及最终一致性 |
+| C5–C6 | planned | 局部机会判断、无人工评分文件的来源检查和正确推荐边界 |
+| C7 | planned | 自动输入到同一新程序包的连续集成测试及旧包替换反例 |
+| C8–C9 | planned | 原始 Law/I18n 的新真实尝试，同新包自然消费及少量成对效果 |
+| C10 | planned | 一次相关回归、文档、精确提交并推用户 origin |
+
+至少一条本次生成非 API 参数化程序的普通链必须完整通过原/变化任务；现成脚本路线另有真实尝试。no-change、文档候选、旧包成功和测试数不能替代。模型/网络/付费授权继续有效；只在 C0 启动时创建 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/status.json`，本次仅制定计划。
+
+## 上一轮目标与执行记录（历史）
 
 将现有 JIT-optimize、程序验证、动作解析与通用 exporter 接成正常用户流程。默认用户选择 skill、描述自然任务和工作目录，系统运行一次后自动捕获并关联真实 trace，再复用或生成程序、改进文档，经实际验证与有限修复，导出新包。手工日志保留为高级兼容入口，不是用户必需工作。
 
 H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3–H7 修复；G 文档包与新 H8/H9 程序结果分开。已有 30 个阅读条目包含 10 个深读，追加阅读只围绕明确结构缺口。revision 2 追加的是自动采集与免手工接线，不能用历史程序结果替代。
 
-## 待执行队列
+## 上一轮已执行队列
 
 | 阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
@@ -73,9 +87,9 @@ Y1 多程序接力因当前真实最终选择没有双程序组合而 `not-appli
 ## 工作方式与恢复
 
 - 直接在 `skill-ir-aot` 开发，只推用户 `origin`，保留其他线程 tracked/未跟踪材料。
-- H0 才创建 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`；当前不得伪造运行结果。
+- C0 才创建 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/status.json`；不更新旧 H/R 状态来表示新工作。
 - 复用模型、trace adapters、workspace/loop/proposals 和可选 API/Env 组件，不新建优化器、不统一强制 API/JSON 输入。
 - 定向补充公开 development 材料与真实 trace；网络、认证 GitHub CLI、远端 API 和有用途付费调用按既有授权使用，实际及未知成本分列。
 - 一次生成/验证、明确错误时一次自动修复；有新根因可继续改共享工程，不无限抽样或补样。
 - 不启动 Q1/held-out/prospective、不修改 readiness 或历史证据；不重复历史全量审计、clean/摘要循环。
-- 按任务书连续推进，常规检查点不等确认；完成主线与适用追加任务后交付。尚有可执行必需工作时不把持续目标标记为完成。
+- 按新 C0–C10 任务书连续推进，常规检查点不等确认；最低新程序闭环条件达成后交付。尚有可执行必需工作时不把持续目标标记为完成。
