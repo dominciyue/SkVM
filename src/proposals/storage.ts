@@ -168,7 +168,10 @@ export function proposalDirFromId(id: string): string {
 }
 
 function makeProposalId(harness: string, targetModel: string, skillName: string, timestamp: string): string {
-  return path.join(harness, safeModelName(targetModel), skillName, timestamp)
+  // Proposal ids are serialized identifiers, not host filesystem paths.
+  // Keep their representation stable across Windows and POSIX; consumers
+  // convert the canonical slash-separated id back through path.join.
+  return path.posix.join(harness, safeModelName(targetModel), skillName, timestamp)
 }
 
 function tsString(d: Date = new Date()): string {
@@ -403,6 +406,22 @@ function renderAnalysis(
         parts.push("")
         for (const c of entry.changes) {
           parts.push(`- \`${c.file}\`${c.section ? ` (${c.section})` : ""}: ${c.description}`)
+        }
+        parts.push("")
+      }
+      if ((entry.actions?.length ?? 0) > 0) {
+        parts.push(`**Actions:**`)
+        parts.push("")
+        for (const action of entry.actions ?? []) {
+          parts.push(`- \`${action.id}\` (${action.kind}); depends on: ${action.dependsOn.join(", ") || "none"}`)
+        }
+        parts.push("")
+      }
+      if ((entry.actionDiagnostics?.length ?? 0) > 0) {
+        parts.push(`**Rejected action diagnostics:**`)
+        parts.push("")
+        for (const diagnostic of entry.actionDiagnostics ?? []) {
+          parts.push(`- ${diagnostic.code} at \`${diagnostic.locator}\`: ${diagnostic.message}`)
         }
         parts.push("")
       }

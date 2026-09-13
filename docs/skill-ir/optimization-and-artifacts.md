@@ -59,6 +59,17 @@ trace 声明的 `skillPath` 与本次配置路径并列。这样单次运行没�
 一条真实非 API 记录，不证明优化效果。机器绑定见
 `results/skill-ir/general-skill-optimization-20260913/g2-trace-evidence.json`。
 
+### 3.0.1 可实施动作合同
+
+`OptimizeSubmission.actions` 是可选的依赖图，不替代 `opportunities` 或真实文件 diff。每个动作声明 kind、证据、
+source refs、依赖、可变输入、输出、前置条件、实际涉及路径、残余职责和验证；当前支持复用已有脚本、可选领域
+后端、生成脚本和纯文档重组四种意图。具体任务值应留在 evidence，动作输入只说明参数来源，避免把一次答案写死。
+
+`validateOptimizationActions` 逐项解析，再检查重复 id、未知依赖和循环。出错动作及依赖它的动作被拒绝，互不依赖
+的可靠动作、机会和诊断继续保留；缺字段不会因为整个 actions 字段可选而自动补空。`HistoryEntry`、工作区 history
+和 proposal analysis 都保存有效动作与拒绝定位。动作的 `changedPaths` 仍是声明，是否实施只由真实工作区 diff 证明。
+机器验证见 `results/skill-ir/general-skill-optimization-20260913/g3-action-plan-verification.json`。
+
 当前使用双源：original 证明失败 lineage 是否持续，ir-static 提供 schema/location 等静态残差。只在
 original 与 static 均失败、证据公开且可复现时生成 repair；static regression 直接阻断。
 

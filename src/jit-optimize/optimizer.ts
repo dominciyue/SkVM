@@ -28,6 +28,7 @@ import {
 import { mkdir } from "node:fs/promises"
 import { copySkillDir } from "../core/fs-utils.ts"
 import { TIMEOUT_DEFAULTS } from "../core/timeouts.ts"
+import { validateOptimizationActions } from "./action-plan.ts"
 
 const log = createLogger("jit-optimize-optimizer")
 
@@ -176,6 +177,7 @@ export async function runOptimizer(
 // ---------------------------------------------------------------------------
 
 export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeSubmission {
+  const actionPlan = validateOptimizationActions(raw.actions ?? [])
   // infraBlocked is the strongest signal — if both it and noChanges are set,
   // infraBlocked wins (negative statement about evidence quality beats the
   // positive statement about skill quality). The two are mutually exclusive
@@ -191,6 +193,8 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
       changedFiles: [],
       changes: [],
       opportunities: raw.opportunities ?? [],
+      actions: actionPlan.actions,
+      actionDiagnostics: actionPlan.diagnostics,
       noChanges: false,
       infraBlocked: true,
       blockedEvidenceIds: raw.blockedEvidenceIds ?? [],
@@ -205,6 +209,8 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
       changedFiles: [],
       changes: [],
       opportunities: raw.opportunities ?? [],
+      actions: actionPlan.actions,
+      actionDiagnostics: actionPlan.diagnostics,
       noChanges: true,
     }
   }
@@ -215,6 +221,8 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
     changedFiles: raw.changedFiles ?? [],
     changes: raw.changes ?? [],
     opportunities: raw.opportunities ?? [],
+    actions: actionPlan.actions,
+    actionDiagnostics: actionPlan.diagnostics,
     noChanges: false,
   }
 }
@@ -227,6 +235,8 @@ function emptySubmission(reason: string): OptimizeSubmission {
     changedFiles: [],
     changes: [],
     opportunities: [],
+    actions: [],
+    actionDiagnostics: [],
     noChanges: false,
   }
 }

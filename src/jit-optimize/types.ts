@@ -344,6 +344,68 @@ export const OptimizationChangeSchema = z.object({
   linesDelta: z.number().optional(),
 })
 
+export type OptimizationActionKind =
+  | "reuse-script"
+  | "domain-backend"
+  | "generate-script"
+  | "restructure-docs"
+
+/** Evidence-backed, dependency-aware work the optimized skill will expose. */
+export interface OptimizationAction {
+  id: string
+  kind: OptimizationActionKind
+  evidenceIds: string[]
+  sourceRefs: string[]
+  dependsOn: string[]
+  inputs: string[]
+  outputs: string[]
+  preconditions: string[]
+  changedPaths: string[]
+  residualDuties: string[]
+  verification: string[]
+}
+
+export const OptimizationActionSchema = z.object({
+  id: z.string().min(1),
+  kind: z.enum(["reuse-script", "domain-backend", "generate-script", "restructure-docs"]),
+  evidenceIds: z.array(z.string()),
+  sourceRefs: z.array(z.string()),
+  dependsOn: z.array(z.string()),
+  inputs: z.array(z.string()),
+  outputs: z.array(z.string()),
+  preconditions: z.array(z.string()),
+  changedPaths: z.array(z.string()),
+  residualDuties: z.array(z.string()),
+  verification: z.array(z.string()),
+})
+
+export type OptimizationActionDiagnosticCode =
+  | "invalid-action"
+  | "duplicate-action-id"
+  | "unknown-action-dependency"
+  | "action-dependency-cycle"
+
+export interface OptimizationActionDiagnostic {
+  code: OptimizationActionDiagnosticCode
+  severity: "error"
+  actionId?: string
+  locator: string
+  message: string
+}
+
+export const OptimizationActionDiagnosticSchema = z.object({
+  code: z.enum([
+    "invalid-action",
+    "duplicate-action-id",
+    "unknown-action-dependency",
+    "action-dependency-cycle",
+  ]),
+  severity: z.literal("error"),
+  actionId: z.string().optional(),
+  locator: z.string(),
+  message: z.string(),
+})
+
 /**
  * One round in a skill's optimization history.
  *
@@ -362,6 +424,10 @@ export interface HistoryEntry {
   changes: OptimizationChange[]
   /** Files actually modified (for diff validation) */
   changedFiles: string[]
+  /** Validated executable/restructuring actions proposed in this round. */
+  actions?: OptimizationAction[]
+  /** Rejected action diagnostics retained without invalidating sibling actions. */
+  actionDiagnostics?: OptimizationActionDiagnostic[]
   /** Optimizer's self-reported confidence (0-1) */
   confidence: number
   /** Engine-internal score on the train set (what the optimizer saw); null if not evaluated */
@@ -385,6 +451,8 @@ export const HistoryEntrySchema = z.object({
   reasoning: z.string(),
   changes: z.array(OptimizationChangeSchema),
   changedFiles: z.array(z.string()),
+  actions: z.array(OptimizationActionSchema).optional(),
+  actionDiagnostics: z.array(OptimizationActionDiagnosticSchema).optional(),
   confidence: z.number(),
   trainScore: z.number().nullable(),
   testScore: z.number().nullable(),
@@ -442,6 +510,10 @@ export interface OptimizeSubmission {
   changes?: OptimizationChange[]
   /** Evidence-backed opportunity audit, including retained residual duties. */
   opportunities?: OptimizationOpportunity[]
+  /** Validated implementation actions; invalid siblings are omitted with diagnostics. */
+  actions?: OptimizationAction[]
+  /** Engine-produced diagnostics for rejected action entries. */
+  actionDiagnostics?: OptimizationActionDiagnostic[]
   /**
    * Positive statement about the skill: "I read the evidence, diagnosed no
    * skill defect, and recommend no edit." Mutually exclusive with
@@ -510,6 +582,10 @@ export const OptimizeSubmissionSchema = z.object({
   changedFiles: z.array(z.string()).optional(),
   changes: z.array(OptimizationChangeSchema).optional(),
   opportunities: z.array(OptimizationOpportunitySchema).optional(),
+  // Action entries are deliberately parsed tolerantly here. The engine's
+  // validateOptimizationActions pass validates each sibling independently so
+  // one malformed action cannot discard the reliable submission and evidence.
+  actions: z.array(z.unknown()).transform((items) => items as OptimizationAction[]).optional(),
   noChanges: z.boolean().optional(),
   infraBlocked: z.boolean().optional(),
   blockedEvidenceIds: z.array(z.string()).optional(),

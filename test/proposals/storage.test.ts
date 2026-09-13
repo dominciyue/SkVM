@@ -85,7 +85,7 @@ describe("proposals storage — target-model keying", () => {
 
       const expectedSegment = safeModelName("openrouter/qwen/qwen3-30b-a3b")
       expect(result.id).toContain(`bare-agent/${expectedSegment}/calc/`)
-      expect(result.dir).toContain(`bare-agent/${expectedSegment}/calc/`)
+      expect(result.dir).toContain(path.join("bare-agent", expectedSegment, "calc") + path.sep)
       // optimizer model must NOT appear in the path
       expect(result.dir).not.toContain(safeModelName("anthropic/claude-opus-4.6"))
 

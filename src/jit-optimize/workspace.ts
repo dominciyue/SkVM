@@ -215,6 +215,21 @@ export async function serializeContext(
             residualDuty: "What the agent must still decide or execute at runtime.",
           },
         ],
+        actions: [
+          {
+            id: "make-repeated-work-executable",
+            kind: "reuse-script",
+            evidenceIds: ["0"],
+            sourceRefs: ["scripts/existing-tool.py"],
+            dependsOn: [],
+            inputs: ["input path supplied by the user"],
+            outputs: ["output path returned to the user"],
+            preconditions: ["the bundled runtime dependency is available"],
+            changedPaths: ["SKILL.md"],
+            residualDuties: ["the agent selects whether this action applies"],
+            verification: ["run the bundled tool on a changed input"],
+          },
+        ],
       },
       _shape_2_no_changes: {
         noChanges: true,
@@ -796,6 +811,23 @@ function renderHistoryMarkdown(history: HistoryEntry[]): string {
       }
     }
     parts.push("")
+    if ((entry.actions?.length ?? 0) > 0) {
+      parts.push(`### Actions`)
+      parts.push("")
+      for (const action of entry.actions ?? []) {
+        parts.push(`- \`${action.id}\` (${action.kind}); depends on: ${action.dependsOn.join(", ") || "none"}`)
+        parts.push(`  - residual duties: ${action.residualDuties.join("; ") || "none stated"}`)
+      }
+      parts.push("")
+    }
+    if ((entry.actionDiagnostics?.length ?? 0) > 0) {
+      parts.push(`### Rejected Action Diagnostics`)
+      parts.push("")
+      for (const diagnostic of entry.actionDiagnostics ?? []) {
+        parts.push(`- ${diagnostic.code} at \`${diagnostic.locator}\`: ${diagnostic.message}`)
+      }
+      parts.push("")
+    }
     parts.push(`### Reasoning`)
     parts.push("")
     parts.push(entry.reasoning)

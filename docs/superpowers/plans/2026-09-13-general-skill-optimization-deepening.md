@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 headless-agent/provider/trace adapters、proposal storage、Skill IR 与已有领域 checker；按原 skill 需要使用 Python/Node 等已有运行时。
 
-**状态：** revision 1，`active`，2026-09-13。G0/G2 completed，G1 implementation commitment open，G3 active。U0–U7 已完成且结果保持 mixed；本轮为新的 development 工作，不是 prospective 或 held-out。
+**状态：** revision 1，`active`，2026-09-13。G0–G3 completed，G4 active。U0–U7 已完成且结果保持 mixed；本轮为新的 development 工作，不是 prospective 或 held-out。
 
 **队列：** G0–G14 主队列；X1–X3 为主链达到要求后、交付窗口前自动选择的有限深化队列。工作量按约 16–24 小时的连续开发范围设计，实际时间由故障和已有能力决定，不承诺靠任务文字保证运行时长。
 
@@ -95,7 +95,7 @@
 - [x] 首批及补充样本共广读 30 份、深读 10 份，逐份记录原文位置、资源形态、机械/判断步骤和可疑开销。
 - [x] 已有语料达到结构广度，因此本轮未新增网络获取；既有来源的 commit、license、闭包问题和仓库失败仍完整保留。
 - [x] 输出 `corpus-review.json` 和 `implementation-backlog.json`，8 项问题均带证据定位、当前代码、跨结构范围与拟测试行为。
-- [ ] 优先处理真实重复机制，例如已有脚本发现、参考资料按需加载、输入提取、程序结果摘要、剩余流程交接。至少三项进入 G3–G11 的实际代码；两成员共用证据有帮助，但不设每个合理修复都必须已有两个正例的门。
+- [x] 三项语料问题已进入生产代码：单记录去重、完整资源导航、依赖化动作合同；后续 G4–G11 继续处理脚本发现、结果摘要和剩余流程交接。
 
 **完成：** 语料阅读已经产生可测试的实现问题；数量不足如实说明，不阻塞开发。
 
@@ -133,11 +133,11 @@ export interface OptimizationAction {
 }
 ```
 
-- [ ] 先测试重复 action id、未知依赖、依赖循环会给出定位；没有动作的旧 proposal、纯文档动作、空输入列表可以解析；optional 不等于一律填空伪装信息已知。
-- [ ] 每个动作把 trace 中的具体值与可变参数分开。参数可来自文本、目录、CLI、配置或对象，不固定为 OpenAPI schema。
-- [ ] 记录哪些步骤被程序替代、哪些继续由 agent 完成；一次未观察到的职责不能默认为删除。
-- [ ] 将 actions/opportunities 随 round/history 持久化并可显示，真实 FS diff 仍权威；不能仅因模型列出 changedPaths 就认定已经实现。
-- [ ] 解析错误只阻止受影响动作的执行，并保留可靠证据与诊断；必需依赖缺失时不能装作该动作可用。
+- [x] 测试覆盖重复 action id、未知依赖、依赖循环定位；旧 proposal、纯文档动作和空输入列表兼容；缺字段不会自动补空。
+- [x] 动作合同分别携带 sourceRefs、inputs/outputs 与 preconditions；具体 trace 值仍在 evidence，不固定为 OpenAPI schema。
+- [x] `residualDuties` 明示仍由 agent 完成的职责；单次未观察到的职责不默认删除。
+- [x] actions/opportunities 随 round/history 持久化并显示；真实 FS diff 仍是 implementation authority。
+- [x] 解析/图错误只拒绝受影响动作及依赖者，独立动作和可靠诊断保留；必需依赖缺失不可执行。
 
 **运行：** `bun test ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/infra-blocked-submission.test.ts ./test/proposals/storage.test.ts`。
 

@@ -59,6 +59,9 @@ export type {
   Evidence,
   HistoryEntry,
   OptimizationChange,
+  OptimizationAction,
+  OptimizationActionKind,
+  OptimizationActionDiagnostic,
   OptimizeInput,
   OptimizeConfig,
   OptimizeResult,
@@ -77,10 +80,15 @@ export type {
 export {
   HistoryEntrySchema,
   OptimizationChangeSchema,
+  OptimizationActionSchema,
+  OptimizationActionDiagnosticSchema,
   OptimizeSubmissionSchema,
   EvidenceCriterionSchema,
   emptyCostSlice,
 } from "./types.ts"
+
+export { validateOptimizationActions } from "./action-plan.ts"
+export type { OptimizationActionValidationResult } from "./action-plan.ts"
 
 export { runOptimizer } from "./optimizer.ts"
 export { runLoop } from "./loop.ts"

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "skill-ir-general-action-plan-verification/v1",
+  "identity": "general-skill-optimization-20260913-g3",
+  "exposure": "development",
+  "status": "passed",
+  "production": {
+    "module": "src/jit-optimize/action-plan.ts",
+    "publicEntry": "src/jit-optimize/index.ts",
+    "submissionField": "actions",
+    "historyFields": ["actions", "actionDiagnostics"],
+    "actionKinds": ["reuse-script", "domain-backend", "generate-script", "restructure-docs"],
+    "requiredFields": ["id", "kind", "evidenceIds", "sourceRefs", "dependsOn", "inputs", "outputs", "preconditions", "changedPaths", "residualDuties", "verification"],
+    "filesystemAuthority": "actual workspace diff remains authoritative; changedPaths is descriptive"
+  },
+  "validation": {
+    "duplicateIds": "all duplicate copies rejected with per-index locators",
+    "unknownDependencies": "affected action rejected; independent siblings retained",
+    "cycles": "cycle members rejected; dependants then fail their missing dependency",
+    "invalidSyntax": "invalid action rejected; submission evidence and valid siblings retained",
+    "legacySubmission": "missing actions normalizes to an empty action list",
+    "emptyInputs": "allowed when the action semantics intentionally need no input"
+  },
+  "tdd": {
+    "initialFailure": "action-plan module absent",
+    "command": "bun test ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/infra-blocked-submission.test.ts ./test/proposals/storage.test.ts",
+    "passed": 33,
+    "failed": 0,
+    "assertions": 83,
+    "typecheck": "passed"
+  },
+  "incidentalRegressionRepair": {
+    "initialFailure": "proposal storage test assumed forward slashes for both serialized ids and native directories on Windows",
+    "rootCause": "makeProposalId used host separators even though the id is serialized; the directory assertion also used a non-native separator",
+    "repair": "proposal ids now use path.posix.join; directory assertions use path.join and path.sep",
+    "semanticChange": "proposal directory layout is unchanged; serialized proposal ids are now cross-platform stable"
+  },
+  "accounting": {
+    "projectModelCalls": 0,
+    "projectApiCalls": 0,
+    "projectPaidCalls": 0,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "claimBoundary": "This proves action-contract parsing, graph validation and persistence behavior in development. It does not prove that any proposed action was implemented or improved task quality."
+}

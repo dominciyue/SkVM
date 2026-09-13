@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 路线：G0–G14，单次真实 trace 驱动的通用 skill 优化
-- 状态：`active`（G0/G2 completed，G1 生产落地承诺开放，G3 active）
+- 状态：`active`（G0–G3 completed，G4 active）
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)
 
@@ -17,10 +17,10 @@
 | 阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
 | G0 现场与基线 | completed | 确认归属，建立机器恢复入口；规定的单次基线 9/9 tests、31 assertions |
-| G1 语料驱动诊断 | evidence-completed | 30 份广读、10 份深读、8 项积压已绑定；至少三项进入生产实现后才终态 completed |
+| G1 语料驱动诊断 | completed | 30 份广读、10 份深读、8 项积压；去重、资源导航、动作合同三项已进入生产实现 |
 | G2 单次 trace | completed | 精确选择一条真实非 API 记录；摘要、资源和 unknown 分开，复制记录不重复计数 |
-| G3 可执行动作 | active | 复用机会/历史，动作依赖、参数与残余职责可表达 |
-| G4 模型优化 | planned | 解除普遍缺陷/重复次数/行数门槛，依据行为保留质量 |
+| G3 可执行动作 | completed | 四类动作可表达依赖、参数和残余职责；局部错误诊断可持久化 |
+| G4 模型优化 | active | 解除普遍缺陷/重复次数/行数门槛，依据行为保留质量 |
 | G5 实现选择 | planned | 原脚本、领域组件、生成程序、文档重组按需选择 |
 | G6 程序运行 | planned | 参数化脚本通过原/变化输入检查，错误可反馈 |
 | G7 通用包 | planned | 不强制 API 字段，重组入口并保留必要资源与原件 |
